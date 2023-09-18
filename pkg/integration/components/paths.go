@@ -3,9 +3,9 @@ package components
 import "path/filepath"
 
 // convenience struct for easily getting directories within our test directory.
-// We have one test directory for each test, found in test/results.
+// We have one test directory for each test, found in test/_results.
 type Paths struct {
-	// e.g. test/results/test_name
+	// e.g. test/_results/test_name
 	root string
 }
 

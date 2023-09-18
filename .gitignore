@@ -35,7 +35,7 @@ lazygit.exe
 
 test/git_server/data
 
-test/results/**
+test/_results/**
 
 oryxBuildBinary
 __debug_bin

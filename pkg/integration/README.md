@@ -50,7 +50,7 @@ The name of a test is based on its path, so the name of the test at `pkg/integra
 
 You can pass the INPUT_DELAY env var to the test runner in order to set a delay in milliseconds between keypresses or mouse clicks, which helps for watching a test at a realistic speed to understand what it's doing. Or you can pass the '--slow' flag which sets a pre-set 'slow' key delay. In the tui you can press 't' to run the test in slow mode.
 
-The resultant repo will be stored in `test/results`, so if you're not sure what went wrong you can go there and inspect the repo.
+The resultant repo will be stored in `test/_results`, so if you're not sure what went wrong you can go there and inspect the repo.
 
 ### Running tests in VSCode
 

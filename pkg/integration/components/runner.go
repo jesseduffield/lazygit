@@ -39,7 +39,7 @@ func RunTests(
 		return err
 	}
 
-	testDir := filepath.Join(projectRootDir, "test", "results")
+	testDir := filepath.Join(projectRootDir, "test", "_results")
 
 	if err := buildLazygit(); err != nil {
 		return err
