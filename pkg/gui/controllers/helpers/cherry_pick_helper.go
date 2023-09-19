@@ -76,6 +76,19 @@ func (self *CherryPickHelper) Paste() error {
 		Title:  self.c.Tr.CherryPick,
 		Prompt: self.c.Tr.SureCherryPick,
 		HandleConfirm: func() error {
+			isInRebase, err := self.c.Git().Status.IsInInteractiveRebase()
+			if err != nil {
+				return err
+			}
+			if isInRebase {
+				if err := self.c.Git().Rebase.CherryPickCommitsDuringRebase(self.getData().CherryPickedCommits); err != nil {
+					return err
+				}
+				return self.c.Refresh(types.RefreshOptions{
+					Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
+				})
+			}
+
 			return self.c.WithWaitingStatus(self.c.Tr.CherryPickingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.CherryPick)
 				err := self.c.Git().Rebase.CherryPickCommits(self.getData().CherryPickedCommits)

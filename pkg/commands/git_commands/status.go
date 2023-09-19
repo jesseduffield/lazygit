@@ -25,19 +25,16 @@ func NewStatusCommands(
 // RebaseMode returns "" for non-rebase mode, "normal" for normal rebase
 // and "interactive" for interactive rebase
 func (self *StatusCommands) RebaseMode() (enums.RebaseMode, error) {
-	exists, err := self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-apply"))
-	if err != nil {
-		return enums.REBASE_MODE_NONE, err
-	}
-	if exists {
+	ok, err := self.IsInNormalRebase()
+	if err == nil && ok {
 		return enums.REBASE_MODE_NORMAL, nil
 	}
-	exists, err = self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge"))
-	if exists {
+	ok, err = self.IsInInteractiveRebase()
+	if err == nil && ok {
 		return enums.REBASE_MODE_INTERACTIVE, err
-	} else {
-		return enums.REBASE_MODE_NONE, err
 	}
+
+	return enums.REBASE_MODE_NONE, err
 }
 
 func (self *StatusCommands) WorkingTreeState() enums.RebaseMode {
@@ -66,6 +63,14 @@ func IsBareRepo(osCommand *oscommands.OSCommand) (bool, error) {
 
 	// The command returns output with a newline, so we need to strip
 	return strconv.ParseBool(strings.TrimSpace(res))
+}
+
+func (self *StatusCommands) IsInNormalRebase() (bool, error) {
+	return self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-apply"))
+}
+
+func (self *StatusCommands) IsInInteractiveRebase() (bool, error) {
+	return self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge"))
 }
 
 // IsInMergeState states whether we are still mid-merge

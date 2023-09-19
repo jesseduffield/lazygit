@@ -457,6 +457,20 @@ func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
 	}).Run()
 }
 
+// CherryPickCommitsDuringRebase simply prepends the given commits to the existing git-rebase-todo file
+func (self *RebaseCommands) CherryPickCommitsDuringRebase(commits []*models.Commit) error {
+	todoLines := lo.Map(commits, func(commit *models.Commit, _ int) daemon.TodoLine {
+		return daemon.TodoLine{
+			Action: "pick",
+			Commit: commit,
+		}
+	})
+
+	todo := daemon.TodoLinesToString(todoLines)
+	filePath := filepath.Join(self.repoPaths.worktreeGitDirPath, "rebase-merge/git-rebase-todo")
+	return utils.PrependStrToTodoFile(filePath, []byte(todo))
+}
+
 // we can't start an interactive rebase from the first commit without passing the
 // '--root' arg
 func getBaseShaOrRoot(commits []*models.Commit, index int) string {
