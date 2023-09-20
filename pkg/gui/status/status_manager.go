@@ -27,19 +27,7 @@ func NewStatusManager() *StatusManager {
 }
 
 func (self *StatusManager) WithWaitingStatus(message string, f func()) {
-	self.mutex.Lock()
-
-	self.nextId += 1
-	id := self.nextId
-
-	newStatus := appStatus{
-		message:    message,
-		statusType: "waiting",
-		id:         id,
-	}
-	self.statuses = append([]appStatus{newStatus}, self.statuses...)
-
-	self.mutex.Unlock()
+	id := self.addStatus(message, "waiting")
 
 	f()
 
@@ -47,18 +35,7 @@ func (self *StatusManager) WithWaitingStatus(message string, f func()) {
 }
 
 func (self *StatusManager) AddToastStatus(message string) int {
-	self.mutex.Lock()
-	defer self.mutex.Unlock()
-
-	self.nextId++
-	id := self.nextId
-
-	newStatus := appStatus{
-		message:    message,
-		statusType: "toast",
-		id:         id,
-	}
-	self.statuses = append([]appStatus{newStatus}, self.statuses...)
+	id := self.addStatus(message, "toast")
 
 	go func() {
 		time.Sleep(time.Second * 2)
@@ -82,6 +59,23 @@ func (self *StatusManager) GetStatusString() string {
 
 func (self *StatusManager) HasStatus() bool {
 	return len(self.statuses) > 0
+}
+
+func (self *StatusManager) addStatus(message string, statusType string) int {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	self.nextId++
+	id := self.nextId
+
+	newStatus := appStatus{
+		message:    message,
+		statusType: statusType,
+		id:         id,
+	}
+	self.statuses = append([]appStatus{newStatus}, self.statuses...)
+
+	return id
 }
 
 func (self *StatusManager) removeStatus(id int) {
