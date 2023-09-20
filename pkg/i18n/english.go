@@ -58,9 +58,6 @@ type TranslationSet struct {
 	MergeConflictsTitle                 string
 	Checkout                            string
 	NoChangedFiles                      string
-	PullWait                            string
-	PushWait                            string
-	FetchWait                           string
 	SoftReset                           string
 	AlreadyCheckedOutBranch             string
 	SureForceCheckout                   string
@@ -187,7 +184,7 @@ type TranslationSet struct {
 	ToggleStagingPanel                  string
 	ReturnToFilesPanel                  string
 	FastForward                         string
-	Fetching                            string
+	FastForwarding                      string
 	FoundConflictsTitle                 string
 	ViewConflictsMenuItem               string
 	AbortMenuItem                       string
@@ -253,6 +250,9 @@ type TranslationSet struct {
 	AmendCommitPrompt                   string
 	DeleteCommitTitle                   string
 	DeleteCommitPrompt                  string
+	PullingStatus                       string
+	PushingStatus                       string
+	FetchingStatus                      string
 	SquashingStatus                     string
 	FixingStatus                        string
 	DeletingStatus                      string
@@ -848,9 +848,6 @@ func EnglishTranslationSet() TranslationSet {
 		FilterUnstagedFiles:                 "Show only unstaged files",
 		ResetFilter:                         "Reset filter",
 		NoChangedFiles:                      "No changed files",
-		PullWait:                            "Pulling...",
-		PushWait:                            "Pushing...",
-		FetchWait:                           "Fetching...",
 		SoftReset:                           "Soft reset",
 		AlreadyCheckedOutBranch:             "You have already checked out this branch",
 		SureForceCheckout:                   "Are you sure you want force checkout? You will lose all local changes",
@@ -980,7 +977,7 @@ func EnglishTranslationSet() TranslationSet {
 		ToggleStagingPanel:                  `Switch to other panel (staged/unstaged changes)`,
 		ReturnToFilesPanel:                  `Return to files panel`,
 		FastForward:                         `Fast-forward this branch from its upstream`,
-		Fetching:                            "Fetching and fast-forwarding {{.from}} -> {{.to}} ...",
+		FastForwarding:                      "Fast-forwarding {{.branch}}",
 		FoundConflictsTitle:                 "Conflicts!",
 		ViewConflictsMenuItem:               "View conflicts",
 		AbortMenuItem:                       "Abort the %s",
@@ -1049,6 +1046,9 @@ func EnglishTranslationSet() TranslationSet {
 		AmendCommitPrompt:                   "Are you sure you want to amend this commit with your staged files?",
 		DeleteCommitTitle:                   "Delete commit",
 		DeleteCommitPrompt:                  "Are you sure you want to delete this commit?",
+		PullingStatus:                       "Pulling",
+		PushingStatus:                       "Pushing",
+		FetchingStatus:                      "Fetching",
 		SquashingStatus:                     "Squashing",
 		FixingStatus:                        "Fixing up",
 		DeletingStatus:                      "Deleting",

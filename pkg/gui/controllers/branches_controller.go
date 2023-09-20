@@ -537,14 +537,13 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 	action := self.c.Tr.Actions.FastForwardBranch
 
 	message := utils.ResolvePlaceholderString(
-		self.c.Tr.Fetching,
+		self.c.Tr.FastForwarding,
 		map[string]string{
-			"from": fmt.Sprintf("%s/%s", branch.UpstreamRemote, branch.UpstreamBranch),
-			"to":   branch.Name,
+			"branch": branch.Name,
 		},
 	)
 
-	return self.c.WithLoaderPanel(message, func(task gocui.Task) error {
+	return self.c.WithWaitingStatus(message, func(task gocui.Task) error {
 		worktree, ok := self.worktreeForBranch(branch)
 		if ok {
 			self.c.LogAction(action)

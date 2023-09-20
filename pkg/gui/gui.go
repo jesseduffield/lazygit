@@ -487,7 +487,6 @@ func NewGui(
 		func(message string, f func(gocui.Task) error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
 		func(message string) { gui.helpers.AppStatus.Toast(message) },
 		func() string { return gui.Views.Confirmation.TextArea.GetContent() },
-		func(f func(gocui.Task)) { gui.c.OnWorker(f) },
 		func() bool { return gui.c.InDemo() },
 	)
 
