@@ -73,6 +73,9 @@ func NewGitCommand(
 	// converting to forward slashes for the sake of windows (which uses backwards slashes). We want everything
 	// to have forward slashes internally
 	currentPath = filepath.ToSlash(currentPath)
+	if currentPath, err = git_commands.ResolveSymlink(currentPath); err != nil {
+		return nil, utils.WrapError(err)
+	}
 
 	gitDir := env.GetGitDirEnv()
 	if gitDir != "" {

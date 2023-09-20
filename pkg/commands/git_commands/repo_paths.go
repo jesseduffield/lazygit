@@ -78,7 +78,7 @@ func GetRepoPaths(
 	fs afero.Fs,
 	currentPath string,
 ) (*RepoPaths, error) {
-	return getRepoPathsAux(afero.NewOsFs(), resolveSymlink, currentPath)
+	return getRepoPathsAux(afero.NewOsFs(), ResolveSymlink, currentPath)
 }
 
 func getRepoPathsAux(
@@ -228,7 +228,7 @@ func getCurrentRepoGitDirPath(
 }
 
 // takes a path containing a symlink and returns the true path
-func resolveSymlink(path string) (string, error) {
+func ResolveSymlink(path string) (string, error) {
 	l, err := os.Lstat(path)
 	if err != nil {
 		return "", err
