@@ -16,6 +16,24 @@ type StatusManager struct {
 	mutex    deadlock.Mutex
 }
 
+// Can be used to manipulate a waiting status while it is running (e.g. pause
+// and resume it)
+type WaitingStatusHandle struct {
+	statusManager *StatusManager
+	message       string
+	renderFunc    func()
+	id            int
+}
+
+func (self *WaitingStatusHandle) Show() {
+	self.id = self.statusManager.addStatus(self.message, "waiting")
+	self.renderFunc()
+}
+
+func (self *WaitingStatusHandle) Hide() {
+	self.statusManager.removeStatus(self.id)
+}
+
 type appStatus struct {
 	message    string
 	statusType string
@@ -26,39 +44,17 @@ func NewStatusManager() *StatusManager {
 	return &StatusManager{}
 }
 
-func (self *StatusManager) WithWaitingStatus(message string, f func()) {
-	self.mutex.Lock()
+func (self *StatusManager) WithWaitingStatus(message string, renderFunc func(), f func(*WaitingStatusHandle)) {
+	handle := &WaitingStatusHandle{statusManager: self, message: message, renderFunc: renderFunc, id: -1}
+	handle.Show()
 
-	self.nextId += 1
-	id := self.nextId
+	f(handle)
 
-	newStatus := appStatus{
-		message:    message,
-		statusType: "waiting",
-		id:         id,
-	}
-	self.statuses = append([]appStatus{newStatus}, self.statuses...)
-
-	self.mutex.Unlock()
-
-	f()
-
-	self.removeStatus(id)
+	handle.Hide()
 }
 
 func (self *StatusManager) AddToastStatus(message string) int {
-	self.mutex.Lock()
-	defer self.mutex.Unlock()
-
-	self.nextId++
-	id := self.nextId
-
-	newStatus := appStatus{
-		message:    message,
-		statusType: "toast",
-		id:         id,
-	}
-	self.statuses = append([]appStatus{newStatus}, self.statuses...)
+	id := self.addStatus(message, "toast")
 
 	go func() {
 		time.Sleep(time.Second * 2)
@@ -82,6 +78,23 @@ func (self *StatusManager) GetStatusString() string {
 
 func (self *StatusManager) HasStatus() bool {
 	return len(self.statuses) > 0
+}
+
+func (self *StatusManager) addStatus(message string, statusType string) int {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	self.nextId++
+	id := self.nextId
+
+	newStatus := appStatus{
+		message:    message,
+		statusType: statusType,
+		id:         id,
+	}
+	self.statuses = append([]appStatus{newStatus}, self.statuses...)
+
+	return id
 }
 
 func (self *StatusManager) removeStatus(id int) {
