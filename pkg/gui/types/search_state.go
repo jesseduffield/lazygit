@@ -12,11 +12,12 @@ const (
 
 // TODO: could we remove this entirely?
 type SearchState struct {
-	Context Context
+	Context         Context
+	PrevSearchIndex int
 }
 
 func NewSearchState() *SearchState {
-	return &SearchState{}
+	return &SearchState{PrevSearchIndex: -1}
 }
 
 func (self *SearchState) SearchType() SearchType {

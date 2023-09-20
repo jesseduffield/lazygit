@@ -3,13 +3,15 @@ package context
 type FilteredListViewModel[T any] struct {
 	*FilteredList[T]
 	*ListViewModel[T]
+	*SearchHistory
 }
 
 func NewFilteredListViewModel[T any](getList func() []T, getFilterFields func(T) []string) *FilteredListViewModel[T] {
 	filteredList := NewFilteredList(getList, getFilterFields)
 
 	self := &FilteredListViewModel[T]{
-		FilteredList: filteredList,
+		FilteredList:  filteredList,
+		SearchHistory: NewSearchHistory(),
 	}
 
 	listViewModel := NewListViewModel(filteredList.GetFilteredList)

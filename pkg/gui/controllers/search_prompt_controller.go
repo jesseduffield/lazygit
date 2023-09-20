@@ -33,6 +33,16 @@ func (self *SearchPromptController) GetKeybindings(opts types.KeybindingsOpts) [
 			Modifier: gocui.ModNone,
 			Handler:  self.cancel,
 		},
+		{
+			Key:      opts.GetKey(opts.Config.Universal.PrevItem),
+			Modifier: gocui.ModNone,
+			Handler:  self.prevHistory,
+		},
+		{
+			Key:      opts.GetKey(opts.Config.Universal.NextItem),
+			Modifier: gocui.ModNone,
+			Handler:  self.nextHistory,
+		},
 	}
 }
 
@@ -50,4 +60,14 @@ func (self *SearchPromptController) confirm() error {
 
 func (self *SearchPromptController) cancel() error {
 	return self.c.Helpers().Search.CancelPrompt()
+}
+
+func (self *SearchPromptController) prevHistory() error {
+	self.c.Helpers().Search.ScrollHistory(1)
+	return nil
+}
+
+func (self *SearchPromptController) nextHistory() error {
+	self.c.Helpers().Search.ScrollHistory(-1)
+	return nil
 }

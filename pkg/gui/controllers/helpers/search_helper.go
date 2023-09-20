@@ -36,7 +36,7 @@ func (self *SearchHelper) OpenFilterPrompt(context types.IFilterableContext) err
 	self.searchPrefixView().SetContent(self.c.Tr.FilterPrefix)
 	promptView := self.promptView()
 	promptView.ClearTextArea()
-	promptView.TextArea.TypeString(context.GetFilter())
+	self.OnPromptContentChanged("")
 	promptView.RenderTextArea()
 
 	if err := self.c.PushContext(self.c.Contexts().Search); err != nil {
@@ -49,13 +49,13 @@ func (self *SearchHelper) OpenFilterPrompt(context types.IFilterableContext) err
 func (self *SearchHelper) OpenSearchPrompt(context types.ISearchableContext) error {
 	state := self.searchState()
 
+	state.PrevSearchIndex = -1
+
 	state.Context = context
-	searchString := context.GetSearchString()
 
 	self.searchPrefixView().SetContent(self.c.Tr.SearchPrefix)
 	promptView := self.promptView()
 	promptView.ClearTextArea()
-	promptView.TextArea.TypeString(searchString)
 	promptView.RenderTextArea()
 
 	if err := self.c.PushContext(self.c.Contexts().Search); err != nil {
@@ -125,13 +125,17 @@ func (self *SearchHelper) ConfirmFilter() error {
 	// We also do this on each keypress but we do it here again just in case
 	state := self.searchState()
 
-	_, ok := state.Context.(types.IFilterableContext)
+	context, ok := state.Context.(types.IFilterableContext)
 	if !ok {
 		self.c.Log.Warnf("Context %s is not filterable", state.Context.GetKey())
 		return nil
 	}
 
 	self.OnPromptContentChanged(self.promptContent())
+	filterString := self.promptContent()
+	if filterString != "" {
+		context.GetSearchHistory().Push(filterString)
+	}
 
 	return self.c.PopContext()
 }
@@ -147,6 +151,9 @@ func (self *SearchHelper) ConfirmSearch() error {
 
 	searchString := self.promptContent()
 	context.SetSearchString(searchString)
+	if searchString != "" {
+		context.GetSearchHistory().Push(searchString)
+	}
 
 	view := context.GetView()
 
@@ -165,6 +172,26 @@ func (self *SearchHelper) CancelPrompt() error {
 	self.Cancel()
 
 	return self.c.PopContext()
+}
+
+func (self *SearchHelper) ScrollHistory(scrollIncrement int) {
+	state := self.searchState()
+
+	context, ok := state.Context.(types.ISearchHistoryContext)
+	if !ok {
+		return
+	}
+
+	states := context.GetSearchHistory()
+
+	if val, err := states.PeekAt(state.PrevSearchIndex + scrollIncrement); err == nil {
+		state.PrevSearchIndex += scrollIncrement
+		promptView := self.promptView()
+		promptView.ClearTextArea()
+		promptView.TextArea.TypeString(val)
+		promptView.RenderTextArea()
+		self.OnPromptContentChanged(val)
+	}
 }
 
 func (self *SearchHelper) Cancel() {

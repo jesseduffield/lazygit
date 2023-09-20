@@ -128,6 +128,7 @@ var tests = []*components.IntegrationTest{
 	filter_and_search.FilterMenu,
 	filter_and_search.FilterMenuCancelFilterWithEscape,
 	filter_and_search.FilterRemoteBranches,
+	filter_and_search.FilterSearchHistory,
 	filter_and_search.NestedFilter,
 	filter_and_search.NestedFilterTransient,
 	filter_by_path.CliArg,
