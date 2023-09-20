@@ -44,11 +44,11 @@ func NewStatusManager() *StatusManager {
 	return &StatusManager{}
 }
 
-func (self *StatusManager) WithWaitingStatus(message string, renderFunc func(), f func()) {
+func (self *StatusManager) WithWaitingStatus(message string, renderFunc func(), f func(*WaitingStatusHandle)) {
 	handle := &WaitingStatusHandle{statusManager: self, message: message, renderFunc: renderFunc, id: -1}
 	handle.Show()
 
-	f()
+	f(handle)
 
 	handle.Hide()
 }
