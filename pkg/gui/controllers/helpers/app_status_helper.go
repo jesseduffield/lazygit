@@ -36,9 +36,7 @@ func (self *AppStatusHelper) Toast(message string) {
 // withWaitingStatus wraps a function and shows a waiting status while the function is still executing
 func (self *AppStatusHelper) WithWaitingStatus(message string, f func(gocui.Task) error) {
 	self.c.OnWorker(func(task gocui.Task) {
-		self.statusMgr().WithWaitingStatus(message, func() {
-			self.renderAppStatus()
-
+		self.statusMgr().WithWaitingStatus(message, self.renderAppStatus, func() {
 			if err := f(task); err != nil {
 				self.c.OnUIThread(func() error {
 					return self.c.Error(err)

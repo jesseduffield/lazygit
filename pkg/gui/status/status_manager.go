@@ -16,6 +16,24 @@ type StatusManager struct {
 	mutex    deadlock.Mutex
 }
 
+// Can be used to manipulate a waiting status while it is running (e.g. pause
+// and resume it)
+type WaitingStatusHandle struct {
+	statusManager *StatusManager
+	message       string
+	renderFunc    func()
+	id            int
+}
+
+func (self *WaitingStatusHandle) Show() {
+	self.id = self.statusManager.addStatus(self.message, "waiting")
+	self.renderFunc()
+}
+
+func (self *WaitingStatusHandle) Hide() {
+	self.statusManager.removeStatus(self.id)
+}
+
 type appStatus struct {
 	message    string
 	statusType string
@@ -26,12 +44,13 @@ func NewStatusManager() *StatusManager {
 	return &StatusManager{}
 }
 
-func (self *StatusManager) WithWaitingStatus(message string, f func()) {
-	id := self.addStatus(message, "waiting")
+func (self *StatusManager) WithWaitingStatus(message string, renderFunc func(), f func()) {
+	handle := &WaitingStatusHandle{statusManager: self, message: message, renderFunc: renderFunc, id: -1}
+	handle.Show()
 
 	f()
 
-	self.removeStatus(id)
+	handle.Hide()
 }
 
 func (self *StatusManager) AddToastStatus(message string) int {
