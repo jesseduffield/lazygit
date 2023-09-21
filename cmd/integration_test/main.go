@@ -26,6 +26,29 @@ Usage:
 		> go run cmd/integration_test/main.go help
 `
 
+type flagInfo struct {
+	name string // name of the flag; can be used with "-" or "--"
+	flag *bool  // a pointer to the variable that should be set to true when this flag is passed
+}
+
+// Takes the args that you want to parse (excluding the program name and any
+// subcommands), and returns the remaining args with the flags removed
+func parseFlags(args []string, flags []flagInfo) []string {
+outer:
+	for len(args) > 0 {
+		for _, f := range flags {
+			if args[0] == "-"+f.name || args[0] == "--"+f.name {
+				*f.flag = true
+				args = args[1:]
+				continue outer
+			}
+		}
+		break
+	}
+
+	return args
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		log.Fatal(usage)
@@ -35,24 +58,14 @@ func main() {
 	case "help":
 		fmt.Println(usage)
 	case "cli":
-		testNames := os.Args[2:]
 		slow := false
 		sandbox := false
 		waitForDebugger := false
-		// get the next arg if it's --slow
-		if len(os.Args) > 2 {
-			if os.Args[2] == "--slow" || os.Args[2] == "-slow" {
-				testNames = os.Args[3:]
-				slow = true
-			} else if os.Args[2] == "--sandbox" || os.Args[2] == "-sandbox" {
-				testNames = os.Args[3:]
-				sandbox = true
-			} else if os.Args[2] == "--debug" || os.Args[2] == "-debug" {
-				testNames = os.Args[3:]
-				waitForDebugger = true
-			}
-		}
-
+		testNames := parseFlags(os.Args[2:], []flagInfo{
+			{"slow", &slow},
+			{"sandbox", &sandbox},
+			{"debug", &waitForDebugger},
+		})
 		clients.RunCLI(testNames, slow, sandbox, waitForDebugger)
 	case "tui":
 		clients.RunTUI()
