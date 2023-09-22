@@ -220,6 +220,15 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 		map[string]string{"upstream": upstream},
 	)
 
+	upstreamRebaseOptions := utils.ResolvePlaceholderString(
+		self.c.Tr.ViewUpstreamRebaseOptions,
+		map[string]string{"upstream": upstream},
+	)
+	upstreamRebaseTooltip := utils.ResolvePlaceholderString(
+		self.c.Tr.ViewUpstreamRebaseOptionsTooltip,
+		map[string]string{"upstream": upstream},
+	)
+
 	upstreamResetItem := &types.MenuItem{
 		LabelColumns: []string{upstreamResetOptions},
 		OpensMenu:    true,
@@ -234,10 +243,24 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 		Key:     'g',
 	}
 
+	upstreamRebaseItem := &types.MenuItem{
+		LabelColumns: []string{upstreamRebaseOptions},
+		OpensMenu:    true,
+		OnPress: func() error {
+			if err := self.c.Helpers().MergeAndRebase.RebaseOntoRef(selectedBranch.ShortUpstreamRefName()); err != nil {
+				return self.c.Error(err)
+			}
+			return nil
+		},
+		Tooltip: upstreamRebaseTooltip,
+		Key:     'r',
+	}
+
 	if !selectedBranch.RemoteBranchStoredLocally() {
 		viewDivergenceItem.DisabledReason = self.c.Tr.UpstreamNotSetError
 		unsetUpstreamItem.DisabledReason = self.c.Tr.UpstreamNotSetError
 		upstreamResetItem.DisabledReason = self.c.Tr.UpstreamNotSetError
+		upstreamRebaseItem.DisabledReason = self.c.Tr.UpstreamNotSetError
 	}
 
 	options := []*types.MenuItem{
@@ -245,6 +268,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 		unsetUpstreamItem,
 		setUpstreamItem,
 		upstreamResetItem,
+		upstreamRebaseItem,
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
