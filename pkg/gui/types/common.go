@@ -87,6 +87,12 @@ type IGuiCommon interface {
 	// resized, if in accordion mode.
 	AfterLayout(f func() error)
 
+	// Wraps a function, attaching the given operation to the given item while
+	// the function is executing, and also causes the given context to be
+	// redrawn periodically. This allows the operation to be visualized with a
+	// spinning loader animation (e.g. when a branch is being pushed).
+	WithInlineStatus(item HasUrn, operation ItemOperation, contextKey ContextKey, f func(gocui.Task) error) error
+
 	// returns the gocui Gui struct. There is a good chance you don't actually want to use
 	// this struct and instead want to use another method above
 	GocuiGui() *gocui.Gui
