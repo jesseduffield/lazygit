@@ -109,7 +109,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.SetUpstream),
-			Handler:     self.checkSelected(self.setUpstream),
+			Handler:     self.checkSelected(self.viewUpstreamOptions),
 			Description: self.c.Tr.ViewBranchUpstreamOptions,
 			Tooltip:     self.c.Tr.ViewBranchUpstreamOptionsTooltip,
 			OpensMenu:   true,
@@ -141,7 +141,7 @@ func (self *BranchesController) GetOnRenderToMain() func() error {
 	}
 }
 
-func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error {
+func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branch) error {
 	viewDivergenceItem := &types.MenuItem{
 		LabelColumns: []string{self.c.Tr.ViewDivergenceFromUpstream},
 		OnPress: func() error {
