@@ -265,6 +265,17 @@ type Mutexes struct {
 	PtyMutex                *deadlock.Mutex
 }
 
+type RefOperation int
+
+// An long-running operation on a ref (branch or tag). We display these in the
+// list of branches or tags so that there's better feedback of what's happening.
+const (
+	RefOperationNone RefOperation = iota
+	RefOperationPushing
+	RefOperationPulling
+	RefOperationFastForwarding
+)
+
 type IStateAccessor interface {
 	GetRepoPathStack() *utils.StringStack
 	GetRepoState() IRepoStateAccessor
@@ -277,6 +288,9 @@ type IStateAccessor interface {
 	SetShowExtrasWindow(bool)
 	GetRetainOriginalDir() bool
 	SetRetainOriginalDir(bool)
+	GetRefOperation(ref string) RefOperation
+	SetRefOperation(ref string, operation RefOperation, contextKey ContextKey)
+	ClearRefOperation(ref string, contextKey ContextKey)
 }
 
 type IRepoStateAccessor interface {

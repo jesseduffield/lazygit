@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -19,6 +20,7 @@ var branchPrefixColorCache = make(map[string]style.TextStyle)
 
 func GetBranchListDisplayStrings(
 	branches []*models.Branch,
+	getRefOperation func(branch *models.Branch) types.RefOperation,
 	fullDescription bool,
 	diffName string,
 	tr *i18n.TranslationSet,
@@ -27,13 +29,14 @@ func GetBranchListDisplayStrings(
 ) [][]string {
 	return lo.Map(branches, func(branch *models.Branch, _ int) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, fullDescription, diffed, tr, userConfig, worktrees)
+		return getBranchDisplayStrings(branch, getRefOperation(branch), fullDescription, diffed, tr, userConfig, worktrees)
 	})
 }
 
 // getBranchDisplayStrings returns the display string of branch
 func getBranchDisplayStrings(
 	b *models.Branch,
+	refOperation types.RefOperation,
 	fullDescription bool,
 	diffed bool,
 	tr *i18n.TranslationSet,
@@ -51,7 +54,7 @@ func getBranchDisplayStrings(
 	}
 
 	coloredName := nameTextStyle.Sprint(displayName)
-	branchStatus := utils.WithPadding(ColoredBranchStatus(b, tr), 2, utils.AlignLeft)
+	branchStatus := utils.WithPadding(ColoredBranchStatus(b, refOperation, tr), 2, utils.AlignLeft)
 	if git_commands.CheckedOutByOtherWorktree(b, worktrees) {
 		worktreeIcon := lo.Ternary(icons.IsIconEnabled(), icons.LINKED_WORKTREE_ICON, fmt.Sprintf("(%s)", tr.LcWorktree))
 		coloredName = fmt.Sprintf("%s %s", coloredName, style.FgDefault.Sprint(worktreeIcon))
@@ -109,9 +112,11 @@ func GetBranchTextStyle(name string) style.TextStyle {
 	}
 }
 
-func ColoredBranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string {
+func ColoredBranchStatus(branch *models.Branch, refOperation types.RefOperation, tr *i18n.TranslationSet) string {
 	colour := style.FgYellow
-	if branch.UpstreamGone {
+	if refOperation != types.RefOperationNone {
+		colour = style.FgCyan
+	} else if branch.UpstreamGone {
 		colour = style.FgRed
 	} else if branch.MatchesUpstream() {
 		colour = style.FgGreen
@@ -119,10 +124,15 @@ func ColoredBranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string 
 		colour = style.FgMagenta
 	}
 
-	return colour.Sprint(BranchStatus(branch, tr))
+	return colour.Sprint(BranchStatus(branch, refOperation, tr))
 }
 
-func BranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string {
+func BranchStatus(branch *models.Branch, refOperation types.RefOperation, tr *i18n.TranslationSet) string {
+	refOperationStr := refOperationToString(refOperation, tr)
+	if refOperationStr != "" {
+		return refOperationStr + " " + utils.Loader()
+	}
+
 	if !branch.IsTrackingRemote() {
 		return ""
 	}

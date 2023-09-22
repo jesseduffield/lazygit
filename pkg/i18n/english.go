@@ -185,6 +185,7 @@ type TranslationSet struct {
 	ReturnToFilesPanel                  string
 	FastForward                         string
 	FastForwarding                      string
+	FastForwardingOperation             string
 	FoundConflictsTitle                 string
 	ViewConflictsMenuItem               string
 	AbortMenuItem                       string
@@ -981,6 +982,7 @@ func EnglishTranslationSet() TranslationSet {
 		ReturnToFilesPanel:                  `Return to files panel`,
 		FastForward:                         `Fast-forward this branch from its upstream`,
 		FastForwarding:                      "Fast-forwarding {{.branch}}",
+		FastForwardingOperation:             "Fast-forwarding",
 		FoundConflictsTitle:                 "Conflicts!",
 		ViewConflictsMenuItem:               "View conflicts",
 		AbortMenuItem:                       "Abort the %s",

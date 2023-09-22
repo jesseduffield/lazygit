@@ -571,6 +571,9 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 	)
 
 	return self.c.WithWaitingStatus(message, func(task gocui.Task) error {
+		self.c.State().SetRefOperation(branch.FullRefName(), types.RefOperationFastForwarding, context.LOCAL_BRANCHES_CONTEXT_KEY)
+		defer func() { self.c.State().ClearRefOperation(branch.FullRefName(), context.LOCAL_BRANCHES_CONTEXT_KEY) }()
+
 		worktree, ok := self.worktreeForBranch(branch)
 		if ok {
 			self.c.LogAction(action)

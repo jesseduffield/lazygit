@@ -110,6 +110,10 @@ type Gui struct {
 	// lazygit was opened in, or if we'll retain the one we're currently in.
 	RetainOriginalDir bool
 
+	refOperations            map[string]types.RefOperation
+	refOperationsMutex       *deadlock.Mutex
+	contextsWithInlineStatus map[types.ContextKey]*inlineStatusInfo
+
 	PrevLayout PrevLayout
 
 	// this is the initial dir we are in upon opening lazygit. We hold onto this
@@ -178,6 +182,29 @@ func (self *StateAccessor) GetRetainOriginalDir() bool {
 
 func (self *StateAccessor) SetRetainOriginalDir(value bool) {
 	self.gui.RetainOriginalDir = value
+}
+
+func (self *StateAccessor) GetRefOperation(ref string) types.RefOperation {
+	self.gui.refOperationsMutex.Lock()
+	defer self.gui.refOperationsMutex.Unlock()
+
+	return self.gui.refOperations[ref]
+}
+
+func (self *StateAccessor) SetRefOperation(ref string, operation types.RefOperation, contextKey types.ContextKey) {
+	self.gui.refOperationsMutex.Lock()
+	defer self.gui.refOperationsMutex.Unlock()
+
+	self.gui.refOperations[ref] = operation
+	self.gui.startRenderingInlineStatus(contextKey)
+}
+
+func (self *StateAccessor) ClearRefOperation(ref string, contextKey types.ContextKey) {
+	self.gui.refOperationsMutex.Lock()
+	defer self.gui.refOperationsMutex.Unlock()
+
+	self.gui.stopRenderingInlineStatus(contextKey)
+	delete(self.gui.refOperations, ref)
 }
 
 // we keep track of some stuff from one render to the next to see if certain
@@ -473,6 +500,10 @@ func NewGui(
 		},
 		InitialDir:       initialDir,
 		afterLayoutFuncs: make(chan func() error, 1000),
+
+		refOperations:            make(map[string]types.RefOperation),
+		refOperationsMutex:       &deadlock.Mutex{},
+		contextsWithInlineStatus: make(map[types.ContextKey]*inlineStatusInfo),
 	}
 
 	gui.PopupHandler = popup.NewPopupHandler(

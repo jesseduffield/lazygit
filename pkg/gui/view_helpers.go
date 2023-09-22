@@ -148,3 +148,45 @@ func (gui *Gui) postRefreshUpdate(c types.Context) error {
 
 	return nil
 }
+
+type inlineStatusInfo struct {
+	refCount int
+	stop     chan struct{}
+}
+
+func (gui *Gui) startRenderingInlineStatus(contextKey types.ContextKey) {
+	info := gui.contextsWithInlineStatus[contextKey]
+	if info == nil {
+		info = &inlineStatusInfo{refCount: 0, stop: make(chan struct{})}
+		gui.contextsWithInlineStatus[contextKey] = info
+
+		go utils.Safe(func() {
+			ticker := time.NewTicker(time.Millisecond * utils.LoaderAnimationInterval)
+			defer ticker.Stop()
+		outer:
+			for {
+				select {
+				case <-ticker.C:
+					gui.c.OnUIThread(func() error {
+						_ = gui.c.ContextForKey(contextKey).HandleRender()
+						return nil
+					})
+				case <-info.stop:
+					break outer
+				}
+			}
+		})
+	}
+
+	info.refCount++
+}
+
+func (gui *Gui) stopRenderingInlineStatus(contextKey types.ContextKey) {
+	if info := gui.contextsWithInlineStatus[contextKey]; info != nil {
+		info.refCount--
+		if info.refCount <= 0 {
+			info.stop <- struct{}{}
+			delete(gui.contextsWithInlineStatus, contextKey)
+		}
+	}
+}
