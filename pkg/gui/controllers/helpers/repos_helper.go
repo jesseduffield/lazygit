@@ -173,11 +173,6 @@ func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey
 			return err
 		}
 
-		// these two mutexes are used by our background goroutines (triggered via `self.goEvery`. We don't want to
-		// switch to a repo while one of these goroutines is in the process of updating something
-		self.c.Mutexes().SyncMutex.Lock()
-		defer self.c.Mutexes().SyncMutex.Unlock()
-
 		self.c.Mutexes().RefreshingFilesMutex.Lock()
 		defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
 

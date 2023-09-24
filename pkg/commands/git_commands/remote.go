@@ -53,7 +53,7 @@ func (self *RemoteCommands) DeleteRemoteBranch(task gocui.Task, remoteName strin
 		Arg(remoteName, "--delete", branchName).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).WithMutex(self.syncMutex).Run()
+	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
 }
 
 func (self *RemoteCommands) DeleteRemoteTag(task gocui.Task, remoteName string, tagName string) error {
@@ -61,7 +61,7 @@ func (self *RemoteCommands) DeleteRemoteTag(task gocui.Task, remoteName string, 
 		Arg(remoteName, "--delete", tagName).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).WithMutex(self.syncMutex).Run()
+	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
 }
 
 // CheckRemoteBranchExists Returns remote branch

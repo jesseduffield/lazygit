@@ -256,7 +256,6 @@ type Mutexes struct {
 	RefreshingFilesMutex    *deadlock.Mutex
 	RefreshingBranchesMutex *deadlock.Mutex
 	RefreshingStatusMutex   *deadlock.Mutex
-	SyncMutex               *deadlock.Mutex
 	LocalCommitsMutex       *deadlock.Mutex
 	SubCommitsMutex         *deadlock.Mutex
 	AuthorsMutex            *deadlock.Mutex

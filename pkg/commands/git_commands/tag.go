@@ -52,5 +52,5 @@ func (self *TagCommands) Push(task gocui.Task, remoteName string, tagName string
 	cmdArgs := NewGitCmd("push").Arg(remoteName, "tag", tagName).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).WithMutex(self.syncMutex).Run()
+	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
 }

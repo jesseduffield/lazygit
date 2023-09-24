@@ -300,7 +300,6 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		gui.gitVersion,
 		gui.os,
 		git_config.NewStdCachedGitConfig(gui.Log),
-		gui.Mutexes.SyncMutex,
 	)
 	if err != nil {
 		return err
@@ -490,7 +489,6 @@ func NewGui(
 			RefreshingFilesMutex:    &deadlock.Mutex{},
 			RefreshingBranchesMutex: &deadlock.Mutex{},
 			RefreshingStatusMutex:   &deadlock.Mutex{},
-			SyncMutex:               &deadlock.Mutex{},
 			LocalCommitsMutex:       &deadlock.Mutex{},
 			SubCommitsMutex:         &deadlock.Mutex{},
 			AuthorsMutex:            &deadlock.Mutex{},
