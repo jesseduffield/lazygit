@@ -180,10 +180,10 @@ func parseCliArgsAndEnvVars() *cliArgs {
 	useConfigDir := ""
 	flaggy.String(&useConfigDir, "ucd", "use-config-dir", "override default config directory with provided directory")
 
-	workTree := ""
+	workTree := os.Getenv("GIT_WORK_TREE")
 	flaggy.String(&workTree, "w", "work-tree", "equivalent of the --work-tree git argument")
 
-	gitDir := ""
+	gitDir := os.Getenv("GIT_DIR")
 	flaggy.String(&gitDir, "g", "git-dir", "equivalent of the --git-dir git argument")
 
 	customConfigFile := ""
