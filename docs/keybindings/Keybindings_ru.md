@@ -14,6 +14,8 @@ _Связки клавиш_
 | `` @ `` | Открыть меню журнала команд | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | Отправить изменения | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | Получить и слить изменения | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename. |
+| `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
 | `` } `` | Увеличить размер контекста, отображаемого вокруг изменений в просмотрщике сравнении | Increase the amount of the context shown around changes in the diff view. |
 | `` { `` | Уменьшите размер контекста, отображаемого вокруг изменений в просмотрщике сравнении | Decrease the amount of the context shown around changes in the diff view. |
 | `` : `` | Выполнить пользовательскую команду | Bring up a prompt where you can enter a shell command to execute. Not to be confused with pre-configured custom commands. |
