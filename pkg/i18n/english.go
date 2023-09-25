@@ -58,6 +58,7 @@ type TranslationSet struct {
 	MergeConflictsTitle                 string
 	Checkout                            string
 	CantCheckoutBranchWhilePulling      string
+	CantPullOrPushSameBranchTwice       string
 	NoChangedFiles                      string
 	SoftReset                           string
 	AlreadyCheckedOutBranch             string
@@ -849,6 +850,7 @@ func EnglishTranslationSet() TranslationSet {
 		MergeConflictsTitle:                 "Merge conflicts",
 		Checkout:                            "Checkout",
 		CantCheckoutBranchWhilePulling:      "You cannot checkout another branch while pulling the current branch",
+		CantPullOrPushSameBranchTwice:       "You cannot push or pull a branch while it is already being pushed or pulled",
 		FileFilter:                          "Filter files by status",
 		FilterStagedFiles:                   "Show only staged files",
 		FilterUnstagedFiles:                 "Show only unstaged files",
