@@ -204,6 +204,8 @@ keybinding:
     toggleWhitespaceInDiffView: '<c-w>'
     increaseContextInDiffView: '}'
     decreaseContextInDiffView: '{'
+    increaseRenameSimilarityThreshold: ')'
+    decreaseRenameSimilarityThreshold: '('
     toggleRangeSelect: 'v'
     rangeSelectUp: '<s-up>'
     rangeSelectDown: '<s-down>'

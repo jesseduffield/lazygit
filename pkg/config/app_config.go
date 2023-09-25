@@ -349,6 +349,7 @@ type AppState struct {
 	HideCommandLog             bool
 	IgnoreWhitespaceInDiffView bool
 	DiffContextSize            int
+	RenameSimilarityThreshold  int
 	LocalBranchSortOrder       string
 	RemoteBranchSortOrder      string
 
@@ -364,14 +365,15 @@ type AppState struct {
 
 func getDefaultAppState() *AppState {
 	return &AppState{
-		LastUpdateCheck:       0,
-		RecentRepos:           []string{},
-		StartupPopupVersion:   0,
-		DiffContextSize:       3,
-		LocalBranchSortOrder:  "recency",
-		RemoteBranchSortOrder: "alphabetical",
-		GitLogOrder:           "", // should be "topo-order" eventually
-		GitLogShowGraph:       "", // should be "always" eventually
+		LastUpdateCheck:           0,
+		RecentRepos:               []string{},
+		StartupPopupVersion:       0,
+		DiffContextSize:           3,
+		RenameSimilarityThreshold: 50,
+		LocalBranchSortOrder:      "recency",
+		RemoteBranchSortOrder:     "alphabetical",
+		GitLogOrder:               "", // should be "topo-order" eventually
+		GitLogShowGraph:           "", // should be "always" eventually
 	}
 }
 
