@@ -26,10 +26,11 @@ const (
 func RunTests(
 	tests []*IntegrationTest,
 	logf func(format string, formatArgs ...interface{}),
-	runCmd func(cmd *exec.Cmd) error,
+	runCmd func(cmd *exec.Cmd) (int, error),
 	testWrapper func(test *IntegrationTest, f func() error),
 	sandbox bool,
 	waitForDebugger bool,
+	raceDetector bool,
 	inputDelay int,
 	maxAttempts int,
 ) error {
@@ -41,7 +42,7 @@ func RunTests(
 
 	testDir := filepath.Join(projectRootDir, "test", "_results")
 
-	if err := buildLazygit(); err != nil {
+	if err := buildLazygit(raceDetector); err != nil {
 		return err
 	}
 
@@ -59,7 +60,7 @@ func RunTests(
 			)
 
 			for i := 0; i < maxAttempts; i++ {
-				err := runTest(test, paths, projectRootDir, logf, runCmd, sandbox, waitForDebugger, inputDelay, gitVersion)
+				err := runTest(test, paths, projectRootDir, logf, runCmd, sandbox, waitForDebugger, raceDetector, inputDelay, gitVersion)
 				if err != nil {
 					if i == maxAttempts-1 {
 						return err
@@ -82,9 +83,10 @@ func runTest(
 	paths Paths,
 	projectRootDir string,
 	logf func(format string, formatArgs ...interface{}),
-	runCmd func(cmd *exec.Cmd) error,
+	runCmd func(cmd *exec.Cmd) (int, error),
 	sandbox bool,
 	waitForDebugger bool,
+	raceDetector bool,
 	inputDelay int,
 	gitVersion *git_commands.GitVersion,
 ) error {
@@ -107,12 +109,17 @@ func runTest(
 		return err
 	}
 
-	err = runCmd(cmd)
-	if err != nil {
-		return err
+	pid, err := runCmd(cmd)
+
+	// Print race detector log regardless of the command's exit status
+	if raceDetector {
+		logPath := fmt.Sprintf("%s.%d", raceDetectorLogsPath(), pid)
+		if bytes, err := os.ReadFile(logPath); err == nil {
+			logf("Race detector log:\n" + string(bytes))
+		}
 	}
 
-	return nil
+	return err
 }
 
 func prepareTestDir(
@@ -131,15 +138,18 @@ func prepareTestDir(
 	return createFixture(test, paths, rootDir)
 }
 
-func buildLazygit() error {
+func buildLazygit(raceDetector bool) error {
 	// // TODO: remove this line!
 	// // skipping this because I'm not making changes to the app code atm.
 	// return nil
 
+	args := []string{"go", "build"}
+	if raceDetector {
+		args = append(args, "-race")
+	}
+	args = append(args, "-o", tempLazygitPath(), filepath.FromSlash("pkg/integration/clients/injector/main.go"))
 	osCommand := oscommands.NewDummyOSCommand()
-	return osCommand.Cmd.New([]string{
-		"go", "build", "-o", tempLazygitPath(), filepath.FromSlash("pkg/integration/clients/injector/main.go"),
-	}).Run()
+	return osCommand.Cmd.New(args).Run()
 }
 
 func createFixture(test *IntegrationTest, paths Paths, rootDir string) error {
@@ -202,6 +212,9 @@ func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandb
 	if waitForDebugger {
 		cmdObj.AddEnvVars("WAIT_FOR_DEBUGGER=true")
 	}
+	// Set a race detector log path only to avoid spamming the terminal with the
+	// logs. We are not showing this anywhere yet.
+	cmdObj.AddEnvVars(fmt.Sprintf("GORACE=log_path=%s", raceDetectorLogsPath()))
 	if test.ExtraEnvVars() != nil {
 		for key, value := range test.ExtraEnvVars() {
 			cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", key, value))
@@ -219,6 +232,10 @@ func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandb
 
 func tempLazygitPath() string {
 	return filepath.Join("/tmp", "lazygit", "test_lazygit")
+}
+
+func raceDetectorLogsPath() string {
+	return filepath.Join("/tmp", "lazygit", "race_log")
 }
 
 func findOrCreateDir(path string) {

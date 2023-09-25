@@ -21,7 +21,7 @@ import (
 
 var SLOW_INPUT_DELAY = 600
 
-func RunTUI() {
+func RunTUI(raceDetector bool) {
 	rootDir := utils.GetLazyRootDirectory()
 	testDir := filepath.Join(rootDir, "test", "integration")
 
@@ -85,7 +85,7 @@ func RunTUI() {
 			return nil
 		}
 
-		suspendAndRunTest(currentTest, true, false, 0)
+		suspendAndRunTest(currentTest, true, false, raceDetector, 0)
 
 		return nil
 	}); err != nil {
@@ -98,7 +98,7 @@ func RunTUI() {
 			return nil
 		}
 
-		suspendAndRunTest(currentTest, false, false, 0)
+		suspendAndRunTest(currentTest, false, false, raceDetector, 0)
 
 		return nil
 	}); err != nil {
@@ -111,7 +111,7 @@ func RunTUI() {
 			return nil
 		}
 
-		suspendAndRunTest(currentTest, false, false, SLOW_INPUT_DELAY)
+		suspendAndRunTest(currentTest, false, false, raceDetector, SLOW_INPUT_DELAY)
 
 		return nil
 	}); err != nil {
@@ -124,7 +124,7 @@ func RunTUI() {
 			return nil
 		}
 
-		suspendAndRunTest(currentTest, false, true, 0)
+		suspendAndRunTest(currentTest, false, true, raceDetector, 0)
 
 		return nil
 	}); err != nil {
@@ -284,12 +284,12 @@ func (self *app) wrapEditor(f func(v *gocui.View, key gocui.Key, ch rune, mod go
 	}
 }
 
-func suspendAndRunTest(test *components.IntegrationTest, sandbox bool, waitForDebugger bool, inputDelay int) {
+func suspendAndRunTest(test *components.IntegrationTest, sandbox bool, waitForDebugger bool, raceDetector bool, inputDelay int) {
 	if err := gocui.Screen.Suspend(); err != nil {
 		panic(err)
 	}
 
-	runTuiTest(test, sandbox, waitForDebugger, inputDelay)
+	runTuiTest(test, sandbox, waitForDebugger, raceDetector, inputDelay)
 
 	fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint("press enter to return"))
 	fmt.Scanln() // wait for enter press
@@ -384,7 +384,7 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
 
-func runTuiTest(test *components.IntegrationTest, sandbox bool, waitForDebugger bool, inputDelay int) {
+func runTuiTest(test *components.IntegrationTest, sandbox bool, waitForDebugger bool, raceDetector bool, inputDelay int) {
 	err := components.RunTests(
 		[]*components.IntegrationTest{test},
 		log.Printf,
@@ -392,6 +392,7 @@ func runTuiTest(test *components.IntegrationTest, sandbox bool, waitForDebugger 
 		runAndPrintError,
 		sandbox,
 		waitForDebugger,
+		raceDetector,
 		inputDelay,
 		1,
 	)
