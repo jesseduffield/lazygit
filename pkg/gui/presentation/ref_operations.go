@@ -15,6 +15,8 @@ func refOperationToString(refOperation types.RefOperation, tr *i18n.TranslationS
 		return tr.PullingStatus
 	case types.RefOperationFastForwarding:
 		return tr.FastForwardingOperation
+	case types.RefOperationDeleting:
+		return tr.DeletingStatus
 	}
 
 	return ""

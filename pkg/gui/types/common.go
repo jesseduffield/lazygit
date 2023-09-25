@@ -274,6 +274,7 @@ const (
 	RefOperationPushing
 	RefOperationPulling
 	RefOperationFastForwarding
+	RefOperationDeleting
 )
 
 type IStateAccessor interface {
