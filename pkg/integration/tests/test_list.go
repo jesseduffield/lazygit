@@ -40,6 +40,7 @@ var tests = []*components.IntegrationTest{
 	branch.Delete,
 	branch.DeleteRemoteBranchWithCredentialPrompt,
 	branch.DetachedHead,
+	branch.OpenPullRequestNoUpstream,
 	branch.OpenWithCliArg,
 	branch.Rebase,
 	branch.RebaseAbortOnConflict,
