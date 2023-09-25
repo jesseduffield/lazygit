@@ -31,14 +31,16 @@ func NewSyncController(
 func (self *SyncController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Push),
-			Handler:     opts.Guards.NoPopupPanel(self.HandlePush),
-			Description: self.c.Tr.Push,
+			Key:               opts.GetKey(opts.Config.Universal.Push),
+			Handler:           opts.Guards.NoPopupPanel(self.HandlePush),
+			GetDisabledReason: self.getDisabledReasonForPushOrPull,
+			Description:       self.c.Tr.Push,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Pull),
-			Handler:     opts.Guards.NoPopupPanel(self.HandlePull),
-			Description: self.c.Tr.Pull,
+			Key:               opts.GetKey(opts.Config.Universal.Pull),
+			Handler:           opts.Guards.NoPopupPanel(self.HandlePull),
+			GetDisabledReason: self.getDisabledReasonForPushOrPull,
+			Description:       self.c.Tr.Pull,
 		},
 	}
 
@@ -55,6 +57,18 @@ func (self *SyncController) HandlePush() error {
 
 func (self *SyncController) HandlePull() error {
 	return self.branchCheckedOut(self.pull)()
+}
+
+func (self *SyncController) getDisabledReasonForPushOrPull() string {
+	currentBranch := self.c.Helpers().Refs.GetCheckedOutRef()
+	if currentBranch != nil {
+		op := self.c.State().GetItemOperation(currentBranch)
+		if op != types.ItemOperationNone {
+			return self.c.Tr.CantPullOrPushSameBranchTwice
+		}
+	}
+
+	return ""
 }
 
 func (self *SyncController) branchCheckedOut(f func(*models.Branch) error) func() error {
