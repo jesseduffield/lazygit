@@ -34,9 +34,10 @@ func NewBranchesController(
 func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.checkSelected(self.press),
-			Description: self.c.Tr.Checkout,
+			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Handler:           self.checkSelected(self.press),
+			GetDisabledReason: self.getDisabledReasonForPress,
+			Description:       self.c.Tr.Checkout,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
@@ -297,6 +298,18 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
 	return self.c.Helpers().Refs.CheckoutRef(selectedBranch.Name, types.CheckoutRefOptions{})
+}
+
+func (self *BranchesController) getDisabledReasonForPress() string {
+	currentBranch := self.c.Helpers().Refs.GetCheckedOutRef()
+	if currentBranch != nil {
+		op := self.c.State().GetItemOperation(currentBranch)
+		if op == types.ItemOperationFastForwarding || op == types.ItemOperationPulling {
+			return self.c.Tr.CantCheckoutBranchWhilePulling
+		}
+	}
+
+	return ""
 }
 
 func (self *BranchesController) worktreeForBranch(branch *models.Branch) (*models.Worktree, bool) {
