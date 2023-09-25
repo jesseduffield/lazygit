@@ -81,3 +81,4 @@ This package is licensed under the MIT license, see LICENSE.MIT for details.
 * v1.4.1 no code change, but now without an unnecessary cover.out file.
 * v1.4.2 performance improvement to ErrorStack() to avoid unnecessary work https://github.com/go-errors/errors/pull/40
 * v1.5.0 add errors.Join() and errors.Unwrap() copying the stdlib https://github.com/go-errors/errors/pull/40
+* v1.5.1 fix build on go1.13..go1.19 (broken by adding Join and Unwrap with wrong build constraints)

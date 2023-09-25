@@ -84,7 +84,8 @@ func (self *SearchHelper) DisplaySearchStatus(context types.ISearchableContext) 
 	state.Context = context
 
 	self.searchPrefixView().SetContent(self.c.Tr.SearchPrefix)
-	_ = context.GetView().SelectCurrentSearchResult()
+	index, totalCount := context.GetView().GetSearchStatus()
+	context.RenderSearchStatus(index, totalCount)
 }
 
 func (self *SearchHelper) searchState() *types.SearchState {
