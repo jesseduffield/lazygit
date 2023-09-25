@@ -211,10 +211,6 @@ func (v *View) gotoPreviousMatch() error {
 	return v.SelectSearchResult(v.searcher.currentSearchIndex)
 }
 
-func (v *View) SelectCurrentSearchResult() error {
-	return v.SelectSearchResult(v.searcher.currentSearchIndex)
-}
-
 func (v *View) SelectSearchResult(index int) error {
 	itemCount := len(v.searcher.searchPositions)
 	if itemCount == 0 {
@@ -225,11 +221,17 @@ func (v *View) SelectSearchResult(index int) error {
 	}
 
 	y := v.searcher.searchPositions[index].y
+
 	v.FocusPoint(v.ox, y)
 	if v.searcher.onSelectItem != nil {
 		return v.searcher.onSelectItem(y, index, itemCount)
 	}
 	return nil
+}
+
+// Returns <current match index>, <total matches>
+func (v *View) GetSearchStatus() (int, int) {
+	return v.searcher.currentSearchIndex, len(v.searcher.searchPositions)
 }
 
 func (v *View) Search(str string) error {

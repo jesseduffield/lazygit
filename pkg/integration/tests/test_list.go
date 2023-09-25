@@ -134,6 +134,7 @@ var tests = []*components.IntegrationTest{
 	filter_and_search.FilterSearchHistory,
 	filter_and_search.NestedFilter,
 	filter_and_search.NestedFilterTransient,
+	filter_and_search.NewSearch,
 	filter_by_path.CliArg,
 	filter_by_path.SelectFile,
 	filter_by_path.TypeFile,

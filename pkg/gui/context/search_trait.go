@@ -37,20 +37,32 @@ func (self *SearchTrait) ClearSearchString() {
 func (self *SearchTrait) IsSearchableContext() {}
 
 func (self *SearchTrait) onSelectItemWrapper(innerFunc func(int) error) func(int, int, int) error {
+	return func(selectedLineIdx int, index int, total int) error {
+		self.RenderSearchStatus(index, total)
+
+		if total != 0 {
+			if err := innerFunc(selectedLineIdx); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+}
+
+func (self *SearchTrait) RenderSearchStatus(index int, total int) {
 	keybindingConfig := self.c.UserConfig.Keybinding
 
-	return func(y int, index int, total int) error {
-		if total == 0 {
-			self.c.SetViewContent(
-				self.c.Views().Search,
-				fmt.Sprintf(
-					self.c.Tr.NoMatchesFor,
-					self.searchString,
-					theme.OptionsFgColor.Sprintf(self.c.Tr.ExitSearchMode, keybindings.Label(keybindingConfig.Universal.Return)),
-				),
-			)
-			return nil
-		}
+	if total == 0 {
+		self.c.SetViewContent(
+			self.c.Views().Search,
+			fmt.Sprintf(
+				self.c.Tr.NoMatchesFor,
+				self.searchString,
+				theme.OptionsFgColor.Sprintf(self.c.Tr.ExitSearchMode, keybindings.Label(keybindingConfig.Universal.Return)),
+			),
+		)
+	} else {
 		self.c.SetViewContent(
 			self.c.Views().Search,
 			fmt.Sprintf(
@@ -66,10 +78,6 @@ func (self *SearchTrait) onSelectItemWrapper(innerFunc func(int) error) func(int
 				),
 			),
 		)
-		if err := innerFunc(y); err != nil {
-			return err
-		}
-		return nil
 	}
 }
 

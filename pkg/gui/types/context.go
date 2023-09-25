@@ -115,6 +115,7 @@ type ISearchableContext interface {
 	ClearSearchString()
 	IsSearching() bool
 	IsSearchableContext()
+	RenderSearchStatus(int, int)
 }
 
 type DiffableContext interface {
