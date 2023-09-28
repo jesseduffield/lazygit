@@ -623,7 +623,10 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	deadlock.Opts.LogBuf = utils.NewOnceWriter(os.Stderr, func() {
 		gui.g.Close()
 	})
-	deadlock.Opts.Disable = !gui.Debug
+	// disable deadlock reporting if we're not running in debug mode, or if
+	// we're debugging an integration test. In this latter case, stopping at
+	// breakpoints and stepping through code can easily take more than 30s.
+	deadlock.Opts.Disable = !gui.Debug || os.Getenv(components.WAIT_FOR_DEBUGGER_ENV_VAR) == ""
 
 	if err := gui.Config.ReloadUserConfig(); err != nil {
 		return nil

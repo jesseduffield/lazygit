@@ -16,6 +16,7 @@ import (
 const (
 	TEST_NAME_ENV_VAR         = "TEST_NAME"
 	SANDBOX_ENV_VAR           = "SANDBOX"
+	WAIT_FOR_DEBUGGER_ENV_VAR = "WAIT_FOR_DEBUGGER"
 	GIT_CONFIG_GLOBAL_ENV_VAR = "GIT_CONFIG_GLOBAL"
 )
 
@@ -42,7 +43,7 @@ func RunTests(
 
 	testDir := filepath.Join(projectRootDir, "test", "_results")
 
-	if err := buildLazygit(raceDetector); err != nil {
+	if err := buildLazygit(waitForDebugger, raceDetector); err != nil {
 		return err
 	}
 
@@ -138,12 +139,17 @@ func prepareTestDir(
 	return createFixture(test, paths, rootDir)
 }
 
-func buildLazygit(raceDetector bool) error {
+func buildLazygit(debug bool, raceDetector bool) error {
 	// // TODO: remove this line!
 	// // skipping this because I'm not making changes to the app code atm.
 	// return nil
 
 	args := []string{"go", "build"}
+	if debug {
+		// Disable compiler optimizations (-N) and inlining (-l) because this
+		// makes debugging work better
+		args = append(args, "-gcflags=all=-N -l")
+	}
 	if raceDetector {
 		args = append(args, "-race")
 	}
@@ -210,7 +216,7 @@ func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandb
 		cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", SANDBOX_ENV_VAR, "true"))
 	}
 	if waitForDebugger {
-		cmdObj.AddEnvVars("WAIT_FOR_DEBUGGER=true")
+		cmdObj.AddEnvVars(fmt.Sprintf("%s=true", WAIT_FOR_DEBUGGER_ENV_VAR))
 	}
 	// Set a race detector log path only to avoid spamming the terminal with the
 	// logs. We are not showing this anywhere yet.
