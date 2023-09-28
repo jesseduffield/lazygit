@@ -42,7 +42,7 @@ func RunTests(
 
 	testDir := filepath.Join(projectRootDir, "test", "_results")
 
-	if err := buildLazygit(raceDetector); err != nil {
+	if err := buildLazygit(waitForDebugger, raceDetector); err != nil {
 		return err
 	}
 
@@ -138,12 +138,17 @@ func prepareTestDir(
 	return createFixture(test, paths, rootDir)
 }
 
-func buildLazygit(raceDetector bool) error {
+func buildLazygit(debug bool, raceDetector bool) error {
 	// // TODO: remove this line!
 	// // skipping this because I'm not making changes to the app code atm.
 	// return nil
 
 	args := []string{"go", "build"}
+	if debug {
+		// Disable compiler optimizations (-N) and inlining (-l) because this
+		// makes debugging work better
+		args = append(args, "-gcflags=all=-N -l")
+	}
 	if raceDetector {
 		args = append(args, "-race")
 	}
