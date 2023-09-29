@@ -134,10 +134,10 @@ jobs:
         # ensure our vendor directory matches up with our go modules
         run: |
           go mod vendor && git diff --exit-code || (echo "Unexpected change to vendor directory. Run 'go mod vendor' locally and commit the changes" && exit 1)
-      - name: Check Integration Test List
-        # ensure our integration test list is up to date
+      - name: Check All Auto-Generated Files
+        # ensure all our auto-generated files are up to date
         run: |
-          go generate pkg/integration/tests/tests.go && git diff --exit-code || (echo "Integration test list not up to date. Run 'go generate pkg/integration/tests/tests.go' locally and commit the changes" && exit 1)
+          go generate ./... && git diff --quiet || (git status -s; echo "Auto-generated files not up to date. Run 'go generate ./...' locally and commit the changes" && exit 1)
         shell: bash # needed so that we get "-o pipefail"
       - name: Check Filenames
         run: scripts/check_filenames.sh
