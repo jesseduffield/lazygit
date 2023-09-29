@@ -34,14 +34,24 @@ func NewWindowArrangementHelper(
 
 const INFO_SECTION_PADDING = " "
 
+func (self *WindowArrangementHelper) shouldUsePortraitMode(width, height int) bool {
+	switch self.c.UserConfig.Gui.PortraitMode {
+	case "never":
+		return false
+	case "always":
+		return true
+	default: // "auto" or any garbage values in PortraitMode value
+		return width <= 84 && height > 45
+	}
+}
+
 func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
 	width, height := self.c.GocuiGui().Size()
 
 	sideSectionWeight, mainSectionWeight := self.getMidSectionWeights()
 
 	sidePanelsDirection := boxlayout.COLUMN
-	portraitMode := width <= 84 && height > 45
-	if portraitMode {
+	if self.shouldUsePortraitMode(width, height) {
 		sidePanelsDirection = boxlayout.ROW
 	}
 

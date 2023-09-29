@@ -130,6 +130,9 @@ type GuiConfig struct {
 	Border string `yaml:"border"`
 	// If true, show a seriously epic explosion animation when nuking the working tree.
 	AnimateExplosion bool `yaml:"animateExplosion"`
+	// Whether to stack UI components on top of each other.
+	// One of 'auto' (default) | 'always' | 'never'
+	PortraitMode string `yaml:"portraitMode"`
 }
 
 type ThemeConfig struct {
@@ -619,6 +622,7 @@ func GetDefaultConfig() *UserConfig {
 			SkipRewordInEditorWarning: false,
 			Border:                    "rounded",
 			AnimateExplosion:          true,
+			PortraitMode:              "auto",
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{
