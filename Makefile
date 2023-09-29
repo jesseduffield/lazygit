@@ -29,6 +29,7 @@ unit-test:
 .PHONY: test
 test: unit-test integration-test-all
 
+# Generate all our auto-generated files (test list, cheatsheets, maybe other things in the future)
 .PHONY: generate
 generate:
 	go generate ./...
@@ -36,10 +37,6 @@ generate:
 .PHONY: format
 format:
 	gofumpt -l -w .
-
-.PHONY: update-cheatsheet
-update-cheatsheet:
-	go run scripts/cheatsheet/main.go generate
 
 # For more details about integration test, see https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.md.
 .PHONY: integration-test-tui

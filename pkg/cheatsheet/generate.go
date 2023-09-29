@@ -1,10 +1,12 @@
-// This "script" generates a file called Keybindings_{{.LANG}}.md
-// in current working directory.
+//go:generate go run generator.go
+
+// This "script" generates files called Keybindings_{{.LANG}}.md
+// in the docs/keybindings directory.
 //
-// The content of this generated file is a keybindings cheatsheet.
+// The content of these generated files is a keybindings cheatsheet.
 //
-// To generate cheatsheet in english run:
-//   go run scripts/generate_cheatsheet.go
+// To generate the cheatsheets, run:
+//   go generate pkg/cheatsheet/generate.go
 
 package cheatsheet
 
@@ -42,7 +44,7 @@ type headerWithBindings struct {
 }
 
 func CommandToRun() string {
-	return "go run scripts/cheatsheet/main.go generate"
+	return "go generate ./..."
 }
 
 func GetKeybindingsDir() string {
