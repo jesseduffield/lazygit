@@ -74,6 +74,11 @@ func CopyFile(src, dst string) (err error) {
 	return //nolint: nakedret
 }
 
+// If I was less lazy
+// I would actually think
+// of a way to add some real code
+// for the sake of an example
+
 // CopyDir recursively copies a directory tree, attempting to preserve permissions.
 // Source directory must exist. If destination already exists we'll clobber it.
 // Symlinks are ignored and skipped.
