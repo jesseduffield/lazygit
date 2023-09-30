@@ -3,7 +3,7 @@ all: build
 
 .PHONY: build
 build:
-	go build
+	go build -gcflags='all=-N -l'
 
 .PHONY: install
 install:
