@@ -20,7 +20,11 @@ linters:
 linters-settings:
   exhaustive:
     default-signifies-exhaustive: true
-
+  staticcheck:
+    # SA1019 is for checking that we're not using fields marked as deprecated
+    # in a comment. It decides this in a loose way so I'm silencing it. Also because
+    # it's tripping on our own structs.
+    checks: ["all", "-SA1019"]
   nakedret:
     # the gods will judge me but I just don't like naked returns at all
     max-func-lines: 0
