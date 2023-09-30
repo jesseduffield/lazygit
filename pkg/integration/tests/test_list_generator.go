@@ -19,6 +19,8 @@ import (
 )
 
 func main() {
+	println("Generating test_list.go...")
+
 	code := generateCode()
 
 	formattedCode, err := format.Source(code)
