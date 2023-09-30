@@ -1,0 +1,5 @@
+{
+  "gopls": {
+    "formatting.gofumpt": true,
+  },
+}
