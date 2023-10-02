@@ -165,7 +165,7 @@ var branchFields = []string{
 	"upstream:short",
 	"upstream:track",
 	"subject",
-	fmt.Sprintf("objectname:short=%d", utils.COMMIT_HASH_SHORT_SIZE),
+	"objectname",
 }
 
 // Obtain branch information from parsed line output of getRawBranches()

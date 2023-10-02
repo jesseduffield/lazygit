@@ -3,6 +3,7 @@ package presentation
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -10,8 +11,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/logs"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 var branchPrefixColorCache = make(map[string]style.TextStyle)
@@ -22,10 +25,21 @@ func GetBranchListDisplayStrings(
 	diffName string,
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
+	commitStore *models.CommitStore,
 ) [][]string {
+	isContainedInMainBranch := isContainedInMainBranchFn(
+		userConfig.Git.MainBranches,
+		branches,
+		commitStore,
+	)
+
+	if commitStore.Size() > 10 {
+		logs.Global.Warnf("commitStore.Slice()[0:10]: %v", commitStore.Slice()[0:10])
+	}
+
 	return slices.Map(branches, func(branch *models.Branch) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, fullDescription, diffed, tr, userConfig)
+		return getBranchDisplayStrings(branch, fullDescription, diffed, tr, userConfig, isContainedInMainBranch)
 	})
 }
 
@@ -36,6 +50,7 @@ func getBranchDisplayStrings(
 	diffed bool,
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
+	isContainedInMainBranch func(string) bool,
 ) []string {
 	displayName := b.Name
 	if b.DisplayName != "" {
@@ -63,7 +78,15 @@ func getBranchDisplayStrings(
 	}
 
 	if fullDescription || userConfig.Gui.ShowBranchCommitHash {
-		res = append(res, b.CommitHash)
+		var hashStyle style.TextStyle
+		if isContainedInMainBranch(b.CommitHash) {
+			hashStyle = style.FgGreen
+		} else {
+			hashStyle = style.FgYellow
+		}
+		coloredHash := hashStyle.Sprint(utils.ShortSha(b.CommitHash))
+
+		res = append(res, coloredHash)
 	}
 
 	res = append(res, coloredName)
@@ -144,3 +167,47 @@ func BranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string {
 func SetCustomBranches(customBranchColors map[string]string) {
 	branchPrefixColorCache = utils.SetCustomColors(customBranchColors)
 }
+
+// returns a function that tells us if a given branch's commit is contained in any of the main branches
+func isContainedInMainBranchFn(mainBranches []string, branches []*models.Branch, commitStore *models.CommitStore) func(string) bool {
+	mainBranchHashes := []string{}
+	for _, branch := range branches {
+		if lo.Contains(mainBranches, branch.Name) {
+			mainBranchHashes = append(mainBranchHashes, branch.CommitHash)
+		}
+	}
+
+	logs.Global.Warnf("mainBranchHashes: %v", mainBranchHashes)
+
+	t := time.Now()
+
+	ancestorSlices := lo.Map(mainBranchHashes, func(hash string, _ int) map[string]bool {
+		return commitStore.FindAncestors(
+			hash,
+			lo.Map(branches, func(branch *models.Branch, _ int) string {
+				return branch.CommitHash
+			}),
+		)
+	})
+
+	ancestors := lo.Reduce(ancestorSlices, mergeMaps, map[string]bool{})
+
+	logs.Global.Warnf("isContainedInMainBranchFn took %v", time.Since(t))
+
+	return func(commitHash string) bool {
+		return ancestors[commitHash]
+	}
+}
+
+func mergeMaps(a, b map[string]bool, _ int) map[string]bool {
+	res := map[string]bool{}
+	for k, v := range a {
+		res[k] = v
+	}
+	for k, v := range b {
+		res[k] = v
+	}
+	return res
+}
+
+// it's faster to first check if master is a proper ancestor of my commit, because it likely is and it will be faster to find out. If I go the other way around, I need to traverse from master to the root for every branch potentially. Is there a way to speed that up?
