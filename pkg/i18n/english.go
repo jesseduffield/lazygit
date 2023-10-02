@@ -868,7 +868,7 @@ func EnglishTranslationSet() TranslationSet {
 		CantRebaseOntoSelf:                  "You cannot rebase a branch onto itself",
 		CantMergeBranchIntoItself:           "You cannot merge a branch into itself",
 		ForceCheckout:                       "Force checkout",
-		CheckoutByName:                      "Checkout by name",
+		CheckoutByName:                      "Checkout by name, use '-' for previous",
 		NewBranch:                           "New branch",
 		NoBranchesThisRepo:                  "No branches for this repo",
 		CommitWithoutMessageErr:             "You cannot commit without a commit message",
