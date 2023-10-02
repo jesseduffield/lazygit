@@ -106,7 +106,7 @@ func (self *StatusController) onClick() error {
 	}
 
 	cx, _ := self.c.Views().Status.Cursor()
-	upstreamStatus := presentation.BranchStatus(currentBranch, types.RefOperationNone, self.c.Tr)
+	upstreamStatus := presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr)
 	repoName := self.c.Git().RepoPaths.RepoName()
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	switch workingTreeState {

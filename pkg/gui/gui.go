@@ -110,8 +110,8 @@ type Gui struct {
 	// lazygit was opened in, or if we'll retain the one we're currently in.
 	RetainOriginalDir bool
 
-	refOperations            map[string]types.RefOperation
-	refOperationsMutex       *deadlock.Mutex
+	itemOperations           map[string]types.ItemOperation
+	itemOperationsMutex      *deadlock.Mutex
 	contextsWithInlineStatus map[types.ContextKey]*inlineStatusInfo
 
 	PrevLayout PrevLayout
@@ -184,27 +184,27 @@ func (self *StateAccessor) SetRetainOriginalDir(value bool) {
 	self.gui.RetainOriginalDir = value
 }
 
-func (self *StateAccessor) GetRefOperation(ref string) types.RefOperation {
-	self.gui.refOperationsMutex.Lock()
-	defer self.gui.refOperationsMutex.Unlock()
+func (self *StateAccessor) GetItemOperation(item types.HasUrn) types.ItemOperation {
+	self.gui.itemOperationsMutex.Lock()
+	defer self.gui.itemOperationsMutex.Unlock()
 
-	return self.gui.refOperations[ref]
+	return self.gui.itemOperations[item.URN()]
 }
 
-func (self *StateAccessor) SetRefOperation(ref string, operation types.RefOperation, contextKey types.ContextKey) {
-	self.gui.refOperationsMutex.Lock()
-	defer self.gui.refOperationsMutex.Unlock()
+func (self *StateAccessor) SetItemOperation(item types.HasUrn, operation types.ItemOperation, contextKey types.ContextKey) {
+	self.gui.itemOperationsMutex.Lock()
+	defer self.gui.itemOperationsMutex.Unlock()
 
-	self.gui.refOperations[ref] = operation
+	self.gui.itemOperations[item.URN()] = operation
 	self.gui.startRenderingInlineStatus(contextKey)
 }
 
-func (self *StateAccessor) ClearRefOperation(ref string, contextKey types.ContextKey) {
-	self.gui.refOperationsMutex.Lock()
-	defer self.gui.refOperationsMutex.Unlock()
+func (self *StateAccessor) ClearItemOperation(item types.HasUrn, contextKey types.ContextKey) {
+	self.gui.itemOperationsMutex.Lock()
+	defer self.gui.itemOperationsMutex.Unlock()
 
 	self.gui.stopRenderingInlineStatus(contextKey)
-	delete(self.gui.refOperations, ref)
+	delete(self.gui.itemOperations, item.URN())
 }
 
 // we keep track of some stuff from one render to the next to see if certain
@@ -499,8 +499,8 @@ func NewGui(
 		InitialDir:       initialDir,
 		afterLayoutFuncs: make(chan func() error, 1000),
 
-		refOperations:            make(map[string]types.RefOperation),
-		refOperationsMutex:       &deadlock.Mutex{},
+		itemOperations:           make(map[string]types.ItemOperation),
+		itemOperationsMutex:      &deadlock.Mutex{},
 		contextsWithInlineStatus: make(map[types.ContextKey]*inlineStatusInfo),
 	}
 

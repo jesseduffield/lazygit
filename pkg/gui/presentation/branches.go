@@ -20,7 +20,7 @@ var branchPrefixColorCache = make(map[string]style.TextStyle)
 
 func GetBranchListDisplayStrings(
 	branches []*models.Branch,
-	getRefOperation func(branch *models.Branch) types.RefOperation,
+	getItemOperation func(item types.HasUrn) types.ItemOperation,
 	fullDescription bool,
 	diffName string,
 	tr *i18n.TranslationSet,
@@ -29,14 +29,14 @@ func GetBranchListDisplayStrings(
 ) [][]string {
 	return lo.Map(branches, func(branch *models.Branch, _ int) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, getRefOperation(branch), fullDescription, diffed, tr, userConfig, worktrees)
+		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, tr, userConfig, worktrees)
 	})
 }
 
 // getBranchDisplayStrings returns the display string of branch
 func getBranchDisplayStrings(
 	b *models.Branch,
-	refOperation types.RefOperation,
+	refOperation types.ItemOperation,
 	fullDescription bool,
 	diffed bool,
 	tr *i18n.TranslationSet,
@@ -112,9 +112,9 @@ func GetBranchTextStyle(name string) style.TextStyle {
 	}
 }
 
-func ColoredBranchStatus(branch *models.Branch, refOperation types.RefOperation, tr *i18n.TranslationSet) string {
+func ColoredBranchStatus(branch *models.Branch, refOperation types.ItemOperation, tr *i18n.TranslationSet) string {
 	colour := style.FgYellow
-	if refOperation != types.RefOperationNone {
+	if refOperation != types.ItemOperationNone {
 		colour = style.FgCyan
 	} else if branch.UpstreamGone {
 		colour = style.FgRed
@@ -127,7 +127,7 @@ func ColoredBranchStatus(branch *models.Branch, refOperation types.RefOperation,
 	return colour.Sprint(BranchStatus(branch, refOperation, tr))
 }
 
-func BranchStatus(branch *models.Branch, refOperation types.RefOperation, tr *i18n.TranslationSet) string {
+func BranchStatus(branch *models.Branch, refOperation types.ItemOperation, tr *i18n.TranslationSet) string {
 	refOperationStr := refOperationToString(refOperation, tr)
 	if refOperationStr != "" {
 		return refOperationStr + " " + utils.Loader()

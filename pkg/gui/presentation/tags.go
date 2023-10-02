@@ -13,18 +13,18 @@ import (
 
 func GetTagListDisplayStrings(
 	tags []*models.Tag,
-	getRefOperation func(branch *models.Tag) types.RefOperation,
+	getItemOperation func(item types.HasUrn) types.ItemOperation,
 	diffName string,
 	tr *i18n.TranslationSet,
 ) [][]string {
 	return lo.Map(tags, func(tag *models.Tag, _ int) []string {
 		diffed := tag.Name == diffName
-		return getTagDisplayStrings(tag, getRefOperation(tag), diffed, tr)
+		return getTagDisplayStrings(tag, getItemOperation(tag), diffed, tr)
 	})
 }
 
 // getTagDisplayStrings returns the display string of branch
-func getTagDisplayStrings(t *models.Tag, refOperation types.RefOperation, diffed bool, tr *i18n.TranslationSet) []string {
+func getTagDisplayStrings(t *models.Tag, refOperation types.ItemOperation, diffed bool, tr *i18n.TranslationSet) []string {
 	textStyle := theme.DefaultTextColor
 	if diffed {
 		textStyle = theme.DiffTerminalColor

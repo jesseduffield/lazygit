@@ -264,17 +264,23 @@ type Mutexes struct {
 	PtyMutex                *deadlock.Mutex
 }
 
-type RefOperation int
+// A long-running operation associated with an item. For example, we'll show
+// that a branch is being pushed from so that there's visual feedback about
+// what's happening and so that you can see multiple branches' concurrent
+// operations
+type ItemOperation int
 
-// An long-running operation on a ref (branch or tag). We display these in the
-// list of branches or tags so that there's better feedback of what's happening.
 const (
-	RefOperationNone RefOperation = iota
-	RefOperationPushing
-	RefOperationPulling
-	RefOperationFastForwarding
-	RefOperationDeleting
+	ItemOperationNone ItemOperation = iota
+	ItemOperationPushing
+	ItemOperationPulling
+	ItemOperationFastForwarding
+	ItemOperationDeleting
 )
+
+type HasUrn interface {
+	URN() string
+}
 
 type IStateAccessor interface {
 	GetRepoPathStack() *utils.StringStack
@@ -288,9 +294,9 @@ type IStateAccessor interface {
 	SetShowExtrasWindow(bool)
 	GetRetainOriginalDir() bool
 	SetRetainOriginalDir(bool)
-	GetRefOperation(ref string) RefOperation
-	SetRefOperation(ref string, operation RefOperation, contextKey ContextKey)
-	ClearRefOperation(ref string, contextKey ContextKey)
+	GetItemOperation(item HasUrn) ItemOperation
+	SetItemOperation(item HasUrn, operation ItemOperation, contextKey ContextKey)
+	ClearItemOperation(item HasUrn, contextKey ContextKey)
 }
 
 type IRepoStateAccessor interface {

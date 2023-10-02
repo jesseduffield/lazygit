@@ -303,8 +303,8 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 func (self *BranchesController) getDisabledReasonForPress() string {
 	currentBranch := self.c.Helpers().Refs.GetCheckedOutRef()
 	if currentBranch != nil {
-		op := self.c.State().GetRefOperation(currentBranch.FullRefName())
-		if op == types.RefOperationFastForwarding || op == types.RefOperationPulling {
+		op := self.c.State().GetItemOperation(currentBranch)
+		if op == types.ItemOperationFastForwarding || op == types.ItemOperationPulling {
 			return self.c.Tr.CantCheckoutBranchWhilePulling
 		}
 	}
@@ -584,8 +584,8 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 	)
 
 	return self.c.WithWaitingStatus(message, func(task gocui.Task) error {
-		self.c.State().SetRefOperation(branch.FullRefName(), types.RefOperationFastForwarding, context.LOCAL_BRANCHES_CONTEXT_KEY)
-		defer func() { self.c.State().ClearRefOperation(branch.FullRefName(), context.LOCAL_BRANCHES_CONTEXT_KEY) }()
+		self.c.State().SetItemOperation(branch, types.ItemOperationFastForwarding, context.LOCAL_BRANCHES_CONTEXT_KEY)
+		defer func() { self.c.State().ClearItemOperation(branch, context.LOCAL_BRANCHES_CONTEXT_KEY) }()
 
 		worktree, ok := self.worktreeForBranch(branch)
 		if ok {

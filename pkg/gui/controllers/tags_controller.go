@@ -131,8 +131,8 @@ func (self *TagsController) remoteDelete(tag *models.Tag) error {
 				Prompt: confirmPrompt,
 				HandleConfirm: func() error {
 					return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(t gocui.Task) error {
-						self.c.State().SetRefOperation(tag.FullRefName(), types.RefOperationDeleting, context.TAGS_CONTEXT_KEY)
-						defer func() { self.c.State().ClearRefOperation(tag.FullRefName(), context.TAGS_CONTEXT_KEY) }()
+						self.c.State().SetItemOperation(tag, types.ItemOperationDeleting, context.TAGS_CONTEXT_KEY)
+						defer func() { self.c.State().ClearItemOperation(tag, context.TAGS_CONTEXT_KEY) }()
 
 						self.c.LogAction(self.c.Tr.Actions.DeleteRemoteTag)
 						if err := self.c.Git().Remote.DeleteRemoteTag(t, upstream, tag.Name); err != nil {
@@ -193,9 +193,9 @@ func (self *TagsController) push(tag *models.Tag) error {
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRemoteSuggestionsFunc(),
 		HandleConfirm: func(response string) error {
 			return self.c.WithWaitingStatus(self.c.Tr.PushingTagStatus, func(task gocui.Task) error {
-				self.c.State().SetRefOperation(tag.FullRefName(), types.RefOperationPushing, context.TAGS_CONTEXT_KEY)
+				self.c.State().SetItemOperation(tag, types.ItemOperationPushing, context.TAGS_CONTEXT_KEY)
 				defer func() {
-					self.c.State().ClearRefOperation(tag.FullRefName(), context.TAGS_CONTEXT_KEY)
+					self.c.State().ClearItemOperation(tag, context.TAGS_CONTEXT_KEY)
 					// Render again to remove the inline status:
 					self.c.OnUIThread(func() error {
 						_ = self.c.Contexts().Tags.HandleRender()

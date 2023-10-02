@@ -62,8 +62,8 @@ func (self *SyncController) HandlePull() error {
 func (self *SyncController) getDisabledReasonForPushOrPull() string {
 	currentBranch := self.c.Helpers().Refs.GetCheckedOutRef()
 	if currentBranch != nil {
-		op := self.c.State().GetRefOperation(currentBranch.FullRefName())
-		if op != types.RefOperationNone {
+		op := self.c.State().GetItemOperation(currentBranch)
+		if op != types.ItemOperationNone {
 			return self.c.Tr.CantPullOrPushSameBranchTwice
 		}
 	}
@@ -156,9 +156,9 @@ type PullFilesOptions struct {
 
 func (self *SyncController) PullAux(currentBranch *models.Branch, opts PullFilesOptions) error {
 	return self.c.WithWaitingStatus(self.c.Tr.PullingStatus, func(task gocui.Task) error {
-		self.c.State().SetRefOperation(currentBranch.FullRefName(), types.RefOperationPulling, context.LOCAL_BRANCHES_CONTEXT_KEY)
+		self.c.State().SetItemOperation(currentBranch, types.ItemOperationPulling, context.LOCAL_BRANCHES_CONTEXT_KEY)
 		defer func() {
-			self.c.State().ClearRefOperation(currentBranch.FullRefName(), context.LOCAL_BRANCHES_CONTEXT_KEY)
+			self.c.State().ClearItemOperation(currentBranch, context.LOCAL_BRANCHES_CONTEXT_KEY)
 		}()
 
 		return self.pullWithLock(task, opts)
@@ -189,9 +189,9 @@ type pushOpts struct {
 
 func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts) error {
 	return self.c.WithWaitingStatus(self.c.Tr.PushingStatus, func(task gocui.Task) error {
-		self.c.State().SetRefOperation(currentBranch.FullRefName(), types.RefOperationPushing, context.LOCAL_BRANCHES_CONTEXT_KEY)
+		self.c.State().SetItemOperation(currentBranch, types.ItemOperationPushing, context.LOCAL_BRANCHES_CONTEXT_KEY)
 		defer func() {
-			self.c.State().ClearRefOperation(currentBranch.FullRefName(), context.LOCAL_BRANCHES_CONTEXT_KEY)
+			self.c.State().ClearItemOperation(currentBranch, context.LOCAL_BRANCHES_CONTEXT_KEY)
 		}()
 
 		self.c.LogAction(self.c.Tr.Actions.Push)

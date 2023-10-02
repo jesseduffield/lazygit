@@ -11,7 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 )
 
-func FormatStatus(repoName string, currentBranch *models.Branch, refOperation types.RefOperation, linkedWorktreeName string, workingTreeState enums.RebaseMode, tr *i18n.TranslationSet) string {
+func FormatStatus(repoName string, currentBranch *models.Branch, refOperation types.ItemOperation, linkedWorktreeName string, workingTreeState enums.RebaseMode, tr *i18n.TranslationSet) string {
 	status := ""
 
 	if currentBranch.IsRealBranch() {

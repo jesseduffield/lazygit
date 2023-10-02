@@ -5,17 +5,17 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 )
 
-func refOperationToString(refOperation types.RefOperation, tr *i18n.TranslationSet) string {
+func refOperationToString(refOperation types.ItemOperation, tr *i18n.TranslationSet) string {
 	switch refOperation {
-	case types.RefOperationNone:
+	case types.ItemOperationNone:
 		return ""
-	case types.RefOperationPushing:
+	case types.ItemOperationPushing:
 		return tr.PushingStatus
-	case types.RefOperationPulling:
+	case types.ItemOperationPulling:
 		return tr.PullingStatus
-	case types.RefOperationFastForwarding:
+	case types.ItemOperationFastForwarding:
 		return tr.FastForwardingOperation
-	case types.RefOperationDeleting:
+	case types.ItemOperationDeleting:
 		return tr.DeletingStatus
 	}
 
