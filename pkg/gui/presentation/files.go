@@ -3,6 +3,7 @@ package presentation
 import (
 	"strings"
 
+	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -148,7 +149,7 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 		if secondChar == " " {
 			secondCharCl = restColor
 		}
-
+        
 		output = firstCharCl.Sprint(firstChar)
 		output += secondCharCl.Sprint(secondChar)
 		output += restColor.Sprint(" ")
@@ -158,8 +159,10 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 	isLinkedWorktree := file != nil && file.IsWorktree
 	isDirectory := file == nil
 
+    var testColor = color.C256(74, false)
+    // var testColor= style.FgGreen
 	if icons.IsIconEnabled() {
-		output += restColor.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory))
+		output += testColor.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory))
 	}
 
 	output += restColor.Sprint(utils.EscapeSpecialChars(name))
@@ -185,7 +188,6 @@ func getCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 			colour = theme.DefaultTextColor
 		}
 	}
-
 	output := ""
 
 	name = utils.EscapeSpecialChars(name)
@@ -196,7 +198,7 @@ func getCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 	isSubmodule := false
 	isLinkedWorktree := false
 	isDirectory := commitFile == nil
-
+     
 	if icons.IsIconEnabled() {
 		output += colour.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory))
 	}
