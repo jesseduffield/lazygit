@@ -60,6 +60,7 @@ func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset
 			suspend:                   false,
 		},
 		"emacs":   standardTerminalEditorPreset("emacs"),
+		"micro":   standardTerminalEditorPreset("micro"),
 		"nano":    standardTerminalEditorPreset("nano"),
 		"kakoune": standardTerminalEditorPreset("kak"),
 		"helix": {
