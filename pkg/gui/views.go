@@ -53,7 +53,7 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		{viewPtr: &gui.Views.AppStatus, name: "appStatus"},
 		{viewPtr: &gui.Views.Information, name: "information"},
 		{viewPtr: &gui.Views.Search, name: "search"},
-		// this view takes up one character. Its only purpose is to show the slash when searching
+		// this view shows either the "Search:" prompt when searching, or the "Filter:" prompt when filtering
 		{viewPtr: &gui.Views.SearchPrefix, name: "searchPrefix"},
 
 		// popups.
