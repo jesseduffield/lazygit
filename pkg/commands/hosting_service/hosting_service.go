@@ -99,32 +99,30 @@ func (self *HostingServiceMgr) getCandidateServiceDomains() []ServiceDomain {
 
 	serviceDomains := slices.Clone(defaultServiceDomains)
 
-	if len(self.configServiceDomains) > 0 {
-		for gitDomain, typeAndDomain := range self.configServiceDomains {
-			provider, webDomain, success := strings.Cut(typeAndDomain, ":")
+	for gitDomain, typeAndDomain := range self.configServiceDomains {
+		provider, webDomain, success := strings.Cut(typeAndDomain, ":")
 
-			// we allow for one ':' for specifying the TCP port
-			if !success || strings.Count(webDomain, ":") > 1 {
-				self.log.Errorf("Unexpected format for git service: '%s'. Expected something like 'github.com:github.com'", typeAndDomain)
-				continue
-			}
-
-			serviceDefinition, ok := serviceDefinitionByProvider[provider]
-			if !ok {
-				providerNames := lo.Map(serviceDefinitions, func(serviceDefinition ServiceDefinition, _ int) string {
-					return serviceDefinition.provider
-				})
-
-				self.log.Errorf("Unknown git service type: '%s'. Expected one of %s", provider, strings.Join(providerNames, ", "))
-				continue
-			}
-
-			serviceDomains = append(serviceDomains, ServiceDomain{
-				gitDomain:         gitDomain,
-				webDomain:         webDomain,
-				serviceDefinition: serviceDefinition,
-			})
+		// we allow for one ':' for specifying the TCP port
+		if !success || strings.Count(webDomain, ":") > 1 {
+			self.log.Errorf("Unexpected format for git service: '%s'. Expected something like 'github.com:github.com'", typeAndDomain)
+			continue
 		}
+
+		serviceDefinition, ok := serviceDefinitionByProvider[provider]
+		if !ok {
+			providerNames := lo.Map(serviceDefinitions, func(serviceDefinition ServiceDefinition, _ int) string {
+				return serviceDefinition.provider
+			})
+
+			self.log.Errorf("Unknown git service type: '%s'. Expected one of %s", provider, strings.Join(providerNames, ", "))
+			continue
+		}
+
+		serviceDomains = append(serviceDomains, ServiceDomain{
+			gitDomain:         gitDomain,
+			webDomain:         webDomain,
+			serviceDefinition: serviceDefinition,
+		})
 	}
 
 	return serviceDomains
