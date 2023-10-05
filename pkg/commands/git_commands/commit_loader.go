@@ -589,20 +589,8 @@ func (self *CommitLoader) getExistingMainBranches() []string {
 				return
 			}
 
-			// If this failed, a local branch for this main branch doesn't exist or it
-			// has no upstream configured. Try looking for one in the "origin" remote.
-			ref := "refs/remotes/origin/" + branchName
-			if err := self.cmd.New(
-				NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
-			).DontLog().Run(); err == nil {
-				existingBranches[i] = ref
-				return
-			}
-
-			// If this failed as well, try if we have the main branch as a local
-			// branch. This covers the case where somebody is using git locally
-			// for something, but never pushing anywhere.
-			ref = "refs/heads/" + branchName
+			// If this failed, fallback to the local branch
+			ref := "refs/heads/" + branchName
 			if err := self.cmd.New(
 				NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
 			).DontLog().Run(); err == nil {
