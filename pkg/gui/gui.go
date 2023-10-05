@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazycore/pkg/boxlayout"
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
@@ -384,6 +385,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 			BisectInfo:            git_commands.NewNullBisectInfo(),
 			FilesTrie:             patricia.NewTrie(),
 			Authors:               map[string]*models.Author{},
+			MergedBranches:        set.New[string](),
 		},
 		Modes: &types.Modes{
 			Filtering:        filtering.New(startArgs.FilterPath),

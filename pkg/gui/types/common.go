@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -223,15 +224,17 @@ type MenuItem struct {
 }
 
 type Model struct {
-	CommitFiles  []*models.CommitFile
-	Files        []*models.File
-	Submodules   []*models.SubmoduleConfig
-	Branches     []*models.Branch
-	Commits      []*models.Commit
-	StashEntries []*models.StashEntry
-	SubCommits   []*models.Commit
-	Remotes      []*models.Remote
-	Worktrees    []*models.Worktree
+	CommitFiles []*models.CommitFile
+	Files       []*models.File
+	Submodules  []*models.SubmoduleConfig
+	Branches    []*models.Branch
+	// set of branch names of the form 'refs/heads/mybranch'
+	MergedBranches *set.Set[string]
+	Commits        []*models.Commit
+	StashEntries   []*models.StashEntry
+	SubCommits     []*models.Commit
+	Remotes        []*models.Remote
+	Worktrees      []*models.Worktree
 
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// when in filtering mode we only include the ones that match the given path

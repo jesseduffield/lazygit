@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -26,10 +27,11 @@ func GetBranchListDisplayStrings(
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
 	worktrees []*models.Worktree,
+	mergedBranches *set.Set[string],
 ) [][]string {
 	return lo.Map(branches, func(branch *models.Branch, _ int) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, tr, userConfig, worktrees)
+		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, tr, userConfig, worktrees, mergedBranches)
 	})
 }
 
@@ -42,6 +44,7 @@ func getBranchDisplayStrings(
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
 	worktrees []*models.Worktree,
+	mergedBranches *set.Set[string],
 ) []string {
 	displayName := b.Name
 	if b.DisplayName != "" {
@@ -74,7 +77,15 @@ func getBranchDisplayStrings(
 	}
 
 	if fullDescription || userConfig.Gui.ShowBranchCommitHash {
-		res = append(res, utils.ShortSha(b.CommitHash))
+		var commitStyle style.TextStyle
+		if b.HasCommitsToPush() {
+			commitStyle = getShaStyleFromStatus(models.StatusUnpushed)
+		} else if mergedBranches.Includes(b.FullRefName()) {
+			commitStyle = getShaStyleFromStatus(models.StatusMerged)
+		} else {
+			commitStyle = getShaStyleFromStatus(models.StatusPushed)
+		}
+		res = append(res, commitStyle.Sprint(utils.ShortSha(b.CommitHash)))
 	}
 
 	res = append(res, coloredName)

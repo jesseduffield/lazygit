@@ -33,6 +33,7 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 			c.Tr,
 			c.UserConfig,
 			c.Model().Worktrees,
+			c.Model().MergedBranches,
 		)
 	}
 

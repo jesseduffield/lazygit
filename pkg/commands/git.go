@@ -47,6 +47,7 @@ type GitCommand struct {
 
 type Loaders struct {
 	BranchLoader       *git_commands.BranchLoader
+	MergedBranchLoader *git_commands.MergedBranchLoader
 	CommitFileLoader   *git_commands.CommitFileLoader
 	CommitLoader       *git_commands.CommitLoader
 	FileLoader         *git_commands.FileLoader
@@ -162,6 +163,7 @@ func NewGitCommandAux(
 	worktreeCommands := git_commands.NewWorktreeCommands(gitCommon)
 
 	branchLoader := git_commands.NewBranchLoader(cmn, cmd, branchCommands.CurrentBranchInfo, configCommands)
+	mergedBranchLoader := git_commands.NewMergedBranchLoader(gitCommon)
 	commitFileLoader := git_commands.NewCommitFileLoader(cmn, cmd)
 	commitLoader := git_commands.NewCommitLoader(cmn, cmd, statusCommands.RebaseMode, gitCommon)
 	reflogCommitLoader := git_commands.NewReflogCommitLoader(cmn, cmd)
@@ -200,6 +202,7 @@ func NewGitCommandAux(
 			Worktrees:          worktreeLoader,
 			StashLoader:        stashLoader,
 			TagLoader:          tagLoader,
+			MergedBranchLoader: mergedBranchLoader,
 		},
 		RepoPaths: repoPaths,
 	}

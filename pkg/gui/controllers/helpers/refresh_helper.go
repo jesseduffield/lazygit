@@ -429,25 +429,43 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool) {
 	self.c.Mutexes().RefreshingBranchesMutex.Lock()
 	defer self.c.Mutexes().RefreshingBranchesMutex.Unlock()
 
-	reflogCommits := self.c.Model().FilteredReflogCommits
-	if self.c.Modes().Filtering.Active() {
-		// in filter mode we filter our reflog commits to just those containing the path
-		// however we need all the reflog entries to populate the recencies of our branches
-		// which allows us to order them correctly. So if we're filtering we'll just
-		// manually load all the reflog commits here
-		var err error
-		reflogCommits, _, err = self.c.Git().Loaders.ReflogCommitLoader.GetReflogCommits(nil, "")
-		if err != nil {
-			self.c.Log.Error(err)
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+
+		reflogCommits := self.c.Model().FilteredReflogCommits
+		if self.c.Modes().Filtering.Active() {
+			// in filter mode we filter our reflog commits to just those containing the path
+			// however we need all the reflog entries to populate the recencies of our branches
+			// which allows us to order them correctly. So if we're filtering we'll just
+			// manually load all the reflog commits here
+			var err error
+			reflogCommits, _, err = self.c.Git().Loaders.ReflogCommitLoader.GetReflogCommits(nil, "")
+			if err != nil {
+				self.c.Log.Error(err)
+			}
 		}
-	}
 
-	branches, err := self.c.Git().Loaders.BranchLoader.Load(reflogCommits)
-	if err != nil {
-		_ = self.c.Error(err)
-	}
+		branches, err := self.c.Git().Loaders.BranchLoader.Load(reflogCommits)
+		if err != nil {
+			_ = self.c.Error(err)
+		}
 
-	self.c.Model().Branches = branches
+		self.c.Model().Branches = branches
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		mergedBranches := self.c.Git().Loaders.MergedBranchLoader.Load()
+
+		self.c.Model().MergedBranches = mergedBranches
+	}()
+
+	wg.Wait()
 
 	if refreshWorktrees {
 		self.loadWorktrees()

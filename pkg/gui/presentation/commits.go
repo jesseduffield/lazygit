@@ -413,20 +413,8 @@ func getShaColor(
 	}
 
 	diffed := commit.Sha != "" && commit.Sha == diffName
-	shaColor := theme.DefaultTextColor
-	switch commit.Status {
-	case models.StatusUnpushed:
-		shaColor = style.FgRed
-	case models.StatusPushed:
-		shaColor = style.FgYellow
-	case models.StatusMerged:
-		shaColor = style.FgGreen
-	case models.StatusRebasing:
-		shaColor = style.FgBlue
-	case models.StatusReflog:
-		shaColor = style.FgBlue
-	default:
-	}
+
+	shaColor := getShaStyleFromStatus(commit.Status)
 
 	if diffed {
 		shaColor = theme.DiffTerminalColor
@@ -437,6 +425,23 @@ func getShaColor(
 	}
 
 	return shaColor
+}
+
+func getShaStyleFromStatus(status models.CommitStatus) style.TextStyle {
+	switch status {
+	case models.StatusUnpushed:
+		return style.FgRed
+	case models.StatusPushed:
+		return style.FgYellow
+	case models.StatusMerged:
+		return style.FgGreen
+	case models.StatusRebasing:
+		return style.FgBlue
+	case models.StatusReflog:
+		return style.FgBlue
+	default:
+		return theme.DefaultTextColor
+	}
 }
 
 func actionColorMap(action todo.TodoCommand) style.TextStyle {
