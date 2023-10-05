@@ -478,9 +478,13 @@ If you would like to support the development of lazygit, consider [sponsoring me
 
 ### What do the commit colors represent?
 
-- Green: the commit is included in the master branch
-- Yellow: the commit is not included in the master branch
-- Red: the commit has not been pushed to the upstream branch
+- Green: the commit is included in the main branch's upstream
+- Yellow: the commit is not included in the main branch's upstream
+- Red: the commit has not been pushed to the given branch's upstream
+
+By 'main' branch we mean any branch defined in the `git.mainBranches` config which defaults to 'master' and 'main'. We check against the upstream and if that's missing we fall back to checking against the local branch itself. We prioritise the upstream because it's typically more up-to-date.
+
+This colouring scheme lets you see at a glance which commits belong to your branch, and which commits belong to the main branch.
 
 ## Shameless Plug
 
