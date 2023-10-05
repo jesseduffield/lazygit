@@ -6,6 +6,11 @@ import (
 	"github.com/samber/lo"
 )
 
+type IconProperties struct {
+	Icon  string
+	Color uint8
+}
+
 var isIconEnabled = false
 
 func IsIconEnabled() bool {
