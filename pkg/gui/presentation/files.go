@@ -159,10 +159,10 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 	isLinkedWorktree := file != nil && file.IsWorktree
 	isDirectory := file == nil
 
-    var testColor = color.C256(74, false)
+    var testColor = color.C256(72, true)
     // var testColor= style.FgGreen
 	if icons.IsIconEnabled() {
-		output += testColor.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory))
+		output += testColor.Sprint(icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)) + " "
 	}
 
 	output += restColor.Sprint(utils.EscapeSpecialChars(name))
