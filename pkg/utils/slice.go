@@ -1,6 +1,10 @@
 package utils
 
-import "golang.org/x/exp/slices"
+import (
+	"sync"
+
+	"golang.org/x/exp/slices"
+)
 
 // NextIndex returns the index of the element that comes after the given number
 func NextIndex(numbers []int, currentNumber int) int {
@@ -178,4 +182,25 @@ func Shift[T any](slice []T) (T, []T) {
 	value := slice[0]
 	slice = slice[1:]
 	return value, slice
+}
+
+// Map function which handles each element in its own goroutine
+func ConcurrentMap[T any, V any](items []T, fn func(T) V) []V {
+	results := make([]V, len(items))
+
+	var wg sync.WaitGroup
+	for i, item := range items {
+		i := i
+		item := item
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			results[i] = fn(item)
+		}()
+	}
+
+	wg.Wait()
+
+	return results
 }

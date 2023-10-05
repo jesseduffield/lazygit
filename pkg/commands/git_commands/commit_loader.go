@@ -568,38 +568,26 @@ func (self *CommitLoader) getMergeBase(refName string) string {
 }
 
 func (self *CommitLoader) getExistingMainBranches() []string {
-	var existingBranches []string
-	var wg sync.WaitGroup
-
 	mainBranches := self.UserConfig.Git.MainBranches
-	existingBranches = make([]string, len(mainBranches))
 
-	for i, branchName := range mainBranches {
-		wg.Add(1)
-		i := i
-		branchName := branchName
-		go utils.Safe(func() {
-			defer wg.Done()
+	existingBranches := utils.ConcurrentMap(mainBranches, func(mainBranch string) string {
+		// Try to determine upstream of local main branch
+		if ref, err := self.cmd.New(
+			NewGitCmd("rev-parse").Arg("--symbolic-full-name", mainBranch+"@{u}").ToArgv(),
+		).DontLog().RunWithOutput(); err == nil {
+			return strings.TrimSpace(ref)
+		}
 
-			// Try to determine upstream of local main branch
-			if ref, err := self.cmd.New(
-				NewGitCmd("rev-parse").Arg("--symbolic-full-name", branchName+"@{u}").ToArgv(),
-			).DontLog().RunWithOutput(); err == nil {
-				existingBranches[i] = strings.TrimSpace(ref)
-				return
-			}
+		// If this failed, fallback to the local branch
+		ref := "refs/heads/" + mainBranch
+		if err := self.cmd.New(
+			NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
+		).DontLog().Run(); err == nil {
+			return ref
+		}
 
-			// If this failed, fallback to the local branch
-			ref := "refs/heads/" + branchName
-			if err := self.cmd.New(
-				NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
-			).DontLog().Run(); err == nil {
-				existingBranches[i] = ref
-			}
-		})
-	}
-
-	wg.Wait()
+		return ""
+	})
 
 	existingBranches = lo.Filter(existingBranches, func(branch string, _ int) bool {
 		return branch != ""

@@ -315,3 +315,13 @@ func TestMoveElement(t *testing.T) {
 		})
 	})
 }
+
+func TestConcurrentMap(t *testing.T) {
+	in := []int{1, 2, 3}
+
+	out := ConcurrentMap(in, func(i int) int {
+		return i * 2
+	})
+
+	assert.EqualValues(t, []int{2, 4, 6}, out)
+}
