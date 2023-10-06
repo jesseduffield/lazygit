@@ -6,9 +6,9 @@ import (
 	"github.com/samber/lo"
 )
 
-type iconProperties struct {
-    icon string
-    color uint8 
+type IconProperties struct {
+	Icon  string
+	Color uint8
 }
 
 var isIconEnabled = false

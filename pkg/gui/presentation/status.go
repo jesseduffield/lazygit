@@ -26,7 +26,7 @@ func FormatStatus(repoName string, currentBranch *models.Branch, linkedWorktreeN
 	if linkedWorktreeName != "" {
 		icon := ""
 		if icons.IsIconEnabled() {
-			icon = icons.LINKED_WORKTREE_ICON + " "
+			icon = icons.LINKED_WORKTREE_ICON.Icon + " "
 		}
 		repoName = fmt.Sprintf("%s(%s%s)", repoName, icon, style.FgCyan.Sprint(linkedWorktreeName))
 	}

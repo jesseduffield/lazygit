@@ -53,7 +53,7 @@ func getBranchDisplayStrings(
 	coloredName := nameTextStyle.Sprint(displayName)
 	branchStatus := utils.WithPadding(ColoredBranchStatus(b, tr), 2, utils.AlignLeft)
 	if git_commands.CheckedOutByOtherWorktree(b, worktrees) {
-		worktreeIcon := lo.Ternary(icons.IsIconEnabled(), icons.LINKED_WORKTREE_ICON, fmt.Sprintf("(%s)", tr.LcWorktree))
+		worktreeIcon := lo.Ternary(icons.IsIconEnabled(), icons.LINKED_WORKTREE_ICON.Icon, fmt.Sprintf("(%s)", tr.LcWorktree))
 		coloredName = fmt.Sprintf("%s %s", coloredName, style.FgDefault.Sprint(worktreeIcon))
 	}
 	coloredName = fmt.Sprintf("%s %s", coloredName, branchStatus)

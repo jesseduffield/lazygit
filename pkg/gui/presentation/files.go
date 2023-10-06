@@ -159,10 +159,10 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 	isLinkedWorktree := file != nil && file.IsWorktree
 	isDirectory := file == nil
 
-    var testColor = color.C256(72, true)
-    // var testColor= style.FgGreen
 	if icons.IsIconEnabled() {
-		output += testColor.Sprint(icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)) + " "
+        icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
+        var paint = color.C256(icon.Color, false)
+		output += paint.Sprint(icon.Icon) + " "
 	}
 
 	output += restColor.Sprint(utils.EscapeSpecialChars(name))
@@ -198,9 +198,11 @@ func getCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 	isSubmodule := false
 	isLinkedWorktree := false
 	isDirectory := commitFile == nil
-     
+
 	if icons.IsIconEnabled() {
-		output += colour.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory))
+        icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
+        var paint = color.C256(icon.Color, false)
+		output += paint.Sprintf("%s ", icon.Icon)
 	}
 
 	output += colour.Sprint(name)

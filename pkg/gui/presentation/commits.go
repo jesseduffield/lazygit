@@ -331,7 +331,7 @@ func displayCommit(
 
 		if branchHeadsToVisualize.Includes(commit.Sha) && commit.Status != models.StatusMerged {
 			tagString = style.FgCyan.SetBold().Sprint(
-				lo.Ternary(icons.IsIconEnabled(), icons.BRANCH_ICON, "*") + " " + tagString)
+				lo.Ternary(icons.IsIconEnabled(), icons.BRANCH_ICON.Icon, "*") + " " + tagString)
 		}
 	}
 
