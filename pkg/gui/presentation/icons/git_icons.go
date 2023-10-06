@@ -6,59 +6,61 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
+
+
 var (
-	BRANCH_ICON                  = "\U000f062c" // 󰘬
-	DETACHED_HEAD_ICON           = "\ue729"     // 
-	TAG_ICON                     = "\uf02b"     // 
-	COMMIT_ICON                  = "\U000f0718" // 󰜘
-	MERGE_COMMIT_ICON            = "\U000f062d" // 󰘭
-	DEFAULT_REMOTE_ICON          = "\uf02a2"    // 󰊢
-	STASH_ICON                   = "\uf01c"     // 
-	LINKED_WORKTREE_ICON         = "\U000f0339" // 󰌹
-	MISSING_LINKED_WORKTREE_ICON = "\U000f033a" // 󰌺
+	BRANCH_ICON                  = iconProperties { "\U000f062c", 239} // 󰘬
+	DETACHED_HEAD_ICON           = iconProperties { "\ue729", 239}     // 
+	TAG_ICON                     = iconProperties { "\uf02b", 239}     // 
+	COMMIT_ICON                  = iconProperties { "\U000f0718", 239} // 󰜘
+	MERGE_COMMIT_ICON            = iconProperties { "\U000f062d", 239} // 󰘭
+	DEFAULT_REMOTE_ICON          = iconProperties { "\uf02a2", 239}    // 󰊢
+	STASH_ICON                   = iconProperties { "\uf01c", 239}     // 
+	LINKED_WORKTREE_ICON         = iconProperties { "\U000f0339", 239} // 󰌹
+	MISSING_LINKED_WORKTREE_ICON = iconProperties { "\U000f033a", 239} // 󰌺
 )
 
-var remoteIcons = map[string]string{
-	"github.com":    "\ue709",     // 
-	"bitbucket.org": "\ue703",     // 
-	"gitlab.com":    "\uf296",     // 
-	"dev.azure.com": "\U000f0805", // 󰠅
+var remoteIcons = map[string]iconProperties{
+	"github.com":   {"\ue709", 239},     // 
+	"bitbucket.org":{"\ue703", 239},     // 
+	"gitlab.com":   {"\uf296", 239},     // 
+	"dev.azure.com":{"\U000f0805", 239}, // 󰠅
 }
 
 func patchGitIconsForNerdFontsV2() {
-	BRANCH_ICON = "\ufb2b"                  // שׂ
-	COMMIT_ICON = "\ufc16"                  // ﰖ
-	MERGE_COMMIT_ICON = "\ufb2c"            // שּׁ
-	DEFAULT_REMOTE_ICON = "\uf7a1"          // 
-	LINKED_WORKTREE_ICON = "\uf838"         // 
-	MISSING_LINKED_WORKTREE_ICON = "\uf839" // 
+	BRANCH_ICON = iconProperties {"\ufb2b", 239}                  // שׂ
+	COMMIT_ICON = iconProperties {"\ufc16", 239}                  // ﰖ
+	MERGE_COMMIT_ICON = iconProperties {"\ufb2c", 239}            // שּׁ
+	DEFAULT_REMOTE_ICON = iconProperties {"\uf7a1", 239}          // 
+	LINKED_WORKTREE_ICON = iconProperties {"\uf838", 239}         // 
+	MISSING_LINKED_WORKTREE_ICON = iconProperties {"\uf839", 239} // 
 
-	remoteIcons["dev.azure.com"] = "\ufd03" // ﴃ
+	remoteIcons["dev.azure.com"] = iconProperties {"\ufd03", 239} // ﴃ
 }
 
-func IconForBranch(branch *models.Branch) string {
+func IconForBranch(branch *models.Branch) iconProperties {
 	if branch.DetachedHead {
 		return DETACHED_HEAD_ICON
 	}
 	return BRANCH_ICON
 }
 
-func IconForRemoteBranch(branch *models.RemoteBranch) string {
+func IconForRemoteBranch(branch *models.RemoteBranch) iconProperties {
 	return BRANCH_ICON
 }
 
-func IconForTag(tag *models.Tag) string {
+func IconForTag(tag *models.Tag) iconProperties {
 	return TAG_ICON
 }
 
-func IconForCommit(commit *models.Commit) string {
+func IconForCommit(commit *models.Commit) iconProperties {
 	if len(commit.Parents) > 1 {
 		return MERGE_COMMIT_ICON
 	}
 	return COMMIT_ICON
 }
 
-func IconForRemote(remote *models.Remote) string {
+func IconForRemote(remote *models.Remote) iconProperties {
 	for domain, icon := range remoteIcons {
 		for _, url := range remote.Urls {
 			if strings.Contains(url, domain) {
@@ -69,11 +71,11 @@ func IconForRemote(remote *models.Remote) string {
 	return DEFAULT_REMOTE_ICON
 }
 
-func IconForStash(stash *models.StashEntry) string {
+func IconForStash(stash *models.StashEntry) iconProperties {
 	return STASH_ICON
 }
 
-func IconForWorktree(missing bool) string {
+func IconForWorktree(missing bool) iconProperties {
 	if missing {
 		return MISSING_LINKED_WORKTREE_ICON
 	}
