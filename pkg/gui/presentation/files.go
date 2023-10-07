@@ -202,7 +202,7 @@ func getCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 	if icons.IsIconEnabled() {
         icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
         var paint = color.C256(icon.Color, false)
-		output += paint.Sprintf("%s ", icon.Icon)
+		output += paint.Sprint(icon.Icon) + " "
 	}
 
 	output += colour.Sprint(name)

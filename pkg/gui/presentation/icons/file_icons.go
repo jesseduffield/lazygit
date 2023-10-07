@@ -14,8 +14,8 @@ var (
 var nameIconMap = map[string]IconProperties{
 	".Trash":             {"\uf1f8", 239}, // 
 	".atom":              {"\ue764", 239}, // 
-	".bashprofile":       {"\ue615", 239}, // 
-	".bashrc":            {"\uf489", 239}, // 
+	".bashprofile":       {"\ue615", 113}, // 
+	".bashrc":            {"\ue795", 113}, // 
 	".idea":              {"\ue7b5", 239}, // 
 	".git":               {"\uf1d3", 239}, // 
 	".gitattributes":     {"\uf1d3", 239}, // 
@@ -24,140 +24,140 @@ var nameIconMap = map[string]IconProperties{
 	".gitignore":         {"\uf1d3", 239}, // 
 	".gitmodules":        {"\uf1d3", 239}, // 
 	".rvm":               {"\ue21e", 239}, // 
-	".vimrc":             {"\ue62b", 239}, // 
+	".vimrc":             {"\ue62b", 28},  // 
 	".vscode":            {"\ue70c", 239}, // 
 	".zshrc":             {"\uf489", 239}, // 
-	"Cargo.lock":         {"\ue7a8", 239}, // 
-	"Cargo.toml":         {"\ue7a8", 239}, // 
+	"Cargo.lock":         {"\ue7a8", 216}, // 
+	"Cargo.toml":         {"\ue7a8", 216}, // 
 	"bin":                {"\ue5fc", 239}, // 
 	"config":             {"\ue5fc", 239}, // 
-	"docker-compose.yml": {"\uf308", 239}, // 
-	"Dockerfile":         {"\uf308", 239}, // 
-	"ds_store":           {"\uf179", 239}, // 
+	"docker-compose.yml": {"\uf308", 68},  // 
+	"Dockerfile":         {"\uf308", 68},  // 
+	"ds_store":           {"\uf179", 15},  // 
 	"gitignore_global":   {"\uf1d3", 239}, // 
-	"go.mod":             {"\ue626", 239}, // 
-	"go.sum":             {"\ue626", 239}, // 
-	"gradle":             {"\ue256", 239}, // 
-	"gruntfile.coffee":   {"\ue611", 239}, // 
-	"gruntfile.js":       {"\ue611", 239}, // 
-	"gruntfile.ls":       {"\ue611", 239}, // 
-	"gulpfile.coffee":    {"\ue610", 239}, // 
-	"gulpfile.js":        {"\ue610", 239}, // 
-	"gulpfile.ls":        {"\ue610", 239}, // 
+	"go.mod":             {"\ue627", 74},  // 
+	"go.sum":             {"\ue627", 74},  // 
+	"gradle":             {"\ue256", 168}, // 
+	"gruntfile.coffee":   {"\ue611", 166}, // 
+	"gruntfile.js":       {"\ue611", 166}, // 
+	"gruntfile.ls":       {"\ue611", 166}, // 
+	"gulpfile.coffee":    {"\ue610", 167}, // 
+	"gulpfile.js":        {"\ue610", 167}, // 
+	"gulpfile.ls":        {"\ue610", 168}, // 
 	"hidden":             {"\uf023", 239}, // 
 	"include":            {"\ue5fc", 239}, // 
 	"lib":                {"\uf121", 239}, // 
-	"localized":          {"\uf179", 239}, // 
+	"localized":          {"\uf179", 15},  // 
 	"Makefile":           {"\uf489", 239}, // 
-	"node_modules":       {"\ue718", 239}, // 
-	"npmignore":          {"\ue71e", 239}, // 
+	"node_modules":       {"\ue718", 197}, // 
+	"npmignore":          {"\ue71e", 197}, // 
 	"PKGBUILD":           {"\uf303", 239}, // 
 	"rubydoc":            {"\ue73b", 239}, // 
 	"yarn.lock":          {"\ue718", 239}, // 
 }
 
 var extIconMap = map[string]IconProperties{
-	".ai":             {"\ue7b4", 239},     // 
+	".ai":             {"\ue7b4", 185},     // 
 	".android":        {"\ue70e", 239},     // 
 	".apk":            {"\ue70e", 239},     // 
 	".apple":          {"\uf179", 239},     // 
 	".avi":            {"\uf03d", 239},     // 
 	".avif":           {"\uf1c5", 239},     // 
 	".avro":           {"\ue60b", 239},     // 
-	".awk":            {"\uf489", 239},     // 
-	".bash":           {"\uf489", 239},     // 
-	".bash_history":   {"\uf489", 239},     // 
-	".bash_profile":   {"\uf489", 239},     // 
-	".bashrc":         {"\uf489", 239},     // 
+	".awk":            {"\ue795", 240},     // 
+	".bash":           {"\ue795", 113},     // 
+	".bash_history":   {"\ue795", 113},     // 
+	".bash_profile":   {"\ue795", 113},     // 
+	".bashrc":         {"\ue795", 113},     // 
 	".bat":            {"\uf17a", 239},     // 
 	".bats":           {"\uf489", 239},     // 
-	".bmp":            {"\uf1c5", 239},     // 
+	".bmp":            {"\uf1c5", 149},     // 
 	".bz":             {"\uf410", 239},     // 
 	".bz2":            {"\uf410", 239},     // 
-	".c":              {"\ue61e", 239},     // 
-	".c++":            {"\ue61d", 239},     // 
+	".c":              {"\ue61e", 111},     // 
+	".c++":            {"\ue61d", 204},     // 
 	".cab":            {"\ue70f", 239},     // 
-	".cc":             {"\ue61d", 239},     // 
-	".cfg":            {"\ue615", 239},     // 
-	".class":          {"\ue256", 239},     // 
-	".clj":            {"\ue768", 239},     // 
-	".cljs":           {"\ue76a", 239},     // 
+	".cc":             {"\ue61d", 204},     // 
+	".cfg":            {"\ue615", 255},     // 
+	".class":          {"\ue256", 168},     // 
+	".clj":            {"\ue768", 113},     // 
+	".cljs":           {"\ue76a", 74},     // 
 	".cls":            {"\uf034", 239},     // 
 	".cmd":            {"\ue70f", 239},     // 
-	".coffee":         {"\uf0f4", 239},     // 
-	".conf":           {"\ue615", 239},     // 
-	".cp":             {"\ue61d", 239},     // 
+	".coffee":         {"\uf0f4", 185},     // 
+	".conf":           {"\ue615", 66},     // 
+	".cp":             {"\ue61d", 74},     // 
 	".cpio":           {"\uf410", 239},     // 
-	".cpp":            {"\ue61d", 239},     // 
-	".cs":             {"\U000f031b", 239}, // 󰌛
-	".csh":            {"\uf489", 239},     // 
+	".cpp":            {"\ue61d", 74},     // 
+	".cs":             {"\U000f031b", 58}, // 󰌛
+	".csh":            {"\ue795", 240},     // 
 	".cshtml":         {"\uf1fa", 239},     // 
-	".csproj":         {"\U000f031b", 239}, // 󰌛
-	".css":            {"\ue749", 239},     // 
-	".csv":            {"\uf1c3", 239},     // 
-	".csx":            {"\U000f031b", 239}, // 󰌛
-	".cxx":            {"\ue61d", 239},     // 
-	".d":              {"\ue7af", 239},     // 
-	".dart":           {"\ue798", 239},     // 
-	".db":             {"\uf1c0", 239},     // 
+	".csproj":         {"\U000f031b", 58}, // 󰌛
+	".css":            {"\ue749", 75},     // 
+	".csv":            {"\uf1c3", 113},     // 
+	".csx":            {"\U000f031b", 58}, // 󰌛
+	".cxx":            {"\ue61d", 74},     // 
+	".d":              {"\ue7af", 28},     // 
+	".dart":           {"\ue798", 25},     // 
+	".db":             {"\uf1c0", 188},     // 
 	".deb":            {"\ue77d", 239},     // 
 	".diff":           {"\uf440", 239},     // 
 	".djvu":           {"\uf02d", 239},     // 
 	".dll":            {"\ue70f", 239},     // 
-	".doc":            {"\uf1c2", 239},     // 
-	".docx":           {"\uf1c2", 239},     // 
-	".ds_store":       {"\uf179", 239},     // 
-	".DS_store":       {"\uf179", 239},     // 
-	".dump":           {"\uf1c0", 239},     // 
+	".doc":            {"\uf0219", 26},     // 󰈙
+	".docx":           {"\uf0219", 26},    // 󰈙
+	".ds_store":       {"\uf179", 15},     // 
+	".DS_store":       {"\uf179", 15},     // 
+	".dump":           {"\uf1c0", 188},     // 
 	".ebook":          {"\ue28b", 239},     // 
 	".ebuild":         {"\uf30d", 239},     // 
 	".editorconfig":   {"\ue615", 239},     // 
-	".ejs":            {"\ue618", 239},     // 
-	".elm":            {"\ue62c", 239},     // 
+	".ejs":            {"\ue618", 185},     // 
+	".elm":            {"\ue62c", 74},     // 
 	".env":            {"\uf462", 239},     // 
 	".eot":            {"\uf031", 239},     // 
 	".epub":           {"\ue28a", 239},     // 
-	".erb":            {"\ue73b", 239},     // 
-	".erl":            {"\ue7b1", 239},     // 
-	".ex":             {"\ue62d", 239},     // 
+	".erb":            {"\ue73b", 214},     // 
+	".erl":            {"\ue7b1", 163},     // 
+	".ex":             {"\ue62d", 140},     // 
 	".exe":            {"\uf17a", 239},     // 
-	".exs":            {"\ue62d", 239},     // 
-	".fish":           {"\uf489", 239},     // 
+	".exs":            {"\ue62d", 140},     // 
+	".fish":           {"\ue795", 249},     // 
 	".flac":           {"\uf001", 239},     // 
 	".flv":            {"\uf03d", 239},     // 
 	".font":           {"\uf031", 239},     // 
-	".fs":             {"\ue7a7", 239},     // 
-	".fsi":            {"\ue7a7", 239},     // 
-	".fsx":            {"\ue7a7", 239},     // 
+	".fs":             {"\ue7a7", 74},     // 
+	".fsi":            {"\ue7a7", 74},     // 
+	".fsx":            {"\ue7a7", 74},     // 
 	".gdoc":           {"\uf1c2", 239},     // 
 	".gem":            {"\ue21e", 239},     // 
 	".gemfile":        {"\ue21e", 239},     // 
 	".gemspec":        {"\ue21e", 239},     // 
 	".gform":          {"\uf298", 239},     // 
-	".gif":            {"\uf1c5", 239},     // 
+	".gif":            {"\uf1c5", 140},     // 
 	".git":            {"\uf1d3", 239},     // 
 	".gitattributes":  {"\uf1d3", 239},     // 
 	".gitignore":      {"\uf1d3", 239},     // 
 	".gitmodules":     {"\uf1d3", 239},     // 
-	".go":             {"\ue626", 239},     // 
+	".go":             {"\ue627", 74},      // 
 	".gradle":         {"\ue256", 239},     // 
 	".groovy":         {"\ue775", 239},     // 
 	".gsheet":         {"\uf1c3", 239},     // 
 	".gslides":        {"\uf1c4", 239},     // 
 	".guardfile":      {"\ue21e", 239},     // 
 	".gz":             {"\uf410", 239},     // 
-	".h":              {"\uf0fd", 239},     // 
-	".hbs":            {"\ue60f", 239},     // 
-	".hpp":            {"\uf0fd", 239},     // 
-	".hs":             {"\ue777", 239},     // 
-	".htm":            {"\uf13b", 239},     // 
-	".html":           {"\uf13b", 239},     // 
-	".hxx":            {"\uf0fd", 239},     // 
-	".ico":            {"\uf1c5", 239},     // 
-	".image":          {"\uf1c5", 239},     // 
+	".h":              {"\uf0fd", 140},     // 
+	".hbs":            {"\ue60f", 202},     // 
+	".hpp":            {"\uf0fd", 140},     // 
+	".hs":             {"\ue777", 140},     // 
+	".htm":            {"\uf13b", 196},     // 
+	".html":           {"\uf13b", 196},     // 
+	".hxx":            {"\uf0fd", 140},     // 
+	".ico":            {"\uf1c5", 185},     // 
+	".image":          {"\uf1c5", 185},     // 
 	".iml":            {"\ue7b5", 239},     // 
 	".ini":            {"\uf17a", 239},     // 
-	".ipynb":          {"\ue606", 239},     // 
+	".ipynb":          {"\ue606", 214},     // 
 	".iso":            {"\ue271", 239},     // 
 	".j2c":            {"\uf1c5", 239},     // 
 	".j2k":            {"\uf1c5", 239},     // 
@@ -174,35 +174,35 @@ var extIconMap = map[string]IconProperties{
 	".jpeg":           {"\uf1c5", 239},     // 
 	".jpg":            {"\uf1c5", 239},     // 
 	".jpx":            {"\uf1c5", 239},     // 
-	".js":             {"\ue74e", 239},     // 
-	".json":           {"\ue60b", 239},     // 
-	".jsx":            {"\ue7ba", 239},     // 
+	".js":             {"\ue74e", 185},     // 
+	".json":           {"\ue60b", 185},     // 
+	".jsx":            {"\ue7ba", 45},     // 
 	".jxl":            {"\uf1c5", 239},     // 
-	".ksh":            {"\uf489", 239},     // 
-	".kt":             {"\ue634", 239},     // 
-	".kts":            {"\ue634", 239},     // 
+	".ksh":            {"\uf489", 240},     // 
+	".kt":             {"\ue634", 99},     // 
+	".kts":            {"\ue634", 99},     // 
 	".latex":          {"\uf034", 239},     // 
-	".less":           {"\ue758", 239},     // 
-	".lhs":            {"\ue777", 239},     // 
-	".license":        {"\U000f0219", 239}, // 󰈙
-	".localized":      {"\uf179", 239},     // 
+	".less":           {"\ue758", 54},     // 
+	".lhs":            {"\ue777", 140},     // 
+	".license":        {"\U000f0219", 185}, // 󰈙
+	".localized":      {"\uf179", 15},     // 
 	".lock":           {"\uf023", 239},     // 
-	".log":            {"\uf18d", 239},     // 
-	".lua":            {"\ue620", 239},     // 
+	".log":            {"\uf18d", 188},     // 
+	".lua":            {"\ue620", 74},     // 
 	".lz":             {"\uf410", 239},     // 
 	".lz4":            {"\uf410", 239},     // 
 	".lzh":            {"\uf410", 239},     // 
 	".lzma":           {"\uf410", 239},     // 
 	".lzo":            {"\uf410", 239},     // 
-	".m":              {"\ue61e", 239},     // 
-	".mm":             {"\ue61d", 239},     // 
+	".m":              {"\ue61e", 111},     // 
+	".mm":             {"\ue61d", 111},     // 
 	".m4a":            {"\uf001", 239},     // 
-	".markdown":       {"\uf48a", 239},     // 
-	".md":             {"\uf48a", 239},     // 
-	".mdx":            {"\uf48a", 239},     // 
-	".mjs":            {"\ue74e", 239},     // 
+	".markdown":       {"\uf48a", 74},     // 
+	".md":             {"\uf48a", 74},     // 
+	".mdx":            {"\uf48a", 74},     // 
+	".mjs":            {"\ue74e", 185},     // 
 	".mk":             {"\uf489", 239},     // 
-	".mkd":            {"\uf48a", 239},     // 
+	".mkd":            {"\uf48a", 74},     // 
 	".mkv":            {"\uf03d", 239},     // 
 	".mobi":           {"\ue28b", 239},     // 
 	".mov":            {"\uf03d", 239},     // 
@@ -211,8 +211,8 @@ var extIconMap = map[string]IconProperties{
 	".msi":            {"\ue70f", 239},     // 
 	".mustache":       {"\ue60f", 239},     // 
 	".nix":            {"\uf313", 239},     // 
-	".node":           {"\U000f0399", 239}, // 󰎙
-	".npmignore":      {"\ue71e", 239},     // 
+	".node":           {"\U000f0399", 197}, // 󰎙
+	".npmignore":      {"\ue71e", 197},     // 
 	".odp":            {"\uf1c4", 239},     // 
 	".ods":            {"\uf1c3", 239},     // 
 	".odt":            {"\uf1c2", 239},     // 
@@ -232,8 +232,8 @@ var extIconMap = map[string]IconProperties{
 	".ps1":            {"\uf489", 239},     // 
 	".psd":            {"\ue7b8", 239},     // 
 	".pxm":            {"\uf1c5", 239},     // 
-	".py":             {"\ue606", 239},     // 
-	".pyc":            {"\ue606", 239},     // 
+	".py":             {"\ue606", 214},     // 
+	".pyc":            {"\ue606", 214},     // 
 	".r":              {"\uf25d", 239},     // 
 	".rakefile":       {"\ue21e", 239},     // 
 	".rar":            {"\uf410", 239},     // 
@@ -247,7 +247,7 @@ var extIconMap = map[string]IconProperties{
 	".rlib":           {"\ue7a8", 239},     // 
 	".rmd":            {"\uf48a", 239},     // 
 	".rpm":            {"\ue7bb", 239},     // 
-	".rs":             {"\ue7a8", 239},     // 
+	".rs":             {"\ue7a8", 216},     // 
 	".rspec":          {"\ue21e", 239},     // 
 	".rspec_parallel": {"\ue21e", 239},     // 
 	".rspec_status":   {"\ue21e", 239},     // 
@@ -316,11 +316,11 @@ var extIconMap = map[string]IconProperties{
 }
 
 func patchFileIconsForNerdFontsV2() {
-	extIconMap[".cs"] = IconProperties{"\uf81a", 239}      // 
-	extIconMap[".csproj"] = IconProperties{"\uf81a", 239}  // 
-	extIconMap[".csx"] = IconProperties{"\uf81a", 239}     // 
+	extIconMap[".cs"] = IconProperties{"\uf81a", 58}      // 
+	extIconMap[".csproj"] = IconProperties{"\uf81a", 58}  // 
+	extIconMap[".csx"] = IconProperties{"\uf81a", 58}     // 
 	extIconMap[".license"] = IconProperties{"\uf718", 239} // 
-	extIconMap[".node"] = IconProperties{"\uf898", 239}    // 
+	extIconMap[".node"] = IconProperties{"\uf898", 197}    // 
 	extIconMap[".rtf"] = IconProperties{"\uf718", 239}     // 
 	extIconMap[".vue"] = IconProperties{"\ufd42", 239}     // ﵂
 }
