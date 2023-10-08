@@ -129,9 +129,9 @@ func (self *TagsController) remoteDelete(tag *models.Tag) error {
 				Title:  confirmTitle,
 				Prompt: confirmPrompt,
 				HandleConfirm: func() error {
-					return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(t gocui.Task) error {
+					return self.c.WithInlineStatus(tag, types.ItemOperationDeleting, context.TAGS_CONTEXT_KEY, func(task gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.DeleteRemoteTag)
-						if err := self.c.Git().Remote.DeleteRemoteTag(t, upstream, tag.Name); err != nil {
+						if err := self.c.Git().Remote.DeleteRemoteTag(task, upstream, tag.Name); err != nil {
 							return err
 						}
 						self.c.Toast(self.c.Tr.RemoteTagDeletedMessage)
@@ -188,9 +188,16 @@ func (self *TagsController) push(tag *models.Tag) error {
 		InitialContent:      "origin",
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRemoteSuggestionsFunc(),
 		HandleConfirm: func(response string) error {
-			return self.c.WithWaitingStatus(self.c.Tr.PushingTagStatus, func(task gocui.Task) error {
+			return self.c.WithInlineStatus(tag, types.ItemOperationPushing, context.TAGS_CONTEXT_KEY, func(task gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.PushTag)
 				err := self.c.Git().Tag.Push(task, response, tag.Name)
+
+				// Render again to remove the inline status:
+				self.c.OnUIThread(func() error {
+					_ = self.c.Contexts().Tags.HandleRender()
+					return nil
+				})
+
 				return err
 			})
 		},
