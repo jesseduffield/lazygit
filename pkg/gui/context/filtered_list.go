@@ -41,6 +41,10 @@ func (self *FilteredList[T]) ClearFilter() {
 	self.SetFilter("")
 }
 
+func (self *FilteredList[T]) ReApplyFilter() {
+	self.applyFilter()
+}
+
 func (self *FilteredList[T]) IsFiltering() bool {
 	return self.filter != ""
 }
