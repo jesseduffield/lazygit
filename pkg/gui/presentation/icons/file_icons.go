@@ -316,9 +316,9 @@ var extIconMap = map[string]IconProperties{
 }
 
 func patchFileIconsForNerdFontsV2() {
-	extIconMap[".cs"] = IconProperties{"\uf81a", 58}      // 
-	extIconMap[".csproj"] = IconProperties{"\uf81a", 58}  // 
-	extIconMap[".csx"] = IconProperties{"\uf81a", 58}     // 
+	extIconMap[".cs"] = IconProperties{"\uf81a", 58}       // 
+	extIconMap[".csproj"] = IconProperties{"\uf81a", 58}   // 
+	extIconMap[".csx"] = IconProperties{"\uf81a", 58}      // 
 	extIconMap[".license"] = IconProperties{"\uf718", 241} // 
 	extIconMap[".node"] = IconProperties{"\uf898", 197}    // 
 	extIconMap[".rtf"] = IconProperties{"\uf718", 241}     // 

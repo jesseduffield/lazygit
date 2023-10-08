@@ -149,7 +149,7 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 		if secondChar == " " {
 			secondCharCl = restColor
 		}
-        
+
 		output = firstCharCl.Sprint(firstChar)
 		output += secondCharCl.Sprint(secondChar)
 		output += restColor.Sprint(" ")
@@ -160,8 +160,8 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 	isDirectory := file == nil
 
 	if icons.IsIconEnabled() {
-        icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
-        var paint = color.C256(icon.Color, false)
+		icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
+		paint := color.C256(icon.Color, false)
 		output += paint.Sprint(icon.Icon) + " "
 	}
 
@@ -200,8 +200,8 @@ func getCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 	isDirectory := commitFile == nil
 
 	if icons.IsIconEnabled() {
-        icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
-        var paint = color.C256(icon.Color, false)
+		icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
+		paint := color.C256(icon.Color, false)
 		output += paint.Sprint(icon.Icon) + " "
 	}
 
