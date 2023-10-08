@@ -201,7 +201,7 @@ func RussianTranslationSet() TranslationSet {
 		ToggleStagingPanel:                  `Переключиться на другую панель (проиндексированные/непроиндексированные изменения)`,
 		ReturnToFilesPanel:                  `Вернуться к панели файлов`,
 		FastForward:                         `Перемотать эту ветку вперёд из её upstream-ветки`,
-		FastForwarding:                      "Получить изменения и перемотать вперёд {{.branch}} ...",
+		FastForwarding:                      "Получить изменения и перемотать вперёд",
 		FoundConflictsTitle:                 "Конфликты!",
 		ViewConflictsMenuItem:               "Просмотр конфликтов",
 		AbortMenuItem:                       "Прервать %s",

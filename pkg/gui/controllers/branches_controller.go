@@ -563,14 +563,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 
 	action := self.c.Tr.Actions.FastForwardBranch
 
-	message := utils.ResolvePlaceholderString(
-		self.c.Tr.FastForwarding,
-		map[string]string{
-			"branch": branch.Name,
-		},
-	)
-
-	return self.c.WithWaitingStatus(message, func(task gocui.Task) error {
+	return self.c.WithInlineStatus(branch, types.ItemOperationFastForwarding, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
 		worktree, ok := self.worktreeForBranch(branch)
 		if ok {
 			self.c.LogAction(action)

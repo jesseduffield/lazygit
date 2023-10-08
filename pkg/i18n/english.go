@@ -980,7 +980,7 @@ func EnglishTranslationSet() TranslationSet {
 		ToggleStagingPanel:                  `Switch to other panel (staged/unstaged changes)`,
 		ReturnToFilesPanel:                  `Return to files panel`,
 		FastForward:                         `Fast-forward this branch from its upstream`,
-		FastForwarding:                      "Fast-forwarding {{.branch}}",
+		FastForwarding:                      "Fast-forwarding",
 		FoundConflictsTitle:                 "Conflicts!",
 		ViewConflictsMenuItem:               "View conflicts",
 		AbortMenuItem:                       "Abort the %s",

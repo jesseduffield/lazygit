@@ -65,6 +65,10 @@ func (b *Branch) ID() string {
 	return b.RefName()
 }
 
+func (b *Branch) URN() string {
+	return "branch-" + b.ID()
+}
+
 func (b *Branch) Description() string {
 	return b.RefName()
 }
