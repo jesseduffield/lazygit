@@ -265,6 +265,24 @@ type Mutexes struct {
 	PtyMutex                *deadlock.Mutex
 }
 
+// A long-running operation associated with an item. For example, we'll show
+// that a branch is being pushed from so that there's visual feedback about
+// what's happening and so that you can see multiple branches' concurrent
+// operations
+type ItemOperation int
+
+const (
+	ItemOperationNone ItemOperation = iota
+	ItemOperationPushing
+	ItemOperationPulling
+	ItemOperationFastForwarding
+	ItemOperationDeleting
+)
+
+type HasUrn interface {
+	URN() string
+}
+
 type IStateAccessor interface {
 	GetRepoPathStack() *utils.StringStack
 	GetRepoState() IRepoStateAccessor
@@ -277,6 +295,9 @@ type IStateAccessor interface {
 	SetShowExtrasWindow(bool)
 	GetRetainOriginalDir() bool
 	SetRetainOriginalDir(bool)
+	GetItemOperation(item HasUrn) ItemOperation
+	SetItemOperation(item HasUrn, operation ItemOperation)
+	ClearItemOperation(item HasUrn)
 }
 
 type IRepoStateAccessor interface {
