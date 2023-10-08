@@ -590,24 +590,17 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 					WorktreeGitDir:  worktreeGitDir,
 				},
 			)
-			if err != nil {
-				_ = self.c.Error(err)
-			}
-
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			return err
 		} else {
 			self.c.LogAction(action)
 
 			err := self.c.Git().Sync.FastForward(
 				task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch,
 			)
-			if err != nil {
-				_ = self.c.Error(err)
-			}
 			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+			return err
 		}
-
-		return nil
 	})
 }
 
