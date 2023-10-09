@@ -691,7 +691,7 @@ func GetDefaultConfig() *UserConfig {
 				NextMatch:                    "n",
 				PrevMatch:                    "N",
 				StartSearch:                  "/",
-				OptionMenu:                   "",
+				OptionMenu:                   "<disabled>",
 				OptionMenuAlt1:               "?",
 				Select:                       "<space>",
 				GoInto:                       "<enter>",

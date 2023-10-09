@@ -170,6 +170,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.SwapWithConflict,
 	misc.ConfirmOnQuit,
 	misc.CopyToClipboard,
+	misc.DisabledKeybindings,
 	misc.InitialOpen,
 	misc.RecentReposOnLaunch,
 	patch_building.Apply,

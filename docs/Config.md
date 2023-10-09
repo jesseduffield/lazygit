@@ -163,7 +163,7 @@ keybinding:
     jumpToBlock: ['1', '2', '3', '4', '5'] # goto the Nth block / panel
     nextMatch: 'n'
     prevMatch: 'N'
-    optionMenu: null # show help menu
+    optionMenu: <disabled> # show help menu
     optionMenu-alt1: '?' # show help menu
     select: '<space>'
     goInto: '<enter>'
@@ -462,12 +462,12 @@ Supported versions are "2" and "3". The deprecated config `showIcons` sets the v
 
 For all possible keybinding options, check [Custom_Keybindings.md](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md)
 
-You can disable certain key bindings by specifying `null`.
+You can disable certain key bindings by specifying `<disabled>`.
 
 ```yaml
 keybinding:
   universal:
-    edit: null # disable 'edit file'
+    edit: <disabled> # disable 'edit file'
 ```
 
 ### Example Keybindings For Colemak Users

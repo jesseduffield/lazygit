@@ -100,7 +100,9 @@ func LabelFromKey(key types.Key) string {
 
 func GetKey(key string) types.Key {
 	runeCount := utf8.RuneCountInString(key)
-	if runeCount > 1 {
+	if key == "<disabled>" {
+		return nil
+	} else if runeCount > 1 {
 		binding, ok := keyByLabel[strings.ToLower(key)]
 		if !ok {
 			log.Fatalf("Unrecognized key %s for keybinding. For permitted values see %s", strings.ToLower(key), constants.Links.Docs.CustomKeybindings)
