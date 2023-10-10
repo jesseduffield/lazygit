@@ -115,12 +115,15 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			}
 		}
 
+		includeWorktreesWithBranches := false
 		if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) || scopeSet.Includes(types.REFLOG) || scopeSet.Includes(types.BISECT_INFO) {
 			// whenever we change commits, we should update branches because the upstream/downstream
 			// counts can change. Whenever we change branches we should also change commits
 			// e.g. in the case of switching branches.
 			refresh("commits and commit files", self.refreshCommitsAndCommitFiles)
-			refresh("reflog and branches", self.refreshReflogAndBranches)
+
+			includeWorktreesWithBranches = scopeSet.Includes(types.WORKTREES)
+			refresh("reflog and branches", func() { self.refreshReflogAndBranches(includeWorktreesWithBranches) })
 		} else if scopeSet.Includes(types.REBASE_COMMITS) {
 			// the above block handles rebase commits so we only need to call this one
 			// if we've asked specifically for rebase commits and not those other things
@@ -157,7 +160,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			refresh("remotes", func() { _ = self.refreshRemotes() })
 		}
 
-		if scopeSet.Includes(types.WORKTREES) {
+		if scopeSet.Includes(types.WORKTREES) && !includeWorktreesWithBranches {
 			refresh("worktrees", func() { _ = self.refreshWorktrees() })
 		}
 
@@ -242,7 +245,7 @@ func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 	case types.INITIAL:
 		self.c.OnWorker(func(_ gocui.Task) {
 			_ = self.refreshReflogCommits()
-			self.refreshBranches()
+			self.refreshBranches(false)
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)
 		})
 
@@ -251,10 +254,10 @@ func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 	}
 }
 
-func (self *RefreshHelper) refreshReflogAndBranches() {
+func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool) {
 	self.refreshReflogCommitsConsideringStartup()
 
-	self.refreshBranches()
+	self.refreshBranches(refreshWorktrees)
 }
 
 func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
@@ -419,7 +422,7 @@ func (self *RefreshHelper) refreshStateSubmoduleConfigs() error {
 
 // self.refreshStatus is called at the end of this because that's when we can
 // be sure there is a State.Model.Branches array to pick the current branch from
-func (self *RefreshHelper) refreshBranches() {
+func (self *RefreshHelper) refreshBranches(refreshWorktrees bool) {
 	self.c.Mutexes().RefreshingBranchesMutex.Lock()
 	defer self.c.Mutexes().RefreshingBranchesMutex.Unlock()
 
@@ -442,6 +445,13 @@ func (self *RefreshHelper) refreshBranches() {
 	}
 
 	self.c.Model().Branches = branches
+
+	if refreshWorktrees {
+		self.loadWorktrees()
+		if err := self.c.PostRefreshUpdate(self.c.Contexts().Worktrees); err != nil {
+			self.c.Log.Error(err)
+		}
+	}
 
 	if err := self.c.PostRefreshUpdate(self.c.Contexts().Branches); err != nil {
 		self.c.Log.Error(err)
@@ -636,15 +646,18 @@ func (self *RefreshHelper) refreshRemotes() error {
 	return nil
 }
 
-func (self *RefreshHelper) refreshWorktrees() error {
+func (self *RefreshHelper) loadWorktrees() {
 	worktrees, err := self.c.Git().Loaders.Worktrees.GetWorktrees()
 	if err != nil {
 		self.c.Log.Error(err)
 		self.c.Model().Worktrees = []*models.Worktree{}
-		return nil
 	}
 
 	self.c.Model().Worktrees = worktrees
+}
+
+func (self *RefreshHelper) refreshWorktrees() error {
+	self.loadWorktrees()
 
 	// need to refresh branches because the branches view shows worktrees against
 	// branches
@@ -678,7 +691,7 @@ func (self *RefreshHelper) refreshStatus() {
 
 	repoName := self.c.Git().RepoPaths.RepoName()
 
-	status := presentation.FormatStatus(repoName, currentBranch, linkedWorktreeName, workingTreeState, self.c.Tr)
+	status := presentation.FormatStatus(repoName, currentBranch, types.ItemOperationNone, linkedWorktreeName, workingTreeState, self.c.Tr)
 
 	self.c.SetViewContent(self.c.Views().Status, status)
 }

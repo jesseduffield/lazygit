@@ -57,6 +57,8 @@ type TranslationSet struct {
 	ResetFilter                         string
 	MergeConflictsTitle                 string
 	Checkout                            string
+	CantCheckoutBranchWhilePulling      string
+	CantPullOrPushSameBranchTwice       string
 	NoChangedFiles                      string
 	SoftReset                           string
 	AlreadyCheckedOutBranch             string
@@ -846,6 +848,8 @@ func EnglishTranslationSet() TranslationSet {
 		Scroll:                              "Scroll",
 		MergeConflictsTitle:                 "Merge conflicts",
 		Checkout:                            "Checkout",
+		CantCheckoutBranchWhilePulling:      "You cannot checkout another branch while pulling the current branch",
+		CantPullOrPushSameBranchTwice:       "You cannot push or pull a branch while it is already being pushed or pulled",
 		FileFilter:                          "Filter files by status",
 		FilterStagedFiles:                   "Show only staged files",
 		FilterUnstagedFiles:                 "Show only unstaged files",
@@ -980,7 +984,7 @@ func EnglishTranslationSet() TranslationSet {
 		ToggleStagingPanel:                  `Switch to other panel (staged/unstaged changes)`,
 		ReturnToFilesPanel:                  `Return to files panel`,
 		FastForward:                         `Fast-forward this branch from its upstream`,
-		FastForwarding:                      "Fast-forwarding {{.branch}}",
+		FastForwarding:                      "Fast-forwarding",
 		FoundConflictsTitle:                 "Conflicts!",
 		ViewConflictsMenuItem:               "View conflicts",
 		AbortMenuItem:                       "Abort the %s",

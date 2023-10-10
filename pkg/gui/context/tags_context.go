@@ -27,7 +27,10 @@ func NewTagsContext(
 	)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {
-		return presentation.GetTagListDisplayStrings(viewModel.GetItems(), c.Modes().Diffing.Ref)
+		return presentation.GetTagListDisplayStrings(
+			viewModel.GetItems(),
+			c.State().GetItemOperation,
+			c.Modes().Diffing.Ref, c.Tr)
 	}
 
 	return &TagsContext{

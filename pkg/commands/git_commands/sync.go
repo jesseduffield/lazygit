@@ -36,7 +36,7 @@ func (self *SyncCommands) PushCmdObj(task gocui.Task, opts PushOpts) (oscommands
 		ArgIf(opts.UpstreamBranch != "", opts.UpstreamBranch).
 		ToArgv()
 
-	cmdObj := self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).WithMutex(self.syncMutex)
+	cmdObj := self.cmd.New(cmdArgs).PromptOnCredentialRequest(task)
 	return cmdObj, nil
 }
 
@@ -70,7 +70,6 @@ func (self *SyncCommands) FetchBackgroundCmdObj() oscommands.ICmdObj {
 
 	cmdObj := self.cmd.New(cmdArgs)
 	cmdObj.DontLog().FailOnCredentialRequest()
-	cmdObj.WithMutex(self.syncMutex)
 	return cmdObj
 }
 
@@ -96,7 +95,7 @@ func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
 
 	// setting GIT_SEQUENCE_EDITOR to ':' as a way of skipping it, in case the user
 	// has 'pull.rebase = interactive' configured.
-	return self.cmd.New(cmdArgs).AddEnvVars("GIT_SEQUENCE_EDITOR=:").PromptOnCredentialRequest(task).WithMutex(self.syncMutex).Run()
+	return self.cmd.New(cmdArgs).AddEnvVars("GIT_SEQUENCE_EDITOR=:").PromptOnCredentialRequest(task).Run()
 }
 
 func (self *SyncCommands) FastForward(
@@ -110,7 +109,7 @@ func (self *SyncCommands) FastForward(
 		Arg(remoteBranchName + ":" + branchName).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).WithMutex(self.syncMutex).Run()
+	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
 }
 
 func (self *SyncCommands) FetchRemote(task gocui.Task, remoteName string) error {
@@ -118,5 +117,5 @@ func (self *SyncCommands) FetchRemote(task gocui.Task, remoteName string) error 
 		Arg(remoteName).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).WithMutex(self.syncMutex).Run()
+	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
 }

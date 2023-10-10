@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
-	"github.com/sasha-s/go-deadlock"
 	"github.com/spf13/afero"
 
 	gogit "github.com/jesseduffield/go-git/v5"
@@ -63,7 +62,6 @@ func NewGitCommand(
 	version *git_commands.GitVersion,
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
-	syncMutex *deadlock.Mutex,
 ) (*GitCommand, error) {
 	currentPath, err := os.Getwd()
 	if err != nil {
@@ -118,7 +116,6 @@ func NewGitCommand(
 		gitConfig,
 		repoPaths,
 		repository,
-		syncMutex,
 	), nil
 }
 
@@ -129,7 +126,6 @@ func NewGitCommandAux(
 	gitConfig git_config.IGitConfig,
 	repoPaths *git_commands.RepoPaths,
 	repo *gogit.Repository,
-	syncMutex *deadlock.Mutex,
 ) *GitCommand {
 	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd)
 
@@ -140,7 +136,7 @@ func NewGitCommandAux(
 	// common ones are: cmn, osCommand, dotGitDir, configCommands
 	configCommands := git_commands.NewConfigCommands(cmn, gitConfig, repo)
 
-	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, repoPaths, repo, configCommands, syncMutex)
+	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, repoPaths, repo, configCommands)
 
 	fileLoader := git_commands.NewFileLoader(gitCommon, cmd, configCommands)
 	statusCommands := git_commands.NewStatusCommands(gitCommon)

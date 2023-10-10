@@ -24,6 +24,10 @@ func (t *Tag) ID() string {
 	return t.RefName()
 }
 
+func (t *Tag) URN() string {
+	return "tag-" + t.ID()
+}
+
 func (t *Tag) Description() string {
 	return t.Message
 }

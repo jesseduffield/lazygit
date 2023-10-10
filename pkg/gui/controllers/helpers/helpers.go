@@ -46,6 +46,7 @@ type Helpers struct {
 	Confirmation      *ConfirmationHelper
 	Mode              *ModeHelper
 	AppStatus         *AppStatusHelper
+	InlineStatus      *InlineStatusHelper
 	WindowArrangement *WindowArrangementHelper
 	Search            *SearchHelper
 	Worktree          *WorktreeHelper
@@ -81,6 +82,7 @@ func NewStubHelpers() *Helpers {
 		Confirmation:      &ConfirmationHelper{},
 		Mode:              &ModeHelper{},
 		AppStatus:         &AppStatusHelper{},
+		InlineStatus:      &InlineStatusHelper{},
 		WindowArrangement: &WindowArrangementHelper{},
 		Search:            &SearchHelper{},
 		Worktree:          &WorktreeHelper{},

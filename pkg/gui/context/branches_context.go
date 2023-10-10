@@ -27,6 +27,7 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 	getDisplayStrings := func(_ int, _ int) [][]string {
 		return presentation.GetBranchListDisplayStrings(
 			viewModel.GetItems(),
+			c.State().GetItemOperation,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().Diffing.Ref,
 			c.Tr,

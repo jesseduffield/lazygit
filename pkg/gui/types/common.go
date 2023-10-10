@@ -87,6 +87,12 @@ type IGuiCommon interface {
 	// resized, if in accordion mode.
 	AfterLayout(f func() error)
 
+	// Wraps a function, attaching the given operation to the given item while
+	// the function is executing, and also causes the given context to be
+	// redrawn periodically. This allows the operation to be visualized with a
+	// spinning loader animation (e.g. when a branch is being pushed).
+	WithInlineStatus(item HasUrn, operation ItemOperation, contextKey ContextKey, f func(gocui.Task) error) error
+
 	// returns the gocui Gui struct. There is a good chance you don't actually want to use
 	// this struct and instead want to use another method above
 	GocuiGui() *gocui.Gui
@@ -256,13 +262,30 @@ type Mutexes struct {
 	RefreshingFilesMutex    *deadlock.Mutex
 	RefreshingBranchesMutex *deadlock.Mutex
 	RefreshingStatusMutex   *deadlock.Mutex
-	SyncMutex               *deadlock.Mutex
 	LocalCommitsMutex       *deadlock.Mutex
 	SubCommitsMutex         *deadlock.Mutex
 	AuthorsMutex            *deadlock.Mutex
 	SubprocessMutex         *deadlock.Mutex
 	PopupMutex              *deadlock.Mutex
 	PtyMutex                *deadlock.Mutex
+}
+
+// A long-running operation associated with an item. For example, we'll show
+// that a branch is being pushed from so that there's visual feedback about
+// what's happening and so that you can see multiple branches' concurrent
+// operations
+type ItemOperation int
+
+const (
+	ItemOperationNone ItemOperation = iota
+	ItemOperationPushing
+	ItemOperationPulling
+	ItemOperationFastForwarding
+	ItemOperationDeleting
+)
+
+type HasUrn interface {
+	URN() string
 }
 
 type IStateAccessor interface {
@@ -277,6 +300,9 @@ type IStateAccessor interface {
 	SetShowExtrasWindow(bool)
 	GetRetainOriginalDir() bool
 	SetRetainOriginalDir(bool)
+	GetItemOperation(item HasUrn) ItemOperation
+	SetItemOperation(item HasUrn, operation ItemOperation)
+	ClearItemOperation(item HasUrn)
 }
 
 type IRepoStateAccessor interface {

@@ -34,9 +34,10 @@ func NewBranchesController(
 func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.checkSelected(self.press),
-			Description: self.c.Tr.Checkout,
+			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Handler:           self.checkSelected(self.press),
+			GetDisabledReason: self.getDisabledReasonForPress,
+			Description:       self.c.Tr.Checkout,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
@@ -297,6 +298,18 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
 	return self.c.Helpers().Refs.CheckoutRef(selectedBranch.Name, types.CheckoutRefOptions{})
+}
+
+func (self *BranchesController) getDisabledReasonForPress() string {
+	currentBranch := self.c.Helpers().Refs.GetCheckedOutRef()
+	if currentBranch != nil {
+		op := self.c.State().GetItemOperation(currentBranch)
+		if op == types.ItemOperationFastForwarding || op == types.ItemOperationPulling {
+			return self.c.Tr.CantCheckoutBranchWhilePulling
+		}
+	}
+
+	return ""
 }
 
 func (self *BranchesController) worktreeForBranch(branch *models.Branch) (*models.Worktree, bool) {
@@ -563,14 +576,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 
 	action := self.c.Tr.Actions.FastForwardBranch
 
-	message := utils.ResolvePlaceholderString(
-		self.c.Tr.FastForwarding,
-		map[string]string{
-			"branch": branch.Name,
-		},
-	)
-
-	return self.c.WithWaitingStatus(message, func(task gocui.Task) error {
+	return self.c.WithInlineStatus(branch, types.ItemOperationFastForwarding, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
 		worktree, ok := self.worktreeForBranch(branch)
 		if ok {
 			self.c.LogAction(action)
@@ -590,24 +596,17 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 					WorktreeGitDir:  worktreeGitDir,
 				},
 			)
-			if err != nil {
-				_ = self.c.Error(err)
-			}
-
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			return err
 		} else {
 			self.c.LogAction(action)
 
 			err := self.c.Git().Sync.FastForward(
 				task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch,
 			)
-			if err != nil {
-				_ = self.c.Error(err)
-			}
 			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+			return err
 		}
-
-		return nil
 	})
 }
 

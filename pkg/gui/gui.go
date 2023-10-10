@@ -110,6 +110,12 @@ type Gui struct {
 	// lazygit was opened in, or if we'll retain the one we're currently in.
 	RetainOriginalDir bool
 
+	// stores long-running operations associated with items (e.g. when a branch
+	// is being pushed). At the moment the rule is to use an item operation when
+	// we need to talk to the remote.
+	itemOperations      map[string]types.ItemOperation
+	itemOperationsMutex *deadlock.Mutex
+
 	PrevLayout PrevLayout
 
 	// this is the initial dir we are in upon opening lazygit. We hold onto this
@@ -178,6 +184,27 @@ func (self *StateAccessor) GetRetainOriginalDir() bool {
 
 func (self *StateAccessor) SetRetainOriginalDir(value bool) {
 	self.gui.RetainOriginalDir = value
+}
+
+func (self *StateAccessor) GetItemOperation(item types.HasUrn) types.ItemOperation {
+	self.gui.itemOperationsMutex.Lock()
+	defer self.gui.itemOperationsMutex.Unlock()
+
+	return self.gui.itemOperations[item.URN()]
+}
+
+func (self *StateAccessor) SetItemOperation(item types.HasUrn, operation types.ItemOperation) {
+	self.gui.itemOperationsMutex.Lock()
+	defer self.gui.itemOperationsMutex.Unlock()
+
+	self.gui.itemOperations[item.URN()] = operation
+}
+
+func (self *StateAccessor) ClearItemOperation(item types.HasUrn) {
+	self.gui.itemOperationsMutex.Lock()
+	defer self.gui.itemOperationsMutex.Unlock()
+
+	delete(self.gui.itemOperations, item.URN())
 }
 
 // we keep track of some stuff from one render to the next to see if certain
@@ -273,7 +300,6 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		gui.gitVersion,
 		gui.os,
 		git_config.NewStdCachedGitConfig(gui.Log),
-		gui.Mutexes.SyncMutex,
 	)
 	if err != nil {
 		return err
@@ -463,7 +489,6 @@ func NewGui(
 			RefreshingFilesMutex:    &deadlock.Mutex{},
 			RefreshingBranchesMutex: &deadlock.Mutex{},
 			RefreshingStatusMutex:   &deadlock.Mutex{},
-			SyncMutex:               &deadlock.Mutex{},
 			LocalCommitsMutex:       &deadlock.Mutex{},
 			SubCommitsMutex:         &deadlock.Mutex{},
 			AuthorsMutex:            &deadlock.Mutex{},
@@ -473,6 +498,9 @@ func NewGui(
 		},
 		InitialDir:       initialDir,
 		afterLayoutFuncs: make(chan func() error, 1000),
+
+		itemOperations:      make(map[string]types.ItemOperation),
+		itemOperationsMutex: &deadlock.Mutex{},
 	}
 
 	gui.PopupHandler = popup.NewPopupHandler(

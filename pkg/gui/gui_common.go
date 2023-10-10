@@ -5,6 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -198,4 +199,9 @@ func (self *guiCommon) RunningIntegrationTest() bool {
 
 func (self *guiCommon) InDemo() bool {
 	return self.gui.integrationTest != nil && self.gui.integrationTest.IsDemo()
+}
+
+func (self *guiCommon) WithInlineStatus(item types.HasUrn, operation types.ItemOperation, contextKey types.ContextKey, f func(gocui.Task) error) error {
+	self.gui.helpers.InlineStatus.WithInlineStatus(helpers.InlineStatusOpts{Item: item, Operation: operation, ContextKey: contextKey}, f)
+	return nil
 }
