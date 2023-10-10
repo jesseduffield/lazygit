@@ -6,7 +6,7 @@ import (
 )
 
 var DisabledKeybindings = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Confirms You can set keybindings to blank to disable them",
+	Description:  "Confirms you can disable keybindings by setting them to <disabled>",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
