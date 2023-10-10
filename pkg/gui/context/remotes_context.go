@@ -9,7 +9,6 @@ import (
 type RemotesContext struct {
 	*FilteredListViewModel[*models.Remote]
 	*ListContextTrait
-	*SearchHistory
 }
 
 var (
