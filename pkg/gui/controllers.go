@@ -47,6 +47,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon)
 	stagingHelper := helpers.NewStagingHelper(helperCommon)
 	mergeConflictsHelper := helpers.NewMergeConflictsHelper(helperCommon)
+	searchHelper := helpers.NewSearchHelper(helperCommon)
 
 	refreshHelper := helpers.NewRefreshHelper(
 		helperCommon,
@@ -56,6 +57,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		stagingHelper,
 		mergeConflictsHelper,
 		worktreeHelper,
+		searchHelper,
 	)
 	diffHelper := helpers.NewDiffHelper(helperCommon)
 	cherryPickHelper := helpers.NewCherryPickHelper(
@@ -119,7 +121,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 			modeHelper,
 			appStatusHelper,
 		),
-		Search:     helpers.NewSearchHelper(helperCommon),
+		Search:     searchHelper,
 		Worktree:   worktreeHelper,
 		SubCommits: helpers.NewSubCommitsHelper(helperCommon, refreshHelper, setSubCommits),
 	}

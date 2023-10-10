@@ -28,6 +28,7 @@ type RefreshHelper struct {
 	stagingHelper        *StagingHelper
 	mergeConflictsHelper *MergeConflictsHelper
 	worktreeHelper       *WorktreeHelper
+	searchHelper         *SearchHelper
 }
 
 func NewRefreshHelper(
@@ -38,6 +39,7 @@ func NewRefreshHelper(
 	stagingHelper *StagingHelper,
 	mergeConflictsHelper *MergeConflictsHelper,
 	worktreeHelper *WorktreeHelper,
+	searchHelper *SearchHelper,
 ) *RefreshHelper {
 	return &RefreshHelper{
 		c:                    c,
@@ -47,6 +49,7 @@ func NewRefreshHelper(
 		stagingHelper:        stagingHelper,
 		mergeConflictsHelper: mergeConflictsHelper,
 		worktreeHelper:       worktreeHelper,
+		searchHelper:         searchHelper,
 	}
 }
 
@@ -328,7 +331,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 	self.c.Model().WorkingTreeStateAtLastCommitRefresh = self.c.Git().Status.WorkingTreeState()
 	self.c.Model().CheckedOutBranch = checkedOutBranchName
 
-	return self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+	return self.refreshView(self.c.Contexts().LocalCommits)
 }
 
 func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
@@ -351,7 +354,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 	self.c.Model().SubCommits = commits
 	self.RefreshAuthors(commits)
 
-	return self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
+	return self.refreshView(self.c.Contexts().SubCommits)
 }
 
 func (self *RefreshHelper) RefreshAuthors(commits []*models.Commit) {
@@ -381,7 +384,7 @@ func (self *RefreshHelper) refreshCommitFilesContext() error {
 	self.c.Model().CommitFiles = files
 	self.c.Contexts().CommitFiles.CommitFileTreeViewModel.SetTree()
 
-	return self.c.PostRefreshUpdate(self.c.Contexts().CommitFiles)
+	return self.refreshView(self.c.Contexts().CommitFiles)
 }
 
 func (self *RefreshHelper) refreshRebaseCommits() error {
@@ -395,7 +398,7 @@ func (self *RefreshHelper) refreshRebaseCommits() error {
 	self.c.Model().Commits = updatedCommits
 	self.c.Model().WorkingTreeStateAtLastCommitRefresh = self.c.Git().Status.WorkingTreeState()
 
-	return self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+	return self.refreshView(self.c.Contexts().LocalCommits)
 }
 
 func (self *RefreshHelper) refreshTags() error {
@@ -406,7 +409,7 @@ func (self *RefreshHelper) refreshTags() error {
 
 	self.c.Model().Tags = tags
 
-	return self.c.PostRefreshUpdate(self.c.Contexts().Tags)
+	return self.refreshView(self.c.Contexts().Tags)
 }
 
 func (self *RefreshHelper) refreshStateSubmoduleConfigs() error {
@@ -448,12 +451,12 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool) {
 
 	if refreshWorktrees {
 		self.loadWorktrees()
-		if err := self.c.PostRefreshUpdate(self.c.Contexts().Worktrees); err != nil {
+		if err := self.refreshView(self.c.Contexts().Worktrees); err != nil {
 			self.c.Log.Error(err)
 		}
 	}
 
-	if err := self.c.PostRefreshUpdate(self.c.Contexts().Branches); err != nil {
+	if err := self.refreshView(self.c.Contexts().Branches); err != nil {
 		self.c.Log.Error(err)
 	}
 
@@ -485,11 +488,11 @@ func (self *RefreshHelper) refreshFilesAndSubmodules() error {
 	}
 
 	self.c.OnUIThread(func() error {
-		if err := self.c.PostRefreshUpdate(self.c.Contexts().Submodules); err != nil {
+		if err := self.refreshView(self.c.Contexts().Submodules); err != nil {
 			self.c.Log.Error(err)
 		}
 
-		if err := self.c.PostRefreshUpdate(self.c.Contexts().Files); err != nil {
+		if err := self.refreshView(self.c.Contexts().Files); err != nil {
 			self.c.Log.Error(err)
 		}
 
@@ -611,7 +614,7 @@ func (self *RefreshHelper) refreshReflogCommits() error {
 		model.FilteredReflogCommits = model.ReflogCommits
 	}
 
-	return self.c.PostRefreshUpdate(self.c.Contexts().ReflogCommits)
+	return self.refreshView(self.c.Contexts().ReflogCommits)
 }
 
 func (self *RefreshHelper) refreshRemotes() error {
@@ -635,11 +638,11 @@ func (self *RefreshHelper) refreshRemotes() error {
 		}
 	}
 
-	if err := self.c.PostRefreshUpdate(self.c.Contexts().Remotes); err != nil {
+	if err := self.refreshView(self.c.Contexts().Remotes); err != nil {
 		return err
 	}
 
-	if err := self.c.PostRefreshUpdate(self.c.Contexts().RemoteBranches); err != nil {
+	if err := self.refreshView(self.c.Contexts().RemoteBranches); err != nil {
 		return err
 	}
 
@@ -661,18 +664,18 @@ func (self *RefreshHelper) refreshWorktrees() error {
 
 	// need to refresh branches because the branches view shows worktrees against
 	// branches
-	if err := self.c.PostRefreshUpdate(self.c.Contexts().Branches); err != nil {
+	if err := self.refreshView(self.c.Contexts().Branches); err != nil {
 		return err
 	}
 
-	return self.c.PostRefreshUpdate(self.c.Contexts().Worktrees)
+	return self.refreshView(self.c.Contexts().Worktrees)
 }
 
 func (self *RefreshHelper) refreshStashEntries() error {
 	self.c.Model().StashEntries = self.c.Git().Loaders.StashLoader.
 		GetStashEntries(self.c.Modes().Filtering.GetPath())
 
-	return self.c.PostRefreshUpdate(self.c.Contexts().Stash)
+	return self.refreshView(self.c.Contexts().Stash)
 }
 
 // never call this on its own, it should only be called from within refreshCommits()
@@ -710,4 +713,9 @@ func (self *RefreshHelper) refForLog() string {
 	}
 
 	return bisectInfo.GetStartSha()
+}
+
+func (self *RefreshHelper) refreshView(context types.Context) error {
+	self.searchHelper.ReApplyFilter(context)
+	return self.c.PostRefreshUpdate(context)
 }

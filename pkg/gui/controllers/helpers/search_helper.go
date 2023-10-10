@@ -227,6 +227,18 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 	}
 }
 
+func (self *SearchHelper) ReApplyFilter(context types.Context) {
+	state := self.searchState()
+	if context == state.Context {
+		filterableContext, ok := context.(types.IFilterableContext)
+		if ok {
+			filterableContext.SetSelectedLineIdx(0)
+			_ = filterableContext.GetView().SetOriginY(0)
+			filterableContext.ReApplyFilter()
+		}
+	}
+}
+
 func (self *SearchHelper) RenderSearchStatus(c types.Context) {
 	if c.GetKey() == context.SEARCH_CONTEXT_KEY {
 		return

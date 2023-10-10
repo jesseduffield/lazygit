@@ -102,6 +102,7 @@ type IFilterableContext interface {
 	SetFilter(string)
 	GetFilter() string
 	ClearFilter()
+	ReApplyFilter()
 	IsFiltering() bool
 	IsFilterableContext()
 }
