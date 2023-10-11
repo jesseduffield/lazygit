@@ -16,6 +16,7 @@ import (
 	"bytes"
 	"crypto/dsa"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rsa"
 	"encoding/base64"
@@ -26,7 +27,6 @@ import (
 	"math/big"
 	"sync"
 
-	"golang.org/x/crypto/ed25519"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -93,7 +93,7 @@ type ExtendedAgent interface {
 type ConstraintExtension struct {
 	// ExtensionName consist of a UTF-8 string suffixed by the
 	// implementation domain following the naming scheme defined
-	// in Section 4.2 of [RFC4251], e.g.  "foo@example.com".
+	// in Section 4.2 of RFC 4251, e.g.  "foo@example.com".
 	ExtensionName string
 	// ExtensionDetails contains the actual content of the extended
 	// constraint.
@@ -226,7 +226,9 @@ var ErrExtensionUnsupported = errors.New("agent: extension unsupported")
 
 type extensionAgentMsg struct {
 	ExtensionType string `sshtype:"27"`
-	Contents      []byte
+	// NOTE: this matches OpenSSH's PROTOCOL.agent, not the IETF draft [PROTOCOL.agent],
+	// so that it matches what OpenSSH actually implements in the wild.
+	Contents []byte `ssh:"rest"`
 }
 
 // Key represents a protocol 2 public key as defined in
@@ -729,7 +731,7 @@ func (c *client) insertCert(s interface{}, cert *ssh.Certificate, comment string
 	if err != nil {
 		return err
 	}
-	if bytes.Compare(cert.Key.Marshal(), signer.PublicKey().Marshal()) != 0 {
+	if !bytes.Equal(cert.Key.Marshal(), signer.PublicKey().Marshal()) {
 		return errors.New("agent: signer and cert have different public key")
 	}
 

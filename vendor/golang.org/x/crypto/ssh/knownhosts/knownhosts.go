@@ -142,7 +142,7 @@ func keyEq(a, b ssh.PublicKey) bool {
 	return bytes.Equal(a.Marshal(), b.Marshal())
 }
 
-// IsAuthorityForHost can be used as a callback in ssh.CertChecker
+// IsHostAuthority can be used as a callback in ssh.CertChecker
 func (db *hostKeyDB) IsHostAuthority(remote ssh.PublicKey, address string) bool {
 	h, p, err := net.SplitHostPort(address)
 	if err != nil {

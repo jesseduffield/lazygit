@@ -60,7 +60,7 @@ func (c *Compressed) parse(r io.Reader) error {
 	return err
 }
 
-// compressedWriterCloser represents the serialized compression stream
+// compressedWriteCloser represents the serialized compression stream
 // header and the compressor. Its Close() method ensures that both the
 // compressor and serialized stream header are closed. Its Write()
 // method writes to the compressor.
