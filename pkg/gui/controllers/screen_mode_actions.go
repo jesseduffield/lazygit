@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -17,7 +16,7 @@ func (self *ScreenModeActions) Next() error {
 		),
 	)
 
-	return self.rerenderViewsWithScreenModeDependentContent()
+	return nil
 }
 
 func (self *ScreenModeActions) Prev() error {
@@ -28,30 +27,7 @@ func (self *ScreenModeActions) Prev() error {
 		),
 	)
 
-	return self.rerenderViewsWithScreenModeDependentContent()
-}
-
-// these views need to be re-rendered when the screen mode changes. The commits view,
-// for example, will show authorship information in half and full screen mode.
-func (self *ScreenModeActions) rerenderViewsWithScreenModeDependentContent() error {
-	// for now we re-render all list views.
-	for _, context := range self.c.Context().AllList() {
-		if err := self.rerenderView(context.GetView()); err != nil {
-			return err
-		}
-	}
-
 	return nil
-}
-
-func (self *ScreenModeActions) rerenderView(view *gocui.View) error {
-	context, ok := self.c.Helpers().View.ContextForView(view.Name())
-	if !ok {
-		self.c.Log.Errorf("no context found for view %s", view.Name())
-		return nil
-	}
-
-	return context.HandleRender()
 }
 
 func nextIntInCycle(sl []types.WindowMaximisation, current types.WindowMaximisation) types.WindowMaximisation {
