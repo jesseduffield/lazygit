@@ -61,10 +61,10 @@ var extIconMap = map[string]IconProperties{
 	".android":        {"\ue70e", 70},      // 
 	".apk":            {"\ue70e", 70},      // 
 	".apple":          {"\uf179", 15},      // 
-	".avi":            {"\uf03d", 241},     // 
-	".avif":           {"\uf1c5", 241},     // 
-	".avro":           {"\ue60b", 241},     // 
-	".awk":            {"\ue795", 241},     // 
+	".avi":            {"\uf03d", 140},     // 
+	".avif":           {"\uf1c5", 140},     // 
+	".avro":           {"\ue60b", 130},     // 
+	".awk":            {"\ue795", 140},     // 
 	".bash":           {"\ue795", 113},     // 
 	".bash_history":   {"\ue795", 113},     // 
 	".bash_profile":   {"\ue795", 113},     // 
@@ -110,12 +110,12 @@ var extIconMap = map[string]IconProperties{
 	".DS_store":       {"\uf179", 15},      // 
 	".dump":           {"\uf1c0", 188},     // 
 	".ebook":          {"\ue28b", 241},     // 
-	".ebuild":         {"\uf30d", 241},     // 
+	".ebuild":         {"\uf30d", 56},      // 
 	".editorconfig":   {"\ue615", 241},     // 
 	".ejs":            {"\ue618", 185},     // 
 	".elm":            {"\ue62c", 74},      // 
 	".env":            {"\uf462", 227},     // 
-	".eot":            {"\uf031", 241},     // 
+	".eot":            {"\uf031", 124},     // 
 	".epub":           {"\ue28a", 241},     // 
 	".erb":            {"\ue73b", 160},     // 
 	".erl":            {"\ue7b1", 163},     // 
@@ -129,11 +129,11 @@ var extIconMap = map[string]IconProperties{
 	".fs":             {"\ue7a7", 74},      // 
 	".fsi":            {"\ue7a7", 74},      // 
 	".fsx":            {"\ue7a7", 74},      // 
-	".gdoc":           {"\uf1c2", 241},     // 
-	".gem":            {"\ue21e", 241},     // 
-	".gemfile":        {"\ue21e", 241},     // 
-	".gemspec":        {"\ue21e", 241},     // 
-	".gform":          {"\uf298", 241},     // 
+	".gdoc":           {"\uf1c2", 40},      // 
+	".gem":            {"\ue21e", 160},     // 
+	".gemfile":        {"\ue21e", 160},     // 
+	".gemspec":        {"\ue21e", 160},     // 
+	".gform":          {"\uf298", 40},      // 
 	".gif":            {"\uf1c5", 140},     // 
 	".git":            {"\uf1d3", 202},     // 
 	".gitattributes":  {"\uf1d3", 202},     // 
@@ -141,9 +141,9 @@ var extIconMap = map[string]IconProperties{
 	".gitmodules":     {"\uf1d3", 202},     // 
 	".go":             {"\ue627", 74},      // 
 	".gradle":         {"\ue256", 168},     // 
-	".groovy":         {"\ue775", 241},     // 
-	".gsheet":         {"\uf1c3", 241},     // 
-	".gslides":        {"\uf1c4", 241},     // 
+	".groovy":         {"\ue775", 24},      // 
+	".gsheet":         {"\uf1c3", 10},      // 
+	".gslides":        {"\uf1c4", 226},     // 
 	".guardfile":      {"\ue21e", 241},     // 
 	".gz":             {"\uf410", 241},     // 
 	".h":              {"\uf0fd", 140},     // 
@@ -210,7 +210,7 @@ var extIconMap = map[string]IconProperties{
 	".mp4":            {"\uf03d", 241},     // 
 	".msi":            {"\ue70f", 241},     // 
 	".mustache":       {"\ue60f", 241},     // 
-	".nix":            {"\uf313", 241},     // 
+	".nix":            {"\uf313", 111},     // 
 	".node":           {"\U000f0399", 197}, // 󰎙
 	".npmignore":      {"\ue71e", 197},     // 
 	".odp":            {"\uf1c4", 241},     // 
@@ -221,9 +221,9 @@ var extIconMap = map[string]IconProperties{
 	".otf":            {"\uf031", 241},     // 
 	".part":           {"\uf43a", 241},     // 
 	".patch":          {"\uf440", 241},     // 
-	".pdf":            {"\uf1c1", 241},     // 
+	".pdf":            {"\uf1c1", 124},     // 
 	".php":            {"\ue73d", 61},      // 
-	".pl":             {"\ue769", 241},     // 
+	".pl":             {"\ue769", 74},      // 
 	".png":            {"\uf1c5", 241},     // 
 	".ppt":            {"\uf1c4", 241},     // 
 	".pptx":           {"\uf1c4", 241},     // 
@@ -234,26 +234,26 @@ var extIconMap = map[string]IconProperties{
 	".pxm":            {"\uf1c5", 241},     // 
 	".py":             {"\ue606", 214},     // 
 	".pyc":            {"\ue606", 214},     // 
-	".r":              {"\uf25d", 241},     // 
-	".rakefile":       {"\ue21e", 241},     // 
+	".r":              {"\uf25d", 68},      // 
+	".rakefile":       {"\ue21e", 160},     // 
 	".rar":            {"\uf410", 241},     // 
-	".razor":          {"\uf1fa", 241},     // 
-	".rb":             {"\ue21e", 241},     // 
-	".rdata":          {"\uf25d", 241},     // 
-	".rdb":            {"\ue76d", 241},     // 
+	".razor":          {"\uf1fa", 81},      // 
+	".rb":             {"\ue21e", 160},     // 
+	".rdata":          {"\uf25d", 68},      // 
+	".rdb":            {"\ue76d", 160},     // 
 	".rdoc":           {"\uf48a", 74},      // 
-	".rds":            {"\uf25d", 241},     // 
-	".readme":         {"\uf48a", 241},     // 
-	".rlib":           {"\ue7a8", 241},     // 
+	".rds":            {"\uf25d", 68},      // 
+	".readme":         {"\uf48a", 74},      // 
+	".rlib":           {"\ue7a8", 216},     // 
 	".rmd":            {"\uf48a", 74},      // 
-	".rpm":            {"\ue7bb", 241},     // 
+	".rpm":            {"\ue7bb", 52},      // 
 	".rs":             {"\ue7a8", 216},     // 
-	".rspec":          {"\ue21e", 241},     // 
-	".rspec_parallel": {"\ue21e", 241},     // 
-	".rspec_status":   {"\ue21e", 241},     // 
-	".rss":            {"\uf09e", 241},     // 
+	".rspec":          {"\ue21e", 160},     // 
+	".rspec_parallel": {"\ue21e", 160},     // 
+	".rspec_status":   {"\ue21e", 160},     // 
+	".rss":            {"\uf09e", 130},     // 
 	".rtf":            {"\U000f0219", 241}, // 󰈙
-	".ru":             {"\ue21e", 241},     // 
+	".ru":             {"\ue21e", 160},     // 
 	".rubydoc":        {"\ue73b", 160},     // 
 	".sass":           {"\ue603", 169},     // 
 	".scala":          {"\ue737", 74},      // 
@@ -266,8 +266,8 @@ var extIconMap = map[string]IconProperties{
 	".sql":            {"\uf1c0", 188},     // 
 	".sqlite3":        {"\ue7c4", 25},      // 
 	".sty":            {"\uf034", 239},     // 
-	".styl":           {"\ue600", 241},     // 
-	".stylus":         {"\ue600", 241},     // 
+	".styl":           {"\ue600", 148},     // 
+	".stylus":         {"\ue600", 148},     // 
 	".svelte":         {"\ue697", 208},     // 
 	".svg":            {"\uf1c5", 241},     // 
 	".swift":          {"\ue755", 208},     // 
@@ -275,12 +275,12 @@ var extIconMap = map[string]IconProperties{
 	".taz":            {"\uf410", 241},     // 
 	".tbz":            {"\uf410", 241},     // 
 	".tbz2":           {"\uf410", 241},     // 
-	".tex":            {"\uf034", 241},     // 
+	".tex":            {"\uf034", 79},      // 
 	".tgz":            {"\uf410", 241},     // 
 	".tiff":           {"\uf1c5", 241},     // 
 	".tlz":            {"\uf410", 241},     // 
 	".toml":           {"\ue615", 241},     // 
-	".torrent":        {"\ue275", 241},     // 
+	".torrent":        {"\ue275", 76},      // 
 	".ts":             {"\ue628", 74},      // 
 	".tsv":            {"\uf1c3", 241},     // 
 	".tsx":            {"\ue7ba", 74},      // 
@@ -301,13 +301,13 @@ var extIconMap = map[string]IconProperties{
 	".woff":           {"\uf031", 241},     // 
 	".woff2":          {"\uf031", 241},     // 
 	".xhtml":          {"\uf13b", 196},     // 
-	".xls":            {"\uf1c3", 241},     // 
-	".xlsx":           {"\uf1c3", 241},     // 
-	".xml":            {"\uf121", 241},     // 
-	".xul":            {"\uf121", 241},     // 
+	".xls":            {"\uf1c3", 34},      // 
+	".xlsx":           {"\uf1c3", 34},      // 
+	".xml":            {"\uf121", 160},     // 
+	".xul":            {"\uf121", 166},     // 
 	".xz":             {"\uf410", 241},     // 
-	".yaml":           {"\uf481", 241},     // 
-	".yml":            {"\uf481", 241},     // 
+	".yaml":           {"\uf481", 160},     // 
+	".yml":            {"\uf481", 160},     // 
 	".zip":            {"\uf410", 241},     // 
 	".zsh":            {"\ue795", 241},     // 
 	".zsh-theme":      {"\ue795", 241},     // 
