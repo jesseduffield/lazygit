@@ -54,6 +54,7 @@ func getBranchDisplayStrings(
 	branchStatus := utils.WithPadding(ColoredBranchStatus(b, tr), 2, utils.AlignLeft)
 	if git_commands.CheckedOutByOtherWorktree(b, worktrees) {
 		worktreeIcon := lo.Ternary(icons.IsIconEnabled(), icons.LINKED_WORKTREE_ICON.Icon, fmt.Sprintf("(%s)", tr.LcWorktree))
+    
 		coloredName = fmt.Sprintf("%s %s", coloredName, style.FgDefault.Sprint(worktreeIcon))
 	}
 	coloredName = fmt.Sprintf("%s %s", coloredName, branchStatus)
@@ -67,7 +68,7 @@ func getBranchDisplayStrings(
 	res = append(res, recencyColor.Sprint(b.Recency))
 
 	if icons.IsIconEnabled() {
-		res = append(res, nameTextStyle.Sprint(icons.IconForBranch(b)))
+		res = append(res, nameTextStyle.Sprint(icons.IconForBranch(b).Icon))
 	}
 
 	if fullDescription || userConfig.Gui.ShowBranchCommitHash {

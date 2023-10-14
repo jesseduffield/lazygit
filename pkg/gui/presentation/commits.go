@@ -362,7 +362,7 @@ func displayCommit(
 	if commit.Divergence != models.DivergenceNone {
 		cols = append(cols, shaColor.Sprint(lo.Ternary(commit.Divergence == models.DivergenceLeft, "↑", "↓")))
 	} else if icons.IsIconEnabled() {
-		cols = append(cols, shaColor.Sprint(icons.IconForCommit(commit)))
+		cols = append(cols, shaColor.Sprint(icons.IconForCommit(commit).Icon))
 	}
 	cols = append(cols, shaColor.Sprint(commit.ShortSha()))
 	cols = append(cols, bisectString)
