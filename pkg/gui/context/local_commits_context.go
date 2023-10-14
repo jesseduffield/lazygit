@@ -68,11 +68,12 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 		SearchTrait:           NewSearchTrait(c),
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:       c.Views().Commits,
-				WindowName: "commits",
-				Key:        LOCAL_COMMITS_CONTEXT_KEY,
-				Kind:       types.SIDE_CONTEXT,
-				Focusable:  true,
+				View:                       c.Views().Commits,
+				WindowName:                 "commits",
+				Key:                        LOCAL_COMMITS_CONTEXT_KEY,
+				Kind:                       types.SIDE_CONTEXT,
+				Focusable:                  true,
+				NeedsRerenderOnWidthChange: true,
 			})),
 			ListRenderer: ListRenderer{
 				list:              viewModel,

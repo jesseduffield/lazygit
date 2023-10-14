@@ -43,11 +43,12 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:       c.Views().ReflogCommits,
-				WindowName: "commits",
-				Key:        REFLOG_COMMITS_CONTEXT_KEY,
-				Kind:       types.SIDE_CONTEXT,
-				Focusable:  true,
+				View:                       c.Views().ReflogCommits,
+				WindowName:                 "commits",
+				Key:                        REFLOG_COMMITS_CONTEXT_KEY,
+				Kind:                       types.SIDE_CONTEXT,
+				Focusable:                  true,
+				NeedsRerenderOnWidthChange: true,
 			})),
 			ListRenderer: ListRenderer{
 				list:              viewModel,

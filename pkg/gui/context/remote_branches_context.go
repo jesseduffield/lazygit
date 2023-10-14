@@ -36,12 +36,13 @@ func NewRemoteBranchesContext(
 		DynamicTitleBuilder:   NewDynamicTitleBuilder(c.Tr.RemoteBranchesDynamicTitle),
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:       c.Views().RemoteBranches,
-				WindowName: "branches",
-				Key:        REMOTE_BRANCHES_CONTEXT_KEY,
-				Kind:       types.SIDE_CONTEXT,
-				Focusable:  true,
-				Transient:  true,
+				View:                       c.Views().RemoteBranches,
+				WindowName:                 "branches",
+				Key:                        REMOTE_BRANCHES_CONTEXT_KEY,
+				Kind:                       types.SIDE_CONTEXT,
+				Focusable:                  true,
+				Transient:                  true,
+				NeedsRerenderOnWidthChange: true,
 			})),
 			ListRenderer: ListRenderer{
 				list:              viewModel,

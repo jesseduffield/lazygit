@@ -60,6 +60,9 @@ type IBaseContext interface {
 	// determined independently.
 	HasControlledBounds() bool
 
+	// true if the view needs to be rerendered when its width changes
+	NeedsRerenderOnWidthChange() bool
+
 	// returns the desired title for the view upon activation. If there is no desired title (returns empty string), then
 	// no title will be set
 	Title() string
