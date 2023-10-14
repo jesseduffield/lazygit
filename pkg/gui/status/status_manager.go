@@ -71,7 +71,7 @@ func (self *StatusManager) GetStatusString() string {
 	}
 	topStatus := self.statuses[0]
 	if topStatus.statusType == "waiting" {
-		return topStatus.message + " " + utils.Loader()
+		return topStatus.message + " " + utils.Loader(time.Now())
 	}
 	return topStatus.message
 }

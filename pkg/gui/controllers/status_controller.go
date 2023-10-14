@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/constants"
@@ -106,7 +107,7 @@ func (self *StatusController) onClick() error {
 	}
 
 	cx, _ := self.c.Views().Status.Cursor()
-	upstreamStatus := presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr)
+	upstreamStatus := presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now())
 	repoName := self.c.Git().RepoPaths.RepoName()
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	switch workingTreeState {

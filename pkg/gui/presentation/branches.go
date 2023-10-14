@@ -3,6 +3,7 @@ package presentation
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -29,7 +30,7 @@ func GetBranchListDisplayStrings(
 ) [][]string {
 	return lo.Map(branches, func(branch *models.Branch, _ int) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, tr, userConfig, worktrees)
+		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, tr, userConfig, worktrees, time.Now())
 	})
 }
 
@@ -42,6 +43,7 @@ func getBranchDisplayStrings(
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
 	worktrees []*models.Worktree,
+	now time.Time,
 ) []string {
 	displayName := b.Name
 	if b.DisplayName != "" {
@@ -124,13 +126,13 @@ func ColoredBranchStatus(branch *models.Branch, itemOperation types.ItemOperatio
 		colour = style.FgMagenta
 	}
 
-	return colour.Sprint(BranchStatus(branch, itemOperation, tr))
+	return colour.Sprint(BranchStatus(branch, itemOperation, tr, time.Now()))
 }
 
-func BranchStatus(branch *models.Branch, itemOperation types.ItemOperation, tr *i18n.TranslationSet) string {
+func BranchStatus(branch *models.Branch, itemOperation types.ItemOperation, tr *i18n.TranslationSet, now time.Time) string {
 	itemOperationStr := itemOperationToString(itemOperation, tr)
 	if itemOperationStr != "" {
-		return itemOperationStr + " " + utils.Loader()
+		return itemOperationStr + " " + utils.Loader(now)
 	}
 
 	if !branch.IsTrackingRemote() {
