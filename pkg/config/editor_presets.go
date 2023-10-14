@@ -59,6 +59,7 @@ func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset
 			openDirInEditorTemplate:   `nvim --server "$NVIM" --remote-tab {{dir}}`,
 			suspend:                   false,
 		},
+		"lvim":    standardTerminalEditorPreset("lvim"),
 		"emacs":   standardTerminalEditorPreset("emacs"),
 		"micro":   standardTerminalEditorPreset("micro"),
 		"nano":    standardTerminalEditorPreset("nano"),
