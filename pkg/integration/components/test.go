@@ -19,7 +19,7 @@ import (
 const unitTestDescription = "test test"
 
 const (
-	defaultWidth  = 100
+	defaultWidth  = 150
 	defaultHeight = 100
 )
 
