@@ -1,6 +1,8 @@
 package presentation
 
 import (
+	"time"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -37,7 +39,7 @@ func getTagDisplayStrings(t *models.Tag, itemOperation types.ItemOperation, diff
 	descriptionStr := descriptionColor.Sprint(t.Description())
 	itemOperationStr := itemOperationToString(itemOperation, tr)
 	if itemOperationStr != "" {
-		descriptionStr = style.FgCyan.Sprint(itemOperationStr+" "+utils.Loader()) + " " + descriptionStr
+		descriptionStr = style.FgCyan.Sprint(itemOperationStr+" "+utils.Loader(time.Now())) + " " + descriptionStr
 	}
 	res = append(res, textStyle.Sprint(t.Name), descriptionStr)
 	return res

@@ -28,9 +28,8 @@ func GetProjectRoot() string {
 const LoaderAnimationInterval = 50
 
 // Loader dumps a string to be displayed as a loader
-func Loader() string {
+func Loader(now time.Time) string {
 	characters := "|/-\\"
-	now := time.Now()
 	milliseconds := now.UnixMilli()
 	index := milliseconds / LoaderAnimationInterval % int64(len(characters))
 	return characters[index : index+1]

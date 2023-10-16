@@ -3,6 +3,7 @@ package presentation
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -13,6 +14,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/mattn/go-runewidth"
 	"github.com/samber/lo"
 )
 
@@ -23,13 +25,14 @@ func GetBranchListDisplayStrings(
 	getItemOperation func(item types.HasUrn) types.ItemOperation,
 	fullDescription bool,
 	diffName string,
+	viewWidth int,
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
 	worktrees []*models.Worktree,
 ) [][]string {
 	return lo.Map(branches, func(branch *models.Branch, _ int) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, tr, userConfig, worktrees)
+		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, viewWidth, tr, userConfig, worktrees, time.Now())
 	})
 }
 
@@ -39,10 +42,32 @@ func getBranchDisplayStrings(
 	itemOperation types.ItemOperation,
 	fullDescription bool,
 	diffed bool,
+	viewWidth int,
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
 	worktrees []*models.Worktree,
+	now time.Time,
 ) []string {
+	checkedOutByWorkTree := git_commands.CheckedOutByOtherWorktree(b, worktrees)
+	showCommitHash := fullDescription || userConfig.Gui.ShowBranchCommitHash
+	branchStatus := BranchStatus(b, itemOperation, tr, now)
+	worktreeIcon := lo.Ternary(icons.IsIconEnabled(), icons.LINKED_WORKTREE_ICON, fmt.Sprintf("(%s)", tr.LcWorktree))
+
+	// Recency is always three characters, plus one for the space
+	availableWidth := viewWidth - 4
+	if len(branchStatus) > 0 {
+		availableWidth -= runewidth.StringWidth(branchStatus) + 1
+	}
+	if icons.IsIconEnabled() {
+		availableWidth -= 2 // one for the icon, one for the space
+	}
+	if showCommitHash {
+		availableWidth -= utils.COMMIT_HASH_SHORT_SIZE + 1
+	}
+	if checkedOutByWorkTree {
+		availableWidth -= runewidth.StringWidth(worktreeIcon) + 1
+	}
+
 	displayName := b.Name
 	if b.DisplayName != "" {
 		displayName = b.DisplayName
@@ -53,13 +78,19 @@ func getBranchDisplayStrings(
 		nameTextStyle = theme.DiffTerminalColor
 	}
 
+	if len(displayName) > availableWidth {
+		// Never shorten the branch name to less then 3 characters
+		len := utils.Max(availableWidth, 4)
+		displayName = displayName[:len-1] + "…"
+	}
 	coloredName := nameTextStyle.Sprint(displayName)
-	branchStatus := utils.WithPadding(ColoredBranchStatus(b, itemOperation, tr), 2, utils.AlignLeft)
-	if git_commands.CheckedOutByOtherWorktree(b, worktrees) {
-		worktreeIcon := lo.Ternary(icons.IsIconEnabled(), icons.LINKED_WORKTREE_ICON, fmt.Sprintf("(%s)", tr.LcWorktree))
+	if checkedOutByWorkTree {
 		coloredName = fmt.Sprintf("%s %s", coloredName, style.FgDefault.Sprint(worktreeIcon))
 	}
-	coloredName = fmt.Sprintf("%s %s", coloredName, branchStatus)
+	if len(branchStatus) > 0 {
+		coloredStatus := branchStatusColor(b, itemOperation).Sprint(branchStatus)
+		coloredName = fmt.Sprintf("%s %s", coloredName, coloredStatus)
+	}
 
 	recencyColor := style.FgCyan
 	if b.Recency == "  *" {
@@ -73,7 +104,7 @@ func getBranchDisplayStrings(
 		res = append(res, nameTextStyle.Sprint(icons.IconForBranch(b)))
 	}
 
-	if fullDescription || userConfig.Gui.ShowBranchCommitHash {
+	if showCommitHash {
 		res = append(res, utils.ShortSha(b.CommitHash))
 	}
 
@@ -112,7 +143,7 @@ func GetBranchTextStyle(name string) style.TextStyle {
 	}
 }
 
-func ColoredBranchStatus(branch *models.Branch, itemOperation types.ItemOperation, tr *i18n.TranslationSet) string {
+func branchStatusColor(branch *models.Branch, itemOperation types.ItemOperation) style.TextStyle {
 	colour := style.FgYellow
 	if itemOperation != types.ItemOperationNone {
 		colour = style.FgCyan
@@ -124,13 +155,17 @@ func ColoredBranchStatus(branch *models.Branch, itemOperation types.ItemOperatio
 		colour = style.FgMagenta
 	}
 
-	return colour.Sprint(BranchStatus(branch, itemOperation, tr))
+	return colour
 }
 
-func BranchStatus(branch *models.Branch, itemOperation types.ItemOperation, tr *i18n.TranslationSet) string {
+func ColoredBranchStatus(branch *models.Branch, itemOperation types.ItemOperation, tr *i18n.TranslationSet) string {
+	return branchStatusColor(branch, itemOperation).Sprint(BranchStatus(branch, itemOperation, tr, time.Now()))
+}
+
+func BranchStatus(branch *models.Branch, itemOperation types.ItemOperation, tr *i18n.TranslationSet, now time.Time) string {
 	itemOperationStr := itemOperationToString(itemOperation, tr)
 	if itemOperationStr != "" {
-		return itemOperationStr + " " + utils.Loader()
+		return itemOperationStr + " " + utils.Loader(now)
 	}
 
 	if !branch.IsTrackingRemote() {

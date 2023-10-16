@@ -97,6 +97,10 @@ To run gofumpt from your terminal go:
 go install mvdan.cc/gofumpt@latest && gofumpt -l -w .
 ```
 
+## Programming Font
+
+Lazygit supports [Nerd Fonts](https://www.nerdfonts.com) to render certain icons. Sometimes we use some of these icons verbatim in string literals in the code (mainly in tests), so you need to set your development environment to use a nerd font to see these.
+
 ## Internationalisation
 
 Boy that's a hard word to spell. Anyway, lazygit is translated into several languages within the pkg/i18n package. If you need to render text to the user, you should add a new field to the TranslationSet struct in `pkg/i18n/english.go` and add the actual content within the `EnglishTranslationSet()` method in the same file. Then you can access via `gui.Tr.YourNewText` (or `self.c.Tr.YourNewText`, etc). Although it is appreciated if you translate the text into other languages, it's not expected of you (google translate will likely do a bad job anyway!).

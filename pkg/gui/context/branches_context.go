@@ -30,6 +30,7 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 			c.State().GetItemOperation,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().Diffing.Ref,
+			c.Views().Branches.Width(),
 			c.Tr,
 			c.UserConfig,
 			c.Model().Worktrees,
@@ -40,11 +41,12 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:       c.Views().Branches,
-				WindowName: "branches",
-				Key:        LOCAL_BRANCHES_CONTEXT_KEY,
-				Kind:       types.SIDE_CONTEXT,
-				Focusable:  true,
+				View:                       c.Views().Branches,
+				WindowName:                 "branches",
+				Key:                        LOCAL_BRANCHES_CONTEXT_KEY,
+				Kind:                       types.SIDE_CONTEXT,
+				Focusable:                  true,
+				NeedsRerenderOnWidthChange: true,
 			})),
 			ListRenderer: ListRenderer{
 				list:              viewModel,
