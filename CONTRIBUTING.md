@@ -21,6 +21,8 @@ welcome your pull requests:
 4. Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
 5. Issue that pull request!
 
+Please do not raise pull request from your fork's master branch: make a feature branch instead. Lazygit maintainers will sometimes push changes to your branch when reviewing a PR and we often can't do this if you use your master branch.
+
 If you've never written Go in your life, then join the club! Lazygit was the maintainer's first Go program, and most contributors have never used Go before. Go is widely considered an easy-to-learn language, so if you're looking for an open source project to gain dev experience, you've come to the right place.
 
 ## Running in a VSCode dev container
