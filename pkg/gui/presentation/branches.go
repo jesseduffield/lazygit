@@ -163,7 +163,7 @@ func ColoredBranchStatus(branch *models.Branch, itemOperation types.ItemOperatio
 }
 
 func BranchStatus(branch *models.Branch, itemOperation types.ItemOperation, tr *i18n.TranslationSet, now time.Time) string {
-	itemOperationStr := itemOperationToString(itemOperation, tr)
+	itemOperationStr := ItemOperationToString(itemOperation, tr)
 	if itemOperationStr != "" {
 		return itemOperationStr + " " + utils.Loader(now)
 	}

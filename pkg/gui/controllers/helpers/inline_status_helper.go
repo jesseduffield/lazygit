@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
@@ -12,13 +13,15 @@ import (
 type InlineStatusHelper struct {
 	c *HelperCommon
 
+	windowHelper             *WindowHelper
 	contextsWithInlineStatus map[types.ContextKey]*inlineStatusInfo
 	mutex                    *deadlock.Mutex
 }
 
-func NewInlineStatusHelper(c *HelperCommon) *InlineStatusHelper {
+func NewInlineStatusHelper(c *HelperCommon, windowHelper *WindowHelper) *InlineStatusHelper {
 	return &InlineStatusHelper{
 		c:                        c,
+		windowHelper:             windowHelper,
 		contextsWithInlineStatus: make(map[types.ContextKey]*inlineStatusInfo),
 		mutex:                    &deadlock.Mutex{},
 	}
@@ -61,18 +64,33 @@ func (self inlineStatusHelperTask) Continue() {
 }
 
 func (self *InlineStatusHelper) WithInlineStatus(opts InlineStatusOpts, f func(gocui.Task) error) {
-	self.c.OnWorker(func(task gocui.Task) {
-		self.start(opts)
+	context := self.c.ContextForKey(opts.ContextKey)
+	view := context.GetView()
+	visible := view.Visible && self.windowHelper.TopViewInWindow(context.GetWindowName()) == view
+	if visible {
+		self.c.OnWorker(func(task gocui.Task) {
+			self.start(opts)
 
-		err := f(inlineStatusHelperTask{task, self, opts})
-		if err != nil {
-			self.c.OnUIThread(func() error {
-				return self.c.Error(err)
-			})
-		}
+			err := f(inlineStatusHelperTask{task, self, opts})
+			if err != nil {
+				self.c.OnUIThread(func() error {
+					return self.c.Error(err)
+				})
+			}
 
-		self.stop(opts)
-	})
+			self.stop(opts)
+		})
+	} else {
+		message := presentation.ItemOperationToString(opts.Operation, self.c.Tr)
+		_ = self.c.WithWaitingStatus(message, func(t gocui.Task) error {
+			// We still need to set the item operation, because it might be used
+			// for other (non-presentation) purposes
+			self.c.State().SetItemOperation(opts.Item, opts.Operation)
+			defer self.c.State().ClearItemOperation(opts.Item)
+
+			return f(t)
+		})
+	}
 }
 
 func (self *InlineStatusHelper) start(opts InlineStatusOpts) {
