@@ -5,327 +5,328 @@ import (
 )
 
 // https://github.com/ogham/exa/blob/master/src/output/icons.rs
-const (
-	DEFAULT_FILE_ICON      = "\uf15b" // 
-	DEFAULT_SUBMODULE_ICON = "\uf1d3" // 
-	DEFAULT_DIRECTORY_ICON = "\uf114" // 
+var (
+	DEFAULT_FILE_ICON      = IconProperties{Icon: "\uf15b", Color: 241} // 
+	DEFAULT_SUBMODULE_ICON = IconProperties{Icon: "\uf1d3", Color: 202} // 
+	DEFAULT_DIRECTORY_ICON = IconProperties{Icon: "\uf07b", Color: 241} // 
 )
 
-var nameIconMap = map[string]string{
-	".Trash":             "\uf1f8", // 
-	".atom":              "\ue764", // 
-	".bashprofile":       "\ue615", // 
-	".bashrc":            "\uf489", // 
-	".idea":              "\ue7b5", // 
-	".git":               "\uf1d3", // 
-	".gitattributes":     "\uf1d3", // 
-	".gitconfig":         "\uf1d3", // 
-	".github":            "\uf408", // 
-	".gitignore":         "\uf1d3", // 
-	".gitmodules":        "\uf1d3", // 
-	".rvm":               "\ue21e", // 
-	".vimrc":             "\ue62b", // 
-	".vscode":            "\ue70c", // 
-	".zshrc":             "\uf489", // 
-	"Cargo.lock":         "\ue7a8", // 
-	"Cargo.toml":         "\ue7a8", // 
-	"bin":                "\ue5fc", // 
-	"config":             "\ue5fc", // 
-	"docker-compose.yml": "\uf308", // 
-	"Dockerfile":         "\uf308", // 
-	"ds_store":           "\uf179", // 
-	"gitignore_global":   "\uf1d3", // 
-	"go.mod":             "\ue626", // 
-	"go.sum":             "\ue626", // 
-	"gradle":             "\ue256", // 
-	"gruntfile.coffee":   "\ue611", // 
-	"gruntfile.js":       "\ue611", // 
-	"gruntfile.ls":       "\ue611", // 
-	"gulpfile.coffee":    "\ue610", // 
-	"gulpfile.js":        "\ue610", // 
-	"gulpfile.ls":        "\ue610", // 
-	"hidden":             "\uf023", // 
-	"include":            "\ue5fc", // 
-	"lib":                "\uf121", // 
-	"localized":          "\uf179", // 
-	"Makefile":           "\uf489", // 
-	"node_modules":       "\ue718", // 
-	"npmignore":          "\ue71e", // 
-	"PKGBUILD":           "\uf303", // 
-	"rubydoc":            "\ue73b", // 
-	"yarn.lock":          "\ue718", // 
+// See https://github.com/nvim-tree/nvim-web-devicons/blob/master/lua/nvim-web-devicons/icons-default.lua
+var nameIconMap = map[string]IconProperties{
+	".Trash":             {Icon: "\uf1f8", Color: 241}, // 
+	".atom":              {Icon: "\ue764", Color: 241}, // 
+	".bashprofile":       {Icon: "\ue615", Color: 113}, // 
+	".bashrc":            {Icon: "\ue795", Color: 113}, // 
+	".idea":              {Icon: "\ue7b5", Color: 241}, // 
+	".git":               {Icon: "\uf1d3", Color: 202}, // 
+	".gitattributes":     {Icon: "\uf1d3", Color: 202}, // 
+	".gitconfig":         {Icon: "\uf1d3", Color: 202}, // 
+	".github":            {Icon: "\uf408", Color: 241}, // 
+	".gitignore":         {Icon: "\uf1d3", Color: 202}, // 
+	".gitmodules":        {Icon: "\uf1d3", Color: 202}, // 
+	".rvm":               {Icon: "\ue21e", Color: 160}, // 
+	".vimrc":             {Icon: "\ue62b", Color: 28},  // 
+	".vscode":            {Icon: "\ue70c", Color: 39},  // 
+	".zshrc":             {Icon: "\ue795", Color: 113}, // 
+	"Cargo.lock":         {Icon: "\ue7a8", Color: 216}, // 
+	"Cargo.toml":         {Icon: "\ue7a8", Color: 216}, // 
+	"bin":                {Icon: "\ue5fc", Color: 241}, // 
+	"config":             {Icon: "\ue5fc", Color: 241}, // 
+	"docker-compose.yml": {Icon: "\uf308", Color: 68},  // 
+	"Dockerfile":         {Icon: "\uf308", Color: 68},  // 
+	"ds_store":           {Icon: "\uf179", Color: 15},  // 
+	"gitignore_global":   {Icon: "\uf1d3", Color: 202}, // 
+	"go.mod":             {Icon: "\ue627", Color: 74},  // 
+	"go.sum":             {Icon: "\ue627", Color: 74},  // 
+	"gradle":             {Icon: "\ue256", Color: 168}, // 
+	"gruntfile.coffee":   {Icon: "\ue611", Color: 166}, // 
+	"gruntfile.js":       {Icon: "\ue611", Color: 166}, // 
+	"gruntfile.ls":       {Icon: "\ue611", Color: 166}, // 
+	"gulpfile.coffee":    {Icon: "\ue610", Color: 167}, // 
+	"gulpfile.js":        {Icon: "\ue610", Color: 167}, // 
+	"gulpfile.ls":        {Icon: "\ue610", Color: 168}, // 
+	"hidden":             {Icon: "\uf023", Color: 241}, // 
+	"include":            {Icon: "\ue5fc", Color: 241}, // 
+	"lib":                {Icon: "\uf121", Color: 241}, // 
+	"localized":          {Icon: "\uf179", Color: 15},  // 
+	"Makefile":           {Icon: "\ue975", Color: 241}, // 
+	"node_modules":       {Icon: "\ue718", Color: 197}, // 
+	"npmignore":          {Icon: "\ue71e", Color: 197}, // 
+	"PKGBUILD":           {Icon: "\uf303", Color: 38},  // 
+	"rubydoc":            {Icon: "\ue73b", Color: 160}, // 
+	"yarn.lock":          {Icon: "\ue6a7", Color: 74},  // 
 }
 
-var extIconMap = map[string]string{
-	".ai":             "\ue7b4",     // 
-	".android":        "\ue70e",     // 
-	".apk":            "\ue70e",     // 
-	".apple":          "\uf179",     // 
-	".avi":            "\uf03d",     // 
-	".avif":           "\uf1c5",     // 
-	".avro":           "\ue60b",     // 
-	".awk":            "\uf489",     // 
-	".bash":           "\uf489",     // 
-	".bash_history":   "\uf489",     // 
-	".bash_profile":   "\uf489",     // 
-	".bashrc":         "\uf489",     // 
-	".bat":            "\uf17a",     // 
-	".bats":           "\uf489",     // 
-	".bmp":            "\uf1c5",     // 
-	".bz":             "\uf410",     // 
-	".bz2":            "\uf410",     // 
-	".c":              "\ue61e",     // 
-	".c++":            "\ue61d",     // 
-	".cab":            "\ue70f",     // 
-	".cc":             "\ue61d",     // 
-	".cfg":            "\ue615",     // 
-	".class":          "\ue256",     // 
-	".clj":            "\ue768",     // 
-	".cljs":           "\ue76a",     // 
-	".cls":            "\uf034",     // 
-	".cmd":            "\ue70f",     // 
-	".coffee":         "\uf0f4",     // 
-	".conf":           "\ue615",     // 
-	".cp":             "\ue61d",     // 
-	".cpio":           "\uf410",     // 
-	".cpp":            "\ue61d",     // 
-	".cs":             "\U000f031b", // 󰌛
-	".csh":            "\uf489",     // 
-	".cshtml":         "\uf1fa",     // 
-	".csproj":         "\U000f031b", // 󰌛
-	".css":            "\ue749",     // 
-	".csv":            "\uf1c3",     // 
-	".csx":            "\U000f031b", // 󰌛
-	".cxx":            "\ue61d",     // 
-	".d":              "\ue7af",     // 
-	".dart":           "\ue798",     // 
-	".db":             "\uf1c0",     // 
-	".deb":            "\ue77d",     // 
-	".diff":           "\uf440",     // 
-	".djvu":           "\uf02d",     // 
-	".dll":            "\ue70f",     // 
-	".doc":            "\uf1c2",     // 
-	".docx":           "\uf1c2",     // 
-	".ds_store":       "\uf179",     // 
-	".DS_store":       "\uf179",     // 
-	".dump":           "\uf1c0",     // 
-	".ebook":          "\ue28b",     // 
-	".ebuild":         "\uf30d",     // 
-	".editorconfig":   "\ue615",     // 
-	".ejs":            "\ue618",     // 
-	".elm":            "\ue62c",     // 
-	".env":            "\uf462",     // 
-	".eot":            "\uf031",     // 
-	".epub":           "\ue28a",     // 
-	".erb":            "\ue73b",     // 
-	".erl":            "\ue7b1",     // 
-	".ex":             "\ue62d",     // 
-	".exe":            "\uf17a",     // 
-	".exs":            "\ue62d",     // 
-	".fish":           "\uf489",     // 
-	".flac":           "\uf001",     // 
-	".flv":            "\uf03d",     // 
-	".font":           "\uf031",     // 
-	".fs":             "\ue7a7",     // 
-	".fsi":            "\ue7a7",     // 
-	".fsx":            "\ue7a7",     // 
-	".gdoc":           "\uf1c2",     // 
-	".gem":            "\ue21e",     // 
-	".gemfile":        "\ue21e",     // 
-	".gemspec":        "\ue21e",     // 
-	".gform":          "\uf298",     // 
-	".gif":            "\uf1c5",     // 
-	".git":            "\uf1d3",     // 
-	".gitattributes":  "\uf1d3",     // 
-	".gitignore":      "\uf1d3",     // 
-	".gitmodules":     "\uf1d3",     // 
-	".go":             "\ue626",     // 
-	".gradle":         "\ue256",     // 
-	".groovy":         "\ue775",     // 
-	".gsheet":         "\uf1c3",     // 
-	".gslides":        "\uf1c4",     // 
-	".guardfile":      "\ue21e",     // 
-	".gz":             "\uf410",     // 
-	".h":              "\uf0fd",     // 
-	".hbs":            "\ue60f",     // 
-	".hpp":            "\uf0fd",     // 
-	".hs":             "\ue777",     // 
-	".htm":            "\uf13b",     // 
-	".html":           "\uf13b",     // 
-	".hxx":            "\uf0fd",     // 
-	".ico":            "\uf1c5",     // 
-	".image":          "\uf1c5",     // 
-	".iml":            "\ue7b5",     // 
-	".ini":            "\uf17a",     // 
-	".ipynb":          "\ue606",     // 
-	".iso":            "\ue271",     // 
-	".j2c":            "\uf1c5",     // 
-	".j2k":            "\uf1c5",     // 
-	".jad":            "\ue256",     // 
-	".jar":            "\ue256",     // 
-	".java":           "\ue256",     // 
-	".jfi":            "\uf1c5",     // 
-	".jfif":           "\uf1c5",     // 
-	".jif":            "\uf1c5",     // 
-	".jl":             "\ue624",     // 
-	".jmd":            "\uf48a",     // 
-	".jp2":            "\uf1c5",     // 
-	".jpe":            "\uf1c5",     // 
-	".jpeg":           "\uf1c5",     // 
-	".jpg":            "\uf1c5",     // 
-	".jpx":            "\uf1c5",     // 
-	".js":             "\ue74e",     // 
-	".json":           "\ue60b",     // 
-	".jsx":            "\ue7ba",     // 
-	".jxl":            "\uf1c5",     // 
-	".ksh":            "\uf489",     // 
-	".kt":             "\ue634",     // 
-	".kts":            "\ue634",     // 
-	".latex":          "\uf034",     // 
-	".less":           "\ue758",     // 
-	".lhs":            "\ue777",     // 
-	".license":        "\U000f0219", // 󰈙
-	".localized":      "\uf179",     // 
-	".lock":           "\uf023",     // 
-	".log":            "\uf18d",     // 
-	".lua":            "\ue620",     // 
-	".lz":             "\uf410",     // 
-	".lz4":            "\uf410",     // 
-	".lzh":            "\uf410",     // 
-	".lzma":           "\uf410",     // 
-	".lzo":            "\uf410",     // 
-	".m":              "\ue61e",     // 
-	".mm":             "\ue61d",     // 
-	".m4a":            "\uf001",     // 
-	".markdown":       "\uf48a",     // 
-	".md":             "\uf48a",     // 
-	".mdx":            "\uf48a",     // 
-	".mjs":            "\ue74e",     // 
-	".mk":             "\uf489",     // 
-	".mkd":            "\uf48a",     // 
-	".mkv":            "\uf03d",     // 
-	".mobi":           "\ue28b",     // 
-	".mov":            "\uf03d",     // 
-	".mp3":            "\uf001",     // 
-	".mp4":            "\uf03d",     // 
-	".msi":            "\ue70f",     // 
-	".mustache":       "\ue60f",     // 
-	".nix":            "\uf313",     // 
-	".node":           "\U000f0399", // 󰎙
-	".npmignore":      "\ue71e",     // 
-	".odp":            "\uf1c4",     // 
-	".ods":            "\uf1c3",     // 
-	".odt":            "\uf1c2",     // 
-	".ogg":            "\uf001",     // 
-	".ogv":            "\uf03d",     // 
-	".otf":            "\uf031",     // 
-	".part":           "\uf43a",     // 
-	".patch":          "\uf440",     // 
-	".pdf":            "\uf1c1",     // 
-	".php":            "\ue73d",     // 
-	".pl":             "\ue769",     // 
-	".png":            "\uf1c5",     // 
-	".ppt":            "\uf1c4",     // 
-	".pptx":           "\uf1c4",     // 
-	".procfile":       "\ue21e",     // 
-	".properties":     "\ue60b",     // 
-	".ps1":            "\uf489",     // 
-	".psd":            "\ue7b8",     // 
-	".pxm":            "\uf1c5",     // 
-	".py":             "\ue606",     // 
-	".pyc":            "\ue606",     // 
-	".r":              "\uf25d",     // 
-	".rakefile":       "\ue21e",     // 
-	".rar":            "\uf410",     // 
-	".razor":          "\uf1fa",     // 
-	".rb":             "\ue21e",     // 
-	".rdata":          "\uf25d",     // 
-	".rdb":            "\ue76d",     // 
-	".rdoc":           "\uf48a",     // 
-	".rds":            "\uf25d",     // 
-	".readme":         "\uf48a",     // 
-	".rlib":           "\ue7a8",     // 
-	".rmd":            "\uf48a",     // 
-	".rpm":            "\ue7bb",     // 
-	".rs":             "\ue7a8",     // 
-	".rspec":          "\ue21e",     // 
-	".rspec_parallel": "\ue21e",     // 
-	".rspec_status":   "\ue21e",     // 
-	".rss":            "\uf09e",     // 
-	".rtf":            "\U000f0219", // 󰈙
-	".ru":             "\ue21e",     // 
-	".rubydoc":        "\ue73b",     // 
-	".sass":           "\ue603",     // 
-	".scala":          "\ue737",     // 
-	".scss":           "\ue749",     // 
-	".sh":             "\uf489",     // 
-	".shell":          "\uf489",     // 
-	".slim":           "\ue73b",     // 
-	".sln":            "\ue70c",     // 
-	".so":             "\uf17c",     // 
-	".sql":            "\uf1c0",     // 
-	".sqlite3":        "\ue7c4",     // 
-	".sty":            "\uf034",     // 
-	".styl":           "\ue600",     // 
-	".stylus":         "\ue600",     // 
-	".svelte":         "\ue697",     // 
-	".svg":            "\uf1c5",     // 
-	".swift":          "\ue755",     // 
-	".tar":            "\uf410",     // 
-	".taz":            "\uf410",     // 
-	".tbz":            "\uf410",     // 
-	".tbz2":           "\uf410",     // 
-	".tex":            "\uf034",     // 
-	".tgz":            "\uf410",     // 
-	".tiff":           "\uf1c5",     // 
-	".tlz":            "\uf410",     // 
-	".toml":           "\ue615",     // 
-	".torrent":        "\ue275",     // 
-	".ts":             "\ue628",     // 
-	".tsv":            "\uf1c3",     // 
-	".tsx":            "\ue7ba",     // 
-	".ttf":            "\uf031",     // 
-	".twig":           "\ue61c",     // 
-	".txt":            "\uf15c",     // 
-	".txz":            "\uf410",     // 
-	".tz":             "\uf410",     // 
-	".tzo":            "\uf410",     // 
-	".video":          "\uf03d",     // 
-	".vim":            "\ue62b",     // 
-	".vue":            "\U000f0844", // 󰡄
-	".war":            "\ue256",     // 
-	".wav":            "\uf001",     // 
-	".webm":           "\uf03d",     // 
-	".webp":           "\uf1c5",     // 
-	".windows":        "\uf17a",     // 
-	".woff":           "\uf031",     // 
-	".woff2":          "\uf031",     // 
-	".xhtml":          "\uf13b",     // 
-	".xls":            "\uf1c3",     // 
-	".xlsx":           "\uf1c3",     // 
-	".xml":            "\uf121",     // 
-	".xul":            "\uf121",     // 
-	".xz":             "\uf410",     // 
-	".yaml":           "\uf481",     // 
-	".yml":            "\uf481",     // 
-	".zip":            "\uf410",     // 
-	".zsh":            "\uf489",     // 
-	".zsh-theme":      "\uf489",     // 
-	".zshrc":          "\uf489",     // 
-	".zst":            "\uf410",     // 
+var extIconMap = map[string]IconProperties{
+	".ai":             {Icon: "\ue7b4", Color: 185},     // 
+	".android":        {Icon: "\ue70e", Color: 70},      // 
+	".apk":            {Icon: "\ue70e", Color: 70},      // 
+	".apple":          {Icon: "\uf179", Color: 15},      // 
+	".avi":            {Icon: "\uf03d", Color: 140},     // 
+	".avif":           {Icon: "\uf1c5", Color: 140},     // 
+	".avro":           {Icon: "\ue60b", Color: 130},     // 
+	".awk":            {Icon: "\ue795", Color: 140},     // 
+	".bash":           {Icon: "\ue795", Color: 113},     // 
+	".bash_history":   {Icon: "\ue795", Color: 113},     // 
+	".bash_profile":   {Icon: "\ue795", Color: 113},     // 
+	".bashrc":         {Icon: "\ue795", Color: 113},     // 
+	".bat":            {Icon: "\uf17a", Color: 81},      // 
+	".bats":           {Icon: "\ue795", Color: 241},     // 
+	".bmp":            {Icon: "\uf1c5", Color: 149},     // 
+	".bz":             {Icon: "\uf410", Color: 239},     // 
+	".bz2":            {Icon: "\uf410", Color: 239},     // 
+	".c":              {Icon: "\ue61e", Color: 111},     // 
+	".c++":            {Icon: "\ue61d", Color: 204},     // 
+	".cab":            {Icon: "\ue70f", Color: 241},     // 
+	".cc":             {Icon: "\ue61d", Color: 204},     // 
+	".cfg":            {Icon: "\ue615", Color: 255},     // 
+	".class":          {Icon: "\ue256", Color: 168},     // 
+	".clj":            {Icon: "\ue768", Color: 113},     // 
+	".cljs":           {Icon: "\ue76a", Color: 74},      // 
+	".cls":            {Icon: "\uf034", Color: 239},     // 
+	".cmd":            {Icon: "\ue70f", Color: 239},     // 
+	".coffee":         {Icon: "\uf0f4", Color: 185},     // 
+	".conf":           {Icon: "\ue615", Color: 66},      // 
+	".cp":             {Icon: "\ue61d", Color: 74},      // 
+	".cpio":           {Icon: "\uf410", Color: 239},     // 
+	".cpp":            {Icon: "\ue61d", Color: 74},      // 
+	".cs":             {Icon: "\U000f031b", Color: 58},  // 󰌛
+	".csh":            {Icon: "\ue795", Color: 240},     // 
+	".cshtml":         {Icon: "\uf1fa", Color: 239},     // 
+	".csproj":         {Icon: "\U000f031b", Color: 58},  // 󰌛
+	".css":            {Icon: "\ue749", Color: 75},      // 
+	".csv":            {Icon: "\uf1c3", Color: 113},     // 
+	".csx":            {Icon: "\U000f031b", Color: 58},  // 󰌛
+	".cxx":            {Icon: "\ue61d", Color: 74},      // 
+	".d":              {Icon: "\ue7af", Color: 28},      // 
+	".dart":           {Icon: "\ue798", Color: 25},      // 
+	".db":             {Icon: "\uf1c0", Color: 188},     // 
+	".deb":            {Icon: "\ue77d", Color: 88},      // 
+	".diff":           {Icon: "\uf440", Color: 241},     // 
+	".djvu":           {Icon: "\uf02d", Color: 241},     // 
+	".dll":            {Icon: "\ue70f", Color: 241},     // 
+	".doc":            {Icon: "\uf0219", Color: 26},     // 󰈙
+	".docx":           {Icon: "\uf0219", Color: 26},     // 󰈙
+	".ds_store":       {Icon: "\uf179", Color: 15},      // 
+	".DS_store":       {Icon: "\uf179", Color: 15},      // 
+	".dump":           {Icon: "\uf1c0", Color: 188},     // 
+	".ebook":          {Icon: "\ue28b", Color: 241},     // 
+	".ebuild":         {Icon: "\uf30d", Color: 56},      // 
+	".editorconfig":   {Icon: "\ue615", Color: 241},     // 
+	".ejs":            {Icon: "\ue618", Color: 185},     // 
+	".elm":            {Icon: "\ue62c", Color: 74},      // 
+	".env":            {Icon: "\uf462", Color: 227},     // 
+	".eot":            {Icon: "\uf031", Color: 124},     // 
+	".epub":           {Icon: "\ue28a", Color: 241},     // 
+	".erb":            {Icon: "\ue73b", Color: 160},     // 
+	".erl":            {Icon: "\ue7b1", Color: 163},     // 
+	".ex":             {Icon: "\ue62d", Color: 140},     // 
+	".exe":            {Icon: "\uf17a", Color: 81},      // 
+	".exs":            {Icon: "\ue62d", Color: 140},     // 
+	".fish":           {Icon: "\ue795", Color: 249},     // 
+	".flac":           {Icon: "\uf001", Color: 241},     // 
+	".flv":            {Icon: "\uf03d", Color: 241},     // 
+	".font":           {Icon: "\uf031", Color: 241},     // 
+	".fs":             {Icon: "\ue7a7", Color: 74},      // 
+	".fsi":            {Icon: "\ue7a7", Color: 74},      // 
+	".fsx":            {Icon: "\ue7a7", Color: 74},      // 
+	".gdoc":           {Icon: "\uf1c2", Color: 40},      // 
+	".gem":            {Icon: "\ue21e", Color: 160},     // 
+	".gemfile":        {Icon: "\ue21e", Color: 160},     // 
+	".gemspec":        {Icon: "\ue21e", Color: 160},     // 
+	".gform":          {Icon: "\uf298", Color: 40},      // 
+	".gif":            {Icon: "\uf1c5", Color: 140},     // 
+	".git":            {Icon: "\uf1d3", Color: 202},     // 
+	".gitattributes":  {Icon: "\uf1d3", Color: 202},     // 
+	".gitignore":      {Icon: "\uf1d3", Color: 202},     // 
+	".gitmodules":     {Icon: "\uf1d3", Color: 202},     // 
+	".go":             {Icon: "\ue627", Color: 74},      // 
+	".gradle":         {Icon: "\ue256", Color: 168},     // 
+	".groovy":         {Icon: "\ue775", Color: 24},      // 
+	".gsheet":         {Icon: "\uf1c3", Color: 10},      // 
+	".gslides":        {Icon: "\uf1c4", Color: 226},     // 
+	".guardfile":      {Icon: "\ue21e", Color: 241},     // 
+	".gz":             {Icon: "\uf410", Color: 241},     // 
+	".h":              {Icon: "\uf0fd", Color: 140},     // 
+	".hbs":            {Icon: "\ue60f", Color: 202},     // 
+	".hpp":            {Icon: "\uf0fd", Color: 140},     // 
+	".hs":             {Icon: "\ue777", Color: 140},     // 
+	".htm":            {Icon: "\uf13b", Color: 196},     // 
+	".html":           {Icon: "\uf13b", Color: 196},     // 
+	".hxx":            {Icon: "\uf0fd", Color: 140},     // 
+	".ico":            {Icon: "\uf1c5", Color: 185},     // 
+	".image":          {Icon: "\uf1c5", Color: 185},     // 
+	".iml":            {Icon: "\ue7b5", Color: 239},     // 
+	".ini":            {Icon: "\uf17a", Color: 81},      // 
+	".ipynb":          {Icon: "\ue606", Color: 214},     // 
+	".iso":            {Icon: "\ue271", Color: 239},     // 
+	".j2c":            {Icon: "\uf1c5", Color: 239},     // 
+	".j2k":            {Icon: "\uf1c5", Color: 239},     // 
+	".jad":            {Icon: "\ue256", Color: 168},     // 
+	".jar":            {Icon: "\ue256", Color: 168},     // 
+	".java":           {Icon: "\ue256", Color: 168},     // 
+	".jfi":            {Icon: "\uf1c5", Color: 241},     // 
+	".jfif":           {Icon: "\uf1c5", Color: 241},     // 
+	".jif":            {Icon: "\uf1c5", Color: 241},     // 
+	".jl":             {Icon: "\ue624", Color: 241},     // 
+	".jmd":            {Icon: "\uf48a", Color: 74},      // 
+	".jp2":            {Icon: "\uf1c5", Color: 241},     // 
+	".jpe":            {Icon: "\uf1c5", Color: 241},     // 
+	".jpeg":           {Icon: "\uf1c5", Color: 241},     // 
+	".jpg":            {Icon: "\uf1c5", Color: 241},     // 
+	".jpx":            {Icon: "\uf1c5", Color: 241},     // 
+	".js":             {Icon: "\ue74e", Color: 185},     // 
+	".json":           {Icon: "\ue60b", Color: 185},     // 
+	".jsx":            {Icon: "\ue7ba", Color: 45},      // 
+	".jxl":            {Icon: "\uf1c5", Color: 241},     // 
+	".ksh":            {Icon: "\ue795", Color: 241},     // 
+	".kt":             {Icon: "\ue634", Color: 99},      // 
+	".kts":            {Icon: "\ue634", Color: 99},      // 
+	".latex":          {Icon: "\uf034", Color: 241},     // 
+	".less":           {Icon: "\ue758", Color: 54},      // 
+	".lhs":            {Icon: "\ue777", Color: 140},     // 
+	".license":        {Icon: "\U000f0219", Color: 185}, // 󰈙
+	".localized":      {Icon: "\uf179", Color: 15},      // 
+	".lock":           {Icon: "\uf023", Color: 241},     // 
+	".log":            {Icon: "\uf18d", Color: 188},     // 
+	".lua":            {Icon: "\ue620", Color: 74},      // 
+	".lz":             {Icon: "\uf410", Color: 241},     // 
+	".lz4":            {Icon: "\uf410", Color: 241},     // 
+	".lzh":            {Icon: "\uf410", Color: 241},     // 
+	".lzma":           {Icon: "\uf410", Color: 241},     // 
+	".lzo":            {Icon: "\uf410", Color: 241},     // 
+	".m":              {Icon: "\ue61e", Color: 111},     // 
+	".mm":             {Icon: "\ue61d", Color: 111},     // 
+	".m4a":            {Icon: "\uf001", Color: 239},     // 
+	".markdown":       {Icon: "\uf48a", Color: 74},      // 
+	".md":             {Icon: "\uf48a", Color: 74},      // 
+	".mdx":            {Icon: "\uf48a", Color: 74},      // 
+	".mjs":            {Icon: "\ue74e", Color: 185},     // 
+	".mk":             {Icon: "\ue795", Color: 241},     // 
+	".mkd":            {Icon: "\uf48a", Color: 74},      // 
+	".mkv":            {Icon: "\uf03d", Color: 241},     // 
+	".mobi":           {Icon: "\ue28b", Color: 241},     // 
+	".mov":            {Icon: "\uf03d", Color: 241},     // 
+	".mp3":            {Icon: "\uf001", Color: 241},     // 
+	".mp4":            {Icon: "\uf03d", Color: 241},     // 
+	".msi":            {Icon: "\ue70f", Color: 241},     // 
+	".mustache":       {Icon: "\ue60f", Color: 241},     // 
+	".nix":            {Icon: "\uf313", Color: 111},     // 
+	".node":           {Icon: "\U000f0399", Color: 197}, // 󰎙
+	".npmignore":      {Icon: "\ue71e", Color: 197},     // 
+	".odp":            {Icon: "\uf1c4", Color: 241},     // 
+	".ods":            {Icon: "\uf1c3", Color: 241},     // 
+	".odt":            {Icon: "\uf1c2", Color: 241},     // 
+	".ogg":            {Icon: "\uf001", Color: 241},     // 
+	".ogv":            {Icon: "\uf03d", Color: 241},     // 
+	".otf":            {Icon: "\uf031", Color: 241},     // 
+	".part":           {Icon: "\uf43a", Color: 241},     // 
+	".patch":          {Icon: "\uf440", Color: 241},     // 
+	".pdf":            {Icon: "\uf1c1", Color: 124},     // 
+	".php":            {Icon: "\ue73d", Color: 61},      // 
+	".pl":             {Icon: "\ue769", Color: 74},      // 
+	".png":            {Icon: "\uf1c5", Color: 241},     // 
+	".ppt":            {Icon: "\uf1c4", Color: 241},     // 
+	".pptx":           {Icon: "\uf1c4", Color: 241},     // 
+	".procfile":       {Icon: "\ue21e", Color: 241},     // 
+	".properties":     {Icon: "\ue60b", Color: 185},     // 
+	".ps1":            {Icon: "\ue795", Color: 241},     // 
+	".psd":            {Icon: "\ue7b8", Color: 241},     // 
+	".pxm":            {Icon: "\uf1c5", Color: 241},     // 
+	".py":             {Icon: "\ue606", Color: 214},     // 
+	".pyc":            {Icon: "\ue606", Color: 214},     // 
+	".r":              {Icon: "\uf25d", Color: 68},      // 
+	".rakefile":       {Icon: "\ue21e", Color: 160},     // 
+	".rar":            {Icon: "\uf410", Color: 241},     // 
+	".razor":          {Icon: "\uf1fa", Color: 81},      // 
+	".rb":             {Icon: "\ue21e", Color: 160},     // 
+	".rdata":          {Icon: "\uf25d", Color: 68},      // 
+	".rdb":            {Icon: "\ue76d", Color: 160},     // 
+	".rdoc":           {Icon: "\uf48a", Color: 74},      // 
+	".rds":            {Icon: "\uf25d", Color: 68},      // 
+	".readme":         {Icon: "\uf48a", Color: 74},      // 
+	".rlib":           {Icon: "\ue7a8", Color: 216},     // 
+	".rmd":            {Icon: "\uf48a", Color: 74},      // 
+	".rpm":            {Icon: "\ue7bb", Color: 52},      // 
+	".rs":             {Icon: "\ue7a8", Color: 216},     // 
+	".rspec":          {Icon: "\ue21e", Color: 160},     // 
+	".rspec_parallel": {Icon: "\ue21e", Color: 160},     // 
+	".rspec_status":   {Icon: "\ue21e", Color: 160},     // 
+	".rss":            {Icon: "\uf09e", Color: 130},     // 
+	".rtf":            {Icon: "\U000f0219", Color: 241}, // 󰈙
+	".ru":             {Icon: "\ue21e", Color: 160},     // 
+	".rubydoc":        {Icon: "\ue73b", Color: 160},     // 
+	".sass":           {Icon: "\ue603", Color: 169},     // 
+	".scala":          {Icon: "\ue737", Color: 74},      // 
+	".scss":           {Icon: "\ue749", Color: 204},     // 
+	".sh":             {Icon: "\ue795", Color: 239},     // 
+	".shell":          {Icon: "\ue795", Color: 239},     // 
+	".slim":           {Icon: "\ue73b", Color: 160},     // 
+	".sln":            {Icon: "\ue70c", Color: 39},      // 
+	".so":             {Icon: "\uf17c", Color: 241},     // 
+	".sql":            {Icon: "\uf1c0", Color: 188},     // 
+	".sqlite3":        {Icon: "\ue7c4", Color: 25},      // 
+	".sty":            {Icon: "\uf034", Color: 239},     // 
+	".styl":           {Icon: "\ue600", Color: 148},     // 
+	".stylus":         {Icon: "\ue600", Color: 148},     // 
+	".svelte":         {Icon: "\ue697", Color: 208},     // 
+	".svg":            {Icon: "\uf1c5", Color: 241},     // 
+	".swift":          {Icon: "\ue755", Color: 208},     // 
+	".tar":            {Icon: "\uf410", Color: 241},     // 
+	".taz":            {Icon: "\uf410", Color: 241},     // 
+	".tbz":            {Icon: "\uf410", Color: 241},     // 
+	".tbz2":           {Icon: "\uf410", Color: 241},     // 
+	".tex":            {Icon: "\uf034", Color: 79},      // 
+	".tgz":            {Icon: "\uf410", Color: 241},     // 
+	".tiff":           {Icon: "\uf1c5", Color: 241},     // 
+	".tlz":            {Icon: "\uf410", Color: 241},     // 
+	".toml":           {Icon: "\ue615", Color: 241},     // 
+	".torrent":        {Icon: "\ue275", Color: 76},      // 
+	".ts":             {Icon: "\ue628", Color: 74},      // 
+	".tsv":            {Icon: "\uf1c3", Color: 241},     // 
+	".tsx":            {Icon: "\ue7ba", Color: 74},      // 
+	".ttf":            {Icon: "\uf031", Color: 241},     // 
+	".twig":           {Icon: "\ue61c", Color: 241},     // 
+	".txt":            {Icon: "\uf15c", Color: 241},     // 
+	".txz":            {Icon: "\uf410", Color: 241},     // 
+	".tz":             {Icon: "\uf410", Color: 241},     // 
+	".tzo":            {Icon: "\uf410", Color: 241},     // 
+	".video":          {Icon: "\uf03d", Color: 241},     // 
+	".vim":            {Icon: "\ue62b", Color: 28},      // 
+	".vue":            {Icon: "\U000f0844", Color: 113}, // 󰡄
+	".war":            {Icon: "\ue256", Color: 168},     // 
+	".wav":            {Icon: "\uf001", Color: 241},     // 
+	".webm":           {Icon: "\uf03d", Color: 241},     // 
+	".webp":           {Icon: "\uf1c5", Color: 241},     // 
+	".windows":        {Icon: "\uf17a", Color: 81},      // 
+	".woff":           {Icon: "\uf031", Color: 241},     // 
+	".woff2":          {Icon: "\uf031", Color: 241},     // 
+	".xhtml":          {Icon: "\uf13b", Color: 196},     // 
+	".xls":            {Icon: "\uf1c3", Color: 34},      // 
+	".xlsx":           {Icon: "\uf1c3", Color: 34},      // 
+	".xml":            {Icon: "\uf121", Color: 160},     // 
+	".xul":            {Icon: "\uf121", Color: 166},     // 
+	".xz":             {Icon: "\uf410", Color: 241},     // 
+	".yaml":           {Icon: "\uf481", Color: 160},     // 
+	".yml":            {Icon: "\uf481", Color: 160},     // 
+	".zip":            {Icon: "\uf410", Color: 241},     // 
+	".zsh":            {Icon: "\ue795", Color: 241},     // 
+	".zsh-theme":      {Icon: "\ue795", Color: 241},     // 
+	".zshrc":          {Icon: "\ue795", Color: 241},     // 
+	".zst":            {Icon: "\uf410", Color: 241},     // 
 }
 
 func patchFileIconsForNerdFontsV2() {
-	extIconMap[".cs"] = "\uf81a"      // 
-	extIconMap[".csproj"] = "\uf81a"  // 
-	extIconMap[".csx"] = "\uf81a"     // 
-	extIconMap[".license"] = "\uf718" // 
-	extIconMap[".node"] = "\uf898"    // 
-	extIconMap[".rtf"] = "\uf718"     // 
-	extIconMap[".vue"] = "\ufd42"     // ﵂
+	extIconMap[".cs"] = IconProperties{Icon: "\uf81a", Color: 58}       // 
+	extIconMap[".csproj"] = IconProperties{Icon: "\uf81a", Color: 58}   // 
+	extIconMap[".csx"] = IconProperties{Icon: "\uf81a", Color: 58}      // 
+	extIconMap[".license"] = IconProperties{Icon: "\uf718", Color: 241} // 
+	extIconMap[".node"] = IconProperties{Icon: "\uf898", Color: 197}    // 
+	extIconMap[".rtf"] = IconProperties{Icon: "\uf718", Color: 241}     // 
+	extIconMap[".vue"] = IconProperties{Icon: "\ufd42", Color: 113}     // ﵂
 }
 
-func IconForFile(name string, isSubmodule bool, isLinkedWorktree bool, isDirectory bool) string {
+func IconForFile(name string, isSubmodule bool, isLinkedWorktree bool, isDirectory bool) IconProperties {
 	base := filepath.Base(name)
 	if icon, ok := nameIconMap[base]; ok {
 		return icon
@@ -339,7 +340,7 @@ func IconForFile(name string, isSubmodule bool, isLinkedWorktree bool, isDirecto
 	if isSubmodule {
 		return DEFAULT_SUBMODULE_ICON
 	} else if isLinkedWorktree {
-		return LINKED_WORKTREE_ICON
+		return IconProperties{LINKED_WORKTREE_ICON, 239}
 	} else if isDirectory {
 		return DEFAULT_DIRECTORY_ICON
 	}

@@ -3,6 +3,7 @@ package presentation
 import (
 	"strings"
 
+	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -159,7 +160,9 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 	isDirectory := file == nil
 
 	if icons.IsIconEnabled() {
-		output += restColor.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory))
+		icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
+		paint := color.C256(icon.Color, false)
+		output += paint.Sprint(icon.Icon) + " "
 	}
 
 	output += restColor.Sprint(utils.EscapeSpecialChars(name))
@@ -198,7 +201,9 @@ func getCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 	isDirectory := commitFile == nil
 
 	if icons.IsIconEnabled() {
-		output += colour.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory))
+		icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
+		paint := color.C256(icon.Color, false)
+		output += paint.Sprint(icon.Icon) + " "
 	}
 
 	output += colour.Sprint(name)
