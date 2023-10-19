@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
@@ -24,6 +25,7 @@ type ITree[T any] interface {
 	ToggleShowTree()
 	GetIndexForPath(path string) (int, bool)
 	Len() int
+	GetItem(index int) types.HasUrn
 	SetTree()
 	IsCollapsed(path string) bool
 	ToggleCollapsed(path string)
@@ -137,6 +139,11 @@ func (self *FileTree) GetAllItems() []*FileNode {
 
 func (self *FileTree) Len() int {
 	return self.tree.Size(self.collapsedPaths) - 1 // ignoring root
+}
+
+func (self *FileTree) GetItem(index int) types.HasUrn {
+	// Unimplemented because we don't yet need to show inlines statuses in commit file views
+	return nil
 }
 
 func (self *FileTree) GetAllFiles() []*models.File {
