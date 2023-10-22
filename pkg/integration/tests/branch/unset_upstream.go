@@ -5,7 +5,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var ResetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
+var UnsetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Reset the upstream of a branch",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
