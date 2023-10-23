@@ -1,6 +1,8 @@
 package gocui
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/mattn/go-runewidth"
@@ -11,11 +13,15 @@ const (
 	WORD_SEPARATORS = "*?_+-.[]~=/&;!#$%^(){}<>"
 )
 
+var ErrNoFormater = errors.New("no formater found")
+
 type TextArea struct {
 	content   []rune
 	cursor    int
 	overwrite bool
 	clipboard string
+	// format the content by some injected rule
+	format func([]rune) ([]rune, error)
 }
 
 func (self *TextArea) TypeRune(r rune) {
@@ -246,6 +252,24 @@ func (self *TextArea) BackSpaceWord() {
 
 	self.clipboard = string(self.content[self.cursor:right])
 	self.content = append(self.content[:self.cursor], self.content[right:]...)
+}
+
+// Format the contents of the text area based on some rule. Will do nothing if
+// there is no formating rule set
+func (self *TextArea) Format() error {
+	if self.format == nil {
+		return ErrNoFormater
+	}
+	formatedContent, err := self.format(self.content)
+	if err != nil {
+		return fmt.Errorf("failed to format: %v", err)
+	}
+	self.content = formatedContent
+	return nil
+}
+
+func (self *TextArea) SetFormater(f func([]rune) ([]rune, error)) {
+	self.format = f
 }
 
 func (self *TextArea) Yank() {

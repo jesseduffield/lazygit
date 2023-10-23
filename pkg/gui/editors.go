@@ -46,6 +46,8 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 		textArea.BackSpaceWord()
 	case key == gocui.KeyCtrlY:
 		textArea.Yank()
+	case key == gocui.KeyCtrlG:
+		textArea.Format()
 
 	case unicode.IsPrint(ch):
 		textArea.TypeRune(ch)
