@@ -1,3 +1,20 @@
+<div align="center">
+<sup>Special thanks to:</sup>
+<br>
+<br>
+<a href="https://www.warp.dev/?utm_source=github&utm_medium=referral&utm_campaign=lazygit_20231023">
+  <div>
+    <img src="../assets/warp.png" width="230" alt="Warp">
+  </div>
+  <b>Warp is a modern, Rust-based terminal with AI built in so you and your team can build great software, faster.</b>
+  <div>
+    <sup>Visit warp.dev to learn more.</sup>
+  </div>
+</a>
+<br>
+<hr>
+</div>
+
 <p align="center">
   <img width="536" src="https://user-images.githubusercontent.com/8456633/174470852-339b5011-5800-4bb9-a628-ff230aa8cd4e.png">
 </p>
