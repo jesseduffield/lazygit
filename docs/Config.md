@@ -659,6 +659,13 @@ os:
   open: 'open {{filename}}'
 ```
 
+## Custom Command for Opening a Link
+```yaml
+os:
+  openLink: 'bash -C /path/to/your/shell-script.sh {{link}}'
+```
+Specify the external command to invoke when opening URL links (i.e. creating MR/PR in GitLab, BitBucket or GitHub). `{{link}}` will be replaced by the URL to be opened. A simple shell script can be used to further mangle the passed URL.
+
 ## Custom Command for Copying to and Pasting from Clipboard
 ```yaml
 os:
