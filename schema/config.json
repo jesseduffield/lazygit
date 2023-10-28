@@ -1243,7 +1243,7 @@
         },
         "commitMessage": {
           "properties": {
-            "switchToEditor": {
+            "commitMenu": {
               "type": "string",
               "default": "\u003cc-o\u003e"
             }
