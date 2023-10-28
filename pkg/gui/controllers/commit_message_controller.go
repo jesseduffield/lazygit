@@ -48,8 +48,8 @@ func (self *CommitMessageController) GetKeybindings(opts types.KeybindingsOpts) 
 			Handler: self.switchToCommitDescription,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.CommitMessage.SwitchToEditor),
-			Handler: self.switchToEditor,
+			Key:     opts.GetKey(opts.Config.CommitMessage.CommitMenu),
+			Handler: self.openCommitMenu,
 		},
 	}
 
@@ -87,10 +87,6 @@ func (self *CommitMessageController) switchToCommitDescription() error {
 		return err
 	}
 	return nil
-}
-
-func (self *CommitMessageController) switchToEditor() error {
-	return self.c.Helpers().Commits.SwitchToEditor()
 }
 
 func (self *CommitMessageController) handleCommitIndexChange(value int) error {
@@ -133,4 +129,9 @@ func (self *CommitMessageController) confirm() error {
 
 func (self *CommitMessageController) close() error {
 	return self.c.Helpers().Commits.CloseCommitMessagePanel()
+}
+
+func (self *CommitMessageController) openCommitMenu() error {
+	authorSuggestion := self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc()
+	return self.c.Helpers().Commits.OpenCommitMenu(authorSuggestion)
 }

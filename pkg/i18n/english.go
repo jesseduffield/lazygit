@@ -272,6 +272,7 @@ type TranslationSet struct {
 	SearchTitle                           string
 	TagsTitle                             string
 	MenuTitle                             string
+	CommitMenuTitle                       string
 	RemotesTitle                          string
 	RemoteBranchesTitle                   string
 	PatchBuildingTitle                    string
@@ -1213,12 +1214,13 @@ func EnglishTranslationSet() TranslationSet {
 		RebaseOptionsTitle:                  "Rebase options",
 		CommitSummaryTitle:                  "Commit summary",
 		CommitDescriptionTitle:              "Commit description",
-		CommitDescriptionSubTitle:           "Press {{.togglePanelKeyBinding}} to toggle focus, {{.switchToEditorKeyBinding}} to switch to editor",
+		CommitDescriptionSubTitle:           "Press {{.togglePanelKeyBinding}} to toggle focus, {{.commitMenuKeybinding}} to open menu",
 		CommitDescriptionSubTitleNoSwitch:   "Press {{.togglePanelKeyBinding}} to toggle focus",
 		LocalBranchesTitle:                  "Local branches",
 		SearchTitle:                         "Search",
 		TagsTitle:                           "Tags",
 		MenuTitle:                           "Menu",
+		CommitMenuTitle:                     "Commit Menu",
 		RemotesTitle:                        "Remotes",
 		RemoteBranchesTitle:                 "Remote branches",
 		PatchBuildingTitle:                  "Main panel (patch building)",

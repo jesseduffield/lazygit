@@ -278,7 +278,7 @@ keybinding:
     update: 'u'
     bulkMenu: 'b'
   commitMessage:
-    switchToEditor: '<c-o>'
+    commitMenu: '<c-o>'
   amendAttribute:
     addCoAuthor: 'c'
     resetAuthor: 'a'

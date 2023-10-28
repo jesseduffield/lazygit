@@ -469,7 +469,7 @@ type KeybindingSubmodulesConfig struct {
 }
 
 type KeybindingCommitMessageConfig struct {
-	SwitchToEditor string `yaml:"switchToEditor"`
+	CommitMenu string `yaml:"commitMenu"`
 }
 
 // OSConfig contains config on the level of the os
@@ -866,7 +866,7 @@ func GetDefaultConfig() *UserConfig {
 				BulkMenu: "b",
 			},
 			CommitMessage: KeybindingCommitMessageConfig{
-				SwitchToEditor: "<c-o>",
+				CommitMenu: "<c-o>",
 			},
 		},
 		OS:                           OSConfig{},

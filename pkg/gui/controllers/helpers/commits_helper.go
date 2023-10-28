@@ -215,3 +215,19 @@ func (self *CommitsHelper) commitMessageContexts() []types.Context {
 		self.c.Contexts().CommitMessage,
 	}
 }
+
+func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.Suggestion) error {
+	menuItems := []*types.MenuItem{
+		{
+			Label: self.c.Tr.OpenInEditor,
+			OnPress: func() error {
+				return self.SwitchToEditor()
+			},
+			Key: 'e',
+		},
+	}
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.CommitMenuTitle,
+		Items: menuItems,
+	})
+}
