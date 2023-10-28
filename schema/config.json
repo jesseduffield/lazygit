@@ -1163,6 +1163,24 @@
           "additionalProperties": false,
           "type": "object"
         },
+        "amendAttribute": {
+          "properties": {
+            "resetAuthor": {
+              "type": "string",
+              "default": "a"
+            },
+            "setAuthor": {
+              "type": "string",
+              "default": "A"
+            },
+            "addCoAuthor": {
+              "type": "string",
+              "default": "c"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object"
+        },
         "stash": {
           "properties": {
             "popStash": {

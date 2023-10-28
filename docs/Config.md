@@ -279,6 +279,10 @@ keybinding:
     bulkMenu: 'b'
   commitMessage:
     switchToEditor: '<c-o>'
+  amendAttribute:
+    addCoAuthor: 'c'
+    resetAuthor: 'a'
+    setAuthor: 'A'
 ```
 
 ## Platform Defaults

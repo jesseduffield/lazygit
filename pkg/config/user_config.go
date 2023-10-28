@@ -281,17 +281,18 @@ type UpdateConfig struct {
 }
 
 type KeybindingConfig struct {
-	Universal     KeybindingUniversalConfig     `yaml:"universal"`
-	Status        KeybindingStatusConfig        `yaml:"status"`
-	Files         KeybindingFilesConfig         `yaml:"files"`
-	Branches      KeybindingBranchesConfig      `yaml:"branches"`
-	Worktrees     KeybindingWorktreesConfig     `yaml:"worktrees"`
-	Commits       KeybindingCommitsConfig       `yaml:"commits"`
-	Stash         KeybindingStashConfig         `yaml:"stash"`
-	CommitFiles   KeybindingCommitFilesConfig   `yaml:"commitFiles"`
-	Main          KeybindingMainConfig          `yaml:"main"`
-	Submodules    KeybindingSubmodulesConfig    `yaml:"submodules"`
-	CommitMessage KeybindingCommitMessageConfig `yaml:"commitMessage"`
+	Universal      KeybindingUniversalConfig      `yaml:"universal"`
+	Status         KeybindingStatusConfig         `yaml:"status"`
+	Files          KeybindingFilesConfig          `yaml:"files"`
+	Branches       KeybindingBranchesConfig       `yaml:"branches"`
+	Worktrees      KeybindingWorktreesConfig      `yaml:"worktrees"`
+	Commits        KeybindingCommitsConfig        `yaml:"commits"`
+	AmendAttribute KeybindingAmendAttributeConfig `yaml:"amendAttribute"`
+	Stash          KeybindingStashConfig          `yaml:"stash"`
+	CommitFiles    KeybindingCommitFilesConfig    `yaml:"commitFiles"`
+	Main           KeybindingMainConfig           `yaml:"main"`
+	Submodules     KeybindingSubmodulesConfig     `yaml:"submodules"`
+	CommitMessage  KeybindingCommitMessageConfig  `yaml:"commitMessage"`
 }
 
 // damn looks like we have some inconsistencies here with -alt and -alt1
@@ -438,6 +439,12 @@ type KeybindingCommitsConfig struct {
 	OpenInBrowser                  string `yaml:"openInBrowser"`
 	ViewBisectOptions              string `yaml:"viewBisectOptions"`
 	StartInteractiveRebase         string `yaml:"startInteractiveRebase"`
+}
+
+type KeybindingAmendAttributeConfig struct {
+	ResetAuthor string `yaml:"resetAuthor"`
+	SetAuthor   string `yaml:"setAuthor"`
+	AddCoAuthor string `yaml:"addCoAuthor"`
 }
 
 type KeybindingStashConfig struct {
@@ -835,6 +842,11 @@ func GetDefaultConfig() *UserConfig {
 				OpenInBrowser:                  "o",
 				ViewBisectOptions:              "b",
 				StartInteractiveRebase:         "i",
+			},
+			AmendAttribute: KeybindingAmendAttributeConfig{
+				ResetAuthor: "a",
+				SetAuthor:   "A",
+				AddCoAuthor: "c",
 			},
 			Stash: KeybindingStashConfig{
 				PopStash:    "g",
