@@ -117,6 +117,7 @@ var tests = []*components.IntegrationTest{
 	diff.DiffAndApplyPatch,
 	diff.DiffCommits,
 	diff.IgnoreWhitespace,
+	file.CopyMenu,
 	file.DirWithUntrackedFile,
 	file.DiscardAllDirChanges,
 	file.DiscardChanges,
