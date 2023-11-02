@@ -194,6 +194,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: 查看'放弃更改'选项
   <kbd>&lt;space&gt;</kbd>: 切换暂存状态
   <kbd>&lt;c-b&gt;</kbd>: Filter files by status
+  <kbd>y</kbd>: Copy to clipboard
   <kbd>c</kbd>: 提交更改
   <kbd>w</kbd>: 提交更改而无需预先提交钩子
   <kbd>A</kbd>: 修补最后一次提交
