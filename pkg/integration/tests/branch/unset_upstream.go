@@ -51,13 +51,9 @@ var UnsetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 					Title(Equals("Upstream options")).
 					Select(Contains("Unset upstream of selected branch")).
 					Confirm()
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Equals("The selected branch has no upstream (or the upstream is not stored locally)")).
-					Cancel()
 			}).
 			SelectedLines(
-				Contains("branch_to_remove").Contains("origin branch_to_remove").Contains("upstream gone"),
+				Contains("branch_to_remove").DoesNotContain("origin branch_to_remove").DoesNotContain("upstream gone"),
 			)
 	},
 })
