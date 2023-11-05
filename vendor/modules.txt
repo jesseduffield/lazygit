@@ -7,6 +7,12 @@ github.com/atotto/clipboard
 # github.com/aybabtme/humanlog v0.4.1
 ## explicit; go 1.13
 github.com/aybabtme/humanlog
+# github.com/bahlo/generic-list-go v0.2.0
+## explicit; go 1.18
+github.com/bahlo/generic-list-go
+# github.com/buger/jsonparser v1.1.1
+## explicit; go 1.13
+github.com/buger/jsonparser
 # github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 ## explicit
 github.com/cloudfoundry/jibber_jabber
@@ -73,6 +79,8 @@ github.com/imdario/mergo
 # github.com/integrii/flaggy v1.4.0
 ## explicit; go 1.12
 github.com/integrii/flaggy
+# github.com/invopop/jsonschema v0.10.0
+## explicit; go 1.18
 # github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 ## explicit
 github.com/jbenet/go-context/io
@@ -143,6 +151,9 @@ github.com/jesseduffield/yaml
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 ## explicit
 github.com/kardianos/osext
+# github.com/karimkhaleel/jsonschema v0.0.0-20231001195015-d933f0d94ea3
+## explicit; go 1.18
+github.com/karimkhaleel/jsonschema
 # github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd
 ## explicit
 github.com/kevinburke/ssh_config
@@ -160,6 +171,10 @@ github.com/kyokomi/emoji/v2
 # github.com/lucasb-eyer/go-colorful v1.2.0
 ## explicit; go 1.12
 github.com/lucasb-eyer/go-colorful
+# github.com/mailru/easyjson v0.7.7
+## explicit; go 1.12
+github.com/mailru/easyjson/buffer
+github.com/mailru/easyjson/jwriter
 # github.com/mattn/go-colorable v0.1.11
 ## explicit; go 1.13
 github.com/mattn/go-colorable
@@ -258,9 +273,12 @@ github.com/stefanhaller/tcell/v2/terminfo/x/xfce
 github.com/stefanhaller/tcell/v2/terminfo/x/xterm
 github.com/stefanhaller/tcell/v2/terminfo/x/xterm_kitty
 github.com/stefanhaller/tcell/v2/terminfo/x/xterm_termite
-# github.com/stretchr/testify v1.8.0
+# github.com/stretchr/testify v1.8.1
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
+# github.com/wk8/go-ordered-map/v2 v2.1.8
+## explicit; go 1.18
+github.com/wk8/go-ordered-map/v2
 # github.com/xanzy/ssh-agent v0.2.1
 ## explicit
 github.com/xanzy/ssh-agent
