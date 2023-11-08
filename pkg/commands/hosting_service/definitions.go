@@ -52,6 +52,19 @@ var azdoServiceDef = ServiceDefinition{
 	repoURLTemplate: "https://{{.webDomain}}/{{.org}}/{{.project}}/_git/{{.repo}}",
 }
 
+var customAzdoServiceDef = ServiceDefinition{
+	provider:                        "custom-azuredevops",
+	pullRequestURLIntoDefaultBranch: "/pullrequestcreate?sourceRef={{.From}}",
+	pullRequestURLIntoTargetBranch:  "/pullrequestcreate?sourceRef={{.From}}&targetRef={{.To}}",
+	commitURL:                       "/commit/{{.CommitSha}}",
+	regexStrings: []string{
+		`^*@vs-ssh.visualstudio.com.*/(?P<org>.*)/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
+		`^git@ssh.dev.azure.com.*/(?P<org>.*)/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
+		`^https://(?P<org>.*?).visualstudio.com/(?P<project>.*?)/_git/(?P<repo>.*?)$`,
+	},
+	repoURLTemplate: "https://{{.org}}.{{.webDomain}}/{{.project}}/_git/{{.repo}}",
+}
+
 var bitbucketServerServiceDef = ServiceDefinition{
 	provider:                        "bitbucketServer",
 	pullRequestURLIntoDefaultBranch: "/pull-requests?create&sourceBranch={{.From}}",
@@ -61,7 +74,7 @@ var bitbucketServerServiceDef = ServiceDefinition{
 		`^ssh://git@.*/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
 		`^https://.*/scm/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
 	},
-	repoURLTemplate: "https://{{.webDomain}}/projects/{{.project}}/repos/{{.repo}}",
+	repoURLTemplate: "https://{{.org}}{{.webDomain}}/projects/{{.project}}/repos/{{.repo}}",
 }
 
 var giteaServiceDef = ServiceDefinition{
@@ -102,6 +115,11 @@ var defaultServiceDomains = []ServiceDomain{
 		serviceDefinition: azdoServiceDef,
 		gitDomain:         "dev.azure.com",
 		webDomain:         "dev.azure.com",
+	},
+	{
+		serviceDefinition: customAzdoServiceDef,
+		gitDomain:         "visualstudio.com",
+		webDomain:         "visualstudio.com",
 	},
 	{
 		serviceDefinition: giteaServiceDef,

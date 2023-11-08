@@ -201,6 +201,26 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on Custom Azure DevOps (SSH) with specific target",
+			from:      "test/test",
+			to:        "main",
+			remoteUrl: "customename@vs-ssh.visualstudio.com:v3/customname/Project%20Name/RepoName",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://customname.visualstudio.com/Project%20Name/_git/RepoName/pullrequestcreate?sourceRef=test%2Ftest&targetRef=main", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Custom Azure DevOps (HTTP) with specific target",
+			from:      "test/test",
+			to:        "main",
+			remoteUrl: "https://customname.visualstudio.com/Project%20Name/_git/RepoName",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://customname.visualstudio.com/Project%20Name/_git/RepoName/pullrequestcreate?sourceRef=test%2Ftest&targetRef=main", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on Azure DevOps (HTTP) with specific target",
 			from:      "feature/new",
 			to:        "dev",
