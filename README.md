@@ -314,27 +314,14 @@ sudo emerge dev-vcs/lazygit
 ```
 ### Gentoo Linux
 
-Lazygit is not (yet) in main Gentoo portage, however an ebuild is available in [cova overlay](https://github.com/cova-fe/cova-overlay/tree/main/dev-vcs/lazygit)
+Lazygit is not (yet) in main Gentoo portage, however an ebuild is available in [GURU overlay](https://github.com/gentoo-mirror/guru/tree/master/dev-vcs/lazygit)
 
 You can either add the overlay to your system and install lazygit as usual:
 
 ```sh
-sudo eselect repository enable cova
-sudo emaint sync -r cova
+sudo eselect repository enable guru
+sudo emaint sync -r guru
 sudo emerge dev-vcs/lazygit
-```
-
-Or you can download the ebuild and install it manually; please consider the example below just as a suggestion to be adapted to your system.
-
-```sh
-su
-LAZYGIT_VERSION="0.39.3" # Replace with the version you want from cova-overlay
-cd /usr/overlay/dev-vcs/ # Replace your overlay path
-mkdir lazygit
-cd lazygit
-curl -O https://raw.githubusercontent.com/cova-fe/cova-overlay/main/dev-vcs/lazygit/lazygit-${LAZYGIT_VERSION}.ebuild
-ebuild lazygit-${LAZYGIT_VERSION}.ebuild manifest
-emerge lazygit
 ```
 
 ### openSUSE
