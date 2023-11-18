@@ -95,6 +95,8 @@ type GuiConfig struct {
 	Theme ThemeConfig `yaml:"theme"`
 	// Config relating to the commit length indicator
 	CommitLength CommitLengthConfig `yaml:"commitLength"`
+	// Config relating to the commit description lenght indicator, which  will be appended at end of ordinary description
+	CommitDescriptionLength CommitLengthConfig `yaml:"commitDescriptionLength"`
 	// If true, show the '5 of 20' footer at the bottom of list views
 	ShowListFooter bool `yaml:"showListFooter"`
 	// If true, display the files in the file views as a tree. If false, display the files as a flat list.
@@ -607,6 +609,7 @@ func GetDefaultConfig() *UserConfig {
 				DefaultFgColor:             []string{"default"},
 			},
 			CommitLength:              CommitLengthConfig{Show: true},
+			CommitDescriptionLength:   CommitLengthConfig{Show: true},
 			SkipNoStagedFilesWarning:  false,
 			ShowListFooter:            true,
 			ShowCommandLog:            true,

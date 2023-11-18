@@ -1,6 +1,7 @@
 package context
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -121,15 +122,25 @@ func (self *CommitMessageContext) SetPanelState(
 }
 
 func (self *CommitMessageContext) RenderCommitLength() {
-	if !self.c.UserConfig.Gui.CommitLength.Show {
-		return
+	if self.c.UserConfig.Gui.CommitLength.Show {
+		self.c.Views().CommitMessage.Subtitle = getBufferLength(self.c.Views().CommitMessage)
 	}
 
-	self.c.Views().CommitMessage.Subtitle = getBufferLength(self.c.Views().CommitMessage)
+	if self.c.UserConfig.Gui.CommitDescriptionLength.Show {
+		// Split away the previous part to only update the length
+		prev := strings.Split(self.c.Views().CommitDescription.Subtitle, " |")
+		self.c.Views().CommitDescription.Subtitle = prev[0] + " |" + getRowLength(self.c.Views().CommitDescription)
+	}
 }
 
 func getBufferLength(view *gocui.View) string {
 	return " " + strconv.Itoa(strings.Count(view.TextArea.GetContent(), "")-1) + " "
+}
+
+// getRowLength by checking the cursor row and counts the length of the string on that line
+// returns a string with length surrounded by two spaces, to follow previous convention: " <row-length> "
+func getRowLength(view *gocui.View) string {
+	return fmt.Sprintf(" %v ", strings.Count(view.BufferLines()[view.CursorY()], "")-1)
 }
 
 func (self *CommitMessageContext) SwitchToEditor(message string) error {
