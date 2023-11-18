@@ -140,7 +140,7 @@ func getBufferLength(view *gocui.View) string {
 // getRowLength by checking the cursor row and counts the length of the string on that line
 // returns a string with length surrounded by two spaces, to follow previous convention: " <row-length> "
 func getRowLength(view *gocui.View) string {
-	return fmt.Sprintf(" %v ", strings.Count(view.BufferLines()[view.CursorY()], "")-1)
+	return fmt.Sprintf("%*d ", 3, strings.Count(view.BufferLines()[view.CursorY()], "")-1)
 }
 
 func (self *CommitMessageContext) SwitchToEditor(message string) error {
