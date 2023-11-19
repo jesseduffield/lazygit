@@ -131,6 +131,10 @@ jobs:
         # ensure our vendor directory matches up with our go modules
         run: |
           go mod vendor && git diff --exit-code || (echo "Unexpected change to vendor directory. Run 'go mod vendor' locally and commit the changes" && exit 1)
+      - name: Check go.mod file
+        # ensure our go.mod file is clean
+        run: |
+          go mod tidy && git diff --exit-code || (echo "go.mod file is not clean. Run 'go mod tidy' locally and commit the changes" && exit 1)
       - name: Check All Auto-Generated Files
         # ensure all our auto-generated files are up to date
         run: |

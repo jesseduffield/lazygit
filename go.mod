@@ -26,7 +26,6 @@ require (
 	github.com/mattn/go-runewidth v0.0.15
 	github.com/mgutz/str v1.2.0
 	github.com/mitchellh/go-ps v1.0.0
-	github.com/pmezard/go-difflib v1.0.0
 	github.com/sahilm/fuzzy v0.1.0
 	github.com/samber/lo v1.31.0
 	github.com/sanity-io/litter v1.5.2
@@ -63,6 +62,7 @@ require (
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.7.1 // indirect
 	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
