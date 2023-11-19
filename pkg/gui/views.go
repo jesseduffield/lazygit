@@ -168,6 +168,8 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.CommitDescription.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.CommitDescription.Editable = true
 	gui.Views.CommitDescription.Editor = gocui.EditorFunc(gui.commitDescriptionEditor)
+	gui.Views.CommitDescription.TextArea.AutoWrap = gui.c.UserConfig.Git.Commit.AutoWrapCommitMessage
+	gui.Views.CommitDescription.TextArea.AutoWrapWidth = gui.c.UserConfig.Git.Commit.AutoWrapWidth
 
 	gui.Views.Confirmation.Visible = false
 	gui.Views.Confirmation.Editor = gocui.EditorFunc(gui.promptEditor)
