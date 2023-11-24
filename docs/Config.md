@@ -227,6 +227,7 @@ keybinding:
     rebaseBranch: 'r'
     renameBranch: 'R'
     mergeIntoCurrentBranch: 'M'
+    squashIntoWorkingTree: 'S'
     viewGitFlowOptions: 'i'
     fastForward: 'f' # fast-forward this branch from its upstream
     createTag: 'T'

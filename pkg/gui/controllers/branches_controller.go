@@ -88,6 +88,11 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Description: self.c.Tr.MergeIntoCurrentBranch,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Branches.SquashIntoWorkingTree),
+			Handler:     opts.Guards.OutsideFilterMode(self.squash),
+			Description: self.c.Tr.SquashIntoWorkingTree,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Branches.FastForward),
 			Handler:     self.checkSelectedAndReal(self.fastForward),
 			Description: self.c.Tr.FastForward,
@@ -546,6 +551,11 @@ func (self *BranchesController) delete(branch *models.Branch) error {
 func (self *BranchesController) merge() error {
 	selectedBranchName := self.context().GetSelected().Name
 	return self.c.Helpers().MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranchName)
+}
+
+func (self *BranchesController) squash() error {
+	selectedBranchName := self.context().GetSelected().Name
+	return self.c.Helpers().MergeAndRebase.SquashRefIntoWorkingTree(selectedBranchName)
 }
 
 func (self *BranchesController) rebase() error {

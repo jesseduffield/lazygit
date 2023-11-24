@@ -44,6 +44,11 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			Description: self.c.Tr.MergeIntoCurrentBranch,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Branches.SquashIntoWorkingTree),
+			Handler:     opts.Guards.OutsideFilterMode(self.checkSelected(self.squash)),
+			Description: self.c.Tr.SquashIntoWorkingTree,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Branches.RebaseBranch),
 			Handler:     opts.Guards.OutsideFilterMode(self.checkSelected(self.rebase)),
 			Description: self.c.Tr.RebaseBranch,
@@ -111,6 +116,10 @@ func (self *RemoteBranchesController) checkSelected(callback func(*models.Remote
 
 func (self *RemoteBranchesController) delete(selectedBranch *models.RemoteBranch) error {
 	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(selectedBranch.RemoteName, selectedBranch.Name)
+}
+
+func (self *RemoteBranchesController) squash(selectedBranch *models.RemoteBranch) error {
+	return self.c.Helpers().MergeAndRebase.SquashRefIntoWorkingTree(selectedBranch.FullName())
 }
 
 func (self *RemoteBranchesController) merge(selectedBranch *models.RemoteBranch) error {
