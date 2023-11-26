@@ -81,6 +81,11 @@
           "description": "Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.\nOptions are:\n- 'horizontal': split the window horizontally\n- 'vertical': split the window vertically\n- 'flexible': (default) split the window horizontally if the window is wide enough, otherwise split vertically",
           "default": "flexible"
         },
+        "enlargedSideViewLocation": {
+          "type": "string",
+          "description": "How the window is split when in half screen mode (i.e. after hitting '+' once).\nPossible values:\n- 'left': split the window horizontally (side panel on the left, main view on the right)\n- 'top': split the window vertically (side panel on top, main view below)",
+          "default": "left"
+        },
         "language": {
           "type": "string",
           "enum": [
