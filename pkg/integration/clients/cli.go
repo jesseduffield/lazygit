@@ -37,6 +37,7 @@ func RunCLI(testNames []string, slow bool, sandbox bool, waitForDebugger bool, r
 		Sandbox:         sandbox,
 		WaitForDebugger: waitForDebugger,
 		RaceDetector:    raceDetector,
+		CodeCoverageDir: "",
 		InputDelay:      inputDelay,
 		MaxAttempts:     1,
 	})

@@ -393,6 +393,7 @@ func runTuiTest(test *components.IntegrationTest, sandbox bool, waitForDebugger 
 		Sandbox:         sandbox,
 		WaitForDebugger: waitForDebugger,
 		RaceDetector:    raceDetector,
+		CodeCoverageDir: "",
 		InputDelay:      inputDelay,
 		MaxAttempts:     1,
 	})
