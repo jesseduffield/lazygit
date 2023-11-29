@@ -20,21 +20,23 @@ const (
 	GIT_CONFIG_GLOBAL_ENV_VAR = "GIT_CONFIG_GLOBAL"
 )
 
+type RunTestArgs struct {
+	Tests           []*IntegrationTest
+	Logf            func(format string, formatArgs ...interface{})
+	RunCmd          func(cmd *exec.Cmd) (int, error)
+	TestWrapper     func(test *IntegrationTest, f func() error)
+	Sandbox         bool
+	WaitForDebugger bool
+	RaceDetector    bool
+	InputDelay      int
+	MaxAttempts     int
+}
+
 // This function lets you run tests either from within `go test` or from a regular binary.
 // The reason for having two separate ways of testing is that `go test` isn't great at
 // showing what's actually happening during the test, but it's still good at running
 // tests in telling you about their results.
-func RunTests(
-	tests []*IntegrationTest,
-	logf func(format string, formatArgs ...interface{}),
-	runCmd func(cmd *exec.Cmd) (int, error),
-	testWrapper func(test *IntegrationTest, f func() error),
-	sandbox bool,
-	waitForDebugger bool,
-	raceDetector bool,
-	inputDelay int,
-	maxAttempts int,
-) error {
+func RunTests(args RunTestArgs) error {
 	projectRootDir := lazycoreUtils.GetLazyRootDirectory()
 	err := os.Chdir(projectRootDir)
 	if err != nil {
@@ -42,8 +44,7 @@ func RunTests(
 	}
 
 	testDir := filepath.Join(projectRootDir, "test", "_results")
-
-	if err := buildLazygit(waitForDebugger, raceDetector); err != nil {
+	if err := buildLazygit(args.WaitForDebugger, args.RaceDetector); err != nil {
 		return err
 	}
 
@@ -52,21 +53,21 @@ func RunTests(
 		return err
 	}
 
-	for _, test := range tests {
+	for _, test := range args.Tests {
 		test := test
 
-		testWrapper(test, func() error { //nolint: thelper
+		args.TestWrapper(test, func() error { //nolint: thelper
 			paths := NewPaths(
 				filepath.Join(testDir, test.Name()),
 			)
 
-			for i := 0; i < maxAttempts; i++ {
-				err := runTest(test, paths, projectRootDir, logf, runCmd, sandbox, waitForDebugger, raceDetector, inputDelay, gitVersion)
+			for i := 0; i < args.MaxAttempts; i++ {
+				err := runTest(test, paths, projectRootDir, args.Logf, args.RunCmd, args.Sandbox, args.WaitForDebugger, args.RaceDetector, args.InputDelay, gitVersion)
 				if err != nil {
-					if i == maxAttempts-1 {
+					if i == args.MaxAttempts-1 {
 						return err
 					}
-					logf("retrying test %s", test.Name())
+					args.Logf("retrying test %s", test.Name())
 				} else {
 					break
 				}

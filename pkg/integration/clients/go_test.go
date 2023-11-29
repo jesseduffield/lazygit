@@ -30,11 +30,11 @@ func TestIntegration(t *testing.T) {
 	raceDetector := os.Getenv("LAZYGIT_RACE_DETECTOR") != ""
 	testNumber := 0
 
-	err := components.RunTests(
-		tests.GetTests(),
-		t.Logf,
-		runCmdHeadless,
-		func(test *components.IntegrationTest, f func() error) {
+	err := components.RunTests(components.RunTestArgs{
+		Tests:  tests.GetTests(),
+		Logf:   t.Logf,
+		RunCmd: runCmdHeadless,
+		TestWrapper: func(test *components.IntegrationTest, f func() error) {
 			defer func() { testNumber += 1 }()
 			if testNumber%parallelTotal != parallelIndex {
 				return
@@ -52,13 +52,13 @@ func TestIntegration(t *testing.T) {
 				assert.NoError(t, err)
 			})
 		},
-		false,
-		false,
-		raceDetector,
-		0,
+		Sandbox:         false,
+		WaitForDebugger: false,
+		RaceDetector:    raceDetector,
+		InputDelay:      0,
 		// Allow two attempts at each test to get around flakiness
-		2,
-	)
+		MaxAttempts: 2,
+	})
 
 	assert.NoError(t, err)
 }

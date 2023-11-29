@@ -29,17 +29,17 @@ func RunCLI(testNames []string, slow bool, sandbox bool, waitForDebugger bool, r
 		inputDelay = SLOW_INPUT_DELAY
 	}
 
-	err := components.RunTests(
-		getTestsToRun(testNames),
-		log.Printf,
-		runCmdInTerminal,
-		runAndPrintFatalError,
-		sandbox,
-		waitForDebugger,
-		raceDetector,
-		inputDelay,
-		1,
-	)
+	err := components.RunTests(components.RunTestArgs{
+		Tests:           getTestsToRun(testNames),
+		Logf:            log.Printf,
+		RunCmd:          runCmdInTerminal,
+		TestWrapper:     runAndPrintFatalError,
+		Sandbox:         sandbox,
+		WaitForDebugger: waitForDebugger,
+		RaceDetector:    raceDetector,
+		InputDelay:      inputDelay,
+		MaxAttempts:     1,
+	})
 	if err != nil {
 		log.Print(err.Error())
 	}
