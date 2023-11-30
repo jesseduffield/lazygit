@@ -36,7 +36,14 @@ jobs:
       - name: Test code
         # we're passing -short so that we skip the integration tests, which will be run in parallel below
         run: |
-          go test ./... -short
+          mkdir -p /tmp/code_coverage
+          go test ./... -short -cover -args "-test.gocoverdir=/tmp/code_coverage"
+      - name: Upload code coverage artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-unit-${{ matrix.os }}-${{ github.run_id }}
+          path: /tmp/code_coverage
+
   integration-tests:
     strategy:
       fail-fast: false
@@ -86,8 +93,17 @@ jobs:
       - name: Print git version
         run: git --version
       - name: Test code
+        env:
+          # See https://go.dev/blog/integration-test-coverage
+          LAZYGIT_GOCOVERDIR: /tmp/code_coverage
         run: |
+          mkdir -p /tmp/code_coverage
           ./scripts/run_integration_tests.sh
+      - name: Upload code coverage artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-integration-${{ matrix.git-version }}-${{ github.run_id }}
+          path: /tmp/code_coverage
   build:
     runs-on: ubuntu-latest
     env:
@@ -169,3 +185,31 @@ jobs:
           mode: exactly
           count: 1
           labels: "ignore-for-release, feature, enhancement, bug, maintenance, docs, i18n"
+  upload-coverage:
+    # List all jobs that produce coverage files
+    needs: [unit-tests, integration-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: /tmp/code_coverage
+
+      - name: Combine coverage files
+        run: |
+          # Find all directories in /tmp/code_coverage and create a comma-separated list
+          COVERAGE_DIRS=$(find /tmp/code_coverage -mindepth 1 -maxdepth 1 -type d -printf '/tmp/code_coverage/%f,' | sed 's/,$//')
+          echo "Coverage directories: $COVERAGE_DIRS"
+          # Run the combine command with the generated list
+          go tool covdata textfmt -i=$COVERAGE_DIRS -o coverage.out
+          echo "Combined coverage:"
+          go tool cover -func coverage.out | tail -1 | awk '{print $3}'
+
+      - name: Upload to Codacy
+        run: |
+          CODACY_PROJECT_TOKEN=${{ secrets.CODACY_PROJECT_TOKEN }} \
+            bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
+            --force-coverage-parser go -r coverage.out
