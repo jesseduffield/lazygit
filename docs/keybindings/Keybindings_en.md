@@ -141,7 +141,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: Copy branch name to clipboard
   <kbd>i</kbd>: Show git-flow options
-  <kbd>&lt;space&gt;</kbd>: Checkout
+  <kbd>&lt;space&gt;</kbd>: Checkout, enter '-' to switch to last
   <kbd>n</kbd>: New branch
   <kbd>o</kbd>: Create pull request
   <kbd>O</kbd>: Create pull request options
