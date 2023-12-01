@@ -98,6 +98,8 @@ var extIconMap = map[string]IconProperties{
 	".csv":            {Icon: "\uf1c3", Color: 113},     // 
 	".csx":            {Icon: "\U000f031b", Color: 58},  // 󰌛
 	".cxx":            {Icon: "\ue61d", Color: 74},      // 
+	".bicep":          {Icon: "\ue63b", Color: 32},      // 
+	".bicepparam":     {Icon: "\ue63b", Color: 103},     // 
 	".d":              {Icon: "\ue7af", Color: 28},      // 
 	".dart":           {Icon: "\ue798", Color: 25},      // 
 	".db":             {Icon: "\uf1c0", Color: 188},     // 
@@ -326,7 +328,12 @@ func patchFileIconsForNerdFontsV2() {
 	extIconMap[".vue"] = IconProperties{Icon: "\ufd42", Color: 113}     // ﵂
 }
 
-func IconForFile(name string, isSubmodule bool, isLinkedWorktree bool, isDirectory bool) IconProperties {
+func IconForFile(
+	name string,
+	isSubmodule bool,
+	isLinkedWorktree bool,
+	isDirectory bool,
+) IconProperties {
 	base := filepath.Base(name)
 	if icon, ok := nameIconMap[base]; ok {
 		return icon
