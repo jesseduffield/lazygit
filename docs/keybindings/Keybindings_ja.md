@@ -218,7 +218,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Pull Requestを作成
   <kbd>O</kbd>: Create pull request options
   <kbd>&lt;c-y&gt;</kbd>: Pull RequestのURLをクリップボードにコピー
-  <kbd>c</kbd>: Checkout by name
+  <kbd>c</kbd>: Checkout by name, enter '-' to switch to last
   <kbd>F</kbd>: Force checkout
   <kbd>d</kbd>: View delete options
   <kbd>r</kbd>: Rebase checked-out branch onto this branch
