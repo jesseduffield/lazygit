@@ -64,8 +64,19 @@ func NewGitCommand(
 	gitConfig git_config.IGitConfig,
 ) (*GitCommand, error) {
 	currentPath, err := os.Getwd()
+
 	if err != nil {
 		return nil, utils.WrapError(err)
+	}
+
+  // Check if the current path is a symlink and walk it
+	absRepoPath, err := filepath.EvalSymlinks(currentPath)
+	if err != nil {
+		return nil, utils.WrapError(err)
+	}
+
+	if absRepoPath != currentPath {
+		currentPath = absRepoPath
 	}
 
 	// converting to forward slashes for the sake of windows (which uses backwards slashes). We want everything
