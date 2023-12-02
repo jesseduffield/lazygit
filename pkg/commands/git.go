@@ -69,7 +69,7 @@ func NewGitCommand(
 		return nil, utils.WrapError(err)
 	}
 
-  // Check if the current path is a symlink and walk it
+	// Check if the current path is a symlink and walk it
 	absRepoPath, err := filepath.EvalSymlinks(currentPath)
 	if err != nil {
 		return nil, utils.WrapError(err)
