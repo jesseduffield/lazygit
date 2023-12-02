@@ -53,7 +53,7 @@ func (self *ConfigCommands) GetPager(width int) string {
 		"columnWidth": strconv.Itoa(width/2 - 6),
 	}
 
-	pagerTemplate := self.UserConfig.Git.Paging.Pager
+	pagerTemplate := string(self.UserConfig.Git.Paging.Pager)
 	return utils.ResolvePlaceholderString(pagerTemplate, templateValues)
 }
 

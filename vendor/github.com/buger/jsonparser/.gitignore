@@ -1,0 +1,12 @@
+
+*.test
+
+*.out
+
+*.mprof
+
+.idea
+
+vendor/github.com/buger/goterm/
+prof.cpu
+prof.mem
