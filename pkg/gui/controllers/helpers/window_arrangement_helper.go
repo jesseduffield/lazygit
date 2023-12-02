@@ -1,11 +1,15 @@
 package helpers
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/jesseduffield/lazycore/pkg/boxlayout"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mattn/go-runewidth"
+	"golang.org/x/exp/slices"
 )
 
 // In this file we use the boxlayout package, along with knowledge about the app's state,
@@ -31,8 +35,6 @@ func NewWindowArrangementHelper(
 		appStatusHelper: appStatusHelper,
 	}
 }
-
-const INFO_SECTION_PADDING = " "
 
 func (self *WindowArrangementHelper) shouldUsePortraitMode(width, height int) bool {
 	switch self.c.UserConfig.Gui.PortraitMode {
@@ -203,31 +205,91 @@ func (self *WindowArrangementHelper) infoSectionChildren(informationStr string, 
 		}
 	}
 
-	appStatusBox := &boxlayout.Box{Window: "appStatus"}
-	optionsBox := &boxlayout.Box{Window: "options"}
+	statusSpacerPrefix := "statusSpacer"
+	spacerBoxIndex := 0
+	maxSpacerBoxIndex := 2 // See pkg/gui/types/views.go
+	// Returns a box with size 1 to be used as padding between views
+	spacerBox := func() *boxlayout.Box {
+		spacerBoxIndex++
 
-	if !self.c.UserConfig.Gui.ShowBottomLine {
-		optionsBox.Weight = 0
-		appStatusBox.Weight = 1
-	} else {
-		optionsBox.Weight = 1
-		if self.c.InDemo() {
-			// app status appears very briefly in demos and dislodges the caption,
-			// so better not to show it at all
-			appStatusBox.Size = 0
-		} else {
-			appStatusBox.Size = runewidth.StringWidth(INFO_SECTION_PADDING) + runewidth.StringWidth(appStatus)
+		if spacerBoxIndex > maxSpacerBoxIndex {
+			panic("Too many spacer boxes")
+		}
+
+		return &boxlayout.Box{Window: fmt.Sprintf("%s%d", statusSpacerPrefix, spacerBoxIndex), Size: 1}
+	}
+
+	// Returns a box with weight 1 to be used as flexible padding between views
+	flexibleSpacerBox := func() *boxlayout.Box {
+		spacerBoxIndex++
+
+		if spacerBoxIndex > maxSpacerBoxIndex {
+			panic("Too many spacer boxes")
+		}
+
+		return &boxlayout.Box{Window: fmt.Sprintf("%s%d", statusSpacerPrefix, spacerBoxIndex), Weight: 1}
+	}
+
+	// Adds spacer boxes inbetween given boxes
+	insertSpacerBoxes := func(boxes []*boxlayout.Box) []*boxlayout.Box {
+		for i := len(boxes) - 1; i >= 1; i-- {
+			// ignore existing spacer boxes
+			if !strings.HasPrefix(boxes[i].Window, statusSpacerPrefix) {
+				boxes = slices.Insert(boxes, i, spacerBox())
+			}
+		}
+		return boxes
+	}
+
+	// First collect the real views that we want to show, we'll add spacers in
+	// between at the end
+	var result []*boxlayout.Box
+
+	if !self.c.InDemo() {
+		// app status appears very briefly in demos and dislodges the caption,
+		// so better not to show it at all
+		if appStatus != "" {
+			result = append(result, &boxlayout.Box{Window: "appStatus", Size: runewidth.StringWidth(appStatus)})
 		}
 	}
 
-	result := []*boxlayout.Box{appStatusBox, optionsBox}
+	if self.c.UserConfig.Gui.ShowBottomLine {
+		result = append(result, &boxlayout.Box{Window: "options", Weight: 1})
+	}
 
 	if (!self.c.InDemo() && self.c.UserConfig.Gui.ShowBottomLine) || self.modeHelper.IsAnyModeActive() {
-		result = append(result, &boxlayout.Box{
-			Window: "information",
-			// unlike appStatus, informationStr has various colors so we need to decolorise before taking the length
-			Size: runewidth.StringWidth(INFO_SECTION_PADDING) + runewidth.StringWidth(utils.Decolorise(informationStr)),
-		})
+		result = append(result,
+			&boxlayout.Box{
+				Window: "information",
+				// unlike appStatus, informationStr has various colors so we need to decolorise before taking the length
+				Size: runewidth.StringWidth(utils.Decolorise(informationStr)),
+			})
+	}
+
+	if len(result) == 2 && result[0].Window == "appStatus" {
+		// Only status and information are showing; need to insert a flexible
+		// spacer between the two, so that information is right-aligned. Note
+		// that the call to insertSpacerBoxes below will still insert a 1-char
+		// spacer in addition (right after the flexible one); this is needed for
+		// the case that there's not enough room, to ensure there's always at
+		// least one space.
+		result = slices.Insert(result, 1, flexibleSpacerBox())
+	} else if len(result) == 1 {
+		if result[0].Window == "information" {
+			// Only information is showing; need to add a flexible spacer so
+			// that information is right-aligned
+			result = slices.Insert(result, 0, flexibleSpacerBox())
+		} else {
+			// Only status is showing; need to make it flexible so that it
+			// extends over the whole width
+			result[0].Size = 0
+			result[0].Weight = 1
+		}
+	}
+
+	if len(result) > 0 {
+		// If we have at least one view, insert 1-char wide spacer boxes between them.
+		result = insertSpacerBoxes(result)
 	}
 
 	return result

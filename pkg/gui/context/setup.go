@@ -138,10 +138,12 @@ func NewContextTree(c *ContextCommon) *ContextTree {
 				Focusable:  true,
 			}),
 		),
-		Options:      NewDisplayContext(OPTIONS_CONTEXT_KEY, c.Views().Options, "options"),
-		AppStatus:    NewDisplayContext(APP_STATUS_CONTEXT_KEY, c.Views().AppStatus, "appStatus"),
-		SearchPrefix: NewDisplayContext(SEARCH_PREFIX_CONTEXT_KEY, c.Views().SearchPrefix, "searchPrefix"),
-		Information:  NewDisplayContext(INFORMATION_CONTEXT_KEY, c.Views().Information, "information"),
-		Limit:        NewDisplayContext(LIMIT_CONTEXT_KEY, c.Views().Limit, "limit"),
+		Options:       NewDisplayContext(OPTIONS_CONTEXT_KEY, c.Views().Options, "options"),
+		AppStatus:     NewDisplayContext(APP_STATUS_CONTEXT_KEY, c.Views().AppStatus, "appStatus"),
+		SearchPrefix:  NewDisplayContext(SEARCH_PREFIX_CONTEXT_KEY, c.Views().SearchPrefix, "searchPrefix"),
+		Information:   NewDisplayContext(INFORMATION_CONTEXT_KEY, c.Views().Information, "information"),
+		Limit:         NewDisplayContext(LIMIT_CONTEXT_KEY, c.Views().Limit, "limit"),
+		StatusSpacer1: NewDisplayContext(STATUS_SPACER1_CONTEXT_KEY, c.Views().StatusSpacer1, "statusSpacer1"),
+		StatusSpacer2: NewDisplayContext(STATUS_SPACER2_CONTEXT_KEY, c.Views().StatusSpacer2, "statusSpacer2"),
 	}
 }
