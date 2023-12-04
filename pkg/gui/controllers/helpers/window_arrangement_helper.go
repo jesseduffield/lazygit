@@ -125,13 +125,6 @@ func GetWindowDimensions(args WindowArrangementArgs) map[string]boxlayout.Dimens
 		sidePanelsDirection = boxlayout.ROW
 	}
 
-	mainPanelsDirection := boxlayout.ROW
-	if splitMainPanelSideBySide(args) {
-		mainPanelsDirection = boxlayout.COLUMN
-	}
-
-	extrasWindowSize := getExtrasWindowSize(args)
-
 	showInfoSection := args.UserConfig.Gui.ShowBottomLine ||
 		args.InSearchPrompt ||
 		args.IsAnyModeActive ||
@@ -156,17 +149,7 @@ func GetWindowDimensions(args WindowArrangementArgs) map[string]boxlayout.Dimens
 					{
 						Direction: boxlayout.ROW,
 						Weight:    mainSectionWeight,
-						Children: []*boxlayout.Box{
-							{
-								Direction: mainPanelsDirection,
-								Children:  mainSectionChildren(args),
-								Weight:    1,
-							},
-							{
-								Window: "extras",
-								Size:   extrasWindowSize,
-							},
-						},
+						Children:  mainPanelChildren(args),
 					},
 				},
 			},
@@ -182,6 +165,28 @@ func GetWindowDimensions(args WindowArrangementArgs) map[string]boxlayout.Dimens
 	limitWindows := boxlayout.ArrangeWindows(&boxlayout.Box{Window: "limit"}, 0, 0, args.Width, args.Height)
 
 	return MergeMaps(layerOneWindows, limitWindows)
+}
+
+func mainPanelChildren(args WindowArrangementArgs) []*boxlayout.Box {
+	mainPanelsDirection := boxlayout.ROW
+	if splitMainPanelSideBySide(args) {
+		mainPanelsDirection = boxlayout.COLUMN
+	}
+
+	result := []*boxlayout.Box{
+		{
+			Direction: mainPanelsDirection,
+			Children:  mainSectionChildren(args),
+			Weight:    1,
+		},
+	}
+	if args.ShowExtrasWindow {
+		result = append(result, &boxlayout.Box{
+			Window: "extras",
+			Size:   getExtrasWindowSize(args),
+		})
+	}
+	return result
 }
 
 func MergeMaps[K comparable, V any](maps ...map[K]V) map[K]V {
@@ -370,10 +375,6 @@ func splitMainPanelSideBySide(args WindowArrangementArgs) bool {
 }
 
 func getExtrasWindowSize(args WindowArrangementArgs) int {
-	if !args.ShowExtrasWindow {
-		return 0
-	}
-
 	var baseSize int
 	// The 'extras' window contains the command log context
 	if args.CurrentStaticWindow == "extras" {
