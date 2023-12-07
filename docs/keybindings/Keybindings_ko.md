@@ -325,6 +325,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: View 'discard changes' options
   <kbd>&lt;space&gt;</kbd>: Staged 전환
   <kbd>&lt;c-b&gt;</kbd>: 파일을 필터하기 (Staged/unstaged)
+  <kbd>y</kbd>: Copy to clipboard
   <kbd>c</kbd>: 커밋 변경내용
   <kbd>w</kbd>: Commit changes without pre-commit hook
   <kbd>A</kbd>: 마지맛 커밋 수정

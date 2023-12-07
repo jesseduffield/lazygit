@@ -188,6 +188,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: View 'discard changes' options
   <kbd>&lt;space&gt;</kbd>: ステージ/アンステージ
   <kbd>&lt;c-b&gt;</kbd>: ファイルをフィルタ (ステージ/アンステージ)
+  <kbd>y</kbd>: Copy to clipboard
   <kbd>c</kbd>: 変更をコミット
   <kbd>w</kbd>: pre-commitフックを実行せずに変更をコミット
   <kbd>A</kbd>: 最新のコミットにamend

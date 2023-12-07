@@ -948,6 +948,10 @@
             "openStatusFilter": {
               "type": "string",
               "default": "\u003cc-b\u003e"
+            },
+            "copyFileInfoToClipboard": {
+              "type": "string",
+              "default": "y"
             }
           },
           "additionalProperties": false,

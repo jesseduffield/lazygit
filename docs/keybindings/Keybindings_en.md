@@ -116,6 +116,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: View 'discard changes' options
   <kbd>&lt;space&gt;</kbd>: Toggle staged
   <kbd>&lt;c-b&gt;</kbd>: Filter files by status
+  <kbd>y</kbd>: Copy to clipboard
   <kbd>c</kbd>: Commit changes
   <kbd>w</kbd>: Commit changes without pre-commit hook
   <kbd>A</kbd>: Amend last commit
