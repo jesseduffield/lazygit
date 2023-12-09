@@ -141,6 +141,7 @@ type IPopupHandler interface {
 	// Shows a popup prompting the user for input.
 	Prompt(opts PromptOpts) error
 	WithWaitingStatus(message string, f func(gocui.Task) error) error
+	WithWaitingStatusSync(message string, f func() error) error
 	Menu(opts CreateMenuOptions) error
 	Toast(message string)
 	GetPromptInput() string
