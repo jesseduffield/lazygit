@@ -53,8 +53,11 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		{viewPtr: &gui.Views.AppStatus, name: "appStatus"},
 		{viewPtr: &gui.Views.Information, name: "information"},
 		{viewPtr: &gui.Views.Search, name: "search"},
-		// this view takes up one character. Its only purpose is to show the slash when searching
+		// this view shows either the "Search:" prompt when searching, or the "Filter:" prompt when filtering
 		{viewPtr: &gui.Views.SearchPrefix, name: "searchPrefix"},
+		// these views contain one space, and are used as spacers between the various views in the bottom line
+		{viewPtr: &gui.Views.StatusSpacer1, name: "statusSpacer1"},
+		{viewPtr: &gui.Views.StatusSpacer2, name: "statusSpacer2"},
 
 		// popups.
 		{viewPtr: &gui.Views.CommitMessage, name: "commitMessage"},
@@ -97,6 +100,9 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.SearchPrefix.FgColor = gocui.ColorCyan
 	gui.Views.SearchPrefix.Frame = false
 	gui.c.SetViewContent(gui.Views.SearchPrefix, gui.Tr.SearchPrefix)
+
+	gui.Views.StatusSpacer1.Frame = false
+	gui.Views.StatusSpacer2.Frame = false
 
 	gui.Views.Search.BgColor = gocui.ColorDefault
 	gui.Views.Search.FgColor = gocui.ColorCyan
