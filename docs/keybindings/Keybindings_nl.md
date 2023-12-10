@@ -67,6 +67,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>g</kbd>: Bekijk upstream reset opties
   <kbd>D</kbd>: Bekijk reset opties
   <kbd>`</kbd>: Toggle bestandsboom weergave
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>M</kbd>: Open external merge tool (git mergetool)
   <kbd>f</kbd>: Fetch
   <kbd>/</kbd>: Start met zoeken
@@ -120,6 +121,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: Uitsluit deze commit zijn veranderingen aan dit bestand
   <kbd>o</kbd>: Open bestand
   <kbd>e</kbd>: Verander bestand
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;space&gt;</kbd>: Toggle bestand inbegrepen in patch
   <kbd>a</kbd>: Toggle all files included in patch
   <kbd>&lt;enter&gt;</kbd>: Enter bestand om geselecteerde regels toe te voegen aan de patch
@@ -159,6 +161,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>g</kbd>: Bekijk reset opties
   <kbd>c</kbd>: Kopieer commit (cherry-pick)
   <kbd>C</kbd>: Kopieer commit reeks (cherry-pick)
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Bekijk gecommite bestanden
   <kbd>/</kbd>: Start met zoeken
 </pre>
@@ -223,6 +226,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>c</kbd>: Kopieer commit (cherry-pick)
   <kbd>C</kbd>: Kopieer commit reeks (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (gekopieerde) commits selectie
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Bekijk commits
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -312,6 +316,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>c</kbd>: Kopieer commit (cherry-pick)
   <kbd>C</kbd>: Kopieer commit reeks (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (gekopieerde) commits selectie
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Bekijk gecommite bestanden
   <kbd>/</kbd>: Start met zoeken
 </pre>
