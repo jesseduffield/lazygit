@@ -37,7 +37,7 @@ func getTagDisplayStrings(t *models.Tag, itemOperation types.ItemOperation, diff
 	}
 	descriptionColor := style.FgYellow
 	descriptionStr := descriptionColor.Sprint(t.Description())
-	itemOperationStr := itemOperationToString(itemOperation, tr)
+	itemOperationStr := ItemOperationToString(itemOperation, tr)
 	if itemOperationStr != "" {
 		descriptionStr = style.FgCyan.Sprint(itemOperationStr+" "+utils.Loader(time.Now())) + " " + descriptionStr
 	}

@@ -1,6 +1,9 @@
 package context
 
-import "github.com/jesseduffield/lazygit/pkg/gui/context/traits"
+import (
+	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+)
 
 type ListViewModel[T any] struct {
 	*traits.ListCursor
@@ -35,4 +38,9 @@ func (self *ListViewModel[T]) GetItems() []T {
 
 func Zero[T any]() T {
 	return *new(T)
+}
+
+func (self *ListViewModel[T]) GetItem(index int) types.HasUrn {
+	item := self.getModel()[index]
+	return any(item).(types.HasUrn)
 }

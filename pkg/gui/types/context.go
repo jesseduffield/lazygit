@@ -136,6 +136,7 @@ type IListContext interface {
 	Context
 
 	GetSelectedItemId() string
+	IsItemVisible(item HasUrn) bool
 
 	GetList() IList
 	ViewIndexToModelIndex(int) int
@@ -215,6 +216,7 @@ type IController interface {
 type IList interface {
 	IListCursor
 	Len() int
+	GetItem(index int) HasUrn
 }
 
 type IListCursor interface {
