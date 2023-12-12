@@ -473,6 +473,15 @@
           "description": "Command used to display git log of all branches in the main window",
           "default": "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"
         },
+        "remoteBranchOrder": {
+          "type": "string",
+          "enum": [
+            "alphabetical",
+            "lastCommit"
+          ],
+          "description": "One of: 'alphabetical' (default) | 'lastCommit'",
+          "default": "alphabetical"
+        },
         "overrideGpg": {
           "type": "boolean",
           "description": "If true, do not spawn a separate process when using GPG"

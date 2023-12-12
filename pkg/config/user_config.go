@@ -192,6 +192,8 @@ type GitConfig struct {
 	BranchLogCmd string `yaml:"branchLogCmd"`
 	// Command used to display git log of all branches in the main window
 	AllBranchesLogCmd string `yaml:"allBranchesLogCmd"`
+	// One of: 'alphabetical' (default) | 'lastCommit'
+	RemoteBranchOrder string `yaml:"remoteBranchOrder" jsonschema:"enum=alphabetical,enum=lastCommit"`
 	// If true, do not spawn a separate process when using GPG
 	OverrideGpg bool `yaml:"overrideGpg"`
 	// If true, do not allow force pushes
@@ -663,6 +665,7 @@ func GetDefaultConfig() *UserConfig {
 			FetchAll:            true,
 			BranchLogCmd:        "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
 			AllBranchesLogCmd:   "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
+			RemoteBranchOrder:   "alphabetical",
 			DisableForcePushing: false,
 			CommitPrefixes:      map[string]CommitPrefixConfig(nil),
 			ParseEmoji:          false,
