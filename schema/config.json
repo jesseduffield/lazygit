@@ -1378,7 +1378,7 @@
                     "Are you sure you want to push to the remote?"
                   ]
                 },
-                "Options": {
+                "options": {
                   "items": {
                     "properties": {
                       "name": {

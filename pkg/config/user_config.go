@@ -557,7 +557,7 @@ type CustomCommandPrompt struct {
 
 	// Menu options.
 	// Only for menu prompts.
-	Options []CustomCommandMenuOption
+	Options []CustomCommandMenuOption `yaml:"options"`
 
 	// The command to run to generate menu options
 	// Only for menuFromCommand prompts.
