@@ -680,13 +680,13 @@ func (self *LocalCommitsController) amendAttribute(commit *models.Commit) error 
 				Label:   self.c.Tr.ResetAuthor,
 				OnPress: self.resetAuthor,
 				Key:     'a',
-				Tooltip: "Reset the commit's author to the currently configured user. This will also renew the author timestamp",
+				Tooltip: self.c.Tr.ResetAuthorTooltip,
 			},
 			{
 				Label:   self.c.Tr.SetAuthor,
 				OnPress: self.setAuthor,
 				Key:     'A',
-				Tooltip: "Set the author based on a prompt",
+				Tooltip: self.c.Tr.SetAuthorTooltip,
 			},
 			{
 				Label:   self.c.Tr.AddCoAuthor,
