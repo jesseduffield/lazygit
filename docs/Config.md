@@ -254,6 +254,7 @@ keybinding:
     moveDownCommit: '<c-j>' # move commit down one
     moveUpCommit: '<c-k>' # move commit up one
     amendToCommit: 'A'
+    amendAttributeMenu: 'a'
     pickCommit: 'p' # pick commit (when mid-rebase)
     revertCommit: 't'
     cherryPickCopy: 'C'
@@ -276,6 +277,8 @@ keybinding:
     init: 'i'
     update: 'u'
     bulkMenu: 'b'
+  commitMessage:
+    switchToEditor: '<c-o>'
 ```
 
 ## Platform Defaults
