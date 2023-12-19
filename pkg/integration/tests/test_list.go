@@ -74,6 +74,7 @@ var tests = []*components.IntegrationTest{
 	commit.History,
 	commit.HistoryComplex,
 	commit.NewBranch,
+	commit.PreserveCommitMessage,
 	commit.ResetAuthor,
 	commit.Revert,
 	commit.RevertMerge,
