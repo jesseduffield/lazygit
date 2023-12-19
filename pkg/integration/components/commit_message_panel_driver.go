@@ -38,12 +38,6 @@ func (self *CommitMessagePanelDriver) SwitchToDescription() *CommitDescriptionPa
 	return &CommitDescriptionPanelDriver{t: self.t}
 }
 
-func (self *CommitMessagePanelDriver) AddNewline() *CommitMessagePanelDriver {
-	self.t.press(self.t.keys.Universal.Confirm)
-
-	return self
-}
-
 func (self *CommitMessagePanelDriver) Clear() *CommitMessagePanelDriver {
 	// clearing multiple times in case there's multiple lines
 	//  (the clear button only clears a single line at a time)
