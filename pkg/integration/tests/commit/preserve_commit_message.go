@@ -32,17 +32,9 @@ var PreserveCommitMessage = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Press(keys.Files.CommitChanges)
 
-		/* EXPECTED:
 		t.ExpectPopup().CommitMessagePanel().
 			Content(Equals("my commit message")).
 			SwitchToDescription().
 			Content(Equals("first paragraph\n\nsecond paragraph"))
-
-		   ACTUAL:
-		*/
-		t.ExpectPopup().CommitMessagePanel().
-			Content(Equals("my commit message\nfirst paragraph")).
-			SwitchToDescription().
-			Content(Equals("second paragraph"))
 	},
 })
