@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -61,6 +62,31 @@ func (self *CommitsHelper) JoinCommitMessageAndUnwrappedDescription() string {
 		return self.getCommitSummary()
 	}
 	return self.getCommitSummary() + "\n" + self.getUnwrappedCommitDescription()
+}
+
+func TryRemoveHardLineBreaks(message string, autoWrapWidth int) string {
+	messageRunes := []rune(message)
+	lastHardLineStart := 0
+	for i, r := range messageRunes {
+		if r == '\n' {
+			// Try to make this a soft linebreak by turning it into a space, and
+			// checking whether it still wraps to the same result then.
+			messageRunes[i] = ' '
+
+			_, cursorMapping := gocui.AutoWrapContent(messageRunes[lastHardLineStart:], autoWrapWidth)
+
+			// Look at the cursorMapping to check whether auto-wrapping inserted
+			// a line break. If it did, there will be a cursorMapping entry with
+			// Orig pointing to the position after the inserted line break.
+			if len(cursorMapping) == 0 || cursorMapping[0].Orig != i-lastHardLineStart+1 {
+				// It didn't, so change it back to a newline
+				messageRunes[i] = '\n'
+			}
+			lastHardLineStart = i + 1
+		}
+	}
+
+	return string(messageRunes)
 }
 
 func (self *CommitsHelper) SwitchToEditor() error {
