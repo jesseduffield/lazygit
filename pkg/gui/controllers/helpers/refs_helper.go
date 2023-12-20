@@ -119,6 +119,37 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 	return nil
 }
 
+func (self *RefsHelper) CreateSortOrderMenu(onSelected func(sortOrder string) error) error {
+	type sortOrderWithKey struct {
+		key       types.Key
+		label     string
+		sortKey   string
+		sortOrder string
+	}
+	sortKeys := []sortOrderWithKey{
+		{label: self.c.Tr.SortAlphabetical, sortKey: "refname", sortOrder: "alphabetical", key: 'a'},
+		{label: self.c.Tr.SortByDate, sortKey: "-committerdate", sortOrder: "date", key: 'd'},
+	}
+
+	menuItems := lo.Map(sortKeys, func(row sortOrderWithKey, _ int) *types.MenuItem {
+		return &types.MenuItem{
+			LabelColumns: []string{
+				row.label,
+				style.FgYellow.Sprintf("--sort=%s", row.sortKey),
+			},
+			OnPress: func() error {
+				return onSelected(row.sortOrder)
+			},
+			Key: row.key,
+		}
+	})
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.SortOrder,
+		Items: menuItems,
+	})
+}
+
 func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 	type strengthWithKey struct {
 		strength string

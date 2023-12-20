@@ -555,6 +555,9 @@ type TranslationSet struct {
 	LogMenuTitle                        string
 	ToggleShowGitGraphAll               string
 	ShowGitGraph                        string
+	SortOrder                           string
+	SortAlphabetical                    string
+	SortByDate                          string
 	SortCommits                         string
 	CantChangeContextSizeError          string
 	OpenCommitInBrowser                 string
@@ -1364,6 +1367,9 @@ func EnglishTranslationSet() TranslationSet {
 		LogMenuTitle:                        "Commit Log Options",
 		ToggleShowGitGraphAll:               "Toggle show whole git graph (pass the `--all` flag to `git log`)",
 		ShowGitGraph:                        "Show git graph",
+		SortOrder:                           "Sort order",
+		SortAlphabetical:                    "Alphabetical",
+		SortByDate:                          "Date",
 		SortCommits:                         "Commit sort order",
 		CantChangeContextSizeError:          "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
 		OpenCommitInBrowser:                 "Open commit in browser",

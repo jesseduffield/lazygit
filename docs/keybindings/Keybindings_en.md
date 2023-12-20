@@ -258,6 +258,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>r</kbd>: Rebase checked-out branch onto this branch
   <kbd>d</kbd>: Delete remote tag
   <kbd>u</kbd>: Set as upstream of checked-out branch
+  <kbd>s</kbd>: Sort order
   <kbd>g</kbd>: View reset options
   <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: View commits

@@ -296,6 +296,7 @@ _Связки клавиш_
   <kbd>r</kbd>: Перебазировать переключённую ветку на эту ветку
   <kbd>d</kbd>: Delete remote tag
   <kbd>u</kbd>: Установить как upstream-ветку переключённую ветку
+  <kbd>s</kbd>: Порядок сортировки
   <kbd>g</kbd>: Просмотреть параметры сброса
   <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: Просмотреть коммиты

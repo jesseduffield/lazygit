@@ -347,6 +347,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>r</kbd>: 將已檢出的分支變基至此分支
   <kbd>d</kbd>: Delete remote tag
   <kbd>u</kbd>: 將此分支設為當前分支之上游
+  <kbd>s</kbd>: Sort order
   <kbd>g</kbd>: 檢視重設選項
   <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: 檢視提交
