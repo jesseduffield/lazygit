@@ -16,10 +16,11 @@ type ICommitsHelper interface {
 type CommitsHelper struct {
 	c *HelperCommon
 
-	getCommitSummary     func() string
-	setCommitSummary     func(string)
-	getCommitDescription func() string
-	setCommitDescription func(string)
+	getCommitSummary              func() string
+	setCommitSummary              func(string)
+	getCommitDescription          func() string
+	getUnwrappedCommitDescription func() string
+	setCommitDescription          func(string)
 }
 
 var _ ICommitsHelper = &CommitsHelper{}
@@ -29,14 +30,16 @@ func NewCommitsHelper(
 	getCommitSummary func() string,
 	setCommitSummary func(string),
 	getCommitDescription func() string,
+	getUnwrappedCommitDescription func() string,
 	setCommitDescription func(string),
 ) *CommitsHelper {
 	return &CommitsHelper{
-		c:                    c,
-		getCommitSummary:     getCommitSummary,
-		setCommitSummary:     setCommitSummary,
-		getCommitDescription: getCommitDescription,
-		setCommitDescription: setCommitDescription,
+		c:                             c,
+		getCommitSummary:              getCommitSummary,
+		setCommitSummary:              setCommitSummary,
+		getCommitDescription:          getCommitDescription,
+		getUnwrappedCommitDescription: getUnwrappedCommitDescription,
+		setCommitDescription:          setCommitDescription,
 	}
 }
 
@@ -53,11 +56,11 @@ func (self *CommitsHelper) SetMessageAndDescriptionInView(message string) {
 	self.c.Contexts().CommitMessage.RenderCommitLength()
 }
 
-func (self *CommitsHelper) JoinCommitMessageAndDescription() string {
-	if len(self.getCommitDescription()) == 0 {
+func (self *CommitsHelper) JoinCommitMessageAndUnwrappedDescription() string {
+	if len(self.getUnwrappedCommitDescription()) == 0 {
 		return self.getCommitSummary()
 	}
-	return self.getCommitSummary() + "\n" + self.getCommitDescription()
+	return self.getCommitSummary() + "\n" + self.getUnwrappedCommitDescription()
 }
 
 func (self *CommitsHelper) SwitchToEditor() error {
@@ -154,7 +157,7 @@ func (self *CommitsHelper) HandleCommitConfirm() error {
 
 func (self *CommitsHelper) CloseCommitMessagePanel() error {
 	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
-		message := self.JoinCommitMessageAndDescription()
+		message := self.JoinCommitMessageAndUnwrappedDescription()
 
 		self.c.Contexts().CommitMessage.SetPreservedMessage(message)
 	} else {
