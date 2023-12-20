@@ -142,7 +142,7 @@ func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
 		ToArgv()
 
 	message, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
-	return strings.TrimSpace(message), err
+	return strings.ReplaceAll(strings.TrimSpace(message), "\r\n", "\n"), err
 }
 
 func (self *CommitCommands) GetCommitSubject(commitSha string) (string, error) {
