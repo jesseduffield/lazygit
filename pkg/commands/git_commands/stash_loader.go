@@ -32,7 +32,7 @@ func (self *StashLoader) GetStashEntries(filterPath string) []*models.StashEntry
 		return self.getUnfilteredStashEntries()
 	}
 
-	cmdArgs := NewGitCmd("stash").Arg("list", "--name-only").ToArgv()
+	cmdArgs := NewGitCmd("stash").Arg("list", "--name-only", "--pretty=%ct|%gs").ToArgv()
 	rawString, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	if err != nil {
 		return self.getUnfilteredStashEntries()
@@ -66,7 +66,7 @@ outer:
 }
 
 func (self *StashLoader) getUnfilteredStashEntries() []*models.StashEntry {
-	cmdArgs := NewGitCmd("stash").Arg("list", "-z", "--pretty=%gs").ToArgv()
+	cmdArgs := NewGitCmd("stash").Arg("list", "-z", "--pretty=%ct|%gs").ToArgv()
 
 	rawString, _ := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	return lo.Map(utils.SplitNul(rawString), func(line string, index int) *models.StashEntry {
@@ -75,8 +75,23 @@ func (self *StashLoader) getUnfilteredStashEntries() []*models.StashEntry {
 }
 
 func (c *StashLoader) stashEntryFromLine(line string, index int) *models.StashEntry {
-	return &models.StashEntry{
+	model := &models.StashEntry{
 		Name:  line,
 		Index: index,
 	}
+
+	tstr, msg, ok := strings.Cut(line, "|")
+	if !ok {
+		return model
+	}
+
+	t, err := strconv.ParseInt(tstr, 10, 64)
+	if err != nil {
+		return model
+	}
+
+	model.Name = msg
+	model.Recency = utils.UnixToTimeAgo(t)
+
+	return model
 }
