@@ -354,7 +354,9 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 	if err != nil {
 		return self.c.Error(err)
 	}
-
+	if self.c.UserConfig.Git.Commit.AutoWrapCommitMessage {
+		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig.Git.Commit.AutoWrapWidth)
+	}
 	return self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
 			CommitIndex:      self.context().GetSelectedLineIdx(),
