@@ -100,7 +100,7 @@ func (self *CommitMessageController) handleCommitIndexChange(value int) error {
 		self.c.Helpers().Commits.SetMessageAndDescriptionInView(self.context().GetHistoryMessage())
 		return nil
 	} else if currentIndex == context.NoCommitIndex {
-		self.context().SetHistoryMessage(self.c.Helpers().Commits.JoinCommitMessageAndDescription())
+		self.context().SetHistoryMessage(self.c.Helpers().Commits.JoinCommitMessageAndUnwrappedDescription())
 	}
 
 	validCommit, err := self.setCommitMessageAtIndex(newIndex)

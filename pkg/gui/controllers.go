@@ -38,10 +38,14 @@ func (gui *Gui) resetHelpersAndControllers() {
 	getCommitDescription := func() string {
 		return strings.TrimSpace(gui.Views.CommitDescription.TextArea.GetContent())
 	}
+	getUnwrappedCommitDescription := func() string {
+		return strings.TrimSpace(gui.Views.CommitDescription.TextArea.GetUnwrappedContent())
+	}
 	commitsHelper := helpers.NewCommitsHelper(helperCommon,
 		getCommitSummary,
 		setCommitSummary,
 		getCommitDescription,
+		getUnwrappedCommitDescription,
 		setCommitDescription,
 	)
 
