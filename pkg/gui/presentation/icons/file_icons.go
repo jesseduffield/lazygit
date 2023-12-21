@@ -328,12 +328,7 @@ func patchFileIconsForNerdFontsV2() {
 	extIconMap[".vue"] = IconProperties{Icon: "\ufd42", Color: 113}     // ﵂
 }
 
-func IconForFile(
-	name string,
-	isSubmodule bool,
-	isLinkedWorktree bool,
-	isDirectory bool,
-) IconProperties {
+func IconForFile(name string, isSubmodule bool, isLinkedWorktree bool, isDirectory bool) IconProperties {
 	base := filepath.Base(name)
 	if icon, ok := nameIconMap[base]; ok {
 		return icon
