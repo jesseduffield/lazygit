@@ -206,12 +206,15 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 }
 
 func (self *RemotesController) fetch(remote *models.Remote) error {
-	return self.c.WithWaitingStatus(self.c.Tr.FetchingRemoteStatus, func(task gocui.Task) error {
+	return self.c.WithInlineStatus(remote, types.ItemOperationFetching, context.REMOTES_CONTEXT_KEY, func(task gocui.Task) error {
 		err := self.c.Git().Sync.FetchRemote(task, remote.Name)
 		if err != nil {
 			_ = self.c.Error(err)
 		}
 
-		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+		return self.c.Refresh(types.RefreshOptions{
+			Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
+			Mode:  types.ASYNC,
+		})
 	})
 }
