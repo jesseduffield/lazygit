@@ -38,6 +38,12 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.FileFilter,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Files.CopyFileInfoToClipboard),
+			Handler:     self.openCopyMenu,
+			Description: self.c.Tr.CopyToClipboardMenu,
+			OpensMenu:   true,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
 			Handler:     self.c.Helpers().WorkingTree.HandleCommitPress,
 			Description: self.c.Tr.CommitChanges,
@@ -745,6 +751,103 @@ func (self *FilesController) createStashMenu() error {
 				Key: 'u',
 			},
 		},
+	})
+}
+
+func (self *FilesController) openCopyMenu() error {
+	node := self.context().GetSelected()
+
+	copyNameItem := &types.MenuItem{
+		Label: self.c.Tr.CopyFileName,
+		OnPress: func() error {
+			if err := self.c.OS().CopyToClipboard(node.Name()); err != nil {
+				return self.c.Error(err)
+			}
+			self.c.Toast(self.c.Tr.FileNameCopiedToast)
+			return nil
+		},
+		Key: 'n',
+	}
+	copyPathItem := &types.MenuItem{
+		Label: self.c.Tr.CopyFilePath,
+		OnPress: func() error {
+			if err := self.c.OS().CopyToClipboard(node.Path); err != nil {
+				return self.c.Error(err)
+			}
+			self.c.Toast(self.c.Tr.FilePathCopiedToast)
+			return nil
+		},
+		Key: 'p',
+	}
+	copyFileDiffItem := &types.MenuItem{
+		Label:   self.c.Tr.CopySelectedDiff,
+		Tooltip: self.c.Tr.CopyFileDiffTooltip,
+		OnPress: func() error {
+			path := self.context().GetSelectedPath()
+			hasStaged := self.hasPathStagedChanges(node)
+			diff, err := self.c.Git().Diff.GetPathDiff(path, hasStaged)
+			if err != nil {
+				return self.c.Error(err)
+			}
+			if err := self.c.OS().CopyToClipboard(diff); err != nil {
+				return self.c.Error(err)
+			}
+			self.c.Toast(self.c.Tr.FileDiffCopiedToast)
+			return nil
+		},
+		Key: 's',
+	}
+	copyAllDiff := &types.MenuItem{
+		Label:   self.c.Tr.CopyAllFilesDiff,
+		Tooltip: self.c.Tr.CopyFileDiffTooltip,
+		OnPress: func() error {
+			hasStaged := self.c.Helpers().WorkingTree.AnyStagedFiles()
+			diff, err := self.c.Git().Diff.GetAllDiff(hasStaged)
+			if err != nil {
+				return self.c.Error(err)
+			}
+			if err := self.c.OS().CopyToClipboard(diff); err != nil {
+				return self.c.Error(err)
+			}
+			self.c.Toast(self.c.Tr.AllFilesDiffCopiedToast)
+			return nil
+		},
+		Key: 'a',
+	}
+
+	if node == nil {
+		copyNameItem.DisabledReason = self.c.Tr.NoContentToCopyError
+		copyPathItem.DisabledReason = self.c.Tr.NoContentToCopyError
+		copyFileDiffItem.DisabledReason = self.c.Tr.NoContentToCopyError
+	}
+	if node != nil && !node.GetHasStagedOrTrackedChanges() {
+		copyFileDiffItem.DisabledReason = self.c.Tr.NoContentToCopyError
+	}
+	if !self.anyStagedOrTrackedFile() {
+		copyAllDiff.DisabledReason = self.c.Tr.NoContentToCopyError
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.CopyToClipboardMenu,
+		Items: []*types.MenuItem{
+			copyNameItem,
+			copyPathItem,
+			copyFileDiffItem,
+			copyAllDiff,
+		},
+	})
+}
+
+func (self *FilesController) anyStagedOrTrackedFile() bool {
+	if !self.c.Helpers().WorkingTree.AnyStagedFiles() {
+		return self.c.Helpers().WorkingTree.AnyTrackedFiles()
+	}
+	return true
+}
+
+func (self *FilesController) hasPathStagedChanges(node *filetree.FileNode) bool {
+	return node.SomeFile(func(t *models.File) bool {
+		return t.HasStagedChanges
 	})
 }
 

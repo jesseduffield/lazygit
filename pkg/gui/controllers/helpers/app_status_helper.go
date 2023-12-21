@@ -11,13 +11,15 @@ import (
 type AppStatusHelper struct {
 	c *HelperCommon
 
-	statusMgr func() *status.StatusManager
+	statusMgr  func() *status.StatusManager
+	modeHelper *ModeHelper
 }
 
-func NewAppStatusHelper(c *HelperCommon, statusMgr func() *status.StatusManager) *AppStatusHelper {
+func NewAppStatusHelper(c *HelperCommon, statusMgr func() *status.StatusManager, modeHelper *ModeHelper) *AppStatusHelper {
 	return &AppStatusHelper{
-		c:         c,
-		statusMgr: statusMgr,
+		c:          c,
+		statusMgr:  statusMgr,
+		modeHelper: modeHelper,
 	}
 }
 
@@ -68,6 +70,18 @@ func (self *AppStatusHelper) WithWaitingStatus(message string, f func(gocui.Task
 	})
 }
 
+func (self *AppStatusHelper) WithWaitingStatusSync(message string, f func() error) {
+	self.statusMgr().WithWaitingStatus(message, func() {}, func(*status.WaitingStatusHandle) {
+		stop := make(chan struct{})
+		defer func() { close(stop) }()
+		self.renderAppStatusSync(stop)
+
+		if err := f(); err != nil {
+			_ = self.c.Error(err)
+		}
+	})
+}
+
 func (self *AppStatusHelper) HasStatus() bool {
 	return self.statusMgr().HasStatus()
 }
@@ -92,4 +106,38 @@ func (self *AppStatusHelper) renderAppStatus() {
 			}
 		}
 	})
+}
+
+func (self *AppStatusHelper) renderAppStatusSync(stop chan struct{}) {
+	go func() {
+		ticker := time.NewTicker(time.Millisecond * 50)
+		defer ticker.Stop()
+
+		// Forcing a re-layout and redraw after we added the waiting status;
+		// this is needed in case the gui.showBottomLine config is set to false,
+		// to make sure the bottom line appears. It's also useful for redrawing
+		// once after each of several consecutive keypresses, e.g. pressing
+		// ctrl-j to move a commit down several steps.
+		_ = self.c.GocuiGui().ForceLayoutAndRedraw()
+
+		self.modeHelper.SetSuppressRebasingMode(true)
+		defer func() { self.modeHelper.SetSuppressRebasingMode(false) }()
+
+	outer:
+		for {
+			select {
+			case <-ticker.C:
+				appStatus := self.statusMgr().GetStatusString()
+				self.c.SetViewContent(self.c.Views().AppStatus, appStatus)
+				// Redraw all views of the bottom line:
+				bottomLineViews := []*gocui.View{
+					self.c.Views().AppStatus, self.c.Views().Options, self.c.Views().Information,
+					self.c.Views().StatusSpacer1, self.c.Views().StatusSpacer2,
+				}
+				_ = self.c.GocuiGui().ForceRedrawViews(bottomLineViews...)
+			case <-stop:
+				break outer
+			}
+		}
+	}()
 }

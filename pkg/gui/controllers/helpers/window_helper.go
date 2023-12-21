@@ -92,7 +92,7 @@ func (self *WindowHelper) MoveToTopOfWindow(context types.Context) {
 
 	topView := self.TopViewInWindow(window)
 
-	if view.Name() != topView.Name() {
+	if topView != nil && view.Name() != topView.Name() {
 		if err := self.c.GocuiGui().SetViewOnTopOf(view.Name(), topView.Name()); err != nil {
 			self.c.Log.Error(err)
 		}
@@ -106,7 +106,7 @@ func (self *WindowHelper) TopViewInWindow(windowName string) *gocui.View {
 	// The views list is ordered highest-last, so we're grabbing the last view of the window
 	var topView *gocui.View
 	for _, currentView := range self.c.GocuiGui().Views() {
-		if lo.Contains(viewNamesInWindow, currentView.Name()) {
+		if lo.Contains(viewNamesInWindow, currentView.Name()) && currentView.Visible {
 			topView = currentView
 		}
 	}

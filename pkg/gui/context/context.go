@@ -31,11 +31,13 @@ const (
 	MERGE_CONFLICTS_CONTEXT_KEY          types.ContextKey = "mergeConflicts"
 
 	// these shouldn't really be needed for anything but I'm giving them unique keys nonetheless
-	OPTIONS_CONTEXT_KEY       types.ContextKey = "options"
-	APP_STATUS_CONTEXT_KEY    types.ContextKey = "appStatus"
-	SEARCH_PREFIX_CONTEXT_KEY types.ContextKey = "searchPrefix"
-	INFORMATION_CONTEXT_KEY   types.ContextKey = "information"
-	LIMIT_CONTEXT_KEY         types.ContextKey = "limit"
+	OPTIONS_CONTEXT_KEY        types.ContextKey = "options"
+	APP_STATUS_CONTEXT_KEY     types.ContextKey = "appStatus"
+	SEARCH_PREFIX_CONTEXT_KEY  types.ContextKey = "searchPrefix"
+	INFORMATION_CONTEXT_KEY    types.ContextKey = "information"
+	LIMIT_CONTEXT_KEY          types.ContextKey = "limit"
+	STATUS_SPACER1_CONTEXT_KEY types.ContextKey = "statusSpacer1"
+	STATUS_SPACER2_CONTEXT_KEY types.ContextKey = "statusSpacer2"
 
 	MENU_CONTEXT_KEY               types.ContextKey = "menu"
 	CONFIRMATION_CONTEXT_KEY       types.ContextKey = "confirmation"
@@ -109,12 +111,14 @@ type ContextTree struct {
 	CommandLog                  types.Context
 
 	// display contexts
-	AppStatus    types.Context
-	Options      types.Context
-	SearchPrefix types.Context
-	Search       types.Context
-	Information  types.Context
-	Limit        types.Context
+	AppStatus     types.Context
+	Options       types.Context
+	SearchPrefix  types.Context
+	Search        types.Context
+	Information   types.Context
+	Limit         types.Context
+	StatusSpacer1 types.Context
+	StatusSpacer2 types.Context
 }
 
 // the order of this decides which context is initially at the top of its window
@@ -156,6 +160,8 @@ func (self *ContextTree) Flatten() []types.Context {
 		self.Search,
 		self.Information,
 		self.Limit,
+		self.StatusSpacer1,
+		self.StatusSpacer2,
 	}
 }
 

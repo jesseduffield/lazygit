@@ -52,6 +52,17 @@ type TranslationSet struct {
 	Pull                                string
 	Scroll                              string
 	FileFilter                          string
+	CopyToClipboardMenu                 string
+	CopyFileName                        string
+	CopyFilePath                        string
+	CopyFileDiffTooltip                 string
+	CopySelectedDiff                    string
+	CopyAllFilesDiff                    string
+	NoContentToCopyError                string
+	FileNameCopiedToast                 string
+	FilePathCopiedToast                 string
+	FileDiffCopiedToast                 string
+	AllFilesDiffCopiedToast             string
 	FilterStagedFiles                   string
 	FilterUnstagedFiles                 string
 	ResetFilter                         string
@@ -270,6 +281,7 @@ type TranslationSet struct {
 	RedoingStatus                       string
 	CheckingOutStatus                   string
 	CommittingStatus                    string
+	RevertingStatus                     string
 	CommitFiles                         string
 	SubCommitsDynamicTitle              string
 	CommitFilesDynamicTitle             string
@@ -851,6 +863,17 @@ func EnglishTranslationSet() TranslationSet {
 		CantCheckoutBranchWhilePulling:      "You cannot checkout another branch while pulling the current branch",
 		CantPullOrPushSameBranchTwice:       "You cannot push or pull a branch while it is already being pushed or pulled",
 		FileFilter:                          "Filter files by status",
+		CopyToClipboardMenu:                 "Copy to clipboard",
+		CopyFileName:                        "File name",
+		CopyFilePath:                        "Path",
+		CopyFileDiffTooltip:                 "If there are staged items, this command considers only them. Otherwise, it considers all the unstaged ones.",
+		CopySelectedDiff:                    "Diff of selected file",
+		CopyAllFilesDiff:                    "Diff of all files",
+		NoContentToCopyError:                "Nothing to copy",
+		FileNameCopiedToast:                 "File name copied to clipboard",
+		FilePathCopiedToast:                 "File path copied to clipboard",
+		FileDiffCopiedToast:                 "File diff copied to clipboard",
+		AllFilesDiffCopiedToast:             "All files diff copied to clipboard",
 		FilterStagedFiles:                   "Show only staged files",
 		FilterUnstagedFiles:                 "Show only unstaged files",
 		ResetFilter:                         "Reset filter",
@@ -872,7 +895,7 @@ func EnglishTranslationSet() TranslationSet {
 		CantRebaseOntoSelf:                  "You cannot rebase a branch onto itself",
 		CantMergeBranchIntoItself:           "You cannot merge a branch into itself",
 		ForceCheckout:                       "Force checkout",
-		CheckoutByName:                      "Checkout by name",
+		CheckoutByName:                      "Checkout by name, enter '-' to switch to last",
 		NewBranch:                           "New branch",
 		NoBranchesThisRepo:                  "No branches for this repo",
 		CommitWithoutMessageErr:             "You cannot commit without a commit message",
@@ -1071,6 +1094,7 @@ func EnglishTranslationSet() TranslationSet {
 		RedoingStatus:                       "Redoing",
 		CheckingOutStatus:                   "Checking out",
 		CommittingStatus:                    "Committing",
+		RevertingStatus:                     "Reverting",
 		CommitFiles:                         "Commit files",
 		SubCommitsDynamicTitle:              "Commits (%s)",
 		CommitFilesDynamicTitle:             "Diff files (%s)",

@@ -1,6 +1,8 @@
 package filetree
 
 import (
+	"path"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -299,4 +301,8 @@ func (self *Node[T]) ID() string {
 
 func (self *Node[T]) Description() string {
 	return self.GetPath()
+}
+
+func (self *Node[T]) Name() string {
+	return path.Base(self.Path)
 }

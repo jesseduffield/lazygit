@@ -5,7 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 )
 
-func itemOperationToString(itemOperation types.ItemOperation, tr *i18n.TranslationSet) string {
+func ItemOperationToString(itemOperation types.ItemOperation, tr *i18n.TranslationSet) string {
 	switch itemOperation {
 	case types.ItemOperationNone:
 		return ""

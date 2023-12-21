@@ -548,13 +548,14 @@ func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
 	}
 
-	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
 		err := self.c.Git().Rebase.MoveCommitDown(self.c.Model().Commits, index)
 		if err == nil {
 			self.context().MoveSelectedLine(1)
 		}
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{Mode: types.SYNC})
 	})
 }
 
@@ -589,13 +590,14 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
 	}
 
-	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
 		err := self.c.Git().Rebase.MoveCommitUp(self.c.Model().Commits, index)
 		if err == nil {
 			self.context().MoveSelectedLine(-1)
 		}
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{Mode: types.SYNC})
 	})
 }
 
@@ -729,10 +731,12 @@ func (self *LocalCommitsController) revert(commit *models.Commit) error {
 				}),
 			HandleConfirm: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RevertCommit)
-				if err := self.c.Git().Commit.Revert(commit.Sha); err != nil {
-					return self.c.Error(err)
-				}
-				return self.afterRevertCommit()
+				return self.c.WithWaitingStatusSync(self.c.Tr.RevertingStatus, func() error {
+					if err := self.c.Git().Commit.Revert(commit.Sha); err != nil {
+						return err
+					}
+					return self.afterRevertCommit()
+				})
 			},
 		})
 	}
@@ -752,10 +756,12 @@ func (self *LocalCommitsController) createRevertMergeCommitMenu(commit *models.C
 			OnPress: func() error {
 				parentNumber := i + 1
 				self.c.LogAction(self.c.Tr.Actions.RevertCommit)
-				if err := self.c.Git().Commit.RevertMerge(commit.Sha, parentNumber); err != nil {
-					return self.c.Error(err)
-				}
-				return self.afterRevertCommit()
+				return self.c.WithWaitingStatusSync(self.c.Tr.RevertingStatus, func() error {
+					if err := self.c.Git().Commit.RevertMerge(commit.Sha, parentNumber); err != nil {
+						return err
+					}
+					return self.afterRevertCommit()
+				})
 			},
 		}
 	}
@@ -766,7 +772,7 @@ func (self *LocalCommitsController) createRevertMergeCommitMenu(commit *models.C
 func (self *LocalCommitsController) afterRevertCommit() error {
 	self.context().MoveSelectedLine(1)
 	return self.c.Refresh(types.RefreshOptions{
-		Mode: types.BLOCK_UI, Scope: []types.RefreshableView{types.COMMITS, types.BRANCHES},
+		Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS, types.BRANCHES},
 	})
 }
 

@@ -30,6 +30,15 @@ func (self *FileNode) GetHasUnstagedChanges() bool {
 	return self.SomeFile(func(file *models.File) bool { return file.HasUnstagedChanges })
 }
 
+func (self *FileNode) GetHasStagedOrTrackedChanges() bool {
+	if !self.GetHasStagedChanges() {
+		return self.SomeFile(func(t *models.File) bool {
+			return t.Tracked
+		})
+	}
+	return true
+}
+
 func (self *FileNode) GetHasStagedChanges() bool {
 	return self.SomeFile(func(file *models.File) bool { return file.HasStagedChanges })
 }

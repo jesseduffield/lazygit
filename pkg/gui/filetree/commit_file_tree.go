@@ -2,6 +2,7 @@ package filetree
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
@@ -67,6 +68,11 @@ func (self *CommitFileTree) GetAllItems() []*CommitFileNode {
 
 func (self *CommitFileTree) Len() int {
 	return self.tree.Size(self.collapsedPaths) - 1 // ignoring root
+}
+
+func (self *CommitFileTree) GetItem(index int) types.HasUrn {
+	// Unimplemented because we don't yet need to show inlines statuses in commit file views
+	return nil
 }
 
 func (self *CommitFileTree) GetAllFiles() []*models.CommitFile {

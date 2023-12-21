@@ -289,6 +289,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>d</kbd>: 檢視“捨棄更改”的選項
   <kbd>&lt;space&gt;</kbd>: 切換預存
   <kbd>&lt;c-b&gt;</kbd>: 篩選檔案 (預存/未預存)
+  <kbd>y</kbd>: Copy to clipboard
   <kbd>c</kbd>: 提交變更
   <kbd>w</kbd>: 沒有預提交 hook 就提交更改
   <kbd>A</kbd>: 修正上次提交

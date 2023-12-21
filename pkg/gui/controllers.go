@@ -77,6 +77,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	appStatusHelper := helpers.NewAppStatusHelper(
 		helperCommon,
 		func() *status.StatusManager { return gui.statusManager },
+		modeHelper,
 	)
 
 	setSubCommits := func(commits []*models.Commit) {
@@ -114,7 +115,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		Confirmation:    helpers.NewConfirmationHelper(helperCommon),
 		Mode:            modeHelper,
 		AppStatus:       appStatusHelper,
-		InlineStatus:    helpers.NewInlineStatusHelper(helperCommon),
+		InlineStatus:    helpers.NewInlineStatusHelper(helperCommon, windowHelper),
 		WindowArrangement: helpers.NewWindowArrangementHelper(
 			gui.c,
 			windowHelper,

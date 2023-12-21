@@ -150,6 +150,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: Pokaż opcje porzucania zmian
   <kbd>&lt;space&gt;</kbd>: Przełącz stan poczekalni
   <kbd>&lt;c-b&gt;</kbd>: Filter files by status
+  <kbd>y</kbd>: Copy to clipboard
   <kbd>c</kbd>: Zatwierdź zmiany
   <kbd>w</kbd>: Zatwierdź zmiany bez skryptu pre-commit
   <kbd>A</kbd>: Zmień ostatni commit

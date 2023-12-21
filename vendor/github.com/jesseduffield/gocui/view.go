@@ -948,11 +948,11 @@ func (v *View) draw() error {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	v.clearRunes()
-
 	if !v.Visible {
 		return nil
 	}
+
+	v.clearRunes()
 
 	v.updateSearchPositions()
 	maxX, maxY := v.Size()

@@ -97,3 +97,16 @@ func (self *ListContextTrait) OnSearchSelect(selectedLineIdx int) error {
 	self.GetList().SetSelectedLineIdx(selectedLineIdx)
 	return self.HandleFocus(types.OnFocusOpts{})
 }
+
+func (self *ListContextTrait) IsItemVisible(item types.HasUrn) bool {
+	startIdx, length := self.GetViewTrait().ViewPortYBounds()
+	selectionStart := self.ViewIndexToModelIndex(startIdx)
+	selectionEnd := self.ViewIndexToModelIndex(startIdx + length)
+	for i := selectionStart; i < selectionEnd; i++ {
+		iterItem := self.GetList().GetItem(i)
+		if iterItem != nil && iterItem.URN() == item.URN() {
+			return true
+		}
+	}
+	return false
+}
