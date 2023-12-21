@@ -558,6 +558,8 @@ type TranslationSet struct {
 	SortOrder                           string
 	SortAlphabetical                    string
 	SortByDate                          string
+	SortByRecency                       string
+	SortBasedOnReflog                   string
 	SortCommits                         string
 	CantChangeContextSizeError          string
 	OpenCommitInBrowser                 string
@@ -1370,6 +1372,8 @@ func EnglishTranslationSet() TranslationSet {
 		SortOrder:                           "Sort order",
 		SortAlphabetical:                    "Alphabetical",
 		SortByDate:                          "Date",
+		SortByRecency:                       "Recency",
+		SortBasedOnReflog:                   "(based on reflog)",
 		SortCommits:                         "Commit sort order",
 		CantChangeContextSizeError:          "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
 		OpenCommitInBrowser:                 "Open commit in browser",

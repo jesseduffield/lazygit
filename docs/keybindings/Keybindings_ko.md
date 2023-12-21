@@ -188,6 +188,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>M</kbd>: 현재 브랜치에 병합
   <kbd>f</kbd>: Fast-forward this branch from its upstream
   <kbd>T</kbd>: 태그를 생성
+  <kbd>s</kbd>: Sort order
   <kbd>g</kbd>: View reset options
   <kbd>R</kbd>: 브랜치 이름 변경
   <kbd>u</kbd>: View upstream options

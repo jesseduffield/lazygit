@@ -128,7 +128,7 @@ func (self *RemoteBranchesController) rebase(selectedBranch *models.RemoteBranch
 }
 
 func (self *RemoteBranchesController) createSortMenu() error {
-	return self.c.Helpers().Refs.CreateSortOrderMenu(func(sortOrder string) error {
+	return self.c.Helpers().Refs.CreateSortOrderMenu([]string{"alphabetical", "date"}, func(sortOrder string) error {
 		if self.c.GetAppState().RemoteBranchSortOrder != sortOrder {
 			self.c.GetAppState().RemoteBranchSortOrder = sortOrder
 			self.c.SaveAppStateAndLogError()

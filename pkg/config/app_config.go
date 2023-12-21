@@ -323,6 +323,7 @@ type AppState struct {
 	HideCommandLog             bool
 	IgnoreWhitespaceInDiffView bool
 	DiffContextSize            int
+	LocalBranchSortOrder       string
 	RemoteBranchSortOrder      string
 }
 
@@ -332,6 +333,7 @@ func getDefaultAppState() *AppState {
 		RecentRepos:           []string{},
 		StartupPopupVersion:   0,
 		DiffContextSize:       3,
+		LocalBranchSortOrder:  "recency",
 		RemoteBranchSortOrder: "alphabetical",
 	}
 }

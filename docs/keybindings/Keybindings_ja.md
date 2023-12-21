@@ -226,6 +226,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>M</kbd>: 現在のブランチにマージ
   <kbd>f</kbd>: Fast-forward this branch from its upstream
   <kbd>T</kbd>: タグを作成
+  <kbd>s</kbd>: 並び替え
   <kbd>g</kbd>: View reset options
   <kbd>R</kbd>: ブランチ名を変更
   <kbd>u</kbd>: View upstream options

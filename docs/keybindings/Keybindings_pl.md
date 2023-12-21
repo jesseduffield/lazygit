@@ -111,6 +111,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>M</kbd>: Scal do obecnej gałęzi
   <kbd>f</kbd>: Fast-forward this branch from its upstream
   <kbd>T</kbd>: Create tag
+  <kbd>s</kbd>: Sort order
   <kbd>g</kbd>: Wyświetl opcje resetu
   <kbd>R</kbd>: Rename branch
   <kbd>u</kbd>: View upstream options

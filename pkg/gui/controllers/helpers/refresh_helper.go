@@ -430,7 +430,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool) {
 	defer self.c.Mutexes().RefreshingBranchesMutex.Unlock()
 
 	reflogCommits := self.c.Model().FilteredReflogCommits
-	if self.c.Modes().Filtering.Active() {
+	if self.c.Modes().Filtering.Active() && self.c.AppState.LocalBranchSortOrder == "recency" {
 		// in filter mode we filter our reflog commits to just those containing the path
 		// however we need all the reflog entries to populate the recencies of our branches
 		// which allows us to order them correctly. So if we're filtering we'll just
