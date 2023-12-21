@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/gocui"
 )
@@ -73,4 +74,15 @@ func (self *RemoteCommands) CheckRemoteBranchExists(branchName string) bool {
 	_, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 
 	return err == nil
+}
+
+// Resolve what might be a aliased URL into a full URL
+// SEE: `man -P 'less +/--get-url +n' git-ls-remote`
+func (self *RemoteCommands) GetRemoteURL(remoteName string) (string, error) {
+	cmdArgs := NewGitCmd("ls-remote").
+		Arg("--get-url", remoteName).
+		ToArgv()
+
+	url, err := self.cmd.New(cmdArgs).RunWithOutput()
+	return strings.TrimSpace(url), err
 }
