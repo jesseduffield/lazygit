@@ -403,7 +403,6 @@ func traditionalChineseTranslationSet() TranslationSet {
 		PushTag:                             "推送標籤",
 		CreateTag:                           "建立標籤",
 		FetchRemote:                         "擷取遠端",
-		FetchingRemoteStatus:                "正在擷取遠端",
 		CheckoutCommit:                      "檢出提交",
 		SureCheckoutThisCommit:              "你確定要檢出這個提交嗎？",
 		GitFlowOptions:                      "顯示 git-flow 選項",

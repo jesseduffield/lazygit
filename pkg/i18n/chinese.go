@@ -310,7 +310,6 @@ func chineseTranslationSet() TranslationSet {
 		PushTag:                             "推送标签",
 		CreateTag:                           "创建标签",
 		FetchRemote:                         "抓取远程仓库",
-		FetchingRemoteStatus:                "抓取远程仓库中",
 		CheckoutCommit:                      "检出提交",
 		SureCheckoutThisCommit:              "您确定要检出此提交吗?",
 		GitFlowOptions:                      "显示 git-flow 选项",
