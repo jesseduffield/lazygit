@@ -37,12 +37,11 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 					Tooltip(Contains("You cannot delete the checked out branch!")).
 					Title(Equals("Delete branch 'branch-three'?")).
 					Select(Contains("Delete local branch")).
-					Confirm()
-				t.ExpectPopup().
-					Alert().
-					Title(Equals("Error")).
-					Content(Contains("You cannot delete the checked out branch!")).
-					Confirm()
+					Confirm().
+					Tap(func() {
+						t.ExpectToast(Contains("You cannot delete the checked out branch!"))
+					}).
+					Cancel()
 			}).
 			SelectNextItem().
 			Press(keys.Universal.Remove).

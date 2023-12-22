@@ -30,12 +30,11 @@ var CopyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 					Title(Equals("Copy to clipboard")).
 					Select(Contains("File name")).
 					Tooltip(Equals("Disabled: Nothing to copy")).
-					Confirm()
-
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Equals("Nothing to copy")).
-					Confirm()
+					Confirm().
+					Tap(func() {
+						t.ExpectToast(Equals("Disabled: Nothing to copy"))
+					}).
+					Cancel()
 			})
 
 		t.Shell().
@@ -56,12 +55,11 @@ var CopyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 					Title(Equals("Copy to clipboard")).
 					Select(Contains("Diff of selected file")).
 					Tooltip(Contains("Disabled: Nothing to copy")).
-					Confirm()
-
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Equals("Nothing to copy")).
-					Confirm()
+					Confirm().
+					Tap(func() {
+						t.ExpectToast(Equals("Disabled: Nothing to copy"))
+					}).
+					Cancel()
 			}).
 			Press(keys.Files.CopyFileInfoToClipboard).
 			Tap(func() {
@@ -69,12 +67,11 @@ var CopyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 					Title(Equals("Copy to clipboard")).
 					Select(Contains("Diff of all files")).
 					Tooltip(Contains("Disabled: Nothing to copy")).
-					Confirm()
-
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Equals("Nothing to copy")).
-					Confirm()
+					Confirm().
+					Tap(func() {
+						t.ExpectToast(Equals("Disabled: Nothing to copy"))
+					}).
+					Cancel()
 			})
 
 		t.Shell().
