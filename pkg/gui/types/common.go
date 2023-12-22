@@ -144,9 +144,17 @@ type IPopupHandler interface {
 	WithWaitingStatusSync(message string, f func() error) error
 	Menu(opts CreateMenuOptions) error
 	Toast(message string)
-	SetToastFunc(func(string))
+	ErrorToast(message string)
+	SetToastFunc(func(string, ToastKind))
 	GetPromptInput() string
 }
+
+type ToastKind int
+
+const (
+	ToastKindStatus ToastKind = iota
+	ToastKindError
+)
 
 type CreateMenuOptions struct {
 	Title           string
