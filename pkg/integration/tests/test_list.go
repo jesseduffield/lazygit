@@ -245,6 +245,7 @@ var tests = []*components.IntegrationTest{
 	sync.PushWithCredentialPrompt,
 	sync.RenameBranchAndPull,
 	tag.Checkout,
+	tag.CheckoutWhenBranchWithSameNameExists,
 	tag.CreateWhileCommitting,
 	tag.CrudAnnotated,
 	tag.CrudLightweight,
