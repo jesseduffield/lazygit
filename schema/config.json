@@ -1014,6 +1014,10 @@
             "fetchRemote": {
               "type": "string",
               "default": "f"
+            },
+            "sortOrder": {
+              "type": "string",
+              "default": "s"
             }
           },
           "additionalProperties": false,

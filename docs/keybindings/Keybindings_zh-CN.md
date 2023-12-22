@@ -337,6 +337,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>r</kbd>: 将已检出的分支变基到该分支
   <kbd>d</kbd>: Delete remote tag
   <kbd>u</kbd>: 设置为检出分支的上游
+  <kbd>s</kbd>: Sort order
   <kbd>g</kbd>: 查看重置选项
   <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: 查看提交

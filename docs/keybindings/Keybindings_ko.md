@@ -241,6 +241,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>r</kbd>: 체크아웃된 브랜치를 이 브랜치에 리베이스
   <kbd>d</kbd>: Delete remote tag
   <kbd>u</kbd>: Set as upstream of checked-out branch
+  <kbd>s</kbd>: Sort order
   <kbd>g</kbd>: View reset options
   <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: 커밋 보기

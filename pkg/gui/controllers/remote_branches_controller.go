@@ -59,6 +59,12 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			Description: self.c.Tr.SetAsUpstream,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Branches.SortOrder),
+			Handler:     self.createSortMenu,
+			Description: self.c.Tr.SortOrder,
+			OpensMenu:   true,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.checkSelected(self.createResetMenu),
 			Description: self.c.Tr.ViewResetOptions,
@@ -119,6 +125,18 @@ func (self *RemoteBranchesController) merge(selectedBranch *models.RemoteBranch)
 
 func (self *RemoteBranchesController) rebase(selectedBranch *models.RemoteBranch) error {
 	return self.c.Helpers().MergeAndRebase.RebaseOntoRef(selectedBranch.FullName())
+}
+
+func (self *RemoteBranchesController) createSortMenu() error {
+	return self.c.Helpers().Refs.CreateSortOrderMenu(func(sortOrder string) error {
+		if self.c.GetAppState().RemoteBranchSortOrder != sortOrder {
+			self.c.GetAppState().RemoteBranchSortOrder = sortOrder
+			self.c.SaveAppStateAndLogError()
+			self.c.Contexts().RemoteBranches.SetSelectedLineIdx(0)
+			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.REMOTES}})
+		}
+		return nil
+	})
 }
 
 func (self *RemoteBranchesController) createResetMenu(selectedBranch *models.RemoteBranch) error {

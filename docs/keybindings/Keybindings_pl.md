@@ -235,6 +235,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>r</kbd>: Zmiana bazy gałęzi
   <kbd>d</kbd>: Delete remote tag
   <kbd>u</kbd>: Set as upstream of checked-out branch
+  <kbd>s</kbd>: Sort order
   <kbd>g</kbd>: Wyświetl opcje resetu
   <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: View commits
