@@ -83,7 +83,7 @@ func (self *TagsController) GetOnRenderToMain() func() error {
 
 func (self *TagsController) checkout(tag *models.Tag) error {
 	self.c.LogAction(self.c.Tr.Actions.CheckoutTag)
-	if err := self.c.Helpers().Refs.CheckoutRef(tag.Name, types.CheckoutRefOptions{}); err != nil {
+	if err := self.c.Helpers().Refs.CheckoutRef(tag.FullRefName(), types.CheckoutRefOptions{}); err != nil {
 		return err
 	}
 	return self.c.PushContext(self.c.Contexts().Branches)

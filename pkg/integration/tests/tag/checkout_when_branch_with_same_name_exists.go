@@ -26,13 +26,9 @@ var CheckoutWhenBranchWithSameNameExists = NewIntegrationTest(NewIntegrationTest
 			PressPrimaryAction() // checkout tag
 
 		t.Views().Branches().IsFocused().Lines(
-			/* EXPECTED:
 			Contains("HEAD detached at tag").IsSelected(),
 			Contains("master"),
 			Contains("tag"),
-			ACTUAL: */
-			Contains("* tag").DoesNotContain("HEAD detached").IsSelected(),
-			Contains("master"),
 		)
 	},
 })
