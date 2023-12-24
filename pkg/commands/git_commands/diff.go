@@ -14,14 +14,19 @@ func NewDiffCommands(gitCommon *GitCommon) *DiffCommands {
 
 func (self *DiffCommands) DiffCmdObj(diffArgs []string) oscommands.ICmdObj {
 	return self.cmd.New(
-		NewGitCmd("diff").Arg("--submodule", "--no-ext-diff", "--color").Arg(diffArgs...).ToArgv(),
+		NewGitCmd("diff").
+			Arg("--submodule", "--no-ext-diff", "--color").
+			Arg(diffArgs...).
+			Dir(self.repoPaths.worktreePath).
+			ToArgv(),
 	)
 }
 
 func (self *DiffCommands) internalDiffCmdObj(diffArgs ...string) *GitCommandBuilder {
 	return NewGitCmd("diff").
 		Arg("--no-ext-diff", "--no-color").
-		Arg(diffArgs...)
+		Arg(diffArgs...).
+		Dir(self.repoPaths.worktreePath)
 }
 
 func (self *DiffCommands) GetPathDiff(path string, staged bool) (string, error) {
