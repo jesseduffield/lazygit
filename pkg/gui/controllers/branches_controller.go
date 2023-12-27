@@ -98,6 +98,12 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Description: self.c.Tr.CreateTag,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Branches.SortOrder),
+			Handler:     self.createSortMenu,
+			Description: self.c.Tr.SortOrder,
+			OpensMenu:   true,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.checkSelected(self.createResetMenu),
 			Description: self.c.Tr.ViewResetOptions,
@@ -615,6 +621,18 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 
 func (self *BranchesController) createTag(branch *models.Branch) error {
 	return self.c.Helpers().Tags.OpenCreateTagPrompt(branch.FullRefName(), func() {})
+}
+
+func (self *BranchesController) createSortMenu() error {
+	return self.c.Helpers().Refs.CreateSortOrderMenu([]string{"recency", "alphabetical", "date"}, func(sortOrder string) error {
+		if self.c.GetAppState().LocalBranchSortOrder != sortOrder {
+			self.c.GetAppState().LocalBranchSortOrder = sortOrder
+			self.c.SaveAppStateAndLogError()
+			self.c.Contexts().Branches.SetSelectedLineIdx(0)
+			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+		}
+		return nil
+	})
 }
 
 func (self *BranchesController) createResetMenu(selectedBranch *models.Branch) error {

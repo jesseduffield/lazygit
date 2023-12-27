@@ -96,6 +96,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>M</kbd>: Merge in met huidige checked out branch
   <kbd>f</kbd>: Fast-forward deze branch vanaf zijn upstream
   <kbd>T</kbd>: Creëer tag
+  <kbd>s</kbd>: Sort order
   <kbd>g</kbd>: Bekijk reset opties
   <kbd>R</kbd>: Hernoem branch
   <kbd>u</kbd>: View upstream options

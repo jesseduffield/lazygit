@@ -154,6 +154,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>M</kbd>: Merge into currently checked out branch
   <kbd>f</kbd>: Fast-forward this branch from its upstream
   <kbd>T</kbd>: Create tag
+  <kbd>s</kbd>: Sort order
   <kbd>g</kbd>: View reset options
   <kbd>R</kbd>: Rename branch
   <kbd>u</kbd>: View upstream options

@@ -261,6 +261,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>M</kbd>: 合併到當前檢出的分支
   <kbd>f</kbd>: 從上游快進此分支
   <kbd>T</kbd>: 建立標籤
+  <kbd>s</kbd>: Sort order
   <kbd>g</kbd>: 檢視重設選項
   <kbd>R</kbd>: 重新命名分支
   <kbd>u</kbd>: View upstream options

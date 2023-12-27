@@ -89,6 +89,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>M</kbd>: 合并到当前检出的分支
   <kbd>f</kbd>: 从上游快进此分支
   <kbd>T</kbd>: 创建标签
+  <kbd>s</kbd>: Sort order
   <kbd>g</kbd>: 查看重置选项
   <kbd>R</kbd>: 重命名分支
   <kbd>u</kbd>: View upstream options

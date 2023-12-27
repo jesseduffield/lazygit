@@ -3,6 +3,7 @@ package git_commands
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
@@ -62,32 +63,33 @@ func NewBranchLoader(
 func (self *BranchLoader) Load(reflogCommits []*models.Commit) ([]*models.Branch, error) {
 	branches := self.obtainBranches()
 
-	reflogBranches := self.obtainReflogBranches(reflogCommits)
-
-	// loop through reflog branches. If there is a match, merge them, then remove it from the branches and keep it in the reflog branches
-	branchesWithRecency := make([]*models.Branch, 0)
-outer:
-	for _, reflogBranch := range reflogBranches {
-		for j, branch := range branches {
-			if branch.Head {
-				continue
-			}
-			if strings.EqualFold(reflogBranch.Name, branch.Name) {
-				branch.Recency = reflogBranch.Recency
-				branchesWithRecency = append(branchesWithRecency, branch)
-				branches = utils.Remove(branches, j)
-				continue outer
+	if self.AppState.LocalBranchSortOrder == "recency" {
+		reflogBranches := self.obtainReflogBranches(reflogCommits)
+		// loop through reflog branches. If there is a match, merge them, then remove it from the branches and keep it in the reflog branches
+		branchesWithRecency := make([]*models.Branch, 0)
+	outer:
+		for _, reflogBranch := range reflogBranches {
+			for j, branch := range branches {
+				if branch.Head {
+					continue
+				}
+				if strings.EqualFold(reflogBranch.Name, branch.Name) {
+					branch.Recency = reflogBranch.Recency
+					branchesWithRecency = append(branchesWithRecency, branch)
+					branches = utils.Remove(branches, j)
+					continue outer
+				}
 			}
 		}
+
+		// Sort branches that don't have a recency value alphabetically
+		// (we're really doing this for the sake of deterministic behaviour across git versions)
+		slices.SortFunc(branches, func(a *models.Branch, b *models.Branch) bool {
+			return a.Name < b.Name
+		})
+
+		branches = utils.Prepend(branches, branchesWithRecency...)
 	}
-
-	// Sort branches that don't have a recency value alphabetically
-	// (we're really doing this for the sake of deterministic behaviour across git versions)
-	slices.SortFunc(branches, func(a *models.Branch, b *models.Branch) bool {
-		return a.Name < b.Name
-	})
-
-	branches = utils.Prepend(branches, branchesWithRecency...)
 
 	foundHead := false
 	for i, branch := range branches {
@@ -144,7 +146,8 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 			return nil, false
 		}
 
-		return obtainBranch(split), true
+		storeCommitDateAsRecency := self.AppState.LocalBranchSortOrder != "recency"
+		return obtainBranch(split, storeCommitDateAsRecency), true
 	})
 }
 
@@ -156,8 +159,18 @@ func (self *BranchLoader) getRawBranches() (string, error) {
 		"%00",
 	)
 
+	var sortOrder string
+	switch strings.ToLower(self.AppState.LocalBranchSortOrder) {
+	case "recency", "date":
+		sortOrder = "-committerdate"
+	case "alphabetical":
+		sortOrder = "refname"
+	default:
+		sortOrder = "refname"
+	}
+
 	cmdArgs := NewGitCmd("for-each-ref").
-		Arg("--sort=-committerdate").
+		Arg(fmt.Sprintf("--sort=%s", sortOrder)).
 		Arg(fmt.Sprintf("--format=%s", format)).
 		Arg("refs/heads").
 		ToArgv()
@@ -172,22 +185,32 @@ var branchFields = []string{
 	"upstream:track",
 	"subject",
 	"objectname",
+	"committerdate:unix",
 }
 
 // Obtain branch information from parsed line output of getRawBranches()
-func obtainBranch(split []string) *models.Branch {
+func obtainBranch(split []string, storeCommitDateAsRecency bool) *models.Branch {
 	headMarker := split[0]
 	fullName := split[1]
 	upstreamName := split[2]
 	track := split[3]
 	subject := split[4]
 	commitHash := split[5]
+	commitDate := split[6]
 
 	name := strings.TrimPrefix(fullName, "heads/")
 	pushables, pullables, gone := parseUpstreamInfo(upstreamName, track)
 
+	recency := ""
+	if storeCommitDateAsRecency {
+		if unixTimestamp, err := strconv.ParseInt(commitDate, 10, 64); err == nil {
+			recency = utils.UnixToTimeAgo(unixTimestamp)
+		}
+	}
+
 	return &models.Branch{
 		Name:         name,
+		Recency:      recency,
 		Pushables:    pushables,
 		Pullables:    pullables,
 		UpstreamGone: gone,

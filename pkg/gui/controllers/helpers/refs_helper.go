@@ -119,31 +119,40 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 	return nil
 }
 
-func (self *RefsHelper) CreateSortOrderMenu(onSelected func(sortOrder string) error) error {
-	type sortOrderWithKey struct {
-		key       types.Key
-		label     string
-		sortKey   string
-		sortOrder string
+func (self *RefsHelper) CreateSortOrderMenu(sortOptionsOrder []string, onSelected func(sortOrder string) error) error {
+	type sortMenuOption struct {
+		key         types.Key
+		label       string
+		description string
+		sortOrder   string
 	}
-	sortKeys := []sortOrderWithKey{
-		{label: self.c.Tr.SortAlphabetical, sortKey: "refname", sortOrder: "alphabetical", key: 'a'},
-		{label: self.c.Tr.SortByDate, sortKey: "-committerdate", sortOrder: "date", key: 'd'},
+	availableSortOptions := map[string]sortMenuOption{
+		"recency":      {label: self.c.Tr.SortByRecency, description: self.c.Tr.SortBasedOnReflog, key: 'r'},
+		"alphabetical": {label: self.c.Tr.SortAlphabetical, description: "--sort=refname", key: 'a'},
+		"date":         {label: self.c.Tr.SortByDate, description: "--sort=-committerdate", key: 'd'},
+	}
+	sortOptions := make([]sortMenuOption, 0, len(sortOptionsOrder))
+	for _, key := range sortOptionsOrder {
+		sortOption, ok := availableSortOptions[key]
+		if !ok {
+			panic(fmt.Sprintf("unexpected sort order: %s", key))
+		}
+		sortOption.sortOrder = key
+		sortOptions = append(sortOptions, sortOption)
 	}
 
-	menuItems := lo.Map(sortKeys, func(row sortOrderWithKey, _ int) *types.MenuItem {
+	menuItems := lo.Map(sortOptions, func(opt sortMenuOption, _ int) *types.MenuItem {
 		return &types.MenuItem{
 			LabelColumns: []string{
-				row.label,
-				style.FgYellow.Sprintf("--sort=%s", row.sortKey),
+				opt.label,
+				style.FgYellow.Sprint(opt.description),
 			},
 			OnPress: func() error {
-				return onSelected(row.sortOrder)
+				return onSelected(opt.sortOrder)
 			},
-			Key: row.key,
+			Key: opt.key,
 		}
 	})
-
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.SortOrder,
 		Items: menuItems,
