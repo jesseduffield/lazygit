@@ -22,14 +22,14 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Stash().
 			Focus().
 			Lines(
-				Equals("On master: bar"),
-				Equals("On master: foo"),
+				Contains("On master: bar"),
+				Contains("On master: foo"),
 			).
 			SelectNextItem().
 			Press(keys.Stash.RenameStash).
 			Tap(func() {
 				t.ExpectPopup().Prompt().Title(Equals("Rename stash: stash@{1}")).Type(" baz").Confirm()
 			}).
-			SelectedLine(Equals("On master: foo baz"))
+			SelectedLine(Contains("On master: foo baz"))
 	},
 })

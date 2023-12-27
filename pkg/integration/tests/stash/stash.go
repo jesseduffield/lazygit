@@ -29,7 +29,7 @@ var Stash = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Stash().
 			Lines(
-				Contains("my stashed file"),
+				MatchesRegexp(`\ds .* my stashed file`),
 			)
 
 		t.Views().Files().
