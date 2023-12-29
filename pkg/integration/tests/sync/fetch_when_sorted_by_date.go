@@ -41,14 +41,9 @@ var FetchWhenSortedByDate = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("master")).
 			Press(keys.Branches.FetchRemote).
 			Lines(
-				/* EXPECTED:
 				Contains("* branch1"),
 				Contains("master").IsSelected(),
 				Contains("branch2"),
-				ACTUAL: */
-				Contains("* branch1"),
-				Contains("master"),
-				Contains("branch2").IsSelected(),
 			)
 	},
 })

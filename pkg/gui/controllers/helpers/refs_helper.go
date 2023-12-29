@@ -51,6 +51,8 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		self.c.Contexts().LocalCommits.SetLimitCommits(true)
 	}
 
+	refreshOptions := types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true}
+
 	return self.c.WithWaitingStatus(waitingStatus, func(gocui.Task) error {
 		if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {
 			// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
@@ -74,12 +76,12 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 
 						onSuccess()
 						if err := self.c.Git().Stash.Pop(0); err != nil {
-							if err := self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI}); err != nil {
+							if err := self.c.Refresh(refreshOptions); err != nil {
 								return err
 							}
 							return self.c.Error(err)
 						}
-						return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI})
+						return self.c.Refresh(refreshOptions)
 					},
 				})
 			}
@@ -90,7 +92,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		}
 		onSuccess()
 
-		return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI})
+		return self.c.Refresh(refreshOptions)
 	})
 }
 
@@ -218,7 +220,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 			self.c.Contexts().LocalCommits.SetSelection(0)
 			self.c.Contexts().Branches.SetSelection(0)
 
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
 		},
 	})
 }
