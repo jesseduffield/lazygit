@@ -146,6 +146,15 @@ func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
 	return strings.TrimSpace(message), err
 }
 
+func (self *CommitCommands) GetCommitSubject(commitSha string) (string, error) {
+	cmdArgs := NewGitCmd("log").
+		Arg("--format=%s", "--max-count=1", commitSha).
+		ToArgv()
+
+	subject, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	return strings.TrimSpace(subject), err
+}
+
 func (self *CommitCommands) GetCommitDiff(commitSha string) (string, error) {
 	cmdArgs := NewGitCmd("show").Arg("--no-color", commitSha).ToArgv()
 

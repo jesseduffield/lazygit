@@ -462,6 +462,7 @@ type TranslationSet struct {
 	CommitURL                           string
 	CopyCommitMessageToClipboard        string
 	CommitMessage                       string
+	CommitSubject                       string
 	CommitAuthor                        string
 	CopyCommitAttributeToClipboard      string
 	CopyBranchNameToClipboard           string
@@ -519,6 +520,7 @@ type TranslationSet struct {
 	CommitSHACopiedToClipboard          string
 	CommitURLCopiedToClipboard          string
 	CommitMessageCopiedToClipboard      string
+	CommitSubjectCopiedToClipboard      string
 	CommitAuthorCopiedToClipboard       string
 	PatchCopiedToClipboard              string
 	CopiedToClipboard                   string
@@ -707,6 +709,7 @@ type Actions struct {
 	MoveCommitUp                      string
 	MoveCommitDown                    string
 	CopyCommitMessageToClipboard      string
+	CopyCommitSubjectToClipboard      string
 	CopyCommitDiffToClipboard         string
 	CopyCommitSHAToClipboard          string
 	CopyCommitURLToClipboard          string
@@ -1277,7 +1280,8 @@ func EnglishTranslationSet() TranslationSet {
 		CommitSha:                           "Commit SHA",
 		CommitURL:                           "Commit URL",
 		CopyCommitMessageToClipboard:        "Copy commit message to clipboard",
-		CommitMessage:                       "Commit message",
+		CommitMessage:                       "Full commit message",
+		CommitSubject:                       "Commit subject",
 		CommitAuthor:                        "Commit author",
 		CopyCommitAttributeToClipboard:      "Copy commit attribute",
 		CopyBranchNameToClipboard:           "Copy branch name to clipboard",
@@ -1334,6 +1338,7 @@ func EnglishTranslationSet() TranslationSet {
 		CommitSHACopiedToClipboard:          "Commit SHA copied to clipboard",
 		CommitURLCopiedToClipboard:          "Commit URL copied to clipboard",
 		CommitMessageCopiedToClipboard:      "Commit message copied to clipboard",
+		CommitSubjectCopiedToClipboard:      "Commit subject copied to clipboard",
 		CommitAuthorCopiedToClipboard:       "Commit author copied to clipboard",
 		PatchCopiedToClipboard:              "Patch copied to clipboard",
 		CopiedToClipboard:                   "Copied to clipboard",
@@ -1478,6 +1483,7 @@ func EnglishTranslationSet() TranslationSet {
 			CreateLightweightTag:              "Create lightweight tag",
 			CreateAnnotatedTag:                "Create annotated tag",
 			CopyCommitMessageToClipboard:      "Copy commit message to clipboard",
+			CopyCommitSubjectToClipboard:      "Copy commit subject to clipboard",
 			CopyCommitDiffToClipboard:         "Copy commit diff to clipboard",
 			CopyCommitSHAToClipboard:          "Copy commit SHA to clipboard",
 			CopyCommitURLToClipboard:          "Copy commit URL to clipboard",

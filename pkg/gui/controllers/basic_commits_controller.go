@@ -105,7 +105,20 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 				OnPress: func() error {
 					return self.copyCommitSHAToClipboard(commit)
 				},
+			},
+			{
+				Label: self.c.Tr.CommitSubject,
+				OnPress: func() error {
+					return self.copyCommitSubjectToClipboard(commit)
+				},
 				Key: 's',
+			},
+			{
+				Label: self.c.Tr.CommitMessage,
+				OnPress: func() error {
+					return self.copyCommitMessageToClipboard(commit)
+				},
+				Key: 'm',
 			},
 			{
 				Label: self.c.Tr.CommitURL,
@@ -120,13 +133,6 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 					return self.copyCommitDiffToClipboard(commit)
 				},
 				Key: 'd',
-			},
-			{
-				Label: self.c.Tr.CommitMessage,
-				OnPress: func() error {
-					return self.copyCommitMessageToClipboard(commit)
-				},
-				Key: 'm',
 			},
 			{
 				Label: self.c.Tr.CommitAuthor,
@@ -208,6 +214,21 @@ func (self *BasicCommitsController) copyCommitMessageToClipboard(commit *models.
 	}
 
 	self.c.Toast(self.c.Tr.CommitMessageCopiedToClipboard)
+	return nil
+}
+
+func (self *BasicCommitsController) copyCommitSubjectToClipboard(commit *models.Commit) error {
+	message, err := self.c.Git().Commit.GetCommitSubject(commit.Sha)
+	if err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitSubjectToClipboard)
+	if err := self.c.OS().CopyToClipboard(message); err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.Toast(self.c.Tr.CommitSubjectCopiedToClipboard)
 	return nil
 }
 
