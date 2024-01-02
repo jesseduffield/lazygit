@@ -51,7 +51,10 @@ func (self *SyncCommands) Push(task gocui.Task, opts PushOpts) error {
 
 func (self *SyncCommands) fetchCommandBuilder(fetchAll bool) *GitCommandBuilder {
 	return NewGitCmd("fetch").
-		ArgIf(fetchAll, "--all")
+		ArgIf(fetchAll, "--all").
+		// avoid writing to .git/FETCH_HEAD; this allows running a pull
+		// concurrently without getting errors
+		ArgIf(self.version.IsAtLeast(2, 29, 0), "--no-write-fetch-head")
 }
 
 func (self *SyncCommands) FetchCmdObj(task gocui.Task) oscommands.ICmdObj {
