@@ -16,6 +16,9 @@ func (gui *Gui) Helpers() *helpers.Helpers {
 	return gui.helpers
 }
 
+// Note, the order of controllers determines the order in which keybindings appear
+// in the keybinding menu: the earlier that the controller is attached to a context,
+// the lower in the list the keybindings will appear.
 func (gui *Gui) resetHelpersAndControllers() {
 	helperCommon := gui.c
 	recordDirectoryHelper := helpers.NewRecordDirectoryHelper(helperCommon)
@@ -199,6 +202,18 @@ func (gui *Gui) resetHelpersAndControllers() {
 		controllers.AttachControllers(context, searchControllerFactory.Create(context))
 	}
 
+	for _, context := range []controllers.CanViewWorktreeOptions{
+		gui.State.Contexts.LocalCommits,
+		gui.State.Contexts.ReflogCommits,
+		gui.State.Contexts.SubCommits,
+		gui.State.Contexts.Stash,
+		gui.State.Contexts.Branches,
+		gui.State.Contexts.RemoteBranches,
+		gui.State.Contexts.Tags,
+	} {
+		controllers.AttachControllers(context, controllers.NewWorktreeOptionsController(common, context))
+	}
+
 	// allow for navigating between side window contexts
 	for _, context := range []types.Context{
 		gui.State.Contexts.Status,
@@ -247,18 +262,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 		controllers.AttachControllers(context, controllers.NewBasicCommitsController(common, context))
 	}
 
-	for _, context := range []controllers.CanViewWorktreeOptions{
-		gui.State.Contexts.LocalCommits,
-		gui.State.Contexts.ReflogCommits,
-		gui.State.Contexts.SubCommits,
-		gui.State.Contexts.Stash,
-		gui.State.Contexts.Branches,
-		gui.State.Contexts.RemoteBranches,
-		gui.State.Contexts.Tags,
-	} {
-		controllers.AttachControllers(context, controllers.NewWorktreeOptionsController(common, context))
-	}
-
 	controllers.AttachControllers(gui.State.Contexts.ReflogCommits,
 		reflogCommitsController,
 	)
@@ -304,11 +307,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.Submodules,
 		submodulesController,
-	)
-
-	controllers.AttachControllers(gui.State.Contexts.LocalCommits,
-		localCommitsController,
-		bisectController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Branches,
@@ -374,11 +372,11 @@ func (gui *Gui) resetHelpersAndControllers() {
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Global,
-		syncController,
 		undoController,
 		globalController,
 		contextLinesController,
 		jumpToSideWindowController,
+		syncController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Snake,

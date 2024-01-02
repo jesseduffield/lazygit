@@ -25,16 +25,19 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 	menuItems := []*types.MenuItem{
 		{
 			Label:   self.c.Tr.ResetPatch,
+			Tooltip: self.c.Tr.ResetPatchTooltip,
 			OnPress: self.c.Helpers().PatchBuilding.Reset,
 			Key:     'c',
 		},
 		{
 			Label:   self.c.Tr.ApplyPatch,
+			Tooltip: self.c.Tr.ApplyPatchTooltip,
 			OnPress: func() error { return self.handleApplyPatch(false) },
 			Key:     'a',
 		},
 		{
 			Label:   self.c.Tr.ApplyPatchInReverse,
+			Tooltip: self.c.Tr.ApplyPatchInReverseTooltip,
 			OnPress: func() error { return self.handleApplyPatch(true) },
 			Key:     'r',
 		},
@@ -44,16 +47,19 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 		menuItems = append(menuItems, []*types.MenuItem{
 			{
 				Label:   fmt.Sprintf(self.c.Tr.RemovePatchFromOriginalCommit, self.c.Git().Patch.PatchBuilder.To),
+				Tooltip: self.c.Tr.RemovePatchFromOriginalCommitTooltip,
 				OnPress: self.handleDeletePatchFromCommit,
 				Key:     'd',
 			},
 			{
 				Label:   self.c.Tr.MovePatchOutIntoIndex,
+				Tooltip: self.c.Tr.MovePatchOutIntoIndexTooltip,
 				OnPress: self.handleMovePatchIntoWorkingTree,
 				Key:     'i',
 			},
 			{
 				Label:   self.c.Tr.MovePatchIntoNewCommit,
+				Tooltip: self.c.Tr.MovePatchIntoNewCommitTooltip,
 				OnPress: self.handlePullPatchIntoNewCommit,
 				Key:     'n',
 			},
@@ -75,6 +81,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 						[]*types.MenuItem{
 							{
 								Label:          fmt.Sprintf(self.c.Tr.MovePatchToSelectedCommit, selectedCommit.Sha),
+								Tooltip:        self.c.Tr.MovePatchToSelectedCommitTooltip,
 								OnPress:        self.handleMovePatchToSelectedCommit,
 								Key:            'm',
 								DisabledReason: disabledReason,

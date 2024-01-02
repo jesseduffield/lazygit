@@ -1,6 +1,9 @@
 package types
 
-import "github.com/jesseduffield/gocui"
+import (
+	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
+)
 
 type Key interface{} // FIXME: find out how to get `gocui.Key | rune`
 
@@ -8,20 +11,22 @@ type Key interface{} // FIXME: find out how to get `gocui.Key | rune`
 // is only handled if the given view has focus, or handled globally if the view
 // is ""
 type Binding struct {
-	ViewName    string
-	Handler     func() error
-	Key         Key
-	Modifier    gocui.Modifier
-	Description string
-	Alternative string
-	Tag         string // e.g. 'navigation'. Used for grouping things in the cheatsheet
-	OpensMenu   bool
+	ViewName         string
+	Handler          func() error
+	Key              Key
+	Modifier         gocui.Modifier
+	Description      string
+	ShortDescription string
+	Alternative      string
+	Tag              string // e.g. 'navigation'. Used for grouping things in the cheatsheet
+	OpensMenu        bool
 
 	// If true, the keybinding will appear at the bottom of the screen. If
 	// the given view has no bindings with Display: true, the default keybindings
 	// will be displayed instead.
 	// TODO: implement this
-	Display bool
+	Display      bool
+	DisplayStyle *style.TextStyle
 
 	// to be displayed if the keybinding is highlighted from within a menu
 	Tooltip string

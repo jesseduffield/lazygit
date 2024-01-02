@@ -5,9 +5,11 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type CommitFilesController struct {
@@ -39,25 +41,29 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Key:               opts.GetKey(opts.Config.CommitFiles.CheckoutCommitFile),
 			Handler:           self.withItem(self.checkout),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.CheckoutCommitFile,
+			Description:       self.c.Tr.Checkout,
+			Tooltip:           self.c.Tr.CheckoutCommitFileTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.discard),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.DiscardOldFileChange,
+			Description:       self.c.Tr.Remove,
+			Tooltip:           self.c.Tr.DiscardOldFileChangeTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.OpenFile),
 			Handler:           self.withItem(self.open),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.OpenFile,
+			Tooltip:           self.c.Tr.OpenFileTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Edit),
 			Handler:           self.withItem(self.edit),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.EditFile,
+			Description:       self.c.Tr.Edit,
+			Tooltip:           self.c.Tr.EditFileTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.OpenDiffTool),
@@ -70,22 +76,30 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Handler:           self.withItem(self.toggleForPatch),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.ToggleAddToPatch,
+			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.ToggleAddToPatchTooltip,
+				map[string]string{"doc": constants.Links.Docs.CustomPatchDemo},
+			),
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleStagedAll),
 			Handler:     self.withItem(self.toggleAllForPatch),
 			Description: self.c.Tr.ToggleAllInPatch,
+			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.ToggleAllInPatchTooltip,
+				map[string]string{"doc": constants.Links.Docs.CustomPatchDemo},
+			),
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.GoInto),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.EnterFile,
+			Description:       self.c.Tr.EnterCommitFile,
+			Tooltip:           self.c.Tr.EnterCommitFileTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleTreeView),
 			Handler:     self.toggleTreeView,
 			Description: self.c.Tr.ToggleTreeView,
+			Tooltip:     self.c.Tr.ToggleTreeViewTooltip,
 		},
 	}
 

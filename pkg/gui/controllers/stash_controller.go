@@ -37,24 +37,28 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Handler:           self.withItem(self.handleStashApply),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Apply,
+			Tooltip:           self.c.Tr.StashApplyTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Stash.PopStash),
 			Handler:           self.withItem(self.handleStashPop),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Pop,
+			Tooltip:           self.c.Tr.StashPopTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.handleStashDrop),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Drop,
+			Tooltip:           self.c.Tr.StashDropTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.New),
 			Handler:           self.withItem(self.handleNewBranchOffStashEntry),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.NewBranch,
+			Tooltip:           self.c.Tr.NewBranchFromStashTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Stash.RenameStash),

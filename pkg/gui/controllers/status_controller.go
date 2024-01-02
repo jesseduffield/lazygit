@@ -36,11 +36,13 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
 			Handler:     self.openConfig,
 			Description: self.c.Tr.OpenConfig,
+			Tooltip:     self.c.Tr.OpenFileTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.editConfig,
 			Description: self.c.Tr.EditConfig,
+			Tooltip:     self.c.Tr.EditFileTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Status.CheckForUpdate),

@@ -89,14 +89,14 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Key:         opts.GetKey(opts.Config.Universal.ScrollUpMain),
 			Handler:     self.scrollUpMain,
 			Alternative: "fn+up/shift+k",
-			Description: self.c.Tr.ScrollUpMainPanel,
+			Description: self.c.Tr.ScrollUpMainWindow,
 		},
 		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.ScrollDownMain),
 			Handler:     self.scrollDownMain,
 			Alternative: "fn+down/shift+j",
-			Description: self.c.Tr.ScrollDownMainPanel,
+			Description: self.c.Tr.ScrollDownMainWindow,
 		},
 		{
 			ViewName: "",
@@ -127,7 +127,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:           self.handleCopySelectedSideContextItemToClipboard,
 			GetDisabledReason: self.getCopySelectedSideContextItemToClipboardDisabledReason,
-			Description:       self.c.Tr.CopyFileNameToClipboard,
+			Description:       self.c.Tr.CopyPathToClipboard,
 		},
 		{
 			ViewName:          "localBranches",
@@ -181,13 +181,14 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:           self.handleCopySelectedSideContextItemToClipboard,
 			GetDisabledReason: self.getCopySelectedSideContextItemToClipboardDisabledReason,
-			Description:       self.c.Tr.CopyCommitFileNameToClipboard,
+			Description:       self.c.Tr.CopyPathToClipboard,
 		},
 		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.ExtrasMenu),
 			Handler:     self.handleCreateExtrasMenuPanel,
-			Description: self.c.Tr.OpenExtrasMenu,
+			Description: self.c.Tr.OpenCommandLogMenu,
+			Tooltip:     self.c.Tr.OpenCommandLogMenuTooltip,
 			OpensMenu:   true,
 		},
 		{

@@ -45,29 +45,33 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			Key:               opts.GetKey(opts.Config.Universal.GoInto),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-		},
-		{
-			Key:               opts.GetKey(opts.Config.Branches.FetchRemote),
-			Handler:           self.withItem(self.fetch),
-			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.FetchRemote,
+			Description:       self.c.Tr.ViewBranches,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
 			Handler:     self.add,
-			Description: self.c.Tr.AddNewRemote,
+			Description: self.c.Tr.NewRemote,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.remove),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.RemoveRemote,
+			Description:       self.c.Tr.Remove,
+			Tooltip:           self.c.Tr.RemoveRemoteTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Edit),
 			Handler:           self.withItem(self.edit),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.EditRemote,
+			Description:       self.c.Tr.Edit,
+			Tooltip:           self.c.Tr.EditRemoteTooltip,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Branches.FetchRemote),
+			Handler:           self.withItem(self.fetch),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.Fetch,
+			Tooltip:           self.c.Tr.FetchRemoteTooltip,
 		},
 	}
 

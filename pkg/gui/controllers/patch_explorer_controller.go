@@ -95,6 +95,7 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 			Key:         opts.GetKey(opts.Config.Main.ToggleSelectHunk),
 			Handler:     self.withRenderAndFocus(self.HandleToggleSelectHunk),
 			Description: self.c.Tr.ToggleSelectHunk,
+			Tooltip:     self.c.Tr.ToggleSelectHunkTooltip,
 		},
 		{
 			Tag:         "navigation",
@@ -133,7 +134,7 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 		{
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.withLock(self.CopySelectedToClipboard),
-			Description: self.c.Tr.CopySelectedTexToClipboard,
+			Description: self.c.Tr.CopySelectedTextToClipboard,
 		},
 	}
 }

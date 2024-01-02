@@ -17,10 +17,10 @@ var FilterMenuCancelFilterWithEscape = NewIntegrationTest(NewIntegrationTestArgs
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Keybindings")).
-			Filter("Toggle staged").
+			Filter("Ignore").
 			Lines(
 				// menu has filtered down to the one item that matches the filter
-				Contains(`Toggle staged`).IsSelected(),
+				Contains(`Ignore`).IsSelected(),
 			)
 
 		// Escape should cancel the filter, not close the menu

@@ -38,12 +38,20 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Handler:           self.withItem(self.checkout),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Checkout,
+			Tooltip:           self.c.Tr.TagCheckoutTooltip,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.New),
+			Handler:     self.create,
+			Description: self.c.Tr.NewTag,
+			Tooltip:     self.c.Tr.NewTagTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.delete),
-			Description:       self.c.Tr.ViewDeleteOptions,
+			Description:       self.c.Tr.Delete,
 			GetDisabledReason: self.require(self.singleItemSelected()),
+			Tooltip:           self.c.Tr.TagDeleteTooltip,
 			OpensMenu:         true,
 		},
 		{
@@ -51,17 +59,14 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Handler:           self.withItem(self.push),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.PushTag,
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Universal.New),
-			Handler:     self.create,
-			Description: self.c.Tr.CreateTag,
+			Tooltip:           self.c.Tr.PushTagTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:           self.withItem(self.createResetMenu),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.ViewResetOptions,
+			Description:       self.c.Tr.Reset,
+			Tooltip:           self.c.Tr.ResetTooltip,
 			OpensMenu:         true,
 		},
 	}

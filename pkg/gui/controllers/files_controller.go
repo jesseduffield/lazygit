@@ -41,7 +41,8 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Key:               opts.GetKey(opts.Config.Universal.Select),
 			Handler:           self.withItems(self.press),
 			GetDisabledReason: self.require(self.itemsSelected()),
-			Description:       self.c.Tr.ToggleStaged,
+			Description:       self.c.Tr.Stage,
+			Tooltip:           self.c.Tr.StageTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenStatusFilter),
@@ -57,7 +58,8 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
 			Handler:     self.c.Helpers().WorkingTree.HandleCommitPress,
-			Description: self.c.Tr.CommitChanges,
+			Description: self.c.Tr.Commit,
+			Tooltip:     self.c.Tr.CommitTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
@@ -84,13 +86,15 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Key:               opts.GetKey(opts.Config.Universal.Edit),
 			Handler:           self.withItem(self.edit),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.EditFile,
+			Description:       self.c.Tr.Edit,
+			Tooltip:           self.c.Tr.EditFileTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.OpenFile),
 			Handler:           self.Open,
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.OpenFile,
+			Tooltip:           self.c.Tr.OpenFileTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Files.IgnoreFile),
@@ -107,30 +111,35 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		{
 			Key:         opts.GetKey(opts.Config.Files.StashAllChanges),
 			Handler:     self.stash,
-			Description: self.c.Tr.StashAllChanges,
+			Description: self.c.Tr.Stash,
+			Tooltip:     self.c.Tr.StashTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ViewStashOptions),
 			Handler:     self.createStashMenu,
 			Description: self.c.Tr.ViewStashOptions,
+			Tooltip:     self.c.Tr.ViewStashOptionsTooltip,
 			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleStagedAll),
 			Handler:     self.toggleStagedAll,
 			Description: self.c.Tr.ToggleStagedAll,
+			Tooltip:     self.c.Tr.ToggleStagedAllTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.GoInto),
 			Handler:           self.enter,
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.FileEnter,
+			Tooltip:           self.c.Tr.FileEnterTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
 			Handler:           self.withItems(self.remove),
 			GetDisabledReason: self.require(self.itemsSelected(self.canRemove)),
-			Description:       self.c.Tr.ViewDiscardOptions,
+			Description:       self.c.Tr.Discard,
+			Tooltip:           self.c.Tr.DiscardFileChangesTooltip,
 			OpensMenu:         true,
 		},
 		{
@@ -142,13 +151,15 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		{
 			Key:         opts.GetKey(opts.Config.Files.ViewResetOptions),
 			Handler:     self.createResetMenu,
-			Description: self.c.Tr.ViewResetOptions,
+			Description: self.c.Tr.Reset,
+			Tooltip:     self.c.Tr.FileResetOptionsTooltip,
 			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleTreeView),
 			Handler:     self.toggleTreeView,
 			Description: self.c.Tr.ToggleTreeView,
+			Tooltip:     self.c.Tr.ToggleTreeViewTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.OpenDiffTool),
@@ -160,11 +171,13 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
 			Handler:     self.c.Helpers().WorkingTree.OpenMergeTool,
 			Description: self.c.Tr.OpenMergeTool,
+			Tooltip:     self.c.Tr.OpenMergeToolTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.Fetch),
 			Handler:     self.fetch,
 			Description: self.c.Tr.Fetch,
+			Tooltip:     self.c.Tr.FetchTooltip,
 		},
 	}
 }

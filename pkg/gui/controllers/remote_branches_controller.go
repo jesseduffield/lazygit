@@ -40,6 +40,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			Handler:           self.withItem(self.newLocalBranch),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Checkout,
+			Tooltip:           self.c.Tr.RemoteBranchCheckoutTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.New),
@@ -51,25 +52,29 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			Key:               opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
 			Handler:           opts.Guards.OutsideFilterMode(self.withItem(self.merge)),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.MergeIntoCurrentBranch,
+			Description:       self.c.Tr.Merge,
+			Tooltip:           self.c.Tr.MergeBranchTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.RebaseBranch),
 			Handler:           opts.Guards.OutsideFilterMode(self.withItem(self.rebase)),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.RebaseBranch,
+			Tooltip:           self.c.Tr.RebaseBranchTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.delete),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.DeleteRemoteTag,
+			Description:       self.c.Tr.Delete,
+			Tooltip:           self.c.Tr.DeleteRemoteBranchTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.SetUpstream),
 			Handler:           self.withItem(self.setAsUpstream),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.SetAsUpstream,
+			Tooltip:           self.c.Tr.SetAsUpstreamTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.SortOrder),
@@ -82,6 +87,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			Handler:           self.withItem(self.createResetMenu),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.ViewResetOptions,
+			Tooltip:           self.c.Tr.ResetTooltip,
 			OpensMenu:         true,
 		},
 	}
