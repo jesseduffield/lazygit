@@ -27,6 +27,10 @@ func knownError(tr *i18n.TranslationSet, err error) (string, bool) {
 			originalError: "fatal: not a git repository",
 			newError:      tr.NotARepository,
 		},
+		{
+			originalError: "getwd: no such file or directory",
+			newError:      tr.WorkingDirectoryDoesNotExist,
+		},
 	}
 
 	if mapping, ok := lo.Find(mappings, func(mapping errorMapping) bool {

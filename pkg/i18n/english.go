@@ -335,6 +335,7 @@ type TranslationSet struct {
 	StashIncludeUntrackedChanges        string
 	StashOptions                        string
 	NotARepository                      string
+	WorkingDirectoryDoesNotExist        string
 	Jump                                string
 	ScrollLeftRight                     string
 	ScrollLeft                          string
@@ -1120,6 +1121,7 @@ func EnglishTranslationSet() TranslationSet {
 		InitialBranch:                       "Branch name? (leave empty for git's default): ",
 		NoRecentRepositories:                "Must open lazygit in a git repository. No valid recent repositories. Exiting.",
 		IncorrectNotARepository:             "The value of 'notARepository' is incorrect. It should be one of 'prompt', 'create', 'skip', or 'quit'.",
+		WorkingDirectoryDoesNotExist:        "The current working directory does not exist",
 		AutoStashTitle:                      "Autostash?",
 		AutoStashPrompt:                     "You must stash and pop your changes to bring them across. Do this automatically? (enter/esc)",
 		StashPrefix:                         "Auto-stashing changes for ",
