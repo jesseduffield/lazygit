@@ -245,8 +245,6 @@ func (self *ContextMgr) ActivateContext(c types.Context, opts types.OnFocusOpts)
 
 	self.gui.c.GocuiGui().Cursor = v.Editable
 
-	self.gui.renderContextOptionsMap(c)
-
 	if err := c.HandleFocus(opts); err != nil {
 		return err
 	}

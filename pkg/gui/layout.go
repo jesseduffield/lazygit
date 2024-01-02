@@ -165,6 +165,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		return err
 	}
 
+	gui.renderContextOptionsMap()
+
 outer:
 	for {
 		select {

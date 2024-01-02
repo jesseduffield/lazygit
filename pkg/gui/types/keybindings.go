@@ -11,21 +11,25 @@ type Key interface{} // FIXME: find out how to get `gocui.Key | rune`
 // is only handled if the given view has focus, or handled globally if the view
 // is ""
 type Binding struct {
-	ViewName         string
-	Handler          func() error
-	Key              Key
-	Modifier         gocui.Modifier
-	Description      string
+	ViewName    string
+	Handler     func() error
+	Key         Key
+	Modifier    gocui.Modifier
+	Description string
+	// If defined, this is used in place of Description when showing the keybinding
+	// in the options view at the bottom left of the screen.
 	ShortDescription string
 	Alternative      string
 	Tag              string // e.g. 'navigation'. Used for grouping things in the cheatsheet
 	OpensMenu        bool
 
-	// If true, the keybinding will appear at the bottom of the screen. If
-	// the given view has no bindings with Display: true, the default keybindings
-	// will be displayed instead.
-	// TODO: implement this
-	Display      bool
+	// If true, the keybinding will appear at the bottom of the screen.
+	// Even if set to true, the keybinding will not be displayed if it is currently
+	// disabled. We could instead display it with a strikethrough, but there's
+	// limited realestate to show all the keybindings we want, so we're hiding it instead.
+	DisplayOnScreen bool
+	// if unset, the binding will be displayed in the default color. Only applies to the keybinding
+	// on-screen, not in the keybindings menu.
 	DisplayStyle *style.TextStyle
 
 	// to be displayed if the keybinding is highlighted from within a menu
@@ -37,6 +41,10 @@ type Binding struct {
 	// invoke it. When left nil, the command is always enabled. Note that this
 	// function must not do expensive calls.
 	GetDisabledReason func() *DisabledReason
+}
+
+func (Binding *Binding) IsDisabled() bool {
+	return Binding.GetDisabledReason != nil && Binding.GetDisabledReason() != nil
 }
 
 // A guard is a decorator which checks something before executing a handler
