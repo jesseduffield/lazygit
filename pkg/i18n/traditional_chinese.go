@@ -3,54 +3,53 @@
 The selection of Traditional Chinese translation vocabulary is mainly based on
 the following sources:
 
- 1. GitLab: 其介面有相當完整的繁體中文翻譯，但缺少一些本地端功能的對照，例如 stash。
+1. GitLab: 其介面有相當完整的繁體中文翻譯，但缺少一些本地端功能的對照，例如 stash。
 
- 2. Pro Git: Git 的權威參考用書，可惜繁中部分翻譯僅約一半。
-    https://git-scm.com/book/zh-tw/v2
+2. Pro Git: Git 的權威參考用書，可惜繁中部分翻譯僅約一半。
+https://git-scm.com/book/zh-tw/v2
 
- 3. Microsoft 語言入口網站 (Visual Studio)
-    https://www.microsoft.com/zh-tw/language/
+3. Microsoft 語言入口網站 (Visual Studio)
+https://www.microsoft.com/zh-tw/language/
 
 ### Glossary ###
 
-	譯文中括號內文字會依語境添加或省略。
+譯文中括號內文字會依語境添加或省略。
 
-	Repository		版本庫
-	Amend			修正
-	Checkout		檢出
-	Cherry-pick		揀選
-	Diff			差異
-	Discard			捨棄
-	Drop [stash]	捨棄
-	Fast-forward	快進式 (Fast-forward)
-	Fetch			擷取
-	Fixup			修復 (Fixup)
-	Patch			補丁
-	Pop [stash]		還原
-	Rebase			變基 (Rebase)
-	Reset			重設
-	Revert			還原
-	Reword			改寫
-	Squash			壓縮 (Squash)
-	Stage			預存 (Stage)
-	Stash			收藏 (Stash)
+Repository		版本庫
+Amend			修改
+Checkout		檢出
+Cherry-pick		揀選
+Diff			差異
+Discard			捨棄
+Drop [stash]		捨棄
+Fast-forward		快轉 (Fast-forward)
+Fetch			擷取
+Fixup			修復 (Fixup)
+Patch			補丁
+Pop [stash]		還原
+Rebase			變基 (Rebase)
+Reset			重設
+Revert			還原
+Reword			改寫
+Squash			壓縮 (Squash)
+Stage			預存 (Stage)
+Stash			收藏 (Stash)
 */
 package i18n
 
 const traditionalChineseIntroPopupMessage = `
-感謝你使用 lazygit，你真的很厲害。有三件事要與你分享：
+感謝使用 lazygit！這裡有一些資源可供參考：
 
- 1) 如果你想了解 lazygit 的功能，請看這個影片：
-      https://youtu.be/CPLdltN7wgE
+1) 📺lazygit 教學📺：
+https://youtu.be/CPLdltN7wgE
 
- 2) 請務必閱讀最新的發布說明：
-      https://github.com/jesseduffield/lazygit/releases
+2) 📣釋出說明📣：
+https://github.com/jesseduffield/lazygit/releases
 
- 3) 如果你正在使用 git，那麼就是一個程式設計師！在你的幫助下，
-	我們可以使 lazygit 變得更好，請考慮成為貢獻者並一起同樂：
-      https://github.com/jesseduffield/lazygit
-	你也可以贊助我，並告訴我有什麼要改進的，點擊右下方的捐贈按鈕即可。
-	就算是只在版本庫中點個星星分享愛也很棒！
+3) 💖如果你想要貢獻一份心力你可以💖：
+改進 lazygit 原始碼：https://github.com/jesseduffield/lazygit
+按右下角的捐款斗內我們
+或單存添加 lazygit 到你的 star 清單內以增加曝光度都能大力的幫助我們！
 `
 
 const traditionalChineseDeprecatedEditConfigWarning = `
@@ -59,16 +58,16 @@ const traditionalChineseDeprecatedEditConfigWarning = `
 以下設定已被取代並將於未來版本中刪除：
 {{configs}}
 
-請參考以下連結獲取關於如何設定編輯器的最新資訊：
+編輯器設定教學：
 
-  https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing
+https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing
 
 `
 
 // exporting this so we can use it in tests
 func traditionalChineseTranslationSet() TranslationSet {
 	return TranslationSet{
-		NotEnoughSpace:                      "沒有足夠空間可以繪製面板",
+		NotEnoughSpace:                      "無足夠空間顯示面板",
 		DiffTitle:                           "差異",
 		FilesTitle:                          "檔案",
 		BranchesTitle:                       "分支",
@@ -78,23 +77,23 @@ func traditionalChineseTranslationSet() TranslationSet {
 		EasterEgg:                           "彩蛋",
 		UnstagedChanges:                     "未預存變更",
 		StagedChanges:                       "已預存變更",
-		MainTitle:                           "主視窗",
+		MainTitle:                           "主要",
 		MergeConfirmTitle:                   "合併",
-		StagingTitle:                        "主視窗 (預存中)",
-		MergingTitle:                        "主視窗 (合併中)",
-		NormalTitle:                         "主視窗 (一般)",
+		StagingTitle:                        "主要 (預存中)",
+		MergingTitle:                        "主要 (合併中)",
+		NormalTitle:                         "主要",
 		LogTitle:                            "版本記錄",
 		CommitSummary:                       "提交摘要",
 		CredentialsUsername:                 "使用者名稱",
 		CredentialsPassword:                 "密碼",
-		CredentialsPassphrase:               "輸入 SSH 金鑰的密碼",
-		CredentialsPIN:                      "輸入 SSH 金鑰的 PIN 碼",
+		CredentialsPassphrase:               "輸入 SSH 金鑰密語",
+		CredentialsPIN:                      "輸入 SSH 金鑰 PIN 碼",
 		PassUnameWrong:                      "密碼、密語或使用者名稱錯誤",
 		CommitChanges:                       "提交變更",
-		AmendLastCommit:                     "修正上次提交",
-		AmendLastCommitTitle:                "修正上次提交",
-		SureToAmend:                         "是否確定要修正上次提交？之後你可以從提交面板中再次更改此次提交的訊息。",
-		NoCommitToAmend:                     "沒有可以修正的提交。",
+		AmendLastCommit:                     "修改上次提交",
+		AmendLastCommitTitle:                "修改上次提交",
+		SureToAmend:                         "是否確定要修改上次提交？之後你可以從提交面板中再次更改此次提交的訊息。",
+		NoCommitToAmend:                     "沒有可以修改的提交。",
 		CommitChangesWithEditor:             "使用 git 編輯器提交變更",
 		StatusTitle:                         "狀態",
 		Menu:                                "功能表",
@@ -116,15 +115,15 @@ func traditionalChineseTranslationSet() TranslationSet {
 		NoChangedFiles:                      "沒有變更的檔案",
 		SoftReset:                           "軟重設",
 		AlreadyCheckedOutBranch:             "你已經檢出這個分支了",
-		SureForceCheckout:                   "你確定要強制檢出嗎？這將會使你失去本地的所有更改",
+		SureForceCheckout:                   "是否強制檢出嗎？這將會使你失去本地的所有更改",
 		ForceCheckoutBranch:                 "強制檢出分支",
 		BranchName:                          "分支名稱",
 		NewBranchNameBranchOff:              "新的分支名稱 (根據 '{{.branchName}}' 分支創建)",
-		CantDeleteCheckOutBranch:            "你不能刪除已檢出的分支！",
-		ForceDeleteBranchMessage:            "'{{.selectedBranchName}}' 分支尚未完全合併。你確定要刪除嗎？",
+		CantDeleteCheckOutBranch:            "無法刪除已檢出的分支！",
+		ForceDeleteBranchMessage:            "'{{.selectedBranchName}}' 分支尚未完全合併。是否刪除嗎？",
 		RebaseBranch:                        "將已檢出的分支變基至此分支",
-		CantRebaseOntoSelf:                  "你不能將分支變基至自己",
-		CantMergeBranchIntoItself:           "你不能將一個分支合併至自己",
+		CantRebaseOntoSelf:                  "無法將分支變基至自己",
+		CantMergeBranchIntoItself:           "無法將一個分支合併至自己",
 		ForceCheckout:                       "強制檢出",
 		CheckoutByName:                      "根據名稱檢出",
 		NewBranch:                           "新分支",
@@ -140,8 +139,8 @@ func traditionalChineseTranslationSet() TranslationSet {
 		UpdateRefHere:                       "在這裡更新 '{{.ref}}' 分支",
 		CannotSquashOrFixupFirstCommit:      "沒有可以壓縮的提交",
 		Fixup:                               "修復 (Fixup)",
-		SureFixupThisCommit:                 "你確定要對這個提交進行 '修復' 嗎？ 它將被合併到下面的提交中",
-		SureSquashThisCommit:                "你確定要把這個提交壓縮到下面的提交中嗎？",
+		SureFixupThisCommit:                 "是否對此提交進行 '修復' 嗎？ 其將被合併於以下之提交中",
+		SureSquashThisCommit:                "是否要把這個提交壓縮到下面的提交中嗎？",
 		Squash:                              "壓縮 (Squash)",
 		PickCommit:                          "挑選提交 (於變基過程中)",
 		RevertCommit:                        "還原提交",
@@ -150,11 +149,11 @@ func traditionalChineseTranslationSet() TranslationSet {
 		MoveDownCommit:                      "向下移動提交",
 		MoveUpCommit:                        "向上移動提交",
 		EditCommit:                          "編輯提交",
-		AmendToCommit:                       "使用已預存的更改修正提交",
+		AmendToCommit:                       "使用已預存的更改修改提交",
 		ResetAuthor:                         "重設作者",
 		SetAuthor:                           "設置作者",
 		SetResetCommitAuthor:                "設置/重設提交作者",
-		SetAuthorPromptTitle:                "設置作者 (格式如 '姓名 <電子郵件>')",
+		SetAuthorPromptTitle:                "設置作者 (格式：'姓名 <電子郵件>')",
 		SureResetCommitAuthor:               "此提交的作者欄位將被更新以符合已配置的使用者。它也會更新作者的時間戳。繼續嗎？",
 		RenameCommitEditor:                  "使用編輯器改寫提交",
 		Error:                               "錯誤",
@@ -172,11 +171,11 @@ func traditionalChineseTranslationSet() TranslationSet {
 		Apply:                               "套用",
 		NoStashEntries:                      "沒有收藏記錄",
 		StashDrop:                           "放棄收藏記錄",
-		SureDropStashEntry:                  "你確定要捨棄這條收藏記錄嗎？",
+		SureDropStashEntry:                  "是否捨棄這條收藏記錄？",
 		StashPop:                            "還原收藏記錄",
-		SurePopStashEntry:                   "你確定要從收藏中還原這個記錄嗎？",
+		SurePopStashEntry:                   "是否從收藏中還原這個記錄？",
 		StashApply:                          "套用收藏記錄",
-		SureApplyStashEntry:                 "你確定要套用這個收藏記錄嗎？",
+		SureApplyStashEntry:                 "是否套用這個收藏記錄？",
 		NoTrackedStagedFilesStash:           "你沒有被追蹤的、預存的檔案可進行收藏",
 		NoFilesToStash:                      "沒有檔案可以進行收藏",
 		StashChanges:                        "安置現有變更到收藏中",
@@ -201,9 +200,9 @@ func traditionalChineseTranslationSet() TranslationSet {
 		CouldNotFindBinaryErr:               "找不到 {{.url}} 路徑下的任何二進位檔",
 		UpdateFailedErr:                     "更新失敗：{{.errMessage}}",
 		ConfirmQuitDuringUpdateTitle:        "正在更新中",
-		ConfirmQuitDuringUpdate:             "正在進行更新，你確定要結束？",
+		ConfirmQuitDuringUpdate:             "正在進行更新，是否結束？",
 		MergeToolTitle:                      "合併工具",
-		MergeToolPrompt:                     "你要開啟 'git mergetool' 嗎？",
+		MergeToolPrompt:                     "是否開啟 'git mergetool'？",
 		IntroPopupMessage:                   traditionalChineseIntroPopupMessage,
 		DeprecatedEditConfigWarning:         traditionalChineseDeprecatedEditConfigWarning,
 		GitconfigParseErr:                   `Gogit 無法解析你的 gitconfig 檔案，因為存在未引用的 '\' 字符，刪除它們應該可以解決這個問題。`,
@@ -213,10 +212,10 @@ func traditionalChineseTranslationSet() TranslationSet {
 		ExcludeFile:                         `添加到 .git/info/exclude`,
 		RefreshFiles:                        `重新整理檔案`,
 		MergeIntoCurrentBranch:              `合併到當前檢出的分支`,
-		ConfirmQuit:                         `你確定要結束嗎？`,
+		ConfirmQuit:                         `是否結束？`,
 		SwitchRepo:                          `切換到最近使用的版本庫`,
 		AllBranchesLogGraph:                 `顯示所有分支日誌`,
-		UnsupportedGitService:               `不支持的 Git 服務`,
+		UnsupportedGitService:               `不支援的 git 服務`,
 		CreatePullRequest:                   `建立拉取請求`,
 		CopyPullRequestURL:                  `複製拉取請求的 URL 到剪貼板`,
 		NoBranchOnRemote:                    `這個分支在遠端不存在。需要先將其推送至遠端。`,
@@ -267,19 +266,19 @@ func traditionalChineseTranslationSet() TranslationSet {
 		FwdNoUpstream:                       "無法快進無上游分支",
 		FwdNoLocalUpstream:                  "無法快進尚未在本地註冊的遠端分支",
 		FwdCommitsToPush:                    "無法快進帶有尚未推送的提交的分支",
-		ErrorOccurred:                       "發生錯誤！請在以下建立議題：",
-		NoRoom:                              "沒有足夠的空間",
-		YouAreHere:                          "你在這裡",
-		YouDied:                             "你已經死了！",
-		RewordNotSupported:                  "在互動變基期間改寫提交目前不支持",
+		ErrorOccurred:                       "發生錯誤！請在此詢問錯誤：",
+		NoRoom:                              "無足夠的空間",
+		YouAreHere:                          "你在這",
+		YouDied:                             "你死了！",
+		RewordNotSupported:                  "在互動變基期間改寫提交目前不支援",
 		ChangingThisActionIsNotAllowed:      "不允許更改此類變基待辦事項",
 		CherryPickCopy:                      "複製提交 (揀選)",
 		CherryPickCopyRange:                 "複製提交範圍 (揀選)",
 		PasteCommits:                        "貼上提交 (揀選)",
-		SureCherryPick:                      "你確定要將複製的提交揀選到此分支嗎？",
+		SureCherryPick:                      "是否將複製的提交揀選到此分支？",
 		CherryPick:                          "揀選 (Cherry-pick)",
 		Donate:                              "贊助",
-		AskQuestion:                         "問問題",
+		AskQuestion:                         "諮詢",
 		PrevLine:                            "選擇上一行",
 		NextLine:                            "選擇下一行",
 		PrevHunk:                            "選擇上一段",
@@ -292,10 +291,10 @@ func traditionalChineseTranslationSet() TranslationSet {
 		ScrollUp:                            "向上捲動",
 		ScrollUpMainPanel:                   "向上捲動主面板",
 		ScrollDownMainPanel:                 "向下捲動主面板",
-		AmendCommitTitle:                    "修正提交",
-		AmendCommitPrompt:                   "你確定要使用預存的檔案修正此提交嗎？",
+		AmendCommitTitle:                    "修改提交",
+		AmendCommitPrompt:                   "是否使用預存檔案修改提交？",
 		DeleteCommitTitle:                   "刪除提交",
-		DeleteCommitPrompt:                  "你確定要刪除此提交嗎？",
+		DeleteCommitPrompt:                  "是否刪除此提交？",
 		PullingStatus:                       "拉取",
 		PushingStatus:                       "推送",
 		FetchingStatus:                      "擷取",
@@ -307,113 +306,28 @@ func traditionalChineseTranslationSet() TranslationSet {
 		MergingStatus:                       "合併中",
 		LowercaseRebasingStatus:             "變基", // lowercase because it shows up in parentheses
 		LowercaseMergingStatus:              "合併", // lowercase because it shows up in parentheses
-		AmendingStatus:                      "修正中",
+		AmendingStatus:                      "修改中",
 		CherryPickingStatus:                 "揀選中",
 		UndoingStatus:                       "復原中",
 		RedoingStatus:                       "取消復原中",
 		CheckingOutStatus:                   "檢出中",
-		CommittingStatus:                    "提交中",
-		CommitFiles:                         "提交檔案",
-		SubCommitsDynamicTitle:              "提交 (共 %s項)",
-		CommitFilesDynamicTitle:             "差異檔案 (共 %s項)",
-		RemoteBranchesDynamicTitle:          "遠端分支 (共 %s項)",
+		CommittingStatus:                    "提交中", 
+		CommitFiles:                         "提交檔案", 
+		SubCommitsDynamicTitle:              "提交 (共 %s項)", 
+		CommitFilesDynamicTitle:             "差異檔案 (共 %s項)", 
+		RemoteBranchesDynamicTitle:          "遠端分支 (共 %s項)", 
 		ViewItemFiles:                       "檢視所選項目的檔案",
 		CommitFilesTitle:                    "提交檔案",
 		CheckoutCommitFile:                  "檢出檔案",
 		DiscardOldFileChange:                "捨棄此提交對此檔案的更改",
 		DiscardFileChangesTitle:             "捨棄檔案更改",
-		DiscardFileChangesPrompt:            "你確定要捨棄此提交對此檔案的更改嗎？如果這個檔案是在此提交中創建的，它將被刪除",
+		DiscardFileChangesPrompt:            "是否捨棄此提交？如果這個檔案是在此提交中創建的，它將被刪除",
 		DisabledForGPG:                      "此功能不適用於使用GPG的使用者",
-		CreateRepo:                          "未在git版本庫中. 建立一個新的git版本庫? (y/n): ",
-		BareRepo:                            "你嘗試在裸版本庫中開啟Lazygit，但Lazygit尚未支持裸版本庫。是否開啟最近的版本庫? (y/n) ",
-		InitialBranch:                       "分支名稱？（留空使用git的默認值）：",
-		NoRecentRepositories:                "必須在git版本庫中開啟lazygit。沒有有效的最近版本庫。退出。",
-		IncorrectNotARepository:             "“notARepository”的值不正確。它應該是“prompt”、“create”、“skip”或“quit”中的一個。",
-		AutoStashTitle:                      "自動儲存?",
-		AutoStashPrompt:                     "你必須儲存和彈出你的更改才能帶它們到其他地方。是否自動執行此操作？（enter/esc）",
-		StashPrefix:                         "正在自動儲存更改：",
-		ViewDiscardOptions:                  "檢視“捨棄更改”的選項",
-		Cancel:                              "取消",
-		DiscardAllChanges:                   "捨棄所有更改",
-		DiscardUnstagedChanges:              "捨棄未預存的更改",
-		DiscardAllChangesToAllFiles:         "清空工作區",
-		DiscardAnyUnstagedChanges:           "捨棄未預存的更改",
-		DiscardUntrackedFiles:               "捨棄未追蹤的檔案",
-		DiscardStagedChanges:                "捨棄已預存的更改",
-		HardReset:                           "硬重設",
-		ViewResetOptions:                    "檢視重設選項",
-		CreateFixupCommitDescription:        "為此提交建立修復提交",
-		SquashAboveCommits:                  "壓縮上方所有的“fixup!”提交 (自動壓縮)",
-		SureSquashAboveCommits:              "你確定要壓縮{{.commit}}上方所有的fixup!提交嗎？",
-		CreateFixupCommit:                   "建立修復提交",
-		SureCreateFixupCommit:               "你確定要為提交{{.commit}}建立fixup!提交嗎？",
-		ExecuteCustomCommand:                "執行自訂命令",
-		CustomCommand:                       "自訂命令：",
-		CommitChangesWithoutHook:            "沒有預提交 hook 就提交更改",
-		SkipHookPrefixNotConfigured:         "你尚未配置略過 hook 的提交訊息前綴，請在設定中設置 `git.skipHookPrefix = 'WIP'`",
-		ResetTo:                             `重設至`,
-		PressEnterToReturn:                  "按 Enter 返回到 lazygit",
-		ViewStashOptions:                    "檢視收藏選項",
-		StashAllChanges:                     "收藏所有變更",
-		StashStagedChanges:                  "收藏已預存變更",
-		StashAllChangesKeepIndex:            "收藏所有變更並保留預存區",
-		StashUnstagedChanges:                "收藏未預存變更",
-		StashIncludeUntrackedChanges:        "收藏所有變更，包括未追蹤檔案",
-		StashOptions:                        "收藏選項",
-		NotARepository:                      "錯誤：必須在 git 版本庫中執行",
-		Jump:                                "跳轉至面板",
-		ScrollLeftRight:                     "左右捲動",
-		ScrollLeft:                          "向左捲動",
-		ScrollRight:                         "向右捲動",
-		DiscardPatch:                        "捨棄補丁",
-		DiscardPatchConfirm:                 "你只能從單一提交或收藏項目建立一個補丁。是否捨棄當前補丁？",
-		CantPatchWhileRebasingError:         "在合併或變基狀態下，你不能建立或運行補丁命令",
-		ToggleAddToPatch:                    "切換檔案是否包含在補丁中",
-		ToggleAllInPatch:                    "切換所有檔案是否包含在補丁中",
-		UpdatingPatch:                       "正在更新補丁",
-		ViewPatchOptions:                    "檢視自訂補丁選項",
-		PatchOptionsTitle:                   "補丁選項",
-		NoPatchError:                        "尚未建立補丁。要開始建立補丁，請在提交檔案上使用空格或輸入以添加特定行",
-		EnterFile:                           "輸入檔案以將選定的行添加至補丁（或切換目錄折疊）",
-		ExitCustomPatchBuilder:              `退出自訂補丁建立器`,
-		EnterUpstream:                       `輸入上游為 '<remote> <branchname>'`,
-		InvalidUpstream:                     "無效的上游。必須符合 '<remote> <branchname>' 的格式",
-		ReturnToRemotesList:                 `返回遠端列表`,
-		AddNewRemote:                        `新增遠端`,
-		NewRemoteName:                       `新遠端名稱：`,
-		NewRemoteUrl:                        `新遠端 URL：`,
-		EditRemoteName:                      `輸入更新 {{.remoteName}} 遠端名稱：`,
-		EditRemoteUrl:                       `輸入更新 {{.remoteName}} 遠端 URL：`,
-		RemoveRemote:                        `移除遠端`,
-		RemoveRemotePrompt:                  "你確定要移除遠端嗎？",
-		DeleteRemoteBranch:                  "刪除遠端分支",
-		DeleteRemoteBranchMessage:           "你確定要刪除遠端分支嗎？",
-		SetAsUpstream:                       "將此分支設為當前分支之上游",
-		SetUpstream:                         "設定所選分支之上游",
-		UnsetUpstream:                       "取消設定選定分支之上游",
-		SetUpstreamTitle:                    "設定上游分支",
-		SetUpstreamMessage:                  "你確定要將 '{{. selected}}' 設為 '{{.checkedOut}}' 的上游分支嗎？",
-		EditRemote:                          "編輯遠端",
-		TagCommit:                           "打標籤到提交",
-		TagMenuTitle:                        "建立標籤",
-		TagNameTitle:                        "標籤名稱",
-		TagMessageTitle:                     "標籤訊息",
-		AnnotatedTag:                        "附註標籤",
-		LightweightTag:                      "輕量標籤",
-		PushTagTitle:                        "推送標籤 '{{.tagName}}' 至遠端：",
-		PushTag:                             "推送標籤",
-		CreateTag:                           "建立標籤",
-		FetchRemote:                         "擷取遠端",
-		FetchingRemoteStatus:                "正在擷取遠端",
-		CheckoutCommit:                      "檢出提交",
-		SureCheckoutThisCommit:              "你確定要檢出這個提交嗎？",
-		GitFlowOptions:                      "顯示 git-flow 選項",
-		NotAGitFlowBranch:                   "這似乎不是一個 git flow 分支",
-		NewGitFlowBranchPrompt:              "{{.branchType}} 名稱：",
-		IgnoreTracked:                       "忽略已追蹤檔案",
-		IgnoreTrackedPrompt:                 "你確定要忽略一個已追蹤的檔案嗎？",
-		ExcludeTracked:                      "排除已追蹤檔案",
-		ExcludeTrackedPrompt:                "你確定要排除一個已追蹤的檔案嗎？",
+		CreateRepo:                          "未在 git 版本庫中。是否建立新版本庫？ (y/n): ",
+		BareRepo:                            "你嘗試在裸版本庫中開啟 Lazygit，但 Lazygit 尚未支援裸版本庫。是否開啟最新版本庫？ (y/n) ",
+		InitialBranch:                       "分支名稱？（留空使用 git 的預設值）：",
+		NoRecentRepositories:                "必須在 git 版本庫中開啟 lazygit。沒有有效的最近版本庫。退出。",
+		DisabledForGPG:                      "此功能不適用於 GPG 加密", 
 		ViewResetToUpstreamOptions:          "檢視上游重設選項",
 		NextScreenMode:                      "下一個螢幕模式（常規/半螢幕/全螢幕）",
 		PrevScreenMode:                      "上一個螢幕模式",
@@ -446,8 +360,7 @@ func traditionalChineseTranslationSet() TranslationSet {
 		FilteringMenuTitle:                  "篩選",
 		MustExitFilterModeTitle:             "命令不可用",
 		MustExitFilterModePrompt:            "在按路徑篩選的模式下，該命令不可用。是否退出按路徑篩選的模式？",
-		Diff:                                "差異",
-		EnterRefToDiff:                      "輸入要比較的 Ref",
+		Diff:                                "差異", EnterRefToDiff:                      "輸入要比較的 Ref",
 		EnterRefName:                        "輸入 Ref：",
 		ExitDiffMode:                        "退出差異模式",
 		DiffingMenuTitle:                    "差異比較",
@@ -472,14 +385,14 @@ func traditionalChineseTranslationSet() TranslationSet {
 		NoFilesStagedTitle:                  "沒有檔案預存",
 		NoFilesStagedPrompt:                 "你沒有預存任何檔案。提交所有檔案嗎？",
 		BranchNotFoundTitle:                 "找不到分支",
-		BranchNotFoundPrompt:                "找不到分支。是否創建一個名為",
+		BranchNotFoundPrompt:                "找不到分支。新分支名稱",
 		BranchUnknown:                       "分支未知",
 		DiscardChangeTitle:                  "取消預存行",
-		DiscardChangePrompt:                 "你確定要刪除所選行嗎（git reset）？此操作是不可逆的。\n要禁用此對話框，請將“gui.skipDiscardChangeWarning”設置為true。",
+		DiscardChangePrompt:                 "是否刪除所選行嗎（git reset）？此操作是不可逆的。\n將「gui.skipDiscardChangeWarning」設為 true 可禁用此警告。",
 		CreateNewBranchFromCommit:           "從提交建立新分支",
 		BuildingPatch:                       "正在建立補丁",
 		ViewCommits:                         "檢視提交",
-		MinGitVersionError:                  "Git 版本至少為 2.20（即從 2018 年開始）。請升級你的 Git 版本。或者在 https://github.com/jesseduffield/lazygit/issues 上提出問題，讓 lazygit 更加向後兼容。",
+		MinGitVersionError:                  "請升級 git 至新於 2.20（即從 2018 年起）之版本。或於 https://github.com/jesseduffield/lazygit/issues 上回報問題使 lazygit 能支援更舊的 git 版本。",
 		RunningCustomCommandStatus:          "正在執行自訂命令",
 		SubmoduleStashAndReset:              "收藏未提交的子模組變更並更新",
 		AndResetSubmodules:                  "以及重設子模組",
@@ -523,16 +436,16 @@ func traditionalChineseTranslationSet() TranslationSet {
 		CopiedToClipboard:                   "已複製至剪貼簿",
 		ErrCannotEditDirectory:              "無法編輯目錄：你只能編輯單獨的檔案",
 		ErrStageDirWithInlineMergeConflicts: "不能預存/取消預存包含具備內嵌合併衝突的檔案的目錄。請先解決合併衝突",
-		ErrRepositoryMovedOrDeleted:         "找不到版本庫。它可能已被移動或刪除 ¯\\_(ツ)_/¯",
+		ErrRepositoryMovedOrDeleted:         "找不到版本庫。可能已被移動或刪除",
 		CommandLog:                          "命令記錄",
 		ToggleShowCommandLog:                "切換顯示/隱藏命令記錄",
 		FocusCommandLog:                     "聚焦命令記錄",
-		CommandLogHeader:                    "你可以按 '%s' 隱藏/聚焦此面板\n",
+		CommandLogHeader:                    " '%s' 隱藏/聚焦此面板\n",
 		RandomTip:                           "隨機提示",
 		SelectParentCommitForMerge:          "選擇合併的父提交",
 		ToggleWhitespaceInDiffView:          "切換是否在差異檢視中顯示空格變更",
 		IgnoreWhitespaceDiffViewSubTitle:    "（忽略空格）",
-		IgnoreWhitespaceNotSupportedHere:    "在此檢視中不支持忽略空格",
+		IgnoreWhitespaceNotSupportedHere:    "在此檢視中不支援忽略空格",
 		IncreaseContextInDiffView:           "增加差異檢視中顯示變更周圍上下文的大小",
 		DecreaseContextInDiffView:           "減小差異檢視中顯示變更周圍上下文的大小",
 		CreatePullRequestOptions:            "建立拉取請求選項",
@@ -543,23 +456,23 @@ func traditionalChineseTranslationSet() TranslationSet {
 		LoadingFileSuggestions:              "正在加載檔案建議",
 		LoadingCommits:                      "正在加載提交",
 		MustSpecifyOriginError:              "如果指定分支，必須指定遠端",
-		GitOutput:                           "Git 輸出：",
-		GitCommandFailed:                    "Git 命令失敗。請查看命令記錄以獲取詳細資訊（按 %s 開啟）",
+		GitOutput:                           "git 輸出：",
+		GitCommandFailed:                    "git 命令失敗。請查看命令記錄以獲取詳細資訊（按 %s 開啟）",
 		AbortTitle:                          "中止%s",
 		AbortPrompt:                         "是否確定要中止當前的%s？",
 		OpenLogMenu:                         "開啟記錄選單",
 		LogMenuTitle:                        "提交記錄選項",
-		ToggleShowGitGraphAll:               "切換顯示整個 Git 圖表（將 `--all` 標誌傳遞給 `git log`）",
-		ShowGitGraph:                        "顯示 Git 圖表",
+		ToggleShowGitGraphAll:               "切換顯示整個 git 圖表（將 `--all` 標誌傳遞給 `git log`）",
+		ShowGitGraph:                        "顯示 git 圖表",
 		SortCommits:                         "提交排序順序",
 		CantChangeContextSizeError:          "在製作補丁期間無法更改上下文大小，因為當發布功能時我們太懒了以至於沒有支援它。如果你真的需要它，請告訴我們！",
 		OpenCommitInBrowser:                 "在瀏覽器中開啟提交",
 		ViewBisectOptions:                   "查看二分選項",
 		ConfirmRevertCommit:                 "確定要還原 {{.selectedCommit}} 嗎？",
 		RewordInEditorTitle:                 "在編輯器中改寫",
-		RewordInEditorPrompt:                "你確定要在編輯器中改寫此提交嗎？",
-		HardResetAutostashPrompt:            "你確定要硬重設為 '%s' 嗎？如果必要會進行自動存儲。",
-		CheckoutPrompt:                      "你確定要檢出 '%s' 嗎？",
+		RewordInEditorPrompt:                "是否在編輯器中改寫此提交嗎？",
+		HardResetAutostashPrompt:            "是否硬重設為 '%s' 嗎？如果必要會進行自動存儲。",
+		CheckoutPrompt:                      "是否檢出 '%s' 嗎？",
 		UpstreamGone:                        "(上游已經不存在)",
 		NukeDescription:                     "如果你想讓所有工作樹上的變更消失，這就是要做的方式。如果有未提交的子模組變更，它將把這些變更藏在子模組中。",
 		DiscardStagedChangesDescription:     "這將創建一個新的存儲條目，其中只包含預存檔案，然後如果存儲條目不需要，將其刪除，因此工作樹僅保留未預存的變更。",
@@ -592,7 +505,7 @@ func traditionalChineseTranslationSet() TranslationSet {
 			RebaseBranch:                      "變基分支",
 			RenameBranch:                      "重新命名分支",
 			CreateBranch:                      "建立分支",
-			CherryPick:                        "（Cherry-pick）粘貼提交",
+			CherryPick:                        "（Cherry-pick）複製提交",
 			CheckoutFile:                      "檢出檔案",
 			DiscardOldFileChange:              "放棄舊檔案更改",
 			SquashCommitDown:                  "下列次方執行 Squash",
@@ -600,12 +513,12 @@ func traditionalChineseTranslationSet() TranslationSet {
 			RewordCommit:                      "改寫提交",
 			DropCommit:                        "捨棄提交",
 			EditCommit:                        "編輯提交",
-			AmendCommit:                       "修正提交",
+			AmendCommit:                       "修改提交",
 			ResetCommitAuthor:                 "重設提交作者",
 			SetCommitAuthor:                   "設置提交作者",
 			RevertCommit:                      "還原提交",
-			CreateFixupCommit:                 "建立修正提交",
-			SquashAllAboveFixupCommits:        "Squash 所有上面的修正提交",
+			CreateFixupCommit:                 "建立修改提交",
+			SquashAllAboveFixupCommits:        "Squash 所有上面的修改提交",
 			CreateLightweightTag:              "建立輕量標籤",
 			CreateAnnotatedTag:                "建立附註標籤",
 			CopyCommitMessageToClipboard:      "將提交訊息複製到剪貼簿",
@@ -692,7 +605,7 @@ func traditionalChineseTranslationSet() TranslationSet {
 			MarkStart:                   "將 %s 標記為 %s（開始二分查找）",
 			SkipCurrent:                 "跳過 %s",
 			ResetTitle:                  "重設 'git bisect'",
-			ResetPrompt:                 "你確定要重設 'git bisect' 嗎？",
+			ResetPrompt:                 "是否重設 'git bisect' 嗎？",
 			ResetOption:                 "重設二分查找",
 			BisectMenuTitle:             "二分查找",
 			CompleteTitle:               "二分查找完成",
