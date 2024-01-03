@@ -7,7 +7,7 @@ package gocui
 import (
 	"strings"
 
-	"github.com/stefanhaller/tcell/v2"
+	"github.com/gdamore/tcell/v2"
 )
 
 // Key represents special keys or keys combinations.

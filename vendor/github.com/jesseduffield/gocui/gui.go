@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/go-errors/errors"
 	"github.com/mattn/go-runewidth"
-	"github.com/stefanhaller/tcell/v2"
 )
 
 // OutputMode represents an output mode, which determines how colors
