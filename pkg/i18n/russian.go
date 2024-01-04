@@ -14,7 +14,7 @@ const russianIntroPopupMessage = `
       https://github.com/jesseduffield/lazygit
     Вы также можете поддержать меня и рассказать, над чем мне ещё стоит поработать,
     нажав на кнопку "Поддержать" в правом нижнем углу.
-    Или поделиться любовью, просто добавив репозиторий в избранные.
+    Или поделиться любовью, просто добавив репозиторий в избранное.
 `
 
 const russianDeprecatedEditConfigWarning = `
@@ -303,7 +303,7 @@ func RussianTranslationSet() TranslationSet {
 		NoRecentRepositories:                "Необходимо открыть lazygit в git репозитории. Нет валидных последних репозиториев. Выход.",
 		IncorrectNotARepository:             "Неверное значение 'notARepository'. Оно должно быть одним из 'prompt', 'create', 'skip', или 'quit'.",
 		AutoStashTitle:                      "Автосохранить изменения?",
-		AutoStashPrompt:                     "Вы должны спрятать и восстановить ваши изменения, чтобы перенести их. Сделать это автоматически? (ввод/esc)",
+		AutoStashPrompt:                     "Вы должны спрятать и восстановить ваши изменения, чтобы перенести их. Сделать это автоматически? (enter/esc)",
 		StashPrefix:                         "Автосохранение изменений для",
 		ViewDiscardOptions:                  "Просмотреть параметры «отменить изменения»",
 		Cancel:                              "Отменить",
