@@ -13,8 +13,8 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>@</kbd>: 開啟命令記錄選單
   <kbd>}</kbd>: 增加差異檢視中顯示變更周圍上下文的大小
   <kbd>{</kbd>: 減小差異檢視中顯示變更周圍上下文的大小
-  <kbd>:</kbd>: Execute custom command
-  <kbd>&lt;c-p&gt;</kbd>: View custom patch options
+  <kbd>:</kbd>: 執行自訂命令
+  <kbd>&lt;c-p&gt;</kbd>: 檢視自訂補丁選項
   <kbd>m</kbd>: 查看合併/變基選項
   <kbd>R</kbd>: 重新整理
   <kbd>+</kbd>: 下一個螢幕模式（常規/半螢幕/全螢幕）
@@ -38,8 +38,8 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>&lt;</kbd>: 捲動到頂部
   <kbd>&gt;</kbd>: 捲動到底部
   <kbd>/</kbd>: 搜尋
-  <kbd>H</kbd>: Scroll left
-  <kbd>L</kbd>: Scroll right
+  <kbd>H</kbd>: 向左捲動
+  <kbd>L</kbd>: 向右捲動
   <kbd>]</kbd>: 下一個索引標籤
   <kbd>[</kbd>: 上一個索引標籤
 </pre>
@@ -56,7 +56,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>o</kbd>: 開啟檔案
   <kbd>e</kbd>: 編輯檔案
   <kbd>&lt;space&gt;</kbd>: 向 (或從) 補丁中添加/刪除行
-  <kbd>&lt;esc&gt;</kbd>: Exit custom patch builder
+  <kbd>&lt;esc&gt;</kbd>: 退出自訂補丁建立器
   <kbd>/</kbd>: 搜尋
 </pre>
 
@@ -100,7 +100,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>d</kbd>: 刪除變更 (git reset)
   <kbd>E</kbd>: 編輯程式碼塊
   <kbd>c</kbd>: 提交變更
-  <kbd>w</kbd>: Commit changes without pre-commit hook
+  <kbd>w</kbd>: 沒有預提交 hook 就提交更改
   <kbd>C</kbd>: 使用 git 編輯器提交變更
   <kbd>/</kbd>: 搜尋
 </pre>
@@ -118,11 +118,11 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 複製提交 SHA 到剪貼簿
   <kbd>w</kbd>: 檢視工作目錄選項
-  <kbd>&lt;space&gt;</kbd>: Checkout commit
+  <kbd>&lt;space&gt;</kbd>: 檢出提交
   <kbd>y</kbd>: 複製提交屬性
   <kbd>o</kbd>: 在瀏覽器中開啟提交
   <kbd>n</kbd>: 從提交建立新分支
-  <kbd>g</kbd>: View reset options
+  <kbd>g</kbd>: 顯示重設選項
   <kbd>c</kbd>: 複製提交 (揀選)
   <kbd>C</kbd>: 複製提交範圍 (揀選)
   <kbd>&lt;c-r&gt;</kbd>: 重設選定的揀選 (複製) 提交
@@ -169,8 +169,8 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>d</kbd>: 刪除提交
   <kbd>e</kbd>: 編輯提交
   <kbd>p</kbd>: 挑選提交 (於變基過程中)
-  <kbd>F</kbd>: Create fixup commit for this commit
-  <kbd>S</kbd>: Squash all 'fixup!' commits above selected commit (autosquash)
+  <kbd>F</kbd>: 為此提交建立修復提交
+  <kbd>S</kbd>: 壓縮上方所有的“fixup!”提交 (自動壓縮)
   <kbd>&lt;c-j&gt;</kbd>: 向下移動提交
   <kbd>&lt;c-k&gt;</kbd>: 向上移動提交
   <kbd>v</kbd>: 貼上提交 (揀選)
@@ -178,14 +178,14 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>A</kbd>: 使用已預存的更改修改提交
   <kbd>a</kbd>: 設置/重設提交作者
   <kbd>t</kbd>: 還原提交
-  <kbd>T</kbd>: Tag commit
+  <kbd>T</kbd>: 打標籤到提交
   <kbd>&lt;c-l&gt;</kbd>: 開啟記錄選單
   <kbd>w</kbd>: 檢視工作目錄選項
-  <kbd>&lt;space&gt;</kbd>: Checkout commit
+  <kbd>&lt;space&gt;</kbd>: 檢出提交
   <kbd>y</kbd>: 複製提交屬性
   <kbd>o</kbd>: 在瀏覽器中開啟提交
   <kbd>n</kbd>: 從提交建立新分支
-  <kbd>g</kbd>: View reset options
+  <kbd>g</kbd>: 顯示重設選項
   <kbd>c</kbd>: 複製提交 (揀選)
   <kbd>C</kbd>: 複製提交範圍 (揀選)
   <kbd>&lt;enter&gt;</kbd>: 檢視所選項目的檔案
@@ -207,9 +207,9 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>d</kbd>: 捨棄此提交對此檔案的更改
   <kbd>o</kbd>: 開啟檔案
   <kbd>e</kbd>: 編輯檔案
-  <kbd>&lt;space&gt;</kbd>: Toggle file included in patch
-  <kbd>a</kbd>: Toggle all files included in patch
-  <kbd>&lt;enter&gt;</kbd>: Enter file to add selected lines to the patch (or toggle directory collapsed)
+  <kbd>&lt;space&gt;</kbd>: 切換檔案是否包含在補丁中
+  <kbd>a</kbd>: 切換所有檔案是否包含在補丁中
+  <kbd>&lt;enter&gt;</kbd>: 輸入檔案以將選定的行添加至補丁（或切換目錄折疊）
   <kbd>`</kbd>: 顯示檔案樹狀視圖
   <kbd>/</kbd>: 搜尋
 </pre>
@@ -232,11 +232,11 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 複製提交 SHA 到剪貼簿
   <kbd>w</kbd>: 檢視工作目錄選項
-  <kbd>&lt;space&gt;</kbd>: Checkout commit
+  <kbd>&lt;space&gt;</kbd>: 檢出提交
   <kbd>y</kbd>: 複製提交屬性
   <kbd>o</kbd>: 在瀏覽器中開啟提交
   <kbd>n</kbd>: 從提交建立新分支
-  <kbd>g</kbd>: View reset options
+  <kbd>g</kbd>: 顯示重設選項
   <kbd>c</kbd>: 複製提交 (揀選)
   <kbd>C</kbd>: 複製提交範圍 (揀選)
   <kbd>&lt;c-r&gt;</kbd>: 重設選定的揀選 (複製) 提交
@@ -248,7 +248,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 複製分支名稱到剪貼簿
-  <kbd>i</kbd>: Show git-flow options
+  <kbd>i</kbd>: 顯示 git-flow 選項
   <kbd>&lt;space&gt;</kbd>: 檢出
   <kbd>n</kbd>: 新分支
   <kbd>o</kbd>: 建立拉取請求
@@ -256,13 +256,13 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>&lt;c-y&gt;</kbd>: 複製拉取請求的 URL 到剪貼板
   <kbd>c</kbd>: 根據名稱檢出
   <kbd>F</kbd>: 強制檢出
-  <kbd>d</kbd>: View delete options
+  <kbd>d</kbd>: 顯示刪除選項
   <kbd>r</kbd>: 將已檢出的分支變基至此分支
   <kbd>M</kbd>: 合併到當前檢出的分支
   <kbd>f</kbd>: 從上游快進此分支
-  <kbd>T</kbd>: Create tag
+  <kbd>T</kbd>: 建立標籤
   <kbd>s</kbd>: Sort order
-  <kbd>g</kbd>: View reset options
+  <kbd>g</kbd>: 顯示重設選項
   <kbd>R</kbd>: 重新命名分支
   <kbd>u</kbd>: View upstream options
   <kbd>w</kbd>: 檢視工作目錄選項
@@ -274,10 +274,10 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 
 <pre>
   <kbd>&lt;space&gt;</kbd>: 檢出
-  <kbd>d</kbd>: View delete options
-  <kbd>P</kbd>: Push tag
-  <kbd>n</kbd>: Create tag
-  <kbd>g</kbd>: View reset options
+  <kbd>d</kbd>: 顯示刪除選項
+  <kbd>P</kbd>: 推送標籤
+  <kbd>n</kbd>: 建立標籤
+  <kbd>g</kbd>: 顯示重設選項
   <kbd>w</kbd>: 檢視工作目錄選項
   <kbd>&lt;enter&gt;</kbd>: 檢視提交
   <kbd>/</kbd>: 搜尋
@@ -287,24 +287,24 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 複製檔案名稱到剪貼簿
-  <kbd>d</kbd>: View 'discard changes' options
+  <kbd>d</kbd>: 查看「刪除變更」選項
   <kbd>&lt;space&gt;</kbd>: 切換預存
   <kbd>&lt;c-b&gt;</kbd>: 篩選檔案 (預存/未預存)
   <kbd>y</kbd>: Copy to clipboard
   <kbd>c</kbd>: 提交變更
-  <kbd>w</kbd>: Commit changes without pre-commit hook
+  <kbd>w</kbd>: 沒有預提交 hook 就提交更改
   <kbd>A</kbd>: 修改上次提交
   <kbd>C</kbd>: 使用 git 編輯器提交變更
   <kbd>e</kbd>: 編輯檔案
   <kbd>o</kbd>: 開啟檔案
   <kbd>i</kbd>: 忽略或排除檔案
   <kbd>r</kbd>: 重新整理檔案
-  <kbd>s</kbd>: Stash all changes
-  <kbd>S</kbd>: View stash options
+  <kbd>s</kbd>: 收藏所有變更
+  <kbd>S</kbd>: 檢視收藏選項
   <kbd>a</kbd>: 全部預存/取消預存
   <kbd>&lt;enter&gt;</kbd>: 選擇檔案中的單個程式碼塊/行，或展開/折疊目錄
   <kbd>g</kbd>: 檢視上游重設選項
-  <kbd>D</kbd>: View reset options
+  <kbd>D</kbd>: 顯示重設選項
   <kbd>`</kbd>: 顯示檔案樹狀視圖
   <kbd>M</kbd>: 開啟外部合併工具 (git mergetool)
   <kbd>f</kbd>: 擷取
@@ -331,10 +331,10 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 ## 遠端
 
 <pre>
-  <kbd>f</kbd>: Fetch remote
-  <kbd>n</kbd>: Add new remote
-  <kbd>d</kbd>: Remove remote
-  <kbd>e</kbd>: Edit remote
+  <kbd>f</kbd>: 擷取遠端
+  <kbd>n</kbd>: 新增遠端
+  <kbd>d</kbd>: 移除遠端
+  <kbd>e</kbd>: 編輯遠端
   <kbd>/</kbd>: 搜尋
 </pre>
 
@@ -347,9 +347,9 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>M</kbd>: 合併到當前檢出的分支
   <kbd>r</kbd>: 將已檢出的分支變基至此分支
   <kbd>d</kbd>: Delete remote tag
-  <kbd>u</kbd>: Set as upstream of checked-out branch
+  <kbd>u</kbd>: 將此分支設為當前分支之上游
   <kbd>s</kbd>: Sort order
-  <kbd>g</kbd>: View reset options
+  <kbd>g</kbd>: 顯示重設選項
   <kbd>w</kbd>: 檢視工作目錄選項
   <kbd>&lt;enter&gt;</kbd>: 檢視提交
   <kbd>/</kbd>: 搜尋
