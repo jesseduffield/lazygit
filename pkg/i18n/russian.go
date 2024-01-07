@@ -194,7 +194,7 @@ func RussianTranslationSet() TranslationSet {
 		FileStagingRequirements:             `Можно проиндексировать только отдельные строки для отслеживаемых файлов`,
 		StageSelection:                      `Переключить строку в проиндексированные / непроиндексированные`,
 		DiscardSelection:                    `Отменить изменение (git reset)`,
-		ToggleDragSelect:                    `Переключить выборку перетаскивания`,
+		ToggleRangeSelect:                   `Переключить выборку перетаскивания`,
 		ToggleSelectHunk:                    `Переключить выборку частей`,
 		ToggleSelectionForPatch:             `Добавить/удалить строку(и) для патча`,
 		EditHunk:                            `Изменить эту часть`,

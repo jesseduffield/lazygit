@@ -200,7 +200,6 @@ type TranslationSet struct {
 	FileStagingRequirements             string
 	StageSelection                      string
 	DiscardSelection                    string
-	ToggleDragSelect                    string
 	ToggleSelectHunk                    string
 	ToggleSelectionForPatch             string
 	EditHunk                            string
@@ -651,6 +650,9 @@ type TranslationSet struct {
 	QuickStartInteractiveRebase         string
 	QuickStartInteractiveRebaseTooltip  string
 	CannotQuickStartInteractiveRebase   string
+	ToggleRangeSelect                   string
+	RangeSelectUp                       string
+	RangeSelectDown                     string
 	Actions                             Actions
 	Bisect                              Bisect
 	Log                                 Log
@@ -1033,7 +1035,7 @@ func EnglishTranslationSet() TranslationSet {
 		FileStagingRequirements:             `Can only stage individual lines for tracked files`,
 		StageSelection:                      `Toggle line staged / unstaged`,
 		DiscardSelection:                    `Discard change (git reset)`,
-		ToggleDragSelect:                    `Toggle drag select`,
+		ToggleRangeSelect:                   `Toggle range select`,
 		ToggleSelectHunk:                    `Toggle select hunk`,
 		ToggleSelectionForPatch:             `Add/Remove line(s) to patch`,
 		EditHunk:                            `Edit hunk`,
@@ -1483,6 +1485,8 @@ func EnglishTranslationSet() TranslationSet {
 		QuickStartInteractiveRebase:         "Start interactive rebase",
 		QuickStartInteractiveRebaseTooltip:  "Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.\nIf you would instead like to start an interactive rebase from the selected commit, press `{{.editKey}}`.",
 		CannotQuickStartInteractiveRebase:   "Cannot start interactive rebase: the HEAD commit is a merge commit or is present on the main branch, so there is no appropriate base commit to start the rebase from. You can start an interactive rebase from a specific commit by selecting the commit and pressing `{{.editKey}}`.",
+		RangeSelectUp:                       "Range select up",
+		RangeSelectDown:                     "Range select down",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

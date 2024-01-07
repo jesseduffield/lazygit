@@ -304,6 +304,9 @@ type KeybindingUniversalConfig struct {
 	ScrollRight                  string   `yaml:"scrollRight"`
 	GotoTop                      string   `yaml:"gotoTop"`
 	GotoBottom                   string   `yaml:"gotoBottom"`
+	ToggleRangeSelect            string   `yaml:"toggleRangeSelect"`
+	RangeSelectDown              string   `yaml:"rangeSelectDown"`
+	RangeSelectUp                string   `yaml:"rangeSelectUp"`
 	PrevBlock                    string   `yaml:"prevBlock"`
 	NextBlock                    string   `yaml:"nextBlock"`
 	PrevBlockAlt                 string   `yaml:"prevBlock-alt"`
@@ -441,11 +444,9 @@ type KeybindingCommitFilesConfig struct {
 }
 
 type KeybindingMainConfig struct {
-	ToggleDragSelect    string `yaml:"toggleDragSelect"`
-	ToggleDragSelectAlt string `yaml:"toggleDragSelect-alt"`
-	ToggleSelectHunk    string `yaml:"toggleSelectHunk"`
-	PickBothHunks       string `yaml:"pickBothHunks"`
-	EditSelectHunk      string `yaml:"editSelectHunk"`
+	ToggleSelectHunk string `yaml:"toggleSelectHunk"`
+	PickBothHunks    string `yaml:"pickBothHunks"`
+	EditSelectHunk   string `yaml:"editSelectHunk"`
 }
 
 type KeybindingSubmodulesConfig struct {
@@ -704,6 +705,9 @@ func GetDefaultConfig() *UserConfig {
 				ScrollRight:                  "L",
 				GotoTop:                      "<",
 				GotoBottom:                   ">",
+				ToggleRangeSelect:            "v",
+				RangeSelectDown:              "<s-down>",
+				RangeSelectUp:                "<s-up>",
 				PrevBlock:                    "<left>",
 				NextBlock:                    "<right>",
 				PrevBlockAlt:                 "h",
@@ -833,11 +837,9 @@ func GetDefaultConfig() *UserConfig {
 				CheckoutCommitFile: "c",
 			},
 			Main: KeybindingMainConfig{
-				ToggleDragSelect:    "v",
-				ToggleDragSelectAlt: "V",
-				ToggleSelectHunk:    "a",
-				PickBothHunks:       "b",
-				EditSelectHunk:      "E",
+				ToggleSelectHunk: "a",
+				PickBothHunks:    "b",
+				EditSelectHunk:   "E",
 			},
 			Submodules: KeybindingSubmodulesConfig{
 				Init:     "i",

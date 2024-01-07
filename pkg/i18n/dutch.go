@@ -128,7 +128,7 @@ func dutchTranslationSet() TranslationSet {
 		FileStagingRequirements:             `Kan alleen individuele lijnen stagen van getrackte bestanden met onstaged veranderingen`,
 		StageSelection:                      `Toggle lijnen staged / unstaged`,
 		DiscardSelection:                    `Verwijdert change (git reset)`,
-		ToggleDragSelect:                    `Toggle drag selecteer`,
+		ToggleRangeSelect:                   `Toggle drag selecteer`,
 		ToggleSelectHunk:                    `Toggle selecteer hunk`,
 		ToggleSelectionForPatch:             `Voeg toe/verwijder lijn(en) in patch`,
 		ToggleStagingPanel:                  `Ga naar een ander paneel`,

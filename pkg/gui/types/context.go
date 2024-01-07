@@ -163,6 +163,8 @@ type IPatchExplorerContext interface {
 
 type IViewTrait interface {
 	FocusPoint(yIdx int)
+	SetRangeSelectStart(yIdx int)
+	CancelRangeSelect()
 	SetViewPortContent(content string)
 	SetContent(content string)
 	SetFooter(value string)
@@ -223,7 +225,13 @@ type IListCursor interface {
 	GetSelectedLineIdx() int
 	SetSelectedLineIdx(value int)
 	MoveSelectedLine(delta int)
-	RefreshSelectedIdx()
+	ClampSelection()
+	CancelRangeSelect()
+	GetRangeStartIdx() (int, bool)
+	GetSelectionRange() (int, int)
+	IsSelectingRange() bool
+	ToggleStickyRange()
+	ExpandNonStickyRange(int)
 }
 
 type IListPanelState interface {

@@ -162,7 +162,7 @@ func japaneseTranslationSet() TranslationSet {
 		// FileStagingRequirements:             `Can only stage individual lines for tracked files`,
 		StageSelection:          `選択行をステージ/アンステージ`,
 		DiscardSelection:        `変更を削除 (git reset)`,
-		ToggleDragSelect:        `範囲選択を切り替え`,
+		ToggleRangeSelect:       `範囲選択を切り替え`,
 		ToggleSelectHunk:        `Hunk選択を切り替え`,
 		ToggleSelectionForPatch: `行をパッチに追加/削除`,
 		ToggleStagingPanel:      `パネルを切り替え`,

@@ -85,7 +85,7 @@ func (self *FileTreeViewModel) SetTree() {
 		}
 	}
 
-	self.RefreshSelectedIdx()
+	self.ClampSelection()
 }
 
 // Let's try to find our file again and move the cursor to that.

@@ -75,14 +75,9 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 			Handler: self.withRenderAndFocus(self.HandleNextHunk),
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Main.ToggleDragSelect),
+			Key:         opts.GetKey(opts.Config.Universal.ToggleRangeSelect),
 			Handler:     self.withRenderAndFocus(self.HandleToggleSelectRange),
-			Description: self.c.Tr.ToggleDragSelect,
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Main.ToggleDragSelectAlt),
-			Handler:     self.withRenderAndFocus(self.HandleToggleSelectRange),
-			Description: self.c.Tr.ToggleDragSelect,
+			Description: self.c.Tr.ToggleRangeSelect,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Main.ToggleSelectHunk),

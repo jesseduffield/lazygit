@@ -163,7 +163,7 @@ func chineseTranslationSet() TranslationSet {
 		FileStagingRequirements:             `只能暂存跟踪文件的单独行`,
 		StageSelection:                      `切换行暂存状态`,
 		DiscardSelection:                    `取消变更 (git reset)`,
-		ToggleDragSelect:                    `切换拖动选择`,
+		ToggleRangeSelect:                   `切换拖动选择`,
 		ToggleSelectHunk:                    `切换选择区块`,
 		ToggleSelectionForPatch:             `添加/移除 行到补丁`,
 		ToggleStagingPanel:                  `切换到其他面板`,

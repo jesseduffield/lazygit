@@ -1178,14 +1178,6 @@
         },
         "main": {
           "properties": {
-            "toggleDragSelect": {
-              "type": "string",
-              "default": "v"
-            },
-            "toggleDragSelect-alt": {
-              "type": "string",
-              "default": "V"
-            },
             "toggleSelectHunk": {
               "type": "string",
               "default": "a"

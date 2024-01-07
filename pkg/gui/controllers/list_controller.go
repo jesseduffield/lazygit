@@ -71,9 +71,25 @@ func (self *ListController) scrollHorizontal(scrollFunc func()) error {
 }
 
 func (self *ListController) handleLineChange(change int) error {
-	before := self.context.GetList().GetSelectedLineIdx()
-	self.context.GetList().MoveSelectedLine(change)
-	after := self.context.GetList().GetSelectedLineIdx()
+	return self.handleLineChangeAux(
+		self.context.GetList().MoveSelectedLine, change,
+	)
+}
+
+func (self *ListController) HandleRangeSelectChange(change int) error {
+	return self.handleLineChangeAux(
+		self.context.GetList().ExpandNonStickyRange, change,
+	)
+}
+
+func (self *ListController) handleLineChangeAux(f func(int), change int) error {
+	list := self.context.GetList()
+
+	rangeBefore := list.IsSelectingRange()
+	before := list.GetSelectedLineIdx()
+	f(change)
+	rangeAfter := list.IsSelectingRange()
+	after := list.GetSelectedLineIdx()
 
 	if err := self.pushContextIfNotFocused(); err != nil {
 		return err
@@ -81,7 +97,8 @@ func (self *ListController) handleLineChange(change int) error {
 
 	// doing this check so that if we're holding the up key at the start of the list
 	// we're not constantly re-rendering the main view.
-	if before != after {
+	cursorMoved := before != after
+	if cursorMoved {
 		if change == -1 {
 			checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig,
 				self.context.ModelIndexToViewIndex(before), self.context.ModelIndexToViewIndex(after))
@@ -89,7 +106,9 @@ func (self *ListController) handleLineChange(change int) error {
 			checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig,
 				self.context.ModelIndexToViewIndex(before), self.context.ModelIndexToViewIndex(after))
 		}
+	}
 
+	if cursorMoved || rangeBefore != rangeAfter {
 		return self.context.HandleFocus(types.OnFocusOpts{})
 	}
 
@@ -110,6 +129,22 @@ func (self *ListController) HandleGotoTop() error {
 
 func (self *ListController) HandleGotoBottom() error {
 	return self.handleLineChange(self.context.GetList().Len())
+}
+
+func (self *ListController) HandleToggleRangeSelect() error {
+	list := self.context.GetList()
+
+	list.ToggleStickyRange()
+
+	return self.context.HandleFocus(types.OnFocusOpts{})
+}
+
+func (self *ListController) HandleRangeSelectDown() error {
+	return self.HandleRangeSelectChange(1)
+}
+
+func (self *ListController) HandleRangeSelectUp() error {
+	return self.HandleRangeSelectChange(-1)
 }
 
 func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
@@ -159,6 +194,9 @@ func (self *ListController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollLeft), Handler: self.HandleScrollLeft},
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollRight), Handler: self.HandleScrollRight},
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoBottom), Handler: self.HandleGotoBottom, Description: self.c.Tr.GotoBottom},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ToggleRangeSelect), Handler: self.HandleToggleRangeSelect, Description: self.c.Tr.ToggleRangeSelect},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.RangeSelectDown), Handler: self.HandleRangeSelectDown, Description: self.c.Tr.RangeSelectDown},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.RangeSelectUp), Handler: self.HandleRangeSelectUp, Description: self.c.Tr.RangeSelectUp},
 	}
 }
 

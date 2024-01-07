@@ -107,7 +107,7 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressPrimaryAction().
 			NavigateToLine(Contains("+2c")).
-			Press(keys.Main.ToggleDragSelect).
+			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("+2e")).
 			PressPrimaryAction().
 			NavigateToLine(Contains("+2g")).

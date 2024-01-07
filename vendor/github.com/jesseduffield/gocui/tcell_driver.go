@@ -300,6 +300,14 @@ func (g *Gui) pollEvent() GocuiEvent {
 			mod = 0
 			ch = rune(0)
 			k = tcell.KeyCtrlSpace
+		} else if mod == tcell.ModShift && k == tcell.KeyUp {
+			mod = 0
+			ch = rune(0)
+			k = tcell.KeyF62
+		} else if mod == tcell.ModShift && k == tcell.KeyDown {
+			mod = 0
+			ch = rune(0)
+			k = tcell.KeyF63
 		} else if mod == tcell.ModCtrl || mod == tcell.ModShift {
 			// remove Ctrl or Shift if specified
 			// - shift - will be translated to the final code of rune

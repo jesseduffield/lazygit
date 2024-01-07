@@ -50,6 +50,13 @@ func Max(x, y int) int {
 	return y
 }
 
+func MinMax(x int, y int) (int, int) {
+	if x < y {
+		return x, y
+	}
+	return y, x
+}
+
 func Clamp(x int, min int, max int) int {
 	if x < min {
 		return min
