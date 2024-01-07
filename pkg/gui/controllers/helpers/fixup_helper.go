@@ -39,7 +39,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return self.c.ErrorMsg(self.c.Tr.NoChangedFiles)
 	}
 
-	deletedLineInfos := self.parseDiff(diff)
+	deletedLineInfos, hasHunksWithOnlyAddedLines := self.parseDiff(diff)
 	if len(deletedLineInfos) == 0 {
 		return self.c.ErrorMsg(self.c.Tr.NoDeletedLinesInDiff)
 	}
@@ -79,15 +79,29 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return self.c.ErrorMsg(self.c.Tr.BaseCommitIsAlreadyOnMainBranch)
 	}
 
-	if !useIndex {
-		if err := self.c.Git().WorkingTree.StageAll(); err != nil {
-			return err
+	doIt := func() error {
+		if !hasStagedChanges {
+			if err := self.c.Git().WorkingTree.StageAll(); err != nil {
+				return err
+			}
+			_ = self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
 		}
-		_ = self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
+
+		self.c.Contexts().LocalCommits.SetSelectedLineIdx(index)
+		return self.c.PushContext(self.c.Contexts().LocalCommits)
 	}
 
-	self.c.Contexts().LocalCommits.SetSelectedLineIdx(index)
-	return self.c.PushContext(self.c.Contexts().LocalCommits)
+	if hasHunksWithOnlyAddedLines {
+		return self.c.Confirm(types.ConfirmOpts{
+			Title:  self.c.Tr.FindBaseCommitForFixup,
+			Prompt: self.c.Tr.HunksWithOnlyAddedLinesWarning,
+			HandleConfirm: func() error {
+				return doIt()
+			},
+		})
+	}
+
+	return doIt()
 }
 
 func (self *FixupHelper) getDiff() (string, bool, error) {
@@ -106,18 +120,23 @@ func (self *FixupHelper) getDiff() (string, bool, error) {
 	return diff, hasStagedChanges, err
 }
 
-func (self *FixupHelper) parseDiff(diff string) []*deletedLineInfo {
+func (self *FixupHelper) parseDiff(diff string) ([]*deletedLineInfo, bool) {
 	lines := strings.Split(strings.TrimSuffix(diff, "\n"), "\n")
 
 	deletedLineInfos := []*deletedLineInfo{}
+	hasHunksWithOnlyAddedLines := false
 
 	hunkHeaderRegexp := regexp.MustCompile(`@@ -(\d+)(?:,\d+)? \+\d+(?:,\d+)? @@`)
 
 	var filename string
 	var currentLineInfo *deletedLineInfo
 	finishHunk := func() {
-		if currentLineInfo != nil && currentLineInfo.numLines > 0 {
-			deletedLineInfos = append(deletedLineInfos, currentLineInfo)
+		if currentLineInfo != nil {
+			if currentLineInfo.numLines > 0 {
+				deletedLineInfos = append(deletedLineInfos, currentLineInfo)
+			} else {
+				hasHunksWithOnlyAddedLines = true
+			}
 		}
 	}
 	for _, line := range lines {
@@ -139,7 +158,7 @@ func (self *FixupHelper) parseDiff(diff string) []*deletedLineInfo {
 	}
 	finishHunk()
 
-	return deletedLineInfos
+	return deletedLineInfos, hasHunksWithOnlyAddedLines
 }
 
 // returns the list of commit hashes that introduced the lines which have now been deleted
