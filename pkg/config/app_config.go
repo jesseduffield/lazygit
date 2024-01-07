@@ -243,15 +243,6 @@ func (c *AppConfig) GetTempDir() string {
 	return c.TempDir
 }
 
-func configFilePath(filename string) (string, error) {
-	exists, path := findConfigFile(filename)
-
-	if exists {
-		return path, nil
-	}
-	return path, os.MkdirAll(filepath.Dir(path), 0o755)
-}
-
 // findConfigFile looks for a possibly existing config file.
 // This function does NOT create any folders or files.
 func findConfigFile(filename string) (exists bool, path string) {
@@ -389,5 +380,5 @@ func LogPath() (string, error) {
 		return os.Getenv("LAZYGIT_LOG_PATH"), nil
 	}
 
-	return configFilePath("development.log")
+	return stateFilePath("development.log")
 }
