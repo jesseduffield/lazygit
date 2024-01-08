@@ -165,6 +165,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.Move,
 	interactive_rebase.MoveInRebase,
 	interactive_rebase.MoveWithCustomCommentChar,
+	interactive_rebase.OutsideRebaseRangeSelect,
 	interactive_rebase.PickRescheduled,
 	interactive_rebase.QuickStart,
 	interactive_rebase.Rebase,

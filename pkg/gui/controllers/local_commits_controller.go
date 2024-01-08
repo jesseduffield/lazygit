@@ -45,6 +45,7 @@ func NewLocalCommitsController(
 			c,
 			c.Contexts().LocalCommits,
 			c.Contexts().LocalCommits.GetSelected,
+			c.Contexts().LocalCommits.GetSelectedItems,
 		),
 	}
 }
@@ -55,17 +56,23 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 	outsideFilterModeBindings := []*types.Binding{
 		{
 			Key:     opts.GetKey(opts.Config.Commits.SquashDown),
-			Handler: self.withItem(self.squashDown),
+			Handler: self.withItemsRange(self.squashDown),
 			GetDisabledReason: self.require(
-				self.singleItemSelected(self.getDisabledReasonForSquashDown),
+				self.itemRangeSelected(
+					self.midRebaseCommandEnabled,
+					self.canSquashOrFixup,
+				),
 			),
 			Description: self.c.Tr.SquashDown,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Commits.MarkCommitAsFixup),
-			Handler: self.withItem(self.fixup),
+			Handler: self.withItemsRange(self.fixup),
 			GetDisabledReason: self.require(
-				self.singleItemSelected(self.getDisabledReasonForFixup),
+				self.itemRangeSelected(
+					self.midRebaseCommandEnabled,
+					self.canSquashOrFixup,
+				),
 			),
 			Description: self.c.Tr.FixupCommit,
 		},
@@ -73,7 +80,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Key:     opts.GetKey(opts.Config.Commits.RenameCommit),
 			Handler: self.withItem(self.reword),
 			GetDisabledReason: self.require(
-				self.singleItemSelected(self.rebaseCommandEnabled(todo.Reword)),
+				self.singleItemSelected(self.rewordEnabled),
 			),
 			Description: self.c.Tr.RewordCommit,
 		},
@@ -81,23 +88,26 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Key:     opts.GetKey(opts.Config.Commits.RenameCommitWithEditor),
 			Handler: self.withItem(self.rewordEditor),
 			GetDisabledReason: self.require(
-				self.singleItemSelected(self.rebaseCommandEnabled(todo.Reword)),
+				self.singleItemSelected(self.rewordEnabled),
 			),
 			Description: self.c.Tr.RenameCommitEditor,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Universal.Remove),
-			Handler: self.withItem(self.drop),
+			Handler: self.withItemsRange(self.drop),
 			GetDisabledReason: self.require(
-				self.singleItemSelected(self.rebaseCommandEnabled(todo.Drop)),
+				self.itemRangeSelected(
+					self.midRebaseCommandEnabled,
+				),
 			),
 			Description: self.c.Tr.DeleteCommit,
 		},
 		{
 			Key:     opts.GetKey(editCommitKey),
-			Handler: self.withItem(self.edit),
+			Handler: self.withItems(self.edit),
+			// TODO: have disabled reason ensure that if we're not rebasing, we only select one commit
 			GetDisabledReason: self.require(
-				self.singleItemSelected(self.rebaseCommandEnabled(todo.Edit)),
+				self.itemRangeSelected(self.midRebaseCommandEnabled),
 			),
 			Description: self.c.Tr.EditCommit,
 		},
@@ -107,7 +117,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			// when you manually select the base commit.
 			Key:               opts.GetKey(opts.Config.Commits.StartInteractiveRebase),
 			Handler:           self.withItem(self.quickStartInteractiveRebase),
-			GetDisabledReason: self.require(self.notMidRebase, self.canFindCommitForQuickStart),
+			GetDisabledReason: self.require(self.notMidRebase(self.c.Tr.AlreadyRebasing), self.canFindCommitForQuickStart),
 			Description:       self.c.Tr.QuickStartInteractiveRebase,
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.QuickStartInteractiveRebaseTooltip, map[string]string{
 				"editKey": keybindings.Label(editCommitKey),
@@ -115,9 +125,9 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Commits.PickCommit),
-			Handler: self.withItem(self.pick),
+			Handler: self.withItems(self.pick),
 			GetDisabledReason: self.require(
-				self.singleItemSelected(self.rebaseCommandEnabled(todo.Pick)),
+				self.itemRangeSelected(self.pickEnabled),
 			),
 			Description: self.c.Tr.PickCommit,
 		},
@@ -131,22 +141,28 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Key:     opts.GetKey(opts.Config.Commits.SquashAboveCommits),
 			Handler: self.withItem(self.squashAllAboveFixupCommits),
 			GetDisabledReason: self.require(
-				self.notMidRebase,
+				self.notMidRebase(self.c.Tr.AlreadyRebasing),
 				self.singleItemSelected(),
 			),
 			Description: self.c.Tr.SquashAboveCommits,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Commits.MoveDownCommit),
-			Handler:           self.withItem(self.moveDown),
-			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.MoveDownCommit,
+			Key:     opts.GetKey(opts.Config.Commits.MoveDownCommit),
+			Handler: self.withItemsRange(self.moveDown),
+			GetDisabledReason: self.require(self.itemRangeSelected(
+				self.midRebaseCommandEnabled,
+				self.canMoveDown,
+			)),
+			Description: self.c.Tr.MoveDownCommit,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Commits.MoveUpCommit),
-			Handler:           self.withItem(self.moveUp),
-			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.MoveUpCommit,
+			Key:     opts.GetKey(opts.Config.Commits.MoveUpCommit),
+			Handler: self.withItemsRange(self.moveUp),
+			GetDisabledReason: self.require(self.itemRangeSelected(
+				self.midRebaseCommandEnabled,
+				self.canMoveUp,
+			)),
+			Description: self.c.Tr.MoveUpCommit,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.PasteCommits),
@@ -263,13 +279,9 @@ func secondaryPatchPanelUpdateOpts(c *ControllerCommon) *types.ViewUpdateOpts {
 	return nil
 }
 
-func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
-	applied, err := self.handleMidRebaseCommand(todo.Squash, commit)
-	if err != nil {
-		return err
-	}
-	if applied {
-		return nil
+func (self *LocalCommitsController) squashDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
+	if self.isRebasing() {
+		return self.updateTodos(todo.Squash, selectedCommits)
 	}
 
 	return self.c.Confirm(types.ConfirmOpts{
@@ -278,27 +290,15 @@ func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SquashCommitDown)
-				return self.interactiveRebase(todo.Squash)
+				return self.interactiveRebase(todo.Squash, startIdx, endIdx)
 			})
 		},
 	})
 }
 
-func (self *LocalCommitsController) getDisabledReasonForSquashDown(commit *models.Commit) *types.DisabledReason {
-	if self.context().GetSelectedLineIdx() >= len(self.c.Model().Commits)-1 {
-		return &types.DisabledReason{Text: self.c.Tr.CannotSquashOrFixupFirstCommit}
-	}
-
-	return self.rebaseCommandEnabled(todo.Squash)(commit)
-}
-
-func (self *LocalCommitsController) fixup(commit *models.Commit) error {
-	applied, err := self.handleMidRebaseCommand(todo.Fixup, commit)
-	if err != nil {
-		return err
-	}
-	if applied {
-		return nil
+func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
+	if self.isRebasing() {
+		return self.updateTodos(todo.Fixup, selectedCommits)
 	}
 
 	return self.c.Confirm(types.ConfirmOpts{
@@ -307,29 +307,13 @@ func (self *LocalCommitsController) fixup(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.FixupCommit)
-				return self.interactiveRebase(todo.Fixup)
+				return self.interactiveRebase(todo.Fixup, startIdx, endIdx)
 			})
 		},
 	})
 }
 
-func (self *LocalCommitsController) getDisabledReasonForFixup(commit *models.Commit) *types.DisabledReason {
-	if self.context().GetSelectedLineIdx() >= len(self.c.Model().Commits)-1 {
-		return &types.DisabledReason{Text: self.c.Tr.CannotSquashOrFixupFirstCommit}
-	}
-
-	return self.rebaseCommandEnabled(todo.Squash)(commit)
-}
-
 func (self *LocalCommitsController) reword(commit *models.Commit) error {
-	applied, err := self.handleMidRebaseCommand(todo.Reword, commit)
-	if err != nil {
-		return err
-	}
-	if applied {
-		return nil
-	}
-
 	commitMessage, err := self.c.Git().Commit.GetCommitMessage(commit.Sha)
 	if err != nil {
 		return self.c.Error(err)
@@ -404,14 +388,6 @@ func (self *LocalCommitsController) doRewordEditor() error {
 }
 
 func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
-	midRebase, err := self.handleMidRebaseCommand(todo.Reword, commit)
-	if err != nil {
-		return err
-	}
-	if midRebase {
-		return nil
-	}
-
 	if self.c.UserConfig.Gui.SkipRewordInEditorWarning {
 		return self.doRewordEditor()
 	} else {
@@ -423,37 +399,37 @@ func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
 	}
 }
 
-func (self *LocalCommitsController) drop(commit *models.Commit) error {
-	applied, err := self.handleMidRebaseCommand(todo.Drop, commit)
-	if err != nil {
-		return err
-	}
-	if applied {
-		return nil
+func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
+	if self.isRebasing() {
+		return self.updateTodos(todo.Drop, selectedCommits)
 	}
 
 	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.DeleteCommitTitle,
-		Prompt: self.c.Tr.DeleteCommitPrompt,
+		Title:  self.c.Tr.DropCommitTitle,
+		Prompt: self.c.Tr.DropCommitPrompt,
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatus(self.c.Tr.DroppingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DropCommit)
-				return self.interactiveRebase(todo.Drop)
+				return self.interactiveRebase(todo.Drop, startIdx, endIdx)
 			})
 		},
 	})
 }
 
-func (self *LocalCommitsController) edit(commit *models.Commit) error {
-	applied, err := self.handleMidRebaseCommand(todo.Edit, commit)
-	if err != nil {
-		return err
-	}
-	if applied {
-		return nil
+func (self *LocalCommitsController) edit(selectedCommits []*models.Commit) error {
+	if self.isRebasing() {
+		return self.updateTodos(todo.Edit, selectedCommits)
 	}
 
-	return self.startInteractiveRebaseWithEdit(commit, commit)
+	// TODO: support range select here (start a rebase and set the selected commits
+	// to 'edit' in the todo file)
+	if len(selectedCommits) > 1 {
+		return self.c.ErrorMsg(self.c.Tr.RangeSelectNotSupported)
+	}
+
+	selectedCommit := selectedCommits[0]
+
+	return self.startInteractiveRebaseWithEdit(selectedCommit, selectedCommit)
 }
 
 func (self *LocalCommitsController) quickStartInteractiveRebase(selectedCommit *models.Commit) error {
@@ -504,13 +480,9 @@ func (self *LocalCommitsController) findCommitForQuickStartInteractiveRebase() (
 	return commit, nil
 }
 
-func (self *LocalCommitsController) pick(commit *models.Commit) error {
-	applied, err := self.handleMidRebaseCommand(todo.Pick, commit)
-	if err != nil {
-		return err
-	}
-	if applied {
-		return nil
+func (self *LocalCommitsController) pick(selectedCommits []*models.Commit) error {
+	if self.isRebasing() {
+		return self.updateTodos(todo.Pick, selectedCommits)
 	}
 
 	// at this point we aren't actually rebasing so we will interpret this as an
@@ -518,159 +490,93 @@ func (self *LocalCommitsController) pick(commit *models.Commit) error {
 	return self.pullFiles()
 }
 
-func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand) error {
-	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, self.context().GetSelectedLineIdx(), action)
+func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand, startIdx int, endIdx int) error {
+	// When performing an action that will remove the selected commits, we need to select the
+	// next commit down (which will end up at the start index after the action is performed)
+	if action == todo.Drop || action == todo.Fixup || action == todo.Squash {
+		self.context().SetSelection(startIdx)
+	}
+
+	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, startIdx, endIdx, action)
+
 	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 }
 
-// handleMidRebaseCommand sees if the selected commit is in fact a rebasing
+// updateTodos sees if the selected commit is in fact a rebasing
 // commit meaning you are trying to edit the todo file rather than actually
 // begin a rebase. It then updates the todo file with that action
-func (self *LocalCommitsController) handleMidRebaseCommand(action todo.TodoCommand, commit *models.Commit) (bool, error) {
-	if !commit.IsTODO() {
-		return false, nil
+func (self *LocalCommitsController) updateTodos(action todo.TodoCommand, selectedCommits []*models.Commit) error {
+	if err := self.c.Git().Rebase.EditRebaseTodo(selectedCommits, action); err != nil {
+		return self.c.Error(err)
 	}
 
-	self.c.LogAction("Update rebase TODO")
-
-	msg := utils.ResolvePlaceholderString(
-		self.c.Tr.Log.HandleMidRebaseCommand,
-		map[string]string{
-			"shortSha": commit.ShortSha(),
-			"action":   action.String(),
-		},
-	)
-	self.c.LogCommand(msg, false)
-
-	if err := self.c.Git().Rebase.EditRebaseTodo(commit, action); err != nil {
-		return false, self.c.Error(err)
-	}
-
-	return true, self.c.Refresh(types.RefreshOptions{
+	return self.c.Refresh(types.RefreshOptions{
 		Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
 	})
 }
 
-func (self *LocalCommitsController) rebaseCommandEnabled(action todo.TodoCommand) func(*models.Commit) *types.DisabledReason {
-	return func(commit *models.Commit) *types.DisabledReason {
-		if commit.Action == models.ActionConflict {
-			return &types.DisabledReason{Text: self.c.Tr.ChangingThisActionIsNotAllowed}
-		}
-
-		if !commit.IsTODO() {
-			if self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.REBASE_MODE_NONE {
-				// If we are in a rebase, the only action that is allowed for
-				// non-todo commits is rewording the current head commit
-				if !(action == todo.Reword && self.isHeadCommit()) {
-					return &types.DisabledReason{Text: self.c.Tr.AlreadyRebasing}
-				}
-			}
-
-			return nil
-		}
-
-		// for now we do not support setting 'reword' because it requires an editor
-		// and that means we either unconditionally wait around for the subprocess to ask for
-		// our input or we set a lazygit client as the EDITOR env variable and have it
-		// request us to edit the commit message when prompted.
-		if action == todo.Reword {
-			return &types.DisabledReason{Text: self.c.Tr.RewordNotSupported}
-		}
-
-		if allowed := isChangeOfRebaseTodoAllowed(action); !allowed {
-			return &types.DisabledReason{Text: self.c.Tr.ChangingThisActionIsNotAllowed}
-		}
-
-		return nil
+func (self *LocalCommitsController) rewordEnabled(commit *models.Commit) *types.DisabledReason {
+	// for now we do not support setting 'reword' on TODO commits because it requires an editor
+	// and that means we either unconditionally wait around for the subprocess to ask for
+	// our input or we set a lazygit client as the EDITOR env variable and have it
+	// request us to edit the commit message when prompted.
+	if commit.IsTODO() {
+		return &types.DisabledReason{Text: self.c.Tr.RewordNotSupported}
 	}
+
+	// If we are in a rebase, the only action that is allowed for
+	// non-todo commits is rewording the current head commit
+	if self.isRebasing() && !self.isHeadCommit() {
+		return &types.DisabledReason{Text: self.c.Tr.AlreadyRebasing}
+	}
+
+	return nil
 }
 
-func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
-	index := self.context().GetSelectedLineIdx()
-	commits := self.c.Model().Commits
+func (self *LocalCommitsController) isRebasing() bool {
+	return self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.REBASE_MODE_NONE
+}
 
-	// can't move past the initial commit
-	if index >= len(commits)-1 {
-		return nil
-	}
-
-	if commit.IsTODO() {
-		if !commits[index+1].IsTODO() || commits[index+1].Action == models.ActionConflict {
-			return nil
-		}
-
-		// logging directly here because MoveTodoDown doesn't have enough information
-		// to provide a useful log
-		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
-
-		msg := utils.ResolvePlaceholderString(
-			self.c.Tr.Log.MovingCommitDown,
-			map[string]string{
-				"shortSha": commit.ShortSha(),
-			},
-		)
-		self.c.LogCommand(msg, false)
-
-		if err := self.c.Git().Rebase.MoveTodoDown(commit); err != nil {
+func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
+	if self.isRebasing() {
+		if err := self.c.Git().Rebase.MoveTodosDown(selectedCommits); err != nil {
 			return self.c.Error(err)
 		}
-		self.context().MoveSelectedLine(1)
+		self.context().MoveSelection(1)
+
 		return self.c.Refresh(types.RefreshOptions{
 			Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
 		})
 	}
 
-	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
-		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
-	}
-
 	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
-		err := self.c.Git().Rebase.MoveCommitDown(self.c.Model().Commits, index)
+		err := self.c.Git().Rebase.MoveCommitsDown(self.c.Model().Commits, startIdx, endIdx)
 		if err == nil {
-			self.context().MoveSelectedLine(1)
+			self.context().MoveSelection(1)
 		}
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err, types.RefreshOptions{Mode: types.SYNC})
 	})
 }
 
-func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
-	index := self.context().GetSelectedLineIdx()
-	if index == 0 {
-		return nil
-	}
-
-	if commit.IsTODO() {
-		// logging directly here because MoveTodoDown doesn't have enough information
-		// to provide a useful log
-		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
-		msg := utils.ResolvePlaceholderString(
-			self.c.Tr.Log.MovingCommitUp,
-			map[string]string{
-				"shortSha": commit.ShortSha(),
-			},
-		)
-		self.c.LogCommand(msg, false)
-
-		if err := self.c.Git().Rebase.MoveTodoUp(self.c.Model().Commits[index]); err != nil {
+func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
+	if self.isRebasing() {
+		if err := self.c.Git().Rebase.MoveTodosUp(selectedCommits); err != nil {
 			return self.c.Error(err)
 		}
-		self.context().MoveSelectedLine(-1)
+		self.context().MoveSelection(-1)
+
 		return self.c.Refresh(types.RefreshOptions{
 			Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
 		})
 	}
 
-	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
-		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
-	}
-
 	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
-		err := self.c.Git().Rebase.MoveCommitUp(self.c.Model().Commits, index)
+		err := self.c.Git().Rebase.MoveCommitsUp(self.c.Model().Commits, startIdx, endIdx)
 		if err == nil {
-			self.context().MoveSelectedLine(-1)
+			self.context().MoveSelection(-1)
 		}
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err, types.RefreshOptions{Mode: types.SYNC})
@@ -693,10 +599,6 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		})
 	}
 
-	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
-		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
-	}
-
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.AmendCommitTitle,
 		Prompt: self.c.Tr.AmendCommitPrompt,
@@ -713,7 +615,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) canAmend(commit *models.Commit) *types.DisabledReason {
-	if !self.isHeadCommit() && self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.REBASE_MODE_NONE {
+	if !self.isHeadCommit() && self.isRebasing() {
 		return &types.DisabledReason{Text: self.c.Tr.AlreadyRebasing}
 	}
 
@@ -721,10 +623,6 @@ func (self *LocalCommitsController) canAmend(commit *models.Commit) *types.Disab
 }
 
 func (self *LocalCommitsController) amendAttribute(commit *models.Commit) error {
-	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE && !self.isHeadCommit() {
-		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
-	}
-
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: "Amend commit attribute",
 		Items: []*types.MenuItem{
@@ -846,7 +744,7 @@ func (self *LocalCommitsController) createRevertMergeCommitMenu(commit *models.C
 }
 
 func (self *LocalCommitsController) afterRevertCommit() error {
-	self.context().MoveSelectedLine(1)
+	self.context().MoveSelection(1)
 	return self.c.Refresh(types.RefreshOptions{
 		Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS, types.BRANCHES},
 	})
@@ -893,24 +791,6 @@ func (self *LocalCommitsController) squashAllAboveFixupCommits(commit *models.Co
 			})
 		},
 	})
-}
-
-// For getting disabled reason
-func (self *LocalCommitsController) notMidRebase() *types.DisabledReason {
-	if self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.REBASE_MODE_NONE {
-		return &types.DisabledReason{Text: self.c.Tr.AlreadyRebasing}
-	}
-
-	return nil
-}
-
-// For getting disabled reason
-func (self *LocalCommitsController) canFindCommitForQuickStart() *types.DisabledReason {
-	if _, err := self.findCommitForQuickStartInteractiveRebase(); err != nil {
-		return &types.DisabledReason{Text: err.Error(), ShowErrorInPanel: true}
-	}
-
-	return nil
 }
 
 func (self *LocalCommitsController) createTag(commit *models.Commit) error {
@@ -1079,15 +959,88 @@ func (self *LocalCommitsController) isHeadCommit() bool {
 	return models.IsHeadCommit(self.c.Model().Commits, self.context().GetSelectedLineIdx())
 }
 
-func isChangeOfRebaseTodoAllowed(action todo.TodoCommand) bool {
-	allowedActions := []todo.TodoCommand{
-		todo.Pick,
-		todo.Drop,
-		todo.Edit,
-		todo.Fixup,
-		todo.Squash,
-		todo.Reword,
+func (self *LocalCommitsController) notMidRebase(message string) func() *types.DisabledReason {
+	return func() *types.DisabledReason {
+		if self.isRebasing() {
+			return &types.DisabledReason{Text: message}
+		}
+
+		return nil
+	}
+}
+
+func (self *LocalCommitsController) canFindCommitForQuickStart() *types.DisabledReason {
+	if _, err := self.findCommitForQuickStartInteractiveRebase(); err != nil {
+		return &types.DisabledReason{Text: err.Error(), ShowErrorInPanel: true}
 	}
 
-	return lo.Contains(allowedActions, action)
+	return nil
+}
+
+func (self *LocalCommitsController) canSquashOrFixup(_selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
+	if endIdx >= len(self.c.Model().Commits)-1 {
+		return &types.DisabledReason{Text: self.c.Tr.CannotSquashOrFixupFirstCommit}
+	}
+
+	return nil
+}
+
+func (self *LocalCommitsController) canMoveDown(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
+	if endIdx >= len(self.c.Model().Commits)-1 {
+		return &types.DisabledReason{Text: self.c.Tr.CannotMoveAnyFurther}
+	}
+
+	if self.isRebasing() {
+		commits := self.c.Model().Commits
+
+		if !commits[endIdx+1].IsTODO() || commits[endIdx+1].Action == models.ActionConflict {
+			return &types.DisabledReason{Text: self.c.Tr.CannotMoveAnyFurther}
+		}
+	}
+
+	return nil
+}
+
+func (self *LocalCommitsController) canMoveUp(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
+	if startIdx == 0 {
+		return &types.DisabledReason{Text: self.c.Tr.CannotMoveAnyFurther}
+	}
+
+	if self.isRebasing() {
+		commits := self.c.Model().Commits
+
+		if !commits[startIdx-1].IsTODO() || commits[startIdx-1].Action == models.ActionConflict {
+			return &types.DisabledReason{Text: self.c.Tr.CannotMoveAnyFurther}
+		}
+	}
+
+	return nil
+}
+
+// Ensures that if we are mid-rebase, we're only selecting valid commits (non-conflict TODO commits)
+func (self *LocalCommitsController) midRebaseCommandEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
+	if !self.isRebasing() {
+		return nil
+	}
+
+	for _, commit := range selectedCommits {
+		if !commit.IsTODO() {
+			return &types.DisabledReason{Text: self.c.Tr.MustSelectTodoCommits}
+		}
+
+		if commit.Action == models.ActionConflict {
+			return &types.DisabledReason{Text: self.c.Tr.ChangingThisActionIsNotAllowed}
+		}
+	}
+
+	return nil
+}
+
+func (self *LocalCommitsController) pickEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
+	if !self.isRebasing() {
+		// if not rebasing, we're going to do a pull so we don't care about the selection
+		return nil
+	}
+
+	return self.midRebaseCommandEnabled(selectedCommits, startIdx, endIdx)
 }
