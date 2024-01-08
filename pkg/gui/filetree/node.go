@@ -41,6 +41,10 @@ func (self *Node[T]) IsFile() bool {
 	return self.File != nil
 }
 
+func (self *Node[T]) GetFile() *T {
+	return self.File
+}
+
 func (self *Node[T]) GetPath() string {
 	return self.Path
 }

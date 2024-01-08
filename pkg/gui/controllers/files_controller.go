@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type FilesController struct {
@@ -38,8 +39,8 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 	return []*types.Binding{
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Select),
-			Handler:           self.withItem(self.press),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			Handler:           self.withItems(self.press),
+			GetDisabledReason: self.require(self.itemsSelected()),
 			Description:       self.c.Tr.ToggleStaged,
 		},
 		{
@@ -127,8 +128,8 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
-			Handler:           self.withItem(self.remove),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			Handler:           self.withItems(self.remove),
+			GetDisabledReason: self.require(self.itemsSelected(self.canRemove)),
 			Description:       self.c.Tr.ViewDiscardOptions,
 			OpensMenu:         true,
 		},
@@ -275,7 +276,9 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 }
 
 func (self *FilesController) GetOnClick() func() error {
-	return self.withItemGraceful(self.press)
+	return self.withItemGraceful(func(node *filetree.FileNode) error {
+		return self.press([]*filetree.FileNode{node})
+	})
 }
 
 // if we are dealing with a status for which there is no key in this map,
@@ -325,24 +328,28 @@ func (self *FilesController) optimisticUnstage(file *models.File) bool {
 // the files panel. Then we'll immediately do a proper git status call
 // so that if the optimistic rendering got something wrong, it's quickly
 // corrected.
-func (self *FilesController) optimisticChange(node *filetree.FileNode, optimisticChangeFn func(*models.File) bool) error {
+func (self *FilesController) optimisticChange(nodes []*filetree.FileNode, optimisticChangeFn func(*models.File) bool) error {
 	rerender := false
-	err := node.ForEachFile(func(f *models.File) error {
-		// can't act on the file itself: we need to update the original model file
-		for _, modelFile := range self.c.Model().Files {
-			if modelFile.Name == f.Name {
-				if optimisticChangeFn(modelFile) {
-					rerender = true
-				}
-				break
-			}
-		}
 
-		return nil
-	})
-	if err != nil {
-		return err
+	for _, node := range nodes {
+		err := node.ForEachFile(func(f *models.File) error {
+			// can't act on the file itself: we need to update the original model file
+			for _, modelFile := range self.c.Model().Files {
+				if modelFile.Name == f.Name {
+					if optimisticChangeFn(modelFile) {
+						rerender = true
+					}
+					break
+				}
+			}
+
+			return nil
+		})
+		if err != nil {
+			return err
+		}
 	}
+
 	if rerender {
 		if err := self.c.PostRefreshUpdate(self.c.Contexts().Files); err != nil {
 			return err
@@ -352,62 +359,62 @@ func (self *FilesController) optimisticChange(node *filetree.FileNode, optimisti
 	return nil
 }
 
-func (self *FilesController) pressWithLock(node *filetree.FileNode) error {
+func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) error {
 	// Obtaining this lock because optimistic rendering requires us to mutate
 	// the files in our model.
 	self.c.Mutexes().RefreshingFilesMutex.Lock()
 	defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
 
-	if node.IsFile() {
-		file := node.File
-
-		if file.HasUnstagedChanges {
-			self.c.LogAction(self.c.Tr.Actions.StageFile)
-
-			if err := self.optimisticChange(node, self.optimisticStage); err != nil {
-				return err
-			}
-
-			if err := self.c.Git().WorkingTree.StageFile(file.Name); err != nil {
-				return self.c.Error(err)
-			}
-		} else {
-			self.c.LogAction(self.c.Tr.Actions.UnstageFile)
-
-			if err := self.optimisticChange(node, self.optimisticUnstage); err != nil {
-				return err
-			}
-
-			if err := self.c.Git().WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
-				return self.c.Error(err)
-			}
-		}
-	} else {
+	for _, node := range selectedNodes {
 		// if any files within have inline merge conflicts we can't stage or unstage,
 		// or it'll end up with those >>>>>> lines actually staged
 		if node.GetHasInlineMergeConflicts() {
 			return self.c.ErrorMsg(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
 		}
+	}
 
-		if node.GetHasUnstagedChanges() {
-			self.c.LogAction(self.c.Tr.Actions.StageFile)
+	toPaths := func(nodes []*filetree.FileNode) []string {
+		return lo.Map(nodes, func(node *filetree.FileNode, _ int) string {
+			return node.Path
+		})
+	}
 
-			if err := self.optimisticChange(node, self.optimisticStage); err != nil {
-				return err
-			}
+	selectedNodes = normalisedSelectedNodes(selectedNodes)
 
-			if err := self.c.Git().WorkingTree.StageFile(node.Path); err != nil {
+	// If any node has unstaged changes, we'll stage all the selected nodes. Otherwise,
+	// we unstage all the selected nodes.
+	if someNodesHaveUnstagedChanges(selectedNodes) {
+		self.c.LogAction(self.c.Tr.Actions.StageFile)
+
+		if err := self.optimisticChange(selectedNodes, self.optimisticStage); err != nil {
+			return err
+		}
+
+		if err := self.c.Git().WorkingTree.StageFiles(toPaths(selectedNodes)); err != nil {
+			return self.c.Error(err)
+		}
+	} else {
+		self.c.LogAction(self.c.Tr.Actions.UnstageFile)
+
+		if err := self.optimisticChange(selectedNodes, self.optimisticUnstage); err != nil {
+			return err
+		}
+
+		// need to partition the paths into tracked and untracked (where we assume directories are tracked). Then we'll run the commands separately.
+		trackedNodes, untrackedNodes := utils.Partition(selectedNodes, func(node *filetree.FileNode) bool {
+			// We treat all directories as tracked. I'm not actually sure why we do this but
+			// it's been the existing behaviour for a while and nobody has complained
+			return !node.IsFile() || node.GetIsTracked()
+		})
+
+		if len(untrackedNodes) > 0 {
+			if err := self.c.Git().WorkingTree.UnstageUntrackedFiles(toPaths(untrackedNodes)); err != nil {
 				return self.c.Error(err)
 			}
-		} else {
-			self.c.LogAction(self.c.Tr.Actions.UnstageFile)
+		}
 
-			if err := self.optimisticChange(node, self.optimisticUnstage); err != nil {
-				return err
-			}
-
-			// pretty sure it doesn't matter that we're always passing true here
-			if err := self.c.Git().WorkingTree.UnStageFile([]string{node.Path}, true); err != nil {
+		if len(trackedNodes) > 0 {
+			if err := self.c.Git().WorkingTree.UnstageTrackedFiles(toPaths(trackedNodes)); err != nil {
 				return self.c.Error(err)
 			}
 		}
@@ -416,12 +423,8 @@ func (self *FilesController) pressWithLock(node *filetree.FileNode) error {
 	return nil
 }
 
-func (self *FilesController) press(node *filetree.FileNode) error {
-	if node.IsFile() && node.File.HasInlineMergeConflicts {
-		return self.switchToMerge()
-	}
-
-	if err := self.pressWithLock(node); err != nil {
+func (self *FilesController) press(nodes []*filetree.FileNode) error {
+	if err := self.pressWithLock(nodes); err != nil {
 		return err
 	}
 
@@ -507,7 +510,7 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 	if root.GetHasUnstagedChanges() {
 		self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
 
-		if err := self.optimisticChange(root, self.optimisticStage); err != nil {
+		if err := self.optimisticChange([]*filetree.FileNode{root}, self.optimisticStage); err != nil {
 			return err
 		}
 
@@ -517,7 +520,7 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 	} else {
 		self.c.LogAction(self.c.Tr.Actions.UnstageAllFiles)
 
-		if err := self.optimisticChange(root, self.optimisticUnstage); err != nil {
+		if err := self.optimisticChange([]*filetree.FileNode{root}, self.optimisticUnstage); err != nil {
 			return err
 		}
 
@@ -972,109 +975,130 @@ func (self *FilesController) fetchAux(task gocui.Task) (err error) {
 	return err
 }
 
-func (self *FilesController) remove(node *filetree.FileNode) error {
-	var menuItems []*types.MenuItem
-	if node.File == nil {
-		menuItems = []*types.MenuItem{
+// Couldn't think of a better term than 'normalised'. Alas.
+// The idea is that when you select a range of nodes, you will often have both
+// a node and its parent node selected. If we are trying to discard changes to the
+// selected nodes, we'll get an error if we try to discard the child after the parent.
+// So we just need to filter out any nodes from the selection that are descendants
+// of other nodes
+func normalisedSelectedNodes(selectedNodes []*filetree.FileNode) []*filetree.FileNode {
+	return lo.Filter(selectedNodes, func(node *filetree.FileNode, _ int) bool {
+		return !isDescendentOfSelectedNodes(node, selectedNodes)
+	})
+}
+
+func isDescendentOfSelectedNodes(node *filetree.FileNode, selectedNodes []*filetree.FileNode) bool {
+	for _, selectedNode := range selectedNodes {
+		selectedNodePath := selectedNode.GetPath()
+		nodePath := node.GetPath()
+
+		if strings.HasPrefix(nodePath, selectedNodePath) && nodePath != selectedNodePath {
+			return true
+		}
+	}
+	return false
+}
+
+func someNodesHaveUnstagedChanges(nodes []*filetree.FileNode) bool {
+	return lo.SomeBy(nodes, (*filetree.FileNode).GetHasUnstagedChanges)
+}
+
+func someNodesHaveStagedChanges(nodes []*filetree.FileNode) bool {
+	return lo.SomeBy(nodes, (*filetree.FileNode).GetHasStagedChanges)
+}
+
+func (self *FilesController) canRemove(selectedNodes []*filetree.FileNode) *types.DisabledReason {
+	submodules := self.c.Model().Submodules
+	submoduleCount := lo.CountBy(selectedNodes, func(node *filetree.FileNode) bool {
+		return node.File != nil && node.File.IsSubmodule(submodules)
+	})
+	if submoduleCount > 0 && len(selectedNodes) > 1 {
+		return &types.DisabledReason{Text: self.c.Tr.RangeSelectNotSupportedForSubmodules}
+	}
+
+	return nil
+}
+
+func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
+	submodules := self.c.Model().Submodules
+
+	// If we have one submodule then we must only have one submodule or `canRemove` would have
+	// returned an error
+	firstNode := selectedNodes[0]
+	if firstNode.File != nil && firstNode.File.IsSubmodule(submodules) {
+		submodule := firstNode.File.SubmoduleConfig(submodules)
+
+		menuItems := []*types.MenuItem{
 			{
-				Label: self.c.Tr.DiscardAllChanges,
+				Label: self.c.Tr.SubmoduleStashAndReset,
 				OnPress: func() error {
-					self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInDirectory)
-					if err := self.c.Git().WorkingTree.DiscardAllDirChanges(node); err != nil {
-						return self.c.Error(err)
-					}
-					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+					return self.ResetSubmodule(submodule)
 				},
-				Key: self.c.KeybindingsOpts().GetKey(self.c.UserConfig.Keybinding.Files.ConfirmDiscard),
-				Tooltip: utils.ResolvePlaceholderString(
-					self.c.Tr.DiscardAllTooltip,
-					map[string]string{
-						"path": node.GetPath(),
-					},
-				),
 			},
 		}
 
-		if node.GetHasStagedChanges() && node.GetHasUnstagedChanges() {
-			menuItems = append(menuItems, &types.MenuItem{
-				Label: self.c.Tr.DiscardUnstagedChanges,
-				OnPress: func() error {
-					self.c.LogAction(self.c.Tr.Actions.DiscardUnstagedChangesInDirectory)
+		return self.c.Menu(types.CreateMenuOptions{Title: firstNode.GetPath(), Items: menuItems})
+	}
+
+	selectedNodes = normalisedSelectedNodes(selectedNodes)
+
+	menuItems := []*types.MenuItem{
+		{
+			Label: self.c.Tr.DiscardAllChanges,
+			OnPress: func() error {
+				self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInFile)
+
+				if self.context().IsSelectingRange() {
+					defer self.context().CancelRangeSelect()
+				}
+
+				for _, node := range selectedNodes {
+					if err := self.c.Git().WorkingTree.DiscardAllDirChanges(node); err != nil {
+						return self.c.Error(err)
+					}
+				}
+
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+			},
+			Key: self.c.KeybindingsOpts().GetKey(self.c.UserConfig.Keybinding.Files.ConfirmDiscard),
+			Tooltip: utils.ResolvePlaceholderString(
+				self.c.Tr.DiscardAllTooltip,
+				map[string]string{
+					"path": self.formattedPaths(selectedNodes),
+				},
+			),
+		},
+	}
+
+	if someNodesHaveStagedChanges(selectedNodes) && someNodesHaveUnstagedChanges(selectedNodes) {
+		menuItems = append(menuItems, &types.MenuItem{
+			Label: self.c.Tr.DiscardUnstagedChanges,
+			OnPress: func() error {
+				self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
+
+				if self.context().IsSelectingRange() {
+					defer self.context().CancelRangeSelect()
+				}
+
+				for _, node := range selectedNodes {
 					if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
 						return self.c.Error(err)
 					}
+				}
 
-					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+			},
+			Key: 'u',
+			Tooltip: utils.ResolvePlaceholderString(
+				self.c.Tr.DiscardUnstagedTooltip,
+				map[string]string{
+					"path": self.formattedPaths(selectedNodes),
 				},
-				Key: 'u',
-				Tooltip: utils.ResolvePlaceholderString(
-					self.c.Tr.DiscardUnstagedTooltip,
-					map[string]string{
-						"path": node.GetPath(),
-					},
-				),
-			})
-		}
-	} else {
-		file := node.File
-
-		submodules := self.c.Model().Submodules
-		if file.IsSubmodule(submodules) {
-			submodule := file.SubmoduleConfig(submodules)
-
-			menuItems = []*types.MenuItem{
-				{
-					Label: self.c.Tr.SubmoduleStashAndReset,
-					OnPress: func() error {
-						return self.ResetSubmodule(submodule)
-					},
-				},
-			}
-		} else {
-			menuItems = []*types.MenuItem{
-				{
-					Label: self.c.Tr.DiscardAllChanges,
-					OnPress: func() error {
-						self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInFile)
-						if err := self.c.Git().WorkingTree.DiscardAllFileChanges(file); err != nil {
-							return self.c.Error(err)
-						}
-						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
-					},
-					Key: self.c.KeybindingsOpts().GetKey(self.c.UserConfig.Keybinding.Files.ConfirmDiscard),
-					Tooltip: utils.ResolvePlaceholderString(
-						self.c.Tr.DiscardAllTooltip,
-						map[string]string{
-							"path": node.GetPath(),
-						},
-					),
-				},
-			}
-
-			if file.HasStagedChanges && file.HasUnstagedChanges {
-				menuItems = append(menuItems, &types.MenuItem{
-					Label: self.c.Tr.DiscardUnstagedChanges,
-					OnPress: func() error {
-						self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
-						if err := self.c.Git().WorkingTree.DiscardUnstagedFileChanges(file); err != nil {
-							return self.c.Error(err)
-						}
-
-						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
-					},
-					Key: 'u',
-					Tooltip: utils.ResolvePlaceholderString(
-						self.c.Tr.DiscardUnstagedTooltip,
-						map[string]string{
-							"path": node.GetPath(),
-						},
-					),
-				})
-			}
-		}
+			),
+		})
 	}
 
-	return self.c.Menu(types.CreateMenuOptions{Title: node.GetPath(), Items: menuItems})
+	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.DiscardChangesTitle, Items: menuItems})
 }
 
 func (self *FilesController) ResetSubmodule(submodule *models.SubmoduleConfig) error {
@@ -1097,4 +1121,10 @@ func (self *FilesController) ResetSubmodule(submodule *models.SubmoduleConfig) e
 
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.SUBMODULES}})
 	})
+}
+
+func (self *FilesController) formattedPaths(nodes []*filetree.FileNode) string {
+	return utils.FormatPaths(lo.Map(nodes, func(node *filetree.FileNode, _ int) string {
+		return node.GetPath()
+	}))
 }

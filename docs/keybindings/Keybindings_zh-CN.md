@@ -197,7 +197,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 将文件名复制到剪贴板
-  <kbd>d</kbd>: 查看'放弃更改'选项
   <kbd>&lt;space&gt;</kbd>: 切换暂存状态
   <kbd>&lt;c-b&gt;</kbd>: Filter files by status
   <kbd>y</kbd>: Copy to clipboard
@@ -214,6 +213,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: 查看贮藏选项
   <kbd>a</kbd>: 切换所有文件的暂存状态
   <kbd>&lt;enter&gt;</kbd>: 暂存单个 块/行 用于文件, 或 折叠/展开 目录
+  <kbd>d</kbd>: 查看'放弃更改'选项
   <kbd>g</kbd>: 查看上游重置选项
   <kbd>D</kbd>: 查看重置选项
   <kbd>`</kbd>: 切换文件树视图

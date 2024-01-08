@@ -57,21 +57,20 @@ func (self *WorkingTreeCommands) UnstageAll() error {
 // UnStageFile unstages a file
 // we accept an array of filenames for the cases where a file has been renamed i.e.
 // we accept the current name and the previous name
-func (self *WorkingTreeCommands) UnStageFile(fileNames []string, reset bool) error {
-	for _, name := range fileNames {
-		var cmdArgs []string
-		if reset {
-			cmdArgs = NewGitCmd("reset").Arg("HEAD", "--", name).ToArgv()
-		} else {
-			cmdArgs = NewGitCmd("rm").Arg("--cached", "--force", "--", name).ToArgv()
-		}
-
-		err := self.cmd.New(cmdArgs).Run()
-		if err != nil {
-			return err
-		}
+func (self *WorkingTreeCommands) UnStageFile(paths []string, tracked bool) error {
+	if tracked {
+		return self.UnstageTrackedFiles(paths)
+	} else {
+		return self.UnstageUntrackedFiles(paths)
 	}
-	return nil
+}
+
+func (self *WorkingTreeCommands) UnstageTrackedFiles(paths []string) error {
+	return self.cmd.New(NewGitCmd("reset").Arg("HEAD", "--").Arg(paths...).ToArgv()).Run()
+}
+
+func (self *WorkingTreeCommands) UnstageUntrackedFiles(paths []string) error {
+	return self.cmd.New(NewGitCmd("rm").Arg("--cached", "--force", "--").Arg(paths...).ToArgv()).Run()
 }
 
 func (self *WorkingTreeCommands) BeforeAndAfterFileForRename(file *models.File) (*models.File, *models.File, error) {
@@ -165,6 +164,7 @@ func (self *WorkingTreeCommands) DiscardAllFileChanges(file *models.File) error 
 	if file.Added {
 		return self.os.RemoveFile(file.Name)
 	}
+
 	return self.DiscardUnstagedFileChanges(file)
 }
 
@@ -172,6 +172,8 @@ type IFileNode interface {
 	ForEachFile(cb func(*models.File) error) error
 	GetFilePathsMatching(test func(*models.File) bool) []string
 	GetPath() string
+	// Returns file if the node is not a directory, otherwise returns nil
+	GetFile() *models.File
 }
 
 func (self *WorkingTreeCommands) DiscardAllDirChanges(node IFileNode) error {
@@ -180,13 +182,24 @@ func (self *WorkingTreeCommands) DiscardAllDirChanges(node IFileNode) error {
 }
 
 func (self *WorkingTreeCommands) DiscardUnstagedDirChanges(node IFileNode) error {
-	if err := self.RemoveUntrackedDirFiles(node); err != nil {
-		return err
-	}
+	file := node.GetFile()
+	if file == nil {
+		if err := self.RemoveUntrackedDirFiles(node); err != nil {
+			return err
+		}
 
-	cmdArgs := NewGitCmd("checkout").Arg("--", node.GetPath()).ToArgv()
-	if err := self.cmd.New(cmdArgs).Run(); err != nil {
-		return err
+		cmdArgs := NewGitCmd("checkout").Arg("--", node.GetPath()).ToArgv()
+		if err := self.cmd.New(cmdArgs).Run(); err != nil {
+			return err
+		}
+	} else {
+		if file.Added && !file.HasStagedChanges {
+			return self.os.RemoveFile(file.Name)
+		}
+
+		if err := self.DiscardUnstagedFileChanges(file); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -207,7 +220,6 @@ func (self *WorkingTreeCommands) RemoveUntrackedDirFiles(node IFileNode) error {
 	return nil
 }
 
-// DiscardUnstagedFileChanges directly
 func (self *WorkingTreeCommands) DiscardUnstagedFileChanges(file *models.File) error {
 	cmdArgs := NewGitCmd("checkout").Arg("--", file.Name).ToArgv()
 	return self.cmd.New(cmdArgs).Run()

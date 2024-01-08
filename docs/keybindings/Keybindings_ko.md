@@ -327,7 +327,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 파일명을 클립보드에 복사
-  <kbd>d</kbd>: View 'discard changes' options
   <kbd>&lt;space&gt;</kbd>: Staged 전환
   <kbd>&lt;c-b&gt;</kbd>: 파일을 필터하기 (Staged/unstaged)
   <kbd>y</kbd>: Copy to clipboard
@@ -344,6 +343,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: Stash 옵션 보기
   <kbd>a</kbd>: 모든 변경을 Staged/unstaged으로 전환
   <kbd>&lt;enter&gt;</kbd>: Stage individual hunks/lines for file, or collapse/expand for directory
+  <kbd>d</kbd>: View 'discard changes' options
   <kbd>g</kbd>: View upstream reset options
   <kbd>D</kbd>: View reset options
   <kbd>`</kbd>: 파일 트리뷰로 전환

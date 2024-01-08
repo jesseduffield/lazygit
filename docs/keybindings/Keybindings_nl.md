@@ -51,7 +51,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: Kopieer de bestandsnaam naar het klembord
-  <kbd>d</kbd>: Bekijk 'veranderingen ongedaan maken' opties
   <kbd>&lt;space&gt;</kbd>: Toggle staged
   <kbd>&lt;c-b&gt;</kbd>: Filter files by status
   <kbd>y</kbd>: Copy to clipboard
@@ -68,6 +67,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: Bekijk stash opties
   <kbd>a</kbd>: Toggle staged alle
   <kbd>&lt;enter&gt;</kbd>: Stage individuele hunks/lijnen
+  <kbd>d</kbd>: Bekijk 'veranderingen ongedaan maken' opties
   <kbd>g</kbd>: Bekijk upstream reset opties
   <kbd>D</kbd>: Bekijk reset opties
   <kbd>`</kbd>: Toggle bestandsboom weergave

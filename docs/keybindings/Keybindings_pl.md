@@ -151,7 +151,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: Copy the file name to the clipboard
-  <kbd>d</kbd>: Pokaż opcje porzucania zmian
   <kbd>&lt;space&gt;</kbd>: Przełącz stan poczekalni
   <kbd>&lt;c-b&gt;</kbd>: Filter files by status
   <kbd>y</kbd>: Copy to clipboard
@@ -168,6 +167,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: Wyświetl opcje schowka
   <kbd>a</kbd>: Przełącz stan poczekalni wszystkich
   <kbd>&lt;enter&gt;</kbd>: Zatwierdź pojedyncze linie
+  <kbd>d</kbd>: Pokaż opcje porzucania zmian
   <kbd>g</kbd>: View upstream reset options
   <kbd>D</kbd>: Wyświetl opcje resetu
   <kbd>`</kbd>: Toggle file tree view
