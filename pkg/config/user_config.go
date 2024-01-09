@@ -84,6 +84,11 @@ type GuiConfig struct {
 	// - 'vertical': split the window vertically
 	// - 'flexible': (default) split the window horizontally if the window is wide enough, otherwise split vertically
 	MainPanelSplitMode string `yaml:"mainPanelSplitMode" jsonschema:"enum=horizontal,enum=flexible,enum=vertical"`
+	// How the window is split when in half screen mode (i.e. after hitting '+' once).
+	// Possible values:
+	// - 'left': split the window horizontally (side panel on the left, main view on the right)
+	// - 'top': split the window vertically (side panel on top, main view below)
+	EnlargedSideViewLocation string `yaml:"enlargedSideViewLocation"`
 	// One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
 	Language string `yaml:"language" jsonschema:"enum=auto,enum=en,enum=zh-TW,enum=zh-CN,enum=pl,enum=nl,enum=ja,enum=ko,enum=ru"`
 	// Format used when displaying time e.g. commit time.
@@ -604,6 +609,7 @@ func GetDefaultConfig() *UserConfig {
 			SidePanelWidth:           0.3333,
 			ExpandFocusedSidePanel:   false,
 			MainPanelSplitMode:       "flexible",
+			EnlargedSideViewLocation: "left",
 			Language:                 "auto",
 			TimeFormat:               "02 Jan 06",
 			ShortTimeFormat:          time.Kitchen,
