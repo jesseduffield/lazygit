@@ -129,6 +129,7 @@ _Связки клавиш_
   <kbd>c</kbd>: Скопировать отобранные коммит (cherry-pick)
   <kbd>C</kbd>: Скопировать несколько отобранных коммитов (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Сбросить отобранную (скопированную | cherry-picked) выборку коммитов
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Просмотреть коммиты
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -165,6 +166,7 @@ _Связки клавиш_
   <kbd>g</kbd>: Просмотреть параметры сброса
   <kbd>c</kbd>: Скопировать отобранные коммит (cherry-pick)
   <kbd>C</kbd>: Скопировать несколько отобранных коммитов (cherry-pick)
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Просмотреть файлы выбранного элемента
   <kbd>/</kbd>: Найти
 </pre>
@@ -223,6 +225,7 @@ _Связки клавиш_
   <kbd>c</kbd>: Скопировать отобранные коммит (cherry-pick)
   <kbd>C</kbd>: Скопировать несколько отобранных коммитов (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Сбросить отобранную (скопированную | cherry-picked) выборку коммитов
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Просмотреть файлы выбранного элемента
   <kbd>/</kbd>: Найти
 </pre>
@@ -257,6 +260,7 @@ _Связки клавиш_
   <kbd>d</kbd>: Отменить изменения коммита в этом файле
   <kbd>o</kbd>: Открыть файл
   <kbd>e</kbd>: Редактировать файл
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;space&gt;</kbd>: Переключить файлы включённые в патч
   <kbd>a</kbd>: Переключить все файлы, включённые в патч
   <kbd>&lt;enter&gt;</kbd>: Введите файл, чтобы добавить выбранные строки в патч (или свернуть каталог переключения)
@@ -337,6 +341,7 @@ _Связки клавиш_
   <kbd>g</kbd>: Просмотреть параметры сброса upstream-ветки
   <kbd>D</kbd>: Просмотреть параметры сброса
   <kbd>`</kbd>: Переключить вид дерева файлов
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>M</kbd>: Открыть внешний инструмент слияния (git mergetool)
   <kbd>f</kbd>: Получить изменения
   <kbd>/</kbd>: Найти

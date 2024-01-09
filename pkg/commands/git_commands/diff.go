@@ -40,3 +40,41 @@ func (self *DiffCommands) GetAllDiff(staged bool) (string, error) {
 			ToArgv(),
 	).RunWithOutput()
 }
+
+type DiffToolCmdOptions struct {
+	// The path to show a diff for. Pass "." for the entire repo.
+	Filepath string
+
+	// The commit against which to show the diff. Leave empty to show a diff of
+	// the working copy.
+	FromCommit string
+
+	// The commit to diff against FromCommit. Leave empty to diff the working
+	// copy against FromCommit. Leave both FromCommit and ToCommit empty to show
+	// the diff of the unstaged working copy changes against the index if Staged
+	// is false, or the staged changes against HEAD if Staged is true.
+	ToCommit string
+
+	// Whether to reverse the left and right sides of the diff.
+	Reverse bool
+
+	// Whether the given Filepath is a directory. We'll pass --dir-diff to
+	// git-difftool in that case.
+	IsDirectory bool
+
+	// Whether to show the staged or the unstaged changes. Must be false if both
+	// FromCommit and ToCommit are non-empty.
+	Staged bool
+}
+
+func (self *DiffCommands) OpenDiffToolCmdObj(opts DiffToolCmdOptions) oscommands.ICmdObj {
+	return self.cmd.New(NewGitCmd("difftool").
+		Arg("--no-prompt").
+		ArgIf(opts.IsDirectory, "--dir-diff").
+		ArgIf(opts.Staged, "--cached").
+		ArgIf(opts.FromCommit != "", opts.FromCommit).
+		ArgIf(opts.ToCommit != "", opts.ToCommit).
+		ArgIf(opts.Reverse, "-R").
+		Arg("--", opts.Filepath).
+		ToArgv())
+}

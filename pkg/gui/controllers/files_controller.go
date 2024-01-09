@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -121,6 +122,11 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Key:         opts.GetKey(opts.Config.Files.ToggleTreeView),
 			Handler:     self.toggleTreeView,
 			Description: self.c.Tr.ToggleTreeView,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.OpenDiffTool),
+			Handler:     self.checkSelectedFileNode(self.openDiffTool),
+			Description: self.c.Tr.OpenDiffTool,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
@@ -682,6 +688,26 @@ func (self *FilesController) Open() error {
 	}
 
 	return self.c.Helpers().Files.OpenFile(node.GetPath())
+}
+
+func (self *FilesController) openDiffTool(node *filetree.FileNode) error {
+	fromCommit := ""
+	reverse := false
+	if self.c.Modes().Diffing.Active() {
+		fromCommit = self.c.Modes().Diffing.Ref
+		reverse = self.c.Modes().Diffing.Reverse
+	}
+	return self.c.RunSubprocessAndRefresh(
+		self.c.Git().Diff.OpenDiffToolCmdObj(
+			git_commands.DiffToolCmdOptions{
+				Filepath:    node.Path,
+				FromCommit:  fromCommit,
+				ToCommit:    "",
+				Reverse:     reverse,
+				IsDirectory: !node.IsFile(),
+				Staged:      !node.GetHasUnstagedChanges(),
+			}),
+	)
 }
 
 func (self *FilesController) switchToMerge() error {

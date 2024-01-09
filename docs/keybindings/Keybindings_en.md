@@ -52,6 +52,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: Discard this commit's changes to this file
   <kbd>o</kbd>: Open file
   <kbd>e</kbd>: Edit file
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;space&gt;</kbd>: Toggle file included in patch
   <kbd>a</kbd>: Toggle all files included in patch
   <kbd>&lt;enter&gt;</kbd>: Enter file to add selected lines to the patch (or toggle directory collapsed)
@@ -98,6 +99,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>g</kbd>: View reset options
   <kbd>c</kbd>: Copy commit (cherry-pick)
   <kbd>C</kbd>: Copy commit range (cherry-pick)
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
   <kbd>/</kbd>: Search the current view by text
 </pre>
@@ -132,6 +134,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>g</kbd>: View upstream reset options
   <kbd>D</kbd>: View reset options
   <kbd>`</kbd>: Toggle file tree view
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>M</kbd>: Open external merge tool (git mergetool)
   <kbd>f</kbd>: Fetch
   <kbd>/</kbd>: Search the current view by text
@@ -245,6 +248,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>c</kbd>: Copy commit (cherry-pick)
   <kbd>C</kbd>: Copy commit range (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View commits
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -312,6 +316,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>c</kbd>: Copy commit (cherry-pick)
   <kbd>C</kbd>: Copy commit range (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
   <kbd>/</kbd>: Search the current view by text
 </pre>

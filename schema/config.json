@@ -864,6 +864,10 @@
             "decreaseContextInDiffView": {
               "type": "string",
               "default": "{"
+            },
+            "openDiffTool": {
+              "type": "string",
+              "default": "\u003cc-t\u003e"
             }
           },
           "additionalProperties": false,
