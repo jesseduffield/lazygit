@@ -221,9 +221,9 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 		Arg("--interactive").
 		Arg("--autostash").
 		Arg("--keep-empty").
-		ArgIf(opts.keepCommitsThatBecomeEmpty && !self.version.IsOlderThan(2, 26, 0), "--empty=keep").
+		ArgIf(opts.keepCommitsThatBecomeEmpty && self.version.IsAtLeast(2, 26, 0), "--empty=keep").
 		Arg("--no-autosquash").
-		ArgIf(!self.version.IsOlderThan(2, 22, 0), "--rebase-merges").
+		ArgIf(self.version.IsAtLeast(2, 22, 0), "--rebase-merges").
 		ArgIf(opts.onto != "", "--onto", opts.onto).
 		Arg(opts.baseShaOrRoot).
 		ToArgv()
