@@ -41,13 +41,8 @@ func NewCommitsHelper(
 }
 
 func (self *CommitsHelper) SplitCommitMessageAndDescription(message string) (string, string) {
-	for _, separator := range []string{"\n\n", "\n\r\n\r", "\n", "\n\r"} {
-		msg, description, found := strings.Cut(message, separator)
-		if found {
-			return msg, description
-		}
-	}
-	return message, ""
+	msg, description, _ := strings.Cut(message, "\n")
+	return msg, strings.TrimSpace(description)
 }
 
 func (self *CommitsHelper) SetMessageAndDescriptionInView(message string) {

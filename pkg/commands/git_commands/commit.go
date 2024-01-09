@@ -137,12 +137,11 @@ func (self *CommitCommands) signoffFlag() string {
 }
 
 func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
-	cmdArgs := NewGitCmd("rev-list").
+	cmdArgs := NewGitCmd("log").
 		Arg("--format=%B", "--max-count=1", commitSha).
 		ToArgv()
 
-	messageWithHeader, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
-	message := strings.Join(strings.SplitAfter(messageWithHeader, "\n")[1:], "")
+	message, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	return strings.TrimSpace(message), err
 }
 
