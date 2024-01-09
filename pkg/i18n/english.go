@@ -335,6 +335,7 @@ type TranslationSet struct {
 	StashIncludeUntrackedChanges        string
 	StashOptions                        string
 	NotARepository                      string
+	WorkingDirectoryDoesNotExist        string
 	Jump                                string
 	ScrollLeftRight                     string
 	ScrollLeft                          string
@@ -1153,6 +1154,7 @@ func EnglishTranslationSet() TranslationSet {
 		StashIncludeUntrackedChanges:        "Stash all changes including untracked files",
 		StashOptions:                        "Stash options",
 		NotARepository:                      "Error: must be run inside a git repository",
+		WorkingDirectoryDoesNotExist:        "Error: the current working directory does not exist",
 		Jump:                                "Jump to panel",
 		ScrollLeftRight:                     "Scroll left/right",
 		ScrollLeft:                          "Scroll left",
