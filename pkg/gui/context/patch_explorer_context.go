@@ -116,6 +116,16 @@ func (self *PatchExplorerContext) FocusSelection() {
 	_ = view.SetOriginY(newOriginY)
 
 	view.SetCursorY(state.GetSelectedLineIdx() - newOriginY)
+
+	// At present this is just bookkeeping: the reason for setting this would be
+	// so that gocui knows which lines to highlight, but we're currently handling
+	// highlighting ourselves.
+	rangeStartLineIdx, isSelectingRange := state.RangeStartLineIdx()
+	if isSelectingRange {
+		view.SetRangeSelectStart(rangeStartLineIdx)
+	} else {
+		view.CancelRangeSelect()
+	}
 }
 
 func (self *PatchExplorerContext) GetContentToRender(isFocused bool) string {
