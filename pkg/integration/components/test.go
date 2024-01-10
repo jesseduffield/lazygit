@@ -100,7 +100,7 @@ func (self GitVersionRestriction) shouldRunOnVersion(version *git_commands.GitVe
 		if err != nil {
 			panic("Invalid git version string: " + self.from)
 		}
-		return !version.IsOlderThanVersion(from)
+		return version.IsAtLeastVersion(from)
 	}
 	if self.before != "" {
 		before, err := git_commands.ParseGitVersion(self.before)
