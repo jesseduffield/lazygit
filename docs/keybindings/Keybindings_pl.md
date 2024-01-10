@@ -157,6 +157,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>w</kbd>: Zatwierdź zmiany bez skryptu pre-commit
   <kbd>A</kbd>: Zmień ostatni commit
   <kbd>C</kbd>: Zatwierdź zmiany używając edytora
+  <kbd>&lt;c-f&gt;</kbd>: Find base commit for fixup
   <kbd>e</kbd>: Edytuj plik
   <kbd>o</kbd>: Otwórz plik
   <kbd>i</kbd>: Ignore or exclude file

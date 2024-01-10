@@ -204,6 +204,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>w</kbd>: 提交更改而无需预先提交钩子
   <kbd>A</kbd>: 修补最后一次提交
   <kbd>C</kbd>: 提交更改（使用编辑器编辑提交信息）
+  <kbd>&lt;c-f&gt;</kbd>: Find base commit for fixup
   <kbd>e</kbd>: 编辑文件
   <kbd>o</kbd>: 打开文件
   <kbd>i</kbd>: 忽略文件

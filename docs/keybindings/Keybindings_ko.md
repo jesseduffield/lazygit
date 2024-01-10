@@ -336,6 +336,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>w</kbd>: Commit changes without pre-commit hook
   <kbd>A</kbd>: 마지맛 커밋 수정
   <kbd>C</kbd>: Git 편집기를 사용하여 변경 내용을 커밋합니다.
+  <kbd>&lt;c-f&gt;</kbd>: Find base commit for fixup
   <kbd>e</kbd>: 파일 편집
   <kbd>o</kbd>: 파일 닫기
   <kbd>i</kbd>: Ignore file

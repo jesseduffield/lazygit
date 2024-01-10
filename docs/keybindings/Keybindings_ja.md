@@ -196,6 +196,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>w</kbd>: pre-commitフックを実行せずに変更をコミット
   <kbd>A</kbd>: 最新のコミットにamend
   <kbd>C</kbd>: gitエディタを使用して変更をコミット
+  <kbd>&lt;c-f&gt;</kbd>: Find base commit for fixup
   <kbd>e</kbd>: ファイルを編集
   <kbd>o</kbd>: ファイルを開く
   <kbd>i</kbd>: ファイルをignore

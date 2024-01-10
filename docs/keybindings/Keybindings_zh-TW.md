@@ -299,6 +299,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>w</kbd>: 沒有預提交 hook 就提交更改
   <kbd>A</kbd>: 修正上次提交
   <kbd>C</kbd>: 使用 git 編輯器提交變更
+  <kbd>&lt;c-f&gt;</kbd>: Find base commit for fixup
   <kbd>e</kbd>: 編輯檔案
   <kbd>o</kbd>: 開啟檔案
   <kbd>i</kbd>: 忽略或排除檔案

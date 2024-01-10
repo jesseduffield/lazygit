@@ -56,6 +56,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>w</kbd>: Commit veranderingen zonder pre-commit hook
   <kbd>A</kbd>: Wijzig laatste commit
   <kbd>C</kbd>: Commit veranderingen met de git editor
+  <kbd>&lt;c-f&gt;</kbd>: Find base commit for fixup
   <kbd>e</kbd>: Verander bestand
   <kbd>o</kbd>: Open bestand
   <kbd>i</kbd>: Ignore or exclude file

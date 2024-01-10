@@ -78,3 +78,11 @@ func (self *DiffCommands) OpenDiffToolCmdObj(opts DiffToolCmdOptions) oscommands
 		Arg("--", opts.Filepath).
 		ToArgv())
 }
+
+func (self *DiffCommands) DiffIndexCmdObj(diffArgs ...string) oscommands.ICmdObj {
+	return self.cmd.New(
+		NewGitCmd("diff-index").
+			Arg("--submodule", "--no-ext-diff", "--no-color", "--patch").
+			Arg(diffArgs...).ToArgv(),
+	)
+}

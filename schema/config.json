@@ -914,6 +914,10 @@
               "type": "string",
               "default": "C"
             },
+            "findBaseCommitForFixup": {
+              "type": "string",
+              "default": "\u003cc-f\u003e"
+            },
             "confirmDiscard": {
               "type": "string",
               "default": "x"
