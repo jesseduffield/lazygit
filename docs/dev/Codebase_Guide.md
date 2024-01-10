@@ -52,7 +52,7 @@
 * `pkg/gui/controllers/helpers/window_arrangement_helper.go`: defines the layout of the UI and the size/position of each window
 * `pkg/gui/context/context.go`: defines the different contexts
 * `pkg/gui/context/setup.go`: defines initialisation code for all contexts
-* `pkg/gui/context/context.go`: manages the lifecycle of contexts, the context stack, and focus changes.
+* `pkg/gui/context.go`: manages the lifecycle of contexts, the context stack, and focus changes.
 * `pkg/gui/types/views.go`: defines views
 * `pkg/gui/views.go`: defines the ordering of views (front to back) and their initialisation code
 * `pkg/gui/gui_common.go`: defines gui-specific methods that all controllers and helpers have access to
