@@ -24,18 +24,28 @@ func NewHostHelper(
 }
 
 func (self *HostHelper) GetPullRequestURL(from string, to string) (string, error) {
-	return self.getHostingServiceMgr().GetPullRequestURL(from, to)
+	mgr, err := self.getHostingServiceMgr()
+	if err != nil {
+		return "", err
+	}
+	return mgr.GetPullRequestURL(from, to)
 }
 
 func (self *HostHelper) GetCommitURL(commitSha string) (string, error) {
-	return self.getHostingServiceMgr().GetCommitURL(commitSha)
+	mgr, err := self.getHostingServiceMgr()
+	if err != nil {
+		return "", err
+	}
+	return mgr.GetCommitURL(commitSha)
 }
 
 // getting this on every request rather than storing it in state in case our remoteURL changes
-// from one invocation to the next. Note however that we're currently caching config
-// results so we might want to invalidate the cache here if it becomes a problem.
-func (self *HostHelper) getHostingServiceMgr() *hosting_service.HostingServiceMgr {
-	remoteUrl := self.c.Git().Config.GetRemoteURL()
+// from one invocation to the next.
+func (self *HostHelper) getHostingServiceMgr() (*hosting_service.HostingServiceMgr, error) {
+	remoteUrl, err := self.c.Git().Remote.GetRemoteURL("origin")
+	if err != nil {
+		return nil, err
+	}
 	configServices := self.c.UserConfig.Services
-	return hosting_service.NewHostingServiceMgr(self.c.Log, self.c.Tr, remoteUrl, configServices)
+	return hosting_service.NewHostingServiceMgr(self.c.Log, self.c.Tr, remoteUrl, configServices), nil
 }
