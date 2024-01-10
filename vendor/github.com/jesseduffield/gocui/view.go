@@ -13,9 +13,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/go-errors/errors"
 	"github.com/mattn/go-runewidth"
-	"github.com/stefanhaller/tcell/v2"
 )
 
 // Constants for overlapping edges

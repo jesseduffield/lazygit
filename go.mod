@@ -9,13 +9,14 @@ require (
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 	github.com/creack/pty v1.1.11
 	github.com/fsmiamoto/git-todo-parser v0.0.5
+	github.com/gdamore/tcell/v2 v2.7.1-0.20240103180601-96e29905643b
 	github.com/go-errors/errors v1.5.1
 	github.com/gookit/color v1.4.2
 	github.com/imdario/mergo v0.3.11
 	github.com/integrii/flaggy v1.4.0
 	github.com/jesseduffield/generics v0.0.0-20220320043834-727e535cbe68
 	github.com/jesseduffield/go-git/v5 v5.1.2-0.20221018185014-fdd53fef665d
-	github.com/jesseduffield/gocui v0.3.1-0.20231209142059-968d8b62e1ef
+	github.com/jesseduffield/gocui v0.3.1-0.20240103192639-2874168c14db
 	github.com/jesseduffield/kill v0.0.0-20220618033138-bfbe04675d10
 	github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
 	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
@@ -34,7 +35,6 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.9.5
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
-	github.com/stefanhaller/tcell/v2 v2.6.2-0.20230806061358-2dfa11eddb68
 	github.com/stretchr/testify v1.8.1
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
 	golang.org/x/exp v0.0.0-20220318154914-8dddf5d87bd8
