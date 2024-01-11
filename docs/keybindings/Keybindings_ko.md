@@ -263,6 +263,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: 에디터에서 커밋메시지 수정
   <kbd>d</kbd>: 커밋 삭제
   <kbd>e</kbd>: 커밋을 편집
+  <kbd>i</kbd>: Start interactive rebase
   <kbd>p</kbd>: Pick commit (when mid-rebase)
   <kbd>F</kbd>: Create fixup commit for this commit
   <kbd>S</kbd>: Squash all 'fixup!' commits above selected commit (autosquash)

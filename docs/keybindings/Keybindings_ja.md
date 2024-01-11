@@ -98,6 +98,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: エディタでコミットメッセージを編集
   <kbd>d</kbd>: コミットを削除
   <kbd>e</kbd>: コミットを編集
+  <kbd>i</kbd>: Start interactive rebase
   <kbd>p</kbd>: Pick commit (when mid-rebase)
   <kbd>F</kbd>: このコミットに対するfixupコミットを作成
   <kbd>S</kbd>: Squash all 'fixup!' commits above selected commit (autosquash)

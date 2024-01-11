@@ -4,11 +4,13 @@ import (
 	"fmt"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -42,6 +44,8 @@ func NewLocalCommitsController(
 }
 
 func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+	editCommitKey := opts.Config.Universal.Edit
+
 	outsideFilterModeBindings := []*types.Binding{
 		{
 			Key:               opts.GetKey(opts.Config.Commits.SquashDown),
@@ -74,10 +78,22 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description:       self.c.Tr.DeleteCommit,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Key:               opts.GetKey(editCommitKey),
 			Handler:           self.checkSelected(self.edit),
 			GetDisabledReason: self.getDisabledReasonForRebaseCommandWithSelectedCommit(todo.Edit),
 			Description:       self.c.Tr.EditCommit,
+		},
+		{
+			// The user-facing description here is 'Start interactive rebase' but internally
+			// we're calling it 'quick-start interactive rebase' to differentiate it from
+			// when you manually select the base commit.
+			Key:               opts.GetKey(opts.Config.Commits.StartInteractiveRebase),
+			Handler:           self.checkSelected(self.quickStartInteractiveRebase),
+			GetDisabledReason: self.require(self.notMidRebase, self.canFindCommitForQuickStart),
+			Description:       self.c.Tr.QuickStartInteractiveRebase,
+			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.QuickStartInteractiveRebaseTooltip, map[string]string{
+				"editKey": keybindings.Label(editCommitKey),
+			}),
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.PickCommit),
@@ -414,20 +430,55 @@ func (self *LocalCommitsController) edit(commit *models.Commit) error {
 		return nil
 	}
 
+	return self.startInteractiveRebaseWithEdit(commit, commit)
+}
+
+func (self *LocalCommitsController) quickStartInteractiveRebase(selectedCommit *models.Commit) error {
+	commitToEdit, err := self.findCommitForQuickStartInteractiveRebase()
+	if err != nil {
+		return self.c.Error(err)
+	}
+
+	return self.startInteractiveRebaseWithEdit(commitToEdit, selectedCommit)
+}
+
+func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
+	commitToEdit *models.Commit,
+	selectedCommit *models.Commit,
+) error {
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
-		err := self.c.Git().Rebase.EditRebase(commit.Sha)
+		err := self.c.Git().Rebase.EditRebase(commitToEdit.Sha)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
 			types.RefreshOptions{Mode: types.BLOCK_UI, Then: func() {
+				// We need to select the same commit again because after starting a rebase,
+				// new lines can be added for update-ref commands in the TODO file, due to
+				// stacked branches. So the commit may be in a different position in the list.
 				_, index, ok := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
-					return c.Sha == commit.Sha
+					return c.Sha == selectedCommit.Sha
 				})
 				if ok {
 					self.context().SetSelectedLineIdx(index)
 				}
 			}})
 	})
+}
+
+func (self *LocalCommitsController) findCommitForQuickStartInteractiveRebase() (*models.Commit, error) {
+	commit, index, ok := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
+		return c.IsMerge() || c.Status == models.StatusMerged
+	})
+
+	if !ok || index == 0 {
+		errorMsg := utils.ResolvePlaceholderString(self.c.Tr.CannotQuickStartInteractiveRebase, map[string]string{
+			"editKey": keybindings.Label(self.c.UserConfig.Keybinding.Universal.Edit),
+		})
+
+		return nil, errors.New(errorMsg)
+	}
+
+	return commit, nil
 }
 
 func (self *LocalCommitsController) pick(commit *models.Commit) error {
@@ -827,6 +878,24 @@ func (self *LocalCommitsController) getDisabledReasonForSquashAllAboveFixupCommi
 	return ""
 }
 
+// For getting disabled reason
+func (self *LocalCommitsController) notMidRebase() string {
+	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+		return self.c.Tr.AlreadyRebasing
+	}
+
+	return ""
+}
+
+// For getting disabled reason
+func (self *LocalCommitsController) canFindCommitForQuickStart() string {
+	if _, err := self.findCommitForQuickStartInteractiveRebase(); err != nil {
+		return err.Error()
+	}
+
+	return ""
+}
+
 func (self *LocalCommitsController) createTag(commit *models.Commit) error {
 	return self.c.Helpers().Tags.OpenCreateTagPrompt(commit.Sha, func() {})
 }
@@ -1028,6 +1097,19 @@ func (self *LocalCommitsController) markAsBaseCommit(commit *models.Commit) erro
 
 func (self *LocalCommitsController) isHeadCommit() bool {
 	return models.IsHeadCommit(self.c.Model().Commits, self.context().GetSelectedLineIdx())
+}
+
+// Convenience function for composing multiple disabled reason functions
+func (self *LocalCommitsController) require(callbacks ...func() string) func() string {
+	return func() string {
+		for _, callback := range callbacks {
+			if disabledReason := callback(); disabledReason != "" {
+				return disabledReason
+			}
+		}
+
+		return ""
+	}
 }
 
 func isChangeOfRebaseTodoAllowed(action todo.TodoCommand) bool {

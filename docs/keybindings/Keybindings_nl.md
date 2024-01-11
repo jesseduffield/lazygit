@@ -142,6 +142,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: Hernoem commit met editor
   <kbd>d</kbd>: Verwijder commit
   <kbd>e</kbd>: Wijzig commit
+  <kbd>i</kbd>: Start interactive rebase
   <kbd>p</kbd>: Kies commit (wanneer midden in rebase)
   <kbd>F</kbd>: Creëer fixup commit
   <kbd>S</kbd>: Squash bovenstaande commits

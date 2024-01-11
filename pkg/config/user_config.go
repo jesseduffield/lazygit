@@ -428,6 +428,7 @@ type KeybindingCommitsConfig struct {
 	OpenLogMenu                    string `yaml:"openLogMenu"`
 	OpenInBrowser                  string `yaml:"openInBrowser"`
 	ViewBisectOptions              string `yaml:"viewBisectOptions"`
+	StartInteractiveRebase         string `yaml:"startInteractiveRebase"`
 }
 
 type KeybindingStashConfig struct {
@@ -822,6 +823,7 @@ func GetDefaultConfig() *UserConfig {
 				OpenLogMenu:                    "<c-l>",
 				OpenInBrowser:                  "o",
 				ViewBisectOptions:              "b",
+				StartInteractiveRebase:         "i",
 			},
 			Stash: KeybindingStashConfig{
 				PopStash:    "g",

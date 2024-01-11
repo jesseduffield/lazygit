@@ -187,6 +187,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>R</kbd>: 使用編輯器改寫提交
   <kbd>d</kbd>: 刪除提交
   <kbd>e</kbd>: 編輯提交
+  <kbd>i</kbd>: Start interactive rebase
   <kbd>p</kbd>: 挑選提交 (於變基過程中)
   <kbd>F</kbd>: 為此提交建立修復提交
   <kbd>S</kbd>: 壓縮上方所有的“fixup!”提交 (自動壓縮)
