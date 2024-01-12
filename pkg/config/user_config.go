@@ -121,6 +121,8 @@ type GuiConfig struct {
 	// One of: '2' | '3' | empty string (default)
 	// If empty, do not show icons.
 	NerdFontsVersion string `yaml:"nerdFontsVersion" jsonschema:"enum=2,enum=3,enum="`
+	// If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.
+	ShowFileIcons bool `yaml:"showFileIcons"`
 	// If true, show commit hashes alongside branch names in the branches view.
 	ShowBranchCommitHash bool `yaml:"showBranchCommitHash"`
 	// Height of the command log view
@@ -635,6 +637,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowRandomTip:             true,
 			ShowIcons:                 false,
 			NerdFontsVersion:          "",
+			ShowFileIcons:             true,
 			ShowBranchCommitHash:      false,
 			CommandLogSize:            8,
 			SplitDiff:                 "auto",

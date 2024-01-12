@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -33,7 +34,8 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 			return [][]string{{style.FgRed.Sprint("(none)")}}
 		}
 
-		lines := presentation.RenderCommitFileTree(viewModel, c.Git().Patch.PatchBuilder)
+		showFileIcons := icons.IsIconEnabled() && c.UserConfig.Gui.ShowFileIcons
+		lines := presentation.RenderCommitFileTree(viewModel, c.Git().Patch.PatchBuilder, showFileIcons)
 		return lo.Map(lines, func(line string, _ int) []string {
 			return []string{line}
 		})
