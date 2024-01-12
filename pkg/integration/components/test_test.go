@@ -78,6 +78,10 @@ func (self *fakeGuiDriver) SetCaption(string) {
 func (self *fakeGuiDriver) SetCaptionPrefix(string) {
 }
 
+func (self *fakeGuiDriver) NextToast() *string {
+	return nil
+}
+
 func TestManualFailure(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,

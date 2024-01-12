@@ -467,6 +467,7 @@ func NewGui(
 	updater *updates.Updater,
 	showRecentRepos bool,
 	initialDir string,
+	test integrationTypes.IntegrationTest,
 ) (*Gui, error) {
 	gui := &Gui{
 		Common:               cmn,

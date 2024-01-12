@@ -20,6 +20,7 @@ import (
 type GuiDriver struct {
 	gui        *Gui
 	isIdleChan chan struct{}
+	toastChan  chan string
 }
 
 var _ integrationTypes.GuiDriver = &GuiDriver{}
@@ -132,4 +133,13 @@ func (self *GuiDriver) SetCaption(caption string) {
 func (self *GuiDriver) SetCaptionPrefix(prefix string) {
 	self.gui.setCaptionPrefix(prefix)
 	self.waitTillIdle()
+}
+
+func (self *GuiDriver) NextToast() *string {
+	select {
+	case t := <-self.toastChan:
+		return &t
+	default:
+		return nil
+	}
 }

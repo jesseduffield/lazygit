@@ -66,6 +66,10 @@ func (self *PopupHandler) Toast(message string) {
 	self.toastFn(message)
 }
 
+func (self *PopupHandler) SetToastFunc(f func(string)) {
+	self.toastFn = f
+}
+
 func (self *PopupHandler) WithWaitingStatus(message string, f func(gocui.Task) error) error {
 	self.withWaitingStatusFn(message, f)
 	return nil
