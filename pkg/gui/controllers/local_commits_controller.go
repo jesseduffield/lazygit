@@ -534,7 +534,7 @@ func (self *LocalCommitsController) rebaseCommandEnabled(action todo.TodoCommand
 	}
 
 	if !commit.IsTODO() {
-		if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+		if self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.REBASE_MODE_NONE {
 			// If we are in a rebase, the only action that is allowed for
 			// non-todo commits is rewording the current head commit
 			if !(action == todo.Reword && self.isHeadCommit()) {
@@ -688,7 +688,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) getDisabledReasonForAmendTo(commit *models.Commit) string {
-	if !self.isHeadCommit() && self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+	if !self.isHeadCommit() && self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.REBASE_MODE_NONE {
 		return self.c.Tr.AlreadyRebasing
 	}
 
@@ -871,7 +871,7 @@ func (self *LocalCommitsController) squashAllAboveFixupCommits(commit *models.Co
 }
 
 func (self *LocalCommitsController) getDisabledReasonForSquashAllAboveFixupCommits(commit *models.Commit) string {
-	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+	if self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.REBASE_MODE_NONE {
 		return self.c.Tr.AlreadyRebasing
 	}
 
@@ -880,7 +880,7 @@ func (self *LocalCommitsController) getDisabledReasonForSquashAllAboveFixupCommi
 
 // For getting disabled reason
 func (self *LocalCommitsController) notMidRebase() string {
-	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+	if self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.REBASE_MODE_NONE {
 		return self.c.Tr.AlreadyRebasing
 	}
 
