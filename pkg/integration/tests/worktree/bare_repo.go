@@ -38,6 +38,8 @@ var BareRepo = NewIntegrationTest(NewIntegrationTestArgs{
 
 		shell.RunCommand([]string{"git", "--git-dir", ".bare", "worktree", "add", "-b", "repo", "repo", "mybranch"})
 		shell.RunCommand([]string{"git", "--git-dir", ".bare", "worktree", "add", "-b", "worktree2", "worktree2", "mybranch"})
+
+		shell.Chdir("repo")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().
