@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	LAZYGIT_ROOT_DIR          = "LAZYGIT_ROOT_DIR"
 	TEST_NAME_ENV_VAR         = "TEST_NAME"
 	SANDBOX_ENV_VAR           = "SANDBOX"
 	WAIT_FOR_DEBUGGER_ENV_VAR = "WAIT_FOR_DEBUGGER"
@@ -98,11 +99,12 @@ func runTest(
 		return nil
 	}
 
-	if err := prepareTestDir(test, paths, projectRootDir); err != nil {
+	workingDir, err := prepareTestDir(test, paths, projectRootDir)
+	if err != nil {
 		return err
 	}
 
-	cmd, err := getLazygitCommand(test, args, paths, projectRootDir)
+	cmd, err := getLazygitCommand(test, args, paths, projectRootDir, workingDir)
 	if err != nil {
 		return err
 	}
@@ -124,16 +126,18 @@ func prepareTestDir(
 	test *IntegrationTest,
 	paths Paths,
 	rootDir string,
-) error {
+) (string, error) {
 	findOrCreateDir(paths.Root())
 	deleteAndRecreateEmptyDir(paths.Actual())
 
 	err := os.Mkdir(paths.ActualRepo(), 0o777)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return createFixture(test, paths, rootDir)
+	workingDir := createFixture(test, paths, rootDir)
+
+	return workingDir, nil
 }
 
 func buildLazygit(testArgs RunTestArgs) error {
@@ -154,7 +158,9 @@ func buildLazygit(testArgs RunTestArgs) error {
 	return osCommand.Cmd.New(args).Run()
 }
 
-func createFixture(test *IntegrationTest, paths Paths, rootDir string) error {
+// Sets up the fixture for test and returns the working directory to invoke
+// lazygit in.
+func createFixture(test *IntegrationTest, paths Paths, rootDir string) string {
 	shell := NewShell(paths.ActualRepo(), func(errorMsg string) { panic(errorMsg) })
 	shell.Init()
 
@@ -162,7 +168,7 @@ func createFixture(test *IntegrationTest, paths Paths, rootDir string) error {
 
 	test.SetupRepo(shell)
 
-	return nil
+	return shell.dir
 }
 
 func globalGitConfigPath(rootDir string) string {
@@ -179,7 +185,13 @@ func getGitVersion() (*git_commands.GitVersion, error) {
 	return git_commands.ParseGitVersion(versionStr)
 }
 
-func getLazygitCommand(test *IntegrationTest, args RunTestArgs, paths Paths, rootDir string) (*exec.Cmd, error) {
+func getLazygitCommand(
+	test *IntegrationTest,
+	args RunTestArgs,
+	paths Paths,
+	rootDir string,
+	workingDir string,
+) (*exec.Cmd, error) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	err := os.RemoveAll(paths.Config())
@@ -194,9 +206,7 @@ func getLazygitCommand(test *IntegrationTest, args RunTestArgs, paths Paths, roo
 	}
 
 	cmdArgs := []string{tempLazygitPath(), "-debug", "--use-config-dir=" + paths.Config()}
-	if !test.useCustomPath {
-		cmdArgs = append(cmdArgs, "--path="+paths.ActualRepo())
-	}
+
 	resolvedExtraArgs := lo.Map(test.ExtraCmdArgs(), func(arg string, _ int) string {
 		return utils.ResolvePlaceholderString(arg, map[string]string{
 			"actualPath":     paths.Actual(),
@@ -206,6 +216,10 @@ func getLazygitCommand(test *IntegrationTest, args RunTestArgs, paths Paths, roo
 	cmdArgs = append(cmdArgs, resolvedExtraArgs...)
 
 	cmdObj := osCommand.Cmd.New(cmdArgs)
+
+	cmdObj.SetWd(workingDir)
+
+	cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", LAZYGIT_ROOT_DIR, rootDir))
 
 	if args.CodeCoverageDir != "" {
 		// We set this explicitly here rather than inherit it from the test runner's

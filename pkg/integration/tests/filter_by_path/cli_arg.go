@@ -7,7 +7,7 @@ import (
 
 var CliArg = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Filter commits by file path, using CLI arg",
-	ExtraCmdArgs: []string{"-f", "filterFile"},
+	ExtraCmdArgs: []string{"-f=filterFile"},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 	},
