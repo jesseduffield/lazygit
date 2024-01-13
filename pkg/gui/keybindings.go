@@ -411,12 +411,12 @@ func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
 }
 
 func (gui *Gui) callKeybindingHandler(binding *types.Binding) error {
-	disabledReason := ""
+	var disabledReason *types.DisabledReason
 	if binding.GetDisabledReason != nil {
 		disabledReason = binding.GetDisabledReason()
 	}
-	if disabledReason != "" {
-		gui.c.ErrorToast(gui.Tr.DisabledMenuItemPrefix + disabledReason)
+	if disabledReason != nil {
+		gui.c.ErrorToast(gui.Tr.DisabledMenuItemPrefix + disabledReason.Text)
 		return nil
 	}
 	return binding.Handler()

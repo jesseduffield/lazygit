@@ -201,6 +201,10 @@ type MenuSection struct {
 	Column int // The column that this section title should be aligned with
 }
 
+type DisabledReason struct {
+	Text string
+}
+
 type MenuItem struct {
 	Label string
 
@@ -219,9 +223,9 @@ type MenuItem struct {
 	// The tooltip will be displayed upon highlighting the menu item
 	Tooltip string
 
-	// If non-empty, show this in a tooltip, style the menu item as disabled,
+	// If non-nil, show this in a tooltip, style the menu item as disabled,
 	// and refuse to invoke the command
-	DisabledReason string
+	DisabledReason *DisabledReason
 
 	// Can be used to group menu items into sections with headers. MenuItems
 	// with the same Section should be contiguous, and will automatically get a

@@ -264,13 +264,13 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 	}
 
 	if !selectedBranch.IsTrackingRemote() {
-		unsetUpstreamItem.DisabledReason = self.c.Tr.UpstreamNotSetError
+		unsetUpstreamItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.UpstreamNotSetError}
 	}
 
 	if !selectedBranch.RemoteBranchStoredLocally() {
-		viewDivergenceItem.DisabledReason = self.c.Tr.UpstreamNotSetError
-		upstreamResetItem.DisabledReason = self.c.Tr.UpstreamNotSetError
-		upstreamRebaseItem.DisabledReason = self.c.Tr.UpstreamNotSetError
+		viewDivergenceItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.UpstreamNotSetError}
+		upstreamResetItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.UpstreamNotSetError}
+		upstreamRebaseItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.UpstreamNotSetError}
 	}
 
 	options := []*types.MenuItem{
@@ -309,16 +309,16 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 	return self.c.Helpers().Refs.CheckoutRef(selectedBranch.Name, types.CheckoutRefOptions{})
 }
 
-func (self *BranchesController) getDisabledReasonForPress() string {
+func (self *BranchesController) getDisabledReasonForPress() *types.DisabledReason {
 	currentBranch := self.c.Helpers().Refs.GetCheckedOutRef()
 	if currentBranch != nil {
 		op := self.c.State().GetItemOperation(currentBranch)
 		if op == types.ItemOperationFastForwarding || op == types.ItemOperationPulling {
-			return self.c.Tr.CantCheckoutBranchWhilePulling
+			return &types.DisabledReason{Text: self.c.Tr.CantCheckoutBranchWhilePulling}
 		}
 	}
 
-	return ""
+	return nil
 }
 
 func (self *BranchesController) worktreeForBranch(branch *models.Branch) (*models.Worktree, bool) {
@@ -525,7 +525,7 @@ func (self *BranchesController) delete(branch *models.Branch) error {
 		},
 	}
 	if checkedOutBranch.Name == branch.Name {
-		localDeleteItem.DisabledReason = self.c.Tr.CantDeleteCheckOutBranch
+		localDeleteItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.CantDeleteCheckOutBranch}
 	}
 
 	remoteDeleteItem := &types.MenuItem{
@@ -536,7 +536,7 @@ func (self *BranchesController) delete(branch *models.Branch) error {
 		},
 	}
 	if !branch.IsTrackingRemote() || branch.UpstreamGone {
-		remoteDeleteItem.DisabledReason = self.c.Tr.UpstreamNotSetError
+		remoteDeleteItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.UpstreamNotSetError}
 	}
 
 	menuTitle := utils.ResolvePlaceholderString(
@@ -562,14 +562,14 @@ func (self *BranchesController) rebase() error {
 	return self.c.Helpers().MergeAndRebase.RebaseOntoRef(selectedBranchName)
 }
 
-func (self *BranchesController) getDisabledReasonForRebase() string {
+func (self *BranchesController) getDisabledReasonForRebase() *types.DisabledReason {
 	selectedBranchName := self.context().GetSelected().Name
 	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef().Name
 	if selectedBranchName == checkedOutBranch {
-		return self.c.Tr.CantRebaseOntoSelf
+		return &types.DisabledReason{Text: self.c.Tr.CantRebaseOntoSelf}
 	}
 
-	return ""
+	return nil
 }
 
 func (self *BranchesController) fastForward(branch *models.Branch) error {

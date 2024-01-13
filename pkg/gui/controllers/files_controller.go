@@ -848,15 +848,15 @@ func (self *FilesController) openCopyMenu() error {
 	}
 
 	if node == nil {
-		copyNameItem.DisabledReason = self.c.Tr.NoContentToCopyError
-		copyPathItem.DisabledReason = self.c.Tr.NoContentToCopyError
-		copyFileDiffItem.DisabledReason = self.c.Tr.NoContentToCopyError
+		copyNameItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.NoContentToCopyError}
+		copyPathItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.NoContentToCopyError}
+		copyFileDiffItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.NoContentToCopyError}
 	}
 	if node != nil && !node.GetHasStagedOrTrackedChanges() {
-		copyFileDiffItem.DisabledReason = self.c.Tr.NoContentToCopyError
+		copyFileDiffItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.NoContentToCopyError}
 	}
 	if !self.anyStagedOrTrackedFile() {
-		copyAllDiff.DisabledReason = self.c.Tr.NoContentToCopyError
+		copyAllDiff.DisabledReason = &types.DisabledReason{Text: self.c.Tr.NoContentToCopyError}
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{

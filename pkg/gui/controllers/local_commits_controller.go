@@ -261,9 +261,9 @@ func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
 	})
 }
 
-func (self *LocalCommitsController) getDisabledReasonForSquashDown(commit *models.Commit) string {
+func (self *LocalCommitsController) getDisabledReasonForSquashDown(commit *models.Commit) *types.DisabledReason {
 	if self.context().GetSelectedLineIdx() >= len(self.c.Model().Commits)-1 {
-		return self.c.Tr.CannotSquashOrFixupFirstCommit
+		return &types.DisabledReason{Text: self.c.Tr.CannotSquashOrFixupFirstCommit}
 	}
 
 	return self.rebaseCommandEnabled(todo.Squash, commit)
@@ -290,9 +290,9 @@ func (self *LocalCommitsController) fixup(commit *models.Commit) error {
 	})
 }
 
-func (self *LocalCommitsController) getDisabledReasonForFixup(commit *models.Commit) string {
+func (self *LocalCommitsController) getDisabledReasonForFixup(commit *models.Commit) *types.DisabledReason {
 	if self.context().GetSelectedLineIdx() >= len(self.c.Model().Commits)-1 {
-		return self.c.Tr.CannotSquashOrFixupFirstCommit
+		return &types.DisabledReason{Text: self.c.Tr.CannotSquashOrFixupFirstCommit}
 	}
 
 	return self.rebaseCommandEnabled(todo.Squash, commit)
@@ -528,9 +528,9 @@ func (self *LocalCommitsController) handleMidRebaseCommand(action todo.TodoComma
 	})
 }
 
-func (self *LocalCommitsController) rebaseCommandEnabled(action todo.TodoCommand, commit *models.Commit) string {
+func (self *LocalCommitsController) rebaseCommandEnabled(action todo.TodoCommand, commit *models.Commit) *types.DisabledReason {
 	if commit.Action == models.ActionConflict {
-		return self.c.Tr.ChangingThisActionIsNotAllowed
+		return &types.DisabledReason{Text: self.c.Tr.ChangingThisActionIsNotAllowed}
 	}
 
 	if !commit.IsTODO() {
@@ -538,11 +538,11 @@ func (self *LocalCommitsController) rebaseCommandEnabled(action todo.TodoCommand
 			// If we are in a rebase, the only action that is allowed for
 			// non-todo commits is rewording the current head commit
 			if !(action == todo.Reword && self.isHeadCommit()) {
-				return self.c.Tr.AlreadyRebasing
+				return &types.DisabledReason{Text: self.c.Tr.AlreadyRebasing}
 			}
 		}
 
-		return ""
+		return nil
 	}
 
 	// for now we do not support setting 'reword' because it requires an editor
@@ -550,14 +550,14 @@ func (self *LocalCommitsController) rebaseCommandEnabled(action todo.TodoCommand
 	// our input or we set a lazygit client as the EDITOR env variable and have it
 	// request us to edit the commit message when prompted.
 	if action == todo.Reword {
-		return self.c.Tr.RewordNotSupported
+		return &types.DisabledReason{Text: self.c.Tr.RewordNotSupported}
 	}
 
 	if allowed := isChangeOfRebaseTodoAllowed(action); !allowed {
-		return self.c.Tr.ChangingThisActionIsNotAllowed
+		return &types.DisabledReason{Text: self.c.Tr.ChangingThisActionIsNotAllowed}
 	}
 
-	return ""
+	return nil
 }
 
 func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
@@ -687,12 +687,12 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 	})
 }
 
-func (self *LocalCommitsController) getDisabledReasonForAmendTo(commit *models.Commit) string {
+func (self *LocalCommitsController) getDisabledReasonForAmendTo(commit *models.Commit) *types.DisabledReason {
 	if !self.isHeadCommit() && self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.REBASE_MODE_NONE {
-		return self.c.Tr.AlreadyRebasing
+		return &types.DisabledReason{Text: self.c.Tr.AlreadyRebasing}
 	}
 
-	return ""
+	return nil
 }
 
 func (self *LocalCommitsController) amendAttribute(commit *models.Commit) error {
@@ -870,30 +870,30 @@ func (self *LocalCommitsController) squashAllAboveFixupCommits(commit *models.Co
 	})
 }
 
-func (self *LocalCommitsController) getDisabledReasonForSquashAllAboveFixupCommits(commit *models.Commit) string {
+func (self *LocalCommitsController) getDisabledReasonForSquashAllAboveFixupCommits(commit *models.Commit) *types.DisabledReason {
 	if self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.REBASE_MODE_NONE {
-		return self.c.Tr.AlreadyRebasing
+		return &types.DisabledReason{Text: self.c.Tr.AlreadyRebasing}
 	}
 
-	return ""
+	return nil
 }
 
 // For getting disabled reason
-func (self *LocalCommitsController) notMidRebase() string {
+func (self *LocalCommitsController) notMidRebase() *types.DisabledReason {
 	if self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.REBASE_MODE_NONE {
-		return self.c.Tr.AlreadyRebasing
+		return &types.DisabledReason{Text: self.c.Tr.AlreadyRebasing}
 	}
 
-	return ""
+	return nil
 }
 
 // For getting disabled reason
-func (self *LocalCommitsController) canFindCommitForQuickStart() string {
+func (self *LocalCommitsController) canFindCommitForQuickStart() *types.DisabledReason {
 	if _, err := self.findCommitForQuickStartInteractiveRebase(); err != nil {
-		return err.Error()
+		return &types.DisabledReason{Text: err.Error()}
 	}
 
-	return ""
+	return nil
 }
 
 func (self *LocalCommitsController) createTag(commit *models.Commit) error {
@@ -1028,23 +1028,23 @@ func (self *LocalCommitsController) checkSelected(callback func(*models.Commit) 
 	}
 }
 
-func (self *LocalCommitsController) callGetDisabledReasonFuncWithSelectedCommit(callback func(*models.Commit) string) func() string {
-	return func() string {
+func (self *LocalCommitsController) callGetDisabledReasonFuncWithSelectedCommit(callback func(*models.Commit) *types.DisabledReason) func() *types.DisabledReason {
+	return func() *types.DisabledReason {
 		commit := self.context().GetSelected()
 		if commit == nil {
-			return self.c.Tr.NoCommitSelected
+			return &types.DisabledReason{Text: self.c.Tr.NoCommitSelected}
 		}
 
 		return callback(commit)
 	}
 }
 
-func (self *LocalCommitsController) disabledIfNoSelectedCommit() func() string {
-	return self.callGetDisabledReasonFuncWithSelectedCommit(func(*models.Commit) string { return "" })
+func (self *LocalCommitsController) disabledIfNoSelectedCommit() func() *types.DisabledReason {
+	return self.callGetDisabledReasonFuncWithSelectedCommit(func(*models.Commit) *types.DisabledReason { return nil })
 }
 
-func (self *LocalCommitsController) getDisabledReasonForRebaseCommandWithSelectedCommit(action todo.TodoCommand) func() string {
-	return self.callGetDisabledReasonFuncWithSelectedCommit(func(commit *models.Commit) string {
+func (self *LocalCommitsController) getDisabledReasonForRebaseCommandWithSelectedCommit(action todo.TodoCommand) func() *types.DisabledReason {
+	return self.callGetDisabledReasonFuncWithSelectedCommit(func(commit *models.Commit) *types.DisabledReason {
 		return self.rebaseCommandEnabled(action, commit)
 	})
 }
@@ -1077,12 +1077,12 @@ func (self *LocalCommitsController) paste() error {
 	return self.c.Helpers().CherryPick.Paste()
 }
 
-func (self *LocalCommitsController) getDisabledReasonForPaste() string {
+func (self *LocalCommitsController) getDisabledReasonForPaste() *types.DisabledReason {
 	if !self.c.Helpers().CherryPick.CanPaste() {
-		return self.c.Tr.NoCopiedCommits
+		return &types.DisabledReason{Text: self.c.Tr.NoCopiedCommits}
 	}
 
-	return ""
+	return nil
 }
 
 func (self *LocalCommitsController) markAsBaseCommit(commit *models.Commit) error {
@@ -1100,15 +1100,15 @@ func (self *LocalCommitsController) isHeadCommit() bool {
 }
 
 // Convenience function for composing multiple disabled reason functions
-func (self *LocalCommitsController) require(callbacks ...func() string) func() string {
-	return func() string {
+func (self *LocalCommitsController) require(callbacks ...func() *types.DisabledReason) func() *types.DisabledReason {
+	return func() *types.DisabledReason {
 		for _, callback := range callbacks {
-			if disabledReason := callback(); disabledReason != "" {
+			if disabledReason := callback(); disabledReason != nil {
 				return disabledReason
 			}
 		}
 
-		return ""
+		return nil
 	}
 }
 

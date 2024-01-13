@@ -31,7 +31,7 @@ type Binding struct {
 	// disabled and we show the given text in an error message when trying to
 	// invoke it. When left nil, the command is always enabled. Note that this
 	// function must not do expensive calls.
-	GetDisabledReason func() string
+	GetDisabledReason func() *DisabledReason
 }
 
 // A guard is a decorator which checks something before executing a handler
