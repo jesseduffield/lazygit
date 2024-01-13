@@ -165,7 +165,6 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 				ShowBranchHeads:         false,
 			})
 		},
-		Key: 'v',
 	}
 
 	unsetUpstreamItem := &types.MenuItem{
