@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/charmbracelet/glamour"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazycore/pkg/boxlayout"
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
@@ -36,10 +37,12 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
+	"github.com/jesseduffield/lazygit/pkg/release_notes"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/muesli/termenv"
 	"github.com/sasha-s/go-deadlock"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
@@ -851,21 +854,73 @@ func (gui *Gui) loadNewRepo() error {
 func (gui *Gui) showIntroPopupMessage() {
 	gui.waitForIntro.Add(1)
 
+	// Show release notes whenever version changes
+	currentVersion := gui.Config.GetVersion()
+	lastVersion := gui.Config.GetAppState().Version
+	showReleaseNotes := currentVersion != lastVersion
+	showReleaseNotes = true
+
 	gui.c.OnUIThread(func() error {
-		onConfirm := func() error {
+		registerNewVersion := func() error {
 			gui.c.GetAppState().StartupPopupVersion = StartupPopupVersion
+			gui.c.GetAppState().Version = currentVersion
 			err := gui.c.SaveAppState()
 			gui.waitForIntro.Done()
 			return err
 		}
 
+		onConfirm := registerNewVersion
+		if showReleaseNotes {
+			onConfirm = func() error {
+				return gui.showReleaseNotes(registerNewVersion)
+			}
+		}
+
+		introMessage := gui.formatMarkdown(gui.c.Tr.IntroPopupMessage)
+
 		return gui.c.Confirm(types.ConfirmOpts{
 			Title:         "",
-			Prompt:        gui.c.Tr.IntroPopupMessage,
+			Prompt:        introMessage,
 			HandleConfirm: onConfirm,
 			HandleClose:   onConfirm,
 		})
 	})
+}
+
+func (gui *Gui) showReleaseNotes(onClose func() error) error {
+	releaseNotes, err := release_notes.GetLazyGitReleases()
+	if err != nil {
+		releaseNotes = "Error fetching release notes: " + err.Error()
+	}
+
+	releaseNotes = gui.formatMarkdown(releaseNotes)
+
+	return gui.c.Confirm(types.ConfirmOpts{
+		Title:         "Release notes", // TODO: i18n
+		Prompt:        releaseNotes,
+		HandleConfirm: onClose,
+		HandleClose:   onClose,
+	})
+}
+
+// Takes raw markdown content and returns formatted text (using ANSI escape codes)
+func (gui *Gui) formatMarkdown(content string) string {
+	r, _ := glamour.NewTermRenderer(
+		// detect background color and pick either the default dark or light theme
+		glamour.WithColorProfile(termenv.ANSI),
+		glamour.WithStandardStyle("dark"),
+		glamour.WithPreservedNewLines(),
+		// wrap output at specific width (default is 80)
+		glamour.WithWordWrap(80),
+	)
+
+	out, err := r.Render(content)
+	if err != nil {
+		// return raw content if formatting fails
+		return content
+	}
+
+	return out
 }
 
 // setColorScheme sets the color scheme for the app based on the user config

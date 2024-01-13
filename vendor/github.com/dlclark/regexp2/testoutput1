@@ -1,0 +1,7061 @@
+# This set of tests is for features that are compatible with all versions of
+# Perl >= 5.10, in non-UTF mode. It should run clean for the 8-bit, 16-bit, and
+# 32-bit PCRE libraries, and also using the perltest.pl script.
+    
+#forbid_utf
+#newline_default lf any anycrlf
+#perltest
+
+/the quick brown fox/
+    the quick brown fox
+ 0: the quick brown fox
+    What do you know about the quick brown fox?
+ 0: the quick brown fox
+\= Expect no match
+    The quick brown FOX
+No match
+    What do you know about THE QUICK BROWN FOX?
+No match
+
+/The quick brown fox/i
+    the quick brown fox
+ 0: the quick brown fox
+    The quick brown FOX
+ 0: The quick brown FOX
+    What do you know about the quick brown fox?
+ 0: the quick brown fox
+    What do you know about THE QUICK BROWN FOX?
+ 0: THE QUICK BROWN FOX
+
+/abcd\t\n\r\f\a\e\071\x3b\$\\\?caxyz/
+    abcd\t\n\r\f\a\e9;\$\\?caxyz
+ 0: abcd\x09\x0a\x0d\x0c\x07\x1b9;$\?caxyz
+
+/a*abc?xyz+pqr{3}ab{2,}xy{4,5}pq{0,6}AB{0,}zz/
+    abxyzpqrrrabbxyyyypqAzz
+ 0: abxyzpqrrrabbxyyyypqAzz
+    abxyzpqrrrabbxyyyypqAzz
+ 0: abxyzpqrrrabbxyyyypqAzz
+    aabxyzpqrrrabbxyyyypqAzz
+ 0: aabxyzpqrrrabbxyyyypqAzz
+    aaabxyzpqrrrabbxyyyypqAzz
+ 0: aaabxyzpqrrrabbxyyyypqAzz
+    aaaabxyzpqrrrabbxyyyypqAzz
+ 0: aaaabxyzpqrrrabbxyyyypqAzz
+    abcxyzpqrrrabbxyyyypqAzz
+ 0: abcxyzpqrrrabbxyyyypqAzz
+    aabcxyzpqrrrabbxyyyypqAzz
+ 0: aabcxyzpqrrrabbxyyyypqAzz
+    aaabcxyzpqrrrabbxyyyypAzz
+ 0: aaabcxyzpqrrrabbxyyyypAzz
+    aaabcxyzpqrrrabbxyyyypqAzz
+ 0: aaabcxyzpqrrrabbxyyyypqAzz
+    aaabcxyzpqrrrabbxyyyypqqAzz
+ 0: aaabcxyzpqrrrabbxyyyypqqAzz
+    aaabcxyzpqrrrabbxyyyypqqqAzz
+ 0: aaabcxyzpqrrrabbxyyyypqqqAzz
+    aaabcxyzpqrrrabbxyyyypqqqqAzz
+ 0: aaabcxyzpqrrrabbxyyyypqqqqAzz
+    aaabcxyzpqrrrabbxyyyypqqqqqAzz
+ 0: aaabcxyzpqrrrabbxyyyypqqqqqAzz
+    aaabcxyzpqrrrabbxyyyypqqqqqqAzz
+ 0: aaabcxyzpqrrrabbxyyyypqqqqqqAzz
+    aaaabcxyzpqrrrabbxyyyypqAzz
+ 0: aaaabcxyzpqrrrabbxyyyypqAzz
+    abxyzzpqrrrabbxyyyypqAzz
+ 0: abxyzzpqrrrabbxyyyypqAzz
+    aabxyzzzpqrrrabbxyyyypqAzz
+ 0: aabxyzzzpqrrrabbxyyyypqAzz
+    aaabxyzzzzpqrrrabbxyyyypqAzz
+ 0: aaabxyzzzzpqrrrabbxyyyypqAzz
+    aaaabxyzzzzpqrrrabbxyyyypqAzz
+ 0: aaaabxyzzzzpqrrrabbxyyyypqAzz
+    abcxyzzpqrrrabbxyyyypqAzz
+ 0: abcxyzzpqrrrabbxyyyypqAzz
+    aabcxyzzzpqrrrabbxyyyypqAzz
+ 0: aabcxyzzzpqrrrabbxyyyypqAzz
+    aaabcxyzzzzpqrrrabbxyyyypqAzz
+ 0: aaabcxyzzzzpqrrrabbxyyyypqAzz
+    aaaabcxyzzzzpqrrrabbxyyyypqAzz
+ 0: aaaabcxyzzzzpqrrrabbxyyyypqAzz
+    aaaabcxyzzzzpqrrrabbbxyyyypqAzz
+ 0: aaaabcxyzzzzpqrrrabbbxyyyypqAzz
+    aaaabcxyzzzzpqrrrabbbxyyyyypqAzz
+ 0: aaaabcxyzzzzpqrrrabbbxyyyyypqAzz
+    aaabcxyzpqrrrabbxyyyypABzz
+ 0: aaabcxyzpqrrrabbxyyyypABzz
+    aaabcxyzpqrrrabbxyyyypABBzz
+ 0: aaabcxyzpqrrrabbxyyyypABBzz
+    >>>aaabxyzpqrrrabbxyyyypqAzz
+ 0: aaabxyzpqrrrabbxyyyypqAzz
+    >aaaabxyzpqrrrabbxyyyypqAzz
+ 0: aaaabxyzpqrrrabbxyyyypqAzz
+    >>>>abcxyzpqrrrabbxyyyypqAzz
+ 0: abcxyzpqrrrabbxyyyypqAzz
+\= Expect no match
+    abxyzpqrrabbxyyyypqAzz
+No match
+    abxyzpqrrrrabbxyyyypqAzz
+No match
+    abxyzpqrrrabxyyyypqAzz
+No match
+    aaaabcxyzzzzpqrrrabbbxyyyyyypqAzz
+No match
+    aaaabcxyzzzzpqrrrabbbxyyypqAzz
+No match
+    aaabcxyzpqrrrabbxyyyypqqqqqqqAzz
+No match
+
+/^(abc){1,2}zz/
+    abczz
+ 0: abczz
+ 1: abc
+    abcabczz
+ 0: abcabczz
+ 1: abc
+\= Expect no match
+    zz
+No match
+    abcabcabczz
+No match
+    >>abczz
+No match
+
+/^(b+?|a){1,2}?c/
+    bc
+ 0: bc
+ 1: b
+    bbc
+ 0: bbc
+ 1: b
+    bbbc
+ 0: bbbc
+ 1: bb
+    bac
+ 0: bac
+ 1: a
+    bbac
+ 0: bbac
+ 1: a
+    aac
+ 0: aac
+ 1: a
+    abbbbbbbbbbbc
+ 0: abbbbbbbbbbbc
+ 1: bbbbbbbbbbb
+    bbbbbbbbbbbac
+ 0: bbbbbbbbbbbac
+ 1: a
+\= Expect no match
+    aaac
+No match
+    abbbbbbbbbbbac
+No match
+
+/^(b+|a){1,2}c/
+    bc
+ 0: bc
+ 1: b
+    bbc
+ 0: bbc
+ 1: bb
+    bbbc
+ 0: bbbc
+ 1: bbb
+    bac
+ 0: bac
+ 1: a
+    bbac
+ 0: bbac
+ 1: a
+    aac
+ 0: aac
+ 1: a
+    abbbbbbbbbbbc
+ 0: abbbbbbbbbbbc
+ 1: bbbbbbbbbbb
+    bbbbbbbbbbbac
+ 0: bbbbbbbbbbbac
+ 1: a
+\= Expect no match
+    aaac
+No match
+    abbbbbbbbbbbac
+No match
+
+/^(b+|a){1,2}?bc/
+    bbc
+ 0: bbc
+ 1: b
+
+/^(b*|ba){1,2}?bc/
+    babc
+ 0: babc
+ 1: ba
+    bbabc
+ 0: bbabc
+ 1: ba
+    bababc
+ 0: bababc
+ 1: ba
+\= Expect no match
+    bababbc
+No match
+    babababc
+No match
+
+/^(ba|b*){1,2}?bc/
+    babc
+ 0: babc
+ 1: ba
+    bbabc
+ 0: bbabc
+ 1: ba
+    bababc
+ 0: bababc
+ 1: ba
+\= Expect no match
+    bababbc
+No match
+    babababc
+No match
+
+#/^\ca\cA\c[;\c:/
+#    \x01\x01\e;z
+# 0: \x01\x01\x1b;z
+
+/^[ab\]cde]/
+    athing
+ 0: a
+    bthing
+ 0: b
+    ]thing
+ 0: ]
+    cthing
+ 0: c
+    dthing
+ 0: d
+    ething
+ 0: e
+\= Expect no match
+    fthing
+No match
+    [thing
+No match
+    \\thing
+No match
+
+/^[]cde]/
+    ]thing
+ 0: ]
+    cthing
+ 0: c
+    dthing
+ 0: d
+    ething
+ 0: e
+\= Expect no match
+    athing
+No match
+    fthing
+No match
+
+/^[^ab\]cde]/
+    fthing
+ 0: f
+    [thing
+ 0: [
+    \\thing
+ 0: \
+\= Expect no match
+    athing
+No match
+    bthing
+No match
+    ]thing
+No match
+    cthing
+No match
+    dthing
+No match
+    ething
+No match
+
+/^[^]cde]/
+    athing
+ 0: a
+    fthing
+ 0: f
+\= Expect no match
+    ]thing
+No match
+    cthing
+No match
+    dthing
+No match
+    ething
+No match
+
+# DLC - I don't get this one
+#/^\/
+#    
+# 0: \x81
+
+#updated to handle 16-bits utf8
+/^ÿ/
+    ÿ
+ 0: \xc3\xbf
+
+/^[0-9]+$/
+    0
+ 0: 0
+    1
+ 0: 1
+    2
+ 0: 2
+    3
+ 0: 3
+    4
+ 0: 4
+    5
+ 0: 5
+    6
+ 0: 6
+    7
+ 0: 7
+    8
+ 0: 8
+    9
+ 0: 9
+    10
+ 0: 10
+    100
+ 0: 100
+\= Expect no match
+    abc
+No match
+
+/^.*nter/
+    enter
+ 0: enter
+    inter
+ 0: inter
+    uponter
+ 0: uponter
+
+/^xxx[0-9]+$/
+    xxx0
+ 0: xxx0
+    xxx1234
+ 0: xxx1234
+\= Expect no match
+    xxx
+No match
+
+/^.+[0-9][0-9][0-9]$/
+    x123
+ 0: x123
+    x1234
+ 0: x1234
+    xx123
+ 0: xx123
+    123456
+ 0: 123456
+\= Expect no match
+    123
+No match
+
+/^.+?[0-9][0-9][0-9]$/
+    x123
+ 0: x123
+    x1234
+ 0: x1234
+    xx123
+ 0: xx123
+    123456
+ 0: 123456
+\= Expect no match
+    123
+No match
+
+/^([^!]+)!(.+)=apquxz\.ixr\.zzz\.ac\.uk$/
+    abc!pqr=apquxz.ixr.zzz.ac.uk
+ 0: abc!pqr=apquxz.ixr.zzz.ac.uk
+ 1: abc
+ 2: pqr
+\= Expect no match
+    !pqr=apquxz.ixr.zzz.ac.uk
+No match
+    abc!=apquxz.ixr.zzz.ac.uk
+No match
+    abc!pqr=apquxz:ixr.zzz.ac.uk
+No match
+    abc!pqr=apquxz.ixr.zzz.ac.ukk
+No match
+
+/:/
+    Well, we need a colon: somewhere
+ 0: :
+\= Expect no match
+    Fail without a colon
+No match
+
+/([\da-f:]+)$/i
+    0abc
+ 0: 0abc
+ 1: 0abc
+    abc
+ 0: abc
+ 1: abc
+    fed
+ 0: fed
+ 1: fed
+    E
+ 0: E
+ 1: E
+    ::
+ 0: ::
+ 1: ::
+    5f03:12C0::932e
+ 0: 5f03:12C0::932e
+ 1: 5f03:12C0::932e
+    fed def
+ 0: def
+ 1: def
+    Any old stuff
+ 0: ff
+ 1: ff
+\= Expect no match
+    0zzz
+No match
+    gzzz
+No match
+    fed\x20
+No match
+    Any old rubbish
+No match
+
+/^.*\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+    .1.2.3
+ 0: .1.2.3
+ 1: 1
+ 2: 2
+ 3: 3
+    A.12.123.0
+ 0: A.12.123.0
+ 1: 12
+ 2: 123
+ 3: 0
+\= Expect no match
+    .1.2.3333
+No match
+    1.2.3
+No match
+    1234.2.3
+No match
+
+/^(\d+)\s+IN\s+SOA\s+(\S+)\s+(\S+)\s*\(\s*$/
+    1 IN SOA non-sp1 non-sp2(
+ 0: 1 IN SOA non-sp1 non-sp2(
+ 1: 1
+ 2: non-sp1
+ 3: non-sp2
+    1    IN    SOA    non-sp1    non-sp2   (
+ 0: 1    IN    SOA    non-sp1    non-sp2   (
+ 1: 1
+ 2: non-sp1
+ 3: non-sp2
+\= Expect no match
+    1IN SOA non-sp1 non-sp2(
+No match
+
+/^[a-zA-Z\d][a-zA-Z\d\-]*(\.[a-zA-Z\d][a-zA-z\d\-]*)*\.$/
+    a.
+ 0: a.
+    Z.
+ 0: Z.
+    2.
+ 0: 2.
+    ab-c.pq-r.
+ 0: ab-c.pq-r.
+ 1: .pq-r
+    sxk.zzz.ac.uk.
+ 0: sxk.zzz.ac.uk.
+ 1: .uk
+    x-.y-.
+ 0: x-.y-.
+ 1: .y-
+\= Expect no match
+    -abc.peq.
+No match
+
+/^\*\.[a-z]([a-z\-\d]*[a-z\d]+)?(\.[a-z]([a-z\-\d]*[a-z\d]+)?)*$/
+    *.a
+ 0: *.a
+    *.b0-a
+ 0: *.b0-a
+ 1: 0-a
+    *.c3-b.c
+ 0: *.c3-b.c
+ 1: 3-b
+ 2: .c
+    *.c-a.b-c
+ 0: *.c-a.b-c
+ 1: -a
+ 2: .b-c
+ 3: -c
+\= Expect no match
+    *.0
+No match
+    *.a-
+No match
+    *.a-b.c-
+No match
+    *.c-a.0-c
+No match
+
+/^(?=ab(de))(abd)(e)/
+    abde
+ 0: abde
+ 1: de
+ 2: abd
+ 3: e
+
+/^(?!(ab)de|x)(abd)(f)/
+    abdf
+ 0: abdf
+ 1: <unset>
+ 2: abd
+ 3: f
+
+/^(?=(ab(cd)))(ab)/
+    abcd
+ 0: ab
+ 1: abcd
+ 2: cd
+ 3: ab
+
+/^[\da-f](\.[\da-f])*$/i
+    a.b.c.d
+ 0: a.b.c.d
+ 1: .d
+    A.B.C.D
+ 0: A.B.C.D
+ 1: .D
+    a.b.c.1.2.3.C
+ 0: a.b.c.1.2.3.C
+ 1: .C
+
+/^\".*\"\s*(;.*)?$/
+    \"1234\"
+ 0: "1234"
+    \"abcd\" ;
+ 0: "abcd" ;
+ 1: ;
+    \"\" ; rhubarb
+ 0: "" ; rhubarb
+ 1: ; rhubarb
+\= Expect no match
+    \"1234\" : things
+No match
+
+/^$/
+    \
+ 0: 
+\= Expect no match
+    A non-empty line
+No match
+
+/   ^    a   (?# begins with a)  b\sc (?# then b c) $ (?# then end)/x
+    ab c
+ 0: ab c
+\= Expect no match
+    abc
+No match
+    ab cde
+No match
+
+/(?x)   ^    a   (?# begins with a)  b\sc (?# then b c) $ (?# then end)/
+    ab c
+ 0: ab c
+\= Expect no match
+    abc
+No match
+    ab cde
+No match
+
+/^   a\ b[c ]d       $/x
+    a bcd
+ 0: a bcd
+    a b d
+ 0: a b d
+\= Expect no match
+    abcd
+No match
+    ab d
+No match
+
+/^(a(b(c)))(d(e(f)))(h(i(j)))(k(l(m)))$/
+    abcdefhijklm
+ 0: abcdefhijklm
+ 1: abc
+ 2: bc
+ 3: c
+ 4: def
+ 5: ef
+ 6: f
+ 7: hij
+ 8: ij
+ 9: j
+10: klm
+11: lm
+12: m
+
+/^(?:a(b(c)))(?:d(e(f)))(?:h(i(j)))(?:k(l(m)))$/
+    abcdefhijklm
+ 0: abcdefhijklm
+ 1: bc
+ 2: c
+ 3: ef
+ 4: f
+ 5: ij
+ 6: j
+ 7: lm
+ 8: m
+
+#/^[\w][\W][\s][\S][\d][\D][\b][\n][\c]][\022]/
+#    a+ Z0+\x08\n\x1d\x12
+# 0: a+ Z0+\x08\x0a\x1d\x12
+
+/^[.^$|()*+?{,}]+/
+    .^\$(*+)|{?,?}
+ 0: .^$(*+)|{?,?}
+
+/^a*\w/
+    z
+ 0: z
+    az
+ 0: az
+    aaaz
+ 0: aaaz
+    a
+ 0: a
+    aa
+ 0: aa
+    aaaa
+ 0: aaaa
+    a+
+ 0: a
+    aa+
+ 0: aa
+
+/^a*?\w/
+    z
+ 0: z
+    az
+ 0: a
+    aaaz
+ 0: a
+    a
+ 0: a
+    aa
+ 0: a
+    aaaa
+ 0: a
+    a+
+ 0: a
+    aa+
+ 0: a
+
+/^a+\w/
+    az
+ 0: az
+    aaaz
+ 0: aaaz
+    aa
+ 0: aa
+    aaaa
+ 0: aaaa
+    aa+
+ 0: aa
+
+/^a+?\w/
+    az
+ 0: az
+    aaaz
+ 0: aa
+    aa
+ 0: aa
+    aaaa
+ 0: aa
+    aa+
+ 0: aa
+
+/^\d{8}\w{2,}/
+    1234567890
+ 0: 1234567890
+    12345678ab
+ 0: 12345678ab
+    12345678__
+ 0: 12345678__
+\= Expect no match
+    1234567
+No match
+
+/^[aeiou\d]{4,5}$/
+    uoie
+ 0: uoie
+    1234
+ 0: 1234
+    12345
+ 0: 12345
+    aaaaa
+ 0: aaaaa
+\= Expect no match
+    123456
+No match
+
+/^[aeiou\d]{4,5}?/
+    uoie
+ 0: uoie
+    1234
+ 0: 1234
+    12345
+ 0: 1234
+    aaaaa
+ 0: aaaa
+    123456
+ 0: 1234
+
+/\A(abc|def)=(\1){2,3}\Z/
+    abc=abcabc
+ 0: abc=abcabc
+ 1: abc
+ 2: abc
+    def=defdefdef
+ 0: def=defdefdef
+ 1: def
+ 2: def
+\= Expect no match
+    abc=defdef
+No match
+
+/^(a)(b)(c)(d)(e)(f)(g)(h)(i)(j)(k)\11*(\3\4)\1(?#)2$/
+    abcdefghijkcda2
+ 0: abcdefghijkcda2
+ 1: a
+ 2: b
+ 3: c
+ 4: d
+ 5: e
+ 6: f
+ 7: g
+ 8: h
+ 9: i
+10: j
+11: k
+12: cd
+    abcdefghijkkkkcda2
+ 0: abcdefghijkkkkcda2
+ 1: a
+ 2: b
+ 3: c
+ 4: d
+ 5: e
+ 6: f
+ 7: g
+ 8: h
+ 9: i
+10: j
+11: k
+12: cd
+
+/(cat(a(ract|tonic)|erpillar)) \1()2(3)/
+    cataract cataract23
+ 0: cataract cataract23
+ 1: cataract
+ 2: aract
+ 3: ract
+ 4: 
+ 5: 3
+    catatonic catatonic23
+ 0: catatonic catatonic23
+ 1: catatonic
+ 2: atonic
+ 3: tonic
+ 4: 
+ 5: 3
+    caterpillar caterpillar23
+ 0: caterpillar caterpillar23
+ 1: caterpillar
+ 2: erpillar
+ 3: <unset>
+ 4: 
+ 5: 3
+
+
+/^From +([^ ]+) +[a-zA-Z][a-zA-Z][a-zA-Z] +[a-zA-Z][a-zA-Z][a-zA-Z] +[0-9]?[0-9] +[0-9][0-9]:[0-9][0-9]/
+    From abcd  Mon Sep 01 12:33:02 1997
+ 0: From abcd  Mon Sep 01 12:33
+ 1: abcd
+
+/^From\s+\S+\s+([a-zA-Z]{3}\s+){2}\d{1,2}\s+\d\d:\d\d/
+    From abcd  Mon Sep 01 12:33:02 1997
+ 0: From abcd  Mon Sep 01 12:33
+ 1: Sep 
+    From abcd  Mon Sep  1 12:33:02 1997
+ 0: From abcd  Mon Sep  1 12:33
+ 1: Sep  
+\= Expect no match
+    From abcd  Sep 01 12:33:02 1997
+No match
+
+/^12.34/s
+    12\n34
+ 0: 12\x0a34
+    12\r34
+ 0: 12\x0d34
+
+/\w+(?=\t)/
+    the quick brown\t fox
+ 0: brown
+
+/foo(?!bar)(.*)/
+    foobar is foolish see?
+ 0: foolish see?
+ 1: lish see?
+
+/(?:(?!foo)...|^.{0,2})bar(.*)/
+    foobar crowbar etc
+ 0: rowbar etc
+ 1:  etc
+    barrel
+ 0: barrel
+ 1: rel
+    2barrel
+ 0: 2barrel
+ 1: rel
+    A barrel
+ 0: A barrel
+ 1: rel
+
+/^(\D*)(?=\d)(?!123)/
+    abc456
+ 0: abc
+ 1: abc
+\= Expect no match
+    abc123
+No match
+
+/^1234(?# test newlines
+  inside)/
+    1234
+ 0: 1234
+
+/^1234 #comment in extended re
+  /x
+    1234
+ 0: 1234
+
+/#rhubarb
+  abcd/x
+    abcd
+ 0: abcd
+
+/^abcd#rhubarb/x
+    abcd
+ 0: abcd
+
+/^(a)\1{2,3}(.)/
+    aaab
+ 0: aaab
+ 1: a
+ 2: b
+    aaaab
+ 0: aaaab
+ 1: a
+ 2: b
+    aaaaab
+ 0: aaaaa
+ 1: a
+ 2: a
+    aaaaaab
+ 0: aaaaa
+ 1: a
+ 2: a
+
+/(?!^)abc/
+    the abc
+ 0: abc
+\= Expect no match
+    abc
+No match
+
+/(?=^)abc/
+    abc
+ 0: abc
+\= Expect no match
+    the abc
+No match
+
+/^[ab]{1,3}(ab*|b)/
+    aabbbbb
+ 0: aabb
+ 1: b
+
+/^[ab]{1,3}?(ab*|b)/
+    aabbbbb
+ 0: aabbbbb
+ 1: abbbbb
+
+/^[ab]{1,3}?(ab*?|b)/
+    aabbbbb
+ 0: aa
+ 1: a
+
+/^[ab]{1,3}(ab*?|b)/
+    aabbbbb
+ 0: aabb
+ 1: b
+
+/  (?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*                          # optional leading comment
+(?:    (?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|
+" (?:                      # opening quote...
+[^\\\x80-\xff\n\015"]                #   Anything except backslash and quote
+|                     #    or
+\\ [^\x80-\xff]           #   Escaped something (something != CR)
+)* "  # closing quote
+)                    # initial word
+(?:  (?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*  \.  (?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*   (?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|
+" (?:                      # opening quote...
+[^\\\x80-\xff\n\015"]                #   Anything except backslash and quote
+|                     #    or
+\\ [^\x80-\xff]           #   Escaped something (something != CR)
+)* "  # closing quote
+)  )* # further okay, if led by a period
+(?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*  @  (?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*    (?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|   \[                         # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*    #    stuff
+\]                        #           ]
+)                           # initial subdomain
+(?:                                  #
+(?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*  \.                        # if led by a period...
+(?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*   (?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|   \[                         # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*    #    stuff
+\]                        #           ]
+)                     #   ...further okay
+)*
+# address
+|                     #  or
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|
+" (?:                      # opening quote...
+[^\\\x80-\xff\n\015"]                #   Anything except backslash and quote
+|                     #    or
+\\ [^\x80-\xff]           #   Escaped something (something != CR)
+)* "  # closing quote
+)             # one word, optionally followed by....
+(?:
+[^()<>@,;:".\\\[\]\x80-\xff\000-\010\012-\037]  |  # atom and space parts, or...
+\(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)       |  # comments, or...
+
+" (?:                      # opening quote...
+[^\\\x80-\xff\n\015"]                #   Anything except backslash and quote
+|                     #    or
+\\ [^\x80-\xff]           #   Escaped something (something != CR)
+)* "  # closing quote
+# quoted strings
+)*
+<  (?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*                     # leading <
+(?:  @  (?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*    (?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|   \[                         # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*    #    stuff
+\]                        #           ]
+)                           # initial subdomain
+(?:                                  #
+(?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*  \.                        # if led by a period...
+(?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*   (?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|   \[                         # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*    #    stuff
+\]                        #           ]
+)                     #   ...further okay
+)*
+
+(?:  (?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*  ,  (?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*  @  (?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*    (?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|   \[                         # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*    #    stuff
+\]                        #           ]
+)                           # initial subdomain
+(?:                                  #
+(?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*  \.                        # if led by a period...
+(?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*   (?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|   \[                         # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*    #    stuff
+\]                        #           ]
+)                     #   ...further okay
+)*
+)* # further okay, if led by comma
+:                                # closing colon
+(?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*  )? #       optional route
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|
+" (?:                      # opening quote...
+[^\\\x80-\xff\n\015"]                #   Anything except backslash and quote
+|                     #    or
+\\ [^\x80-\xff]           #   Escaped something (something != CR)
+)* "  # closing quote
+)                    # initial word
+(?:  (?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*  \.  (?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*   (?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|
+" (?:                      # opening quote...
+[^\\\x80-\xff\n\015"]                #   Anything except backslash and quote
+|                     #    or
+\\ [^\x80-\xff]           #   Escaped something (something != CR)
+)* "  # closing quote
+)  )* # further okay, if led by a period
+(?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*  @  (?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*    (?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|   \[                         # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*    #    stuff
+\]                        #           ]
+)                           # initial subdomain
+(?:                                  #
+(?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*  \.                        # if led by a period...
+(?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*   (?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|   \[                         # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*    #    stuff
+\]                        #           ]
+)                     #   ...further okay
+)*
+#       address spec
+(?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*  > #                  trailing >
+# name and address
+)  (?: [\040\t] |  \(
+(?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  |  \( (?:  [^\\\x80-\xff\n\015()]  |  \\ [^\x80-\xff]  )* \)  )*
+\)  )*                       # optional trailing comment
+/x
+    Alan Other <user\@dom.ain>
+ 0: Alan Other <user@dom.ain>
+    <user\@dom.ain>
+ 0: user@dom.ain
+    user\@dom.ain
+ 0: user@dom.ain
+    \"A. Other\" <user.1234\@dom.ain> (a comment)
+ 0: "A. Other" <user.1234@dom.ain> (a comment)
+    A. Other <user.1234\@dom.ain> (a comment)
+ 0:  Other <user.1234@dom.ain> (a comment)
+    \"/s=user/ou=host/o=place/prmd=uu.yy/admd= /c=gb/\"\@x400-re.lay
+ 0: "/s=user/ou=host/o=place/prmd=uu.yy/admd= /c=gb/"@x400-re.lay
+    A missing angle <user\@some.where
+ 0: user@some.where
+\= Expect no match
+    The quick brown fox
+No match
+
+/[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+# optional leading comment
+(?:
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+# Atom
+|                       #  or
+"                                     # "
+[^\\\x80-\xff\n\015"] *                            #   normal
+(?:  \\ [^\x80-\xff]  [^\\\x80-\xff\n\015"] * )*        #   ( special normal* )*
+"                                     #        "
+# Quoted string
+)
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+(?:
+\.
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+# Atom
+|                       #  or
+"                                     # "
+[^\\\x80-\xff\n\015"] *                            #   normal
+(?:  \\ [^\x80-\xff]  [^\\\x80-\xff\n\015"] * )*        #   ( special normal* )*
+"                                     #        "
+# Quoted string
+)
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+# additional words
+)*
+@
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|
+\[                            # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*     #    stuff
+\]                           #           ]
+)
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+# optional trailing comments
+(?:
+\.
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|
+\[                            # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*     #    stuff
+\]                           #           ]
+)
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+# optional trailing comments
+)*
+# address
+|                             #  or
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+# Atom
+|                       #  or
+"                                     # "
+[^\\\x80-\xff\n\015"] *                            #   normal
+(?:  \\ [^\x80-\xff]  [^\\\x80-\xff\n\015"] * )*        #   ( special normal* )*
+"                                     #        "
+# Quoted string
+)
+# leading word
+[^()<>@,;:".\\\[\]\x80-\xff\000-\010\012-\037] *               # "normal" atoms and or spaces
+(?:
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+|
+"                                     # "
+[^\\\x80-\xff\n\015"] *                            #   normal
+(?:  \\ [^\x80-\xff]  [^\\\x80-\xff\n\015"] * )*        #   ( special normal* )*
+"                                     #        "
+) # "special" comment or quoted string
+[^()<>@,;:".\\\[\]\x80-\xff\000-\010\012-\037] *            #  more "normal"
+)*
+<
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+# <
+(?:
+@
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|
+\[                            # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*     #    stuff
+\]                           #           ]
+)
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+# optional trailing comments
+(?:
+\.
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|
+\[                            # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*     #    stuff
+\]                           #           ]
+)
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+# optional trailing comments
+)*
+(?: ,
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+@
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|
+\[                            # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*     #    stuff
+\]                           #           ]
+)
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+# optional trailing comments
+(?:
+\.
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|
+\[                            # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*     #    stuff
+\]                           #           ]
+)
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+# optional trailing comments
+)*
+)*  # additional domains
+:
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+# optional trailing comments
+)?     #       optional route
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+# Atom
+|                       #  or
+"                                     # "
+[^\\\x80-\xff\n\015"] *                            #   normal
+(?:  \\ [^\x80-\xff]  [^\\\x80-\xff\n\015"] * )*        #   ( special normal* )*
+"                                     #        "
+# Quoted string
+)
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+(?:
+\.
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+# Atom
+|                       #  or
+"                                     # "
+[^\\\x80-\xff\n\015"] *                            #   normal
+(?:  \\ [^\x80-\xff]  [^\\\x80-\xff\n\015"] * )*        #   ( special normal* )*
+"                                     #        "
+# Quoted string
+)
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+# additional words
+)*
+@
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|
+\[                            # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*     #    stuff
+\]                           #           ]
+)
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+# optional trailing comments
+(?:
+\.
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+(?:
+[^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]+    # some number of atom characters...
+(?![^(\040)<>@,;:".\\\[\]\000-\037\x80-\xff]) # ..not followed by something that could be part of an atom
+|
+\[                            # [
+(?: [^\\\x80-\xff\n\015\[\]] |  \\ [^\x80-\xff]  )*     #    stuff
+\]                           #           ]
+)
+[\040\t]*                    # Nab whitespace.
+(?:
+\(                              #  (
+[^\\\x80-\xff\n\015()] *                             #     normal*
+(?:                                 #       (
+(?:  \\ [^\x80-\xff]  |
+\(                            #  (
+[^\\\x80-\xff\n\015()] *                            #     normal*
+(?:  \\ [^\x80-\xff]   [^\\\x80-\xff\n\015()] * )*        #     (special normal*)*
+\)                           #                       )
+)    #         special
+[^\\\x80-\xff\n\015()] *                         #         normal*
+)*                                  #            )*
+\)                             #                )
+[\040\t]* )*    # If comment found, allow more spaces.
+# optional trailing comments
+)*
+#       address spec
+>                    #                 >
+# name and address
+)
+/x
+    Alan Other <user\@dom.ain>
+ 0: Alan Other <user@dom.ain>
+    <user\@dom.ain>
+ 0: user@dom.ain
+    user\@dom.ain
+ 0: user@dom.ain
+    \"A. Other\" <user.1234\@dom.ain> (a comment)
+ 0: "A. Other" <user.1234@dom.ain>
+    A. Other <user.1234\@dom.ain> (a comment)
+ 0:  Other <user.1234@dom.ain>
+    \"/s=user/ou=host/o=place/prmd=uu.yy/admd= /c=gb/\"\@x400-re.lay
+ 0: "/s=user/ou=host/o=place/prmd=uu.yy/admd= /c=gb/"@x400-re.lay
+    A missing angle <user\@some.where
+ 0: user@some.where
+\= Expect no match
+    The quick brown fox
+No match
+
+/abc\0def\00pqr\000xyz\0000AB/
+    abc\0def\00pqr\000xyz\0000AB
+ 0: abc\x00def\x00pqr\x00xyz\x000AB
+    abc456 abc\0def\00pqr\000xyz\0000ABCDE
+ 0: abc\x00def\x00pqr\x00xyz\x000AB
+
+/abc\x0def\x00pqr\x000xyz\x0000AB/
+    abc\x0def\x00pqr\x000xyz\x0000AB
+ 0: abc\x0def\x00pqr\x000xyz\x0000AB
+    abc456 abc\x0def\x00pqr\x000xyz\x0000ABCDE
+ 0: abc\x0def\x00pqr\x000xyz\x0000AB
+
+/^[\000-\037]/
+    \0A
+ 0: \x00
+    \01B
+ 0: \x01
+    \037C
+ 0: \x1f
+
+#.NET doesn't do octal with 1 number
+
+/^(cow|)\1(bell)/
+    cowcowbell
+ 0: cowcowbell
+ 1: cow
+ 2: bell
+    bell
+ 0: bell
+ 1: 
+ 2: bell
+\= Expect no match
+    cowbell
+No match
+
+/^\s/
+    \040abc
+ 0:  
+    \x0cabc
+ 0: \x0c
+    \nabc
+ 0: \x0a
+    \rabc
+ 0: \x0d
+    \tabc
+ 0: \x09
+\= Expect no match
+    abc
+No match
+
+/^a	b
+      c/x
+    abc
+ 0: abc
+
+/^(a|)\1*b/
+    ab
+ 0: ab
+ 1: a
+    aaaab
+ 0: aaaab
+ 1: a
+    b
+ 0: b
+ 1: 
+\= Expect no match
+    acb
+No match
+
+/^(a|)\1+b/
+    aab
+ 0: aab
+ 1: a
+    aaaab
+ 0: aaaab
+ 1: a
+    b
+ 0: b
+ 1: 
+\= Expect no match
+    ab
+No match
+
+/^(a|)\1?b/
+    ab
+ 0: ab
+ 1: a
+    aab
+ 0: aab
+ 1: a
+    b
+ 0: b
+ 1: 
+\= Expect no match
+    acb
+No match
+
+/^(a|)\1{2}b/
+    aaab
+ 0: aaab
+ 1: a
+    b
+ 0: b
+ 1: 
+\= Expect no match
+    ab
+No match
+    aab
+No match
+    aaaab
+No match
+
+/^(a|)\1{2,3}b/
+    aaab
+ 0: aaab
+ 1: a
+    aaaab
+ 0: aaaab
+ 1: a
+    b
+ 0: b
+ 1: 
+\= Expect no match
+    ab
+No match
+    aab
+No match
+    aaaaab
+No match
+
+/ab{1,3}bc/
+    abbbbc
+ 0: abbbbc
+    abbbc
+ 0: abbbc
+    abbc
+ 0: abbc
+\= Expect no match
+    abc
+No match
+    abbbbbc
+No match
+
+/([^.]*)\.([^:]*):[T ]+(.*)/
+    track1.title:TBlah blah blah
+ 0: track1.title:TBlah blah blah
+ 1: track1
+ 2: title
+ 3: Blah blah blah
+
+/([^.]*)\.([^:]*):[T ]+(.*)/i
+    track1.title:TBlah blah blah
+ 0: track1.title:TBlah blah blah
+ 1: track1
+ 2: title
+ 3: Blah blah blah
+
+/([^.]*)\.([^:]*):[t ]+(.*)/i
+    track1.title:TBlah blah blah
+ 0: track1.title:TBlah blah blah
+ 1: track1
+ 2: title
+ 3: Blah blah blah
+
+/^[W-c]+$/
+    WXY_^abc
+ 0: WXY_^abc
+\= Expect no match
+    wxy
+No match
+
+/^[W-c]+$/i
+    WXY_^abc
+ 0: WXY_^abc
+    wxy_^ABC
+ 0: wxy_^ABC
+
+/^[\x3f-\x5F]+$/i
+    WXY_^abc
+ 0: WXY_^abc
+    wxy_^ABC
+ 0: wxy_^ABC
+
+/^abc$/m
+    abc
+ 0: abc
+    qqq\nabc
+ 0: abc
+    abc\nzzz
+ 0: abc
+    qqq\nabc\nzzz
+ 0: abc
+
+/^abc$/
+    abc
+ 0: abc
+\= Expect no match
+    qqq\nabc
+No match
+    abc\nzzz
+No match
+    qqq\nabc\nzzz
+No match
+
+/\Aabc\Z/m
+    abc
+ 0: abc
+    abc\n 
+ 0: abc
+\= Expect no match
+    qqq\nabc
+No match
+    abc\nzzz
+No match
+    qqq\nabc\nzzz
+No match
+    
+/\A(.)*\Z/s
+    abc\ndef
+ 0: abc\x0adef
+ 1: f
+
+/\A(.)*\Z/m
+\= Expect no match
+    abc\ndef
+No match
+
+/(?:b)|(?::+)/
+    b::c
+ 0: b
+    c::b
+ 0: ::
+
+/[-az]+/
+    az-
+ 0: az-
+\= Expect no match
+    b
+No match
+
+/[az-]+/
+    za-
+ 0: za-
+\= Expect no match
+    b
+No match
+
+/[a\-z]+/
+    a-z
+ 0: a-z
+\= Expect no match
+    b
+No match
+
+/[a-z]+/
+    abcdxyz
+ 0: abcdxyz
+
+/[\d-]+/
+    12-34
+ 0: 12-34
+\= Expect no match
+    aaa
+No match
+
+/[\d-z]+/
+    12-34z
+ 0: 12-34z
+\= Expect no match
+    aaa
+No match
+
+/\x5c/
+    \\
+ 0: \
+
+/\x20Z/
+    the Zoo
+ 0:  Z
+\= Expect no match
+    Zulu
+No match
+
+/(abc)\1/i
+    abcabc
+ 0: abcabc
+ 1: abc
+    ABCabc
+ 0: ABCabc
+ 1: ABC
+    abcABC
+ 0: abcABC
+ 1: abc
+
+/abc$/
+    abc
+ 0: abc
+    abc\n
+ 0: abc
+\= Expect no match
+    abc\ndef
+No match
+
+/(abc)\123/
+    abc\x53
+ 0: abcS
+ 1: abc
+
+/(abc)\100/
+    abc\x40
+ 0: abc@
+ 1: abc
+    abc\100
+ 0: abc@
+ 1: abc
+
+/(abc)\1000/
+    abc\x400
+ 0: abc@0
+ 1: abc
+    abc\x40\x30
+ 0: abc@0
+ 1: abc
+    abc\1000
+ 0: abc@0
+ 1: abc
+    abc\100\x30
+ 0: abc@0
+ 1: abc
+    abc\100\060
+ 0: abc@0
+ 1: abc
+    abc\100\60
+ 0: abc@0
+ 1: abc
+    
+/^(A)(B)(C)(D)(E)(F)(G)(H)(I)\8\9$/
+    ABCDEFGHIHI 
+ 0: ABCDEFGHIHI
+ 1: A
+ 2: B
+ 3: C
+ 4: D
+ 5: E
+ 6: F
+ 7: G
+ 8: H
+ 9: I
+
+/(a)(b)(c)(d)(e)(f)(g)(h)(i)(j)(k)(l)\12\123/
+    abcdefghijkllS
+ 0: abcdefghijkllS
+ 1: a
+ 2: b
+ 3: c
+ 4: d
+ 5: e
+ 6: f
+ 7: g
+ 8: h
+ 9: i
+10: j
+11: k
+12: l
+
+/(a)(b)(c)(d)(e)(f)(g)(h)(i)(j)(k)\12\123/
+    abcdefghijk\12S
+ 0: abcdefghijk\x0aS
+ 1: a
+ 2: b
+ 3: c
+ 4: d
+ 5: e
+ 6: f
+ 7: g
+ 8: h
+ 9: i
+10: j
+11: k
+
+/a{0}bc/
+    bc
+ 0: bc
+
+/(a|(bc)){0,0}?xyz/
+    xyz
+ 0: xyz
+
+/abc[\10]de/
+    abc\010de
+ 0: abc\x08de
+
+/abc[\1]de/
+    abc\1de
+ 0: abc\x01de
+
+/(abc)[\1]de/
+    abc\1de
+ 0: abc\x01de
+ 1: abc
+
+/(?s)a.b/
+    a\nb
+ 0: a\x0ab
+
+/^([^a])([^\b])([^c]*)([^d]{3,4})/
+    baNOTccccd
+ 0: baNOTcccc
+ 1: b
+ 2: a
+ 3: NOT
+ 4: cccc
+    baNOTcccd
+ 0: baNOTccc
+ 1: b
+ 2: a
+ 3: NOT
+ 4: ccc
+    baNOTccd
+ 0: baNOTcc
+ 1: b
+ 2: a
+ 3: NO
+ 4: Tcc
+    bacccd
+ 0: baccc
+ 1: b
+ 2: a
+ 3: 
+ 4: ccc
+\= Expect no match
+    anything
+No match
+    b\bc   
+No match
+    baccd
+No match
+
+/[^a]/
+    Abc
+ 0: A
+  
+/[^a]/i
+    Abc 
+ 0: b
+
+/[^a]+/
+    AAAaAbc
+ 0: AAA
+  
+/[^a]+/i
+    AAAaAbc
+ 0: bc
+
+/[^a]+/
+    bbb\nccc
+ 0: bbb\x0accc
+   
+/[^k]$/
+    abc
+ 0: c
+\= Expect no match
+    abk
+No match
+   
+/[^k]{2,3}$/
+    abc
+ 0: abc
+    kbc
+ 0: bc
+    kabc
+ 0: abc
+\= Expect no match
+    abk
+No match
+    akb
+No match
+    akk
+No match
+
+/^\d{8,}\@.+[^k]$/
+    12345678\@a.b.c.d
+ 0: 12345678@a.b.c.d
+    123456789\@x.y.z
+ 0: 123456789@x.y.z
+\= Expect no match
+    12345678\@x.y.uk
+No match
+    1234567\@a.b.c.d       
+No match
+
+/(a)\1{8,}/
+    aaaaaaaaa
+ 0: aaaaaaaaa
+ 1: a
+    aaaaaaaaaa
+ 0: aaaaaaaaaa
+ 1: a
+\= Expect no match
+    aaaaaaa   
+No match
+
+/[^a]/
+    aaaabcd
+ 0: b
+    aaAabcd 
+ 0: A
+
+/[^a]/i
+    aaaabcd
+ 0: b
+    aaAabcd 
+ 0: b
+
+/[^az]/
+    aaaabcd
+ 0: b
+    aaAabcd 
+ 0: A
+
+/[^az]/i
+    aaaabcd
+ 0: b
+    aaAabcd 
+ 0: b
+
+# trimmed upper ascii since Go is UTF-8
+/\000\001\002\003\004\005\006\007\010\011\012\013\014\015\016\017\020\021\022\023\024\025\026\027\030\031\032\033\034\035\036\037\040\041\042\043\044\045\046\047\050\051\052\053\054\055\056\057\060\061\062\063\064\065\066\067\070\071\072\073\074\075\076\077\100\101\102\103\104\105\106\107\110\111\112\113\114\115\116\117\120\121\122\123\124\125\126\127\130\131\132\133\134\135\136\137\140\141\142\143\144\145\146\147\150\151\152\153\154\155\156\157\160\161\162\163\164\165\166\167\170\171\172\173\174\175\176\177/
+    \000\001\002\003\004\005\006\007\010\011\012\013\014\015\016\017\020\021\022\023\024\025\026\027\030\031\032\033\034\035\036\037\040\041\042\043\044\045\046\047\050\051\052\053\054\055\056\057\060\061\062\063\064\065\066\067\070\071\072\073\074\075\076\077\100\101\102\103\104\105\106\107\110\111\112\113\114\115\116\117\120\121\122\123\124\125\126\127\130\131\132\133\134\135\136\137\140\141\142\143\144\145\146\147\150\151\152\153\154\155\156\157\160\161\162\163\164\165\166\167\170\171\172\173\174\175\176\177
+ 0: \x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f
+
+/P[^*]TAIRE[^*]{1,6}?LL/
+    xxxxxxxxxxxPSTAIREISLLxxxxxxxxx
+ 0: PSTAIREISLL
+
+/P[^*]TAIRE[^*]{1,}?LL/
+    xxxxxxxxxxxPSTAIREISLLxxxxxxxxx
+ 0: PSTAIREISLL
+
+/(\.\d\d[1-9]?)\d+/
+    1.230003938
+ 0: .230003938
+ 1: .23
+    1.875000282   
+ 0: .875000282
+ 1: .875
+    1.235  
+ 0: .235
+ 1: .23
+                  
+/(\.\d\d((?=0)|\d(?=\d)))/
+    1.230003938      
+ 0: .23
+ 1: .23
+ 2: 
+    1.875000282
+ 0: .875
+ 1: .875
+ 2: 5
+\= Expect no match 
+    1.235 
+No match
+     
+/\b(foo)\s+(\w+)/i
+    Food is on the foo table
+ 0: foo table
+ 1: foo
+ 2: table
+    
+/foo(.*)bar/
+    The food is under the bar in the barn.
+ 0: food is under the bar in the bar
+ 1: d is under the bar in the 
+    
+/foo(.*?)bar/
+    The food is under the bar in the barn.
+ 0: food is under the bar
+ 1: d is under the 
+
+/(.*)(\d*)/
+    I have 2 numbers: 53147
+ 0: I have 2 numbers: 53147
+ 1: I have 2 numbers: 53147
+ 2: 
+    
+/(.*)(\d+)/
+    I have 2 numbers: 53147
+ 0: I have 2 numbers: 53147
+ 1: I have 2 numbers: 5314
+ 2: 7
+ 
+/(.*?)(\d*)/
+    I have 2 numbers: 53147
+ 0: 
+ 1: 
+ 2: 
+
+/(.*?)(\d+)/
+    I have 2 numbers: 53147
+ 0: I have 2
+ 1: I have 
+ 2: 2
+
+/(.*)(\d+)$/
+    I have 2 numbers: 53147
+ 0: I have 2 numbers: 53147
+ 1: I have 2 numbers: 5314
+ 2: 7
+
+/(.*?)(\d+)$/
+    I have 2 numbers: 53147
+ 0: I have 2 numbers: 53147
+ 1: I have 2 numbers: 
+ 2: 53147
+
+/(.*)\b(\d+)$/
+    I have 2 numbers: 53147
+ 0: I have 2 numbers: 53147
+ 1: I have 2 numbers: 
+ 2: 53147
+
+/(.*\D)(\d+)$/
+    I have 2 numbers: 53147
+ 0: I have 2 numbers: 53147
+ 1: I have 2 numbers: 
+ 2: 53147
+
+/^\D*(?!123)/
+    ABC123
+ 0: AB
+     
+/^(\D*)(?=\d)(?!123)/
+    ABC445
+ 0: ABC
+ 1: ABC
+\= Expect no match
+    ABC123
+No match
+    
+/^[W-]46]/
+    W46]789 
+ 0: W46]
+    -46]789
+ 0: -46]
+\= Expect no match
+    Wall
+No match
+    Zebra
+No match
+    42
+No match
+    [abcd] 
+No match
+    ]abcd[
+No match
+       
+/^[W-\]46]/
+    W46]789 
+ 0: W
+    Wall
+ 0: W
+    Zebra
+ 0: Z
+    Xylophone  
+ 0: X
+    42
+ 0: 4
+    [abcd] 
+ 0: [
+    ]abcd[
+ 0: ]
+    \\backslash 
+ 0: \
+\= Expect no match
+    -46]789
+No match
+    well
+No match
+    
+/\d\d\/\d\d\/\d\d\d\d/
+    01/01/2000
+ 0: 01/01/2000
+
+/word (?:[a-zA-Z0-9]+ ){0,10}otherword/
+    word cat dog elephant mussel cow horse canary baboon snake shark otherword
+ 0: word cat dog elephant mussel cow horse canary baboon snake shark otherword
+\= Expect no match
+    word cat dog elephant mussel cow horse canary baboon snake shark
+No match
+
+/word (?:[a-zA-Z0-9]+ ){0,300}otherword/
+\= Expect no match
+    word cat dog elephant mussel cow horse canary baboon snake shark the quick brown fox and the lazy dog and several other words getting close to thirty by now I hope
+No match
+
+/^(a){0,0}/
+    bcd
+ 0: 
+    abc
+ 0: 
+    aab     
+ 0: 
+
+/^(a){0,1}/
+    bcd
+ 0: 
+    abc
+ 0: a
+ 1: a
+    aab  
+ 0: a
+ 1: a
+
+/^(a){0,2}/
+    bcd
+ 0: 
+    abc
+ 0: a
+ 1: a
+    aab  
+ 0: aa
+ 1: a
+
+/^(a){0,3}/
+    bcd
+ 0: 
+    abc
+ 0: a
+ 1: a
+    aab
+ 0: aa
+ 1: a
+    aaa   
+ 0: aaa
+ 1: a
+
+/^(a){0,}/
+    bcd
+ 0: 
+    abc
+ 0: a
+ 1: a
+    aab
+ 0: aa
+ 1: a
+    aaa
+ 0: aaa
+ 1: a
+    aaaaaaaa    
+ 0: aaaaaaaa
+ 1: a
+
+/^(a){1,1}/
+    abc
+ 0: a
+ 1: a
+    aab  
+ 0: a
+ 1: a
+\= Expect no match
+    bcd
+No match
+
+/^(a){1,2}/
+    abc
+ 0: a
+ 1: a
+    aab  
+ 0: aa
+ 1: a
+\= Expect no match
+    bcd
+No match
+
+/^(a){1,3}/
+    abc
+ 0: a
+ 1: a
+    aab
+ 0: aa
+ 1: a
+    aaa   
+ 0: aaa
+ 1: a
+\= Expect no match
+    bcd
+No match
+
+/^(a){1,}/
+    abc
+ 0: a
+ 1: a
+    aab
+ 0: aa
+ 1: a
+    aaa
+ 0: aaa
+ 1: a
+    aaaaaaaa    
+ 0: aaaaaaaa
+ 1: a
+\= Expect no match
+    bcd
+No match
+
+/.*\.gif/
+    borfle\nbib.gif\nno
+ 0: bib.gif
+
+/.{0,}\.gif/
+    borfle\nbib.gif\nno
+ 0: bib.gif
+
+/.*\.gif/m
+    borfle\nbib.gif\nno
+ 0: bib.gif
+
+/.*\.gif/s
+    borfle\nbib.gif\nno
+ 0: borfle\x0abib.gif
+
+/.*\.gif/ms
+    borfle\nbib.gif\nno
+ 0: borfle\x0abib.gif
+    
+/.*$/
+    borfle\nbib.gif\nno
+ 0: no
+
+/.*$/m
+    borfle\nbib.gif\nno
+ 0: borfle
+
+/.*$/s
+    borfle\nbib.gif\nno
+ 0: borfle\x0abib.gif\x0ano
+
+/.*$/ms
+    borfle\nbib.gif\nno
+ 0: borfle\x0abib.gif\x0ano
+    
+/.*$/
+    borfle\nbib.gif\nno\n
+ 0: no
+
+/.*$/m
+    borfle\nbib.gif\nno\n
+ 0: borfle
+
+/.*$/s
+    borfle\nbib.gif\nno\n
+ 0: borfle\x0abib.gif\x0ano\x0a
+
+/.*$/ms
+    borfle\nbib.gif\nno\n
+ 0: borfle\x0abib.gif\x0ano\x0a
+    
+/(.*X|^B)/
+    abcde\n1234Xyz
+ 0: 1234X
+ 1: 1234X
+    BarFoo 
+ 0: B
+ 1: B
+\= Expect no match
+    abcde\nBar  
+No match
+
+/(.*X|^B)/m
+    abcde\n1234Xyz
+ 0: 1234X
+ 1: 1234X
+    BarFoo 
+ 0: B
+ 1: B
+    abcde\nBar  
+ 0: B
+ 1: B
+
+/(.*X|^B)/s
+    abcde\n1234Xyz
+ 0: abcde\x0a1234X
+ 1: abcde\x0a1234X
+    BarFoo 
+ 0: B
+ 1: B
+\= Expect no match
+    abcde\nBar  
+No match
+
+/(.*X|^B)/ms
+    abcde\n1234Xyz
+ 0: abcde\x0a1234X
+ 1: abcde\x0a1234X
+    BarFoo 
+ 0: B
+ 1: B
+    abcde\nBar  
+ 0: B
+ 1: B
+
+/(?s)(.*X|^B)/
+    abcde\n1234Xyz
+ 0: abcde\x0a1234X
+ 1: abcde\x0a1234X
+    BarFoo 
+ 0: B
+ 1: B
+\= Expect no match 
+    abcde\nBar  
+No match
+
+/(?s:.*X|^B)/
+    abcde\n1234Xyz
+ 0: abcde\x0a1234X
+    BarFoo 
+ 0: B
+\= Expect no match 
+    abcde\nBar  
+No match
+
+/^.*B/
+\= Expect no match
+    abc\nB
+No match
+     
+/(?s)^.*B/
+    abc\nB
+ 0: abc\x0aB
+
+/(?m)^.*B/
+    abc\nB
+ 0: B
+     
+/(?ms)^.*B/
+    abc\nB
+ 0: abc\x0aB
+
+/(?ms)^B/
+    abc\nB
+ 0: B
+
+/(?s)B$/
+    B\n
+ 0: B
+
+/^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]/
+    123456654321
+ 0: 123456654321
+  
+/^\d\d\d\d\d\d\d\d\d\d\d\d/
+    123456654321 
+ 0: 123456654321
+
+/^[\d][\d][\d][\d][\d][\d][\d][\d][\d][\d][\d][\d]/
+    123456654321
+ 0: 123456654321
+  
+/^[abc]{12}/
+    abcabcabcabc
+ 0: abcabcabcabc
+    
+/^[a-c]{12}/
+    abcabcabcabc
+ 0: abcabcabcabc
+    
+/^(a|b|c){12}/
+    abcabcabcabc 
+ 0: abcabcabcabc
+ 1: c
+
+/^[abcdefghijklmnopqrstuvwxy0123456789]/
+    n
+ 0: n
+\= Expect no match 
+    z 
+No match
+
+/abcde{0,0}/
+    abcd
+ 0: abcd
+\= Expect no match
+    abce  
+No match
+
+/ab[cd]{0,0}e/
+    abe
+ 0: abe
+\= Expect no match
+    abcde 
+No match
+    
+/ab(c){0,0}d/
+    abd
+ 0: abd
+\= Expect no match
+    abcd   
+No match
+
+/a(b*)/
+    a
+ 0: a
+ 1: 
+    ab
+ 0: ab
+ 1: b
+    abbbb
+ 0: abbbb
+ 1: bbbb
+\= Expect no match
+    bbbbb    
+No match
+    
+/ab\d{0}e/
+    abe
+ 0: abe
+\= Expect no match
+    ab1e   
+No match
+    
+/"([^\\"]+|\\.)*"/
+    the \"quick\" brown fox
+ 0: "quick"
+ 1: quick
+    \"the \\\"quick\\\" brown fox\" 
+ 0: "the \"quick\" brown fox"
+ 1:  brown fox
+
+/<tr([\w\W\s\d][^<>]{0,})><TD([\w\W\s\d][^<>]{0,})>([\d]{0,}\.)(.*)((<BR>([\w\W\s\d][^<>]{0,})|[\s]{0,}))<\/a><\/TD><TD([\w\W\s\d][^<>]{0,})>([\w\W\s\d][^<>]{0,})<\/TD><TD([\w\W\s\d][^<>]{0,})>([\w\W\s\d][^<>]{0,})<\/TD><\/TR>/is
+    <TR BGCOLOR='#DBE9E9'><TD align=left valign=top>43.<a href='joblist.cfm?JobID=94 6735&Keyword='>Word Processor<BR>(N-1286)</a></TD><TD align=left valign=top>Lega lstaff.com</TD><TD align=left valign=top>CA - Statewide</TD></TR>
+ 0: <TR BGCOLOR='#DBE9E9'><TD align=left valign=top>43.<a href='joblist.cfm?JobID=94 6735&Keyword='>Word Processor<BR>(N-1286)</a></TD><TD align=left valign=top>Lega lstaff.com</TD><TD align=left valign=top>CA - Statewide</TD></TR>
+ 1:  BGCOLOR='#DBE9E9'
+ 2:  align=left valign=top
+ 3: 43.
+ 4: <a href='joblist.cfm?JobID=94 6735&Keyword='>Word Processor<BR>(N-1286)
+ 5: 
+ 6: 
+ 7: <unset>
+ 8:  align=left valign=top
+ 9: Lega lstaff.com
+10:  align=left valign=top
+11: CA - Statewide
+
+/a[^a]b/
+    acb
+ 0: acb
+    a\nb
+ 0: a\x0ab
+    
+/a.b/
+    acb
+ 0: acb
+\= Expect no match 
+    a\nb   
+No match
+    
+/a[^a]b/s
+    acb
+ 0: acb
+    a\nb  
+ 0: a\x0ab
+    
+/a.b/s
+    acb
+ 0: acb
+    a\nb  
+ 0: a\x0ab
+
+/^(b+?|a){1,2}?c/
+    bac
+ 0: bac
+ 1: a
+    bbac
+ 0: bbac
+ 1: a
+    bbbac
+ 0: bbbac
+ 1: a
+    bbbbac
+ 0: bbbbac
+ 1: a
+    bbbbbac 
+ 0: bbbbbac
+ 1: a
+
+/^(b+|a){1,2}?c/
+    bac
+ 0: bac
+ 1: a
+    bbac
+ 0: bbac
+ 1: a
+    bbbac
+ 0: bbbac
+ 1: a
+    bbbbac
+ 0: bbbbac
+ 1: a
+    bbbbbac 
+ 0: bbbbbac
+ 1: a
+    
+/(?!\A)x/m
+    a\bx\n
+ 0: x
+    a\nx\n
+ 0: x
+\= Expect no match     
+    x\nb\n
+No match
+    
+/(A|B)*?CD/
+    CD 
+ 0: CD
+    
+/(A|B)*CD/
+    CD 
+ 0: CD
+
+/(AB)*?\1/
+    ABABAB
+ 0: ABAB
+ 1: AB
+
+/(AB)*\1/
+    ABABAB
+ 0: ABABAB
+ 1: AB
+    
+/(?<!bar)foo/
+    foo
+ 0: foo
+    catfood
+ 0: foo
+    arfootle
+ 0: foo
+    rfoosh
+ 0: foo
+\= Expect no match
+    barfoo
+No match
+    towbarfoo
+No match
+
+/\w{3}(?<!bar)foo/
+    catfood
+ 0: catfoo
+\= Expect no match
+    foo
+No match
+    barfoo
+No match
+    towbarfoo
+No match
+
+/(?<=(foo)a)bar/
+    fooabar
+ 0: bar
+ 1: foo
+\= Expect no match
+    bar
+No match
+    foobbar
+No match
+      
+/\Aabc\z/m
+    abc
+ 0: abc
+\= Expect no match
+    abc\n   
+No match
+    qqq\nabc
+No match
+    abc\nzzz
+No match
+    qqq\nabc\nzzz
+No match
+
+"(?>.*/)foo"
+    /this/is/a/very/long/line/in/deed/with/very/many/slashes/in/and/foo
+ 0: /this/is/a/very/long/line/in/deed/with/very/many/slashes/in/and/foo
+\= Expect no match     
+    /this/is/a/very/long/line/in/deed/with/very/many/slashes/in/it/you/see/
+No match
+
+/(?>(\.\d\d[1-9]?))\d+/
+    1.230003938
+ 0: .230003938
+ 1: .23
+    1.875000282
+ 0: .875000282
+ 1: .875
+\= Expect no match 
+    1.235 
+No match
+
+/^((?>\w+)|(?>\s+))*$/
+    now is the time for all good men to come to the aid of the party
+ 0: now is the time for all good men to come to the aid of the party
+ 1: party
+\= Expect no match
+    this is not a line with only words and spaces!
+No match
+    
+/(\d+)(\w)/
+    12345a
+ 0: 12345a
+ 1: 12345
+ 2: a
+    12345+ 
+ 0: 12345
+ 1: 1234
+ 2: 5
+
+/((?>\d+))(\w)/
+    12345a
+ 0: 12345a
+ 1: 12345
+ 2: a
+\= Expect no match
+    12345+ 
+No match
+
+/(?>a+)b/
+    aaab
+ 0: aaab
+
+/((?>a+)b)/
+    aaab
+ 0: aaab
+ 1: aaab
+
+/(?>(a+))b/
+    aaab
+ 0: aaab
+ 1: aaa
+
+/(?>b)+/
+    aaabbbccc
+ 0: bbb
+
+/(?>a+|b+|c+)*c/
+    aaabbbbccccd
+ 0: aaabbbbc
+
+/((?>[^()]+)|\([^()]*\))+/
+    ((abc(ade)ufh()()x
+ 0: abc(ade)ufh()()x
+ 1: x
+    
+/\(((?>[^()]+)|\([^()]+\))+\)/
+    (abc)
+ 0: (abc)
+ 1: abc
+    (abc(def)xyz)
+ 0: (abc(def)xyz)
+ 1: xyz
+\= Expect no match
+    ((()aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa   
+No match
+
+/a(?-i)b/i
+    ab
+ 0: ab
+    Ab
+ 0: Ab
+\= Expect no match 
+    aB
+No match
+    AB
+No match
+        
+/(a (?x)b c)d e/
+    a bcd e
+ 0: a bcd e
+ 1: a bc
+\= Expect no match
+    a b cd e
+No match
+    abcd e   
+No match
+    a bcde 
+No match
+ 
+/(a b(?x)c d (?-x)e f)/
+    a bcde f
+ 0: a bcde f
+ 1: a bcde f
+\= Expect no match
+    abcdef  
+No match
+
+/(a(?i)b)c/
+    abc
+ 0: abc
+ 1: ab
+    aBc
+ 0: aBc
+ 1: aB
+\= Expect no match
+    abC
+No match
+    aBC  
+No match
+    Abc
+No match
+    ABc
+No match
+    ABC
+No match
+    AbC
+No match
+    
+/a(?i:b)c/
+    abc
+ 0: abc
+    aBc
+ 0: aBc
+\= Expect no match 
+    ABC
+No match
+    abC
+No match
+    aBC
+No match
+    
+/a(?i:b)*c/
+    aBc
+ 0: aBc
+    aBBc
+ 0: aBBc
+\= Expect no match 
+    aBC
+No match
+    aBBC
+No match
+    
+/a(?=b(?i)c)\w\wd/
+    abcd
+ 0: abcd
+    abCd
+ 0: abCd
+\= Expect no match
+    aBCd
+No match
+    abcD     
+No match
+    
+/(?s-i:more.*than).*million/i
+    more than million
+ 0: more than million
+    more than MILLION
+ 0: more than MILLION
+    more \n than Million 
+ 0: more \x0a than Million
+\= Expect no match
+    MORE THAN MILLION    
+No match
+    more \n than \n million 
+No match
+
+/(?:(?s-i)more.*than).*million/i
+    more than million
+ 0: more than million
+    more than MILLION
+ 0: more than MILLION
+    more \n than Million 
+ 0: more \x0a than Million
+\= Expect no match
+    MORE THAN MILLION    
+No match
+    more \n than \n million 
+No match
+    
+/(?>a(?i)b+)+c/
+    abc
+ 0: abc
+    aBbc
+ 0: aBbc
+    aBBc 
+ 0: aBBc
+\= Expect no match
+    Abc
+No match
+    abAb    
+No match
+    abbC 
+No match
+    
+/(?=a(?i)b)\w\wc/
+    abc
+ 0: abc
+    aBc
+ 0: aBc
+\= Expect no match
+    Ab 
+No match
+    abC
+No match
+    aBC     
+No match
+    
+/(?<=a(?i)b)(\w\w)c/
+    abxxc
+ 0: xxc
+ 1: xx
+    aBxxc
+ 0: xxc
+ 1: xx
+\= Expect no match
+    Abxxc
+No match
+    ABxxc
+No match
+    abxxC      
+No match
+
+/(?:(a)|b)(?(1)A|B)/
+    aA
+ 0: aA
+ 1: a
+    bB
+ 0: bB
+\= Expect no match
+    aB
+No match
+    bA    
+No match
+
+/^(a)?(?(1)a|b)+$/
+    aa
+ 0: aa
+ 1: a
+    b
+ 0: b
+    bb  
+ 0: bb
+\= Expect no match
+    ab   
+No match
+    
+# Perl gets this next one wrong if the pattern ends with $; in that case it
+# fails to match "12". 
+
+/^(?(?=abc)\w{3}:|\d\d)/
+    abc:
+ 0: abc:
+    12
+ 0: 12
+    123
+ 0: 12
+\= Expect no match
+    xyz    
+No match
+
+/^(?(?!abc)\d\d|\w{3}:)$/
+    abc:
+ 0: abc:
+    12
+ 0: 12
+\= Expect no match
+    123
+No match
+    xyz    
+No match
+    
+/(?(?<=foo)bar|cat)/
+    foobar
+ 0: bar
+    cat
+ 0: cat
+    fcat
+ 0: cat
+    focat   
+ 0: cat
+\= Expect no match
+    foocat  
+No match
+
+/(?(?<!foo)cat|bar)/
+    foobar
+ 0: bar
+    cat
+ 0: cat
+    fcat
+ 0: cat
+    focat   
+ 0: cat
+\= Expect no match
+    foocat  
+No match
+
+/( \( )? [^()]+ (?(1) \) |) /x
+    abcd
+ 0: abcd
+    (abcd)
+ 0: (abcd)
+ 1: (
+    the quick (abcd) fox
+ 0: the quick 
+    (abcd   
+ 0: abcd
+
+/( \( )? [^()]+ (?(1) \) ) /x
+    abcd
+ 0: abcd
+    (abcd)
+ 0: (abcd)
+ 1: (
+    the quick (abcd) fox
+ 0: the quick 
+    (abcd   
+ 0: abcd
+
+/^(?(2)a|(1)(2))+$/
+    12
+ 0: 12
+ 1: 1
+ 2: 2
+    12a
+ 0: 12a
+ 1: 1
+ 2: 2
+    12aa
+ 0: 12aa
+ 1: 1
+ 2: 2
+\= Expect no match
+    1234    
+No match
+
+/((?i)blah)\s+\1/
+    blah blah
+ 0: blah blah
+ 1: blah
+    BLAH BLAH
+ 0: BLAH BLAH
+ 1: BLAH
+    Blah Blah
+ 0: Blah Blah
+ 1: Blah
+    blaH blaH
+ 0: blaH blaH
+ 1: blaH
+\= Expect no match
+    blah BLAH
+No match
+    Blah blah      
+No match
+    blaH blah 
+No match
+
+/((?i)blah)\s+(?i:\1)/
+    blah blah
+ 0: blah blah
+ 1: blah
+    BLAH BLAH
+ 0: BLAH BLAH
+ 1: BLAH
+    Blah Blah
+ 0: Blah Blah
+ 1: Blah
+    blaH blaH
+ 0: blaH blaH
+ 1: blaH
+    blah BLAH
+ 0: blah BLAH
+ 1: blah
+    Blah blah      
+ 0: Blah blah
+ 1: Blah
+    blaH blah 
+ 0: blaH blah
+ 1: blaH
+
+/(?>a*)*/
+    a
+ 0: a
+    aa
+ 0: aa
+    aaaa
+ 0: aaaa
+    
+/(abc|)+/
+    abc
+ 0: abc
+ 1: 
+    abcabc
+ 0: abcabc
+ 1: 
+    abcabcabc
+ 0: abcabcabc
+ 1: 
+    xyz      
+ 0: 
+ 1: 
+
+/([a]*)*/
+    a
+ 0: a
+ 1: 
+    aaaaa 
+ 0: aaaaa
+ 1: 
+ 
+/([ab]*)*/
+    a
+ 0: a
+ 1: 
+    b
+ 0: b
+ 1: 
+    ababab
+ 0: ababab
+ 1: 
+    aaaabcde
+ 0: aaaab
+ 1: 
+    bbbb    
+ 0: bbbb
+ 1: 
+ 
+/([^a]*)*/
+    b
+ 0: b
+ 1: 
+    bbbb
+ 0: bbbb
+ 1: 
+    aaa   
+ 0: 
+ 1: 
+ 
+/([^ab]*)*/
+    cccc
+ 0: cccc
+ 1: 
+    abab  
+ 0: 
+ 1: 
+ 
+/([a]*?)*/
+    a
+ 0: 
+ 1: 
+    aaaa 
+ 0: 
+ 1: 
+ 
+/([ab]*?)*/
+    a
+ 0: 
+ 1: 
+    b
+ 0: 
+ 1: 
+    abab
+ 0: 
+ 1: 
+    baba   
+ 0: 
+ 1: 
+ 
+/([^a]*?)*/
+    b
+ 0: 
+ 1: 
+    bbbb
+ 0: 
+ 1: 
+    aaa   
+ 0: 
+ 1: 
+ 
+/([^ab]*?)*/
+    c
+ 0: 
+ 1: 
+    cccc
+ 0: 
+ 1: 
+    baba   
+ 0: 
+ 1: 
+ 
+/(?>a*)*/
+    a
+ 0: a
+    aaabcde 
+ 0: aaa
+ 
+/((?>a*))*/
+    aaaaa
+ 0: aaaaa
+ 1: 
+    aabbaa 
+ 0: aa
+ 1: 
+ 
+/((?>a*?))*/
+    aaaaa
+ 0: 
+ 1: 
+    aabbaa 
+ 0: 
+ 1: 
+
+/(?(?=[^a-z]+[a-z])  \d{2}-[a-z]{3}-\d{2}  |  \d{2}-\d{2}-\d{2} ) /x
+    12-sep-98
+ 0: 12-sep-98
+    12-09-98
+ 0: 12-09-98
+\= Expect no match
+    sep-12-98
+No match
+        
+/(?<=(foo))bar\1/
+    foobarfoo
+ 0: barfoo
+ 1: foo
+    foobarfootling 
+ 0: barfoo
+ 1: foo
+\= Expect no match
+    foobar
+No match
+    barfoo   
+No match
+
+/(?i:saturday|sunday)/
+    saturday
+ 0: saturday
+    sunday
+ 0: sunday
+    Saturday
+ 0: Saturday
+    Sunday
+ 0: Sunday
+    SATURDAY
+ 0: SATURDAY
+    SUNDAY
+ 0: SUNDAY
+    SunDay
+ 0: SunDay
+    
+/(a(?i)bc|BB)x/
+    abcx
+ 0: abcx
+ 1: abc
+    aBCx
+ 0: aBCx
+ 1: aBC
+    bbx
+ 0: bbx
+ 1: bb
+    BBx
+ 0: BBx
+ 1: BB
+\= Expect no match
+    abcX
+No match
+    aBCX
+No match
+    bbX
+No match
+    BBX               
+No match
+
+/^([ab](?i)[cd]|[ef])/
+    ac
+ 0: ac
+ 1: ac
+    aC
+ 0: aC
+ 1: aC
+    bD
+ 0: bD
+ 1: bD
+    elephant
+ 0: e
+ 1: e
+    Europe 
+ 0: E
+ 1: E
+    frog
+ 0: f
+ 1: f
+    France
+ 0: F
+ 1: F
+\= Expect no match
+    Africa     
+No match
+
+/^(ab|a(?i)[b-c](?m-i)d|x(?i)y|z)/
+    ab
+ 0: ab
+ 1: ab
+    aBd
+ 0: aBd
+ 1: aBd
+    xy
+ 0: xy
+ 1: xy
+    xY
+ 0: xY
+ 1: xY
+    zebra
+ 0: z
+ 1: z
+    Zambesi
+ 0: Z
+ 1: Z
+\= Expect no match
+    aCD  
+No match
+    XY  
+No match
+
+/(?<=foo\n)^bar/m
+    foo\nbar
+ 0: bar
+\= Expect no match
+    bar
+No match
+    baz\nbar   
+No match
+
+/(?<=(?<!foo)bar)baz/
+    barbaz
+ 0: baz
+    barbarbaz 
+ 0: baz
+    koobarbaz 
+ 0: baz
+\= Expect no match
+    baz
+No match
+    foobarbaz 
+No match
+
+# The cases of aaaa and aaaaaa are missed out below because Perl does things
+# differently. We know that odd, and maybe incorrect, things happen with
+# recursive references in Perl, as far as 5.11.3 - see some stuff in test #2.
+
+/^(a\1?){4}$/
+    aaaaa
+ 0: aaaaa
+ 1: a
+    aaaaaaa
+ 0: aaaaaaa
+ 1: a
+    aaaaaaaaaa
+ 0: aaaaaaaaaa
+ 1: aaaa
+\= Expect no match
+    a
+No match
+    aa
+No match
+    aaa
+No match
+    aaaaaaaa
+No match
+    aaaaaaaaa
+No match
+    aaaaaaaaaaa
+No match
+    aaaaaaaaaaaa
+No match
+    aaaaaaaaaaaaa
+No match
+    aaaaaaaaaaaaaa
+No match
+    aaaaaaaaaaaaaaa
+No match
+    aaaaaaaaaaaaaaaa
+No match
+
+/^(a\1?)(a\1?)(a\2?)(a\3?)$/
+    aaaa
+ 0: aaaa
+ 1: a
+ 2: a
+ 3: a
+ 4: a
+    aaaaa
+ 0: aaaaa
+ 1: a
+ 2: aa
+ 3: a
+ 4: a
+    aaaaaa
+ 0: aaaaaa
+ 1: a
+ 2: aa
+ 3: a
+ 4: aa
+    aaaaaaa
+ 0: aaaaaaa
+ 1: a
+ 2: aa
+ 3: aaa
+ 4: a
+    aaaaaaaaaa
+ 0: aaaaaaaaaa
+ 1: a
+ 2: aa
+ 3: aaa
+ 4: aaaa
+\= Expect no match
+    a
+No match
+    aa
+No match
+    aaa
+No match
+    aaaaaaaa
+No match
+    aaaaaaaaa
+No match
+    aaaaaaaaaaa
+No match
+    aaaaaaaaaaaa
+No match
+    aaaaaaaaaaaaa
+No match
+    aaaaaaaaaaaaaa
+No match
+    aaaaaaaaaaaaaaa
+No match
+    aaaaaaaaaaaaaaaa               
+No match
+
+# The following tests are taken from the Perl 5.005 test suite; some of them
+# are compatible with 5.004, but I'd rather not have to sort them out.
+
+/abc/
+    abc
+ 0: abc
+    xabcy
+ 0: abc
+    ababc
+ 0: abc
+\= Expect no match
+    xbc
+No match
+    axc
+No match
+    abx
+No match
+
+/ab*c/
+    abc
+ 0: abc
+
+/ab*bc/
+    abc
+ 0: abc
+    abbc
+ 0: abbc
+    abbbbc
+ 0: abbbbc
+
+/.{1}/
+    abbbbc
+ 0: a
+
+/.{3,4}/
+    abbbbc
+ 0: abbb
+
+/ab{0,}bc/
+    abbbbc
+ 0: abbbbc
+
+/ab+bc/
+    abbc
+ 0: abbc
+\= Expect no match
+    abc
+No match
+    abq
+No match
+
+/ab{1,}bc/
+
+/ab+bc/
+    abbbbc
+ 0: abbbbc
+
+/ab{1,}bc/
+    abbbbc
+ 0: abbbbc
+
+/ab{1,3}bc/
+    abbbbc
+ 0: abbbbc
+
+/ab{3,4}bc/
+    abbbbc
+ 0: abbbbc
+
+/ab{4,5}bc/
+\= Expect no match
+    abq
+No match
+    abbbbc
+No match
+
+/ab?bc/
+    abbc
+ 0: abbc
+    abc
+ 0: abc
+
+/ab{0,1}bc/
+    abc
+ 0: abc
+
+/ab?bc/
+
+/ab?c/
+    abc
+ 0: abc
+
+/ab{0,1}c/
+    abc
+ 0: abc
+
+/^abc$/
+    abc
+ 0: abc
+\= Expect no match
+    abbbbc
+No match
+    abcc
+No match
+
+/^abc/
+    abcc
+ 0: abc
+
+/^abc$/
+
+/abc$/
+    aabc
+ 0: abc
+\= Expect no match
+    aabcd
+No match
+
+/^/
+    abc
+ 0: 
+
+/$/
+    abc
+ 0: 
+
+/a.c/
+    abc
+ 0: abc
+    axc
+ 0: axc
+
+/a.*c/
+    axyzc
+ 0: axyzc
+
+/a[bc]d/
+    abd
+ 0: abd
+\= Expect no match
+    axyzd
+No match
+    abc
+No match
+
+/a[b-d]e/
+    ace
+ 0: ace
+
+/a[b-d]/
+    aac
+ 0: ac
+
+/a[-b]/
+    a-
+ 0: a-
+
+/a[b-]/
+    a-
+ 0: a-
+
+/a]/
+    a]
+ 0: a]
+
+/a[]]b/
+    a]b
+ 0: a]b
+
+/a[^bc]d/
+    aed
+ 0: aed
+\= Expect no match
+    abd
+No match
+    abd
+No match
+
+/a[^-b]c/
+    adc
+ 0: adc
+
+/a[^]b]c/
+    adc
+ 0: adc
+    a-c
+ 0: a-c
+\= Expect no match
+    a]c
+No match
+
+/\ba\b/
+    a-
+ 0: a
+    -a
+ 0: a
+    -a-
+ 0: a
+
+/\by\b/
+\= Expect no match
+    xy
+No match
+    yz
+No match
+    xyz
+No match
+
+/\Ba\B/
+\= Expect no match
+    a-
+No match
+    -a
+No match
+    -a-
+No match
+
+/\By\b/
+    xy
+ 0: y
+
+/\by\B/
+    yz
+ 0: y
+
+/\By\B/
+    xyz
+ 0: y
+
+/\w/
+    a
+ 0: a
+
+/\W/
+    -
+ 0: -
+\= Expect no match
+    a
+No match
+
+/a\sb/
+    a b
+ 0: a b
+
+/a\Sb/
+    a-b
+ 0: a-b
+\= Expect no match
+    a b
+No match
+
+/\d/
+    1
+ 0: 1
+
+/\D/
+    -
+ 0: -
+\= Expect no match
+    1
+No match
+
+/[\w]/
+    a
+ 0: a
+
+/[\W]/
+    -
+ 0: -
+\= Expect no match
+    a
+No match
+
+/a[\s]b/
+    a b
+ 0: a b
+
+/a[\S]b/
+    a-b
+ 0: a-b
+\= Expect no match
+    a b
+No match
+
+/[\d]/
+    1
+ 0: 1
+
+/[\D]/
+    -
+ 0: -
+\= Expect no match
+    1
+No match
+
+/ab|cd/
+    abc
+ 0: ab
+    abcd
+ 0: ab
+
+/()ef/
+    def
+ 0: ef
+ 1: 
+
+/$b/
+
+/a\(b/
+    a(b
+ 0: a(b
+
+/a\(*b/
+    ab
+ 0: ab
+    a((b
+ 0: a((b
+
+/a\\b/
+    a\\b
+ 0: a\b
+
+/((a))/
+    abc
+ 0: a
+ 1: a
+ 2: a
+
+/(a)b(c)/
+    abc
+ 0: abc
+ 1: a
+ 2: c
+
+/a+b+c/
+    aabbabc
+ 0: abc
+
+/a{1,}b{1,}c/
+    aabbabc
+ 0: abc
+
+/a.+?c/
+    abcabc
+ 0: abc
+
+/(a+|b)*/
+    ab
+ 0: ab
+ 1: b
+
+/(a+|b){0,}/
+    ab
+ 0: ab
+ 1: b
+
+/(a+|b)+/
+    ab
+ 0: ab
+ 1: b
+
+/(a+|b){1,}/
+    ab
+ 0: ab
+ 1: b
+
+/(a+|b)?/
+    ab
+ 0: a
+ 1: a
+
+/(a+|b){0,1}/
+    ab
+ 0: a
+ 1: a
+
+/[^ab]*/
+    cde
+ 0: cde
+
+/abc/
+\= Expect no match
+    b
+No match
+
+/a*/
+    \
+ 0: 
+
+/([abc])*d/
+    abbbcd
+ 0: abbbcd
+ 1: c
+
+/([abc])*bcd/
+    abcd
+ 0: abcd
+ 1: a
+
+/a|b|c|d|e/
+    e
+ 0: e
+
+/(a|b|c|d|e)f/
+    ef
+ 0: ef
+ 1: e
+
+/abcd*efg/
+    abcdefg
+ 0: abcdefg
+
+/ab*/
+    xabyabbbz
+ 0: ab
+    xayabbbz
+ 0: a
+
+/(ab|cd)e/
+    abcde
+ 0: cde
+ 1: cd
+
+/[abhgefdc]ij/
+    hij
+ 0: hij
+
+/^(ab|cd)e/
+
+/(abc|)ef/
+    abcdef
+ 0: ef
+ 1: 
+
+/(a|b)c*d/
+    abcd
+ 0: bcd
+ 1: b
+
+/(ab|ab*)bc/
+    abc
+ 0: abc
+ 1: a
+
+/a([bc]*)c*/
+    abc
+ 0: abc
+ 1: bc
+
+/a([bc]*)(c*d)/
+    abcd
+ 0: abcd
+ 1: bc
+ 2: d
+
+/a([bc]+)(c*d)/
+    abcd
+ 0: abcd
+ 1: bc
+ 2: d
+
+/a([bc]*)(c+d)/
+    abcd
+ 0: abcd
+ 1: b
+ 2: cd
+
+/a[bcd]*dcdcde/
+    adcdcde
+ 0: adcdcde
+
+/a[bcd]+dcdcde/
+\= Expect no match
+    abcde
+No match
+    adcdcde
+No match
+
+/(ab|a)b*c/
+    abc
+ 0: abc
+ 1: ab
+
+/((a)(b)c)(d)/
+    abcd
+ 0: abcd
+ 1: abc
+ 2: a
+ 3: b
+ 4: d
+
+/[a-zA-Z_][a-zA-Z0-9_]*/
+    alpha
+ 0: alpha
+
+/^a(bc+|b[eh])g|.h$/
+    abh
+ 0: bh
+
+/(bc+d$|ef*g.|h?i(j|k))/
+    effgz
+ 0: effgz
+ 1: effgz
+    ij
+ 0: ij
+ 1: ij
+ 2: j
+    reffgz
+ 0: effgz
+ 1: effgz
+\= Expect no match
+    effg
+No match
+    bcdd
+No match
+
+/((((((((((a))))))))))/
+    a
+ 0: a
+ 1: a
+ 2: a
+ 3: a
+ 4: a
+ 5: a
+ 6: a
+ 7: a
+ 8: a
+ 9: a
+10: a
+
+/((((((((((a))))))))))\10/
+    aa
+ 0: aa
+ 1: a
+ 2: a
+ 3: a
+ 4: a
+ 5: a
+ 6: a
+ 7: a
+ 8: a
+ 9: a
+10: a
+
+/(((((((((a)))))))))/
+    a
+ 0: a
+ 1: a
+ 2: a
+ 3: a
+ 4: a
+ 5: a
+ 6: a
+ 7: a
+ 8: a
+ 9: a
+
+/multiple words of text/
+\= Expect no match
+    aa
+No match
+    uh-uh
+No match
+
+/multiple words/
+    multiple words, yeah
+ 0: multiple words
+
+/(.*)c(.*)/
+    abcde
+ 0: abcde
+ 1: ab
+ 2: de
+
+/\((.*), (.*)\)/
+    (a, b)
+ 0: (a, b)
+ 1: a
+ 2: b
+
+/[k]/
+
+/abcd/
+    abcd
+ 0: abcd
+
+/a(bc)d/
+    abcd
+ 0: abcd
+ 1: bc
+
+/a[-]?c/
+    ac
+ 0: ac
+
+/(abc)\1/
+    abcabc
+ 0: abcabc
+ 1: abc
+
+/([a-c]*)\1/
+    abcabc
+ 0: abcabc
+ 1: abc
+
+/(a)|\1/
+    a
+ 0: a
+ 1: a
+    ab
+ 0: a
+ 1: a
+\= Expect no match
+    x
+No match
+
+/(([a-c])b*?\2)*/
+    ababbbcbc
+ 0: ababb
+ 1: bb
+ 2: b
+
+/(([a-c])b*?\2){3}/
+    ababbbcbc
+ 0: ababbbcbc
+ 1: cbc
+ 2: c
+
+/((\3|b)\2(a)x)+/
+    aaaxabaxbaaxbbax
+ 0: bbax
+ 1: bbax
+ 2: b
+ 3: a
+
+/((\3|b)\2(a)){2,}/
+    bbaababbabaaaaabbaaaabba
+ 0: bbaaaabba
+ 1: bba
+ 2: b
+ 3: a
+
+/abc/i
+    ABC
+ 0: ABC
+    XABCY
+ 0: ABC
+    ABABC
+ 0: ABC
+\= Expect no match
+    aaxabxbaxbbx
+No match
+    XBC
+No match
+    AXC
+No match
+    ABX
+No match
+
+/ab*c/i
+    ABC
+ 0: ABC
+
+/ab*bc/i
+    ABC
+ 0: ABC
+    ABBC
+ 0: ABBC
+
+/ab*?bc/i
+    ABBBBC
+ 0: ABBBBC
+
+/ab{0,}?bc/i
+    ABBBBC
+ 0: ABBBBC
+
+/ab+?bc/i
+    ABBC
+ 0: ABBC
+
+/ab+bc/i
+\= Expect no match
+    ABC
+No match
+    ABQ
+No match
+
+/ab{1,}bc/i
+
+/ab+bc/i
+    ABBBBC
+ 0: ABBBBC
+
+/ab{1,}?bc/i
+    ABBBBC
+ 0: ABBBBC
+
+/ab{1,3}?bc/i
+    ABBBBC
+ 0: ABBBBC
+
+/ab{3,4}?bc/i
+    ABBBBC
+ 0: ABBBBC
+
+/ab{4,5}?bc/i
+\= Expect no match
+    ABQ
+No match
+    ABBBBC
+No match
+
+/ab??bc/i
+    ABBC
+ 0: ABBC
+    ABC
+ 0: ABC
+
+/ab{0,1}?bc/i
+    ABC
+ 0: ABC
+
+/ab??bc/i
+
+/ab??c/i
+    ABC
+ 0: ABC
+
+/ab{0,1}?c/i
+    ABC
+ 0: ABC
+
+/^abc$/i
+    ABC
+ 0: ABC
+\= Expect no match
+    ABBBBC
+No match
+    ABCC
+No match
+
+/^abc/i
+    ABCC
+ 0: ABC
+
+/^abc$/i
+
+/abc$/i
+    AABC
+ 0: ABC
+
+/^/i
+    ABC
+ 0: 
+
+/$/i
+    ABC
+ 0: 
+
+/a.c/i
+    ABC
+ 0: ABC
+    AXC
+ 0: AXC
+
+/a.*?c/i
+    AXYZC
+ 0: AXYZC
+
+/a.*c/i
+    AABC
+ 0: AABC
+\= Expect no match
+    AXYZD
+No match
+
+/a[bc]d/i
+    ABD
+ 0: ABD
+
+/a[b-d]e/i
+    ACE
+ 0: ACE
+\= Expect no match
+    ABC
+No match
+    ABD
+No match
+
+/a[b-d]/i
+    AAC
+ 0: AC
+
+/a[-b]/i
+    A-
+ 0: A-
+
+/a[b-]/i
+    A-
+ 0: A-
+
+/a]/i
+    A]
+ 0: A]
+
+/a[]]b/i
+    A]B
+ 0: A]B
+
+/a[^bc]d/i
+    AED
+ 0: AED
+
+/a[^-b]c/i
+    ADC
+ 0: ADC
+\= Expect no match
+    ABD
+No match
+    A-C
+No match
+
+/a[^]b]c/i
+    ADC
+ 0: ADC
+
+/ab|cd/i
+    ABC
+ 0: AB
+    ABCD
+ 0: AB
+
+/()ef/i
+    DEF
+ 0: EF
+ 1: 
+
+/$b/i
+\= Expect no match
+    A]C
+No match
+    B
+No match
+
+/a\(b/i
+    A(B
+ 0: A(B
+
+/a\(*b/i
+    AB
+ 0: AB
+    A((B
+ 0: A((B
+
+/a\\b/i
+    A\\b
+ 0: A\b
+    a\\B 
+ 0: a\B
+
+/((a))/i
+    ABC
+ 0: A
+ 1: A
+ 2: A
+
+/(a)b(c)/i
+    ABC
+ 0: ABC
+ 1: A
+ 2: C
+
+/a+b+c/i
+    AABBABC
+ 0: ABC
+
+/a{1,}b{1,}c/i
+    AABBABC
+ 0: ABC
+
+/a.+?c/i
+    ABCABC
+ 0: ABC
+
+/a.*?c/i
+    ABCABC
+ 0: ABC
+
+/a.{0,5}?c/i
+    ABCABC
+ 0: ABC
+
+/(a+|b)*/i
+    AB
+ 0: AB
+ 1: B
+
+/(a+|b){0,}/i
+    AB
+ 0: AB
+ 1: B
+
+/(a+|b)+/i
+    AB
+ 0: AB
+ 1: B
+
+/(a+|b){1,}/i
+    AB
+ 0: AB
+ 1: B
+
+/(a+|b)?/i
+    AB
+ 0: A
+ 1: A
+
+/(a+|b){0,1}/i
+    AB
+ 0: A
+ 1: A
+
+/(a+|b){0,1}?/i
+    AB
+ 0: 
+
+/[^ab]*/i
+    CDE
+ 0: CDE
+
+/([abc])*d/i
+    ABBBCD
+ 0: ABBBCD
+ 1: C
+
+/([abc])*bcd/i
+    ABCD
+ 0: ABCD
+ 1: A
+
+/a|b|c|d|e/i
+    E
+ 0: E
+
+/(a|b|c|d|e)f/i
+    EF
+ 0: EF
+ 1: E
+
+/abcd*efg/i
+    ABCDEFG
+ 0: ABCDEFG
+
+/ab*/i
+    XABYABBBZ
+ 0: AB
+    XAYABBBZ
+ 0: A
+
+/(ab|cd)e/i
+    ABCDE
+ 0: CDE
+ 1: CD
+
+/[abhgefdc]ij/i
+    HIJ
+ 0: HIJ
+
+/^(ab|cd)e/i
+\= Expect no match
+    ABCDE
+No match
+
+/(abc|)ef/i
+    ABCDEF
+ 0: EF
+ 1: 
+
+/(a|b)c*d/i
+    ABCD
+ 0: BCD
+ 1: B
+
+/(ab|ab*)bc/i
+    ABC
+ 0: ABC
+ 1: A
+
+/a([bc]*)c*/i
+    ABC
+ 0: ABC
+ 1: BC
+
+/a([bc]*)(c*d)/i
+    ABCD
+ 0: ABCD
+ 1: BC
+ 2: D
+
+/a([bc]+)(c*d)/i
+    ABCD
+ 0: ABCD
+ 1: BC
+ 2: D
+
+/a([bc]*)(c+d)/i
+    ABCD
+ 0: ABCD
+ 1: B
+ 2: CD
+
+/a[bcd]*dcdcde/i
+    ADCDCDE
+ 0: ADCDCDE
+
+/a[bcd]+dcdcde/i
+
+/(ab|a)b*c/i
+    ABC
+ 0: ABC
+ 1: AB
+
+/((a)(b)c)(d)/i
+    ABCD
+ 0: ABCD
+ 1: ABC
+ 2: A
+ 3: B
+ 4: D
+
+/[a-zA-Z_][a-zA-Z0-9_]*/i
+    ALPHA
+ 0: ALPHA
+
+/^a(bc+|b[eh])g|.h$/i
+    ABH
+ 0: BH
+
+/(bc+d$|ef*g.|h?i(j|k))/i
+    EFFGZ
+ 0: EFFGZ
+ 1: EFFGZ
+    IJ
+ 0: IJ
+ 1: IJ
+ 2: J
+    REFFGZ
+ 0: EFFGZ
+ 1: EFFGZ
+\= Expect no match
+    ADCDCDE
+No match
+    EFFG
+No match
+    BCDD
+No match
+
+/((((((((((a))))))))))/i
+    A
+ 0: A
+ 1: A
+ 2: A
+ 3: A
+ 4: A
+ 5: A
+ 6: A
+ 7: A
+ 8: A
+ 9: A
+10: A
+
+/((((((((((a))))))))))\10/i
+    AA
+ 0: AA
+ 1: A
+ 2: A
+ 3: A
+ 4: A
+ 5: A
+ 6: A
+ 7: A
+ 8: A
+ 9: A
+10: A
+
+/(((((((((a)))))))))/i
+    A
+ 0: A
+ 1: A
+ 2: A
+ 3: A
+ 4: A
+ 5: A
+ 6: A
+ 7: A
+ 8: A
+ 9: A
+
+/(?:(?:(?:(?:(?:(?:(?:(?:(?:(a))))))))))/i
+    A
+ 0: A
+ 1: A
+
+/(?:(?:(?:(?:(?:(?:(?:(?:(?:(a|b|c))))))))))/i
+    C
+ 0: C
+ 1: C
+
+/multiple words of text/i
+\= Expect no match
+    AA
+No match
+    UH-UH
+No match
+
+/multiple words/i
+    MULTIPLE WORDS, YEAH
+ 0: MULTIPLE WORDS
+
+/(.*)c(.*)/i
+    ABCDE
+ 0: ABCDE
+ 1: AB
+ 2: DE
+
+/\((.*), (.*)\)/i
+    (A, B)
+ 0: (A, B)
+ 1: A
+ 2: B
+
+/[k]/i
+
+/abcd/i
+    ABCD
+ 0: ABCD
+
+/a(bc)d/i
+    ABCD
+ 0: ABCD
+ 1: BC
+
+/a[-]?c/i
+    AC
+ 0: AC
+
+/(abc)\1/i
+    ABCABC
+ 0: ABCABC
+ 1: ABC
+
+/([a-c]*)\1/i
+    ABCABC
+ 0: ABCABC
+ 1: ABC
+
+/a(?!b)./
+    abad
+ 0: ad
+
+/a(?=d)./
+    abad
+ 0: ad
+
+/a(?=c|d)./
+    abad
+ 0: ad
+
+/a(?:b|c|d)(.)/
+    ace
+ 0: ace
+ 1: e
+
+/a(?:b|c|d)*(.)/
+    ace
+ 0: ace
+ 1: e
+
+/a(?:b|c|d)+?(.)/
+    ace
+ 0: ace
+ 1: e
+    acdbcdbe
+ 0: acd
+ 1: d
+
+/a(?:b|c|d)+(.)/
+    acdbcdbe
+ 0: acdbcdbe
+ 1: e
+
+/a(?:b|c|d){2}(.)/
+    acdbcdbe
+ 0: acdb
+ 1: b
+
+/a(?:b|c|d){4,5}(.)/
+    acdbcdbe
+ 0: acdbcdb
+ 1: b
+
+/a(?:b|c|d){4,5}?(.)/
+    acdbcdbe
+ 0: acdbcd
+ 1: d
+
+/((foo)|(bar))*/
+    foobar
+ 0: foobar
+ 1: bar
+ 2: foo
+ 3: bar
+
+/a(?:b|c|d){6,7}(.)/
+    acdbcdbe
+ 0: acdbcdbe
+ 1: e
+
+/a(?:b|c|d){6,7}?(.)/
+    acdbcdbe
+ 0: acdbcdbe
+ 1: e
+
+/a(?:b|c|d){5,6}(.)/
+    acdbcdbe
+ 0: acdbcdbe
+ 1: e
+
+/a(?:b|c|d){5,6}?(.)/
+    acdbcdbe
+ 0: acdbcdb
+ 1: b
+
+/a(?:b|c|d){5,7}(.)/
+    acdbcdbe
+ 0: acdbcdbe
+ 1: e
+
+/a(?:b|c|d){5,7}?(.)/
+    acdbcdbe
+ 0: acdbcdb
+ 1: b
+
+/a(?:b|(c|e){1,2}?|d)+?(.)/
+    ace
+ 0: ace
+ 1: c
+ 2: e
+
+/^(.+)?B/
+    AB
+ 0: AB
+ 1: A
+
+/^([^a-z])|(\^)$/
+    .
+ 0: .
+ 1: .
+
+/^[<>]&/
+    <&OUT
+ 0: <&
+
+/^(a\1?){4}$/
+    aaaaaaaaaa
+ 0: aaaaaaaaaa
+ 1: aaaa
+\= Expect no match
+    AB
+No match
+    aaaaaaaaa
+No match
+    aaaaaaaaaaa
+No match
+
+/^(a(?(1)\1)){4}$/
+    aaaaaaaaaa
+ 0: aaaaaaaaaa
+ 1: aaaa
+\= Expect no match
+    aaaaaaaaa
+No match
+    aaaaaaaaaaa
+No match
+
+/(?:(f)(o)(o)|(b)(a)(r))*/
+    foobar
+ 0: foobar
+ 1: f
+ 2: o
+ 3: o
+ 4: b
+ 5: a
+ 6: r
+
+/(?<=a)b/
+    ab
+ 0: b
+\= Expect no match
+    cb
+No match
+    b
+No match
+
+/(?<!c)b/
+    ab
+ 0: b
+    b
+ 0: b
+    b
+ 0: b
+
+/(?:..)*a/
+    aba
+ 0: aba
+
+/(?:..)*?a/
+    aba
+ 0: a
+
+/^(?:b|a(?=(.)))*\1/
+    abc
+ 0: ab
+ 1: b
+
+/^(){3,5}/
+    abc
+ 0: 
+ 1: 
+
+/^(a+)*ax/
+    aax
+ 0: aax
+ 1: a
+
+/^((a|b)+)*ax/
+    aax
+ 0: aax
+ 1: a
+ 2: a
+
+/^((a|bc)+)*ax/
+    aax
+ 0: aax
+ 1: a
+ 2: a
+
+/(a|x)*ab/
+    cab
+ 0: ab
+
+/(a)*ab/
+    cab
+ 0: ab
+
+/(?:(?i)a)b/
+    ab
+ 0: ab
+
+/((?i)a)b/
+    ab
+ 0: ab
+ 1: a
+
+/(?:(?i)a)b/
+    Ab
+ 0: Ab
+
+/((?i)a)b/
+    Ab
+ 0: Ab
+ 1: A
+
+/(?:(?i)a)b/
+\= Expect no match
+    cb
+No match
+    aB
+No match
+
+/((?i)a)b/
+
+/(?i:a)b/
+    ab
+ 0: ab
+
+/((?i:a))b/
+    ab
+ 0: ab
+ 1: a
+
+/(?i:a)b/
+    Ab
+ 0: Ab
+
+/((?i:a))b/
+    Ab
+ 0: Ab
+ 1: A
+
+/(?i:a)b/
+\= Expect no match
+    aB
+No match
+    aB
+No match
+
+/((?i:a))b/
+
+/(?:(?-i)a)b/i
+    ab
+ 0: ab
+
+/((?-i)a)b/i
+    ab
+ 0: ab
+ 1: a
+
+/(?:(?-i)a)b/i
+    aB
+ 0: aB
+
+/((?-i)a)b/i
+    aB
+ 0: aB
+ 1: a
+
+/(?:(?-i)a)b/i
+    aB
+ 0: aB
+\= Expect no match
+    Ab
+No match
+    AB
+No match
+
+/(?-i:a)b/i
+    ab
+ 0: ab
+
+/((?-i:a))b/i
+    ab
+ 0: ab
+ 1: a
+
+/(?-i:a)b/i
+    aB
+ 0: aB
+
+/((?-i:a))b/i
+    aB
+ 0: aB
+ 1: a
+
+/(?-i:a)b/i
+\= Expect no match
+    AB
+No match
+    Ab
+No match
+
+/((?-i:a))b/i
+
+/(?-i:a)b/i
+    aB
+ 0: aB
+
+/((?-i:a))b/i
+    aB
+ 0: aB
+ 1: a
+
+/(?-i:a)b/i
+\= Expect no match
+    Ab
+No match
+    AB
+No match
+
+/((?-i:a))b/i
+
+/((?-i:a.))b/i
+\= Expect no match
+    AB
+No match
+    a\nB
+No match
+
+/((?s-i:a.))b/i
+    a\nB
+ 0: a\x0aB
+ 1: a\x0a
+
+/(?:c|d)(?:)(?:a(?:)(?:b)(?:b(?:))(?:b(?:)(?:b)))/
+    cabbbb
+ 0: cabbbb
+
+/(?:c|d)(?:)(?:aaaaaaaa(?:)(?:bbbbbbbb)(?:bbbbbbbb(?:))(?:bbbbbbbb(?:)(?:bbbbbbbb)))/
+    caaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+ 0: caaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+
+/(ab)\d\1/i
+    Ab4ab
+ 0: Ab4ab
+ 1: Ab
+    ab4Ab
+ 0: ab4Ab
+ 1: ab
+
+/foo\w*\d{4}baz/
+    foobar1234baz
+ 0: foobar1234baz
+
+/x(~~)*(?:(?:F)?)?/
+    x~~
+ 0: x~~
+ 1: ~~
+
+/^a(?#xxx){3}c/
+    aaac
+ 0: aaac
+
+/^a (?#xxx) (?#yyy) {3}c/x
+    aaac
+ 0: aaac
+
+/(?<![cd])b/
+\= Expect no match
+    B\nB
+No match
+    dbcb
+No match
+
+/(?<![cd])[ab]/
+    dbaacb
+ 0: a
+
+/(?<!(c|d))b/
+
+/(?<!(c|d))[ab]/
+    dbaacb
+ 0: a
+
+/(?<!cd)[ab]/
+    cdaccb
+ 0: b
+
+/^(?:a?b?)*$/
+    \
+ 0: 
+    a
+ 0: a
+    ab
+ 0: ab
+    aaa   
+ 0: aaa
+\= Expect no match
+    dbcb
+No match
+    a--
+No match
+    aa-- 
+No match
+
+/((?s)^a(.))((?m)^b$)/
+    a\nb\nc\n
+ 0: a\x0ab
+ 1: a\x0a
+ 2: \x0a
+ 3: b
+
+/((?m)^b$)/
+    a\nb\nc\n
+ 0: b
+ 1: b
+
+/(?m)^b/
+    a\nb\n
+ 0: b
+
+/(?m)^(b)/
+    a\nb\n
+ 0: b
+ 1: b
+
+/((?m)^b)/
+    a\nb\n
+ 0: b
+ 1: b
+
+/\n((?m)^b)/
+    a\nb\n
+ 0: \x0ab
+ 1: b
+
+/((?s).)c(?!.)/
+    a\nb\nc\n
+ 0: \x0ac
+ 1: \x0a
+    a\nb\nc\n
+ 0: \x0ac
+ 1: \x0a
+
+/((?s)b.)c(?!.)/
+    a\nb\nc\n
+ 0: b\x0ac
+ 1: b\x0a
+    a\nb\nc\n
+ 0: b\x0ac
+ 1: b\x0a
+
+/^b/
+
+/()^b/
+\= Expect no match
+    a\nb\nc\n
+No match
+    a\nb\nc\n
+No match
+
+/((?m)^b)/
+    a\nb\nc\n
+ 0: b
+ 1: b
+
+/(x)?(?(1)a|b)/
+\= Expect no match
+    a
+No match
+    a
+No match
+
+/(x)?(?(1)b|a)/
+    a
+ 0: a
+
+/()?(?(1)b|a)/
+    a
+ 0: a
+
+/()(?(1)b|a)/
+
+/()?(?(1)a|b)/
+    a
+ 0: a
+ 1: 
+
+/^(\()?blah(?(1)(\)))$/
+    (blah)
+ 0: (blah)
+ 1: (
+ 2: )
+    blah
+ 0: blah
+\= Expect no match
+    a
+No match
+    blah)
+No match
+    (blah
+No match
+
+/^(\(+)?blah(?(1)(\)))$/
+    (blah)
+ 0: (blah)
+ 1: (
+ 2: )
+    blah
+ 0: blah
+\= Expect no match
+    blah)
+No match
+    (blah
+No match
+
+/(?(?!a)a|b)/
+
+/(?(?!a)b|a)/
+    a
+ 0: a
+
+/(?(?=a)b|a)/
+\= Expect no match
+    a
+No match
+    a
+No match
+
+/(?(?=a)a|b)/
+    a
+ 0: a
+
+/(?=(a+?))(\1ab)/
+    aaab
+ 0: aab
+ 1: a
+ 2: aab
+
+/^(?=(a+?))\1ab/
+
+/(\w+:)+/
+    one:
+ 0: one:
+ 1: one:
+
+/$(?<=^(a))/
+    a
+ 0: 
+ 1: a
+
+/(?=(a+?))(\1ab)/
+    aaab
+ 0: aab
+ 1: a
+ 2: aab
+
+/^(?=(a+?))\1ab/
+\= Expect no match
+    aaab
+No match
+    aaab
+No match
+
+/([\w:]+::)?(\w+)$/
+    abcd
+ 0: abcd
+ 1: <unset>
+ 2: abcd
+    xy:z:::abcd
+ 0: xy:z:::abcd
+ 1: xy:z:::
+ 2: abcd
+
+/^[^bcd]*(c+)/
+    aexycd
+ 0: aexyc
+ 1: c
+
+/(a*)b+/
+    caab
+ 0: aab
+ 1: aa
+
+/([\w:]+::)?(\w+)$/
+    abcd
+ 0: abcd
+ 1: <unset>
+ 2: abcd
+    xy:z:::abcd
+ 0: xy:z:::abcd
+ 1: xy:z:::
+ 2: abcd
+\= Expect no match
+    abcd:
+No match
+    abcd:
+No match
+
+/^[^bcd]*(c+)/
+    aexycd
+ 0: aexyc
+ 1: c
+
+/(>a+)ab/
+
+/(?>a+)b/
+    aaab
+ 0: aaab
+
+/([[:]+)/
+    a:[b]:
+ 0: :[
+ 1: :[
+
+/([[=]+)/
+    a=[b]=
+ 0: =[
+ 1: =[
+
+/([[.]+)/
+    a.[b].
+ 0: .[
+ 1: .[
+
+/((?>a+)b)/
+    aaab
+ 0: aaab
+ 1: aaab
+
+/(?>(a+))b/
+    aaab
+ 0: aaab
+ 1: aaa
+
+/((?>[^()]+)|\([^()]*\))+/
+    ((abc(ade)ufh()()x
+ 0: abc(ade)ufh()()x
+ 1: x
+
+/a\Z/
+\= Expect no match
+    aaab
+No match
+    a\nb\n
+No match
+
+/b\Z/
+    a\nb\n
+ 0: b
+
+/b\z/
+
+/b\Z/
+    a\nb
+ 0: b
+
+/b\z/
+    a\nb
+ 0: b
+    
+/^(?>(?(1)\.|())[^\W_](?>[a-z0-9-]*[^\W_])?)+$/
+    a
+ 0: a
+ 1: 
+    abc
+ 0: abc
+ 1: 
+    a-b
+ 0: a-b
+ 1: 
+    0-9
+ 0: 0-9
+ 1: 
+    a.b
+ 0: a.b
+ 1: 
+    5.6.7
+ 0: 5.6.7
+ 1: 
+    the.quick.brown.fox
+ 0: the.quick.brown.fox
+ 1: 
+    a100.b200.300c
+ 0: a100.b200.300c
+ 1: 
+    12-ab.1245
+ 0: 12-ab.1245
+ 1: 
+\= Expect no match
+    \
+No match
+    .a
+No match
+    -a
+No match
+    a-
+No match
+    a.
+No match
+    a_b
+No match
+    a.-
+No match
+    a..
+No match
+    ab..bc
+No match
+    the.quick.brown.fox-
+No match
+    the.quick.brown.fox.
+No match
+    the.quick.brown.fox_
+No match
+    the.quick.brown.fox+
+No match
+
+/(?>.*)(?<=(abcd|wxyz))/
+    alphabetabcd
+ 0: alphabetabcd
+ 1: abcd
+    endingwxyz
+ 0: endingwxyz
+ 1: wxyz
+\= Expect no match
+    a rather long string that doesn't end with one of them
+No match
+
+/word (?>(?:(?!otherword)[a-zA-Z0-9]+ ){0,30})otherword/
+    word cat dog elephant mussel cow horse canary baboon snake shark otherword
+ 0: word cat dog elephant mussel cow horse canary baboon snake shark otherword
+\= Expect no match
+    word cat dog elephant mussel cow horse canary baboon snake shark
+No match
+  
+/word (?>[a-zA-Z0-9]+ ){0,30}otherword/
+\= Expect no match
+    word cat dog elephant mussel cow horse canary baboon snake shark the quick brown fox and the lazy dog and several other words getting close to thirty by now I hope
+No match
+
+/(?<=\d{3}(?!999))foo/
+    999foo
+ 0: foo
+    123999foo 
+ 0: foo
+\= Expect no match
+    123abcfoo
+No match
+    
+/(?<=(?!...999)\d{3})foo/
+    999foo
+ 0: foo
+    123999foo 
+ 0: foo
+\= Expect no match
+    123abcfoo
+No match
+
+/(?<=\d{3}(?!999)...)foo/
+    123abcfoo
+ 0: foo
+    123456foo 
+ 0: foo
+\= Expect no match
+    123999foo  
+No match
+    
+/(?<=\d{3}...)(?<!999)foo/
+    123abcfoo   
+ 0: foo
+    123456foo 
+ 0: foo
+\= Expect no match
+    123999foo  
+No match
+
+/<a[\s]+href[\s]*=[\s]*          # find <a href=
+ ([\"\'])?                       # find single or double quote
+ (?(1) (.*?)\1 | ([^\s]+))       # if quote found, match up to next matching
+                                 # quote, otherwise match up to next space
+/isx
+    <a href=abcd xyz
+ 0: <a href=abcd
+ 1: <unset>
+ 2: <unset>
+ 3: abcd
+    <a href=\"abcd xyz pqr\" cats
+ 0: <a href="abcd xyz pqr"
+ 1: "
+ 2: abcd xyz pqr
+    <a href=\'abcd xyz pqr\' cats
+ 0: <a href='abcd xyz pqr'
+ 1: '
+ 2: abcd xyz pqr
+
+/<a\s+href\s*=\s*                # find <a href=
+ (["'])?                         # find single or double quote
+ (?(1) (.*?)\1 | (\S+))          # if quote found, match up to next matching
+                                 # quote, otherwise match up to next space
+/isx
+    <a href=abcd xyz
+ 0: <a href=abcd
+ 1: <unset>
+ 2: <unset>
+ 3: abcd
+    <a href=\"abcd xyz pqr\" cats
+ 0: <a href="abcd xyz pqr"
+ 1: "
+ 2: abcd xyz pqr
+    <a href       =       \'abcd xyz pqr\' cats
+ 0: <a href       =       'abcd xyz pqr'
+ 1: '
+ 2: abcd xyz pqr
+
+/<a\s+href(?>\s*)=(?>\s*)        # find <a href=
+ (["'])?                         # find single or double quote
+ (?(1) (.*?)\1 | (\S+))          # if quote found, match up to next matching
+                                 # quote, otherwise match up to next space
+/isx
+    <a href=abcd xyz
+ 0: <a href=abcd
+ 1: <unset>
+ 2: <unset>
+ 3: abcd
+    <a href=\"abcd xyz pqr\" cats
+ 0: <a href="abcd xyz pqr"
+ 1: "
+ 2: abcd xyz pqr
+    <a href       =       \'abcd xyz pqr\' cats
+ 0: <a href       =       'abcd xyz pqr'
+ 1: '
+ 2: abcd xyz pqr
+
+/((Z)+|A)*/
+    ZABCDEFG
+ 0: ZA
+ 1: A
+ 2: Z
+
+/(Z()|A)*/
+    ZABCDEFG
+ 0: ZA
+ 1: A
+ 2: 
+
+/(Z(())|A)*/
+    ZABCDEFG
+ 0: ZA
+ 1: A
+ 2: 
+ 3: 
+
+/((?>Z)+|A)*/
+    ZABCDEFG
+ 0: ZA
+ 1: A
+
+/((?>)+|A)*/
+    ZABCDEFG
+ 0: 
+ 1: 
+
+/^[\d-a]/
+    abcde
+ 0: a
+    -things
+ 0: -
+    0digit
+ 0: 0
+\= Expect no match
+    bcdef    
+No match
+    
+/[\s]+/
+    > \x09\x0a\x0c\x0d\x0b<
+ 0:  \x09\x0a\x0c\x0d\x0b
+     
+/\s+/
+    > \x09\x0a\x0c\x0d\x0b<
+ 0:  \x09\x0a\x0c\x0d\x0b
+     
+/ab/x
+    ab
+ 0: ab
+
+/(?!\A)x/m
+    a\nxb\n
+ 0: x
+
+/(?!^)x/m
+\= Expect no match
+    a\nxb\n
+No match
+
+#/abc\Qabc\Eabc/
+#    abcabcabc
+# 0: abcabcabc
+    
+#/abc\Q(*+|\Eabc/
+#    abc(*+|abc 
+# 0: abc(*+|abc
+
+#/   abc\Q abc\Eabc/x
+#    abc abcabc
+# 0: abc abcabc
+#\= Expect no match
+#    abcabcabc  
+#No match
+    
+#/abc#comment
+#    \Q#not comment
+#    literal\E/x
+#    abc#not comment\n    literal     
+# 0: abc#not comment\x0a    literal
+
+#/abc#comment
+#    \Q#not comment
+#    literal/x
+#    abc#not comment\n    literal     
+# 0: abc#not comment\x0a    literal
+
+#/abc#comment
+#    \Q#not comment
+#    literal\E #more comment
+#    /x
+#    abc#not comment\n    literal     
+# 0: abc#not comment\x0a    literal
+
+#/abc#comment
+#    \Q#not comment
+#    literal\E #more comment/x
+#    abc#not comment\n    literal     
+# 0: abc#not comment\x0a    literal
+
+#/\Qabc\$xyz\E/
+#    abc\\\$xyz
+# 0: abc\$xyz
+
+#/\Qabc\E\$\Qxyz\E/
+#    abc\$xyz
+# 0: abc$xyz
+
+/\Gabc/
+    abc
+ 0: abc
+\= Expect no match
+    xyzabc  
+No match
+
+/a(?x: b c )d/
+    XabcdY
+ 0: abcd
+\= Expect no match 
+    Xa b c d Y 
+No match
+
+/((?x)x y z | a b c)/
+    XabcY
+ 0: abc
+ 1: abc
+    AxyzB 
+ 0: xyz
+ 1: xyz
+
+/(?i)AB(?-i)C/
+    XabCY
+ 0: abC
+\= Expect no match
+    XabcY  
+No match
+
+/((?i)AB(?-i)C|D)E/
+    abCE
+ 0: abCE
+ 1: abC
+    DE
+ 0: DE
+ 1: D
+\= Expect no match
+    abcE
+No match
+    abCe  
+No match
+    dE
+No match
+    De    
+No match
+
+/(.*)\d+\1/
+    abc123abc
+ 0: abc123abc
+ 1: abc
+    abc123bc 
+ 0: bc123bc
+ 1: bc
+
+/(.*)\d+\1/s
+    abc123abc
+ 0: abc123abc
+ 1: abc
+    abc123bc 
+ 0: bc123bc
+ 1: bc
+    
+/((.*))\d+\1/
+    abc123abc
+ 0: abc123abc
+ 1: abc
+ 2: abc
+    abc123bc  
+ 0: bc123bc
+ 1: bc
+ 2: bc
+
+# This tests for an IPv6 address in the form where it can have up to
+# eight components, one and only one of which is empty. This must be
+# an internal component. 
+
+/^(?!:)                       # colon disallowed at start
+  (?:                         # start of item
+    (?: [0-9a-f]{1,4} |       # 1-4 hex digits or
+    (?(1)0 | () ) )           # if null previously matched, fail; else null
+    :                         # followed by colon
+  ){1,7}                      # end item; 1-7 of them required               
+  [0-9a-f]{1,4} $             # final hex number at end of string
+  (?(1)|.)                    # check that there was an empty component
+  /ix
+    a123::a123
+ 0: a123::a123
+ 1: 
+    a123:b342::abcd
+ 0: a123:b342::abcd
+ 1: 
+    a123:b342::324e:abcd
+ 0: a123:b342::324e:abcd
+ 1: 
+    a123:ddde:b342::324e:abcd
+ 0: a123:ddde:b342::324e:abcd
+ 1: 
+    a123:ddde:b342::324e:dcba:abcd
+ 0: a123:ddde:b342::324e:dcba:abcd
+ 1: 
+    a123:ddde:9999:b342::324e:dcba:abcd
+ 0: a123:ddde:9999:b342::324e:dcba:abcd
+ 1: 
+\= Expect no match
+    1:2:3:4:5:6:7:8
+No match
+    a123:bce:ddde:9999:b342::324e:dcba:abcd
+No match
+    a123::9999:b342::324e:dcba:abcd
+No match
+    abcde:2:3:4:5:6:7:8
+No match
+    ::1
+No match
+    abcd:fee0:123::   
+No match
+    :1
+No match
+    1:  
+No match
+
+#/[z\Qa-d]\E]/
+#    z
+# 0: z
+#    a
+# 0: a
+#    -
+# 0: -
+#    d
+# 0: d
+#    ] 
+# 0: ]
+#\= Expect no match
+#    b     
+#No match
+
+#TODO: PCRE has an optimization to make this workable, .NET does not
+#/(a+)*b/
+#\= Expect no match
+#    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 
+#No match
+
+# All these had to be updated because we understand unicode
+# and this looks like it's expecting single byte matches
+
+# .NET generates \xe4...not sure what's up, might just be different code pages
+/(?i)reg(?:ul(?:[aä]|ae)r|ex)/
+    REGular
+ 0: REGular
+    regulaer
+ 0: regulaer
+    Regex  
+ 0: Regex
+    regulär 
+ 0: regul\xc3\xa4r
+
+#/Åæåä[à-ÿÀ-ß]+/
+#    Åæåäà
+# 0: \xc5\xe6\xe5\xe4\xe0
+#    Åæåäÿ
+# 0: \xc5\xe6\xe5\xe4\xff
+#    ÅæåäÀ
+# 0: \xc5\xe6\xe5\xe4\xc0
+#    Åæåäß
+# 0: \xc5\xe6\xe5\xe4\xdf
+
+/(?<=Z)X./
+    \x84XAZXB
+ 0: XB
+
+/ab cd (?x) de fg/
+    ab cd defg
+ 0: ab cd defg
+
+/ab cd(?x) de fg/
+    ab cddefg
+ 0: ab cddefg
+\= Expect no match 
+    abcddefg
+No match
+
+/(?<![^f]oo)(bar)/
+    foobarX 
+ 0: bar
+ 1: bar
+\= Expect no match 
+    boobarX
+No match
+
+/(?<![^f])X/
+    offX
+ 0: X
+\= Expect no match
+    onyX  
+No match
+
+/(?<=[^f])X/
+    onyX
+ 0: X
+\= Expect no match
+    offX 
+No match
+
+/(?:(?(1)a|b)(X))+/
+    bXaX
+ 0: bXaX
+ 1: X
+
+/(?:(?(1)\1a|b)(X|Y))+/
+    bXXaYYaY
+ 0: bXXaYYaY
+ 1: Y
+    bXYaXXaX  
+ 0: bX
+ 1: X
+
+# TODO: I think this is a difference caused by the 
+# collision of group numbers, but not sure 
+#/()()()()()()()()()(?:(?(10)\10a|b)(X|Y))+/
+#    bXXaYYaY
+# 0: bX
+# 1: 
+# 2: 
+# 3: 
+# 4: 
+# 5: 
+# 6: 
+# 7: 
+# 8: 
+# 9: 
+#10: X
+
+/[[,abc,]+]/
+    abc]
+ 0: abc]
+    a,b]
+ 0: a,b]
+    [a,b,c]  
+ 0: [a,b,c]
+
+/(?-x: )/x
+    A\x20B
+ 0:  
+    
+"(?x)(?-x: \s*#\s*)"
+    A # B
+ 0:  # 
+\= Expect no match
+    #  
+No match
+
+"(?x-is)(?:(?-ixs) \s*#\s*) include"
+    A #include
+ 0:  #include
+\= Expect no match
+    A#include  
+No match
+    A #Include
+No match
+
+/a*b*\w/
+    aaabbbb
+ 0: aaabbbb
+    aaaa
+ 0: aaaa
+    a
+ 0: a
+
+/a*b?\w/
+    aaabbbb
+ 0: aaabb
+    aaaa
+ 0: aaaa
+    a
+ 0: a
+
+/a*b{0,4}\w/
+    aaabbbb
+ 0: aaabbbb
+    aaaa
+ 0: aaaa
+    a
+ 0: a
+
+/a*b{0,}\w/
+    aaabbbb
+ 0: aaabbbb
+    aaaa
+ 0: aaaa
+    a
+ 0: a
+    
+/a*\d*\w/
+    0a
+ 0: 0a
+    a 
+ 0: a
+    
+/a*b *\w/x
+    a 
+ 0: a
+
+/a*b#comment
+  *\w/x
+    a 
+ 0: a
+
+/a* b *\w/x
+    a 
+ 0: a
+
+/^\w+=.*(\\\n.*)*/
+    abc=xyz\\\npqr
+ 0: abc=xyz\
+
+/(?=(\w+))\1:/
+    abcd:
+ 0: abcd:
+ 1: abcd
+
+/^(?=(\w+))\1:/
+    abcd:
+ 0: abcd:
+ 1: abcd
+
+#/^\Eabc/
+#    abc
+# 0: abc
+    
+#/^[\Eabc]/
+#    a
+# 0: a
+#\= Expect no match 
+#    E 
+#No match
+    
+#/^[a-\Ec]/
+#    b
+# 0: b
+#\= Expect no match
+#    -
+#No match
+#    E    
+#No match
+
+#/^[a\E\E-\Ec]/
+#    b
+# 0: b
+#\= Expect no match
+#    -
+#No match
+#    E    
+#No match
+
+#/^[\E\Qa\E-\Qz\E]+/
+#    b
+# 0: b
+#\= Expect no match
+#    -  
+#No match
+    
+#/^[a\Q]bc\E]/
+#    a
+# 0: a
+#    ]
+# 0: ]
+#    c
+# 0: c
+    
+#/^[a-\Q\E]/
+#    a
+# 0: a
+#    -     
+# 0: -
+
+/^(a()*)*/
+    aaaa
+ 0: aaaa
+ 1: a
+ 2: 
+
+/^(?:a(?:(?:))*)*/
+    aaaa
+ 0: aaaa
+
+/^(a()+)+/
+    aaaa
+ 0: aaaa
+ 1: a
+ 2: 
+
+/^(?:a(?:(?:))+)+/
+    aaaa
+ 0: aaaa
+
+/(a){0,3}(?(1)b|(c|))*D/
+    abbD
+ 0: abbD
+ 1: a
+    ccccD
+ 0: ccccD
+ 1: <unset>
+ 2: 
+    D  
+ 0: D
+ 1: <unset>
+ 2: 
+
+# this is really long with debug -- removing for now
+#/(a|)*\d/
+#    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4
+# 0: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4
+# 1: 
+#\= Expect no match
+#    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+#No match
+
+/(?>a|)*\d/
+    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4
+ 0: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4
+\= Expect no match
+    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+No match
+
+/(?:a|)*\d/
+    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4
+ 0: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4
+\= Expect no match
+    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+No match
+
+/^(?s)(?>.*)(?<!\n)/
+    abc
+ 0: abc
+\= Expect no match
+    abc\n  
+No match
+
+/^(?![^\n]*\n\z)/
+    abc
+ 0: 
+\= Expect no match
+    abc\n 
+No match
+  
+/\z(?<!\n)/
+    abc
+ 0: 
+\= Expect no match
+    abc\n  
+No match
+
+/(.*(.)?)*/
+    abcd
+ 0: abcd
+ 1: 
+
+/( (A | (?(1)0|) )*   )/x
+    abcd
+ 0: 
+ 1: 
+ 2: 
+
+/( ( (?(1)0|) )*   )/x
+    abcd
+ 0: 
+ 1: 
+ 2: 
+
+/(  (?(1)0|)*   )/x
+    abcd
+ 0: 
+ 1: 
+
+/[[:abcd:xyz]]/
+    a]
+ 0: a]
+    :] 
+ 0: :]
+    
+/[abc[:x\]pqr]/
+    a
+ 0: a
+    [
+ 0: [
+    :
+ 0: :
+    ]
+ 0: ]
+    p    
+ 0: p
+
+/.*[op][xyz]/
+\= Expect no match
+    fooabcfoo
+No match
+
+/(?(?=.*b)b|^)/
+    adc
+ 0: 
+    abc 
+ 0: b
+
+/(?(?=^.*b)b|^)/
+    adc
+ 0: 
+\= Expect no match
+    abc 
+No match
+
+/(?(?=.*b)b|^)*/
+    adc
+ 0: 
+    abc 
+ 0: 
+
+/(?(?=.*b)b|^)+/
+    adc
+ 0: 
+    abc 
+ 0: b
+
+/(?(?=b).*b|^d)/
+    abc
+ 0: b
+
+/(?(?=.*b).*b|^d)/
+    abc
+ 0: ab
+
+/^%((?(?=[a])[^%])|b)*%$/
+    %ab%
+ 0: %ab%
+ 1: 
+
+/(?i)a(?-i)b|c/
+    XabX
+ 0: ab
+    XAbX
+ 0: Ab
+    CcC 
+ 0: c
+\= Expect no match
+    XABX   
+No match
+
+/[\x00-\xff\s]+/
+    \x0a\x0b\x0c\x0d
+ 0: \x0a\x0b\x0c\x0d
+
+/(abc)\1/i
+\= Expect no match
+    abc
+No match
+
+/(abc)\1/
+\= Expect no match
+    abc
+No match
+
+/[^a]*/i
+    12abc
+ 0: 12
+    12ABC
+ 0: 12
+
+#Posses
+/[^a]*/i
+    12abc
+ 0: 12
+    12ABC
+ 0: 12
+
+/[^a]*?X/i
+\= Expect no match
+    12abc
+No match
+    12ABC
+No match
+    
+/[^a]+?X/i
+\= Expect no match
+    12abc
+No match
+    12ABC
+No match
+
+/[^a]?X/i
+    12aXbcX
+ 0: X
+    12AXBCX
+ 0: X
+    BCX 
+ 0: CX
+
+/[^a]??X/i
+    12aXbcX
+ 0: X
+    12AXBCX
+ 0: X
+    BCX
+ 0: CX
+
+/[^a]{2,3}/i
+    abcdef
+ 0: bcd
+    ABCDEF  
+ 0: BCD
+
+/[^a]{2,3}?/i
+    abcdef
+ 0: bc
+    ABCDEF  
+ 0: BC
+
+/((a|)+)+Z/
+    Z
+ 0: Z
+ 1: 
+ 2: 
+
+/(a)b|(a)c/
+    ac
+ 0: ac
+ 1: <unset>
+ 2: a
+
+/(?>(a))b|(a)c/
+    ac
+ 0: ac
+ 1: <unset>
+ 2: a
+
+/(?=(a))ab|(a)c/
+    ac
+ 0: ac
+ 1: <unset>
+ 2: a
+
+/((?>(a))b|(a)c)/
+    ac
+ 0: ac
+ 1: ac
+ 2: <unset>
+ 3: a
+
+/(?=(?>(a))b|(a)c)(..)/
+    ac
+ 0: ac
+ 1: <unset>
+ 2: a
+ 3: ac
+
+/(?>(?>(a))b|(a)c)/
+    ac
+ 0: ac
+ 1: <unset>
+ 2: a
+
+/((?>(a+)b)+(aabab))/
+    aaaabaaabaabab
+ 0: aaaabaaabaabab
+ 1: aaaabaaabaabab
+ 2: aaa
+ 3: aabab
+
+/(?>a+|ab)+?c/
+\= Expect no match
+    aabc
+No match
+
+/(?>a+|ab)+c/
+\= Expect no match
+    aabc
+No match
+
+/(?:a+|ab)+c/
+    aabc
+ 0: aabc
+
+/^(?:a|ab)+c/
+    aaaabc
+ 0: aaaabc
+
+/(?=abc){0}xyz/
+    xyz 
+ 0: xyz
+
+/(?=abc){1}xyz/
+\= Expect no match
+    xyz 
+No match
+    
+/(?=(a))?./
+    ab
+ 0: a
+ 1: a
+    bc
+ 0: b
+      
+/(?=(a))??./
+    ab
+ 0: a
+    bc
+ 0: b
+
+/^(?!a){0}\w+/
+    aaaaa
+ 0: aaaaa
+
+/(?<=(abc))?xyz/
+    abcxyz
+ 0: xyz
+ 1: abc
+    pqrxyz 
+ 0: xyz
+
+/^[g<a>]+/
+    ggg<<<aaa>>>
+ 0: ggg<<<aaa>>>
+\= Expect no match
+    \\ga  
+No match
+    
+/^[ga]+/
+    gggagagaxyz 
+ 0: gggagaga
+   
+/[:a]xxx[b:]/
+     :xxx:
+ 0: :xxx:
+     
+/(?<=a{2})b/i
+    xaabc
+ 0: b
+\= Expect no match
+    xabc  
+No match
+
+/(?<!a{2})b/i
+    xabc
+ 0: b
+\= Expect no match
+    xaabc  
+No match
+    
+/(?<=[^a]{2})b/
+    axxbc
+ 0: b
+    aAAbc 
+ 0: b
+\= Expect no match
+    xaabc    
+No match
+
+/(?<=[^a]{2})b/i
+    axxbc  
+ 0: b
+\= Expect no match
+    aAAbc 
+No match
+    xaabc    
+No match
+
+#/(?|(abc)|(xyz))\1/
+#    abcabc
+# 0: abcabc
+# 1: abc
+#    xyzxyz 
+# 0: xyzxyz
+# 1: xyz
+#\= Expect no match
+#    abcxyz
+#No match
+#    xyzabc   
+#No match
+    
+#/(?|(abc)|(xyz))(?1)/
+#    abcabc
+# 0: abcabc
+# 1: abc
+#    xyzabc 
+# 0: xyzabc
+# 1: xyz
+#\= Expect no match 
+#    xyzxyz 
+#No match
+ 
+#/^X(?5)(a)(?|(b)|(q))(c)(d)(Y)/
+#    XYabcdY
+# 0: XYabcdY
+# 1: a
+# 2: b
+# 3: c
+# 4: d
+# 5: Y
+
+#/^X(?7)(a)(?|(b|(r)(s))|(q))(c)(d)(Y)/
+#    XYabcdY
+# 0: XYabcdY
+# 1: a
+# 2: b
+# 3: <unset>
+# 4: <unset>
+# 5: c
+# 6: d
+# 7: Y
+
+#/^X(?7)(a)(?|(b|(?|(r)|(t))(s))|(q))(c)(d)(Y)/
+#    XYabcdY
+# 0: XYabcdY
+# 1: a
+# 2: b
+# 3: <unset>
+# 4: <unset>
+# 5: c
+# 6: d
+# 7: Y
+
+/(?'abc'\w+):\k<abc>{2}/
+    a:aaxyz
+ 0: a:aa
+ 1: a
+    ab:ababxyz
+ 0: ab:abab
+ 1: ab
+\= Expect no match
+    a:axyz
+No match
+    ab:abxyz
+No match
+
+/^(?<ab>a)? (?(ab)b|c) (?(ab)d|e)/x
+    abd
+ 0: abd
+ 1: a
+    ce
+ 0: ce
+    
+# .NET has more consistent grouping numbers with these dupe groups for the two options
+/(?:a(?<quote> (?<apostrophe>')|(?<realquote>")) |b(?<quote> (?<apostrophe>')|(?<realquote>")) ) (?(quote)[a-z]+|[0-9]+)/x,dupnames
+    a\"aaaaa
+ 0: a"aaaaa
+ 1: "
+ 2: <unset>
+ 3: "
+    b\"aaaaa
+ 0: b"aaaaa
+ 1: "
+ 2: <unset>
+ 3: "
+\= Expect no match 
+    b\"11111
+No match
+
+#/(?P<L1>(?P<L2>0)(?P>L1)|(?P>L2))/
+#    0
+# 0: 0
+# 1: 0
+#    00
+# 0: 00
+# 1: 00
+# 2: 0
+#    0000  
+# 0: 0000
+# 1: 0000
+# 2: 0
+
+#/(?P<L1>(?P<L2>0)|(?P>L2)(?P>L1))/
+#    0
+# 0: 0
+# 1: 0
+# 2: 0
+#    00
+# 0: 0
+# 1: 0
+# 2: 0
+#    0000  
+# 0: 0
+# 1: 0
+# 2: 0
+
+# Check the use of names for failure
+
+# Check opening parens in comment when seeking forward reference.
+
+#/(?P<abn>(?P=abn)xxx|)+/
+#    xxx
+# 0: 
+# 1: 
+
+#Posses
+/^(a)?(\w)/
+    aaaaX
+ 0: aa
+ 1: a
+ 2: a
+    YZ 
+ 0: Y
+ 1: <unset>
+ 2: Y
+
+#Posses
+/^(?:a)?(\w)/
+    aaaaX
+ 0: aa
+ 1: a
+    YZ 
+ 0: Y
+ 1: Y
+
+/\A.*?(a|bc)/
+    ba
+ 0: ba
+ 1: a
+
+/\A.*?(?:a|bc|d)/
+    ba
+ 0: ba
+
+# --------------------------
+
+/(another)?(\1?)test/
+    hello world test
+ 0: test
+ 1: <unset>
+ 2: 
+
+/(another)?(\1+)test/
+\= Expect no match
+    hello world test
+No match
+
+/((?:a?)*)*c/
+    aac   
+ 0: aac
+ 1: 
+
+/((?>a?)*)*c/
+    aac   
+ 0: aac
+ 1: 
+
+/(?>.*?a)(?<=ba)/
+    aba
+ 0: ba
+
+/(?:.*?a)(?<=ba)/
+    aba
+ 0: aba
+
+/(?>.*?a)b/s
+    aab
+ 0: ab
+
+/(?>.*?a)b/
+    aab
+ 0: ab
+
+/(?>^a)b/s
+\= Expect no match
+    aab
+No match
+
+/(?>.*?)(?<=(abcd)|(wxyz))/
+    alphabetabcd
+ 0: 
+ 1: abcd
+    endingwxyz 
+ 0: 
+ 1: <unset>
+ 2: wxyz
+
+/(?>.*)(?<=(abcd)|(wxyz))/
+    alphabetabcd
+ 0: alphabetabcd
+ 1: abcd
+    endingwxyz
+ 0: endingwxyz
+ 1: <unset>
+ 2: wxyz
+
+"(?>.*)foo"
+\= Expect no match
+    abcdfooxyz
+No match
+    
+"(?>.*?)foo"
+    abcdfooxyz
+ 0: foo
+
+# Tests that try to figure out how Perl works. My hypothesis is that the first
+# verb that is backtracked onto is the one that acts. This seems to be the case
+# almost all the time, but there is one exception that is perhaps a bug.
+ 
+/a(?=bc).|abd/
+    abd
+ 0: abd
+    abc 
+ 0: ab
+  
+/a(?>bc)d|abd/
+    abceabd 
+ 0: abd
+
+# These tests were formerly in test 2, but changes in PCRE and Perl have
+# made them compatible. 
+    
+/^(a)?(?(1)a|b)+$/
+\= Expect no match
+    a
+No match
+
+# ----
+
+/^\d*\w{4}/
+    1234
+ 0: 1234
+\= Expect no match
+    123 
+No match
+
+/^[^b]*\w{4}/
+    aaaa
+ 0: aaaa
+\= Expect no match
+    aaa     
+No match
+
+/^[^b]*\w{4}/i
+    aaaa
+ 0: aaaa
+\= Expect no match
+    aaa     
+No match
+
+/^a*\w{4}/
+    aaaa
+ 0: aaaa
+\= Expect no match
+    aaa     
+No match
+
+/^a*\w{4}/i
+    aaaa
+ 0: aaaa
+\= Expect no match
+    aaa     
+No match
+
+/(?:(?<n>foo)|(?<n>bar))\k<n>/dupnames
+    foofoo
+ 0: foofoo
+ 1: foo
+    barbar
+ 0: barbar
+ 1: bar
+
+# A notable difference between PCRE and .NET.  According to
+# the PCRE docs:
+# If you make a subroutine call to a non-unique named 
+# subpattern, the one that corresponds  to  the first 
+# occurrence of the name is used. In the absence of 
+# duplicate numbers (see the previous section) this is 
+# the one with the lowest number.
+# .NET takes the most recently captured number according to MSDN:
+# A backreference refers to the most recent definition of 
+# a group (the definition most immediately to the left, 
+# when matching left to right). When a group makes multiple
+# captures, a backreference refers to the most recent capture.
+
+#/(?<n>A)(?:(?<n>foo)|(?<n>bar))\k<n>/dupnames
+#    AfooA
+# 0: AfooA
+# 1: A
+# 2: foo
+#    AbarA  
+# 0: AbarA
+# 1: A
+# 2: <unset>
+# 3: bar
+#\= Expect no match 
+#    Afoofoo
+#No match
+#    Abarbar
+#No match
+
+/^(\d+)\s+IN\s+SOA\s+(\S+)\s+(\S+)\s*\(\s*$/
+    1 IN SOA non-sp1 non-sp2(
+ 0: 1 IN SOA non-sp1 non-sp2(
+ 1: 1
+ 2: non-sp1
+ 3: non-sp2
+
+# TODO: .NET's group number ordering here in the second example is a bit odd
+/^ (?:(?<A>A)|(?'B'B)(?<A>A)) (?(A)x) (?(B)y)$/x,dupnames
+    Ax
+ 0: Ax
+ 1: A
+    BAxy
+ 0: BAxy
+ 1: A
+ 2: B
+ 
+/ ^ a + b $ /x
+    aaaab
+ 0: aaaab
+    
+/ ^ a + #comment
+   b $ /x
+    aaaab
+ 0: aaaab
+    
+/ ^ a + #comment
+  #comment
+   b $ /x
+    aaaab
+ 0: aaaab
+    
+/ ^ (?> a + ) b $ /x
+    aaaab 
+ 0: aaaab
+
+/ ^ ( a + ) + \w $ /x
+    aaaab 
+ 0: aaaab
+ 1: aaaa
+
+/(?:x|(?:(xx|yy)+|x|x|x|x|x)|a|a|a)bc/
+\= Expect no match
+    acb
+No match
+
+#Posses
+#/\A(?:[^\"]+|\"(?:[^\"]*|\"\")*\")+/
+#    NON QUOTED \"QUOT\"\"ED\" AFTER \"NOT MATCHED
+# 0: NON QUOTED "QUOT""ED" AFTER 
+
+#Posses
+#/\A(?:[^\"]+|\"(?:[^\"]+|\"\")*\")+/
+#    NON QUOTED \"QUOT\"\"ED\" AFTER \"NOT MATCHED
+# 0: NON QUOTED "QUOT""ED" AFTER 
+
+#Posses
+#/\A(?:[^\"]+|\"(?:[^\"]+|\"\")+\")+/
+#    NON QUOTED \"QUOT\"\"ED\" AFTER \"NOT MATCHED
+# 0: NON QUOTED "QUOT""ED" AFTER 
+
+#Posses
+#/\A([^\"1]+|[\"2]([^\"3]*|[\"4][\"5])*[\"6])+/
+#    NON QUOTED \"QUOT\"\"ED\" AFTER \"NOT MATCHED
+# 0: NON QUOTED "QUOT""ED" AFTER 
+# 1:  AFTER 
+# 2: 
+
+/^\w+(?>\s*)(?<=\w)/
+    test test
+ 0: tes
+
+#/(?P<Name>a)?(?P<Name2>b)?(?(<Name>)c|d)*l/
+#    acl
+# 0: acl
+# 1: a
+#    bdl
+# 0: bdl
+# 1: <unset>
+# 2: b
+#    adl
+# 0: dl
+#    bcl    
+# 0: l
+
+/\sabc/
+    \x0babc
+ 0: \x0babc
+
+#/[\Qa]\E]+/
+#    aa]]
+# 0: aa]]
+
+#/[\Q]a\E]+/
+#    aa]]
+# 0: aa]]
+
+/A((((((((a))))))))\8B/ 
+    AaaB
+ 0: AaaB
+ 1: a
+ 2: a
+ 3: a
+ 4: a
+ 5: a
+ 6: a
+ 7: a
+ 8: a
+
+/A(((((((((a)))))))))\9B/ 
+    AaaB
+ 0: AaaB
+ 1: a
+ 2: a
+ 3: a
+ 4: a
+ 5: a
+ 6: a
+ 7: a
+ 8: a
+ 9: a
+    
+/(|ab)*?d/
+    abd
+ 0: abd
+ 1: ab
+    xyd 
+ 0: d
+
+/(\2|a)(\1)/
+    aaa
+ 0: aa
+ 1: a
+ 2: a
+
+/(\2)(\1)/
+
+"Z*(|d*){216}"
+
+/((((((((((((x))))))))))))\12/
+    xx
+ 0: xx
+ 1: x
+ 2: x
+ 3: x
+ 4: x
+ 5: x
+ 6: x
+ 7: x
+ 8: x
+ 9: x
+10: x
+11: x
+12: x
+
+#"(?|(\k'Pm')|(?'Pm'))"
+#    abcd
+# 0: 
+# 1: 
+
+#/(?|(aaa)|(b))\g{1}/
+#    aaaaaa
+# 0: aaaaaa
+# 1: aaa
+#    bb 
+# 0: bb
+# 1: b
+
+#/(?|(aaa)|(b))(?1)/
+#    aaaaaa
+# 0: aaaaaa
+# 1: aaa
+#    baaa 
+# 0: baaa
+# 1: b
+#\= Expect no match 
+#    bb 
+#No match
+
+#/(?|(aaa)|(b))/
+#    xaaa
+# 0: aaa
+# 1: aaa
+#    xbc 
+# 0: b
+# 1: b
+
+#/(?|(?'a'aaa)|(?'a'b))\k'a'/
+#    aaaaaa
+# 0: aaaaaa
+# 1: aaa
+#    bb 
+# 0: bb
+# 1: b
+
+#/(?|(?'a'aaa)|(?'a'b))(?'a'cccc)\k'a'/dupnames
+#    aaaccccaaa
+# 0: aaaccccaaa
+# 1: aaa
+# 2: cccc
+#    bccccb 
+# 0: bccccb
+# 1: b
+# 2: cccc
+
+# End of testinput1 

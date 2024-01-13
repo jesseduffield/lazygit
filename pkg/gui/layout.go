@@ -258,12 +258,13 @@ func (gui *Gui) onRepoViewReset() error {
 }
 
 func (gui *Gui) onInitialViewsCreation() error {
-	if !gui.c.UserConfig.DisableStartupPopups {
-		storedPopupVersion := gui.c.GetAppState().StartupPopupVersion
-		if storedPopupVersion < StartupPopupVersion {
-			gui.showIntroPopupMessage()
-		}
-	}
+	gui.showIntroPopupMessage()
+	// if !gui.c.UserConfig.DisableStartupPopups {
+	// 	storedPopupVersion := gui.c.GetAppState().StartupPopupVersion
+	// 	if storedPopupVersion < StartupPopupVersion {
+	// 		gui.showIntroPopupMessage()
+	// 	}
+	// }
 
 	if gui.showRecentRepos {
 		if err := gui.helpers.Repos.CreateRecentReposMenu(); err != nil {

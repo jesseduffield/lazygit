@@ -1,0 +1,37 @@
+project_name: chroma
+release:
+  github:
+    owner: alecthomas
+    name: chroma
+brews:
+  -
+    install: bin.install "chroma"
+env:
+  - CGO_ENABLED=0
+builds:
+- goos:
+    - linux
+    - darwin
+    - windows
+  goarch:
+    - arm64
+    - amd64
+    - "386"
+  goarm:
+    - "6"
+  dir: ./cmd/chroma
+  main: .
+  ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+  binary: chroma
+archives:
+  -
+    format: tar.gz
+    name_template: '{{ .Binary }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{
+    .Arm }}{{ end }}'
+    files:
+      - COPYING
+      - README*
+snapshot:
+  name_template: SNAPSHOT-{{ .Commit }}
+checksum:
+  name_template: '{{ .ProjectName }}-{{ .Version }}-checksums.txt'

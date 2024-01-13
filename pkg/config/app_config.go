@@ -317,6 +317,9 @@ type AppState struct {
 	LastUpdateCheck     int64
 	RecentRepos         []string
 	StartupPopupVersion int
+	// Version of lazygit when the user last opened the app. We track this
+	// so we can show release notes when the user opens the app after an update
+	Version string
 
 	// these are for custom commands typed in directly, not for custom commands in the lazygit config
 	CustomCommandsHistory      []string

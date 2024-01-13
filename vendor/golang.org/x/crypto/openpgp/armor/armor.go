@@ -156,7 +156,7 @@ func (r *openpgpReader) Read(p []byte) (n int, err error) {
 	n, err = r.b64Reader.Read(p)
 	r.currentCRC = crc24(r.currentCRC, p[:n])
 
-	if err == io.EOF && r.lReader.crcSet && r.lReader.crc != uint32(r.currentCRC&crc24Mask) {
+	if err == io.EOF && r.lReader.crcSet && r.lReader.crc != r.currentCRC&crc24Mask {
 		return 0, ArmorCorrupt
 	}
 
