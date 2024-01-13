@@ -890,7 +890,7 @@ func (self *LocalCommitsController) notMidRebase() *types.DisabledReason {
 // For getting disabled reason
 func (self *LocalCommitsController) canFindCommitForQuickStart() *types.DisabledReason {
 	if _, err := self.findCommitForQuickStartInteractiveRebase(); err != nil {
-		return &types.DisabledReason{Text: err.Error()}
+		return &types.DisabledReason{Text: err.Error(), ShowErrorInPanel: true}
 	}
 
 	return nil

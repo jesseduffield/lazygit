@@ -416,6 +416,10 @@ func (gui *Gui) callKeybindingHandler(binding *types.Binding) error {
 		disabledReason = binding.GetDisabledReason()
 	}
 	if disabledReason != nil {
+		if disabledReason.ShowErrorInPanel {
+			return gui.c.ErrorMsg(disabledReason.Text)
+		}
+
 		gui.c.ErrorToast(gui.Tr.DisabledMenuItemPrefix + disabledReason.Text)
 		return nil
 	}

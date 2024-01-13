@@ -52,7 +52,10 @@ var QuickStart = NewIntegrationTest(NewIntegrationTestArgs{
 			// Verify we can't quick start from main
 			Press(keys.Commits.StartInteractiveRebase)
 
-		t.ExpectToast(Equals("Disabled: Cannot start interactive rebase: the HEAD commit is a merge commit or is present on the main branch, so there is no appropriate base commit to start the rebase from. You can start an interactive rebase from a specific commit by selecting the commit and pressing `e`."))
+		t.ExpectPopup().Alert().
+			Title(Equals("Error")).
+			Content(Equals("Cannot start interactive rebase: the HEAD commit is a merge commit or is present on the main branch, so there is no appropriate base commit to start the rebase from. You can start an interactive rebase from a specific commit by selecting the commit and pressing `e`.")).
+			Confirm()
 
 		t.Views().Branches().
 			Focus().
