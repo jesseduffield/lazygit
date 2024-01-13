@@ -57,8 +57,6 @@ gui:
       - blue
     selectedLineBgColor:
       - blue # set to `default` to have no background colour
-    selectedRangeBgColor:
-      - blue
     cherryPickedCommitBgColor:
       - cyan
     cherryPickedCommitFgColor:
@@ -390,14 +388,12 @@ The available attributes are:
 
 ## Highlighting the selected line
 
-If you don't like the default behaviour of highlighting the selected line with a blue background, you can use the `selectedLineBgColor` and `selectedRangeBgColor` keys to customise the behaviour. If you just want to embolden the selected line (this was the original default), you can do the following:
+If you don't like the default behaviour of highlighting the selected line with a blue background, you can use the `selectedLineBgColor` key to customise the behaviour. If you just want to embolden the selected line (this was the original default), you can do the following:
 
 ```yaml
 gui:
   theme:
     selectedLineBgColor:
-      - default
-    selectedRangeBgColor:
       - default
 ```
 
@@ -407,8 +403,6 @@ You can also use the reverse attribute like so:
 gui:
   theme:
     selectedLineBgColor:
-      - reverse
-    selectedRangeBgColor:
       - reverse
 ```
 

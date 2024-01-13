@@ -30,9 +30,6 @@ var (
 	// SelectedLineBgColor is the background color for the selected line
 	SelectedLineBgColor = style.New()
 
-	// SelectedRangeBgColor is the background color of the selected range of lines
-	SelectedRangeBgColor = style.New()
-
 	// CherryPickedCommitColor is the text style when cherry picking a commit
 	CherryPickedCommitTextStyle = style.New()
 
@@ -52,7 +49,6 @@ func UpdateTheme(themeConfig config.ThemeConfig) {
 	InactiveBorderColor = GetGocuiStyle(themeConfig.InactiveBorderColor)
 	SearchingActiveBorderColor = GetGocuiStyle(themeConfig.SearchingActiveBorderColor)
 	SelectedLineBgColor = GetTextStyle(themeConfig.SelectedLineBgColor, true)
-	SelectedRangeBgColor = GetTextStyle(themeConfig.SelectedRangeBgColor, true)
 
 	cherryPickedCommitBgTextStyle := GetTextStyle(themeConfig.CherryPickedCommitBgColor, true)
 	cherryPickedCommitFgTextStyle := GetTextStyle(themeConfig.CherryPickedCommitFgColor, false)

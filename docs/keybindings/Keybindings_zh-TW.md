@@ -37,6 +37,9 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>.</kbd>: 下一頁
   <kbd>&lt;</kbd>: 捲動到頂部
   <kbd>&gt;</kbd>: 捲動到底部
+  <kbd>v</kbd>: 切換拖曳選擇
+  <kbd>&lt;s-down&gt;</kbd>: Range select down
+  <kbd>&lt;s-up&gt;</kbd>: Range select up
   <kbd>/</kbd>: 開始搜尋
   <kbd>H</kbd>: 向左捲動
   <kbd>L</kbd>: 向右捲動
@@ -102,7 +105,6 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>&lt;left&gt;</kbd>: 選擇上一段
   <kbd>&lt;right&gt;</kbd>: 選擇下一段
   <kbd>v</kbd>: 切換拖曳選擇
-  <kbd>V</kbd>: 切換拖曳選擇
   <kbd>a</kbd>: 切換選擇程式碼塊
   <kbd>&lt;c-o&gt;</kbd>: 複製所選文本至剪貼簿
   <kbd>o</kbd>: 開啟檔案
@@ -124,7 +126,6 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>&lt;left&gt;</kbd>: 選擇上一段
   <kbd>&lt;right&gt;</kbd>: 選擇下一段
   <kbd>v</kbd>: 切換拖曳選擇
-  <kbd>V</kbd>: 切換拖曳選擇
   <kbd>a</kbd>: 切換選擇程式碼塊
   <kbd>&lt;c-o&gt;</kbd>: 複製所選文本至剪貼簿
   <kbd>o</kbd>: 開啟檔案

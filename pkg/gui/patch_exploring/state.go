@@ -240,12 +240,8 @@ func (s *State) AdjustSelectedLineIdx(change int) {
 }
 
 func (s *State) RenderForLineIndices(isFocused bool, includedLineIndices []int) string {
-	firstLineIdx, lastLineIdx := s.SelectedRange()
 	includedLineIndicesSet := set.NewFromSlice(includedLineIndices)
 	return s.patch.FormatView(patch.FormatViewOpts{
-		IsFocused:      isFocused,
-		FirstLineIndex: firstLineIdx,
-		LastLineIndex:  lastLineIdx,
 		IncLineIndices: includedLineIndicesSet,
 	})
 }

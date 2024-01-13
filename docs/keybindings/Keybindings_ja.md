@@ -37,6 +37,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>.</kbd>: 次のページ
   <kbd>&lt;</kbd>: 最上部までスクロール
   <kbd>&gt;</kbd>: 最下部までスクロール
+  <kbd>v</kbd>: 範囲選択を切り替え
+  <kbd>&lt;s-down&gt;</kbd>: Range select down
+  <kbd>&lt;s-up&gt;</kbd>: Range select up
   <kbd>/</kbd>: 検索を開始
   <kbd>H</kbd>: 左スクロール
   <kbd>L</kbd>: 右スクロール
@@ -270,7 +273,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: 前のhunkを選択
   <kbd>&lt;right&gt;</kbd>: 次のhunkを選択
   <kbd>v</kbd>: 範囲選択を切り替え
-  <kbd>V</kbd>: 範囲選択を切り替え
   <kbd>a</kbd>: Hunk選択を切り替え
   <kbd>&lt;c-o&gt;</kbd>: 選択されたテキストをクリップボードにコピー
   <kbd>o</kbd>: ファイルを開く
@@ -286,7 +288,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: 前のhunkを選択
   <kbd>&lt;right&gt;</kbd>: 次のhunkを選択
   <kbd>v</kbd>: 範囲選択を切り替え
-  <kbd>V</kbd>: 範囲選択を切り替え
   <kbd>a</kbd>: Hunk選択を切り替え
   <kbd>&lt;c-o&gt;</kbd>: 選択されたテキストをクリップボードにコピー
   <kbd>o</kbd>: ファイルを開く

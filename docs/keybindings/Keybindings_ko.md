@@ -37,6 +37,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>.</kbd>: 다음 페이지
   <kbd>&lt;</kbd>: 맨 위로 스크롤 
   <kbd>&gt;</kbd>: 맨 아래로 스크롤 
+  <kbd>v</kbd>: 드래그 선택 전환
+  <kbd>&lt;s-down&gt;</kbd>: Range select down
+  <kbd>&lt;s-up&gt;</kbd>: Range select up
   <kbd>/</kbd>: 검색 시작
   <kbd>H</kbd>: 우 스크롤
   <kbd>L</kbd>: 좌 스크롤
@@ -141,7 +144,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: 이전 hunk를 선택
   <kbd>&lt;right&gt;</kbd>: 다음 hunk를 선택
   <kbd>v</kbd>: 드래그 선택 전환
-  <kbd>V</kbd>: 드래그 선택 전환
   <kbd>a</kbd>: Toggle select hunk
   <kbd>&lt;c-o&gt;</kbd>: 선택한 텍스트를 클립보드에 복사
   <kbd>o</kbd>: 파일 닫기
@@ -157,7 +159,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: 이전 hunk를 선택
   <kbd>&lt;right&gt;</kbd>: 다음 hunk를 선택
   <kbd>v</kbd>: 드래그 선택 전환
-  <kbd>V</kbd>: 드래그 선택 전환
   <kbd>a</kbd>: Toggle select hunk
   <kbd>&lt;c-o&gt;</kbd>: 선택한 텍스트를 클립보드에 복사
   <kbd>o</kbd>: 파일 닫기

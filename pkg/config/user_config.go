@@ -154,9 +154,6 @@ type ThemeConfig struct {
 	// Background color of selected line.
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
 	SelectedLineBgColor []string `yaml:"selectedLineBgColor" jsonschema:"minItems=1,uniqueItems=true"`
-	// Background color of selected range
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
-	SelectedRangeBgColor []string `yaml:"selectedRangeBgColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Foreground color of copied commit
 	CherryPickedCommitFgColor []string `yaml:"cherryPickedCommitFgColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Background color of copied commit
@@ -622,7 +619,6 @@ func GetDefaultConfig() *UserConfig {
 				InactiveBorderColor:        []string{"default"},
 				OptionsTextColor:           []string{"blue"},
 				SelectedLineBgColor:        []string{"blue"},
-				SelectedRangeBgColor:       []string{"blue"},
 				CherryPickedCommitBgColor:  []string{"cyan"},
 				CherryPickedCommitFgColor:  []string{"blue"},
 				MarkedBaseCommitBgColor:    []string{"yellow"},

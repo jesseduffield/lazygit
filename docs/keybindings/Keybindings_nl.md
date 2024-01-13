@@ -37,6 +37,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>.</kbd>: Volgende pagina
   <kbd>&lt;</kbd>: Scroll naar boven
   <kbd>&gt;</kbd>: Scroll naar beneden
+  <kbd>v</kbd>: Toggle drag selecteer
+  <kbd>&lt;s-down&gt;</kbd>: Range select down
+  <kbd>&lt;s-up&gt;</kbd>: Range select up
   <kbd>/</kbd>: Start met zoeken
   <kbd>H</kbd>: Scroll left
   <kbd>L</kbd>: Scroll right
@@ -205,7 +208,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: Selecteer de vorige hunk
   <kbd>&lt;right&gt;</kbd>: Selecteer de volgende hunk
   <kbd>v</kbd>: Toggle drag selecteer
-  <kbd>V</kbd>: Toggle drag selecteer
   <kbd>a</kbd>: Toggle selecteer hunk
   <kbd>&lt;c-o&gt;</kbd>: Copy the selected text to the clipboard
   <kbd>o</kbd>: Open bestand
@@ -266,7 +268,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: Selecteer de vorige hunk
   <kbd>&lt;right&gt;</kbd>: Selecteer de volgende hunk
   <kbd>v</kbd>: Toggle drag selecteer
-  <kbd>V</kbd>: Toggle drag selecteer
   <kbd>a</kbd>: Toggle selecteer hunk
   <kbd>&lt;c-o&gt;</kbd>: Copy the selected text to the clipboard
   <kbd>o</kbd>: Open bestand

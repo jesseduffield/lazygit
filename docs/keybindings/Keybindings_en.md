@@ -37,6 +37,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>.</kbd>: Next page
   <kbd>&lt;</kbd>: Scroll to top
   <kbd>&gt;</kbd>: Scroll to bottom
+  <kbd>v</kbd>: Toggle range select
+  <kbd>&lt;s-down&gt;</kbd>: Range select down
+  <kbd>&lt;s-up&gt;</kbd>: Range select up
   <kbd>/</kbd>: Search the current view by text
   <kbd>H</kbd>: Scroll left
   <kbd>L</kbd>: Scroll right
@@ -196,8 +199,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;left&gt;</kbd>: Select previous hunk
   <kbd>&lt;right&gt;</kbd>: Select next hunk
-  <kbd>v</kbd>: Toggle drag select
-  <kbd>V</kbd>: Toggle drag select
+  <kbd>v</kbd>: Toggle range select
   <kbd>a</kbd>: Toggle select hunk
   <kbd>&lt;c-o&gt;</kbd>: Copy the selected text to the clipboard
   <kbd>o</kbd>: Open file
@@ -212,8 +214,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;left&gt;</kbd>: Select previous hunk
   <kbd>&lt;right&gt;</kbd>: Select next hunk
-  <kbd>v</kbd>: Toggle drag select
-  <kbd>V</kbd>: Toggle drag select
+  <kbd>v</kbd>: Toggle range select
   <kbd>a</kbd>: Toggle select hunk
   <kbd>&lt;c-o&gt;</kbd>: Copy the selected text to the clipboard
   <kbd>o</kbd>: Open file

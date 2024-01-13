@@ -205,7 +205,7 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 				}
 
 				if hasConflicts {
-					return self.c.Helpers().MergeConflicts.Render(false)
+					return self.c.Helpers().MergeConflicts.Render()
 				}
 			}
 

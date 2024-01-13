@@ -176,18 +176,6 @@
                 "blue"
               ]
             },
-            "selectedRangeBgColor": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array",
-              "minItems": 1,
-              "uniqueItems": true,
-              "description": "Background color of selected range\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line",
-              "default": [
-                "blue"
-              ]
-            },
             "cherryPickedCommitFgColor": {
               "items": {
                 "type": "string"
@@ -666,6 +654,18 @@
             "gotoBottom": {
               "type": "string",
               "default": "\u003e"
+            },
+            "toggleRangeSelect": {
+              "type": "string",
+              "default": "v"
+            },
+            "rangeSelectDown": {
+              "type": "string",
+              "default": "\u003cs-down\u003e"
+            },
+            "rangeSelectUp": {
+              "type": "string",
+              "default": "\u003cs-up\u003e"
             },
             "prevBlock": {
               "type": "string",

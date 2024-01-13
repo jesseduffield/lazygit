@@ -145,7 +145,13 @@ func (self *MergeConflictsController) GetOnFocus() func(types.OnFocusOpts) error
 	return func(types.OnFocusOpts) error {
 		self.c.Views().MergeConflicts.Wrap = false
 
-		return self.c.Helpers().MergeConflicts.Render(true)
+		if err := self.c.Helpers().MergeConflicts.Render(); err != nil {
+			return err
+		}
+
+		self.context().SetSelectedLineRange()
+
+		return nil
 	}
 }
 
@@ -313,17 +319,13 @@ func (self *MergeConflictsController) onLastConflictResolved() error {
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 }
 
-func (self *MergeConflictsController) isFocused() bool {
-	return self.c.CurrentContext().GetKey() == self.context().GetKey()
-}
-
 func (self *MergeConflictsController) withRenderAndFocus(f func() error) func() error {
 	return self.withLock(func() error {
 		if err := f(); err != nil {
 			return err
 		}
 
-		return self.context().RenderAndFocus(self.isFocused())
+		return self.context().RenderAndFocus()
 	})
 }
 

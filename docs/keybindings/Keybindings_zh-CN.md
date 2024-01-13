@@ -37,6 +37,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>.</kbd>: 下一页
   <kbd>&lt;</kbd>: 滚动到顶部
   <kbd>&gt;</kbd>: 滚动到底部
+  <kbd>v</kbd>: 切换拖动选择
+  <kbd>&lt;s-down&gt;</kbd>: Range select down
+  <kbd>&lt;s-up&gt;</kbd>: Range select up
   <kbd>/</kbd>: 开始搜索
   <kbd>H</kbd>: 向左滚动
   <kbd>L</kbd>: 向右滚动
@@ -229,7 +232,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: 选择上一个区块
   <kbd>&lt;right&gt;</kbd>: 选择下一个区块
   <kbd>v</kbd>: 切换拖动选择
-  <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块
   <kbd>&lt;c-o&gt;</kbd>: 将选中文本复制到剪贴板
   <kbd>o</kbd>: 打开文件
@@ -274,7 +276,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: 选择上一个区块
   <kbd>&lt;right&gt;</kbd>: 选择下一个区块
   <kbd>v</kbd>: 切换拖动选择
-  <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块
   <kbd>&lt;c-o&gt;</kbd>: 将选中文本复制到剪贴板
   <kbd>o</kbd>: 打开文件
