@@ -26,6 +26,8 @@ type GuiDriver struct {
 var _ integrationTypes.GuiDriver = &GuiDriver{}
 
 func (self *GuiDriver) PressKey(keyStr string) {
+	self.CheckAllToastsAcknowledged()
+
 	key := keybindings.GetKey(keyStr)
 
 	var r rune
@@ -47,6 +49,8 @@ func (self *GuiDriver) PressKey(keyStr string) {
 }
 
 func (self *GuiDriver) Click(x, y int) {
+	self.CheckAllToastsAcknowledged()
+
 	self.gui.g.ReplayedEvents.MouseEvents <- gocui.NewTcellMouseEventWrapper(
 		tcell.NewEventMouse(x, y, tcell.ButtonPrimary, 0),
 		0,
@@ -57,6 +61,12 @@ func (self *GuiDriver) Click(x, y int) {
 // wait until lazygit is idle (i.e. all processing is done) before continuing
 func (self *GuiDriver) waitTillIdle() {
 	<-self.isIdleChan
+}
+
+func (self *GuiDriver) CheckAllToastsAcknowledged() {
+	if t := self.NextToast(); t != nil {
+		self.Fail("Toast not acknowledged: " + *t)
+	}
 }
 
 func (self *GuiDriver) Keys() config.KeybindingConfig {

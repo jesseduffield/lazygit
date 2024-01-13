@@ -101,6 +101,8 @@ var CopyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 					Select(Contains("File name")).
 					Confirm()
 
+				t.ExpectToast(Equals("File name copied to clipboard"))
+
 				expectClipboard(t, Contains("unstaged_file"))
 			})
 
@@ -112,6 +114,8 @@ var CopyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 					Title(Equals("Copy to clipboard")).
 					Select(Contains("Path")).
 					Confirm()
+
+				t.ExpectToast(Equals("File path copied to clipboard"))
 
 				expectClipboard(t, Contains("dir/1-unstaged_file"))
 			})
@@ -125,6 +129,8 @@ var CopyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 					Select(Contains("Diff of selected file")).
 					Tooltip(Equals("If there are staged items, this command considers only them. Otherwise, it considers all the unstaged ones.")).
 					Confirm()
+
+				t.ExpectToast(Equals("File diff copied to clipboard"))
 
 				expectClipboard(t, Contains("+unstaged content (new)"))
 			})
@@ -145,6 +151,8 @@ var CopyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 					Tooltip(Equals("If there are staged items, this command considers only them. Otherwise, it considers all the unstaged ones.")).
 					Confirm()
 
+				t.ExpectToast(Equals("File diff copied to clipboard"))
+
 				expectClipboard(t, Contains("+staged content (new)"))
 			})
 
@@ -157,6 +165,8 @@ var CopyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 					Select(Contains("Diff of all files")).
 					Tooltip(Equals("If there are staged items, this command considers only them. Otherwise, it considers all the unstaged ones.")).
 					Confirm()
+
+				t.ExpectToast(Equals("All files diff copied to clipboard"))
 
 				expectClipboard(t, Contains("+staged content (new)"))
 			})
@@ -178,6 +188,8 @@ var CopyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 					Select(Contains("Diff of all files")).
 					Tooltip(Equals("If there are staged items, this command considers only them. Otherwise, it considers all the unstaged ones.")).
 					Confirm()
+
+				t.ExpectToast(Equals("All files diff copied to clipboard"))
 
 				expectClipboard(t, Contains("+staged content (new)").Contains("+unstaged content (new)"))
 			})

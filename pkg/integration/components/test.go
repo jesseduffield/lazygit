@@ -194,6 +194,8 @@ func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
 
 	self.run(testDriver, keys)
 
+	gui.CheckAllToastsAcknowledged()
+
 	if InputDelay() > 0 {
 		// Clear whatever caption there was so it doesn't linger
 		testDriver.SetCaption("")

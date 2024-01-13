@@ -45,4 +45,5 @@ type GuiDriver interface {
 	SetCaptionPrefix(prefix string)
 	// Pop the next toast that was displayed; returns nil if there was none
 	NextToast() *string
+	CheckAllToastsAcknowledged()
 }
