@@ -177,6 +177,33 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			expected:             []string{"1m", "branc… Pushing |"},
 		},
 		{
+			branch:               &models.Branch{Name: "abc", Recency: "1m"},
+			itemOperation:        types.ItemOperationPushing,
+			fullDescription:      false,
+			viewWidth:            -1,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			expected:             []string{"1m", "abc Pushing |"},
+		},
+		{
+			branch:               &models.Branch{Name: "ab", Recency: "1m"},
+			itemOperation:        types.ItemOperationPushing,
+			fullDescription:      false,
+			viewWidth:            -1,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			expected:             []string{"1m", "ab Pushing |"},
+		},
+		{
+			branch:               &models.Branch{Name: "a", Recency: "1m"},
+			itemOperation:        types.ItemOperationPushing,
+			fullDescription:      false,
+			viewWidth:            -1,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			expected:             []string{"1m", "a Pushing |"},
+		},
+		{
 			branch: &models.Branch{
 				Name:           "branch_name",
 				Recency:        "1m",
