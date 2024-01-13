@@ -106,6 +106,6 @@ func (self *CommitFileTreeViewModel) ToggleShowTree() {
 
 	index, found := self.GetIndexForPath(path)
 	if found {
-		self.SetSelectedLineIdx(index)
+		self.SetSelection(index)
 	}
 }

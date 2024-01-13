@@ -424,7 +424,7 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 		return self.c.Error(err)
 	}
 
-	self.context().SetSelectedLineIdx(0)
+	self.context().SetSelection(0)
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
@@ -627,7 +627,7 @@ func (self *BranchesController) createSortMenu() error {
 		if self.c.GetAppState().LocalBranchSortOrder != sortOrder {
 			self.c.GetAppState().LocalBranchSortOrder = sortOrder
 			self.c.SaveAppStateAndLogError()
-			self.c.Contexts().Branches.SetSelectedLineIdx(0)
+			self.c.Contexts().Branches.SetSelection(0)
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 		}
 		return nil
@@ -658,7 +658,7 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 				// now that we've got our stuff again we need to find that branch and reselect it.
 				for i, newBranch := range self.c.Model().Branches {
 					if newBranch.Name == newBranchName {
-						self.context().SetSelectedLineIdx(i)
+						self.context().SetSelection(i)
 						if err := self.context().HandleRender(); err != nil {
 							return err
 						}

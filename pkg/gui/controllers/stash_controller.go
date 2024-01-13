@@ -189,7 +189,7 @@ func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntr
 			if err != nil {
 				return err
 			}
-			self.context().SetSelectedLineIdx(0) // Select the renamed stash
+			self.context().SetSelection(0) // Select the renamed stash
 			self.context().FocusLine()
 			return nil
 		},

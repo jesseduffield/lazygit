@@ -31,5 +31,5 @@ func (self *FilteredListViewModel[T]) ClearFilter() {
 
 	self.FilteredList.ClearFilter()
 
-	self.SetSelectedLineIdx(unfilteredIndex)
+	self.SetSelection(unfilteredIndex)
 }

@@ -106,7 +106,7 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 		newSelectedLine = -1
 	}
 	remoteBranchesContext := self.c.Contexts().RemoteBranches
-	remoteBranchesContext.SetSelectedLineIdx(newSelectedLine)
+	remoteBranchesContext.SetSelection(newSelectedLine)
 	remoteBranchesContext.SetTitleRef(remote.Name)
 	remoteBranchesContext.SetParentContext(self.Context())
 	remoteBranchesContext.GetView().TitlePrefix = self.Context().GetView().TitlePrefix

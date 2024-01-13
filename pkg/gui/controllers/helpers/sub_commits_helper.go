@@ -53,7 +53,7 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 	self.refreshHelper.RefreshAuthors(commits)
 
 	subCommitsContext := self.c.Contexts().SubCommits
-	subCommitsContext.SetSelectedLineIdx(0)
+	subCommitsContext.SetSelection(0)
 	subCommitsContext.SetParentContext(opts.Context)
 	subCommitsContext.SetWindowName(opts.Context.GetWindowName())
 	subCommitsContext.SetTitleRef(utils.TruncateWithEllipsis(opts.TitleRef, 50))

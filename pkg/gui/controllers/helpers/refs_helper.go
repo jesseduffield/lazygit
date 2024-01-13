@@ -44,9 +44,9 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 	cmdOptions := git_commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
 	onSuccess := func() {
-		self.c.Contexts().Branches.SetSelectedLineIdx(0)
-		self.c.Contexts().ReflogCommits.SetSelectedLineIdx(0)
-		self.c.Contexts().LocalCommits.SetSelectedLineIdx(0)
+		self.c.Contexts().Branches.SetSelection(0)
+		self.c.Contexts().ReflogCommits.SetSelection(0)
+		self.c.Contexts().LocalCommits.SetSelection(0)
 		// loading a heap of commits is slow so we limit them whenever doing a reset
 		self.c.Contexts().LocalCommits.SetLimitCommits(true)
 	}
@@ -107,8 +107,8 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 		return self.c.Error(err)
 	}
 
-	self.c.Contexts().LocalCommits.SetSelectedLineIdx(0)
-	self.c.Contexts().ReflogCommits.SetSelectedLineIdx(0)
+	self.c.Contexts().LocalCommits.SetSelection(0)
+	self.c.Contexts().ReflogCommits.SetSelection(0)
 	// loading a heap of commits is slow so we limit them whenever doing a reset
 	self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
@@ -215,8 +215,8 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 				}
 			}
 
-			self.c.Contexts().LocalCommits.SetSelectedLineIdx(0)
-			self.c.Contexts().Branches.SetSelectedLineIdx(0)
+			self.c.Contexts().LocalCommits.SetSelection(0)
+			self.c.Contexts().Branches.SetSelection(0)
 
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 		},

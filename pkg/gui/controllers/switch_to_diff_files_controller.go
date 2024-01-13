@@ -77,7 +77,7 @@ func (self *SwitchToDiffFilesController) Context() types.Context {
 func (self *SwitchToDiffFilesController) viewFiles(opts SwitchToCommitFilesContextOpts) error {
 	diffFilesContext := self.diffFilesContext
 
-	diffFilesContext.SetSelectedLineIdx(0)
+	diffFilesContext.SetSelection(0)
 	diffFilesContext.SetRef(opts.Ref)
 	diffFilesContext.SetTitleRef(opts.Ref.Description())
 	diffFilesContext.SetCanRebase(opts.CanRebase)

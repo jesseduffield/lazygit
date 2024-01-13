@@ -459,7 +459,7 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 					return c.Sha == selectedCommit.Sha
 				})
 				if ok {
-					self.context().SetSelectedLineIdx(index)
+					self.context().SetSelection(index)
 				}
 			}})
 	})

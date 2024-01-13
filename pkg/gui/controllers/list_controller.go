@@ -160,7 +160,7 @@ func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
 		return nil
 	}
 
-	self.context.GetList().SetSelectedLineIdx(newSelectedLineIdx)
+	self.context.GetList().SetSelection(newSelectedLineIdx)
 
 	if prevSelectedLineIdx == newSelectedLineIdx && alreadyFocused && self.context.GetOnClick() != nil {
 		return self.context.GetOnClick()()

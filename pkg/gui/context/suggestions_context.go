@@ -74,7 +74,7 @@ func (self *SuggestionsContext) GetSelectedItemId() string {
 
 func (self *SuggestionsContext) SetSuggestions(suggestions []*types.Suggestion) {
 	self.State.Suggestions = suggestions
-	self.SetSelectedLineIdx(0)
+	self.SetSelection(0)
 	self.c.ResetViewOrigin(self.GetView())
 	_ = self.HandleRender()
 }

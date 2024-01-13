@@ -132,7 +132,7 @@ func (self *RemoteBranchesController) createSortMenu() error {
 		if self.c.GetAppState().RemoteBranchSortOrder != sortOrder {
 			self.c.GetAppState().RemoteBranchSortOrder = sortOrder
 			self.c.SaveAppStateAndLogError()
-			self.c.Contexts().RemoteBranches.SetSelectedLineIdx(0)
+			self.c.Contexts().RemoteBranches.SetSelection(0)
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.REMOTES}})
 		}
 		return nil

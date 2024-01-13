@@ -265,7 +265,7 @@ func (self *BisectController) selectCurrentBisectCommit() {
 		// find index of commit with that sha, move cursor to that.
 		for i, commit := range self.c.Model().Commits {
 			if commit.Sha == info.GetCurrentSha() {
-				self.context().SetSelectedLineIdx(i)
+				self.context().SetSelection(i)
 				_ = self.context().HandleFocus(types.OnFocusOpts{})
 				break
 			}

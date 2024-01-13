@@ -81,7 +81,7 @@ func (self *FileTreeViewModel) SetTree() {
 		newNodes := self.GetAllItems()
 		newIdx := self.findNewSelectedIdx(prevNodes[prevSelectedLineIdx:], newNodes)
 		if newIdx != -1 && newIdx != prevSelectedLineIdx {
-			self.SetSelectedLineIdx(newIdx)
+			self.SetSelection(newIdx)
 		}
 	}
 
@@ -128,7 +128,7 @@ func (self *FileTreeViewModel) findNewSelectedIdx(prevNodes []*FileNode, currNod
 
 func (self *FileTreeViewModel) SetStatusFilter(filter FileTreeDisplayFilter) {
 	self.IFileTree.SetStatusFilter(filter)
-	self.IListCursor.SetSelectedLineIdx(0)
+	self.IListCursor.SetSelection(0)
 }
 
 // If we're going from flat to tree we want to select the same file.

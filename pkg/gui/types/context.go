@@ -224,6 +224,7 @@ type IList interface {
 type IListCursor interface {
 	GetSelectedLineIdx() int
 	SetSelectedLineIdx(value int)
+	SetSelection(value int)
 	MoveSelectedLine(delta int)
 	ClampSelection()
 	CancelRangeSelect()
@@ -236,6 +237,7 @@ type IListCursor interface {
 
 type IListPanelState interface {
 	SetSelectedLineIdx(int)
+	SetSelection(int)
 	GetSelectedLineIdx() int
 }
 

@@ -45,8 +45,23 @@ func (self *ListCursor) GetSelectedLineIdx() int {
 	return self.selectedIdx
 }
 
+// Sets the selected line index. Note, you probably don't want to use this directly,
+// because it doesn't affect the range select mode or range start index. You should only
+// use this for navigation situations where e.g. the user wants to jump to the top of
+// a list while in range select mode so that the selection ends up being between
+// the top of the list and the previous selection
 func (self *ListCursor) SetSelectedLineIdx(value int) {
 	self.selectedIdx = self.clampValue(value)
+}
+
+// Sets the selected index and cancels the range. You almost always want to use
+// this instead of SetSelectedLineIdx. For example, if you want to jump the cursor
+// to the top of a list after checking out a branch, you should use this method,
+// or you may end up with a large range selection from the previous cursor position
+// to the top of the list.
+func (self *ListCursor) SetSelection(value int) {
+	self.selectedIdx = self.clampValue(value)
+	self.CancelRangeSelect()
 }
 
 func (self *ListCursor) clampValue(value int) int {
