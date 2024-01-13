@@ -114,7 +114,9 @@ Press space on the selected line to stage it, or press `v` to start selecting a 
 
 ### Interactive Rebase
 
-Press `e` on a commit to start an interactive rebase on it: causing all above commits to become part of the TODO file. Then squash (`s`), fixup (`f`), drop (`d`), edit (`e`), move up (ctrl+i) or move down (ctrl+j) any of TODO commits, before continuing the rebase by bringing up the rebase options menu with `m` and then selecting `continue`. You can also perform any these actions as a once-off (e.g. pressing `s` on a commit to squash it) without explicitly starting a rebase.
+Press `e` on a commit to start an interactive rebase on it: causing all above commits to become part of the TODO file. Then squash (`s`), fixup (`f`), drop (`d`), edit (`e`), move up (`ctrl+i`) or move down (`ctrl+j`) any of TODO commits, before continuing the rebase by bringing up the rebase options menu with `m` and then selecting `continue`.
+
+You can also perform any these actions as a once-off (e.g. pressing `s` on a commit to squash it) without explicitly starting a rebase.
 
 ![interactive_rebase](../assets/demo/interactive_rebase-compressed.gif)
 

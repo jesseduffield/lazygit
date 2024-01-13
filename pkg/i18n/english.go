@@ -648,6 +648,9 @@ type TranslationSet struct {
 	DisabledMenuItemPrefix              string
 	NoCommitSelected                    string
 	NoCopiedCommits                     string
+	QuickStartInteractiveRebase         string
+	QuickStartInteractiveRebaseTooltip  string
+	CannotQuickStartInteractiveRebase   string
 	Actions                             Actions
 	Bisect                              Bisect
 	Log                                 Log
@@ -1477,6 +1480,9 @@ func EnglishTranslationSet() TranslationSet {
 		DisabledMenuItemPrefix:              "Disabled: ",
 		NoCommitSelected:                    "No commit selected",
 		NoCopiedCommits:                     "No copied commits",
+		QuickStartInteractiveRebase:         "Start interactive rebase",
+		QuickStartInteractiveRebaseTooltip:  "Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.\nIf you would instead like to start an interactive rebase from the selected commit, press `{{.editKey}}`.",
+		CannotQuickStartInteractiveRebase:   "Cannot start interactive rebase: the HEAD commit is a merge commit or is present on the main branch, so there is no appropriate base commit to start the rebase from. You can start an interactive rebase from a specific commit by selecting the commit and pressing `{{.editKey}}`.",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

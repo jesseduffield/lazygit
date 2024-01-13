@@ -75,6 +75,8 @@ In terms of dependencies, controllers sit at the highest level, so they can refe
 * **Tab**: Each tab in a window (e.g. Files, Worktrees, Submodules) actually has a corresponding view which we bring to the front upon changing tabs.
 * **Model**: Representation of a git object e.g. commits, branches, files.
 * **ViewModel**: Used by a context to maintain state related to the view.
+* **Keybinding**: A keybinding associates a _key_ with an _action_. For example if you press the 'down' arrow, the action performed will be your cursor moving down a list by one.
+* **Action**: An action is the thing that happens when you press a key. Often an action will invoke a git command, but not always: for example, navigation actions don't involve git.
 * **Common structs**: Most structs have a field named `c` which contains a 'common' struct: a struct containing a bag of dependencies that most structs of the same layer require. For example if you want to access a helper from a controller you can do so with `self.c.Helpers.MyHelper`.
 
 ## Event loop and threads

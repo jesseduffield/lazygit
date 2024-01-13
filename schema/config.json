@@ -1143,6 +1143,10 @@
             "viewBisectOptions": {
               "type": "string",
               "default": "b"
+            },
+            "startInteractiveRebase": {
+              "type": "string",
+              "default": "i"
             }
           },
           "additionalProperties": false,

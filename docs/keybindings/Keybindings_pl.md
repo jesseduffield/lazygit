@@ -63,6 +63,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: Zmień nazwę commita w edytorze
   <kbd>d</kbd>: Usuń commit
   <kbd>e</kbd>: Edytuj commit
+  <kbd>i</kbd>: Start interactive rebase
   <kbd>p</kbd>: Wybierz commit (podczas zmiany bazy)
   <kbd>F</kbd>: Utwórz commit naprawczy dla tego commita
   <kbd>S</kbd>: Spłaszcz wszystkie commity naprawcze powyżej zaznaczonych commitów (autosquash)

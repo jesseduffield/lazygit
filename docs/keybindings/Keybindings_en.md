@@ -79,6 +79,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: Reword commit with editor
   <kbd>d</kbd>: Delete commit
   <kbd>e</kbd>: Edit commit
+  <kbd>i</kbd>: Start interactive rebase
   <kbd>p</kbd>: Pick commit (when mid-rebase)
   <kbd>F</kbd>: Create fixup commit for this commit
   <kbd>S</kbd>: Squash all 'fixup!' commits above selected commit (autosquash)

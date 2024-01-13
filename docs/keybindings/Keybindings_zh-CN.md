@@ -144,6 +144,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: 使用编辑器重命名提交
   <kbd>d</kbd>: 删除提交
   <kbd>e</kbd>: 编辑提交
+  <kbd>i</kbd>: Start interactive rebase
   <kbd>p</kbd>: 选择提交（变基过程中）
   <kbd>F</kbd>: 创建修正提交
   <kbd>S</kbd>: 压缩在所选提交之上的所有“fixup!”提交（自动压缩）
