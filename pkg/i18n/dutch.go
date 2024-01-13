@@ -163,7 +163,6 @@ func dutchTranslationSet() TranslationSet {
 		YouAreHere:                          "JE BENT HIER",
 		RewordNotSupported:                  "Herformatteren van commits in interactief rebasen is nog niet ondersteund",
 		CherryPickCopy:                      "Kopieer commit (cherry-pick)",
-		CherryPickCopyRange:                 "Kopieer commit reeks (cherry-pick)",
 		PasteCommits:                        "Plak commits (cherry-pick)",
 		SureCherryPick:                      "Weet je zeker dat je de gekopieerde commits naar deze branch wil cherry-picken?",
 		CherryPick:                          "Cherry-Pick",

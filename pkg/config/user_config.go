@@ -418,7 +418,6 @@ type KeybindingCommitsConfig struct {
 	PickCommit                     string `yaml:"pickCommit"`
 	RevertCommit                   string `yaml:"revertCommit"`
 	CherryPickCopy                 string `yaml:"cherryPickCopy"`
-	CherryPickCopyRange            string `yaml:"cherryPickCopyRange"`
 	PasteCommits                   string `yaml:"pasteCommits"`
 	MarkCommitAsBaseForRebase      string `yaml:"markCommitAsBaseForRebase"`
 	CreateTag                      string `yaml:"tagCommit"`
@@ -812,9 +811,8 @@ func GetDefaultConfig() *UserConfig {
 				ResetCommitAuthor:              "a",
 				PickCommit:                     "p",
 				RevertCommit:                   "t",
-				CherryPickCopy:                 "c",
-				CherryPickCopyRange:            "C",
-				PasteCommits:                   "v",
+				CherryPickCopy:                 "C",
+				PasteCommits:                   "V",
 				MarkCommitAsBaseForRebase:      "B",
 				CreateTag:                      "T",
 				CheckoutCommit:                 "<space>",

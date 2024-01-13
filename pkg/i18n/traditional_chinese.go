@@ -274,7 +274,6 @@ func traditionalChineseTranslationSet() TranslationSet {
 		RewordNotSupported:                  "在互動變基期間改寫提交目前不支持",
 		ChangingThisActionIsNotAllowed:      "不允許更改此類變基待辦事項",
 		CherryPickCopy:                      "複製提交 (揀選)",
-		CherryPickCopyRange:                 "複製提交範圍 (揀選)",
 		PasteCommits:                        "貼上提交 (揀選)",
 		SureCherryPick:                      "你確定要將複製的提交揀選到此分支嗎？",
 		CherryPick:                          "揀選 (Cherry-pick)",

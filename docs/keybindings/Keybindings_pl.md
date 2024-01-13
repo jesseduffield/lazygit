@@ -72,7 +72,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: Spłaszcz wszystkie commity naprawcze powyżej zaznaczonych commitów (autosquash)
   <kbd>&lt;c-j&gt;</kbd>: Przenieś commit 1 w dół
   <kbd>&lt;c-k&gt;</kbd>: Przenieś commit 1 w górę
-  <kbd>v</kbd>: Wklej commity (przebieranie)
+  <kbd>V</kbd>: Wklej commity (przebieranie)
   <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: Popraw commit zmianami z poczekalni
   <kbd>a</kbd>: Set/Reset commit author
@@ -85,8 +85,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Create new branch off of commit
   <kbd>g</kbd>: Wyświetl opcje resetu
-  <kbd>c</kbd>: Kopiuj commit (przebieranie)
-  <kbd>C</kbd>: Kopiuj zakres commitów (przebieranie)
+  <kbd>C</kbd>: Kopiuj commit (przebieranie)
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Przeglądaj pliki commita
   <kbd>/</kbd>: Search the current view by text
@@ -225,8 +224,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Create new branch off of commit
   <kbd>g</kbd>: Wyświetl opcje resetu
-  <kbd>c</kbd>: Kopiuj commit (przebieranie)
-  <kbd>C</kbd>: Kopiuj zakres commitów (przebieranie)
+  <kbd>C</kbd>: Kopiuj commit (przebieranie)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View commits
@@ -309,8 +307,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Create new branch off of commit
   <kbd>g</kbd>: Wyświetl opcje resetu
-  <kbd>c</kbd>: Kopiuj commit (przebieranie)
-  <kbd>C</kbd>: Kopiuj zakres commitów (przebieranie)
+  <kbd>C</kbd>: Kopiuj commit (przebieranie)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Przeglądaj pliki commita

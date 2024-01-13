@@ -243,7 +243,6 @@ func RussianTranslationSet() TranslationSet {
 		RewordNotSupported:                  "Переформулировка коммитов при интерактивном перебазировании в настоящее время не поддерживается",
 		ChangingThisActionIsNotAllowed:      "Изменение этого типа записи todo перебазирования не допускается",
 		CherryPickCopy:                      "Скопировать отобранные коммит (cherry-pick)",
-		CherryPickCopyRange:                 "Скопировать несколько отобранных коммитов (cherry-pick)",
 		PasteCommits:                        "Вставить отобранные коммиты (cherry-pick)",
 		SureCherryPick:                      "Вы уверены, что хотите выборочно применить (cherry-picked) отобранные коммиты в эту ветку?",
 		CherryPick:                          "Выборочная отборка (Cherry-Pick)",

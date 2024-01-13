@@ -1102,15 +1102,11 @@
             },
             "cherryPickCopy": {
               "type": "string",
-              "default": "c"
-            },
-            "cherryPickCopyRange": {
-              "type": "string",
               "default": "C"
             },
             "pasteCommits": {
               "type": "string",
-              "default": "v"
+              "default": "V"
             },
             "markCommitAsBaseForRebase": {
               "type": "string",

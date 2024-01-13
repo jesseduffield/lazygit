@@ -131,7 +131,6 @@ func polishTranslationSet() TranslationSet {
 		YouAreHere:                          "JESTEŚ TU",
 		RewordNotSupported:                  "Przeredagowanie commitów podczas interaktywnej zmiany bazy nie jest obecnie wspierane",
 		CherryPickCopy:                      "Kopiuj commit (przebieranie)",
-		CherryPickCopyRange:                 "Kopiuj zakres commitów (przebieranie)",
 		PasteCommits:                        "Wklej commity (przebieranie)",
 		SureCherryPick:                      "Czy na pewno chcesz przebierać w skopiowanych commitach na tej gałęzi?",
 		CherryPick:                          "Przebieranie",

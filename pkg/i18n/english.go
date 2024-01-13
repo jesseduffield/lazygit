@@ -251,7 +251,6 @@ type TranslationSet struct {
 	RewordNotSupported                  string
 	ChangingThisActionIsNotAllowed      string
 	CherryPickCopy                      string
-	CherryPickCopyRange                 string
 	PasteCommits                        string
 	SureCherryPick                      string
 	CherryPick                          string
@@ -1090,7 +1089,6 @@ func EnglishTranslationSet() TranslationSet {
 		RewordNotSupported:                  "Rewording commits while interactively rebasing is not currently supported",
 		ChangingThisActionIsNotAllowed:      "Changing this kind of rebase todo entry is not allowed",
 		CherryPickCopy:                      "Copy commit (cherry-pick)",
-		CherryPickCopyRange:                 "Copy commit range (cherry-pick)",
 		PasteCommits:                        "Paste commits (cherry-pick)",
 		SureCherryPick:                      "Are you sure you want to cherry-pick the copied commits onto this branch?",
 		CherryPick:                          "Cherry-pick",

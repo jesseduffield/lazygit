@@ -57,8 +57,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: 브라우저에서 커밋 열기
   <kbd>n</kbd>: 커밋에서 새 브랜치를 만듭니다.
   <kbd>g</kbd>: View reset options
-  <kbd>c</kbd>: 커밋을 복사 (cherry-pick)
-  <kbd>C</kbd>: 커밋을 범위로 복사 (cherry-pick)
+  <kbd>C</kbd>: 커밋을 복사 (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: 커밋 보기
@@ -88,8 +87,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: 브라우저에서 커밋 열기
   <kbd>n</kbd>: 커밋에서 새 브랜치를 만듭니다.
   <kbd>g</kbd>: View reset options
-  <kbd>c</kbd>: 커밋을 복사 (cherry-pick)
-  <kbd>C</kbd>: 커밋을 범위로 복사 (cherry-pick)
+  <kbd>C</kbd>: 커밋을 복사 (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
@@ -270,7 +268,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: Squash all 'fixup!' commits above selected commit (autosquash)
   <kbd>&lt;c-j&gt;</kbd>: 커밋을 1개 아래로 이동
   <kbd>&lt;c-k&gt;</kbd>: 커밋을 1개 위로 이동
-  <kbd>v</kbd>: 커밋을 붙여넣기 (cherry-pick)
+  <kbd>V</kbd>: 커밋을 붙여넣기 (cherry-pick)
   <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: Amend commit with staged changes
   <kbd>a</kbd>: Set/Reset commit author
@@ -283,8 +281,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: 브라우저에서 커밋 열기
   <kbd>n</kbd>: 커밋에서 새 브랜치를 만듭니다.
   <kbd>g</kbd>: View reset options
-  <kbd>c</kbd>: 커밋을 복사 (cherry-pick)
-  <kbd>C</kbd>: 커밋을 범위로 복사 (cherry-pick)
+  <kbd>C</kbd>: 커밋을 복사 (cherry-pick)
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
   <kbd>/</kbd>: 검색 시작

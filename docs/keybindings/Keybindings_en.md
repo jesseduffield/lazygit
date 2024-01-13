@@ -88,7 +88,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: Squash all 'fixup!' commits above selected commit (autosquash)
   <kbd>&lt;c-j&gt;</kbd>: Move commit down one
   <kbd>&lt;c-k&gt;</kbd>: Move commit up one
-  <kbd>v</kbd>: Paste commits (cherry-pick)
+  <kbd>V</kbd>: Paste commits (cherry-pick)
   <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: Amend commit with staged changes
   <kbd>a</kbd>: Set/Reset commit author
@@ -101,8 +101,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Create new branch off of commit
   <kbd>g</kbd>: View reset options
-  <kbd>c</kbd>: Copy commit (cherry-pick)
-  <kbd>C</kbd>: Copy commit range (cherry-pick)
+  <kbd>C</kbd>: Copy commit (cherry-pick)
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
   <kbd>/</kbd>: Search the current view by text
@@ -248,8 +247,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Create new branch off of commit
   <kbd>g</kbd>: View reset options
-  <kbd>c</kbd>: Copy commit (cherry-pick)
-  <kbd>C</kbd>: Copy commit range (cherry-pick)
+  <kbd>C</kbd>: Copy commit (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View commits
@@ -316,8 +314,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Create new branch off of commit
   <kbd>g</kbd>: View reset options
-  <kbd>c</kbd>: Copy commit (cherry-pick)
-  <kbd>C</kbd>: Copy commit range (cherry-pick)
+  <kbd>C</kbd>: Copy commit (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View selected item's files

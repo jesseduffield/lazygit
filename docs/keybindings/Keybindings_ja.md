@@ -70,8 +70,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: ブラウザでコミットを開く
   <kbd>n</kbd>: コミットにブランチを作成
   <kbd>g</kbd>: View reset options
-  <kbd>c</kbd>: コミットをコピー (cherry-pick)
-  <kbd>C</kbd>: コミットを範囲コピー (cherry-pick)
+  <kbd>C</kbd>: コミットをコピー (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
@@ -107,7 +106,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: Squash all 'fixup!' commits above selected commit (autosquash)
   <kbd>&lt;c-j&gt;</kbd>: コミットを1つ下に移動
   <kbd>&lt;c-k&gt;</kbd>: コミットを1つ上に移動
-  <kbd>v</kbd>: コミットを貼り付け (cherry-pick)
+  <kbd>V</kbd>: コミットを貼り付け (cherry-pick)
   <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: ステージされた変更でamendコミット
   <kbd>a</kbd>: Set/Reset commit author
@@ -120,8 +119,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: ブラウザでコミットを開く
   <kbd>n</kbd>: コミットにブランチを作成
   <kbd>g</kbd>: View reset options
-  <kbd>c</kbd>: コミットをコピー (cherry-pick)
-  <kbd>C</kbd>: コミットを範囲コピー (cherry-pick)
+  <kbd>C</kbd>: コミットをコピー (cherry-pick)
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
   <kbd>/</kbd>: 検索を開始
@@ -348,8 +346,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: ブラウザでコミットを開く
   <kbd>n</kbd>: コミットにブランチを作成
   <kbd>g</kbd>: View reset options
-  <kbd>c</kbd>: コミットをコピー (cherry-pick)
-  <kbd>C</kbd>: コミットを範囲コピー (cherry-pick)
+  <kbd>C</kbd>: コミットをコピー (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: コミットを閲覧

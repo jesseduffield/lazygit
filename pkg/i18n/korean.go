@@ -199,7 +199,6 @@ func koreanTranslationSet() TranslationSet {
 		YouAreHere:                          "현재 위치",
 		RewordNotSupported:                  "Rewording commits while interactively rebasing is not currently supported",
 		CherryPickCopy:                      "커밋을 복사 (cherry-pick)",
-		CherryPickCopyRange:                 "커밋을 범위로 복사 (cherry-pick)",
 		PasteCommits:                        "커밋을 붙여넣기 (cherry-pick)",
 		SureCherryPick:                      "정말로 복사한 커밋을 이 브랜치에 체리픽하시겠습니까?",
 		CherryPick:                          "체리픽",

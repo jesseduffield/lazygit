@@ -14,6 +14,7 @@ var _ types.IController = &BasicCommitsController{}
 
 type ContainsCommits interface {
 	types.Context
+	types.IListContext
 	GetSelected() *models.Commit
 	GetCommits() []*models.Commit
 	GetSelectedLineIdx() int
@@ -64,13 +65,8 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopy),
-			Handler:     self.checkSelected(self.copy),
-			Description: self.c.Tr.CherryPickCopy,
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopyRange),
 			Handler:     self.checkSelected(self.copyRange),
-			Description: self.c.Tr.CherryPickCopyRange,
+			Description: self.c.Tr.CherryPickCopy,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ResetCherryPick),
@@ -271,12 +267,8 @@ func (self *BasicCommitsController) checkout(commit *models.Commit) error {
 	})
 }
 
-func (self *BasicCommitsController) copy(commit *models.Commit) error {
-	return self.c.Helpers().CherryPick.Copy(commit, self.context.GetCommits(), self.context)
-}
-
 func (self *BasicCommitsController) copyRange(*models.Commit) error {
-	return self.c.Helpers().CherryPick.CopyRange(self.context.GetSelectedLineIdx(), self.context.GetCommits(), self.context)
+	return self.c.Helpers().CherryPick.CopyRange(self.context.GetCommits(), self.context)
 }
 
 func (self *BasicCommitsController) openDiffTool(commit *models.Commit) error {
