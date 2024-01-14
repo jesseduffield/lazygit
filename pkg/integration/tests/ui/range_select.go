@@ -12,9 +12,11 @@ import (
 // (no range, press arrow) -> no range
 // (no range, press shift+arrow) -> nonsticky range
 // (sticky range, press 'v') -> no range
+// (sticky range, press 'escape') -> no range
 // (sticky range, press arrow) -> sticky range
 // (sticky range, press shift+arrow) -> nonsticky range
 // (nonsticky range, press 'v') -> no range
+// (nonsticky range, press 'escape') -> no range
 // (nonsticky range, press arrow) -> no range
 // (nonsticky range, press shift+arrow) -> nonsticky range
 
@@ -125,6 +127,30 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Press(keys.Universal.ToggleRangeSelect).
 				SelectedLines(
 					Contains("line 7"),
+				).
+				Press(keys.Universal.RangeSelectDown).
+				SelectedLines(
+					Contains("line 7"),
+					Contains("line 8"),
+				).
+				// (nonsticky range, press 'escape') -> no range
+				PressEscape().
+				SelectedLines(
+					Contains("line 8"),
+				).
+				Press(keys.Universal.ToggleRangeSelect).
+				SelectedLines(
+					Contains("line 8"),
+				).
+				SelectNextItem().
+				SelectedLines(
+					Contains("line 8"),
+					Contains("line 9"),
+				).
+				// (sticky range, press 'escape') -> no range
+				PressEscape().
+				SelectedLines(
+					Contains("line 9"),
 				)
 		}
 

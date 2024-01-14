@@ -151,6 +151,11 @@ func (self *StagingController) EditFile() error {
 }
 
 func (self *StagingController) Escape() error {
+	if self.context.GetState().SelectingRange() || self.context.GetState().SelectingHunk() {
+		self.context.GetState().SetLineSelectMode()
+		return self.c.PostRefreshUpdate(self.context)
+	}
+
 	return self.c.PopContext()
 }
 

@@ -58,6 +58,7 @@
 * `pkg/gui/gui_common.go`: defines gui-specific methods that all controllers and helpers have access to
 * `pkg/i18n/english.go`: defines the set of i18n strings and their English values
 * `pkg/gui/controllers/helpers/refresh_helper.go`: manages refreshing of models. The refresh helper is typically invoked at the end of an action to re-load affected models from git (e.g. re-load branches after doing a git pull)
+* `pkg/gui/controllers/quit_actions.go`: contains code that runs when you hit 'escape' on a view (assuming the view doesn't define its own escape handler)
 * `vendor/github.com/jesseduffield/gocui/gui.go`: defines the gocui gui struct
 * `vendor/github.com/jesseduffield/gocui/view.go`: defines the gocui view struct
 
