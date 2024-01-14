@@ -2,23 +2,30 @@ package controllers
 
 import (
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type SubCommitsController struct {
 	baseController
+	*ListControllerTrait[*models.Commit]
 	c *ControllerCommon
 }
 
 var _ types.IController = &SubCommitsController{}
 
 func NewSubCommitsController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *SubCommitsController {
 	return &SubCommitsController{
 		baseController: baseController{},
-		c:              common,
+		ListControllerTrait: NewListControllerTrait[*models.Commit](
+			c,
+			c.Contexts().SubCommits,
+			c.Contexts().SubCommits.GetSelected,
+		),
+		c: c,
 	}
 }
 

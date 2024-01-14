@@ -13,11 +13,11 @@ type CommitDescriptionController struct {
 var _ types.IController = &CommitMessageController{}
 
 func NewCommitDescriptionController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *CommitDescriptionController {
 	return &CommitDescriptionController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 

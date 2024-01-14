@@ -3,7 +3,6 @@ package controllers
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -13,27 +12,34 @@ import (
 
 type FilesRemoveController struct {
 	baseController
+	*ListControllerTrait[*filetree.FileNode]
 	c *ControllerCommon
 }
 
 var _ types.IController = &FilesRemoveController{}
 
 func NewFilesRemoveController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *FilesRemoveController {
 	return &FilesRemoveController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
+		ListControllerTrait: NewListControllerTrait[*filetree.FileNode](
+			c,
+			c.Contexts().Files,
+			c.Contexts().Files.GetSelected,
+		),
 	}
 }
 
 func (self *FilesRemoveController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.checkSelectedFileNode(self.remove),
-			Description: self.c.Tr.ViewDiscardOptions,
-			OpensMenu:   true,
+			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Handler:           self.withItem(self.remove),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.ViewDiscardOptions,
+			OpensMenu:         true,
 		},
 	}
 
@@ -165,23 +171,4 @@ func (self *FilesRemoveController) ResetSubmodule(submodule *models.SubmoduleCon
 
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.SUBMODULES}})
 	})
-}
-
-func (self *FilesRemoveController) checkSelectedFileNode(callback func(*filetree.FileNode) error) func() error {
-	return func() error {
-		node := self.context().GetSelected()
-		if node == nil {
-			return nil
-		}
-
-		return callback(node)
-	}
-}
-
-func (self *FilesRemoveController) Context() types.Context {
-	return self.context()
-}
-
-func (self *FilesRemoveController) context() *context.WorkingTreeContext {
-	return self.c.Contexts().Files
 }

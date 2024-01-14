@@ -14,6 +14,7 @@ import (
 
 type RemotesController struct {
 	baseController
+	*ListControllerTrait[*models.Remote]
 	c *ControllerCommon
 
 	setRemoteBranches func([]*models.RemoteBranch)
@@ -22,12 +23,17 @@ type RemotesController struct {
 var _ types.IController = &RemotesController{}
 
 func NewRemotesController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 	setRemoteBranches func([]*models.RemoteBranch),
 ) *RemotesController {
 	return &RemotesController{
-		baseController:    baseController{},
-		c:                 common,
+		baseController: baseController{},
+		ListControllerTrait: NewListControllerTrait[*models.Remote](
+			c,
+			c.Contexts().Remotes,
+			c.Contexts().Remotes.GetSelected,
+		),
+		c:                 c,
 		setRemoteBranches: setRemoteBranches,
 	}
 }
@@ -35,13 +41,15 @@ func NewRemotesController(
 func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:     opts.GetKey(opts.Config.Universal.GoInto),
-			Handler: self.checkSelected(self.enter),
+			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Handler:           self.withItem(self.enter),
+			GetDisabledReason: self.require(self.singleItemSelected()),
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Branches.FetchRemote),
-			Handler:     self.checkSelected(self.fetch),
-			Description: self.c.Tr.FetchRemote,
+			Key:               opts.GetKey(opts.Config.Branches.FetchRemote),
+			Handler:           self.withItem(self.fetch),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.FetchRemote,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
@@ -49,22 +57,20 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			Description: self.c.Tr.AddNewRemote,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.checkSelected(self.remove),
-			Description: self.c.Tr.RemoveRemote,
+			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Handler:           self.withItem(self.remove),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.RemoveRemote,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
-			Handler:     self.checkSelected(self.edit),
-			Description: self.c.Tr.EditRemote,
+			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Handler:           self.withItem(self.edit),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.EditRemote,
 		},
 	}
 
 	return bindings
-}
-
-func (self *RemotesController) Context() types.Context {
-	return self.context()
 }
 
 func (self *RemotesController) context() *context.RemotesContext {
@@ -94,7 +100,7 @@ func (self *RemotesController) GetOnRenderToMain() func() error {
 }
 
 func (self *RemotesController) GetOnClick() func() error {
-	return self.checkSelected(self.enter)
+	return self.withItemGraceful(self.enter)
 }
 
 func (self *RemotesController) enter(remote *models.Remote) error {
@@ -207,15 +213,4 @@ func (self *RemotesController) fetch(remote *models.Remote) error {
 
 		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 	})
-}
-
-func (self *RemotesController) checkSelected(callback func(*models.Remote) error) func() error {
-	return func() error {
-		file := self.context().GetSelected()
-		if file == nil {
-			return nil
-		}
-
-		return callback(file)
-	}
 }

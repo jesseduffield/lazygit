@@ -22,50 +22,61 @@ type ContainsCommits interface {
 
 type BasicCommitsController struct {
 	baseController
+	*ListControllerTrait[*models.Commit]
 	c       *ControllerCommon
 	context ContainsCommits
 }
 
-func NewBasicCommitsController(controllerCommon *ControllerCommon, context ContainsCommits) *BasicCommitsController {
+func NewBasicCommitsController(c *ControllerCommon, context ContainsCommits) *BasicCommitsController {
 	return &BasicCommitsController{
 		baseController: baseController{},
-		c:              controllerCommon,
+		c:              c,
 		context:        context,
+		ListControllerTrait: NewListControllerTrait[*models.Commit](
+			c,
+			context,
+			context.GetSelected,
+		),
 	}
 }
 
 func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Commits.CheckoutCommit),
-			Handler:     self.checkSelected(self.checkout),
-			Description: self.c.Tr.CheckoutCommit,
+			Key:               opts.GetKey(opts.Config.Commits.CheckoutCommit),
+			Handler:           self.withItem(self.checkout),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.CheckoutCommit,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Commits.CopyCommitAttributeToClipboard),
-			Handler:     self.checkSelected(self.copyCommitAttribute),
-			Description: self.c.Tr.CopyCommitAttributeToClipboard,
-			OpensMenu:   true,
+			Key:               opts.GetKey(opts.Config.Commits.CopyCommitAttributeToClipboard),
+			Handler:           self.withItem(self.copyCommitAttribute),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.CopyCommitAttributeToClipboard,
+			OpensMenu:         true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Commits.OpenInBrowser),
-			Handler:     self.checkSelected(self.openInBrowser),
-			Description: self.c.Tr.OpenCommitInBrowser,
+			Key:               opts.GetKey(opts.Config.Commits.OpenInBrowser),
+			Handler:           self.withItem(self.openInBrowser),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.OpenCommitInBrowser,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.New),
-			Handler:     self.checkSelected(self.newBranch),
-			Description: self.c.Tr.CreateNewBranchFromCommit,
+			Key:               opts.GetKey(opts.Config.Universal.New),
+			Handler:           self.withItem(self.newBranch),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.CreateNewBranchFromCommit,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
-			Handler:     self.checkSelected(self.createResetMenu),
-			Description: self.c.Tr.ViewResetOptions,
-			OpensMenu:   true,
+			Key:               opts.GetKey(opts.Config.Commits.ViewResetOptions),
+			Handler:           self.withItem(self.createResetMenu),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.ViewResetOptions,
+			OpensMenu:         true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopy),
-			Handler:     self.checkSelected(self.copyRange),
+			Handler:     self.withItem(self.copyRange),
 			Description: self.c.Tr.CherryPickCopy,
 		},
 		{
@@ -74,28 +85,14 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description: self.c.Tr.ResetCherryPick,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.OpenDiffTool),
-			Handler:     self.checkSelected(self.openDiffTool),
-			Description: self.c.Tr.OpenDiffTool,
+			Key:               opts.GetKey(opts.Config.Universal.OpenDiffTool),
+			Handler:           self.withItem(self.openDiffTool),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.OpenDiffTool,
 		},
 	}
 
 	return bindings
-}
-
-func (self *BasicCommitsController) checkSelected(callback func(*models.Commit) error) func() error {
-	return func() error {
-		commit := self.context.GetSelected()
-		if commit == nil {
-			return nil
-		}
-
-		return callback(commit)
-	}
-}
-
-func (self *BasicCommitsController) Context() types.Context {
-	return self.context
 }
 
 func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) error {

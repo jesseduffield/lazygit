@@ -13,25 +13,32 @@ import (
 
 type FilesController struct {
 	baseController // nolint: unused
-	c              *ControllerCommon
+	*ListControllerTrait[*filetree.FileNode]
+	c *ControllerCommon
 }
 
 var _ types.IController = &FilesController{}
 
 func NewFilesController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *FilesController {
 	return &FilesController{
-		c: common,
+		c: c,
+		ListControllerTrait: NewListControllerTrait[*filetree.FileNode](
+			c,
+			c.Contexts().Files,
+			c.Contexts().Files.GetSelected,
+		),
 	}
 }
 
 func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.checkSelectedFileNode(self.press),
-			Description: self.c.Tr.ToggleStaged,
+			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Handler:           self.withItem(self.press),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.ToggleStaged,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenStatusFilter),
@@ -71,20 +78,23 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Tooltip:     self.c.Tr.FindBaseCommitForFixupTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
-			Handler:     self.checkSelectedFileNode(self.edit),
-			Description: self.c.Tr.EditFile,
+			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Handler:           self.withItem(self.edit),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.EditFile,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
-			Handler:     self.Open,
-			Description: self.c.Tr.OpenFile,
+			Key:               opts.GetKey(opts.Config.Universal.OpenFile),
+			Handler:           self.Open,
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.OpenFile,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.IgnoreFile),
-			Handler:     self.checkSelectedFileNode(self.ignoreOrExcludeMenu),
-			Description: self.c.Tr.Actions.IgnoreExcludeFile,
-			OpensMenu:   true,
+			Key:               opts.GetKey(opts.Config.Files.IgnoreFile),
+			Handler:           self.withItem(self.ignoreOrExcludeMenu),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.Actions.IgnoreExcludeFile,
+			OpensMenu:         true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.RefreshFiles),
@@ -108,9 +118,10 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.ToggleStagedAll,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:     self.enter,
-			Description: self.c.Tr.FileEnter,
+			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Handler:           self.enter,
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.FileEnter,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
@@ -130,9 +141,10 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.ToggleTreeView,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.OpenDiffTool),
-			Handler:     self.checkSelectedFileNode(self.openDiffTool),
-			Description: self.c.Tr.OpenDiffTool,
+			Key:               opts.GetKey(opts.Config.Universal.OpenDiffTool),
+			Handler:           self.withItem(self.openDiffTool),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.OpenDiffTool,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
@@ -254,7 +266,7 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 }
 
 func (self *FilesController) GetOnClick() func() error {
-	return self.checkSelectedFileNode(self.press)
+	return self.withItemGraceful(self.press)
 }
 
 // if we are dealing with a status for which there is no key in this map,
@@ -409,17 +421,6 @@ func (self *FilesController) press(node *filetree.FileNode) error {
 	}
 
 	return self.context().HandleFocus(types.OnFocusOpts{})
-}
-
-func (self *FilesController) checkSelectedFileNode(callback func(*filetree.FileNode) error) func() error {
-	return func() error {
-		node := self.context().GetSelected()
-		if node == nil {
-			return nil
-		}
-
-		return callback(node)
-	}
 }
 
 func (self *FilesController) Context() types.Context {
@@ -798,7 +799,8 @@ func (self *FilesController) openCopyMenu() error {
 			self.c.Toast(self.c.Tr.FileNameCopiedToast)
 			return nil
 		},
-		Key: 'n',
+		DisabledReason: self.require(self.singleItemSelected())(),
+		Key:            'n',
 	}
 	copyPathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyFilePath,
@@ -809,7 +811,8 @@ func (self *FilesController) openCopyMenu() error {
 			self.c.Toast(self.c.Tr.FilePathCopiedToast)
 			return nil
 		},
-		Key: 'p',
+		DisabledReason: self.require(self.singleItemSelected())(),
+		Key:            'p',
 	}
 	copyFileDiffItem := &types.MenuItem{
 		Label:   self.c.Tr.CopySelectedDiff,
@@ -827,6 +830,14 @@ func (self *FilesController) openCopyMenu() error {
 			self.c.Toast(self.c.Tr.FileDiffCopiedToast)
 			return nil
 		},
+		DisabledReason: self.require(self.singleItemSelected(
+			func(file *filetree.FileNode) *types.DisabledReason {
+				if !node.GetHasStagedOrTrackedChanges() {
+					return &types.DisabledReason{Text: self.c.Tr.NoContentToCopyError}
+				}
+				return nil
+			},
+		))(),
 		Key: 's',
 	}
 	copyAllDiff := &types.MenuItem{
@@ -844,19 +855,15 @@ func (self *FilesController) openCopyMenu() error {
 			self.c.Toast(self.c.Tr.AllFilesDiffCopiedToast)
 			return nil
 		},
+		DisabledReason: self.require(
+			func() *types.DisabledReason {
+				if !self.anyStagedOrTrackedFile() {
+					return &types.DisabledReason{Text: self.c.Tr.NoContentToCopyError}
+				}
+				return nil
+			},
+		)(),
 		Key: 'a',
-	}
-
-	if node == nil {
-		copyNameItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.NoContentToCopyError}
-		copyPathItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.NoContentToCopyError}
-		copyFileDiffItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.NoContentToCopyError}
-	}
-	if node != nil && !node.GetHasStagedOrTrackedChanges() {
-		copyFileDiffItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.NoContentToCopyError}
-	}
-	if !self.anyStagedOrTrackedFile() {
-		copyAllDiff.DisabledReason = &types.DisabledReason{Text: self.c.Tr.NoContentToCopyError}
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{

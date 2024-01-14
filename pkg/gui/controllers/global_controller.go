@@ -11,11 +11,11 @@ type GlobalController struct {
 }
 
 func NewGlobalController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *GlobalController {
 	return &GlobalController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 

@@ -10,37 +10,46 @@ import (
 
 type TagsController struct {
 	baseController
+	*ListControllerTrait[*models.Tag]
 	c *ControllerCommon
 }
 
 var _ types.IController = &TagsController{}
 
 func NewTagsController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *TagsController {
 	return &TagsController{
 		baseController: baseController{},
-		c:              common,
+		ListControllerTrait: NewListControllerTrait[*models.Tag](
+			c,
+			c.Contexts().Tags,
+			c.Contexts().Tags.GetSelected,
+		),
+		c: c,
 	}
 }
 
 func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.withSelectedTag(self.checkout),
-			Description: self.c.Tr.Checkout,
+			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Handler:           self.withItem(self.checkout),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.Checkout,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.withSelectedTag(self.delete),
-			Description: self.c.Tr.ViewDeleteOptions,
-			OpensMenu:   true,
+			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Handler:           self.withItem(self.delete),
+			Description:       self.c.Tr.ViewDeleteOptions,
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			OpensMenu:         true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Branches.PushTag),
-			Handler:     self.withSelectedTag(self.push),
-			Description: self.c.Tr.PushTag,
+			Key:               opts.GetKey(opts.Config.Branches.PushTag),
+			Handler:           self.withItem(self.push),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.PushTag,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
@@ -48,10 +57,11 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Description: self.c.Tr.CreateTag,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
-			Handler:     self.withSelectedTag(self.createResetMenu),
-			Description: self.c.Tr.ViewResetOptions,
-			OpensMenu:   true,
+			Key:               opts.GetKey(opts.Config.Commits.ViewResetOptions),
+			Handler:           self.withItem(self.createResetMenu),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.ViewResetOptions,
+			OpensMenu:         true,
 		},
 	}
 
@@ -213,21 +223,6 @@ func (self *TagsController) create() error {
 	return self.c.Helpers().Tags.OpenCreateTagPrompt("", func() {
 		self.context().SetSelection(0)
 	})
-}
-
-func (self *TagsController) withSelectedTag(f func(tag *models.Tag) error) func() error {
-	return func() error {
-		tag := self.context().GetSelected()
-		if tag == nil {
-			return nil
-		}
-
-		return f(tag)
-	}
-}
-
-func (self *TagsController) Context() types.Context {
-	return self.context()
 }
 
 func (self *TagsController) context() *context.TagsContext {

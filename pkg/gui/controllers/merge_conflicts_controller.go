@@ -17,11 +17,11 @@ type MergeConflictsController struct {
 var _ types.IController = &MergeConflictsController{}
 
 func NewMergeConflictsController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *MergeConflictsController {
 	return &MergeConflictsController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 

@@ -9,46 +9,57 @@ import (
 
 type StashController struct {
 	baseController
+	*ListControllerTrait[*models.StashEntry]
 	c *ControllerCommon
 }
 
 var _ types.IController = &StashController{}
 
 func NewStashController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *StashController {
 	return &StashController{
 		baseController: baseController{},
-		c:              common,
+		ListControllerTrait: NewListControllerTrait[*models.StashEntry](
+			c,
+			c.Contexts().Stash,
+			c.Contexts().Stash.GetSelected,
+		),
+		c: c,
 	}
 }
 
 func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.checkSelected(self.handleStashApply),
-			Description: self.c.Tr.Apply,
+			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Handler:           self.withItem(self.handleStashApply),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.Apply,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Stash.PopStash),
-			Handler:     self.checkSelected(self.handleStashPop),
-			Description: self.c.Tr.Pop,
+			Key:               opts.GetKey(opts.Config.Stash.PopStash),
+			Handler:           self.withItem(self.handleStashPop),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.Pop,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.checkSelected(self.handleStashDrop),
-			Description: self.c.Tr.Drop,
+			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Handler:           self.withItem(self.handleStashDrop),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.Drop,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.New),
-			Handler:     self.checkSelected(self.handleNewBranchOffStashEntry),
-			Description: self.c.Tr.NewBranch,
+			Key:               opts.GetKey(opts.Config.Universal.New),
+			Handler:           self.withItem(self.handleNewBranchOffStashEntry),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.NewBranch,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Stash.RenameStash),
-			Handler:     self.checkSelected(self.handleRenameStashEntry),
-			Description: self.c.Tr.RenameStash,
+			Key:               opts.GetKey(opts.Config.Stash.RenameStash),
+			Handler:           self.withItem(self.handleRenameStashEntry),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.RenameStash,
 		},
 	}
 
@@ -78,21 +89,6 @@ func (self *StashController) GetOnRenderToMain() func() error {
 			})
 		})
 	}
-}
-
-func (self *StashController) checkSelected(callback func(*models.StashEntry) error) func() error {
-	return func() error {
-		item := self.context().GetSelected()
-		if item == nil {
-			return nil
-		}
-
-		return callback(item)
-	}
-}
-
-func (self *StashController) Context() types.Context {
-	return self.context()
 }
 
 func (self *StashController) context() *context.StashContext {

@@ -114,8 +114,16 @@ func (self *ListCursor) CancelRangeSelect() {
 	self.rangeSelectMode = RangeSelectModeNone
 }
 
+// Returns true if we are in range select mode. Note that we may be in range select
+// mode and still only selecting a single item. See AreMultipleItemsSelected below.
 func (self *ListCursor) IsSelectingRange() bool {
 	return self.rangeSelectMode != RangeSelectModeNone
+}
+
+// Returns true if we are in range select mode and selecting multiple items
+func (self *ListCursor) AreMultipleItemsSelected() bool {
+	startIdx, endIdx := self.GetSelectionRange()
+	return startIdx != endIdx
 }
 
 func (self *ListCursor) GetSelectionRange() (int, int) {

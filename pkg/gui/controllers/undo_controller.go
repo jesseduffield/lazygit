@@ -27,11 +27,11 @@ type UndoController struct {
 var _ types.IController = &UndoController{}
 
 func NewUndoController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *UndoController {
 	return &UndoController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 

@@ -10,13 +10,16 @@ import (
 var _ types.IController = &SwitchToDiffFilesController{}
 
 type CanSwitchToDiffFiles interface {
-	types.Context
+	types.IListContext
 	CanRebase() bool
 	GetSelectedRef() types.Ref
 }
 
+// Not using our ListControllerTrait because our 'selected' item is not a list item
+// but an attribute on it i.e. the ref of an item.
 type SwitchToDiffFilesController struct {
 	baseController
+	*ListControllerTrait[types.Ref]
 	c                *ControllerCommon
 	context          CanSwitchToDiffFiles
 	diffFilesContext *context.CommitFilesContext
@@ -28,7 +31,12 @@ func NewSwitchToDiffFilesController(
 	diffFilesContext *context.CommitFilesContext,
 ) *SwitchToDiffFilesController {
 	return &SwitchToDiffFilesController{
-		baseController:   baseController{},
+		baseController: baseController{},
+		ListControllerTrait: NewListControllerTrait[types.Ref](
+			c,
+			context,
+			context.GetSelectedRef,
+		),
 		c:                c,
 		context:          context,
 		diffFilesContext: diffFilesContext,
@@ -38,9 +46,10 @@ func NewSwitchToDiffFilesController(
 func (self *SwitchToDiffFilesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:     self.checkSelected(self.enter),
-			Description: self.c.Tr.ViewItemFiles,
+			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Handler:           self.withItem(self.enter),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.ViewItemFiles,
 		},
 	}
 
@@ -48,18 +57,7 @@ func (self *SwitchToDiffFilesController) GetKeybindings(opts types.KeybindingsOp
 }
 
 func (self *SwitchToDiffFilesController) GetOnClick() func() error {
-	return self.checkSelected(self.enter)
-}
-
-func (self *SwitchToDiffFilesController) checkSelected(callback func(types.Ref) error) func() error {
-	return func() error {
-		ref := self.context.GetSelectedRef()
-		if ref == nil {
-			return nil
-		}
-
-		return callback(ref)
-	}
+	return self.withItemGraceful(self.enter)
 }
 
 func (self *SwitchToDiffFilesController) enter(ref types.Ref) error {
@@ -68,10 +66,6 @@ func (self *SwitchToDiffFilesController) enter(ref types.Ref) error {
 		CanRebase: self.context.CanRebase(),
 		Context:   self.context,
 	})
-}
-
-func (self *SwitchToDiffFilesController) Context() types.Context {
-	return self.context
 }
 
 func (self *SwitchToDiffFilesController) viewFiles(opts SwitchToCommitFilesContextOpts) error {

@@ -231,6 +231,7 @@ type IListCursor interface {
 	GetRangeStartIdx() (int, bool)
 	GetSelectionRange() (int, int)
 	IsSelectingRange() bool
+	AreMultipleItemsSelected() bool
 	ToggleStickyRange()
 	ExpandNonStickyRange(int)
 }

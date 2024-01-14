@@ -7,17 +7,23 @@ import (
 
 type MenuController struct {
 	baseController
+	*ListControllerTrait[*types.MenuItem]
 	c *ControllerCommon
 }
 
 var _ types.IController = &MenuController{}
 
 func NewMenuController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *MenuController {
 	return &MenuController{
 		baseController: baseController{},
-		c:              common,
+		ListControllerTrait: NewListControllerTrait[*types.MenuItem](
+			c,
+			c.Contexts().Menu,
+			c.Contexts().Menu.GetSelected,
+		),
+		c: c,
 	}
 }
 
@@ -26,14 +32,16 @@ func NewMenuController(
 func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:     opts.GetKey(opts.Config.Universal.Select),
-			Handler: self.press,
+			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Handler:           self.withItem(self.press),
+			GetDisabledReason: self.require(self.singleItemSelected()),
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Confirm),
-			Handler:     self.press,
-			Description: self.c.Tr.Execute,
-			Display:     true,
+			Key:               opts.GetKey(opts.Config.Universal.Confirm),
+			Handler:           self.withItem(self.press),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.Execute,
+			Display:           true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Return),
@@ -47,7 +55,7 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 }
 
 func (self *MenuController) GetOnClick() func() error {
-	return self.press
+	return self.withItemGraceful(self.press)
 }
 
 func (self *MenuController) GetOnFocus() func(types.OnFocusOpts) error {
@@ -60,8 +68,8 @@ func (self *MenuController) GetOnFocus() func(types.OnFocusOpts) error {
 	}
 }
 
-func (self *MenuController) press() error {
-	return self.context().OnMenuPress(self.context().GetSelected())
+func (self *MenuController) press(selectedItem *types.MenuItem) error {
+	return self.context().OnMenuPress(selectedItem)
 }
 
 func (self *MenuController) close() error {
@@ -71,10 +79,6 @@ func (self *MenuController) close() error {
 	}
 
 	return self.c.PopContext()
-}
-
-func (self *MenuController) Context() types.Context {
-	return self.context()
 }
 
 func (self *MenuController) context() *context.MenuContext {
