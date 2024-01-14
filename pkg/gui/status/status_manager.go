@@ -60,7 +60,8 @@ func (self *StatusManager) AddToastStatus(message string, kind types.ToastKind) 
 	id := self.addStatus(message, "toast", kind)
 
 	go func() {
-		time.Sleep(time.Second * 2)
+		delay := lo.Ternary(kind == types.ToastKindError, time.Second*4, time.Second*2)
+		time.Sleep(delay)
 
 		self.removeStatus(id)
 	}()
