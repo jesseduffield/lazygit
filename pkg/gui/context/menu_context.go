@@ -195,3 +195,8 @@ func (self *MenuContext) OnMenuPress(selectedItem *types.MenuItem) error {
 
 	return nil
 }
+
+// There is currently no need to use range-select in a menu so we're disabling it.
+func (self *MenuContext) RangeSelectEnabled() bool {
+	return false
+}

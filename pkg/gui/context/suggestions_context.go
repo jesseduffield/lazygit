@@ -90,3 +90,8 @@ func (self *SuggestionsContext) RefreshSuggestions() {
 		}
 	})
 }
+
+// There is currently no need to use range-select in the suggestions view so we're disabling it.
+func (self *SuggestionsContext) RangeSelectEnabled() bool {
+	return false
+}

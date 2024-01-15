@@ -183,7 +183,7 @@ func (self *ListController) isFocused() bool {
 }
 
 func (self *ListController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
-	return []*types.Binding{
+	bindings := []*types.Binding{
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevItemAlt), Handler: self.HandlePrevLine},
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevItem), Handler: self.HandlePrevLine},
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextItemAlt), Handler: self.HandleNextLine},
@@ -194,10 +194,19 @@ func (self *ListController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollLeft), Handler: self.HandleScrollLeft},
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollRight), Handler: self.HandleScrollRight},
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoBottom), Handler: self.HandleGotoBottom, Description: self.c.Tr.GotoBottom},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ToggleRangeSelect), Handler: self.HandleToggleRangeSelect, Description: self.c.Tr.ToggleRangeSelect},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.RangeSelectDown), Handler: self.HandleRangeSelectDown, Description: self.c.Tr.RangeSelectDown},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.RangeSelectUp), Handler: self.HandleRangeSelectUp, Description: self.c.Tr.RangeSelectUp},
 	}
+
+	if self.context.RangeSelectEnabled() {
+		bindings = append(bindings,
+			[]*types.Binding{
+				{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ToggleRangeSelect), Handler: self.HandleToggleRangeSelect, Description: self.c.Tr.ToggleRangeSelect},
+				{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.RangeSelectDown), Handler: self.HandleRangeSelectDown, Description: self.c.Tr.RangeSelectDown},
+				{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.RangeSelectUp), Handler: self.HandleRangeSelectUp, Description: self.c.Tr.RangeSelectUp},
+			}...,
+		)
+	}
+
+	return bindings
 }
 
 func (self *ListController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {

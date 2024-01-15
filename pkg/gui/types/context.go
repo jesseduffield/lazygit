@@ -144,6 +144,7 @@ type IListContext interface {
 
 	FocusLine()
 	IsListContext() // used for type switch
+	RangeSelectEnabled() bool
 }
 
 type IPatchExplorerContext interface {
