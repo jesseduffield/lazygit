@@ -88,10 +88,18 @@ func (self *GuiDriver) ContextForView(viewName string) types.Context {
 
 func (self *GuiDriver) Fail(message string) {
 	currentView := self.gui.g.CurrentView()
+
+	// Check for unacknowledged toast: it may give us a hint as to why the test failed
+	toastMessage := ""
+	if t := self.NextToast(); t != nil {
+		toastMessage = fmt.Sprintf("Unacknowledged toast message: %s\n", *t)
+	}
+
 	fullMessage := fmt.Sprintf(
-		"%s\nFinal Lazygit state:\n%s\nUpon failure, focused view was '%s'.\nLog:\n%s", message,
+		"%s\nFinal Lazygit state:\n%s\nUpon failure, focused view was '%s'.\n%sLog:\n%s", message,
 		self.gui.g.Snapshot(),
 		currentView.Name(),
+		toastMessage,
 		strings.Join(self.gui.GuiLog, "\n"),
 	)
 
