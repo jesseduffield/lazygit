@@ -43,4 +43,7 @@ type GuiDriver interface {
 	View(viewName string) *gocui.View
 	SetCaption(caption string)
 	SetCaptionPrefix(prefix string)
+	// Pop the next toast that was displayed; returns nil if there was none
+	NextToast() *string
+	CheckAllToastsAcknowledged()
 }

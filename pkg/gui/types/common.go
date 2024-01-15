@@ -144,8 +144,17 @@ type IPopupHandler interface {
 	WithWaitingStatusSync(message string, f func() error) error
 	Menu(opts CreateMenuOptions) error
 	Toast(message string)
+	ErrorToast(message string)
+	SetToastFunc(func(string, ToastKind))
 	GetPromptInput() string
 }
+
+type ToastKind int
+
+const (
+	ToastKindStatus ToastKind = iota
+	ToastKindError
+)
 
 type CreateMenuOptions struct {
 	Title           string
@@ -192,6 +201,16 @@ type MenuSection struct {
 	Column int // The column that this section title should be aligned with
 }
 
+type DisabledReason struct {
+	Text string
+
+	// When trying to invoke a disabled key binding or menu item, we normally
+	// show the disabled reason as a toast; setting this to true shows it as an
+	// error panel instead. This is useful if the text is very long, or if it is
+	// important enough to show it more prominently, or both.
+	ShowErrorInPanel bool
+}
+
 type MenuItem struct {
 	Label string
 
@@ -210,9 +229,9 @@ type MenuItem struct {
 	// The tooltip will be displayed upon highlighting the menu item
 	Tooltip string
 
-	// If non-empty, show this in a tooltip, style the menu item as disabled,
+	// If non-nil, show this in a tooltip, style the menu item as disabled,
 	// and refuse to invoke the command
-	DisabledReason string
+	DisabledReason *DisabledReason
 
 	// Can be used to group menu items into sections with headers. MenuItems
 	// with the same Section should be contiguous, and will automatically get a

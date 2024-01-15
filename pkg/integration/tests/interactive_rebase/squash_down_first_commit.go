@@ -24,10 +24,7 @@ var SquashDownFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit 01")).
 			Press(keys.Commits.SquashDown).
 			Tap(func() {
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Equals("There's no commit below to squash into")).
-					Confirm()
+				t.ExpectToast(Equals("Disabled: There's no commit below to squash into"))
 			}).
 			Lines(
 				Contains("commit 02"),

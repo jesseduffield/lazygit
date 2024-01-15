@@ -50,13 +50,12 @@ var QuickStart = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("initial commit"),
 			).
 			// Verify we can't quick start from main
-			Press(keys.Commits.StartInteractiveRebase).
-			Tap(func() {
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Contains("Cannot start interactive rebase: the HEAD commit is a merge commit or is present on the main branch, so there is no appropriate base commit to start the rebase from. You can start an interactive rebase from a specific commit by selecting the commit and pressing `e`.")).
-					Confirm()
-			})
+			Press(keys.Commits.StartInteractiveRebase)
+
+		t.ExpectPopup().Alert().
+			Title(Equals("Error")).
+			Content(Equals("Cannot start interactive rebase: the HEAD commit is a merge commit or is present on the main branch, so there is no appropriate base commit to start the rebase from. You can start an interactive rebase from a specific commit by selecting the commit and pressing `e`.")).
+			Confirm()
 
 		t.Views().Branches().
 			Focus().
@@ -80,15 +79,10 @@ var QuickStart = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("initial commit"),
 			).
 			// Try again, verify we fail because we're already rebasing
-			Press(keys.Commits.StartInteractiveRebase).
-			Tap(func() {
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Contains("Can't perform this action during a rebase")).
-					Confirm()
+			Press(keys.Commits.StartInteractiveRebase)
 
-				t.Common().AbortRebase()
-			})
+		t.ExpectToast(Equals("Disabled: Can't perform this action during a rebase"))
+		t.Common().AbortRebase()
 
 		// Verify if a merge commit is present on the branch we start from there
 		t.Views().Branches().

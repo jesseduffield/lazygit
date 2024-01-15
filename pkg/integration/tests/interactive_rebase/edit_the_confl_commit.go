@@ -39,9 +39,6 @@ var EditTheConflCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("<-- YOU ARE HERE --- commit three")).
 			Press(keys.Commits.RenameCommit)
 
-		t.ExpectPopup().Alert().
-			Title(Equals("Error")).
-			Content(Contains("Changing this kind of rebase todo entry is not allowed")).
-			Confirm()
+		t.ExpectToast(Contains("Changing this kind of rebase todo entry is not allowed"))
 	},
 })

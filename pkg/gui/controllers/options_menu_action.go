@@ -25,7 +25,7 @@ func (self *OptionsMenuAction) Call() error {
 	appendBindings := func(bindings []*types.Binding, section *types.MenuSection) {
 		menuItems = append(menuItems,
 			lo.Map(bindings, func(binding *types.Binding, _ int) *types.MenuItem {
-				disabledReason := ""
+				var disabledReason *types.DisabledReason
 				if binding.GetDisabledReason != nil {
 					disabledReason = binding.GetDisabledReason()
 				}

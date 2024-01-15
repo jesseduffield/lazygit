@@ -70,6 +70,7 @@ var CrudLightweight = NewIntegrationTest(NewIntegrationTestArgs{
 					Title(Equals("Delete tag 'new-tag'?")).
 					Content(Equals("Are you sure you want to delete the remote tag 'new-tag' from 'origin'?")).
 					Confirm()
+				t.ExpectToast(Equals("Remote tag deleted"))
 			}).
 			Lines(
 				MatchesRegexp(`new-tag.*initial commit`).IsSelected(),
