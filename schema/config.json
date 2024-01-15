@@ -344,6 +344,21 @@
           ],
           "description": "Default size for focused window. Window size can be changed from within Lazygit with '+' and '_' (but this won't change the default).\nOne of: 'normal' (default) | 'half' | 'full'"
         },
+        "panelWindowSize": {
+          "patternProperties": {
+            "^(main|status|branch|log|stash)$": {
+              "type": "string",
+              "enum": [
+                "normal",
+                "half",
+                "full"
+              ],
+              "description": "Default size for focused window. Window size can be changed from within Lazygit with '+' and '_' (but this won't change the default).\nOne of: 'normal' (default) | 'half' | 'full'"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object"
+        },
         "border": {
           "type": "string",
           "enum": [

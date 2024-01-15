@@ -415,19 +415,25 @@ func initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSaf
 }
 
 func initialScreenMode(startArgs appTypes.StartArgs, config config.AppConfigurer) types.WindowMaximisation {
-	if startArgs.FilterPath != "" || startArgs.GitArg != appTypes.GitArgNone {
-		return types.SCREEN_FULL
-	} else {
-		defaultWindowSize := config.GetUserConfig().Gui.WindowSize
-
-		switch defaultWindowSize {
-		case "half":
-			return types.SCREEN_HALF
-		case "full":
+	panelName := string(startArgs.GitArg)
+	if startArgs.GitArg == appTypes.GitArgNone {
+		panelName = "main"
+	}
+	defaultWindowSize, ok := config.GetUserConfig().Gui.PanelWindowSize[panelName]
+	if !ok {
+		if startArgs.GitArg != appTypes.GitArgNone {
 			return types.SCREEN_FULL
-		default:
-			return types.SCREEN_NORMAL
+		} else {
+			defaultWindowSize = config.GetUserConfig().Gui.WindowSize
 		}
+	}
+	switch defaultWindowSize {
+	case "half":
+		return types.SCREEN_HALF
+	case "full":
+		return types.SCREEN_FULL
+	default:
+		return types.SCREEN_NORMAL
 	}
 }
 
