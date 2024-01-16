@@ -23,6 +23,7 @@ func NewReflogCommitsController(
 			c,
 			c.Contexts().ReflogCommits,
 			c.Contexts().ReflogCommits.GetSelected,
+			c.Contexts().ReflogCommits.GetSelectedItems,
 		),
 		c: c,
 	}

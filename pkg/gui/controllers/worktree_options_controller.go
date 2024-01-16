@@ -26,6 +26,7 @@ func NewWorktreeOptionsController(c *ControllerCommon, context CanViewWorktreeOp
 			c,
 			context,
 			context.GetSelectedItemId,
+			context.GetSelectedItemIds,
 		),
 		c:       c,
 		context: context,

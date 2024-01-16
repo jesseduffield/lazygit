@@ -242,6 +242,12 @@ type MenuItem struct {
 	Section *MenuSection
 }
 
+// Defining this for the sake of conforming to the HasID interface, which is used
+// in list contexts.
+func (self *MenuItem) ID() string {
+	return self.Label
+}
+
 type Model struct {
 	CommitFiles  []*models.CommitFile
 	Files        []*models.File

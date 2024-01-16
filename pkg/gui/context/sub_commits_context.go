@@ -175,15 +175,6 @@ func (self *SubCommitsViewModel) GetShowBranchHeads() bool {
 	return self.showBranchHeads
 }
 
-func (self *SubCommitsContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
-}
-
 func (self *SubCommitsContext) CanRebase() bool {
 	return false
 }

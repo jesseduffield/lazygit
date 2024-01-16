@@ -24,6 +24,7 @@ func NewSubCommitsController(
 			c,
 			c.Contexts().SubCommits,
 			c.Contexts().SubCommits.GetSelected,
+			c.Contexts().SubCommits.GetSelectedItems,
 		),
 		c: c,
 	}

@@ -28,6 +28,7 @@ func NewFilesController(
 			c,
 			c.Contexts().Files,
 			c.Contexts().Files.GetSelected,
+			c.Contexts().Files.GetSelectedItems,
 		),
 	}
 }

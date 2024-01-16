@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
 
@@ -41,6 +42,36 @@ func (self *FileTreeViewModel) GetSelected() *FileNode {
 	}
 
 	return self.Get(self.GetSelectedLineIdx())
+}
+
+func (self *FileTreeViewModel) GetSelectedItemId() string {
+	item := self.GetSelected()
+	if item == nil {
+		return ""
+	}
+
+	return item.ID()
+}
+
+func (self *FileTreeViewModel) GetSelectedItems() ([]*FileNode, int, int) {
+	startIdx, endIdx := self.GetSelectionRange()
+
+	nodes := []*FileNode{}
+	for i := startIdx; i <= endIdx; i++ {
+		nodes = append(nodes, self.Get(i))
+	}
+
+	return nodes, startIdx, endIdx
+}
+
+func (self *FileTreeViewModel) GetSelectedItemIds() ([]string, int, int) {
+	selectedItems, startIdx, endIdx := self.GetSelectedItems()
+
+	ids := lo.Map(selectedItems, func(item *FileNode, _ int) string {
+		return item.ID()
+	})
+
+	return ids, startIdx, endIdx
 }
 
 func (self *FileTreeViewModel) GetSelectedFile() *models.File {

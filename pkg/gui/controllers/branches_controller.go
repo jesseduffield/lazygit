@@ -33,6 +33,7 @@ func NewBranchesController(
 			c,
 			c.Contexts().Branches,
 			c.Contexts().Branches.GetSelected,
+			c.Contexts().Branches.GetSelectedItems,
 		),
 	}
 }

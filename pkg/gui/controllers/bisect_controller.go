@@ -30,6 +30,7 @@ func NewBisectController(
 			c,
 			c.Contexts().LocalCommits,
 			c.Contexts().LocalCommits.GetSelected,
+			c.Contexts().LocalCommits.GetSelectedItems,
 		),
 	}
 }

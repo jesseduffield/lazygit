@@ -46,12 +46,3 @@ func NewWorktreesContext(c *ContextCommon) *WorktreesContext {
 		},
 	}
 }
-
-func (self *WorktreesContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
-}

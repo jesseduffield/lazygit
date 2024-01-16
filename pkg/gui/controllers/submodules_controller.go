@@ -29,6 +29,7 @@ func NewSubmodulesController(
 			c,
 			c.Contexts().Submodules,
 			c.Contexts().Submodules.GetSelected,
+			c.Contexts().Submodules.GetSelectedItems,
 		),
 		c: c,
 	}

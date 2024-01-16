@@ -47,15 +47,6 @@ func NewRemotesContext(c *ContextCommon) *RemotesContext {
 	}
 }
 
-func (self *RemotesContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
-}
-
 func (self *RemotesContext) GetDiffTerminals() []string {
 	itemId := self.GetSelectedItemId()
 

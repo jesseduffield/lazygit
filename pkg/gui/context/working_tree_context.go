@@ -58,12 +58,3 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 
 	return ctx
 }
-
-func (self *WorkingTreeContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
-}

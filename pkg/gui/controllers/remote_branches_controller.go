@@ -26,6 +26,7 @@ func NewRemoteBranchesController(
 			c,
 			c.Contexts().RemoteBranches,
 			c.Contexts().RemoteBranches.GetSelected,
+			c.Contexts().RemoteBranches.GetSelectedItems,
 		),
 		c: c,
 	}

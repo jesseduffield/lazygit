@@ -92,15 +92,6 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	return ctx
 }
 
-func (self *LocalCommitsContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
-}
-
 type LocalCommitsViewModel struct {
 	*ListViewModel[*models.Commit]
 

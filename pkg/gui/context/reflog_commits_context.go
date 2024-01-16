@@ -59,15 +59,6 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 	}
 }
 
-func (self *ReflogCommitsContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
-}
-
 func (self *ReflogCommitsContext) CanRebase() bool {
 	return false
 }
