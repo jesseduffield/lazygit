@@ -25,6 +25,7 @@ type TranslationSet struct {
 	StagingTitle                        string
 	MergingTitle                        string
 	MergeConfirmTitle                   string
+	SquashConfirmTitle                  string
 	NormalTitle                         string
 	LogTitle                            string
 	CommitSummary                       string
@@ -187,6 +188,7 @@ type TranslationSet struct {
 	ExcludeFile                         string
 	RefreshFiles                        string
 	MergeIntoCurrentBranch              string
+	SquashIntoWorkingTree               string
 	ConfirmQuit                         string
 	SwitchRepo                          string
 	AllBranchesLogGraph                 string
@@ -241,6 +243,7 @@ type TranslationSet struct {
 	InteractiveRebase                   string
 	InteractiveRebaseTooltip            string
 	ConfirmMerge                        string
+	ConfirmSquash                       string
 	FwdNoUpstream                       string
 	FwdNoLocalUpstream                  string
 	FwdCommitsToPush                    string
@@ -701,6 +704,7 @@ type Actions struct {
 	DeleteLocalBranch                 string
 	DeleteBranch                      string
 	Merge                             string
+	SquashBranch                      string
 	RebaseBranch                      string
 	RenameBranch                      string
 	CreateBranch                      string
@@ -854,6 +858,7 @@ func EnglishTranslationSet() TranslationSet {
 		StagedChanges:                       "Staged changes",
 		MainTitle:                           "Main",
 		MergeConfirmTitle:                   "Merge",
+		SquashConfirmTitle:                  "Squash",
 		StagingTitle:                        "Main panel (staging)",
 		MergingTitle:                        "Main panel (merging)",
 		NormalTitle:                         "Main panel (normal)",
@@ -1019,6 +1024,7 @@ func EnglishTranslationSet() TranslationSet {
 		ExcludeFile:                         `Add to .git/info/exclude`,
 		RefreshFiles:                        `Refresh files`,
 		MergeIntoCurrentBranch:              `Merge into currently checked out branch`,
+		SquashIntoWorkingTree:               `Squash into working tree`,
 		ConfirmQuit:                         `Are you sure you want to quit?`,
 		SwitchRepo:                          `Switch to a recent repo`,
 		AllBranchesLogGraph:                 `Show all branch logs`,
@@ -1077,6 +1083,7 @@ func EnglishTranslationSet() TranslationSet {
 		InteractiveRebase:                   "Interactive rebase",
 		InteractiveRebaseTooltip:            "Begin an interactive rebase with a break at the start, so you can update the TODO commits before continuing",
 		ConfirmMerge:                        "Are you sure you want to merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'?",
+		ConfirmSquash:                       "Are you sure you want to squash '{{.selectedBranch}}' into working tree?",
 		FwdNoUpstream:                       "Cannot fast-forward a branch with no upstream",
 		FwdNoLocalUpstream:                  "Cannot fast-forward a branch whose remote is not registered locally",
 		FwdCommitsToPush:                    "Cannot fast-forward a branch with commits to push",

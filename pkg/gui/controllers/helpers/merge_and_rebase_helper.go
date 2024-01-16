@@ -309,6 +309,30 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 	})
 }
 
+func (self *MergeAndRebaseHelper) SquashRefIntoWorkingTree(refName string) error {
+	checkedOutBranchName := self.refsHelper.GetCheckedOutRef().Name
+	if checkedOutBranchName == refName {
+		return self.c.ErrorMsg(self.c.Tr.CantMergeBranchIntoItself)
+	}
+
+	prompt := utils.ResolvePlaceholderString(
+		self.c.Tr.ConfirmSquash,
+		map[string]string{
+			"selectedBranch": refName,
+		},
+	)
+
+	return self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.SquashConfirmTitle,
+		Prompt: prompt,
+		HandleConfirm: func() error {
+			self.c.LogAction(self.c.Tr.Actions.SquashBranch)
+			err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{Squash: true})
+			return self.CheckMergeOrRebase(err)
+		},
+	})
+}
+
 func (self *MergeAndRebaseHelper) ResetMarkedBaseCommit() error {
 	self.c.Modes().MarkedBaseCommit.Reset()
 	return self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
