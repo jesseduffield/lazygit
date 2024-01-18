@@ -519,6 +519,10 @@ type TranslationSet struct {
 	RenameBranchWarning                   string
 	OpenKeybindingsMenu                   string
 	ResetCherryPick                       string
+	CreateArchive                         string
+	ArchiveChooseFileName                 string
+	ArchiveChooseFormatMenuTitle          string
+	ArchiveWaitingStatusMessage           string
 	NextTab                               string
 	PrevTab                               string
 	CantUndoWhileRebasing                 string
@@ -1466,6 +1470,10 @@ func EnglishTranslationSet() TranslationSet {
 		RenameBranchWarning:              "This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?",
 		OpenKeybindingsMenu:              "Open keybindings menu",
 		ResetCherryPick:                  "Reset copied (cherry-picked) commits selection",
+		CreateArchive:                    "Create archive",
+		ArchiveChooseFileName:            "Choose name for archive of {{.ref}}",
+		ArchiveChooseFormatMenuTitle:     "Select archive format",
+		ArchiveWaitingStatusMessage:      "Archiving...",
 		NextTab:                          "Next tab",
 		PrevTab:                          "Previous tab",
 		CantUndoWhileRebasing:            "Can't undo while rebasing",

@@ -52,6 +52,7 @@ type Helpers struct {
 	Search            *SearchHelper
 	Worktree          *WorktreeHelper
 	SubCommits        *SubCommitsHelper
+	Archive           *ArchiveHelper
 }
 
 func NewStubHelpers() *Helpers {
@@ -89,5 +90,6 @@ func NewStubHelpers() *Helpers {
 		Search:            &SearchHelper{},
 		Worktree:          &WorktreeHelper{},
 		SubCommits:        &SubCommitsHelper{},
+		Archive:           &ArchiveHelper{},
 	}
 }
