@@ -432,6 +432,7 @@ type KeybindingBranchesConfig struct {
 	SetUpstream            string `yaml:"setUpstream"`
 	FetchRemote            string `yaml:"fetchRemote"`
 	SortOrder              string `yaml:"sortOrder"`
+	Archive                string `yaml:"archive"`
 }
 
 type KeybindingWorktreesConfig struct {
@@ -463,6 +464,7 @@ type KeybindingCommitsConfig struct {
 	OpenInBrowser                  string `yaml:"openInBrowser"`
 	ViewBisectOptions              string `yaml:"viewBisectOptions"`
 	StartInteractiveRebase         string `yaml:"startInteractiveRebase"`
+	Archive                        string `yaml:"archive"`
 }
 
 type KeybindingAmendAttributeConfig struct {
@@ -845,6 +847,7 @@ func GetDefaultConfig() *UserConfig {
 				SetUpstream:            "u",
 				FetchRemote:            "f",
 				SortOrder:              "s",
+				Archive:                "<c-a>",
 			},
 			Worktrees: KeybindingWorktreesConfig{
 				ViewWorktreeOptions: "w",
@@ -874,6 +877,7 @@ func GetDefaultConfig() *UserConfig {
 				OpenInBrowser:                  "o",
 				ViewBisectOptions:              "b",
 				StartInteractiveRebase:         "i",
+				Archive:                        "<c-a>",
 			},
 			AmendAttribute: KeybindingAmendAttributeConfig{
 				ResetAuthor: "a",

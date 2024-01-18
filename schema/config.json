@@ -1101,6 +1101,10 @@
             "sortOrder": {
               "type": "string",
               "default": "s"
+            },
+            "archive": {
+              "type": "string",
+              "default": "\u003cc-a\u003e"
             }
           },
           "additionalProperties": false,
@@ -1213,6 +1217,10 @@
             "startInteractiveRebase": {
               "type": "string",
               "default": "i"
+            },
+            "archive": {
+              "type": "string",
+              "default": "\u003cc-a\u003e"
             }
           },
           "additionalProperties": false,

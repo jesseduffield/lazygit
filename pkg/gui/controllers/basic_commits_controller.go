@@ -108,6 +108,12 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.OpenDiffTool,
 		},
+		{
+			Key:               opts.GetKey(opts.Config.Commits.Archive),
+			Handler:           self.withItem(self.createArchive),
+			Description:       self.c.Tr.CreateArchive,
+			GetDisabledReason: self.require(self.singleItemSelected()),
+		},
 		// Putting this at the bottom of the list so that it has the lowest priority,
 		// meaning that if the user has configured another keybinding to the same key
 		// then that will take precedence.
@@ -331,4 +337,8 @@ func (self *BasicCommitsController) openDiffTool(commit *models.Commit) error {
 			Staged:      false,
 		}))
 	return err
+}
+
+func (self *BasicCommitsController) createArchive(commit *models.Commit) error {
+	return self.c.Helpers().Archive.CreateArchive(commit.RefName())
 }

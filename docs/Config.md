@@ -250,6 +250,7 @@ keybinding:
     pushTag: 'P'
     setUpstream: 'u' # set as upstream of checked-out branch
     fetchRemote: 'f'
+    archive: '<c-a>'
   commits:
     squashDown: 's'
     renameCommit: 'r'
@@ -272,6 +273,7 @@ keybinding:
     copyCommitMessageToClipboard: '<c-y>'
     openLogMenu: '<c-l>'
     viewBisectOptions: 'b'
+    archive: '<c-a>'
   stash:
     popStash: 'g'
     renameStash: 'r'

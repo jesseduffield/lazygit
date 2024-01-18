@@ -62,6 +62,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` C `` | 复制提交（拣选） | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | 重置已拣选（复制）的提交 |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -98,6 +99,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` g `` | 查看重置选项 |  |
 | `` R `` | 重命名分支 |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -115,6 +117,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` C `` | 复制提交（拣选） | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | 重置已拣选（复制）的提交 |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | 查看提交的文件 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | 开始搜索 |  |
@@ -167,6 +170,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` g `` | 查看重置选项 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 复制提交（拣选） | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | 查看提交的文件 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | 开始搜索 |  |
@@ -248,6 +252,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | 推送标签 | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
