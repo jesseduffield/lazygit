@@ -172,7 +172,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	branchesController := controllers.NewBranchesController(common)
 	gitFlowController := controllers.NewGitFlowController(common)
-	filesRemoveController := controllers.NewFilesRemoveController(common)
 	stashController := controllers.NewStashController(common)
 	commitFilesController := controllers.NewCommitFilesController(common)
 	patchExplorerControllerFactory := controllers.NewPatchExplorerControllerFactory(common)
@@ -297,7 +296,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.Files,
 		filesController,
-		filesRemoveController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Tags,

@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type FilesController struct {
@@ -123,6 +124,13 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Handler:           self.enter,
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.FileEnter,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Handler:           self.withItem(self.remove),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.ViewDiscardOptions,
+			OpensMenu:         true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
@@ -962,4 +970,131 @@ func (self *FilesController) fetchAux(task gocui.Task) (err error) {
 	_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
 
 	return err
+}
+
+func (self *FilesController) remove(node *filetree.FileNode) error {
+	var menuItems []*types.MenuItem
+	if node.File == nil {
+		menuItems = []*types.MenuItem{
+			{
+				Label: self.c.Tr.DiscardAllChanges,
+				OnPress: func() error {
+					self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInDirectory)
+					if err := self.c.Git().WorkingTree.DiscardAllDirChanges(node); err != nil {
+						return self.c.Error(err)
+					}
+					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+				},
+				Key: self.c.KeybindingsOpts().GetKey(self.c.UserConfig.Keybinding.Files.ConfirmDiscard),
+				Tooltip: utils.ResolvePlaceholderString(
+					self.c.Tr.DiscardAllTooltip,
+					map[string]string{
+						"path": node.GetPath(),
+					},
+				),
+			},
+		}
+
+		if node.GetHasStagedChanges() && node.GetHasUnstagedChanges() {
+			menuItems = append(menuItems, &types.MenuItem{
+				Label: self.c.Tr.DiscardUnstagedChanges,
+				OnPress: func() error {
+					self.c.LogAction(self.c.Tr.Actions.DiscardUnstagedChangesInDirectory)
+					if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
+						return self.c.Error(err)
+					}
+
+					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+				},
+				Key: 'u',
+				Tooltip: utils.ResolvePlaceholderString(
+					self.c.Tr.DiscardUnstagedTooltip,
+					map[string]string{
+						"path": node.GetPath(),
+					},
+				),
+			})
+		}
+	} else {
+		file := node.File
+
+		submodules := self.c.Model().Submodules
+		if file.IsSubmodule(submodules) {
+			submodule := file.SubmoduleConfig(submodules)
+
+			menuItems = []*types.MenuItem{
+				{
+					Label: self.c.Tr.SubmoduleStashAndReset,
+					OnPress: func() error {
+						return self.ResetSubmodule(submodule)
+					},
+				},
+			}
+		} else {
+			menuItems = []*types.MenuItem{
+				{
+					Label: self.c.Tr.DiscardAllChanges,
+					OnPress: func() error {
+						self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInFile)
+						if err := self.c.Git().WorkingTree.DiscardAllFileChanges(file); err != nil {
+							return self.c.Error(err)
+						}
+						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+					},
+					Key: self.c.KeybindingsOpts().GetKey(self.c.UserConfig.Keybinding.Files.ConfirmDiscard),
+					Tooltip: utils.ResolvePlaceholderString(
+						self.c.Tr.DiscardAllTooltip,
+						map[string]string{
+							"path": node.GetPath(),
+						},
+					),
+				},
+			}
+
+			if file.HasStagedChanges && file.HasUnstagedChanges {
+				menuItems = append(menuItems, &types.MenuItem{
+					Label: self.c.Tr.DiscardUnstagedChanges,
+					OnPress: func() error {
+						self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
+						if err := self.c.Git().WorkingTree.DiscardUnstagedFileChanges(file); err != nil {
+							return self.c.Error(err)
+						}
+
+						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+					},
+					Key: 'u',
+					Tooltip: utils.ResolvePlaceholderString(
+						self.c.Tr.DiscardUnstagedTooltip,
+						map[string]string{
+							"path": node.GetPath(),
+						},
+					),
+				})
+			}
+		}
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{Title: node.GetPath(), Items: menuItems})
+}
+
+func (self *FilesController) ResetSubmodule(submodule *models.SubmoduleConfig) error {
+	return self.c.WithWaitingStatus(self.c.Tr.ResettingSubmoduleStatus, func(gocui.Task) error {
+		self.c.LogAction(self.c.Tr.Actions.ResetSubmodule)
+
+		file := self.c.Helpers().WorkingTree.FileForSubmodule(submodule)
+		if file != nil {
+			if err := self.c.Git().WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
+				return self.c.Error(err)
+			}
+		}
+
+		if err := self.c.Git().Submodule.Stash(submodule); err != nil {
+			return self.c.Error(err)
+		}
+		if err := self.c.Git().Submodule.Reset(submodule); err != nil {
+			return self.c.Error(err)
+		}
+
+		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.SUBMODULES}})
+	})
 }
