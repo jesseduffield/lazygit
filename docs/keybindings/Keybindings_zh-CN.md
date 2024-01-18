@@ -37,6 +37,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>.</kbd>: 下一页
   <kbd>&lt;</kbd>: 滚动到顶部
   <kbd>&gt;</kbd>: 滚动到底部
+  <kbd>v</kbd>: 切换拖动选择
+  <kbd>&lt;s-down&gt;</kbd>: Range select down
+  <kbd>&lt;s-up&gt;</kbd>: Range select up
   <kbd>/</kbd>: 开始搜索
   <kbd>H</kbd>: 向左滚动
   <kbd>L</kbd>: 向右滚动
@@ -54,8 +57,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: 在浏览器中打开提交
   <kbd>n</kbd>: 从提交创建新分支
   <kbd>g</kbd>: 查看重置选项
-  <kbd>c</kbd>: 复制提交（拣选）
-  <kbd>C</kbd>: 复制提交范围（拣选）
+  <kbd>C</kbd>: 复制提交（拣选）
   <kbd>&lt;c-r&gt;</kbd>: 重置已拣选（复制）的提交
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: 查看提交
@@ -109,8 +111,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: 在浏览器中打开提交
   <kbd>n</kbd>: 从提交创建新分支
   <kbd>g</kbd>: 查看重置选项
-  <kbd>c</kbd>: 复制提交（拣选）
-  <kbd>C</kbd>: 复制提交范围（拣选）
+  <kbd>C</kbd>: 复制提交（拣选）
   <kbd>&lt;c-r&gt;</kbd>: 重置已拣选（复制）的提交
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: 查看提交的文件
@@ -150,7 +151,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: 压缩在所选提交之上的所有“fixup!”提交（自动压缩）
   <kbd>&lt;c-j&gt;</kbd>: 下移提交
   <kbd>&lt;c-k&gt;</kbd>: 上移提交
-  <kbd>v</kbd>: 粘贴提交（拣选）
+  <kbd>V</kbd>: 粘贴提交（拣选）
   <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: 用已暂存的更改来修补提交
   <kbd>a</kbd>: Set/Reset commit author
@@ -163,8 +164,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: 在浏览器中打开提交
   <kbd>n</kbd>: 从提交创建新分支
   <kbd>g</kbd>: 查看重置选项
-  <kbd>c</kbd>: 复制提交（拣选）
-  <kbd>C</kbd>: 复制提交范围（拣选）
+  <kbd>C</kbd>: 复制提交（拣选）
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: 查看提交的文件
   <kbd>/</kbd>: 开始搜索
@@ -229,7 +229,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: 选择上一个区块
   <kbd>&lt;right&gt;</kbd>: 选择下一个区块
   <kbd>v</kbd>: 切换拖动选择
-  <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块
   <kbd>&lt;c-o&gt;</kbd>: 将选中文本复制到剪贴板
   <kbd>o</kbd>: 打开文件
@@ -274,7 +273,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: 选择上一个区块
   <kbd>&lt;right&gt;</kbd>: 选择下一个区块
   <kbd>v</kbd>: 切换拖动选择
-  <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块
   <kbd>&lt;c-o&gt;</kbd>: 将选中文本复制到剪贴板
   <kbd>o</kbd>: 打开文件

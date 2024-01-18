@@ -8,34 +8,43 @@ import (
 var _ types.IController = &SwitchToSubCommitsController{}
 
 type CanSwitchToSubCommits interface {
-	types.Context
+	types.IListContext
 	GetSelectedRef() types.Ref
 	ShowBranchHeadsInSubCommits() bool
 }
 
+// Not using our ListControllerTrait because our 'selected' item is not a list item
+// but an attribute on it i.e. the ref of an item.
 type SwitchToSubCommitsController struct {
 	baseController
+	*ListControllerTrait[types.Ref]
 	c       *ControllerCommon
 	context CanSwitchToSubCommits
 }
 
 func NewSwitchToSubCommitsController(
-	controllerCommon *ControllerCommon,
+	c *ControllerCommon,
 	context CanSwitchToSubCommits,
 ) *SwitchToSubCommitsController {
 	return &SwitchToSubCommitsController{
 		baseController: baseController{},
-		c:              controllerCommon,
-		context:        context,
+		ListControllerTrait: NewListControllerTrait[types.Ref](
+			c,
+			context,
+			context.GetSelectedRef,
+		),
+		c:       c,
+		context: context,
 	}
 }
 
 func (self *SwitchToSubCommitsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Handler:     self.viewCommits,
-			Key:         opts.GetKey(opts.Config.Universal.GoInto),
-			Description: self.c.Tr.ViewCommits,
+			Handler:           self.viewCommits,
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Description:       self.c.Tr.ViewCommits,
 		},
 	}
 
@@ -58,8 +67,4 @@ func (self *SwitchToSubCommitsController) viewCommits() error {
 		Context:         self.context,
 		ShowBranchHeads: self.context.ShowBranchHeadsInSubCommits(),
 	})
-}
-
-func (self *SwitchToSubCommitsController) Context() types.Context {
-	return self.context
 }

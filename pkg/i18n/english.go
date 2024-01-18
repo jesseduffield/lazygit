@@ -200,7 +200,6 @@ type TranslationSet struct {
 	FileStagingRequirements             string
 	StageSelection                      string
 	DiscardSelection                    string
-	ToggleDragSelect                    string
 	ToggleSelectHunk                    string
 	ToggleSelectionForPatch             string
 	EditHunk                            string
@@ -252,7 +251,6 @@ type TranslationSet struct {
 	RewordNotSupported                  string
 	ChangingThisActionIsNotAllowed      string
 	CherryPickCopy                      string
-	CherryPickCopyRange                 string
 	PasteCommits                        string
 	SureCherryPick                      string
 	CherryPick                          string
@@ -646,11 +644,16 @@ type TranslationSet struct {
 	MarkedCommitMarker                  string
 	PleaseGoToURL                       string
 	DisabledMenuItemPrefix              string
-	NoCommitSelected                    string
 	NoCopiedCommits                     string
 	QuickStartInteractiveRebase         string
 	QuickStartInteractiveRebaseTooltip  string
 	CannotQuickStartInteractiveRebase   string
+	ToggleRangeSelect                   string
+	RangeSelectUp                       string
+	RangeSelectDown                     string
+	RangeSelectNotSupported             string
+	NoItemSelected                      string
+	SelectedItemIsNotABranch            string
 	Actions                             Actions
 	Bisect                              Bisect
 	Log                                 Log
@@ -1033,7 +1036,7 @@ func EnglishTranslationSet() TranslationSet {
 		FileStagingRequirements:             `Can only stage individual lines for tracked files`,
 		StageSelection:                      `Toggle line staged / unstaged`,
 		DiscardSelection:                    `Discard change (git reset)`,
-		ToggleDragSelect:                    `Toggle drag select`,
+		ToggleRangeSelect:                   `Toggle range select`,
 		ToggleSelectHunk:                    `Toggle select hunk`,
 		ToggleSelectionForPatch:             `Add/Remove line(s) to patch`,
 		EditHunk:                            `Edit hunk`,
@@ -1088,7 +1091,6 @@ func EnglishTranslationSet() TranslationSet {
 		RewordNotSupported:                  "Rewording commits while interactively rebasing is not currently supported",
 		ChangingThisActionIsNotAllowed:      "Changing this kind of rebase todo entry is not allowed",
 		CherryPickCopy:                      "Copy commit (cherry-pick)",
-		CherryPickCopyRange:                 "Copy commit range (cherry-pick)",
 		PasteCommits:                        "Paste commits (cherry-pick)",
 		SureCherryPick:                      "Are you sure you want to cherry-pick the copied commits onto this branch?",
 		CherryPick:                          "Cherry-pick",
@@ -1478,11 +1480,15 @@ func EnglishTranslationSet() TranslationSet {
 		MarkedCommitMarker:                  "↑↑↑ Will rebase from here ↑↑↑",
 		PleaseGoToURL:                       "Please go to {{.url}}",
 		DisabledMenuItemPrefix:              "Disabled: ",
-		NoCommitSelected:                    "No commit selected",
 		NoCopiedCommits:                     "No copied commits",
 		QuickStartInteractiveRebase:         "Start interactive rebase",
 		QuickStartInteractiveRebaseTooltip:  "Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.\nIf you would instead like to start an interactive rebase from the selected commit, press `{{.editKey}}`.",
 		CannotQuickStartInteractiveRebase:   "Cannot start interactive rebase: the HEAD commit is a merge commit or is present on the main branch, so there is no appropriate base commit to start the rebase from. You can start an interactive rebase from a specific commit by selecting the commit and pressing `{{.editKey}}`.",
+		RangeSelectUp:                       "Range select up",
+		RangeSelectDown:                     "Range select down",
+		RangeSelectNotSupported:             "Action does not support range selection, please select a single item",
+		NoItemSelected:                      "No item selected",
+		SelectedItemIsNotABranch:            "Selected item is not a branch",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

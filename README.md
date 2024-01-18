@@ -122,7 +122,7 @@ You can also perform any these actions as a once-off (e.g. pressing `s` on a com
 
 ### Cherry-pick
 
-Press `c` on a commit to copy it and press `v` to paste (cherry-pick) it.
+Press `shift+c` on a commit to copy it and press `shift+v` to paste (cherry-pick) it.
 
 ![cherry_pick](../assets/demo/cherry_pick-compressed.gif)
 

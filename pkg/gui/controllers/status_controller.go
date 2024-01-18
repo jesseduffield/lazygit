@@ -22,11 +22,11 @@ type StatusController struct {
 var _ types.IController = &StatusController{}
 
 func NewStatusController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *StatusController {
 	return &StatusController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 

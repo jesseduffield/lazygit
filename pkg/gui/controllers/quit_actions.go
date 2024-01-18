@@ -51,6 +51,13 @@ func (self *QuitActions) confirmQuitDuringUpdate() error {
 func (self *QuitActions) Escape() error {
 	currentContext := self.c.CurrentContext()
 
+	if listContext, ok := currentContext.(types.IListContext); ok {
+		if listContext.GetList().IsSelectingRange() {
+			listContext.GetList().CancelRangeSelect()
+			return self.c.PostRefreshUpdate(listContext)
+		}
+	}
+
 	switch ctx := currentContext.(type) {
 	case types.IFilterableContext:
 		if ctx.IsFiltering() {

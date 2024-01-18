@@ -14,11 +14,11 @@ type PatchBuildingController struct {
 var _ types.IController = &PatchBuildingController{}
 
 func NewPatchBuildingController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *PatchBuildingController {
 	return &PatchBuildingController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 
@@ -154,5 +154,13 @@ func (self *PatchBuildingController) toggleSelection() error {
 }
 
 func (self *PatchBuildingController) Escape() error {
+	context := self.c.Contexts().CustomPatchBuilder
+	state := context.GetState()
+
+	if state.SelectingRange() || state.SelectingHunk() {
+		state.SetLineSelectMode()
+		return self.c.PostRefreshUpdate(context)
+	}
+
 	return self.c.Helpers().PatchBuilding.Escape()
 }

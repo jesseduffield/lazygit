@@ -37,6 +37,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>.</kbd>: Next page
   <kbd>&lt;</kbd>: Scroll to top
   <kbd>&gt;</kbd>: Scroll to bottom
+  <kbd>v</kbd>: Toggle range select
+  <kbd>&lt;s-down&gt;</kbd>: Range select down
+  <kbd>&lt;s-up&gt;</kbd>: Range select up
   <kbd>/</kbd>: Search the current view by text
   <kbd>H</kbd>: Scroll left
   <kbd>L</kbd>: Scroll right
@@ -69,7 +72,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: Spłaszcz wszystkie commity naprawcze powyżej zaznaczonych commitów (autosquash)
   <kbd>&lt;c-j&gt;</kbd>: Przenieś commit 1 w dół
   <kbd>&lt;c-k&gt;</kbd>: Przenieś commit 1 w górę
-  <kbd>v</kbd>: Wklej commity (przebieranie)
+  <kbd>V</kbd>: Wklej commity (przebieranie)
   <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: Popraw commit zmianami z poczekalni
   <kbd>a</kbd>: Set/Reset commit author
@@ -82,8 +85,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Create new branch off of commit
   <kbd>g</kbd>: Wyświetl opcje resetu
-  <kbd>c</kbd>: Kopiuj commit (przebieranie)
-  <kbd>C</kbd>: Kopiuj zakres commitów (przebieranie)
+  <kbd>C</kbd>: Kopiuj commit (przebieranie)
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Przeglądaj pliki commita
   <kbd>/</kbd>: Search the current view by text
@@ -127,8 +129,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;left&gt;</kbd>: Poprzedni kawałek
   <kbd>&lt;right&gt;</kbd>: Następny kawałek
-  <kbd>v</kbd>: Toggle drag select
-  <kbd>V</kbd>: Toggle drag select
+  <kbd>v</kbd>: Toggle range select
   <kbd>a</kbd>: Toggle select hunk
   <kbd>&lt;c-o&gt;</kbd>: Copy the selected text to the clipboard
   <kbd>o</kbd>: Otwórz plik
@@ -197,8 +198,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;left&gt;</kbd>: Poprzedni kawałek
   <kbd>&lt;right&gt;</kbd>: Następny kawałek
-  <kbd>v</kbd>: Toggle drag select
-  <kbd>V</kbd>: Toggle drag select
+  <kbd>v</kbd>: Toggle range select
   <kbd>a</kbd>: Toggle select hunk
   <kbd>&lt;c-o&gt;</kbd>: Copy the selected text to the clipboard
   <kbd>o</kbd>: Otwórz plik
@@ -224,8 +224,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Create new branch off of commit
   <kbd>g</kbd>: Wyświetl opcje resetu
-  <kbd>c</kbd>: Kopiuj commit (przebieranie)
-  <kbd>C</kbd>: Kopiuj zakres commitów (przebieranie)
+  <kbd>C</kbd>: Kopiuj commit (przebieranie)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View commits
@@ -308,8 +307,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Create new branch off of commit
   <kbd>g</kbd>: Wyświetl opcje resetu
-  <kbd>c</kbd>: Kopiuj commit (przebieranie)
-  <kbd>C</kbd>: Kopiuj zakres commitów (przebieranie)
+  <kbd>C</kbd>: Kopiuj commit (przebieranie)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Przeglądaj pliki commita

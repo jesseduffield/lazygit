@@ -1,23 +1,30 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type ReflogCommitsController struct {
 	baseController
+	*ListControllerTrait[*models.Commit]
 	c *ControllerCommon
 }
 
 var _ types.IController = &ReflogCommitsController{}
 
 func NewReflogCommitsController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *ReflogCommitsController {
 	return &ReflogCommitsController{
 		baseController: baseController{},
-		c:              common,
+		ListControllerTrait: NewListControllerTrait[*models.Commit](
+			c,
+			c.Contexts().ReflogCommits,
+			c.Contexts().ReflogCommits.GetSelected,
+		),
+		c: c,
 	}
 }
 

@@ -169,7 +169,6 @@ func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
 				OnPress: func() error {
 					return self.c.PushContext(self.c.Contexts().Files)
 				},
-				Key: 'v',
 			},
 			{
 				Label: fmt.Sprintf(self.c.Tr.AbortMenuItem, mode),

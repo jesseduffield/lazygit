@@ -9,8 +9,8 @@ type SideWindowControllerFactory struct {
 	c *ControllerCommon
 }
 
-func NewSideWindowControllerFactory(common *ControllerCommon) *SideWindowControllerFactory {
-	return &SideWindowControllerFactory{c: common}
+func NewSideWindowControllerFactory(c *ControllerCommon) *SideWindowControllerFactory {
+	return &SideWindowControllerFactory{c: c}
 }
 
 func (self *SideWindowControllerFactory) Create(context types.Context) types.IController {
@@ -24,12 +24,12 @@ type SideWindowController struct {
 }
 
 func NewSideWindowController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 	context types.Context,
 ) *SideWindowController {
 	return &SideWindowController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 		context:        context,
 	}
 }

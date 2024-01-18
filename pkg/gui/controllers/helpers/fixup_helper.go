@@ -87,7 +87,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 			_ = self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
 		}
 
-		self.c.Contexts().LocalCommits.SetSelectedLineIdx(index)
+		self.c.Contexts().LocalCommits.SetSelection(index)
 		return self.c.PushContext(self.c.Contexts().LocalCommits)
 	}
 

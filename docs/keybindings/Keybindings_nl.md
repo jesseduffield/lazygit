@@ -37,6 +37,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>.</kbd>: Volgende pagina
   <kbd>&lt;</kbd>: Scroll naar boven
   <kbd>&gt;</kbd>: Scroll naar beneden
+  <kbd>v</kbd>: Toggle drag selecteer
+  <kbd>&lt;s-down&gt;</kbd>: Range select down
+  <kbd>&lt;s-up&gt;</kbd>: Range select up
   <kbd>/</kbd>: Start met zoeken
   <kbd>H</kbd>: Scroll left
   <kbd>L</kbd>: Scroll right
@@ -148,7 +151,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: Squash bovenstaande commits
   <kbd>&lt;c-j&gt;</kbd>: Verplaats commit 1 naar beneden
   <kbd>&lt;c-k&gt;</kbd>: Verplaats commit 1 naar boven
-  <kbd>v</kbd>: Plak commits (cherry-pick)
+  <kbd>V</kbd>: Plak commits (cherry-pick)
   <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: Wijzig commit met staged veranderingen
   <kbd>a</kbd>: Set/Reset commit author
@@ -161,8 +164,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Creëer nieuwe branch van commit
   <kbd>g</kbd>: Bekijk reset opties
-  <kbd>c</kbd>: Kopieer commit (cherry-pick)
-  <kbd>C</kbd>: Kopieer commit reeks (cherry-pick)
+  <kbd>C</kbd>: Kopieer commit (cherry-pick)
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Bekijk gecommite bestanden
   <kbd>/</kbd>: Start met zoeken
@@ -205,7 +207,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: Selecteer de vorige hunk
   <kbd>&lt;right&gt;</kbd>: Selecteer de volgende hunk
   <kbd>v</kbd>: Toggle drag selecteer
-  <kbd>V</kbd>: Toggle drag selecteer
   <kbd>a</kbd>: Toggle selecteer hunk
   <kbd>&lt;c-o&gt;</kbd>: Copy the selected text to the clipboard
   <kbd>o</kbd>: Open bestand
@@ -225,8 +226,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Creëer nieuwe branch van commit
   <kbd>g</kbd>: Bekijk reset opties
-  <kbd>c</kbd>: Kopieer commit (cherry-pick)
-  <kbd>C</kbd>: Kopieer commit reeks (cherry-pick)
+  <kbd>C</kbd>: Kopieer commit (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (gekopieerde) commits selectie
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Bekijk commits
@@ -266,7 +266,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: Selecteer de vorige hunk
   <kbd>&lt;right&gt;</kbd>: Selecteer de volgende hunk
   <kbd>v</kbd>: Toggle drag selecteer
-  <kbd>V</kbd>: Toggle drag selecteer
   <kbd>a</kbd>: Toggle selecteer hunk
   <kbd>&lt;c-o&gt;</kbd>: Copy the selected text to the clipboard
   <kbd>o</kbd>: Open bestand
@@ -315,8 +314,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Creëer nieuwe branch van commit
   <kbd>g</kbd>: Bekijk reset opties
-  <kbd>c</kbd>: Kopieer commit (cherry-pick)
-  <kbd>C</kbd>: Kopieer commit reeks (cherry-pick)
+  <kbd>C</kbd>: Kopieer commit (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (gekopieerde) commits selectie
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Bekijk gecommite bestanden

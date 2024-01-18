@@ -74,7 +74,7 @@ func (self *SuggestionsContext) GetSelectedItemId() string {
 
 func (self *SuggestionsContext) SetSuggestions(suggestions []*types.Suggestion) {
 	self.State.Suggestions = suggestions
-	self.SetSelectedLineIdx(0)
+	self.SetSelection(0)
 	self.c.ResetViewOrigin(self.GetView())
 	_ = self.HandleRender()
 }
@@ -89,4 +89,9 @@ func (self *SuggestionsContext) RefreshSuggestions() {
 			return func() {}
 		}
 	})
+}
+
+// There is currently no need to use range-select in the suggestions view so we're disabling it.
+func (self *SuggestionsContext) RangeSelectEnabled() bool {
+	return false
 }

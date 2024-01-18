@@ -29,10 +29,10 @@ var CopyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 				t.ExpectPopup().Menu().
 					Title(Equals("Copy to clipboard")).
 					Select(Contains("File name")).
-					Tooltip(Equals("Disabled: Nothing to copy")).
+					Tooltip(Equals("Disabled: No item selected")).
 					Confirm().
 					Tap(func() {
-						t.ExpectToast(Equals("Disabled: Nothing to copy"))
+						t.ExpectToast(Equals("Disabled: No item selected"))
 					}).
 					Cancel()
 			})

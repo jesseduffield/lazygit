@@ -57,8 +57,6 @@ gui:
       - blue
     selectedLineBgColor:
       - blue # set to `default` to have no background colour
-    selectedRangeBgColor:
-      - blue
     cherryPickedCommitBgColor:
       - cyan
     cherryPickedCommitFgColor:
@@ -201,6 +199,9 @@ keybinding:
     toggleWhitespaceInDiffView: '<c-w>'
     increaseContextInDiffView: '}'
     decreaseContextInDiffView: '{'
+    toggleRangeSelect: 'v'
+    rangeSelectUp: '<s-up>'
+    rangeSelectDown: '<s-down>'
   status:
     checkForUpdate: 'u'
     recentRepos: '<enter>'
@@ -248,9 +249,8 @@ keybinding:
     amendToCommit: 'A'
     pickCommit: 'p' # pick commit (when mid-rebase)
     revertCommit: 't'
-    cherryPickCopy: 'c'
-    cherryPickCopyRange: 'C'
-    pasteCommits: 'v'
+    cherryPickCopy: 'C'
+    pasteCommits: 'V'
     tagCommit: 'T'
     checkoutCommit: '<space>'
     resetCherryPick: '<c-R>'
@@ -263,8 +263,6 @@ keybinding:
   commitFiles:
     checkoutCommitFile: 'c'
   main:
-    toggleDragSelect: 'v'
-    toggleDragSelect-alt: 'V'
     toggleSelectHunk: 'a'
     pickBothHunks: 'b'
   submodules:
@@ -389,14 +387,12 @@ The available attributes are:
 
 ## Highlighting the selected line
 
-If you don't like the default behaviour of highlighting the selected line with a blue background, you can use the `selectedLineBgColor` and `selectedRangeBgColor` keys to customise the behaviour. If you just want to embolden the selected line (this was the original default), you can do the following:
+If you don't like the default behaviour of highlighting the selected line with a blue background, you can use the `selectedLineBgColor` key to customise the behaviour. If you just want to embolden the selected line (this was the original default), you can do the following:
 
 ```yaml
 gui:
   theme:
     selectedLineBgColor:
-      - default
-    selectedRangeBgColor:
       - default
 ```
 
@@ -406,8 +402,6 @@ You can also use the reverse attribute like so:
 gui:
   theme:
     selectedLineBgColor:
-      - reverse
-    selectedRangeBgColor:
       - reverse
 ```
 

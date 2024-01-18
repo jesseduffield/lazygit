@@ -31,11 +31,11 @@ type ContextLinesController struct {
 var _ types.IController = &ContextLinesController{}
 
 func NewContextLinesController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *ContextLinesController {
 	return &ContextLinesController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 

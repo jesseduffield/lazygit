@@ -62,15 +62,22 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 		if self.c.CurrentContext().GetKey() == self.c.Contexts().LocalCommits.GetKey() {
 			selectedCommit := self.c.Contexts().LocalCommits.GetSelected()
 			if selectedCommit != nil && self.c.Git().Patch.PatchBuilder.To != selectedCommit.Sha {
+
+				var disabledReason *types.DisabledReason
+				if self.c.Contexts().LocalCommits.AreMultipleItemsSelected() {
+					disabledReason = &types.DisabledReason{Text: self.c.Tr.RangeSelectNotSupported}
+				}
+
 				// adding this option to index 1
 				menuItems = append(
 					menuItems[:1],
 					append(
 						[]*types.MenuItem{
 							{
-								Label:   fmt.Sprintf(self.c.Tr.MovePatchToSelectedCommit, selectedCommit.Sha),
-								OnPress: self.handleMovePatchToSelectedCommit,
-								Key:     'm',
+								Label:          fmt.Sprintf(self.c.Tr.MovePatchToSelectedCommit, selectedCommit.Sha),
+								OnPress:        self.handleMovePatchToSelectedCommit,
+								Key:            'm',
+								DisabledReason: disabledReason,
 							},
 						}, menuItems[1:]...,
 					)...,

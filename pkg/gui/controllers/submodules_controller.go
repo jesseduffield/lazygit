@@ -14,41 +14,51 @@ import (
 
 type SubmodulesController struct {
 	baseController
+	*ListControllerTrait[*models.SubmoduleConfig]
 	c *ControllerCommon
 }
 
 var _ types.IController = &SubmodulesController{}
 
 func NewSubmodulesController(
-	controllerCommon *ControllerCommon,
+	c *ControllerCommon,
 ) *SubmodulesController {
 	return &SubmodulesController{
 		baseController: baseController{},
-		c:              controllerCommon,
+		ListControllerTrait: NewListControllerTrait[*models.SubmoduleConfig](
+			c,
+			c.Contexts().Submodules,
+			c.Contexts().Submodules.GetSelected,
+		),
+		c: c,
 	}
 }
 
 func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:     self.checkSelected(self.enter),
-			Description: self.c.Tr.EnterSubmodule,
+			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Handler:           self.withItem(self.enter),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.EnterSubmodule,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.checkSelected(self.enter),
-			Description: self.c.Tr.EnterSubmodule,
+			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Handler:           self.withItem(self.enter),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.EnterSubmodule,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.checkSelected(self.remove),
-			Description: self.c.Tr.RemoveSubmodule,
+			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Handler:           self.withItem(self.remove),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.RemoveSubmodule,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Submodules.Update),
-			Handler:     self.checkSelected(self.update),
-			Description: self.c.Tr.SubmoduleUpdate,
+			Key:               opts.GetKey(opts.Config.Submodules.Update),
+			Handler:           self.withItem(self.update),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.SubmoduleUpdate,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
@@ -56,14 +66,16 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			Description: self.c.Tr.AddSubmodule,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
-			Handler:     self.checkSelected(self.editURL),
-			Description: self.c.Tr.EditSubmoduleUrl,
+			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Handler:           self.withItem(self.editURL),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.EditSubmoduleUrl,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Submodules.Init),
-			Handler:     self.checkSelected(self.init),
-			Description: self.c.Tr.InitSubmodule,
+			Key:               opts.GetKey(opts.Config.Submodules.Init),
+			Handler:           self.withItem(self.init),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.InitSubmodule,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Submodules.BulkMenu),
@@ -80,7 +92,7 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 }
 
 func (self *SubmodulesController) GetOnClick() func() error {
-	return self.checkSelected(self.enter)
+	return self.withItemGraceful(self.enter)
 }
 
 func (self *SubmodulesController) GetOnRenderToMain() func() error {
@@ -263,21 +275,6 @@ func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) erro
 
 func (self *SubmodulesController) easterEgg() error {
 	return self.c.PushContext(self.c.Contexts().Snake)
-}
-
-func (self *SubmodulesController) checkSelected(callback func(*models.SubmoduleConfig) error) func() error {
-	return func() error {
-		submodule := self.context().GetSelected()
-		if submodule == nil {
-			return nil
-		}
-
-		return callback(submodule)
-	}
-}
-
-func (self *SubmodulesController) Context() types.Context {
-	return self.context()
 }
 
 func (self *SubmodulesController) context() *context.SubmodulesContext {

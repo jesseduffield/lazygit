@@ -197,9 +197,7 @@ func (p *PatchBuilder) RenderPatchForFile(filename string, plain bool, reverse b
 	if plain {
 		return patch.FormatPlain()
 	} else {
-		return patch.FormatView(FormatViewOpts{
-			IsFocused: false,
-		})
+		return patch.FormatView(FormatViewOpts{})
 	}
 }
 

@@ -329,7 +329,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		// because e.g. with worktrees, we'll show the current worktree at the top of the list.
 		listContext, ok := contextToPush.(types.IListContext)
 		if ok {
-			listContext.GetList().SetSelectedLineIdx(0)
+			listContext.GetList().SetSelection(0)
 		}
 	}
 

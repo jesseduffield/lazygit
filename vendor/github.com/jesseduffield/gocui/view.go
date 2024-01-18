@@ -41,6 +41,14 @@ type View struct {
 	wx, wy         int      // Write() offsets
 	lines          [][]cell // All the data
 	outMode        OutputMode
+	// The y position of the first line of a range selection.
+	// This is not relative to the view's origin: it is relative to the first line
+	// of the view's content, so you can scroll the view and this value will remain
+	// the same, unlike the view's cy value.
+	// A value of -1 means that there is no range selection.
+	// This value can be greater than the selected line index, in the event that
+	// a user starts a range select and then moves the cursor up.
+	rangeSelectStartY int
 
 	// readBuffer is used for storing unread bytes
 	readBuffer []byte
@@ -284,6 +292,14 @@ func (v *View) FocusPoint(cx int, cy int) {
 	v.cy = cy - v.oy
 }
 
+func (v *View) SetRangeSelectStart(rangeSelectStartY int) {
+	v.rangeSelectStartY = rangeSelectStartY
+}
+
+func (v *View) CancelRangeSelect() {
+	v.rangeSelectStartY = -1
+}
+
 func calculateNewOrigin(selectedLine int, oldOrigin int, lineCount int, viewHeight int) int {
 	if viewHeight > lineCount {
 		return 0
@@ -349,19 +365,20 @@ func (l lineType) String() string {
 // newView returns a new View object.
 func newView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 	v := &View{
-		name:     name,
-		x0:       x0,
-		y0:       y0,
-		x1:       x1,
-		y1:       y1,
-		Visible:  true,
-		Frame:    true,
-		Editor:   DefaultEditor,
-		tainted:  true,
-		outMode:  mode,
-		ei:       newEscapeInterpreter(mode),
-		searcher: &searcher{},
-		TextArea: &TextArea{},
+		name:              name,
+		x0:                x0,
+		y0:                y0,
+		x1:                x1,
+		y1:                y1,
+		Visible:           true,
+		Frame:             true,
+		Editor:            DefaultEditor,
+		tainted:           true,
+		outMode:           mode,
+		ei:                newEscapeInterpreter(mode),
+		searcher:          &searcher{},
+		TextArea:          &TextArea{},
+		rangeSelectStartY: -1,
 	}
 
 	v.FgColor, v.BgColor = ColorDefault, ColorDefault
@@ -428,11 +445,17 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 	if x < 0 || x >= maxX || y < 0 || y >= maxY {
 		return ErrInvalidPoint
 	}
-	var (
-		ry, rcy int
-		err     error
-	)
-	if v.Highlight {
+
+	if v.Mask != 0 {
+		fgColor = v.FgColor
+		bgColor = v.BgColor
+		ch = v.Mask
+	} else if v.Highlight {
+		var (
+			ry, rcy int
+			err     error
+		)
+
 		_, ry, err = v.realPosition(x, y)
 		if err != nil {
 			return err
@@ -442,20 +465,28 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 		if err == nil {
 			rcy = rrcy
 		}
-	}
 
-	if v.Mask != 0 {
-		fgColor = v.FgColor
-		bgColor = v.BgColor
-		ch = v.Mask
-	} else if v.Highlight && ry == rcy {
-		// this ensures we use the bright variant of a colour upon highlight
-		fgColorComponent := fgColor & ^AttrAll
-		if fgColorComponent >= AttrIsValidColor && fgColorComponent < AttrIsValidColor+8 {
-			fgColor += 8
+		rangeSelectStart := rcy
+		rangeSelectEnd := rcy
+		if v.rangeSelectStartY != -1 {
+			_, realRangeSelectStart, err := v.realPosition(0, v.rangeSelectStartY-v.oy)
+			if err != nil {
+				return err
+			}
+
+			rangeSelectStart = min(realRangeSelectStart, rcy)
+			rangeSelectEnd = max(realRangeSelectStart, rcy)
 		}
-		fgColor = fgColor | AttrBold
-		bgColor = bgColor | v.SelBgColor
+
+		if ry >= rangeSelectStart && ry <= rangeSelectEnd {
+			// this ensures we use the bright variant of a colour upon highlight
+			fgColorComponent := fgColor & ^AttrAll
+			if fgColorComponent >= AttrIsValidColor && fgColorComponent < AttrIsValidColor+8 {
+				fgColor += 8
+			}
+			fgColor = fgColor | AttrBold
+			bgColor = bgColor | v.SelBgColor
+		}
 	}
 
 	// Don't display NUL characters
@@ -466,6 +497,20 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 	tcellSetCell(v.x0+x+1, v.y0+y+1, ch, fgColor, bgColor, v.outMode)
 
 	return nil
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 // SetCursor sets the cursor position of the view at the given point,
@@ -1388,7 +1433,31 @@ func (v *View) SelectedLine() string {
 	if len(v.lines) == 0 {
 		return ""
 	}
-	line := v.lines[v.SelectedLineIdx()]
+
+	return v.lineContentAtIdx(v.SelectedLineIdx())
+}
+
+// expected to only be used in tests
+func (v *View) SelectedLines() []string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if len(v.lines) == 0 {
+		return nil
+	}
+
+	startIdx, endIdx := v.SelectedLineRange()
+
+	lines := make([]string, 0, endIdx-startIdx+1)
+	for i := startIdx; i <= endIdx; i++ {
+		lines = append(lines, v.lineContentAtIdx(i))
+	}
+
+	return lines
+}
+
+func (v *View) lineContentAtIdx(idx int) string {
+	line := v.lines[idx]
 	str := lineType(line).String()
 	return strings.Replace(str, "\x00", "", -1)
 }
@@ -1397,6 +1466,25 @@ func (v *View) SelectedPoint() (int, int) {
 	cx, cy := v.Cursor()
 	ox, oy := v.Origin()
 	return cx + ox, cy + oy
+}
+
+func (v *View) SelectedLineRange() (int, int) {
+	_, cy := v.Cursor()
+	_, oy := v.Origin()
+
+	start := cy + oy
+
+	if v.rangeSelectStartY == -1 {
+		return start, start
+	}
+
+	end := v.rangeSelectStartY
+
+	if start > end {
+		return end, start
+	} else {
+		return start, end
+	}
 }
 
 func (v *View) RenderTextArea() {

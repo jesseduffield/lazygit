@@ -154,9 +154,6 @@ type ThemeConfig struct {
 	// Background color of selected line.
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
 	SelectedLineBgColor []string `yaml:"selectedLineBgColor" jsonschema:"minItems=1,uniqueItems=true"`
-	// Background color of selected range
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
-	SelectedRangeBgColor []string `yaml:"selectedRangeBgColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Foreground color of copied commit
 	CherryPickedCommitFgColor []string `yaml:"cherryPickedCommitFgColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Background color of copied commit
@@ -304,6 +301,9 @@ type KeybindingUniversalConfig struct {
 	ScrollRight                  string   `yaml:"scrollRight"`
 	GotoTop                      string   `yaml:"gotoTop"`
 	GotoBottom                   string   `yaml:"gotoBottom"`
+	ToggleRangeSelect            string   `yaml:"toggleRangeSelect"`
+	RangeSelectDown              string   `yaml:"rangeSelectDown"`
+	RangeSelectUp                string   `yaml:"rangeSelectUp"`
 	PrevBlock                    string   `yaml:"prevBlock"`
 	NextBlock                    string   `yaml:"nextBlock"`
 	PrevBlockAlt                 string   `yaml:"prevBlock-alt"`
@@ -418,7 +418,6 @@ type KeybindingCommitsConfig struct {
 	PickCommit                     string `yaml:"pickCommit"`
 	RevertCommit                   string `yaml:"revertCommit"`
 	CherryPickCopy                 string `yaml:"cherryPickCopy"`
-	CherryPickCopyRange            string `yaml:"cherryPickCopyRange"`
 	PasteCommits                   string `yaml:"pasteCommits"`
 	MarkCommitAsBaseForRebase      string `yaml:"markCommitAsBaseForRebase"`
 	CreateTag                      string `yaml:"tagCommit"`
@@ -441,11 +440,9 @@ type KeybindingCommitFilesConfig struct {
 }
 
 type KeybindingMainConfig struct {
-	ToggleDragSelect    string `yaml:"toggleDragSelect"`
-	ToggleDragSelectAlt string `yaml:"toggleDragSelect-alt"`
-	ToggleSelectHunk    string `yaml:"toggleSelectHunk"`
-	PickBothHunks       string `yaml:"pickBothHunks"`
-	EditSelectHunk      string `yaml:"editSelectHunk"`
+	ToggleSelectHunk string `yaml:"toggleSelectHunk"`
+	PickBothHunks    string `yaml:"pickBothHunks"`
+	EditSelectHunk   string `yaml:"editSelectHunk"`
 }
 
 type KeybindingSubmodulesConfig struct {
@@ -621,7 +618,6 @@ func GetDefaultConfig() *UserConfig {
 				InactiveBorderColor:        []string{"default"},
 				OptionsTextColor:           []string{"blue"},
 				SelectedLineBgColor:        []string{"blue"},
-				SelectedRangeBgColor:       []string{"blue"},
 				CherryPickedCommitBgColor:  []string{"cyan"},
 				CherryPickedCommitFgColor:  []string{"blue"},
 				MarkedBaseCommitBgColor:    []string{"yellow"},
@@ -704,6 +700,9 @@ func GetDefaultConfig() *UserConfig {
 				ScrollRight:                  "L",
 				GotoTop:                      "<",
 				GotoBottom:                   ">",
+				ToggleRangeSelect:            "v",
+				RangeSelectDown:              "<s-down>",
+				RangeSelectUp:                "<s-up>",
 				PrevBlock:                    "<left>",
 				NextBlock:                    "<right>",
 				PrevBlockAlt:                 "h",
@@ -812,9 +811,8 @@ func GetDefaultConfig() *UserConfig {
 				ResetCommitAuthor:              "a",
 				PickCommit:                     "p",
 				RevertCommit:                   "t",
-				CherryPickCopy:                 "c",
-				CherryPickCopyRange:            "C",
-				PasteCommits:                   "v",
+				CherryPickCopy:                 "C",
+				PasteCommits:                   "V",
 				MarkCommitAsBaseForRebase:      "B",
 				CreateTag:                      "T",
 				CheckoutCommit:                 "<space>",
@@ -833,11 +831,9 @@ func GetDefaultConfig() *UserConfig {
 				CheckoutCommitFile: "c",
 			},
 			Main: KeybindingMainConfig{
-				ToggleDragSelect:    "v",
-				ToggleDragSelectAlt: "V",
-				ToggleSelectHunk:    "a",
-				PickBothHunks:       "b",
-				EditSelectHunk:      "E",
+				ToggleSelectHunk: "a",
+				PickBothHunks:    "b",
+				EditSelectHunk:   "E",
 			},
 			Submodules: KeybindingSubmodulesConfig{
 				Init:     "i",

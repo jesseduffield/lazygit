@@ -4,7 +4,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
 )
@@ -141,15 +140,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 
 		gui.State.ViewsSetup = true
-	}
-
-	for _, listContext := range gui.c.Context().AllList() {
-		view, err := gui.g.View(listContext.GetViewName())
-		if err != nil {
-			continue
-		}
-
-		view.SelBgColor = theme.GocuiSelectedLineBgColor
 	}
 
 	mainViewWidth, mainViewHeight := gui.Views.Main.Size()

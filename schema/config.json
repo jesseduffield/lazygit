@@ -176,18 +176,6 @@
                 "blue"
               ]
             },
-            "selectedRangeBgColor": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array",
-              "minItems": 1,
-              "uniqueItems": true,
-              "description": "Background color of selected range\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line",
-              "default": [
-                "blue"
-              ]
-            },
             "cherryPickedCommitFgColor": {
               "items": {
                 "type": "string"
@@ -667,6 +655,18 @@
               "type": "string",
               "default": "\u003e"
             },
+            "toggleRangeSelect": {
+              "type": "string",
+              "default": "v"
+            },
+            "rangeSelectDown": {
+              "type": "string",
+              "default": "\u003cs-down\u003e"
+            },
+            "rangeSelectUp": {
+              "type": "string",
+              "default": "\u003cs-up\u003e"
+            },
             "prevBlock": {
               "type": "string",
               "default": "\u003cleft\u003e"
@@ -1102,15 +1102,11 @@
             },
             "cherryPickCopy": {
               "type": "string",
-              "default": "c"
-            },
-            "cherryPickCopyRange": {
-              "type": "string",
               "default": "C"
             },
             "pasteCommits": {
               "type": "string",
-              "default": "v"
+              "default": "V"
             },
             "markCommitAsBaseForRebase": {
               "type": "string",
@@ -1178,14 +1174,6 @@
         },
         "main": {
           "properties": {
-            "toggleDragSelect": {
-              "type": "string",
-              "default": "v"
-            },
-            "toggleDragSelect-alt": {
-              "type": "string",
-              "default": "V"
-            },
             "toggleSelectHunk": {
               "type": "string",
               "default": "a"
