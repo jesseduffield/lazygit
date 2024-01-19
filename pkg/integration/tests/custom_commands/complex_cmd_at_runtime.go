@@ -1,6 +1,8 @@
 package custom_commands
 
 import (
+	"runtime"
+
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
@@ -8,7 +10,7 @@ import (
 var ComplexCmdAtRuntime = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Using a custom command provided at runtime to create a new file, via a shell command. We invoke custom commands through a shell already. This test proves that we can run a shell within a shell, which requires complex escaping.",
 	ExtraCmdArgs: []string{},
-	Skip:         false,
+	Skip:         runtime.GOOS == "windows",
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("blah")
 	},
