@@ -46,10 +46,9 @@ var QuickStartKeepSelectionRange = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("CI commit 06"),
 				Contains("update-ref").Contains("branch2"),
 				Contains("CI * commit 05"),
-				// Only 01 remains selected, but we want 04 through 01 to stay selected:
-				Contains("CI commit 04"),
-				Contains("update-ref").Contains("branch1"),
-				Contains("CI * commit 03"),
+				Contains("CI commit 04").IsSelected(),
+				Contains("update-ref").Contains("branch1").IsSelected(),
+				Contains("CI * commit 03").IsSelected(),
 				Contains("CI commit 02").IsSelected(),
 				Contains("CI <-- YOU ARE HERE --- commit 01"),
 			)
