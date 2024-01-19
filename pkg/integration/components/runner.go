@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 
 	lazycoreUtils "github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -254,11 +255,16 @@ func getLazygitCommand(
 }
 
 func tempLazygitPath() string {
-	return filepath.Join("/tmp", "lazygit", "test_lazygit")
+	filename := "test_lazygit"
+	if runtime.GOOS == "windows" {
+		filename = "test_lazygit.exe"
+	}
+
+	return filepath.Join(os.TempDir(), "lazygit", filename)
 }
 
 func raceDetectorLogsPath() string {
-	return filepath.Join("/tmp", "lazygit", "race_log")
+	return filepath.Join(os.TempDir(), "lazygit", "race_log")
 }
 
 func findOrCreateDir(path string) {
