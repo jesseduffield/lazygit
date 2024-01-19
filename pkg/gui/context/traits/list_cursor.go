@@ -128,7 +128,7 @@ func (self *ListCursor) AreMultipleItemsSelected() bool {
 
 func (self *ListCursor) GetSelectionRange() (int, int) {
 	if self.IsSelectingRange() {
-		return utils.MinMax(self.selectedIdx, self.rangeStartIdx)
+		return utils.SortRange(self.selectedIdx, self.rangeStartIdx)
 	}
 
 	return self.selectedIdx, self.selectedIdx

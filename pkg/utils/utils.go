@@ -50,7 +50,7 @@ func Max(x, y int) int {
 	return y
 }
 
-func MinMax(x int, y int) (int, int) {
+func SortRange(x int, y int) (int, int) {
 	if x < y {
 		return x, y
 	}
