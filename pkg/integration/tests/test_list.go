@@ -230,6 +230,7 @@ var tests = []*components.IntegrationTest{
 	submodule.Remove,
 	submodule.Reset,
 	sync.FetchPrune,
+	sync.FetchWhenSortedByDate,
 	sync.ForcePush,
 	sync.ForcePushMultipleMatching,
 	sync.ForcePushMultipleUpstream,

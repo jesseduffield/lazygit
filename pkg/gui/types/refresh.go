@@ -36,4 +36,11 @@ type RefreshOptions struct {
 	Then  func()
 	Scope []RefreshableView // e.g. []RefreshableView{COMMITS, BRANCHES}. Leave empty to refresh everything
 	Mode  RefreshMode       // one of SYNC (default), ASYNC, and BLOCK_UI
+
+	// Normally a refresh of the branches tries to keep the same branch selected
+	// (by name); this is usually important in case the order of branches
+	// changes. Passing true for KeepBranchSelectionIndex suppresses this and
+	// keeps the selection index the same. Useful after checking out a detached
+	// head, and selecting index 0.
+	KeepBranchSelectionIndex bool
 }

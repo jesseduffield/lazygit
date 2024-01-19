@@ -57,8 +57,8 @@ var SuggestionsPreset = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Branches().
 			Lines(
-				Contains("branch-three").IsSelected(),
-				Contains("branch-four"),
+				Contains("branch-three"),
+				Contains("branch-four").IsSelected(),
 				Contains("branch-two"),
 				Contains("branch-one"),
 			)

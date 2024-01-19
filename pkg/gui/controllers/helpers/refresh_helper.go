@@ -126,7 +126,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			refresh("commits and commit files", self.refreshCommitsAndCommitFiles)
 
 			includeWorktreesWithBranches = scopeSet.Includes(types.WORKTREES)
-			refresh("reflog and branches", func() { self.refreshReflogAndBranches(includeWorktreesWithBranches) })
+			refresh("reflog and branches", func() { self.refreshReflogAndBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex) })
 		} else if scopeSet.Includes(types.REBASE_COMMITS) {
 			// the above block handles rebase commits so we only need to call this one
 			// if we've asked specifically for rebase commits and not those other things
@@ -248,7 +248,7 @@ func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 	case types.INITIAL:
 		self.c.OnWorker(func(_ gocui.Task) {
 			_ = self.refreshReflogCommits()
-			self.refreshBranches(false)
+			self.refreshBranches(false, true)
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)
 		})
 
@@ -257,10 +257,10 @@ func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 	}
 }
 
-func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool) {
+func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, keepBranchSelectionIndex bool) {
 	self.refreshReflogCommitsConsideringStartup()
 
-	self.refreshBranches(refreshWorktrees)
+	self.refreshBranches(refreshWorktrees, keepBranchSelectionIndex)
 }
 
 func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
@@ -425,9 +425,11 @@ func (self *RefreshHelper) refreshStateSubmoduleConfigs() error {
 
 // self.refreshStatus is called at the end of this because that's when we can
 // be sure there is a State.Model.Branches array to pick the current branch from
-func (self *RefreshHelper) refreshBranches(refreshWorktrees bool) {
+func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSelectionIndex bool) {
 	self.c.Mutexes().RefreshingBranchesMutex.Lock()
 	defer self.c.Mutexes().RefreshingBranchesMutex.Unlock()
+
+	prevSelectedBranch := self.c.Contexts().Branches.GetSelected()
 
 	reflogCommits := self.c.Model().FilteredReflogCommits
 	if self.c.Modes().Filtering.Active() && self.c.AppState.LocalBranchSortOrder == "recency" {
@@ -453,6 +455,14 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool) {
 		self.loadWorktrees()
 		if err := self.refreshView(self.c.Contexts().Worktrees); err != nil {
 			self.c.Log.Error(err)
+		}
+	}
+
+	if !keepBranchSelectionIndex && prevSelectedBranch != nil {
+		_, idx, found := lo.FindIndexOf(self.c.Contexts().Branches.GetItems(),
+			func(b *models.Branch) bool { return b.Name == prevSelectedBranch.Name })
+		if found {
+			self.c.Contexts().Branches.SetSelectedLineIdx(idx)
 		}
 	}
 
