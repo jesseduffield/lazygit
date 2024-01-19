@@ -1,6 +1,8 @@
 package custom_commands
 
 import (
+	"runtime"
+
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
@@ -13,11 +15,15 @@ var BasicCmdFromConfig = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("blah")
 	},
 	SetupConfig: func(cfg *config.AppConfig) {
+		cmd := "touch myfile"
+		if runtime.GOOS == "windows" {
+			cmd = "copy NUL myfile"
+		}
 		cfg.UserConfig.CustomCommands = []config.CustomCommand{
 			{
 				Key:     "a",
 				Context: "files",
-				Command: "touch myfile",
+				Command: cmd,
 			},
 		}
 	},
