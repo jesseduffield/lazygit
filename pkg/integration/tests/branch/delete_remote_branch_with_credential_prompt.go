@@ -1,6 +1,8 @@
 package branch
 
 import (
+	"runtime"
+
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
@@ -8,7 +10,7 @@ import (
 var DeleteRemoteBranchWithCredentialPrompt = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Delete a remote branch where credentials are required",
 	ExtraCmdArgs: []string{},
-	Skip:         false,
+	Skip:         runtime.GOOS == "windows",
 	SetupConfig: func(config *config.AppConfig) {
 	},
 	SetupRepo: func(shell *Shell) {
