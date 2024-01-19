@@ -39,6 +39,7 @@ test/_results/**
 
 oryxBuildBinary
 __debug_bin
+__debug_bin.exe
 
 .worktrees
 demo/output/*
