@@ -1,6 +1,8 @@
 package misc
 
 import (
+	"runtime"
+
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
@@ -10,7 +12,7 @@ import (
 var CopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Copy a branch name to the clipboard using custom clipboard command template",
 	ExtraCmdArgs: []string{},
-	Skip:         false,
+	Skip:         runtime.GOOS == "windows",
 	SetupConfig: func(config *config.AppConfig) {
 		config.UserConfig.OS.CopyToClipboardCmd = "echo {{text}} > clipboard"
 	},
