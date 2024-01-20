@@ -31,6 +31,16 @@ func (self *CommitDescriptionPanelDriver) AddNewline() *CommitDescriptionPanelDr
 	return self
 }
 
+func (self *CommitDescriptionPanelDriver) GoToBeginning() *CommitDescriptionPanelDriver {
+	numLines := len(self.getViewDriver().getView().BufferLines())
+	for i := 0; i < numLines; i++ {
+		self.t.pressFast("<up>")
+	}
+
+	self.t.pressFast("<c-a>")
+	return self
+}
+
 func (self *CommitDescriptionPanelDriver) Title(expected *TextMatcher) *CommitDescriptionPanelDriver {
 	self.getViewDriver().Title(expected)
 
