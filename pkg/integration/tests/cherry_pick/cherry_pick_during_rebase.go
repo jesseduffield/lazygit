@@ -68,6 +68,9 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 					Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
 					Confirm()
 			}).
+			Tap(func() {
+				t.Views().Information().Content(DoesNotContain("commit copied"))
+			}).
 			Lines(
 				Contains("pick  CI two"),
 				Contains("pick  CI three"),
