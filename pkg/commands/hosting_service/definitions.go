@@ -64,6 +64,15 @@ var bitbucketServerServiceDef = ServiceDefinition{
 	repoURLTemplate: "https://{{.webDomain}}/projects/{{.project}}/repos/{{.repo}}",
 }
 
+var zohorepoServiceDef = ServiceDefinition{
+	provider:                        "zohorepo",
+	pullRequestURLIntoDefaultBranch: "#/mergerequests/new?sourceBranch={{.From}}",
+	pullRequestURLIntoTargetBranch:  "#/mergerequests/new?sourceBranch={{.From}}&targetBranch={{.To}}",
+	commitURL:                       "#/commit/{{.CommitSha}}",
+	regexStrings:                    defaultUrlRegexStrings,
+	repoURLTemplate:                 defaultRepoURLTemplate,
+}
+
 var giteaServiceDef = ServiceDefinition{
 	provider:                        "gitea",
 	pullRequestURLIntoDefaultBranch: "/compare/{{.From}}",
@@ -80,6 +89,7 @@ var serviceDefinitions = []ServiceDefinition{
 	azdoServiceDef,
 	bitbucketServerServiceDef,
 	giteaServiceDef,
+  zohorepoServiceDef,
 }
 
 var defaultServiceDomains = []ServiceDomain{
