@@ -65,6 +65,7 @@ var tests = []*components.IntegrationTest{
 	cherry_pick.CherryPickRange,
 	commit.AddCoAuthor,
 	commit.Amend,
+	commit.AutoWrapMessage,
 	commit.Commit,
 	commit.CommitMultiline,
 	commit.CommitSwitchToEditor,
