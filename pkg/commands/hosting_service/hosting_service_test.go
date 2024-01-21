@@ -388,7 +388,7 @@ func TestGetPullRequestURL(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page&t=1", url)
 			},
-			expectedLoggedErrors: []string{"Unknown git service type: 'noservice'. Expected one of github, bitbucket, gitlab, azuredevops, bitbucketServer, gitea"},
+			expectedLoggedErrors: []string{"Unknown git service type: 'noservice'. Expected one of github, bitbucket, gitlab, azuredevops, bitbucketServer, zohorepo, gitea"},
 		},
 		{
 			testName:  "Escapes reserved URL characters in from branch name",
