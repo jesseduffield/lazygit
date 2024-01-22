@@ -15,6 +15,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/diff"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_and_search"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_author"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_path"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
@@ -149,6 +150,8 @@ var tests = []*components.IntegrationTest{
 	filter_and_search.NestedFilter,
 	filter_and_search.NestedFilterTransient,
 	filter_and_search.NewSearch,
+	filter_by_author.SelectAuthor,
+	filter_by_author.TypeAuthor,
 	filter_by_path.CliArg,
 	filter_by_path.SelectFile,
 	filter_by_path.TypeFile,

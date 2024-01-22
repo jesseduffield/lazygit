@@ -25,6 +25,7 @@ func TestGetReflogCommits(t *testing.T) {
 		runner                  *oscommands.FakeCmdObjRunner
 		lastReflogCommit        *models.Commit
 		filterPath              string
+		filterAuthor            string
 		expectedCommits         []*models.Commit
 		expectedOnlyObtainedNew bool
 		expectedError           error
@@ -137,6 +138,31 @@ func TestGetReflogCommits(t *testing.T) {
 			expectedError:           nil,
 		},
 		{
+			testName: "when passing filterAuthor",
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p", "--author=John Doe <john@doe.com>"}, reflogOutput, nil),
+
+			lastReflogCommit: &models.Commit{
+				Sha:           "c3c4b66b64c97ffeecde",
+				Name:          "checkout: moving from B to A",
+				Status:        models.StatusReflog,
+				UnixTimestamp: 1643150483,
+				Parents:       []string{"51baa8c1"},
+			},
+			filterAuthor: "John Doe <john@doe.com>",
+			expectedCommits: []*models.Commit{
+				{
+					Sha:           "c3c4b66b64c97ffeecde",
+					Name:          "checkout: moving from A to B",
+					Status:        models.StatusReflog,
+					UnixTimestamp: 1643150483,
+					Parents:       []string{"51baa8c1"},
+				},
+			},
+			expectedOnlyObtainedNew: true,
+			expectedError:           nil,
+		},
+		{
 			testName: "when command returns error",
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p"}, "", errors.New("haha")),
@@ -157,7 +183,7 @@ func TestGetReflogCommits(t *testing.T) {
 				cmd:    oscommands.NewDummyCmdObjBuilder(scenario.runner),
 			}
 
-			commits, onlyObtainednew, err := builder.GetReflogCommits(scenario.lastReflogCommit, scenario.filterPath)
+			commits, onlyObtainednew, err := builder.GetReflogCommits(scenario.lastReflogCommit, scenario.filterPath, scenario.filterAuthor)
 			assert.Equal(t, scenario.expectedOnlyObtainedNew, onlyObtainednew)
 			assert.Equal(t, scenario.expectedError, err)
 			t.Logf("actual commits: \n%s", litter.Sdump(commits))
