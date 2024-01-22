@@ -33,7 +33,7 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 			return [][]string{{style.FgRed.Sprint("(none)")}}
 		}
 
-		lines := presentation.RenderCommitFileTree(viewModel, c.Modes().Diffing.Ref, c.Git().Patch.PatchBuilder)
+		lines := presentation.RenderCommitFileTree(viewModel, c.Git().Patch.PatchBuilder)
 		return lo.Map(lines, func(line string, _ int) []string {
 			return []string{line}
 		})

@@ -24,7 +24,7 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 	)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {
-		lines := presentation.RenderFileTree(viewModel, c.Modes().Diffing.Ref, c.Model().Submodules)
+		lines := presentation.RenderFileTree(viewModel, c.Model().Submodules)
 		return lo.Map(lines, func(line string, _ int) []string {
 			return []string{line}
 		})
