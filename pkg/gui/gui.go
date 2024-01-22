@@ -386,7 +386,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 			Authors:               map[string]*models.Author{},
 		},
 		Modes: &types.Modes{
-			Filtering:        filtering.New(startArgs.FilterPath),
+			Filtering:        filtering.New(startArgs.FilterPath, ""),
 			CherryPicking:    cherrypicking.New(),
 			Diffing:          diffing.New(),
 			MarkedBaseCommit: marked_base_commit.New(),

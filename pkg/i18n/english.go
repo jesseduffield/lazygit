@@ -536,9 +536,13 @@ type TranslationSet struct {
 	OpenFilteringMenuTooltip              string
 	FilterBy                              string
 	ExitFilterMode                        string
+	ExitFilterModeAuthor                  string
 	FilterPathOption                      string
+	FilterAuthorOption                    string
 	EnterFileName                         string
+	EnterAuthor                           string
 	FilteringMenuTitle                    string
+	WillCancelExistingFilterTooltip       string
 	MustExitFilterModeTitle               string
 	MustExitFilterModePrompt              string
 	Diff                                  string
@@ -1475,13 +1479,16 @@ func EnglishTranslationSet() TranslationSet {
 		GotoBottom:                       "Scroll to bottom",
 		FilteringBy:                      "Filtering by",
 		ResetInParentheses:               "(Reset)",
-		OpenFilteringMenu:                "View filter-by-path options",
-		OpenFilteringMenuTooltip:         "View options for filtering the commit log by a file path, so that only commits relating to that path are shown.",
+		OpenFilteringMenu:                "View filter options",
+		OpenFilteringMenuTooltip:         "View options for filtering the commit log, so that only commits matching the filter are shown.",
 		FilterBy:                         "Filter by",
-		ExitFilterMode:                   "Stop filtering by path",
+		ExitFilterMode:                   "Stop filtering",
 		FilterPathOption:                 "Enter path to filter by",
+		FilterAuthorOption:               "Enter author to filter by",
 		EnterFileName:                    "Enter path:",
+		EnterAuthor:                      "Enter author:",
 		FilteringMenuTitle:               "Filtering",
+		WillCancelExistingFilterTooltip:  "Note: this will cancel the existing filter",
 		MustExitFilterModeTitle:          "Command not available",
 		MustExitFilterModePrompt:         "Command not available in filter-by-path mode. Exit filter-by-path mode?",
 		Diff:                             "Diff",

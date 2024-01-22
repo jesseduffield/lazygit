@@ -23,7 +23,7 @@ _Связки клавиш_
 | `` + `` | Следующий режим экрана (нормальный/полуэкранный/полноэкранный) |  |
 | `` _ `` | Предыдущий режим экрана |  |
 | `` ? `` | Открыть меню |  |
-| `` <c-s> `` | Просмотреть параметры фильтрации по пути | View options for filtering the commit log by a file path, so that only commits relating to that path are shown. |
+| `` <c-s> `` | Просмотреть параметры фильтрации по пути | View options for filtering the commit log, so that only commits matching the filter are shown. |
 | `` W `` | Открыть меню сравнении | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` <c-e> `` | Открыть меню сравнении | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | Выйти |  |
