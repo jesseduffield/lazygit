@@ -79,6 +79,7 @@ gui:
   showCommandLog: true
   showIcons: false # deprecated: use nerdFontsVersion instead
   nerdFontsVersion: "" # nerd fonts version to use ("2" or "3"); empty means don't show nerd font icons
+  showFileIcons: true # for hiding file icons in the file views
   commandLogSize: 8
   splitDiff: 'auto' # one of 'auto' | 'always'
   skipRewordInEditorWarning: false # for skipping the confirmation before launching the reword editor

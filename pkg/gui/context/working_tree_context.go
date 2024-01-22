@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -24,7 +25,8 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 	)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {
-		lines := presentation.RenderFileTree(viewModel, c.Model().Submodules)
+		showFileIcons := icons.IsIconEnabled() && c.UserConfig.Gui.ShowFileIcons
+		lines := presentation.RenderFileTree(viewModel, c.Model().Submodules, showFileIcons)
 		return lo.Map(lines, func(line string, _ int) []string {
 			return []string{line}
 		})

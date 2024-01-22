@@ -304,6 +304,11 @@
           ],
           "description": "Nerd fonts version to use.\nOne of: '2' | '3' | empty string (default)\nIf empty, do not show icons."
         },
+        "showFileIcons": {
+          "type": "boolean",
+          "description": "If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.",
+          "default": true
+        },
         "showBranchCommitHash": {
           "type": "boolean",
           "description": "If true, show commit hashes alongside branch names in the branches view."
