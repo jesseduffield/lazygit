@@ -450,6 +450,7 @@ type KeybindingMainConfig struct {
 type KeybindingSubmodulesConfig struct {
 	Init     string `yaml:"init"`
 	Update   string `yaml:"update"`
+	Sync     string `yaml:"sync"`
 	BulkMenu string `yaml:"bulkMenu"`
 }
 
@@ -841,6 +842,7 @@ func GetDefaultConfig() *UserConfig {
 			Submodules: KeybindingSubmodulesConfig{
 				Init:     "i",
 				Update:   "u",
+				Sync:     "s",
 				BulkMenu: "b",
 			},
 			CommitMessage: KeybindingCommitMessageConfig{

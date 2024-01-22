@@ -194,6 +194,13 @@ func (self *SubmoduleCommands) Update(path string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+func (self *SubmoduleCommands) Sync(path string) error {
+	cmdArgs := NewGitCmd("submodule").Arg("sync", "--", path).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
 func (self *SubmoduleCommands) BulkInitCmdObj() oscommands.ICmdObj {
 	cmdArgs := NewGitCmd("submodule").Arg("init").
 		ToArgv()
@@ -217,6 +224,13 @@ func (self *SubmoduleCommands) ForceBulkUpdateCmdObj() oscommands.ICmdObj {
 
 func (self *SubmoduleCommands) BulkDeinitCmdObj() oscommands.ICmdObj {
 	cmdArgs := NewGitCmd("submodule").Arg("deinit", "--all", "--force").
+		ToArgv()
+
+	return self.cmd.New(cmdArgs)
+}
+
+func (self *SubmoduleCommands) BulkSyncCmdObj() oscommands.ICmdObj {
+	cmdArgs := NewGitCmd("submodule").Arg("sync").
 		ToArgv()
 
 	return self.cmd.New(cmdArgs)

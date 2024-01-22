@@ -216,6 +216,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;space&gt;</kbd>: 서브모듈 열기
   <kbd>d</kbd>: 서브모듈 삭제
   <kbd>u</kbd>: 서브모듈 업데이트
+  <kbd>s</kbd>: Sync submodule
   <kbd>n</kbd>: 새로운 서브모듈 추가
   <kbd>e</kbd>: 서브모듈의 URL을 수정
   <kbd>i</kbd>: 서브모듈 초기화

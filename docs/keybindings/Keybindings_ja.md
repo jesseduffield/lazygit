@@ -156,6 +156,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;space&gt;</kbd>: サブモジュールを開く
   <kbd>d</kbd>: サブモジュールを削除
   <kbd>u</kbd>: サブモジュールを更新
+  <kbd>s</kbd>: サブモジュールを同期
   <kbd>n</kbd>: サブモジュールを新規追加
   <kbd>e</kbd>: サブモジュールのURLを更新
   <kbd>i</kbd>: サブモジュールを初期化

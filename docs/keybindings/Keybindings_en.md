@@ -329,6 +329,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;space&gt;</kbd>: Enter submodule
   <kbd>d</kbd>: Remove submodule
   <kbd>u</kbd>: Update submodule
+  <kbd>s</kbd>: Sync submodule
   <kbd>n</kbd>: Add new submodule
   <kbd>e</kbd>: Update submodule URL
   <kbd>i</kbd>: Initialize submodule

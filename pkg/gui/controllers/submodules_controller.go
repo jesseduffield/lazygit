@@ -61,6 +61,11 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			Description:       self.c.Tr.SubmoduleUpdate,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Submodules.Sync),
+			Handler:     self.checkSelected(self.sync),
+			Description: self.c.Tr.SubmoduleSync,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
 			Handler:     self.add,
 			Description: self.c.Tr.AddSubmodule,
@@ -229,6 +234,20 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 				Key: 'u',
 			},
 			{
+				LabelColumns: []string{self.c.Tr.BulkSyncSubmodules, style.FgYellow.Sprint(self.c.Git().Submodule.BulkSyncCmdObj().ToString())},
+				OnPress: func() error {
+					return self.c.WithWaitingStatus(self.c.Tr.RunningCommand, func(gocui.Task) error {
+						self.c.LogAction(self.c.Tr.Actions.BulkSyncSubmodules)
+						if err := self.c.Git().Submodule.BulkSyncCmdObj().Run(); err != nil {
+							return self.c.Error(err)
+						}
+
+						return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+					})
+				},
+				Key: 's',
+			},
+			{
 				LabelColumns: []string{self.c.Tr.BulkDeinitSubmodules, style.FgRed.Sprint(self.c.Git().Submodule.BulkDeinitCmdObj().ToString())},
 				OnPress: func() error {
 					return self.c.WithWaitingStatus(self.c.Tr.RunningCommand, func(gocui.Task) error {
@@ -250,6 +269,18 @@ func (self *SubmodulesController) update(submodule *models.SubmoduleConfig) erro
 	return self.c.WithWaitingStatus(self.c.Tr.UpdatingSubmoduleStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.UpdateSubmodule)
 		err := self.c.Git().Submodule.Update(submodule.Path)
+		if err != nil {
+			_ = self.c.Error(err)
+		}
+
+		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+	})
+}
+
+func (self *SubmodulesController) sync(submodule *models.SubmoduleConfig) error {
+	return self.c.WithWaitingStatus(self.c.Tr.UpdatingSubmoduleStatus, func(gocui.Task) error {
+		self.c.LogAction(self.c.Tr.Actions.SyncSubmodule)
+		err := self.c.Git().Submodule.Sync(submodule.Path)
 		if err != nil {
 			_ = self.c.Error(err)
 		}

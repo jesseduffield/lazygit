@@ -167,6 +167,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>&lt;space&gt;</kbd>: 進入子模組
   <kbd>d</kbd>: 移除子模組
   <kbd>u</kbd>: 更新子模組
+  <kbd>s</kbd>: Sync submodule
   <kbd>n</kbd>: 新增子模組
   <kbd>e</kbd>: 更新子模組 URL
   <kbd>i</kbd>: 初始化子模組

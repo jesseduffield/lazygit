@@ -126,6 +126,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;space&gt;</kbd>: 输入子模块
   <kbd>d</kbd>: 删除子模块
   <kbd>u</kbd>: 更新子模块
+  <kbd>s</kbd>: Sync submodule
   <kbd>n</kbd>: 添加新的子模块
   <kbd>e</kbd>: 更新子模块 URL
   <kbd>i</kbd>: 初始化子模块
