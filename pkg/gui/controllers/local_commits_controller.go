@@ -1028,12 +1028,30 @@ func (self *LocalCommitsController) midRebaseCommandEnabled(selectedCommits []*m
 			return &types.DisabledReason{Text: self.c.Tr.MustSelectTodoCommits}
 		}
 
-		if commit.Action == models.ActionConflict {
+		if !isChangeOfRebaseTodoAllowed(commit.Action) {
 			return &types.DisabledReason{Text: self.c.Tr.ChangingThisActionIsNotAllowed}
 		}
 	}
 
 	return nil
+}
+
+// These actions represent standard things you might want to do with a commit,
+// as opposed to TODO actions like 'merge', 'update-ref', etc.
+var standardActions = []todo.TodoCommand{
+	todo.Pick,
+	todo.Drop,
+	todo.Edit,
+	todo.Fixup,
+	todo.Squash,
+	todo.Reword,
+}
+
+func isChangeOfRebaseTodoAllowed(oldAction todo.TodoCommand) bool {
+	// Only allow updating a standard action, meaning we disallow
+	// updating a merge commit or update ref commit (until we decide what would be sensible
+	// to do in those cases)
+	return lo.Contains(standardActions, oldAction)
 }
 
 func (self *LocalCommitsController) pickEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
