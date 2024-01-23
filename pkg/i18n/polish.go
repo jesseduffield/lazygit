@@ -180,7 +180,6 @@ func polishTranslationSet() TranslationSet {
 		ViewResetOptions:                    "Wyświetl opcje resetu",
 		CreateFixupCommitTooltip:            "Utwórz commit naprawczy dla tego commita",
 		SquashAboveCommitsTooltip:           `Spłaszcz wszystkie commity naprawcze powyżej zaznaczonych commitów (autosquash)`,
-		SureSquashAboveCommits:              `Na pewno chcesz spłaszczyć wszystkie commity naprawcze powyżej {{.commit}}?`,
 		CreateFixupCommit:                   `Utwóż commit naprawczy`,
 		SureCreateFixupCommit:               `Na pewno utworzyć commit naprawczy dla commita {{.commit}}?`,
 		ExecuteCustomCommand:                "Wykonaj własną komendę",

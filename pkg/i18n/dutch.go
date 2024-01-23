@@ -217,7 +217,6 @@ func dutchTranslationSet() TranslationSet {
 		HardReset:                           "Harde reset",
 		CreateFixupCommit:                   `Creëer fixup commit voor deze commit`,
 		SquashAboveCommitsTooltip:           `Squash bovenstaande commits`,
-		SureSquashAboveCommits:              `Weet je zeker dat je alles wil squash/fixup! voor de bovenstaand commits {{.commit}}?`,
 		CreateFixupCommitTooltip:            `Creëer fixup commit`,
 		SureCreateFixupCommit:               `Weet je zeker dat je een fixup wil maken! commit voor commit {{.commit}}?`,
 		ExecuteCustomCommand:                "Voer aangepaste commando uit",

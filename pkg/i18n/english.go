@@ -386,8 +386,12 @@ type TranslationSet struct {
 	CreateFixupCommitDescription          string
 	CreateFixupCommitTooltip              string
 	SquashAboveCommitsTooltip             string
+	SquashCommitsAboveSelectedTooltip     string
+	SquashCommitsInCurrentBranchTooltip   string
 	SquashAboveCommits                    string
-	SureSquashAboveCommits                string
+	SquashCommitsInCurrentBranch          string
+	SquashCommitsAboveSelectedCommit      string
+	CannotSquashCommitsInCurrentBranch    string
 	SureCreateFixupCommit                 string
 	ExecuteCustomCommand                  string
 	ExecuteCustomCommandTooltip           string
@@ -1322,8 +1326,12 @@ func EnglishTranslationSet() TranslationSet {
 		CreateFixupCommitDescription:        `Create fixup commit`,
 		CreateFixupCommitTooltip:            "Create 'fixup!' commit for the selected commit. Later on, you can press `{{.squashAbove}}` on this same commit to apply all above fixup commits.",
 		SquashAboveCommits:                  "Apply fixup commits",
-		SquashAboveCommitsTooltip:           `Squash all 'fixup!' commits above selected commit (autosquash).`,
-		SureSquashAboveCommits:              `Are you sure you want to squash all fixup! commits above {{.commit}}?`,
+		SquashAboveCommitsTooltip:           `Squash all 'fixup!' commits, either above the selected commit, or all in current branch (autosquash).`,
+		SquashCommitsAboveSelectedTooltip:   `Squash all 'fixup!' commits above the selected commit (autosquash).`,
+		SquashCommitsInCurrentBranchTooltip: `Squash all 'fixup!' commits in the current branch (autosquash).`,
+		SquashCommitsInCurrentBranch:        "In current branch",
+		SquashCommitsAboveSelectedCommit:    "Above the selected commit",
+		CannotSquashCommitsInCurrentBranch:  "Cannot squash commits in current branch: the HEAD commit is a merge commit or is present on the main branch.",
 		CreateFixupCommit:                   `Create fixup commit`,
 		SureCreateFixupCommit:               `Are you sure you want to create a fixup! commit for commit {{.commit}}?`,
 		ExecuteCustomCommand:                "Execute custom command",
