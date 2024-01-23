@@ -43,12 +43,3 @@ func NewSubmodulesContext(c *ContextCommon) *SubmodulesContext {
 		},
 	}
 }
-
-func (self *SubmodulesContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
-}

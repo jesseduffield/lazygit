@@ -16,6 +16,7 @@ type ContainsCommits interface {
 	types.Context
 	types.IListContext
 	GetSelected() *models.Commit
+	GetSelectedItems() ([]*models.Commit, int, int)
 	GetCommits() []*models.Commit
 	GetSelectedLineIdx() int
 }
@@ -36,6 +37,7 @@ func NewBasicCommitsController(c *ControllerCommon, context ContainsCommits) *Ba
 			c,
 			context,
 			context.GetSelected,
+			context.GetSelectedItems,
 		),
 	}
 }

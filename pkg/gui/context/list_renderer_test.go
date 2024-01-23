@@ -9,10 +9,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// wrapping string in my own type to give it an ID method which is required for list items
+type mystring string
+
+func (self mystring) ID() string {
+	return string(self)
+}
+
 func TestListRenderer_renderLines(t *testing.T) {
 	scenarios := []struct {
 		name            string
-		modelStrings    []string
+		modelStrings    []mystring
 		nonModelIndices []int
 		startIdx        int
 		endIdx          int
@@ -20,7 +27,7 @@ func TestListRenderer_renderLines(t *testing.T) {
 	}{
 		{
 			name:         "Render whole list",
-			modelStrings: []string{"a", "b", "c"},
+			modelStrings: []mystring{"a", "b", "c"},
 			startIdx:     0,
 			endIdx:       3,
 			expectedOutput: `
@@ -30,7 +37,7 @@ func TestListRenderer_renderLines(t *testing.T) {
 		},
 		{
 			name:         "Partial list, beginning",
-			modelStrings: []string{"a", "b", "c"},
+			modelStrings: []mystring{"a", "b", "c"},
 			startIdx:     0,
 			endIdx:       2,
 			expectedOutput: `
@@ -39,7 +46,7 @@ func TestListRenderer_renderLines(t *testing.T) {
 		},
 		{
 			name:         "Partial list, end",
-			modelStrings: []string{"a", "b", "c"},
+			modelStrings: []mystring{"a", "b", "c"},
 			startIdx:     1,
 			endIdx:       3,
 			expectedOutput: `
@@ -48,7 +55,7 @@ func TestListRenderer_renderLines(t *testing.T) {
 		},
 		{
 			name:         "Pass an endIdx greater than the model length",
-			modelStrings: []string{"a", "b", "c"},
+			modelStrings: []mystring{"a", "b", "c"},
 			startIdx:     2,
 			endIdx:       5,
 			expectedOutput: `
@@ -56,7 +63,7 @@ func TestListRenderer_renderLines(t *testing.T) {
 		},
 		{
 			name:            "Whole list with section headers",
-			modelStrings:    []string{"a", "b", "c"},
+			modelStrings:    []mystring{"a", "b", "c"},
 			nonModelIndices: []int{1, 3},
 			startIdx:        0,
 			endIdx:          5,
@@ -69,7 +76,7 @@ func TestListRenderer_renderLines(t *testing.T) {
 		},
 		{
 			name:            "Multiple consecutive headers",
-			modelStrings:    []string{"a", "b", "c"},
+			modelStrings:    []mystring{"a", "b", "c"},
 			nonModelIndices: []int{0, 0, 2, 2, 2},
 			startIdx:        0,
 			endIdx:          8,
@@ -85,7 +92,7 @@ func TestListRenderer_renderLines(t *testing.T) {
 		},
 		{
 			name:            "Partial list with headers, beginning",
-			modelStrings:    []string{"a", "b", "c"},
+			modelStrings:    []mystring{"a", "b", "c"},
 			nonModelIndices: []int{1, 3},
 			startIdx:        0,
 			endIdx:          3,
@@ -96,7 +103,7 @@ func TestListRenderer_renderLines(t *testing.T) {
 		},
 		{
 			name:            "Partial list with headers, end (beyond end index)",
-			modelStrings:    []string{"a", "b", "c"},
+			modelStrings:    []mystring{"a", "b", "c"},
 			nonModelIndices: []int{1, 3},
 			startIdx:        2,
 			endIdx:          7,
@@ -108,7 +115,7 @@ func TestListRenderer_renderLines(t *testing.T) {
 	}
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			viewModel := NewListViewModel[string](func() []string { return s.modelStrings })
+			viewModel := NewListViewModel[mystring](func() []mystring { return s.modelStrings })
 			var getNonModelItems func() []*NonModelItem
 			if s.nonModelIndices != nil {
 				getNonModelItems = func() []*NonModelItem {
@@ -124,7 +131,7 @@ func TestListRenderer_renderLines(t *testing.T) {
 				list: viewModel,
 				getDisplayStrings: func(startIdx int, endIdx int) [][]string {
 					return lo.Map(s.modelStrings[startIdx:endIdx],
-						func(s string, _ int) []string { return []string{s} })
+						func(s mystring, _ int) []string { return []string{string(s)} })
 				},
 				getNonModelItems: getNonModelItems,
 			}
@@ -136,6 +143,12 @@ func TestListRenderer_renderLines(t *testing.T) {
 			assert.Equal(t, expectedOutput, self.renderLines(s.startIdx, s.endIdx))
 		})
 	}
+}
+
+type myint int
+
+func (self myint) ID() string {
+	return fmt.Sprint(int(self))
 }
 
 func TestListRenderer_ModelIndexToViewIndex_and_back(t *testing.T) {
@@ -222,8 +235,8 @@ func TestListRenderer_ModelIndexToViewIndex_and_back(t *testing.T) {
 			assert.Equal(t, len(s.modelIndices), len(s.expectedViewIndices))
 			assert.Equal(t, len(s.viewIndices), len(s.expectedModelIndices))
 
-			modelInts := lo.Range(s.numModelItems)
-			viewModel := NewListViewModel[int](func() []int { return modelInts })
+			modelInts := lo.Map(lo.Range(s.numModelItems), func(i int, _ int) myint { return myint(i) })
+			viewModel := NewListViewModel[myint](func() []myint { return modelInts })
 			var getNonModelItems func() []*NonModelItem
 			if s.nonModelIndices != nil {
 				getNonModelItems = func() []*NonModelItem {
@@ -236,7 +249,7 @@ func TestListRenderer_ModelIndexToViewIndex_and_back(t *testing.T) {
 				list: viewModel,
 				getDisplayStrings: func(startIdx int, endIdx int) [][]string {
 					return lo.Map(modelInts[startIdx:endIdx],
-						func(i int, _ int) []string { return []string{fmt.Sprint(i)} })
+						func(i myint, _ int) []string { return []string{fmt.Sprint(i)} })
 				},
 				getNonModelItems: getNonModelItems,
 			}

@@ -25,6 +25,7 @@ func NewTagsController(
 			c,
 			c.Contexts().Tags,
 			c.Contexts().Tags.GetSelected,
+			c.Contexts().Tags.GetSelectedItems,
 		),
 		c: c,
 	}

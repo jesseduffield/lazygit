@@ -22,6 +22,7 @@ func NewMenuController(
 			c,
 			c.Contexts().Menu,
 			c.Contexts().Menu.GetSelected,
+			c.Contexts().Menu.GetSelectedItems,
 		),
 		c: c,
 	}

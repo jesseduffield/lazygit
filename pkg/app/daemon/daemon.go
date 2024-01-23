@@ -34,8 +34,8 @@ const (
 
 	DaemonKindExitImmediately
 	DaemonKindCherryPick
-	DaemonKindMoveTodoUp
-	DaemonKindMoveTodoDown
+	DaemonKindMoveTodosUp
+	DaemonKindMoveTodosDown
 	DaemonKindInsertBreak
 	DaemonKindChangeTodoActions
 	DaemonKindMoveFixupCommitDown
@@ -56,8 +56,8 @@ func getInstruction() Instruction {
 		DaemonKindCherryPick:          deserializeInstruction[*CherryPickCommitsInstruction],
 		DaemonKindChangeTodoActions:   deserializeInstruction[*ChangeTodoActionsInstruction],
 		DaemonKindMoveFixupCommitDown: deserializeInstruction[*MoveFixupCommitDownInstruction],
-		DaemonKindMoveTodoUp:          deserializeInstruction[*MoveTodoUpInstruction],
-		DaemonKindMoveTodoDown:        deserializeInstruction[*MoveTodoDownInstruction],
+		DaemonKindMoveTodosUp:         deserializeInstruction[*MoveTodosUpInstruction],
+		DaemonKindMoveTodosDown:       deserializeInstruction[*MoveTodosDownInstruction],
 		DaemonKindInsertBreak:         deserializeInstruction[*InsertBreakInstruction],
 	}
 
@@ -208,13 +208,15 @@ func (self *ChangeTodoActionsInstruction) SerializedInstructions() string {
 
 func (self *ChangeTodoActionsInstruction) run(common *common.Common) error {
 	return handleInteractiveRebase(common, func(path string) error {
-		for _, c := range self.Changes {
-			if err := utils.EditRebaseTodo(path, c.Sha, todo.Pick, c.NewAction, getCommentChar()); err != nil {
-				return err
+		changes := lo.Map(self.Changes, func(c ChangeTodoAction, _ int) utils.TodoChange {
+			return utils.TodoChange{
+				Sha:       c.Sha,
+				OldAction: todo.Pick,
+				NewAction: c.NewAction,
 			}
-		}
+		})
 
-		return nil
+		return utils.EditRebaseTodo(path, changes, getCommentChar())
 	})
 }
 
@@ -247,51 +249,65 @@ func (self *MoveFixupCommitDownInstruction) run(common *common.Common) error {
 	})
 }
 
-type MoveTodoUpInstruction struct {
-	Sha string
+type MoveTodosUpInstruction struct {
+	Shas []string
 }
 
-func NewMoveTodoUpInstruction(sha string) Instruction {
-	return &MoveTodoUpInstruction{
-		Sha: sha,
+func NewMoveTodosUpInstruction(shas []string) Instruction {
+	return &MoveTodosUpInstruction{
+		Shas: shas,
 	}
 }
 
-func (self *MoveTodoUpInstruction) Kind() DaemonKind {
-	return DaemonKindMoveTodoUp
+func (self *MoveTodosUpInstruction) Kind() DaemonKind {
+	return DaemonKindMoveTodosUp
 }
 
-func (self *MoveTodoUpInstruction) SerializedInstructions() string {
+func (self *MoveTodosUpInstruction) SerializedInstructions() string {
 	return serializeInstruction(self)
 }
 
-func (self *MoveTodoUpInstruction) run(common *common.Common) error {
+func (self *MoveTodosUpInstruction) run(common *common.Common) error {
+	todosToMove := lo.Map(self.Shas, func(sha string, _ int) utils.Todo {
+		return utils.Todo{
+			Sha:    sha,
+			Action: todo.Pick,
+		}
+	})
+
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveTodoUp(path, self.Sha, todo.Pick, getCommentChar())
+		return utils.MoveTodosUp(path, todosToMove, getCommentChar())
 	})
 }
 
-type MoveTodoDownInstruction struct {
-	Sha string
+type MoveTodosDownInstruction struct {
+	Shas []string
 }
 
-func NewMoveTodoDownInstruction(sha string) Instruction {
-	return &MoveTodoDownInstruction{
-		Sha: sha,
+func NewMoveTodosDownInstruction(shas []string) Instruction {
+	return &MoveTodosDownInstruction{
+		Shas: shas,
 	}
 }
 
-func (self *MoveTodoDownInstruction) Kind() DaemonKind {
-	return DaemonKindMoveTodoDown
+func (self *MoveTodosDownInstruction) Kind() DaemonKind {
+	return DaemonKindMoveTodosDown
 }
 
-func (self *MoveTodoDownInstruction) SerializedInstructions() string {
+func (self *MoveTodosDownInstruction) SerializedInstructions() string {
 	return serializeInstruction(self)
 }
 
-func (self *MoveTodoDownInstruction) run(common *common.Common) error {
+func (self *MoveTodosDownInstruction) run(common *common.Common) error {
+	todosToMove := lo.Map(self.Shas, func(sha string, _ int) utils.Todo {
+		return utils.Todo{
+			Sha:    sha,
+			Action: todo.Pick,
+		}
+	})
+
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveTodoDown(path, self.Sha, todo.Pick, getCommentChar())
+		return utils.MoveTodosDown(path, todosToMove, getCommentChar())
 	})
 }
 

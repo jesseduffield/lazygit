@@ -119,6 +119,7 @@ type TranslationSet struct {
 	DeleteCommit                        string
 	MoveDownCommit                      string
 	MoveUpCommit                        string
+	CannotMoveAnyFurther                string
 	EditCommit                          string
 	AmendToCommit                       string
 	ResetAuthor                         string
@@ -239,6 +240,7 @@ type TranslationSet struct {
 	SimpleRebase                        string
 	InteractiveRebase                   string
 	InteractiveRebaseTooltip            string
+	MustSelectTodoCommits               string
 	ConfirmMerge                        string
 	FwdNoUpstream                       string
 	FwdNoLocalUpstream                  string
@@ -270,14 +272,15 @@ type TranslationSet struct {
 	ScrollDownMainPanel                 string
 	AmendCommitTitle                    string
 	AmendCommitPrompt                   string
-	DeleteCommitTitle                   string
-	DeleteCommitPrompt                  string
+	DropCommitTitle                     string
+	DropCommitPrompt                    string
 	PullingStatus                       string
 	PushingStatus                       string
 	FetchingStatus                      string
 	SquashingStatus                     string
 	FixingStatus                        string
 	DeletingStatus                      string
+	DroppingStatus                      string
 	MovingStatus                        string
 	RebasingStatus                      string
 	MergingStatus                       string
@@ -686,8 +689,6 @@ type Log struct {
 	CherryPickCommits        string
 	HandleUndo               string
 	HandleMidRebaseCommand   string
-	MovingCommitUp           string
-	MovingCommitDown         string
 	RemoveFile               string
 	CopyToClipboard          string
 	Remove                   string
@@ -945,8 +946,8 @@ func EnglishTranslationSet() TranslationSet {
 		UpdateRefHere:                       "Update branch '{{.ref}}' here",
 		CannotSquashOrFixupFirstCommit:      "There's no commit below to squash into",
 		Fixup:                               "Fixup",
-		SureFixupThisCommit:                 "Are you sure you want to 'fixup' this commit? It will be merged into the commit below",
-		SureSquashThisCommit:                "Are you sure you want to squash this commit into the commit below?",
+		SureFixupThisCommit:                 "Are you sure you want to 'fixup' the selected commit(s) into the commit below?",
+		SureSquashThisCommit:                "Are you sure you want to squash the selected commit(s) into the commit below?",
 		Squash:                              "Squash",
 		PickCommit:                          "Pick commit (when mid-rebase)",
 		RevertCommit:                        "Revert commit",
@@ -954,6 +955,7 @@ func EnglishTranslationSet() TranslationSet {
 		DeleteCommit:                        "Delete commit",
 		MoveDownCommit:                      "Move commit down one",
 		MoveUpCommit:                        "Move commit up one",
+		CannotMoveAnyFurther:                "Cannot move any further",
 		EditCommit:                          "Edit commit",
 		AmendToCommit:                       "Amend commit with staged changes",
 		ResetAuthor:                         "Reset author",
@@ -1079,6 +1081,7 @@ func EnglishTranslationSet() TranslationSet {
 		SimpleRebase:                        "Simple rebase",
 		InteractiveRebase:                   "Interactive rebase",
 		InteractiveRebaseTooltip:            "Begin an interactive rebase with a break at the start, so you can update the TODO commits before continuing",
+		MustSelectTodoCommits:               "When rebasing, this action only works on a selection of TODO commits.",
 		ConfirmMerge:                        "Are you sure you want to merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'?",
 		FwdNoUpstream:                       "Cannot fast-forward a branch with no upstream",
 		FwdNoLocalUpstream:                  "Cannot fast-forward a branch whose remote is not registered locally",
@@ -1110,14 +1113,15 @@ func EnglishTranslationSet() TranslationSet {
 		ScrollDownMainPanel:                 "Scroll down main panel",
 		AmendCommitTitle:                    "Amend commit",
 		AmendCommitPrompt:                   "Are you sure you want to amend this commit with your staged files?",
-		DeleteCommitTitle:                   "Delete commit",
-		DeleteCommitPrompt:                  "Are you sure you want to delete this commit?",
+		DropCommitTitle:                     "Drop commit",
+		DropCommitPrompt:                    "Are you sure you want to drop the selected commit(s)?",
 		PullingStatus:                       "Pulling",
 		PushingStatus:                       "Pushing",
 		FetchingStatus:                      "Fetching",
 		SquashingStatus:                     "Squashing",
 		FixingStatus:                        "Fixing up",
 		DeletingStatus:                      "Deleting",
+		DroppingStatus:                      "Dropping",
 		MovingStatus:                        "Moving",
 		RebasingStatus:                      "Rebasing",
 		MergingStatus:                       "Merging",
@@ -1626,8 +1630,6 @@ func EnglishTranslationSet() TranslationSet {
 			CherryPickCommits:        "Cherry-picking commits:\n'{{.commitLines}}'",
 			HandleUndo:               "Undoing last conflict resolution",
 			HandleMidRebaseCommand:   "Updating rebase action of commit {{.shortSha}} to '{{.action}}'",
-			MovingCommitUp:           "Moving commit {{.shortSha}} up",
-			MovingCommitDown:         "Moving commit {{.shortSha}} down",
 			RemoveFile:               "Deleting path '{{.path}}'",
 			CopyToClipboard:          "Copying '{{.str}}' to clipboard",
 			Remove:                   "Removing '{{.filename}}'",

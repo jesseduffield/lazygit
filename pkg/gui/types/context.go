@@ -136,6 +136,7 @@ type IListContext interface {
 	Context
 
 	GetSelectedItemId() string
+	GetSelectedItemIds() ([]string, int, int)
 	IsItemVisible(item HasUrn) bool
 
 	GetList() IList

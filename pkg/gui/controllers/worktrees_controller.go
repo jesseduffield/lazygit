@@ -28,6 +28,7 @@ func NewWorktreesController(
 			c,
 			c.Contexts().Worktrees,
 			c.Contexts().Worktrees.GetSelected,
+			c.Contexts().Worktrees.GetSelectedItems,
 		),
 		c: c,
 	}

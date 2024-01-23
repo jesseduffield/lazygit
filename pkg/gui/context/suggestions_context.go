@@ -63,15 +63,6 @@ func NewSuggestionsContext(
 	}
 }
 
-func (self *SuggestionsContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.Value
-}
-
 func (self *SuggestionsContext) SetSuggestions(suggestions []*types.Suggestion) {
 	self.State.Suggestions = suggestions
 	self.SetSelection(0)

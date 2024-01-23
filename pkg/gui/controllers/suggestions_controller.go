@@ -22,6 +22,7 @@ func NewSuggestionsController(
 			c,
 			c.Contexts().Suggestions,
 			c.Contexts().Suggestions.GetSelected,
+			c.Contexts().Suggestions.GetSelectedItems,
 		),
 		c: c,
 	}

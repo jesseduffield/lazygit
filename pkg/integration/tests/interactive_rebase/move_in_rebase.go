@@ -45,8 +45,11 @@ var MoveInRebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 03"),
 				Contains("YOU ARE HERE").Contains("commit 01"),
 			).
-			Press(keys.Commits.MoveUpCommit).
 			// assert we can't move past the top
+			Press(keys.Commits.MoveUpCommit).
+			Tap(func() {
+				t.ExpectToast(Contains("Disabled: Cannot move any further"))
+			}).
 			Lines(
 				Contains("commit 02").IsSelected(),
 				Contains("commit 04"),
@@ -69,6 +72,9 @@ var MoveInRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			// assert we can't move past the bottom
 			Press(keys.Commits.MoveDownCommit).
+			Tap(func() {
+				t.ExpectToast(Contains("Disabled: Cannot move any further"))
+			}).
 			Lines(
 				Contains("commit 04"),
 				Contains("commit 03"),

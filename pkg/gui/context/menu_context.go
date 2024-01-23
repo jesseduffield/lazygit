@@ -45,16 +45,6 @@ func NewMenuContext(
 	}
 }
 
-// TODO: remove this thing.
-func (self *MenuContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.Label
-}
-
 type MenuViewModel struct {
 	c               *ContextCommon
 	menuItems       []*types.MenuItem

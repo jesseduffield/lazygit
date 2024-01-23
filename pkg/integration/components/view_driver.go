@@ -211,9 +211,34 @@ func (self *ViewDriver) validateVisibleLineCount(matchers []*TextMatcher) {
 func (self *ViewDriver) assertLines(offset int, matchers ...*TextMatcher) *ViewDriver {
 	view := self.getView()
 
+	var expectedStartIdx, expectedEndIdx int
+	foundSelectionStart := false
+	foundSelectionEnd := false
+	expectedSelectedLines := []string{}
+
 	for matcherIndex, matcher := range matchers {
 		lineIdx := matcherIndex + offset
+
 		checkIsSelected, matcher := matcher.checkIsSelected()
+
+		if checkIsSelected {
+			if foundSelectionEnd {
+				self.t.fail("The IsSelected matcher can only be used on a contiguous range of lines.")
+			}
+			if !foundSelectionStart {
+				expectedStartIdx = lineIdx
+				foundSelectionStart = true
+			}
+			expectedSelectedLines = append(expectedSelectedLines, matcher.name())
+			expectedEndIdx = lineIdx
+		} else if foundSelectionStart {
+			foundSelectionEnd = true
+		}
+	}
+
+	for matcherIndex, matcher := range matchers {
+		lineIdx := matcherIndex + offset
+		expectSelected, matcher := matcher.checkIsSelected()
 
 		self.t.matchString(matcher, fmt.Sprintf("Unexpected content in view '%s'.", view.Name()),
 			func() string {
@@ -221,24 +246,41 @@ func (self *ViewDriver) assertLines(offset int, matchers ...*TextMatcher) *ViewD
 			},
 		)
 
-		if checkIsSelected {
+		// If any of the matchers care about the selection, we need to
+		// assert on the selection for each matcher.
+		if foundSelectionStart {
 			self.t.assertWithRetries(func() (bool, string) {
 				startIdx, endIdx := self.getSelectedRange()
 
-				if lineIdx < startIdx || lineIdx > endIdx {
-					if startIdx == endIdx {
-						return false, fmt.Sprintf("Unexpected selected line index in view '%s'. Expected %d, got %d", view.Name(), lineIdx, startIdx)
-					} else {
-						lines := self.getSelectedLines()
-						return false, fmt.Sprintf("Unexpected selected line index in view '%s'. Expected line %d to be in range %d to %d. Selected lines:\n---\n%s\n---\n\nExpected line: '%s'", view.Name(), lineIdx, startIdx, endIdx, strings.Join(lines, "\n"), matcher.name())
-					}
+				selected := lineIdx >= startIdx && lineIdx <= endIdx
+
+				if (selected && expectSelected) || (!selected && !expectSelected) {
+					return true, ""
 				}
-				return true, ""
+
+				lines := self.getSelectedLines()
+
+				return false, fmt.Sprintf(
+					"Unexpected selection in view '%s'. Expected %s to be selected but got %s.\nExpected selected lines:\n---\n%s\n---\n\nActual selected lines:\n---\n%s\n---\n",
+					view.Name(),
+					formatLineRange(startIdx, endIdx),
+					formatLineRange(expectedStartIdx, expectedEndIdx),
+					strings.Join(lines, "\n"),
+					strings.Join(expectedSelectedLines, "\n"),
+				)
 			})
 		}
 	}
 
 	return self
+}
+
+func formatLineRange(from int, to int) string {
+	if from == to {
+		return "line " + fmt.Sprintf("%d", from)
+	}
+
+	return "lines " + fmt.Sprintf("%d-%d", from, to)
 }
 
 // asserts on the content of the view i.e. the stuff within the view's frame.

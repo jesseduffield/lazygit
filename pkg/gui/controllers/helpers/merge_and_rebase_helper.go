@@ -2,6 +2,8 @@ package helpers
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -80,6 +82,19 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	}
 
 	self.c.LogAction(fmt.Sprintf("Merge/Rebase: %s", command))
+	if status == enums.REBASE_MODE_REBASING {
+		todoFile, err := os.ReadFile(
+			filepath.Join(self.c.Git().RepoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"),
+		)
+
+		if err != nil {
+			if !os.IsNotExist(err) {
+				return err
+			}
+		} else {
+			self.c.LogCommand(string(todoFile), false)
+		}
+	}
 
 	commandType := ""
 	switch status {

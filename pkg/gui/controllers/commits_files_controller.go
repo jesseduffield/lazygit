@@ -28,6 +28,7 @@ func NewCommitFilesController(
 			c,
 			c.Contexts().CommitFiles,
 			c.Contexts().CommitFiles.GetSelected,
+			c.Contexts().CommitFiles.GetSelectedItems,
 		),
 	}
 }

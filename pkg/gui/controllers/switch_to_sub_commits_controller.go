@@ -32,6 +32,9 @@ func NewSwitchToSubCommitsController(
 			c,
 			context,
 			context.GetSelectedRef,
+			func() ([]types.Ref, int, int) {
+				panic("Not implemented")
+			},
 		),
 		c:       c,
 		context: context,

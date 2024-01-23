@@ -24,6 +24,7 @@ func NewStashController(
 			c,
 			c.Contexts().Stash,
 			c.Contexts().Stash.GetSelected,
+			c.Contexts().Stash.GetSelectedItems,
 		),
 		c: c,
 	}

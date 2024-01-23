@@ -72,15 +72,6 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 	return ctx
 }
 
-func (self *CommitFilesContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
-}
-
 func (self *CommitFilesContext) GetDiffTerminals() []string {
 	return []string{self.GetRef().RefName()}
 }
