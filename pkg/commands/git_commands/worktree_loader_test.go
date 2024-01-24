@@ -14,7 +14,7 @@ func TestGetWorktrees(t *testing.T) {
 	type scenario struct {
 		testName          string
 		repoPaths         *RepoPaths
-		before            func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs)
+		before            func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn)
 		expectedWorktrees []*models.Worktree
 		expectedErr       string
 	}
@@ -26,7 +26,7 @@ func TestGetWorktrees(t *testing.T) {
 				repoPath:     "/path/to/repo",
 				worktreePath: "/path/to/repo",
 			},
-			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs) {
+			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
 				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
 					`worktree /path/to/repo
 HEAD d85cc9d281fa6ae1665c68365fc70e75e82a042d
@@ -34,6 +34,8 @@ branch refs/heads/mybranch
 `,
 					nil)
 
+				gitArgsMainWorktree := append(append([]string{"-C", "/path/to/repo"}, getRevParseArgs()...), "--absolute-git-dir")
+				runner.ExpectGitArgs(gitArgsMainWorktree, "/path/to/repo/.git", nil)
 				_ = fs.MkdirAll("/path/to/repo/.git", 0o755)
 			},
 			expectedWorktrees: []*models.Worktree{
@@ -55,7 +57,7 @@ branch refs/heads/mybranch
 				repoPath:     "/path/to/repo",
 				worktreePath: "/path/to/repo",
 			},
-			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs) {
+			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
 				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
 					`worktree /path/to/repo
 HEAD d85cc9d281fa6ae1665c68365fc70e75e82a042d
@@ -66,6 +68,10 @@ HEAD 775955775e79b8f5b4c4b56f82fbf657e2d5e4de
 branch refs/heads/mybranch-worktree
 `,
 					nil)
+				gitArgsMainWorktree := append(append([]string{"-C", "/path/to/repo"}, getRevParseArgs()...), "--absolute-git-dir")
+				runner.ExpectGitArgs(gitArgsMainWorktree, "/path/to/repo/.git", nil)
+				gitArgsLinkedWorktree := append(append([]string{"-C", "/path/to/repo-worktree"}, getRevParseArgs()...), "--absolute-git-dir")
+				runner.ExpectGitArgs(gitArgsLinkedWorktree, "/path/to/repo/.git/worktrees/repo-worktree", nil)
 
 				_ = fs.MkdirAll("/path/to/repo/.git", 0o755)
 				_ = fs.MkdirAll("/path/to/repo-worktree", 0o755)
@@ -100,7 +106,7 @@ branch refs/heads/mybranch-worktree
 				repoPath:     "/path/to/repo",
 				worktreePath: "/path/to/repo",
 			},
-			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs) {
+			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
 				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
 					`worktree /path/to/worktree
 HEAD 775955775e79b8f5b4c4b56f82fbf657e2d5e4de
@@ -129,7 +135,7 @@ branch refs/heads/missingbranch
 				repoPath:     "/path/to/repo",
 				worktreePath: "/path/to/repo-worktree",
 			},
-			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs) {
+			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
 				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
 					`worktree /path/to/repo
 HEAD d85cc9d281fa6ae1665c68365fc70e75e82a042d
@@ -140,6 +146,10 @@ HEAD 775955775e79b8f5b4c4b56f82fbf657e2d5e4de
 branch refs/heads/mybranch-worktree
 `,
 					nil)
+				gitArgsMainWorktree := append(append([]string{"-C", "/path/to/repo"}, getRevParseArgs()...), "--absolute-git-dir")
+				runner.ExpectGitArgs(gitArgsMainWorktree, "/path/to/repo/.git", nil)
+				gitArgsLinkedWorktree := append(append([]string{"-C", "/path/to/repo-worktree"}, getRevParseArgs()...), "--absolute-git-dir")
+				runner.ExpectGitArgs(gitArgsLinkedWorktree, "/path/to/repo/.git/worktrees/repo-worktree", nil)
 
 				_ = fs.MkdirAll("/path/to/repo/.git", 0o755)
 				_ = fs.MkdirAll("/path/to/repo-worktree", 0o755)
@@ -175,10 +185,23 @@ branch refs/heads/mybranch-worktree
 		t.Run(s.testName, func(t *testing.T) {
 			runner := oscommands.NewFakeRunner(t)
 			fs := afero.NewMemMapFs()
-			s.before(runner, fs)
+			version, err := GetGitVersion(oscommands.NewDummyOSCommand())
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			getRevParseArgs := func() []string {
+				args := []string{"rev-parse"}
+				if version.IsAtLeast(2, 31, 0) {
+					args = append(args, "--path-format=absolute")
+				}
+				return args
+			}
+
+			s.before(runner, fs, getRevParseArgs)
 
 			loader := &WorktreeLoader{
-				GitCommon: buildGitCommon(commonDeps{runner: runner, fs: fs, repoPaths: s.repoPaths}),
+				GitCommon: buildGitCommon(commonDeps{runner: runner, fs: fs, repoPaths: s.repoPaths, gitVersion: version}),
 			}
 
 			worktrees, err := loader.GetWorktrees()
