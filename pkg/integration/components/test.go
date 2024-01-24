@@ -182,7 +182,13 @@ func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
 		panic(err)
 	}
 
-	shell := NewShell(pwd, func(errorMsg string) { gui.Fail(errorMsg) })
+	shell := NewShell(
+		pwd,
+		// passing the full environment because it's already been filtered down
+		// in the parent process.
+		os.Environ(),
+		func(errorMsg string) { gui.Fail(errorMsg) },
+	)
 	keys := gui.Keys()
 	testDriver := NewTestDriver(gui, shell, keys, InputDelay())
 

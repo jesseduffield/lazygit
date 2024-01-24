@@ -88,6 +88,7 @@ func (self *StashCommands) ShowStashEntryCmdObj(index int) oscommands.ICmdObj {
 		Arg(fmt.Sprintf("--unified=%d", self.AppState.DiffContextSize)).
 		ArgIf(self.AppState.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		Arg(fmt.Sprintf("stash@{%d}", index)).
+		Dir(self.repoPaths.worktreePath).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).DontLog()

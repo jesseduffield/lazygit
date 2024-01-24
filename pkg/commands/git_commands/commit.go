@@ -250,6 +250,7 @@ func (self *CommitCommands) ShowCmdObj(sha string, filterPath string) oscommands
 		Arg(sha).
 		ArgIf(self.AppState.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		ArgIf(filterPath != "", "--", filterPath).
+		Dir(self.repoPaths.worktreePath).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).DontLog()

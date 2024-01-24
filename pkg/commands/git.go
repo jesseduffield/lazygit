@@ -2,12 +2,9 @@ package commands
 
 import (
 	"os"
-	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/go-errors/errors"
-	"github.com/spf13/afero"
 
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -15,7 +12,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -64,39 +60,14 @@ func NewGitCommand(
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
 ) (*GitCommand, error) {
-	currentPath, err := os.Getwd()
-	if err != nil {
-		return nil, utils.WrapError(err)
-	}
-
-	// converting to forward slashes for the sake of windows (which uses backwards slashes). We want everything
-	// to have forward slashes internally
-	currentPath = filepath.ToSlash(currentPath)
-
-	gitDir := env.GetGitDirEnv()
-	if gitDir != "" {
-		// we've been given the git directory explicitly so no need to navigate to it
-		_, err := cmn.Fs.Stat(gitDir)
-		if err != nil {
-			return nil, utils.WrapError(err)
-		}
-	} else {
-		// we haven't been given the git dir explicitly so we assume it's in the current working directory as `.git/` (or an ancestor directory)
-
-		rootDirectory, err := findWorktreeRoot(cmn.Fs, currentPath)
-		if err != nil {
-			return nil, utils.WrapError(err)
-		}
-		currentPath = rootDirectory
-		err = os.Chdir(rootDirectory)
-		if err != nil {
-			return nil, utils.WrapError(err)
-		}
-	}
-
-	repoPaths, err := git_commands.GetRepoPaths(cmn.Fs, currentPath)
+	repoPaths, err := git_commands.GetRepoPaths(osCommand.Cmd, version)
 	if err != nil {
 		return nil, errors.Errorf("Error getting repo paths: %v", err)
+	}
+
+	err = os.Chdir(repoPaths.WorktreePath())
+	if err != nil {
+		return nil, utils.WrapError(err)
 	}
 
 	repository, err := gogit.PlainOpenWithOptions(
@@ -205,32 +176,6 @@ func NewGitCommandAux(
 			TagLoader:          tagLoader,
 		},
 		RepoPaths: repoPaths,
-	}
-}
-
-// this returns the root of the current worktree. So if you start lazygit from within
-// a subdirectory of the worktree, it will start in the context of the root of that worktree
-func findWorktreeRoot(fs afero.Fs, currentPath string) (string, error) {
-	for {
-		// we don't care if .git is a directory or a file: either is okay.
-		_, err := fs.Stat(path.Join(currentPath, ".git"))
-
-		if err == nil {
-			return currentPath, nil
-		}
-
-		if !os.IsNotExist(err) {
-			return "", utils.WrapError(err)
-		}
-
-		currentPath = path.Dir(currentPath)
-
-		atRoot := currentPath == path.Dir(currentPath)
-		if atRoot {
-			// we should never really land here: the code that creates GitCommand should
-			// verify we're in a git directory
-			return "", errors.New("Must open lazygit in a git repository")
-		}
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	iofs "io/fs"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -57,24 +58,42 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 			isCurrent := path == worktreePath
 			isPathMissing := self.pathExists(path)
 
-			var gitDir string
-			gitDir, err := getWorktreeGitDirPath(self.Fs, path)
-			if err != nil {
-				self.Log.Warnf("Could not find git dir for worktree %s: %v", path, err)
-			}
-
 			current = &models.Worktree{
 				IsMain:        isMain,
 				IsCurrent:     isCurrent,
 				IsPathMissing: isPathMissing,
 				Path:          path,
-				GitDir:        gitDir,
+				// we defer populating GitDir until a loop below so that
+				// we can parallelize the calls to git rev-parse
+				GitDir: "",
 			}
 		} else if strings.HasPrefix(splitLine, "branch ") {
 			branch := strings.SplitN(splitLine, " ", 2)[1]
 			current.Branch = strings.TrimPrefix(branch, "refs/heads/")
 		}
 	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(worktrees))
+	for _, worktree := range worktrees {
+		worktree := worktree
+
+		go utils.Safe(func() {
+			defer wg.Done()
+
+			if worktree.IsPathMissing {
+				return
+			}
+			gitDir, err := callGitRevParseWithDir(self.cmd, self.version, worktree.Path, "--absolute-git-dir")
+			if err != nil {
+				self.Log.Warnf("Could not find git dir for worktree %s: %v", worktree.Path, err)
+				return
+			}
+
+			worktree.GitDir = gitDir
+		})
+	}
+	wg.Wait()
 
 	names := getUniqueNamesFromPaths(lo.Map(worktrees, func(worktree *models.Worktree, _ int) string {
 		return worktree.Path

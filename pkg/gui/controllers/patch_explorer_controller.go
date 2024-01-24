@@ -274,7 +274,7 @@ func (self *PatchExplorerController) HandleMouseDown() error {
 }
 
 func (self *PatchExplorerController) HandleMouseDrag() error {
-	self.context.GetState().SelectLine(self.context.GetViewTrait().SelectedLineIdx())
+	self.context.GetState().DragSelectLine(self.context.GetViewTrait().SelectedLineIdx())
 
 	return nil
 }

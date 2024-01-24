@@ -197,7 +197,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:      3,
 			ignoreWhitespace: false,
 			extDiffCmd:       "",
-			expected:         []string{"show", "--no-ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890"},
+			expected:         []string{"-C", "/path/to/worktree", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890"},
 		},
 		{
 			testName:         "Default case with filter path",
@@ -205,7 +205,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:      3,
 			ignoreWhitespace: false,
 			extDiffCmd:       "",
-			expected:         []string{"show", "--no-ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--", "file.txt"},
+			expected:         []string{"-C", "/path/to/worktree", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--", "file.txt"},
 		},
 		{
 			testName:         "Show diff with custom context size",
@@ -213,7 +213,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:      77,
 			ignoreWhitespace: false,
 			extDiffCmd:       "",
-			expected:         []string{"show", "--no-ext-diff", "--submodule", "--color=always", "--unified=77", "--stat", "--decorate", "-p", "1234567890"},
+			expected:         []string{"-C", "/path/to/worktree", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=77", "--stat", "--decorate", "-p", "1234567890"},
 		},
 		{
 			testName:         "Show diff, ignoring whitespace",
@@ -221,7 +221,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:      77,
 			ignoreWhitespace: true,
 			extDiffCmd:       "",
-			expected:         []string{"show", "--no-ext-diff", "--submodule", "--color=always", "--unified=77", "--stat", "--decorate", "-p", "1234567890", "--ignore-all-space"},
+			expected:         []string{"-C", "/path/to/worktree", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=77", "--stat", "--decorate", "-p", "1234567890", "--ignore-all-space"},
 		},
 		{
 			testName:         "Show diff with external diff command",
@@ -229,7 +229,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:      3,
 			ignoreWhitespace: false,
 			extDiffCmd:       "difft --color=always",
-			expected:         []string{"-c", "diff.external=difft --color=always", "show", "--ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890"},
+			expected:         []string{"-C", "/path/to/worktree", "-c", "diff.external=difft --color=always", "show", "--ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890"},
 		},
 	}
 
@@ -243,7 +243,10 @@ func TestCommitShowCmdObj(t *testing.T) {
 			appState.DiffContextSize = s.contextSize
 
 			runner := oscommands.NewFakeRunner(t).ExpectGitArgs(s.expected, "", nil)
-			instance := buildCommitCommands(commonDeps{userConfig: userConfig, appState: appState, runner: runner})
+			repoPaths := RepoPaths{
+				worktreePath: "/path/to/worktree",
+			}
+			instance := buildCommitCommands(commonDeps{userConfig: userConfig, appState: appState, runner: runner, repoPaths: &repoPaths})
 
 			assert.NoError(t, instance.ShowCmdObj("1234567890", s.filterPath).Run())
 			runner.CheckForMissingCalls()

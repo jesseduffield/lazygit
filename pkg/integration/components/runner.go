@@ -13,14 +13,6 @@ import (
 	"github.com/samber/lo"
 )
 
-const (
-	LAZYGIT_ROOT_DIR          = "LAZYGIT_ROOT_DIR"
-	TEST_NAME_ENV_VAR         = "TEST_NAME"
-	SANDBOX_ENV_VAR           = "SANDBOX"
-	WAIT_FOR_DEBUGGER_ENV_VAR = "WAIT_FOR_DEBUGGER"
-	GIT_CONFIG_GLOBAL_ENV_VAR = "GIT_CONFIG_GLOBAL"
-)
-
 type RunTestArgs struct {
 	Tests           []*IntegrationTest
 	Logf            func(format string, formatArgs ...interface{})
@@ -161,18 +153,27 @@ func buildLazygit(testArgs RunTestArgs) error {
 // Sets up the fixture for test and returns the working directory to invoke
 // lazygit in.
 func createFixture(test *IntegrationTest, paths Paths, rootDir string) string {
-	shell := NewShell(paths.ActualRepo(), func(errorMsg string) { panic(errorMsg) })
-	shell.Init()
+	env := NewTestEnvironment(rootDir)
 
-	os.Setenv(GIT_CONFIG_GLOBAL_ENV_VAR, globalGitConfigPath(rootDir))
+	env = append(env, fmt.Sprintf("%s=%s", PWD, paths.ActualRepo()))
+	shell := NewShell(
+		paths.ActualRepo(),
+		env,
+		func(errorMsg string) { panic(errorMsg) },
+	)
+	shell.Init()
 
 	test.SetupRepo(shell)
 
 	return shell.dir
 }
 
+func testPath(rootdir string) string {
+	return filepath.Join(rootdir, "test")
+}
+
 func globalGitConfigPath(rootDir string) string {
-	return filepath.Join(rootDir, "test", "global_git_config")
+	return filepath.Join(testPath(rootDir), "global_git_config")
 }
 
 func getGitVersion() (*git_commands.GitVersion, error) {
@@ -215,9 +216,16 @@ func getLazygitCommand(
 	})
 	cmdArgs = append(cmdArgs, resolvedExtraArgs...)
 
-	cmdObj := osCommand.Cmd.New(cmdArgs)
+	// Use a limited environment for test isolation, including pass through
+	// of just allowed host environment variables
+	cmdObj := osCommand.Cmd.NewWithEnviron(cmdArgs, NewTestEnvironment(rootDir))
 
+	// Integration tests related to symlink behavior need a PWD that
+	// preserves symlinks. By default, SetWd will set a symlink-resolved
+	// value for PWD. Here, we override that with the path (that may)
+	// contain a symlink to simulate behavior in a user's shell correctly.
 	cmdObj.SetWd(workingDir)
+	cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", PWD, workingDir))
 
 	cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", LAZYGIT_ROOT_DIR, rootDir))
 
