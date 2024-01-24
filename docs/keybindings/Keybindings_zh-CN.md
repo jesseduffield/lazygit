@@ -84,7 +84,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: 新分支
   <kbd>o</kbd>: 创建拉取请求
   <kbd>O</kbd>: 创建拉取请求选项
-  <kbd>&lt;c-y&gt;</kbd>: 将抓取请求 URL 复制到剪贴板
+  <kbd>&lt;c-y&gt;</kbd>: 将拉取请求 URL 复制到剪贴板
   <kbd>c</kbd>: 按名称检出
   <kbd>F</kbd>: 强制检出
   <kbd>d</kbd>: View delete options
