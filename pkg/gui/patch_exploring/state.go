@@ -49,12 +49,10 @@ func NewState(diff string, selectedLineIdx int, oldState *State, log *logrus.Ent
 	}
 
 	selectMode := LINE
-	rangeIsSticky := false
 	// if we have clicked from the outside to focus the main view we'll pass in a non-negative line index so that we can instantly select that line
 	if selectedLineIdx >= 0 {
 		selectMode = RANGE
 		rangeStartLineIdx = selectedLineIdx
-		rangeIsSticky = true
 	} else if oldState != nil {
 		// if we previously had a selectMode of RANGE, we want that to now be line again
 		if oldState.selectMode == HUNK {
@@ -70,7 +68,7 @@ func NewState(diff string, selectedLineIdx int, oldState *State, log *logrus.Ent
 		selectedLineIdx:   selectedLineIdx,
 		selectMode:        selectMode,
 		rangeStartLineIdx: rangeStartLineIdx,
-		rangeIsSticky:     rangeIsSticky,
+		rangeIsSticky:     false,
 		diff:              diff,
 	}
 }
@@ -150,7 +148,12 @@ func (s *State) SelectNewLineForRange(newSelectedLineIdx int) {
 	s.rangeStartLineIdx = newSelectedLineIdx
 
 	s.selectMode = RANGE
-	s.rangeIsSticky = true
+
+	s.selectLineWithoutRangeCheck(newSelectedLineIdx)
+}
+
+func (s *State) DragSelectLine(newSelectedLineIdx int) {
+	s.selectMode = RANGE
 
 	s.selectLineWithoutRangeCheck(newSelectedLineIdx)
 }
