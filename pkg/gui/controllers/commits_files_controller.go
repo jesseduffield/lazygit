@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -10,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type CommitFilesController struct {
@@ -76,8 +79,8 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Select),
-			Handler:           self.withItem(self.toggleForPatch),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			Handler:           self.withItems(self.toggleForPatch),
+			GetDisabledReason: self.require(self.itemsSelected()),
 			Description:       self.c.Tr.ToggleAddToPatch,
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.ToggleAddToPatchTooltip,
 				map[string]string{"doc": constants.Links.Docs.CustomPatchDemo},
@@ -240,7 +243,7 @@ func (self *CommitFilesController) openDiffTool(node *filetree.CommitFileNode) e
 	return err
 }
 
-func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode) error {
+func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.CommitFileNode) error {
 	toggle := func() error {
 		return self.c.WithWaitingStatus(self.c.Tr.UpdatingPatch, func(gocui.Task) error {
 			if !self.c.Git().Patch.PatchBuilder.Active() {
@@ -249,21 +252,29 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 				}
 			}
 
-			// if there is any file that hasn't been fully added we'll fully add everything,
-			// otherwise we'll remove everything
-			adding := node.SomeFile(func(file *models.CommitFile) bool {
-				return self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Name, self.context().GetRef().RefName()) != patch.WHOLE
+			selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
+
+			// Find if any file in the selection is unselected or partially added
+			adding := lo.SomeBy(selectedNodes, func(node *filetree.CommitFileNode) bool {
+				return node.SomeFile(func(file *models.CommitFile) bool {
+					fileStatus := self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Name, self.context().GetRef().RefName())
+					return fileStatus == patch.PART || fileStatus == patch.UNSELECTED
+				})
 			})
 
-			err := node.ForEachFile(func(file *models.CommitFile) error {
-				if adding {
-					return self.c.Git().Patch.PatchBuilder.AddFileWhole(file.Name)
-				} else {
-					return self.c.Git().Patch.PatchBuilder.RemoveFile(file.Name)
+			patchOperationFunction := self.c.Git().Patch.PatchBuilder.RemoveFile
+
+			if adding {
+				patchOperationFunction = self.c.Git().Patch.PatchBuilder.AddFileWhole
+			}
+
+			for _, node := range selectedNodes {
+				err := node.ForEachFile(func(file *models.CommitFile) error {
+					return patchOperationFunction(file.Name)
+				})
+				if err != nil {
+					return self.c.Error(err)
 				}
-			})
-			if err != nil {
-				return self.c.Error(err)
 			}
 
 			if self.c.Git().Patch.PatchBuilder.IsEmpty() {
@@ -290,7 +301,7 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 
 func (self *CommitFilesController) toggleAllForPatch(_ *filetree.CommitFileNode) error {
 	root := self.context().CommitFileTreeViewModel.GetRoot()
-	return self.toggleForPatch(root)
+	return self.toggleForPatch([]*filetree.CommitFileNode{root})
 }
 
 func (self *CommitFilesController) startPatchBuilder() error {
@@ -353,4 +364,24 @@ func (self *CommitFilesController) toggleTreeView() error {
 	self.context().CommitFileTreeViewModel.ToggleShowTree()
 
 	return self.c.PostRefreshUpdate(self.context())
+}
+
+// NOTE: these functions are identical to those in files_controller.go (except for types) and
+// could also be cleaned up with some generics
+func normalisedSelectedCommitFileNodes(selectedNodes []*filetree.CommitFileNode) []*filetree.CommitFileNode {
+	return lo.Filter(selectedNodes, func(node *filetree.CommitFileNode, _ int) bool {
+		return !isDescendentOfSelectedCommitFileNodes(node, selectedNodes)
+	})
+}
+
+func isDescendentOfSelectedCommitFileNodes(node *filetree.CommitFileNode, selectedNodes []*filetree.CommitFileNode) bool {
+	for _, selectedNode := range selectedNodes {
+		selectedNodePath := selectedNode.GetPath()
+		nodePath := node.GetPath()
+
+		if strings.HasPrefix(nodePath, selectedNodePath) && nodePath != selectedNodePath {
+			return true
+		}
+	}
+	return false
 }
