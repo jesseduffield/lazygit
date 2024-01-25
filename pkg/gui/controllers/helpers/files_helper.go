@@ -1,5 +1,9 @@
 package helpers
 
+import (
+	"path/filepath"
+)
+
 type IFilesHelper interface {
 	EditFile(filename string) error
 	EditFileAtLine(filename string, lineNumber int) error
@@ -19,17 +23,29 @@ func NewFilesHelper(c *HelperCommon) *FilesHelper {
 var _ IFilesHelper = &FilesHelper{}
 
 func (self *FilesHelper) EditFile(filename string) error {
-	cmdStr, suspend := self.c.Git().File.GetEditCmdStr(filename)
+	absPath, err := filepath.Abs(filename)
+	if err != nil {
+		return err
+	}
+	cmdStr, suspend := self.c.Git().File.GetEditCmdStr(absPath)
 	return self.callEditor(cmdStr, suspend)
 }
 
 func (self *FilesHelper) EditFileAtLine(filename string, lineNumber int) error {
-	cmdStr, suspend := self.c.Git().File.GetEditAtLineCmdStr(filename, lineNumber)
+	absPath, err := filepath.Abs(filename)
+	if err != nil {
+		return err
+	}
+	cmdStr, suspend := self.c.Git().File.GetEditAtLineCmdStr(absPath, lineNumber)
 	return self.callEditor(cmdStr, suspend)
 }
 
 func (self *FilesHelper) EditFileAtLineAndWait(filename string, lineNumber int) error {
-	cmdStr := self.c.Git().File.GetEditAtLineAndWaitCmdStr(filename, lineNumber)
+	absPath, err := filepath.Abs(filename)
+	if err != nil {
+		return err
+	}
+	cmdStr := self.c.Git().File.GetEditAtLineAndWaitCmdStr(absPath, lineNumber)
 
 	// Always suspend, regardless of the value of the suspend config,
 	// since we want to prevent interacting with the UI until the editor
@@ -38,7 +54,11 @@ func (self *FilesHelper) EditFileAtLineAndWait(filename string, lineNumber int) 
 }
 
 func (self *FilesHelper) OpenDirInEditor(path string) error {
-	cmdStr, suspend := self.c.Git().File.GetOpenDirInEditorCmdStr(path)
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return err
+	}
+	cmdStr, suspend := self.c.Git().File.GetOpenDirInEditorCmdStr(absPath)
 
 	return self.callEditor(cmdStr, suspend)
 }
@@ -54,8 +74,12 @@ func (self *FilesHelper) callEditor(cmdStr string, suspend bool) error {
 }
 
 func (self *FilesHelper) OpenFile(filename string) error {
+	absPath, err := filepath.Abs(filename)
+	if err != nil {
+		return err
+	}
 	self.c.LogAction(self.c.Tr.Actions.OpenFile)
-	if err := self.c.OS().OpenFile(filename); err != nil {
+	if err := self.c.OS().OpenFile(absPath); err != nil {
 		return self.c.Error(err)
 	}
 	return nil
