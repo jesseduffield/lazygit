@@ -233,7 +233,7 @@ type app struct {
 }
 
 func newApp(testDir string) *app {
-	return &app{testDir: testDir, allTests: tests.GetTests()}
+	return &app{testDir: testDir, allTests: tests.GetTests(utils.GetLazyRootDirectory())}
 }
 
 func (self *app) getCurrentTest() *components.IntegrationTest {

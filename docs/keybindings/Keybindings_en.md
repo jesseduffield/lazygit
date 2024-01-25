@@ -37,6 +37,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>.</kbd>: Next page
   <kbd>&lt;</kbd>: Scroll to top
   <kbd>&gt;</kbd>: Scroll to bottom
+  <kbd>v</kbd>: Toggle range select
+  <kbd>&lt;s-down&gt;</kbd>: Range select down
+  <kbd>&lt;s-up&gt;</kbd>: Range select up
   <kbd>/</kbd>: Search the current view by text
   <kbd>H</kbd>: Scroll left
   <kbd>L</kbd>: Scroll right
@@ -52,6 +55,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: Discard this commit's changes to this file
   <kbd>o</kbd>: Open file
   <kbd>e</kbd>: Edit file
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;space&gt;</kbd>: Toggle file included in patch
   <kbd>a</kbd>: Toggle all files included in patch
   <kbd>&lt;enter&gt;</kbd>: Enter file to add selected lines to the patch (or toggle directory collapsed)
@@ -78,12 +82,13 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: Reword commit with editor
   <kbd>d</kbd>: Delete commit
   <kbd>e</kbd>: Edit commit
+  <kbd>i</kbd>: Start interactive rebase
   <kbd>p</kbd>: Pick commit (when mid-rebase)
   <kbd>F</kbd>: Create fixup commit for this commit
   <kbd>S</kbd>: Squash all 'fixup!' commits above selected commit (autosquash)
   <kbd>&lt;c-j&gt;</kbd>: Move commit down one
   <kbd>&lt;c-k&gt;</kbd>: Move commit up one
-  <kbd>v</kbd>: Paste commits (cherry-pick)
+  <kbd>V</kbd>: Paste commits (cherry-pick)
   <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: Amend commit with staged changes
   <kbd>a</kbd>: Set/Reset commit author
@@ -96,8 +101,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Create new branch off of commit
   <kbd>g</kbd>: View reset options
-  <kbd>c</kbd>: Copy commit (cherry-pick)
-  <kbd>C</kbd>: Copy commit range (cherry-pick)
+  <kbd>C</kbd>: Copy commit (cherry-pick)
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
   <kbd>/</kbd>: Search the current view by text
 </pre>
@@ -113,7 +118,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: Copy the file name to the clipboard
-  <kbd>d</kbd>: View 'discard changes' options
   <kbd>&lt;space&gt;</kbd>: Toggle staged
   <kbd>&lt;c-b&gt;</kbd>: Filter files by status
   <kbd>y</kbd>: Copy to clipboard
@@ -121,6 +125,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>w</kbd>: Commit changes without pre-commit hook
   <kbd>A</kbd>: Amend last commit
   <kbd>C</kbd>: Commit changes using git editor
+  <kbd>&lt;c-f&gt;</kbd>: Find base commit for fixup
   <kbd>e</kbd>: Edit file
   <kbd>o</kbd>: Open file
   <kbd>i</kbd>: Ignore or exclude file
@@ -129,9 +134,11 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: View stash options
   <kbd>a</kbd>: Stage/unstage all
   <kbd>&lt;enter&gt;</kbd>: Stage individual hunks/lines for file, or collapse/expand for directory
+  <kbd>d</kbd>: View 'discard changes' options
   <kbd>g</kbd>: View upstream reset options
   <kbd>D</kbd>: View reset options
   <kbd>`</kbd>: Toggle file tree view
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>M</kbd>: Open external merge tool (git mergetool)
   <kbd>f</kbd>: Fetch
   <kbd>/</kbd>: Search the current view by text
@@ -191,8 +198,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;left&gt;</kbd>: Select previous hunk
   <kbd>&lt;right&gt;</kbd>: Select next hunk
-  <kbd>v</kbd>: Toggle drag select
-  <kbd>V</kbd>: Toggle drag select
+  <kbd>v</kbd>: Toggle range select
   <kbd>a</kbd>: Toggle select hunk
   <kbd>&lt;c-o&gt;</kbd>: Copy the selected text to the clipboard
   <kbd>o</kbd>: Open file
@@ -207,8 +213,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;left&gt;</kbd>: Select previous hunk
   <kbd>&lt;right&gt;</kbd>: Select next hunk
-  <kbd>v</kbd>: Toggle drag select
-  <kbd>V</kbd>: Toggle drag select
+  <kbd>v</kbd>: Toggle range select
   <kbd>a</kbd>: Toggle select hunk
   <kbd>&lt;c-o&gt;</kbd>: Copy the selected text to the clipboard
   <kbd>o</kbd>: Open file
@@ -242,9 +247,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Create new branch off of commit
   <kbd>g</kbd>: View reset options
-  <kbd>c</kbd>: Copy commit (cherry-pick)
-  <kbd>C</kbd>: Copy commit range (cherry-pick)
+  <kbd>C</kbd>: Copy commit (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View commits
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -309,9 +314,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Create new branch off of commit
   <kbd>g</kbd>: View reset options
-  <kbd>c</kbd>: Copy commit (cherry-pick)
-  <kbd>C</kbd>: Copy commit range (cherry-pick)
+  <kbd>C</kbd>: Copy commit (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
   <kbd>/</kbd>: Search the current view by text
 </pre>

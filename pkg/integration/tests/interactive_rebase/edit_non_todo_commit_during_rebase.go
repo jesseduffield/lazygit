@@ -29,9 +29,6 @@ var EditNonTodoCommitDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit 01")).
 			Press(keys.Universal.Edit)
 
-		t.ExpectPopup().Alert().
-			Title(Equals("Error")).
-			Content(Contains("Can't perform this action during a rebase")).
-			Confirm()
+		t.ExpectToast(Contains("Disabled: When rebasing, this action only works on a selection of TODO commits."))
 	},
 })

@@ -25,7 +25,7 @@ var StageRangeOfLines = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("-1st\n-2nd\n+1st changed\n+2nd changed\n 3rd\n 4th\n-5th\n+5th changed\n 6th"),
 			).
 			SelectedLine(Equals("-1st")).
-			Press(keys.Main.ToggleDragSelect).
+			Press(keys.Universal.ToggleRangeSelect).
 			SelectNextItem().
 			SelectNextItem().
 			SelectNextItem().

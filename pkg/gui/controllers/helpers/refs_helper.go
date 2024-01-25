@@ -44,12 +44,14 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 	cmdOptions := git_commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
 	onSuccess := func() {
-		self.c.Contexts().Branches.SetSelectedLineIdx(0)
-		self.c.Contexts().ReflogCommits.SetSelectedLineIdx(0)
-		self.c.Contexts().LocalCommits.SetSelectedLineIdx(0)
+		self.c.Contexts().Branches.SetSelection(0)
+		self.c.Contexts().ReflogCommits.SetSelection(0)
+		self.c.Contexts().LocalCommits.SetSelection(0)
 		// loading a heap of commits is slow so we limit them whenever doing a reset
 		self.c.Contexts().LocalCommits.SetLimitCommits(true)
 	}
+
+	refreshOptions := types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true}
 
 	return self.c.WithWaitingStatus(waitingStatus, func(gocui.Task) error {
 		if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {
@@ -74,12 +76,12 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 
 						onSuccess()
 						if err := self.c.Git().Stash.Pop(0); err != nil {
-							if err := self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI}); err != nil {
+							if err := self.c.Refresh(refreshOptions); err != nil {
 								return err
 							}
 							return self.c.Error(err)
 						}
-						return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI})
+						return self.c.Refresh(refreshOptions)
 					},
 				})
 			}
@@ -90,7 +92,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		}
 		onSuccess()
 
-		return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI})
+		return self.c.Refresh(refreshOptions)
 	})
 }
 
@@ -107,8 +109,8 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 		return self.c.Error(err)
 	}
 
-	self.c.Contexts().LocalCommits.SetSelectedLineIdx(0)
-	self.c.Contexts().ReflogCommits.SetSelectedLineIdx(0)
+	self.c.Contexts().LocalCommits.SetSelection(0)
+	self.c.Contexts().ReflogCommits.SetSelection(0)
 	// loading a heap of commits is slow so we limit them whenever doing a reset
 	self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
@@ -215,10 +217,10 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 				}
 			}
 
-			self.c.Contexts().LocalCommits.SetSelectedLineIdx(0)
-			self.c.Contexts().Branches.SetSelectedLineIdx(0)
+			self.c.Contexts().LocalCommits.SetSelection(0)
+			self.c.Contexts().Branches.SetSelection(0)
 
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
 		},
 	})
 }

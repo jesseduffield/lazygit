@@ -49,15 +49,6 @@ func NewStashContext(
 	}
 }
 
-func (self *StashContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
-}
-
 func (self *StashContext) CanRebase() bool {
 	return false
 }

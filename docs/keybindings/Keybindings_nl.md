@@ -37,6 +37,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>.</kbd>: Volgende pagina
   <kbd>&lt;</kbd>: Scroll naar boven
   <kbd>&gt;</kbd>: Scroll naar beneden
+  <kbd>v</kbd>: Toggle drag selecteer
+  <kbd>&lt;s-down&gt;</kbd>: Range select down
+  <kbd>&lt;s-up&gt;</kbd>: Range select up
   <kbd>/</kbd>: Start met zoeken
   <kbd>H</kbd>: Scroll left
   <kbd>L</kbd>: Scroll right
@@ -48,7 +51,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: Kopieer de bestandsnaam naar het klembord
-  <kbd>d</kbd>: Bekijk 'veranderingen ongedaan maken' opties
   <kbd>&lt;space&gt;</kbd>: Toggle staged
   <kbd>&lt;c-b&gt;</kbd>: Filter files by status
   <kbd>y</kbd>: Copy to clipboard
@@ -56,6 +58,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>w</kbd>: Commit veranderingen zonder pre-commit hook
   <kbd>A</kbd>: Wijzig laatste commit
   <kbd>C</kbd>: Commit veranderingen met de git editor
+  <kbd>&lt;c-f&gt;</kbd>: Find base commit for fixup
   <kbd>e</kbd>: Verander bestand
   <kbd>o</kbd>: Open bestand
   <kbd>i</kbd>: Ignore or exclude file
@@ -64,9 +67,11 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: Bekijk stash opties
   <kbd>a</kbd>: Toggle staged alle
   <kbd>&lt;enter&gt;</kbd>: Stage individuele hunks/lijnen
+  <kbd>d</kbd>: Bekijk 'veranderingen ongedaan maken' opties
   <kbd>g</kbd>: Bekijk upstream reset opties
   <kbd>D</kbd>: Bekijk reset opties
   <kbd>`</kbd>: Toggle bestandsboom weergave
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>M</kbd>: Open external merge tool (git mergetool)
   <kbd>f</kbd>: Fetch
   <kbd>/</kbd>: Start met zoeken
@@ -120,6 +125,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: Uitsluit deze commit zijn veranderingen aan dit bestand
   <kbd>o</kbd>: Open bestand
   <kbd>e</kbd>: Verander bestand
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;space&gt;</kbd>: Toggle bestand inbegrepen in patch
   <kbd>a</kbd>: Toggle all files included in patch
   <kbd>&lt;enter&gt;</kbd>: Enter bestand om geselecteerde regels toe te voegen aan de patch
@@ -139,12 +145,13 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: Hernoem commit met editor
   <kbd>d</kbd>: Verwijder commit
   <kbd>e</kbd>: Wijzig commit
+  <kbd>i</kbd>: Start interactive rebase
   <kbd>p</kbd>: Kies commit (wanneer midden in rebase)
   <kbd>F</kbd>: Creëer fixup commit
   <kbd>S</kbd>: Squash bovenstaande commits
   <kbd>&lt;c-j&gt;</kbd>: Verplaats commit 1 naar beneden
   <kbd>&lt;c-k&gt;</kbd>: Verplaats commit 1 naar boven
-  <kbd>v</kbd>: Plak commits (cherry-pick)
+  <kbd>V</kbd>: Plak commits (cherry-pick)
   <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: Wijzig commit met staged veranderingen
   <kbd>a</kbd>: Set/Reset commit author
@@ -157,8 +164,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Creëer nieuwe branch van commit
   <kbd>g</kbd>: Bekijk reset opties
-  <kbd>c</kbd>: Kopieer commit (cherry-pick)
-  <kbd>C</kbd>: Kopieer commit reeks (cherry-pick)
+  <kbd>C</kbd>: Kopieer commit (cherry-pick)
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Bekijk gecommite bestanden
   <kbd>/</kbd>: Start met zoeken
 </pre>
@@ -200,7 +207,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: Selecteer de vorige hunk
   <kbd>&lt;right&gt;</kbd>: Selecteer de volgende hunk
   <kbd>v</kbd>: Toggle drag selecteer
-  <kbd>V</kbd>: Toggle drag selecteer
   <kbd>a</kbd>: Toggle selecteer hunk
   <kbd>&lt;c-o&gt;</kbd>: Copy the selected text to the clipboard
   <kbd>o</kbd>: Open bestand
@@ -220,9 +226,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Creëer nieuwe branch van commit
   <kbd>g</kbd>: Bekijk reset opties
-  <kbd>c</kbd>: Kopieer commit (cherry-pick)
-  <kbd>C</kbd>: Kopieer commit reeks (cherry-pick)
+  <kbd>C</kbd>: Kopieer commit (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (gekopieerde) commits selectie
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Bekijk commits
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -260,7 +266,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: Selecteer de vorige hunk
   <kbd>&lt;right&gt;</kbd>: Selecteer de volgende hunk
   <kbd>v</kbd>: Toggle drag selecteer
-  <kbd>V</kbd>: Toggle drag selecteer
   <kbd>a</kbd>: Toggle selecteer hunk
   <kbd>&lt;c-o&gt;</kbd>: Copy the selected text to the clipboard
   <kbd>o</kbd>: Open bestand
@@ -309,9 +314,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: Open commit in browser
   <kbd>n</kbd>: Creëer nieuwe branch van commit
   <kbd>g</kbd>: Bekijk reset opties
-  <kbd>c</kbd>: Kopieer commit (cherry-pick)
-  <kbd>C</kbd>: Kopieer commit reeks (cherry-pick)
+  <kbd>C</kbd>: Kopieer commit (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (gekopieerde) commits selectie
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: Bekijk gecommite bestanden
   <kbd>/</kbd>: Start met zoeken
 </pre>

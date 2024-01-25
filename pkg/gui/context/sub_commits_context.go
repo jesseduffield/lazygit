@@ -134,7 +134,7 @@ func NewSubCommitsContext(
 	}
 
 	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(func(selectedLineIdx int) error {
-		ctx.GetList().SetSelectedLineIdx(selectedLineIdx)
+		ctx.GetList().SetSelection(selectedLineIdx)
 		return ctx.HandleFocus(types.OnFocusOpts{})
 	}))
 
@@ -173,15 +173,6 @@ func (self *SubCommitsViewModel) SetShowBranchHeads(value bool) {
 
 func (self *SubCommitsViewModel) GetShowBranchHeads() bool {
 	return self.showBranchHeads
-}
-
-func (self *SubCommitsContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
 }
 
 func (self *SubCommitsContext) CanRebase() bool {

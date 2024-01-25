@@ -81,6 +81,11 @@
           "description": "Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.\nOptions are:\n- 'horizontal': split the window horizontally\n- 'vertical': split the window vertically\n- 'flexible': (default) split the window horizontally if the window is wide enough, otherwise split vertically",
           "default": "flexible"
         },
+        "enlargedSideViewLocation": {
+          "type": "string",
+          "description": "How the window is split when in half screen mode (i.e. after hitting '+' once).\nPossible values:\n- 'left': split the window horizontally (side panel on the left, main view on the right)\n- 'top': split the window vertically (side panel on top, main view below)",
+          "default": "left"
+        },
         "language": {
           "type": "string",
           "enum": [
@@ -167,18 +172,6 @@
               "minItems": 1,
               "uniqueItems": true,
               "description": "Background color of selected line.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line",
-              "default": [
-                "blue"
-              ]
-            },
-            "selectedRangeBgColor": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array",
-              "minItems": 1,
-              "uniqueItems": true,
-              "description": "Background color of selected range\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line",
               "default": [
                 "blue"
               ]
@@ -310,6 +303,11 @@
             ""
           ],
           "description": "Nerd fonts version to use.\nOne of: '2' | '3' | empty string (default)\nIf empty, do not show icons."
+        },
+        "showFileIcons": {
+          "type": "boolean",
+          "description": "If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.",
+          "default": true
         },
         "showBranchCommitHash": {
           "type": "boolean",
@@ -662,6 +660,18 @@
               "type": "string",
               "default": "\u003e"
             },
+            "toggleRangeSelect": {
+              "type": "string",
+              "default": "v"
+            },
+            "rangeSelectDown": {
+              "type": "string",
+              "default": "\u003cs-down\u003e"
+            },
+            "rangeSelectUp": {
+              "type": "string",
+              "default": "\u003cs-up\u003e"
+            },
             "prevBlock": {
               "type": "string",
               "default": "\u003cleft\u003e"
@@ -864,6 +874,10 @@
             "decreaseContextInDiffView": {
               "type": "string",
               "default": "{"
+            },
+            "openDiffTool": {
+              "type": "string",
+              "default": "\u003cc-t\u003e"
             }
           },
           "additionalProperties": false,
@@ -904,6 +918,10 @@
             "commitChangesWithEditor": {
               "type": "string",
               "default": "C"
+            },
+            "findBaseCommitForFixup": {
+              "type": "string",
+              "default": "\u003cc-f\u003e"
             },
             "confirmDiscard": {
               "type": "string",
@@ -1089,15 +1107,11 @@
             },
             "cherryPickCopy": {
               "type": "string",
-              "default": "c"
-            },
-            "cherryPickCopyRange": {
-              "type": "string",
               "default": "C"
             },
             "pasteCommits": {
               "type": "string",
-              "default": "v"
+              "default": "V"
             },
             "markCommitAsBaseForRebase": {
               "type": "string",
@@ -1130,6 +1144,10 @@
             "viewBisectOptions": {
               "type": "string",
               "default": "b"
+            },
+            "startInteractiveRebase": {
+              "type": "string",
+              "default": "i"
             }
           },
           "additionalProperties": false,
@@ -1161,14 +1179,6 @@
         },
         "main": {
           "properties": {
-            "toggleDragSelect": {
-              "type": "string",
-              "default": "v"
-            },
-            "toggleDragSelect-alt": {
-              "type": "string",
-              "default": "V"
-            },
             "toggleSelectHunk": {
               "type": "string",
               "default": "a"

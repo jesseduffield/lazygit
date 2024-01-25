@@ -43,7 +43,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	}
 
 	gui.State.Contexts.Menu.SetMenuItems(opts.Items, opts.ColumnAlignment)
-	gui.State.Contexts.Menu.SetSelectedLineIdx(0)
+	gui.State.Contexts.Menu.SetSelection(0)
 
 	gui.Views.Menu.Title = opts.Title
 	gui.Views.Menu.FgColor = theme.GocuiDefaultTextColor

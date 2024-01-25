@@ -35,11 +35,10 @@ type IntegrationTest struct {
 		testDriver *TestDriver,
 		keys config.KeybindingConfig,
 	)
-	gitVersion    GitVersionRestriction
-	width         int
-	height        int
-	isDemo        bool
-	useCustomPath bool
+	gitVersion GitVersionRestriction
+	width      int
+	height     int
+	isDemo     bool
 }
 
 var _ integrationTypes.IntegrationTest = &IntegrationTest{}
@@ -55,9 +54,9 @@ type NewIntegrationTestArgs struct {
 	Run func(t *TestDriver, keys config.KeybindingConfig)
 	// additional args passed to lazygit
 	ExtraCmdArgs []string
-	// for when a test is flakey
 	ExtraEnvVars map[string]string
-	Skip         bool
+	// for when a test is flakey
+	Skip bool
 	// to run a test only on certain git versions
 	GitVersion GitVersionRestriction
 	// width and height when running in headless mode, for testing
@@ -67,10 +66,6 @@ type NewIntegrationTestArgs struct {
 	Height int
 	// If true, this is not a test but a demo to be added to our docs
 	IsDemo bool
-	// If true, the test won't invoke lazygit with the --path arg.
-	// Useful for when we're passing --git-dir and --work-tree (because --path is
-	// incompatible with those args)
-	UseCustomPath bool
 }
 
 type GitVersionRestriction struct {
@@ -100,7 +95,7 @@ func (self GitVersionRestriction) shouldRunOnVersion(version *git_commands.GitVe
 		if err != nil {
 			panic("Invalid git version string: " + self.from)
 		}
-		return !version.IsOlderThanVersion(from)
+		return version.IsAtLeastVersion(from)
 	}
 	if self.before != "" {
 		before, err := git_commands.ParseGitVersion(self.before)
@@ -130,19 +125,18 @@ func NewIntegrationTest(args NewIntegrationTestArgs) *IntegrationTest {
 	}
 
 	return &IntegrationTest{
-		name:          name,
-		description:   args.Description,
-		extraCmdArgs:  args.ExtraCmdArgs,
-		extraEnvVars:  args.ExtraEnvVars,
-		skip:          args.Skip,
-		setupRepo:     args.SetupRepo,
-		setupConfig:   args.SetupConfig,
-		run:           args.Run,
-		gitVersion:    args.GitVersion,
-		width:         args.Width,
-		height:        args.Height,
-		isDemo:        args.IsDemo,
-		useCustomPath: args.UseCustomPath,
+		name:         name,
+		description:  args.Description,
+		extraCmdArgs: args.ExtraCmdArgs,
+		extraEnvVars: args.ExtraEnvVars,
+		skip:         args.Skip,
+		setupRepo:    args.SetupRepo,
+		setupConfig:  args.SetupConfig,
+		run:          args.Run,
+		gitVersion:   args.GitVersion,
+		width:        args.Width,
+		height:       args.Height,
+		isDemo:       args.IsDemo,
 	}
 }
 
@@ -188,7 +182,13 @@ func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
 		panic(err)
 	}
 
-	shell := NewShell(pwd, func(errorMsg string) { gui.Fail(errorMsg) })
+	shell := NewShell(
+		pwd,
+		// passing the full environment because it's already been filtered down
+		// in the parent process.
+		os.Environ(),
+		func(errorMsg string) { gui.Fail(errorMsg) },
+	)
 	keys := gui.Keys()
 	testDriver := NewTestDriver(gui, shell, keys, InputDelay())
 
@@ -199,6 +199,8 @@ func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
 	}
 
 	self.run(testDriver, keys)
+
+	gui.CheckAllToastsAcknowledged()
 
 	if InputDelay() > 0 {
 		// Clear whatever caption there was so it doesn't linger

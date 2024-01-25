@@ -10,8 +10,6 @@ gui:
     - bold
     inactiveBorderColor:
     - black
-    SelectedRangeBgcolor:
-    - reverse
   # Not important in tests but it creates clutter in demos
   showRandomTip: false
   animateExplosion: false # takes too long

@@ -61,7 +61,7 @@ func generateAtDir(cheatsheetDir string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		mApp, _ := app.NewApp(mConfig, common)
+		mApp, _ := app.NewApp(mConfig, nil, common)
 		path := cheatsheetDir + "/Keybindings_" + lang + ".md"
 		file, err := os.Create(path)
 		if err != nil {

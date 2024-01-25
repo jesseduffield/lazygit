@@ -45,16 +45,6 @@ func NewMenuContext(
 	}
 }
 
-// TODO: remove this thing.
-func (self *MenuContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.Label
-}
-
 type MenuViewModel struct {
 	c               *ContextCommon
 	menuItems       []*types.MenuItem
@@ -90,7 +80,7 @@ func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 
 	return lo.Map(menuItems, func(item *types.MenuItem, _ int) []string {
 		displayStrings := item.LabelColumns
-		if item.DisabledReason != "" {
+		if item.DisabledReason != nil {
 			displayStrings[0] = style.FgDefault.SetStrikethrough().Sprint(displayStrings[0])
 		}
 
@@ -172,8 +162,13 @@ func (self *MenuContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Bin
 }
 
 func (self *MenuContext) OnMenuPress(selectedItem *types.MenuItem) error {
-	if selectedItem != nil && selectedItem.DisabledReason != "" {
-		return self.c.ErrorMsg(selectedItem.DisabledReason)
+	if selectedItem != nil && selectedItem.DisabledReason != nil {
+		if selectedItem.DisabledReason.ShowErrorInPanel {
+			return self.c.ErrorMsg(selectedItem.DisabledReason.Text)
+		}
+
+		self.c.ErrorToast(self.c.Tr.DisabledMenuItemPrefix + selectedItem.DisabledReason.Text)
+		return nil
 	}
 
 	if err := self.c.PopContext(); err != nil {
@@ -189,4 +184,9 @@ func (self *MenuContext) OnMenuPress(selectedItem *types.MenuItem) error {
 	}
 
 	return nil
+}
+
+// There is currently no need to use range-select in a menu so we're disabling it.
+func (self *MenuContext) RangeSelectEnabled() bool {
+	return false
 }

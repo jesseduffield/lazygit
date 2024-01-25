@@ -68,8 +68,8 @@ func (self *MergeConflictsContext) IsUserScrolling() bool {
 	return self.viewModel.userVerticalScrolling
 }
 
-func (self *MergeConflictsContext) RenderAndFocus(isFocused bool) error {
-	self.setContent(isFocused)
+func (self *MergeConflictsContext) RenderAndFocus() error {
+	self.setContent()
 	self.FocusSelection()
 
 	self.c.Render()
@@ -77,30 +77,41 @@ func (self *MergeConflictsContext) RenderAndFocus(isFocused bool) error {
 	return nil
 }
 
-func (self *MergeConflictsContext) Render(isFocused bool) error {
-	self.setContent(isFocused)
+func (self *MergeConflictsContext) Render() error {
+	self.setContent()
 
 	self.c.Render()
 
 	return nil
 }
 
-func (self *MergeConflictsContext) GetContentToRender(isFocused bool) string {
+func (self *MergeConflictsContext) GetContentToRender() string {
 	if self.GetState() == nil {
 		return ""
 	}
 
-	return mergeconflicts.ColoredConflictFile(self.GetState(), isFocused)
+	return mergeconflicts.ColoredConflictFile(self.GetState())
 }
 
-func (self *MergeConflictsContext) setContent(isFocused bool) {
-	self.GetView().SetContent(self.GetContentToRender(isFocused))
+func (self *MergeConflictsContext) setContent() {
+	self.GetView().SetContent(self.GetContentToRender())
 }
 
 func (self *MergeConflictsContext) FocusSelection() {
 	if !self.IsUserScrolling() {
 		_ = self.GetView().SetOriginY(self.GetOriginY())
 	}
+
+	self.SetSelectedLineRange()
+}
+
+func (self *MergeConflictsContext) SetSelectedLineRange() {
+	startIdx, endIdx := self.GetState().GetSelectedRange()
+	view := self.GetView()
+	originY := view.OriginY()
+	// As far as the view is concerned, we are always selecting a range
+	view.SetRangeSelectStart(startIdx)
+	view.SetCursorY(endIdx - originY)
 }
 
 func (self *MergeConflictsContext) GetOriginY() int {

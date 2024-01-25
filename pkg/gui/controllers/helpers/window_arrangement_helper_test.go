@@ -122,6 +122,70 @@ func TestGetWindowDimensions(t *testing.T) {
 			`,
 		},
 		{
+			name: "half screen mode, enlargedSideViewLocation left",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.Height = 20 // smaller height because we don't more here
+				args.ScreenMode = types.SCREEN_HALF
+				args.UserConfig.Gui.EnlargedSideViewLocation = "left"
+			},
+			expected: `
+			╭status──────────────────────────────╮╭main───────────────────────────────╮
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			╰────────────────────────────────────╯╰───────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "half screen mode, enlargedSideViewLocation top",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.Height = 20 // smaller height because we don't more here
+				args.ScreenMode = types.SCREEN_HALF
+				args.UserConfig.Gui.EnlargedSideViewLocation = "top"
+			},
+			expected: `
+			╭status───────────────────────────────────────────────────────────────────╮
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			╰─────────────────────────────────────────────────────────────────────────╯
+			╭main─────────────────────────────────────────────────────────────────────╮
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			╰─────────────────────────────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
 			name: "search mode",
 			mutateArgs: func(args *WindowArrangementArgs) {
 				args.InSearchPrompt = true

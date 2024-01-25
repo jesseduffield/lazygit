@@ -13,11 +13,11 @@ type ConfirmationController struct {
 var _ types.IController = &ConfirmationController{}
 
 func NewConfirmationController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *ConfirmationController {
 	return &ConfirmationController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 

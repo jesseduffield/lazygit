@@ -6,6 +6,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
 
@@ -69,6 +70,29 @@ func (self *CommitFileTreeViewModel) GetSelected() *CommitFileNode {
 	return self.Get(self.GetSelectedLineIdx())
 }
 
+func (self *CommitFileTreeViewModel) GetSelectedItemId() string {
+	item := self.GetSelected()
+	if item == nil {
+		return ""
+	}
+
+	return item.ID()
+}
+
+func (self *CommitFileTreeViewModel) GetSelectedItems() ([]*CommitFileNode, int, int) {
+	panic("Not implemented")
+}
+
+func (self *CommitFileTreeViewModel) GetSelectedItemIds() ([]string, int, int) {
+	selectedItems, startIdx, endIdx := self.GetSelectedItems()
+
+	ids := lo.Map(selectedItems, func(item *CommitFileNode, _ int) string {
+		return item.ID()
+	})
+
+	return ids, startIdx, endIdx
+}
+
 func (self *CommitFileTreeViewModel) GetSelectedFile() *models.CommitFile {
 	node := self.GetSelected()
 	if node == nil {
@@ -106,6 +130,6 @@ func (self *CommitFileTreeViewModel) ToggleShowTree() {
 
 	index, found := self.GetIndexForPath(path)
 	if found {
-		self.SetSelectedLineIdx(index)
+		self.SetSelection(index)
 	}
 }

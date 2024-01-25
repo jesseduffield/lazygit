@@ -19,6 +19,9 @@ import (
 type Shell struct {
 	// working directory the shell is invoked in
 	dir string
+	// passed into each command
+	env []string
+
 	// when running the shell outside the gui we can directly panic on failure,
 	// but inside the gui we need to close the gui before panicking
 	fail func(string)
@@ -26,14 +29,15 @@ type Shell struct {
 	randomFileContentIndex int
 }
 
-func NewShell(dir string, fail func(string)) *Shell {
-	return &Shell{dir: dir, fail: fail}
+func NewShell(dir string, env []string, fail func(string)) *Shell {
+	return &Shell{dir: dir, env: env, fail: fail}
 }
 
 func (self *Shell) RunCommand(args []string) *Shell {
 	return self.RunCommandWithEnv(args, []string{})
 }
 
+// Run a command with additional environment variables set
 func (self *Shell) RunCommandWithEnv(args []string, env []string) *Shell {
 	output, err := self.runCommandWithOutputAndEnv(args, env)
 	if err != nil {
@@ -58,7 +62,7 @@ func (self *Shell) runCommandWithOutput(args []string) (string, error) {
 
 func (self *Shell) runCommandWithOutputAndEnv(args []string, env []string) (string, error) {
 	cmd := exec.Command(args[0], args[1:]...)
-	cmd.Env = append(os.Environ(), env...)
+	cmd.Env = append(self.env, env...)
 	cmd.Dir = self.dir
 
 	output, err := cmd.CombinedOutput()
@@ -461,8 +465,8 @@ func (self *Shell) CopyFile(source string, destination string) *Shell {
 	return self
 }
 
-// NOTE: this only takes effect before running the test;
-// the test will still run in the original directory
+// The final value passed to Chdir() during setup
+// will be the directory the test is run from.
 func (self *Shell) Chdir(path string) *Shell {
 	self.dir = filepath.Join(self.dir, path)
 

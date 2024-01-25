@@ -102,8 +102,19 @@ func (self *TestDriver) ExpectPopup() *Popup {
 	return &Popup{t: self}
 }
 
-func (self *TestDriver) ExpectToast(matcher *TextMatcher) {
-	self.Views().AppStatus().Content(matcher)
+func (self *TestDriver) ExpectToast(matcher *TextMatcher) *TestDriver {
+	t := self.gui.NextToast()
+	if t == nil {
+		self.gui.Fail("Expected toast, but didn't get one")
+	} else {
+		self.matchString(matcher, "Unexpected toast message",
+			func() string {
+				return *t
+			},
+		)
+	}
+
+	return self
 }
 
 func (self *TestDriver) ExpectClipboard(matcher *TextMatcher) {

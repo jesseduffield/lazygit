@@ -14,17 +14,24 @@ import (
 
 type BisectController struct {
 	baseController
+	*ListControllerTrait[*models.Commit]
 	c *ControllerCommon
 }
 
 var _ types.IController = &BisectController{}
 
 func NewBisectController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *BisectController {
 	return &BisectController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
+		ListControllerTrait: NewListControllerTrait[*models.Commit](
+			c,
+			c.Contexts().LocalCommits,
+			c.Contexts().LocalCommits.GetSelected,
+			c.Contexts().LocalCommits.GetSelectedItems,
+		),
 	}
 }
 
@@ -32,7 +39,7 @@ func (self *BisectController) GetKeybindings(opts types.KeybindingsOpts) []*type
 	bindings := []*types.Binding{
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewBisectOptions),
-			Handler:     opts.Guards.OutsideFilterMode(self.checkSelected(self.openMenu)),
+			Handler:     opts.Guards.OutsideFilterMode(self.withItem(self.openMenu)),
 			Description: self.c.Tr.ViewBisectOptions,
 			OpensMenu:   true,
 		},
@@ -70,8 +77,18 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 	// If we have a current sha already, then we always want to use that one. If
 	// not, we're still picking the initial commits before we really start, so
 	// use the selected commit in that case.
-	shaToMark := lo.Ternary(info.GetCurrentSha() != "", info.GetCurrentSha(), commit.Sha)
+
+	bisecting := info.GetCurrentSha() != ""
+	shaToMark := lo.Ternary(bisecting, info.GetCurrentSha(), commit.Sha)
 	shortShaToMark := utils.ShortSha(shaToMark)
+
+	// For marking a commit as bad, when we're not already bisecting, we require
+	// a single item selected, but once we are bisecting, it doesn't matter because
+	// the action applies to the HEAD commit rather than the selected commit.
+	var singleItemIfNotBisecting *types.DisabledReason
+	if !bisecting {
+		singleItemIfNotBisecting = self.require(self.singleItemSelected())()
+	}
 
 	menuItems := []*types.MenuItem{
 		{
@@ -84,7 +101,8 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 
 				return self.afterMark(selectCurrentAfter, waitToReselect)
 			},
-			Key: 'b',
+			DisabledReason: singleItemIfNotBisecting,
+			Key:            'b',
 		},
 		{
 			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, shortShaToMark, info.OldTerm()),
@@ -96,7 +114,8 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 
 				return self.afterMark(selectCurrentAfter, waitToReselect)
 			},
-			Key: 'g',
+			DisabledReason: singleItemIfNotBisecting,
+			Key:            'g',
 		},
 		{
 			Label: fmt.Sprintf(self.c.Tr.Bisect.SkipCurrent, shortShaToMark),
@@ -108,7 +127,8 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 
 				return self.afterMark(selectCurrentAfter, waitToReselect)
 			},
-			Key: 's',
+			DisabledReason: singleItemIfNotBisecting,
+			Key:            's',
 		},
 	}
 	if info.GetCurrentSha() != "" && info.GetCurrentSha() != commit.Sha {
@@ -122,7 +142,8 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 
 				return self.afterMark(selectCurrentAfter, waitToReselect)
 			},
-			Key: 'S',
+			DisabledReason: self.require(self.singleItemSelected())(),
+			Key:            'S',
 		}))
 	}
 	menuItems = append(menuItems, lo.ToPtr(types.MenuItem{
@@ -157,7 +178,8 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 
 					return self.c.Helpers().Bisect.PostBisectCommandRefresh()
 				},
-				Key: 'b',
+				DisabledReason: self.require(self.singleItemSelected())(),
+				Key:            'b',
 			},
 			{
 				Label: fmt.Sprintf(self.c.Tr.Bisect.MarkStart, commit.ShortSha(), info.OldTerm()),
@@ -173,7 +195,8 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 
 					return self.c.Helpers().Bisect.PostBisectCommandRefresh()
 				},
-				Key: 'g',
+				DisabledReason: self.require(self.singleItemSelected())(),
+				Key:            'g',
 			},
 			{
 				Label: self.c.Tr.Bisect.ChooseTerms,
@@ -265,27 +288,12 @@ func (self *BisectController) selectCurrentBisectCommit() {
 		// find index of commit with that sha, move cursor to that.
 		for i, commit := range self.c.Model().Commits {
 			if commit.Sha == info.GetCurrentSha() {
-				self.context().SetSelectedLineIdx(i)
+				self.context().SetSelection(i)
 				_ = self.context().HandleFocus(types.OnFocusOpts{})
 				break
 			}
 		}
 	}
-}
-
-func (self *BisectController) checkSelected(callback func(*models.Commit) error) func() error {
-	return func() error {
-		commit := self.context().GetSelected()
-		if commit == nil {
-			return nil
-		}
-
-		return callback(commit)
-	}
-}
-
-func (self *BisectController) Context() types.Context {
-	return self.context()
 }
 
 func (self *BisectController) context() *context.LocalCommitsContext {

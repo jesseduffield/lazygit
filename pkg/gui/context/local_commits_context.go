@@ -85,20 +85,11 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	}
 
 	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(func(selectedLineIdx int) error {
-		ctx.GetList().SetSelectedLineIdx(selectedLineIdx)
+		ctx.GetList().SetSelection(selectedLineIdx)
 		return ctx.HandleFocus(types.OnFocusOpts{})
 	}))
 
 	return ctx
-}
-
-func (self *LocalCommitsContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
 }
 
 type LocalCommitsViewModel struct {

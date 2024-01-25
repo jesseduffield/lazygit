@@ -137,13 +137,21 @@ func (self *CommitCommands) signoffFlag() string {
 }
 
 func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
-	cmdArgs := NewGitCmd("rev-list").
+	cmdArgs := NewGitCmd("log").
 		Arg("--format=%B", "--max-count=1", commitSha).
 		ToArgv()
 
-	messageWithHeader, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
-	message := strings.Join(strings.SplitAfter(messageWithHeader, "\n")[1:], "")
+	message, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	return strings.TrimSpace(message), err
+}
+
+func (self *CommitCommands) GetCommitSubject(commitSha string) (string, error) {
+	cmdArgs := NewGitCmd("log").
+		Arg("--format=%s", "--max-count=1", commitSha).
+		ToArgv()
+
+	subject, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	return strings.TrimSpace(subject), err
 }
 
 func (self *CommitCommands) GetCommitDiff(commitSha string) (string, error) {
@@ -190,6 +198,20 @@ func (self *CommitCommands) GetCommitMessagesFirstLine(shas []string) (string, e
 	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 }
 
+// Example output:
+//
+//	cd50c79ae Preserve the commit message correctly even if the description has blank lines
+//	3ebba5f32 Add test demonstrating a bug with preserving the commit message
+//	9a423c388 Remove unused function
+func (self *CommitCommands) GetShasAndCommitMessagesFirstLine(shas []string) (string, error) {
+	cmdArgs := NewGitCmd("show").
+		Arg("--no-patch", "--pretty=format:%h %s").
+		Arg(shas...).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+}
+
 func (self *CommitCommands) GetCommitsOneline(shas []string) (string, error) {
 	cmdArgs := NewGitCmd("show").
 		Arg("--no-patch", "--oneline").
@@ -228,6 +250,7 @@ func (self *CommitCommands) ShowCmdObj(sha string, filterPath string) oscommands
 		Arg(sha).
 		ArgIf(self.AppState.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		ArgIf(filterPath != "", "--", filterPath).
+		Dir(self.repoPaths.worktreePath).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).DontLog()

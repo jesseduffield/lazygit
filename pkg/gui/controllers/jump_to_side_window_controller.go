@@ -14,11 +14,11 @@ type JumpToSideWindowController struct {
 }
 
 func NewJumpToSideWindowController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *JumpToSideWindowController {
 	return &JumpToSideWindowController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 

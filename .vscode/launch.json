@@ -13,9 +13,6 @@
       ],
       "hideSystemGoroutines": true,
       "console": "integratedTerminal",
-      "presentation": {
-        "hidden": true
-      }
     },
     {
       "name": "Tail Lazygit logs",
@@ -28,9 +25,6 @@
         "--use-config-file=${workspaceFolder}/.vscode/debugger_config.yml"
       ],
       "console": "integratedTerminal",
-      "presentation": {
-        "hidden": true
-      }
     },
     {
       "name": "Attach to a running Lazygit",

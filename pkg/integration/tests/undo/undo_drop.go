@@ -19,8 +19,8 @@ var UndoDrop = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		confirmCommitDrop := func() {
 			t.ExpectPopup().Confirmation().
-				Title(Equals("Delete commit")).
-				Content(Equals("Are you sure you want to delete this commit?")).
+				Title(Equals("Drop commit")).
+				Content(Equals("Are you sure you want to drop the selected commit(s)?")).
 				Confirm()
 		}
 

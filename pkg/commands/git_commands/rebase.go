@@ -105,58 +105,49 @@ func (self *RebaseCommands) GenericAmend(commits []*models.Commit, index int, f 
 	return self.ContinueRebase()
 }
 
-func (self *RebaseCommands) MoveCommitDown(commits []*models.Commit, index int) error {
-	baseShaOrRoot := getBaseShaOrRoot(commits, index+2)
+func (self *RebaseCommands) MoveCommitsDown(commits []*models.Commit, startIdx int, endIdx int) error {
+	baseShaOrRoot := getBaseShaOrRoot(commits, endIdx+2)
 
-	sha := commits[index].Sha
-
-	msg := utils.ResolvePlaceholderString(
-		self.Tr.Log.MoveCommitDown,
-		map[string]string{
-			"shortSha": utils.ShortSha(sha),
-		},
-	)
-	self.os.LogCommand(msg, false)
+	shas := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) string {
+		return commit.Sha
+	})
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot:  baseShaOrRoot,
-		instruction:    daemon.NewMoveTodoDownInstruction(sha),
+		instruction:    daemon.NewMoveTodosDownInstruction(shas),
 		overrideEditor: true,
 	}).Run()
 }
 
-func (self *RebaseCommands) MoveCommitUp(commits []*models.Commit, index int) error {
-	baseShaOrRoot := getBaseShaOrRoot(commits, index+1)
+func (self *RebaseCommands) MoveCommitsUp(commits []*models.Commit, startIdx int, endIdx int) error {
+	baseShaOrRoot := getBaseShaOrRoot(commits, endIdx+1)
 
-	sha := commits[index].Sha
-
-	msg := utils.ResolvePlaceholderString(
-		self.Tr.Log.MoveCommitUp,
-		map[string]string{
-			"shortSha": utils.ShortSha(sha),
-		},
-	)
-	self.os.LogCommand(msg, false)
+	shas := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) string {
+		return commit.Sha
+	})
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot:  baseShaOrRoot,
-		instruction:    daemon.NewMoveTodoUpInstruction(sha),
+		instruction:    daemon.NewMoveTodosUpInstruction(shas),
 		overrideEditor: true,
 	}).Run()
 }
 
-func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, index int, action todo.TodoCommand) error {
-	baseIndex := index + 1
+func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, startIdx int, endIdx int, action todo.TodoCommand) error {
+	baseIndex := endIdx + 1
 	if action == todo.Squash || action == todo.Fixup {
 		baseIndex++
 	}
 
 	baseShaOrRoot := getBaseShaOrRoot(commits, baseIndex)
 
-	changes := []daemon.ChangeTodoAction{{
-		Sha:       commits[index].Sha,
-		NewAction: action,
-	}}
+	changes := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) daemon.ChangeTodoAction {
+		return daemon.ChangeTodoAction{
+			Sha:       commit.Sha,
+			NewAction: action,
+		}
+	})
+
 	self.os.LogCommand(logTodoChanges(changes), false)
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
@@ -200,7 +191,7 @@ func logTodoChanges(changes []daemon.ChangeTodoAction) string {
 	changeTodoStr := strings.Join(lo.Map(changes, func(c daemon.ChangeTodoAction, _ int) string {
 		return fmt.Sprintf("%s:%s", c.Sha, c.NewAction)
 	}), "\n")
-	return fmt.Sprintf("Changing TODO actions: %s", changeTodoStr)
+	return fmt.Sprintf("Changing TODO actions:\n%s", changeTodoStr)
 }
 
 type PrepareInteractiveRebaseCommandOpts struct {
@@ -221,9 +212,9 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 		Arg("--interactive").
 		Arg("--autostash").
 		Arg("--keep-empty").
-		ArgIf(opts.keepCommitsThatBecomeEmpty && !self.version.IsOlderThan(2, 26, 0), "--empty=keep").
+		ArgIf(opts.keepCommitsThatBecomeEmpty && self.version.IsAtLeast(2, 26, 0), "--empty=keep").
 		Arg("--no-autosquash").
-		ArgIf(!self.version.IsOlderThan(2, 22, 0), "--rebase-merges").
+		ArgIf(self.version.IsAtLeast(2, 22, 0), "--rebase-merges").
 		ArgIf(opts.onto != "", "--onto", opts.onto).
 		Arg(opts.baseShaOrRoot).
 		ToArgv()
@@ -281,22 +272,45 @@ func (self *RebaseCommands) AmendTo(commits []*models.Commit, commitIndex int) e
 	}).Run()
 }
 
-// EditRebaseTodo sets the action for a given rebase commit in the git-rebase-todo file
-func (self *RebaseCommands) EditRebaseTodo(commit *models.Commit, action todo.TodoCommand) error {
+// Sets the action for the given commits in the git-rebase-todo file
+func (self *RebaseCommands) EditRebaseTodo(commits []*models.Commit, action todo.TodoCommand) error {
+	commitsWithAction := lo.Map(commits, func(commit *models.Commit, _ int) utils.TodoChange {
+		return utils.TodoChange{
+			Sha:       commit.Sha,
+			OldAction: commit.Action,
+			NewAction: action,
+		}
+	})
+
 	return utils.EditRebaseTodo(
-		filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"), commit.Sha, commit.Action, action, self.config.GetCoreCommentChar())
+		filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"),
+		commitsWithAction,
+		self.config.GetCoreCommentChar(),
+	)
 }
 
-// MoveTodoDown moves a rebase todo item down by one position
-func (self *RebaseCommands) MoveTodoDown(commit *models.Commit) error {
+func (self *RebaseCommands) MoveTodosDown(commits []*models.Commit) error {
 	fileName := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo")
-	return utils.MoveTodoDown(fileName, commit.Sha, commit.Action, self.config.GetCoreCommentChar())
+	todosToMove := lo.Map(commits, func(commit *models.Commit, _ int) utils.Todo {
+		return utils.Todo{
+			Sha:    commit.Sha,
+			Action: commit.Action,
+		}
+	})
+
+	return utils.MoveTodosDown(fileName, todosToMove, self.config.GetCoreCommentChar())
 }
 
-// MoveTodoDown moves a rebase todo item down by one position
-func (self *RebaseCommands) MoveTodoUp(commit *models.Commit) error {
+func (self *RebaseCommands) MoveTodosUp(commits []*models.Commit) error {
 	fileName := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo")
-	return utils.MoveTodoUp(fileName, commit.Sha, commit.Action, self.config.GetCoreCommentChar())
+	todosToMove := lo.Map(commits, func(commit *models.Commit, _ int) utils.Todo {
+		return utils.Todo{
+			Sha:    commit.Sha,
+			Action: commit.Action,
+		}
+	})
+
+	return utils.MoveTodosUp(fileName, todosToMove, self.config.GetCoreCommentChar())
 }
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one

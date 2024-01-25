@@ -8,6 +8,13 @@ func (self *CommitDescriptionPanelDriver) getViewDriver() *ViewDriver {
 	return self.t.Views().CommitDescription()
 }
 
+// asserts on the current context of the description
+func (self *CommitDescriptionPanelDriver) Content(expected *TextMatcher) *CommitDescriptionPanelDriver {
+	self.getViewDriver().Content(expected)
+
+	return self
+}
+
 func (self *CommitDescriptionPanelDriver) Type(value string) *CommitDescriptionPanelDriver {
 	self.t.typeContent(value)
 
@@ -28,4 +35,8 @@ func (self *CommitDescriptionPanelDriver) Title(expected *TextMatcher) *CommitDe
 	self.getViewDriver().Title(expected)
 
 	return self
+}
+
+func (self *CommitDescriptionPanelDriver) Cancel() {
+	self.getViewDriver().PressEscape()
 }

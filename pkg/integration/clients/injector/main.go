@@ -58,7 +58,8 @@ func getIntegrationTest() integrationTypes.IntegrationTest {
 		))
 	}
 
-	allTests := tests.GetTests()
+	lazygitRootDir := os.Getenv(components.LAZYGIT_ROOT_DIR)
+	allTests := tests.GetTests(lazygitRootDir)
 	for _, candidateTest := range allTests {
 		if candidateTest.Name() == integrationTestName {
 			return candidateTest

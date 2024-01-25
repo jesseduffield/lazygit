@@ -37,6 +37,9 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>.</kbd>: 下一頁
   <kbd>&lt;</kbd>: 捲動到頂部
   <kbd>&gt;</kbd>: 捲動到底部
+  <kbd>v</kbd>: 切換拖曳選擇
+  <kbd>&lt;s-down&gt;</kbd>: Range select down
+  <kbd>&lt;s-up&gt;</kbd>: Range select up
   <kbd>/</kbd>: 搜尋
   <kbd>H</kbd>: 向左捲動
   <kbd>L</kbd>: 向右捲動
@@ -50,7 +53,6 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>&lt;left&gt;</kbd>: 選擇上一段
   <kbd>&lt;right&gt;</kbd>: 選擇下一段
   <kbd>v</kbd>: 切換拖曳選擇
-  <kbd>V</kbd>: 切換拖曳選擇
   <kbd>a</kbd>: 切換選擇程式碼塊
   <kbd>&lt;c-o&gt;</kbd>: 複製所選文本至剪貼簿
   <kbd>o</kbd>: 開啟檔案
@@ -89,7 +91,6 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>&lt;left&gt;</kbd>: 選擇上一段
   <kbd>&lt;right&gt;</kbd>: 選擇下一段
   <kbd>v</kbd>: 切換拖曳選擇
-  <kbd>V</kbd>: 切換拖曳選擇
   <kbd>a</kbd>: 切換選擇程式碼塊
   <kbd>&lt;c-o&gt;</kbd>: 複製所選文本至剪貼簿
   <kbd>o</kbd>: 開啟檔案
@@ -123,9 +124,9 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>o</kbd>: 在瀏覽器中開啟提交
   <kbd>n</kbd>: 從提交建立新分支
   <kbd>g</kbd>: 顯示重設選項
-  <kbd>c</kbd>: 複製提交 (揀選)
-  <kbd>C</kbd>: 複製提交範圍 (揀選)
+  <kbd>C</kbd>: 複製提交 (揀選)
   <kbd>&lt;c-r&gt;</kbd>: 重設選定的揀選 (複製) 提交
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: 檢視所選項目的檔案
   <kbd>/</kbd>: 搜尋
 </pre>
@@ -168,12 +169,13 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>R</kbd>: 使用編輯器改寫提交
   <kbd>d</kbd>: 刪除提交
   <kbd>e</kbd>: 編輯提交
+  <kbd>i</kbd>: Start interactive rebase
   <kbd>p</kbd>: 挑選提交 (於變基過程中)
   <kbd>F</kbd>: 為此提交建立修復提交
   <kbd>S</kbd>: 壓縮上方所有的“fixup!”提交 (自動壓縮)
   <kbd>&lt;c-j&gt;</kbd>: 向下移動提交
   <kbd>&lt;c-k&gt;</kbd>: 向上移動提交
-  <kbd>v</kbd>: 貼上提交 (揀選)
+  <kbd>V</kbd>: 貼上提交 (揀選)
   <kbd>B</kbd>: 為了變基已標注提交為基準提交
   <kbd>A</kbd>: 使用已預存的更改修改提交
   <kbd>a</kbd>: 設置/重設提交作者
@@ -186,8 +188,8 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>o</kbd>: 在瀏覽器中開啟提交
   <kbd>n</kbd>: 從提交建立新分支
   <kbd>g</kbd>: 顯示重設選項
-  <kbd>c</kbd>: 複製提交 (揀選)
-  <kbd>C</kbd>: 複製提交範圍 (揀選)
+  <kbd>C</kbd>: 複製提交 (揀選)
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: 檢視所選項目的檔案
   <kbd>/</kbd>: 搜尋
 </pre>
@@ -207,6 +209,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>d</kbd>: 捨棄此提交對此檔案的更改
   <kbd>o</kbd>: 開啟檔案
   <kbd>e</kbd>: 編輯檔案
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;space&gt;</kbd>: 切換檔案是否包含在補丁中
   <kbd>a</kbd>: 切換所有檔案是否包含在補丁中
   <kbd>&lt;enter&gt;</kbd>: 輸入檔案以將選定的行添加至補丁（或切換目錄折疊）
@@ -237,9 +240,9 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>o</kbd>: 在瀏覽器中開啟提交
   <kbd>n</kbd>: 從提交建立新分支
   <kbd>g</kbd>: 顯示重設選項
-  <kbd>c</kbd>: 複製提交 (揀選)
-  <kbd>C</kbd>: 複製提交範圍 (揀選)
+  <kbd>C</kbd>: 複製提交 (揀選)
   <kbd>&lt;c-r&gt;</kbd>: 重設選定的揀選 (複製) 提交
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: 檢視提交
   <kbd>/</kbd>: 搜尋
 </pre>
@@ -287,7 +290,6 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 複製檔案名稱到剪貼簿
-  <kbd>d</kbd>: 查看「刪除變更」選項
   <kbd>&lt;space&gt;</kbd>: 切換預存
   <kbd>&lt;c-b&gt;</kbd>: 篩選檔案 (預存/未預存)
   <kbd>y</kbd>: Copy to clipboard
@@ -295,6 +297,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>w</kbd>: 沒有預提交 hook 就提交更改
   <kbd>A</kbd>: 修改上次提交
   <kbd>C</kbd>: 使用 git 編輯器提交變更
+  <kbd>&lt;c-f&gt;</kbd>: Find base commit for fixup
   <kbd>e</kbd>: 編輯檔案
   <kbd>o</kbd>: 開啟檔案
   <kbd>i</kbd>: 忽略或排除檔案
@@ -303,9 +306,11 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>S</kbd>: 檢視收藏選項
   <kbd>a</kbd>: 全部預存/取消預存
   <kbd>&lt;enter&gt;</kbd>: 選擇檔案中的單個程式碼塊/行，或展開/折疊目錄
+  <kbd>d</kbd>: 查看「刪除變更」選項
   <kbd>g</kbd>: 檢視上游重設選項
   <kbd>D</kbd>: 顯示重設選項
   <kbd>`</kbd>: 顯示檔案樹狀視圖
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>M</kbd>: 開啟外部合併工具 (git mergetool)
   <kbd>f</kbd>: 擷取
   <kbd>/</kbd>: 搜尋

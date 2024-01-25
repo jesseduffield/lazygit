@@ -18,6 +18,7 @@ if [ -n "$LAZYGIT_GOCOVERDIR" ]; then
   # arg, but if we do that then the GOCOVERDIR env var (which you typically pass to the test binary) will be overwritten by the test runner. So we're passing LAZYGIT_COCOVERDIR instead
   # and then internally passing that to the test binary as GOCOVERDIR.
   go test -cover -coverpkg=github.com/jesseduffield/lazygit/pkg/... pkg/integration/clients/*.go -args -test.gocoverdir="/tmp/code_coverage"
+  EXITCODE=$?
 
   # We're merging the coverage data for the sake of having fewer artefacts to upload.
   # We can't merge inline so we're merging to a tmp dir then moving back to the original.
@@ -27,9 +28,8 @@ if [ -n "$LAZYGIT_GOCOVERDIR" ]; then
   mv /tmp/code_coverage_merged /tmp/code_coverage
 else
   go test pkg/integration/clients/*.go
+  EXITCODE=$?
 fi
-
-EXITCODE=$?
 
 if test -f ~/.gitconfig.lazygit.bak; then
   mv ~/.gitconfig.lazygit.bak ~/.gitconfig

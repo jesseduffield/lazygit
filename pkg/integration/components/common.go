@@ -18,6 +18,24 @@ func (self *Common) ContinueRebase() {
 	self.ContinueMerge()
 }
 
+func (self *Common) AbortRebase() {
+	self.t.GlobalPress(self.t.keys.Universal.CreateRebaseOptionsMenu)
+
+	self.t.ExpectPopup().Menu().
+		Title(Equals("Rebase options")).
+		Select(Contains("abort")).
+		Confirm()
+}
+
+func (self *Common) AbortMerge() {
+	self.t.GlobalPress(self.t.keys.Universal.CreateRebaseOptionsMenu)
+
+	self.t.ExpectPopup().Menu().
+		Title(Equals("Merge options")).
+		Select(Contains("abort")).
+		Confirm()
+}
+
 func (self *Common) AcknowledgeConflicts() {
 	self.t.ExpectPopup().Menu().
 		Title(Equals("Conflicts!")).

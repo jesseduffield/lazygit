@@ -10,45 +10,24 @@ import (
 
 type ViewDriver struct {
 	// context is prepended to any error messages e.g. 'context: "current view"'
-	context              string
-	getView              func() *gocui.View
-	t                    *TestDriver
-	getSelectedLinesFn   func() ([]string, error)
-	getSelectedRangeFn   func() (int, int, error)
-	getSelectedLineIdxFn func() (int, error)
+	context string
+	getView func() *gocui.View
+	t       *TestDriver
 }
 
-func (self *ViewDriver) getSelectedLines() ([]string, error) {
-	if self.getSelectedLinesFn == nil {
-		view := self.t.gui.View(self.getView().Name())
-
-		return []string{view.SelectedLine()}, nil
-	}
-
-	return self.getSelectedLinesFn()
+func (self *ViewDriver) getSelectedLines() []string {
+	view := self.t.gui.View(self.getView().Name())
+	return view.SelectedLines()
 }
 
-func (self *ViewDriver) getSelectedRange() (int, int, error) {
-	if self.getSelectedRangeFn == nil {
-		view := self.t.gui.View(self.getView().Name())
-		idx := view.SelectedLineIdx()
-
-		return idx, idx, nil
-	}
-
-	return self.getSelectedRangeFn()
+func (self *ViewDriver) getSelectedRange() (int, int) {
+	view := self.t.gui.View(self.getView().Name())
+	return view.SelectedLineRange()
 }
 
-// even if you have a selected range, there may still be a line within that range
-// which the cursor points at. This function returns that line index.
-func (self *ViewDriver) getSelectedLineIdx() (int, error) {
-	if self.getSelectedLineIdxFn == nil {
-		view := self.t.gui.View(self.getView().Name())
-
-		return view.SelectedLineIdx(), nil
-	}
-
-	return self.getSelectedLineIdxFn()
+func (self *ViewDriver) getSelectedLineIdx() int {
+	view := self.t.gui.View(self.getView().Name())
+	return view.SelectedLineIdx()
 }
 
 // asserts that the view has the expected title
@@ -105,7 +84,7 @@ func (self *ViewDriver) ContainsLines(matchers ...*TextMatcher) *ViewDriver {
 		content := self.getView().Buffer()
 		lines := strings.Split(content, "\n")
 
-		startIdx, endIdx, err := self.getSelectedRange()
+		startIdx, endIdx := self.getSelectedRange()
 
 		for i := 0; i < len(lines)-len(matchers)+1; i++ {
 			matches := true
@@ -118,10 +97,6 @@ func (self *ViewDriver) ContainsLines(matchers ...*TextMatcher) *ViewDriver {
 					break
 				}
 				if checkIsSelected {
-					if err != nil {
-						matches = false
-						break
-					}
 					if lineIdx < startIdx || lineIdx > endIdx {
 						matches = false
 						break
@@ -181,10 +156,7 @@ func (self *ViewDriver) SelectedLines(matchers ...*TextMatcher) *ViewDriver {
 	self.validateEnoughLines(matchers)
 
 	self.t.assertWithRetries(func() (bool, string) {
-		selectedLines, err := self.getSelectedLines()
-		if err != nil {
-			return false, err.Error()
-		}
+		selectedLines := self.getSelectedLines()
 
 		selectedContent := strings.Join(selectedLines, "\n")
 		expectedContent := expectedContentFromMatchers(matchers)
@@ -239,9 +211,34 @@ func (self *ViewDriver) validateVisibleLineCount(matchers []*TextMatcher) {
 func (self *ViewDriver) assertLines(offset int, matchers ...*TextMatcher) *ViewDriver {
 	view := self.getView()
 
+	var expectedStartIdx, expectedEndIdx int
+	foundSelectionStart := false
+	foundSelectionEnd := false
+	expectedSelectedLines := []string{}
+
 	for matcherIndex, matcher := range matchers {
 		lineIdx := matcherIndex + offset
+
 		checkIsSelected, matcher := matcher.checkIsSelected()
+
+		if checkIsSelected {
+			if foundSelectionEnd {
+				self.t.fail("The IsSelected matcher can only be used on a contiguous range of lines.")
+			}
+			if !foundSelectionStart {
+				expectedStartIdx = lineIdx
+				foundSelectionStart = true
+			}
+			expectedSelectedLines = append(expectedSelectedLines, matcher.name())
+			expectedEndIdx = lineIdx
+		} else if foundSelectionStart {
+			foundSelectionEnd = true
+		}
+	}
+
+	for matcherIndex, matcher := range matchers {
+		lineIdx := matcherIndex + offset
+		expectSelected, matcher := matcher.checkIsSelected()
 
 		self.t.matchString(matcher, fmt.Sprintf("Unexpected content in view '%s'.", view.Name()),
 			func() string {
@@ -249,30 +246,41 @@ func (self *ViewDriver) assertLines(offset int, matchers ...*TextMatcher) *ViewD
 			},
 		)
 
-		if checkIsSelected {
+		// If any of the matchers care about the selection, we need to
+		// assert on the selection for each matcher.
+		if foundSelectionStart {
 			self.t.assertWithRetries(func() (bool, string) {
-				startIdx, endIdx, err := self.getSelectedRange()
-				if err != nil {
-					return false, err.Error()
+				startIdx, endIdx := self.getSelectedRange()
+
+				selected := lineIdx >= startIdx && lineIdx <= endIdx
+
+				if (selected && expectSelected) || (!selected && !expectSelected) {
+					return true, ""
 				}
 
-				if lineIdx < startIdx || lineIdx > endIdx {
-					if startIdx == endIdx {
-						return false, fmt.Sprintf("Unexpected selected line index in view '%s'. Expected %d, got %d", view.Name(), lineIdx, startIdx)
-					} else {
-						lines, err := self.getSelectedLines()
-						if err != nil {
-							return false, err.Error()
-						}
-						return false, fmt.Sprintf("Unexpected selected line index in view '%s'. Expected line %d to be in range %d to %d. Selected lines:\n---\n%s\n---\n\nExpected line: '%s'", view.Name(), lineIdx, startIdx, endIdx, strings.Join(lines, "\n"), matcher.name())
-					}
-				}
-				return true, ""
+				lines := self.getSelectedLines()
+
+				return false, fmt.Sprintf(
+					"Unexpected selection in view '%s'. Expected %s to be selected but got %s.\nExpected selected lines:\n---\n%s\n---\n\nActual selected lines:\n---\n%s\n---\n",
+					view.Name(),
+					formatLineRange(startIdx, endIdx),
+					formatLineRange(expectedStartIdx, expectedEndIdx),
+					strings.Join(expectedSelectedLines, "\n"),
+					strings.Join(lines, "\n"),
+				)
 			})
 		}
 	}
 
 	return self
+}
+
+func formatLineRange(from int, to int) string {
+	if from == to {
+		return "line " + fmt.Sprintf("%d", from)
+	}
+
+	return "lines " + fmt.Sprintf("%d-%d", from, to)
 }
 
 // asserts on the content of the view i.e. the stuff within the view's frame.
@@ -286,15 +294,11 @@ func (self *ViewDriver) Content(matcher *TextMatcher) *ViewDriver {
 	return self
 }
 
-// asserts on the selected line of the view. If your view has multiple lines selected,
-// but also has a concept of a cursor position, this will assert on the line that
-// the cursor is on. Otherwise it will assert on the first line of the selection.
+// asserts on the selected line of the view. If you are selecting a range,
+// you should use the SelectedLines method instead.
 func (self *ViewDriver) SelectedLine(matcher *TextMatcher) *ViewDriver {
 	self.t.assertWithRetries(func() (bool, string) {
-		selectedLineIdx, err := self.getSelectedLineIdx()
-		if err != nil {
-			return false, err.Error()
-		}
+		selectedLineIdx := self.getSelectedLineIdx()
 
 		viewLines := self.getView().BufferLines()
 
@@ -480,11 +484,7 @@ func (self *ViewDriver) NavigateToLine(matcher *TextMatcher) *ViewDriver {
 		}
 	})
 
-	selectedLineIdx, err := self.getSelectedLineIdx()
-	if err != nil {
-		self.t.fail(err.Error())
-		return self
-	}
+	selectedLineIdx := self.getSelectedLineIdx()
 	if selectedLineIdx == matchIndex {
 		return self.SelectedLine(matcher)
 	}
@@ -507,11 +507,7 @@ func (self *ViewDriver) NavigateToLine(matcher *TextMatcher) *ViewDriver {
 
 	for i := 0; i < maxNumKeyPresses; i++ {
 		keyPress()
-		idx, err := self.getSelectedLineIdx()
-		if err != nil {
-			self.t.fail(err.Error())
-			return self
-		}
+		idx := self.getSelectedLineIdx()
 		if ok, _ := matcher.test(lines[idx]); ok {
 			return self
 		}

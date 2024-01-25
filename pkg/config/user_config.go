@@ -84,6 +84,11 @@ type GuiConfig struct {
 	// - 'vertical': split the window vertically
 	// - 'flexible': (default) split the window horizontally if the window is wide enough, otherwise split vertically
 	MainPanelSplitMode string `yaml:"mainPanelSplitMode" jsonschema:"enum=horizontal,enum=flexible,enum=vertical"`
+	// How the window is split when in half screen mode (i.e. after hitting '+' once).
+	// Possible values:
+	// - 'left': split the window horizontally (side panel on the left, main view on the right)
+	// - 'top': split the window vertically (side panel on top, main view below)
+	EnlargedSideViewLocation string `yaml:"enlargedSideViewLocation"`
 	// One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
 	Language string `yaml:"language" jsonschema:"enum=auto,enum=en,enum=zh-TW,enum=zh-CN,enum=pl,enum=nl,enum=ja,enum=ko,enum=ru"`
 	// Format used when displaying time e.g. commit time.
@@ -116,6 +121,8 @@ type GuiConfig struct {
 	// One of: '2' | '3' | empty string (default)
 	// If empty, do not show icons.
 	NerdFontsVersion string `yaml:"nerdFontsVersion" jsonschema:"enum=2,enum=3,enum="`
+	// If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.
+	ShowFileIcons bool `yaml:"showFileIcons"`
 	// If true, show commit hashes alongside branch names in the branches view.
 	ShowBranchCommitHash bool `yaml:"showBranchCommitHash"`
 	// Height of the command log view
@@ -149,9 +156,6 @@ type ThemeConfig struct {
 	// Background color of selected line.
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
 	SelectedLineBgColor []string `yaml:"selectedLineBgColor" jsonschema:"minItems=1,uniqueItems=true"`
-	// Background color of selected range
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
-	SelectedRangeBgColor []string `yaml:"selectedRangeBgColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Foreground color of copied commit
 	CherryPickedCommitFgColor []string `yaml:"cherryPickedCommitFgColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Background color of copied commit
@@ -299,6 +303,9 @@ type KeybindingUniversalConfig struct {
 	ScrollRight                  string   `yaml:"scrollRight"`
 	GotoTop                      string   `yaml:"gotoTop"`
 	GotoBottom                   string   `yaml:"gotoBottom"`
+	ToggleRangeSelect            string   `yaml:"toggleRangeSelect"`
+	RangeSelectDown              string   `yaml:"rangeSelectDown"`
+	RangeSelectUp                string   `yaml:"rangeSelectUp"`
 	PrevBlock                    string   `yaml:"prevBlock"`
 	NextBlock                    string   `yaml:"nextBlock"`
 	PrevBlockAlt                 string   `yaml:"prevBlock-alt"`
@@ -347,6 +354,7 @@ type KeybindingUniversalConfig struct {
 	ToggleWhitespaceInDiffView   string   `yaml:"toggleWhitespaceInDiffView"`
 	IncreaseContextInDiffView    string   `yaml:"increaseContextInDiffView"`
 	DecreaseContextInDiffView    string   `yaml:"decreaseContextInDiffView"`
+	OpenDiffTool                 string   `yaml:"openDiffTool"`
 }
 
 type KeybindingStatusConfig struct {
@@ -360,6 +368,7 @@ type KeybindingFilesConfig struct {
 	CommitChangesWithoutHook string `yaml:"commitChangesWithoutHook"`
 	AmendLastCommit          string `yaml:"amendLastCommit"`
 	CommitChangesWithEditor  string `yaml:"commitChangesWithEditor"`
+	FindBaseCommitForFixup   string `yaml:"findBaseCommitForFixup"`
 	ConfirmDiscard           string `yaml:"confirmDiscard"`
 	IgnoreFile               string `yaml:"ignoreFile"`
 	RefreshFiles             string `yaml:"refreshFiles"`
@@ -411,7 +420,6 @@ type KeybindingCommitsConfig struct {
 	PickCommit                     string `yaml:"pickCommit"`
 	RevertCommit                   string `yaml:"revertCommit"`
 	CherryPickCopy                 string `yaml:"cherryPickCopy"`
-	CherryPickCopyRange            string `yaml:"cherryPickCopyRange"`
 	PasteCommits                   string `yaml:"pasteCommits"`
 	MarkCommitAsBaseForRebase      string `yaml:"markCommitAsBaseForRebase"`
 	CreateTag                      string `yaml:"tagCommit"`
@@ -421,6 +429,7 @@ type KeybindingCommitsConfig struct {
 	OpenLogMenu                    string `yaml:"openLogMenu"`
 	OpenInBrowser                  string `yaml:"openInBrowser"`
 	ViewBisectOptions              string `yaml:"viewBisectOptions"`
+	StartInteractiveRebase         string `yaml:"startInteractiveRebase"`
 }
 
 type KeybindingStashConfig struct {
@@ -433,11 +442,9 @@ type KeybindingCommitFilesConfig struct {
 }
 
 type KeybindingMainConfig struct {
-	ToggleDragSelect    string `yaml:"toggleDragSelect"`
-	ToggleDragSelectAlt string `yaml:"toggleDragSelect-alt"`
-	ToggleSelectHunk    string `yaml:"toggleSelectHunk"`
-	PickBothHunks       string `yaml:"pickBothHunks"`
-	EditSelectHunk      string `yaml:"editSelectHunk"`
+	ToggleSelectHunk string `yaml:"toggleSelectHunk"`
+	PickBothHunks    string `yaml:"pickBothHunks"`
+	EditSelectHunk   string `yaml:"editSelectHunk"`
 }
 
 type KeybindingSubmodulesConfig struct {
@@ -603,6 +610,7 @@ func GetDefaultConfig() *UserConfig {
 			SidePanelWidth:           0.3333,
 			ExpandFocusedSidePanel:   false,
 			MainPanelSplitMode:       "flexible",
+			EnlargedSideViewLocation: "left",
 			Language:                 "auto",
 			TimeFormat:               "02 Jan 06",
 			ShortTimeFormat:          time.Kitchen,
@@ -612,7 +620,6 @@ func GetDefaultConfig() *UserConfig {
 				InactiveBorderColor:        []string{"default"},
 				OptionsTextColor:           []string{"blue"},
 				SelectedLineBgColor:        []string{"blue"},
-				SelectedRangeBgColor:       []string{"blue"},
 				CherryPickedCommitBgColor:  []string{"cyan"},
 				CherryPickedCommitFgColor:  []string{"blue"},
 				MarkedBaseCommitBgColor:    []string{"yellow"},
@@ -630,6 +637,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowRandomTip:             true,
 			ShowIcons:                 false,
 			NerdFontsVersion:          "",
+			ShowFileIcons:             true,
 			ShowBranchCommitHash:      false,
 			CommandLogSize:            8,
 			SplitDiff:                 "auto",
@@ -695,6 +703,9 @@ func GetDefaultConfig() *UserConfig {
 				ScrollRight:                  "L",
 				GotoTop:                      "<",
 				GotoBottom:                   ">",
+				ToggleRangeSelect:            "v",
+				RangeSelectDown:              "<s-down>",
+				RangeSelectUp:                "<s-up>",
 				PrevBlock:                    "<left>",
 				NextBlock:                    "<right>",
 				PrevBlockAlt:                 "h",
@@ -743,6 +754,7 @@ func GetDefaultConfig() *UserConfig {
 				ToggleWhitespaceInDiffView:   "<c-w>",
 				IncreaseContextInDiffView:    "}",
 				DecreaseContextInDiffView:    "{",
+				OpenDiffTool:                 "<c-t>",
 			},
 			Status: KeybindingStatusConfig{
 				CheckForUpdate:      "u",
@@ -754,6 +766,7 @@ func GetDefaultConfig() *UserConfig {
 				CommitChangesWithoutHook: "w",
 				AmendLastCommit:          "A",
 				CommitChangesWithEditor:  "C",
+				FindBaseCommitForFixup:   "<c-f>",
 				IgnoreFile:               "i",
 				RefreshFiles:             "r",
 				StashAllChanges:          "s",
@@ -801,9 +814,8 @@ func GetDefaultConfig() *UserConfig {
 				ResetCommitAuthor:              "a",
 				PickCommit:                     "p",
 				RevertCommit:                   "t",
-				CherryPickCopy:                 "c",
-				CherryPickCopyRange:            "C",
-				PasteCommits:                   "v",
+				CherryPickCopy:                 "C",
+				PasteCommits:                   "V",
 				MarkCommitAsBaseForRebase:      "B",
 				CreateTag:                      "T",
 				CheckoutCommit:                 "<space>",
@@ -812,6 +824,7 @@ func GetDefaultConfig() *UserConfig {
 				OpenLogMenu:                    "<c-l>",
 				OpenInBrowser:                  "o",
 				ViewBisectOptions:              "b",
+				StartInteractiveRebase:         "i",
 			},
 			Stash: KeybindingStashConfig{
 				PopStash:    "g",
@@ -821,11 +834,9 @@ func GetDefaultConfig() *UserConfig {
 				CheckoutCommitFile: "c",
 			},
 			Main: KeybindingMainConfig{
-				ToggleDragSelect:    "v",
-				ToggleDragSelectAlt: "V",
-				ToggleSelectHunk:    "a",
-				PickBothHunks:       "b",
-				EditSelectHunk:      "E",
+				ToggleSelectHunk: "a",
+				PickBothHunks:    "b",
+				EditSelectHunk:   "E",
 			},
 			Submodules: KeybindingSubmodulesConfig{
 				Init:     "i",

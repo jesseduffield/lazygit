@@ -5,6 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type CherryPickHelper struct {
@@ -45,25 +46,30 @@ func (self *CherryPickHelper) Copy(commit *models.Commit, commitsList []*models.
 	return self.rerender()
 }
 
-func (self *CherryPickHelper) CopyRange(selectedIndex int, commitsList []*models.Commit, context types.Context) error {
+func (self *CherryPickHelper) CopyRange(commitsList []*models.Commit, context types.IListContext) error {
+	startIdx, endIdx := context.GetList().GetSelectionRange()
+
 	if err := self.resetIfNecessary(context); err != nil {
 		return err
 	}
 
 	commitSet := self.getData().SelectedShaSet()
 
-	// find the last commit that is copied that's above our position
-	// if there are none, startIndex = 0
-	startIndex := 0
-	for index, commit := range commitsList[0:selectedIndex] {
-		if commitSet.Includes(commit.Sha) {
-			startIndex = index
-		}
-	}
+	allCommitsCopied := lo.EveryBy(commitsList[startIdx:endIdx+1], func(commit *models.Commit) bool {
+		return commitSet.Includes(commit.Sha)
+	})
 
-	for index := startIndex; index <= selectedIndex; index++ {
-		commit := commitsList[index]
-		self.getData().Add(commit, commitsList)
+	// if all selected commits are already copied, we'll uncopy them
+	if allCommitsCopied {
+		for index := startIdx; index <= endIdx; index++ {
+			commit := commitsList[index]
+			self.getData().Remove(commit, commitsList)
+		}
+	} else {
+		for index := startIdx; index <= endIdx; index++ {
+			commit := commitsList[index]
+			self.getData().Add(commit, commitsList)
+		}
 	}
 
 	return self.rerender()

@@ -18,154 +18,148 @@ const (
 	COLLAPSED_ARROW = "▶"
 )
 
-// keeping these here as individual constants in case later on people want the old tree shape
-const (
-	INNER_ITEM = "  "
-	LAST_ITEM  = "  "
-	NESTED     = "  "
-	NOTHING    = "  "
-)
-
 func RenderFileTree(
 	tree filetree.IFileTree,
-	diffName string,
 	submoduleConfigs []*models.SubmoduleConfig,
+	showFileIcons bool,
 ) []string {
-	return renderAux(tree.GetRoot().Raw(), tree.CollapsedPaths(), "", -1, func(node *filetree.Node[models.File], depth int) string {
+	collapsedPaths := tree.CollapsedPaths()
+	return renderAux(tree.GetRoot().Raw(), collapsedPaths, -1, -1, func(node *filetree.Node[models.File], treeDepth int, visualDepth int, isCollapsed bool) string {
 		fileNode := filetree.NewFileNode(node)
 
-		return getFileLine(fileNode.GetHasUnstagedChanges(), fileNode.GetHasStagedChanges(), fileNameAtDepth(node, depth), diffName, submoduleConfigs, node.File)
+		return getFileLine(isCollapsed, fileNode.GetHasUnstagedChanges(), fileNode.GetHasStagedChanges(), treeDepth, visualDepth, showFileIcons, submoduleConfigs, node)
 	})
 }
 
 func RenderCommitFileTree(
 	tree *filetree.CommitFileTreeViewModel,
-	diffName string,
 	patchBuilder *patch.PatchBuilder,
+	showFileIcons bool,
 ) []string {
-	return renderAux(tree.GetRoot().Raw(), tree.CollapsedPaths(), "", -1, func(node *filetree.Node[models.CommitFile], depth int) string {
-		// This is a little convoluted because we're dealing with either a leaf or a non-leaf.
-		// But this code actually applies to both. If it's a leaf, the status will just
-		// be whatever status it is, but if it's a non-leaf it will determine its status
-		// based on the leaves of that subtree
-		var status patch.PatchStatus
-		if node.EveryFile(func(file *models.CommitFile) bool {
-			return patchBuilder.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.WHOLE
-		}) {
-			status = patch.WHOLE
-		} else if node.EveryFile(func(file *models.CommitFile) bool {
-			return patchBuilder.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.UNSELECTED
-		}) {
-			status = patch.UNSELECTED
-		} else {
-			status = patch.PART
-		}
+	collapsedPaths := tree.CollapsedPaths()
+	return renderAux(tree.GetRoot().Raw(), collapsedPaths, -1, -1, func(node *filetree.Node[models.CommitFile], treeDepth int, visualDepth int, isCollapsed bool) string {
+		status := commitFilePatchStatus(node, tree, patchBuilder)
 
-		return getCommitFileLine(commitFileNameAtDepth(node, depth), diffName, node.File, status)
+		return getCommitFileLine(isCollapsed, treeDepth, visualDepth, node, status, showFileIcons)
 	})
+}
+
+// Returns the status of a commit file in terms of its inclusion in the custom patch
+func commitFilePatchStatus(node *filetree.Node[models.CommitFile], tree *filetree.CommitFileTreeViewModel, patchBuilder *patch.PatchBuilder) patch.PatchStatus {
+	// This is a little convoluted because we're dealing with either a leaf or a non-leaf.
+	// But this code actually applies to both. If it's a leaf, the status will just
+	// be whatever status it is, but if it's a non-leaf it will determine its status
+	// based on the leaves of that subtree
+	if node.EveryFile(func(file *models.CommitFile) bool {
+		return patchBuilder.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.WHOLE
+	}) {
+		return patch.WHOLE
+	} else if node.EveryFile(func(file *models.CommitFile) bool {
+		return patchBuilder.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.UNSELECTED
+	}) {
+		return patch.UNSELECTED
+	} else {
+		return patch.PART
+	}
 }
 
 func renderAux[T any](
 	node *filetree.Node[T],
 	collapsedPaths *filetree.CollapsedPaths,
-	prefix string,
-	depth int,
-	renderLine func(*filetree.Node[T], int) string,
+	// treeDepth is the depth of the node in the actual file tree. This is different to
+	// visualDepth because some directory nodes are compressed e.g. 'pkg/gui/blah' takes
+	// up two tree depths, but one visual depth. We need to track these separately,
+	// because indentation relies on visual depth, whereas file path truncation
+	// relies on tree depth.
+	treeDepth int,
+	visualDepth int,
+	renderLine func(*filetree.Node[T], int, int, bool) string,
 ) []string {
 	if node == nil {
 		return []string{}
 	}
 
-	isRoot := depth == -1
+	isRoot := treeDepth == -1
 
 	if node.IsFile() {
 		if isRoot {
 			return []string{}
 		}
-		return []string{prefix + renderLine(node, depth)}
-	}
-
-	if collapsedPaths.IsCollapsed(node.GetPath()) {
-		return []string{prefix + COLLAPSED_ARROW + " " + renderLine(node, depth)}
+		return []string{renderLine(node, treeDepth, visualDepth, false)}
 	}
 
 	arr := []string{}
 	if !isRoot {
-		arr = append(arr, prefix+EXPANDED_ARROW+" "+renderLine(node, depth))
+		isCollapsed := collapsedPaths.IsCollapsed(node.GetPath())
+		arr = append(arr, renderLine(node, treeDepth, visualDepth, isCollapsed))
 	}
 
-	newPrefix := prefix
-	if strings.HasSuffix(prefix, LAST_ITEM) {
-		newPrefix = strings.TrimSuffix(prefix, LAST_ITEM) + NOTHING
-	} else if strings.HasSuffix(prefix, INNER_ITEM) {
-		newPrefix = strings.TrimSuffix(prefix, INNER_ITEM) + NESTED
+	if collapsedPaths.IsCollapsed(node.GetPath()) {
+		return arr
 	}
 
-	for i, child := range node.Children {
-		isLast := i == len(node.Children)-1
-
-		var childPrefix string
-		if isRoot {
-			childPrefix = newPrefix
-		} else if isLast {
-			childPrefix = newPrefix + LAST_ITEM
-		} else {
-			childPrefix = newPrefix + INNER_ITEM
-		}
-
-		arr = append(arr, renderAux(child, collapsedPaths, childPrefix, depth+1+node.CompressionLevel, renderLine)...)
+	for _, child := range node.Children {
+		arr = append(arr, renderAux(child, collapsedPaths, treeDepth+1+node.CompressionLevel, visualDepth+1, renderLine)...)
 	}
 
 	return arr
 }
 
-func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, diffName string, submoduleConfigs []*models.SubmoduleConfig, file *models.File) string {
-	// potentially inefficient to be instantiating these color
-	// objects with each render
-	partiallyModifiedColor := style.FgYellow
+func getFileLine(
+	isCollapsed bool,
+	hasUnstagedChanges bool,
+	hasStagedChanges bool,
+	treeDepth int,
+	visualDepth int,
+	showFileIcons bool,
+	submoduleConfigs []*models.SubmoduleConfig,
+	node *filetree.Node[models.File],
+) string {
+	name := fileNameAtDepth(node, treeDepth)
+	output := ""
 
-	restColor := style.FgGreen
-	if name == diffName {
-		restColor = theme.DiffTerminalColor
-	} else if file == nil && hasStagedChanges && hasUnstagedChanges {
-		restColor = partiallyModifiedColor
-	} else if hasUnstagedChanges {
-		restColor = theme.UnstagedChangesColor
+	var nameColor style.TextStyle
+
+	file := node.File
+
+	indentation := strings.Repeat("  ", visualDepth)
+
+	if hasStagedChanges && !hasUnstagedChanges {
+		nameColor = style.FgGreen
+	} else if hasStagedChanges {
+		nameColor = style.FgYellow
+	} else {
+		nameColor = theme.DefaultTextColor
 	}
 
-	output := ""
-	if file != nil {
-		// this is just making things look nice when the background attribute is 'reverse'
-		firstChar := file.ShortStatus[0:1]
-		firstCharCl := style.FgGreen
-		if firstChar == "?" {
-			firstCharCl = theme.UnstagedChangesColor
-		} else if firstChar == " " {
-			firstCharCl = restColor
+	if file == nil {
+		output += indentation + ""
+		arrow := EXPANDED_ARROW
+		if isCollapsed {
+			arrow = COLLAPSED_ARROW
 		}
 
-		secondChar := file.ShortStatus[1:2]
-		secondCharCl := theme.UnstagedChangesColor
-		if secondChar == " " {
-			secondCharCl = restColor
-		}
+		arrowStyle := nameColor
 
-		output = firstCharCl.Sprint(firstChar)
-		output += secondCharCl.Sprint(secondChar)
-		output += restColor.Sprint(" ")
+		output += arrowStyle.Sprint(arrow) + " "
+	} else {
+		// Sprinting the space at the end in the specific style is for the sake of
+		// when a reverse style is used in the theme, which looks ugly if you just
+		// use the default style
+		output += indentation + formatFileStatus(file, nameColor) + nameColor.Sprint(" ")
 	}
 
 	isSubmodule := file != nil && file.IsSubmodule(submoduleConfigs)
 	isLinkedWorktree := file != nil && file.IsWorktree
 	isDirectory := file == nil
 
-	if icons.IsIconEnabled() {
+	if showFileIcons {
 		icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
 		paint := color.C256(icon.Color, false)
-		output += paint.Sprint(icon.Icon) + " "
+		output += paint.Sprint(icon.Icon) + nameColor.Sprint(" ")
 	}
 
-	output += restColor.Sprint(utils.EscapeSpecialChars(name))
+	output += nameColor.Sprint(utils.EscapeSpecialChars(name))
 
 	if isSubmodule {
 		output += theme.DefaultTextColor.Sprint(" (submodule)")
@@ -174,39 +168,85 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 	return output
 }
 
-func getCommitFileLine(name string, diffName string, commitFile *models.CommitFile, status patch.PatchStatus) string {
-	var colour style.TextStyle
-	if diffName == name {
-		colour = theme.DiffTerminalColor
-	} else {
-		switch status {
-		case patch.WHOLE:
-			colour = style.FgGreen
-		case patch.PART:
-			colour = style.FgYellow
-		case patch.UNSELECTED:
-			colour = theme.DefaultTextColor
-		}
+func formatFileStatus(file *models.File, restColor style.TextStyle) string {
+	firstChar := file.ShortStatus[0:1]
+	firstCharCl := style.FgGreen
+	if firstChar == "?" {
+		firstCharCl = theme.UnstagedChangesColor
+	} else if firstChar == " " {
+		firstCharCl = restColor
 	}
 
-	output := ""
-
-	name = utils.EscapeSpecialChars(name)
-	if commitFile != nil {
-		output += getColorForChangeStatus(commitFile.ChangeStatus).Sprint(commitFile.ChangeStatus) + " "
+	secondChar := file.ShortStatus[1:2]
+	secondCharCl := theme.UnstagedChangesColor
+	if secondChar == " " {
+		secondCharCl = restColor
 	}
 
-	isSubmodule := false
-	isLinkedWorktree := false
+	return firstCharCl.Sprint(firstChar) + secondCharCl.Sprint(secondChar)
+}
+
+func getCommitFileLine(
+	isCollapsed bool,
+	treeDepth int,
+	visualDepth int,
+	node *filetree.Node[models.CommitFile],
+	status patch.PatchStatus,
+	showFileIcons bool,
+) string {
+	indentation := strings.Repeat("  ", visualDepth)
+	name := commitFileNameAtDepth(node, treeDepth)
+	commitFile := node.File
+	output := indentation
+
 	isDirectory := commitFile == nil
 
-	if icons.IsIconEnabled() {
+	nameColor := theme.DefaultTextColor
+
+	switch status {
+	case patch.WHOLE:
+		nameColor = style.FgGreen
+	case patch.PART:
+		nameColor = style.FgYellow
+	case patch.UNSELECTED:
+		nameColor = theme.DefaultTextColor
+	}
+
+	if isDirectory {
+		arrow := EXPANDED_ARROW
+		if isCollapsed {
+			arrow = COLLAPSED_ARROW
+		}
+
+		output += nameColor.Sprint(arrow) + " "
+	} else {
+		var symbol string
+		symbolStyle := nameColor
+
+		switch status {
+		case patch.WHOLE:
+			symbol = "●"
+		case patch.PART:
+			symbol = "◐"
+		case patch.UNSELECTED:
+			symbol = commitFile.ChangeStatus
+			symbolStyle = getColorForChangeStatus(symbol)
+		}
+
+		output += symbolStyle.Sprint(symbol) + " "
+	}
+
+	name = utils.EscapeSpecialChars(name)
+	isSubmodule := false
+	isLinkedWorktree := false
+
+	if showFileIcons {
 		icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
 		paint := color.C256(icon.Color, false)
 		output += paint.Sprint(icon.Icon) + " "
 	}
 
-	output += colour.Sprint(name)
+	output += nameColor.Sprint(name)
 	return output
 }
 

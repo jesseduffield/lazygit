@@ -69,3 +69,11 @@ func (v *GitVersion) IsOlderThan(major, minor, patch int) bool {
 func (v *GitVersion) IsOlderThanVersion(version *GitVersion) bool {
 	return v.IsOlderThan(version.Major, version.Minor, version.Patch)
 }
+
+func (v *GitVersion) IsAtLeast(major, minor, patch int) bool {
+	return !v.IsOlderThan(major, minor, patch)
+}
+
+func (v *GitVersion) IsAtLeastVersion(version *GitVersion) bool {
+	return v.IsAtLeast(version.Major, version.Minor, version.Patch)
+}

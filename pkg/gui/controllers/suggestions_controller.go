@@ -7,25 +7,33 @@ import (
 
 type SuggestionsController struct {
 	baseController
+	*ListControllerTrait[*types.Suggestion]
 	c *ControllerCommon
 }
 
 var _ types.IController = &SuggestionsController{}
 
 func NewSuggestionsController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *SuggestionsController {
 	return &SuggestionsController{
 		baseController: baseController{},
-		c:              common,
+		ListControllerTrait: NewListControllerTrait[*types.Suggestion](
+			c,
+			c.Contexts().Suggestions,
+			c.Contexts().Suggestions.GetSelected,
+			c.Contexts().Suggestions.GetSelectedItems,
+		),
+		c: c,
 	}
 }
 
 func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:     opts.GetKey(opts.Config.Universal.Confirm),
-			Handler: func() error { return self.context().State.OnConfirm() },
+			Key:               opts.GetKey(opts.Config.Universal.Confirm),
+			Handler:           func() error { return self.context().State.OnConfirm() },
+			GetDisabledReason: self.require(self.singleItemSelected()),
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Universal.Return),
@@ -45,10 +53,6 @@ func (self *SuggestionsController) GetOnFocusLost() func(types.OnFocusLostOpts) 
 		self.c.Helpers().Confirmation.DeactivateConfirmationPrompt()
 		return nil
 	}
-}
-
-func (self *SuggestionsController) Context() types.Context {
-	return self.context()
 }
 
 func (self *SuggestionsController) context() *context.SuggestionsContext {

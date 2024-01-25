@@ -52,15 +52,6 @@ func NewTagsContext(
 	}
 }
 
-func (self *TagsContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
-}
-
 func (self *TagsContext) GetSelectedRef() types.Ref {
 	tag := self.GetSelected()
 	if tag == nil {

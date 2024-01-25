@@ -13,11 +13,11 @@ type SnakeController struct {
 var _ types.IController = &SnakeController{}
 
 func NewSnakeController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *SnakeController {
 	return &SnakeController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 

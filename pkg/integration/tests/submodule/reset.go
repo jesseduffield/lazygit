@@ -23,6 +23,8 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CloneIntoSubmodule("my_submodule")
 		shell.GitAddAll()
 		shell.Commit("add submodule")
+
+		shell.CreateFile("other_file", "")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		assertInParentRepo := func() {
@@ -67,13 +69,35 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().Focus().
 			Lines(
+				MatchesRegexp(` M.*my_submodule \(submodule\)`),
+				Contains("other_file").IsSelected(),
+			).
+			// Verify we can't use range select on submodules
+			Press(keys.Universal.ToggleRangeSelect).
+			SelectPreviousItem().
+			Lines(
 				MatchesRegexp(` M.*my_submodule \(submodule\)`).IsSelected(),
+				Contains("other_file").IsSelected(),
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectPopup().Menu().Title(Equals("my_submodule")).Select(Contains("Stash uncommitted submodule changes and update")).Confirm()
+				t.ExpectToast(Contains("Disabled: Range select not supported for submodules"))
 			}).
-			IsEmpty()
+			Press(keys.Universal.ToggleRangeSelect).
+			Lines(
+				MatchesRegexp(` M.*my_submodule \(submodule\)`).IsSelected(),
+				Contains("other_file"),
+			).
+			Press(keys.Universal.Remove).
+			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("my_submodule")).
+					Select(Contains("Stash uncommitted submodule changes and update")).
+					Confirm()
+			}).
+			Lines(
+				Contains("other_file").IsSelected(),
+			)
 
 		t.Views().Submodules().Focus().
 			PressEnter()

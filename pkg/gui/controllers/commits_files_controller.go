@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -11,56 +12,75 @@ import (
 
 type CommitFilesController struct {
 	baseController
+	*ListControllerTrait[*filetree.CommitFileNode]
 	c *ControllerCommon
 }
 
 var _ types.IController = &CommitFilesController{}
 
 func NewCommitFilesController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *CommitFilesController {
 	return &CommitFilesController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
+		ListControllerTrait: NewListControllerTrait[*filetree.CommitFileNode](
+			c,
+			c.Contexts().CommitFiles,
+			c.Contexts().CommitFiles.GetSelected,
+			c.Contexts().CommitFiles.GetSelectedItems,
+		),
 	}
 }
 
 func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.CommitFiles.CheckoutCommitFile),
-			Handler:     self.checkSelected(self.checkout),
-			Description: self.c.Tr.CheckoutCommitFile,
+			Key:               opts.GetKey(opts.Config.CommitFiles.CheckoutCommitFile),
+			Handler:           self.withItem(self.checkout),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.CheckoutCommitFile,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.checkSelected(self.discard),
-			Description: self.c.Tr.DiscardOldFileChange,
+			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Handler:           self.withItem(self.discard),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.DiscardOldFileChange,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
-			Handler:     self.checkSelected(self.open),
-			Description: self.c.Tr.OpenFile,
+			Key:               opts.GetKey(opts.Config.Universal.OpenFile),
+			Handler:           self.withItem(self.open),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.OpenFile,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
-			Handler:     self.checkSelected(self.edit),
-			Description: self.c.Tr.EditFile,
+			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Handler:           self.withItem(self.edit),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.EditFile,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.checkSelected(self.toggleForPatch),
-			Description: self.c.Tr.ToggleAddToPatch,
+			Key:               opts.GetKey(opts.Config.Universal.OpenDiffTool),
+			Handler:           self.withItem(self.openDiffTool),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.OpenDiffTool,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Handler:           self.withItem(self.toggleForPatch),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.ToggleAddToPatch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleStagedAll),
-			Handler:     self.checkSelected(self.toggleAllForPatch),
+			Handler:     self.withItem(self.toggleAllForPatch),
 			Description: self.c.Tr.ToggleAllInPatch,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:     self.checkSelected(self.enter),
-			Description: self.c.Tr.EnterFile,
+			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Handler:           self.withItem(self.enter),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.EnterFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleTreeView),
@@ -81,21 +101,6 @@ func (self *CommitFilesController) GetMouseKeybindings(opts types.KeybindingsOpt
 			FocusedView: self.context().GetViewName(),
 		},
 	}
-}
-
-func (self *CommitFilesController) checkSelected(callback func(*filetree.CommitFileNode) error) func() error {
-	return func() error {
-		selected := self.context().GetSelected()
-		if selected == nil {
-			return nil
-		}
-
-		return callback(selected)
-	}
-}
-
-func (self *CommitFilesController) Context() types.Context {
-	return self.context()
 }
 
 func (self *CommitFilesController) context() *context.CommitFilesContext {
@@ -199,6 +204,22 @@ func (self *CommitFilesController) edit(node *filetree.CommitFileNode) error {
 	}
 
 	return self.c.Helpers().Files.EditFile(node.GetPath())
+}
+
+func (self *CommitFilesController) openDiffTool(node *filetree.CommitFileNode) error {
+	ref := self.context().GetRef()
+	to := ref.RefName()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	_, err := self.c.RunSubprocess(self.c.Git().Diff.OpenDiffToolCmdObj(
+		git_commands.DiffToolCmdOptions{
+			Filepath:    node.GetPath(),
+			FromCommit:  from,
+			ToCommit:    to,
+			Reverse:     reverse,
+			IsDirectory: !node.IsFile(),
+			Staged:      false,
+		}))
+	return err
 }
 
 func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode) error {

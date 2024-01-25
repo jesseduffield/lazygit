@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
-	"github.com/stefanhaller/tcell/v2"
 )
 
 // this gives our integration test a way of interacting with the gui for sending keypresses
@@ -20,11 +20,14 @@ import (
 type GuiDriver struct {
 	gui        *Gui
 	isIdleChan chan struct{}
+	toastChan  chan string
 }
 
 var _ integrationTypes.GuiDriver = &GuiDriver{}
 
 func (self *GuiDriver) PressKey(keyStr string) {
+	self.CheckAllToastsAcknowledged()
+
 	key := keybindings.GetKey(keyStr)
 
 	var r rune
@@ -46,6 +49,8 @@ func (self *GuiDriver) PressKey(keyStr string) {
 }
 
 func (self *GuiDriver) Click(x, y int) {
+	self.CheckAllToastsAcknowledged()
+
 	self.gui.g.ReplayedEvents.MouseEvents <- gocui.NewTcellMouseEventWrapper(
 		tcell.NewEventMouse(x, y, tcell.ButtonPrimary, 0),
 		0,
@@ -56,6 +61,12 @@ func (self *GuiDriver) Click(x, y int) {
 // wait until lazygit is idle (i.e. all processing is done) before continuing
 func (self *GuiDriver) waitTillIdle() {
 	<-self.isIdleChan
+}
+
+func (self *GuiDriver) CheckAllToastsAcknowledged() {
+	if t := self.NextToast(); t != nil {
+		self.Fail("Toast not acknowledged: " + *t)
+	}
 }
 
 func (self *GuiDriver) Keys() config.KeybindingConfig {
@@ -77,10 +88,18 @@ func (self *GuiDriver) ContextForView(viewName string) types.Context {
 
 func (self *GuiDriver) Fail(message string) {
 	currentView := self.gui.g.CurrentView()
+
+	// Check for unacknowledged toast: it may give us a hint as to why the test failed
+	toastMessage := ""
+	if t := self.NextToast(); t != nil {
+		toastMessage = fmt.Sprintf("Unacknowledged toast message: %s\n", *t)
+	}
+
 	fullMessage := fmt.Sprintf(
-		"%s\nFinal Lazygit state:\n%s\nUpon failure, focused view was '%s'.\nLog:\n%s", message,
+		"%s\nFinal Lazygit state:\n%s\nUpon failure, focused view was '%s'.\n%sLog:\n%s", message,
 		self.gui.g.Snapshot(),
 		currentView.Name(),
+		toastMessage,
 		strings.Join(self.gui.GuiLog, "\n"),
 	)
 
@@ -132,4 +151,13 @@ func (self *GuiDriver) SetCaption(caption string) {
 func (self *GuiDriver) SetCaptionPrefix(prefix string) {
 	self.gui.setCaptionPrefix(prefix)
 	self.waitTillIdle()
+}
+
+func (self *GuiDriver) NextToast() *string {
+	select {
+	case t := <-self.toastChan:
+		return &t
+	default:
+		return nil
+	}
 }

@@ -24,6 +24,8 @@ Each test has two important steps: the setup step and the run step.
 
 In the setup step, we prepare a repo with shell commands, for example, creating a merge conflict that will need to be resolved upon opening lazygit. This is all done via the `shell` argument.
 
+When the test runs, lazygit will open in the same working directory that the shell ends up in (so if you want to start lazygit somewhere other than the default location, you can use `shell.Chdir()` at the end of the setup step to set that working directory.
+
 ### Run step
 
 The run step has two arguments passed in:

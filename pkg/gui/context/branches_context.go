@@ -59,15 +59,6 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 	return self
 }
 
-func (self *BranchesContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
-}
-
 func (self *BranchesContext) GetSelectedRef() types.Ref {
 	branch := self.GetSelected()
 	if branch == nil {

@@ -7,7 +7,7 @@ package gocui
 import (
 	"strings"
 
-	"github.com/stefanhaller/tcell/v2"
+	"github.com/gdamore/tcell/v2"
 )
 
 // Key represents special keys or keys combinations.
@@ -143,7 +143,9 @@ var translate = map[string]Key{
 	"Pgup":           KeyPgup,
 	"Pgdn":           KeyPgdn,
 	"ArrowUp":        KeyArrowUp,
+	"ShiftArrowUp":   KeyShiftArrowUp,
 	"ArrowDown":      KeyArrowDown,
+	"ShiftArrowDown": KeyShiftArrowDown,
 	"ArrowLeft":      KeyArrowLeft,
 	"ArrowRight":     KeyArrowRight,
 	"CtrlTilde":      KeyCtrlTilde,
@@ -203,28 +205,30 @@ var translate = map[string]Key{
 
 // Special keys.
 const (
-	KeyF1         Key = Key(tcell.KeyF1)
-	KeyF2             = Key(tcell.KeyF2)
-	KeyF3             = Key(tcell.KeyF3)
-	KeyF4             = Key(tcell.KeyF4)
-	KeyF5             = Key(tcell.KeyF5)
-	KeyF6             = Key(tcell.KeyF6)
-	KeyF7             = Key(tcell.KeyF7)
-	KeyF8             = Key(tcell.KeyF8)
-	KeyF9             = Key(tcell.KeyF9)
-	KeyF10            = Key(tcell.KeyF10)
-	KeyF11            = Key(tcell.KeyF11)
-	KeyF12            = Key(tcell.KeyF12)
-	KeyInsert         = Key(tcell.KeyInsert)
-	KeyDelete         = Key(tcell.KeyDelete)
-	KeyHome           = Key(tcell.KeyHome)
-	KeyEnd            = Key(tcell.KeyEnd)
-	KeyPgdn           = Key(tcell.KeyPgDn)
-	KeyPgup           = Key(tcell.KeyPgUp)
-	KeyArrowUp        = Key(tcell.KeyUp)
-	KeyArrowDown      = Key(tcell.KeyDown)
-	KeyArrowLeft      = Key(tcell.KeyLeft)
-	KeyArrowRight     = Key(tcell.KeyRight)
+	KeyF1             Key = Key(tcell.KeyF1)
+	KeyF2                 = Key(tcell.KeyF2)
+	KeyF3                 = Key(tcell.KeyF3)
+	KeyF4                 = Key(tcell.KeyF4)
+	KeyF5                 = Key(tcell.KeyF5)
+	KeyF6                 = Key(tcell.KeyF6)
+	KeyF7                 = Key(tcell.KeyF7)
+	KeyF8                 = Key(tcell.KeyF8)
+	KeyF9                 = Key(tcell.KeyF9)
+	KeyF10                = Key(tcell.KeyF10)
+	KeyF11                = Key(tcell.KeyF11)
+	KeyF12                = Key(tcell.KeyF12)
+	KeyInsert             = Key(tcell.KeyInsert)
+	KeyDelete             = Key(tcell.KeyDelete)
+	KeyHome               = Key(tcell.KeyHome)
+	KeyEnd                = Key(tcell.KeyEnd)
+	KeyPgdn               = Key(tcell.KeyPgDn)
+	KeyPgup               = Key(tcell.KeyPgUp)
+	KeyArrowUp            = Key(tcell.KeyUp)
+	KeyShiftArrowUp       = Key(tcell.KeyF62)
+	KeyArrowDown          = Key(tcell.KeyDown)
+	KeyShiftArrowDown     = Key(tcell.KeyF63)
+	KeyArrowLeft          = Key(tcell.KeyLeft)
+	KeyArrowRight         = Key(tcell.KeyRight)
 )
 
 // Keys combinations.

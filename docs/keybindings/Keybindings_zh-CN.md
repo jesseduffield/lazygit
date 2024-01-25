@@ -37,6 +37,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>.</kbd>: 下一页
   <kbd>&lt;</kbd>: 滚动到顶部
   <kbd>&gt;</kbd>: 滚动到底部
+  <kbd>v</kbd>: 切换拖动选择
+  <kbd>&lt;s-down&gt;</kbd>: Range select down
+  <kbd>&lt;s-up&gt;</kbd>: Range select up
   <kbd>/</kbd>: 开始搜索
   <kbd>H</kbd>: 向左滚动
   <kbd>L</kbd>: 向右滚动
@@ -54,9 +57,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: 在浏览器中打开提交
   <kbd>n</kbd>: 从提交创建新分支
   <kbd>g</kbd>: 查看重置选项
-  <kbd>c</kbd>: 复制提交（拣选）
-  <kbd>C</kbd>: 复制提交范围（拣选）
+  <kbd>C</kbd>: 复制提交（拣选）
   <kbd>&lt;c-r&gt;</kbd>: 重置已拣选（复制）的提交
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: 查看提交
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -108,9 +111,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: 在浏览器中打开提交
   <kbd>n</kbd>: 从提交创建新分支
   <kbd>g</kbd>: 查看重置选项
-  <kbd>c</kbd>: 复制提交（拣选）
-  <kbd>C</kbd>: 复制提交范围（拣选）
+  <kbd>C</kbd>: 复制提交（拣选）
   <kbd>&lt;c-r&gt;</kbd>: 重置已拣选（复制）的提交
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: 查看提交的文件
   <kbd>/</kbd>: 开始搜索
 </pre>
@@ -142,12 +145,13 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: 使用编辑器重命名提交
   <kbd>d</kbd>: 删除提交
   <kbd>e</kbd>: 编辑提交
+  <kbd>i</kbd>: Start interactive rebase
   <kbd>p</kbd>: 选择提交（变基过程中）
   <kbd>F</kbd>: 创建修正提交
   <kbd>S</kbd>: 压缩在所选提交之上的所有“fixup!”提交（自动压缩）
   <kbd>&lt;c-j&gt;</kbd>: 下移提交
   <kbd>&lt;c-k&gt;</kbd>: 上移提交
-  <kbd>v</kbd>: 粘贴提交（拣选）
+  <kbd>V</kbd>: 粘贴提交（拣选）
   <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: 用已暂存的更改来修补提交
   <kbd>a</kbd>: Set/Reset commit author
@@ -160,8 +164,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: 在浏览器中打开提交
   <kbd>n</kbd>: 从提交创建新分支
   <kbd>g</kbd>: 查看重置选项
-  <kbd>c</kbd>: 复制提交（拣选）
-  <kbd>C</kbd>: 复制提交范围（拣选）
+  <kbd>C</kbd>: 复制提交（拣选）
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: 查看提交的文件
   <kbd>/</kbd>: 开始搜索
 </pre>
@@ -174,6 +178,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: 放弃对此文件的提交更改
   <kbd>o</kbd>: 打开文件
   <kbd>e</kbd>: 编辑文件
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;space&gt;</kbd>: 补丁中包含的切换文件
   <kbd>a</kbd>: Toggle all files included in patch
   <kbd>&lt;enter&gt;</kbd>: 输入文件以将所选行添加到补丁中（或切换目录折叠）
@@ -192,7 +197,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 将文件名复制到剪贴板
-  <kbd>d</kbd>: 查看'放弃更改'选项
   <kbd>&lt;space&gt;</kbd>: 切换暂存状态
   <kbd>&lt;c-b&gt;</kbd>: Filter files by status
   <kbd>y</kbd>: Copy to clipboard
@@ -200,6 +204,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>w</kbd>: 提交更改而无需预先提交钩子
   <kbd>A</kbd>: 修补最后一次提交
   <kbd>C</kbd>: 提交更改（使用编辑器编辑提交信息）
+  <kbd>&lt;c-f&gt;</kbd>: Find base commit for fixup
   <kbd>e</kbd>: 编辑文件
   <kbd>o</kbd>: 打开文件
   <kbd>i</kbd>: 忽略文件
@@ -208,9 +213,11 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: 查看贮藏选项
   <kbd>a</kbd>: 切换所有文件的暂存状态
   <kbd>&lt;enter&gt;</kbd>: 暂存单个 块/行 用于文件, 或 折叠/展开 目录
+  <kbd>d</kbd>: 查看'放弃更改'选项
   <kbd>g</kbd>: 查看上游重置选项
   <kbd>D</kbd>: 查看重置选项
   <kbd>`</kbd>: 切换文件树视图
+  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>M</kbd>: 打开外部合并工具 (git mergetool)
   <kbd>f</kbd>: 抓取
   <kbd>/</kbd>: 开始搜索
@@ -222,7 +229,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: 选择上一个区块
   <kbd>&lt;right&gt;</kbd>: 选择下一个区块
   <kbd>v</kbd>: 切换拖动选择
-  <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块
   <kbd>&lt;c-o&gt;</kbd>: 将选中文本复制到剪贴板
   <kbd>o</kbd>: 打开文件
@@ -267,7 +273,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;left&gt;</kbd>: 选择上一个区块
   <kbd>&lt;right&gt;</kbd>: 选择下一个区块
   <kbd>v</kbd>: 切换拖动选择
-  <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块
   <kbd>&lt;c-o&gt;</kbd>: 将选中文本复制到剪贴板
   <kbd>o</kbd>: 打开文件

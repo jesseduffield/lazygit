@@ -33,6 +33,7 @@ type Helpers struct {
 	GPG            *GpgHelper
 	Upstream       *UpstreamHelper
 	AmendHelper    *AmendHelper
+	FixupHelper    *FixupHelper
 	Commits        *CommitsHelper
 	Snake          *SnakeHelper
 	// lives in context package because our contexts need it to render to main
@@ -70,6 +71,7 @@ func NewStubHelpers() *Helpers {
 		GPG:               &GpgHelper{},
 		Upstream:          &UpstreamHelper{},
 		AmendHelper:       &AmendHelper{},
+		FixupHelper:       &FixupHelper{},
 		Commits:           &CommitsHelper{},
 		Snake:             &SnakeHelper{},
 		Diff:              &DiffHelper{},

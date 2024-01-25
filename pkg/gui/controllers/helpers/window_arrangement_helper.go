@@ -107,6 +107,10 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 }
 
 func shouldUsePortraitMode(args WindowArrangementArgs) bool {
+	if args.ScreenMode == types.SCREEN_HALF {
+		return args.UserConfig.Gui.EnlargedSideViewLocation == "top"
+	}
+
 	switch args.UserConfig.Gui.PortraitMode {
 	case "never":
 		return false
@@ -241,7 +245,11 @@ func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
 		}
 	} else {
 		if args.ScreenMode == types.SCREEN_HALF {
-			mainSectionWeight = 1
+			if args.UserConfig.Gui.EnlargedSideViewLocation == "top" {
+				mainSectionWeight = 2
+			} else {
+				mainSectionWeight = 1
+			}
 		} else if args.ScreenMode == types.SCREEN_FULL {
 			mainSectionWeight = 0
 		}

@@ -4,24 +4,30 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type GitFlowController struct {
 	baseController
+	*ListControllerTrait[*models.Branch]
 	c *ControllerCommon
 }
 
 var _ types.IController = &GitFlowController{}
 
 func NewGitFlowController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *GitFlowController {
 	return &GitFlowController{
 		baseController: baseController{},
-		c:              common,
+		ListControllerTrait: NewListControllerTrait[*models.Branch](
+			c,
+			c.Contexts().Branches,
+			c.Contexts().Branches.GetSelected,
+			c.Contexts().Branches.GetSelectedItems,
+		),
+		c: c,
 	}
 }
 
@@ -29,7 +35,7 @@ func (self *GitFlowController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 	bindings := []*types.Binding{
 		{
 			Key:         opts.GetKey(opts.Config.Branches.ViewGitFlowOptions),
-			Handler:     self.checkSelected(self.handleCreateGitFlowMenu),
+			Handler:     self.withItem(self.handleCreateGitFlowMenu),
 			Description: self.c.Tr.GitFlowOptions,
 			OpensMenu:   true,
 		},
@@ -68,6 +74,7 @@ func (self *GitFlowController) handleCreateGitFlowMenu(branch *models.Branch) er
 				OnPress: func() error {
 					return self.gitFlowFinishBranch(branch.Name)
 				},
+				DisabledReason: self.require(self.singleItemSelected())(),
 			},
 			{
 				Label:   "start feature",
@@ -101,23 +108,4 @@ func (self *GitFlowController) gitFlowFinishBranch(branchName string) error {
 
 	self.c.LogAction(self.c.Tr.Actions.GitFlowFinish)
 	return self.c.RunSubprocessAndRefresh(cmdObj)
-}
-
-func (self *GitFlowController) checkSelected(callback func(*models.Branch) error) func() error {
-	return func() error {
-		node := self.context().GetSelected()
-		if node == nil {
-			return nil
-		}
-
-		return callback(node)
-	}
-}
-
-func (self *GitFlowController) Context() types.Context {
-	return self.context()
-}
-
-func (self *GitFlowController) context() *context.BranchesContext {
-	return self.c.Contexts().Branches
 }

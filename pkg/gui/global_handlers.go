@@ -139,6 +139,28 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 	return nil
 }
 
+func (gui *Gui) getCopySelectedSideContextItemToClipboardDisabledReason() *types.DisabledReason {
+	// important to note that this assumes we've selected an item in a side context
+	currentSideContext := gui.c.CurrentSideContext()
+	if currentSideContext == nil {
+		// This should never happen but if it does we'll just ignore the keypress
+		return nil
+	}
+
+	listContext, ok := currentSideContext.(types.IListContext)
+	if !ok {
+		// This should never happen but if it does we'll just ignore the keypress
+		return nil
+	}
+
+	startIdx, endIdx := listContext.GetList().GetSelectionRange()
+	if startIdx != endIdx {
+		return &types.DisabledReason{Text: gui.Tr.RangeSelectNotSupported}
+	}
+
+	return nil
+}
+
 func (gui *Gui) setCaption(caption string) {
 	gui.Views.Options.FgColor = gocui.ColorWhite
 	gui.Views.Options.FgColor |= gocui.AttrBold
