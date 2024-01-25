@@ -49,7 +49,7 @@ var MoveToIndexWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("UU").Contains("file1"),
 			).
-			PressPrimaryAction()
+			PressEnter()
 
 		t.Views().MergeConflicts().
 			IsFocused().

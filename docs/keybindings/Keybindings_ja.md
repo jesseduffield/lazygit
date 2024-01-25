@@ -190,7 +190,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: ファイル名をクリップボードにコピー
-  <kbd>d</kbd>: View 'discard changes' options
   <kbd>&lt;space&gt;</kbd>: ステージ/アンステージ
   <kbd>&lt;c-b&gt;</kbd>: ファイルをフィルタ (ステージ/アンステージ)
   <kbd>y</kbd>: Copy to clipboard
@@ -207,6 +206,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: View stash options
   <kbd>a</kbd>: すべての変更をステージ/アンステージ
   <kbd>&lt;enter&gt;</kbd>: Stage individual hunks/lines for file, or collapse/expand for directory
+  <kbd>d</kbd>: View 'discard changes' options
   <kbd>g</kbd>: View upstream reset options
   <kbd>D</kbd>: View reset options
   <kbd>`</kbd>: ファイルツリーの表示を切り替え

@@ -118,7 +118,6 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: Copy the file name to the clipboard
-  <kbd>d</kbd>: View 'discard changes' options
   <kbd>&lt;space&gt;</kbd>: Toggle staged
   <kbd>&lt;c-b&gt;</kbd>: Filter files by status
   <kbd>y</kbd>: Copy to clipboard
@@ -135,6 +134,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>S</kbd>: View stash options
   <kbd>a</kbd>: Stage/unstage all
   <kbd>&lt;enter&gt;</kbd>: Stage individual hunks/lines for file, or collapse/expand for directory
+  <kbd>d</kbd>: View 'discard changes' options
   <kbd>g</kbd>: View upstream reset options
   <kbd>D</kbd>: View reset options
   <kbd>`</kbd>: Toggle file tree view

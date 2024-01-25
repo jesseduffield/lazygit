@@ -88,7 +88,7 @@ var DiscardAllDirChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.ExpectPopup().Menu().
-					Title(Equals("dir")).
+					Title(Equals("Discard changes")).
 					Select(Contains("Discard all changes")).
 					Confirm()
 			}).
@@ -108,7 +108,7 @@ var DiscardAllDirChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.ExpectPopup().Menu().
-					Title(Equals("dir")).
+					Title(Equals("Discard changes")).
 					Select(Contains("Discard all changes")).
 					Confirm()
 			}).

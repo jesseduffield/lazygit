@@ -68,7 +68,7 @@ var WorktreeInRepo = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.ExpectPopup().Menu().
-					Title(Equals("linked-worktree")).
+					Title(Equals("Discard changes")).
 					Select(Contains("Discard all changes")).
 					Confirm()
 			}).

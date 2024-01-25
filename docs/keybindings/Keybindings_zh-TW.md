@@ -290,7 +290,6 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 複製檔案名稱到剪貼簿
-  <kbd>d</kbd>: 檢視“捨棄更改”的選項
   <kbd>&lt;space&gt;</kbd>: 切換預存
   <kbd>&lt;c-b&gt;</kbd>: 篩選檔案 (預存/未預存)
   <kbd>y</kbd>: Copy to clipboard
@@ -307,6 +306,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>S</kbd>: 檢視收藏選項
   <kbd>a</kbd>: 全部預存/取消預存
   <kbd>&lt;enter&gt;</kbd>: 選擇檔案中的單個程式碼塊/行，或展開/折疊目錄
+  <kbd>d</kbd>: 檢視“捨棄更改”的選項
   <kbd>g</kbd>: 檢視上游重設選項
   <kbd>D</kbd>: 檢視重設選項
   <kbd>`</kbd>: 切換檔案樹狀視圖

@@ -265,8 +265,8 @@ func (self *ViewDriver) assertLines(offset int, matchers ...*TextMatcher) *ViewD
 					view.Name(),
 					formatLineRange(startIdx, endIdx),
 					formatLineRange(expectedStartIdx, expectedEndIdx),
-					strings.Join(lines, "\n"),
 					strings.Join(expectedSelectedLines, "\n"),
+					strings.Join(lines, "\n"),
 				)
 			})
 		}
