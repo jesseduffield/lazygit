@@ -40,7 +40,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>v</kbd>: 切換拖曳選擇
   <kbd>&lt;s-down&gt;</kbd>: Range select down
   <kbd>&lt;s-up&gt;</kbd>: Range select up
-  <kbd>/</kbd>: 搜尋
+  <kbd>/</kbd>: 開始搜尋
   <kbd>H</kbd>: 向左捲動
   <kbd>L</kbd>: 向右捲動
   <kbd>]</kbd>: 下一個索引標籤
@@ -103,7 +103,22 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>c</kbd>: 提交變更
   <kbd>w</kbd>: 沒有預提交 hook 就提交更改
   <kbd>C</kbd>: 使用 git 編輯器提交變更
-  <kbd>/</kbd>: 搜尋
+  <kbd>/</kbd>: 開始搜尋
+</pre>
+
+## 主面板 (補丁生成)
+
+<pre>
+  <kbd>&lt;left&gt;</kbd>: 選擇上一段
+  <kbd>&lt;right&gt;</kbd>: 選擇下一段
+  <kbd>v</kbd>: 切換拖曳選擇
+  <kbd>a</kbd>: 切換選擇程式碼塊
+  <kbd>&lt;c-o&gt;</kbd>: 複製所選文本至剪貼簿
+  <kbd>o</kbd>: 開啟檔案
+  <kbd>e</kbd>: 編輯檔案
+  <kbd>&lt;space&gt;</kbd>: 向 (或從) 補丁中添加/刪除行
+  <kbd>&lt;esc&gt;</kbd>: 退出自訂補丁建立器
+  <kbd>/</kbd>: 開始搜尋
 </pre>
 
 ## 功能表
@@ -123,7 +138,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>y</kbd>: 複製提交屬性
   <kbd>o</kbd>: 在瀏覽器中開啟提交
   <kbd>n</kbd>: 從提交建立新分支
-  <kbd>g</kbd>: 顯示重設選項
+  <kbd>g</kbd>: 檢視重設選項
   <kbd>C</kbd>: 複製提交 (揀選)
   <kbd>&lt;c-r&gt;</kbd>: 重設選定的揀選 (複製) 提交
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
@@ -177,7 +192,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>&lt;c-k&gt;</kbd>: 向上移動提交
   <kbd>V</kbd>: 貼上提交 (揀選)
   <kbd>B</kbd>: 為了變基已標注提交為基準提交
-  <kbd>A</kbd>: 使用已預存的更改修改提交
+  <kbd>A</kbd>: 使用已預存的更改修正提交
   <kbd>a</kbd>: 設置/重設提交作者
   <kbd>t</kbd>: 還原提交
   <kbd>T</kbd>: 打標籤到提交
@@ -187,7 +202,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>y</kbd>: 複製提交屬性
   <kbd>o</kbd>: 在瀏覽器中開啟提交
   <kbd>n</kbd>: 從提交建立新分支
-  <kbd>g</kbd>: 顯示重設選項
+  <kbd>g</kbd>: 檢視重設選項
   <kbd>C</kbd>: 複製提交 (揀選)
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>&lt;enter&gt;</kbd>: 檢視所選項目的檔案
@@ -306,10 +321,10 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>S</kbd>: 檢視收藏選項
   <kbd>a</kbd>: 全部預存/取消預存
   <kbd>&lt;enter&gt;</kbd>: 選擇檔案中的單個程式碼塊/行，或展開/折疊目錄
-  <kbd>d</kbd>: 查看「刪除變更」選項
+  <kbd>d</kbd>: 檢視“捨棄更改”的選項
   <kbd>g</kbd>: 檢視上游重設選項
-  <kbd>D</kbd>: 顯示重設選項
-  <kbd>`</kbd>: 顯示檔案樹狀視圖
+  <kbd>D</kbd>: 檢視重設選項
+  <kbd>`</kbd>: 切換檔案樹狀視圖
   <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
   <kbd>M</kbd>: 開啟外部合併工具 (git mergetool)
   <kbd>f</kbd>: 擷取
