@@ -47,14 +47,16 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 				self.singleItemSelected(),
 				self.notPulling,
 			),
-			Description: self.c.Tr.Checkout,
-			Tooltip:     self.c.Tr.CheckoutTooltip,
+			Description:     self.c.Tr.Checkout,
+			Tooltip:         self.c.Tr.CheckoutTooltip,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.New),
 			Handler:           self.withItem(self.newBranch),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.NewBranch,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.CreatePullRequest),
@@ -95,6 +97,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Description:       self.c.Tr.Delete,
 			Tooltip:           self.c.Tr.BranchDeleteTooltip,
 			OpensMenu:         true,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Branches.RebaseBranch),
@@ -102,8 +105,9 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			GetDisabledReason: self.require(
 				self.singleItemSelected(self.notRebasingOntoSelf),
 			),
-			Description: self.c.Tr.RebaseBranch,
-			Tooltip:     self.c.Tr.RebaseBranchTooltip,
+			Description:     self.c.Tr.RebaseBranch,
+			Tooltip:         self.c.Tr.RebaseBranchTooltip,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
@@ -111,6 +115,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Merge,
 			Tooltip:           self.c.Tr.MergeBranchTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.FastForward),
@@ -136,6 +141,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.ViewResetOptions,
 			OpensMenu:         true,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.RenameBranch),
@@ -151,6 +157,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Tooltip:           self.c.Tr.ViewBranchUpstreamOptionsTooltip,
 			ShortDescription:  self.c.Tr.Upstream,
 			OpensMenu:         true,
+			DisplayOnScreen:   true,
 		},
 	}
 }

@@ -28,24 +28,28 @@ func NewMergeConflictsController(
 func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.withRenderAndFocus(self.HandlePickHunk),
-			Description: self.c.Tr.PickHunk,
+			Key:             opts.GetKey(opts.Config.Universal.Select),
+			Handler:         self.withRenderAndFocus(self.HandlePickHunk),
+			Description:     self.c.Tr.PickHunk,
+			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Main.PickBothHunks),
-			Handler:     self.withRenderAndFocus(self.HandlePickAllHunks),
-			Description: self.c.Tr.PickAllHunks,
+			Key:             opts.GetKey(opts.Config.Main.PickBothHunks),
+			Handler:         self.withRenderAndFocus(self.HandlePickAllHunks),
+			Description:     self.c.Tr.PickAllHunks,
+			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.PrevItem),
-			Handler:     self.withRenderAndFocus(self.PrevConflictHunk),
-			Description: self.c.Tr.SelectPrevHunk,
+			Key:             opts.GetKey(opts.Config.Universal.PrevItem),
+			Handler:         self.withRenderAndFocus(self.PrevConflictHunk),
+			Description:     self.c.Tr.SelectPrevHunk,
+			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.NextItem),
-			Handler:     self.withRenderAndFocus(self.NextConflictHunk),
-			Description: self.c.Tr.SelectNextHunk,
+			Key:             opts.GetKey(opts.Config.Universal.NextItem),
+			Handler:         self.withRenderAndFocus(self.NextConflictHunk),
+			Description:     self.c.Tr.SelectNextHunk,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:             opts.GetKey(opts.Config.Universal.PrevBlock),

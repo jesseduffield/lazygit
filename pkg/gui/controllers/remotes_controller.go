@@ -46,11 +46,13 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.ViewBranches,
+			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.New),
-			Handler:     self.add,
-			Description: self.c.Tr.NewRemote,
+			Key:             opts.GetKey(opts.Config.Universal.New),
+			Handler:         self.add,
+			Description:     self.c.Tr.NewRemote,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
@@ -58,6 +60,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Remove,
 			Tooltip:           self.c.Tr.RemoveRemoteTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Edit),
@@ -65,6 +68,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Edit,
 			Tooltip:           self.c.Tr.EditRemoteTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.FetchRemote),
@@ -72,6 +76,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Fetch,
 			Tooltip:           self.c.Tr.FetchRemoteTooltip,
+			DisplayOnScreen:   true,
 		},
 	}
 

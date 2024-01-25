@@ -38,6 +38,7 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Apply,
 			Tooltip:           self.c.Tr.StashApplyTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Stash.PopStash),
@@ -45,6 +46,7 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Pop,
 			Tooltip:           self.c.Tr.StashPopTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
@@ -52,6 +54,7 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Drop,
 			Tooltip:           self.c.Tr.StashDropTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.New),

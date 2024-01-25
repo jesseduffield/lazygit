@@ -40,16 +40,18 @@ func NewStagingController(
 func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.ToggleStaged,
-			Description: self.c.Tr.Stage,
-			Tooltip:     self.c.Tr.StageSelectionTooltip,
+			Key:             opts.GetKey(opts.Config.Universal.Select),
+			Handler:         self.ToggleStaged,
+			Description:     self.c.Tr.Stage,
+			Tooltip:         self.c.Tr.StageSelectionTooltip,
+			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.DiscardSelection,
-			Description: self.c.Tr.DiscardSelection,
-			Tooltip:     self.c.Tr.DiscardSelectionTooltip,
+			Key:             opts.GetKey(opts.Config.Universal.Remove),
+			Handler:         self.DiscardSelection,
+			Description:     self.c.Tr.DiscardSelection,
+			Tooltip:         self.c.Tr.DiscardSelectionTooltip,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
@@ -69,10 +71,11 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			Description: self.c.Tr.ReturnToFilesPanel,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.TogglePanel),
-			Handler:     self.TogglePanel,
-			Description: self.c.Tr.ToggleStagingView,
-			Tooltip:     self.c.Tr.ToggleStagingViewTooltip,
+			Key:             opts.GetKey(opts.Config.Universal.TogglePanel),
+			Handler:         self.TogglePanel,
+			Description:     self.c.Tr.ToggleStagingView,
+			Tooltip:         self.c.Tr.ToggleStagingViewTooltip,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Main.EditSelectHunk),

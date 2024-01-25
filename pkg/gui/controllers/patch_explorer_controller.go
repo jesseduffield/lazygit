@@ -92,10 +92,11 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 			Description: self.c.Tr.ToggleRangeSelect,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Main.ToggleSelectHunk),
-			Handler:     self.withRenderAndFocus(self.HandleToggleSelectHunk),
-			Description: self.c.Tr.ToggleSelectHunk,
-			Tooltip:     self.c.Tr.ToggleSelectHunkTooltip,
+			Key:             opts.GetKey(opts.Config.Main.ToggleSelectHunk),
+			Handler:         self.withRenderAndFocus(self.HandleToggleSelectHunk),
+			Description:     self.c.Tr.ToggleSelectHunk,
+			Tooltip:         self.c.Tr.ToggleSelectHunkTooltip,
+			DisplayOnScreen: true,
 		},
 		{
 			Tag:         "navigation",

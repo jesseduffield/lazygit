@@ -43,6 +43,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			GetDisabledReason: self.require(self.itemsSelected()),
 			Description:       self.c.Tr.Stage,
 			Tooltip:           self.c.Tr.StageTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenStatusFilter),
@@ -56,10 +57,11 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			OpensMenu:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
-			Handler:     self.c.Helpers().WorkingTree.HandleCommitPress,
-			Description: self.c.Tr.Commit,
-			Tooltip:     self.c.Tr.CommitTooltip,
+			Key:             opts.GetKey(opts.Config.Files.CommitChanges),
+			Handler:         self.c.Helpers().WorkingTree.HandleCommitPress,
+			Description:     self.c.Tr.Commit,
+			Tooltip:         self.c.Tr.CommitTooltip,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
@@ -88,6 +90,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Edit,
 			Tooltip:           self.c.Tr.EditFileTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.OpenFile),
@@ -109,10 +112,11 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.RefreshFiles,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.StashAllChanges),
-			Handler:     self.stash,
-			Description: self.c.Tr.Stash,
-			Tooltip:     self.c.Tr.StashTooltip,
+			Key:             opts.GetKey(opts.Config.Files.StashAllChanges),
+			Handler:         self.stash,
+			Description:     self.c.Tr.Stash,
+			Tooltip:         self.c.Tr.StashTooltip,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ViewStashOptions),
@@ -141,6 +145,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description:       self.c.Tr.Discard,
 			Tooltip:           self.c.Tr.DiscardFileChangesTooltip,
 			OpensMenu:         true,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
@@ -149,11 +154,12 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			OpensMenu:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.ViewResetOptions),
-			Handler:     self.createResetMenu,
-			Description: self.c.Tr.Reset,
-			Tooltip:     self.c.Tr.FileResetOptionsTooltip,
-			OpensMenu:   true,
+			Key:             opts.GetKey(opts.Config.Files.ViewResetOptions),
+			Handler:         self.createResetMenu,
+			Description:     self.c.Tr.Reset,
+			Tooltip:         self.c.Tr.FileResetOptionsTooltip,
+			OpensMenu:       true,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleTreeView),

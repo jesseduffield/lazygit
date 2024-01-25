@@ -41,6 +41,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Checkout,
 			Tooltip:           self.c.Tr.RemoteBranchCheckoutTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.New),
@@ -54,6 +55,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Merge,
 			Tooltip:           self.c.Tr.MergeBranchTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.RebaseBranch),
@@ -61,6 +63,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.RebaseBranch,
 			Tooltip:           self.c.Tr.RebaseBranchTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
@@ -68,6 +71,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Delete,
 			Tooltip:           self.c.Tr.DeleteRemoteBranchTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.SetUpstream),
@@ -75,6 +79,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.SetAsUpstream,
 			Tooltip:           self.c.Tr.SetAsUpstreamTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.SortOrder),
