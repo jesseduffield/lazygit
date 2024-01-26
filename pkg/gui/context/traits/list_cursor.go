@@ -64,6 +64,21 @@ func (self *ListCursor) SetSelection(value int) {
 	self.CancelRangeSelect()
 }
 
+func (self *ListCursor) SetSelectionRangeAndMode(selectedIdx, rangeStartIdx int, mode RangeSelectMode) {
+	self.selectedIdx = self.clampValue(selectedIdx)
+	self.rangeStartIdx = self.clampValue(rangeStartIdx)
+	self.rangeSelectMode = mode
+}
+
+// Returns the selectedIdx, the rangeStartIdx, and the mode of the current selection.
+func (self *ListCursor) GetSelectionRangeAndMode() (int, int, RangeSelectMode) {
+	if self.IsSelectingRange() {
+		return self.selectedIdx, self.rangeStartIdx, self.rangeSelectMode
+	} else {
+		return self.selectedIdx, self.selectedIdx, self.rangeSelectMode
+	}
+}
+
 func (self *ListCursor) clampValue(value int) int {
 	clampedValue := -1
 	if self.list.Len() > 0 {
@@ -128,7 +143,7 @@ func (self *ListCursor) AreMultipleItemsSelected() bool {
 
 func (self *ListCursor) GetSelectionRange() (int, int) {
 	if self.IsSelectingRange() {
-		return utils.MinMax(self.selectedIdx, self.rangeStartIdx)
+		return utils.SortRange(self.selectedIdx, self.rangeStartIdx)
 	}
 
 	return self.selectedIdx, self.selectedIdx

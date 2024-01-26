@@ -116,7 +116,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			// we're calling it 'quick-start interactive rebase' to differentiate it from
 			// when you manually select the base commit.
 			Key:               opts.GetKey(opts.Config.Commits.StartInteractiveRebase),
-			Handler:           self.withItem(self.quickStartInteractiveRebase),
+			Handler:           self.quickStartInteractiveRebase,
 			GetDisabledReason: self.require(self.notMidRebase(self.c.Tr.AlreadyRebasing), self.canFindCommitForQuickStart),
 			Description:       self.c.Tr.QuickStartInteractiveRebase,
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.QuickStartInteractiveRebaseTooltip, map[string]string{
@@ -429,36 +429,42 @@ func (self *LocalCommitsController) edit(selectedCommits []*models.Commit) error
 
 	selectedCommit := selectedCommits[0]
 
-	return self.startInteractiveRebaseWithEdit(selectedCommit, selectedCommit)
+	return self.startInteractiveRebaseWithEdit(selectedCommit)
 }
 
-func (self *LocalCommitsController) quickStartInteractiveRebase(selectedCommit *models.Commit) error {
+func (self *LocalCommitsController) quickStartInteractiveRebase() error {
 	commitToEdit, err := self.findCommitForQuickStartInteractiveRebase()
 	if err != nil {
 		return self.c.Error(err)
 	}
 
-	return self.startInteractiveRebaseWithEdit(commitToEdit, selectedCommit)
+	return self.startInteractiveRebaseWithEdit(commitToEdit)
 }
 
 func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 	commitToEdit *models.Commit,
-	selectedCommit *models.Commit,
 ) error {
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
+		selectedIdx, rangeStartIdx, rangeSelectMode := self.context().GetSelectionRangeAndMode()
+		commits := self.c.Model().Commits
+		selectedSha := commits[selectedIdx].Sha
+		rangeStartSha := commits[rangeStartIdx].Sha
 		err := self.c.Git().Rebase.EditRebase(commitToEdit.Sha)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
 			types.RefreshOptions{Mode: types.BLOCK_UI, Then: func() {
-				// We need to select the same commit again because after starting a rebase,
+				// We need to select the same commit range again because after starting a rebase,
 				// new lines can be added for update-ref commands in the TODO file, due to
-				// stacked branches. So the commit may be in a different position in the list.
-				_, index, ok := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
-					return c.Sha == selectedCommit.Sha
+				// stacked branches. So the selected commits may be in different positions in the list.
+				_, newSelectedIdx, ok1 := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
+					return c.Sha == selectedSha
 				})
-				if ok {
-					self.context().SetSelection(index)
+				_, newRangeStartIdx, ok2 := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
+					return c.Sha == rangeStartSha
+				})
+				if ok1 && ok2 {
+					self.context().SetSelectionRangeAndMode(newSelectedIdx, newRangeStartIdx, rangeSelectMode)
 				}
 			}})
 	})
