@@ -315,7 +315,6 @@ func koreanTranslationSet() TranslationSet {
 		PushTag:                    "태그를 push",
 		CreateTag:                  "태그를 생성",
 		FetchRemote:                "원격을 업데이트",
-		FetchingRemoteStatus:       "원격을 업데이트 중",
 		CheckoutCommit:             "커밋을 체크아웃",
 		SureCheckoutThisCommit:     "정말로 선택한 커밋을 체크아웃 하시겠습니까?",
 		GitFlowOptions:             "Git-flow 옵션 보기",

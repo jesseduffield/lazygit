@@ -409,7 +409,6 @@ type TranslationSet struct {
 	ForceTag                            string
 	ForceTagPrompt                      string
 	FetchRemote                         string
-	FetchingRemoteStatus                string
 	CheckoutCommit                      string
 	SureCheckoutThisCommit              string
 	GitFlowOptions                      string
@@ -1252,7 +1251,6 @@ func EnglishTranslationSet() TranslationSet {
 		ForceTag:                            "Force Tag",
 		ForceTagPrompt:                      "The tag '{{.tagName}}' exists already. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to overwrite.",
 		FetchRemote:                         "Fetch remote",
-		FetchingRemoteStatus:                "Fetching remote",
 		CheckoutCommit:                      "Checkout commit",
 		SureCheckoutThisCommit:              "Are you sure you want to checkout this commit?",
 		GitFlowOptions:                      "Show git-flow options",

@@ -25,7 +25,8 @@ func NewRemotesContext(c *ContextCommon) *RemotesContext {
 	)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {
-		return presentation.GetRemoteListDisplayStrings(viewModel.GetItems(), c.Modes().Diffing.Ref)
+		return presentation.GetRemoteListDisplayStrings(
+			viewModel.GetItems(), c.Modes().Diffing.Ref, c.State().GetItemOperation, c.Tr)
 	}
 
 	return &RemotesContext{
