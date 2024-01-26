@@ -169,8 +169,8 @@ func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 	}
 	strengths := []strengthWithKey{
 		// not i18'ing because it's git terminology
-		{strength: "soft", label: "Soft reset", key: 's'},
 		{strength: "mixed", label: "Mixed reset", key: 'm'},
+		{strength: "soft", label: "Soft reset", key: 's'},
 		{strength: "hard", label: "Hard reset", key: 'h'},
 	}
 
