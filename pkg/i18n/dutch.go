@@ -265,7 +265,6 @@ func dutchTranslationSet() TranslationSet {
 		PushTag:                             "Push tag",
 		CreateTag:                           "Creëer tag",
 		FetchRemote:                         "Fetch remote",
-		FetchingRemoteStatus:                "Remote fetchen",
 		CheckoutCommit:                      "Checkout commit",
 		SureCheckoutThisCommit:              "Weet je zeker dat je deze commit wil uitchecken?",
 		GitFlowOptions:                      "Laat git-flow opties zien",

@@ -377,7 +377,6 @@ func RussianTranslationSet() TranslationSet {
 		PushTag:                             "Отправить тег",
 		CreateTag:                           "Создать тег",
 		FetchRemote:                         "Получение изменения из удалённого репозитория",
-		FetchingRemoteStatus:                "Получение статуса удалённого репозитория",
 		CheckoutCommit:                      "Переключить коммит",
 		SureCheckoutThisCommit:              "Вы уверены, что хотите переключить коммит?",
 		GitFlowOptions:                      "Показать параметры git-flow",

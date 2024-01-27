@@ -319,7 +319,6 @@ func japaneseTranslationSet() TranslationSet {
 		PushTag:                "タグをpush",
 		CreateTag:              "タグを作成",
 		FetchRemote:            "リモートをfetch",
-		FetchingRemoteStatus:   "リモートをfetch",
 		CheckoutCommit:         "コミットをチェックアウト",
 		SureCheckoutThisCommit: "選択されたコミットをチェックアウトします。よろしいですか?",
 		// LcGitFlowOptions:                    "Show git-flow options",
