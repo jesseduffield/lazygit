@@ -46,6 +46,7 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			Description:       self.c.Tr.Enter,
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.EnterSubmoduleTooltip,
 				map[string]string{"escape": keybindings.Label(opts.Config.Universal.Return)}),
+			DisplayOnScreen: true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Select),
@@ -58,6 +59,7 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Remove,
 			Tooltip:           self.c.Tr.RemoveSubmoduleTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Submodules.Update),
@@ -65,11 +67,13 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Update,
 			Tooltip:           self.c.Tr.SubmoduleUpdateTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.New),
-			Handler:     self.add,
-			Description: self.c.Tr.NewSubmodule,
+			Key:             opts.GetKey(opts.Config.Universal.New),
+			Handler:         self.add,
+			Description:     self.c.Tr.NewSubmodule,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Edit),

@@ -43,6 +43,7 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Checkout,
 			Tooltip:           self.c.Tr.CheckoutCommitFileTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
@@ -50,6 +51,7 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Remove,
 			Tooltip:           self.c.Tr.DiscardOldFileChangeTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.OpenFile),
@@ -64,6 +66,7 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Edit,
 			Tooltip:           self.c.Tr.EditFileTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.OpenDiffTool),
@@ -79,6 +82,7 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.ToggleAddToPatchTooltip,
 				map[string]string{"doc": constants.Links.Docs.CustomPatchDemo},
 			),
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleStagedAll),

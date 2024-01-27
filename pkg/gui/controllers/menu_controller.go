@@ -42,13 +42,13 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Handler:           self.withItem(self.press),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Execute,
-			Display:           true,
+			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Return),
-			Handler:     self.close,
-			Description: self.c.Tr.Close,
-			Display:     true,
+			Key:             opts.GetKey(opts.Config.Universal.Return),
+			Handler:         self.close,
+			Description:     self.c.Tr.Close,
+			DisplayOnScreen: true,
 		},
 	}
 

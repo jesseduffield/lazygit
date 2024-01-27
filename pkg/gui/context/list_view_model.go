@@ -20,13 +20,9 @@ func NewListViewModel[T HasID](getModel func() []T) *ListViewModel[T] {
 		getModel: getModel,
 	}
 
-	self.ListCursor = traits.NewListCursor(self)
+	self.ListCursor = traits.NewListCursor(func() int { return len(getModel()) })
 
 	return self
-}
-
-func (self *ListViewModel[T]) Len() int {
-	return len(self.getModel())
 }
 
 func (self *ListViewModel[T]) GetSelected() T {

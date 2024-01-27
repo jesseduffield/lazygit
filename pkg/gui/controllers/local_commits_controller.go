@@ -64,8 +64,9 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 					self.canSquashOrFixup,
 				),
 			),
-			Description: self.c.Tr.Squash,
-			Tooltip:     self.c.Tr.SquashTooltip,
+			Description:     self.c.Tr.Squash,
+			Tooltip:         self.c.Tr.SquashTooltip,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Commits.MarkCommitAsFixup),
@@ -76,8 +77,9 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 					self.canSquashOrFixup,
 				),
 			),
-			Description: self.c.Tr.Fixup,
-			Tooltip:     self.c.Tr.FixupTooltip,
+			Description:     self.c.Tr.Fixup,
+			Tooltip:         self.c.Tr.FixupTooltip,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Commits.RenameCommit),
@@ -85,9 +87,10 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			GetDisabledReason: self.require(
 				self.singleItemSelected(self.rewordEnabled),
 			),
-			Description: self.c.Tr.Reword,
-			Tooltip:     self.c.Tr.CommitRewordTooltip,
-			OpensMenu:   true,
+			Description:     self.c.Tr.Reword,
+			Tooltip:         self.c.Tr.CommitRewordTooltip,
+			DisplayOnScreen: true,
+			OpensMenu:       true,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Commits.RenameCommitWithEditor),
@@ -105,8 +108,9 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 					self.midRebaseCommandEnabled,
 				),
 			),
-			Description: self.c.Tr.DropCommit,
-			Tooltip:     self.c.Tr.DropCommitTooltip,
+			Description:     self.c.Tr.DropCommit,
+			Tooltip:         self.c.Tr.DropCommitTooltip,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:     opts.GetKey(editCommitKey),
@@ -118,6 +122,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description:      self.c.Tr.EditCommit,
 			ShortDescription: self.c.Tr.Edit,
 			Tooltip:          self.c.Tr.EditCommitTooltip,
+			DisplayOnScreen:  true,
 		},
 		{
 			// The user-facing description here is 'Start interactive rebase' but internally
@@ -139,6 +144,14 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			),
 			Description: self.c.Tr.Pick,
 			Tooltip:     self.c.Tr.PickCommitTooltip,
+			// Not displaying this because we only want to display it when a TODO commit
+			// is selected. A keybinding is displayed in the options view if Display is true,
+			// and if it's not disabled, but if we disable it whenever a non-TODO commit is
+			// selected, we'll be preventing pulls from happening within the commits view
+			// (given they both use the 'p' key). Some approaches that come to mind:
+			// * Allow a disabled keybinding to conditionally fallback to a global keybinding
+			// * Allow a separate way of deciding whether a keybinding is displayed in the options view
+			DisplayOnScreen: false,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.CreateFixupCommit),
@@ -221,6 +234,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			GetDisabledReason: self.require(self.singleItemSelected(self.canAmend)),
 			Description:       self.c.Tr.Amend,
 			Tooltip:           self.c.Tr.AmendCommitTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.ResetCommitAuthor),

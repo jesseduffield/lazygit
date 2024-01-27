@@ -37,9 +37,10 @@ func NewWorktreesController(
 func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.New),
-			Handler:     self.add,
-			Description: self.c.Tr.NewWorktree,
+			Key:             opts.GetKey(opts.Config.Universal.New),
+			Handler:         self.add,
+			Description:     self.c.Tr.NewWorktree,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Select),
@@ -47,6 +48,7 @@ func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*t
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Switch,
 			Tooltip:           self.c.Tr.SwitchToWorktreeTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Confirm),
@@ -65,6 +67,7 @@ func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*t
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Remove,
 			Tooltip:           self.c.Tr.RemoveWorktreeTooltip,
+			DisplayOnScreen:   true,
 		},
 	}
 

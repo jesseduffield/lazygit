@@ -39,12 +39,14 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Checkout,
 			Tooltip:           self.c.Tr.TagCheckoutTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.New),
-			Handler:     self.create,
-			Description: self.c.Tr.NewTag,
-			Tooltip:     self.c.Tr.NewTagTooltip,
+			Key:             opts.GetKey(opts.Config.Universal.New),
+			Handler:         self.create,
+			Description:     self.c.Tr.NewTag,
+			Tooltip:         self.c.Tr.NewTagTooltip,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
@@ -53,6 +55,7 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Tooltip:           self.c.Tr.TagDeleteTooltip,
 			OpensMenu:         true,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.PushTag),
@@ -60,6 +63,7 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.PushTag,
 			Tooltip:           self.c.Tr.PushTagTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.ViewResetOptions),
@@ -67,6 +71,7 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Reset,
 			Tooltip:           self.c.Tr.ResetTooltip,
+			DisplayOnScreen:   true,
 			OpensMenu:         true,
 		},
 	}

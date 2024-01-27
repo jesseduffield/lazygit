@@ -52,6 +52,7 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Checkout,
 			Tooltip:           self.c.Tr.CheckoutCommitTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.CopyCommitAttributeToClipboard),
@@ -80,6 +81,7 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description:       self.c.Tr.ViewResetOptions,
 			Tooltip:           self.c.Tr.ResetTooltip,
 			OpensMenu:         true,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopy),
@@ -91,6 +93,7 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 					"escape": keybindings.Label(opts.Config.Universal.Return),
 				},
 			),
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ResetCherryPick),

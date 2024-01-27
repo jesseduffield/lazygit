@@ -5,10 +5,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type HasLength interface {
-	Len() int
-}
-
 type RangeSelectMode int
 
 const (
@@ -27,15 +23,17 @@ type ListCursor struct {
 	rangeSelectMode RangeSelectMode
 	// value is ignored when rangeSelectMode is RangeSelectModeNone
 	rangeStartIdx int
-	list          HasLength
+	// Get the length of the list. We use this to clamp the selection so that
+	// the selected index is always valid
+	getLength func() int
 }
 
-func NewListCursor(list HasLength) *ListCursor {
+func NewListCursor(getLength func() int) *ListCursor {
 	return &ListCursor{
 		selectedIdx:     0,
 		rangeStartIdx:   0,
 		rangeSelectMode: RangeSelectModeNone,
-		list:            list,
+		getLength:       getLength,
 	}
 }
 
@@ -81,8 +79,9 @@ func (self *ListCursor) GetSelectionRangeAndMode() (int, int, RangeSelectMode) {
 
 func (self *ListCursor) clampValue(value int) int {
 	clampedValue := -1
-	if self.list.Len() > 0 {
-		clampedValue = utils.Clamp(value, 0, self.list.Len()-1)
+	length := self.getLength()
+	if length > 0 {
+		clampedValue = utils.Clamp(value, 0, length-1)
 	}
 
 	return clampedValue
@@ -114,7 +113,12 @@ func (self *ListCursor) ClampSelection() {
 }
 
 func (self *ListCursor) Len() int {
-	return self.list.Len()
+	// The length of the model slice can change at any time, so the selection may
+	// become out of bounds. To reduce the likelihood of this, we clamp the selection
+	// whenever we obtain the length of the model.
+	self.ClampSelection()
+
+	return self.getLength()
 }
 
 func (self *ListCursor) GetRangeStartIdx() (int, bool) {

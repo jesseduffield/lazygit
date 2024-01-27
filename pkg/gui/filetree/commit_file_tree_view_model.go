@@ -22,8 +22,8 @@ type ICommitFileTreeViewModel interface {
 
 type CommitFileTreeViewModel struct {
 	sync.RWMutex
-	ICommitFileTree
 	types.IListCursor
+	ICommitFileTree
 
 	// this is e.g. the commit for which we're viewing the files
 	ref types.Ref
@@ -37,7 +37,7 @@ var _ ICommitFileTreeViewModel = &CommitFileTreeViewModel{}
 
 func NewCommitFileTreeViewModel(getFiles func() []*models.CommitFile, log *logrus.Entry, showTree bool) *CommitFileTreeViewModel {
 	fileTree := NewCommitFileTree(getFiles, log, showTree)
-	listCursor := traits.NewListCursor(fileTree)
+	listCursor := traits.NewListCursor(fileTree.Len)
 	return &CommitFileTreeViewModel{
 		ICommitFileTree: fileTree,
 		IListCursor:     listCursor,

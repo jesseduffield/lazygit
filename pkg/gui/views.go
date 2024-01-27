@@ -94,7 +94,6 @@ func (gui *Gui) createAllViews() error {
 		(*mapping.viewPtr).SelBgColor = theme.GocuiSelectedLineBgColor
 	}
 
-	gui.Views.Options.FgColor = theme.OptionsColor
 	gui.Views.Options.Frame = false
 
 	gui.Views.SearchPrefix.BgColor = gocui.ColorDefault

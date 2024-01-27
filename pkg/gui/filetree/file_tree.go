@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
@@ -138,7 +139,8 @@ func (self *FileTree) GetAllItems() []*FileNode {
 }
 
 func (self *FileTree) Len() int {
-	return self.tree.Size(self.collapsedPaths) - 1 // ignoring root
+	// -1 because we're ignoring the root
+	return utils.Max(self.tree.Size(self.collapsedPaths)-1, 0)
 }
 
 func (self *FileTree) GetItem(index int) types.HasUrn {

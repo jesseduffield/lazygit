@@ -62,3 +62,29 @@ func (self *Common) SelectPatchOption(matcher *TextMatcher) {
 
 	self.t.ExpectPopup().Menu().Title(Equals("Patch options")).Select(matcher).Confirm()
 }
+
+func (self *Common) ResetBisect() {
+	self.t.Views().Commits().
+		Focus().
+		Press(self.t.keys.Commits.ViewBisectOptions).
+		Tap(func() {
+			self.t.ExpectPopup().Menu().
+				Title(Equals("Bisect")).
+				Select(Contains("Reset bisect")).
+				Confirm()
+
+			self.t.ExpectPopup().Confirmation().
+				Title(Equals("Reset 'git bisect'")).
+				Content(Contains("Are you sure you want to reset 'git bisect'?")).
+				Confirm()
+		})
+}
+
+func (self *Common) ResetCustomPatch() {
+	self.t.GlobalPress(self.t.keys.Universal.CreatePatchOptionsMenu)
+
+	self.t.ExpectPopup().Menu().
+		Title(Equals("Patch options")).
+		Select(Contains("Reset patch")).
+		Confirm()
+}
