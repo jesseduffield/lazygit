@@ -21,15 +21,15 @@ type IFileTreeViewModel interface {
 // after the files are refreshed
 type FileTreeViewModel struct {
 	sync.RWMutex
-	IFileTree
 	types.IListCursor
+	IFileTree
 }
 
 var _ IFileTreeViewModel = &FileTreeViewModel{}
 
 func NewFileTreeViewModel(getFiles func() []*models.File, log *logrus.Entry, showTree bool) *FileTreeViewModel {
 	fileTree := NewFileTree(getFiles, log, showTree)
-	listCursor := traits.NewListCursor(fileTree)
+	listCursor := traits.NewListCursor(fileTree.Len)
 	return &FileTreeViewModel{
 		IFileTree:   fileTree,
 		IListCursor: listCursor,
