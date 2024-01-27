@@ -54,6 +54,10 @@ func (self *FileTreeViewModel) GetSelectedItemId() string {
 }
 
 func (self *FileTreeViewModel) GetSelectedItems() ([]*FileNode, int, int) {
+	if self.Len() == 0 {
+		return nil, 0, 0
+	}
+
 	startIdx, endIdx := self.GetSelectionRange()
 
 	nodes := []*FileNode{}
