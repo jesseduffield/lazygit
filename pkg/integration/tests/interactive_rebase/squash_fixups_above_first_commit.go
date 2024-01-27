@@ -34,7 +34,7 @@ var SquashFixupsAboveFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Commits.SquashAboveCommits).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
-					Title(Equals("Squash all 'fixup!' commits above selected commit (autosquash)")).
+					Title(Equals("Apply fixup commits")).
 					Content(Contains("Are you sure you want to squash all fixup! commits above")).
 					Confirm()
 			}).

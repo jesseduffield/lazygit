@@ -8,6 +8,7 @@ type Docs struct {
 	Undoing           string
 	Config            string
 	Tutorial          string
+	CustomPatchDemo   string
 }
 
 var Links = struct {
@@ -31,5 +32,6 @@ var Links = struct {
 		Undoing:           "https://github.com/jesseduffield/lazygit/blob/master/docs/Undoing.md",
 		Config:            "https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md",
 		Tutorial:          "https://youtu.be/VDXvbHZYeKY",
+		CustomPatchDemo:   "https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches",
 	},
 }

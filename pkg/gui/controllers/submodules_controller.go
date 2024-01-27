@@ -8,8 +8,10 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type SubmodulesController struct {
@@ -41,30 +43,33 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			Key:               opts.GetKey(opts.Config.Universal.GoInto),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.EnterSubmodule,
+			Description:       self.c.Tr.Enter,
+			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.EnterSubmoduleTooltip,
+				map[string]string{"escape": keybindings.Label(opts.Config.Universal.Return)}),
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Select),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.EnterSubmodule,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.remove),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.RemoveSubmodule,
+			Description:       self.c.Tr.Remove,
+			Tooltip:           self.c.Tr.RemoveSubmoduleTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Submodules.Update),
 			Handler:           self.withItem(self.update),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.SubmoduleUpdate,
+			Description:       self.c.Tr.Update,
+			Tooltip:           self.c.Tr.SubmoduleUpdateTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
 			Handler:     self.add,
-			Description: self.c.Tr.AddSubmodule,
+			Description: self.c.Tr.NewSubmodule,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Edit),
@@ -76,7 +81,8 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			Key:               opts.GetKey(opts.Config.Submodules.Init),
 			Handler:           self.withItem(self.init),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.InitSubmodule,
+			Description:       self.c.Tr.Initialize,
+			Tooltip:           self.c.Tr.InitSubmoduleTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Submodules.BulkMenu),

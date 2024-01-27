@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -63,7 +64,8 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 					self.canSquashOrFixup,
 				),
 			),
-			Description: self.c.Tr.SquashDown,
+			Description: self.c.Tr.Squash,
+			Tooltip:     self.c.Tr.SquashTooltip,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Commits.MarkCommitAsFixup),
@@ -74,7 +76,8 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 					self.canSquashOrFixup,
 				),
 			),
-			Description: self.c.Tr.FixupCommit,
+			Description: self.c.Tr.Fixup,
+			Tooltip:     self.c.Tr.FixupTooltip,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Commits.RenameCommit),
@@ -82,7 +85,9 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			GetDisabledReason: self.require(
 				self.singleItemSelected(self.rewordEnabled),
 			),
-			Description: self.c.Tr.RewordCommit,
+			Description: self.c.Tr.Reword,
+			Tooltip:     self.c.Tr.CommitRewordTooltip,
+			OpensMenu:   true,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Commits.RenameCommitWithEditor),
@@ -90,7 +95,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			GetDisabledReason: self.require(
 				self.singleItemSelected(self.rewordEnabled),
 			),
-			Description: self.c.Tr.RenameCommitEditor,
+			Description: self.c.Tr.RewordCommitEditor,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Universal.Remove),
@@ -100,7 +105,8 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 					self.midRebaseCommandEnabled,
 				),
 			),
-			Description: self.c.Tr.DeleteCommit,
+			Description: self.c.Tr.DropCommit,
+			Tooltip:     self.c.Tr.DropCommitTooltip,
 		},
 		{
 			Key:     opts.GetKey(editCommitKey),
@@ -109,7 +115,9 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(self.midRebaseCommandEnabled),
 			),
-			Description: self.c.Tr.EditCommit,
+			Description:      self.c.Tr.EditCommit,
+			ShortDescription: self.c.Tr.Edit,
+			Tooltip:          self.c.Tr.EditCommitTooltip,
 		},
 		{
 			// The user-facing description here is 'Start interactive rebase' but internally
@@ -129,13 +137,20 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(self.pickEnabled),
 			),
-			Description: self.c.Tr.PickCommit,
+			Description: self.c.Tr.Pick,
+			Tooltip:     self.c.Tr.PickCommitTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.CreateFixupCommit),
 			Handler:           self.withItem(self.createFixupCommit),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.CreateFixupCommitDescription,
+			Tooltip: utils.ResolvePlaceholderString(
+				self.c.Tr.CreateFixupCommitTooltip,
+				map[string]string{
+					"squashAbove": keybindings.Label(opts.Config.Commits.SquashAboveCommits),
+				},
+			),
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Commits.SquashAboveCommits),
@@ -145,6 +160,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 				self.singleItemSelected(),
 			),
 			Description: self.c.Tr.SquashAboveCommits,
+			Tooltip:     self.c.Tr.SquashAboveCommitsTooltip,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Commits.MoveDownCommit),
@@ -169,6 +185,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Handler:           self.paste,
 			GetDisabledReason: self.require(self.canPaste),
 			Description:       self.c.Tr.PasteCommits,
+			DisplayStyle:      &style.FgCyan,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.MarkCommitAsBaseForRebase),
@@ -202,31 +219,36 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Key:               opts.GetKey(opts.Config.Commits.AmendToCommit),
 			Handler:           self.withItem(self.amendTo),
 			GetDisabledReason: self.require(self.singleItemSelected(self.canAmend)),
-			Description:       self.c.Tr.AmendToCommit,
+			Description:       self.c.Tr.Amend,
+			Tooltip:           self.c.Tr.AmendCommitTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.ResetCommitAuthor),
 			Handler:           self.withItem(self.amendAttribute),
 			GetDisabledReason: self.require(self.singleItemSelected(self.canAmend)),
-			Description:       self.c.Tr.SetResetCommitAuthor,
+			Description:       self.c.Tr.AmendCommitAttribute,
+			Tooltip:           self.c.Tr.AmendCommitAttributeTooltip,
 			OpensMenu:         true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.RevertCommit),
 			Handler:           self.withItem(self.revert),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.RevertCommit,
+			Description:       self.c.Tr.Revert,
+			Tooltip:           self.c.Tr.RevertCommitTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.CreateTag),
 			Handler:           self.withItem(self.createTag),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.TagCommit,
+			Tooltip:           self.c.Tr.TagCommitTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.OpenLogMenu),
 			Handler:     self.handleOpenLogMenu,
 			Description: self.c.Tr.OpenLogMenu,
+			Tooltip:     self.c.Tr.OpenLogMenuTooltip,
 			OpensMenu:   true,
 		},
 	}...)

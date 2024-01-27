@@ -5,7 +5,9 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // This controller is for all contexts that contain a list of commits.
@@ -48,13 +50,15 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Key:               opts.GetKey(opts.Config.Commits.CheckoutCommit),
 			Handler:           self.withItem(self.checkout),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.CheckoutCommit,
+			Description:       self.c.Tr.Checkout,
+			Tooltip:           self.c.Tr.CheckoutCommitTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.CopyCommitAttributeToClipboard),
 			Handler:           self.withItem(self.copyCommitAttribute),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.CopyCommitAttributeToClipboard,
+			Tooltip:           self.c.Tr.CopyCommitAttributeToClipboardTooltip,
 			OpensMenu:         true,
 		},
 		{
@@ -74,12 +78,19 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Handler:           self.withItem(self.createResetMenu),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.ViewResetOptions,
+			Tooltip:           self.c.Tr.ResetTooltip,
 			OpensMenu:         true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopy),
 			Handler:     self.withItem(self.copyRange),
 			Description: self.c.Tr.CherryPickCopy,
+			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.CherryPickCopyTooltip,
+				map[string]string{
+					"paste":  keybindings.Label(opts.Config.Commits.PasteCommits),
+					"escape": keybindings.Label(opts.Config.Universal.Return),
+				},
+			),
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ResetCherryPick),

@@ -48,6 +48,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 				self.notPulling,
 			),
 			Description: self.c.Tr.Checkout,
+			Tooltip:     self.c.Tr.CheckoutTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.New),
@@ -78,18 +79,21 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Key:         opts.GetKey(opts.Config.Branches.CheckoutBranchByName),
 			Handler:     self.checkoutByName,
 			Description: self.c.Tr.CheckoutByName,
+			Tooltip:     self.c.Tr.CheckoutByNameTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.ForceCheckoutBranch),
 			Handler:           self.forceCheckout,
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.ForceCheckout,
+			Tooltip:           self.c.Tr.ForceCheckoutTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.delete),
 			GetDisabledReason: self.require(self.singleItemSelected(self.branchIsReal)),
-			Description:       self.c.Tr.ViewDeleteOptions,
+			Description:       self.c.Tr.Delete,
+			Tooltip:           self.c.Tr.BranchDeleteTooltip,
 			OpensMenu:         true,
 		},
 		{
@@ -99,24 +103,27 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 				self.singleItemSelected(self.notRebasingOntoSelf),
 			),
 			Description: self.c.Tr.RebaseBranch,
+			Tooltip:     self.c.Tr.RebaseBranchTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
 			Handler:           opts.Guards.OutsideFilterMode(self.merge),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.MergeIntoCurrentBranch,
+			Description:       self.c.Tr.Merge,
+			Tooltip:           self.c.Tr.MergeBranchTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.FastForward),
 			Handler:           self.withItem(self.fastForward),
 			GetDisabledReason: self.require(self.singleItemSelected(self.branchIsReal)),
 			Description:       self.c.Tr.FastForward,
+			Tooltip:           self.c.Tr.FastForwardTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.CreateTag),
 			Handler:           self.withItem(self.createTag),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.CreateTag,
+			Description:       self.c.Tr.NewTag,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.SortOrder),
@@ -142,6 +149,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.ViewBranchUpstreamOptions,
 			Tooltip:           self.c.Tr.ViewBranchUpstreamOptionsTooltip,
+			ShortDescription:  self.c.Tr.Upstream,
 			OpensMenu:         true,
 		},
 	}

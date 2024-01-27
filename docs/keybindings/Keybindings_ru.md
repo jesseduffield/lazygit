@@ -6,356 +6,358 @@ _Связки клавиш_
 
 ## Глобальные сочетания клавиш
 
-<pre>
-  <kbd>&lt;c-r&gt;</kbd>: Переключиться на последний репозиторий
-  <kbd>&lt;pgup&gt;</kbd>: Прокрутить вверх главную панель (fn+up/shift+k)
-  <kbd>&lt;pgdown&gt;</kbd>: Прокрутить вниз главную панель (fn+down/shift+j)
-  <kbd>@</kbd>: Открыть меню журнала команд
-  <kbd>}</kbd>: Увеличить размер контекста, отображаемого вокруг изменений в просмотрщике сравнении
-  <kbd>{</kbd>: Уменьшите размер контекста, отображаемого вокруг изменений в просмотрщике сравнении
-  <kbd>:</kbd>: Выполнить пользовательскую команду
-  <kbd>&lt;c-p&gt;</kbd>: Просмотреть пользовательские параметры патча
-  <kbd>m</kbd>: Просмотреть параметры слияния/перебазирования
-  <kbd>R</kbd>: Обновить
-  <kbd>+</kbd>: Следующий режим экрана (нормальный/полуэкранный/полноэкранный)
-  <kbd>_</kbd>: Предыдущий режим экрана
-  <kbd>?</kbd>: Открыть меню
-  <kbd>&lt;c-s&gt;</kbd>: Просмотреть параметры фильтрации по пути
-  <kbd>W</kbd>: Открыть меню сравнении
-  <kbd>&lt;c-e&gt;</kbd>: Открыть меню сравнении
-  <kbd>&lt;c-w&gt;</kbd>: Переключить отображение изменении пробелов в просмотрщике сравнении
-  <kbd>z</kbd>: Отменить (через reflog) (экспериментальный)
-  <kbd>&lt;c-z&gt;</kbd>: Повторить (через reflog) (экспериментальный)
-  <kbd>P</kbd>: Отправить изменения
-  <kbd>p</kbd>: Получить и слить изменения
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <c-r> `` | Переключиться на последний репозиторий |  |
+| `` <pgup> (fn+up/shift+k) `` | Прокрутить вверх главную панель |  |
+| `` <pgdown> (fn+down/shift+j) `` | Прокрутить вниз главную панель |  |
+| `` @ `` | Открыть меню журнала команд | View options for the command log e.g. show/hide the command log and focus the command log. |
+| `` P `` | Отправить изменения | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` p `` | Получить и слить изменения | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` } `` | Увеличить размер контекста, отображаемого вокруг изменений в просмотрщике сравнении | Increase the amount of the context shown around changes in the diff view. |
+| `` { `` | Уменьшите размер контекста, отображаемого вокруг изменений в просмотрщике сравнении | Decrease the amount of the context shown around changes in the diff view. |
+| `` : `` | Выполнить пользовательскую команду | Bring up a prompt where you can enter a shell command to execute. Not to be confused with pre-configured custom commands. |
+| `` <c-p> `` | Просмотреть пользовательские параметры патча |  |
+| `` m `` | Просмотреть параметры слияния/перебазирования | View options to abort/continue/skip the current merge/rebase. |
+| `` R `` | Обновить | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
+| `` + `` | Следующий режим экрана (нормальный/полуэкранный/полноэкранный) |  |
+| `` _ `` | Предыдущий режим экрана |  |
+| `` ? `` | Открыть меню |  |
+| `` <c-s> `` | Просмотреть параметры фильтрации по пути | View options for filtering the commit log by a file path, so that only commits relating to that path are shown. |
+| `` W `` | Открыть меню сравнении | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
+| `` <c-e> `` | Открыть меню сравнении | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
+| `` q `` | Выйти |  |
+| `` <esc> `` | Отменить |  |
+| `` <c-w> `` | Переключить отображение изменении пробелов в просмотрщике сравнении | Toggle whether or not whitespace changes are shown in the diff view. |
+| `` z `` | Отменить (через reflog) (экспериментальный) | Журнал ссылок (reflog) будет использоваться для определения того, какую команду git запустить, чтобы отменить последнюю команду git. Сюда не входят изменения в рабочем дереве; учитываются только коммиты. |
+| `` <c-z> `` | Повторить (через reflog) (экспериментальный) | Журнал ссылок (reflog) будет использоваться для определения того, какую команду git нужно запустить, чтобы повторить последнюю команду git. Сюда не входят изменения в рабочем дереве; учитываются только коммиты. |
 
 ## Навигация по панели списка
 
-<pre>
-  <kbd>,</kbd>: Предыдущая страница
-  <kbd>.</kbd>: Следующая страница
-  <kbd>&lt;</kbd>: Пролистать наверх
-  <kbd>&gt;</kbd>: Прокрутить вниз
-  <kbd>v</kbd>: Переключить выборку перетаскивания
-  <kbd>&lt;s-down&gt;</kbd>: Range select down
-  <kbd>&lt;s-up&gt;</kbd>: Range select up
-  <kbd>/</kbd>: Найти
-  <kbd>H</kbd>: Прокрутить влево
-  <kbd>L</kbd>: Прокрутить вправо
-  <kbd>]</kbd>: Следующая вкладка
-  <kbd>[</kbd>: Предыдущая вкладка
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` , `` | Предыдущая страница |  |
+| `` . `` | Следующая страница |  |
+| `` < `` | Пролистать наверх |  |
+| `` > `` | Прокрутить вниз |  |
+| `` v `` | Переключить выборку перетаскивания |  |
+| `` <s-down> `` | Range select down |  |
+| `` <s-up> `` | Range select up |  |
+| `` / `` | Найти |  |
+| `` H `` | Прокрутить влево |  |
+| `` L `` | Прокрутить вправо |  |
+| `` ] `` | Следующая вкладка |  |
+| `` [ `` | Предыдущая вкладка |  |
 
 ## Worktrees
 
-<pre>
-  <kbd>n</kbd>: Create worktree
-  <kbd>&lt;space&gt;</kbd>: Switch to worktree
-  <kbd>&lt;enter&gt;</kbd>: Switch to worktree
-  <kbd>o</kbd>: Open in editor
-  <kbd>d</kbd>: Remove worktree
-  <kbd>/</kbd>: Filter the current view by text
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` n `` | New worktree |  |
+| `` <space> `` | Switch | Switch to the selected worktree. |
+| `` o `` | Open in editor |  |
+| `` d `` | Remove | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
+| `` / `` | Filter the current view by text |  |
 
 ## Главная панель (Индексирование)
 
-<pre>
-  <kbd>&lt;left&gt;</kbd>: Выбрать предыдущую часть
-  <kbd>&lt;right&gt;</kbd>: Выбрать следующую часть
-  <kbd>v</kbd>: Переключить выборку перетаскивания
-  <kbd>a</kbd>: Переключить выборку частей
-  <kbd>&lt;c-o&gt;</kbd>: Скопировать выделенный текст в буфер обмена
-  <kbd>o</kbd>: Открыть файл
-  <kbd>e</kbd>: Редактировать файл
-  <kbd>&lt;esc&gt;</kbd>: Вернуться к панели файлов
-  <kbd>&lt;tab&gt;</kbd>: Переключиться на другую панель (проиндексированные/непроиндексированные изменения)
-  <kbd>&lt;space&gt;</kbd>: Переключить строку в проиндексированные / непроиндексированные
-  <kbd>d</kbd>: Отменить изменение (git reset)
-  <kbd>E</kbd>: Изменить эту часть
-  <kbd>c</kbd>: Сохранить изменения
-  <kbd>w</kbd>: Закоммитить изменения без предварительного хука коммита
-  <kbd>C</kbd>: Сохранить изменения с помощью редактора git
-  <kbd>/</kbd>: Найти
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <left> `` | Выбрать предыдущую часть |  |
+| `` <right> `` | Выбрать следующую часть |  |
+| `` v `` | Переключить выборку перетаскивания |  |
+| `` a `` | Переключить выборку частей | Toggle hunk selection mode. |
+| `` <c-o> `` | Скопировать выделенный текст в буфер обмена |  |
+| `` <space> `` | Переключить индекс | Переключить строку в проиндексированные / непроиндексированные |
+| `` d `` | Отменить изменение (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` o `` | Открыть файл | Open file in default application. |
+| `` e `` | Редактировать файл | Open file in external editor. |
+| `` <esc> `` | Вернуться к панели файлов |  |
+| `` <tab> `` | Переключиться на другую панель (проиндексированные/непроиндексированные изменения) | Switch to other view (staged/unstaged changes). |
+| `` E `` | Изменить эту часть | Edit selected hunk in external editor. |
+| `` c `` | Сохранить изменения | Commit staged changes. |
+| `` w `` | Закоммитить изменения без предварительного хука коммита |  |
+| `` C `` | Сохранить изменения с помощью редактора git |  |
+| `` / `` | Найти |  |
 
 ## Главная панель (Обычный)
 
-<pre>
-  <kbd>mouse wheel down</kbd>: Прокрутить вниз (fn+up)
-  <kbd>mouse wheel up</kbd>: Прокрутить вверх (fn+down)
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` mouse wheel down (fn+up) `` | Прокрутить вниз |  |
+| `` mouse wheel up (fn+down) `` | Прокрутить вверх |  |
 
 ## Главная панель (Слияние)
 
-<pre>
-  <kbd>e</kbd>: Редактировать файл
-  <kbd>o</kbd>: Открыть файл
-  <kbd>&lt;left&gt;</kbd>: Выбрать предыдущий конфликт
-  <kbd>&lt;right&gt;</kbd>: Выбрать следующий конфликт
-  <kbd>&lt;up&gt;</kbd>: Выбрать предыдущую часть
-  <kbd>&lt;down&gt;</kbd>: Выбрать следующую часть
-  <kbd>z</kbd>: Отменить
-  <kbd>M</kbd>: Открыть внешний инструмент слияния (git mergetool)
-  <kbd>&lt;space&gt;</kbd>: Выбрать эту часть
-  <kbd>b</kbd>: Выбрать все части
-  <kbd>&lt;esc&gt;</kbd>: Вернуться к панели файлов
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <space> `` | Выбрать эту часть |  |
+| `` b `` | Выбрать все части |  |
+| `` <up> `` | Выбрать предыдущую часть |  |
+| `` <down> `` | Выбрать следующую часть |  |
+| `` <left> `` | Выбрать предыдущий конфликт |  |
+| `` <right> `` | Выбрать следующий конфликт |  |
+| `` z `` | Отменить | Undo last merge conflict resolution. |
+| `` e `` | Редактировать файл | Open file in external editor. |
+| `` o `` | Открыть файл | Open file in default application. |
+| `` M `` | Открыть внешний инструмент слияния (git mergetool) | Run `git mergetool`. |
+| `` <esc> `` | Вернуться к панели файлов |  |
 
 ## Главная панель (сборка патчей)
 
-<pre>
-  <kbd>&lt;left&gt;</kbd>: Выбрать предыдущую часть
-  <kbd>&lt;right&gt;</kbd>: Выбрать следующую часть
-  <kbd>v</kbd>: Переключить выборку перетаскивания
-  <kbd>a</kbd>: Переключить выборку частей
-  <kbd>&lt;c-o&gt;</kbd>: Скопировать выделенный текст в буфер обмена
-  <kbd>o</kbd>: Открыть файл
-  <kbd>e</kbd>: Редактировать файл
-  <kbd>&lt;space&gt;</kbd>: Добавить/удалить строку(и) для патча
-  <kbd>&lt;esc&gt;</kbd>: Выйти из сборщика пользовательских патчей
-  <kbd>/</kbd>: Найти
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <left> `` | Выбрать предыдущую часть |  |
+| `` <right> `` | Выбрать следующую часть |  |
+| `` v `` | Переключить выборку перетаскивания |  |
+| `` a `` | Переключить выборку частей | Toggle hunk selection mode. |
+| `` <c-o> `` | Скопировать выделенный текст в буфер обмена |  |
+| `` o `` | Открыть файл | Open file in default application. |
+| `` e `` | Редактировать файл | Open file in external editor. |
+| `` <space> `` | Добавить/удалить строку(и) для патча |  |
+| `` <esc> `` | Выйти из сборщика пользовательских патчей |  |
+| `` / `` | Найти |  |
 
 ## Журнал ссылок (Reflog)
 
-<pre>
-  <kbd>&lt;c-o&gt;</kbd>: Скопировать SHA коммита в буфер обмена
-  <kbd>w</kbd>: View worktree options
-  <kbd>&lt;space&gt;</kbd>: Переключить коммит
-  <kbd>y</kbd>: Скопировать атрибут коммита
-  <kbd>o</kbd>: Открыть коммит в браузере
-  <kbd>n</kbd>: Создать новую ветку с этого коммита
-  <kbd>g</kbd>: Просмотреть параметры сброса
-  <kbd>C</kbd>: Скопировать отобранные коммит (cherry-pick)
-  <kbd>&lt;c-r&gt;</kbd>: Сбросить отобранную (скопированную | cherry-picked) выборку коммитов
-  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
-  <kbd>&lt;enter&gt;</kbd>: Просмотреть коммиты
-  <kbd>/</kbd>: Filter the current view by text
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <c-o> `` | Скопировать SHA коммита в буфер обмена |  |
+| `` <space> `` | Переключить | Checkout the selected commit as a detached HEAD. |
+| `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
+| `` o `` | Открыть коммит в браузере |  |
+| `` n `` | Создать новую ветку с этого коммита |  |
+| `` g `` | Просмотреть параметры сброса | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` C `` | Скопировать отобранные коммит (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
+| `` <c-r> `` | Сбросить отобранную (скопированную | cherry-picked) выборку коммитов |  |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <enter> `` | Просмотреть коммиты |  |
+| `` w `` | View worktree options |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Коммиты
 
-<pre>
-  <kbd>&lt;c-o&gt;</kbd>: Скопировать SHA коммита в буфер обмена
-  <kbd>&lt;c-r&gt;</kbd>: Сбросить отобранную (скопированную | cherry-picked) выборку коммитов
-  <kbd>b</kbd>: Просмотреть параметры бинарного поиска
-  <kbd>s</kbd>: Объединить несколько коммитов в один нижний
-  <kbd>f</kbd>: Объединить несколько коммитов в один отбросив сообщение коммита
-  <kbd>r</kbd>: Перефразировать коммит
-  <kbd>R</kbd>: Переписать коммит с помощью редактора
-  <kbd>d</kbd>: Удалить коммит
-  <kbd>e</kbd>: Изменить коммит
-  <kbd>i</kbd>: Start interactive rebase
-  <kbd>p</kbd>: Выбрать коммит (в середине перебазирования)
-  <kbd>F</kbd>: Создать fixup коммит для этого коммита
-  <kbd>S</kbd>: Объединить все 'fixup!' коммиты выше в выбранный коммит (автосохранение)
-  <kbd>&lt;c-j&gt;</kbd>: Переместить коммит вниз на один
-  <kbd>&lt;c-k&gt;</kbd>: Переместить коммит вверх на один
-  <kbd>V</kbd>: Вставить отобранные коммиты (cherry-pick)
-  <kbd>B</kbd>: Mark commit as base commit for rebase
-  <kbd>A</kbd>: Править последний коммит с проиндексированными изменениями
-  <kbd>a</kbd>: Установить/убрать автора коммита
-  <kbd>t</kbd>: Отменить коммит
-  <kbd>T</kbd>: Пометить коммит тегом
-  <kbd>&lt;c-l&gt;</kbd>: Открыть меню журнала
-  <kbd>w</kbd>: View worktree options
-  <kbd>&lt;space&gt;</kbd>: Переключить коммит
-  <kbd>y</kbd>: Скопировать атрибут коммита
-  <kbd>o</kbd>: Открыть коммит в браузере
-  <kbd>n</kbd>: Создать новую ветку с этого коммита
-  <kbd>g</kbd>: Просмотреть параметры сброса
-  <kbd>C</kbd>: Скопировать отобранные коммит (cherry-pick)
-  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
-  <kbd>&lt;enter&gt;</kbd>: Просмотреть файлы выбранного элемента
-  <kbd>/</kbd>: Найти
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <c-o> `` | Скопировать SHA коммита в буфер обмена |  |
+| `` <c-r> `` | Сбросить отобранную (скопированную | cherry-picked) выборку коммитов |  |
+| `` b `` | Просмотреть параметры бинарного поиска |  |
+| `` s `` | Объединить коммиты (Squash) | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
+| `` f `` | Объединить несколько коммитов в один отбросив сообщение коммита (Fixup)  | Meld the selected commit into the commit below it. Similar to fixup, but the selected commit's message will be discarded. |
+| `` r `` | Перефразировать коммит | Reword the selected commit's message. |
+| `` R `` | Переписать коммит с помощью редактора |  |
+| `` d `` | Удалить коммит | Drop the selected commit. This will remove the commit from the branch via a rebase. If the commit makes changes that later commits depend on, you may need to resolve merge conflicts. |
+| `` e `` | Edit (start interactive rebase) | Изменить коммит |
+| `` i `` | Start interactive rebase | Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.
+If you would instead like to start an interactive rebase from the selected commit, press `e`. |
+| `` p `` | Pick | Выбрать коммит (в середине перебазирования) |
+| `` F `` | Create fixup commit | Создать fixup коммит для этого коммита |
+| `` S `` | Apply fixup commits | Объединить все 'fixup!' коммиты выше в выбранный коммит (автосохранение) |
+| `` <c-j> `` | Переместить коммит вниз на один |  |
+| `` <c-k> `` | Переместить коммит вверх на один |  |
+| `` V `` | Вставить отобранные коммиты (cherry-pick) |  |
+| `` B `` | Mark as base commit for rebase | Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command. |
+| `` A `` | Amend | Править последний коммит с проиндексированными изменениями |
+| `` a `` | Установить/убрать автора коммита | Set/Reset commit author or set co-author. |
+| `` t `` | Revert | Create a revert commit for the selected commit, which applies the selected commit's changes in reverse. |
+| `` T `` | Пометить коммит тегом | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
+| `` <c-l> `` | Открыть меню журнала | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
+| `` <space> `` | Переключить | Checkout the selected commit as a detached HEAD. |
+| `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
+| `` o `` | Открыть коммит в браузере |  |
+| `` n `` | Создать новую ветку с этого коммита |  |
+| `` g `` | Просмотреть параметры сброса | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` C `` | Скопировать отобранные коммит (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <enter> `` | Просмотреть файлы выбранного элемента |  |
+| `` w `` | View worktree options |  |
+| `` / `` | Найти |  |
 
 ## Локальные Ветки
 
-<pre>
-  <kbd>&lt;c-o&gt;</kbd>: Скопировать название ветки в буфер обмена
-  <kbd>i</kbd>: Показать параметры git-flow
-  <kbd>&lt;space&gt;</kbd>: Переключить
-  <kbd>n</kbd>: Новая ветка
-  <kbd>o</kbd>: Создать запрос на принятие изменений
-  <kbd>O</kbd>: Создать параметры запроса принятие изменений
-  <kbd>&lt;c-y&gt;</kbd>: Скопировать URL запроса на принятие изменений в буфер обмена
-  <kbd>c</kbd>: Переключить по названию
-  <kbd>F</kbd>: Принудительное переключение
-  <kbd>d</kbd>: View delete options
-  <kbd>r</kbd>: Перебазировать переключённую ветку на эту ветку
-  <kbd>M</kbd>: Слияние с текущей переключённой веткой
-  <kbd>f</kbd>: Перемотать эту ветку вперёд из её upstream-ветки
-  <kbd>T</kbd>: Создать тег
-  <kbd>s</kbd>: Порядок сортировки
-  <kbd>g</kbd>: Просмотреть параметры сброса
-  <kbd>R</kbd>: Переименовать ветку
-  <kbd>u</kbd>: View upstream options
-  <kbd>w</kbd>: View worktree options
-  <kbd>&lt;enter&gt;</kbd>: Просмотреть коммиты
-  <kbd>/</kbd>: Filter the current view by text
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <c-o> `` | Скопировать название ветки в буфер обмена |  |
+| `` i `` | Показать параметры git-flow |  |
+| `` <space> `` | Переключить | Checkout selected item. |
+| `` n `` | Новая ветка |  |
+| `` o `` | Создать запрос на принятие изменений |  |
+| `` O `` | Создать параметры запроса принятие изменений |  |
+| `` <c-y> `` | Скопировать URL запроса на принятие изменений в буфер обмена |  |
+| `` c `` | Переключить по названию | Checkout by name. In the input box you can enter '-' to switch to the last branch. |
+| `` F `` | Принудительное переключение | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
+| `` d `` | Delete | View delete options for local/remote branch. |
+| `` r `` | Перебазировать переключённую ветку на эту ветку | Rebase the checked-out branch onto the selected branch. |
+| `` M `` | Слияние с текущей переключённой веткой | Merge selected branch into currently checked out branch. |
+| `` f `` | Перемотать эту ветку вперёд из её upstream-ветки | Fast-forward selected branch from its upstream. |
+| `` T `` | Создать тег |  |
+| `` s `` | Порядок сортировки |  |
+| `` g `` | Просмотреть параметры сброса |  |
+| `` R `` | Переименовать ветку |  |
+| `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` <enter> `` | Просмотреть коммиты |  |
+| `` w `` | View worktree options |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Меню
 
-<pre>
-  <kbd>&lt;enter&gt;</kbd>: Выполнить
-  <kbd>&lt;esc&gt;</kbd>: Закрыть
-  <kbd>/</kbd>: Filter the current view by text
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | Выполнить |  |
+| `` <esc> `` | Закрыть |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Панель Подтверждения
 
-<pre>
-  <kbd>&lt;enter&gt;</kbd>: Подтвердить
-  <kbd>&lt;esc&gt;</kbd>: Закрыть/отменить
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | Подтвердить |  |
+| `` <esc> `` | Закрыть/отменить |  |
 
 ## Подкоммиты
 
-<pre>
-  <kbd>&lt;c-o&gt;</kbd>: Скопировать SHA коммита в буфер обмена
-  <kbd>w</kbd>: View worktree options
-  <kbd>&lt;space&gt;</kbd>: Переключить коммит
-  <kbd>y</kbd>: Скопировать атрибут коммита
-  <kbd>o</kbd>: Открыть коммит в браузере
-  <kbd>n</kbd>: Создать новую ветку с этого коммита
-  <kbd>g</kbd>: Просмотреть параметры сброса
-  <kbd>C</kbd>: Скопировать отобранные коммит (cherry-pick)
-  <kbd>&lt;c-r&gt;</kbd>: Сбросить отобранную (скопированную | cherry-picked) выборку коммитов
-  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
-  <kbd>&lt;enter&gt;</kbd>: Просмотреть файлы выбранного элемента
-  <kbd>/</kbd>: Найти
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <c-o> `` | Скопировать SHA коммита в буфер обмена |  |
+| `` <space> `` | Переключить | Checkout the selected commit as a detached HEAD. |
+| `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
+| `` o `` | Открыть коммит в браузере |  |
+| `` n `` | Создать новую ветку с этого коммита |  |
+| `` g `` | Просмотреть параметры сброса | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` C `` | Скопировать отобранные коммит (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
+| `` <c-r> `` | Сбросить отобранную (скопированную | cherry-picked) выборку коммитов |  |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <enter> `` | Просмотреть файлы выбранного элемента |  |
+| `` w `` | View worktree options |  |
+| `` / `` | Найти |  |
 
 ## Подмодули
 
-<pre>
-  <kbd>&lt;c-o&gt;</kbd>: Скопировать название подмодуля в буфер обмена
-  <kbd>&lt;enter&gt;</kbd>: Ввести подмодуль
-  <kbd>&lt;space&gt;</kbd>: Ввести подмодуль
-  <kbd>d</kbd>: Удалить подмодуль
-  <kbd>u</kbd>: Обновить подмодуль
-  <kbd>n</kbd>: Добавить новый подмодуль
-  <kbd>e</kbd>: Обновить URL подмодуля
-  <kbd>i</kbd>: Инициализировать подмодуль
-  <kbd>b</kbd>: Просмотреть параметры массового подмодуля
-  <kbd>/</kbd>: Filter the current view by text
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <c-o> `` | Скопировать название подмодуля в буфер обмена |  |
+| `` <enter> `` | Enter | Ввести подмодуль |
+| `` d `` | Remove | Remove the selected submodule and its corresponding directory. |
+| `` u `` | Update | Обновить подмодуль |
+| `` n `` | Добавить новый подмодуль |  |
+| `` e `` | Обновить URL подмодуля |  |
+| `` i `` | Initialize | Инициализировать подмодуль |
+| `` b `` | Просмотреть параметры массового подмодуля |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Сводка коммита
 
-<pre>
-  <kbd>&lt;enter&gt;</kbd>: Подтвердить
-  <kbd>&lt;esc&gt;</kbd>: Закрыть
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | Подтвердить |  |
+| `` <esc> `` | Закрыть |  |
 
 ## Сохранить Изменения Файлов
 
-<pre>
-  <kbd>&lt;c-o&gt;</kbd>: Скопировать закомиченное имя файла в буфер обмена
-  <kbd>c</kbd>: Переключить файл
-  <kbd>d</kbd>: Отменить изменения коммита в этом файле
-  <kbd>o</kbd>: Открыть файл
-  <kbd>e</kbd>: Редактировать файл
-  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
-  <kbd>&lt;space&gt;</kbd>: Переключить файлы включённые в патч
-  <kbd>a</kbd>: Переключить все файлы, включённые в патч
-  <kbd>&lt;enter&gt;</kbd>: Введите файл, чтобы добавить выбранные строки в патч (или свернуть каталог переключения)
-  <kbd>`</kbd>: Переключить вид дерева файлов
-  <kbd>/</kbd>: Найти
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <c-o> `` | Скопировать название файла в буфер обмена |  |
+| `` c `` | Переключить | Переключить файл |
+| `` d `` | Remove | Отменить изменения коммита в этом файле |
+| `` o `` | Открыть файл | Open file in default application. |
+| `` e `` | Edit | Open file in external editor. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <space> `` | Переключить файлы включённые в патч | Toggle whether the file is included in the custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
+| `` a `` | Переключить все файлы, включённые в патч | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
+| `` <enter> `` | Введите файл, чтобы добавить выбранные строки в патч (или свернуть каталог переключения) | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
+| `` ` `` | Переключить вид дерева файлов | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
+| `` / `` | Найти |  |
 
 ## Статус
 
-<pre>
-  <kbd>o</kbd>: Открыть файл конфигурации
-  <kbd>e</kbd>: Редактировать файл конфигурации
-  <kbd>u</kbd>: Проверить обновления
-  <kbd>&lt;enter&gt;</kbd>: Переключиться на последний репозиторий
-  <kbd>a</kbd>: Показать все логи ветки
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` o `` | Открыть файл конфигурации | Open file in default application. |
+| `` e `` | Редактировать файл конфигурации | Open file in external editor. |
+| `` u `` | Проверить обновления |  |
+| `` <enter> `` | Переключиться на последний репозиторий |  |
+| `` a `` | Показать все логи ветки |  |
 
 ## Теги
 
-<pre>
-  <kbd>&lt;space&gt;</kbd>: Переключить
-  <kbd>d</kbd>: View delete options
-  <kbd>P</kbd>: Отправить тег
-  <kbd>n</kbd>: Создать тег
-  <kbd>g</kbd>: Просмотреть параметры сброса
-  <kbd>w</kbd>: View worktree options
-  <kbd>&lt;enter&gt;</kbd>: Просмотреть коммиты
-  <kbd>/</kbd>: Filter the current view by text
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <space> `` | Переключить | Checkout the selected tag tag as a detached HEAD. |
+| `` n `` | Создать тег | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
+| `` d `` | Delete | View delete options for local/remote tag. |
+| `` P `` | Отправить тег | Push the selected tag to a remote. You'll be prompted to select a remote. |
+| `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <enter> `` | Просмотреть коммиты |  |
+| `` w `` | View worktree options |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Удалённые ветки
 
-<pre>
-  <kbd>&lt;c-o&gt;</kbd>: Скопировать название ветки в буфер обмена
-  <kbd>&lt;space&gt;</kbd>: Переключить
-  <kbd>n</kbd>: Новая ветка
-  <kbd>M</kbd>: Слияние с текущей переключённой веткой
-  <kbd>r</kbd>: Перебазировать переключённую ветку на эту ветку
-  <kbd>d</kbd>: Delete remote tag
-  <kbd>u</kbd>: Установить как upstream-ветку переключённую ветку
-  <kbd>s</kbd>: Порядок сортировки
-  <kbd>g</kbd>: Просмотреть параметры сброса
-  <kbd>w</kbd>: View worktree options
-  <kbd>&lt;enter&gt;</kbd>: Просмотреть коммиты
-  <kbd>/</kbd>: Filter the current view by text
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <c-o> `` | Скопировать название ветки в буфер обмена |  |
+| `` <space> `` | Переключить | Checkout a new local branch based on the selected remote branch. The new branch will track the remote branch. |
+| `` n `` | Новая ветка |  |
+| `` M `` | Слияние с текущей переключённой веткой | Merge selected branch into currently checked out branch. |
+| `` r `` | Перебазировать переключённую ветку на эту ветку | Rebase the checked-out branch onto the selected branch. |
+| `` d `` | Delete | Delete the remote branch from the remote. |
+| `` u `` | Set as upstream | Установить как upstream-ветку переключённую ветку |
+| `` s `` | Порядок сортировки |  |
+| `` g `` | Просмотреть параметры сброса | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <enter> `` | Просмотреть коммиты |  |
+| `` w `` | View worktree options |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Удалённые репозитории
 
-<pre>
-  <kbd>f</kbd>: Получение изменения из удалённого репозитория
-  <kbd>n</kbd>: Добавить новую удалённую ветку
-  <kbd>d</kbd>: Удалить удалённую ветку
-  <kbd>e</kbd>: Редактировать удалённый репозитории
-  <kbd>/</kbd>: Filter the current view by text
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | View branches |  |
+| `` n `` | Добавить новую удалённую ветку |  |
+| `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
+| `` e `` | Edit | Редактировать удалённый репозитории |
+| `` f `` | Получить изменения | Получение изменения из удалённого репозитория |
+| `` / `` | Filter the current view by text |  |
 
 ## Файлы
 
-<pre>
-  <kbd>&lt;c-o&gt;</kbd>: Скопировать название файла в буфер обмена
-  <kbd>&lt;space&gt;</kbd>: Переключить индекс
-  <kbd>&lt;c-b&gt;</kbd>: Фильтровать файлы (проиндексированные/непроиндексированные)
-  <kbd>y</kbd>: Copy to clipboard
-  <kbd>c</kbd>: Сохранить изменения
-  <kbd>w</kbd>: Закоммитить изменения без предварительного хука коммита
-  <kbd>A</kbd>: Правка последнего коммита
-  <kbd>C</kbd>: Сохранить изменения с помощью редактора git
-  <kbd>&lt;c-f&gt;</kbd>: Find base commit for fixup
-  <kbd>e</kbd>: Редактировать файл
-  <kbd>o</kbd>: Открыть файл
-  <kbd>i</kbd>: Игнорировать или исключить файл
-  <kbd>r</kbd>: Обновить файлы
-  <kbd>s</kbd>: Припрятать все изменения
-  <kbd>S</kbd>: Просмотреть параметры хранилища
-  <kbd>a</kbd>: Все проиндексированные/непроиндексированные
-  <kbd>&lt;enter&gt;</kbd>: Проиндексировать отдельные части/строки для файла или свернуть/развернуть для каталога
-  <kbd>d</kbd>: Просмотреть параметры «отмены изменении»
-  <kbd>g</kbd>: Просмотреть параметры сброса upstream-ветки
-  <kbd>D</kbd>: Просмотреть параметры сброса
-  <kbd>`</kbd>: Переключить вид дерева файлов
-  <kbd>&lt;c-t&gt;</kbd>: Open external diff tool (git difftool)
-  <kbd>M</kbd>: Открыть внешний инструмент слияния (git mergetool)
-  <kbd>f</kbd>: Получить изменения
-  <kbd>/</kbd>: Найти
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <c-o> `` | Скопировать название файла в буфер обмена |  |
+| `` <space> `` | Переключить индекс | Toggle staged for selected file. |
+| `` <c-b> `` | Фильтровать файлы (проиндексированные/непроиндексированные) |  |
+| `` y `` | Copy to clipboard |  |
+| `` c `` | Сохранить изменения | Commit staged changes. |
+| `` w `` | Закоммитить изменения без предварительного хука коммита |  |
+| `` A `` | Правка последнего коммита |  |
+| `` C `` | Сохранить изменения с помощью редактора git |  |
+| `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
+| `` e `` | Edit | Open file in external editor. |
+| `` o `` | Открыть файл | Open file in default application. |
+| `` i `` | Игнорировать или исключить файл |  |
+| `` r `` | Обновить файлы |  |
+| `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
+| `` S `` | Просмотреть параметры хранилища | View stash options (e.g. stash all, stash staged, stash unstaged). |
+| `` a `` | Все проиндексированные/непроиндексированные | Toggle staged/unstaged for all files in working tree. |
+| `` <enter> `` | Проиндексировать отдельные части/строки для файла или свернуть/развернуть для каталога | If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it. |
+| `` d `` | Просмотреть параметры «отмены изменении» | View options for discarding changes to the selected file. |
+| `` g `` | Просмотреть параметры сброса upstream-ветки |  |
+| `` D `` | Reset | View reset options for working tree (e.g. nuking the working tree). |
+| `` ` `` | Переключить вид дерева файлов | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` M `` | Открыть внешний инструмент слияния (git mergetool) | Run `git mergetool`. |
+| `` f `` | Получить изменения | Fetch changes from remote. |
+| `` / `` | Найти |  |
 
 ## Хранилище
 
-<pre>
-  <kbd>&lt;space&gt;</kbd>: Применить припрятанные изменения
-  <kbd>g</kbd>: Применить припрятанные изменения и тут же удалить их из хранилища
-  <kbd>d</kbd>: Удалить припрятанные изменения из хранилища
-  <kbd>n</kbd>: Новая ветка
-  <kbd>r</kbd>: Переименовать хранилище
-  <kbd>w</kbd>: View worktree options
-  <kbd>&lt;enter&gt;</kbd>: Просмотреть файлы выбранного элемента
-  <kbd>/</kbd>: Filter the current view by text
-</pre>
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <space> `` | Применить припрятанные изменения | Apply the stash entry to your working directory. |
+| `` g `` | Применить припрятанные изменения и тут же удалить их из хранилища | Apply the stash entry to your working directory and remove the stash entry. |
+| `` d `` | Удалить припрятанные изменения из хранилища | Remove the stash entry from the stash list. |
+| `` n `` | Новая ветка | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
+| `` r `` | Переименовать хранилище |  |
+| `` <enter> `` | Просмотреть файлы выбранного элемента |  |
+| `` w `` | View worktree options |  |
+| `` / `` | Filter the current view by text |  |
