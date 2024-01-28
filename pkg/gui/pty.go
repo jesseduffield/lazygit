@@ -1,15 +1,11 @@
-//go:build !windows
-// +build !windows
-
 package gui
 
 import (
 	"io"
-	"os"
 	"os/exec"
 	"strings"
 
-	"github.com/creack/pty"
+	"github.com/creack/pty/v2"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -58,7 +54,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 	manager := gui.getManager(view)
 
-	var ptmx *os.File
+	var ptmx pty.Pty
 	start := func() (*exec.Cmd, io.Reader) {
 		var err error
 		ptmx, err = pty.StartWithSize(cmd, gui.desiredPtySize())

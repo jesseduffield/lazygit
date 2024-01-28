@@ -6,7 +6,7 @@ package oscommands
 import (
 	"os/exec"
 
-	"github.com/creack/pty"
+	"github.com/creack/pty/v2"
 )
 
 // we define this separately for windows and non-windows given that windows does
