@@ -80,13 +80,15 @@ func (p *PatchBuilder) PatchToApply(reverse bool) string {
 }
 
 func (p *PatchBuilder) addFileWhole(info *fileInfo) {
-	info.mode = WHOLE
-	lineCount := len(strings.Split(info.diff, "\n"))
-	// add every line index
-	// TODO: add tests and then use lo.Range to simplify
-	info.includedLineIndices = make([]int, lineCount)
-	for i := 0; i < lineCount; i++ {
-		info.includedLineIndices[i] = i
+	if info.mode != WHOLE {
+		info.mode = WHOLE
+		lineCount := len(strings.Split(info.diff, "\n"))
+		// add every line index
+		// TODO: add tests and then use lo.Range to simplify
+		info.includedLineIndices = make([]int, lineCount)
+		for i := 0; i < lineCount; i++ {
+			info.includedLineIndices[i] = i
+		}
 	}
 }
 

@@ -80,7 +80,18 @@ func (self *CommitFileTreeViewModel) GetSelectedItemId() string {
 }
 
 func (self *CommitFileTreeViewModel) GetSelectedItems() ([]*CommitFileNode, int, int) {
-	panic("Not implemented")
+	if self.Len() == 0 {
+		return nil, 0, 0
+	}
+
+	startIdx, endIdx := self.GetSelectionRange()
+
+	nodes := []*CommitFileNode{}
+	for i := startIdx; i <= endIdx; i++ {
+		nodes = append(nodes, self.Get(i))
+	}
+
+	return nodes, startIdx, endIdx
 }
 
 func (self *CommitFileTreeViewModel) GetSelectedItemIds() ([]string, int, int) {
