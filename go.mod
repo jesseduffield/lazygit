@@ -7,7 +7,7 @@ require (
 	github.com/atotto/clipboard v0.1.4
 	github.com/aybabtme/humanlog v0.4.1
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
-	github.com/creack/pty v1.1.11
+	github.com/creack/pty/v2 v2.0.0-20231209135443-03db72c7b76c
 	github.com/fsmiamoto/git-todo-parser v0.0.5
 	github.com/gdamore/tcell/v2 v2.7.1-0.20240103180601-96e29905643b
 	github.com/go-errors/errors v1.5.1
@@ -79,3 +79,5 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
+
+replace github.com/creack/pty/v2 => github.com/photostorm/pty/v2 v2.0.0-20231031183731-17650f9747d7

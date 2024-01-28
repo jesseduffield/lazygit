@@ -1,0 +1,17 @@
+ARG GOVERSION=1.18.2
+FROM golang:${GOVERSION}
+
+# Set base env.
+ARG GOOS=linux
+ARG GOARCH=amd64
+ENV GOOS=${GOOS} GOARCH=${GOARCH} CGO_ENABLED=0 GOFLAGS='-v -ldflags=-s -ldflags=-w'
+
+# Pre compile the stdlib for 386/arm (32bits).
+RUN go build -a std
+
+# Add the code to the image.
+WORKDIR pty
+ADD . .
+
+# Build the lib.
+RUN go build
