@@ -21,6 +21,7 @@ const (
 type WindowsPty struct {
 	handle windows.Handle
 	r, w   *os.File
+	closed bool
 }
 
 type WindowsTty struct {
@@ -126,15 +127,21 @@ func (p *WindowsPty) UpdateProcThreadAttribute(attrList *windows.ProcThreadAttri
 }
 
 func (p *WindowsPty) Close() error {
-	// Best effort.
-	_ = p.r.Close()
-	_ = p.w.Close()
+	if p.closed {
+		return nil
+	}
+	p.closed = true
 
 	if err := closePseudoConsole.Find(); err != nil {
 		return err
 	}
 
 	_, _, err := closePseudoConsole.Call(uintptr(p.handle))
+
+	// Best effort.
+	_ = p.r.Close()
+	_ = p.w.Close()
+
 	return err
 }
 
