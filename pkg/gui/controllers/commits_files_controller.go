@@ -50,8 +50,8 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
-			Handler:           self.withItem(self.discard),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			Handler:           self.withItems(self.discard),
+			GetDisabledReason: self.require(self.itemsSelected()),
 			Description:       self.c.Tr.Remove,
 			Tooltip:           self.c.Tr.DiscardOldFileChangeTooltip,
 			DisplayOnScreen:   true,
@@ -176,43 +176,56 @@ func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
-func (self *CommitFilesController) discard(node *filetree.CommitFileNode) error {
+func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileNode) error {
 	parentContext, ok := self.c.CurrentContext().GetParentContext()
 	if !ok || parentContext.GetKey() != context.LOCAL_COMMITS_CONTEXT_KEY {
 		return self.c.ErrorMsg(self.c.Tr.CanOnlyDiscardFromLocalCommits)
-	}
-
-	if node.File == nil {
-		return self.c.ErrorMsg(self.c.Tr.DiscardNotSupportedForDirectory)
 	}
 
 	if ok, err := self.c.Helpers().PatchBuilding.ValidateNormalWorkingTreeState(); !ok {
 		return err
 	}
 
-	prompt := self.c.Tr.DiscardFileChangesPrompt
-	if node.File.Added() {
-		prompt = self.c.Tr.DiscardAddedFileChangesPrompt
-	} else if node.File.Deleted() {
-		prompt = self.c.Tr.DiscardDeletedFileChangesPrompt
-	}
+	removeFileRange := func() error {
+		return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+			selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
 
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.DiscardFileChangesTitle,
-		Prompt: prompt,
-		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
-				self.c.LogAction(self.c.Tr.Actions.DiscardOldFileChange)
-				if err := self.c.Git().Rebase.DiscardOldFileChanges(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), node.GetPath()); err != nil {
+			return self.c.Confirm(types.ConfirmOpts{
+				Title:  self.c.Tr.DiscardFileChangesTitle,
+				Prompt: self.c.Tr.DiscardFileChangesPrompt,
+				HandleConfirm: func() error {
+					var filePaths []string
+
+					// Reset the current patch if there is one.
+					if self.c.Git().Patch.PatchBuilder.Active() {
+						self.c.Git().Patch.PatchBuilder.Reset()
+						if err := self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI}); err != nil {
+							return err
+						}
+					}
+
+					for _, node := range selectedNodes {
+						err := node.ForEachFile(func(file *models.CommitFile) error {
+							filePaths = append(filePaths, file.GetPath())
+							return nil
+						})
+						if err != nil {
+							return self.c.Error(err)
+						}
+					}
+
+					err := self.c.Git().Rebase.DiscardOldFileChanges(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), filePaths)
 					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 						return err
 					}
-				}
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI})
+					return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI})
+				},
 			})
-		},
-	})
+		})
+	}
+
+	return removeFileRange()
 }
 
 func (self *CommitFilesController) open(node *filetree.CommitFileNode) error {
