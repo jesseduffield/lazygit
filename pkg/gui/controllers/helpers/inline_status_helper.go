@@ -66,7 +66,7 @@ func (self inlineStatusHelperTask) Continue() {
 func (self *InlineStatusHelper) WithInlineStatus(opts InlineStatusOpts, f func(gocui.Task) error) {
 	context := self.c.ContextForKey(opts.ContextKey).(types.IListContext)
 	view := context.GetView()
-	visible := view.Visible && self.windowHelper.TopViewInWindow(context.GetWindowName()) == view
+	visible := view.Visible && self.windowHelper.TopViewInWindow(context.GetWindowName(), false) == view
 	if visible && context.IsItemVisible(opts.Item) {
 		self.c.OnWorker(func(task gocui.Task) {
 			self.start(opts)
