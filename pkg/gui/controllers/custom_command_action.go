@@ -25,10 +25,7 @@ func (self *CustomCommandAction) Call() error {
 				)
 			}
 
-			err := self.c.SaveAppState()
-			if err != nil {
-				self.c.Log.Error(err)
-			}
+			self.c.SaveAppStateAndLogError()
 
 			self.c.LogAction(self.c.Tr.Actions.CustomCommand)
 			return self.c.RunSubprocessAndRefresh(
