@@ -32,7 +32,7 @@ import (
 // We want to test against a specific version rather than the latest. When the
 // package is upgraded to a new version, change these to generate new tests.
 const (
-	testCaseURL = `https://www.unicode.org/Public/14.0.0/ucd/auxiliary/%s.txt`
+	testCaseURL = `https://www.unicode.org/Public/15.0.0/ucd/auxiliary/%s.txt`
 )
 
 func main() {
@@ -76,9 +76,9 @@ func parse(url string) ([]byte, error) {
 
 	buf := new(bytes.Buffer)
 	buf.Grow(120 << 10)
-	buf.WriteString(`package uniseg
+	buf.WriteString(`// Code generated via go generate from gen_breaktest.go. DO NOT EDIT.
 
-// Code generated via go generate from gen_breaktest.go. DO NOT EDIT.
+package uniseg
 
 // ` + os.Args[3] + ` are Grapheme testcases taken from
 // ` + url + `
@@ -136,7 +136,9 @@ var (
 //
 // E.g. for the input b="÷ 0020 × 0308 ÷ 1F1E6 ÷"
 // it will append
-//     "\u0020\u0308\U0001F1E6"
+//
+//	"\u0020\u0308\U0001F1E6"
+//
 // and "[][]rune{{0x0020,0x0308},{0x1F1E6},}"
 // to orig and exp respectively.
 //
