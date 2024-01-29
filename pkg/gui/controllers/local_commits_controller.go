@@ -167,13 +167,13 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Commits.SquashAboveCommits),
-			Handler: self.withItem(self.squashAllAboveFixupCommits),
+			Handler: self.squashFixupCommits,
 			GetDisabledReason: self.require(
 				self.notMidRebase(self.c.Tr.AlreadyRebasing),
-				self.singleItemSelected(),
 			),
 			Description: self.c.Tr.SquashAboveCommits,
 			Tooltip:     self.c.Tr.SquashAboveCommitsTooltip,
+			OpensMenu:   true,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Commits.MoveDownCommit),
@@ -816,23 +816,60 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 	})
 }
 
-func (self *LocalCommitsController) squashAllAboveFixupCommits(commit *models.Commit) error {
-	prompt := utils.ResolvePlaceholderString(
-		self.c.Tr.SureSquashAboveCommits,
-		map[string]string{"commit": commit.Sha},
-	)
-
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.SquashAboveCommits,
-		Prompt: prompt,
-		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
-				self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
-				err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
-				return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
-			})
+func (self *LocalCommitsController) squashFixupCommits() error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.SquashAboveCommits,
+		Items: []*types.MenuItem{
+			{
+				Label:          self.c.Tr.SquashCommitsInCurrentBranch,
+				OnPress:        self.squashAllFixupsInCurrentBranch,
+				DisabledReason: self.canFindCommitForSquashFixupsInCurrentBranch(),
+				Key:            'b',
+				Tooltip:        self.c.Tr.SquashCommitsInCurrentBranchTooltip,
+			},
+			{
+				Label:          self.c.Tr.SquashCommitsAboveSelectedCommit,
+				OnPress:        self.withItem(self.squashAllFixupsAboveSelectedCommit),
+				DisabledReason: self.singleItemSelected()(),
+				Key:            'a',
+				Tooltip:        self.c.Tr.SquashCommitsAboveSelectedTooltip,
+			},
 		},
 	})
+}
+
+func (self *LocalCommitsController) squashAllFixupsAboveSelectedCommit(commit *models.Commit) error {
+	return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
+		self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
+		err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+	})
+}
+
+func (self *LocalCommitsController) squashAllFixupsInCurrentBranch() error {
+	commit, err := self.findCommitForSquashFixupsInCurrentBranch()
+	if err != nil {
+		return self.c.Error(err)
+	}
+
+	return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
+		self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
+		err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+	})
+}
+
+func (self *LocalCommitsController) findCommitForSquashFixupsInCurrentBranch() (*models.Commit, error) {
+	commits := self.c.Model().Commits
+	_, index, ok := lo.FindIndexOf(commits, func(c *models.Commit) bool {
+		return c.IsMerge() || c.Status == models.StatusMerged
+	})
+
+	if !ok || index == 0 {
+		return nil, errors.New(self.c.Tr.CannotSquashCommitsInCurrentBranch)
+	}
+
+	return commits[index-1], nil
 }
 
 func (self *LocalCommitsController) createTag(commit *models.Commit) error {
@@ -1014,6 +1051,14 @@ func (self *LocalCommitsController) notMidRebase(message string) func() *types.D
 func (self *LocalCommitsController) canFindCommitForQuickStart() *types.DisabledReason {
 	if _, err := self.findCommitForQuickStartInteractiveRebase(); err != nil {
 		return &types.DisabledReason{Text: err.Error(), ShowErrorInPanel: true}
+	}
+
+	return nil
+}
+
+func (self *LocalCommitsController) canFindCommitForSquashFixupsInCurrentBranch() *types.DisabledReason {
+	if _, err := self.findCommitForSquashFixupsInCurrentBranch(); err != nil {
+		return &types.DisabledReason{Text: err.Error()}
 	}
 
 	return nil

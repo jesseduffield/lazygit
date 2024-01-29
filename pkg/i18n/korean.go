@@ -258,7 +258,6 @@ func koreanTranslationSet() TranslationSet {
 		ViewResetOptions:                    `View reset options`,
 		CreateFixupCommitTooltip:            `Create fixup commit for this commit`,
 		SquashAboveCommitsTooltip:           `Squash all 'fixup!' commits above selected commit (autosquash)`,
-		SureSquashAboveCommits:              `Are you sure you want to squash all fixup! commits above {{.commit}}?`,
 		CreateFixupCommit:                   `Create fixup commit`,
 		SureCreateFixupCommit:               `Are you sure you want to create a fixup! commit for commit {{.commit}}?`,
 		ExecuteCustomCommand:                "Execute custom command",

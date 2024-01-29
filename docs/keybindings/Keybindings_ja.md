@@ -106,7 +106,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 If you would instead like to start an interactive rebase from the selected commit, press `e`. |
 | `` p `` | Pick | Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase. |
 | `` F `` | Create fixup commit | このコミットに対するfixupコミットを作成 |
-| `` S `` | Apply fixup commits | Squash all 'fixup!' commits above selected commit (autosquash). |
+| `` S `` | Apply fixup commits | Squash all 'fixup!' commits, either above the selected commit, or all in current branch (autosquash). |
 | `` <c-j> `` | コミットを1つ下に移動 |  |
 | `` <c-k> `` | コミットを1つ上に移動 |  |
 | `` V `` | コミットを貼り付け (cherry-pick) |  |

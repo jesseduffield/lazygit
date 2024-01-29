@@ -254,7 +254,6 @@ func chineseTranslationSet() TranslationSet {
 		ViewResetOptions:                    `查看重置选项`,
 		CreateFixupCommit:                   `为此提交创建修正`,
 		SquashAboveCommitsTooltip:           `压缩在所选提交之上的所有“fixup!”提交（自动压缩）`,
-		SureSquashAboveCommits:              `您确定要压缩在 {{.commit}} 之上的所有“fixup!”提交吗?`,
 		CreateFixupCommitTooltip:            `创建修正提交`,
 		SureCreateFixupCommit:               `您确定要对 {{.commit}} 创建修正提交吗？`,
 		ExecuteCustomCommand:                "执行自定义命令",
