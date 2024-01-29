@@ -20,6 +20,7 @@ var FilterMenuCancelFilterWithEscape = NewIntegrationTest(NewIntegrationTestArgs
 			Filter("Ignore").
 			Lines(
 				// menu has filtered down to the one item that matches the filter
+				Contains(`--- Local ---`),
 				Contains(`Ignore`).IsSelected(),
 			)
 
