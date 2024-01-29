@@ -27,9 +27,10 @@ var FilterUpdatesWhenModelChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			FilterOrSearch("branch").
 			Lines(
-				Contains("branch-to-delete").IsSelected(),
-				Contains("checked-out-branch"),
+				Contains("checked-out-branch").IsSelected(),
+				Contains("branch-to-delete"),
 			).
+			SelectNextItem().
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.ExpectPopup().
