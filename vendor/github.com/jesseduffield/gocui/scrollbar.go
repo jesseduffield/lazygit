@@ -23,11 +23,6 @@ func calcScrollbarHeight(listSize int, pageSize int, scrollAreaSize int) int {
 	if pageSize >= listSize {
 		return scrollAreaSize
 	}
-	height := int((float64(pageSize) / float64(listSize)) * float64(scrollAreaSize))
-	minHeight := 2
-	if height < minHeight {
-		return minHeight
-	}
 
-	return height
+	return int((float64(pageSize) / float64(listSize)) * float64(scrollAreaSize))
 }

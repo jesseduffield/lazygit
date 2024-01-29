@@ -41,8 +41,8 @@ import (
 // We want to test against a specific version rather than the latest. When the
 // package is upgraded to a new version, change these to generate new tests.
 const (
-	propertyURL = `https://www.unicode.org/Public/14.0.0/ucd/%s.txt`
-	emojiURL    = `https://unicode.org/Public/14.0.0/ucd/emoji/emoji-data.txt`
+	propertyURL = `https://www.unicode.org/Public/15.0.0/ucd/%s.txt`
+	emojiURL    = `https://unicode.org/Public/15.0.0/ucd/emoji/emoji-data.txt`
 )
 
 // The regular expression for a line containing a code point range property.
@@ -178,6 +178,11 @@ func parse(propertyURL, emojiProperty string, includeGeneralCategory bool) (stri
 		}
 	}
 
+	// Avoid overflow during binary search.
+	if len(properties) >= 1<<31 {
+		return "", errors.New("too many properties")
+	}
+
 	// Sort properties.
 	sort.Slice(properties, func(i, j int) bool {
 		left, _ := strconv.ParseUint(properties[i][0], 16, 64)
@@ -200,9 +205,9 @@ func parse(propertyURL, emojiProperty string, includeGeneralCategory bool) (stri
 // ` + emojiURL + `
 // ("Extended_Pictographic" only)`
 	}
-	buf.WriteString(`package uniseg
+	buf.WriteString(`// Code generated via go generate from gen_properties.go. DO NOT EDIT.
 
-// Code generated via go generate from gen_properties.go. DO NOT EDIT.
+package uniseg
 
 // ` + os.Args[3] + ` are taken from
 // ` + propertyURL + emojiComment + `

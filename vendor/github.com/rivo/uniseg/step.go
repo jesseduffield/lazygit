@@ -100,7 +100,7 @@ func Step(b []byte, state int) (cluster, rest []byte, boundaries int, newState i
 	if len(b) <= length { // If we're already past the end, there is nothing else to parse.
 		var prop int
 		if state < 0 {
-			prop = property(graphemeCodePoints, r)
+			prop = propertyGraphemes(r)
 		} else {
 			prop = state >> shiftPropState
 		}
@@ -179,7 +179,7 @@ func StepString(str string, state int) (cluster, rest string, boundaries int, ne
 	// Extract the first rune.
 	r, length := utf8.DecodeRuneInString(str)
 	if len(str) <= length { // If we're already past the end, there is nothing else to parse.
-		prop := property(graphemeCodePoints, r)
+		prop := propertyGraphemes(r)
 		return str, "", LineMustBreak | (1 << shiftWord) | (1 << shiftSentence) | (runeWidth(r, prop) << ShiftWidth), grAny | (wbAny << shiftWordState) | (sbAny << shiftSentenceState) | (lbAny << shiftLineState)
 	}
 

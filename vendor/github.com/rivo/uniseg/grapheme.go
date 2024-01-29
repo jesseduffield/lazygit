@@ -222,7 +222,7 @@ func FirstGraphemeCluster(b []byte, state int) (cluster, rest []byte, width, new
 	if len(b) <= length { // If we're already past the end, there is nothing else to parse.
 		var prop int
 		if state < 0 {
-			prop = property(graphemeCodePoints, r)
+			prop = propertyGraphemes(r)
 		} else {
 			prop = state >> shiftGraphemePropState
 		}
@@ -284,7 +284,7 @@ func FirstGraphemeClusterInString(str string, state int) (cluster, rest string, 
 	if len(str) <= length { // If we're already past the end, there is nothing else to parse.
 		var prop int
 		if state < 0 {
-			prop = property(graphemeCodePoints, r)
+			prop = propertyGraphemes(r)
 		} else {
 			prop = state >> shiftGraphemePropState
 		}
