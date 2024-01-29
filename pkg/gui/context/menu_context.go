@@ -61,6 +61,10 @@ func NewMenuViewModel(c *ContextCommon) *MenuViewModel {
 	self.FilteredListViewModel = NewFilteredListViewModel(
 		func() []*types.MenuItem { return self.menuItems },
 		func(item *types.MenuItem) []string { return item.LabelColumns },
+		// The only menu that the user is likely to filter in is the keybindings
+		// menu; retain the sort order in that one because this allows us to
+		// keep the section headers while filtering:
+		func() bool { return true },
 	)
 
 	return self

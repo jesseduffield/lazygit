@@ -19,6 +19,7 @@ func NewWorktreesContext(c *ContextCommon) *WorktreesContext {
 		func(Worktree *models.Worktree) []string {
 			return []string{Worktree.Name}
 		},
+		nil,
 	)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {
