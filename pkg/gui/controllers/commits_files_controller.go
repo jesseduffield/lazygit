@@ -186,46 +186,41 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 		return err
 	}
 
-	removeFileRange := func() error {
-		return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
-			selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
+	return self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.DiscardFileChangesTitle,
+		Prompt: self.c.Tr.DiscardFileChangesPrompt,
+		HandleConfirm: func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+				var filePaths []string
+				selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
 
-			return self.c.Confirm(types.ConfirmOpts{
-				Title:  self.c.Tr.DiscardFileChangesTitle,
-				Prompt: self.c.Tr.DiscardFileChangesPrompt,
-				HandleConfirm: func() error {
-					var filePaths []string
-
-					// Reset the current patch if there is one.
-					if self.c.Git().Patch.PatchBuilder.Active() {
-						self.c.Git().Patch.PatchBuilder.Reset()
-						if err := self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI}); err != nil {
-							return err
-						}
-					}
-
-					for _, node := range selectedNodes {
-						err := node.ForEachFile(func(file *models.CommitFile) error {
-							filePaths = append(filePaths, file.GetPath())
-							return nil
-						})
-						if err != nil {
-							return self.c.Error(err)
-						}
-					}
-
-					err := self.c.Git().Rebase.DiscardOldFileChanges(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), filePaths)
-					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
+				// Reset the current patch if there is one.
+				if self.c.Git().Patch.PatchBuilder.Active() {
+					self.c.Git().Patch.PatchBuilder.Reset()
+					if err := self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI}); err != nil {
 						return err
 					}
+				}
 
-					return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI})
-				},
+				for _, node := range selectedNodes {
+					err := node.ForEachFile(func(file *models.CommitFile) error {
+						filePaths = append(filePaths, file.GetPath())
+						return nil
+					})
+					if err != nil {
+						return self.c.Error(err)
+					}
+				}
+
+				err := self.c.Git().Rebase.DiscardOldFileChanges(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), filePaths)
+				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
+					return err
+				}
+
+				return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI})
 			})
-		})
-	}
-
-	return removeFileRange()
+		},
+	})
 }
 
 func (self *CommitFilesController) open(node *filetree.CommitFileNode) error {
