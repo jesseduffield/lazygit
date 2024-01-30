@@ -3,10 +3,8 @@ package git_commands
 import (
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 )
 
@@ -49,20 +47,8 @@ func (self *StatusCommands) WorkingTreeState() enums.RebaseMode {
 	return enums.REBASE_MODE_NONE
 }
 
-func (self *StatusCommands) IsBareRepo() (bool, error) {
-	return IsBareRepo(self.os)
-}
-
-func IsBareRepo(osCommand *oscommands.OSCommand) (bool, error) {
-	res, err := osCommand.Cmd.New(
-		NewGitCmd("rev-parse").Arg("--is-bare-repository").ToArgv(),
-	).DontLog().RunWithOutput()
-	if err != nil {
-		return false, err
-	}
-
-	// The command returns output with a newline, so we need to strip
-	return strconv.ParseBool(strings.TrimSpace(res))
+func (self *StatusCommands) IsBareRepo() bool {
+	return self.repoPaths.isBareRepo
 }
 
 func (self *StatusCommands) IsInNormalRebase() (bool, error) {

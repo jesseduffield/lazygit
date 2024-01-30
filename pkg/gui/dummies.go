@@ -17,6 +17,6 @@ func NewDummyUpdater() *updates.Updater {
 // NewDummyGui creates a new dummy GUI for testing
 func NewDummyGui() *Gui {
 	newAppConfig := config.NewDummyAppConfig()
-	dummyGui, _ := NewGui(utils.NewDummyCommon(), newAppConfig, &git_commands.GitVersion{}, NewDummyUpdater(), false, "", nil)
+	dummyGui, _ := NewGui(utils.NewDummyCommon(), newAppConfig, &git_commands.GitVersion{Major: 2, Minor: 0, Patch: 0}, NewDummyUpdater(), false, "", nil)
 	return dummyGui
 }
