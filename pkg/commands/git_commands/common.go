@@ -8,30 +8,32 @@ import (
 
 type GitCommon struct {
 	*common.Common
-	version   *GitVersion
-	cmd       oscommands.ICmdObjBuilder
-	os        *oscommands.OSCommand
-	repoPaths *RepoPaths
-	repo      *gogit.Repository
-	config    *ConfigCommands
+	version       *GitVersion
+	cmd           oscommands.ICmdObjBuilder
+	os            *oscommands.OSCommand
+	repoPathCache *RepoPathCache
+	repoPaths     *RepoPaths
+	repo          *gogit.Repository
+	config        *ConfigCommands
 }
 
 func NewGitCommon(
 	cmn *common.Common,
-	version *GitVersion,
 	cmd oscommands.ICmdObjBuilder,
 	osCommand *oscommands.OSCommand,
+	repoPathCache *RepoPathCache,
 	repoPaths *RepoPaths,
 	repo *gogit.Repository,
 	config *ConfigCommands,
 ) *GitCommon {
 	return &GitCommon{
-		Common:    cmn,
-		version:   version,
-		cmd:       cmd,
-		os:        osCommand,
-		repoPaths: repoPaths,
-		repo:      repo,
-		config:    config,
+		Common:        cmn,
+		version:       repoPathCache.GetGitVersion(),
+		cmd:           cmd,
+		os:            osCommand,
+		repoPathCache: repoPathCache,
+		repoPaths:     repoPaths,
+		repo:          repo,
+		config:        config,
 	}
 }
