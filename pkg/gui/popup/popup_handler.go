@@ -104,13 +104,14 @@ func (self *PopupHandler) Confirm(opts types.ConfirmOpts) error {
 
 func (self *PopupHandler) Prompt(opts types.PromptOpts) error {
 	return self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
-		Title:               opts.Title,
-		Prompt:              opts.InitialContent,
-		Editable:            true,
-		HandleConfirmPrompt: opts.HandleConfirm,
-		HandleClose:         opts.HandleClose,
-		FindSuggestionsFunc: opts.FindSuggestionsFunc,
-		Mask:                opts.Mask,
+		Title:                  opts.Title,
+		Prompt:                 opts.InitialContent,
+		Editable:               true,
+		HandleConfirmPrompt:    opts.HandleConfirm,
+		HandleClose:            opts.HandleClose,
+		HandleDeleteSuggestion: opts.HandleDeleteSuggestion,
+		FindSuggestionsFunc:    opts.FindSuggestionsFunc,
+		Mask:                   opts.Mask,
 	})
 }
 

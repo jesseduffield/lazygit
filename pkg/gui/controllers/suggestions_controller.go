@@ -43,6 +43,12 @@ func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []
 			Key:     opts.GetKey(opts.Config.Universal.TogglePanel),
 			Handler: func() error { return self.c.ReplaceContext(self.c.Contexts().Confirmation) },
 		},
+		{
+			Key: opts.GetKey(opts.Config.Universal.Remove),
+			Handler: func() error {
+				return self.context().State.OnDeleteSuggestion()
+			},
+		},
 	}
 
 	return bindings
