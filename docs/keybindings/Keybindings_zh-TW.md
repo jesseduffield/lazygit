@@ -148,6 +148,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | 複製提交 SHA 到剪貼簿 |  |
+| `` V `` | 貼上提交 (揀選) |  |
 | `` <space> `` | 檢出 | Checkout the selected commit as a detached HEAD. |
 | `` y `` | 複製提交屬性 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 在瀏覽器中開啟提交 |  |
@@ -270,6 +271,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` g `` | 檢視重設選項 |  |
 | `` R `` | 重新命名分支 |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` V `` | 貼上提交 (揀選) |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |

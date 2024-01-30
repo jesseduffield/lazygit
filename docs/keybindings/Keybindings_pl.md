@@ -123,6 +123,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` g `` | Wyświetl opcje resetu |  |
 | `` R `` | Rename branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` V `` | Wklej commity (przebieranie) |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -306,6 +307,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Copy commit SHA to clipboard |  |
+| `` V `` | Wklej commity (przebieranie) |  |
 | `` <space> `` | Przełącz | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |

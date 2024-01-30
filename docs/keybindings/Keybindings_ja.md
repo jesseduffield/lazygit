@@ -67,6 +67,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | コミットのSHAをクリップボードにコピー |  |
+| `` V `` | コミットを貼り付け (cherry-pick) |  |
 | `` <space> `` | チェックアウト | Checkout the selected commit as a detached HEAD. |
 | `` y `` | コミットの情報をコピー | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | ブラウザでコミットを開く |  |
@@ -239,6 +240,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` g `` | Reset |  |
 | `` R `` | ブランチ名を変更 |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` V `` | コミットを貼り付け (cherry-pick) |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |

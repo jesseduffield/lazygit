@@ -11,7 +11,9 @@ import (
 type CherryPickHelper struct {
 	c *HelperCommon
 
-	rebaseHelper *MergeAndRebaseHelper
+	rebaseHelper      *MergeAndRebaseHelper
+	refsHelper        *RefsHelper
+	workingTreeHelper *WorkingTreeHelper
 }
 
 // I'm using the analogy of copy+paste in the terminology here because it's intuitively what's going on,
@@ -20,10 +22,14 @@ type CherryPickHelper struct {
 func NewCherryPickHelper(
 	c *HelperCommon,
 	rebaseHelper *MergeAndRebaseHelper,
+	refsHelper *RefsHelper,
+	workingTreeHelper *WorkingTreeHelper,
 ) *CherryPickHelper {
 	return &CherryPickHelper{
-		c:            c,
-		rebaseHelper: rebaseHelper,
+		c:                 c,
+		rebaseHelper:      rebaseHelper,
+		refsHelper:        refsHelper,
+		workingTreeHelper: workingTreeHelper,
 	}
 }
 
@@ -73,6 +79,36 @@ func (self *CherryPickHelper) CopyRange(commitsList []*models.Commit, context ty
 	}
 
 	return self.rerender()
+}
+
+func (self *CherryPickHelper) CheckoutAndPaste(refName string) error {
+	checkoutAndPaste := func() error {
+		self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
+		if err := self.refsHelper.CheckoutRef(refName, types.CheckoutRefOptions{}); err != nil {
+			return err
+		}
+		return self.Paste()
+	}
+
+	if self.workingTreeHelper.IsWorkingTreeDirty() {
+		return self.c.Confirm(types.ConfirmOpts{
+			Title:  self.c.Tr.StashChanges,
+			Prompt: self.c.Tr.SureStashAllChanges,
+			HandleConfirm: func() error {
+				self.c.LogAction(self.c.Tr.StashAllChanges)
+
+				if err := self.c.Git().Stash.Push(self.c.Tr.StashAllChanges); err != nil {
+					return self.c.Error(err)
+				}
+				if err := self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}}); err != nil {
+					return self.c.Error(err)
+				}
+				return checkoutAndPaste()
+			},
+		})
+	}
+
+	return checkoutAndPaste()
 }
 
 // HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied.

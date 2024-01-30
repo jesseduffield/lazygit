@@ -63,9 +63,12 @@ func (gui *Gui) resetHelpersAndControllers() {
 		searchHelper,
 	)
 	diffHelper := helpers.NewDiffHelper(helperCommon)
+	workingTreeHelper := helpers.NewWorkingTreeHelper(helperCommon, refsHelper, commitsHelper, gpgHelper)
 	cherryPickHelper := helpers.NewCherryPickHelper(
 		helperCommon,
 		rebaseHelper,
+		refsHelper,
+		workingTreeHelper,
 	)
 	bisectHelper := helpers.NewBisectHelper(helperCommon)
 	windowHelper := helpers.NewWindowHelper(helperCommon, viewHelper)
@@ -97,7 +100,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		Bisect:          bisectHelper,
 		Suggestions:     suggestionsHelper,
 		Files:           helpers.NewFilesHelper(helperCommon),
-		WorkingTree:     helpers.NewWorkingTreeHelper(helperCommon, refsHelper, commitsHelper, gpgHelper),
+		WorkingTree:     workingTreeHelper,
 		Tags:            helpers.NewTagsHelper(helperCommon, commitsHelper),
 		BranchesHelper:  helpers.NewBranchesHelper(helperCommon),
 		GPG:             helpers.NewGpgHelper(helperCommon),

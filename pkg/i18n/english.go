@@ -409,6 +409,7 @@ type TranslationSet struct {
 	StashAllChangesKeepIndex              string
 	StashUnstagedChanges                  string
 	StashIncludeUntrackedChanges          string
+	SureStashAllChanges                   string
 	StashOptions                          string
 	NotARepository                        string
 	WorkingDirectoryDoesNotExist          string
@@ -1350,6 +1351,7 @@ func EnglishTranslationSet() TranslationSet {
 		StashAllChangesKeepIndex:            "Stash all changes and keep index",
 		StashUnstagedChanges:                "Stash unstaged changes",
 		StashIncludeUntrackedChanges:        "Stash all changes including untracked files",
+		SureStashAllChanges:                 "Are you sure you want to stash all changes?",
 		StashOptions:                        "Stash options",
 		NotARepository:                      "Error: must be run inside a git repository",
 		WorkingDirectoryDoesNotExist:        "Error: the current working directory does not exist",
