@@ -82,11 +82,6 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("Fix bug in timezone conversion."),
 			).
 			Tap(func() {
-				// we need to manually exit out of cherry pick mode
-				t.Views().Information().Content(Contains("2 commits copied"))
-			}).
-			PressEscape().
-			Tap(func() {
 				t.Views().Information().Content(DoesNotContain("commits copied"))
 			})
 	},
