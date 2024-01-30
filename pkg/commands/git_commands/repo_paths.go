@@ -94,7 +94,7 @@ func getRepoPaths(
 	isBareRepo := gitDirResults[3] == "true"
 
 	// If we're in a submodule, --show-superproject-working-tree will return
-	// a value, meaning gitDirResults will be length 4. In that case
+	// a value, meaning gitDirResults will be length 5. In that case
 	// return the worktree path as the repoPath. Otherwise we're in a
 	// normal repo or a worktree so return the parent of the git common
 	// dir (repoGitDirPath)
