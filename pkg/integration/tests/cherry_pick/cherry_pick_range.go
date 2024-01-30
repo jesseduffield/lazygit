@@ -66,20 +66,15 @@ var CherryPickRange = NewIntegrationTest(NewIntegrationTestArgs{
 					Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
 					Confirm()
 			}).
+			Tap(func() {
+				t.Views().Information().Content(DoesNotContain("commits copied"))
+			}).
 			Lines(
 				Contains("four"),
 				Contains("three"),
 				Contains("two"),
 				Contains("one"),
 				Contains("base"),
-			).
-			Tap(func() {
-				// we need to manually exit out of cherry pick mode
-				t.Views().Information().Content(Contains("2 commits copied"))
-			}).
-			PressEscape().
-			Tap(func() {
-				t.Views().Information().Content(DoesNotContain("commits copied"))
-			})
+			)
 	},
 })

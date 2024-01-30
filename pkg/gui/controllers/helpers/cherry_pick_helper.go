@@ -90,15 +90,36 @@ func (self *CherryPickHelper) Paste() error {
 				if err := self.c.Git().Rebase.CherryPickCommitsDuringRebase(self.getData().CherryPickedCommits); err != nil {
 					return err
 				}
-				return self.c.Refresh(types.RefreshOptions{
+				err = self.c.Refresh(types.RefreshOptions{
 					Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
 				})
+				if err != nil {
+					return err
+				}
+
+				return self.Reset()
 			}
 
 			return self.c.WithWaitingStatus(self.c.Tr.CherryPickingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.CherryPick)
 				err := self.c.Git().Rebase.CherryPickCommits(self.getData().CherryPickedCommits)
-				return self.rebaseHelper.CheckMergeOrRebase(err)
+				err = self.rebaseHelper.CheckMergeOrRebase(err)
+				if err != nil {
+					return err
+				}
+
+				// If we're in an interactive rebase at this point, it must
+				// be because there were conflicts. Don't clear the copied
+				// commits in this case, since we might want to abort and
+				// try pasting them again.
+				isInRebase, err = self.c.Git().Status.IsInInteractiveRebase()
+				if err != nil {
+					return err
+				}
+				if !isInRebase {
+					return self.Reset()
+				}
+				return nil
 			})
 		},
 	})

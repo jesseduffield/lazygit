@@ -54,6 +54,10 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Common().AcknowledgeConflicts()
 
+		// cherry pick selection is not cleared when there are conflicts, so that the user
+		// is able to abort and try again without having to re-copy the commits
+		t.Views().Information().Content(Contains("2 commits copied"))
+
 		t.Views().Files().
 			IsFocused().
 			SelectedLine(Contains("file")).
