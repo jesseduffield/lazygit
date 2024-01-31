@@ -27,10 +27,12 @@ var SquashFixupsInCurrentBranch = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
+			SelectNextItem().
+			SelectNextItem().
 			Lines(
 				Contains("fixup! commit 01"),
 				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit 01").IsSelected(),
 				Contains("fixup! master commit"),
 				Contains("master commit"),
 			).
@@ -44,7 +46,7 @@ var SquashFixupsInCurrentBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("commit 02"),
 				Contains("commit 01"),
-				Contains("fixup! master commit"),
+				Contains("fixup! master commit").IsSelected(), // wrong, we want the previous line
 				Contains("master commit"),
 			).
 			NavigateToLine(Contains("commit 01"))
