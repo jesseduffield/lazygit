@@ -105,9 +105,6 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("(none)"),
 			).
-			// for some reason I need to press escape twice. Seems like it happens every time
-			// more than one file is removed from a commit
-			PressEscape().
 			PressEscape()
 
 		// Check removing multiple files from 2 directories w/ a custom patch.

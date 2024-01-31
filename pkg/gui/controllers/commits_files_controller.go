@@ -217,7 +217,10 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 					return err
 				}
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI})
+				if self.context().RangeSelectEnabled() {
+					self.context().GetList().CancelRangeSelect()
+				}
+				return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
 			})
 		},
 	})
