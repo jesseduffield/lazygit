@@ -847,11 +847,7 @@ func (self *LocalCommitsController) squashFixupCommits() error {
 }
 
 func (self *LocalCommitsController) squashAllFixupsAboveSelectedCommit(commit *models.Commit) error {
-	return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
-		self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
-		err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
-	})
+	return self.squashFixupsImpl(commit)
 }
 
 func (self *LocalCommitsController) squashAllFixupsInCurrentBranch() error {
@@ -860,6 +856,10 @@ func (self *LocalCommitsController) squashAllFixupsInCurrentBranch() error {
 		return self.c.Error(err)
 	}
 
+	return self.squashFixupsImpl(commit)
+}
+
+func (self *LocalCommitsController) squashFixupsImpl(commit *models.Commit) error {
 	return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
 		err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
