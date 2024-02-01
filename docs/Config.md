@@ -525,6 +525,15 @@ Example:
 
 ```yaml
 git:
+  commitPrefix:
+    pattern: "^\\w+\\/(\\w+-\\w+).*"
+    replace: '[$1] '
+```
+
+If you want repository-specific prefixes, you can map them with `commitPrefixes`
+
+```yaml
+git:
   commitPrefixes:
     my_project: # This is repository folder name
       pattern: "^\\w+\\/(\\w+-\\w+).*"
