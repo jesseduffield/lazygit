@@ -68,6 +68,7 @@ var tests = []*components.IntegrationTest{
 	commit.CommitMultiline,
 	commit.CommitSwitchToEditor,
 	commit.CommitWipWithPrefix,
+	commit.CommitWithGlobalPrefix,
 	commit.CommitWithPrefix,
 	commit.CreateTag,
 	commit.DiscardOldFileChange,
