@@ -530,7 +530,7 @@ git:
     replace: '[$1] '
 ```
 
-If you want repository-specific prefixes, you can map them with `commitPrefixes`. If you have both `commitPrefixes` defined and an entry in `commitPrefixes` for the current repo, the `commitPrefixes` entry is given higher precidence. Repository folder names must be an exact match.
+If you want repository-specific prefixes, you can map them with `commitPrefixes`. If you have both `commitPrefixes` defined and an entry in `commitPrefixes` for the current repo, the `commitPrefixes` entry is given higher precedence. Repository folder names must be an exact match.
 
 ```yaml
 git:
