@@ -220,9 +220,9 @@ func (self *WorkingTreeHelper) prepareFilesForCommit() error {
 
 func (self *WorkingTreeHelper) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
 	cfg, ok := self.c.UserConfig.Git.CommitPrefixes[self.c.Git().RepoPaths.RepoName()]
-	if !ok {
-		return nil
+	if ok {
+		return &cfg
 	}
 
-	return &cfg
+	return self.c.UserConfig.Git.CommitPrefix
 }
