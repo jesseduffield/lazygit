@@ -274,7 +274,7 @@ func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
 		// or perhaps we could just pop that context off the stack whenever cycling windows.
 		// For now the awkwardness remains.
 		commit := self.c.Contexts().LocalCommits.GetSelected()
-		if commit != nil {
+		if commit != nil && commit.RefName() != "" {
 			self.c.Contexts().CommitFiles.SetRef(commit)
 			self.c.Contexts().CommitFiles.SetTitleRef(commit.RefName())
 			_ = self.refreshCommitFilesContext()
