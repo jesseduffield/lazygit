@@ -71,8 +71,16 @@ func (self *ListController) scrollHorizontal(scrollFunc func()) error {
 }
 
 func (self *ListController) handleLineChange(change int) error {
+	list := self.context.GetList()
+	new_idx := list.GetSelectedLineIdx() + change
+	len := list.Len()
+	if new_idx < 0 {
+		new_idx = len
+	} else if new_idx >= len {
+		new_idx = 0
+	}
 	return self.handleLineChangeAux(
-		self.context.GetList().MoveSelectedLine, change,
+		list.SetSelectedLineIdx, new_idx,
 	)
 }
 
