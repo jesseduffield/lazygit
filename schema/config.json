@@ -1292,6 +1292,13 @@
         "copyToClipboardCmd": {
           "type": "string",
           "description": "CopyToClipboardCmd is the command for copying to clipboard.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard"
+        },
+        "shell": {
+          "type": "string",
+          "description": "Shell and ShellArg are the shell and corresponding argument to be used for executing custom commands.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard"
+        },
+        "shellArg": {
+          "type": "string"
         }
       },
       "additionalProperties": false,
