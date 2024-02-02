@@ -35,7 +35,7 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("A  myfile"),
 				Contains("A  myfile2").IsSelected(),
 			).
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		commitMessage := "my commit message"
 

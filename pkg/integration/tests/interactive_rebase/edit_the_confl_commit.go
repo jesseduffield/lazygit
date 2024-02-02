@@ -37,7 +37,7 @@ var EditTheConflCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit one"),
 			).
 			NavigateToLine(Contains("<-- YOU ARE HERE --- commit three")).
-			Press(keys.Commits.RenameCommit)
+			Press(keys.Commits.Reword)
 
 		t.ExpectToast(Contains("Disabled: Rewording commits while interactively rebasing is not currently supported"))
 	},

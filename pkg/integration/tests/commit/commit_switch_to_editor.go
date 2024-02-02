@@ -26,7 +26,7 @@ var CommitSwitchToEditor = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			PressPrimaryAction(). // stage one of the files
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		t.ExpectPopup().CommitMessagePanel().
 			Type("first line").
@@ -46,7 +46,7 @@ var CommitSwitchToEditor = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			Focus().
 			PressPrimaryAction(). // stage the other file
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		t.ExpectPopup().CommitMessagePanel().
 			InitialText(Equals(""))

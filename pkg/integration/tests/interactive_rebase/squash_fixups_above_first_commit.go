@@ -31,7 +31,7 @@ var SquashFixupsAboveFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			NavigateToLine(Contains("commit 01").DoesNotContain("fixup!")).
-			Press(keys.Commits.SquashAboveCommits).
+			Press(keys.Commits.ApplyFixupCommits).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Apply fixup commits")).

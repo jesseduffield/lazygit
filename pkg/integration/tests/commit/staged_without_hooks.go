@@ -43,7 +43,7 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Views().Staging().Content(Contains("+myfile content").DoesNotContain("+with a second line"))
 			}).
 			Content(DoesNotContain("+myfile content").Contains("+with a second line")).
-			Press(keys.Files.CommitChangesWithoutHook)
+			Press(keys.Files.CommitWithoutHook)
 
 		commitMessage := ": my commit message"
 		t.ExpectPopup().CommitMessagePanel().InitialText(Contains("WIP")).Type(commitMessage).Confirm()

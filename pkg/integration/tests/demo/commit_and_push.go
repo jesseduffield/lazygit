@@ -32,7 +32,7 @@ var CommitAndPush = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			PressPrimaryAction().
 			SetCaptionPrefix("Commit our changes").
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		t.ExpectPopup().CommitMessagePanel().
 			Type("my commit summary").

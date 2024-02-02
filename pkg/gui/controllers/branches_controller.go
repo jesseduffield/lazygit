@@ -110,7 +110,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			DisplayOnScreen: true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
+			Key:               opts.GetKey(opts.Config.Branches.Merge),
 			Handler:           opts.Guards.OutsideFilterMode(self.merge),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Merge,
@@ -125,7 +125,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Tooltip:           self.c.Tr.FastForwardTooltip,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.CreateTag),
+			Key:               opts.GetKey(opts.Config.Branches.NewTag),
 			Handler:           self.withItem(self.createTag),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.NewTag,

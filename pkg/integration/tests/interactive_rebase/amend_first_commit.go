@@ -23,7 +23,7 @@ var AmendFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 01"),
 			).
 			NavigateToLine(Contains("commit 01")).
-			Press(keys.Commits.AmendToCommit).
+			Press(keys.Commits.Amend).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Amend commit")).

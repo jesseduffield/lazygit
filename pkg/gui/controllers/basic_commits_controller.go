@@ -47,7 +47,7 @@ func NewBasicCommitsController(c *ControllerCommon, context ContainsCommits) *Ba
 func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Commits.CheckoutCommit),
+			Key:               opts.GetKey(opts.Config.Commits.Checkout),
 			Handler:           self.withItem(self.checkout),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Checkout,

@@ -56,7 +56,7 @@ var FindBaseCommitForFixup = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("2nd commit").IsSelected(),
 				Contains("1st commit"),
 			).
-			Press(keys.Commits.AmendToCommit)
+			Press(keys.Commits.Amend)
 
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Amend commit")).

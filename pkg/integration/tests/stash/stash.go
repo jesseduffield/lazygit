@@ -23,7 +23,7 @@ var Stash = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("file"),
 			).
-			Press(keys.Files.StashAllChanges)
+			Press(keys.Files.Stash)
 
 		t.ExpectPopup().Prompt().Title(Equals("Stash changes")).Type("my stashed file").Confirm()
 

@@ -25,7 +25,7 @@ var RewordFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 01"),
 			).
 			NavigateToLine(Contains("commit 01")).
-			Press(keys.Commits.RenameCommit).
+			Press(keys.Commits.Reword).
 			Tap(func() {
 				t.ExpectPopup().CommitMessagePanel().
 					Title(Equals("Reword commit")).

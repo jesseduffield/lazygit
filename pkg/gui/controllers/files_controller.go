@@ -57,14 +57,14 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			OpensMenu:   true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Files.CommitChanges),
+			Key:             opts.GetKey(opts.Config.Files.Commit),
 			Handler:         self.c.Helpers().WorkingTree.HandleCommitPress,
 			Description:     self.c.Tr.Commit,
 			Tooltip:         self.c.Tr.CommitTooltip,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
+			Key:         opts.GetKey(opts.Config.Files.CommitWithoutHook),
 			Handler:     self.c.Helpers().WorkingTree.HandleWIPCommitPress,
 			Description: self.c.Tr.CommitChangesWithoutHook,
 		},
@@ -112,7 +112,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.RefreshFiles,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Files.StashAllChanges),
+			Key:             opts.GetKey(opts.Config.Files.Stash),
 			Handler:         self.stash,
 			Description:     self.c.Tr.Stash,
 			Tooltip:         self.c.Tr.StashTooltip,
@@ -154,7 +154,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			OpensMenu:   true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Files.ViewResetOptions),
+			Key:             opts.GetKey(opts.Config.Files.Reset),
 			Handler:         self.createResetMenu,
 			Description:     self.c.Tr.Reset,
 			Tooltip:         self.c.Tr.FileResetOptionsTooltip,

@@ -74,7 +74,7 @@ var DoubleNestedLinkedSubmodule = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains(" M a/b/c/blah"), // shows as modified
 			).
 			PressPrimaryAction().
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		t.ExpectPopup().CommitMessagePanel().
 			Title(Equals("Commit summary")).

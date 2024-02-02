@@ -65,7 +65,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("<-- YOU ARE HERE --- commit 05"),
 				Contains("commit 04"),
 			).
-			Press(keys.Commits.MarkCommitAsFixup).
+			Press(keys.Commits.Fixup).
 			TopLines(
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
@@ -75,7 +75,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("<-- YOU ARE HERE --- commit 05"),
 				Contains("commit 04"),
 			).
-			Press(keys.Commits.PickCommit).
+			Press(keys.Commits.Pick).
 			TopLines(
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
@@ -95,7 +95,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("<-- YOU ARE HERE --- commit 05"),
 				Contains("commit 04"),
 			).
-			Press(keys.Commits.SquashDown).
+			Press(keys.Commits.Squash).
 			TopLines(
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
@@ -174,7 +174,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("<-- YOU ARE HERE --- commit 05").IsSelected(),
 				Contains("commit 04"),
 			).
-			Press(keys.Commits.MarkCommitAsFixup).
+			Press(keys.Commits.Fixup).
 			Tap(func() {
 				t.ExpectToast(Contains("Disabled: When rebasing, this action only works on a selection of TODO commits."))
 			}).

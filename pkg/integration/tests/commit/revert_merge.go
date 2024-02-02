@@ -19,7 +19,7 @@ var RevertMerge = NewIntegrationTest(NewIntegrationTestArgs{
 			TopLines(
 				Contains("Merge branch 'second-change-branch' into first-change-branch").IsSelected(),
 			).
-			Press(keys.Commits.RevertCommit)
+			Press(keys.Commits.Revert)
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Select parent commit for merge")).

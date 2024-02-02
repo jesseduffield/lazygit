@@ -42,7 +42,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("initial commit"),
 			).
 			SelectPreviousItem().
-			Press(keys.Commits.SquashDown).
+			Press(keys.Commits.Squash).
 			Lines(
 				MatchesRegexp("pick.*commit to fixup"),
 				MatchesRegexp("pick.*commit to drop"),
@@ -72,7 +72,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("initial commit"),
 			).
 			SelectPreviousItem().
-			Press(keys.Commits.MarkCommitAsFixup).
+			Press(keys.Commits.Fixup).
 			Lines(
 				MatchesRegexp("fixup.*commit to fixup").IsSelected(),
 				MatchesRegexp("drop.*commit to drop"),

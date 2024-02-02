@@ -71,7 +71,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.FetchRemote),
+			Key:               opts.GetKey(opts.Config.Branches.Fetch),
 			Handler:           self.withItem(self.fetch),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Fetch,

@@ -50,7 +50,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			Description:       self.c.Tr.NewBranch,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
+			Key:               opts.GetKey(opts.Config.Branches.Merge),
 			Handler:           opts.Guards.OutsideFilterMode(self.withItem(self.merge)),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Merge,

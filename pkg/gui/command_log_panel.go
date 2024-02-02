@@ -129,7 +129,7 @@ func (gui *Gui) getRandomTip() string {
 		),
 		fmt.Sprintf(
 			"To revert a commit, press '%s' on that commit",
-			formattedKey(config.Commits.RevertCommit),
+			formattedKey(config.Commits.Revert),
 		),
 		fmt.Sprintf(
 			"To escape a mode, for example cherry-picking, patch-building, diffing, or filtering mode, you can just spam the '%s' button. Unless of course you have `quitOnTopLevelReturn` enabled in your config",
@@ -151,7 +151,7 @@ func (gui *Gui) getRandomTip() string {
 		),
 		fmt.Sprintf(
 			"You can append your staged changes to an older commit by pressing '%s' on that commit",
-			formattedKey(config.Commits.AmendToCommit),
+			formattedKey(config.Commits.Amend),
 		),
 		fmt.Sprintf(
 			"You can amend the last commit with your new file changes by pressing '%s' in the files panel",

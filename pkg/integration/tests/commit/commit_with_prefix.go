@@ -23,7 +23,7 @@ var CommitWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			PressPrimaryAction().
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		t.ExpectPopup().CommitMessagePanel().
 			Title(Equals("Commit summary")).
@@ -33,7 +33,7 @@ var CommitWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			IsFocused().
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		t.ExpectPopup().CommitMessagePanel().
 			Title(Equals("Commit summary")).

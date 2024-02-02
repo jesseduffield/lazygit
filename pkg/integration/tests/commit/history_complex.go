@@ -26,7 +26,7 @@ var HistoryComplex = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			IsFocused().
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		t.ExpectPopup().CommitMessagePanel().
 			InitialText(Equals("")).
@@ -36,7 +36,7 @@ var HistoryComplex = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			SelectedLine(Contains("commit 3")).
-			Press(keys.Commits.RenameCommit)
+			Press(keys.Commits.Reword)
 
 		t.ExpectPopup().CommitMessagePanel().
 			InitialText(Equals("commit 3")).
@@ -51,7 +51,7 @@ var HistoryComplex = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			Focus().
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		t.ExpectPopup().CommitMessagePanel().
 			InitialText(Equals("my commit message"))

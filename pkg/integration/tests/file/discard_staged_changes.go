@@ -35,7 +35,7 @@ var DiscardStagedChanges = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains(`?? file3`),
 				Contains(`M  fileToRemove`).IsSelected(),
 			).
-			Press(keys.Files.ViewResetOptions)
+			Press(keys.Files.Reset)
 
 		t.ExpectPopup().Menu().Title(Equals("")).Select(Contains("Discard staged changes")).Confirm()
 

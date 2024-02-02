@@ -45,7 +45,7 @@ var OutsideRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 06"),
 			).
 			// Squash commits
-			Press(keys.Commits.SquashDown).
+			Press(keys.Commits.Squash).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Squash")).
@@ -75,7 +75,7 @@ var OutsideRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 05").IsSelected(),
 				Contains("commit 04"),
 			).
-			Press(keys.Commits.MarkCommitAsFixup).
+			Press(keys.Commits.Fixup).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Fixup")).

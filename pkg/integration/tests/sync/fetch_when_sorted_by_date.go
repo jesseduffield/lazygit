@@ -39,7 +39,7 @@ var FetchWhenSortedByDate = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("master ↓1"),
 			).
 			NavigateToLine(Contains("master")).
-			Press(keys.Branches.FetchRemote).
+			Press(keys.Branches.Fetch).
 			Lines(
 				Contains("* branch1"),
 				Contains("master").IsSelected(),

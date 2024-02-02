@@ -41,7 +41,7 @@ func NewCommitFilesController(
 func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.CommitFiles.CheckoutCommitFile),
+			Key:               opts.GetKey(opts.Config.CommitFiles.Checkout),
 			Handler:           self.withItem(self.checkout),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Checkout,

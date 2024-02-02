@@ -21,7 +21,7 @@ var Revert = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("first commit"),
 			).
-			Press(keys.Commits.RevertCommit).
+			Press(keys.Commits.Revert).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Revert commit")).

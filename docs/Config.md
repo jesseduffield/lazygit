@@ -207,18 +207,18 @@ keybinding:
     checkForUpdate: 'u'
     recentRepos: '<enter>'
   files:
-    commitChanges: 'c'
-    commitChangesWithoutHook: 'w' # commit changes without pre-commit hook
+    commit: 'c'
+    commitWithoutHook: 'w' # commit changes without pre-commit hook
     amendLastCommit: 'A'
     commitChangesWithEditor: 'C'
     findBaseCommitForFixup: '<c-f>'
     confirmDiscard: 'x'
     ignoreFile: 'i'
     refreshFiles: 'r'
-    stashAllChanges: 's'
+    stash: 's'
     viewStashOptions: 'S'
     toggleStagedAll: 'a' # stage/unstage all
-    viewResetOptions: 'D'
+    reset: 'D'
     fetch: 'f'
     toggleTreeView: '`'
     openMergeTool: 'M'
@@ -230,30 +230,31 @@ keybinding:
     forceCheckoutBranch: 'F'
     rebaseBranch: 'r'
     renameBranch: 'R'
-    mergeIntoCurrentBranch: 'M'
+    merge: 'M'
     viewGitFlowOptions: 'i'
     fastForward: 'f' # fast-forward this branch from its upstream
-    createTag: 'T'
+    newTag: 'T'
     pushTag: 'P'
     setUpstream: 'u' # set as upstream of checked-out branch
-    fetchRemote: 'f'
+    fetch: 'f'
   commits:
-    squashDown: 's'
-    renameCommit: 'r'
-    renameCommitWithEditor: 'R'
+    squash: 's'
+    reword: 'r'
+    rewordWithEditor: 'R'
     viewResetOptions: 'g'
-    markCommitAsFixup: 'f'
+    fixup: 'f'
     createFixupCommit: 'F' # create fixup commit for this commit
-    squashAboveCommits: 'S'
+    applyFixupCommits: 'S'
     moveDownCommit: '<c-j>' # move commit down one
     moveUpCommit: '<c-k>' # move commit up one
-    amendToCommit: 'A'
-    pickCommit: 'p' # pick commit (when mid-rebase)
-    revertCommit: 't'
+    amend: 'A'
+    amendCommitAttribute: 'a'
+    pick: 'p' # pick commit (when mid-rebase)
+    revert: 't'
     cherryPickCopy: 'C'
     pasteCommits: 'V'
     tagCommit: 'T'
-    checkoutCommit: '<space>'
+    checkout: '<space>'
     resetCherryPick: '<c-R>'
     copyCommitMessageToClipboard: '<c-y>'
     openLogMenu: '<c-l>'
@@ -262,7 +263,7 @@ keybinding:
     popStash: 'g'
     renameStash: 'r'
   commitFiles:
-    checkoutCommitFile: 'c'
+    checkout: 'c'
   main:
     toggleSelectHunk: 'a'
     pickBothHunks: 'b'

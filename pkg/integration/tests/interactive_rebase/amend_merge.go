@@ -39,7 +39,7 @@ var AmendMerge = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			Focus().
-			Press(keys.Commits.AmendToCommit)
+			Press(keys.Commits.Amend)
 
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Amend commit")).

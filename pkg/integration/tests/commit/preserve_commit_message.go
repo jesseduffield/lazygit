@@ -16,7 +16,7 @@ var PreserveCommitMessage = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().
 			IsFocused().
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		t.ExpectPopup().CommitMessagePanel().
 			InitialText(Equals("")).
@@ -30,7 +30,7 @@ var PreserveCommitMessage = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			IsFocused().
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		t.ExpectPopup().CommitMessagePanel().
 			Content(Equals("my commit message")).

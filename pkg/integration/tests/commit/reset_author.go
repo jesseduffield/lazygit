@@ -25,7 +25,7 @@ var ResetAuthor = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("BS").Contains("one").IsSelected(),
 			).
-			Press(keys.Commits.ResetCommitAuthor).
+			Press(keys.Commits.AmendCommitAttribute).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Amend commit attribute")).

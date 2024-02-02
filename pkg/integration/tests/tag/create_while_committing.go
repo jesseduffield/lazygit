@@ -16,7 +16,7 @@ var CreateWhileCommitting = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().
-			Press(keys.Files.CommitChanges).
+			Press(keys.Files.Commit).
 			Tap(func() {
 				t.ExpectPopup().CommitMessagePanel().
 					Title(Equals("Commit summary")).

@@ -34,7 +34,7 @@ var RememberCommitMessageAfterFail = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("bad"),
 				Contains("one"),
 			).
-			Press(keys.Files.CommitChanges).
+			Press(keys.Files.Commit).
 			Tap(func() {
 				t.ExpectPopup().CommitMessagePanel().Type("my message").Confirm()
 
@@ -50,7 +50,7 @@ var RememberCommitMessageAfterFail = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("one"),
 			).
-			Press(keys.Files.CommitChanges).
+			Press(keys.Files.Commit).
 			Tap(func() {
 				t.ExpectPopup().CommitMessagePanel().
 					InitialText(Equals("my message")). // it remembered the commit message

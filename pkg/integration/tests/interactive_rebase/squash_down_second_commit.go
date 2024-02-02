@@ -23,7 +23,7 @@ var SquashDownSecondCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 01"),
 			).
 			NavigateToLine(Contains("commit 02")).
-			Press(keys.Commits.SquashDown).
+			Press(keys.Commits.Squash).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Squash")).

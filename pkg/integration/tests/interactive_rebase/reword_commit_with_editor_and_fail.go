@@ -25,7 +25,7 @@ var RewordCommitWithEditorAndFail = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 01"),
 			).
 			NavigateToLine(Contains("commit 02")).
-			Press(keys.Commits.RenameCommitWithEditor).
+			Press(keys.Commits.RewordWithEditor).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Reword in editor")).

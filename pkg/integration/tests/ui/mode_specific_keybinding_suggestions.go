@@ -99,7 +99,7 @@ var ModeSpecificKeybindingSuggestions = NewIntegrationTest(NewIntegrationTestArg
 			NavigateToLine(Contains("first-change-branch")).
 			Press(keys.Universal.Select).
 			NavigateToLine(Contains("second-change-branch")).
-			Press(keys.Branches.MergeIntoCurrentBranch).
+			Press(keys.Branches.Merge).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Merge")).

@@ -40,7 +40,7 @@ var AmendHeadCommitDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			Focus().
-			Press(keys.Commits.AmendToCommit).
+			Press(keys.Commits.Amend).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Amend commit")).

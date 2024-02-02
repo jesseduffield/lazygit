@@ -21,7 +21,7 @@ var RewordLastCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 02").IsSelected(),
 				Contains("commit 01"),
 			).
-			Press(keys.Commits.RenameCommit).
+			Press(keys.Commits.Reword).
 			Tap(func() {
 				t.ExpectPopup().CommitMessagePanel().
 					Title(Equals("Reword commit")).

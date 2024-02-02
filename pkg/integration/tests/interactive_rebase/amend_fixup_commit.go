@@ -29,7 +29,7 @@ var AmendFixupCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 01"),
 			).
 			NavigateToLine(Contains("fixup! commit 01")).
-			Press(keys.Commits.AmendToCommit).
+			Press(keys.Commits.Amend).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Amend commit")).

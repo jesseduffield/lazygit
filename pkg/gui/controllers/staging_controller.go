@@ -84,13 +84,13 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			Tooltip:     self.c.Tr.EditHunkTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
+			Key:         opts.GetKey(opts.Config.Files.Commit),
 			Handler:     self.c.Helpers().WorkingTree.HandleCommitPress,
 			Description: self.c.Tr.Commit,
 			Tooltip:     self.c.Tr.CommitTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
+			Key:         opts.GetKey(opts.Config.Files.CommitWithoutHook),
 			Handler:     self.c.Helpers().WorkingTree.HandleWIPCommitPress,
 			Description: self.c.Tr.CommitChangesWithoutHook,
 		},

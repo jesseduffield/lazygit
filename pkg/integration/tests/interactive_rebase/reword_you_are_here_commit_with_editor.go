@@ -31,7 +31,7 @@ var RewordYouAreHereCommitWithEditor = NewIntegrationTest(NewIntegrationTestArgs
 				Contains("<-- YOU ARE HERE --- commit 02").IsSelected(),
 				Contains("commit 01"),
 			).
-			Press(keys.Commits.RenameCommitWithEditor).
+			Press(keys.Commits.RewordWithEditor).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Reword in editor")).

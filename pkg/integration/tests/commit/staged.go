@@ -43,7 +43,7 @@ var Staged = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Views().Staging().Content(Contains("+myfile content"))
 				t.Views().Staging().Content(DoesNotContain("+with a second line"))
 			}).
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		commitMessage := "my commit message"
 		t.ExpectPopup().CommitMessagePanel().Type(commitMessage).Confirm()

@@ -35,9 +35,9 @@ var InteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectPreviousItem().
 			Press(keys.Universal.Remove).
 			SelectPreviousItem().
-			Press(keys.Commits.SquashDown).
+			Press(keys.Commits.Squash).
 			SelectPreviousItem().
-			Press(keys.Commits.MarkCommitAsFixup).
+			Press(keys.Commits.Fixup).
 			Press(keys.Universal.CreateRebaseOptionsMenu).
 			Tap(func() {
 				t.ExpectPopup().Menu().

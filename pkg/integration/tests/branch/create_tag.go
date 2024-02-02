@@ -24,7 +24,7 @@ var CreateTag = NewIntegrationTest(NewIntegrationTestArgs{
 				MatchesRegexp(`master`),
 			).
 			SelectNextItem().
-			Press(keys.Branches.CreateTag)
+			Press(keys.Branches.NewTag)
 
 		t.ExpectPopup().CommitMessagePanel().
 			Title(Equals("Tag name")).

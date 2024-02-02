@@ -23,7 +23,7 @@ var Amend = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			Focus().
-			Press(keys.Commits.AmendToCommit)
+			Press(keys.Commits.Amend)
 
 		t.ExpectPopup().Confirmation().Title(
 			Equals("Amend last commit")).

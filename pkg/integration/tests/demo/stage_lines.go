@@ -70,7 +70,7 @@ var StageLines = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			IsFocused().
-			Press(keys.Files.CommitChanges).
+			Press(keys.Files.Commit).
 			Tap(func() {
 				t.ExpectPopup().CommitMessagePanel().
 					Type("Update tagline").

@@ -38,7 +38,7 @@ var AmendOldCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			NavigateToLine(Contains("Improve accessibility of site navigation")).
 			Wait(500).
-			Press(keys.Commits.AmendToCommit).
+			Press(keys.Commits.Amend).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Amend commit")).

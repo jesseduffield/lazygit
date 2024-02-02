@@ -25,7 +25,7 @@ var AmendCommitWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("one"),
 			).
 			NavigateToLine(Contains("two")).
-			Press(keys.Commits.AmendToCommit).
+			Press(keys.Commits.Amend).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Amend commit")).

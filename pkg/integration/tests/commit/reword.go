@@ -21,7 +21,7 @@ var Reword = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			PressPrimaryAction().
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		commitMessage := "my commit message"
 
@@ -34,7 +34,7 @@ var Reword = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			PressPrimaryAction().
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		wipCommitMessage := "my commit message wip"
 
@@ -43,7 +43,7 @@ var Reword = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().Focus().
 			Lines(
 				Contains(commitMessage),
-			).Press(keys.Commits.RenameCommit)
+			).Press(keys.Commits.Reword)
 
 		t.ExpectPopup().CommitMessagePanel().
 			SwitchToDescription().
@@ -55,7 +55,7 @@ var Reword = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			Focus().
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		t.ExpectPopup().CommitMessagePanel().Confirm()
 		t.Views().Commits().

@@ -56,7 +56,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 
 	outsideFilterModeBindings := []*types.Binding{
 		{
-			Key:     opts.GetKey(opts.Config.Commits.SquashDown),
+			Key:     opts.GetKey(opts.Config.Commits.Squash),
 			Handler: self.withItemsRange(self.squashDown),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(
@@ -69,7 +69,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			DisplayOnScreen: true,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Commits.MarkCommitAsFixup),
+			Key:     opts.GetKey(opts.Config.Commits.Fixup),
 			Handler: self.withItemsRange(self.fixup),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(
@@ -82,7 +82,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			DisplayOnScreen: true,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Commits.RenameCommit),
+			Key:     opts.GetKey(opts.Config.Commits.Reword),
 			Handler: self.withItem(self.reword),
 			GetDisabledReason: self.require(
 				self.singleItemSelected(self.rewordEnabled),
@@ -93,7 +93,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			OpensMenu:       true,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Commits.RenameCommitWithEditor),
+			Key:     opts.GetKey(opts.Config.Commits.RewordWithEditor),
 			Handler: self.withItem(self.rewordEditor),
 			GetDisabledReason: self.require(
 				self.singleItemSelected(self.rewordEnabled),
@@ -137,7 +137,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			}),
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Commits.PickCommit),
+			Key:     opts.GetKey(opts.Config.Commits.Pick),
 			Handler: self.withItems(self.pick),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(self.pickEnabled),
@@ -161,12 +161,12 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Tooltip: utils.ResolvePlaceholderString(
 				self.c.Tr.CreateFixupCommitTooltip,
 				map[string]string{
-					"squashAbove": keybindings.Label(opts.Config.Commits.SquashAboveCommits),
+					"squashAbove": keybindings.Label(opts.Config.Commits.ApplyFixupCommits),
 				},
 			),
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Commits.SquashAboveCommits),
+			Key:     opts.GetKey(opts.Config.Commits.ApplyFixupCommits),
 			Handler: self.squashFixupCommits,
 			GetDisabledReason: self.require(
 				self.notMidRebase(self.c.Tr.AlreadyRebasing),
@@ -229,7 +229,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 
 	bindings := append(outsideFilterModeBindings, []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Commits.AmendToCommit),
+			Key:               opts.GetKey(opts.Config.Commits.Amend),
 			Handler:           self.withItem(self.amendTo),
 			GetDisabledReason: self.require(self.singleItemSelected(self.canAmend)),
 			Description:       self.c.Tr.Amend,
@@ -237,7 +237,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Commits.ResetCommitAuthor),
+			Key:               opts.GetKey(opts.Config.Commits.AmendCommitAttribute),
 			Handler:           self.withItem(self.amendAttribute),
 			GetDisabledReason: self.require(self.singleItemSelected(self.canAmend)),
 			Description:       self.c.Tr.AmendCommitAttribute,
@@ -245,7 +245,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			OpensMenu:         true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Commits.RevertCommit),
+			Key:               opts.GetKey(opts.Config.Commits.Revert),
 			Handler:           self.withItem(self.revert),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Revert,

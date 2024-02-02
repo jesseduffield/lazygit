@@ -57,7 +57,7 @@ var SetAuthor = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			Focus().
-			Press(keys.Commits.ResetCommitAuthor).
+			Press(keys.Commits.AmendCommitAttribute).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Amend commit attribute")).

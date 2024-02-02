@@ -34,7 +34,7 @@ var SquashFixupsInCurrentBranch = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("fixup! master commit"),
 				Contains("master commit"),
 			).
-			Press(keys.Commits.SquashAboveCommits).
+			Press(keys.Commits.ApplyFixupCommits).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Apply fixup commits")).

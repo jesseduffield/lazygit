@@ -31,7 +31,7 @@ var NukeWorkingTree = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Wait(1000).
-			Press(keys.Files.ViewResetOptions).
+			Press(keys.Files.Reset).
 			Tap(func() {
 				t.Wait(1000)
 

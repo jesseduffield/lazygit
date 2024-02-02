@@ -32,7 +32,7 @@ var AmendNonHeadCommitDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		for _, commit := range []string{"commit 01", "commit 03"} {
 			t.Views().Commits().
 				NavigateToLine(Contains(commit)).
-				Press(keys.Commits.AmendToCommit)
+				Press(keys.Commits.Amend)
 
 			t.ExpectToast(Contains("Can't perform this action during a rebase"))
 		}

@@ -25,7 +25,7 @@ var FixupSecondCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("First Commit"),
 			).
 			NavigateToLine(Contains("Fixup Commit Message")).
-			Press(keys.Commits.MarkCommitAsFixup).
+			Press(keys.Commits.Fixup).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Fixup")).

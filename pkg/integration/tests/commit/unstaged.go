@@ -37,7 +37,7 @@ var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 					SelectedLine(Equals("+with a second line"))
 				t.Views().StagingSecondary().Content(Contains("+myfile content"))
 			}).
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.Commit)
 
 		commitMessage := "my commit message"
 		t.ExpectPopup().CommitMessagePanel().Type(commitMessage).Confirm()

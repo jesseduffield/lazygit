@@ -19,7 +19,7 @@ var AddCoAuthor = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("initial commit").IsSelected(),
 			).
-			Press(keys.Commits.ResetCommitAuthor).
+			Press(keys.Commits.AmendCommitAttribute).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Amend commit attribute")).

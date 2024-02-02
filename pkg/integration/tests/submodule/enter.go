@@ -67,7 +67,7 @@ var Enter = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Views().Main().Content(Contains("> empty commit"))
 			}).
 			PressPrimaryAction().
-			Press(keys.Files.CommitChanges).
+			Press(keys.Files.Commit).
 			Tap(func() {
 				t.ExpectPopup().CommitMessagePanel().Type("submodule change").Confirm()
 			}).

@@ -364,23 +364,23 @@ type KeybindingStatusConfig struct {
 }
 
 type KeybindingFilesConfig struct {
-	CommitChanges            string `yaml:"commitChanges"`
-	CommitChangesWithoutHook string `yaml:"commitChangesWithoutHook"`
-	AmendLastCommit          string `yaml:"amendLastCommit"`
-	CommitChangesWithEditor  string `yaml:"commitChangesWithEditor"`
-	FindBaseCommitForFixup   string `yaml:"findBaseCommitForFixup"`
-	ConfirmDiscard           string `yaml:"confirmDiscard"`
-	IgnoreFile               string `yaml:"ignoreFile"`
-	RefreshFiles             string `yaml:"refreshFiles"`
-	StashAllChanges          string `yaml:"stashAllChanges"`
-	ViewStashOptions         string `yaml:"viewStashOptions"`
-	ToggleStagedAll          string `yaml:"toggleStagedAll"`
-	ViewResetOptions         string `yaml:"viewResetOptions"`
-	Fetch                    string `yaml:"fetch"`
-	ToggleTreeView           string `yaml:"toggleTreeView"`
-	OpenMergeTool            string `yaml:"openMergeTool"`
-	OpenStatusFilter         string `yaml:"openStatusFilter"`
-	CopyFileInfoToClipboard  string `yaml:"copyFileInfoToClipboard"`
+	Commit                  string `yaml:"commit"`
+	CommitWithoutHook       string `yaml:"commitWithoutHook"`
+	AmendLastCommit         string `yaml:"amendLastCommit"`
+	CommitChangesWithEditor string `yaml:"commitChangesWithEditor"`
+	FindBaseCommitForFixup  string `yaml:"findBaseCommitForFixup"`
+	ConfirmDiscard          string `yaml:"confirmDiscard"`
+	IgnoreFile              string `yaml:"ignoreFile"`
+	RefreshFiles            string `yaml:"refreshFiles"`
+	Stash                   string `yaml:"stash"`
+	ViewStashOptions        string `yaml:"viewStashOptions"`
+	ToggleStagedAll         string `yaml:"toggleStagedAll"`
+	Reset                   string `yaml:"reset"`
+	Fetch                   string `yaml:"fetch"`
+	ToggleTreeView          string `yaml:"toggleTreeView"`
+	OpenMergeTool           string `yaml:"openMergeTool"`
+	OpenStatusFilter        string `yaml:"openStatusFilter"`
+	CopyFileInfoToClipboard string `yaml:"copyFileInfoToClipboard"`
 }
 
 type KeybindingBranchesConfig struct {
@@ -391,13 +391,13 @@ type KeybindingBranchesConfig struct {
 	ForceCheckoutBranch    string `yaml:"forceCheckoutBranch"`
 	RebaseBranch           string `yaml:"rebaseBranch"`
 	RenameBranch           string `yaml:"renameBranch"`
-	MergeIntoCurrentBranch string `yaml:"mergeIntoCurrentBranch"`
+	Merge                  string `yaml:"merge"`
 	ViewGitFlowOptions     string `yaml:"viewGitFlowOptions"`
 	FastForward            string `yaml:"fastForward"`
-	CreateTag              string `yaml:"createTag"`
+	NewTag                 string `yaml:"newTag"`
 	PushTag                string `yaml:"pushTag"`
 	SetUpstream            string `yaml:"setUpstream"`
-	FetchRemote            string `yaml:"fetchRemote"`
+	Fetch                  string `yaml:"fetch"`
 	SortOrder              string `yaml:"sortOrder"`
 }
 
@@ -406,24 +406,24 @@ type KeybindingWorktreesConfig struct {
 }
 
 type KeybindingCommitsConfig struct {
-	SquashDown                     string `yaml:"squashDown"`
-	RenameCommit                   string `yaml:"renameCommit"`
-	RenameCommitWithEditor         string `yaml:"renameCommitWithEditor"`
+	Squash                         string `yaml:"squash"`
+	Reword                         string `yaml:"reword"`
+	RewordWithEditor               string `yaml:"rewordWithEditor"`
 	ViewResetOptions               string `yaml:"viewResetOptions"`
-	MarkCommitAsFixup              string `yaml:"markCommitAsFixup"`
+	Fixup                          string `yaml:"fixup"`
 	CreateFixupCommit              string `yaml:"createFixupCommit"`
-	SquashAboveCommits             string `yaml:"squashAboveCommits"`
+	ApplyFixupCommits              string `yaml:"applyFixupCommits"`
 	MoveDownCommit                 string `yaml:"moveDownCommit"`
 	MoveUpCommit                   string `yaml:"moveUpCommit"`
-	AmendToCommit                  string `yaml:"amendToCommit"`
-	ResetCommitAuthor              string `yaml:"resetCommitAuthor"`
-	PickCommit                     string `yaml:"pickCommit"`
-	RevertCommit                   string `yaml:"revertCommit"`
+	Amend                          string `yaml:"amend"`
+	AmendCommitAttribute           string `yaml:"amendCommitAttribute"`
+	Pick                           string `yaml:"pick"`
+	Revert                         string `yaml:"revert"`
 	CherryPickCopy                 string `yaml:"cherryPickCopy"`
 	PasteCommits                   string `yaml:"pasteCommits"`
 	MarkCommitAsBaseForRebase      string `yaml:"markCommitAsBaseForRebase"`
 	CreateTag                      string `yaml:"tagCommit"`
-	CheckoutCommit                 string `yaml:"checkoutCommit"`
+	Checkout                       string `yaml:"checkout"`
 	ResetCherryPick                string `yaml:"resetCherryPick"`
 	CopyCommitAttributeToClipboard string `yaml:"copyCommitAttributeToClipboard"`
 	OpenLogMenu                    string `yaml:"openLogMenu"`
@@ -438,7 +438,7 @@ type KeybindingStashConfig struct {
 }
 
 type KeybindingCommitFilesConfig struct {
-	CheckoutCommitFile string `yaml:"checkoutCommitFile"`
+	Checkout string `yaml:"checkout"`
 }
 
 type KeybindingMainConfig struct {
@@ -762,23 +762,23 @@ func GetDefaultConfig() *UserConfig {
 				AllBranchesLogGraph: "a",
 			},
 			Files: KeybindingFilesConfig{
-				CommitChanges:            "c",
-				CommitChangesWithoutHook: "w",
-				AmendLastCommit:          "A",
-				CommitChangesWithEditor:  "C",
-				FindBaseCommitForFixup:   "<c-f>",
-				IgnoreFile:               "i",
-				RefreshFiles:             "r",
-				StashAllChanges:          "s",
-				ViewStashOptions:         "S",
-				ToggleStagedAll:          "a",
-				ViewResetOptions:         "D",
-				Fetch:                    "f",
-				ToggleTreeView:           "`",
-				OpenMergeTool:            "M",
-				OpenStatusFilter:         "<c-b>",
-				ConfirmDiscard:           "x",
-				CopyFileInfoToClipboard:  "y",
+				Commit:                  "c",
+				CommitWithoutHook:       "w",
+				AmendLastCommit:         "A",
+				CommitChangesWithEditor: "C",
+				FindBaseCommitForFixup:  "<c-f>",
+				IgnoreFile:              "i",
+				RefreshFiles:            "r",
+				Stash:                   "s",
+				ViewStashOptions:        "S",
+				ToggleStagedAll:         "a",
+				Reset:                   "D",
+				Fetch:                   "f",
+				ToggleTreeView:          "`",
+				OpenMergeTool:           "M",
+				OpenStatusFilter:        "<c-b>",
+				ConfirmDiscard:          "x",
+				CopyFileInfoToClipboard: "y",
 			},
 			Branches: KeybindingBranchesConfig{
 				CopyPullRequestURL:     "<c-y>",
@@ -788,37 +788,37 @@ func GetDefaultConfig() *UserConfig {
 				ForceCheckoutBranch:    "F",
 				RebaseBranch:           "r",
 				RenameBranch:           "R",
-				MergeIntoCurrentBranch: "M",
+				Merge:                  "M",
 				ViewGitFlowOptions:     "i",
 				FastForward:            "f",
-				CreateTag:              "T",
+				NewTag:                 "T",
 				PushTag:                "P",
 				SetUpstream:            "u",
-				FetchRemote:            "f",
+				Fetch:                  "f",
 				SortOrder:              "s",
 			},
 			Worktrees: KeybindingWorktreesConfig{
 				ViewWorktreeOptions: "w",
 			},
 			Commits: KeybindingCommitsConfig{
-				SquashDown:                     "s",
-				RenameCommit:                   "r",
-				RenameCommitWithEditor:         "R",
+				Squash:                         "s",
+				Reword:                         "r",
+				RewordWithEditor:               "R",
 				ViewResetOptions:               "g",
-				MarkCommitAsFixup:              "f",
+				Fixup:                          "f",
 				CreateFixupCommit:              "F",
-				SquashAboveCommits:             "S",
+				ApplyFixupCommits:              "S",
 				MoveDownCommit:                 "<c-j>",
 				MoveUpCommit:                   "<c-k>",
-				AmendToCommit:                  "A",
-				ResetCommitAuthor:              "a",
-				PickCommit:                     "p",
-				RevertCommit:                   "t",
+				Amend:                          "A",
+				AmendCommitAttribute:           "a",
+				Pick:                           "p",
+				Revert:                         "t",
 				CherryPickCopy:                 "C",
 				PasteCommits:                   "V",
 				MarkCommitAsBaseForRebase:      "B",
 				CreateTag:                      "T",
-				CheckoutCommit:                 "<space>",
+				Checkout:                       "<space>",
 				ResetCherryPick:                "<c-R>",
 				CopyCommitAttributeToClipboard: "y",
 				OpenLogMenu:                    "<c-l>",
@@ -831,7 +831,7 @@ func GetDefaultConfig() *UserConfig {
 				RenameStash: "r",
 			},
 			CommitFiles: KeybindingCommitFilesConfig{
-				CheckoutCommitFile: "c",
+				Checkout: "c",
 			},
 			Main: KeybindingMainConfig{
 				ToggleSelectHunk: "a",
