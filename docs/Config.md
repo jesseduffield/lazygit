@@ -294,6 +294,13 @@ os:
 os:
   open: 'open {{filename}}'
 ```
+## Custom Shell for executing arbitrary commands
+```yaml
+os:
+  shell: 'bash'
+  shellArg: '-c'
+```
+Specify a shell and optional argument to prepend to custom commands called from within Lazygit.
 
 ## Custom Command for Copying to Clipboard
 ```yaml
