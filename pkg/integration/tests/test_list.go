@@ -97,6 +97,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.BasicCmdFromConfig,
 	custom_commands.CheckForConflicts,
 	custom_commands.ComplexCmdAtRuntime,
+	custom_commands.CustomShell,
 	custom_commands.FormPrompts,
 	custom_commands.MenuFromCommand,
 	custom_commands.MenuFromCommandsOutput,
