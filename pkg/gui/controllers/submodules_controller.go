@@ -116,8 +116,8 @@ func (self *SubmodulesController) GetOnRenderToMain() func() error {
 			} else {
 				prefix := fmt.Sprintf(
 					"Name: %s\nPath: %s\nUrl:  %s\n\n",
-					style.FgGreen.Sprint(submodule.Name),
-					style.FgYellow.Sprint(submodule.Path),
+					style.FgGreen.Sprint(submodule.FullName()),
+					style.FgYellow.Sprint(submodule.FullPath()),
 					style.FgCyan.Sprint(submodule.Url),
 				)
 
@@ -178,7 +178,7 @@ func (self *SubmodulesController) add() error {
 
 func (self *SubmodulesController) editURL(submodule *models.SubmoduleConfig) error {
 	return self.c.Prompt(types.PromptOpts{
-		Title:          fmt.Sprintf(self.c.Tr.UpdateSubmoduleUrl, submodule.Name),
+		Title:          fmt.Sprintf(self.c.Tr.UpdateSubmoduleUrl, submodule.FullName()),
 		InitialContent: submodule.Url,
 		HandleConfirm: func(newUrl string) error {
 			return self.c.WithWaitingStatus(self.c.Tr.UpdatingSubmoduleUrlStatus, func(gocui.Task) error {
@@ -272,7 +272,7 @@ func (self *SubmodulesController) update(submodule *models.SubmoduleConfig) erro
 func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) error {
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.RemoveSubmodule,
-		Prompt: fmt.Sprintf(self.c.Tr.RemoveSubmodulePrompt, submodule.Name),
+		Prompt: fmt.Sprintf(self.c.Tr.RemoveSubmodulePrompt, submodule.FullName()),
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RemoveSubmodule)
 			if err := self.c.Git().Submodule.Delete(submodule); err != nil {

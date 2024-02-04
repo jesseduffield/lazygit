@@ -48,7 +48,7 @@ func (self *ReposHelper) EnterSubmodule(submodule *models.SubmoduleConfig) error
 	}
 	self.c.State().GetRepoPathStack().Push(wd)
 
-	return self.DispatchSwitchToRepo(submodule.Path, context.NO_CONTEXT)
+	return self.DispatchSwitchToRepo(submodule.FullPath(), context.NO_CONTEXT)
 }
 
 func (self *ReposHelper) getCurrentBranch(path string) string {
