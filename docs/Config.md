@@ -90,6 +90,7 @@ gui:
   spinner:
     frames: ['|', '/', '-', '\\']
     rate: 50 # spinner rate in milliseconds
+  statusPanelView: 'dashboard' # one of 'dashboard' | 'allBranchesLog'
 git:
   paging:
     colorArg: always
