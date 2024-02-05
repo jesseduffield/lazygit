@@ -366,6 +366,15 @@
           ],
           "description": "How things are filtered when typing '/'.\nOne of 'substring' (default) | 'fuzzy'",
           "default": "substring"
+        },
+        "statusPanelView": {
+          "type": "string",
+          "enum": [
+            "dashboard",
+            "allBranchesLog"
+          ],
+          "description": "Status panel view.\nOne of 'dashboard' (default) | 'allBranchesLog'",
+          "default": "dashboard"
         }
       },
       "additionalProperties": false,

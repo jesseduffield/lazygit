@@ -87,6 +87,7 @@ gui:
   animateExplosion: true # shows an explosion animation when nuking the working tree
   portraitMode: 'auto' # one of 'auto' | 'never' | 'always'
   filterMode: 'substring' # one of 'substring' | 'fuzzy'; see 'Filtering' section below
+  statusPanelView: 'dashboard' # one of 'dashboard' | 'allBranchesLog'
 git:
   paging:
     colorArg: always
