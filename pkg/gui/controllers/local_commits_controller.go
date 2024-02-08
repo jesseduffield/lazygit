@@ -930,7 +930,10 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 						return func() error {
 							self.c.GetAppState().GitLogShowGraph = value
 							self.c.SaveAppStateAndLogError()
-							return nil
+							if err := self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits); err != nil {
+								return err
+							}
+							return self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
 						}
 					}
 					return self.c.Menu(types.CreateMenuOptions{
