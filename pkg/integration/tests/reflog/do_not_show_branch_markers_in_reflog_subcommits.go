@@ -10,7 +10,7 @@ var DoNotShowBranchMarkersInReflogSubcommits = NewIntegrationTest(NewIntegration
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.Git.Log.ShowGraph = "never"
+		config.AppState.GitLogShowGraph = "never"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.NewBranch("branch1")

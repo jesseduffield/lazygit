@@ -650,7 +650,7 @@ func (self *CommitLoader) getFirstPushedCommit(refName string) (string, error) {
 
 // getLog gets the git log.
 func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
-	config := self.UserConfig.Git.Log
+	gitLogOrder := self.AppState.GitLogOrder
 
 	refSpec := opts.RefName
 	if opts.RefToShowDivergenceFrom != "" {
@@ -659,7 +659,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 
 	cmdArgs := NewGitCmd("log").
 		Arg(refSpec).
-		ArgIf(config.Order != "default", "--"+config.Order).
+		ArgIf(gitLogOrder != "default", "--"+gitLogOrder).
 		ArgIf(opts.All, "--all").
 		Arg("--oneline").
 		Arg(prettyFormat).
