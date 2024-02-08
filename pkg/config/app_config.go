@@ -80,6 +80,17 @@ func NewAppConfig(
 		return nil, err
 	}
 
+	// Temporary: the defaults for these are set to empty strings in
+	// getDefaultAppState so that we can migrate them from userConfig (which is
+	// now deprecated). Once we remove the user configs, we can remove this code
+	// and set the proper defaults in getDefaultAppState.
+	if appState.GitLogOrder == "" {
+		appState.GitLogOrder = userConfig.Git.Log.Order
+	}
+	if appState.GitLogShowGraph == "" {
+		appState.GitLogShowGraph = userConfig.Git.Log.ShowGraph
+	}
+
 	appConfig := &AppConfig{
 		Name:            name,
 		Version:         version,
@@ -325,6 +336,15 @@ type AppState struct {
 	DiffContextSize            int
 	LocalBranchSortOrder       string
 	RemoteBranchSortOrder      string
+
+	// One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'
+	// 'topo-order' makes it easier to read the git log graph, but commits may not
+	// appear chronologically. See https://git-scm.com/docs/
+	GitLogOrder string
+
+	// This determines whether the git graph is rendered in the commits panel
+	// One of 'always' | 'never' | 'when-maximised'
+	GitLogShowGraph string
 }
 
 func getDefaultAppState() *AppState {
@@ -335,6 +355,8 @@ func getDefaultAppState() *AppState {
 		DiffContextSize:       3,
 		LocalBranchSortOrder:  "recency",
 		RemoteBranchSortOrder: "alphabetical",
+		GitLogOrder:           "", // should be "topo-order" eventually
+		GitLogShowGraph:       "", // should be "always" eventually
 	}
 }
 

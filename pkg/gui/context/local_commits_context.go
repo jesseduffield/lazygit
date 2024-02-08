@@ -156,7 +156,8 @@ func shouldShowGraph(c *ContextCommon) bool {
 		return false
 	}
 
-	value := c.UserConfig.Git.Log.ShowGraph
+	value := c.GetAppState().GitLogShowGraph
+
 	switch value {
 	case "always":
 		return true

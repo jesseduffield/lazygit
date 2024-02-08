@@ -928,7 +928,8 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 				OnPress: func() error {
 					onPress := func(value string) func() error {
 						return func() error {
-							self.c.UserConfig.Git.Log.ShowGraph = value
+							self.c.GetAppState().GitLogShowGraph = value
+							self.c.SaveAppStateAndLogError()
 							return nil
 						}
 					}
@@ -957,7 +958,8 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 				OnPress: func() error {
 					onPress := func(value string) func() error {
 						return func() error {
-							self.c.UserConfig.Git.Log.Order = value
+							self.c.GetAppState().GitLogOrder = value
+							self.c.SaveAppStateAndLogError()
 							return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
 								return self.c.Refresh(
 									types.RefreshOptions{

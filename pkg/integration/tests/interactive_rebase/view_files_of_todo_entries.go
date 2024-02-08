@@ -11,7 +11,7 @@ var ViewFilesOfTodoEntries = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	GitVersion:   AtLeast("2.38.0"),
 	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.Git.Log.ShowGraph = "never"
+		config.AppState.GitLogShowGraph = "never"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.
