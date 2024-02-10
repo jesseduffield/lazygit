@@ -303,6 +303,7 @@ type TranslationSet struct {
 	SureCherryPick                        string
 	CherryPick                            string
 	CannotCherryPickNonCommit             string
+	CannotCherryPickMergeCommit           string
 	Donate                                string
 	AskQuestion                           string
 	PrevLine                              string
@@ -1244,6 +1245,7 @@ func EnglishTranslationSet() TranslationSet {
 		SureCherryPick:                      "Are you sure you want to cherry-pick the copied commits onto this branch?",
 		CherryPick:                          "Cherry-pick",
 		CannotCherryPickNonCommit:           "Cannot cherry-pick this kind of todo item",
+		CannotCherryPickMergeCommit:         "Cherry-picking merge commits is not supported",
 		Donate:                              "Donate",
 		AskQuestion:                         "Ask Question",
 		PrevLine:                            "Select previous line",
