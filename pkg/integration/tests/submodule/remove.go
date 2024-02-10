@@ -45,9 +45,6 @@ var Remove = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("-   url = ../other_repo"),
 		)
 
-		/* EXPECTED:
 		t.FileSystem().PathNotPresent(gitDirSubmodulePath)
-		ACTUAL: */
-		t.FileSystem().PathPresent(gitDirSubmodulePath)
 	},
 })
