@@ -183,7 +183,7 @@ func (self *SubmodulesController) editURL(submodule *models.SubmoduleConfig) err
 		HandleConfirm: func(newUrl string) error {
 			return self.c.WithWaitingStatus(self.c.Tr.UpdatingSubmoduleUrlStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.UpdateSubmoduleUrl)
-				err := self.c.Git().Submodule.UpdateUrl(submodule.Name, submodule.Path, newUrl)
+				err := self.c.Git().Submodule.UpdateUrl(submodule, newUrl)
 				if err != nil {
 					_ = self.c.Error(err)
 				}

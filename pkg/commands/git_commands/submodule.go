@@ -158,10 +158,10 @@ func (self *SubmoduleCommands) Add(name string, path string, url string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *SubmoduleCommands) UpdateUrl(name string, path string, newUrl string) error {
+func (self *SubmoduleCommands) UpdateUrl(submodule *models.SubmoduleConfig, newUrl string) error {
 	setUrlCmdStr := NewGitCmd("config").
 		Arg(
-			"--file", ".gitmodules", "submodule."+name+".url", newUrl,
+			"--file", ".gitmodules", "submodule."+submodule.Name+".url", newUrl,
 		).
 		ToArgv()
 
@@ -170,7 +170,7 @@ func (self *SubmoduleCommands) UpdateUrl(name string, path string, newUrl string
 		return err
 	}
 
-	syncCmdStr := NewGitCmd("submodule").Arg("sync", "--", path).
+	syncCmdStr := NewGitCmd("submodule").Arg("sync", "--", submodule.Path).
 		ToArgv()
 
 	if err := self.cmd.New(syncCmdStr).Run(); err != nil {
