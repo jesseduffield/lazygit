@@ -17,6 +17,9 @@ var Remove = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.Commit("add submodule")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		gitDirSubmodulePath := ".git/modules/my_submodule_name"
+		t.FileSystem().PathPresent(gitDirSubmodulePath)
+
 		t.Views().Submodules().Focus().
 			Lines(
 				Contains("my_submodule_name").IsSelected(),
@@ -41,5 +44,10 @@ var Remove = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("-   path = my_submodule_path").
 				Contains("-   url = ../other_repo"),
 		)
+
+		/* EXPECTED:
+		t.FileSystem().PathNotPresent(gitDirSubmodulePath)
+		ACTUAL: */
+		t.FileSystem().PathPresent(gitDirSubmodulePath)
 	},
 })
