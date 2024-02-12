@@ -31,21 +31,6 @@ func (self *CherryPickHelper) getData() *cherrypicking.CherryPicking {
 	return self.c.Modes().CherryPicking
 }
 
-func (self *CherryPickHelper) Copy(commit *models.Commit, commitsList []*models.Commit, context types.Context) error {
-	if err := self.resetIfNecessary(context); err != nil {
-		return err
-	}
-
-	// we will un-copy it if it's already copied
-	if self.getData().SelectedShaSet().Includes(commit.Sha) {
-		self.getData().Remove(commit, commitsList)
-	} else {
-		self.getData().Add(commit, commitsList)
-	}
-
-	return self.rerender()
-}
-
 func (self *CherryPickHelper) CopyRange(commitsList []*models.Commit, context types.IListContext) error {
 	startIdx, endIdx := context.GetList().GetSelectionRange()
 
