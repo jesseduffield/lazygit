@@ -19,6 +19,7 @@ type GitCommon struct {
 
 func NewGitCommon(
 	cmn *common.Common,
+	version *GitVersion,
 	cmd oscommands.ICmdObjBuilder,
 	osCommand *oscommands.OSCommand,
 	repoPathCache *RepoPathCache,
@@ -28,7 +29,7 @@ func NewGitCommon(
 ) *GitCommon {
 	return &GitCommon{
 		Common:        cmn,
-		version:       repoPathCache.GetGitVersion(),
+		version:       version,
 		cmd:           cmd,
 		os:            osCommand,
 		repoPathCache: repoPathCache,

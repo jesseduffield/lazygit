@@ -55,6 +55,7 @@ type Repo string
 type Gui struct {
 	*common.Common
 	g             *gocui.Gui
+	gitVersion    *git_commands.GitVersion
 	repoPathCache *git_commands.RepoPathCache
 	git           *commands.GitCommand
 	os            *oscommands.OSCommand
@@ -297,6 +298,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 	var err error
 	gui.git, err = commands.NewGitCommand(
 		gui.Common,
+		gui.gitVersion,
 		gui.repoPathCache,
 		gui.os,
 		git_config.NewStdCachedGitConfig(gui.Log),
@@ -463,6 +465,7 @@ func (gui *Gui) Contexts() *context.ContextTree {
 func NewGui(
 	cmn *common.Common,
 	config config.AppConfigurer,
+	gitVersion *git_commands.GitVersion,
 	repoPathCache *git_commands.RepoPathCache,
 	updater *updates.Updater,
 	showRecentRepos bool,
@@ -471,6 +474,7 @@ func NewGui(
 ) (*Gui, error) {
 	gui := &Gui{
 		Common:               cmn,
+		gitVersion:           gitVersion,
 		repoPathCache:        repoPathCache,
 		Config:               config,
 		Updater:              updater,

@@ -56,6 +56,7 @@ type Loaders struct {
 
 func NewGitCommand(
 	cmn *common.Common,
+	version *git_commands.GitVersion,
 	repoPathCache *git_commands.RepoPathCache,
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
@@ -83,6 +84,7 @@ func NewGitCommand(
 
 	return NewGitCommandAux(
 		cmn,
+		version,
 		repoPathCache,
 		osCommand,
 		gitConfig,
@@ -93,6 +95,7 @@ func NewGitCommand(
 
 func NewGitCommandAux(
 	cmn *common.Common,
+	version *git_commands.GitVersion,
 	repoPathCache *git_commands.RepoPathCache,
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
@@ -108,7 +111,7 @@ func NewGitCommandAux(
 	// common ones are: cmn, osCommand, dotGitDir, configCommands
 	configCommands := git_commands.NewConfigCommands(cmn, gitConfig, repo)
 
-	gitCommon := git_commands.NewGitCommon(cmn, cmd, osCommand, repoPathCache, repoPaths, repo, configCommands)
+	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, repoPathCache, repoPaths, repo, configCommands)
 
 	fileLoader := git_commands.NewFileLoader(gitCommon, cmd, configCommands)
 	statusCommands := git_commands.NewStatusCommands(gitCommon)
@@ -163,7 +166,7 @@ func NewGitCommandAux(
 		Bisect:      bisectCommands,
 		WorkingTree: workingTreeCommands,
 		Worktree:    worktreeCommands,
-		Version:     repoPathCache.GetGitVersion(),
+		Version:     version,
 		Loaders: Loaders{
 			BranchLoader:       branchLoader,
 			CommitFileLoader:   commitFileLoader,

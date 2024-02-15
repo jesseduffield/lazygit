@@ -134,7 +134,7 @@ func NewApp(config config.AppConfigurer, test integrationTypes.IntegrationTest, 
 		showRecentRepos = true
 	}
 
-	app.Gui, err = gui.NewGui(common, config, &repoPathCache, updater, showRecentRepos, dirName, test)
+	app.Gui, err = gui.NewGui(common, config, gitVersion, &repoPathCache, updater, showRecentRepos, dirName, test)
 	if err != nil {
 		return app, err
 	}
