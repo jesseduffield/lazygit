@@ -530,7 +530,7 @@
                 "when-maximised"
               ],
               "description": "This determines whether the git graph is rendered in the commits panel\nOne of 'always' | 'never' | 'when-maximised'",
-              "default": "when-maximised"
+              "default": "always"
             },
             "showWholeGraph": {
               "type": "boolean",

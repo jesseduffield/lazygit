@@ -667,7 +667,7 @@ func GetDefaultConfig() *UserConfig {
 			},
 			Log: LogConfig{
 				Order:          "topo-order",
-				ShowGraph:      "when-maximised",
+				ShowGraph:      "always",
 				ShowWholeGraph: false,
 			},
 			SkipHookPrefix:      "WIP",
