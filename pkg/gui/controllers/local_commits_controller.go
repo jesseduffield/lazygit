@@ -928,8 +928,12 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 				OnPress: func() error {
 					onPress := func(value string) func() error {
 						return func() error {
-							self.c.UserConfig.Git.Log.ShowGraph = value
-							return nil
+							self.c.GetAppState().GitLogShowGraph = value
+							self.c.SaveAppStateAndLogError()
+							if err := self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits); err != nil {
+								return err
+							}
+							return self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
 						}
 					}
 					return self.c.Menu(types.CreateMenuOptions{
@@ -957,7 +961,8 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 				OnPress: func() error {
 					onPress := func(value string) func() error {
 						return func() error {
-							self.c.UserConfig.Git.Log.Order = value
+							self.c.GetAppState().GitLogOrder = value
+							self.c.SaveAppStateAndLogError()
 							return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
 								return self.c.Refresh(
 									types.RefreshOptions{

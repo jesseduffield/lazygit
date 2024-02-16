@@ -15,7 +15,7 @@ var ChooseTerms = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateNCommits(10)
 	},
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.UserConfig.Git.Log.ShowGraph = "never"
+		cfg.AppState.GitLogShowGraph = "never"
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		markCommitAsFixed := func() {
