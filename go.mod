@@ -1,6 +1,6 @@
 module github.com/jesseduffield/lazygit
 
-go 1.20
+go 1.21
 
 require (
 	github.com/OpenPeeDeeP/xdg v1.0.0
