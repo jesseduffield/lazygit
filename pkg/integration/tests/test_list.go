@@ -187,6 +187,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.SwapInRebaseWithConflict,
 	interactive_rebase.SwapInRebaseWithConflictAndEdit,
 	interactive_rebase.SwapWithConflict,
+	interactive_rebase.ViewFilesOfTodoEntries,
 	misc.ConfirmOnQuit,
 	misc.CopyToClipboard,
 	misc.DisabledKeybindings,
