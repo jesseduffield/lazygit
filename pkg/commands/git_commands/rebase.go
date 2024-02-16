@@ -423,23 +423,25 @@ func (self *RebaseCommands) runSkipEditorCommand(cmdObj oscommands.ICmdObj) erro
 }
 
 // DiscardOldFileChanges discards changes to a file from an old commit
-func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, commitIndex int, fileName string) error {
+func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, commitIndex int, filePaths []string) error {
 	if err := self.BeginInteractiveRebaseForCommit(commits, commitIndex, false); err != nil {
 		return err
 	}
 
-	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
-	cmdArgs := NewGitCmd("cat-file").Arg("-e", "HEAD^:"+fileName).ToArgv()
+	for _, filePath := range filePaths {
+		// check if file exists in previous commit (this command returns an error if the file doesn't exist)
+		cmdArgs := NewGitCmd("cat-file").Arg("-e", "HEAD^:"+filePath).ToArgv()
 
-	if err := self.cmd.New(cmdArgs).Run(); err != nil {
-		if err := self.os.Remove(fileName); err != nil {
+		if err := self.cmd.New(cmdArgs).Run(); err != nil {
+			if err := self.os.Remove(filePath); err != nil {
+				return err
+			}
+			if err := self.workingTree.StageFile(filePath); err != nil {
+				return err
+			}
+		} else if err := self.workingTree.CheckoutFile("HEAD^", filePath); err != nil {
 			return err
 		}
-		if err := self.workingTree.StageFile(fileName); err != nil {
-			return err
-		}
-	} else if err := self.workingTree.CheckoutFile("HEAD^", fileName); err != nil {
-		return err
 	}
 
 	// amend the commit

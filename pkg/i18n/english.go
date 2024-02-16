@@ -354,9 +354,6 @@ type TranslationSet struct {
 	DiscardOldFileChangeTooltip           string
 	DiscardFileChangesTitle               string
 	DiscardFileChangesPrompt              string
-	DiscardAddedFileChangesPrompt         string
-	DiscardDeletedFileChangesPrompt       string
-	DiscardNotSupportedForDirectory       string
 	DisabledForGPG                        string
 	CreateRepo                            string
 	BareRepo                              string
@@ -420,6 +417,7 @@ type TranslationSet struct {
 	ScrollRight                           string
 	DiscardPatch                          string
 	DiscardPatchConfirm                   string
+	DiscardPatchSameCommitConfirm         string
 	CantPatchWhileRebasingError           string
 	ToggleAddToPatch                      string
 	ToggleAddToPatchTooltip               string
@@ -1295,10 +1293,7 @@ func EnglishTranslationSet() TranslationSet {
 		Remove:                              "Remove",
 		DiscardOldFileChangeTooltip:         "Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file.",
 		DiscardFileChangesTitle:             "Discard file changes",
-		DiscardFileChangesPrompt:            "Are you sure you want to discard this commit's changes to this file?",
-		DiscardAddedFileChangesPrompt:       "Are you sure you want to discard this commit's changes to this file? The file was added in this commit, so it will be deleted again.",
-		DiscardDeletedFileChangesPrompt:     "Are you sure you want to discard this commit's changes to this file? The file was deleted in this commit, so it will reappear.",
-		DiscardNotSupportedForDirectory:     "Discarding changes is not supported for entire directories. Please use a custom patch for this.",
+		DiscardFileChangesPrompt:            "Are you sure you want to remove changes to the selected file(s) from this commit?\n\nThis action will start a rebase, reverting these file changes. Be aware that if subsequent commits depend on these changes, you may need to resolve conflicts.\nNote: This will also reset any active custom patches.",
 		DisabledForGPG:                      "Feature not available for users using GPG",
 		CreateRepo:                          "Not in a git repository. Create a new git repository? (y/n): ",
 		BareRepo:                            "You've attempted to open Lazygit in a bare repo but Lazygit does not yet support bare repos. Open most recent repo? (y/n) ",
@@ -1363,6 +1358,7 @@ func EnglishTranslationSet() TranslationSet {
 		ScrollRight:                         "Scroll right",
 		DiscardPatch:                        "Discard patch",
 		DiscardPatchConfirm:                 "You can only build a patch from one commit/stash-entry at a time. Discard current patch?",
+		DiscardPatchSameCommitConfirm:       "You currently have changes added to a patch for this commit. Discard current patch?",
 		CantPatchWhileRebasingError:         "You cannot build a patch or run patch commands while in a merging or rebasing state",
 		ToggleAddToPatch:                    "Toggle file included in patch",
 		ToggleAddToPatchTooltip:             "Toggle whether the file is included in the custom patch. See {{.doc}}.",
