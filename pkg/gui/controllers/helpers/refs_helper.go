@@ -166,12 +166,13 @@ func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 		strength string
 		label    string
 		key      types.Key
+		tooltip  string
 	}
 	strengths := []strengthWithKey{
 		// not i18'ing because it's git terminology
-		{strength: "mixed", label: "Mixed reset", key: 'm'},
-		{strength: "soft", label: "Soft reset", key: 's'},
-		{strength: "hard", label: "Hard reset", key: 'h'},
+		{strength: "mixed", label: "Mixed reset", key: 'm', tooltip: self.c.Tr.ResetMixedTooltip},
+		{strength: "soft", label: "Soft reset", key: 's', tooltip: self.c.Tr.ResetSoftTooltip},
+		{strength: "hard", label: "Hard reset", key: 'h', tooltip: self.c.Tr.ResetHardTooltip},
 	}
 
 	menuItems := lo.Map(strengths, func(row strengthWithKey, _ int) *types.MenuItem {
@@ -184,7 +185,8 @@ func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 				self.c.LogAction("Reset")
 				return self.ResetToRef(ref, row.strength, []string{})
 			},
-			Key: row.key,
+			Key:     row.key,
+			Tooltip: row.tooltip,
 		}
 	})
 

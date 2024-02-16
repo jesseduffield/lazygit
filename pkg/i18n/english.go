@@ -398,6 +398,9 @@ type TranslationSet struct {
 	CommitChangesWithoutHook              string
 	SkipHookPrefixNotConfigured           string
 	ResetTo                               string
+	ResetSoftTooltip                      string
+	ResetMixedTooltip                     string
+	ResetHardTooltip                      string
 	PressEnterToReturn                    string
 	ViewStashOptions                      string
 	ViewStashOptionsTooltip               string
@@ -1320,6 +1323,9 @@ func EnglishTranslationSet() TranslationSet {
 		Delete:                              "Delete",
 		Reset:                               "Reset",
 		ResetTooltip:                        "View reset options (soft/mixed/hard) for resetting onto selected item.",
+		ResetSoftTooltip:                    "Reset HEAD to the chosen commit, and keep the changes between the current and chosen commit as staged changes.",
+		ResetMixedTooltip:                   "Reset HEAD to the chosen commit, and keep the changes between the current and chosen commit as unstaged changes.",
+		ResetHardTooltip:                    "Reset HEAD to the chosen commit, and discard all changes between the current and chosen commit, as well as all current modifications in the working tree.",
 		ViewResetOptions:                    `Reset`,
 		FileResetOptionsTooltip:             "View reset options for working tree (e.g. nuking the working tree).",
 		FixupTooltip:                        "Meld the selected commit into the commit below it. Similar to fixup, but the selected commit's message will be discarded.",
