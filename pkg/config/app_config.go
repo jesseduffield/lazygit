@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/OpenPeeDeeP/xdg"
+	"github.com/adrg/xdg"
 	"github.com/jesseduffield/lazygit/pkg/utils/yaml_utils"
 	yaml "github.com/jesseduffield/yaml"
 )
@@ -113,21 +113,9 @@ func isCustomConfigFile(path string) bool {
 }
 
 func ConfigDir() string {
-	legacyConfigDirectory := configDirForVendor("jesseduffield")
-	if _, err := os.Stat(legacyConfigDirectory); !os.IsNotExist(err) {
-		return legacyConfigDirectory
-	}
-	configDirectory := configDirForVendor("")
-	return configDirectory
-}
+	_, filePath := findConfigFile("config.yml")
 
-func configDirForVendor(vendor string) string {
-	envConfigDir := os.Getenv("CONFIG_DIR")
-	if envConfigDir != "" {
-		return envConfigDir
-	}
-	configDirs := xdg.New(vendor, "lazygit")
-	return configDirs.ConfigHome()
+	return filepath.Dir(filePath)
 }
 
 func findOrCreateConfigDir() (string, error) {
@@ -255,16 +243,41 @@ func (c *AppConfig) GetTempDir() string {
 	return c.TempDir
 }
 
-func configFilePath(filename string) (string, error) {
-	folder, err := findOrCreateConfigDir()
-	if err != nil {
-		return "", err
+// findConfigFile looks for a possibly existing config file.
+// This function does NOT create any folders or files.
+func findConfigFile(filename string) (exists bool, path string) {
+	if envConfigDir := os.Getenv("CONFIG_DIR"); envConfigDir != "" {
+		return true, filepath.Join(envConfigDir, filename)
 	}
 
-	return filepath.Join(folder, filename), nil
+	// look for jesseduffield/lazygit/filename in XDG_CONFIG_HOME and XDG_CONFIG_DIRS
+	legacyConfigPath, err := xdg.SearchConfigFile(filepath.Join("jesseduffield", "lazygit", filename))
+	if err == nil {
+		return true, legacyConfigPath
+	}
+
+	// look for lazygit/filename in XDG_CONFIG_HOME and XDG_CONFIG_DIRS
+	configFilepath, err := xdg.SearchConfigFile(filepath.Join("lazygit", filename))
+	if err == nil {
+		return true, configFilepath
+	}
+
+	return false, filepath.Join(xdg.ConfigHome, "lazygit", filename)
 }
 
 var ConfigFilename = "config.yml"
+
+// stateFilePath looks for a possibly existing state file.
+// if none exist, the default path is returned and all parent directories are created.
+func stateFilePath(filename string) (string, error) {
+	exists, legacyStateFile := findConfigFile(filename)
+	if exists {
+		return legacyStateFile, nil
+	}
+
+	// looks for XDG_STATE_HOME/lazygit/filename
+	return xdg.StateFile(filepath.Join("lazygit", filename))
+}
 
 // ConfigFilename returns the filename of the default config file
 func (c *AppConfig) ConfigFilename() string {
@@ -278,7 +291,7 @@ func (c *AppConfig) SaveAppState() error {
 		return err
 	}
 
-	filepath, err := configFilePath("state.yml")
+	filepath, err := stateFilePath(stateFileName)
 	if err != nil {
 		return err
 	}
@@ -292,11 +305,13 @@ func (c *AppConfig) SaveAppState() error {
 	return err
 }
 
+var stateFileName = "state.yml"
+
 // loadAppState loads recorded AppState from file
 func loadAppState() (*AppState, error) {
 	appState := getDefaultAppState()
 
-	filepath, err := configFilePath("state.yml")
+	filepath, err := stateFilePath(stateFileName)
 	if err != nil {
 		if os.IsPermission(err) {
 			// apparently when people have read-only permissions they prefer us to fail silently
@@ -365,5 +380,5 @@ func LogPath() (string, error) {
 		return os.Getenv("LAZYGIT_LOG_PATH"), nil
 	}
 
-	return configFilePath("development.log")
+	return stateFilePath("development.log")
 }
