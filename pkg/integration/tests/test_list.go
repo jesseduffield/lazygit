@@ -204,6 +204,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.MoveToIndexPartOfAdjacentAddedLines,
 	patch_building.MoveToIndexPartial,
 	patch_building.MoveToIndexWithConflict,
+	patch_building.MoveToIndexWorksEvenIfNoprefixIsSet,
 	patch_building.MoveToLaterCommit,
 	patch_building.MoveToLaterCommitPartialHunk,
 	patch_building.MoveToNewCommit,
