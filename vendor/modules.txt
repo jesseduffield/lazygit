@@ -199,6 +199,9 @@ github.com/karimkhaleel/jsonschema
 # github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd
 ## explicit
 github.com/kevinburke/ssh_config
+# github.com/kofalt/go-memoize v0.0.0-20220914132407-0b5d6a304579
+## explicit; go 1.19
+github.com/kofalt/go-memoize
 # github.com/konsorten/go-windows-terminal-sequences v1.0.2
 ## explicit
 github.com/konsorten/go-windows-terminal-sequences
@@ -239,6 +242,9 @@ github.com/mitchellh/go-ps
 ## explicit
 # github.com/onsi/gomega v1.7.1
 ## explicit
+# github.com/patrickmn/go-cache v2.1.0+incompatible
+## explicit
+github.com/patrickmn/go-cache
 # github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5
 ## explicit
 github.com/petermattis/goid
@@ -315,6 +321,9 @@ golang.org/x/exp/slices
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
+# golang.org/x/sync v0.1.0
+## explicit
+golang.org/x/sync/singleflight
 # golang.org/x/sys v0.16.0
 ## explicit; go 1.18
 golang.org/x/sys/cpu

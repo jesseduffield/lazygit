@@ -68,6 +68,9 @@ func buildGitCommon(deps commonDeps) *GitCommon {
 		gitCommon.version = &GitVersion{2, 0, 0, ""}
 	}
 
+	repoPathCache := NewRepoPathCache(cmd, gitCommon.version)
+	gitCommon.repoPathCache = &repoPathCache
+
 	gitConfig := deps.gitConfig
 	if gitConfig == nil {
 		gitConfig = git_config.NewFakeGitConfig(nil)

@@ -84,13 +84,13 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 			if worktree.IsPathMissing {
 				return
 			}
-			gitDir, err := callGitRevParseWithDir(self.cmd, self.version, worktree.Path, "--absolute-git-dir")
+			repoPaths, err := self.repoPathCache.GetRepoPathsForDir(worktree.Path)
 			if err != nil {
 				self.Log.Warnf("Could not find git dir for worktree %s: %v", worktree.Path, err)
 				return
 			}
 
-			worktree.GitDir = gitDir
+			worktree.GitDir = repoPaths.WorktreeGitDirPath()
 		})
 	}
 	wg.Wait()

@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/go-errors/errors"
@@ -34,8 +35,19 @@ branch refs/heads/mybranch
 `,
 					nil)
 
-				gitArgsMainWorktree := append(append([]string{"-C", "/path/to/repo"}, getRevParseArgs()...), "--absolute-git-dir")
-				runner.ExpectGitArgs(gitArgsMainWorktree, "/path/to/repo/.git", nil)
+				gitArgsMainWorktree := append(append([]string{"-C", "/path/to/repo"}, getRevParseArgs()...), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
+				expectedOutput := strings.Join([]string{
+					// --show-toplevel
+					"/path/to/repo",
+					// --git-dir
+					"/path/to/repo/.git",
+					// --git-common-dir
+					"/path/to/repo/.git",
+					// --is-bare-repository
+					"false",
+					// --show-superproject-working-tree
+				}, "\n")
+				runner.ExpectGitArgs(gitArgsMainWorktree, expectedOutput, nil)
 				_ = fs.MkdirAll("/path/to/repo/.git", 0o755)
 			},
 			expectedWorktrees: []*models.Worktree{
@@ -68,10 +80,32 @@ HEAD 775955775e79b8f5b4c4b56f82fbf657e2d5e4de
 branch refs/heads/mybranch-worktree
 `,
 					nil)
-				gitArgsMainWorktree := append(append([]string{"-C", "/path/to/repo"}, getRevParseArgs()...), "--absolute-git-dir")
-				runner.ExpectGitArgs(gitArgsMainWorktree, "/path/to/repo/.git", nil)
-				gitArgsLinkedWorktree := append(append([]string{"-C", "/path/to/repo-worktree"}, getRevParseArgs()...), "--absolute-git-dir")
-				runner.ExpectGitArgs(gitArgsLinkedWorktree, "/path/to/repo/.git/worktrees/repo-worktree", nil)
+				gitArgsMainWorktree := append(append([]string{"-C", "/path/to/repo"}, getRevParseArgs()...), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
+				expectedMainWorktreeOutput := strings.Join([]string{
+					// --show-toplevel
+					"/path/to/repo",
+					// --git-dir
+					"/path/to/repo/.git",
+					// --git-common-dir
+					"/path/to/repo/.git",
+					// --is-bare-repository
+					"false",
+					// --show-superproject-working-tree
+				}, "\n")
+				runner.ExpectGitArgs(gitArgsMainWorktree, expectedMainWorktreeOutput, nil)
+				gitArgsLinkedWorktree := append(append([]string{"-C", "/path/to/repo-worktree"}, getRevParseArgs()...), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
+				expectedLinkedWorktreeOutput := strings.Join([]string{
+					// --show-toplevel
+					"/path/to/repo-worktree",
+					// --git-dir
+					"/path/to/repo/.git/worktrees/repo-worktree",
+					// --git-common-dir
+					"/path/to/repo/.git",
+					// --is-bare-repository
+					"false",
+					// --show-superproject-working-tree
+				}, "\n")
+				runner.ExpectGitArgs(gitArgsLinkedWorktree, expectedLinkedWorktreeOutput, nil)
 
 				_ = fs.MkdirAll("/path/to/repo/.git", 0o755)
 				_ = fs.MkdirAll("/path/to/repo-worktree", 0o755)
@@ -146,10 +180,32 @@ HEAD 775955775e79b8f5b4c4b56f82fbf657e2d5e4de
 branch refs/heads/mybranch-worktree
 `,
 					nil)
-				gitArgsMainWorktree := append(append([]string{"-C", "/path/to/repo"}, getRevParseArgs()...), "--absolute-git-dir")
-				runner.ExpectGitArgs(gitArgsMainWorktree, "/path/to/repo/.git", nil)
-				gitArgsLinkedWorktree := append(append([]string{"-C", "/path/to/repo-worktree"}, getRevParseArgs()...), "--absolute-git-dir")
-				runner.ExpectGitArgs(gitArgsLinkedWorktree, "/path/to/repo/.git/worktrees/repo-worktree", nil)
+				gitArgsMainWorktree := append(append([]string{"-C", "/path/to/repo"}, getRevParseArgs()...), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
+				expectedMainWorktreeOutput := strings.Join([]string{
+					// --show-toplevel
+					"/path/to/repo",
+					// --git-dir
+					"/path/to/repo/.git",
+					// --git-common-dir
+					"/path/to/repo/.git",
+					// --is-bare-repository
+					"false",
+					// --show-superproject-working-tree
+				}, "\n")
+				runner.ExpectGitArgs(gitArgsMainWorktree, expectedMainWorktreeOutput, nil)
+				gitArgsLinkedWorktree := append(append([]string{"-C", "/path/to/repo-worktree"}, getRevParseArgs()...), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
+				expectedLinkedWorktreeOutput := strings.Join([]string{
+					// --show-toplevel
+					"/path/to/repo-worktree",
+					// --git-dir
+					"/path/to/repo/.git/worktrees/repo-worktree",
+					// --git-common-dir
+					"/path/to/repo/.git",
+					// --is-bare-repository
+					"false",
+					// --show-superproject-working-tree
+				}, "\n")
+				runner.ExpectGitArgs(gitArgsLinkedWorktree, expectedLinkedWorktreeOutput, nil)
 
 				_ = fs.MkdirAll("/path/to/repo/.git", 0o755)
 				_ = fs.MkdirAll("/path/to/repo-worktree", 0o755)

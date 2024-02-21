@@ -57,10 +57,11 @@ type Loaders struct {
 func NewGitCommand(
 	cmn *common.Common,
 	version *git_commands.GitVersion,
+	repoPathCache *git_commands.RepoPathCache,
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
 ) (*GitCommand, error) {
-	repoPaths, err := git_commands.GetRepoPaths(osCommand.Cmd, version)
+	repoPaths, err := repoPathCache.GetRepoPaths()
 	if err != nil {
 		return nil, errors.Errorf("Error getting repo paths: %v", err)
 	}
@@ -84,6 +85,7 @@ func NewGitCommand(
 	return NewGitCommandAux(
 		cmn,
 		version,
+		repoPathCache,
 		osCommand,
 		gitConfig,
 		repoPaths,
@@ -94,6 +96,7 @@ func NewGitCommand(
 func NewGitCommandAux(
 	cmn *common.Common,
 	version *git_commands.GitVersion,
+	repoPathCache *git_commands.RepoPathCache,
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
 	repoPaths *git_commands.RepoPaths,
@@ -108,7 +111,7 @@ func NewGitCommandAux(
 	// common ones are: cmn, osCommand, dotGitDir, configCommands
 	configCommands := git_commands.NewConfigCommands(cmn, gitConfig, repo)
 
-	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, repoPaths, repo, configCommands)
+	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, repoPathCache, repoPaths, repo, configCommands)
 
 	fileLoader := git_commands.NewFileLoader(gitCommon, cmd, configCommands)
 	statusCommands := git_commands.NewStatusCommands(gitCommon)

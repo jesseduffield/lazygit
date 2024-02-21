@@ -17,6 +17,6 @@ func NewDummyUpdater() *updates.Updater {
 
 func NewDummyGui() *Gui {
 	newAppConfig := config.NewDummyAppConfig()
-	dummyGui, _ := NewGui(utils.NewDummyCommon(), newAppConfig, &git_commands.GitVersion{}, NewDummyUpdater(), false, "", nil)
+	dummyGui, _ := NewGui(utils.NewDummyCommon(), newAppConfig, &git_commands.GitVersion{Major: 2, Minor: 0, Patch: 0}, &git_commands.RepoPathCache{}, NewDummyUpdater(), false, "", nil)
 	return dummyGui
 }

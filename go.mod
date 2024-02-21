@@ -23,11 +23,13 @@ require (
 	github.com/jesseduffield/yaml v2.1.0+incompatible
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/karimkhaleel/jsonschema v0.0.0-20231001195015-d933f0d94ea3
+	github.com/kofalt/go-memoize v0.0.0-20220914132407-0b5d6a304579
 	github.com/kyokomi/emoji/v2 v2.2.8
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/mattn/go-runewidth v0.0.15
 	github.com/mgutz/str v1.2.0
 	github.com/mitchellh/go-ps v1.0.0
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/sahilm/fuzzy v0.1.0
 	github.com/samber/lo v1.31.0
 	github.com/sanity-io/litter v1.5.2
@@ -74,6 +76,7 @@ require (
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/term v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
