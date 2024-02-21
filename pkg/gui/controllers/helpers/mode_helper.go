@@ -72,11 +72,12 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 		{
 			IsActive: self.c.Modes().Filtering.Active,
 			Description: func() string {
+				filterContent := lo.Ternary(self.c.Modes().Filtering.GetPath() != "", self.c.Modes().Filtering.GetPath(), self.c.Modes().Filtering.GetAuthor())
 				return self.withResetButton(
 					fmt.Sprintf(
 						"%s '%s'",
 						self.c.Tr.FilteringBy,
-						self.c.Modes().Filtering.GetPath(),
+						filterContent,
 					),
 					style.FgRed,
 				)

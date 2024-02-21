@@ -23,7 +23,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` + `` | 다음 스크린 모드 (normal/half/fullscreen) |  |
 | `` _ `` | 이전 스크린 모드 |  |
 | `` ? `` | 매뉴 열기 |  |
-| `` <c-s> `` | View filter-by-path options | View options for filtering the commit log by a file path, so that only commits relating to that path are shown. |
+| `` <c-s> `` | View filter-by-path options | View options for filtering the commit log, so that only commits matching the filter are shown. |
 | `` W `` | Diff 메뉴 열기 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` <c-e> `` | Diff 메뉴 열기 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | 종료 |  |

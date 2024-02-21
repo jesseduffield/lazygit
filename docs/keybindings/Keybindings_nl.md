@@ -23,7 +23,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` + `` | Volgende scherm modus (normaal/half/groot) |  |
 | `` _ `` | Vorige scherm modus |  |
 | `` ? `` | Open menu |  |
-| `` <c-s> `` | Bekijk scoping opties | View options for filtering the commit log by a file path, so that only commits relating to that path are shown. |
+| `` <c-s> `` | Bekijk scoping opties | View options for filtering the commit log, so that only commits matching the filter are shown. |
 | `` W `` | Open diff menu | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` <c-e> `` | Open diff menu | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | Quit |  |

@@ -13,6 +13,7 @@ type FilteringMenuAction struct {
 
 func (self *FilteringMenuAction) Call() error {
 	fileName := ""
+	author := ""
 	switch self.c.CurrentSideContext() {
 	case self.c.Contexts().Files:
 		node := self.c.Contexts().Files.GetSelected()
@@ -24,16 +25,36 @@ func (self *FilteringMenuAction) Call() error {
 		if node != nil {
 			fileName = node.GetPath()
 		}
+	case self.c.Contexts().LocalCommits:
+		commit := self.c.Contexts().LocalCommits.GetSelected()
+		if commit != nil {
+			author = fmt.Sprintf("%s <%s>", commit.AuthorName, commit.AuthorEmail)
+		}
 	}
 
 	menuItems := []*types.MenuItem{}
+	tooltip := ""
+	if self.c.Modes().Filtering.Active() {
+		tooltip = self.c.Tr.WillCancelExistingFilterTooltip
+	}
 
 	if fileName != "" {
 		menuItems = append(menuItems, &types.MenuItem{
 			Label: fmt.Sprintf("%s '%s'", self.c.Tr.FilterBy, fileName),
 			OnPress: func() error {
-				return self.setFiltering(fileName)
+				return self.setFilteringPath(fileName)
 			},
+			Tooltip: tooltip,
+		})
+	}
+
+	if author != "" {
+		menuItems = append(menuItems, &types.MenuItem{
+			Label: fmt.Sprintf("%s '%s'", self.c.Tr.FilterBy, author),
+			OnPress: func() error {
+				return self.setFilteringAuthor(author)
+			},
+			Tooltip: tooltip,
 		})
 	}
 
@@ -44,10 +65,25 @@ func (self *FilteringMenuAction) Call() error {
 				FindSuggestionsFunc: self.c.Helpers().Suggestions.GetFilePathSuggestionsFunc(),
 				Title:               self.c.Tr.EnterFileName,
 				HandleConfirm: func(response string) error {
-					return self.setFiltering(strings.TrimSpace(response))
+					return self.setFilteringPath(strings.TrimSpace(response))
 				},
 			})
 		},
+		Tooltip: tooltip,
+	})
+
+	menuItems = append(menuItems, &types.MenuItem{
+		Label: self.c.Tr.FilterAuthorOption,
+		OnPress: func() error {
+			return self.c.Prompt(types.PromptOpts{
+				FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
+				Title:               self.c.Tr.EnterAuthor,
+				HandleConfirm: func(response string) error {
+					return self.setFilteringAuthor(strings.TrimSpace(response))
+				},
+			})
+		},
+		Tooltip: tooltip,
 	})
 
 	if self.c.Modes().Filtering.Active() {
@@ -60,9 +96,19 @@ func (self *FilteringMenuAction) Call() error {
 	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.FilteringMenuTitle, Items: menuItems})
 }
 
-func (self *FilteringMenuAction) setFiltering(path string) error {
+func (self *FilteringMenuAction) setFilteringPath(path string) error {
+	self.c.Modes().Filtering.Reset()
 	self.c.Modes().Filtering.SetPath(path)
+	return self.setFiltering()
+}
 
+func (self *FilteringMenuAction) setFilteringAuthor(author string) error {
+	self.c.Modes().Filtering.Reset()
+	self.c.Modes().Filtering.SetAuthor(author)
+	return self.setFiltering()
+}
+
+func (self *FilteringMenuAction) setFiltering() error {
 	repoState := self.c.State().GetRepoState()
 	if repoState.GetScreenMode() == types.SCREEN_NORMAL {
 		repoState.SetScreenMode(types.SCREEN_HALF)

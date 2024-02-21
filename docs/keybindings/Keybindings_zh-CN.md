@@ -23,7 +23,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` + `` | 下一屏模式（正常/半屏/全屏） |  |
 | `` _ `` | 上一屏模式 |  |
 | `` ? `` | 打开菜单 |  |
-| `` <c-s> `` | 查看按路径过滤选项 | View options for filtering the commit log by a file path, so that only commits relating to that path are shown. |
+| `` <c-s> `` | 查看按路径过滤选项 | View options for filtering the commit log, so that only commits matching the filter are shown. |
 | `` W `` | 打开 diff 菜单 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` <c-e> `` | 打开 diff 菜单 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | 退出 |  |
