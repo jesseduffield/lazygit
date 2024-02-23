@@ -138,8 +138,7 @@ func TestBranchMerge(t *testing.T) {
 			},
 			opts:       MergeOpts{},
 			branchName: "mybranch",
-			expected:   []string{"merge", "--no-edit", "--arg1 --arg2", "mybranch"},
-			// This is wrong, we want separate arguments for "--arg1" and "--arg2"
+			expected:   []string{"merge", "--no-edit", "--arg1", "--arg2", "mybranch"},
 		},
 		{
 			testName:   "fast forward only",
