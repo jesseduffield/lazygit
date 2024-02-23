@@ -210,7 +210,7 @@ type MergeOpts struct {
 func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
 	cmdArgs := NewGitCmd("merge").
 		Arg("--no-edit").
-		ArgIf(self.UserConfig.Git.Merging.Args != "", self.UserConfig.Git.Merging.Args).
+		Arg(strings.Fields(self.UserConfig.Git.Merging.Args)...).
 		ArgIf(opts.FastForwardOnly, "--ff-only").
 		Arg(branchName).
 		ToArgv()
