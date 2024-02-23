@@ -128,6 +128,20 @@ func TestBranchMerge(t *testing.T) {
 			expected:   []string{"merge", "--no-edit", "--merging-args", "mybranch"},
 		},
 		{
+			testName: "multiple merging args",
+			userConfig: &config.UserConfig{
+				Git: config.GitConfig{
+					Merging: config.MergingConfig{
+						Args: "--arg1 --arg2", // it's up to the user what they put here
+					},
+				},
+			},
+			opts:       MergeOpts{},
+			branchName: "mybranch",
+			expected:   []string{"merge", "--no-edit", "--arg1 --arg2", "mybranch"},
+			// This is wrong, we want separate arguments for "--arg1" and "--arg2"
+		},
+		{
 			testName:   "fast forward only",
 			userConfig: &config.UserConfig{},
 			opts:       MergeOpts{FastForwardOnly: true},
