@@ -44,7 +44,7 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("CI commit 06"),
 				Contains("pick").Contains("CI commit 05"),
 				Contains("update-ref").Contains("branch1").DoesNotContain("*"),
-				Contains("pick").Contains("CI * commit 04"),
+				Contains("pick").Contains("CI commit 04"),
 				Contains("pick").Contains("CI commit 03"),
 				Contains("<-- YOU ARE HERE --- commit 02").IsSelected(),
 				Contains("CI commit 01"),
