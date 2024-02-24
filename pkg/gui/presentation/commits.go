@@ -41,7 +41,7 @@ func GetCommitListDisplayStrings(
 	commits []*models.Commit,
 	branches []*models.Branch,
 	currentBranchName string,
-	showBranchMarkerForHeadCommit bool,
+	hasRebaseUpdateRefsConfig bool,
 	fullDescription bool,
 	cherryPickedCommitShaSet *set.Set[string],
 	diffName string,
@@ -123,7 +123,7 @@ func GetCommitListDisplayStrings(
 					!lo.Contains(common.UserConfig.Git.MainBranches, b.Name) &&
 					// Don't show a marker for the head commit unless the
 					// rebase.updateRefs config is on
-					(showBranchMarkerForHeadCommit || b.CommitHash != commits[0].Sha)
+					(hasRebaseUpdateRefsConfig || b.CommitHash != commits[0].Sha)
 		}))
 
 	lines := make([][]string, 0, len(filteredCommits))
