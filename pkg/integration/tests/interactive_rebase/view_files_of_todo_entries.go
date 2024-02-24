@@ -30,7 +30,7 @@ var ViewFilesOfTodoEntries = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("pick").Contains("CI commit 03").IsSelected(),
 				Contains("update-ref").Contains("branch1"),
-				Contains("pick").Contains("CI * commit 02"),
+				Contains("pick").Contains("CI commit 02"),
 				Contains("CI <-- YOU ARE HERE --- commit 01"),
 			).
 			Press(keys.Universal.GoInto)

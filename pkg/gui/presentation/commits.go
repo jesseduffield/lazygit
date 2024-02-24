@@ -145,6 +145,7 @@ func GetCommitListDisplayStrings(
 			common,
 			commit,
 			branchHeadsToVisualize,
+			hasRebaseUpdateRefsConfig,
 			cherryPickedCommitShaSet,
 			isMarkedBaseCommit,
 			willBeRebased,
@@ -296,6 +297,7 @@ func displayCommit(
 	common *common.Common,
 	commit *models.Commit,
 	branchHeadsToVisualize *set.Set[string],
+	hasRebaseUpdateRefsConfig bool,
 	cherryPickedCommitShaSet *set.Set[string],
 	isMarkedBaseCommit bool,
 	willBeRebased bool,
@@ -329,7 +331,11 @@ func displayCommit(
 			tagString = theme.DiffTerminalColor.SetBold().Sprint(strings.Join(commit.Tags, " ")) + " "
 		}
 
-		if branchHeadsToVisualize.Includes(commit.Sha) && commit.Status != models.StatusMerged {
+		if branchHeadsToVisualize.Includes(commit.Sha) &&
+			// Don't show branch head on commits that are already merged to a main branch
+			commit.Status != models.StatusMerged &&
+			// Don't show branch head on a "pick" todo if the rebase.updateRefs config is on
+			!(commit.IsTODO() && hasRebaseUpdateRefsConfig) {
 			tagString = style.FgCyan.SetBold().Sprint(
 				lo.Ternary(icons.IsIconEnabled(), icons.BRANCH_ICON, "*") + " " + tagString)
 		}

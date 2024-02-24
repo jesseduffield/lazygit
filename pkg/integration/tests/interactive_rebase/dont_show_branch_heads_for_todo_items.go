@@ -45,7 +45,7 @@ var DontShowBranchHeadsForTodoItems = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("CI commit 08"),
 				Contains("pick").Contains("CI commit 07"),
 				Contains("update-ref").Contains("branch2"),
-				Contains("pick").Contains("CI * commit 06"), // the star is undesired here; it's confusing because of the update-ref right above
+				Contains("pick").Contains("CI commit 06"), // no star on this entry, even though branch2 points to it
 				Contains("pick").Contains("CI commit 05"),
 				Contains("CI <-- YOU ARE HERE --- commit 04"),
 				Contains("CI commit 03"),
