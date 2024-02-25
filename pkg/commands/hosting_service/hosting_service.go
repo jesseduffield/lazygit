@@ -62,6 +62,17 @@ func (self *HostingServiceMgr) GetCommitURL(commitSha string) (string, error) {
 	return pullRequestURL, nil
 }
 
+func (self *HostingServiceMgr) GetBranchURL(branchName string) (string, error) {
+	gitService, err := self.getService()
+	if err != nil {
+		return "", err
+	}
+
+	branchURL := gitService.getBranchURL(branchName)
+
+	return branchURL, nil
+}
+
 func (self *HostingServiceMgr) getService() (*Service, error) {
 	serviceDomain, err := self.getServiceDomain(self.remoteURL)
 	if err != nil {
@@ -177,6 +188,10 @@ func (self *Service) getPullRequestURLIntoTargetBranch(from string, to string) s
 
 func (self *Service) getCommitURL(commitSha string) string {
 	return self.resolveUrl(self.commitURL, map[string]string{"CommitSha": commitSha})
+}
+
+func (self *Service) getBranchURL(branch string) string {
+	return self.resolveUrl(self.branchURL, map[string]string{"BranchName": branch})
 }
 
 func (self *Service) resolveUrl(templateString string, args map[string]string) string {
