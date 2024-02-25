@@ -489,6 +489,14 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 		}
 	}
 
+	if matched, selected := v.isPatternMatchedRune(x, y); matched {
+		if selected {
+			bgColor = ColorCyan
+		} else {
+			bgColor = ColorYellow
+		}
+	}
+
 	// Don't display NUL characters
 	if ch == 0 {
 		ch = ' '
@@ -1102,13 +1110,6 @@ func (v *View) draw() error {
 			bgColor := c.bgColor
 			if bgColor == ColorDefault {
 				bgColor = v.BgColor
-			}
-			if matched, selected := v.isPatternMatchedRune(x, y); matched {
-				if selected {
-					bgColor = ColorCyan
-				} else {
-					bgColor = ColorYellow
-				}
 			}
 
 			if err := v.setRune(x, y, c.chr, fgColor, bgColor); err != nil {
