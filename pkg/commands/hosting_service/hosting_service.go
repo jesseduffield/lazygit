@@ -142,6 +142,7 @@ type ServiceDefinition struct {
 	pullRequestURLIntoDefaultBranch string
 	pullRequestURLIntoTargetBranch  string
 	commitURL                       string
+	branchURL                       string
 	regexStrings                    []string
 
 	// can expect 'webdomain' to be passed in. Otherwise, you get to pick what we match in the regex

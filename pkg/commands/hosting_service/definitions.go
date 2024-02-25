@@ -15,6 +15,7 @@ var githubServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/compare/{{.From}}?expand=1",
 	pullRequestURLIntoTargetBranch:  "/compare/{{.To}}...{{.From}}?expand=1",
 	commitURL:                       "/commit/{{.CommitSha}}",
+	branchURL:                       "/tree/{{.BranchName}}",
 	regexStrings:                    defaultUrlRegexStrings,
 	repoURLTemplate:                 defaultRepoURLTemplate,
 }
@@ -24,6 +25,7 @@ var bitbucketServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/pull-requests/new?source={{.From}}&t=1",
 	pullRequestURLIntoTargetBranch:  "/pull-requests/new?source={{.From}}&dest={{.To}}&t=1",
 	commitURL:                       "/commits/{{.CommitSha}}",
+	branchURL:                       "/src/{{.BranchName}}",
 	regexStrings: []string{
 		`^(?:https?|ssh)://.*/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 		`^.*@.*:(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
@@ -36,6 +38,7 @@ var gitLabServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/-/merge_requests/new?merge_request[source_branch]={{.From}}",
 	pullRequestURLIntoTargetBranch:  "/-/merge_requests/new?merge_request[source_branch]={{.From}}&merge_request[target_branch]={{.To}}",
 	commitURL:                       "/-/commit/{{.CommitSha}}",
+	branchURL:                       "/-/tree/{{.BranchName}}",
 	regexStrings:                    defaultUrlRegexStrings,
 	repoURLTemplate:                 defaultRepoURLTemplate,
 }
@@ -45,6 +48,7 @@ var azdoServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/pullrequestcreate?sourceRef={{.From}}",
 	pullRequestURLIntoTargetBranch:  "/pullrequestcreate?sourceRef={{.From}}&targetRef={{.To}}",
 	commitURL:                       "/commit/{{.CommitSha}}",
+	branchURL:                       "?version=GB{{.BranchName}}",
 	regexStrings: []string{
 		`^git@ssh.dev.azure.com.*/(?P<org>.*)/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
 		`^https://.*@dev.azure.com/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`,
@@ -57,6 +61,7 @@ var bitbucketServerServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/pull-requests?create&sourceBranch={{.From}}",
 	pullRequestURLIntoTargetBranch:  "/pull-requests?create&targetBranch={{.To}}&sourceBranch={{.From}}",
 	commitURL:                       "/commits/{{.CommitSha}}",
+	branchURL:                       "/browse?at=refs/heads/{{.BranchName}}",
 	regexStrings: []string{
 		`^ssh://git@.*/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
 		`^https://.*/scm/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
@@ -69,6 +74,7 @@ var giteaServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/compare/{{.From}}",
 	pullRequestURLIntoTargetBranch:  "/compare/{{.To}}...{{.From}}",
 	commitURL:                       "/commit/{{.CommitSha}}",
+	branchURL:                       "/src/branch/{{.BranchName}}",
 	regexStrings:                    defaultUrlRegexStrings,
 	repoURLTemplate:                 defaultRepoURLTemplate,
 }
