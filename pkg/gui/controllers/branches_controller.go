@@ -72,10 +72,10 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			OpensMenu:         true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.CopyPullRequestURL),
-			Handler:           self.copyPullRequestURL,
+			Key:               opts.GetKey(opts.Config.Branches.CopyBranchAttributeToClipboard),
+			Handler:           self.withItem(self.copyBranchAttributeToClipboard),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.CopyPullRequestURL,
+			Description:       self.c.Tr.CopyBranchAttributeToClipboard,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.CheckoutBranchByName),
@@ -389,10 +389,8 @@ func (self *BranchesController) handleCreatePullRequestMenu(selectedBranch *mode
 	return self.createPullRequestMenu(selectedBranch, checkedOutBranch)
 }
 
-func (self *BranchesController) copyPullRequestURL() error {
-	branch := self.context().GetSelected()
-
-	branchExistsOnRemote := self.c.Git().Remote.CheckRemoteBranchExists(branch.Name)
+func (self *BranchesController) copyPullRequestURL(branch *models.Branch) error {
+	branchExistsOnRemote := self.c.Git().Remote.CheckRemoteBranchExists(branch.Name, branch.UpstreamRemote)
 
 	if !branchExistsOnRemote {
 		return self.c.Error(errors.New(self.c.Tr.NoBranchOnRemote))
@@ -408,6 +406,66 @@ func (self *BranchesController) copyPullRequestURL() error {
 	}
 
 	self.c.Toast(self.c.Tr.PullRequestURLCopiedToClipboard)
+
+	return nil
+}
+
+func (self *BranchesController) copyBranchAttributeToClipboard(branch *models.Branch) error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.Actions.CopyBranchAttributeToClipboard,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.BranchName,
+				OnPress: func() error {
+					return self.copyBranchName(branch)
+				},
+			},
+			{
+				Label: self.c.Tr.BranchURL,
+				OnPress: func() error {
+					return self.copyBranchURL(branch)
+				},
+				Key: 'u',
+			},
+			{
+				Label: self.c.Tr.PullRequestURL,
+				OnPress: func() error {
+					return self.copyPullRequestURL(branch)
+				},
+				Key: 'p',
+			},
+		},
+	})
+}
+
+func (self *BranchesController) copyBranchURL(branch *models.Branch) error {
+	branchExistsOnRemote := self.c.Git().Remote.CheckRemoteBranchExists(branch.Name, branch.UpstreamRemote)
+
+	if !branchExistsOnRemote {
+		return self.c.Error(errors.New(self.c.Tr.NoBranchOnRemote))
+	}
+
+	url, err := self.c.Helpers().Host.GetBranchURL(branch.Name)
+	if err != nil {
+		return self.c.Error(err)
+	}
+	self.c.LogAction(self.c.Tr.Actions.CopyBranchURL)
+	if err := self.c.OS().CopyToClipboard(url); err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.Toast(self.c.Tr.BranchURLCopiedToClipboard)
+
+	return nil
+}
+
+func (self *BranchesController) copyBranchName(branch *models.Branch) error {
+	self.c.LogAction(self.c.Tr.Actions.CopyBranchName)
+	if err := self.c.OS().CopyToClipboard(branch.Name); err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.Toast(self.c.Tr.BranchNameCopiedToClipboard)
 
 	return nil
 }
