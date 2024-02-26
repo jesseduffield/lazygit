@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -390,12 +389,6 @@ func (self *BranchesController) handleCreatePullRequestMenu(selectedBranch *mode
 }
 
 func (self *BranchesController) copyPullRequestURL(branch *models.Branch) error {
-	branchExistsOnRemote := self.c.Git().Remote.CheckRemoteBranchExists(branch.Name, branch.UpstreamRemote)
-
-	if !branchExistsOnRemote {
-		return self.c.Error(errors.New(self.c.Tr.NoBranchOnRemote))
-	}
-
 	url, err := self.c.Helpers().Host.GetPullRequestURL(branch.Name, "")
 	if err != nil {
 		return self.c.Error(err)
@@ -425,26 +418,22 @@ func (self *BranchesController) copyBranchAttributeToClipboard(branch *models.Br
 				OnPress: func() error {
 					return self.copyBranchURL(branch)
 				},
-				Key: 'u',
+				Key:            'u',
+				DisabledReason: self.require(self.singleItemSelected(self.remoteBranchExists))(),
 			},
 			{
 				Label: self.c.Tr.PullRequestURL,
 				OnPress: func() error {
 					return self.copyPullRequestURL(branch)
 				},
-				Key: 'p',
+				Key:            'p',
+				DisabledReason: self.require(self.singleItemSelected(self.remoteBranchExists))(),
 			},
 		},
 	})
 }
 
 func (self *BranchesController) copyBranchURL(branch *models.Branch) error {
-	branchExistsOnRemote := self.c.Git().Remote.CheckRemoteBranchExists(branch.Name, branch.UpstreamRemote)
-
-	if !branchExistsOnRemote {
-		return self.c.Error(errors.New(self.c.Tr.NoBranchOnRemote))
-	}
-
 	url, err := self.c.Helpers().Host.GetBranchURL(branch.Name)
 	if err != nil {
 		return self.c.Error(err)
@@ -852,6 +841,16 @@ func (self *BranchesController) createPullRequest(from string, to string) error 
 func (self *BranchesController) branchIsReal(branch *models.Branch) *types.DisabledReason {
 	if !branch.IsRealBranch() {
 		return &types.DisabledReason{Text: self.c.Tr.SelectedItemIsNotABranch}
+	}
+
+	return nil
+}
+
+func (self *BranchesController) remoteBranchExists(branch *models.Branch) *types.DisabledReason {
+	branchExistsOnRemote := self.c.Git().Remote.CheckRemoteBranchExists(branch.Name, branch.UpstreamRemote)
+
+	if !branchExistsOnRemote {
+		return &types.DisabledReason{Text: self.c.Tr.NoBranchOnRemote}
 	}
 
 	return nil
