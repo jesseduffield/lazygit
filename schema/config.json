@@ -985,7 +985,7 @@
               "type": "string",
               "default": "O"
             },
-            "CopyBranchAttributeToClipboard": {
+            "copyBranchAttributeToClipboard": {
               "type": "string",
               "default": "y"
             },
