@@ -69,7 +69,7 @@ func GetCommitListDisplayStrings(
 	}
 
 	// this is where my non-TODO commits begin
-	rebaseOffset := utils.Min(indexOfFirstNonTODOCommit(commits), endIdx)
+	rebaseOffset := utils.Min(indexOfFirstNonRebasingCommit(commits), endIdx)
 
 	filteredCommits := commits[startIdx:endIdx]
 
@@ -187,9 +187,9 @@ func getbisectBounds(commits []*models.Commit, bisectInfo *git_commands.BisectIn
 }
 
 // precondition: slice is not empty
-func indexOfFirstNonTODOCommit(commits []*models.Commit) int {
+func indexOfFirstNonRebasingCommit(commits []*models.Commit) int {
 	for i, commit := range commits {
-		if !commit.IsTODO() {
+		if commit.Status != models.StatusRebasing {
 			return i
 		}
 	}
