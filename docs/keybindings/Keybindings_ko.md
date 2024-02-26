@@ -183,7 +183,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` n `` | 새 브랜치 생성 |  |
 | `` o `` | 풀 리퀘스트 생성 |  |
 | `` O `` | 풀 리퀘스트 생성 옵션 |  |
-| `` <c-y> `` | 풀 리퀘스트 URL을 클립보드에 복사 |  |
+| `` y `` | Copy branch attribute to clipboard |  |
 | `` c `` | 이름으로 체크아웃 | Checkout by name. In the input box you can enter '-' to switch to the last branch. |
 | `` F `` | 강제 체크아웃 | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |

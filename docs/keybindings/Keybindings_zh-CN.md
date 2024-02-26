@@ -86,7 +86,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` n `` | 新分支 |  |
 | `` o `` | 创建抓取请求 |  |
 | `` O `` | 创建抓取请求选项 |  |
-| `` <c-y> `` | 将抓取请求 URL 复制到剪贴板 |  |
+| `` y `` | Copy branch attribute to clipboard |  |
 | `` c `` | 按名称检出 | Checkout by name. In the input box you can enter '-' to switch to the last branch. |
 | `` F `` | 强制检出 | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |

@@ -985,9 +985,9 @@
               "type": "string",
               "default": "O"
             },
-            "copyPullRequestURL": {
+            "CopyBranchAttributeToClipboard": {
               "type": "string",
-              "default": "\u003cc-y\u003e"
+              "default": "y"
             },
             "checkoutBranchByName": {
               "type": "string",

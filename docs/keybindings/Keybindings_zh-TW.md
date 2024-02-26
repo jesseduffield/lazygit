@@ -258,7 +258,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` n `` | 新分支 |  |
 | `` o `` | 建立拉取請求 |  |
 | `` O `` | 建立拉取請求選項 |  |
-| `` <c-y> `` | 複製拉取請求的 URL 到剪貼板 |  |
+| `` y `` | Copy branch attribute to clipboard |  |
 | `` c `` | 根據名稱檢出 | Checkout by name. In the input box you can enter '-' to switch to the last branch. |
 | `` F `` | 強制檢出 | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |

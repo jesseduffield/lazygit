@@ -227,7 +227,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` n `` | 新しいブランチを作成 |  |
 | `` o `` | Pull Requestを作成 |  |
 | `` O `` | View create pull request options |  |
-| `` <c-y> `` | Pull RequestのURLをクリップボードにコピー |  |
+| `` y `` | Copy branch attribute to clipboard |  |
 | `` c `` | Checkout by name | Checkout by name. In the input box you can enter '-' to switch to the last branch. |
 | `` F `` | Force checkout | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |
