@@ -390,7 +390,7 @@ type KeybindingFilesConfig struct {
 type KeybindingBranchesConfig struct {
 	CreatePullRequest              string `yaml:"createPullRequest"`
 	ViewPullRequestOptions         string `yaml:"viewPullRequestOptions"`
-	CopyBranchAttributeToClipboard string `yaml: "copyToClipboard"`
+	CopyBranchAttributeToClipboard string `yaml:"copyBranchAttributeToClipboard"`
 	CheckoutBranchByName           string `yaml:"checkoutBranchByName"`
 	ForceCheckoutBranch            string `yaml:"forceCheckoutBranch"`
 	RebaseBranch                   string `yaml:"rebaseBranch"`
