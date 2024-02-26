@@ -316,7 +316,7 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 // getRebasingCommits obtains the commits that we're in the process of rebasing
 func (self *CommitLoader) getRebasingCommits(rebaseMode enums.RebaseMode) ([]*models.Commit, error) {
 	switch rebaseMode {
-	case enums.REBASE_MODE_MERGING:
+	case enums.REBASE_MODE_NORMAL:
 		return self.getNormalRebasingCommits()
 	case enums.REBASE_MODE_INTERACTIVE:
 		return self.getInteractiveRebasingCommits()
