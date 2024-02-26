@@ -916,7 +916,6 @@ type Actions struct {
 	CopyPullRequestURL                string
 	CopyBranchName                    string
 	CopyBranchURL                     string
-	CopyBranchAttributeToClipboard    string
 	OpenDiffTool                      string
 	OpenMergeTool                     string
 	OpenCommitInBrowser               string
@@ -1759,7 +1758,6 @@ func EnglishTranslationSet() TranslationSet {
 			CopyCommitURLToClipboard:       "Copy commit URL to clipboard",
 			CopyCommitAuthorToClipboard:    "Copy commit author to clipboard",
 			CopyCommitAttributeToClipboard: "Copy to clipboard",
-			CopyBranchAttributeToClipboard: "Copy to clipboard",
 			CopyBranchName:                 "Copy branch name",
 			CopyBranchURL:                  "Copy branch URL",
 			CopyPatchToClipboard:           "Copy patch to clipboard",

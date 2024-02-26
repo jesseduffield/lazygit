@@ -405,7 +405,7 @@ func (self *BranchesController) copyPullRequestURL(branch *models.Branch) error 
 
 func (self *BranchesController) copyBranchAttributeToClipboard(branch *models.Branch) error {
 	return self.c.Menu(types.CreateMenuOptions{
-		Title: self.c.Tr.Actions.CopyBranchAttributeToClipboard,
+		Title: self.c.Tr.Actions.CopyToClipboard,
 		Items: []*types.MenuItem{
 			{
 				Label: self.c.Tr.BranchName,
