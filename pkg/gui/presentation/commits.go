@@ -68,7 +68,7 @@ func GetCommitListDisplayStrings(
 		return nil
 	}
 
-	// this is where my non-TODO commits begin
+	// this is where my "normal" commits begin (the non-rebasing ones)
 	rebaseOffset := utils.Min(indexOfFirstNonRebasingCommit(commits), endIdx)
 
 	filteredCommits := commits[startIdx:endIdx]
