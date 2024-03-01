@@ -1,7 +1,7 @@
 //go:build windows
 // +build windows
 
-// Copyright 2023 The TCell Authors
+// Copyright 2024 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -51,6 +51,7 @@ type cScreen struct {
 	oimode      uint32
 	oomode      uint32
 	cells       CellBuffer
+	focusEnable bool
 
 	mouseEnabled bool
 	wg           sync.WaitGroup
@@ -280,9 +281,17 @@ func (s *cScreen) EnablePaste() {}
 
 func (s *cScreen) DisablePaste() {}
 
-func (s *cScreen) EnableFocus() {}
+func (s *cScreen) EnableFocus() {
+	s.Lock()
+	s.focusEnable = true
+	s.Unlock()
+}
 
-func (s *cScreen) DisableFocus() {}
+func (s *cScreen) DisableFocus() {
+	s.Lock()
+	s.focusEnable = false
+	s.Unlock()
+}
 
 func (s *cScreen) Fini() {
 	s.finiOnce.Do(func() {
@@ -448,8 +457,8 @@ const (
 	keyEvent    uint16 = 1
 	mouseEvent  uint16 = 2
 	resizeEvent uint16 = 4
-	// menuEvent   uint16 = 8  // don't use
-	// focusEvent  uint16 = 16 // don't use
+	menuEvent   uint16 = 8 // don't use
+	focusEvent  uint16 = 16
 )
 
 type mouseRecord struct {
@@ -458,6 +467,10 @@ type mouseRecord struct {
 	btns  uint32
 	mod   uint32
 	flags uint32
+}
+
+type focusRecord struct {
+	focused int32 // actually BOOL
 }
 
 const (
@@ -753,6 +766,16 @@ func (s *cScreen) getConsoleInput() error {
 			rrec.x = geti16(rec.data[0:])
 			rrec.y = geti16(rec.data[2:])
 			s.postEvent(NewEventResize(int(rrec.x), int(rrec.y)))
+
+		case focusEvent:
+			var focus focusRecord
+			focus.focused = geti32(rec.data[0:])
+			s.Lock()
+			enabled := s.focusEnable
+			s.Unlock()
+			if enabled {
+				s.postEvent(NewEventFocus(focus.focused != 0))
+			}
 
 		default:
 		}
@@ -1271,5 +1294,5 @@ func (s *cScreen) EventQ() chan Event {
 }
 
 func (s *cScreen) StopQ() <-chan struct{} {
-	return s.stopQ
+	return s.quit
 }

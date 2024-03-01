@@ -9,14 +9,14 @@ require (
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 	github.com/creack/pty v1.1.11
 	github.com/fsmiamoto/git-todo-parser v0.0.5
-	github.com/gdamore/tcell/v2 v2.7.1-0.20240121011954-0393f5eb0b1a
+	github.com/gdamore/tcell/v2 v2.7.1
 	github.com/go-errors/errors v1.5.1
 	github.com/gookit/color v1.4.2
 	github.com/imdario/mergo v0.3.11
 	github.com/integrii/flaggy v1.4.0
 	github.com/jesseduffield/generics v0.0.0-20220320043834-727e535cbe68
 	github.com/jesseduffield/go-git/v5 v5.1.2-0.20221018185014-fdd53fef665d
-	github.com/jesseduffield/gocui v0.3.1-0.20240129213945-26fc8669eb5b
+	github.com/jesseduffield/gocui v0.3.1-0.20240301130105-aefee393ff39
 	github.com/jesseduffield/kill v0.0.0-20220618033138-bfbe04675d10
 	github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
 	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
@@ -68,14 +68,14 @@ require (
 	github.com/onsi/gomega v1.7.1 // indirect
 	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rivo/uniseg v0.4.6 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/sys v0.16.0 // indirect
-	golang.org/x/term v0.16.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/term v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
