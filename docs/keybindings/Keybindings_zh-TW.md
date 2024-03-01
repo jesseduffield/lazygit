@@ -118,6 +118,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 | `` c `` | 提交變更 | Commit staged changes. |
 | `` w `` | 沒有預提交 hook 就提交更改 |  |
 | `` C `` | 使用 git 編輯器提交變更 |  |
+| `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 開始搜尋 |  |
 
 ## 主面板 (補丁生成)
