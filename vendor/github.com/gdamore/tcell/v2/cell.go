@@ -1,4 +1,4 @@
-// Copyright 2023 The TCell Authors
+// Copyright 2024 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -16,6 +16,7 @@ package tcell
 
 import (
 	"os"
+	"reflect"
 
 	runewidth "github.com/mattn/go-runewidth"
 )
@@ -53,8 +54,14 @@ func (cb *CellBuffer) SetContent(x int, y int,
 	if x >= 0 && y >= 0 && x < cb.w && y < cb.h {
 		c := &cb.cells[(y*cb.w)+x]
 
-		for i := 1; i < c.width; i++ {
-			cb.SetDirty(x+i, y, true)
+		// Wide characters: we want to mark the "wide" cells
+		// dirty as well as the base cell, to make sure we consider
+		// both cells as dirty together.  We only need to do this
+		// if we're changing content
+		if (c.width > 0) && (mainc != c.currMain || !reflect.DeepEqual(combc, c.currComb)) {
+			for i := 0; i < c.width; i++ {
+				cb.SetDirty(x+i, y, true)
+			}
 		}
 
 		c.currComb = append([]rune{}, combc...)

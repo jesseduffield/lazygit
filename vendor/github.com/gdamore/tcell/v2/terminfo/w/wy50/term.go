@@ -20,7 +20,7 @@ func init() {
 		Dim:          "\x1b`7\x1b)",
 		Reverse:      "\x1b`6\x1b)",
 		PadChar:      "\x00",
-		AltChars:     "a;j5k3l2m1n8q:t4u9v=w0x6",
+		AltChars:     "0wa_h[jukslrmqnxqzttuyv]wpxv",
 		EnterAcs:     "\x1bH\x02",
 		ExitAcs:      "\x1bH\x03",
 		SetCursor:    "\x1b=%p1%' '%+%c%p2%' '%+%c",
