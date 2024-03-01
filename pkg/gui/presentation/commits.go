@@ -99,7 +99,7 @@ func GetCommitListDisplayStrings(
 			}
 		}
 	} else {
-		getGraphLine = func(idx int) string { return "" }
+		getGraphLine = func(int) string { return "" }
 	}
 
 	// Determine the hashes of the local branches for which we want to show a
