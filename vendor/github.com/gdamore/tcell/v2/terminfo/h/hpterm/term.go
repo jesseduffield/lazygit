@@ -14,7 +14,7 @@ func init() {
 		Lines:        24,
 		Bell:         "\a",
 		Clear:        "\x1b&a0y0C\x1bJ",
-		AttrOff:      "\x1b&d@\x0f",
+		AttrOff:      "\x1b&d@",
 		Underline:    "\x1b&dD",
 		Bold:         "\x1b&dB",
 		Dim:          "\x1b&dH",

@@ -1,4 +1,4 @@
-// Copyright 2022 The TCell Authors
+// Copyright 2024 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -232,6 +232,8 @@ type Terminfo struct {
 	SetWindowSize           string
 	EnableFocusReporting    string
 	DisableFocusReporting   string
+	DisableAutoMargin       string // smam
+	EnableAutoMargin        string // rmam
 }
 
 const (

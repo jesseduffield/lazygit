@@ -24,8 +24,6 @@ func init() {
 		ResetFgBg:    "\x1b[32m\x1b[40m",
 		PadChar:      "\x00",
 		AltChars:     "jjkkllmmnnqqttuuvvwwxx",
-		EnterAcs:     "\x1b(0",
-		ExitAcs:      "\x1b(B",
 		SetCursor:    "\x1b[%i%p1%d;%p2%dH",
 		CursorBack1:  "\b",
 		CursorUp1:    "\x1b[A",
