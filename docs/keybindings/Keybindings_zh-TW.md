@@ -23,7 +23,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` + `` | 下一個螢幕模式（常規/半螢幕/全螢幕） |  |
 | `` _ `` | 上一個螢幕模式 |  |
 | `` ? `` | 開啟選單 |  |
-| `` <c-s> `` | 檢視篩選路徑選項 | View options for filtering the commit log by a file path, so that only commits relating to that path are shown. |
+| `` <c-s> `` | 檢視篩選路徑選項 | View options for filtering the commit log, so that only commits matching the filter are shown. |
 | `` W `` | 開啟差異比較選單 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` <c-e> `` | 開啟差異比較選單 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | 結束 |  |
@@ -106,6 +106,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` c `` | 提交變更 | Commit staged changes. |
 | `` w `` | 沒有預提交 hook 就提交更改 |  |
 | `` C `` | 使用 git 編輯器提交變更 |  |
+| `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 搜尋 |  |
 
 ## 功能表

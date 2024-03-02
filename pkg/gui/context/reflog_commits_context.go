@@ -24,6 +24,7 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 		func(commit *models.Commit) []string {
 			return []string{commit.ShortSha(), commit.Name}
 		},
+		func() bool { return true },
 	)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {

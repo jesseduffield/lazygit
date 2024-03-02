@@ -1,4 +1,4 @@
-// Copyright 2020 The TCell Authors
+// Copyright 2024 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -39,7 +39,6 @@ import (
 	_ "github.com/gdamore/tcell/v2/terminfo/s/screen"
 	_ "github.com/gdamore/tcell/v2/terminfo/s/simpleterm"
 	_ "github.com/gdamore/tcell/v2/terminfo/s/sun"
-	_ "github.com/gdamore/tcell/v2/terminfo/t/termite"
 	_ "github.com/gdamore/tcell/v2/terminfo/t/tmux"
 	_ "github.com/gdamore/tcell/v2/terminfo/v/vt100"
 	_ "github.com/gdamore/tcell/v2/terminfo/v/vt102"
@@ -54,5 +53,4 @@ import (
 	_ "github.com/gdamore/tcell/v2/terminfo/x/xfce"
 	_ "github.com/gdamore/tcell/v2/terminfo/x/xterm"
 	_ "github.com/gdamore/tcell/v2/terminfo/x/xterm_kitty"
-	_ "github.com/gdamore/tcell/v2/terminfo/x/xterm_termite"
 )

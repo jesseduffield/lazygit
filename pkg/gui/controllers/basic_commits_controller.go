@@ -84,9 +84,10 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopy),
-			Handler:     self.withItem(self.copyRange),
-			Description: self.c.Tr.CherryPickCopy,
+			Key:               opts.GetKey(opts.Config.Commits.CherryPickCopy),
+			Handler:           self.withItem(self.copyRange),
+			GetDisabledReason: self.require(self.itemRangeSelected(self.canCopyCommits)),
+			Description:       self.c.Tr.CherryPickCopy,
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.CherryPickCopyTooltip,
 				map[string]string{
 					"paste":  keybindings.Label(opts.Config.Commits.PasteCommits),
@@ -290,6 +291,20 @@ func (self *BasicCommitsController) checkout(commit *models.Commit) error {
 
 func (self *BasicCommitsController) copyRange(*models.Commit) error {
 	return self.c.Helpers().CherryPick.CopyRange(self.context.GetCommits(), self.context)
+}
+
+func (self *BasicCommitsController) canCopyCommits(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
+	for _, commit := range selectedCommits {
+		if commit.Sha == "" {
+			return &types.DisabledReason{Text: self.c.Tr.CannotCherryPickNonCommit, ShowErrorInPanel: true}
+		}
+
+		if commit.IsMerge() {
+			return &types.DisabledReason{Text: self.c.Tr.CannotCherryPickMergeCommit, ShowErrorInPanel: true}
+		}
+	}
+
+	return nil
 }
 
 func (self *BasicCommitsController) handleOldCherryPickKey() error {

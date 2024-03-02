@@ -15,6 +15,7 @@ func NewDiffCommands(gitCommon *GitCommon) *DiffCommands {
 func (self *DiffCommands) DiffCmdObj(diffArgs []string) oscommands.ICmdObj {
 	return self.cmd.New(
 		NewGitCmd("diff").
+			Config("diff.noprefix=false").
 			Arg("--submodule", "--no-ext-diff", "--color").
 			Arg(diffArgs...).
 			Dir(self.repoPaths.worktreePath).
@@ -24,6 +25,7 @@ func (self *DiffCommands) DiffCmdObj(diffArgs []string) oscommands.ICmdObj {
 
 func (self *DiffCommands) internalDiffCmdObj(diffArgs ...string) *GitCommandBuilder {
 	return NewGitCmd("diff").
+		Config("diff.noprefix=false").
 		Arg("--no-ext-diff", "--no-color").
 		Arg(diffArgs...).
 		Dir(self.repoPaths.worktreePath)
@@ -87,6 +89,7 @@ func (self *DiffCommands) OpenDiffToolCmdObj(opts DiffToolCmdOptions) oscommands
 func (self *DiffCommands) DiffIndexCmdObj(diffArgs ...string) oscommands.ICmdObj {
 	return self.cmd.New(
 		NewGitCmd("diff-index").
+			Config("diff.noprefix=false").
 			Arg("--submodule", "--no-ext-diff", "--no-color", "--patch").
 			Arg(diffArgs...).ToArgv(),
 	)

@@ -15,6 +15,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/diff"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_and_search"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_author"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_path"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
@@ -70,7 +71,7 @@ var tests = []*components.IntegrationTest{
 	commit.CommitWipWithPrefix,
 	commit.CommitWithPrefix,
 	commit.CreateTag,
-	commit.DiscardOldFileChange,
+	commit.DiscardOldFileChanges,
 	commit.FindBaseCommitForFixup,
 	commit.FindBaseCommitForFixupWarningForAddedLines,
 	commit.Highlight,
@@ -98,6 +99,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.CheckForConflicts,
 	custom_commands.ComplexCmdAtRuntime,
 	custom_commands.FormPrompts,
+	custom_commands.History,
 	custom_commands.MenuFromCommand,
 	custom_commands.MenuFromCommandsOutput,
 	custom_commands.MultiplePrompts,
@@ -148,6 +150,8 @@ var tests = []*components.IntegrationTest{
 	filter_and_search.NestedFilter,
 	filter_and_search.NestedFilterTransient,
 	filter_and_search.NewSearch,
+	filter_by_author.SelectAuthor,
+	filter_by_author.TypeAuthor,
 	filter_by_path.CliArg,
 	filter_by_path.SelectFile,
 	filter_by_path.TypeFile,
@@ -158,6 +162,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.AmendHeadCommitDuringRebase,
 	interactive_rebase.AmendMerge,
 	interactive_rebase.AmendNonHeadCommitDuringRebase,
+	interactive_rebase.DontShowBranchHeadsForTodoItems,
 	interactive_rebase.DropTodoCommitWithUpdateRef,
 	interactive_rebase.DropWithCustomCommentChar,
 	interactive_rebase.EditFirstCommit,
@@ -187,6 +192,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.SwapInRebaseWithConflict,
 	interactive_rebase.SwapInRebaseWithConflictAndEdit,
 	interactive_rebase.SwapWithConflict,
+	interactive_rebase.ViewFilesOfTodoEntries,
 	misc.ConfirmOnQuit,
 	misc.CopyToClipboard,
 	misc.DisabledKeybindings,
@@ -202,6 +208,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.MoveToIndexPartOfAdjacentAddedLines,
 	patch_building.MoveToIndexPartial,
 	patch_building.MoveToIndexWithConflict,
+	patch_building.MoveToIndexWorksEvenIfNoprefixIsSet,
 	patch_building.MoveToLaterCommit,
 	patch_building.MoveToLaterCommitPartialHunk,
 	patch_building.MoveToNewCommit,

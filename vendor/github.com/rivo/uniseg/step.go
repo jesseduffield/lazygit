@@ -150,16 +150,14 @@ func Step(b []byte, state int) (cluster, rest []byte, boundaries int, newState i
 			return b[:length], b[length:], boundary, graphemeState | (wordState << shiftWordState) | (sentenceState << shiftSentenceState) | (lineState << shiftLineState) | (prop << shiftPropState)
 		}
 
-		if r == vs16 {
-			width = 2
-		} else if firstProp != prExtendedPictographic && firstProp != prRegionalIndicator && firstProp != prL {
-			width += runeWidth(r, prop)
-		} else if firstProp == prExtendedPictographic {
+		if firstProp == prExtendedPictographic {
 			if r == vs15 {
 				width = 1
-			} else {
+			} else if r == vs16 {
 				width = 2
 			}
+		} else if firstProp != prRegionalIndicator && firstProp != prL {
+			width += runeWidth(r, prop)
 		}
 
 		length += l
@@ -226,16 +224,14 @@ func StepString(str string, state int) (cluster, rest string, boundaries int, ne
 			return str[:length], str[length:], boundary, graphemeState | (wordState << shiftWordState) | (sentenceState << shiftSentenceState) | (lineState << shiftLineState) | (prop << shiftPropState)
 		}
 
-		if r == vs16 {
-			width = 2
-		} else if firstProp != prExtendedPictographic && firstProp != prRegionalIndicator && firstProp != prL {
-			width += runeWidth(r, prop)
-		} else if firstProp == prExtendedPictographic {
+		if firstProp == prExtendedPictographic {
 			if r == vs15 {
 				width = 1
-			} else {
+			} else if r == vs16 {
 				width = 2
 			}
+		} else if firstProp != prRegionalIndicator && firstProp != prL {
+			width += runeWidth(r, prop)
 		}
 
 		length += l

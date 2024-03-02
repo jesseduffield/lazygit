@@ -23,7 +23,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` + `` | Next screen mode (normal/half/fullscreen) |  |
 | `` _ `` | Prev screen mode |  |
 | `` ? `` | Open keybindings menu |  |
-| `` <c-s> `` | View filter-by-path options | View options for filtering the commit log by a file path, so that only commits relating to that path are shown. |
+| `` <c-s> `` | View filter options | View options for filtering the commit log, so that only commits matching the filter are shown. |
 | `` W `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` <c-e> `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | Quit |  |
@@ -215,6 +215,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` c `` | Zatwierdź zmiany | Commit staged changes. |
 | `` w `` | Zatwierdź zmiany bez skryptu pre-commit |  |
 | `` C `` | Zatwierdź zmiany używając edytora |  |
+| `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Search the current view by text |  |
 
 ## Reflog

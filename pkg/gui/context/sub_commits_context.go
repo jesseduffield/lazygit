@@ -55,13 +55,13 @@ func NewSubCommitsContext(
 		if viewModel.GetShowBranchHeads() {
 			branches = c.Model().Branches
 		}
-		showBranchMarkerForHeadCommit := c.Git().Config.GetRebaseUpdateRefs()
+		hasRebaseUpdateRefsConfig := c.Git().Config.GetRebaseUpdateRefs()
 		return presentation.GetCommitListDisplayStrings(
 			c.Common,
 			c.Model().SubCommits,
 			branches,
 			viewModel.GetRef().RefName(),
-			showBranchMarkerForHeadCommit,
+			hasRebaseUpdateRefsConfig,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().CherryPicking.SelectedShaSet(),
 			c.Modes().Diffing.Ref,

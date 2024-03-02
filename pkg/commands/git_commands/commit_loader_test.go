@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
@@ -305,7 +306,8 @@ func TestGetCommits(t *testing.T) {
 		scenario := scenario
 		t.Run(scenario.testName, func(t *testing.T) {
 			common := utils.NewDummyCommon()
-			common.UserConfig.Git.Log.Order = scenario.logOrder
+			common.AppState = &config.AppState{}
+			common.AppState.GitLogOrder = scenario.logOrder
 
 			builder := &CommitLoader{
 				Common:        common,

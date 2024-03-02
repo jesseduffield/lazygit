@@ -519,7 +519,7 @@
                 "topo-order",
                 "default"
               ],
-              "description": "One of: 'date-order' | 'author-date-order' | 'topo-order | default'\n'topo-order' makes it easier to read the git log graph, but commits may not\nappear chronologically. See https://git-scm.com/docs/",
+              "description": "One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'\n'topo-order' makes it easier to read the git log graph, but commits may not\nappear chronologically. See https://git-scm.com/docs/\n\nDeprecated: Configure this with `Log menu -\u003e Commit sort order` (\u003cc-l\u003e in the commits window by default).",
               "default": "topo-order"
             },
             "showGraph": {
@@ -529,8 +529,8 @@
                 "never",
                 "when-maximised"
               ],
-              "description": "This determines whether the git graph is rendered in the commits panel\nOne of 'always' | 'never' | 'when-maximised'",
-              "default": "when-maximised"
+              "description": "This determines whether the git graph is rendered in the commits panel\nOne of 'always' | 'never' | 'when-maximised'\n\nDeprecated: Configure this with `Log menu -\u003e Show git graph` (\u003cc-l\u003e in the commits window by default).",
+              "default": "always"
             },
             "showWholeGraph": {
               "type": "boolean",

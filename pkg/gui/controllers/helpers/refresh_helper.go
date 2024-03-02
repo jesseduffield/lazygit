@@ -274,7 +274,7 @@ func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
 		// or perhaps we could just pop that context off the stack whenever cycling windows.
 		// For now the awkwardness remains.
 		commit := self.c.Contexts().LocalCommits.GetSelected()
-		if commit != nil {
+		if commit != nil && commit.RefName() != "" {
 			self.c.Contexts().CommitFiles.SetRef(commit)
 			self.c.Contexts().CommitFiles.SetTitleRef(commit.RefName())
 			_ = self.refreshCommitFilesContext()
@@ -317,6 +317,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 		git_commands.GetCommitsOptions{
 			Limit:                self.c.Contexts().LocalCommits.GetLimitCommits(),
 			FilterPath:           self.c.Modes().Filtering.GetPath(),
+			FilterAuthor:         self.c.Modes().Filtering.GetAuthor(),
 			IncludeRebaseCommits: true,
 			RefName:              self.refForLog(),
 			RefForPushedStatus:   checkedOutBranchName,
@@ -342,6 +343,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 		git_commands.GetCommitsOptions{
 			Limit:                   self.c.Contexts().SubCommits.GetLimitCommits(),
 			FilterPath:              self.c.Modes().Filtering.GetPath(),
+			FilterAuthor:            self.c.Modes().Filtering.GetAuthor(),
 			IncludeRebaseCommits:    false,
 			RefName:                 self.c.Contexts().SubCommits.GetRef().FullRefName(),
 			RefToShowDivergenceFrom: self.c.Contexts().SubCommits.GetRefToShowDivergenceFrom(),
@@ -438,7 +440,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 		// which allows us to order them correctly. So if we're filtering we'll just
 		// manually load all the reflog commits here
 		var err error
-		reflogCommits, _, err = self.c.Git().Loaders.ReflogCommitLoader.GetReflogCommits(nil, "")
+		reflogCommits, _, err = self.c.Git().Loaders.ReflogCommitLoader.GetReflogCommits(nil, "", "")
 		if err != nil {
 			self.c.Log.Error(err)
 		}
@@ -597,9 +599,9 @@ func (self *RefreshHelper) refreshReflogCommits() error {
 		lastReflogCommit = model.ReflogCommits[0]
 	}
 
-	refresh := func(stateCommits *[]*models.Commit, filterPath string) error {
+	refresh := func(stateCommits *[]*models.Commit, filterPath string, filterAuthor string) error {
 		commits, onlyObtainedNewReflogCommits, err := self.c.Git().Loaders.ReflogCommitLoader.
-			GetReflogCommits(lastReflogCommit, filterPath)
+			GetReflogCommits(lastReflogCommit, filterPath, filterAuthor)
 		if err != nil {
 			return self.c.Error(err)
 		}
@@ -612,12 +614,12 @@ func (self *RefreshHelper) refreshReflogCommits() error {
 		return nil
 	}
 
-	if err := refresh(&model.ReflogCommits, ""); err != nil {
+	if err := refresh(&model.ReflogCommits, "", ""); err != nil {
 		return err
 	}
 
 	if self.c.Modes().Filtering.Active() {
-		if err := refresh(&model.FilteredReflogCommits, self.c.Modes().Filtering.GetPath()); err != nil {
+		if err := refresh(&model.FilteredReflogCommits, self.c.Modes().Filtering.GetPath(), self.c.Modes().Filtering.GetAuthor()); err != nil {
 			return err
 		}
 	} else {

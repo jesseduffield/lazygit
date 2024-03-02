@@ -41,7 +41,7 @@ func GetCommitListDisplayStrings(
 	commits []*models.Commit,
 	branches []*models.Branch,
 	currentBranchName string,
-	showBranchMarkerForHeadCommit bool,
+	hasRebaseUpdateRefsConfig bool,
 	fullDescription bool,
 	cherryPickedCommitShaSet *set.Set[string],
 	diffName string,
@@ -99,7 +99,7 @@ func GetCommitListDisplayStrings(
 			}
 		}
 	} else {
-		getGraphLine = func(idx int) string { return "" }
+		getGraphLine = func(int) string { return "" }
 	}
 
 	// Determine the hashes of the local branches for which we want to show a
@@ -123,7 +123,7 @@ func GetCommitListDisplayStrings(
 					!lo.Contains(common.UserConfig.Git.MainBranches, b.Name) &&
 					// Don't show a marker for the head commit unless the
 					// rebase.updateRefs config is on
-					(showBranchMarkerForHeadCommit || b.CommitHash != commits[0].Sha)
+					(hasRebaseUpdateRefsConfig || b.CommitHash != commits[0].Sha)
 		}))
 
 	lines := make([][]string, 0, len(filteredCommits))
@@ -145,6 +145,7 @@ func GetCommitListDisplayStrings(
 			common,
 			commit,
 			branchHeadsToVisualize,
+			hasRebaseUpdateRefsConfig,
 			cherryPickedCommitShaSet,
 			isMarkedBaseCommit,
 			willBeRebased,
@@ -296,6 +297,7 @@ func displayCommit(
 	common *common.Common,
 	commit *models.Commit,
 	branchHeadsToVisualize *set.Set[string],
+	hasRebaseUpdateRefsConfig bool,
 	cherryPickedCommitShaSet *set.Set[string],
 	isMarkedBaseCommit bool,
 	willBeRebased bool,
@@ -329,7 +331,11 @@ func displayCommit(
 			tagString = theme.DiffTerminalColor.SetBold().Sprint(strings.Join(commit.Tags, " ")) + " "
 		}
 
-		if branchHeadsToVisualize.Includes(commit.Sha) && commit.Status != models.StatusMerged {
+		if branchHeadsToVisualize.Includes(commit.Sha) &&
+			// Don't show branch head on commits that are already merged to a main branch
+			commit.Status != models.StatusMerged &&
+			// Don't show branch head on a "pick" todo if the rebase.updateRefs config is on
+			!(commit.IsTODO() && hasRebaseUpdateRefsConfig) {
 			tagString = style.FgCyan.SetBold().Sprint(
 				lo.Ternary(icons.IsIconEnabled(), icons.BRANCH_ICON, "*") + " " + tagString)
 		}

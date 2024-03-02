@@ -291,6 +291,7 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 	useExtDiff := extDiffCmd != "" && !plain
 
 	cmdArgs := NewGitCmd("diff").
+		Config("diff.noprefix=false").
 		ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
 		ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
 		Arg("--submodule").

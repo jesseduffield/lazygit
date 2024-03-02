@@ -12,6 +12,7 @@ var QuickStartKeepSelectionRange = NewIntegrationTest(NewIntegrationTestArgs{
 	GitVersion:   AtLeast("2.38.0"),
 	SetupConfig: func(config *config.AppConfig) {
 		config.GetUserConfig().Git.MainBranches = []string{"master"}
+		config.AppState.GitLogShowGraph = "never"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.
@@ -45,10 +46,10 @@ var QuickStartKeepSelectionRange = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("CI commit 07"),
 				Contains("CI commit 06"),
 				Contains("update-ref").Contains("branch2"),
-				Contains("CI * commit 05"),
+				Contains("CI commit 05"),
 				Contains("CI commit 04").IsSelected(),
 				Contains("update-ref").Contains("branch1").IsSelected(),
-				Contains("CI * commit 03").IsSelected(),
+				Contains("CI commit 03").IsSelected(),
 				Contains("CI commit 02").IsSelected(),
 				Contains("CI <-- YOU ARE HERE --- commit 01"),
 			)
