@@ -300,6 +300,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` c `` | 変更をコミット | Commit staged changes. |
 | `` w `` | pre-commitフックを実行せずに変更をコミット |  |
 | `` C `` | gitエディタを使用して変更をコミット |  |
+| `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 検索を開始 |  |
 
 ## メニュー
