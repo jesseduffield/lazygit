@@ -247,13 +247,17 @@ type MergingConfig struct {
 }
 
 type LogConfig struct {
-	// One of: 'date-order' | 'author-date-order' | 'topo-order | default'
+	// One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'
 	// 'topo-order' makes it easier to read the git log graph, but commits may not
 	// appear chronologically. See https://git-scm.com/docs/
-	Order string `yaml:"order" jsonschema:"enum=date-order,enum=author-date-order,enum=topo-order,enum=default"`
+	//
+	// Deprecated: Configure this with `Log menu -> Commit sort order` (<c-l> in the commits window by default).
+	Order string `yaml:"order" jsonschema:"deprecated,enum=date-order,enum=author-date-order,enum=topo-order,enum=default,deprecated"`
 	// This determines whether the git graph is rendered in the commits panel
 	// One of 'always' | 'never' | 'when-maximised'
-	ShowGraph string `yaml:"showGraph" jsonschema:"enum=always,enum=never,enum=when-maximised"`
+	//
+	// Deprecated: Configure this with `Log menu -> Show git graph` (<c-l> in the commits window by default).
+	ShowGraph string `yaml:"showGraph" jsonschema:"deprecated,enum=always,enum=never,enum=when-maximised"`
 	// displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
 	ShowWholeGraph bool `yaml:"showWholeGraph"`
 }
@@ -662,7 +666,7 @@ func GetDefaultConfig() *UserConfig {
 			},
 			Log: LogConfig{
 				Order:          "topo-order",
-				ShowGraph:      "when-maximised",
+				ShowGraph:      "always",
 				ShowWholeGraph: false,
 			},
 			SkipHookPrefix:      "WIP",

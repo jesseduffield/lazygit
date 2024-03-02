@@ -302,6 +302,8 @@ type TranslationSet struct {
 	PasteCommits                          string
 	SureCherryPick                        string
 	CherryPick                            string
+	CannotCherryPickNonCommit             string
+	CannotCherryPickMergeCommit           string
 	Donate                                string
 	AskQuestion                           string
 	PrevLine                              string
@@ -352,9 +354,6 @@ type TranslationSet struct {
 	DiscardOldFileChangeTooltip           string
 	DiscardFileChangesTitle               string
 	DiscardFileChangesPrompt              string
-	DiscardAddedFileChangesPrompt         string
-	DiscardDeletedFileChangesPrompt       string
-	DiscardNotSupportedForDirectory       string
 	DisabledForGPG                        string
 	CreateRepo                            string
 	BareRepo                              string
@@ -399,6 +398,9 @@ type TranslationSet struct {
 	CommitChangesWithoutHook              string
 	SkipHookPrefixNotConfigured           string
 	ResetTo                               string
+	ResetSoftTooltip                      string
+	ResetMixedTooltip                     string
+	ResetHardTooltip                      string
 	PressEnterToReturn                    string
 	ViewStashOptions                      string
 	ViewStashOptionsTooltip               string
@@ -418,6 +420,7 @@ type TranslationSet struct {
 	ScrollRight                           string
 	DiscardPatch                          string
 	DiscardPatchConfirm                   string
+	DiscardPatchSameCommitConfirm         string
 	CantPatchWhileRebasingError           string
 	ToggleAddToPatch                      string
 	ToggleAddToPatchTooltip               string
@@ -533,9 +536,13 @@ type TranslationSet struct {
 	OpenFilteringMenuTooltip              string
 	FilterBy                              string
 	ExitFilterMode                        string
+	ExitFilterModeAuthor                  string
 	FilterPathOption                      string
+	FilterAuthorOption                    string
 	EnterFileName                         string
+	EnterAuthor                           string
 	FilteringMenuTitle                    string
+	WillCancelExistingFilterTooltip       string
 	MustExitFilterModeTitle               string
 	MustExitFilterModePrompt              string
 	Diff                                  string
@@ -756,6 +763,7 @@ type TranslationSet struct {
 	RangeSelectNotSupported              string
 	NoItemSelected                       string
 	SelectedItemIsNotABranch             string
+	SelectedItemDoesNotHaveFiles         string
 	RangeSelectNotSupportedForSubmodules string
 	OldCherryPickKeyWarning              string
 	Actions                              Actions
@@ -1242,6 +1250,8 @@ func EnglishTranslationSet() TranslationSet {
 		PasteCommits:                        "Paste (cherry-pick)",
 		SureCherryPick:                      "Are you sure you want to cherry-pick the copied commits onto this branch?",
 		CherryPick:                          "Cherry-pick",
+		CannotCherryPickNonCommit:           "Cannot cherry-pick this kind of todo item",
+		CannotCherryPickMergeCommit:         "Cherry-picking merge commits is not supported",
 		Donate:                              "Donate",
 		AskQuestion:                         "Ask Question",
 		PrevLine:                            "Select previous line",
@@ -1291,10 +1301,7 @@ func EnglishTranslationSet() TranslationSet {
 		Remove:                              "Remove",
 		DiscardOldFileChangeTooltip:         "Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file.",
 		DiscardFileChangesTitle:             "Discard file changes",
-		DiscardFileChangesPrompt:            "Are you sure you want to discard this commit's changes to this file?",
-		DiscardAddedFileChangesPrompt:       "Are you sure you want to discard this commit's changes to this file? The file was added in this commit, so it will be deleted again.",
-		DiscardDeletedFileChangesPrompt:     "Are you sure you want to discard this commit's changes to this file? The file was deleted in this commit, so it will reappear.",
-		DiscardNotSupportedForDirectory:     "Discarding changes is not supported for entire directories. Please use a custom patch for this.",
+		DiscardFileChangesPrompt:            "Are you sure you want to remove changes to the selected file(s) from this commit?\n\nThis action will start a rebase, reverting these file changes. Be aware that if subsequent commits depend on these changes, you may need to resolve conflicts.\nNote: This will also reset any active custom patches.",
 		DisabledForGPG:                      "Feature not available for users using GPG",
 		CreateRepo:                          "Not in a git repository. Create a new git repository? (y/n): ",
 		BareRepo:                            "You've attempted to open Lazygit in a bare repo but Lazygit does not yet support bare repos. Open most recent repo? (y/n) ",
@@ -1320,6 +1327,9 @@ func EnglishTranslationSet() TranslationSet {
 		Delete:                              "Delete",
 		Reset:                               "Reset",
 		ResetTooltip:                        "View reset options (soft/mixed/hard) for resetting onto selected item.",
+		ResetSoftTooltip:                    "Reset HEAD to the chosen commit, and keep the changes between the current and chosen commit as staged changes.",
+		ResetMixedTooltip:                   "Reset HEAD to the chosen commit, and keep the changes between the current and chosen commit as unstaged changes.",
+		ResetHardTooltip:                    "Reset HEAD to the chosen commit, and discard all changes between the current and chosen commit, as well as all current modifications in the working tree.",
 		ViewResetOptions:                    `Reset`,
 		FileResetOptionsTooltip:             "View reset options for working tree (e.g. nuking the working tree).",
 		FixupTooltip:                        "Meld the selected commit into the commit below it. Similar to fixup, but the selected commit's message will be discarded.",
@@ -1359,6 +1369,7 @@ func EnglishTranslationSet() TranslationSet {
 		ScrollRight:                         "Scroll right",
 		DiscardPatch:                        "Discard patch",
 		DiscardPatchConfirm:                 "You can only build a patch from one commit/stash-entry at a time. Discard current patch?",
+		DiscardPatchSameCommitConfirm:       "You currently have changes added to a patch for this commit. Discard current patch?",
 		CantPatchWhileRebasingError:         "You cannot build a patch or run patch commands while in a merging or rebasing state",
 		ToggleAddToPatch:                    "Toggle file included in patch",
 		ToggleAddToPatchTooltip:             "Toggle whether the file is included in the custom patch. See {{.doc}}.",
@@ -1468,13 +1479,16 @@ func EnglishTranslationSet() TranslationSet {
 		GotoBottom:                       "Scroll to bottom",
 		FilteringBy:                      "Filtering by",
 		ResetInParentheses:               "(Reset)",
-		OpenFilteringMenu:                "View filter-by-path options",
-		OpenFilteringMenuTooltip:         "View options for filtering the commit log by a file path, so that only commits relating to that path are shown.",
+		OpenFilteringMenu:                "View filter options",
+		OpenFilteringMenuTooltip:         "View options for filtering the commit log, so that only commits matching the filter are shown.",
 		FilterBy:                         "Filter by",
-		ExitFilterMode:                   "Stop filtering by path",
+		ExitFilterMode:                   "Stop filtering",
 		FilterPathOption:                 "Enter path to filter by",
+		FilterAuthorOption:               "Enter author to filter by",
 		EnterFileName:                    "Enter path:",
+		EnterAuthor:                      "Enter author:",
 		FilteringMenuTitle:               "Filtering",
+		WillCancelExistingFilterTooltip:  "Note: this will cancel the existing filter",
 		MustExitFilterModeTitle:          "Command not available",
 		MustExitFilterModePrompt:         "Command not available in filter-by-path mode. Exit filter-by-path mode?",
 		Diff:                             "Diff",
@@ -1693,6 +1707,7 @@ func EnglishTranslationSet() TranslationSet {
 		RangeSelectNotSupported:               "Action does not support range selection, please select a single item",
 		NoItemSelected:                        "No item selected",
 		SelectedItemIsNotABranch:              "Selected item is not a branch",
+		SelectedItemDoesNotHaveFiles:          "Selected item does not have files to view",
 		RangeSelectNotSupportedForSubmodules:  "Range select not supported for submodules",
 		OldCherryPickKeyWarning:               "The 'c' key is no longer the default key for copying commits to cherry pick. Please use `{{.copy}}` instead (and `{{.paste}}` to paste). The reason for this change is that the 'v' key for selecting a range of lines when staging is now also used for selecting a range of lines in any list view, meaning that we needed to find a new key for pasting commits, and if we're going to now use `{{.paste}}` for pasting commits, we may as well use `{{.copy}}` for copying them. If you want to configure the keybindings to get the old behaviour, set the following in your config:\n\nkeybinding:\n  universal:\n    toggleRangeSelect: <something other than v>\n  commits:\n    cherryPickCopy: 'c'\n    pasteCommits: 'v'",
 

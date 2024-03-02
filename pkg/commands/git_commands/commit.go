@@ -239,6 +239,7 @@ func (self *CommitCommands) ShowCmdObj(sha string, filterPath string) oscommands
 
 	extDiffCmd := self.UserConfig.Git.Paging.ExternalDiffCommand
 	cmdArgs := NewGitCmd("show").
+		Config("diff.noprefix=false").
 		ConfigIf(extDiffCmd != "", "diff.external="+extDiffCmd).
 		ArgIfElse(extDiffCmd != "", "--ext-diff", "--no-ext-diff").
 		Arg("--submodule").

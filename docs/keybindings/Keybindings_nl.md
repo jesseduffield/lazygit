@@ -23,7 +23,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` + `` | Volgende scherm modus (normaal/half/groot) |  |
 | `` _ `` | Vorige scherm modus |  |
 | `` ? `` | Open menu |  |
-| `` <c-s> `` | Bekijk scoping opties | View options for filtering the commit log by a file path, so that only commits relating to that path are shown. |
+| `` <c-s> `` | Bekijk scoping opties | View options for filtering the commit log, so that only commits matching the filter are shown. |
 | `` W `` | Open diff menu | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` <c-e> `` | Open diff menu | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | Quit |  |
@@ -283,6 +283,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` c `` | Commit veranderingen | Commit staged changes. |
 | `` w `` | Commit veranderingen zonder pre-commit hook |  |
 | `` C `` | Commit veranderingen met de git editor |  |
+| `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Start met zoeken |  |
 
 ## Stash

@@ -19,6 +19,7 @@ func NewSubmodulesContext(c *ContextCommon) *SubmodulesContext {
 		func(submodule *models.SubmoduleConfig) []string {
 			return []string{submodule.Name}
 		},
+		nil,
 	)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/OpenPeeDeeP/xdg"
+	"github.com/adrg/xdg"
 	"github.com/jesseduffield/lazygit/pkg/utils/yaml_utils"
 	yaml "github.com/jesseduffield/yaml"
 )
@@ -80,6 +80,17 @@ func NewAppConfig(
 		return nil, err
 	}
 
+	// Temporary: the defaults for these are set to empty strings in
+	// getDefaultAppState so that we can migrate them from userConfig (which is
+	// now deprecated). Once we remove the user configs, we can remove this code
+	// and set the proper defaults in getDefaultAppState.
+	if appState.GitLogOrder == "" {
+		appState.GitLogOrder = userConfig.Git.Log.Order
+	}
+	if appState.GitLogShowGraph == "" {
+		appState.GitLogShowGraph = userConfig.Git.Log.ShowGraph
+	}
+
 	appConfig := &AppConfig{
 		Name:            name,
 		Version:         version,
@@ -102,21 +113,9 @@ func isCustomConfigFile(path string) bool {
 }
 
 func ConfigDir() string {
-	legacyConfigDirectory := configDirForVendor("jesseduffield")
-	if _, err := os.Stat(legacyConfigDirectory); !os.IsNotExist(err) {
-		return legacyConfigDirectory
-	}
-	configDirectory := configDirForVendor("")
-	return configDirectory
-}
+	_, filePath := findConfigFile("config.yml")
 
-func configDirForVendor(vendor string) string {
-	envConfigDir := os.Getenv("CONFIG_DIR")
-	if envConfigDir != "" {
-		return envConfigDir
-	}
-	configDirs := xdg.New(vendor, "lazygit")
-	return configDirs.ConfigHome()
+	return filepath.Dir(filePath)
 }
 
 func findOrCreateConfigDir() (string, error) {
@@ -244,16 +243,41 @@ func (c *AppConfig) GetTempDir() string {
 	return c.TempDir
 }
 
-func configFilePath(filename string) (string, error) {
-	folder, err := findOrCreateConfigDir()
-	if err != nil {
-		return "", err
+// findConfigFile looks for a possibly existing config file.
+// This function does NOT create any folders or files.
+func findConfigFile(filename string) (exists bool, path string) {
+	if envConfigDir := os.Getenv("CONFIG_DIR"); envConfigDir != "" {
+		return true, filepath.Join(envConfigDir, filename)
 	}
 
-	return filepath.Join(folder, filename), nil
+	// look for jesseduffield/lazygit/filename in XDG_CONFIG_HOME and XDG_CONFIG_DIRS
+	legacyConfigPath, err := xdg.SearchConfigFile(filepath.Join("jesseduffield", "lazygit", filename))
+	if err == nil {
+		return true, legacyConfigPath
+	}
+
+	// look for lazygit/filename in XDG_CONFIG_HOME and XDG_CONFIG_DIRS
+	configFilepath, err := xdg.SearchConfigFile(filepath.Join("lazygit", filename))
+	if err == nil {
+		return true, configFilepath
+	}
+
+	return false, filepath.Join(xdg.ConfigHome, "lazygit", filename)
 }
 
 var ConfigFilename = "config.yml"
+
+// stateFilePath looks for a possibly existing state file.
+// if none exist, the default path is returned and all parent directories are created.
+func stateFilePath(filename string) (string, error) {
+	exists, legacyStateFile := findConfigFile(filename)
+	if exists {
+		return legacyStateFile, nil
+	}
+
+	// looks for XDG_STATE_HOME/lazygit/filename
+	return xdg.StateFile(filepath.Join("lazygit", filename))
+}
 
 // ConfigFilename returns the filename of the default config file
 func (c *AppConfig) ConfigFilename() string {
@@ -267,7 +291,7 @@ func (c *AppConfig) SaveAppState() error {
 		return err
 	}
 
-	filepath, err := configFilePath("state.yml")
+	filepath, err := stateFilePath(stateFileName)
 	if err != nil {
 		return err
 	}
@@ -281,11 +305,13 @@ func (c *AppConfig) SaveAppState() error {
 	return err
 }
 
+var stateFileName = "state.yml"
+
 // loadAppState loads recorded AppState from file
 func loadAppState() (*AppState, error) {
 	appState := getDefaultAppState()
 
-	filepath, err := configFilePath("state.yml")
+	filepath, err := stateFilePath(stateFileName)
 	if err != nil {
 		if os.IsPermission(err) {
 			// apparently when people have read-only permissions they prefer us to fail silently
@@ -325,6 +351,15 @@ type AppState struct {
 	DiffContextSize            int
 	LocalBranchSortOrder       string
 	RemoteBranchSortOrder      string
+
+	// One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'
+	// 'topo-order' makes it easier to read the git log graph, but commits may not
+	// appear chronologically. See https://git-scm.com/docs/
+	GitLogOrder string
+
+	// This determines whether the git graph is rendered in the commits panel
+	// One of 'always' | 'never' | 'when-maximised'
+	GitLogShowGraph string
 }
 
 func getDefaultAppState() *AppState {
@@ -335,6 +370,8 @@ func getDefaultAppState() *AppState {
 		DiffContextSize:       3,
 		LocalBranchSortOrder:  "recency",
 		RemoteBranchSortOrder: "alphabetical",
+		GitLogOrder:           "", // should be "topo-order" eventually
+		GitLogShowGraph:       "", // should be "always" eventually
 	}
 }
 
@@ -343,5 +380,5 @@ func LogPath() (string, error) {
 		return os.Getenv("LAZYGIT_LOG_PATH"), nil
 	}
 
-	return configFilePath("development.log")
+	return stateFilePath("development.log")
 }

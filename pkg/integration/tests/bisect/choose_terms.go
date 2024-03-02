@@ -14,7 +14,9 @@ var ChooseTerms = NewIntegrationTest(NewIntegrationTestArgs{
 			NewBranch("mybranch").
 			CreateNCommits(10)
 	},
-	SetupConfig: func(cfg *config.AppConfig) {},
+	SetupConfig: func(cfg *config.AppConfig) {
+		cfg.AppState.GitLogShowGraph = "never"
+	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		markCommitAsFixed := func() {
 			t.Views().Commits().

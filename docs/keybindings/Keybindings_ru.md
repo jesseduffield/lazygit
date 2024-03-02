@@ -23,7 +23,7 @@ _Связки клавиш_
 | `` + `` | Следующий режим экрана (нормальный/полуэкранный/полноэкранный) |  |
 | `` _ `` | Предыдущий режим экрана |  |
 | `` ? `` | Открыть меню |  |
-| `` <c-s> `` | Просмотреть параметры фильтрации по пути | View options for filtering the commit log by a file path, so that only commits relating to that path are shown. |
+| `` <c-s> `` | Просмотреть параметры фильтрации по пути | View options for filtering the commit log, so that only commits matching the filter are shown. |
 | `` W `` | Открыть меню сравнении | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` <c-e> `` | Открыть меню сравнении | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | Выйти |  |
@@ -78,6 +78,7 @@ _Связки клавиш_
 | `` c `` | Сохранить изменения | Commit staged changes. |
 | `` w `` | Закоммитить изменения без предварительного хука коммита |  |
 | `` C `` | Сохранить изменения с помощью редактора git |  |
+| `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Найти |  |
 
 ## Главная панель (Обычный)

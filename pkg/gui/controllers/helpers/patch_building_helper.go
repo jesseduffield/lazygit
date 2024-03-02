@@ -79,9 +79,6 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 	}
 
 	secondaryDiff := self.c.Git().Patch.PatchBuilder.RenderPatchForFile(path, false, false)
-	if err != nil {
-		return err
-	}
 
 	context := self.c.Contexts().CustomPatchBuilder
 

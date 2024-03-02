@@ -24,6 +24,7 @@ func NewStashContext(
 		func(stashEntry *models.StashEntry) []string {
 			return []string{stashEntry.Name}
 		},
+		func() bool { return true },
 	)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {
