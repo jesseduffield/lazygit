@@ -307,7 +307,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | Edit config file | Open file in external editor. |
 | `` u `` | Check for update |  |
 | `` <enter> `` | Switch to a recent repo |  |
-| `` a `` | Show all branch logs |  |
+| `` a `` | Show/cycle all branch logs |  |
 
 ## Sub-commits
 
