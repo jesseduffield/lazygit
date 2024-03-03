@@ -33,8 +33,8 @@ var AddCoAuthor = NewIntegrationTest(NewIntegrationTestArgs{
 			})
 
 		t.Views().Main().ContainsLines(
-			Contains("initial commit"),
-			Contains("Co-authored-by: John Smith <jsmith@gmail.com>"),
+			Equals("    initial commit"),
+			Equals("    Co-authored-by: John Smith <jsmith@gmail.com>"),
 		)
 	},
 })
