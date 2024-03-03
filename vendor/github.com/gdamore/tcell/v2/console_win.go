@@ -41,6 +41,7 @@ type cScreen struct {
 	vten       bool
 	truecolor  bool
 	running    bool
+	disableAlt bool // disable the alternate screen
 
 	w int
 	h int
@@ -159,6 +160,10 @@ const (
 	vtCursorSteadyUnderline   = "\x1b[4 q"
 	vtCursorBlinkingBar       = "\x1b[5 q"
 	vtCursorSteadyBar         = "\x1b[6 q"
+	vtDisableAm               = "\x1b[?7l"
+	vtEnableAm                = "\x1b[?7h"
+	vtEnterCA                 = "\x1b[?1049h\x1b[22;0;0t"
+	vtExitCA                  = "\x1b[?1049l\x1b[23;0;0t"
 )
 
 var vtCursorStyles = map[CursorStyle]string{
@@ -182,7 +187,6 @@ func (s *cScreen) Init() error {
 	s.eventQ = make(chan Event, 10)
 	s.quit = make(chan struct{})
 	s.scandone = make(chan struct{})
-
 	in, e := syscall.Open("CONIN$", syscall.O_RDWR, 0)
 	if e != nil {
 		return e
@@ -197,20 +201,22 @@ func (s *cScreen) Init() error {
 
 	s.truecolor = true
 
-	// ConEmu handling of colors and scrolling when in terminal
-	// mode is extremely problematic at the best.  The color
-	// palette will scroll even though characters do not, when
-	// emitting stuff for the last character.  In the future we
-	// might change this to look at specific versions of ConEmu
-	// if they fix the bug.
+	// ConEmu handling of colors and scrolling when in VT output mode is extremely poor.
+	// The color palette will scroll even though characters do not, when
+	// emitting stuff for the last character.  In the future we might change this to
+	// look at specific versions of ConEmu if they fix the bug.
+	// We can also try disabling auto margin mode.
+	tryVt := true
 	if os.Getenv("ConEmuPID") != "" {
 		s.truecolor = false
+		tryVt = false
 	}
 	switch os.Getenv("TCELL_TRUECOLOR") {
 	case "disable":
 		s.truecolor = false
 	case "enable":
 		s.truecolor = true
+		tryVt = true
 	}
 
 	s.Lock()
@@ -227,9 +233,22 @@ func (s *cScreen) Init() error {
 	s.fini = false
 	s.setInMode(modeResizeEn | modeExtendFlg)
 
-	// 24-bit color is opt-in for now, because we can't figure out
-	// to make it work consistently.
-	if s.truecolor {
+	// If a user needs to force old style console, they may do so
+	// by setting TCELL_VTMODE to disable.  This is an undocumented safety net for now.
+	// It may be removed in the future.  (This mostly exists because of ConEmu.)
+	switch os.Getenv("TCELL_VTMODE") {
+	case "disable":
+		tryVt = false
+	case "enable":
+		tryVt = true
+	}
+	switch os.Getenv("TCELL_ALTSCREEN") {
+	case "enable":
+		s.disableAlt = false // also the default
+	case "disable":
+		s.disableAlt = true
+	}
+	if tryVt {
 		s.setOutMode(modeVtOutput | modeNoAutoNL | modeCookedOut | modeUnderline)
 		var om uint32
 		s.getOutMode(&om)
@@ -316,11 +335,16 @@ func (s *cScreen) disengage() {
 
 	if s.vten {
 		s.emitVtString(vtCursorStyles[CursorStyleDefault])
+		s.emitVtString(vtEnableAm)
+		if !s.disableAlt {
+			s.emitVtString(vtExitCA)
+		}
+	} else if !s.disableAlt {
+		s.clearScreen(StyleDefault, s.vten)
 	}
 	s.setInMode(s.oimode)
 	s.setOutMode(s.oomode)
 	s.setBufferSize(int(s.oscreen.size.x), int(s.oscreen.size.y))
-	s.clearScreen(StyleDefault, false)
 	s.setCursorPos(0, 0, false)
 	s.setCursorInfo(&s.ocursor)
 	_, _, _ = procSetConsoleTextAttribute.Call(
@@ -349,6 +373,10 @@ func (s *cScreen) engage() error {
 
 	if s.vten {
 		s.setOutMode(modeVtOutput | modeNoAutoNL | modeCookedOut | modeUnderline)
+		if !s.disableAlt {
+			s.emitVtString(vtEnterCA)
+		}
+		s.emitVtString(vtDisableAm)
 	} else {
 		s.setOutMode(0)
 	}

@@ -6,7 +6,7 @@ import "github.com/gdamore/tcell/v2/terminfo"
 
 func init() {
 
-	// dec vt320 7 bit terminal
+	// DEC VT320 7 bit terminal
 	terminfo.AddTerminfo(&terminfo.Terminfo{
 		Name:              "vt320",
 		Aliases:           []string{"vt300"},

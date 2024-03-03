@@ -6,7 +6,7 @@ import "github.com/gdamore/tcell/v2/terminfo"
 
 func init() {
 
-	// dec vt100 (w/advanced video)
+	// DEC VT100 (w/advanced video)
 	terminfo.AddTerminfo(&terminfo.Terminfo{
 		Name:              "vt100",
 		Aliases:           []string{"vt100-am"},
