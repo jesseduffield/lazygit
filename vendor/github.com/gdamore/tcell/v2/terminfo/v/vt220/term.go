@@ -6,7 +6,7 @@ import "github.com/gdamore/tcell/v2/terminfo"
 
 func init() {
 
-	// dec vt220
+	// DEC VT220
 	terminfo.AddTerminfo(&terminfo.Terminfo{
 		Name:              "vt220",
 		Aliases:           []string{"vt200"},
@@ -14,6 +14,8 @@ func init() {
 		Lines:             24,
 		Bell:              "\a",
 		Clear:             "\x1b[H\x1b[J",
+		ShowCursor:        "\x1b[?25h",
+		HideCursor:        "\x1b[?25l",
 		AttrOff:           "\x1b[m\x1b(B",
 		Underline:         "\x1b[4m",
 		Bold:              "\x1b[1m",

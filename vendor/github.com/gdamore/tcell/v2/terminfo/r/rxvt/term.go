@@ -9,6 +9,7 @@ func init() {
 	// rxvt terminal emulator (X Window System)
 	terminfo.AddTerminfo(&terminfo.Terminfo{
 		Name:         "rxvt",
+		Aliases:      []string{"rxvt-color"},
 		Columns:      80,
 		Lines:        24,
 		Colors:       8,
@@ -44,7 +45,7 @@ func init() {
 		KeyLeft:      "\x1b[D",
 		KeyInsert:    "\x1b[2~",
 		KeyDelete:    "\x1b[3~",
-		KeyBackspace: "\b",
+		KeyBackspace: "\x7f",
 		KeyHome:      "\x1b[7~",
 		KeyEnd:       "\x1b[8~",
 		KeyPgUp:      "\x1b[5~",
@@ -109,7 +110,6 @@ func init() {
 		KeyCtrlHome:  "\x1b[7^",
 		KeyCtrlEnd:   "\x1b[8^",
 		AutoMargin:   true,
-		InsertChar:   "\x1b[@",
 	})
 
 	// rxvt 2.7.9 with xterm 256-colors
@@ -150,7 +150,7 @@ func init() {
 		KeyLeft:      "\x1b[D",
 		KeyInsert:    "\x1b[2~",
 		KeyDelete:    "\x1b[3~",
-		KeyBackspace: "\b",
+		KeyBackspace: "\x7f",
 		KeyHome:      "\x1b[7~",
 		KeyEnd:       "\x1b[8~",
 		KeyPgUp:      "\x1b[5~",
@@ -215,7 +215,6 @@ func init() {
 		KeyCtrlHome:  "\x1b[7^",
 		KeyCtrlEnd:   "\x1b[8^",
 		AutoMargin:   true,
-		InsertChar:   "\x1b[@",
 	})
 
 	// rxvt 2.7.9 with xterm 88-colors
@@ -256,7 +255,7 @@ func init() {
 		KeyLeft:      "\x1b[D",
 		KeyInsert:    "\x1b[2~",
 		KeyDelete:    "\x1b[3~",
-		KeyBackspace: "\b",
+		KeyBackspace: "\x7f",
 		KeyHome:      "\x1b[7~",
 		KeyEnd:       "\x1b[8~",
 		KeyPgUp:      "\x1b[5~",
@@ -321,7 +320,6 @@ func init() {
 		KeyCtrlHome:  "\x1b[7^",
 		KeyCtrlEnd:   "\x1b[8^",
 		AutoMargin:   true,
-		InsertChar:   "\x1b[@",
 	})
 
 	// rxvt-unicode terminal (X Window System)

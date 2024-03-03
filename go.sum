@@ -89,8 +89,8 @@ github.com/fsmiamoto/git-todo-parser v0.0.5/go.mod h1:B+AgTbNE2BARvJqzXygThzqxLI
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/gdamore/encoding v1.0.0 h1:+7OoQ1Bc6eTm5niUzBa0Ctsh6JbMW6Ra+YNuAtDBdko=
 github.com/gdamore/encoding v1.0.0/go.mod h1:alR0ol34c49FCSBLjhosxzcPHQbf2trDkoo5dl+VrEg=
-github.com/gdamore/tcell/v2 v2.7.1 h1:TiCcmpWHiAU7F0rA2I3S2Y4mmLmO9KHxJ7E1QhYzQbc=
-github.com/gdamore/tcell/v2 v2.7.1/go.mod h1:dSXtXTSK0VsW1biw65DZLZ2NKr7j0qP/0J7ONmsraWg=
+github.com/gdamore/tcell/v2 v2.7.3 h1:YLQlOj5F0hSlKy5TJvlych29+WTcJzbElnLYwx8gvdg=
+github.com/gdamore/tcell/v2 v2.7.3/go.mod h1:dSXtXTSK0VsW1biw65DZLZ2NKr7j0qP/0J7ONmsraWg=
 github.com/gliderlabs/ssh v0.2.2 h1:6zsha5zo/TWhRhwqCD3+EarCAgZ2yN28ipRnGPnwkI0=
 github.com/gliderlabs/ssh v0.2.2/go.mod h1:U7qILu1NlMHj9FlMhZLlkCdDnU1DBEAqr0aevW3Awn0=
 github.com/go-errors/errors v1.0.2/go.mod h1:psDX2osz5VnTOnFWbDeWwS7yejl+uV3FEWEp4lssFEs=
@@ -187,8 +187,8 @@ github.com/jesseduffield/generics v0.0.0-20220320043834-727e535cbe68 h1:EQP2Tv8T
 github.com/jesseduffield/generics v0.0.0-20220320043834-727e535cbe68/go.mod h1:+LLj9/WUPAP8LqCchs7P+7X0R98HiFujVFANdNaxhGk=
 github.com/jesseduffield/go-git/v5 v5.1.2-0.20221018185014-fdd53fef665d h1:bO+OmbreIv91rCe8NmscRwhFSqkDJtzWCPV4Y+SQuXE=
 github.com/jesseduffield/go-git/v5 v5.1.2-0.20221018185014-fdd53fef665d/go.mod h1:nGNEErzf+NRznT+N2SWqmHnDnF9aLgANB1CUNEan09o=
-github.com/jesseduffield/gocui v0.3.1-0.20240301130105-aefee393ff39 h1:SOgE243njnEvUr2yjMyPaEzajwb0LscbfYlnYfgBpoY=
-github.com/jesseduffield/gocui v0.3.1-0.20240301130105-aefee393ff39/go.mod h1:7WDm73sIFB9Phn7rxAsv+ttmYDsQcTM4gEb6B+XmVuQ=
+github.com/jesseduffield/gocui v0.3.1-0.20240303173746-f2b0f1f68dd8 h1:DGyAjpaAnxDuKO4MEoFjifhkUV7sU6znMR9eRfjjvn0=
+github.com/jesseduffield/gocui v0.3.1-0.20240303173746-f2b0f1f68dd8/go.mod h1:lLLfxEGyIvvkzzpHdKkfgIVFmxqEejeACxKMVxSHLeM=
 github.com/jesseduffield/kill v0.0.0-20220618033138-bfbe04675d10 h1:jmpr7KpX2+2GRiE91zTgfq49QvgiqB0nbmlwZ8UnOx0=
 github.com/jesseduffield/kill v0.0.0-20220618033138-bfbe04675d10/go.mod h1:aA97kHeNA+sj2Hbki0pvLslmE4CbDyhBeSSTUUnOuVo=
 github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5 h1:CDuQmfOjAtb1Gms6a1p5L2P8RhbLUq5t8aL7PiQd2uY=
