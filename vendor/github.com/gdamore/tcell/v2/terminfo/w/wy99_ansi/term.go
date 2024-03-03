@@ -6,7 +6,7 @@ import "github.com/gdamore/tcell/v2/terminfo"
 
 func init() {
 
-	// Wyse WY-99GT in ansi mode (int'l PC keyboard)
+	// Wyse WY-99GT in ANSI mode (int'l PC keyboard)
 	terminfo.AddTerminfo(&terminfo.Terminfo{
 		Name:              "wy99-ansi",
 		Columns:           80,
@@ -62,7 +62,7 @@ func init() {
 		AutoMargin:        true,
 	})
 
-	// Wyse WY-99GT in ansi mode (US PC keyboard)
+	// Wyse WY-99GT in ANSI mode (US PC keyboard)
 	terminfo.AddTerminfo(&terminfo.Terminfo{
 		Name:              "wy99a-ansi",
 		Columns:           80,

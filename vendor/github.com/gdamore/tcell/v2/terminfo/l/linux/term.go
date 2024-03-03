@@ -6,7 +6,7 @@ import "github.com/gdamore/tcell/v2/terminfo"
 
 func init() {
 
-	// linux console
+	// Linux console
 	terminfo.AddTerminfo(&terminfo.Terminfo{
 		Name:              "linux",
 		Colors:            8,
@@ -14,7 +14,7 @@ func init() {
 		Clear:             "\x1b[H\x1b[J",
 		ShowCursor:        "\x1b[?25h\x1b[?0c",
 		HideCursor:        "\x1b[?25l\x1b[?1c",
-		AttrOff:           "\x1b[0;10m",
+		AttrOff:           "\x1b[m\x0f",
 		Underline:         "\x1b[4m",
 		Bold:              "\x1b[1m",
 		Dim:               "\x1b[2m",
@@ -25,9 +25,10 @@ func init() {
 		SetFgBg:           "\x1b[3%p1%d;4%p2%dm",
 		ResetFgBg:         "\x1b[39;49m",
 		PadChar:           "\x00",
-		AltChars:          "+\x10,\x11-\x18.\x190\xdb`\x04a\xb1f\xf8g\xf1h\xb0i\xcej\xd9k\xbfl\xdam\xc0n\xc5o~p\xc4q\xc4r\xc4s_t\xc3u\xb4v\xc1w\xc2x\xb3y\xf3z\xf2{\xe3|\xd8}\x9c~\xfe",
-		EnterAcs:          "\x1b[11m",
-		ExitAcs:           "\x1b[10m",
+		AltChars:          "++,,--..00``aaffgghhiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz{{||}}~~",
+		EnterAcs:          "\x0e",
+		ExitAcs:           "\x0f",
+		EnableAcs:         "\x1b)0",
 		EnableAutoMargin:  "\x1b[?7h",
 		DisableAutoMargin: "\x1b[?7l",
 		Mouse:             "\x1b[M",
@@ -65,7 +66,7 @@ func init() {
 		KeyF18:            "\x1b[32~",
 		KeyF19:            "\x1b[33~",
 		KeyF20:            "\x1b[34~",
-		KeyBacktab:        "\x1b[Z",
+		KeyBacktab:        "\x1b\t",
 		AutoMargin:        true,
 		InsertChar:        "\x1b[@",
 	})

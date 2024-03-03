@@ -6,7 +6,7 @@ import "github.com/gdamore/tcell/v2/terminfo"
 
 func init() {
 
-	// dec vt400 24x80 column autowrap
+	// DEC VT400 24x80 column autowrap
 	terminfo.AddTerminfo(&terminfo.Terminfo{
 		Name:              "vt400",
 		Aliases:           []string{"vt400-24", "dec-vt400"},
