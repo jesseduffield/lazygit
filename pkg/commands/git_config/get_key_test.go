@@ -23,6 +23,20 @@ func TestGitConfigCount(t *testing.T) {
 				"user.signingkey": "abc0123",
 			},
 		},
+		{
+			TestName: "2 configs",
+			Envs: map[string]string{
+				"GIT_CONFIG_COUNT":   "2",
+				"GIT_CONFIG_KEY_0":   "custom.foo",
+				"GIT_CONFIG_VALUE_0": "bob",
+				"GIT_CONFIG_KEY_1":   "custom.bar",
+				"GIT_CONFIG_VALUE_1": "alice",
+			},
+			ExpectedConfigValues: map[string]string{
+				"custom.foo": "bob",
+				"custom.bar": "alice",
+			},
+		},
 	}
 	for _, s := range scenarios {
 		t.Run(s.TestName, func(t *testing.T) {
