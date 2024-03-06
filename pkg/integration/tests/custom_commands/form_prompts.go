@@ -6,7 +6,7 @@ import (
 )
 
 var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Using a custom command reffering prompt responses by name",
+	Description:  "Using a custom command referring prompt responses by name",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupRepo: func(shell *Shell) {
