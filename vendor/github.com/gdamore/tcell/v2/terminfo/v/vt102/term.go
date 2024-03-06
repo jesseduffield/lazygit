@@ -6,7 +6,7 @@ import "github.com/gdamore/tcell/v2/terminfo"
 
 func init() {
 
-	// dec vt102
+	// DEC VT102
 	terminfo.AddTerminfo(&terminfo.Terminfo{
 		Name:              "vt102",
 		Columns:           80,

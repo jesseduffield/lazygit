@@ -1822,7 +1822,14 @@ func (t *tScreen) engage() error {
 	}
 
 	ti := t.ti
-	t.TPuts(ti.EnterCA)
+	if os.Getenv("TCELL_ALTSCREEN") != "disable" {
+		// Technically this may not be right, but every terminal we know about
+		// (even Wyse 60) uses this to enter the alternate screen buffer, and
+		// possibly save and restore the window title and/or icon.
+		// (In theory there could be terminals that don't support X,Y cursor
+		// positions without a setup command, but we don't support them.)
+		t.TPuts(ti.EnterCA)
+	}
 	t.TPuts(ti.EnterKeypad)
 	t.TPuts(ti.HideCursor)
 	t.TPuts(ti.EnableAcs)
@@ -1865,10 +1872,12 @@ func (t *tScreen) disengage() {
 	}
 	t.TPuts(ti.ResetFgBg)
 	t.TPuts(ti.AttrOff)
-	t.TPuts(ti.Clear)
-	t.TPuts(ti.ExitCA)
 	t.TPuts(ti.ExitKeypad)
 	t.TPuts(ti.EnableAutoMargin)
+	if os.Getenv("TCELL_ALTSCREEN") != "disable" {
+		t.TPuts(ti.Clear) // only needed if ExitCA is empty
+		t.TPuts(ti.ExitCA)
+	}
 	t.enableMouse(0)
 	t.enablePasting(false)
 	t.disableFocusReporting()
