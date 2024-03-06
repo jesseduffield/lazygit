@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 	"syscall"
@@ -53,7 +54,9 @@ func runGitConfigCmd(cmd *exec.Cmd) (string, error) {
 
 func getGitConfigCmd(key string) *exec.Cmd {
 	gitArgs := []string{"config", "--get", "--null", key}
-	return exec.Command("git", gitArgs...)
+	cmd := exec.Command("git", gitArgs...)
+	cmd.Env = os.Environ()
+	return cmd
 }
 
 func getGitConfigGeneralCmd(args string) *exec.Cmd {
