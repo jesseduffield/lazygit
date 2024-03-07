@@ -15,9 +15,7 @@ func isContainer() bool {
 
 	if strings.Contains(string(data), "docker") ||
 		strings.Contains(string(data), "/lxc/") ||
-		[]string{string(data)}[0] != "systemd" &&
-			[]string{string(data)}[0] != "init" ||
-		os.Getenv("container") != "" {
+		os.Getenv("CONTAINER") != "" {
 		return err == nil && true
 	}
 
