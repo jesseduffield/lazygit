@@ -26,8 +26,12 @@ func NewSubmoduleCommands(gitCommon *GitCommon) *SubmoduleCommands {
 	}
 }
 
-func (self *SubmoduleCommands) GetConfigs() ([]*models.SubmoduleConfig, error) {
-	file, err := os.Open(".gitmodules")
+func (self *SubmoduleCommands) GetConfigs(parentModule *models.SubmoduleConfig) ([]*models.SubmoduleConfig, error) {
+	gitModulesPath := ".gitmodules"
+	if parentModule != nil {
+		gitModulesPath = filepath.Join(parentModule.FullPath(), gitModulesPath)
+	}
+	file, err := os.Open(gitModulesPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
@@ -51,21 +55,27 @@ func (self *SubmoduleCommands) GetConfigs() ([]*models.SubmoduleConfig, error) {
 	}
 
 	configs := []*models.SubmoduleConfig{}
+	lastConfigIdx := -1
 	for scanner.Scan() {
 		line := scanner.Text()
 
 		if name, ok := firstMatch(line, `\[submodule "(.*)"\]`); ok {
-			configs = append(configs, &models.SubmoduleConfig{Name: name})
+			configs = append(configs, &models.SubmoduleConfig{
+				Name: name, ParentModule: parentModule,
+			})
+			lastConfigIdx = len(configs) - 1
 			continue
 		}
 
-		if len(configs) > 0 {
-			lastConfig := configs[len(configs)-1]
-
+		if lastConfigIdx != -1 {
 			if path, ok := firstMatch(line, `\s*path\s*=\s*(.*)\s*`); ok {
-				lastConfig.Path = path
+				configs[lastConfigIdx].Path = path
+				nestedConfigs, err := self.GetConfigs(configs[lastConfigIdx])
+				if err == nil {
+					configs = append(configs, nestedConfigs...)
+				}
 			} else if url, ok := firstMatch(line, `\s*url\s*=\s*(.*)\s*`); ok {
-				lastConfig.Url = url
+				configs[lastConfigIdx].Url = url
 			}
 		}
 	}
@@ -77,12 +87,12 @@ func (self *SubmoduleCommands) Stash(submodule *models.SubmoduleConfig) error {
 	// if the path does not exist then it hasn't yet been initialized so we'll swallow the error
 	// because the intention here is to have no dirty worktree state
 	if _, err := os.Stat(submodule.Path); os.IsNotExist(err) {
-		self.Log.Infof("submodule path %s does not exist, returning", submodule.Path)
+		self.Log.Infof("submodule path %s does not exist, returning", submodule.FullPath())
 		return nil
 	}
 
 	cmdArgs := NewGitCmd("stash").
-		Dir(submodule.Path).
+		Dir(submodule.FullPath()).
 		Arg("--include-untracked").
 		ToArgv()
 
@@ -90,8 +100,13 @@ func (self *SubmoduleCommands) Stash(submodule *models.SubmoduleConfig) error {
 }
 
 func (self *SubmoduleCommands) Reset(submodule *models.SubmoduleConfig) error {
+	parentDir := ""
+	if submodule.ParentModule != nil {
+		parentDir = submodule.ParentModule.FullPath()
+	}
 	cmdArgs := NewGitCmd("submodule").
 		Arg("update", "--init", "--force", "--", submodule.Path).
+		DirIf(parentDir != "", parentDir).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
@@ -106,6 +121,20 @@ func (self *SubmoduleCommands) UpdateAll() error {
 
 func (self *SubmoduleCommands) Delete(submodule *models.SubmoduleConfig) error {
 	// based on https://gist.github.com/myusuf3/7f645819ded92bda6677
+
+	if submodule.ParentModule != nil {
+		wd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+
+		err = os.Chdir(submodule.ParentModule.FullPath())
+		if err != nil {
+			return err
+		}
+
+		defer func() { _ = os.Chdir(wd) }()
+	}
 
 	if err := self.cmd.New(
 		NewGitCmd("submodule").
@@ -141,7 +170,7 @@ func (self *SubmoduleCommands) Delete(submodule *models.SubmoduleConfig) error {
 
 	// We may in fact want to use the repo's git dir path but git docs say not to
 	// mix submodules and worktrees anyway.
-	return os.RemoveAll(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "modules", submodule.Path))
+	return os.RemoveAll(submodule.GitDirPath(self.repoPaths.repoGitDirPath))
 }
 
 func (self *SubmoduleCommands) Add(name string, path string, url string) error {
@@ -158,10 +187,24 @@ func (self *SubmoduleCommands) Add(name string, path string, url string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *SubmoduleCommands) UpdateUrl(name string, path string, newUrl string) error {
+func (self *SubmoduleCommands) UpdateUrl(submodule *models.SubmoduleConfig, newUrl string) error {
+	if submodule.ParentModule != nil {
+		wd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+
+		err = os.Chdir(submodule.ParentModule.FullPath())
+		if err != nil {
+			return err
+		}
+
+		defer func() { _ = os.Chdir(wd) }()
+	}
+
 	setUrlCmdStr := NewGitCmd("config").
 		Arg(
-			"--file", ".gitmodules", "submodule."+name+".url", newUrl,
+			"--file", ".gitmodules", "submodule."+submodule.Name+".url", newUrl,
 		).
 		ToArgv()
 
@@ -170,7 +213,7 @@ func (self *SubmoduleCommands) UpdateUrl(name string, path string, newUrl string
 		return err
 	}
 
-	syncCmdStr := NewGitCmd("submodule").Arg("sync", "--", path).
+	syncCmdStr := NewGitCmd("submodule").Arg("sync", "--", submodule.Path).
 		ToArgv()
 
 	if err := self.cmd.New(syncCmdStr).Run(); err != nil {
