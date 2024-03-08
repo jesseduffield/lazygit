@@ -115,7 +115,6 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		{
 			Key:     opts.GetKey(editCommitKey),
 			Handler: self.withItems(self.edit),
-			// TODO: have disabled reason ensure that if we're not rebasing, we only select one commit
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(self.midRebaseCommandEnabled),
 			),
@@ -457,15 +456,7 @@ func (self *LocalCommitsController) edit(selectedCommits []*models.Commit) error
 		return self.updateTodos(todo.Edit, selectedCommits)
 	}
 
-	// TODO: support range select here (start a rebase and set the selected commits
-	// to 'edit' in the todo file)
-	if len(selectedCommits) > 1 {
-		return self.c.ErrorMsg(self.c.Tr.RangeSelectNotSupported)
-	}
-
-	selectedCommit := selectedCommits[0]
-
-	return self.startInteractiveRebaseWithEdit(selectedCommit)
+	return self.startInteractiveRebaseWithEdit(selectedCommits)
 }
 
 func (self *LocalCommitsController) quickStartInteractiveRebase() error {
@@ -474,11 +465,11 @@ func (self *LocalCommitsController) quickStartInteractiveRebase() error {
 		return self.c.Error(err)
 	}
 
-	return self.startInteractiveRebaseWithEdit(commitToEdit)
+	return self.startInteractiveRebaseWithEdit([]*models.Commit{commitToEdit})
 }
 
 func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
-	commitToEdit *models.Commit,
+	commitsToEdit []*models.Commit,
 ) error {
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
@@ -486,10 +477,24 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 		commits := self.c.Model().Commits
 		selectedSha := commits[selectedIdx].Sha
 		rangeStartSha := commits[rangeStartIdx].Sha
-		err := self.c.Git().Rebase.EditRebase(commitToEdit.Sha)
+		err := self.c.Git().Rebase.EditRebase(commitsToEdit[len(commitsToEdit)-1].Sha)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
 			types.RefreshOptions{Mode: types.BLOCK_UI, Then: func() {
+				todos := make([]*models.Commit, 0, len(commitsToEdit)-1)
+				for _, c := range commitsToEdit[:len(commitsToEdit)-1] {
+					// Merge commits can't be set to "edit", so just skip them
+					if !c.IsMerge() {
+						todos = append(todos, &models.Commit{Sha: c.Sha, Action: todo.Pick})
+					}
+				}
+				if len(todos) > 0 {
+					err := self.updateTodos(todo.Edit, todos)
+					if err != nil {
+						_ = self.c.Error(err)
+					}
+				}
+
 				// We need to select the same commit range again because after starting a rebase,
 				// new lines can be added for update-ref commands in the TODO file, due to
 				// stacked branches. So the selected commits may be in different positions in the list.
