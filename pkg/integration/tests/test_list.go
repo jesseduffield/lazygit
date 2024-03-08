@@ -167,6 +167,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.DropWithCustomCommentChar,
 	interactive_rebase.EditFirstCommit,
 	interactive_rebase.EditNonTodoCommitDuringRebase,
+	interactive_rebase.EditRangeSelectOutsideRebase,
 	interactive_rebase.EditTheConflCommit,
 	interactive_rebase.FixupFirstCommit,
 	interactive_rebase.FixupSecondCommit,
