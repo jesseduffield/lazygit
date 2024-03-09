@@ -1,7 +1,9 @@
-# see https://github.com/JamesIves/github-sponsors-readme-action
 name: Generate Sponsors README
 on:
   push:
+    branches:
+      - master
+  pull_request: # Add this if you want to run checks on PRs as well
     branches:
       - master
 jobs:
@@ -10,6 +12,13 @@ jobs:
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v3
+        with:
+          ref: master # This ensures the checkout step fetches the master branch
+
+      - name: Switch to master branch
+        run: |
+          git fetch origin master:refs/remotes/origin/master
+          git checkout master
 
       - name: Generate Sponsors 💖
         uses: JamesIves/github-sponsors-readme-action@v1.2.2
@@ -25,6 +34,6 @@ jobs:
           git config --global user.name "README-bot"
           git add README.md
           git commit -m "Updated README.md" || exit 0
-          git push
+          git push origin master # Explicitly push to master branch
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_API_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}
