@@ -33,7 +33,7 @@ jobs:
           git config --global user.email "actions@users.noreply.github.com"
           git config --global user.name "README-bot"
           git add README.md
-          git commit -m "Updated README.md" || exit 0
+          git commit -m "Updated README.md [skip ci]" || exit 0
           git push origin master # Explicitly push to master branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}
