@@ -26,3 +26,5 @@ jobs:
           git add README.md
           git commit -m "Updated README.md" || exit 0
           git push
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_API_TOKEN}}
