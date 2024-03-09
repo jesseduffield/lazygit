@@ -17,7 +17,7 @@ func NewSubmodulesContext(c *ContextCommon) *SubmodulesContext {
 	viewModel := NewFilteredListViewModel(
 		func() []*models.SubmoduleConfig { return c.Model().Submodules },
 		func(submodule *models.SubmoduleConfig) []string {
-			return []string{submodule.Name}
+			return []string{submodule.FullName()}
 		},
 		nil,
 	)

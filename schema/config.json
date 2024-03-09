@@ -405,6 +405,16 @@
             "signOff": {
               "type": "boolean",
               "description": "If true, pass '--signoff' flag when committing"
+            },
+            "autoWrapCommitMessage": {
+              "type": "boolean",
+              "description": "Automatic WYSIWYG wrapping of the commit message as you type",
+              "default": true
+            },
+            "autoWrapWidth": {
+              "type": "integer",
+              "description": "If autoWrapCommitMessage is true, the width to wrap to",
+              "default": 72
             }
           },
           "additionalProperties": false,

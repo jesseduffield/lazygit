@@ -11,11 +11,59 @@ const (
 	WORD_SEPARATORS = "*?_+-.[]~=/&;!#$%^(){}<>"
 )
 
+type CursorMapping struct {
+	Orig    int
+	Wrapped int
+}
+
 type TextArea struct {
-	content   []rune
-	cursor    int
-	overwrite bool
-	clipboard string
+	content        []rune
+	wrappedContent []rune
+	cursorMapping  []CursorMapping
+	cursor         int
+	overwrite      bool
+	clipboard      string
+	AutoWrap       bool
+	AutoWrapWidth  int
+}
+
+func AutoWrapContent(content []rune, autoWrapWidth int) ([]rune, []CursorMapping) {
+	estimatedNumberOfSoftLineBreaks := len(content) / autoWrapWidth
+	cursorMapping := make([]CursorMapping, 0, estimatedNumberOfSoftLineBreaks)
+	wrappedContent := make([]rune, 0, len(content)+estimatedNumberOfSoftLineBreaks)
+	startOfLine := 0
+	indexOfLastWhitespace := -1
+
+	for currentPos, r := range content {
+		if r == '\n' {
+			wrappedContent = append(wrappedContent, content[startOfLine:currentPos+1]...)
+			startOfLine = currentPos + 1
+			indexOfLastWhitespace = -1
+		} else {
+			if r == ' ' {
+				indexOfLastWhitespace = currentPos + 1
+			} else if currentPos-startOfLine >= autoWrapWidth && indexOfLastWhitespace >= 0 {
+				wrapAt := indexOfLastWhitespace
+				wrappedContent = append(wrappedContent, content[startOfLine:wrapAt]...)
+				wrappedContent = append(wrappedContent, '\n')
+				cursorMapping = append(cursorMapping, CursorMapping{wrapAt, len(wrappedContent)})
+				startOfLine = wrapAt
+				indexOfLastWhitespace = -1
+			}
+		}
+	}
+
+	wrappedContent = append(wrappedContent, content[startOfLine:]...)
+
+	return wrappedContent, cursorMapping
+}
+
+func (self *TextArea) autoWrapContent() {
+	if self.AutoWrap {
+		self.wrappedContent, self.cursorMapping = AutoWrapContent(self.content, self.AutoWrapWidth)
+	} else {
+		self.wrappedContent, self.cursorMapping = self.content, []CursorMapping{}
+	}
 }
 
 func (self *TextArea) TypeRune(r rune) {
@@ -27,6 +75,7 @@ func (self *TextArea) TypeRune(r rune) {
 			append([]rune{r}, self.content[self.cursor:]...)...,
 		)
 	}
+	self.autoWrapContent()
 
 	self.cursor++
 }
@@ -37,6 +86,7 @@ func (self *TextArea) BackSpaceChar() {
 	}
 
 	self.content = append(self.content[:self.cursor-1], self.content[self.cursor:]...)
+	self.autoWrapContent()
 	self.cursor--
 }
 
@@ -46,6 +96,7 @@ func (self *TextArea) DeleteChar() {
 	}
 
 	self.content = append(self.content[:self.cursor], self.content[self.cursor+1:]...)
+	self.autoWrapContent()
 }
 
 func (self *TextArea) MoveCursorLeft() {
@@ -123,6 +174,10 @@ func (self *TextArea) MoveCursorDown() {
 }
 
 func (self *TextArea) GetContent() string {
+	return string(self.wrappedContent)
+}
+
+func (self *TextArea) GetUnwrappedContent() string {
 	return string(self.content)
 }
 
@@ -144,7 +199,16 @@ func (self *TextArea) DeleteToStartOfLine() {
 
 		self.content = append(self.content[:self.cursor-1], self.content[self.cursor:]...)
 		self.cursor--
+		self.autoWrapContent()
 		return
+	}
+
+	// otherwise, if we're at a soft line start, skip left past the soft line
+	// break, so we'll end up deleting the previous line. This seems like the
+	// only reasonable behavior in this case, as you can't delete just the soft
+	// line break.
+	if self.atSoftLineStart() {
+		self.cursor--
 	}
 
 	// otherwise, you delete everything up to the start of the current line, without
@@ -152,6 +216,7 @@ func (self *TextArea) DeleteToStartOfLine() {
 	newlineIndex := self.closestNewlineOnLeft()
 	self.clipboard = string(self.content[newlineIndex+1 : self.cursor])
 	self.content = append(self.content[:newlineIndex+1], self.content[self.cursor:]...)
+	self.autoWrapContent()
 	self.cursor = newlineIndex + 1
 }
 
@@ -159,18 +224,30 @@ func (self *TextArea) DeleteToEndOfLine() {
 	if self.atEnd() {
 		return
 	}
+
+	// if we're at the end of the line, delete just the newline character
 	if self.atLineEnd() {
 		self.content = append(self.content[:self.cursor], self.content[self.cursor+1:]...)
+		self.autoWrapContent()
 		return
+	}
+
+	// otherwise, if we're at a soft line end, skip right past the soft line
+	// break, so we'll end up deleting the next line. This seems like the
+	// only reasonable behavior in this case, as you can't delete just the soft
+	// line break.
+	if self.atSoftLineEnd() {
+		self.cursor++
 	}
 
 	lineEndIndex := self.closestNewlineOnRight()
 	self.clipboard = string(self.content[self.cursor:lineEndIndex])
 	self.content = append(self.content[:self.cursor], self.content[lineEndIndex:]...)
+	self.autoWrapContent()
 }
 
 func (self *TextArea) GoToStartOfLine() {
-	if self.atLineStart() {
+	if self.atSoftLineStart() {
 		return
 	}
 
@@ -181,15 +258,21 @@ func (self *TextArea) GoToStartOfLine() {
 }
 
 func (self *TextArea) closestNewlineOnLeft() int {
+	wrappedCursor := self.origCursorToWrappedCursor(self.cursor)
+
 	newlineIndex := -1
 
-	for i, r := range self.content[0:self.cursor] {
+	for i, r := range self.wrappedContent[0:wrappedCursor] {
 		if r == '\n' {
 			newlineIndex = i
 		}
 	}
 
-	return newlineIndex
+	unwrappedNewlineIndex := self.wrappedCursorToOrigCursor(newlineIndex)
+	if unwrappedNewlineIndex >= 0 && self.content[unwrappedNewlineIndex] != '\n' {
+		unwrappedNewlineIndex--
+	}
+	return unwrappedNewlineIndex
 }
 
 func (self *TextArea) GoToEndOfLine() {
@@ -198,12 +281,22 @@ func (self *TextArea) GoToEndOfLine() {
 	}
 
 	self.cursor = self.closestNewlineOnRight()
+
+	// If the end of line is a soft line break, we need to move left by one so
+	// that we end up at the last whitespace before the line break. Otherwise
+	// we'd be at the start of the next line, since the newline character
+	// doesn't really exist in the real content.
+	if self.cursor < len(self.content) && self.content[self.cursor] != '\n' {
+		self.cursor--
+	}
 }
 
 func (self *TextArea) closestNewlineOnRight() int {
-	for i, r := range self.content[self.cursor:] {
+	wrappedCursor := self.origCursorToWrappedCursor(self.cursor)
+
+	for i, r := range self.wrappedContent[wrappedCursor:] {
 		if r == '\n' {
-			return self.cursor + i
+			return self.wrappedCursorToOrigCursor(wrappedCursor + i)
 		}
 	}
 
@@ -215,9 +308,21 @@ func (self *TextArea) atLineStart() bool {
 		(len(self.content) > self.cursor-1 && self.content[self.cursor-1] == '\n')
 }
 
+func (self *TextArea) atSoftLineStart() bool {
+	wrappedCursor := self.origCursorToWrappedCursor(self.cursor)
+	return wrappedCursor == 0 ||
+		(len(self.wrappedContent) > wrappedCursor-1 && self.wrappedContent[wrappedCursor-1] == '\n')
+}
+
 func (self *TextArea) atLineEnd() bool {
 	return self.atEnd() ||
 		(len(self.content) > self.cursor && self.content[self.cursor] == '\n')
+}
+
+func (self *TextArea) atSoftLineEnd() bool {
+	wrappedCursor := self.origCursorToWrappedCursor(self.cursor)
+	return wrappedCursor == len(self.wrappedContent) ||
+		(len(self.wrappedContent) > wrappedCursor+1 && self.wrappedContent[wrappedCursor+1] == '\n')
 }
 
 func (self *TextArea) BackSpaceWord() {
@@ -246,16 +351,50 @@ func (self *TextArea) BackSpaceWord() {
 
 	self.clipboard = string(self.content[self.cursor:right])
 	self.content = append(self.content[:self.cursor], self.content[right:]...)
+	self.autoWrapContent()
 }
 
 func (self *TextArea) Yank() {
 	self.TypeString(self.clipboard)
 }
 
+func origCursorToWrappedCursor(origCursor int, cursorMapping []CursorMapping) int {
+	prevMapping := CursorMapping{0, 0}
+	for _, mapping := range cursorMapping {
+		if origCursor < mapping.Orig {
+			break
+		}
+		prevMapping = mapping
+	}
+
+	return origCursor + prevMapping.Wrapped - prevMapping.Orig
+}
+
+func (self *TextArea) origCursorToWrappedCursor(origCursor int) int {
+	return origCursorToWrappedCursor(origCursor, self.cursorMapping)
+}
+
+func wrappedCursorToOrigCursor(wrappedCursor int, cursorMapping []CursorMapping) int {
+	prevMapping := CursorMapping{0, 0}
+	for _, mapping := range cursorMapping {
+		if wrappedCursor < mapping.Wrapped {
+			break
+		}
+		prevMapping = mapping
+	}
+
+	return wrappedCursor + prevMapping.Orig - prevMapping.Wrapped
+}
+
+func (self *TextArea) wrappedCursorToOrigCursor(wrappedCursor int) int {
+	return wrappedCursorToOrigCursor(wrappedCursor, self.cursorMapping)
+}
+
 func (self *TextArea) GetCursorXY() (int, int) {
 	cursorX := 0
 	cursorY := 0
-	for _, r := range self.content[0:self.cursor] {
+	wrappedCursor := self.origCursorToWrappedCursor(self.cursor)
+	for _, r := range self.wrappedContent[0:wrappedCursor] {
 		if r == '\n' {
 			cursorY++
 			cursorX = 0
@@ -278,15 +417,15 @@ func (self *TextArea) SetCursor2D(x int, y int) {
 	}
 
 	newCursor := 0
-	for _, r := range self.content {
+	for _, r := range self.wrappedContent {
 		if x <= 0 && y == 0 {
-			self.cursor = newCursor
+			self.cursor = self.wrappedCursorToOrigCursor(newCursor)
 			return
 		}
 
 		if r == '\n' {
 			if y == 0 {
-				self.cursor = newCursor
+				self.cursor = self.wrappedCursorToOrigCursor(newCursor)
 				return
 			}
 			y--
@@ -304,11 +443,12 @@ func (self *TextArea) SetCursor2D(x int, y int) {
 		return
 	}
 
-	self.cursor = newCursor
+	self.cursor = self.wrappedCursorToOrigCursor(newCursor)
 }
 
 func (self *TextArea) Clear() {
 	self.content = []rune{}
+	self.wrappedContent = []rune{}
 	self.cursor = 0
 }
 

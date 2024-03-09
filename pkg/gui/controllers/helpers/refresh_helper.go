@@ -415,7 +415,7 @@ func (self *RefreshHelper) refreshTags() error {
 }
 
 func (self *RefreshHelper) refreshStateSubmoduleConfigs() error {
-	configs, err := self.c.Git().Submodule.GetConfigs()
+	configs, err := self.c.Git().Submodule.GetConfigs(nil)
 	if err != nil {
 		return err
 	}
