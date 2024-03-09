@@ -20,27 +20,6 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			TopLines(
 				Contains("commit 10").IsSelected(),
 			).
-			NavigateToLine(Contains("commit 07")).
-			Press(keys.Universal.RangeSelectDown).
-			TopLines(
-				Contains("commit 10"),
-				Contains("commit 09"),
-				Contains("commit 08"),
-				Contains("commit 07").IsSelected(),
-				Contains("commit 06").IsSelected(),
-				Contains("commit 05"),
-				Contains("commit 04"),
-			).
-			// Verify we can't perform an edit on multiple commits (it's not supported
-			// yet)
-			Press(keys.Universal.Edit).
-			Tap(func() {
-				// This ought to be a toast but I'm too lazy to implement that right now.
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Contains("Action does not support range selection, please select a single item")).
-					Confirm()
-			}).
 			NavigateToLine(Contains("commit 05")).
 			// Start a rebase
 			Press(keys.Universal.Edit).
