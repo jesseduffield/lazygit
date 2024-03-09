@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -16,10 +17,11 @@ type ICommitsHelper interface {
 type CommitsHelper struct {
 	c *HelperCommon
 
-	getCommitSummary     func() string
-	setCommitSummary     func(string)
-	getCommitDescription func() string
-	setCommitDescription func(string)
+	getCommitSummary              func() string
+	setCommitSummary              func(string)
+	getCommitDescription          func() string
+	getUnwrappedCommitDescription func() string
+	setCommitDescription          func(string)
 }
 
 var _ ICommitsHelper = &CommitsHelper{}
@@ -29,14 +31,16 @@ func NewCommitsHelper(
 	getCommitSummary func() string,
 	setCommitSummary func(string),
 	getCommitDescription func() string,
+	getUnwrappedCommitDescription func() string,
 	setCommitDescription func(string),
 ) *CommitsHelper {
 	return &CommitsHelper{
-		c:                    c,
-		getCommitSummary:     getCommitSummary,
-		setCommitSummary:     setCommitSummary,
-		getCommitDescription: getCommitDescription,
-		setCommitDescription: setCommitDescription,
+		c:                             c,
+		getCommitSummary:              getCommitSummary,
+		setCommitSummary:              setCommitSummary,
+		getCommitDescription:          getCommitDescription,
+		getUnwrappedCommitDescription: getUnwrappedCommitDescription,
+		setCommitDescription:          setCommitDescription,
 	}
 }
 
@@ -53,11 +57,36 @@ func (self *CommitsHelper) SetMessageAndDescriptionInView(message string) {
 	self.c.Contexts().CommitMessage.RenderCommitLength()
 }
 
-func (self *CommitsHelper) JoinCommitMessageAndDescription() string {
-	if len(self.getCommitDescription()) == 0 {
+func (self *CommitsHelper) JoinCommitMessageAndUnwrappedDescription() string {
+	if len(self.getUnwrappedCommitDescription()) == 0 {
 		return self.getCommitSummary()
 	}
-	return self.getCommitSummary() + "\n" + self.getCommitDescription()
+	return self.getCommitSummary() + "\n" + self.getUnwrappedCommitDescription()
+}
+
+func TryRemoveHardLineBreaks(message string, autoWrapWidth int) string {
+	messageRunes := []rune(message)
+	lastHardLineStart := 0
+	for i, r := range messageRunes {
+		if r == '\n' {
+			// Try to make this a soft linebreak by turning it into a space, and
+			// checking whether it still wraps to the same result then.
+			messageRunes[i] = ' '
+
+			_, cursorMapping := gocui.AutoWrapContent(messageRunes[lastHardLineStart:], autoWrapWidth)
+
+			// Look at the cursorMapping to check whether auto-wrapping inserted
+			// a line break. If it did, there will be a cursorMapping entry with
+			// Orig pointing to the position after the inserted line break.
+			if len(cursorMapping) == 0 || cursorMapping[0].Orig != i-lastHardLineStart+1 {
+				// It didn't, so change it back to a newline
+				messageRunes[i] = '\n'
+			}
+			lastHardLineStart = i + 1
+		}
+	}
+
+	return string(messageRunes)
 }
 
 func (self *CommitsHelper) SwitchToEditor() error {
@@ -154,7 +183,7 @@ func (self *CommitsHelper) HandleCommitConfirm() error {
 
 func (self *CommitsHelper) CloseCommitMessagePanel() error {
 	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
-		message := self.JoinCommitMessageAndDescription()
+		message := self.JoinCommitMessageAndUnwrappedDescription()
 
 		self.c.Contexts().CommitMessage.SetPreservedMessage(message)
 	} else {

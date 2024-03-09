@@ -92,6 +92,8 @@ git:
     useConfig: false
   commit:
     signOff: false
+    autoWrapCommitMessage: true # automatic WYSIWYG wrapping of the commit message as you type
+    autoWrapWidth: 72 # if autoWrapCommitMessage is true, the width to wrap to
   merging:
     # only applicable to unix users
     manualCommit: false
