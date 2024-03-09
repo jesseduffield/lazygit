@@ -37,6 +37,7 @@ var tests = []*components.IntegrationTest{
 	bisect.FromOtherBranch,
 	bisect.Skip,
 	branch.CheckoutByName,
+	branch.CheckoutByNameRemote,
 	branch.CreateTag,
 	branch.Delete,
 	branch.DeleteRemoteBranchWithCredentialPrompt,

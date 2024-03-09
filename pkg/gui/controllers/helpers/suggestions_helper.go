@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -24,6 +25,8 @@ import (
 // they know about the type. In that vein, I'm including all our functions for
 // finding suggestions in this file, so that it's easy to see if a function already
 // exists for fetching a particular model.
+
+var specialRefNames = []string{"HEAD", "FETCH_HEAD", "MERGE_HEAD", "ORIG_HEAD"}
 
 type ISuggestionsHelper interface {
 	GetRemoteSuggestionsFunc() func(string) []*types.Suggestion
@@ -168,9 +171,29 @@ func (self *SuggestionsHelper) GetRefsSuggestionsFunc() func(string) []*types.Su
 	remoteBranchNames := self.getRemoteBranchNames("/")
 	localBranchNames := self.getBranchNames()
 	tagNames := self.getTagNames()
-	additionalRefNames := []string{"HEAD", "FETCH_HEAD", "MERGE_HEAD", "ORIG_HEAD"}
 
-	refNames := append(append(append(remoteBranchNames, localBranchNames...), tagNames...), additionalRefNames...)
+	refNames := append(append(append(remoteBranchNames, localBranchNames...), tagNames...), specialRefNames...)
+
+	return FuzzySearchFunc(refNames)
+}
+
+func (self *SuggestionsHelper) GetCheckoutBranchesSuggestionsFunc() func(string) []*types.Suggestion {
+	remoteBranchNames := self.getRemoteBranchNames("/")
+	// We include remote branches with the remote stripped off in the list of suggestions
+	// so that you can check out the branch as a local branch tracking the remote branch, just
+	// like you can do in the git CLI. I.e. if you checkout 'origin/blah' it will be
+	// checked out as as a detached head, but if you checkout 'blah' it will be checked out
+	// as a local branch tracking 'origin/blah'.
+	localisedRemoteBranchNames := lo.Map(remoteBranchNames, func(branchName string, _ int) string {
+		// strip the remote name from the branch name
+		return branchName[strings.Index(branchName, "/")+1:]
+	})
+	localBranchNames := self.getBranchNames()
+	tagNames := self.getTagNames()
+
+	refNames := append(append(append(append(remoteBranchNames, localBranchNames...), tagNames...), specialRefNames...), localisedRemoteBranchNames...)
+
+	refNames = lo.Uniq(refNames)
 
 	return FuzzySearchFunc(refNames)
 }

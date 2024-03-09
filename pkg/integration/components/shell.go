@@ -148,6 +148,10 @@ func (self *Shell) Checkout(name string) *Shell {
 	return self.RunCommand([]string{"git", "checkout", name})
 }
 
+func (self *Shell) DeleteBranch(name string) *Shell {
+	return self.RunCommand([]string{"git", "branch", "-D", name})
+}
+
 func (self *Shell) Merge(name string) *Shell {
 	return self.RunCommand([]string{"git", "merge", "--commit", "--no-ff", name})
 }

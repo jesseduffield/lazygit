@@ -433,7 +433,7 @@ func (self *BranchesController) forceCheckout() error {
 func (self *BranchesController) checkoutByName() error {
 	return self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.BranchName + ":",
-		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRefsSuggestionsFunc(),
+		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetCheckoutBranchesSuggestionsFunc(),
 		HandleConfirm: func(response string) error {
 			self.c.LogAction("Checkout branch")
 			return self.c.Helpers().Refs.CheckoutRef(response, types.CheckoutRefOptions{
