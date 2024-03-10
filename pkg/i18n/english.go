@@ -1906,6 +1906,10 @@ keybinding:
 - Push/pull/fetch loading statuses are now shown against the branch rather than in a popup. This allows you to e.g. fetch multiple branches in parallel and see the status for each branch.
 - The git log graph in the commits view is now always shown by default (previously it was only shown when the view was maximised). If you find this too noisy, you can change it back via ctrl+L -> 'Show git graph' -> 'when maximised'
 - Pressing space on a remote branch used to show a prompt for entering a name for a new local branch to check out from the remote branch. Now it just checks out the remote branch directly, letting you choose between a new local branch with the same name, or a detached head. The old behavior is still available via the 'n' keybinding.
+- Filtering (e.g. when pressing '/') is less fuzzy by default; it only matches substrings now. Multiple substrings can be matched by separating them with spaces. If you want to revert to the old behavior, set the following in your config:
+
+gui:
+  filterMode: 'fuzzy'
 	  `,
 		},
 	}
