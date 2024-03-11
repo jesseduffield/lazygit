@@ -248,6 +248,16 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Handler:  self.scrollDownConfirmationPanel,
 		},
 		{
+			ViewName: "confirmation",
+			Key:      gocui.MouseWheelUp,
+			Handler:  self.scrollUpConfirmationPanel,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      gocui.MouseWheelDown,
+			Handler:  self.scrollDownConfirmationPanel,
+		},
+		{
 			ViewName:          "submodules",
 			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:           self.handleCopySelectedSideContextItemToClipboard,
