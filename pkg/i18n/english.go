@@ -147,7 +147,9 @@ type TranslationSet struct {
 	AmendCommitTooltip                    string
 	Amend                                 string
 	ResetAuthor                           string
+	ResetAuthorTooltip                    string
 	SetAuthor                             string
+	SetAuthorTooltip                      string
 	AddCoAuthor                           string
 	AmendCommitAttribute                  string
 	AmendCommitAttributeTooltip           string
@@ -270,6 +272,7 @@ type TranslationSet struct {
 	SearchTitle                           string
 	TagsTitle                             string
 	MenuTitle                             string
+	CommitMenuTitle                       string
 	RemotesTitle                          string
 	RemoteBranchesTitle                   string
 	PatchBuildingTitle                    string
@@ -1093,7 +1096,9 @@ func EnglishTranslationSet() TranslationSet {
 		AmendCommitTooltip:                  "Amend commit with staged changes. If the selected commit is the HEAD commit, this will perform `git commit --amend`. Otherwise the commit will be amended via a rebase.",
 		Amend:                               "Amend",
 		ResetAuthor:                         "Reset author",
+		ResetAuthorTooltip:                  "Reset the commit's author to the currently configured user. This will also renew the author timestamp",
 		SetAuthor:                           "Set author",
+		SetAuthorTooltip:                    "Set the author based on a prompt",
 		AddCoAuthor:                         "Add co-author",
 		AmendCommitAttribute:                "Amend commit attribute",
 		AmendCommitAttributeTooltip:         "Set/Reset commit author or set co-author.",
@@ -1209,12 +1214,13 @@ func EnglishTranslationSet() TranslationSet {
 		RebaseOptionsTitle:                  "Rebase options",
 		CommitSummaryTitle:                  "Commit summary",
 		CommitDescriptionTitle:              "Commit description",
-		CommitDescriptionSubTitle:           "Press {{.togglePanelKeyBinding}} to toggle focus, {{.switchToEditorKeyBinding}} to switch to editor",
+		CommitDescriptionSubTitle:           "Press {{.togglePanelKeyBinding}} to toggle focus, {{.commitMenuKeybinding}} to open menu",
 		CommitDescriptionSubTitleNoSwitch:   "Press {{.togglePanelKeyBinding}} to toggle focus",
 		LocalBranchesTitle:                  "Local branches",
 		SearchTitle:                         "Search",
 		TagsTitle:                           "Tags",
 		MenuTitle:                           "Menu",
+		CommitMenuTitle:                     "Commit Menu",
 		RemotesTitle:                        "Remotes",
 		RemoteBranchesTitle:                 "Remote branches",
 		PatchBuildingTitle:                  "Main panel (patch building)",

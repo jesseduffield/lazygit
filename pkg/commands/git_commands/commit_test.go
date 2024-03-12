@@ -333,3 +333,70 @@ func TestGetCommitMessageFromHistory(t *testing.T) {
 		})
 	}
 }
+
+func TestAddCoAuthorToMessage(t *testing.T) {
+	scenarios := []struct {
+		name           string
+		message        string
+		expectedResult string
+	}{
+		{
+			// This never happens, I think it isn't possible to create a commit
+			// with an empty message. Just including it for completeness.
+			name:           "Empty message",
+			message:        "",
+			expectedResult: "\n\nCo-authored-by: John Doe <john@doe.com>",
+		},
+		{
+			name:           "Just a subject, no body",
+			message:        "Subject",
+			expectedResult: "Subject\n\nCo-authored-by: John Doe <john@doe.com>",
+		},
+		{
+			name:           "Subject and body",
+			message:        "Subject\n\nBody",
+			expectedResult: "Subject\n\nBody\n\nCo-authored-by: John Doe <john@doe.com>",
+		},
+		{
+			name:           "Body already ending with a Co-authored-by line",
+			message:        "Subject\n\nBody\n\nCo-authored-by: Jane Smith <jane@smith.com>",
+			expectedResult: "Subject\n\nBody\n\nCo-authored-by: Jane Smith <jane@smith.com>\nCo-authored-by: John Doe <john@doe.com>",
+		},
+	}
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			result := AddCoAuthorToMessage(s.message, "John Doe <john@doe.com>")
+			assert.Equal(t, s.expectedResult, result)
+		})
+	}
+}
+
+func TestAddCoAuthorToDescription(t *testing.T) {
+	scenarios := []struct {
+		name           string
+		description    string
+		expectedResult string
+	}{
+		{
+			name:           "Empty description",
+			description:    "",
+			expectedResult: "Co-authored-by: John Doe <john@doe.com>",
+		},
+		{
+			name:           "Non-empty description",
+			description:    "Body",
+			expectedResult: "Body\n\nCo-authored-by: John Doe <john@doe.com>",
+		},
+		{
+			name:           "Description already ending with a Co-authored-by line",
+			description:    "Body\n\nCo-authored-by: Jane Smith <jane@smith.com>",
+			expectedResult: "Body\n\nCo-authored-by: Jane Smith <jane@smith.com>\nCo-authored-by: John Doe <john@doe.com>",
+		},
+	}
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			result := AddCoAuthorToDescription(s.description, "John Doe <john@doe.com>")
+			assert.Equal(t, s.expectedResult, result)
+		})
+	}
+}

@@ -69,7 +69,10 @@ func (self *CommitMessagePanelDriver) Cancel() {
 }
 
 func (self *CommitMessagePanelDriver) SwitchToEditor() {
-	self.getViewDriver().Press(self.t.keys.CommitMessage.SwitchToEditor)
+	self.OpenCommitMenu()
+	self.t.ExpectPopup().Menu().Title(Equals("Commit Menu")).
+		Select(Contains("Open in editor")).
+		Confirm()
 }
 
 func (self *CommitMessagePanelDriver) SelectPreviousMessage() *CommitMessagePanelDriver {
@@ -79,5 +82,10 @@ func (self *CommitMessagePanelDriver) SelectPreviousMessage() *CommitMessagePane
 
 func (self *CommitMessagePanelDriver) SelectNextMessage() *CommitMessagePanelDriver {
 	self.getViewDriver().SelectNextItem()
+	return self
+}
+
+func (self *CommitMessagePanelDriver) OpenCommitMenu() *CommitMessagePanelDriver {
+	self.t.press(self.t.keys.CommitMessage.CommitMenu)
 	return self
 }

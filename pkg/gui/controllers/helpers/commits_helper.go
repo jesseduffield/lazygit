@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -214,4 +215,40 @@ func (self *CommitsHelper) commitMessageContexts() []types.Context {
 		self.c.Contexts().CommitDescription,
 		self.c.Contexts().CommitMessage,
 	}
+}
+
+func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.Suggestion) error {
+	menuItems := []*types.MenuItem{
+		{
+			Label: self.c.Tr.OpenInEditor,
+			OnPress: func() error {
+				return self.SwitchToEditor()
+			},
+			Key: 'e',
+		},
+		{
+			Label: self.c.Tr.AddCoAuthor,
+			OnPress: func() error {
+				return self.addCoAuthor(suggestionFunc)
+			},
+			Key: 'c',
+		},
+	}
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.CommitMenuTitle,
+		Items: menuItems,
+	})
+}
+
+func (self *CommitsHelper) addCoAuthor(suggestionFunc func(string) []*types.Suggestion) error {
+	return self.c.Prompt(types.PromptOpts{
+		Title:               self.c.Tr.AddCoAuthorPromptTitle,
+		FindSuggestionsFunc: suggestionFunc,
+		HandleConfirm: func(value string) error {
+			commitDescription := self.getCommitDescription()
+			commitDescription = git_commands.AddCoAuthorToDescription(commitDescription, value)
+			self.setCommitDescription(commitDescription)
+			return nil
+		},
+	})
 }

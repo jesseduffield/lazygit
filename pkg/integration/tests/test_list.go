@@ -64,6 +64,7 @@ var tests = []*components.IntegrationTest{
 	cherry_pick.CherryPickDuringRebase,
 	cherry_pick.CherryPickRange,
 	commit.AddCoAuthor,
+	commit.AddCoAuthorWhileCommitting,
 	commit.Amend,
 	commit.AutoWrapMessage,
 	commit.Commit,

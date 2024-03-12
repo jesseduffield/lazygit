@@ -673,25 +673,26 @@ func (self *LocalCommitsController) canAmend(commit *models.Commit) *types.Disab
 }
 
 func (self *LocalCommitsController) amendAttribute(commit *models.Commit) error {
+	opts := self.c.KeybindingsOpts()
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: "Amend commit attribute",
 		Items: []*types.MenuItem{
 			{
 				Label:   self.c.Tr.ResetAuthor,
 				OnPress: self.resetAuthor,
-				Key:     'a',
-				Tooltip: "Reset the commit's author to the currently configured user. This will also renew the author timestamp",
+				Key:     opts.GetKey(opts.Config.AmendAttribute.ResetAuthor),
+				Tooltip: self.c.Tr.ResetAuthorTooltip,
 			},
 			{
 				Label:   self.c.Tr.SetAuthor,
 				OnPress: self.setAuthor,
-				Key:     'A',
-				Tooltip: "Set the author based on a prompt",
+				Key:     opts.GetKey(opts.Config.AmendAttribute.SetAuthor),
+				Tooltip: self.c.Tr.SetAuthorTooltip,
 			},
 			{
 				Label:   self.c.Tr.AddCoAuthor,
 				OnPress: self.addCoAuthor,
-				Key:     'c',
+				Key:     opts.GetKey(opts.Config.AmendAttribute.AddCoAuthor),
 				Tooltip: self.c.Tr.AddCoAuthorTooltip,
 			},
 		},
