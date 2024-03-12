@@ -773,6 +773,9 @@ type TranslationSet struct {
 	Actions                              Actions
 	Bisect                               Bisect
 	Log                                  Log
+	BreakingChangesTitle                 string
+	BreakingChangesMessage               string
+	BreakingChangesByVersion             map[string]string
 }
 
 type Bisect struct {
@@ -1865,6 +1868,32 @@ func EnglishTranslationSet() TranslationSet {
 			CreateFileWithContent:    "Creating file '{{.path}}'",
 			AppendingLineToFile:      "Appending '{{.line}}' to file '{{.filename}}'",
 			EditRebaseFromBaseCommit: "Beginning interactive rebase from '{{.baseCommit}}' onto '{{.targetBranchName}}",
+		},
+		BreakingChangesTitle: "Breaking Changes",
+		BreakingChangesMessage: `You are updating to a new version of lazygit which contains breaking changes. Please review the notes below and update your configuration if necessary.
+For more information, see the full release notes at <https://github.com/jesseduffield/lazygit/releases>.`,
+		BreakingChangesByVersion: map[string]string{
+			"0.41.0": `- When you press 'g' to bring up the git reset menu, the 'mixed' option is now the first and default, rather than 'soft'. This is because 'mixed' is the most commonly used option.
+- The commit message panel now automatically hard-wraps by default (i.e. it adds newline characters when you reach the margin). You can adjust the config like so:
+
+git:
+  commit:
+    autoWrapCommitMessage: true
+    autoWrapWidth: 72
+
+- The 'v' key was already being used in the staging view to start a range select, but now you can use it to start a range select in any view. Unfortunately this clashes with the 'v' keybinding for pasting commits (cherry-pick), so now pasting commits is done via 'shift+V' and for the sake of consistency, copying commits is now done via 'shift+C' instead of just 'c'. Note that the 'v' keybinding is only one way to start a range-select: you can use shift+up/down arrow instead. So, if you want to configure the cherry-pick keybindings to get the old behaviour, set the following in your config:
+
+keybinding:
+  universal:
+      toggleRangeSelect: <something other than v>
+    commits:
+      cherryPickCopy: 'c'
+      pasteCommits: 'v'
+
+- Squashing fixups using 'shift-S' now brings up a menu, with the default option being to squash all fixup commits in the branch. The original behaviour of only squashing fixup commits above the selected commit is still available as the second option in that menu.
+- Push/pull/fetch loading statuses are now shown against the branch rather than in a popup. This allows you to e.g. fetch multiple branches in parallel and see the status for each branch.
+- The git log graph in the commits view is now always shown by default (previously it was only shown when the view was maximised). If you find this too noisy, you can change it back via ctrl+L -> 'Show git graph' -> 'when maximised'
+	  `,
 		},
 	}
 }
