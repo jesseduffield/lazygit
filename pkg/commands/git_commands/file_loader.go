@@ -100,15 +100,19 @@ type FileStatus struct {
 	PreviousName string
 }
 
-func (c *FileLoader) gitStatus(opts GitStatusOptions) ([]FileStatus, error) {
+func (self *FileLoader) gitStatus(opts GitStatusOptions) ([]FileStatus, error) {
 	cmdArgs := NewGitCmd("status").
 		Arg(opts.UntrackedFilesArg).
 		Arg("--porcelain").
 		Arg("-z").
-		ArgIf(opts.NoRenames, "--no-renames").
+		ArgIfElse(
+			opts.NoRenames,
+			"--no-renames",
+			fmt.Sprintf("--find-renames=%d%%", self.AppState.RenameSimilarityThreshold),
+		).
 		ToArgv()
 
-	statusLines, _, err := c.cmd.New(cmdArgs).DontLog().RunWithOutputs()
+	statusLines, _, err := self.cmd.New(cmdArgs).DontLog().RunWithOutputs()
 	if err != nil {
 		return []FileStatus{}, err
 	}

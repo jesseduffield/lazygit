@@ -269,6 +269,7 @@ func (self *CommitCommands) ShowCmdObj(sha string, filterPath string) oscommands
 		Arg("-p").
 		Arg(sha).
 		ArgIf(self.AppState.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		Arg(fmt.Sprintf("--find-renames=%d%%", self.AppState.RenameSimilarityThreshold)).
 		ArgIf(filterPath != "", "--", filterPath).
 		Dir(self.repoPaths.worktreePath).
 		ToArgv()

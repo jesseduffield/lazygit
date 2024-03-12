@@ -14,6 +14,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` @ `` | 打开命令日志菜单 | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | 推送 | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | 拉取 | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename. |
+| `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
 | `` } `` | 扩大差异视图中显示的上下文范围 | Increase the amount of the context shown around changes in the diff view. |
 | `` { `` | 缩小差异视图中显示的上下文范围 | Decrease the amount of the context shown around changes in the diff view. |
 | `` : `` | 执行自定义命令 | Bring up a prompt where you can enter a shell command to execute. Not to be confused with pre-configured custom commands. |
