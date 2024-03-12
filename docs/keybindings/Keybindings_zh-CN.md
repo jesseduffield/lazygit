@@ -98,6 +98,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` g `` | 查看重置选项 |  |
 | `` R `` | 重命名分支 |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` V `` | 粘贴提交（拣选） |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -107,6 +108,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | 将提交的 SHA 复制到剪贴板 |  |
+| `` V `` | 粘贴提交（拣选） |  |
 | `` <space> `` | 检出 | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 在浏览器中打开提交 |  |

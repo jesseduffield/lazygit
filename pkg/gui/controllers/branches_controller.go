@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -159,7 +160,31 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			OpensMenu:         true,
 			DisplayOnScreen:   true,
 		},
+		{
+			Key:               opts.GetKey(opts.Config.Commits.PasteCommits),
+			Handler:           self.checkoutAndPaste,
+			GetDisabledReason: self.require(self.canPaste),
+			Description:       self.c.Tr.PasteCommits,
+			DisplayStyle:      &style.FgCyan,
+		},
 	}
+}
+
+func (self *BranchesController) checkoutAndPaste() error {
+	branch := self.context().GetSelected()
+	if branch == nil {
+		return nil
+	}
+
+	return self.c.Helpers().CherryPick.CheckoutAndPaste(branch.Name)
+}
+
+func (self *BranchesController) canPaste() *types.DisabledReason {
+	if !self.c.Helpers().CherryPick.CanPaste() {
+		return &types.DisabledReason{Text: self.c.Tr.NoCopiedCommits}
+	}
+
+	return nil
 }
 
 func (self *BranchesController) GetOnRenderToMain() func() error {

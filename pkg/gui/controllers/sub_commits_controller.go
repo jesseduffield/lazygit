@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -28,6 +29,37 @@ func NewSubCommitsController(
 		),
 		c: c,
 	}
+}
+
+func (self *SubCommitsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+	bindings := []*types.Binding{
+		{
+			Key:               opts.GetKey(opts.Config.Commits.PasteCommits),
+			Handler:           self.checkoutAndPaste,
+			GetDisabledReason: self.require(self.canPaste),
+			Description:       self.c.Tr.PasteCommits,
+			DisplayStyle:      &style.FgCyan,
+		},
+	}
+
+	return bindings
+}
+
+func (self *SubCommitsController) checkoutAndPaste() error {
+	ref := self.context().GetRef()
+	if ref == nil {
+		return nil
+	}
+
+	return self.c.Helpers().CherryPick.CheckoutAndPaste(ref.RefName())
+}
+
+func (self *SubCommitsController) canPaste() *types.DisabledReason {
+	if !self.c.Helpers().CherryPick.CanPaste() {
+		return &types.DisabledReason{Text: self.c.Tr.NoCopiedCommits}
+	}
+
+	return nil
 }
 
 func (self *SubCommitsController) Context() types.Context {
