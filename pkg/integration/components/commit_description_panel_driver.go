@@ -31,6 +31,27 @@ func (self *CommitDescriptionPanelDriver) AddNewline() *CommitDescriptionPanelDr
 	return self
 }
 
+func (self *CommitDescriptionPanelDriver) GoToBeginning() *CommitDescriptionPanelDriver {
+	numLines := len(self.getViewDriver().getView().BufferLines())
+	for i := 0; i < numLines; i++ {
+		self.t.pressFast("<up>")
+	}
+
+	self.t.pressFast("<c-a>")
+	return self
+}
+
+func (self *CommitDescriptionPanelDriver) AddCoAuthor(author string) *CommitDescriptionPanelDriver {
+	self.t.press(self.t.keys.CommitMessage.CommitMenu)
+	self.t.ExpectPopup().Menu().Title(Equals("Commit Menu")).
+		Select(Contains("Add co-author")).
+		Confirm()
+	self.t.ExpectPopup().Prompt().Title(Contains("Add co-author")).
+		Type(author).
+		Confirm()
+	return self
+}
+
 func (self *CommitDescriptionPanelDriver) Title(expected *TextMatcher) *CommitDescriptionPanelDriver {
 	self.getViewDriver().Title(expected)
 

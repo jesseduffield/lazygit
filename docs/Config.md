@@ -92,6 +92,8 @@ git:
     useConfig: false
   commit:
     signOff: false
+    autoWrapCommitMessage: true # automatic WYSIWYG wrapping of the commit message as you type
+    autoWrapWidth: 72 # if autoWrapCommitMessage is true, the width to wrap to
   merging:
     # only applicable to unix users
     manualCommit: false
@@ -252,6 +254,7 @@ keybinding:
     moveDownCommit: '<c-j>' # move commit down one
     moveUpCommit: '<c-k>' # move commit up one
     amendToCommit: 'A'
+    amendAttributeMenu: 'a'
     pickCommit: 'p' # pick commit (when mid-rebase)
     revertCommit: 't'
     cherryPickCopy: 'C'
@@ -274,6 +277,12 @@ keybinding:
     init: 'i'
     update: 'u'
     bulkMenu: 'b'
+  commitMessage:
+    commitMenu: '<c-o>'
+  amendAttribute:
+    addCoAuthor: 'c'
+    resetAuthor: 'a'
+    setAuthor: 'A'
 ```
 
 ## Platform Defaults

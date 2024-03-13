@@ -13,5 +13,15 @@ func GetSubmoduleListDisplayStrings(submodules []*models.SubmoduleConfig) [][]st
 }
 
 func getSubmoduleDisplayStrings(s *models.SubmoduleConfig) []string {
-	return []string{theme.DefaultTextColor.Sprint(s.Name)}
+	name := s.Name
+	if s.ParentModule != nil {
+		indentation := ""
+		for p := s.ParentModule; p != nil; p = p.ParentModule {
+			indentation += "  "
+		}
+
+		name = indentation + "- " + s.Name
+	}
+
+	return []string{theme.DefaultTextColor.Sprint(name)}
 }

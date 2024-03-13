@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/go-errors/errors"
@@ -115,7 +116,6 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		{
 			Key:     opts.GetKey(editCommitKey),
 			Handler: self.withItems(self.edit),
-			// TODO: have disabled reason ensure that if we're not rebasing, we only select one commit
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(self.midRebaseCommandEnabled),
 			),
@@ -354,7 +354,9 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 	if err != nil {
 		return self.c.Error(err)
 	}
-
+	if self.c.UserConfig.Git.Commit.AutoWrapCommitMessage {
+		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig.Git.Commit.AutoWrapWidth)
+	}
 	return self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
 			CommitIndex:      self.context().GetSelectedLineIdx(),
@@ -457,15 +459,7 @@ func (self *LocalCommitsController) edit(selectedCommits []*models.Commit) error
 		return self.updateTodos(todo.Edit, selectedCommits)
 	}
 
-	// TODO: support range select here (start a rebase and set the selected commits
-	// to 'edit' in the todo file)
-	if len(selectedCommits) > 1 {
-		return self.c.ErrorMsg(self.c.Tr.RangeSelectNotSupported)
-	}
-
-	selectedCommit := selectedCommits[0]
-
-	return self.startInteractiveRebaseWithEdit(selectedCommit)
+	return self.startInteractiveRebaseWithEdit(selectedCommits)
 }
 
 func (self *LocalCommitsController) quickStartInteractiveRebase() error {
@@ -474,11 +468,11 @@ func (self *LocalCommitsController) quickStartInteractiveRebase() error {
 		return self.c.Error(err)
 	}
 
-	return self.startInteractiveRebaseWithEdit(commitToEdit)
+	return self.startInteractiveRebaseWithEdit([]*models.Commit{commitToEdit})
 }
 
 func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
-	commitToEdit *models.Commit,
+	commitsToEdit []*models.Commit,
 ) error {
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
@@ -486,10 +480,24 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 		commits := self.c.Model().Commits
 		selectedSha := commits[selectedIdx].Sha
 		rangeStartSha := commits[rangeStartIdx].Sha
-		err := self.c.Git().Rebase.EditRebase(commitToEdit.Sha)
+		err := self.c.Git().Rebase.EditRebase(commitsToEdit[len(commitsToEdit)-1].Sha)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
 			types.RefreshOptions{Mode: types.BLOCK_UI, Then: func() {
+				todos := make([]*models.Commit, 0, len(commitsToEdit)-1)
+				for _, c := range commitsToEdit[:len(commitsToEdit)-1] {
+					// Merge commits can't be set to "edit", so just skip them
+					if !c.IsMerge() {
+						todos = append(todos, &models.Commit{Sha: c.Sha, Action: todo.Pick})
+					}
+				}
+				if len(todos) > 0 {
+					err := self.updateTodos(todo.Edit, todos)
+					if err != nil {
+						_ = self.c.Error(err)
+					}
+				}
+
 				// We need to select the same commit range again because after starting a rebase,
 				// new lines can be added for update-ref commands in the TODO file, due to
 				// stacked branches. So the selected commits may be in different positions in the list.
@@ -665,25 +673,26 @@ func (self *LocalCommitsController) canAmend(commit *models.Commit) *types.Disab
 }
 
 func (self *LocalCommitsController) amendAttribute(commit *models.Commit) error {
+	opts := self.c.KeybindingsOpts()
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: "Amend commit attribute",
 		Items: []*types.MenuItem{
 			{
 				Label:   self.c.Tr.ResetAuthor,
 				OnPress: self.resetAuthor,
-				Key:     'a',
-				Tooltip: "Reset the commit's author to the currently configured user. This will also renew the author timestamp",
+				Key:     opts.GetKey(opts.Config.AmendAttribute.ResetAuthor),
+				Tooltip: self.c.Tr.ResetAuthorTooltip,
 			},
 			{
 				Label:   self.c.Tr.SetAuthor,
 				OnPress: self.setAuthor,
-				Key:     'A',
-				Tooltip: "Set the author based on a prompt",
+				Key:     opts.GetKey(opts.Config.AmendAttribute.SetAuthor),
+				Tooltip: self.c.Tr.SetAuthorTooltip,
 			},
 			{
 				Label:   self.c.Tr.AddCoAuthor,
 				OnPress: self.addCoAuthor,
-				Key:     'c',
+				Key:     opts.GetKey(opts.Config.AmendAttribute.AddCoAuthor),
 				Tooltip: self.c.Tr.AddCoAuthorTooltip,
 			},
 		},
@@ -806,11 +815,14 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 		HandleConfirm: func() error {
 			return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
 				self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
-				if err := self.c.Git().Commit.CreateFixupCommit(commit.Sha); err != nil {
-					return self.c.Error(err)
-				}
+				return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
+					if err := self.c.Git().Commit.CreateFixupCommit(commit.Sha); err != nil {
+						return self.c.Error(err)
+					}
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+					self.context().MoveSelectedLine(1)
+					return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
+				})
 			})
 		},
 	})
@@ -839,37 +851,89 @@ func (self *LocalCommitsController) squashFixupCommits() error {
 }
 
 func (self *LocalCommitsController) squashAllFixupsAboveSelectedCommit(commit *models.Commit) error {
-	return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
-		self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
-		err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
-	})
+	return self.squashFixupsImpl(commit, self.context().GetSelectedLineIdx())
 }
 
 func (self *LocalCommitsController) squashAllFixupsInCurrentBranch() error {
-	commit, err := self.findCommitForSquashFixupsInCurrentBranch()
+	commit, rebaseStartIdx, err := self.findCommitForSquashFixupsInCurrentBranch()
 	if err != nil {
 		return self.c.Error(err)
 	}
 
-	return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
+	return self.squashFixupsImpl(commit, rebaseStartIdx)
+}
+
+func (self *LocalCommitsController) squashFixupsImpl(commit *models.Commit, rebaseStartIdx int) error {
+	selectionOffset := countSquashableCommitsAbove(self.c.Model().Commits, self.context().GetSelectedLineIdx(), rebaseStartIdx)
+	return self.c.WithWaitingStatusSync(self.c.Tr.SquashingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
 		err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+		self.context().MoveSelectedLine(-selectionOffset)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{Mode: types.SYNC})
 	})
 }
 
-func (self *LocalCommitsController) findCommitForSquashFixupsInCurrentBranch() (*models.Commit, error) {
+func (self *LocalCommitsController) findCommitForSquashFixupsInCurrentBranch() (*models.Commit, int, error) {
 	commits := self.c.Model().Commits
 	_, index, ok := lo.FindIndexOf(commits, func(c *models.Commit) bool {
 		return c.IsMerge() || c.Status == models.StatusMerged
 	})
 
 	if !ok || index == 0 {
-		return nil, errors.New(self.c.Tr.CannotSquashCommitsInCurrentBranch)
+		return nil, -1, errors.New(self.c.Tr.CannotSquashCommitsInCurrentBranch)
 	}
 
-	return commits[index-1], nil
+	return commits[index-1], index - 1, nil
+}
+
+// Anticipate how many commits above the selectedIdx are going to get squashed
+// by the SquashAllAboveFixupCommits call, so that we can adjust the selection
+// afterwards. Let's hope we're matching git's behavior correctly here.
+func countSquashableCommitsAbove(commits []*models.Commit, selectedIdx int, rebaseStartIdx int) int {
+	result := 0
+
+	// For each commit _above_ the selection, ...
+	for i, commit := range commits[0:selectedIdx] {
+		// ... see if it is a fixup commit, and get the base subject it applies to
+		if baseSubject, isFixup := isFixupCommit(commit.Name); isFixup {
+			// Then, for each commit after the fixup, up to and including the
+			// rebase start commit, see if we find the base commit
+			for _, baseCommit := range commits[i+1 : rebaseStartIdx+1] {
+				if strings.HasPrefix(baseCommit.Name, baseSubject) {
+					result++
+				}
+			}
+		}
+	}
+	return result
+}
+
+// Check whether the given subject line is the subject of a fixup commit, and
+// returns (trimmedSubject, true) if so (where trimmedSubject is the subject
+// with all fixup prefixes removed), or (subject, false) if not.
+func isFixupCommit(subject string) (string, bool) {
+	prefixes := []string{"fixup! ", "squash! ", "amend! "}
+	trimPrefix := func(s string) (string, bool) {
+		for _, prefix := range prefixes {
+			if strings.HasPrefix(s, prefix) {
+				return strings.TrimPrefix(s, prefix), true
+			}
+		}
+		return s, false
+	}
+
+	if subject, wasTrimmed := trimPrefix(subject); wasTrimmed {
+		for {
+			// handle repeated prefixes like "fixup! amend! fixup! Subject"
+			if subject, wasTrimmed = trimPrefix(subject); !wasTrimmed {
+				break
+			}
+		}
+		return subject, true
+	}
+
+	return subject, false
 }
 
 func (self *LocalCommitsController) createTag(commit *models.Commit) error {
@@ -1062,7 +1126,7 @@ func (self *LocalCommitsController) canFindCommitForQuickStart() *types.Disabled
 }
 
 func (self *LocalCommitsController) canFindCommitForSquashFixupsInCurrentBranch() *types.DisabledReason {
-	if _, err := self.findCommitForSquashFixupsInCurrentBranch(); err != nil {
+	if _, _, err := self.findCommitForSquashFixupsInCurrentBranch(); err != nil {
 		return &types.DisabledReason{Text: err.Error()}
 	}
 

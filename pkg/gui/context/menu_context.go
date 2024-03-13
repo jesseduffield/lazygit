@@ -92,21 +92,8 @@ func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 			return displayStrings
 		}
 
-		// These keys are used for general navigation so we'll strike them out to
-		// avoid confusion
-		reservedKeys := []string{
-			self.c.UserConfig.Keybinding.Universal.Confirm,
-			self.c.UserConfig.Keybinding.Universal.Select,
-			self.c.UserConfig.Keybinding.Universal.Return,
-			self.c.UserConfig.Keybinding.Universal.StartSearch,
-		}
 		keyLabel := keybindings.LabelFromKey(item.Key)
-		keyStyle := style.FgCyan
-		if lo.Contains(reservedKeys, keyLabel) {
-			keyStyle = style.FgDefault.SetStrikethrough()
-		}
-
-		displayStrings = utils.Prepend(displayStrings, keyStyle.Sprint(keyLabel))
+		displayStrings = utils.Prepend(displayStrings, style.FgCyan.Sprint(keyLabel))
 		return displayStrings
 	})
 }

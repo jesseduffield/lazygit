@@ -343,6 +343,7 @@ type AppState struct {
 	LastUpdateCheck     int64
 	RecentRepos         []string
 	StartupPopupVersion int
+	LastVersion         string // this is the last version the user was using, for the purpose of showing release notes
 
 	// these are for custom commands typed in directly, not for custom commands in the lazygit config
 	CustomCommandsHistory      []string
@@ -367,6 +368,7 @@ func getDefaultAppState() *AppState {
 		LastUpdateCheck:       0,
 		RecentRepos:           []string{},
 		StartupPopupVersion:   0,
+		LastVersion:           "",
 		DiffContextSize:       3,
 		LocalBranchSortOrder:  "recency",
 		RemoteBranchSortOrder: "alphabetical",

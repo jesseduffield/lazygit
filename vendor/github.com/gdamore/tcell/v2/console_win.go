@@ -341,12 +341,12 @@ func (s *cScreen) disengage() {
 		}
 	} else if !s.disableAlt {
 		s.clearScreen(StyleDefault, s.vten)
+		s.setCursorPos(0, 0, false)
 	}
+	s.setCursorInfo(&s.ocursor)
+	s.setBufferSize(int(s.oscreen.size.x), int(s.oscreen.size.y))
 	s.setInMode(s.oimode)
 	s.setOutMode(s.oomode)
-	s.setBufferSize(int(s.oscreen.size.x), int(s.oscreen.size.y))
-	s.setCursorPos(0, 0, false)
-	s.setCursorInfo(&s.ocursor)
 	_, _, _ = procSetConsoleTextAttribute.Call(
 		uintptr(s.out),
 		uintptr(s.mapStyle(StyleDefault)))
