@@ -2,9 +2,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 # Lazygit 鍵盤快捷鍵
 
-_說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
+_說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B_
 
-## 全局快捷鍵
+## 全域快捷鍵
 
 | Key | Action | Info |
 |-----|--------|-------------|
@@ -29,10 +29,10 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 | `` q `` | 結束 |  |
 | `` <esc> `` | 取消 |  |
 | `` <c-w> `` | 切換是否在差異檢視中顯示空格變更 | Toggle whether or not whitespace changes are shown in the diff view. |
-| `` z `` | 復原 | 將使用 reflog 確定要運行哪個 git 命令以復原上一個 git 命令。這不包括工作區的更改；只考慮提交。 |
-| `` <c-z> `` | 取消復原 | 將使用 reflog 確定要運行哪個 git 命令以重作上一個 git 命令。這不包括工作區的更改；只考慮提交。 |
+| `` z `` | 復原 | 將使用 reflog 確任 git 指令以復原。這不包括工作區更改；只考慮提交。 |
+| `` <c-z> `` | 取消復原 | 將使用 reflog 確任 git 指令以重作。這不包括工作區更改；只考慮提交。 |
 
-## 列表面板導航
+## 移動
 
 | Key | Action | Info |
 |-----|--------|-------------|
@@ -43,47 +43,35 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 | `` v `` | 切換拖曳選擇 |  |
 | `` <s-down> `` | Range select down |  |
 | `` <s-up> `` | Range select up |  |
-| `` / `` | 開始搜尋 |  |
+| `` / `` | 搜尋 |  |
 | `` H `` | 向左捲動 |  |
 | `` L `` | 向右捲動 |  |
 | `` ] `` | 下一個索引標籤 |  |
 | `` [ `` | 上一個索引標籤 |  |
 
-## Reflog
+## 主面板 (補丁生成)
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 複製提交 SHA 到剪貼簿 |  |
-| `` <space> `` | 檢出 | Checkout the selected commit as a detached HEAD. |
-| `` y `` | 複製提交屬性 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
-| `` o `` | 在瀏覽器中開啟提交 |  |
-| `` n `` | 從提交建立新分支 |  |
-| `` g `` | 檢視重設選項 | View reset options (soft/mixed/hard) for resetting onto selected item. |
-| `` C `` | 複製提交 (揀選) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
-| `` <c-r> `` | 重設選定的揀選 (複製) 提交 |  |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
-| `` <enter> `` | 檢視提交 |  |
-| `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` <left> `` | 選擇上一段 |  |
+| `` <right> `` | 選擇下一段 |  |
+| `` v `` | 切換拖曳選擇 |  |
+| `` a `` | 切換選擇程式碼塊 | Toggle hunk selection mode. |
+| `` <c-o> `` | 複製所選文本至剪貼簿 |  |
+| `` o `` | 開啟檔案 | Open file in default application. |
+| `` e `` | 編輯檔案 | Open file in external editor. |
+| `` <space> `` | 向 (或從) 補丁中添加/刪除行 |  |
+| `` <esc> `` | 退出自訂補丁建立器 |  |
+| `` / `` | 搜尋 |  |
 
-## Worktrees
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` n `` | New worktree |  |
-| `` <space> `` | Switch | Switch to the selected worktree. |
-| `` o `` | Open in editor |  |
-| `` d `` | Remove | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
-| `` / `` | Filter the current view by text |  |
-
-## 主視窗 (一般)
+## 主面板（一般）
 
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` mouse wheel down (fn+up) `` | 向下捲動 |  |
 | `` mouse wheel up (fn+down) `` | 向上捲動 |  |
 
-## 主視窗 (合併中)
+## 主面板（合併）
 
 | Key | Action | Info |
 |-----|--------|-------------|
@@ -99,7 +87,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 | `` M `` | 開啟外部合併工具 (git mergetool) | Run `git mergetool`. |
 | `` <esc> `` | 返回檔案面板 |  |
 
-## 主視窗 (預存中)
+## 主面板（預存）
 
 | Key | Action | Info |
 |-----|--------|-------------|
@@ -119,22 +107,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 | `` w `` | 沒有預提交 hook 就提交更改 |  |
 | `` C `` | 使用 git 編輯器提交變更 |  |
 | `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
-| `` / `` | 開始搜尋 |  |
-
-## 主面板 (補丁生成)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left> `` | 選擇上一段 |  |
-| `` <right> `` | 選擇下一段 |  |
-| `` v `` | 切換拖曳選擇 |  |
-| `` a `` | 切換選擇程式碼塊 | Toggle hunk selection mode. |
-| `` <c-o> `` | 複製所選文本至剪貼簿 |  |
-| `` o `` | 開啟檔案 | Open file in default application. |
-| `` e `` | 編輯檔案 | Open file in external editor. |
-| `` <space> `` | 向 (或從) 補丁中添加/刪除行 |  |
-| `` <esc> `` | 退出自訂補丁建立器 |  |
-| `` / `` | 開始搜尋 |  |
+| `` / `` | 搜尋 |  |
 
 ## 功能表
 
@@ -142,7 +115,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 |-----|--------|-------------|
 | `` <enter> `` | 執行 |  |
 | `` <esc> `` | 關閉 |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | 搜尋 |  |
 
 ## 子提交
 
@@ -158,8 +131,8 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 | `` <c-r> `` | 重設選定的揀選 (複製) 提交 |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
-| `` w `` | View worktree options |  |
-| `` / `` | 開始搜尋 |  |
+| `` w `` | 檢視工作目錄選項 |  |
+| `` / `` | 搜尋 |  |
 
 ## 子模組
 
@@ -173,7 +146,17 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 | `` e `` | 更新子模組 URL |  |
 | `` i `` | Initialize | 初始化子模組 |
 | `` b `` | 查看批量子模組選項 |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | 搜尋 |  |
+
+## 工作目錄
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` n `` | New worktree |  |
+| `` <space> `` | Switch | Switch to the selected worktree. |
+| `` o `` | Open in editor |  |
+| `` d `` | Remove | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
+| `` / `` | 搜尋 |  |
 
 ## 提交
 
@@ -192,13 +175,13 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 If you would instead like to start an interactive rebase from the selected commit, press `e`. |
 | `` p `` | Pick | 挑選提交 (於變基過程中) |
 | `` F `` | Create fixup commit | 為此提交建立修復提交 |
-| `` S `` | Apply fixup commits | 壓縮上方所有的“fixup!”提交 (自動壓縮) |
+| `` S `` | 壓縮上方所有「fixup」提交（自動壓縮） | 是否壓縮上方 {{.commit}} 所有「fixup」提交？ |
 | `` <c-j> `` | 向下移動提交 |  |
 | `` <c-k> `` | 向上移動提交 |  |
 | `` V `` | 貼上提交 (揀選) |  |
-| `` B `` | Mark as base commit for rebase | Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command. |
+| `` B `` | 為了變基已標注提交為基準提交 | 請為了下一次變基選擇一項基準提交；此將執行 `git rebase --onto`。 |
 | `` A `` | Amend | 使用已預存的更改修正提交 |
-| `` a `` | 設置/重設提交作者 | Set/Reset commit author or set co-author. |
+| `` a `` | 設定/重設提交作者 | Set/Reset commit author or set co-author. |
 | `` t `` | Revert | Create a revert commit for the selected commit, which applies the selected commit's changes in reverse. |
 | `` T `` | 打標籤到提交 | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
 | `` <c-l> `` | 開啟記錄選單 | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
@@ -210,8 +193,8 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` C `` | 複製提交 (揀選) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
-| `` w `` | View worktree options |  |
-| `` / `` | 開始搜尋 |  |
+| `` w `` | 檢視工作目錄選項 |  |
+| `` / `` | 搜尋 |  |
 
 ## 提交摘要
 
@@ -226,15 +209,15 @@ If you would instead like to start an interactive rebase from the selected commi
 |-----|--------|-------------|
 | `` <c-o> `` | 複製檔案名稱到剪貼簿 |  |
 | `` c `` | 檢出 | 檢出檔案 |
-| `` d `` | Remove | 捨棄此提交對此檔案的更改 |
+| `` d `` | Remove | Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file. |
 | `` o `` | 開啟檔案 | Open file in default application. |
 | `` e `` | Edit | Open file in external editor. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <space> `` | 切換檔案是否包含在補丁中 | Toggle whether the file is included in the custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | 切換所有檔案是否包含在補丁中 | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` <enter> `` | 輸入檔案以將選定的行添加至補丁（或切換目錄折疊） | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
-| `` ` `` | 切換檔案樹狀視圖 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
-| `` / `` | 開始搜尋 |  |
+| `` ` `` | 顯示檔案樹狀視圖 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
+| `` / `` | 搜尋 |  |
 
 ## 收藏 (Stash)
 
@@ -246,8 +229,25 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` n `` | 新分支 | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
 | `` r `` | 重新命名收藏 |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
-| `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` w `` | 檢視工作目錄選項 |  |
+| `` / `` | 搜尋 |  |
+
+## 日誌
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <c-o> `` | 複製提交 SHA 到剪貼簿 |  |
+| `` <space> `` | 檢出 | Checkout the selected commit as a detached HEAD. |
+| `` y `` | 複製提交屬性 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
+| `` o `` | 在瀏覽器中開啟提交 |  |
+| `` n `` | 從提交建立新分支 |  |
+| `` g `` | 檢視重設選項 | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` C `` | 複製提交 (揀選) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
+| `` <c-r> `` | 重設選定的揀選 (複製) 提交 |  |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <enter> `` | 檢視提交 |  |
+| `` w `` | 檢視工作目錄選項 |  |
+| `` / `` | 搜尋 |  |
 
 ## 本地分支
 
@@ -270,10 +270,10 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` s `` | Sort order |  |
 | `` g `` | 檢視重設選項 |  |
 | `` R `` | 重新命名分支 |  |
-| `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` u `` | 檢視上游設定 | 檢視有關上游分支的設定（例如重設至上游） |
 | `` <enter> `` | 檢視提交 |  |
-| `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` w `` | 檢視工作目錄選項 |  |
+| `` / `` | 搜尋 |  |
 
 ## 標籤
 
@@ -285,8 +285,8 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` P `` | 推送標籤 | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <enter> `` | 檢視提交 |  |
-| `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` w `` | 檢視工作目錄選項 |  |
+| `` / `` | 搜尋 |  |
 
 ## 檔案
 
@@ -298,7 +298,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` y `` | Copy to clipboard |  |
 | `` c `` | 提交變更 | Commit staged changes. |
 | `` w `` | 沒有預提交 hook 就提交更改 |  |
-| `` A `` | 修正上次提交 |  |
+| `` A `` | 修改上次提交 |  |
 | `` C `` | 使用 git 編輯器提交變更 |  |
 | `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` e `` | Edit | Open file in external editor. |
@@ -309,14 +309,14 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` S `` | 檢視收藏選項 | View stash options (e.g. stash all, stash staged, stash unstaged). |
 | `` a `` | 全部預存/取消預存 | Toggle staged/unstaged for all files in working tree. |
 | `` <enter> `` | 選擇檔案中的單個程式碼塊/行，或展開/折疊目錄 | If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it. |
-| `` d `` | 檢視“捨棄更改”的選項 | View options for discarding changes to the selected file. |
+| `` d `` | Discard | View options for discarding changes to the selected file. |
 | `` g `` | 檢視上游重設選項 |  |
 | `` D `` | Reset | View reset options for working tree (e.g. nuking the working tree). |
-| `` ` `` | 切換檔案樹狀視圖 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
+| `` ` `` | 顯示檔案樹狀視圖 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` M `` | 開啟外部合併工具 (git mergetool) | Run `git mergetool`. |
 | `` f `` | 擷取 | Fetch changes from remote. |
-| `` / `` | 開始搜尋 |  |
+| `` / `` | 搜尋 |  |
 
 ## 狀態
 
@@ -344,7 +344,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
 | `` e `` | Edit | 編輯遠端 |
 | `` f `` | 擷取 | 擷取遠端 |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | 搜尋 |  |
 
 ## 遠端分支
 
@@ -360,5 +360,5 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` s `` | Sort order |  |
 | `` g `` | 檢視重設選項 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <enter> `` | 檢視提交 |  |
-| `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` w `` | 檢視工作目錄選項 |  |
+| `` / `` | 搜尋 |  |
