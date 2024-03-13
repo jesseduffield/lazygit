@@ -297,6 +297,18 @@ func (self *RebaseCommands) EditRebaseTodo(commits []*models.Commit, action todo
 	)
 }
 
+func (self *RebaseCommands) DeleteUpdateRefTodos(commits []*models.Commit) error {
+	todosToDelete := lo.Map(commits, func(commit *models.Commit, _ int) utils.Todo {
+		return todoFromCommit(commit)
+	})
+
+	return utils.DeleteTodos(
+		filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"),
+		todosToDelete,
+		self.config.GetCoreCommentChar(),
+	)
+}
+
 func (self *RebaseCommands) MoveTodosDown(commits []*models.Commit) error {
 	fileName := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo")
 	todosToMove := lo.Map(commits, func(commit *models.Commit, _ int) utils.Todo {

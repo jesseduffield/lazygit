@@ -106,6 +106,33 @@ func PrependStrToTodoFile(filePath string, linesToPrepend []byte) error {
 	return os.WriteFile(filePath, linesToPrepend, 0o644)
 }
 
+func DeleteTodos(fileName string, todosToDelete []Todo, commentChar byte) error {
+	todos, err := ReadRebaseTodoFile(fileName, commentChar)
+	if err != nil {
+		return err
+	}
+	rearrangedTodos, err := deleteTodos(todos, todosToDelete)
+	if err != nil {
+		return err
+	}
+	return WriteRebaseTodoFile(fileName, rearrangedTodos, commentChar)
+}
+
+func deleteTodos(todos []todo.Todo, todosToDelete []Todo) ([]todo.Todo, error) {
+	for _, todoToDelete := range todosToDelete {
+		idx, ok := findTodo(todos, todoToDelete)
+
+		if !ok {
+			// Should never happen
+			return []todo.Todo{}, fmt.Errorf("Todo %s not found in git-rebase-todo", todoToDelete.Sha)
+		}
+
+		todos = Remove(todos, idx)
+	}
+
+	return todos, nil
+}
+
 func MoveTodosDown(fileName string, todosToMove []Todo, commentChar byte) error {
 	todos, err := ReadRebaseTodoFile(fileName, commentChar)
 	if err != nil {

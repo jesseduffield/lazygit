@@ -360,3 +360,58 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 		})
 	}
 }
+
+func TestRebaseCommands_deleteTodos(t *testing.T) {
+	scenarios := []struct {
+		name          string
+		todos         []todo.Todo
+		todosToDelete []Todo
+		expectedTodos []todo.Todo
+		expectedErr   error
+	}{
+		{
+			name: "success",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+				{Command: todo.Pick, Commit: "5678"},
+				{Command: todo.Pick, Commit: "abcd"},
+			},
+			todosToDelete: []Todo{
+				{Ref: "refs/heads/some_branch", Action: todo.UpdateRef},
+				{Sha: "abcd", Action: todo.Pick},
+			},
+			expectedTodos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.Pick, Commit: "5678"},
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "failure",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.Pick, Commit: "5678"},
+			},
+			todosToDelete: []Todo{
+				{Sha: "abcd", Action: todo.Pick},
+			},
+			expectedTodos: []todo.Todo{},
+			expectedErr:   errors.New("Todo abcd not found in git-rebase-todo"),
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.name, func(t *testing.T) {
+			actualTodos, actualErr := deleteTodos(scenario.todos, scenario.todosToDelete)
+
+			if scenario.expectedErr == nil {
+				assert.NoError(t, actualErr)
+			} else {
+				assert.EqualError(t, actualErr, scenario.expectedErr.Error())
+			}
+
+			assert.EqualValues(t, scenario.expectedTodos, actualTodos)
+		})
+	}
+}

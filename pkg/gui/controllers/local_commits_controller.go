@@ -106,7 +106,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Handler: self.withItemsRange(self.drop),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(
-					self.midRebaseCommandEnabled,
+					self.canDropCommits,
 				),
 			),
 			Description:     self.c.Tr.DropCommit,
@@ -439,6 +439,36 @@ func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
 
 func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
 	if self.isRebasing() {
+		groupedTodos := lo.GroupBy(selectedCommits, func(c *models.Commit) bool {
+			return c.Action == todo.UpdateRef
+		})
+		updateRefTodos := groupedTodos[true]
+		nonUpdateRefTodos := groupedTodos[false]
+
+		if len(updateRefTodos) > 0 {
+			return self.c.Confirm(types.ConfirmOpts{
+				Title:  self.c.Tr.DropCommitTitle,
+				Prompt: self.c.Tr.DropUpdateRefPrompt,
+				HandleConfirm: func() error {
+					selectedIdx, rangeStartIdx, rangeSelectMode := self.context().GetSelectionRangeAndMode()
+
+					if err := self.c.Git().Rebase.DeleteUpdateRefTodos(updateRefTodos); err != nil {
+						return err
+					}
+
+					if selectedIdx > rangeStartIdx {
+						selectedIdx = utils.Max(selectedIdx-len(updateRefTodos), rangeStartIdx)
+					} else {
+						rangeStartIdx = utils.Max(rangeStartIdx-len(updateRefTodos), selectedIdx)
+					}
+
+					self.context().SetSelectionRangeAndMode(selectedIdx, rangeStartIdx, rangeSelectMode)
+
+					return self.updateTodos(todo.Drop, nonUpdateRefTodos)
+				},
+			})
+		}
+
 		return self.updateTodos(todo.Drop, selectedCommits)
 	}
 
@@ -1206,6 +1236,28 @@ func (self *LocalCommitsController) midRebaseMoveCommandEnabled(selectedCommits 
 		// All todo types that can be edited are allowed to be moved, plus
 		// update-ref todos
 		if !isChangeOfRebaseTodoAllowed(commit.Action) && commit.Action != todo.UpdateRef {
+			return &types.DisabledReason{Text: self.c.Tr.ChangingThisActionIsNotAllowed}
+		}
+	}
+
+	return nil
+}
+
+func (self *LocalCommitsController) canDropCommits(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
+	if !self.isRebasing() {
+		return nil
+	}
+
+	nonUpdateRefTodos := lo.Filter(selectedCommits, func(c *models.Commit, _ int) bool {
+		return c.Action != todo.UpdateRef
+	})
+
+	for _, commit := range nonUpdateRefTodos {
+		if !commit.IsTODO() {
+			return &types.DisabledReason{Text: self.c.Tr.MustSelectTodoCommits}
+		}
+
+		if !isChangeOfRebaseTodoAllowed(commit.Action) {
 			return &types.DisabledReason{Text: self.c.Tr.ChangingThisActionIsNotAllowed}
 		}
 	}
