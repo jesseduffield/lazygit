@@ -254,10 +254,7 @@ func (self *CommitLoader) extractCommitFromLine(line string, showDivergence bool
 }
 
 func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode) ([]*models.Commit, error) {
-	commits, err := self.getRebasingCommits(rebaseMode)
-	if err != nil {
-		return nil, err
-	}
+	commits := self.getRebasingCommits(rebaseMode)
 
 	if len(commits) == 0 {
 		return nil, nil
@@ -278,7 +275,7 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 	).DontLog()
 
 	fullCommits := map[string]*models.Commit{}
-	err = cmdObj.RunAndProcessLines(func(line string) (bool, error) {
+	err := cmdObj.RunAndProcessLines(func(line string) (bool, error) {
 		commit := self.extractCommitFromLine(line, false)
 		fullCommits[commit.Sha] = commit
 		return false, nil
@@ -314,73 +311,20 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 }
 
 // getRebasingCommits obtains the commits that we're in the process of rebasing
-func (self *CommitLoader) getRebasingCommits(rebaseMode enums.RebaseMode) ([]*models.Commit, error) {
-	switch rebaseMode {
-	case enums.REBASE_MODE_MERGING:
-		return self.getNormalRebasingCommits()
-	case enums.REBASE_MODE_INTERACTIVE:
-		return self.getInteractiveRebasingCommits()
-	default:
-		return nil, nil
-	}
-}
-
-func (self *CommitLoader) getNormalRebasingCommits() ([]*models.Commit, error) {
-	rewrittenCount := 0
-	bytesContent, err := self.readFile(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-apply/rewritten"))
-	if err == nil {
-		content := string(bytesContent)
-		rewrittenCount = len(strings.Split(content, "\n"))
-	}
-
-	// we know we're rebasing, so lets get all the files whose names have numbers
-	commits := []*models.Commit{}
-	err = self.walkFiles(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-apply"), func(path string, f os.FileInfo, err error) error {
-		if rewrittenCount > 0 {
-			rewrittenCount--
-			return nil
-		}
-		if err != nil {
-			return err
-		}
-		re := regexp.MustCompile(`^\d+$`)
-		if !re.MatchString(f.Name()) {
-			return nil
-		}
-		bytesContent, err := self.readFile(path)
-		if err != nil {
-			return err
-		}
-		content := string(bytesContent)
-		commit := self.commitFromPatch(content)
-		commits = append([]*models.Commit{commit}, commits...)
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return commits, nil
-}
 
 // git-rebase-todo example:
 // pick ac446ae94ee560bdb8d1d057278657b251aaef17 ac446ae
 // pick afb893148791a2fbd8091aeb81deba4930c73031 afb8931
+func (self *CommitLoader) getRebasingCommits(rebaseMode enums.RebaseMode) []*models.Commit {
+	if rebaseMode != enums.REBASE_MODE_INTERACTIVE {
+		return nil
+	}
 
-// git-rebase-todo.backup example:
-// pick 49cbba374296938ea86bbd4bf4fee2f6ba5cccf6 third commit on master
-// pick ac446ae94ee560bdb8d1d057278657b251aaef17 blah  commit on master
-// pick afb893148791a2fbd8091aeb81deba4930c73031 fourth commit on master
-
-// getInteractiveRebasingCommits takes our git-rebase-todo and our git-rebase-todo.backup files
-// and extracts out the sha and names of commits that we still have to go
-// in the rebase:
-func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, error) {
 	bytesContent, err := self.readFile(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"))
 	if err != nil {
 		self.Log.Error(fmt.Sprintf("error occurred reading git-rebase-todo: %s", err.Error()))
 		// we assume an error means the file doesn't exist so we just return
-		return nil, nil
+		return nil
 	}
 
 	commits := []*models.Commit{}
@@ -388,7 +332,7 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 	todos, err := todo.Parse(bytes.NewBuffer(bytesContent), self.config.GetCoreCommentChar())
 	if err != nil {
 		self.Log.Error(fmt.Sprintf("error occurred while parsing git-rebase-todo file: %s", err.Error()))
-		return nil, nil
+		return nil
 	}
 
 	// See if the current commit couldn't be applied because it conflicted; if
@@ -417,7 +361,7 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 		})
 	}
 
-	return commits, nil
+	return commits
 }
 
 func (self *CommitLoader) getConflictedCommit(todos []todo.Todo) string {
@@ -505,22 +449,6 @@ func (self *CommitLoader) getConflictedCommitImpl(todos []todo.Todo, doneTodos [
 	// Any other todo that has a commit associated with it must have failed with
 	// a conflict, otherwise we wouldn't have stopped the rebase:
 	return lastTodo.Commit
-}
-
-// assuming the file starts like this:
-// From e93d4193e6dd45ca9cf3a5a273d7ba6cd8b8fb20 Mon Sep 17 00:00:00 2001
-// From: Lazygit Tester <test@example.com>
-// Date: Wed, 5 Dec 2018 21:03:23 +1100
-// Subject: second commit on master
-func (self *CommitLoader) commitFromPatch(content string) *models.Commit {
-	lines := strings.Split(content, "\n")
-	sha := strings.Split(lines[0], " ")[1]
-	name := strings.TrimPrefix(lines[3], "Subject: ")
-	return &models.Commit{
-		Sha:    sha,
-		Name:   name,
-		Status: models.StatusRebasing,
-	}
 }
 
 func setCommitMergedStatuses(ancestor string, commits []*models.Commit) {

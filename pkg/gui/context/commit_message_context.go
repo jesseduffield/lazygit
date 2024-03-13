@@ -115,8 +115,8 @@ func (self *CommitMessageContext) SetPanelState(
 	subtitleTemplate := lo.Ternary(onSwitchToEditor != nil, self.c.Tr.CommitDescriptionSubTitle, self.c.Tr.CommitDescriptionSubTitleNoSwitch)
 	self.c.Views().CommitDescription.Subtitle = utils.ResolvePlaceholderString(subtitleTemplate,
 		map[string]string{
-			"togglePanelKeyBinding":    keybindings.Label(self.c.UserConfig.Keybinding.Universal.TogglePanel),
-			"switchToEditorKeyBinding": keybindings.Label(self.c.UserConfig.Keybinding.CommitMessage.SwitchToEditor),
+			"togglePanelKeyBinding": keybindings.Label(self.c.UserConfig.Keybinding.Universal.TogglePanel),
+			"commitMenuKeybinding":  keybindings.Label(self.c.UserConfig.Keybinding.CommitMessage.CommitMenu),
 		})
 }
 

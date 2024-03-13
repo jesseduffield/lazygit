@@ -39,19 +39,38 @@ func (self *CommitCommands) SetAuthor(value string) error {
 }
 
 // Add a commit's coauthor using Github/Gitlab Co-authored-by metadata. Value is expected to be of the form 'Name <Email>'
-func (self *CommitCommands) AddCoAuthor(sha string, value string) error {
+func (self *CommitCommands) AddCoAuthor(sha string, author string) error {
 	message, err := self.GetCommitMessage(sha)
 	if err != nil {
 		return err
 	}
 
-	message = message + fmt.Sprintf("\nCo-authored-by: %s", value)
+	message = AddCoAuthorToMessage(message, author)
 
 	cmdArgs := NewGitCmd("commit").
 		Arg("--allow-empty", "--amend", "--only", "-m", message).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
+}
+
+func AddCoAuthorToMessage(message string, author string) string {
+	subject, body, _ := strings.Cut(message, "\n")
+
+	return strings.TrimSpace(subject) + "\n\n" + AddCoAuthorToDescription(strings.TrimSpace(body), author)
+}
+
+func AddCoAuthorToDescription(description string, author string) string {
+	if description != "" {
+		lines := strings.Split(description, "\n")
+		if strings.HasPrefix(lines[len(lines)-1], "Co-authored-by:") {
+			description += "\n"
+		} else {
+			description += "\n\n"
+		}
+	}
+
+	return description + fmt.Sprintf("Co-authored-by: %s", author)
 }
 
 // ResetToCommit reset to commit
@@ -142,7 +161,7 @@ func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
 		ToArgv()
 
 	message, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
-	return strings.TrimSpace(message), err
+	return strings.ReplaceAll(strings.TrimSpace(message), "\r\n", "\n"), err
 }
 
 func (self *CommitCommands) GetCommitSubject(commitSha string) (string, error) {

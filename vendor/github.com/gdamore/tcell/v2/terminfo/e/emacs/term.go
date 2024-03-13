@@ -6,7 +6,7 @@ import "github.com/gdamore/tcell/v2/terminfo"
 
 func init() {
 
-	// gnu emacs term.el terminal emulation
+	// GNU Emacs term.el terminal emulation
 	terminfo.AddTerminfo(&terminfo.Terminfo{
 		Name:        "eterm",
 		Columns:     80,
@@ -34,6 +34,8 @@ func init() {
 		Colors:       8,
 		Bell:         "\a",
 		Clear:        "\x1b[H\x1b[J",
+		EnterCA:      "\x1b7\x1b[?47h",
+		ExitCA:       "\x1b[2J\x1b[?47l\x1b8",
 		AttrOff:      "\x1b[m",
 		Underline:    "\x1b[4m",
 		Bold:         "\x1b[1m",
@@ -53,7 +55,7 @@ func init() {
 		KeyLeft:      "\x1bOD",
 		KeyInsert:    "\x1b[2~",
 		KeyDelete:    "\x1b[3~",
-		KeyBackspace: "\u007f",
+		KeyBackspace: "\x7f",
 		KeyHome:      "\x1b[1~",
 		KeyEnd:       "\x1b[4~",
 		KeyPgUp:      "\x1b[5~",

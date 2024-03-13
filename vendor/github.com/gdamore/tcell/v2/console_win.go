@@ -1,7 +1,7 @@
 //go:build windows
 // +build windows
 
-// Copyright 2023 The TCell Authors
+// Copyright 2024 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -41,6 +41,7 @@ type cScreen struct {
 	vten       bool
 	truecolor  bool
 	running    bool
+	disableAlt bool // disable the alternate screen
 
 	w int
 	h int
@@ -51,6 +52,7 @@ type cScreen struct {
 	oimode      uint32
 	oomode      uint32
 	cells       CellBuffer
+	focusEnable bool
 
 	mouseEnabled bool
 	wg           sync.WaitGroup
@@ -158,6 +160,10 @@ const (
 	vtCursorSteadyUnderline   = "\x1b[4 q"
 	vtCursorBlinkingBar       = "\x1b[5 q"
 	vtCursorSteadyBar         = "\x1b[6 q"
+	vtDisableAm               = "\x1b[?7l"
+	vtEnableAm                = "\x1b[?7h"
+	vtEnterCA                 = "\x1b[?1049h\x1b[22;0;0t"
+	vtExitCA                  = "\x1b[?1049l\x1b[23;0;0t"
 )
 
 var vtCursorStyles = map[CursorStyle]string{
@@ -181,7 +187,6 @@ func (s *cScreen) Init() error {
 	s.eventQ = make(chan Event, 10)
 	s.quit = make(chan struct{})
 	s.scandone = make(chan struct{})
-
 	in, e := syscall.Open("CONIN$", syscall.O_RDWR, 0)
 	if e != nil {
 		return e
@@ -196,20 +201,22 @@ func (s *cScreen) Init() error {
 
 	s.truecolor = true
 
-	// ConEmu handling of colors and scrolling when in terminal
-	// mode is extremely problematic at the best.  The color
-	// palette will scroll even though characters do not, when
-	// emitting stuff for the last character.  In the future we
-	// might change this to look at specific versions of ConEmu
-	// if they fix the bug.
+	// ConEmu handling of colors and scrolling when in VT output mode is extremely poor.
+	// The color palette will scroll even though characters do not, when
+	// emitting stuff for the last character.  In the future we might change this to
+	// look at specific versions of ConEmu if they fix the bug.
+	// We can also try disabling auto margin mode.
+	tryVt := true
 	if os.Getenv("ConEmuPID") != "" {
 		s.truecolor = false
+		tryVt = false
 	}
 	switch os.Getenv("TCELL_TRUECOLOR") {
 	case "disable":
 		s.truecolor = false
 	case "enable":
 		s.truecolor = true
+		tryVt = true
 	}
 
 	s.Lock()
@@ -226,9 +233,22 @@ func (s *cScreen) Init() error {
 	s.fini = false
 	s.setInMode(modeResizeEn | modeExtendFlg)
 
-	// 24-bit color is opt-in for now, because we can't figure out
-	// to make it work consistently.
-	if s.truecolor {
+	// If a user needs to force old style console, they may do so
+	// by setting TCELL_VTMODE to disable.  This is an undocumented safety net for now.
+	// It may be removed in the future.  (This mostly exists because of ConEmu.)
+	switch os.Getenv("TCELL_VTMODE") {
+	case "disable":
+		tryVt = false
+	case "enable":
+		tryVt = true
+	}
+	switch os.Getenv("TCELL_ALTSCREEN") {
+	case "enable":
+		s.disableAlt = false // also the default
+	case "disable":
+		s.disableAlt = true
+	}
+	if tryVt {
 		s.setOutMode(modeVtOutput | modeNoAutoNL | modeCookedOut | modeUnderline)
 		var om uint32
 		s.getOutMode(&om)
@@ -280,9 +300,17 @@ func (s *cScreen) EnablePaste() {}
 
 func (s *cScreen) DisablePaste() {}
 
-func (s *cScreen) EnableFocus() {}
+func (s *cScreen) EnableFocus() {
+	s.Lock()
+	s.focusEnable = true
+	s.Unlock()
+}
 
-func (s *cScreen) DisableFocus() {}
+func (s *cScreen) DisableFocus() {
+	s.Lock()
+	s.focusEnable = false
+	s.Unlock()
+}
 
 func (s *cScreen) Fini() {
 	s.finiOnce.Do(func() {
@@ -307,13 +335,18 @@ func (s *cScreen) disengage() {
 
 	if s.vten {
 		s.emitVtString(vtCursorStyles[CursorStyleDefault])
+		s.emitVtString(vtEnableAm)
+		if !s.disableAlt {
+			s.emitVtString(vtExitCA)
+		}
+	} else if !s.disableAlt {
+		s.clearScreen(StyleDefault, s.vten)
+		s.setCursorPos(0, 0, false)
 	}
+	s.setCursorInfo(&s.ocursor)
+	s.setBufferSize(int(s.oscreen.size.x), int(s.oscreen.size.y))
 	s.setInMode(s.oimode)
 	s.setOutMode(s.oomode)
-	s.setBufferSize(int(s.oscreen.size.x), int(s.oscreen.size.y))
-	s.clearScreen(StyleDefault, false)
-	s.setCursorPos(0, 0, false)
-	s.setCursorInfo(&s.ocursor)
 	_, _, _ = procSetConsoleTextAttribute.Call(
 		uintptr(s.out),
 		uintptr(s.mapStyle(StyleDefault)))
@@ -340,6 +373,10 @@ func (s *cScreen) engage() error {
 
 	if s.vten {
 		s.setOutMode(modeVtOutput | modeNoAutoNL | modeCookedOut | modeUnderline)
+		if !s.disableAlt {
+			s.emitVtString(vtEnterCA)
+		}
+		s.emitVtString(vtDisableAm)
 	} else {
 		s.setOutMode(0)
 	}
@@ -448,8 +485,8 @@ const (
 	keyEvent    uint16 = 1
 	mouseEvent  uint16 = 2
 	resizeEvent uint16 = 4
-	// menuEvent   uint16 = 8  // don't use
-	// focusEvent  uint16 = 16 // don't use
+	menuEvent   uint16 = 8 // don't use
+	focusEvent  uint16 = 16
 )
 
 type mouseRecord struct {
@@ -458,6 +495,10 @@ type mouseRecord struct {
 	btns  uint32
 	mod   uint32
 	flags uint32
+}
+
+type focusRecord struct {
+	focused int32 // actually BOOL
 }
 
 const (
@@ -753,6 +794,16 @@ func (s *cScreen) getConsoleInput() error {
 			rrec.x = geti16(rec.data[0:])
 			rrec.y = geti16(rec.data[2:])
 			s.postEvent(NewEventResize(int(rrec.x), int(rrec.y)))
+
+		case focusEvent:
+			var focus focusRecord
+			focus.focused = geti32(rec.data[0:])
+			s.Lock()
+			enabled := s.focusEnable
+			s.Unlock()
+			if enabled {
+				s.postEvent(NewEventFocus(focus.focused != 0))
+			}
 
 		default:
 		}
@@ -1271,5 +1322,5 @@ func (s *cScreen) EventQ() chan Event {
 }
 
 func (s *cScreen) StopQ() <-chan struct{} {
-	return s.stopQ
+	return s.quit
 }

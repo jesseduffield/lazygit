@@ -1,4 +1,4 @@
-// Copyright 2023 The TCell Authors
+// Copyright 2024 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -715,7 +715,7 @@ func (t *tScreen) drawCell(x, y int) int {
 		return width
 	}
 
-	if y == t.h-1 && x == t.w-1 && t.ti.AutoMargin && ti.InsertChar != "" {
+	if y == t.h-1 && x == t.w-1 && t.ti.AutoMargin && ti.DisableAutoMargin == "" && ti.InsertChar != "" {
 		// our solution is somewhat goofy.
 		// we write to the second to the last cell what we want in the last cell, then we
 		// insert a character at that 2nd to last position to shift the last column into
@@ -1822,10 +1822,18 @@ func (t *tScreen) engage() error {
 	}
 
 	ti := t.ti
-	t.TPuts(ti.EnterCA)
+	if os.Getenv("TCELL_ALTSCREEN") != "disable" {
+		// Technically this may not be right, but every terminal we know about
+		// (even Wyse 60) uses this to enter the alternate screen buffer, and
+		// possibly save and restore the window title and/or icon.
+		// (In theory there could be terminals that don't support X,Y cursor
+		// positions without a setup command, but we don't support them.)
+		t.TPuts(ti.EnterCA)
+	}
 	t.TPuts(ti.EnterKeypad)
 	t.TPuts(ti.HideCursor)
 	t.TPuts(ti.EnableAcs)
+	t.TPuts(ti.DisableAutoMargin)
 	t.TPuts(ti.Clear)
 
 	t.wg.Add(2)
@@ -1864,9 +1872,12 @@ func (t *tScreen) disengage() {
 	}
 	t.TPuts(ti.ResetFgBg)
 	t.TPuts(ti.AttrOff)
-	t.TPuts(ti.Clear)
-	t.TPuts(ti.ExitCA)
 	t.TPuts(ti.ExitKeypad)
+	t.TPuts(ti.EnableAutoMargin)
+	if os.Getenv("TCELL_ALTSCREEN") != "disable" {
+		t.TPuts(ti.Clear) // only needed if ExitCA is empty
+		t.TPuts(ti.ExitCA)
+	}
 	t.enableMouse(0)
 	t.enablePasting(false)
 	t.disableFocusReporting()
@@ -1888,7 +1899,7 @@ func (t *tScreen) finalize() {
 }
 
 func (t *tScreen) StopQ() <-chan struct{} {
-	return t.stopQ
+	return t.quit
 }
 
 func (t *tScreen) EventQ() chan Event {

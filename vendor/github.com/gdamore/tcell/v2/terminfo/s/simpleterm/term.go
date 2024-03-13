@@ -6,9 +6,10 @@ import "github.com/gdamore/tcell/v2/terminfo"
 
 func init() {
 
-	//  simpleterm
+	// aka simpleterm
 	terminfo.AddTerminfo(&terminfo.Terminfo{
 		Name:          "st",
+		Aliases:       []string{"stterm"},
 		Columns:       80,
 		Lines:         24,
 		Colors:        8,
@@ -16,7 +17,7 @@ func init() {
 		Clear:         "\x1b[H\x1b[2J",
 		EnterCA:       "\x1b[?1049h",
 		ExitCA:        "\x1b[?1049l",
-		ShowCursor:    "\x1b[?12l\x1b[?25h",
+		ShowCursor:    "\x1b[?25h",
 		HideCursor:    "\x1b[?25l",
 		AttrOff:       "\x1b[0m",
 		Underline:     "\x1b[4m",
@@ -46,7 +47,7 @@ func init() {
 		KeyLeft:       "\x1bOD",
 		KeyInsert:     "\x1b[2~",
 		KeyDelete:     "\x1b[3~",
-		KeyBackspace:  "\u007f",
+		KeyBackspace:  "\x7f",
 		KeyHome:       "\x1b[1~",
 		KeyEnd:        "\x1b[4~",
 		KeyPgUp:       "\x1b[5~",
@@ -64,15 +65,14 @@ func init() {
 		KeyF11:        "\x1b[23~",
 		KeyF12:        "\x1b[24~",
 		KeyClear:      "\x1b[3;5~",
-		KeyBacktab:    "\x1b[Z",
 		Modifiers:     1,
-		TrueColor:     true,
 		AutoMargin:    true,
 	})
 
-	//  simpleterm with 256 colors
+	// simpleterm with 256 colors
 	terminfo.AddTerminfo(&terminfo.Terminfo{
 		Name:          "st-256color",
+		Aliases:       []string{"stterm-256color"},
 		Columns:       80,
 		Lines:         24,
 		Colors:        256,
@@ -80,7 +80,7 @@ func init() {
 		Clear:         "\x1b[H\x1b[2J",
 		EnterCA:       "\x1b[?1049h",
 		ExitCA:        "\x1b[?1049l",
-		ShowCursor:    "\x1b[?12l\x1b[?25h",
+		ShowCursor:    "\x1b[?25h",
 		HideCursor:    "\x1b[?25l",
 		AttrOff:       "\x1b[0m",
 		Underline:     "\x1b[4m",
@@ -110,7 +110,7 @@ func init() {
 		KeyLeft:       "\x1bOD",
 		KeyInsert:     "\x1b[2~",
 		KeyDelete:     "\x1b[3~",
-		KeyBackspace:  "\u007f",
+		KeyBackspace:  "\x7f",
 		KeyHome:       "\x1b[1~",
 		KeyEnd:        "\x1b[4~",
 		KeyPgUp:       "\x1b[5~",
@@ -128,9 +128,7 @@ func init() {
 		KeyF11:        "\x1b[23~",
 		KeyF12:        "\x1b[24~",
 		KeyClear:      "\x1b[3;5~",
-		KeyBacktab:    "\x1b[Z",
 		Modifiers:     1,
-		TrueColor:     true,
 		AutoMargin:    true,
 	})
 }
