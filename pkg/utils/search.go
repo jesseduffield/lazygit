@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"sort"
 	"strings"
 
 	"github.com/sahilm/fuzzy"
@@ -14,7 +13,6 @@ func FuzzySearch(needle string, haystack []string) []string {
 	}
 
 	matches := fuzzy.Find(needle, haystack)
-	sort.Sort(matches)
 
 	return lo.Map(matches, func(match fuzzy.Match, _ int) string {
 		return match.Str
