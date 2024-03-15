@@ -113,6 +113,11 @@ type TranslationSet struct {
 	ForceCheckoutTooltip                  string
 	CheckoutByName                        string
 	CheckoutByNameTooltip                 string
+	RemoteBranchCheckoutTitle             string
+	CheckoutTypeNewBranch                 string
+	CheckoutTypeNewBranchTooltip          string
+	CheckoutTypeDetachedHead              string
+	CheckoutTypeDetachedHeadTooltip       string
 	NewBranch                             string
 	NewBranchFromStashTooltip             string
 	NoBranchesThisRepo                    string
@@ -1065,6 +1070,11 @@ func EnglishTranslationSet() TranslationSet {
 		ForceCheckoutTooltip:                "Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch.",
 		CheckoutByName:                      "Checkout by name",
 		CheckoutByNameTooltip:               "Checkout by name. In the input box you can enter '-' to switch to the last branch.",
+		RemoteBranchCheckoutTitle:           "Checkout {{.branchName}}",
+		CheckoutTypeNewBranch:               "New local branch",
+		CheckoutTypeNewBranchTooltip:        "Checkout the remote branch as a local branch, tracking the remote branch.",
+		CheckoutTypeDetachedHead:            "Detached head",
+		CheckoutTypeDetachedHeadTooltip:     "Checkout the remote branch as a detached head, which can be useful if you just want to test the branch but not work on it yourself. You can still create a local branch from it later.",
 		NewBranch:                           "New branch",
 		NewBranchFromStashTooltip:           "Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit.",
 		NoBranchesThisRepo:                  "No branches for this repo",

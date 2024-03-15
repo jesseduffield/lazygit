@@ -28,6 +28,17 @@ func (self *BranchCommands) New(name string, base string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// CreateWithUpstream creates a new branch with a given upstream, but without
+// checking it out
+func (self *BranchCommands) CreateWithUpstream(name string, upstream string) error {
+	cmdArgs := NewGitCmd("branch").
+		Arg("--track").
+		Arg(name, upstream).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
 // CurrentBranchInfo get the current branch information.
 func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 	branchName, err := self.cmd.New(

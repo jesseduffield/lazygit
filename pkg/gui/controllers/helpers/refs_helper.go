@@ -96,6 +96,57 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 	})
 }
 
+// Shows a prompt to choose between creating a new branch or checking out a detached head
+func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchName string) error {
+	checkout := func(branchName string) error {
+		if err := self.CheckoutRef(branchName, types.CheckoutRefOptions{}); err != nil {
+			return err
+		}
+		if self.c.CurrentContext() != self.c.Contexts().Branches {
+			return self.c.PushContext(self.c.Contexts().Branches)
+		}
+		return nil
+	}
+
+	// If a branch with this name already exists locally, just check it out. We
+	// don't bother checking whether it actually tracks this remote branch, since
+	// it's very unlikely that it doesn't.
+	if lo.ContainsBy(self.c.Model().Branches, func(branch *models.Branch) bool {
+		return branch.Name == localBranchName
+	}) {
+		return checkout(localBranchName)
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: utils.ResolvePlaceholderString(self.c.Tr.RemoteBranchCheckoutTitle, map[string]string{
+			"branchName": fullBranchName,
+		}),
+		Items: []*types.MenuItem{
+			{
+				Label:   self.c.Tr.CheckoutTypeNewBranch,
+				Tooltip: self.c.Tr.CheckoutTypeNewBranchTooltip,
+				OnPress: func() error {
+					// First create the local branch with the upstream set, and
+					// then check it out. We could do that in one step using
+					// "git checkout -b", but we want to benefit from all the
+					// nice features of the CheckoutRef function.
+					if err := self.c.Git().Branch.CreateWithUpstream(localBranchName, fullBranchName); err != nil {
+						return self.c.Error(err)
+					}
+					return checkout(localBranchName)
+				},
+			},
+			{
+				Label:   self.c.Tr.CheckoutTypeDetachedHead,
+				Tooltip: self.c.Tr.CheckoutTypeDetachedHeadTooltip,
+				OnPress: func() error {
+					return checkout(fullBranchName)
+				},
+			},
+		},
+	})
+}
+
 func (self *RefsHelper) GetCheckedOutRef() *models.Branch {
 	if len(self.c.Model().Branches) == 0 {
 		return nil
@@ -231,4 +282,22 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 // git's branch naming requirement.
 func SanitizedBranchName(input string) string {
 	return strings.Replace(input, " ", "-", -1)
+}
+
+// Checks if the given branch name is a remote branch, and returns the name of
+// the remote and the bare branch name if it is.
+func (self *RefsHelper) ParseRemoteBranchName(fullBranchName string) (string, string, bool) {
+	remoteName, branchName, found := strings.Cut(fullBranchName, "/")
+	if !found {
+		return "", "", false
+	}
+
+	// See if the part before the first slash is actually one of our remotes
+	if !lo.ContainsBy(self.c.Model().Remotes, func(remote *models.Remote) bool {
+		return remote.Name == remoteName
+	}) {
+		return "", "", false
+	}
+
+	return remoteName, branchName, true
 }
