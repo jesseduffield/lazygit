@@ -56,6 +56,19 @@ func equalShas(a, b string) bool {
 	return strings.HasPrefix(a, b) || strings.HasPrefix(b, a)
 }
 
+func findTodo(todos []todo.Todo, todoToFind Todo) (int, bool) {
+	_, idx, ok := lo.FindIndexOf(todos, func(t todo.Todo) bool {
+		// Comparing just the sha is not enough; we need to compare both the
+		// action and the sha, as the sha could appear multiple times (e.g. in a
+		// pick and later in a merge). For update-ref todos we also must compare
+		// the Ref.
+		return t.Command == todoToFind.Action &&
+			equalShas(t.Commit, todoToFind.Sha) &&
+			t.Ref == todoToFind.Ref
+	})
+	return idx, ok
+}
+
 func ReadRebaseTodoFile(fileName string, commentChar byte) ([]todo.Todo, error) {
 	f, err := os.Open(fileName)
 	if err != nil {
@@ -128,15 +141,7 @@ func moveTodosDown(todos []todo.Todo, todosToMove []Todo) ([]todo.Todo, error) {
 }
 
 func moveTodoUp(todos []todo.Todo, todoToMove Todo) ([]todo.Todo, error) {
-	_, sourceIdx, ok := lo.FindIndexOf(todos, func(t todo.Todo) bool {
-		// Comparing just the sha is not enough; we need to compare both the
-		// action and the sha, as the sha could appear multiple times (e.g. in a
-		// pick and later in a merge). For update-ref todos we also must compare
-		// the Ref.
-		return t.Command == todoToMove.Action &&
-			equalShas(t.Commit, todoToMove.Sha) &&
-			t.Ref == todoToMove.Ref
-	})
+	sourceIdx, ok := findTodo(todos, todoToMove)
 
 	if !ok {
 		// Should never happen
