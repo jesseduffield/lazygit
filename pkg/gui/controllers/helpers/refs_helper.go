@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -53,7 +54,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 
 	refreshOptions := types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true}
 
-	return self.c.WithWaitingStatus(waitingStatus, func(gocui.Task) error {
+	f := func(gocui.Task) error {
 		if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {
 			// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
 
@@ -93,19 +94,29 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		onSuccess()
 
 		return self.c.Refresh(refreshOptions)
+	}
+
+	localBranch, found := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
+		return branch.Name == ref
 	})
+	if found {
+		return self.c.WithInlineStatus(localBranch, types.ItemOperationCheckingOut, context.LOCAL_BRANCHES_CONTEXT_KEY, f)
+	} else {
+		return self.c.WithWaitingStatus(waitingStatus, f)
+	}
 }
 
 // Shows a prompt to choose between creating a new branch or checking out a detached head
 func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchName string) error {
 	checkout := func(branchName string) error {
-		if err := self.CheckoutRef(branchName, types.CheckoutRefOptions{}); err != nil {
-			return err
-		}
+		// Switch to the branches context _before_ starting to check out the
+		// branch, so that we see the inline status
 		if self.c.CurrentContext() != self.c.Contexts().Branches {
-			return self.c.PushContext(self.c.Contexts().Branches)
+			if err := self.c.PushContext(self.c.Contexts().Branches); err != nil {
+				return err
+			}
 		}
-		return nil
+		return self.CheckoutRef(branchName, types.CheckoutRefOptions{})
 	}
 
 	// If a branch with this name already exists locally, just check it out. We
