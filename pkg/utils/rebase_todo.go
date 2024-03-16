@@ -116,8 +116,8 @@ func MoveTodosUp(fileName string, todosToMove []Todo, commentChar byte) error {
 	return WriteRebaseTodoFile(fileName, rearrangedTodos, commentChar)
 }
 
-func moveTodoDown(todos []todo.Todo, sha string, action todo.TodoCommand) ([]todo.Todo, error) {
-	rearrangedTodos, err := moveTodoUp(lo.Reverse(todos), sha, action)
+func moveTodoDown(todos []todo.Todo, todoToMove Todo) ([]todo.Todo, error) {
+	rearrangedTodos, err := moveTodoUp(lo.Reverse(todos), todoToMove)
 	return lo.Reverse(rearrangedTodos), err
 }
 
@@ -126,17 +126,17 @@ func moveTodosDown(todos []todo.Todo, todosToMove []Todo) ([]todo.Todo, error) {
 	return lo.Reverse(rearrangedTodos), err
 }
 
-func moveTodoUp(todos []todo.Todo, sha string, action todo.TodoCommand) ([]todo.Todo, error) {
+func moveTodoUp(todos []todo.Todo, todoToMove Todo) ([]todo.Todo, error) {
 	_, sourceIdx, ok := lo.FindIndexOf(todos, func(t todo.Todo) bool {
 		// Comparing just the sha is not enough; we need to compare both the
 		// action and the sha, as the sha could appear multiple times (e.g. in a
 		// pick and later in a merge)
-		return t.Command == action && equalShas(t.Commit, sha)
+		return t.Command == todoToMove.Action && equalShas(t.Commit, todoToMove.Sha)
 	})
 
 	if !ok {
 		// Should never happen
-		return []todo.Todo{}, fmt.Errorf("Todo %s not found in git-rebase-todo", sha)
+		return []todo.Todo{}, fmt.Errorf("Todo %s not found in git-rebase-todo", todoToMove.Sha)
 	}
 
 	// The todos are ordered backwards compared to our model commits, so
@@ -161,7 +161,7 @@ func moveTodoUp(todos []todo.Todo, sha string, action todo.TodoCommand) ([]todo.
 func moveTodosUp(todos []todo.Todo, todosToMove []Todo) ([]todo.Todo, error) {
 	for _, todoToMove := range todosToMove {
 		var newTodos []todo.Todo
-		newTodos, err := moveTodoUp(todos, todoToMove.Sha, todoToMove.Action)
+		newTodos, err := moveTodoUp(todos, todoToMove)
 		if err != nil {
 			return nil, err
 		}
