@@ -342,6 +342,9 @@ func displayCommit(
 	}
 
 	name := commit.Name
+	if commit.Action == todo.UpdateRef {
+		name = strings.TrimPrefix(name, "refs/heads/")
+	}
 	if parseEmoji {
 		name = emoji.Sprint(name)
 	}

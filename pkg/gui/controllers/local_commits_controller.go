@@ -282,7 +282,7 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() error {
 					utils.ResolvePlaceholderString(
 						self.c.Tr.UpdateRefHere,
 						map[string]string{
-							"ref": commit.Name,
+							"ref": strings.TrimPrefix(commit.Name, "refs/heads/"),
 						}))
 			} else {
 				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Sha, self.c.Modes().Filtering.GetPath())
