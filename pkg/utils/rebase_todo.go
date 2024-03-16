@@ -10,7 +10,8 @@ import (
 )
 
 type Todo struct {
-	Sha    string
+	Sha    string // for todos that have one, e.g. pick, drop, fixup, etc.
+	Ref    string // for update-ref todos
 	Action todo.TodoCommand
 }
 
@@ -130,8 +131,11 @@ func moveTodoUp(todos []todo.Todo, todoToMove Todo) ([]todo.Todo, error) {
 	_, sourceIdx, ok := lo.FindIndexOf(todos, func(t todo.Todo) bool {
 		// Comparing just the sha is not enough; we need to compare both the
 		// action and the sha, as the sha could appear multiple times (e.g. in a
-		// pick and later in a merge)
-		return t.Command == todoToMove.Action && equalShas(t.Commit, todoToMove.Sha)
+		// pick and later in a merge). For update-ref todos we also must compare
+		// the Ref.
+		return t.Command == todoToMove.Action &&
+			equalShas(t.Commit, todoToMove.Sha) &&
+			t.Ref == todoToMove.Ref
 	})
 
 	if !ok {

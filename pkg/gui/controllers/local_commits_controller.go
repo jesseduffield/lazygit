@@ -179,7 +179,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Key:     opts.GetKey(opts.Config.Commits.MoveDownCommit),
 			Handler: self.withItemsRange(self.moveDown),
 			GetDisabledReason: self.require(self.itemRangeSelected(
-				self.midRebaseCommandEnabled,
+				self.midRebaseMoveCommandEnabled,
 				self.canMoveDown,
 			)),
 			Description: self.c.Tr.MoveDownCommit,
@@ -188,7 +188,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Key:     opts.GetKey(opts.Config.Commits.MoveUpCommit),
 			Handler: self.withItemsRange(self.moveUp),
 			GetDisabledReason: self.require(self.itemRangeSelected(
-				self.midRebaseCommandEnabled,
+				self.midRebaseMoveCommandEnabled,
 				self.canMoveUp,
 			)),
 			Description: self.c.Tr.MoveUpCommit,
@@ -1185,6 +1185,27 @@ func (self *LocalCommitsController) midRebaseCommandEnabled(selectedCommits []*m
 		}
 
 		if !isChangeOfRebaseTodoAllowed(commit.Action) {
+			return &types.DisabledReason{Text: self.c.Tr.ChangingThisActionIsNotAllowed}
+		}
+	}
+
+	return nil
+}
+
+// Ensures that if we are mid-rebase, we're only selecting commits that can be moved
+func (self *LocalCommitsController) midRebaseMoveCommandEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
+	if !self.isRebasing() {
+		return nil
+	}
+
+	for _, commit := range selectedCommits {
+		if !commit.IsTODO() {
+			return &types.DisabledReason{Text: self.c.Tr.MustSelectTodoCommits}
+		}
+
+		// All todo types that can be edited are allowed to be moved, plus
+		// update-ref todos
+		if !isChangeOfRebaseTodoAllowed(commit.Action) && commit.Action != todo.UpdateRef {
 			return &types.DisabledReason{Text: self.c.Tr.ChangingThisActionIsNotAllowed}
 		}
 	}
