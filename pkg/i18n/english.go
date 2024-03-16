@@ -1031,7 +1031,7 @@ func EnglishTranslationSet() TranslationSet {
 		CheckoutTooltip:                     "Checkout selected item.",
 		CantCheckoutBranchWhilePulling:      "You cannot checkout another branch while pulling the current branch",
 		TagCheckoutTooltip:                  "Checkout the selected tag tag as a detached HEAD.",
-		RemoteBranchCheckoutTooltip:         "Checkout a new local branch based on the selected remote branch. The new branch will track the remote branch.",
+		RemoteBranchCheckoutTooltip:         "Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head.",
 		CantPullOrPushSameBranchTwice:       "You cannot push or pull a branch while it is already being pushed or pulled",
 		FileFilter:                          "Filter files by status",
 		CopyToClipboardMenu:                 "Copy to clipboard",
@@ -1905,6 +1905,7 @@ keybinding:
 - Squashing fixups using 'shift-S' now brings up a menu, with the default option being to squash all fixup commits in the branch. The original behaviour of only squashing fixup commits above the selected commit is still available as the second option in that menu.
 - Push/pull/fetch loading statuses are now shown against the branch rather than in a popup. This allows you to e.g. fetch multiple branches in parallel and see the status for each branch.
 - The git log graph in the commits view is now always shown by default (previously it was only shown when the view was maximised). If you find this too noisy, you can change it back via ctrl+L -> 'Show git graph' -> 'when maximised'
+- Pressing space on a remote branch used to show a prompt for entering a name for a new local branch to check out from the remote branch. Now it just checks out the remote branch directly, letting you choose between a new local branch with the same name, or a detached head. The old behavior is still available via the 'n' keybinding.
 	  `,
 		},
 	}

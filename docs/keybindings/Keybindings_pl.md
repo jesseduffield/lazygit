@@ -240,7 +240,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Copy branch name to clipboard |  |
-| `` <space> `` | Przełącz | Checkout a new local branch based on the selected remote branch. The new branch will track the remote branch. |
+| `` <space> `` | Przełącz | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | Nowa gałąź |  |
 | `` M `` | Scal do obecnej gałęzi | Merge selected branch into currently checked out branch. |
 | `` r `` | Zmiana bazy gałęzi | Rebase the checked-out branch onto the selected branch. |

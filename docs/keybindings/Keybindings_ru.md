@@ -297,7 +297,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Скопировать название ветки в буфер обмена |  |
-| `` <space> `` | Переключить | Checkout a new local branch based on the selected remote branch. The new branch will track the remote branch. |
+| `` <space> `` | Переключить | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | Новая ветка |  |
 | `` M `` | Слияние с текущей переключённой веткой | Merge selected branch into currently checked out branch. |
 | `` r `` | Перебазировать переключённую ветку на эту ветку | Rebase the checked-out branch onto the selected branch. |
