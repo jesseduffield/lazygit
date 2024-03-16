@@ -144,6 +144,14 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 					if err := self.c.Git().Branch.CreateWithUpstream(localBranchName, fullBranchName); err != nil {
 						return self.c.Error(err)
 					}
+					// Do a sync refresh to make sure the new branch is visible,
+					// so that we see an inline status when checking it out
+					if err := self.c.Refresh(types.RefreshOptions{
+						Mode:  types.SYNC,
+						Scope: []types.RefreshableView{types.BRANCHES},
+					}); err != nil {
+						return err
+					}
 					return checkout(localBranchName)
 				},
 			},
