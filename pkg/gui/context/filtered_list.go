@@ -1,7 +1,6 @@
 package context
 
 import (
-	"slices"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -17,21 +16,14 @@ type FilteredList[T any] struct {
 	getFilterFields func(T) []string
 	filter          string
 
-	// Normally, filtered items are presented sorted by best match. If this
-	// function returns true, they retain their original sort order instead;
-	// this is useful for lists that show items sorted by date, for example.
-	// Leaving this nil is equivalent to returning false.
-	shouldRetainSortOrder func() bool
-
 	mutex *deadlock.Mutex
 }
 
-func NewFilteredList[T any](getList func() []T, getFilterFields func(T) []string, shouldRetainSortOrder func() bool) *FilteredList[T] {
+func NewFilteredList[T any](getList func() []T, getFilterFields func(T) []string) *FilteredList[T] {
 	return &FilteredList[T]{
-		getList:               getList,
-		getFilterFields:       getFilterFields,
-		shouldRetainSortOrder: shouldRetainSortOrder,
-		mutex:                 &deadlock.Mutex{},
+		getList:         getList,
+		getFilterFields: getFilterFields,
+		mutex:           &deadlock.Mutex{},
 	}
 }
 
@@ -100,9 +92,6 @@ func (self *FilteredList[T]) applyFilter(useFuzzySearch bool) {
 		self.filteredIndices = lo.Map(matches, func(match fuzzy.Match, _ int) int {
 			return match.Index
 		})
-		if useFuzzySearch && self.shouldRetainSortOrder != nil && self.shouldRetainSortOrder() {
-			slices.Sort(self.filteredIndices)
-		}
 	}
 }
 
