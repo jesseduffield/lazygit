@@ -111,7 +111,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` n `` | Nowa gałąź |  |
 | `` o `` | Utwórz żądanie pobrania |  |
 | `` O `` | Utwórz opcje żądania ściągnięcia |  |
-| `` <c-y> `` | Skopiuj adres URL żądania pobrania do schowka |  |
+| `` y `` | Copy branch attribute to clipboard |  |
 | `` c `` | Przełącz używając nazwy | Checkout by name. In the input box you can enter '-' to switch to the last branch. |
 | `` F `` | Wymuś przełączenie | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |

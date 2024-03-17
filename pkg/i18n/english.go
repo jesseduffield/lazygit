@@ -97,6 +97,8 @@ type TranslationSet struct {
 	SureForceCheckout                     string
 	ForceCheckoutBranch                   string
 	BranchName                            string
+	BranchURL                             string
+	PullRequestURL                        string
 	NewBranchNameBranchOff                string
 	CantDeleteCheckOutBranch              string
 	DeleteBranchTitle                     string
@@ -577,6 +579,7 @@ type TranslationSet struct {
 	CopyCommitAttributeToClipboard        string
 	CopyCommitAttributeToClipboardTooltip string
 	CopyBranchNameToClipboard             string
+	CopyBranchAttributeToClipboard        string
 	CopyPathToClipboard                   string
 	CommitPrefixPatternError              string
 	CopySelectedTextToClipboard           string
@@ -630,6 +633,8 @@ type TranslationSet struct {
 	ExtrasTitle                          string
 	PushingTagStatus                     string
 	PullRequestURLCopiedToClipboard      string
+	BranchNameCopiedToClipboard          string
+	BranchURLCopiedToClipboard           string
 	CommitDiffCopiedToClipboard          string
 	CommitSHACopiedToClipboard           string
 	CommitURLCopiedToClipboard           string
@@ -922,6 +927,8 @@ type Actions struct {
 	Undo                              string
 	Redo                              string
 	CopyPullRequestURL                string
+	CopyBranchName                    string
+	CopyBranchURL                     string
 	OpenDiffTool                      string
 	OpenMergeTool                     string
 	OpenCommitInBrowser               string
@@ -1054,6 +1061,8 @@ func EnglishTranslationSet() TranslationSet {
 		SureForceCheckout:                   "Are you sure you want force checkout? You will lose all local changes",
 		ForceCheckoutBranch:                 "Force checkout branch",
 		BranchName:                          "Branch name",
+		BranchURL:                           "Branch URL",
+		PullRequestURL:                      "Pull request URL",
 		NewBranchNameBranchOff:              "New branch name (branch is off of '{{.branchName}}')",
 		CantDeleteCheckOutBranch:            "You cannot delete the checked out branch!",
 		DeleteBranchTitle:                   "Delete branch '{{.selectedBranchName}}'?",
@@ -1537,6 +1546,7 @@ func EnglishTranslationSet() TranslationSet {
 		CopyCommitAttributeToClipboard:        "Copy commit attribute to clipboard",
 		CopyCommitAttributeToClipboardTooltip: "Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author).",
 		CopyBranchNameToClipboard:             "Copy branch name to clipboard",
+		CopyBranchAttributeToClipboard:        "Copy branch attribute to clipboard",
 		CopyPathToClipboard:                   "Copy path to clipboard",
 		CopySelectedTextToClipboard:           "Copy selected text to clipboard",
 		CommitPrefixPatternError:              "Error in commitPrefix pattern",
@@ -1589,6 +1599,8 @@ func EnglishTranslationSet() TranslationSet {
 		ExtrasTitle:                           "Command log",
 		PushingTagStatus:                      "Pushing tag",
 		PullRequestURLCopiedToClipboard:       "Pull request URL copied to clipboard",
+		BranchNameCopiedToClipboard:           "Branch name copied to clipboard",
+		BranchURLCopiedToClipboard:            "Branch URL copied to clipboard",
 		CommitDiffCopiedToClipboard:           "Commit diff copied to clipboard",
 		CommitSHACopiedToClipboard:            "Commit SHA copied to clipboard",
 		CommitURLCopiedToClipboard:            "Commit URL copied to clipboard",
@@ -1769,6 +1781,8 @@ func EnglishTranslationSet() TranslationSet {
 			CopyCommitURLToClipboard:       "Copy commit URL to clipboard",
 			CopyCommitAuthorToClipboard:    "Copy commit author to clipboard",
 			CopyCommitAttributeToClipboard: "Copy to clipboard",
+			CopyBranchName:                 "Copy branch name",
+			CopyBranchURL:                  "Copy branch URL",
 			CopyPatchToClipboard:           "Copy patch to clipboard",
 			MoveCommitUp:                   "Move commit up",
 			MoveCommitDown:                 "Move commit down",
