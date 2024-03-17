@@ -327,7 +327,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | ブランチ名をクリップボードにコピー |  |
-| `` <space> `` | チェックアウト | Checkout a new local branch based on the selected remote branch. The new branch will track the remote branch. |
+| `` <space> `` | チェックアウト | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | 新しいブランチを作成 |  |
 | `` M `` | 現在のブランチにマージ | Merge selected branch into currently checked out branch. |
 | `` r `` | Rebase | Rebase the checked-out branch onto the selected branch. |

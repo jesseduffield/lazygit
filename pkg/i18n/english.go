@@ -113,6 +113,11 @@ type TranslationSet struct {
 	ForceCheckoutTooltip                  string
 	CheckoutByName                        string
 	CheckoutByNameTooltip                 string
+	RemoteBranchCheckoutTitle             string
+	CheckoutTypeNewBranch                 string
+	CheckoutTypeNewBranchTooltip          string
+	CheckoutTypeDetachedHead              string
+	CheckoutTypeDetachedHeadTooltip       string
 	NewBranch                             string
 	NewBranchFromStashTooltip             string
 	NoBranchesThisRepo                    string
@@ -1026,7 +1031,7 @@ func EnglishTranslationSet() TranslationSet {
 		CheckoutTooltip:                     "Checkout selected item.",
 		CantCheckoutBranchWhilePulling:      "You cannot checkout another branch while pulling the current branch",
 		TagCheckoutTooltip:                  "Checkout the selected tag tag as a detached HEAD.",
-		RemoteBranchCheckoutTooltip:         "Checkout a new local branch based on the selected remote branch. The new branch will track the remote branch.",
+		RemoteBranchCheckoutTooltip:         "Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head.",
 		CantPullOrPushSameBranchTwice:       "You cannot push or pull a branch while it is already being pushed or pulled",
 		FileFilter:                          "Filter files by status",
 		CopyToClipboardMenu:                 "Copy to clipboard",
@@ -1065,6 +1070,11 @@ func EnglishTranslationSet() TranslationSet {
 		ForceCheckoutTooltip:                "Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch.",
 		CheckoutByName:                      "Checkout by name",
 		CheckoutByNameTooltip:               "Checkout by name. In the input box you can enter '-' to switch to the last branch.",
+		RemoteBranchCheckoutTitle:           "Checkout {{.branchName}}",
+		CheckoutTypeNewBranch:               "New local branch",
+		CheckoutTypeNewBranchTooltip:        "Checkout the remote branch as a local branch, tracking the remote branch.",
+		CheckoutTypeDetachedHead:            "Detached head",
+		CheckoutTypeDetachedHeadTooltip:     "Checkout the remote branch as a detached head, which can be useful if you just want to test the branch but not work on it yourself. You can still create a local branch from it later.",
 		NewBranch:                           "New branch",
 		NewBranchFromStashTooltip:           "Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit.",
 		NoBranchesThisRepo:                  "No branches for this repo",
@@ -1895,6 +1905,7 @@ keybinding:
 - Squashing fixups using 'shift-S' now brings up a menu, with the default option being to squash all fixup commits in the branch. The original behaviour of only squashing fixup commits above the selected commit is still available as the second option in that menu.
 - Push/pull/fetch loading statuses are now shown against the branch rather than in a popup. This allows you to e.g. fetch multiple branches in parallel and see the status for each branch.
 - The git log graph in the commits view is now always shown by default (previously it was only shown when the view was maximised). If you find this too noisy, you can change it back via ctrl+L -> 'Show git graph' -> 'when maximised'
+- Pressing space on a remote branch used to show a prompt for entering a name for a new local branch to check out from the remote branch. Now it just checks out the remote branch directly, letting you choose between a new local branch with the same name, or a detached head. The old behavior is still available via the 'n' keybinding.
 	  `,
 		},
 	}

@@ -240,7 +240,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | 브랜치명을 클립보드에 복사 |  |
-| `` <space> `` | 체크아웃 | Checkout a new local branch based on the selected remote branch. The new branch will track the remote branch. |
+| `` <space> `` | 체크아웃 | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | 새 브랜치 생성 |  |
 | `` M `` | 현재 브랜치에 병합 | Merge selected branch into currently checked out branch. |
 | `` r `` | 체크아웃된 브랜치를 이 브랜치에 리베이스 | Rebase the checked-out branch onto the selected branch. |
