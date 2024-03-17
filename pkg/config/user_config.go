@@ -517,7 +517,7 @@ type OSConfig struct {
 	CopyToClipboardCmd string `yaml:"copyToClipboardCmd,omitempty"`
 
 	// Shell and ShellArg are the shell and corresponding argument to be used for executing custom commands.
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-shell-for-executing-arbitrary-commands
 	Shell    string `yaml:"shell,omitempty"`
 	ShellArg string `yaml:"shellArg,omitempty"`
 }
