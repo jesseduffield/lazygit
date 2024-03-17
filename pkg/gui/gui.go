@@ -534,12 +534,7 @@ func NewGui(
 		credentialsHelper.PromptUserForCredential,
 	)
 
-	osCommand := oscommands.NewOSCommand(cmn, config, oscommands.GetPlatform(), guiIO)
-	shell := gui.UserConfig.OS.Shell
-	if shell != "" {
-		osCommand.Platform.Shell = shell
-		osCommand.Platform.ShellArg = gui.UserConfig.OS.ShellArg
-	}
+	osCommand := oscommands.NewOSCommand(cmn, config, oscommands.GetPlatform(gui.UserConfig.OS), guiIO)
 	gui.os = osCommand
 
 	// storing this stuff on the gui for now to ease refactoring

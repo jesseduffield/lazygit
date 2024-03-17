@@ -102,7 +102,7 @@ func NewApp(config config.AppConfigurer, test integrationTypes.IntegrationTest, 
 		Common:  common,
 	}
 
-	app.OSCommand = oscommands.NewOSCommand(common, config, oscommands.GetPlatform(), oscommands.NewNullGuiIO(app.Log))
+	app.OSCommand = oscommands.NewOSCommand(common, config, oscommands.GetPlatform(common.UserConfig.OS), oscommands.NewNullGuiIO(app.Log))
 
 	updater, err := updates.NewUpdater(common, config, app.OSCommand)
 	if err != nil {
