@@ -66,7 +66,7 @@ func matchesToSuggestions(matches []string) []*types.Suggestion {
 func (self *SuggestionsHelper) GetRemoteSuggestionsFunc() func(string) []*types.Suggestion {
 	remoteNames := self.getRemoteNames()
 
-	return FuzzySearchFunc(remoteNames, self.c.UserConfig.Gui.UseFuzzySearch())
+	return FilterFunc(remoteNames, self.c.UserConfig.Gui.UseFuzzySearch())
 }
 
 func (self *SuggestionsHelper) getBranchNames() []string {
@@ -163,7 +163,7 @@ func (self *SuggestionsHelper) getRemoteBranchNames(separator string) []string {
 }
 
 func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string) func(string) []*types.Suggestion {
-	return FuzzySearchFunc(self.getRemoteBranchNames(separator), self.c.UserConfig.Gui.UseFuzzySearch())
+	return FilterFunc(self.getRemoteBranchNames(separator), self.c.UserConfig.Gui.UseFuzzySearch())
 }
 
 func (self *SuggestionsHelper) getTagNames() []string {
@@ -175,7 +175,7 @@ func (self *SuggestionsHelper) getTagNames() []string {
 func (self *SuggestionsHelper) GetTagsSuggestionsFunc() func(string) []*types.Suggestion {
 	tagNames := self.getTagNames()
 
-	return FuzzySearchFunc(tagNames, self.c.UserConfig.Gui.UseFuzzySearch())
+	return FilterFunc(tagNames, self.c.UserConfig.Gui.UseFuzzySearch())
 }
 
 func (self *SuggestionsHelper) GetRefsSuggestionsFunc() func(string) []*types.Suggestion {
@@ -186,7 +186,7 @@ func (self *SuggestionsHelper) GetRefsSuggestionsFunc() func(string) []*types.Su
 
 	refNames := append(append(append(remoteBranchNames, localBranchNames...), tagNames...), additionalRefNames...)
 
-	return FuzzySearchFunc(refNames, self.c.UserConfig.Gui.UseFuzzySearch())
+	return FilterFunc(refNames, self.c.UserConfig.Gui.UseFuzzySearch())
 }
 
 func (self *SuggestionsHelper) GetAuthorsSuggestionsFunc() func(string) []*types.Suggestion {
@@ -196,10 +196,10 @@ func (self *SuggestionsHelper) GetAuthorsSuggestionsFunc() func(string) []*types
 
 	slices.Sort(authors)
 
-	return FuzzySearchFunc(authors, self.c.UserConfig.Gui.UseFuzzySearch())
+	return FilterFunc(authors, self.c.UserConfig.Gui.UseFuzzySearch())
 }
 
-func FuzzySearchFunc(options []string, useFuzzySearch bool) func(string) []*types.Suggestion {
+func FilterFunc(options []string, useFuzzySearch bool) func(string) []*types.Suggestion {
 	return func(input string) []*types.Suggestion {
 		var matches []string
 		if input == "" {
