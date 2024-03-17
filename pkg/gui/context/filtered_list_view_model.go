@@ -6,8 +6,8 @@ type FilteredListViewModel[T HasID] struct {
 	*SearchHistory
 }
 
-func NewFilteredListViewModel[T HasID](getList func() []T, getFilterFields func(T) []string, shouldRetainSortOrder func() bool) *FilteredListViewModel[T] {
-	filteredList := NewFilteredList(getList, getFilterFields, shouldRetainSortOrder)
+func NewFilteredListViewModel[T HasID](getList func() []T, getFilterFields func(T) []string) *FilteredListViewModel[T] {
+	filteredList := NewFilteredList(getList, getFilterFields)
 
 	self := &FilteredListViewModel[T]{
 		FilteredList:  filteredList,

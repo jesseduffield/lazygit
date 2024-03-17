@@ -142,6 +142,13 @@ type GuiConfig struct {
 	// Whether to stack UI components on top of each other.
 	// One of 'auto' (default) | 'always' | 'never'
 	PortraitMode string `yaml:"portraitMode"`
+	// How things are filtered when typing '/'.
+	// One of 'substring' (default) | 'fuzzy'
+	FilterMode string `yaml:"filterMode" jsonschema:"enum=substring,enum=fuzzy"`
+}
+
+func (c *GuiConfig) UseFuzzySearch() bool {
+	return c.FilterMode == "fuzzy"
 }
 
 type ThemeConfig struct {
@@ -660,6 +667,7 @@ func GetDefaultConfig() *UserConfig {
 			Border:                    "rounded",
 			AnimateExplosion:          true,
 			PortraitMode:              "auto",
+			FilterMode:                "substring",
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{
