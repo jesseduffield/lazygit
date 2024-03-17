@@ -22,7 +22,6 @@ func NewRemotesContext(c *ContextCommon) *RemotesContext {
 		func(remote *models.Remote) []string {
 			return []string{remote.Name}
 		},
-		nil,
 	)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {

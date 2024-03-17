@@ -196,23 +196,8 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 				SetUpstream:    opts.setUpstream,
 			})
 		if err != nil {
-			if !opts.force && strings.Contains(err.Error(), "Updates were rejected") {
-				forcePushDisabled := self.c.UserConfig.Git.DisableForcePushing
-				if forcePushDisabled {
-					_ = self.c.ErrorMsg(self.c.Tr.UpdatesRejectedAndForcePushDisabled)
-					return nil
-				}
-				_ = self.c.Confirm(types.ConfirmOpts{
-					Title:  self.c.Tr.ForcePush,
-					Prompt: self.forcePushPrompt(),
-					HandleConfirm: func() error {
-						newOpts := opts
-						newOpts.force = true
-
-						return self.pushAux(currentBranch, newOpts)
-					},
-				})
-				return nil
+			if strings.Contains(err.Error(), "Updates were rejected") {
+				return self.c.ErrorMsg(self.c.Tr.UpdatesRejected)
 			}
 			return err
 		}

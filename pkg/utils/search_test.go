@@ -7,49 +7,67 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestFuzzySearch is a function.
-func TestFuzzySearch(t *testing.T) {
+func TestFilterStrings(t *testing.T) {
 	type scenario struct {
-		needle   string
-		haystack []string
-		expected []string
+		needle         string
+		haystack       []string
+		useFuzzySearch bool
+		expected       []string
 	}
 
 	scenarios := []scenario{
 		{
-			needle:   "",
-			haystack: []string{"test"},
-			expected: []string{},
+			needle:         "",
+			haystack:       []string{"test"},
+			useFuzzySearch: true,
+			expected:       []string{},
 		},
 		{
-			needle:   "test",
-			haystack: []string{"test"},
-			expected: []string{"test"},
+			needle:         "test",
+			haystack:       []string{"test"},
+			useFuzzySearch: true,
+			expected:       []string{"test"},
 		},
 		{
-			needle:   "o",
-			haystack: []string{"a", "o", "e"},
-			expected: []string{"o"},
+			needle:         "o",
+			haystack:       []string{"a", "o", "e"},
+			useFuzzySearch: true,
+			expected:       []string{"o"},
 		},
 		{
-			needle:   "mybranch",
-			haystack: []string{"my_branch", "mybranch", "branch", "this is my branch"},
-			expected: []string{"mybranch", "my_branch", "this is my branch"},
+			needle:         "mybranch",
+			haystack:       []string{"my_branch", "mybranch", "branch", "this is my branch"},
+			useFuzzySearch: true,
+			expected:       []string{"mybranch", "my_branch", "this is my branch"},
 		},
 		{
-			needle:   "test",
-			haystack: []string{"not a good match", "this 'test' is a good match", "test"},
-			expected: []string{"test", "this 'test' is a good match"},
+			needle:         "test",
+			haystack:       []string{"not a good match", "this 'test' is a good match", "test"},
+			useFuzzySearch: true,
+			expected:       []string{"test", "this 'test' is a good match"},
 		},
 		{
-			needle:   "test",
-			haystack: []string{"Test"},
-			expected: []string{"Test"},
+			needle:         "test",
+			haystack:       []string{"Test"},
+			useFuzzySearch: true,
+			expected:       []string{"Test"},
+		},
+		{
+			needle:         "test",
+			haystack:       []string{"integration-testing", "t_e_s_t"},
+			useFuzzySearch: false,
+			expected:       []string{"integration-testing"},
+		},
+		{
+			needle:         "integr test",
+			haystack:       []string{"integration-testing", "testing-integration"},
+			useFuzzySearch: false,
+			expected:       []string{"integration-testing", "testing-integration"},
 		},
 	}
 
 	for _, s := range scenarios {
-		assert.EqualValues(t, s.expected, FuzzySearch(s.needle, s.haystack))
+		assert.EqualValues(t, s.expected, FilterStrings(s.needle, s.haystack, s.useFuzzySearch))
 	}
 }
 

@@ -436,6 +436,10 @@ func (self *BranchesController) checkoutByName() error {
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRefsSuggestionsFunc(),
 		HandleConfirm: func(response string) error {
 			self.c.LogAction("Checkout branch")
+			_, branchName, found := self.c.Helpers().Refs.ParseRemoteBranchName(response)
+			if found {
+				return self.c.Helpers().Refs.CheckoutRemoteBranch(response, branchName)
+			}
 			return self.c.Helpers().Refs.CheckoutRef(response, types.CheckoutRefOptions{
 				OnRefNotFound: func(ref string) error {
 					return self.c.Confirm(types.ConfirmOpts{

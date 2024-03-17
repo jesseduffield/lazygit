@@ -241,7 +241,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Kopieer branch name naar klembord |  |
-| `` <space> `` | Uitchecken | Checkout a new local branch based on the selected remote branch. The new branch will track the remote branch. |
+| `` <space> `` | Uitchecken | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | Nieuwe branch |  |
 | `` M `` | Merge in met huidige checked out branch | Merge selected branch into currently checked out branch. |
 | `` r `` | Rebase branch | Rebase the checked-out branch onto the selected branch. |

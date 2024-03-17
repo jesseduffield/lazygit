@@ -357,6 +357,15 @@
           "type": "string",
           "description": "Whether to stack UI components on top of each other.\nOne of 'auto' (default) | 'always' | 'never'",
           "default": "auto"
+        },
+        "filterMode": {
+          "type": "string",
+          "enum": [
+            "substring",
+            "fuzzy"
+          ],
+          "description": "How things are filtered when typing '/'.\nOne of 'substring' (default) | 'fuzzy'",
+          "default": "substring"
         }
       },
       "additionalProperties": false,

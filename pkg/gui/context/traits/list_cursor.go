@@ -65,7 +65,11 @@ func (self *ListCursor) SetSelection(value int) {
 func (self *ListCursor) SetSelectionRangeAndMode(selectedIdx, rangeStartIdx int, mode RangeSelectMode) {
 	self.selectedIdx = self.clampValue(selectedIdx)
 	self.rangeStartIdx = self.clampValue(rangeStartIdx)
-	self.rangeSelectMode = mode
+	if mode == RangeSelectModeNonSticky && selectedIdx == rangeStartIdx {
+		self.rangeSelectMode = RangeSelectModeNone
+	} else {
+		self.rangeSelectMode = mode
+	}
 }
 
 // Returns the selectedIdx, the rangeStartIdx, and the mode of the current selection.
