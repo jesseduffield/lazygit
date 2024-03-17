@@ -146,7 +146,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		{
 			ViewName:          "commits",
 			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
-			Handler:           self.handleCopySelectedSideContextItemToClipboard,
+			Handler:           self.handleCopySelectedSideContextItemCommitHashToClipboard,
 			GetDisabledReason: self.getCopySelectedSideContextItemToClipboardDisabledReason,
 			Description:       self.c.Tr.CopyCommitShaToClipboard,
 		},
@@ -166,7 +166,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		{
 			ViewName:          "subCommits",
 			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
-			Handler:           self.handleCopySelectedSideContextItemToClipboard,
+			Handler:           self.handleCopySelectedSideContextItemCommitHashToClipboard,
 			GetDisabledReason: self.getCopySelectedSideContextItemToClipboardDisabledReason,
 			Description:       self.c.Tr.CopyCommitShaToClipboard,
 		},
