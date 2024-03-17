@@ -86,6 +86,7 @@ gui:
   border: 'rounded' # one of 'single' | 'double' | 'rounded' | 'hidden'
   animateExplosion: true # shows an explosion animation when nuking the working tree
   portraitMode: 'auto' # one of 'auto' | 'never' | 'always'
+  filterMode: 'substring' # one of 'substring' | 'fuzzy'; see 'Filtering' section below
 git:
   paging:
     colorArg: always
@@ -373,6 +374,12 @@ When the selected line gets close to the bottom of the window and you hit down-a
 That's the behavior when `gui.scrollOffBehavior` is set to "margin" (the default). If you set `gui.scrollOffBehavior` to "jump", then upon reaching the last line of a view and hitting down-arrow the view will scroll by half a page so that the selection ends up in the middle of the view. This may feel a little jarring because the cursor jumps around when continuously moving down, but it has the advantage that the view doesn't scroll as often.
 
 This setting applies both to all list views (e.g. commits and branches etc), and to the staging view.
+
+## Filtering
+
+We have two ways to filter things, substring matching (the default) and fuzzy searching. With substring matching, the text you enter gets searched for verbatim (usually case-insensitive, except when your filter string contains uppercase letters, in which case we search case-sensitively). You can search for multiple non-contiguous substrings by separating them with spaces; for example, "int test" will match "integration-testing". All substrings have to match, but not necessarily in the given order.
+
+Fuzzy searching is smarter in that it allows every letter of the filter string to match anywhere in the text (only in order though), assigning a weight to the quality of the match and sorting by that order. This has the advantage that it allows typing "clt" to match "commit_loader_test" (letters at the beginning of subwords get more weight); but it has the disadvantage that it tends to return lots of irrelevant results, especially with short filter strings.
 
 ## Color Attributes
 

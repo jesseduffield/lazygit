@@ -26,7 +26,6 @@ func NewRemoteBranchesContext(
 		func(remoteBranch *models.RemoteBranch) []string {
 			return []string{remoteBranch.Name}
 		},
-		func() bool { return c.AppState.RemoteBranchSortOrder != "alphabetical" },
 	)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {

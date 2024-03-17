@@ -102,10 +102,10 @@ type IFilterableContext interface {
 	IListPanelState
 	ISearchHistoryContext
 
-	SetFilter(string)
+	SetFilter(string, bool)
 	GetFilter() string
 	ClearFilter()
-	ReApplyFilter()
+	ReApplyFilter(bool)
 	IsFiltering() bool
 	IsFilterableContext()
 }

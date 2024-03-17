@@ -61,10 +61,6 @@ func NewMenuViewModel(c *ContextCommon) *MenuViewModel {
 	self.FilteredListViewModel = NewFilteredListViewModel(
 		func() []*types.MenuItem { return self.menuItems },
 		func(item *types.MenuItem) []string { return item.LabelColumns },
-		// The only menu that the user is likely to filter in is the keybindings
-		// menu; retain the sort order in that one because this allows us to
-		// keep the section headers while filtering:
-		func() bool { return true },
 	)
 
 	return self
@@ -99,6 +95,13 @@ func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 }
 
 func (self *MenuViewModel) GetNonModelItems() []*NonModelItem {
+	// Don't display section headers when we are filtering, and the filter mode
+	// is fuzzy. The reason is that filtering changes the order of the items
+	// (they are sorted by best match), so all the sections would be messed up.
+	if self.FilteredListViewModel.IsFiltering() && self.c.UserConfig.Gui.UseFuzzySearch() {
+		return []*NonModelItem{}
+	}
+
 	result := []*NonModelItem{}
 	menuItems := self.FilteredListViewModel.GetItems()
 	var prevSection *types.MenuSection = nil

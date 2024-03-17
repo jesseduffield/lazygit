@@ -263,7 +263,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Copy branch name to clipboard |  |
-| `` <space> `` | Checkout | Checkout a new local branch based on the selected remote branch. The new branch will track the remote branch. |
+| `` <space> `` | Checkout | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | New branch |  |
 | `` M `` | Merge | Merge selected branch into currently checked out branch. |
 | `` r `` | Rebase | Rebase the checked-out branch onto the selected branch. |

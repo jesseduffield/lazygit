@@ -340,7 +340,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | 将分支名称复制到剪贴板 |  |
-| `` <space> `` | 检出 | Checkout a new local branch based on the selected remote branch. The new branch will track the remote branch. |
+| `` <space> `` | 检出 | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | 新分支 |  |
 | `` M `` | 合并到当前检出的分支 | Merge selected branch into currently checked out branch. |
 | `` r `` | 将已检出的分支变基到该分支 | Rebase the checked-out branch onto the selected branch. |

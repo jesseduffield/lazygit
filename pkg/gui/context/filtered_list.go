@@ -1,7 +1,6 @@
 package context
 
 import (
-	"slices"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -17,21 +16,14 @@ type FilteredList[T any] struct {
 	getFilterFields func(T) []string
 	filter          string
 
-	// Normally, filtered items are presented sorted by best match. If this
-	// function returns true, they retain their original sort order instead;
-	// this is useful for lists that show items sorted by date, for example.
-	// Leaving this nil is equivalent to returning false.
-	shouldRetainSortOrder func() bool
-
 	mutex *deadlock.Mutex
 }
 
-func NewFilteredList[T any](getList func() []T, getFilterFields func(T) []string, shouldRetainSortOrder func() bool) *FilteredList[T] {
+func NewFilteredList[T any](getList func() []T, getFilterFields func(T) []string) *FilteredList[T] {
 	return &FilteredList[T]{
-		getList:               getList,
-		getFilterFields:       getFilterFields,
-		shouldRetainSortOrder: shouldRetainSortOrder,
-		mutex:                 &deadlock.Mutex{},
+		getList:         getList,
+		getFilterFields: getFilterFields,
+		mutex:           &deadlock.Mutex{},
 	}
 }
 
@@ -39,18 +31,18 @@ func (self *FilteredList[T]) GetFilter() string {
 	return self.filter
 }
 
-func (self *FilteredList[T]) SetFilter(filter string) {
+func (self *FilteredList[T]) SetFilter(filter string, useFuzzySearch bool) {
 	self.filter = filter
 
-	self.applyFilter()
+	self.applyFilter(useFuzzySearch)
 }
 
 func (self *FilteredList[T]) ClearFilter() {
-	self.SetFilter("")
+	self.SetFilter("", false)
 }
 
-func (self *FilteredList[T]) ReApplyFilter() {
-	self.applyFilter()
+func (self *FilteredList[T]) ReApplyFilter(useFuzzySearch bool) {
+	self.applyFilter(useFuzzySearch)
 }
 
 func (self *FilteredList[T]) IsFiltering() bool {
@@ -84,7 +76,7 @@ func (self *fuzzySource[T]) Len() int {
 	return len(self.list)
 }
 
-func (self *FilteredList[T]) applyFilter() {
+func (self *FilteredList[T]) applyFilter(useFuzzySearch bool) {
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
 
@@ -96,13 +88,10 @@ func (self *FilteredList[T]) applyFilter() {
 			getFilterFields: self.getFilterFields,
 		}
 
-		matches := fuzzy.FindFrom(self.filter, source)
+		matches := utils.FindFrom(self.filter, source, useFuzzySearch)
 		self.filteredIndices = lo.Map(matches, func(match fuzzy.Match, _ int) int {
 			return match.Index
 		})
-		if self.shouldRetainSortOrder != nil && self.shouldRetainSortOrder() {
-			slices.Sort(self.filteredIndices)
-		}
 	}
 }
 

@@ -35,9 +35,8 @@ func NewRemoteBranchesController(
 func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key: opts.GetKey(opts.Config.Universal.Select),
-			// gonna use the exact same handler as the 'n' keybinding because everybody wants this to happen when they checkout a remote branch
-			Handler:           self.withItem(self.newLocalBranch),
+			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Handler:           self.withItem(self.checkoutBranch),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Checkout,
 			Tooltip:           self.c.Tr.RemoteBranchCheckoutTooltip,
@@ -183,4 +182,8 @@ func (self *RemoteBranchesController) newLocalBranch(selectedBranch *models.Remo
 	nameSuggestion := strings.SplitAfterN(selectedBranch.RefName(), "/", 2)[1]
 
 	return self.c.Helpers().Refs.NewBranch(selectedBranch.RefName(), selectedBranch.RefName(), nameSuggestion)
+}
+
+func (self *RemoteBranchesController) checkoutBranch(selectedBranch *models.RemoteBranch) error {
+	return self.c.Helpers().Refs.CheckoutRemoteBranch(selectedBranch.FullName(), selectedBranch.Name)
 }

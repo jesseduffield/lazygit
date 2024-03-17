@@ -38,7 +38,7 @@ func (self *CustomCommandAction) Call() error {
 func (self *CustomCommandAction) GetCustomCommandsHistorySuggestionsFunc() func(string) []*types.Suggestion {
 	history := self.c.GetAppState().CustomCommandsHistory
 
-	return helpers.FuzzySearchFunc(history)
+	return helpers.FilterFunc(history, self.c.UserConfig.Gui.UseFuzzySearch())
 }
 
 // this mimics the shell functionality `ignorespace`
