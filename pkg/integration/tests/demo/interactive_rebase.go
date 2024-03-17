@@ -14,11 +14,11 @@ var InteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		setDefaultDemoConfig(config)
 	},
 	SetupRepo: func(shell *Shell) {
-		shell.CreateFile("my-file.txt", "myfile content")
-		shell.CreateFile("my-other-file.rb", "my-other-file content")
+		shell.CreateRepoHistory()
 
-		shell.CreateNCommitsWithRandomMessages(60)
 		shell.NewBranch("feature/demo")
+
+		shell.CreateNCommitsWithRandomMessages(10)
 
 		shell.CloneIntoRemote("origin")
 
@@ -30,14 +30,18 @@ var InteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			IsFocused().
-			NavigateToLine(Contains("Add TypeScript types to User module")).
-			Press(keys.Universal.Edit).
-			SelectPreviousItem().
-			Press(keys.Universal.Remove).
-			SelectPreviousItem().
-			Press(keys.Commits.SquashDown).
-			SelectPreviousItem().
+			Press(keys.Commits.StartInteractiveRebase).
+			PressFast(keys.Universal.RangeSelectDown).
+			PressFast(keys.Universal.RangeSelectDown).
 			Press(keys.Commits.MarkCommitAsFixup).
+			PressFast(keys.Commits.MoveDownCommit).
+			PressFast(keys.Commits.MoveDownCommit).
+			Delay().
+			SelectNextItem().
+			SelectNextItem().
+			Press(keys.Universal.Remove).
+			SelectNextItem().
+			Press(keys.Commits.SquashDown).
 			Press(keys.Universal.CreateRebaseOptionsMenu).
 			Tap(func() {
 				t.ExpectPopup().Menu().

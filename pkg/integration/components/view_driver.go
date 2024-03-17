@@ -397,6 +397,12 @@ func (self *ViewDriver) Press(keyStr string) *ViewDriver {
 	return self
 }
 
+func (self *ViewDriver) Delay() *ViewDriver {
+	self.t.Wait(self.t.inputDelay)
+
+	return self
+}
+
 // for use when typing or navigating, because in demos we want that to happen
 // faster
 func (self *ViewDriver) PressFast(keyStr string) *ViewDriver {
