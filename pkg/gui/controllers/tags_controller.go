@@ -74,6 +74,12 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			DisplayOnScreen:   true,
 			OpensMenu:         true,
 		},
+		{
+			Key:               opts.GetKey(opts.Config.Branches.Archive),
+			Handler:           self.withItem(self.createArchive),
+			Description:       self.c.Tr.CreateArchive,
+			GetDisabledReason: self.require(self.singleItemSelected()),
+		},
 	}
 
 	return bindings
@@ -238,4 +244,8 @@ func (self *TagsController) create() error {
 
 func (self *TagsController) context() *context.TagsContext {
 	return self.c.Contexts().Tags
+}
+
+func (self *TagsController) createArchive(tag *models.Tag) error {
+	return self.c.Helpers().Archive.CreateArchive(tag.RefName())
 }
