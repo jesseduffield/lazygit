@@ -83,7 +83,7 @@ func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*ty
 		if input == "" {
 			matchingBranchNames = branchNames
 		} else {
-			matchingBranchNames = utils.FuzzySearch(input, branchNames, self.c.UserConfig.Gui.UseFuzzySearch())
+			matchingBranchNames = utils.FilterStrings(input, branchNames, self.c.UserConfig.Gui.UseFuzzySearch())
 		}
 
 		return lo.Map(matchingBranchNames, func(branchName string, _ int) *types.Suggestion {
@@ -136,7 +136,7 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 			})
 
 			// doing another fuzzy search for good measure
-			matchingNames = utils.FuzzySearch(input, matchingNames, true)
+			matchingNames = utils.FilterStrings(input, matchingNames, true)
 		} else {
 			substrings := strings.Fields(input)
 			_ = self.c.Model().FilesTrie.Visit(func(prefix patricia.Prefix, item patricia.Item) error {
@@ -205,7 +205,7 @@ func FuzzySearchFunc(options []string, useFuzzySearch bool) func(string) []*type
 		if input == "" {
 			matches = options
 		} else {
-			matches = utils.FuzzySearch(input, options, useFuzzySearch)
+			matches = utils.FilterStrings(input, options, useFuzzySearch)
 		}
 
 		return matchesToSuggestions(matches)

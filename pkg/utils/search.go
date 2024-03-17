@@ -7,7 +7,7 @@ import (
 	"github.com/samber/lo"
 )
 
-func FuzzySearch(needle string, haystack []string, useFuzzySearch bool) []string {
+func FilterStrings(needle string, haystack []string, useFuzzySearch bool) []string {
 	if needle == "" {
 		return []string{}
 	}

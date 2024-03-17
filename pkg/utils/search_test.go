@@ -7,8 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestFuzzySearch is a function.
-func TestFuzzySearch(t *testing.T) {
+func TestFilterStrings(t *testing.T) {
 	type scenario struct {
 		needle         string
 		haystack       []string
@@ -68,7 +67,7 @@ func TestFuzzySearch(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		assert.EqualValues(t, s.expected, FuzzySearch(s.needle, s.haystack, s.useFuzzySearch))
+		assert.EqualValues(t, s.expected, FilterStrings(s.needle, s.haystack, s.useFuzzySearch))
 	}
 }
 
