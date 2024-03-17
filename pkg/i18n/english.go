@@ -325,6 +325,7 @@ type TranslationSet struct {
 	AmendCommitPrompt                     string
 	DropCommitTitle                       string
 	DropCommitPrompt                      string
+	DropUpdateRefPrompt                   string
 	PullingStatus                         string
 	PushingStatus                         string
 	FetchingStatus                        string
@@ -1280,6 +1281,7 @@ func EnglishTranslationSet() TranslationSet {
 		AmendCommitPrompt:                   "Are you sure you want to amend this commit with your staged files?",
 		DropCommitTitle:                     "Drop commit",
 		DropCommitPrompt:                    "Are you sure you want to drop the selected commit(s)?",
+		DropUpdateRefPrompt:                 "Are you sure you want to delete the selected update-ref todo(s)? This is irreversible except by aborting the rebase.",
 		PullingStatus:                       "Pulling",
 		PushingStatus:                       "Pushing",
 		FetchingStatus:                      "Fetching",

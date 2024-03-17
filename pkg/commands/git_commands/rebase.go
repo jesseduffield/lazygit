@@ -272,6 +272,14 @@ func (self *RebaseCommands) AmendTo(commits []*models.Commit, commitIndex int) e
 	}).Run()
 }
 
+func todoFromCommit(commit *models.Commit) utils.Todo {
+	if commit.Action == todo.UpdateRef {
+		return utils.Todo{Ref: commit.Name, Action: commit.Action}
+	} else {
+		return utils.Todo{Sha: commit.Sha, Action: commit.Action}
+	}
+}
+
 // Sets the action for the given commits in the git-rebase-todo file
 func (self *RebaseCommands) EditRebaseTodo(commits []*models.Commit, action todo.TodoCommand) error {
 	commitsWithAction := lo.Map(commits, func(commit *models.Commit, _ int) utils.TodoChange {
@@ -289,13 +297,22 @@ func (self *RebaseCommands) EditRebaseTodo(commits []*models.Commit, action todo
 	)
 }
 
+func (self *RebaseCommands) DeleteUpdateRefTodos(commits []*models.Commit) error {
+	todosToDelete := lo.Map(commits, func(commit *models.Commit, _ int) utils.Todo {
+		return todoFromCommit(commit)
+	})
+
+	return utils.DeleteTodos(
+		filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"),
+		todosToDelete,
+		self.config.GetCoreCommentChar(),
+	)
+}
+
 func (self *RebaseCommands) MoveTodosDown(commits []*models.Commit) error {
 	fileName := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo")
 	todosToMove := lo.Map(commits, func(commit *models.Commit, _ int) utils.Todo {
-		return utils.Todo{
-			Sha:    commit.Sha,
-			Action: commit.Action,
-		}
+		return todoFromCommit(commit)
 	})
 
 	return utils.MoveTodosDown(fileName, todosToMove, self.config.GetCoreCommentChar())
@@ -304,10 +321,7 @@ func (self *RebaseCommands) MoveTodosDown(commits []*models.Commit) error {
 func (self *RebaseCommands) MoveTodosUp(commits []*models.Commit) error {
 	fileName := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo")
 	todosToMove := lo.Map(commits, func(commit *models.Commit, _ int) utils.Todo {
-		return utils.Todo{
-			Sha:    commit.Sha,
-			Action: commit.Action,
-		}
+		return todoFromCommit(commit)
 	})
 
 	return utils.MoveTodosUp(fileName, todosToMove, self.config.GetCoreCommentChar())
