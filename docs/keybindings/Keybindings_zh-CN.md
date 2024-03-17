@@ -287,6 +287,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` c `` | 提交更改 | Commit staged changes. |
 | `` w `` | 提交更改而无需预先提交钩子 |  |
 | `` C `` | 提交更改（使用编辑器编辑提交信息） |  |
+| `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 开始搜索 |  |
 
 ## 正常

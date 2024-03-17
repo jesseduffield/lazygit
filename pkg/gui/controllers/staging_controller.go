@@ -99,6 +99,12 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			Handler:     self.c.Helpers().WorkingTree.HandleCommitEditorPress,
 			Description: self.c.Tr.CommitChangesWithEditor,
 		},
+		{
+			Key:         opts.GetKey(opts.Config.Files.FindBaseCommitForFixup),
+			Handler:     self.c.Helpers().FixupHelper.HandleFindBaseCommitForFixupPress,
+			Description: self.c.Tr.FindBaseCommitForFixup,
+			Tooltip:     self.c.Tr.FindBaseCommitForFixupTooltip,
+		},
 	}
 }
 

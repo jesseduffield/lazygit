@@ -171,6 +171,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` c `` | 커밋 변경내용 | Commit staged changes. |
 | `` w `` | Commit changes without pre-commit hook |  |
 | `` C `` | Git 편집기를 사용하여 변경 내용을 커밋합니다. |  |
+| `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 검색 시작 |  |
 
 ## 브랜치
