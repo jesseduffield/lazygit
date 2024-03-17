@@ -184,7 +184,6 @@ func traditionalChineseTranslationSet() TranslationSet {
 		ForcePush:                           "強制推送",
 		ForcePushPrompt:                     "你的分支與遠端分支分岔。按 'ESC' 取消，或按 'Enter' 強制推送。",
 		ForcePushDisabled:                   "你的分支與遠端分支分岔，你已禁用強制推送",
-		UpdatesRejectedAndForcePushDisabled: "更新被拒絕，你已禁用強制推送",
 		CheckForUpdate:                      "檢查更新",
 		CheckingForUpdates:                  "正在檢查更新...",
 		UpdateAvailableTitle:                "有可用的更新！",
