@@ -3,53 +3,53 @@
 The selection of Traditional Chinese translation vocabulary is mainly based on
 the following sources:
 
-1. GitLab: 其介面有相當完整的繁體中文翻譯，但缺少一些本地端功能的對照，例如 stash。
+ 1. GitLab: 其介面有相當完整的繁體中文翻譯，但缺少一些本地端功能的對照，例如 stash。
 
-2. Pro Git: Git 的權威參考用書，可惜繁中部分翻譯僅約一半。
-https://git-scm.com/book/zh-tw/v2
+ 2. Pro Git: Git 的權威參考用書，可惜繁中部分翻譯僅約一半。
+    https://git-scm.com/book/zh-tw/v2
 
-3. Microsoft 語言入口網站 (Visual Studio)
-https://www.microsoft.com/zh-tw/language/
+ 3. Microsoft 語言入口網站 (Visual Studio)
+    https://www.microsoft.com/zh-tw/language/
 
 ### Glossary ###
 
-譯文中括號內文字會依語境添加或省略。
+	譯文中括號內文字會依語境添加或省略。
 
-Repository		版本庫
-Amend			修改
-Checkout		檢出
-Cherry-pick		揀選
-Diff			差異
-Discard			捨棄
-Drop [stash]		捨棄
-Fast-forward		快轉 (Fast-forward)
-Fetch			擷取
-Fixup			修復 (Fixup)
-Patch			補丁
-Pop [stash]		還原
-Rebase			變基 (Rebase)
-Reset			重設
-Revert			還原
-Reword			改寫
-Squash			壓縮 (Squash)
-Stage			預存 (Stage)
-Stash			收藏 (Stash)
+	Repository		版本庫
+	Amend			修改
+	Checkout		檢出
+	Cherry-pick		揀選
+	Diff			差異
+	Discard			捨棄
+	Drop [stash]	捨棄
+	Fast-forward	快轉 (Fast-forward)
+	Fetch			擷取
+	Fixup			修復 (Fixup)
+	Patch			補丁
+	Pop [stash]		還原
+	Rebase			變基 (Rebase)
+	Reset			重設
+	Revert			還原
+	Reword			改寫
+	Squash			壓縮 (Squash)
+	Stage			預存 (Stage)
+	Stash			收藏 (Stash)
 */
 package i18n
 
 const traditionalChineseIntroPopupMessage = `
 感謝使用 lazygit！這裡有一些資源可供參考：
 
-1) 📺lazygit 教學📺：
-	https://youtu.be/CPLdltN7wgE
+ 1) 📺lazygit 教學📺：
+      https://youtu.be/CPLdltN7wgE
 
-2) 📣釋出說明📣：
-	https://github.com/jesseduffield/lazygit/releases
+ 2) 📣釋出說明📣：
+      https://github.com/jesseduffield/lazygit/releases
 
-3) 💖如果你想要貢獻一份心力你可以💖：
-	改進 lazygit 原始碼：https://github.com/jesseduffield/lazygit
-	按右下角的捐款斗內我們
-	或單存添加 lazygit 到你的 star 清單內以增加曝光度都能大力的幫助我們！
+ 3) 💖如果你想要貢獻一份心力你可以💖：
+    改進 lazygit 原始碼：https://github.com/jesseduffield/lazygit
+    按右下角的捐款斗內我們
+    或單存添加 lazygit 到你的 star 清單內以增加曝光度都能大力的幫助我們！
 `
 
 const traditionalChineseDeprecatedEditConfigWarning = `
@@ -60,7 +60,7 @@ const traditionalChineseDeprecatedEditConfigWarning = `
 
 編輯器設定教學：
 
-https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing
+  https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing
 
 `
 
