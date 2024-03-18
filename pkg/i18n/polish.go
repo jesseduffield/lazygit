@@ -256,7 +256,6 @@ func polishTranslationSet() TranslationSet {
 		CommitSummaryTitle:                  "Podsumowanie commita",
 		CommitDescriptionTitle:              "Opis commita",
 		CommitDescriptionSubTitle:           "Naciśnij {{.togglePanelKeyBinding}}, aby przełączyć fokus, {{.commitMenuKeybinding}}, aby otworzyć menu",
-		CommitDescriptionSubTitleNoSwitch:   "Naciśnij {{.togglePanelKeyBinding}}, aby przełączyć fokus",
 		LocalBranchesTitle:                  "Lokalne gałęzie",
 		SearchTitle:                         "Szukaj",
 		TagsTitle:                           "Tagi",
