@@ -130,6 +130,7 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 		Title: utils.ResolvePlaceholderString(self.c.Tr.RemoteBranchCheckoutTitle, map[string]string{
 			"branchName": fullBranchName,
 		}),
+		Prompt: self.c.Tr.RemoteBranchCheckoutPrompt,
 		Items: []*types.MenuItem{
 			{
 				Label:   self.c.Tr.CheckoutTypeNewBranch,
