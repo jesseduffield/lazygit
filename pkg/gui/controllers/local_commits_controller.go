@@ -832,30 +832,87 @@ func (self *LocalCommitsController) afterRevertCommit() error {
 }
 
 func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) error {
-	prompt := utils.ResolvePlaceholderString(
-		self.c.Tr.SureCreateFixupCommit,
-		map[string]string{
-			"commit": commit.Sha,
-		},
-	)
+	var disabledReasonWhenFilesAreNeeded *types.DisabledReason
+	if len(self.c.Model().Files) == 0 {
+		disabledReasonWhenFilesAreNeeded = &types.DisabledReason{
+			Text:             self.c.Tr.NoFilesStagedTitle,
+			ShowErrorInPanel: true,
+		}
+	}
 
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.CreateFixupCommit,
-		Prompt: prompt,
-		HandleConfirm: func() error {
-			return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.CreateFixupCommit,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.FixupMenu_Fixup,
+				Key:   'f',
+				OnPress: func() error {
+					return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+						self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
+						return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
+							if err := self.c.Git().Commit.CreateFixupCommit(commit.Sha); err != nil {
+								return self.c.Error(err)
+							}
+
+							self.context().MoveSelectedLine(1)
+							return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
+						})
+					})
+				},
+				DisabledReason: disabledReasonWhenFilesAreNeeded,
+				Tooltip:        self.c.Tr.FixupMenu_FixupTooltip,
+			},
+			{
+				Label: self.c.Tr.FixupMenu_AmendWithChanges,
+				Key:   'a',
+				OnPress: func() error {
+					return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+						return self.createAmendCommit(commit, true)
+					})
+				},
+				DisabledReason: disabledReasonWhenFilesAreNeeded,
+				Tooltip:        self.c.Tr.FixupMenu_AmendWithChangesTooltip,
+			},
+			{
+				Label:   self.c.Tr.FixupMenu_AmendWithoutChanges,
+				Key:     'r',
+				OnPress: func() error { return self.createAmendCommit(commit, false) },
+				Tooltip: self.c.Tr.FixupMenu_AmendWithoutChangesTooltip,
+			},
+		},
+	})
+}
+
+func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, includeFileChanges bool) error {
+	commitMessage, err := self.c.Git().Commit.GetCommitMessage(commit.Sha)
+	if err != nil {
+		return self.c.Error(err)
+	}
+	if self.c.UserConfig.Git.Commit.AutoWrapCommitMessage {
+		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig.Git.Commit.AutoWrapWidth)
+	}
+	originalSubject, _, _ := strings.Cut(commitMessage, "\n")
+	return self.c.Helpers().Commits.OpenCommitMessagePanel(
+		&helpers.OpenCommitMessagePanelOpts{
+			CommitIndex:      self.context().GetSelectedLineIdx(),
+			InitialMessage:   commitMessage,
+			SummaryTitle:     self.c.Tr.CreateAmendCommit,
+			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
+			PreserveMessage:  false,
+			OnConfirm: func(summary string, description string) error {
 				self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
 				return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
-					if err := self.c.Git().Commit.CreateFixupCommit(commit.Sha); err != nil {
+					if err := self.c.Git().Commit.CreateAmendCommit(originalSubject, summary, description, includeFileChanges); err != nil {
 						return self.c.Error(err)
 					}
 
 					self.context().MoveSelectedLine(1)
 					return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
 				})
-			})
+			},
+			OnSwitchToEditor: nil,
 		},
-	})
+	)
 }
 
 func (self *LocalCommitsController) squashFixupCommits() error {

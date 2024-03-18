@@ -180,6 +180,57 @@ func TestCommitCreateFixupCommit(t *testing.T) {
 	}
 }
 
+func TestCommitCreateAmendCommit(t *testing.T) {
+	type scenario struct {
+		testName           string
+		originalSubject    string
+		newSubject         string
+		newDescription     string
+		includeFileChanges bool
+		runner             *oscommands.FakeCmdObjRunner
+	}
+
+	scenarios := []scenario{
+		{
+			testName:           "subject only",
+			originalSubject:    "original subject",
+			newSubject:         "new subject",
+			newDescription:     "",
+			includeFileChanges: true,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"commit", "-m", "amend! original subject", "-m", "new subject"}, "", nil),
+		},
+		{
+			testName:           "subject and description",
+			originalSubject:    "original subject",
+			newSubject:         "new subject",
+			newDescription:     "new description",
+			includeFileChanges: true,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"commit", "-m", "amend! original subject", "-m", "new subject\n\nnew description"}, "", nil),
+		},
+		{
+			testName:           "without file changes",
+			originalSubject:    "original subject",
+			newSubject:         "new subject",
+			newDescription:     "",
+			includeFileChanges: false,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"commit", "-m", "amend! original subject", "-m", "new subject", "--only", "--allow-empty"}, "", nil),
+		},
+	}
+
+	for _, s := range scenarios {
+		s := s
+		t.Run(s.testName, func(t *testing.T) {
+			instance := buildCommitCommands(commonDeps{runner: s.runner})
+			err := instance.CreateAmendCommit(s.originalSubject, s.newSubject, s.newDescription, s.includeFileChanges)
+			assert.NoError(t, err)
+			s.runner.CheckForMissingCalls()
+		})
+	}
+}
+
 func TestCommitShowCmdObj(t *testing.T) {
 	type scenario struct {
 		testName         string

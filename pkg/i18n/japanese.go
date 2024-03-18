@@ -264,7 +264,6 @@ func japaneseTranslationSet() TranslationSet {
 		// LcSquashAboveCommits:                `squash all 'fixup!' commits above selected commit (autosquash)`,
 		// SquashAboveCommits:                  `Squash all 'fixup!' commits above selected commit (autosquash)`,
 		CreateFixupCommit:        `Fixupコミットを作成`,
-		SureCreateFixupCommit:    `{{.commit}} に対する fixup! コミットを作成します。よろしいですか?`,
 		ExecuteCustomCommand:     "カスタムコマンドを実行",
 		CustomCommand:            "カスタムコマンド:",
 		CommitChangesWithoutHook: "pre-commitフックを実行せずに変更をコミット",

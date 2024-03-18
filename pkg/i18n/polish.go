@@ -390,7 +390,6 @@ func polishTranslationSet() TranslationSet {
 		SquashCommitsAboveSelectedCommit:    "Powyżej wybranego commita",
 		CannotSquashCommitsInCurrentBranch:  "Nie można scalić commitów w bieżącej gałęzi: commit HEAD jest commit merge lub jest obecny na głównej gałęzi.",
 		CreateFixupCommit:                   `Utwórz commit fixup`,
-		SureCreateFixupCommit:               `Czy na pewno chcesz utworzyć commit fixup! dla commita {{.commit}}?`,
 		ExecuteCustomCommand:                "Wykonaj polecenie niestandardowe",
 		ExecuteCustomCommandTooltip:         "Wyświetl monit, w którym możesz wprowadzić polecenie powłoki do wykonania. Nie należy mylić z wcześniej skonfigurowanymi poleceniami niestandardowymi.",
 		CustomCommand:                       "Polecenie niestandardowe:",

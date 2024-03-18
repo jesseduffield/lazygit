@@ -340,7 +340,6 @@ func traditionalChineseTranslationSet() TranslationSet {
 		SquashAboveCommits:               "壓縮上方所有「fixup」提交（自動壓縮）",
 		SquashAboveCommitsTooltip:        "是否壓縮上方 {{.commit}} 所有「fixup」提交？",
 		CreateFixupCommit:                "建立修復提交",
-		SureCreateFixupCommit:            "你確定要為提交{{.commit}}建立fixup!提交？",
 		ExecuteCustomCommand:             "執行自訂命令",
 		CustomCommand:                    "自訂命令：",
 		CommitChangesWithoutHook:         "沒有預提交 hook 就提交更改",
