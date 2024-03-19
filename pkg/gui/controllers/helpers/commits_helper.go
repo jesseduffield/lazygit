@@ -91,10 +91,6 @@ func TryRemoveHardLineBreaks(message string, autoWrapWidth int) string {
 }
 
 func (self *CommitsHelper) SwitchToEditor() error {
-	if !self.c.Contexts().CommitMessage.CanSwitchToEditor() {
-		return nil
-	}
-
 	message := lo.Ternary(len(self.getCommitDescription()) == 0,
 		self.getCommitSummary(),
 		self.getCommitSummary()+"\n\n"+self.getCommitDescription())
@@ -218,13 +214,21 @@ func (self *CommitsHelper) commitMessageContexts() []types.Context {
 }
 
 func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.Suggestion) error {
+	var disabledReasonForOpenInEditor *types.DisabledReason
+	if !self.c.Contexts().CommitMessage.CanSwitchToEditor() {
+		disabledReasonForOpenInEditor = &types.DisabledReason{
+			Text: self.c.Tr.CommandDoesNotSupportOpeningInEditor,
+		}
+	}
+
 	menuItems := []*types.MenuItem{
 		{
 			Label: self.c.Tr.OpenInEditor,
 			OnPress: func() error {
 				return self.SwitchToEditor()
 			},
-			Key: 'e',
+			Key:            'e',
+			DisabledReason: disabledReasonForOpenInEditor,
 		},
 		{
 			Label: self.c.Tr.AddCoAuthor,
