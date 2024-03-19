@@ -345,6 +345,20 @@ sudo zypper ar https://download.opensuse.org/repositories/devel:/languages:/go/$
 sudo zypper ref && sudo zypper in lazygit
 ```
 
+### NixOs
+
+On NixOs lazygit is packaged with nix and distributed via nixpkgs.
+You can try the lazygit without installing it with:
+
+```sh
+nix-shell -p lazygit
+# or with flakes enabled
+nix run nixpkgs#lazygit
+```
+
+Or you can add lazygit to you configuration.nix in the environment.systemPackages section.
+More details can be found via NixOs search [page](https://search.nixos.org/).
+
 ### FreeBSD
 
 ```sh
