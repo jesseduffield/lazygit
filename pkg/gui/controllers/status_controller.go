@@ -68,13 +68,22 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 }
 
 func (self *StatusController) GetOnRenderToMain() func() error {
+	versionStr := "master"
+	version, err := types.ParseVersionNumber(self.c.GetConfig().GetVersion())
+	if err == nil {
+		// Don't just take the version string as is, but format it again. This
+		// way it will be correct even if a distribution omits the "v", or the
+		// ".0" at the end.
+		versionStr = fmt.Sprintf("v%d.%d.%d", version.Major, version.Minor, version.Patch)
+	}
+
 	return func() error {
 		dashboardString := strings.Join(
 			[]string{
 				lazygitTitle(),
 				"Copyright 2022 Jesse Duffield",
-				fmt.Sprintf("Keybindings: %s", constants.Links.Docs.Keybindings),
-				fmt.Sprintf("Config Options: %s", constants.Links.Docs.Config),
+				fmt.Sprintf("Keybindings: %s", fmt.Sprintf(constants.Links.Docs.Keybindings, versionStr)),
+				fmt.Sprintf("Config Options: %s", fmt.Sprintf(constants.Links.Docs.Config, versionStr)),
 				fmt.Sprintf("Tutorial: %s", constants.Links.Docs.Tutorial),
 				fmt.Sprintf("Raise an Issue: %s", constants.Links.Issues),
 				fmt.Sprintf("Release Notes: %s", constants.Links.Releases),
