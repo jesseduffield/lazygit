@@ -135,7 +135,7 @@ func (self *BisectCommands) StartWithTerms(oldTerm string, newTerm string) error
 }
 
 // tells us whether we've found our problem commit(s). We return a string slice of
-// commit sha's if we're done, and that slice may have more that one item if
+// commit hash's if we're done, and that slice may have more that one item if
 // skipped commits are involved.
 func (self *BisectCommands) IsDone() (bool, []string, error) {
 	info := self.GetInfo()

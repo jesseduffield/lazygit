@@ -29,7 +29,7 @@ type BisectInfo struct {
 	newTerm string // 'bad' by default
 	oldTerm string // 'good' by default
 
-	// map of commit sha's to their status
+	// map of commit hash's to their status
 	statusMap map[string]BisectStatus
 
 	// the sha of the commit that's under test
