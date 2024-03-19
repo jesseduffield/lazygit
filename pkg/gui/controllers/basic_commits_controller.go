@@ -125,9 +125,9 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 		Title: self.c.Tr.Actions.CopyCommitAttributeToClipboard,
 		Items: []*types.MenuItem{
 			{
-				Label: self.c.Tr.CommitSha,
+				Label: self.c.Tr.CommitHash,
 				OnPress: func() error {
-					return self.copyCommitSHAToClipboard(commit)
+					return self.copyCommitHashToClipboard(commit)
 				},
 			},
 			{
@@ -169,8 +169,8 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 	})
 }
 
-func (self *BasicCommitsController) copyCommitSHAToClipboard(commit *models.Commit) error {
-	self.c.LogAction(self.c.Tr.Actions.CopyCommitSHAToClipboard)
+func (self *BasicCommitsController) copyCommitHashToClipboard(commit *models.Commit) error {
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitHashToClipboard)
 	if err := self.c.OS().CopyToClipboard(commit.Sha); err != nil {
 		return self.c.Error(err)
 	}

@@ -308,7 +308,7 @@ func dutchTranslationSet() TranslationSet {
 		SwapDiff:                        "Keer diff richting om",
 		ViewDiffingOptions:              "Open diff menu",
 		ShowingGitDiff:                  "Laat output zien voor:",
-		CopyCommitShaToClipboard:        "Kopieer commit hash naar klembord",
+		CopyCommitHashToClipboard:       "Kopieer commit hash naar klembord",
 		CopyCommitMessageToClipboard:    "Kopieer commit bericht naar klembord",
 		CopyBranchNameToClipboard:       "Kopieer branch name naar klembord",
 		CopyPathToClipboard:             "Kopieer de bestandsnaam naar het klembord",

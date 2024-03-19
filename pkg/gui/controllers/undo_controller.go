@@ -181,34 +181,34 @@ func (self *UndoController) reflogRedo() error {
 func (self *UndoController) parseReflogForActions(onUserAction func(counter int, action reflogAction) (bool, error)) error {
 	counter := 0
 	reflogCommits := self.c.Model().FilteredReflogCommits
-	rebaseFinishCommitSha := ""
+	rebaseFinishCommitHash := ""
 	var action *reflogAction
 	for reflogCommitIdx, reflogCommit := range reflogCommits {
 		action = nil
 
-		prevCommitSha := ""
+		prevCommitHash := ""
 		if len(reflogCommits)-1 >= reflogCommitIdx+1 {
-			prevCommitSha = reflogCommits[reflogCommitIdx+1].Sha
+			prevCommitHash = reflogCommits[reflogCommitIdx+1].Sha
 		}
 
-		if rebaseFinishCommitSha == "" {
+		if rebaseFinishCommitHash == "" {
 			if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^\[lazygit undo\]`); ok {
 				counter++
 			} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^\[lazygit redo\]`); ok {
 				counter--
 			} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^rebase (-i )?\(abort\)|^rebase (-i )?\(finish\)`); ok {
-				rebaseFinishCommitSha = reflogCommit.Sha
+				rebaseFinishCommitHash = reflogCommit.Sha
 			} else if ok, match := utils.FindStringSubmatch(reflogCommit.Name, `^checkout: moving from ([\S]+) to ([\S]+)`); ok {
 				action = &reflogAction{kind: CHECKOUT, from: match[1], to: match[2]}
 			} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^commit|^reset: moving to|^pull`); ok {
-				action = &reflogAction{kind: COMMIT, from: prevCommitSha, to: reflogCommit.Sha}
+				action = &reflogAction{kind: COMMIT, from: prevCommitHash, to: reflogCommit.Sha}
 			} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^rebase (-i )?\(start\)`); ok {
 				// if we're here then we must be currently inside an interactive rebase
-				action = &reflogAction{kind: CURRENT_REBASE, from: prevCommitSha}
+				action = &reflogAction{kind: CURRENT_REBASE, from: prevCommitHash}
 			}
 		} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^rebase (-i )?\(start\)`); ok {
-			action = &reflogAction{kind: REBASE, from: prevCommitSha, to: rebaseFinishCommitSha}
-			rebaseFinishCommitSha = ""
+			action = &reflogAction{kind: REBASE, from: prevCommitHash, to: rebaseFinishCommitHash}
+			rebaseFinishCommitHash = ""
 		}
 
 		if action != nil {
@@ -232,9 +232,9 @@ type hardResetOptions struct {
 }
 
 // only to be used in the undo flow for now (does an autostash)
-func (self *UndoController) hardResetWithAutoStash(commitSha string, options hardResetOptions) error {
+func (self *UndoController) hardResetWithAutoStash(commitHash string, options hardResetOptions) error {
 	reset := func() error {
-		if err := self.c.Helpers().Refs.ResetToRef(commitSha, "hard", options.EnvVars); err != nil {
+		if err := self.c.Helpers().Refs.ResetToRef(commitHash, "hard", options.EnvVars); err != nil {
 			return self.c.Error(err)
 		}
 		return nil
@@ -249,7 +249,7 @@ func (self *UndoController) hardResetWithAutoStash(commitSha string, options har
 			Prompt: self.c.Tr.AutoStashPrompt,
 			HandleConfirm: func() error {
 				return self.c.WithWaitingStatus(options.WaitingStatus, func(gocui.Task) error {
-					if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + commitSha); err != nil {
+					if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + commitHash); err != nil {
 						return self.c.Error(err)
 					}
 					if err := reset(); err != nil {

@@ -22,7 +22,7 @@ import (
 )
 
 type pipeSetCacheKey struct {
-	commitSha   string
+	commitHash  string
 	commitCount int
 }
 
@@ -43,14 +43,14 @@ func GetCommitListDisplayStrings(
 	currentBranchName string,
 	hasRebaseUpdateRefsConfig bool,
 	fullDescription bool,
-	cherryPickedCommitShaSet *set.Set[string],
+	cherryPickedCommitHashSet *set.Set[string],
 	diffName string,
 	markedBaseCommit string,
 	timeFormat string,
 	shortTimeFormat string,
 	now time.Time,
 	parseEmoji bool,
-	selectedCommitSha string,
+	selectedCommitHash string,
 	startIdx int,
 	endIdx int,
 	showGraph bool,
@@ -89,7 +89,7 @@ func GetCommitListDisplayStrings(
 		graphLines := graph.RenderAux(
 			graphPipeSets,
 			graphCommits,
-			selectedCommitSha,
+			selectedCommitHash,
 		)
 		getGraphLine = func(idx int) string {
 			if idx >= graphOffset {
@@ -146,7 +146,7 @@ func GetCommitListDisplayStrings(
 			commit,
 			branchHeadsToVisualize,
 			hasRebaseUpdateRefsConfig,
-			cherryPickedCommitShaSet,
+			cherryPickedCommitHashSet,
 			isMarkedBaseCommit,
 			willBeRebased,
 			diffName,
@@ -203,7 +203,7 @@ func loadPipesets(commits []*models.Commit) [][]*graph.Pipe {
 	// given that our cache key is a commit hash and a commit count, it's very important that we don't actually try to render pipes
 	// when dealing with things like filtered commits.
 	cacheKey := pipeSetCacheKey{
-		commitSha:   commits[0].Sha,
+		commitHash:  commits[0].Sha,
 		commitCount: len(commits),
 	}
 
@@ -236,16 +236,16 @@ const (
 	BisectStatusCurrent
 )
 
-func getBisectStatus(index int, commitSha string, bisectInfo *git_commands.BisectInfo, bisectBounds *bisectBounds) BisectStatus {
+func getBisectStatus(index int, commitHash string, bisectInfo *git_commands.BisectInfo, bisectBounds *bisectBounds) BisectStatus {
 	if !bisectInfo.Started() {
 		return BisectStatusNone
 	}
 
-	if bisectInfo.GetCurrentSha() == commitSha {
+	if bisectInfo.GetCurrentSha() == commitHash {
 		return BisectStatusCurrent
 	}
 
-	status, ok := bisectInfo.Status(commitSha)
+	status, ok := bisectInfo.Status(commitHash)
 	if ok {
 		switch status {
 		case git_commands.BisectStatusNew:
@@ -298,7 +298,7 @@ func displayCommit(
 	commit *models.Commit,
 	branchHeadsToVisualize *set.Set[string],
 	hasRebaseUpdateRefsConfig bool,
-	cherryPickedCommitShaSet *set.Set[string],
+	cherryPickedCommitHashSet *set.Set[string],
 	isMarkedBaseCommit bool,
 	willBeRebased bool,
 	diffName string,
@@ -312,7 +312,7 @@ func displayCommit(
 	bisectInfo *git_commands.BisectInfo,
 	isYouAreHereCommit bool,
 ) []string {
-	shaColor := getShaColor(commit, diffName, cherryPickedCommitShaSet, bisectStatus, bisectInfo)
+	shaColor := getShaColor(commit, diffName, cherryPickedCommitHashSet, bisectStatus, bisectInfo)
 	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
 
 	actionString := ""
@@ -413,7 +413,7 @@ func getBisectStatusColor(status BisectStatus) style.TextStyle {
 func getShaColor(
 	commit *models.Commit,
 	diffName string,
-	cherryPickedCommitShaSet *set.Set[string],
+	cherryPickedCommitHashSet *set.Set[string],
 	bisectStatus BisectStatus,
 	bisectInfo *git_commands.BisectInfo,
 ) style.TextStyle {
@@ -439,7 +439,7 @@ func getShaColor(
 
 	if diffed {
 		shaColor = theme.DiffTerminalColor
-	} else if cherryPickedCommitShaSet.Includes(commit.Sha) {
+	} else if cherryPickedCommitHashSet.Includes(commit.Sha) {
 		shaColor = theme.CherryPickedCommitTextStyle
 	} else if commit.Divergence == models.DivergenceRight && commit.Status != models.StatusMerged {
 		shaColor = style.FgBlue

@@ -67,8 +67,8 @@ func (self *BisectInfo) GetStartSha() string {
 	return self.start
 }
 
-func (self *BisectInfo) Status(commitSha string) (BisectStatus, bool) {
-	status, ok := self.statusMap[commitSha]
+func (self *BisectInfo) Status(commitHash string) (BisectStatus, bool) {
+	status, ok := self.statusMap[commitHash]
 	return status, ok
 }
 

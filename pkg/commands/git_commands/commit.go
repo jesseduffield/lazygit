@@ -155,9 +155,9 @@ func (self *CommitCommands) signoffFlag() string {
 	}
 }
 
-func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
+func (self *CommitCommands) GetCommitMessage(commitHash string) (string, error) {
 	cmdArgs := NewGitCmd("log").
-		Arg("--format=%B", "--max-count=1", commitSha).
+		Arg("--format=%B", "--max-count=1", commitHash).
 		Config("log.showsignature=false").
 		ToArgv()
 
@@ -165,9 +165,9 @@ func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
 	return strings.ReplaceAll(strings.TrimSpace(message), "\r\n", "\n"), err
 }
 
-func (self *CommitCommands) GetCommitSubject(commitSha string) (string, error) {
+func (self *CommitCommands) GetCommitSubject(commitHash string) (string, error) {
 	cmdArgs := NewGitCmd("log").
-		Arg("--format=%s", "--max-count=1", commitSha).
+		Arg("--format=%s", "--max-count=1", commitHash).
 		Config("log.showsignature=false").
 		ToArgv()
 
@@ -175,8 +175,8 @@ func (self *CommitCommands) GetCommitSubject(commitSha string) (string, error) {
 	return strings.TrimSpace(subject), err
 }
 
-func (self *CommitCommands) GetCommitDiff(commitSha string) (string, error) {
-	cmdArgs := NewGitCmd("show").Arg("--no-color", commitSha).ToArgv()
+func (self *CommitCommands) GetCommitDiff(commitHash string) (string, error) {
+	cmdArgs := NewGitCmd("show").Arg("--no-color", commitHash).ToArgv()
 
 	diff, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	return diff, err
@@ -187,9 +187,9 @@ type Author struct {
 	Email string
 }
 
-func (self *CommitCommands) GetCommitAuthor(commitSha string) (Author, error) {
+func (self *CommitCommands) GetCommitAuthor(commitHash string) (Author, error) {
 	cmdArgs := NewGitCmd("show").
-		Arg("--no-patch", "--pretty=format:'%an%x00%ae'", commitSha).
+		Arg("--no-patch", "--pretty=format:'%an%x00%ae'", commitHash).
 		ToArgv()
 
 	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()

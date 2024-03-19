@@ -12,7 +12,7 @@ import (
 	"github.com/samber/lo"
 )
 
-func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaSet *set.Set[string], diffName string, now time.Time, timeFormat string, shortTimeFormat string, parseEmoji bool) [][]string {
+func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitHashSet *set.Set[string], diffName string, now time.Time, timeFormat string, shortTimeFormat string, parseEmoji bool) [][]string {
 	var displayFunc func(*models.Commit, reflogCommitDisplayAttributes) []string
 	if fullDescription {
 		displayFunc = getFullDescriptionDisplayStringsForReflogCommit
@@ -22,7 +22,7 @@ func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription
 
 	return lo.Map(commits, func(commit *models.Commit, _ int) []string {
 		diffed := commit.Sha == diffName
-		cherryPicked := cherryPickedCommitShaSet.Includes(commit.Sha)
+		cherryPicked := cherryPickedCommitHashSet.Includes(commit.Sha)
 		return displayFunc(commit,
 			reflogCommitDisplayAttributes{
 				cherryPicked:    cherryPicked,

@@ -355,7 +355,7 @@ func chineseTranslationSet() TranslationSet {
 		// 实际视图 (actual view) 是附加视图 (extras view)，未来,我打算为附加视图提供更多选项卡，但现在，上面的文本只需要提及“命令日志”这个部分
 		OpenCommandLogMenu:                  "打开命令日志菜单",
 		ShowingGitDiff:                      "显示输出：",
-		CopyCommitShaToClipboard:            "将提交的 SHA 复制到剪贴板",
+		CopyCommitHashToClipboard:           "将提交的 SHA 复制到剪贴板",
 		CopyCommitMessageToClipboard:        "将提交消息复制到剪贴板",
 		CopyBranchNameToClipboard:           "将分支名称复制到剪贴板",
 		CopyPathToClipboard:                 "将文件名复制到剪贴板",

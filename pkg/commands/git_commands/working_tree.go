@@ -313,8 +313,8 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 }
 
 // CheckoutFile checks out the file for the given commit
-func (self *WorkingTreeCommands) CheckoutFile(commitSha, fileName string) error {
-	cmdArgs := NewGitCmd("checkout").Arg(commitSha, "--", fileName).
+func (self *WorkingTreeCommands) CheckoutFile(commitHash, fileName string) error {
+	cmdArgs := NewGitCmd("checkout").Arg(commitHash, "--", fileName).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
