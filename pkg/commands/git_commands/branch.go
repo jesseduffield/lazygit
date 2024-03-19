@@ -7,10 +7,12 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
+	"github.com/samber/lo"
 )
 
 type BranchCommands struct {
 	*GitCommon
+	allBranchesLogCmdIndex uint8 // keeps track of current all branches log command
 }
 
 func NewBranchCommands(gitCommon *GitCommon) *BranchCommands {
@@ -230,5 +232,17 @@ func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
 }
 
 func (self *BranchCommands) AllBranchesLogCmdObj() oscommands.ICmdObj {
-	return self.cmd.New(str.ToArgv(self.UserConfig.Git.AllBranchesLogCmd)).DontLog()
+	// Only choose between non-empty, non-identical commands
+	candidates := lo.Uniq(lo.WithoutEmpty(append([]string{
+		self.UserConfig.Git.AllBranchesLogCmd,
+	},
+		self.UserConfig.Git.AllBranchesLogCmds...,
+	)))
+
+	n := len(candidates)
+
+	i := self.allBranchesLogCmdIndex
+	self.allBranchesLogCmdIndex = uint8((int(i) + 1) % n)
+
+	return self.cmd.New(str.ToArgv(candidates[i])).DontLog()
 }
