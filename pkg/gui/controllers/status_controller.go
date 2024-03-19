@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -67,6 +68,31 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 	return bindings
 }
 
+func (self *StatusController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName: "main",
+			Key:      gocui.MouseLeft,
+			Handler:  self.onClickMain,
+		},
+	}
+}
+
+func (self *StatusController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
+	view := self.c.Views().Main
+
+	cx, cy := view.Cursor()
+	url, err := view.Word(cx, cy)
+	if err == nil && strings.HasPrefix(url, "https://") {
+		// Ignore errors (opening the link via the OS can fail if the
+		// `os.openLink` config key references a command that doesn't exist, or
+		// that errors when called.)
+		_ = self.c.OS().OpenLink(url)
+	}
+
+	return nil
+}
+
 func (self *StatusController) GetOnRenderToMain() func() error {
 	versionStr := "master"
 	version, err := types.ParseVersionNumber(self.c.GetConfig().GetVersion())
@@ -82,13 +108,13 @@ func (self *StatusController) GetOnRenderToMain() func() error {
 			[]string{
 				lazygitTitle(),
 				"Copyright 2022 Jesse Duffield",
-				fmt.Sprintf("Keybindings: %s", fmt.Sprintf(constants.Links.Docs.Keybindings, versionStr)),
-				fmt.Sprintf("Config Options: %s", fmt.Sprintf(constants.Links.Docs.Config, versionStr)),
-				fmt.Sprintf("Tutorial: %s", constants.Links.Docs.Tutorial),
-				fmt.Sprintf("Raise an Issue: %s", constants.Links.Issues),
-				fmt.Sprintf("Release Notes: %s", constants.Links.Releases),
-				style.FgMagenta.Sprintf("Become a sponsor: %s", constants.Links.Donate), // caffeine ain't free
-			}, "\n\n")
+				fmt.Sprintf("Keybindings: %s", style.AttrUnderline.Sprint(fmt.Sprintf(constants.Links.Docs.Keybindings, versionStr))),
+				fmt.Sprintf("Config Options: %s", style.AttrUnderline.Sprint(fmt.Sprintf(constants.Links.Docs.Config, versionStr))),
+				fmt.Sprintf("Tutorial: %s", style.AttrUnderline.Sprint(constants.Links.Docs.Tutorial)),
+				fmt.Sprintf("Raise an Issue: %s", style.AttrUnderline.Sprint(constants.Links.Issues)),
+				fmt.Sprintf("Release Notes: %s", style.AttrUnderline.Sprint(constants.Links.Releases)),
+				style.FgMagenta.Sprintf("Become a sponsor: %s", style.AttrUnderline.Sprint(constants.Links.Donate)), // caffeine ain't free
+			}, "\n\n") + "\n"
 
 		return self.c.RenderToMainViews(types.RefreshMainOpts{
 			Pair: self.c.MainViewPairs().Normal,
