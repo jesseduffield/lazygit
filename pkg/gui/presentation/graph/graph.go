@@ -385,7 +385,7 @@ func renderPipeSet(
 }
 
 func equalHashes(a, b string) bool {
-	// if our selectedCommitSha is an empty string we treat that as meaning there is no selected commit sha
+	// if our selectedCommitSha is an empty string we treat that as meaning there is no selected commit hash
 	if a == "" || b == "" {
 		return false
 	}

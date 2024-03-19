@@ -559,7 +559,7 @@ func ignoringWarnings(commandOutput string) string {
 	return lastLine
 }
 
-// getFirstPushedCommit returns the first commit SHA which has been pushed to the ref's upstream.
+// getFirstPushedCommit returns the first commit hash which has been pushed to the ref's upstream.
 // all commits above this are deemed unpushed and marked as such.
 func (self *CommitLoader) getFirstPushedCommit(refName string) (string, error) {
 	output, err := self.cmd.New(

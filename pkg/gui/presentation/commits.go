@@ -200,7 +200,7 @@ func indexOfFirstNonTODOCommit(commits []*models.Commit) int {
 }
 
 func loadPipesets(commits []*models.Commit) [][]*graph.Pipe {
-	// given that our cache key is a commit sha and a commit count, it's very important that we don't actually try to render pipes
+	// given that our cache key is a commit hash and a commit count, it's very important that we don't actually try to render pipes
 	// when dealing with things like filtered commits.
 	cacheKey := pipeSetCacheKey{
 		commitSha:   commits[0].Sha,
