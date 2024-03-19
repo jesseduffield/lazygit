@@ -36,6 +36,14 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 			DisplayOnScreen: true,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Universal.ConfirmPrompt),
+			Handler:     func() error { return self.context().State.OnConfirm() },
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.CancelPrompt),
+			Handler:     func() error { return self.context().State.OnClose() },
+		},
+		{
 			Key: opts.GetKey(opts.Config.Universal.TogglePanel),
 			Handler: func() error {
 				if len(self.c.Contexts().Suggestions.State.Suggestions) > 0 {
