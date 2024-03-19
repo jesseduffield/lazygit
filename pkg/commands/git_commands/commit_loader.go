@@ -260,7 +260,7 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 		return nil, nil
 	}
 
-	commitShas := lo.FilterMap(commits, func(commit *models.Commit, _ int) (string, bool) {
+	commitHashes := lo.FilterMap(commits, func(commit *models.Commit, _ int) (string, bool) {
 		return commit.Sha, commit.Sha != ""
 	})
 
@@ -270,7 +270,7 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 		NewGitCmd("show").
 			Config("log.showSignature=false").
 			Arg("--no-patch", "--oneline", "--abbrev=20", prettyFormat).
-			Arg(commitShas...).
+			Arg(commitHashes...).
 			ToArgv(),
 	).DontLog()
 
@@ -337,9 +337,9 @@ func (self *CommitLoader) getRebasingCommits(rebaseMode enums.RebaseMode) []*mod
 
 	// See if the current commit couldn't be applied because it conflicted; if
 	// so, add a fake entry for it
-	if conflictedCommitSha := self.getConflictedCommit(todos); conflictedCommitSha != "" {
+	if conflictedCommitHash := self.getConflictedCommit(todos); conflictedCommitHash != "" {
 		commits = append(commits, &models.Commit{
-			Sha:    conflictedCommitSha,
+			Sha:    conflictedCommitHash,
 			Name:   "",
 			Status: models.StatusRebasing,
 			Action: models.ActionConflict,

@@ -32,7 +32,7 @@ type Pipe struct {
 
 var highlightStyle = style.FgLightWhite.SetBold()
 
-func ContainsCommitSha(pipes []*Pipe, sha string) bool {
+func ContainsCommitHash(pipes []*Pipe, sha string) bool {
 	for _, pipe := range pipes {
 		if equalHashes(pipe.fromSha, sha) {
 			return true
@@ -49,13 +49,13 @@ func (self Pipe) right() int {
 	return utils.Max(self.fromPos, self.toPos)
 }
 
-func RenderCommitGraph(commits []*models.Commit, selectedCommitSha string, getStyle func(c *models.Commit) style.TextStyle) []string {
+func RenderCommitGraph(commits []*models.Commit, selectedCommitHash string, getStyle func(c *models.Commit) style.TextStyle) []string {
 	pipeSets := GetPipeSets(commits, getStyle)
 	if len(pipeSets) == 0 {
 		return nil
 	}
 
-	lines := RenderAux(pipeSets, commits, selectedCommitSha)
+	lines := RenderAux(pipeSets, commits, selectedCommitHash)
 
 	return lines
 }
@@ -73,7 +73,7 @@ func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) style
 	})
 }
 
-func RenderAux(pipeSets [][]*Pipe, commits []*models.Commit, selectedCommitSha string) []string {
+func RenderAux(pipeSets [][]*Pipe, commits []*models.Commit, selectedCommitHash string) []string {
 	maxProcs := runtime.GOMAXPROCS(0)
 
 	// splitting up the rendering of the graph into multiple goroutines allows us to render the graph in parallel
@@ -98,7 +98,7 @@ func RenderAux(pipeSets [][]*Pipe, commits []*models.Commit, selectedCommitSha s
 				if k > 0 {
 					prevCommit = commits[k-1]
 				}
-				line := renderPipeSet(pipeSet, selectedCommitSha, prevCommit)
+				line := renderPipeSet(pipeSet, selectedCommitHash, prevCommit)
 				innerLines = append(innerLines, line)
 			}
 			chunks[i] = innerLines
@@ -282,7 +282,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 
 func renderPipeSet(
 	pipes []*Pipe,
-	selectedCommitSha string,
+	selectedCommitHash string,
 	prevCommit *models.Commit,
 ) string {
 	maxPos := 0
@@ -329,10 +329,10 @@ func renderPipeSet(
 	// we don't want to highlight two commits if they're contiguous. We only want
 	// to highlight multiple things if there's an actual visible pipe involved.
 	highlight := true
-	if prevCommit != nil && equalHashes(prevCommit.Sha, selectedCommitSha) {
+	if prevCommit != nil && equalHashes(prevCommit.Sha, selectedCommitHash) {
 		highlight = false
 		for _, pipe := range pipes {
-			if equalHashes(pipe.fromSha, selectedCommitSha) && (pipe.kind != TERMINATES || pipe.fromPos != pipe.toPos) {
+			if equalHashes(pipe.fromSha, selectedCommitHash) && (pipe.kind != TERMINATES || pipe.fromPos != pipe.toPos) {
 				highlight = true
 			}
 		}
@@ -341,7 +341,7 @@ func renderPipeSet(
 	// so we have our commit pos again, now it's time to build the cells.
 	// we'll handle the one that's sourced from our selected commit last so that it can override the other cells.
 	selectedPipes, nonSelectedPipes := utils.Partition(pipes, func(pipe *Pipe) bool {
-		return highlight && equalHashes(pipe.fromSha, selectedCommitSha)
+		return highlight && equalHashes(pipe.fromSha, selectedCommitHash)
 	})
 
 	for _, pipe := range nonSelectedPipes {
@@ -385,7 +385,7 @@ func renderPipeSet(
 }
 
 func equalHashes(a, b string) bool {
-	// if our selectedCommitSha is an empty string we treat that as meaning there is no selected commit hash
+	// if our selectedCommitHash is an empty string we treat that as meaning there is no selected commit hash
 	if a == "" || b == "" {
 		return false
 	}

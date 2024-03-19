@@ -397,18 +397,18 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 
 func TestWorkingTreeCheckoutFile(t *testing.T) {
 	type scenario struct {
-		testName  string
-		commitSha string
-		fileName  string
-		runner    *oscommands.FakeCmdObjRunner
-		test      func(error)
+		testName   string
+		commitHash string
+		fileName   string
+		runner     *oscommands.FakeCmdObjRunner
+		test       func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			testName:  "typical case",
-			commitSha: "11af912",
-			fileName:  "test999.txt",
+			testName:   "typical case",
+			commitHash: "11af912",
+			fileName:   "test999.txt",
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"checkout", "11af912", "--", "test999.txt"}, "", nil),
 			test: func(err error) {
@@ -416,9 +416,9 @@ func TestWorkingTreeCheckoutFile(t *testing.T) {
 			},
 		},
 		{
-			testName:  "returns error if there is one",
-			commitSha: "11af912",
-			fileName:  "test999.txt",
+			testName:   "returns error if there is one",
+			commitHash: "11af912",
+			fileName:   "test999.txt",
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"checkout", "11af912", "--", "test999.txt"}, "", errors.New("error")),
 			test: func(err error) {
@@ -432,7 +432,7 @@ func TestWorkingTreeCheckoutFile(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
 
-			s.test(instance.CheckoutFile(s.commitSha, s.fileName))
+			s.test(instance.CheckoutFile(s.commitHash, s.fileName))
 			s.runner.CheckForMissingCalls()
 		})
 	}

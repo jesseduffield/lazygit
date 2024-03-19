@@ -8,7 +8,7 @@ import (
 
 type IHostHelper interface {
 	GetPullRequestURL(from string, to string) (string, error)
-	GetCommitURL(commitSha string) (string, error)
+	GetCommitURL(commitHash string) (string, error)
 }
 
 type HostHelper struct {
@@ -31,12 +31,12 @@ func (self *HostHelper) GetPullRequestURL(from string, to string) (string, error
 	return mgr.GetPullRequestURL(from, to)
 }
 
-func (self *HostHelper) GetCommitURL(commitSha string) (string, error) {
+func (self *HostHelper) GetCommitURL(commitHash string) (string, error) {
 	mgr, err := self.getHostingServiceMgr()
 	if err != nil {
 		return "", err
 	}
-	return mgr.GetCommitURL(commitSha)
+	return mgr.GetCommitURL(commitHash)
 }
 
 // getting this on every request rather than storing it in state in case our remoteURL changes
