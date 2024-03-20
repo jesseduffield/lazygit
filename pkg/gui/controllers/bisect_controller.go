@@ -74,7 +74,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 	// ref, because we'll be reloading our commits in that case.
 	waitToReselect := selectCurrentAfter && !self.c.Git().Bisect.ReachableFromStart(info)
 
-	// If we have a current sha already, then we always want to use that one. If
+	// If we have a current hash already, then we always want to use that one. If
 	// not, we're still picking the initial commits before we really start, so
 	// use the selected commit in that case.
 
@@ -285,7 +285,7 @@ func (self *BisectController) afterBisectMarkRefresh(selectCurrent bool, waitToR
 func (self *BisectController) selectCurrentBisectCommit() {
 	info := self.c.Git().Bisect.GetInfo()
 	if info.GetCurrentHash() != "" {
-		// find index of commit with that sha, move cursor to that.
+		// find index of commit with that hash, move cursor to that.
 		for i, commit := range self.c.Model().Commits {
 			if commit.Hash == info.GetCurrentHash() {
 				self.context().SetSelection(i)

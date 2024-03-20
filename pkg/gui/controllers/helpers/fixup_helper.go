@@ -164,7 +164,7 @@ func (self *FixupHelper) parseDiff(diff string) ([]*deletedLineInfo, bool) {
 // returns the list of commit hashes that introduced the lines which have now been deleted
 func (self *FixupHelper) blameDeletedLines(deletedLineInfos []*deletedLineInfo) []string {
 	var wg sync.WaitGroup
-	shaChan := make(chan string)
+	hashChan := make(chan string)
 
 	for _, info := range deletedLineInfos {
 		wg.Add(1)
@@ -178,19 +178,19 @@ func (self *FixupHelper) blameDeletedLines(deletedLineInfos []*deletedLineInfo) 
 			}
 			blameLines := strings.Split(strings.TrimSuffix(blameOutput, "\n"), "\n")
 			for _, line := range blameLines {
-				shaChan <- strings.Split(line, " ")[0]
+				hashChan <- strings.Split(line, " ")[0]
 			}
 		}(info)
 	}
 
 	go func() {
 		wg.Wait()
-		close(shaChan)
+		close(hashChan)
 	}()
 
 	result := set.New[string]()
-	for sha := range shaChan {
-		result.Add(sha)
+	for hash := range hashChan {
+		result.Add(hash)
 	}
 
 	return result.ToSlice()

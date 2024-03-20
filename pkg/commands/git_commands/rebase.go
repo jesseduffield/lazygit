@@ -288,7 +288,7 @@ func (self *RebaseCommands) AmendTo(commits []*models.Commit, commitIndex int) e
 		return err
 	}
 
-	// Get the sha of the commit we just created
+	// Get the hash of the commit we just created
 	cmdArgs := NewGitCmd("rev-parse").Arg("--verify", "HEAD").ToArgv()
 	fixupSha, err := self.cmd.New(cmdArgs).RunWithOutput()
 	if err != nil {

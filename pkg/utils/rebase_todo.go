@@ -17,7 +17,7 @@ type Todo struct {
 }
 
 // In order to change a TODO in git-rebase-todo, we need to specify the old action,
-// because sometimes the same sha appears multiple times in the file (e.g. in a pick
+// because sometimes the same hash appears multiple times in the file (e.g. in a pick
 // and later in a merge)
 type TodoChange struct {
 	Hash      string
@@ -59,8 +59,8 @@ func equalHash(a, b string) bool {
 
 func findTodo(todos []todo.Todo, todoToFind Todo) (int, bool) {
 	_, idx, ok := lo.FindIndexOf(todos, func(t todo.Todo) bool {
-		// Comparing just the sha is not enough; we need to compare both the
-		// action and the sha, as the sha could appear multiple times (e.g. in a
+		// Comparing just the hash is not enough; we need to compare both the
+		// action and the hash, as the hash could appear multiple times (e.g. in a
 		// pick and later in a merge). For update-ref todos we also must compare
 		// the Ref.
 		return t.Command == todoToFind.Action &&

@@ -177,11 +177,11 @@ func SafeTruncate(str string, limit int) string {
 
 const COMMIT_HASH_SHORT_SIZE = 8
 
-func ShortSha(sha string) string {
-	if len(sha) < COMMIT_HASH_SHORT_SIZE {
-		return sha
+func ShortSha(hash string) string {
+	if len(hash) < COMMIT_HASH_SHORT_SIZE {
+		return hash
 	}
-	return sha[:COMMIT_HASH_SHORT_SIZE]
+	return hash[:COMMIT_HASH_SHORT_SIZE]
 }
 
 // Returns comma-separated list of paths, with ellipsis if there are more than 3

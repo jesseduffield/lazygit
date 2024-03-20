@@ -76,7 +76,7 @@ func (self *BisectCommands) GetInfoForGitDir(gitDir string) *BisectInfo {
 			return info
 		}
 
-		sha := strings.TrimSpace(string(fileContent))
+		hash := strings.TrimSpace(string(fileContent))
 
 		if name == info.newTerm {
 			status = BisectStatusNew
@@ -86,7 +86,7 @@ func (self *BisectCommands) GetInfoForGitDir(gitDir string) *BisectInfo {
 			status = BisectStatusSkipped
 		}
 
-		info.statusMap[sha] = status
+		info.statusMap[hash] = status
 	}
 
 	currentContent, err := os.ReadFile(filepath.Join(gitDir, "BISECT_EXPECTED_REV"))
@@ -155,12 +155,12 @@ func (self *BisectCommands) IsDone() (bool, []string, error) {
 
 	cmdArgs := NewGitCmd("rev-list").Arg(newSha).ToArgv()
 	err := self.cmd.New(cmdArgs).RunAndProcessLines(func(line string) (bool, error) {
-		sha := strings.TrimSpace(line)
+		hash := strings.TrimSpace(line)
 
-		if status, ok := info.statusMap[sha]; ok {
+		if status, ok := info.statusMap[hash]; ok {
 			switch status {
 			case BisectStatusSkipped, BisectStatusNew:
-				candidates = append(candidates, sha)
+				candidates = append(candidates, hash)
 				return false, nil
 			case BisectStatusOld:
 				done = true

@@ -32,9 +32,9 @@ type Pipe struct {
 
 var highlightStyle = style.FgLightWhite.SetBold()
 
-func ContainsCommitHash(pipes []*Pipe, sha string) bool {
+func ContainsCommitHash(pipes []*Pipe, hash string) bool {
 	for _, pipe := range pipes {
-		if equalHashes(pipe.fromHash, sha) {
+		if equalHashes(pipe.fromHash, hash) {
 			return true
 		}
 	}

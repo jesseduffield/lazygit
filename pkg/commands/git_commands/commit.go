@@ -39,8 +39,8 @@ func (self *CommitCommands) SetAuthor(value string) error {
 }
 
 // Add a commit's coauthor using Github/Gitlab Co-authored-by metadata. Value is expected to be of the form 'Name <Email>'
-func (self *CommitCommands) AddCoAuthor(sha string, author string) error {
-	message, err := self.GetCommitMessage(sha)
+func (self *CommitCommands) AddCoAuthor(hash string, author string) error {
+	message, err := self.GetCommitMessage(hash)
 	if err != nil {
 		return err
 	}
@@ -74,8 +74,8 @@ func AddCoAuthorToDescription(description string, author string) string {
 }
 
 // ResetToCommit reset to commit
-func (self *CommitCommands) ResetToCommit(sha string, strength string, envVars []string) error {
-	cmdArgs := NewGitCmd("reset").Arg("--"+strength, sha).ToArgv()
+func (self *CommitCommands) ResetToCommit(hash string, strength string, envVars []string) error {
+	cmdArgs := NewGitCmd("reset").Arg("--"+strength, hash).ToArgv()
 
 	return self.cmd.New(cmdArgs).
 		// prevents git from prompting us for input which would freeze the program
@@ -206,8 +206,8 @@ func (self *CommitCommands) GetCommitAuthor(commitHash string) (Author, error) {
 	return author, err
 }
 
-func (self *CommitCommands) GetCommitMessageFirstLine(sha string) (string, error) {
-	return self.GetCommitMessagesFirstLine([]string{sha})
+func (self *CommitCommands) GetCommitMessageFirstLine(hash string) (string, error) {
+	return self.GetCommitMessagesFirstLine([]string{hash})
 }
 
 func (self *CommitCommands) GetCommitMessagesFirstLine(hashes []string) (string, error) {
@@ -255,7 +255,7 @@ func (self *CommitCommands) AmendHeadCmdObj() oscommands.ICmdObj {
 	return self.cmd.New(cmdArgs)
 }
 
-func (self *CommitCommands) ShowCmdObj(sha string, filterPath string) oscommands.ICmdObj {
+func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) oscommands.ICmdObj {
 	contextSize := self.AppState.DiffContextSize
 
 	extDiffCmd := self.UserConfig.Git.Paging.ExternalDiffCommand
@@ -269,7 +269,7 @@ func (self *CommitCommands) ShowCmdObj(sha string, filterPath string) oscommands
 		Arg("--stat").
 		Arg("--decorate").
 		Arg("-p").
-		Arg(sha).
+		Arg(hash).
 		ArgIf(self.AppState.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		ArgIf(filterPath != "", "--", filterPath).
 		Dir(self.repoPaths.worktreePath).
@@ -278,23 +278,23 @@ func (self *CommitCommands) ShowCmdObj(sha string, filterPath string) oscommands
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
-// Revert reverts the selected commit by sha
-func (self *CommitCommands) Revert(sha string) error {
-	cmdArgs := NewGitCmd("revert").Arg(sha).ToArgv()
+// Revert reverts the selected commit by hash
+func (self *CommitCommands) Revert(hash string) error {
+	cmdArgs := NewGitCmd("revert").Arg(hash).ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *CommitCommands) RevertMerge(sha string, parentNumber int) error {
-	cmdArgs := NewGitCmd("revert").Arg(sha, "-m", fmt.Sprintf("%d", parentNumber)).
+func (self *CommitCommands) RevertMerge(hash string, parentNumber int) error {
+	cmdArgs := NewGitCmd("revert").Arg(hash, "-m", fmt.Sprintf("%d", parentNumber)).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
 }
 
 // CreateFixupCommit creates a commit that fixes up a previous commit
-func (self *CommitCommands) CreateFixupCommit(sha string) error {
-	cmdArgs := NewGitCmd("commit").Arg("--fixup=" + sha).ToArgv()
+func (self *CommitCommands) CreateFixupCommit(hash string) error {
+	cmdArgs := NewGitCmd("commit").Arg("--fixup=" + hash).ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
 }

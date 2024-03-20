@@ -47,7 +47,7 @@ func TestStashSave(t *testing.T) {
 func TestStashStore(t *testing.T) {
 	type scenario struct {
 		testName string
-		sha      string
+		hash     string
 		message  string
 		expected []string
 	}
@@ -55,19 +55,19 @@ func TestStashStore(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName: "Non-empty message",
-			sha:      "0123456789abcdef",
+			hash:     "0123456789abcdef",
 			message:  "New stash name",
 			expected: []string{"stash", "store", "-m", "New stash name", "0123456789abcdef"},
 		},
 		{
 			testName: "Empty message",
-			sha:      "0123456789abcdef",
+			hash:     "0123456789abcdef",
 			message:  "",
 			expected: []string{"stash", "store", "0123456789abcdef"},
 		},
 		{
 			testName: "Space message",
-			sha:      "0123456789abcdef",
+			hash:     "0123456789abcdef",
 			message:  "  ",
 			expected: []string{"stash", "store", "0123456789abcdef"},
 		},
@@ -80,7 +80,7 @@ func TestStashStore(t *testing.T) {
 				ExpectGitArgs(s.expected, "", nil)
 			instance := buildStashCommands(commonDeps{runner: runner})
 
-			assert.NoError(t, instance.Store(s.sha, s.message))
+			assert.NoError(t, instance.Store(s.hash, s.message))
 			runner.CheckForMissingCalls()
 		})
 	}
@@ -91,9 +91,9 @@ func TestStashSha(t *testing.T) {
 		ExpectGitArgs([]string{"rev-parse", "refs/stash@{5}"}, "14d94495194651adfd5f070590df566c11d28243\n", nil)
 	instance := buildStashCommands(commonDeps{runner: runner})
 
-	sha, err := instance.Hash(5)
+	hash, err := instance.Hash(5)
 	assert.NoError(t, err)
-	assert.Equal(t, "14d94495194651adfd5f070590df566c11d28243", sha)
+	assert.Equal(t, "14d94495194651adfd5f070590df566c11d28243", hash)
 	runner.CheckForMissingCalls()
 }
 

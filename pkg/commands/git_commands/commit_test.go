@@ -153,7 +153,7 @@ func TestCommitCommitEditorCmdObj(t *testing.T) {
 func TestCommitCreateFixupCommit(t *testing.T) {
 	type scenario struct {
 		testName string
-		sha      string
+		hash     string
 		runner   *oscommands.FakeCmdObjRunner
 		test     func(error)
 	}
@@ -161,7 +161,7 @@ func TestCommitCreateFixupCommit(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName: "valid case",
-			sha:      "12345",
+			hash:     "12345",
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"commit", "--fixup=12345"}, "", nil),
 			test: func(err error) {
@@ -174,7 +174,7 @@ func TestCommitCreateFixupCommit(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildCommitCommands(commonDeps{runner: s.runner})
-			s.test(instance.CreateFixupCommit(s.sha))
+			s.test(instance.CreateFixupCommit(s.hash))
 			s.runner.CheckForMissingCalls()
 		})
 	}
