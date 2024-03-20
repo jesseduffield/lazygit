@@ -80,7 +80,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 
 	bisecting := info.GetCurrentHash() != ""
 	shaToMark := lo.Ternary(bisecting, info.GetCurrentHash(), commit.Hash)
-	shortShaToMark := utils.ShortHash(shaToMark)
+	shortHashToMark := utils.ShortHash(shaToMark)
 
 	// For marking a commit as bad, when we're not already bisecting, we require
 	// a single item selected, but once we are bisecting, it doesn't matter because
@@ -92,7 +92,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 
 	menuItems := []*types.MenuItem{
 		{
-			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, shortShaToMark, info.NewTerm()),
+			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, shortHashToMark, info.NewTerm()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectMark)
 				if err := self.c.Git().Bisect.Mark(shaToMark, info.NewTerm()); err != nil {
@@ -105,7 +105,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Key:            'b',
 		},
 		{
-			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, shortShaToMark, info.OldTerm()),
+			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, shortHashToMark, info.OldTerm()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectMark)
 				if err := self.c.Git().Bisect.Mark(shaToMark, info.OldTerm()); err != nil {
@@ -118,7 +118,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Key:            'g',
 		},
 		{
-			Label: fmt.Sprintf(self.c.Tr.Bisect.SkipCurrent, shortShaToMark),
+			Label: fmt.Sprintf(self.c.Tr.Bisect.SkipCurrent, shortHashToMark),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectSkip)
 				if err := self.c.Git().Bisect.Skip(shaToMark); err != nil {
@@ -224,13 +224,13 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 	})
 }
 
-func (self *BisectController) showBisectCompleteMessage(candidateShas []string) error {
+func (self *BisectController) showBisectCompleteMessage(candidateHashes []string) error {
 	prompt := self.c.Tr.Bisect.CompletePrompt
-	if len(candidateShas) > 1 {
+	if len(candidateHashes) > 1 {
 		prompt = self.c.Tr.Bisect.CompletePromptIndeterminate
 	}
 
-	formattedCommits, err := self.c.Git().Commit.GetCommitsOneline(candidateShas)
+	formattedCommits, err := self.c.Git().Commit.GetCommitsOneline(candidateHashes)
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -250,7 +250,7 @@ func (self *BisectController) showBisectCompleteMessage(candidateShas []string) 
 }
 
 func (self *BisectController) afterMark(selectCurrent bool, waitToReselect bool) error {
-	done, candidateShas, err := self.c.Git().Bisect.IsDone()
+	done, candidateHashes, err := self.c.Git().Bisect.IsDone()
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -260,7 +260,7 @@ func (self *BisectController) afterMark(selectCurrent bool, waitToReselect bool)
 	}
 
 	if done {
-		return self.showBisectCompleteMessage(candidateShas)
+		return self.showBisectCompleteMessage(candidateHashes)
 	}
 
 	return nil

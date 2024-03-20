@@ -94,8 +94,8 @@ func (self *BisectCommands) GetInfoForGitDir(gitDir string) *BisectInfo {
 		self.Log.Infof("error getting git bisect info: %s", err.Error())
 		return info
 	}
-	currentSha := strings.TrimSpace(string(currentContent))
-	info.current = currentSha
+	currentHash := strings.TrimSpace(string(currentContent))
+	info.current = currentHash
 
 	return info
 }
@@ -143,8 +143,8 @@ func (self *BisectCommands) IsDone() (bool, []string, error) {
 		return false, nil, nil
 	}
 
-	newSha := info.GetNewHash()
-	if newSha == "" {
+	newHash := info.GetNewHash()
+	if newHash == "" {
 		return false, nil, nil
 	}
 
@@ -153,7 +153,7 @@ func (self *BisectCommands) IsDone() (bool, []string, error) {
 	done := false
 	candidates := []string{}
 
-	cmdArgs := NewGitCmd("rev-list").Arg(newSha).ToArgv()
+	cmdArgs := NewGitCmd("rev-list").Arg(newHash).ToArgv()
 	err := self.cmd.New(cmdArgs).RunAndProcessLines(func(line string) (bool, error) {
 		hash := strings.TrimSpace(line)
 

@@ -228,10 +228,10 @@ type MoveFixupCommitDownInstruction struct {
 	FixupHash    string
 }
 
-func NewMoveFixupCommitDownInstruction(originalSha string, fixupSha string) Instruction {
+func NewMoveFixupCommitDownInstruction(originalHash string, fixupHash string) Instruction {
 	return &MoveFixupCommitDownInstruction{
-		OriginalHash: originalSha,
-		FixupHash:    fixupSha,
+		OriginalHash: originalHash,
+		FixupHash:    fixupHash,
 	}
 }
 

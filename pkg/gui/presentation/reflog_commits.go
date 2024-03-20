@@ -35,7 +35,7 @@ func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription
 	})
 }
 
-func reflogShaColor(cherryPicked, diffed bool) style.TextStyle {
+func reflogHashColor(cherryPicked, diffed bool) style.TextStyle {
 	if diffed {
 		return theme.DiffTerminalColor
 	}
@@ -64,7 +64,7 @@ func getFullDescriptionDisplayStringsForReflogCommit(c *models.Commit, attrs ref
 	}
 
 	return []string{
-		reflogShaColor(attrs.cherryPicked, attrs.diffed).Sprint(c.ShortHash()),
+		reflogHashColor(attrs.cherryPicked, attrs.diffed).Sprint(c.ShortHash()),
 		style.FgMagenta.Sprint(utils.UnixToDateSmart(attrs.now, c.UnixTimestamp, attrs.timeFormat, attrs.shortTimeFormat)),
 		theme.DefaultTextColor.Sprint(name),
 	}
@@ -77,7 +77,7 @@ func getDisplayStringsForReflogCommit(c *models.Commit, attrs reflogCommitDispla
 	}
 
 	return []string{
-		reflogShaColor(attrs.cherryPicked, attrs.diffed).Sprint(c.ShortHash()),
+		reflogHashColor(attrs.cherryPicked, attrs.diffed).Sprint(c.ShortHash()),
 		theme.DefaultTextColor.Sprint(name),
 	}
 }

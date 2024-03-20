@@ -312,7 +312,7 @@ func displayCommit(
 	bisectInfo *git_commands.BisectInfo,
 	isYouAreHereCommit bool,
 ) []string {
-	shaColor := getShaColor(commit, diffName, cherryPickedCommitHashSet, bisectStatus, bisectInfo)
+	hashColor := getHashColor(commit, diffName, cherryPickedCommitHashSet, bisectStatus, bisectInfo)
 	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
 
 	actionString := ""
@@ -369,11 +369,11 @@ func displayCommit(
 
 	cols := make([]string, 0, 7)
 	if commit.Divergence != models.DivergenceNone {
-		cols = append(cols, shaColor.Sprint(lo.Ternary(commit.Divergence == models.DivergenceLeft, "↑", "↓")))
+		cols = append(cols, hashColor.Sprint(lo.Ternary(commit.Divergence == models.DivergenceLeft, "↑", "↓")))
 	} else if icons.IsIconEnabled() {
-		cols = append(cols, shaColor.Sprint(icons.IconForCommit(commit)))
+		cols = append(cols, hashColor.Sprint(icons.IconForCommit(commit)))
 	}
-	cols = append(cols, shaColor.Sprint(commit.ShortHash()))
+	cols = append(cols, hashColor.Sprint(commit.ShortHash()))
 	cols = append(cols, bisectString)
 	if fullDescription {
 		cols = append(cols, style.FgBlue.Sprint(
@@ -410,7 +410,7 @@ func getBisectStatusColor(status BisectStatus) style.TextStyle {
 	return style.FgWhite
 }
 
-func getShaColor(
+func getHashColor(
 	commit *models.Commit,
 	diffName string,
 	cherryPickedCommitHashSet *set.Set[string],
@@ -422,30 +422,30 @@ func getShaColor(
 	}
 
 	diffed := commit.Hash != "" && commit.Hash == diffName
-	shaColor := theme.DefaultTextColor
+	hashColor := theme.DefaultTextColor
 	switch commit.Status {
 	case models.StatusUnpushed:
-		shaColor = style.FgRed
+		hashColor = style.FgRed
 	case models.StatusPushed:
-		shaColor = style.FgYellow
+		hashColor = style.FgYellow
 	case models.StatusMerged:
-		shaColor = style.FgGreen
+		hashColor = style.FgGreen
 	case models.StatusRebasing:
-		shaColor = style.FgBlue
+		hashColor = style.FgBlue
 	case models.StatusReflog:
-		shaColor = style.FgBlue
+		hashColor = style.FgBlue
 	default:
 	}
 
 	if diffed {
-		shaColor = theme.DiffTerminalColor
+		hashColor = theme.DiffTerminalColor
 	} else if cherryPickedCommitHashSet.Includes(commit.Hash) {
-		shaColor = theme.CherryPickedCommitTextStyle
+		hashColor = theme.CherryPickedCommitTextStyle
 	} else if commit.Divergence == models.DivergenceRight && commit.Status != models.StatusMerged {
-		shaColor = style.FgBlue
+		hashColor = style.FgBlue
 	}
 
-	return shaColor
+	return hashColor
 }
 
 func actionColorMap(action todo.TodoCommand) style.TextStyle {
