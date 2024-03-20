@@ -86,7 +86,7 @@ func TestGetCommits(t *testing.T) {
 
 			expectedCommits: []*models.Commit{
 				{
-					Sha:           "0eea75e8c631fba6b58135697835d58ba4c18dbc",
+					Hash:          "0eea75e8c631fba6b58135697835d58ba4c18dbc",
 					Name:          "better typing for rebase mode",
 					Status:        models.StatusUnpushed,
 					Action:        models.ActionNone,
@@ -100,7 +100,7 @@ func TestGetCommits(t *testing.T) {
 					},
 				},
 				{
-					Sha:           "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164",
+					Hash:          "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164",
 					Name:          "fix logging",
 					Status:        models.StatusPushed,
 					Action:        models.ActionNone,
@@ -114,7 +114,7 @@ func TestGetCommits(t *testing.T) {
 					},
 				},
 				{
-					Sha:           "e94e8fc5b6fab4cb755f29f1bdb3ee5e001df35c",
+					Hash:          "e94e8fc5b6fab4cb755f29f1bdb3ee5e001df35c",
 					Name:          "refactor",
 					Status:        models.StatusPushed,
 					Action:        models.ActionNone,
@@ -128,7 +128,7 @@ func TestGetCommits(t *testing.T) {
 					},
 				},
 				{
-					Sha:           "d8084cd558925eb7c9c38afeed5725c21653ab90",
+					Hash:          "d8084cd558925eb7c9c38afeed5725c21653ab90",
 					Name:          "WIP",
 					Status:        models.StatusPushed,
 					Action:        models.ActionNone,
@@ -142,7 +142,7 @@ func TestGetCommits(t *testing.T) {
 					},
 				},
 				{
-					Sha:           "65f910ebd85283b5cce9bf67d03d3f1a9ea3813a",
+					Hash:          "65f910ebd85283b5cce9bf67d03d3f1a9ea3813a",
 					Name:          "WIP",
 					Status:        models.StatusPushed,
 					Action:        models.ActionNone,
@@ -156,7 +156,7 @@ func TestGetCommits(t *testing.T) {
 					},
 				},
 				{
-					Sha:           "26c07b1ab33860a1a7591a0638f9925ccf497ffa",
+					Hash:          "26c07b1ab33860a1a7591a0638f9925ccf497ffa",
 					Name:          "WIP",
 					Status:        models.StatusMerged,
 					Action:        models.ActionNone,
@@ -170,7 +170,7 @@ func TestGetCommits(t *testing.T) {
 					},
 				},
 				{
-					Sha:           "3d4470a6c072208722e5ae9a54bcb9634959a1c5",
+					Hash:          "3d4470a6c072208722e5ae9a54bcb9634959a1c5",
 					Name:          "WIP",
 					Status:        models.StatusMerged,
 					Action:        models.ActionNone,
@@ -184,7 +184,7 @@ func TestGetCommits(t *testing.T) {
 					},
 				},
 				{
-					Sha:           "053a66a7be3da43aacdc7aa78e1fe757b82c4dd2",
+					Hash:          "053a66a7be3da43aacdc7aa78e1fe757b82c4dd2",
 					Name:          "refactoring the config struct",
 					Status:        models.StatusMerged,
 					Action:        models.ActionNone,
@@ -221,7 +221,7 @@ func TestGetCommits(t *testing.T) {
 
 			expectedCommits: []*models.Commit{
 				{
-					Sha:           "0eea75e8c631fba6b58135697835d58ba4c18dbc",
+					Hash:          "0eea75e8c631fba6b58135697835d58ba4c18dbc",
 					Name:          "better typing for rebase mode",
 					Status:        models.StatusUnpushed,
 					Action:        models.ActionNone,
@@ -260,7 +260,7 @@ func TestGetCommits(t *testing.T) {
 
 			expectedCommits: []*models.Commit{
 				{
-					Sha:           "0eea75e8c631fba6b58135697835d58ba4c18dbc",
+					Hash:          "0eea75e8c631fba6b58135697835d58ba4c18dbc",
 					Name:          "better typing for rebase mode",
 					Status:        models.StatusUnpushed,
 					Action:        models.ActionNone,
@@ -339,14 +339,14 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 		todos           []todo.Todo
 		doneTodos       []todo.Todo
 		amendFileExists bool
-		expectedSha     string
+		expectedHash    string
 	}{
 		{
 			testName:        "no done todos",
 			todos:           []todo.Todo{},
 			doneTodos:       []todo.Todo{},
 			amendFileExists: false,
-			expectedSha:     "",
+			expectedHash:    "",
 		},
 		{
 			testName: "common case (conflict)",
@@ -362,7 +362,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedSha:     "fa1afe1",
+			expectedHash:    "fa1afe1",
 		},
 		{
 			testName: "last command was 'break'",
@@ -371,7 +371,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				{Command: todo.Break},
 			},
 			amendFileExists: false,
-			expectedSha:     "",
+			expectedHash:    "",
 		},
 		{
 			testName: "last command was 'exec'",
@@ -383,7 +383,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedSha:     "",
+			expectedHash:    "",
 		},
 		{
 			testName: "last command was 'reword'",
@@ -392,7 +392,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				{Command: todo.Reword},
 			},
 			amendFileExists: false,
-			expectedSha:     "",
+			expectedHash:    "",
 		},
 		{
 			testName: "'pick' was rescheduled",
@@ -409,7 +409,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedSha:     "",
+			expectedHash:    "",
 		},
 		{
 			testName: "'pick' was rescheduled, buggy git version",
@@ -434,7 +434,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedSha:     "",
+			expectedHash:    "",
 		},
 		{
 			testName: "conflicting 'pick' after 'exec'",
@@ -459,7 +459,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedSha:     "fa1afe1",
+			expectedHash:    "fa1afe1",
 		},
 		{
 			testName: "'edit' with amend file",
@@ -471,7 +471,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: true,
-			expectedSha:     "",
+			expectedHash:    "",
 		},
 		{
 			testName: "'edit' without amend file",
@@ -483,7 +483,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedSha:     "fa1afe1",
+			expectedHash:    "fa1afe1",
 		},
 	}
 	for _, scenario := range scenarios {
@@ -503,8 +503,8 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			}
 
-			sha := builder.getConflictedCommitImpl(scenario.todos, scenario.doneTodos, scenario.amendFileExists)
-			assert.Equal(t, scenario.expectedSha, sha)
+			hash := builder.getConflictedCommitImpl(scenario.todos, scenario.doneTodos, scenario.amendFileExists)
+			assert.Equal(t, scenario.expectedHash, hash)
 		})
 	}
 }
@@ -521,29 +521,29 @@ func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
 		{
 			testName: "basic",
 			commits: []*models.Commit{
-				{Sha: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
-				{Sha: "67890", Name: "2", Action: models.ActionNone, Status: models.StatusPushed},
-				{Sha: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
+				{Hash: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
+				{Hash: "67890", Name: "2", Action: models.ActionNone, Status: models.StatusPushed},
+				{Hash: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
 			},
 			ancestor: "67890",
 			expectedCommits: []*models.Commit{
-				{Sha: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
-				{Sha: "67890", Name: "2", Action: models.ActionNone, Status: models.StatusMerged},
-				{Sha: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusMerged},
+				{Hash: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
+				{Hash: "67890", Name: "2", Action: models.ActionNone, Status: models.StatusMerged},
+				{Hash: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusMerged},
 			},
 		},
 		{
 			testName: "with update-ref",
 			commits: []*models.Commit{
-				{Sha: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
-				{Sha: "", Name: "", Action: todo.UpdateRef, Status: models.StatusNone},
-				{Sha: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
+				{Hash: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
+				{Hash: "", Name: "", Action: todo.UpdateRef, Status: models.StatusNone},
+				{Hash: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
 			},
 			ancestor: "deadbeef",
 			expectedCommits: []*models.Commit{
-				{Sha: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
-				{Sha: "", Name: "", Action: todo.UpdateRef, Status: models.StatusNone},
-				{Sha: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
+				{Hash: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
+				{Hash: "", Name: "", Action: todo.UpdateRef, Status: models.StatusNone},
+				{Hash: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
 			},
 		},
 	}

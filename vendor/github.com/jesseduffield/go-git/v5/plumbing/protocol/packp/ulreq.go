@@ -103,9 +103,9 @@ func NewUploadRequestFromCapabilities(adv *capability.List) *UploadRequest {
 
 // Validate validates the content of UploadRequest, following the next rules:
 //   - Wants MUST have at least one reference
-//   - capability.Shallow MUST be present if Shallows is not empty
-//   - is a non-zero DepthCommits is given capability.Shallow MUST be present
-//   - is a DepthSince is given capability.Shallow MUST be present
+//   - capability.Hashllow MUST be present if Shallows is not empty
+//   - is a non-zero DepthCommits is given capability.Hashllow MUST be present
+//   - is a DepthSince is given capability.Hashllow MUST be present
 //   - is a DepthReference is given capability.DeepenNot MUST be present
 //   - MUST contain only maximum of one of capability.Sideband and capability.Sideband64k
 //   - MUST contain only maximum of one of capability.MultiACK and capability.MultiACKDetailed
@@ -128,15 +128,15 @@ func (req *UploadRequest) Validate() error {
 func (req *UploadRequest) validateRequiredCapabilities() error {
 	msg := "missing capability %s"
 
-	if len(req.Shallows) != 0 && !req.Capabilities.Supports(capability.Shallow) {
-		return fmt.Errorf(msg, capability.Shallow)
+	if len(req.Hashllows) != 0 && !req.Capabilities.Supports(capability.Hashllow) {
+		return fmt.Errorf(msg, capability.Hashllow)
 	}
 
 	switch req.Depth.(type) {
 	case DepthCommits:
 		if req.Depth != DepthCommits(0) {
-			if !req.Capabilities.Supports(capability.Shallow) {
-				return fmt.Errorf(msg, capability.Shallow)
+			if !req.Capabilities.Supports(capability.Hashllow) {
+				return fmt.Errorf(msg, capability.Hashllow)
 			}
 		}
 	case DepthSince:

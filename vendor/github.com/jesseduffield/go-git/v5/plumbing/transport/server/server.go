@@ -89,7 +89,7 @@ func (s *session) Close() error {
 }
 
 func (s *session) SetAuth(transport.AuthMethod) error {
-	//TODO: deprecate
+	// TODO: deprecate
 	return nil
 }
 
@@ -153,7 +153,7 @@ func (s *upSession) UploadPack(ctx context.Context, req *packp.UploadPackRequest
 
 	s.caps = req.Capabilities
 
-	if len(req.Shallows) > 0 {
+	if len(req.Hashllows) > 0 {
 		return nil, fmt.Errorf("shallow not supported")
 	}
 
@@ -223,9 +223,7 @@ func (s *rpSession) AdvertisedReferences() (*packp.AdvRefs, error) {
 	return ar, nil
 }
 
-var (
-	ErrUpdateReference = errors.New("failed to update ref")
-)
+var ErrUpdateReference = errors.New("failed to update ref")
 
 func (s *rpSession) ReceivePack(ctx context.Context, req *packp.ReferenceUpdateRequest) (*packp.ReportStatus, error) {
 	if s.caps == nil {
@@ -241,7 +239,7 @@ func (s *rpSession) ReceivePack(ctx context.Context, req *packp.ReferenceUpdateR
 
 	s.caps = req.Capabilities
 
-	//TODO: Implement 'atomic' update of references.
+	// TODO: Implement 'atomic' update of references.
 
 	if req.Packfile != nil {
 		r := ioutil.NewContextReadCloser(ctx, req.Packfile)
@@ -398,7 +396,7 @@ func setHEAD(s storer.Storer, ar *packp.AdvRefs) error {
 }
 
 func setReferences(s storer.Storer, ar *packp.AdvRefs) error {
-	//TODO: add peeled references.
+	// TODO: add peeled references.
 	iter, err := s.IterReferences()
 	if err != nil {
 		return err

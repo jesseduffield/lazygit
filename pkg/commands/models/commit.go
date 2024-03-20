@@ -43,7 +43,7 @@ const (
 
 // Commit : A git commit
 type Commit struct {
-	Sha           string
+	Hash          string
 	Name          string
 	Status        CommitStatus
 	Action        todo.TodoCommand
@@ -59,15 +59,15 @@ type Commit struct {
 }
 
 func (c *Commit) ShortSha() string {
-	return utils.ShortSha(c.Sha)
+	return utils.ShortSha(c.Hash)
 }
 
 func (c *Commit) FullRefName() string {
-	return c.Sha
+	return c.Hash
 }
 
 func (c *Commit) RefName() string {
-	return c.Sha
+	return c.Hash
 }
 
 func (c *Commit) ParentRefName() string {
@@ -86,7 +86,7 @@ func (c *Commit) ID() string {
 }
 
 func (c *Commit) Description() string {
-	return fmt.Sprintf("%s %s", c.Sha[:7], c.Name)
+	return fmt.Sprintf("%s %s", c.Hash[:7], c.Name)
 }
 
 func (c *Commit) IsMerge() bool {

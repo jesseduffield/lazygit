@@ -28,7 +28,6 @@ type advRefsEncoder struct {
 	firstRefHash plumbing.Hash    // hash referenced to encode in the first pkt-line (HEAD if present)
 	sortedRefs   []string         // hash references to encode ordered by increasing order
 	err          error            // sticky error
-
 }
 
 func newAdvRefsEncoder(w io.Writer) *advRefsEncoder {
@@ -107,7 +106,6 @@ func encodeFirstLine(e *advRefsEncoder) encoderStateFn {
 		firstLine = fmt.Sprintf(formatFirstLine, plumbing.ZeroHash.String(), "capabilities^{}", capabilities)
 	} else {
 		firstLine = fmt.Sprintf(formatFirstLine, e.firstRefHash.String(), e.firstRefName, capabilities)
-
 	}
 
 	if e.err = e.pe.EncodeString(firstLine); e.err != nil {
@@ -150,7 +148,7 @@ func encodeRefs(e *advRefsEncoder) encoderStateFn {
 
 // Adds the (sorted) shallows: "shallow" SP hash EOL
 func encodeShallow(e *advRefsEncoder) encoderStateFn {
-	sorted := sortShallows(e.data.Shallows)
+	sorted := sortShallows(e.data.Hashllows)
 	for _, hash := range sorted {
 		if e.err = e.pe.Encodef("shallow %s\n", hash); e.err != nil {
 			return nil

@@ -33,7 +33,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 		if c.CurrentContext().GetKey() == LOCAL_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
 			if selectedCommit != nil {
-				selectedCommitHash = selectedCommit.Sha
+				selectedCommitHash = selectedCommit.Hash
 			}
 		}
 

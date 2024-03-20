@@ -25,7 +25,7 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			todoToMoveDown: Todo{Sha: "5678", Action: todo.Pick},
+			todoToMoveDown: Todo{Hash: "5678", Action: todo.Pick},
 			expectedErr:    "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "5678"},
@@ -40,7 +40,7 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			todoToMoveDown: Todo{Sha: "abcd", Action: todo.Pick},
+			todoToMoveDown: Todo{Hash: "abcd", Action: todo.Pick},
 			expectedErr:    "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
@@ -72,7 +72,7 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "def0"},
 			},
-			todoToMoveDown: Todo{Sha: "5678", Action: todo.Pick},
+			todoToMoveDown: Todo{Hash: "5678", Action: todo.Pick},
 			expectedErr:    "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
@@ -91,7 +91,7 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			todoToMoveDown: Todo{Sha: "def0", Action: todo.Pick},
+			todoToMoveDown: Todo{Hash: "def0", Action: todo.Pick},
 			expectedErr:    "Todo def0 not found in git-rebase-todo",
 			expectedTodos:  []todo.Todo{},
 		},
@@ -102,7 +102,7 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			todoToMoveDown: Todo{Sha: "1234", Action: todo.Pick},
+			todoToMoveDown: Todo{Hash: "1234", Action: todo.Pick},
 			expectedErr:    "Destination position for moving todo is out of range",
 			expectedTodos:  []todo.Todo{},
 		},
@@ -114,7 +114,7 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "5678"},
 			},
-			todoToMoveDown: Todo{Sha: "1234", Action: todo.Pick},
+			todoToMoveDown: Todo{Hash: "1234", Action: todo.Pick},
 			expectedErr:    "Destination position for moving todo is out of range",
 			expectedTodos:  []todo.Todo{},
 		},
@@ -151,7 +151,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			todoToMoveUp: Todo{Sha: "5678", Action: todo.Pick},
+			todoToMoveUp: Todo{Hash: "5678", Action: todo.Pick},
 			expectedErr:  "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
@@ -166,7 +166,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			todoToMoveUp: Todo{Sha: "1234", Action: todo.Pick},
+			todoToMoveUp: Todo{Hash: "1234", Action: todo.Pick},
 			expectedErr:  "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "5678"},
@@ -198,7 +198,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "def0"},
 			},
-			todoToMoveUp: Todo{Sha: "abcd", Action: todo.Pick},
+			todoToMoveUp: Todo{Hash: "abcd", Action: todo.Pick},
 			expectedErr:  "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
@@ -217,7 +217,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			todoToMoveUp:  Todo{Sha: "def0", Action: todo.Pick},
+			todoToMoveUp:  Todo{Hash: "def0", Action: todo.Pick},
 			expectedErr:   "Todo def0 not found in git-rebase-todo",
 			expectedTodos: []todo.Todo{},
 		},
@@ -228,7 +228,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			todoToMoveUp:  Todo{Sha: "abcd", Action: todo.Pick},
+			todoToMoveUp:  Todo{Hash: "abcd", Action: todo.Pick},
 			expectedErr:   "Destination position for moving todo is out of range",
 			expectedTodos: []todo.Todo{},
 		},
@@ -240,7 +240,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Label, Label: "myLabel"},
 				{Command: todo.Reset, Label: "otherlabel"},
 			},
-			todoToMoveUp:  Todo{Sha: "5678", Action: todo.Pick},
+			todoToMoveUp:  Todo{Hash: "5678", Action: todo.Pick},
 			expectedErr:   "Destination position for moving todo is out of range",
 			expectedTodos: []todo.Todo{},
 		},
@@ -264,8 +264,8 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 	scenarios := []struct {
 		name          string
 		todos         []todo.Todo
-		originalSha   string
-		fixupSha      string
+		originalHash  string
+		fixupHash     string
 		expectedTodos []todo.Todo
 		expectedErr   error
 	}{
@@ -275,8 +275,8 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "original"},
 				{Command: todo.Pick, Commit: "fixup"},
 			},
-			originalSha: "original",
-			fixupSha:    "fixup",
+			originalHash: "original",
+			fixupHash:    "fixup",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "original"},
 				{Command: todo.Fixup, Commit: "fixup"},
@@ -291,8 +291,8 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "other"},
 				{Command: todo.Pick, Commit: "fixup"},
 			},
-			originalSha: "original",
-			fixupSha:    "fixup",
+			originalHash: "original",
+			fixupHash:    "fixup",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "original"},
 				{Command: todo.Fixup, Commit: "fixup"},
@@ -307,8 +307,8 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "original"},
 				{Command: todo.Pick, Commit: "fixup"},
 			},
-			originalSha:   "original",
-			fixupSha:      "fixup",
+			originalHash:  "original",
+			fixupHash:     "fixup",
 			expectedTodos: nil,
 			expectedErr:   errors.New("Expected exactly one original SHA, found 2"),
 		},
@@ -319,8 +319,8 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "fixup"},
 				{Command: todo.Pick, Commit: "fixup"},
 			},
-			originalSha:   "original",
-			fixupSha:      "fixup",
+			originalHash:  "original",
+			fixupHash:     "fixup",
 			expectedTodos: nil,
 			expectedErr:   errors.New("Expected exactly one fixup SHA, found 2"),
 		},
@@ -329,8 +329,8 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "original"},
 			},
-			originalSha:   "original",
-			fixupSha:      "fixup",
+			originalHash:  "original",
+			fixupHash:     "fixup",
 			expectedTodos: nil,
 			expectedErr:   errors.New("Expected exactly one fixup SHA, found 0"),
 		},
@@ -339,8 +339,8 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "fixup"},
 			},
-			originalSha:   "original",
-			fixupSha:      "fixup",
+			originalHash:  "original",
+			fixupHash:     "fixup",
 			expectedTodos: nil,
 			expectedErr:   errors.New("Expected exactly one original SHA, found 0"),
 		},
@@ -348,7 +348,7 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.name, func(t *testing.T) {
-			actualTodos, actualErr := moveFixupCommitDown(scenario.todos, scenario.originalSha, scenario.fixupSha)
+			actualTodos, actualErr := moveFixupCommitDown(scenario.todos, scenario.originalHash, scenario.fixupHash)
 
 			if scenario.expectedErr == nil {
 				assert.NoError(t, actualErr)
@@ -379,7 +379,7 @@ func TestRebaseCommands_deleteTodos(t *testing.T) {
 			},
 			todosToDelete: []Todo{
 				{Ref: "refs/heads/some_branch", Action: todo.UpdateRef},
-				{Sha: "abcd", Action: todo.Pick},
+				{Hash: "abcd", Action: todo.Pick},
 			},
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
@@ -394,7 +394,7 @@ func TestRebaseCommands_deleteTodos(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 			},
 			todosToDelete: []Todo{
-				{Sha: "abcd", Action: todo.Pick},
+				{Hash: "abcd", Action: todo.Pick},
 			},
 			expectedTodos: []todo.Todo{},
 			expectedErr:   errors.New("Todo abcd not found in git-rebase-todo"),

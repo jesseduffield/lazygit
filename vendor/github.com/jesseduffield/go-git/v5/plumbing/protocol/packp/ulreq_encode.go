@@ -86,10 +86,10 @@ func (e *ulReqEncoder) encodeAdditionalWants() stateFn {
 }
 
 func (e *ulReqEncoder) encodeShallows() stateFn {
-	plumbing.HashesSort(e.data.Shallows)
+	plumbing.HashesSort(e.data.Hashllows)
 
 	var last plumbing.Hash
-	for _, s := range e.data.Shallows {
+	for _, s := range e.data.Hashllows {
 		if bytes.Equal(last[:], s[:]) {
 			continue
 		}

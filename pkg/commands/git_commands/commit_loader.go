@@ -129,7 +129,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 	}
 
 	for _, commit := range commits {
-		if commit.Sha == firstPushedCommit {
+		if commit.Hash == firstPushedCommit {
 			passedFirstPushedCommit = true
 		}
 		if commit.Status != models.StatusRebasing {
@@ -205,7 +205,7 @@ func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit) ([]*mod
 func (self *CommitLoader) extractCommitFromLine(line string, showDivergence bool) *models.Commit {
 	split := strings.SplitN(line, "\x00", 8)
 
-	sha := split[0]
+	hash := split[0]
 	unixTimestamp := split[1]
 	authorName := split[2]
 	authorEmail := split[3]
@@ -241,7 +241,7 @@ func (self *CommitLoader) extractCommitFromLine(line string, showDivergence bool
 	}
 
 	return &models.Commit{
-		Sha:           sha,
+		Hash:          hash,
 		Name:          message,
 		Tags:          tags,
 		ExtraInfo:     extraInfo,
@@ -261,7 +261,7 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 	}
 
 	commitHashes := lo.FilterMap(commits, func(commit *models.Commit, _ int) (string, bool) {
-		return commit.Sha, commit.Sha != ""
+		return commit.Hash, commit.Hash != ""
 	})
 
 	// note that we're not filtering these as we do non-rebasing commits just because
@@ -277,7 +277,7 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 	fullCommits := map[string]*models.Commit{}
 	err := cmdObj.RunAndProcessLines(func(line string) (bool, error) {
 		commit := self.extractCommitFromLine(line, false)
-		fullCommits[commit.Sha] = commit
+		fullCommits[commit.Hash] = commit
 		return false, nil
 	})
 	if err != nil {
@@ -299,9 +299,9 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 
 	hydratedCommits := make([]*models.Commit, 0, len(commits))
 	for _, rebasingCommit := range commits {
-		if rebasingCommit.Sha == "" {
+		if rebasingCommit.Hash == "" {
 			hydratedCommits = append(hydratedCommits, rebasingCommit)
-		} else if commit := findFullCommit(rebasingCommit.Sha); commit != nil {
+		} else if commit := findFullCommit(rebasingCommit.Hash); commit != nil {
 			commit.Action = rebasingCommit.Action
 			commit.Status = rebasingCommit.Status
 			hydratedCommits = append(hydratedCommits, commit)
@@ -339,7 +339,7 @@ func (self *CommitLoader) getRebasingCommits(rebaseMode enums.RebaseMode) []*mod
 	// so, add a fake entry for it
 	if conflictedCommitHash := self.getConflictedCommit(todos); conflictedCommitHash != "" {
 		commits = append(commits, &models.Commit{
-			Sha:    conflictedCommitHash,
+			Hash:   conflictedCommitHash,
 			Name:   "",
 			Status: models.StatusRebasing,
 			Action: models.ActionConflict,
@@ -354,7 +354,7 @@ func (self *CommitLoader) getRebasingCommits(rebaseMode enums.RebaseMode) []*mod
 			continue
 		}
 		commits = utils.Prepend(commits, &models.Commit{
-			Sha:    t.Commit,
+			Hash:   t.Commit,
 			Name:   t.Msg,
 			Status: models.StatusRebasing,
 			Action: t.Command,
@@ -459,7 +459,7 @@ func setCommitMergedStatuses(ancestor string, commits []*models.Commit) {
 	passedAncestor := false
 	for i, commit := range commits {
 		// some commits aren't really commits and don't have sha's, such as the update-ref todo
-		if commit.Sha != "" && strings.HasPrefix(ancestor, commit.Sha) {
+		if commit.Hash != "" && strings.HasPrefix(ancestor, commit.Hash) {
 			passedAncestor = true
 		}
 		if commit.Status != models.StatusPushed && commit.Status != models.StatusUnpushed {

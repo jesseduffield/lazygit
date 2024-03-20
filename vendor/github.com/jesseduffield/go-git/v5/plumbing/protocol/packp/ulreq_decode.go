@@ -175,7 +175,7 @@ func (d *ulReqDecoder) decodeShallow() stateFn {
 	if !ok {
 		return nil
 	}
-	d.data.Shallows = append(d.data.Shallows, hash)
+	d.data.Hashllows = append(d.data.Hashllows, hash)
 
 	if ok := d.nextLine(); !ok {
 		return nil

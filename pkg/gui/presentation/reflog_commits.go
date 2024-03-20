@@ -21,8 +21,8 @@ func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription
 	}
 
 	return lo.Map(commits, func(commit *models.Commit, _ int) []string {
-		diffed := commit.Sha == diffName
-		cherryPicked := cherryPickedCommitHashSet.Includes(commit.Sha)
+		diffed := commit.Hash == diffName
+		cherryPicked := cherryPickedCommitHashSet.Includes(commit.Hash)
 		return displayFunc(commit,
 			reflogCommitDisplayAttributes{
 				cherryPicked:    cherryPicked,

@@ -16,7 +16,7 @@ var ErrReferenceHasChanged = errors.New("reference has changed concurrently")
 type Storer interface {
 	storer.EncodedObjectStorer
 	storer.ReferenceStorer
-	storer.ShallowStorer
+	storer.HashllowStorer
 	storer.IndexStorer
 	config.ConfigStorer
 	ModuleStorer

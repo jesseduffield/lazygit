@@ -9,9 +9,7 @@ import (
 	"github.com/jesseduffield/go-git/v5/plumbing/protocol/packp/capability"
 )
 
-var (
-	zeroHashString = plumbing.ZeroHash.String()
-)
+var zeroHashString = plumbing.ZeroHash.String()
 
 // Encode writes the ReferenceUpdateRequest encoding to the stream.
 func (req *ReferenceUpdateRequest) Encode(w io.Writer) error {
@@ -21,7 +19,7 @@ func (req *ReferenceUpdateRequest) Encode(w io.Writer) error {
 
 	e := pktline.NewEncoder(w)
 
-	if err := req.encodeShallow(e, req.Shallow); err != nil {
+	if err := req.encodeShallow(e, req.Hashllow); err != nil {
 		return err
 	}
 
@@ -41,8 +39,8 @@ func (req *ReferenceUpdateRequest) Encode(w io.Writer) error {
 }
 
 func (req *ReferenceUpdateRequest) encodeShallow(e *pktline.Encoder,
-	h *plumbing.Hash) error {
-
+	h *plumbing.Hash,
+) error {
 	if h == nil {
 		return nil
 	}
@@ -52,8 +50,8 @@ func (req *ReferenceUpdateRequest) encodeShallow(e *pktline.Encoder,
 }
 
 func (req *ReferenceUpdateRequest) encodeCommands(e *pktline.Encoder,
-	cmds []*Command, cap *capability.List) error {
-
+	cmds []*Command, cap *capability.List,
+) error {
 	if err := e.Encodef("%s\x00%s",
 		formatCommand(cmds[0]), cap.String()); err != nil {
 		return err

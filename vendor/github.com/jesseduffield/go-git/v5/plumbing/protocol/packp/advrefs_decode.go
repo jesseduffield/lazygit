@@ -274,7 +274,7 @@ func decodeShallow(p *advRefsDecoder) decoderStateFn {
 		return nil
 	}
 
-	p.data.Shallows = append(p.data.Shallows, h)
+	p.data.Hashllows = append(p.data.Hashllows, h)
 
 	if ok := p.nextLine(); !ok {
 		return nil
