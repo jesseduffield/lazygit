@@ -301,7 +301,7 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 			expectedErr: nil,
 		},
 		{
-			name: "More original SHAs than expected",
+			name: "More original hashes than expected",
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "original"},
 				{Command: todo.Pick, Commit: "original"},
@@ -310,10 +310,10 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 			originalHash:  "original",
 			fixupHash:     "fixup",
 			expectedTodos: nil,
-			expectedErr:   errors.New("Expected exactly one original SHA, found 2"),
+			expectedErr:   errors.New("Expected exactly one original hash, found 2"),
 		},
 		{
-			name: "More fixup SHAs than expected",
+			name: "More fixup hashes than expected",
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "original"},
 				{Command: todo.Pick, Commit: "fixup"},
@@ -322,27 +322,27 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 			originalHash:  "original",
 			fixupHash:     "fixup",
 			expectedTodos: nil,
-			expectedErr:   errors.New("Expected exactly one fixup SHA, found 2"),
+			expectedErr:   errors.New("Expected exactly one fixup hash, found 2"),
 		},
 		{
-			name: "No fixup SHAs found",
+			name: "No fixup hashes found",
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "original"},
 			},
 			originalHash:  "original",
 			fixupHash:     "fixup",
 			expectedTodos: nil,
-			expectedErr:   errors.New("Expected exactly one fixup SHA, found 0"),
+			expectedErr:   errors.New("Expected exactly one fixup hash, found 0"),
 		},
 		{
-			name: "No original SHAs found",
+			name: "No original hashes found",
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "fixup"},
 			},
 			originalHash:  "original",
 			fixupHash:     "fixup",
 			expectedTodos: nil,
-			expectedErr:   errors.New("Expected exactly one original SHA, found 0"),
+			expectedErr:   errors.New("Expected exactly one original hash, found 0"),
 		},
 	}
 

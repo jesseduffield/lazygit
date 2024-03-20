@@ -54,7 +54,7 @@ type Commit struct {
 	UnixTimestamp int64
 	Divergence    Divergence // set to DivergenceNone unless we are showing the divergence view
 
-	// SHAs of parent commits (will be multiple if it's a merge commit)
+	// Hashes of parent commits (will be multiple if it's a merge commit)
 	Parents []string
 }
 
