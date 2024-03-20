@@ -58,8 +58,8 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "some commits",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1"},
-				{Name: "commit2", Sha: "sha2"},
+				{Name: "commit1", Hash: "sha1"},
+				{Name: "commit2", Hash: "sha2"},
 			},
 			startIdx:                  0,
 			endIdx:                    2,
@@ -75,8 +75,8 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "commit with tags",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1", Tags: []string{"tag1", "tag2"}},
-				{Name: "commit2", Sha: "sha2"},
+				{Name: "commit1", Hash: "sha1", Tags: []string{"tag1", "tag2"}},
+				{Name: "commit2", Hash: "sha2"},
 			},
 			startIdx:                  0,
 			endIdx:                    2,
@@ -92,10 +92,10 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "show local branch head, except the current branch, main branches, or merged branches",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1"},
-				{Name: "commit2", Sha: "sha2"},
-				{Name: "commit3", Sha: "sha3"},
-				{Name: "commit4", Sha: "sha4", Status: models.StatusMerged},
+				{Name: "commit1", Hash: "sha1"},
+				{Name: "commit2", Hash: "sha2"},
+				{Name: "commit3", Hash: "sha3"},
+				{Name: "commit4", Hash: "sha4", Status: models.StatusMerged},
 			},
 			branches: []*models.Branch{
 				{Name: "current-branch", CommitHash: "sha1", Head: true},
@@ -121,8 +121,8 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "show local branch head for head commit if updateRefs is on",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1"},
-				{Name: "commit2", Sha: "sha2"},
+				{Name: "commit1", Hash: "sha1"},
+				{Name: "commit2", Hash: "sha2"},
 			},
 			branches: []*models.Branch{
 				{Name: "current-branch", CommitHash: "sha1", Head: true},
@@ -144,8 +144,8 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "don't show local branch head for head commit if updateRefs is off",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1"},
-				{Name: "commit2", Sha: "sha2"},
+				{Name: "commit1", Hash: "sha1"},
+				{Name: "commit2", Hash: "sha2"},
 			},
 			branches: []*models.Branch{
 				{Name: "current-branch", CommitHash: "sha1", Head: true},
@@ -167,9 +167,9 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "show local branch head and tag if both exist",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1"},
-				{Name: "commit2", Sha: "sha2", Tags: []string{"some-tag"}},
-				{Name: "commit3", Sha: "sha3"},
+				{Name: "commit1", Hash: "sha1"},
+				{Name: "commit2", Hash: "sha2", Tags: []string{"some-tag"}},
+				{Name: "commit3", Hash: "sha3"},
 			},
 			branches: []*models.Branch{
 				{Name: "some-branch", CommitHash: "sha2"},
@@ -189,11 +189,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "showing graph",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1", Parents: []string{"sha2", "sha3"}},
-				{Name: "commit2", Sha: "sha2", Parents: []string{"sha3"}},
-				{Name: "commit3", Sha: "sha3", Parents: []string{"sha4"}},
-				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}},
-				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
+				{Name: "commit1", Hash: "sha1", Parents: []string{"sha2", "sha3"}},
+				{Name: "commit2", Hash: "sha2", Parents: []string{"sha3"}},
+				{Name: "commit3", Hash: "sha3", Parents: []string{"sha4"}},
+				{Name: "commit4", Hash: "sha4", Parents: []string{"sha5"}},
+				{Name: "commit5", Hash: "sha5", Parents: []string{"sha7"}},
 			},
 			startIdx:                  0,
 			endIdx:                    5,
@@ -212,11 +212,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "showing graph, including rebase commits",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1", Parents: []string{"sha2", "sha3"}, Action: todo.Pick},
-				{Name: "commit2", Sha: "sha2", Parents: []string{"sha3"}, Action: todo.Pick},
-				{Name: "commit3", Sha: "sha3", Parents: []string{"sha4"}},
-				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}},
-				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
+				{Name: "commit1", Hash: "sha1", Parents: []string{"sha2", "sha3"}, Action: todo.Pick},
+				{Name: "commit2", Hash: "sha2", Parents: []string{"sha3"}, Action: todo.Pick},
+				{Name: "commit3", Hash: "sha3", Parents: []string{"sha4"}},
+				{Name: "commit4", Hash: "sha4", Parents: []string{"sha5"}},
+				{Name: "commit5", Hash: "sha5", Parents: []string{"sha7"}},
 			},
 			startIdx:                  0,
 			endIdx:                    5,
@@ -236,11 +236,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "showing graph, including rebase commits, with offset",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1", Parents: []string{"sha2", "sha3"}, Action: todo.Pick},
-				{Name: "commit2", Sha: "sha2", Parents: []string{"sha3"}, Action: todo.Pick},
-				{Name: "commit3", Sha: "sha3", Parents: []string{"sha4"}},
-				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}},
-				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
+				{Name: "commit1", Hash: "sha1", Parents: []string{"sha2", "sha3"}, Action: todo.Pick},
+				{Name: "commit2", Hash: "sha2", Parents: []string{"sha3"}, Action: todo.Pick},
+				{Name: "commit3", Hash: "sha3", Parents: []string{"sha4"}},
+				{Name: "commit4", Hash: "sha4", Parents: []string{"sha5"}},
+				{Name: "commit5", Hash: "sha5", Parents: []string{"sha7"}},
 			},
 			startIdx:                  1,
 			endIdx:                    5,
@@ -259,11 +259,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "startIdx is past TODO commits",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1", Parents: []string{"sha2", "sha3"}, Action: todo.Pick},
-				{Name: "commit2", Sha: "sha2", Parents: []string{"sha3"}, Action: todo.Pick},
-				{Name: "commit3", Sha: "sha3", Parents: []string{"sha4"}},
-				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}},
-				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
+				{Name: "commit1", Hash: "sha1", Parents: []string{"sha2", "sha3"}, Action: todo.Pick},
+				{Name: "commit2", Hash: "sha2", Parents: []string{"sha3"}, Action: todo.Pick},
+				{Name: "commit3", Hash: "sha3", Parents: []string{"sha4"}},
+				{Name: "commit4", Hash: "sha4", Parents: []string{"sha5"}},
+				{Name: "commit5", Hash: "sha5", Parents: []string{"sha7"}},
 			},
 			startIdx:                  3,
 			endIdx:                    5,
@@ -280,11 +280,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "only showing TODO commits",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1", Parents: []string{"sha2", "sha3"}, Action: todo.Pick},
-				{Name: "commit2", Sha: "sha2", Parents: []string{"sha3"}, Action: todo.Pick},
-				{Name: "commit3", Sha: "sha3", Parents: []string{"sha4"}},
-				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}},
-				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
+				{Name: "commit1", Hash: "sha1", Parents: []string{"sha2", "sha3"}, Action: todo.Pick},
+				{Name: "commit2", Hash: "sha2", Parents: []string{"sha3"}, Action: todo.Pick},
+				{Name: "commit3", Hash: "sha3", Parents: []string{"sha4"}},
+				{Name: "commit4", Hash: "sha4", Parents: []string{"sha5"}},
+				{Name: "commit5", Hash: "sha5", Parents: []string{"sha7"}},
 			},
 			startIdx:                  0,
 			endIdx:                    2,
@@ -301,11 +301,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "no TODO commits, towards bottom",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1", Parents: []string{"sha2", "sha3"}},
-				{Name: "commit2", Sha: "sha2", Parents: []string{"sha3"}},
-				{Name: "commit3", Sha: "sha3", Parents: []string{"sha4"}},
-				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}},
-				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
+				{Name: "commit1", Hash: "sha1", Parents: []string{"sha2", "sha3"}},
+				{Name: "commit2", Hash: "sha2", Parents: []string{"sha3"}},
+				{Name: "commit3", Hash: "sha3", Parents: []string{"sha4"}},
+				{Name: "commit4", Hash: "sha4", Parents: []string{"sha5"}},
+				{Name: "commit5", Hash: "sha5", Parents: []string{"sha7"}},
 			},
 			startIdx:                  4,
 			endIdx:                    5,
@@ -321,11 +321,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "only TODO commits except last",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1", Parents: []string{"sha2", "sha3"}, Action: todo.Pick},
-				{Name: "commit2", Sha: "sha2", Parents: []string{"sha3"}, Action: todo.Pick},
-				{Name: "commit3", Sha: "sha3", Parents: []string{"sha4"}, Action: todo.Pick},
-				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}, Action: todo.Pick},
-				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
+				{Name: "commit1", Hash: "sha1", Parents: []string{"sha2", "sha3"}, Action: todo.Pick},
+				{Name: "commit2", Hash: "sha2", Parents: []string{"sha3"}, Action: todo.Pick},
+				{Name: "commit3", Hash: "sha3", Parents: []string{"sha4"}, Action: todo.Pick},
+				{Name: "commit4", Hash: "sha4", Parents: []string{"sha5"}, Action: todo.Pick},
+				{Name: "commit5", Hash: "sha5", Parents: []string{"sha7"}},
 			},
 			startIdx:                  0,
 			endIdx:                    2,
@@ -342,9 +342,9 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "don't show YOU ARE HERE label when not asked for (e.g. in branches panel)",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1", Parents: []string{"sha2"}, Action: todo.Pick},
-				{Name: "commit2", Sha: "sha2", Parents: []string{"sha3"}},
-				{Name: "commit3", Sha: "sha3", Parents: []string{"sha4"}},
+				{Name: "commit1", Hash: "sha1", Parents: []string{"sha2"}, Action: todo.Pick},
+				{Name: "commit2", Hash: "sha2", Parents: []string{"sha3"}},
+				{Name: "commit3", Hash: "sha3", Parents: []string{"sha4"}},
 			},
 			startIdx:                  0,
 			endIdx:                    3,
@@ -362,8 +362,8 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "custom time format",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1", UnixTimestamp: 1577844184, AuthorName: "Jesse Duffield"},
-				{Name: "commit2", Sha: "sha2", UnixTimestamp: 1576844184, AuthorName: "Jesse Duffield"},
+				{Name: "commit1", Hash: "sha1", UnixTimestamp: 1577844184, AuthorName: "Jesse Duffield"},
+				{Name: "commit2", Hash: "sha2", UnixTimestamp: 1576844184, AuthorName: "Jesse Duffield"},
 			},
 			fullDescription:           true,
 			timeFormat:                "2006-01-02",

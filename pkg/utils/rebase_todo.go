@@ -11,7 +11,7 @@ import (
 )
 
 type Todo struct {
-	Sha    string // for todos that have one, e.g. pick, drop, fixup, etc.
+	Hash   string // for todos that have one, e.g. pick, drop, fixup, etc.
 	Ref    string // for update-ref todos
 	Action todo.TodoCommand
 }
@@ -20,7 +20,7 @@ type Todo struct {
 // because sometimes the same sha appears multiple times in the file (e.g. in a pick
 // and later in a merge)
 type TodoChange struct {
-	Sha       string
+	Hash      string
 	OldAction todo.TodoCommand
 	NewAction todo.TodoCommand
 }
@@ -38,7 +38,7 @@ func EditRebaseTodo(filePath string, changes []TodoChange, commentChar byte) err
 		t := &todos[i]
 		// This is a nested loop, but it's ok because the number of todos should be small
 		for _, change := range changes {
-			if t.Command == change.OldAction && equalShas(t.Commit, change.Sha) {
+			if t.Command == change.OldAction && equalShas(t.Commit, change.Hash) {
 				matchCount++
 				t.Command = change.NewAction
 			}
@@ -64,7 +64,7 @@ func findTodo(todos []todo.Todo, todoToFind Todo) (int, bool) {
 		// pick and later in a merge). For update-ref todos we also must compare
 		// the Ref.
 		return t.Command == todoToFind.Action &&
-			equalShas(t.Commit, todoToFind.Sha) &&
+			equalShas(t.Commit, todoToFind.Hash) &&
 			t.Ref == todoToFind.Ref
 	})
 	return idx, ok
@@ -136,7 +136,7 @@ func deleteTodos(todos []todo.Todo, todosToDelete []Todo) ([]todo.Todo, error) {
 
 		if !ok {
 			// Should never happen
-			return []todo.Todo{}, fmt.Errorf("Todo %s not found in git-rebase-todo", todoToDelete.Sha)
+			return []todo.Todo{}, fmt.Errorf("Todo %s not found in git-rebase-todo", todoToDelete.Hash)
 		}
 
 		todos = Remove(todos, idx)
@@ -184,7 +184,7 @@ func moveTodoUp(todos []todo.Todo, todoToMove Todo) ([]todo.Todo, error) {
 
 	if !ok {
 		// Should never happen
-		return []todo.Todo{}, fmt.Errorf("Todo %s not found in git-rebase-todo", todoToMove.Sha)
+		return []todo.Todo{}, fmt.Errorf("Todo %s not found in git-rebase-todo", todoToMove.Hash)
 	}
 
 	// The todos are ordered backwards compared to our model commits, so

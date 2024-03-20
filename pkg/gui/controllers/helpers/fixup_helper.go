@@ -62,7 +62,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 	}
 
 	commit, index, ok := lo.FindIndexOf(self.c.Model().Commits, func(commit *models.Commit) bool {
-		return commit.Sha == shas[0]
+		return commit.Hash == shas[0]
 	})
 	if !ok {
 		commits := self.c.Model().Commits

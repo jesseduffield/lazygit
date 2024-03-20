@@ -91,7 +91,7 @@ func TestStashSha(t *testing.T) {
 		ExpectGitArgs([]string{"rev-parse", "refs/stash@{5}"}, "14d94495194651adfd5f070590df566c11d28243\n", nil)
 	instance := buildStashCommands(commonDeps{runner: runner})
 
-	sha, err := instance.Sha(5)
+	sha, err := instance.Hash(5)
 	assert.NoError(t, err)
 	assert.Equal(t, "14d94495194651adfd5f070590df566c11d28243", sha)
 	runner.CheckForMissingCalls()

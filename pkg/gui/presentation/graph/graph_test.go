@@ -24,20 +24,20 @@ func TestRenderCommitGraph(t *testing.T) {
 		{
 			name: "with some merges",
 			commits: []*models.Commit{
-				{Sha: "1", Parents: []string{"2"}},
-				{Sha: "2", Parents: []string{"3"}},
-				{Sha: "3", Parents: []string{"4"}},
-				{Sha: "4", Parents: []string{"5", "7"}},
-				{Sha: "7", Parents: []string{"5"}},
-				{Sha: "5", Parents: []string{"8"}},
-				{Sha: "8", Parents: []string{"9"}},
-				{Sha: "9", Parents: []string{"A", "B"}},
-				{Sha: "B", Parents: []string{"D"}},
-				{Sha: "D", Parents: []string{"D"}},
-				{Sha: "A", Parents: []string{"E"}},
-				{Sha: "E", Parents: []string{"F"}},
-				{Sha: "F", Parents: []string{"D"}},
-				{Sha: "D", Parents: []string{"G"}},
+				{Hash: "1", Parents: []string{"2"}},
+				{Hash: "2", Parents: []string{"3"}},
+				{Hash: "3", Parents: []string{"4"}},
+				{Hash: "4", Parents: []string{"5", "7"}},
+				{Hash: "7", Parents: []string{"5"}},
+				{Hash: "5", Parents: []string{"8"}},
+				{Hash: "8", Parents: []string{"9"}},
+				{Hash: "9", Parents: []string{"A", "B"}},
+				{Hash: "B", Parents: []string{"D"}},
+				{Hash: "D", Parents: []string{"D"}},
+				{Hash: "A", Parents: []string{"E"}},
+				{Hash: "E", Parents: []string{"F"}},
+				{Hash: "F", Parents: []string{"D"}},
+				{Hash: "D", Parents: []string{"G"}},
 			},
 			expectedOutput: `
 			1 ◯
@@ -58,12 +58,12 @@ func TestRenderCommitGraph(t *testing.T) {
 		{
 			name: "with a path that has room to move to the left",
 			commits: []*models.Commit{
-				{Sha: "1", Parents: []string{"2"}},
-				{Sha: "2", Parents: []string{"3", "4"}},
-				{Sha: "4", Parents: []string{"3", "5"}},
-				{Sha: "3", Parents: []string{"5"}},
-				{Sha: "5", Parents: []string{"6"}},
-				{Sha: "6", Parents: []string{"7"}},
+				{Hash: "1", Parents: []string{"2"}},
+				{Hash: "2", Parents: []string{"3", "4"}},
+				{Hash: "4", Parents: []string{"3", "5"}},
+				{Hash: "3", Parents: []string{"5"}},
+				{Hash: "5", Parents: []string{"6"}},
+				{Hash: "6", Parents: []string{"7"}},
 			},
 			expectedOutput: `
 			1 ◯
@@ -76,13 +76,13 @@ func TestRenderCommitGraph(t *testing.T) {
 		{
 			name: "with a new commit",
 			commits: []*models.Commit{
-				{Sha: "1", Parents: []string{"2"}},
-				{Sha: "2", Parents: []string{"3", "4"}},
-				{Sha: "4", Parents: []string{"3", "5"}},
-				{Sha: "Z", Parents: []string{"Z"}},
-				{Sha: "3", Parents: []string{"5"}},
-				{Sha: "5", Parents: []string{"6"}},
-				{Sha: "6", Parents: []string{"7"}},
+				{Hash: "1", Parents: []string{"2"}},
+				{Hash: "2", Parents: []string{"3", "4"}},
+				{Hash: "4", Parents: []string{"3", "5"}},
+				{Hash: "Z", Parents: []string{"Z"}},
+				{Hash: "3", Parents: []string{"5"}},
+				{Hash: "5", Parents: []string{"6"}},
+				{Hash: "6", Parents: []string{"7"}},
 			},
 			expectedOutput: `
 			1 ◯
@@ -96,12 +96,12 @@ func TestRenderCommitGraph(t *testing.T) {
 		{
 			name: "with a path that has room to move to the left and continues",
 			commits: []*models.Commit{
-				{Sha: "1", Parents: []string{"2"}},
-				{Sha: "2", Parents: []string{"3", "4"}},
-				{Sha: "3", Parents: []string{"5", "4"}},
-				{Sha: "5", Parents: []string{"7", "8"}},
-				{Sha: "4", Parents: []string{"7"}},
-				{Sha: "7", Parents: []string{"11"}},
+				{Hash: "1", Parents: []string{"2"}},
+				{Hash: "2", Parents: []string{"3", "4"}},
+				{Hash: "3", Parents: []string{"5", "4"}},
+				{Hash: "5", Parents: []string{"7", "8"}},
+				{Hash: "4", Parents: []string{"7"}},
+				{Hash: "7", Parents: []string{"11"}},
 			},
 			expectedOutput: `
 			1 ◯
@@ -114,13 +114,13 @@ func TestRenderCommitGraph(t *testing.T) {
 		{
 			name: "with a path that has room to move to the left and continues",
 			commits: []*models.Commit{
-				{Sha: "1", Parents: []string{"2"}},
-				{Sha: "2", Parents: []string{"3", "4"}},
-				{Sha: "3", Parents: []string{"5", "4"}},
-				{Sha: "5", Parents: []string{"7", "8"}},
-				{Sha: "7", Parents: []string{"4", "A"}},
-				{Sha: "4", Parents: []string{"B"}},
-				{Sha: "B", Parents: []string{"C"}},
+				{Hash: "1", Parents: []string{"2"}},
+				{Hash: "2", Parents: []string{"3", "4"}},
+				{Hash: "3", Parents: []string{"5", "4"}},
+				{Hash: "5", Parents: []string{"7", "8"}},
+				{Hash: "7", Parents: []string{"4", "A"}},
+				{Hash: "4", Parents: []string{"B"}},
+				{Hash: "B", Parents: []string{"C"}},
 			},
 			expectedOutput: `
 			1 ◯
@@ -134,11 +134,11 @@ func TestRenderCommitGraph(t *testing.T) {
 		{
 			name: "with a path that has room to move to the left and continues",
 			commits: []*models.Commit{
-				{Sha: "1", Parents: []string{"2", "3"}},
-				{Sha: "3", Parents: []string{"2"}},
-				{Sha: "2", Parents: []string{"4", "5"}},
-				{Sha: "4", Parents: []string{"6", "7"}},
-				{Sha: "6", Parents: []string{"8"}},
+				{Hash: "1", Parents: []string{"2", "3"}},
+				{Hash: "3", Parents: []string{"2"}},
+				{Hash: "2", Parents: []string{"4", "5"}},
+				{Hash: "4", Parents: []string{"6", "7"}},
+				{Hash: "6", Parents: []string{"8"}},
 			},
 			expectedOutput: `
 			1 ⏣─╮
@@ -150,11 +150,11 @@ func TestRenderCommitGraph(t *testing.T) {
 		{
 			name: "new merge path fills gap before continuing path on right",
 			commits: []*models.Commit{
-				{Sha: "1", Parents: []string{"2", "3", "4", "5"}},
-				{Sha: "4", Parents: []string{"2"}},
-				{Sha: "2", Parents: []string{"A"}},
-				{Sha: "A", Parents: []string{"6", "B"}},
-				{Sha: "B", Parents: []string{"C"}},
+				{Hash: "1", Parents: []string{"2", "3", "4", "5"}},
+				{Hash: "4", Parents: []string{"2"}},
+				{Hash: "2", Parents: []string{"A"}},
+				{Hash: "A", Parents: []string{"6", "B"}},
+				{Hash: "B", Parents: []string{"C"}},
 			},
 			expectedOutput: `
 			1 ⏣─┬─┬─╮
@@ -166,14 +166,14 @@ func TestRenderCommitGraph(t *testing.T) {
 		{
 			name: "with a path that has room to move to the left and continues",
 			commits: []*models.Commit{
-				{Sha: "1", Parents: []string{"2"}},
-				{Sha: "2", Parents: []string{"3", "4"}},
-				{Sha: "3", Parents: []string{"5", "4"}},
-				{Sha: "5", Parents: []string{"7", "8"}},
-				{Sha: "7", Parents: []string{"4", "A"}},
-				{Sha: "4", Parents: []string{"B"}},
-				{Sha: "B", Parents: []string{"C"}},
-				{Sha: "C", Parents: []string{"D"}},
+				{Hash: "1", Parents: []string{"2"}},
+				{Hash: "2", Parents: []string{"3", "4"}},
+				{Hash: "3", Parents: []string{"5", "4"}},
+				{Hash: "5", Parents: []string{"7", "8"}},
+				{Hash: "7", Parents: []string{"4", "A"}},
+				{Hash: "4", Parents: []string{"B"}},
+				{Hash: "B", Parents: []string{"C"}},
+				{Hash: "C", Parents: []string{"D"}},
 			},
 			expectedOutput: `
 			1 ◯
@@ -188,16 +188,16 @@ func TestRenderCommitGraph(t *testing.T) {
 		{
 			name: "with a path that has room to move to the left and continues",
 			commits: []*models.Commit{
-				{Sha: "1", Parents: []string{"2"}},
-				{Sha: "2", Parents: []string{"3", "4"}},
-				{Sha: "3", Parents: []string{"5", "4"}},
-				{Sha: "5", Parents: []string{"7", "G"}},
-				{Sha: "7", Parents: []string{"8", "A"}},
-				{Sha: "8", Parents: []string{"4", "E"}},
-				{Sha: "4", Parents: []string{"B"}},
-				{Sha: "B", Parents: []string{"C"}},
-				{Sha: "C", Parents: []string{"D"}},
-				{Sha: "D", Parents: []string{"F"}},
+				{Hash: "1", Parents: []string{"2"}},
+				{Hash: "2", Parents: []string{"3", "4"}},
+				{Hash: "3", Parents: []string{"5", "4"}},
+				{Hash: "5", Parents: []string{"7", "G"}},
+				{Hash: "7", Parents: []string{"8", "A"}},
+				{Hash: "8", Parents: []string{"4", "E"}},
+				{Hash: "4", Parents: []string{"B"}},
+				{Hash: "B", Parents: []string{"C"}},
+				{Hash: "C", Parents: []string{"D"}},
+				{Hash: "D", Parents: []string{"F"}},
 			},
 			expectedOutput: `
 			1 ◯
@@ -231,7 +231,7 @@ func TestRenderCommitGraph(t *testing.T) {
 
 			output := ""
 			for i, line := range lines {
-				description := test.commits[i].Sha
+				description := test.commits[i].Hash
 				output += strings.TrimSpace(description+" "+utils.Decolorise(line)) + "\n"
 			}
 			t.Log("\nactual: \n" + output)
@@ -263,32 +263,32 @@ func TestRenderPipeSet(t *testing.T) {
 		{
 			name: "single cell",
 			pipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "b", kind: TERMINATES, style: cyan},
-				{fromPos: 0, toPos: 0, fromSha: "b", toSha: "c", kind: STARTS, style: green},
+				{fromPos: 0, toPos: 0, fromHash: "a", toHash: "b", kind: TERMINATES, style: cyan},
+				{fromPos: 0, toPos: 0, fromHash: "b", toHash: "c", kind: STARTS, style: green},
 			},
-			prevCommit:     &models.Commit{Sha: "a"},
+			prevCommit:     &models.Commit{Hash: "a"},
 			expectedStr:    "◯",
 			expectedStyles: []style.TextStyle{green},
 		},
 		{
 			name: "single cell, selected",
 			pipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "selected", kind: TERMINATES, style: cyan},
-				{fromPos: 0, toPos: 0, fromSha: "selected", toSha: "c", kind: STARTS, style: green},
+				{fromPos: 0, toPos: 0, fromHash: "a", toHash: "selected", kind: TERMINATES, style: cyan},
+				{fromPos: 0, toPos: 0, fromHash: "selected", toHash: "c", kind: STARTS, style: green},
 			},
-			prevCommit:     &models.Commit{Sha: "a"},
+			prevCommit:     &models.Commit{Hash: "a"},
 			expectedStr:    "◯",
 			expectedStyles: []style.TextStyle{highlightStyle},
 		},
 		{
 			name: "terminating hook and starting hook, selected",
 			pipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "selected", kind: TERMINATES, style: cyan},
-				{fromPos: 1, toPos: 0, fromSha: "c", toSha: "selected", kind: TERMINATES, style: yellow},
-				{fromPos: 0, toPos: 0, fromSha: "selected", toSha: "d", kind: STARTS, style: green},
-				{fromPos: 0, toPos: 1, fromSha: "selected", toSha: "e", kind: STARTS, style: green},
+				{fromPos: 0, toPos: 0, fromHash: "a", toHash: "selected", kind: TERMINATES, style: cyan},
+				{fromPos: 1, toPos: 0, fromHash: "c", toHash: "selected", kind: TERMINATES, style: yellow},
+				{fromPos: 0, toPos: 0, fromHash: "selected", toHash: "d", kind: STARTS, style: green},
+				{fromPos: 0, toPos: 1, fromHash: "selected", toHash: "e", kind: STARTS, style: green},
 			},
-			prevCommit:  &models.Commit{Sha: "a"},
+			prevCommit:  &models.Commit{Hash: "a"},
 			expectedStr: "⏣─╮",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, highlightStyle, highlightStyle,
@@ -297,12 +297,12 @@ func TestRenderPipeSet(t *testing.T) {
 		{
 			name: "terminating hook and starting hook, prioritise the terminating one",
 			pipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "b", kind: TERMINATES, style: red},
-				{fromPos: 1, toPos: 0, fromSha: "c", toSha: "b", kind: TERMINATES, style: magenta},
-				{fromPos: 0, toPos: 0, fromSha: "b", toSha: "d", kind: STARTS, style: green},
-				{fromPos: 0, toPos: 1, fromSha: "b", toSha: "e", kind: STARTS, style: green},
+				{fromPos: 0, toPos: 0, fromHash: "a", toHash: "b", kind: TERMINATES, style: red},
+				{fromPos: 1, toPos: 0, fromHash: "c", toHash: "b", kind: TERMINATES, style: magenta},
+				{fromPos: 0, toPos: 0, fromHash: "b", toHash: "d", kind: STARTS, style: green},
+				{fromPos: 0, toPos: 1, fromHash: "b", toHash: "e", kind: STARTS, style: green},
 			},
-			prevCommit:  &models.Commit{Sha: "a"},
+			prevCommit:  &models.Commit{Hash: "a"},
 			expectedStr: "⏣─│",
 			expectedStyles: []style.TextStyle{
 				green, green, magenta,
@@ -311,13 +311,13 @@ func TestRenderPipeSet(t *testing.T) {
 		{
 			name: "starting and terminating pipe sharing some space",
 			pipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a1", toSha: "a2", kind: TERMINATES, style: red},
-				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: yellow},
-				{fromPos: 1, toPos: 1, fromSha: "b1", toSha: "b2", kind: CONTINUES, style: magenta},
-				{fromPos: 3, toPos: 0, fromSha: "e1", toSha: "a2", kind: TERMINATES, style: green},
-				{fromPos: 0, toPos: 2, fromSha: "a2", toSha: "c3", kind: STARTS, style: yellow},
+				{fromPos: 0, toPos: 0, fromHash: "a1", toHash: "a2", kind: TERMINATES, style: red},
+				{fromPos: 0, toPos: 0, fromHash: "a2", toHash: "a3", kind: STARTS, style: yellow},
+				{fromPos: 1, toPos: 1, fromHash: "b1", toHash: "b2", kind: CONTINUES, style: magenta},
+				{fromPos: 3, toPos: 0, fromHash: "e1", toHash: "a2", kind: TERMINATES, style: green},
+				{fromPos: 0, toPos: 2, fromHash: "a2", toHash: "c3", kind: STARTS, style: yellow},
 			},
-			prevCommit:  &models.Commit{Sha: "a1"},
+			prevCommit:  &models.Commit{Hash: "a1"},
 			expectedStr: "⏣─│─┬─╯",
 			expectedStyles: []style.TextStyle{
 				yellow, yellow, magenta, yellow, yellow, green, green,
@@ -326,13 +326,13 @@ func TestRenderPipeSet(t *testing.T) {
 		{
 			name: "starting and terminating pipe sharing some space, with selection",
 			pipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a1", toSha: "selected", kind: TERMINATES, style: red},
-				{fromPos: 0, toPos: 0, fromSha: "selected", toSha: "a3", kind: STARTS, style: yellow},
-				{fromPos: 1, toPos: 1, fromSha: "b1", toSha: "b2", kind: CONTINUES, style: magenta},
-				{fromPos: 3, toPos: 0, fromSha: "e1", toSha: "selected", kind: TERMINATES, style: green},
-				{fromPos: 0, toPos: 2, fromSha: "selected", toSha: "c3", kind: STARTS, style: yellow},
+				{fromPos: 0, toPos: 0, fromHash: "a1", toHash: "selected", kind: TERMINATES, style: red},
+				{fromPos: 0, toPos: 0, fromHash: "selected", toHash: "a3", kind: STARTS, style: yellow},
+				{fromPos: 1, toPos: 1, fromHash: "b1", toHash: "b2", kind: CONTINUES, style: magenta},
+				{fromPos: 3, toPos: 0, fromHash: "e1", toHash: "selected", kind: TERMINATES, style: green},
+				{fromPos: 0, toPos: 2, fromHash: "selected", toHash: "c3", kind: STARTS, style: yellow},
 			},
-			prevCommit:  &models.Commit{Sha: "a1"},
+			prevCommit:  &models.Commit{Hash: "a1"},
 			expectedStr: "⏣───╮ ╯",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, highlightStyle, highlightStyle, highlightStyle, highlightStyle, nothing, green,
@@ -341,12 +341,12 @@ func TestRenderPipeSet(t *testing.T) {
 		{
 			name: "many terminating pipes",
 			pipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a1", toSha: "a2", kind: TERMINATES, style: red},
-				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: yellow},
-				{fromPos: 1, toPos: 0, fromSha: "b1", toSha: "a2", kind: TERMINATES, style: magenta},
-				{fromPos: 2, toPos: 0, fromSha: "c1", toSha: "a2", kind: TERMINATES, style: green},
+				{fromPos: 0, toPos: 0, fromHash: "a1", toHash: "a2", kind: TERMINATES, style: red},
+				{fromPos: 0, toPos: 0, fromHash: "a2", toHash: "a3", kind: STARTS, style: yellow},
+				{fromPos: 1, toPos: 0, fromHash: "b1", toHash: "a2", kind: TERMINATES, style: magenta},
+				{fromPos: 2, toPos: 0, fromHash: "c1", toHash: "a2", kind: TERMINATES, style: green},
 			},
-			prevCommit:  &models.Commit{Sha: "a1"},
+			prevCommit:  &models.Commit{Hash: "a1"},
 			expectedStr: "◯─┴─╯",
 			expectedStyles: []style.TextStyle{
 				yellow, magenta, magenta, green, green,
@@ -355,13 +355,13 @@ func TestRenderPipeSet(t *testing.T) {
 		{
 			name: "starting pipe passing through",
 			pipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a1", toSha: "a2", kind: TERMINATES, style: red},
-				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: yellow},
-				{fromPos: 0, toPos: 3, fromSha: "a2", toSha: "d3", kind: STARTS, style: yellow},
-				{fromPos: 1, toPos: 1, fromSha: "b1", toSha: "b3", kind: CONTINUES, style: magenta},
-				{fromPos: 2, toPos: 2, fromSha: "c1", toSha: "c3", kind: CONTINUES, style: green},
+				{fromPos: 0, toPos: 0, fromHash: "a1", toHash: "a2", kind: TERMINATES, style: red},
+				{fromPos: 0, toPos: 0, fromHash: "a2", toHash: "a3", kind: STARTS, style: yellow},
+				{fromPos: 0, toPos: 3, fromHash: "a2", toHash: "d3", kind: STARTS, style: yellow},
+				{fromPos: 1, toPos: 1, fromHash: "b1", toHash: "b3", kind: CONTINUES, style: magenta},
+				{fromPos: 2, toPos: 2, fromHash: "c1", toHash: "c3", kind: CONTINUES, style: green},
 			},
-			prevCommit:  &models.Commit{Sha: "a1"},
+			prevCommit:  &models.Commit{Hash: "a1"},
 			expectedStr: "⏣─│─│─╮",
 			expectedStyles: []style.TextStyle{
 				yellow, yellow, magenta, yellow, green, yellow, yellow,
@@ -370,13 +370,13 @@ func TestRenderPipeSet(t *testing.T) {
 		{
 			name: "starting and terminating path crossing continuing path",
 			pipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a1", toSha: "a2", kind: TERMINATES, style: red},
-				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: yellow},
-				{fromPos: 0, toPos: 1, fromSha: "a2", toSha: "b3", kind: STARTS, style: yellow},
-				{fromPos: 1, toPos: 1, fromSha: "b1", toSha: "a2", kind: CONTINUES, style: green},
-				{fromPos: 2, toPos: 0, fromSha: "c1", toSha: "a2", kind: TERMINATES, style: magenta},
+				{fromPos: 0, toPos: 0, fromHash: "a1", toHash: "a2", kind: TERMINATES, style: red},
+				{fromPos: 0, toPos: 0, fromHash: "a2", toHash: "a3", kind: STARTS, style: yellow},
+				{fromPos: 0, toPos: 1, fromHash: "a2", toHash: "b3", kind: STARTS, style: yellow},
+				{fromPos: 1, toPos: 1, fromHash: "b1", toHash: "a2", kind: CONTINUES, style: green},
+				{fromPos: 2, toPos: 0, fromHash: "c1", toHash: "a2", kind: TERMINATES, style: magenta},
 			},
-			prevCommit:  &models.Commit{Sha: "a1"},
+			prevCommit:  &models.Commit{Hash: "a1"},
 			expectedStr: "⏣─│─╯",
 			expectedStyles: []style.TextStyle{
 				yellow, yellow, green, magenta, magenta,
@@ -385,13 +385,13 @@ func TestRenderPipeSet(t *testing.T) {
 		{
 			name: "another clash of starting and terminating paths",
 			pipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a1", toSha: "a2", kind: TERMINATES, style: red},
-				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: yellow},
-				{fromPos: 0, toPos: 1, fromSha: "a2", toSha: "b3", kind: STARTS, style: yellow},
-				{fromPos: 2, toPos: 2, fromSha: "c1", toSha: "c3", kind: CONTINUES, style: green},
-				{fromPos: 3, toPos: 0, fromSha: "d1", toSha: "a2", kind: TERMINATES, style: magenta},
+				{fromPos: 0, toPos: 0, fromHash: "a1", toHash: "a2", kind: TERMINATES, style: red},
+				{fromPos: 0, toPos: 0, fromHash: "a2", toHash: "a3", kind: STARTS, style: yellow},
+				{fromPos: 0, toPos: 1, fromHash: "a2", toHash: "b3", kind: STARTS, style: yellow},
+				{fromPos: 2, toPos: 2, fromHash: "c1", toHash: "c3", kind: CONTINUES, style: green},
+				{fromPos: 3, toPos: 0, fromHash: "d1", toHash: "a2", kind: TERMINATES, style: magenta},
 			},
-			prevCommit:  &models.Commit{Sha: "a1"},
+			prevCommit:  &models.Commit{Hash: "a1"},
 			expectedStr: "⏣─┬─│─╯",
 			expectedStyles: []style.TextStyle{
 				yellow, yellow, yellow, magenta, green, magenta, magenta,
@@ -400,10 +400,10 @@ func TestRenderPipeSet(t *testing.T) {
 		{
 			name: "commit whose previous commit is selected",
 			pipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "selected", toSha: "a2", kind: TERMINATES, style: red},
-				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: yellow},
+				{fromPos: 0, toPos: 0, fromHash: "selected", toHash: "a2", kind: TERMINATES, style: red},
+				{fromPos: 0, toPos: 0, fromHash: "a2", toHash: "a3", kind: STARTS, style: yellow},
 			},
-			prevCommit:  &models.Commit{Sha: "selected"},
+			prevCommit:  &models.Commit{Hash: "selected"},
 			expectedStr: "◯",
 			expectedStyles: []style.TextStyle{
 				yellow,
@@ -412,10 +412,10 @@ func TestRenderPipeSet(t *testing.T) {
 		{
 			name: "commit whose previous commit is selected and is a merge commit",
 			pipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "selected", toSha: "a2", kind: TERMINATES, style: red},
-				{fromPos: 1, toPos: 1, fromSha: "selected", toSha: "b3", kind: CONTINUES, style: red},
+				{fromPos: 0, toPos: 0, fromHash: "selected", toHash: "a2", kind: TERMINATES, style: red},
+				{fromPos: 1, toPos: 1, fromHash: "selected", toHash: "b3", kind: CONTINUES, style: red},
 			},
-			prevCommit:  &models.Commit{Sha: "selected"},
+			prevCommit:  &models.Commit{Hash: "selected"},
 			expectedStr: "◯ │",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, nothing, highlightStyle,
@@ -424,11 +424,11 @@ func TestRenderPipeSet(t *testing.T) {
 		{
 			name: "commit whose previous commit is selected and is a merge commit, with continuing pipe inbetween",
 			pipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "selected", toSha: "a2", kind: TERMINATES, style: red},
-				{fromPos: 1, toPos: 1, fromSha: "z1", toSha: "z3", kind: CONTINUES, style: green},
-				{fromPos: 2, toPos: 2, fromSha: "selected", toSha: "b3", kind: CONTINUES, style: red},
+				{fromPos: 0, toPos: 0, fromHash: "selected", toHash: "a2", kind: TERMINATES, style: red},
+				{fromPos: 1, toPos: 1, fromHash: "z1", toHash: "z3", kind: CONTINUES, style: green},
+				{fromPos: 2, toPos: 2, fromHash: "selected", toHash: "b3", kind: CONTINUES, style: red},
 			},
-			prevCommit:  &models.Commit{Sha: "selected"},
+			prevCommit:  &models.Commit{Hash: "selected"},
 			expectedStr: "◯ │ │",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, nothing, green, nothing, highlightStyle,
@@ -437,12 +437,12 @@ func TestRenderPipeSet(t *testing.T) {
 		{
 			name: "when previous commit is selected, not a merge commit, and spawns a continuing pipe",
 			pipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a1", toSha: "a2", kind: TERMINATES, style: red},
-				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: green},
-				{fromPos: 0, toPos: 1, fromSha: "a2", toSha: "b3", kind: STARTS, style: green},
-				{fromPos: 1, toPos: 0, fromSha: "selected", toSha: "a2", kind: TERMINATES, style: yellow},
+				{fromPos: 0, toPos: 0, fromHash: "a1", toHash: "a2", kind: TERMINATES, style: red},
+				{fromPos: 0, toPos: 0, fromHash: "a2", toHash: "a3", kind: STARTS, style: green},
+				{fromPos: 0, toPos: 1, fromHash: "a2", toHash: "b3", kind: STARTS, style: green},
+				{fromPos: 1, toPos: 0, fromHash: "selected", toHash: "a2", kind: TERMINATES, style: yellow},
 			},
-			prevCommit:  &models.Commit{Sha: "selected"},
+			prevCommit:  &models.Commit{Hash: "selected"},
 			expectedStr: "⏣─╯",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, highlightStyle, highlightStyle,
@@ -483,43 +483,43 @@ func TestGetNextPipes(t *testing.T) {
 	}{
 		{
 			prevPipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "b", kind: STARTS, style: style.FgDefault},
+				{fromPos: 0, toPos: 0, fromHash: "a", toHash: "b", kind: STARTS, style: style.FgDefault},
 			},
 			commit: &models.Commit{
-				Sha:     "b",
+				Hash:    "b",
 				Parents: []string{"c"},
 			},
 			expected: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "b", kind: TERMINATES, style: style.FgDefault},
-				{fromPos: 0, toPos: 0, fromSha: "b", toSha: "c", kind: STARTS, style: style.FgDefault},
+				{fromPos: 0, toPos: 0, fromHash: "a", toHash: "b", kind: TERMINATES, style: style.FgDefault},
+				{fromPos: 0, toPos: 0, fromHash: "b", toHash: "c", kind: STARTS, style: style.FgDefault},
 			},
 		},
 		{
 			prevPipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "b", kind: TERMINATES, style: style.FgDefault},
-				{fromPos: 0, toPos: 0, fromSha: "b", toSha: "c", kind: STARTS, style: style.FgDefault},
-				{fromPos: 0, toPos: 1, fromSha: "b", toSha: "d", kind: STARTS, style: style.FgDefault},
+				{fromPos: 0, toPos: 0, fromHash: "a", toHash: "b", kind: TERMINATES, style: style.FgDefault},
+				{fromPos: 0, toPos: 0, fromHash: "b", toHash: "c", kind: STARTS, style: style.FgDefault},
+				{fromPos: 0, toPos: 1, fromHash: "b", toHash: "d", kind: STARTS, style: style.FgDefault},
 			},
 			commit: &models.Commit{
-				Sha:     "d",
+				Hash:    "d",
 				Parents: []string{"e"},
 			},
 			expected: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "b", toSha: "c", kind: CONTINUES, style: style.FgDefault},
-				{fromPos: 1, toPos: 1, fromSha: "b", toSha: "d", kind: TERMINATES, style: style.FgDefault},
-				{fromPos: 1, toPos: 1, fromSha: "d", toSha: "e", kind: STARTS, style: style.FgDefault},
+				{fromPos: 0, toPos: 0, fromHash: "b", toHash: "c", kind: CONTINUES, style: style.FgDefault},
+				{fromPos: 1, toPos: 1, fromHash: "b", toHash: "d", kind: TERMINATES, style: style.FgDefault},
+				{fromPos: 1, toPos: 1, fromHash: "d", toHash: "e", kind: STARTS, style: style.FgDefault},
 			},
 		},
 		{
 			prevPipes: []*Pipe{
-				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "root", kind: TERMINATES, style: style.FgDefault},
+				{fromPos: 0, toPos: 0, fromHash: "a", toHash: "root", kind: TERMINATES, style: style.FgDefault},
 			},
 			commit: &models.Commit{
-				Sha:     "root",
+				Hash:    "root",
 				Parents: []string{},
 			},
 			expected: []*Pipe{
-				{fromPos: 1, toPos: 1, fromSha: "root", toSha: models.EmptyTreeCommitHash, kind: STARTS, style: style.FgDefault},
+				{fromPos: 1, toPos: 1, fromHash: "root", toHash: models.EmptyTreeCommitHash, kind: STARTS, style: style.FgDefault},
 			},
 		},
 	}
@@ -557,7 +557,7 @@ func BenchmarkRenderCommitGraph(b *testing.B) {
 
 func generateCommits(count int) []*models.Commit {
 	rnd := rand.New(rand.NewSource(1234))
-	pool := []*models.Commit{{Sha: "a", AuthorName: "A"}}
+	pool := []*models.Commit{{Hash: "a", AuthorName: "A"}}
 	commits := make([]*models.Commit, 0, count)
 	authorPool := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
 	for len(commits) < count {
@@ -574,12 +574,12 @@ func generateCommits(count int) []*models.Commit {
 				newParent = pool[j]
 			} else {
 				newParent = &models.Commit{
-					Sha:        fmt.Sprintf("%s%d", currentCommit.Sha, j),
+					Hash:       fmt.Sprintf("%s%d", currentCommit.Hash, j),
 					AuthorName: authorPool[rnd.Intn(len(authorPool))],
 				}
 				pool = append(pool, newParent)
 			}
-			currentCommit.Parents = append(currentCommit.Parents, newParent.Sha)
+			currentCommit.Parents = append(currentCommit.Parents, newParent.Hash)
 		}
 
 		commits = append(commits, currentCommit)

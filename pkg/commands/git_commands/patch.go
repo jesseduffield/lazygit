@@ -157,13 +157,13 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	baseIndex := sourceCommitIdx + 1
 
 	changes := []daemon.ChangeTodoAction{
-		{Sha: commits[sourceCommitIdx].Sha, NewAction: todo.Edit},
-		{Sha: commits[destinationCommitIdx].Sha, NewAction: todo.Edit},
+		{Hash: commits[sourceCommitIdx].Hash, NewAction: todo.Edit},
+		{Hash: commits[destinationCommitIdx].Hash, NewAction: todo.Edit},
 	}
 	self.os.LogCommand(logTodoChanges(changes), false)
 
 	err := self.rebase.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseShaOrRoot:  commits[baseIndex].Sha,
+		baseShaOrRoot:  commits[baseIndex].Hash,
 		overrideEditor: true,
 		instruction:    daemon.NewChangeTodoActionsInstruction(changes),
 	}).Run()
@@ -219,7 +219,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 
 func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, stash bool) error {
 	if stash {
-		if err := self.stash.Push(self.Tr.StashPrefix + commits[commitIdx].Sha); err != nil {
+		if err := self.stash.Push(self.Tr.StashPrefix + commits[commitIdx].Hash); err != nil {
 			return err
 		}
 	}
@@ -324,7 +324,7 @@ func (self *PatchCommands) diffHeadAgainstCommit(commit *models.Commit) (string,
 	cmdArgs := NewGitCmd("diff").
 		Config("diff.noprefix=false").
 		Arg("--no-ext-diff").
-		Arg("HEAD.." + commit.Sha).
+		Arg("HEAD.." + commit.Hash).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).RunWithOutput()

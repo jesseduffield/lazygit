@@ -56,7 +56,7 @@ func (self *RebaseCommands) RewordCommit(commits []*models.Commit, index int, su
 
 func (self *RebaseCommands) RewordCommitInEditor(commits []*models.Commit, index int) (oscommands.ICmdObj, error) {
 	changes := []daemon.ChangeTodoAction{{
-		Sha:       commits[index].Sha,
+		Hash:      commits[index].Hash,
 		NewAction: todo.Reword,
 	}}
 	self.os.LogCommand(logTodoChanges(changes), false)
@@ -81,7 +81,7 @@ func (self *RebaseCommands) SetCommitAuthor(commits []*models.Commit, index int,
 
 func (self *RebaseCommands) AddCommitCoAuthor(commits []*models.Commit, index int, value string) error {
 	return self.GenericAmend(commits, index, func() error {
-		return self.commit.AddCoAuthor(commits[index].Sha, value)
+		return self.commit.AddCoAuthor(commits[index].Hash, value)
 	})
 }
 
@@ -109,7 +109,7 @@ func (self *RebaseCommands) MoveCommitsDown(commits []*models.Commit, startIdx i
 	baseShaOrRoot := getBaseShaOrRoot(commits, endIdx+2)
 
 	shas := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) string {
-		return commit.Sha
+		return commit.Hash
 	})
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
@@ -123,7 +123,7 @@ func (self *RebaseCommands) MoveCommitsUp(commits []*models.Commit, startIdx int
 	baseShaOrRoot := getBaseShaOrRoot(commits, endIdx+1)
 
 	shas := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) string {
-		return commit.Sha
+		return commit.Hash
 	})
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
@@ -143,7 +143,7 @@ func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, startIdx
 
 	changes := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) daemon.ChangeTodoAction {
 		return daemon.ChangeTodoAction{
-			Sha:       commit.Sha,
+			Hash:      commit.Hash,
 			NewAction: action,
 		}
 	})
@@ -189,7 +189,7 @@ func (self *RebaseCommands) EditRebaseFromBaseCommit(targetBranchName string, ba
 
 func logTodoChanges(changes []daemon.ChangeTodoAction) string {
 	changeTodoStr := strings.Join(lo.Map(changes, func(c daemon.ChangeTodoAction, _ int) string {
-		return fmt.Sprintf("%s:%s", c.Sha, c.NewAction)
+		return fmt.Sprintf("%s:%s", c.Hash, c.NewAction)
 	}), "\n")
 	return fmt.Sprintf("Changing TODO actions:\n%s", changeTodoStr)
 }
@@ -284,7 +284,7 @@ func (self *RebaseCommands) GitRebaseEditTodo(todosFileContent []byte) error {
 func (self *RebaseCommands) AmendTo(commits []*models.Commit, commitIndex int) error {
 	commit := commits[commitIndex]
 
-	if err := self.commit.CreateFixupCommit(commit.Sha); err != nil {
+	if err := self.commit.CreateFixupCommit(commit.Hash); err != nil {
 		return err
 	}
 
@@ -298,7 +298,7 @@ func (self *RebaseCommands) AmendTo(commits []*models.Commit, commitIndex int) e
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot:  getBaseShaOrRoot(commits, commitIndex+1),
 		overrideEditor: true,
-		instruction:    daemon.NewMoveFixupCommitDownInstruction(commit.Sha, fixupSha),
+		instruction:    daemon.NewMoveFixupCommitDownInstruction(commit.Hash, fixupSha),
 	}).Run()
 }
 
@@ -306,7 +306,7 @@ func todoFromCommit(commit *models.Commit) utils.Todo {
 	if commit.Action == todo.UpdateRef {
 		return utils.Todo{Ref: commit.Name, Action: commit.Action}
 	} else {
-		return utils.Todo{Sha: commit.Sha, Action: commit.Action}
+		return utils.Todo{Hash: commit.Hash, Action: commit.Action}
 	}
 }
 
@@ -314,7 +314,7 @@ func todoFromCommit(commit *models.Commit) utils.Todo {
 func (self *RebaseCommands) EditRebaseTodo(commits []*models.Commit, action todo.TodoCommand) error {
 	commitsWithAction := lo.Map(commits, func(commit *models.Commit, _ int) utils.TodoChange {
 		return utils.TodoChange{
-			Sha:       commit.Sha,
+			Hash:      commit.Hash,
 			OldAction: commit.Action,
 			NewAction: action,
 		}
@@ -364,7 +364,7 @@ func (self *RebaseCommands) MoveTodosUp(commits []*models.Commit) error {
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one
 func (self *RebaseCommands) SquashAllAboveFixupCommits(commit *models.Commit) error {
-	shaOrRoot := commit.Sha + "^"
+	shaOrRoot := commit.Hash + "^"
 	if commit.IsFirstCommit() {
 		shaOrRoot = "--root"
 	}
@@ -393,7 +393,7 @@ func (self *RebaseCommands) BeginInteractiveRebaseForCommit(
 	}
 
 	changes := []daemon.ChangeTodoAction{{
-		Sha:       commits[commitIndex].Sha,
+		Hash:      commits[commitIndex].Hash,
 		NewAction: todo.Edit,
 	}}
 	self.os.LogCommand(logTodoChanges(changes), false)
@@ -506,7 +506,7 @@ func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, comm
 // CherryPickCommits begins an interactive rebase with the given shas being cherry picked onto HEAD
 func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
 	commitLines := lo.Map(commits, func(commit *models.Commit, _ int) string {
-		return fmt.Sprintf("%s %s", utils.ShortSha(commit.Sha), commit.Name)
+		return fmt.Sprintf("%s %s", utils.ShortSha(commit.Hash), commit.Name)
 	})
 	msg := utils.ResolvePlaceholderString(
 		self.Tr.Log.CherryPickCommits,
@@ -544,7 +544,7 @@ func getBaseShaOrRoot(commits []*models.Commit, index int) string {
 	// be starting a rebase from 300 commits ago (which is the original commit limit
 	// at time of writing)
 	if index < len(commits) {
-		return commits[index].Sha
+		return commits[index].Hash
 	} else {
 		return "--root"
 	}

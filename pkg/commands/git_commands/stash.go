@@ -60,24 +60,24 @@ func (self *StashCommands) Push(message string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *StashCommands) Store(sha string, message string) error {
+func (self *StashCommands) Store(hash string, message string) error {
 	trimmedMessage := strings.Trim(message, " \t")
 
 	cmdArgs := NewGitCmd("stash").Arg("store").
 		ArgIf(trimmedMessage != "", "-m", trimmedMessage).
-		Arg(sha).
+		Arg(hash).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *StashCommands) Sha(index int) (string, error) {
+func (self *StashCommands) Hash(index int) (string, error) {
 	cmdArgs := NewGitCmd("rev-parse").
 		Arg(fmt.Sprintf("refs/stash@{%d}", index)).
 		ToArgv()
 
-	sha, _, err := self.cmd.New(cmdArgs).DontLog().RunWithOutputs()
-	return strings.Trim(sha, "\r\n"), err
+	hash, _, err := self.cmd.New(cmdArgs).DontLog().RunWithOutputs()
+	return strings.Trim(hash, "\r\n"), err
 }
 
 func (self *StashCommands) ShowStashEntryCmdObj(index int) oscommands.ICmdObj {
@@ -179,7 +179,7 @@ func (self *StashCommands) StashIncludeUntrackedChanges(message string) error {
 }
 
 func (self *StashCommands) Rename(index int, message string) error {
-	sha, err := self.Sha(index)
+	hash, err := self.Hash(index)
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func (self *StashCommands) Rename(index int, message string) error {
 		return err
 	}
 
-	err = self.Store(sha, message)
+	err = self.Store(hash, message)
 	if err != nil {
 		return err
 	}

@@ -131,7 +131,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 		{
 			testName:               "returns error when using gpg",
 			gitConfigMockResponses: map[string]string{"commit.gpgsign": "true"},
-			commits:                []*models.Commit{{Name: "commit", Sha: "123456"}},
+			commits:                []*models.Commit{{Name: "commit", Hash: "123456"}},
 			commitIndex:            0,
 			fileName:               []string{"test999.txt"},
 			runner:                 oscommands.NewFakeRunner(t),
@@ -143,8 +143,8 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 			testName:               "checks out file if it already existed",
 			gitConfigMockResponses: nil,
 			commits: []*models.Commit{
-				{Name: "commit", Sha: "123456"},
-				{Name: "commit2", Sha: "abcdef"},
+				{Name: "commit", Hash: "123456"},
+				{Name: "commit2", Hash: "abcdef"},
 			},
 			commitIndex: 0,
 			fileName:    []string{"test999.txt"},

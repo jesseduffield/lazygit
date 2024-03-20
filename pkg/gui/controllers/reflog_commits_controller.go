@@ -45,7 +45,7 @@ func (self *ReflogCommitsController) GetOnRenderToMain() func() error {
 			if commit == nil {
 				task = types.NewRenderStringTask("No reflog history")
 			} else {
-				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Sha, self.c.Modes().Filtering.GetPath())
+				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash, self.c.Modes().Filtering.GetPath())
 
 				task = types.NewRunPtyTask(cmdObj.GetCmd())
 			}
