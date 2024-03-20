@@ -241,7 +241,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
 				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(task gocui.Task) error {
-					baseCommit := self.c.Modes().MarkedBaseCommit.GetSha()
+					baseCommit := self.c.Modes().MarkedBaseCommit.GetHash()
 					var err error
 					if baseCommit != "" {
 						err = self.c.Git().Rebase.RebaseBranchFromBaseCommit(ref, baseCommit)
@@ -262,7 +262,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			Tooltip: self.c.Tr.InteractiveRebaseTooltip,
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
-				baseCommit := self.c.Modes().MarkedBaseCommit.GetSha()
+				baseCommit := self.c.Modes().MarkedBaseCommit.GetHash()
 				var err error
 				if baseCommit != "" {
 					err = self.c.Git().Rebase.EditRebaseFromBaseCommit(ref, baseCommit)
@@ -281,7 +281,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 	}
 
 	title := utils.ResolvePlaceholderString(
-		lo.Ternary(self.c.Modes().MarkedBaseCommit.GetSha() != "",
+		lo.Ternary(self.c.Modes().MarkedBaseCommit.GetHash() != "",
 			self.c.Tr.RebasingFromBaseCommitTitle,
 			self.c.Tr.RebasingTitle),
 		map[string]string{

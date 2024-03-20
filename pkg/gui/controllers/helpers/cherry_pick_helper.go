@@ -38,7 +38,7 @@ func (self *CherryPickHelper) CopyRange(commitsList []*models.Commit, context ty
 		return err
 	}
 
-	commitSet := self.getData().SelectedShaSet()
+	commitSet := self.getData().SelectedHashSet()
 
 	allCommitsCopied := lo.EveryBy(commitsList[startIdx:endIdx+1], func(commit *models.Commit) bool {
 		return commitSet.Includes(commit.Hash)

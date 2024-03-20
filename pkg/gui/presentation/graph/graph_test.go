@@ -485,7 +485,7 @@ func TestGetNextPipes(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromHash: "a", toHash: "b", kind: STARTS, style: style.FgDefault},
 			},
 			commit: &models.Commit{
-				Hash:     "b",
+				Hash:    "b",
 				Parents: []string{"c"},
 			},
 			expected: []*Pipe{
@@ -500,7 +500,7 @@ func TestGetNextPipes(t *testing.T) {
 				{fromPos: 0, toPos: 1, fromHash: "b", toHash: "d", kind: STARTS, style: style.FgDefault},
 			},
 			commit: &models.Commit{
-				Hash:     "d",
+				Hash:    "d",
 				Parents: []string{"e"},
 			},
 			expected: []*Pipe{
@@ -514,7 +514,7 @@ func TestGetNextPipes(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromHash: "a", toHash: "root", kind: TERMINATES, style: style.FgDefault},
 			},
 			commit: &models.Commit{
-				Hash:     "root",
+				Hash:    "root",
 				Parents: []string{},
 			},
 			expected: []*Pipe{
@@ -567,7 +567,7 @@ func generateCommits(count int) []*models.Commit {
 				newParent = pool[j]
 			} else {
 				newParent = &models.Commit{
-					Hash:        fmt.Sprintf("%s%d", currentCommit.Hash, j),
+					Hash:       fmt.Sprintf("%s%d", currentCommit.Hash, j),
 					AuthorName: authorPool[rnd.Intn(len(authorPool))],
 				}
 				pool = append(pool, newParent)

@@ -16,10 +16,10 @@ func (m *MarkedBaseCommit) Reset() {
 	m.sha = ""
 }
 
-func (m *MarkedBaseCommit) SetSha(sha string) {
+func (m *MarkedBaseCommit) SetHash(sha string) {
 	m.sha = sha
 }
 
-func (m *MarkedBaseCommit) GetSha() string {
+func (m *MarkedBaseCommit) GetHash() string {
 	return m.sha
 }

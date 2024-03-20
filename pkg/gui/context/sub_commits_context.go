@@ -63,7 +63,7 @@ func NewSubCommitsContext(
 			viewModel.GetRef().RefName(),
 			hasRebaseUpdateRefsConfig,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
-			c.Modes().CherryPicking.SelectedShaSet(),
+			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
 			"",
 			c.UserConfig.Gui.TimeFormat,
