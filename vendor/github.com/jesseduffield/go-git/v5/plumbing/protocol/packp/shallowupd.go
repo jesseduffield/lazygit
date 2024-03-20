@@ -50,7 +50,7 @@ func (r *ShallowUpdate) decodeShallowLine(line []byte) error {
 		return err
 	}
 
-	r.Hashllows = append(r.Hashllows, hash)
+	r.Shallows = append(r.Shallows, hash)
 	return nil
 }
 
@@ -76,7 +76,7 @@ func (r *ShallowUpdate) decodeLine(line, prefix []byte, expLen int) (plumbing.Ha
 func (r *ShallowUpdate) Encode(w io.Writer) error {
 	e := pktline.NewEncoder(w)
 
-	for _, h := range r.Hashllows {
+	for _, h := range r.Shallows {
 		if err := e.Encodef("%s%s\n", shallow, h.String()); err != nil {
 			return err
 		}

@@ -757,7 +757,7 @@ func (sa *SockaddrXDP) sockaddr() (unsafe.Pointer, _Socklen, error) {
 	sa.raw.Flags = sa.Flags
 	sa.raw.Ifindex = sa.Ifindex
 	sa.raw.Queue_id = sa.QueueID
-	sa.raw.Hashred_umem_fd = sa.HashredUmemFD
+	sa.raw.Shared_umem_fd = sa.SharedUmemFD
 
 	return unsafe.Pointer(&sa.raw), SizeofSockaddrXDP, nil
 }
@@ -1102,7 +1102,7 @@ func anyToSockaddr(fd int, rsa *RawSockaddrAny) (Sockaddr, error) {
 			Flags:        pp.Flags,
 			Ifindex:      pp.Ifindex,
 			QueueID:      pp.Queue_id,
-			SharedUmemFD: pp.Hashred_umem_fd,
+			SharedUmemFD: pp.Shared_umem_fd,
 		}
 		return sa, nil
 	case AF_PPPOX:
@@ -2324,7 +2324,7 @@ func Faccessat(dirfd int, path string, mode uint32, flags int) (err error) {
 			// Root can read and write any file.
 			return nil
 		}
-		if st.Mode&0o111 != 0 {
+		if st.Mode&0111 != 0 {
 			// Root can execute any file that anybody can execute.
 			return nil
 		}

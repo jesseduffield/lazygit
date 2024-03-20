@@ -96,12 +96,12 @@ func (a *AdvRefs) addRefs(s storer.ReferenceStorer) error {
 //
 // Git versions prior to 1.8.4.3 has an special procedure to get
 // the reference where is pointing to HEAD:
-//   - Check if a reference called master exists. If exists and it
-//     has the same hash as HEAD hash, we can say that HEAD is pointing to master
-//   - If master does not exists or does not have the same hash as HEAD,
-//     order references and check in that order if that reference has the same
-//     hash than HEAD. If yes, set HEAD pointing to that branch hash
-//   - If no reference is found, throw an error
+// - Check if a reference called master exists. If exists and it
+//	 has the same hash as HEAD hash, we can say that HEAD is pointing to master
+// - If master does not exists or does not have the same hash as HEAD,
+//   order references and check in that order if that reference has the same
+//   hash than HEAD. If yes, set HEAD pointing to that branch hash
+// - If no reference is found, throw an error
 func (a *AdvRefs) resolveHead(s storer.ReferenceStorer) error {
 	if a.Head == nil {
 		return nil
@@ -167,8 +167,7 @@ func (a *AdvRefs) resolveHead(s storer.ReferenceStorer) error {
 
 func (a *AdvRefs) createHeadIfCorrectReference(
 	reference *plumbing.Reference,
-	s storer.ReferenceStorer,
-) (bool, error) {
+	s storer.ReferenceStorer) (bool, error) {
 	if reference.Hash() == *a.Head {
 		headRef := plumbing.NewSymbolicReference(plumbing.HEAD, reference.Name())
 		if err := s.SetReference(headRef); err != nil {
@@ -208,5 +207,5 @@ func (a *AdvRefs) IsEmpty() bool {
 	return a.Head == nil &&
 		len(a.References) == 0 &&
 		len(a.Peeled) == 0 &&
-		len(a.Hashllows) == 0
+		len(a.Shallows) == 0
 }

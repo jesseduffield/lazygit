@@ -142,7 +142,7 @@ func (d *updReqDecoder) decodeShallow() error {
 		return d.scanErrorOr(errNoCommands)
 	}
 
-	d.req.Hashllow = &h
+	d.req.Shallow = &h
 
 	return nil
 }

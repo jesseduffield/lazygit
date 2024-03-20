@@ -19,7 +19,7 @@ type ShallowStorage struct {
 // commit per line represented by 40-byte hexadecimal object terminated by a
 // newline.
 func (s *ShallowStorage) SetShallow(commits []plumbing.Hash) error {
-	f, err := s.dir.HashllowWriter()
+	f, err := s.dir.ShallowWriter()
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func (s *ShallowStorage) SetShallow(commits []plumbing.Hash) error {
 
 // Shallow return the shallow commits reading from shallo file from .git
 func (s *ShallowStorage) Shallow() ([]plumbing.Hash, error) {
-	f, err := s.dir.Hashllow()
+	f, err := s.dir.Shallow()
 	if f == nil || err != nil {
 		return nil, err
 	}

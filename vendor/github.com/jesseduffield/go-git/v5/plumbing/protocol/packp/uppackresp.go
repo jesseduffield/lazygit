@@ -1,9 +1,10 @@
 package packp
 
 import (
-	"bufio"
 	"errors"
 	"io"
+
+	"bufio"
 
 	"github.com/jesseduffield/go-git/v5/plumbing/protocol/packp/capability"
 	"github.com/jesseduffield/go-git/v5/utils/ioutil"
@@ -42,8 +43,8 @@ func NewUploadPackResponse(req *UploadPackRequest) *UploadPackResponse {
 // NewUploadPackResponseWithPackfile creates a new UploadPackResponse instance,
 // and sets its packfile reader.
 func NewUploadPackResponseWithPackfile(req *UploadPackRequest,
-	pf io.ReadCloser,
-) *UploadPackResponse {
+	pf io.ReadCloser) *UploadPackResponse {
+
 	r := NewUploadPackResponse(req)
 	r.r = pf
 	return r
@@ -55,7 +56,7 @@ func (r *UploadPackResponse) Decode(reader io.ReadCloser) error {
 	buf := bufio.NewReader(reader)
 
 	if r.isShallow {
-		if err := r.HashllowUpdate.Decode(buf); err != nil {
+		if err := r.ShallowUpdate.Decode(buf); err != nil {
 			return err
 		}
 	}
@@ -73,7 +74,7 @@ func (r *UploadPackResponse) Decode(reader io.ReadCloser) error {
 // Encode encodes an UploadPackResponse.
 func (r *UploadPackResponse) Encode(w io.Writer) (err error) {
 	if r.isShallow {
-		if err := r.HashllowUpdate.Encode(w); err != nil {
+		if err := r.ShallowUpdate.Encode(w); err != nil {
 			return err
 		}
 	}

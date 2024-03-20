@@ -153,7 +153,7 @@ func (r *Remote) PushContext(ctx context.Context, o *PushOptions) (err error) {
 		return err
 	}
 
-	stop, err := r.s.Hashllow()
+	stop, err := r.s.Shallow()
 	if err != nil {
 		return err
 	}
@@ -235,6 +235,7 @@ func (r *Remote) updateRemoteReferenceStorage(
 	req *packp.ReferenceUpdateRequest,
 	result *packp.ReportStatus,
 ) error {
+
 	for _, spec := range r.c.Fetch {
 		for _, c := range req.Commands {
 			if !spec.Match(c.Name) {
@@ -388,8 +389,8 @@ func newClient(url string) (transport.Transport, *transport.Endpoint, error) {
 }
 
 func (r *Remote) fetchPack(ctx context.Context, o *FetchOptions, s transport.UploadPackSession,
-	req *packp.UploadPackRequest,
-) (err error) {
+	req *packp.UploadPackRequest) (err error) {
+
 	reader, err := s.UploadPack(ctx, req)
 	if err != nil {
 		return err
@@ -477,8 +478,7 @@ func (r *Remote) deleteReferences(rs config.RefSpec,
 	remoteRefs storer.ReferenceStorer,
 	refsDict map[string]*plumbing.Reference,
 	req *packp.ReferenceUpdateRequest,
-	prune bool,
-) error {
+	prune bool) error {
 	iter, err := remoteRefs.IterReferences()
 	if err != nil {
 		return err
@@ -514,8 +514,8 @@ func (r *Remote) deleteReferences(rs config.RefSpec,
 
 func (r *Remote) addReferenceIfRefSpecMatches(rs config.RefSpec,
 	remoteRefs storer.ReferenceStorer, localRef *plumbing.Reference,
-	req *packp.ReferenceUpdateRequest,
-) error {
+	req *packp.ReferenceUpdateRequest) error {
+
 	if localRef.Type() != plumbing.HashReference {
 		return nil
 	}
@@ -533,7 +533,7 @@ func (r *Remote) addReferenceIfRefSpecMatches(rs config.RefSpec,
 	remoteRef, err := remoteRefs.Reference(cmd.Name)
 	if err == nil {
 		if remoteRef.Type() != plumbing.HashReference {
-			// TODO: check actual git behavior here
+			//TODO: check actual git behavior here
 			return nil
 		}
 
@@ -581,8 +581,7 @@ func (r *Remote) references() ([]*plumbing.Reference, error) {
 }
 
 func getRemoteRefsFromStorer(remoteRefStorer storer.ReferenceStorer) (
-	map[plumbing.Hash]bool, error,
-) {
+	map[plumbing.Hash]bool, error) {
 	remoteRefs := map[plumbing.Hash]bool{}
 	iter, err := remoteRefStorer.IterReferences()
 	if err != nil {
@@ -835,13 +834,13 @@ func isFastForward(s storer.EncodedObjectStorer, old, new plumbing.Hash) (bool, 
 }
 
 func (r *Remote) newUploadPackRequest(o *FetchOptions,
-	ar *packp.AdvRefs,
-) (*packp.UploadPackRequest, error) {
+	ar *packp.AdvRefs) (*packp.UploadPackRequest, error) {
+
 	req := packp.NewUploadPackRequestFromCapabilities(ar.Capabilities)
 
 	if o.Depth != 0 {
 		req.Depth = packp.DepthCommits(o.Depth)
-		if err := req.Capabilities.Set(capability.Hashllow); err != nil {
+		if err := req.Capabilities.Set(capability.Shallow); err != nil {
 			return nil, err
 		}
 	}
@@ -1088,6 +1087,7 @@ func pushHashes(
 	useRefDeltas bool,
 	allDelete bool,
 ) (*packp.ReportStatus, error) {
+
 	rd, wr := io.Pipe()
 
 	config, err := s.Config()
@@ -1130,17 +1130,17 @@ func pushHashes(
 }
 
 func (r *Remote) updateShallow(o *FetchOptions, resp *packp.UploadPackResponse) error {
-	if o.Depth == 0 || len(resp.Hashllows) == 0 {
+	if o.Depth == 0 || len(resp.Shallows) == 0 {
 		return nil
 	}
 
-	shallows, err := r.s.Hashllow()
+	shallows, err := r.s.Shallow()
 	if err != nil {
 		return err
 	}
 
 outer:
-	for _, s := range resp.Hashllows {
+	for _, s := range resp.Shallows {
 		for _, oldS := range shallows {
 			if s == oldS {
 				continue outer
