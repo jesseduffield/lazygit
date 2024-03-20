@@ -1181,11 +1181,11 @@ func (self *LocalCommitsController) canPaste() *types.DisabledReason {
 }
 
 func (self *LocalCommitsController) markAsBaseCommit(commit *models.Commit) error {
-	if commit.Hash == self.c.Modes().MarkedBaseCommit.GetSha() {
+	if commit.Hash == self.c.Modes().MarkedBaseCommit.GetHash() {
 		// Reset when invoking it again on the marked commit
-		self.c.Modes().MarkedBaseCommit.SetSha("")
+		self.c.Modes().MarkedBaseCommit.SetHash("")
 	} else {
-		self.c.Modes().MarkedBaseCommit.SetSha(commit.Hash)
+		self.c.Modes().MarkedBaseCommit.SetHash(commit.Hash)
 	}
 	return self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
 }

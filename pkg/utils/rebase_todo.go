@@ -38,7 +38,7 @@ func EditRebaseTodo(filePath string, changes []TodoChange, commentChar byte) err
 		t := &todos[i]
 		// This is a nested loop, but it's ok because the number of todos should be small
 		for _, change := range changes {
-			if t.Command == change.OldAction && equalShas(t.Commit, change.Hash) {
+			if t.Command == change.OldAction && equalHash(t.Commit, change.Hash) {
 				matchCount++
 				t.Command = change.NewAction
 			}
@@ -53,7 +53,7 @@ func EditRebaseTodo(filePath string, changes []TodoChange, commentChar byte) err
 	return WriteRebaseTodoFile(filePath, todos, commentChar)
 }
 
-func equalShas(a, b string) bool {
+func equalHash(a, b string) bool {
 	return strings.HasPrefix(a, b) || strings.HasPrefix(b, a)
 }
 
@@ -64,7 +64,7 @@ func findTodo(todos []todo.Todo, todoToFind Todo) (int, bool) {
 		// pick and later in a merge). For update-ref todos we also must compare
 		// the Ref.
 		return t.Command == todoToFind.Action &&
-			equalShas(t.Commit, todoToFind.Hash) &&
+			equalHash(t.Commit, todoToFind.Hash) &&
 			t.Ref == todoToFind.Ref
 	})
 	return idx, ok
@@ -235,11 +235,11 @@ func MoveFixupCommitDown(fileName string, originalSha string, fixupSha string, c
 
 func moveFixupCommitDown(todos []todo.Todo, originalSha string, fixupSha string) ([]todo.Todo, error) {
 	isOriginal := func(t todo.Todo) bool {
-		return t.Command == todo.Pick && equalShas(t.Commit, originalSha)
+		return t.Command == todo.Pick && equalHash(t.Commit, originalSha)
 	}
 
 	isFixup := func(t todo.Todo) bool {
-		return t.Command == todo.Pick && equalShas(t.Commit, fixupSha)
+		return t.Command == todo.Pick && equalHash(t.Commit, fixupSha)
 	}
 
 	originalShaCount := lo.CountBy(todos, isOriginal)

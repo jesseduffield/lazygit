@@ -30,7 +30,7 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 		return presentation.GetReflogCommitListDisplayStrings(
 			viewModel.GetItems(),
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
-			c.Modes().CherryPicking.SelectedShaSet(),
+			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
 			time.Now(),
 			c.UserConfig.Gui.TimeFormat,

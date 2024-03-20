@@ -210,10 +210,10 @@ func (self *CommitCommands) GetCommitMessageFirstLine(sha string) (string, error
 	return self.GetCommitMessagesFirstLine([]string{sha})
 }
 
-func (self *CommitCommands) GetCommitMessagesFirstLine(shas []string) (string, error) {
+func (self *CommitCommands) GetCommitMessagesFirstLine(hashes []string) (string, error) {
 	cmdArgs := NewGitCmd("show").
 		Arg("--no-patch", "--pretty=format:%s").
-		Arg(shas...).
+		Arg(hashes...).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
@@ -224,19 +224,19 @@ func (self *CommitCommands) GetCommitMessagesFirstLine(shas []string) (string, e
 //	cd50c79ae Preserve the commit message correctly even if the description has blank lines
 //	3ebba5f32 Add test demonstrating a bug with preserving the commit message
 //	9a423c388 Remove unused function
-func (self *CommitCommands) GetShasAndCommitMessagesFirstLine(shas []string) (string, error) {
+func (self *CommitCommands) GetHashesAndCommitMessagesFirstLine(hashes []string) (string, error) {
 	cmdArgs := NewGitCmd("show").
 		Arg("--no-patch", "--pretty=format:%h %s").
-		Arg(shas...).
+		Arg(hashes...).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 }
 
-func (self *CommitCommands) GetCommitsOneline(shas []string) (string, error) {
+func (self *CommitCommands) GetCommitsOneline(hashes []string) (string, error) {
 	cmdArgs := NewGitCmd("show").
 		Arg("--no-patch", "--oneline").
-		Arg(shas...).
+		Arg(hashes...).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
