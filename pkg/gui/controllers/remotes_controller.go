@@ -145,7 +145,27 @@ func (self *RemotesController) add() error {
 					if err := self.c.Git().Remote.AddRemote(remoteName, remoteUrl); err != nil {
 						return err
 					}
-					return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.REMOTES}})
+
+					// Do a sync refresh of the remotes so that we can select
+					// the new one. Loading remotes is not expensive, so we can
+					// afford it.
+					if err := self.c.Refresh(types.RefreshOptions{
+						Scope: []types.RefreshableView{types.REMOTES},
+						Mode:  types.SYNC,
+					}); err != nil {
+						return err
+					}
+
+					// Select the new remote
+					for idx, remote := range self.c.Model().Remotes {
+						if remote.Name == remoteName {
+							self.c.Contexts().Remotes.SetSelection(idx)
+							break
+						}
+					}
+
+					// Fetch the new remote
+					return self.fetch(self.c.Contexts().Remotes.GetSelected())
 				},
 			})
 		},
