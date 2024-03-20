@@ -69,7 +69,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 	// Originally we were allowing the user to, from the bisect menu, select whether
 	// they were talking about the selected commit or the current bisect commit,
 	// and that was a bit confusing (and required extra keypresses).
-	selectCurrentAfter := info.GetCurrentSha() == "" || info.GetCurrentSha() == commit.Hash
+	selectCurrentAfter := info.GetCurrentHash() == "" || info.GetCurrentHash() == commit.Hash
 	// we need to wait to reselect if our bisect commits aren't ancestors of our 'start'
 	// ref, because we'll be reloading our commits in that case.
 	waitToReselect := selectCurrentAfter && !self.c.Git().Bisect.ReachableFromStart(info)
@@ -78,8 +78,8 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 	// not, we're still picking the initial commits before we really start, so
 	// use the selected commit in that case.
 
-	bisecting := info.GetCurrentSha() != ""
-	shaToMark := lo.Ternary(bisecting, info.GetCurrentSha(), commit.Hash)
+	bisecting := info.GetCurrentHash() != ""
+	shaToMark := lo.Ternary(bisecting, info.GetCurrentHash(), commit.Hash)
 	shortShaToMark := utils.ShortSha(shaToMark)
 
 	// For marking a commit as bad, when we're not already bisecting, we require
@@ -131,7 +131,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Key:            's',
 		},
 	}
-	if info.GetCurrentSha() != "" && info.GetCurrentSha() != commit.Hash {
+	if info.GetCurrentHash() != "" && info.GetCurrentHash() != commit.Hash {
 		menuItems = append(menuItems, lo.ToPtr(types.MenuItem{
 			Label: fmt.Sprintf(self.c.Tr.Bisect.SkipSelected, commit.ShortSha()),
 			OnPress: func() error {
@@ -284,10 +284,10 @@ func (self *BisectController) afterBisectMarkRefresh(selectCurrent bool, waitToR
 
 func (self *BisectController) selectCurrentBisectCommit() {
 	info := self.c.Git().Bisect.GetInfo()
-	if info.GetCurrentSha() != "" {
+	if info.GetCurrentHash() != "" {
 		// find index of commit with that sha, move cursor to that.
 		for i, commit := range self.c.Model().Commits {
-			if commit.Hash == info.GetCurrentSha() {
+			if commit.Hash == info.GetCurrentHash() {
 				self.context().SetSelection(i)
 				_ = self.context().HandleFocus(types.OnFocusOpts{})
 				break
