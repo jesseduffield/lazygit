@@ -28,12 +28,12 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	)
 
 	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
-		selectedCommitSha := ""
+		selectedCommitHash := ""
 
 		if c.CurrentContext().GetKey() == LOCAL_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
 			if selectedCommit != nil {
-				selectedCommitSha = selectedCommit.Sha
+				selectedCommitHash = selectedCommit.Hash
 			}
 		}
 
@@ -47,14 +47,14 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			c.Model().CheckedOutBranch,
 			hasRebaseUpdateRefsConfig,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
-			c.Modes().CherryPicking.SelectedShaSet(),
+			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
-			c.Modes().MarkedBaseCommit.GetSha(),
+			c.Modes().MarkedBaseCommit.GetHash(),
 			c.UserConfig.Gui.TimeFormat,
 			c.UserConfig.Gui.ShortTimeFormat,
 			time.Now(),
 			c.UserConfig.Git.ParseEmoji,
-			selectedCommitSha,
+			selectedCommitHash,
 			startIdx,
 			endIdx,
 			shouldShowGraph(c),

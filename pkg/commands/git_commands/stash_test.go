@@ -47,7 +47,7 @@ func TestStashSave(t *testing.T) {
 func TestStashStore(t *testing.T) {
 	type scenario struct {
 		testName string
-		sha      string
+		hash     string
 		message  string
 		expected []string
 	}
@@ -55,19 +55,19 @@ func TestStashStore(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName: "Non-empty message",
-			sha:      "0123456789abcdef",
+			hash:     "0123456789abcdef",
 			message:  "New stash name",
 			expected: []string{"stash", "store", "-m", "New stash name", "0123456789abcdef"},
 		},
 		{
 			testName: "Empty message",
-			sha:      "0123456789abcdef",
+			hash:     "0123456789abcdef",
 			message:  "",
 			expected: []string{"stash", "store", "0123456789abcdef"},
 		},
 		{
 			testName: "Space message",
-			sha:      "0123456789abcdef",
+			hash:     "0123456789abcdef",
 			message:  "  ",
 			expected: []string{"stash", "store", "0123456789abcdef"},
 		},
@@ -80,20 +80,20 @@ func TestStashStore(t *testing.T) {
 				ExpectGitArgs(s.expected, "", nil)
 			instance := buildStashCommands(commonDeps{runner: runner})
 
-			assert.NoError(t, instance.Store(s.sha, s.message))
+			assert.NoError(t, instance.Store(s.hash, s.message))
 			runner.CheckForMissingCalls()
 		})
 	}
 }
 
-func TestStashSha(t *testing.T) {
+func TestStashHash(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		ExpectGitArgs([]string{"rev-parse", "refs/stash@{5}"}, "14d94495194651adfd5f070590df566c11d28243\n", nil)
 	instance := buildStashCommands(commonDeps{runner: runner})
 
-	sha, err := instance.Sha(5)
+	hash, err := instance.Hash(5)
 	assert.NoError(t, err)
-	assert.Equal(t, "14d94495194651adfd5f070590df566c11d28243", sha)
+	assert.Equal(t, "14d94495194651adfd5f070590df566c11d28243", hash)
 	runner.CheckForMissingCalls()
 }
 
@@ -153,8 +153,8 @@ func TestStashRename(t *testing.T) {
 		testName         string
 		index            int
 		message          string
-		expectedShaCmd   []string
-		shaResult        string
+		expectedHashCmd  []string
+		hashResult       string
 		expectedDropCmd  []string
 		expectedStoreCmd []string
 	}
@@ -164,8 +164,8 @@ func TestStashRename(t *testing.T) {
 			testName:         "Default case",
 			index:            3,
 			message:          "New message",
-			expectedShaCmd:   []string{"rev-parse", "refs/stash@{3}"},
-			shaResult:        "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd\n",
+			expectedHashCmd:  []string{"rev-parse", "refs/stash@{3}"},
+			hashResult:       "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd\n",
 			expectedDropCmd:  []string{"stash", "drop", "stash@{3}"},
 			expectedStoreCmd: []string{"stash", "store", "-m", "New message", "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd"},
 		},
@@ -173,8 +173,8 @@ func TestStashRename(t *testing.T) {
 			testName:         "Empty message",
 			index:            4,
 			message:          "",
-			expectedShaCmd:   []string{"rev-parse", "refs/stash@{4}"},
-			shaResult:        "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd\n",
+			expectedHashCmd:  []string{"rev-parse", "refs/stash@{4}"},
+			hashResult:       "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd\n",
 			expectedDropCmd:  []string{"stash", "drop", "stash@{4}"},
 			expectedStoreCmd: []string{"stash", "store", "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd"},
 		},
@@ -184,7 +184,7 @@ func TestStashRename(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			runner := oscommands.NewFakeRunner(t).
-				ExpectGitArgs(s.expectedShaCmd, s.shaResult, nil).
+				ExpectGitArgs(s.expectedHashCmd, s.hashResult, nil).
 				ExpectGitArgs(s.expectedDropCmd, "", nil).
 				ExpectGitArgs(s.expectedStoreCmd, "", nil)
 			instance := buildStashCommands(commonDeps{runner: runner})

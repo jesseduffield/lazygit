@@ -44,14 +44,14 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return self.c.ErrorMsg(self.c.Tr.NoDeletedLinesInDiff)
 	}
 
-	shas := self.blameDeletedLines(deletedLineInfos)
+	hashes := self.blameDeletedLines(deletedLineInfos)
 
-	if len(shas) == 0 {
+	if len(hashes) == 0 {
 		// This should never happen
 		return self.c.ErrorMsg(self.c.Tr.NoBaseCommitsFound)
 	}
-	if len(shas) > 1 {
-		subjects, err := self.c.Git().Commit.GetShasAndCommitMessagesFirstLine(shas)
+	if len(hashes) > 1 {
+		subjects, err := self.c.Git().Commit.GetHashesAndCommitMessagesFirstLine(hashes)
 		if err != nil {
 			return err
 		}
@@ -62,7 +62,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 	}
 
 	commit, index, ok := lo.FindIndexOf(self.c.Model().Commits, func(commit *models.Commit) bool {
-		return commit.Sha == shas[0]
+		return commit.Hash == hashes[0]
 	})
 	if !ok {
 		commits := self.c.Model().Commits
@@ -164,7 +164,7 @@ func (self *FixupHelper) parseDiff(diff string) ([]*deletedLineInfo, bool) {
 // returns the list of commit hashes that introduced the lines which have now been deleted
 func (self *FixupHelper) blameDeletedLines(deletedLineInfos []*deletedLineInfo) []string {
 	var wg sync.WaitGroup
-	shaChan := make(chan string)
+	hashChan := make(chan string)
 
 	for _, info := range deletedLineInfos {
 		wg.Add(1)
@@ -178,19 +178,19 @@ func (self *FixupHelper) blameDeletedLines(deletedLineInfos []*deletedLineInfo) 
 			}
 			blameLines := strings.Split(strings.TrimSuffix(blameOutput, "\n"), "\n")
 			for _, line := range blameLines {
-				shaChan <- strings.Split(line, " ")[0]
+				hashChan <- strings.Split(line, " ")[0]
 			}
 		}(info)
 	}
 
 	go func() {
 		wg.Wait()
-		close(shaChan)
+		close(hashChan)
 	}()
 
 	result := set.New[string]()
-	for sha := range shaChan {
-		result.Add(sha)
+	for hash := range hashChan {
+		result.Add(hash)
 	}
 
 	return result.ToSlice()

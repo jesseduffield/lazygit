@@ -566,8 +566,8 @@ type TranslationSet struct {
 	OpenCommandLogMenuTooltip             string
 	ShowingGitDiff                        string
 	CommitDiff                            string
-	CopyCommitShaToClipboard              string
-	CommitSha                             string
+	CopyCommitHashToClipboard             string
+	CommitHash                            string
 	CommitURL                             string
 	CopyCommitMessageToClipboard          string
 	CommitMessage                         string
@@ -630,7 +630,7 @@ type TranslationSet struct {
 	PushingTagStatus                     string
 	PullRequestURLCopiedToClipboard      string
 	CommitDiffCopiedToClipboard          string
-	CommitSHACopiedToClipboard           string
+	CommitHashCopiedToClipboard          string
 	CommitURLCopiedToClipboard           string
 	CommitMessageCopiedToClipboard       string
 	CommitSubjectCopiedToClipboard       string
@@ -851,7 +851,7 @@ type Actions struct {
 	CopyCommitMessageToClipboard      string
 	CopyCommitSubjectToClipboard      string
 	CopyCommitDiffToClipboard         string
-	CopyCommitSHAToClipboard          string
+	CopyCommitHashToClipboard         string
 	CopyCommitURLToClipboard          string
 	CopyCommitAuthorToClipboard       string
 	CopyCommitAttributeToClipboard    string
@@ -1526,8 +1526,8 @@ func EnglishTranslationSet() TranslationSet {
 		OpenCommandLogMenuTooltip:             "View options for the command log e.g. show/hide the command log and focus the command log.",
 		ShowingGitDiff:                        "Showing output for:",
 		CommitDiff:                            "Commit diff",
-		CopyCommitShaToClipboard:              "Copy commit SHA to clipboard",
-		CommitSha:                             "Commit SHA",
+		CopyCommitHashToClipboard:             "Copy commit hash to clipboard",
+		CommitHash:                            "Commit hash",
 		CommitURL:                             "Commit URL",
 		CopyCommitMessageToClipboard:          "Copy commit message to clipboard",
 		CommitMessage:                         "Commit message",
@@ -1589,7 +1589,7 @@ func EnglishTranslationSet() TranslationSet {
 		PushingTagStatus:                      "Pushing tag",
 		PullRequestURLCopiedToClipboard:       "Pull request URL copied to clipboard",
 		CommitDiffCopiedToClipboard:           "Commit diff copied to clipboard",
-		CommitSHACopiedToClipboard:            "Commit SHA copied to clipboard",
+		CommitHashCopiedToClipboard:           "Commit hash copied to clipboard",
 		CommitURLCopiedToClipboard:            "Commit URL copied to clipboard",
 		CommitMessageCopiedToClipboard:        "Commit message copied to clipboard",
 		CommitSubjectCopiedToClipboard:        "Commit subject copied to clipboard",
@@ -1765,7 +1765,7 @@ func EnglishTranslationSet() TranslationSet {
 			CopyCommitMessageToClipboard:   "Copy commit message to clipboard",
 			CopyCommitSubjectToClipboard:   "Copy commit subject to clipboard",
 			CopyCommitDiffToClipboard:      "Copy commit diff to clipboard",
-			CopyCommitSHAToClipboard:       "Copy commit SHA to clipboard",
+			CopyCommitHashToClipboard:      "Copy commit hash to clipboard",
 			CopyCommitURLToClipboard:       "Copy commit URL to clipboard",
 			CopyCommitAuthorToClipboard:    "Copy commit author to clipboard",
 			CopyCommitAttributeToClipboard: "Copy to clipboard",
@@ -1869,11 +1869,11 @@ func EnglishTranslationSet() TranslationSet {
 		},
 		Log: Log{
 			EditRebase:               "Beginning interactive rebase at '{{.ref}}'",
-			MoveCommitUp:             "Moving TODO down: '{{.shortSha}}'",
-			MoveCommitDown:           "Moving TODO down: '{{.shortSha}}'",
+			MoveCommitUp:             "Moving TODO down: '{{.shortHash}}'",
+			MoveCommitDown:           "Moving TODO down: '{{.shortHash}}'",
 			CherryPickCommits:        "Cherry-picking commits:\n'{{.commitLines}}'",
 			HandleUndo:               "Undoing last conflict resolution",
-			HandleMidRebaseCommand:   "Updating rebase action of commit {{.shortSha}} to '{{.action}}'",
+			HandleMidRebaseCommand:   "Updating rebase action of commit {{.shortHash}} to '{{.action}}'",
 			RemoveFile:               "Deleting path '{{.path}}'",
 			CopyToClipboard:          "Copying '{{.str}}' to clipboard",
 			Remove:                   "Removing '{{.filename}}'",

@@ -21,7 +21,7 @@ func (self *TodoLine) ToString() string {
 	if self.Action == "break" {
 		return self.Action + "\n"
 	} else {
-		return self.Action + " " + self.Commit.Sha + " " + self.Commit.Name + "\n"
+		return self.Action + " " + self.Commit.Hash + " " + self.Commit.Name + "\n"
 	}
 }
 
@@ -34,7 +34,7 @@ func TodoLinesToString(todoLines []TodoLine) string {
 }
 
 type ChangeTodoAction struct {
-	Sha       string
+	Hash      string
 	NewAction todo.TodoCommand
 }
 

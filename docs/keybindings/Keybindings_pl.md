@@ -53,7 +53,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Kopiuj SHA commita do schowka |  |
+| `` <c-o> `` | Kopiuj hash commita do schowka |  |
 | `` <c-r> `` | Resetuj wybrane (cherry-picked) commity |  |
 | `` b `` | Zobacz opcje bisect |  |
 | `` s `` | Scal | Scal wybrany commit z commitami poniżej. Wiadomość wybranego commita zostanie dołączona do commita poniżej. |
@@ -255,7 +255,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Kopiuj SHA commita do schowka |  |
+| `` <c-o> `` | Kopiuj hash commita do schowka |  |
 | `` <space> `` | Przełącz | Przełącz wybrany commit jako odłączoną HEAD. |
 | `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |
 | `` o `` | Otwórz commit w przeglądarce |  |
@@ -295,7 +295,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Kopiuj SHA commita do schowka |  |
+| `` <c-o> `` | Kopiuj hash commita do schowka |  |
 | `` <space> `` | Przełącz | Przełącz wybrany commit jako odłączoną HEAD. |
 | `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |
 | `` o `` | Otwórz commit w przeglądarce |  |
