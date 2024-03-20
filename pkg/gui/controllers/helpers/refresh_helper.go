@@ -299,7 +299,7 @@ func (self *RefreshHelper) determineCheckedOutBranchName() string {
 	// In all other cases, get the branch name by asking git what branch is
 	// checked out. Note that if we're on a detached head (for reasons other
 	// than rebasing or bisecting, i.e. it was explicitly checked out), then
-	// this will return its sha.
+	// this will return its hash.
 	if branchName, err := self.c.Git().Branch.CurrentBranchName(); err == nil {
 		return branchName
 	}

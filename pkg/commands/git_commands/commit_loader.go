@@ -198,7 +198,7 @@ func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit) ([]*mod
 	return result, nil
 }
 
-// extractCommitFromLine takes a line from a git log and extracts the sha, message, date, and tag if present
+// extractCommitFromLine takes a line from a git log and extracts the hash, message, date, and tag if present
 // then puts them into a commit object
 // example input:
 // 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
@@ -285,16 +285,16 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 	}
 
 	findFullCommit := lo.Ternary(self.version.IsOlderThan(2, 25, 2),
-		func(sha string) *models.Commit {
+		func(hash string) *models.Commit {
 			for s, c := range fullCommits {
-				if strings.HasPrefix(s, sha) {
+				if strings.HasPrefix(s, hash) {
 					return c
 				}
 			}
 			return nil
 		},
-		func(sha string) *models.Commit {
-			return fullCommits[sha]
+		func(hash string) *models.Commit {
+			return fullCommits[hash]
 		})
 
 	hydratedCommits := make([]*models.Commit, 0, len(commits))
@@ -458,7 +458,7 @@ func setCommitMergedStatuses(ancestor string, commits []*models.Commit) {
 
 	passedAncestor := false
 	for i, commit := range commits {
-		// some commits aren't really commits and don't have sha's, such as the update-ref todo
+		// some commits aren't really commits and don't have hash's, such as the update-ref todo
 		if commit.Hash != "" && strings.HasPrefix(ancestor, commit.Hash) {
 			passedAncestor = true
 		}

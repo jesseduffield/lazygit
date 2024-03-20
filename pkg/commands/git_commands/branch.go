@@ -65,10 +65,10 @@ func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 	for _, line := range utils.SplitLines(output) {
 		split := strings.Split(strings.TrimRight(line, "\r\n"), "\x00")
 		if len(split) == 3 && split[0] == "*" {
-			sha := split[1]
+			hash := split[1]
 			displayName := split[2]
 			return BranchInfo{
-				RefName:      sha,
+				RefName:      hash,
 				DisplayName:  displayName,
 				DetachedHead: true,
 			}, nil
