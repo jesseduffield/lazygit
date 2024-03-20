@@ -244,12 +244,12 @@ func moveFixupCommitDown(todos []todo.Todo, originalSha string, fixupSha string)
 
 	originalShaCount := lo.CountBy(todos, isOriginal)
 	if originalShaCount != 1 {
-		return nil, fmt.Errorf("Expected exactly one original SHA, found %d", originalShaCount)
+		return nil, fmt.Errorf("Expected exactly one original hash, found %d", originalShaCount)
 	}
 
 	fixupShaCount := lo.CountBy(todos, isFixup)
 	if fixupShaCount != 1 {
-		return nil, fmt.Errorf("Expected exactly one fixup SHA, found %d", fixupShaCount)
+		return nil, fmt.Errorf("Expected exactly one fixup hash, found %d", fixupShaCount)
 	}
 
 	_, fixupIndex, _ := lo.FindIndexOf(todos, isFixup)
