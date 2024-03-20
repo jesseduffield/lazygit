@@ -40,12 +40,12 @@ func reflogHashColor(cherryPicked, diffed bool) style.TextStyle {
 		return theme.DiffTerminalColor
 	}
 
-	shaColor := style.FgBlue
+	hashColor := style.FgBlue
 	if cherryPicked {
-		shaColor = theme.CherryPickedCommitTextStyle
+		hashColor = theme.CherryPickedCommitTextStyle
 	}
 
-	return shaColor
+	return hashColor
 }
 
 type reflogCommitDisplayAttributes struct {

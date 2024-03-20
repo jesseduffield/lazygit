@@ -365,7 +365,7 @@ func TestGetCommitMessageFromHistory(t *testing.T) {
 		},
 		{
 			"Default case to retrieve a commit in history",
-			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"log", "-1", "--skip=2", "--pretty=%H"}, "sha3 \n", nil).ExpectGitArgs([]string{"-c", "log.showsignature=false", "log", "--format=%B", "--max-count=1", "sha3"}, `use generics to DRY up context code`, nil),
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"log", "-1", "--skip=2", "--pretty=%H"}, "hash3 \n", nil).ExpectGitArgs([]string{"-c", "log.showsignature=false", "log", "--format=%B", "--max-count=1", "hash3"}, `use generics to DRY up context code`, nil),
 			func(output string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "use generics to DRY up context code", output)

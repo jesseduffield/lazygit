@@ -108,13 +108,13 @@ func (self *RebaseCommands) GenericAmend(commits []*models.Commit, index int, f 
 func (self *RebaseCommands) MoveCommitsDown(commits []*models.Commit, startIdx int, endIdx int) error {
 	baseHashOrRoot := getBaseHashOrRoot(commits, endIdx+2)
 
-	shas := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) string {
+	hashes := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) string {
 		return commit.Hash
 	})
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseHashOrRoot: baseHashOrRoot,
-		instruction:    daemon.NewMoveTodosDownInstruction(shas),
+		instruction:    daemon.NewMoveTodosDownInstruction(hashes),
 		overrideEditor: true,
 	}).Run()
 }
@@ -122,13 +122,13 @@ func (self *RebaseCommands) MoveCommitsDown(commits []*models.Commit, startIdx i
 func (self *RebaseCommands) MoveCommitsUp(commits []*models.Commit, startIdx int, endIdx int) error {
 	baseHashOrRoot := getBaseHashOrRoot(commits, endIdx+1)
 
-	shas := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) string {
+	hashes := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) string {
 		return commit.Hash
 	})
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseHashOrRoot: baseHashOrRoot,
-		instruction:    daemon.NewMoveTodosUpInstruction(shas),
+		instruction:    daemon.NewMoveTodosUpInstruction(hashes),
 		overrideEditor: true,
 	}).Run()
 }
@@ -364,13 +364,13 @@ func (self *RebaseCommands) MoveTodosUp(commits []*models.Commit) error {
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one
 func (self *RebaseCommands) SquashAllAboveFixupCommits(commit *models.Commit) error {
-	shaOrRoot := commit.Hash + "^"
+	hashOrRoot := commit.Hash + "^"
 	if commit.IsFirstCommit() {
-		shaOrRoot = "--root"
+		hashOrRoot = "--root"
 	}
 
 	cmdArgs := NewGitCmd("rebase").
-		Arg("--interactive", "--rebase-merges", "--autostash", "--autosquash", shaOrRoot).
+		Arg("--interactive", "--rebase-merges", "--autostash", "--autosquash", hashOrRoot).
 		ToArgv()
 
 	return self.runSkipEditorCommand(self.cmd.New(cmdArgs))
@@ -503,7 +503,7 @@ func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, comm
 	return self.ContinueRebase()
 }
 
-// CherryPickCommits begins an interactive rebase with the given shas being cherry picked onto HEAD
+// CherryPickCommits begins an interactive rebase with the given hashes being cherry picked onto HEAD
 func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
 	commitLines := lo.Map(commits, func(commit *models.Commit, _ int) string {
 		return fmt.Sprintf("%s %s", utils.ShortHash(commit.Hash), commit.Name)

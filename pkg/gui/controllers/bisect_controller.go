@@ -79,8 +79,8 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 	// use the selected commit in that case.
 
 	bisecting := info.GetCurrentHash() != ""
-	shaToMark := lo.Ternary(bisecting, info.GetCurrentHash(), commit.Hash)
-	shortHashToMark := utils.ShortHash(shaToMark)
+	hashToMark := lo.Ternary(bisecting, info.GetCurrentHash(), commit.Hash)
+	shortHashToMark := utils.ShortHash(hashToMark)
 
 	// For marking a commit as bad, when we're not already bisecting, we require
 	// a single item selected, but once we are bisecting, it doesn't matter because
@@ -95,7 +95,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, shortHashToMark, info.NewTerm()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectMark)
-				if err := self.c.Git().Bisect.Mark(shaToMark, info.NewTerm()); err != nil {
+				if err := self.c.Git().Bisect.Mark(hashToMark, info.NewTerm()); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -108,7 +108,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, shortHashToMark, info.OldTerm()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectMark)
-				if err := self.c.Git().Bisect.Mark(shaToMark, info.OldTerm()); err != nil {
+				if err := self.c.Git().Bisect.Mark(hashToMark, info.OldTerm()); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -121,7 +121,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Label: fmt.Sprintf(self.c.Tr.Bisect.SkipCurrent, shortHashToMark),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectSkip)
-				if err := self.c.Git().Bisect.Skip(shaToMark); err != nil {
+				if err := self.c.Git().Bisect.Skip(hashToMark); err != nil {
 					return self.c.Error(err)
 				}
 
