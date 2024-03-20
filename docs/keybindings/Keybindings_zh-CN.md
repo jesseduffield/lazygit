@@ -53,7 +53,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 将提交的 SHA 复制到剪贴板 |  |
+| `` <c-o> `` | 将提交的 hash 复制到剪贴板 |  |
 | `` <space> `` | 检出 | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 在浏览器中打开提交 |  |
@@ -106,7 +106,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 将提交的 SHA 复制到剪贴板 |  |
+| `` <c-o> `` | 将提交的 hash 复制到剪贴板 |  |
 | `` <space> `` | 检出 | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 在浏览器中打开提交 |  |
@@ -137,7 +137,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 将提交的 SHA 复制到剪贴板 |  |
+| `` <c-o> `` | 将提交的 hash 复制到剪贴板 |  |
 | `` <c-r> `` | 重置已拣选（复制）的提交 |  |
 | `` b `` | 查看二分查找选项 |  |
 | `` s `` | 压缩 | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
