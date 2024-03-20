@@ -143,7 +143,7 @@ func (self *BisectCommands) IsDone() (bool, []string, error) {
 		return false, nil, nil
 	}
 
-	newSha := info.GetNewSha()
+	newSha := info.GetNewHash()
 	if newSha == "" {
 		return false, nil, nil
 	}
@@ -185,7 +185,7 @@ func (self *BisectCommands) IsDone() (bool, []string, error) {
 // render the commits from the bad commit.
 func (self *BisectCommands) ReachableFromStart(bisectInfo *BisectInfo) bool {
 	cmdArgs := NewGitCmd("merge-base").
-		Arg("--is-ancestor", bisectInfo.GetNewSha(), bisectInfo.GetStartSha()).
+		Arg("--is-ancestor", bisectInfo.GetNewHash(), bisectInfo.GetStartHash()).
 		ToArgv()
 
 	err := self.cmd.New(cmdArgs).DontLog().Run()

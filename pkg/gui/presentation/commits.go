@@ -172,7 +172,7 @@ func getbisectBounds(commits []*models.Commit, bisectInfo *git_commands.BisectIn
 	bisectBounds := &bisectBounds{}
 
 	for i, commit := range commits {
-		if commit.Hash == bisectInfo.GetNewSha() {
+		if commit.Hash == bisectInfo.GetNewHash() {
 			bisectBounds.newIndex = i
 		}
 
@@ -241,7 +241,7 @@ func getBisectStatus(index int, commitHash string, bisectInfo *git_commands.Bise
 		return BisectStatusNone
 	}
 
-	if bisectInfo.GetCurrentSha() == commitHash {
+	if bisectInfo.GetCurrentHash() == commitHash {
 		return BisectStatusCurrent
 	}
 

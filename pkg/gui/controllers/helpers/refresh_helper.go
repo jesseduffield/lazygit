@@ -290,10 +290,10 @@ func (self *RefreshHelper) determineCheckedOutBranchName() string {
 		return strings.TrimPrefix(rebasedBranch, "refs/heads/")
 	}
 
-	if bisectInfo := self.c.Git().Bisect.GetInfo(); bisectInfo.Bisecting() && bisectInfo.GetStartSha() != "" {
+	if bisectInfo := self.c.Git().Bisect.GetInfo(); bisectInfo.Bisecting() && bisectInfo.GetStartHash() != "" {
 		// Likewise, when we're bisecting we're on a detached head as well. In
 		// this case we read the branch name from the ".git/BISECT_START" file.
-		return bisectInfo.GetStartSha()
+		return bisectInfo.GetStartHash()
 	}
 
 	// In all other cases, get the branch name by asking git what branch is
@@ -721,10 +721,10 @@ func (self *RefreshHelper) refForLog() string {
 
 	// need to see if our bisect's current commit is reachable from our 'new' ref.
 	if bisectInfo.Bisecting() && !self.c.Git().Bisect.ReachableFromStart(bisectInfo) {
-		return bisectInfo.GetNewSha()
+		return bisectInfo.GetNewHash()
 	}
 
-	return bisectInfo.GetStartSha()
+	return bisectInfo.GetStartHash()
 }
 
 func (self *RefreshHelper) refreshView(context types.Context) error {
