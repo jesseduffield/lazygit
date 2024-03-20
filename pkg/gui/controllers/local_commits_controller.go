@@ -782,7 +782,7 @@ func (self *LocalCommitsController) revert(commit *models.Commit) error {
 			Prompt: utils.ResolvePlaceholderString(
 				self.c.Tr.ConfirmRevertCommit,
 				map[string]string{
-					"selectedCommit": commit.ShortSha(),
+					"selectedCommit": commit.ShortHash(),
 				}),
 			HandleConfirm: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RevertCommit)

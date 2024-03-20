@@ -63,7 +63,7 @@ func (self *ReposHelper) getCurrentBranch(path string) string {
 				branchDisplay = strings.TrimPrefix(content, refsPrefix)
 			} else {
 				// detached HEAD state, displaying short SHA
-				branchDisplay = utils.ShortSha(content)
+				branchDisplay = utils.ShortHash(content)
 			}
 			return branchDisplay, nil
 		}

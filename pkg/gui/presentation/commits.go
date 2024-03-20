@@ -373,7 +373,7 @@ func displayCommit(
 	} else if icons.IsIconEnabled() {
 		cols = append(cols, shaColor.Sprint(icons.IconForCommit(commit)))
 	}
-	cols = append(cols, shaColor.Sprint(commit.ShortSha()))
+	cols = append(cols, shaColor.Sprint(commit.ShortHash()))
 	cols = append(cols, bisectString)
 	if fullDescription {
 		cols = append(cols, style.FgBlue.Sprint(

@@ -506,7 +506,7 @@ func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, comm
 // CherryPickCommits begins an interactive rebase with the given shas being cherry picked onto HEAD
 func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
 	commitLines := lo.Map(commits, func(commit *models.Commit, _ int) string {
-		return fmt.Sprintf("%s %s", utils.ShortSha(commit.Hash), commit.Name)
+		return fmt.Sprintf("%s %s", utils.ShortHash(commit.Hash), commit.Name)
 	})
 	msg := utils.ResolvePlaceholderString(
 		self.Tr.Log.CherryPickCommits,

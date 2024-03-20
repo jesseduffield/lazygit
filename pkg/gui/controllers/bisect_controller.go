@@ -80,7 +80,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 
 	bisecting := info.GetCurrentHash() != ""
 	shaToMark := lo.Ternary(bisecting, info.GetCurrentHash(), commit.Hash)
-	shortShaToMark := utils.ShortSha(shaToMark)
+	shortShaToMark := utils.ShortHash(shaToMark)
 
 	// For marking a commit as bad, when we're not already bisecting, we require
 	// a single item selected, but once we are bisecting, it doesn't matter because
@@ -133,7 +133,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 	}
 	if info.GetCurrentHash() != "" && info.GetCurrentHash() != commit.Hash {
 		menuItems = append(menuItems, lo.ToPtr(types.MenuItem{
-			Label: fmt.Sprintf(self.c.Tr.Bisect.SkipSelected, commit.ShortSha()),
+			Label: fmt.Sprintf(self.c.Tr.Bisect.SkipSelected, commit.ShortHash()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectSkip)
 				if err := self.c.Git().Bisect.Skip(commit.Hash); err != nil {
@@ -165,7 +165,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 		Title: self.c.Tr.Bisect.BisectMenuTitle,
 		Items: []*types.MenuItem{
 			{
-				Label: fmt.Sprintf(self.c.Tr.Bisect.MarkStart, commit.ShortSha(), info.NewTerm()),
+				Label: fmt.Sprintf(self.c.Tr.Bisect.MarkStart, commit.ShortHash(), info.NewTerm()),
 				OnPress: func() error {
 					self.c.LogAction(self.c.Tr.Actions.StartBisect)
 					if err := self.c.Git().Bisect.Start(); err != nil {
@@ -182,7 +182,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 				Key:            'b',
 			},
 			{
-				Label: fmt.Sprintf(self.c.Tr.Bisect.MarkStart, commit.ShortSha(), info.OldTerm()),
+				Label: fmt.Sprintf(self.c.Tr.Bisect.MarkStart, commit.ShortHash(), info.OldTerm()),
 				OnPress: func() error {
 					self.c.LogAction(self.c.Tr.Actions.StartBisect)
 					if err := self.c.Git().Bisect.Start(); err != nil {
