@@ -58,8 +58,8 @@ type Commit struct {
 	Parents []string
 }
 
-func (c *Commit) ShortSha() string {
-	return utils.ShortSha(c.Hash)
+func (c *Commit) ShortHash() string {
+	return utils.ShortHash(c.Hash)
 }
 
 func (c *Commit) FullRefName() string {

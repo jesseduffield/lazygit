@@ -22,7 +22,7 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 	viewModel := NewFilteredListViewModel(
 		func() []*models.Commit { return c.Model().FilteredReflogCommits },
 		func(commit *models.Commit) []string {
-			return []string{commit.ShortSha(), commit.Name}
+			return []string{commit.ShortHash(), commit.Name}
 		},
 	)
 
