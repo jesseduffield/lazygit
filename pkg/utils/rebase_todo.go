@@ -219,13 +219,13 @@ func moveTodosUp(todos []todo.Todo, todosToMove []Todo) ([]todo.Todo, error) {
 	return todos, nil
 }
 
-func MoveFixupCommitDown(fileName string, originalSha string, fixupSha string, commentChar byte) error {
+func MoveFixupCommitDown(fileName string, originalHash string, fixupHash string, commentChar byte) error {
 	todos, err := ReadRebaseTodoFile(fileName, commentChar)
 	if err != nil {
 		return err
 	}
 
-	newTodos, err := moveFixupCommitDown(todos, originalSha, fixupSha)
+	newTodos, err := moveFixupCommitDown(todos, originalHash, fixupHash)
 	if err != nil {
 		return err
 	}
@@ -233,23 +233,23 @@ func MoveFixupCommitDown(fileName string, originalSha string, fixupSha string, c
 	return WriteRebaseTodoFile(fileName, newTodos, commentChar)
 }
 
-func moveFixupCommitDown(todos []todo.Todo, originalSha string, fixupSha string) ([]todo.Todo, error) {
+func moveFixupCommitDown(todos []todo.Todo, originalHash string, fixupHash string) ([]todo.Todo, error) {
 	isOriginal := func(t todo.Todo) bool {
-		return t.Command == todo.Pick && equalHash(t.Commit, originalSha)
+		return t.Command == todo.Pick && equalHash(t.Commit, originalHash)
 	}
 
 	isFixup := func(t todo.Todo) bool {
-		return t.Command == todo.Pick && equalHash(t.Commit, fixupSha)
+		return t.Command == todo.Pick && equalHash(t.Commit, fixupHash)
 	}
 
-	originalShaCount := lo.CountBy(todos, isOriginal)
-	if originalShaCount != 1 {
-		return nil, fmt.Errorf("Expected exactly one original hash, found %d", originalShaCount)
+	originalHashCount := lo.CountBy(todos, isOriginal)
+	if originalHashCount != 1 {
+		return nil, fmt.Errorf("Expected exactly one original hash, found %d", originalHashCount)
 	}
 
-	fixupShaCount := lo.CountBy(todos, isFixup)
-	if fixupShaCount != 1 {
-		return nil, fmt.Errorf("Expected exactly one fixup hash, found %d", fixupShaCount)
+	fixupHashCount := lo.CountBy(todos, isFixup)
+	if fixupHashCount != 1 {
+		return nil, fmt.Errorf("Expected exactly one fixup hash, found %d", fixupHashCount)
 	}
 
 	_, fixupIndex, _ := lo.FindIndexOf(todos, isFixup)

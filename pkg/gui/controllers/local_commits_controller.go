@@ -508,8 +508,8 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
 		selectedIdx, rangeStartIdx, rangeSelectMode := self.context().GetSelectionRangeAndMode()
 		commits := self.c.Model().Commits
-		selectedSha := commits[selectedIdx].Hash
-		rangeStartSha := commits[rangeStartIdx].Hash
+		selectedHash := commits[selectedIdx].Hash
+		rangeStartHash := commits[rangeStartIdx].Hash
 		err := self.c.Git().Rebase.EditRebase(commitsToEdit[len(commitsToEdit)-1].Hash)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
@@ -532,10 +532,10 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 				// new lines can be added for update-ref commands in the TODO file, due to
 				// stacked branches. So the selected commits may be in different positions in the list.
 				_, newSelectedIdx, ok1 := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
-					return c.Hash == selectedSha
+					return c.Hash == selectedHash
 				})
 				_, newRangeStartIdx, ok2 := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
-					return c.Hash == rangeStartSha
+					return c.Hash == rangeStartHash
 				})
 				if ok1 && ok2 {
 					self.context().SetSelectionRangeAndMode(newSelectedIdx, newRangeStartIdx, rangeSelectMode)
@@ -799,15 +799,15 @@ func (self *LocalCommitsController) revert(commit *models.Commit) error {
 
 func (self *LocalCommitsController) createRevertMergeCommitMenu(commit *models.Commit) error {
 	menuItems := make([]*types.MenuItem, len(commit.Parents))
-	for i, parentSha := range commit.Parents {
+	for i, parentHash := range commit.Parents {
 		i := i
-		message, err := self.c.Git().Commit.GetCommitMessageFirstLine(parentSha)
+		message, err := self.c.Git().Commit.GetCommitMessageFirstLine(parentHash)
 		if err != nil {
 			return self.c.Error(err)
 		}
 
 		menuItems[i] = &types.MenuItem{
-			Label: fmt.Sprintf("%s: %s", utils.SafeTruncate(parentSha, 8), message),
+			Label: fmt.Sprintf("%s: %s", utils.SafeTruncate(parentHash, 8), message),
 			OnPress: func() error {
 				parentNumber := i + 1
 				self.c.LogAction(self.c.Tr.Actions.RevertCommit)

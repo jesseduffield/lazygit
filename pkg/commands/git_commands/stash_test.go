@@ -86,7 +86,7 @@ func TestStashStore(t *testing.T) {
 	}
 }
 
-func TestStashSha(t *testing.T) {
+func TestStashHash(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		ExpectGitArgs([]string{"rev-parse", "refs/stash@{5}"}, "14d94495194651adfd5f070590df566c11d28243\n", nil)
 	instance := buildStashCommands(commonDeps{runner: runner})
@@ -153,7 +153,7 @@ func TestStashRename(t *testing.T) {
 		testName         string
 		index            int
 		message          string
-		expectedShaCmd   []string
+		expectedHashCmd  []string
 		shaResult        string
 		expectedDropCmd  []string
 		expectedStoreCmd []string
@@ -164,7 +164,7 @@ func TestStashRename(t *testing.T) {
 			testName:         "Default case",
 			index:            3,
 			message:          "New message",
-			expectedShaCmd:   []string{"rev-parse", "refs/stash@{3}"},
+			expectedHashCmd:  []string{"rev-parse", "refs/stash@{3}"},
 			shaResult:        "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd\n",
 			expectedDropCmd:  []string{"stash", "drop", "stash@{3}"},
 			expectedStoreCmd: []string{"stash", "store", "-m", "New message", "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd"},
@@ -173,7 +173,7 @@ func TestStashRename(t *testing.T) {
 			testName:         "Empty message",
 			index:            4,
 			message:          "",
-			expectedShaCmd:   []string{"rev-parse", "refs/stash@{4}"},
+			expectedHashCmd:  []string{"rev-parse", "refs/stash@{4}"},
 			shaResult:        "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd\n",
 			expectedDropCmd:  []string{"stash", "drop", "stash@{4}"},
 			expectedStoreCmd: []string{"stash", "store", "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd"},
@@ -184,7 +184,7 @@ func TestStashRename(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			runner := oscommands.NewFakeRunner(t).
-				ExpectGitArgs(s.expectedShaCmd, s.shaResult, nil).
+				ExpectGitArgs(s.expectedHashCmd, s.shaResult, nil).
 				ExpectGitArgs(s.expectedDropCmd, "", nil).
 				ExpectGitArgs(s.expectedStoreCmd, "", nil)
 			instance := buildStashCommands(commonDeps{runner: runner})
