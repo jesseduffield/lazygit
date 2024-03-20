@@ -217,7 +217,9 @@ func (self *StatusController) openConfig() error {
 }
 
 func (self *StatusController) editConfig() error {
-	return self.askForConfigFile(self.c.Helpers().Files.EditFile)
+	return self.askForConfigFile(func(file string) error {
+		return self.c.Helpers().Files.EditFiles([]string{file})
+	})
 }
 
 func (self *StatusController) showAllBranchLogs() error {

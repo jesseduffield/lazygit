@@ -8,6 +8,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type FileCommands struct {
@@ -75,18 +76,21 @@ func (self *FileCommands) GetEditCmdStrLegacy(filename string, lineNumber int) (
 	return utils.ResolvePlaceholderString(editCmdTemplate, templateValues), nil
 }
 
-func (self *FileCommands) GetEditCmdStr(filename string) (string, bool) {
+func (self *FileCommands) GetEditCmdStr(filenames []string) (string, bool) {
 	// Legacy support for old config; to be removed at some point
 	if self.UserConfig.OS.Edit == "" && self.UserConfig.OS.EditCommandTemplate != "" {
-		if cmdStr, err := self.GetEditCmdStrLegacy(filename, 1); err == nil {
+		// If multiple files are selected, we'll simply edit just the first one.
+		// It's not worth fixing this for the legacy support.
+		if cmdStr, err := self.GetEditCmdStrLegacy(filenames[0], 1); err == nil {
 			return cmdStr, true
 		}
 	}
 
 	template, suspend := config.GetEditTemplate(&self.UserConfig.OS, self.guessDefaultEditor)
+	quotedFilenames := lo.Map(filenames, func(filename string, _ int) string { return self.cmd.Quote(filename) })
 
 	templateValues := map[string]string{
-		"filename": self.cmd.Quote(filename),
+		"filename": strings.Join(quotedFilenames, " "),
 	}
 
 	cmdStr := utils.ResolvePlaceholderString(template, templateValues)
