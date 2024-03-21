@@ -357,6 +357,15 @@
           "type": "string",
           "description": "Whether to stack UI components on top of each other.\nOne of 'auto' (default) | 'always' | 'never'",
           "default": "auto"
+        },
+        "filterMode": {
+          "type": "string",
+          "enum": [
+            "substring",
+            "fuzzy"
+          ],
+          "description": "How things are filtered when typing '/'.\nOne of 'substring' (default) | 'fuzzy'",
+          "default": "substring"
         }
       },
       "additionalProperties": false,
@@ -405,6 +414,16 @@
             "signOff": {
               "type": "boolean",
               "description": "If true, pass '--signoff' flag when committing"
+            },
+            "autoWrapCommitMessage": {
+              "type": "boolean",
+              "description": "Automatic WYSIWYG wrapping of the commit message as you type",
+              "default": true
+            },
+            "autoWrapWidth": {
+              "type": "integer",
+              "description": "If autoWrapCommitMessage is true, the width to wrap to",
+              "default": 72
             }
           },
           "additionalProperties": false,
@@ -1153,6 +1172,24 @@
           "additionalProperties": false,
           "type": "object"
         },
+        "amendAttribute": {
+          "properties": {
+            "resetAuthor": {
+              "type": "string",
+              "default": "a"
+            },
+            "setAuthor": {
+              "type": "string",
+              "default": "A"
+            },
+            "addCoAuthor": {
+              "type": "string",
+              "default": "c"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object"
+        },
         "stash": {
           "properties": {
             "popStash": {
@@ -1215,7 +1252,7 @@
         },
         "commitMessage": {
           "properties": {
-            "switchToEditor": {
+            "commitMenu": {
               "type": "string",
               "default": "\u003cc-o\u003e"
             }

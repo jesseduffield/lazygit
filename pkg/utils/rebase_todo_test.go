@@ -10,11 +10,11 @@ import (
 
 func TestRebaseCommands_moveTodoDown(t *testing.T) {
 	type scenario struct {
-		testName      string
-		todos         []todo.Todo
-		shaToMoveDown string
-		expectedErr   string
-		expectedTodos []todo.Todo
+		testName       string
+		todos          []todo.Todo
+		todoToMoveDown Todo
+		expectedErr    string
+		expectedTodos  []todo.Todo
 	}
 
 	scenarios := []scenario{
@@ -25,8 +25,8 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			shaToMoveDown: "5678",
-			expectedErr:   "",
+			todoToMoveDown: Todo{Sha: "5678", Action: todo.Pick},
+			expectedErr:    "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "1234"},
@@ -40,11 +40,26 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			shaToMoveDown: "abcd",
-			expectedErr:   "",
+			todoToMoveDown: Todo{Sha: "abcd", Action: todo.Pick},
+			expectedErr:    "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "abcd"},
+				{Command: todo.Pick, Commit: "5678"},
+			},
+		},
+		{
+			testName: "move update-ref todo",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.Pick, Commit: "5678"},
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+			},
+			todoToMoveDown: Todo{Ref: "refs/heads/some_branch", Action: todo.UpdateRef},
+			expectedErr:    "",
+			expectedTodos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
 				{Command: todo.Pick, Commit: "5678"},
 			},
 		},
@@ -57,8 +72,8 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "def0"},
 			},
-			shaToMoveDown: "5678",
-			expectedErr:   "",
+			todoToMoveDown: Todo{Sha: "5678", Action: todo.Pick},
+			expectedErr:    "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "5678"},
@@ -76,9 +91,9 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			shaToMoveDown: "def0",
-			expectedErr:   "Todo def0 not found in git-rebase-todo",
-			expectedTodos: []todo.Todo{},
+			todoToMoveDown: Todo{Sha: "def0", Action: todo.Pick},
+			expectedErr:    "Todo def0 not found in git-rebase-todo",
+			expectedTodos:  []todo.Todo{},
 		},
 		{
 			testName: "trying to move first commit down",
@@ -87,9 +102,9 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			shaToMoveDown: "1234",
-			expectedErr:   "Destination position for moving todo is out of range",
-			expectedTodos: []todo.Todo{},
+			todoToMoveDown: Todo{Sha: "1234", Action: todo.Pick},
+			expectedErr:    "Destination position for moving todo is out of range",
+			expectedTodos:  []todo.Todo{},
 		},
 		{
 			testName: "trying to move commit down when all commits before are invisible",
@@ -99,15 +114,15 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "5678"},
 			},
-			shaToMoveDown: "1234",
-			expectedErr:   "Destination position for moving todo is out of range",
-			expectedTodos: []todo.Todo{},
+			todoToMoveDown: Todo{Sha: "1234", Action: todo.Pick},
+			expectedErr:    "Destination position for moving todo is out of range",
+			expectedTodos:  []todo.Todo{},
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			rearrangedTodos, err := moveTodoDown(s.todos, s.shaToMoveDown, todo.Pick)
+			rearrangedTodos, err := moveTodoDown(s.todos, s.todoToMoveDown)
 			if s.expectedErr == "" {
 				assert.NoError(t, err)
 			} else {
@@ -123,7 +138,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 	type scenario struct {
 		testName      string
 		todos         []todo.Todo
-		shaToMoveDown string
+		todoToMoveUp  Todo
 		expectedErr   string
 		expectedTodos []todo.Todo
 	}
@@ -136,8 +151,8 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			shaToMoveDown: "5678",
-			expectedErr:   "",
+			todoToMoveUp: Todo{Sha: "5678", Action: todo.Pick},
+			expectedErr:  "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "abcd"},
@@ -151,12 +166,27 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			shaToMoveDown: "1234",
-			expectedErr:   "",
+			todoToMoveUp: Todo{Sha: "1234", Action: todo.Pick},
+			expectedErr:  "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "abcd"},
+			},
+		},
+		{
+			testName: "move update-ref todo",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+				{Command: todo.Pick, Commit: "5678"},
+			},
+			todoToMoveUp: Todo{Ref: "refs/heads/some_branch", Action: todo.UpdateRef},
+			expectedErr:  "",
+			expectedTodos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.Pick, Commit: "5678"},
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
 			},
 		},
 		{
@@ -168,8 +198,8 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "def0"},
 			},
-			shaToMoveDown: "abcd",
-			expectedErr:   "",
+			todoToMoveUp: Todo{Sha: "abcd", Action: todo.Pick},
+			expectedErr:  "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Label, Label: "myLabel"},
@@ -187,7 +217,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			shaToMoveDown: "def0",
+			todoToMoveUp:  Todo{Sha: "def0", Action: todo.Pick},
 			expectedErr:   "Todo def0 not found in git-rebase-todo",
 			expectedTodos: []todo.Todo{},
 		},
@@ -198,7 +228,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.Pick, Commit: "abcd"},
 			},
-			shaToMoveDown: "abcd",
+			todoToMoveUp:  Todo{Sha: "abcd", Action: todo.Pick},
 			expectedErr:   "Destination position for moving todo is out of range",
 			expectedTodos: []todo.Todo{},
 		},
@@ -210,7 +240,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Label, Label: "myLabel"},
 				{Command: todo.Reset, Label: "otherlabel"},
 			},
-			shaToMoveDown: "5678",
+			todoToMoveUp:  Todo{Sha: "5678", Action: todo.Pick},
 			expectedErr:   "Destination position for moving todo is out of range",
 			expectedTodos: []todo.Todo{},
 		},
@@ -218,7 +248,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			rearrangedTodos, err := moveTodoUp(s.todos, s.shaToMoveDown, todo.Pick)
+			rearrangedTodos, err := moveTodoUp(s.todos, s.todoToMoveUp)
 			if s.expectedErr == "" {
 				assert.NoError(t, err)
 			} else {
@@ -319,6 +349,61 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 	for _, scenario := range scenarios {
 		t.Run(scenario.name, func(t *testing.T) {
 			actualTodos, actualErr := moveFixupCommitDown(scenario.todos, scenario.originalSha, scenario.fixupSha)
+
+			if scenario.expectedErr == nil {
+				assert.NoError(t, actualErr)
+			} else {
+				assert.EqualError(t, actualErr, scenario.expectedErr.Error())
+			}
+
+			assert.EqualValues(t, scenario.expectedTodos, actualTodos)
+		})
+	}
+}
+
+func TestRebaseCommands_deleteTodos(t *testing.T) {
+	scenarios := []struct {
+		name          string
+		todos         []todo.Todo
+		todosToDelete []Todo
+		expectedTodos []todo.Todo
+		expectedErr   error
+	}{
+		{
+			name: "success",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+				{Command: todo.Pick, Commit: "5678"},
+				{Command: todo.Pick, Commit: "abcd"},
+			},
+			todosToDelete: []Todo{
+				{Ref: "refs/heads/some_branch", Action: todo.UpdateRef},
+				{Sha: "abcd", Action: todo.Pick},
+			},
+			expectedTodos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.Pick, Commit: "5678"},
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "failure",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.Pick, Commit: "5678"},
+			},
+			todosToDelete: []Todo{
+				{Sha: "abcd", Action: todo.Pick},
+			},
+			expectedTodos: []todo.Todo{},
+			expectedErr:   errors.New("Todo abcd not found in git-rebase-todo"),
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.name, func(t *testing.T) {
+			actualTodos, actualErr := deleteTodos(scenario.todos, scenario.todosToDelete)
 
 			if scenario.expectedErr == nil {
 				assert.NoError(t, actualErr)

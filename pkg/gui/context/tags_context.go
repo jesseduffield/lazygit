@@ -24,7 +24,6 @@ func NewTagsContext(
 		func(tag *models.Tag) []string {
 			return []string{tag.Name, tag.Message}
 		},
-		nil,
 	)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {

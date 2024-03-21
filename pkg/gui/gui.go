@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 
@@ -40,6 +41,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
@@ -867,6 +869,72 @@ func (gui *Gui) showIntroPopupMessage() {
 			HandleClose:   onConfirm,
 		})
 	})
+}
+
+func (gui *Gui) showBreakingChangesMessage() {
+	_, err := types.ParseVersionNumber(gui.Config.GetVersion())
+	if err != nil {
+		// We don't have a parseable version, so we'll assume it's a developer
+		// build, or a build from HEAD with a version such as 0.40.0-g1234567;
+		// in these cases we don't show release notes.
+		return
+	}
+
+	last := &types.VersionNumber{}
+	lastVersionStr := gui.c.GetAppState().LastVersion
+	// If there's no saved last version, we show all release notes. This is for
+	// people upgrading from a version before we started to save lastVersion.
+	// First time new users won't see the release notes because we show them the
+	// intro popup instead.
+	if lastVersionStr != "" {
+		last, err = types.ParseVersionNumber(lastVersionStr)
+		if err != nil {
+			// The last version was a developer build, so don't show release
+			// notes in this case either.
+			return
+		}
+	}
+
+	// Now collect all release notes texts for versions newer than lastVersion.
+	// We don't need to bother checking the current version here, because we
+	// can't possibly have texts for versions newer than current.
+	type versionAndText struct {
+		version *types.VersionNumber
+		text    string
+	}
+	texts := []versionAndText{}
+	for versionStr, text := range gui.Tr.BreakingChangesByVersion {
+		v, err := types.ParseVersionNumber(versionStr)
+		if err != nil {
+			// Ignore bogus entries in the BreakingChanges map
+			continue
+		}
+		if last.IsOlderThan(v) {
+			texts = append(texts, versionAndText{version: v, text: text})
+		}
+	}
+
+	if len(texts) > 0 {
+		sort.Slice(texts, func(i, j int) bool {
+			return texts[i].version.IsOlderThan(texts[j].version)
+		})
+		message := strings.Join(lo.Map(texts, func(t versionAndText, _ int) string { return t.text }), "\n")
+
+		gui.waitForIntro.Add(1)
+		gui.c.OnUIThread(func() error {
+			onConfirm := func() error {
+				gui.waitForIntro.Done()
+				return nil
+			}
+
+			return gui.c.Confirm(types.ConfirmOpts{
+				Title:         gui.Tr.BreakingChangesTitle,
+				Prompt:        gui.Tr.BreakingChangesMessage + "\n\n" + message,
+				HandleConfirm: onConfirm,
+				HandleClose:   onConfirm,
+			})
+		})
+	}
 }
 
 // setColorScheme sets the color scheme for the app based on the user config

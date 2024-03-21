@@ -113,6 +113,11 @@ type TranslationSet struct {
 	ForceCheckoutTooltip                  string
 	CheckoutByName                        string
 	CheckoutByNameTooltip                 string
+	RemoteBranchCheckoutTitle             string
+	CheckoutTypeNewBranch                 string
+	CheckoutTypeNewBranchTooltip          string
+	CheckoutTypeDetachedHead              string
+	CheckoutTypeDetachedHeadTooltip       string
 	NewBranch                             string
 	NewBranchFromStashTooltip             string
 	NoBranchesThisRepo                    string
@@ -147,7 +152,9 @@ type TranslationSet struct {
 	AmendCommitTooltip                    string
 	Amend                                 string
 	ResetAuthor                           string
+	ResetAuthorTooltip                    string
 	SetAuthor                             string
+	SetAuthorTooltip                      string
 	AddCoAuthor                           string
 	AmendCommitAttribute                  string
 	AmendCommitAttributeTooltip           string
@@ -190,7 +197,7 @@ type TranslationSet struct {
 	ForcePush                             string
 	ForcePushPrompt                       string
 	ForcePushDisabled                     string
-	UpdatesRejectedAndForcePushDisabled   string
+	UpdatesRejected                       string
 	CheckForUpdate                        string
 	CheckingForUpdates                    string
 	UpdateAvailableTitle                  string
@@ -265,11 +272,11 @@ type TranslationSet struct {
 	CommitSummaryTitle                    string
 	CommitDescriptionTitle                string
 	CommitDescriptionSubTitle             string
-	CommitDescriptionSubTitleNoSwitch     string
 	LocalBranchesTitle                    string
 	SearchTitle                           string
 	TagsTitle                             string
 	MenuTitle                             string
+	CommitMenuTitle                       string
 	RemotesTitle                          string
 	RemoteBranchesTitle                   string
 	PatchBuildingTitle                    string
@@ -322,6 +329,7 @@ type TranslationSet struct {
 	AmendCommitPrompt                     string
 	DropCommitTitle                       string
 	DropCommitPrompt                      string
+	DropUpdateRefPrompt                   string
 	PullingStatus                         string
 	PushingStatus                         string
 	FetchingStatus                        string
@@ -341,6 +349,7 @@ type TranslationSet struct {
 	CheckingOutStatus                     string
 	CommittingStatus                      string
 	RevertingStatus                       string
+	CreatingFixupCommitStatus             string
 	CommitFiles                           string
 	SubCommitsDynamicTitle                string
 	CommitFilesDynamicTitle               string
@@ -766,9 +775,13 @@ type TranslationSet struct {
 	SelectedItemDoesNotHaveFiles         string
 	RangeSelectNotSupportedForSubmodules string
 	OldCherryPickKeyWarning              string
+	CommandDoesNotSupportOpeningInEditor string
 	Actions                              Actions
 	Bisect                               Bisect
 	Log                                  Log
+	BreakingChangesTitle                 string
+	BreakingChangesMessage               string
+	BreakingChangesByVersion             map[string]string
 }
 
 type Bisect struct {
@@ -1018,7 +1031,7 @@ func EnglishTranslationSet() TranslationSet {
 		CheckoutTooltip:                     "Checkout selected item.",
 		CantCheckoutBranchWhilePulling:      "You cannot checkout another branch while pulling the current branch",
 		TagCheckoutTooltip:                  "Checkout the selected tag tag as a detached HEAD.",
-		RemoteBranchCheckoutTooltip:         "Checkout a new local branch based on the selected remote branch. The new branch will track the remote branch.",
+		RemoteBranchCheckoutTooltip:         "Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head.",
 		CantPullOrPushSameBranchTwice:       "You cannot push or pull a branch while it is already being pushed or pulled",
 		FileFilter:                          "Filter files by status",
 		CopyToClipboardMenu:                 "Copy to clipboard",
@@ -1057,6 +1070,11 @@ func EnglishTranslationSet() TranslationSet {
 		ForceCheckoutTooltip:                "Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch.",
 		CheckoutByName:                      "Checkout by name",
 		CheckoutByNameTooltip:               "Checkout by name. In the input box you can enter '-' to switch to the last branch.",
+		RemoteBranchCheckoutTitle:           "Checkout {{.branchName}}",
+		CheckoutTypeNewBranch:               "New local branch",
+		CheckoutTypeNewBranchTooltip:        "Checkout the remote branch as a local branch, tracking the remote branch.",
+		CheckoutTypeDetachedHead:            "Detached head",
+		CheckoutTypeDetachedHeadTooltip:     "Checkout the remote branch as a detached head, which can be useful if you just want to test the branch but not work on it yourself. You can still create a local branch from it later.",
 		NewBranch:                           "New branch",
 		NewBranchFromStashTooltip:           "Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit.",
 		NoBranchesThisRepo:                  "No branches for this repo",
@@ -1092,7 +1110,9 @@ func EnglishTranslationSet() TranslationSet {
 		AmendCommitTooltip:                  "Amend commit with staged changes. If the selected commit is the HEAD commit, this will perform `git commit --amend`. Otherwise the commit will be amended via a rebase.",
 		Amend:                               "Amend",
 		ResetAuthor:                         "Reset author",
+		ResetAuthorTooltip:                  "Reset the commit's author to the currently configured user. This will also renew the author timestamp",
 		SetAuthor:                           "Set author",
+		SetAuthorTooltip:                    "Set the author based on a prompt",
 		AddCoAuthor:                         "Add co-author",
 		AmendCommitAttribute:                "Amend commit attribute",
 		AmendCommitAttributeTooltip:         "Set/Reset commit author or set co-author.",
@@ -1135,7 +1155,7 @@ func EnglishTranslationSet() TranslationSet {
 		ForcePush:                           "Force push",
 		ForcePushPrompt:                     "Your branch has diverged from the remote branch. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to force push.",
 		ForcePushDisabled:                   "Your branch has diverged from the remote branch and you've disabled force pushing",
-		UpdatesRejectedAndForcePushDisabled: "Updates were rejected and you have disabled force pushing",
+		UpdatesRejected:                     "Updates were rejected. Please fetch and examine the remote changes before pushing again.",
 		CheckForUpdate:                      "Check for update",
 		CheckingForUpdates:                  "Checking for updates...",
 		UpdateAvailableTitle:                "Update available!",
@@ -1208,12 +1228,12 @@ func EnglishTranslationSet() TranslationSet {
 		RebaseOptionsTitle:                  "Rebase options",
 		CommitSummaryTitle:                  "Commit summary",
 		CommitDescriptionTitle:              "Commit description",
-		CommitDescriptionSubTitle:           "Press {{.togglePanelKeyBinding}} to toggle focus, {{.switchToEditorKeyBinding}} to switch to editor",
-		CommitDescriptionSubTitleNoSwitch:   "Press {{.togglePanelKeyBinding}} to toggle focus",
+		CommitDescriptionSubTitle:           "Press {{.togglePanelKeyBinding}} to toggle focus, {{.commitMenuKeybinding}} to open menu",
 		LocalBranchesTitle:                  "Local branches",
 		SearchTitle:                         "Search",
 		TagsTitle:                           "Tags",
 		MenuTitle:                           "Menu",
+		CommitMenuTitle:                     "Commit Menu",
 		RemotesTitle:                        "Remotes",
 		RemoteBranchesTitle:                 "Remote branches",
 		PatchBuildingTitle:                  "Main panel (patch building)",
@@ -1270,6 +1290,7 @@ func EnglishTranslationSet() TranslationSet {
 		AmendCommitPrompt:                   "Are you sure you want to amend this commit with your staged files?",
 		DropCommitTitle:                     "Drop commit",
 		DropCommitPrompt:                    "Are you sure you want to drop the selected commit(s)?",
+		DropUpdateRefPrompt:                 "Are you sure you want to delete the selected update-ref todo(s)? This is irreversible except by aborting the rebase.",
 		PullingStatus:                       "Pulling",
 		PushingStatus:                       "Pushing",
 		FetchingStatus:                      "Fetching",
@@ -1289,6 +1310,7 @@ func EnglishTranslationSet() TranslationSet {
 		CheckingOutStatus:                   "Checking out",
 		CommittingStatus:                    "Committing",
 		RevertingStatus:                     "Reverting",
+		CreatingFixupCommitStatus:           "Creating fixup commit",
 		CommitFiles:                         "Commit files",
 		SubCommitsDynamicTitle:              "Commits (%s)",
 		CommitFilesDynamicTitle:             "Diff files (%s)",
@@ -1710,6 +1732,7 @@ func EnglishTranslationSet() TranslationSet {
 		SelectedItemDoesNotHaveFiles:          "Selected item does not have files to view",
 		RangeSelectNotSupportedForSubmodules:  "Range select not supported for submodules",
 		OldCherryPickKeyWarning:               "The 'c' key is no longer the default key for copying commits to cherry pick. Please use `{{.copy}}` instead (and `{{.paste}}` to paste). The reason for this change is that the 'v' key for selecting a range of lines when staging is now also used for selecting a range of lines in any list view, meaning that we needed to find a new key for pasting commits, and if we're going to now use `{{.paste}}` for pasting commits, we may as well use `{{.copy}}` for copying them. If you want to configure the keybindings to get the old behaviour, set the following in your config:\n\nkeybinding:\n  universal:\n    toggleRangeSelect: <something other than v>\n  commits:\n    cherryPickCopy: 'c'\n    pasteCommits: 'v'",
+		CommandDoesNotSupportOpeningInEditor:  "This command doesn't support switching to the editor",
 
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
@@ -1857,6 +1880,37 @@ func EnglishTranslationSet() TranslationSet {
 			CreateFileWithContent:    "Creating file '{{.path}}'",
 			AppendingLineToFile:      "Appending '{{.line}}' to file '{{.filename}}'",
 			EditRebaseFromBaseCommit: "Beginning interactive rebase from '{{.baseCommit}}' onto '{{.targetBranchName}}",
+		},
+		BreakingChangesTitle: "Breaking Changes",
+		BreakingChangesMessage: `You are updating to a new version of lazygit which contains breaking changes. Please review the notes below and update your configuration if necessary.
+For more information, see the full release notes at <https://github.com/jesseduffield/lazygit/releases>.`,
+		BreakingChangesByVersion: map[string]string{
+			"0.41.0": `- When you press 'g' to bring up the git reset menu, the 'mixed' option is now the first and default, rather than 'soft'. This is because 'mixed' is the most commonly used option.
+- The commit message panel now automatically hard-wraps by default (i.e. it adds newline characters when you reach the margin). You can adjust the config like so:
+
+git:
+  commit:
+    autoWrapCommitMessage: true
+    autoWrapWidth: 72
+
+- The 'v' key was already being used in the staging view to start a range select, but now you can use it to start a range select in any view. Unfortunately this clashes with the 'v' keybinding for pasting commits (cherry-pick), so now pasting commits is done via 'shift+V' and for the sake of consistency, copying commits is now done via 'shift+C' instead of just 'c'. Note that the 'v' keybinding is only one way to start a range-select: you can use shift+up/down arrow instead. So, if you want to configure the cherry-pick keybindings to get the old behaviour, set the following in your config:
+
+keybinding:
+  universal:
+      toggleRangeSelect: <something other than v>
+    commits:
+      cherryPickCopy: 'c'
+      pasteCommits: 'v'
+
+- Squashing fixups using 'shift-S' now brings up a menu, with the default option being to squash all fixup commits in the branch. The original behaviour of only squashing fixup commits above the selected commit is still available as the second option in that menu.
+- Push/pull/fetch loading statuses are now shown against the branch rather than in a popup. This allows you to e.g. fetch multiple branches in parallel and see the status for each branch.
+- The git log graph in the commits view is now always shown by default (previously it was only shown when the view was maximised). If you find this too noisy, you can change it back via ctrl+L -> 'Show git graph' -> 'when maximised'
+- Pressing space on a remote branch used to show a prompt for entering a name for a new local branch to check out from the remote branch. Now it just checks out the remote branch directly, letting you choose between a new local branch with the same name, or a detached head. The old behavior is still available via the 'n' keybinding.
+- Filtering (e.g. when pressing '/') is less fuzzy by default; it only matches substrings now. Multiple substrings can be matched by separating them with spaces. If you want to revert to the old behavior, set the following in your config:
+
+gui:
+  filterMode: 'fuzzy'
+	  `,
 		},
 	}
 }

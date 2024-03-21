@@ -142,6 +142,13 @@ type GuiConfig struct {
 	// Whether to stack UI components on top of each other.
 	// One of 'auto' (default) | 'always' | 'never'
 	PortraitMode string `yaml:"portraitMode"`
+	// How things are filtered when typing '/'.
+	// One of 'substring' (default) | 'fuzzy'
+	FilterMode string `yaml:"filterMode" jsonschema:"enum=substring,enum=fuzzy"`
+}
+
+func (c *GuiConfig) UseFuzzySearch() bool {
+	return c.FilterMode == "fuzzy"
 }
 
 type ThemeConfig struct {
@@ -236,6 +243,10 @@ type PagingConfig struct {
 type CommitConfig struct {
 	// If true, pass '--signoff' flag when committing
 	SignOff bool `yaml:"signOff"`
+	// Automatic WYSIWYG wrapping of the commit message as you type
+	AutoWrapCommitMessage bool `yaml:"autoWrapCommitMessage"`
+	// If autoWrapCommitMessage is true, the width to wrap to
+	AutoWrapWidth int `yaml:"autoWrapWidth"`
 }
 
 type MergingConfig struct {
@@ -277,17 +288,18 @@ type UpdateConfig struct {
 }
 
 type KeybindingConfig struct {
-	Universal     KeybindingUniversalConfig     `yaml:"universal"`
-	Status        KeybindingStatusConfig        `yaml:"status"`
-	Files         KeybindingFilesConfig         `yaml:"files"`
-	Branches      KeybindingBranchesConfig      `yaml:"branches"`
-	Worktrees     KeybindingWorktreesConfig     `yaml:"worktrees"`
-	Commits       KeybindingCommitsConfig       `yaml:"commits"`
-	Stash         KeybindingStashConfig         `yaml:"stash"`
-	CommitFiles   KeybindingCommitFilesConfig   `yaml:"commitFiles"`
-	Main          KeybindingMainConfig          `yaml:"main"`
-	Submodules    KeybindingSubmodulesConfig    `yaml:"submodules"`
-	CommitMessage KeybindingCommitMessageConfig `yaml:"commitMessage"`
+	Universal      KeybindingUniversalConfig      `yaml:"universal"`
+	Status         KeybindingStatusConfig         `yaml:"status"`
+	Files          KeybindingFilesConfig          `yaml:"files"`
+	Branches       KeybindingBranchesConfig       `yaml:"branches"`
+	Worktrees      KeybindingWorktreesConfig      `yaml:"worktrees"`
+	Commits        KeybindingCommitsConfig        `yaml:"commits"`
+	AmendAttribute KeybindingAmendAttributeConfig `yaml:"amendAttribute"`
+	Stash          KeybindingStashConfig          `yaml:"stash"`
+	CommitFiles    KeybindingCommitFilesConfig    `yaml:"commitFiles"`
+	Main           KeybindingMainConfig           `yaml:"main"`
+	Submodules     KeybindingSubmodulesConfig     `yaml:"submodules"`
+	CommitMessage  KeybindingCommitMessageConfig  `yaml:"commitMessage"`
 }
 
 // damn looks like we have some inconsistencies here with -alt and -alt1
@@ -436,6 +448,12 @@ type KeybindingCommitsConfig struct {
 	StartInteractiveRebase         string `yaml:"startInteractiveRebase"`
 }
 
+type KeybindingAmendAttributeConfig struct {
+	ResetAuthor string `yaml:"resetAuthor"`
+	SetAuthor   string `yaml:"setAuthor"`
+	AddCoAuthor string `yaml:"addCoAuthor"`
+}
+
 type KeybindingStashConfig struct {
 	PopStash    string `yaml:"popStash"`
 	RenameStash string `yaml:"renameStash"`
@@ -458,7 +476,7 @@ type KeybindingSubmodulesConfig struct {
 }
 
 type KeybindingCommitMessageConfig struct {
-	SwitchToEditor string `yaml:"switchToEditor"`
+	CommitMenu string `yaml:"commitMenu"`
 }
 
 // OSConfig contains config on the level of the os
@@ -649,6 +667,7 @@ func GetDefaultConfig() *UserConfig {
 			Border:                    "rounded",
 			AnimateExplosion:          true,
 			PortraitMode:              "auto",
+			FilterMode:                "substring",
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{
@@ -658,7 +677,9 @@ func GetDefaultConfig() *UserConfig {
 				ExternalDiffCommand: "",
 			},
 			Commit: CommitConfig{
-				SignOff: false,
+				SignOff:               false,
+				AutoWrapCommitMessage: true,
+				AutoWrapWidth:         72,
 			},
 			Merging: MergingConfig{
 				ManualCommit: false,
@@ -830,6 +851,11 @@ func GetDefaultConfig() *UserConfig {
 				ViewBisectOptions:              "b",
 				StartInteractiveRebase:         "i",
 			},
+			AmendAttribute: KeybindingAmendAttributeConfig{
+				ResetAuthor: "a",
+				SetAuthor:   "A",
+				AddCoAuthor: "c",
+			},
 			Stash: KeybindingStashConfig{
 				PopStash:    "g",
 				RenameStash: "r",
@@ -848,7 +874,7 @@ func GetDefaultConfig() *UserConfig {
 				BulkMenu: "b",
 			},
 			CommitMessage: KeybindingCommitMessageConfig{
-				SwitchToEditor: "<c-o>",
+				CommitMenu: "<c-o>",
 			},
 		},
 		OS:                           OSConfig{},

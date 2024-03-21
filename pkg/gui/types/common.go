@@ -309,6 +309,7 @@ const (
 	ItemOperationFastForwarding
 	ItemOperationDeleting
 	ItemOperationFetching
+	ItemOperationCheckingOut
 )
 
 type HasUrn interface {

@@ -254,8 +254,13 @@ func (gui *Gui) onInitialViewsCreation() error {
 		storedPopupVersion := gui.c.GetAppState().StartupPopupVersion
 		if storedPopupVersion < StartupPopupVersion {
 			gui.showIntroPopupMessage()
+		} else {
+			gui.showBreakingChangesMessage()
 		}
 	}
+
+	gui.c.GetAppState().LastVersion = gui.Config.GetVersion()
+	gui.c.SaveAppStateAndLogError()
 
 	if gui.showRecentRepos {
 		if err := gui.helpers.Repos.CreateRecentReposMenu(); err != nil {
