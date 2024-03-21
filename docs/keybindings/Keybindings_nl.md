@@ -151,7 +151,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` i `` | Start interactive rebase | Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.
 If you would instead like to start an interactive rebase from the selected commit, press `e`. |
 | `` p `` | Pick | Kies commit (wanneer midden in rebase) |
-| `` F `` | Create fixup commit | Creëer fixup commit |
+| `` F `` | Creëer fixup commit | Creëer fixup commit |
 | `` S `` | Apply fixup commits | Squash bovenstaande commits |
 | `` <c-j> `` | Verplaats commit 1 naar beneden |  |
 | `` <c-k> `` | Verplaats commit 1 naar boven |  |

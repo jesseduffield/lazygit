@@ -214,7 +214,7 @@ func dutchTranslationSet() TranslationSet {
 		DiscardUntrackedFiles:           "Negeer niet-gevonden bestanden",
 		ViewResetOptions:                `Bekijk reset opties`,
 		HardReset:                       "Harde reset",
-		CreateFixupCommit:               `Creëer fixup commit voor deze commit`,
+		CreateFixupCommit:               `Creëer fixup commit`,
 		SquashAboveCommitsTooltip:       `Squash bovenstaande commits`,
 		CreateFixupCommitTooltip:        `Creëer fixup commit`,
 		SureCreateFixupCommit:           `Weet je zeker dat je een fixup wil maken! commit voor commit {{.commit}}?`,

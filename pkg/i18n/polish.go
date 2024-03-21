@@ -381,7 +381,6 @@ func polishTranslationSet() TranslationSet {
 		ViewResetOptions:                    `Reset`,
 		FileResetOptionsTooltip:             "Wyświetl opcje resetu dla drzewa roboczego (np. zniszczenie drzewa roboczego).",
 		FixupTooltip:                        "Włącz wybrany commit do commita poniżej. Podobnie do fixup, ale wiadomość wybranego commita zostanie odrzucona.",
-		CreateFixupCommitDescription:        `Utwórz commit fixup`,
 		CreateFixupCommitTooltip:            "Utwórz commit 'fixup!' dla wybranego commita. Później możesz nacisnąć `{{.squashAbove}}` na tym samym commicie, aby zastosować wszystkie powyższe commity fixup.",
 		SquashAboveCommits:                  "Zastosuj commity fixup",
 		SquashAboveCommitsTooltip:           `Scal wszystkie commity 'fixup!', albo powyżej wybranego commita, albo wszystkie w bieżącej gałęzi (autosquash).`,

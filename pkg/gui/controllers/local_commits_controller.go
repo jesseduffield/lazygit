@@ -157,7 +157,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Key:               opts.GetKey(opts.Config.Commits.CreateFixupCommit),
 			Handler:           self.withItem(self.createFixupCommit),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.CreateFixupCommitDescription,
+			Description:       self.c.Tr.CreateFixupCommit,
 			Tooltip: utils.ResolvePlaceholderString(
 				self.c.Tr.CreateFixupCommitTooltip,
 				map[string]string{

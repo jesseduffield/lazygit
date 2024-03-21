@@ -391,7 +391,6 @@ type TranslationSet struct {
 	ViewResetOptions                      string
 	FileResetOptionsTooltip               string
 	CreateFixupCommit                     string
-	CreateFixupCommitDescription          string
 	CreateFixupCommitTooltip              string
 	SquashAboveCommitsTooltip             string
 	SquashCommitsAboveSelectedTooltip     string
@@ -1355,7 +1354,7 @@ func EnglishTranslationSet() TranslationSet {
 		ViewResetOptions:                    `Reset`,
 		FileResetOptionsTooltip:             "View reset options for working tree (e.g. nuking the working tree).",
 		FixupTooltip:                        "Meld the selected commit into the commit below it. Similar to fixup, but the selected commit's message will be discarded.",
-		CreateFixupCommitDescription:        `Create fixup commit`,
+		CreateFixupCommit:                   "Create fixup commit",
 		CreateFixupCommitTooltip:            "Create 'fixup!' commit for the selected commit. Later on, you can press `{{.squashAbove}}` on this same commit to apply all above fixup commits.",
 		SquashAboveCommits:                  "Apply fixup commits",
 		SquashAboveCommitsTooltip:           `Squash all 'fixup!' commits, either above the selected commit, or all in current branch (autosquash).`,
@@ -1364,7 +1363,6 @@ func EnglishTranslationSet() TranslationSet {
 		SquashCommitsInCurrentBranch:        "In current branch",
 		SquashCommitsAboveSelectedCommit:    "Above the selected commit",
 		CannotSquashCommitsInCurrentBranch:  "Cannot squash commits in current branch: the HEAD commit is a merge commit or is present on the main branch.",
-		CreateFixupCommit:                   `Create fixup commit`,
 		SureCreateFixupCommit:               `Are you sure you want to create a fixup! commit for commit {{.commit}}?`,
 		ExecuteCustomCommand:                "Execute custom command",
 		ExecuteCustomCommandTooltip:         "Bring up a prompt where you can enter a shell command to execute. Not to be confused with pre-configured custom commands.",

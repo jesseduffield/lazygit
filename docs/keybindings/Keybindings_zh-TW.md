@@ -174,7 +174,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` i `` | Start interactive rebase | Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.
 If you would instead like to start an interactive rebase from the selected commit, press `e`. |
 | `` p `` | Pick | 挑選提交 (於變基過程中) |
-| `` F `` | Create fixup commit | 為此提交建立修復提交 |
+| `` F `` | 建立修復提交 | 為此提交建立修復提交 |
 | `` S `` | 壓縮上方所有「fixup」提交（自動壓縮） | 是否壓縮上方 {{.commit}} 所有「fixup」提交？ |
 | `` <c-j> `` | 向下移動提交 |  |
 | `` <c-k> `` | 向上移動提交 |  |
