@@ -231,6 +231,8 @@ func mainSectionChildren(args WindowArrangementArgs) []*boxlayout.Box {
 func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
 	// we originally specified this as a ratio i.e. .20 would correspond to a weight of 1 against 4
 	sidePanelWidthRatio := args.UserConfig.Gui.SidePanelWidth
+	halfsidePanelWidthRatio := args.UserConfig.Gui.HalfSidePanelWidth
+	tallsidePanelWidthRatio := args.UserConfig.Gui.TallSidePanelWidth
 	// we could make this better by creating ratios like 2:3 rather than always 1:something
 	mainSectionWeight := int(1/sidePanelWidthRatio) - 1
 	sideSectionWeight := 1
@@ -246,9 +248,9 @@ func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
 	} else {
 		if args.ScreenMode == types.SCREEN_HALF {
 			if args.UserConfig.Gui.EnlargedSideViewLocation == "top" {
-				mainSectionWeight = 2
+				mainSectionWeight = int(1/tallsidePanelWidthRatio) - 1
 			} else {
-				mainSectionWeight = 1
+				mainSectionWeight = int(1/halfsidePanelWidthRatio) - 1
 			}
 		} else if args.ScreenMode == types.SCREEN_FULL {
 			mainSectionWeight = 0
