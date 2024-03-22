@@ -25,9 +25,9 @@ var SquashFixupsAboveFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit 01")).
 			Press(keys.Commits.CreateFixupCommit).
 			Tap(func() {
-				t.ExpectPopup().Confirmation().
+				t.ExpectPopup().Menu().
 					Title(Equals("Create fixup commit")).
-					Content(Contains("Are you sure you want to create a fixup! commit for commit")).
+					Select(Contains("fixup! commit")).
 					Confirm()
 			}).
 			NavigateToLine(Contains("commit 01").DoesNotContain("fixup!")).

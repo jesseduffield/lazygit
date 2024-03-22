@@ -297,6 +297,21 @@ func (self *CommitCommands) CreateFixupCommit(sha string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// CreateAmendCommit creates a commit that changes the commit message of a previous commit
+func (self *CommitCommands) CreateAmendCommit(originalSubject, newSubject, newDescription string, includeFileChanges bool) error {
+	description := newSubject
+	if newDescription != "" {
+		description += "\n\n" + newDescription
+	}
+	cmdArgs := NewGitCmd("commit").
+		Arg("-m", "amend! "+originalSubject).
+		Arg("-m", description).
+		ArgIf(!includeFileChanges, "--only", "--allow-empty").
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
 // a value of 0 means the head commit, 1 is the parent commit, etc
 func (self *CommitCommands) GetCommitMessageFromHistory(value int) (string, error) {
 	cmdArgs := NewGitCmd("log").Arg("-1", fmt.Sprintf("--skip=%d", value), "--pretty=%H").

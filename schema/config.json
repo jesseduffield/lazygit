@@ -559,6 +559,11 @@
           "additionalProperties": false,
           "type": "object",
           "description": "Config for showing the log in the commits view"
+        },
+        "truncateCopiedCommitHashesTo": {
+          "type": "integer",
+          "description": "When copying commit hashes to the clipboard, truncate them to this\nlength. Set to 40 to disable truncation.",
+          "default": 12
         }
       },
       "additionalProperties": false,

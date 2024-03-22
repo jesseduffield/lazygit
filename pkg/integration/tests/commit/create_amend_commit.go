@@ -1,12 +1,12 @@
-package interactive_rebase
+package commit
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var SquashFixupsAbove = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Squashes all fixups above a commit and checks that the selected line stays correct.",
+var CreateAmendCommit = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Create an amend commit for an existing commit",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -28,29 +28,33 @@ var SquashFixupsAbove = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Create fixup commit")).
-					Select(Contains("fixup! commit")).
+					Select(Contains("amend! commit with changes")).
 					Confirm()
+				t.ExpectPopup().CommitMessagePanel().
+					Content(Equals("commit 02")).
+					Type(" amended").Confirm()
 			}).
 			Lines(
-				Contains("fixup! commit 02"),
-				Contains("commit 03"),
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01"),
-			).
-			Press(keys.Commits.SquashAboveCommits).
-			Tap(func() {
-				t.ExpectPopup().Menu().
-					Title(Equals("Apply fixup commits")).
-					Select(Contains("Above the selected commit")).
-					Confirm()
-			}).
-			Lines(
+				Contains("amend! commit 02"),
 				Contains("commit 03"),
 				Contains("commit 02").IsSelected(),
 				Contains("commit 01"),
 			)
 
-		t.Views().Main().
-			Content(Contains("fixup content"))
+		if t.Git().Version().IsAtLeast(2, 32, 0) { // Support for auto-squashing "amend!" commits was added in git 2.32.0
+			t.Views().Commits().
+				Press(keys.Commits.SquashAboveCommits).
+				Tap(func() {
+					t.ExpectPopup().Menu().
+						Title(Equals("Apply fixup commits")).
+						Select(Contains("Above the selected commit")).
+						Confirm()
+				}).
+				Lines(
+					Contains("commit 03"),
+					Contains("commit 02 amended").IsSelected(),
+					Contains("commit 01"),
+				)
+		}
 	},
 })

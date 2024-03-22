@@ -12,16 +12,9 @@ func isWSL() bool {
 
 func isContainer() bool {
 	data, err := os.ReadFile("/proc/1/cgroup")
-
-	if strings.Contains(string(data), "docker") ||
+	return err == nil && (strings.Contains(string(data), "docker") ||
 		strings.Contains(string(data), "/lxc/") ||
-		[]string{string(data)}[0] != "systemd" &&
-			[]string{string(data)}[0] != "init" ||
-		os.Getenv("container") != "" {
-		return err == nil && true
-	}
-
-	return err == nil && false
+		os.Getenv("CONTAINER") != "")
 }
 
 // GetPlatformDefaultConfig gets the defaults for the platform

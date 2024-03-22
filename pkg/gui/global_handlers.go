@@ -110,6 +110,15 @@ func (gui *Gui) scrollDownConfirmationPanel() error {
 }
 
 func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
+	return gui.handleCopySelectedSideContextItemToClipboardWithTruncation(-1)
+}
+
+func (gui *Gui) handleCopySelectedSideContextItemCommitHashToClipboard() error {
+	return gui.handleCopySelectedSideContextItemToClipboardWithTruncation(
+		gui.UserConfig.Git.TruncateCopiedCommitHashesTo)
+}
+
+func (gui *Gui) handleCopySelectedSideContextItemToClipboardWithTruncation(maxWidth int) error {
 	// important to note that this assumes we've selected an item in a side context
 	currentSideContext := gui.c.CurrentSideContext()
 	if currentSideContext == nil {
@@ -125,6 +134,10 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 
 	if itemId == "" {
 		return nil
+	}
+
+	if maxWidth > 0 {
+		itemId = itemId[:utils.Min(len(itemId), maxWidth)]
 	}
 
 	gui.c.LogAction(gui.c.Tr.Actions.CopyToClipboard)

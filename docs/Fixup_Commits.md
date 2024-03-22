@@ -27,6 +27,19 @@ creates a commit with the appropriate subject line.
 Don't confuse this with the lowercase "f" command ("Fixup commit"); that one
 squashes the selected commit into its parent, this is not what we want here.
 
+## Creating amend commits
+
+There's a special type of fixup commit that uses "amend!" instead of "fixup!" in
+the commit message subject; in addition to fixing up the original commit with
+changes it allows you to also (or only) change the commit message of the
+original commit. The menu that appears when pressing shift-F has options for
+both of these; they bring up a commit message panel similar to when you reword a
+commit, but then create the "amend!" commit containing the new message. Note
+that in that panel you only type the new message as you want it to be
+eventually; lazygit then takes care of formatting the "amend!" commit
+appropriately for you (with the subject of your new message moving into the body
+of the "amend!" commit).
+
 ## Squashing fixup commits
 
 When you're ready to merge the branch and want to squash all these fixup commits

@@ -177,9 +177,9 @@ func TestEditFileCmdStrLegacy(t *testing.T) {
 	}
 }
 
-func TestEditFileCmd(t *testing.T) {
+func TestEditFilesCmd(t *testing.T) {
 	type scenario struct {
-		filename       string
+		filenames      []string
 		osConfig       config.OSConfig
 		expectedCmdStr string
 		suspend        bool
@@ -187,13 +187,13 @@ func TestEditFileCmd(t *testing.T) {
 
 	scenarios := []scenario{
 		{
-			filename:       "test",
+			filenames:      []string{"test"},
 			osConfig:       config.OSConfig{},
 			expectedCmdStr: `vim -- "test"`,
 			suspend:        true,
 		},
 		{
-			filename: "test",
+			filenames: []string{"test"},
 			osConfig: config.OSConfig{
 				Edit: "nano {{filename}}",
 			},
@@ -201,11 +201,19 @@ func TestEditFileCmd(t *testing.T) {
 			suspend:        true,
 		},
 		{
-			filename: "file/with space",
+			filenames: []string{"file/with space"},
 			osConfig: config.OSConfig{
 				EditPreset: "sublime",
 			},
 			expectedCmdStr: `subl -- "file/with space"`,
+			suspend:        false,
+		},
+		{
+			filenames: []string{"multiple", "files"},
+			osConfig: config.OSConfig{
+				EditPreset: "sublime",
+			},
+			expectedCmdStr: `subl -- "multiple" "files"`,
 			suspend:        false,
 		},
 	}
@@ -218,7 +226,7 @@ func TestEditFileCmd(t *testing.T) {
 			userConfig: userConfig,
 		})
 
-		cmdStr, suspend := instance.GetEditCmdStr(s.filename)
+		cmdStr, suspend := instance.GetEditCmdStr(s.filenames)
 		assert.Equal(t, s.expectedCmdStr, cmdStr)
 		assert.Equal(t, s.suspend, suspend)
 	}
