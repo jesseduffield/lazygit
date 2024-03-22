@@ -311,7 +311,6 @@ func RussianTranslationSet() TranslationSet {
 		CreateFixupCommitTooltip:         `Создать fixup коммит для этого коммита`,
 		SquashAboveCommitsTooltip:        `Объединить все 'fixup!' коммиты выше в выбранный коммит (автосохранение)`,
 		CreateFixupCommit:                `Создать fixup коммит`,
-		SureCreateFixupCommit:            `Вы уверены, что хотите создать fixup! коммит для коммита {{.commit}}?`,
 		ExecuteCustomCommand:             "Выполнить пользовательскую команду",
 		CustomCommand:                    "Пользовательская Команда:",
 		CommitChangesWithoutHook:         "Закоммитить изменения без предварительного хука коммита",

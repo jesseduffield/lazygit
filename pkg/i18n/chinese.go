@@ -254,7 +254,6 @@ func chineseTranslationSet() TranslationSet {
 		CreateFixupCommit:              `为此提交创建修正`,
 		SquashAboveCommitsTooltip:      `压缩在所选提交之上的所有“fixup!”提交（自动压缩）`,
 		CreateFixupCommitTooltip:       `创建修正提交`,
-		SureCreateFixupCommit:          `您确定要对 {{.commit}} 创建修正提交吗？`,
 		ExecuteCustomCommand:           "执行自定义命令",
 		CustomCommand:                  "自定义命令：",
 		CommitChangesWithoutHook:       "提交更改而无需预先提交钩子",

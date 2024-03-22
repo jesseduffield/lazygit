@@ -152,7 +152,7 @@ _Связки клавиш_
 | `` i `` | Start interactive rebase | Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.
 If you would instead like to start an interactive rebase from the selected commit, press `e`. |
 | `` p `` | Pick | Выбрать коммит (в середине перебазирования) |
-| `` F `` | Create fixup commit | Создать fixup коммит для этого коммита |
+| `` F `` | Создать fixup коммит | Создать fixup коммит для этого коммита |
 | `` S `` | Apply fixup commits | Объединить все 'fixup!' коммиты выше в выбранный коммит (автосохранение) |
 | `` <c-j> `` | Переместить коммит вниз на один |  |
 | `` <c-k> `` | Переместить коммит вверх на один |  |

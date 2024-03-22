@@ -149,7 +149,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` i `` | Start interactive rebase | Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.
 If you would instead like to start an interactive rebase from the selected commit, press `e`. |
 | `` p `` | Pick | 选择提交（变基过程中） |
-| `` F `` | Create fixup commit | 创建修正提交 |
+| `` F `` | 为此提交创建修正 | 创建修正提交 |
 | `` S `` | Apply fixup commits | 压缩在所选提交之上的所有“fixup!”提交（自动压缩） |
 | `` <c-j> `` | 下移提交 |  |
 | `` <c-k> `` | 上移提交 |  |
