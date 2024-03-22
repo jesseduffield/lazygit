@@ -1775,7 +1775,7 @@ func EnglishTranslationSet() TranslationSet {
 			CopyCommitMessageToClipboard:   "Copy commit message to clipboard",
 			CopyCommitSubjectToClipboard:   "Copy commit subject to clipboard",
 			CopyCommitDiffToClipboard:      "Copy commit diff to clipboard",
-			CopyCommitSHAToClipboard:       "Copy commit SHA to clipboard",
+			CopyCommitSHAToClipboard:       "Copy full commit SHA to clipboard",
 			CopyCommitURLToClipboard:       "Copy commit URL to clipboard",
 			CopyCommitAuthorToClipboard:    "Copy commit author to clipboard",
 			CopyCommitAttributeToClipboard: "Copy to clipboard",
