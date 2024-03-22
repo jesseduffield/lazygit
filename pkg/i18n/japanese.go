@@ -423,7 +423,6 @@ func japaneseTranslationSet() TranslationSet {
 		// PushingTagStatus:                    "Pushing tag",
 		PullRequestURLCopiedToClipboard:     "Pull requestのURLがクリップボードにコピーされました",
 		CommitDiffCopiedToClipboard:         "コミットの差分がクリップボードにコピーされました",
-		CommitSHACopiedToClipboard:          "コミットのSHAがクリップボードにコピーされました",
 		CommitURLCopiedToClipboard:          "コミットのURLがクリップボードにコピーされました",
 		CommitMessageCopiedToClipboard:      "コミットメッセージがクリップボードにコピーされました",
 		CommitAuthorCopiedToClipboard:       "コミットの作成者名がクリップボードにコピーされました",

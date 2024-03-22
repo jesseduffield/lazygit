@@ -417,7 +417,6 @@ func koreanTranslationSet() TranslationSet {
 		PushingTagStatus:                    "Pushing tag",
 		PullRequestURLCopiedToClipboard:     "풀 리퀘스트의 URL을 클립보드에 복사했습니다.",
 		CommitDiffCopiedToClipboard:         "커밋의 Diff를 클립보드에 복사했습니다.",
-		CommitSHACopiedToClipboard:          "커밋의 SHA를 클립보드에 복사했습니다.",
 		CommitURLCopiedToClipboard:          "커밋의 URL를 클립보드에 복사했습니다.",
 		CommitMessageCopiedToClipboard:      "커밋 메시지를 클립보드에 복사했습니다.",
 		CommitAuthorCopiedToClipboard:       "커밋 작성자를 클립보드에 복사했습니다.",

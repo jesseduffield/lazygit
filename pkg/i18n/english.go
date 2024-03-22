@@ -635,7 +635,6 @@ type TranslationSet struct {
 	PushingTagStatus                     string
 	PullRequestURLCopiedToClipboard      string
 	CommitDiffCopiedToClipboard          string
-	CommitSHACopiedToClipboard           string
 	CommitURLCopiedToClipboard           string
 	CommitMessageCopiedToClipboard       string
 	CommitSubjectCopiedToClipboard       string
@@ -1599,7 +1598,6 @@ func EnglishTranslationSet() TranslationSet {
 		PushingTagStatus:                      "Pushing tag",
 		PullRequestURLCopiedToClipboard:       "Pull request URL copied to clipboard",
 		CommitDiffCopiedToClipboard:           "Commit diff copied to clipboard",
-		CommitSHACopiedToClipboard:            "Commit SHA copied to clipboard",
 		CommitURLCopiedToClipboard:            "Commit URL copied to clipboard",
 		CommitMessageCopiedToClipboard:        "Commit message copied to clipboard",
 		CommitSubjectCopiedToClipboard:        "Commit subject copied to clipboard",

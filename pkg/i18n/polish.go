@@ -611,7 +611,6 @@ func polishTranslationSet() TranslationSet {
 		PushingTagStatus:                      "Wysyłanie tagu",
 		PullRequestURLCopiedToClipboard:       "URL żądania ściągnięcia skopiowany do schowka",
 		CommitDiffCopiedToClipboard:           "Różnice commita skopiowane do schowka",
-		CommitSHACopiedToClipboard:            "SHA commita skopiowany do schowka",
 		CommitURLCopiedToClipboard:            "URL commita skopiowany do schowka",
 		CommitMessageCopiedToClipboard:        "Wiadomość commita skopiowana do schowka",
 		CommitSubjectCopiedToClipboard:        "Temat commita skopiowany do schowka",

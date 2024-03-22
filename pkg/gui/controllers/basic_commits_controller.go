@@ -175,7 +175,7 @@ func (self *BasicCommitsController) copyCommitSHAToClipboard(commit *models.Comm
 		return self.c.Error(err)
 	}
 
-	self.c.Toast(self.c.Tr.CommitSHACopiedToClipboard)
+	self.c.Toast(fmt.Sprintf("'%s' %s", commit.Sha, self.c.Tr.CopiedToClipboard))
 	return nil
 }
 
