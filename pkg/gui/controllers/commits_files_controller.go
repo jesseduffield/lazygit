@@ -65,8 +65,8 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Edit),
-			Handler:           self.withItem(self.edit),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			Handler:           self.withItems(self.edit),
+			GetDisabledReason: self.require(self.itemsSelected(self.canEditFiles)),
 			Description:       self.c.Tr.Edit,
 			Tooltip:           self.c.Tr.EditFileTooltip,
 			DisplayOnScreen:   true,
@@ -230,12 +230,22 @@ func (self *CommitFilesController) open(node *filetree.CommitFileNode) error {
 	return self.c.Helpers().Files.OpenFile(node.GetPath())
 }
 
-func (self *CommitFilesController) edit(node *filetree.CommitFileNode) error {
-	if node.File == nil {
-		return self.c.ErrorMsg(self.c.Tr.ErrCannotEditDirectory)
+func (self *CommitFilesController) edit(nodes []*filetree.CommitFileNode) error {
+	return self.c.Helpers().Files.EditFiles(lo.FilterMap(nodes,
+		func(node *filetree.CommitFileNode, _ int) (string, bool) {
+			return node.GetPath(), node.IsFile()
+		}))
+}
+
+func (self *CommitFilesController) canEditFiles(nodes []*filetree.CommitFileNode) *types.DisabledReason {
+	if lo.NoneBy(nodes, func(node *filetree.CommitFileNode) bool { return node.IsFile() }) {
+		return &types.DisabledReason{
+			Text:             self.c.Tr.ErrCannotEditDirectory,
+			ShowErrorInPanel: true,
+		}
 	}
 
-	return self.c.Helpers().Files.EditFile(node.GetPath())
+	return nil
 }
 
 func (self *CommitFilesController) openDiffTool(node *filetree.CommitFileNode) error {

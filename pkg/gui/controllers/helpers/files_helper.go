@@ -2,10 +2,12 @@ package helpers
 
 import (
 	"path/filepath"
+
+	"github.com/samber/lo"
 )
 
 type IFilesHelper interface {
-	EditFile(filename string) error
+	EditFiles(filenames []string) error
 	EditFileAtLine(filename string, lineNumber int) error
 	OpenFile(filename string) error
 }
@@ -22,12 +24,15 @@ func NewFilesHelper(c *HelperCommon) *FilesHelper {
 
 var _ IFilesHelper = &FilesHelper{}
 
-func (self *FilesHelper) EditFile(filename string) error {
-	absPath, err := filepath.Abs(filename)
-	if err != nil {
-		return err
-	}
-	cmdStr, suspend := self.c.Git().File.GetEditCmdStr(absPath)
+func (self *FilesHelper) EditFiles(filenames []string) error {
+	absPaths := lo.Map(filenames, func(filename string, _ int) string {
+		absPath, err := filepath.Abs(filename)
+		if err != nil {
+			return filename
+		}
+		return absPath
+	})
+	cmdStr, suspend := self.c.Git().File.GetEditCmdStr(absPaths)
 	return self.callEditor(cmdStr, suspend)
 }
 
