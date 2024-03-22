@@ -824,7 +824,7 @@ func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error { //nolint:unpara
 	subprocess.Stderr = io.Discard
 	subprocess.Stdin = nil
 
-	if gui.Config.GetUserConfig().PromptToReturnFromSubprocess {
+	if gui.integrationTest == nil && (gui.Config.GetUserConfig().PromptToReturnFromSubprocess || err != nil) {
 		fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint(gui.Tr.PressEnterToReturn))
 
 		// scan to buffer to prevent run unintentional operations when TUI resumes.
