@@ -214,6 +214,9 @@ type GitConfig struct {
 	ParseEmoji bool `yaml:"parseEmoji"`
 	// Config for showing the log in the commits view
 	Log LogConfig `yaml:"log"`
+	// When copying commit hashes to the clipboard, truncate them to this
+	// length. Set to 40 to disable truncation.
+	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
 }
 
 type PagerType string
@@ -690,16 +693,17 @@ func GetDefaultConfig() *UserConfig {
 				ShowGraph:      "always",
 				ShowWholeGraph: false,
 			},
-			SkipHookPrefix:      "WIP",
-			MainBranches:        []string{"master", "main"},
-			AutoFetch:           true,
-			AutoRefresh:         true,
-			FetchAll:            true,
-			BranchLogCmd:        "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
-			AllBranchesLogCmd:   "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
-			DisableForcePushing: false,
-			CommitPrefixes:      map[string]CommitPrefixConfig(nil),
-			ParseEmoji:          false,
+			SkipHookPrefix:               "WIP",
+			MainBranches:                 []string{"master", "main"},
+			AutoFetch:                    true,
+			AutoRefresh:                  true,
+			FetchAll:                     true,
+			BranchLogCmd:                 "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
+			AllBranchesLogCmd:            "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
+			DisableForcePushing:          false,
+			CommitPrefixes:               map[string]CommitPrefixConfig(nil),
+			ParseEmoji:                   false,
+			TruncateCopiedCommitHashesTo: 12,
 		},
 		Refresher: RefresherConfig{
 			RefreshInterval: 10,

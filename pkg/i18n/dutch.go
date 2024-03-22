@@ -319,7 +319,7 @@ func dutchTranslationSet() TranslationSet {
 		BranchNotFoundPrompt:            "Branch niet gevonden. Creëer een nieuwe branch genaamd",
 		PullRequestURLCopiedToClipboard: "Pull-aanvraag-URL gekopieerd naar klembord",
 		CommitMessageCopiedToClipboard:  "Commit message gekopieerd naar klembord",
-		CopiedToClipboard:               "Gekopieerd naar klembord",
+		CopiedToClipboard:               "gekopieerd naar klembord",
 		NavigationTitle:                 "Lijstpaneel navigatie",
 		ViewCommits:                     "Bekijk commits",
 		ToggleTreeView:                  "Toggle bestandsboom weergave",

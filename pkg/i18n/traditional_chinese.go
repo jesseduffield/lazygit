@@ -511,7 +511,6 @@ func traditionalChineseTranslationSet() TranslationSet {
 		PushingTagStatus:                    "正在推送標籤",
 		PullRequestURLCopiedToClipboard:     "複製拉取請求 URL 至剪貼簿",
 		CommitDiffCopiedToClipboard:         "已複製提交差異至剪貼簿",
-		CommitSHACopiedToClipboard:          "已複製提交 SHA 至剪貼簿",
 		CommitURLCopiedToClipboard:          "已複製提交 URL 至剪貼簿",
 		CommitMessageCopiedToClipboard:      "已複製提交訊息至剪貼簿",
 		CommitAuthorCopiedToClipboard:       "已複製提交者至剪貼簿",

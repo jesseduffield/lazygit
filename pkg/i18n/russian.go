@@ -480,7 +480,6 @@ func RussianTranslationSet() TranslationSet {
 		PushingTagStatus:                    "Отправка тега",
 		PullRequestURLCopiedToClipboard:     "URL запроса на принятие изменений скопирован в буфер обмена",
 		CommitDiffCopiedToClipboard:         "Сравнения коммита скопированы в буфер обмена",
-		CommitSHACopiedToClipboard:          "SHA коммита скопировано в буфер обмена",
 		CommitURLCopiedToClipboard:          "URL коммита скопирован в буфер обмена",
 		CommitMessageCopiedToClipboard:      "Сообщение коммита скопировано в буфер обмена",
 		CommitSubjectCopiedToClipboard:      "Тема коммита скопирована в буфер обмена",
