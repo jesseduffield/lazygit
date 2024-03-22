@@ -616,7 +616,7 @@ func polishTranslationSet() TranslationSet {
 		CommitSubjectCopiedToClipboard:        "Temat commita skopiowany do schowka",
 		CommitAuthorCopiedToClipboard:         "Autor commita skopiowany do schowka",
 		PatchCopiedToClipboard:                "Łatka skopiowana do schowka",
-		CopiedToClipboard:                     "Skopiowane do schowka",
+		CopiedToClipboard:                     "skopiowane do schowka",
 		ErrCannotEditDirectory:                "Nie można edytować katalogu: można edytować tylko pojedyncze pliki",
 		ErrStageDirWithInlineMergeConflicts:   "Nie można przygotować/odprzygotować katalogu zawierającego pliki z konfliktami scalania w linii. Proszę najpierw rozwiązać konflikty scalania",
 		ErrRepositoryMovedOrDeleted:           "Nie można znaleźć repozytorium. Mogło zostać przeniesione lub usunięte ¯\\_(ツ)_/¯",

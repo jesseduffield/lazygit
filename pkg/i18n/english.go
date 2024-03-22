@@ -1603,7 +1603,7 @@ func EnglishTranslationSet() TranslationSet {
 		CommitSubjectCopiedToClipboard:        "Commit subject copied to clipboard",
 		CommitAuthorCopiedToClipboard:         "Commit author copied to clipboard",
 		PatchCopiedToClipboard:                "Patch copied to clipboard",
-		CopiedToClipboard:                     "Copied to clipboard",
+		CopiedToClipboard:                     "copied to clipboard",
 		ErrCannotEditDirectory:                "Cannot edit directories: you can only edit individual files",
 		ErrStageDirWithInlineMergeConflicts:   "Cannot stage/unstage directory containing files with inline merge conflicts. Please fix up the merge conflicts first",
 		ErrRepositoryMovedOrDeleted:           "Cannot find repo. It might have been moved or deleted ¯\\_(ツ)_/¯",
