@@ -157,6 +157,7 @@ var tests = []*components.IntegrationTest{
 	filter_by_author.SelectAuthor,
 	filter_by_author.TypeAuthor,
 	filter_by_path.CliArg,
+	filter_by_path.KeepSameCommitSelectedOnExit,
 	filter_by_path.SelectFile,
 	filter_by_path.TypeFile,
 	interactive_rebase.AdvancedInteractiveRebase,

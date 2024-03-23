@@ -109,6 +109,8 @@ func (self *FilteringMenuAction) setFilteringAuthor(author string) error {
 }
 
 func (self *FilteringMenuAction) setFiltering() error {
+	self.c.Modes().Filtering.SetSelectedCommitHash(self.c.Contexts().LocalCommits.GetSelectedCommitHash())
+
 	repoState := self.c.State().GetRepoState()
 	if repoState.GetScreenMode() == types.SCREEN_NORMAL {
 		repoState.SetScreenMode(types.SCREEN_HALF)
