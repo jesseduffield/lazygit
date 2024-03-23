@@ -13,6 +13,15 @@
 </a>
 <br>
 <hr>
+<a href="https://www.warp.dev/?utm_source=github&utm_medium=referral&utm_campaign=lazygit_20231023">
+  <div>
+    <img src="https://zenbu-marketing-portal-media-storage.s3.amazonaws.com/images/black-name-logo.svg" width="230" alt="Zenbu">
+  </div>
+  <b>I co-founded Zenbu to help companies manage their SaaS subscriptions so they can save time and money. Check it out!</b>
+</a>
+<br>
+
+<hr>
 </div>
 
 <p align="center">
