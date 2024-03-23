@@ -13,7 +13,7 @@
 </a>
 <br>
 <hr>
-<a href="https://www.warp.dev/?utm_source=github&utm_medium=referral&utm_campaign=lazygit_20231023">
+<a href="https://zenbu.au/">
   <div>
     <img src="https://zenbu-marketing-portal-media-storage.s3.amazonaws.com/images/black-name-logo.svg" width="230" alt="Zenbu">
   </div>
