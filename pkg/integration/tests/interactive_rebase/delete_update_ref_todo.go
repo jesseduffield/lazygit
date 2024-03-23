@@ -57,7 +57,7 @@ var DeleteUpdateRefTodo = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("CI ◯ commit 06"),
 				Contains("CI ◯ commit 05"),
 				Contains("CI ◯ commit 04"),
-				Contains("CI ◯ commit 03"), // No start on this commit, so there's no branch head here
+				Contains("CI ◯ commit 03"), // No star on this commit, so there's no branch head here
 				Contains("CI ◯ commit 02"),
 				Contains("CI ◯ commit 01"),
 			)
