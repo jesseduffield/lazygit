@@ -66,9 +66,7 @@ var DeleteUpdateRefTodo = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Branches().
 			Lines(
 				Contains("branch2"),
-				/* branch1 was deleted, which is wrong:
 				Contains("branch1"),
-				*/
 			)
 	},
 })
