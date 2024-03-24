@@ -217,7 +217,7 @@ func (self *StatusController) showDashboard() error {
 	dashboardString := strings.Join(
 		[]string{
 			lazygitTitle(),
-			"Copyright 2022 Jesse Duffield",
+			fmt.Sprintf("Copyright %d Jesse Duffield", time.Now().Year()),
 			fmt.Sprintf("Keybindings: %s", style.AttrUnderline.Sprint(fmt.Sprintf(constants.Links.Docs.Keybindings, versionStr))),
 			fmt.Sprintf("Config Options: %s", style.AttrUnderline.Sprint(fmt.Sprintf(constants.Links.Docs.Config, versionStr))),
 			fmt.Sprintf("Tutorial: %s", style.AttrUnderline.Sprint(constants.Links.Docs.Tutorial)),
