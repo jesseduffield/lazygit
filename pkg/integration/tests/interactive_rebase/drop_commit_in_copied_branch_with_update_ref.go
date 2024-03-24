@@ -38,7 +38,7 @@ var DropCommitInCopiedBranchWithUpdateRef = NewIntegrationTest(NewIntegrationTes
 					Confirm()
 			}).
 			Lines(
-				Contains("CI * commit 03"), // don't want a star here because branch1 should no longer be pointing to it
+				Contains("CI commit 03"), // no start on this commit because branch1 is no longer pointing to it
 				Contains("CI commit 01"),
 			)
 
@@ -48,7 +48,8 @@ var DropCommitInCopiedBranchWithUpdateRef = NewIntegrationTest(NewIntegrationTes
 			PressPrimaryAction()
 
 		t.Views().Commits().Lines(
-			Contains("CI * commit 03"), // branch1 has changed like branch2, but shouldn't have
+			Contains("CI commit 03"),
+			Contains("CI commit 02"),
 			Contains("CI commit 01"),
 		)
 	},

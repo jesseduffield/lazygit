@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/samber/lo"
@@ -260,6 +261,31 @@ func moveFixupCommitDown(todos []todo.Todo, originalHash string, fixupHash strin
 	newTodos[originalIndex+1].Command = todo.Fixup
 
 	return newTodos, nil
+}
+
+func RemoveUpdateRefsForCopiedBranch(fileName string, commentChar byte) error {
+	todos, err := ReadRebaseTodoFile(fileName, commentChar)
+	if err != nil {
+		return err
+	}
+
+	// Filter out comments
+	todos = lo.Filter(todos, func(t todo.Todo, _ int) bool {
+		return t.Command != todo.Comment
+	})
+
+	// Delete any update-ref todos at the end of the todo list. These are not
+	// part of a stack of branches, and so shouldn't be updated. This makes it
+	// possible to create a copy of a branch and rebase the copy without
+	// affecting the original branch.
+	if _, i, found := lo.FindLastIndexOf(todos, func(t todo.Todo) bool {
+		return t.Command != todo.UpdateRef
+	}); found && i < len(todos)-1 {
+		todos = slices.Delete(todos, i+1, len(todos))
+		return WriteRebaseTodoFile(fileName, todos, commentChar)
+	}
+
+	return nil
 }
 
 // We render a todo in the commits view if it's a commit or if it's an

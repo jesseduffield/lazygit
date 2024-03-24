@@ -48,7 +48,7 @@ var RebaseCopiedBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			})
 
 		t.Views().Commits().Lines(
-			Contains("CI * branch 2"), // wrong, don't want a star here
+			Contains("CI branch 2"),
 			Contains("CI branch 1"),
 			Contains("CI master 2"),
 			Contains("CI master 1"),
@@ -60,9 +60,8 @@ var RebaseCopiedBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			PressPrimaryAction()
 
 		t.Views().Commits().Lines(
-			Contains("CI * branch 2"), // wrong, don't want a star here
+			Contains("CI branch 2"),
 			Contains("CI branch 1"),
-			Contains("CI master 2"), // wrong, don't want this commit
 			Contains("CI master 1"),
 		)
 	},
