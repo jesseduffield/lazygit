@@ -807,7 +807,6 @@ func polishTranslationSet() TranslationSet {
 			IgnoreExcludeFile:               "Ignoruj lub wyklucz plik",
 			IgnoreFileErr:                   "Nie można zignorować .gitignore",
 			ExcludeFile:                     "Wyklucz plik",
-			ExcludeFileErr:                  "Nie można wykluczyć .git/info/exclude",
 			ExcludeGitIgnoreErr:             "Nie można wykluczyć .gitignore",
 			Commit:                          "Commituj",
 			EditFile:                        "Edytuj plik",

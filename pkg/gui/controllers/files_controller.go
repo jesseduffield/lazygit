@@ -617,10 +617,6 @@ func (self *FilesController) ignore(node *filetree.FileNode) error {
 }
 
 func (self *FilesController) exclude(node *filetree.FileNode) error {
-	if node.GetPath() == ".git/info/exclude" {
-		return self.c.ErrorMsg(self.c.Tr.Actions.ExcludeFileErr)
-	}
-
 	if node.GetPath() == ".gitignore" {
 		return self.c.ErrorMsg(self.c.Tr.Actions.ExcludeGitIgnoreErr)
 	}

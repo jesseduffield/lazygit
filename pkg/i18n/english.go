@@ -873,7 +873,6 @@ type Actions struct {
 	IgnoreExcludeFile                 string
 	IgnoreFileErr                     string
 	ExcludeFile                       string
-	ExcludeFileErr                    string
 	ExcludeGitIgnoreErr               string
 	Commit                            string
 	EditFile                          string
@@ -1796,7 +1795,6 @@ func EnglishTranslationSet() TranslationSet {
 			IgnoreExcludeFile:               "Ignore or exclude file",
 			IgnoreFileErr:                   "Cannot ignore .gitignore",
 			ExcludeFile:                     "Exclude file",
-			ExcludeFileErr:                  "Cannot exclude .git/info/exclude",
 			ExcludeGitIgnoreErr:             "Cannot exclude .gitignore",
 			Commit:                          "Commit",
 			EditFile:                        "Edit file",

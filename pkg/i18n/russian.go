@@ -599,7 +599,6 @@ func RussianTranslationSet() TranslationSet {
 			IgnoreExcludeFile:                 "Игнорировать или исключить файл",
 			IgnoreFileErr:                     "Невозможно игнорировать .gitignore",
 			ExcludeFile:                       "Исключить файл",
-			ExcludeFileErr:                    "Невозможно исключить .git/info/exclude",
 			ExcludeGitIgnoreErr:               "Невозможно исключить .gitignore",
 			Commit:                            "Коммит",
 			EditFile:                          "Редактировать файл",

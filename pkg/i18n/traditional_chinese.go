@@ -667,7 +667,6 @@ func traditionalChineseTranslationSet() TranslationSet {
 			IgnoreExcludeFile:                 "忽略或排除檔案",
 			IgnoreFileErr:                     "無法忽略 .gitignore 檔案",
 			ExcludeFile:                       "排除檔案",
-			ExcludeFileErr:                    "無法排除 .git/info/exclude 檔案",
 			ExcludeGitIgnoreErr:               "無法排除 .gitignore 檔案",
 			Commit:                            "提交",
 			EditFile:                          "編輯檔案",
