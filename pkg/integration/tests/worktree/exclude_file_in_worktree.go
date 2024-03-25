@@ -34,13 +34,8 @@ var ExcludeFileInWorktree = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().Title(Equals("Ignore or exclude file")).Select(Contains("Add to .git/info/exclude")).Confirm()
 			}).
-			/* EXPECTED:
 			IsEmpty()
 
-			t.FileSystem().FileContent("../repo/.git/info/exclude", Contains("toExclude"))
-			ACTUAL: */
-			Tap(func() {
-				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Contains("open .git/info/exclude: not a directory"))
-			})
+		t.FileSystem().FileContent("../repo/.git/info/exclude", Contains("toExclude"))
 	},
 })
