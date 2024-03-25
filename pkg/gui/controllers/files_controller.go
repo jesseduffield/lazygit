@@ -608,12 +608,7 @@ func (self *FilesController) ignore(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
 		return self.c.ErrorMsg(self.c.Tr.Actions.IgnoreFileErr)
 	}
-	err := self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.c.Git().WorkingTree.Ignore)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.c.Git().WorkingTree.Ignore)
 }
 
 func (self *FilesController) exclude(node *filetree.FileNode) error {
@@ -621,11 +616,7 @@ func (self *FilesController) exclude(node *filetree.FileNode) error {
 		return self.c.ErrorMsg(self.c.Tr.Actions.ExcludeGitIgnoreErr)
 	}
 
-	err := self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.c.Git().WorkingTree.Exclude)
-	if err != nil {
-		return err
-	}
-	return nil
+	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.c.Git().WorkingTree.Exclude)
 }
 
 func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error {
