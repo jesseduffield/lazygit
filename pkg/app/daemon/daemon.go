@@ -39,6 +39,7 @@ const (
 	DaemonKindInsertBreak
 	DaemonKindChangeTodoActions
 	DaemonKindMoveFixupCommitDown
+	DaemonKindWriteRebaseTodo
 )
 
 const (
@@ -59,6 +60,7 @@ func getInstruction() Instruction {
 		DaemonKindMoveTodosUp:         deserializeInstruction[*MoveTodosUpInstruction],
 		DaemonKindMoveTodosDown:       deserializeInstruction[*MoveTodosDownInstruction],
 		DaemonKindInsertBreak:         deserializeInstruction[*InsertBreakInstruction],
+		DaemonKindWriteRebaseTodo:     deserializeInstruction[*WriteRebaseTodoInstruction],
 	}
 
 	return mapping[getDaemonKind()](jsonData)
@@ -328,5 +330,29 @@ func (self *InsertBreakInstruction) SerializedInstructions() string {
 func (self *InsertBreakInstruction) run(common *common.Common) error {
 	return handleInteractiveRebase(common, func(path string) error {
 		return utils.PrependStrToTodoFile(path, []byte("break\n"))
+	})
+}
+
+type WriteRebaseTodoInstruction struct {
+	TodosFileContent []byte
+}
+
+func NewWriteRebaseTodoInstruction(todosFileContent []byte) Instruction {
+	return &WriteRebaseTodoInstruction{
+		TodosFileContent: todosFileContent,
+	}
+}
+
+func (self *WriteRebaseTodoInstruction) Kind() DaemonKind {
+	return DaemonKindWriteRebaseTodo
+}
+
+func (self *WriteRebaseTodoInstruction) SerializedInstructions() string {
+	return serializeInstruction(self)
+}
+
+func (self *WriteRebaseTodoInstruction) run(common *common.Common) error {
+	return handleInteractiveRebase(common, func(path string) error {
+		return os.WriteFile(path, self.TodosFileContent, 0o644)
 	})
 }

@@ -204,7 +204,7 @@ type PrepareInteractiveRebaseCommandOpts struct {
 
 // PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
 // we tell git to run lazygit to edit the todo list, and we pass the client
-// lazygit a todo string to write to the todo file
+// lazygit instructions what to do with the todo file
 func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteractiveRebaseCommandOpts) oscommands.ICmdObj {
 	ex := oscommands.GetLazygitPath()
 
@@ -248,6 +248,36 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 	}
 
 	return cmdObj
+}
+
+// GitRebaseEditTodo runs "git rebase --edit-todo", saving the given todosFileContent to the file
+func (self *RebaseCommands) GitRebaseEditTodo(todosFileContent []byte) error {
+	ex := oscommands.GetLazygitPath()
+
+	cmdArgs := NewGitCmd("rebase").
+		Arg("--edit-todo").
+		ToArgv()
+
+	debug := "FALSE"
+	if self.Debug {
+		debug = "TRUE"
+	}
+
+	self.Log.WithField("command", cmdArgs).Debug("RunCommand")
+
+	cmdObj := self.cmd.New(cmdArgs)
+
+	cmdObj.AddEnvVars(daemon.ToEnvVars(daemon.NewWriteRebaseTodoInstruction(todosFileContent))...)
+
+	cmdObj.AddEnvVars(
+		"DEBUG="+debug,
+		"LANG=en_US.UTF-8",   // Force using EN as language
+		"LC_ALL=en_US.UTF-8", // Force using EN as language
+		"GIT_EDITOR="+ex,
+		"GIT_SEQUENCE_EDITOR="+ex,
+	)
+
+	return cmdObj.Run()
 }
 
 // AmendTo amends the given commit with whatever files are staged
@@ -302,11 +332,16 @@ func (self *RebaseCommands) DeleteUpdateRefTodos(commits []*models.Commit) error
 		return todoFromCommit(commit)
 	})
 
-	return utils.DeleteTodos(
+	todosFileContent, err := utils.DeleteTodos(
 		filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"),
 		todosToDelete,
 		self.config.GetCoreCommentChar(),
 	)
+	if err != nil {
+		return err
+	}
+
+	return self.GitRebaseEditTodo(todosFileContent)
 }
 
 func (self *RebaseCommands) MoveTodosDown(commits []*models.Commit) error {

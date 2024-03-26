@@ -50,6 +50,8 @@ var DeleteUpdateRefTodo = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("CI commit 02"),
 				Contains("CI ◯ <-- YOU ARE HERE --- commit 01"),
 			).
+			NavigateToLine(Contains("commit 02")).
+			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.Common().ContinueRebase()
 			}).
@@ -57,9 +59,14 @@ var DeleteUpdateRefTodo = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("CI ◯ commit 06"),
 				Contains("CI ◯ commit 05"),
 				Contains("CI ◯ commit 04"),
-				Contains("CI ◯ commit 03"), // No start on this commit, so there's no branch head here
-				Contains("CI ◯ commit 02"),
+				Contains("CI ◯ commit 03"), // No star on this commit, so there's no branch head here
 				Contains("CI ◯ commit 01"),
+			)
+
+		t.Views().Branches().
+			Lines(
+				Contains("branch2"),
+				Contains("branch1"),
 			)
 	},
 })

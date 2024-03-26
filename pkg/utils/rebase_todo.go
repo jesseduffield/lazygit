@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -96,6 +97,12 @@ func WriteRebaseTodoFile(fileName string, todos []todo.Todo, commentChar byte) e
 	return err
 }
 
+func todosToString(todos []todo.Todo, commentChar byte) ([]byte, error) {
+	buffer := bytes.Buffer{}
+	err := todo.Write(&buffer, todos, commentChar)
+	return buffer.Bytes(), err
+}
+
 func PrependStrToTodoFile(filePath string, linesToPrepend []byte) error {
 	existingContent, err := os.ReadFile(filePath)
 	if err != nil {
@@ -106,16 +113,21 @@ func PrependStrToTodoFile(filePath string, linesToPrepend []byte) error {
 	return os.WriteFile(filePath, linesToPrepend, 0o644)
 }
 
-func DeleteTodos(fileName string, todosToDelete []Todo, commentChar byte) error {
+// Unlike the other functions in this file, which write the changed todos file
+// back to disk, this one returns the new content as a byte slice. This is
+// because when deleting update-ref todos, we must perform a "git rebase
+// --edit-todo" command to pass the changed todos to git so that it can do some
+// housekeeping around the deleted todos. This can only be done by our caller.
+func DeleteTodos(fileName string, todosToDelete []Todo, commentChar byte) ([]byte, error) {
 	todos, err := ReadRebaseTodoFile(fileName, commentChar)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	rearrangedTodos, err := deleteTodos(todos, todosToDelete)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return WriteRebaseTodoFile(fileName, rearrangedTodos, commentChar)
+	return todosToString(rearrangedTodos, commentChar)
 }
 
 func deleteTodos(todos []todo.Todo, todosToDelete []Todo) ([]todo.Todo, error) {
