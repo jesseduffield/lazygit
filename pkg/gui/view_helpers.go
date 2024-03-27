@@ -1,7 +1,7 @@
 package gui
 
 import (
-	"strings"
+	"regexp"
 	"time"
 
 	"github.com/jesseduffield/gocui"
@@ -154,13 +154,23 @@ func (gui *Gui) postRefreshUpdate(c types.Context) error {
 // It handles opening URLs in the browser when the user clicks on one.
 func (gui *Gui) handleGenericClick(view *gocui.View) error {
 	cx, cy := view.Cursor()
-	url, err := view.Word(cx, cy)
-	if err == nil && strings.HasPrefix(url, "https://") {
-		// Ignore errors (opening the link via the OS can fail if the
-		// `os.openLink` config key references a command that doesn't exist, or
-		// that errors when called.)
-		_ = gui.c.OS().OpenLink(url)
+	word, err := view.Word(cx, cy)
+	if err != nil {
+		return nil
 	}
+
+	// Allow URLs to be wrapped in angle brackets, and the closing bracket to
+	// be followed by punctuation:
+	re := regexp.MustCompile(`^<?(https://.+?)(>[,.;!]*)?$`)
+	matches := re.FindStringSubmatch(word)
+	if matches == nil {
+		return nil
+	}
+
+	// Ignore errors (opening the link via the OS can fail if the
+	// `os.openLink` config key references a command that doesn't exist, or
+	// that errors when called.)
+	_ = gui.c.OS().OpenLink(matches[1])
 
 	return nil
 }
