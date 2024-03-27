@@ -145,6 +145,9 @@ type GuiConfig struct {
 	// How things are filtered when typing '/'.
 	// One of 'substring' (default) | 'fuzzy'
 	FilterMode string `yaml:"filterMode" jsonschema:"enum=substring,enum=fuzzy"`
+	// Status panel view.
+	// One of 'dashboard' (default) | 'allBranchesLog'
+	StatusPanelView string `yaml:"statusPanelView" jsonschema:"enum=dashboard,enum=allBranchesLog"`
 }
 
 func (c *GuiConfig) UseFuzzySearch() bool {
@@ -671,6 +674,7 @@ func GetDefaultConfig() *UserConfig {
 			AnimateExplosion:          true,
 			PortraitMode:              "auto",
 			FilterMode:                "substring",
+			StatusPanelView:           "dashboard",
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{

@@ -164,6 +164,10 @@ func loadUserConfig(configFiles []string, base *UserConfig) (*UserConfig, error)
 		if err := yaml.Unmarshal(content, base); err != nil {
 			return nil, fmt.Errorf("The config at `%s` couldn't be parsed, please inspect it before opening up an issue.\n%w", path, err)
 		}
+
+		if err := base.Validate(); err != nil {
+			return nil, fmt.Errorf("The config at `%s` has a validation error.\n%w", path, err)
+		}
 	}
 
 	return base, nil
