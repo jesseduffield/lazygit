@@ -79,18 +79,7 @@ func (self *StatusController) GetMouseKeybindings(opts types.KeybindingsOpts) []
 }
 
 func (self *StatusController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	view := self.c.Views().Main
-
-	cx, cy := view.Cursor()
-	url, err := view.Word(cx, cy)
-	if err == nil && strings.HasPrefix(url, "https://") {
-		// Ignore errors (opening the link via the OS can fail if the
-		// `os.openLink` config key references a command that doesn't exist, or
-		// that errors when called.)
-		_ = self.c.OS().OpenLink(url)
-	}
-
-	return nil
+	return self.c.HandleGenericClick(self.c.Views().Main)
 }
 
 func (self *StatusController) GetOnRenderToMain() func() error {

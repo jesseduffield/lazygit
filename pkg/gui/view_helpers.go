@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"strings"
 	"time"
 
 	"github.com/jesseduffield/gocui"
@@ -144,6 +145,21 @@ func (gui *Gui) postRefreshUpdate(c types.Context) error {
 		if err := c.HandleFocus(types.OnFocusOpts{}); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// handleGenericClick is a generic click handler that can be used for any view.
+// It handles opening URLs in the browser when the user clicks on one.
+func (gui *Gui) handleGenericClick(view *gocui.View) error {
+	cx, cy := view.Cursor()
+	url, err := view.Word(cx, cy)
+	if err == nil && strings.HasPrefix(url, "https://") {
+		// Ignore errors (opening the link via the OS can fail if the
+		// `os.openLink` config key references a command that doesn't exist, or
+		// that errors when called.)
+		_ = gui.c.OS().OpenLink(url)
 	}
 
 	return nil
