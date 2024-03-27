@@ -183,6 +183,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | タグをpush | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` M `` | 現在のブランチにマージ | Merge selected branch into currently checked out branch. |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |

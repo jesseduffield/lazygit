@@ -288,6 +288,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | Отправить тег | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` M `` | Слияние с текущей переключённой веткой | Merge selected branch into currently checked out branch. |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
