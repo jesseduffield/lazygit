@@ -109,6 +109,14 @@ func (gui *Gui) scrollDownConfirmationPanel() error {
 	return nil
 }
 
+func (gui *Gui) handleConfirmationClick() error {
+	if gui.Views.Confirmation.Editable {
+		return nil
+	}
+
+	return gui.handleGenericClick(gui.Views.Confirmation)
+}
+
 func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 	return gui.handleCopySelectedSideContextItemToClipboardWithTruncation(-1)
 }

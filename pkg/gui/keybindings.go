@@ -249,6 +249,12 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName: "confirmation",
+			Key:      gocui.MouseLeft,
+			Modifier: gocui.ModNone,
+			Handler:  self.handleConfirmationClick,
+		},
+		{
+			ViewName: "confirmation",
 			Key:      gocui.MouseWheelUp,
 			Handler:  self.scrollUpConfirmationPanel,
 		},
