@@ -5,12 +5,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
+	"github.com/xo/terminfo"
 )
 
 func Test_getBranchDisplayStrings(t *testing.T) {
@@ -222,6 +224,9 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			expected:             []string{"1m", "12345678", "bran… ✓", "origin branch_name", "commit title"},
 		},
 	}
+
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
+	defer color.ForceSetColorLevel(oldColorLevel)
 
 	c := utils.NewDummyCommon()
 

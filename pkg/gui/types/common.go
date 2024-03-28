@@ -35,6 +35,10 @@ type IGuiCommon interface {
 	// case would be overkill, although refresh will internally call 'PostRefreshUpdate'
 	PostRefreshUpdate(Context) error
 
+	// a generic click handler that can be used for any view; it handles opening
+	// URLs in the browser when the user clicks on one
+	HandleGenericClick(view *gocui.View) error
+
 	// renders string to a view without resetting its origin
 	SetViewContent(view *gocui.View, content string)
 	// resets cursor and origin of view. Often used before calling SetViewContent

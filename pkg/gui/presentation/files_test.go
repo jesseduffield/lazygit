@@ -13,10 +13,6 @@ import (
 	"github.com/xo/terminfo"
 )
 
-func init() {
-	color.ForceSetColorLevel(terminfo.ColorLevelNone)
-}
-
 func toStringSlice(str string) []string {
 	return strings.Split(strings.TrimSpace(str), "\n")
 }
@@ -65,6 +61,9 @@ M  file1
 			collapsedPaths: []string{"dir1"},
 		},
 	}
+
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
+	defer color.ForceSetColorLevel(oldColorLevel)
 
 	for _, s := range scenarios {
 		s := s
@@ -124,6 +123,9 @@ M file1
 			collapsedPaths: []string{"dir1"},
 		},
 	}
+
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
+	defer color.ForceSetColorLevel(oldColorLevel)
 
 	for _, s := range scenarios {
 		s := s

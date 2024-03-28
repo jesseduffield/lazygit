@@ -15,11 +15,6 @@ import (
 	"github.com/xo/terminfo"
 )
 
-func init() {
-	// on CI we've got no color capability so we're forcing it here
-	color.ForceSetColorLevel(terminfo.ColorLevelMillions)
-}
-
 func TestRenderCommitGraph(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -217,6 +212,9 @@ func TestRenderCommitGraph(t *testing.T) {
 			D ◯ │ │ ╭───╯`,
 		},
 	}
+
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelMillions)
+	defer color.ForceSetColorLevel(oldColorLevel)
 
 	for _, test := range tests {
 		test := test
@@ -452,6 +450,9 @@ func TestRenderPipeSet(t *testing.T) {
 		},
 	}
 
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelMillions)
+	defer color.ForceSetColorLevel(oldColorLevel)
+
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
@@ -523,6 +524,9 @@ func TestGetNextPipes(t *testing.T) {
 		},
 	}
 
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelMillions)
+	defer color.ForceSetColorLevel(oldColorLevel)
+
 	for _, test := range tests {
 		getStyle := func(c *models.Commit) style.TextStyle { return style.FgDefault }
 		pipes := getNextPipes(test.prevPipes, test.commit, getStyle)
@@ -538,6 +542,9 @@ func TestGetNextPipes(t *testing.T) {
 }
 
 func BenchmarkRenderCommitGraph(b *testing.B) {
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelMillions)
+	defer color.ForceSetColorLevel(oldColorLevel)
+
 	commits := generateCommits(50)
 	getStyle := func(commit *models.Commit) style.TextStyle {
 		return authors.AuthorStyle(commit.AuthorName)

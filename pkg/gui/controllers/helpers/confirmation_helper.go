@@ -215,7 +215,7 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 		confirmationView.RenderTextArea()
 	} else {
 		self.c.ResetViewOrigin(confirmationView)
-		self.c.SetViewContent(confirmationView, style.AttrBold.Sprint(opts.Prompt))
+		self.c.SetViewContent(confirmationView, style.AttrBold.Sprint(underlineLinks(opts.Prompt)))
 	}
 
 	if err := self.setKeyBindings(cancel, opts); err != nil {
@@ -226,6 +226,32 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 	self.c.State().GetRepoState().SetCurrentPopupOpts(&opts)
 
 	return self.c.PushContext(self.c.Contexts().Confirmation)
+}
+
+func underlineLinks(text string) string {
+	result := ""
+	remaining := text
+	for {
+		linkStart := strings.Index(remaining, "https://")
+		if linkStart == -1 {
+			break
+		}
+
+		linkEnd := strings.IndexAny(remaining[linkStart:], " \n>")
+		if linkEnd == -1 {
+			linkEnd = len(remaining)
+		} else {
+			linkEnd += linkStart
+		}
+		underlinedLink := style.AttrUnderline.Sprint(remaining[linkStart:linkEnd])
+		if strings.HasSuffix(underlinedLink, "\x1b[0m") {
+			// Replace the "all styles off" code with "underline off" code
+			underlinedLink = underlinedLink[:len(underlinedLink)-2] + "24m"
+		}
+		result += remaining[:linkStart] + underlinedLink
+		remaining = remaining[linkEnd:]
+	}
+	return result + remaining
 }
 
 func (self *ConfirmationHelper) setKeyBindings(cancel goContext.CancelFunc, opts types.CreatePopupPanelOpts) error {

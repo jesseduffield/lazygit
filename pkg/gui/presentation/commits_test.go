@@ -16,10 +16,6 @@ import (
 	"github.com/xo/terminfo"
 )
 
-func init() {
-	color.ForceSetColorLevel(terminfo.ColorLevelNone)
-}
-
 func formatExpected(expected string) string {
 	return strings.TrimSpace(strings.ReplaceAll(expected, "\t", ""))
 }
@@ -384,6 +380,9 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 						`),
 		},
 	}
+
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
+	defer color.ForceSetColorLevel(oldColorLevel)
 
 	os.Setenv("TZ", "UTC")
 
