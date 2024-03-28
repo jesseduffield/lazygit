@@ -3,6 +3,7 @@ package git_commands
 import (
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -232,7 +233,8 @@ func (self *WorkingTreeCommands) Ignore(filename string) error {
 
 // Exclude adds a file to the .git/info/exclude for the repo
 func (self *WorkingTreeCommands) Exclude(filename string) error {
-	return self.os.AppendLineToFile(".git/info/exclude", filename)
+	excludeFile := path.Join(self.repoPaths.repoGitDirPath, "info", "exclude")
+	return self.os.AppendLineToFile(excludeFile, filename)
 }
 
 // WorktreeFileDiff returns the diff of a file
