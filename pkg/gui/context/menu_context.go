@@ -74,9 +74,6 @@ func (self *MenuViewModel) SetMenuItems(items []*types.MenuItem, columnAlignment
 // TODO: move into presentation package
 func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 	menuItems := self.FilteredListViewModel.GetItems()
-	showKeys := lo.SomeBy(menuItems, func(item *types.MenuItem) bool {
-		return item.Key != nil
-	})
 
 	return lo.Map(menuItems, func(item *types.MenuItem, _ int) []string {
 		displayStrings := item.LabelColumns
@@ -84,12 +81,12 @@ func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 			displayStrings[0] = style.FgDefault.SetStrikethrough().Sprint(displayStrings[0])
 		}
 
-		if !showKeys {
-			return displayStrings
+		keyLabel := ""
+		if item.Key != nil {
+			keyLabel = style.FgCyan.Sprint(keybindings.LabelFromKey(item.Key))
 		}
 
-		keyLabel := keybindings.LabelFromKey(item.Key)
-		displayStrings = utils.Prepend(displayStrings, style.FgCyan.Sprint(keyLabel))
+		displayStrings = utils.Prepend(displayStrings, keyLabel)
 		return displayStrings
 	})
 }
