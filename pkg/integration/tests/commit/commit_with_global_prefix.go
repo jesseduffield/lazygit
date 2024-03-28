@@ -5,12 +5,12 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var CommitWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Commit with defined config commitPrefixes",
+var CommitWithGlobalPrefix = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Commit with defined config commitPrefix",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(testConfig *config.AppConfig) {
-		testConfig.UserConfig.Git.CommitPrefixes = map[string]config.CommitPrefixConfig{"repo": {Pattern: "^\\w+\\/(\\w+-\\w+).*", Replace: "[$1]: "}}
+		testConfig.UserConfig.Git.CommitPrefix = &config.CommitPrefixConfig{Pattern: "^\\w+\\/(\\w+-\\w+).*", Replace: "[$1]: "}
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.NewBranch("feature/TEST-001")
