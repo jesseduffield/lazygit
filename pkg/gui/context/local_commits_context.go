@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type LocalCommitsContext struct {
@@ -123,6 +124,29 @@ func (self *LocalCommitsContext) GetSelectedRef() types.Ref {
 		return nil
 	}
 	return commit
+}
+
+// Returns the commit hash of the selected commit, or an empty string if no
+// commit is selected
+func (self *LocalCommitsContext) GetSelectedCommitHash() string {
+	commit := self.GetSelected()
+	if commit == nil {
+		return ""
+	}
+	return commit.Sha
+}
+
+func (self *LocalCommitsContext) SelectCommitByHash(hash string) bool {
+	if hash == "" {
+		return false
+	}
+
+	if _, idx, found := lo.FindIndexOf(self.GetItems(), func(c *models.Commit) bool { return c.Sha == hash }); found {
+		self.SetSelection(idx)
+		return true
+	}
+
+	return false
 }
 
 func (self *LocalCommitsContext) GetDiffTerminals() []string {
