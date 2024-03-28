@@ -337,7 +337,7 @@ func TestGetCommitMsg(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildCommitCommands(commonDeps{
-				runner: oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"log", "--format=%B", "--max-count=1", "deadbeef"}, s.input, nil),
+				runner: oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"-c", "log.showsignature=false", "log", "--format=%B", "--max-count=1", "deadbeef"}, s.input, nil),
 			})
 
 			output, err := instance.GetCommitMessage("deadbeef")
@@ -358,14 +358,14 @@ func TestGetCommitMessageFromHistory(t *testing.T) {
 	scenarios := []scenario{
 		{
 			"Empty message",
-			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"log", "-1", "--skip=2", "--pretty=%H"}, "", nil).ExpectGitArgs([]string{"log", "--format=%B", "--max-count=1"}, "", nil),
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"log", "-1", "--skip=2", "--pretty=%H"}, "", nil).ExpectGitArgs([]string{"-c", "log.showsignature=false", "log", "--format=%B", "--max-count=1"}, "", nil),
 			func(output string, err error) {
 				assert.Error(t, err)
 			},
 		},
 		{
 			"Default case to retrieve a commit in history",
-			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"log", "-1", "--skip=2", "--pretty=%H"}, "sha3 \n", nil).ExpectGitArgs([]string{"log", "--format=%B", "--max-count=1", "sha3"}, `use generics to DRY up context code`, nil),
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"log", "-1", "--skip=2", "--pretty=%H"}, "sha3 \n", nil).ExpectGitArgs([]string{"-c", "log.showsignature=false", "log", "--format=%B", "--max-count=1", "sha3"}, `use generics to DRY up context code`, nil),
 			func(output string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "use generics to DRY up context code", output)

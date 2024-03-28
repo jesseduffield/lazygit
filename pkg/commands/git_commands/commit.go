@@ -158,6 +158,7 @@ func (self *CommitCommands) signoffFlag() string {
 func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
 	cmdArgs := NewGitCmd("log").
 		Arg("--format=%B", "--max-count=1", commitSha).
+		Config("log.showsignature=false").
 		ToArgv()
 
 	message, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
@@ -167,6 +168,7 @@ func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
 func (self *CommitCommands) GetCommitSubject(commitSha string) (string, error) {
 	cmdArgs := NewGitCmd("log").
 		Arg("--format=%s", "--max-count=1", commitSha).
+		Config("log.showsignature=false").
 		ToArgv()
 
 	subject, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
