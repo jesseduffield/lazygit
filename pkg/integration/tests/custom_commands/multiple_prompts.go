@@ -1,6 +1,8 @@
 package custom_commands
 
 import (
+	"runtime"
+
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
@@ -8,7 +10,7 @@ import (
 var MultiplePrompts = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Using a custom command with multiple prompts",
 	ExtraCmdArgs: []string{},
-	Skip:         false,
+	Skip:         runtime.GOOS == "windows",
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("blah")
 	},

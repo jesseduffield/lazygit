@@ -2,6 +2,7 @@ package components
 
 import (
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -229,7 +230,7 @@ func testNameFromCurrentFilePath() string {
 }
 
 func TestNameFromFilePath(path string) string {
-	name := strings.Split(path, "integration/tests/")[1]
+	name := strings.Split(filepath.ToSlash(path), "integration/tests/")[1]
 
 	return name[:len(name)-len(".go")]
 }

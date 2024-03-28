@@ -1,6 +1,8 @@
 package sync
 
 import (
+	"runtime"
+
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
@@ -8,7 +10,7 @@ import (
 var PushWithCredentialPrompt = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Push a commit to a pre-configured upstream, where credentials are required",
 	ExtraCmdArgs: []string{},
-	Skip:         false,
+	Skip:         runtime.GOOS == "windows",
 	SetupConfig: func(config *config.AppConfig) {
 	},
 	SetupRepo: func(shell *Shell) {

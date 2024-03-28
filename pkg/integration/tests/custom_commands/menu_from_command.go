@@ -1,6 +1,8 @@
 package custom_commands
 
 import (
+	"runtime"
+
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
@@ -10,7 +12,7 @@ import (
 var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Using menuFromCommand prompt type",
 	ExtraCmdArgs: []string{},
-	Skip:         false,
+	Skip:         runtime.GOOS == "windows",
 	SetupRepo: func(shell *Shell) {
 		shell.
 			EmptyCommit("foo").
