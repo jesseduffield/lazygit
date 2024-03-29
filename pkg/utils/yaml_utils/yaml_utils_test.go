@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v3"
 )
 
 func TestUpdateYamlValue(t *testing.T) {
@@ -196,6 +197,85 @@ func TestRenameYamlKey(t *testing.T) {
 			}
 
 			assert.Equal(t, test.expectedOut, string(out))
+		})
+	}
+}
+
+func TestWalk_paths(t *testing.T) {
+	tests := []struct {
+		name          string
+		document      string
+		expectedPaths []string
+	}{
+		{
+			name:          "empty document",
+			document:      "",
+			expectedPaths: []string{},
+		},
+		{
+			name:          "scalar",
+			document:      "x: 5",
+			expectedPaths: []string{"", "x"}, // called with an empty path for the root node
+		},
+		{
+			name:          "nested",
+			document:      "foo:\n  x: 5",
+			expectedPaths: []string{"", "foo", "foo.x"},
+		},
+		{
+			name:          "array",
+			document:      "foo:\n  bar: [3, 7]",
+			expectedPaths: []string{"", "foo", "foo.bar", "foo.bar[0]", "foo.bar[1]"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			paths := []string{}
+			_, err := Walk([]byte(test.document), func(node *yaml.Node, path string) bool {
+				paths = append(paths, path)
+				return true
+			})
+
+			assert.NoError(t, err)
+			assert.Equal(t, test.expectedPaths, paths)
+		})
+	}
+}
+
+func TestWalk_inPlaceChanges(t *testing.T) {
+	tests := []struct {
+		name        string
+		in          string
+		callback    func(node *yaml.Node, path string) bool
+		expectedOut string
+	}{
+		{
+			name:        "no change",
+			in:          "x: 5",
+			callback:    func(node *yaml.Node, path string) bool { return false },
+			expectedOut: "x: 5",
+		},
+		{
+			name: "change value",
+			in:   "x: 5\ny: 3",
+			callback: func(node *yaml.Node, path string) bool {
+				if path == "x" {
+					node.Value = "7"
+					return true
+				}
+				return false
+			},
+			expectedOut: "x: 7\ny: 3\n",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := Walk([]byte(test.in), test.callback)
+
+			assert.NoError(t, err)
+			assert.Equal(t, test.expectedOut, string(result))
 		})
 	}
 }
