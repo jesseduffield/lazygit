@@ -10,11 +10,6 @@ import (
 	"github.com/xo/terminfo"
 )
 
-func init() {
-	// on CI we've got no color capability so we're forcing it here
-	color.ForceSetColorLevel(terminfo.ColorLevelMillions)
-}
-
 func TestMerge(t *testing.T) {
 	type scenario struct {
 		name          string
@@ -162,6 +157,9 @@ func TestMerge(t *testing.T) {
 		},
 	}
 
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelMillions)
+	defer color.ForceSetColorLevel(oldColorLevel)
+
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.name, func(t *testing.T) {
@@ -209,6 +207,9 @@ func TestTemplateFuncMapAddColors(t *testing.T) {
 			"\x1b[31mbar\x1b[0m - \x1b[34mbar\x1b[0m",
 		},
 	}
+
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelMillions)
+	defer color.ForceSetColorLevel(oldColorLevel)
 
 	for _, s := range scenarios {
 		s := s
