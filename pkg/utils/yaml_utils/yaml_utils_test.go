@@ -223,9 +223,19 @@ func TestWalk_paths(t *testing.T) {
 			expectedPaths: []string{"", "foo", "foo.x"},
 		},
 		{
+			name:          "deeply nested",
+			document:      "foo:\n  bar:\n    baz: 5",
+			expectedPaths: []string{"", "foo", "foo.bar", "foo.bar.baz"},
+		},
+		{
 			name:          "array",
 			document:      "foo:\n  bar: [3, 7]",
 			expectedPaths: []string{"", "foo", "foo.bar", "foo.bar[0]", "foo.bar[1]"},
+		},
+		{
+			name:          "nested arrays",
+			document:      "foo:\n  bar: [[3, 7], [8, 9]]",
+			expectedPaths: []string{"", "foo", "foo.bar", "foo.bar[0]", "foo.bar[0][0]", "foo.bar[0][1]", "foo.bar[1]", "foo.bar[1][0]", "foo.bar[1][1]"},
 		},
 	}
 
@@ -267,6 +277,32 @@ func TestWalk_inPlaceChanges(t *testing.T) {
 				return false
 			},
 			expectedOut: "x: 7\ny: 3\n",
+		},
+		{
+			name: "change nested value",
+			in:   "x:\n  y: 5",
+			callback: func(node *yaml.Node, path string) bool {
+				if path == "x.y" {
+					node.Value = "7"
+					return true
+				}
+				return false
+			},
+			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
+			expectedOut: "x:\n    y: 7\n",
+		},
+		{
+			name: "change array value",
+			in:   "x:\n  - y: 5",
+			callback: func(node *yaml.Node, path string) bool {
+				if path == "x[0].y" {
+					node.Value = "7"
+					return true
+				}
+				return false
+			},
+			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
+			expectedOut: "x:\n    - y: 7\n",
 		},
 	}
 
