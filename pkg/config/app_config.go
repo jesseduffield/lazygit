@@ -36,7 +36,6 @@ type AppConfigurer interface {
 	GetUserConfig() *UserConfig
 	GetUserConfigPaths() []string
 	GetUserConfigDir() string
-	ReloadUserConfig() error
 	GetTempDir() string
 
 	GetAppState() *AppState
@@ -250,16 +249,6 @@ func (c *AppConfig) GetUserConfigPaths() []string {
 
 func (c *AppConfig) GetUserConfigDir() string {
 	return c.userConfigDir
-}
-
-func (c *AppConfig) ReloadUserConfig() error {
-	userConfig, err := loadUserConfigWithDefaults(c.userConfigPaths)
-	if err != nil {
-		return err
-	}
-
-	c.userConfig = userConfig
-	return nil
 }
 
 func (c *AppConfig) GetTempDir() string {

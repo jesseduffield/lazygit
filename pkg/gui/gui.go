@@ -658,9 +658,6 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	// breakpoints and stepping through code can easily take more than 30s.
 	deadlock.Opts.Disable = !gui.Debug || os.Getenv(components.WAIT_FOR_DEBUGGER_ENV_VAR) != ""
 
-	if err := gui.Config.ReloadUserConfig(); err != nil {
-		return nil
-	}
 	userConfig := gui.UserConfig
 
 	gui.g.OnSearchEscape = func() error { gui.helpers.Search.Cancel(); return nil }
