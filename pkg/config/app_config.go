@@ -8,7 +8,7 @@ import (
 
 	"github.com/adrg/xdg"
 	"github.com/jesseduffield/lazygit/pkg/utils/yaml_utils"
-	yaml "github.com/jesseduffield/yaml"
+	"gopkg.in/yaml.v3"
 )
 
 // AppConfig contains the base configuration fields required for lazygit.
@@ -180,6 +180,11 @@ func migrateUserConfig(path string, content []byte) ([]byte, error) {
 		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
 	}
 
+	changedContent, err = changeNullKeybindingsToDisabled(changedContent)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+	}
+
 	// Add more migrations here...
 
 	// Write config back if changed
@@ -191,6 +196,17 @@ func migrateUserConfig(path string, content []byte) ([]byte, error) {
 	}
 
 	return content, nil
+}
+
+func changeNullKeybindingsToDisabled(changedContent []byte) ([]byte, error) {
+	return yaml_utils.Walk(changedContent, func(node *yaml.Node, path string) bool {
+		if strings.HasPrefix(path, "keybinding.") && node.Kind == yaml.ScalarNode && node.Tag == "!!null" {
+			node.Value = "<disabled>"
+			node.Tag = "!!str"
+			return true
+		}
+		return false
+	})
 }
 
 func (c *AppConfig) GetDebug() bool {
