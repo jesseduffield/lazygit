@@ -4,14 +4,16 @@ import (
 	"path/filepath"
 )
 
-// https://github.com/ogham/exa/blob/master/src/output/icons.rs
+// NOTE: Visit next links for inspiration:
+// https://github.com/eza-community/eza/blob/main/src/output/icons.rs
+// https://github.com/nvim-tree/nvim-web-devicons/blob/master/lua/nvim-web-devicons/icons-default.lua
+
 var (
 	DEFAULT_FILE_ICON      = IconProperties{Icon: "\uf15b", Color: 241} // 
 	DEFAULT_SUBMODULE_ICON = IconProperties{Icon: "\uf1d3", Color: 202} // 
 	DEFAULT_DIRECTORY_ICON = IconProperties{Icon: "\uf07b", Color: 241} // 
 )
 
-// See https://github.com/nvim-tree/nvim-web-devicons/blob/master/lua/nvim-web-devicons/icons-default.lua
 var nameIconMap = map[string]IconProperties{
 	".Trash":             {Icon: "\uf1f8", Color: 241}, // 
 	".atom":              {Icon: "\ue764", Color: 241}, // 
