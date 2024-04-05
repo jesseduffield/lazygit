@@ -143,7 +143,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` D `` | Reset | View reset options for working tree (e.g. nuking the working tree). |
 | `` ` `` | Toggle file tree view | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
-| `` M `` | Open external merge tool | Run `git mergetool`. |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` f `` | Fetch | Fetch changes from remote. |
 | `` / `` | Search the current view by text |  |
 

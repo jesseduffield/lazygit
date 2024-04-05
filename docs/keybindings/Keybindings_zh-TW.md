@@ -314,7 +314,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` D `` | Reset | View reset options for working tree (e.g. nuking the working tree). |
 | `` ` `` | 顯示檔案樹狀視圖 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
-| `` M `` | 開啟外部合併工具 (git mergetool) | Run `git mergetool`. |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` f `` | 擷取 | Fetch changes from remote. |
 | `` / `` | 搜尋 |  |
 

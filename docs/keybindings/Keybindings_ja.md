@@ -213,7 +213,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` D `` | Reset | View reset options for working tree (e.g. nuking the working tree). |
 | `` ` `` | ファイルツリーの表示を切り替え | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
-| `` M `` | Git mergetoolを開く | Run `git mergetool`. |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` f `` | Fetch | Fetch changes from remote. |
 | `` / `` | 検索を開始 |  |
 

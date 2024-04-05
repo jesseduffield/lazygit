@@ -224,7 +224,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` D `` | Reset | Wyświetl opcje resetu dla drzewa roboczego (np. zniszczenie drzewa roboczego). |
 | `` ` `` | Przełącz widok drzewa plików | Przełącz widok plików między płaskim a drzewem. Płaski układ pokazuje wszystkie ścieżki plików na jednej liście, układ drzewa grupuje pliki według katalogów. |
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
-| `` M `` | Otwórz zewnętrzne narzędzie scalania | Uruchom `git mergetool`. |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` f `` | Pobierz | Pobierz zmiany ze zdalnego serwera. |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
