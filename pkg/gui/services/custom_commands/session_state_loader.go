@@ -1,9 +1,9 @@
 package custom_commands
 
 import (
-	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 // loads the session state at the time that a custom command is invoked, for use

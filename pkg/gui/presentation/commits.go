@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -19,6 +18,7 @@ import (
 	"github.com/kyokomi/emoji/v2"
 	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
+	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 type pipeSetCacheKey struct {
