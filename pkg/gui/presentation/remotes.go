@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -18,10 +19,11 @@ func GetRemoteListDisplayStrings(
 	diffName string,
 	getItemOperation func(item types.HasUrn) types.ItemOperation,
 	tr *i18n.TranslationSet,
+	userConfig *config.UserConfig,
 ) [][]string {
 	return lo.Map(remotes, func(remote *models.Remote, _ int) []string {
 		diffed := remote.Name == diffName
-		return getRemoteDisplayStrings(remote, diffed, getItemOperation(remote), tr)
+		return getRemoteDisplayStrings(remote, diffed, getItemOperation(remote), tr, userConfig)
 	})
 }
 
@@ -31,6 +33,7 @@ func getRemoteDisplayStrings(
 	diffed bool,
 	itemOperation types.ItemOperation,
 	tr *i18n.TranslationSet,
+	userConfig *config.UserConfig,
 ) []string {
 	branchCount := len(r.Branches)
 
@@ -46,7 +49,7 @@ func getRemoteDisplayStrings(
 	descriptionStr := style.FgBlue.Sprintf("%d branches", branchCount)
 	itemOperationStr := ItemOperationToString(itemOperation, tr)
 	if itemOperationStr != "" {
-		descriptionStr += " " + style.FgCyan.Sprint(itemOperationStr+" "+utils.Loader(time.Now()))
+		descriptionStr += " " + style.FgCyan.Sprint(itemOperationStr+" "+utils.Loader(time.Now(), userConfig.Gui.Spinner))
 	}
 	res = append(res, textStyle.Sprint(r.Name), descriptionStr)
 	return res

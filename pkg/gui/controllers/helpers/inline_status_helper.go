@@ -105,7 +105,7 @@ func (self *InlineStatusHelper) start(opts InlineStatusOpts) {
 		self.contextsWithInlineStatus[opts.ContextKey] = info
 
 		go utils.Safe(func() {
-			ticker := time.NewTicker(time.Millisecond * utils.LoaderAnimationInterval)
+			ticker := time.NewTicker(time.Millisecond * time.Duration(self.c.UserConfig.Gui.Spinner.Rate))
 			defer ticker.Stop()
 		outer:
 			for {

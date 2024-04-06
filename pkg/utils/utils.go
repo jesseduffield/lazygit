@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/config"
 )
 
 // GetProjectRoot returns the path to the root of the project. Only to be used
@@ -24,15 +25,11 @@ func GetProjectRoot() string {
 	return strings.Split(dir, "lazygit")[0] + "lazygit"
 }
 
-// The duration between two frames of the loader animation in milliseconds
-const LoaderAnimationInterval = 50
-
 // Loader dumps a string to be displayed as a loader
-func Loader(now time.Time) string {
-	characters := "|/-\\"
+func Loader(now time.Time, config config.SpinnerConfig) string {
 	milliseconds := now.UnixMilli()
-	index := milliseconds / LoaderAnimationInterval % int64(len(characters))
-	return characters[index : index+1]
+	index := milliseconds / int64(config.Rate) % int64(len(config.Frames))
+	return config.Frames[index]
 }
 
 // Min returns the minimum of two integers

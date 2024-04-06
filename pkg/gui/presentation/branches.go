@@ -50,7 +50,7 @@ func getBranchDisplayStrings(
 ) []string {
 	checkedOutByWorkTree := git_commands.CheckedOutByOtherWorktree(b, worktrees)
 	showCommitHash := fullDescription || userConfig.Gui.ShowBranchCommitHash
-	branchStatus := BranchStatus(b, itemOperation, tr, now)
+	branchStatus := BranchStatus(b, itemOperation, tr, now, userConfig)
 	worktreeIcon := lo.Ternary(icons.IsIconEnabled(), icons.LINKED_WORKTREE_ICON, fmt.Sprintf("(%s)", tr.LcWorktree))
 
 	// Recency is always three characters, plus one for the space
@@ -159,14 +159,25 @@ func branchStatusColor(branch *models.Branch, itemOperation types.ItemOperation)
 	return colour
 }
 
-func ColoredBranchStatus(branch *models.Branch, itemOperation types.ItemOperation, tr *i18n.TranslationSet) string {
-	return branchStatusColor(branch, itemOperation).Sprint(BranchStatus(branch, itemOperation, tr, time.Now()))
+func ColoredBranchStatus(
+	branch *models.Branch,
+	itemOperation types.ItemOperation,
+	tr *i18n.TranslationSet,
+	userConfig *config.UserConfig,
+) string {
+	return branchStatusColor(branch, itemOperation).Sprint(BranchStatus(branch, itemOperation, tr, time.Now(), userConfig))
 }
 
-func BranchStatus(branch *models.Branch, itemOperation types.ItemOperation, tr *i18n.TranslationSet, now time.Time) string {
+func BranchStatus(
+	branch *models.Branch,
+	itemOperation types.ItemOperation,
+	tr *i18n.TranslationSet,
+	now time.Time,
+	userConfig *config.UserConfig,
+) string {
 	itemOperationStr := ItemOperationToString(itemOperation, tr)
 	if itemOperationStr != "" {
-		return itemOperationStr + " " + utils.Loader(now)
+		return itemOperationStr + " " + utils.Loader(now, userConfig.Gui.Spinner)
 	}
 
 	if !branch.IsTrackingRemote() {

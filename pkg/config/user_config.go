@@ -145,6 +145,8 @@ type GuiConfig struct {
 	// How things are filtered when typing '/'.
 	// One of 'substring' (default) | 'fuzzy'
 	FilterMode string `yaml:"filterMode" jsonschema:"enum=substring,enum=fuzzy"`
+	// Config relating to the spinner.
+	Spinner SpinnerConfig `yaml:"spinner"`
 }
 
 func (c *GuiConfig) UseFuzzySearch() bool {
@@ -180,6 +182,13 @@ type ThemeConfig struct {
 type CommitLengthConfig struct {
 	// If true, show an indicator of commit message length
 	Show bool `yaml:"show"`
+}
+
+type SpinnerConfig struct {
+	// The frames of the spinner animation.
+	Frames []string `yaml:"frames"`
+	// The "speed" of the spinner in milliseconds.
+	Rate int `yaml:"rate" jsonschema:"minimum=1"`
 }
 
 type GitConfig struct {
@@ -671,6 +680,10 @@ func GetDefaultConfig() *UserConfig {
 			AnimateExplosion:          true,
 			PortraitMode:              "auto",
 			FilterMode:                "substring",
+			Spinner: SpinnerConfig{
+				Frames: []string{"|", "/", "-", "\\"},
+				Rate:   50,
+			},
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{

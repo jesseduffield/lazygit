@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -18,15 +19,22 @@ func GetTagListDisplayStrings(
 	getItemOperation func(item types.HasUrn) types.ItemOperation,
 	diffName string,
 	tr *i18n.TranslationSet,
+	userConfig *config.UserConfig,
 ) [][]string {
 	return lo.Map(tags, func(tag *models.Tag, _ int) []string {
 		diffed := tag.Name == diffName
-		return getTagDisplayStrings(tag, getItemOperation(tag), diffed, tr)
+		return getTagDisplayStrings(tag, getItemOperation(tag), diffed, tr, userConfig)
 	})
 }
 
 // getTagDisplayStrings returns the display string of branch
-func getTagDisplayStrings(t *models.Tag, itemOperation types.ItemOperation, diffed bool, tr *i18n.TranslationSet) []string {
+func getTagDisplayStrings(
+	t *models.Tag,
+	itemOperation types.ItemOperation,
+	diffed bool,
+	tr *i18n.TranslationSet,
+	userConfig *config.UserConfig,
+) []string {
 	textStyle := theme.DefaultTextColor
 	if diffed {
 		textStyle = theme.DiffTerminalColor
@@ -39,7 +47,7 @@ func getTagDisplayStrings(t *models.Tag, itemOperation types.ItemOperation, diff
 	descriptionStr := descriptionColor.Sprint(t.Description())
 	itemOperationStr := ItemOperationToString(itemOperation, tr)
 	if itemOperationStr != "" {
-		descriptionStr = style.FgCyan.Sprint(itemOperationStr+" "+utils.Loader(time.Now())) + " " + descriptionStr
+		descriptionStr = style.FgCyan.Sprint(itemOperationStr+" "+utils.Loader(time.Now(), userConfig.Gui.Spinner)) + " " + descriptionStr
 	}
 	res = append(res, textStyle.Sprint(t.Name), descriptionStr)
 	return res

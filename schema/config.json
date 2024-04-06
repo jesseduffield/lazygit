@@ -366,6 +366,32 @@
           ],
           "description": "How things are filtered when typing '/'.\nOne of 'substring' (default) | 'fuzzy'",
           "default": "substring"
+        },
+        "spinner": {
+          "properties": {
+            "frames": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "description": "The frames of the spinner animation.",
+              "default": [
+                "|",
+                "/",
+                "-",
+                "\\"
+              ]
+            },
+            "rate": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "The \"speed\" of the spinner in milliseconds.",
+              "default": 50
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "description": "Config relating to the spinner."
         }
       },
       "additionalProperties": false,
