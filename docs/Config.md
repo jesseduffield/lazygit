@@ -87,6 +87,9 @@ gui:
   animateExplosion: true # shows an explosion animation when nuking the working tree
   portraitMode: 'auto' # one of 'auto' | 'never' | 'always'
   filterMode: 'substring' # one of 'substring' | 'fuzzy'; see 'Filtering' section below
+  spinner:
+    frames: ['|', '/', '-', '\\']
+    rate: 50 # spinner rate in milliseconds
 git:
   paging:
     colorArg: always

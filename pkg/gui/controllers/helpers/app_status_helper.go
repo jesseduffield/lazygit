@@ -6,7 +6,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/status"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type AppStatusHelper struct {
@@ -88,16 +87,16 @@ func (self *AppStatusHelper) HasStatus() bool {
 }
 
 func (self *AppStatusHelper) GetStatusString() string {
-	appStatus, _ := self.statusMgr().GetStatusString()
+	appStatus, _ := self.statusMgr().GetStatusString(self.c.UserConfig)
 	return appStatus
 }
 
 func (self *AppStatusHelper) renderAppStatus() {
 	self.c.OnWorker(func(_ gocui.Task) {
-		ticker := time.NewTicker(time.Millisecond * utils.LoaderAnimationInterval)
+		ticker := time.NewTicker(time.Millisecond * time.Duration(self.c.UserConfig.Gui.Spinner.Rate))
 		defer ticker.Stop()
 		for range ticker.C {
-			appStatus, color := self.statusMgr().GetStatusString()
+			appStatus, color := self.statusMgr().GetStatusString(self.c.UserConfig)
 			self.c.Views().AppStatus.FgColor = color
 			self.c.OnUIThread(func() error {
 				self.c.SetViewContent(self.c.Views().AppStatus, appStatus)
@@ -130,7 +129,7 @@ func (self *AppStatusHelper) renderAppStatusSync(stop chan struct{}) {
 		for {
 			select {
 			case <-ticker.C:
-				appStatus, color := self.statusMgr().GetStatusString()
+				appStatus, color := self.statusMgr().GetStatusString(self.c.UserConfig)
 				self.c.Views().AppStatus.FgColor = color
 				self.c.SetViewContent(self.c.Views().AppStatus, appStatus)
 				// Redraw all views of the bottom line:

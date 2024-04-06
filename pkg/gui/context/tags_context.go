@@ -30,7 +30,7 @@ func NewTagsContext(
 		return presentation.GetTagListDisplayStrings(
 			viewModel.GetItems(),
 			c.State().GetItemOperation,
-			c.Modes().Diffing.Ref, c.Tr)
+			c.Modes().Diffing.Ref, c.Tr, c.UserConfig)
 	}
 
 	return &TagsContext{
