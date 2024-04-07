@@ -26,24 +26,41 @@ var nameIconMap = map[string]IconProperties{
 	".github":            {Icon: "\uf408", Color: 241}, // 
 	".gitignore":         {Icon: "\uf1d3", Color: 202}, // 
 	".gitmodules":        {Icon: "\uf1d3", Color: 202}, // 
+	".mailmap":           {Icon: "\uf1d3", Color: 202}, // 
+	".npmrc":             {Icon: "\ue71e", Color: 197}, // 
+	".prettierrc":        {Icon: "\ue6b4", Color: 33},  // 
 	".rvm":               {Icon: "\ue21e", Color: 160}, // 
+	".SRCINFO":           {Icon: "\uf129", Color: 230}, // 
 	".vimrc":             {Icon: "\ue62b", Color: 28},  // 
 	".vscode":            {Icon: "\ue70c", Color: 39},  // 
+	".Xauthority":        {Icon: "\uf369", Color: 196}, // 
+	".xinitrc":           {Icon: "\uf369", Color: 196}, // 
+	".Xresources":        {Icon: "\uf369", Color: 196}, // 
+	".xsession":          {Icon: "\uf369", Color: 196}, // 
 	".zshrc":             {Icon: "\ue795", Color: 113}, // 
+	"bin":                {Icon: "\ue5fc", Color: 241}, // 
 	"Cargo.lock":         {Icon: "\ue7a8", Color: 216}, // 
 	"Cargo.toml":         {Icon: "\ue7a8", Color: 216}, // 
-	"bin":                {Icon: "\ue5fc", Color: 241}, // 
+	"COMMIT_EDITMSG":     {Icon: "\ue702", Color: 239}, // 
+	"compose.yaml":       {Icon: "\uf308", Color: 68},  // 
+	"compose.yml":        {Icon: "\uf308", Color: 68},  // 
 	"config":             {Icon: "\ue5fc", Color: 241}, // 
 	"docker-compose.yml": {Icon: "\uf308", Color: 68},  // 
+	"docker-compose.yaml":{Icon: "\uf308", Color: 68},  // 
 	"Dockerfile":         {Icon: "\uf308", Color: 68},  // 
 	"ds_store":           {Icon: "\uf179", Color: 15},  // 
+	"favicon.ico":        {Icon: "\ue623", Color: 185}, // 
+	"fp-info-cache":      {Icon: "\uf49b", Color: 231}, // 
+	"fp-lib-table":       {Icon: "\uf34c", Color: 231}, // 
 	"gitignore_global":   {Icon: "\uf1d3", Color: 202}, // 
+	"GNUmakefile":        {Icon: "\ue779", Color: 66},  // 
 	"go.mod":             {Icon: "\ue627", Color: 74},  // 
 	"go.sum":             {Icon: "\ue627", Color: 74},  // 
 	"gradle":             {Icon: "\ue256", Color: 168}, // 
 	"gruntfile.coffee":   {Icon: "\ue611", Color: 166}, // 
 	"gruntfile.js":       {Icon: "\ue611", Color: 166}, // 
 	"gruntfile.ls":       {Icon: "\ue611", Color: 166}, // 
+	"gtkrc":              {Icon: "\uf362", Color: 231}, // 
 	"gulpfile.coffee":    {Icon: "\ue610", Color: 167}, // 
 	"gulpfile.js":        {Icon: "\ue610", Color: 167}, // 
 	"gulpfile.ls":        {Icon: "\ue610", Color: 168}, // 
@@ -56,6 +73,9 @@ var nameIconMap = map[string]IconProperties{
 	"npmignore":          {Icon: "\ue71e", Color: 197}, // 
 	"PKGBUILD":           {Icon: "\uf303", Color: 38},  // 
 	"rubydoc":            {Icon: "\ue73b", Color: 160}, // 
+	"sym-lib-table":      {Icon: "\uf34c", Color: 231}, // 
+	"xorg.conf":          {Icon: "\uf369", Color: 196}, // 
+	"xsettingsd.conf":    {Icon: "\uf369", Color: 196}, // 
 	"yarn.lock":          {Icon: "\ue6a7", Color: 74},  // 
 }
 
