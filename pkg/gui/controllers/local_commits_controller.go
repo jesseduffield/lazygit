@@ -457,9 +457,9 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 					}
 
 					if selectedIdx > rangeStartIdx {
-						selectedIdx = utils.Max(selectedIdx-len(updateRefTodos), rangeStartIdx)
+						selectedIdx = max(selectedIdx-len(updateRefTodos), rangeStartIdx)
 					} else {
-						rangeStartIdx = utils.Max(rangeStartIdx-len(updateRefTodos), selectedIdx)
+						rangeStartIdx = max(rangeStartIdx-len(updateRefTodos), selectedIdx)
 					}
 
 					self.context().SetSelectionRangeAndMode(selectedIdx, rangeStartIdx, rangeSelectMode)

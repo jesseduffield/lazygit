@@ -32,21 +32,6 @@ func Loader(now time.Time, config config.SpinnerConfig) string {
 	return config.Frames[index]
 }
 
-// Min returns the minimum of two integers
-func Min(x, y int) int {
-	if x < y {
-		return x
-	}
-	return y
-}
-
-func Max(x, y int) int {
-	if x > y {
-		return x
-	}
-	return y
-}
-
 func SortRange(x int, y int) (int, int) {
 	if x < y {
 		return x, y
