@@ -813,7 +813,7 @@ func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error { //nolint:unpara
 
 	subprocess := cmdObj.GetCmd()
 	subprocess.Stdout = os.Stdout
-	subprocess.Stderr = os.Stdout
+	subprocess.Stderr = os.Stderr
 	subprocess.Stdin = os.Stdin
 
 	fmt.Fprintf(os.Stdout, "\n%s\n\n", style.FgBlue.Sprint("+ "+strings.Join(subprocess.Args, " ")))
