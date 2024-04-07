@@ -342,7 +342,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 	return nil
 }
 
-// reuseState determines if we pull the repo state from our repo state map or
+// resetState determines if we pull the repo state from our repo state map or
 // just re-initialize it. For now we're only re-using state when we're going
 // in and out of submodules, for the sake of having the cursor back on the submodule
 // when we return.
