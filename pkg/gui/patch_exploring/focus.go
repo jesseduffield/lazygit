@@ -1,7 +1,5 @@
 package patch_exploring
 
-import "github.com/jesseduffield/lazygit/pkg/utils"
-
 func calculateOrigin(currentOrigin int, bufferHeight int, numLines int, firstLineIdx int, lastLineIdx int, selectedLineIdx int, mode selectMode) int {
 	needToSeeIdx, wantToSeeIdx := getNeedAndWantLineIdx(firstLineIdx, lastLineIdx, selectedLineIdx, mode)
 
@@ -14,7 +12,7 @@ func calculateOrigin(currentOrigin int, bufferHeight int, numLines int, firstLin
 func calculateNewOriginWithNeededAndWantedIdx(currentOrigin int, bufferHeight int, numLines int, needToSeeIdx int, wantToSeeIdx int) int {
 	origin := currentOrigin
 	if needToSeeIdx < currentOrigin || needToSeeIdx > currentOrigin+bufferHeight {
-		origin = utils.Max(utils.Min(needToSeeIdx-bufferHeight/2, numLines-bufferHeight-1), 0)
+		origin = max(min(needToSeeIdx-bufferHeight/2, numLines-bufferHeight-1), 0)
 	}
 
 	bottom := origin + bufferHeight
@@ -22,11 +20,11 @@ func calculateNewOriginWithNeededAndWantedIdx(currentOrigin int, bufferHeight in
 	if wantToSeeIdx < origin {
 		requiredChange := origin - wantToSeeIdx
 		allowedChange := bottom - needToSeeIdx
-		return origin - utils.Min(requiredChange, allowedChange)
+		return origin - min(requiredChange, allowedChange)
 	} else if wantToSeeIdx > origin+bufferHeight {
 		requiredChange := wantToSeeIdx - bottom
 		allowedChange := needToSeeIdx - origin
-		return origin + utils.Min(requiredChange, allowedChange)
+		return origin + min(requiredChange, allowedChange)
 	} else {
 		return origin
 	}

@@ -145,7 +145,7 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboardWithTruncation(maxWi
 	}
 
 	if maxWidth > 0 {
-		itemId = itemId[:utils.Min(len(itemId), maxWidth)]
+		itemId = itemId[:min(len(itemId), maxWidth)]
 	}
 
 	gui.c.LogAction(gui.c.Tr.Actions.CopyToClipboard)

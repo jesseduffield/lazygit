@@ -42,11 +42,11 @@ func ContainsCommitSha(pipes []*Pipe, sha string) bool {
 }
 
 func (self Pipe) left() int {
-	return utils.Min(self.fromPos, self.toPos)
+	return min(self.fromPos, self.toPos)
 }
 
 func (self Pipe) right() int {
-	return utils.Max(self.fromPos, self.toPos)
+	return max(self.fromPos, self.toPos)
 }
 
 func RenderCommitGraph(commits []*models.Commit, selectedCommitSha string, getStyle func(c *models.Commit) style.TextStyle) []string {
@@ -390,7 +390,7 @@ func equalHashes(a, b string) bool {
 		return false
 	}
 
-	length := utils.Min(len(a), len(b))
+	length := min(len(a), len(b))
 	// parent hashes are only stored up to 20 characters for some reason so we'll truncate to that for comparison
 	return a[:length] == b[:length]
 }

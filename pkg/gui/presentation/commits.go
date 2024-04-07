@@ -69,7 +69,7 @@ func GetCommitListDisplayStrings(
 	}
 
 	// this is where my non-TODO commits begin
-	rebaseOffset := utils.Min(indexOfFirstNonTODOCommit(commits), endIdx)
+	rebaseOffset := min(indexOfFirstNonTODOCommit(commits), endIdx)
 
 	filteredCommits := commits[startIdx:endIdx]
 
@@ -80,11 +80,11 @@ func GetCommitListDisplayStrings(
 	if showGraph {
 		// this is where the graph begins (may be beyond the TODO commits depending on startIdx,
 		// but we'll never include TODO commits as part of the graph because it'll be messy)
-		graphOffset := utils.Max(startIdx, rebaseOffset)
+		graphOffset := max(startIdx, rebaseOffset)
 
 		pipeSets := loadPipesets(commits[rebaseOffset:])
-		pipeSetOffset := utils.Max(startIdx-rebaseOffset, 0)
-		graphPipeSets := pipeSets[pipeSetOffset:utils.Max(endIdx-rebaseOffset, 0)]
+		pipeSetOffset := max(startIdx-rebaseOffset, 0)
+		graphPipeSets := pipeSets[pipeSetOffset:max(endIdx-rebaseOffset, 0)]
 		graphCommits := commits[graphOffset:endIdx]
 		graphLines := graph.RenderAux(
 			graphPipeSets,

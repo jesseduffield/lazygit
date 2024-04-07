@@ -79,9 +79,9 @@ func getBranchDisplayStrings(
 	}
 
 	// Don't bother shortening branch names that are already 3 characters or less
-	if len(displayName) > utils.Max(availableWidth, 3) {
+	if len(displayName) > max(availableWidth, 3) {
 		// Never shorten the branch name to less then 3 characters
-		len := utils.Max(availableWidth, 4)
+		len := max(availableWidth, 4)
 		displayName = displayName[:len-1] + "…"
 	}
 	coloredName := nameTextStyle.Sprint(displayName)
