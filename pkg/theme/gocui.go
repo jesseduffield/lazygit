@@ -21,7 +21,7 @@ var gocuiColorMap = map[string]gocui.Attribute{
 	"underline": gocui.AttrUnderline,
 }
 
-// GetAttribute gets the gocui color attribute from the string
+// GetGocuiAttribute gets the gocui color attribute from the string
 func GetGocuiAttribute(key string) gocui.Attribute {
 	if utils.IsValidHexValue(key) {
 		values := color.HEX(key).Values()
