@@ -566,6 +566,21 @@ git:
       replace: '[$1] '
 ```
 
+## Predefined branch name prefix
+
+In situations where certain naming pattern is used for branches, this can be used to populate new branch creation with a static prefix.
+
+Example:
+
+Some branches:
+- jsmith/AB-123
+- cwilson/AB-125
+
+```yaml
+git:
+  branchPrefix: "firstlast/"
+```
+
 ## Custom git log command
 
 You can override the `git log` command that's used to render the log of the selected branch like so:
