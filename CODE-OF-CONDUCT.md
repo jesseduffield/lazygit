@@ -1,3 +1,3 @@
-# Lazygit Code of Conduct
+# Lazytask Code of Conduct
 
-Be nice, or face the wrath of the maintainer.
+Don't be an asshat.
