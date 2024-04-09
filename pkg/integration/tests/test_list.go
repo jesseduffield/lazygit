@@ -92,6 +92,7 @@ var tests = []*components.IntegrationTest{
 	commit.History,
 	commit.HistoryComplex,
 	commit.NewBranch,
+	commit.NewBranchWithPrefix,
 	commit.PasteCommitMessage,
 	commit.PasteCommitMessageOverExisting,
 	commit.PreserveCommitMessage,
