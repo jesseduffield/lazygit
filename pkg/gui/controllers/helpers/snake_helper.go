@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
-	"github.com/jesseduffield/lazygit/pkg/snake"
+	"github.com/lobes/lazytask/pkg/gui/style"
+	"github.com/lobes/lazytask/pkg/snake"
 )
 
 type SnakeHelper struct {

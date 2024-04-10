@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
+	"github.com/lobes/lazytask/pkg/commands/git_commands"
+	"github.com/lobes/lazytask/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/config"
+	"github.com/lobes/lazytask/pkg/gui/types"
+	integrationTypes "github.com/lobes/lazytask/pkg/integration/types"
 	"github.com/stretchr/testify/assert"
 )
 

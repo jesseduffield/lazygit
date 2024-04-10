@@ -7,10 +7,10 @@ import (
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/go-errors/errors"
-	"github.com/jesseduffield/lazygit/pkg/app/daemon"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/app/daemon"
+	"github.com/lobes/lazytask/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/commands/oscommands"
+	"github.com/lobes/lazytask/pkg/utils"
 	"github.com/samber/lo"
 )
 

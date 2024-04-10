@@ -1,6 +1,6 @@
 package filetree
 
-import "github.com/jesseduffield/lazygit/pkg/commands/models"
+import "github.com/lobes/lazytask/pkg/commands/models"
 
 // FileNode wraps a node and provides some file-specific methods for it.
 type FileNode struct {

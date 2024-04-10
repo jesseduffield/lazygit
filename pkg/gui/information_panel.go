@@ -3,9 +3,9 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/constants"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/constants"
+	"github.com/lobes/lazytask/pkg/gui/style"
+	"github.com/lobes/lazytask/pkg/utils"
 	"github.com/mattn/go-runewidth"
 )
 
@@ -15,9 +15,9 @@ func (gui *Gui) informationStr() string {
 	}
 
 	if gui.g.Mouse {
-		donate := style.FgMagenta.SetUnderline().Sprint(gui.c.Tr.Donate)
+		github := style.FgMagenta.SetUnderline().Sprint(gui.c.Tr.GitHub)
 		askQuestion := style.FgYellow.SetUnderline().Sprint(gui.c.Tr.AskQuestion)
-		return fmt.Sprintf("%s %s %s", donate, askQuestion, gui.Config.GetVersion())
+		return fmt.Sprintf("%s %s %s", github, askQuestion, gui.Config.GetVersion())
 	} else {
 		return gui.Config.GetVersion()
 	}
@@ -43,10 +43,10 @@ func (gui *Gui) handleInfoClick() error {
 	var title, url string
 
 	// if we're not in an active mode we show the donate button
-	if cx <= runewidth.StringWidth(gui.c.Tr.Donate) {
-		url = constants.Links.Donate
-		title = gui.c.Tr.Donate
-	} else if cx <= runewidth.StringWidth(gui.c.Tr.Donate)+1+runewidth.StringWidth(gui.c.Tr.AskQuestion) {
+	if cx <= runewidth.StringWidth(gui.c.Tr.GitHub) {
+		url = constants.Links.GitHub
+		title = gui.c.Tr.GitHub
+	} else if cx <= runewidth.StringWidth(gui.c.Tr.GitHub)+1+runewidth.StringWidth(gui.c.Tr.AskQuestion) {
 		url = constants.Links.Discussions
 		title = gui.c.Tr.AskQuestion
 	}

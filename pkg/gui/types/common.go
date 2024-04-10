@@ -2,14 +2,14 @@ package types
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
-	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/commands"
+	"github.com/lobes/lazytask/pkg/commands/git_commands"
+	"github.com/lobes/lazytask/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/commands/oscommands"
+	"github.com/lobes/lazytask/pkg/commands/types/enums"
+	"github.com/lobes/lazytask/pkg/common"
+	"github.com/lobes/lazytask/pkg/config"
+	"github.com/lobes/lazytask/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )

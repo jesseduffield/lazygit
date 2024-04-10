@@ -23,11 +23,11 @@ const chineseIntroPopupMessage = `
       https://youtu.be/CPLdltN7wgE
 
  2) 记得看看最新发行说明：
-      https://github.com/jesseduffield/lazygit/releases
+      https://github.com/lobes/lazytask/releases
 
  3) 使用 git 说明你是一位程序员！你可以和我们一起让 lazygit 变得更好。
     考虑为本项目做些贡献吧：
-      https://github.com/jesseduffield/lazygit
+      https://github.com/lobes/lazytask
     你也可以直接赞助，并告诉我哪里需要改进，点右下角的捐赠按钮就好了。
     哪怕只是给仓库点个星星也很棒！
 `
@@ -370,7 +370,7 @@ func chineseTranslationSet() TranslationSet {
 		CreateNewBranchFromCommit:           "从提交创建新分支",
 		BuildingPatch:                       "正在构建补丁",
 		ViewCommits:                         "查看提交",
-		MinGitVersionError:                  "Git 版本必须至少为 2.20（即从 2018 年开始的版本）。请更新 git。或者在 https://github.com/jesseduffield/lazygit/issues 上提出一个问题，以使 lazygit 更加向后兼容。",
+		MinGitVersionError:                  "Git 版本必须至少为 2.20（即从 2018 年开始的版本）。请更新 git。或者在 https://github.com/lobes/lazytask/issues 上提出一个问题，以使 lazygit 更加向后兼容。",
 		RunningCustomCommandStatus:          "正在运行自定义命令",
 		SubmoduleStashAndReset:              "存放未提交的子模块更改和更新",
 		AndResetSubmodules:                  "和重置子模块",

@@ -1,7 +1,7 @@
 package context
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/utils"
 )
 
 // Maintains a list of strings that have previously been searched/filtered for

@@ -1,8 +1,8 @@
 package worktree
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/config"
-	. "github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/lobes/lazytask/pkg/config"
+	. "github.com/lobes/lazytask/pkg/integration/components"
 )
 
 // Can't think of a better name than 'dotfile' repo: I'm using that

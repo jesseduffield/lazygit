@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/commands/oscommands"
+	"github.com/lobes/lazytask/pkg/gui/types"
 )
 
 type GpgHelper struct {

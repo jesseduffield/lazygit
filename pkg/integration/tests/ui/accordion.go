@@ -1,11 +1,11 @@
 package ui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/config"
-	. "github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/lobes/lazytask/pkg/config"
+	. "github.com/lobes/lazytask/pkg/integration/components"
 )
 
-// When in acccordion mode, Lazygit looks like this:
+// When in acccordion mode, Lazytask looks like this:
 //
 // ╶─Status─────────────────────────╴┌─Patch──────────────────────────────────────────────────────────┐
 // ╶─Files - Submodules──────0 of 0─╴│commit 6e56dd04b70e548976f7f2928c4d9c359574e2bc                 ▲
@@ -16,7 +16,7 @@ import (
 // │a35c687d CI commit 10           ▼┌─Command log────────────────────────────────────────────────────┐
 // └───────────────────────10 of 20─┘│Random tip: To filter commits by path, press '<c-s>'            │
 // ╶─Stash───────────────────0 of 0─╴└────────────────────────────────────────────────────────────────┘
-//  <pgup>/<pgdown>: Scroll, <esc>: Cancel, q: Quit, ?: Keybindings, 1-Donate Ask Question unversioned
+//  <pgup>/<pgdown>: Scroll, <esc>: Cancel, q: Quit, ?: Keybindings, 1-GitHub Ask Question unversioned
 
 var Accordion = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Verify accordion mode kicks in when the screen height is too small",

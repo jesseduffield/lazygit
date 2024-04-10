@@ -6,9 +6,9 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/gui/style"
+	"github.com/lobes/lazytask/pkg/utils"
 	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
 )

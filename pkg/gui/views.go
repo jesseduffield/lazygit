@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/lobes/lazytask/pkg/theme"
 	"github.com/samber/lo"
 )
 

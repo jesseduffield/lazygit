@@ -2,7 +2,7 @@ package context
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/gui/types"
 )
 
 type BaseContext struct {

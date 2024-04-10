@@ -7,11 +7,11 @@ const russianIntroPopupMessage = `
       https://youtu.be/CPLdltN7wgE
 
  2) Обязательно ознакомьтесь с последними примечаниями к выпуску перейдя по ссылке:
-      https://github.com/jesseduffield/lazygit/releases
+      https://github.com/lobes/lazytask/releases
 
  3) Используете git? Значит Вы программист! С Вашей помощью мы можем сделать lazygit лучше,
     станьте участником и присоединиться к веселью в
-      https://github.com/jesseduffield/lazygit
+      https://github.com/lobes/lazytask
     Вы также можете поддержать меня и рассказать, над чем мне ещё стоит поработать,
     нажав на кнопку "Поддержать" в правом нижнем углу.
     Или поделиться любовь просто добавив репозиторий в избранные.
@@ -26,7 +26,7 @@ const russianDeprecatedEditConfigWarning = `
 
 Пожалуйста, ознакомьтесь с
 
-  https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing
+  https://github.com/lobes/lazytask/blob/master/docs/Config.md#configuring-file-editing
 
 для получения актуальной информации о том, как настроить ваш редактор.
 
@@ -444,7 +444,7 @@ func RussianTranslationSet() TranslationSet {
 		CreateNewBranchFromCommit:           "Создать новую ветку с этого коммита",
 		BuildingPatch:                       "Сборка патча",
 		ViewCommits:                         "Просмотреть коммиты",
-		MinGitVersionError:                  "Версия Git должна быть не ниже 2.20 (т. е. начиная с 2018 года). Пожалуйста, обновите версию git. В качестве альтернативы заявите о проблеме на https://github.com/jesseduffield/lazygit/issues, чтобы lazygit был более совместим с предыдущими версиями.",
+		MinGitVersionError:                  "Версия Git должна быть не ниже 2.20 (т. е. начиная с 2018 года). Пожалуйста, обновите версию git. В качестве альтернативы заявите о проблеме на https://github.com/lobes/lazytask/issues, чтобы lazygit был более совместим с предыдущими версиями.",
 		RunningCustomCommandStatus:          "Запуск пользовательской команды",
 		SubmoduleStashAndReset:              "Спрятать непроиндексированные изменения подмодуля и обновить",
 		AndResetSubmodules:                  "И сбросить подмодули",

@@ -1,7 +1,7 @@
 package app
 
 import (
-	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
+	integrationTypes "github.com/lobes/lazytask/pkg/integration/types"
 )
 
 // StartArgs is the struct that represents some things we want to do on program start

@@ -1,9 +1,9 @@
 package oscommands
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/common"
+	"github.com/lobes/lazytask/pkg/config"
+	"github.com/lobes/lazytask/pkg/utils"
 )
 
 // NewDummyOSCommand creates a new dummy OSCommand for testing

@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/jesseduffield/lazygit/pkg/integration/clients"
+	"github.com/lobes/lazytask/pkg/integration/clients"
 )
 
 var usage = `

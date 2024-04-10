@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
-	"github.com/jesseduffield/lazygit/pkg/constants"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/commands/types/enums"
+	"github.com/lobes/lazytask/pkg/constants"
+	"github.com/lobes/lazytask/pkg/gui/presentation"
+	"github.com/lobes/lazytask/pkg/gui/style"
+	"github.com/lobes/lazytask/pkg/gui/types"
 	"github.com/samber/lo"
 )
 
@@ -102,7 +102,7 @@ func (self *StatusController) GetOnRenderToMain() func() error {
 				fmt.Sprintf("Tutorial: %s", style.AttrUnderline.Sprint(constants.Links.Docs.Tutorial)),
 				fmt.Sprintf("Raise an Issue: %s", style.AttrUnderline.Sprint(constants.Links.Issues)),
 				fmt.Sprintf("Release Notes: %s", style.AttrUnderline.Sprint(constants.Links.Releases)),
-				style.FgMagenta.Sprintf("Become a sponsor: %s", style.AttrUnderline.Sprint(constants.Links.Donate)), // caffeine ain't free
+				style.FgMagenta.Sprintf("The GitHub Repo: %s", style.AttrUnderline.Sprint(constants.Links.GitHub)), // caffeine ain't free
 			}, "\n\n") + "\n"
 
 		return self.c.RenderToMainViews(types.RefreshMainOpts{

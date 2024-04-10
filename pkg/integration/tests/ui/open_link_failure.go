@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/config"
-	. "github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/lobes/lazytask/pkg/config"
+	. "github.com/lobes/lazytask/pkg/integration/components"
 )
 
 var OpenLinkFailure = NewIntegrationTest(NewIntegrationTestArgs{
@@ -17,7 +17,7 @@ var OpenLinkFailure = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Information().Click(0, 0)
 
 		t.ExpectPopup().Confirmation().
-			Title(Equals("Donate")).
+			Title(Equals("GitHub")).
 			Content(Equals("Please go to https://github.com/sponsors/jesseduffield")).
 			Confirm()
 	},

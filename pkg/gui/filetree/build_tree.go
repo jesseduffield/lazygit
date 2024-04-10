@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/commands/models"
 )
 
 func BuildTreeFromFiles(files []*models.File) *Node[models.File] {

@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/gui/context"
+	"github.com/lobes/lazytask/pkg/gui/controllers/helpers"
+	"github.com/lobes/lazytask/pkg/gui/keybindings"
+	"github.com/lobes/lazytask/pkg/gui/style"
+	"github.com/lobes/lazytask/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/theme"
+	"github.com/lobes/lazytask/pkg/utils"
 	"github.com/samber/lo"
 )
 

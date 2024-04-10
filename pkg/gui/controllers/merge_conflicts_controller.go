@@ -4,9 +4,9 @@ import (
 	"os"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/gui/context"
+	"github.com/lobes/lazytask/pkg/gui/mergeconflicts"
+	"github.com/lobes/lazytask/pkg/gui/types"
 )
 
 type MergeConflictsController struct {

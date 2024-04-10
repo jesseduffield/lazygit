@@ -32,7 +32,7 @@ func polishTranslationSet() TranslationSet {
 		NoCommitToAmend:                     "Brak commita do poprawienia.",
 		CommitChangesWithEditor:             "Zatwierdź zmiany używając edytora git",
 		FindBaseCommitForFixup:              "Znajdź bazowy commit do poprawki",
-		FindBaseCommitForFixupTooltip:       "Znajdź commit, na którym opierają się Twoje obecne zmiany, w celu poprawienia/zmiany commita. To pozwala Ci uniknąć przeglądania commitów w Twojej gałęzi jeden po drugim, aby zobaczyć, który commit powinien być poprawiony/zmieniony. Zobacz dokumentację: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md>",
+		FindBaseCommitForFixupTooltip:       "Znajdź commit, na którym opierają się Twoje obecne zmiany, w celu poprawienia/zmiany commita. To pozwala Ci uniknąć przeglądania commitów w Twojej gałęzi jeden po drugim, aby zobaczyć, który commit powinien być poprawiony/zmieniony. Zobacz dokumentację: <https://github.com/lobes/lazytask/tree/master/docs/Fixup_Commits.md>",
 		NoDeletedLinesInDiff:                "Brak usuniętych linii w różnicach",
 		NoBaseCommitsFound:                  "Nie znaleziono bazowych commitów",
 		MultipleBaseCommitsFoundStaged:      "Znaleziono wiele bazowych commitów. (Spróbuj zatwierdzić mniej zmian naraz)",
@@ -571,7 +571,7 @@ func polishTranslationSet() TranslationSet {
 		CreateNewBranchFromCommit:             "Utwórz nową gałąź z commita",
 		BuildingPatch:                         "Tworzenie łatki",
 		ViewCommits:                           "Pokaż commity",
-		MinGitVersionError:                    "Wersja Gita musi być co najmniej 2.20 (tj. od 2018 roku). Proszę zaktualizować wersję Gita. Alternatywnie zgłoś problem na https://github.com/jesseduffield/lazygit/issues, aby lazygit był bardziej kompatybilny wstecz.",
+		MinGitVersionError:                    "Wersja Gita musi być co najmniej 2.20 (tj. od 2018 roku). Proszę zaktualizować wersję Gita. Alternatywnie zgłoś problem na https://github.com/lobes/lazytask/issues, aby lazygit był bardziej kompatybilny wstecz.",
 		RunningCustomCommandStatus:            "Uruchamianie niestandardowego polecenia",
 		SubmoduleStashAndReset:                "Schowaj niezatwierdzone zmiany submodułu i zaktualizuj",
 		AndResetSubmodules:                    "I zresetuj submoduły",
@@ -901,7 +901,7 @@ func polishTranslationSet() TranslationSet {
 		},
 		BreakingChangesTitle: "Zmiany przełomowe",
 		BreakingChangesMessage: `Aktualizujesz do nowej wersji lazygit, która zawiera zmiany przełomowe. Proszę przejrzeć poniższe notatki i zaktualizować swoją konfigurację, jeśli jest to konieczne.
-Aby uzyskać więcej informacji, zobacz pełne notatki do wydania na <https://github.com/jesseduffield/lazygit/releases>.`,
+Aby uzyskać więcej informacji, zobacz pełne notatki do wydania na <https://github.com/lobes/lazytask/releases>.`,
 		BreakingChangesByVersion: map[string]string{
 			"0.41.0": `- Gdy naciśniesz 'g', aby wywołać menu resetu git, opcja 'mixed' jest teraz pierwsza i domyślna, a nie 'soft'. Jest to dlatego, że 'mixed' jest najczęściej używaną opcją.
 - Panel wiadomości commita teraz domyślnie zawija tekst (tj. dodaje znaki nowej linii, gdy osiągniesz margines). Możesz dostosować konfigurację w następujący sposób:

@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/snake"
+	"github.com/lobes/lazytask/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/snake"
 )
 
 type SnakeController struct {

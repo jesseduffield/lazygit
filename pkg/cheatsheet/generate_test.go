@@ -3,8 +3,8 @@ package cheatsheet
 import (
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/lobes/lazytask/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/i18n"
 	"github.com/stretchr/testify/assert"
 )
 

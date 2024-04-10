@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/lobes/lazytask/pkg/config"
 )
 
 // GetProjectRoot returns the path to the root of the project. Only to be used

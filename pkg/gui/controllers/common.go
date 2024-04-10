@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/lobes/lazytask/pkg/gui/controllers/helpers"
 )
 
 type ControllerCommon struct {

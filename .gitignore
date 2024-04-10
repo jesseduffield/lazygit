@@ -44,3 +44,4 @@ __debug_bin
 demo/output/*
 
 coverage.out
+main.exe

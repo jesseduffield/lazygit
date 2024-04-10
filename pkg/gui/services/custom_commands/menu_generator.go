@@ -8,8 +8,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/lobes/lazytask/pkg/common"
+	"github.com/lobes/lazytask/pkg/gui/style"
 )
 
 type MenuGenerator struct {

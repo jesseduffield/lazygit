@@ -2,11 +2,11 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/commands"
+	"github.com/lobes/lazytask/pkg/commands/oscommands"
+	"github.com/lobes/lazytask/pkg/config"
+	"github.com/lobes/lazytask/pkg/gui/controllers/helpers"
+	"github.com/lobes/lazytask/pkg/gui/types"
 )
 
 // hacking this by including the gui struct for now until we split more things out

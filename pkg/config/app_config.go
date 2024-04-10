@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/adrg/xdg"
-	"github.com/jesseduffield/lazygit/pkg/utils/yaml_utils"
+	"github.com/lobes/lazytask/pkg/utils/yaml_utils"
 	"gopkg.in/yaml.v3"
 )
 

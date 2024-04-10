@@ -3,7 +3,7 @@ package app
 import (
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/lobes/lazytask/pkg/i18n"
 	"github.com/samber/lo"
 )
 

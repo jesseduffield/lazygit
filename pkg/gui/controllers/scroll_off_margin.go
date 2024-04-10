@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/config"
+	"github.com/lobes/lazytask/pkg/gui/types"
 )
 
 // To be called after pressing up-arrow; checks whether the cursor entered the

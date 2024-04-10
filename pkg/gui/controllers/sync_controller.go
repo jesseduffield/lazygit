@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/commands/git_commands"
+	"github.com/lobes/lazytask/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/gui/context"
+	"github.com/lobes/lazytask/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/utils"
 )
 
 type SyncController struct {

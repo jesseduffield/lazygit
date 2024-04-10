@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/commands/types/enums"
+	"github.com/lobes/lazytask/pkg/gui/presentation"
+	"github.com/lobes/lazytask/pkg/gui/style"
+	"github.com/lobes/lazytask/pkg/gui/types"
 	"github.com/samber/lo"
 )
 

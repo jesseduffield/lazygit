@@ -1,8 +1,8 @@
 package presentation
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/lobes/lazytask/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/theme"
 	"github.com/samber/lo"
 )
 

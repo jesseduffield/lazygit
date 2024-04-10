@@ -2,7 +2,7 @@ package types
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/lobes/lazytask/pkg/gui/style"
 )
 
 type Key interface{} // FIXME: find out how to get `gocui.Key | rune`

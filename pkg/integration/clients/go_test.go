@@ -16,8 +16,8 @@ import (
 
 	"github.com/creack/pty"
 	"github.com/jesseduffield/lazycore/pkg/utils"
-	"github.com/jesseduffield/lazygit/pkg/integration/components"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests"
+	"github.com/lobes/lazytask/pkg/integration/components"
+	"github.com/lobes/lazytask/pkg/integration/tests"
 	"github.com/stretchr/testify/assert"
 )
 

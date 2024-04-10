@@ -1,8 +1,8 @@
 package custom_commands
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/lobes/lazytask/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/gui/controllers/helpers"
 )
 
 // loads the session state at the time that a custom command is invoked, for use

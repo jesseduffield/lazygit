@@ -3,7 +3,7 @@ package theme
 import (
 	"github.com/gookit/color"
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/utils"
 )
 
 var gocuiColorMap = map[string]gocui.Attribute{

@@ -1,8 +1,8 @@
 package misc
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/config"
-	. "github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/lobes/lazytask/pkg/config"
+	. "github.com/lobes/lazytask/pkg/integration/components"
 )
 
 var ConfirmOnQuit = NewIntegrationTest(NewIntegrationTestArgs{

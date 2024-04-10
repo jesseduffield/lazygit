@@ -7,11 +7,11 @@ lazygit!를 이용해주셔서 감사합니다. Seriously you rock. Three things
       https://youtu.be/CPLdltN7wgE
 
  2) 다음 사이트에서 최신 릴리스 노트를 읽어보세요.:
-      https://github.com/jesseduffield/lazygit/releases
+      https://github.com/lobes/lazytask/releases
 
  3) 만약 당신이 Git을 사용한다면, 그것은 당신을 프로그래머로 만들 것입니다!
 	 당신의 도움으로 우리는 lazygit을 더 좋게 만들 수 있습니다, 그러니 기여자가 되는 것을 고려해보세요. 그리고 재미에 참여하세요:
-      https://github.com/jesseduffield/lazygit
+      https://github.com/lobes/lazytask
     또한 오른쪽 하단의 기부 버튼을 클릭하여 저를 후원하고 작업할 내용을 알려주실 수 있습니다.
     또는 저장소에 스타를 눌러 사랑을 공유할 수도 있습니다!
 `
@@ -381,7 +381,7 @@ func koreanTranslationSet() TranslationSet {
 		CreateNewBranchFromCommit:           "커밋에서 새 브랜치를 만듭니다.",
 		BuildingPatch:                       "Building patch",
 		ViewCommits:                         "커밋 보기",
-		MinGitVersionError:                  "Lazygit 실행을 위해서는 Git 2.20 이후의 버전(2018년 이후의)이 필요합니다. Git를 업데이트 해주세요. 아니면 lazygit이 이전 버전과 더 잘 호환되도록 https://github.com/jesseduffield/lazygit/issues 에 issue를 작성해 주세요.",
+		MinGitVersionError:                  "Lazygit 실행을 위해서는 Git 2.20 이후의 버전(2018년 이후의)이 필요합니다. Git를 업데이트 해주세요. 아니면 lazygit이 이전 버전과 더 잘 호환되도록 https://github.com/lobes/lazytask/issues 에 issue를 작성해 주세요.",
 		RunningCustomCommandStatus:          "커스텀 명령어 실행",
 		SubmoduleStashAndReset:              "Stash uncommitted submodule changes and update",
 		AndResetSubmodules:                  "And reset submodules",

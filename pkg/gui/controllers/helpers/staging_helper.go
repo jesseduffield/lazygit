@@ -1,9 +1,9 @@
 package helpers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/gui/patch_exploring"
+	"github.com/lobes/lazytask/pkg/gui/types"
 )
 
 type StagingHelper struct {

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/tasks"
+	"github.com/lobes/lazytask/pkg/tasks"
 )
 
 func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {

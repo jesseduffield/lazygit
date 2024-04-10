@@ -2,8 +2,8 @@ package git_commands
 
 import (
 	gogit "github.com/jesseduffield/go-git/v5"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/lobes/lazytask/pkg/commands/oscommands"
+	"github.com/lobes/lazytask/pkg/common"
 )
 
 type GitCommon struct {

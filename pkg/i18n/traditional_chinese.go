@@ -44,10 +44,10 @@ const traditionalChineseIntroPopupMessage = `
       https://youtu.be/CPLdltN7wgE
 
  2) 📣釋出說明📣：
-      https://github.com/jesseduffield/lazygit/releases
+      https://github.com/lobes/lazytask/releases
 
  3) 💖如果你想要貢獻一份心力你可以💖：
-    改進 lazygit 原始碼：https://github.com/jesseduffield/lazygit
+    改進 lazygit 原始碼：https://github.com/lobes/lazytask
     按右下角的捐款斗內我們
     或單存添加 lazygit 到你的 star 清單內以增加曝光度都能大力的幫助我們！
 `
@@ -60,7 +60,7 @@ const traditionalChineseDeprecatedEditConfigWarning = `
 
 編輯器設定教學：
 
-  https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing
+  https://github.com/lobes/lazytask/blob/master/docs/Config.md#configuring-file-editing
 
 `
 
@@ -475,7 +475,7 @@ func traditionalChineseTranslationSet() TranslationSet {
 		CreateNewBranchFromCommit:           "從提交建立新分支",
 		BuildingPatch:                       "正在建立補丁",
 		ViewCommits:                         "檢視提交",
-		MinGitVersionError:                  "請升級 git 至新於 2.20（即從 2018 年起）之版本。或於 https://github.com/jesseduffield/lazygit/issues 上回報問題使 lazygit 能支援更舊的 git 版本。",
+		MinGitVersionError:                  "請升級 git 至新於 2.20（即從 2018 年起）之版本。或於 https://github.com/lobes/lazytask/issues 上回報問題使 lazygit 能支援更舊的 git 版本。",
 		RunningCustomCommandStatus:          "正在執行自訂命令",
 		SubmoduleStashAndReset:              "收藏未提交的子模組變更並更新",
 		AndResetSubmodules:                  "以及重設子模組",

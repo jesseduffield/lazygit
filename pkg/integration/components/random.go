@@ -248,7 +248,7 @@ import (
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazycore/pkg/utils"
-	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/lobes/lazytask/pkg/integration/components"
 	"github.com/samber/lo"
 )
 
@@ -272,10 +272,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/commands/git_commands"
+	"github.com/lobes/lazytask/pkg/config"
+	integrationTypes "github.com/lobes/lazytask/pkg/integration/types"
+	"github.com/lobes/lazytask/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -297,8 +297,8 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
+	"github.com/lobes/lazytask/pkg/config"
+	integrationTypes "github.com/lobes/lazytask/pkg/integration/types"
 )
 
 type TestDriver struct {
@@ -344,11 +344,11 @@ import (
 
 	"github.com/kardianos/osext"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/constants"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/commands/oscommands"
+	"github.com/lobes/lazytask/pkg/common"
+	"github.com/lobes/lazytask/pkg/config"
+	"github.com/lobes/lazytask/pkg/constants"
+	"github.com/lobes/lazytask/pkg/utils"
 )
 
 // Updater checks for updates and does updates
@@ -390,7 +390,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/utils"
 )
 
 func main() {

@@ -28,7 +28,7 @@ type UserConfig struct {
 	DisableStartupPopups bool `yaml:"disableStartupPopups"`
 	// User-configured commands that can be invoked from within Lazygit
 	CustomCommands []CustomCommand `yaml:"customCommands" jsonschema:"uniqueItems=true"`
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-pull-request-urls
+	// See https://github.com/lobes/lazytask/blob/master/docs/Config.md#custom-pull-request-urls
 	Services map[string]string `yaml:"services"`
 	// What to do when opening Lazygit outside of a git repo.
 	// - 'prompt': (default) ask whether to initialize a new repo or open in the most recent repo
@@ -50,15 +50,15 @@ type RefresherConfig struct {
 }
 
 type GuiConfig struct {
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
+	// See https://github.com/lobes/lazytask/blob/master/docs/Config.md#custom-author-color
 	AuthorColors map[string]string `yaml:"authorColors"`
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
+	// See https://github.com/lobes/lazytask/blob/master/docs/Config.md#custom-branch-color
 	BranchColors map[string]string `yaml:"branchColors"`
 	// The number of lines you scroll by when scrolling the main window
 	ScrollHeight int `yaml:"scrollHeight" jsonschema:"minimum=1"`
 	// If true, allow scrolling past the bottom of the content in the main window
 	ScrollPastBottom bool `yaml:"scrollPastBottom"`
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#scroll-off-margin
+	// See https://github.com/lobes/lazytask/blob/master/docs/Config.md#scroll-off-margin
 	ScrollOffMargin int `yaml:"scrollOffMargin"`
 	// One of: 'margin' (default) | 'jump'
 	ScrollOffBehavior string `yaml:"scrollOffBehavior"`
@@ -98,7 +98,7 @@ type GuiConfig struct {
 	// Uses Go's time format syntax: https://pkg.go.dev/time#Time.Format
 	ShortTimeFormat string `yaml:"shortTimeFormat"`
 	// Config relating to colors and styles.
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#color-attributes
+	// See https://github.com/lobes/lazytask/blob/master/docs/Config.md#color-attributes
 	Theme ThemeConfig `yaml:"theme"`
 	// Config relating to the commit length indicator
 	CommitLength CommitLengthConfig `yaml:"commitLength"`
@@ -163,7 +163,7 @@ type ThemeConfig struct {
 	// Color of keybindings help text in the bottom line
 	OptionsTextColor []string `yaml:"optionsTextColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Background color of selected line.
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
+	// See https://github.com/lobes/lazytask/blob/master/docs/Config.md#highlighting-the-selected-line
 	SelectedLineBgColor []string `yaml:"selectedLineBgColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Foreground color of copied commit
 	CherryPickedCommitFgColor []string `yaml:"cherryPickedCommitFgColor" jsonschema:"minItems=1,uniqueItems=true"`
@@ -192,7 +192,7 @@ type SpinnerConfig struct {
 }
 
 type GitConfig struct {
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
+	// See https://github.com/lobes/lazytask/blob/master/docs/Custom_Pagers.md
 	Paging PagingConfig `yaml:"paging"`
 	// Config relating to committing
 	Commit CommitConfig `yaml:"commit"`
@@ -216,7 +216,7 @@ type GitConfig struct {
 	OverrideGpg bool `yaml:"overrideGpg"`
 	// If true, do not allow force pushes
 	DisableForcePushing bool `yaml:"disableForcePushing"`
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
+	// See https://github.com/lobes/lazytask/blob/master/docs/Config.md#predefined-commit-message-prefix
 	CommitPrefixes map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
 	// If true, parse emoji strings in commit messages e.g. render :rocket: as 🚀
 	// (This should really be under 'gui', not 'git')
@@ -547,7 +547,7 @@ type OSConfig struct {
 	OpenLinkCommand string `yaml:"openLinkCommand,omitempty"`
 
 	// CopyToClipboardCmd is the command for copying to clipboard.
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard
+	// See https://github.com/lobes/lazytask/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard
 	CopyToClipboardCmd string `yaml:"copyToClipboardCmd,omitempty"`
 }
 
@@ -556,7 +556,7 @@ type CustomCommandAfterHook struct {
 }
 
 type CustomCommand struct {
-	// The key to trigger the command. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md
+	// The key to trigger the command. Use a single letter or one of the values from https://github.com/lobes/lazytask/blob/master/docs/keybindings/Custom_Keybindings.md
 	Key string `yaml:"key"`
 	// The context in which to listen for the key
 	Context string `yaml:"context" jsonschema:"enum=status,enum=files,enum=worktrees,enum=localBranches,enum=remotes,enum=remoteBranches,enum=tags,enum=commits,enum=reflogCommits,enum=subCommits,enum=commitFiles,enum=stash,enum=global"`

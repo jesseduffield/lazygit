@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/lobes/lazytask/pkg/gui/context"
+	"github.com/lobes/lazytask/pkg/gui/keybindings"
+	"github.com/lobes/lazytask/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/theme"
 )
 
 // NOTE: this helper supports both filtering and searching. Filtering is when

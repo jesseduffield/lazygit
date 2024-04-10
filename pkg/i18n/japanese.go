@@ -7,11 +7,11 @@ Thanks for using lazygit! Seriously you rock. Three things to share with you:
       https://youtu.be/CPLdltN7wgE
 
  2) Be sure to read the latest release notes at:
-      https://github.com/jesseduffield/lazygit/releases
+      https://github.com/lobes/lazytask/releases
 
  3) If you're using git, that makes you a programmer! With your help we can make
     lazygit better, so consider becoming a contributor and joining the fun at
-      https://github.com/jesseduffield/lazygit
+      https://github.com/lobes/lazytask
     You can also sponsor me and tell me what to work on by clicking the donate
     button at the bottom right.
     Or even just star the repo to share the love!
@@ -387,7 +387,7 @@ func japaneseTranslationSet() TranslationSet {
 		CreateNewBranchFromCommit:  "コミットにブランチを作成",
 		BuildingPatch:              "パッチを構築",
 		ViewCommits:                "コミットを閲覧",
-		MinGitVersionError:         "Lazygitの実行にはGit 2.20以降のバージョンが必要です。Gitを更新してください。もしくは、lazygitの後方互換性を改善するために https://github.com/jesseduffield/lazygit/issues にissueを作成してください。",
+		MinGitVersionError:         "Lazygitの実行にはGit 2.20以降のバージョンが必要です。Gitを更新してください。もしくは、lazygitの後方互換性を改善するために https://github.com/lobes/lazytask/issues にissueを作成してください。",
 		RunningCustomCommandStatus: "カスタムコマンドを実行",
 		// LcSubmoduleStashAndReset:            "Stash uncommitted submodule changes and update",
 		// LcAndResetSubmodules:                "And reset submodules",

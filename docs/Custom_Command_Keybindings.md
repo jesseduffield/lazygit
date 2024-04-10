@@ -48,23 +48,23 @@ Custom command keybindings will appear alongside inbuilt keybindings when you vi
 ![](https://i.imgur.com/QB21FPx.png)
 
 For a given custom command, here are the allowed fields:
-| _field_ | _description_ | required |
-|-----------------|----------------------|-|
-| key | The key to trigger the command. Use a single letter or one of the values from [here](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md) | yes |
-| command | The command to run (using Go template syntax for placeholder values) | yes |
-| context | The context in which to listen for the key (see [below](#contexts)) | yes |
-| subprocess | Whether you want the command to run in a subprocess (e.g. if the command requires user input) | no |
-| prompts | A list of prompts that will request user input before running the final command | no |
-| loadingText | Text to display while waiting for command to finish | no |
-| description | Label for the custom command when displayed in the keybindings menu | no |
-| stream | Whether you want to stream the command's output to the Command Log panel | no |
-| showOutput | Whether you want to show the command's output in a popup within Lazygit | no |
-| after | Actions to take after the command has completed | no |
+| _field_     | _description_                                                                                                                                                              | required |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| key         | The key to trigger the command. Use a single letter or one of the values from [here](https://github.com/lobes/lazytask/blob/master/docs/keybindings/Custom_Keybindings.md) | yes      |
+| command     | The command to run (using Go template syntax for placeholder values)                                                                                                       | yes      |
+| context     | The context in which to listen for the key (see [below](#contexts))                                                                                                        | yes      |
+| subprocess  | Whether you want the command to run in a subprocess (e.g. if the command requires user input)                                                                              | no       |
+| prompts     | A list of prompts that will request user input before running the final command                                                                                            | no       |
+| loadingText | Text to display while waiting for command to finish                                                                                                                        | no       |
+| description | Label for the custom command when displayed in the keybindings menu                                                                                                        | no       |
+| stream      | Whether you want to stream the command's output to the Command Log panel                                                                                                   | no       |
+| showOutput  | Whether you want to show the command's output in a popup within Lazygit                                                                                                    | no       |
+| after       | Actions to take after the command has completed                                                                                                                            | no       |
 
 Here are the options for the `after` key:
-| _field_ | _description_ | required |
-|-----------------|----------------------|-|
-| checkForConflicts | true/false. If true, check for merge conflicts | no |
+| _field_           | _description_                                  | required |
+| ----------------- | ---------------------------------------------- | -------- |
+| checkForConflicts | true/false. If true, check for merge conflicts | no       |
 
 ## Contexts
 
@@ -92,24 +92,24 @@ The permitted contexts are:
 
 These fields are applicable to all prompts.
 
-| _field_           | _description_                                                                                  | _required_ |
-| ------------      | -----------------------------------------------------------------------------------------------| ---------- |
-| type              | One of 'input', 'confirm', 'menu', 'menuFromCommand'                                                           | yes        |
-| title             | The title to display in the popup panel                                                        | no         |
-| key | Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command | yes |
+| _field_ | _description_                                                                                                                                                  | _required_ |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| type    | One of 'input', 'confirm', 'menu', 'menuFromCommand'                                                                                                           | yes        |
+| title   | The title to display in the popup panel                                                                                                                        | no         |
+| key     | Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command | yes        |
 
 ### Input
 
-| _field_           | _description_                                                                                  | _required_ |
-| ------------      | -----------------------------------------------------------------------------------------------| ---------- |
-| initialValue      | The initial value to appear in the text box               | no         |
-| suggestions       | Shows suggestions as the input is entered. See below for details                                                          | no         |
+| _field_      | _description_                                                    | _required_ |
+| ------------ | ---------------------------------------------------------------- | ---------- |
+| initialValue | The initial value to appear in the text box                      | no         |
+| suggestions  | Shows suggestions as the input is entered. See below for details | no         |
 
 The permitted suggestions fields are:
-| _field_ | _description_ | _required_ |
-|-----------------|----------------------|-|
-| preset | Uses built-in logic to obtain the suggestions. One of 'authors', 'branches', 'files', 'refs', 'remotes', 'remoteBranches', 'tags' | no |
-| command | Command to run such that each line in the output becomes a suggestion. Mutually exclusive with 'preset' field. | no |
+| _field_ | _description_                                                                                                                     | _required_ |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| preset  | Uses built-in logic to obtain the suggestions. One of 'authors', 'branches', 'files', 'refs', 'remotes', 'remoteBranches', 'tags' | no         |
+| command | Command to run such that each line in the output becomes a suggestion. Mutually exclusive with 'preset' field.                    | no         |
 
 Here's an example of passing a preset:
 
@@ -158,9 +158,9 @@ customCommands:
 
 ### Confirm
 
-| _field_           | _description_                                                                                  | _required_ |
-| ------------      | -----------------------------------------------------------------------------------------------| ---------- |
-| body              | The immutable body text to appear in the text box       | no         |
+| _field_ | _description_                                     | _required_ |
+| ------- | ------------------------------------------------- | ---------- |
+| body    | The immutable body text to appear in the text box | no         |
 
 Example:
 
@@ -177,16 +177,16 @@ customCommands:
 
 ### Menu
 
-| _field_           | _description_                                                                                  | _required_ |
-| ------------      | -----------------------------------------------------------------------------------------------| ---------- |
-| options           | The options to display in the menu                         | yes         |
+| _field_ | _description_                      | _required_ |
+| ------- | ---------------------------------- | ---------- |
+| options | The options to display in the menu | yes        |
 
 The permitted option fields are:
-| _field_ | _description_ | _required_ |
-|-----------------|----------------------|-|
-| name | The first part of the label | no |
-| description | The second part of the label | no |
-| value | the value that will be used in the command | yes |
+| _field_     | _description_                              | _required_ |
+| ----------- | ------------------------------------------ | ---------- |
+| name        | The first part of the label                | no         |
+| description | The second part of the label               | no         |
+| value       | the value that will be used in the command | yes        |
 
 If an option has no name the value will be displayed to the user in place of the name, so you're allowed to only include the value like so:
 
@@ -230,14 +230,14 @@ customCommands:
 
 ### Menu-from-command
 
-| _field_           | _description_                                                                                  | _required_ |
-| ------------      | -----------------------------------------------------------------------------------------------| ---------- |
-| command           | The command to run to generate menu options                  | yes        |
-| filter            | The regexp to run specifying groups which are going to be kept from the command's output      | no        |
-| valueFormat       | How to format matched groups from the filter to construct a menu item's value | no        |
-| labelFormat       | Like valueFormat but for the labels. If `labelFormat` is not specified, `valueFormat` is shown instead. | no         |
+| _field_     | _description_                                                                                           | _required_ |
+| ----------- | ------------------------------------------------------------------------------------------------------- | ---------- |
+| command     | The command to run to generate menu options                                                             | yes        |
+| filter      | The regexp to run specifying groups which are going to be kept from the command's output                | no         |
+| valueFormat | How to format matched groups from the filter to construct a menu item's value                           | no         |
+| labelFormat | Like valueFormat but for the labels. If `labelFormat` is not specified, `valueFormat` is shown instead. | no         |
 
-Here's an example using named groups in the regex. Notice how we can pipe the label to a colour function for coloured output (available colours [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md))
+Here's an example using named groups in the regex. Notice how we can pipe the label to a colour function for coloured output (available colours [here](https://github.com/lobes/lazytask/blob/master/docs/Config.md))
 
 ```yml
   - key : 'a'
@@ -305,11 +305,11 @@ SelectedWorktree
 CheckedOutBranch
 ```
 
-To see what fields are available on e.g. the `SelectedFile`, see [here](https://github.com/jesseduffield/lazygit/blob/master/pkg/commands/models/file.go) (all the modelling lives in the same directory). Note that the custom commands feature does not guarantee backwards compatibility (until we hit Lazygit version 1.0 of course) which means a field you're accessing on an object may no longer be available from one release to the next. Typically however, all you'll need is `{{.SelectedFile.Name}}`, `{{.SelectedLocalCommit.Sha}}` and `{{.SelectedLocalBranch.Name}}`. In the future we will likely introduce a tighter interface that exposes a limited set of fields for each model.
+To see what fields are available on e.g. the `SelectedFile`, see [here](https://github.com/lobes/lazytask/blob/master/pkg/commands/models/file.go) (all the modelling lives in the same directory). Note that the custom commands feature does not guarantee backwards compatibility (until we hit Lazygit version 1.0 of course) which means a field you're accessing on an object may no longer be available from one release to the next. Typically however, all you'll need is `{{.SelectedFile.Name}}`, `{{.SelectedLocalCommit.Sha}}` and `{{.SelectedLocalBranch.Name}}`. In the future we will likely introduce a tighter interface that exposes a limited set of fields for each model.
 
 ## Keybinding collisions
 
-If your custom keybinding collides with an inbuilt keybinding that is defined for the same context, only the custom keybinding will be executed. This also applies to the global context. However, one caveat is that if you have a custom keybinding defined on the global context for some key, and there is an in-built keybinding defined for the same key and for a specific context (say the 'files' context), then the in-built keybinding will take precedence. See how to change in-built keybindings [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#keybindings)
+If your custom keybinding collides with an inbuilt keybinding that is defined for the same context, only the custom keybinding will be executed. This also applies to the global context. However, one caveat is that if you have a custom keybinding defined on the global context for some key, and there is an in-built keybinding defined for the same key and for a specific context (say the 'files' context), then the in-built keybinding will take precedence. See how to change in-built keybindings [here](https://github.com/lobes/lazytask/blob/master/docs/Config.md#keybindings)
 
 ## Debugging
 
@@ -317,4 +317,4 @@ If you want to verify that your command actually does what you expect, you can w
 
 ## More Examples
 
-See the [wiki](https://github.com/jesseduffield/lazygit/wiki/Custom-Commands-Compendium) page for more examples, and feel free to add your own custom commands to this page so others can benefit!
+See the [wiki](https://github.com/lobes/lazytask/wiki/Custom-Commands-Compendium) page for more examples, and feel free to add your own custom commands to this page so others can benefit!

@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/gui/types"
 )
 
 // This controller is for all contexts that have items you can create a worktree from

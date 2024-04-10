@@ -1,9 +1,9 @@
 package branch
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/config"
-	. "github.com/jesseduffield/lazygit/pkg/integration/components"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/shared"
+	"github.com/lobes/lazytask/pkg/config"
+	. "github.com/lobes/lazytask/pkg/integration/components"
+	"github.com/lobes/lazytask/pkg/integration/tests/shared"
 )
 
 var RebaseAbortOnConflict = NewIntegrationTest(NewIntegrationTestArgs{

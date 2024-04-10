@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/gui/modes/diffing"
+	"github.com/lobes/lazytask/pkg/gui/types"
 )
 
 type DiffingMenuAction struct {

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/jesseduffield/lazygit/pkg/config/user-config",
+  "$id": "https://github.com/lobes/lazytask/pkg/config/user-config",
   "properties": {
     "gui": {
       "properties": {
@@ -9,14 +9,14 @@
             "type": "string"
           },
           "type": "object",
-          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color"
+          "description": "See https://github.com/lobes/lazytask/blob/master/docs/Config.md#custom-author-color"
         },
         "branchColors": {
           "additionalProperties": {
             "type": "string"
           },
           "type": "object",
-          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color"
+          "description": "See https://github.com/lobes/lazytask/blob/master/docs/Config.md#custom-branch-color"
         },
         "scrollHeight": {
           "type": "integer",
@@ -31,7 +31,7 @@
         },
         "scrollOffMargin": {
           "type": "integer",
-          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#scroll-off-margin",
+          "description": "See https://github.com/lobes/lazytask/blob/master/docs/Config.md#scroll-off-margin",
           "default": 2
         },
         "scrollOffBehavior": {
@@ -171,7 +171,7 @@
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
-              "description": "Background color of selected line.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line",
+              "description": "Background color of selected line.\nSee https://github.com/lobes/lazytask/blob/master/docs/Config.md#highlighting-the-selected-line",
               "default": [
                 "blue"
               ]
@@ -247,7 +247,7 @@
           },
           "additionalProperties": false,
           "type": "object",
-          "description": "Config relating to colors and styles.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#color-attributes"
+          "description": "Config relating to colors and styles.\nSee https://github.com/lobes/lazytask/blob/master/docs/Config.md#color-attributes"
         },
         "commitLength": {
           "properties": {
@@ -433,7 +433,7 @@
           },
           "additionalProperties": false,
           "type": "object",
-          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md"
+          "description": "See https://github.com/lobes/lazytask/blob/master/docs/Custom_Pagers.md"
         },
         "commit": {
           "properties": {
@@ -548,7 +548,7 @@
             "type": "object"
           },
           "type": "object",
-          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix"
+          "description": "See https://github.com/lobes/lazytask/blob/master/docs/Config.md#predefined-commit-message-prefix"
         },
         "parseEmoji": {
           "type": "boolean",
@@ -1359,7 +1359,7 @@
         },
         "copyToClipboardCmd": {
           "type": "string",
-          "description": "CopyToClipboardCmd is the command for copying to clipboard.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard"
+          "description": "CopyToClipboardCmd is the command for copying to clipboard.\nSee https://github.com/lobes/lazytask/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard"
         }
       },
       "additionalProperties": false,
@@ -1375,7 +1375,7 @@
         "properties": {
           "key": {
             "type": "string",
-            "description": "The key to trigger the command. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md"
+            "description": "The key to trigger the command. Use a single letter or one of the values from https://github.com/lobes/lazytask/blob/master/docs/keybindings/Custom_Keybindings.md"
           },
           "context": {
             "type": "string",
@@ -1563,7 +1563,7 @@
         "type": "string"
       },
       "type": "object",
-      "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-pull-request-urls"
+      "description": "See https://github.com/lobes/lazytask/blob/master/docs/Config.md#custom-pull-request-urls"
     },
     "notARepository": {
       "type": "string",

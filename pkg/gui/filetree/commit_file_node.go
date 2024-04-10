@@ -1,6 +1,6 @@
 package filetree
 
-import "github.com/jesseduffield/lazygit/pkg/commands/models"
+import "github.com/lobes/lazytask/pkg/commands/models"
 
 // CommitFileNode wraps a node and provides some commit-file-specific methods for it.
 type CommitFileNode struct {

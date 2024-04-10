@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/lobes/lazytask/pkg/integration/components"
 	"github.com/samber/lo"
 )
 

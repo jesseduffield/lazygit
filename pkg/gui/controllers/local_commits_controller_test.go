@@ -3,7 +3,7 @@ package controllers
 import (
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/commands/models"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/lobes/lazytask/pkg/commands/oscommands"
 	"github.com/stretchr/testify/assert"
 )
 

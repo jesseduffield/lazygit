@@ -14,9 +14,9 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/jesseduffield/kill"
-	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/common"
+	"github.com/lobes/lazytask/pkg/config"
+	"github.com/lobes/lazytask/pkg/utils"
 )
 
 // OSCommand holds all the os commands

@@ -7,8 +7,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/constants"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/constants"
+	"github.com/lobes/lazytask/pkg/gui/types"
 	"github.com/samber/lo"
 )
 

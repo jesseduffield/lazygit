@@ -2,7 +2,7 @@ package patch_exploring
 
 import (
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/lobes/lazytask/pkg/commands/patch"
 	"github.com/sirupsen/logrus"
 )
 

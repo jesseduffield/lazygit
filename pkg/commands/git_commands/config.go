@@ -7,9 +7,9 @@ import (
 
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/go-git/v5/config"
-	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
-	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/commands/git_config"
+	"github.com/lobes/lazytask/pkg/common"
+	"github.com/lobes/lazytask/pkg/utils"
 )
 
 type ConfigCommands struct {

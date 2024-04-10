@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/commands/types/enums"
+	"github.com/lobes/lazytask/pkg/gui/controllers/helpers"
+	"github.com/lobes/lazytask/pkg/gui/types"
 )
 
 type CustomPatchOptionsMenuAction struct {

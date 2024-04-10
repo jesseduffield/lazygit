@@ -311,7 +311,7 @@ type TranslationSet struct {
 	CherryPick                            string
 	CannotCherryPickNonCommit             string
 	CannotCherryPickMergeCommit           string
-	Donate                                string
+	GitHub                                string
 	AskQuestion                           string
 	PrevLine                              string
 	NextLine                              string
@@ -944,11 +944,11 @@ Thanks for using lazygit! Seriously you rock. Three things to share with you:
       https://youtu.be/CPLdltN7wgE
 
  2) Be sure to read the latest release notes at:
-      https://github.com/jesseduffield/lazygit/releases
+      https://github.com/lobes/lazytask/releases
 
  3) If you're using git, that makes you a programmer! With your help we can make
     lazygit better, so consider becoming a contributor and joining the fun at
-      https://github.com/jesseduffield/lazygit
+      https://github.com/lobes/lazytask
     You can also sponsor me and tell me what to work on by clicking the donate
     button at the bottom right.
     Or even just star the repo to share the love!
@@ -963,7 +963,7 @@ version:
 
 Please refer to
 
-  https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing
+  https://github.com/lobes/lazytask/blob/master/docs/Config.md#configuring-file-editing
 
 for up-to-date information how to configure your editor.
 
@@ -1002,7 +1002,7 @@ func EnglishTranslationSet() TranslationSet {
 		NoCommitToAmend:                      "There's no commit to amend.",
 		CommitChangesWithEditor:              "Commit changes using git editor",
 		FindBaseCommitForFixup:               "Find base commit for fixup",
-		FindBaseCommitForFixupTooltip:        "Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md>",
+		FindBaseCommitForFixupTooltip:        "Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/lobes/lazytask/tree/master/docs/Fixup_Commits.md>",
 		NoDeletedLinesInDiff:                 "No deleted lines in diff",
 		NoBaseCommitsFound:                   "No base commits found",
 		MultipleBaseCommitsFoundStaged:       "Multiple base commits found. (Try staging fewer changes at once)",
@@ -1557,7 +1557,7 @@ func EnglishTranslationSet() TranslationSet {
 		CreateNewBranchFromCommit:             "Create new branch off of commit",
 		BuildingPatch:                         "Building patch",
 		ViewCommits:                           "View commits",
-		MinGitVersionError:                    "Git version must be at least 2.20 (i.e. from 2018 onwards). Please upgrade your git version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
+		MinGitVersionError:                    "Git version must be at least 2.20 (i.e. from 2018 onwards). Please upgrade your git version. Alternatively raise an issue at https://github.com/lobes/lazytask/issues for lazygit to be more backwards compatible.",
 		RunningCustomCommandStatus:            "Running custom command",
 		SubmoduleStashAndReset:                "Stash uncommitted submodule changes and update",
 		AndResetSubmodules:                    "And reset submodules",
@@ -1889,7 +1889,7 @@ func EnglishTranslationSet() TranslationSet {
 		},
 		BreakingChangesTitle: "Breaking Changes",
 		BreakingChangesMessage: `You are updating to a new version of lazygit which contains breaking changes. Please review the notes below and update your configuration if necessary.
-For more information, see the full release notes at <https://github.com/jesseduffield/lazygit/releases>.`,
+For more information, see the full release notes at <https://github.com/lobes/lazytask/releases>.`,
 		BreakingChangesByVersion: map[string]string{
 			"0.41.0": `- When you press 'g' to bring up the git reset menu, the 'mixed' option is now the first and default, rather than 'soft'. This is because 'mixed' is the most commonly used option.
 - The commit message panel now automatically hard-wraps by default (i.e. it adds newline characters when you reach the margin). You can adjust the config like so:

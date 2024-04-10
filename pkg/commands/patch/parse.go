@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/utils"
 )
 
 var hunkHeaderRegexp = regexp.MustCompile(`(?m)^@@ -(\d+)[^\+]+\+(\d+)[^@]+@@(.*)$`)

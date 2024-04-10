@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/lobes/lazytask/pkg/commands/oscommands"
 )
 
 var ErrInvalidCommitIndex = errors.New("invalid commit index")

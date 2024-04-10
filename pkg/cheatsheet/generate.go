@@ -17,11 +17,11 @@ import (
 
 	"github.com/jesseduffield/generics/maps"
 	"github.com/jesseduffield/lazycore/pkg/utils"
-	"github.com/jesseduffield/lazygit/pkg/app"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/lobes/lazytask/pkg/app"
+	"github.com/lobes/lazytask/pkg/config"
+	"github.com/lobes/lazytask/pkg/gui/keybindings"
+	"github.com/lobes/lazytask/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/i18n"
 	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
 )

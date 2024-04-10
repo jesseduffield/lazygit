@@ -3,8 +3,8 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/lobes/lazytask/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/theme"
 )
 
 // note: items option is mutated by this function

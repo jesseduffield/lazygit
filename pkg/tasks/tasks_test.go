@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/utils"
 )
 
 func getCounter() (func(), func() int) {

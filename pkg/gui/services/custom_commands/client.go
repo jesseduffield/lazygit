@@ -1,13 +1,13 @@
 package custom_commands
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/config"
+	"github.com/lobes/lazytask/pkg/gui/controllers/helpers"
+	"github.com/lobes/lazytask/pkg/gui/types"
 )
 
 // Client is the entry point to this package. It returns a list of keybindings based on the config's user-defined custom commands.
-// See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md for more info.
+// See https://github.com/lobes/lazytask/blob/master/docs/Custom_Command_Keybindings.md for more info.
 type Client struct {
 	customCommands    []config.CustomCommand
 	handlerCreator    *HandlerCreator

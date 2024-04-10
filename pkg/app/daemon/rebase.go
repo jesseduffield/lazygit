@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/lobes/lazytask/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/common"
+	"github.com/lobes/lazytask/pkg/env"
 	"github.com/samber/lo"
 )
 

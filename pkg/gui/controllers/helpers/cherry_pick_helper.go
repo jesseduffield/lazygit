@@ -2,9 +2,9 @@ package helpers
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/gui/modes/cherrypicking"
+	"github.com/lobes/lazytask/pkg/gui/types"
 	"github.com/samber/lo"
 )
 

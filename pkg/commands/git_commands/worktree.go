@@ -3,7 +3,7 @@ package git_commands
 import (
 	"path/filepath"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/commands/models"
 )
 
 type WorktreeCommands struct {

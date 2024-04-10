@@ -2,9 +2,9 @@ package helpers
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/updates"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/updates"
+	"github.com/lobes/lazytask/pkg/utils"
 )
 
 type UpdateHelper struct {

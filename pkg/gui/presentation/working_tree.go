@@ -1,8 +1,8 @@
 package presentation
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/lobes/lazytask/pkg/commands/types/enums"
+	"github.com/lobes/lazytask/pkg/i18n"
 )
 
 func FormatWorkingTreeStateTitle(tr *i18n.TranslationSet, rebaseMode enums.RebaseMode) string {

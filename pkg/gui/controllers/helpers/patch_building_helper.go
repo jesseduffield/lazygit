@@ -1,9 +1,9 @@
 package helpers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
-	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/commands/types/enums"
+	"github.com/lobes/lazytask/pkg/gui/patch_exploring"
+	"github.com/lobes/lazytask/pkg/gui/types"
 )
 
 type IPatchBuildingHelper interface {

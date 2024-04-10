@@ -1,8 +1,8 @@
 package context
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/gui/context/traits"
+	"github.com/lobes/lazytask/pkg/gui/types"
 	"github.com/samber/lo"
 )
 

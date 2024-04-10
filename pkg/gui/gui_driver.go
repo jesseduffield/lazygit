@@ -8,11 +8,11 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
+	"github.com/lobes/lazytask/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/config"
+	"github.com/lobes/lazytask/pkg/gui/keybindings"
+	"github.com/lobes/lazytask/pkg/gui/types"
+	integrationTypes "github.com/lobes/lazytask/pkg/integration/types"
 )
 
 // this gives our integration test a way of interacting with the gui for sending keypresses

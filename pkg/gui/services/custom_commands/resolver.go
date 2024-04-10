@@ -1,8 +1,8 @@
 package custom_commands
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/lobes/lazytask/pkg/common"
+	"github.com/lobes/lazytask/pkg/config"
 )
 
 // takes a prompt that is defined in terms of template strings and resolves the templates to contain actual values

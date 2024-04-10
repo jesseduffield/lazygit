@@ -9,7 +9,7 @@ import (
 	"reflect"
 
 	"github.com/jesseduffield/lazycore/pkg/utils"
-	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/lobes/lazytask/pkg/config"
 	"github.com/karimkhaleel/jsonschema"
 )
 
@@ -30,7 +30,7 @@ func GenerateSchema() {
 func customReflect(v *config.UserConfig) *jsonschema.Schema {
 	defaultConfig := config.GetDefaultConfig()
 	r := &jsonschema.Reflector{FieldNameTag: "yaml", RequiredFromJSONSchemaTags: true, DoNotReference: true}
-	if err := r.AddGoComments("github.com/jesseduffield/lazygit/pkg/config", "../config"); err != nil {
+	if err := r.AddGoComments("github.com/lobes/lazytask/pkg/config", "../config"); err != nil {
 		panic(err)
 	}
 	schema := r.Reflect(v)

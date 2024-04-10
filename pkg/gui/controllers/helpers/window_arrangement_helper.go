@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazycore/pkg/boxlayout"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/config"
+	"github.com/lobes/lazytask/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/utils"
 	"github.com/mattn/go-runewidth"
 	"golang.org/x/exp/slices"
 )

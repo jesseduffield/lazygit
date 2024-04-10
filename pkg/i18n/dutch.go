@@ -104,7 +104,7 @@ func dutchTranslationSet() TranslationSet {
 		OnLatestVersionErr:              "Je hebt al de laatste versie",
 		MajorVersionErr:                 "Nieuwe versie ({{.newVersion}}) is niet backwards compatibele vergeleken met de huidige versie ({{.currentVersion}})",
 		CouldNotFindBinaryErr:           "Kon geen binary vinden op {{.url}}",
-		IntroPopupMessage:               "Bedankt voor het gebruik maken van lazygit! 2 dingen die je moet weten:\n\n1) Als je meer van lazygit zijn features wilt leren bekijk dan deze video:\n   https://youtu.be/CPLdltN7wgE\n\n2) Als je git gebruikt, ben je een programmeur! Met jouw hulp kunnen we lazygit verbeteren, dus overweeg om een ​​donateur te worden en mee te doen aan het plezier op\n   https://github.com/jesseduffield/lazygit",
+		IntroPopupMessage:               "Bedankt voor het gebruik maken van lazygit! 2 dingen die je moet weten:\n\n1) Als je meer van lazygit zijn features wilt leren bekijk dan deze video:\n   https://youtu.be/CPLdltN7wgE\n\n2) Als je git gebruikt, ben je een programmeur! Met jouw hulp kunnen we lazygit verbeteren, dus overweeg om een ​​donateur te worden en mee te doen aan het plezier op\n   https://github.com/lobes/lazytask",
 		GitconfigParseErr:               `Gogit kon je gitconfig bestand niet goed parsen door de aanwezigheid van losstaande '\' tekens. Het weghalen van deze tekens zou het probleem moeten oplossen. `,
 		EditFile:                        `Verander bestand`,
 		OpenFile:                        `Open bestand`,

@@ -3,7 +3,7 @@ package git_commands
 import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/lobes/lazytask/pkg/commands/oscommands"
 )
 
 type SyncCommands struct {

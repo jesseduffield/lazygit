@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/gui/controllers/helpers"
+	"github.com/lobes/lazytask/pkg/gui/types"
 )
 
 var _ types.IController = &SwitchToSubCommitsController{}

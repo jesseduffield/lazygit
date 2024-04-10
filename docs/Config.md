@@ -8,8 +8,8 @@ Default path for the config file:
 
 For old installations (slightly embarrassing: I didn't realise at the time that you didn't need to supply a vendor name to the path so I just used my name):
 
-- Linux: `~/.config/jesseduffield/lazygit/config.yml`
-- MacOS: `~/Library/Application\ Support/jesseduffield/lazygit/config.yml`
+- Linux: `~/.config/lobes/lazytask/config.yml`
+- MacOS: `~/Library/Application\ Support/lobes/lazytask/config.yml`
 - Windows: `%APPDATA%\jesseduffield\lazygit\config.yml`
 
 If you want to change the config directory:
@@ -19,7 +19,7 @@ If you want to change the config directory:
 JSON schema is available for `config.yml` so that IntelliSense in Visual Studio Code (completion and error checking) is automatically enabled when the [YAML Red Hat][yaml] extension is installed. However, note that automatic schema detection only works if your config file is in one of the standard paths mentioned above. If you override the path to the file, you can still make IntelliSense work by adding
 
 ```yaml
-# yaml-language-server: $schema=https://raw.githubusercontent.com/jesseduffield/lazygit/master/schema/config.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/lobes/lazytask/master/schema/config.json
 ```
 
 to the top of your config file or via [Visual Studio Code settings.json config][settings].
@@ -355,7 +355,7 @@ os:
 
 The `editInTerminal` option is used to decide whether lazygit needs to suspend itself to the background before calling the editor. It should really be named `suspend` because for some cases like when lazygit is opened from within a neovim session and you're using the `nvim-remote` preset, you're technically still in a terminal. Nonetheless we're sticking with the name `editInTerminal` for backwards compatibility.
 
-Contributions of new editor presets are welcome; see the `getPreset` function in [`editor_presets.go`](https://github.com/jesseduffield/lazygit/blob/master/pkg/config/editor_presets.go).
+Contributions of new editor presets are welcome; see the `getPreset` function in [`editor_presets.go`](https://github.com/lobes/lazytask/blob/master/pkg/config/editor_presets.go).
 
 ## Overriding default config file location
 
@@ -481,7 +481,7 @@ Supported versions are "2" and "3". The deprecated config `showIcons` sets the v
 
 ## Keybindings
 
-For all possible keybinding options, check [Custom_Keybindings.md](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md)
+For all possible keybinding options, check [Custom_Keybindings.md](https://github.com/lobes/lazytask/blob/master/docs/keybindings/Custom_Keybindings.md)
 
 You can disable certain key bindings by specifying `<disabled>`.
 

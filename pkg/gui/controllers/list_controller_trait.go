@@ -1,6 +1,6 @@
 package controllers
 
-import "github.com/jesseduffield/lazygit/pkg/gui/types"
+import "github.com/lobes/lazytask/pkg/gui/types"
 
 // Embed this into your list controller to get some convenience methods for
 // ensuring a single item is selected, etc.

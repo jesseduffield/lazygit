@@ -5,7 +5,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/jsonschema"
+	"github.com/lobes/lazytask/pkg/jsonschema"
 )
 
 func main() {

@@ -15,11 +15,11 @@ import (
 
 	"github.com/kardianos/osext"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/constants"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/commands/oscommands"
+	"github.com/lobes/lazytask/pkg/common"
+	"github.com/lobes/lazytask/pkg/config"
+	"github.com/lobes/lazytask/pkg/constants"
+	"github.com/lobes/lazytask/pkg/utils"
 )
 
 // Updater checks for updates and does updates
@@ -219,7 +219,7 @@ func (u *Updater) zipExtension() string {
 	return "tar.gz"
 }
 
-// example: https://github.com/jesseduffield/lazygit/releases/download/v0.1.73/lazygit_0.1.73_Darwin_x86_64.tar.gz
+// example: https://github.com/lobes/lazytask/releases/download/v0.1.73/lazygit_0.1.73_Darwin_x86_64.tar.gz
 func (u *Updater) getBinaryUrl(newVersion string) string {
 	url := fmt.Sprintf(
 		"%s/releases/download/%s/lazygit_%s_%s_%s.%s",

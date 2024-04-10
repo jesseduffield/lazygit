@@ -7,9 +7,9 @@ import (
 
 	"github.com/jesseduffield/gocui"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/lobes/lazytask/pkg/gui/style"
+	"github.com/lobes/lazytask/pkg/gui/types"
+	"github.com/lobes/lazytask/pkg/theme"
 	"github.com/mattn/go-runewidth"
 )
 

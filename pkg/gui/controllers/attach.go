@@ -1,6 +1,6 @@
 package controllers
 
-import "github.com/jesseduffield/lazygit/pkg/gui/types"
+import "github.com/lobes/lazytask/pkg/gui/types"
 
 func AttachControllers(context types.Context, controllers ...types.IController) {
 	for _, controller := range controllers {

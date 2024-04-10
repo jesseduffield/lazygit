@@ -1,8 +1,8 @@
 package worktree
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/config"
-	. "github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/lobes/lazytask/pkg/config"
+	. "github.com/lobes/lazytask/pkg/integration/components"
 )
 
 // This is verifying logic that is subject to change (we're just doing the easiest approach)

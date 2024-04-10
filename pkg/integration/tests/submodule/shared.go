@@ -1,7 +1,7 @@
 package submodule
 
 import (
-	. "github.com/jesseduffield/lazygit/pkg/integration/components"
+	. "github.com/lobes/lazytask/pkg/integration/components"
 )
 
 func setupNestedSubmodules(shell *Shell) {

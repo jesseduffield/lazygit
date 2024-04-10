@@ -3,9 +3,9 @@ package utils
 import (
 	"io"
 
-	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/lobes/lazytask/pkg/common"
+	"github.com/lobes/lazytask/pkg/config"
+	"github.com/lobes/lazytask/pkg/i18n"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 )

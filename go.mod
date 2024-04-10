@@ -1,4 +1,4 @@
-module github.com/jesseduffield/lazygit
+module github.com/lobes/lazytask
 
 go 1.21
 

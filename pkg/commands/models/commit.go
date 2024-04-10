@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/lobes/lazytask/pkg/utils"
 )
 
 // Special commit hash for empty tree object

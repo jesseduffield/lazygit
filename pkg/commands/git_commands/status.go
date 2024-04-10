@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/lobes/lazytask/pkg/commands/oscommands"
+	"github.com/lobes/lazytask/pkg/commands/types/enums"
 )
 
 type StatusCommands struct {

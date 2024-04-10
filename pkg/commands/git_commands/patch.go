@@ -6,10 +6,10 @@ import (
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/go-errors/errors"
-	"github.com/jesseduffield/lazygit/pkg/app/daemon"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/lobes/lazytask/pkg/app/daemon"
+	"github.com/lobes/lazytask/pkg/commands/models"
+	"github.com/lobes/lazytask/pkg/commands/patch"
+	"github.com/lobes/lazytask/pkg/commands/types/enums"
 )
 
 type PatchCommands struct {

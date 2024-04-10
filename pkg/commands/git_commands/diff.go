@@ -1,6 +1,6 @@
 package git_commands
 
-import "github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+import "github.com/lobes/lazytask/pkg/commands/oscommands"
 
 type DiffCommands struct {
 	*GitCommon
