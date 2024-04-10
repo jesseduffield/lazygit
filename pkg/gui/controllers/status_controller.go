@@ -83,35 +83,15 @@ func (self *StatusController) onClickMain(opts gocui.ViewMouseBindingOpts) error
 }
 
 func (self *StatusController) GetOnRenderToMain() func() error {
-	versionStr := "master"
-	version, err := types.ParseVersionNumber(self.c.GetConfig().GetVersion())
-	if err == nil {
-		// Don't just take the version string as is, but format it again. This
-		// way it will be correct even if a distribution omits the "v", or the
-		// ".0" at the end.
-		versionStr = fmt.Sprintf("v%d.%d.%d", version.Major, version.Minor, version.Patch)
-	}
+	config := self.c.UserConfig.Gui
 
-	return func() error {
-		dashboardString := strings.Join(
-			[]string{
-				lazygitTitle(),
-				"Copyright 2022 Jesse Duffield",
-				fmt.Sprintf("Keybindings: %s", style.AttrUnderline.Sprint(fmt.Sprintf(constants.Links.Docs.Keybindings, versionStr))),
-				fmt.Sprintf("Config Options: %s", style.AttrUnderline.Sprint(fmt.Sprintf(constants.Links.Docs.Config, versionStr))),
-				fmt.Sprintf("Tutorial: %s", style.AttrUnderline.Sprint(constants.Links.Docs.Tutorial)),
-				fmt.Sprintf("Raise an Issue: %s", style.AttrUnderline.Sprint(constants.Links.Issues)),
-				fmt.Sprintf("Release Notes: %s", style.AttrUnderline.Sprint(constants.Links.Releases)),
-				style.FgMagenta.Sprintf("Become a sponsor: %s", style.AttrUnderline.Sprint(constants.Links.Donate)), // caffeine ain't free
-			}, "\n\n") + "\n"
-
-		return self.c.RenderToMainViews(types.RefreshMainOpts{
-			Pair: self.c.MainViewPairs().Normal,
-			Main: &types.ViewUpdateOpts{
-				Title: self.c.Tr.StatusTitle,
-				Task:  types.NewRenderStringTask(dashboardString),
-			},
-		})
+	switch config.StatusPanelView {
+	case "dashboard":
+		return self.showDashboard
+	case "allBranchesLog":
+		return self.showAllBranchLogs
+	default:
+		return self.showDashboard
 	}
 }
 
@@ -220,6 +200,37 @@ func (self *StatusController) showAllBranchLogs() error {
 		Main: &types.ViewUpdateOpts{
 			Title: self.c.Tr.LogTitle,
 			Task:  task,
+		},
+	})
+}
+
+func (self *StatusController) showDashboard() error {
+	versionStr := "master"
+	version, err := types.ParseVersionNumber(self.c.GetConfig().GetVersion())
+	if err == nil {
+		// Don't just take the version string as is, but format it again. This
+		// way it will be correct even if a distribution omits the "v", or the
+		// ".0" at the end.
+		versionStr = fmt.Sprintf("v%d.%d.%d", version.Major, version.Minor, version.Patch)
+	}
+
+	dashboardString := strings.Join(
+		[]string{
+			lazygitTitle(),
+			fmt.Sprintf("Copyright %d Jesse Duffield", time.Now().Year()),
+			fmt.Sprintf("Keybindings: %s", style.AttrUnderline.Sprint(fmt.Sprintf(constants.Links.Docs.Keybindings, versionStr))),
+			fmt.Sprintf("Config Options: %s", style.AttrUnderline.Sprint(fmt.Sprintf(constants.Links.Docs.Config, versionStr))),
+			fmt.Sprintf("Tutorial: %s", style.AttrUnderline.Sprint(constants.Links.Docs.Tutorial)),
+			fmt.Sprintf("Raise an Issue: %s", style.AttrUnderline.Sprint(constants.Links.Issues)),
+			fmt.Sprintf("Release Notes: %s", style.AttrUnderline.Sprint(constants.Links.Releases)),
+			style.FgMagenta.Sprintf("Become a sponsor: %s", style.AttrUnderline.Sprint(constants.Links.Donate)), // caffeine ain't free
+		}, "\n\n") + "\n"
+
+	return self.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: self.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title: self.c.Tr.StatusTitle,
+			Task:  types.NewRenderStringTask(dashboardString),
 		},
 	})
 }

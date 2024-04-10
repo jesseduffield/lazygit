@@ -392,6 +392,15 @@
           "additionalProperties": false,
           "type": "object",
           "description": "Config relating to the spinner."
+        },
+        "statusPanelView": {
+          "type": "string",
+          "enum": [
+            "dashboard",
+            "allBranchesLog"
+          ],
+          "description": "Status panel view.\nOne of 'dashboard' (default) | 'allBranchesLog'",
+          "default": "dashboard"
         }
       },
       "additionalProperties": false,

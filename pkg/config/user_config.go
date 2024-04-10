@@ -147,6 +147,9 @@ type GuiConfig struct {
 	FilterMode string `yaml:"filterMode" jsonschema:"enum=substring,enum=fuzzy"`
 	// Config relating to the spinner.
 	Spinner SpinnerConfig `yaml:"spinner"`
+	// Status panel view.
+	// One of 'dashboard' (default) | 'allBranchesLog'
+	StatusPanelView string `yaml:"statusPanelView" jsonschema:"enum=dashboard,enum=allBranchesLog"`
 }
 
 func (c *GuiConfig) UseFuzzySearch() bool {
@@ -684,6 +687,7 @@ func GetDefaultConfig() *UserConfig {
 				Frames: []string{"|", "/", "-", "\\"},
 				Rate:   50,
 			},
+			StatusPanelView: "dashboard",
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{
