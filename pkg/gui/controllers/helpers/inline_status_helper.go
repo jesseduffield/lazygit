@@ -74,7 +74,7 @@ func (self *InlineStatusHelper) WithInlineStatus(opts InlineStatusOpts, f func(g
 			err := f(inlineStatusHelperTask{task, self, opts})
 			if err != nil {
 				self.c.OnUIThread(func() error {
-					return self.c.Error(err)
+					return err
 				})
 			}
 

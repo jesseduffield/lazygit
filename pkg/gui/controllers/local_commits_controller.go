@@ -352,7 +352,7 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 func (self *LocalCommitsController) reword(commit *models.Commit) error {
 	commitMessage, err := self.c.Git().Commit.GetCommitMessage(commit.Hash)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 	if self.c.UserConfig.Git.Commit.AutoWrapCommitMessage {
 		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig.Git.Commit.AutoWrapWidth)
@@ -399,7 +399,7 @@ func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepat
 func (self *LocalCommitsController) handleReword(summary string, description string) error {
 	err := self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), summary, description)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 	self.c.Helpers().Commits.OnCommitSuccess()
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
@@ -416,7 +416,7 @@ func (self *LocalCommitsController) doRewordEditor() error {
 		self.c.Model().Commits, self.context().GetSelectedLineIdx(),
 	)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 	if subProcess != nil {
 		return self.c.RunSubprocessAndRefresh(subProcess)
@@ -495,7 +495,7 @@ func (self *LocalCommitsController) edit(selectedCommits []*models.Commit) error
 func (self *LocalCommitsController) quickStartInteractiveRebase() error {
 	commitToEdit, err := self.findCommitForQuickStartInteractiveRebase()
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	return self.startInteractiveRebaseWithEdit([]*models.Commit{commitToEdit})
@@ -587,7 +587,7 @@ func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand, s
 // begin a rebase. It then updates the todo file with that action
 func (self *LocalCommitsController) updateTodos(action todo.TodoCommand, selectedCommits []*models.Commit) error {
 	if err := self.c.Git().Rebase.EditRebaseTodo(selectedCommits, action); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	return self.c.Refresh(types.RefreshOptions{
@@ -620,7 +620,7 @@ func (self *LocalCommitsController) isRebasing() bool {
 func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
 	if self.isRebasing() {
 		if err := self.c.Git().Rebase.MoveTodosDown(selectedCommits); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 		self.context().MoveSelection(1)
 
@@ -643,7 +643,7 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
 	if self.isRebasing() {
 		if err := self.c.Git().Rebase.MoveTodosUp(selectedCommits); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 		self.context().MoveSelection(-1)
 
@@ -733,7 +733,7 @@ func (self *LocalCommitsController) resetAuthor() error {
 	return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.ResetCommitAuthor)
 		if err := self.c.Git().Rebase.ResetCommitAuthor(self.c.Model().Commits, self.context().GetSelectedLineIdx()); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
@@ -748,7 +748,7 @@ func (self *LocalCommitsController) setAuthor() error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SetCommitAuthor)
 				if err := self.c.Git().Rebase.SetCommitAuthor(self.c.Model().Commits, self.context().GetSelectedLineIdx(), value); err != nil {
-					return self.c.Error(err)
+					return err
 				}
 
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
@@ -765,7 +765,7 @@ func (self *LocalCommitsController) addCoAuthor() error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.AddCommitCoAuthor)
 				if err := self.c.Git().Rebase.AddCommitCoAuthor(self.c.Model().Commits, self.context().GetSelectedLineIdx(), value); err != nil {
-					return self.c.Error(err)
+					return err
 				}
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 			})
@@ -803,7 +803,7 @@ func (self *LocalCommitsController) createRevertMergeCommitMenu(commit *models.C
 		i := i
 		message, err := self.c.Git().Commit.GetCommitMessageFirstLine(parentHash)
 		if err != nil {
-			return self.c.Error(err)
+			return err
 		}
 
 		menuItems[i] = &types.MenuItem{
@@ -851,7 +851,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 						self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
 						return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
 							if err := self.c.Git().Commit.CreateFixupCommit(commit.Hash); err != nil {
-								return self.c.Error(err)
+								return err
 							}
 
 							self.context().MoveSelectedLine(1)
@@ -886,7 +886,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, includeFileChanges bool) error {
 	commitMessage, err := self.c.Git().Commit.GetCommitMessage(commit.Hash)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 	if self.c.UserConfig.Git.Commit.AutoWrapCommitMessage {
 		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig.Git.Commit.AutoWrapWidth)
@@ -903,7 +903,7 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 				self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
 				return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
 					if err := self.c.Git().Commit.CreateAmendCommit(originalSubject, summary, description, includeFileChanges); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 
 					self.context().MoveSelectedLine(1)
@@ -944,7 +944,7 @@ func (self *LocalCommitsController) squashAllFixupsAboveSelectedCommit(commit *m
 func (self *LocalCommitsController) squashAllFixupsInCurrentBranch() error {
 	commit, rebaseStartIdx, err := self.findCommitForSquashFixupsInCurrentBranch()
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	return self.squashFixupsImpl(commit, rebaseStartIdx)

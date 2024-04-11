@@ -791,7 +791,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 	defer gui.Mutexes.SubprocessMutex.Unlock()
 
 	if err := gui.g.Suspend(); err != nil {
-		return false, gui.c.Error(err)
+		return false, err
 	}
 
 	gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(true)
@@ -804,7 +804,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 	}
 
 	if cmdErr != nil {
-		return false, gui.c.Error(cmdErr)
+		return false, cmdErr
 	}
 
 	return true, nil

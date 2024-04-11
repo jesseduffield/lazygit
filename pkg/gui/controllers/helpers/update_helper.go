@@ -41,7 +41,7 @@ func (self *UpdateHelper) CheckForUpdateInForeground() error {
 	return self.c.WithWaitingStatus(self.c.Tr.CheckingForUpdates, func(gocui.Task) error {
 		self.updater.CheckForNewUpdate(func(newVersion string, err error) error {
 			if err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			if newVersion == "" {
 				return self.c.ErrorMsg(self.c.Tr.FailedToRetrieveLatestVersionErr)

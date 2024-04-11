@@ -410,7 +410,7 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 		}
 
 		if err := self.c.Git().WorkingTree.StageFiles(toPaths(selectedNodes)); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 	} else {
 		self.c.LogAction(self.c.Tr.Actions.UnstageFile)
@@ -428,13 +428,13 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 
 		if len(untrackedNodes) > 0 {
 			if err := self.c.Git().WorkingTree.UnstageUntrackedFiles(toPaths(untrackedNodes)); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 		}
 
 		if len(trackedNodes) > 0 {
 			if err := self.c.Git().WorkingTree.UnstageTrackedFiles(toPaths(trackedNodes)); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 		}
 	}
@@ -534,7 +534,7 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 		}
 
 		if err := self.c.Git().WorkingTree.StageAll(); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 	} else {
 		self.c.LogAction(self.c.Tr.Actions.UnstageAllFiles)
@@ -544,7 +544,7 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 		}
 
 		if err := self.c.Git().WorkingTree.UnstageAll(); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 	}
 
@@ -627,7 +627,7 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 				LabelColumns: []string{self.c.Tr.IgnoreFile},
 				OnPress: func() error {
 					if err := self.ignore(node); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 					return nil
 				},
@@ -637,7 +637,7 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 				LabelColumns: []string{self.c.Tr.ExcludeFile},
 				OnPress: func() error {
 					if err := self.exclude(node); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 					return nil
 				},
@@ -825,7 +825,7 @@ func (self *FilesController) openCopyMenu() error {
 		Label: self.c.Tr.CopyFileName,
 		OnPress: func() error {
 			if err := self.c.OS().CopyToClipboard(node.Name()); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			self.c.Toast(self.c.Tr.FileNameCopiedToast)
 			return nil
@@ -837,7 +837,7 @@ func (self *FilesController) openCopyMenu() error {
 		Label: self.c.Tr.CopyFilePath,
 		OnPress: func() error {
 			if err := self.c.OS().CopyToClipboard(node.Path); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			self.c.Toast(self.c.Tr.FilePathCopiedToast)
 			return nil
@@ -853,10 +853,10 @@ func (self *FilesController) openCopyMenu() error {
 			hasStaged := self.hasPathStagedChanges(node)
 			diff, err := self.c.Git().Diff.GetPathDiff(path, hasStaged)
 			if err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			if err := self.c.OS().CopyToClipboard(diff); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			self.c.Toast(self.c.Tr.FileDiffCopiedToast)
 			return nil
@@ -878,10 +878,10 @@ func (self *FilesController) openCopyMenu() error {
 			hasStaged := self.c.Helpers().WorkingTree.AnyStagedFiles()
 			diff, err := self.c.Git().Diff.GetAllDiff(hasStaged)
 			if err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			if err := self.c.OS().CopyToClipboard(diff); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			self.c.Toast(self.c.Tr.AllFilesDiffCopiedToast)
 			return nil
@@ -957,7 +957,7 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 			self.c.LogAction(action)
 
 			if err := stashFunc(stashComment); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
 		},
@@ -975,7 +975,7 @@ func (self *FilesController) onClickSecondary(opts gocui.ViewMouseBindingOpts) e
 func (self *FilesController) fetch() error {
 	return self.c.WithWaitingStatus(self.c.Tr.FetchingStatus, func(task gocui.Task) error {
 		if err := self.fetchAux(task); err != nil {
-			_ = self.c.Error(err)
+			return err
 		}
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 	})
@@ -1073,7 +1073,7 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 
 				for _, node := range selectedNodes {
 					if err := self.c.Git().WorkingTree.DiscardAllDirChanges(node); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 				}
 
@@ -1101,7 +1101,7 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 
 				for _, node := range selectedNodes {
 					if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 				}
 
@@ -1127,15 +1127,15 @@ func (self *FilesController) ResetSubmodule(submodule *models.SubmoduleConfig) e
 		file := self.c.Helpers().WorkingTree.FileForSubmodule(submodule)
 		if file != nil {
 			if err := self.c.Git().WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 		}
 
 		if err := self.c.Git().Submodule.Stash(submodule); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 		if err := self.c.Git().Submodule.Reset(submodule); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.SUBMODULES}})

@@ -63,7 +63,7 @@ func (self *AppStatusHelper) WithWaitingStatus(message string, f func(gocui.Task
 		self.statusMgr().WithWaitingStatus(message, self.renderAppStatus, func(waitingStatusHandle *status.WaitingStatusHandle) {
 			if err := f(appStatusHelperTask{task, waitingStatusHandle}); err != nil {
 				self.c.OnUIThread(func() error {
-					return self.c.Error(err)
+					return err
 				})
 			}
 		})

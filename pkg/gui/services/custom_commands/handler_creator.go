@@ -74,7 +74,7 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 				f = func() error {
 					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
 					if err != nil {
-						return self.c.Error(err)
+						return err
 					}
 					return self.inputPrompt(resolvedPrompt, wrappedF)
 				}
@@ -82,7 +82,7 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 				f = func() error {
 					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
 					if err != nil {
-						return self.c.Error(err)
+						return err
 					}
 					return self.menuPrompt(resolvedPrompt, wrappedF)
 				}
@@ -90,7 +90,7 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 				f = func() error {
 					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
 					if err != nil {
-						return self.c.Error(err)
+						return err
 					}
 					return self.menuPromptFromCommand(resolvedPrompt, wrappedF)
 				}
@@ -98,7 +98,7 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 				f = func() error {
 					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
 					if err != nil {
-						return self.c.Error(err)
+						return err
 					}
 					return self.confirmPrompt(resolvedPrompt, g)
 				}
@@ -114,7 +114,7 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
 	findSuggestionsFn, err := self.generateFindSuggestionsFunc(prompt)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	return self.c.Prompt(types.PromptOpts{
@@ -208,13 +208,13 @@ func (self *HandlerCreator) menuPromptFromCommand(prompt *config.CustomCommandPr
 	// Run and save output
 	message, err := self.c.Git().Custom.RunWithOutput(prompt.Command)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	// Need to make a menu out of what the cmd has displayed
 	candidates, err := self.menuGenerator.call(message, prompt.Filter, prompt.ValueFormat, prompt.LabelFormat)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	menuItems := lo.Map(candidates, func(candidate *commandMenuItem, _ int) *types.MenuItem {
@@ -253,7 +253,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 	resolveTemplate := self.getResolveTemplateFn(form, promptResponses, sessionState)
 	cmdStr, err := resolveTemplate(customCommand.Command)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	cmdObj := self.c.OS().Cmd.NewShell(cmdStr)
@@ -284,7 +284,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 				return self.mergeAndRebaseHelper.CheckForConflicts(err)
 			}
 
-			return self.c.Error(err)
+			return err
 		}
 
 		if customCommand.ShowOutput {

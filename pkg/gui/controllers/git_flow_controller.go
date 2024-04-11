@@ -103,7 +103,7 @@ func (self *GitFlowController) handleCreateGitFlowMenu(branch *models.Branch) er
 func (self *GitFlowController) gitFlowFinishBranch(branchName string) error {
 	cmdObj, err := self.c.Git().Flow.FinishCmdObj(branchName)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.GitFlowFinish)

@@ -381,7 +381,7 @@ func (self *RefreshHelper) refreshCommitFilesContext() error {
 
 	files, err := self.c.Git().Loaders.CommitFileLoader.GetFilesInDiff(from, to, reverse)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 	self.c.Model().CommitFiles = files
 	self.c.Contexts().CommitFiles.CommitFileTreeViewModel.SetTree()
@@ -406,7 +406,7 @@ func (self *RefreshHelper) refreshRebaseCommits() error {
 func (self *RefreshHelper) refreshTags() error {
 	tags, err := self.c.Git().Loaders.TagLoader.GetTags()
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Model().Tags = tags
@@ -543,7 +543,7 @@ func (self *RefreshHelper) refreshStateFiles() error {
 	if len(pathsToStage) > 0 {
 		self.c.LogAction(self.c.Tr.Actions.StageResolvedFiles)
 		if err := self.c.Git().WorkingTree.StageFiles(pathsToStage); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 	}
 
@@ -603,7 +603,7 @@ func (self *RefreshHelper) refreshReflogCommits() error {
 		commits, onlyObtainedNewReflogCommits, err := self.c.Git().Loaders.ReflogCommitLoader.
 			GetReflogCommits(lastReflogCommit, filterPath, filterAuthor)
 		if err != nil {
-			return self.c.Error(err)
+			return err
 		}
 
 		if onlyObtainedNewReflogCommits {
@@ -634,7 +634,7 @@ func (self *RefreshHelper) refreshRemotes() error {
 
 	remotes, err := self.c.Git().Loaders.RemoteLoader.GetRemotes()
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Model().Remotes = remotes

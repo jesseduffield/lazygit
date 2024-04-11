@@ -234,7 +234,7 @@ func (self *CustomPatchOptionsMenuAction) handleApplyPatch(reverse bool) error {
 	}
 	self.c.LogAction(action)
 	if err := self.c.Git().Patch.ApplyCustomPatch(reverse); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
@@ -244,7 +244,7 @@ func (self *CustomPatchOptionsMenuAction) copyPatchToClipboard() error {
 
 	self.c.LogAction(self.c.Tr.Actions.CopyPatchToClipboard)
 	if err := self.c.OS().CopyToClipboard(patch); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Toast(self.c.Tr.PatchCopiedToClipboard)

@@ -165,7 +165,7 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 
 func (self *WorkingTreeHelper) WithEnsureCommitableFiles(handler func() error) error {
 	if err := self.prepareFilesForCommit(); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	if len(self.c.Model().Files) == 0 {
@@ -186,10 +186,10 @@ func (self *WorkingTreeHelper) promptToStageAllAndRetry(retry func() error) erro
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
 			if err := self.c.Git().WorkingTree.StageAll(); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			if err := self.syncRefresh(); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 
 			return retry()

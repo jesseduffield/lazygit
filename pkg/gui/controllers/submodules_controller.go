@@ -163,7 +163,7 @@ func (self *SubmodulesController) add() error {
 								self.c.LogAction(self.c.Tr.Actions.AddSubmodule)
 								err := self.c.Git().Submodule.Add(submoduleName, submodulePath, submoduleUrl)
 								if err != nil {
-									_ = self.c.Error(err)
+									return err
 								}
 
 								return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
@@ -185,7 +185,7 @@ func (self *SubmodulesController) editURL(submodule *models.SubmoduleConfig) err
 				self.c.LogAction(self.c.Tr.Actions.UpdateSubmoduleUrl)
 				err := self.c.Git().Submodule.UpdateUrl(submodule, newUrl)
 				if err != nil {
-					_ = self.c.Error(err)
+					return err
 				}
 
 				return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
@@ -199,7 +199,7 @@ func (self *SubmodulesController) init(submodule *models.SubmoduleConfig) error 
 		self.c.LogAction(self.c.Tr.Actions.InitialiseSubmodule)
 		err := self.c.Git().Submodule.Init(submodule.Path)
 		if err != nil {
-			_ = self.c.Error(err)
+			return err
 		}
 
 		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
@@ -217,7 +217,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						self.c.LogAction(self.c.Tr.Actions.BulkInitialiseSubmodules)
 						err := self.c.Git().Submodule.BulkInitCmdObj().Run()
 						if err != nil {
-							return self.c.Error(err)
+							return err
 						}
 
 						return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
@@ -231,7 +231,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 					return self.c.WithWaitingStatus(self.c.Tr.RunningCommand, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.BulkUpdateSubmodules)
 						if err := self.c.Git().Submodule.BulkUpdateCmdObj().Run(); err != nil {
-							return self.c.Error(err)
+							return err
 						}
 
 						return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
@@ -245,7 +245,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 					return self.c.WithWaitingStatus(self.c.Tr.RunningCommand, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.BulkDeinitialiseSubmodules)
 						if err := self.c.Git().Submodule.BulkDeinitCmdObj().Run(); err != nil {
-							return self.c.Error(err)
+							return err
 						}
 
 						return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
@@ -262,7 +262,7 @@ func (self *SubmodulesController) update(submodule *models.SubmoduleConfig) erro
 		self.c.LogAction(self.c.Tr.Actions.UpdateSubmodule)
 		err := self.c.Git().Submodule.Update(submodule.Path)
 		if err != nil {
-			_ = self.c.Error(err)
+			return err
 		}
 
 		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
@@ -276,7 +276,7 @@ func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) erro
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RemoveSubmodule)
 			if err := self.c.Git().Submodule.Delete(submodule); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES, types.FILES}})

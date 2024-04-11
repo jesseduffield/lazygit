@@ -170,7 +170,7 @@ func (self *CommitFilesController) onClickMain(opts gocui.ViewMouseBindingOpts) 
 func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error {
 	self.c.LogAction(self.c.Tr.Actions.CheckoutFile)
 	if err := self.c.Git().WorkingTree.CheckoutFile(self.context().GetRef().RefName(), node.GetPath()); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
@@ -208,7 +208,7 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 						return nil
 					})
 					if err != nil {
-						return self.c.Error(err)
+						return err
 					}
 				}
 
@@ -294,7 +294,7 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 					return patchOperationFunction(file.Name)
 				})
 				if err != nil {
-					return self.c.Error(err)
+					return err
 				}
 			}
 

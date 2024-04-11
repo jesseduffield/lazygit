@@ -45,10 +45,8 @@ func (self *GpgHelper) runAndStream(cmdObj oscommands.ICmdObj, waitingStatus str
 	return self.c.WithWaitingStatus(waitingStatus, func(gocui.Task) error {
 		if err := cmdObj.StreamOutput().Run(); err != nil {
 			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
-			return self.c.Error(
-				fmt.Errorf(
-					self.c.Tr.GitCommandFailed, self.c.UserConfig.Keybinding.Universal.ExtrasMenu,
-				),
+			return fmt.Errorf(
+				self.c.Tr.GitCommandFailed, self.c.UserConfig.Keybinding.Universal.ExtrasMenu,
 			)
 		}
 

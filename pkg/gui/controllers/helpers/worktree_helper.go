@@ -186,7 +186,7 @@ func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error 
 				if err := self.c.Git().Worktree.Delete(worktree.Path, force); err != nil {
 					errMessage := err.Error()
 					if !strings.Contains(errMessage, "--force") {
-						return self.c.Error(err)
+						return err
 					}
 
 					if !force {
@@ -206,7 +206,7 @@ func (self *WorktreeHelper) Detach(worktree *models.Worktree) error {
 
 		err := self.c.Git().Worktree.Detach(worktree.Path)
 		if err != nil {
-			return self.c.Error(err)
+			return err
 		}
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
 	})
