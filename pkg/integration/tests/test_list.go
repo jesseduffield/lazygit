@@ -97,6 +97,7 @@ var tests = []*components.IntegrationTest{
 	conflicts.ResolveExternally,
 	conflicts.ResolveMultipleFiles,
 	conflicts.UndoChooseHunk,
+	custom_commands.AccessCommitProperties,
 	custom_commands.BasicCmdAtRuntime,
 	custom_commands.BasicCmdFromConfig,
 	custom_commands.CheckForConflicts,
