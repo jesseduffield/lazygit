@@ -652,6 +652,8 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	gui.g = g
 	defer gui.g.Close()
 
+	g.ErrorHandler = gui.PopupHandler.Error
+
 	// if the deadlock package wants to report a deadlock, we first need to
 	// close the gui so that we can actually read what it prints.
 	deadlock.Opts.LogBuf = utils.NewOnceWriter(os.Stderr, func() {
