@@ -19,7 +19,7 @@ var AccessCommitProperties = NewIntegrationTest(NewIntegrationTestArgs{
 			{
 				Key:     "X",
 				Context: "commits",
-				Command: "printf '%s\n%s' '{{ .SelectedLocalCommit.Name }}' '{{ .SelectedLocalCommit.Hash }}' > file.txt",
+				Command: "printf '%s\n%s\n%s' '{{ .SelectedLocalCommit.Name }}' '{{ .SelectedLocalCommit.Hash }}' '{{ .SelectedLocalCommit.Sha }}' > file.txt",
 			},
 		}
 	},
@@ -32,6 +32,6 @@ var AccessCommitProperties = NewIntegrationTest(NewIntegrationTestArgs{
 			Press("X")
 
 		hash := t.Git().GetCommitHash("HEAD")
-		t.FileSystem().FileContent("file.txt", Equals(fmt.Sprintf("my change\n%s", hash)))
+		t.FileSystem().FileContent("file.txt", Equals(fmt.Sprintf("my change\n%s\n%s", hash, hash)))
 	},
 })
