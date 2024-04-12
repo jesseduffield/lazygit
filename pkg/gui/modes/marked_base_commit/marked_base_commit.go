@@ -1,7 +1,7 @@
 package marked_base_commit
 
 type MarkedBaseCommit struct {
-	sha string // the sha of the commit used as a rebase base commit; empty string when unset
+	hash string // the hash of the commit used as a rebase base commit; empty string when unset
 }
 
 func New() MarkedBaseCommit {
@@ -9,17 +9,17 @@ func New() MarkedBaseCommit {
 }
 
 func (m *MarkedBaseCommit) Active() bool {
-	return m.sha != ""
+	return m.hash != ""
 }
 
 func (m *MarkedBaseCommit) Reset() {
-	m.sha = ""
+	m.hash = ""
 }
 
-func (m *MarkedBaseCommit) SetSha(sha string) {
-	m.sha = sha
+func (m *MarkedBaseCommit) SetHash(hash string) {
+	m.hash = hash
 }
 
-func (m *MarkedBaseCommit) GetSha() string {
-	return m.sha
+func (m *MarkedBaseCommit) GetHash() string {
+	return m.hash
 }

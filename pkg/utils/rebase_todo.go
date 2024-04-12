@@ -11,16 +11,16 @@ import (
 )
 
 type Todo struct {
-	Sha    string // for todos that have one, e.g. pick, drop, fixup, etc.
+	Hash   string // for todos that have one, e.g. pick, drop, fixup, etc.
 	Ref    string // for update-ref todos
 	Action todo.TodoCommand
 }
 
 // In order to change a TODO in git-rebase-todo, we need to specify the old action,
-// because sometimes the same sha appears multiple times in the file (e.g. in a pick
+// because sometimes the same hash appears multiple times in the file (e.g. in a pick
 // and later in a merge)
 type TodoChange struct {
-	Sha       string
+	Hash      string
 	OldAction todo.TodoCommand
 	NewAction todo.TodoCommand
 }
@@ -38,7 +38,7 @@ func EditRebaseTodo(filePath string, changes []TodoChange, commentChar byte) err
 		t := &todos[i]
 		// This is a nested loop, but it's ok because the number of todos should be small
 		for _, change := range changes {
-			if t.Command == change.OldAction && equalShas(t.Commit, change.Sha) {
+			if t.Command == change.OldAction && equalHash(t.Commit, change.Hash) {
 				matchCount++
 				t.Command = change.NewAction
 			}
@@ -53,18 +53,18 @@ func EditRebaseTodo(filePath string, changes []TodoChange, commentChar byte) err
 	return WriteRebaseTodoFile(filePath, todos, commentChar)
 }
 
-func equalShas(a, b string) bool {
+func equalHash(a, b string) bool {
 	return strings.HasPrefix(a, b) || strings.HasPrefix(b, a)
 }
 
 func findTodo(todos []todo.Todo, todoToFind Todo) (int, bool) {
 	_, idx, ok := lo.FindIndexOf(todos, func(t todo.Todo) bool {
-		// Comparing just the sha is not enough; we need to compare both the
-		// action and the sha, as the sha could appear multiple times (e.g. in a
+		// Comparing just the hash is not enough; we need to compare both the
+		// action and the hash, as the hash could appear multiple times (e.g. in a
 		// pick and later in a merge). For update-ref todos we also must compare
 		// the Ref.
 		return t.Command == todoToFind.Action &&
-			equalShas(t.Commit, todoToFind.Sha) &&
+			equalHash(t.Commit, todoToFind.Hash) &&
 			t.Ref == todoToFind.Ref
 	})
 	return idx, ok
@@ -136,7 +136,7 @@ func deleteTodos(todos []todo.Todo, todosToDelete []Todo) ([]todo.Todo, error) {
 
 		if !ok {
 			// Should never happen
-			return []todo.Todo{}, fmt.Errorf("Todo %s not found in git-rebase-todo", todoToDelete.Sha)
+			return []todo.Todo{}, fmt.Errorf("Todo %s not found in git-rebase-todo", todoToDelete.Hash)
 		}
 
 		todos = Remove(todos, idx)
@@ -184,7 +184,7 @@ func moveTodoUp(todos []todo.Todo, todoToMove Todo) ([]todo.Todo, error) {
 
 	if !ok {
 		// Should never happen
-		return []todo.Todo{}, fmt.Errorf("Todo %s not found in git-rebase-todo", todoToMove.Sha)
+		return []todo.Todo{}, fmt.Errorf("Todo %s not found in git-rebase-todo", todoToMove.Hash)
 	}
 
 	// The todos are ordered backwards compared to our model commits, so
@@ -219,13 +219,13 @@ func moveTodosUp(todos []todo.Todo, todosToMove []Todo) ([]todo.Todo, error) {
 	return todos, nil
 }
 
-func MoveFixupCommitDown(fileName string, originalSha string, fixupSha string, commentChar byte) error {
+func MoveFixupCommitDown(fileName string, originalHash string, fixupHash string, commentChar byte) error {
 	todos, err := ReadRebaseTodoFile(fileName, commentChar)
 	if err != nil {
 		return err
 	}
 
-	newTodos, err := moveFixupCommitDown(todos, originalSha, fixupSha)
+	newTodos, err := moveFixupCommitDown(todos, originalHash, fixupHash)
 	if err != nil {
 		return err
 	}
@@ -233,23 +233,23 @@ func MoveFixupCommitDown(fileName string, originalSha string, fixupSha string, c
 	return WriteRebaseTodoFile(fileName, newTodos, commentChar)
 }
 
-func moveFixupCommitDown(todos []todo.Todo, originalSha string, fixupSha string) ([]todo.Todo, error) {
+func moveFixupCommitDown(todos []todo.Todo, originalHash string, fixupHash string) ([]todo.Todo, error) {
 	isOriginal := func(t todo.Todo) bool {
-		return t.Command == todo.Pick && equalShas(t.Commit, originalSha)
+		return t.Command == todo.Pick && equalHash(t.Commit, originalHash)
 	}
 
 	isFixup := func(t todo.Todo) bool {
-		return t.Command == todo.Pick && equalShas(t.Commit, fixupSha)
+		return t.Command == todo.Pick && equalHash(t.Commit, fixupHash)
 	}
 
-	originalShaCount := lo.CountBy(todos, isOriginal)
-	if originalShaCount != 1 {
-		return nil, fmt.Errorf("Expected exactly one original SHA, found %d", originalShaCount)
+	originalHashCount := lo.CountBy(todos, isOriginal)
+	if originalHashCount != 1 {
+		return nil, fmt.Errorf("Expected exactly one original hash, found %d", originalHashCount)
 	}
 
-	fixupShaCount := lo.CountBy(todos, isFixup)
-	if fixupShaCount != 1 {
-		return nil, fmt.Errorf("Expected exactly one fixup SHA, found %d", fixupShaCount)
+	fixupHashCount := lo.CountBy(todos, isFixup)
+	if fixupHashCount != 1 {
+		return nil, fmt.Errorf("Expected exactly one fixup hash, found %d", fixupHashCount)
 	}
 
 	_, fixupIndex, _ := lo.FindIndexOf(todos, isFixup)

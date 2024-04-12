@@ -62,8 +62,8 @@ func (self *ReposHelper) getCurrentBranch(path string) string {
 				// is a branch
 				branchDisplay = strings.TrimPrefix(content, refsPrefix)
 			} else {
-				// detached HEAD state, displaying short SHA
-				branchDisplay = utils.ShortSha(content)
+				// detached HEAD state, displaying short hash
+				branchDisplay = utils.ShortHash(content)
 			}
 			return branchDisplay, nil
 		}

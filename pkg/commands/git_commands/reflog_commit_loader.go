@@ -45,7 +45,7 @@ func (self *ReflogCommitLoader) GetReflogCommits(lastReflogCommit *models.Commit
 		}
 
 		// note that the unix timestamp here is the timestamp of the COMMIT, not the reflog entry itself,
-		// so two consecutive reflog entries may have both the same SHA and therefore same timestamp.
+		// so two consecutive reflog entries may have both the same hash and therefore same timestamp.
 		// We use the reflog message to disambiguate, and fingers crossed that we never see the same of those
 		// twice in a row. Reason being that it would mean we'd be erroneously exiting early.
 		if lastReflogCommit != nil && self.sameReflogCommit(commit, lastReflogCommit) {
@@ -65,7 +65,7 @@ func (self *ReflogCommitLoader) GetReflogCommits(lastReflogCommit *models.Commit
 }
 
 func (self *ReflogCommitLoader) sameReflogCommit(a *models.Commit, b *models.Commit) bool {
-	return a.Sha == b.Sha && a.UnixTimestamp == b.UnixTimestamp && a.Name == b.Name
+	return a.Hash == b.Hash && a.UnixTimestamp == b.UnixTimestamp && a.Name == b.Name
 }
 
 func (self *ReflogCommitLoader) parseLine(line string) (*models.Commit, bool) {
@@ -83,7 +83,7 @@ func (self *ReflogCommitLoader) parseLine(line string) (*models.Commit, bool) {
 	}
 
 	return &models.Commit{
-		Sha:           fields[0],
+		Hash:          fields[0],
 		Name:          fields[2],
 		UnixTimestamp: int64(unixTimestamp),
 		Status:        models.StatusReflog,

@@ -245,7 +245,7 @@ type IListPanelState interface {
 }
 
 type ListItem interface {
-	// ID is a SHA when the item is a commit, a filename when the item is a file, 'stash@{4}' when it's a stash entry, 'my_branch' when it's a branch
+	// ID is a hash when the item is a commit, a filename when the item is a file, 'stash@{4}' when it's a stash entry, 'my_branch' when it's a branch
 	ID() string
 
 	// Description is something we would show in a message e.g. '123as14: push blah' for a commit

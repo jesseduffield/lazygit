@@ -29,12 +29,12 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	)
 
 	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
-		selectedCommitSha := ""
+		selectedCommitHash := ""
 
 		if c.CurrentContext().GetKey() == LOCAL_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
 			if selectedCommit != nil {
-				selectedCommitSha = selectedCommit.Sha
+				selectedCommitHash = selectedCommit.Hash
 			}
 		}
 
@@ -48,14 +48,14 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			c.Model().CheckedOutBranch,
 			hasRebaseUpdateRefsConfig,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
-			c.Modes().CherryPicking.SelectedShaSet(),
+			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
-			c.Modes().MarkedBaseCommit.GetSha(),
+			c.Modes().MarkedBaseCommit.GetHash(),
 			c.UserConfig.Gui.TimeFormat,
 			c.UserConfig.Gui.ShortTimeFormat,
 			time.Now(),
 			c.UserConfig.Git.ParseEmoji,
-			selectedCommitSha,
+			selectedCommitHash,
 			startIdx,
 			endIdx,
 			shouldShowGraph(c),
@@ -133,7 +133,7 @@ func (self *LocalCommitsContext) GetSelectedCommitHash() string {
 	if commit == nil {
 		return ""
 	}
-	return commit.Sha
+	return commit.Hash
 }
 
 func (self *LocalCommitsContext) SelectCommitByHash(hash string) bool {
@@ -141,7 +141,7 @@ func (self *LocalCommitsContext) SelectCommitByHash(hash string) bool {
 		return false
 	}
 
-	if _, idx, found := lo.FindIndexOf(self.GetItems(), func(c *models.Commit) bool { return c.Sha == hash }); found {
+	if _, idx, found := lo.FindIndexOf(self.GetItems(), func(c *models.Commit) bool { return c.Hash == hash }); found {
 		self.SetSelection(idx)
 		return true
 	}

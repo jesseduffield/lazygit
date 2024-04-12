@@ -55,3 +55,11 @@ func (self *Git) Version() *git_commands.GitVersion {
 	}
 	return version
 }
+
+func (self *Git) GetCommitHash(ref string) string {
+	output, err := self.shell.runCommandWithOutput([]string{"git", "rev-parse", ref})
+	if err != nil {
+		log.Fatalf("Could not get commit hash: %v", err)
+	}
+	return strings.TrimSpace(output)
+}

@@ -44,11 +44,11 @@ func NewSubCommitsContext(
 			return [][]string{}
 		}
 
-		selectedCommitSha := ""
+		selectedCommitHash := ""
 		if c.CurrentContext().GetKey() == SUB_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
 			if selectedCommit != nil {
-				selectedCommitSha = selectedCommit.Sha
+				selectedCommitHash = selectedCommit.Hash
 			}
 		}
 		branches := []*models.Branch{}
@@ -63,14 +63,14 @@ func NewSubCommitsContext(
 			viewModel.GetRef().RefName(),
 			hasRebaseUpdateRefsConfig,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
-			c.Modes().CherryPicking.SelectedShaSet(),
+			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
 			"",
 			c.UserConfig.Gui.TimeFormat,
 			c.UserConfig.Gui.ShortTimeFormat,
 			time.Now(),
 			c.UserConfig.Git.ParseEmoji,
-			selectedCommitSha,
+			selectedCommitHash,
 			startIdx,
 			endIdx,
 			// Don't show the graph in the left/right view; we'd like to, but

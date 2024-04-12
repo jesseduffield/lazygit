@@ -267,7 +267,7 @@ func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
 	_ = self.refreshCommitsWithLimit()
 	ctx, ok := self.c.Contexts().CommitFiles.GetParentContext()
 	if ok && ctx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
-		// This makes sense when we've e.g. just amended a commit, meaning we get a new commit SHA at the same position.
+		// This makes sense when we've e.g. just amended a commit, meaning we get a new commit hash at the same position.
 		// However if we've just added a brand new commit, it pushes the list down by one and so we would end up
 		// showing the contents of a different commit than the one we initially entered.
 		// Ideally we would know when to refresh the commit files context and when not to,
@@ -290,16 +290,16 @@ func (self *RefreshHelper) determineCheckedOutBranchName() string {
 		return strings.TrimPrefix(rebasedBranch, "refs/heads/")
 	}
 
-	if bisectInfo := self.c.Git().Bisect.GetInfo(); bisectInfo.Bisecting() && bisectInfo.GetStartSha() != "" {
+	if bisectInfo := self.c.Git().Bisect.GetInfo(); bisectInfo.Bisecting() && bisectInfo.GetStartHash() != "" {
 		// Likewise, when we're bisecting we're on a detached head as well. In
 		// this case we read the branch name from the ".git/BISECT_START" file.
-		return bisectInfo.GetStartSha()
+		return bisectInfo.GetStartHash()
 	}
 
 	// In all other cases, get the branch name by asking git what branch is
 	// checked out. Note that if we're on a detached head (for reasons other
 	// than rebasing or bisecting, i.e. it was explicitly checked out), then
-	// this will return its sha.
+	// this will return its hash.
 	if branchName, err := self.c.Git().Branch.CurrentBranchName(); err == nil {
 		return branchName
 	}
@@ -721,10 +721,10 @@ func (self *RefreshHelper) refForLog() string {
 
 	// need to see if our bisect's current commit is reachable from our 'new' ref.
 	if bisectInfo.Bisecting() && !self.c.Git().Bisect.ReachableFromStart(bisectInfo) {
-		return bisectInfo.GetNewSha()
+		return bisectInfo.GetNewHash()
 	}
 
-	return bisectInfo.GetStartSha()
+	return bisectInfo.GetStartHash()
 }
 
 func (self *RefreshHelper) refreshView(context types.Context) error {

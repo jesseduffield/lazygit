@@ -24,33 +24,33 @@ func (self *CherryPicking) Active() bool {
 	return len(self.CherryPickedCommits) > 0
 }
 
-func (self *CherryPicking) SelectedShaSet() *set.Set[string] {
-	shas := lo.Map(self.CherryPickedCommits, func(commit *models.Commit, _ int) string {
-		return commit.Sha
+func (self *CherryPicking) SelectedHashSet() *set.Set[string] {
+	hashes := lo.Map(self.CherryPickedCommits, func(commit *models.Commit, _ int) string {
+		return commit.Hash
 	})
-	return set.NewFromSlice(shas)
+	return set.NewFromSlice(hashes)
 }
 
 func (self *CherryPicking) Add(selectedCommit *models.Commit, commitsList []*models.Commit) {
-	commitSet := self.SelectedShaSet()
-	commitSet.Add(selectedCommit.Sha)
+	commitSet := self.SelectedHashSet()
+	commitSet.Add(selectedCommit.Hash)
 
 	self.update(commitSet, commitsList)
 }
 
 func (self *CherryPicking) Remove(selectedCommit *models.Commit, commitsList []*models.Commit) {
-	commitSet := self.SelectedShaSet()
-	commitSet.Remove(selectedCommit.Sha)
+	commitSet := self.SelectedHashSet()
+	commitSet.Remove(selectedCommit.Hash)
 
 	self.update(commitSet, commitsList)
 }
 
-func (self *CherryPicking) update(selectedShaSet *set.Set[string], commitsList []*models.Commit) {
+func (self *CherryPicking) update(selectedHashSet *set.Set[string], commitsList []*models.Commit) {
 	cherryPickedCommits := lo.Filter(commitsList, func(commit *models.Commit, _ int) bool {
-		return selectedShaSet.Includes(commit.Sha)
+		return selectedHashSet.Includes(commit.Hash)
 	})
 
 	self.CherryPickedCommits = lo.Map(cherryPickedCommits, func(commit *models.Commit, _ int) *models.Commit {
-		return &models.Commit{Name: commit.Name, Sha: commit.Sha}
+		return &models.Commit{Name: commit.Name, Hash: commit.Hash}
 	})
 }

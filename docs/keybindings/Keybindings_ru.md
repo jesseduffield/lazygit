@@ -123,7 +123,7 @@ _Связки клавиш_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Скопировать SHA коммита в буфер обмена |  |
+| `` <c-o> `` | Скопировать hash коммита в буфер обмена |  |
 | `` <space> `` | Переключить | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Открыть коммит в браузере |  |
@@ -140,7 +140,7 @@ _Связки клавиш_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Скопировать SHA коммита в буфер обмена |  |
+| `` <c-o> `` | Скопировать hash коммита в буфер обмена |  |
 | `` <c-r> `` | Сбросить отобранную (скопированную | cherry-picked) выборку коммитов |  |
 | `` b `` | Просмотреть параметры бинарного поиска |  |
 | `` s `` | Объединить коммиты (Squash) | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
@@ -219,7 +219,7 @@ If you would instead like to start an interactive rebase from the selected commi
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Скопировать SHA коммита в буфер обмена |  |
+| `` <c-o> `` | Скопировать hash коммита в буфер обмена |  |
 | `` <space> `` | Переключить | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Открыть коммит в браузере |  |

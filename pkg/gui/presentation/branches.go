@@ -106,7 +106,7 @@ func getBranchDisplayStrings(
 	}
 
 	if showCommitHash {
-		res = append(res, utils.ShortSha(b.CommitHash))
+		res = append(res, utils.ShortHash(b.CommitHash))
 	}
 
 	res = append(res, coloredName)

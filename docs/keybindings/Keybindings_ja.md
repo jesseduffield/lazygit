@@ -66,7 +66,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | コミットのSHAをクリップボードにコピー |  |
+| `` <c-o> `` | コミットのhashをクリップボードにコピー |  |
 | `` <space> `` | チェックアウト | Checkout the selected commit as a detached HEAD. |
 | `` y `` | コミットの情報をコピー | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | ブラウザでコミットを開く |  |
@@ -93,7 +93,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | コミットのSHAをクリップボードにコピー |  |
+| `` <c-o> `` | コミットのhashをクリップボードにコピー |  |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` b `` | View bisect options |  |
 | `` s `` | Squash | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
@@ -343,7 +343,7 @@ If you would instead like to start an interactive rebase from the selected commi
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | コミットのSHAをクリップボードにコピー |  |
+| `` <c-o> `` | コミットのhashをクリップボードにコピー |  |
 | `` <space> `` | チェックアウト | Checkout the selected commit as a detached HEAD. |
 | `` y `` | コミットの情報をコピー | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | ブラウザでコミットを開く |  |
