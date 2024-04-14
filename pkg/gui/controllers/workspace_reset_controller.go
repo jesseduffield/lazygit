@@ -180,7 +180,7 @@ func (self *FilesController) Explode(v *gocui.View, onDone func()) {
 		style.FgBlack.SetBold(),
 	}
 
-	self.c.OnWorker(func(_ gocui.Task) {
+	self.c.OnWorker(func(_ gocui.Task) error {
 		max := 25
 		for i := 0; i < max; i++ {
 			image := getExplodeImage(width, height, i, max)
@@ -198,6 +198,7 @@ func (self *FilesController) Explode(v *gocui.View, onDone func()) {
 			onDone()
 			return nil
 		})
+		return nil
 	})
 }
 

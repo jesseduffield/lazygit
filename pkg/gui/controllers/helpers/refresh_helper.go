@@ -104,8 +104,9 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			// everything happens fast and it's better to have everything update
 			// in the one frame
 			if !self.c.InDemo() && options.Mode == types.ASYNC {
-				self.c.OnWorker(func(t gocui.Task) {
+				self.c.OnWorker(func(t gocui.Task) error {
 					f()
+					return nil
 				})
 			} else {
 				wg.Add(1)
@@ -246,10 +247,11 @@ func getModeName(mode types.RefreshMode) string {
 func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
-		self.c.OnWorker(func(_ gocui.Task) {
+		self.c.OnWorker(func(_ gocui.Task) error {
 			_ = self.refreshReflogCommits()
 			self.refreshBranches(false, true)
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)
+			return nil
 		})
 
 	case types.COMPLETE:
