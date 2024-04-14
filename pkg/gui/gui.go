@@ -544,6 +544,7 @@ func NewGui(
 	// TODO: reset these controllers upon changing repos due to state changing
 	gui.c = helperCommon
 
+	authors.SetUnspecifiedAuthorColors(gui.UserConfig.Gui.UnspecifiedAuthorColors)
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
 	if gui.UserConfig.Gui.NerdFontsVersion != "" {
 		icons.SetNerdFontsVersion(gui.UserConfig.Gui.NerdFontsVersion)

@@ -11,6 +11,13 @@
           "type": "object",
           "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color"
         },
+        "unspecifiedAuthorColors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#unspecified-author-color"
+        },
         "branchColors": {
           "additionalProperties": {
             "type": "string"
