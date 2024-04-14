@@ -135,7 +135,8 @@ type IPopupHandler interface {
 	//
 	// This is a convenience wrapper around Alert().
 	ErrorMsg(message string) error
-	Error(err error) error
+	// The global error handler for gocui. Not to be used by application code.
+	ErrorHandler(err error) error
 	// Shows a notification popup with the given title and message to the user.
 	//
 	// This is a convenience wrapper around Confirm(), thus the popup can be closed using both 'Enter' and 'ESC'.

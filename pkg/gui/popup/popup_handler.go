@@ -79,11 +79,7 @@ func (self *PopupHandler) WithWaitingStatusSync(message string, f func() error) 
 	return self.withWaitingStatusSyncFn(message, f)
 }
 
-func (self *PopupHandler) Error(err error) error {
-	if err == gocui.ErrQuit {
-		return err
-	}
-
+func (self *PopupHandler) ErrorHandler(err error) error {
 	return self.ErrorMsg(err.Error())
 }
 
