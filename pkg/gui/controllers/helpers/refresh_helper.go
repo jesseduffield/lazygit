@@ -76,7 +76,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		)
 	}
 
-	f := func() {
+	f := func() error {
 		var scopeSet *set.Set[types.RefreshableView]
 		if len(options.Scope) == 0 {
 			// not refreshing staging/patch-building unless explicitly requested because we only need
@@ -188,20 +188,22 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		wg.Wait()
 
 		if options.Then != nil {
-			options.Then()
+			if err := options.Then(); err != nil {
+				return err
+			}
 		}
+
+		return nil
 	}
 
 	if options.Mode == types.BLOCK_UI {
 		self.c.OnUIThread(func() error {
-			f()
-			return nil
+			return f()
 		})
-	} else {
-		f()
+		return nil
 	}
 
-	return nil
+	return f()
 }
 
 func getScopeNames(scopes []types.RefreshableView) []string {

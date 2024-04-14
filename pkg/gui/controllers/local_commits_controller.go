@@ -513,7 +513,7 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 		err := self.c.Git().Rebase.EditRebase(commitsToEdit[len(commitsToEdit)-1].Hash)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
-			types.RefreshOptions{Mode: types.BLOCK_UI, Then: func() {
+			types.RefreshOptions{Mode: types.BLOCK_UI, Then: func() error {
 				todos := make([]*models.Commit, 0, len(commitsToEdit)-1)
 				for _, c := range commitsToEdit[:len(commitsToEdit)-1] {
 					// Merge commits can't be set to "edit", so just skip them
@@ -524,7 +524,7 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 				if len(todos) > 0 {
 					err := self.updateTodos(todo.Edit, todos)
 					if err != nil {
-						_ = self.c.Error(err)
+						return err
 					}
 				}
 
@@ -540,6 +540,7 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 				if ok1 && ok2 {
 					self.context().SetSelectionRangeAndMode(newSelectedIdx, newRangeStartIdx, rangeSelectMode)
 				}
+				return nil
 			}})
 	})
 }

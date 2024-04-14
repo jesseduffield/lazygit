@@ -267,16 +267,17 @@ func (self *BisectController) afterMark(selectCurrent bool, waitToReselect bool)
 }
 
 func (self *BisectController) afterBisectMarkRefresh(selectCurrent bool, waitToReselect bool) error {
-	selectFn := func() {
+	selectFn := func() error {
 		if selectCurrent {
 			self.selectCurrentBisectCommit()
 		}
+		return nil
 	}
 
 	if waitToReselect {
 		return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{}, Then: selectFn})
 	} else {
-		selectFn()
+		_ = selectFn()
 
 		return self.c.Helpers().Bisect.PostBisectCommandRefresh()
 	}
