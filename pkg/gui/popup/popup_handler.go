@@ -18,7 +18,7 @@ type PopupHandler struct {
 	currentContextFn        func() types.Context
 	createMenuFn            func(types.CreateMenuOptions) error
 	withWaitingStatusFn     func(message string, f func(gocui.Task) error)
-	withWaitingStatusSyncFn func(message string, f func() error)
+	withWaitingStatusSyncFn func(message string, f func() error) error
 	toastFn                 func(message string, kind types.ToastKind)
 	getPromptInputFn        func() string
 	inDemo                  func() bool
@@ -34,7 +34,7 @@ func NewPopupHandler(
 	currentContextFn func() types.Context,
 	createMenuFn func(types.CreateMenuOptions) error,
 	withWaitingStatusFn func(message string, f func(gocui.Task) error),
-	withWaitingStatusSyncFn func(message string, f func() error),
+	withWaitingStatusSyncFn func(message string, f func() error) error,
 	toastFn func(message string, kind types.ToastKind),
 	getPromptInputFn func() string,
 	inDemo func() bool,
@@ -76,8 +76,7 @@ func (self *PopupHandler) WithWaitingStatus(message string, f func(gocui.Task) e
 }
 
 func (self *PopupHandler) WithWaitingStatusSync(message string, f func() error) error {
-	self.withWaitingStatusSyncFn(message, f)
-	return nil
+	return self.withWaitingStatusSyncFn(message, f)
 }
 
 func (self *PopupHandler) Error(err error) error {

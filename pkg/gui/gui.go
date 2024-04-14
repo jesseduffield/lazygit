@@ -516,8 +516,8 @@ func NewGui(
 		func() types.Context { return gui.State.ContextMgr.Current() },
 		gui.createMenu,
 		func(message string, f func(gocui.Task) error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
-		func(message string, f func() error) {
-			gui.helpers.AppStatus.WithWaitingStatusSync(message, f)
+		func(message string, f func() error) error {
+			return gui.helpers.AppStatus.WithWaitingStatusSync(message, f)
 		},
 		func(message string, kind types.ToastKind) { gui.helpers.AppStatus.Toast(message, kind) },
 		func() string { return gui.Views.Confirmation.TextArea.GetContent() },

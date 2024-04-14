@@ -60,25 +60,24 @@ func (self appStatusHelperTask) Continue() {
 // withWaitingStatus wraps a function and shows a waiting status while the function is still executing
 func (self *AppStatusHelper) WithWaitingStatus(message string, f func(gocui.Task) error) {
 	self.c.OnWorker(func(task gocui.Task) {
-		self.statusMgr().WithWaitingStatus(message, self.renderAppStatus, func(waitingStatusHandle *status.WaitingStatusHandle) {
-			if err := f(appStatusHelperTask{task, waitingStatusHandle}); err != nil {
-				self.c.OnUIThread(func() error {
-					return err
-				})
-			}
+		err := self.statusMgr().WithWaitingStatus(message, self.renderAppStatus, func(waitingStatusHandle *status.WaitingStatusHandle) error {
+			return f(appStatusHelperTask{task, waitingStatusHandle})
 		})
+		if err != nil {
+			self.c.OnUIThread(func() error {
+				return err
+			})
+		}
 	})
 }
 
-func (self *AppStatusHelper) WithWaitingStatusSync(message string, f func() error) {
-	self.statusMgr().WithWaitingStatus(message, func() {}, func(*status.WaitingStatusHandle) {
+func (self *AppStatusHelper) WithWaitingStatusSync(message string, f func() error) error {
+	return self.statusMgr().WithWaitingStatus(message, func() {}, func(*status.WaitingStatusHandle) error {
 		stop := make(chan struct{})
 		defer func() { close(stop) }()
 		self.renderAppStatusSync(stop)
 
-		if err := f(); err != nil {
-			_ = self.c.Error(err)
-		}
+		return f()
 	})
 }
 
