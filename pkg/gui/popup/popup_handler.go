@@ -80,12 +80,8 @@ func (self *PopupHandler) WithWaitingStatusSync(message string, f func() error) 
 }
 
 func (self *PopupHandler) ErrorHandler(err error) error {
-	return self.ErrorMsg(err.Error())
-}
-
-func (self *PopupHandler) ErrorMsg(message string) error {
 	// Need to set bold here explicitly; otherwise it gets cancelled by the red colouring.
-	coloredMessage := style.FgRed.SetBold().Sprint(strings.TrimSpace(message))
+	coloredMessage := style.FgRed.SetBold().Sprint(strings.TrimSpace(err.Error()))
 	if err := self.onErrorFn(); err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -39,7 +40,7 @@ func (self *SnakeHelper) renderSnakeGame(cells [][]snake.CellType, alive bool) {
 	view := self.c.Views().Snake
 
 	if !alive {
-		_ = self.c.ErrorMsg(self.c.Tr.YouDied)
+		self.c.OnUIThread(func() error { return errors.New(self.c.Tr.YouDied) })
 		return
 	}
 

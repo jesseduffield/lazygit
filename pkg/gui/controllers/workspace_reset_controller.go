@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -88,7 +89,7 @@ func (self *FilesController) createResetMenu() error {
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RemoveStagedFiles)
 				if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
-					return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
+					return errors.New(self.c.Tr.NoTrackedStagedFilesStash)
 				}
 				if err := self.c.Git().Stash.SaveStagedChanges("[lazygit] tmp stash"); err != nil {
 					return err

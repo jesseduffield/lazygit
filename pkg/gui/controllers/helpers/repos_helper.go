@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -156,7 +157,7 @@ func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey
 
 		if err := os.Chdir(path); err != nil {
 			if os.IsNotExist(err) {
-				return self.c.ErrorMsg(errMsg)
+				return errors.New(errMsg)
 			}
 			return err
 		}

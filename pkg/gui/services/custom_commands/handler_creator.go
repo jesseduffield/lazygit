@@ -1,6 +1,7 @@
 package custom_commands
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"text/template"
@@ -103,7 +104,7 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 					return self.confirmPrompt(resolvedPrompt, g)
 				}
 			default:
-				return self.c.ErrorMsg("custom command prompt must have a type of 'input', 'menu', 'menuFromCommand', or 'confirm'")
+				return errors.New("custom command prompt must have a type of 'input', 'menu', 'menuFromCommand', or 'confirm'")
 			}
 		}
 

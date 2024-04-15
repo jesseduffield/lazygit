@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 
@@ -137,7 +138,7 @@ func (self *WorkingTreeHelper) HandleCommitEditorPress() error {
 func (self *WorkingTreeHelper) HandleWIPCommitPress() error {
 	skipHookPrefix := self.c.UserConfig.Git.SkipHookPrefix
 	if skipHookPrefix == "" {
-		return self.c.ErrorMsg(self.c.Tr.SkipHookPrefixNotConfigured)
+		return errors.New(self.c.Tr.SkipHookPrefixNotConfigured)
 	}
 
 	return self.HandleCommitPressWithMessage(skipHookPrefix)
@@ -153,7 +154,7 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 			prefixReplace := commitPrefixConfig.Replace
 			rgx, err := regexp.Compile(prefixPattern)
 			if err != nil {
-				return self.c.ErrorMsg(fmt.Sprintf("%s: %s", self.c.Tr.CommitPrefixPatternError, err.Error()))
+				return fmt.Errorf("%s: %s", self.c.Tr.CommitPrefixPatternError, err.Error())
 			}
 			prefix := rgx.ReplaceAllString(self.refHelper.GetCheckedOutRef().Name, prefixReplace)
 			message = prefix
@@ -169,7 +170,7 @@ func (self *WorkingTreeHelper) WithEnsureCommitableFiles(handler func() error) e
 	}
 
 	if len(self.c.Model().Files) == 0 {
-		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
+		return errors.New(self.c.Tr.NoFilesStagedTitle)
 	}
 
 	if !self.AnyStagedFiles() {

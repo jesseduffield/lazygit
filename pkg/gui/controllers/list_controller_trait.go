@@ -1,6 +1,10 @@
 package controllers
 
-import "github.com/jesseduffield/lazygit/pkg/gui/types"
+import (
+	"errors"
+
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+)
 
 // Embed this into your list controller to get some convenience methods for
 // ensuring a single item is selected, etc.
@@ -106,7 +110,7 @@ func (self *ListControllerTrait[T]) withItem(callback func(T) error) func() erro
 		var zeroValue T
 		commit := self.getSelectedItem()
 		if commit == zeroValue {
-			return self.c.ErrorMsg(self.c.Tr.NoItemSelected)
+			return errors.New(self.c.Tr.NoItemSelected)
 		}
 
 		return callback(commit)
@@ -117,7 +121,7 @@ func (self *ListControllerTrait[T]) withItems(callback func([]T) error) func() e
 	return func() error {
 		items, _, _ := self.getSelectedItems()
 		if len(items) == 0 {
-			return self.c.ErrorMsg(self.c.Tr.NoItemSelected)
+			return errors.New(self.c.Tr.NoItemSelected)
 		}
 
 		return callback(items)
@@ -129,7 +133,7 @@ func (self *ListControllerTrait[T]) withItemsRange(callback func([]T, int, int) 
 	return func() error {
 		items, startIdx, endIdx := self.getSelectedItems()
 		if len(items) == 0 {
-			return self.c.ErrorMsg(self.c.Tr.NoItemSelected)
+			return errors.New(self.c.Tr.NoItemSelected)
 		}
 
 		return callback(items, startIdx, endIdx)

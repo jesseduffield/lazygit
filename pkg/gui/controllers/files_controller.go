@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -388,7 +389,7 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 		// if any files within have inline merge conflicts we can't stage or unstage,
 		// or it'll end up with those >>>>>> lines actually staged
 		if node.GetHasInlineMergeConflicts() {
-			return self.c.ErrorMsg(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
+			return errors.New(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
 		}
 	}
 
@@ -496,7 +497,7 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 		return self.switchToMerge()
 	}
 	if file.HasMergeConflicts {
-		return self.c.ErrorMsg(self.c.Tr.FileStagingRequirements)
+		return errors.New(self.c.Tr.FileStagingRequirements)
 	}
 
 	return self.c.PushContext(self.c.Contexts().Staging, opts)
@@ -523,7 +524,7 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 	// if any files within have inline merge conflicts we can't stage or unstage,
 	// or it'll end up with those >>>>>> lines actually staged
 	if root.GetHasInlineMergeConflicts() {
-		return self.c.ErrorMsg(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
+		return errors.New(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
 	}
 
 	if root.GetHasUnstagedChanges() {
@@ -606,14 +607,14 @@ func (self *FilesController) ignoreOrExcludeFile(node *filetree.FileNode, trText
 
 func (self *FilesController) ignore(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
-		return self.c.ErrorMsg(self.c.Tr.Actions.IgnoreFileErr)
+		return errors.New(self.c.Tr.Actions.IgnoreFileErr)
 	}
 	return self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.c.Git().WorkingTree.Ignore)
 }
 
 func (self *FilesController) exclude(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
-		return self.c.ErrorMsg(self.c.Tr.Actions.ExcludeGitIgnoreErr)
+		return errors.New(self.c.Tr.Actions.ExcludeGitIgnoreErr)
 	}
 
 	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.c.Git().WorkingTree.Exclude)
@@ -658,7 +659,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 		HandleConfirm: func() error {
 			return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
 				if len(self.c.Model().Commits) == 0 {
-					return self.c.ErrorMsg(self.c.Tr.NoCommitToAmend)
+					return errors.New(self.c.Tr.NoCommitToAmend)
 				}
 
 				return self.c.Helpers().AmendHelper.AmendHead()
@@ -765,7 +766,7 @@ func (self *FilesController) createStashMenu() error {
 				Label: self.c.Tr.StashAllChanges,
 				OnPress: func() error {
 					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
-						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
+						return errors.New(self.c.Tr.NoFilesToStash)
 					}
 					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashAllChanges)
 				},
@@ -775,7 +776,7 @@ func (self *FilesController) createStashMenu() error {
 				Label: self.c.Tr.StashAllChangesKeepIndex,
 				OnPress: func() error {
 					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
-						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
+						return errors.New(self.c.Tr.NoFilesToStash)
 					}
 					// if there are no staged files it behaves the same as Stash.Save
 					return self.handleStashSave(self.c.Git().Stash.StashAndKeepIndex, self.c.Tr.Actions.StashAllChangesKeepIndex)
@@ -794,7 +795,7 @@ func (self *FilesController) createStashMenu() error {
 				OnPress: func() error {
 					// there must be something in staging otherwise the current implementation mucks the stash up
 					if !self.c.Helpers().WorkingTree.AnyStagedFiles() {
-						return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
+						return errors.New(self.c.Tr.NoTrackedStagedFilesStash)
 					}
 					return self.handleStashSave(self.c.Git().Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
 				},
@@ -804,7 +805,7 @@ func (self *FilesController) createStashMenu() error {
 				Label: self.c.Tr.StashUnstagedChanges,
 				OnPress: func() error {
 					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
-						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
+						return errors.New(self.c.Tr.NoFilesToStash)
 					}
 					if self.c.Helpers().WorkingTree.AnyStagedFiles() {
 						return self.handleStashSave(self.c.Git().Stash.StashUnstagedChanges, self.c.Tr.Actions.StashUnstagedChanges)
@@ -986,7 +987,7 @@ func (self *FilesController) fetchAux(task gocui.Task) (err error) {
 	err = self.c.Git().Sync.Fetch(task)
 
 	if err != nil && strings.Contains(err.Error(), "exit status 128") {
-		_ = self.c.ErrorMsg(self.c.Tr.PassUnameWrong)
+		return errors.New(self.c.Tr.PassUnameWrong)
 	}
 
 	_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})

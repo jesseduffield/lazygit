@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
@@ -78,7 +79,7 @@ func (self *UndoController) reflogUndo() error {
 	undoingStatus := self.c.Tr.UndoingStatus
 
 	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-		return self.c.ErrorMsg(self.c.Tr.CantUndoWhileRebasing)
+		return errors.New(self.c.Tr.CantUndoWhileRebasing)
 	}
 
 	return self.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {
@@ -126,7 +127,7 @@ func (self *UndoController) reflogRedo() error {
 	redoingStatus := self.c.Tr.RedoingStatus
 
 	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-		return self.c.ErrorMsg(self.c.Tr.CantRedoWhileRebasing)
+		return errors.New(self.c.Tr.CantRedoWhileRebasing)
 	}
 
 	return self.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {

@@ -131,10 +131,6 @@ type IModeMgr interface {
 }
 
 type IPopupHandler interface {
-	// Shows a popup with a (localized) "Error" caption and the given error message (in red).
-	//
-	// This is a convenience wrapper around Alert().
-	ErrorMsg(message string) error
 	// The global error handler for gocui. Not to be used by application code.
 	ErrorHandler(err error) error
 	// Shows a notification popup with the given title and message to the user.

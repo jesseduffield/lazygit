@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"errors"
+	"fmt"
 	"regexp"
 	"strings"
 	"sync"
@@ -36,19 +38,19 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return err
 	}
 	if diff == "" {
-		return self.c.ErrorMsg(self.c.Tr.NoChangedFiles)
+		return errors.New(self.c.Tr.NoChangedFiles)
 	}
 
 	deletedLineInfos, hasHunksWithOnlyAddedLines := self.parseDiff(diff)
 	if len(deletedLineInfos) == 0 {
-		return self.c.ErrorMsg(self.c.Tr.NoDeletedLinesInDiff)
+		return errors.New(self.c.Tr.NoDeletedLinesInDiff)
 	}
 
 	hashes := self.blameDeletedLines(deletedLineInfos)
 
 	if len(hashes) == 0 {
 		// This should never happen
-		return self.c.ErrorMsg(self.c.Tr.NoBaseCommitsFound)
+		return errors.New(self.c.Tr.NoBaseCommitsFound)
 	}
 	if len(hashes) > 1 {
 		subjects, err := self.c.Git().Commit.GetHashesAndCommitMessagesFirstLine(hashes)
@@ -58,7 +60,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		message := lo.Ternary(hasStagedChanges,
 			self.c.Tr.MultipleBaseCommitsFoundStaged,
 			self.c.Tr.MultipleBaseCommitsFoundUnstaged)
-		return self.c.ErrorMsg(message + "\n\n" + subjects)
+		return fmt.Errorf("%s\n\n%s", message, subjects)
 	}
 
 	commit, index, ok := lo.FindIndexOf(self.c.Model().Commits, func(commit *models.Commit) bool {
@@ -70,13 +72,13 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 			// If the commit is not found, it's most likely because it's already
 			// merged, and more than 300 commits away. Check if the last known
 			// commit is already merged; if so, show the "already merged" error.
-			return self.c.ErrorMsg(self.c.Tr.BaseCommitIsAlreadyOnMainBranch)
+			return errors.New(self.c.Tr.BaseCommitIsAlreadyOnMainBranch)
 		}
 		// If we get here, the current branch must have more then 300 commits. Unlikely...
-		return self.c.ErrorMsg(self.c.Tr.BaseCommitIsNotInCurrentView)
+		return errors.New(self.c.Tr.BaseCommitIsNotInCurrentView)
 	}
 	if commit.Status == models.StatusMerged {
-		return self.c.ErrorMsg(self.c.Tr.BaseCommitIsAlreadyOnMainBranch)
+		return errors.New(self.c.Tr.BaseCommitIsAlreadyOnMainBranch)
 	}
 
 	doIt := func() error {

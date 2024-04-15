@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -314,7 +315,7 @@ func (self *BasicCommitsController) handleOldCherryPickKey() error {
 			"paste": keybindings.Label(self.c.UserConfig.Keybinding.Commits.PasteCommits),
 		})
 
-	return self.c.ErrorMsg(msg)
+	return errors.New(msg)
 }
 
 func (self *BasicCommitsController) openDiffTool(commit *models.Commit) error {

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -197,7 +198,7 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 			})
 		if err != nil {
 			if strings.Contains(err.Error(), "Updates were rejected") {
-				return self.c.ErrorMsg(self.c.Tr.UpdatesRejected)
+				return errors.New(self.c.Tr.UpdatesRejected)
 			}
 			return err
 		}
@@ -208,7 +209,7 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 func (self *SyncController) requestToForcePush(currentBranch *models.Branch, opts pushOpts) error {
 	forcePushDisabled := self.c.UserConfig.Git.DisableForcePushing
 	if forcePushDisabled {
-		return self.c.ErrorMsg(self.c.Tr.ForcePushDisabled)
+		return errors.New(self.c.Tr.ForcePushDisabled)
 	}
 
 	return self.c.Confirm(types.ConfirmOpts{

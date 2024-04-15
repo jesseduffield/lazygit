@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -46,7 +47,7 @@ func (self *GitFlowController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 
 func (self *GitFlowController) handleCreateGitFlowMenu(branch *models.Branch) error {
 	if !self.c.Git().Flow.GitFlowEnabled() {
-		return self.c.ErrorMsg("You need to install git-flow and enable it in this repo to use git-flow features")
+		return errors.New("You need to install git-flow and enable it in this repo to use git-flow features")
 	}
 
 	startHandler := func(branchType string) func() error {

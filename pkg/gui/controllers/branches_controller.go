@@ -334,7 +334,7 @@ func (self *BranchesController) context() *context.BranchesContext {
 
 func (self *BranchesController) press(selectedBranch *models.Branch) error {
 	if selectedBranch == self.c.Helpers().Refs.GetCheckedOutRef() {
-		return self.c.ErrorMsg(self.c.Tr.AlreadyCheckedOutBranch)
+		return errors.New(self.c.Tr.AlreadyCheckedOutBranch)
 	}
 
 	worktreeForRef, ok := self.worktreeForBranch(selectedBranch)
@@ -378,7 +378,7 @@ func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktr
 
 func (self *BranchesController) handleCreatePullRequest(selectedBranch *models.Branch) error {
 	if !selectedBranch.IsTrackingRemote() {
-		return self.c.ErrorMsg(self.c.Tr.PullRequestNoUpstream)
+		return errors.New(self.c.Tr.PullRequestNoUpstream)
 	}
 	return self.createPullRequest(selectedBranch.UpstreamBranch, "")
 }
@@ -548,7 +548,7 @@ func (self *BranchesController) forceDelete(branch *models.Branch) error {
 		Prompt: message,
 		HandleConfirm: func() error {
 			if err := self.c.Git().Branch.LocalDelete(branch.Name, true); err != nil {
-				return self.c.ErrorMsg(err.Error())
+				return err
 			}
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 		},
@@ -615,13 +615,13 @@ func (self *BranchesController) notRebasingOntoSelf(branch *models.Branch) *type
 
 func (self *BranchesController) fastForward(branch *models.Branch) error {
 	if !branch.IsTrackingRemote() {
-		return self.c.ErrorMsg(self.c.Tr.FwdNoUpstream)
+		return errors.New(self.c.Tr.FwdNoUpstream)
 	}
 	if !branch.RemoteBranchStoredLocally() {
-		return self.c.ErrorMsg(self.c.Tr.FwdNoLocalUpstream)
+		return errors.New(self.c.Tr.FwdNoLocalUpstream)
 	}
 	if branch.HasCommitsToPush() {
-		return self.c.ErrorMsg(self.c.Tr.FwdCommitsToPush)
+		return errors.New(self.c.Tr.FwdCommitsToPush)
 	}
 
 	action := self.c.Tr.Actions.FastForwardBranch
@@ -766,7 +766,7 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 				LabelColumns: fromToLabelColumns(checkedOutBranch.Name, selectedBranch.Name),
 				OnPress: func() error {
 					if !checkedOutBranch.IsTrackingRemote() || !selectedBranch.IsTrackingRemote() {
-						return self.c.ErrorMsg(self.c.Tr.PullRequestNoUpstream)
+						return errors.New(self.c.Tr.PullRequestNoUpstream)
 					}
 					return self.createPullRequest(checkedOutBranch.UpstreamBranch, selectedBranch.UpstreamBranch)
 				},
