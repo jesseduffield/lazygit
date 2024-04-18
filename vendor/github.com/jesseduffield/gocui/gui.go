@@ -172,6 +172,8 @@ type Gui struct {
 	NextSearchMatchKey interface{}
 	PrevSearchMatchKey interface{}
 
+	ErrorHandler func(error) error
+
 	screen         tcell.Screen
 	suspendedMutex sync.Mutex
 	suspended      bool
@@ -661,7 +663,7 @@ func (g *Gui) updateAsyncAux(f func(*Gui) error, task Task) {
 // consider itself 'busy` as it runs the code. Don't use for long-running
 // background goroutines where you wouldn't want lazygit to be considered busy
 // (i.e. when you wouldn't want a loader to be shown to the user)
-func (g *Gui) OnWorker(f func(Task)) {
+func (g *Gui) OnWorker(f func(Task) error) {
 	task := g.NewTask()
 	go func() {
 		g.onWorkerAux(f, task)
@@ -669,7 +671,7 @@ func (g *Gui) OnWorker(f func(Task)) {
 	}()
 }
 
-func (g *Gui) onWorkerAux(f func(Task), task Task) {
+func (g *Gui) onWorkerAux(f func(Task) error, task Task) {
 	panicking := true
 	defer func() {
 		if panicking && Screen != nil {
@@ -677,9 +679,15 @@ func (g *Gui) onWorkerAux(f func(Task), task Task) {
 		}
 	}()
 
-	f(task)
+	err := f(task)
 
 	panicking = false
+
+	if err != nil {
+		g.Update(func(g *Gui) error {
+			return err
+		})
+	}
 }
 
 // A Manager is in charge of GUI's layout and can be used to build widgets.
@@ -745,19 +753,27 @@ func (g *Gui) MainLoop() error {
 	}
 }
 
+func (g *Gui) handleError(err error) error {
+	if err != nil && !IsQuit(err) && g.ErrorHandler != nil {
+		return g.ErrorHandler(err)
+	}
+
+	return err
+}
+
 func (g *Gui) processEvent() error {
 	select {
 	case ev := <-g.gEvents:
 		task := g.NewTask()
 		defer func() { task.Done() }()
 
-		if err := g.handleEvent(&ev); err != nil {
+		if err := g.handleError(g.handleEvent(&ev)); err != nil {
 			return err
 		}
 	case ev := <-g.userEvents:
 		defer func() { ev.task.Done() }()
 
-		if err := ev.f(g); err != nil {
+		if err := g.handleError(ev.f(g)); err != nil {
 			return err
 		}
 	}
@@ -777,11 +793,11 @@ func (g *Gui) processRemainingEvents() error {
 	for {
 		select {
 		case ev := <-g.gEvents:
-			if err := g.handleEvent(&ev); err != nil {
+			if err := g.handleError(g.handleEvent(&ev)); err != nil {
 				return err
 			}
 		case ev := <-g.userEvents:
-			err := ev.f(g)
+			err := g.handleError(ev.f(g))
 			ev.task.Done()
 			if err != nil {
 				return err
@@ -813,17 +829,6 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 func (g *Gui) onResize() {
 	// not sure if we actually need this
 	// g.screen.Sync()
-}
-
-func (g *Gui) clear(fg, bg Attribute) (int, int) {
-	st := getTcellStyle(oldStyle{fg: fg, bg: bg, outputMode: g.outputMode})
-	w, h := Screen.Size()
-	for row := 0; row < h; row++ {
-		for col := 0; col < w; col++ {
-			Screen.SetContent(col, row, ' ', nil, st)
-		}
-	}
-	return w, h
 }
 
 // drawFrameEdges draws the horizontal and vertical edges of a view.
@@ -1397,7 +1402,7 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) (matched bool, err error)
 	var matchingParentViewKb *keybinding
 
 	// if we're searching, and we've hit n/N/Esc, we ignore the default keybinding
-	if v != nil && v.IsSearching() && Modifier(ev.Mod) == ModNone {
+	if v != nil && v.IsSearching() && ev.Mod == ModNone {
 		if eventMatchesKey(ev, g.NextSearchMatchKey) {
 			return true, v.gotoNextMatch()
 		} else if eventMatchesKey(ev, g.PrevSearchMatchKey) {
@@ -1417,7 +1422,7 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) (matched bool, err error)
 		if kb.handler == nil {
 			continue
 		}
-		if !kb.matchKeypress(Key(ev.Key), ev.Ch, Modifier(ev.Mod)) {
+		if !kb.matchKeypress(ev.Key, ev.Ch, ev.Mod) {
 			continue
 		}
 		if g.matchView(v, kb) {
@@ -1435,7 +1440,7 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) (matched bool, err error)
 	}
 
 	if g.currentView != nil && g.currentView.Editable && g.currentView.Editor != nil {
-		matched := g.currentView.Editor.Edit(g.currentView, Key(ev.Key), ev.Ch, Modifier(ev.Mod))
+		matched := g.currentView.Editor.Edit(g.currentView, ev.Key, ev.Ch, ev.Mod)
 		if matched {
 			return true, nil
 		}
@@ -1550,7 +1555,7 @@ func (g *Gui) matchView(v *View, kb *keybinding) bool {
 	if v == nil {
 		return false
 	}
-	if v.Editable == true && kb.ch != 0 {
+	if v.Editable && kb.ch != 0 {
 		return false
 	}
 	if kb.viewName != v.name {

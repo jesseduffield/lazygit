@@ -956,8 +956,13 @@ func (gui *Gui) onUIThread(f func() error) {
 	})
 }
 
-func (gui *Gui) onWorker(f func(gocui.Task)) {
-	gui.g.OnWorker(f)
+func (gui *Gui) onWorker(f func(t gocui.Task)) {
+	gui.g.OnWorker(func(t gocui.Task) error {
+		// Hack: adapt to the changed signature in the simplest possible way.
+		// We'll make this cleaner in subsequent commits in this branch.
+		f(t)
+		return nil
+	})
 }
 
 func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
