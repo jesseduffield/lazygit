@@ -96,7 +96,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectMark)
 				if err := self.c.Git().Bisect.Mark(hashToMark, info.NewTerm()); err != nil {
-					return self.c.Error(err)
+					return err
 				}
 
 				return self.afterMark(selectCurrentAfter, waitToReselect)
@@ -109,7 +109,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectMark)
 				if err := self.c.Git().Bisect.Mark(hashToMark, info.OldTerm()); err != nil {
-					return self.c.Error(err)
+					return err
 				}
 
 				return self.afterMark(selectCurrentAfter, waitToReselect)
@@ -122,7 +122,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectSkip)
 				if err := self.c.Git().Bisect.Skip(hashToMark); err != nil {
-					return self.c.Error(err)
+					return err
 				}
 
 				return self.afterMark(selectCurrentAfter, waitToReselect)
@@ -137,7 +137,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectSkip)
 				if err := self.c.Git().Bisect.Skip(commit.Hash); err != nil {
-					return self.c.Error(err)
+					return err
 				}
 
 				return self.afterMark(selectCurrentAfter, waitToReselect)
@@ -169,11 +169,11 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 				OnPress: func() error {
 					self.c.LogAction(self.c.Tr.Actions.StartBisect)
 					if err := self.c.Git().Bisect.Start(); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 
 					if err := self.c.Git().Bisect.Mark(commit.Hash, info.NewTerm()); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 
 					return self.c.Helpers().Bisect.PostBisectCommandRefresh()
@@ -186,11 +186,11 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 				OnPress: func() error {
 					self.c.LogAction(self.c.Tr.Actions.StartBisect)
 					if err := self.c.Git().Bisect.Start(); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 
 					if err := self.c.Git().Bisect.Mark(commit.Hash, info.OldTerm()); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 
 					return self.c.Helpers().Bisect.PostBisectCommandRefresh()
@@ -209,7 +209,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 								HandleConfirm: func(newTerm string) error {
 									self.c.LogAction(self.c.Tr.Actions.StartBisect)
 									if err := self.c.Git().Bisect.StartWithTerms(oldTerm, newTerm); err != nil {
-										return self.c.Error(err)
+										return err
 									}
 
 									return self.c.Helpers().Bisect.PostBisectCommandRefresh()
@@ -232,7 +232,7 @@ func (self *BisectController) showBisectCompleteMessage(candidateHashes []string
 
 	formattedCommits, err := self.c.Git().Commit.GetCommitsOneline(candidateHashes)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	return self.c.Confirm(types.ConfirmOpts{
@@ -241,7 +241,7 @@ func (self *BisectController) showBisectCompleteMessage(candidateHashes []string
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.ResetBisect)
 			if err := self.c.Git().Bisect.Reset(); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 
 			return self.c.Helpers().Bisect.PostBisectCommandRefresh()
@@ -252,11 +252,11 @@ func (self *BisectController) showBisectCompleteMessage(candidateHashes []string
 func (self *BisectController) afterMark(selectCurrent bool, waitToReselect bool) error {
 	done, candidateHashes, err := self.c.Git().Bisect.IsDone()
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	if err := self.afterBisectMarkRefresh(selectCurrent, waitToReselect); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	if done {
@@ -267,16 +267,17 @@ func (self *BisectController) afterMark(selectCurrent bool, waitToReselect bool)
 }
 
 func (self *BisectController) afterBisectMarkRefresh(selectCurrent bool, waitToReselect bool) error {
-	selectFn := func() {
+	selectFn := func() error {
 		if selectCurrent {
 			self.selectCurrentBisectCommit()
 		}
+		return nil
 	}
 
 	if waitToReselect {
 		return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{}, Then: selectFn})
 	} else {
-		selectFn()
+		_ = selectFn()
 
 		return self.c.Helpers().Bisect.PostBisectCommandRefresh()
 	}

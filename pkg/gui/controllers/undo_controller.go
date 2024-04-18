@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
@@ -78,7 +79,7 @@ func (self *UndoController) reflogUndo() error {
 	undoingStatus := self.c.Tr.UndoingStatus
 
 	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-		return self.c.ErrorMsg(self.c.Tr.CantUndoWhileRebasing)
+		return errors.New(self.c.Tr.CantUndoWhileRebasing)
 	}
 
 	return self.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {
@@ -126,7 +127,7 @@ func (self *UndoController) reflogRedo() error {
 	redoingStatus := self.c.Tr.RedoingStatus
 
 	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-		return self.c.ErrorMsg(self.c.Tr.CantRedoWhileRebasing)
+		return errors.New(self.c.Tr.CantRedoWhileRebasing)
 	}
 
 	return self.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {
@@ -234,10 +235,7 @@ type hardResetOptions struct {
 // only to be used in the undo flow for now (does an autostash)
 func (self *UndoController) hardResetWithAutoStash(commitHash string, options hardResetOptions) error {
 	reset := func() error {
-		if err := self.c.Helpers().Refs.ResetToRef(commitHash, "hard", options.EnvVars); err != nil {
-			return self.c.Error(err)
-		}
-		return nil
+		return self.c.Helpers().Refs.ResetToRef(commitHash, "hard", options.EnvVars)
 	}
 
 	// if we have any modified tracked files we need to ask the user if they want us to stash for them
@@ -250,20 +248,17 @@ func (self *UndoController) hardResetWithAutoStash(commitHash string, options ha
 			HandleConfirm: func() error {
 				return self.c.WithWaitingStatus(options.WaitingStatus, func(gocui.Task) error {
 					if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + commitHash); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 					if err := reset(); err != nil {
 						return err
 					}
 
 					err := self.c.Git().Stash.Pop(0)
-					if err := self.c.Refresh(types.RefreshOptions{}); err != nil {
+					if err != nil {
 						return err
 					}
-					if err != nil {
-						return self.c.Error(err)
-					}
-					return nil
+					return self.c.Refresh(types.RefreshOptions{})
 				})
 			},
 		})

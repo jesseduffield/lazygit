@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -139,7 +140,7 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 					Title: self.c.Tr.NewBranchName,
 					HandleConfirm: func(branchName string) error {
 						if branchName == "" {
-							return self.c.ErrorMsg(self.c.Tr.BranchNameCannotBeBlank)
+							return errors.New(self.c.Tr.BranchNameCannotBeBlank)
 						}
 
 						opts.Branch = branchName
@@ -154,7 +155,7 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 
 func (self *WorktreeHelper) Switch(worktree *models.Worktree, contextKey types.ContextKey) error {
 	if worktree.IsCurrent {
-		return self.c.ErrorMsg(self.c.Tr.AlreadyInWorktree)
+		return errors.New(self.c.Tr.AlreadyInWorktree)
 	}
 
 	self.c.LogAction(self.c.Tr.SwitchToWorktree)
@@ -186,13 +187,13 @@ func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error 
 				if err := self.c.Git().Worktree.Delete(worktree.Path, force); err != nil {
 					errMessage := err.Error()
 					if !strings.Contains(errMessage, "--force") {
-						return self.c.Error(err)
+						return err
 					}
 
 					if !force {
 						return self.Remove(worktree, true)
 					}
-					return self.c.ErrorMsg(errMessage)
+					return err
 				}
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
 			})
@@ -206,7 +207,7 @@ func (self *WorktreeHelper) Detach(worktree *models.Worktree) error {
 
 		err := self.c.Git().Worktree.Detach(worktree.Path)
 		if err != nil {
-			return self.c.Error(err)
+			return err
 		}
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
 	})

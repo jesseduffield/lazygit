@@ -244,7 +244,7 @@ func (self *StagingController) applySelection(reverse bool) error {
 		},
 	)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	if state.SelectingRange() {
@@ -317,7 +317,7 @@ func (self *StagingController) editHunk() error {
 			Cached:  true,
 		},
 	); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	return nil

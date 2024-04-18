@@ -85,7 +85,7 @@ func (self *FilesHelper) OpenFile(filename string) error {
 	}
 	self.c.LogAction(self.c.Tr.Actions.OpenFile)
 	if err := self.c.OS().OpenFile(absPath); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 	return nil
 }

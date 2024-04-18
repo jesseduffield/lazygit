@@ -68,17 +68,11 @@ func (self *InlineStatusHelper) WithInlineStatus(opts InlineStatusOpts, f func(g
 	view := context.GetView()
 	visible := view.Visible && self.windowHelper.TopViewInWindow(context.GetWindowName(), false) == view
 	if visible && context.IsItemVisible(opts.Item) {
-		self.c.OnWorker(func(task gocui.Task) {
+		self.c.OnWorker(func(task gocui.Task) error {
 			self.start(opts)
+			defer self.stop(opts)
 
-			err := f(inlineStatusHelperTask{task, self, opts})
-			if err != nil {
-				self.c.OnUIThread(func() error {
-					return self.c.Error(err)
-				})
-			}
-
-			self.stop(opts)
+			return f(inlineStatusHelperTask{task, self, opts})
 		})
 	} else {
 		message := presentation.ItemOperationToString(opts.Operation, self.c.Tr)

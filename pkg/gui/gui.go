@@ -516,8 +516,8 @@ func NewGui(
 		func() types.Context { return gui.State.ContextMgr.Current() },
 		gui.createMenu,
 		func(message string, f func(gocui.Task) error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
-		func(message string, f func() error) {
-			gui.helpers.AppStatus.WithWaitingStatusSync(message, f)
+		func(message string, f func() error) error {
+			return gui.helpers.AppStatus.WithWaitingStatusSync(message, f)
 		},
 		func(message string, kind types.ToastKind) { gui.helpers.AppStatus.Toast(message, kind) },
 		func() string { return gui.Views.Confirmation.TextArea.GetContent() },
@@ -651,6 +651,8 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 
 	gui.g = g
 	defer gui.g.Close()
+
+	g.ErrorHandler = gui.PopupHandler.ErrorHandler
 
 	// if the deadlock package wants to report a deadlock, we first need to
 	// close the gui so that we can actually read what it prints.
@@ -789,7 +791,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 	defer gui.Mutexes.SubprocessMutex.Unlock()
 
 	if err := gui.g.Suspend(); err != nil {
-		return false, gui.c.Error(err)
+		return false, err
 	}
 
 	gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(true)
@@ -802,7 +804,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 	}
 
 	if cmdErr != nil {
-		return false, gui.c.Error(cmdErr)
+		return false, cmdErr
 	}
 
 	return true, nil
@@ -956,7 +958,7 @@ func (gui *Gui) onUIThread(f func() error) {
 	})
 }
 
-func (gui *Gui) onWorker(f func(gocui.Task)) {
+func (gui *Gui) onWorker(f func(gocui.Task) error) {
 	gui.g.OnWorker(f)
 }
 

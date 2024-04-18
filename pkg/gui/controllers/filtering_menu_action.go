@@ -120,8 +120,9 @@ func (self *FilteringMenuAction) setFiltering() error {
 		return err
 	}
 
-	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}, Then: func() {
+	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}, Then: func() error {
 		self.c.Contexts().LocalCommits.SetSelection(0)
 		self.c.Contexts().LocalCommits.FocusLine()
+		return nil
 	}})
 }

@@ -37,7 +37,7 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteName string, branchName st
 			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DeleteRemoteBranch)
 				if err := self.c.Git().Remote.DeleteRemoteBranch(task, remoteName, branchName); err != nil {
-					return self.c.Error(err)
+					return err
 				}
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 			})

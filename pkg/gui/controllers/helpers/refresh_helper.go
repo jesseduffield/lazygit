@@ -76,7 +76,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		)
 	}
 
-	f := func() {
+	f := func() error {
 		var scopeSet *set.Set[types.RefreshableView]
 		if len(options.Scope) == 0 {
 			// not refreshing staging/patch-building unless explicitly requested because we only need
@@ -104,8 +104,9 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			// everything happens fast and it's better to have everything update
 			// in the one frame
 			if !self.c.InDemo() && options.Mode == types.ASYNC {
-				self.c.OnWorker(func(t gocui.Task) {
+				self.c.OnWorker(func(t gocui.Task) error {
 					f()
+					return nil
 				})
 			} else {
 				wg.Add(1)
@@ -187,20 +188,22 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		wg.Wait()
 
 		if options.Then != nil {
-			options.Then()
+			if err := options.Then(); err != nil {
+				return err
+			}
 		}
+
+		return nil
 	}
 
 	if options.Mode == types.BLOCK_UI {
 		self.c.OnUIThread(func() error {
-			f()
-			return nil
+			return f()
 		})
-	} else {
-		f()
+		return nil
 	}
 
-	return nil
+	return f()
 }
 
 func getScopeNames(scopes []types.RefreshableView) []string {
@@ -246,10 +249,11 @@ func getModeName(mode types.RefreshMode) string {
 func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
-		self.c.OnWorker(func(_ gocui.Task) {
+		self.c.OnWorker(func(_ gocui.Task) error {
 			_ = self.refreshReflogCommits()
 			self.refreshBranches(false, true)
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)
+			return nil
 		})
 
 	case types.COMPLETE:
@@ -381,7 +385,7 @@ func (self *RefreshHelper) refreshCommitFilesContext() error {
 
 	files, err := self.c.Git().Loaders.CommitFileLoader.GetFilesInDiff(from, to, reverse)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 	self.c.Model().CommitFiles = files
 	self.c.Contexts().CommitFiles.CommitFileTreeViewModel.SetTree()
@@ -406,7 +410,7 @@ func (self *RefreshHelper) refreshRebaseCommits() error {
 func (self *RefreshHelper) refreshTags() error {
 	tags, err := self.c.Git().Loaders.TagLoader.GetTags()
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Model().Tags = tags
@@ -448,7 +452,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 
 	branches, err := self.c.Git().Loaders.BranchLoader.Load(reflogCommits)
 	if err != nil {
-		_ = self.c.Error(err)
+		self.c.Log.Error(err)
 	}
 
 	self.c.Model().Branches = branches
@@ -543,7 +547,7 @@ func (self *RefreshHelper) refreshStateFiles() error {
 	if len(pathsToStage) > 0 {
 		self.c.LogAction(self.c.Tr.Actions.StageResolvedFiles)
 		if err := self.c.Git().WorkingTree.StageFiles(pathsToStage); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 	}
 
@@ -603,7 +607,7 @@ func (self *RefreshHelper) refreshReflogCommits() error {
 		commits, onlyObtainedNewReflogCommits, err := self.c.Git().Loaders.ReflogCommitLoader.
 			GetReflogCommits(lastReflogCommit, filterPath, filterAuthor)
 		if err != nil {
-			return self.c.Error(err)
+			return err
 		}
 
 		if onlyObtainedNewReflogCommits {
@@ -634,7 +638,7 @@ func (self *RefreshHelper) refreshRemotes() error {
 
 	remotes, err := self.c.Git().Loaders.RemoteLoader.GetRemotes()
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Model().Remotes = remotes

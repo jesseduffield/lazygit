@@ -65,7 +65,7 @@ func (self *ContextLinesController) Context() types.Context {
 func (self *ContextLinesController) Increase() error {
 	if self.isShowingDiff() {
 		if err := self.checkCanChangeContext(); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 
 		self.c.AppState.DiffContextSize++
@@ -80,7 +80,7 @@ func (self *ContextLinesController) Decrease() error {
 
 	if self.isShowingDiff() && old_size > 1 {
 		if err := self.checkCanChangeContext(); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 
 		self.c.AppState.DiffContextSize = old_size - 1

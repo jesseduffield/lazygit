@@ -322,27 +322,6 @@ func (ei *escapeInterpreter) csiColor(param []string) (color Attribute, skip int
 	}
 }
 
-// splitFgBg splits foreground and background color according to ANSI sequence.
-//
-// num (number of segments in ansi) is used to determine if it's 256 mode or rgb mode (3 - 256-color, 5 - rgb-color)
-func splitFgBg(params []string, num int) [][]string {
-	var out [][]string
-	var current []string
-	for _, p := range params {
-		if len(current) == num && (p == "48" || p == "38") {
-			out = append(out, current)
-			current = []string{}
-		}
-		current = append(current, p)
-	}
-
-	if len(current) > 0 {
-		out = append(out, current)
-	}
-
-	return out
-}
-
 func getFontEffect(f int) Attribute {
 	switch fontEffect(f) {
 	case bold:

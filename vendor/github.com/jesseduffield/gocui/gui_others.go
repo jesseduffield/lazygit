@@ -46,16 +46,14 @@ func (g *Gui) getTermWindowSize() (int, int, error) {
 			return termw, termh, nil
 		}
 
-		select {
-		case signal := <-signalCh:
-			switch signal {
-			// when the terminal window size is changed
-			case syscall.SIGWINCH:
-				continue
-			// ctrl + c to cancel
-			case syscall.SIGINT:
-				return 0, 0, errors.New("stop to get term window size")
-			}
+		signal := <-signalCh
+		switch signal {
+		// when the terminal window size is changed
+		case syscall.SIGWINCH:
+			continue
+		// ctrl + c to cancel
+		case syscall.SIGINT:
+			return 0, 0, errors.New("stop to get term window size")
 		}
 	}
 }

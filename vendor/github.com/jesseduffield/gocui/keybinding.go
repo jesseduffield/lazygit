@@ -105,7 +105,7 @@ func newKeybinding(viewname string, key Key, ch rune, mod Modifier, handler func
 
 func eventMatchesKey(ev *GocuiEvent, key interface{}) bool {
 	// assuming ModNone for now
-	if Modifier(ev.Mod) != ModNone {
+	if ev.Mod != ModNone {
 		return false
 	}
 
@@ -114,7 +114,7 @@ func eventMatchesKey(ev *GocuiEvent, key interface{}) bool {
 		return false
 	}
 
-	return k == Key(ev.Key) && ch == ev.Ch
+	return k == ev.Key && ch == ev.Ch
 }
 
 // matchKeypress returns if the keybinding matches the keypress.

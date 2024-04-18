@@ -13,8 +13,8 @@ func TestAsyncHandler(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 
-	onWorker := func(f func(gocui.Task)) {
-		go f(gocui.NewFakeTask())
+	onWorker := func(f func(gocui.Task) error) {
+		go func() { _ = f(gocui.NewFakeTask()) }()
 	}
 	handler := NewAsyncHandler(onWorker)
 	handler.onReject = func() {
