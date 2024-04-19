@@ -312,8 +312,18 @@ func displayCommit(
 	bisectInfo *git_commands.BisectInfo,
 	isYouAreHereCommit bool,
 ) []string {
-	hashColor := getHashColor(commit, diffName, cherryPickedCommitHashSet, bisectStatus, bisectInfo)
 	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
+
+	hashString := ""
+	hashColor := getHashColor(commit, diffName, cherryPickedCommitHashSet, bisectStatus, bisectInfo)
+	hashLength := common.UserConfig.Gui.CommitHashLength
+	if hashLength >= len(commit.Hash) {
+		hashString = hashColor.Sprint(commit.Hash)
+	} else if hashLength > 0 {
+		hashString = hashColor.Sprint(commit.Hash[:hashLength])
+	} else if !icons.IsIconEnabled() { // hashLength <= 0
+		hashString = hashColor.Sprint("*")
+	}
 
 	actionString := ""
 	if commit.Action != models.ActionNone {
@@ -373,7 +383,7 @@ func displayCommit(
 	} else if icons.IsIconEnabled() {
 		cols = append(cols, hashColor.Sprint(icons.IconForCommit(commit)))
 	}
-	cols = append(cols, hashColor.Sprint(commit.ShortHash()))
+	cols = append(cols, hashString)
 	cols = append(cols, bisectString)
 	if fullDescription {
 		cols = append(cols, style.FgBlue.Sprint(

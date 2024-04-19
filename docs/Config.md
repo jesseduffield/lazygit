@@ -80,6 +80,7 @@ gui:
   showIcons: false # deprecated: use nerdFontsVersion instead
   nerdFontsVersion: "" # nerd fonts version to use ("2" or "3"); empty means don't show nerd font icons
   showFileIcons: true # for hiding file icons in the file views
+  commitHashLength: 8 # length of commit hash in commits view. 0 shows '*' if NF icons aren't enabled
   commandLogSize: 8
   splitDiff: 'auto' # one of 'auto' | 'always'
   skipRewordInEditorWarning: false # for skipping the confirmation before launching the reword editor
