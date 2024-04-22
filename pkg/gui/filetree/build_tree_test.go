@@ -332,10 +332,10 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 			name: "files in same directory",
 			files: []*models.CommitFile{
 				{
-					Name: "dir1/a",
+					Path: "dir1/a",
 				},
 				{
-					Name: "dir1/b",
+					Path: "dir1/b",
 				},
 			},
 			expected: &Node[models.CommitFile]{
@@ -345,11 +345,11 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 						Path: "dir1",
 						Children: []*Node[models.CommitFile]{
 							{
-								File: &models.CommitFile{Name: "dir1/a"},
+								File: &models.CommitFile{Path: "dir1/a"},
 								Path: "dir1/a",
 							},
 							{
-								File: &models.CommitFile{Name: "dir1/b"},
+								File: &models.CommitFile{Path: "dir1/b"},
 								Path: "dir1/b",
 							},
 						},
@@ -361,10 +361,10 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 			name: "paths that can be compressed",
 			files: []*models.CommitFile{
 				{
-					Name: "dir1/dir3/a",
+					Path: "dir1/dir3/a",
 				},
 				{
-					Name: "dir2/dir4/b",
+					Path: "dir2/dir4/b",
 				},
 			},
 			expected: &Node[models.CommitFile]{
@@ -374,7 +374,7 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 						Path: "dir1/dir3",
 						Children: []*Node[models.CommitFile]{
 							{
-								File: &models.CommitFile{Name: "dir1/dir3/a"},
+								File: &models.CommitFile{Path: "dir1/dir3/a"},
 								Path: "dir1/dir3/a",
 							},
 						},
@@ -384,7 +384,7 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 						Path: "dir2/dir4",
 						Children: []*Node[models.CommitFile]{
 							{
-								File: &models.CommitFile{Name: "dir2/dir4/b"},
+								File: &models.CommitFile{Path: "dir2/dir4/b"},
 								Path: "dir2/dir4/b",
 							},
 						},
@@ -397,21 +397,21 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 			name: "paths that can be sorted",
 			files: []*models.CommitFile{
 				{
-					Name: "b",
+					Path: "b",
 				},
 				{
-					Name: "a",
+					Path: "a",
 				},
 			},
 			expected: &Node[models.CommitFile]{
 				Path: "",
 				Children: []*Node[models.CommitFile]{
 					{
-						File: &models.CommitFile{Name: "a"},
+						File: &models.CommitFile{Path: "a"},
 						Path: "a",
 					},
 					{
-						File: &models.CommitFile{Name: "b"},
+						File: &models.CommitFile{Path: "b"},
 						Path: "b",
 					},
 				},
@@ -446,22 +446,22 @@ func TestBuildFlatTreeFromCommitFiles(t *testing.T) {
 			name: "files in same directory",
 			files: []*models.CommitFile{
 				{
-					Name: "dir1/a",
+					Path: "dir1/a",
 				},
 				{
-					Name: "dir1/b",
+					Path: "dir1/b",
 				},
 			},
 			expected: &Node[models.CommitFile]{
 				Path: "",
 				Children: []*Node[models.CommitFile]{
 					{
-						File:             &models.CommitFile{Name: "dir1/a"},
+						File:             &models.CommitFile{Path: "dir1/a"},
 						Path:             "dir1/a",
 						CompressionLevel: 0,
 					},
 					{
-						File:             &models.CommitFile{Name: "dir1/b"},
+						File:             &models.CommitFile{Path: "dir1/b"},
 						Path:             "dir1/b",
 						CompressionLevel: 0,
 					},
@@ -472,22 +472,22 @@ func TestBuildFlatTreeFromCommitFiles(t *testing.T) {
 			name: "paths that can be compressed",
 			files: []*models.CommitFile{
 				{
-					Name: "dir1/a",
+					Path: "dir1/a",
 				},
 				{
-					Name: "dir2/b",
+					Path: "dir2/b",
 				},
 			},
 			expected: &Node[models.CommitFile]{
 				Path: "",
 				Children: []*Node[models.CommitFile]{
 					{
-						File:             &models.CommitFile{Name: "dir1/a"},
+						File:             &models.CommitFile{Path: "dir1/a"},
 						Path:             "dir1/a",
 						CompressionLevel: 0,
 					},
 					{
-						File:             &models.CommitFile{Name: "dir2/b"},
+						File:             &models.CommitFile{Path: "dir2/b"},
 						Path:             "dir2/b",
 						CompressionLevel: 0,
 					},
@@ -498,21 +498,21 @@ func TestBuildFlatTreeFromCommitFiles(t *testing.T) {
 			name: "paths that can be sorted",
 			files: []*models.CommitFile{
 				{
-					Name: "b",
+					Path: "b",
 				},
 				{
-					Name: "a",
+					Path: "a",
 				},
 			},
 			expected: &Node[models.CommitFile]{
 				Path: "",
 				Children: []*Node[models.CommitFile]{
 					{
-						File: &models.CommitFile{Name: "a"},
+						File: &models.CommitFile{Path: "a"},
 						Path: "a",
 					},
 					{
-						File: &models.CommitFile{Name: "b"},
+						File: &models.CommitFile{Path: "b"},
 						Path: "b",
 					},
 				},

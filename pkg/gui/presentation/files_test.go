@@ -95,19 +95,19 @@ func TestRenderCommitFileTree(t *testing.T) {
 		{
 			name: "leaf node",
 			files: []*models.CommitFile{
-				{Name: "test", ChangeStatus: "A"},
+				{Path: "test", ChangeStatus: "A"},
 			},
 			expected: []string{"A test"},
 		},
 		{
 			name: "big example",
 			files: []*models.CommitFile{
-				{Name: "dir1/file2", ChangeStatus: "M"},
-				{Name: "dir1/file3", ChangeStatus: "A"},
-				{Name: "dir2/dir2/file3", ChangeStatus: "D"},
-				{Name: "dir2/dir2/file4", ChangeStatus: "M"},
-				{Name: "dir2/file5", ChangeStatus: "M"},
-				{Name: "file1", ChangeStatus: "M"},
+				{Path: "dir1/file2", ChangeStatus: "M"},
+				{Path: "dir1/file3", ChangeStatus: "A"},
+				{Path: "dir2/dir2/file3", ChangeStatus: "D"},
+				{Path: "dir2/dir2/file4", ChangeStatus: "M"},
+				{Path: "dir2/file5", ChangeStatus: "M"},
+				{Path: "file1", ChangeStatus: "M"},
 			},
 			expected: toStringSlice(
 				`

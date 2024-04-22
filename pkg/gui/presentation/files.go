@@ -51,11 +51,11 @@ func commitFilePatchStatus(node *filetree.Node[models.CommitFile], tree *filetre
 	// be whatever status it is, but if it's a non-leaf it will determine its status
 	// based on the leaves of that subtree
 	if node.EveryFile(func(file *models.CommitFile) bool {
-		return patchBuilder.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.WHOLE
+		return patchBuilder.GetFileStatus(file.Path, tree.GetRef().RefName()) == patch.WHOLE
 	}) {
 		return patch.WHOLE
 	} else if node.EveryFile(func(file *models.CommitFile) bool {
-		return patchBuilder.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.UNSELECTED
+		return patchBuilder.GetFileStatus(file.Path, tree.GetRef().RefName()) == patch.UNSELECTED
 	}) {
 		return patch.UNSELECTED
 	} else {
