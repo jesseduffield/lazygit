@@ -235,7 +235,7 @@ func MoveFixupCommitDown(fileName string, originalHash string, fixupHash string,
 
 func moveFixupCommitDown(todos []todo.Todo, originalHash string, fixupHash string) ([]todo.Todo, error) {
 	isOriginal := func(t todo.Todo) bool {
-		return t.Command == todo.Pick && equalHash(t.Commit, originalHash)
+		return (t.Command == todo.Pick || t.Command == todo.Merge) && equalHash(t.Commit, originalHash)
 	}
 
 	isFixup := func(t todo.Todo) bool {
