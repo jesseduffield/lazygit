@@ -21,15 +21,15 @@ jobs:
         uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser
-          version: v1.17.2
+          version: v1.17.2s
           args: release --clean
         env:
-          GITHUB_TOKEN: ${{secrets.PAT}}
-  homebrew:
-    runs-on: self-hosted
-    steps:
-      - name: Bump Homebrew formula
-        uses: dawidd6/action-homebrew-bump-formula@v3
-        with:
-          token: ${{secrets.PAT}}
-          formula: lazygit
+          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+  # homebrew:
+  #   runs-on: self-hosted
+  #   steps:
+  #     - name: Bump Homebrew formula
+  #       uses: dawidd6/action-homebrew-bump-formula@v3
+  #       with:
+  #         token: ${{secrets.PAT}}
+  #         formula: lazygit
