@@ -1,6 +1,10 @@
 package git_commands
 
-import "github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+import (
+	"fmt"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+)
 
 type DiffCommands struct {
 	*GitCommon
@@ -18,7 +22,7 @@ func (self *DiffCommands) DiffCmdObj(diffArgs []string) oscommands.ICmdObj {
 			Config("diff.noprefix=false").
 			Arg("--submodule").
 			Arg("--no-ext-diff").
-			Arg("--color").
+			Arg(fmt.Sprintf("--color=%s", self.UserConfig.Git.Paging.ColorArg)).
 			Arg(diffArgs...).
 			Dir(self.repoPaths.worktreePath).
 			ToArgv(),
