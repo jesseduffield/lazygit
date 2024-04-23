@@ -7,7 +7,7 @@ on:
 
 jobs:
   goreleaser:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -24,12 +24,12 @@ jobs:
           version: v1.17.2
           args: release --clean
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_API_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.PAT}}
   homebrew:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Bump Homebrew formula
         uses: dawidd6/action-homebrew-bump-formula@v3
         with:
-          token: ${{secrets.GITHUB_API_TOKEN}}
+          token: ${{secrets.PAT}}
           formula: lazygit
