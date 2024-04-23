@@ -71,7 +71,7 @@ func parseLine(line string, commentChar byte) (Todo, error) {
 		return todo, ErrUnexpectedCommand
 	}
 
-	if todo.Command == Break {
+	if todo.Command == Break || todo.Command == NoOp {
 		return todo, nil
 	}
 

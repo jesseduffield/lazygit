@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/fsmiamoto/git-todo-parser/todo"
+	"github.com/stefanhaller/git-todo-parser/todo"
 	"github.com/stretchr/testify/assert"
 )
 

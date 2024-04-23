@@ -23,7 +23,6 @@ func writeTodo(f io.Writer, todo Todo, commentChar byte) error {
 
 	switch todo.Command {
 	case NoOp:
-		return nil
 
 	case Comment:
 		sb.WriteByte(commentChar)
