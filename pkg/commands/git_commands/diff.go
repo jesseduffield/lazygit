@@ -16,7 +16,9 @@ func (self *DiffCommands) DiffCmdObj(diffArgs []string) oscommands.ICmdObj {
 	return self.cmd.New(
 		NewGitCmd("diff").
 			Config("diff.noprefix=false").
-			Arg("--submodule", "--no-ext-diff", "--color").
+			Arg("--submodule").
+			Arg("--no-ext-diff").
+			Arg("--color").
 			Arg(diffArgs...).
 			Dir(self.repoPaths.worktreePath).
 			ToArgv(),
