@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/fsmiamoto/git-todo-parser/todo"
+	"github.com/stefanhaller/git-todo-parser/todo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -284,7 +284,6 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 			expectedErr: nil,
 		},
 		{
-			// TODO: is this something we actually want to support?
 			name: "fixup commit is separated from original commit",
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "original"},
@@ -295,6 +294,22 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 			fixupHash:    "fixup",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "original"},
+				{Command: todo.Fixup, Commit: "fixup"},
+				{Command: todo.Pick, Commit: "other"},
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "fixup commit is separated from original merge commit",
+			todos: []todo.Todo{
+				{Command: todo.Merge, Commit: "original"},
+				{Command: todo.Pick, Commit: "other"},
+				{Command: todo.Pick, Commit: "fixup"},
+			},
+			originalHash: "original",
+			fixupHash:    "fixup",
+			expectedTodos: []todo.Todo{
+				{Command: todo.Merge, Commit: "original"},
 				{Command: todo.Fixup, Commit: "fixup"},
 				{Command: todo.Pick, Commit: "other"},
 			},

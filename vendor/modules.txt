@@ -34,9 +34,6 @@ github.com/emirpasic/gods/utils
 # github.com/fatih/color v1.9.0
 ## explicit; go 1.13
 github.com/fatih/color
-# github.com/fsmiamoto/git-todo-parser v0.0.5
-## explicit; go 1.13
-github.com/fsmiamoto/git-todo-parser/todo
 # github.com/gdamore/encoding v1.0.1
 ## explicit; go 1.9
 github.com/gdamore/encoding
@@ -269,6 +266,9 @@ github.com/spf13/afero/mem
 # github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 ## explicit
 github.com/spkg/bom
+# github.com/stefanhaller/git-todo-parser v0.0.7-0.20240406123903-fd957137b6e2
+## explicit; go 1.13
+github.com/stefanhaller/git-todo-parser/todo
 # github.com/stretchr/testify v1.8.1
 ## explicit; go 1.13
 github.com/stretchr/testify/assert

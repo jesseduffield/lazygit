@@ -8,7 +8,6 @@ require (
 	github.com/aybabtme/humanlog v0.4.1
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 	github.com/creack/pty v1.1.11
-	github.com/fsmiamoto/git-todo-parser v0.0.5
 	github.com/gdamore/tcell/v2 v2.7.4
 	github.com/go-errors/errors v1.5.1
 	github.com/gookit/color v1.4.2
@@ -34,6 +33,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.9.5
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
+	github.com/stefanhaller/git-todo-parser v0.0.7-0.20240406123903-fd957137b6e2
 	github.com/stretchr/testify v1.8.1
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
 	golang.org/x/exp v0.0.0-20220318154914-8dddf5d87bd8
