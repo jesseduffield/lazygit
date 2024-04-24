@@ -57,24 +57,15 @@ var CommitSkipHook = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().Focus().Press(keys.Commits.RenameCommit)
 		t.ExpectPopup().CommitMessagePanel().Type(" (reworded)").Confirm()
 
-		/* EXPECTED:
-						t.Views().Commits().IsFocused().
-							Lines(
-		                        Contains("skip! my commit message (reworded)"),
-		                        Contains("initial commit"),
-		                    )
-				            ACTUAL:
-		*/
-		t.ExpectPopup().Alert().Title(Equals("Error")).Content(Contains("exit status 1")).Confirm()
+		t.Views().Commits().IsFocused().
+			Lines(
+				Contains("skip! my commit message (reworded)"),
+				Contains("initial commit"),
+			)
 
 		// we should be able to skip hooks when changing authors
-		t.Views().Commits().IsFocused().SelectedLine(Contains("CI").IsSelected())
+		t.Views().Commits().IsFocused().SelectedLine(Contains("JS").IsSelected())
 		t.Views().Commits().Focus().Press(keys.Commits.ResetCommitAuthor)
-		/* EXPECTED:
-		        t.Views().Commits().IsFocused().Lines(Contains("JS").IsSelected())
-				   ACTUAL:
-		*/
-		t.ExpectPopup().Alert().Title(Equals("Error")).Content(Contains("exit status 1")).Confirm()
-
+		t.Views().Commits().IsFocused().Lines(Contains("JS").IsSelected())
 	},
 })
