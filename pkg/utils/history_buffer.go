@@ -1,6 +1,8 @@
 package utils
 
-import "fmt"
+import (
+	"errors"
+)
 
 type HistoryBuffer[T any] struct {
 	maxSize int
@@ -24,10 +26,10 @@ func (self *HistoryBuffer[T]) Push(item T) {
 func (self *HistoryBuffer[T]) PeekAt(index int) (T, error) {
 	var item T
 	if len(self.items) == 0 {
-		return item, fmt.Errorf("Buffer is empty")
+		return item, errors.New("Buffer is empty")
 	}
 	if len(self.items) <= index || index < -1 {
-		return item, fmt.Errorf("Index out of range")
+		return item, errors.New("Index out of range")
 	}
 	if index == -1 {
 		return item, nil

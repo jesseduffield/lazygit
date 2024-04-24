@@ -190,7 +190,7 @@ func walk(node *yaml.Node, path string, callback func(*yaml.Node, string) bool) 
 	didChange := callback(node, path)
 	switch node.Kind {
 	case yaml.DocumentNode:
-		return false, fmt.Errorf("Unexpected document node in the middle of a yaml tree")
+		return false, errors.New("Unexpected document node in the middle of a yaml tree")
 	case yaml.MappingNode:
 		for i := 0; i < len(node.Content); i += 2 {
 			name := node.Content[i].Value
@@ -219,7 +219,7 @@ func walk(node *yaml.Node, path string, callback func(*yaml.Node, string) bool) 
 	case yaml.ScalarNode:
 		// nothing to do
 	case yaml.AliasNode:
-		return false, fmt.Errorf("Alias nodes are not supported")
+		return false, errors.New("Alias nodes are not supported")
 	}
 
 	return didChange, nil

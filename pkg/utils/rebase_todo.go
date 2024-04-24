@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"slices"
@@ -48,7 +49,7 @@ func EditRebaseTodo(filePath string, changes []TodoChange, commentChar byte) err
 
 	if matchCount < len(changes) {
 		// Should never get here
-		return fmt.Errorf("Some todos not found in git-rebase-todo")
+		return errors.New("Some todos not found in git-rebase-todo")
 	}
 
 	return WriteRebaseTodoFile(filePath, todos, commentChar)
@@ -197,7 +198,7 @@ func moveTodoUp(todos []todo.Todo, todoToMove Todo) ([]todo.Todo, error) {
 
 	if !ok {
 		// We expect callers to guard against this
-		return []todo.Todo{}, fmt.Errorf("Destination position for moving todo is out of range")
+		return []todo.Todo{}, errors.New("Destination position for moving todo is out of range")
 	}
 
 	destinationIdx := sourceIdx + 1 + skip
