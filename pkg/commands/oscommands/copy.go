@@ -1,7 +1,7 @@
 package oscommands
 
 import (
-	"fmt"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -86,7 +86,7 @@ func CopyDir(src string, dst string) (err error) {
 		return err
 	}
 	if !si.IsDir() {
-		return fmt.Errorf("source is not a directory")
+		return errors.New("source is not a directory")
 	}
 
 	_, err = os.Stat(dst)
