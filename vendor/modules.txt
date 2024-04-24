@@ -110,6 +110,9 @@ github.com/gobwas/glob/util/strings
 # github.com/gookit/color v1.4.2
 ## explicit; go 1.12
 github.com/gookit/color
+# github.com/iancoleman/orderedmap v0.3.0
+## explicit; go 1.16
+github.com/iancoleman/orderedmap
 # github.com/imdario/mergo v0.3.11
 ## explicit; go 1.13
 github.com/imdario/mergo
