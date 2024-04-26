@@ -36,12 +36,6 @@ var ForcePushTriangular = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().IsFocused().Press(keys.Universal.Push)
 
-		// This results in an attempt to push normally, which fails with an error:
-		t.ExpectPopup().Alert().
-			Title(Equals("Error")).
-			Content(Contains("Updates were rejected. Please fetch and examine the remote changes before pushing again."))
-
-		/* EXPECTED:
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Force push")).
 			Content(Equals("Your branch has diverged from the remote branch. Press <esc> to cancel, or <enter> to force push.")).
@@ -67,6 +61,5 @@ var ForcePushTriangular = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().SubCommits().IsFocused().
 			Lines(Contains("one"))
-		*/
 	},
 })

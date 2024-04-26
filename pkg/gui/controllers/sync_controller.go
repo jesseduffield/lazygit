@@ -90,7 +90,7 @@ func (self *SyncController) push(currentBranch *models.Branch) error {
 	// if we are behind our upstream branch we'll ask if the user wants to force push
 	if currentBranch.IsTrackingRemote() {
 		opts := pushOpts{}
-		if currentBranch.IsBehindForPull() {
+		if currentBranch.IsBehindForPush() {
 			return self.requestToForcePush(currentBranch, opts)
 		} else {
 			return self.pushAux(currentBranch, opts)
