@@ -14,6 +14,10 @@ type Branch struct {
 	AheadForPull string
 	// how many commits behind we are from the remote branch (how many commits we can pull)
 	BehindForPull string
+	// how many commits ahead we are from the branch we're pushing to (which might not be the same as our upstream branch in a triangular workflow)
+	AheadForPush string
+	// how many commits behind we are from the branch we're pushing to (which might not be the same as our upstream branch in a triangular workflow)
+	BehindForPush string
 	// whether the remote branch is 'gone' i.e. we're tracking a remote branch that has been deleted
 	UpstreamGone bool
 	// whether this is the current branch. Exactly one branch should have this be true

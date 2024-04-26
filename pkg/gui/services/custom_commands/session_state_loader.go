@@ -75,6 +75,8 @@ func branchShimFromModelBranch(branch *models.Branch) *Branch {
 		Pullables:      branch.BehindForPull,
 		AheadForPull:   branch.AheadForPull,
 		BehindForPull:  branch.BehindForPull,
+		AheadForPush:   branch.AheadForPush,
+		BehindForPush:  branch.BehindForPush,
 		UpstreamGone:   branch.UpstreamGone,
 		Head:           branch.Head,
 		DetachedHead:   branch.DetachedHead,

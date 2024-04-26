@@ -51,6 +51,8 @@ type Branch struct {
 	Pullables      string // deprecated: use BehindForPull
 	AheadForPull   string
 	BehindForPull  string
+	AheadForPush   string
+	BehindForPush  string
 	UpstreamGone   bool
 	Head           bool
 	DetachedHead   bool
