@@ -141,7 +141,7 @@ type Gui struct {
 
 	// SelBgColor and SelFgColor allow to configure the background and
 	// foreground colors of the frame of the current view.
-	SelBgColor, SelFgColor, SelFrameColor Attribute
+	SelBgColor, SelFgColor, InactiveSelFgColor, SelFrameColor Attribute
 
 	// If Highlight is true, Sel{Bg,Fg}Colors will be used to draw the
 	// frame of the current view.
@@ -235,7 +235,7 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	}
 
 	g.BgColor, g.FgColor, g.FrameColor = ColorDefault, ColorDefault, ColorDefault
-	g.SelBgColor, g.SelFgColor, g.SelFrameColor = ColorDefault, ColorDefault, ColorDefault
+	g.SelBgColor, g.SelFgColor, g.InactiveSelFgColor, g.SelFrameColor = ColorDefault, ColorDefault, ColorDefault, ColorDefault
 
 	// SupportOverlaps is true when we allow for view edges to overlap with other
 	// view edges
@@ -1063,18 +1063,24 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 		}
 		currentFgColor := fgColor
 		currentBgColor := bgColor
-		// if you are the current view and you have multiple tabs, de-highlight the non-selected tabs
-		if v == g.currentView && len(v.Tabs) > 0 {
+
+		// if view has tabs, only highlight the current tab
+		if len(v.Tabs) > 0 {
 			currentFgColor = v.FgColor
 			currentBgColor = v.BgColor
-		}
 
-		if i >= currentTabStart && i <= currentTabEnd {
-			currentFgColor = v.SelFgColor
-			if v != g.currentView {
-				currentFgColor -= AttrBold
+			if i >= currentTabStart && i <= currentTabEnd {
+				currentFgColor = v.SelFgColor
+				if v != g.currentView {
+					if g.InactiveSelFgColor != ColorDefault {
+						currentFgColor = g.InactiveSelFgColor
+					} else {
+						currentFgColor -= AttrBold
+					}
+				}
 			}
 		}
+
 		if err := g.SetRune(x, v.y0, ch, currentFgColor, currentBgColor); err != nil {
 			return err
 		}

@@ -139,6 +139,43 @@
                 "default"
               ]
             },
+            "activeTitleColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Title color of focused window",
+              "default": [
+                "blue",
+                "bold"
+              ]
+            },
+            "inactiveTitleColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Title color of non-focused window",
+              "default": [
+                "default"
+              ]
+            },
+            "inactiveSelTabTitleColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Title color of selected tab in non-focused window",
+              "default": [
+                "default"
+              ]
+            },
             "searchingActiveBorderColor": {
               "items": {
                 "type": "string"

@@ -161,6 +161,12 @@ type ThemeConfig struct {
 	ActiveBorderColor []string `yaml:"activeBorderColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Border color of non-focused windows
 	InactiveBorderColor []string `yaml:"inactiveBorderColor" jsonschema:"minItems=1,uniqueItems=true"`
+	// Title color of focused window
+	ActiveTitleColor []string `yaml:"activeTitleColor" jsonschema:"minItems=1,uniqueItems=true"`
+	// Title color of non-focused window
+	InactiveTitleColor []string `yaml:"inactiveTitleColor" jsonschema:"minItems=1,uniqueItems=true"`
+	// Title color of selected tab in non-focused window
+	InactiveSelTabTitleColor []string `yaml:"inactiveSelTabTitleColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Border color of focused window when searching in that window
 	SearchingActiveBorderColor []string `yaml:"searchingActiveBorderColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Color of keybindings help text in the bottom line
@@ -655,6 +661,9 @@ func GetDefaultConfig() *UserConfig {
 				ActiveBorderColor:          []string{"green", "bold"},
 				SearchingActiveBorderColor: []string{"cyan", "bold"},
 				InactiveBorderColor:        []string{"default"},
+				ActiveTitleColor:           []string{"green", "bold"},
+				InactiveTitleColor:         []string{"default"},
+				InactiveSelTabTitleColor:   []string{"default"},
 				OptionsTextColor:           []string{"blue"},
 				SelectedLineBgColor:        []string{"blue"},
 				CherryPickedCommitBgColor:  []string{"cyan"},

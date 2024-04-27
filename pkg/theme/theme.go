@@ -19,6 +19,15 @@ var (
 	// InactiveBorderColor is the border color of the inactive active frames
 	InactiveBorderColor gocui.Attribute
 
+	// ActiveTitleColor is the foreground color of the active view title
+	ActiveTitleColor gocui.Attribute
+
+	// InactiveTitleColor is the foreground color of the inactive view titles
+	InactiveTitleColor gocui.Attribute
+
+	// InactiveSelTabTitleColor is the foreground color of title of 'current' tab in inactive views
+	InactiveSelTabTitleColor gocui.Attribute
+
 	// FilteredActiveBorderColor is the border color of the active frame, when it's being searched/filtered
 	SearchingActiveBorderColor gocui.Attribute
 
@@ -47,6 +56,9 @@ var (
 func UpdateTheme(themeConfig config.ThemeConfig) {
 	ActiveBorderColor = GetGocuiStyle(themeConfig.ActiveBorderColor)
 	InactiveBorderColor = GetGocuiStyle(themeConfig.InactiveBorderColor)
+	ActiveTitleColor = GetGocuiStyle(themeConfig.ActiveTitleColor)
+	InactiveTitleColor = GetGocuiStyle(themeConfig.InactiveTitleColor)
+	InactiveSelTabTitleColor = GetGocuiStyle(themeConfig.InactiveSelTabTitleColor)
 	SearchingActiveBorderColor = GetGocuiStyle(themeConfig.SearchingActiveBorderColor)
 	SelectedLineBgColor = GetTextStyle(themeConfig.SelectedLineBgColor, true)
 

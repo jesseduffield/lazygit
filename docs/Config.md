@@ -53,6 +53,13 @@ gui:
     searchingActiveBorderColor:
       - cyan
       - bold
+    activeTitleColor:
+      - green
+      - bold
+    inactiveTitleColor:
+      - default
+    inactiveSelTabTitleColor: # style of 'current tab' title in inactive views
+      - default # 'default' is activeTitleColor without bold
     optionsTextColor:
       - blue
     selectedLineBgColor:

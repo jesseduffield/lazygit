@@ -295,6 +295,6 @@ func (self *SearchHelper) setSearchingFrameColor() {
 }
 
 func (self *SearchHelper) setNonSearchingFrameColor() {
-	self.c.GocuiGui().SelFgColor = theme.ActiveBorderColor
+	self.c.GocuiGui().SelFgColor = theme.ActiveTitleColor
 	self.c.GocuiGui().SelFrameColor = theme.ActiveBorderColor
 }
