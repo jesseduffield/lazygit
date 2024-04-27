@@ -178,6 +178,11 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line st
 		}
 	}
 
+	if scanner.Err() != nil {
+		_ = Kill(cmd)
+		return scanner.Err()
+	}
+
 	_ = cmd.Wait()
 
 	self.log.Infof("%s (%s)", cmdObj.ToString(), time.Since(t))
