@@ -111,6 +111,7 @@ func (self *PopupHandler) Prompt(opts types.PromptOpts) error {
 		HandleClose:            opts.HandleClose,
 		HandleDeleteSuggestion: opts.HandleDeleteSuggestion,
 		FindSuggestionsFunc:    opts.FindSuggestionsFunc,
+		AllowEditSuggestion:    opts.AllowEditSuggestion,
 		Mask:                   opts.Mask,
 	})
 }

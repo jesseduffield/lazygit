@@ -223,6 +223,8 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 		return err
 	}
 
+	self.c.Contexts().Suggestions.State.AllowEditSuggestion = opts.AllowEditSuggestion
+
 	self.c.State().GetRepoState().SetCurrentPopupOpts(&opts)
 
 	return self.c.PushContext(self.c.Contexts().Confirmation)

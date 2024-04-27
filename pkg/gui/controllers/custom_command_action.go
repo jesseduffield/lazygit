@@ -18,6 +18,7 @@ func (self *CustomCommandAction) Call() error {
 	return self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.CustomCommand,
 		FindSuggestionsFunc: self.GetCustomCommandsHistorySuggestionsFunc(),
+		AllowEditSuggestion: true,
 		HandleConfirm: func(command string) error {
 			if self.shouldSaveCommand(command) {
 				self.c.GetAppState().CustomCommandsHistory = utils.Limit(

@@ -106,6 +106,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.CheckForConflicts,
 	custom_commands.ComplexCmdAtRuntime,
 	custom_commands.DeleteFromHistory,
+	custom_commands.EditHistory,
 	custom_commands.FormPrompts,
 	custom_commands.History,
 	custom_commands.MenuFromCommand,

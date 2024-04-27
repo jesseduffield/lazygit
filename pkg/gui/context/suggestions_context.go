@@ -20,6 +20,8 @@ type SuggestionsContextState struct {
 	OnDeleteSuggestion func() error
 	AsyncHandler       *tasks.AsyncHandler
 
+	AllowEditSuggestion bool
+
 	// FindSuggestions will take a string that the user has typed into a prompt
 	// and return a slice of suggestions which match that string.
 	FindSuggestions func(string) []*types.Suggestion
