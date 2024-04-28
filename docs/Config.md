@@ -33,6 +33,8 @@ to the top of your config file or via [Visual Studio Code settings.json config][
 gui:
   # stuff relating to the UI
   windowSize: 'normal' # one of 'normal' | 'half' | 'full' default is 'normal'
+  panelWindowSize:
+    log : 'full' # one of 'normal' | 'half' | 'full' default is 'full'
   scrollHeight: 2 # how many lines you scroll by
   scrollPastBottom: true # enable scrolling past the bottom
   scrollOffMargin: 2 # how many lines to keep before/after the cursor when it reaches the top/bottom of the view; see 'Scroll-off Margin' section below

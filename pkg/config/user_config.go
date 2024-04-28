@@ -135,7 +135,8 @@ type GuiConfig struct {
 	SplitDiff string `yaml:"splitDiff" jsonschema:"enum=auto,enum=always"`
 	// Default size for focused window. Window size can be changed from within Lazygit with '+' and '_' (but this won't change the default).
 	// One of: 'normal' (default) | 'half' | 'full'
-	WindowSize string `yaml:"windowSize" jsonschema:"enum=normal,enum=half,enum=full"`
+	WindowSize      string            `yaml:"windowSize" jsonschema:"enum=normal,enum=half,enum=full"`
+	PanelWindowSize map[string]string `yaml:"panelWindowSize"`
 	// Window border style.
 	// One of 'rounded' (default) | 'single' | 'double' | 'hidden'
 	Border string `yaml:"border" jsonschema:"enum=single,enum=double,enum=rounded,enum=hidden"`
@@ -156,6 +157,15 @@ type GuiConfig struct {
 
 func (c *GuiConfig) UseFuzzySearch() bool {
 	return c.FilterMode == "fuzzy"
+}
+
+func (GuiConfig) JSONSchemaExtend(schema *jsonschema.Schema) {
+	windowSize, _ := schema.Properties.Get("windowSize")
+	panelWindowSize, _ := schema.Properties.Get("panelWindowSize")
+	panelWindowSize.PatternProperties = map[string]*jsonschema.Schema{
+		"^(main|status|branch|log|stash)$": windowSize,
+	}
+	panelWindowSize.AdditionalProperties = jsonschema.FalseSchema
 }
 
 type ThemeConfig struct {
