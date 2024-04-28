@@ -13,6 +13,6 @@ includes interactive rebases, so for example amending a commit in the first
 branch of the stack will "just work" in the sense that it keeps the other
 branches properly stacked onto it.
 
-Lazygit visualizes the invidual branch heads in the stack by marking them with a
+Lazygit visualizes the individual branch heads in the stack by marking them with a
 cyan asterisk (or a cyan branch symbol if you are using [nerd
 fonts](Config.md#display-nerd-fonts-icons)).

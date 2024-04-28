@@ -16,7 +16,7 @@ import (
 // we then do the reverse of what that reflog describes.
 // When we do this, we create a new reflog entry, and tag it as either an undo or redo
 // Then, next time we want to undo, we'll use those entries to know which user-initiated
-// actions we can skip. E.g. if I do do three things, A, B, and C, and hit undo twice,
+// actions we can skip. E.g. if I do three things, A, B, and C, and hit undo twice,
 // the reflog will read UUCBA, and when I read the first two undos, I know to skip the following
 // two user actions, meaning we end up undoing reflog entry C. Redoing works in a similar way.
 
