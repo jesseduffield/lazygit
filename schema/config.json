@@ -309,6 +309,12 @@
           "description": "If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.",
           "default": true
         },
+        "commitHashLength": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.",
+          "default": 8
+        },
         "showBranchCommitHash": {
           "type": "boolean",
           "description": "If true, show commit hashes alongside branch names in the branches view."

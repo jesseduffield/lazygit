@@ -312,8 +312,32 @@ func displayCommit(
 	bisectInfo *git_commands.BisectInfo,
 	isYouAreHereCommit bool,
 ) []string {
-	hashColor := getHashColor(commit, diffName, cherryPickedCommitHashSet, bisectStatus, bisectInfo)
 	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
+
+	hashString := ""
+	hashColor := getHashColor(commit, diffName, cherryPickedCommitHashSet, bisectStatus, bisectInfo)
+	hashLength := common.UserConfig.Gui.CommitHashLength
+	if hashLength >= len(commit.Hash) {
+		hashString = hashColor.Sprint(commit.Hash)
+	} else if hashLength > 0 {
+		hashString = hashColor.Sprint(commit.Hash[:hashLength])
+	} else if !icons.IsIconEnabled() { // hashLength <= 0
+		hashString = hashColor.Sprint("*")
+	}
+
+	divergenceString := ""
+	if commit.Divergence != models.DivergenceNone {
+		divergenceString = hashColor.Sprint(lo.Ternary(commit.Divergence == models.DivergenceLeft, "↑", "↓"))
+	} else if icons.IsIconEnabled() {
+		divergenceString = hashColor.Sprint(icons.IconForCommit(commit))
+	}
+
+	descriptionString := ""
+	if fullDescription {
+		descriptionString = style.FgBlue.Sprint(
+			utils.UnixToDateSmart(now, commit.UnixTimestamp, timeFormat, shortTimeFormat),
+		)
+	}
 
 	actionString := ""
 	if commit.Action != models.ActionNone {
@@ -368,20 +392,12 @@ func displayCommit(
 	}
 
 	cols := make([]string, 0, 7)
-	if commit.Divergence != models.DivergenceNone {
-		cols = append(cols, hashColor.Sprint(lo.Ternary(commit.Divergence == models.DivergenceLeft, "↑", "↓")))
-	} else if icons.IsIconEnabled() {
-		cols = append(cols, hashColor.Sprint(icons.IconForCommit(commit)))
-	}
-	cols = append(cols, hashColor.Sprint(commit.ShortHash()))
-	cols = append(cols, bisectString)
-	if fullDescription {
-		cols = append(cols, style.FgBlue.Sprint(
-			utils.UnixToDateSmart(now, commit.UnixTimestamp, timeFormat, shortTimeFormat),
-		))
-	}
 	cols = append(
 		cols,
+		divergenceString,
+		hashString,
+		bisectString,
+		descriptionString,
 		actionString,
 		authorFunc(commit.AuthorName),
 		graphLine+mark+tagString+theme.DefaultTextColor.Sprint(name),
