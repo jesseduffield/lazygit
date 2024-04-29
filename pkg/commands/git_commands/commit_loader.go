@@ -35,11 +35,6 @@ type CommitLoader struct {
 	readFile      func(filename string) ([]byte, error)
 	walkFiles     func(root string, fn filepath.WalkFunc) error
 	dotGitDir     string
-	// List of main branches that exist in the repo.
-	// We use these to obtain the merge base of the branch.
-	// When nil, we're yet to obtain the list of existing main branches.
-	// When an empty slice, we've obtained the list and it's empty.
-	mainBranches []string
 	*GitCommon
 }
 
@@ -56,7 +51,6 @@ func NewCommitLoader(
 		getRebaseMode: getRebaseMode,
 		readFile:      os.ReadFile,
 		walkFiles:     filepath.Walk,
-		mainBranches:  nil,
 		GitCommon:     gitCommon,
 	}
 }
@@ -72,6 +66,7 @@ type GetCommitsOptions struct {
 	All bool
 	// If non-empty, show divergence from this ref (left-right log)
 	RefToShowDivergenceFrom string
+	MainBranches            *MainBranches
 }
 
 // GetCommits obtains the commits of the current branch
@@ -108,9 +103,9 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 	go utils.Safe(func() {
 		defer wg.Done()
 
-		ancestor = self.getMergeBase(opts.RefName)
+		ancestor = self.getMergeBase(opts.RefName, opts.MainBranches)
 		if opts.RefToShowDivergenceFrom != "" {
-			remoteAncestor = self.getMergeBase(opts.RefToShowDivergenceFrom)
+			remoteAncestor = self.getMergeBase(opts.RefToShowDivergenceFrom, opts.MainBranches)
 		}
 	})
 
@@ -471,12 +466,9 @@ func setCommitMergedStatuses(ancestor string, commits []*models.Commit) {
 	}
 }
 
-func (self *CommitLoader) getMergeBase(refName string) string {
-	if self.mainBranches == nil {
-		self.mainBranches = self.getExistingMainBranches()
-	}
-
-	if len(self.mainBranches) == 0 {
+func (self *CommitLoader) getMergeBase(refName string, existingMainBranches *ExistingMainBranches) string {
+	mainBranches := existingMainBranches.Get()
+	if len(mainBranches) == 0 {
 		return ""
 	}
 
@@ -491,61 +483,10 @@ func (self *CommitLoader) getMergeBase(refName string) string {
 	// also not very common, but can totally happen and is not an error.
 
 	output, _ := self.cmd.New(
-		NewGitCmd("merge-base").Arg(refName).Arg(self.mainBranches...).
+		NewGitCmd("merge-base").Arg(refName).Arg(mainBranches...).
 			ToArgv(),
 	).DontLog().RunWithOutput()
 	return ignoringWarnings(output)
-}
-
-func (self *CommitLoader) getExistingMainBranches() []string {
-	var existingBranches []string
-	var wg sync.WaitGroup
-
-	mainBranches := self.UserConfig.Git.MainBranches
-	existingBranches = make([]string, len(mainBranches))
-
-	for i, branchName := range mainBranches {
-		wg.Add(1)
-		go utils.Safe(func() {
-			defer wg.Done()
-
-			// Try to determine upstream of local main branch
-			if ref, err := self.cmd.New(
-				NewGitCmd("rev-parse").Arg("--symbolic-full-name", branchName+"@{u}").ToArgv(),
-			).DontLog().RunWithOutput(); err == nil {
-				existingBranches[i] = strings.TrimSpace(ref)
-				return
-			}
-
-			// If this failed, a local branch for this main branch doesn't exist or it
-			// has no upstream configured. Try looking for one in the "origin" remote.
-			ref := "refs/remotes/origin/" + branchName
-			if err := self.cmd.New(
-				NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
-			).DontLog().Run(); err == nil {
-				existingBranches[i] = ref
-				return
-			}
-
-			// If this failed as well, try if we have the main branch as a local
-			// branch. This covers the case where somebody is using git locally
-			// for something, but never pushing anywhere.
-			ref = "refs/heads/" + branchName
-			if err := self.cmd.New(
-				NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
-			).DontLog().Run(); err == nil {
-				existingBranches[i] = ref
-			}
-		})
-	}
-
-	wg.Wait()
-
-	existingBranches = lo.Filter(existingBranches, func(branch string, _ int) bool {
-		return branch != ""
-	})
-
-	return existingBranches
 }
 
 func ignoringWarnings(commandOutput string) string {
