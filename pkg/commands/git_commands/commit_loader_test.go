@@ -307,10 +307,11 @@ func TestGetCommits(t *testing.T) {
 			common := utils.NewDummyCommon()
 			common.AppState = &config.AppState{}
 			common.AppState.GitLogOrder = scenario.logOrder
+			cmd := oscommands.NewDummyCmdObjBuilder(scenario.runner)
 
 			builder := &CommitLoader{
 				Common:        common,
-				cmd:           oscommands.NewDummyCmdObjBuilder(scenario.runner),
+				cmd:           cmd,
 				getRebaseMode: func() (enums.RebaseMode, error) { return scenario.rebaseMode, nil },
 				dotGitDir:     ".git",
 				readFile: func(filename string) ([]byte, error) {
@@ -322,7 +323,9 @@ func TestGetCommits(t *testing.T) {
 			}
 
 			common.UserConfig.Git.MainBranches = scenario.mainBranches
-			commits, err := builder.GetCommits(scenario.opts)
+			opts := scenario.opts
+			opts.ExistingMainBranches = NewExistingMainBranches(scenario.mainBranches, cmd)
+			commits, err := builder.GetCommits(opts)
 
 			assert.Equal(t, scenario.expectedCommits, commits)
 			assert.Equal(t, scenario.expectedError, err)
