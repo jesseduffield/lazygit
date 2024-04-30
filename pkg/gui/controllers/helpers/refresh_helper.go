@@ -130,7 +130,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			if self.c.AppState.LocalBranchSortOrder == "recency" {
 				refresh("reflog and branches", func() { self.refreshReflogAndBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex) })
 			} else {
-				refresh("branches", func() { self.refreshBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex) })
+				refresh("branches", func() { self.refreshBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex, true) })
 				refresh("reflog", func() { _ = self.refreshReflogCommits() })
 			}
 		} else if scopeSet.Includes(types.REBASE_COMMITS) {
@@ -256,7 +256,7 @@ func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 	case types.INITIAL:
 		self.c.OnWorker(func(_ gocui.Task) error {
 			_ = self.refreshReflogCommits()
-			self.refreshBranches(false, true)
+			self.refreshBranches(false, true, true)
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)
 			return nil
 		})
@@ -267,9 +267,11 @@ func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 }
 
 func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, keepBranchSelectionIndex bool) {
+	loadBehindCounts := self.c.State().GetRepoState().GetStartupStage() == types.COMPLETE
+
 	self.refreshReflogCommitsConsideringStartup()
 
-	self.refreshBranches(refreshWorktrees, keepBranchSelectionIndex)
+	self.refreshBranches(refreshWorktrees, keepBranchSelectionIndex, loadBehindCounts)
 }
 
 func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
@@ -438,7 +440,7 @@ func (self *RefreshHelper) refreshStateSubmoduleConfigs() error {
 
 // self.refreshStatus is called at the end of this because that's when we can
 // be sure there is a State.Model.Branches array to pick the current branch from
-func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSelectionIndex bool) {
+func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSelectionIndex bool, loadBehindCounts bool) {
 	self.c.Mutexes().RefreshingBranchesMutex.Lock()
 	defer self.c.Mutexes().RefreshingBranchesMutex.Unlock()
 
@@ -457,7 +459,25 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 		}
 	}
 
-	branches, err := self.c.Git().Loaders.BranchLoader.Load(reflogCommits)
+	branches, err := self.c.Git().Loaders.BranchLoader.Load(
+		reflogCommits,
+		self.c.Model().MainBranches,
+		self.c.Model().Branches,
+		loadBehindCounts,
+		func(f func() error) {
+			self.c.OnWorker(func(_ gocui.Task) error {
+				return f()
+			})
+		},
+		func() {
+			self.c.OnUIThread(func() error {
+				if err := self.c.Contexts().Branches.HandleRender(); err != nil {
+					self.c.Log.Error(err)
+				}
+				self.refreshStatus()
+				return nil
+			})
+		})
 	if err != nil {
 		self.c.Log.Error(err)
 	}

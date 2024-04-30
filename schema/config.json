@@ -331,6 +331,16 @@
           "description": "If true, show commit hashes alongside branch names in the branches view.",
           "default": false
         },
+        "showDivergenceFromBaseBranch": {
+          "type": "string",
+          "enum": [
+            "none",
+            "onlyArrow",
+            "arrowAndNumber"
+          ],
+          "description": "Whether to show the divergence from the base branch in the branches view.\nOne of: 'none' | 'onlyArrow'  | 'arrowAndNumber'",
+          "default": "none"
+        },
         "commandLogSize": {
           "type": "integer",
           "minimum": 0,

@@ -155,32 +155,38 @@ func BranchStatus(
 		return style.FgCyan.Sprintf("%s %s", itemOperationStr, utils.Loader(now, userConfig.Gui.Spinner))
 	}
 
-	if !branch.IsTrackingRemote() {
-		return ""
+	result := ""
+	if branch.IsTrackingRemote() {
+		if branch.UpstreamGone {
+			result = style.FgRed.Sprint(tr.UpstreamGone)
+		} else if branch.MatchesUpstream() {
+			result = style.FgGreen.Sprint("✓")
+		} else if branch.RemoteBranchNotStoredLocally() {
+			result = style.FgMagenta.Sprint("?")
+		} else if branch.IsBehindForPull() && branch.IsAheadForPull() {
+			result = style.FgYellow.Sprintf("↓%s↑%s", branch.BehindForPull, branch.AheadForPull)
+		} else if branch.IsBehindForPull() {
+			result = style.FgYellow.Sprintf("↓%s", branch.BehindForPull)
+		} else if branch.IsAheadForPull() {
+			result = style.FgYellow.Sprintf("↑%s", branch.AheadForPull)
+		}
 	}
 
-	if branch.UpstreamGone {
-		return style.FgRed.Sprint(tr.UpstreamGone)
+	if userConfig.Gui.ShowDivergenceFromBaseBranch != "none" {
+		behind := branch.BehindBaseBranch.Load()
+		if behind != 0 {
+			if result != "" {
+				result += " "
+			}
+			if userConfig.Gui.ShowDivergenceFromBaseBranch == "arrowAndNumber" {
+				result += style.FgCyan.Sprintf("↓%d", behind)
+			} else {
+				result += style.FgCyan.Sprintf("↓")
+			}
+		}
 	}
 
-	if branch.MatchesUpstream() {
-		return style.FgGreen.Sprint("✓")
-	}
-	if branch.RemoteBranchNotStoredLocally() {
-		return style.FgMagenta.Sprint("?")
-	}
-
-	if branch.IsBehindForPull() && branch.IsAheadForPull() {
-		return style.FgYellow.Sprintf("↓%s↑%s", branch.BehindForPull, branch.AheadForPull)
-	}
-	if branch.IsBehindForPull() {
-		return style.FgYellow.Sprintf("↓%s", branch.BehindForPull)
-	}
-	if branch.IsAheadForPull() {
-		return style.FgYellow.Sprintf("↑%s", branch.AheadForPull)
-	}
-
-	return ""
+	return result
 }
 
 func SetCustomBranches(customBranchColors map[string]string) {

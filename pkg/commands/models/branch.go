@@ -1,6 +1,9 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+	"sync/atomic"
+)
 
 // Branch : A git branch
 // duplicating this for now
@@ -32,6 +35,11 @@ type Branch struct {
 	Subject string
 	// commit hash
 	CommitHash string
+
+	// How far we have fallen behind our base branch. 0 means either not
+	// determined yet, or up to date with base branch. (We don't need to
+	// distinguish the two, as we don't draw anything in both cases.)
+	BehindBaseBranch atomic.Int32
 }
 
 func (b *Branch) FullRefName() string {
