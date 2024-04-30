@@ -24,6 +24,7 @@ import (
 type pipeSetCacheKey struct {
 	commitHash  string
 	commitCount int
+	divergence  models.Divergence
 }
 
 var (
@@ -78,24 +79,76 @@ func GetCommitListDisplayStrings(
 	// function expects to be passed the index of the commit in terms of the `commits` slice
 	var getGraphLine func(int) string
 	if showGraph {
-		// this is where the graph begins (may be beyond the TODO commits depending on startIdx,
-		// but we'll never include TODO commits as part of the graph because it'll be messy)
-		graphOffset := max(startIdx, rebaseOffset)
+		if len(commits) > 0 && commits[0].Divergence != models.DivergenceNone {
+			// Showing a divergence log; we know we don't have any rebasing
+			// commits in this case. But we need to render separate graphs for
+			// the Local and Remote sections.
+			allGraphLines := []string{}
 
-		pipeSets := loadPipesets(commits[rebaseOffset:])
-		pipeSetOffset := max(startIdx-rebaseOffset, 0)
-		graphPipeSets := pipeSets[pipeSetOffset:max(endIdx-rebaseOffset, 0)]
-		graphCommits := commits[graphOffset:endIdx]
-		graphLines := graph.RenderAux(
-			graphPipeSets,
-			graphCommits,
-			selectedCommitHash,
-		)
-		getGraphLine = func(idx int) string {
-			if idx >= graphOffset {
-				return graphLines[idx-graphOffset]
-			} else {
-				return ""
+			_, localSectionStart, found := lo.FindIndexOf(
+				commits, func(c *models.Commit) bool { return c.Divergence == models.DivergenceLeft })
+			if !found {
+				localSectionStart = len(commits)
+			}
+
+			if localSectionStart > 0 {
+				// we have some remote commits
+				pipeSets := loadPipesets(commits[:localSectionStart])
+				if startIdx < localSectionStart {
+					// some of the remote commits are visible
+					start := startIdx
+					end := min(endIdx, localSectionStart)
+					graphPipeSets := pipeSets[start:end]
+					graphCommits := commits[start:end]
+					graphLines := graph.RenderAux(
+						graphPipeSets,
+						graphCommits,
+						selectedCommitHash,
+					)
+					allGraphLines = append(allGraphLines, graphLines...)
+				}
+			}
+			if localSectionStart < len(commits) {
+				// we have some local commits
+				pipeSets := loadPipesets(commits[localSectionStart:])
+				if localSectionStart < endIdx {
+					// some of the local commits are visible
+					graphOffset := max(startIdx, localSectionStart)
+					pipeSetOffset := max(startIdx-localSectionStart, 0)
+					graphPipeSets := pipeSets[pipeSetOffset : endIdx-localSectionStart]
+					graphCommits := commits[graphOffset:endIdx]
+					graphLines := graph.RenderAux(
+						graphPipeSets,
+						graphCommits,
+						selectedCommitHash,
+					)
+					allGraphLines = append(allGraphLines, graphLines...)
+				}
+			}
+
+			getGraphLine = func(idx int) string {
+				return allGraphLines[idx-startIdx]
+			}
+		} else {
+			// this is where the graph begins (may be beyond the TODO commits depending on startIdx,
+			// but we'll never include TODO commits as part of the graph because it'll be messy)
+			graphOffset := max(startIdx, rebaseOffset)
+
+			pipeSets := loadPipesets(commits[rebaseOffset:])
+			pipeSetOffset := max(startIdx-rebaseOffset, 0)
+			graphPipeSets := pipeSets[pipeSetOffset:max(endIdx-rebaseOffset, 0)]
+			graphCommits := commits[graphOffset:endIdx]
+			graphLines := graph.RenderAux(
+				graphPipeSets,
+				graphCommits,
+				selectedCommitHash,
+			)
+			getGraphLine = func(idx int) string {
+				if idx >= graphOffset {
+					return graphLines[idx-graphOffset]
+				} else {
+					return ""
+				}
 			}
 		}
 	} else {
@@ -205,6 +258,7 @@ func loadPipesets(commits []*models.Commit) [][]*graph.Pipe {
 	cacheKey := pipeSetCacheKey{
 		commitHash:  commits[0].Hash,
 		commitCount: len(commits),
+		divergence:  commits[0].Divergence,
 	}
 
 	pipeSets, ok := pipeSetCache[cacheKey]
