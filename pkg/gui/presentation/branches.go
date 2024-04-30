@@ -155,32 +155,31 @@ func BranchStatus(
 		return style.FgCyan.Sprintf("%s %s", itemOperationStr, utils.Loader(now, userConfig.Gui.Spinner))
 	}
 
-	if !branch.IsTrackingRemote() {
-		return ""
+	result := ""
+	if branch.IsTrackingRemote() {
+		if branch.UpstreamGone {
+			result = style.FgRed.Sprint(tr.UpstreamGone)
+		} else if branch.MatchesUpstream() {
+			result = style.FgGreen.Sprint("✓")
+		} else if branch.RemoteBranchNotStoredLocally() {
+			result = style.FgMagenta.Sprint("?")
+		} else if branch.HasCommitsToPull() && branch.HasCommitsToPush() {
+			result = style.FgYellow.Sprintf("↓%s↑%s", branch.Pullables, branch.Pushables)
+		} else if branch.HasCommitsToPull() {
+			result = style.FgYellow.Sprintf("↓%s", branch.Pullables)
+		} else if branch.HasCommitsToPush() {
+			result = style.FgYellow.Sprintf("↑%s", branch.Pushables)
+		}
 	}
 
-	if branch.UpstreamGone {
-		return style.FgRed.Sprint(tr.UpstreamGone)
+	if v := branch.BehindBaseBranch.Load(); v != 0 {
+		if result != "" {
+			result += " "
+		}
+		result += style.FgCyan.Sprintf("↓%d", v)
 	}
 
-	if branch.MatchesUpstream() {
-		return style.FgGreen.Sprint("✓")
-	}
-	if branch.RemoteBranchNotStoredLocally() {
-		return style.FgMagenta.Sprint("?")
-	}
-
-	if branch.HasCommitsToPull() && branch.HasCommitsToPush() {
-		return style.FgYellow.Sprintf("↓%s↑%s", branch.Pullables, branch.Pushables)
-	}
-	if branch.HasCommitsToPull() {
-		return style.FgYellow.Sprintf("↓%s", branch.Pullables)
-	}
-	if branch.HasCommitsToPush() {
-		return style.FgYellow.Sprintf("↑%s", branch.Pushables)
-	}
-
-	return ""
+	return result
 }
 
 func SetCustomBranches(customBranchColors map[string]string) {

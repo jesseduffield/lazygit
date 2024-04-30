@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -60,7 +61,7 @@ func NewBranchLoader(
 }
 
 // Load the list of branches for the current repo
-func (self *BranchLoader) Load(reflogCommits []*models.Commit) ([]*models.Branch, error) {
+func (self *BranchLoader) Load(reflogCommits []*models.Commit, existingMainBranches *ExistingMainBranches, oldBranches []*models.Branch, onWorker func(func() error), renderFunc func()) ([]*models.Branch, error) {
 	branches := self.obtainBranches()
 
 	if self.AppState.LocalBranchSortOrder == "recency" {
@@ -119,7 +120,48 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit) ([]*models.Branch
 			branch.UpstreamRemote = match.Remote
 			branch.UpstreamBranch = match.Merge.Short()
 		}
+
+		if oldBranch, found := lo.Find(oldBranches, func(b *models.Branch) bool {
+			return b.Name == branch.Name
+		}); found {
+			branch.BehindBaseBranch.Store(oldBranch.BehindBaseBranch.Load())
+		}
 	}
+
+	onWorker(func() error {
+		mainBranches := existingMainBranches.Get()
+		if len(mainBranches) > 0 {
+			for _, branch := range branches {
+				baseBranch, err := self.GetBaseBranch(branch, existingMainBranches)
+				if err != nil {
+					return err
+				}
+				if baseBranch == "" {
+					continue
+				}
+				output, err := self.cmd.New(
+					NewGitCmd("rev-list").
+						Arg("--left-right").
+						Arg("--count").
+						Arg(fmt.Sprintf("%s...%s", branch.FullRefName(), baseBranch)).
+						ToArgv(),
+				).DontLog().RunWithOutput()
+				if err != nil {
+					return err
+				}
+				aheadBehindStr := strings.Split(strings.TrimSpace(output), "\t")
+				if len(aheadBehindStr) != 2 {
+					return errors.New("unexpected output from git rev-list")
+				}
+				if behind, err := strconv.Atoi(aheadBehindStr[1]); err == nil {
+					branch.BehindBaseBranch.Store(int32(behind))
+					renderFunc()
+				}
+			}
+		}
+
+		return nil
+	})
 
 	return branches, nil
 }

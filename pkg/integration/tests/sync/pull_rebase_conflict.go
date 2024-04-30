@@ -63,7 +63,7 @@ var PullRebaseConflict = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Common().ContinueOnConflictsResolved()
 
-		t.Views().Status().Content(Equals("↑1 repo → master"))
+		t.Views().Status().Content(Equals("↑1 ↓2 repo → master"))
 
 		t.Views().Commits().
 			Focus().

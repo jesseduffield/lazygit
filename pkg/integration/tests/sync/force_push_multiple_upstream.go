@@ -41,7 +41,7 @@ var ForcePushMultipleUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("one"),
 			)
 
-		t.Views().Status().Content(Equals("✓ repo → master"))
+		t.Views().Status().Content(Equals("✓ ↓1 repo → master"))
 
 		t.Views().Branches().
 			Lines(
