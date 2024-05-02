@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -10,7 +11,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func FormatStatus(
@@ -25,8 +25,8 @@ func FormatStatus(
 	status := ""
 
 	if currentBranch.IsRealBranch() {
-		status += ColoredBranchStatus(currentBranch, itemOperation, tr, userConfig)
-		if utils.Decolorise(status) != "" {
+		status += BranchStatus(currentBranch, itemOperation, tr, time.Now(), userConfig)
+		if status != "" {
 			status += " "
 		}
 	}
