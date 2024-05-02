@@ -56,6 +56,7 @@ var tests = []*components.IntegrationTest{
 	branch.Reset,
 	branch.ResetToUpstream,
 	branch.SetUpstream,
+	branch.ShowDivergenceFromBaseBranch,
 	branch.ShowDivergenceFromUpstream,
 	branch.SortLocalBranches,
 	branch.SortRemoteBranches,
