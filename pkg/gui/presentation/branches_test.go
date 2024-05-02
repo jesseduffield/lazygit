@@ -81,7 +81,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			viewWidth:            100,
 			useIcons:             false,
 			checkedOutByWorktree: true,
-			expected:             []string{"1m", "branch_name (worktree) ↑3↓5"},
+			expected:             []string{"1m", "branch_name (worktree) ↓5↑3"},
 		},
 		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},
@@ -167,7 +167,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			viewWidth:            30,
 			useIcons:             false,
 			checkedOutByWorktree: true,
-			expected:             []string{"1m", "branch_na… (worktree) ↑3↓5"},
+			expected:             []string{"1m", "branch_na… (worktree) ↓5↑3"},
 		},
 		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},

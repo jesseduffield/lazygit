@@ -38,7 +38,7 @@ var PullRebaseInteractiveConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("one"),
 			)
 
-		t.Views().Status().Content(Equals("↑2↓2 repo → master"))
+		t.Views().Status().Content(Equals("↓2↑2 repo → master"))
 
 		t.Views().Files().
 			IsFocused().
