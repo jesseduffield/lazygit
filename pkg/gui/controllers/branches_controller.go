@@ -205,6 +205,40 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 		},
 	}
 
+	var disabledReason *types.DisabledReason
+	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(selectedBranch, self.c.Model().ExistingMainBranches)
+	if err != nil {
+		return err
+	}
+	if baseBranch == "" {
+		baseBranch = self.c.Tr.BaseBranch
+		disabledReason = &types.DisabledReason{Text: self.c.Tr.NoMainBranches}
+	}
+	shortBaseBranchName := strings.TrimPrefix(baseBranch, "refs/remotes/")
+	label := utils.ResolvePlaceholderString(
+		self.c.Tr.ViewDivergenceFromBaseBranch,
+		map[string]string{"baseBranch": shortBaseBranchName},
+	)
+	viewDivergenceFromBaseBranchItem := &types.MenuItem{
+		LabelColumns: []string{label},
+		Key:          'b',
+		OnPress: func() error {
+			branch := self.context().GetSelected()
+			if branch == nil {
+				return nil
+			}
+
+			return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
+				Ref:                     branch,
+				TitleRef:                fmt.Sprintf("%s <-> %s", branch.RefName(), shortBaseBranchName),
+				RefToShowDivergenceFrom: baseBranch,
+				Context:                 self.context(),
+				ShowBranchHeads:         false,
+			})
+		},
+		DisabledReason: disabledReason,
+	}
+
 	unsetUpstreamItem := &types.MenuItem{
 		LabelColumns: []string{self.c.Tr.UnsetUpstream},
 		OnPress: func() error {
@@ -312,6 +346,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 
 	options := []*types.MenuItem{
 		viewDivergenceItem,
+		viewDivergenceFromBaseBranchItem,
 		unsetUpstreamItem,
 		setUpstreamItem,
 		upstreamResetItem,

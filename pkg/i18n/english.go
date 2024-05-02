@@ -468,6 +468,9 @@ type TranslationSet struct {
 	SetUpstream                           string
 	UnsetUpstream                         string
 	ViewDivergenceFromUpstream            string
+	ViewDivergenceFromBaseBranch          string
+	NoMainBranches                        string
+	BaseBranch                            string
 	DivergenceSectionHeaderLocal          string
 	DivergenceSectionHeaderRemote         string
 	ViewUpstreamResetOptions              string
@@ -1434,6 +1437,9 @@ func EnglishTranslationSet() TranslationSet {
 		SetUpstream:                          "Set upstream of selected branch",
 		UnsetUpstream:                        "Unset upstream of selected branch",
 		ViewDivergenceFromUpstream:           "View divergence from upstream",
+		ViewDivergenceFromBaseBranch:         "View divergence from base branch ({{.baseBranch}})",
+		NoMainBranches:                       "There are no main branches",
+		BaseBranch:                           "base branch",
 		DivergenceSectionHeaderLocal:         "Local",
 		DivergenceSectionHeaderRemote:        "Remote",
 		ViewUpstreamResetOptions:             "Reset checked-out branch onto {{.upstream}}",
