@@ -9,6 +9,8 @@ import (
 )
 
 type TextMatcher struct {
+	// If you add or change a field here, be sure to update the copy
+	// code in checkIsSelected()
 	*Matcher[string]
 }
 
@@ -95,8 +97,8 @@ func (self *TextMatcher) IsSelected() *TextMatcher {
 // if the matcher has an `IsSelected` rule, it returns true, along with the matcher after that rule has been removed
 func (self *TextMatcher) checkIsSelected() (bool, *TextMatcher) {
 	// copying into a new matcher in case we want to re-use the original later
-	newMatcher := &TextMatcher{}
-	*newMatcher = *self
+	newMatcher := &TextMatcher{Matcher: &Matcher[string]{}}
+	*newMatcher.Matcher = *self.Matcher
 
 	check := lo.ContainsBy(newMatcher.rules, func(rule matcherRule[string]) bool { return rule.name == IS_SELECTED_RULE_NAME })
 

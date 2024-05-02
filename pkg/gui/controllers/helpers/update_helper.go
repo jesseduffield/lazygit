@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"errors"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -41,10 +43,10 @@ func (self *UpdateHelper) CheckForUpdateInForeground() error {
 	return self.c.WithWaitingStatus(self.c.Tr.CheckingForUpdates, func(gocui.Task) error {
 		self.updater.CheckForNewUpdate(func(newVersion string, err error) error {
 			if err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			if newVersion == "" {
-				return self.c.ErrorMsg(self.c.Tr.FailedToRetrieveLatestVersionErr)
+				return errors.New(self.c.Tr.FailedToRetrieveLatestVersionErr)
 			}
 			return self.showUpdatePrompt(newVersion)
 		}, true)
@@ -71,7 +73,7 @@ func (self *UpdateHelper) onUpdateFinish(err error) error {
 					"errMessage": err.Error(),
 				},
 			)
-			return self.c.ErrorMsg(errMessage)
+			return errors.New(errMessage)
 		}
 		return self.c.Alert(self.c.Tr.UpdateCompletedTitle, self.c.Tr.UpdateCompleted)
 	})

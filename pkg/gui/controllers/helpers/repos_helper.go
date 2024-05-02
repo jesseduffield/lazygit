@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -48,7 +49,7 @@ func (self *ReposHelper) EnterSubmodule(submodule *models.SubmoduleConfig) error
 	}
 	self.c.State().GetRepoPathStack().Push(wd)
 
-	return self.DispatchSwitchToRepo(submodule.Path, context.NO_CONTEXT)
+	return self.DispatchSwitchToRepo(submodule.FullPath(), context.NO_CONTEXT)
 }
 
 func (self *ReposHelper) getCurrentBranch(path string) string {
@@ -62,8 +63,8 @@ func (self *ReposHelper) getCurrentBranch(path string) string {
 				// is a branch
 				branchDisplay = strings.TrimPrefix(content, refsPrefix)
 			} else {
-				// detached HEAD state, displaying short SHA
-				branchDisplay = utils.ShortSha(content)
+				// detached HEAD state, displaying short hash
+				branchDisplay = utils.ShortHash(content)
 			}
 			return branchDisplay, nil
 		}
@@ -156,7 +157,7 @@ func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey
 
 		if err := os.Chdir(path); err != nil {
 			if os.IsNotExist(err) {
-				return self.c.ErrorMsg(errMsg)
+				return errors.New(errMsg)
 			}
 			return err
 		}

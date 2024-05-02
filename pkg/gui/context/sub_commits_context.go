@@ -44,38 +44,38 @@ func NewSubCommitsContext(
 			return [][]string{}
 		}
 
-		selectedCommitSha := ""
+		selectedCommitHash := ""
 		if c.CurrentContext().GetKey() == SUB_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
 			if selectedCommit != nil {
-				selectedCommitSha = selectedCommit.Sha
+				selectedCommitHash = selectedCommit.Hash
 			}
 		}
 		branches := []*models.Branch{}
 		if viewModel.GetShowBranchHeads() {
 			branches = c.Model().Branches
 		}
-		showBranchMarkerForHeadCommit := c.Git().Config.GetRebaseUpdateRefs()
+		hasRebaseUpdateRefsConfig := c.Git().Config.GetRebaseUpdateRefs()
 		return presentation.GetCommitListDisplayStrings(
 			c.Common,
 			c.Model().SubCommits,
 			branches,
 			viewModel.GetRef().RefName(),
-			showBranchMarkerForHeadCommit,
+			hasRebaseUpdateRefsConfig,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
-			c.Modes().CherryPicking.SelectedShaSet(),
+			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
 			"",
 			c.UserConfig.Gui.TimeFormat,
 			c.UserConfig.Gui.ShortTimeFormat,
 			time.Now(),
 			c.UserConfig.Git.ParseEmoji,
-			selectedCommitSha,
+			selectedCommitHash,
 			startIdx,
 			endIdx,
 			// Don't show the graph in the left/right view; we'd like to, but
 			// it's too complicated:
-			shouldShowGraph(c) && viewModel.GetRefToShowDivergenceFrom() == "",
+			shouldShowGraph(c),
 			git_commands.NewNullBisectInfo(),
 			false,
 		)
@@ -134,7 +134,7 @@ func NewSubCommitsContext(
 	}
 
 	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(func(selectedLineIdx int) error {
-		ctx.GetList().SetSelectedLineIdx(selectedLineIdx)
+		ctx.GetList().SetSelection(selectedLineIdx)
 		return ctx.HandleFocus(types.OnFocusOpts{})
 	}))
 
@@ -173,15 +173,6 @@ func (self *SubCommitsViewModel) SetShowBranchHeads(value bool) {
 
 func (self *SubCommitsViewModel) GetShowBranchHeads() bool {
 	return self.showBranchHeads
-}
-
-func (self *SubCommitsContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
 }
 
 func (self *SubCommitsContext) CanRebase() bool {

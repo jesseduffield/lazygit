@@ -27,7 +27,7 @@ var SquashDownSecondCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Squash")).
-					Content(Equals("Are you sure you want to squash this commit into the commit below?")).
+					Content(Equals("Are you sure you want to squash the selected commit(s) into the commit below?")).
 					Confirm()
 			}).
 			Lines(

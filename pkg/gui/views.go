@@ -91,9 +91,9 @@ func (gui *Gui) createAllViews() error {
 		}
 		(*mapping.viewPtr).FrameRunes = frameRunes
 		(*mapping.viewPtr).FgColor = theme.GocuiDefaultTextColor
+		(*mapping.viewPtr).SelBgColor = theme.GocuiSelectedLineBgColor
 	}
 
-	gui.Views.Options.FgColor = theme.OptionsColor
 	gui.Views.Options.Frame = false
 
 	gui.Views.SearchPrefix.BgColor = gocui.ColorDefault
@@ -134,23 +134,18 @@ func (gui *Gui) createAllViews() error {
 	}
 
 	gui.Views.Staging.Title = gui.c.Tr.UnstagedChanges
-	gui.Views.Staging.Highlight = false
 	gui.Views.Staging.Wrap = true
 
 	gui.Views.StagingSecondary.Title = gui.c.Tr.StagedChanges
-	gui.Views.StagingSecondary.Highlight = false
 	gui.Views.StagingSecondary.Wrap = true
 
 	gui.Views.PatchBuilding.Title = gui.Tr.Patch
-	gui.Views.PatchBuilding.Highlight = false
 	gui.Views.PatchBuilding.Wrap = true
 
 	gui.Views.PatchBuildingSecondary.Title = gui.Tr.CustomPatch
-	gui.Views.PatchBuildingSecondary.Highlight = false
 	gui.Views.PatchBuildingSecondary.Wrap = true
 
 	gui.Views.MergeConflicts.Title = gui.c.Tr.MergeConflictsTitle
-	gui.Views.MergeConflicts.Highlight = false
 	gui.Views.MergeConflicts.Wrap = false
 
 	gui.Views.Limit.Title = gui.c.Tr.NotEnoughSpace
@@ -173,6 +168,8 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.CommitDescription.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.CommitDescription.Editable = true
 	gui.Views.CommitDescription.Editor = gocui.EditorFunc(gui.commitDescriptionEditor)
+	gui.Views.CommitDescription.TextArea.AutoWrap = gui.c.UserConfig.Git.Commit.AutoWrapCommitMessage
+	gui.Views.CommitDescription.TextArea.AutoWrapWidth = gui.c.UserConfig.Git.Commit.AutoWrapWidth
 
 	gui.Views.Confirmation.Visible = false
 	gui.Views.Confirmation.Editor = gocui.EditorFunc(gui.promptEditor)

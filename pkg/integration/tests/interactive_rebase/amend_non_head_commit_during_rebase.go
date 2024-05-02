@@ -34,10 +34,7 @@ var AmendNonHeadCommitDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 				NavigateToLine(Contains(commit)).
 				Press(keys.Commits.AmendToCommit)
 
-			t.ExpectPopup().Alert().
-				Title(Equals("Error")).
-				Content(Contains("Can't perform this action during a rebase")).
-				Confirm()
+			t.ExpectToast(Contains("Can't perform this action during a rebase"))
 		}
 	},
 })

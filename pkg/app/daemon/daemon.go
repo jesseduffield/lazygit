@@ -8,11 +8,11 @@ import (
 	"os/exec"
 	"strconv"
 
-	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
+	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 // Sometimes lazygit will be invoked in daemon mode from a parent lazygit process.
@@ -33,12 +33,14 @@ const (
 	DaemonKindUnknown DaemonKind = iota
 
 	DaemonKindExitImmediately
+	DaemonKindRemoveUpdateRefsForCopiedBranch
 	DaemonKindCherryPick
-	DaemonKindMoveTodoUp
-	DaemonKindMoveTodoDown
+	DaemonKindMoveTodosUp
+	DaemonKindMoveTodosDown
 	DaemonKindInsertBreak
 	DaemonKindChangeTodoActions
 	DaemonKindMoveFixupCommitDown
+	DaemonKindWriteRebaseTodo
 )
 
 const (
@@ -52,13 +54,15 @@ func getInstruction() Instruction {
 	jsonData := os.Getenv(DaemonInstructionEnvKey)
 
 	mapping := map[DaemonKind]func(string) Instruction{
-		DaemonKindExitImmediately:     deserializeInstruction[*ExitImmediatelyInstruction],
-		DaemonKindCherryPick:          deserializeInstruction[*CherryPickCommitsInstruction],
-		DaemonKindChangeTodoActions:   deserializeInstruction[*ChangeTodoActionsInstruction],
-		DaemonKindMoveFixupCommitDown: deserializeInstruction[*MoveFixupCommitDownInstruction],
-		DaemonKindMoveTodoUp:          deserializeInstruction[*MoveTodoUpInstruction],
-		DaemonKindMoveTodoDown:        deserializeInstruction[*MoveTodoDownInstruction],
-		DaemonKindInsertBreak:         deserializeInstruction[*InsertBreakInstruction],
+		DaemonKindExitImmediately:                 deserializeInstruction[*ExitImmediatelyInstruction],
+		DaemonKindRemoveUpdateRefsForCopiedBranch: deserializeInstruction[*RemoveUpdateRefsForCopiedBranchInstruction],
+		DaemonKindCherryPick:                      deserializeInstruction[*CherryPickCommitsInstruction],
+		DaemonKindChangeTodoActions:               deserializeInstruction[*ChangeTodoActionsInstruction],
+		DaemonKindMoveFixupCommitDown:             deserializeInstruction[*MoveFixupCommitDownInstruction],
+		DaemonKindMoveTodosUp:                     deserializeInstruction[*MoveTodosUpInstruction],
+		DaemonKindMoveTodosDown:                   deserializeInstruction[*MoveTodosDownInstruction],
+		DaemonKindInsertBreak:                     deserializeInstruction[*InsertBreakInstruction],
+		DaemonKindWriteRebaseTodo:                 deserializeInstruction[*WriteRebaseTodoInstruction],
 	}
 
 	return mapping[getDaemonKind()](jsonData)
@@ -155,6 +159,26 @@ func NewExitImmediatelyInstruction() Instruction {
 	return &ExitImmediatelyInstruction{}
 }
 
+type RemoveUpdateRefsForCopiedBranchInstruction struct{}
+
+func (self *RemoveUpdateRefsForCopiedBranchInstruction) Kind() DaemonKind {
+	return DaemonKindRemoveUpdateRefsForCopiedBranch
+}
+
+func (self *RemoveUpdateRefsForCopiedBranchInstruction) SerializedInstructions() string {
+	return serializeInstruction(self)
+}
+
+func (self *RemoveUpdateRefsForCopiedBranchInstruction) run(common *common.Common) error {
+	return handleInteractiveRebase(common, func(path string) error {
+		return nil
+	})
+}
+
+func NewRemoveUpdateRefsForCopiedBranchInstruction() Instruction {
+	return &RemoveUpdateRefsForCopiedBranchInstruction{}
+}
+
 type CherryPickCommitsInstruction struct {
 	Todo string
 }
@@ -208,28 +232,30 @@ func (self *ChangeTodoActionsInstruction) SerializedInstructions() string {
 
 func (self *ChangeTodoActionsInstruction) run(common *common.Common) error {
 	return handleInteractiveRebase(common, func(path string) error {
-		for _, c := range self.Changes {
-			if err := utils.EditRebaseTodo(path, c.Sha, todo.Pick, c.NewAction, getCommentChar()); err != nil {
-				return err
+		changes := lo.Map(self.Changes, func(c ChangeTodoAction, _ int) utils.TodoChange {
+			return utils.TodoChange{
+				Hash:      c.Hash,
+				OldAction: todo.Pick,
+				NewAction: c.NewAction,
 			}
-		}
+		})
 
-		return nil
+		return utils.EditRebaseTodo(path, changes, getCommentChar())
 	})
 }
 
-// Takes the sha of some commit, and the sha of a fixup commit that was created
+// Takes the hash of some commit, and the hash of a fixup commit that was created
 // at the end of the branch, then moves the fixup commit down to right after the
 // original commit, changing its type to "fixup"
 type MoveFixupCommitDownInstruction struct {
-	OriginalSha string
-	FixupSha    string
+	OriginalHash string
+	FixupHash    string
 }
 
-func NewMoveFixupCommitDownInstruction(originalSha string, fixupSha string) Instruction {
+func NewMoveFixupCommitDownInstruction(originalHash string, fixupHash string) Instruction {
 	return &MoveFixupCommitDownInstruction{
-		OriginalSha: originalSha,
-		FixupSha:    fixupSha,
+		OriginalHash: originalHash,
+		FixupHash:    fixupHash,
 	}
 }
 
@@ -243,55 +269,69 @@ func (self *MoveFixupCommitDownInstruction) SerializedInstructions() string {
 
 func (self *MoveFixupCommitDownInstruction) run(common *common.Common) error {
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveFixupCommitDown(path, self.OriginalSha, self.FixupSha, getCommentChar())
+		return utils.MoveFixupCommitDown(path, self.OriginalHash, self.FixupHash, getCommentChar())
 	})
 }
 
-type MoveTodoUpInstruction struct {
-	Sha string
+type MoveTodosUpInstruction struct {
+	Hashes []string
 }
 
-func NewMoveTodoUpInstruction(sha string) Instruction {
-	return &MoveTodoUpInstruction{
-		Sha: sha,
+func NewMoveTodosUpInstruction(hashes []string) Instruction {
+	return &MoveTodosUpInstruction{
+		Hashes: hashes,
 	}
 }
 
-func (self *MoveTodoUpInstruction) Kind() DaemonKind {
-	return DaemonKindMoveTodoUp
+func (self *MoveTodosUpInstruction) Kind() DaemonKind {
+	return DaemonKindMoveTodosUp
 }
 
-func (self *MoveTodoUpInstruction) SerializedInstructions() string {
+func (self *MoveTodosUpInstruction) SerializedInstructions() string {
 	return serializeInstruction(self)
 }
 
-func (self *MoveTodoUpInstruction) run(common *common.Common) error {
+func (self *MoveTodosUpInstruction) run(common *common.Common) error {
+	todosToMove := lo.Map(self.Hashes, func(hash string, _ int) utils.Todo {
+		return utils.Todo{
+			Hash:   hash,
+			Action: todo.Pick,
+		}
+	})
+
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveTodoUp(path, self.Sha, todo.Pick, getCommentChar())
+		return utils.MoveTodosUp(path, todosToMove, getCommentChar())
 	})
 }
 
-type MoveTodoDownInstruction struct {
-	Sha string
+type MoveTodosDownInstruction struct {
+	Hashes []string
 }
 
-func NewMoveTodoDownInstruction(sha string) Instruction {
-	return &MoveTodoDownInstruction{
-		Sha: sha,
+func NewMoveTodosDownInstruction(hashes []string) Instruction {
+	return &MoveTodosDownInstruction{
+		Hashes: hashes,
 	}
 }
 
-func (self *MoveTodoDownInstruction) Kind() DaemonKind {
-	return DaemonKindMoveTodoDown
+func (self *MoveTodosDownInstruction) Kind() DaemonKind {
+	return DaemonKindMoveTodosDown
 }
 
-func (self *MoveTodoDownInstruction) SerializedInstructions() string {
+func (self *MoveTodosDownInstruction) SerializedInstructions() string {
 	return serializeInstruction(self)
 }
 
-func (self *MoveTodoDownInstruction) run(common *common.Common) error {
+func (self *MoveTodosDownInstruction) run(common *common.Common) error {
+	todosToMove := lo.Map(self.Hashes, func(hash string, _ int) utils.Todo {
+		return utils.Todo{
+			Hash:   hash,
+			Action: todo.Pick,
+		}
+	})
+
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveTodoDown(path, self.Sha, todo.Pick, getCommentChar())
+		return utils.MoveTodosDown(path, todosToMove, getCommentChar())
 	})
 }
 
@@ -312,5 +352,29 @@ func (self *InsertBreakInstruction) SerializedInstructions() string {
 func (self *InsertBreakInstruction) run(common *common.Common) error {
 	return handleInteractiveRebase(common, func(path string) error {
 		return utils.PrependStrToTodoFile(path, []byte("break\n"))
+	})
+}
+
+type WriteRebaseTodoInstruction struct {
+	TodosFileContent []byte
+}
+
+func NewWriteRebaseTodoInstruction(todosFileContent []byte) Instruction {
+	return &WriteRebaseTodoInstruction{
+		TodosFileContent: todosFileContent,
+	}
+}
+
+func (self *WriteRebaseTodoInstruction) Kind() DaemonKind {
+	return DaemonKindWriteRebaseTodo
+}
+
+func (self *WriteRebaseTodoInstruction) SerializedInstructions() string {
+	return serializeInstruction(self)
+}
+
+func (self *WriteRebaseTodoInstruction) run(common *common.Common) error {
+	return handleInteractiveRebase(common, func(path string) error {
+		return os.WriteFile(path, self.TodosFileContent, 0o644)
 	})
 }

@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 
@@ -83,14 +84,23 @@ func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
 func (self *RemoteLoader) getRemoteBranchesByRemoteName() (map[string][]*models.RemoteBranch, error) {
 	remoteBranchesByRemoteName := make(map[string][]*models.RemoteBranch)
 
-	cmdArgs := NewGitCmd("branch").Arg("-r").ToArgv()
-	err := self.cmd.New(cmdArgs).DontLog().RunAndProcessLines(func(line string) (bool, error) {
-		// excluding lines like 'origin/HEAD -> origin/master' (there will be a separate
-		// line for 'origin/master')
-		if strings.Contains(line, "->") {
-			return false, nil
-		}
+	var sortOrder string
+	switch strings.ToLower(self.AppState.RemoteBranchSortOrder) {
+	case "alphabetical":
+		sortOrder = "refname"
+	case "date":
+		sortOrder = "-committerdate"
+	default:
+		sortOrder = "refname"
+	}
 
+	cmdArgs := NewGitCmd("for-each-ref").
+		Arg(fmt.Sprintf("--sort=%s", sortOrder)).
+		Arg("--format=%(refname:short)").
+		Arg("refs/remotes").
+		ToArgv()
+
+	err := self.cmd.New(cmdArgs).DontLog().RunAndProcessLines(func(line string) (bool, error) {
 		line = strings.TrimSpace(line)
 
 		split := strings.SplitN(line, "/", 2)

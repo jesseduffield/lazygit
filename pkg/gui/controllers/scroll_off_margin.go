@@ -3,7 +3,6 @@ package controllers
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // To be called after pressing up-arrow; checks whether the cursor entered the
@@ -39,7 +38,7 @@ func calculateLinesToScrollUp(viewPortStart int, viewPortHeight int, scrollOffMa
 	// a very large value to keep the cursor always in the middle of the screen.
 	// Use +.5 so that if the height is even, the top margin is one line higher
 	// than the bottom margin.
-	scrollOffMargin = utils.Min(scrollOffMargin, int((float64(viewPortHeight)+.5)/2))
+	scrollOffMargin = min(scrollOffMargin, int((float64(viewPortHeight)+.5)/2))
 
 	// Scroll only if the "before" position was visible (this could be false if
 	// the scroll wheel was used to scroll the selected line out of view) ...
@@ -59,7 +58,7 @@ func calculateLinesToScrollDown(viewPortStart int, viewPortHeight int, scrollOff
 	// a very large value to keep the cursor always in the middle of the screen.
 	// Use -.5 so that if the height is even, the bottom margin is one line lower
 	// than the top margin.
-	scrollOffMargin = utils.Min(scrollOffMargin, int((float64(viewPortHeight)-.5)/2))
+	scrollOffMargin = min(scrollOffMargin, int((float64(viewPortHeight)-.5)/2))
 
 	// Scroll only if the "before" position was visible (this could be false if
 	// the scroll wheel was used to scroll the selected line out of view) ...

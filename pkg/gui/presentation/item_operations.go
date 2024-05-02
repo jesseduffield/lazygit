@@ -17,6 +17,10 @@ func ItemOperationToString(itemOperation types.ItemOperation, tr *i18n.Translati
 		return tr.FastForwarding
 	case types.ItemOperationDeleting:
 		return tr.DeletingStatus
+	case types.ItemOperationFetching:
+		return tr.FetchingStatus
+	case types.ItemOperationCheckingOut:
+		return tr.CheckingOutStatus
 	}
 
 	return ""

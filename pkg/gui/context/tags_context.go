@@ -30,7 +30,7 @@ func NewTagsContext(
 		return presentation.GetTagListDisplayStrings(
 			viewModel.GetItems(),
 			c.State().GetItemOperation,
-			c.Modes().Diffing.Ref, c.Tr)
+			c.Modes().Diffing.Ref, c.Tr, c.UserConfig)
 	}
 
 	return &TagsContext{
@@ -50,15 +50,6 @@ func NewTagsContext(
 			c: c,
 		},
 	}
-}
-
-func (self *TagsContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
 }
 
 func (self *TagsContext) GetSelectedRef() types.Ref {

@@ -6,6 +6,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,8 +22,8 @@ type ICommitFileTreeViewModel interface {
 
 type CommitFileTreeViewModel struct {
 	sync.RWMutex
-	ICommitFileTree
 	types.IListCursor
+	ICommitFileTree
 
 	// this is e.g. the commit for which we're viewing the files
 	ref types.Ref
@@ -36,7 +37,7 @@ var _ ICommitFileTreeViewModel = &CommitFileTreeViewModel{}
 
 func NewCommitFileTreeViewModel(getFiles func() []*models.CommitFile, log *logrus.Entry, showTree bool) *CommitFileTreeViewModel {
 	fileTree := NewCommitFileTree(getFiles, log, showTree)
-	listCursor := traits.NewListCursor(fileTree)
+	listCursor := traits.NewListCursor(fileTree.Len)
 	return &CommitFileTreeViewModel{
 		ICommitFileTree: fileTree,
 		IListCursor:     listCursor,
@@ -67,6 +68,40 @@ func (self *CommitFileTreeViewModel) GetSelected() *CommitFileNode {
 	}
 
 	return self.Get(self.GetSelectedLineIdx())
+}
+
+func (self *CommitFileTreeViewModel) GetSelectedItemId() string {
+	item := self.GetSelected()
+	if item == nil {
+		return ""
+	}
+
+	return item.ID()
+}
+
+func (self *CommitFileTreeViewModel) GetSelectedItems() ([]*CommitFileNode, int, int) {
+	if self.Len() == 0 {
+		return nil, 0, 0
+	}
+
+	startIdx, endIdx := self.GetSelectionRange()
+
+	nodes := []*CommitFileNode{}
+	for i := startIdx; i <= endIdx; i++ {
+		nodes = append(nodes, self.Get(i))
+	}
+
+	return nodes, startIdx, endIdx
+}
+
+func (self *CommitFileTreeViewModel) GetSelectedItemIds() ([]string, int, int) {
+	selectedItems, startIdx, endIdx := self.GetSelectedItems()
+
+	ids := lo.Map(selectedItems, func(item *CommitFileNode, _ int) string {
+		return item.ID()
+	})
+
+	return ids, startIdx, endIdx
 }
 
 func (self *CommitFileTreeViewModel) GetSelectedFile() *models.CommitFile {
@@ -106,6 +141,6 @@ func (self *CommitFileTreeViewModel) ToggleShowTree() {
 
 	index, found := self.GetIndexForPath(path)
 	if found {
-		self.SetSelectedLineIdx(index)
+		self.SetSelection(index)
 	}
 }

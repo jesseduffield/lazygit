@@ -45,3 +45,12 @@ func TestGitVersionIsOlderThan(t *testing.T) {
 	assert.True(t, (&GitVersion{2, 0, 1, ""}).IsOlderThan(2, 1, 0))
 	assert.True(t, (&GitVersion{2, 0, 1, ""}).IsOlderThan(3, 0, 0))
 }
+
+func TestGitVersionIsAtLeast(t *testing.T) {
+	assert.True(t, (&GitVersion{2, 0, 0, ""}).IsAtLeast(1, 99, 99))
+	assert.True(t, (&GitVersion{2, 0, 0, ""}).IsAtLeast(2, 0, 0))
+	assert.True(t, (&GitVersion{2, 1, 0, ""}).IsAtLeast(2, 0, 9))
+
+	assert.False(t, (&GitVersion{2, 0, 1, ""}).IsAtLeast(2, 1, 0))
+	assert.False(t, (&GitVersion{2, 0, 1, ""}).IsAtLeast(3, 0, 0))
+}

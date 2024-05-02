@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -22,11 +23,11 @@ type StatusController struct {
 var _ types.IController = &StatusController{}
 
 func NewStatusController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *StatusController {
 	return &StatusController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 
@@ -36,21 +37,26 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
 			Handler:     self.openConfig,
 			Description: self.c.Tr.OpenConfig,
+			Tooltip:     self.c.Tr.OpenFileTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
-			Handler:     self.editConfig,
-			Description: self.c.Tr.EditConfig,
+			Key:             opts.GetKey(opts.Config.Universal.Edit),
+			Handler:         self.editConfig,
+			Description:     self.c.Tr.EditConfig,
+			Tooltip:         self.c.Tr.EditFileTooltip,
+			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Status.CheckForUpdate),
-			Handler:     self.handleCheckForUpdate,
-			Description: self.c.Tr.CheckForUpdate,
+			Key:             opts.GetKey(opts.Config.Status.CheckForUpdate),
+			Handler:         self.handleCheckForUpdate,
+			Description:     self.c.Tr.CheckForUpdate,
+			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Status.RecentRepos),
-			Handler:     self.c.Helpers().Repos.CreateRecentReposMenu,
-			Description: self.c.Tr.SwitchRepo,
+			Key:             opts.GetKey(opts.Config.Status.RecentRepos),
+			Handler:         self.c.Helpers().Repos.CreateRecentReposMenu,
+			Description:     self.c.Tr.SwitchRepo,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Status.AllBranchesLogGraph),
@@ -62,27 +68,30 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 	return bindings
 }
 
-func (self *StatusController) GetOnRenderToMain() func() error {
-	return func() error {
-		dashboardString := strings.Join(
-			[]string{
-				lazygitTitle(),
-				"Copyright 2022 Jesse Duffield",
-				fmt.Sprintf("Keybindings: %s", constants.Links.Docs.Keybindings),
-				fmt.Sprintf("Config Options: %s", constants.Links.Docs.Config),
-				fmt.Sprintf("Tutorial: %s", constants.Links.Docs.Tutorial),
-				fmt.Sprintf("Raise an Issue: %s", constants.Links.Issues),
-				fmt.Sprintf("Release Notes: %s", constants.Links.Releases),
-				style.FgMagenta.Sprintf("Become a sponsor: %s", constants.Links.Donate), // caffeine ain't free
-			}, "\n\n")
+func (self *StatusController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName: "main",
+			Key:      gocui.MouseLeft,
+			Handler:  self.onClickMain,
+		},
+	}
+}
 
-		return self.c.RenderToMainViews(types.RefreshMainOpts{
-			Pair: self.c.MainViewPairs().Normal,
-			Main: &types.ViewUpdateOpts{
-				Title: self.c.Tr.StatusTitle,
-				Task:  types.NewRenderStringTask(dashboardString),
-			},
-		})
+func (self *StatusController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
+	return self.c.HandleGenericClick(self.c.Views().Main)
+}
+
+func (self *StatusController) GetOnRenderToMain() func() error {
+	config := self.c.UserConfig.Gui
+
+	switch config.StatusPanelView {
+	case "dashboard":
+		return self.showDashboard
+	case "allBranchesLog":
+		return self.showAllBranchLogs
+	default:
+		return self.showDashboard
 	}
 }
 
@@ -107,7 +116,7 @@ func (self *StatusController) onClick() error {
 	}
 
 	cx, _ := self.c.Views().Status.Cursor()
-	upstreamStatus := presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now())
+	upstreamStatus := presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now(), self.c.UserConfig)
 	repoName := self.c.Git().RepoPaths.RepoName()
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	switch workingTreeState {
@@ -177,7 +186,9 @@ func (self *StatusController) openConfig() error {
 }
 
 func (self *StatusController) editConfig() error {
-	return self.askForConfigFile(self.c.Helpers().Files.EditFile)
+	return self.askForConfigFile(func(file string) error {
+		return self.c.Helpers().Files.EditFiles([]string{file})
+	})
 }
 
 func (self *StatusController) showAllBranchLogs() error {
@@ -189,6 +200,37 @@ func (self *StatusController) showAllBranchLogs() error {
 		Main: &types.ViewUpdateOpts{
 			Title: self.c.Tr.LogTitle,
 			Task:  task,
+		},
+	})
+}
+
+func (self *StatusController) showDashboard() error {
+	versionStr := "master"
+	version, err := types.ParseVersionNumber(self.c.GetConfig().GetVersion())
+	if err == nil {
+		// Don't just take the version string as is, but format it again. This
+		// way it will be correct even if a distribution omits the "v", or the
+		// ".0" at the end.
+		versionStr = fmt.Sprintf("v%d.%d.%d", version.Major, version.Minor, version.Patch)
+	}
+
+	dashboardString := strings.Join(
+		[]string{
+			lazygitTitle(),
+			fmt.Sprintf("Copyright %d Jesse Duffield", time.Now().Year()),
+			fmt.Sprintf("Keybindings: %s", style.AttrUnderline.Sprint(fmt.Sprintf(constants.Links.Docs.Keybindings, versionStr))),
+			fmt.Sprintf("Config Options: %s", style.AttrUnderline.Sprint(fmt.Sprintf(constants.Links.Docs.Config, versionStr))),
+			fmt.Sprintf("Tutorial: %s", style.AttrUnderline.Sprint(constants.Links.Docs.Tutorial)),
+			fmt.Sprintf("Raise an Issue: %s", style.AttrUnderline.Sprint(constants.Links.Issues)),
+			fmt.Sprintf("Release Notes: %s", style.AttrUnderline.Sprint(constants.Links.Releases)),
+			style.FgMagenta.Sprintf("Become a sponsor: %s", style.AttrUnderline.Sprint(constants.Links.Donate)), // caffeine ain't free
+		}, "\n\n") + "\n"
+
+	return self.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: self.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title: self.c.Tr.StatusTitle,
+			Task:  types.NewRenderStringTask(dashboardString),
 		},
 	})
 }

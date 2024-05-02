@@ -13,11 +13,11 @@ type SearchPromptController struct {
 var _ types.IController = &SearchPromptController{}
 
 func NewSearchPromptController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *SearchPromptController {
 	return &SearchPromptController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 

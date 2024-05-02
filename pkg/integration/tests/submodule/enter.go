@@ -20,7 +20,7 @@ var Enter = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("first commit")
-		shell.CloneIntoSubmodule("my_submodule")
+		shell.CloneIntoSubmodule("my_submodule_name", "my_submodule_path")
 		shell.GitAddAll()
 		shell.Commit("add submodule")
 	},
@@ -29,14 +29,18 @@ var Enter = NewIntegrationTest(NewIntegrationTestArgs{
 			t.Views().Status().Content(Contains("repo"))
 		}
 		assertInSubmodule := func() {
-			t.Views().Status().Content(Contains("my_submodule"))
+			if t.Git().Version().IsAtLeast(2, 22, 0) {
+				t.Views().Status().Content(Contains("my_submodule_path(my_submodule_name)"))
+			} else {
+				t.Views().Status().Content(Contains("my_submodule_path"))
+			}
 		}
 
 		assertInParentRepo()
 
 		t.Views().Submodules().Focus().
 			Lines(
-				Contains("my_submodule").IsSelected(),
+				Contains("my_submodule_name").IsSelected(),
 			).
 			// enter the submodule
 			PressEnter()
@@ -60,7 +64,7 @@ var Enter = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().Focus().
 			Lines(
-				MatchesRegexp(` M.*my_submodule \(submodule\)`).IsSelected(),
+				MatchesRegexp(` M.*my_submodule_path \(submodule\)`).IsSelected(),
 			).
 			Tap(func() {
 				// main view also shows the new commit when we're looking at the submodule within the files view

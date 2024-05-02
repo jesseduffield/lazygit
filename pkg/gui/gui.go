@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 
@@ -40,6 +41,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
@@ -329,7 +331,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		// because e.g. with worktrees, we'll show the current worktree at the top of the list.
 		listContext, ok := contextToPush.(types.IListContext)
 		if ok {
-			listContext.GetList().SetSelectedLineIdx(0)
+			listContext.GetList().SetSelection(0)
 		}
 	}
 
@@ -340,7 +342,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 	return nil
 }
 
-// reuseState determines if we pull the repo state from our repo state map or
+// resetState determines if we pull the repo state from our repo state map or
 // just re-initialize it. For now we're only re-using state when we're going
 // in and out of submodules, for the sake of having the cursor back on the submodule
 // when we return.
@@ -386,7 +388,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 			Authors:               map[string]*models.Author{},
 		},
 		Modes: &types.Modes{
-			Filtering:        filtering.New(startArgs.FilterPath),
+			Filtering:        filtering.New(startArgs.FilterPath, ""),
 			CherryPicking:    cherrypicking.New(),
 			Diffing:          diffing.New(),
 			MarkedBaseCommit: marked_base_commit.New(),
@@ -467,6 +469,7 @@ func NewGui(
 	updater *updates.Updater,
 	showRecentRepos bool,
 	initialDir string,
+	test integrationTypes.IntegrationTest,
 ) (*Gui, error) {
 	gui := &Gui{
 		Common:               cmn,
@@ -513,10 +516,10 @@ func NewGui(
 		func() types.Context { return gui.State.ContextMgr.Current() },
 		gui.createMenu,
 		func(message string, f func(gocui.Task) error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
-		func(message string, f func() error) {
-			gui.helpers.AppStatus.WithWaitingStatusSync(message, f)
+		func(message string, f func() error) error {
+			return gui.helpers.AppStatus.WithWaitingStatusSync(message, f)
 		},
-		func(message string) { gui.helpers.AppStatus.Toast(message) },
+		func(message string, kind types.ToastKind) { gui.helpers.AppStatus.Toast(message, kind) },
 		func() string { return gui.Views.Confirmation.TextArea.GetContent() },
 		func() bool { return gui.c.InDemo() },
 	)
@@ -648,6 +651,8 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 
 	gui.g = g
 	defer gui.g.Close()
+
+	g.ErrorHandler = gui.PopupHandler.ErrorHandler
 
 	// if the deadlock package wants to report a deadlock, we first need to
 	// close the gui so that we can actually read what it prints.
@@ -786,7 +791,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 	defer gui.Mutexes.SubprocessMutex.Unlock()
 
 	if err := gui.g.Suspend(); err != nil {
-		return false, gui.c.Error(err)
+		return false, err
 	}
 
 	gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(true)
@@ -799,7 +804,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 	}
 
 	if cmdErr != nil {
-		return false, gui.c.Error(cmdErr)
+		return false, cmdErr
 	}
 
 	return true, nil
@@ -810,7 +815,7 @@ func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error { //nolint:unpara
 
 	subprocess := cmdObj.GetCmd()
 	subprocess.Stdout = os.Stdout
-	subprocess.Stderr = os.Stdout
+	subprocess.Stderr = os.Stderr
 	subprocess.Stdin = os.Stdin
 
 	fmt.Fprintf(os.Stdout, "\n%s\n\n", style.FgBlue.Sprint("+ "+strings.Join(subprocess.Args, " ")))
@@ -821,7 +826,7 @@ func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error { //nolint:unpara
 	subprocess.Stderr = io.Discard
 	subprocess.Stdin = nil
 
-	if gui.Config.GetUserConfig().PromptToReturnFromSubprocess {
+	if gui.integrationTest == nil && (gui.Config.GetUserConfig().PromptToReturnFromSubprocess || err != nil) {
 		fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint(gui.Tr.PressEnterToReturn))
 
 		// scan to buffer to prevent run unintentional operations when TUI resumes.
@@ -868,6 +873,72 @@ func (gui *Gui) showIntroPopupMessage() {
 	})
 }
 
+func (gui *Gui) showBreakingChangesMessage() {
+	_, err := types.ParseVersionNumber(gui.Config.GetVersion())
+	if err != nil {
+		// We don't have a parseable version, so we'll assume it's a developer
+		// build, or a build from HEAD with a version such as 0.40.0-g1234567;
+		// in these cases we don't show release notes.
+		return
+	}
+
+	last := &types.VersionNumber{}
+	lastVersionStr := gui.c.GetAppState().LastVersion
+	// If there's no saved last version, we show all release notes. This is for
+	// people upgrading from a version before we started to save lastVersion.
+	// First time new users won't see the release notes because we show them the
+	// intro popup instead.
+	if lastVersionStr != "" {
+		last, err = types.ParseVersionNumber(lastVersionStr)
+		if err != nil {
+			// The last version was a developer build, so don't show release
+			// notes in this case either.
+			return
+		}
+	}
+
+	// Now collect all release notes texts for versions newer than lastVersion.
+	// We don't need to bother checking the current version here, because we
+	// can't possibly have texts for versions newer than current.
+	type versionAndText struct {
+		version *types.VersionNumber
+		text    string
+	}
+	texts := []versionAndText{}
+	for versionStr, text := range gui.Tr.BreakingChangesByVersion {
+		v, err := types.ParseVersionNumber(versionStr)
+		if err != nil {
+			// Ignore bogus entries in the BreakingChanges map
+			continue
+		}
+		if last.IsOlderThan(v) {
+			texts = append(texts, versionAndText{version: v, text: text})
+		}
+	}
+
+	if len(texts) > 0 {
+		sort.Slice(texts, func(i, j int) bool {
+			return texts[i].version.IsOlderThan(texts[j].version)
+		})
+		message := strings.Join(lo.Map(texts, func(t versionAndText, _ int) string { return t.text }), "\n")
+
+		gui.waitForIntro.Add(1)
+		gui.c.OnUIThread(func() error {
+			onConfirm := func() error {
+				gui.waitForIntro.Done()
+				return nil
+			}
+
+			return gui.c.Confirm(types.ConfirmOpts{
+				Title:         gui.Tr.BreakingChangesTitle,
+				Prompt:        gui.Tr.BreakingChangesMessage + "\n\n" + message,
+				HandleConfirm: onConfirm,
+				HandleClose:   onConfirm,
+			})
+		})
+	}
+}
+
 // setColorScheme sets the color scheme for the app based on the user config
 func (gui *Gui) setColorScheme() error {
 	userConfig := gui.UserConfig
@@ -887,7 +958,7 @@ func (gui *Gui) onUIThread(f func() error) {
 	})
 }
 
-func (gui *Gui) onWorker(f func(gocui.Task)) {
+func (gui *Gui) onWorker(f func(gocui.Task) error) {
 	gui.g.OnWorker(f)
 }
 

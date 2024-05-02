@@ -100,7 +100,7 @@ func Step(b []byte, state int) (cluster, rest []byte, boundaries int, newState i
 	if len(b) <= length { // If we're already past the end, there is nothing else to parse.
 		var prop int
 		if state < 0 {
-			prop = property(graphemeCodePoints, r)
+			prop = propertyGraphemes(r)
 		} else {
 			prop = state >> shiftPropState
 		}
@@ -150,16 +150,14 @@ func Step(b []byte, state int) (cluster, rest []byte, boundaries int, newState i
 			return b[:length], b[length:], boundary, graphemeState | (wordState << shiftWordState) | (sentenceState << shiftSentenceState) | (lineState << shiftLineState) | (prop << shiftPropState)
 		}
 
-		if r == vs16 {
-			width = 2
-		} else if firstProp != prExtendedPictographic && firstProp != prRegionalIndicator && firstProp != prL {
-			width += runeWidth(r, prop)
-		} else if firstProp == prExtendedPictographic {
+		if firstProp == prExtendedPictographic {
 			if r == vs15 {
 				width = 1
-			} else {
+			} else if r == vs16 {
 				width = 2
 			}
+		} else if firstProp != prRegionalIndicator && firstProp != prL {
+			width += runeWidth(r, prop)
 		}
 
 		length += l
@@ -179,7 +177,7 @@ func StepString(str string, state int) (cluster, rest string, boundaries int, ne
 	// Extract the first rune.
 	r, length := utf8.DecodeRuneInString(str)
 	if len(str) <= length { // If we're already past the end, there is nothing else to parse.
-		prop := property(graphemeCodePoints, r)
+		prop := propertyGraphemes(r)
 		return str, "", LineMustBreak | (1 << shiftWord) | (1 << shiftSentence) | (runeWidth(r, prop) << ShiftWidth), grAny | (wbAny << shiftWordState) | (sbAny << shiftSentenceState) | (lbAny << shiftLineState)
 	}
 
@@ -226,16 +224,14 @@ func StepString(str string, state int) (cluster, rest string, boundaries int, ne
 			return str[:length], str[length:], boundary, graphemeState | (wordState << shiftWordState) | (sentenceState << shiftSentenceState) | (lineState << shiftLineState) | (prop << shiftPropState)
 		}
 
-		if r == vs16 {
-			width = 2
-		} else if firstProp != prExtendedPictographic && firstProp != prRegionalIndicator && firstProp != prL {
-			width += runeWidth(r, prop)
-		} else if firstProp == prExtendedPictographic {
+		if firstProp == prExtendedPictographic {
 			if r == vs15 {
 				width = 1
-			} else {
+			} else if r == vs16 {
 				width = 2
 			}
+		} else if firstProp != prRegionalIndicator && firstProp != prL {
+			width += runeWidth(r, prop)
 		}
 
 		length += l

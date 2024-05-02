@@ -90,7 +90,7 @@ func (self *WindowHelper) MoveToTopOfWindow(context types.Context) {
 
 	window := context.GetWindowName()
 
-	topView := self.TopViewInWindow(window)
+	topView := self.TopViewInWindow(window, true)
 
 	if topView != nil && view.Name() != topView.Name() {
 		if err := self.c.GocuiGui().SetViewOnTopOf(view.Name(), topView.Name()); err != nil {
@@ -99,14 +99,14 @@ func (self *WindowHelper) MoveToTopOfWindow(context types.Context) {
 	}
 }
 
-func (self *WindowHelper) TopViewInWindow(windowName string) *gocui.View {
+func (self *WindowHelper) TopViewInWindow(windowName string, includeInvisibleViews bool) *gocui.View {
 	// now I need to find all views in that same window, via contexts. And I guess then I need to find the index of the highest view in that list.
 	viewNamesInWindow := self.viewNamesInWindow(windowName)
 
 	// The views list is ordered highest-last, so we're grabbing the last view of the window
 	var topView *gocui.View
 	for _, currentView := range self.c.GocuiGui().Views() {
-		if lo.Contains(viewNamesInWindow, currentView.Name()) && currentView.Visible {
+		if lo.Contains(viewNamesInWindow, currentView.Name()) && (currentView.Visible || includeInvisibleViews) {
 			topView = currentView
 		}
 	}

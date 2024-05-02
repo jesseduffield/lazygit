@@ -9,7 +9,9 @@ var DoNotShowBranchMarkersInReflogSubcommits = NewIntegrationTest(NewIntegration
 	Description:  "Verify that no branch heads are shown in the subcommits view of a reflog entry",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.AppState.GitLogShowGraph = "never"
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.NewBranch("branch1")
 		shell.EmptyCommit("one")

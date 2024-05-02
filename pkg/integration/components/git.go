@@ -2,7 +2,10 @@ package components
 
 import (
 	"fmt"
+	"log"
 	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 )
 
 type Git struct {
@@ -43,4 +46,20 @@ func (self *Git) expect(cmdArgs []string, condition func(string) (bool, string))
 	})
 
 	return self
+}
+
+func (self *Git) Version() *git_commands.GitVersion {
+	version, err := getGitVersion()
+	if err != nil {
+		log.Fatalf("Could not get git version: %v", err)
+	}
+	return version
+}
+
+func (self *Git) GetCommitHash(ref string) string {
+	output, err := self.shell.runCommandWithOutput([]string{"git", "rev-parse", ref})
+	if err != nil {
+		log.Fatalf("Could not get commit hash: %v", err)
+	}
+	return strings.TrimSpace(output)
 }

@@ -22,7 +22,14 @@ var EmptyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 			// a string that filters everything out
 			FilterOrSearch("ljasldkjaslkdjalskdjalsdjaslkd").
 			IsEmpty().
-			Press(keys.Universal.Select)
+			Press(keys.Universal.Select).
+			Tap(func() {
+				t.ExpectToast(Equals("Disabled: No item selected"))
+			}).
+			// escape the search
+			PressEscape().
+			// escape the view
+			PressEscape()
 
 		// back in the files view, selecting the non-existing menu item was a no-op
 		t.Views().Files().

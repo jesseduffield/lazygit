@@ -23,19 +23,25 @@ var FilterMenu = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Keybindings")).
-					Filter("Toggle staged").
+					Filter("Ignore").
 					Lines(
 						// menu has filtered down to the one item that matches the filter
-						Contains(`Toggle staged`).IsSelected(),
+						Contains(`--- Local ---`),
+						Contains(`Ignore`).IsSelected(),
 					).
+					Confirm()
+
+				t.ExpectPopup().Menu().
+					Title(Equals("Ignore or exclude file")).
+					Select(Contains("Add to .gitignore")).
 					Confirm()
 			})
 
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				// file has been staged
-				Contains(`A `).Contains(`myfile`).IsSelected(),
+				// file has been ignored
+				Contains(`.gitignore`).IsSelected(),
 			).
 			// Upon opening the menu again, the filter should have been reset
 			Press(keys.Universal.OptionMenu).

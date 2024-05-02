@@ -21,6 +21,14 @@ func (self *ViewTrait) FocusPoint(yIdx int) {
 	self.view.FocusPoint(self.view.OriginX(), yIdx)
 }
 
+func (self *ViewTrait) SetRangeSelectStart(yIdx int) {
+	self.view.SetRangeSelectStart(yIdx)
+}
+
+func (self *ViewTrait) CancelRangeSelect() {
+	self.view.CancelRangeSelect()
+}
+
 func (self *ViewTrait) SetViewPortContent(content string) {
 	_, y := self.view.Origin()
 	self.view.OverwriteLines(y, content)

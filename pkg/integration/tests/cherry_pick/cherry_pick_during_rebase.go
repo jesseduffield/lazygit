@@ -9,7 +9,9 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Cherry pick commits from the subcommits view during a rebase",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.AppState.GitLogShowGraph = "never"
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.
 			EmptyCommit("base").
@@ -67,6 +69,9 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 					Title(Equals("Cherry-pick")).
 					Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
 					Confirm()
+			}).
+			Tap(func() {
+				t.Views().Information().Content(DoesNotContain("commit copied"))
 			}).
 			Lines(
 				Contains("pick  CI two"),

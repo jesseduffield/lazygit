@@ -1,71 +1,113 @@
 package controllers
 
 import (
+	"errors"
+	"strings"
+
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type CommitFilesController struct {
 	baseController
+	*ListControllerTrait[*filetree.CommitFileNode]
 	c *ControllerCommon
 }
 
 var _ types.IController = &CommitFilesController{}
 
 func NewCommitFilesController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *CommitFilesController {
 	return &CommitFilesController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
+		ListControllerTrait: NewListControllerTrait[*filetree.CommitFileNode](
+			c,
+			c.Contexts().CommitFiles,
+			c.Contexts().CommitFiles.GetSelected,
+			c.Contexts().CommitFiles.GetSelectedItems,
+		),
 	}
 }
 
 func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.CommitFiles.CheckoutCommitFile),
-			Handler:     self.checkSelected(self.checkout),
-			Description: self.c.Tr.CheckoutCommitFile,
+			Key:               opts.GetKey(opts.Config.CommitFiles.CheckoutCommitFile),
+			Handler:           self.withItem(self.checkout),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.Checkout,
+			Tooltip:           self.c.Tr.CheckoutCommitFileTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.checkSelected(self.discard),
-			Description: self.c.Tr.DiscardOldFileChange,
+			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Handler:           self.withItems(self.discard),
+			GetDisabledReason: self.require(self.itemsSelected()),
+			Description:       self.c.Tr.Remove,
+			Tooltip:           self.c.Tr.DiscardOldFileChangeTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
-			Handler:     self.checkSelected(self.open),
-			Description: self.c.Tr.OpenFile,
+			Key:               opts.GetKey(opts.Config.Universal.OpenFile),
+			Handler:           self.withItem(self.open),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.OpenFile,
+			Tooltip:           self.c.Tr.OpenFileTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
-			Handler:     self.checkSelected(self.edit),
-			Description: self.c.Tr.EditFile,
+			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Handler:           self.withItems(self.edit),
+			GetDisabledReason: self.require(self.itemsSelected(self.canEditFiles)),
+			Description:       self.c.Tr.Edit,
+			Tooltip:           self.c.Tr.EditFileTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.checkSelected(self.toggleForPatch),
-			Description: self.c.Tr.ToggleAddToPatch,
+			Key:               opts.GetKey(opts.Config.Universal.OpenDiffTool),
+			Handler:           self.withItem(self.openDiffTool),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.OpenDiffTool,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Handler:           self.withItems(self.toggleForPatch),
+			GetDisabledReason: self.require(self.itemsSelected()),
+			Description:       self.c.Tr.ToggleAddToPatch,
+			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.ToggleAddToPatchTooltip,
+				map[string]string{"doc": constants.Links.Docs.CustomPatchDemo},
+			),
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleStagedAll),
-			Handler:     self.checkSelected(self.toggleAllForPatch),
+			Handler:     self.withItem(self.toggleAllForPatch),
 			Description: self.c.Tr.ToggleAllInPatch,
+			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.ToggleAllInPatchTooltip,
+				map[string]string{"doc": constants.Links.Docs.CustomPatchDemo},
+			),
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:     self.checkSelected(self.enter),
-			Description: self.c.Tr.EnterFile,
+			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Handler:           self.withItem(self.enter),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.EnterCommitFile,
+			Tooltip:           self.c.Tr.EnterCommitFileTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleTreeView),
 			Handler:     self.toggleTreeView,
 			Description: self.c.Tr.ToggleTreeView,
+			Tooltip:     self.c.Tr.ToggleTreeViewTooltip,
 		},
 	}
 
@@ -81,21 +123,6 @@ func (self *CommitFilesController) GetMouseKeybindings(opts types.KeybindingsOpt
 			FocusedView: self.context().GetViewName(),
 		},
 	}
-}
-
-func (self *CommitFilesController) checkSelected(callback func(*filetree.CommitFileNode) error) func() error {
-	return func() error {
-		selected := self.context().GetSelected()
-		if selected == nil {
-			return nil
-		}
-
-		return callback(selected)
-	}
-}
-
-func (self *CommitFilesController) Context() types.Context {
-	return self.context()
 }
 
 func (self *CommitFilesController) context() *context.CommitFilesContext {
@@ -144,46 +171,57 @@ func (self *CommitFilesController) onClickMain(opts gocui.ViewMouseBindingOpts) 
 func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error {
 	self.c.LogAction(self.c.Tr.Actions.CheckoutFile)
 	if err := self.c.Git().WorkingTree.CheckoutFile(self.context().GetRef().RefName(), node.GetPath()); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
-func (self *CommitFilesController) discard(node *filetree.CommitFileNode) error {
+func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileNode) error {
 	parentContext, ok := self.c.CurrentContext().GetParentContext()
 	if !ok || parentContext.GetKey() != context.LOCAL_COMMITS_CONTEXT_KEY {
-		return self.c.ErrorMsg(self.c.Tr.CanOnlyDiscardFromLocalCommits)
-	}
-
-	if node.File == nil {
-		return self.c.ErrorMsg(self.c.Tr.DiscardNotSupportedForDirectory)
+		return errors.New(self.c.Tr.CanOnlyDiscardFromLocalCommits)
 	}
 
 	if ok, err := self.c.Helpers().PatchBuilding.ValidateNormalWorkingTreeState(); !ok {
 		return err
 	}
 
-	prompt := self.c.Tr.DiscardFileChangesPrompt
-	if node.File.Added() {
-		prompt = self.c.Tr.DiscardAddedFileChangesPrompt
-	} else if node.File.Deleted() {
-		prompt = self.c.Tr.DiscardDeletedFileChangesPrompt
-	}
-
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DiscardFileChangesTitle,
-		Prompt: prompt,
+		Prompt: self.c.Tr.DiscardFileChangesPrompt,
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
-				self.c.LogAction(self.c.Tr.Actions.DiscardOldFileChange)
-				if err := self.c.Git().Rebase.DiscardOldFileChanges(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), node.GetPath()); err != nil {
-					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
+				var filePaths []string
+				selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
+
+				// Reset the current patch if there is one.
+				if self.c.Git().Patch.PatchBuilder.Active() {
+					self.c.Git().Patch.PatchBuilder.Reset()
+					if err := self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI}); err != nil {
 						return err
 					}
 				}
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI})
+				for _, node := range selectedNodes {
+					err := node.ForEachFile(func(file *models.CommitFile) error {
+						filePaths = append(filePaths, file.GetPath())
+						return nil
+					})
+					if err != nil {
+						return err
+					}
+				}
+
+				err := self.c.Git().Rebase.DiscardOldFileChanges(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), filePaths)
+				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
+					return err
+				}
+
+				if self.context().RangeSelectEnabled() {
+					self.context().GetList().CancelRangeSelect()
+				}
+				return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
 			})
 		},
 	})
@@ -193,15 +231,41 @@ func (self *CommitFilesController) open(node *filetree.CommitFileNode) error {
 	return self.c.Helpers().Files.OpenFile(node.GetPath())
 }
 
-func (self *CommitFilesController) edit(node *filetree.CommitFileNode) error {
-	if node.File == nil {
-		return self.c.ErrorMsg(self.c.Tr.ErrCannotEditDirectory)
-	}
-
-	return self.c.Helpers().Files.EditFile(node.GetPath())
+func (self *CommitFilesController) edit(nodes []*filetree.CommitFileNode) error {
+	return self.c.Helpers().Files.EditFiles(lo.FilterMap(nodes,
+		func(node *filetree.CommitFileNode, _ int) (string, bool) {
+			return node.GetPath(), node.IsFile()
+		}))
 }
 
-func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode) error {
+func (self *CommitFilesController) canEditFiles(nodes []*filetree.CommitFileNode) *types.DisabledReason {
+	if lo.NoneBy(nodes, func(node *filetree.CommitFileNode) bool { return node.IsFile() }) {
+		return &types.DisabledReason{
+			Text:             self.c.Tr.ErrCannotEditDirectory,
+			ShowErrorInPanel: true,
+		}
+	}
+
+	return nil
+}
+
+func (self *CommitFilesController) openDiffTool(node *filetree.CommitFileNode) error {
+	ref := self.context().GetRef()
+	to := ref.RefName()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	_, err := self.c.RunSubprocess(self.c.Git().Diff.OpenDiffToolCmdObj(
+		git_commands.DiffToolCmdOptions{
+			Filepath:    node.GetPath(),
+			FromCommit:  from,
+			ToCommit:    to,
+			Reverse:     reverse,
+			IsDirectory: !node.IsFile(),
+			Staged:      false,
+		}))
+	return err
+}
+
+func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.CommitFileNode) error {
 	toggle := func() error {
 		return self.c.WithWaitingStatus(self.c.Tr.UpdatingPatch, func(gocui.Task) error {
 			if !self.c.Git().Patch.PatchBuilder.Active() {
@@ -210,21 +274,29 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 				}
 			}
 
-			// if there is any file that hasn't been fully added we'll fully add everything,
-			// otherwise we'll remove everything
-			adding := node.SomeFile(func(file *models.CommitFile) bool {
-				return self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Name, self.context().GetRef().RefName()) != patch.WHOLE
+			selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
+
+			// Find if any file in the selection is unselected or partially added
+			adding := lo.SomeBy(selectedNodes, func(node *filetree.CommitFileNode) bool {
+				return node.SomeFile(func(file *models.CommitFile) bool {
+					fileStatus := self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Name, self.context().GetRef().RefName())
+					return fileStatus == patch.PART || fileStatus == patch.UNSELECTED
+				})
 			})
 
-			err := node.ForEachFile(func(file *models.CommitFile) error {
-				if adding {
-					return self.c.Git().Patch.PatchBuilder.AddFileWhole(file.Name)
-				} else {
-					return self.c.Git().Patch.PatchBuilder.RemoveFile(file.Name)
+			patchOperationFunction := self.c.Git().Patch.PatchBuilder.RemoveFile
+
+			if adding {
+				patchOperationFunction = self.c.Git().Patch.PatchBuilder.AddFileWhole
+			}
+
+			for _, node := range selectedNodes {
+				err := node.ForEachFile(func(file *models.CommitFile) error {
+					return patchOperationFunction(file.Name)
+				})
+				if err != nil {
+					return err
 				}
-			})
-			if err != nil {
-				return self.c.Error(err)
 			}
 
 			if self.c.Git().Patch.PatchBuilder.IsEmpty() {
@@ -251,7 +323,7 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 
 func (self *CommitFilesController) toggleAllForPatch(_ *filetree.CommitFileNode) error {
 	root := self.context().CommitFileTreeViewModel.GetRoot()
-	return self.toggleForPatch(root)
+	return self.toggleForPatch([]*filetree.CommitFileNode{root})
 }
 
 func (self *CommitFilesController) startPatchBuilder() error {
@@ -314,4 +386,24 @@ func (self *CommitFilesController) toggleTreeView() error {
 	self.context().CommitFileTreeViewModel.ToggleShowTree()
 
 	return self.c.PostRefreshUpdate(self.context())
+}
+
+// NOTE: these functions are identical to those in files_controller.go (except for types) and
+// could also be cleaned up with some generics
+func normalisedSelectedCommitFileNodes(selectedNodes []*filetree.CommitFileNode) []*filetree.CommitFileNode {
+	return lo.Filter(selectedNodes, func(node *filetree.CommitFileNode, _ int) bool {
+		return !isDescendentOfSelectedCommitFileNodes(node, selectedNodes)
+	})
+}
+
+func isDescendentOfSelectedCommitFileNodes(node *filetree.CommitFileNode, selectedNodes []*filetree.CommitFileNode) bool {
+	for _, selectedNode := range selectedNodes {
+		selectedNodePath := selectedNode.GetPath()
+		nodePath := node.GetPath()
+
+		if strings.HasPrefix(nodePath, selectedNodePath) && nodePath != selectedNodePath {
+			return true
+		}
+	}
+	return false
 }

@@ -88,6 +88,9 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 						Contains(" 1f"),
 				)
 			}).
+			// Cancel hunk select
+			PressEscape().
+			// Escape the view
 			PressEscape()
 
 		t.Views().CommitFiles().
@@ -97,17 +100,12 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().PatchBuilding().
 			IsFocused().
-			// hunk is selected because selection mode persists across files
-			ContainsLines(
-				Contains("@@ -0,0 +1,26 @@").IsSelected(),
-			).
-			Press(keys.Main.ToggleSelectHunk).
 			SelectedLines(
 				Contains("+2a"),
 			).
 			PressPrimaryAction().
 			NavigateToLine(Contains("+2c")).
-			Press(keys.Main.ToggleDragSelect).
+			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("+2e")).
 			PressPrimaryAction().
 			NavigateToLine(Contains("+2g")).

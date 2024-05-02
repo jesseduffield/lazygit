@@ -13,10 +13,6 @@ import (
 	"github.com/xo/terminfo"
 )
 
-func init() {
-	color.ForceSetColorLevel(terminfo.ColorLevelNone)
-}
-
 func toStringSlice(str string) []string {
 	return strings.Split(strings.TrimSpace(str), "\n")
 }
@@ -66,6 +62,9 @@ M  file1
 		},
 	}
 
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
+	defer color.ForceSetColorLevel(oldColorLevel)
+
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.name, func(t *testing.T) {
@@ -74,7 +73,7 @@ M  file1
 			for _, path := range s.collapsedPaths {
 				viewModel.ToggleCollapsed(path)
 			}
-			result := RenderFileTree(viewModel, "", nil)
+			result := RenderFileTree(viewModel, nil, false)
 			assert.EqualValues(t, s.expected, result)
 		})
 	}
@@ -125,6 +124,9 @@ M file1
 		},
 	}
 
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
+	defer color.ForceSetColorLevel(oldColorLevel)
+
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.name, func(t *testing.T) {
@@ -141,7 +143,7 @@ M file1
 				},
 			)
 			patchBuilder.Start("from", "to", false, false)
-			result := RenderCommitFileTree(viewModel, "", patchBuilder)
+			result := RenderCommitFileTree(viewModel, patchBuilder, false)
 			assert.EqualValues(t, s.expected, result)
 		})
 	}

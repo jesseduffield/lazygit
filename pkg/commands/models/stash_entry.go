@@ -4,8 +4,9 @@ import "fmt"
 
 // StashEntry : A git stash entry
 type StashEntry struct {
-	Index int
-	Name  string
+	Index   int
+	Recency string
+	Name    string
 }
 
 func (s *StashEntry) FullRefName() string {

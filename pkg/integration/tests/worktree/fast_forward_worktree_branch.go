@@ -11,7 +11,7 @@ var FastForwardWorktreeBranch = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
-		// both main and linked worktree will have changed to fast-foward
+		// both main and linked worktree will have changed to fast-forward
 		shell.NewBranch("mybranch")
 		shell.CreateFileAndAdd("README.md", "hello world")
 		shell.Commit("initial commit")

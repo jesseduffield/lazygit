@@ -16,6 +16,9 @@ func (gui *Gui) Helpers() *helpers.Helpers {
 	return gui.helpers
 }
 
+// Note, the order of controllers determines the order in which keybindings appear
+// in the keybinding menu: the earlier that the controller is attached to a context,
+// the lower in the list the keybindings will appear.
 func (gui *Gui) resetHelpersAndControllers() {
 	helperCommon := gui.c
 	recordDirectoryHelper := helpers.NewRecordDirectoryHelper(helperCommon)
@@ -35,10 +38,14 @@ func (gui *Gui) resetHelpersAndControllers() {
 	getCommitDescription := func() string {
 		return strings.TrimSpace(gui.Views.CommitDescription.TextArea.GetContent())
 	}
+	getUnwrappedCommitDescription := func() string {
+		return strings.TrimSpace(gui.Views.CommitDescription.TextArea.GetUnwrappedContent())
+	}
 	commitsHelper := helpers.NewCommitsHelper(helperCommon,
 		getCommitSummary,
 		setCommitSummary,
 		getCommitDescription,
+		getUnwrappedCommitDescription,
 		setCommitDescription,
 	)
 
@@ -103,6 +110,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		CherryPick:      cherryPickHelper,
 		Upstream:        helpers.NewUpstreamHelper(helperCommon, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
 		AmendHelper:     helpers.NewAmendHelper(helperCommon, gpgHelper),
+		FixupHelper:     helpers.NewFixupHelper(helperCommon),
 		Commits:         commitsHelper,
 		Snake:           helpers.NewSnakeHelper(helperCommon),
 		Diff:            diffHelper,
@@ -171,7 +179,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	branchesController := controllers.NewBranchesController(common)
 	gitFlowController := controllers.NewGitFlowController(common)
-	filesRemoveController := controllers.NewFilesRemoveController(common)
 	stashController := controllers.NewStashController(common)
 	commitFilesController := controllers.NewCommitFilesController(common)
 	patchExplorerControllerFactory := controllers.NewPatchExplorerControllerFactory(common)
@@ -197,6 +204,18 @@ func (gui *Gui) resetHelpersAndControllers() {
 	searchControllerFactory := controllers.NewSearchControllerFactory(common)
 	for _, context := range gui.c.Context().AllSearchable() {
 		controllers.AttachControllers(context, searchControllerFactory.Create(context))
+	}
+
+	for _, context := range []controllers.CanViewWorktreeOptions{
+		gui.State.Contexts.LocalCommits,
+		gui.State.Contexts.ReflogCommits,
+		gui.State.Contexts.SubCommits,
+		gui.State.Contexts.Stash,
+		gui.State.Contexts.Branches,
+		gui.State.Contexts.RemoteBranches,
+		gui.State.Contexts.Tags,
+	} {
+		controllers.AttachControllers(context, controllers.NewWorktreeOptionsController(common, context))
 	}
 
 	// allow for navigating between side window contexts
@@ -247,18 +266,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 		controllers.AttachControllers(context, controllers.NewBasicCommitsController(common, context))
 	}
 
-	for _, context := range []controllers.CanViewWorktreeOptions{
-		gui.State.Contexts.LocalCommits,
-		gui.State.Contexts.ReflogCommits,
-		gui.State.Contexts.SubCommits,
-		gui.State.Contexts.Stash,
-		gui.State.Contexts.Branches,
-		gui.State.Contexts.RemoteBranches,
-		gui.State.Contexts.Tags,
-	} {
-		controllers.AttachControllers(context, controllers.NewWorktreeOptionsController(common, context))
-	}
-
 	controllers.AttachControllers(gui.State.Contexts.ReflogCommits,
 		reflogCommitsController,
 	)
@@ -296,7 +303,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.Files,
 		filesController,
-		filesRemoveController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Tags,
@@ -305,11 +311,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.Submodules,
 		submodulesController,
-	)
-
-	controllers.AttachControllers(gui.State.Contexts.LocalCommits,
-		localCommitsController,
-		bisectController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Branches,
@@ -375,11 +376,11 @@ func (gui *Gui) resetHelpersAndControllers() {
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Global,
-		syncController,
 		undoController,
 		globalController,
 		contextLinesController,
 		jumpToSideWindowController,
+		syncController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Snake,

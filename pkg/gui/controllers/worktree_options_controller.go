@@ -14,15 +14,22 @@ type CanViewWorktreeOptions interface {
 
 type WorktreeOptionsController struct {
 	baseController
+	*ListControllerTrait[string]
 	c       *ControllerCommon
 	context CanViewWorktreeOptions
 }
 
-func NewWorktreeOptionsController(controllerCommon *ControllerCommon, context CanViewWorktreeOptions) *WorktreeOptionsController {
+func NewWorktreeOptionsController(c *ControllerCommon, context CanViewWorktreeOptions) *WorktreeOptionsController {
 	return &WorktreeOptionsController{
 		baseController: baseController{},
-		c:              controllerCommon,
-		context:        context,
+		ListControllerTrait: NewListControllerTrait[string](
+			c,
+			context,
+			context.GetSelectedItemId,
+			context.GetSelectedItemIds,
+		),
+		c:       c,
+		context: context,
 	}
 }
 
@@ -30,28 +37,13 @@ func (self *WorktreeOptionsController) GetKeybindings(opts types.KeybindingsOpts
 	bindings := []*types.Binding{
 		{
 			Key:         opts.GetKey(opts.Config.Worktrees.ViewWorktreeOptions),
-			Handler:     self.checkSelected(self.viewWorktreeOptions),
+			Handler:     self.withItem(self.viewWorktreeOptions),
 			Description: self.c.Tr.ViewWorktreeOptions,
 			OpensMenu:   true,
 		},
 	}
 
 	return bindings
-}
-
-func (self *WorktreeOptionsController) checkSelected(callback func(string) error) func() error {
-	return func() error {
-		ref := self.context.GetSelectedItemId()
-		if ref == "" {
-			return nil
-		}
-
-		return callback(ref)
-	}
-}
-
-func (self *WorktreeOptionsController) Context() types.Context {
-	return self.context
 }
 
 func (self *WorktreeOptionsController) viewWorktreeOptions(ref string) error {

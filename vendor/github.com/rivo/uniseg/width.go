@@ -1,5 +1,10 @@
 package uniseg
 
+// EastAsianAmbiguousWidth specifies the monospace width for East Asian
+// characters classified as Ambiguous. The default is 1 but some rare fonts
+// render them with a width of 2.
+var EastAsianAmbiguousWidth = 1
+
 // runeWidth returns the monospace width for the given rune. The provided
 // grapheme property is a value mapped by the [graphemeCodePoints] table.
 //
@@ -33,9 +38,11 @@ func runeWidth(r rune, graphemeProperty int) int {
 		return 4
 	}
 
-	switch property(eastAsianWidth, r) {
+	switch propertyEastAsianWidth(r) {
 	case prW, prF:
 		return 2
+	case prA:
+		return EastAsianAmbiguousWidth
 	}
 
 	return 1

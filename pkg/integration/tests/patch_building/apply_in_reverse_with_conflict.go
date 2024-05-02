@@ -63,7 +63,7 @@ var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("UU").Contains("file1").IsSelected(),
 			).
-			PressPrimaryAction()
+			PressEnter()
 
 		t.Views().MergeConflicts().
 			IsFocused().

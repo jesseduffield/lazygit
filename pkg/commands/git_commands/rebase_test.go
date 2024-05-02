@@ -111,7 +111,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 		gitConfigMockResponses map[string]string
 		commits                []*models.Commit
 		commitIndex            int
-		fileName               string
+		fileName               []string
 		runner                 *oscommands.FakeCmdObjRunner
 		test                   func(error)
 	}
@@ -122,7 +122,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 			gitConfigMockResponses: nil,
 			commits:                []*models.Commit{},
 			commitIndex:            0,
-			fileName:               "test999.txt",
+			fileName:               []string{"test999.txt"},
 			runner:                 oscommands.NewFakeRunner(t),
 			test: func(err error) {
 				assert.Error(t, err)
@@ -131,9 +131,9 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 		{
 			testName:               "returns error when using gpg",
 			gitConfigMockResponses: map[string]string{"commit.gpgsign": "true"},
-			commits:                []*models.Commit{{Name: "commit", Sha: "123456"}},
+			commits:                []*models.Commit{{Name: "commit", Hash: "123456"}},
 			commitIndex:            0,
-			fileName:               "test999.txt",
+			fileName:               []string{"test999.txt"},
 			runner:                 oscommands.NewFakeRunner(t),
 			test: func(err error) {
 				assert.Error(t, err)
@@ -143,11 +143,11 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 			testName:               "checks out file if it already existed",
 			gitConfigMockResponses: nil,
 			commits: []*models.Commit{
-				{Name: "commit", Sha: "123456"},
-				{Name: "commit2", Sha: "abcdef"},
+				{Name: "commit", Hash: "123456"},
+				{Name: "commit2", Hash: "abcdef"},
 			},
 			commitIndex: 0,
-			fileName:    "test999.txt",
+			fileName:    []string{"test999.txt"},
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"rebase", "--interactive", "--autostash", "--keep-empty", "--no-autosquash", "--rebase-merges", "abcdef"}, "", nil).
 				ExpectGitArgs([]string{"cat-file", "-e", "HEAD^:test999.txt"}, "", nil).

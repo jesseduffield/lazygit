@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/mattn/go-runewidth"
@@ -176,9 +177,18 @@ func SafeTruncate(str string, limit int) string {
 
 const COMMIT_HASH_SHORT_SIZE = 8
 
-func ShortSha(sha string) string {
-	if len(sha) < COMMIT_HASH_SHORT_SIZE {
-		return sha
+func ShortHash(hash string) string {
+	if len(hash) < COMMIT_HASH_SHORT_SIZE {
+		return hash
 	}
-	return sha[:COMMIT_HASH_SHORT_SIZE]
+	return hash[:COMMIT_HASH_SHORT_SIZE]
+}
+
+// Returns comma-separated list of paths, with ellipsis if there are more than 3
+// e.g. "foo, bar, baz, [...3 more]"
+func FormatPaths(paths []string) string {
+	if len(paths) <= 3 {
+		return strings.Join(paths, ", ")
+	}
+	return fmt.Sprintf("%s, %s, %s, [...%d more]", paths[0], paths[1], paths[2], len(paths)-3)
 }

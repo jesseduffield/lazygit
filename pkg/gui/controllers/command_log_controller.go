@@ -12,11 +12,11 @@ type CommandLogController struct {
 var _ types.IController = &CommandLogController{}
 
 func NewCommandLogController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *CommandLogController {
 	return &CommandLogController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 

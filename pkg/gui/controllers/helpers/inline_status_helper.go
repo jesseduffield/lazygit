@@ -66,19 +66,13 @@ func (self inlineStatusHelperTask) Continue() {
 func (self *InlineStatusHelper) WithInlineStatus(opts InlineStatusOpts, f func(gocui.Task) error) {
 	context := self.c.ContextForKey(opts.ContextKey).(types.IListContext)
 	view := context.GetView()
-	visible := view.Visible && self.windowHelper.TopViewInWindow(context.GetWindowName()) == view
+	visible := view.Visible && self.windowHelper.TopViewInWindow(context.GetWindowName(), false) == view
 	if visible && context.IsItemVisible(opts.Item) {
-		self.c.OnWorker(func(task gocui.Task) {
+		self.c.OnWorker(func(task gocui.Task) error {
 			self.start(opts)
+			defer self.stop(opts)
 
-			err := f(inlineStatusHelperTask{task, self, opts})
-			if err != nil {
-				self.c.OnUIThread(func() error {
-					return self.c.Error(err)
-				})
-			}
-
-			self.stop(opts)
+			return f(inlineStatusHelperTask{task, self, opts})
 		})
 	} else {
 		message := presentation.ItemOperationToString(opts.Operation, self.c.Tr)
@@ -105,7 +99,7 @@ func (self *InlineStatusHelper) start(opts InlineStatusOpts) {
 		self.contextsWithInlineStatus[opts.ContextKey] = info
 
 		go utils.Safe(func() {
-			ticker := time.NewTicker(time.Millisecond * utils.LoaderAnimationInterval)
+			ticker := time.NewTicker(time.Millisecond * time.Duration(self.c.UserConfig.Gui.Spinner.Rate))
 			defer ticker.Stop()
 		outer:
 			for {
@@ -131,12 +125,28 @@ func (self *InlineStatusHelper) stop(opts InlineStatusOpts) {
 			info.stop <- struct{}{}
 			delete(self.contextsWithInlineStatus, opts.ContextKey)
 		}
-
 	}
 
 	self.mutex.Unlock()
 
 	self.c.State().ClearItemOperation(opts.Item)
+
+	// When recording a demo we need to re-render the context again here to
+	// remove the inline status. In normal usage we don't want to do this
+	// because in the case of pushing a branch this would first reveal the ↑3↓7
+	// status from before the push for a brief moment, to be replaced by a green
+	// checkmark a moment later when the async refresh is done. This looks
+	// jarring, so normally we rely on the async refresh to redraw with the
+	// status removed. (In some rare cases, where there's no refresh at all, we
+	// need to redraw manually in the controller; see TagsController.push() for
+	// an example.)
+	//
+	// In demos, however, we turn all async refreshes into sync ones, because
+	// this looks better in demos. In this case the refresh happens while the
+	// status is still set, so we need to render again after removing it.
+	if self.c.InDemo() {
+		self.renderContext(opts.ContextKey)
+	}
 }
 
 func (self *InlineStatusHelper) renderContext(contextKey types.ContextKey) {

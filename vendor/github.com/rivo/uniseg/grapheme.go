@@ -13,9 +13,10 @@ import "unicode/utf8"
 // well as boundary information and character width is available via the various
 // methods (see examples below).
 //
-// Using this class to iterate over a string is convenient but it is much slower
-// than using this package's [Step] or [StepString] functions or any of the
-// other specialized functions starting with "First".
+// This class basically wraps the [StepString] parser and provides a convenient
+// interface to it. If you are only interested in some parts of this package's
+// functionality, using the specialized functions starting with "First" is
+// almost always faster.
 type Graphemes struct {
 	// The original string.
 	original string
@@ -222,7 +223,7 @@ func FirstGraphemeCluster(b []byte, state int) (cluster, rest []byte, width, new
 	if len(b) <= length { // If we're already past the end, there is nothing else to parse.
 		var prop int
 		if state < 0 {
-			prop = property(graphemeCodePoints, r)
+			prop = propertyGraphemes(r)
 		} else {
 			prop = state >> shiftGraphemePropState
 		}
@@ -252,16 +253,14 @@ func FirstGraphemeCluster(b []byte, state int) (cluster, rest []byte, width, new
 			return b[:length], b[length:], width, state | (prop << shiftGraphemePropState)
 		}
 
-		if r == vs16 {
-			width = 2
-		} else if firstProp != prExtendedPictographic && firstProp != prRegionalIndicator && firstProp != prL {
-			width += runeWidth(r, prop)
-		} else if firstProp == prExtendedPictographic {
+		if firstProp == prExtendedPictographic {
 			if r == vs15 {
 				width = 1
-			} else {
+			} else if r == vs16 {
 				width = 2
 			}
+		} else if firstProp != prRegionalIndicator && firstProp != prL {
+			width += runeWidth(r, prop)
 		}
 
 		length += l
@@ -284,7 +283,7 @@ func FirstGraphemeClusterInString(str string, state int) (cluster, rest string, 
 	if len(str) <= length { // If we're already past the end, there is nothing else to parse.
 		var prop int
 		if state < 0 {
-			prop = property(graphemeCodePoints, r)
+			prop = propertyGraphemes(r)
 		} else {
 			prop = state >> shiftGraphemePropState
 		}
@@ -314,16 +313,14 @@ func FirstGraphemeClusterInString(str string, state int) (cluster, rest string, 
 			return str[:length], str[length:], width, state | (prop << shiftGraphemePropState)
 		}
 
-		if r == vs16 {
-			width = 2
-		} else if firstProp != prExtendedPictographic && firstProp != prRegionalIndicator && firstProp != prL {
-			width += runeWidth(r, prop)
-		} else if firstProp == prExtendedPictographic {
+		if firstProp == prExtendedPictographic {
 			if r == vs15 {
 				width = 1
-			} else {
+			} else if r == vs16 {
 				width = 2
 			}
+		} else if firstProp != prRegionalIndicator && firstProp != prL {
+			width += runeWidth(r, prop)
 		}
 
 		length += l

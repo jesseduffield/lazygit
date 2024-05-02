@@ -12,6 +12,7 @@ import (
 	"github.com/creack/pty"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 func (gui *Gui) desiredPtySize() *pty.Winsize {
@@ -54,6 +55,13 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 	cmdStr := strings.Join(cmd.Args, " ")
 
+	// This communicates to pagers that we're in a very simple
+	// terminal that they should not expect to have much capabilities.
+	// Moving the cursor, clearing the screen, or querying for colors are among such "advanced" capabilities.
+	// Context: https://github.com/jesseduffield/lazygit/issues/3419
+	cmd.Env = removeExistingTermEnvVars(cmd.Env)
+	cmd.Env = append(cmd.Env, "TERM=dumb")
+
 	cmd.Env = append(cmd.Env, "GIT_PAGER="+pager)
 
 	manager := gui.getManager(view)
@@ -86,4 +94,21 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	}
 
 	return nil
+}
+
+func removeExistingTermEnvVars(env []string) []string {
+	return lo.Filter(env, func(envVar string, _ int) bool {
+		return !isTermEnvVar(envVar)
+	})
+}
+
+// Terminals set a variety of different environment variables
+// to identify themselves to processes. This list should catch the most common among them.
+func isTermEnvVar(envVar string) bool {
+	return strings.HasPrefix(envVar, "TERM=") ||
+		strings.HasPrefix(envVar, "TERM_PROGRAM=") ||
+		strings.HasPrefix(envVar, "TERM_PROGRAM_VERSION=") ||
+		strings.HasPrefix(envVar, "TERMINAL_EMULATOR=") ||
+		strings.HasPrefix(envVar, "TERMINAL_NAME=") ||
+		strings.HasPrefix(envVar, "TERMINAL_VERSION_")
 }

@@ -25,6 +25,7 @@ func TestGetReflogCommits(t *testing.T) {
 		runner                  *oscommands.FakeCmdObjRunner
 		lastReflogCommit        *models.Commit
 		filterPath              string
+		filterAuthor            string
 		expectedCommits         []*models.Commit
 		expectedOnlyObtainedNew bool
 		expectedError           error
@@ -49,35 +50,35 @@ func TestGetReflogCommits(t *testing.T) {
 			lastReflogCommit: nil,
 			expectedCommits: []*models.Commit{
 				{
-					Sha:           "c3c4b66b64c97ffeecde",
+					Hash:          "c3c4b66b64c97ffeecde",
 					Name:          "checkout: moving from A to B",
 					Status:        models.StatusReflog,
 					UnixTimestamp: 1643150483,
 					Parents:       []string{"51baa8c1"},
 				},
 				{
-					Sha:           "c3c4b66b64c97ffeecde",
+					Hash:          "c3c4b66b64c97ffeecde",
 					Name:          "checkout: moving from B to A",
 					Status:        models.StatusReflog,
 					UnixTimestamp: 1643150483,
 					Parents:       []string{"51baa8c1"},
 				},
 				{
-					Sha:           "c3c4b66b64c97ffeecde",
+					Hash:          "c3c4b66b64c97ffeecde",
 					Name:          "checkout: moving from A to B",
 					Status:        models.StatusReflog,
 					UnixTimestamp: 1643150483,
 					Parents:       []string{"51baa8c1"},
 				},
 				{
-					Sha:           "c3c4b66b64c97ffeecde",
+					Hash:          "c3c4b66b64c97ffeecde",
 					Name:          "checkout: moving from master to A",
 					Status:        models.StatusReflog,
 					UnixTimestamp: 1643150483,
 					Parents:       []string{"51baa8c1"},
 				},
 				{
-					Sha:           "f4ddf2f0d4be4ccc7efa",
+					Hash:          "f4ddf2f0d4be4ccc7efa",
 					Name:          "checkout: moving from A to master",
 					Status:        models.StatusReflog,
 					UnixTimestamp: 1643149435,
@@ -93,7 +94,7 @@ func TestGetReflogCommits(t *testing.T) {
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p"}, reflogOutput, nil),
 
 			lastReflogCommit: &models.Commit{
-				Sha:           "c3c4b66b64c97ffeecde",
+				Hash:          "c3c4b66b64c97ffeecde",
 				Name:          "checkout: moving from B to A",
 				Status:        models.StatusReflog,
 				UnixTimestamp: 1643150483,
@@ -101,7 +102,7 @@ func TestGetReflogCommits(t *testing.T) {
 			},
 			expectedCommits: []*models.Commit{
 				{
-					Sha:           "c3c4b66b64c97ffeecde",
+					Hash:          "c3c4b66b64c97ffeecde",
 					Name:          "checkout: moving from A to B",
 					Status:        models.StatusReflog,
 					UnixTimestamp: 1643150483,
@@ -117,7 +118,7 @@ func TestGetReflogCommits(t *testing.T) {
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p", "--follow", "--", "path"}, reflogOutput, nil),
 
 			lastReflogCommit: &models.Commit{
-				Sha:           "c3c4b66b64c97ffeecde",
+				Hash:          "c3c4b66b64c97ffeecde",
 				Name:          "checkout: moving from B to A",
 				Status:        models.StatusReflog,
 				UnixTimestamp: 1643150483,
@@ -126,7 +127,32 @@ func TestGetReflogCommits(t *testing.T) {
 			filterPath: "path",
 			expectedCommits: []*models.Commit{
 				{
-					Sha:           "c3c4b66b64c97ffeecde",
+					Hash:          "c3c4b66b64c97ffeecde",
+					Name:          "checkout: moving from A to B",
+					Status:        models.StatusReflog,
+					UnixTimestamp: 1643150483,
+					Parents:       []string{"51baa8c1"},
+				},
+			},
+			expectedOnlyObtainedNew: true,
+			expectedError:           nil,
+		},
+		{
+			testName: "when passing filterAuthor",
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p", "--author=John Doe <john@doe.com>"}, reflogOutput, nil),
+
+			lastReflogCommit: &models.Commit{
+				Hash:          "c3c4b66b64c97ffeecde",
+				Name:          "checkout: moving from B to A",
+				Status:        models.StatusReflog,
+				UnixTimestamp: 1643150483,
+				Parents:       []string{"51baa8c1"},
+			},
+			filterAuthor: "John Doe <john@doe.com>",
+			expectedCommits: []*models.Commit{
+				{
+					Hash:          "c3c4b66b64c97ffeecde",
 					Name:          "checkout: moving from A to B",
 					Status:        models.StatusReflog,
 					UnixTimestamp: 1643150483,
@@ -157,7 +183,7 @@ func TestGetReflogCommits(t *testing.T) {
 				cmd:    oscommands.NewDummyCmdObjBuilder(scenario.runner),
 			}
 
-			commits, onlyObtainednew, err := builder.GetReflogCommits(scenario.lastReflogCommit, scenario.filterPath)
+			commits, onlyObtainednew, err := builder.GetReflogCommits(scenario.lastReflogCommit, scenario.filterPath, scenario.filterAuthor)
 			assert.Equal(t, scenario.expectedOnlyObtainedNew, onlyObtainednew)
 			assert.Equal(t, scenario.expectedError, err)
 			t.Logf("actual commits: \n%s", litter.Sdump(commits))

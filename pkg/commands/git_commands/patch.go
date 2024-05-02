@@ -4,12 +4,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 type PatchCommands struct {
@@ -157,13 +157,13 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	baseIndex := sourceCommitIdx + 1
 
 	changes := []daemon.ChangeTodoAction{
-		{Sha: commits[sourceCommitIdx].Sha, NewAction: todo.Edit},
-		{Sha: commits[destinationCommitIdx].Sha, NewAction: todo.Edit},
+		{Hash: commits[sourceCommitIdx].Hash, NewAction: todo.Edit},
+		{Hash: commits[destinationCommitIdx].Hash, NewAction: todo.Edit},
 	}
 	self.os.LogCommand(logTodoChanges(changes), false)
 
 	err := self.rebase.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseShaOrRoot:  commits[baseIndex].Sha,
+		baseHashOrRoot: commits[baseIndex].Hash,
 		overrideEditor: true,
 		instruction:    daemon.NewChangeTodoActionsInstruction(changes),
 	}).Run()
@@ -219,7 +219,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 
 func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, stash bool) error {
 	if stash {
-		if err := self.stash.Push(self.Tr.StashPrefix + commits[commitIdx].Sha); err != nil {
+		if err := self.stash.Push(self.Tr.StashPrefix + commits[commitIdx].Hash); err != nil {
 			return err
 		}
 	}
@@ -321,7 +321,11 @@ func (self *PatchCommands) PullPatchIntoNewCommit(
 // only some lines of a range of adjacent added lines. To solve this, we
 // get the diff of HEAD and the original commit and then apply that.
 func (self *PatchCommands) diffHeadAgainstCommit(commit *models.Commit) (string, error) {
-	cmdArgs := NewGitCmd("diff").Arg("HEAD.." + commit.Sha).ToArgv()
+	cmdArgs := NewGitCmd("diff").
+		Config("diff.noprefix=false").
+		Arg("--no-ext-diff").
+		Arg("HEAD.." + commit.Hash).
+		ToArgv()
 
 	return self.cmd.New(cmdArgs).RunWithOutput()
 }

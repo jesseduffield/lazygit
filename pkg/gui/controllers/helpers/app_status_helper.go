@@ -5,7 +5,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/status"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type AppStatusHelper struct {
@@ -23,7 +23,7 @@ func NewAppStatusHelper(c *HelperCommon, statusMgr func() *status.StatusManager,
 	}
 }
 
-func (self *AppStatusHelper) Toast(message string) {
+func (self *AppStatusHelper) Toast(message string, kind types.ToastKind) {
 	if self.c.RunningIntegrationTest() {
 		// Don't bother showing toasts in integration tests. You can't check for
 		// them anyway, and they would only slow down the test unnecessarily by
@@ -31,7 +31,7 @@ func (self *AppStatusHelper) Toast(message string) {
 		return
 	}
 
-	self.statusMgr().AddToastStatus(message)
+	self.statusMgr().AddToastStatus(message, kind)
 
 	self.renderAppStatus()
 }
@@ -59,26 +59,20 @@ func (self appStatusHelperTask) Continue() {
 
 // withWaitingStatus wraps a function and shows a waiting status while the function is still executing
 func (self *AppStatusHelper) WithWaitingStatus(message string, f func(gocui.Task) error) {
-	self.c.OnWorker(func(task gocui.Task) {
-		self.statusMgr().WithWaitingStatus(message, self.renderAppStatus, func(waitingStatusHandle *status.WaitingStatusHandle) {
-			if err := f(appStatusHelperTask{task, waitingStatusHandle}); err != nil {
-				self.c.OnUIThread(func() error {
-					return self.c.Error(err)
-				})
-			}
+	self.c.OnWorker(func(task gocui.Task) error {
+		return self.statusMgr().WithWaitingStatus(message, self.renderAppStatus, func(waitingStatusHandle *status.WaitingStatusHandle) error {
+			return f(appStatusHelperTask{task, waitingStatusHandle})
 		})
 	})
 }
 
-func (self *AppStatusHelper) WithWaitingStatusSync(message string, f func() error) {
-	self.statusMgr().WithWaitingStatus(message, func() {}, func(*status.WaitingStatusHandle) {
+func (self *AppStatusHelper) WithWaitingStatusSync(message string, f func() error) error {
+	return self.statusMgr().WithWaitingStatus(message, func() {}, func(*status.WaitingStatusHandle) error {
 		stop := make(chan struct{})
 		defer func() { close(stop) }()
 		self.renderAppStatusSync(stop)
 
-		if err := f(); err != nil {
-			_ = self.c.Error(err)
-		}
+		return f()
 	})
 }
 
@@ -87,24 +81,27 @@ func (self *AppStatusHelper) HasStatus() bool {
 }
 
 func (self *AppStatusHelper) GetStatusString() string {
-	return self.statusMgr().GetStatusString()
+	appStatus, _ := self.statusMgr().GetStatusString(self.c.UserConfig)
+	return appStatus
 }
 
 func (self *AppStatusHelper) renderAppStatus() {
-	self.c.OnWorker(func(_ gocui.Task) {
-		ticker := time.NewTicker(time.Millisecond * utils.LoaderAnimationInterval)
+	self.c.OnWorker(func(_ gocui.Task) error {
+		ticker := time.NewTicker(time.Millisecond * time.Duration(self.c.UserConfig.Gui.Spinner.Rate))
 		defer ticker.Stop()
 		for range ticker.C {
-			appStatus := self.statusMgr().GetStatusString()
+			appStatus, color := self.statusMgr().GetStatusString(self.c.UserConfig)
+			self.c.Views().AppStatus.FgColor = color
 			self.c.OnUIThread(func() error {
 				self.c.SetViewContent(self.c.Views().AppStatus, appStatus)
 				return nil
 			})
 
 			if appStatus == "" {
-				return
+				break
 			}
 		}
+		return nil
 	})
 }
 
@@ -127,7 +124,8 @@ func (self *AppStatusHelper) renderAppStatusSync(stop chan struct{}) {
 		for {
 			select {
 			case <-ticker.C:
-				appStatus := self.statusMgr().GetStatusString()
+				appStatus, color := self.statusMgr().GetStatusString(self.c.UserConfig)
+				self.c.Views().AppStatus.FgColor = color
 				self.c.SetViewContent(self.c.Views().AppStatus, appStatus)
 				// Redraw all views of the bottom line:
 				bottomLineViews := []*gocui.View{

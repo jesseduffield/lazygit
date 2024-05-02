@@ -5,7 +5,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // note: items option is mutated by this function
@@ -31,7 +30,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 			item.LabelColumns[0] = fmt.Sprintf("%s...", item.LabelColumns[0])
 		}
 
-		maxColumnSize = utils.Max(maxColumnSize, len(item.LabelColumns))
+		maxColumnSize = max(maxColumnSize, len(item.LabelColumns))
 	}
 
 	for _, item := range opts.Items {
@@ -43,7 +42,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	}
 
 	gui.State.Contexts.Menu.SetMenuItems(opts.Items, opts.ColumnAlignment)
-	gui.State.Contexts.Menu.SetSelectedLineIdx(0)
+	gui.State.Contexts.Menu.SetSelection(0)
 
 	gui.Views.Menu.Title = opts.Title
 	gui.Views.Menu.FgColor = theme.GocuiDefaultTextColor

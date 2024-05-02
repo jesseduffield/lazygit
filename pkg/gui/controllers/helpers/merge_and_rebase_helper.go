@@ -1,7 +1,10 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -76,10 +79,23 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	status := self.c.Git().Status.WorkingTreeState()
 
 	if status != enums.REBASE_MODE_MERGING && status != enums.REBASE_MODE_REBASING {
-		return self.c.ErrorMsg(self.c.Tr.NotMergingOrRebasing)
+		return errors.New(self.c.Tr.NotMergingOrRebasing)
 	}
 
 	self.c.LogAction(fmt.Sprintf("Merge/Rebase: %s", command))
+	if status == enums.REBASE_MODE_REBASING {
+		todoFile, err := os.ReadFile(
+			filepath.Join(self.c.Git().RepoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"),
+		)
+
+		if err != nil {
+			if !os.IsNotExist(err) {
+				return err
+			}
+		} else {
+			self.c.LogCommand(string(todoFile), false)
+		}
+	}
 
 	commandType := ""
 	switch status {
@@ -154,9 +170,9 @@ func (self *MergeAndRebaseHelper) CheckForConflicts(result error) error {
 
 	if isMergeConflictErr(result.Error()) {
 		return self.PromptForConflictHandling()
-	} else {
-		return self.c.ErrorMsg(result.Error())
 	}
+
+	return result
 }
 
 func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
@@ -169,7 +185,6 @@ func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
 				OnPress: func() error {
 					return self.c.PushContext(self.c.Contexts().Files)
 				},
-				Key: 'v',
 			},
 			{
 				Label: fmt.Sprintf(self.c.Tr.AbortMenuItem, mode),
@@ -227,7 +242,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
 				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(task gocui.Task) error {
-					baseCommit := self.c.Modes().MarkedBaseCommit.GetSha()
+					baseCommit := self.c.Modes().MarkedBaseCommit.GetHash()
 					var err error
 					if baseCommit != "" {
 						err = self.c.Git().Rebase.RebaseBranchFromBaseCommit(ref, baseCommit)
@@ -248,7 +263,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			Tooltip: self.c.Tr.InteractiveRebaseTooltip,
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
-				baseCommit := self.c.Modes().MarkedBaseCommit.GetSha()
+				baseCommit := self.c.Modes().MarkedBaseCommit.GetHash()
 				var err error
 				if baseCommit != "" {
 					err = self.c.Git().Rebase.EditRebaseFromBaseCommit(ref, baseCommit)
@@ -267,7 +282,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 	}
 
 	title := utils.ResolvePlaceholderString(
-		lo.Ternary(self.c.Modes().MarkedBaseCommit.GetSha() != "",
+		lo.Ternary(self.c.Modes().MarkedBaseCommit.GetHash() != "",
 			self.c.Tr.RebasingFromBaseCommitTitle,
 			self.c.Tr.RebasingTitle),
 		map[string]string{
@@ -284,11 +299,11 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 
 func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) error {
 	if self.c.Git().Branch.IsHeadDetached() {
-		return self.c.ErrorMsg("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
+		return errors.New("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
 	}
 	checkedOutBranchName := self.refsHelper.GetCheckedOutRef().Name
 	if checkedOutBranchName == refName {
-		return self.c.ErrorMsg(self.c.Tr.CantMergeBranchIntoItself)
+		return errors.New(self.c.Tr.CantMergeBranchIntoItself)
 	}
 	prompt := utils.ResolvePlaceholderString(
 		self.c.Tr.ConfirmMerge,

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
@@ -15,26 +16,29 @@ type CustomPatchOptionsMenuAction struct {
 
 func (self *CustomPatchOptionsMenuAction) Call() error {
 	if !self.c.Git().Patch.PatchBuilder.Active() {
-		return self.c.ErrorMsg(self.c.Tr.NoPatchError)
+		return errors.New(self.c.Tr.NoPatchError)
 	}
 
 	if self.c.Git().Patch.PatchBuilder.IsEmpty() {
-		return self.c.ErrorMsg(self.c.Tr.EmptyPatchError)
+		return errors.New(self.c.Tr.EmptyPatchError)
 	}
 
 	menuItems := []*types.MenuItem{
 		{
 			Label:   self.c.Tr.ResetPatch,
+			Tooltip: self.c.Tr.ResetPatchTooltip,
 			OnPress: self.c.Helpers().PatchBuilding.Reset,
 			Key:     'c',
 		},
 		{
 			Label:   self.c.Tr.ApplyPatch,
+			Tooltip: self.c.Tr.ApplyPatchTooltip,
 			OnPress: func() error { return self.handleApplyPatch(false) },
 			Key:     'a',
 		},
 		{
 			Label:   self.c.Tr.ApplyPatchInReverse,
+			Tooltip: self.c.Tr.ApplyPatchInReverseTooltip,
 			OnPress: func() error { return self.handleApplyPatch(true) },
 			Key:     'r',
 		},
@@ -44,16 +48,19 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 		menuItems = append(menuItems, []*types.MenuItem{
 			{
 				Label:   fmt.Sprintf(self.c.Tr.RemovePatchFromOriginalCommit, self.c.Git().Patch.PatchBuilder.To),
+				Tooltip: self.c.Tr.RemovePatchFromOriginalCommitTooltip,
 				OnPress: self.handleDeletePatchFromCommit,
 				Key:     'd',
 			},
 			{
 				Label:   self.c.Tr.MovePatchOutIntoIndex,
+				Tooltip: self.c.Tr.MovePatchOutIntoIndexTooltip,
 				OnPress: self.handleMovePatchIntoWorkingTree,
 				Key:     'i',
 			},
 			{
 				Label:   self.c.Tr.MovePatchIntoNewCommit,
+				Tooltip: self.c.Tr.MovePatchIntoNewCommitTooltip,
 				OnPress: self.handlePullPatchIntoNewCommit,
 				Key:     'n',
 			},
@@ -61,16 +68,24 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 
 		if self.c.CurrentContext().GetKey() == self.c.Contexts().LocalCommits.GetKey() {
 			selectedCommit := self.c.Contexts().LocalCommits.GetSelected()
-			if selectedCommit != nil && self.c.Git().Patch.PatchBuilder.To != selectedCommit.Sha {
+			if selectedCommit != nil && self.c.Git().Patch.PatchBuilder.To != selectedCommit.Hash {
+
+				var disabledReason *types.DisabledReason
+				if self.c.Contexts().LocalCommits.AreMultipleItemsSelected() {
+					disabledReason = &types.DisabledReason{Text: self.c.Tr.RangeSelectNotSupported}
+				}
+
 				// adding this option to index 1
 				menuItems = append(
 					menuItems[:1],
 					append(
 						[]*types.MenuItem{
 							{
-								Label:   fmt.Sprintf(self.c.Tr.MovePatchToSelectedCommit, selectedCommit.Sha),
-								OnPress: self.handleMovePatchToSelectedCommit,
-								Key:     'm',
+								Label:          fmt.Sprintf(self.c.Tr.MovePatchToSelectedCommit, selectedCommit.Hash),
+								Tooltip:        self.c.Tr.MovePatchToSelectedCommitTooltip,
+								OnPress:        self.handleMovePatchToSelectedCommit,
+								Key:            'm',
+								DisabledReason: disabledReason,
 							},
 						}, menuItems[1:]...,
 					)...,
@@ -92,7 +107,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 
 func (self *CustomPatchOptionsMenuAction) getPatchCommitIndex() int {
 	for index, commit := range self.c.Model().Commits {
-		if commit.Sha == self.c.Git().Patch.PatchBuilder.To {
+		if commit.Hash == self.c.Git().Patch.PatchBuilder.To {
 			return index
 		}
 	}
@@ -101,7 +116,7 @@ func (self *CustomPatchOptionsMenuAction) getPatchCommitIndex() int {
 
 func (self *CustomPatchOptionsMenuAction) validateNormalWorkingTreeState() (bool, error) {
 	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
-		return false, self.c.ErrorMsg(self.c.Tr.CantPatchWhileRebasingError)
+		return false, errors.New(self.c.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil
 }
@@ -220,7 +235,7 @@ func (self *CustomPatchOptionsMenuAction) handleApplyPatch(reverse bool) error {
 	}
 	self.c.LogAction(action)
 	if err := self.c.Git().Patch.ApplyCustomPatch(reverse); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
@@ -230,7 +245,7 @@ func (self *CustomPatchOptionsMenuAction) copyPatchToClipboard() error {
 
 	self.c.LogAction(self.c.Tr.Actions.CopyPatchToClipboard)
 	if err := self.c.OS().CopyToClipboard(patch); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Toast(self.c.Tr.PatchCopiedToClipboard)

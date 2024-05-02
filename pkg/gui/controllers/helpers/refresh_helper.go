@@ -76,7 +76,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		)
 	}
 
-	f := func() {
+	f := func() error {
 		var scopeSet *set.Set[types.RefreshableView]
 		if len(options.Scope) == 0 {
 			// not refreshing staging/patch-building unless explicitly requested because we only need
@@ -104,8 +104,9 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			// everything happens fast and it's better to have everything update
 			// in the one frame
 			if !self.c.InDemo() && options.Mode == types.ASYNC {
-				self.c.OnWorker(func(t gocui.Task) {
+				self.c.OnWorker(func(t gocui.Task) error {
 					f()
+					return nil
 				})
 			} else {
 				wg.Add(1)
@@ -126,7 +127,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			refresh("commits and commit files", self.refreshCommitsAndCommitFiles)
 
 			includeWorktreesWithBranches = scopeSet.Includes(types.WORKTREES)
-			refresh("reflog and branches", func() { self.refreshReflogAndBranches(includeWorktreesWithBranches) })
+			refresh("reflog and branches", func() { self.refreshReflogAndBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex) })
 		} else if scopeSet.Includes(types.REBASE_COMMITS) {
 			// the above block handles rebase commits so we only need to call this one
 			// if we've asked specifically for rebase commits and not those other things
@@ -187,20 +188,22 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		wg.Wait()
 
 		if options.Then != nil {
-			options.Then()
+			if err := options.Then(); err != nil {
+				return err
+			}
 		}
+
+		return nil
 	}
 
 	if options.Mode == types.BLOCK_UI {
 		self.c.OnUIThread(func() error {
-			f()
-			return nil
+			return f()
 		})
-	} else {
-		f()
+		return nil
 	}
 
-	return nil
+	return f()
 }
 
 func getScopeNames(scopes []types.RefreshableView) []string {
@@ -246,10 +249,11 @@ func getModeName(mode types.RefreshMode) string {
 func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
-		self.c.OnWorker(func(_ gocui.Task) {
+		self.c.OnWorker(func(_ gocui.Task) error {
 			_ = self.refreshReflogCommits()
-			self.refreshBranches(false)
+			self.refreshBranches(false, true)
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)
+			return nil
 		})
 
 	case types.COMPLETE:
@@ -257,24 +261,24 @@ func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 	}
 }
 
-func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool) {
+func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, keepBranchSelectionIndex bool) {
 	self.refreshReflogCommitsConsideringStartup()
 
-	self.refreshBranches(refreshWorktrees)
+	self.refreshBranches(refreshWorktrees, keepBranchSelectionIndex)
 }
 
 func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
 	_ = self.refreshCommitsWithLimit()
 	ctx, ok := self.c.Contexts().CommitFiles.GetParentContext()
 	if ok && ctx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
-		// This makes sense when we've e.g. just amended a commit, meaning we get a new commit SHA at the same position.
+		// This makes sense when we've e.g. just amended a commit, meaning we get a new commit hash at the same position.
 		// However if we've just added a brand new commit, it pushes the list down by one and so we would end up
 		// showing the contents of a different commit than the one we initially entered.
 		// Ideally we would know when to refresh the commit files context and when not to,
 		// or perhaps we could just pop that context off the stack whenever cycling windows.
 		// For now the awkwardness remains.
 		commit := self.c.Contexts().LocalCommits.GetSelected()
-		if commit != nil {
+		if commit != nil && commit.RefName() != "" {
 			self.c.Contexts().CommitFiles.SetRef(commit)
 			self.c.Contexts().CommitFiles.SetTitleRef(commit.RefName())
 			_ = self.refreshCommitFilesContext()
@@ -290,16 +294,16 @@ func (self *RefreshHelper) determineCheckedOutBranchName() string {
 		return strings.TrimPrefix(rebasedBranch, "refs/heads/")
 	}
 
-	if bisectInfo := self.c.Git().Bisect.GetInfo(); bisectInfo.Bisecting() && bisectInfo.GetStartSha() != "" {
+	if bisectInfo := self.c.Git().Bisect.GetInfo(); bisectInfo.Bisecting() && bisectInfo.GetStartHash() != "" {
 		// Likewise, when we're bisecting we're on a detached head as well. In
 		// this case we read the branch name from the ".git/BISECT_START" file.
-		return bisectInfo.GetStartSha()
+		return bisectInfo.GetStartHash()
 	}
 
 	// In all other cases, get the branch name by asking git what branch is
 	// checked out. Note that if we're on a detached head (for reasons other
 	// than rebasing or bisecting, i.e. it was explicitly checked out), then
-	// this will return its sha.
+	// this will return its hash.
 	if branchName, err := self.c.Git().Branch.CurrentBranchName(); err == nil {
 		return branchName
 	}
@@ -317,6 +321,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 		git_commands.GetCommitsOptions{
 			Limit:                self.c.Contexts().LocalCommits.GetLimitCommits(),
 			FilterPath:           self.c.Modes().Filtering.GetPath(),
+			FilterAuthor:         self.c.Modes().Filtering.GetAuthor(),
 			IncludeRebaseCommits: true,
 			RefName:              self.refForLog(),
 			RefForPushedStatus:   checkedOutBranchName,
@@ -342,6 +347,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 		git_commands.GetCommitsOptions{
 			Limit:                   self.c.Contexts().SubCommits.GetLimitCommits(),
 			FilterPath:              self.c.Modes().Filtering.GetPath(),
+			FilterAuthor:            self.c.Modes().Filtering.GetAuthor(),
 			IncludeRebaseCommits:    false,
 			RefName:                 self.c.Contexts().SubCommits.GetRef().FullRefName(),
 			RefToShowDivergenceFrom: self.c.Contexts().SubCommits.GetRefToShowDivergenceFrom(),
@@ -379,7 +385,7 @@ func (self *RefreshHelper) refreshCommitFilesContext() error {
 
 	files, err := self.c.Git().Loaders.CommitFileLoader.GetFilesInDiff(from, to, reverse)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 	self.c.Model().CommitFiles = files
 	self.c.Contexts().CommitFiles.CommitFileTreeViewModel.SetTree()
@@ -404,7 +410,7 @@ func (self *RefreshHelper) refreshRebaseCommits() error {
 func (self *RefreshHelper) refreshTags() error {
 	tags, err := self.c.Git().Loaders.TagLoader.GetTags()
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Model().Tags = tags
@@ -413,7 +419,7 @@ func (self *RefreshHelper) refreshTags() error {
 }
 
 func (self *RefreshHelper) refreshStateSubmoduleConfigs() error {
-	configs, err := self.c.Git().Submodule.GetConfigs()
+	configs, err := self.c.Git().Submodule.GetConfigs(nil)
 	if err != nil {
 		return err
 	}
@@ -425,18 +431,20 @@ func (self *RefreshHelper) refreshStateSubmoduleConfigs() error {
 
 // self.refreshStatus is called at the end of this because that's when we can
 // be sure there is a State.Model.Branches array to pick the current branch from
-func (self *RefreshHelper) refreshBranches(refreshWorktrees bool) {
+func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSelectionIndex bool) {
 	self.c.Mutexes().RefreshingBranchesMutex.Lock()
 	defer self.c.Mutexes().RefreshingBranchesMutex.Unlock()
 
+	prevSelectedBranch := self.c.Contexts().Branches.GetSelected()
+
 	reflogCommits := self.c.Model().FilteredReflogCommits
-	if self.c.Modes().Filtering.Active() {
+	if self.c.Modes().Filtering.Active() && self.c.AppState.LocalBranchSortOrder == "recency" {
 		// in filter mode we filter our reflog commits to just those containing the path
 		// however we need all the reflog entries to populate the recencies of our branches
 		// which allows us to order them correctly. So if we're filtering we'll just
 		// manually load all the reflog commits here
 		var err error
-		reflogCommits, _, err = self.c.Git().Loaders.ReflogCommitLoader.GetReflogCommits(nil, "")
+		reflogCommits, _, err = self.c.Git().Loaders.ReflogCommitLoader.GetReflogCommits(nil, "", "")
 		if err != nil {
 			self.c.Log.Error(err)
 		}
@@ -444,7 +452,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool) {
 
 	branches, err := self.c.Git().Loaders.BranchLoader.Load(reflogCommits)
 	if err != nil {
-		_ = self.c.Error(err)
+		self.c.Log.Error(err)
 	}
 
 	self.c.Model().Branches = branches
@@ -453,6 +461,14 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool) {
 		self.loadWorktrees()
 		if err := self.refreshView(self.c.Contexts().Worktrees); err != nil {
 			self.c.Log.Error(err)
+		}
+	}
+
+	if !keepBranchSelectionIndex && prevSelectedBranch != nil {
+		_, idx, found := lo.FindIndexOf(self.c.Contexts().Branches.GetItems(),
+			func(b *models.Branch) bool { return b.Name == prevSelectedBranch.Name })
+		if found {
+			self.c.Contexts().Branches.SetSelectedLineIdx(idx)
 		}
 	}
 
@@ -531,7 +547,7 @@ func (self *RefreshHelper) refreshStateFiles() error {
 	if len(pathsToStage) > 0 {
 		self.c.LogAction(self.c.Tr.Actions.StageResolvedFiles)
 		if err := self.c.Git().WorkingTree.StageFiles(pathsToStage); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 	}
 
@@ -587,11 +603,11 @@ func (self *RefreshHelper) refreshReflogCommits() error {
 		lastReflogCommit = model.ReflogCommits[0]
 	}
 
-	refresh := func(stateCommits *[]*models.Commit, filterPath string) error {
+	refresh := func(stateCommits *[]*models.Commit, filterPath string, filterAuthor string) error {
 		commits, onlyObtainedNewReflogCommits, err := self.c.Git().Loaders.ReflogCommitLoader.
-			GetReflogCommits(lastReflogCommit, filterPath)
+			GetReflogCommits(lastReflogCommit, filterPath, filterAuthor)
 		if err != nil {
-			return self.c.Error(err)
+			return err
 		}
 
 		if onlyObtainedNewReflogCommits {
@@ -602,12 +618,12 @@ func (self *RefreshHelper) refreshReflogCommits() error {
 		return nil
 	}
 
-	if err := refresh(&model.ReflogCommits, ""); err != nil {
+	if err := refresh(&model.ReflogCommits, "", ""); err != nil {
 		return err
 	}
 
 	if self.c.Modes().Filtering.Active() {
-		if err := refresh(&model.FilteredReflogCommits, self.c.Modes().Filtering.GetPath()); err != nil {
+		if err := refresh(&model.FilteredReflogCommits, self.c.Modes().Filtering.GetPath(), self.c.Modes().Filtering.GetAuthor()); err != nil {
 			return err
 		}
 	} else {
@@ -622,7 +638,7 @@ func (self *RefreshHelper) refreshRemotes() error {
 
 	remotes, err := self.c.Git().Loaders.RemoteLoader.GetRemotes()
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Model().Remotes = remotes
@@ -694,7 +710,7 @@ func (self *RefreshHelper) refreshStatus() {
 
 	repoName := self.c.Git().RepoPaths.RepoName()
 
-	status := presentation.FormatStatus(repoName, currentBranch, types.ItemOperationNone, linkedWorktreeName, workingTreeState, self.c.Tr)
+	status := presentation.FormatStatus(repoName, currentBranch, types.ItemOperationNone, linkedWorktreeName, workingTreeState, self.c.Tr, self.c.UserConfig)
 
 	self.c.SetViewContent(self.c.Views().Status, status)
 }
@@ -709,10 +725,10 @@ func (self *RefreshHelper) refForLog() string {
 
 	// need to see if our bisect's current commit is reachable from our 'new' ref.
 	if bisectInfo.Bisecting() && !self.c.Git().Bisect.ReachableFromStart(bisectInfo) {
-		return bisectInfo.GetNewSha()
+		return bisectInfo.GetNewHash()
 	}
 
-	return bisectInfo.GetStartSha()
+	return bisectInfo.GetStartHash()
 }
 
 func (self *RefreshHelper) refreshView(context types.Context) error {

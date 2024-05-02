@@ -28,6 +28,17 @@ func (self *BranchCommands) New(name string, base string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// CreateWithUpstream creates a new branch with a given upstream, but without
+// checking it out
+func (self *BranchCommands) CreateWithUpstream(name string, upstream string) error {
+	cmdArgs := NewGitCmd("branch").
+		Arg("--track").
+		Arg(name, upstream).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
 // CurrentBranchInfo get the current branch information.
 func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 	branchName, err := self.cmd.New(
@@ -54,10 +65,10 @@ func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 	for _, line := range utils.SplitLines(output) {
 		split := strings.Split(strings.TrimRight(line, "\r\n"), "\x00")
 		if len(split) == 3 && split[0] == "*" {
-			sha := split[1]
+			hash := split[1]
 			displayName := split[2]
 			return BranchInfo{
-				RefName:      sha,
+				RefName:      hash,
 				DisplayName:  displayName,
 				DetachedHead: true,
 			}, nil
@@ -210,7 +221,7 @@ type MergeOpts struct {
 func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
 	cmdArgs := NewGitCmd("merge").
 		Arg("--no-edit").
-		ArgIf(self.UserConfig.Git.Merging.Args != "", self.UserConfig.Git.Merging.Args).
+		Arg(strings.Fields(self.UserConfig.Git.Merging.Args)...).
 		ArgIf(opts.FastForwardOnly, "--ff-only").
 		Arg(branchName).
 		ToArgv()

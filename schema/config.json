@@ -81,6 +81,11 @@
           "description": "Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.\nOptions are:\n- 'horizontal': split the window horizontally\n- 'vertical': split the window vertically\n- 'flexible': (default) split the window horizontally if the window is wide enough, otherwise split vertically",
           "default": "flexible"
         },
+        "enlargedSideViewLocation": {
+          "type": "string",
+          "description": "How the window is split when in half screen mode (i.e. after hitting '+' once).\nPossible values:\n- 'left': split the window horizontally (side panel on the left, main view on the right)\n- 'top': split the window vertically (side panel on top, main view below)",
+          "default": "left"
+        },
         "language": {
           "type": "string",
           "enum": [
@@ -167,18 +172,6 @@
               "minItems": 1,
               "uniqueItems": true,
               "description": "Background color of selected line.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line",
-              "default": [
-                "blue"
-              ]
-            },
-            "selectedRangeBgColor": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array",
-              "minItems": 1,
-              "uniqueItems": true,
-              "description": "Background color of selected range\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line",
               "default": [
                 "blue"
               ]
@@ -311,6 +304,17 @@
           ],
           "description": "Nerd fonts version to use.\nOne of: '2' | '3' | empty string (default)\nIf empty, do not show icons."
         },
+        "showFileIcons": {
+          "type": "boolean",
+          "description": "If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.",
+          "default": true
+        },
+        "commitHashLength": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.",
+          "default": 8
+        },
         "showBranchCommitHash": {
           "type": "boolean",
           "description": "If true, show commit hashes alongside branch names in the branches view."
@@ -359,6 +363,50 @@
           "type": "string",
           "description": "Whether to stack UI components on top of each other.\nOne of 'auto' (default) | 'always' | 'never'",
           "default": "auto"
+        },
+        "filterMode": {
+          "type": "string",
+          "enum": [
+            "substring",
+            "fuzzy"
+          ],
+          "description": "How things are filtered when typing '/'.\nOne of 'substring' (default) | 'fuzzy'",
+          "default": "substring"
+        },
+        "spinner": {
+          "properties": {
+            "frames": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "description": "The frames of the spinner animation.",
+              "default": [
+                "|",
+                "/",
+                "-",
+                "\\"
+              ]
+            },
+            "rate": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "The \"speed\" of the spinner in milliseconds.",
+              "default": 50
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "description": "Config relating to the spinner."
+        },
+        "statusPanelView": {
+          "type": "string",
+          "enum": [
+            "dashboard",
+            "allBranchesLog"
+          ],
+          "description": "Status panel view.\nOne of 'dashboard' (default) | 'allBranchesLog'",
+          "default": "dashboard"
         }
       },
       "additionalProperties": false,
@@ -407,6 +455,16 @@
             "signOff": {
               "type": "boolean",
               "description": "If true, pass '--signoff' flag when committing"
+            },
+            "autoWrapCommitMessage": {
+              "type": "boolean",
+              "description": "Automatic WYSIWYG wrapping of the commit message as you type",
+              "default": true
+            },
+            "autoWrapWidth": {
+              "type": "integer",
+              "description": "If autoWrapCommitMessage is true, the width to wrap to",
+              "default": 72
             }
           },
           "additionalProperties": false,
@@ -481,6 +539,29 @@
           "type": "boolean",
           "description": "If true, do not allow force pushes"
         },
+        "commitPrefix": {
+          "properties": {
+            "pattern": {
+              "type": "string",
+              "minLength": 1,
+              "description": "pattern to match on. E.g. for 'feature/AB-123' to match on the AB-123 use \"^\\\\w+\\\\/(\\\\w+-\\\\w+).*\"",
+              "examples": [
+                "^\\w+\\/(\\w+-\\w+).*"
+              ]
+            },
+            "replace": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use \"[$1] \"",
+              "examples": [
+                "[$1] "
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix"
+        },
         "commitPrefixes": {
           "additionalProperties": {
             "properties": {
@@ -521,7 +602,7 @@
                 "topo-order",
                 "default"
               ],
-              "description": "One of: 'date-order' | 'author-date-order' | 'topo-order | default'\n'topo-order' makes it easier to read the git log graph, but commits may not\nappear chronologically. See https://git-scm.com/docs/",
+              "description": "One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'\n'topo-order' makes it easier to read the git log graph, but commits may not\nappear chronologically. See https://git-scm.com/docs/\n\nDeprecated: Configure this with `Log menu -\u003e Commit sort order` (\u003cc-l\u003e in the commits window by default).",
               "default": "topo-order"
             },
             "showGraph": {
@@ -531,8 +612,8 @@
                 "never",
                 "when-maximised"
               ],
-              "description": "This determines whether the git graph is rendered in the commits panel\nOne of 'always' | 'never' | 'when-maximised'",
-              "default": "when-maximised"
+              "description": "This determines whether the git graph is rendered in the commits panel\nOne of 'always' | 'never' | 'when-maximised'\n\nDeprecated: Configure this with `Log menu -\u003e Show git graph` (\u003cc-l\u003e in the commits window by default).",
+              "default": "always"
             },
             "showWholeGraph": {
               "type": "boolean",
@@ -542,6 +623,11 @@
           "additionalProperties": false,
           "type": "object",
           "description": "Config for showing the log in the commits view"
+        },
+        "truncateCopiedCommitHashesTo": {
+          "type": "integer",
+          "description": "When copying commit hashes to the clipboard, truncate them to this\nlength. Set to 40 to disable truncation.",
+          "default": 12
         }
       },
       "additionalProperties": false,
@@ -661,6 +747,18 @@
             "gotoBottom": {
               "type": "string",
               "default": "\u003e"
+            },
+            "toggleRangeSelect": {
+              "type": "string",
+              "default": "v"
+            },
+            "rangeSelectDown": {
+              "type": "string",
+              "default": "\u003cs-down\u003e"
+            },
+            "rangeSelectUp": {
+              "type": "string",
+              "default": "\u003cs-up\u003e"
             },
             "prevBlock": {
               "type": "string",
@@ -864,6 +962,10 @@
             "decreaseContextInDiffView": {
               "type": "string",
               "default": "{"
+            },
+            "openDiffTool": {
+              "type": "string",
+              "default": "\u003cc-t\u003e"
             }
           },
           "additionalProperties": false,
@@ -904,6 +1006,10 @@
             "commitChangesWithEditor": {
               "type": "string",
               "default": "C"
+            },
+            "findBaseCommitForFixup": {
+              "type": "string",
+              "default": "\u003cc-f\u003e"
             },
             "confirmDiscard": {
               "type": "string",
@@ -1014,6 +1120,10 @@
             "fetchRemote": {
               "type": "string",
               "default": "f"
+            },
+            "sortOrder": {
+              "type": "string",
+              "default": "s"
             }
           },
           "additionalProperties": false,
@@ -1085,15 +1195,11 @@
             },
             "cherryPickCopy": {
               "type": "string",
-              "default": "c"
-            },
-            "cherryPickCopyRange": {
-              "type": "string",
               "default": "C"
             },
             "pasteCommits": {
               "type": "string",
-              "default": "v"
+              "default": "V"
             },
             "markCommitAsBaseForRebase": {
               "type": "string",
@@ -1126,6 +1232,28 @@
             "viewBisectOptions": {
               "type": "string",
               "default": "b"
+            },
+            "startInteractiveRebase": {
+              "type": "string",
+              "default": "i"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object"
+        },
+        "amendAttribute": {
+          "properties": {
+            "resetAuthor": {
+              "type": "string",
+              "default": "a"
+            },
+            "setAuthor": {
+              "type": "string",
+              "default": "A"
+            },
+            "addCoAuthor": {
+              "type": "string",
+              "default": "c"
             }
           },
           "additionalProperties": false,
@@ -1157,14 +1285,6 @@
         },
         "main": {
           "properties": {
-            "toggleDragSelect": {
-              "type": "string",
-              "default": "v"
-            },
-            "toggleDragSelect-alt": {
-              "type": "string",
-              "default": "V"
-            },
             "toggleSelectHunk": {
               "type": "string",
               "default": "a"
@@ -1201,7 +1321,7 @@
         },
         "commitMessage": {
           "properties": {
-            "switchToEditor": {
+            "commitMenu": {
               "type": "string",
               "default": "\u003cc-o\u003e"
             }

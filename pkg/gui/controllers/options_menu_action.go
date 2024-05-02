@@ -25,7 +25,7 @@ func (self *OptionsMenuAction) Call() error {
 	appendBindings := func(bindings []*types.Binding, section *types.MenuSection) {
 		menuItems = append(menuItems,
 			lo.Map(bindings, func(binding *types.Binding, _ int) *types.MenuItem {
-				disabledReason := ""
+				var disabledReason *types.DisabledReason
 				if binding.GetDisabledReason != nil {
 					disabledReason = binding.GetDisabledReason()
 				}
@@ -69,10 +69,12 @@ func (self *OptionsMenuAction) getBindings(context types.Context) ([]*types.Bind
 		if keybindings.LabelFromKey(binding.Key) != "" && binding.Description != "" {
 			if binding.ViewName == "" {
 				bindingsGlobal = append(bindingsGlobal, binding)
-			} else if binding.Tag == "navigation" {
-				bindingsNavigation = append(bindingsNavigation, binding)
 			} else if binding.ViewName == context.GetViewName() {
-				bindingsPanel = append(bindingsPanel, binding)
+				if binding.Tag == "navigation" {
+					bindingsNavigation = append(bindingsNavigation, binding)
+				} else {
+					bindingsPanel = append(bindingsPanel, binding)
+				}
 			}
 		}
 	}

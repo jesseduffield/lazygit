@@ -10,6 +10,15 @@ before making a change.
 
 [This video](https://www.youtube.com/watch?v=kNavnhzZHtk) walks through the process of adding a small feature to lazygit. If you have no idea where to start, watching that video is a good first step.
 
+## Codebase guide
+
+[This doc](./docs/dev/Codebase_Guide.md) explains:
+* what the different packages in the codebase are for
+* where important files live
+* important concepts in the code
+* how the event loop works
+* other useful information
+
 ## All code changes happen through Pull Requests
 
 Pull requests are the best way to propose changes to the codebase. We actively

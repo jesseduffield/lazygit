@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"errors"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -14,11 +17,11 @@ type CommitMessageController struct {
 var _ types.IController = &CommitMessageController{}
 
 func NewCommitMessageController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *CommitMessageController {
 	return &CommitMessageController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 
@@ -47,8 +50,8 @@ func (self *CommitMessageController) GetKeybindings(opts types.KeybindingsOpts) 
 			Handler: self.switchToCommitDescription,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.CommitMessage.SwitchToEditor),
-			Handler: self.switchToEditor,
+			Key:     opts.GetKey(opts.Config.CommitMessage.CommitMenu),
+			Handler: self.openCommitMenu,
 		},
 	}
 
@@ -88,10 +91,6 @@ func (self *CommitMessageController) switchToCommitDescription() error {
 	return nil
 }
 
-func (self *CommitMessageController) switchToEditor() error {
-	return self.c.Helpers().Commits.SwitchToEditor()
-}
-
 func (self *CommitMessageController) handleCommitIndexChange(value int) error {
 	currentIndex := self.context().GetSelectedIndex()
 	newIndex := currentIndex + value
@@ -100,7 +99,7 @@ func (self *CommitMessageController) handleCommitIndexChange(value int) error {
 		self.c.Helpers().Commits.SetMessageAndDescriptionInView(self.context().GetHistoryMessage())
 		return nil
 	} else if currentIndex == context.NoCommitIndex {
-		self.context().SetHistoryMessage(self.c.Helpers().Commits.JoinCommitMessageAndDescription())
+		self.context().SetHistoryMessage(self.c.Helpers().Commits.JoinCommitMessageAndUnwrappedDescription())
 	}
 
 	validCommit, err := self.setCommitMessageAtIndex(newIndex)
@@ -117,7 +116,10 @@ func (self *CommitMessageController) setCommitMessageAtIndex(index int) (bool, e
 		if err == git_commands.ErrInvalidCommitIndex {
 			return false, nil
 		}
-		return false, self.c.ErrorMsg(self.c.Tr.CommitWithoutMessageErr)
+		return false, errors.New(self.c.Tr.CommitWithoutMessageErr)
+	}
+	if self.c.UserConfig.Git.Commit.AutoWrapCommitMessage {
+		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig.Git.Commit.AutoWrapWidth)
 	}
 	self.c.Helpers().Commits.UpdateCommitPanelView(commitMessage)
 	return true, nil
@@ -129,4 +131,9 @@ func (self *CommitMessageController) confirm() error {
 
 func (self *CommitMessageController) close() error {
 	return self.c.Helpers().Commits.CloseCommitMessagePanel()
+}
+
+func (self *CommitMessageController) openCommitMenu() error {
+	authorSuggestion := self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc()
+	return self.c.Helpers().Commits.OpenCommitMenu(authorSuggestion)
 }

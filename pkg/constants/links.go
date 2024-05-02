@@ -8,6 +8,7 @@ type Docs struct {
 	Undoing           string
 	Config            string
 	Tutorial          string
+	CustomPatchDemo   string
 }
 
 var Links = struct {
@@ -27,9 +28,10 @@ var Links = struct {
 		CustomPagers:      "https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md",
 		CustomKeybindings: "https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md",
 		CustomCommands:    "https://github.com/jesseduffield/lazygit/wiki/Custom-Commands-Compendium",
-		Keybindings:       "https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings",
+		Keybindings:       "https://github.com/jesseduffield/lazygit/blob/%s/docs/keybindings",
 		Undoing:           "https://github.com/jesseduffield/lazygit/blob/master/docs/Undoing.md",
-		Config:            "https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md",
+		Config:            "https://github.com/jesseduffield/lazygit/blob/%s/docs/Config.md",
 		Tutorial:          "https://youtu.be/VDXvbHZYeKY",
+		CustomPatchDemo:   "https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches",
 	},
 }

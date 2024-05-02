@@ -25,12 +25,12 @@ func (self *TagsHelper) OpenCreateTagPrompt(ref string, onCreate func()) error {
 			if description != "" {
 				self.c.LogAction(self.c.Tr.Actions.CreateAnnotatedTag)
 				if err := self.c.Git().Tag.CreateAnnotated(tagName, ref, description, force); err != nil {
-					return self.c.Error(err)
+					return err
 				}
 			} else {
 				self.c.LogAction(self.c.Tr.Actions.CreateLightweightTag)
 				if err := self.c.Git().Tag.CreateLightweight(tagName, ref, force); err != nil {
-					return self.c.Error(err)
+					return err
 				}
 			}
 

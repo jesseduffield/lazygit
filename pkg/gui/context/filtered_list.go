@@ -31,18 +31,18 @@ func (self *FilteredList[T]) GetFilter() string {
 	return self.filter
 }
 
-func (self *FilteredList[T]) SetFilter(filter string) {
+func (self *FilteredList[T]) SetFilter(filter string, useFuzzySearch bool) {
 	self.filter = filter
 
-	self.applyFilter()
+	self.applyFilter(useFuzzySearch)
 }
 
 func (self *FilteredList[T]) ClearFilter() {
-	self.SetFilter("")
+	self.SetFilter("", false)
 }
 
-func (self *FilteredList[T]) ReApplyFilter() {
-	self.applyFilter()
+func (self *FilteredList[T]) ReApplyFilter(useFuzzySearch bool) {
+	self.applyFilter(useFuzzySearch)
 }
 
 func (self *FilteredList[T]) IsFiltering() bool {
@@ -76,7 +76,7 @@ func (self *fuzzySource[T]) Len() int {
 	return len(self.list)
 }
 
-func (self *FilteredList[T]) applyFilter() {
+func (self *FilteredList[T]) applyFilter(useFuzzySearch bool) {
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
 
@@ -88,7 +88,7 @@ func (self *FilteredList[T]) applyFilter() {
 			getFilterFields: self.getFilterFields,
 		}
 
-		matches := fuzzy.FindFrom(self.filter, source)
+		matches := utils.FindFrom(self.filter, source, useFuzzySearch)
 		self.filteredIndices = lo.Map(matches, func(match fuzzy.Match, _ int) int {
 			return match.Index
 		})

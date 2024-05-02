@@ -109,7 +109,24 @@ func (gui *Gui) scrollDownConfirmationPanel() error {
 	return nil
 }
 
+func (gui *Gui) handleConfirmationClick() error {
+	if gui.Views.Confirmation.Editable {
+		return nil
+	}
+
+	return gui.handleGenericClick(gui.Views.Confirmation)
+}
+
 func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
+	return gui.handleCopySelectedSideContextItemToClipboardWithTruncation(-1)
+}
+
+func (gui *Gui) handleCopySelectedSideContextItemCommitHashToClipboard() error {
+	return gui.handleCopySelectedSideContextItemToClipboardWithTruncation(
+		gui.UserConfig.Git.TruncateCopiedCommitHashesTo)
+}
+
+func (gui *Gui) handleCopySelectedSideContextItemToClipboardWithTruncation(maxWidth int) error {
 	// important to note that this assumes we've selected an item in a side context
 	currentSideContext := gui.c.CurrentSideContext()
 	if currentSideContext == nil {
@@ -127,14 +144,40 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 		return nil
 	}
 
+	if maxWidth > 0 {
+		itemId = itemId[:min(len(itemId), maxWidth)]
+	}
+
 	gui.c.LogAction(gui.c.Tr.Actions.CopyToClipboard)
 	if err := gui.os.CopyToClipboard(itemId); err != nil {
-		return gui.c.Error(err)
+		return err
 	}
 
 	truncatedItemId := utils.TruncateWithEllipsis(strings.Replace(itemId, "\n", " ", -1), 50)
 
 	gui.c.Toast(fmt.Sprintf("'%s' %s", truncatedItemId, gui.c.Tr.CopiedToClipboard))
+
+	return nil
+}
+
+func (gui *Gui) getCopySelectedSideContextItemToClipboardDisabledReason() *types.DisabledReason {
+	// important to note that this assumes we've selected an item in a side context
+	currentSideContext := gui.c.CurrentSideContext()
+	if currentSideContext == nil {
+		// This should never happen but if it does we'll just ignore the keypress
+		return nil
+	}
+
+	listContext, ok := currentSideContext.(types.IListContext)
+	if !ok {
+		// This should never happen but if it does we'll just ignore the keypress
+		return nil
+	}
+
+	startIdx, endIdx := listContext.GetList().GetSelectionRange()
+	if startIdx != endIdx {
+		return &types.DisabledReason{Text: gui.Tr.RangeSelectNotSupported}
+	}
 
 	return nil
 }

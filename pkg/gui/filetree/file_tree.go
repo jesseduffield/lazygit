@@ -138,7 +138,8 @@ func (self *FileTree) GetAllItems() []*FileNode {
 }
 
 func (self *FileTree) Len() int {
-	return self.tree.Size(self.collapsedPaths) - 1 // ignoring root
+	// -1 because we're ignoring the root
+	return max(self.tree.Size(self.collapsedPaths)-1, 0)
 }
 
 func (self *FileTree) GetItem(index int) types.HasUrn {

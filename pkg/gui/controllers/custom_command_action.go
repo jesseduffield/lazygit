@@ -20,15 +20,12 @@ func (self *CustomCommandAction) Call() error {
 		HandleConfirm: func(command string) error {
 			if self.shouldSaveCommand(command) {
 				self.c.GetAppState().CustomCommandsHistory = utils.Limit(
-					lo.Uniq(append(self.c.GetAppState().CustomCommandsHistory, command)),
+					lo.Uniq(append([]string{command}, self.c.GetAppState().CustomCommandsHistory...)),
 					1000,
 				)
 			}
 
-			err := self.c.SaveAppState()
-			if err != nil {
-				self.c.Log.Error(err)
-			}
+			self.c.SaveAppStateAndLogError()
 
 			self.c.LogAction(self.c.Tr.Actions.CustomCommand)
 			return self.c.RunSubprocessAndRefresh(
@@ -39,10 +36,9 @@ func (self *CustomCommandAction) Call() error {
 }
 
 func (self *CustomCommandAction) GetCustomCommandsHistorySuggestionsFunc() func(string) []*types.Suggestion {
-	// reversing so that we display the latest command first
-	history := lo.Reverse(self.c.GetAppState().CustomCommandsHistory)
+	history := self.c.GetAppState().CustomCommandsHistory
 
-	return helpers.FuzzySearchFunc(history)
+	return helpers.FilterFunc(history, self.c.UserConfig.Gui.UseFuzzySearch())
 }
 
 // this mimics the shell functionality `ignorespace`

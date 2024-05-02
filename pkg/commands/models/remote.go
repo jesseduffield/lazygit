@@ -15,6 +15,10 @@ func (r *Remote) ID() string {
 	return r.RefName()
 }
 
+func (r *Remote) URN() string {
+	return "remote-" + r.ID()
+}
+
 func (r *Remote) Description() string {
 	return r.RefName()
 }

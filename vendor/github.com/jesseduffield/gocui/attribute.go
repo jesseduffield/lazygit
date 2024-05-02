@@ -4,7 +4,7 @@
 
 package gocui
 
-import "github.com/stefanhaller/tcell/v2"
+import "github.com/gdamore/tcell/v2"
 
 // Attribute affects the presentation of characters, such as color, boldness, etc.
 type Attribute uint64

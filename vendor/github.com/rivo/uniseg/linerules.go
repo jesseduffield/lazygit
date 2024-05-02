@@ -64,222 +64,381 @@ const (
 	LineMustBreak        // You must break the line here.
 )
 
-// The line break parser's state transitions. It's anologous to grTransitions,
-// see comments there for details. Unicode version 14.0.0.
-var lbTransitions = map[[2]int][3]int{
+// lbTransitions implements the line break parser's state transitions. It's
+// anologous to [grTransitions], see comments there for details.
+//
+// Unicode version 15.0.0.
+func lbTransitions(state, prop int) (newState, lineBreak, rule int) {
+	switch uint64(state) | uint64(prop)<<32 {
 	// LB4.
-	{lbAny, prBK}: {lbBK, LineCanBreak, 310},
-	{lbBK, prAny}: {lbAny, LineMustBreak, 40},
+	case lbBK | prAny<<32:
+		return lbAny, LineMustBreak, 40
 
 	// LB5.
-	{lbAny, prCR}: {lbCR, LineCanBreak, 310},
-	{lbAny, prLF}: {lbLF, LineCanBreak, 310},
-	{lbAny, prNL}: {lbNL, LineCanBreak, 310},
-	{lbCR, prLF}:  {lbLF, LineDontBreak, 50},
-	{lbCR, prAny}: {lbAny, LineMustBreak, 50},
-	{lbLF, prAny}: {lbAny, LineMustBreak, 50},
-	{lbNL, prAny}: {lbAny, LineMustBreak, 50},
+	case lbCR | prLF<<32:
+		return lbLF, LineDontBreak, 50
+	case lbCR | prAny<<32:
+		return lbAny, LineMustBreak, 50
+	case lbLF | prAny<<32:
+		return lbAny, LineMustBreak, 50
+	case lbNL | prAny<<32:
+		return lbAny, LineMustBreak, 50
 
 	// LB6.
-	{lbAny, prBK}: {lbBK, LineDontBreak, 60},
-	{lbAny, prCR}: {lbCR, LineDontBreak, 60},
-	{lbAny, prLF}: {lbLF, LineDontBreak, 60},
-	{lbAny, prNL}: {lbNL, LineDontBreak, 60},
+	case lbAny | prBK<<32:
+		return lbBK, LineDontBreak, 60
+	case lbAny | prCR<<32:
+		return lbCR, LineDontBreak, 60
+	case lbAny | prLF<<32:
+		return lbLF, LineDontBreak, 60
+	case lbAny | prNL<<32:
+		return lbNL, LineDontBreak, 60
 
 	// LB7.
-	{lbAny, prSP}: {lbSP, LineDontBreak, 70},
-	{lbAny, prZW}: {lbZW, LineDontBreak, 70},
+	case lbAny | prSP<<32:
+		return lbSP, LineDontBreak, 70
+	case lbAny | prZW<<32:
+		return lbZW, LineDontBreak, 70
 
 	// LB8.
-	{lbZW, prSP}:  {lbZW, LineDontBreak, 70},
-	{lbZW, prAny}: {lbAny, LineCanBreak, 80},
+	case lbZW | prSP<<32:
+		return lbZW, LineDontBreak, 70
+	case lbZW | prAny<<32:
+		return lbAny, LineCanBreak, 80
 
 	// LB11.
-	{lbAny, prWJ}: {lbWJ, LineDontBreak, 110},
-	{lbWJ, prAny}: {lbAny, LineDontBreak, 110},
+	case lbAny | prWJ<<32:
+		return lbWJ, LineDontBreak, 110
+	case lbWJ | prAny<<32:
+		return lbAny, LineDontBreak, 110
 
 	// LB12.
-	{lbAny, prGL}: {lbGL, LineCanBreak, 310},
-	{lbGL, prAny}: {lbAny, LineDontBreak, 120},
+	case lbAny | prGL<<32:
+		return lbGL, LineCanBreak, 310
+	case lbGL | prAny<<32:
+		return lbAny, LineDontBreak, 120
 
 	// LB13 (simple transitions).
-	{lbAny, prCL}: {lbCL, LineCanBreak, 310},
-	{lbAny, prCP}: {lbCP, LineCanBreak, 310},
-	{lbAny, prEX}: {lbEX, LineDontBreak, 130},
-	{lbAny, prIS}: {lbIS, LineCanBreak, 310},
-	{lbAny, prSY}: {lbSY, LineCanBreak, 310},
+	case lbAny | prCL<<32:
+		return lbCL, LineCanBreak, 310
+	case lbAny | prCP<<32:
+		return lbCP, LineCanBreak, 310
+	case lbAny | prEX<<32:
+		return lbEX, LineDontBreak, 130
+	case lbAny | prIS<<32:
+		return lbIS, LineCanBreak, 310
+	case lbAny | prSY<<32:
+		return lbSY, LineCanBreak, 310
 
 	// LB14.
-	{lbAny, prOP}: {lbOP, LineCanBreak, 310},
-	{lbOP, prSP}:  {lbOP, LineDontBreak, 70},
-	{lbOP, prAny}: {lbAny, LineDontBreak, 140},
+	case lbAny | prOP<<32:
+		return lbOP, LineCanBreak, 310
+	case lbOP | prSP<<32:
+		return lbOP, LineDontBreak, 70
+	case lbOP | prAny<<32:
+		return lbAny, LineDontBreak, 140
 
 	// LB15.
-	{lbQU, prSP}:   {lbQUSP, LineDontBreak, 70},
-	{lbQU, prOP}:   {lbOP, LineDontBreak, 150},
-	{lbQUSP, prOP}: {lbOP, LineDontBreak, 150},
+	case lbQU | prSP<<32:
+		return lbQUSP, LineDontBreak, 70
+	case lbQU | prOP<<32:
+		return lbOP, LineDontBreak, 150
+	case lbQUSP | prOP<<32:
+		return lbOP, LineDontBreak, 150
 
 	// LB16.
-	{lbCL, prSP}:     {lbCLCPSP, LineDontBreak, 70},
-	{lbNUCL, prSP}:   {lbCLCPSP, LineDontBreak, 70},
-	{lbCP, prSP}:     {lbCLCPSP, LineDontBreak, 70},
-	{lbNUCP, prSP}:   {lbCLCPSP, LineDontBreak, 70},
-	{lbCL, prNS}:     {lbNS, LineDontBreak, 160},
-	{lbNUCL, prNS}:   {lbNS, LineDontBreak, 160},
-	{lbCP, prNS}:     {lbNS, LineDontBreak, 160},
-	{lbNUCP, prNS}:   {lbNS, LineDontBreak, 160},
-	{lbCLCPSP, prNS}: {lbNS, LineDontBreak, 160},
+	case lbCL | prSP<<32:
+		return lbCLCPSP, LineDontBreak, 70
+	case lbNUCL | prSP<<32:
+		return lbCLCPSP, LineDontBreak, 70
+	case lbCP | prSP<<32:
+		return lbCLCPSP, LineDontBreak, 70
+	case lbNUCP | prSP<<32:
+		return lbCLCPSP, LineDontBreak, 70
+	case lbCL | prNS<<32:
+		return lbNS, LineDontBreak, 160
+	case lbNUCL | prNS<<32:
+		return lbNS, LineDontBreak, 160
+	case lbCP | prNS<<32:
+		return lbNS, LineDontBreak, 160
+	case lbNUCP | prNS<<32:
+		return lbNS, LineDontBreak, 160
+	case lbCLCPSP | prNS<<32:
+		return lbNS, LineDontBreak, 160
 
 	// LB17.
-	{lbAny, prB2}:  {lbB2, LineCanBreak, 310},
-	{lbB2, prSP}:   {lbB2SP, LineDontBreak, 70},
-	{lbB2, prB2}:   {lbB2, LineDontBreak, 170},
-	{lbB2SP, prB2}: {lbB2, LineDontBreak, 170},
+	case lbAny | prB2<<32:
+		return lbB2, LineCanBreak, 310
+	case lbB2 | prSP<<32:
+		return lbB2SP, LineDontBreak, 70
+	case lbB2 | prB2<<32:
+		return lbB2, LineDontBreak, 170
+	case lbB2SP | prB2<<32:
+		return lbB2, LineDontBreak, 170
 
 	// LB18.
-	{lbSP, prAny}:     {lbAny, LineCanBreak, 180},
-	{lbQUSP, prAny}:   {lbAny, LineCanBreak, 180},
-	{lbCLCPSP, prAny}: {lbAny, LineCanBreak, 180},
-	{lbB2SP, prAny}:   {lbAny, LineCanBreak, 180},
+	case lbSP | prAny<<32:
+		return lbAny, LineCanBreak, 180
+	case lbQUSP | prAny<<32:
+		return lbAny, LineCanBreak, 180
+	case lbCLCPSP | prAny<<32:
+		return lbAny, LineCanBreak, 180
+	case lbB2SP | prAny<<32:
+		return lbAny, LineCanBreak, 180
 
 	// LB19.
-	{lbAny, prQU}: {lbQU, LineDontBreak, 190},
-	{lbQU, prAny}: {lbAny, LineDontBreak, 190},
+	case lbAny | prQU<<32:
+		return lbQU, LineDontBreak, 190
+	case lbQU | prAny<<32:
+		return lbAny, LineDontBreak, 190
 
 	// LB20.
-	{lbAny, prCB}: {lbCB, LineCanBreak, 200},
-	{lbCB, prAny}: {lbAny, LineCanBreak, 200},
+	case lbAny | prCB<<32:
+		return lbCB, LineCanBreak, 200
+	case lbCB | prAny<<32:
+		return lbAny, LineCanBreak, 200
 
 	// LB21.
-	{lbAny, prBA}: {lbBA, LineDontBreak, 210},
-	{lbAny, prHY}: {lbHY, LineDontBreak, 210},
-	{lbAny, prNS}: {lbNS, LineDontBreak, 210},
-	{lbAny, prBB}: {lbBB, LineCanBreak, 310},
-	{lbBB, prAny}: {lbAny, LineDontBreak, 210},
+	case lbAny | prBA<<32:
+		return lbBA, LineDontBreak, 210
+	case lbAny | prHY<<32:
+		return lbHY, LineDontBreak, 210
+	case lbAny | prNS<<32:
+		return lbNS, LineDontBreak, 210
+	case lbAny | prBB<<32:
+		return lbBB, LineCanBreak, 310
+	case lbBB | prAny<<32:
+		return lbAny, LineDontBreak, 210
 
 	// LB21a.
-	{lbAny, prHL}:    {lbHL, LineCanBreak, 310},
-	{lbHL, prHY}:     {lbLB21a, LineDontBreak, 210},
-	{lbHL, prBA}:     {lbLB21a, LineDontBreak, 210},
-	{lbLB21a, prAny}: {lbAny, LineDontBreak, 211},
+	case lbAny | prHL<<32:
+		return lbHL, LineCanBreak, 310
+	case lbHL | prHY<<32:
+		return lbLB21a, LineDontBreak, 210
+	case lbHL | prBA<<32:
+		return lbLB21a, LineDontBreak, 210
+	case lbLB21a | prAny<<32:
+		return lbAny, LineDontBreak, 211
 
 	// LB21b.
-	{lbSY, prHL}:   {lbHL, LineDontBreak, 212},
-	{lbNUSY, prHL}: {lbHL, LineDontBreak, 212},
+	case lbSY | prHL<<32:
+		return lbHL, LineDontBreak, 212
+	case lbNUSY | prHL<<32:
+		return lbHL, LineDontBreak, 212
 
 	// LB22.
-	{lbAny, prIN}: {lbAny, LineDontBreak, 220},
+	case lbAny | prIN<<32:
+		return lbAny, LineDontBreak, 220
 
 	// LB23.
-	{lbAny, prAL}:  {lbAL, LineCanBreak, 310},
-	{lbAny, prNU}:  {lbNU, LineCanBreak, 310},
-	{lbAL, prNU}:   {lbNU, LineDontBreak, 230},
-	{lbHL, prNU}:   {lbNU, LineDontBreak, 230},
-	{lbNU, prAL}:   {lbAL, LineDontBreak, 230},
-	{lbNU, prHL}:   {lbHL, LineDontBreak, 230},
-	{lbNUNU, prAL}: {lbAL, LineDontBreak, 230},
-	{lbNUNU, prHL}: {lbHL, LineDontBreak, 230},
+	case lbAny | prAL<<32:
+		return lbAL, LineCanBreak, 310
+	case lbAny | prNU<<32:
+		return lbNU, LineCanBreak, 310
+	case lbAL | prNU<<32:
+		return lbNU, LineDontBreak, 230
+	case lbHL | prNU<<32:
+		return lbNU, LineDontBreak, 230
+	case lbNU | prAL<<32:
+		return lbAL, LineDontBreak, 230
+	case lbNU | prHL<<32:
+		return lbHL, LineDontBreak, 230
+	case lbNUNU | prAL<<32:
+		return lbAL, LineDontBreak, 230
+	case lbNUNU | prHL<<32:
+		return lbHL, LineDontBreak, 230
 
 	// LB23a.
-	{lbAny, prPR}:  {lbPR, LineCanBreak, 310},
-	{lbAny, prID}:  {lbIDEM, LineCanBreak, 310},
-	{lbAny, prEB}:  {lbEB, LineCanBreak, 310},
-	{lbAny, prEM}:  {lbIDEM, LineCanBreak, 310},
-	{lbPR, prID}:   {lbIDEM, LineDontBreak, 231},
-	{lbPR, prEB}:   {lbEB, LineDontBreak, 231},
-	{lbPR, prEM}:   {lbIDEM, LineDontBreak, 231},
-	{lbIDEM, prPO}: {lbPO, LineDontBreak, 231},
-	{lbEB, prPO}:   {lbPO, LineDontBreak, 231},
+	case lbAny | prPR<<32:
+		return lbPR, LineCanBreak, 310
+	case lbAny | prID<<32:
+		return lbIDEM, LineCanBreak, 310
+	case lbAny | prEB<<32:
+		return lbEB, LineCanBreak, 310
+	case lbAny | prEM<<32:
+		return lbIDEM, LineCanBreak, 310
+	case lbPR | prID<<32:
+		return lbIDEM, LineDontBreak, 231
+	case lbPR | prEB<<32:
+		return lbEB, LineDontBreak, 231
+	case lbPR | prEM<<32:
+		return lbIDEM, LineDontBreak, 231
+	case lbIDEM | prPO<<32:
+		return lbPO, LineDontBreak, 231
+	case lbEB | prPO<<32:
+		return lbPO, LineDontBreak, 231
 
 	// LB24.
-	{lbAny, prPO}: {lbPO, LineCanBreak, 310},
-	{lbPR, prAL}:  {lbAL, LineDontBreak, 240},
-	{lbPR, prHL}:  {lbHL, LineDontBreak, 240},
-	{lbPO, prAL}:  {lbAL, LineDontBreak, 240},
-	{lbPO, prHL}:  {lbHL, LineDontBreak, 240},
-	{lbAL, prPR}:  {lbPR, LineDontBreak, 240},
-	{lbAL, prPO}:  {lbPO, LineDontBreak, 240},
-	{lbHL, prPR}:  {lbPR, LineDontBreak, 240},
-	{lbHL, prPO}:  {lbPO, LineDontBreak, 240},
+	case lbAny | prPO<<32:
+		return lbPO, LineCanBreak, 310
+	case lbPR | prAL<<32:
+		return lbAL, LineDontBreak, 240
+	case lbPR | prHL<<32:
+		return lbHL, LineDontBreak, 240
+	case lbPO | prAL<<32:
+		return lbAL, LineDontBreak, 240
+	case lbPO | prHL<<32:
+		return lbHL, LineDontBreak, 240
+	case lbAL | prPR<<32:
+		return lbPR, LineDontBreak, 240
+	case lbAL | prPO<<32:
+		return lbPO, LineDontBreak, 240
+	case lbHL | prPR<<32:
+		return lbPR, LineDontBreak, 240
+	case lbHL | prPO<<32:
+		return lbPO, LineDontBreak, 240
 
 	// LB25 (simple transitions).
-	{lbPR, prNU}:   {lbNU, LineDontBreak, 250},
-	{lbPO, prNU}:   {lbNU, LineDontBreak, 250},
-	{lbOP, prNU}:   {lbNU, LineDontBreak, 250},
-	{lbHY, prNU}:   {lbNU, LineDontBreak, 250},
-	{lbNU, prNU}:   {lbNUNU, LineDontBreak, 250},
-	{lbNU, prSY}:   {lbNUSY, LineDontBreak, 250},
-	{lbNU, prIS}:   {lbNUIS, LineDontBreak, 250},
-	{lbNUNU, prNU}: {lbNUNU, LineDontBreak, 250},
-	{lbNUNU, prSY}: {lbNUSY, LineDontBreak, 250},
-	{lbNUNU, prIS}: {lbNUIS, LineDontBreak, 250},
-	{lbNUSY, prNU}: {lbNUNU, LineDontBreak, 250},
-	{lbNUSY, prSY}: {lbNUSY, LineDontBreak, 250},
-	{lbNUSY, prIS}: {lbNUIS, LineDontBreak, 250},
-	{lbNUIS, prNU}: {lbNUNU, LineDontBreak, 250},
-	{lbNUIS, prSY}: {lbNUSY, LineDontBreak, 250},
-	{lbNUIS, prIS}: {lbNUIS, LineDontBreak, 250},
-	{lbNU, prCL}:   {lbNUCL, LineDontBreak, 250},
-	{lbNU, prCP}:   {lbNUCP, LineDontBreak, 250},
-	{lbNUNU, prCL}: {lbNUCL, LineDontBreak, 250},
-	{lbNUNU, prCP}: {lbNUCP, LineDontBreak, 250},
-	{lbNUSY, prCL}: {lbNUCL, LineDontBreak, 250},
-	{lbNUSY, prCP}: {lbNUCP, LineDontBreak, 250},
-	{lbNUIS, prCL}: {lbNUCL, LineDontBreak, 250},
-	{lbNUIS, prCP}: {lbNUCP, LineDontBreak, 250},
-	{lbNU, prPO}:   {lbPO, LineDontBreak, 250},
-	{lbNUNU, prPO}: {lbPO, LineDontBreak, 250},
-	{lbNUSY, prPO}: {lbPO, LineDontBreak, 250},
-	{lbNUIS, prPO}: {lbPO, LineDontBreak, 250},
-	{lbNUCL, prPO}: {lbPO, LineDontBreak, 250},
-	{lbNUCP, prPO}: {lbPO, LineDontBreak, 250},
-	{lbNU, prPR}:   {lbPR, LineDontBreak, 250},
-	{lbNUNU, prPR}: {lbPR, LineDontBreak, 250},
-	{lbNUSY, prPR}: {lbPR, LineDontBreak, 250},
-	{lbNUIS, prPR}: {lbPR, LineDontBreak, 250},
-	{lbNUCL, prPR}: {lbPR, LineDontBreak, 250},
-	{lbNUCP, prPR}: {lbPR, LineDontBreak, 250},
+	case lbPR | prNU<<32:
+		return lbNU, LineDontBreak, 250
+	case lbPO | prNU<<32:
+		return lbNU, LineDontBreak, 250
+	case lbOP | prNU<<32:
+		return lbNU, LineDontBreak, 250
+	case lbHY | prNU<<32:
+		return lbNU, LineDontBreak, 250
+	case lbNU | prNU<<32:
+		return lbNUNU, LineDontBreak, 250
+	case lbNU | prSY<<32:
+		return lbNUSY, LineDontBreak, 250
+	case lbNU | prIS<<32:
+		return lbNUIS, LineDontBreak, 250
+	case lbNUNU | prNU<<32:
+		return lbNUNU, LineDontBreak, 250
+	case lbNUNU | prSY<<32:
+		return lbNUSY, LineDontBreak, 250
+	case lbNUNU | prIS<<32:
+		return lbNUIS, LineDontBreak, 250
+	case lbNUSY | prNU<<32:
+		return lbNUNU, LineDontBreak, 250
+	case lbNUSY | prSY<<32:
+		return lbNUSY, LineDontBreak, 250
+	case lbNUSY | prIS<<32:
+		return lbNUIS, LineDontBreak, 250
+	case lbNUIS | prNU<<32:
+		return lbNUNU, LineDontBreak, 250
+	case lbNUIS | prSY<<32:
+		return lbNUSY, LineDontBreak, 250
+	case lbNUIS | prIS<<32:
+		return lbNUIS, LineDontBreak, 250
+	case lbNU | prCL<<32:
+		return lbNUCL, LineDontBreak, 250
+	case lbNU | prCP<<32:
+		return lbNUCP, LineDontBreak, 250
+	case lbNUNU | prCL<<32:
+		return lbNUCL, LineDontBreak, 250
+	case lbNUNU | prCP<<32:
+		return lbNUCP, LineDontBreak, 250
+	case lbNUSY | prCL<<32:
+		return lbNUCL, LineDontBreak, 250
+	case lbNUSY | prCP<<32:
+		return lbNUCP, LineDontBreak, 250
+	case lbNUIS | prCL<<32:
+		return lbNUCL, LineDontBreak, 250
+	case lbNUIS | prCP<<32:
+		return lbNUCP, LineDontBreak, 250
+	case lbNU | prPO<<32:
+		return lbPO, LineDontBreak, 250
+	case lbNUNU | prPO<<32:
+		return lbPO, LineDontBreak, 250
+	case lbNUSY | prPO<<32:
+		return lbPO, LineDontBreak, 250
+	case lbNUIS | prPO<<32:
+		return lbPO, LineDontBreak, 250
+	case lbNUCL | prPO<<32:
+		return lbPO, LineDontBreak, 250
+	case lbNUCP | prPO<<32:
+		return lbPO, LineDontBreak, 250
+	case lbNU | prPR<<32:
+		return lbPR, LineDontBreak, 250
+	case lbNUNU | prPR<<32:
+		return lbPR, LineDontBreak, 250
+	case lbNUSY | prPR<<32:
+		return lbPR, LineDontBreak, 250
+	case lbNUIS | prPR<<32:
+		return lbPR, LineDontBreak, 250
+	case lbNUCL | prPR<<32:
+		return lbPR, LineDontBreak, 250
+	case lbNUCP | prPR<<32:
+		return lbPR, LineDontBreak, 250
 
 	// LB26.
-	{lbAny, prJL}: {lbJL, LineCanBreak, 310},
-	{lbAny, prJV}: {lbJV, LineCanBreak, 310},
-	{lbAny, prJT}: {lbJT, LineCanBreak, 310},
-	{lbAny, prH2}: {lbH2, LineCanBreak, 310},
-	{lbAny, prH3}: {lbH3, LineCanBreak, 310},
-	{lbJL, prJL}:  {lbJL, LineDontBreak, 260},
-	{lbJL, prJV}:  {lbJV, LineDontBreak, 260},
-	{lbJL, prH2}:  {lbH2, LineDontBreak, 260},
-	{lbJL, prH3}:  {lbH3, LineDontBreak, 260},
-	{lbJV, prJV}:  {lbJV, LineDontBreak, 260},
-	{lbJV, prJT}:  {lbJT, LineDontBreak, 260},
-	{lbH2, prJV}:  {lbJV, LineDontBreak, 260},
-	{lbH2, prJT}:  {lbJT, LineDontBreak, 260},
-	{lbJT, prJT}:  {lbJT, LineDontBreak, 260},
-	{lbH3, prJT}:  {lbJT, LineDontBreak, 260},
+	case lbAny | prJL<<32:
+		return lbJL, LineCanBreak, 310
+	case lbAny | prJV<<32:
+		return lbJV, LineCanBreak, 310
+	case lbAny | prJT<<32:
+		return lbJT, LineCanBreak, 310
+	case lbAny | prH2<<32:
+		return lbH2, LineCanBreak, 310
+	case lbAny | prH3<<32:
+		return lbH3, LineCanBreak, 310
+	case lbJL | prJL<<32:
+		return lbJL, LineDontBreak, 260
+	case lbJL | prJV<<32:
+		return lbJV, LineDontBreak, 260
+	case lbJL | prH2<<32:
+		return lbH2, LineDontBreak, 260
+	case lbJL | prH3<<32:
+		return lbH3, LineDontBreak, 260
+	case lbJV | prJV<<32:
+		return lbJV, LineDontBreak, 260
+	case lbJV | prJT<<32:
+		return lbJT, LineDontBreak, 260
+	case lbH2 | prJV<<32:
+		return lbJV, LineDontBreak, 260
+	case lbH2 | prJT<<32:
+		return lbJT, LineDontBreak, 260
+	case lbJT | prJT<<32:
+		return lbJT, LineDontBreak, 260
+	case lbH3 | prJT<<32:
+		return lbJT, LineDontBreak, 260
 
 	// LB27.
-	{lbJL, prPO}: {lbPO, LineDontBreak, 270},
-	{lbJV, prPO}: {lbPO, LineDontBreak, 270},
-	{lbJT, prPO}: {lbPO, LineDontBreak, 270},
-	{lbH2, prPO}: {lbPO, LineDontBreak, 270},
-	{lbH3, prPO}: {lbPO, LineDontBreak, 270},
-	{lbPR, prJL}: {lbJL, LineDontBreak, 270},
-	{lbPR, prJV}: {lbJV, LineDontBreak, 270},
-	{lbPR, prJT}: {lbJT, LineDontBreak, 270},
-	{lbPR, prH2}: {lbH2, LineDontBreak, 270},
-	{lbPR, prH3}: {lbH3, LineDontBreak, 270},
+	case lbJL | prPO<<32:
+		return lbPO, LineDontBreak, 270
+	case lbJV | prPO<<32:
+		return lbPO, LineDontBreak, 270
+	case lbJT | prPO<<32:
+		return lbPO, LineDontBreak, 270
+	case lbH2 | prPO<<32:
+		return lbPO, LineDontBreak, 270
+	case lbH3 | prPO<<32:
+		return lbPO, LineDontBreak, 270
+	case lbPR | prJL<<32:
+		return lbJL, LineDontBreak, 270
+	case lbPR | prJV<<32:
+		return lbJV, LineDontBreak, 270
+	case lbPR | prJT<<32:
+		return lbJT, LineDontBreak, 270
+	case lbPR | prH2<<32:
+		return lbH2, LineDontBreak, 270
+	case lbPR | prH3<<32:
+		return lbH3, LineDontBreak, 270
 
 	// LB28.
-	{lbAL, prAL}: {lbAL, LineDontBreak, 280},
-	{lbAL, prHL}: {lbHL, LineDontBreak, 280},
-	{lbHL, prAL}: {lbAL, LineDontBreak, 280},
-	{lbHL, prHL}: {lbHL, LineDontBreak, 280},
+	case lbAL | prAL<<32:
+		return lbAL, LineDontBreak, 280
+	case lbAL | prHL<<32:
+		return lbHL, LineDontBreak, 280
+	case lbHL | prAL<<32:
+		return lbAL, LineDontBreak, 280
+	case lbHL | prHL<<32:
+		return lbHL, LineDontBreak, 280
 
 	// LB29.
-	{lbIS, prAL}:   {lbAL, LineDontBreak, 290},
-	{lbIS, prHL}:   {lbHL, LineDontBreak, 290},
-	{lbNUIS, prAL}: {lbAL, LineDontBreak, 290},
-	{lbNUIS, prHL}: {lbHL, LineDontBreak, 290},
+	case lbIS | prAL<<32:
+		return lbAL, LineDontBreak, 290
+	case lbIS | prHL<<32:
+		return lbHL, LineDontBreak, 290
+	case lbNUIS | prAL<<32:
+		return lbAL, LineDontBreak, 290
+	case lbNUIS | prHL<<32:
+		return lbHL, LineDontBreak, 290
+
+	default:
+		return -1, -1, -1
+	}
 }
 
 // transitionLineBreakState determines the new state of the line break parser
@@ -290,7 +449,7 @@ var lbTransitions = map[[2]int][3]int{
 // further lookups.
 func transitionLineBreakState(state int, r rune, b []byte, str string) (newState int, lineBreak int) {
 	// Determine the property of the next character.
-	nextProperty, generalCategory := propertyWithGenCat(lineBreakCodePoints, r)
+	nextProperty, generalCategory := propertyLineBreak(r)
 
 	// Prepare.
 	var forceNoBreak, isCPeaFWH bool
@@ -306,7 +465,7 @@ func transitionLineBreakState(state int, r rune, b []byte, str string) (newState
 	defer func() {
 		// Transition into LB30.
 		if newState == lbCP || newState == lbNUCP {
-			ea := property(eastAsianWidth, r)
+			ea := propertyEastAsianWidth(r)
 			if ea != prF && ea != prW && ea != prH {
 				newState |= lbCPeaFWHBit
 			}
@@ -352,30 +511,27 @@ func transitionLineBreakState(state int, r rune, b []byte, str string) (newState
 
 	// Find the applicable transition in the table.
 	var rule int
-	transition, ok := lbTransitions[[2]int{state, nextProperty}]
-	if ok {
-		// We have a specific transition. We'll use it.
-		newState, lineBreak, rule = transition[0], transition[1], transition[2]
-	} else {
+	newState, lineBreak, rule = lbTransitions(state, nextProperty)
+	if newState < 0 {
 		// No specific transition found. Try the less specific ones.
-		transAnyProp, okAnyProp := lbTransitions[[2]int{state, prAny}]
-		transAnyState, okAnyState := lbTransitions[[2]int{lbAny, nextProperty}]
-		if okAnyProp && okAnyState {
+		anyPropProp, anyPropLineBreak, anyPropRule := lbTransitions(state, prAny)
+		anyStateProp, anyStateLineBreak, anyStateRule := lbTransitions(lbAny, nextProperty)
+		if anyPropProp >= 0 && anyStateProp >= 0 {
 			// Both apply. We'll use a mix (see comments for grTransitions).
-			newState, lineBreak, rule = transAnyState[0], transAnyState[1], transAnyState[2]
-			if transAnyProp[2] < transAnyState[2] {
-				lineBreak, rule = transAnyProp[1], transAnyProp[2]
+			newState, lineBreak, rule = anyStateProp, anyStateLineBreak, anyStateRule
+			if anyPropRule < anyStateRule {
+				lineBreak, rule = anyPropLineBreak, anyPropRule
 			}
-		} else if okAnyProp {
+		} else if anyPropProp >= 0 {
 			// We only have a specific state.
-			newState, lineBreak, rule = transAnyProp[0], transAnyProp[1], transAnyProp[2]
+			newState, lineBreak, rule = anyPropProp, anyPropLineBreak, anyPropRule
 			// This branch will probably never be reached because okAnyState will
 			// always be true given the current transition map. But we keep it here
 			// for future modifications to the transition map where this may not be
 			// true anymore.
-		} else if okAnyState {
+		} else if anyStateProp >= 0 {
 			// We only have a specific property.
-			newState, lineBreak, rule = transAnyState[0], transAnyState[1], transAnyState[2]
+			newState, lineBreak, rule = anyStateProp, anyStateLineBreak, anyStateRule
 		} else {
 			// No known transition. LB31: ALL ÷ ALL.
 			newState, lineBreak, rule = lbAny, LineCanBreak, 310
@@ -414,7 +570,7 @@ func transitionLineBreakState(state int, r rune, b []byte, str string) (newState
 			r, _ = utf8.DecodeRuneInString(str)
 		}
 		if r != utf8.RuneError {
-			pr, _ := propertyWithGenCat(lineBreakCodePoints, r)
+			pr, _ := propertyLineBreak(r)
 			if pr == prNU {
 				return lbNU, LineDontBreak
 			}
@@ -424,7 +580,7 @@ func transitionLineBreakState(state int, r rune, b []byte, str string) (newState
 	// LB30 (part one).
 	if rule > 300 {
 		if (state == lbAL || state == lbHL || state == lbNU || state == lbNUNU) && nextProperty == prOP {
-			ea := property(eastAsianWidth, r)
+			ea := propertyEastAsianWidth(r)
 			if ea != prF && ea != prW && ea != prH {
 				return lbOP, LineDontBreak
 			}
@@ -460,7 +616,7 @@ func transitionLineBreakState(state int, r rune, b []byte, str string) (newState
 				return prAny, LineDontBreak
 			}
 		}
-		graphemeProperty := property(graphemeCodePoints, r)
+		graphemeProperty := propertyGraphemes(r)
 		if graphemeProperty == prExtendedPictographic && generalCategory == gcCn {
 			return lbExtPicCn, LineCanBreak
 		}

@@ -15,14 +15,14 @@ jobs:
         uses: JamesIves/github-sponsors-readme-action@v1.2.2
         with:
           token: ${{ secrets.SPONSORS_TOKEN }}
-          file: 'README.md'
+          file: "README.md"
         if: ${{ github.repository == 'jesseduffield/lazygit' }}
 
-      - name: Commit and push if changed
-        run: |-
-          git diff
-          git config --global user.email "actions@users.noreply.github.com"
-          git config --global user.name "README-bot"
-          git add README.md
-          git commit -m "Updated README.md" || exit 0
-          git push
+      - name: Create Pull Request 🚀
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "README.md: Update Sponsors"
+          title: "README.md: Update Sponsors"
+          author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          labels: "ignore-for-release"
+          delete-branch: true

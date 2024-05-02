@@ -38,7 +38,7 @@ func (gui *Gui) moveMainContextToTop(context types.Context) {
 
 	view := context.GetView()
 
-	topView := gui.helpers.Window.TopViewInWindow(context.GetWindowName())
+	topView := gui.helpers.Window.TopViewInWindow(context.GetWindowName(), true)
 
 	if topView != nil && topView != view {
 		// We need to copy the content to avoid a flicker effect: If we're flicking

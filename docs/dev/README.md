@@ -1,5 +1,6 @@
 # Dev Documentation Overview
 
-* [Busy/Idle tracking](./Busy.md).
+* [Codebase Guide](./Codebase_Guide.md)
+* [Busy/Idle Tracking](./Busy.md)
 * [Integration Tests](../../pkg/integration/README.md)
 * [Demo Recordings](./Demo_Recordings.md)

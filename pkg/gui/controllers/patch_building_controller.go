@@ -14,11 +14,11 @@ type PatchBuildingController struct {
 var _ types.IController = &PatchBuildingController{}
 
 func NewPatchBuildingController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *PatchBuildingController {
 	return &PatchBuildingController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 
@@ -28,16 +28,19 @@ func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) 
 			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
 			Handler:     self.OpenFile,
 			Description: self.c.Tr.OpenFile,
+			Tooltip:     self.c.Tr.OpenFileTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.EditFile,
 			Description: self.c.Tr.EditFile,
+			Tooltip:     self.c.Tr.EditFileTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.ToggleSelectionAndRefresh,
-			Description: self.c.Tr.ToggleSelectionForPatch,
+			Key:             opts.GetKey(opts.Config.Universal.Select),
+			Handler:         self.ToggleSelectionAndRefresh,
+			Description:     self.c.Tr.ToggleSelectionForPatch,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Return),
@@ -154,5 +157,13 @@ func (self *PatchBuildingController) toggleSelection() error {
 }
 
 func (self *PatchBuildingController) Escape() error {
+	context := self.c.Contexts().CustomPatchBuilder
+	state := context.GetState()
+
+	if state.SelectingRange() || state.SelectingHunk() {
+		state.SetLineSelectMode()
+		return self.c.PostRefreshUpdate(context)
+	}
+
 	return self.c.Helpers().PatchBuilding.Escape()
 }

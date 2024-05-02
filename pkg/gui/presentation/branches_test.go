@@ -5,12 +5,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
+	"github.com/xo/terminfo"
 )
 
 func Test_getBranchDisplayStrings(t *testing.T) {
@@ -177,6 +179,33 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			expected:             []string{"1m", "branc… Pushing |"},
 		},
 		{
+			branch:               &models.Branch{Name: "abc", Recency: "1m"},
+			itemOperation:        types.ItemOperationPushing,
+			fullDescription:      false,
+			viewWidth:            -1,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			expected:             []string{"1m", "abc Pushing |"},
+		},
+		{
+			branch:               &models.Branch{Name: "ab", Recency: "1m"},
+			itemOperation:        types.ItemOperationPushing,
+			fullDescription:      false,
+			viewWidth:            -1,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			expected:             []string{"1m", "ab Pushing |"},
+		},
+		{
+			branch:               &models.Branch{Name: "a", Recency: "1m"},
+			itemOperation:        types.ItemOperationPushing,
+			fullDescription:      false,
+			viewWidth:            -1,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			expected:             []string{"1m", "a Pushing |"},
+		},
+		{
 			branch: &models.Branch{
 				Name:           "branch_name",
 				Recency:        "1m",
@@ -195,6 +224,9 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			expected:             []string{"1m", "12345678", "bran… ✓", "origin branch_name", "commit title"},
 		},
 	}
+
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
+	defer color.ForceSetColorLevel(oldColorLevel)
 
 	c := utils.NewDummyCommon()
 

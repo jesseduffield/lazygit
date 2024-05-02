@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type LocalCommitsContext struct {
@@ -28,33 +29,33 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	)
 
 	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
-		selectedCommitSha := ""
+		selectedCommitHash := ""
 
 		if c.CurrentContext().GetKey() == LOCAL_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
 			if selectedCommit != nil {
-				selectedCommitSha = selectedCommit.Sha
+				selectedCommitHash = selectedCommit.Hash
 			}
 		}
 
 		showYouAreHereLabel := c.Model().WorkingTreeStateAtLastCommitRefresh == enums.REBASE_MODE_REBASING
-		showBranchMarkerForHeadCommit := c.Git().Config.GetRebaseUpdateRefs()
+		hasRebaseUpdateRefsConfig := c.Git().Config.GetRebaseUpdateRefs()
 
 		return presentation.GetCommitListDisplayStrings(
 			c.Common,
 			c.Model().Commits,
 			c.Model().Branches,
 			c.Model().CheckedOutBranch,
-			showBranchMarkerForHeadCommit,
+			hasRebaseUpdateRefsConfig,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
-			c.Modes().CherryPicking.SelectedShaSet(),
+			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
-			c.Modes().MarkedBaseCommit.GetSha(),
+			c.Modes().MarkedBaseCommit.GetHash(),
 			c.UserConfig.Gui.TimeFormat,
 			c.UserConfig.Gui.ShortTimeFormat,
 			time.Now(),
 			c.UserConfig.Git.ParseEmoji,
-			selectedCommitSha,
+			selectedCommitHash,
 			startIdx,
 			endIdx,
 			shouldShowGraph(c),
@@ -85,20 +86,11 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	}
 
 	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(func(selectedLineIdx int) error {
-		ctx.GetList().SetSelectedLineIdx(selectedLineIdx)
+		ctx.GetList().SetSelection(selectedLineIdx)
 		return ctx.HandleFocus(types.OnFocusOpts{})
 	}))
 
 	return ctx
-}
-
-func (self *LocalCommitsContext) GetSelectedItemId() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.ID()
 }
 
 type LocalCommitsViewModel struct {
@@ -134,6 +126,29 @@ func (self *LocalCommitsContext) GetSelectedRef() types.Ref {
 	return commit
 }
 
+// Returns the commit hash of the selected commit, or an empty string if no
+// commit is selected
+func (self *LocalCommitsContext) GetSelectedCommitHash() string {
+	commit := self.GetSelected()
+	if commit == nil {
+		return ""
+	}
+	return commit.Hash
+}
+
+func (self *LocalCommitsContext) SelectCommitByHash(hash string) bool {
+	if hash == "" {
+		return false
+	}
+
+	if _, idx, found := lo.FindIndexOf(self.GetItems(), func(c *models.Commit) bool { return c.Hash == hash }); found {
+		self.SetSelection(idx)
+		return true
+	}
+
+	return false
+}
+
 func (self *LocalCommitsContext) GetDiffTerminals() []string {
 	itemId := self.GetSelectedItemId()
 
@@ -165,7 +180,8 @@ func shouldShowGraph(c *ContextCommon) bool {
 		return false
 	}
 
-	value := c.UserConfig.Git.Log.ShowGraph
+	value := c.GetAppState().GitLogShowGraph
+
 	switch value {
 	case "always":
 		return true

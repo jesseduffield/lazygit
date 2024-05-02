@@ -9,12 +9,11 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/samber/lo"
 )
 
-func GetTests() []*components.IntegrationTest {
+func GetTests(lazygitRootDir string) []*components.IntegrationTest {
 	// first we ensure that each test in this directory has actually been added to the above list.
 	testCount := 0
 
@@ -27,7 +26,7 @@ func GetTests() []*components.IntegrationTest {
 
 	missingTestNames := []string{}
 
-	if err := filepath.Walk(filepath.Join(utils.GetLazyRootDirectory(), "pkg/integration/tests"), func(path string, info os.FileInfo, err error) error {
+	if err := filepath.Walk(filepath.Join(lazygitRootDir, "pkg/integration/tests"), func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() && strings.HasSuffix(path, ".go") {
 			// ignoring non-test files
 			if filepath.Base(path) == "tests.go" || filepath.Base(path) == "test_list.go" || filepath.Base(path) == "test_list_generator.go" {

@@ -6,7 +6,7 @@ import (
 )
 
 var CommitWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Commit with defined config commitPrefix",
+	Description:  "Commit with defined config commitPrefixes",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(testConfig *config.AppConfig) {

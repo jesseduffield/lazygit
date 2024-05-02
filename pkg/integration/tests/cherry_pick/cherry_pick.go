@@ -60,10 +60,17 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.PasteCommits).
 			Tap(func() {
+				// cherry-picked commits will be deleted after confirmation
+				t.Views().Information().Content(Contains("2 commits copied"))
+			}).
+			Tap(func() {
 				t.ExpectPopup().Alert().
 					Title(Equals("Cherry-pick")).
 					Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
 					Confirm()
+			}).
+			Tap(func() {
+				t.Views().Information().Content(DoesNotContain("commits copied"))
 			}).
 			Lines(
 				Contains("four"),
@@ -71,14 +78,6 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("two"),
 				Contains("one"),
 				Contains("base"),
-			).
-			Tap(func() {
-				// we need to manually exit out of cherry pick mode
-				t.Views().Information().Content(Contains("2 commits copied"))
-			}).
-			PressEscape().
-			Tap(func() {
-				t.Views().Information().Content(DoesNotContain("commits copied"))
-			})
+			)
 	},
 })

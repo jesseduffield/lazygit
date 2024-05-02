@@ -45,6 +45,9 @@ var Move = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			// assert nothing happens upon trying to move beyond the last commit
 			Press(keys.Commits.MoveDownCommit).
+			Tap(func() {
+				t.ExpectToast(Contains("Disabled: Cannot move any further"))
+			}).
 			Lines(
 				Contains("commit 03"),
 				Contains("commit 02"),
@@ -74,6 +77,9 @@ var Move = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			// assert nothing happens upon trying to move beyond the first commit
 			Press(keys.Commits.MoveUpCommit).
+			Tap(func() {
+				t.ExpectToast(Contains("Disabled: Cannot move any further"))
+			}).
 			Lines(
 				Contains("commit 04").IsSelected(),
 				Contains("commit 03"),

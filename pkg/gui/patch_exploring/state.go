@@ -12,9 +12,12 @@ import (
 type State struct {
 	selectedLineIdx   int
 	rangeStartLineIdx int
-	diff              string
-	patch             *patch.Patch
-	selectMode        selectMode
+	// If a range is sticky, it means we expand the range when we move up or down.
+	// Otherwise, we cancel the range when we move up or down.
+	rangeIsSticky bool
+	diff          string
+	patch         *patch.Patch
+	selectMode    selectMode
 }
 
 // these represent what select mode we're in
@@ -65,6 +68,7 @@ func NewState(diff string, selectedLineIdx int, oldState *State, log *logrus.Ent
 		selectedLineIdx:   selectedLineIdx,
 		selectMode:        selectMode,
 		rangeStartLineIdx: rangeStartLineIdx,
+		rangeIsSticky:     false,
 		diff:              diff,
 	}
 }
@@ -85,13 +89,22 @@ func (s *State) ToggleSelectHunk() {
 	}
 }
 
-func (s *State) ToggleSelectRange() {
+func (s *State) ToggleStickySelectRange() {
+	s.ToggleSelectRange(true)
+}
+
+func (s *State) ToggleSelectRange(sticky bool) {
 	if s.selectMode == RANGE {
 		s.selectMode = LINE
 	} else {
 		s.selectMode = RANGE
 		s.rangeStartLineIdx = s.selectedLineIdx
+		s.rangeIsSticky = sticky
 	}
+}
+
+func (s *State) SetRangeIsSticky(value bool) {
+	s.rangeIsSticky = value
 }
 
 func (s *State) SelectingHunk() bool {
@@ -110,7 +123,18 @@ func (s *State) SetLineSelectMode() {
 	s.selectMode = LINE
 }
 
+// For when you move the cursor without holding shift (meaning if we're in
+// a non-sticky range select, we'll cancel it)
 func (s *State) SelectLine(newSelectedLineIdx int) {
+	if s.selectMode == RANGE && !s.rangeIsSticky {
+		s.selectMode = LINE
+	}
+
+	s.selectLineWithoutRangeCheck(newSelectedLineIdx)
+}
+
+// This just moves the cursor without caring about range select
+func (s *State) selectLineWithoutRangeCheck(newSelectedLineIdx int) {
 	if newSelectedLineIdx < 0 {
 		newSelectedLineIdx = 0
 	} else if newSelectedLineIdx > s.patch.LineCount()-1 {
@@ -125,7 +149,13 @@ func (s *State) SelectNewLineForRange(newSelectedLineIdx int) {
 
 	s.selectMode = RANGE
 
-	s.SelectLine(newSelectedLineIdx)
+	s.selectLineWithoutRangeCheck(newSelectedLineIdx)
+}
+
+func (s *State) DragSelectLine(newSelectedLineIdx int) {
+	s.selectMode = RANGE
+
+	s.selectLineWithoutRangeCheck(newSelectedLineIdx)
 }
 
 func (s *State) CycleSelection(forward bool) {
@@ -159,6 +189,23 @@ func (s *State) CycleLine(forward bool) {
 	}
 
 	s.SelectLine(s.selectedLineIdx + change)
+}
+
+// This is called when we use shift+arrow to expand the range (i.e. a non-sticky
+// range)
+func (s *State) CycleRange(forward bool) {
+	if !s.SelectingRange() {
+		s.ToggleSelectRange(false)
+	}
+
+	s.SetRangeIsSticky(false)
+
+	change := 1
+	if !forward {
+		change = -1
+	}
+
+	s.selectLineWithoutRangeCheck(s.selectedLineIdx + change)
 }
 
 // returns first and last patch line index of current hunk
@@ -196,12 +243,8 @@ func (s *State) AdjustSelectedLineIdx(change int) {
 }
 
 func (s *State) RenderForLineIndices(isFocused bool, includedLineIndices []int) string {
-	firstLineIdx, lastLineIdx := s.SelectedRange()
 	includedLineIndicesSet := set.NewFromSlice(includedLineIndices)
 	return s.patch.FormatView(patch.FormatViewOpts{
-		IsFocused:      isFocused,
-		FirstLineIndex: firstLineIdx,
-		LastLineIndex:  lastLineIdx,
 		IncLineIndices: includedLineIndicesSet,
 	})
 }
@@ -225,4 +268,12 @@ func (s *State) CalculateOrigin(currentOrigin int, bufferHeight int, numLines in
 	firstLineIdx, lastLineIdx := s.SelectedRange()
 
 	return calculateOrigin(currentOrigin, bufferHeight, numLines, firstLineIdx, lastLineIdx, s.GetSelectedLineIdx(), s.selectMode)
+}
+
+func (s *State) RangeStartLineIdx() (int, bool) {
+	if s.selectMode == RANGE {
+		return s.rangeStartLineIdx, true
+	}
+
+	return 0, false
 }

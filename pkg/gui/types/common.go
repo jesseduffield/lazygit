@@ -35,6 +35,10 @@ type IGuiCommon interface {
 	// case would be overkill, although refresh will internally call 'PostRefreshUpdate'
 	PostRefreshUpdate(Context) error
 
+	// a generic click handler that can be used for any view; it handles opening
+	// URLs in the browser when the user clicks on one
+	HandleGenericClick(view *gocui.View) error
+
 	// renders string to a view without resetting its origin
 	SetViewContent(view *gocui.View, content string)
 	// resets cursor and origin of view. Often used before calling SetViewContent
@@ -81,7 +85,7 @@ type IGuiCommon interface {
 	OnUIThread(f func() error)
 	// Runs a function in a goroutine. Use this whenever you want to run a goroutine and keep track of the fact
 	// that lazygit is still busy. See docs/dev/Busy.md
-	OnWorker(f func(gocui.Task))
+	OnWorker(f func(gocui.Task) error)
 	// Function to call at the end of our 'layout' function which renders views
 	// For example, you may want a view's line to be focused only after that view is
 	// resized, if in accordion mode.
@@ -127,11 +131,8 @@ type IModeMgr interface {
 }
 
 type IPopupHandler interface {
-	// Shows a popup with a (localized) "Error" caption and the given error message (in red).
-	//
-	// This is a convenience wrapper around Alert().
-	ErrorMsg(message string) error
-	Error(err error) error
+	// The global error handler for gocui. Not to be used by application code.
+	ErrorHandler(err error) error
 	// Shows a notification popup with the given title and message to the user.
 	//
 	// This is a convenience wrapper around Confirm(), thus the popup can be closed using both 'Enter' and 'ESC'.
@@ -144,8 +145,17 @@ type IPopupHandler interface {
 	WithWaitingStatusSync(message string, f func() error) error
 	Menu(opts CreateMenuOptions) error
 	Toast(message string)
+	ErrorToast(message string)
+	SetToastFunc(func(string, ToastKind))
 	GetPromptInput() string
 }
+
+type ToastKind int
+
+const (
+	ToastKindStatus ToastKind = iota
+	ToastKindError
+)
 
 type CreateMenuOptions struct {
 	Title           string
@@ -192,6 +202,16 @@ type MenuSection struct {
 	Column int // The column that this section title should be aligned with
 }
 
+type DisabledReason struct {
+	Text string
+
+	// When trying to invoke a disabled key binding or menu item, we normally
+	// show the disabled reason as a toast; setting this to true shows it as an
+	// error panel instead. This is useful if the text is very long, or if it is
+	// important enough to show it more prominently, or both.
+	ShowErrorInPanel bool
+}
+
 type MenuItem struct {
 	Label string
 
@@ -210,9 +230,9 @@ type MenuItem struct {
 	// The tooltip will be displayed upon highlighting the menu item
 	Tooltip string
 
-	// If non-empty, show this in a tooltip, style the menu item as disabled,
+	// If non-nil, show this in a tooltip, style the menu item as disabled,
 	// and refuse to invoke the command
-	DisabledReason string
+	DisabledReason *DisabledReason
 
 	// Can be used to group menu items into sections with headers. MenuItems
 	// with the same Section should be contiguous, and will automatically get a
@@ -221,6 +241,12 @@ type MenuItem struct {
 	// belong to the same section, so make sure all your items in a given
 	// section point to the same MenuSection instance.
 	Section *MenuSection
+}
+
+// Defining this for the sake of conforming to the HasID interface, which is used
+// in list contexts.
+func (self *MenuItem) ID() string {
+	return self.Label
 }
 
 type Model struct {
@@ -283,6 +309,8 @@ const (
 	ItemOperationPulling
 	ItemOperationFastForwarding
 	ItemOperationDeleting
+	ItemOperationFetching
+	ItemOperationCheckingOut
 )
 
 type HasUrn interface {

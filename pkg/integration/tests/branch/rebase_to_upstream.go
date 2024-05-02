@@ -48,11 +48,11 @@ var RebaseToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 					Title(Equals("Upstream options")).
 					Select(Contains("Rebase checked-out branch onto upstream of selected branch")).
 					Tooltip(Contains("Disabled: The selected branch has no upstream (or the upstream is not stored locally)")).
-					Confirm()
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Equals("The selected branch has no upstream (or the upstream is not stored locally)")).
-					Confirm()
+					Confirm().
+					Tap(func() {
+						t.ExpectToast(Equals("Disabled: The selected branch has no upstream (or the upstream is not stored locally)"))
+					}).
+					Cancel()
 			}).
 			SelectNextItem().
 			Lines(

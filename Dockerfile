@@ -2,7 +2,7 @@
 # docker build -t lazygit .
 # docker run -it lazygit:latest /bin/sh
 
-FROM golang:1.20 as build
+FROM golang:1.21 as build
 WORKDIR /go/src/github.com/jesseduffield/lazygit/
 COPY go.mod go.sum ./
 RUN go mod download

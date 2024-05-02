@@ -102,10 +102,10 @@ type IFilterableContext interface {
 	IListPanelState
 	ISearchHistoryContext
 
-	SetFilter(string)
+	SetFilter(string, bool)
 	GetFilter() string
 	ClearFilter()
-	ReApplyFilter()
+	ReApplyFilter(bool)
 	IsFiltering() bool
 	IsFilterableContext()
 }
@@ -136,6 +136,7 @@ type IListContext interface {
 	Context
 
 	GetSelectedItemId() string
+	GetSelectedItemIds() ([]string, int, int)
 	IsItemVisible(item HasUrn) bool
 
 	GetList() IList
@@ -144,6 +145,7 @@ type IListContext interface {
 
 	FocusLine()
 	IsListContext() // used for type switch
+	RangeSelectEnabled() bool
 }
 
 type IPatchExplorerContext interface {
@@ -163,6 +165,8 @@ type IPatchExplorerContext interface {
 
 type IViewTrait interface {
 	FocusPoint(yIdx int)
+	SetRangeSelectStart(yIdx int)
+	CancelRangeSelect()
 	SetViewPortContent(content string)
 	SetContent(content string)
 	SetFooter(value string)
@@ -222,17 +226,26 @@ type IList interface {
 type IListCursor interface {
 	GetSelectedLineIdx() int
 	SetSelectedLineIdx(value int)
+	SetSelection(value int)
 	MoveSelectedLine(delta int)
-	RefreshSelectedIdx()
+	ClampSelection()
+	CancelRangeSelect()
+	GetRangeStartIdx() (int, bool)
+	GetSelectionRange() (int, int)
+	IsSelectingRange() bool
+	AreMultipleItemsSelected() bool
+	ToggleStickyRange()
+	ExpandNonStickyRange(int)
 }
 
 type IListPanelState interface {
 	SetSelectedLineIdx(int)
+	SetSelection(int)
 	GetSelectedLineIdx() int
 }
 
 type ListItem interface {
-	// ID is a SHA when the item is a commit, a filename when the item is a file, 'stash@{4}' when it's a stash entry, 'my_branch' when it's a branch
+	// ID is a hash when the item is a commit, a filename when the item is a file, 'stash@{4}' when it's a stash entry, 'my_branch' when it's a branch
 	ID() string
 
 	// Description is something we would show in a message e.g. '123as14: push blah' for a commit

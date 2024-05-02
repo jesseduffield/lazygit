@@ -14,11 +14,6 @@ type patchPresenter struct {
 	// if true, all following fields are ignored
 	plain bool
 
-	isFocused bool
-	// first line index for selected cursor range
-	firstLineIndex int
-	// last line index for selected cursor range
-	lastLineIndex int
 	// line indices for tagged lines (e.g. lines added to a custom patch)
 	incLineIndices *set.Set[int]
 }
@@ -44,11 +39,6 @@ func formatRangePlain(patch *Patch, startIdx int, endIdx int) string {
 }
 
 type FormatViewOpts struct {
-	IsFocused bool
-	// first line index for selected cursor range
-	FirstLineIndex int
-	// last line index for selected cursor range
-	LastLineIndex int
 	// line indices for tagged lines (e.g. lines added to a custom patch)
 	IncLineIndices *set.Set[int]
 }
@@ -63,9 +53,6 @@ func formatView(patch *Patch, opts FormatViewOpts) string {
 	presenter := &patchPresenter{
 		patch:          patch,
 		plain:          false,
-		isFocused:      opts.IsFocused,
-		firstLineIndex: opts.FirstLineIndex,
-		lastLineIndex:  opts.LastLineIndex,
 		incLineIndices: includedLineIndices,
 	}
 	return presenter.format()
@@ -112,7 +99,6 @@ func (self *patchPresenter) format() string {
 				self.formatLineAux(
 					hunk.headerContext,
 					theme.DefaultTextColor,
-					lineIdx,
 					false,
 				),
 		)
@@ -139,21 +125,15 @@ func (self *patchPresenter) patchLineStyle(patchLine *PatchLine) style.TextStyle
 func (self *patchPresenter) formatLine(str string, textStyle style.TextStyle, index int) string {
 	included := self.incLineIndices.Includes(index)
 
-	return self.formatLineAux(str, textStyle, index, included)
+	return self.formatLineAux(str, textStyle, included)
 }
 
 // 'selected' means you've got it highlighted with your cursor
 // 'included' means the line has been included in the patch (only applicable when
 // building a patch)
-func (self *patchPresenter) formatLineAux(str string, textStyle style.TextStyle, index int, included bool) string {
+func (self *patchPresenter) formatLineAux(str string, textStyle style.TextStyle, included bool) string {
 	if self.plain {
 		return str
-	}
-
-	selected := self.isFocused && index >= self.firstLineIndex && index <= self.lastLineIndex
-
-	if selected {
-		textStyle = textStyle.MergeStyle(theme.SelectedRangeBgColor)
 	}
 
 	firstCharStyle := textStyle

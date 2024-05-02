@@ -33,6 +33,10 @@ func (self *guiCommon) PostRefreshUpdate(context types.Context) error {
 	return self.gui.postRefreshUpdate(context)
 }
 
+func (self *guiCommon) HandleGenericClick(view *gocui.View) error {
+	return self.gui.handleGenericClick(view)
+}
+
 func (self *guiCommon) RunSubprocessAndRefresh(cmdObj oscommands.ICmdObj) error {
 	return self.gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 }
@@ -147,7 +151,7 @@ func (self *guiCommon) OnUIThread(f func() error) {
 	self.gui.onUIThread(f)
 }
 
-func (self *guiCommon) OnWorker(f func(gocui.Task)) {
+func (self *guiCommon) OnWorker(f func(gocui.Task) error) {
 	self.gui.onWorker(f)
 }
 

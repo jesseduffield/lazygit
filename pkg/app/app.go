@@ -23,6 +23,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/logs"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 )
@@ -42,7 +43,7 @@ func Run(
 	common *common.Common,
 	startArgs appTypes.StartArgs,
 ) {
-	app, err := NewApp(config, common)
+	app, err := NewApp(config, startArgs.IntegrationTest, common)
 
 	if err == nil {
 		err = app.Run(startArgs)
@@ -94,7 +95,7 @@ func newLogger(cfg config.AppConfigurer) *logrus.Entry {
 }
 
 // NewApp bootstrap a new application
-func NewApp(config config.AppConfigurer, common *common.Common) (*App, error) {
+func NewApp(config config.AppConfigurer, test integrationTypes.IntegrationTest, common *common.Common) (*App, error) {
 	app := &App{
 		closers: []io.Closer{},
 		Config:  config,
@@ -128,7 +129,7 @@ func NewApp(config config.AppConfigurer, common *common.Common) (*App, error) {
 		showRecentRepos = true
 	}
 
-	app.Gui, err = gui.NewGui(common, config, gitVersion, updater, showRecentRepos, dirName)
+	app.Gui, err = gui.NewGui(common, config, gitVersion, updater, showRecentRepos, dirName, test)
 	if err != nil {
 		return app, err
 	}

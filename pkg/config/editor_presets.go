@@ -65,6 +65,13 @@ func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset
 		"nano":    standardTerminalEditorPreset("nano"),
 		"kakoune": standardTerminalEditorPreset("kak"),
 		"helix": {
+			editTemplate:              "helix -- {{filename}}",
+			editAtLineTemplate:        "helix -- {{filename}}:{{line}}",
+			editAtLineAndWaitTemplate: "helix -- {{filename}}:{{line}}",
+			openDirInEditorTemplate:   "helix -- {{dir}}",
+			suspend:                   true,
+		},
+		"helix (hx)": {
 			editTemplate:              "hx -- {{filename}}",
 			editAtLineTemplate:        "hx -- {{filename}}:{{line}}",
 			editAtLineAndWaitTemplate: "hx -- {{filename}}:{{line}}",
@@ -103,11 +110,12 @@ func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset
 
 	// Some of our presets have a different name than the editor they are using.
 	editorToPreset := map[string]string{
-		"kak":  "kakoune",
-		"hx":   "helix",
-		"code": "vscode",
-		"subl": "sublime",
-		"xed":  "xcode",
+		"kak":   "kakoune",
+		"helix": "helix",
+		"hx":    "helix (hx)",
+		"code":  "vscode",
+		"subl":  "sublime",
+		"xed":   "xcode",
 	}
 
 	presetName := osConfig.EditPreset

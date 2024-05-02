@@ -20,30 +20,34 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("first commit")
-		shell.CloneIntoSubmodule("my_submodule")
+		shell.CloneIntoSubmodule("my_submodule_name", "my_submodule_path")
 		shell.GitAddAll()
 		shell.Commit("add submodule")
+
+		shell.CreateFile("other_file", "")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		assertInParentRepo := func() {
 			t.Views().Status().Content(Contains("repo"))
 		}
 		assertInSubmodule := func() {
-			t.Views().Status().Content(Contains("my_submodule"))
+			if t.Git().Version().IsAtLeast(2, 22, 0) {
+				t.Views().Status().Content(Contains("my_submodule_path(my_submodule_name)"))
+			} else {
+				t.Views().Status().Content(Contains("my_submodule_path"))
+			}
 		}
 
 		assertInParentRepo()
 
 		t.Views().Submodules().Focus().
 			Lines(
-				Contains("my_submodule").IsSelected(),
+				Contains("my_submodule_name").IsSelected(),
 			).
 			// enter the submodule
 			PressEnter()
 
 		assertInSubmodule()
-
-		t.Views().Status().Content(Contains("my_submodule"))
 
 		t.Views().Files().IsFocused().
 			Press("e").
@@ -63,17 +67,39 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Submodules().IsFocused()
 
-		t.Views().Main().Content(Contains("Submodule my_submodule contains modified content"))
+		t.Views().Main().Content(Contains("Submodule my_submodule_path contains modified content"))
 
 		t.Views().Files().Focus().
 			Lines(
-				MatchesRegexp(` M.*my_submodule \(submodule\)`).IsSelected(),
+				MatchesRegexp(` M.*my_submodule_path \(submodule\)`),
+				Contains("other_file").IsSelected(),
+			).
+			// Verify we can't use range select on submodules
+			Press(keys.Universal.ToggleRangeSelect).
+			SelectPreviousItem().
+			Lines(
+				MatchesRegexp(` M.*my_submodule_path \(submodule\)`).IsSelected(),
+				Contains("other_file").IsSelected(),
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectPopup().Menu().Title(Equals("my_submodule")).Select(Contains("Stash uncommitted submodule changes and update")).Confirm()
+				t.ExpectToast(Contains("Disabled: Range select not supported for submodules"))
 			}).
-			IsEmpty()
+			Press(keys.Universal.ToggleRangeSelect).
+			Lines(
+				MatchesRegexp(` M.*my_submodule_path \(submodule\)`).IsSelected(),
+				Contains("other_file"),
+			).
+			Press(keys.Universal.Remove).
+			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("my_submodule_path")).
+					Select(Contains("Stash uncommitted submodule changes and update")).
+					Confirm()
+			}).
+			Lines(
+				Contains("other_file").IsSelected(),
+			)
 
 		t.Views().Submodules().Focus().
 			PressEnter()

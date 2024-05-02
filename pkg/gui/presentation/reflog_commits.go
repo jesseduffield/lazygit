@@ -12,7 +12,7 @@ import (
 	"github.com/samber/lo"
 )
 
-func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaSet *set.Set[string], diffName string, now time.Time, timeFormat string, shortTimeFormat string, parseEmoji bool) [][]string {
+func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitHashSet *set.Set[string], diffName string, now time.Time, timeFormat string, shortTimeFormat string, parseEmoji bool) [][]string {
 	var displayFunc func(*models.Commit, reflogCommitDisplayAttributes) []string
 	if fullDescription {
 		displayFunc = getFullDescriptionDisplayStringsForReflogCommit
@@ -21,8 +21,8 @@ func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription
 	}
 
 	return lo.Map(commits, func(commit *models.Commit, _ int) []string {
-		diffed := commit.Sha == diffName
-		cherryPicked := cherryPickedCommitShaSet.Includes(commit.Sha)
+		diffed := commit.Hash == diffName
+		cherryPicked := cherryPickedCommitHashSet.Includes(commit.Hash)
 		return displayFunc(commit,
 			reflogCommitDisplayAttributes{
 				cherryPicked:    cherryPicked,
@@ -35,17 +35,17 @@ func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription
 	})
 }
 
-func reflogShaColor(cherryPicked, diffed bool) style.TextStyle {
+func reflogHashColor(cherryPicked, diffed bool) style.TextStyle {
 	if diffed {
 		return theme.DiffTerminalColor
 	}
 
-	shaColor := style.FgBlue
+	hashColor := style.FgBlue
 	if cherryPicked {
-		shaColor = theme.CherryPickedCommitTextStyle
+		hashColor = theme.CherryPickedCommitTextStyle
 	}
 
-	return shaColor
+	return hashColor
 }
 
 type reflogCommitDisplayAttributes struct {
@@ -64,7 +64,7 @@ func getFullDescriptionDisplayStringsForReflogCommit(c *models.Commit, attrs ref
 	}
 
 	return []string{
-		reflogShaColor(attrs.cherryPicked, attrs.diffed).Sprint(c.ShortSha()),
+		reflogHashColor(attrs.cherryPicked, attrs.diffed).Sprint(c.ShortHash()),
 		style.FgMagenta.Sprint(utils.UnixToDateSmart(attrs.now, c.UnixTimestamp, attrs.timeFormat, attrs.shortTimeFormat)),
 		theme.DefaultTextColor.Sprint(name),
 	}
@@ -77,7 +77,7 @@ func getDisplayStringsForReflogCommit(c *models.Commit, attrs reflogCommitDispla
 	}
 
 	return []string{
-		reflogShaColor(attrs.cherryPicked, attrs.diffed).Sprint(c.ShortSha()),
+		reflogHashColor(attrs.cherryPicked, attrs.diffed).Sprint(c.ShortHash()),
 		theme.DefaultTextColor.Sprint(name),
 	}
 }

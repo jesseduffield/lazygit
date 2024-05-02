@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -32,7 +34,11 @@ func (gui *Gui) handleTestMode() {
 		go func() {
 			waitUntilIdle()
 
-			test.Run(&GuiDriver{gui: gui, isIdleChan: isIdleChan})
+			toastChan := make(chan string, 100)
+			gui.PopupHandler.(*popup.PopupHandler).SetToastFunc(
+				func(message string, kind types.ToastKind) { toastChan <- message })
+
+			test.Run(&GuiDriver{gui: gui, isIdleChan: isIdleChan, toastChan: toastChan})
 
 			gui.g.Update(func(*gocui.Gui) error {
 				return gocui.ErrQuit

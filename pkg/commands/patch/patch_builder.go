@@ -33,7 +33,7 @@ type (
 
 // PatchBuilder manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit). We also support building patches from things like stashes, for which there is less flexibility
 type PatchBuilder struct {
-	// To is the commit sha if we're dealing with files of a commit, or a stash ref for a stash
+	// To is the commit hash if we're dealing with files of a commit, or a stash ref for a stash
 	To      string
 	From    string
 	reverse bool
@@ -46,7 +46,7 @@ type PatchBuilder struct {
 	fileInfoMap map[string]*fileInfo
 	Log         *logrus.Entry
 
-	// loadFileDiff loads the diff of a file, for a given to (typically a commit SHA)
+	// loadFileDiff loads the diff of a file, for a given to (typically a commit hash)
 	loadFileDiff loadFileDiffFunc
 }
 
@@ -80,13 +80,15 @@ func (p *PatchBuilder) PatchToApply(reverse bool) string {
 }
 
 func (p *PatchBuilder) addFileWhole(info *fileInfo) {
-	info.mode = WHOLE
-	lineCount := len(strings.Split(info.diff, "\n"))
-	// add every line index
-	// TODO: add tests and then use lo.Range to simplify
-	info.includedLineIndices = make([]int, lineCount)
-	for i := 0; i < lineCount; i++ {
-		info.includedLineIndices[i] = i
+	if info.mode != WHOLE {
+		info.mode = WHOLE
+		lineCount := len(strings.Split(info.diff, "\n"))
+		// add every line index
+		// TODO: add tests and then use lo.Range to simplify
+		info.includedLineIndices = make([]int, lineCount)
+		for i := 0; i < lineCount; i++ {
+			info.includedLineIndices[i] = i
+		}
 	}
 }
 
@@ -197,9 +199,7 @@ func (p *PatchBuilder) RenderPatchForFile(filename string, plain bool, reverse b
 	if plain {
 		return patch.FormatPlain()
 	} else {
-		return patch.FormatView(FormatViewOpts{
-			IsFocused: false,
-		})
+		return patch.FormatView(FormatViewOpts{})
 	}
 }
 

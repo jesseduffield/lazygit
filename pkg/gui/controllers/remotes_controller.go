@@ -14,6 +14,7 @@ import (
 
 type RemotesController struct {
 	baseController
+	*ListControllerTrait[*models.Remote]
 	c *ControllerCommon
 
 	setRemoteBranches func([]*models.RemoteBranch)
@@ -22,12 +23,18 @@ type RemotesController struct {
 var _ types.IController = &RemotesController{}
 
 func NewRemotesController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 	setRemoteBranches func([]*models.RemoteBranch),
 ) *RemotesController {
 	return &RemotesController{
-		baseController:    baseController{},
-		c:                 common,
+		baseController: baseController{},
+		ListControllerTrait: NewListControllerTrait[*models.Remote](
+			c,
+			c.Contexts().Remotes,
+			c.Contexts().Remotes.GetSelected,
+			c.Contexts().Remotes.GetSelectedItems,
+		),
+		c:                 c,
 		setRemoteBranches: setRemoteBranches,
 	}
 }
@@ -35,36 +42,45 @@ func NewRemotesController(
 func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:     opts.GetKey(opts.Config.Universal.GoInto),
-			Handler: self.checkSelected(self.enter),
+			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Handler:           self.withItem(self.enter),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.ViewBranches,
+			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Branches.FetchRemote),
-			Handler:     self.checkSelected(self.fetch),
-			Description: self.c.Tr.FetchRemote,
+			Key:             opts.GetKey(opts.Config.Universal.New),
+			Handler:         self.add,
+			Description:     self.c.Tr.NewRemote,
+			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.New),
-			Handler:     self.add,
-			Description: self.c.Tr.AddNewRemote,
+			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Handler:           self.withItem(self.remove),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.Remove,
+			Tooltip:           self.c.Tr.RemoveRemoteTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.checkSelected(self.remove),
-			Description: self.c.Tr.RemoveRemote,
+			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Handler:           self.withItem(self.edit),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.Edit,
+			Tooltip:           self.c.Tr.EditRemoteTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
-			Handler:     self.checkSelected(self.edit),
-			Description: self.c.Tr.EditRemote,
+			Key:               opts.GetKey(opts.Config.Branches.FetchRemote),
+			Handler:           self.withItem(self.fetch),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.Fetch,
+			Tooltip:           self.c.Tr.FetchRemoteTooltip,
+			DisplayOnScreen:   true,
 		},
 	}
 
 	return bindings
-}
-
-func (self *RemotesController) Context() types.Context {
-	return self.context()
 }
 
 func (self *RemotesController) context() *context.RemotesContext {
@@ -94,7 +110,7 @@ func (self *RemotesController) GetOnRenderToMain() func() error {
 }
 
 func (self *RemotesController) GetOnClick() func() error {
-	return self.checkSelected(self.enter)
+	return self.withItemGraceful(self.enter)
 }
 
 func (self *RemotesController) enter(remote *models.Remote) error {
@@ -106,7 +122,7 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 		newSelectedLine = -1
 	}
 	remoteBranchesContext := self.c.Contexts().RemoteBranches
-	remoteBranchesContext.SetSelectedLineIdx(newSelectedLine)
+	remoteBranchesContext.SetSelection(newSelectedLine)
 	remoteBranchesContext.SetTitleRef(remote.Name)
 	remoteBranchesContext.SetParentContext(self.Context())
 	remoteBranchesContext.GetView().TitlePrefix = self.Context().GetView().TitlePrefix
@@ -129,7 +145,27 @@ func (self *RemotesController) add() error {
 					if err := self.c.Git().Remote.AddRemote(remoteName, remoteUrl); err != nil {
 						return err
 					}
-					return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.REMOTES}})
+
+					// Do a sync refresh of the remotes so that we can select
+					// the new one. Loading remotes is not expensive, so we can
+					// afford it.
+					if err := self.c.Refresh(types.RefreshOptions{
+						Scope: []types.RefreshableView{types.REMOTES},
+						Mode:  types.SYNC,
+					}); err != nil {
+						return err
+					}
+
+					// Select the new remote
+					for idx, remote := range self.c.Model().Remotes {
+						if remote.Name == remoteName {
+							self.c.Contexts().Remotes.SetSelection(idx)
+							break
+						}
+					}
+
+					// Fetch the new remote
+					return self.fetch(self.c.Contexts().Remotes.GetSelected())
 				},
 			})
 		},
@@ -143,7 +179,7 @@ func (self *RemotesController) remove(remote *models.Remote) error {
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RemoveRemote)
 			if err := self.c.Git().Remote.RemoveRemote(remote.Name); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
@@ -166,7 +202,7 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 			if updatedRemoteName != remote.Name {
 				self.c.LogAction(self.c.Tr.Actions.UpdateRemote)
 				if err := self.c.Git().Remote.RenameRemote(remote.Name, updatedRemoteName); err != nil {
-					return self.c.Error(err)
+					return err
 				}
 			}
 
@@ -189,7 +225,7 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 				HandleConfirm: func(updatedRemoteUrl string) error {
 					self.c.LogAction(self.c.Tr.Actions.UpdateRemote)
 					if err := self.c.Git().Remote.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 					return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 				},
@@ -199,23 +235,15 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 }
 
 func (self *RemotesController) fetch(remote *models.Remote) error {
-	return self.c.WithWaitingStatus(self.c.Tr.FetchingRemoteStatus, func(task gocui.Task) error {
+	return self.c.WithInlineStatus(remote, types.ItemOperationFetching, context.REMOTES_CONTEXT_KEY, func(task gocui.Task) error {
 		err := self.c.Git().Sync.FetchRemote(task, remote.Name)
 		if err != nil {
-			_ = self.c.Error(err)
+			return err
 		}
 
-		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+		return self.c.Refresh(types.RefreshOptions{
+			Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
+			Mode:  types.ASYNC,
+		})
 	})
-}
-
-func (self *RemotesController) checkSelected(callback func(*models.Remote) error) func() error {
-	return func() error {
-		file := self.context().GetSelected()
-		if file == nil {
-			return nil
-		}
-
-		return callback(file)
-	}
 }

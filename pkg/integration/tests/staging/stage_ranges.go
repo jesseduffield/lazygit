@@ -29,7 +29,7 @@ var StageRanges = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectedLines(
 				Contains("+three"),
 			).
-			Press(keys.Main.ToggleDragSelect).
+			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("+five")).
 			SelectedLines(
 				Contains("+three"),
@@ -60,7 +60,7 @@ var StageRanges = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectedLines(
 				Contains("+three"),
 			).
-			Press(keys.Main.ToggleDragSelect).
+			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("+five")).
 			SelectedLines(
 				Contains("+three"),
@@ -88,7 +88,7 @@ var StageRanges = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectedLines(
 				Contains("+four"),
 			).
-			Press(keys.Main.ToggleDragSelect).
+			Press(keys.Universal.ToggleRangeSelect).
 			SelectNextItem().
 			SelectedLines(
 				Contains("+four"),

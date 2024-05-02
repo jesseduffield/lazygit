@@ -23,14 +23,14 @@ type StagingController struct {
 var _ types.IController = &StagingController{}
 
 func NewStagingController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 	context types.IPatchExplorerContext,
 	otherContext types.IPatchExplorerContext,
 	staged bool,
 ) *StagingController {
 	return &StagingController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 		context:        context,
 		otherContext:   otherContext,
 		staged:         staged,
@@ -40,14 +40,30 @@ func NewStagingController(
 func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
+			Key:             opts.GetKey(opts.Config.Universal.Select),
+			Handler:         self.ToggleStaged,
+			Description:     self.c.Tr.Stage,
+			Tooltip:         self.c.Tr.StageSelectionTooltip,
+			DisplayOnScreen: true,
+		},
+		{
+			Key:             opts.GetKey(opts.Config.Universal.Remove),
+			Handler:         self.DiscardSelection,
+			Description:     self.c.Tr.DiscardSelection,
+			Tooltip:         self.c.Tr.DiscardSelectionTooltip,
+			DisplayOnScreen: true,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
 			Handler:     self.OpenFile,
 			Description: self.c.Tr.OpenFile,
+			Tooltip:     self.c.Tr.OpenFileTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.EditFile,
 			Description: self.c.Tr.EditFile,
+			Tooltip:     self.c.Tr.EditFileTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Return),
@@ -55,29 +71,23 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			Description: self.c.Tr.ReturnToFilesPanel,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.TogglePanel),
-			Handler:     self.TogglePanel,
-			Description: self.c.Tr.ToggleStagingPanel,
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.ToggleStaged,
-			Description: self.c.Tr.StageSelection,
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.DiscardSelection,
-			Description: self.c.Tr.DiscardSelection,
+			Key:             opts.GetKey(opts.Config.Universal.TogglePanel),
+			Handler:         self.TogglePanel,
+			Description:     self.c.Tr.ToggleStagingView,
+			Tooltip:         self.c.Tr.ToggleStagingViewTooltip,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Main.EditSelectHunk),
 			Handler:     self.EditHunkAndRefresh,
 			Description: self.c.Tr.EditHunk,
+			Tooltip:     self.c.Tr.EditHunkTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
 			Handler:     self.c.Helpers().WorkingTree.HandleCommitPress,
-			Description: self.c.Tr.CommitChanges,
+			Description: self.c.Tr.Commit,
+			Tooltip:     self.c.Tr.CommitTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
@@ -88,6 +98,12 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithEditor),
 			Handler:     self.c.Helpers().WorkingTree.HandleCommitEditorPress,
 			Description: self.c.Tr.CommitChangesWithEditor,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Files.FindBaseCommitForFixup),
+			Handler:     self.c.Helpers().FixupHelper.HandleFindBaseCommitForFixupPress,
+			Description: self.c.Tr.FindBaseCommitForFixup,
+			Tooltip:     self.c.Tr.FindBaseCommitForFixupTooltip,
 		},
 	}
 }
@@ -151,6 +167,11 @@ func (self *StagingController) EditFile() error {
 }
 
 func (self *StagingController) Escape() error {
+	if self.context.GetState().SelectingRange() || self.context.GetState().SelectingHunk() {
+		self.context.GetState().SetLineSelectMode()
+		return self.c.PostRefreshUpdate(self.context)
+	}
+
 	return self.c.PopContext()
 }
 
@@ -223,7 +244,7 @@ func (self *StagingController) applySelection(reverse bool) error {
 		},
 	)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	if state.SelectingRange() {
@@ -296,7 +317,7 @@ func (self *StagingController) editHunk() error {
 			Cached:  true,
 		},
 	); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	return nil

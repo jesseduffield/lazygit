@@ -42,7 +42,10 @@ var RememberCommitMessageAfterFail = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Press(keys.Universal.Remove). // remove file that triggers pre-commit hook to fail
 			Tap(func() {
-				t.ExpectPopup().Menu().Title(Equals("bad")).Select(Contains("Discard all changes")).Confirm()
+				t.ExpectPopup().Menu().
+					Title(Equals("Discard changes")).
+					Select(Contains("Discard all changes")).
+					Confirm()
 			}).
 			Lines(
 				Contains("one"),

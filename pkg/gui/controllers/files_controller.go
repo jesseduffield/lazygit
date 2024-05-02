@@ -1,36 +1,50 @@
 package controllers
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type FilesController struct {
 	baseController // nolint: unused
-	c              *ControllerCommon
+	*ListControllerTrait[*filetree.FileNode]
+	c *ControllerCommon
 }
 
 var _ types.IController = &FilesController{}
 
 func NewFilesController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *FilesController {
 	return &FilesController{
-		c: common,
+		c: c,
+		ListControllerTrait: NewListControllerTrait[*filetree.FileNode](
+			c,
+			c.Contexts().Files,
+			c.Contexts().Files.GetSelected,
+			c.Contexts().Files.GetSelectedItems,
+		),
 	}
 }
 
 func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.checkSelectedFileNode(self.press),
-			Description: self.c.Tr.ToggleStaged,
+			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Handler:           self.withItems(self.press),
+			GetDisabledReason: self.require(self.itemsSelected()),
+			Description:       self.c.Tr.Stage,
+			Tooltip:           self.c.Tr.StageTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenStatusFilter),
@@ -44,9 +58,11 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			OpensMenu:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
-			Handler:     self.c.Helpers().WorkingTree.HandleCommitPress,
-			Description: self.c.Tr.CommitChanges,
+			Key:             opts.GetKey(opts.Config.Files.CommitChanges),
+			Handler:         self.c.Helpers().WorkingTree.HandleCommitPress,
+			Description:     self.c.Tr.Commit,
+			Tooltip:         self.c.Tr.CommitTooltip,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
@@ -64,20 +80,32 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.CommitChangesWithEditor,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
-			Handler:     self.checkSelectedFileNode(self.edit),
-			Description: self.c.Tr.EditFile,
+			Key:         opts.GetKey(opts.Config.Files.FindBaseCommitForFixup),
+			Handler:     self.c.Helpers().FixupHelper.HandleFindBaseCommitForFixupPress,
+			Description: self.c.Tr.FindBaseCommitForFixup,
+			Tooltip:     self.c.Tr.FindBaseCommitForFixupTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
-			Handler:     self.Open,
-			Description: self.c.Tr.OpenFile,
+			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Handler:           self.withItems(self.edit),
+			GetDisabledReason: self.require(self.itemsSelected(self.canEditFiles)),
+			Description:       self.c.Tr.Edit,
+			Tooltip:           self.c.Tr.EditFileTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.IgnoreFile),
-			Handler:     self.checkSelectedFileNode(self.ignoreOrExcludeMenu),
-			Description: self.c.Tr.Actions.IgnoreExcludeFile,
-			OpensMenu:   true,
+			Key:               opts.GetKey(opts.Config.Universal.OpenFile),
+			Handler:           self.Open,
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.OpenFile,
+			Tooltip:           self.c.Tr.OpenFileTooltip,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Files.IgnoreFile),
+			Handler:           self.withItem(self.ignoreOrExcludeMenu),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.Actions.IgnoreExcludeFile,
+			OpensMenu:         true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.RefreshFiles),
@@ -85,25 +113,40 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.RefreshFiles,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.StashAllChanges),
-			Handler:     self.stash,
-			Description: self.c.Tr.StashAllChanges,
+			Key:             opts.GetKey(opts.Config.Files.StashAllChanges),
+			Handler:         self.stash,
+			Description:     self.c.Tr.Stash,
+			Tooltip:         self.c.Tr.StashTooltip,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ViewStashOptions),
 			Handler:     self.createStashMenu,
 			Description: self.c.Tr.ViewStashOptions,
+			Tooltip:     self.c.Tr.ViewStashOptionsTooltip,
 			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleStagedAll),
 			Handler:     self.toggleStagedAll,
 			Description: self.c.Tr.ToggleStagedAll,
+			Tooltip:     self.c.Tr.ToggleStagedAllTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:     self.enter,
-			Description: self.c.Tr.FileEnter,
+			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Handler:           self.enter,
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.FileEnter,
+			Tooltip:           self.c.Tr.FileEnterTooltip,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Handler:           self.withItems(self.remove),
+			GetDisabledReason: self.require(self.itemsSelected(self.canRemove)),
+			Description:       self.c.Tr.Discard,
+			Tooltip:           self.c.Tr.DiscardFileChangesTooltip,
+			OpensMenu:         true,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
@@ -112,25 +155,36 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			OpensMenu:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.ViewResetOptions),
-			Handler:     self.createResetMenu,
-			Description: self.c.Tr.ViewResetOptions,
-			OpensMenu:   true,
+			Key:             opts.GetKey(opts.Config.Files.ViewResetOptions),
+			Handler:         self.createResetMenu,
+			Description:     self.c.Tr.Reset,
+			Tooltip:         self.c.Tr.FileResetOptionsTooltip,
+			OpensMenu:       true,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleTreeView),
 			Handler:     self.toggleTreeView,
 			Description: self.c.Tr.ToggleTreeView,
+			Tooltip:     self.c.Tr.ToggleTreeViewTooltip,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.OpenDiffTool),
+			Handler:           self.withItem(self.openDiffTool),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.OpenDiffTool,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
 			Handler:     self.c.Helpers().WorkingTree.OpenMergeTool,
 			Description: self.c.Tr.OpenMergeTool,
+			Tooltip:     self.c.Tr.OpenMergeToolTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.Fetch),
 			Handler:     self.fetch,
 			Description: self.c.Tr.Fetch,
+			Tooltip:     self.c.Tr.FetchTooltip,
 		},
 	}
 }
@@ -193,7 +247,7 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 				}
 
 				if hasConflicts {
-					return self.c.Helpers().MergeConflicts.Render(false)
+					return self.c.Helpers().MergeConflicts.Render()
 				}
 			}
 
@@ -242,7 +296,9 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 }
 
 func (self *FilesController) GetOnClick() func() error {
-	return self.checkSelectedFileNode(self.press)
+	return self.withItemGraceful(func(node *filetree.FileNode) error {
+		return self.press([]*filetree.FileNode{node})
+	})
 }
 
 // if we are dealing with a status for which there is no key in this map,
@@ -292,24 +348,28 @@ func (self *FilesController) optimisticUnstage(file *models.File) bool {
 // the files panel. Then we'll immediately do a proper git status call
 // so that if the optimistic rendering got something wrong, it's quickly
 // corrected.
-func (self *FilesController) optimisticChange(node *filetree.FileNode, optimisticChangeFn func(*models.File) bool) error {
+func (self *FilesController) optimisticChange(nodes []*filetree.FileNode, optimisticChangeFn func(*models.File) bool) error {
 	rerender := false
-	err := node.ForEachFile(func(f *models.File) error {
-		// can't act on the file itself: we need to update the original model file
-		for _, modelFile := range self.c.Model().Files {
-			if modelFile.Name == f.Name {
-				if optimisticChangeFn(modelFile) {
-					rerender = true
-				}
-				break
-			}
-		}
 
-		return nil
-	})
-	if err != nil {
-		return err
+	for _, node := range nodes {
+		err := node.ForEachFile(func(f *models.File) error {
+			// can't act on the file itself: we need to update the original model file
+			for _, modelFile := range self.c.Model().Files {
+				if modelFile.Name == f.Name {
+					if optimisticChangeFn(modelFile) {
+						rerender = true
+					}
+					break
+				}
+			}
+
+			return nil
+		})
+		if err != nil {
+			return err
+		}
 	}
+
 	if rerender {
 		if err := self.c.PostRefreshUpdate(self.c.Contexts().Files); err != nil {
 			return err
@@ -319,63 +379,63 @@ func (self *FilesController) optimisticChange(node *filetree.FileNode, optimisti
 	return nil
 }
 
-func (self *FilesController) pressWithLock(node *filetree.FileNode) error {
+func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) error {
 	// Obtaining this lock because optimistic rendering requires us to mutate
 	// the files in our model.
 	self.c.Mutexes().RefreshingFilesMutex.Lock()
 	defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
 
-	if node.IsFile() {
-		file := node.File
-
-		if file.HasUnstagedChanges {
-			self.c.LogAction(self.c.Tr.Actions.StageFile)
-
-			if err := self.optimisticChange(node, self.optimisticStage); err != nil {
-				return err
-			}
-
-			if err := self.c.Git().WorkingTree.StageFile(file.Name); err != nil {
-				return self.c.Error(err)
-			}
-		} else {
-			self.c.LogAction(self.c.Tr.Actions.UnstageFile)
-
-			if err := self.optimisticChange(node, self.optimisticUnstage); err != nil {
-				return err
-			}
-
-			if err := self.c.Git().WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
-				return self.c.Error(err)
-			}
-		}
-	} else {
+	for _, node := range selectedNodes {
 		// if any files within have inline merge conflicts we can't stage or unstage,
 		// or it'll end up with those >>>>>> lines actually staged
 		if node.GetHasInlineMergeConflicts() {
-			return self.c.ErrorMsg(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
+			return errors.New(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
+		}
+	}
+
+	toPaths := func(nodes []*filetree.FileNode) []string {
+		return lo.Map(nodes, func(node *filetree.FileNode, _ int) string {
+			return node.Path
+		})
+	}
+
+	selectedNodes = normalisedSelectedNodes(selectedNodes)
+
+	// If any node has unstaged changes, we'll stage all the selected nodes. Otherwise,
+	// we unstage all the selected nodes.
+	if someNodesHaveUnstagedChanges(selectedNodes) {
+		self.c.LogAction(self.c.Tr.Actions.StageFile)
+
+		if err := self.optimisticChange(selectedNodes, self.optimisticStage); err != nil {
+			return err
 		}
 
-		if node.GetHasUnstagedChanges() {
-			self.c.LogAction(self.c.Tr.Actions.StageFile)
+		if err := self.c.Git().WorkingTree.StageFiles(toPaths(selectedNodes)); err != nil {
+			return err
+		}
+	} else {
+		self.c.LogAction(self.c.Tr.Actions.UnstageFile)
 
-			if err := self.optimisticChange(node, self.optimisticStage); err != nil {
+		if err := self.optimisticChange(selectedNodes, self.optimisticUnstage); err != nil {
+			return err
+		}
+
+		// need to partition the paths into tracked and untracked (where we assume directories are tracked). Then we'll run the commands separately.
+		trackedNodes, untrackedNodes := utils.Partition(selectedNodes, func(node *filetree.FileNode) bool {
+			// We treat all directories as tracked. I'm not actually sure why we do this but
+			// it's been the existing behaviour for a while and nobody has complained
+			return !node.IsFile() || node.GetIsTracked()
+		})
+
+		if len(untrackedNodes) > 0 {
+			if err := self.c.Git().WorkingTree.UnstageUntrackedFiles(toPaths(untrackedNodes)); err != nil {
 				return err
 			}
+		}
 
-			if err := self.c.Git().WorkingTree.StageFile(node.Path); err != nil {
-				return self.c.Error(err)
-			}
-		} else {
-			self.c.LogAction(self.c.Tr.Actions.UnstageFile)
-
-			if err := self.optimisticChange(node, self.optimisticUnstage); err != nil {
+		if len(trackedNodes) > 0 {
+			if err := self.c.Git().WorkingTree.UnstageTrackedFiles(toPaths(trackedNodes)); err != nil {
 				return err
-			}
-
-			// pretty sure it doesn't matter that we're always passing true here
-			if err := self.c.Git().WorkingTree.UnStageFile([]string{node.Path}, true); err != nil {
-				return self.c.Error(err)
 			}
 		}
 	}
@@ -383,12 +443,8 @@ func (self *FilesController) pressWithLock(node *filetree.FileNode) error {
 	return nil
 }
 
-func (self *FilesController) press(node *filetree.FileNode) error {
-	if node.IsFile() && node.File.HasInlineMergeConflicts {
-		return self.switchToMerge()
-	}
-
-	if err := self.pressWithLock(node); err != nil {
+func (self *FilesController) press(nodes []*filetree.FileNode) error {
+	if err := self.pressWithLock(nodes); err != nil {
 		return err
 	}
 
@@ -397,17 +453,6 @@ func (self *FilesController) press(node *filetree.FileNode) error {
 	}
 
 	return self.context().HandleFocus(types.OnFocusOpts{})
-}
-
-func (self *FilesController) checkSelectedFileNode(callback func(*filetree.FileNode) error) func() error {
-	return func() error {
-		node := self.context().GetSelected()
-		if node == nil {
-			return nil
-		}
-
-		return callback(node)
-	}
 }
 
 func (self *FilesController) Context() types.Context {
@@ -452,7 +497,7 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 		return self.switchToMerge()
 	}
 	if file.HasMergeConflicts {
-		return self.c.ErrorMsg(self.c.Tr.FileStagingRequirements)
+		return errors.New(self.c.Tr.FileStagingRequirements)
 	}
 
 	return self.c.PushContext(self.c.Contexts().Staging, opts)
@@ -479,28 +524,28 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 	// if any files within have inline merge conflicts we can't stage or unstage,
 	// or it'll end up with those >>>>>> lines actually staged
 	if root.GetHasInlineMergeConflicts() {
-		return self.c.ErrorMsg(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
+		return errors.New(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
 	}
 
 	if root.GetHasUnstagedChanges() {
 		self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
 
-		if err := self.optimisticChange(root, self.optimisticStage); err != nil {
+		if err := self.optimisticChange([]*filetree.FileNode{root}, self.optimisticStage); err != nil {
 			return err
 		}
 
 		if err := self.c.Git().WorkingTree.StageAll(); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 	} else {
 		self.c.LogAction(self.c.Tr.Actions.UnstageAllFiles)
 
-		if err := self.optimisticChange(root, self.optimisticUnstage); err != nil {
+		if err := self.optimisticChange([]*filetree.FileNode{root}, self.optimisticUnstage); err != nil {
 			return err
 		}
 
 		if err := self.c.Git().WorkingTree.UnstageAll(); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 	}
 
@@ -562,30 +607,17 @@ func (self *FilesController) ignoreOrExcludeFile(node *filetree.FileNode, trText
 
 func (self *FilesController) ignore(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
-		return self.c.ErrorMsg(self.c.Tr.Actions.IgnoreFileErr)
+		return errors.New(self.c.Tr.Actions.IgnoreFileErr)
 	}
-	err := self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.c.Git().WorkingTree.Ignore)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.c.Git().WorkingTree.Ignore)
 }
 
 func (self *FilesController) exclude(node *filetree.FileNode) error {
-	if node.GetPath() == ".git/info/exclude" {
-		return self.c.ErrorMsg(self.c.Tr.Actions.ExcludeFileErr)
-	}
-
 	if node.GetPath() == ".gitignore" {
-		return self.c.ErrorMsg(self.c.Tr.Actions.ExcludeGitIgnoreErr)
+		return errors.New(self.c.Tr.Actions.ExcludeGitIgnoreErr)
 	}
 
-	err := self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.c.Git().WorkingTree.Exclude)
-	if err != nil {
-		return err
-	}
-	return nil
+	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.c.Git().WorkingTree.Exclude)
 }
 
 func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error {
@@ -596,7 +628,7 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 				LabelColumns: []string{self.c.Tr.IgnoreFile},
 				OnPress: func() error {
 					if err := self.ignore(node); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 					return nil
 				},
@@ -606,7 +638,7 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 				LabelColumns: []string{self.c.Tr.ExcludeFile},
 				OnPress: func() error {
 					if err := self.exclude(node); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 					return nil
 				},
@@ -627,7 +659,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 		HandleConfirm: func() error {
 			return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
 				if len(self.c.Model().Commits) == 0 {
-					return self.c.ErrorMsg(self.c.Tr.NoCommitToAmend)
+					return errors.New(self.c.Tr.NoCommitToAmend)
 				}
 
 				return self.c.Helpers().AmendHelper.AmendHead()
@@ -645,18 +677,21 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayStaged)
 				},
+				Key: 's',
 			},
 			{
 				Label: self.c.Tr.FilterUnstagedFiles,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayUnstaged)
 				},
+				Key: 'u',
 			},
 			{
 				Label: self.c.Tr.ResetFilter,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayAll)
 				},
+				Key: 'r',
 			},
 		},
 	})
@@ -667,12 +702,22 @@ func (self *FilesController) setStatusFiltering(filter filetree.FileTreeDisplayF
 	return self.c.PostRefreshUpdate(self.context())
 }
 
-func (self *FilesController) edit(node *filetree.FileNode) error {
-	if node.File == nil {
-		return self.c.ErrorMsg(self.c.Tr.ErrCannotEditDirectory)
+func (self *FilesController) edit(nodes []*filetree.FileNode) error {
+	return self.c.Helpers().Files.EditFiles(lo.FilterMap(nodes,
+		func(node *filetree.FileNode, _ int) (string, bool) {
+			return node.GetPath(), node.IsFile()
+		}))
+}
+
+func (self *FilesController) canEditFiles(nodes []*filetree.FileNode) *types.DisabledReason {
+	if lo.NoneBy(nodes, func(node *filetree.FileNode) bool { return node.IsFile() }) {
+		return &types.DisabledReason{
+			Text:             self.c.Tr.ErrCannotEditDirectory,
+			ShowErrorInPanel: true,
+		}
 	}
 
-	return self.c.Helpers().Files.EditFile(node.GetPath())
+	return nil
 }
 
 func (self *FilesController) Open() error {
@@ -682,6 +727,26 @@ func (self *FilesController) Open() error {
 	}
 
 	return self.c.Helpers().Files.OpenFile(node.GetPath())
+}
+
+func (self *FilesController) openDiffTool(node *filetree.FileNode) error {
+	fromCommit := ""
+	reverse := false
+	if self.c.Modes().Diffing.Active() {
+		fromCommit = self.c.Modes().Diffing.Ref
+		reverse = self.c.Modes().Diffing.Reverse
+	}
+	return self.c.RunSubprocessAndRefresh(
+		self.c.Git().Diff.OpenDiffToolCmdObj(
+			git_commands.DiffToolCmdOptions{
+				Filepath:    node.Path,
+				FromCommit:  fromCommit,
+				ToCommit:    "",
+				Reverse:     reverse,
+				IsDirectory: !node.IsFile(),
+				Staged:      !node.GetHasUnstagedChanges(),
+			}),
+	)
 }
 
 func (self *FilesController) switchToMerge() error {
@@ -701,7 +766,7 @@ func (self *FilesController) createStashMenu() error {
 				Label: self.c.Tr.StashAllChanges,
 				OnPress: func() error {
 					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
-						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
+						return errors.New(self.c.Tr.NoFilesToStash)
 					}
 					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashAllChanges)
 				},
@@ -711,7 +776,7 @@ func (self *FilesController) createStashMenu() error {
 				Label: self.c.Tr.StashAllChangesKeepIndex,
 				OnPress: func() error {
 					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
-						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
+						return errors.New(self.c.Tr.NoFilesToStash)
 					}
 					// if there are no staged files it behaves the same as Stash.Save
 					return self.handleStashSave(self.c.Git().Stash.StashAndKeepIndex, self.c.Tr.Actions.StashAllChangesKeepIndex)
@@ -730,7 +795,7 @@ func (self *FilesController) createStashMenu() error {
 				OnPress: func() error {
 					// there must be something in staging otherwise the current implementation mucks the stash up
 					if !self.c.Helpers().WorkingTree.AnyStagedFiles() {
-						return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
+						return errors.New(self.c.Tr.NoTrackedStagedFilesStash)
 					}
 					return self.handleStashSave(self.c.Git().Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
 				},
@@ -740,7 +805,7 @@ func (self *FilesController) createStashMenu() error {
 				Label: self.c.Tr.StashUnstagedChanges,
 				OnPress: func() error {
 					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
-						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
+						return errors.New(self.c.Tr.NoFilesToStash)
 					}
 					if self.c.Helpers().WorkingTree.AnyStagedFiles() {
 						return self.handleStashSave(self.c.Git().Stash.StashUnstagedChanges, self.c.Tr.Actions.StashUnstagedChanges)
@@ -761,23 +826,25 @@ func (self *FilesController) openCopyMenu() error {
 		Label: self.c.Tr.CopyFileName,
 		OnPress: func() error {
 			if err := self.c.OS().CopyToClipboard(node.Name()); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			self.c.Toast(self.c.Tr.FileNameCopiedToast)
 			return nil
 		},
-		Key: 'n',
+		DisabledReason: self.require(self.singleItemSelected())(),
+		Key:            'n',
 	}
 	copyPathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyFilePath,
 		OnPress: func() error {
 			if err := self.c.OS().CopyToClipboard(node.Path); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			self.c.Toast(self.c.Tr.FilePathCopiedToast)
 			return nil
 		},
-		Key: 'p',
+		DisabledReason: self.require(self.singleItemSelected())(),
+		Key:            'p',
 	}
 	copyFileDiffItem := &types.MenuItem{
 		Label:   self.c.Tr.CopySelectedDiff,
@@ -787,14 +854,22 @@ func (self *FilesController) openCopyMenu() error {
 			hasStaged := self.hasPathStagedChanges(node)
 			diff, err := self.c.Git().Diff.GetPathDiff(path, hasStaged)
 			if err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			if err := self.c.OS().CopyToClipboard(diff); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			self.c.Toast(self.c.Tr.FileDiffCopiedToast)
 			return nil
 		},
+		DisabledReason: self.require(self.singleItemSelected(
+			func(file *filetree.FileNode) *types.DisabledReason {
+				if !node.GetHasStagedOrTrackedChanges() {
+					return &types.DisabledReason{Text: self.c.Tr.NoContentToCopyError}
+				}
+				return nil
+			},
+		))(),
 		Key: 's',
 	}
 	copyAllDiff := &types.MenuItem{
@@ -804,27 +879,23 @@ func (self *FilesController) openCopyMenu() error {
 			hasStaged := self.c.Helpers().WorkingTree.AnyStagedFiles()
 			diff, err := self.c.Git().Diff.GetAllDiff(hasStaged)
 			if err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			if err := self.c.OS().CopyToClipboard(diff); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			self.c.Toast(self.c.Tr.AllFilesDiffCopiedToast)
 			return nil
 		},
+		DisabledReason: self.require(
+			func() *types.DisabledReason {
+				if !self.anyStagedOrTrackedFile() {
+					return &types.DisabledReason{Text: self.c.Tr.NoContentToCopyError}
+				}
+				return nil
+			},
+		)(),
 		Key: 'a',
-	}
-
-	if node == nil {
-		copyNameItem.DisabledReason = self.c.Tr.NoContentToCopyError
-		copyPathItem.DisabledReason = self.c.Tr.NoContentToCopyError
-		copyFileDiffItem.DisabledReason = self.c.Tr.NoContentToCopyError
-	}
-	if node != nil && !node.GetHasStagedOrTrackedChanges() {
-		copyFileDiffItem.DisabledReason = self.c.Tr.NoContentToCopyError
-	}
-	if !self.anyStagedOrTrackedFile() {
-		copyAllDiff.DisabledReason = self.c.Tr.NoContentToCopyError
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
@@ -887,7 +958,7 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 			self.c.LogAction(action)
 
 			if err := stashFunc(stashComment); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
 		},
@@ -905,7 +976,7 @@ func (self *FilesController) onClickSecondary(opts gocui.ViewMouseBindingOpts) e
 func (self *FilesController) fetch() error {
 	return self.c.WithWaitingStatus(self.c.Tr.FetchingStatus, func(task gocui.Task) error {
 		if err := self.fetchAux(task); err != nil {
-			_ = self.c.Error(err)
+			return err
 		}
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 	})
@@ -916,10 +987,164 @@ func (self *FilesController) fetchAux(task gocui.Task) (err error) {
 	err = self.c.Git().Sync.Fetch(task)
 
 	if err != nil && strings.Contains(err.Error(), "exit status 128") {
-		_ = self.c.ErrorMsg(self.c.Tr.PassUnameWrong)
+		return errors.New(self.c.Tr.PassUnameWrong)
 	}
 
 	_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
 
 	return err
+}
+
+// Couldn't think of a better term than 'normalised'. Alas.
+// The idea is that when you select a range of nodes, you will often have both
+// a node and its parent node selected. If we are trying to discard changes to the
+// selected nodes, we'll get an error if we try to discard the child after the parent.
+// So we just need to filter out any nodes from the selection that are descendants
+// of other nodes
+func normalisedSelectedNodes(selectedNodes []*filetree.FileNode) []*filetree.FileNode {
+	return lo.Filter(selectedNodes, func(node *filetree.FileNode, _ int) bool {
+		return !isDescendentOfSelectedNodes(node, selectedNodes)
+	})
+}
+
+func isDescendentOfSelectedNodes(node *filetree.FileNode, selectedNodes []*filetree.FileNode) bool {
+	for _, selectedNode := range selectedNodes {
+		selectedNodePath := selectedNode.GetPath()
+		nodePath := node.GetPath()
+
+		if strings.HasPrefix(nodePath, selectedNodePath) && nodePath != selectedNodePath {
+			return true
+		}
+	}
+	return false
+}
+
+func someNodesHaveUnstagedChanges(nodes []*filetree.FileNode) bool {
+	return lo.SomeBy(nodes, (*filetree.FileNode).GetHasUnstagedChanges)
+}
+
+func someNodesHaveStagedChanges(nodes []*filetree.FileNode) bool {
+	return lo.SomeBy(nodes, (*filetree.FileNode).GetHasStagedChanges)
+}
+
+func (self *FilesController) canRemove(selectedNodes []*filetree.FileNode) *types.DisabledReason {
+	submodules := self.c.Model().Submodules
+	submoduleCount := lo.CountBy(selectedNodes, func(node *filetree.FileNode) bool {
+		return node.File != nil && node.File.IsSubmodule(submodules)
+	})
+	if submoduleCount > 0 && len(selectedNodes) > 1 {
+		return &types.DisabledReason{Text: self.c.Tr.RangeSelectNotSupportedForSubmodules}
+	}
+
+	return nil
+}
+
+func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
+	submodules := self.c.Model().Submodules
+
+	// If we have one submodule then we must only have one submodule or `canRemove` would have
+	// returned an error
+	firstNode := selectedNodes[0]
+	if firstNode.File != nil && firstNode.File.IsSubmodule(submodules) {
+		submodule := firstNode.File.SubmoduleConfig(submodules)
+
+		menuItems := []*types.MenuItem{
+			{
+				Label: self.c.Tr.SubmoduleStashAndReset,
+				OnPress: func() error {
+					return self.ResetSubmodule(submodule)
+				},
+			},
+		}
+
+		return self.c.Menu(types.CreateMenuOptions{Title: firstNode.GetPath(), Items: menuItems})
+	}
+
+	selectedNodes = normalisedSelectedNodes(selectedNodes)
+
+	menuItems := []*types.MenuItem{
+		{
+			Label: self.c.Tr.DiscardAllChanges,
+			OnPress: func() error {
+				self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInFile)
+
+				if self.context().IsSelectingRange() {
+					defer self.context().CancelRangeSelect()
+				}
+
+				for _, node := range selectedNodes {
+					if err := self.c.Git().WorkingTree.DiscardAllDirChanges(node); err != nil {
+						return err
+					}
+				}
+
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+			},
+			Key: self.c.KeybindingsOpts().GetKey(self.c.UserConfig.Keybinding.Files.ConfirmDiscard),
+			Tooltip: utils.ResolvePlaceholderString(
+				self.c.Tr.DiscardAllTooltip,
+				map[string]string{
+					"path": self.formattedPaths(selectedNodes),
+				},
+			),
+		},
+	}
+
+	if someNodesHaveStagedChanges(selectedNodes) && someNodesHaveUnstagedChanges(selectedNodes) {
+		menuItems = append(menuItems, &types.MenuItem{
+			Label: self.c.Tr.DiscardUnstagedChanges,
+			OnPress: func() error {
+				self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
+
+				if self.context().IsSelectingRange() {
+					defer self.context().CancelRangeSelect()
+				}
+
+				for _, node := range selectedNodes {
+					if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
+						return err
+					}
+				}
+
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+			},
+			Key: 'u',
+			Tooltip: utils.ResolvePlaceholderString(
+				self.c.Tr.DiscardUnstagedTooltip,
+				map[string]string{
+					"path": self.formattedPaths(selectedNodes),
+				},
+			),
+		})
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.DiscardChangesTitle, Items: menuItems})
+}
+
+func (self *FilesController) ResetSubmodule(submodule *models.SubmoduleConfig) error {
+	return self.c.WithWaitingStatus(self.c.Tr.ResettingSubmoduleStatus, func(gocui.Task) error {
+		self.c.LogAction(self.c.Tr.Actions.ResetSubmodule)
+
+		file := self.c.Helpers().WorkingTree.FileForSubmodule(submodule)
+		if file != nil {
+			if err := self.c.Git().WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
+				return err
+			}
+		}
+
+		if err := self.c.Git().Submodule.Stash(submodule); err != nil {
+			return err
+		}
+		if err := self.c.Git().Submodule.Reset(submodule); err != nil {
+			return err
+		}
+
+		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.SUBMODULES}})
+	})
+}
+
+func (self *FilesController) formattedPaths(nodes []*filetree.FileNode) string {
+	return utils.FormatPaths(lo.Map(nodes, func(node *filetree.FileNode, _ int) string {
+		return node.GetPath()
+	}))
 }

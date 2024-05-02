@@ -4,7 +4,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
 )
@@ -143,15 +142,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		gui.State.ViewsSetup = true
 	}
 
-	for _, listContext := range gui.c.Context().AllList() {
-		view, err := gui.g.View(listContext.GetViewName())
-		if err != nil {
-			continue
-		}
-
-		view.SelBgColor = theme.GocuiSelectedLineBgColor
-	}
-
 	mainViewWidth, mainViewHeight := gui.Views.Main.Size()
 	if mainViewWidth != gui.PrevLayout.MainWidth || mainViewHeight != gui.PrevLayout.MainHeight {
 		gui.PrevLayout.MainWidth = mainViewWidth
@@ -174,6 +164,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if err := gui.helpers.Confirmation.ResizeCurrentPopupPanel(); err != nil {
 		return err
 	}
+
+	gui.renderContextOptionsMap()
 
 outer:
 	for {
@@ -262,8 +254,13 @@ func (gui *Gui) onInitialViewsCreation() error {
 		storedPopupVersion := gui.c.GetAppState().StartupPopupVersion
 		if storedPopupVersion < StartupPopupVersion {
 			gui.showIntroPopupMessage()
+		} else {
+			gui.showBreakingChangesMessage()
 		}
 	}
+
+	gui.c.GetAppState().LastVersion = gui.Config.GetVersion()
+	gui.c.SaveAppStateAndLogError()
 
 	if gui.showRecentRepos {
 		if err := gui.helpers.Repos.CreateRecentReposMenu(); err != nil {

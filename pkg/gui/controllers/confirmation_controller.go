@@ -13,27 +13,27 @@ type ConfirmationController struct {
 var _ types.IController = &ConfirmationController{}
 
 func NewConfirmationController(
-	common *ControllerCommon,
+	c *ControllerCommon,
 ) *ConfirmationController {
 	return &ConfirmationController{
 		baseController: baseController{},
-		c:              common,
+		c:              c,
 	}
 }
 
 func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Confirm),
-			Handler:     func() error { return self.context().State.OnConfirm() },
-			Description: self.c.Tr.Confirm,
-			Display:     true,
+			Key:             opts.GetKey(opts.Config.Universal.Confirm),
+			Handler:         func() error { return self.context().State.OnConfirm() },
+			Description:     self.c.Tr.Confirm,
+			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Return),
-			Handler:     func() error { return self.context().State.OnClose() },
-			Description: self.c.Tr.CloseCancel,
-			Display:     true,
+			Key:             opts.GetKey(opts.Config.Universal.Return),
+			Handler:         func() error { return self.context().State.OnClose() },
+			Description:     self.c.Tr.CloseCancel,
+			DisplayOnScreen: true,
 		},
 		{
 			Key: opts.GetKey(opts.Config.Universal.TogglePanel),

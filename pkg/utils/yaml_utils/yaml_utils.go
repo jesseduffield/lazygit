@@ -153,3 +153,74 @@ func renameYamlKey(node *yaml.Node, path []string, newKey string) (bool, error) 
 
 	return renameYamlKey(valueNode, path[1:], newKey)
 }
+
+// Traverses a yaml document, calling the callback function for each node. The
+// callback is allowed to modify the node in place, in which case it should
+// return true. The function returns the original yaml document if none of the
+// callbacks returned true, and the modified document otherwise.
+func Walk(yamlBytes []byte, callback func(node *yaml.Node, path string) bool) ([]byte, error) {
+	// Parse the YAML file.
+	var node yaml.Node
+	err := yaml.Unmarshal(yamlBytes, &node)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse YAML: %w", err)
+	}
+
+	// Empty document: nothing to do.
+	if len(node.Content) == 0 {
+		return yamlBytes, nil
+	}
+
+	body := node.Content[0]
+
+	if didChange, err := walk(body, "", callback); err != nil || !didChange {
+		return yamlBytes, err
+	}
+
+	// Convert the updated YAML node back to YAML bytes.
+	updatedYAMLBytes, err := yaml.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert YAML node to bytes: %w", err)
+	}
+
+	return updatedYAMLBytes, nil
+}
+
+func walk(node *yaml.Node, path string, callback func(*yaml.Node, string) bool) (bool, error) {
+	didChange := callback(node, path)
+	switch node.Kind {
+	case yaml.DocumentNode:
+		return false, errors.New("Unexpected document node in the middle of a yaml tree")
+	case yaml.MappingNode:
+		for i := 0; i < len(node.Content); i += 2 {
+			name := node.Content[i].Value
+			childNode := node.Content[i+1]
+			var childPath string
+			if path == "" {
+				childPath = name
+			} else {
+				childPath = fmt.Sprintf("%s.%s", path, name)
+			}
+			didChangeChild, err := walk(childNode, childPath, callback)
+			if err != nil {
+				return false, err
+			}
+			didChange = didChange || didChangeChild
+		}
+	case yaml.SequenceNode:
+		for i := 0; i < len(node.Content); i++ {
+			childPath := fmt.Sprintf("%s[%d]", path, i)
+			didChangeChild, err := walk(node.Content[i], childPath, callback)
+			if err != nil {
+				return false, err
+			}
+			didChange = didChange || didChangeChild
+		}
+	case yaml.ScalarNode:
+		// nothing to do
+	case yaml.AliasNode:
+		return false, errors.New("Alias nodes are not supported")
+	}
+
+	return didChange, nil
+}
