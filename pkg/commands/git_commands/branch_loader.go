@@ -124,6 +124,45 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit) ([]*models.Branch
 	return branches, nil
 }
 
+func (self *BranchLoader) GetBaseBranch(branch *models.Branch, existingMainBranches *ExistingMainBranches) (string, error) {
+	mainBranches := existingMainBranches.Get()
+	if len(mainBranches) == 0 {
+		return "", nil
+	}
+
+	output, err := self.cmd.New(
+		NewGitCmd("merge-base").Arg(branch.FullRefName()).Arg(mainBranches...).
+			ToArgv(),
+	).DontLog().RunWithOutput()
+	if err != nil {
+		// If there's an error, it must be because one of the main branches that
+		// used to exist when we called getExistingMainBranches() was deleted
+		// meanwhile. To fix this for next time, throw away our cache.
+		existingMainBranches.Clear()
+		return "", nil
+	}
+	mergeBase := ignoringWarnings(output)
+
+	output, err = self.cmd.New(
+		NewGitCmd("for-each-ref").
+			Arg("--contains").
+			Arg(mergeBase).
+			Arg("--format=%(refname)").
+			Arg(mainBranches...).
+			ToArgv(),
+	).DontLog().RunWithOutput()
+	if err != nil {
+		return "", err
+	}
+	trimmedOutput := strings.TrimSpace(output)
+	split := strings.Split(trimmedOutput, "\n")
+	if len(split) == 0 || split[0] == "" {
+		return "", nil
+	}
+	baseBranch := split[0]
+	return baseBranch, nil
+}
+
 func (self *BranchLoader) obtainBranches() []*models.Branch {
 	output, err := self.getRawBranches()
 	if err != nil {
