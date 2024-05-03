@@ -23,6 +23,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/reflog"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/staging"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/status"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/submodule"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/tag"
@@ -257,6 +258,9 @@ var tests = []*components.IntegrationTest{
 	stash.StashIncludingUntrackedFiles,
 	stash.StashStaged,
 	stash.StashUnstaged,
+	status.ClickRepoNameToOpenReposMenu,
+	status.ClickToFocus,
+	status.ClickWorkingTreeStateToOpenRebaseOptionsMenu,
 	submodule.Add,
 	submodule.Enter,
 	submodule.EnterNested,
