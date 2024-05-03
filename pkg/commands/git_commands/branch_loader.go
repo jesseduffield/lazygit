@@ -127,6 +127,39 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit) ([]*models.Branch
 	return branches, nil
 }
 
+// Find the base branch for the given branch (i.e. the main branch that the
+// given branch was forked off of)
+//
+// Note that this function may return an empty string even if the returned error
+// is nil, e.g. when none of the configured main branches exist. This is not
+// considered an error condition, so callers need to check both the returned
+// error and whether the returned base branch is empty (and possibly react
+// differently in both cases).
+func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *MainBranches) (string, error) {
+	mergeBase := mainBranches.GetMergeBase(branch.FullRefName())
+	if mergeBase == "" {
+		return "", nil
+	}
+
+	output, err := self.cmd.New(
+		NewGitCmd("for-each-ref").
+			Arg("--contains").
+			Arg(mergeBase).
+			Arg("--format=%(refname)").
+			Arg(mainBranches.Get()...).
+			ToArgv(),
+	).DontLog().RunWithOutput()
+	if err != nil {
+		return "", err
+	}
+	trimmedOutput := strings.TrimSpace(output)
+	split := strings.Split(trimmedOutput, "\n")
+	if len(split) == 0 || split[0] == "" {
+		return "", nil
+	}
+	return split[0], nil
+}
+
 func (self *BranchLoader) obtainBranches(canUsePushTrack bool) []*models.Branch {
 	output, err := self.getRawBranches()
 	if err != nil {
