@@ -100,15 +100,13 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Branches.RebaseBranch),
-			Handler: opts.Guards.OutsideFilterMode(self.rebase),
-			GetDisabledReason: self.require(
-				self.singleItemSelected(self.notRebasingOntoSelf),
-			),
-			Description:     self.c.Tr.RebaseBranch,
-			Tooltip:         self.c.Tr.RebaseBranchTooltip,
-			OpensMenu:       true,
-			DisplayOnScreen: true,
+			Key:               opts.GetKey(opts.Config.Branches.RebaseBranch),
+			Handler:           opts.Guards.OutsideFilterMode(self.withItem(self.rebase)),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.RebaseBranch,
+			Tooltip:           self.c.Tr.RebaseBranchTooltip,
+			OpensMenu:         true,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
@@ -634,19 +632,8 @@ func (self *BranchesController) merge() error {
 	return self.c.Helpers().MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranchName)
 }
 
-func (self *BranchesController) rebase() error {
-	selectedBranchName := self.context().GetSelected().Name
-	return self.c.Helpers().MergeAndRebase.RebaseOntoRef(selectedBranchName)
-}
-
-func (self *BranchesController) notRebasingOntoSelf(branch *models.Branch) *types.DisabledReason {
-	selectedBranchName := branch.Name
-	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef().Name
-	if selectedBranchName == checkedOutBranch {
-		return &types.DisabledReason{Text: self.c.Tr.CantRebaseOntoSelf}
-	}
-
-	return nil
+func (self *BranchesController) rebase(branch *models.Branch) error {
+	return self.c.Helpers().MergeAndRebase.RebaseOntoRef(branch.Name)
 }
 
 func (self *BranchesController) fastForward(branch *models.Branch) error {

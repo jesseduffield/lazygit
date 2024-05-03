@@ -235,10 +235,15 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 
 func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 	checkedOutBranch := self.refsHelper.GetCheckedOutRef().Name
+	var disabledReason *types.DisabledReason
+	if checkedOutBranch == ref {
+		disabledReason = &types.DisabledReason{Text: self.c.Tr.CantRebaseOntoSelf}
+	}
 	menuItems := []*types.MenuItem{
 		{
-			Label: self.c.Tr.SimpleRebase,
-			Key:   's',
+			Label:          self.c.Tr.SimpleRebase,
+			Key:            's',
+			DisabledReason: disabledReason,
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
 				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(task gocui.Task) error {
@@ -258,9 +263,10 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			},
 		},
 		{
-			Label:   self.c.Tr.InteractiveRebase,
-			Key:     'i',
-			Tooltip: self.c.Tr.InteractiveRebaseTooltip,
+			Label:          self.c.Tr.InteractiveRebase,
+			Key:            'i',
+			DisabledReason: disabledReason,
+			Tooltip:        self.c.Tr.InteractiveRebaseTooltip,
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
 				baseCommit := self.c.Modes().MarkedBaseCommit.GetHash()
