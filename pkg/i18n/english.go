@@ -1445,7 +1445,7 @@ func EnglishTranslationSet() TranslationSet {
 		ViewUpstreamResetOptions:             "Reset checked-out branch onto {{.upstream}}",
 		ViewUpstreamResetOptionsTooltip:      "View options for resetting the checked-out branch onto {{upstream}}. Note: this will not reset the selected branch onto the upstream, it will reset the checked-out branch onto the upstream.",
 		ViewUpstreamRebaseOptions:            "Rebase checked-out branch onto {{.upstream}}",
-		ViewUpstreamRebaseOptionsTooltip:     "View options for rebasing the checked-out branch onto {{upstream}}. Note: this will not rebase the selected branch onto the upstream, it will rebased the checked-out branch onto the upstream.",
+		ViewUpstreamRebaseOptionsTooltip:     "View options for rebasing the checked-out branch onto {{upstream}}. Note: this will not rebase the selected branch onto the upstream, it will rebase the checked-out branch onto the upstream.",
 		UpstreamGenericName:                  "upstream of selected branch",
 		SetUpstreamTitle:                     "Set upstream branch",
 		SetUpstreamMessage:                   "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",
