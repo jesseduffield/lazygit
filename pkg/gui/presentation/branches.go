@@ -172,18 +172,29 @@ func BranchStatus(
 		}
 	}
 
-	ahead := branch.AheadOfBaseBranch.Load()
-	behind := branch.BehindBaseBranch.Load()
-	if ahead != 0 || behind != 0 {
-		if result != "" {
-			result += " "
-		}
-		if ahead != 0 && behind != 0 {
-			result += style.FgCyan.Sprintf("↓%d↑%d", behind, ahead)
-		} else if behind != 0 {
-			result += style.FgCyan.Sprintf("↓%d", behind)
+	if userConfig.Gui.ShowDivergenceFromBaseBranch != "off" {
+		behind := branch.BehindBaseBranch.Load()
+		if userConfig.Gui.ShowDivergenceFromBaseBranch == "onlyBehind" {
+			if behind != 0 {
+				if result != "" {
+					result += " "
+				}
+				result += style.FgCyan.Sprintf("↓%d", behind)
+			}
 		} else {
-			result += style.FgCyan.Sprintf("↑%d", ahead)
+			ahead := branch.AheadOfBaseBranch.Load()
+			if ahead != 0 || behind != 0 {
+				if result != "" {
+					result += " "
+				}
+				if ahead != 0 && behind != 0 {
+					result += style.FgCyan.Sprintf("↓%d↑%d", behind, ahead)
+				} else if behind != 0 {
+					result += style.FgCyan.Sprintf("↓%d", behind)
+				} else {
+					result += style.FgCyan.Sprintf("↑%d", ahead)
+				}
+			}
 		}
 	}
 

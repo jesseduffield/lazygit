@@ -127,6 +127,8 @@ type GuiConfig struct {
 	CommitHashLength int `yaml:"commitHashLength" jsonschema:"minimum=0"`
 	// If true, show commit hashes alongside branch names in the branches view.
 	ShowBranchCommitHash bool `yaml:"showBranchCommitHash"`
+	// Whether to show the divergence from the base branch in the branches view.
+	ShowDivergenceFromBaseBranch string `yaml:"showDivergenceFromBaseBranch" jsonschema:"enum=off,enum=onlyBehind,enum=behindAndAhead"`
 	// Height of the command log view
 	CommandLogSize int `yaml:"commandLogSize" jsonschema:"minimum=0"`
 	// Whether to split the main window when viewing file changes.
@@ -668,26 +670,27 @@ func GetDefaultConfig() *UserConfig {
 				UnstagedChangesColor:       []string{"red"},
 				DefaultFgColor:             []string{"default"},
 			},
-			CommitLength:              CommitLengthConfig{Show: true},
-			SkipNoStagedFilesWarning:  false,
-			ShowListFooter:            true,
-			ShowCommandLog:            true,
-			ShowBottomLine:            true,
-			ShowPanelJumps:            true,
-			ShowFileTree:              true,
-			ShowRandomTip:             true,
-			ShowIcons:                 false,
-			NerdFontsVersion:          "",
-			ShowFileIcons:             true,
-			CommitHashLength:          8,
-			ShowBranchCommitHash:      false,
-			CommandLogSize:            8,
-			SplitDiff:                 "auto",
-			SkipRewordInEditorWarning: false,
-			Border:                    "rounded",
-			AnimateExplosion:          true,
-			PortraitMode:              "auto",
-			FilterMode:                "substring",
+			CommitLength:                 CommitLengthConfig{Show: true},
+			SkipNoStagedFilesWarning:     false,
+			ShowListFooter:               true,
+			ShowCommandLog:               true,
+			ShowBottomLine:               true,
+			ShowPanelJumps:               true,
+			ShowFileTree:                 true,
+			ShowRandomTip:                true,
+			ShowIcons:                    false,
+			NerdFontsVersion:             "",
+			ShowFileIcons:                true,
+			CommitHashLength:             8,
+			ShowBranchCommitHash:         false,
+			ShowDivergenceFromBaseBranch: "onlyBehind",
+			CommandLogSize:               8,
+			SplitDiff:                    "auto",
+			SkipRewordInEditorWarning:    false,
+			Border:                       "rounded",
+			AnimateExplosion:             true,
+			PortraitMode:                 "auto",
+			FilterMode:                   "substring",
 			Spinner: SpinnerConfig{
 				Frames: []string{"|", "/", "-", "\\"},
 				Rate:   50,

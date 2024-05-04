@@ -74,6 +74,7 @@ gui:
   showListFooter: true # for seeing the '5 of 20' message in list panels
   showRandomTip: true
   showBranchCommitHash: false # show commit hashes alongside branch names
+  showDivergenceFromBaseBranch: onlyBehind # one of 'off' | 'onlyBehind' | 'behindAndAhead'
   showBottomLine: true # for hiding the bottom information line (unless it has important information to tell you)
   showPanelJumps: true # for showing the jump-to-panel keybindings as panel subtitles
   showCommandLog: true
