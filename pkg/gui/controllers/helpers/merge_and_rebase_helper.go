@@ -234,11 +234,22 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 }
 
 func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
-	checkedOutBranch := self.refsHelper.GetCheckedOutRef().Name
-	var disabledReason *types.DisabledReason
-	if checkedOutBranch == ref {
+	checkedOutBranch := self.refsHelper.GetCheckedOutRef()
+	checkedOutBranchName := self.refsHelper.GetCheckedOutRef().Name
+	var disabledReason, baseBranchDisabledReason *types.DisabledReason
+	if checkedOutBranchName == ref {
 		disabledReason = &types.DisabledReason{Text: self.c.Tr.CantRebaseOntoSelf}
 	}
+
+	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(checkedOutBranch, self.refsHelper.c.Model().ExistingMainBranches)
+	if err != nil {
+		return err
+	}
+	if baseBranch == "" {
+		baseBranch = self.c.Tr.CouldNotDetermineBaseBranch
+		baseBranchDisabledReason = &types.DisabledReason{Text: self.c.Tr.CouldNotDetermineBaseBranch}
+	}
+
 	menuItems := []*types.MenuItem{
 		{
 			Label: utils.ResolvePlaceholderString(self.c.Tr.SimpleRebase,
@@ -289,6 +300,31 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 				return self.c.PushContext(self.c.Contexts().LocalCommits)
 			},
 		},
+		{
+			Label: utils.ResolvePlaceholderString(self.c.Tr.RebaseOntoBaseBranch,
+				map[string]string{"baseBranch": strings.TrimPrefix(baseBranch, "refs/remotes/")},
+			),
+			Key:            'b',
+			DisabledReason: baseBranchDisabledReason,
+			Tooltip:        self.c.Tr.RebaseOntoBaseBranchTooltip,
+			OnPress: func() error {
+				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
+				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(task gocui.Task) error {
+					baseCommit := self.c.Modes().MarkedBaseCommit.GetHash()
+					var err error
+					if baseCommit != "" {
+						err = self.c.Git().Rebase.RebaseBranchFromBaseCommit(baseBranch, baseCommit)
+					} else {
+						err = self.c.Git().Rebase.RebaseBranch(baseBranch)
+					}
+					err = self.CheckMergeOrRebase(err)
+					if err == nil {
+						return self.ResetMarkedBaseCommit()
+					}
+					return err
+				})
+			},
+		},
 	}
 
 	title := utils.ResolvePlaceholderString(
@@ -296,7 +332,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			self.c.Tr.RebasingFromBaseCommitTitle,
 			self.c.Tr.RebasingTitle),
 		map[string]string{
-			"checkedOutBranch": checkedOutBranch,
+			"checkedOutBranch": checkedOutBranchName,
 		},
 	)
 

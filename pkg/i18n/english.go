@@ -289,7 +289,9 @@ type TranslationSet struct {
 	RebasingFromBaseCommitTitle           string
 	SimpleRebase                          string
 	InteractiveRebase                     string
+	RebaseOntoBaseBranch                  string
 	InteractiveRebaseTooltip              string
+	RebaseOntoBaseBranchTooltip           string
 	MustSelectTodoCommits                 string
 	ConfirmMerge                          string
 	FwdNoUpstream                         string
@@ -471,6 +473,7 @@ type TranslationSet struct {
 	ViewDivergenceFromBaseBranch          string
 	NoMainBranches                        string
 	BaseBranch                            string
+	CouldNotDetermineBaseBranch           string
 	DivergenceSectionHeaderLocal          string
 	DivergenceSectionHeaderRemote         string
 	ViewUpstreamResetOptions              string
@@ -1258,7 +1261,9 @@ func EnglishTranslationSet() TranslationSet {
 		RebasingFromBaseCommitTitle:          "Rebase '{{.checkedOutBranch}}' from marked base",
 		SimpleRebase:                         "Simple rebase onto '{{.ref}}'",
 		InteractiveRebase:                    "Interactive rebase onto '{{.ref}}'",
+		RebaseOntoBaseBranch:                 "Rebase onto base branch ({{.baseBranch}})",
 		InteractiveRebaseTooltip:             "Begin an interactive rebase with a break at the start, so you can update the TODO commits before continuing.",
+		RebaseOntoBaseBranchTooltip:          "Rebase the checked out branch onto its base branch (i.e. the closest main branch).",
 		MustSelectTodoCommits:                "When rebasing, this action only works on a selection of TODO commits.",
 		ConfirmMerge:                         "Are you sure you want to merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'?",
 		FwdNoUpstream:                        "Cannot fast-forward a branch with no upstream",
@@ -1440,6 +1445,7 @@ func EnglishTranslationSet() TranslationSet {
 		ViewDivergenceFromBaseBranch:         "View divergence from base branch ({{.baseBranch}})",
 		NoMainBranches:                       "There are no main branches",
 		BaseBranch:                           "base branch",
+		CouldNotDetermineBaseBranch:          "couldn't determine base branch",
 		DivergenceSectionHeaderLocal:         "Local",
 		DivergenceSectionHeaderRemote:        "Remote",
 		ViewUpstreamResetOptions:             "Reset checked-out branch onto {{.upstream}}",
