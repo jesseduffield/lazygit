@@ -51,6 +51,7 @@ var tests = []*components.IntegrationTest{
 	branch.RebaseCopiedBranch,
 	branch.RebaseDoesNotAutosquash,
 	branch.RebaseFromMarkedBase,
+	branch.RebaseOntoBaseBranch,
 	branch.RebaseToUpstream,
 	branch.Rename,
 	branch.Reset,
