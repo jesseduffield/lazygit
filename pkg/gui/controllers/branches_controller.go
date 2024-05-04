@@ -107,6 +107,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			),
 			Description:     self.c.Tr.RebaseBranch,
 			Tooltip:         self.c.Tr.RebaseBranchTooltip,
+			OpensMenu:       true,
 			DisplayOnScreen: true,
 		},
 		{
