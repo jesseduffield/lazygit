@@ -241,7 +241,9 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 	}
 	menuItems := []*types.MenuItem{
 		{
-			Label:          self.c.Tr.SimpleRebase,
+			Label: utils.ResolvePlaceholderString(self.c.Tr.SimpleRebase,
+				map[string]string{"ref": ref},
+			),
 			Key:            's',
 			DisabledReason: disabledReason,
 			OnPress: func() error {
@@ -263,7 +265,9 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			},
 		},
 		{
-			Label:          self.c.Tr.InteractiveRebase,
+			Label: utils.ResolvePlaceholderString(self.c.Tr.InteractiveRebase,
+				map[string]string{"ref": ref},
+			),
 			Key:            'i',
 			DisabledReason: disabledReason,
 			Tooltip:        self.c.Tr.InteractiveRebaseTooltip,
@@ -293,7 +297,6 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			self.c.Tr.RebasingTitle),
 		map[string]string{
 			"checkedOutBranch": checkedOutBranch,
-			"ref":              ref,
 		},
 	)
 

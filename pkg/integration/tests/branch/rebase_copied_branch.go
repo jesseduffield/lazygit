@@ -42,7 +42,7 @@ var RebaseCopiedBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Branches.RebaseBranch).
 			Tap(func() {
 				t.ExpectPopup().Menu().
-					Title(Equals("Rebase 'branch2' onto 'master'")).
+					Title(Equals("Rebase 'branch2'")).
 					Select(Contains("Simple rebase")).
 					Confirm()
 			})
