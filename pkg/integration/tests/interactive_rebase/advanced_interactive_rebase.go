@@ -39,7 +39,7 @@ var AdvancedInteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Branches.RebaseBranch)
 
 		t.ExpectPopup().Menu().
-			Title(Equals(fmt.Sprintf("Rebase '%s' onto '%s'", TOP_BRANCH, BASE_BRANCH))).
+			Title(Equals(fmt.Sprintf("Rebase '%s'", TOP_BRANCH))).
 			Select(Contains("Interactive rebase")).
 			Confirm()
 		t.Views().Commits().
