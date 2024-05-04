@@ -172,11 +172,19 @@ func BranchStatus(
 		}
 	}
 
-	if v := branch.BehindBaseBranch.Load(); v != 0 {
+	ahead := branch.AheadOfBaseBranch.Load()
+	behind := branch.BehindBaseBranch.Load()
+	if ahead != 0 || behind != 0 {
 		if result != "" {
 			result += " "
 		}
-		result += style.FgCyan.Sprintf("↓%d", v)
+		if ahead != 0 && behind != 0 {
+			result += style.FgCyan.Sprintf("↓%d↑%d", behind, ahead)
+		} else if behind != 0 {
+			result += style.FgCyan.Sprintf("↓%d", behind)
+		} else {
+			result += style.FgCyan.Sprintf("↑%d", ahead)
+		}
 	}
 
 	return result

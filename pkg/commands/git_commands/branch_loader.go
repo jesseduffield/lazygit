@@ -125,6 +125,7 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit, existingMainBranc
 			return b.Name == branch.Name
 		}); found {
 			branch.BehindBaseBranch.Store(oldBranch.BehindBaseBranch.Load())
+			branch.AheadOfBaseBranch.Store(oldBranch.AheadOfBaseBranch.Load())
 		}
 	}
 
@@ -153,9 +154,12 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit, existingMainBranc
 				if len(aheadBehindStr) != 2 {
 					return errors.New("unexpected output from git rev-list")
 				}
-				if behind, err := strconv.Atoi(aheadBehindStr[1]); err == nil {
-					branch.BehindBaseBranch.Store(int32(behind))
-					renderFunc()
+				if ahead, err := strconv.Atoi(aheadBehindStr[0]); err == nil {
+					if behind, err := strconv.Atoi(aheadBehindStr[1]); err == nil {
+						branch.AheadOfBaseBranch.Store(int32(ahead))
+						branch.BehindBaseBranch.Store(int32(behind))
+						renderFunc()
+					}
 				}
 			}
 		}

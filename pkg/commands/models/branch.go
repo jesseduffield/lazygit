@@ -36,6 +36,12 @@ type Branch struct {
 	// determined yet, or up to date with base branch. (We don't need to
 	// distinguish the two, as we don't draw anything in both cases.)
 	BehindBaseBranch atomic.Int32
+
+	// How far our branch is ahead of its base branch. 0 means either not
+	// determined yet, or there are no commits on this branch yet, or the branch
+	// is already merged. (We don't need to distinguish these, as we don't draw
+	// anything in all these cases.)
+	AheadOfBaseBranch atomic.Int32
 }
 
 func (b *Branch) FullRefName() string {
