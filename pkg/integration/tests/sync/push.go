@@ -21,7 +21,7 @@ var Push = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("two")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Status().Content(Contains("↑1 repo → master"))
+		t.Views().Status().Content(Equals("↑1 repo → master"))
 
 		t.Views().Files().
 			IsFocused().
