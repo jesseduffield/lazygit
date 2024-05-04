@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func FormatStatus(
@@ -24,7 +25,10 @@ func FormatStatus(
 	status := ""
 
 	if currentBranch.IsRealBranch() {
-		status += ColoredBranchStatus(currentBranch, itemOperation, tr, userConfig) + " "
+		status += ColoredBranchStatus(currentBranch, itemOperation, tr, userConfig)
+		if utils.Decolorise(status) != "" {
+			status += " "
+		}
 	}
 
 	if workingTreeState != enums.REBASE_MODE_NONE {
@@ -40,7 +44,7 @@ func FormatStatus(
 		}
 		repoName = fmt.Sprintf("%s(%s%s)", repoName, icon, style.FgCyan.Sprint(linkedWorktreeName))
 	}
-	status += fmt.Sprintf("%s → %s ", repoName, name)
+	status += fmt.Sprintf("%s → %s", repoName, name)
 
 	return status
 }

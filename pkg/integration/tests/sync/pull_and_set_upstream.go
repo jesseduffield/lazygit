@@ -25,7 +25,7 @@ var PullAndSetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("one"),
 			)
 
-		t.Views().Status().Content(Contains("repo → master"))
+		t.Views().Status().Content(Equals("repo → master"))
 
 		t.Views().Files().IsFocused().Press(keys.Universal.Pull)
 
@@ -40,6 +40,6 @@ var PullAndSetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("one"),
 			)
 
-		t.Views().Status().Content(Contains("✓ repo → master"))
+		t.Views().Status().Content(Equals("✓ repo → master"))
 	},
 })

@@ -22,13 +22,13 @@ var PushNoFollowTags = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateAnnotatedTag("mytag", "message", "HEAD")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Status().Content(Contains("✓ repo → master"))
+		t.Views().Status().Content(Equals("✓ repo → master"))
 
 		t.Views().Files().
 			IsFocused().
 			Press(keys.Universal.Push)
 
-		t.Views().Status().Content(Contains("✓ repo → master"))
+		t.Views().Status().Content(Equals("✓ repo → master"))
 
 		t.Views().Remotes().
 			Focus().
