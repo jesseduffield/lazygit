@@ -128,6 +128,10 @@ func (self *Views) Confirmation() *ViewDriver {
 	return self.regularView("confirmation")
 }
 
+func (self *Views) Textbox() *ViewDriver {
+	return self.regularView("textbox")
+}
+
 func (self *Views) CommitMessage() *ViewDriver {
 	return self.regularView("commitMessage")
 }

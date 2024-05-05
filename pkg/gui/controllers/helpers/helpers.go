@@ -45,6 +45,7 @@ type Helpers struct {
 	View              *ViewHelper
 	Refresh           *RefreshHelper
 	Confirmation      *ConfirmationHelper
+	Textbox           *TextboxHelper
 	Mode              *ModeHelper
 	AppStatus         *AppStatusHelper
 	InlineStatus      *InlineStatusHelper
@@ -82,6 +83,7 @@ func NewStubHelpers() *Helpers {
 		View:              &ViewHelper{},
 		Refresh:           &RefreshHelper{},
 		Confirmation:      &ConfirmationHelper{},
+		Textbox:           &TextboxHelper{},
 		Mode:              &ModeHelper{},
 		AppStatus:         &AppStatusHelper{},
 		InlineStatus:      &InlineStatusHelper{},

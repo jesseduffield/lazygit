@@ -509,6 +509,9 @@ func NewGui(
 	gui.PopupHandler = popup.NewPopupHandler(
 		cmn,
 		func(ctx goContext.Context, opts types.CreatePopupPanelOpts) error {
+			if opts.Multiline {
+				return gui.helpers.Textbox.CreatePopupPanel(ctx, opts)
+			}
 			return gui.helpers.Confirmation.CreatePopupPanel(ctx, opts)
 		},
 		func() error { return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}) },

@@ -112,6 +112,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.OmitFromHistory,
 	custom_commands.SuggestionsCommand,
 	custom_commands.SuggestionsPreset,
+	custom_commands.Textbox,
 	demo.AmendOldCommit,
 	demo.Bisect,
 	demo.CherryPick,

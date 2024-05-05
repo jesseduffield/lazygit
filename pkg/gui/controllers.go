@@ -121,6 +121,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		View:            viewHelper,
 		Refresh:         refreshHelper,
 		Confirmation:    helpers.NewConfirmationHelper(helperCommon),
+		Textbox:         helpers.NewTextboxHelper(helperCommon),
 		Mode:            modeHelper,
 		AppStatus:       appStatusHelper,
 		InlineStatus:    helpers.NewInlineStatusHelper(helperCommon, windowHelper),
@@ -191,6 +192,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	statusController := controllers.NewStatusController(common)
 	commandLogController := controllers.NewCommandLogController(common)
 	confirmationController := controllers.NewConfirmationController(common)
+	textboxController := controllers.NewTextboxController(common)
 	suggestionsController := controllers.NewSuggestionsController(common)
 	jumpToSideWindowController := controllers.NewJumpToSideWindowController(common)
 
@@ -365,6 +367,10 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.Confirmation,
 		confirmationController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Textbox,
+		textboxController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Suggestions,

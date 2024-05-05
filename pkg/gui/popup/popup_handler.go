@@ -114,6 +114,16 @@ func (self *PopupHandler) Prompt(opts types.PromptOpts) error {
 	})
 }
 
+func (self *PopupHandler) Textbox(opts types.PromptOpts) error {
+	return self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
+		Title:               opts.Title,
+		Multiline:           true,
+		Editable:            true,
+		HandleConfirmPrompt: opts.HandleConfirm,
+		HandleClose:         opts.HandleClose,
+	})
+}
+
 // returns the content that has currently been typed into the prompt. Useful for
 // asynchronously updating the suggestions list under the prompt.
 func (self *PopupHandler) GetPromptInput() string {

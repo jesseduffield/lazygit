@@ -441,6 +441,10 @@ func (self *ViewDriver) PressEnter() *ViewDriver {
 	return self.Press(self.t.keys.Universal.Confirm)
 }
 
+func (self *ViewDriver) PressAltEnter() *ViewDriver {
+	return self.Press(self.t.keys.Universal.ConfirmInEditor)
+}
+
 // i.e. pressing tab
 func (self *ViewDriver) PressTab() *ViewDriver {
 	return self.Press(self.t.keys.Universal.TogglePanel)
