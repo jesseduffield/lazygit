@@ -117,6 +117,7 @@ func (self *PopupHandler) Prompt(opts types.PromptOpts) error {
 func (self *PopupHandler) Textbox(opts types.PromptOpts) error {
 	return self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
 		Title:               opts.Title,
+		Prompt:              opts.InitialContent,
 		Multiline:           true,
 		Editable:            true,
 		HandleConfirmPrompt: opts.HandleConfirm,
