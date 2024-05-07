@@ -285,6 +285,29 @@ Here's an example using a command but not specifying anything else: so each line
         command: 'ls'
 ```
 
+### Textbox
+
+| _field_           | _description_                                                                                  | _required_ |
+| ------------      | -----------------------------------------------------------------------------------------------| ---------- |
+| initialValue      | The initial value to appear in the text box               | no         |
+
+Here's an example using textbox prompt.
+
+```yml
+  - key : 'a'
+    description: 'Create new commit'
+    command: "git commit --message '{{.Form.Message}}' --message '{{.Form.Description}}'"
+    context: 'global'
+    prompts:
+      - type: 'input'
+        title: 'Commit Message'
+        key: 'Message'
+      - type: 'textbox'
+        title: 'Commit Description'
+        key: 'Description'
+        initialValue: 'resolves #'
+```
+
 ## Placeholder values
 
 Your commands can contain placeholder strings using Go's [template syntax](https://jan.newmarch.name/golang/template/chapter-template.html). The template syntax is pretty powerful, letting you do things like conditionals if you want, but for the most part you'll simply want to be accessing the fields on the following objects:
