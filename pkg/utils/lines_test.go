@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"bufio"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -98,5 +100,67 @@ func TestNormalizeLinefeeds(t *testing.T) {
 
 	for _, s := range scenarios {
 		assert.EqualValues(t, string(s.expected), NormalizeLinefeeds(string(s.byteArray)))
+	}
+}
+
+func TestScanLinesAndTruncateWhenLongerThanBuffer(t *testing.T) {
+	type scenario struct {
+		input         string
+		expectedLines []string
+	}
+
+	scenarios := []scenario{
+		{
+			"",
+			[]string{},
+		},
+		{
+			"\n",
+			[]string{""},
+		},
+		{
+			"abc",
+			[]string{"abc"},
+		},
+		{
+			"abc\ndef",
+			[]string{"abc", "def"},
+		},
+		{
+			"abc\n\ndef",
+			[]string{"abc", "", "def"},
+		},
+		{
+			"abc\r\ndef\r",
+			[]string{"abc", "def"},
+		},
+		{
+			"abcdef",
+			[]string{"abcde"},
+		},
+		{
+			"abcdef\n",
+			[]string{"abcde"},
+		},
+		{
+			"abcdef\nghijkl\nx",
+			[]string{"abcde", "ghijk", "x"},
+		},
+		{
+			"abc\ndefghijklmnopqrstuvw\nx",
+			[]string{"abc", "defgh", "x"},
+		},
+	}
+
+	for _, s := range scenarios {
+		scanner := bufio.NewScanner(strings.NewReader(s.input))
+		scanner.Buffer(make([]byte, 5), 5)
+		scanner.Split(ScanLinesAndTruncateWhenLongerThanBuffer(5))
+		result := []string{}
+		for scanner.Scan() {
+			result = append(result, scanner.Text())
+		}
+		assert.NoError(t, scanner.Err())
+		assert.EqualValues(t, s.expectedLines, result)
 	}
 }

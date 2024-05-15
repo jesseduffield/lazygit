@@ -162,7 +162,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 		done := make(chan struct{})
 
 		scanner := bufio.NewScanner(r)
-		scanner.Split(bufio.ScanLines)
+		scanner.Split(utils.ScanLinesAndTruncateWhenLongerThanBuffer(bufio.MaxScanTokenSize))
 
 		lineChan := make(chan []byte)
 		lineWrittenChan := make(chan struct{})
