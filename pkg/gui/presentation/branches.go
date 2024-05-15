@@ -173,13 +173,21 @@ func BranchStatus(
 	}
 
 	if userConfig.Gui.ShowDivergenceFromBaseBranch != "off" {
+		showNumbers := userConfig.Gui.ShowDivergenceFromBaseBranch == "onlyBehindArrowAndNumber" ||
+			userConfig.Gui.ShowDivergenceFromBaseBranch == "behindAndAheadArrowsAndNumbers"
+
 		behind := branch.BehindBaseBranch.Load()
-		if userConfig.Gui.ShowDivergenceFromBaseBranch == "onlyBehind" {
+		if userConfig.Gui.ShowDivergenceFromBaseBranch == "onlyBehindArrow" ||
+			userConfig.Gui.ShowDivergenceFromBaseBranch == "onlyBehindArrowAndNumber" {
 			if behind != 0 {
 				if result != "" {
 					result += " "
 				}
-				result += style.FgCyan.Sprintf("↓%d", behind)
+				if showNumbers {
+					result += style.FgCyan.Sprintf("↓%d", behind)
+				} else {
+					result += style.FgCyan.Sprintf("↓")
+				}
 			}
 		} else {
 			ahead := branch.AheadOfBaseBranch.Load()
@@ -188,11 +196,23 @@ func BranchStatus(
 					result += " "
 				}
 				if ahead != 0 && behind != 0 {
-					result += style.FgCyan.Sprintf("↓%d↑%d", behind, ahead)
+					if showNumbers {
+						result += style.FgCyan.Sprintf("↓%d↑%d", behind, ahead)
+					} else {
+						result += style.FgCyan.Sprint("↕")
+					}
 				} else if behind != 0 {
-					result += style.FgCyan.Sprintf("↓%d", behind)
+					if showNumbers {
+						result += style.FgCyan.Sprintf("↓%d", behind)
+					} else {
+						result += style.FgCyan.Sprint("↓")
+					}
 				} else {
-					result += style.FgCyan.Sprintf("↑%d", ahead)
+					if showNumbers {
+						result += style.FgCyan.Sprintf("↑%d", ahead)
+					} else {
+						result += style.FgCyan.Sprint("↑")
+					}
 				}
 			}
 		}

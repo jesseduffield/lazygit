@@ -323,8 +323,10 @@
           "type": "string",
           "enum": [
             "off",
-            "onlyBehind",
-            "behindAndAhead"
+            "onlyBehindArrow",
+            "onlyBehindArrowAndNumber",
+            "behindAndAheadArrows",
+            "behindAndAheadArrowsAndNumbers"
           ],
           "description": "Whether to show the divergence from the base branch in the branches view.",
           "default": "onlyBehind"

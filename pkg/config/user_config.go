@@ -128,7 +128,7 @@ type GuiConfig struct {
 	// If true, show commit hashes alongside branch names in the branches view.
 	ShowBranchCommitHash bool `yaml:"showBranchCommitHash"`
 	// Whether to show the divergence from the base branch in the branches view.
-	ShowDivergenceFromBaseBranch string `yaml:"showDivergenceFromBaseBranch" jsonschema:"enum=off,enum=onlyBehind,enum=behindAndAhead"`
+	ShowDivergenceFromBaseBranch string `yaml:"showDivergenceFromBaseBranch" jsonschema:"enum=off,enum=onlyBehindArrow,enum=onlyBehindArrowAndNumber,enum=behindAndAheadArrows,enum=behindAndAheadArrowsAndNumbers"`
 	// Height of the command log view
 	CommandLogSize int `yaml:"commandLogSize" jsonschema:"minimum=0"`
 	// Whether to split the main window when viewing file changes.
@@ -683,7 +683,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowFileIcons:                true,
 			CommitHashLength:             8,
 			ShowBranchCommitHash:         false,
-			ShowDivergenceFromBaseBranch: "onlyBehind",
+			ShowDivergenceFromBaseBranch: "onlyBehindArrowAndNumber",
 			CommandLogSize:               8,
 			SplitDiff:                    "auto",
 			SkipRewordInEditorWarning:    false,
