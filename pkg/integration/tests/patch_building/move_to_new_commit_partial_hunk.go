@@ -51,6 +51,16 @@ var MoveToNewCommitPartialHunk = NewIntegrationTest(NewIntegrationTestArgs{
 			InitialText(Equals("")).
 			Type("new commit").Confirm()
 
+		t.Views().Commits().
+			IsFocused().
+			Lines(
+				Contains("third commit"),
+				Contains("new commit").IsSelected(),
+				Contains("commit to move from"),
+				Contains("first commit"),
+			).
+			PressEnter()
+
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
