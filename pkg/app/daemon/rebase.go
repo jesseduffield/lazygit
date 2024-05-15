@@ -5,11 +5,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
+	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 type TodoLine struct {
@@ -44,6 +45,10 @@ func handleInteractiveRebase(common *common.Common, f func(path string) error) e
 	path := os.Args[1]
 
 	if strings.HasSuffix(path, "git-rebase-todo") {
+		err := utils.RemoveUpdateRefsForCopiedBranch(path, getCommentChar())
+		if err != nil {
+			return err
+		}
 		return f(path)
 	} else if strings.HasSuffix(path, filepath.Join(gitDir(), "COMMIT_EDITMSG")) { // TODO: test
 		// if we are rebasing and squashing, we'll see a COMMIT_EDITMSG

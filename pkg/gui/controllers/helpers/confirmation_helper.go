@@ -36,7 +36,7 @@ func (self *ConfirmationHelper) wrappedConfirmationFunction(cancel goContext.Can
 
 		if function != nil {
 			if err := function(); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 		}
 

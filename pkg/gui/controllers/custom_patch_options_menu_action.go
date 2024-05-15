@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
@@ -15,11 +16,11 @@ type CustomPatchOptionsMenuAction struct {
 
 func (self *CustomPatchOptionsMenuAction) Call() error {
 	if !self.c.Git().Patch.PatchBuilder.Active() {
-		return self.c.ErrorMsg(self.c.Tr.NoPatchError)
+		return errors.New(self.c.Tr.NoPatchError)
 	}
 
 	if self.c.Git().Patch.PatchBuilder.IsEmpty() {
-		return self.c.ErrorMsg(self.c.Tr.EmptyPatchError)
+		return errors.New(self.c.Tr.EmptyPatchError)
 	}
 
 	menuItems := []*types.MenuItem{
@@ -115,7 +116,7 @@ func (self *CustomPatchOptionsMenuAction) getPatchCommitIndex() int {
 
 func (self *CustomPatchOptionsMenuAction) validateNormalWorkingTreeState() (bool, error) {
 	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
-		return false, self.c.ErrorMsg(self.c.Tr.CantPatchWhileRebasingError)
+		return false, errors.New(self.c.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil
 }
@@ -234,7 +235,7 @@ func (self *CustomPatchOptionsMenuAction) handleApplyPatch(reverse bool) error {
 	}
 	self.c.LogAction(action)
 	if err := self.c.Git().Patch.ApplyCustomPatch(reverse); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
@@ -244,7 +245,7 @@ func (self *CustomPatchOptionsMenuAction) copyPatchToClipboard() error {
 
 	self.c.LogAction(self.c.Tr.Actions.CopyPatchToClipboard)
 	if err := self.c.OS().CopyToClipboard(patch); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Toast(self.c.Tr.PatchCopiedToClipboard)

@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/gookit/color"
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/stefanhaller/git-todo-parser/todo"
 	"github.com/stretchr/testify/assert"
 	"github.com/xo/terminfo"
 )
@@ -357,6 +357,185 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		hash1 pick  commit1
 		hash2       ◯ commit2
 		hash3       ◯ commit3
+				`),
+		},
+		{
+			testName: "graph in divergence view - all commits visible",
+			commits: []*models.Commit{
+				{Name: "commit1", Hash: "hash1r", Parents: []string{"hash2r"}, Divergence: models.DivergenceRight},
+				{Name: "commit2", Hash: "hash2r", Parents: []string{"hash3r", "hash5r"}, Divergence: models.DivergenceRight},
+				{Name: "commit3", Hash: "hash3r", Parents: []string{"hash4r"}, Divergence: models.DivergenceRight},
+				{Name: "commit1", Hash: "hash1l", Parents: []string{"hash2l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit2", Hash: "hash2l", Parents: []string{"hash3l", "hash4l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit3", Hash: "hash3l", Parents: []string{"hash4l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit4", Hash: "hash4l", Parents: []string{"hash5l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit5", Hash: "hash5l", Parents: []string{"hash6l"}, Divergence: models.DivergenceLeft},
+			},
+			startIdx:                  0,
+			endIdx:                    8,
+			showGraph:                 true,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			showYouAreHereLabel:       false,
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		↓ hash1r ◯ commit1
+		↓ hash2r ⏣─╮ commit2
+		↓ hash3r ◯ │ commit3
+		↑ hash1l ◯ commit1
+		↑ hash2l ⏣─╮ commit2
+		↑ hash3l ◯ │ commit3
+		↑ hash4l ◯─╯ commit4
+		↑ hash5l ◯ commit5
+				`),
+		},
+		{
+			testName: "graph in divergence view - not all remote commits visible",
+			commits: []*models.Commit{
+				{Name: "commit1", Hash: "hash1r", Parents: []string{"hash2r"}, Divergence: models.DivergenceRight},
+				{Name: "commit2", Hash: "hash2r", Parents: []string{"hash3r", "hash5r"}, Divergence: models.DivergenceRight},
+				{Name: "commit3", Hash: "hash3r", Parents: []string{"hash4r"}, Divergence: models.DivergenceRight},
+				{Name: "commit1", Hash: "hash1l", Parents: []string{"hash2l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit2", Hash: "hash2l", Parents: []string{"hash3l", "hash4l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit3", Hash: "hash3l", Parents: []string{"hash4l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit4", Hash: "hash4l", Parents: []string{"hash5l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit5", Hash: "hash5l", Parents: []string{"hash6l"}, Divergence: models.DivergenceLeft},
+			},
+			startIdx:                  2,
+			endIdx:                    8,
+			showGraph:                 true,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			showYouAreHereLabel:       false,
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		↓ hash3r ◯ │ commit3
+		↑ hash1l ◯ commit1
+		↑ hash2l ⏣─╮ commit2
+		↑ hash3l ◯ │ commit3
+		↑ hash4l ◯─╯ commit4
+		↑ hash5l ◯ commit5
+				`),
+		},
+		{
+			testName: "graph in divergence view - not all local commits",
+			commits: []*models.Commit{
+				{Name: "commit1", Hash: "hash1r", Parents: []string{"hash2r"}, Divergence: models.DivergenceRight},
+				{Name: "commit2", Hash: "hash2r", Parents: []string{"hash3r", "hash5r"}, Divergence: models.DivergenceRight},
+				{Name: "commit3", Hash: "hash3r", Parents: []string{"hash4r"}, Divergence: models.DivergenceRight},
+				{Name: "commit1", Hash: "hash1l", Parents: []string{"hash2l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit2", Hash: "hash2l", Parents: []string{"hash3l", "hash4l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit3", Hash: "hash3l", Parents: []string{"hash4l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit4", Hash: "hash4l", Parents: []string{"hash5l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit5", Hash: "hash5l", Parents: []string{"hash6l"}, Divergence: models.DivergenceLeft},
+			},
+			startIdx:                  0,
+			endIdx:                    5,
+			showGraph:                 true,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			showYouAreHereLabel:       false,
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		↓ hash1r ◯ commit1
+		↓ hash2r ⏣─╮ commit2
+		↓ hash3r ◯ │ commit3
+		↑ hash1l ◯ commit1
+		↑ hash2l ⏣─╮ commit2
+				`),
+		},
+		{
+			testName: "graph in divergence view - no remote commits visible",
+			commits: []*models.Commit{
+				{Name: "commit1", Hash: "hash1r", Parents: []string{"hash2r"}, Divergence: models.DivergenceRight},
+				{Name: "commit2", Hash: "hash2r", Parents: []string{"hash3r", "hash5r"}, Divergence: models.DivergenceRight},
+				{Name: "commit3", Hash: "hash3r", Parents: []string{"hash4r"}, Divergence: models.DivergenceRight},
+				{Name: "commit1", Hash: "hash1l", Parents: []string{"hash2l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit2", Hash: "hash2l", Parents: []string{"hash3l", "hash4l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit3", Hash: "hash3l", Parents: []string{"hash4l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit4", Hash: "hash4l", Parents: []string{"hash5l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit5", Hash: "hash5l", Parents: []string{"hash6l"}, Divergence: models.DivergenceLeft},
+			},
+			startIdx:                  4,
+			endIdx:                    8,
+			showGraph:                 true,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			showYouAreHereLabel:       false,
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		↑ hash2l ⏣─╮ commit2
+		↑ hash3l ◯ │ commit3
+		↑ hash4l ◯─╯ commit4
+		↑ hash5l ◯ commit5
+				`),
+		},
+		{
+			testName: "graph in divergence view - no local commits visible",
+			commits: []*models.Commit{
+				{Name: "commit1", Hash: "hash1r", Parents: []string{"hash2r"}, Divergence: models.DivergenceRight},
+				{Name: "commit2", Hash: "hash2r", Parents: []string{"hash3r", "hash5r"}, Divergence: models.DivergenceRight},
+				{Name: "commit3", Hash: "hash3r", Parents: []string{"hash4r"}, Divergence: models.DivergenceRight},
+				{Name: "commit1", Hash: "hash1l", Parents: []string{"hash2l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit2", Hash: "hash2l", Parents: []string{"hash3l", "hash4l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit3", Hash: "hash3l", Parents: []string{"hash4l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit4", Hash: "hash4l", Parents: []string{"hash5l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit5", Hash: "hash5l", Parents: []string{"hash6l"}, Divergence: models.DivergenceLeft},
+			},
+			startIdx:                  0,
+			endIdx:                    2,
+			showGraph:                 true,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			showYouAreHereLabel:       false,
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		↓ hash1r ◯ commit1
+		↓ hash2r ⏣─╮ commit2
+				`),
+		},
+		{
+			testName: "graph in divergence view - no remote commits present",
+			commits: []*models.Commit{
+				{Name: "commit1", Hash: "hash1l", Parents: []string{"hash2l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit2", Hash: "hash2l", Parents: []string{"hash3l", "hash4l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit3", Hash: "hash3l", Parents: []string{"hash4l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit4", Hash: "hash4l", Parents: []string{"hash5l"}, Divergence: models.DivergenceLeft},
+				{Name: "commit5", Hash: "hash5l", Parents: []string{"hash6l"}, Divergence: models.DivergenceLeft},
+			},
+			startIdx:                  0,
+			endIdx:                    5,
+			showGraph:                 true,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			showYouAreHereLabel:       false,
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		↑ hash1l ◯ commit1
+		↑ hash2l ⏣─╮ commit2
+		↑ hash3l ◯ │ commit3
+		↑ hash4l ◯─╯ commit4
+		↑ hash5l ◯ commit5
+				`),
+		},
+		{
+			testName: "graph in divergence view - no local commits present",
+			commits: []*models.Commit{
+				{Name: "commit1", Hash: "hash1r", Parents: []string{"hash2r"}, Divergence: models.DivergenceRight},
+				{Name: "commit2", Hash: "hash2r", Parents: []string{"hash3r", "hash5r"}, Divergence: models.DivergenceRight},
+				{Name: "commit3", Hash: "hash3r", Parents: []string{"hash4r"}, Divergence: models.DivergenceRight},
+			},
+			startIdx:                  0,
+			endIdx:                    3,
+			showGraph:                 true,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			showYouAreHereLabel:       false,
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		↓ hash1r ◯ commit1
+		↓ hash2r ⏣─╮ commit2
+		↓ hash3r ◯ │ commit3
 				`),
 		},
 		{

@@ -18,10 +18,10 @@ type AsyncHandler struct {
 	lastId    int
 	mutex     deadlock.Mutex
 	onReject  func()
-	onWorker  func(func(gocui.Task))
+	onWorker  func(func(gocui.Task) error)
 }
 
-func NewAsyncHandler(onWorker func(func(gocui.Task))) *AsyncHandler {
+func NewAsyncHandler(onWorker func(func(gocui.Task) error)) *AsyncHandler {
 	return &AsyncHandler{
 		mutex:    deadlock.Mutex{},
 		onWorker: onWorker,
@@ -34,9 +34,10 @@ func (self *AsyncHandler) Do(f func() func()) {
 	id := self.currentId
 	self.mutex.Unlock()
 
-	self.onWorker(func(gocui.Task) {
+	self.onWorker(func(gocui.Task) error {
 		after := f()
 		self.handle(after, id)
+		return nil
 	})
 }
 

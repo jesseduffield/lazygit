@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -101,7 +102,7 @@ func (self *SyncController) push(currentBranch *models.Branch) error {
 			return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
 				upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
 				if err != nil {
-					return self.c.Error(err)
+					return err
 				}
 
 				return self.pushAux(currentBranch, pushOpts{
@@ -121,7 +122,7 @@ func (self *SyncController) pull(currentBranch *models.Branch) error {
 	if !currentBranch.IsTrackingRemote() {
 		return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
 			if err := self.setCurrentBranchUpstream(upstream); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 
 			return self.PullAux(currentBranch, PullFilesOptions{Action: action})
@@ -197,7 +198,7 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 			})
 		if err != nil {
 			if strings.Contains(err.Error(), "Updates were rejected") {
-				return self.c.ErrorMsg(self.c.Tr.UpdatesRejected)
+				return errors.New(self.c.Tr.UpdatesRejected)
 			}
 			return err
 		}
@@ -208,7 +209,7 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 func (self *SyncController) requestToForcePush(currentBranch *models.Branch, opts pushOpts) error {
 	forcePushDisabled := self.c.UserConfig.Git.DisableForcePushing
 	if forcePushDisabled {
-		return self.c.ErrorMsg(self.c.Tr.ForcePushDisabled)
+		return errors.New(self.c.Tr.ForcePushDisabled)
 	}
 
 	return self.c.Confirm(types.ConfirmOpts{

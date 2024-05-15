@@ -363,7 +363,7 @@ func (self *WorkingTreeCommands) ResetAndClean() error {
 	return self.RemoveUntrackedFiles()
 }
 
-// ResetHardHead runs `git reset --hard`
+// ResetHard runs `git reset --hard`
 func (self *WorkingTreeCommands) ResetHard(ref string) error {
 	cmdArgs := NewGitCmd("reset").Arg("--hard", ref).
 		ToArgv()

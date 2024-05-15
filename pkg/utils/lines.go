@@ -1,6 +1,9 @@
 package utils
 
-import "strings"
+import (
+	"bytes"
+	"strings"
+)
 
 // SplitLines takes a multiline string and splits it on newlines
 // currently we are also stripping \r's which may have adverse effects for
@@ -42,4 +45,58 @@ func EscapeSpecialChars(str string) string {
 		"\f", "\\f",
 		"\v", "\\v",
 	).Replace(str)
+}
+
+func dropCR(data []byte) []byte {
+	if len(data) > 0 && data[len(data)-1] == '\r' {
+		return data[0 : len(data)-1]
+	}
+	return data
+}
+
+// ScanLinesAndTruncateWhenLongerThanBuffer returns a split function that can be
+// used with bufio.Scanner.Split(). It is very similar to bufio.ScanLines,
+// except that it will truncate lines that are longer than the scanner's read
+// buffer (whereas bufio.ScanLines will return an error in that case, which is
+// often difficult to handle).
+//
+// If you are using your own buffer for the scanner, you must set maxBufferSize
+// to the same value as the max parameter that you passed to scanner.Buffer().
+// Otherwise, maxBufferSize must be set to bufio.MaxScanTokenSize.
+func ScanLinesAndTruncateWhenLongerThanBuffer(maxBufferSize int) func(data []byte, atEOF bool) (int, []byte, error) {
+	skipOverRemainderOfLongLine := false
+
+	return func(data []byte, atEOF bool) (int, []byte, error) {
+		if atEOF && len(data) == 0 {
+			// Done
+			return 0, nil, nil
+		}
+		if i := bytes.IndexByte(data, '\n'); i >= 0 {
+			if skipOverRemainderOfLongLine {
+				skipOverRemainderOfLongLine = false
+				return i + 1, nil, nil
+			}
+			return i + 1, dropCR(data[0:i]), nil
+		}
+		if atEOF {
+			if skipOverRemainderOfLongLine {
+				return len(data), nil, nil
+			}
+
+			return len(data), dropCR(data), nil
+		}
+
+		// Buffer is full, so we can't get more data
+		if len(data) >= maxBufferSize {
+			if skipOverRemainderOfLongLine {
+				return len(data), nil, nil
+			}
+
+			skipOverRemainderOfLongLine = true
+			return len(data), data, nil
+		}
+
+		// Request more data.
+		return 0, nil, nil
+	}
 }

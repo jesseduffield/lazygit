@@ -99,7 +99,7 @@ func FileHasConflictMarkers(path string) (bool, error) {
 // Efficiently scans through a file looking for merge conflict markers. Returns true if it does
 func fileHasConflictMarkersAux(file io.Reader) bool {
 	scanner := bufio.NewScanner(file)
-	scanner.Split(bufio.ScanLines)
+	scanner.Split(utils.ScanLinesAndTruncateWhenLongerThanBuffer(bufio.MaxScanTokenSize))
 	for scanner.Scan() {
 		line := scanner.Bytes()
 

@@ -59,26 +59,20 @@ func (self appStatusHelperTask) Continue() {
 
 // withWaitingStatus wraps a function and shows a waiting status while the function is still executing
 func (self *AppStatusHelper) WithWaitingStatus(message string, f func(gocui.Task) error) {
-	self.c.OnWorker(func(task gocui.Task) {
-		self.statusMgr().WithWaitingStatus(message, self.renderAppStatus, func(waitingStatusHandle *status.WaitingStatusHandle) {
-			if err := f(appStatusHelperTask{task, waitingStatusHandle}); err != nil {
-				self.c.OnUIThread(func() error {
-					return self.c.Error(err)
-				})
-			}
+	self.c.OnWorker(func(task gocui.Task) error {
+		return self.statusMgr().WithWaitingStatus(message, self.renderAppStatus, func(waitingStatusHandle *status.WaitingStatusHandle) error {
+			return f(appStatusHelperTask{task, waitingStatusHandle})
 		})
 	})
 }
 
-func (self *AppStatusHelper) WithWaitingStatusSync(message string, f func() error) {
-	self.statusMgr().WithWaitingStatus(message, func() {}, func(*status.WaitingStatusHandle) {
+func (self *AppStatusHelper) WithWaitingStatusSync(message string, f func() error) error {
+	return self.statusMgr().WithWaitingStatus(message, func() {}, func(*status.WaitingStatusHandle) error {
 		stop := make(chan struct{})
 		defer func() { close(stop) }()
 		self.renderAppStatusSync(stop)
 
-		if err := f(); err != nil {
-			_ = self.c.Error(err)
-		}
+		return f()
 	})
 }
 
@@ -92,7 +86,7 @@ func (self *AppStatusHelper) GetStatusString() string {
 }
 
 func (self *AppStatusHelper) renderAppStatus() {
-	self.c.OnWorker(func(_ gocui.Task) {
+	self.c.OnWorker(func(_ gocui.Task) error {
 		ticker := time.NewTicker(time.Millisecond * time.Duration(self.c.UserConfig.Gui.Spinner.Rate))
 		defer ticker.Stop()
 		for range ticker.C {
@@ -104,9 +98,10 @@ func (self *AppStatusHelper) renderAppStatus() {
 			})
 
 			if appStatus == "" {
-				return
+				break
 			}
 		}
+		return nil
 	})
 }
 

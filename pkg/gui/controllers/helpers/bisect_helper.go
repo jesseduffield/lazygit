@@ -19,7 +19,7 @@ func (self *BisectHelper) Reset() error {
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.ResetBisect)
 			if err := self.c.Git().Bisect.Reset(); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 
 			return self.PostBisectCommandRefresh()

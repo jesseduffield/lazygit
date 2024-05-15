@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"errors"
 	"path/filepath"
 	"strings"
 	"time"
@@ -167,7 +168,7 @@ func (self *CommitsHelper) HandleCommitConfirm() error {
 	summary, description := self.getCommitSummary(), self.getCommitDescription()
 
 	if summary == "" {
-		return self.c.ErrorMsg(self.c.Tr.CommitWithoutMessageErr)
+		return errors.New(self.c.Tr.CommitWithoutMessageErr)
 	}
 
 	err := self.c.Contexts().CommitMessage.OnConfirm(summary, description)

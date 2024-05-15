@@ -169,7 +169,7 @@ func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.Remot
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.SetBranchUpstream)
 			if err := self.c.Git().Branch.SetUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})

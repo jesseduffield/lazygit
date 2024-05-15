@@ -129,7 +129,7 @@ func (self *MergeConflictsHelper) RefreshMergeState() error {
 
 	hasConflicts, err := self.SetConflictsAndRender(self.c.Contexts().MergeConflicts.GetState().GetPath())
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	if !hasConflicts {

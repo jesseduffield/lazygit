@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -78,7 +79,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	status := self.c.Git().Status.WorkingTreeState()
 
 	if status != enums.REBASE_MODE_MERGING && status != enums.REBASE_MODE_REBASING {
-		return self.c.ErrorMsg(self.c.Tr.NotMergingOrRebasing)
+		return errors.New(self.c.Tr.NotMergingOrRebasing)
 	}
 
 	self.c.LogAction(fmt.Sprintf("Merge/Rebase: %s", command))
@@ -169,9 +170,9 @@ func (self *MergeAndRebaseHelper) CheckForConflicts(result error) error {
 
 	if isMergeConflictErr(result.Error()) {
 		return self.PromptForConflictHandling()
-	} else {
-		return self.c.ErrorMsg(result.Error())
 	}
+
+	return result
 }
 
 func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
@@ -298,11 +299,11 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 
 func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) error {
 	if self.c.Git().Branch.IsHeadDetached() {
-		return self.c.ErrorMsg("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
+		return errors.New("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
 	}
 	checkedOutBranchName := self.refsHelper.GetCheckedOutRef().Name
 	if checkedOutBranchName == refName {
-		return self.c.ErrorMsg(self.c.Tr.CantMergeBranchIntoItself)
+		return errors.New(self.c.Tr.CantMergeBranchIntoItself)
 	}
 	prompt := utils.ResolvePlaceholderString(
 		self.c.Tr.ConfirmMerge,

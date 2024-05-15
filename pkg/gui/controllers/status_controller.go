@@ -75,6 +75,11 @@ func (self *StatusController) GetMouseKeybindings(opts types.KeybindingsOpts) []
 			Key:      gocui.MouseLeft,
 			Handler:  self.onClickMain,
 		},
+		{
+			ViewName: self.Context().GetViewName(),
+			Key:      gocui.MouseLeft,
+			Handler:  self.onClick,
+		},
 	}
 }
 
@@ -95,15 +100,11 @@ func (self *StatusController) GetOnRenderToMain() func() error {
 	}
 }
 
-func (self *StatusController) GetOnClick() func() error {
-	return self.onClick
-}
-
 func (self *StatusController) Context() types.Context {
 	return self.c.Contexts().Status
 }
 
-func (self *StatusController) onClick() error {
+func (self *StatusController) onClick(opts gocui.ViewMouseBindingOpts) error {
 	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
 	currentBranch := self.c.Helpers().Refs.GetCheckedOutRef()
 	if currentBranch == nil {
@@ -115,21 +116,20 @@ func (self *StatusController) onClick() error {
 		return err
 	}
 
-	cx, _ := self.c.Views().Status.Cursor()
 	upstreamStatus := presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now(), self.c.UserConfig)
 	repoName := self.c.Git().RepoPaths.RepoName()
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	switch workingTreeState {
 	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
 		workingTreeStatus := fmt.Sprintf("(%s)", presentation.FormatWorkingTreeStateLower(self.c.Tr, workingTreeState))
-		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
+		if cursorInSubstring(opts.X, upstreamStatus+" ", workingTreeStatus) {
 			return self.c.Helpers().MergeAndRebase.CreateRebaseOptionsMenu()
 		}
-		if cursorInSubstring(cx, upstreamStatus+" "+workingTreeStatus+" ", repoName) {
+		if cursorInSubstring(opts.X, upstreamStatus+" "+workingTreeStatus+" ", repoName) {
 			return self.c.Helpers().Repos.CreateRecentReposMenu()
 		}
 	default:
-		if cursorInSubstring(cx, upstreamStatus+" ", repoName) {
+		if cursorInSubstring(opts.X, upstreamStatus+" ", repoName) {
 			return self.c.Helpers().Repos.CreateRecentReposMenu()
 		}
 	}

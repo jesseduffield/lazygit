@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -388,7 +389,7 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 		// if any files within have inline merge conflicts we can't stage or unstage,
 		// or it'll end up with those >>>>>> lines actually staged
 		if node.GetHasInlineMergeConflicts() {
-			return self.c.ErrorMsg(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
+			return errors.New(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
 		}
 	}
 
@@ -410,7 +411,7 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 		}
 
 		if err := self.c.Git().WorkingTree.StageFiles(toPaths(selectedNodes)); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 	} else {
 		self.c.LogAction(self.c.Tr.Actions.UnstageFile)
@@ -428,13 +429,13 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 
 		if len(untrackedNodes) > 0 {
 			if err := self.c.Git().WorkingTree.UnstageUntrackedFiles(toPaths(untrackedNodes)); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 		}
 
 		if len(trackedNodes) > 0 {
 			if err := self.c.Git().WorkingTree.UnstageTrackedFiles(toPaths(trackedNodes)); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 		}
 	}
@@ -496,7 +497,7 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 		return self.switchToMerge()
 	}
 	if file.HasMergeConflicts {
-		return self.c.ErrorMsg(self.c.Tr.FileStagingRequirements)
+		return errors.New(self.c.Tr.FileStagingRequirements)
 	}
 
 	return self.c.PushContext(self.c.Contexts().Staging, opts)
@@ -523,7 +524,7 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 	// if any files within have inline merge conflicts we can't stage or unstage,
 	// or it'll end up with those >>>>>> lines actually staged
 	if root.GetHasInlineMergeConflicts() {
-		return self.c.ErrorMsg(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
+		return errors.New(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
 	}
 
 	if root.GetHasUnstagedChanges() {
@@ -534,7 +535,7 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 		}
 
 		if err := self.c.Git().WorkingTree.StageAll(); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 	} else {
 		self.c.LogAction(self.c.Tr.Actions.UnstageAllFiles)
@@ -544,7 +545,7 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 		}
 
 		if err := self.c.Git().WorkingTree.UnstageAll(); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 	}
 
@@ -606,14 +607,14 @@ func (self *FilesController) ignoreOrExcludeFile(node *filetree.FileNode, trText
 
 func (self *FilesController) ignore(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
-		return self.c.ErrorMsg(self.c.Tr.Actions.IgnoreFileErr)
+		return errors.New(self.c.Tr.Actions.IgnoreFileErr)
 	}
 	return self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.c.Git().WorkingTree.Ignore)
 }
 
 func (self *FilesController) exclude(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
-		return self.c.ErrorMsg(self.c.Tr.Actions.ExcludeGitIgnoreErr)
+		return errors.New(self.c.Tr.Actions.ExcludeGitIgnoreErr)
 	}
 
 	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.c.Git().WorkingTree.Exclude)
@@ -627,7 +628,7 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 				LabelColumns: []string{self.c.Tr.IgnoreFile},
 				OnPress: func() error {
 					if err := self.ignore(node); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 					return nil
 				},
@@ -637,7 +638,7 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 				LabelColumns: []string{self.c.Tr.ExcludeFile},
 				OnPress: func() error {
 					if err := self.exclude(node); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 					return nil
 				},
@@ -658,7 +659,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 		HandleConfirm: func() error {
 			return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
 				if len(self.c.Model().Commits) == 0 {
-					return self.c.ErrorMsg(self.c.Tr.NoCommitToAmend)
+					return errors.New(self.c.Tr.NoCommitToAmend)
 				}
 
 				return self.c.Helpers().AmendHelper.AmendHead()
@@ -765,7 +766,7 @@ func (self *FilesController) createStashMenu() error {
 				Label: self.c.Tr.StashAllChanges,
 				OnPress: func() error {
 					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
-						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
+						return errors.New(self.c.Tr.NoFilesToStash)
 					}
 					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashAllChanges)
 				},
@@ -775,7 +776,7 @@ func (self *FilesController) createStashMenu() error {
 				Label: self.c.Tr.StashAllChangesKeepIndex,
 				OnPress: func() error {
 					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
-						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
+						return errors.New(self.c.Tr.NoFilesToStash)
 					}
 					// if there are no staged files it behaves the same as Stash.Save
 					return self.handleStashSave(self.c.Git().Stash.StashAndKeepIndex, self.c.Tr.Actions.StashAllChangesKeepIndex)
@@ -794,7 +795,7 @@ func (self *FilesController) createStashMenu() error {
 				OnPress: func() error {
 					// there must be something in staging otherwise the current implementation mucks the stash up
 					if !self.c.Helpers().WorkingTree.AnyStagedFiles() {
-						return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
+						return errors.New(self.c.Tr.NoTrackedStagedFilesStash)
 					}
 					return self.handleStashSave(self.c.Git().Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
 				},
@@ -804,7 +805,7 @@ func (self *FilesController) createStashMenu() error {
 				Label: self.c.Tr.StashUnstagedChanges,
 				OnPress: func() error {
 					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
-						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
+						return errors.New(self.c.Tr.NoFilesToStash)
 					}
 					if self.c.Helpers().WorkingTree.AnyStagedFiles() {
 						return self.handleStashSave(self.c.Git().Stash.StashUnstagedChanges, self.c.Tr.Actions.StashUnstagedChanges)
@@ -825,7 +826,7 @@ func (self *FilesController) openCopyMenu() error {
 		Label: self.c.Tr.CopyFileName,
 		OnPress: func() error {
 			if err := self.c.OS().CopyToClipboard(node.Name()); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			self.c.Toast(self.c.Tr.FileNameCopiedToast)
 			return nil
@@ -837,7 +838,7 @@ func (self *FilesController) openCopyMenu() error {
 		Label: self.c.Tr.CopyFilePath,
 		OnPress: func() error {
 			if err := self.c.OS().CopyToClipboard(node.Path); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			self.c.Toast(self.c.Tr.FilePathCopiedToast)
 			return nil
@@ -853,10 +854,10 @@ func (self *FilesController) openCopyMenu() error {
 			hasStaged := self.hasPathStagedChanges(node)
 			diff, err := self.c.Git().Diff.GetPathDiff(path, hasStaged)
 			if err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			if err := self.c.OS().CopyToClipboard(diff); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			self.c.Toast(self.c.Tr.FileDiffCopiedToast)
 			return nil
@@ -878,10 +879,10 @@ func (self *FilesController) openCopyMenu() error {
 			hasStaged := self.c.Helpers().WorkingTree.AnyStagedFiles()
 			diff, err := self.c.Git().Diff.GetAllDiff(hasStaged)
 			if err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			if err := self.c.OS().CopyToClipboard(diff); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			self.c.Toast(self.c.Tr.AllFilesDiffCopiedToast)
 			return nil
@@ -957,7 +958,7 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 			self.c.LogAction(action)
 
 			if err := stashFunc(stashComment); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
 		},
@@ -975,7 +976,7 @@ func (self *FilesController) onClickSecondary(opts gocui.ViewMouseBindingOpts) e
 func (self *FilesController) fetch() error {
 	return self.c.WithWaitingStatus(self.c.Tr.FetchingStatus, func(task gocui.Task) error {
 		if err := self.fetchAux(task); err != nil {
-			_ = self.c.Error(err)
+			return err
 		}
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 	})
@@ -986,7 +987,7 @@ func (self *FilesController) fetchAux(task gocui.Task) (err error) {
 	err = self.c.Git().Sync.Fetch(task)
 
 	if err != nil && strings.Contains(err.Error(), "exit status 128") {
-		_ = self.c.ErrorMsg(self.c.Tr.PassUnameWrong)
+		return errors.New(self.c.Tr.PassUnameWrong)
 	}
 
 	_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
@@ -1073,7 +1074,7 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 
 				for _, node := range selectedNodes {
 					if err := self.c.Git().WorkingTree.DiscardAllDirChanges(node); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 				}
 
@@ -1101,7 +1102,7 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 
 				for _, node := range selectedNodes {
 					if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 				}
 
@@ -1127,15 +1128,15 @@ func (self *FilesController) ResetSubmodule(submodule *models.SubmoduleConfig) e
 		file := self.c.Helpers().WorkingTree.FileForSubmodule(submodule)
 		if file != nil {
 			if err := self.c.Git().WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 		}
 
 		if err := self.c.Git().Submodule.Stash(submodule); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 		if err := self.c.Git().Submodule.Reset(submodule); err != nil {
-			return self.c.Error(err)
+			return err
 		}
 
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.SUBMODULES}})

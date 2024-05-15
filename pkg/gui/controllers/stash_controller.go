@@ -109,7 +109,7 @@ func (self *StashController) handleStashApply(stashEntry *models.StashEntry) err
 		err := self.c.Git().Stash.Apply(stashEntry.Index)
 		_ = self.postStashRefresh()
 		if err != nil {
-			return self.c.Error(err)
+			return err
 		}
 		return nil
 	}
@@ -133,7 +133,7 @@ func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error
 		err := self.c.Git().Stash.Pop(stashEntry.Index)
 		_ = self.postStashRefresh()
 		if err != nil {
-			return self.c.Error(err)
+			return err
 		}
 		return nil
 	}
@@ -160,7 +160,7 @@ func (self *StashController) handleStashDrop(stashEntry *models.StashEntry) erro
 			err := self.c.Git().Stash.Drop(stashEntry.Index)
 			_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			if err != nil {
-				return self.c.Error(err)
+				return err
 			}
 			return nil
 		},

@@ -767,7 +767,7 @@ func (v *View) writeString(s string) {
 // parseInput parses char by char the input written to the View. It returns nil
 // while processing ESC sequences. Otherwise, it returns a cell slice that
 // contains the processed data.
-func (v *View) parseInput(ch rune, x int, y int) (bool, []cell) {
+func (v *View) parseInput(ch rune, x int, _ int) (bool, []cell) {
 	cells := []cell{}
 	moveCursor := true
 
@@ -1283,7 +1283,7 @@ func (v *View) Word(x, y int) (string, error) {
 	} else {
 		nr = nr + x
 	}
-	return string(str[nl:nr]), nil
+	return str[nl:nr], nil
 }
 
 // indexFunc allows to split lines by words taking into account spaces

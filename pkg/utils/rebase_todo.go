@@ -2,12 +2,14 @@ package utils
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
-	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/samber/lo"
+	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 type Todo struct {
@@ -47,7 +49,7 @@ func EditRebaseTodo(filePath string, changes []TodoChange, commentChar byte) err
 
 	if matchCount < len(changes) {
 		// Should never get here
-		return fmt.Errorf("Some todos not found in git-rebase-todo")
+		return errors.New("Some todos not found in git-rebase-todo")
 	}
 
 	return WriteRebaseTodoFile(filePath, todos, commentChar)
@@ -196,7 +198,7 @@ func moveTodoUp(todos []todo.Todo, todoToMove Todo) ([]todo.Todo, error) {
 
 	if !ok {
 		// We expect callers to guard against this
-		return []todo.Todo{}, fmt.Errorf("Destination position for moving todo is out of range")
+		return []todo.Todo{}, errors.New("Destination position for moving todo is out of range")
 	}
 
 	destinationIdx := sourceIdx + 1 + skip
@@ -235,7 +237,7 @@ func MoveFixupCommitDown(fileName string, originalHash string, fixupHash string,
 
 func moveFixupCommitDown(todos []todo.Todo, originalHash string, fixupHash string) ([]todo.Todo, error) {
 	isOriginal := func(t todo.Todo) bool {
-		return t.Command == todo.Pick && equalHash(t.Commit, originalHash)
+		return (t.Command == todo.Pick || t.Command == todo.Merge) && equalHash(t.Commit, originalHash)
 	}
 
 	isFixup := func(t todo.Todo) bool {
@@ -260,6 +262,31 @@ func moveFixupCommitDown(todos []todo.Todo, originalHash string, fixupHash strin
 	newTodos[originalIndex+1].Command = todo.Fixup
 
 	return newTodos, nil
+}
+
+func RemoveUpdateRefsForCopiedBranch(fileName string, commentChar byte) error {
+	todos, err := ReadRebaseTodoFile(fileName, commentChar)
+	if err != nil {
+		return err
+	}
+
+	// Filter out comments
+	todos = lo.Filter(todos, func(t todo.Todo, _ int) bool {
+		return t.Command != todo.Comment
+	})
+
+	// Delete any update-ref todos at the end of the todo list. These are not
+	// part of a stack of branches, and so shouldn't be updated. This makes it
+	// possible to create a copy of a branch and rebase the copy without
+	// affecting the original branch.
+	if _, i, found := lo.FindLastIndexOf(todos, func(t todo.Todo) bool {
+		return t.Command != todo.UpdateRef
+	}); found && i < len(todos)-1 {
+		todos = slices.Delete(todos, i+1, len(todos))
+		return WriteRebaseTodoFile(fileName, todos, commentChar)
+	}
+
+	return nil
 }
 
 // We render a todo in the commits view if it's a commit or if it's an

@@ -161,7 +161,7 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line st
 	}
 
 	scanner := bufio.NewScanner(stdoutPipe)
-	scanner.Split(bufio.ScanLines)
+	scanner.Split(utils.ScanLinesAndTruncateWhenLongerThanBuffer(bufio.MaxScanTokenSize))
 	if err := cmd.Start(); err != nil {
 		return err
 	}
@@ -176,6 +176,11 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line st
 			_ = Kill(cmd)
 			break
 		}
+	}
+
+	if scanner.Err() != nil {
+		_ = Kill(cmd)
+		return scanner.Err()
 	}
 
 	_ = cmd.Wait()

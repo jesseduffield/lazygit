@@ -75,7 +75,7 @@ func NewSubCommitsContext(
 			endIdx,
 			// Don't show the graph in the left/right view; we'd like to, but
 			// it's too complicated:
-			shouldShowGraph(c) && viewModel.GetRefToShowDivergenceFrom() == "",
+			shouldShowGraph(c),
 			git_commands.NewNullBisectInfo(),
 			false,
 		)

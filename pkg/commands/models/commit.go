@@ -3,8 +3,8 @@ package models
 import (
 	"fmt"
 
-	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 // Special commit hash for empty tree object

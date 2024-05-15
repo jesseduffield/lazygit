@@ -150,7 +150,7 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboardWithTruncation(maxWi
 
 	gui.c.LogAction(gui.c.Tr.Actions.CopyToClipboard)
 	if err := gui.os.CopyToClipboard(itemId); err != nil {
-		return gui.c.Error(err)
+		return err
 	}
 
 	truncatedItemId := utils.TruncateWithEllipsis(strings.Replace(itemId, "\n", " ", -1), 50)

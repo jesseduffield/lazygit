@@ -1,4 +1,4 @@
-// Copyright 2015 Garrett D'Amore
+// Copyright 2024 Garrett D'Amore
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -52,7 +52,6 @@ const (
 // direction takes about 100 nsec/op.  (The larger cost for conversion
 // from UTF-8 is most likely due to the need to convert the UTF-8 byte stream
 // to a rune before conversion.
-//
 type Charmap struct {
 	transform.NopResetter
 	bytes map[rune]byte
@@ -177,7 +176,7 @@ func (d *cmapEncoder) Transform(dst, src []byte, atEOF bool) (int, int, error) {
 		if r == utf8.RuneError && sz == 1 {
 			// If its inconclusive due to insufficient data in
 			// in the source, report it
-			if !atEOF && !utf8.FullRune(src[nsrc:]) {
+			if atEOF && !utf8.FullRune(src[nsrc:]) {
 				e = transform.ErrShortSrc
 				break
 			}

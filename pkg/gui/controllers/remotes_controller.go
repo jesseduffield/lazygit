@@ -179,7 +179,7 @@ func (self *RemotesController) remove(remote *models.Remote) error {
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RemoveRemote)
 			if err := self.c.Git().Remote.RemoveRemote(remote.Name); err != nil {
-				return self.c.Error(err)
+				return err
 			}
 
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
@@ -202,7 +202,7 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 			if updatedRemoteName != remote.Name {
 				self.c.LogAction(self.c.Tr.Actions.UpdateRemote)
 				if err := self.c.Git().Remote.RenameRemote(remote.Name, updatedRemoteName); err != nil {
-					return self.c.Error(err)
+					return err
 				}
 			}
 
@@ -225,7 +225,7 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 				HandleConfirm: func(updatedRemoteUrl string) error {
 					self.c.LogAction(self.c.Tr.Actions.UpdateRemote)
 					if err := self.c.Git().Remote.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
-						return self.c.Error(err)
+						return err
 					}
 					return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 				},
@@ -238,7 +238,7 @@ func (self *RemotesController) fetch(remote *models.Remote) error {
 	return self.c.WithInlineStatus(remote, types.ItemOperationFetching, context.REMOTES_CONTEXT_KEY, func(task gocui.Task) error {
 		err := self.c.Git().Sync.FetchRemote(task, remote.Name)
 		if err != nil {
-			_ = self.c.Error(err)
+			return err
 		}
 
 		return self.c.Refresh(types.RefreshOptions{

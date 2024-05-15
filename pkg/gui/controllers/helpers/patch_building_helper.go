@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"errors"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -24,7 +26,7 @@ func NewPatchBuildingHelper(
 
 func (self *PatchBuildingHelper) ValidateNormalWorkingTreeState() (bool, error) {
 	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
-		return false, self.c.ErrorMsg(self.c.Tr.CantPatchWhileRebasingError)
+		return false, errors.New(self.c.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil
 }

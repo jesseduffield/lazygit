@@ -48,13 +48,12 @@ func NewStatusManager() *StatusManager {
 	return &StatusManager{}
 }
 
-func (self *StatusManager) WithWaitingStatus(message string, renderFunc func(), f func(*WaitingStatusHandle)) {
+func (self *StatusManager) WithWaitingStatus(message string, renderFunc func(), f func(*WaitingStatusHandle) error) error {
 	handle := &WaitingStatusHandle{statusManager: self, message: message, renderFunc: renderFunc, id: -1}
 	handle.Show()
+	defer handle.Hide()
 
-	f(handle)
-
-	handle.Hide()
+	return f(handle)
 }
 
 func (self *StatusManager) AddToastStatus(message string, kind types.ToastKind) int {

@@ -87,9 +87,10 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 				if self.pauseBackgroundRefreshes {
 					continue
 				}
-				self.gui.c.OnWorker(func(gocui.Task) {
+				self.gui.c.OnWorker(func(gocui.Task) error {
 					_ = function()
 					done <- struct{}{}
+					return nil
 				})
 				// waiting so that we don't bunch up refreshes if the refresh takes longer than the interval
 				<-done

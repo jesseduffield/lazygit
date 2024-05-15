@@ -11,13 +11,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
+	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 // context:
@@ -211,11 +211,11 @@ func (self *CommitLoader) extractCommitFromLine(line string, showDivergence bool
 	authorEmail := split[3]
 	extraInfo := strings.TrimSpace(split[4])
 	parentHashes := split[5]
-	message := split[6]
 	divergence := models.DivergenceNone
 	if showDivergence {
-		divergence = lo.Ternary(split[7] == "<", models.DivergenceLeft, models.DivergenceRight)
+		divergence = lo.Ternary(split[6] == "<", models.DivergenceLeft, models.DivergenceRight)
 	}
+	message := split[7]
 
 	tags := []string{}
 
@@ -605,4 +605,4 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
-const prettyFormat = `--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s%x00%m`
+const prettyFormat = `--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%m%x00%s`

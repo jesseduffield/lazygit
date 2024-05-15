@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -19,11 +18,13 @@ import (
 	"github.com/kyokomi/emoji/v2"
 	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
+	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 type pipeSetCacheKey struct {
 	commitHash  string
 	commitCount int
+	divergence  models.Divergence
 }
 
 var (
@@ -78,24 +79,76 @@ func GetCommitListDisplayStrings(
 	// function expects to be passed the index of the commit in terms of the `commits` slice
 	var getGraphLine func(int) string
 	if showGraph {
-		// this is where the graph begins (may be beyond the TODO commits depending on startIdx,
-		// but we'll never include TODO commits as part of the graph because it'll be messy)
-		graphOffset := max(startIdx, rebaseOffset)
+		if len(commits) > 0 && commits[0].Divergence != models.DivergenceNone {
+			// Showing a divergence log; we know we don't have any rebasing
+			// commits in this case. But we need to render separate graphs for
+			// the Local and Remote sections.
+			allGraphLines := []string{}
 
-		pipeSets := loadPipesets(commits[rebaseOffset:])
-		pipeSetOffset := max(startIdx-rebaseOffset, 0)
-		graphPipeSets := pipeSets[pipeSetOffset:max(endIdx-rebaseOffset, 0)]
-		graphCommits := commits[graphOffset:endIdx]
-		graphLines := graph.RenderAux(
-			graphPipeSets,
-			graphCommits,
-			selectedCommitHash,
-		)
-		getGraphLine = func(idx int) string {
-			if idx >= graphOffset {
-				return graphLines[idx-graphOffset]
-			} else {
-				return ""
+			_, localSectionStart, found := lo.FindIndexOf(
+				commits, func(c *models.Commit) bool { return c.Divergence == models.DivergenceLeft })
+			if !found {
+				localSectionStart = len(commits)
+			}
+
+			if localSectionStart > 0 {
+				// we have some remote commits
+				pipeSets := loadPipesets(commits[:localSectionStart])
+				if startIdx < localSectionStart {
+					// some of the remote commits are visible
+					start := startIdx
+					end := min(endIdx, localSectionStart)
+					graphPipeSets := pipeSets[start:end]
+					graphCommits := commits[start:end]
+					graphLines := graph.RenderAux(
+						graphPipeSets,
+						graphCommits,
+						selectedCommitHash,
+					)
+					allGraphLines = append(allGraphLines, graphLines...)
+				}
+			}
+			if localSectionStart < len(commits) {
+				// we have some local commits
+				pipeSets := loadPipesets(commits[localSectionStart:])
+				if localSectionStart < endIdx {
+					// some of the local commits are visible
+					graphOffset := max(startIdx, localSectionStart)
+					pipeSetOffset := max(startIdx-localSectionStart, 0)
+					graphPipeSets := pipeSets[pipeSetOffset : endIdx-localSectionStart]
+					graphCommits := commits[graphOffset:endIdx]
+					graphLines := graph.RenderAux(
+						graphPipeSets,
+						graphCommits,
+						selectedCommitHash,
+					)
+					allGraphLines = append(allGraphLines, graphLines...)
+				}
+			}
+
+			getGraphLine = func(idx int) string {
+				return allGraphLines[idx-startIdx]
+			}
+		} else {
+			// this is where the graph begins (may be beyond the TODO commits depending on startIdx,
+			// but we'll never include TODO commits as part of the graph because it'll be messy)
+			graphOffset := max(startIdx, rebaseOffset)
+
+			pipeSets := loadPipesets(commits[rebaseOffset:])
+			pipeSetOffset := max(startIdx-rebaseOffset, 0)
+			graphPipeSets := pipeSets[pipeSetOffset:max(endIdx-rebaseOffset, 0)]
+			graphCommits := commits[graphOffset:endIdx]
+			graphLines := graph.RenderAux(
+				graphPipeSets,
+				graphCommits,
+				selectedCommitHash,
+			)
+			getGraphLine = func(idx int) string {
+				if idx >= graphOffset {
+					return graphLines[idx-graphOffset]
+				} else {
+					return ""
+				}
 			}
 		}
 	} else {
@@ -205,6 +258,7 @@ func loadPipesets(commits []*models.Commit) [][]*graph.Pipe {
 	cacheKey := pipeSetCacheKey{
 		commitHash:  commits[0].Hash,
 		commitCount: len(commits),
+		divergence:  commits[0].Divergence,
 	}
 
 	pipeSets, ok := pipeSetCache[cacheKey]
@@ -312,8 +366,32 @@ func displayCommit(
 	bisectInfo *git_commands.BisectInfo,
 	isYouAreHereCommit bool,
 ) []string {
-	hashColor := getHashColor(commit, diffName, cherryPickedCommitHashSet, bisectStatus, bisectInfo)
 	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
+
+	hashString := ""
+	hashColor := getHashColor(commit, diffName, cherryPickedCommitHashSet, bisectStatus, bisectInfo)
+	hashLength := common.UserConfig.Gui.CommitHashLength
+	if hashLength >= len(commit.Hash) {
+		hashString = hashColor.Sprint(commit.Hash)
+	} else if hashLength > 0 {
+		hashString = hashColor.Sprint(commit.Hash[:hashLength])
+	} else if !icons.IsIconEnabled() { // hashLength <= 0
+		hashString = hashColor.Sprint("*")
+	}
+
+	divergenceString := ""
+	if commit.Divergence != models.DivergenceNone {
+		divergenceString = hashColor.Sprint(lo.Ternary(commit.Divergence == models.DivergenceLeft, "↑", "↓"))
+	} else if icons.IsIconEnabled() {
+		divergenceString = hashColor.Sprint(icons.IconForCommit(commit))
+	}
+
+	descriptionString := ""
+	if fullDescription {
+		descriptionString = style.FgBlue.Sprint(
+			utils.UnixToDateSmart(now, commit.UnixTimestamp, timeFormat, shortTimeFormat),
+		)
+	}
 
 	actionString := ""
 	if commit.Action != models.ActionNone {
@@ -368,20 +446,12 @@ func displayCommit(
 	}
 
 	cols := make([]string, 0, 7)
-	if commit.Divergence != models.DivergenceNone {
-		cols = append(cols, hashColor.Sprint(lo.Ternary(commit.Divergence == models.DivergenceLeft, "↑", "↓")))
-	} else if icons.IsIconEnabled() {
-		cols = append(cols, hashColor.Sprint(icons.IconForCommit(commit)))
-	}
-	cols = append(cols, hashColor.Sprint(commit.ShortHash()))
-	cols = append(cols, bisectString)
-	if fullDescription {
-		cols = append(cols, style.FgBlue.Sprint(
-			utils.UnixToDateSmart(now, commit.UnixTimestamp, timeFormat, shortTimeFormat),
-		))
-	}
 	cols = append(
 		cols,
+		divergenceString,
+		hashString,
+		bisectString,
+		descriptionString,
 		actionString,
 		authorFunc(commit.AuthorName),
 		graphLine+mark+tagString+theme.DefaultTextColor.Sprint(name),

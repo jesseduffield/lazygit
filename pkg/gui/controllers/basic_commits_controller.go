@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -172,7 +173,7 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 func (self *BasicCommitsController) copyCommitHashToClipboard(commit *models.Commit) error {
 	self.c.LogAction(self.c.Tr.Actions.CopyCommitHashToClipboard)
 	if err := self.c.OS().CopyToClipboard(commit.Hash); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Toast(fmt.Sprintf("'%s' %s", commit.Hash, self.c.Tr.CopiedToClipboard))
@@ -182,12 +183,12 @@ func (self *BasicCommitsController) copyCommitHashToClipboard(commit *models.Com
 func (self *BasicCommitsController) copyCommitURLToClipboard(commit *models.Commit) error {
 	url, err := self.c.Helpers().Host.GetCommitURL(commit.Hash)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.CopyCommitURLToClipboard)
 	if err := self.c.OS().CopyToClipboard(url); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Toast(self.c.Tr.CommitURLCopiedToClipboard)
@@ -197,12 +198,12 @@ func (self *BasicCommitsController) copyCommitURLToClipboard(commit *models.Comm
 func (self *BasicCommitsController) copyCommitDiffToClipboard(commit *models.Commit) error {
 	diff, err := self.c.Git().Commit.GetCommitDiff(commit.Hash)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.CopyCommitDiffToClipboard)
 	if err := self.c.OS().CopyToClipboard(diff); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Toast(self.c.Tr.CommitDiffCopiedToClipboard)
@@ -212,14 +213,14 @@ func (self *BasicCommitsController) copyCommitDiffToClipboard(commit *models.Com
 func (self *BasicCommitsController) copyAuthorToClipboard(commit *models.Commit) error {
 	author, err := self.c.Git().Commit.GetCommitAuthor(commit.Hash)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	formattedAuthor := fmt.Sprintf("%s <%s>", author.Name, author.Email)
 
 	self.c.LogAction(self.c.Tr.Actions.CopyCommitAuthorToClipboard)
 	if err := self.c.OS().CopyToClipboard(formattedAuthor); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Toast(self.c.Tr.CommitAuthorCopiedToClipboard)
@@ -229,12 +230,12 @@ func (self *BasicCommitsController) copyAuthorToClipboard(commit *models.Commit)
 func (self *BasicCommitsController) copyCommitMessageToClipboard(commit *models.Commit) error {
 	message, err := self.c.Git().Commit.GetCommitMessage(commit.Hash)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.CopyCommitMessageToClipboard)
 	if err := self.c.OS().CopyToClipboard(message); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Toast(self.c.Tr.CommitMessageCopiedToClipboard)
@@ -244,12 +245,12 @@ func (self *BasicCommitsController) copyCommitMessageToClipboard(commit *models.
 func (self *BasicCommitsController) copyCommitSubjectToClipboard(commit *models.Commit) error {
 	message, err := self.c.Git().Commit.GetCommitSubject(commit.Hash)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.CopyCommitSubjectToClipboard)
 	if err := self.c.OS().CopyToClipboard(message); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.Toast(self.c.Tr.CommitSubjectCopiedToClipboard)
@@ -259,12 +260,12 @@ func (self *BasicCommitsController) copyCommitSubjectToClipboard(commit *models.
 func (self *BasicCommitsController) openInBrowser(commit *models.Commit) error {
 	url, err := self.c.Helpers().Host.GetCommitURL(commit.Hash)
 	if err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.OpenCommitInBrowser)
 	if err := self.c.OS().OpenLink(url); err != nil {
-		return self.c.Error(err)
+		return err
 	}
 
 	return nil
@@ -314,7 +315,7 @@ func (self *BasicCommitsController) handleOldCherryPickKey() error {
 			"paste": keybindings.Label(self.c.UserConfig.Keybinding.Commits.PasteCommits),
 		})
 
-	return self.c.ErrorMsg(msg)
+	return errors.New(msg)
 }
 
 func (self *BasicCommitsController) openDiffTool(commit *models.Commit) error {

@@ -125,6 +125,8 @@ type GuiConfig struct {
 	NerdFontsVersion string `yaml:"nerdFontsVersion" jsonschema:"enum=2,enum=3,enum="`
 	// If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.
 	ShowFileIcons bool `yaml:"showFileIcons"`
+	// Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.
+	CommitHashLength int `yaml:"commitHashLength" jsonschema:"minimum=0"`
 	// If true, show commit hashes alongside branch names in the branches view.
 	ShowBranchCommitHash bool `yaml:"showBranchCommitHash"`
 	// Height of the command log view
@@ -221,6 +223,8 @@ type GitConfig struct {
 	OverrideGpg bool `yaml:"overrideGpg"`
 	// If true, do not allow force pushes
 	DisableForcePushing bool `yaml:"disableForcePushing"`
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
+	CommitPrefix *CommitPrefixConfig `yaml:"commitPrefix"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
 	CommitPrefixes map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
 	// If true, parse emoji strings in commit messages e.g. render :rocket: as 🚀
@@ -677,6 +681,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowIcons:                 false,
 			NerdFontsVersion:          "",
 			ShowFileIcons:             true,
+			CommitHashLength:          8,
 			ShowBranchCommitHash:      false,
 			CommandLogSize:            8,
 			SplitDiff:                 "auto",

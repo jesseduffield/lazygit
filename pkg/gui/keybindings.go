@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"errors"
 	"log"
 
 	"github.com/jesseduffield/gocui"
@@ -442,7 +443,7 @@ func (gui *Gui) callKeybindingHandler(binding *types.Binding) error {
 	}
 	if disabledReason != nil {
 		if disabledReason.ShowErrorInPanel {
-			return gui.c.ErrorMsg(disabledReason.Text)
+			return errors.New(disabledReason.Text)
 		}
 
 		gui.c.ErrorToast(gui.Tr.DisabledMenuItemPrefix + disabledReason.Text)

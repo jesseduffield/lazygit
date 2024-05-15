@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"text/tabwriter"
@@ -117,11 +118,11 @@ func (self *WorktreesController) add() error {
 
 func (self *WorktreesController) remove(worktree *models.Worktree) error {
 	if worktree.IsMain {
-		return self.c.ErrorMsg(self.c.Tr.CantDeleteMainWorktree)
+		return errors.New(self.c.Tr.CantDeleteMainWorktree)
 	}
 
 	if worktree.IsCurrent {
-		return self.c.ErrorMsg(self.c.Tr.CantDeleteCurrentWorktree)
+		return errors.New(self.c.Tr.CantDeleteCurrentWorktree)
 	}
 
 	return self.c.Helpers().Worktree.Remove(worktree, false)
