@@ -797,7 +797,11 @@ func (self *FilesController) createStashMenu() error {
 					if !self.c.Helpers().WorkingTree.AnyStagedFiles() {
 						return errors.New(self.c.Tr.NoTrackedStagedFilesStash)
 					}
-					return self.handleStashSave(self.c.Git().Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
+					if self.c.Helpers().WorkingTree.AnyUnstagedFiles() {
+						return self.handleStashSave(self.c.Git().Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
+					}
+					// ordinary stash
+					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashUnstagedChanges)
 				},
 				Key: 's',
 			},
