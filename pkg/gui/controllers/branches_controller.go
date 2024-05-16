@@ -111,10 +111,11 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		{
 			Key:               opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
 			Handler:           opts.Guards.OutsideFilterMode(self.merge),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			GetDisabledReason: self.require(self.singleItemSelected(self.notMergingIntoYourself)),
 			Description:       self.c.Tr.Merge,
 			Tooltip:           self.c.Tr.MergeBranchTooltip,
 			DisplayOnScreen:   true,
+			OpensMenu:         true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.FastForward),
@@ -822,6 +823,17 @@ func (self *BranchesController) createPullRequest(from string, to string) error 
 func (self *BranchesController) branchIsReal(branch *models.Branch) *types.DisabledReason {
 	if !branch.IsRealBranch() {
 		return &types.DisabledReason{Text: self.c.Tr.SelectedItemIsNotABranch}
+	}
+
+	return nil
+}
+
+func (self *BranchesController) notMergingIntoYourself(branch *models.Branch) *types.DisabledReason {
+	selectedBranchName := branch.Name
+	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef().Name
+
+	if checkedOutBranch == selectedBranchName {
+		return &types.DisabledReason{Text: self.c.Tr.CantMergeBranchIntoItself}
 	}
 
 	return nil

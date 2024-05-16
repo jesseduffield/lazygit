@@ -93,7 +93,7 @@ var ModeSpecificKeybindingSuggestions = NewIntegrationTest(NewIntegrationTestArg
 				t.Views().Options().Content(DoesNotContain(customPatchSuggestion))
 			})
 
-		// Test merge options  suggestion
+		// Test merge options suggestion
 		t.Views().Branches().
 			Focus().
 			NavigateToLine(Contains("first-change-branch")).
@@ -101,9 +101,9 @@ var ModeSpecificKeybindingSuggestions = NewIntegrationTest(NewIntegrationTestArg
 			NavigateToLine(Contains("second-change-branch")).
 			Press(keys.Branches.MergeIntoCurrentBranch).
 			Tap(func() {
-				t.ExpectPopup().Confirmation().
+				t.ExpectPopup().Menu().
 					Title(Equals("Merge")).
-					Content(Contains("Are you sure you want to merge")).
+					Select(Contains("Regular merge")).
 					Confirm()
 
 				t.Common().AcknowledgeConflicts()

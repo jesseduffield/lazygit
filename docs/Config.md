@@ -283,6 +283,9 @@ git:
     # Extra args passed to `git merge`, e.g. --no-ff
     args: ""
 
+    # The commit message to use for a squash merge commit. Can contain "{{selectedRef}}" and "{{currentBranch}}" placeholders.
+    squashMergeMessage: Squash merge {{selectedRef}} into {{currentBranch}}
+
   # list of branches that are considered 'main' branches, used when displaying commits
   mainBranches:
     - master

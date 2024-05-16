@@ -264,7 +264,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` F `` | 強制檢出 | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |
 | `` r `` | 將已檢出的分支變基至此分支 | Rebase the checked-out branch onto the selected branch. |
-| `` M `` | 合併到當前檢出的分支 | Merge selected branch into currently checked out branch. |
+| `` M `` | 合併到當前檢出的分支 | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` f `` | 從上游快進此分支 | Fast-forward selected branch from its upstream. |
 | `` T `` | 建立標籤 |  |
 | `` s `` | Sort order |  |
@@ -353,7 +353,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-o> `` | 複製分支名稱到剪貼簿 |  |
 | `` <space> `` | 檢出 | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | 新分支 |  |
-| `` M `` | 合併到當前檢出的分支 | Merge selected branch into currently checked out branch. |
+| `` M `` | 合併到當前檢出的分支 | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` r `` | 將已檢出的分支變基至此分支 | Rebase the checked-out branch onto the selected branch. |
 | `` d `` | Delete | Delete the remote branch from the remote. |
 | `` u `` | Set as upstream | 將此分支設為當前分支之上游 |

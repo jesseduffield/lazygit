@@ -61,6 +61,7 @@ var tests = []*components.IntegrationTest{
 	branch.ShowDivergenceFromUpstream,
 	branch.SortLocalBranches,
 	branch.SortRemoteBranches,
+	branch.SquashMerge,
 	branch.Suggestions,
 	branch.UnsetUpstream,
 	cherry_pick.CherryPick,
