@@ -48,6 +48,15 @@ func (self *WorkingTreeHelper) AnyStagedFiles() bool {
 	return false
 }
 
+func (self *WorkingTreeHelper) AnyUnstagedFiles() bool {
+	for _, file := range self.c.Model().Files {
+		if file.HasUnstagedChanges {
+			return true
+		}
+	}
+	return false
+}
+
 func (self *WorkingTreeHelper) AnyTrackedFiles() bool {
 	for _, file := range self.c.Model().Files {
 		if file.Tracked {
