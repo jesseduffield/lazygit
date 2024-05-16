@@ -5,17 +5,15 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var StashStaged = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Stash staged changes",
+var StashStagedAll = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Stash staged (all files and content) changes",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file-staged", "content")
-		shell.CreateFileAndAdd("file-unstaged", "content")
 		shell.EmptyCommit("initial commit")
-		shell.UpdateFileAndAdd("file-staged", "new content")
-		shell.UpdateFile("file-unstaged", "new content")
+		shell.UpdateFileAndAdd("file-staged", "more content")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Stash().
@@ -24,23 +22,20 @@ var StashStaged = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			Lines(
 				Contains("file-staged"),
-				Contains("file-unstaged"),
 			).
 			Press(keys.Files.ViewStashOptions)
 
 		t.ExpectPopup().Menu().Title(Equals("Stash options")).Select(MatchesRegexp("Stash staged changes$")).Confirm()
 
-		t.ExpectPopup().Prompt().Title(Equals("Stash changes")).Type("my stashed file").Confirm()
+		// in the previous implementation if you give a name to the stash entry it whould work
+		// that's why here I'm specifically not giving one
+		t.ExpectPopup().Prompt().Title(Equals("Stash changes")).Type("").Confirm()
 
 		t.Views().Stash().
-			Lines(
-				Contains("my stashed file"),
-			)
+			LineCount(EqualsInt(1)).    // I check that there's only one line here
+			Lines(MatchesRegexp("WIP")) // I didn't specify the file so cannot check the content.
 
-		t.Views().Files().
-			Lines(
-				Contains("file-unstaged"),
-			)
+		t.Views().Files().IsEmpty()
 
 		t.Views().Stash().
 			Focus().
