@@ -341,7 +341,8 @@
             "half",
             "full"
           ],
-          "description": "Default size for focused window. Window size can be changed from within Lazygit with '+' and '_' (but this won't change the default).\nOne of: 'normal' (default) | 'half' | 'full'"
+          "description": "Default size for focused window. Window size can be changed from within Lazygit with '+' and '_' (but this won't change the default).\nOne of: 'normal' (default) | 'half' | 'full'",
+          "default": "normal"
         },
         "border": {
           "type": "string",

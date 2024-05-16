@@ -684,6 +684,7 @@ func GetDefaultConfig() *UserConfig {
 			CommandLogSize:            8,
 			SplitDiff:                 "auto",
 			SkipRewordInEditorWarning: false,
+			WindowSize:                "normal",
 			Border:                    "rounded",
 			AnimateExplosion:          true,
 			PortraitMode:              "auto",
