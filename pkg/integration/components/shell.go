@@ -194,6 +194,10 @@ func (self *Shell) CreateAnnotatedTag(name string, message string, ref string) *
 	return self.RunCommand([]string{"git", "tag", "-a", name, "-m", message, ref})
 }
 
+func (self *Shell) PushBranch(upstream, branch string) *Shell {
+	return self.RunCommand([]string{"git", "push", upstream, branch})
+}
+
 func (self *Shell) PushBranchAndSetUpstream(upstream, branch string) *Shell {
 	return self.RunCommand([]string{"git", "push", "--set-upstream", upstream, branch})
 }

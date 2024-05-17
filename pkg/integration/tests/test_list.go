@@ -275,6 +275,7 @@ var tests = []*components.IntegrationTest{
 	sync.ForcePush,
 	sync.ForcePushMultipleMatching,
 	sync.ForcePushMultipleUpstream,
+	sync.ForcePushTriangular,
 	sync.Pull,
 	sync.PullAndSetUpstream,
 	sync.PullMerge,
