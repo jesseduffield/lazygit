@@ -15,10 +15,10 @@ var ResetToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			CloneIntoRemote("origin").
 			NewBranch("hard-branch").
 			EmptyCommit("hard commit").
-			PushBranch("origin", "hard-branch").
+			PushBranchAndSetUpstream("origin", "hard-branch").
 			NewBranch("soft-branch").
 			EmptyCommit("soft commit").
-			PushBranch("origin", "soft-branch").
+			PushBranchAndSetUpstream("origin", "soft-branch").
 			NewBranch("base").
 			EmptyCommit("base-branch commit").
 			CreateFile("file-1", "content").

@@ -15,9 +15,9 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			CloneIntoRemote("origin").
 			EmptyCommit("blah").
 			NewBranch("branch-one").
-			PushBranch("origin", "branch-one").
+			PushBranchAndSetUpstream("origin", "branch-one").
 			NewBranch("branch-two").
-			PushBranch("origin", "branch-two").
+			PushBranchAndSetUpstream("origin", "branch-two").
 			EmptyCommit("deletion blocker").
 			NewBranch("branch-three")
 	},

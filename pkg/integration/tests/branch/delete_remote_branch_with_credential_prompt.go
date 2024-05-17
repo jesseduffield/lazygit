@@ -18,7 +18,7 @@ var DeleteRemoteBranchWithCredentialPrompt = NewIntegrationTest(NewIntegrationTe
 
 		shell.NewBranch("mybranch")
 
-		shell.PushBranch("origin", "mybranch")
+		shell.PushBranchAndSetUpstream("origin", "mybranch")
 
 		// actually getting a password prompt is tricky: it requires SSH'ing into localhost under a newly created, restricted, user.
 		// This is not easy to do in a cross-platform way, nor is it easy to do in a docker container.
