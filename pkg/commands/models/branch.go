@@ -10,10 +10,10 @@ type Branch struct {
 	DisplayName string
 	// indicator of when the branch was last checked out e.g. '2d', '3m'
 	Recency string
-	// how many commits ahead we are from the remote branch (how many commits we can push)
-	Pushables string
+	// how many commits ahead we are from the remote branch (how many commits we can push, assuming we push to our tracked remote branch)
+	AheadForPull string
 	// how many commits behind we are from the remote branch (how many commits we can pull)
-	Pullables string
+	BehindForPull string
 	// whether the remote branch is 'gone' i.e. we're tracking a remote branch that has been deleted
 	UpstreamGone bool
 	// whether this is the current branch. Exactly one branch should have this be true
@@ -80,26 +80,26 @@ func (b *Branch) IsTrackingRemote() bool {
 // we know that the remote branch is not stored locally based on our pushable/pullable
 // count being question marks.
 func (b *Branch) RemoteBranchStoredLocally() bool {
-	return b.IsTrackingRemote() && b.Pushables != "?" && b.Pullables != "?"
+	return b.IsTrackingRemote() && b.AheadForPull != "?" && b.BehindForPull != "?"
 }
 
 func (b *Branch) RemoteBranchNotStoredLocally() bool {
-	return b.IsTrackingRemote() && b.Pushables == "?" && b.Pullables == "?"
+	return b.IsTrackingRemote() && b.AheadForPull == "?" && b.BehindForPull == "?"
 }
 
 func (b *Branch) MatchesUpstream() bool {
-	return b.RemoteBranchStoredLocally() && b.Pushables == "0" && b.Pullables == "0"
+	return b.RemoteBranchStoredLocally() && b.AheadForPull == "0" && b.BehindForPull == "0"
 }
 
-func (b *Branch) HasCommitsToPush() bool {
-	return b.RemoteBranchStoredLocally() && b.Pushables != "0"
+func (b *Branch) IsAheadForPull() bool {
+	return b.RemoteBranchStoredLocally() && b.AheadForPull != "0"
 }
 
-func (b *Branch) HasCommitsToPull() bool {
-	return b.RemoteBranchStoredLocally() && b.Pullables != "0"
+func (b *Branch) IsBehindForPull() bool {
+	return b.RemoteBranchStoredLocally() && b.BehindForPull != "0"
 }
 
 // for when we're in a detached head state
 func (b *Branch) IsRealBranch() bool {
-	return b.Pushables != "" && b.Pullables != ""
+	return b.AheadForPull != "" && b.BehindForPull != ""
 }

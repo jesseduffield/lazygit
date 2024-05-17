@@ -199,7 +199,7 @@ func obtainBranch(split []string, storeCommitDateAsRecency bool) *models.Branch 
 	commitDate := split[6]
 
 	name := strings.TrimPrefix(fullName, "heads/")
-	pushables, pullables, gone := parseUpstreamInfo(upstreamName, track)
+	aheadForPull, behindForPull, gone := parseUpstreamInfo(upstreamName, track)
 
 	recency := ""
 	if storeCommitDateAsRecency {
@@ -209,14 +209,14 @@ func obtainBranch(split []string, storeCommitDateAsRecency bool) *models.Branch 
 	}
 
 	return &models.Branch{
-		Name:         name,
-		Recency:      recency,
-		Pushables:    pushables,
-		Pullables:    pullables,
-		UpstreamGone: gone,
-		Head:         headMarker == "*",
-		Subject:      subject,
-		CommitHash:   commitHash,
+		Name:          name,
+		Recency:       recency,
+		AheadForPull:  aheadForPull,
+		BehindForPull: behindForPull,
+		UpstreamGone:  gone,
+		Head:          headMarker == "*",
+		Subject:       subject,
+		CommitHash:    commitHash,
 	}
 }
 
@@ -232,10 +232,10 @@ func parseUpstreamInfo(upstreamName string, track string) (string, string, bool)
 		return "?", "?", true
 	}
 
-	pushables := parseDifference(track, `ahead (\d+)`)
-	pullables := parseDifference(track, `behind (\d+)`)
+	ahead := parseDifference(track, `ahead (\d+)`)
+	behind := parseDifference(track, `behind (\d+)`)
 
-	return pushables, pullables, false
+	return ahead, behind, false
 }
 
 func parseDifference(track string, regexStr string) string {

@@ -47,8 +47,10 @@ type Branch struct {
 	Name           string
 	DisplayName    string
 	Recency        string
-	Pushables      string
-	Pullables      string
+	Pushables      string // deprecated: use AheadForPull
+	Pullables      string // deprecated: use BehindForPull
+	AheadForPull   string
+	BehindForPull  string
 	UpstreamGone   bool
 	Head           bool
 	DetachedHead   bool

@@ -620,7 +620,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 	if !branch.RemoteBranchStoredLocally() {
 		return errors.New(self.c.Tr.FwdNoLocalUpstream)
 	}
-	if branch.HasCommitsToPush() {
+	if branch.IsAheadForPull() {
 		return errors.New(self.c.Tr.FwdCommitsToPush)
 	}
 
