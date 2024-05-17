@@ -3,7 +3,7 @@ package custom_commands
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
-	"github.com/stefanhaller/git-todo-parser/todo"
+	"github.com/samber/lo"
 )
 
 // loads the session state at the time that a custom command is invoked, for use
@@ -20,22 +20,7 @@ func NewSessionStateLoader(c *helpers.HelperCommon, refsHelper *helpers.RefsHelp
 	}
 }
 
-type Commit struct {
-	Hash          string
-	Sha           string
-	Name          string
-	Status        models.CommitStatus
-	Action        todo.TodoCommand
-	Tags          []string
-	ExtraInfo     string
-	AuthorName    string
-	AuthorEmail   string
-	UnixTimestamp int64
-	Divergence    models.Divergence
-	Parents       []string
-}
-
-func commitWrapperFromModelCommit(commit *models.Commit) *Commit {
+func commitShimFromModelCommit(commit *models.Commit) *Commit {
 	if commit == nil {
 		return nil
 	}
@@ -56,39 +41,156 @@ func commitWrapperFromModelCommit(commit *models.Commit) *Commit {
 	}
 }
 
+func fileShimFromModelFile(file *models.File) *File {
+	if file == nil {
+		return nil
+	}
+
+	return &File{
+		Name:                    file.Name,
+		PreviousName:            file.PreviousName,
+		HasStagedChanges:        file.HasStagedChanges,
+		HasUnstagedChanges:      file.HasUnstagedChanges,
+		Tracked:                 file.Tracked,
+		Added:                   file.Added,
+		Deleted:                 file.Deleted,
+		HasMergeConflicts:       file.HasMergeConflicts,
+		HasInlineMergeConflicts: file.HasInlineMergeConflicts,
+		DisplayString:           file.DisplayString,
+		ShortStatus:             file.ShortStatus,
+		IsWorktree:              file.IsWorktree,
+	}
+}
+
+func branchShimFromModelBranch(branch *models.Branch) *Branch {
+	if branch == nil {
+		return nil
+	}
+
+	return &Branch{
+		Name:           branch.Name,
+		DisplayName:    branch.DisplayName,
+		Recency:        branch.Recency,
+		Pushables:      branch.Pushables,
+		Pullables:      branch.Pullables,
+		UpstreamGone:   branch.UpstreamGone,
+		Head:           branch.Head,
+		DetachedHead:   branch.DetachedHead,
+		UpstreamRemote: branch.UpstreamRemote,
+		UpstreamBranch: branch.UpstreamBranch,
+		Subject:        branch.Subject,
+		CommitHash:     branch.CommitHash,
+	}
+}
+
+func remoteBranchShimFromModelRemoteBranch(remoteBranch *models.RemoteBranch) *RemoteBranch {
+	if remoteBranch == nil {
+		return nil
+	}
+
+	return &RemoteBranch{
+		Name:       remoteBranch.Name,
+		RemoteName: remoteBranch.RemoteName,
+	}
+}
+
+func remoteShimFromModelRemote(remote *models.Remote) *Remote {
+	if remote == nil {
+		return nil
+	}
+
+	return &Remote{
+		Name: remote.Name,
+		Urls: remote.Urls,
+		Branches: lo.Map(remote.Branches, func(branch *models.RemoteBranch, _ int) *RemoteBranch {
+			return remoteBranchShimFromModelRemoteBranch(branch)
+		}),
+	}
+}
+
+func tagShimFromModelRemote(tag *models.Tag) *Tag {
+	if tag == nil {
+		return nil
+	}
+
+	return &Tag{
+		Name:    tag.Name,
+		Message: tag.Message,
+	}
+}
+
+func stashEntryShimFromModelRemote(stashEntry *models.StashEntry) *StashEntry {
+	if stashEntry == nil {
+		return nil
+	}
+
+	return &StashEntry{
+		Index:   stashEntry.Index,
+		Recency: stashEntry.Recency,
+		Name:    stashEntry.Name,
+	}
+}
+
+func commitFileShimFromModelRemote(commitFile *models.CommitFile) *CommitFile {
+	if commitFile == nil {
+		return nil
+	}
+
+	return &CommitFile{
+		Name:         commitFile.Name,
+		ChangeStatus: commitFile.ChangeStatus,
+	}
+}
+
+func worktreeShimFromModelRemote(worktree *models.Worktree) *Worktree {
+	if worktree == nil {
+		return nil
+	}
+
+	return &Worktree{
+		IsMain:        worktree.IsMain,
+		IsCurrent:     worktree.IsCurrent,
+		Path:          worktree.Path,
+		IsPathMissing: worktree.IsPathMissing,
+		GitDir:        worktree.GitDir,
+		Branch:        worktree.Branch,
+		Name:          worktree.Name,
+	}
+}
+
 // SessionState captures the current state of the application for use in custom commands
 type SessionState struct {
 	SelectedLocalCommit    *Commit
 	SelectedReflogCommit   *Commit
 	SelectedSubCommit      *Commit
-	SelectedFile           *models.File
+	SelectedFile           *File
 	SelectedPath           string
-	SelectedLocalBranch    *models.Branch
-	SelectedRemoteBranch   *models.RemoteBranch
-	SelectedRemote         *models.Remote
-	SelectedTag            *models.Tag
-	SelectedStashEntry     *models.StashEntry
-	SelectedCommitFile     *models.CommitFile
+	SelectedLocalBranch    *Branch
+	SelectedRemoteBranch   *RemoteBranch
+	SelectedRemote         *Remote
+	SelectedTag            *Tag
+	SelectedStashEntry     *StashEntry
+	SelectedCommitFile     *CommitFile
 	SelectedCommitFilePath string
-	SelectedWorktree       *models.Worktree
-	CheckedOutBranch       *models.Branch
+	SelectedWorktree       *Worktree
+	CheckedOutBranch       *Branch
 }
 
 func (self *SessionStateLoader) call() *SessionState {
 	return &SessionState{
-		SelectedFile:           self.c.Contexts().Files.GetSelectedFile(),
+		SelectedFile:           fileShimFromModelFile(self.c.Contexts().Files.GetSelectedFile()),
 		SelectedPath:           self.c.Contexts().Files.GetSelectedPath(),
-		SelectedLocalCommit:    commitWrapperFromModelCommit(self.c.Contexts().LocalCommits.GetSelected()),
-		SelectedReflogCommit:   commitWrapperFromModelCommit(self.c.Contexts().ReflogCommits.GetSelected()),
-		SelectedLocalBranch:    self.c.Contexts().Branches.GetSelected(),
-		SelectedRemoteBranch:   self.c.Contexts().RemoteBranches.GetSelected(),
-		SelectedRemote:         self.c.Contexts().Remotes.GetSelected(),
-		SelectedTag:            self.c.Contexts().Tags.GetSelected(),
-		SelectedStashEntry:     self.c.Contexts().Stash.GetSelected(),
-		SelectedCommitFile:     self.c.Contexts().CommitFiles.GetSelectedFile(),
+		SelectedLocalCommit:    commitShimFromModelCommit(self.c.Contexts().LocalCommits.GetSelected()),
+		SelectedReflogCommit:   commitShimFromModelCommit(self.c.Contexts().ReflogCommits.GetSelected()),
+		SelectedLocalBranch:    branchShimFromModelBranch(self.c.Contexts().Branches.GetSelected()),
+		SelectedRemoteBranch:   remoteBranchShimFromModelRemoteBranch(self.c.Contexts().RemoteBranches.GetSelected()),
+		SelectedRemote:         remoteShimFromModelRemote(self.c.Contexts().Remotes.GetSelected()),
+		SelectedTag:            tagShimFromModelRemote(self.c.Contexts().Tags.GetSelected()),
+		SelectedStashEntry:     stashEntryShimFromModelRemote(self.c.Contexts().Stash.GetSelected()),
+		SelectedCommitFile:     commitFileShimFromModelRemote(self.c.Contexts().CommitFiles.GetSelectedFile()),
 		SelectedCommitFilePath: self.c.Contexts().CommitFiles.GetSelectedPath(),
-		SelectedSubCommit:      commitWrapperFromModelCommit(self.c.Contexts().SubCommits.GetSelected()),
-		SelectedWorktree:       self.c.Contexts().Worktrees.GetSelected(),
-		CheckedOutBranch:       self.refsHelper.GetCheckedOutRef(),
+		SelectedSubCommit:      commitShimFromModelCommit(self.c.Contexts().SubCommits.GetSelected()),
+		SelectedWorktree:       worktreeShimFromModelRemote(self.c.Contexts().Worktrees.GetSelected()),
+		CheckedOutBranch:       branchShimFromModelBranch(self.refsHelper.GetCheckedOutRef()),
 	}
 }
