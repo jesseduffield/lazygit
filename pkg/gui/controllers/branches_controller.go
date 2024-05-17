@@ -159,6 +159,12 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			OpensMenu:         true,
 			DisplayOnScreen:   true,
 		},
+		{
+			Key:               opts.GetKey(opts.Config.Branches.Archive),
+			Description:       self.c.Tr.CreateArchive,
+			Handler:           self.withItem(self.createArchive),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+		},
 	}
 }
 
@@ -801,4 +807,8 @@ func (self *BranchesController) branchIsReal(branch *models.Branch) *types.Disab
 	}
 
 	return nil
+}
+
+func (self *BranchesController) createArchive(branch *models.Branch) error {
+	return self.c.Helpers().Archive.CreateArchive(branch.RefName())
 }

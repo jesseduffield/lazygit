@@ -75,6 +75,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` C `` | コミットをコピー (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | 検索を開始 |  |
@@ -123,6 +124,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | コミットをコピー (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | 検索を開始 |  |
@@ -183,6 +185,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | タグをpush | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -239,6 +242,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` g `` | Reset |  |
 | `` R `` | ブランチ名を変更 |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -352,6 +356,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` C `` | コミットをコピー (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |

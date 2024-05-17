@@ -62,6 +62,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset cherry-picked (copied) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -92,6 +93,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset cherry-picked (copied) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | View selected item's files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | 검색 시작 |  |
@@ -196,6 +198,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` g `` | View reset options |  |
 | `` R `` | 브랜치 이름 변경 |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -286,6 +289,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | View selected item's files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | 검색 시작 |  |
@@ -322,6 +326,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | 태그를 push | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-a> `` | Create archive |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
