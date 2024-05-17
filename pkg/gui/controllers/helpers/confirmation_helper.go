@@ -159,6 +159,7 @@ func (self *ConfirmationHelper) prepareConfirmationPanel(
 		suggestionsContext.SetSuggestions(opts.FindSuggestionsFunc(""))
 		suggestionsView.Visible = true
 		suggestionsView.Title = fmt.Sprintf(self.c.Tr.SuggestionsTitle, self.c.UserConfig.Keybinding.Universal.TogglePanel)
+		suggestionsView.Subtitle = ""
 	}
 
 	self.ResizeConfirmationPanel()

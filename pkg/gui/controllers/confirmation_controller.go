@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -39,6 +41,14 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 			Key: opts.GetKey(opts.Config.Universal.TogglePanel),
 			Handler: func() error {
 				if len(self.c.Contexts().Suggestions.State.Suggestions) > 0 {
+					subtitle := ""
+					if self.c.State().GetRepoState().GetCurrentPopupOpts().HandleDeleteSuggestion != nil {
+						// We assume that whenever things are deletable, they
+						// are also editable, so we show both keybindings
+						subtitle = fmt.Sprintf(self.c.Tr.SuggestionsSubtitle,
+							self.c.UserConfig.Keybinding.Universal.Remove, self.c.UserConfig.Keybinding.Universal.Edit)
+					}
+					self.c.Views().Suggestions.Subtitle = subtitle
 					return self.c.ReplaceContext(self.c.Contexts().Suggestions)
 				}
 				return nil
