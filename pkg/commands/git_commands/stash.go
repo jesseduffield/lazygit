@@ -121,9 +121,22 @@ func (self *StashCommands) StashUnstagedChanges(message string) error {
 	return nil
 }
 
-// SaveStagedChanges stashes only the currently staged changes. This takes a few steps
-// shoutouts to Joe on https://stackoverflow.com/questions/14759748/stashing-only-staged-changes-in-git-is-it-possible
+// SaveStagedChanges stashes only the currently staged changes.
 func (self *StashCommands) SaveStagedChanges(message string) error {
+	if self.version.IsAtLeast(2, 35, 0) {
+		return self.cmd.New(NewGitCmd("stash").Arg("push").Arg("--staged").Arg("-m", message).ToArgv()).Run()
+	}
+
+	// Git versions older than 2.35.0 don't support the --staged flag, so we
+	// need to fall back to a more complex solution.
+	// Shoutouts to Joe on https://stackoverflow.com/questions/14759748/stashing-only-staged-changes-in-git-is-it-possible
+	//
+	// Note that this method has a few bugs:
+	// - it fails when there are *only* staged changes
+	// - it fails when staged and unstaged changes within a single file are too close together
+	// We don't bother fixing these, because users can simply update git when
+	// they are affected by these issues.
+
 	// wrap in 'writing', which uses a mutex
 	if err := self.cmd.New(
 		NewGitCmd("stash").Arg("--keep-index").ToArgv(),

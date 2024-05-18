@@ -257,6 +257,7 @@ var tests = []*components.IntegrationTest{
 	stash.StashAndKeepIndex,
 	stash.StashIncludingUntrackedFiles,
 	stash.StashStaged,
+	stash.StashStagedPartialFile,
 	stash.StashUnstaged,
 	status.ClickRepoNameToOpenReposMenu,
 	status.ClickToFocus,
