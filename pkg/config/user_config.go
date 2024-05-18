@@ -252,7 +252,7 @@ type PagingConfig struct {
 	// diff-so-fancy
 	// delta --dark --paging=never
 	// ydiff -p cat -s --wrap --width={{columnWidth}}
-	Pager PagerType `yaml:"pager" jsonschema:"minLength=1"`
+	Pager PagerType `yaml:"pager"`
 	// If true, Lazygit will use whatever pager is specified in `$GIT_PAGER`, `$PAGER`, or your *git config*. If the pager ends with something like ` | less` we will strip that part out, because less doesn't play nice with our rendering approach. If the custom pager uses less under the hood, that will also break rendering (hence the `--paging=never` flag for the `delta` pager).
 	UseConfig bool `yaml:"useConfig"`
 	// e.g. 'difft --color=always'
@@ -294,9 +294,9 @@ type LogConfig struct {
 
 type CommitPrefixConfig struct {
 	// pattern to match on. E.g. for 'feature/AB-123' to match on the AB-123 use "^\\w+\\/(\\w+-\\w+).*"
-	Pattern string `yaml:"pattern" jsonschema:"example=^\\w+\\/(\\w+-\\w+).*,minLength=1"`
+	Pattern string `yaml:"pattern" jsonschema:"example=^\\w+\\/(\\w+-\\w+).*"`
 	// Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use "[$1] "
-	Replace string `yaml:"replace" jsonschema:"example=[$1] ,minLength=1"`
+	Replace string `yaml:"replace" jsonschema:"example=[$1]"`
 }
 
 type UpdateConfig struct {

@@ -428,7 +428,6 @@
             },
             "pager": {
               "type": "string",
-              "minLength": 1,
               "description": "e.g.\ndiff-so-fancy\ndelta --dark --paging=never\nydiff -p cat -s --wrap --width={{columnWidth}}",
               "default": "",
               "examples": [
@@ -543,7 +542,6 @@
           "properties": {
             "pattern": {
               "type": "string",
-              "minLength": 1,
               "description": "pattern to match on. E.g. for 'feature/AB-123' to match on the AB-123 use \"^\\\\w+\\\\/(\\\\w+-\\\\w+).*\"",
               "examples": [
                 "^\\w+\\/(\\w+-\\w+).*"
@@ -551,10 +549,9 @@
             },
             "replace": {
               "type": "string",
-              "minLength": 1,
               "description": "Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use \"[$1] \"",
               "examples": [
-                "[$1] "
+                "[$1]"
               ]
             }
           },
@@ -567,7 +564,6 @@
             "properties": {
               "pattern": {
                 "type": "string",
-                "minLength": 1,
                 "description": "pattern to match on. E.g. for 'feature/AB-123' to match on the AB-123 use \"^\\\\w+\\\\/(\\\\w+-\\\\w+).*\"",
                 "examples": [
                   "^\\w+\\/(\\w+-\\w+).*"
@@ -575,10 +571,9 @@
               },
               "replace": {
                 "type": "string",
-                "minLength": 1,
                 "description": "Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use \"[$1] \"",
                 "examples": [
-                  "[$1] "
+                  "[$1]"
                 ]
               }
             },
