@@ -103,9 +103,9 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 	go utils.Safe(func() {
 		defer wg.Done()
 
-		ancestor = self.getMergeBase(opts.RefName, opts.MainBranches)
+		ancestor = opts.MainBranches.GetMergeBase(opts.RefName)
 		if opts.RefToShowDivergenceFrom != "" {
-			remoteAncestor = self.getMergeBase(opts.RefToShowDivergenceFrom, opts.MainBranches)
+			remoteAncestor = opts.MainBranches.GetMergeBase(opts.RefToShowDivergenceFrom)
 		}
 	})
 
@@ -464,29 +464,6 @@ func setCommitMergedStatuses(ancestor string, commits []*models.Commit) {
 			commits[i].Status = models.StatusMerged
 		}
 	}
-}
-
-func (self *CommitLoader) getMergeBase(refName string, existingMainBranches *ExistingMainBranches) string {
-	mainBranches := existingMainBranches.Get()
-	if len(mainBranches) == 0 {
-		return ""
-	}
-
-	// We pass all configured main branches to the merge-base call; git will
-	// return the base commit for the closest one.
-
-	// We ignore errors from this call, since we can't distinguish whether the
-	// error is because one of the main branches has been deleted since the last
-	// call to determineMainBranches, or because the refName has no common
-	// history with any of the main branches. Since the former should happen
-	// very rarely, users must quit and restart lazygit to fix it; the latter is
-	// also not very common, but can totally happen and is not an error.
-
-	output, _ := self.cmd.New(
-		NewGitCmd("merge-base").Arg(refName).Arg(mainBranches...).
-			ToArgv(),
-	).DontLog().RunWithOutput()
-	return ignoringWarnings(output)
 }
 
 func ignoringWarnings(commandOutput string) string {

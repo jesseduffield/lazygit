@@ -47,6 +47,30 @@ func (self *MainBranches) Get() []string {
 	return self.existingMainBranches
 }
 
+// Return the merge base of the given refName with the closest main branch.
+func (self *MainBranches) GetMergeBase(refName string) string {
+	mainBranches := self.Get()
+	if len(mainBranches) == 0 {
+		return ""
+	}
+
+	// We pass all existing main branches to the merge-base call; git will
+	// return the base commit for the closest one.
+
+	// We ignore errors from this call, since we can't distinguish whether the
+	// error is because one of the main branches has been deleted since the last
+	// call to determineMainBranches, or because the refName has no common
+	// history with any of the main branches. Since the former should happen
+	// very rarely, users must quit and restart lazygit to fix it; the latter is
+	// also not very common, but can totally happen and is not an error.
+
+	output, _ := self.cmd.New(
+		NewGitCmd("merge-base").Arg(refName).Arg(mainBranches...).
+			ToArgv(),
+	).DontLog().RunWithOutput()
+	return ignoringWarnings(output)
+}
+
 func (self *MainBranches) determineMainBranches() []string {
 	var existingBranches []string
 	var wg sync.WaitGroup
