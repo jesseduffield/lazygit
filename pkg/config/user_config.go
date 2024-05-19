@@ -125,6 +125,10 @@ type GuiConfig struct {
 	NerdFontsVersion string `yaml:"nerdFontsVersion" jsonschema:"enum=2,enum=3,enum="`
 	// If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.
 	ShowFileIcons bool `yaml:"showFileIcons"`
+	// Whether to show full author names or their shortened form in the commit graph.
+	// One of 'auto' (default) | 'full' | 'short'
+	// If 'auto', initials will be shown in small windows, and full names - in larger ones.
+	CommitAuthorFormat string `yaml:"commitAuthorFormat" jsonschema:"enum=auto,enum=short,enum=full"`
 	// Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.
 	CommitHashLength int `yaml:"commitHashLength" jsonschema:"minimum=0"`
 	// If true, show commit hashes alongside branch names in the branches view.
@@ -676,6 +680,7 @@ func GetDefaultConfig() *UserConfig {
 				UnstagedChangesColor:       []string{"red"},
 				DefaultFgColor:             []string{"default"},
 			},
+			CommitAuthorFormat:           "auto",
 			CommitLength:                 CommitLengthConfig{Show: true},
 			SkipNoStagedFilesWarning:     false,
 			ShowListFooter:               true,

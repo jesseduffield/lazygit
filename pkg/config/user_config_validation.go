@@ -7,6 +7,11 @@ import (
 )
 
 func (config *UserConfig) Validate() error {
+	if err := validateEnum("gui.commitAuthorFormat", config.Gui.CommitAuthorFormat,
+		[]string{"auto", "short", "full"}); err != nil {
+		return err
+	}
+
 	if err := validateEnum("gui.statusPanelView", config.Gui.StatusPanelView,
 		[]string{"dashboard", "allBranchesLog"}); err != nil {
 		return err
