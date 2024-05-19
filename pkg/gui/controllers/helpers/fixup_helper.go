@@ -26,7 +26,7 @@ func NewFixupHelper(
 	}
 }
 
-type deletedLineInfo struct {
+type hunk struct {
 	filename     string
 	startLineIdx int
 	numLines     int
@@ -41,12 +41,12 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return errors.New(self.c.Tr.NoChangedFiles)
 	}
 
-	deletedLineInfos, hasHunksWithOnlyAddedLines := self.parseDiff(diff)
-	if len(deletedLineInfos) == 0 {
+	deletedLineHunks, hasHunksWithOnlyAddedLines := self.parseDiff(diff)
+	if len(deletedLineHunks) == 0 {
 		return errors.New(self.c.Tr.NoDeletedLinesInDiff)
 	}
 
-	hashes := self.blameDeletedLines(deletedLineInfos)
+	hashes := self.blameDeletedLines(deletedLineHunks)
 
 	if len(hashes) == 0 {
 		// This should never happen
@@ -122,20 +122,20 @@ func (self *FixupHelper) getDiff() (string, bool, error) {
 	return diff, hasStagedChanges, err
 }
 
-func (self *FixupHelper) parseDiff(diff string) ([]*deletedLineInfo, bool) {
+func (self *FixupHelper) parseDiff(diff string) ([]*hunk, bool) {
 	lines := strings.Split(strings.TrimSuffix(diff, "\n"), "\n")
 
-	deletedLineInfos := []*deletedLineInfo{}
+	deletedLineHunks := []*hunk{}
 	hasHunksWithOnlyAddedLines := false
 
 	hunkHeaderRegexp := regexp.MustCompile(`@@ -(\d+)(?:,\d+)? \+\d+(?:,\d+)? @@`)
 
 	var filename string
-	var currentLineInfo *deletedLineInfo
+	var currentHunk *hunk
 	finishHunk := func() {
-		if currentLineInfo != nil {
-			if currentLineInfo.numLines > 0 {
-				deletedLineInfos = append(deletedLineInfos, currentLineInfo)
+		if currentHunk != nil {
+			if currentHunk.numLines > 0 {
+				deletedLineHunks = append(deletedLineHunks, currentHunk)
 			} else {
 				hasHunksWithOnlyAddedLines = true
 			}
@@ -144,7 +144,7 @@ func (self *FixupHelper) parseDiff(diff string) ([]*deletedLineInfo, bool) {
 	for _, line := range lines {
 		if strings.HasPrefix(line, "diff --git") {
 			finishHunk()
-			currentLineInfo = nil
+			currentHunk = nil
 		} else if strings.HasPrefix(line, "--- ") {
 			// For some reason, the line ends with a tab character if the file
 			// name contains spaces
@@ -153,36 +153,36 @@ func (self *FixupHelper) parseDiff(diff string) ([]*deletedLineInfo, bool) {
 			finishHunk()
 			match := hunkHeaderRegexp.FindStringSubmatch(line)
 			startIdx := utils.MustConvertToInt(match[1])
-			currentLineInfo = &deletedLineInfo{filename, startIdx, 0}
-		} else if currentLineInfo != nil && line[0] == '-' {
-			currentLineInfo.numLines++
+			currentHunk = &hunk{filename, startIdx, 0}
+		} else if currentHunk != nil && line[0] == '-' {
+			currentHunk.numLines++
 		}
 	}
 	finishHunk()
 
-	return deletedLineInfos, hasHunksWithOnlyAddedLines
+	return deletedLineHunks, hasHunksWithOnlyAddedLines
 }
 
 // returns the list of commit hashes that introduced the lines which have now been deleted
-func (self *FixupHelper) blameDeletedLines(deletedLineInfos []*deletedLineInfo) []string {
+func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) []string {
 	var wg sync.WaitGroup
 	hashChan := make(chan string)
 
-	for _, info := range deletedLineInfos {
+	for _, h := range deletedLineHunks {
 		wg.Add(1)
-		go func(info *deletedLineInfo) {
+		go func(h *hunk) {
 			defer wg.Done()
 
-			blameOutput, err := self.c.Git().Blame.BlameLineRange(info.filename, "HEAD", info.startLineIdx, info.numLines)
+			blameOutput, err := self.c.Git().Blame.BlameLineRange(h.filename, "HEAD", h.startLineIdx, h.numLines)
 			if err != nil {
-				self.c.Log.Errorf("Error blaming file '%s': %v", info.filename, err)
+				self.c.Log.Errorf("Error blaming file '%s': %v", h.filename, err)
 				return
 			}
 			blameLines := strings.Split(strings.TrimSuffix(blameOutput, "\n"), "\n")
 			for _, line := range blameLines {
 				hashChan <- strings.Split(line, " ")[0]
 			}
-		}(info)
+		}(h)
 	}
 
 	go func() {
