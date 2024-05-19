@@ -81,7 +81,6 @@ func TestMenuGenerator(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			s.test(NewMenuGenerator(utils.NewDummyCommon()).call(s.cmdOut, s.filter, s.valueFormat, s.labelFormat))
 		})

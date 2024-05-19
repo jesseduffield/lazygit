@@ -49,7 +49,6 @@ func TestNextIndex(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			assert.EqualValues(t, s.expected, NextIndex(s.list, s.element))
 		})
@@ -93,7 +92,6 @@ func TestPrevIndex(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			assert.EqualValues(t, s.expected, PrevIndex(s.list, s.element))
 		})
@@ -126,7 +124,6 @@ func TestEscapeSpecialChars(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			assert.EqualValues(t, s.expected, EscapeSpecialChars(s.input))
 		})
@@ -303,7 +300,6 @@ func TestMoveElement(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			assert.EqualValues(t, s.expected, MoveElement(s.list, s.from, s.to))
 		})

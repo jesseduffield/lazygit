@@ -101,7 +101,6 @@ func TestGetRepoPaths(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.Name, func(t *testing.T) {
 			runner := oscommands.NewFakeRunner(t)
 			cmd := oscommands.NewDummyCmdObjBuilder(runner)

@@ -413,7 +413,6 @@ func TestGetPullRequestURL(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			tr := i18n.EnglishTranslationSet()
 			log := &fakes.FakeFieldLogger{}

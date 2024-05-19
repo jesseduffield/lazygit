@@ -1,7 +1,7 @@
 name: Continuous Integration
 
 env:
-  GO_VERSION: 1.21
+  GO_VERSION: 1.22
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.21.x
+          go-version: 1.22.x
       - name: Test code
         # we're passing -short so that we skip the integration tests, which will be run in parallel below
         run: |
@@ -89,7 +89,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.21.x
+          go-version: 1.22.x
       - name: Print git version
         run: git --version
       - name: Test code
@@ -115,7 +115,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.21.x
+          go-version: 1.22.x
       - name: Build linux binary
         run: |
           GOOS=linux go build
@@ -142,7 +142,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.21.x
+          go-version: 1.22.x
       - name: Check Vendor Directory
         # ensure our vendor directory matches up with our go modules
         run: |
@@ -168,7 +168,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.21.x
+          go-version: 1.22.x
       - name: Lint
         uses: golangci/golangci-lint-action@v3.7.0
         with:
@@ -193,6 +193,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22.x
 
       - name: Download all coverage artifacts
         uses: actions/download-artifact@v3

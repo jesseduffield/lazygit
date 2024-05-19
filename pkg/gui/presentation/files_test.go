@@ -66,7 +66,6 @@ M  file1
 	defer color.ForceSetColorLevel(oldColorLevel)
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.name, func(t *testing.T) {
 			viewModel := filetree.NewFileTree(func() []*models.File { return s.files }, utils.NewDummyLog(), true)
 			viewModel.SetTree()
@@ -128,7 +127,6 @@ M file1
 	defer color.ForceSetColorLevel(oldColorLevel)
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.name, func(t *testing.T) {
 			viewModel := filetree.NewCommitFileTreeViewModel(func() []*models.CommitFile { return s.files }, utils.NewDummyLog(), true)
 			viewModel.SetRef(&models.Commit{})

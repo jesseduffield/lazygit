@@ -71,7 +71,6 @@ func TestFilterAction(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.name, func(t *testing.T) {
 			mngr := &FileTree{getFiles: func() []*models.File { return s.files }, filter: s.filter}
 			result := mngr.getFilesForDisplay()

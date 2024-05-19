@@ -30,7 +30,6 @@ func TestCommitRewordCommit(t *testing.T) {
 		},
 	}
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildCommitCommands(commonDeps{runner: s.runner})
 
@@ -100,7 +99,6 @@ func TestCommitCommitCmdObj(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.Commit.SignOff = s.configSignoff
@@ -136,7 +134,6 @@ func TestCommitCommitEditorCmdObj(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.Commit.SignOff = s.configSignoff
@@ -171,7 +168,6 @@ func TestCommitCreateFixupCommit(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildCommitCommands(commonDeps{runner: s.runner})
 			s.test(instance.CreateFixupCommit(s.hash))
@@ -221,7 +217,6 @@ func TestCommitCreateAmendCommit(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildCommitCommands(commonDeps{runner: s.runner})
 			err := instance.CreateAmendCommit(s.originalSubject, s.newSubject, s.newDescription, s.includeFileChanges)
@@ -285,7 +280,6 @@ func TestCommitShowCmdObj(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.Paging.ExternalDiffCommand = s.extDiffCmd
@@ -334,7 +328,6 @@ func TestGetCommitMsg(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildCommitCommands(commonDeps{
 				runner: oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"-c", "log.showsignature=false", "log", "--format=%B", "--max-count=1", "deadbeef"}, s.input, nil),
@@ -374,7 +367,6 @@ func TestGetCommitMessageFromHistory(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildCommitCommands(commonDeps{runner: s.runner})
 

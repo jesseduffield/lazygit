@@ -61,7 +61,6 @@ func TestWorkingTreeUnstageFile(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
 			s.test(instance.UnStageFile([]string{"test.txt"}, s.reset))
@@ -190,7 +189,6 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, removeFile: s.removeFile})
 			err := instance.DiscardAllFileChanges(s.file)
@@ -306,7 +304,6 @@ func TestWorkingTreeDiff(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			appState := &config.AppState{}
@@ -375,7 +372,6 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			appState := &config.AppState{}
@@ -428,7 +424,6 @@ func TestWorkingTreeCheckoutFile(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
 
@@ -459,7 +454,6 @@ func TestWorkingTreeDiscardUnstagedFileChanges(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
 			s.test(instance.DiscardUnstagedFileChanges(s.file))
@@ -487,7 +481,6 @@ func TestWorkingTreeDiscardAnyUnstagedFileChanges(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
 			s.test(instance.DiscardAnyUnstagedFileChanges())
@@ -515,7 +508,6 @@ func TestWorkingTreeRemoveUntrackedFiles(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
 			s.test(instance.RemoveUntrackedFiles())
@@ -545,7 +537,6 @@ func TestWorkingTreeResetHard(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
 			s.test(instance.ResetHard(s.ref))

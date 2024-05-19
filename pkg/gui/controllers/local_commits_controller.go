@@ -801,7 +801,6 @@ func (self *LocalCommitsController) revert(commit *models.Commit) error {
 func (self *LocalCommitsController) createRevertMergeCommitMenu(commit *models.Commit) error {
 	menuItems := make([]*types.MenuItem, len(commit.Parents))
 	for i, parentHash := range commit.Parents {
-		i := i
 		message, err := self.c.Git().Commit.GetCommitMessageFirstLine(parentHash)
 		if err != nil {
 			return err

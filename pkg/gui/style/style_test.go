@@ -161,7 +161,6 @@ func TestMerge(t *testing.T) {
 	defer color.ForceSetColorLevel(oldColorLevel)
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.name, func(t *testing.T) {
 			style := New()
 			for _, other := range s.toMerge {
@@ -212,7 +211,6 @@ func TestTemplateFuncMapAddColors(t *testing.T) {
 	defer color.ForceSetColorLevel(oldColorLevel)
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.name, func(t *testing.T) {
 			tmpl, err := template.New("test template").Funcs(TemplateFuncMapAddColors(template.FuncMap{})).Parse(s.tmpl)
 			assert.NoError(t, err)

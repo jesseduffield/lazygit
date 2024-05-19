@@ -181,7 +181,6 @@ branch refs/heads/mybranch-worktree
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			runner := oscommands.NewFakeRunner(t)
 			fs := afero.NewMemMapFs()

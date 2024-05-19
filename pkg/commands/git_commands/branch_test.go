@@ -41,7 +41,6 @@ func TestBranchGetCommitDifferences(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildBranchCommands(commonDeps{runner: s.runner})
 			pushables, pullables := instance.GetCommitDifferences("HEAD", "@{u}")
@@ -89,7 +88,6 @@ func TestBranchDeleteBranch(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildBranchCommands(commonDeps{runner: s.runner})
 
@@ -150,7 +148,6 @@ func TestBranchMerge(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			runner := oscommands.NewFakeRunner(t).
 				ExpectGitArgs(s.expected, "", nil)
@@ -190,7 +187,6 @@ func TestBranchCheckout(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildBranchCommands(commonDeps{runner: s.runner})
 			s.test(instance.Checkout("test", CheckoutOptions{Force: s.force}))
@@ -279,7 +275,6 @@ func TestBranchCurrentBranchInfo(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildBranchCommands(commonDeps{runner: s.runner})
 			s.test(instance.CurrentBranchInfo())

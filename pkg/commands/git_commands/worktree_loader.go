@@ -76,8 +76,6 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 	wg := sync.WaitGroup{}
 	wg.Add(len(worktrees))
 	for _, worktree := range worktrees {
-		worktree := worktree
-
 		go utils.Safe(func() {
 			defer wg.Done()
 

@@ -17,7 +17,6 @@ func (self *DiffingMenuAction) Call() error {
 
 	menuItems := []*types.MenuItem{}
 	for _, name := range names {
-		name := name
 		menuItems = append(menuItems, []*types.MenuItem{
 			{
 				Label: fmt.Sprintf("%s %s", self.c.Tr.Diff, name),
