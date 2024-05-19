@@ -147,7 +147,6 @@ func TestBuildTreeFromFiles(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.name, func(t *testing.T) {
 			result := BuildTreeFromFiles(s.files)
 			assert.EqualValues(t, s.expected, result)
@@ -306,7 +305,6 @@ func TestBuildFlatTreeFromFiles(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.name, func(t *testing.T) {
 			result := BuildFlatTreeFromFiles(s.files)
 			assert.EqualValues(t, s.expected, result)
@@ -420,7 +418,6 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.name, func(t *testing.T) {
 			result := BuildTreeFromCommitFiles(s.files)
 			assert.EqualValues(t, s.expected, result)
@@ -521,7 +518,6 @@ func TestBuildFlatTreeFromCommitFiles(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.name, func(t *testing.T) {
 			result := BuildFlatTreeFromCommitFiles(s.files)
 			assert.EqualValues(t, s.expected, result)

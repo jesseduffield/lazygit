@@ -105,7 +105,6 @@ func (self *MenuViewModel) GetNonModelItems() []*NonModelItem {
 	menuItems := self.FilteredListViewModel.GetItems()
 	var prevSection *types.MenuSection = nil
 	for i, menuItem := range menuItems {
-		menuItem := menuItem
 		if menuItem.Section != nil && menuItem.Section != prevSection {
 			if prevSection != nil {
 				result = append(result, &NonModelItem{

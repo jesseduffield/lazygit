@@ -74,7 +74,6 @@ func TestStashStore(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			runner := oscommands.NewFakeRunner(t).
 				ExpectGitArgs(s.expected, "", nil)
@@ -131,7 +130,6 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			appState := &config.AppState{}
@@ -181,7 +179,6 @@ func TestStashRename(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			runner := oscommands.NewFakeRunner(t).
 				ExpectGitArgs(s.expectedHashCmd, s.hashResult, nil).

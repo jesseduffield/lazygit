@@ -50,7 +50,6 @@ func TestGetBool(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			fake := NewFakeGitConfig(s.mockResponses)
 			real := NewCachedGitConfig(
@@ -87,7 +86,6 @@ func TestGet(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			fake := NewFakeGitConfig(s.mockResponses)
 			real := NewCachedGitConfig(

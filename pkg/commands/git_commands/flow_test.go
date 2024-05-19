@@ -23,7 +23,6 @@ func TestStartCmdObj(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildFlowCommands(commonDeps{})
 
@@ -69,7 +68,6 @@ func TestFinishCmdObj(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildFlowCommands(commonDeps{
 				gitConfig: git_config.NewFakeGitConfig(s.gitConfigMockResponses),

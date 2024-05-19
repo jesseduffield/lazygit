@@ -239,14 +239,13 @@ func (c *OSCommand) PipeCommands(cmdObjs ...ICmdObj) error {
 	wg.Add(len(cmds))
 
 	for _, cmd := range cmds {
-		currentCmd := cmd
 		go utils.Safe(func() {
-			stderr, err := currentCmd.StderrPipe()
+			stderr, err := cmd.StderrPipe()
 			if err != nil {
 				c.Log.Error(err)
 			}
 
-			if err := currentCmd.Start(); err != nil {
+			if err := cmd.Start(); err != nil {
 				c.Log.Error(err)
 			}
 
@@ -256,7 +255,7 @@ func (c *OSCommand) PipeCommands(cmdObjs ...ICmdObj) error {
 				}
 			}
 
-			if err := currentCmd.Wait(); err != nil {
+			if err := cmd.Wait(); err != nil {
 				c.Log.Error(err)
 			}
 

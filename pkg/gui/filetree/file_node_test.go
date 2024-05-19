@@ -125,7 +125,6 @@ func TestCompress(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.name, func(t *testing.T) {
 			s.root.Compress()
 			assert.EqualValues(t, s.expected, s.root)
@@ -155,7 +154,6 @@ func TestGetFile(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.name, func(t *testing.T) {
 			assert.EqualValues(t, s.expected, s.viewModel.GetFile(s.path))
 		})

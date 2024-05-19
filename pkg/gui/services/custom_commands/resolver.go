@@ -72,7 +72,6 @@ func (self *Resolver) resolvePrompt(
 func (self *Resolver) resolveMenuOptions(prompt *config.CustomCommandPrompt, resolveTemplate func(string) (string, error)) ([]config.CustomCommandMenuOption, error) {
 	newOptions := make([]config.CustomCommandMenuOption, 0, len(prompt.Options))
 	for _, option := range prompt.Options {
-		option := option
 		newOption, err := self.resolveMenuOption(&option, resolveTemplate)
 		if err != nil {
 			return nil, err

@@ -44,7 +44,6 @@ func TestGetTags(t *testing.T) {
 	}
 
 	for _, scenario := range scenarios {
-		scenario := scenario
 		t.Run(scenario.testName, func(t *testing.T) {
 			loader := &TagLoader{
 				Common: utils.NewDummyCommon(),

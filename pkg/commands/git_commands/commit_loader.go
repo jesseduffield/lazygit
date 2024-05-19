@@ -505,8 +505,6 @@ func (self *CommitLoader) getExistingMainBranches() []string {
 
 	for i, branchName := range mainBranches {
 		wg.Add(1)
-		i := i
-		branchName := branchName
 		go utils.Safe(func() {
 			defer wg.Done()
 

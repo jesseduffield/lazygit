@@ -217,7 +217,6 @@ func TestRenderCommitGraph(t *testing.T) {
 	defer color.ForceSetColorLevel(oldColorLevel)
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			getStyle := func(c *models.Commit) style.TextStyle { return style.FgDefault }
 			lines := RenderCommitGraph(test.commits, "blah", getStyle)
@@ -454,7 +453,6 @@ func TestRenderPipeSet(t *testing.T) {
 	defer color.ForceSetColorLevel(oldColorLevel)
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			actualStr := renderPipeSet(test.pipes, "selected", test.prevCommit)
 			t.Log("actual cells:")

@@ -47,7 +47,6 @@ func TestGetStashEntries(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			cmd := oscommands.NewDummyCmdObjBuilder(s.runner)
 

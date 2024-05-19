@@ -575,7 +575,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 	common := utils.NewDummyCommon()
 
 	for _, s := range scenarios {
-		s := s
 		if !focusing || s.focus {
 			t.Run(s.testName, func(t *testing.T) {
 				result := GetCommitListDisplayStrings(

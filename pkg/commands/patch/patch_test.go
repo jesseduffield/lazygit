@@ -509,7 +509,6 @@ func TestTransform(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			lineIndices := ExpandRange(s.firstLineIndex, s.lastLineIndex)
 
@@ -566,7 +565,6 @@ func TestParseAndFormatPlain(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			// here we parse the patch, then format it, and ensure the result
 			// matches the original patch. Note that unified diffs allow omitting
@@ -604,7 +602,6 @@ func TestLineNumberOfLine(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			for i, idx := range s.indexes {
 				patch := Parse(s.patchStr)
@@ -633,7 +630,6 @@ func TestGetNextStageableLineIndex(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			for i, idx := range s.indexes {
 				patch := Parse(s.patchStr)

@@ -67,7 +67,6 @@ func TestRebaseRebaseBranch(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildRebaseCommands(commonDeps{runner: s.runner, gitVersion: s.gitVersion})
 			s.test(instance.RebaseBranch(s.arg))
@@ -89,7 +88,6 @@ func TestRebaseSkipEditorCommand(t *testing.T) {
 			`^GIT_SEQUENCE_EDITOR=.*$`,
 			"^" + daemon.DaemonKindEnvKey + "=" + strconv.Itoa(int(daemon.DaemonKindExitImmediately)) + "$",
 		} {
-			regexStr := regexStr
 			foundMatch := lo.ContainsBy(envVars, func(envVar string) bool {
 				return regexp.MustCompile(regexStr).MatchString(envVar)
 			})
@@ -163,7 +161,6 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildRebaseCommands(commonDeps{
 				runner:     s.runner,

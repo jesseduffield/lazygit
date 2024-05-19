@@ -303,7 +303,6 @@ func TestGetCommits(t *testing.T) {
 	}
 
 	for _, scenario := range scenarios {
-		scenario := scenario
 		t.Run(scenario.testName, func(t *testing.T) {
 			common := utils.NewDummyCommon()
 			common.AppState = &config.AppState{}

@@ -84,7 +84,6 @@ func RenderAux(pipeSets [][]*Pipe, commits []*models.Commit, selectedCommitHash 
 	wg.Add(maxProcs)
 
 	for i := 0; i < maxProcs; i++ {
-		i := i
 		go func() {
 			from := i * perProc
 			to := (i + 1) * perProc

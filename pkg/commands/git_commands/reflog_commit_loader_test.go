@@ -176,7 +176,6 @@ func TestGetReflogCommits(t *testing.T) {
 	}
 
 	for _, scenario := range scenarios {
-		scenario := scenario
 		t.Run(scenario.testName, func(t *testing.T) {
 			builder := &ReflogCommitLoader{
 				Common: utils.NewDummyCommon(),
