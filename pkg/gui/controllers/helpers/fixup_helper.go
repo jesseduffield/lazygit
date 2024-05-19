@@ -47,16 +47,21 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 	if err != nil {
 		return err
 	}
-	if diff == "" {
+
+	deletedLineHunks, addedLineHunks := parseDiff(diff)
+
+	var hashes []string
+	warnAboutAddedLines := false
+
+	if len(deletedLineHunks) > 0 {
+		hashes, err = self.blameDeletedLines(deletedLineHunks)
+		warnAboutAddedLines = len(addedLineHunks) > 0
+	} else if len(addedLineHunks) > 0 {
+		hashes, err = self.blameAddedLines(addedLineHunks)
+	} else {
 		return errors.New(self.c.Tr.NoChangedFiles)
 	}
 
-	deletedLineHunks, addedLineHunks := parseDiff(diff)
-	if len(deletedLineHunks) == 0 {
-		return errors.New(self.c.Tr.NoDeletedLinesInDiff)
-	}
-
-	hashes, err := self.blameDeletedLines(deletedLineHunks)
 	if err != nil {
 		return err
 	}
@@ -104,7 +109,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return self.c.PushContext(self.c.Contexts().LocalCommits)
 	}
 
-	if len(addedLineHunks) > 0 {
+	if warnAboutAddedLines {
 		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.FindBaseCommitForFixup,
 			Prompt: self.c.Tr.HunksWithOnlyAddedLinesWarning,
@@ -215,6 +220,87 @@ func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) ([]string, 
 	result := set.New[string]()
 	for hash := range hashChan {
 		result.Add(hash)
+	}
+
+	return result.ToSlice(), errg.Wait()
+}
+
+func (self *FixupHelper) blameAddedLines(addedLineHunks []*hunk) ([]string, error) {
+	errg := errgroup.Group{}
+	hashesChan := make(chan []string)
+
+	for _, h := range addedLineHunks {
+		errg.Go(func() error {
+			result := make([]string, 0, 2)
+
+			appendBlamedLine := func(blameOutput string) {
+				blameLines := strings.Split(strings.TrimSuffix(blameOutput, "\n"), "\n")
+				if len(blameLines) == 1 {
+					result = append(result, strings.Split(blameLines[0], " ")[0])
+				}
+			}
+
+			// Blame the line before this hunk, if there is one
+			if h.startLineIdx > 0 {
+				blameOutput, err := self.c.Git().Blame.BlameLineRange(h.filename, "HEAD", h.startLineIdx, 1)
+				if err != nil {
+					return err
+				}
+				appendBlamedLine(blameOutput)
+			}
+
+			// Blame the line after this hunk. We don't know how many lines the
+			// file has, so we can't check if there is a line after the hunk;
+			// let the error tell us.
+			blameOutput, err := self.c.Git().Blame.BlameLineRange(h.filename, "HEAD", h.startLineIdx+1, 1)
+			if err != nil {
+				// If this fails, we're probably at the end of the file (we
+				// could have checked this beforehand, but it's expensive). If
+				// there was a line before this hunk, this is fine, we'll just
+				// return that one; if not, the hunk encompasses the entire
+				// file, and we can't blame the lines before and after the hunk.
+				// This is an error.
+				if h.startLineIdx == 0 {
+					return errors.New("Entire file") // TODO i18n
+				}
+			} else {
+				appendBlamedLine(blameOutput)
+			}
+
+			hashesChan <- result
+			return nil
+		})
+	}
+
+	go func() {
+		// We don't care about the error here, we'll check it later (in the
+		// return statement below). Here we only wait for all the goroutines to
+		// finish so that we can close the channel.
+		_ = errg.Wait()
+		close(hashesChan)
+	}()
+
+	result := set.New[string]()
+	for hashes := range hashesChan {
+		if len(hashes) == 1 {
+			result.Add(hashes[0])
+		} else if len(hashes) > 1 {
+			if hashes[0] == hashes[1] {
+				result.Add(hashes[0])
+			} else {
+				_, index1, ok1 := self.findCommit(hashes[0])
+				_, index2, ok2 := self.findCommit(hashes[1])
+				if ok1 && ok2 {
+					result.Add(lo.Ternary(index1 < index2, hashes[0], hashes[1]))
+				} else if ok1 {
+					result.Add(hashes[0])
+				} else if ok2 {
+					result.Add(hashes[1])
+				} else {
+					return nil, errors.New(self.c.Tr.NoBaseCommitsFound)
+				}
+			}
+		}
 	}
 
 	return result.ToSlice(), errg.Wait()
