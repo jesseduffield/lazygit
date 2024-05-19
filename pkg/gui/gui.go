@@ -944,8 +944,9 @@ func (gui *Gui) setColorScheme() error {
 	userConfig := gui.UserConfig
 	theme.UpdateTheme(userConfig.Gui.Theme)
 
-	gui.g.FgColor = theme.InactiveBorderColor
-	gui.g.SelFgColor = theme.ActiveBorderColor
+	gui.g.FgColor = theme.InactiveTitleColor
+	gui.g.SelFgColor = theme.ActiveTitleColor
+	gui.g.InactiveSelFgColor = theme.InactiveSelTabTitleColor
 	gui.g.FrameColor = theme.InactiveBorderColor
 	gui.g.SelFrameColor = theme.ActiveBorderColor
 
