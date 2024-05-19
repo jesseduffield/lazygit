@@ -1,12 +1,14 @@
 package git_commands
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/go-git/v5/config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -131,14 +133,23 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit, existingMainBranc
 
 	onWorker(func() error {
 		mainBranches := existingMainBranches.Get()
-		if len(mainBranches) > 0 {
-			for _, branch := range branches {
+		if len(mainBranches) == 0 {
+			return nil
+		}
+
+		t := time.Now()
+		wg := sync.WaitGroup{}
+		for _, branch := range branches {
+			branch := branch
+			wg.Add(1)
+			onWorker(func() error {
+				defer wg.Done()
 				baseBranch, err := self.GetBaseBranch(branch, existingMainBranches)
 				if err != nil {
 					return err
 				}
 				if baseBranch == "" {
-					continue
+					return nil
 				}
 				output, err := self.cmd.New(
 					NewGitCmd("rev-list").
@@ -156,13 +167,18 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit, existingMainBranc
 				}
 				if ahead, err := strconv.Atoi(aheadBehindStr[0]); err == nil {
 					if behind, err := strconv.Atoi(aheadBehindStr[1]); err == nil {
+
 						branch.AheadOfBaseBranch.Store(int32(ahead))
 						branch.BehindBaseBranch.Store(int32(behind))
-						renderFunc()
 					}
 				}
-			}
+
+				return nil
+			})
 		}
+		wg.Wait()
+		self.Log.Infof("time to get ahead/behind base branch for all branches: %s", time.Since(t))
+		renderFunc()
 
 		return nil
 	})
