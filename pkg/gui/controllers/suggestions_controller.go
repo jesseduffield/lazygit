@@ -40,8 +40,32 @@ func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []
 			Handler: func() error { return self.context().State.OnClose() },
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.TogglePanel),
-			Handler: func() error { return self.c.ReplaceContext(self.c.Contexts().Confirmation) },
+			Key: opts.GetKey(opts.Config.Universal.TogglePanel),
+			Handler: func() error {
+				self.c.Views().Suggestions.Subtitle = ""
+				return self.c.ReplaceContext(self.c.Contexts().Confirmation)
+			},
+		},
+		{
+			Key: opts.GetKey(opts.Config.Universal.Remove),
+			Handler: func() error {
+				return self.context().State.OnDeleteSuggestion()
+			},
+		},
+		{
+			Key: opts.GetKey(opts.Config.Universal.Edit),
+			Handler: func() error {
+				if self.context().State.AllowEditSuggestion {
+					if selectedItem := self.c.Contexts().Suggestions.GetSelected(); selectedItem != nil {
+						self.c.Contexts().Confirmation.GetView().TextArea.Clear()
+						self.c.Contexts().Confirmation.GetView().TextArea.TypeString(selectedItem.Value)
+						self.c.Contexts().Confirmation.GetView().RenderTextArea()
+						self.c.Contexts().Suggestions.RefreshSuggestions()
+						return self.c.ReplaceContext(self.c.Contexts().Confirmation)
+					}
+				}
+				return nil
+			},
 		},
 	}
 

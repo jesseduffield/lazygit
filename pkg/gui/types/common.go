@@ -165,16 +165,18 @@ type CreateMenuOptions struct {
 }
 
 type CreatePopupPanelOpts struct {
-	HasLoader           bool
-	Editable            bool
-	Title               string
-	Prompt              string
-	HandleConfirm       func() error
-	HandleConfirmPrompt func(string) error
-	HandleClose         func() error
+	HasLoader              bool
+	Editable               bool
+	Title                  string
+	Prompt                 string
+	HandleConfirm          func() error
+	HandleConfirmPrompt    func(string) error
+	HandleClose            func() error
+	HandleDeleteSuggestion func(int) error
 
 	FindSuggestionsFunc func(string) []*Suggestion
 	Mask                bool
+	AllowEditSuggestion bool
 }
 
 type ConfirmOpts struct {
@@ -192,9 +194,11 @@ type PromptOpts struct {
 	InitialContent      string
 	FindSuggestionsFunc func(string) []*Suggestion
 	HandleConfirm       func(string) error
+	AllowEditSuggestion bool
 	// CAPTURE THIS
-	HandleClose func() error
-	Mask        bool
+	HandleClose            func() error
+	HandleDeleteSuggestion func(int) error
+	Mask                   bool
 }
 
 type MenuSection struct {

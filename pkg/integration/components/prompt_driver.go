@@ -82,3 +82,21 @@ func (self *PromptDriver) ConfirmSuggestion(matcher *TextMatcher) {
 		NavigateToLine(matcher).
 		PressEnter()
 }
+
+func (self *PromptDriver) DeleteSuggestion(matcher *TextMatcher) *PromptDriver {
+	self.t.press(self.t.keys.Universal.TogglePanel)
+	self.t.Views().Suggestions().
+		IsFocused().
+		NavigateToLine(matcher)
+	self.t.press(self.t.keys.Universal.Remove)
+	return self
+}
+
+func (self *PromptDriver) EditSuggestion(matcher *TextMatcher) *PromptDriver {
+	self.t.press(self.t.keys.Universal.TogglePanel)
+	self.t.Views().Suggestions().
+		IsFocused().
+		NavigateToLine(matcher)
+	self.t.press(self.t.keys.Universal.Edit)
+	return self
+}

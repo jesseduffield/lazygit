@@ -631,6 +631,7 @@ type TranslationSet struct {
 	SuggestionsCheatsheetTitle            string
 	// Unlike the cheatsheet title above, the real suggestions title has a little message saying press tab to focus
 	SuggestionsTitle                     string
+	SuggestionsSubtitle                  string
 	ExtrasTitle                          string
 	PushingTagStatus                     string
 	PullRequestURLCopiedToClipboard      string
@@ -1593,6 +1594,7 @@ func EnglishTranslationSet() TranslationSet {
 		NavigationTitle:                       "List panel navigation",
 		SuggestionsCheatsheetTitle:            "Suggestions",
 		SuggestionsTitle:                      "Suggestions (press %s to focus)",
+		SuggestionsSubtitle:                   "(press %s to delete, %s to edit)",
 		ExtrasTitle:                           "Command log",
 		PushingTagStatus:                      "Pushing tag",
 		PullRequestURLCopiedToClipboard:       "Pull request URL copied to clipboard",

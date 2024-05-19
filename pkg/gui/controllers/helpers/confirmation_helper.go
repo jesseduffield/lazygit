@@ -159,6 +159,7 @@ func (self *ConfirmationHelper) prepareConfirmationPanel(
 		suggestionsContext.SetSuggestions(opts.FindSuggestionsFunc(""))
 		suggestionsView.Visible = true
 		suggestionsView.Title = fmt.Sprintf(self.c.Tr.SuggestionsTitle, self.c.UserConfig.Keybinding.Universal.TogglePanel)
+		suggestionsView.Subtitle = ""
 	}
 
 	self.ResizeConfirmationPanel()
@@ -223,6 +224,8 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 		return err
 	}
 
+	self.c.Contexts().Suggestions.State.AllowEditSuggestion = opts.AllowEditSuggestion
+
 	self.c.State().GetRepoState().SetCurrentPopupOpts(&opts)
 
 	return self.c.PushContext(self.c.Contexts().Confirmation)
@@ -270,10 +273,20 @@ func (self *ConfirmationHelper) setKeyBindings(cancel goContext.CancelFunc, opts
 
 	onClose := self.wrappedConfirmationFunction(cancel, opts.HandleClose)
 
+	onDeleteSuggestion := func() error {
+		if opts.HandleDeleteSuggestion == nil {
+			return nil
+		}
+
+		idx := self.c.Contexts().Suggestions.GetSelectedLineIdx()
+		return opts.HandleDeleteSuggestion(idx)
+	}
+
 	self.c.Contexts().Confirmation.State.OnConfirm = onConfirm
 	self.c.Contexts().Confirmation.State.OnClose = onClose
 	self.c.Contexts().Suggestions.State.OnConfirm = onSuggestionConfirm
 	self.c.Contexts().Suggestions.State.OnClose = onClose
+	self.c.Contexts().Suggestions.State.OnDeleteSuggestion = onDeleteSuggestion
 
 	return nil
 }
@@ -284,6 +297,7 @@ func (self *ConfirmationHelper) clearConfirmationViewKeyBindings() {
 	self.c.Contexts().Confirmation.State.OnClose = noop
 	self.c.Contexts().Suggestions.State.OnConfirm = noop
 	self.c.Contexts().Suggestions.State.OnClose = noop
+	self.c.Contexts().Suggestions.State.OnDeleteSuggestion = noop
 }
 
 func (self *ConfirmationHelper) getSelectedSuggestionValue() string {
