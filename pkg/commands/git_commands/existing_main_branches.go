@@ -56,8 +56,6 @@ func (self *ExistingMainBranches) determineMainBranches() []string {
 
 	for i, branchName := range self.configuredMainBranches {
 		wg.Add(1)
-		i := i
-		branchName := branchName
 		go utils.Safe(func() {
 			defer wg.Done()
 
