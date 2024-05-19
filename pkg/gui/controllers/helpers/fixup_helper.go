@@ -41,7 +41,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return errors.New(self.c.Tr.NoChangedFiles)
 	}
 
-	deletedLineHunks, hasHunksWithOnlyAddedLines := self.parseDiff(diff)
+	deletedLineHunks, hasHunksWithOnlyAddedLines := parseDiff(diff)
 	if len(deletedLineHunks) == 0 {
 		return errors.New(self.c.Tr.NoDeletedLinesInDiff)
 	}
@@ -122,7 +122,7 @@ func (self *FixupHelper) getDiff() (string, bool, error) {
 	return diff, hasStagedChanges, err
 }
 
-func (self *FixupHelper) parseDiff(diff string) ([]*hunk, bool) {
+func parseDiff(diff string) ([]*hunk, bool) {
 	lines := strings.Split(strings.TrimSuffix(diff, "\n"), "\n")
 
 	deletedLineHunks := []*hunk{}
