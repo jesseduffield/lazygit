@@ -3,7 +3,7 @@ name: Continuous Delivery
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   goreleaser:
@@ -16,7 +16,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.21.x
+          go-version: 1.22.x
       - name: Run goreleaser
         uses: goreleaser/goreleaser-action@v4
         with:
