@@ -19,8 +19,6 @@ type UserConfig struct {
 	ConfirmOnQuit bool `yaml:"confirmOnQuit"`
 	// If true, exit Lazygit when the user presses escape in a context where there is nothing to cancel/close
 	QuitOnTopLevelReturn bool `yaml:"quitOnTopLevelReturn"`
-	// Keybindings
-	Keybinding KeybindingConfig `yaml:"keybinding"`
 	// Config relating to things outside of Lazygit like how files are opened, copying to clipboard, etc
 	OS OSConfig `yaml:"os,omitempty"`
 	// If true, don't display introductory popups upon opening Lazygit.
@@ -38,6 +36,8 @@ type UserConfig struct {
 	NotARepository string `yaml:"notARepository" jsonschema:"enum=prompt,enum=create,enum=skip,enum=quit"`
 	// If true, display a confirmation when subprocess terminates. This allows you to view the output of the subprocess before returning to Lazygit.
 	PromptToReturnFromSubprocess bool `yaml:"promptToReturnFromSubprocess"`
+	// Keybindings
+	Keybinding KeybindingConfig `yaml:"keybinding"`
 }
 
 type RefresherConfig struct {
@@ -252,7 +252,7 @@ type PagingConfig struct {
 	// diff-so-fancy
 	// delta --dark --paging=never
 	// ydiff -p cat -s --wrap --width={{columnWidth}}
-	Pager PagerType `yaml:"pager" jsonschema:"minLength=1"`
+	Pager PagerType `yaml:"pager"`
 	// If true, Lazygit will use whatever pager is specified in `$GIT_PAGER`, `$PAGER`, or your *git config*. If the pager ends with something like ` | less` we will strip that part out, because less doesn't play nice with our rendering approach. If the custom pager uses less under the hood, that will also break rendering (hence the `--paging=never` flag for the `delta` pager).
 	UseConfig bool `yaml:"useConfig"`
 	// e.g. 'difft --color=always'
@@ -294,9 +294,9 @@ type LogConfig struct {
 
 type CommitPrefixConfig struct {
 	// pattern to match on. E.g. for 'feature/AB-123' to match on the AB-123 use "^\\w+\\/(\\w+-\\w+).*"
-	Pattern string `yaml:"pattern" jsonschema:"example=^\\w+\\/(\\w+-\\w+).*,minLength=1"`
+	Pattern string `yaml:"pattern" jsonschema:"example=^\\w+\\/(\\w+-\\w+).*"`
 	// Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use "[$1] "
-	Replace string `yaml:"replace" jsonschema:"example=[$1] ,minLength=1"`
+	Replace string `yaml:"replace" jsonschema:"example=[$1]"`
 }
 
 type UpdateConfig struct {
@@ -684,6 +684,7 @@ func GetDefaultConfig() *UserConfig {
 			CommandLogSize:            8,
 			SplitDiff:                 "auto",
 			SkipRewordInEditorWarning: false,
+			WindowSize:                "normal",
 			Border:                    "rounded",
 			AnimateExplosion:          true,
 			PortraitMode:              "auto",
@@ -735,8 +736,14 @@ func GetDefaultConfig() *UserConfig {
 			Method: "prompt",
 			Days:   14,
 		},
-		ConfirmOnQuit:        false,
-		QuitOnTopLevelReturn: false,
+		ConfirmOnQuit:                false,
+		QuitOnTopLevelReturn:         false,
+		OS:                           OSConfig{},
+		DisableStartupPopups:         false,
+		CustomCommands:               []CustomCommand(nil),
+		Services:                     map[string]string(nil),
+		NotARepository:               "prompt",
+		PromptToReturnFromSubprocess: true,
 		Keybinding: KeybindingConfig{
 			Universal: KeybindingUniversalConfig{
 				Quit:                         "q",
@@ -903,11 +910,5 @@ func GetDefaultConfig() *UserConfig {
 				CommitMenu: "<c-o>",
 			},
 		},
-		OS:                           OSConfig{},
-		DisableStartupPopups:         false,
-		CustomCommands:               []CustomCommand(nil),
-		Services:                     map[string]string(nil),
-		NotARepository:               "prompt",
-		PromptToReturnFromSubprocess: true,
 	}
 }

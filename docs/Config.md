@@ -29,268 +29,503 @@ to the top of your config file or via [Visual Studio Code settings.json config][
 
 ## Default
 
+<!-- START CONFIG YAML: AUTOMATICALLY GENERATED with `go generate ./..., DO NOT UPDATE MANUALLY -->
 ```yaml
+# Config relating to the Lazygit UI
 gui:
-  # stuff relating to the UI
-  windowSize: 'normal' # one of 'normal' | 'half' | 'full' default is 'normal'
-  scrollHeight: 2 # how many lines you scroll by
-  scrollPastBottom: true # enable scrolling past the bottom
-  scrollOffMargin: 2 # how many lines to keep before/after the cursor when it reaches the top/bottom of the view; see 'Scroll-off Margin' section below
-  scrollOffBehavior: 'margin' # one of 'margin' | 'jump'; see 'Scroll-off Margin' section below
-  sidePanelWidth: 0.3333 # number from 0 to 1
-  expandFocusedSidePanel: false
-  mainPanelSplitMode: 'flexible' # one of 'horizontal' | 'flexible' | 'vertical'
-  enlargedSideViewLocation: 'left' # one of 'left' | 'top'
-  language: 'auto' # one of 'auto' | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
-  timeFormat: '02 Jan 06' # https://pkg.go.dev/time#Time.Format
-  shortTimeFormat: '3:04PM'
+  # The number of lines you scroll by when scrolling the main window
+  scrollHeight: 2
+
+  # If true, allow scrolling past the bottom of the content in the main window
+  scrollPastBottom: true
+
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#scroll-off-margin
+  scrollOffMargin: 2
+
+  # One of: 'margin' (default) | 'jump'
+  scrollOffBehavior: margin
+
+  # If true, capture mouse events.
+  # When mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.
+  mouseEvents: true
+
+  # Fraction of the total screen width to use for the left side section. You may want to pick a small number (e.g. 0.2) if you're using a narrow screen, so that you can see more of the main section.
+  # Number from 0 to 1.0.
+  sidePanelWidth: 0.3333
+
+  # Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.
+  # Options are:
+  # - 'horizontal': split the window horizontally
+  # - 'vertical': split the window vertically
+  # - 'flexible': (default) split the window horizontally if the window is wide enough, otherwise split vertically
+  mainPanelSplitMode: flexible
+
+  # How the window is split when in half screen mode (i.e. after hitting '+' once).
+  # Possible values:
+  # - 'left': split the window horizontally (side panel on the left, main view on the right)
+  # - 'top': split the window vertically (side panel on top, main view below)
+  enlargedSideViewLocation: left
+
+  # One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
+  language: auto
+
+  # Format used when displaying time e.g. commit time.
+  # Uses Go's time format syntax: https://pkg.go.dev/time#Time.Format
+  timeFormat: 02 Jan 06
+
+  # Format used when displaying time if the time is less than 24 hours ago.
+  # Uses Go's time format syntax: https://pkg.go.dev/time#Time.Format
+  shortTimeFormat: 3:04PM
+
+  # Config relating to colors and styles.
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#color-attributes
   theme:
+    # Border color of focused window
     activeBorderColor:
       - green
       - bold
+
+    # Border color of non-focused windows
     inactiveBorderColor:
-      - white
+      - default
+
+    # Border color of focused window when searching in that window
     searchingActiveBorderColor:
       - cyan
       - bold
+
+    # Color of keybindings help text in the bottom line
     optionsTextColor:
       - blue
+
+    # Background color of selected line.
+    # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
     selectedLineBgColor:
-      - blue # set to `default` to have no background colour
-    cherryPickedCommitBgColor:
-      - cyan
+      - blue
+
+    # Foreground color of copied commit
     cherryPickedCommitFgColor:
       - blue
+
+    # Background color of copied commit
+    cherryPickedCommitBgColor:
+      - cyan
+
+    # Foreground color of marked base commit (for rebase)
+    markedBaseCommitFgColor:
+      - blue
+
+    # Background color of marked base commit (for rebase)
+    markedBaseCommitBgColor:
+      - yellow
+
+    # Color for file with unstaged changes
     unstagedChangesColor:
       - red
+
+    # Default text color
     defaultFgColor:
       - default
+
+  # Config relating to the commit length indicator
   commitLength:
+    # If true, show an indicator of commit message length
     show: true
-  mouseEvents: true
-  skipDiscardChangeWarning: false
-  skipStashWarning: false
-  showFileTree: true # for rendering changes files in a tree format
-  showListFooter: true # for seeing the '5 of 20' message in list panels
+
+  # If true, show the '5 of 20' footer at the bottom of list views
+  showListFooter: true
+
+  # If true, display the files in the file views as a tree. If false, display the files as a flat list.
+  # This can be toggled from within Lazygit with the '~' key, but that will not change the default.
+  showFileTree: true
+
+  # If true, show a random tip in the command log when Lazygit starts
   showRandomTip: true
-  showBranchCommitHash: false # show commit hashes alongside branch names
-  showBottomLine: true # for hiding the bottom information line (unless it has important information to tell you)
-  showPanelJumps: true # for showing the jump-to-panel keybindings as panel subtitles
+
+  # If true, show the command log
   showCommandLog: true
-  showIcons: false # deprecated: use nerdFontsVersion instead
-  nerdFontsVersion: "" # nerd fonts version to use ("2" or "3"); empty means don't show nerd font icons
-  showFileIcons: true # for hiding file icons in the file views
-  commitHashLength: 8 # length of commit hash in commits view. 0 shows '*' if NF icons aren't enabled
+
+  # If true, show the bottom line that contains keybinding info and useful buttons. If false, this line will be hidden except to display a loader for an in-progress action.
+  showBottomLine: true
+
+  # If true, show jump-to-window keybindings in window titles.
+  showPanelJumps: true
+
+  # Nerd fonts version to use.
+  # One of: '2' | '3' | empty string (default)
+  # If empty, do not show icons.
+  nerdFontsVersion: ""
+
+  # If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.
+  showFileIcons: true
+
+  # Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.
+  commitHashLength: 8
+
+  # Height of the command log view
   commandLogSize: 8
-  splitDiff: 'auto' # one of 'auto' | 'always'
-  skipRewordInEditorWarning: false # for skipping the confirmation before launching the reword editor
-  border: 'rounded' # one of 'single' | 'double' | 'rounded' | 'hidden'
-  animateExplosion: true # shows an explosion animation when nuking the working tree
-  portraitMode: 'auto' # one of 'auto' | 'never' | 'always'
-  filterMode: 'substring' # one of 'substring' | 'fuzzy'; see 'Filtering' section below
+
+  # Whether to split the main window when viewing file changes.
+  # One of: 'auto' | 'always'
+  # If 'auto', only split the main window when a file has both staged and unstaged changes
+  splitDiff: auto
+
+  # Default size for focused window. Window size can be changed from within Lazygit with '+' and '_' (but this won't change the default).
+  # One of: 'normal' (default) | 'half' | 'full'
+  windowSize: normal
+
+  # Window border style.
+  # One of 'rounded' (default) | 'single' | 'double' | 'hidden'
+  border: rounded
+
+  # If true, show a seriously epic explosion animation when nuking the working tree.
+  animateExplosion: true
+
+  # Whether to stack UI components on top of each other.
+  # One of 'auto' (default) | 'always' | 'never'
+  portraitMode: auto
+
+  # How things are filtered when typing '/'.
+  # One of 'substring' (default) | 'fuzzy'
+  filterMode: substring
+
+  # Config relating to the spinner.
   spinner:
-    frames: ['|', '/', '-', '\\']
-    rate: 50 # spinner rate in milliseconds
-  statusPanelView: 'dashboard' # one of 'dashboard' | 'allBranchesLog'
+    # The frames of the spinner animation.
+    frames:
+      - '|'
+      - /
+      - '-'
+      - \
+
+    # The "speed" of the spinner in milliseconds.
+    rate: 50
+
+  # Status panel view.
+  # One of 'dashboard' (default) | 'allBranchesLog'
+  statusPanelView: dashboard
+
+# Config relating to git
 git:
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
   paging:
+    # Value of the --color arg in the git diff command. Some pagers want this to be set to 'always' and some want it set to 'never'
     colorArg: always
-    useConfig: false
+
+    # e.g.
+    # diff-so-fancy
+    # delta --dark --paging=never
+    # ydiff -p cat -s --wrap --width={{columnWidth}}
+    pager: ""
+
+    # e.g. 'difft --color=always'
+    externalDiffCommand: ""
+
+  # Config relating to committing
   commit:
-    signOff: false
-    autoWrapCommitMessage: true # automatic WYSIWYG wrapping of the commit message as you type
-    autoWrapWidth: 72 # if autoWrapCommitMessage is true, the width to wrap to
+    # Automatic WYSIWYG wrapping of the commit message as you type
+    autoWrapCommitMessage: true
+
+    # If autoWrapCommitMessage is true, the width to wrap to
+    autoWrapWidth: 72
+
+  # Config relating to merging
   merging:
-    # only applicable to unix users
-    manualCommit: false
-    # extra args passed to `git merge`, e.g. --no-ff
-    args: ''
+    # Extra args passed to `git merge`, e.g. --no-ff
+    args: ""
+
+  # list of branches that are considered 'main' branches, used when displaying commits
+  mainBranches:
+    - master
+    - main
+
+  # Prefix to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks will be skipped when the commit message starts with 'WIP'
+  skipHookPrefix: WIP
+
+  # If true, periodically fetch from remote
+  autoFetch: true
+
+  # If true, periodically refresh files and submodules
+  autoRefresh: true
+
+  # If true, pass the --all arg to git fetch
+  fetchAll: true
+
+  # Command used when displaying the current branch git log in the main window
+  branchLogCmd: git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --
+
+  # Command used to display git log of all branches in the main window
+  allBranchesLogCmd: git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium
+
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
+  commitPrefix:
+    # pattern to match on. E.g. for 'feature/AB-123' to match on the AB-123 use "^\\w+\\/(\\w+-\\w+).*"
+    pattern: ""
+
+    # Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use "[$1] "
+    replace: ""
+
+  # Config for showing the log in the commits view
   log:
-    # one of date-order, author-date-order, topo-order or default.
-    # topo-order makes it easier to read the git log graph, but commits may not
-    # appear chronologically. See https://git-scm.com/docs/git-log#_commit_ordering
+    # One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'
+    # 'topo-order' makes it easier to read the git log graph, but commits may not
+    # appear chronologically. See https://git-scm.com/docs/
     #
     # Deprecated: Configure this with `Log menu -> Commit sort order` (<c-l> in the commits window by default).
-    order: 'topo-order'
-    # one of always, never, when-maximised
-    # this determines whether the git graph is rendered in the commits panel
+    order: topo-order
+
+    # This determines whether the git graph is rendered in the commits panel
+    # One of 'always' | 'never' | 'when-maximised'
     #
     # Deprecated: Configure this with `Log menu -> Show git graph` (<c-l> in the commits window by default).
-    showGraph: 'always'
-    # displays the whole git graph by default in the commits panel (equivalent to passing the `--all` argument to `git log`)
-    showWholeGraph: false
-  skipHookPrefix: WIP
-  # The main branches. We colour commits green if they belong to one of these branches,
-  # so that you can easily see which commits are unique to your branch (coloured in yellow)
-  mainBranches: [master, main]
-  autoFetch: true
-  autoRefresh: true
-  fetchAll: true # Pass --all flag when running git fetch. Set to false to fetch only origin (or the current branch's upstream remote if there is one)
-  branchLogCmd: 'git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --'
-  allBranchesLogCmd: 'git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium'
-  overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
-  disableForcePushing: false
-  parseEmoji: false
-  truncateCopiedCommitHashesTo: 12 # When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.
-os:
-  copyToClipboardCmd: '' # See 'Custom Command for Copying to Clipboard' section
-  editPreset: '' # see 'Configuring File Editing' section
-  edit: ''
-  editAtLine: ''
-  editAtLineAndWait: ''
-  open: ''
-  openLink: ''
-refresher:
-  refreshInterval: 10 # File/submodule refresh interval in seconds. Auto-refresh can be disabled via option 'git.autoRefresh'.
-  fetchInterval: 60 # Re-fetch interval in seconds. Auto-fetch can be disabled via option 'git.autoFetch'.
+    showGraph: always
+
+  # When copying commit hashes to the clipboard, truncate them to this
+  # length. Set to 40 to disable truncation.
+  truncateCopiedCommitHashesTo: 12
+
+# Periodic update checks
 update:
-  method: prompt # can be: prompt | background | never
-  days: 14 # how often an update is checked for
-confirmOnQuit: false
-# determines whether hitting 'esc' will quit the application when there is nothing to cancel/close
-quitOnTopLevelReturn: false
-disableStartupPopups: false
-notARepository: 'prompt' # one of: 'prompt' | 'create' | 'skip' | 'quit'
-promptToReturnFromSubprocess: true # display confirmation when subprocess terminates
+  # One of: 'prompt' (default) | 'background' | 'never'
+  method: prompt
+
+  # Period in days between update checks
+  days: 14
+
+# Background refreshes
+refresher:
+  # File/submodule refresh interval in seconds.
+  # Auto-refresh can be disabled via option 'git.autoRefresh'.
+  refreshInterval: 10
+
+  # Re-fetch interval in seconds.
+  # Auto-fetch can be disabled via option 'git.autoFetch'.
+  fetchInterval: 60
+
+# Config relating to things outside of Lazygit like how files are opened, copying to clipboard, etc
+os:
+  # Command for editing a file. Should contain "{{filename}}".
+  edit: ""
+
+  # Command for editing a file at a given line number. Should contain
+  # "{{filename}}", and may optionally contain "{{line}}".
+  editAtLine: ""
+
+  # Same as EditAtLine, except that the command needs to wait until the
+  # window is closed.
+  editAtLineAndWait: ""
+
+  # For opening a directory in an editor
+  openDirInEditor: ""
+
+  # A built-in preset that sets all of the above settings. Supported presets
+  # are defined in the getPreset function in editor_presets.go.
+  editPreset: ""
+
+  # Command for opening a file, as if the file is double-clicked. Should
+  # contain "{{filename}}", but doesn't support "{{line}}".
+  open: ""
+
+  # Command for opening a link. Should contain "{{link}}".
+  openLink: ""
+
+  # EditCommand is the command for editing a file.
+  # Deprecated: use Edit instead. Note that semantics are different:
+  # EditCommand is just the command itself, whereas Edit contains a
+  # "{{filename}}" variable.
+  editCommand: ""
+
+  # EditCommandTemplate is the command template for editing a file
+  # Deprecated: use EditAtLine instead.
+  editCommandTemplate: ""
+
+  # OpenCommand is the command for opening a file
+  # Deprecated: use Open instead.
+  openCommand: ""
+
+  # OpenLinkCommand is the command for opening a link
+  # Deprecated: use OpenLink instead.
+  openLinkCommand: ""
+
+  # CopyToClipboardCmd is the command for copying to clipboard.
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard
+  copyToClipboardCmd: ""
+
+# What to do when opening Lazygit outside of a git repo.
+# - 'prompt': (default) ask whether to initialize a new repo or open in the most recent repo
+# - 'create': initialize a new repo
+# - 'skip': open most recent repo
+# - 'quit': exit Lazygit
+notARepository: prompt
+
+# If true, display a confirmation when subprocess terminates. This allows you to view the output of the subprocess before returning to Lazygit.
+promptToReturnFromSubprocess: true
+
+# Keybindings
 keybinding:
   universal:
-    quit: 'q'
-    quit-alt1: '<c-c>' # alternative/alias of quit
-    return: '<esc>' # return to previous menu, will quit if there's nowhere to return
-    quitWithoutChangingDirectory: 'Q'
-    togglePanel: '<tab>' # goto the next panel
-    prevItem: '<up>' # go one line up
-    nextItem: '<down>' # go one line down
-    prevItem-alt: 'k' # go one line up
-    nextItem-alt: 'j' # go one line down
-    prevPage: ',' # go to next page in list
-    nextPage: '.' # go to previous page in list
-    gotoTop: '<' # go to top of list
-    gotoBottom: '>' # go to bottom of list
-    scrollLeft: 'H' # scroll left within list view
-    scrollRight: 'L' # scroll right within list view
-    prevBlock: '<left>' # goto the previous block / panel
-    nextBlock: '<right>' # goto the next block / panel
-    prevBlock-alt: 'h' # goto the previous block / panel
-    nextBlock-alt: 'l' # goto the next block / panel
-    jumpToBlock: ['1', '2', '3', '4', '5'] # goto the Nth block / panel
-    nextMatch: 'n'
-    prevMatch: 'N'
-    optionMenu: <disabled> # show help menu
-    optionMenu-alt1: '?' # show help menu
-    select: '<space>'
-    goInto: '<enter>'
-    openRecentRepos: '<c-r>'
-    confirm: '<enter>'
-    remove: 'd'
-    new: 'n'
-    edit: 'e'
-    openFile: 'o'
-    scrollUpMain: '<pgup>' # main panel scroll up
-    scrollDownMain: '<pgdown>' # main panel scroll down
-    scrollUpMain-alt1: 'K' # main panel scroll up
-    scrollDownMain-alt1: 'J' # main panel scroll down
-    scrollUpMain-alt2: '<c-u>' # main panel scroll up
-    scrollDownMain-alt2: '<c-d>' # main panel scroll down
+    quit: q
+    quit-alt1: <c-c>
+    return: <esc>
+    quitWithoutChangingDirectory: Q
+    togglePanel: <tab>
+    prevItem: <up>
+    nextItem: <down>
+    prevItem-alt: k
+    nextItem-alt: j
+    prevPage: ','
+    nextPage: .
+    scrollLeft: H
+    scrollRight: L
+    gotoTop: <
+    gotoBottom: '>'
+    toggleRangeSelect: v
+    rangeSelectDown: <s-down>
+    rangeSelectUp: <s-up>
+    prevBlock: <left>
+    nextBlock: <right>
+    prevBlock-alt: h
+    nextBlock-alt: l
+    nextBlock-alt2: <tab>
+    prevBlock-alt2: <backtab>
+    jumpToBlock:
+      - "1"
+      - "2"
+      - "3"
+      - "4"
+      - "5"
+    nextMatch: "n"
+    prevMatch: "N"
+    startSearch: /
+    optionMenu: <disabled>
+    optionMenu-alt1: '?'
+    select: <space>
+    goInto: <enter>
+    confirm: <enter>
+    confirmInEditor: <a-enter>
+    remove: d
+    new: "n"
+    edit: e
+    openFile: o
+    scrollUpMain: <pgup>
+    scrollDownMain: <pgdown>
+    scrollUpMain-alt1: K
+    scrollDownMain-alt1: J
+    scrollUpMain-alt2: <c-u>
+    scrollDownMain-alt2: <c-d>
     executeCustomCommand: ':'
-    createRebaseOptionsMenu: 'm'
-    pushFiles: 'P'
-    pullFiles: 'p'
-    refresh: 'R'
-    createPatchOptionsMenu: '<c-p>'
+    createRebaseOptionsMenu: m
+
+    # 'Files' appended for legacy reasons
+    pushFiles: P
+
+    # 'Files' appended for legacy reasons
+    pullFiles: p
+    refresh: R
+    createPatchOptionsMenu: <c-p>
     nextTab: ']'
     prevTab: '['
-    nextScreenMode: '+'
-    prevScreenMode: '_'
-    undo: 'z'
-    redo: '<c-z>'
-    filteringMenu: '<c-s>'
-    diffingMenu: 'W'
-    diffingMenu-alt: '<c-e>' # deprecated
-    copyToClipboard: '<c-o>'
-    submitEditorText: '<enter>'
+    nextScreenMode: +
+    prevScreenMode: _
+    undo: z
+    redo: <c-z>
+    filteringMenu: <c-s>
+    diffingMenu: W
+    diffingMenu-alt: <c-e>
+    copyToClipboard: <c-o>
+    openRecentRepos: <c-r>
+    submitEditorText: <enter>
     extrasMenu: '@'
-    toggleWhitespaceInDiffView: '<c-w>'
+    toggleWhitespaceInDiffView: <c-w>
     increaseContextInDiffView: '}'
     decreaseContextInDiffView: '{'
-    toggleRangeSelect: 'v'
-    rangeSelectUp: '<s-up>'
-    rangeSelectDown: '<s-down>'
+    openDiffTool: <c-t>
   status:
-    checkForUpdate: 'u'
-    recentRepos: '<enter>'
+    checkForUpdate: u
+    recentRepos: <enter>
+    allBranchesLogGraph: a
   files:
-    commitChanges: 'c'
-    commitChangesWithoutHook: 'w' # commit changes without pre-commit hook
-    amendLastCommit: 'A'
-    commitChangesWithEditor: 'C'
-    findBaseCommitForFixup: '<c-f>'
-    confirmDiscard: 'x'
-    ignoreFile: 'i'
-    refreshFiles: 'r'
-    stashAllChanges: 's'
-    viewStashOptions: 'S'
-    toggleStagedAll: 'a' # stage/unstage all
-    viewResetOptions: 'D'
-    fetch: 'f'
+    commitChanges: c
+    commitChangesWithoutHook: w
+    amendLastCommit: A
+    commitChangesWithEditor: C
+    findBaseCommitForFixup: <c-f>
+    confirmDiscard: x
+    ignoreFile: i
+    refreshFiles: r
+    stashAllChanges: s
+    viewStashOptions: S
+    toggleStagedAll: a
+    viewResetOptions: D
+    fetch: f
     toggleTreeView: '`'
-    openMergeTool: 'M'
-    openStatusFilter: '<c-b>'
+    openMergeTool: M
+    openStatusFilter: <c-b>
+    copyFileInfoToClipboard: "y"
   branches:
-    createPullRequest: 'o'
-    viewPullRequestOptions: 'O'
-    checkoutBranchByName: 'c'
-    forceCheckoutBranch: 'F'
-    rebaseBranch: 'r'
-    renameBranch: 'R'
-    mergeIntoCurrentBranch: 'M'
-    viewGitFlowOptions: 'i'
-    fastForward: 'f' # fast-forward this branch from its upstream
-    createTag: 'T'
-    pushTag: 'P'
-    setUpstream: 'u' # set as upstream of checked-out branch
-    fetchRemote: 'f'
+    createPullRequest: o
+    viewPullRequestOptions: O
+    copyPullRequestURL: <c-y>
+    checkoutBranchByName: c
+    forceCheckoutBranch: F
+    rebaseBranch: r
+    renameBranch: R
+    mergeIntoCurrentBranch: M
+    viewGitFlowOptions: i
+    fastForward: f
+    createTag: T
+    pushTag: P
+    setUpstream: u
+    fetchRemote: f
+    sortOrder: s
+  worktrees:
+    viewWorktreeOptions: w
   commits:
-    squashDown: 's'
-    renameCommit: 'r'
-    renameCommitWithEditor: 'R'
-    viewResetOptions: 'g'
-    markCommitAsFixup: 'f'
-    createFixupCommit: 'F' # create fixup commit for this commit
-    squashAboveCommits: 'S'
-    moveDownCommit: '<c-j>' # move commit down one
-    moveUpCommit: '<c-k>' # move commit up one
-    amendToCommit: 'A'
-    amendAttributeMenu: 'a'
-    pickCommit: 'p' # pick commit (when mid-rebase)
-    revertCommit: 't'
-    cherryPickCopy: 'C'
-    pasteCommits: 'V'
-    tagCommit: 'T'
-    checkoutCommit: '<space>'
-    resetCherryPick: '<c-R>'
-    copyCommitMessageToClipboard: '<c-y>'
-    openLogMenu: '<c-l>'
-    viewBisectOptions: 'b'
-  stash:
-    popStash: 'g'
-    renameStash: 'r'
-  commitFiles:
-    checkoutCommitFile: 'c'
-  main:
-    toggleSelectHunk: 'a'
-    pickBothHunks: 'b'
-  submodules:
-    init: 'i'
-    update: 'u'
-    bulkMenu: 'b'
-  commitMessage:
-    commitMenu: '<c-o>'
+    squashDown: s
+    renameCommit: r
+    renameCommitWithEditor: R
+    viewResetOptions: g
+    markCommitAsFixup: f
+    createFixupCommit: F
+    squashAboveCommits: S
+    moveDownCommit: <c-j>
+    moveUpCommit: <c-k>
+    amendToCommit: A
+    resetCommitAuthor: a
+    pickCommit: p
+    revertCommit: t
+    cherryPickCopy: C
+    pasteCommits: V
+    markCommitAsBaseForRebase: B
+    tagCommit: T
+    checkoutCommit: <space>
+    resetCherryPick: <c-R>
+    copyCommitAttributeToClipboard: "y"
+    openLogMenu: <c-l>
+    openInBrowser: o
+    viewBisectOptions: b
+    startInteractiveRebase: i
   amendAttribute:
-    addCoAuthor: 'c'
-    resetAuthor: 'a'
-    setAuthor: 'A'
+    resetAuthor: a
+    setAuthor: A
+    addCoAuthor: c
+  stash:
+    popStash: g
+    renameStash: r
+  commitFiles:
+    checkoutCommitFile: c
+  main:
+    toggleSelectHunk: a
+    pickBothHunks: b
+    editSelectHunk: E
+  submodules:
+    init: i
+    update: u
+    bulkMenu: b
+  commitMessage:
+    commitMenu: <c-o>
 ```
+<!-- END CONFIG YAML -->
 
 ## Platform Defaults
 
