@@ -65,6 +65,7 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		{viewPtr: &gui.Views.Menu, name: "menu"},
 		{viewPtr: &gui.Views.Suggestions, name: "suggestions"},
 		{viewPtr: &gui.Views.Confirmation, name: "confirmation"},
+		{viewPtr: &gui.Views.Textbox, name: "textbox"},
 		{viewPtr: &gui.Views.Tooltip, name: "tooltip"},
 
 		// this guy will cover everything else when it appears
@@ -173,6 +174,9 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.Confirmation.Visible = false
 	gui.Views.Confirmation.Editor = gocui.EditorFunc(gui.promptEditor)
+
+	gui.Views.Textbox.Visible = false
+	gui.Views.Textbox.Editor = gocui.EditorFunc(gui.textboxEditor)
 
 	gui.Views.Suggestions.Visible = false
 

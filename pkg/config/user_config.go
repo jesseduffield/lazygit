@@ -586,7 +586,7 @@ type CustomCommand struct {
 }
 
 type CustomCommandPrompt struct {
-	// One of: 'input' | 'menu' | 'confirm' | 'menuFromCommand'
+	// One of: 'input' | 'menu' | 'confirm' | 'menuFromCommand' | 'textbox'
 	Type string `yaml:"type"`
 	// Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command
 	Key string `yaml:"key"`

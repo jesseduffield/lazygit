@@ -94,7 +94,7 @@ These fields are applicable to all prompts.
 
 | _field_           | _description_                                                                                  | _required_ |
 | ------------      | -----------------------------------------------------------------------------------------------| ---------- |
-| type              | One of 'input', 'confirm', 'menu', 'menuFromCommand'                                                           | yes        |
+| type              | One of 'input', 'confirm', 'menu', 'menuFromCommand', 'textbox                                 | yes        |
 | title             | The title to display in the popup panel                                                        | no         |
 | key | Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command | yes |
 
@@ -283,6 +283,29 @@ Here's an example using a command but not specifying anything else: so each line
         title: 'File:'
         key: 'File'
         command: 'ls'
+```
+
+### Textbox
+
+| _field_           | _description_                                                                                  | _required_ |
+| ------------      | -----------------------------------------------------------------------------------------------| ---------- |
+| initialValue      | The initial value to appear in the text box               | no         |
+
+Here's an example using textbox prompt.
+
+```yml
+  - key : 'a'
+    description: 'Create new commit'
+    command: "git commit --message '{{.Form.Message}}' --message '{{.Form.Description}}'"
+    context: 'global'
+    prompts:
+      - type: 'input'
+        title: 'Commit Message'
+        key: 'Message'
+      - type: 'textbox'
+        title: 'Commit Description'
+        key: 'Description'
+        initialValue: 'resolves #'
 ```
 
 ## Placeholder values

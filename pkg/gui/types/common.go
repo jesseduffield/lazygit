@@ -141,6 +141,7 @@ type IPopupHandler interface {
 	Confirm(opts ConfirmOpts) error
 	// Shows a popup prompting the user for input.
 	Prompt(opts PromptOpts) error
+	Textbox(opts PromptOpts) error
 	WithWaitingStatus(message string, f func(gocui.Task) error) error
 	WithWaitingStatusSync(message string, f func() error) error
 	Menu(opts CreateMenuOptions) error
@@ -167,6 +168,7 @@ type CreateMenuOptions struct {
 type CreatePopupPanelOpts struct {
 	HasLoader           bool
 	Editable            bool
+	Multiline           bool
 	Title               string
 	Prompt              string
 	HandleConfirm       func() error

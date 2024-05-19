@@ -79,6 +79,14 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 					}
 					return self.inputPrompt(resolvedPrompt, wrappedF)
 				}
+			case "textbox":
+				f = func() error {
+					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
+					if err != nil {
+						return err
+					}
+					return self.textboxPrompt(resolvedPrompt, wrappedF)
+				}
 			case "menu":
 				f = func() error {
 					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
@@ -122,6 +130,16 @@ func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrap
 		Title:               prompt.Title,
 		InitialContent:      prompt.InitialValue,
 		FindSuggestionsFunc: findSuggestionsFn,
+		HandleConfirm: func(str string) error {
+			return wrappedF(str)
+		},
+	})
+}
+
+func (self *HandlerCreator) textboxPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
+	return self.c.Textbox(types.PromptOpts{
+		Title:          prompt.Title,
+		InitialContent: prompt.InitialValue,
 		HandleConfirm: func(str string) error {
 			return wrappedF(str)
 		},

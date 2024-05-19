@@ -56,6 +56,18 @@ func (self *Popup) inMenu() {
 	})
 }
 
+func (self *Popup) Textbox() *TextboxDriver {
+	self.inTextbox()
+
+	return &TextboxDriver{t: self.t}
+}
+
+func (self *Popup) inTextbox() {
+	self.t.assertWithRetries(func() (bool, string) {
+		return self.t.gui.CurrentContext().GetView().Name() == "textbox", "Expected popup textbox to be focused"
+	})
+}
+
 func (self *Popup) CommitMessagePanel() *CommitMessagePanelDriver {
 	self.inCommitMessagePanel()
 

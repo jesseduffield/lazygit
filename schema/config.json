@@ -1450,7 +1450,7 @@
               "properties": {
                 "type": {
                   "type": "string",
-                  "description": "One of: 'input' | 'menu' | 'confirm' | 'menuFromCommand'"
+                  "description": "One of: 'input' | 'menu' | 'confirm' | 'menuFromCommand' | 'textbox'"
                 },
                 "key": {
                   "type": "string",
