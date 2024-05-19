@@ -26,6 +26,16 @@ func NewFixupHelper(
 	}
 }
 
+// hunk describes the lines in a diff hunk. Used for two distinct cases:
+//
+// - when the hunk contains some deleted lines. Because we're diffing with a
+// context of 0, all deleted lines always come first, and then the added lines
+// (if any). In this case, numLines is only the number of deleted lines, we
+// ignore whether there are also some added lines in the hunk, as this is not
+// relevant for our algorithm.
+//
+// - when the hunk contains only added lines, in which case (obviously) numLines
+// is the number of added lines.
 type hunk struct {
 	filename     string
 	startLineIdx int
@@ -41,7 +51,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return errors.New(self.c.Tr.NoChangedFiles)
 	}
 
-	deletedLineHunks, hasHunksWithOnlyAddedLines := parseDiff(diff)
+	deletedLineHunks, addedLineHunks := parseDiff(diff)
 	if len(deletedLineHunks) == 0 {
 		return errors.New(self.c.Tr.NoDeletedLinesInDiff)
 	}
@@ -93,7 +103,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return self.c.PushContext(self.c.Contexts().LocalCommits)
 	}
 
-	if hasHunksWithOnlyAddedLines {
+	if len(addedLineHunks) > 0 {
 		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.FindBaseCommitForFixup,
 			Prompt: self.c.Tr.HunksWithOnlyAddedLinesWarning,
@@ -122,24 +132,33 @@ func (self *FixupHelper) getDiff() (string, bool, error) {
 	return diff, hasStagedChanges, err
 }
 
-func parseDiff(diff string) ([]*hunk, bool) {
+// Parse the diff output into hunks, and return two lists of hunks: the first
+// are ones that contain deleted lines, the second are ones that contain only
+// added lines.
+func parseDiff(diff string) ([]*hunk, []*hunk) {
 	lines := strings.Split(strings.TrimSuffix(diff, "\n"), "\n")
 
 	deletedLineHunks := []*hunk{}
-	hasHunksWithOnlyAddedLines := false
+	addedLineHunks := []*hunk{}
 
 	hunkHeaderRegexp := regexp.MustCompile(`@@ -(\d+)(?:,\d+)? \+\d+(?:,\d+)? @@`)
 
 	var filename string
 	var currentHunk *hunk
+	numDeletedLines := 0
+	numAddedLines := 0
 	finishHunk := func() {
 		if currentHunk != nil {
-			if currentHunk.numLines > 0 {
+			if numDeletedLines > 0 {
+				currentHunk.numLines = numDeletedLines
 				deletedLineHunks = append(deletedLineHunks, currentHunk)
-			} else {
-				hasHunksWithOnlyAddedLines = true
+			} else if numAddedLines > 0 {
+				currentHunk.numLines = numAddedLines
+				addedLineHunks = append(addedLineHunks, currentHunk)
 			}
 		}
+		numDeletedLines = 0
+		numAddedLines = 0
 	}
 	for _, line := range lines {
 		if strings.HasPrefix(line, "diff --git") {
@@ -155,12 +174,14 @@ func parseDiff(diff string) ([]*hunk, bool) {
 			startIdx := utils.MustConvertToInt(match[1])
 			currentHunk = &hunk{filename, startIdx, 0}
 		} else if currentHunk != nil && line[0] == '-' {
-			currentHunk.numLines++
+			numDeletedLines++
+		} else if currentHunk != nil && line[0] == '+' {
+			numAddedLines++
 		}
 	}
 	finishHunk()
 
-	return deletedLineHunks, hasHunksWithOnlyAddedLines
+	return deletedLineHunks, addedLineHunks
 }
 
 // returns the list of commit hashes that introduced the lines which have now been deleted
