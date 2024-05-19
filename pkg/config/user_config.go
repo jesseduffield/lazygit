@@ -19,8 +19,6 @@ type UserConfig struct {
 	ConfirmOnQuit bool `yaml:"confirmOnQuit"`
 	// If true, exit Lazygit when the user presses escape in a context where there is nothing to cancel/close
 	QuitOnTopLevelReturn bool `yaml:"quitOnTopLevelReturn"`
-	// Keybindings
-	Keybinding KeybindingConfig `yaml:"keybinding"`
 	// Config relating to things outside of Lazygit like how files are opened, copying to clipboard, etc
 	OS OSConfig `yaml:"os,omitempty"`
 	// If true, don't display introductory popups upon opening Lazygit.
@@ -38,6 +36,8 @@ type UserConfig struct {
 	NotARepository string `yaml:"notARepository" jsonschema:"enum=prompt,enum=create,enum=skip,enum=quit"`
 	// If true, display a confirmation when subprocess terminates. This allows you to view the output of the subprocess before returning to Lazygit.
 	PromptToReturnFromSubprocess bool `yaml:"promptToReturnFromSubprocess"`
+	// Keybindings
+	Keybinding KeybindingConfig `yaml:"keybinding"`
 }
 
 type RefresherConfig struct {
@@ -736,8 +736,14 @@ func GetDefaultConfig() *UserConfig {
 			Method: "prompt",
 			Days:   14,
 		},
-		ConfirmOnQuit:        false,
-		QuitOnTopLevelReturn: false,
+		ConfirmOnQuit:                false,
+		QuitOnTopLevelReturn:         false,
+		OS:                           OSConfig{},
+		DisableStartupPopups:         false,
+		CustomCommands:               []CustomCommand(nil),
+		Services:                     map[string]string(nil),
+		NotARepository:               "prompt",
+		PromptToReturnFromSubprocess: true,
 		Keybinding: KeybindingConfig{
 			Universal: KeybindingUniversalConfig{
 				Quit:                         "q",
@@ -904,11 +910,5 @@ func GetDefaultConfig() *UserConfig {
 				CommitMenu: "<c-o>",
 			},
 		},
-		OS:                           OSConfig{},
-		DisableStartupPopups:         false,
-		CustomCommands:               []CustomCommand(nil),
-		Services:                     map[string]string(nil),
-		NotARepository:               "prompt",
-		PromptToReturnFromSubprocess: true,
 	}
 }

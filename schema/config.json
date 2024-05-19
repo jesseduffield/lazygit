@@ -680,6 +680,291 @@
       "type": "boolean",
       "description": "If true, exit Lazygit when the user presses escape in a context where there is nothing to cancel/close"
     },
+    "os": {
+      "properties": {
+        "edit": {
+          "type": "string",
+          "description": "Command for editing a file. Should contain \"{{filename}}\"."
+        },
+        "editAtLine": {
+          "type": "string",
+          "description": "Command for editing a file at a given line number. Should contain\n\"{{filename}}\", and may optionally contain \"{{line}}\"."
+        },
+        "editAtLineAndWait": {
+          "type": "string",
+          "description": "Same as EditAtLine, except that the command needs to wait until the\nwindow is closed."
+        },
+        "editInTerminal": {
+          "type": "boolean",
+          "description": "Whether lazygit suspends until an edit process returns\nPointer to bool so that we can distinguish unset (nil) from false.\nWe're naming this `editInTerminal` for backwards compatibility"
+        },
+        "openDirInEditor": {
+          "type": "string",
+          "description": "For opening a directory in an editor"
+        },
+        "editPreset": {
+          "type": "string",
+          "description": "A built-in preset that sets all of the above settings. Supported presets\nare defined in the getPreset function in editor_presets.go.",
+          "examples": [
+            "vim",
+            "nvim",
+            "emacs",
+            "nano",
+            "vscode",
+            "sublime",
+            "kakoune",
+            "helix",
+            "xcode"
+          ]
+        },
+        "open": {
+          "type": "string",
+          "description": "Command for opening a file, as if the file is double-clicked. Should\ncontain \"{{filename}}\", but doesn't support \"{{line}}\"."
+        },
+        "openLink": {
+          "type": "string",
+          "description": "Command for opening a link. Should contain \"{{link}}\"."
+        },
+        "editCommand": {
+          "type": "string",
+          "description": "EditCommand is the command for editing a file.\nDeprecated: use Edit instead. Note that semantics are different:\nEditCommand is just the command itself, whereas Edit contains a\n\"{{filename}}\" variable."
+        },
+        "editCommandTemplate": {
+          "type": "string",
+          "description": "EditCommandTemplate is the command template for editing a file\nDeprecated: use EditAtLine instead."
+        },
+        "openCommand": {
+          "type": "string",
+          "description": "OpenCommand is the command for opening a file\nDeprecated: use Open instead."
+        },
+        "openLinkCommand": {
+          "type": "string",
+          "description": "OpenLinkCommand is the command for opening a link\nDeprecated: use OpenLink instead."
+        },
+        "copyToClipboardCmd": {
+          "type": "string",
+          "description": "CopyToClipboardCmd is the command for copying to clipboard.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config relating to things outside of Lazygit like how files are opened, copying to clipboard, etc"
+    },
+    "disableStartupPopups": {
+      "type": "boolean",
+      "description": "If true, don't display introductory popups upon opening Lazygit.\nLazygit sets this to true upon first runninng the program so that you don't see introductory popups every time you open the program."
+    },
+    "customCommands": {
+      "items": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The key to trigger the command. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md"
+          },
+          "context": {
+            "type": "string",
+            "enum": [
+              "status",
+              "files",
+              "worktrees",
+              "localBranches",
+              "remotes",
+              "remoteBranches",
+              "tags",
+              "commits",
+              "reflogCommits",
+              "subCommits",
+              "commitFiles",
+              "stash",
+              "global"
+            ],
+            "description": "The context in which to listen for the key"
+          },
+          "command": {
+            "type": "string",
+            "description": "The command to run (using Go template syntax for placeholder values)",
+            "examples": [
+              "git fetch {{.Form.Remote}} {{.Form.Branch}} \u0026\u0026 git checkout FETCH_HEAD"
+            ]
+          },
+          "subprocess": {
+            "type": "boolean",
+            "description": "If true, run the command in a subprocess (e.g. if the command requires user input)"
+          },
+          "prompts": {
+            "items": {
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "One of: 'input' | 'menu' | 'confirm' | 'menuFromCommand'"
+                },
+                "key": {
+                  "type": "string",
+                  "description": "Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The title to display in the popup panel"
+                },
+                "initialValue": {
+                  "type": "string",
+                  "description": "The initial value to appear in the text box.\nOnly for input prompts."
+                },
+                "suggestions": {
+                  "properties": {
+                    "preset": {
+                      "type": "string",
+                      "enum": [
+                        "authors",
+                        "branches",
+                        "files",
+                        "refs",
+                        "remotes",
+                        "remoteBranches",
+                        "tags"
+                      ],
+                      "description": "Uses built-in logic to obtain the suggestions. One of 'authors' | 'branches' | 'files' | 'refs' | 'remotes' | 'remoteBranches' | 'tags'"
+                    },
+                    "command": {
+                      "type": "string",
+                      "description": "Command to run such that each line in the output becomes a suggestion. Mutually exclusive with 'preset' field.",
+                      "examples": [
+                        "git fetch {{.Form.Remote}} {{.Form.Branch}} \u0026\u0026 git checkout FETCH_HEAD"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false,
+                  "type": "object",
+                  "description": "Shows suggestions as the input is entered\nOnly for input prompts."
+                },
+                "body": {
+                  "type": "string",
+                  "description": "The message of the confirmation prompt.\nOnly for confirm prompts.",
+                  "examples": [
+                    "Are you sure you want to push to the remote?"
+                  ]
+                },
+                "options": {
+                  "items": {
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "The first part of the label"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "The second part of the label"
+                      },
+                      "value": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "The value that will be used in the command",
+                        "examples": [
+                          "feature"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false,
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "description": "Menu options.\nOnly for menu prompts."
+                },
+                "command": {
+                  "type": "string",
+                  "description": "The command to run to generate menu options\nOnly for menuFromCommand prompts.",
+                  "examples": [
+                    "git fetch {{.Form.Remote}} {{.Form.Branch}} \u0026\u0026 git checkout FETCH_HEAD"
+                  ]
+                },
+                "filter": {
+                  "type": "string",
+                  "description": "The regexp to run specifying groups which are going to be kept from the command's output.\nOnly for menuFromCommand prompts.",
+                  "examples": [
+                    ".*{{.SelectedRemote.Name }}/(?P\u003cbranch\u003e.*)"
+                  ]
+                },
+                "valueFormat": {
+                  "type": "string",
+                  "description": "How to format matched groups from the filter to construct a menu item's value.\nOnly for menuFromCommand prompts.",
+                  "examples": [
+                    "{{ .branch }}"
+                  ]
+                },
+                "labelFormat": {
+                  "type": "string",
+                  "description": "Like valueFormat but for the labels. If `labelFormat` is not specified, `valueFormat` is shown instead.\nOnly for menuFromCommand prompts.",
+                  "examples": [
+                    "{{ .branch | green }}"
+                  ]
+                }
+              },
+              "additionalProperties": false,
+              "type": "object"
+            },
+            "type": "array",
+            "description": "A list of prompts that will request user input before running the final command"
+          },
+          "loadingText": {
+            "type": "string",
+            "description": "Text to display while waiting for command to finish",
+            "examples": [
+              "Loading..."
+            ]
+          },
+          "description": {
+            "type": "string",
+            "description": "Label for the custom command when displayed in the keybindings menu"
+          },
+          "stream": {
+            "type": "boolean",
+            "description": "If true, stream the command's output to the Command Log panel"
+          },
+          "showOutput": {
+            "type": "boolean",
+            "description": "If true, show the command's output in a popup within Lazygit"
+          },
+          "after": {
+            "properties": {
+              "checkForConflicts": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "description": "Actions to take after the command has completed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object"
+      },
+      "type": "array",
+      "uniqueItems": true,
+      "description": "User-configured commands that can be invoked from within Lazygit"
+    },
+    "services": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object",
+      "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-pull-request-urls"
+    },
+    "notARepository": {
+      "type": "string",
+      "enum": [
+        "prompt",
+        "create",
+        "skip",
+        "quit"
+      ],
+      "description": "What to do when opening Lazygit outside of a git repo.\n- 'prompt': (default) ask whether to initialize a new repo or open in the most recent repo\n- 'create': initialize a new repo\n- 'skip': open most recent repo\n- 'quit': exit Lazygit",
+      "default": "prompt"
+    },
+    "promptToReturnFromSubprocess": {
+      "type": "boolean",
+      "description": "If true, display a confirmation when subprocess terminates. This allows you to view the output of the subprocess before returning to Lazygit.",
+      "default": true
+    },
     "keybinding": {
       "properties": {
         "universal": {
@@ -1329,291 +1614,6 @@
       "additionalProperties": false,
       "type": "object",
       "description": "Keybindings"
-    },
-    "os": {
-      "properties": {
-        "edit": {
-          "type": "string",
-          "description": "Command for editing a file. Should contain \"{{filename}}\"."
-        },
-        "editAtLine": {
-          "type": "string",
-          "description": "Command for editing a file at a given line number. Should contain\n\"{{filename}}\", and may optionally contain \"{{line}}\"."
-        },
-        "editAtLineAndWait": {
-          "type": "string",
-          "description": "Same as EditAtLine, except that the command needs to wait until the\nwindow is closed."
-        },
-        "editInTerminal": {
-          "type": "boolean",
-          "description": "Whether lazygit suspends until an edit process returns\nPointer to bool so that we can distinguish unset (nil) from false.\nWe're naming this `editInTerminal` for backwards compatibility"
-        },
-        "openDirInEditor": {
-          "type": "string",
-          "description": "For opening a directory in an editor"
-        },
-        "editPreset": {
-          "type": "string",
-          "description": "A built-in preset that sets all of the above settings. Supported presets\nare defined in the getPreset function in editor_presets.go.",
-          "examples": [
-            "vim",
-            "nvim",
-            "emacs",
-            "nano",
-            "vscode",
-            "sublime",
-            "kakoune",
-            "helix",
-            "xcode"
-          ]
-        },
-        "open": {
-          "type": "string",
-          "description": "Command for opening a file, as if the file is double-clicked. Should\ncontain \"{{filename}}\", but doesn't support \"{{line}}\"."
-        },
-        "openLink": {
-          "type": "string",
-          "description": "Command for opening a link. Should contain \"{{link}}\"."
-        },
-        "editCommand": {
-          "type": "string",
-          "description": "EditCommand is the command for editing a file.\nDeprecated: use Edit instead. Note that semantics are different:\nEditCommand is just the command itself, whereas Edit contains a\n\"{{filename}}\" variable."
-        },
-        "editCommandTemplate": {
-          "type": "string",
-          "description": "EditCommandTemplate is the command template for editing a file\nDeprecated: use EditAtLine instead."
-        },
-        "openCommand": {
-          "type": "string",
-          "description": "OpenCommand is the command for opening a file\nDeprecated: use Open instead."
-        },
-        "openLinkCommand": {
-          "type": "string",
-          "description": "OpenLinkCommand is the command for opening a link\nDeprecated: use OpenLink instead."
-        },
-        "copyToClipboardCmd": {
-          "type": "string",
-          "description": "CopyToClipboardCmd is the command for copying to clipboard.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "description": "Config relating to things outside of Lazygit like how files are opened, copying to clipboard, etc"
-    },
-    "disableStartupPopups": {
-      "type": "boolean",
-      "description": "If true, don't display introductory popups upon opening Lazygit.\nLazygit sets this to true upon first runninng the program so that you don't see introductory popups every time you open the program."
-    },
-    "customCommands": {
-      "items": {
-        "properties": {
-          "key": {
-            "type": "string",
-            "description": "The key to trigger the command. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md"
-          },
-          "context": {
-            "type": "string",
-            "enum": [
-              "status",
-              "files",
-              "worktrees",
-              "localBranches",
-              "remotes",
-              "remoteBranches",
-              "tags",
-              "commits",
-              "reflogCommits",
-              "subCommits",
-              "commitFiles",
-              "stash",
-              "global"
-            ],
-            "description": "The context in which to listen for the key"
-          },
-          "command": {
-            "type": "string",
-            "description": "The command to run (using Go template syntax for placeholder values)",
-            "examples": [
-              "git fetch {{.Form.Remote}} {{.Form.Branch}} \u0026\u0026 git checkout FETCH_HEAD"
-            ]
-          },
-          "subprocess": {
-            "type": "boolean",
-            "description": "If true, run the command in a subprocess (e.g. if the command requires user input)"
-          },
-          "prompts": {
-            "items": {
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "description": "One of: 'input' | 'menu' | 'confirm' | 'menuFromCommand'"
-                },
-                "key": {
-                  "type": "string",
-                  "description": "Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command"
-                },
-                "title": {
-                  "type": "string",
-                  "description": "The title to display in the popup panel"
-                },
-                "initialValue": {
-                  "type": "string",
-                  "description": "The initial value to appear in the text box.\nOnly for input prompts."
-                },
-                "suggestions": {
-                  "properties": {
-                    "preset": {
-                      "type": "string",
-                      "enum": [
-                        "authors",
-                        "branches",
-                        "files",
-                        "refs",
-                        "remotes",
-                        "remoteBranches",
-                        "tags"
-                      ],
-                      "description": "Uses built-in logic to obtain the suggestions. One of 'authors' | 'branches' | 'files' | 'refs' | 'remotes' | 'remoteBranches' | 'tags'"
-                    },
-                    "command": {
-                      "type": "string",
-                      "description": "Command to run such that each line in the output becomes a suggestion. Mutually exclusive with 'preset' field.",
-                      "examples": [
-                        "git fetch {{.Form.Remote}} {{.Form.Branch}} \u0026\u0026 git checkout FETCH_HEAD"
-                      ]
-                    }
-                  },
-                  "additionalProperties": false,
-                  "type": "object",
-                  "description": "Shows suggestions as the input is entered\nOnly for input prompts."
-                },
-                "body": {
-                  "type": "string",
-                  "description": "The message of the confirmation prompt.\nOnly for confirm prompts.",
-                  "examples": [
-                    "Are you sure you want to push to the remote?"
-                  ]
-                },
-                "options": {
-                  "items": {
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "The first part of the label"
-                      },
-                      "description": {
-                        "type": "string",
-                        "description": "The second part of the label"
-                      },
-                      "value": {
-                        "type": "string",
-                        "minLength": 1,
-                        "description": "The value that will be used in the command",
-                        "examples": [
-                          "feature"
-                        ]
-                      }
-                    },
-                    "additionalProperties": false,
-                    "type": "object"
-                  },
-                  "type": "array",
-                  "description": "Menu options.\nOnly for menu prompts."
-                },
-                "command": {
-                  "type": "string",
-                  "description": "The command to run to generate menu options\nOnly for menuFromCommand prompts.",
-                  "examples": [
-                    "git fetch {{.Form.Remote}} {{.Form.Branch}} \u0026\u0026 git checkout FETCH_HEAD"
-                  ]
-                },
-                "filter": {
-                  "type": "string",
-                  "description": "The regexp to run specifying groups which are going to be kept from the command's output.\nOnly for menuFromCommand prompts.",
-                  "examples": [
-                    ".*{{.SelectedRemote.Name }}/(?P\u003cbranch\u003e.*)"
-                  ]
-                },
-                "valueFormat": {
-                  "type": "string",
-                  "description": "How to format matched groups from the filter to construct a menu item's value.\nOnly for menuFromCommand prompts.",
-                  "examples": [
-                    "{{ .branch }}"
-                  ]
-                },
-                "labelFormat": {
-                  "type": "string",
-                  "description": "Like valueFormat but for the labels. If `labelFormat` is not specified, `valueFormat` is shown instead.\nOnly for menuFromCommand prompts.",
-                  "examples": [
-                    "{{ .branch | green }}"
-                  ]
-                }
-              },
-              "additionalProperties": false,
-              "type": "object"
-            },
-            "type": "array",
-            "description": "A list of prompts that will request user input before running the final command"
-          },
-          "loadingText": {
-            "type": "string",
-            "description": "Text to display while waiting for command to finish",
-            "examples": [
-              "Loading..."
-            ]
-          },
-          "description": {
-            "type": "string",
-            "description": "Label for the custom command when displayed in the keybindings menu"
-          },
-          "stream": {
-            "type": "boolean",
-            "description": "If true, stream the command's output to the Command Log panel"
-          },
-          "showOutput": {
-            "type": "boolean",
-            "description": "If true, show the command's output in a popup within Lazygit"
-          },
-          "after": {
-            "properties": {
-              "checkForConflicts": {
-                "type": "boolean"
-              }
-            },
-            "additionalProperties": false,
-            "type": "object",
-            "description": "Actions to take after the command has completed"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object"
-      },
-      "type": "array",
-      "uniqueItems": true,
-      "description": "User-configured commands that can be invoked from within Lazygit"
-    },
-    "services": {
-      "additionalProperties": {
-        "type": "string"
-      },
-      "type": "object",
-      "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-pull-request-urls"
-    },
-    "notARepository": {
-      "type": "string",
-      "enum": [
-        "prompt",
-        "create",
-        "skip",
-        "quit"
-      ],
-      "description": "What to do when opening Lazygit outside of a git repo.\n- 'prompt': (default) ask whether to initialize a new repo or open in the most recent repo\n- 'create': initialize a new repo\n- 'skip': open most recent repo\n- 'quit': exit Lazygit",
-      "default": "prompt"
-    },
-    "promptToReturnFromSubprocess": {
-      "type": "boolean",
-      "description": "If true, display a confirmation when subprocess terminates. This allows you to view the output of the subprocess before returning to Lazygit.",
-      "default": true
     }
   },
   "additionalProperties": false,

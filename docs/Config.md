@@ -302,6 +302,65 @@ refresher:
   # Auto-fetch can be disabled via option 'git.autoFetch'.
   fetchInterval: 60
 
+# Config relating to things outside of Lazygit like how files are opened, copying to clipboard, etc
+os:
+  # Command for editing a file. Should contain "{{filename}}".
+  edit: ""
+
+  # Command for editing a file at a given line number. Should contain
+  # "{{filename}}", and may optionally contain "{{line}}".
+  editAtLine: ""
+
+  # Same as EditAtLine, except that the command needs to wait until the
+  # window is closed.
+  editAtLineAndWait: ""
+
+  # For opening a directory in an editor
+  openDirInEditor: ""
+
+  # A built-in preset that sets all of the above settings. Supported presets
+  # are defined in the getPreset function in editor_presets.go.
+  editPreset: ""
+
+  # Command for opening a file, as if the file is double-clicked. Should
+  # contain "{{filename}}", but doesn't support "{{line}}".
+  open: ""
+
+  # Command for opening a link. Should contain "{{link}}".
+  openLink: ""
+
+  # EditCommand is the command for editing a file.
+  # Deprecated: use Edit instead. Note that semantics are different:
+  # EditCommand is just the command itself, whereas Edit contains a
+  # "{{filename}}" variable.
+  editCommand: ""
+
+  # EditCommandTemplate is the command template for editing a file
+  # Deprecated: use EditAtLine instead.
+  editCommandTemplate: ""
+
+  # OpenCommand is the command for opening a file
+  # Deprecated: use Open instead.
+  openCommand: ""
+
+  # OpenLinkCommand is the command for opening a link
+  # Deprecated: use OpenLink instead.
+  openLinkCommand: ""
+
+  # CopyToClipboardCmd is the command for copying to clipboard.
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard
+  copyToClipboardCmd: ""
+
+# What to do when opening Lazygit outside of a git repo.
+# - 'prompt': (default) ask whether to initialize a new repo or open in the most recent repo
+# - 'create': initialize a new repo
+# - 'skip': open most recent repo
+# - 'quit': exit Lazygit
+notARepository: prompt
+
+# If true, display a confirmation when subprocess terminates. This allows you to view the output of the subprocess before returning to Lazygit.
+promptToReturnFromSubprocess: true
+
 # Keybindings
 keybinding:
   universal:
@@ -465,65 +524,6 @@ keybinding:
     bulkMenu: b
   commitMessage:
     commitMenu: <c-o>
-
-# Config relating to things outside of Lazygit like how files are opened, copying to clipboard, etc
-os:
-  # Command for editing a file. Should contain "{{filename}}".
-  edit: ""
-
-  # Command for editing a file at a given line number. Should contain
-  # "{{filename}}", and may optionally contain "{{line}}".
-  editAtLine: ""
-
-  # Same as EditAtLine, except that the command needs to wait until the
-  # window is closed.
-  editAtLineAndWait: ""
-
-  # For opening a directory in an editor
-  openDirInEditor: ""
-
-  # A built-in preset that sets all of the above settings. Supported presets
-  # are defined in the getPreset function in editor_presets.go.
-  editPreset: ""
-
-  # Command for opening a file, as if the file is double-clicked. Should
-  # contain "{{filename}}", but doesn't support "{{line}}".
-  open: ""
-
-  # Command for opening a link. Should contain "{{link}}".
-  openLink: ""
-
-  # EditCommand is the command for editing a file.
-  # Deprecated: use Edit instead. Note that semantics are different:
-  # EditCommand is just the command itself, whereas Edit contains a
-  # "{{filename}}" variable.
-  editCommand: ""
-
-  # EditCommandTemplate is the command template for editing a file
-  # Deprecated: use EditAtLine instead.
-  editCommandTemplate: ""
-
-  # OpenCommand is the command for opening a file
-  # Deprecated: use Open instead.
-  openCommand: ""
-
-  # OpenLinkCommand is the command for opening a link
-  # Deprecated: use OpenLink instead.
-  openLinkCommand: ""
-
-  # CopyToClipboardCmd is the command for copying to clipboard.
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard
-  copyToClipboardCmd: ""
-
-# What to do when opening Lazygit outside of a git repo.
-# - 'prompt': (default) ask whether to initialize a new repo or open in the most recent repo
-# - 'create': initialize a new repo
-# - 'skip': open most recent repo
-# - 'quit': exit Lazygit
-notARepository: prompt
-
-# If true, display a confirmation when subprocess terminates. This allows you to view the output of the subprocess before returning to Lazygit.
-promptToReturnFromSubprocess: true
 ```
 <!-- END CONFIG YAML -->
 
