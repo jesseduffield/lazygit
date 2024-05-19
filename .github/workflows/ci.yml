@@ -188,6 +188,7 @@ jobs:
   upload-coverage:
     # List all jobs that produce coverage files
     needs: [unit-tests, integration-tests]
+    if: github.event.repository.fork == false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
