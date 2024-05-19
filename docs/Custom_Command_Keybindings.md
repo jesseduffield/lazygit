@@ -59,6 +59,7 @@ For a given custom command, here are the allowed fields:
 | description | Label for the custom command when displayed in the keybindings menu | no |
 | stream | Whether you want to stream the command's output to the Command Log panel | no |
 | showOutput | Whether you want to show the command's output in a popup within Lazygit | no |
+| outputTitle | The title to display in the popup panel if showOutput is true. If left unset, the command will be used as the title. | no |
 | after | Actions to take after the command has completed | no |
 
 Here are the options for the `after` key:

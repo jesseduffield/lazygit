@@ -581,6 +581,8 @@ type CustomCommand struct {
 	Stream bool `yaml:"stream"`
 	// If true, show the command's output in a popup within Lazygit
 	ShowOutput bool `yaml:"showOutput"`
+	// The title to display in the popup panel if showOutput is true. If left unset, the command will be used as the title.
+	OutputTitle string `yaml:"outputTitle"`
 	// Actions to take after the command has completed
 	After CustomCommandAfterHook `yaml:"after"`
 }

@@ -924,6 +924,10 @@
             "type": "boolean",
             "description": "If true, show the command's output in a popup within Lazygit"
           },
+          "outputTitle": {
+            "type": "string",
+            "description": "The title to display in the popup panel if showOutput is true. If left unset, the command will be used as the title."
+          },
           "after": {
             "properties": {
               "checkForConflicts": {

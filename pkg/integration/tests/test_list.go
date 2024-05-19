@@ -113,6 +113,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.MenuFromCommandsOutput,
 	custom_commands.MultiplePrompts,
 	custom_commands.OmitFromHistory,
+	custom_commands.ShowOutputInPanel,
 	custom_commands.SuggestionsCommand,
 	custom_commands.SuggestionsPreset,
 	demo.AmendOldCommit,
