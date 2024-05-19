@@ -196,11 +196,11 @@ func BranchStatus(
 	}
 
 	result := ""
-	if branch.HasCommitsToPush() {
-		result = fmt.Sprintf("↑%s", branch.Pushables)
+	if branch.IsAheadForPull() {
+		result = fmt.Sprintf("↑%s", branch.AheadForPull)
 	}
-	if branch.HasCommitsToPull() {
-		result = fmt.Sprintf("%s↓%s", result, branch.Pullables)
+	if branch.IsBehindForPull() {
+		result = fmt.Sprintf("%s↓%s", result, branch.BehindForPull)
 	}
 
 	return result

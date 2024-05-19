@@ -134,7 +134,7 @@ func NewGitCommandAux(
 	worktreeCommands := git_commands.NewWorktreeCommands(gitCommon)
 	blameCommands := git_commands.NewBlameCommands(gitCommon)
 
-	branchLoader := git_commands.NewBranchLoader(cmn, cmd, branchCommands.CurrentBranchInfo, configCommands)
+	branchLoader := git_commands.NewBranchLoader(cmn, gitCommon, cmd, branchCommands.CurrentBranchInfo, configCommands)
 	commitFileLoader := git_commands.NewCommitFileLoader(cmn, cmd)
 	commitLoader := git_commands.NewCommitLoader(cmn, cmd, statusCommands.RebaseMode, gitCommon)
 	reflogCommitLoader := git_commands.NewReflogCommitLoader(cmn, cmd)

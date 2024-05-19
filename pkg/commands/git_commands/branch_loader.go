@@ -40,6 +40,7 @@ type BranchInfo struct {
 // BranchLoader returns a list of Branch objects for the current repo
 type BranchLoader struct {
 	*common.Common
+	*GitCommon
 	cmd                  oscommands.ICmdObjBuilder
 	getCurrentBranchInfo func() (BranchInfo, error)
 	config               BranchLoaderConfigCommands
@@ -47,12 +48,14 @@ type BranchLoader struct {
 
 func NewBranchLoader(
 	cmn *common.Common,
+	gitCommon *GitCommon,
 	cmd oscommands.ICmdObjBuilder,
 	getCurrentBranchInfo func() (BranchInfo, error),
 	config BranchLoaderConfigCommands,
 ) *BranchLoader {
 	return &BranchLoader{
 		Common:               cmn,
+		GitCommon:            gitCommon,
 		cmd:                  cmd,
 		getCurrentBranchInfo: getCurrentBranchInfo,
 		config:               config,
@@ -61,7 +64,7 @@ func NewBranchLoader(
 
 // Load the list of branches for the current repo
 func (self *BranchLoader) Load(reflogCommits []*models.Commit) ([]*models.Branch, error) {
-	branches := self.obtainBranches()
+	branches := self.obtainBranches(self.version.IsAtLeast(2, 22, 0))
 
 	if self.AppState.LocalBranchSortOrder == "recency" {
 		reflogBranches := self.obtainReflogBranches(reflogCommits)
@@ -124,7 +127,7 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit) ([]*models.Branch
 	return branches, nil
 }
 
-func (self *BranchLoader) obtainBranches() []*models.Branch {
+func (self *BranchLoader) obtainBranches(canUsePushTrack bool) []*models.Branch {
 	output, err := self.getRawBranches()
 	if err != nil {
 		panic(err)
@@ -147,7 +150,7 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 		}
 
 		storeCommitDateAsRecency := self.AppState.LocalBranchSortOrder != "recency"
-		return obtainBranch(split, storeCommitDateAsRecency), true
+		return obtainBranch(split, storeCommitDateAsRecency, canUsePushTrack), true
 	})
 }
 
@@ -183,23 +186,31 @@ var branchFields = []string{
 	"refname:short",
 	"upstream:short",
 	"upstream:track",
+	"push:track",
 	"subject",
 	"objectname",
 	"committerdate:unix",
 }
 
 // Obtain branch information from parsed line output of getRawBranches()
-func obtainBranch(split []string, storeCommitDateAsRecency bool) *models.Branch {
+func obtainBranch(split []string, storeCommitDateAsRecency bool, canUsePushTrack bool) *models.Branch {
 	headMarker := split[0]
 	fullName := split[1]
 	upstreamName := split[2]
 	track := split[3]
-	subject := split[4]
-	commitHash := split[5]
-	commitDate := split[6]
+	pushTrack := split[4]
+	subject := split[5]
+	commitHash := split[6]
+	commitDate := split[7]
 
 	name := strings.TrimPrefix(fullName, "heads/")
-	pushables, pullables, gone := parseUpstreamInfo(upstreamName, track)
+	aheadForPull, behindForPull, gone := parseUpstreamInfo(upstreamName, track)
+	var aheadForPush, behindForPush string
+	if canUsePushTrack {
+		aheadForPush, behindForPush, _ = parseUpstreamInfo(upstreamName, pushTrack)
+	} else {
+		aheadForPush, behindForPush = aheadForPull, behindForPull
+	}
 
 	recency := ""
 	if storeCommitDateAsRecency {
@@ -209,14 +220,16 @@ func obtainBranch(split []string, storeCommitDateAsRecency bool) *models.Branch 
 	}
 
 	return &models.Branch{
-		Name:         name,
-		Recency:      recency,
-		Pushables:    pushables,
-		Pullables:    pullables,
-		UpstreamGone: gone,
-		Head:         headMarker == "*",
-		Subject:      subject,
-		CommitHash:   commitHash,
+		Name:          name,
+		Recency:       recency,
+		AheadForPull:  aheadForPull,
+		BehindForPull: behindForPull,
+		AheadForPush:  aheadForPush,
+		BehindForPush: behindForPush,
+		UpstreamGone:  gone,
+		Head:          headMarker == "*",
+		Subject:       subject,
+		CommitHash:    commitHash,
 	}
 }
 
@@ -232,10 +245,10 @@ func parseUpstreamInfo(upstreamName string, track string) (string, string, bool)
 		return "?", "?", true
 	}
 
-	pushables := parseDifference(track, `ahead (\d+)`)
-	pullables := parseDifference(track, `behind (\d+)`)
+	ahead := parseDifference(track, `ahead (\d+)`)
+	behind := parseDifference(track, `behind (\d+)`)
 
-	return pushables, pullables, false
+	return ahead, behind, false
 }
 
 func parseDifference(track string, regexStr string) string {
