@@ -76,9 +76,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return fmt.Errorf("%s\n\n%s", message, subjects)
 	}
 
-	commit, index, ok := lo.FindIndexOf(self.c.Model().Commits, func(commit *models.Commit) bool {
-		return commit.Hash == hashes[0]
-	})
+	commit, index, ok := self.findCommit(hashes[0])
 	if !ok {
 		commits := self.c.Model().Commits
 		if commits[len(commits)-1].Status == models.StatusMerged {
@@ -220,4 +218,10 @@ func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) ([]string, 
 	}
 
 	return result.ToSlice(), errg.Wait()
+}
+
+func (self *FixupHelper) findCommit(hash string) (*models.Commit, int, bool) {
+	return lo.FindIndexOf(self.c.Model().Commits, func(commit *models.Commit) bool {
+		return commit.Hash == hash
+	})
 }
