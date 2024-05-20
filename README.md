@@ -13,11 +13,11 @@
 </a>
 <br>
 <hr>
-<a href="https://zenbu.au/">
+<a href="https://www.subble.com">
   <div>
-    <img src="https://zenbu-marketing-portal-media-storage.s3.amazonaws.com/images/black-name-logo.svg" width="230" alt="Zenbu">
+    <img src="https://zenbu-marketing-portal-media-storage.s3.amazonaws.com/images/subble-black-name-logo.svg" width="230" alt="Subble">
   </div>
-  <b>I (Jesse) co-founded Zenbu to save your company time and money by helping you manage its SaaS subscriptions. Check it out!</b>
+  <b>I (Jesse) co-founded Subble to save your company time and money by helping you manage its software subscriptions. Check it out!</b>
 </a>
 <br>
 
