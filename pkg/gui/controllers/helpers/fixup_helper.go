@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"sync"
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
+	"golang.org/x/sync/errgroup"
 )
 
 type FixupHelper struct {
@@ -56,7 +56,10 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return errors.New(self.c.Tr.NoDeletedLinesInDiff)
 	}
 
-	hashes := self.blameDeletedLines(deletedLineHunks)
+	hashes, err := self.blameDeletedLines(deletedLineHunks)
+	if err != nil {
+		return err
+	}
 
 	if len(hashes) == 0 {
 		// This should never happen
@@ -185,29 +188,29 @@ func parseDiff(diff string) ([]*hunk, []*hunk) {
 }
 
 // returns the list of commit hashes that introduced the lines which have now been deleted
-func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) []string {
-	var wg sync.WaitGroup
+func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) ([]string, error) {
+	errg := errgroup.Group{}
 	hashChan := make(chan string)
 
 	for _, h := range deletedLineHunks {
-		wg.Add(1)
-		go func(h *hunk) {
-			defer wg.Done()
-
+		errg.Go(func() error {
 			blameOutput, err := self.c.Git().Blame.BlameLineRange(h.filename, "HEAD", h.startLineIdx, h.numLines)
 			if err != nil {
-				self.c.Log.Errorf("Error blaming file '%s': %v", h.filename, err)
-				return
+				return err
 			}
 			blameLines := strings.Split(strings.TrimSuffix(blameOutput, "\n"), "\n")
 			for _, line := range blameLines {
 				hashChan <- strings.Split(line, " ")[0]
 			}
-		}(h)
+			return nil
+		})
 	}
 
 	go func() {
-		wg.Wait()
+		// We don't care about the error here, we'll check it later (in the
+		// return statement below). Here we only wait for all the goroutines to
+		// finish so that we can close the channel.
+		_ = errg.Wait()
 		close(hashChan)
 	}()
 
@@ -216,5 +219,5 @@ func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) []string {
 		result.Add(hash)
 	}
 
-	return result.ToSlice()
+	return result.ToSlice(), errg.Wait()
 }
