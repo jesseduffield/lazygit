@@ -217,7 +217,10 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 					_ = self.c.Helpers().Commits.PopCommitMessageContexts()
 					self.c.LogAction(self.c.Tr.Actions.MovePatchIntoNewCommit)
 					err := self.c.Git().Patch.PullPatchIntoNewCommit(self.c.Model().Commits, commitIndex, summary, description)
-					return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
+						return err
+					}
+					return self.c.PushContext(self.c.Contexts().LocalCommits)
 				})
 			},
 		},
