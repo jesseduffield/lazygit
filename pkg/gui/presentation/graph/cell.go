@@ -146,13 +146,13 @@ func (cell *Cell) setType(cellType cellType) *Cell {
 
 func getBoxDrawingChars(up, down, left, right bool) (string, string) {
 	if up && down && left && right {
-		return "│", "─"
+		return "│", "─" //nolint:goconst // string literal is better for readability for this case
 	} else if up && down && left && !right {
-		return "│", " "
+		return "│", " " //nolint:goconst // string literal is better for readability for this case
 	} else if up && down && !left && right {
-		return "│", "─"
+		return "│", "─" //nolint:goconst // string literal is better for readability for this case
 	} else if up && down && !left && !right {
-		return "│", " "
+		return "│", " " //nolint:goconst // string literal is better for readability for this case
 	} else if up && !down && left && right {
 		return "┴", "─"
 	} else if up && !down && left && !right {
