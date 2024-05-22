@@ -12,7 +12,7 @@ var Suggestions = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.
-			EmptyCommit("my commit message").
+			EmptyCommit("my commit message"). //nolint:goconst // Values for tests should not be commonized for changeability.
 			NewBranch("new-branch").
 			NewBranch("new-branch-2").
 			NewBranch("new-branch-3").

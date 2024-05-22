@@ -37,7 +37,7 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Files.CommitChanges)
 
-		commitMessage := "my commit message"
+		commitMessage := "my commit message" //nolint:goconst // Values for tests should not be commonized for changeability.
 
 		t.ExpectPopup().CommitMessagePanel().Type(commitMessage).Confirm()
 

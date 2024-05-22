@@ -20,7 +20,7 @@ var PreserveCommitMessage = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().CommitMessagePanel().
 			InitialText(Equals("")).
-			Type("my commit message").
+			Type("my commit message"). //nolint:goconst // Values for tests should not be commonized for changeability.
 			SwitchToDescription().
 			Type("first paragraph").
 			AddNewline().
@@ -33,7 +33,7 @@ var PreserveCommitMessage = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Files.CommitChanges)
 
 		t.ExpectPopup().CommitMessagePanel().
-			Content(Equals("my commit message")).
+			Content(Equals("my commit message")). //nolint:goconst // Values for tests should not be commonized for changeability.
 			SwitchToDescription().
 			Content(Equals("first paragraph\n\nsecond paragraph"))
 	},

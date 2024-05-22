@@ -25,11 +25,11 @@ var CommitWithGlobalPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 			PressPrimaryAction().
 			Press(keys.Files.CommitChanges)
 
-		t.ExpectPopup().CommitMessagePanel().
-			Title(Equals("Commit summary")).
-			InitialText(Equals("[TEST-001]: ")).
-			Type("my commit message").
-			Cancel()
+		t.ExpectPopup().CommitMessagePanel(). //nolint:goconst // Values for tests should not be commonized for changeability.
+							Title(Equals("Commit summary")).
+							InitialText(Equals("[TEST-001]: ")).
+							Type("my commit message").
+							Cancel()
 
 		t.Views().Files().
 			IsFocused().

@@ -15,7 +15,7 @@ var FetchPrune = NewIntegrationTest(NewIntegrationTestArgs{
 		// upon fetching.
 		shell.SetConfig("fetch.prune", "true")
 
-		shell.EmptyCommit("my commit message")
+		shell.EmptyCommit("my commit message") //nolint:goconst // Values for tests should not be commonized for changeability.
 
 		shell.NewBranch("branch_to_remove")
 		shell.Checkout("master")

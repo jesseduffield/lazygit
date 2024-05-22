@@ -25,7 +25,7 @@ var History = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().CommitMessagePanel().
 			InitialText(Equals("")).
-			Type("my commit message").
+			Type("my commit message"). //nolint:goconst // Values for tests should not be commonized for changeability.
 			SelectPreviousMessage().
 			Content(Equals("commit 3")).
 			SelectPreviousMessage().
@@ -39,9 +39,10 @@ var History = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextMessage().
 			Content(Equals("commit 3")).
 			SelectNextMessage().
-			Content(Equals("my commit message")).
+			Content(Equals("my commit message")). //nolint:goconst // Values for tests should not be commonized for changeability.
 			SelectNextMessage().
-			Content(Equals("my commit message")). // we hit the beginning
+			// we hit the beginning
+			Content(Equals("my commit message")). //nolint:goconst // Values for tests should not be commonized for changeability.
 			Type(" with extra added").
 			Confirm()
 

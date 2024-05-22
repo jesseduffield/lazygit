@@ -30,7 +30,7 @@ var HistoryComplex = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().CommitMessagePanel().
 			InitialText(Equals("")).
-			Type("my commit message").
+			Type("my commit message"). //nolint:goconst // Values for tests should not be commonized for changeability.
 			Cancel()
 
 		t.Views().Commits().
@@ -54,6 +54,6 @@ var HistoryComplex = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Files.CommitChanges)
 
 		t.ExpectPopup().CommitMessagePanel().
-			InitialText(Equals("my commit message"))
+			InitialText(Equals("my commit message")) //nolint:goconst // Values for tests should not be commonized for changeability.
 	},
 })
