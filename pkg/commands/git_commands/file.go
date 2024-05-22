@@ -11,6 +11,16 @@ import (
 	"github.com/samber/lo"
 )
 
+const (
+	editorNameEmacs            = "emacs"
+	editorNameNano             = "nano"
+	editorNameVi               = "vi"
+	editorNameVim              = "vim"
+	editorNameNvim             = "nvim"
+	editorNameSublimeText      = "subl"
+	editorNameVisualStudioCode = "code"
+)
+
 type FileCommands struct {
 	*GitCommon
 }
@@ -63,11 +73,11 @@ func (self *FileCommands) GetEditCmdStrLegacy(filename string, lineNumber int) (
 	editCmdTemplate := self.UserConfig.OS.EditCommandTemplate
 	if len(editCmdTemplate) == 0 {
 		switch editor {
-		case "emacs", "nano", "vi", "vim", "nvim":
+		case editorNameEmacs, editorNameNano, editorNameVi, editorNameVim, editorNameNvim:
 			editCmdTemplate = "{{editor}} +{{line}} -- {{filename}}"
-		case "subl":
+		case editorNameSublimeText:
 			editCmdTemplate = "{{editor}} -- {{filename}}:{{line}}"
-		case "code":
+		case editorNameVisualStudioCode:
 			editCmdTemplate = "{{editor}} -r --goto -- {{filename}}:{{line}}"
 		default:
 			editCmdTemplate = "{{editor}} -- {{filename}}"
