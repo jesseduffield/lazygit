@@ -14,10 +14,16 @@ linters:
     - exhaustive
     - makezero
     - nakedret
+    - copyloopvar
     # - goconst # TODO: enable and fix issues
   fast: false
 
 linters-settings:
+  copyloopvar:
+    # Check all assigning the loop variable to another variable.
+    # Default: false
+    # If true, an assignment like `a := x` will be detected as an error.
+    check-alias: true
   exhaustive:
     default-signifies-exhaustive: true
   staticcheck:
