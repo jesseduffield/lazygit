@@ -82,16 +82,21 @@ func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
 }
 
 func (self *RemoteLoader) getRemoteBranchesByRemoteName() (map[string][]*models.RemoteBranch, error) {
+	const (
+		sortOrderRefname = "refname"
+		sortOrderDate    = "-committerdate"
+	)
+
 	remoteBranchesByRemoteName := make(map[string][]*models.RemoteBranch)
 
 	var sortOrder string
 	switch strings.ToLower(self.AppState.RemoteBranchSortOrder) {
 	case "alphabetical":
-		sortOrder = "refname"
+		sortOrder = sortOrderRefname
 	case "date":
-		sortOrder = "-committerdate"
+		sortOrder = sortOrderDate
 	default:
-		sortOrder = "refname"
+		sortOrder = sortOrderRefname
 	}
 
 	cmdArgs := NewGitCmd("for-each-ref").

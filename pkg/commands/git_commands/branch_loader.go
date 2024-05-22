@@ -155,6 +155,11 @@ func (self *BranchLoader) obtainBranches(canUsePushTrack bool) []*models.Branch 
 }
 
 func (self *BranchLoader) getRawBranches() (string, error) {
+	const (
+		sortOrderRefname = "refname"
+		sortOrderDate    = "-committerdate"
+	)
+
 	format := strings.Join(
 		lo.Map(branchFields, func(thing string, _ int) string {
 			return "%(" + thing + ")"
@@ -165,11 +170,11 @@ func (self *BranchLoader) getRawBranches() (string, error) {
 	var sortOrder string
 	switch strings.ToLower(self.AppState.LocalBranchSortOrder) {
 	case "recency", "date":
-		sortOrder = "-committerdate"
+		sortOrder = sortOrderDate
 	case "alphabetical":
-		sortOrder = "refname"
+		sortOrder = sortOrderRefname
 	default:
-		sortOrder = "refname"
+		sortOrder = sortOrderRefname
 	}
 
 	cmdArgs := NewGitCmd("for-each-ref").
