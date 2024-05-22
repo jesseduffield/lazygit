@@ -5,13 +5,15 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
+const configAppStateGitLogShowGraphNever = "never"
+
 var DontShowBranchHeadsForTodoItems = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Check that branch heads are shown for normal commits during interactive rebase, but not for todo items",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	GitVersion:   AtLeast("2.38.0"),
 	SetupConfig: func(config *config.AppConfig) {
-		config.AppState.GitLogShowGraph = "never"
+		config.AppState.GitLogShowGraph = configAppStateGitLogShowGraphNever
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.

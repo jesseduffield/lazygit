@@ -12,7 +12,7 @@ var QuickStartKeepSelectionRange = NewIntegrationTest(NewIntegrationTestArgs{
 	GitVersion:   AtLeast("2.38.0"),
 	SetupConfig: func(config *config.AppConfig) {
 		config.GetUserConfig().Git.MainBranches = []string{"master"}
-		config.AppState.GitLogShowGraph = "never"
+		config.AppState.GitLogShowGraph = configAppStateGitLogShowGraphNever
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.
