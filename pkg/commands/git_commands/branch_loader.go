@@ -7,10 +7,11 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/go-git/v5/config"
+	ggconfig "github.com/jesseduffield/go-git/v5/config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
@@ -18,8 +19,7 @@ import (
 
 // context:
 // we want to only show 'safe' branches (ones that haven't e.g. been deleted)
-// which `git branch -a` gives us, but we also want the recency data that
-// git reflog gives us.
+// which `git branch -a` gives us, but we also want the recency data that git reflog gives us.
 // So we get the HEAD, then append get the reflog branches that intersect with
 // our safe branches, then add the remaining safe branches, ensuring uniqueness
 // along the way
@@ -28,7 +28,7 @@ import (
 // can just pull them out of here and put them there and then call them from in here
 
 type BranchLoaderConfigCommands interface {
-	Branches() (map[string]*config.Branch, error)
+	Branches() (map[string]*ggconfig.Branch, error)
 }
 
 type BranchInfo struct {
@@ -66,7 +66,7 @@ func NewBranchLoader(
 func (self *BranchLoader) Load(reflogCommits []*models.Commit) ([]*models.Branch, error) {
 	branches := self.obtainBranches(self.version.IsAtLeast(2, 22, 0))
 
-	if self.AppState.LocalBranchSortOrder == "recency" {
+	if self.AppState.LocalBranchSortOrder == config.LocalBranchSortOrderRecency {
 		reflogBranches := self.obtainReflogBranches(reflogCommits)
 		// loop through reflog branches. If there is a match, merge them, then remove it from the branches and keep it in the reflog branches
 		branchesWithRecency := make([]*models.Branch, 0)
@@ -149,7 +149,7 @@ func (self *BranchLoader) obtainBranches(canUsePushTrack bool) []*models.Branch 
 			return nil, false
 		}
 
-		storeCommitDateAsRecency := self.AppState.LocalBranchSortOrder != "recency"
+		storeCommitDateAsRecency := self.AppState.LocalBranchSortOrder != config.LocalBranchSortOrderRecency
 		return obtainBranch(split, storeCommitDateAsRecency, canUsePushTrack), true
 	})
 }
@@ -169,7 +169,7 @@ func (self *BranchLoader) getRawBranches() (string, error) {
 
 	var sortOrder string
 	switch strings.ToLower(self.AppState.LocalBranchSortOrder) {
-	case "recency", "date":
+	case config.LocalBranchSortOrderRecency, config.LocalBranchSortOrderDate:
 		sortOrder = sortOrderDate
 	case "alphabetical":
 		sortOrder = sortOrderRefname

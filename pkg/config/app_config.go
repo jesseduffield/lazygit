@@ -357,6 +357,11 @@ func loadAppState() (*AppState, error) {
 	return appState, nil
 }
 
+const (
+	LocalBranchSortOrderRecency = "recency"
+	LocalBranchSortOrderDate    = "date"
+)
+
 // AppState stores data between runs of the app like when the last update check
 // was performed and which other repos have been checked out
 type AppState struct {
