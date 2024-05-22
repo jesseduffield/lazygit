@@ -12,6 +12,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+const appStateRebasing = "Rebasing /"
+
 // The best way to add test cases here is to set your args and then get the
 // test to fail and copy+paste the output into the test case's expected string.
 // TODO: add more test cases
@@ -205,7 +207,7 @@ func TestGetWindowDimensions(t *testing.T) {
 		{
 			name: "app status present",
 			mutateArgs: func(args *WindowArrangementArgs) {
-				args.AppStatus = "Rebasing /"
+				args.AppStatus = appStateRebasing
 				args.Height = 6 // small height cos we only care about the bottom line
 			},
 			// We expect single-character spacers between the windows of the bottom line
@@ -248,7 +250,7 @@ func TestGetWindowDimensions(t *testing.T) {
 				args.Height = 6                            // small height cos we only care about the bottom line
 				args.UserConfig.Gui.ShowBottomLine = false // this hides the options window
 				args.IsAnyModeActive = false
-				args.AppStatus = "Rebasing /"
+				args.AppStatus = appStateRebasing
 			},
 			// We expect the app status window to take up all the available space
 			expected: `
@@ -266,7 +268,7 @@ func TestGetWindowDimensions(t *testing.T) {
 				args.Height = 6                            // small height cos we only care about the bottom line
 				args.UserConfig.Gui.ShowBottomLine = false // this hides the options window
 				args.IsAnyModeActive = true
-				args.AppStatus = "Rebasing /"
+				args.AppStatus = appStateRebasing
 			},
 			expected: `
 			<status─────────────────>╭main────────────────────────────────────────────╮
@@ -287,7 +289,7 @@ func TestGetWindowDimensions(t *testing.T) {
 				args.Width = 55                            // smaller width so that not all bottom line views fit
 				args.UserConfig.Gui.ShowBottomLine = false // this hides the options window
 				args.IsAnyModeActive = true
-				args.AppStatus = "Rebasing /"
+				args.AppStatus = appStateRebasing
 				args.InformationStr = "Showing output for: git diff deadbeef fa1afe1 -- (Reset)"
 			},
 			expected: `
