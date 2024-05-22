@@ -238,8 +238,8 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.ResetCommitAuthor),
-			Handler:           self.withItem(self.amendAttribute),
-			GetDisabledReason: self.require(self.singleItemSelected(self.canAmend)),
+			Handler:           self.withItemsRange(self.amendAttribute),
+			GetDisabledReason: self.require(self.itemRangeSelected(self.canAmendRange)),
 			Description:       self.c.Tr.AmendCommitAttribute,
 			Tooltip:           self.c.Tr.AmendCommitAttributeTooltip,
 			OpensMenu:         true,
@@ -371,7 +371,7 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepath string) error {
-	if self.isHeadCommit() {
+	if self.isSelectedHeadCommit() {
 		return self.c.RunSubprocessAndRefresh(
 			self.c.Git().Commit.RewordLastCommitInEditorWithMessageFileCmdObj(filepath))
 	}
@@ -408,7 +408,7 @@ func (self *LocalCommitsController) handleReword(summary string, description str
 func (self *LocalCommitsController) doRewordEditor() error {
 	self.c.LogAction(self.c.Tr.Actions.RewordCommit)
 
-	if self.isHeadCommit() {
+	if self.isSelectedHeadCommit() {
 		return self.c.RunSubprocessAndRefresh(self.c.Git().Commit.RewordLastCommitInEditorCmdObj())
 	}
 
@@ -607,7 +607,7 @@ func (self *LocalCommitsController) rewordEnabled(commit *models.Commit) *types.
 
 	// If we are in a rebase, the only action that is allowed for
 	// non-todo commits is rewording the current head commit
-	if self.isRebasing() && !self.isHeadCommit() {
+	if self.isRebasing() && !self.isSelectedHeadCommit() {
 		return &types.DisabledReason{Text: self.c.Tr.AlreadyRebasing}
 	}
 
@@ -665,7 +665,7 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 }
 
 func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
-	if self.isHeadCommit() {
+	if self.isSelectedHeadCommit() {
 		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.AmendCommitTitle,
 			Prompt: self.c.Tr.AmendCommitPrompt,
@@ -695,34 +695,39 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 	})
 }
 
-func (self *LocalCommitsController) canAmend(commit *models.Commit) *types.DisabledReason {
-	if !self.isHeadCommit() && self.isRebasing() {
+func (self *LocalCommitsController) canAmendRange(commits []*models.Commit, start, end int) *types.DisabledReason {
+	if (start != end || !self.isHeadCommit(start)) && self.isRebasing() {
 		return &types.DisabledReason{Text: self.c.Tr.AlreadyRebasing}
 	}
 
 	return nil
 }
 
-func (self *LocalCommitsController) amendAttribute(commit *models.Commit) error {
+func (self *LocalCommitsController) canAmend(_ *models.Commit) *types.DisabledReason {
+	idx := self.context().GetSelectedLineIdx()
+	return self.canAmendRange(self.c.Model().Commits, idx, idx)
+}
+
+func (self *LocalCommitsController) amendAttribute(commits []*models.Commit, start, end int) error {
 	opts := self.c.KeybindingsOpts()
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: "Amend commit attribute",
 		Items: []*types.MenuItem{
 			{
 				Label:   self.c.Tr.ResetAuthor,
-				OnPress: self.resetAuthor,
+				OnPress: func() error { return self.resetAuthor(start, end) },
 				Key:     opts.GetKey(opts.Config.AmendAttribute.ResetAuthor),
 				Tooltip: self.c.Tr.ResetAuthorTooltip,
 			},
 			{
 				Label:   self.c.Tr.SetAuthor,
-				OnPress: self.setAuthor,
+				OnPress: func() error { return self.setAuthor(start, end) },
 				Key:     opts.GetKey(opts.Config.AmendAttribute.SetAuthor),
 				Tooltip: self.c.Tr.SetAuthorTooltip,
 			},
 			{
 				Label:   self.c.Tr.AddCoAuthor,
-				OnPress: self.addCoAuthor,
+				OnPress: func() error { return self.addCoAuthor(start, end) },
 				Key:     opts.GetKey(opts.Config.AmendAttribute.AddCoAuthor),
 				Tooltip: self.c.Tr.AddCoAuthorTooltip,
 			},
@@ -730,10 +735,10 @@ func (self *LocalCommitsController) amendAttribute(commit *models.Commit) error 
 	})
 }
 
-func (self *LocalCommitsController) resetAuthor() error {
+func (self *LocalCommitsController) resetAuthor(start, end int) error {
 	return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.ResetCommitAuthor)
-		if err := self.c.Git().Rebase.ResetCommitAuthor(self.c.Model().Commits, self.context().GetSelectedLineIdx()); err != nil {
+		if err := self.c.Git().Rebase.ResetCommitAuthor(self.c.Model().Commits, start, end); err != nil {
 			return err
 		}
 
@@ -741,14 +746,14 @@ func (self *LocalCommitsController) resetAuthor() error {
 	})
 }
 
-func (self *LocalCommitsController) setAuthor() error {
+func (self *LocalCommitsController) setAuthor(start, end int) error {
 	return self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.SetAuthorPromptTitle,
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 		HandleConfirm: func(value string) error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SetCommitAuthor)
-				if err := self.c.Git().Rebase.SetCommitAuthor(self.c.Model().Commits, self.context().GetSelectedLineIdx(), value); err != nil {
+				if err := self.c.Git().Rebase.SetCommitAuthor(self.c.Model().Commits, start, end, value); err != nil {
 					return err
 				}
 
@@ -758,14 +763,14 @@ func (self *LocalCommitsController) setAuthor() error {
 	})
 }
 
-func (self *LocalCommitsController) addCoAuthor() error {
+func (self *LocalCommitsController) addCoAuthor(start, end int) error {
 	return self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.AddCoAuthorPromptTitle,
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 		HandleConfirm: func(value string) error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.AddCommitCoAuthor)
-				if err := self.c.Git().Rebase.AddCommitCoAuthor(self.c.Model().Commits, self.context().GetSelectedLineIdx(), value); err != nil {
+				if err := self.c.Git().Rebase.AddCommitCoAuthor(self.c.Model().Commits, start, end, value); err != nil {
 					return err
 				}
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
@@ -1188,8 +1193,12 @@ func (self *LocalCommitsController) markAsBaseCommit(commit *models.Commit) erro
 	return self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
 }
 
-func (self *LocalCommitsController) isHeadCommit() bool {
-	return models.IsHeadCommit(self.c.Model().Commits, self.context().GetSelectedLineIdx())
+func (self *LocalCommitsController) isHeadCommit(idx int) bool {
+	return models.IsHeadCommit(self.c.Model().Commits, idx)
+}
+
+func (self *LocalCommitsController) isSelectedHeadCommit() bool {
+	return self.isHeadCommit(self.context().GetSelectedLineIdx())
 }
 
 func (self *LocalCommitsController) notMidRebase(message string) func() *types.DisabledReason {
