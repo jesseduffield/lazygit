@@ -14,7 +14,7 @@ linters:
     - exhaustive
     - makezero
     - nakedret
-    # - goconst # TODO: enable and fix issues
+    - goconst
   fast: false
 
 linters-settings:
