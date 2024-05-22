@@ -5,6 +5,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
+const configAppStateGitLogShowGraphNever = "never"
+
 var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Start a git bisect to find a bad commit",
 	ExtraCmdArgs: []string{},
@@ -15,7 +17,7 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateNCommits(10)
 	},
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.AppState.GitLogShowGraph = "never"
+		cfg.AppState.GitLogShowGraph = configAppStateGitLogShowGraphNever
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		markCommitAsBad := func() {
