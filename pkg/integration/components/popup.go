@@ -1,5 +1,7 @@
 package components
 
+const viewNameConfirmation = "confirmation"
+
 type Popup struct {
 	t *TestDriver
 }
@@ -13,7 +15,7 @@ func (self *Popup) Confirmation() *ConfirmationDriver {
 func (self *Popup) inConfirm() {
 	self.t.assertWithRetries(func() (bool, string) {
 		currentView := self.t.gui.CurrentContext().GetView()
-		return currentView.Name() == "confirmation" && !currentView.Editable, "Expected confirmation popup to be focused"
+		return currentView.Name() == viewNameConfirmation && !currentView.Editable, "Expected confirmation popup to be focused"
 	})
 }
 
@@ -26,7 +28,7 @@ func (self *Popup) Prompt() *PromptDriver {
 func (self *Popup) inPrompt() {
 	self.t.assertWithRetries(func() (bool, string) {
 		currentView := self.t.gui.CurrentContext().GetView()
-		return currentView.Name() == "confirmation" && currentView.Editable, "Expected prompt popup to be focused"
+		return currentView.Name() == viewNameConfirmation && currentView.Editable, "Expected prompt popup to be focused"
 	})
 }
 
@@ -40,7 +42,7 @@ func (self *Popup) inAlert() {
 	// basically the same thing as a confirmation popup with the current implementation
 	self.t.assertWithRetries(func() (bool, string) {
 		currentView := self.t.gui.CurrentContext().GetView()
-		return currentView.Name() == "confirmation" && !currentView.Editable, "Expected alert popup to be focused"
+		return currentView.Name() == viewNameConfirmation && !currentView.Editable, "Expected alert popup to be focused"
 	})
 }
 
