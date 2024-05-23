@@ -32,7 +32,7 @@ func TestOSCommandRun(t *testing.T) {
 func TestOSCommandQuote(t *testing.T) {
 	osCommand := NewDummyOSCommand()
 
-	osCommand.Platform.OS = "linux"
+	osCommand.Platform.OS = osLinux
 
 	actual := osCommand.Quote("hello `test`")
 
@@ -45,7 +45,7 @@ func TestOSCommandQuote(t *testing.T) {
 func TestOSCommandQuoteSingleQuote(t *testing.T) {
 	osCommand := NewDummyOSCommand()
 
-	osCommand.Platform.OS = "linux"
+	osCommand.Platform.OS = osLinux
 
 	actual := osCommand.Quote("hello 'test'")
 
@@ -58,7 +58,7 @@ func TestOSCommandQuoteSingleQuote(t *testing.T) {
 func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 	osCommand := NewDummyOSCommand()
 
-	osCommand.Platform.OS = "linux"
+	osCommand.Platform.OS = osLinux
 
 	actual := osCommand.Quote(`hello "test"`)
 
@@ -71,7 +71,7 @@ func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 func TestOSCommandQuoteWindows(t *testing.T) {
 	osCommand := NewDummyOSCommand()
 
-	osCommand.Platform.OS = "windows"
+	osCommand.Platform.OS = osWindows
 
 	actual := osCommand.Quote(`hello "test" 'test2'`)
 

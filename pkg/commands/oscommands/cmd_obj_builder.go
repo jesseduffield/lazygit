@@ -45,7 +45,7 @@ func (self *CmdObjBuilder) NewWithEnviron(args []string, env []string) ICmdObj {
 func (self *CmdObjBuilder) NewShell(commandStr string) ICmdObj {
 	var quotedCommand string
 	// Windows does not seem to like quotes around the command
-	if self.platform.OS == "windows" {
+	if self.platform.OS == osWindows {
 		quotedCommand = strings.NewReplacer(
 			"^", "^^",
 			"&", "^&",
@@ -77,7 +77,7 @@ const CHARS_REQUIRING_QUOTES = "\"\\$` "
 // If you update this method, be sure to update CHARS_REQUIRING_QUOTES
 func (self *CmdObjBuilder) Quote(message string) string {
 	var quote string
-	if self.platform.OS == "windows" {
+	if self.platform.OS == osWindows {
 		quote = `\"`
 		message = strings.NewReplacer(
 			`"`, `"'"'"`,

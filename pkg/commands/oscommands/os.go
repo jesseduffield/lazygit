@@ -33,6 +33,11 @@ type OSCommand struct {
 	tempDir string
 }
 
+const (
+	osLinux   = "linux"
+	osWindows = "windows"
+)
+
 // Platform stores the os state
 type Platform struct {
 	OS              string
