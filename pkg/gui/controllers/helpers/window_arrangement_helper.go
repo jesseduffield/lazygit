@@ -12,6 +12,11 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+const (
+	windowArrangementArgsWindowNameMain      = "main"
+	windowArrangementArgsWindowNameSecondary = "secondary"
+)
+
 // In this file we use the boxlayout package, along with knowledge about the app's state,
 // to arrange the windows (i.e. panels) on the screen.
 
@@ -207,10 +212,10 @@ func MergeMaps[K comparable, V any](maps ...map[K]V) map[K]V {
 func mainSectionChildren(args WindowArrangementArgs) []*boxlayout.Box {
 	// if we're not in split mode we can just show the one main panel. Likewise if
 	// the main panel is focused and we're in full-screen mode
-	if !args.SplitMainPanel || (args.ScreenMode == types.SCREEN_FULL && args.CurrentWindow == "main") {
+	if !args.SplitMainPanel || (args.ScreenMode == types.SCREEN_FULL && args.CurrentWindow == windowArrangementArgsWindowNameMain) {
 		return []*boxlayout.Box{
 			{
-				Window: "main",
+				Window: windowArrangementArgsWindowNameMain,
 				Weight: 1,
 			},
 		}
@@ -218,11 +223,11 @@ func mainSectionChildren(args WindowArrangementArgs) []*boxlayout.Box {
 
 	return []*boxlayout.Box{
 		{
-			Window: "main",
+			Window: windowArrangementArgsWindowNameMain,
 			Weight: 1,
 		},
 		{
-			Window: "secondary",
+			Window: windowArrangementArgsWindowNameSecondary,
 			Weight: 1,
 		},
 	}
@@ -239,7 +244,7 @@ func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
 		mainSectionWeight = 5 // need to shrink side panel to make way for main panels if side-by-side
 	}
 
-	if args.CurrentWindow == "main" {
+	if args.CurrentWindow == windowArrangementArgsWindowNameMain {
 		if args.ScreenMode == types.SCREEN_HALF || args.ScreenMode == types.SCREEN_FULL {
 			sideSectionWeight = 0
 		}

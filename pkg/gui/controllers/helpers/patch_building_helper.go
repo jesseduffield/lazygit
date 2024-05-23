@@ -58,7 +58,7 @@ func (self *PatchBuildingHelper) Reset() error {
 
 func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpts) error {
 	selectedLineIdx := -1
-	if opts.ClickedWindowName == "main" {
+	if opts.ClickedWindowName == windowArrangementArgsWindowNameMain {
 		selectedLineIdx = opts.ClickedViewLineIdx
 	}
 
