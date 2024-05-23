@@ -27,6 +27,8 @@ type AppConfig struct {
 	IsNewRepo        bool
 }
 
+const VersionUnversioned = "unversioned"
+
 type AppConfigurer interface {
 	GetDebug() bool
 

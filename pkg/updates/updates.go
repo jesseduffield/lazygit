@@ -76,7 +76,7 @@ func (u *Updater) RecordLastUpdateCheck() error {
 
 // expecting version to be of the form `v12.34.56`
 func (u *Updater) majorVersionDiffers(oldVersion, newVersion string) bool {
-	if oldVersion == "unversioned" {
+	if oldVersion == config.VersionUnversioned {
 		return false
 	}
 	oldVersion = strings.TrimPrefix(oldVersion, "v")
@@ -86,7 +86,7 @@ func (u *Updater) majorVersionDiffers(oldVersion, newVersion string) bool {
 
 func (u *Updater) currentVersion() string {
 	versionNumber := u.Config.GetVersion()
-	if versionNumber == "unversioned" {
+	if versionNumber == config.VersionUnversioned {
 		return versionNumber
 	}
 
@@ -158,7 +158,7 @@ func (u *Updater) skipUpdateCheck() bool {
 		return true
 	}
 
-	if u.Config.GetVersion() == "unversioned" {
+	if u.Config.GetVersion() == config.VersionUnversioned {
 		u.Log.Info("Current version is not built from an official release so we won't check for an update")
 		return true
 	}
