@@ -49,6 +49,8 @@ type RefresherConfig struct {
 	FetchInterval int `yaml:"fetchInterval" jsonschema:"minimum=0"`
 }
 
+const GuiConfigEnlargedSideViewLocationTop = "top"
+
 type GuiConfig struct {
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
 	AuthorColors map[string]string `yaml:"authorColors"`
