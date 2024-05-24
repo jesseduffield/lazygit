@@ -15,7 +15,6 @@ linters:
     - makezero
     - nakedret
     - copyloopvar
-    # - goconst # TODO: enable and fix issues
   fast: false
 
 linters-settings:
