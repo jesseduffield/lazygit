@@ -667,9 +667,26 @@ os:
 Specify an external command to invoke when copying to clipboard is requested. `{{text}` will be replaced by text to be copied. Default is to copy to system clipboard.
 
 If you are working on a terminal that supports OSC52, the following command will let you take advantage of it:
-```
+```yaml
 os:
-  copyToClipboardCmd: printf "\033]52;c;$(printf {{text}} | base64)\a" > /dev/tty
+  copyToClipboardCmd: printf "\033]52;c;$(printf {{text}} | base64 -w 0)\a" > /dev/tty
+```
+
+For tmux you need to wrap it with the [tmux escape sequence](https://github.com/tmux/tmux/wiki/FAQ#what-is-the-passthrough-escape-sequence-and-how-do-i-use-it), and enable passthrough in tmux config with `set -g allow-passthrough on`:
+```yaml
+os:
+  copyToClipboardCmd: printf "\033Ptmux;\033\033]52;c;$(printf {{text}} | base64 -w 0)\a\033\\" > /dev/tty
+```
+
+For the best of both worlds, we can let the command determine if we are running in a tmux session and send the correct sequence:
+```yaml
+os:
+  copyToClipboardCmd: >
+    if [[ "$TERM" =~ ^(screen|tmux) ]]; then
+      printf "\033Ptmux;\033\033]52;c;$(printf {{text}} | base64 -w 0)\a\033\\" > /dev/tty
+    else
+      printf "\033]52;c;$(printf {{text}} | base64 -w 0)\a" > /dev/tty
+    fi
 ```
 
 A custom command for reading from the clipboard can be set using
