@@ -265,6 +265,9 @@ git:
     # Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use "[$1] "
     replace: ""
 
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix
+  branchPrefix: ""
+
   # Config for showing the log in the commits view
   log:
     # One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'
@@ -799,6 +802,30 @@ git:
     my_project: # This is repository folder name
       pattern: "^\\w+\\/(\\w+-\\w+).*"
       replace: '[$1] '
+```
+
+## Predefined branch name prefix
+
+In situations where certain naming pattern is used for branches, this can be used to populate new branch creation with a static prefix.
+
+Example:
+
+Some branches:
+- jsmith/AB-123
+- cwilson/AB-125
+
+```yaml
+git:
+  branchPrefix: "firstlast/"
+```
+
+For repository-specific prefixes, you can map them with `branchPrefixes`. If you have both `branchPrefix` defined and an entry in `branchPrefixes` for the current repo, the `branchPrefix` entry is given higher precedence. Repository folder names must be an exact match.
+
+```yaml
+git:
+  branchPrefixes:
+    my_project: > # This is repository folder name
+      "lastfirst/"
 ```
 
 ## Custom git log command

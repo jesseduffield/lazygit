@@ -584,6 +584,17 @@
           "type": "object",
           "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix"
         },
+        "branchPrefix": {
+          "type": "string",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix"
+        },
+        "branchPrefixes": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix"
+        },
         "parseEmoji": {
           "type": "boolean",
           "description": "If true, parse emoji strings in commit messages e.g. render :rocket: as 🚀\n(This should really be under 'gui', not 'git')"

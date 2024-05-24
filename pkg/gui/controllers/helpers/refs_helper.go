@@ -272,6 +272,10 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		},
 	)
 
+	if suggestedBranchName == "" {
+		suggestedBranchName = self.branchPrefixConfigForRepo()
+	}
+
 	return self.c.Prompt(types.PromptOpts{
 		Title:          message,
 		InitialContent: suggestedBranchName,
@@ -317,4 +321,13 @@ func (self *RefsHelper) ParseRemoteBranchName(fullBranchName string) (string, st
 	}
 
 	return remoteName, branchName, true
+}
+
+func (self *RefsHelper) branchPrefixConfigForRepo() string {
+	cfg, ok := self.c.UserConfig.Git.BranchPrefixes[self.c.Git().RepoPaths.RepoName()]
+	if ok {
+		return cfg
+	}
+
+	return self.c.UserConfig.Git.BranchPrefix
 }

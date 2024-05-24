@@ -225,6 +225,10 @@ type GitConfig struct {
 	CommitPrefix *CommitPrefixConfig `yaml:"commitPrefix"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
 	CommitPrefixes map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix
+	BranchPrefix string `yaml:"branchPrefix"`
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix
+	BranchPrefixes map[string]string `yaml:"branchPrefixes"`
 	// If true, parse emoji strings in commit messages e.g. render :rocket: as 🚀
 	// (This should really be under 'gui', not 'git')
 	ParseEmoji bool `yaml:"parseEmoji"`
@@ -727,6 +731,8 @@ func GetDefaultConfig() *UserConfig {
 			AllBranchesLogCmd:            "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
 			DisableForcePushing:          false,
 			CommitPrefixes:               map[string]CommitPrefixConfig(nil),
+			BranchPrefix:                 "",
+			BranchPrefixes:               map[string]string(nil),
 			ParseEmoji:                   false,
 			TruncateCopiedCommitHashesTo: 12,
 		},
