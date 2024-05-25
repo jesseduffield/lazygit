@@ -1009,10 +1009,14 @@ func normalisedSelectedNodes(selectedNodes []*filetree.FileNode) []*filetree.Fil
 
 func isDescendentOfSelectedNodes(node *filetree.FileNode, selectedNodes []*filetree.FileNode) bool {
 	for _, selectedNode := range selectedNodes {
+		if selectedNode.IsFile() {
+			continue
+		}
+
 		selectedNodePath := selectedNode.GetPath()
 		nodePath := node.GetPath()
 
-		if strings.HasPrefix(nodePath, selectedNodePath) && nodePath != selectedNodePath {
+		if strings.HasPrefix(nodePath, selectedNodePath+"/") {
 			return true
 		}
 	}
