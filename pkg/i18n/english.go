@@ -227,6 +227,7 @@ type TranslationSet struct {
 	RefreshFiles                          string
 	Merge                                 string
 	MergeBranchTooltip                    string
+	MergeTagTooltip                       string
 	ConfirmQuit                           string
 	SwitchRepo                            string
 	AllBranchesLogGraph                   string
@@ -1193,6 +1194,7 @@ func EnglishTranslationSet() TranslationSet {
 		RefreshFiles:                         `Refresh files`,
 		Merge:                                `Merge`,
 		MergeBranchTooltip:                   "Merge selected branch into currently checked out branch.",
+		MergeTagTooltip:                      "Merge selected tag into currently checked out branch",
 		ConfirmQuit:                          `Are you sure you want to quit?`,
 		SwitchRepo:                           `Switch to a recent repo`,
 		AllBranchesLogGraph:                  `Show all branch logs`,

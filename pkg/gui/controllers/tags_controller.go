@@ -74,6 +74,13 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			DisplayOnScreen:   true,
 			OpensMenu:         true,
 		},
+		{
+			Key:             opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
+			Handler:         opts.Guards.OutsideFilterMode(self.withItem(self.merge)),
+			Description:     self.c.Tr.Merge,
+			Tooltip:         self.c.Tr.MergeTagTooltip,
+			DisplayOnScreen: true,
+		},
 	}
 
 	return bindings
@@ -234,6 +241,18 @@ func (self *TagsController) create() error {
 	return self.c.Helpers().Tags.OpenCreateTagPrompt("", func() {
 		self.context().SetSelection(0)
 	})
+}
+
+func (self *TagsController) merge(tag *models.Tag) error {
+	err := self.c.Helpers().MergeAndRebase.MergeRefIntoCheckedOutBranch(tag.RefName(), func() error {
+		// Pass callback to swap to branches view on confirmation.
+		context, ok := self.c.Helpers().View.ContextForView(self.c.Views().Branches.Name())
+		if !ok {
+			return nil
+		}
+		return self.c.PushContext(context)
+	})
+	return err
 }
 
 func (self *TagsController) context() *context.TagsContext {
