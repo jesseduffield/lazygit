@@ -134,6 +134,17 @@ func (self *Shell) UpdateFile(path string, content string) *Shell {
 	return self
 }
 
+func (self *Shell) Rename(path string, newPath string) *Shell {
+	fullPath := filepath.Join(self.dir, path)
+	newFullPath := filepath.Join(self.dir, newPath)
+	err := os.Rename(fullPath, newFullPath)
+	if err != nil {
+		self.fail(fmt.Sprintf("error renaming %s to %s\n%s", fullPath, newFullPath, err))
+	}
+
+	return self
+}
+
 func (self *Shell) NewBranch(name string) *Shell {
 	return self.RunCommand([]string{"git", "checkout", "-b", name})
 }
