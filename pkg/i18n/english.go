@@ -1358,7 +1358,7 @@ func EnglishTranslationSet() TranslationSet {
 		ResetHardTooltip:                     "Reset HEAD to the chosen commit, and discard all changes between the current and chosen commit, as well as all current modifications in the working tree.",
 		ViewResetOptions:                     `Reset`,
 		FileResetOptionsTooltip:              "View reset options for working tree (e.g. nuking the working tree).",
-		FixupTooltip:                         "Meld the selected commit into the commit below it. Similar to fixup, but the selected commit's message will be discarded.",
+		FixupTooltip:                         "Meld the selected commit into the commit below it. Similar to squash, but the selected commit's message will be discarded.",
 		CreateFixupCommit:                    "Create fixup commit",
 		CreateFixupCommitTooltip:             "Create 'fixup!' commit for the selected commit. Later on, you can press `{{.squashAbove}}` on this same commit to apply all above fixup commits.",
 		CreateAmendCommit:                    `Create "amend!" commit`,
