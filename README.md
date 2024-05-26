@@ -15,7 +15,7 @@
 <hr>
 <a href="https://www.subble.com">
   <div>
-    <img src="https://zenbu-marketing-portal-media-storage.s3.amazonaws.com/images/subble-black-name-logo.svg" width="230" alt="Subble">
+    <img src="https://subble-marketing-portal-media-storage.s3.amazonaws.com/images/subble-black-name-logo.svg" width="230" alt="Subble">
   </div>
   <b>I (Jesse) co-founded Subble to save your company time and money by helping you manage its software subscriptions. Check it out!</b>
 </a>
