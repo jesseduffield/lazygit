@@ -143,7 +143,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-r> `` | Reset cherry-picked (gekopieerde) commits selectie |  |
 | `` b `` | View bisect options |  |
 | `` s `` | Squash | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
-| `` f `` | Fixup | Meld the selected commit into the commit below it. Similar to fixup, but the selected commit's message will be discarded. |
+| `` f `` | Fixup | Meld the selected commit into the commit below it. Similar to squash, but the selected commit's message will be discarded. |
 | `` r `` | Hernoem commit | Reword the selected commit's message. |
 | `` R `` | Hernoem commit met editor |  |
 | `` d `` | Verwijder commit | Drop the selected commit. This will remove the commit from the branch via a rebase. If the commit makes changes that later commits depend on, you may need to resolve merge conflicts. |

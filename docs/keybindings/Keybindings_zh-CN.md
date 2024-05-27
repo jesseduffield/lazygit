@@ -141,7 +141,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-r> `` | 重置已拣选（复制）的提交 |  |
 | `` b `` | 查看二分查找选项 |  |
 | `` s `` | 压缩 | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
-| `` f `` | 修正（fixup） | Meld the selected commit into the commit below it. Similar to fixup, but the selected commit's message will be discarded. |
+| `` f `` | 修正（fixup） | Meld the selected commit into the commit below it. Similar to squash, but the selected commit's message will be discarded. |
 | `` r `` | 改写提交 | Reword the selected commit's message. |
 | `` R `` | 使用编辑器重命名提交 |  |
 | `` d `` | 删除提交 | Drop the selected commit. This will remove the commit from the branch via a rebase. If the commit makes changes that later commits depend on, you may need to resolve merge conflicts. |

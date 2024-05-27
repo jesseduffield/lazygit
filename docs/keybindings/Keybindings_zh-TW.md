@@ -166,7 +166,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` <c-r> `` | 重設選定的揀選 (複製) 提交 |  |
 | `` b `` | 查看二分選項 |  |
 | `` s `` | 壓縮 (Squash) | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
-| `` f `` | 修復 (Fixup) | Meld the selected commit into the commit below it. Similar to fixup, but the selected commit's message will be discarded. |
+| `` f `` | 修復 (Fixup) | Meld the selected commit into the commit below it. Similar to squash, but the selected commit's message will be discarded. |
 | `` r `` | 改寫提交 | Reword the selected commit's message. |
 | `` R `` | 使用編輯器改寫提交 |  |
 | `` d `` | 刪除提交 | Drop the selected commit. This will remove the commit from the branch via a rebase. If the commit makes changes that later commits depend on, you may need to resolve merge conflicts. |

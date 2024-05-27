@@ -368,7 +368,8 @@ func (self *ConfirmationHelper) resizeMenu() {
 	if selectedItem != nil {
 		tooltip = self.TooltipForMenuItem(selectedItem)
 	}
-	tooltipHeight := getMessageHeight(true, tooltip, panelWidth) + 2 // plus 2 for the frame
+	contentWidth := panelWidth - 2                                     // minus 2 for the frame
+	tooltipHeight := getMessageHeight(true, tooltip, contentWidth) + 2 // plus 2 for the frame
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().Tooltip.Name(), x0, tooltipTop, x1, tooltipTop+tooltipHeight-1, 0)
 }
 
