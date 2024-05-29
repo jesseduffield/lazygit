@@ -172,7 +172,7 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@v3.7.0
         with:
-          version: latest
+          version: v1.58
       - name: errors
         run: golangci-lint run
         if: ${{ failure() }}
