@@ -33,6 +33,14 @@ func TestSyncPush(t *testing.T) {
 			},
 		},
 		{
+			testName: "Push with force enabled",
+			opts:     PushOpts{Force: true},
+			test: func(cmdObj oscommands.ICmdObj, err error) {
+				assert.Equal(t, cmdObj.Args(), []string{"git", "push", "--force"})
+				assert.NoError(t, err)
+			},
+		},
+		{
 			testName: "Push with force disabled, upstream supplied",
 			opts: PushOpts{
 				ForceWithLease: false,

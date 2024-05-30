@@ -179,6 +179,7 @@ func (self *SyncController) pullWithLock(task gocui.Task, opts PullFilesOptions)
 }
 
 type pushOpts struct {
+	force          bool
 	forceWithLease bool
 	upstreamRemote string
 	upstreamBranch string
@@ -197,13 +198,14 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 		err := self.c.Git().Sync.Push(
 			task,
 			git_commands.PushOpts{
+				Force:          opts.force,
 				ForceWithLease: opts.forceWithLease,
 				UpstreamRemote: opts.upstreamRemote,
 				UpstreamBranch: opts.upstreamBranch,
 				SetUpstream:    opts.setUpstream,
 			})
 		if err != nil {
-			if !opts.forceWithLease && strings.Contains(err.Error(), "Updates were rejected") {
+			if !opts.force && !opts.forceWithLease && strings.Contains(err.Error(), "Updates were rejected") {
 				if opts.remoteBranchStoredLocally {
 					return errors.New(self.c.Tr.UpdatesRejected)
 				}
@@ -217,7 +219,7 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 					Prompt: self.forcePushPrompt(),
 					HandleConfirm: func() error {
 						newOpts := opts
-						newOpts.forceWithLease = true
+						newOpts.force = true
 
 						return self.pushAux(currentBranch, newOpts)
 					},
