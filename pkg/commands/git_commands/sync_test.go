@@ -18,15 +18,15 @@ func TestSyncPush(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName: "Push with force disabled",
-			opts:     PushOpts{Force: false},
+			opts:     PushOpts{ForceWithLease: false},
 			test: func(cmdObj oscommands.ICmdObj, err error) {
 				assert.Equal(t, cmdObj.Args(), []string{"git", "push"})
 				assert.NoError(t, err)
 			},
 		},
 		{
-			testName: "Push with force enabled",
-			opts:     PushOpts{Force: true},
+			testName: "Push with force-with-lease enabled",
+			opts:     PushOpts{ForceWithLease: true},
 			test: func(cmdObj oscommands.ICmdObj, err error) {
 				assert.Equal(t, cmdObj.Args(), []string{"git", "push", "--force-with-lease"})
 				assert.NoError(t, err)
@@ -35,7 +35,7 @@ func TestSyncPush(t *testing.T) {
 		{
 			testName: "Push with force disabled, upstream supplied",
 			opts: PushOpts{
-				Force:          false,
+				ForceWithLease: false,
 				UpstreamRemote: "origin",
 				UpstreamBranch: "master",
 			},
@@ -47,7 +47,7 @@ func TestSyncPush(t *testing.T) {
 		{
 			testName: "Push with force disabled, setting upstream",
 			opts: PushOpts{
-				Force:          false,
+				ForceWithLease: false,
 				UpstreamRemote: "origin",
 				UpstreamBranch: "master",
 				SetUpstream:    true,
@@ -58,9 +58,9 @@ func TestSyncPush(t *testing.T) {
 			},
 		},
 		{
-			testName: "Push with force enabled, setting upstream",
+			testName: "Push with force-with-lease enabled, setting upstream",
 			opts: PushOpts{
-				Force:          true,
+				ForceWithLease: true,
 				UpstreamRemote: "origin",
 				UpstreamBranch: "master",
 				SetUpstream:    true,
@@ -73,7 +73,7 @@ func TestSyncPush(t *testing.T) {
 		{
 			testName: "Push with remote branch but no origin",
 			opts: PushOpts{
-				Force:          true,
+				ForceWithLease: true,
 				UpstreamRemote: "",
 				UpstreamBranch: "master",
 				SetUpstream:    true,

@@ -18,7 +18,7 @@ func NewSyncCommands(gitCommon *GitCommon) *SyncCommands {
 
 // Push pushes to a branch
 type PushOpts struct {
-	Force          bool
+	ForceWithLease bool
 	UpstreamRemote string
 	UpstreamBranch string
 	SetUpstream    bool
@@ -30,7 +30,7 @@ func (self *SyncCommands) PushCmdObj(task gocui.Task, opts PushOpts) (oscommands
 	}
 
 	cmdArgs := NewGitCmd("push").
-		ArgIf(opts.Force, "--force-with-lease").
+		ArgIf(opts.ForceWithLease, "--force-with-lease").
 		ArgIf(opts.SetUpstream, "--set-upstream").
 		ArgIf(opts.UpstreamRemote != "", opts.UpstreamRemote).
 		ArgIf(opts.UpstreamBranch != "", opts.UpstreamBranch).

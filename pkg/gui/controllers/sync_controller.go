@@ -179,7 +179,7 @@ func (self *SyncController) pullWithLock(task gocui.Task, opts PullFilesOptions)
 }
 
 type pushOpts struct {
-	force          bool
+	forceWithLease bool
 	upstreamRemote string
 	upstreamBranch string
 	setUpstream    bool
@@ -197,13 +197,13 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 		err := self.c.Git().Sync.Push(
 			task,
 			git_commands.PushOpts{
-				Force:          opts.force,
+				ForceWithLease: opts.forceWithLease,
 				UpstreamRemote: opts.upstreamRemote,
 				UpstreamBranch: opts.upstreamBranch,
 				SetUpstream:    opts.setUpstream,
 			})
 		if err != nil {
-			if !opts.force && strings.Contains(err.Error(), "Updates were rejected") {
+			if !opts.forceWithLease && strings.Contains(err.Error(), "Updates were rejected") {
 				if opts.remoteBranchStoredLocally {
 					return errors.New(self.c.Tr.UpdatesRejected)
 				}
@@ -217,7 +217,7 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 					Prompt: self.forcePushPrompt(),
 					HandleConfirm: func() error {
 						newOpts := opts
-						newOpts.force = true
+						newOpts.forceWithLease = true
 
 						return self.pushAux(currentBranch, newOpts)
 					},
@@ -240,7 +240,7 @@ func (self *SyncController) requestToForcePush(currentBranch *models.Branch, opt
 		Title:  self.c.Tr.ForcePush,
 		Prompt: self.forcePushPrompt(),
 		HandleConfirm: func() error {
-			opts.force = true
+			opts.forceWithLease = true
 			return self.pushAux(currentBranch, opts)
 		},
 	})
