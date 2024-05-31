@@ -142,3 +142,7 @@ func (self *PatchExplorerContext) NavigateTo(isFocused bool, selectedLineIdx int
 func (self *PatchExplorerContext) GetMutex() *deadlock.Mutex {
 	return self.mutex
 }
+
+func (self *PatchExplorerContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
+	return nil
+}
