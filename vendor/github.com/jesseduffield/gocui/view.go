@@ -185,6 +185,7 @@ func (v *View) clearViewLines() {
 type searcher struct {
 	searchString       string
 	searchPositions    []SearchPosition
+	modelSearchResults []SearchPosition
 	currentSearchIndex int
 	onSelectItem       func(int, int, int) error
 }
@@ -242,9 +243,20 @@ func (v *View) GetSearchStatus() (int, int) {
 	return v.searcher.currentSearchIndex, len(v.searcher.searchPositions)
 }
 
-func (v *View) Search(str string) error {
+// modelSearchResults is optional; pass nil to search the view. If non-nil,
+// these positions will be used for highlighting search results. Even in this
+// case the view will still be searched on a per-line basis, so that the caller
+// doesn't have to make assumptions where in the rendered line the search result
+// is. The XStart and XEnd values in the modelSearchResults are only used in
+// case the search string is not found in the given line, which can happen if
+// the view renders an abbreviated version of some of the model data.
+//
+// Mind the difference between nil and empty slice: nil means we're not
+// searching the model, empty slice means we *are* searching the model but we
+// didn't find any matches.
+func (v *View) Search(str string, modelSearchResults []SearchPosition) error {
 	v.writeMutex.Lock()
-	v.searcher.search(str)
+	v.searcher.search(str, modelSearchResults)
 	v.updateSearchPositions()
 
 	if len(v.searcher.searchPositions) > 0 {
@@ -324,9 +336,10 @@ func calculateNewOrigin(selectedLine int, oldOrigin int, lineCount int, viewHeig
 	return oldOrigin
 }
 
-func (s *searcher) search(str string) {
+func (s *searcher) search(str string, modelSearchResults []SearchPosition) {
 	s.searchString = str
 	s.searchPositions = []SearchPosition{}
+	s.modelSearchResults = modelSearchResults
 	s.currentSearchIndex = 0
 }
 
@@ -996,8 +1009,39 @@ func (v *View) updateSearchPositions() {
 			return result
 		}
 
-		for y, line := range v.lines {
-			v.searcher.searchPositions = append(v.searcher.searchPositions, searchPositionsForLine(line, y)...)
+		if v.searcher.modelSearchResults != nil {
+			for _, result := range v.searcher.modelSearchResults {
+				if result.Y >= len(v.lines) {
+					break
+				}
+
+				// If a view line exists for this line index:
+				if v.lines[result.Y] != nil {
+					// search this view line for the search string
+					positions := searchPositionsForLine(v.lines[result.Y], result.Y)
+					if len(positions) > 0 {
+						// If we found any occurrences, add them
+						v.searcher.searchPositions = append(v.searcher.searchPositions, positions...)
+					} else {
+						// Otherwise, the search string was found in the model
+						// but not in the view line; this can happen if the view
+						// renders only truncated versions of the model strings.
+						// In this case, add one search position with what the
+						// model search function returned.
+						v.searcher.searchPositions = append(v.searcher.searchPositions, result)
+					}
+				} else {
+					// We don't have a view line for this line index. Add a
+					// searchPosition anyway, just for the sake of being able to
+					// show the "n of m" search status. The X positions don't
+					// matter in this case.
+					v.searcher.searchPositions = append(v.searcher.searchPositions, SearchPosition{XStart: -1, XEnd: -1, Y: result.Y})
+				}
+			}
+		} else {
+			for y, line := range v.lines {
+				v.searcher.searchPositions = append(v.searcher.searchPositions, searchPositionsForLine(line, y)...)
+			}
 		}
 	}
 }
