@@ -759,6 +759,14 @@ func (self *RefreshHelper) refForLog() string {
 }
 
 func (self *RefreshHelper) refreshView(context types.Context) error {
+	// Re-applying the filter must be done before re-rendering the view, so that
+	// the filtered list model is up to date for rendering.
 	self.searchHelper.ReApplyFilter(context)
-	return self.c.PostRefreshUpdate(context)
+
+	err := self.c.PostRefreshUpdate(context)
+
+	// Re-applying the search must be done after re-rendering the view though,
+	// so that the "x of y" status is shown correctly.
+	self.searchHelper.ReApplySearch(context)
+	return err
 }

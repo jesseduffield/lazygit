@@ -2,8 +2,10 @@ package context
 
 import (
 	"log"
+	"strings"
 	"time"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -153,6 +155,10 @@ func (self *LocalCommitsContext) GetDiffTerminals() []string {
 	return []string{itemId}
 }
 
+func (self *LocalCommitsContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
+	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), searchStr)
+}
+
 func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {
 	self.limitCommits = value
 }
@@ -191,4 +197,19 @@ func shouldShowGraph(c *ContextCommon) bool {
 
 	log.Fatalf("Unknown value for git.log.showGraph: %s. Expected one of: 'always', 'never', 'when-maximised'", value)
 	return false
+}
+
+func searchModelCommits(caseSensitive bool, commits []*models.Commit, columnPositions []int, searchStr string) []gocui.SearchPosition {
+	normalize := lo.Ternary(caseSensitive, func(s string) string { return s }, strings.ToLower)
+	return lo.FilterMap(commits, func(commit *models.Commit, idx int) (gocui.SearchPosition, bool) {
+		// The XStart and XEnd values are only used if the search string can't
+		// be found in the view. This can really only happen if the user is
+		// searching for a commit hash that is longer than the truncated hash
+		// that we render. So we just set the XStart and XEnd values to the
+		// start and end of the commit hash column, which is the second one.
+		result := gocui.SearchPosition{XStart: columnPositions[1], XEnd: columnPositions[2] - 1, Y: idx}
+		return result, strings.Contains(normalize(commit.Hash), searchStr) ||
+			strings.Contains(normalize(commit.Name), searchStr) ||
+			strings.Contains(normalize(commit.ExtraInfo), searchStr) // allow searching for tags
+	})
 }

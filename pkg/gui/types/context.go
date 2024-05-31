@@ -114,12 +114,16 @@ type ISearchableContext interface {
 	Context
 	ISearchHistoryContext
 
+	// These are all implemented by SearchTrait
 	SetSearchString(string)
 	GetSearchString() string
 	ClearSearchString()
 	IsSearching() bool
 	IsSearchableContext()
 	RenderSearchStatus(int, int)
+
+	// This must be implemented by each concrete context. Return nil if not searching the model.
+	ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition
 }
 
 type DiffableContext interface {
