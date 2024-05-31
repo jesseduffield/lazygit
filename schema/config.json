@@ -76,6 +76,11 @@
           "description": "If true, increase the height of the focused side window; creating an accordion effect.",
           "default": false
         },
+        "expandedSidePanelWeight": {
+          "type": "integer",
+          "description": "The weight of the expanded side panel, relative to the other panels. 2 means\ntwice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.",
+          "default": 2
+        },
         "mainPanelSplitMode": {
           "type": "string",
           "enum": [

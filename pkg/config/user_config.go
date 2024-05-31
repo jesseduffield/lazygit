@@ -77,6 +77,9 @@ type GuiConfig struct {
 	SidePanelWidth float64 `yaml:"sidePanelWidth" jsonschema:"maximum=1,minimum=0"`
 	// If true, increase the height of the focused side window; creating an accordion effect.
 	ExpandFocusedSidePanel bool `yaml:"expandFocusedSidePanel"`
+	// The weight of the expanded side panel, relative to the other panels. 2 means
+	// twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.
+	ExpandedSidePanelWeight int `yaml:"expandedSidePanelWeight"`
 	// Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.
 	// Options are:
 	// - 'horizontal': split the window horizontally
@@ -651,6 +654,7 @@ func GetDefaultConfig() *UserConfig {
 			SkipStashWarning:         false,
 			SidePanelWidth:           0.3333,
 			ExpandFocusedSidePanel:   false,
+			ExpandedSidePanelWeight:  2,
 			MainPanelSplitMode:       "flexible",
 			EnlargedSideViewLocation: "left",
 			Language:                 "auto",
