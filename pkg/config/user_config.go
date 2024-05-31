@@ -22,7 +22,6 @@ type UserConfig struct {
 	// Config relating to things outside of Lazygit like how files are opened, copying to clipboard, etc
 	OS OSConfig `yaml:"os,omitempty"`
 	// If true, don't display introductory popups upon opening Lazygit.
-	// Lazygit sets this to true upon first runninng the program so that you don't see introductory popups every time you open the program.
 	DisableStartupPopups bool `yaml:"disableStartupPopups"`
 	// User-configured commands that can be invoked from within Lazygit
 	CustomCommands []CustomCommand `yaml:"customCommands" jsonschema:"uniqueItems=true"`

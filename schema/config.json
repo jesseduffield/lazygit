@@ -752,7 +752,7 @@
     },
     "disableStartupPopups": {
       "type": "boolean",
-      "description": "If true, don't display introductory popups upon opening Lazygit.\nLazygit sets this to true upon first runninng the program so that you don't see introductory popups every time you open the program."
+      "description": "If true, don't display introductory popups upon opening Lazygit."
     },
     "customCommands": {
       "items": {
