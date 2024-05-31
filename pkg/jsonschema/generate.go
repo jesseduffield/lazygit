@@ -78,7 +78,7 @@ func isZeroValue(v any) bool {
 	case string:
 		return v == ""
 	case bool:
-		return !v
+		return false
 	case nil:
 		return true
 	}

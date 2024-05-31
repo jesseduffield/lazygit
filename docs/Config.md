@@ -49,9 +49,24 @@ gui:
   # When mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.
   mouseEvents: true
 
+  # If true, do not show a warning when discarding changes in the staging view.
+  skipDiscardChangeWarning: false
+
+  # If true, do not show warning when applying/popping the stash
+  skipStashWarning: false
+
+  # If true, do not show a warning when attempting to commit without any staged files; instead stage all unstaged files.
+  skipNoStagedFilesWarning: false
+
+  # If true, do not show a warning when rewording a commit via an external editor
+  skipRewordInEditorWarning: false
+
   # Fraction of the total screen width to use for the left side section. You may want to pick a small number (e.g. 0.2) if you're using a narrow screen, so that you can see more of the main section.
   # Number from 0 to 1.0.
   sidePanelWidth: 0.3333
+
+  # If true, increase the height of the focused side window; creating an accordion effect.
+  expandFocusedSidePanel: false
 
   # Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.
   # Options are:
@@ -151,6 +166,9 @@ gui:
   # If true, show jump-to-window keybindings in window titles.
   showPanelJumps: true
 
+  # Deprecated: use nerdFontsVersion instead
+  showIcons: false
+
   # Nerd fonts version to use.
   # One of: '2' | '3' | empty string (default)
   # If empty, do not show icons.
@@ -161,6 +179,9 @@ gui:
 
   # Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.
   commitHashLength: 8
+
+  # If true, show commit hashes alongside branch names in the branches view.
+  showBranchCommitHash: false
 
   # Height of the command log view
   commandLogSize: 8
@@ -218,11 +239,17 @@ git:
     # ydiff -p cat -s --wrap --width={{columnWidth}}
     pager: ""
 
+    # If true, Lazygit will use whatever pager is specified in `$GIT_PAGER`, `$PAGER`, or your *git config*. If the pager ends with something like ` | less` we will strip that part out, because less doesn't play nice with our rendering approach. If the custom pager uses less under the hood, that will also break rendering (hence the `--paging=never` flag for the `delta` pager).
+    useConfig: false
+
     # e.g. 'difft --color=always'
     externalDiffCommand: ""
 
   # Config relating to committing
   commit:
+    # If true, pass '--signoff' flag when committing
+    signOff: false
+
     # Automatic WYSIWYG wrapping of the commit message as you type
     autoWrapCommitMessage: true
 
@@ -231,6 +258,10 @@ git:
 
   # Config relating to merging
   merging:
+    # If true, run merges in a subprocess so that if a commit message is required, Lazygit will not hang
+    # Only applicable to unix users.
+    manualCommit: false
+
     # Extra args passed to `git merge`, e.g. --no-ff
     args: ""
 
@@ -257,6 +288,12 @@ git:
   # Command used to display git log of all branches in the main window
   allBranchesLogCmd: git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium
 
+  # If true, do not spawn a separate process when using GPG
+  overrideGpg: false
+
+  # If true, do not allow force pushes
+  disableForcePushing: false
+
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
   commitPrefix:
     # pattern to match on. E.g. for 'feature/AB-123' to match on the AB-123 use "^\\w+\\/(\\w+-\\w+).*"
@@ -264,6 +301,10 @@ git:
 
     # Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use "[$1] "
     replace: ""
+
+  # If true, parse emoji strings in commit messages e.g. render :rocket: as 🚀
+  # (This should really be under 'gui', not 'git')
+  parseEmoji: false
 
   # Config for showing the log in the commits view
   log:
@@ -279,6 +320,9 @@ git:
     #
     # Deprecated: Configure this with `Log menu -> Show git graph` (<c-l> in the commits window by default).
     showGraph: always
+
+    # displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
+    showWholeGraph: false
 
   # When copying commit hashes to the clipboard, truncate them to this
   # length. Set to 40 to disable truncation.
@@ -301,6 +345,12 @@ refresher:
   # Re-fetch interval in seconds.
   # Auto-fetch can be disabled via option 'git.autoFetch'.
   fetchInterval: 60
+
+# If true, show a confirmation popup before quitting Lazygit
+confirmOnQuit: false
+
+# If true, exit Lazygit when the user presses escape in a context where there is nothing to cancel/close
+quitOnTopLevelReturn: false
 
 # Config relating to things outside of Lazygit like how files are opened, copying to clipboard, etc
 os:
@@ -350,6 +400,9 @@ os:
   # CopyToClipboardCmd is the command for copying to clipboard.
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard
   copyToClipboardCmd: ""
+
+# If true, don't display introductory popups upon opening Lazygit.
+disableStartupPopups: false
 
 # What to do when opening Lazygit outside of a git repo.
 # - 'prompt': (default) ask whether to initialize a new repo or open in the most recent repo

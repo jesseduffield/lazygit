@@ -46,19 +46,23 @@
         },
         "skipDiscardChangeWarning": {
           "type": "boolean",
-          "description": "If true, do not show a warning when discarding changes in the staging view."
+          "description": "If true, do not show a warning when discarding changes in the staging view.",
+          "default": false
         },
         "skipStashWarning": {
           "type": "boolean",
-          "description": "If true, do not show warning when applying/popping the stash"
+          "description": "If true, do not show warning when applying/popping the stash",
+          "default": false
         },
         "skipNoStagedFilesWarning": {
           "type": "boolean",
-          "description": "If true, do not show a warning when attempting to commit without any staged files; instead stage all unstaged files."
+          "description": "If true, do not show a warning when attempting to commit without any staged files; instead stage all unstaged files.",
+          "default": false
         },
         "skipRewordInEditorWarning": {
           "type": "boolean",
-          "description": "If true, do not show a warning when rewording a commit via an external editor"
+          "description": "If true, do not show a warning when rewording a commit via an external editor",
+          "default": false
         },
         "sidePanelWidth": {
           "type": "number",
@@ -69,7 +73,8 @@
         },
         "expandFocusedSidePanel": {
           "type": "boolean",
-          "description": "If true, increase the height of the focused side window; creating an accordion effect."
+          "description": "If true, increase the height of the focused side window; creating an accordion effect.",
+          "default": false
         },
         "mainPanelSplitMode": {
           "type": "string",
@@ -293,7 +298,8 @@
         },
         "showIcons": {
           "type": "boolean",
-          "description": "Deprecated: use nerdFontsVersion instead"
+          "description": "Deprecated: use nerdFontsVersion instead",
+          "default": false
         },
         "nerdFontsVersion": {
           "type": "string",
@@ -317,7 +323,8 @@
         },
         "showBranchCommitHash": {
           "type": "boolean",
-          "description": "If true, show commit hashes alongside branch names in the branches view."
+          "description": "If true, show commit hashes alongside branch names in the branches view.",
+          "default": false
         },
         "commandLogSize": {
           "type": "integer",
@@ -439,7 +446,8 @@
             },
             "useConfig": {
               "type": "boolean",
-              "description": "If true, Lazygit will use whatever pager is specified in `$GIT_PAGER`, `$PAGER`, or your *git config*. If the pager ends with something like ` | less` we will strip that part out, because less doesn't play nice with our rendering approach. If the custom pager uses less under the hood, that will also break rendering (hence the `--paging=never` flag for the `delta` pager)."
+              "description": "If true, Lazygit will use whatever pager is specified in `$GIT_PAGER`, `$PAGER`, or your *git config*. If the pager ends with something like ` | less` we will strip that part out, because less doesn't play nice with our rendering approach. If the custom pager uses less under the hood, that will also break rendering (hence the `--paging=never` flag for the `delta` pager).",
+              "default": false
             },
             "externalDiffCommand": {
               "type": "string",
@@ -454,7 +462,8 @@
           "properties": {
             "signOff": {
               "type": "boolean",
-              "description": "If true, pass '--signoff' flag when committing"
+              "description": "If true, pass '--signoff' flag when committing",
+              "default": false
             },
             "autoWrapCommitMessage": {
               "type": "boolean",
@@ -475,7 +484,8 @@
           "properties": {
             "manualCommit": {
               "type": "boolean",
-              "description": "If true, run merges in a subprocess so that if a commit message is required, Lazygit will not hang\nOnly applicable to unix users."
+              "description": "If true, run merges in a subprocess so that if a commit message is required, Lazygit will not hang\nOnly applicable to unix users.",
+              "default": false
             },
             "args": {
               "type": "string",
@@ -533,11 +543,13 @@
         },
         "overrideGpg": {
           "type": "boolean",
-          "description": "If true, do not spawn a separate process when using GPG"
+          "description": "If true, do not spawn a separate process when using GPG",
+          "default": false
         },
         "disableForcePushing": {
           "type": "boolean",
-          "description": "If true, do not allow force pushes"
+          "description": "If true, do not allow force pushes",
+          "default": false
         },
         "commitPrefix": {
           "properties": {
@@ -586,7 +598,8 @@
         },
         "parseEmoji": {
           "type": "boolean",
-          "description": "If true, parse emoji strings in commit messages e.g. render :rocket: as 🚀\n(This should really be under 'gui', not 'git')"
+          "description": "If true, parse emoji strings in commit messages e.g. render :rocket: as 🚀\n(This should really be under 'gui', not 'git')",
+          "default": false
         },
         "log": {
           "properties": {
@@ -613,7 +626,8 @@
             },
             "showWholeGraph": {
               "type": "boolean",
-              "description": "displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)"
+              "description": "displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)",
+              "default": false
             }
           },
           "additionalProperties": false,
@@ -674,11 +688,13 @@
     },
     "confirmOnQuit": {
       "type": "boolean",
-      "description": "If true, show a confirmation popup before quitting Lazygit"
+      "description": "If true, show a confirmation popup before quitting Lazygit",
+      "default": false
     },
     "quitOnTopLevelReturn": {
       "type": "boolean",
-      "description": "If true, exit Lazygit when the user presses escape in a context where there is nothing to cancel/close"
+      "description": "If true, exit Lazygit when the user presses escape in a context where there is nothing to cancel/close",
+      "default": false
     },
     "os": {
       "properties": {
@@ -752,7 +768,8 @@
     },
     "disableStartupPopups": {
       "type": "boolean",
-      "description": "If true, don't display introductory popups upon opening Lazygit."
+      "description": "If true, don't display introductory popups upon opening Lazygit.",
+      "default": false
     },
     "customCommands": {
       "items": {
