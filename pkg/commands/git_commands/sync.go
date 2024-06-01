@@ -35,7 +35,7 @@ func (self *SyncCommands) PushCmdObj(task gocui.Task, opts PushOpts) (oscommands
 		ArgIf(opts.ForceWithLease, "--force-with-lease").
 		ArgIf(opts.SetUpstream, "--set-upstream").
 		ArgIf(opts.UpstreamRemote != "", opts.UpstreamRemote).
-		ArgIf(opts.UpstreamBranch != "", opts.UpstreamBranch).
+		ArgIf(opts.UpstreamBranch != "", "HEAD:"+opts.UpstreamBranch).
 		ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs).PromptOnCredentialRequest(task)
