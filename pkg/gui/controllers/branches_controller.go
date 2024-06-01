@@ -696,7 +696,8 @@ func (self *BranchesController) createSortMenu() error {
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 		}
 		return nil
-	})
+	},
+		self.c.GetAppState().LocalBranchSortOrder)
 }
 
 func (self *BranchesController) createResetMenu(selectedBranch *models.Branch) error {

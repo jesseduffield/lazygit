@@ -145,7 +145,8 @@ func (self *RemoteBranchesController) createSortMenu() error {
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.REMOTES}})
 		}
 		return nil
-	})
+	},
+		self.c.GetAppState().RemoteBranchSortOrder)
 }
 
 func (self *RemoteBranchesController) createResetMenu(selectedBranch *models.RemoteBranch) error {
