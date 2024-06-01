@@ -89,7 +89,7 @@ func (self *SyncController) branchCheckedOut(f func(*models.Branch) error) func(
 func (self *SyncController) push(currentBranch *models.Branch) error {
 	// if we are behind our upstream branch we'll ask if the user wants to force push
 	if currentBranch.IsTrackingRemote() {
-		opts := pushOpts{}
+		opts := pushOpts{remoteBranchStoredLocally: currentBranch.RemoteBranchStoredLocally()}
 		if currentBranch.IsBehindForPush() {
 			return self.requestToForcePush(currentBranch, opts)
 		} else {
@@ -180,9 +180,16 @@ func (self *SyncController) pullWithLock(task gocui.Task, opts PullFilesOptions)
 
 type pushOpts struct {
 	force          bool
+	forceWithLease bool
 	upstreamRemote string
 	upstreamBranch string
 	setUpstream    bool
+
+	// If this is false, we can't tell ahead of time whether a force-push will
+	// be necessary, so we start with a normal push and offer to force-push if
+	// the server rejected. If this is true, we don't offer to force-push if the
+	// server rejected, but rather ask the user to fetch.
+	remoteBranchStoredLocally bool
 }
 
 func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts) error {
@@ -192,13 +199,32 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 			task,
 			git_commands.PushOpts{
 				Force:          opts.force,
+				ForceWithLease: opts.forceWithLease,
 				UpstreamRemote: opts.upstreamRemote,
 				UpstreamBranch: opts.upstreamBranch,
 				SetUpstream:    opts.setUpstream,
 			})
 		if err != nil {
-			if strings.Contains(err.Error(), "Updates were rejected") {
-				return errors.New(self.c.Tr.UpdatesRejected)
+			if !opts.force && !opts.forceWithLease && strings.Contains(err.Error(), "Updates were rejected") {
+				if opts.remoteBranchStoredLocally {
+					return errors.New(self.c.Tr.UpdatesRejected)
+				}
+
+				forcePushDisabled := self.c.UserConfig.Git.DisableForcePushing
+				if forcePushDisabled {
+					return errors.New(self.c.Tr.UpdatesRejectedAndForcePushDisabled)
+				}
+				_ = self.c.Confirm(types.ConfirmOpts{
+					Title:  self.c.Tr.ForcePush,
+					Prompt: self.forcePushPrompt(),
+					HandleConfirm: func() error {
+						newOpts := opts
+						newOpts.force = true
+
+						return self.pushAux(currentBranch, newOpts)
+					},
+				})
+				return nil
 			}
 			return err
 		}
@@ -216,7 +242,7 @@ func (self *SyncController) requestToForcePush(currentBranch *models.Branch, opt
 		Title:  self.c.Tr.ForcePush,
 		Prompt: self.forcePushPrompt(),
 		HandleConfirm: func() error {
-			opts.force = true
+			opts.forceWithLease = true
 			return self.pushAux(currentBranch, opts)
 		},
 	})

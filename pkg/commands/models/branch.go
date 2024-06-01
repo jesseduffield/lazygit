@@ -104,7 +104,7 @@ func (b *Branch) IsBehindForPull() bool {
 }
 
 func (b *Branch) IsBehindForPush() bool {
-	return b.BehindForPush != "" && b.BehindForPush != "0"
+	return b.RemoteBranchStoredLocally() && b.BehindForPush != "0"
 }
 
 // for when we're in a detached head state

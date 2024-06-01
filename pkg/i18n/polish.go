@@ -183,6 +183,7 @@ func polishTranslationSet() TranslationSet {
 		ForcePush:                           "Wymuś wysłanie",
 		ForcePushPrompt:                     "Twoja gałąź rozbiegła się z gałęzią zdalną. Naciśnij {{.cancelKey}}, aby anulować, lub {{.confirmKey}}, aby wymusić wysłanie.",
 		ForcePushDisabled:                   "Twoja gałąź rozbiegła się z gałęzią zdalną i masz wyłączone wymuszanie wysyłania",
+		UpdatesRejectedAndForcePushDisabled: "Aktualizacje zostały odrzucone i wyłączyłeś wymuszenie wysłania",
 		CheckForUpdate:                      "Sprawdź aktualizacje",
 		CheckingForUpdates:                  "Sprawdzanie aktualizacji...",
 		UpdateAvailableTitle:                "Dostępna aktualizacja!",
