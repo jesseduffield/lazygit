@@ -42,7 +42,6 @@ type TranslationSet struct {
 	CommitChangesWithEditor               string
 	FindBaseCommitForFixup                string
 	FindBaseCommitForFixupTooltip         string
-	NoDeletedLinesInDiff                  string
 	NoBaseCommitsFound                    string
 	MultipleBaseCommitsFoundStaged        string
 	MultipleBaseCommitsFoundUnstaged      string
@@ -1005,7 +1004,6 @@ func EnglishTranslationSet() TranslationSet {
 		CommitChangesWithEditor:              "Commit changes using git editor",
 		FindBaseCommitForFixup:               "Find base commit for fixup",
 		FindBaseCommitForFixupTooltip:        "Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md>",
-		NoDeletedLinesInDiff:                 "No deleted lines in diff",
 		NoBaseCommitsFound:                   "No base commits found",
 		MultipleBaseCommitsFoundStaged:       "Multiple base commits found. (Try staging fewer changes at once)",
 		MultipleBaseCommitsFoundUnstaged:     "Multiple base commits found. (Try staging some of the changes)",

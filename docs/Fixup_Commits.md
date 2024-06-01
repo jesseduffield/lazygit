@@ -56,22 +56,10 @@ base commit in the Commits view automatically. From there, you can either press
 shift-F to create a fixup commit for it, or shift-A to amend your changes into
 the commit if you haven't published your branch yet.
 
-This command works in many cases, and when it does it almost feels like magic,
-but it's important to understand its limitations because it doesn't always work.
-The way it works is that it looks at the deleted lines of your current
-modifications, blames them to find out which commit those lines come from, and
-if they all come from the same commit, it selects it. So here are cases where it
-doesn't work:
-
-- Your current diff has only added lines, but no deleted lines. In this case
-  there's no way for lazygit to know which commit you want to add them to.
-- The deleted lines belong to multiple different commits. In this case you can
-  help lazygit by staging a set of files or hunks that all belong to the same
-  commit; if some changes are staged, the ctrl-f command works only on those.
-- The found commit is already on master; in this case, lazygit refuses to select
-  it, because it doesn't make sense to create fixups for it, let alone amend to
-  it.
-
-To sum it up: the command works great if you are changing code again that you
-changed or added earlier in the same branch. This is a common enough case to
-make the command useful.
+If you have many modifications in your working copy, it is a good idea to stage
+related changes that are meant to go into the same fixup commit; if no changes
+are staged, ctrl-f works on all unstaged modifications, and then it might show
+an error if it finds multiple different base commits. If you are interested in
+what the command does to do its magic, and how you can help it work better, you
+may want to read the [design document](dev/Find_Base_Commit_For_Fixup_Design.md)
+that describes this.

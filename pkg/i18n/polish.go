@@ -33,7 +33,6 @@ func polishTranslationSet() TranslationSet {
 		CommitChangesWithEditor:             "Zatwierdź zmiany używając edytora git",
 		FindBaseCommitForFixup:              "Znajdź bazowy commit do poprawki",
 		FindBaseCommitForFixupTooltip:       "Znajdź commit, na którym opierają się Twoje obecne zmiany, w celu poprawienia/zmiany commita. To pozwala Ci uniknąć przeglądania commitów w Twojej gałęzi jeden po drugim, aby zobaczyć, który commit powinien być poprawiony/zmieniony. Zobacz dokumentację: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md>",
-		NoDeletedLinesInDiff:                "Brak usuniętych linii w różnicach",
 		NoBaseCommitsFound:                  "Nie znaleziono bazowych commitów",
 		MultipleBaseCommitsFoundStaged:      "Znaleziono wiele bazowych commitów. (Spróbuj zatwierdzić mniej zmian naraz)",
 		MultipleBaseCommitsFoundUnstaged:    "Znaleziono wiele bazowych commitów. (Spróbuj zatwierdzić część zmian)",

@@ -38,6 +38,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
 	golang.org/x/exp v0.0.0-20220318154914-8dddf5d87bd8
+	golang.org/x/sync v0.7.0
 	gopkg.in/ozeidan/fuzzy-patricia.v3 v3.0.0
 	gopkg.in/yaml.v3 v3.0.1
 )
