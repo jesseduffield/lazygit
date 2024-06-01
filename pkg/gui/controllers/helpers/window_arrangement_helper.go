@@ -443,7 +443,7 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				if accordionMode && defaultBox.Window == args.CurrentSideWindow {
 					return &boxlayout.Box{
 						Window: defaultBox.Window,
-						Weight: 2,
+						Weight: args.UserConfig.Gui.ExpandedSidePanelWeight,
 					}
 				}
 

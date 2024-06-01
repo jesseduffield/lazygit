@@ -68,6 +68,10 @@ gui:
   # If true, increase the height of the focused side window; creating an accordion effect.
   expandFocusedSidePanel: false
 
+  # The weight of the expanded side panel, relative to the other panels. 2 means
+  # twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.
+  expandedSidePanelWeight: 2
+
   # Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.
   # Options are:
   # - 'horizontal': split the window horizontally

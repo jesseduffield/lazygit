@@ -122,6 +122,87 @@ func TestGetWindowDimensions(t *testing.T) {
 			`,
 		},
 		{
+			name: "expandFocusedSidePanel",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.ExpandFocusedSidePanel = true
+			},
+			expected: `
+			╭status─────────────────╮╭main────────────────────────────────────────────╮
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭files──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭branches───────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭commits────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭stash──────────────────╮│                                                │
+			│                       ││                                                │
+			╰───────────────────────╯╰────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "expandSidePanelWeight",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.ExpandFocusedSidePanel = true
+				args.UserConfig.Gui.ExpandedSidePanelWeight = 4
+			},
+			expected: `
+			╭status─────────────────╮╭main────────────────────────────────────────────╮
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭files──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭branches───────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭commits────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭stash──────────────────╮│                                                │
+			│                       ││                                                │
+			╰───────────────────────╯╰────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
 			name: "half screen mode, enlargedSideViewLocation left",
 			mutateArgs: func(args *WindowArrangementArgs) {
 				args.Height = 20 // smaller height because we don't more here
