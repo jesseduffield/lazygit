@@ -401,16 +401,18 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 
 	selectedNodes = normalisedSelectedNodes(selectedNodes)
 
-	// If any node has unstaged changes, we'll stage all the selected nodes. Otherwise,
-	// we unstage all the selected nodes.
-	if someNodesHaveUnstagedChanges(selectedNodes) {
+	// If any node has unstaged changes, we'll stage all the selected unstaged nodes (staging already staged deleted files/folders would fail).
+	// Otherwise, we unstage all the selected nodes.
+	unstagedSelectedNodes := filterNodesHaveUnstagedChanges(selectedNodes)
+
+	if len(unstagedSelectedNodes) > 0 {
 		self.c.LogAction(self.c.Tr.Actions.StageFile)
 
-		if err := self.optimisticChange(selectedNodes, self.optimisticStage); err != nil {
+		if err := self.optimisticChange(unstagedSelectedNodes, self.optimisticStage); err != nil {
 			return err
 		}
 
-		if err := self.c.Git().WorkingTree.StageFiles(toPaths(selectedNodes)); err != nil {
+		if err := self.c.Git().WorkingTree.StageFiles(toPaths(unstagedSelectedNodes)); err != nil {
 			return err
 		}
 	} else {
@@ -1029,6 +1031,12 @@ func someNodesHaveUnstagedChanges(nodes []*filetree.FileNode) bool {
 
 func someNodesHaveStagedChanges(nodes []*filetree.FileNode) bool {
 	return lo.SomeBy(nodes, (*filetree.FileNode).GetHasStagedChanges)
+}
+
+func filterNodesHaveUnstagedChanges(nodes []*filetree.FileNode) []*filetree.FileNode {
+	return lo.Filter(nodes, func(node *filetree.FileNode, _ int) bool {
+		return node.GetHasUnstagedChanges()
+	})
 }
 
 func (self *FilesController) canRemove(selectedNodes []*filetree.FileNode) *types.DisabledReason {
