@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -43,4 +45,8 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteName string, branchName st
 			})
 		},
 	})
+}
+
+func ShortBranchName(fullBranchName string) string {
+	return strings.TrimPrefix(strings.TrimPrefix(fullBranchName, "refs/heads/"), "refs/remotes/")
 }
