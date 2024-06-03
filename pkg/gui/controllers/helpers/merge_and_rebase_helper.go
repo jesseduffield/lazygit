@@ -234,11 +234,29 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 }
 
 func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
-	checkedOutBranch := self.refsHelper.GetCheckedOutRef().Name
+	checkedOutBranch := self.refsHelper.GetCheckedOutRef()
+	checkedOutBranchName := self.refsHelper.GetCheckedOutRef().Name
+	var disabledReason, baseBranchDisabledReason *types.DisabledReason
+	if checkedOutBranchName == ref {
+		disabledReason = &types.DisabledReason{Text: self.c.Tr.CantRebaseOntoSelf}
+	}
+
+	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(checkedOutBranch, self.refsHelper.c.Model().MainBranches)
+	if err != nil {
+		return err
+	}
+	if baseBranch == "" {
+		baseBranch = self.c.Tr.CouldNotDetermineBaseBranch
+		baseBranchDisabledReason = &types.DisabledReason{Text: self.c.Tr.CouldNotDetermineBaseBranch}
+	}
+
 	menuItems := []*types.MenuItem{
 		{
-			Label: self.c.Tr.SimpleRebase,
-			Key:   's',
+			Label: utils.ResolvePlaceholderString(self.c.Tr.SimpleRebase,
+				map[string]string{"ref": ref},
+			),
+			Key:            's',
+			DisabledReason: disabledReason,
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
 				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(task gocui.Task) error {
@@ -258,9 +276,12 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			},
 		},
 		{
-			Label:   self.c.Tr.InteractiveRebase,
-			Key:     'i',
-			Tooltip: self.c.Tr.InteractiveRebaseTooltip,
+			Label: utils.ResolvePlaceholderString(self.c.Tr.InteractiveRebase,
+				map[string]string{"ref": ref},
+			),
+			Key:            'i',
+			DisabledReason: disabledReason,
+			Tooltip:        self.c.Tr.InteractiveRebaseTooltip,
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
 				baseCommit := self.c.Modes().MarkedBaseCommit.GetHash()
@@ -279,6 +300,31 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 				return self.c.PushContext(self.c.Contexts().LocalCommits)
 			},
 		},
+		{
+			Label: utils.ResolvePlaceholderString(self.c.Tr.RebaseOntoBaseBranch,
+				map[string]string{"baseBranch": ShortBranchName(baseBranch)},
+			),
+			Key:            'b',
+			DisabledReason: baseBranchDisabledReason,
+			Tooltip:        self.c.Tr.RebaseOntoBaseBranchTooltip,
+			OnPress: func() error {
+				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
+				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(task gocui.Task) error {
+					baseCommit := self.c.Modes().MarkedBaseCommit.GetHash()
+					var err error
+					if baseCommit != "" {
+						err = self.c.Git().Rebase.RebaseBranchFromBaseCommit(baseBranch, baseCommit)
+					} else {
+						err = self.c.Git().Rebase.RebaseBranch(baseBranch)
+					}
+					err = self.CheckMergeOrRebase(err)
+					if err == nil {
+						return self.ResetMarkedBaseCommit()
+					}
+					return err
+				})
+			},
+		},
 	}
 
 	title := utils.ResolvePlaceholderString(
@@ -286,8 +332,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			self.c.Tr.RebasingFromBaseCommitTitle,
 			self.c.Tr.RebasingTitle),
 		map[string]string{
-			"checkedOutBranch": checkedOutBranch,
-			"ref":              ref,
+			"checkedOutBranch": checkedOutBranchName,
 		},
 	)
 

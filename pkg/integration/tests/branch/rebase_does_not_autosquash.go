@@ -40,7 +40,7 @@ var RebaseDoesNotAutosquash = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Branches.RebaseBranch)
 
 		t.ExpectPopup().Menu().
-			Title(Equals("Rebase 'my-branch' onto 'master'")).
+			Title(Equals("Rebase 'my-branch'")).
 			Select(Contains("Simple rebase")).
 			Confirm()
 

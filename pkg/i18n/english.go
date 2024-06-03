@@ -289,7 +289,9 @@ type TranslationSet struct {
 	RebasingFromBaseCommitTitle           string
 	SimpleRebase                          string
 	InteractiveRebase                     string
+	RebaseOntoBaseBranch                  string
 	InteractiveRebaseTooltip              string
+	RebaseOntoBaseBranchTooltip           string
 	MustSelectTodoCommits                 string
 	ConfirmMerge                          string
 	FwdNoUpstream                         string
@@ -1253,11 +1255,13 @@ func EnglishTranslationSet() TranslationSet {
 		KeybindingsMenuSectionLocal:          "Local",
 		KeybindingsMenuSectionGlobal:         "Global",
 		KeybindingsMenuSectionNavigation:     "Navigation",
-		RebasingTitle:                        "Rebase '{{.checkedOutBranch}}' onto '{{.ref}}'",
-		RebasingFromBaseCommitTitle:          "Rebase '{{.checkedOutBranch}}' from marked base onto '{{.ref}}'",
-		SimpleRebase:                         "Simple rebase",
-		InteractiveRebase:                    "Interactive rebase",
+		RebasingTitle:                        "Rebase '{{.checkedOutBranch}}'",
+		RebasingFromBaseCommitTitle:          "Rebase '{{.checkedOutBranch}}' from marked base",
+		SimpleRebase:                         "Simple rebase onto '{{.ref}}'",
+		InteractiveRebase:                    "Interactive rebase onto '{{.ref}}'",
+		RebaseOntoBaseBranch:                 "Rebase onto base branch ({{.baseBranch}})",
 		InteractiveRebaseTooltip:             "Begin an interactive rebase with a break at the start, so you can update the TODO commits before continuing.",
+		RebaseOntoBaseBranchTooltip:          "Rebase the checked out branch onto its base branch (i.e. the closest main branch).",
 		MustSelectTodoCommits:                "When rebasing, this action only works on a selection of TODO commits.",
 		ConfirmMerge:                         "Are you sure you want to merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'?",
 		FwdNoUpstream:                        "Cannot fast-forward a branch with no upstream",
@@ -1443,7 +1447,7 @@ func EnglishTranslationSet() TranslationSet {
 		ViewUpstreamResetOptions:             "Reset checked-out branch onto {{.upstream}}",
 		ViewUpstreamResetOptionsTooltip:      "View options for resetting the checked-out branch onto {{upstream}}. Note: this will not reset the selected branch onto the upstream, it will reset the checked-out branch onto the upstream.",
 		ViewUpstreamRebaseOptions:            "Rebase checked-out branch onto {{.upstream}}",
-		ViewUpstreamRebaseOptionsTooltip:     "View options for rebasing the checked-out branch onto {{upstream}}. Note: this will not rebase the selected branch onto the upstream, it will rebased the checked-out branch onto the upstream.",
+		ViewUpstreamRebaseOptionsTooltip:     "View options for rebasing the checked-out branch onto {{upstream}}. Note: this will not rebase the selected branch onto the upstream, it will rebase the checked-out branch onto the upstream.",
 		UpstreamGenericName:                  "upstream of selected branch",
 		SetUpstreamTitle:                     "Set upstream branch",
 		SetUpstreamMessage:                   "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",

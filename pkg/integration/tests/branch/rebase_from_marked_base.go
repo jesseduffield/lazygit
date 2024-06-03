@@ -61,7 +61,7 @@ var RebaseFromMarkedBase = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Branches.RebaseBranch)
 
 		t.ExpectPopup().Menu().
-			Title(Equals("Rebase 'active-branch' from marked base onto 'target-branch'")).
+			Title(Equals("Rebase 'active-branch' from marked base")).
 			Select(Contains("Simple rebase")).
 			Confirm()
 
