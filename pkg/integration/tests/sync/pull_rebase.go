@@ -35,13 +35,13 @@ var PullRebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("one"),
 			)
 
-		t.Views().Status().Content(Contains("↓2 repo → master"))
+		t.Views().Status().Content(Equals("↓2↑1 repo → master"))
 
 		t.Views().Files().
 			IsFocused().
 			Press(keys.Universal.Pull)
 
-		t.Views().Status().Content(Contains("↑1 repo → master"))
+		t.Views().Status().Content(Equals("↑1 repo → master"))
 
 		t.Views().Commits().
 			Lines(

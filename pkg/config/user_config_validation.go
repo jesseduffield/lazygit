@@ -7,7 +7,12 @@ import (
 )
 
 func (config *UserConfig) Validate() error {
-	if err := validateEnum("gui.statusPanelView", config.Gui.StatusPanelView, []string{"dashboard", "allBranchesLog"}); err != nil {
+	if err := validateEnum("gui.statusPanelView", config.Gui.StatusPanelView,
+		[]string{"dashboard", "allBranchesLog"}); err != nil {
+		return err
+	}
+	if err := validateEnum("gui.showDivergenceFromBaseBranch", config.Gui.ShowDivergenceFromBaseBranch,
+		[]string{"none", "onlyArrow", "arrowAndNumber"}); err != nil {
 		return err
 	}
 	return nil

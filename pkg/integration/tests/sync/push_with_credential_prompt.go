@@ -26,7 +26,7 @@ var PushWithCredentialPrompt = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CopyHelpFile("pre-push", ".git/hooks/pre-push")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Status().Content(Contains("↑1 repo → master"))
+		t.Views().Status().Content(Equals("↑1 repo → master"))
 
 		t.Views().Files().
 			IsFocused().
@@ -50,7 +50,7 @@ var PushWithCredentialPrompt = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(Contains("incorrect username/password")).
 			Confirm()
 
-		t.Views().Status().Content(Contains("↑1 repo → master"))
+		t.Views().Status().Content(Equals("↑1 repo → master"))
 
 		// try again with correct password
 		t.Views().Files().
@@ -67,7 +67,7 @@ var PushWithCredentialPrompt = NewIntegrationTest(NewIntegrationTestArgs{
 			Type("password").
 			Confirm()
 
-		t.Views().Status().Content(Contains("✓ repo → master"))
+		t.Views().Status().Content(Equals("✓ repo → master"))
 
 		assertSuccessfullyPushed(t)
 	},

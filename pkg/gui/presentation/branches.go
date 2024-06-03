@@ -56,7 +56,7 @@ func getBranchDisplayStrings(
 	// Recency is always three characters, plus one for the space
 	availableWidth := viewWidth - 4
 	if len(branchStatus) > 0 {
-		availableWidth -= runewidth.StringWidth(branchStatus) + 1
+		availableWidth -= runewidth.StringWidth(utils.Decolorise(branchStatus)) + 1
 	}
 	if icons.IsIconEnabled() {
 		availableWidth -= 2 // one for the icon, one for the space
@@ -89,8 +89,7 @@ func getBranchDisplayStrings(
 		coloredName = fmt.Sprintf("%s %s", coloredName, style.FgDefault.Sprint(worktreeIcon))
 	}
 	if len(branchStatus) > 0 {
-		coloredStatus := branchStatusColor(b, itemOperation).Sprint(branchStatus)
-		coloredName = fmt.Sprintf("%s %s", coloredName, coloredStatus)
+		coloredName = fmt.Sprintf("%s %s", coloredName, branchStatus)
 	}
 
 	recencyColor := style.FgCyan
@@ -144,30 +143,6 @@ func GetBranchTextStyle(name string) style.TextStyle {
 	}
 }
 
-func branchStatusColor(branch *models.Branch, itemOperation types.ItemOperation) style.TextStyle {
-	colour := style.FgYellow
-	if itemOperation != types.ItemOperationNone {
-		colour = style.FgCyan
-	} else if branch.UpstreamGone {
-		colour = style.FgRed
-	} else if branch.MatchesUpstream() {
-		colour = style.FgGreen
-	} else if branch.RemoteBranchNotStoredLocally() {
-		colour = style.FgMagenta
-	}
-
-	return colour
-}
-
-func ColoredBranchStatus(
-	branch *models.Branch,
-	itemOperation types.ItemOperation,
-	tr *i18n.TranslationSet,
-	userConfig *config.UserConfig,
-) string {
-	return branchStatusColor(branch, itemOperation).Sprint(BranchStatus(branch, itemOperation, tr, time.Now(), userConfig))
-}
-
 func BranchStatus(
 	branch *models.Branch,
 	itemOperation types.ItemOperation,
@@ -177,30 +152,38 @@ func BranchStatus(
 ) string {
 	itemOperationStr := ItemOperationToString(itemOperation, tr)
 	if itemOperationStr != "" {
-		return itemOperationStr + " " + utils.Loader(now, userConfig.Gui.Spinner)
-	}
-
-	if !branch.IsTrackingRemote() {
-		return ""
-	}
-
-	if branch.UpstreamGone {
-		return tr.UpstreamGone
-	}
-
-	if branch.MatchesUpstream() {
-		return "✓"
-	}
-	if branch.RemoteBranchNotStoredLocally() {
-		return "?"
+		return style.FgCyan.Sprintf("%s %s", itemOperationStr, utils.Loader(now, userConfig.Gui.Spinner))
 	}
 
 	result := ""
-	if branch.IsAheadForPull() {
-		result = fmt.Sprintf("↑%s", branch.AheadForPull)
+	if branch.IsTrackingRemote() {
+		if branch.UpstreamGone {
+			result = style.FgRed.Sprint(tr.UpstreamGone)
+		} else if branch.MatchesUpstream() {
+			result = style.FgGreen.Sprint("✓")
+		} else if branch.RemoteBranchNotStoredLocally() {
+			result = style.FgMagenta.Sprint("?")
+		} else if branch.IsBehindForPull() && branch.IsAheadForPull() {
+			result = style.FgYellow.Sprintf("↓%s↑%s", branch.BehindForPull, branch.AheadForPull)
+		} else if branch.IsBehindForPull() {
+			result = style.FgYellow.Sprintf("↓%s", branch.BehindForPull)
+		} else if branch.IsAheadForPull() {
+			result = style.FgYellow.Sprintf("↑%s", branch.AheadForPull)
+		}
 	}
-	if branch.IsBehindForPull() {
-		result = fmt.Sprintf("%s↓%s", result, branch.BehindForPull)
+
+	if userConfig.Gui.ShowDivergenceFromBaseBranch != "none" {
+		behind := branch.BehindBaseBranch.Load()
+		if behind != 0 {
+			if result != "" {
+				result += " "
+			}
+			if userConfig.Gui.ShowDivergenceFromBaseBranch == "arrowAndNumber" {
+				result += style.FgCyan.Sprintf("↓%d", behind)
+			} else {
+				result += style.FgCyan.Sprintf("↓")
+			}
+		}
 	}
 
 	return result

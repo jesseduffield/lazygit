@@ -24,7 +24,7 @@ func createTwoBranchesReadyToForcePush(shell *Shell) {
 }
 
 func assertSuccessfullyPushed(t *TestDriver) {
-	t.Views().Status().Content(Contains("✓ repo → master"))
+	t.Views().Status().Content(Equals("✓ repo → master"))
 
 	t.Views().Remotes().
 		Focus().

@@ -187,6 +187,10 @@ gui:
   # If true, show commit hashes alongside branch names in the branches view.
   showBranchCommitHash: false
 
+  # Whether to show the divergence from the base branch in the branches view.
+  # One of: 'none' | 'onlyArrow'  | 'arrowAndNumber'
+  showDivergenceFromBaseBranch: none
+
   # Height of the command log view
   commandLogSize: 8
 

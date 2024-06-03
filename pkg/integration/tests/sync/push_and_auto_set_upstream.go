@@ -22,7 +22,7 @@ var PushAndAutoSetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		// assert no mention of upstream/downstream changes
-		t.Views().Status().Content(MatchesRegexp(`^\s+repo → master`))
+		t.Views().Status().Content(Equals("repo → master"))
 
 		t.Views().Files().
 			IsFocused().

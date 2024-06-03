@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -24,7 +25,10 @@ func FormatStatus(
 	status := ""
 
 	if currentBranch.IsRealBranch() {
-		status += ColoredBranchStatus(currentBranch, itemOperation, tr, userConfig) + " "
+		status += BranchStatus(currentBranch, itemOperation, tr, time.Now(), userConfig)
+		if status != "" {
+			status += " "
+		}
 	}
 
 	if workingTreeState != enums.REBASE_MODE_NONE {
@@ -40,7 +44,7 @@ func FormatStatus(
 		}
 		repoName = fmt.Sprintf("%s(%s%s)", repoName, icon, style.FgCyan.Sprint(linkedWorktreeName))
 	}
-	status += fmt.Sprintf("%s → %s ", repoName, name)
+	status += fmt.Sprintf("%s → %s", repoName, name)
 
 	return status
 }

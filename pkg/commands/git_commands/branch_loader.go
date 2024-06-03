@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/go-git/v5/config"
@@ -14,6 +15,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
+	"golang.org/x/sync/errgroup"
 )
 
 // context:
@@ -63,7 +65,13 @@ func NewBranchLoader(
 }
 
 // Load the list of branches for the current repo
-func (self *BranchLoader) Load(reflogCommits []*models.Commit) ([]*models.Branch, error) {
+func (self *BranchLoader) Load(reflogCommits []*models.Commit,
+	mainBranches *MainBranches,
+	oldBranches []*models.Branch,
+	loadBehindCounts bool,
+	onWorker func(func() error),
+	renderFunc func(),
+) ([]*models.Branch, error) {
 	branches := self.obtainBranches(self.version.IsAtLeast(2, 22, 0))
 
 	if self.AppState.LocalBranchSortOrder == "recency" {
@@ -122,9 +130,106 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit) ([]*models.Branch
 			branch.UpstreamRemote = match.Remote
 			branch.UpstreamBranch = match.Merge.Short()
 		}
+
+		// If the branch already existed, take over its BehindBaseBranch value
+		// to reduce flicker
+		if oldBranch, found := lo.Find(oldBranches, func(b *models.Branch) bool {
+			return b.Name == branch.Name
+		}); found {
+			branch.BehindBaseBranch.Store(oldBranch.BehindBaseBranch.Load())
+		}
+	}
+
+	if loadBehindCounts && self.UserConfig.Gui.ShowDivergenceFromBaseBranch != "none" {
+		onWorker(func() error {
+			return self.GetBehindBaseBranchValuesForAllBranches(branches, mainBranches, renderFunc)
+		})
 	}
 
 	return branches, nil
+}
+
+func (self *BranchLoader) GetBehindBaseBranchValuesForAllBranches(
+	branches []*models.Branch,
+	mainBranches *MainBranches,
+	renderFunc func(),
+) error {
+	mainBranchRefs := mainBranches.Get()
+	if len(mainBranchRefs) == 0 {
+		return nil
+	}
+
+	t := time.Now()
+	errg := errgroup.Group{}
+
+	for _, branch := range branches {
+		errg.Go(func() error {
+			baseBranch, err := self.GetBaseBranch(branch, mainBranches)
+			if err != nil {
+				return err
+			}
+			behind := 0 // prime it in case something below fails
+			if baseBranch != "" {
+				output, err := self.cmd.New(
+					NewGitCmd("rev-list").
+						Arg("--left-right").
+						Arg("--count").
+						Arg(fmt.Sprintf("%s...%s", branch.FullRefName(), baseBranch)).
+						ToArgv(),
+				).DontLog().RunWithOutput()
+				if err != nil {
+					return err
+				}
+				// The format of the output is "<ahead>\t<behind>"
+				aheadBehindStr := strings.Split(strings.TrimSpace(output), "\t")
+				if len(aheadBehindStr) == 2 {
+					if value, err := strconv.Atoi(aheadBehindStr[1]); err == nil {
+						behind = value
+					}
+				}
+			}
+			branch.BehindBaseBranch.Store(int32(behind))
+			return nil
+		})
+	}
+
+	err := errg.Wait()
+	self.Log.Debugf("time to get behind base branch values for all branches: %s", time.Since(t))
+	renderFunc()
+	return err
+}
+
+// Find the base branch for the given branch (i.e. the main branch that the
+// given branch was forked off of)
+//
+// Note that this function may return an empty string even if the returned error
+// is nil, e.g. when none of the configured main branches exist. This is not
+// considered an error condition, so callers need to check both the returned
+// error and whether the returned base branch is empty (and possibly react
+// differently in both cases).
+func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *MainBranches) (string, error) {
+	mergeBase := mainBranches.GetMergeBase(branch.FullRefName())
+	if mergeBase == "" {
+		return "", nil
+	}
+
+	output, err := self.cmd.New(
+		NewGitCmd("for-each-ref").
+			Arg("--contains").
+			Arg(mergeBase).
+			Arg("--format=%(refname)").
+			Arg(mainBranches.Get()...).
+			ToArgv(),
+	).DontLog().RunWithOutput()
+	if err != nil {
+		return "", err
+	}
+	trimmedOutput := strings.TrimSpace(output)
+	split := strings.Split(trimmedOutput, "\n")
+	if len(split) == 0 || split[0] == "" {
+		return "", nil
+	}
+	return split[0], nil
 }
 
 func (self *BranchLoader) obtainBranches(canUsePushTrack bool) []*models.Branch {

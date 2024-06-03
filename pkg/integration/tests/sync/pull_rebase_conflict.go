@@ -34,7 +34,7 @@ var PullRebaseConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("one"),
 			)
 
-		t.Views().Status().Content(Contains("↓2 repo → master"))
+		t.Views().Status().Content(Equals("↓2↑1 repo → master"))
 
 		t.Views().Files().
 			IsFocused().
@@ -63,7 +63,7 @@ var PullRebaseConflict = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Common().ContinueOnConflictsResolved()
 
-		t.Views().Status().Content(Contains("↑1 repo → master"))
+		t.Views().Status().Content(Equals("↑1 repo → master"))
 
 		t.Views().Commits().
 			Focus().
