@@ -6,7 +6,11 @@ var defaultUrlRegexStrings = []string{
 	`^(?:https?|ssh)://[^/]+/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 	`^.*?@.*:(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 }
-var defaultRepoURLTemplate = "https://{{.webDomain}}/{{.owner}}/{{.repo}}"
+
+var (
+	defaultRepoURLTemplate  = "https://{{.webDomain}}/{{.owner}}/{{.repo}}"
+	defaultRepoNameTemplate = "{{.owner}}/{{.repo}}"
+)
 
 // we've got less type safety using go templates but this lends itself better to
 // users adding custom service definitions in their config
@@ -17,6 +21,7 @@ var githubServiceDef = ServiceDefinition{
 	commitURL:                       "/commit/{{.CommitHash}}",
 	regexStrings:                    defaultUrlRegexStrings,
 	repoURLTemplate:                 defaultRepoURLTemplate,
+	repoNameTemplate:                defaultRepoNameTemplate,
 }
 
 var bitbucketServiceDef = ServiceDefinition{
@@ -29,6 +34,7 @@ var bitbucketServiceDef = ServiceDefinition{
 		`^.*@.*:(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 	},
 	repoURLTemplate: defaultRepoURLTemplate,
+	repoNameTemplate: defaultRepoNameTemplate,
 }
 
 var gitLabServiceDef = ServiceDefinition{
@@ -38,6 +44,7 @@ var gitLabServiceDef = ServiceDefinition{
 	commitURL:                       "/-/commit/{{.CommitHash}}",
 	regexStrings:                    defaultUrlRegexStrings,
 	repoURLTemplate:                 defaultRepoURLTemplate,
+	repoNameTemplate:                defaultRepoNameTemplate,
 }
 
 var azdoServiceDef = ServiceDefinition{
@@ -52,6 +59,8 @@ var azdoServiceDef = ServiceDefinition{
 		`^https://.*/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`,
 	},
 	repoURLTemplate: "https://{{.webDomain}}/{{.org}}/{{.project}}/_git/{{.repo}}",
+	// TODO: verify this is actually correct
+	repoNameTemplate: "{{.org}}/{{.project}}/{{.repo}}",
 }
 
 var bitbucketServerServiceDef = ServiceDefinition{
@@ -64,6 +73,8 @@ var bitbucketServerServiceDef = ServiceDefinition{
 		`^https://.*/scm/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
 	},
 	repoURLTemplate: "https://{{.webDomain}}/projects/{{.project}}/repos/{{.repo}}",
+	// TODO: verify this is actually correct
+	repoNameTemplate: "{{.project}}/{{.repo}}",
 }
 
 var giteaServiceDef = ServiceDefinition{

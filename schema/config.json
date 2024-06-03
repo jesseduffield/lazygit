@@ -442,6 +442,11 @@
           "type": "integer",
           "description": "When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.",
           "default": 12
+        },
+        "enableGithubCli": {
+          "type": "boolean",
+          "description": "If true and if if `gh` is installed and on version \u003e=2, we will use `gh` to display pull requests against branches.",
+          "default": true
         }
       },
       "additionalProperties": false,
