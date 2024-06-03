@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -30,6 +32,7 @@ type cliArgs struct {
 	PrintVersionInfo   bool
 	Debug              bool
 	TailLogs           bool
+	Profile            bool
 	PrintDefaultConfig bool
 	PrintConfigDir     bool
 	UseConfigDir       string
@@ -145,6 +148,14 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 		return
 	}
 
+	if cliArgs.Profile {
+		go func() {
+			if err := http.ListenAndServe("localhost:6060", nil); err != nil {
+				log.Fatal(err)
+			}
+		}()
+	}
+
 	parsedGitArg := parseGitArg(cliArgs.GitArg)
 
 	Run(appConfig, common, appTypes.NewStartArgs(cliArgs.FilterPath, parsedGitArg, integrationTest))
@@ -170,6 +181,9 @@ func parseCliArgsAndEnvVars() *cliArgs {
 
 	tailLogs := false
 	flaggy.Bool(&tailLogs, "l", "logs", "Tail lazygit logs (intended to be used when `lazygit --debug` is called in a separate terminal tab)")
+
+	profile := false
+	flaggy.Bool(&profile, "", "profile", "Start the profiler and serve it on http port 6060. See CONTRIBUTING.md for more info.")
 
 	printDefaultConfig := false
 	flaggy.Bool(&printDefaultConfig, "c", "config", "Print the default config")
@@ -202,6 +216,7 @@ func parseCliArgsAndEnvVars() *cliArgs {
 		PrintVersionInfo:   printVersionInfo,
 		Debug:              debug,
 		TailLogs:           tailLogs,
+		Profile:            profile,
 		PrintDefaultConfig: printDefaultConfig,
 		PrintConfigDir:     printConfigDir,
 		UseConfigDir:       useConfigDir,
