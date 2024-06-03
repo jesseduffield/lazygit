@@ -28,6 +28,8 @@ var colorPatterns *colorMatcher
 func GetBranchListDisplayStrings(
 	branches []*models.Branch,
 	getItemOperation func(item types.HasUrn) types.ItemOperation,
+	pullRequests []*models.GithubPullRequest,
+	remotes []*models.Remote,
 	fullDescription bool,
 	diffName string,
 	viewWidth int,
@@ -35,9 +37,15 @@ func GetBranchListDisplayStrings(
 	userConfig *config.UserConfig,
 	worktrees []*models.Worktree,
 ) [][]string {
+	prs := git_commands.GenerateGithubPullRequestMap(
+		pullRequests,
+		branches,
+		remotes,
+	)
+
 	return lo.Map(branches, func(branch *models.Branch, _ int) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, viewWidth, tr, userConfig, worktrees, time.Now())
+		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, viewWidth, tr, userConfig, worktrees, time.Now(), prs)
 	})
 }
 
@@ -52,6 +60,7 @@ func getBranchDisplayStrings(
 	userConfig *config.UserConfig,
 	worktrees []*models.Worktree,
 	now time.Time,
+	prs map[string]*models.GithubPullRequest,
 ) []string {
 	checkedOutByWorkTree := git_commands.CheckedOutByOtherWorktree(b, worktrees)
 	showCommitHash := fullDescription || userConfig.Gui.ShowBranchCommitHash
@@ -100,6 +109,7 @@ func getBranchDisplayStrings(
 	if checkedOutByWorkTree {
 		coloredName = fmt.Sprintf("%s %s", coloredName, style.FgDefault.Sprint(worktreeIcon))
 	}
+
 	if len(branchStatus) > 0 {
 		coloredName = fmt.Sprintf("%s %s", coloredName, branchStatus)
 	}
@@ -110,14 +120,22 @@ func getBranchDisplayStrings(
 	}
 
 	res := make([]string, 0, 6)
+
 	res = append(res, recencyColor.Sprint(b.Recency))
 
-	if icons.IsIconEnabled() {
-		res = append(res, nameTextStyle.Sprint(icons.IconForBranch(b)))
-	}
-
-	if showCommitHash {
-		res = append(res, utils.ShortHash(b.CommitHash))
+	pr, hasPr := prs[b.Name]
+	if hasPr {
+		if icons.IsIconEnabled() {
+			res = append(res, prColor(pr.State).Sprint(icons.IconForBranch(b)))
+		} else {
+			res = append(res, prColor(pr.State).Sprint("⬤"))
+		}
+	} else {
+		if icons.IsIconEnabled() {
+			res = append(res, style.FgDefault.Sprint(icons.IconForBranch(b)))
+		} else {
+			res = append(res, style.FgDefault.Sprint("⬤"))
+		}
 	}
 
 	if divergence != "" {
@@ -127,7 +145,12 @@ func getBranchDisplayStrings(
 			coloredName += style.FgCyan.Sprint(divergence)
 		}
 	}
+
 	res = append(res, coloredName)
+
+	if showCommitHash {
+		res = append(res, utils.ShortHash(b.CommitHash))
+	}
 
 	if fullDescription {
 		res = append(
@@ -226,5 +249,26 @@ func SetCustomBranches(customBranchColors map[string]string, isRegex bool) {
 	colorPatterns = &colorMatcher{
 		patterns: utils.SetCustomColors(customBranchColors),
 		isRegex:  isRegex,
+	}
+}
+
+// func coloredPrNumber(pr *models.GithubPullRequest, hasPr bool) string {
+// 	if hasPr {
+// 		return prColor(pr.State).Sprint("#" + strconv.Itoa(pr.Number))
+// 	}
+
+// 	return ("")
+// }
+
+func prColor(state string) style.TextStyle {
+	switch state {
+	case "OPEN":
+		return style.FgGreen
+	case "CLOSED":
+		return style.FgRed
+	case "MERGED":
+		return style.FgMagenta
+	default:
+		return style.FgDefault
 	}
 }
