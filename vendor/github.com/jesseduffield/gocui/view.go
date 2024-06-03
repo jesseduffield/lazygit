@@ -760,6 +760,8 @@ func (v *View) writeRunes(p []rune) {
 			}
 		}
 	}
+
+	v.updateSearchPositions()
 }
 
 // exported functions use the mutex. Non-exported functions are for internal use
@@ -1007,7 +1009,6 @@ func (v *View) draw() error {
 
 	v.clearRunes()
 
-	v.updateSearchPositions()
 	maxX, maxY := v.Size()
 
 	if v.Wrap {
