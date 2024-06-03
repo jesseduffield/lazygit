@@ -148,6 +148,7 @@ type Gui struct {
 	integrationTest integrationTypes.IntegrationTest
 
 	afterLayoutFuncs chan func() error
+	gitHubCliState   types.GitHubCliState
 }
 
 type StateAccessor struct {
@@ -219,6 +220,14 @@ func (self *StateAccessor) ClearItemOperation(item types.HasUrn) {
 	defer self.gui.itemOperationsMutex.Unlock()
 
 	delete(self.gui.itemOperations, item.URN())
+}
+
+func (self *StateAccessor) GetGitHubCliState() types.GitHubCliState {
+	return self.gui.gitHubCliState
+}
+
+func (self *StateAccessor) SetGitHubCliState(value types.GitHubCliState) {
+	self.gui.gitHubCliState = value
 }
 
 // we keep track of some stuff from one render to the next to see if certain
@@ -581,6 +590,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 			Authors:               map[string]*models.Author{},
 			MainBranches:          git_commands.NewMainBranches(gui.c.Common, gui.os.Cmd),
 			HashPool:              &utils.StringPool{},
+			PullRequests:          make([]*models.GithubPullRequest, 0),
 		},
 		Modes: &types.Modes{
 			Filtering:        filtering.New(startArgs.FilterPath, ""),

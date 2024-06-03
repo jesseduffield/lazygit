@@ -481,6 +481,10 @@ git:
   # to 40 to disable truncation.
   truncateCopiedCommitHashesTo: 12
 
+  # If true and if if `gh` is installed and on version >=2, we will use `gh` to
+  # display pull requests against branches.
+  enableGithubCli: true
+
 # Periodic update checks
 update:
   # One of: 'prompt' (default) | 'background' | 'never'

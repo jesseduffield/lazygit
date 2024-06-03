@@ -39,6 +39,8 @@ type GitCommand struct {
 	Worktree    *git_commands.WorktreeCommands
 	Version     *git_commands.GitVersion
 	RepoPaths   *git_commands.RepoPaths
+	GitHub         *git_commands.GitHubCommands
+	HostingService *git_commands.HostingService
 
 	Loaders Loaders
 }
@@ -137,6 +139,8 @@ func NewGitCommandAux(
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)
 	worktreeCommands := git_commands.NewWorktreeCommands(gitCommon)
 	blameCommands := git_commands.NewBlameCommands(gitCommon)
+	gitHubCommands := git_commands.NewGitHubCommand(gitCommon)
+	hostingServiceCommands := git_commands.NewHostingServiceCommand(gitCommon)
 
 	branchLoader := git_commands.NewBranchLoader(cmn, gitCommon, cmd, branchCommands.CurrentBranchInfo, configCommands)
 	commitFileLoader := git_commands.NewCommitFileLoader(cmn, cmd)
@@ -168,6 +172,8 @@ func NewGitCommandAux(
 		WorkingTree: workingTreeCommands,
 		Worktree:    worktreeCommands,
 		Version:     version,
+		GitHub:         gitHubCommands,
+		HostingService: hostingServiceCommands,
 		Loaders: Loaders{
 			BranchLoader:       branchLoader,
 			CommitFileLoader:   commitFileLoader,
