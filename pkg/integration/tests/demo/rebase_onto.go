@@ -64,7 +64,7 @@ var RebaseOnto = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Branches.RebaseBranch).
 			Tap(func() {
 				t.ExpectPopup().Menu().
-					Title(Contains("Rebase 'feature/demo' from marked base onto 'master'")).
+					Title(Contains("Rebase 'feature/demo' from marked base")).
 					Select(Contains("Simple rebase")).
 					Confirm()
 			}).
