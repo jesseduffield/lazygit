@@ -154,31 +154,7 @@ If you want to trigger a debug session from VSCode, you can use the following sn
 
 ## Profiling
 
-If you want to investigate what's contributing to CPU usage you can add the following to the top of the `main()` function in `main.go`
-
-```go
-import "runtime/pprof"
-
-func main() {
-	f, err := os.Create("cpu.prof")
-	if err != nil {
-		log.Fatal("could not create CPU profile: ", err)
-	}
-	defer f.Close()
-	if err := pprof.StartCPUProfile(f); err != nil {
-		log.Fatal("could not start CPU profile: ", err)
-	}
-	defer pprof.StopCPUProfile()
-	...
-```
-
-Then run lazygit, and afterwards, from your terminal, run:
-
-```sh
-go tool pprof --web cpu.prof
-```
-
-That should open an application which allows you to view the breakdown of CPU usage.
+If you want to investigate what's contributing to CPU or memory usage, see [this separate document](docs/dev/Profiling.md).
 
 ## Testing
 
