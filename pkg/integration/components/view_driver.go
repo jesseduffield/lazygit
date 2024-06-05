@@ -601,7 +601,9 @@ func (self *ViewDriver) SetCaptionPrefix(prefix string) *ViewDriver {
 }
 
 func (self *ViewDriver) Wait(milliseconds int) *ViewDriver {
-	self.t.Wait(milliseconds)
+	if !self.t.gui.Headless() {
+		self.t.Wait(milliseconds)
+	}
 
 	return self
 }
