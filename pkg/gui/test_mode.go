@@ -38,7 +38,7 @@ func (gui *Gui) handleTestMode() {
 			gui.PopupHandler.(*popup.PopupHandler).SetToastFunc(
 				func(message string, kind types.ToastKind) { toastChan <- message })
 
-			test.Run(&GuiDriver{gui: gui, isIdleChan: isIdleChan, toastChan: toastChan})
+			test.Run(&GuiDriver{gui: gui, isIdleChan: isIdleChan, toastChan: toastChan, headless: Headless()})
 
 			gui.g.Update(func(*gocui.Gui) error {
 				return gocui.ErrQuit

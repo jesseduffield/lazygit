@@ -21,6 +21,7 @@ type GuiDriver struct {
 	gui        *Gui
 	isIdleChan chan struct{}
 	toastChan  chan string
+	headless   bool
 }
 
 var _ integrationTypes.GuiDriver = &GuiDriver{}
@@ -160,4 +161,8 @@ func (self *GuiDriver) NextToast() *string {
 	default:
 		return nil
 	}
+}
+
+func (self *GuiDriver) Headless() bool {
+	return self.headless
 }

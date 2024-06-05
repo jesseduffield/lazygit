@@ -84,6 +84,8 @@ func (self *fakeGuiDriver) NextToast() *string {
 
 func (self *fakeGuiDriver) CheckAllToastsAcknowledged() {}
 
+func (self *fakeGuiDriver) Headless() bool { return false }
+
 func TestManualFailure(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,
