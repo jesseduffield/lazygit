@@ -51,10 +51,7 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 		},
 	}
 
-	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(func(selectedLineIdx int) error {
-		ctx.GetList().SetSelection(selectedLineIdx)
-		return ctx.HandleFocus(types.OnFocusOpts{})
-	}))
+	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(ctx.OnSearchSelect))
 
 	return ctx
 }
