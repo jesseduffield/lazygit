@@ -216,6 +216,15 @@ func mainSectionChildren(args WindowArrangementArgs) []*boxlayout.Box {
 		}
 	}
 
+	if args.CurrentWindow == "secondary" && args.ScreenMode == types.SCREEN_FULL {
+		return []*boxlayout.Box{
+			{
+				Window: "secondary",
+				Weight: 1,
+			},
+		}
+	}
+
 	return []*boxlayout.Box{
 		{
 			Window: "main",
@@ -239,7 +248,7 @@ func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
 		mainSectionWeight = 5 // need to shrink side panel to make way for main panels if side-by-side
 	}
 
-	if args.CurrentWindow == "main" {
+	if args.CurrentWindow == "main" || args.CurrentWindow == "secondary" {
 		if args.ScreenMode == types.SCREEN_HALF || args.ScreenMode == types.SCREEN_FULL {
 			sideSectionWeight = 0
 		}
