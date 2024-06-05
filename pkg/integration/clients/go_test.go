@@ -45,12 +45,6 @@ func TestIntegration(t *testing.T) {
 				return
 			}
 
-			// not running demoes right now. Arguably we should, but we'd need to
-			// strip away any artificial lag they use.
-			if test.IsDemo() {
-				return
-			}
-
 			t.Run(test.Name(), func(t *testing.T) {
 				t.Parallel()
 				err := f()
