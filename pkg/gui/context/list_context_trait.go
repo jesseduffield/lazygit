@@ -102,7 +102,7 @@ func (self *ListContextTrait) HandleRender() error {
 }
 
 func (self *ListContextTrait) OnSearchSelect(selectedLineIdx int) error {
-	self.GetList().SetSelection(selectedLineIdx)
+	self.GetList().SetSelection(self.ViewIndexToModelIndex(selectedLineIdx))
 	return self.HandleFocus(types.OnFocusOpts{})
 }
 
