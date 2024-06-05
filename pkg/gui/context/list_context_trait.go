@@ -136,3 +136,7 @@ func (self *ListContextTrait) IsItemVisible(item types.HasUrn) bool {
 func (self *ListContextTrait) RangeSelectEnabled() bool {
 	return true
 }
+
+func (self *ListContextTrait) RenderOnlyVisibleLines() bool {
+	return self.renderOnlyVisibleLines
+}

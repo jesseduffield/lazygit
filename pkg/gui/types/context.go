@@ -153,6 +153,7 @@ type IListContext interface {
 	FocusLine()
 	IsListContext() // used for type switch
 	RangeSelectEnabled() bool
+	RenderOnlyVisibleLines() bool
 }
 
 type IPatchExplorerContext interface {
