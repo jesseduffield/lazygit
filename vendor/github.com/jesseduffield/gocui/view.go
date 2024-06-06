@@ -184,7 +184,7 @@ func (v *View) clearViewLines() {
 
 type searcher struct {
 	searchString       string
-	searchPositions    []cellPos
+	searchPositions    []SearchPosition
 	currentSearchIndex int
 	onSelectItem       func(int, int, int) error
 }
@@ -228,7 +228,7 @@ func (v *View) SelectSearchResult(index int) error {
 		index = itemCount - 1
 	}
 
-	y := v.searcher.searchPositions[index].y
+	y := v.searcher.searchPositions[index].Y
 
 	v.FocusPoint(v.ox, y)
 	if v.searcher.onSelectItem != nil {
@@ -253,7 +253,7 @@ func (v *View) Search(str string) error {
 		adjustedY := v.oy + v.cy
 		adjustedX := v.ox + v.cx
 		for i, pos := range v.searcher.searchPositions {
-			if pos.y > adjustedY || (pos.y == adjustedY && pos.x > adjustedX) {
+			if pos.Y > adjustedY || (pos.Y == adjustedY && pos.XStart > adjustedX) {
 				currentIndex = i
 				break
 			}
@@ -326,19 +326,20 @@ func calculateNewOrigin(selectedLine int, oldOrigin int, lineCount int, viewHeig
 
 func (s *searcher) search(str string) {
 	s.searchString = str
-	s.searchPositions = []cellPos{}
+	s.searchPositions = []SearchPosition{}
 	s.currentSearchIndex = 0
 }
 
 func (s *searcher) clearSearch() {
 	s.searchString = ""
-	s.searchPositions = []cellPos{}
+	s.searchPositions = []SearchPosition{}
 	s.currentSearchIndex = 0
 }
 
-type cellPos struct {
-	x int
-	y int
+type SearchPosition struct {
+	XStart int
+	XEnd   int
+	Y      int
 }
 
 type viewLine struct {
@@ -967,10 +968,11 @@ func (v *View) updateSearchPositions() {
 			normalizedSearchStr = strings.ToLower(v.searcher.searchString)
 		}
 
-		v.searcher.searchPositions = []cellPos{}
+		v.searcher.searchPositions = []SearchPosition{}
 
-		searchPositionsForLine := func(line []cell, y int) []cellPos {
-			var result []cellPos
+		searchPositionsForLine := func(line []cell, y int) []SearchPosition {
+			var result []SearchPosition
+			searchStringWidth := runewidth.StringWidth(v.searcher.searchString)
 			x := 0
 			for startIdx, c := range line {
 				found := true
@@ -987,7 +989,7 @@ func (v *View) updateSearchPositions() {
 					offset += 1
 				}
 				if found {
-					result = append(result, cellPos{x: x, y: y})
+					result = append(result, SearchPosition{XStart: x, XEnd: x + searchStringWidth, Y: y})
 				}
 				x += runewidth.RuneWidth(c.chr)
 			}
@@ -1146,11 +1148,10 @@ func (v *View) viewLineLengthIgnoringTrailingBlankLines() int {
 }
 
 func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
-	searchStringWidth := runewidth.StringWidth(v.searcher.searchString)
 	for i, pos := range v.searcher.searchPositions {
 		adjustedY := y + v.oy
 		adjustedX := x + v.ox
-		if adjustedY == pos.y && adjustedX >= pos.x && adjustedX < pos.x+searchStringWidth {
+		if adjustedY == pos.Y && adjustedX >= pos.XStart && adjustedX < pos.XEnd {
 			return true, i == v.searcher.currentSearchIndex
 		}
 	}
