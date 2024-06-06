@@ -1604,6 +1604,13 @@ func (v *View) OverwriteLines(y int, content string) {
 	v.writeString(lines)
 }
 
+func (v *View) SetContentLineCount(lineCount int) {
+	if lineCount > 0 {
+		v.makeWriteable(0, lineCount-1)
+	}
+	v.lines = v.lines[:lineCount]
+}
+
 func (v *View) ScrollUp(amount int) {
 	if amount > v.oy {
 		amount = v.oy
