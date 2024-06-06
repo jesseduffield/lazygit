@@ -29,10 +29,13 @@ func GetBranchListDisplayStrings(
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
 	worktrees []*models.Worktree,
+	startIdx int,
+	endIdx int,
+	selectedBranchIdx int,
 ) [][]string {
-	return lo.Map(branches, func(branch *models.Branch, _ int) []string {
+	return lo.Map(branches[startIdx:endIdx], func(branch *models.Branch, idx int) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, viewWidth, tr, userConfig, worktrees, time.Now())
+		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, viewWidth, tr, userConfig, worktrees, time.Now(), selectedBranchIdx == startIdx+idx)
 	})
 }
 
@@ -47,6 +50,7 @@ func getBranchDisplayStrings(
 	userConfig *config.UserConfig,
 	worktrees []*models.Worktree,
 	now time.Time,
+	isSelected bool,
 ) []string {
 	checkedOutByWorkTree := git_commands.CheckedOutByOtherWorktree(b, worktrees)
 	showCommitHash := fullDescription || userConfig.Gui.ShowBranchCommitHash
@@ -74,7 +78,9 @@ func getBranchDisplayStrings(
 	}
 
 	nameTextStyle := GetBranchTextStyle(b.Name)
-	if diffed {
+	if isSelected {
+		nameTextStyle = style.FgYellow
+	} else if diffed {
 		nameTextStyle = theme.DiffTerminalColor
 	}
 

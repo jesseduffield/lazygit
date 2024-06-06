@@ -7,8 +7,8 @@ import (
 	"github.com/samber/lo"
 )
 
-func GetRemoteBranchListDisplayStrings(branches []*models.RemoteBranch, diffName string) [][]string {
-	return lo.Map(branches, func(branch *models.RemoteBranch, _ int) []string {
+func GetRemoteBranchListDisplayStrings(branches []*models.RemoteBranch, startIdx, endIdx int, diffName string) [][]string {
+	return lo.Map(branches[startIdx:endIdx], func(branch *models.RemoteBranch, _ int) []string {
 		diffed := branch.FullName() == diffName
 		return getRemoteBranchDisplayStrings(branch, diffed)
 	})

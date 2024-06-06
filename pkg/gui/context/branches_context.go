@@ -24,7 +24,7 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 		},
 	)
 
-	getDisplayStrings := func(_ int, _ int) [][]string {
+	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
 		return presentation.GetBranchListDisplayStrings(
 			viewModel.GetItems(),
 			c.State().GetItemOperation,
@@ -34,6 +34,9 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 			c.Tr,
 			c.UserConfig,
 			c.Model().Worktrees,
+			startIdx,
+			endIdx,
+			viewModel.GetSelectedLineIdx(),
 		)
 	}
 
@@ -52,7 +55,8 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 				list:              viewModel,
 				getDisplayStrings: getDisplayStrings,
 			},
-			c: c,
+			c:                       c,
+			refreshViewportOnChange: true,
 		},
 	}
 

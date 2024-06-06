@@ -28,8 +28,8 @@ func NewRemoteBranchesContext(
 		},
 	)
 
-	getDisplayStrings := func(_ int, _ int) [][]string {
-		return presentation.GetRemoteBranchListDisplayStrings(viewModel.GetItems(), c.Modes().Diffing.Ref)
+	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
+		return presentation.GetRemoteBranchListDisplayStrings(viewModel.GetItems(), startIdx, endIdx, c.Modes().Diffing.Ref)
 	}
 
 	return &RemoteBranchesContext{
@@ -50,7 +50,8 @@ func NewRemoteBranchesContext(
 				list:              viewModel,
 				getDisplayStrings: getDisplayStrings,
 			},
-			c: c,
+			c:                      c,
+			renderOnlyVisibleLines: true,
 		},
 	}
 }
