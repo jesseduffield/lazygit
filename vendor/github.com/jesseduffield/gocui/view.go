@@ -968,7 +968,9 @@ func (v *View) updateSearchPositions() {
 		}
 
 		v.searcher.searchPositions = []cellPos{}
-		for y, line := range v.lines {
+
+		searchPositionsForLine := func(line []cell, y int) []cellPos {
+			var result []cellPos
 			x := 0
 			for startIdx, c := range line {
 				found := true
@@ -985,10 +987,15 @@ func (v *View) updateSearchPositions() {
 					offset += 1
 				}
 				if found {
-					v.searcher.searchPositions = append(v.searcher.searchPositions, cellPos{x: x, y: y})
+					result = append(result, cellPos{x: x, y: y})
 				}
 				x += runewidth.RuneWidth(c.chr)
 			}
+			return result
+		}
+
+		for y, line := range v.lines {
+			v.searcher.searchPositions = append(v.searcher.searchPositions, searchPositionsForLine(line, y)...)
 		}
 	}
 }
