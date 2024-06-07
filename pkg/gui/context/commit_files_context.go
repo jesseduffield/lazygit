@@ -18,8 +18,9 @@ type CommitFilesContext struct {
 }
 
 var (
-	_ types.IListContext    = (*CommitFilesContext)(nil)
-	_ types.DiffableContext = (*CommitFilesContext)(nil)
+	_ types.IListContext       = (*CommitFilesContext)(nil)
+	_ types.DiffableContext    = (*CommitFilesContext)(nil)
+	_ types.ISearchableContext = (*CommitFilesContext)(nil)
 )
 
 func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
