@@ -245,6 +245,7 @@ var tests = []*components.IntegrationTest{
 	reflog.DoNotShowBranchMarkersInReflogSubcommits,
 	reflog.Patch,
 	reflog.Reset,
+	staging.DiffChangeScreenMode,
 	staging.DiffContextChange,
 	staging.DiscardAllChanges,
 	staging.Search,

@@ -565,7 +565,7 @@ func (self *ViewDriver) IsVisible() *ViewDriver {
 
 func (self *ViewDriver) IsInvisible() *ViewDriver {
 	self.t.assertWithRetries(func() (bool, string) {
-		return !self.getView().Visible, fmt.Sprintf("%s: Expected view to be visible, but it was not", self.context)
+		return !self.getView().Visible, fmt.Sprintf("%s: Expected view to be invisible, but it was not", self.context)
 	})
 
 	return self
