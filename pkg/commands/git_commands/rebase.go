@@ -67,42 +67,47 @@ func (self *RebaseCommands) RewordCommitInEditor(commits []*models.Commit, index
 	}), nil
 }
 
-func (self *RebaseCommands) ResetCommitAuthor(commits []*models.Commit, index int) error {
-	return self.GenericAmend(commits, index, func() error {
+func (self *RebaseCommands) ResetCommitAuthor(commits []*models.Commit, start, end int) error {
+	return self.GenericAmend(commits, start, end, func(_ *models.Commit) error {
 		return self.commit.ResetAuthor()
 	})
 }
 
-func (self *RebaseCommands) SetCommitAuthor(commits []*models.Commit, index int, value string) error {
-	return self.GenericAmend(commits, index, func() error {
+func (self *RebaseCommands) SetCommitAuthor(commits []*models.Commit, start, end int, value string) error {
+	return self.GenericAmend(commits, start, end, func(_ *models.Commit) error {
 		return self.commit.SetAuthor(value)
 	})
 }
 
-func (self *RebaseCommands) AddCommitCoAuthor(commits []*models.Commit, index int, value string) error {
-	return self.GenericAmend(commits, index, func() error {
-		return self.commit.AddCoAuthor(commits[index].Hash, value)
+func (self *RebaseCommands) AddCommitCoAuthor(commits []*models.Commit, start, end int, value string) error {
+	return self.GenericAmend(commits, start, end, func(commit *models.Commit) error {
+		return self.commit.AddCoAuthor(commit.Hash, value)
 	})
 }
 
-func (self *RebaseCommands) GenericAmend(commits []*models.Commit, index int, f func() error) error {
-	if models.IsHeadCommit(commits, index) {
+func (self *RebaseCommands) GenericAmend(commits []*models.Commit, start, end int, f func(commit *models.Commit) error) error {
+	if start == end && models.IsHeadCommit(commits, start) {
 		// we've selected the top commit so no rebase is required
-		return f()
+		return f(commits[start])
 	}
 
-	err := self.BeginInteractiveRebaseForCommit(commits, index, false)
+	err := self.BeginInteractiveRebaseForCommitRange(commits, start, end, false)
 	if err != nil {
 		return err
 	}
 
-	// now the selected commit should be our head so we'll amend it
-	err = f()
-	if err != nil {
-		return err
+	for commitIndex := end; commitIndex >= start; commitIndex-- {
+		err = f(commits[commitIndex])
+		if err != nil {
+			return err
+		}
+
+		if err := self.ContinueRebase(); err != nil {
+			return err
+		}
 	}
 
-	return self.ContinueRebase()
+	return nil
 }
 
 func (self *RebaseCommands) MoveCommitsDown(commits []*models.Commit, startIdx int, endIdx int) error {
@@ -381,7 +386,13 @@ func (self *RebaseCommands) SquashAllAboveFixupCommits(commit *models.Commit) er
 func (self *RebaseCommands) BeginInteractiveRebaseForCommit(
 	commits []*models.Commit, commitIndex int, keepCommitsThatBecomeEmpty bool,
 ) error {
-	if len(commits)-1 < commitIndex {
+	return self.BeginInteractiveRebaseForCommitRange(commits, commitIndex, commitIndex, keepCommitsThatBecomeEmpty)
+}
+
+func (self *RebaseCommands) BeginInteractiveRebaseForCommitRange(
+	commits []*models.Commit, start, end int, keepCommitsThatBecomeEmpty bool,
+) error {
+	if len(commits)-1 < end {
 		return errors.New("index outside of range of commits")
 	}
 
@@ -392,14 +403,17 @@ func (self *RebaseCommands) BeginInteractiveRebaseForCommit(
 		return errors.New(self.Tr.DisabledForGPG)
 	}
 
-	changes := []daemon.ChangeTodoAction{{
-		Hash:      commits[commitIndex].Hash,
-		NewAction: todo.Edit,
-	}}
+	changes := make([]daemon.ChangeTodoAction, 0, end-start)
+	for commitIndex := end; commitIndex >= start; commitIndex-- {
+		changes = append(changes, daemon.ChangeTodoAction{
+			Hash:      commits[commitIndex].Hash,
+			NewAction: todo.Edit,
+		})
+	}
 	self.os.LogCommand(logTodoChanges(changes), false)
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseHashOrRoot:             getBaseHashOrRoot(commits, commitIndex+1),
+		baseHashOrRoot:             getBaseHashOrRoot(commits, end+1),
 		overrideEditor:             true,
 		keepCommitsThatBecomeEmpty: keepCommitsThatBecomeEmpty,
 		instruction:                daemon.NewChangeTodoActionsInstruction(changes),
