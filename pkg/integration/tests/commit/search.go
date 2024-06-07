@@ -31,7 +31,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 					Type("two").
 					Confirm()
 
-				t.Views().Search().Content(Contains("matches for 'two' (1 of 1)"))
+				t.Views().Search().IsVisible().Content(Contains("matches for 'two' (1 of 1)"))
 			}).
 			Lines(
 				Contains("four"),
@@ -46,7 +46,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 					Type("o").
 					Confirm()
 
-				t.Views().Search().Content(Contains("matches for 'o' (2 of 3)"))
+				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (2 of 3)"))
 			}).
 			Lines(
 				Contains("four"),
@@ -56,7 +56,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press("n").
 			Tap(func() {
-				t.Views().Search().Content(Contains("matches for 'o' (3 of 3)"))
+				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (3 of 3)"))
 			}).
 			Lines(
 				Contains("four"),
@@ -66,7 +66,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press("n").
 			Tap(func() {
-				t.Views().Search().Content(Contains("matches for 'o' (1 of 3)"))
+				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (1 of 3)"))
 			}).
 			Lines(
 				Contains("four").IsSelected(),
@@ -76,7 +76,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press("n").
 			Tap(func() {
-				t.Views().Search().Content(Contains("matches for 'o' (2 of 3)"))
+				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (2 of 3)"))
 			}).
 			Lines(
 				Contains("four"),
@@ -86,7 +86,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press("N").
 			Tap(func() {
-				t.Views().Search().Content(Contains("matches for 'o' (1 of 3)"))
+				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (1 of 3)"))
 			}).
 			Lines(
 				Contains("four").IsSelected(),
@@ -96,7 +96,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press("N").
 			Tap(func() {
-				t.Views().Search().Content(Contains("matches for 'o' (3 of 3)"))
+				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (3 of 3)"))
 			}).
 			Lines(
 				Contains("four"),

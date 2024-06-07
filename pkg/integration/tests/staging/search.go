@@ -29,7 +29,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 					Type("four").
 					Confirm()
 
-				t.Views().Search().Content(Contains("matches for 'four' (1 of 1)"))
+				t.Views().Search().IsVisible().Content(Contains("matches for 'four' (1 of 1)"))
 			}).
 			SelectedLine(Contains("+four")). // stage the line
 			PressPrimaryAction().
