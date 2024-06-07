@@ -50,6 +50,8 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 
 	deletedLineHunks, addedLineHunks := parseDiff(diff)
 
+	commits := self.c.Model().Commits
+
 	var hashes []string
 	warnAboutAddedLines := false
 
@@ -57,7 +59,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		hashes, err = self.blameDeletedLines(deletedLineHunks)
 		warnAboutAddedLines = len(addedLineHunks) > 0
 	} else if len(addedLineHunks) > 0 {
-		hashes, err = self.blameAddedLines(addedLineHunks)
+		hashes, err = self.blameAddedLines(commits, addedLineHunks)
 	} else {
 		return errors.New(self.c.Tr.NoChangedFiles)
 	}
@@ -81,9 +83,8 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return fmt.Errorf("%s\n\n%s", message, subjects)
 	}
 
-	commit, index, ok := self.findCommit(hashes[0])
+	commit, index, ok := self.findCommit(commits, hashes[0])
 	if !ok {
-		commits := self.c.Model().Commits
 		if commits[len(commits)-1].Status == models.StatusMerged {
 			// If the commit is not found, it's most likely because it's already
 			// merged, and more than 300 commits away. Check if the last known
@@ -225,7 +226,7 @@ func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) ([]string, 
 	return result.ToSlice(), errg.Wait()
 }
 
-func (self *FixupHelper) blameAddedLines(addedLineHunks []*hunk) ([]string, error) {
+func (self *FixupHelper) blameAddedLines(commits []*models.Commit, addedLineHunks []*hunk) ([]string, error) {
 	errg := errgroup.Group{}
 	hashesChan := make(chan []string)
 
@@ -288,8 +289,8 @@ func (self *FixupHelper) blameAddedLines(addedLineHunks []*hunk) ([]string, erro
 			if hashes[0] == hashes[1] {
 				result.Add(hashes[0])
 			} else {
-				_, index1, ok1 := self.findCommit(hashes[0])
-				_, index2, ok2 := self.findCommit(hashes[1])
+				_, index1, ok1 := self.findCommit(commits, hashes[0])
+				_, index2, ok2 := self.findCommit(commits, hashes[1])
 				if ok1 && ok2 {
 					result.Add(lo.Ternary(index1 < index2, hashes[0], hashes[1]))
 				} else if ok1 {
@@ -306,8 +307,8 @@ func (self *FixupHelper) blameAddedLines(addedLineHunks []*hunk) ([]string, erro
 	return result.ToSlice(), errg.Wait()
 }
 
-func (self *FixupHelper) findCommit(hash string) (*models.Commit, int, bool) {
-	return lo.FindIndexOf(self.c.Model().Commits, func(commit *models.Commit) bool {
+func (self *FixupHelper) findCommit(commits []*models.Commit, hash string) (*models.Commit, int, bool) {
+	return lo.FindIndexOf(commits, func(commit *models.Commit) bool {
 		return commit.Hash == hash
 	})
 }
