@@ -15,7 +15,10 @@ type WorkingTreeContext struct {
 	*SearchTrait
 }
 
-var _ types.IListContext = (*WorkingTreeContext)(nil)
+var (
+	_ types.IListContext       = (*WorkingTreeContext)(nil)
+	_ types.ISearchableContext = (*WorkingTreeContext)(nil)
+)
 
 func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 	viewModel := filetree.NewFileTreeViewModel(

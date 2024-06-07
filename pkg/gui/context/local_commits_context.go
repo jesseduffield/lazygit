@@ -18,8 +18,9 @@ type LocalCommitsContext struct {
 }
 
 var (
-	_ types.IListContext    = (*LocalCommitsContext)(nil)
-	_ types.DiffableContext = (*LocalCommitsContext)(nil)
+	_ types.IListContext       = (*LocalCommitsContext)(nil)
+	_ types.DiffableContext    = (*LocalCommitsContext)(nil)
+	_ types.ISearchableContext = (*LocalCommitsContext)(nil)
 )
 
 func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {

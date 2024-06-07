@@ -18,7 +18,10 @@ type PatchExplorerContext struct {
 	mutex                  *deadlock.Mutex
 }
 
-var _ types.IPatchExplorerContext = (*PatchExplorerContext)(nil)
+var (
+	_ types.IPatchExplorerContext = (*PatchExplorerContext)(nil)
+	_ types.ISearchableContext    = (*PatchExplorerContext)(nil)
+)
 
 func NewPatchExplorerContext(
 	view *gocui.View,
