@@ -35,7 +35,6 @@ var FindBaseCommitForFixupDisregardMainBranch = NewIntegrationTest(NewIntegratio
 			Focus().
 			Press(keys.Files.FindBaseCommitForFixup)
 
-		/* EXPECTED:
 		t.Views().Commits().
 			IsFocused().
 			Lines(
@@ -44,13 +43,5 @@ var FindBaseCommitForFixupDisregardMainBranch = NewIntegrationTest(NewIntegratio
 				Contains("2nd commit"),
 				Contains("1st commit"),
 			)
-		*/
-
-		// ACTUAL:
-		t.ExpectPopup().Alert().Title(Equals("Error")).Content(
-			Contains("Multiple base commits found.").
-				Contains("2nd commit").
-				Contains("3rd commit"),
-		).Confirm()
 	},
 })
