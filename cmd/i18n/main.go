@@ -18,24 +18,8 @@ func saveLanguageFileToJson(tr *i18n.TranslationSet, filepath string) error {
 	return os.WriteFile(filepath, jsonData, 0o644)
 }
 
-func saveNonEnglishLanguageFilesToJson() error {
-	translationSets, _ := i18n.GetTranslationSets()
-	for lang, tr := range translationSets {
-		if lang == "en" {
-			continue
-		}
-
-		err := saveLanguageFileToJson(tr, "pkg/i18n/translations/"+lang+".json")
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func main() {
-	err := saveNonEnglishLanguageFilesToJson()
+	err := saveLanguageFileToJson(i18n.EnglishTranslationSet(), "en.json")
 	if err != nil {
 		log.Fatal(err)
 	}
