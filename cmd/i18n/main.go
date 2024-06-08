@@ -8,7 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 )
 
-func saveLanguageFileToJson(tr i18n.TranslationSet, filepath string) error {
+func saveLanguageFileToJson(tr *i18n.TranslationSet, filepath string) error {
 	jsonData, err := json.MarshalIndent(tr, "", "  ")
 	if err != nil {
 		return err
@@ -19,7 +19,8 @@ func saveLanguageFileToJson(tr i18n.TranslationSet, filepath string) error {
 }
 
 func saveNonEnglishLanguageFilesToJson() error {
-	for lang, tr := range i18n.GetTranslationSets() {
+	translationSets, _ := i18n.GetTranslationSets()
+	for lang, tr := range translationSets {
 		if lang == "en" {
 			continue
 		}

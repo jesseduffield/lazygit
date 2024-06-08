@@ -978,8 +978,8 @@ for up-to-date information how to configure your editor.
 `
 
 // exporting this so we can use it in tests
-func EnglishTranslationSet() TranslationSet {
-	return TranslationSet{
+func EnglishTranslationSet() *TranslationSet {
+	return &TranslationSet{
 		NotEnoughSpace:                       "Not enough space to render panels",
 		DiffTitle:                            "Diff",
 		FilesTitle:                           "Files",

@@ -51,7 +51,10 @@ func GetKeybindingsDir() string {
 }
 
 func generateAtDir(cheatsheetDir string) {
-	translationSetsByLang := i18n.GetTranslationSets()
+	translationSetsByLang, err := i18n.GetTranslationSets()
+	if err != nil {
+		log.Fatal(err)
+	}
 	mConfig := config.NewDummyAppConfig()
 
 	for lang := range translationSetsByLang {
