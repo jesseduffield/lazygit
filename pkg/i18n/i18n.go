@@ -9,12 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Localizer will translate a message into the user's language
-type Localizer struct {
-	Log *logrus.Entry
-	S   TranslationSet
-}
-
 func NewTranslationSetFromConfig(log *logrus.Entry, configLanguage string) (*TranslationSet, error) {
 	if configLanguage == "auto" {
 		language := detectLanguage(jibber_jabber.DetectIETF)
