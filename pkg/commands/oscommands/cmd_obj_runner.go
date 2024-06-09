@@ -284,6 +284,7 @@ const (
 	Username
 	Passphrase
 	PIN
+	Token
 )
 
 // Whenever we're asked for a password we just enter a newline, which will
@@ -376,6 +377,7 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (Crede
 		`Username\s*for\s*'.+':`:                 Username,
 		`Enter\s*passphrase\s*for\s*key\s*'.+':`: Passphrase,
 		`Enter\s*PIN\s*for\s*.+\s*key\s*.+:`:     PIN,
+		`.*2FA Token.*`:                          Token,
 	}
 
 	compiledPrompts := map[*regexp.Regexp]CredentialType{}
