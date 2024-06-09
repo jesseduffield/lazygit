@@ -39,6 +39,8 @@ func TestProcessOutput(t *testing.T) {
 			return "passphrase"
 		case PIN:
 			return "pin"
+		case Token:
+			return "token"
 		default:
 			panic("unexpected credential type")
 		}
@@ -91,6 +93,12 @@ func TestProcessOutput(t *testing.T) {
 			promptUserForCredential: defaultPromptUserForCredential,
 			output:                  "Enter PIN for key '123':",
 			expectedToWrite:         "pin",
+		},
+		{
+			name:                    "2FA token prompt",
+			promptUserForCredential: defaultPromptUserForCredential,
+			output:                  "testuser 2FA Token (citadel)",
+			expectedToWrite:         "token",
 		},
 		{
 			name:                    "username and password prompt",
