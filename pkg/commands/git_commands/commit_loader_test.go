@@ -304,7 +304,7 @@ func TestGetCommits(t *testing.T) {
 			builder := &CommitLoader{
 				Common:              common,
 				cmd:                 cmd,
-				getWorkingTreeState: func() enums.RebaseMode { return enums.REBASE_MODE_NONE },
+				getWorkingTreeState: func() enums.WorkingTreeState { return enums.WORKING_TREE_STATE_NONE },
 				dotGitDir:           ".git",
 				readFile: func(filename string) ([]byte, error) {
 					return []byte(""), nil
@@ -487,7 +487,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 			builder := &CommitLoader{
 				Common:              common,
 				cmd:                 oscommands.NewDummyCmdObjBuilder(oscommands.NewFakeRunner(t)),
-				getWorkingTreeState: func() enums.RebaseMode { return enums.REBASE_MODE_REBASING },
+				getWorkingTreeState: func() enums.WorkingTreeState { return enums.WORKING_TREE_STATE_REBASING },
 				dotGitDir:           ".git",
 				readFile: func(filename string) ([]byte, error) {
 					return []byte(""), nil

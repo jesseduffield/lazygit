@@ -78,7 +78,7 @@ func (self *UndoController) reflogUndo() error {
 	undoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit undo]"}
 	undoingStatus := self.c.Tr.UndoingStatus
 
-	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+	if self.c.Git().Status.WorkingTreeState() == enums.WORKING_TREE_STATE_REBASING {
 		return errors.New(self.c.Tr.CantUndoWhileRebasing)
 	}
 
@@ -142,7 +142,7 @@ func (self *UndoController) reflogRedo() error {
 	redoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit redo]"}
 	redoingStatus := self.c.Tr.RedoingStatus
 
-	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+	if self.c.Git().Status.WorkingTreeState() == enums.WORKING_TREE_STATE_REBASING {
 		return errors.New(self.c.Tr.CantRedoWhileRebasing)
 	}
 

@@ -5,11 +5,11 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 )
 
-func FormatWorkingTreeStateTitle(tr *i18n.TranslationSet, rebaseMode enums.RebaseMode) string {
-	switch rebaseMode {
-	case enums.REBASE_MODE_REBASING:
+func FormatWorkingTreeStateTitle(tr *i18n.TranslationSet, workingTreeState enums.WorkingTreeState) string {
+	switch workingTreeState {
+	case enums.WORKING_TREE_STATE_REBASING:
 		return tr.RebasingStatus
-	case enums.REBASE_MODE_MERGING:
+	case enums.WORKING_TREE_STATE_MERGING:
 		return tr.MergingStatus
 	default:
 		// should never actually display this
@@ -17,11 +17,11 @@ func FormatWorkingTreeStateTitle(tr *i18n.TranslationSet, rebaseMode enums.Rebas
 	}
 }
 
-func FormatWorkingTreeStateLower(tr *i18n.TranslationSet, rebaseMode enums.RebaseMode) string {
-	switch rebaseMode {
-	case enums.REBASE_MODE_REBASING:
+func FormatWorkingTreeStateLower(tr *i18n.TranslationSet, workingTreeState enums.WorkingTreeState) string {
+	switch workingTreeState {
+	case enums.WORKING_TREE_STATE_REBASING:
 		return tr.LowercaseRebasingStatus
-	case enums.REBASE_MODE_MERGING:
+	case enums.WORKING_TREE_STATE_MERGING:
 		return tr.LowercaseMergingStatus
 	default:
 		// should never actually display this
