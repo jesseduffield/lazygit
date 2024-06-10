@@ -20,16 +20,16 @@ func NewStatusCommands(
 	}
 }
 
-func (self *StatusCommands) WorkingTreeState() enums.RebaseMode {
+func (self *StatusCommands) WorkingTreeState() enums.WorkingTreeState {
 	isInRebase, _ := self.IsInRebase()
 	if isInRebase {
-		return enums.REBASE_MODE_REBASING
+		return enums.WORKING_TREE_STATE_REBASING
 	}
 	merging, _ := self.IsInMergeState()
 	if merging {
-		return enums.REBASE_MODE_MERGING
+		return enums.WORKING_TREE_STATE_MERGING
 	}
-	return enums.REBASE_MODE_NONE
+	return enums.WORKING_TREE_STATE_NONE
 }
 
 func (self *StatusCommands) IsBareRepo() bool {

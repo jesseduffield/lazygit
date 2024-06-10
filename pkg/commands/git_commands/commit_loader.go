@@ -31,7 +31,7 @@ type CommitLoader struct {
 	*common.Common
 	cmd oscommands.ICmdObjBuilder
 
-	getWorkingTreeState func() enums.RebaseMode
+	getWorkingTreeState func() enums.WorkingTreeState
 	readFile            func(filename string) ([]byte, error)
 	walkFiles           func(root string, fn filepath.WalkFunc) error
 	dotGitDir           string
@@ -42,7 +42,7 @@ type CommitLoader struct {
 func NewCommitLoader(
 	cmn *common.Common,
 	cmd oscommands.ICmdObjBuilder,
-	getWorkingTreeState func() enums.RebaseMode,
+	getWorkingTreeState func() enums.WorkingTreeState,
 	gitCommon *GitCommon,
 ) *CommitLoader {
 	return &CommitLoader{

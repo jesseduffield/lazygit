@@ -1,18 +1,18 @@
 package enums
 
-type RebaseMode int
+type WorkingTreeState int
 
 const (
 	// this means we're neither rebasing nor merging
-	REBASE_MODE_NONE RebaseMode = iota
-	REBASE_MODE_REBASING
-	REBASE_MODE_MERGING
+	WORKING_TREE_STATE_NONE WorkingTreeState = iota
+	WORKING_TREE_STATE_REBASING
+	WORKING_TREE_STATE_MERGING
 )
 
-func (self RebaseMode) IsMerging() bool {
-	return self == REBASE_MODE_MERGING
+func (self WorkingTreeState) IsMerging() bool {
+	return self == WORKING_TREE_STATE_MERGING
 }
 
-func (self RebaseMode) IsRebasing() bool {
-	return self == REBASE_MODE_REBASING
+func (self WorkingTreeState) IsRebasing() bool {
+	return self == WORKING_TREE_STATE_REBASING
 }

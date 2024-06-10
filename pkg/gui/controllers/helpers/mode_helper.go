@@ -116,7 +116,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 		},
 		{
 			IsActive: func() bool {
-				return !self.suppressRebasingMode && self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE
+				return !self.suppressRebasingMode && self.c.Git().Status.WorkingTreeState() != enums.WORKING_TREE_STATE_NONE
 			},
 			Description: func() string {
 				workingTreeState := self.c.Git().Status.WorkingTreeState()

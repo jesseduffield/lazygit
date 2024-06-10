@@ -682,7 +682,7 @@ func (self *LocalCommitsController) rewordEnabled(commit *models.Commit) *types.
 }
 
 func (self *LocalCommitsController) isRebasing() bool {
-	return self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.REBASE_MODE_NONE
+	return self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.WORKING_TREE_STATE_NONE
 }
 
 func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
@@ -976,7 +976,7 @@ func (self *LocalCommitsController) moveFixupCommitToOwnerStackedBranch(targetCo
 		return nil
 	}
 
-	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+	if self.c.Git().Status.WorkingTreeState() != enums.WORKING_TREE_STATE_NONE {
 		// Can't move commits while rebasing
 		return nil
 	}

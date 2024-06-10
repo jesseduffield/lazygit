@@ -51,7 +51,7 @@ func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 		{option: REBASE_OPTION_ABORT, key: 'a'},
 	}
 
-	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+	if self.c.Git().Status.WorkingTreeState() == enums.WORKING_TREE_STATE_REBASING {
 		options = append(options, optionAndKey{
 			option: REBASE_OPTION_SKIP, key: 's',
 		})
@@ -68,7 +68,7 @@ func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 	})
 
 	var title string
-	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_MERGING {
+	if self.c.Git().Status.WorkingTreeState() == enums.WORKING_TREE_STATE_MERGING {
 		title = self.c.Tr.MergeOptionsTitle
 	} else {
 		title = self.c.Tr.RebaseOptionsTitle
@@ -84,12 +84,12 @@ func (self *MergeAndRebaseHelper) ContinueRebase() error {
 func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	status := self.c.Git().Status.WorkingTreeState()
 
-	if status != enums.REBASE_MODE_MERGING && status != enums.REBASE_MODE_REBASING {
+	if status != enums.WORKING_TREE_STATE_MERGING && status != enums.WORKING_TREE_STATE_REBASING {
 		return errors.New(self.c.Tr.NotMergingOrRebasing)
 	}
 
 	self.c.LogAction(fmt.Sprintf("Merge/Rebase: %s", command))
-	if status == enums.REBASE_MODE_REBASING {
+	if status == enums.WORKING_TREE_STATE_REBASING {
 		todoFile, err := os.ReadFile(
 			filepath.Join(self.c.Git().RepoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"),
 		)
@@ -105,9 +105,9 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 
 	commandType := ""
 	switch status {
-	case enums.REBASE_MODE_MERGING:
+	case enums.WORKING_TREE_STATE_MERGING:
 		commandType = "merge"
-	case enums.REBASE_MODE_REBASING:
+	case enums.WORKING_TREE_STATE_REBASING:
 		commandType = "rebase"
 	default:
 		// shouldn't be possible to land here
@@ -116,10 +116,10 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
-	needsSubprocess := (status == enums.REBASE_MODE_MERGING && command != REBASE_OPTION_ABORT && self.c.UserConfig().Git.Merging.ManualCommit) ||
+	needsSubprocess := (status == enums.WORKING_TREE_STATE_MERGING && command != REBASE_OPTION_ABORT && self.c.UserConfig().Git.Merging.ManualCommit) ||
 		// but we'll also use a subprocess if we have exec todos; those are likely to be lengthy build
 		// tasks whose output the user will want to see in the terminal
-		(status == enums.REBASE_MODE_REBASING && command != REBASE_OPTION_ABORT && self.hasExecTodos())
+		(status == enums.WORKING_TREE_STATE_REBASING && command != REBASE_OPTION_ABORT && self.hasExecTodos())
 
 	if needsSubprocess {
 		// TODO: see if we should be calling more of the code from self.Git.Rebase.GenericMergeOrRebaseAction
@@ -239,9 +239,9 @@ func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 func (self *MergeAndRebaseHelper) workingTreeStateNoun() string {
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	switch workingTreeState {
-	case enums.REBASE_MODE_NONE:
+	case enums.WORKING_TREE_STATE_NONE:
 		return ""
-	case enums.REBASE_MODE_MERGING:
+	case enums.WORKING_TREE_STATE_MERGING:
 		return "merge"
 	default:
 		return "rebase"

@@ -583,7 +583,7 @@ func (self *RefreshHelper) refreshStateFiles() error {
 		}
 	}
 
-	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE && conflictFileCount == 0 && prevConflictFileCount > 0 {
+	if self.c.Git().Status.WorkingTreeState() != enums.WORKING_TREE_STATE_NONE && conflictFileCount == 0 && prevConflictFileCount > 0 {
 		self.c.OnUIThread(func() error { return self.mergeAndRebaseHelper.PromptToContinueRebase() })
 	}
 

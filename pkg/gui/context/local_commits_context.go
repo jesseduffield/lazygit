@@ -41,7 +41,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			}
 		}
 
-		showYouAreHereLabel := c.Model().WorkingTreeStateAtLastCommitRefresh == enums.REBASE_MODE_REBASING
+		showYouAreHereLabel := c.Model().WorkingTreeStateAtLastCommitRefresh == enums.WORKING_TREE_STATE_REBASING
 		hasRebaseUpdateRefsConfig := c.Git().Config.GetRebaseUpdateRefs()
 
 		return presentation.GetCommitListDisplayStrings(
