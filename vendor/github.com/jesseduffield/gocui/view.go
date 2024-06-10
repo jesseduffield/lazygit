@@ -254,8 +254,10 @@ func (v *View) GetSearchStatus() (int, int) {
 // Mind the difference between nil and empty slice: nil means we're not
 // searching the model, empty slice means we *are* searching the model but we
 // didn't find any matches.
-func (v *View) Search(str string, modelSearchResults []SearchPosition) error {
+func (v *View) UpdateSearchResults(str string, modelSearchResults []SearchPosition) {
 	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	v.searcher.search(str, modelSearchResults)
 	v.updateSearchPositions()
 
@@ -271,12 +273,17 @@ func (v *View) Search(str string, modelSearchResults []SearchPosition) error {
 			}
 		}
 		v.searcher.currentSearchIndex = currentIndex
-		v.writeMutex.Unlock()
-		return v.SelectSearchResult(currentIndex)
-	} else {
-		v.writeMutex.Unlock()
-		return v.searcher.onSelectItem(-1, -1, 0)
 	}
+}
+
+func (v *View) Search(str string, modelSearchResults []SearchPosition) error {
+	v.UpdateSearchResults(str, modelSearchResults)
+
+	if len(v.searcher.searchPositions) > 0 {
+		return v.SelectSearchResult(v.searcher.currentSearchIndex)
+	}
+
+	return v.searcher.onSelectItem(-1, -1, 0)
 }
 
 func (v *View) ClearSearch() {
