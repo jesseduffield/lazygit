@@ -56,9 +56,7 @@ var FilterUpdatesWhenModelChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Branches().
 			Lines(
 				Contains("checked-out-branch").IsSelected(),
-				/* EXPECTED:
 				Contains("new-branch"),
-				*/
 			)
 
 		t.Views().Branches().
