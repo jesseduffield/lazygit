@@ -50,6 +50,8 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 
 	deletedLineHunks, addedLineHunks := parseDiff(diff)
 
+	commits := self.c.Model().Commits
+
 	var hashes []string
 	warnAboutAddedLines := false
 
@@ -57,7 +59,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		hashes, err = self.blameDeletedLines(deletedLineHunks)
 		warnAboutAddedLines = len(addedLineHunks) > 0
 	} else if len(addedLineHunks) > 0 {
-		hashes, err = self.blameAddedLines(addedLineHunks)
+		hashes, err = self.blameAddedLines(commits, addedLineHunks)
 	} else {
 		return errors.New(self.c.Tr.NoChangedFiles)
 	}
@@ -70,8 +72,49 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		// This should never happen
 		return errors.New(self.c.Tr.NoBaseCommitsFound)
 	}
-	if len(hashes) > 1 {
-		subjects, err := self.c.Git().Commit.GetHashesAndCommitMessagesFirstLine(hashes)
+
+	// If a commit can't be found, and the last known commit is already merged,
+	// we know that the commit we're looking for is also merged. Otherwise we
+	// can't tell.
+	notFoundMeansMerged := len(commits) > 0 && commits[len(commits)-1].Status == models.StatusMerged
+
+	const (
+		MERGED int = iota
+		NOT_MERGED
+		CANNOT_TELL
+	)
+
+	// Group the hashes into buckets by merged status
+	hashGroups := lo.GroupBy(hashes, func(hash string) int {
+		commit, _, ok := self.findCommit(commits, hash)
+		if ok {
+			return lo.Ternary(commit.Status == models.StatusMerged, MERGED, NOT_MERGED)
+		}
+		return lo.Ternary(notFoundMeansMerged, MERGED, CANNOT_TELL)
+	})
+
+	if len(hashGroups[CANNOT_TELL]) > 0 {
+		// If we have any commits that we can't tell if they're merged, just
+		// show the generic "not in current view" error. This can only happen if
+		// a feature branch has more than 300 commits, or there is no main
+		// branch. Both are so unlikely that we don't bother returning a more
+		// detailed error message (e.g. we could say something about the commits
+		// that *are* in the current branch, but it's not worth it).
+		return errors.New(self.c.Tr.BaseCommitIsNotInCurrentView)
+	}
+
+	if len(hashGroups[NOT_MERGED]) == 0 {
+		// If all the commits are merged, show the "already on main branch"
+		// error. It isn't worth doing a detailed report of which commits we
+		// found.
+		return errors.New(self.c.Tr.BaseCommitIsAlreadyOnMainBranch)
+	}
+
+	if len(hashGroups[NOT_MERGED]) > 1 {
+		// If there are multiple commits that could be the base commit, list
+		// them in the error message. But only the candidates from the current
+		// branch, not including any that are already merged.
+		subjects, err := self.c.Git().Commit.GetHashesAndCommitMessagesFirstLine(hashGroups[NOT_MERGED])
 		if err != nil {
 			return err
 		}
@@ -81,21 +124,9 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return fmt.Errorf("%s\n\n%s", message, subjects)
 	}
 
-	commit, index, ok := self.findCommit(hashes[0])
-	if !ok {
-		commits := self.c.Model().Commits
-		if commits[len(commits)-1].Status == models.StatusMerged {
-			// If the commit is not found, it's most likely because it's already
-			// merged, and more than 300 commits away. Check if the last known
-			// commit is already merged; if so, show the "already merged" error.
-			return errors.New(self.c.Tr.BaseCommitIsAlreadyOnMainBranch)
-		}
-		// If we get here, the current branch must have more then 300 commits. Unlikely...
-		return errors.New(self.c.Tr.BaseCommitIsNotInCurrentView)
-	}
-	if commit.Status == models.StatusMerged {
-		return errors.New(self.c.Tr.BaseCommitIsAlreadyOnMainBranch)
-	}
+	// At this point we know that the NOT_MERGED bucket has exactly one commit,
+	// and that's the one we want to select.
+	_, index, _ := self.findCommit(commits, hashGroups[NOT_MERGED][0])
 
 	doIt := func() error {
 		if !hasStagedChanges {
@@ -225,7 +256,7 @@ func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) ([]string, 
 	return result.ToSlice(), errg.Wait()
 }
 
-func (self *FixupHelper) blameAddedLines(addedLineHunks []*hunk) ([]string, error) {
+func (self *FixupHelper) blameAddedLines(commits []*models.Commit, addedLineHunks []*hunk) ([]string, error) {
 	errg := errgroup.Group{}
 	hashesChan := make(chan []string)
 
@@ -288,8 +319,8 @@ func (self *FixupHelper) blameAddedLines(addedLineHunks []*hunk) ([]string, erro
 			if hashes[0] == hashes[1] {
 				result.Add(hashes[0])
 			} else {
-				_, index1, ok1 := self.findCommit(hashes[0])
-				_, index2, ok2 := self.findCommit(hashes[1])
+				_, index1, ok1 := self.findCommit(commits, hashes[0])
+				_, index2, ok2 := self.findCommit(commits, hashes[1])
 				if ok1 && ok2 {
 					result.Add(lo.Ternary(index1 < index2, hashes[0], hashes[1]))
 				} else if ok1 {
@@ -306,8 +337,8 @@ func (self *FixupHelper) blameAddedLines(addedLineHunks []*hunk) ([]string, erro
 	return result.ToSlice(), errg.Wait()
 }
 
-func (self *FixupHelper) findCommit(hash string) (*models.Commit, int, bool) {
-	return lo.FindIndexOf(self.c.Model().Commits, func(commit *models.Commit) bool {
+func (self *FixupHelper) findCommit(commits []*models.Commit, hash string) (*models.Commit, int, bool) {
+	return lo.FindIndexOf(commits, func(commit *models.Commit) bool {
 		return commit.Hash == hash
 	})
 }
