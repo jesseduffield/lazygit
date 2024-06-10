@@ -162,10 +162,10 @@ func (self *SearchHelper) ConfirmSearch() error {
 		return err
 	}
 
-	return search(context)
+	return context.GetView().Search(searchString, modelSearchResults(context))
 }
 
-func search(context types.ISearchableContext) error {
+func modelSearchResults(context types.ISearchableContext) []gocui.SearchPosition {
 	searchString := context.GetSearchString()
 
 	var normalizedSearchStr string
@@ -177,7 +177,7 @@ func search(context types.ISearchableContext) error {
 		normalizedSearchStr = strings.ToLower(searchString)
 	}
 
-	return context.GetView().Search(searchString, context.ModelSearchResults(normalizedSearchStr, caseSensitive))
+	return context.ModelSearchResults(normalizedSearchStr, caseSensitive)
 }
 
 func (self *SearchHelper) CancelPrompt() error {
@@ -254,12 +254,12 @@ func (self *SearchHelper) ReApplySearch(ctx types.Context) {
 	// Reapply the search if the model has changed. This is needed for contexts
 	// that use the model for searching, to pass the new model search positions
 	// to the view.
-	state := self.searchState()
-	if ctx == state.Context {
-		searchableContext, ok := ctx.(types.ISearchableContext)
-		if ok {
-			_ = search(searchableContext)
+	searchableContext, ok := ctx.(types.ISearchableContext)
+	if ok {
+		ctx.GetView().UpdateSearchResults(searchableContext.GetSearchString(), modelSearchResults(searchableContext))
 
+		state := self.searchState()
+		if ctx == state.Context {
 			// Re-render the "x of y" search status, unless the search prompt is
 			// open for typing.
 			if self.c.CurrentContext().GetKey() != context.SEARCH_CONTEXT_KEY {
