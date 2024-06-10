@@ -303,7 +303,7 @@ func TestGetCommits(t *testing.T) {
 			builder := &CommitLoader{
 				Common:              common,
 				cmd:                 cmd,
-				getWorkingTreeState: func() models.WorkingTreeState { return models.WORKING_TREE_STATE_NONE },
+				getWorkingTreeState: func() models.WorkingTreeState { return models.WorkingTreeState{} },
 				dotGitDir:           ".git",
 				readFile: func(filename string) ([]byte, error) {
 					return []byte(""), nil
@@ -486,7 +486,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 			builder := &CommitLoader{
 				Common:              common,
 				cmd:                 oscommands.NewDummyCmdObjBuilder(oscommands.NewFakeRunner(t)),
-				getWorkingTreeState: func() models.WorkingTreeState { return models.WORKING_TREE_STATE_REBASING },
+				getWorkingTreeState: func() models.WorkingTreeState { return models.WorkingTreeState{Rebasing: true} },
 				dotGitDir:           ".git",
 				readFile: func(filename string) ([]byte, error) {
 					return []byte(""), nil

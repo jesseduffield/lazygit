@@ -171,7 +171,7 @@ func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit) ([]*mod
 		}
 	}
 
-	if !self.getWorkingTreeState().IsRebasing() {
+	if !self.getWorkingTreeState().Rebasing {
 		// not in rebase mode so return original commits
 		return result, nil
 	}

@@ -306,11 +306,15 @@ type TranslationSet struct {
 	ViewMergeRebaseOptionsTooltip         string
 	ViewMergeOptions                      string
 	ViewRebaseOptions                     string
+	ViewCherryPickOptions                 string
+	ViewRevertOptions                     string
 	NotMergingOrRebasing                  string
 	AlreadyRebasing                       string
 	RecentRepos                           string
 	MergeOptionsTitle                     string
 	RebaseOptionsTitle                    string
+	CherryPickOptionsTitle                string
+	RevertOptionsTitle                    string
 	CommitSummaryTitle                    string
 	CommitDescriptionTitle                string
 	CommitDescriptionSubTitle             string
@@ -392,6 +396,8 @@ type TranslationSet struct {
 	MergingStatus                         string
 	LowercaseRebasingStatus               string
 	LowercaseMergingStatus                string
+	LowercaseCherryPickingStatus          string
+	LowercaseRevertingStatus              string
 	AmendingStatus                        string
 	CherryPickingStatus                   string
 	UndoingStatus                         string
@@ -1359,11 +1365,15 @@ func EnglishTranslationSet() *TranslationSet {
 		ViewMergeRebaseOptionsTooltip:        "View options to abort/continue/skip the current merge/rebase.",
 		ViewMergeOptions:                     "View merge options",
 		ViewRebaseOptions:                    "View rebase options",
+		ViewCherryPickOptions:                "View cherry-pick options",
+		ViewRevertOptions:                    "View revert options",
 		NotMergingOrRebasing:                 "You are currently neither rebasing nor merging",
 		AlreadyRebasing:                      "Can't perform this action during a rebase",
 		RecentRepos:                          "Recent repositories",
 		MergeOptionsTitle:                    "Merge options",
 		RebaseOptionsTitle:                   "Rebase options",
+		CherryPickOptionsTitle:               "Cherry-pick options",
+		RevertOptionsTitle:                   "Revert options",
 		CommitSummaryTitle:                   "Commit summary",
 		CommitDescriptionTitle:               "Commit description",
 		CommitDescriptionSubTitle:            "Press {{.togglePanelKeyBinding}} to toggle focus, {{.commitMenuKeybinding}} to open menu",
@@ -1451,8 +1461,10 @@ func EnglishTranslationSet() *TranslationSet {
 		MovingStatus:                         "Moving",
 		RebasingStatus:                       "Rebasing",
 		MergingStatus:                        "Merging",
-		LowercaseRebasingStatus:              "rebasing", // lowercase because it shows up in parentheses
-		LowercaseMergingStatus:               "merging",  // lowercase because it shows up in parentheses
+		LowercaseRebasingStatus:              "rebasing",       // lowercase because it shows up in parentheses
+		LowercaseMergingStatus:               "merging",        // lowercase because it shows up in parentheses
+		LowercaseCherryPickingStatus:         "cherry-picking", // lowercase because it shows up in parentheses
+		LowercaseRevertingStatus:             "reverting",      // lowercase because it shows up in parentheses
 		AmendingStatus:                       "Amending",
 		CherryPickingStatus:                  "Cherry-picking",
 		UndoingStatus:                        "Undoing",

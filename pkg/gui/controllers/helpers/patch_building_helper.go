@@ -3,7 +3,6 @@ package helpers
 import (
 	"errors"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -22,7 +21,7 @@ func NewPatchBuildingHelper(
 }
 
 func (self *PatchBuildingHelper) ValidateNormalWorkingTreeState() (bool, error) {
-	if self.c.Git().Status.WorkingTreeState() != models.WORKING_TREE_STATE_NONE {
+	if self.c.Git().Status.WorkingTreeState().Any() {
 		return false, errors.New(self.c.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil

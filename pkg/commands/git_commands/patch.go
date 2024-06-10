@@ -228,7 +228,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 	}
 
 	if err := self.ApplyCustomPatch(true, true); err != nil {
-		if self.status.WorkingTreeState() == models.WORKING_TREE_STATE_REBASING {
+		if self.status.WorkingTreeState().Rebasing {
 			_ = self.rebase.AbortRebase()
 		}
 		return err
@@ -252,7 +252,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 	self.rebase.onSuccessfulContinue = func() error {
 		// add patches to index
 		if err := self.ApplyPatch(patch, ApplyPatchOpts{Index: true, ThreeWay: true}); err != nil {
-			if self.status.WorkingTreeState() == models.WORKING_TREE_STATE_REBASING {
+			if self.status.WorkingTreeState().Rebasing {
 				_ = self.rebase.AbortRebase()
 			}
 			return err

@@ -30,7 +30,7 @@ func FormatStatus(
 		}
 	}
 
-	if workingTreeState != models.WORKING_TREE_STATE_NONE {
+	if workingTreeState.Any() {
 		status += style.FgYellow.Sprintf("(%s) ", workingTreeState.LowerCaseTitle(tr))
 	}
 
