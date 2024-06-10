@@ -109,8 +109,7 @@ func (self *StatusController) onClick(opts gocui.ViewMouseBindingOpts) error {
 	upstreamStatus := utils.Decolorise(presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now(), self.c.UserConfig()))
 	repoName := self.c.Git().RepoPaths.RepoName()
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
-	switch workingTreeState {
-	case enums.WORKING_TREE_STATE_REBASING, enums.WORKING_TREE_STATE_MERGING:
+	if workingTreeState != enums.WORKING_TREE_STATE_NONE {
 		workingTreeStatus := fmt.Sprintf("(%s)", workingTreeState.LowerCaseTitle(self.c.Tr))
 		if cursorInSubstring(opts.X, upstreamStatus+" ", workingTreeStatus) {
 			return self.c.Helpers().MergeAndRebase.CreateRebaseOptionsMenu()
@@ -118,10 +117,8 @@ func (self *StatusController) onClick(opts gocui.ViewMouseBindingOpts) error {
 		if cursorInSubstring(opts.X, upstreamStatus+" "+workingTreeStatus+" ", repoName) {
 			return self.c.Helpers().Repos.CreateRecentReposMenu()
 		}
-	default:
-		if cursorInSubstring(opts.X, upstreamStatus+" ", repoName) {
-			return self.c.Helpers().Repos.CreateRecentReposMenu()
-		}
+	} else if cursorInSubstring(opts.X, upstreamStatus+" ", repoName) {
+		return self.c.Helpers().Repos.CreateRecentReposMenu()
 	}
 
 	return nil

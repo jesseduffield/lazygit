@@ -681,7 +681,7 @@ func (self *LocalCommitsController) rewordEnabled(commit *models.Commit) *types.
 }
 
 func (self *LocalCommitsController) isRebasing() bool {
-	return self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.WORKING_TREE_STATE_NONE
+	return self.c.Model().WorkingTreeStateAtLastCommitRefresh.IsRebasing()
 }
 
 func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {

@@ -51,7 +51,7 @@ func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 		{option: REBASE_OPTION_ABORT, key: 'a'},
 	}
 
-	if self.c.Git().Status.WorkingTreeState() == enums.WORKING_TREE_STATE_REBASING {
+	if self.c.Git().Status.WorkingTreeState().Effective() != enums.WORKING_TREE_STATE_MERGING {
 		options = append(options, optionAndKey{
 			option: REBASE_OPTION_SKIP, key: 's',
 		})
@@ -76,9 +76,9 @@ func (self *MergeAndRebaseHelper) ContinueRebase() error {
 }
 
 func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
-	status := self.c.Git().Status.WorkingTreeState()
+	status := self.c.Git().Status.WorkingTreeState().Effective()
 
-	if status != enums.WORKING_TREE_STATE_MERGING && status != enums.WORKING_TREE_STATE_REBASING {
+	if status == enums.WORKING_TREE_STATE_NONE {
 		return errors.New(self.c.Tr.NotMergingOrRebasing)
 	}
 
