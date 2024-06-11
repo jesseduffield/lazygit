@@ -302,10 +302,10 @@ func TestGetCommits(t *testing.T) {
 			cmd := oscommands.NewDummyCmdObjBuilder(scenario.runner)
 
 			builder := &CommitLoader{
-				Common:        common,
-				cmd:           cmd,
-				getRebaseMode: func() (enums.RebaseMode, error) { return enums.REBASE_MODE_NONE, nil },
-				dotGitDir:     ".git",
+				Common:              common,
+				cmd:                 cmd,
+				getWorkingTreeState: func() enums.RebaseMode { return enums.REBASE_MODE_NONE },
+				dotGitDir:           ".git",
 				readFile: func(filename string) ([]byte, error) {
 					return []byte(""), nil
 				},
@@ -485,10 +485,10 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 			common := utils.NewDummyCommon()
 
 			builder := &CommitLoader{
-				Common:        common,
-				cmd:           oscommands.NewDummyCmdObjBuilder(oscommands.NewFakeRunner(t)),
-				getRebaseMode: func() (enums.RebaseMode, error) { return enums.REBASE_MODE_INTERACTIVE, nil },
-				dotGitDir:     ".git",
+				Common:              common,
+				cmd:                 oscommands.NewDummyCmdObjBuilder(oscommands.NewFakeRunner(t)),
+				getWorkingTreeState: func() enums.RebaseMode { return enums.REBASE_MODE_INTERACTIVE },
+				dotGitDir:           ".git",
 				readFile: func(filename string) ([]byte, error) {
 					return []byte(""), nil
 				},
