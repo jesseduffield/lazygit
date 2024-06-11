@@ -32,7 +32,7 @@ func FormatStatus(
 	}
 
 	if workingTreeState != enums.WORKING_TREE_STATE_NONE {
-		status += style.FgYellow.Sprintf("(%s) ", FormatWorkingTreeStateLower(tr, workingTreeState))
+		status += style.FgYellow.Sprintf("(%s) ", workingTreeState.LowerCaseTitle(tr))
 	}
 
 	name := GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)
