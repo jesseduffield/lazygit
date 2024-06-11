@@ -31,10 +31,10 @@ type CommitLoader struct {
 	*common.Common
 	cmd oscommands.ICmdObjBuilder
 
-	getRebaseMode func() (enums.RebaseMode, error)
-	readFile      func(filename string) ([]byte, error)
-	walkFiles     func(root string, fn filepath.WalkFunc) error
-	dotGitDir     string
+	getWorkingTreeState func() enums.RebaseMode
+	readFile            func(filename string) ([]byte, error)
+	walkFiles           func(root string, fn filepath.WalkFunc) error
+	dotGitDir           string
 	*GitCommon
 }
 
@@ -42,16 +42,16 @@ type CommitLoader struct {
 func NewCommitLoader(
 	cmn *common.Common,
 	cmd oscommands.ICmdObjBuilder,
-	getRebaseMode func() (enums.RebaseMode, error),
+	getWorkingTreeState func() enums.RebaseMode,
 	gitCommon *GitCommon,
 ) *CommitLoader {
 	return &CommitLoader{
-		Common:        cmn,
-		cmd:           cmd,
-		getRebaseMode: getRebaseMode,
-		readFile:      os.ReadFile,
-		walkFiles:     filepath.Walk,
-		GitCommon:     gitCommon,
+		Common:              cmn,
+		cmd:                 cmd,
+		getWorkingTreeState: getWorkingTreeState,
+		readFile:            os.ReadFile,
+		walkFiles:           filepath.Walk,
+		GitCommon:           gitCommon,
 	}
 }
 
@@ -172,17 +172,12 @@ func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit) ([]*mod
 		}
 	}
 
-	rebaseMode, err := self.getRebaseMode()
-	if err != nil {
-		return nil, err
-	}
-
-	if rebaseMode == enums.REBASE_MODE_NONE {
+	if !self.getWorkingTreeState().IsRebasing() {
 		// not in rebase mode so return original commits
 		return result, nil
 	}
 
-	rebasingCommits, err := self.getHydratedRebasingCommits(rebaseMode)
+	rebasingCommits, err := self.getHydratedRebasingCommits()
 	if err != nil {
 		return nil, err
 	}
@@ -248,8 +243,8 @@ func (self *CommitLoader) extractCommitFromLine(line string, showDivergence bool
 	}
 }
 
-func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode) ([]*models.Commit, error) {
-	commits := self.getRebasingCommits(rebaseMode)
+func (self *CommitLoader) getHydratedRebasingCommits() ([]*models.Commit, error) {
+	commits := self.getRebasingCommits()
 
 	if len(commits) == 0 {
 		return nil, nil
@@ -310,11 +305,7 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 // git-rebase-todo example:
 // pick ac446ae94ee560bdb8d1d057278657b251aaef17 ac446ae
 // pick afb893148791a2fbd8091aeb81deba4930c73031 afb8931
-func (self *CommitLoader) getRebasingCommits(rebaseMode enums.RebaseMode) []*models.Commit {
-	if rebaseMode != enums.REBASE_MODE_INTERACTIVE {
-		return nil
-	}
-
+func (self *CommitLoader) getRebasingCommits() []*models.Commit {
 	bytesContent, err := self.readFile(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"))
 	if err != nil {
 		self.Log.Error(fmt.Sprintf("error occurred reading git-rebase-todo: %s", err.Error()))
