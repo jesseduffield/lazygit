@@ -63,15 +63,20 @@ func (self *ConfirmationHelper) DeactivateConfirmationPrompt() {
 
 // Temporary hack: we're just duplicating the logic in `gocui.lineWrap`
 func getMessageHeight(wrap bool, message string, width int) int {
+	return len(wrapMessageToWidth(wrap, message, width))
+}
+
+func wrapMessageToWidth(wrap bool, message string, width int) []string {
+	lines := strings.Split(message, "\n")
 	if !wrap {
-		return len(strings.Split(message, "\n"))
+		return lines
 	}
 
-	lineCount := 0
-	lines := strings.Split(message, "\n")
+	wrappedLines := make([]string, 0, len(lines))
 
 	for _, line := range lines {
 		n := 0
+		offset := 0
 		lastWhitespaceIndex := -1
 		for i, currChr := range line {
 			rw := runewidth.RuneWidth(currChr)
@@ -79,28 +84,38 @@ func getMessageHeight(wrap bool, message string, width int) int {
 
 			if n > width {
 				if currChr == ' ' {
+					wrappedLines = append(wrappedLines, line[offset:i])
+					offset = i + 1
 					n = 0
 				} else if currChr == '-' {
+					wrappedLines = append(wrappedLines, line[offset:i])
+					offset = i
 					n = rw
 				} else if lastWhitespaceIndex != -1 && lastWhitespaceIndex+1 != i {
 					if line[lastWhitespaceIndex] == '-' {
+						wrappedLines = append(wrappedLines, line[offset:lastWhitespaceIndex+1])
+						offset = lastWhitespaceIndex + 1
 						n = i - lastWhitespaceIndex
 					} else {
+						wrappedLines = append(wrappedLines, line[offset:lastWhitespaceIndex])
+						offset = lastWhitespaceIndex + 1
 						n = i - lastWhitespaceIndex + 1
 					}
 				} else {
+					wrappedLines = append(wrappedLines, line[offset:i])
+					offset = i
 					n = rw
 				}
-				lineCount++
 				lastWhitespaceIndex = -1
 			} else if currChr == ' ' || currChr == '-' {
 				lastWhitespaceIndex = i
 			}
 		}
-		lineCount++
+
+		wrappedLines = append(wrappedLines, line[offset:])
 	}
 
-	return lineCount
+	return wrappedLines
 }
 
 func (self *ConfirmationHelper) getPopupPanelDimensions(wrap bool, prompt string) (int, int, int, int) {
