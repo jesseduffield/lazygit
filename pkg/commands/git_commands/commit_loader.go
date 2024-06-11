@@ -169,19 +169,26 @@ func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit) ([]*mod
 		}
 	}
 
-	if !self.getWorkingTreeState().Rebasing {
-		// not in rebase mode so return original commits
-		return result, nil
+	workingTreeState := self.getWorkingTreeState()
+	addConflictedRebasingCommit := true
+	if workingTreeState.CherryPicking || workingTreeState.Reverting {
+		sequencerCommits, err := self.getHydratedSequencerCommits(workingTreeState)
+		if err != nil {
+			return nil, err
+		}
+		result = append(sequencerCommits, result...)
+		addConflictedRebasingCommit = false
 	}
 
-	rebasingCommits, err := self.getHydratedRebasingCommits()
-	if err != nil {
-		return nil, err
+	if workingTreeState.Rebasing {
+		rebasingCommits, err := self.getHydratedRebasingCommits(addConflictedRebasingCommit)
+		if err != nil {
+			return nil, err
+		}
+		if len(rebasingCommits) > 0 {
+			result = append(rebasingCommits, result...)
+		}
 	}
-	if len(rebasingCommits) > 0 {
-		result = append(rebasingCommits, result...)
-	}
-
 	return result, nil
 }
 
@@ -240,14 +247,36 @@ func (self *CommitLoader) extractCommitFromLine(line string, showDivergence bool
 	}
 }
 
-func (self *CommitLoader) getHydratedRebasingCommits() ([]*models.Commit, error) {
-	commits := self.getRebasingCommits()
+func (self *CommitLoader) getHydratedRebasingCommits(addConflictingCommit bool) ([]*models.Commit, error) {
+	todoFileHasShortHashes := self.version.IsOlderThan(2, 25, 2)
+	return self.getHydratedTodoCommits(self.getRebasingCommits(addConflictingCommit), todoFileHasShortHashes)
+}
 
-	if len(commits) == 0 {
+func (self *CommitLoader) getHydratedSequencerCommits(workingTreeState models.WorkingTreeState) ([]*models.Commit, error) {
+	commits := self.getSequencerCommits()
+	if len(commits) > 0 {
+		// If we have any commits in .git/sequencer/todo, then the last one of
+		// those is the conflicting one.
+		commits[len(commits)-1].Status = models.StatusConflicted
+	} else {
+		// For single-commit cherry-picks and reverts, git apparently doesn't
+		// use the sequencer; in that case, CHERRY_PICK_HEAD or REVERT_HEAD is
+		// our conflicting commit, so synthesize it here.
+		conflicedCommit := self.getConflictedSequencerCommit(workingTreeState)
+		if conflicedCommit != nil {
+			commits = append(commits, conflicedCommit)
+		}
+	}
+
+	return self.getHydratedTodoCommits(commits, true)
+}
+
+func (self *CommitLoader) getHydratedTodoCommits(todoCommits []*models.Commit, todoFileHasShortHashes bool) ([]*models.Commit, error) {
+	if len(todoCommits) == 0 {
 		return nil, nil
 	}
 
-	commitHashes := lo.FilterMap(commits, func(commit *models.Commit, _ int) (string, bool) {
+	commitHashes := lo.FilterMap(todoCommits, func(commit *models.Commit, _ int) (string, bool) {
 		return commit.Hash, commit.Hash != ""
 	})
 
@@ -271,7 +300,7 @@ func (self *CommitLoader) getHydratedRebasingCommits() ([]*models.Commit, error)
 		return nil, err
 	}
 
-	findFullCommit := lo.Ternary(self.version.IsOlderThan(2, 25, 2),
+	findFullCommit := lo.Ternary(todoFileHasShortHashes,
 		func(hash string) *models.Commit {
 			for s, c := range fullCommits {
 				if strings.HasPrefix(s, hash) {
@@ -284,8 +313,8 @@ func (self *CommitLoader) getHydratedRebasingCommits() ([]*models.Commit, error)
 			return fullCommits[hash]
 		})
 
-	hydratedCommits := make([]*models.Commit, 0, len(commits))
-	for _, rebasingCommit := range commits {
+	hydratedCommits := make([]*models.Commit, 0, len(todoCommits))
+	for _, rebasingCommit := range todoCommits {
 		if rebasingCommit.Hash == "" {
 			hydratedCommits = append(hydratedCommits, rebasingCommit)
 		} else if commit := findFullCommit(rebasingCommit.Hash); commit != nil {
@@ -302,7 +331,7 @@ func (self *CommitLoader) getHydratedRebasingCommits() ([]*models.Commit, error)
 // git-rebase-todo example:
 // pick ac446ae94ee560bdb8d1d057278657b251aaef17 ac446ae
 // pick afb893148791a2fbd8091aeb81deba4930c73031 afb8931
-func (self *CommitLoader) getRebasingCommits() []*models.Commit {
+func (self *CommitLoader) getRebasingCommits(addConflictingCommit bool) []*models.Commit {
 	bytesContent, err := self.readFile(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"))
 	if err != nil {
 		self.Log.Error(fmt.Sprintf("error occurred reading git-rebase-todo: %s", err.Error()))
@@ -320,8 +349,10 @@ func (self *CommitLoader) getRebasingCommits() []*models.Commit {
 
 	// See if the current commit couldn't be applied because it conflicted; if
 	// so, add a fake entry for it
-	if conflictedCommit := self.getConflictedCommit(todos); conflictedCommit != nil {
-		commits = append(commits, conflictedCommit)
+	if addConflictingCommit {
+		if conflictedCommit := self.getConflictedCommit(todos); conflictedCommit != nil {
+			commits = append(commits, conflictedCommit)
+		}
 	}
 
 	for _, t := range todos {
@@ -432,6 +463,67 @@ func (self *CommitLoader) getConflictedCommitImpl(todos []todo.Todo, doneTodos [
 		Hash:   lastTodo.Commit,
 		Action: lastTodo.Command,
 		Status: models.StatusConflicted,
+	}
+}
+
+func (self *CommitLoader) getSequencerCommits() []*models.Commit {
+	bytesContent, err := self.readFile(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "sequencer/todo"))
+	if err != nil {
+		self.Log.Error(fmt.Sprintf("error occurred reading sequencer/todo: %s", err.Error()))
+		// we assume an error means the file doesn't exist so we just return
+		return nil
+	}
+
+	commits := []*models.Commit{}
+
+	todos, err := todo.Parse(bytes.NewBuffer(bytesContent), self.config.GetCoreCommentChar())
+	if err != nil {
+		self.Log.Error(fmt.Sprintf("error occurred while parsing sequencer/todo file: %s", err.Error()))
+		return nil
+	}
+
+	for _, t := range todos {
+		if t.Commit == "" {
+			// Command does not have a commit associated, skip
+			continue
+		}
+		commits = utils.Prepend(commits, &models.Commit{
+			Hash:   t.Commit,
+			Name:   t.Msg,
+			Status: models.StatusRebasing,
+			Action: t.Command,
+		})
+	}
+
+	return commits
+}
+
+func (self *CommitLoader) getConflictedSequencerCommit(workingTreeState models.WorkingTreeState) *models.Commit {
+	var shaFile string
+	var action todo.TodoCommand
+	if workingTreeState.CherryPicking {
+		shaFile = "CHERRY_PICK_HEAD"
+		action = todo.Pick
+	} else if workingTreeState.Reverting {
+		shaFile = "REVERT_HEAD"
+		action = todo.Revert
+	} else {
+		return nil
+	}
+	bytesContent, err := self.readFile(filepath.Join(self.repoPaths.WorktreeGitDirPath(), shaFile))
+	if err != nil {
+		self.Log.Error(fmt.Sprintf("error occurred reading %s: %s", shaFile, err.Error()))
+		// we assume an error means the file doesn't exist so we just return
+		return nil
+	}
+	lines := strings.Split(string(bytesContent), "\n")
+	if len(lines) == 0 {
+		return nil
+	}
+	return &models.Commit{
+		Hash:   lines[0],
+		Status: models.StatusConflicted,
+		Action: action,
 	}
 }
 
