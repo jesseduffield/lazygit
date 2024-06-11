@@ -67,13 +67,7 @@ func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 		}
 	})
 
-	var title string
-	if self.c.Git().Status.WorkingTreeState() == enums.WORKING_TREE_STATE_MERGING {
-		title = self.c.Tr.MergeOptionsTitle
-	} else {
-		title = self.c.Tr.RebaseOptionsTitle
-	}
-
+	title := self.c.Git().Status.WorkingTreeState().OptionsMenuTitle(self.c.Tr)
 	return self.c.Menu(types.CreateMenuOptions{Title: title, Items: menuItems})
 }
 
@@ -103,15 +97,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 		}
 	}
 
-	commandType := ""
-	switch status {
-	case enums.WORKING_TREE_STATE_MERGING:
-		commandType = "merge"
-	case enums.WORKING_TREE_STATE_REBASING:
-		commandType = "rebase"
-	default:
-		// shouldn't be possible to land here
-	}
+	commandType := status.CommandName()
 
 	// we should end up with a command like 'git merge --continue'
 
@@ -199,7 +185,7 @@ func (self *MergeAndRebaseHelper) CheckForConflicts(result error) error {
 }
 
 func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
-	mode := self.workingTreeStateNoun()
+	mode := self.c.Git().Status.WorkingTreeState().CommandName()
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.FoundConflictsTitle,
 		Items: []*types.MenuItem{
@@ -224,7 +210,7 @@ func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
 
 func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 	// prompt user to confirm that they want to abort, then do it
-	mode := self.workingTreeStateNoun()
+	mode := self.c.Git().Status.WorkingTreeState().CommandName()
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  fmt.Sprintf(self.c.Tr.AbortTitle, mode),
 		Prompt: fmt.Sprintf(self.c.Tr.AbortPrompt, mode),
@@ -234,18 +220,6 @@ func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 	})
 
 	return nil
-}
-
-func (self *MergeAndRebaseHelper) workingTreeStateNoun() string {
-	workingTreeState := self.c.Git().Status.WorkingTreeState()
-	switch workingTreeState {
-	case enums.WORKING_TREE_STATE_NONE:
-		return ""
-	case enums.WORKING_TREE_STATE_MERGING:
-		return "merge"
-	default:
-		return "rebase"
-	}
 }
 
 // PromptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
