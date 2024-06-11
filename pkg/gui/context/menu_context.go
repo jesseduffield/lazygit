@@ -50,6 +50,8 @@ func NewMenuContext(
 type MenuViewModel struct {
 	c               *ContextCommon
 	menuItems       []*types.MenuItem
+	prompt          string
+	promptLines     []string
 	columnAlignment []utils.Alignment
 	*FilteredListViewModel[*types.MenuItem]
 }
@@ -73,6 +75,23 @@ func (self *MenuViewModel) SetMenuItems(items []*types.MenuItem, columnAlignment
 	self.columnAlignment = columnAlignment
 }
 
+func (self *MenuViewModel) GetPrompt() string {
+	return self.prompt
+}
+
+func (self *MenuViewModel) SetPrompt(prompt string) {
+	self.prompt = prompt
+	self.promptLines = nil
+}
+
+func (self *MenuViewModel) GetPromptLines() []string {
+	return self.promptLines
+}
+
+func (self *MenuViewModel) SetPromptLines(promptLines []string) {
+	self.promptLines = promptLines
+}
+
 // TODO: move into presentation package
 func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 	menuItems := self.FilteredListViewModel.GetItems()
@@ -94,14 +113,22 @@ func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 }
 
 func (self *MenuViewModel) GetNonModelItems() []*NonModelItem {
+	result := []*NonModelItem{}
+	result = append(result, lo.Map(self.promptLines, func(line string, _ int) *NonModelItem {
+		return &NonModelItem{
+			Index:   0,
+			Column:  0,
+			Content: line,
+		}
+	})...)
+
 	// Don't display section headers when we are filtering, and the filter mode
 	// is fuzzy. The reason is that filtering changes the order of the items
 	// (they are sorted by best match), so all the sections would be messed up.
 	if self.FilteredListViewModel.IsFiltering() && self.c.UserConfig.Gui.UseFuzzySearch() {
-		return []*NonModelItem{}
+		return result
 	}
 
-	result := []*NonModelItem{}
 	menuItems := self.FilteredListViewModel.GetItems()
 	var prevSection *types.MenuSection = nil
 	for i, menuItem := range menuItems {
