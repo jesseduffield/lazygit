@@ -71,15 +71,13 @@ type GetCommitsOptions struct {
 // GetCommits obtains the commits of the current branch
 func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, error) {
 	commits := []*models.Commit{}
-	var rebasingCommits []*models.Commit
 
 	if opts.IncludeRebaseCommits && opts.FilterPath == "" {
 		var err error
-		rebasingCommits, err = self.MergeRebasingCommits(commits)
+		commits, err = self.MergeRebasingCommits(commits)
 		if err != nil {
 			return nil, err
 		}
-		commits = append(commits, rebasingCommits...)
 	}
 
 	wg := sync.WaitGroup{}
