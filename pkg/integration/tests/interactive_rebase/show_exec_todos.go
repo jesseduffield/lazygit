@@ -38,7 +38,7 @@ var ShowExecTodos = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()
-				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Contains("Rebasing (4/4)Executing: false")).Confirm()
+				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Contains("exit status 1")).Confirm()
 			}).
 			Lines(
 				Contains("CI ◯ <-- YOU ARE HERE --- commit 03"),
