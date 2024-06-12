@@ -164,6 +164,7 @@ type TranslationSet struct {
 	RewordCommitEditor                    string
 	NoCommitsThisBranch                   string
 	UpdateRefHere                         string
+	ExecCommandHere                       string
 	Error                                 string
 	Undo                                  string
 	UndoReflog                            string
@@ -1093,6 +1094,7 @@ func EnglishTranslationSet() TranslationSet {
 		SquashTooltip:                        "Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it.",
 		NoCommitsThisBranch:                  "No commits for this branch",
 		UpdateRefHere:                        "Update branch '{{.ref}}' here",
+		ExecCommandHere:                      "Execute the following command here:",
 		CannotSquashOrFixupFirstCommit:       "There's no commit below to squash into",
 		Fixup:                                "Fixup",
 		SureFixupThisCommit:                  "Are you sure you want to 'fixup' the selected commit(s) into the commit below?",

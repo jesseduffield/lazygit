@@ -9,10 +9,12 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
+	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 type MergeAndRebaseHelper struct {
@@ -110,7 +112,12 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
-	if status == enums.REBASE_MODE_MERGING && command != REBASE_OPTION_ABORT && self.c.UserConfig.Git.Merging.ManualCommit {
+	needsSubprocess := (status == enums.REBASE_MODE_MERGING && command != REBASE_OPTION_ABORT && self.c.UserConfig.Git.Merging.ManualCommit) ||
+		// but we'll also use a subprocess if we have exec todos; those are likely to be lengthy build
+		// tasks whose output the user will want to see in the terminal
+		(status == enums.REBASE_MODE_REBASING && command != REBASE_OPTION_ABORT && self.hasExecTodos())
+
+	if needsSubprocess {
 		// TODO: see if we should be calling more of the code from self.Git.Rebase.GenericMergeOrRebaseAction
 		return self.c.RunSubprocessAndRefresh(
 			self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command),
@@ -121,6 +128,18 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 		return err
 	}
 	return nil
+}
+
+func (self *MergeAndRebaseHelper) hasExecTodos() bool {
+	for _, commit := range self.c.Model().Commits {
+		if commit.Status != models.StatusRebasing {
+			break
+		}
+		if commit.Action == todo.Exec {
+			return true
+		}
+	}
+	return false
 }
 
 var conflictStrings = []string{
