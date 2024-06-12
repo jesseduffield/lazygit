@@ -226,7 +226,7 @@ func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.Continue,
-		Prompt: self.c.Tr.ConflictsResolved,
+		Prompt: fmt.Sprintf(self.c.Tr.ConflictsResolved, self.c.Git().Status.WorkingTreeState().CommandName()),
 		HandleConfirm: func() error {
 			// By the time we get here, we might have unstaged changes again,
 			// e.g. if the user had to fix build errors after resolving the

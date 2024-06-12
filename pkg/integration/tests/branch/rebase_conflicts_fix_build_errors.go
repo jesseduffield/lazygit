@@ -51,7 +51,7 @@ var RebaseConflictsFixBuildErrors = NewIntegrationTest(NewIntegrationTestArgs{
 
 		popup := t.ExpectPopup().Confirmation().
 			Title(Equals("Continue")).
-			Content(Contains("All merge conflicts resolved. Continue?"))
+			Content(Contains("All merge conflicts resolved. Continue the rebase?"))
 
 		// While the popup is showing, fix some build errors
 		t.Shell().UpdateFile("file", "make it compile again")

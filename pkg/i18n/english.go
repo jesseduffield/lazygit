@@ -1391,7 +1391,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SecondaryTitle:                       "Secondary",
 		ReflogCommitsTitle:                   "Reflog",
 		GlobalTitle:                          "Global keybindings",
-		ConflictsResolved:                    "All merge conflicts resolved. Continue?",
+		ConflictsResolved:                    "All merge conflicts resolved. Continue the %s?",
 		Continue:                             "Continue",
 		UnstagedFilesAfterConflictsResolved:  "Files have been modified since conflicts were resolved. Auto-stage them and continue?",
 		Keybindings:                          "Keybindings",

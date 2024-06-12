@@ -60,7 +60,7 @@ var AmendCommitWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			PressPrimaryAction() // pick "4"
 
-		t.Common().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved("rebase")
 
 		t.Common().AcknowledgeConflicts()
 
