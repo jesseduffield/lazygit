@@ -344,6 +344,8 @@ func (self *CommitLoader) getRebasingCommits(rebaseMode enums.RebaseMode) []*mod
 	for _, t := range todos {
 		if t.Command == todo.UpdateRef {
 			t.Msg = t.Ref
+		} else if t.Command == todo.Exec {
+			t.Msg = t.ExecCommand
 		} else if t.Commit == "" {
 			// Command does not have a commit associated, skip
 			continue

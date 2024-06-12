@@ -284,6 +284,9 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() error {
 						map[string]string{
 							"ref": strings.TrimPrefix(commit.Name, "refs/heads/"),
 						}))
+			} else if commit.Action == todo.Exec {
+				task = types.NewRenderStringTask(
+					self.c.Tr.ExecCommandHere + "\n\n" + commit.Name)
 			} else {
 				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash, self.c.Modes().Filtering.GetPath())
 				task = types.NewRunPtyTask(cmdObj.GetCmd())
