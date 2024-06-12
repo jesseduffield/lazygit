@@ -371,6 +371,16 @@ nix run nixpkgs#lazygit
 Or you can add lazygit to you configuration.nix in the environment.systemPackages section.
 More details can be found via NixOs search [page](https://search.nixos.org/).
 
+### Flox
+
+Lazygit can be installed into a Flox environment as follows.
+
+```sh
+flox install lazygit
+```
+
+More details about Flox can be found on [their website](https://flox.dev/).
+
 ### FreeBSD
 
 ```sh
