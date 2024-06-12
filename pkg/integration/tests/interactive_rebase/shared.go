@@ -33,7 +33,7 @@ func handleConflictsFromSwap(t *TestDriver) {
 		SelectNextItem().
 		PressPrimaryAction() // pick "three"
 
-	t.Common().ContinueOnConflictsResolved()
+	t.Common().ContinueOnConflictsResolved("rebase")
 
 	t.Common().AcknowledgeConflicts()
 
@@ -56,7 +56,7 @@ func handleConflictsFromSwap(t *TestDriver) {
 		SelectNextItem().
 		PressPrimaryAction() // pick "two"
 
-	t.Common().ContinueOnConflictsResolved()
+	t.Common().ContinueOnConflictsResolved("rebase")
 
 	t.Views().Commits().
 		Focus().

@@ -77,7 +77,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			PressPrimaryAction()
 
-		t.Common().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved("rebase")
 
 		t.Views().Information().Content(DoesNotContain("Rebasing"))
 

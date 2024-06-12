@@ -83,7 +83,7 @@ var PullRebaseInteractiveConflictDrop = NewIntegrationTest(NewIntegrationTestArg
 			SelectNextItem().
 			PressPrimaryAction() // choose 'content4'
 
-		t.Common().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved("rebase")
 
 		t.Views().Status().Content(Equals("↑1 repo → master"))
 
