@@ -189,12 +189,7 @@ func (self *guiCommon) GetInitialKeybindingsWithCustomCommands() ([]*types.Bindi
 }
 
 func (self *guiCommon) AfterLayout(f func() error) {
-	select {
-	case self.gui.afterLayoutFuncs <- f:
-	default:
-		// hopefully this never happens
-		self.gui.c.Log.Error("afterLayoutFuncs channel is full, skipping function")
-	}
+	self.gui.afterLayout(f)
 }
 
 func (self *guiCommon) RunningIntegrationTest() bool {
