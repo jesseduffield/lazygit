@@ -49,7 +49,7 @@ var PullRebaseInteractiveConflict = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Lines(
 				Contains("pick").Contains("five"),
-				Contains("conflict").Contains("YOU ARE HERE").Contains("four"),
+				Contains("pick").Contains("CONFLICT").Contains("four"),
 				Contains("three"),
 				Contains("two"),
 				Contains("one"),

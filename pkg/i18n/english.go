@@ -338,6 +338,7 @@ type TranslationSet struct {
 	ErrorOccurred                         string
 	NoRoom                                string
 	YouAreHere                            string
+	ConflictLabel                         string
 	YouDied                               string
 	RewordNotSupported                    string
 	ChangingThisActionIsNotAllowed        string
@@ -1391,6 +1392,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ErrorOccurred:                        "An error occurred! Please create an issue at",
 		NoRoom:                               "Not enough room",
 		YouAreHere:                           "YOU ARE HERE",
+		ConflictLabel:                        "CONFLICT",
 		YouDied:                              "YOU DIED!",
 		RewordNotSupported:                   "Rewording commits while interactively rebasing is not currently supported",
 		ChangingThisActionIsNotAllowed:       "Changing this kind of rebase todo entry is not allowed",

@@ -18,6 +18,7 @@ const (
 	StatusPushed
 	StatusMerged
 	StatusRebasing
+	StatusConflicted
 	StatusReflog
 )
 
@@ -25,8 +26,6 @@ const (
 	// Conveniently for us, the todo package starts the enum at 1, and given
 	// that it doesn't have a "none" value, we're setting ours to 0
 	ActionNone todo.TodoCommand = 0
-	// "Comment" is the last one of the todo package's enum entries
-	ActionConflict = todo.Comment + 1
 )
 
 type Divergence int
