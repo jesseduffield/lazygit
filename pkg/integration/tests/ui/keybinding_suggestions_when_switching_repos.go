@@ -37,9 +37,6 @@ var KeybindingSuggestionsWhenSwitchingRepos = NewIntegrationTest(NewIntegrationT
 		switchToRepo("repo")
 
 		t.Views().Options().Content(
-			/* EXPECTED:
 			Equals("Commit: c | Stash: s | Reset: D | Keybindings: ? | Cancel: <esc>"))
-			ACTUAL (all keybindings appear twice): */
-			Equals("Commit: c | Stash: s | Reset: D | Commit: c | Stash: s | Reset: D | Keybindings: ? | Cancel: <esc> | Keybindings: ? | Cancel: <esc>"))
 	},
 })
