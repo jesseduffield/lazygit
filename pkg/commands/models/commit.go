@@ -18,7 +18,6 @@ const (
 	StatusPushed
 	StatusMerged
 	StatusRebasing
-	StatusSelected
 	StatusReflog
 )
 
