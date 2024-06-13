@@ -315,6 +315,7 @@ var tests = []*components.IntegrationTest{
 	ui.Accordion,
 	ui.DoublePopup,
 	ui.EmptyMenu,
+	ui.KeybindingSuggestionsWhenSwitchingRepos,
 	ui.ModeSpecificKeybindingSuggestions,
 	ui.OpenLinkFailure,
 	ui.RangeSelect,
