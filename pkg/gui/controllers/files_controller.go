@@ -829,11 +829,11 @@ func (self *FilesController) handleAmendCommitPress() error {
 func (self *FilesController) isResolvingConflicts() bool {
 	commits := self.c.Model().Commits
 	for _, c := range commits {
+		if c.Status == models.StatusConflicted {
+			return true
+		}
 		if !c.IsTODO() {
 			break
-		}
-		if c.Action == models.ActionConflict {
-			return true
 		}
 	}
 	return false

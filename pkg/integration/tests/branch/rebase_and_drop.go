@@ -53,7 +53,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 			TopLines(
 				MatchesRegexp(`pick.*to keep`).IsSelected(),
 				MatchesRegexp(`pick.*to remove`),
-				MatchesRegexp(`conflict.*YOU ARE HERE.*first change`),
+				MatchesRegexp(`pick.*CONFLICT.*first change`),
 				MatchesRegexp("second-change-branch unrelated change"),
 				MatchesRegexp("second change"),
 				MatchesRegexp("original"),
@@ -63,7 +63,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 			TopLines(
 				MatchesRegexp(`pick.*to keep`),
 				MatchesRegexp(`drop.*to remove`).IsSelected(),
-				MatchesRegexp(`conflict.*YOU ARE HERE.*first change`),
+				MatchesRegexp(`pick.*CONFLICT.*first change`),
 				MatchesRegexp("second-change-branch unrelated change"),
 				MatchesRegexp("second change"),
 				MatchesRegexp("original"),

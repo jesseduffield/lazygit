@@ -332,14 +332,14 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 		todos           []todo.Todo
 		doneTodos       []todo.Todo
 		amendFileExists bool
-		expectedHash    string
+		expectedResult  *models.Commit
 	}{
 		{
 			testName:        "no done todos",
 			todos:           []todo.Todo{},
 			doneTodos:       []todo.Todo{},
 			amendFileExists: false,
-			expectedHash:    "",
+			expectedResult:  nil,
 		},
 		{
 			testName: "common case (conflict)",
@@ -355,7 +355,11 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedHash:    "fa1afe1",
+			expectedResult: &models.Commit{
+				Hash:   "fa1afe1",
+				Action: todo.Pick,
+				Status: models.StatusConflicted,
+			},
 		},
 		{
 			testName: "last command was 'break'",
@@ -364,7 +368,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				{Command: todo.Break},
 			},
 			amendFileExists: false,
-			expectedHash:    "",
+			expectedResult:  nil,
 		},
 		{
 			testName: "last command was 'exec'",
@@ -376,7 +380,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedHash:    "",
+			expectedResult:  nil,
 		},
 		{
 			testName: "last command was 'reword'",
@@ -385,7 +389,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				{Command: todo.Reword},
 			},
 			amendFileExists: false,
-			expectedHash:    "",
+			expectedResult:  nil,
 		},
 		{
 			testName: "'pick' was rescheduled",
@@ -402,7 +406,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedHash:    "",
+			expectedResult:  nil,
 		},
 		{
 			testName: "'pick' was rescheduled, buggy git version",
@@ -427,7 +431,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedHash:    "",
+			expectedResult:  nil,
 		},
 		{
 			testName: "conflicting 'pick' after 'exec'",
@@ -452,7 +456,11 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedHash:    "fa1afe1",
+			expectedResult: &models.Commit{
+				Hash:   "fa1afe1",
+				Action: todo.Pick,
+				Status: models.StatusConflicted,
+			},
 		},
 		{
 			testName: "'edit' with amend file",
@@ -464,7 +472,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: true,
-			expectedHash:    "",
+			expectedResult:  nil,
 		},
 		{
 			testName: "'edit' without amend file",
@@ -476,7 +484,11 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedHash:    "fa1afe1",
+			expectedResult: &models.Commit{
+				Hash:   "fa1afe1",
+				Action: todo.Edit,
+				Status: models.StatusConflicted,
+			},
 		},
 	}
 	for _, scenario := range scenarios {
@@ -497,7 +509,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 			}
 
 			hash := builder.getConflictedCommitImpl(scenario.todos, scenario.doneTodos, scenario.amendFileExists)
-			assert.Equal(t, scenario.expectedHash, hash)
+			assert.Equal(t, scenario.expectedResult, hash)
 		})
 	}
 }

@@ -322,13 +322,8 @@ func (self *CommitLoader) getRebasingCommits() []*models.Commit {
 
 	// See if the current commit couldn't be applied because it conflicted; if
 	// so, add a fake entry for it
-	if conflictedCommitHash := self.getConflictedCommit(todos); conflictedCommitHash != "" {
-		commits = append(commits, &models.Commit{
-			Hash:   conflictedCommitHash,
-			Name:   "",
-			Status: models.StatusRebasing,
-			Action: models.ActionConflict,
-		})
+	if conflictedCommit := self.getConflictedCommit(todos); conflictedCommit != nil {
+		commits = append(commits, conflictedCommit)
 	}
 
 	for _, t := range todos {
@@ -351,17 +346,17 @@ func (self *CommitLoader) getRebasingCommits() []*models.Commit {
 	return commits
 }
 
-func (self *CommitLoader) getConflictedCommit(todos []todo.Todo) string {
+func (self *CommitLoader) getConflictedCommit(todos []todo.Todo) *models.Commit {
 	bytesContent, err := self.readFile(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/done"))
 	if err != nil {
 		self.Log.Error(fmt.Sprintf("error occurred reading rebase-merge/done: %s", err.Error()))
-		return ""
+		return nil
 	}
 
 	doneTodos, err := todo.Parse(bytes.NewBuffer(bytesContent), self.config.GetCoreCommentChar())
 	if err != nil {
 		self.Log.Error(fmt.Sprintf("error occurred while parsing rebase-merge/done file: %s", err.Error()))
-		return ""
+		return nil
 	}
 
 	amendFileExists := false
@@ -372,15 +367,15 @@ func (self *CommitLoader) getConflictedCommit(todos []todo.Todo) string {
 	return self.getConflictedCommitImpl(todos, doneTodos, amendFileExists)
 }
 
-func (self *CommitLoader) getConflictedCommitImpl(todos []todo.Todo, doneTodos []todo.Todo, amendFileExists bool) string {
+func (self *CommitLoader) getConflictedCommitImpl(todos []todo.Todo, doneTodos []todo.Todo, amendFileExists bool) *models.Commit {
 	// Should never be possible, but just to be safe:
 	if len(doneTodos) == 0 {
 		self.Log.Error("no done entries in rebase-merge/done file")
-		return ""
+		return nil
 	}
 	lastTodo := doneTodos[len(doneTodos)-1]
 	if lastTodo.Command == todo.Break || lastTodo.Command == todo.Exec || lastTodo.Command == todo.Reword {
-		return ""
+		return nil
 	}
 
 	// In certain cases, git reschedules commands that failed. One example is if
@@ -391,7 +386,7 @@ func (self *CommitLoader) getConflictedCommitImpl(todos []todo.Todo, doneTodos [
 	// same, the command was rescheduled.
 	if len(doneTodos) > 0 && len(todos) > 0 && doneTodos[len(doneTodos)-1] == todos[0] {
 		// Command was rescheduled, no need to display it
-		return ""
+		return nil
 	}
 
 	// Older versions of git have a bug whereby, if a command is rescheduled,
@@ -416,26 +411,30 @@ func (self *CommitLoader) getConflictedCommitImpl(todos []todo.Todo, doneTodos [
 	if len(doneTodos) >= 3 && len(todos) > 0 && doneTodos[len(doneTodos)-2] == todos[0] &&
 		doneTodos[len(doneTodos)-1] == doneTodos[len(doneTodos)-3] {
 		// Command was rescheduled, no need to display it
-		return ""
+		return nil
 	}
 
 	if lastTodo.Command == todo.Edit {
 		if amendFileExists {
 			// Special case for "edit": if the "amend" file exists, the "edit"
 			// command was successful, otherwise it wasn't
-			return ""
+			return nil
 		}
 	}
 
 	// I don't think this is ever possible, but again, just to be safe:
 	if lastTodo.Commit == "" {
 		self.Log.Error("last command in rebase-merge/done file doesn't have a commit")
-		return ""
+		return nil
 	}
 
 	// Any other todo that has a commit associated with it must have failed with
 	// a conflict, otherwise we wouldn't have stopped the rebase:
-	return lastTodo.Commit
+	return &models.Commit{
+		Hash:   lastTodo.Commit,
+		Action: lastTodo.Command,
+		Status: models.StatusConflicted,
+	}
 }
 
 func setCommitMergedStatuses(ancestor string, commits []*models.Commit) {
