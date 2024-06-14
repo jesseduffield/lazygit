@@ -84,20 +84,9 @@ var RevertMultipleCommitsInInteractiveRebase = NewIntegrationTest(NewIntegration
 
 		t.Views().Commits().
 			Lines(
-				/* EXPECTED:
 				Contains("pick").Contains("CI unrelated change 3"),
 				Contains("pick").Contains("CI unrelated change 2"),
 				Contains(`CI ◯ <-- YOU ARE HERE --- Revert "unrelated change 1"`),
-				Contains(`CI ◯ Revert "add first line"`),
-				Contains("CI ◯ add second line"),
-				Contains("CI ◯ add first line"),
-				Contains("CI ◯ unrelated change 1"),
-				Contains("CI ◯ add empty file"),
-				ACTUAL: */
-				Contains("pick").Contains("CI unrelated change 3"),
-				Contains("pick").Contains("CI unrelated change 2"),
-				Contains("edit  CI <-- CONFLICT --- add second line"),
-				Contains(`CI ◯ Revert "unrelated change 1"`),
 				Contains(`CI ◯ Revert "add first line"`),
 				Contains("CI ◯ add second line"),
 				Contains("CI ◯ add first line"),
