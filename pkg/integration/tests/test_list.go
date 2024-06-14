@@ -264,6 +264,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.QuickStartKeepSelectionRange,
 	interactive_rebase.Rebase,
 	interactive_rebase.RebaseWithCommitThatBecomesEmpty,
+	interactive_rebase.RevertDuringRebaseWhenStoppedOnEdit,
 	interactive_rebase.RevertMultipleCommitsInInteractiveRebase,
 	interactive_rebase.RevertSingleCommitInInteractiveRebase,
 	interactive_rebase.RewordCommitWithEditorAndFail,
