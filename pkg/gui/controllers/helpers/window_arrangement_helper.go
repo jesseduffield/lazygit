@@ -125,8 +125,10 @@ func GetWindowDimensions(args WindowArrangementArgs) map[string]boxlayout.Dimens
 	sideSectionWeight, mainSectionWeight := getMidSectionWeights(args)
 
 	sidePanelsDirection := boxlayout.COLUMN
+	sidePanelsPadding := args.UserConfig.Gui.HorizontalPadding
 	if shouldUsePortraitMode(args) {
 		sidePanelsDirection = boxlayout.ROW
+		sidePanelsPadding = 0
 	}
 
 	showInfoSection := args.UserConfig.Gui.ShowBottomLine ||
@@ -143,6 +145,7 @@ func GetWindowDimensions(args WindowArrangementArgs) map[string]boxlayout.Dimens
 		Children: []*boxlayout.Box{
 			{
 				Direction: sidePanelsDirection,
+				Padding:   sidePanelsPadding,
 				Weight:    1,
 				Children: []*boxlayout.Box{
 					{
@@ -173,13 +176,16 @@ func GetWindowDimensions(args WindowArrangementArgs) map[string]boxlayout.Dimens
 
 func mainPanelChildren(args WindowArrangementArgs) []*boxlayout.Box {
 	mainPanelsDirection := boxlayout.ROW
+	mainPanelsPadding := 0
 	if splitMainPanelSideBySide(args) {
 		mainPanelsDirection = boxlayout.COLUMN
+		mainPanelsPadding = args.UserConfig.Gui.HorizontalPadding
 	}
 
 	result := []*boxlayout.Box{
 		{
 			Direction: mainPanelsDirection,
+			Padding:   mainPanelsPadding,
 			Children:  mainSectionChildren(args),
 			Weight:    1,
 		},

@@ -157,6 +157,8 @@ type GuiConfig struct {
 	// Status panel view.
 	// One of 'dashboard' (default) | 'allBranchesLog'
 	StatusPanelView string `yaml:"statusPanelView" jsonschema:"enum=dashboard,enum=allBranchesLog"`
+	// Horizontal padding between views that are next to each other.
+	HorizontalPadding int `yaml:"horizontalPadding"`
 }
 
 func (c *GuiConfig) UseFuzzySearch() bool {
@@ -702,7 +704,8 @@ func GetDefaultConfig() *UserConfig {
 				Frames: []string{"|", "/", "-", "\\"},
 				Rate:   50,
 			},
-			StatusPanelView: "dashboard",
+			StatusPanelView:   "dashboard",
+			HorizontalPadding: 0,
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{

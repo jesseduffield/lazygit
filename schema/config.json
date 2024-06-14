@@ -430,6 +430,10 @@
           ],
           "description": "Status panel view.\nOne of 'dashboard' (default) | 'allBranchesLog'",
           "default": "dashboard"
+        },
+        "horizontalPadding": {
+          "type": "integer",
+          "description": "Horizontal padding between views that are next to each other."
         }
       },
       "additionalProperties": false,
