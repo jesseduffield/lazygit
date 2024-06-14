@@ -45,18 +45,8 @@ var RevertDuringRebaseWhenStoppedOnEdit = NewIntegrationTest(NewIntegrationTestA
 			).
 			Press("X").
 			Lines(
-				/* EXPECTED:
 				Contains("pick").Contains("commit 04"),
 				Contains(`<-- YOU ARE HERE --- Revert "commit 01"`).IsSelected(),
-				Contains(`Revert "commit 02"`),
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
-				Contains("master commit"),
-				ACTUAL: */
-				Contains("pick").Contains("commit 04"),
-				Contains("edit").Contains("<-- CONFLICT --- commit 03").IsSelected(),
-				Contains(`Revert "commit 01"`),
 				Contains(`Revert "commit 02"`),
 				Contains("commit 03"),
 				Contains("commit 02"),

@@ -328,11 +328,12 @@ func TestGetCommits(t *testing.T) {
 
 func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 	scenarios := []struct {
-		testName        string
-		todos           []todo.Todo
-		doneTodos       []todo.Todo
-		amendFileExists bool
-		expectedResult  *models.Commit
+		testName          string
+		todos             []todo.Todo
+		doneTodos         []todo.Todo
+		amendFileExists   bool
+		messageFileExists bool
+		expectedResult    *models.Commit
 	}{
 		{
 			testName:        "no done todos",
@@ -475,7 +476,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 			expectedResult:  nil,
 		},
 		{
-			testName: "'edit' without amend file",
+			testName: "'edit' without amend file but message file",
 			todos:    []todo.Todo{},
 			doneTodos: []todo.Todo{
 				{
@@ -483,12 +484,26 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 					Commit:  "fa1afe1",
 				},
 			},
-			amendFileExists: false,
+			amendFileExists:   false,
+			messageFileExists: true,
 			expectedResult: &models.Commit{
 				Hash:   "fa1afe1",
 				Action: todo.Edit,
 				Status: models.StatusConflicted,
 			},
+		},
+		{
+			testName: "'edit' without amend and without message file",
+			todos:    []todo.Todo{},
+			doneTodos: []todo.Todo{
+				{
+					Command: todo.Edit,
+					Commit:  "fa1afe1",
+				},
+			},
+			amendFileExists:   false,
+			messageFileExists: false,
+			expectedResult:    nil,
 		},
 	}
 	for _, scenario := range scenarios {
@@ -508,7 +523,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			}
 
-			hash := builder.getConflictedCommitImpl(scenario.todos, scenario.doneTodos, scenario.amendFileExists)
+			hash := builder.getConflictedCommitImpl(scenario.todos, scenario.doneTodos, scenario.amendFileExists, scenario.messageFileExists)
 			assert.Equal(t, scenario.expectedResult, hash)
 		})
 	}

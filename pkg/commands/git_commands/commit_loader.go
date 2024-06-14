@@ -388,15 +388,13 @@ func (self *CommitLoader) getConflictedCommit(todos []todo.Todo) *models.Commit 
 		return nil
 	}
 
-	amendFileExists := false
-	if _, err := os.Stat(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/amend")); err == nil {
-		amendFileExists = true
-	}
+	amendFileExists, _ := self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/amend"))
+	messageFileExists, _ := self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/message"))
 
-	return self.getConflictedCommitImpl(todos, doneTodos, amendFileExists)
+	return self.getConflictedCommitImpl(todos, doneTodos, amendFileExists, messageFileExists)
 }
 
-func (self *CommitLoader) getConflictedCommitImpl(todos []todo.Todo, doneTodos []todo.Todo, amendFileExists bool) *models.Commit {
+func (self *CommitLoader) getConflictedCommitImpl(todos []todo.Todo, doneTodos []todo.Todo, amendFileExists bool, messageFileExists bool) *models.Commit {
 	// Should never be possible, but just to be safe:
 	if len(doneTodos) == 0 {
 		self.Log.Error("no done entries in rebase-merge/done file")
@@ -447,6 +445,14 @@ func (self *CommitLoader) getConflictedCommitImpl(todos []todo.Todo, doneTodos [
 		if amendFileExists {
 			// Special case for "edit": if the "amend" file exists, the "edit"
 			// command was successful, otherwise it wasn't
+			return nil
+		}
+
+		if !messageFileExists {
+			// As an additional check, see if the "message" file exists; if it
+			// doesn't, it must be because a multi-commit cherry-pick or revert
+			// was performed in the meantime, which deleted both the amend file
+			// and the message file.
 			return nil
 		}
 	}
