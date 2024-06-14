@@ -50,6 +50,9 @@ type Box struct {
 	// dynamic size. Once all statically sized children have been considered, Weight decides how much of the remaining space will be taken up by the box
 	// TODO: consider making there be one int and a type enum so we can't have size and Weight simultaneously defined
 	Weight int
+
+	// Padding between children
+	Padding int
 }
 
 func ArrangeWindows(root *Box, x0, y0, width, height int) map[string]Dimensions {
@@ -71,6 +74,7 @@ func ArrangeWindows(root *Box, x0, y0, width, height int) map[string]Dimensions 
 	} else {
 		availableSize = height
 	}
+	availableSize -= (len(children) - 1) * root.Padding
 
 	sizes := calcSizes(children, availableSize)
 
@@ -87,7 +91,7 @@ func ArrangeWindows(root *Box, x0, y0, width, height int) map[string]Dimensions 
 		}
 
 		result = mergeDimensionMaps(result, resultForChild)
-		offset += boxSize
+		offset += boxSize + (i+1)*root.Padding
 	}
 
 	return result
