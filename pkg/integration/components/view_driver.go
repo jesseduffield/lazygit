@@ -263,8 +263,8 @@ func (self *ViewDriver) assertLines(offset int, matchers ...*TextMatcher) *ViewD
 				return false, fmt.Sprintf(
 					"Unexpected selection in view '%s'. Expected %s to be selected but got %s.\nExpected selected lines:\n---\n%s\n---\n\nActual selected lines:\n---\n%s\n---\n",
 					view.Name(),
-					formatLineRange(startIdx, endIdx),
 					formatLineRange(expectedStartIdx, expectedEndIdx),
+					formatLineRange(startIdx, endIdx),
 					strings.Join(expectedSelectedLines, "\n"),
 					strings.Join(lines, "\n"),
 				)
