@@ -831,6 +831,17 @@ func (g *Gui) onResize() {
 	// g.screen.Sync()
 }
 
+func (g *Gui) clear(fg, bg Attribute) (int, int) {
+	st := getTcellStyle(oldStyle{fg: fg, bg: bg, outputMode: g.outputMode})
+	w, h := Screen.Size()
+	for row := 0; row < h; row++ {
+		for col := 0; col < w; col++ {
+			Screen.SetContent(col, row, ' ', nil, st)
+		}
+	}
+	return w, h
+}
+
 // drawFrameEdges draws the horizontal and vertical edges of a view.
 func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) error {
 	runeH, runeV := '─', '│'
@@ -1137,8 +1148,7 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 
 // flush updates the gui, re-drawing frames and buffers.
 func (g *Gui) flush() error {
-	// pretty sure we don't need this, but keeping it here in case we get weird visual artifacts
-	// g.clear(g.FgColor, g.BgColor)
+	g.clear(g.FgColor, g.BgColor)
 
 	maxX, maxY := Screen.Size()
 	// if GUI's size has changed, we need to redraw all views
