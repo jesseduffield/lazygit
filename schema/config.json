@@ -321,13 +321,21 @@
           "default": true
         },
         "commitAuthorFormat": {
-          "type": "string",
-          "enum": [
-            "auto",
-            "short",
-            "full"
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "auto",
+                "short",
+                "full"
+              ]
+            },
+            {
+              "type": "string",
+              "pattern": "^truncateTo:\\d+(,\\d+)?$"
+            }
           ],
-          "description": "Whether to show full author names or their shortened form in the commit graph.\nOne of 'auto' (default) | 'full' | 'short'\nIf 'auto', initials will be shown in small windows, and full names - in larger ones.",
+          "description": "How to show author names in the Commits view.\nOne of 'auto' (default) | 'full' | 'short | 'truncateTo:\u003cn,m\u003e'\nIf 'short', show initials both in the normal view and the expanded view.\nIf 'auto', initials will be shown in the normal view, and full names (truncated to 17 characters) in the expanded view.\nIf 'truncateTo:\u003cn,m\u003e', truncate to n characters in the normal view and m characters in the expanded view.",
           "default": "auto"
         },
         "commitHashLength": {

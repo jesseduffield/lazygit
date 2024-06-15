@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -440,7 +441,7 @@ func displayCommit(
 		mark = fmt.Sprintf("%s ", willBeRebased)
 	}
 
-	authorFunc := getAuthorFunc(common.UserConfig.Gui.CommitAuthorFormat, fullDescription)
+	authorFunc := getAuthorFunc(string(common.UserConfig.Gui.CommitAuthorFormat), fullDescription)
 
 	cols := make([]string, 0, 7)
 	cols = append(
@@ -458,6 +459,22 @@ func displayCommit(
 }
 
 func getAuthorFunc(commitAuthorFormat string, fullDescription bool) func(string) string {
+	if strings.HasPrefix(commitAuthorFormat, "truncateTo:") {
+		regex := regexp.MustCompile(`truncateTo:(\d+)(?:,(\d+))?$`)
+		matches := regex.FindStringSubmatch(commitAuthorFormat)
+		if fullDescription {
+			if len(matches[2]) > 0 {
+				return func(name string) string {
+					return authors.LongAuthorWithCustomLength(name, utils.MustConvertToInt(matches[2]))
+				}
+			}
+			return authors.LongAuthor
+		}
+		return func(name string) string {
+			return authors.LongAuthorWithCustomLength(name, utils.MustConvertToInt(matches[1]))
+		}
+	}
+
 	switch commitAuthorFormat {
 	case "short":
 		return authors.ShortAuthor

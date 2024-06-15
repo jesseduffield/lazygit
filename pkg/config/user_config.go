@@ -125,10 +125,12 @@ type GuiConfig struct {
 	NerdFontsVersion string `yaml:"nerdFontsVersion" jsonschema:"enum=2,enum=3,enum="`
 	// If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.
 	ShowFileIcons bool `yaml:"showFileIcons"`
-	// Whether to show full author names or their shortened form in the commit graph.
-	// One of 'auto' (default) | 'full' | 'short'
-	// If 'auto', initials will be shown in small windows, and full names - in larger ones.
-	CommitAuthorFormat string `yaml:"commitAuthorFormat" jsonschema:"enum=auto,enum=short,enum=full"`
+	// How to show author names in the Commits view.
+	// One of 'auto' (default) | 'full' | 'short | 'truncateTo:<n,m>'
+	// If 'short', show initials both in the normal view and the expanded view.
+	// If 'auto', initials will be shown in the normal view, and full names (truncated to 17 characters) in the expanded view.
+	// If 'truncateTo:<n,m>', truncate to n characters in the normal view and m characters in the expanded view.
+	CommitAuthorFormat CommitAuthorFormat `yaml:"commitAuthorFormat"`
 	// Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.
 	CommitHashLength int `yaml:"commitHashLength" jsonschema:"minimum=0"`
 	// If true, show commit hashes alongside branch names in the branches view.
@@ -161,6 +163,16 @@ type GuiConfig struct {
 	// Status panel view.
 	// One of 'dashboard' (default) | 'allBranchesLog'
 	StatusPanelView string `yaml:"statusPanelView" jsonschema:"enum=dashboard,enum=allBranchesLog"`
+}
+
+type CommitAuthorFormat string
+
+func (CommitAuthorFormat) JSONSchemaExtend(schema *jsonschema.Schema) {
+	schema.Type = ""
+	schema.OneOf = []*jsonschema.Schema{
+		{Type: "string", Enum: []any{"auto", "short", "full"}},
+		{Type: "string", Pattern: `^truncateTo:\d+(,\d+)?$`},
+	}
 }
 
 func (c *GuiConfig) UseFuzzySearch() bool {

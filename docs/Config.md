@@ -181,9 +181,11 @@ gui:
   # If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.
   showFileIcons: true
 
-  # Whether to show full author names or their shortened form in the commit graph.
-  # One of 'auto' (default) | 'full' | 'short'
-  # If 'auto', initials will be shown in small windows, and full names - in larger ones.
+  # How to show author names in the Commits view.
+  # One of 'auto' (default) | 'full' | 'short | 'truncateTo:<n,m>'
+  # If 'short', show initials both in the normal view and the expanded view.
+  # If 'auto', initials will be shown in the normal view, and full names (truncated to 17 characters) in the expanded view.
+  # If 'truncateTo:<n,m>', truncate to n characters in the normal view and m characters in the expanded view.
   commitAuthorFormat: auto
 
   # Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.

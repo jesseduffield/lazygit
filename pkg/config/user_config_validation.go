@@ -2,12 +2,18 @@ package config
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 )
 
 func (config *UserConfig) Validate() error {
-	if err := validateEnum("gui.commitAuthorFormat", config.Gui.CommitAuthorFormat,
+	if strings.HasPrefix(string(config.Gui.CommitAuthorFormat), "truncateTo:") {
+		regex := regexp.MustCompile(`truncateTo:\d+(,\d+)?$`)
+		if !regex.MatchString(string(config.Gui.CommitAuthorFormat)) {
+			return fmt.Errorf("Invalid value for 'gui.commitAuthorFormat'. Expected format: 'truncateTo:<normal_length>[,<extended_length>]'")
+		}
+	} else if err := validateEnum("gui.commitAuthorFormat", string(config.Gui.CommitAuthorFormat),
 		[]string{"auto", "short", "full"}); err != nil {
 		return err
 	}
