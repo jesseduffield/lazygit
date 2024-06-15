@@ -161,10 +161,10 @@ func MaxFn[T any](items []T, fn func(T) int) int {
 
 // TruncateWithEllipsis returns a string, truncated to a certain length, with an ellipsis
 func TruncateWithEllipsis(str string, limit int) string {
-	if runewidth.StringWidth(str) > limit && limit <= 3 {
+	if runewidth.StringWidth(str) > limit && limit <= 2 {
 		return strings.Repeat(".", limit)
 	}
-	return runewidth.Truncate(str, limit, "...")
+	return runewidth.Truncate(str, limit, "…")
 }
 
 func SafeTruncate(str string, limit int) string {
