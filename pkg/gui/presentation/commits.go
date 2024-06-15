@@ -440,15 +440,7 @@ func displayCommit(
 		mark = fmt.Sprintf("%s ", willBeRebased)
 	}
 
-	var authorFunc func(string) string
-	switch common.UserConfig.Gui.CommitAuthorFormat {
-	case "short":
-		authorFunc = authors.ShortAuthor
-	case "full":
-		authorFunc = authors.LongAuthor
-	default:
-		authorFunc = lo.Ternary(fullDescription, authors.LongAuthor, authors.ShortAuthor)
-	}
+	authorFunc := getAuthorFunc(common.UserConfig.Gui.CommitAuthorFormat, fullDescription)
 
 	cols := make([]string, 0, 7)
 	cols = append(
@@ -463,6 +455,17 @@ func displayCommit(
 	)
 
 	return cols
+}
+
+func getAuthorFunc(commitAuthorFormat string, fullDescription bool) func(string) string {
+	switch commitAuthorFormat {
+	case "short":
+		return authors.ShortAuthor
+	case "full":
+		return authors.LongAuthor
+	default:
+		return lo.Ternary(fullDescription, authors.LongAuthor, authors.ShortAuthor)
+	}
 }
 
 func getBisectStatusColor(status BisectStatus) style.TextStyle {
