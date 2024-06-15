@@ -440,9 +440,14 @@ func displayCommit(
 		mark = fmt.Sprintf("%s ", willBeRebased)
 	}
 
-	authorFunc := authors.ShortAuthor
-	if fullDescription {
+	var authorFunc func(string) string
+	switch common.UserConfig.Gui.CommitAuthorFormat {
+	case "short":
+		authorFunc = authors.ShortAuthor
+	case "full":
 		authorFunc = authors.LongAuthor
+	default:
+		authorFunc = lo.Ternary(fullDescription, authors.LongAuthor, authors.ShortAuthor)
 	}
 
 	cols := make([]string, 0, 7)
