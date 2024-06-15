@@ -33,6 +33,13 @@ var (
 	mutex        deadlock.Mutex
 )
 
+type truncateConfigCacheKey struct {
+	configValue     string
+	fullDescription bool
+}
+
+var truncateConfigCache = make(map[truncateConfigCacheKey]func(string) string)
+
 type bisectBounds struct {
 	newIndex int
 	oldIndex int
@@ -441,7 +448,14 @@ func displayCommit(
 		mark = fmt.Sprintf("%s ", willBeRebased)
 	}
 
-	authorFunc := getAuthorFunc(string(common.UserConfig.Gui.CommitAuthorFormat), fullDescription)
+	var authorFunc func(string) string
+	cacheKey := truncateConfigCacheKey{configValue: string(common.UserConfig.Gui.CommitAuthorFormat), fullDescription: fullDescription}
+	if f, ok := truncateConfigCache[cacheKey]; ok {
+		authorFunc = f
+	} else {
+		authorFunc = getAuthorFunc(string(common.UserConfig.Gui.CommitAuthorFormat), fullDescription)
+		truncateConfigCache[cacheKey] = authorFunc
+	}
 
 	cols := make([]string, 0, 7)
 	cols = append(
