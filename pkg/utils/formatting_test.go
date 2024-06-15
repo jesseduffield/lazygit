@@ -107,22 +107,22 @@ func TestTruncateWithEllipsis(t *testing.T) {
 		{
 			"hello world !",
 			3,
-			"...",
+			"he…",
 		},
 		{
 			"hello world !",
 			4,
-			"h...",
+			"hel…",
 		},
 		{
 			"hello world !",
 			5,
-			"he...",
+			"hell…",
 		},
 		{
 			"hello world !",
 			12,
-			"hello wor...",
+			"hello world…",
 		},
 		{
 			"hello world !",
@@ -137,12 +137,17 @@ func TestTruncateWithEllipsis(t *testing.T) {
 		{
 			"大大大大",
 			5,
-			"大...",
+			"大大…",
 		},
 		{
 			"大大大大",
 			2,
 			"..",
+		},
+		{
+			"大大大大",
+			1,
+			".",
 		},
 		{
 			"大大大大",
