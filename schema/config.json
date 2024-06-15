@@ -332,6 +332,16 @@
           "description": "If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.",
           "default": true
         },
+        "commitAuthorShortLength": {
+          "type": "integer",
+          "description": "Length of author name in (non-expanded) commits view. 2 means show initials only.",
+          "default": 2
+        },
+        "commitAuthorLongLength": {
+          "type": "integer",
+          "description": "Length of author name in expanded commits view. 2 means show initials only.",
+          "default": 17
+        },
         "commitHashLength": {
           "type": "integer",
           "minimum": 0,

@@ -440,10 +440,11 @@ func displayCommit(
 		mark = fmt.Sprintf("%s ", willBeRebased)
 	}
 
-	authorFunc := authors.ShortAuthor
+	authorLength := common.UserConfig.Gui.CommitAuthorShortLength
 	if fullDescription {
-		authorFunc = authors.LongAuthor
+		authorLength = common.UserConfig.Gui.CommitAuthorLongLength
 	}
+	author := authors.AuthorWithLength(commit.AuthorName, authorLength)
 
 	cols := make([]string, 0, 7)
 	cols = append(
@@ -453,7 +454,7 @@ func displayCommit(
 		bisectString,
 		descriptionString,
 		actionString,
-		authorFunc(commit.AuthorName),
+		author,
 		graphLine+mark+tagString+theme.DefaultTextColor.Sprint(name),
 	)
 
