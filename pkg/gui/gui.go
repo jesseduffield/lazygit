@@ -678,7 +678,7 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 		return err
 	}
 
-	gui.g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
+	gui.g.SetManager(gocui.ManagerFunc(gui.layout))
 
 	if err := gui.createAllViews(); err != nil {
 		return err
