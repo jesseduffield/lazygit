@@ -122,6 +122,10 @@ gui:
     selectedLineBgColor:
       - blue
 
+    # Background color of selected line when view doesn't have focus.
+    inactiveViewSelectedLineBgColor:
+      - bold
+
     # Foreground color of copied commit
     cherryPickedCommitFgColor:
       - blue

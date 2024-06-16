@@ -230,6 +230,10 @@ func (self *ContextMgr) ActivateContext(c types.Context, opts types.OnFocusOpts)
 	self.gui.helpers.Window.SetWindowContext(c)
 
 	self.gui.helpers.Window.MoveToTopOfWindow(c)
+	oldView := self.gui.c.GocuiGui().CurrentView()
+	if oldView != nil && oldView.Name() != viewName {
+		oldView.HighlightInactive = true
+	}
 	if _, err := self.gui.c.GocuiGui().SetCurrentView(viewName); err != nil {
 		return err
 	}

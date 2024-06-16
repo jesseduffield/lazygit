@@ -49,6 +49,7 @@ func (self *ViewTrait) SetContent(content string) {
 
 func (self *ViewTrait) SetHighlight(highlight bool) {
 	self.view.Highlight = highlight
+	self.view.HighlightInactive = false
 }
 
 func (self *ViewTrait) SetFooter(value string) {
