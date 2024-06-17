@@ -771,6 +771,7 @@ gui:
 
 ![border example](../../assets/colored-border-example.png)
 
+You can find preset themes on [this repository](https://github.com/catppuccin/lazygit) by Catppuccin.
 ## Display Nerd Fonts Icons
 
 If you are using [Nerd Fonts](https://www.nerdfonts.com), you can display icons.
