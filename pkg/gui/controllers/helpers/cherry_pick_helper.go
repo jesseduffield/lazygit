@@ -77,41 +77,23 @@ func (self *CherryPickHelper) Paste() error {
 				"numCommits": strconv.Itoa(len(self.getData().CherryPickedCommits)),
 			}),
 		HandleConfirm: func() error {
-			isInRebase, err := self.c.Git().Status.IsInRebase()
-			if err != nil {
-				return err
-			}
-			if isInRebase {
-				if err := self.c.Git().Rebase.CherryPickCommitsDuringRebase(self.getData().CherryPickedCommits); err != nil {
-					return err
-				}
-				err = self.c.Refresh(types.RefreshOptions{
-					Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
-				})
-				if err != nil {
-					return err
-				}
-
-				return self.Reset()
-			}
-
 			return self.c.WithWaitingStatus(self.c.Tr.CherryPickingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.CherryPick)
-				err := self.c.Git().Rebase.CherryPickCommits(self.getData().CherryPickedCommits)
-				err = self.rebaseHelper.CheckMergeOrRebase(err)
+				result := self.c.Git().Rebase.CherryPickCommits(self.getData().CherryPickedCommits)
+				err := self.rebaseHelper.CheckMergeOrRebase(result)
 				if err != nil {
-					return err
+					return result
 				}
 
-				// If we're in an interactive rebase at this point, it must
+				// If we're in the cherry-picking state at this point, it must
 				// be because there were conflicts. Don't clear the copied
-				// commits in this case, since we might want to abort and
-				// try pasting them again.
-				isInRebase, err = self.c.Git().Status.IsInRebase()
-				if err != nil {
-					return err
+				// commits in this case, since we might want to abort and try
+				// pasting them again.
+				isInCherryPick, result := self.c.Git().Status.IsInCherryPick()
+				if result != nil {
+					return result
 				}
-				if !isInRebase {
+				if !isInCherryPick {
 					self.getData().DidPaste = true
 					self.rerender()
 				}

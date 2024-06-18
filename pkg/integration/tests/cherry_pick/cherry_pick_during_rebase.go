@@ -75,8 +75,8 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("pick  CI two"),
-				Contains("pick  CI three"),
-				Contains("      CI <-- YOU ARE HERE --- one"),
+				Contains("      CI <-- YOU ARE HERE --- three"),
+				Contains("      CI one"),
 				Contains("      CI base"),
 			).
 			Tap(func() {
