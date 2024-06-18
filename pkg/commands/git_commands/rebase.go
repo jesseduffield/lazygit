@@ -533,35 +533,15 @@ func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, comm
 
 // CherryPickCommits begins an interactive rebase with the given hashes being cherry picked onto HEAD
 func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
-	commitLines := lo.Map(commits, func(commit *models.Commit, _ int) string {
-		return fmt.Sprintf("%s %s", utils.ShortHash(commit.Hash), commit.Name)
-	})
-	msg := utils.ResolvePlaceholderString(
-		self.Tr.Log.CherryPickCommits,
-		map[string]string{
-			"commitLines": strings.Join(commitLines, "\n"),
-		},
-	)
-	self.os.LogCommand(msg, false)
+	hasMergeCommit := lo.SomeBy(commits, func(c *models.Commit) bool { return c.IsMerge() })
+	cmdArgs := NewGitCmd("cherry-pick").
+		Arg("--allow-empty").
+		ArgIf(self.version.IsAtLeast(2, 45, 0), "--empty=keep", "--keep-redundant-commits").
+		ArgIf(hasMergeCommit, "-m1").
+		Arg(lo.Reverse(lo.Map(commits, func(c *models.Commit, _ int) string { return c.Hash }))...).
+		ToArgv()
 
-	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseHashOrRoot: "HEAD",
-		instruction:    daemon.NewCherryPickCommitsInstruction(commits),
-	}).Run()
-}
-
-// CherryPickCommitsDuringRebase simply prepends the given commits to the existing git-rebase-todo file
-func (self *RebaseCommands) CherryPickCommitsDuringRebase(commits []*models.Commit) error {
-	todoLines := lo.Map(commits, func(commit *models.Commit, _ int) daemon.TodoLine {
-		return daemon.TodoLine{
-			Action: "pick",
-			Commit: commit,
-		}
-	})
-
-	todo := daemon.TodoLinesToString(todoLines)
-	filePath := filepath.Join(self.repoPaths.worktreeGitDirPath, "rebase-merge/git-rebase-todo")
-	return utils.PrependStrToTodoFile(filePath, []byte(todo))
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *RebaseCommands) DropMergeCommit(commits []*models.Commit, commitIndex int) error {
