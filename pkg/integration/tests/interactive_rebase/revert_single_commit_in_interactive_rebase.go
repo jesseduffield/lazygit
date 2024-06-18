@@ -42,7 +42,7 @@ var RevertSingleCommitInInteractiveRebase = NewIntegrationTest(NewIntegrationTes
 				t.ExpectPopup().Menu().
 					Title(Equals("Conflicts!")).
 					Select(Contains("View conflicts")).
-					Confirm()
+					Cancel() // stay in commits panel
 			}).
 			Lines(
 				Contains("CI unrelated change 2"),
@@ -51,12 +51,20 @@ var RevertSingleCommitInInteractiveRebase = NewIntegrationTest(NewIntegrationTes
 				Contains("CI ◯ add second line"),
 				Contains("CI ◯ add first line").IsSelected(),
 				Contains("CI ◯ add empty file"),
-			)
+			).
+			Press(keys.Commits.MoveDownCommit).
+			Tap(func() {
+				t.ExpectToast(Equals("Disabled: This action is not allowed while cherry-picking or reverting"))
+			}).
+			Press(keys.Universal.Remove).
+			Tap(func() {
+				t.ExpectToast(Equals("Disabled: This action is not allowed while cherry-picking or reverting"))
+			})
 
 		t.Views().Options().Content(Contains("View revert options: m"))
 		t.Views().Information().Content(Contains("Reverting (Reset)"))
 
-		t.Views().Files().IsFocused().
+		t.Views().Files().Focus().
 			Lines(
 				Contains("UU myfile").IsSelected(),
 			).
