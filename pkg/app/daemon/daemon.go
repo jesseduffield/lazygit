@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"strconv"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -33,7 +32,6 @@ const (
 
 	DaemonKindExitImmediately
 	DaemonKindRemoveUpdateRefsForCopiedBranch
-	DaemonKindCherryPick
 	DaemonKindMoveTodosUp
 	DaemonKindMoveTodosDown
 	DaemonKindInsertBreak
@@ -56,7 +54,6 @@ func getInstruction() Instruction {
 	mapping := map[DaemonKind]func(string) Instruction{
 		DaemonKindExitImmediately:                 deserializeInstruction[*ExitImmediatelyInstruction],
 		DaemonKindRemoveUpdateRefsForCopiedBranch: deserializeInstruction[*RemoveUpdateRefsForCopiedBranchInstruction],
-		DaemonKindCherryPick:                      deserializeInstruction[*CherryPickCommitsInstruction],
 		DaemonKindChangeTodoActions:               deserializeInstruction[*ChangeTodoActionsInstruction],
 		DaemonKindDropMergeCommit:                 deserializeInstruction[*DropMergeCommitInstruction],
 		DaemonKindMoveFixupCommitDown:             deserializeInstruction[*MoveFixupCommitDownInstruction],
@@ -178,39 +175,6 @@ func (self *RemoveUpdateRefsForCopiedBranchInstruction) run(common *common.Commo
 
 func NewRemoveUpdateRefsForCopiedBranchInstruction() Instruction {
 	return &RemoveUpdateRefsForCopiedBranchInstruction{}
-}
-
-type CherryPickCommitsInstruction struct {
-	Todo string
-}
-
-func NewCherryPickCommitsInstruction(commits []*models.Commit) Instruction {
-	todoLines := lo.Map(commits, func(commit *models.Commit, _ int) TodoLine {
-		return TodoLine{
-			Action: "pick",
-			Commit: commit,
-		}
-	})
-
-	todo := TodoLinesToString(todoLines)
-
-	return &CherryPickCommitsInstruction{
-		Todo: todo,
-	}
-}
-
-func (self *CherryPickCommitsInstruction) Kind() DaemonKind {
-	return DaemonKindCherryPick
-}
-
-func (self *CherryPickCommitsInstruction) SerializedInstructions() string {
-	return serializeInstruction(self)
-}
-
-func (self *CherryPickCommitsInstruction) run(common *common.Common) error {
-	return handleInteractiveRebase(common, func(path string) error {
-		return utils.PrependStrToTodoFile(path, []byte(self.Todo))
-	})
 }
 
 type ChangeTodoActionsInstruction struct {
