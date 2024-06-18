@@ -272,6 +272,10 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		},
 	)
 
+	if suggestedBranchName == "" {
+		suggestedBranchName = self.c.UserConfig.Git.BranchPrefix
+	}
+
 	return self.c.Prompt(types.PromptOpts{
 		Title:          message,
 		InitialContent: suggestedBranchName,
