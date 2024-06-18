@@ -89,6 +89,8 @@ var tests = []*components.IntegrationTest{
 	commit.History,
 	commit.HistoryComplex,
 	commit.NewBranch,
+	commit.PasteCommitMessage,
+	commit.PasteCommitMessageOverExisting,
 	commit.PreserveCommitMessage,
 	commit.ResetAuthor,
 	commit.ResetAuthorRange,

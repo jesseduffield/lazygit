@@ -582,6 +582,8 @@ type TranslationSet struct {
 	CommitHash                            string
 	CommitURL                             string
 	CopyCommitMessageToClipboard          string
+	PasteCommitMessageFromClipboard       string
+	SurePasteCommitMessage                string
 	CommitMessage                         string
 	CommitSubject                         string
 	CommitAuthor                          string
@@ -1553,6 +1555,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CommitHash:                            "Commit hash",
 		CommitURL:                             "Commit URL",
 		CopyCommitMessageToClipboard:          "Copy commit message to clipboard",
+		PasteCommitMessageFromClipboard:       "Paste commit message from clipboard",
+		SurePasteCommitMessage:                "Pasting will overwrite the current commit message, continue?",
 		CommitMessage:                         "Commit message",
 		CommitSubject:                         "Commit subject",
 		CommitAuthor:                          "Commit author",
