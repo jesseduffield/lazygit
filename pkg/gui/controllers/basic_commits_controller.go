@@ -366,10 +366,6 @@ func (self *BasicCommitsController) canCopyCommits(selectedCommits []*models.Com
 		if commit.Hash == "" {
 			return &types.DisabledReason{Text: self.c.Tr.CannotCherryPickNonCommit, ShowErrorInPanel: true}
 		}
-
-		if commit.IsMerge() {
-			return &types.DisabledReason{Text: self.c.Tr.CannotCherryPickMergeCommit, ShowErrorInPanel: true}
-		}
 	}
 
 	return nil
