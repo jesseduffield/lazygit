@@ -229,6 +229,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.ApplyInReverseWithConflict,
 	patch_building.MoveRangeToIndex,
 	patch_building.MoveToEarlierCommit,
+	patch_building.MoveToEarlierCommitFromAddedFile,
 	patch_building.MoveToEarlierCommitNoKeepEmpty,
 	patch_building.MoveToIndex,
 	patch_building.MoveToIndexPartOfAdjacentAddedLines,
