@@ -82,9 +82,10 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 	}
 
 	secondaryDiff := self.c.Git().Patch.PatchBuilder.RenderPatchForFile(patch.RenderPatchForFileOpts{
-		Filename: path,
-		Plain:    false,
-		Reverse:  false,
+		Filename:                               path,
+		Plain:                                  false,
+		Reverse:                                false,
+		TurnAddedFilesIntoDiffAgainstEmptyFile: true,
 	})
 
 	context := self.c.Contexts().CustomPatchBuilder

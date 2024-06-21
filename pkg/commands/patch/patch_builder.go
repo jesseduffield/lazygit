@@ -65,7 +65,7 @@ func (p *PatchBuilder) Start(from, to string, reverse bool, canRebase bool) {
 	p.fileInfoMap = map[string]*fileInfo{}
 }
 
-func (p *PatchBuilder) PatchToApply(reverse bool) string {
+func (p *PatchBuilder) PatchToApply(reverse bool, turnAddedFilesIntoDiffAgainstEmptyFile bool) string {
 	patch := ""
 
 	for filename, info := range p.fileInfoMap {
@@ -74,9 +74,10 @@ func (p *PatchBuilder) PatchToApply(reverse bool) string {
 		}
 
 		patch += p.RenderPatchForFile(RenderPatchForFileOpts{
-			Filename: filename,
-			Plain:    true,
-			Reverse:  reverse,
+			Filename:                               filename,
+			Plain:                                  true,
+			Reverse:                                reverse,
+			TurnAddedFilesIntoDiffAgainstEmptyFile: turnAddedFilesIntoDiffAgainstEmptyFile,
 		})
 	}
 
@@ -177,9 +178,10 @@ func (p *PatchBuilder) RemoveFileLineRange(filename string, firstLineIdx, lastLi
 }
 
 type RenderPatchForFileOpts struct {
-	Filename string
-	Plain    bool
-	Reverse  bool
+	Filename                               string
+	Plain                                  bool
+	Reverse                                bool
+	TurnAddedFilesIntoDiffAgainstEmptyFile bool
 }
 
 func (p *PatchBuilder) RenderPatchForFile(opts RenderPatchForFileOpts) string {
@@ -202,8 +204,9 @@ func (p *PatchBuilder) RenderPatchForFile(opts RenderPatchForFileOpts) string {
 
 	patch := Parse(info.diff).
 		Transform(TransformOpts{
-			Reverse:             opts.Reverse,
-			IncludedLineIndices: info.includedLineIndices,
+			Reverse:                                opts.Reverse,
+			TurnAddedFilesIntoDiffAgainstEmptyFile: opts.TurnAddedFilesIntoDiffAgainstEmptyFile,
+			IncludedLineIndices:                    info.includedLineIndices,
 		})
 
 	if opts.Plain {
@@ -220,9 +223,10 @@ func (p *PatchBuilder) renderEachFilePatch(plain bool) []string {
 	sort.Strings(filenames)
 	patches := lo.Map(filenames, func(filename string, _ int) string {
 		return p.RenderPatchForFile(RenderPatchForFileOpts{
-			Filename: filename,
-			Plain:    plain,
-			Reverse:  false,
+			Filename:                               filename,
+			Plain:                                  plain,
+			Reverse:                                false,
+			TurnAddedFilesIntoDiffAgainstEmptyFile: true,
 		})
 	})
 	output := lo.Filter(patches, func(patch string, _ int) bool {

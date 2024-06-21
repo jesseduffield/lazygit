@@ -126,9 +126,8 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Views().Secondary().ContainsLines(
 					// direct-file patch
 					Contains(`diff --git a/direct-file b/direct-file`),
-					Contains(`new file mode 100644`),
 					Contains(`index`),
-					Contains(`--- /dev/null`),
+					Contains(`--- a/direct-file`),
 					Contains(`+++ b/direct-file`),
 					Contains(`@@ -0,0 +1 @@`),
 					Contains(`+direct file content`),
@@ -149,9 +148,8 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 					Contains(` 1f`),
 					// line-file patch
 					Contains(`diff --git a/line-file b/line-file`),
-					Contains(`new file mode 100644`),
 					Contains(`index`),
-					Contains(`--- /dev/null`),
+					Contains(`--- a/line-file`),
 					Contains(`+++ b/line-file`),
 					Contains(`@@ -0,0 +1,5 @@`),
 					Contains(`+2a`),

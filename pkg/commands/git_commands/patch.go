@@ -47,8 +47,8 @@ type ApplyPatchOpts struct {
 	Reverse  bool
 }
 
-func (self *PatchCommands) ApplyCustomPatch(reverse bool) error {
-	patch := self.PatchBuilder.PatchToApply(reverse)
+func (self *PatchCommands) ApplyCustomPatch(reverse bool, turnAddedFilesIntoDiffAgainstEmptyFile bool) error {
+	patch := self.PatchBuilder.PatchToApply(reverse, turnAddedFilesIntoDiffAgainstEmptyFile)
 
 	return self.ApplyPatch(patch, ApplyPatchOpts{
 		Index:    true,
@@ -94,7 +94,7 @@ func (self *PatchCommands) DeletePatchesFromCommit(commits []*models.Commit, com
 	}
 
 	// apply each patch in reverse
-	if err := self.ApplyCustomPatch(true); err != nil {
+	if err := self.ApplyCustomPatch(true, true); err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
 	}
@@ -123,7 +123,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 		}
 
 		// apply each patch forward
-		if err := self.ApplyCustomPatch(false); err != nil {
+		if err := self.ApplyCustomPatch(false, false); err != nil {
 			// Don't abort the rebase here; this might cause conflicts, so give
 			// the user a chance to resolve them
 			return err
@@ -172,7 +172,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	}
 
 	// apply each patch in reverse
-	if err := self.ApplyCustomPatch(true); err != nil {
+	if err := self.ApplyCustomPatch(true, true); err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
 	}
@@ -228,7 +228,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 		return err
 	}
 
-	if err := self.ApplyCustomPatch(true); err != nil {
+	if err := self.ApplyCustomPatch(true, true); err != nil {
 		if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 			_ = self.rebase.AbortRebase()
 		}
@@ -282,7 +282,7 @@ func (self *PatchCommands) PullPatchIntoNewCommit(
 		return err
 	}
 
-	if err := self.ApplyCustomPatch(true); err != nil {
+	if err := self.ApplyCustomPatch(true, true); err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
 	}
