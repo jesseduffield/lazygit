@@ -3,6 +3,7 @@ package helpers
 import (
 	"errors"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -80,7 +81,11 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 		return err
 	}
 
-	secondaryDiff := self.c.Git().Patch.PatchBuilder.RenderPatchForFile(path, false, false)
+	secondaryDiff := self.c.Git().Patch.PatchBuilder.RenderPatchForFile(patch.RenderPatchForFileOpts{
+		Filename: path,
+		Plain:    false,
+		Reverse:  false,
+	})
 
 	context := self.c.Contexts().CustomPatchBuilder
 
