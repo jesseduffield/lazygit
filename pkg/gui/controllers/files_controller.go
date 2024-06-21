@@ -1062,60 +1062,65 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 
 	selectedNodes = normalisedSelectedNodes(selectedNodes)
 
-	menuItems := []*types.MenuItem{
-		{
-			Label: self.c.Tr.DiscardAllChanges,
-			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInFile)
+	discardAllChangesItem := types.MenuItem{
+		Label: self.c.Tr.DiscardAllChanges,
+		OnPress: func() error {
+			self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInFile)
 
-				if self.context().IsSelectingRange() {
-					defer self.context().CancelRangeSelect()
+			if self.context().IsSelectingRange() {
+				defer self.context().CancelRangeSelect()
+			}
+
+			for _, node := range selectedNodes {
+				if err := self.c.Git().WorkingTree.DiscardAllDirChanges(node); err != nil {
+					return err
 				}
+			}
 
-				for _, node := range selectedNodes {
-					if err := self.c.Git().WorkingTree.DiscardAllDirChanges(node); err != nil {
-						return err
-					}
-				}
-
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
-			},
-			Key: self.c.KeybindingsOpts().GetKey(self.c.UserConfig.Keybinding.Files.ConfirmDiscard),
-			Tooltip: utils.ResolvePlaceholderString(
-				self.c.Tr.DiscardAllTooltip,
-				map[string]string{
-					"path": self.formattedPaths(selectedNodes),
-				},
-			),
+			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
 		},
+		Key: self.c.KeybindingsOpts().GetKey(self.c.UserConfig.Keybinding.Files.ConfirmDiscard),
+		Tooltip: utils.ResolvePlaceholderString(
+			self.c.Tr.DiscardAllTooltip,
+			map[string]string{
+				"path": self.formattedPaths(selectedNodes),
+			},
+		),
 	}
 
-	if someNodesHaveStagedChanges(selectedNodes) && someNodesHaveUnstagedChanges(selectedNodes) {
-		menuItems = append(menuItems, &types.MenuItem{
-			Label: self.c.Tr.DiscardUnstagedChanges,
-			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
+	discardUnstagedChangesItem := types.MenuItem{
+		Label: self.c.Tr.DiscardUnstagedChanges,
+		OnPress: func() error {
+			self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
 
-				if self.context().IsSelectingRange() {
-					defer self.context().CancelRangeSelect()
+			if self.context().IsSelectingRange() {
+				defer self.context().CancelRangeSelect()
+			}
+
+			for _, node := range selectedNodes {
+				if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
+					return err
 				}
+			}
 
-				for _, node := range selectedNodes {
-					if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
-						return err
-					}
-				}
-
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+		},
+		Key: 'u',
+		Tooltip: utils.ResolvePlaceholderString(
+			self.c.Tr.DiscardUnstagedTooltip,
+			map[string]string{
+				"path": self.formattedPaths(selectedNodes),
 			},
-			Key: 'u',
-			Tooltip: utils.ResolvePlaceholderString(
-				self.c.Tr.DiscardUnstagedTooltip,
-				map[string]string{
-					"path": self.formattedPaths(selectedNodes),
-				},
-			),
-		})
+		),
+	}
+
+	if !someNodesHaveStagedChanges(selectedNodes) || !someNodesHaveUnstagedChanges(selectedNodes) {
+		discardUnstagedChangesItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.DiscardUnstagedDisabled}
+	}
+
+	menuItems := []*types.MenuItem{
+		&discardAllChangesItem,
+		&discardUnstagedChangesItem,
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.DiscardChangesTitle, Items: menuItems})
