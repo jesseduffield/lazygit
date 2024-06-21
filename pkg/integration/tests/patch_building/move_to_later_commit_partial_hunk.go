@@ -40,7 +40,6 @@ var MoveToLaterCommitPartialHunk = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().PatchBuilding().
 			IsFocused().
-			PressEnter().
 			PressPrimaryAction().
 			PressEscape()
 

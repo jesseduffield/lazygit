@@ -40,7 +40,6 @@ var MoveToNewCommitPartialHunk = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().PatchBuilding().
 			IsFocused().
-			PressEnter().
 			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("Building patch"))
