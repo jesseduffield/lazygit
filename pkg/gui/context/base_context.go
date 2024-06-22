@@ -23,7 +23,7 @@ type BaseContext struct {
 	focusable                   bool
 	transient                   bool
 	hasControlledBounds         bool
-	needsRerenderOnWidthChange  bool
+	needsRerenderOnWidthChange  types.NeedsRerenderOnWidthChangeLevel
 	needsRerenderOnHeightChange bool
 	highlightOnFocus            bool
 
@@ -46,7 +46,7 @@ type NewBaseContextOpts struct {
 	Transient                   bool
 	HasUncontrolledBounds       bool // negating for the sake of making false the default
 	HighlightOnFocus            bool
-	NeedsRerenderOnWidthChange  bool
+	NeedsRerenderOnWidthChange  types.NeedsRerenderOnWidthChangeLevel
 	NeedsRerenderOnHeightChange bool
 
 	OnGetOptionsMap func() map[string]string
@@ -201,7 +201,7 @@ func (self *BaseContext) HasControlledBounds() bool {
 	return self.hasControlledBounds
 }
 
-func (self *BaseContext) NeedsRerenderOnWidthChange() bool {
+func (self *BaseContext) NeedsRerenderOnWidthChange() types.NeedsRerenderOnWidthChangeLevel {
 	return self.needsRerenderOnWidthChange
 }
 

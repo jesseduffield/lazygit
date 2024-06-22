@@ -73,7 +73,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 
 		mustRerender := false
-		if context.NeedsRerenderOnWidthChange() {
+		if context.NeedsRerenderOnWidthChange() == types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES {
 			// view.Width() returns the width -1 for some reason
 			oldWidth := view.Width() + 1
 			newWidth := dimensionsObj.X1 - dimensionsObj.X0 + 2*frameOffset
