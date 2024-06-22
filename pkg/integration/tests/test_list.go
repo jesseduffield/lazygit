@@ -238,6 +238,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.MoveToLaterCommit,
 	patch_building.MoveToLaterCommitPartialHunk,
 	patch_building.MoveToNewCommit,
+	patch_building.MoveToNewCommitFromDeletedFile,
 	patch_building.MoveToNewCommitPartialHunk,
 	patch_building.RemoveFromCommit,
 	patch_building.ResetWithEscape,
