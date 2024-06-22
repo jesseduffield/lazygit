@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/mattn/go-runewidth"
 	"golang.org/x/exp/slices"
 )
 
@@ -272,7 +271,7 @@ func infoSectionChildren(args WindowArrangementArgs) []*boxlayout.Box {
 		return []*boxlayout.Box{
 			{
 				Window: "searchPrefix",
-				Size:   runewidth.StringWidth(args.SearchPrefix),
+				Size:   utils.StringWidth(args.SearchPrefix),
 			},
 			{
 				Window: "search",
@@ -325,7 +324,7 @@ func infoSectionChildren(args WindowArrangementArgs) []*boxlayout.Box {
 		// app status appears very briefly in demos and dislodges the caption,
 		// so better not to show it at all
 		if args.AppStatus != "" {
-			result = append(result, &boxlayout.Box{Window: "appStatus", Size: runewidth.StringWidth(args.AppStatus)})
+			result = append(result, &boxlayout.Box{Window: "appStatus", Size: utils.StringWidth(args.AppStatus)})
 		}
 	}
 
@@ -338,7 +337,7 @@ func infoSectionChildren(args WindowArrangementArgs) []*boxlayout.Box {
 			&boxlayout.Box{
 				Window: "information",
 				// unlike appStatus, informationStr has various colors so we need to decolorise before taking the length
-				Size: runewidth.StringWidth(utils.Decolorise(args.InformationStr)),
+				Size: utils.StringWidth(utils.Decolorise(args.InformationStr)),
 			})
 	}
 

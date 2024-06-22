@@ -6,7 +6,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/mattn/go-runewidth"
 )
 
 func (gui *Gui) informationStr() string {
@@ -34,7 +33,7 @@ func (gui *Gui) handleInfoClick() error {
 	width, _ := view.Size()
 
 	if activeMode, ok := gui.helpers.Mode.GetActiveMode(); ok {
-		if width-cx > runewidth.StringWidth(gui.c.Tr.ResetInParentheses) {
+		if width-cx > utils.StringWidth(gui.c.Tr.ResetInParentheses) {
 			return nil
 		}
 		return activeMode.Reset()
@@ -43,10 +42,10 @@ func (gui *Gui) handleInfoClick() error {
 	var title, url string
 
 	// if we're not in an active mode we show the donate button
-	if cx <= runewidth.StringWidth(gui.c.Tr.Donate) {
+	if cx <= utils.StringWidth(gui.c.Tr.Donate) {
 		url = constants.Links.Donate
 		title = gui.c.Tr.Donate
-	} else if cx <= runewidth.StringWidth(gui.c.Tr.Donate)+1+runewidth.StringWidth(gui.c.Tr.AskQuestion) {
+	} else if cx <= utils.StringWidth(gui.c.Tr.Donate)+1+utils.StringWidth(gui.c.Tr.AskQuestion) {
 		url = constants.Links.Discussions
 		title = gui.c.Tr.AskQuestion
 	}

@@ -56,7 +56,7 @@ func getBranchDisplayStrings(
 	// Recency is always three characters, plus one for the space
 	availableWidth := viewWidth - 4
 	if len(branchStatus) > 0 {
-		availableWidth -= runewidth.StringWidth(utils.Decolorise(branchStatus)) + 1
+		availableWidth -= utils.StringWidth(utils.Decolorise(branchStatus)) + 1
 	}
 	if icons.IsIconEnabled() {
 		availableWidth -= 2 // one for the icon, one for the space
@@ -65,7 +65,7 @@ func getBranchDisplayStrings(
 		availableWidth -= utils.COMMIT_HASH_SHORT_SIZE + 1
 	}
 	if checkedOutByWorkTree {
-		availableWidth -= runewidth.StringWidth(worktreeIcon) + 1
+		availableWidth -= utils.StringWidth(worktreeIcon) + 1
 	}
 
 	displayName := b.Name
@@ -79,7 +79,7 @@ func getBranchDisplayStrings(
 	}
 
 	// Don't bother shortening branch names that are already 3 characters or less
-	if runewidth.StringWidth(displayName) > max(availableWidth, 3) {
+	if utils.StringWidth(displayName) > max(availableWidth, 3) {
 		// Never shorten the branch name to less then 3 characters
 		len := max(availableWidth, 4)
 		displayName = runewidth.Truncate(displayName, len, "…")
