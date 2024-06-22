@@ -51,7 +51,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "🍉_special_c…"}, // truncated, but shouldn't
+			expected:             []string{"1m", "🍉_special_char"},
 		},
 		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},
@@ -202,7 +202,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "🍉_special_…"}, // truncated two runes too much
+			expected:             []string{"1m", "🍉_special_ch…"},
 		},
 		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},
