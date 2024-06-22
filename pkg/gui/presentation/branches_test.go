@@ -44,6 +44,16 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			expected:             []string{"1m", "branch_name"},
 		},
 		{
+			branch:               &models.Branch{Name: "🍉_special_char", Recency: "1m"},
+			itemOperation:        types.ItemOperationNone,
+			fullDescription:      false,
+			viewWidth:            19,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			showDivergenceCfg:    "none",
+			expected:             []string{"1m", "🍉_special_c…"}, // truncated, but shouldn't
+		},
+		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},
 			itemOperation:        types.ItemOperationNone,
 			fullDescription:      false,
@@ -183,6 +193,16 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
 			expected:             []string{"1m", "branch_na…"},
+		},
+		{
+			branch:               &models.Branch{Name: "🍉_special_char", Recency: "1m"},
+			itemOperation:        types.ItemOperationNone,
+			fullDescription:      false,
+			viewWidth:            18,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			showDivergenceCfg:    "none",
+			expected:             []string{"1m", "🍉_special_…"}, // truncated two runes too much
 		},
 		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},
