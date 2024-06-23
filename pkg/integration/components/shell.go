@@ -360,6 +360,12 @@ func (self *Shell) Clone(repoName string) *Shell {
 	return self
 }
 
+func (self *Shell) CloneNonBare(repoName string) *Shell {
+	self.RunCommand([]string{"git", "clone", ".", "../" + repoName})
+
+	return self
+}
+
 func (self *Shell) SetBranchUpstream(branch string, upstream string) *Shell {
 	self.RunCommand([]string{"git", "branch", "--set-upstream-to=" + upstream, branch})
 

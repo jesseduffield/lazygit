@@ -20,6 +20,10 @@ func (gui *Gui) Helpers() *helpers.Helpers {
 // in the keybinding menu: the earlier that the controller is attached to a context,
 // the lower in the list the keybindings will appear.
 func (gui *Gui) resetHelpersAndControllers() {
+	for _, context := range gui.Contexts().Flatten() {
+		context.ClearAllBindingsFn()
+	}
+
 	helperCommon := gui.c
 	recordDirectoryHelper := helpers.NewRecordDirectoryHelper(helperCommon)
 	reposHelper := helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo)

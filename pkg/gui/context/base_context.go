@@ -133,6 +133,11 @@ func (self *BaseContext) AddMouseKeybindingsFn(fn types.MouseKeybindingsFn) {
 	self.mouseKeybindingsFns = append(self.mouseKeybindingsFns, fn)
 }
 
+func (self *BaseContext) ClearAllBindingsFn() {
+	self.keybindingsFns = []types.KeybindingsFn{}
+	self.mouseKeybindingsFns = []types.MouseKeybindingsFn{}
+}
+
 func (self *BaseContext) AddOnClickFn(fn func() error) {
 	if fn != nil {
 		self.onClickFn = fn
