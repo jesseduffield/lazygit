@@ -771,13 +771,14 @@ func (v *View) writeRunes(p []rune) {
 			}
 			v.wx = 0
 		default:
-			moveCursor, cells := v.parseInput(r, v.wx, v.wy)
+			truncateLine, cells := v.parseInput(r, v.wx, v.wy)
 			if cells == nil {
 				continue
 			}
 			v.writeCells(v.wx, v.wy, cells)
-			if moveCursor {
-				v.wx += len(cells)
+			v.wx += len(cells)
+			if truncateLine {
+				v.lines[v.wy] = v.lines[v.wy][:v.wx]
 			}
 		}
 	}
@@ -800,7 +801,7 @@ func (v *View) writeString(s string) {
 // contains the processed data.
 func (v *View) parseInput(ch rune, x int, _ int) (bool, []cell) {
 	cells := []cell{}
-	moveCursor := true
+	truncateLine := false
 
 	isEscape, err := v.ei.parseOne(ch)
 	if err != nil {
@@ -816,18 +817,13 @@ func (v *View) parseInput(ch rune, x int, _ int) (bool, []cell) {
 	} else {
 		repeatCount := 1
 		if _, ok := v.ei.instruction.(eraseInLineFromCursor); ok {
-			// fill rest of line
+			// truncate line
 			v.ei.instructionRead()
-			cx := 0
-			for _, cell := range v.lines[v.wy] {
-				cx += runewidth.RuneWidth(cell.chr)
-			}
-			repeatCount = v.InnerWidth() - cx
-			ch = ' '
-			moveCursor = false
+			repeatCount = 0
+			truncateLine = true
 		} else if isEscape {
 			// do not output anything
-			return moveCursor, nil
+			return truncateLine, nil
 		} else if ch == '\t' {
 			// fill tab-sized space
 			const tabStop = 4
@@ -844,7 +840,7 @@ func (v *View) parseInput(ch rune, x int, _ int) (bool, []cell) {
 		}
 	}
 
-	return moveCursor, cells
+	return truncateLine, cells
 }
 
 // Read reads data into p from the current reading position set by SetReadPos.
@@ -1590,17 +1586,49 @@ func (v *View) ClearTextArea() {
 	_ = v.SetCursor(0, 0)
 }
 
-// only call this function if you don't care where v.wx and v.wy end up
-func (v *View) OverwriteLines(y int, content string) {
-	v.writeMutex.Lock()
-	defer v.writeMutex.Unlock()
-
+func (v *View) overwriteLines(y int, content string) {
 	// break by newline, then for each line, write it, then add that erase command
 	v.wx = 0
 	v.wy = y
 
 	lines := strings.Replace(content, "\n", "\x1b[K\n", -1)
+	// If the last line doesn't end with a linefeed, add the erase command at
+	// the end too
+	if !strings.HasSuffix(lines, "\n") {
+		lines += "\x1b[K"
+	}
 	v.writeString(lines)
+}
+
+// only call this function if you don't care where v.wx and v.wy end up
+func (v *View) OverwriteLines(y int, content string) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.overwriteLines(y, content)
+}
+
+// only call this function if you don't care where v.wx and v.wy end up
+func (v *View) OverwriteLinesAndClearEverythingElse(y int, content string) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.overwriteLines(y, content)
+
+	for i := 0; i < y; i += 1 {
+		v.lines[i] = nil
+	}
+
+	for i := v.wy + 1; i < len(v.lines); i += 1 {
+		v.lines[i] = nil
+	}
+}
+
+func (v *View) SetContentLineCount(lineCount int) {
+	if lineCount > 0 {
+		v.makeWriteable(0, lineCount-1)
+	}
+	v.lines = v.lines[:lineCount]
 }
 
 func (v *View) ScrollUp(amount int) {

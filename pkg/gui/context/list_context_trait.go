@@ -18,6 +18,9 @@ type ListContextTrait struct {
 	// we should find out exactly which lines are now part of the path and refresh those.
 	// We should also keep track of the previous path and refresh those lines too.
 	refreshViewportOnChange bool
+	// If this is true, we only render the visible lines of the list. Useful for lists that can
+	// get very long, because it can save a lot of memory
+	renderOnlyVisibleLines bool
 }
 
 func (self *ListContextTrait) IsListContext() {}
@@ -25,7 +28,8 @@ func (self *ListContextTrait) IsListContext() {}
 func (self *ListContextTrait) FocusLine() {
 	// Doing this at the end of the layout function because we need the view to be
 	// resized before we focus the line, otherwise if we're in accordion mode
-	// the view could be squashed and won't how to adjust the cursor/origin
+	// the view could be squashed and won't how to adjust the cursor/origin.
+	// Also, refreshing the viewport needs to happen after the view has been resized.
 	self.c.AfterLayout(func() error {
 		oldOrigin, _ := self.GetViewTrait().ViewPortYBounds()
 
@@ -40,22 +44,18 @@ func (self *ListContextTrait) FocusLine() {
 			self.GetViewTrait().CancelRangeSelect()
 		}
 
-		// If FocusPoint() caused the view to scroll (because the selected line
-		// was out of view before), we need to rerender the view port again.
-		// This can happen when pressing , or . to scroll by pages, or < or > to
-		// jump to the top or bottom.
-		newOrigin, _ := self.GetViewTrait().ViewPortYBounds()
-		if self.refreshViewportOnChange && oldOrigin != newOrigin {
+		if self.refreshViewportOnChange {
 			self.refreshViewport()
+		} else if self.renderOnlyVisibleLines {
+			newOrigin, _ := self.GetViewTrait().ViewPortYBounds()
+			if oldOrigin != newOrigin {
+				return self.HandleRender()
+			}
 		}
 		return nil
 	})
 
 	self.setFooter()
-
-	if self.refreshViewportOnChange {
-		self.refreshViewport()
-	}
 }
 
 func (self *ListContextTrait) refreshViewport() {
@@ -93,8 +93,21 @@ func (self *ListContextTrait) HandleFocusLost(opts types.OnFocusLostOpts) error 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
 func (self *ListContextTrait) HandleRender() error {
 	self.list.ClampSelection()
-	content := self.renderLines(-1, -1)
-	self.GetViewTrait().SetContent(content)
+	if self.renderOnlyVisibleLines {
+		// Rendering only the visible area can save a lot of cell memory for
+		// those views that support it.
+		totalLength := self.list.Len()
+		if self.getNonModelItems != nil {
+			totalLength += len(self.getNonModelItems())
+		}
+		self.GetViewTrait().SetContentLineCount(totalLength)
+		startIdx, length := self.GetViewTrait().ViewPortYBounds()
+		content := self.renderLines(startIdx, startIdx+length)
+		self.GetViewTrait().SetViewPortContentAndClearEverythingElse(content)
+	} else {
+		content := self.renderLines(-1, -1)
+		self.GetViewTrait().SetContent(content)
+	}
 	self.c.Render()
 	self.setFooter()
 
@@ -122,4 +135,8 @@ func (self *ListContextTrait) IsItemVisible(item types.HasUrn) bool {
 // By default, list contexts supporta range select
 func (self *ListContextTrait) RangeSelectEnabled() bool {
 	return true
+}
+
+func (self *ListContextTrait) RenderOnlyVisibleLines() bool {
+	return self.renderOnlyVisibleLines
 }
