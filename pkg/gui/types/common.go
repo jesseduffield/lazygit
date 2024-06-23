@@ -159,6 +159,7 @@ const (
 
 type CreateMenuOptions struct {
 	Title           string
+	Prompt          string // a message that will be displayed above the menu options
 	Items           []*MenuItem
 	HideCancel      bool
 	ColumnAlignment []utils.Alignment

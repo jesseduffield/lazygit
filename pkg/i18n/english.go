@@ -113,6 +113,7 @@ type TranslationSet struct {
 	CheckoutByName                        string
 	CheckoutByNameTooltip                 string
 	RemoteBranchCheckoutTitle             string
+	RemoteBranchCheckoutPrompt            string
 	CheckoutTypeNewBranch                 string
 	CheckoutTypeNewBranchTooltip          string
 	CheckoutTypeDetachedHead              string
@@ -1079,6 +1080,7 @@ func EnglishTranslationSet() TranslationSet {
 		CheckoutByName:                       "Checkout by name",
 		CheckoutByNameTooltip:                "Checkout by name. In the input box you can enter '-' to switch to the last branch.",
 		RemoteBranchCheckoutTitle:            "Checkout {{.branchName}}",
+		RemoteBranchCheckoutPrompt:           "How would you like to check out this branch?",
 		CheckoutTypeNewBranch:                "New local branch",
 		CheckoutTypeNewBranchTooltip:         "Checkout the remote branch as a local branch, tracking the remote branch.",
 		CheckoutTypeDetachedHead:             "Detached head",

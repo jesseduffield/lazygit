@@ -63,15 +63,20 @@ func (self *ConfirmationHelper) DeactivateConfirmationPrompt() {
 
 // Temporary hack: we're just duplicating the logic in `gocui.lineWrap`
 func getMessageHeight(wrap bool, message string, width int) int {
+	return len(wrapMessageToWidth(wrap, message, width))
+}
+
+func wrapMessageToWidth(wrap bool, message string, width int) []string {
+	lines := strings.Split(message, "\n")
 	if !wrap {
-		return len(strings.Split(message, "\n"))
+		return lines
 	}
 
-	lineCount := 0
-	lines := strings.Split(message, "\n")
+	wrappedLines := make([]string, 0, len(lines))
 
 	for _, line := range lines {
 		n := 0
+		offset := 0
 		lastWhitespaceIndex := -1
 		for i, currChr := range line {
 			rw := runewidth.RuneWidth(currChr)
@@ -79,28 +84,38 @@ func getMessageHeight(wrap bool, message string, width int) int {
 
 			if n > width {
 				if currChr == ' ' {
+					wrappedLines = append(wrappedLines, line[offset:i])
+					offset = i + 1
 					n = 0
 				} else if currChr == '-' {
+					wrappedLines = append(wrappedLines, line[offset:i])
+					offset = i
 					n = rw
 				} else if lastWhitespaceIndex != -1 && lastWhitespaceIndex+1 != i {
 					if line[lastWhitespaceIndex] == '-' {
+						wrappedLines = append(wrappedLines, line[offset:lastWhitespaceIndex+1])
+						offset = lastWhitespaceIndex + 1
 						n = i - lastWhitespaceIndex
 					} else {
+						wrappedLines = append(wrappedLines, line[offset:lastWhitespaceIndex])
+						offset = lastWhitespaceIndex + 1
 						n = i - lastWhitespaceIndex + 1
 					}
 				} else {
+					wrappedLines = append(wrappedLines, line[offset:i])
+					offset = i
 					n = rw
 				}
-				lineCount++
 				lastWhitespaceIndex = -1
 			} else if currChr == ' ' || currChr == '-' {
 				lastWhitespaceIndex = i
 			}
 		}
-		lineCount++
+
+		wrappedLines = append(wrappedLines, line[offset:])
 	}
 
-	return lineCount
+	return wrappedLines
 }
 
 func (self *ConfirmationHelper) getPopupPanelDimensions(wrap bool, prompt string) (int, int, int, int) {
@@ -358,7 +373,9 @@ func (self *ConfirmationHelper) resizeMenu() {
 	itemCount := self.c.Contexts().Menu.UnfilteredLen()
 	offset := 3
 	panelWidth := self.getPopupPanelWidth()
-	x0, y0, x1, y1 := self.getPopupPanelDimensionsForContentHeight(panelWidth, itemCount+offset)
+	contentWidth := panelWidth - 2 // minus 2 for the frame
+	promptLinesCount := self.layoutMenuPrompt(contentWidth)
+	x0, y0, x1, y1 := self.getPopupPanelDimensionsForContentHeight(panelWidth, itemCount+offset+promptLinesCount)
 	menuBottom := y1 - offset
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().Menu.Name(), x0, y0, x1, menuBottom, 0)
 
@@ -368,9 +385,37 @@ func (self *ConfirmationHelper) resizeMenu() {
 	if selectedItem != nil {
 		tooltip = self.TooltipForMenuItem(selectedItem)
 	}
-	contentWidth := panelWidth - 2                                     // minus 2 for the frame
 	tooltipHeight := getMessageHeight(true, tooltip, contentWidth) + 2 // plus 2 for the frame
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().Tooltip.Name(), x0, tooltipTop, x1, tooltipTop+tooltipHeight-1, 0)
+}
+
+// Wraps the lines of the menu prompt to the available width and rerenders the
+// menu if neeeded. Returns the number of lines the prompt takes up.
+func (self *ConfirmationHelper) layoutMenuPrompt(contentWidth int) int {
+	oldPromptLines := self.c.Contexts().Menu.GetPromptLines()
+	var promptLines []string
+	prompt := self.c.Contexts().Menu.GetPrompt()
+	if len(prompt) > 0 {
+		promptLines = wrapMessageToWidth(true, prompt, contentWidth)
+		promptLines = append(promptLines, "")
+	}
+	self.c.Contexts().Menu.SetPromptLines(promptLines)
+	if len(oldPromptLines) != len(promptLines) {
+		// The number of lines in the prompt has changed; this happens either
+		// because we're now showing a menu that has a prompt, and the previous
+		// menu didn't (or vice versa), or because the user is resizing the
+		// terminal window while a menu with a prompt is open.
+
+		// We need to rerender to give the menu context a chance to update its
+		// non-model items, and reinitialize the data it uses for converting
+		// between view index and model index.
+		_ = self.c.Contexts().Menu.HandleRender()
+
+		// Then we need to refocus to ensure the cursor is in the right place in
+		// the view.
+		_ = self.c.Contexts().Menu.HandleFocus(types.OnFocusOpts{})
+	}
+	return len(promptLines)
 }
 
 func (self *ConfirmationHelper) resizeConfirmationPanel() {
