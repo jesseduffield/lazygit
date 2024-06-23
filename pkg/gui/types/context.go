@@ -39,6 +39,18 @@ type ParentContexter interface {
 	GetParentContext() (Context, bool)
 }
 
+type NeedsRerenderOnWidthChangeLevel int
+
+const (
+	// view doesn't render differently when its width changes
+	NEEDS_RERENDER_ON_WIDTH_CHANGE_NONE NeedsRerenderOnWidthChangeLevel = iota
+	// view renders differently when its width changes. An example is a view
+	// that truncates long lines to the view width, e.g. the branches view
+	NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES
+	// view renders differently only when the screen mode changes
+	NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_SCREEN_MODE_CHANGES
+)
+
 type IBaseContext interface {
 	HasKeybindings
 	ParentContexter
@@ -60,8 +72,8 @@ type IBaseContext interface {
 	// determined independently.
 	HasControlledBounds() bool
 
-	// true if the view needs to be rerendered when its width changes
-	NeedsRerenderOnWidthChange() bool
+	// to what extent the view needs to be rerendered when its width changes
+	NeedsRerenderOnWidthChange() NeedsRerenderOnWidthChangeLevel
 
 	// true if the view needs to be rerendered when its height changes
 	NeedsRerenderOnHeightChange() bool

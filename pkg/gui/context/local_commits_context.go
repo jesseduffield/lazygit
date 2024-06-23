@@ -77,7 +77,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 				Key:                         LOCAL_COMMITS_CONTEXT_KEY,
 				Kind:                        types.SIDE_CONTEXT,
 				Focusable:                   true,
-				NeedsRerenderOnWidthChange:  true,
+				NeedsRerenderOnWidthChange:  types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_SCREEN_MODE_CHANGES,
 				NeedsRerenderOnHeightChange: true,
 			})),
 			ListRenderer: ListRenderer{

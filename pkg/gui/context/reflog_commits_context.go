@@ -48,7 +48,7 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 				Key:                        REFLOG_COMMITS_CONTEXT_KEY,
 				Kind:                       types.SIDE_CONTEXT,
 				Focusable:                  true,
-				NeedsRerenderOnWidthChange: true,
+				NeedsRerenderOnWidthChange: types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_SCREEN_MODE_CHANGES,
 			})),
 			ListRenderer: ListRenderer{
 				list:              viewModel,

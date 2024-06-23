@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattn/go-runewidth"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -248,5 +249,29 @@ func TestRenderDisplayStrings(t *testing.T) {
 		output, columnPositions := RenderDisplayStrings(test.input, test.columnAlignments)
 		assert.EqualValues(t, test.expectedOutput, strings.Join(output, "\n"))
 		assert.EqualValues(t, test.expectedColumnPositions, columnPositions)
+	}
+}
+
+func BenchmarkStringWidthAsciiOriginal(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		runewidth.StringWidth("some ASCII string")
+	}
+}
+
+func BenchmarkStringWidthAsciiOptimized(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		StringWidth("some ASCII string")
+	}
+}
+
+func BenchmarkStringWidthNonAsciiOriginal(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		runewidth.StringWidth("some non-ASCII string 🍉")
+	}
+}
+
+func BenchmarkStringWidthNonAsciiOptimized(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		StringWidth("some non-ASCII string 🍉")
 	}
 }

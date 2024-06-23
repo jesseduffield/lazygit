@@ -121,7 +121,7 @@ func NewSubCommitsContext(
 				Kind:                        types.SIDE_CONTEXT,
 				Focusable:                   true,
 				Transient:                   true,
-				NeedsRerenderOnWidthChange:  true,
+				NeedsRerenderOnWidthChange:  types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_SCREEN_MODE_CHANGES,
 				NeedsRerenderOnHeightChange: true,
 			})),
 			ListRenderer: ListRenderer{

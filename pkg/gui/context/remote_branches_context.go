@@ -43,7 +43,6 @@ func NewRemoteBranchesContext(
 				Kind:                        types.SIDE_CONTEXT,
 				Focusable:                   true,
 				Transient:                   true,
-				NeedsRerenderOnWidthChange:  true,
 				NeedsRerenderOnHeightChange: true,
 			})),
 			ListRenderer: ListRenderer{
