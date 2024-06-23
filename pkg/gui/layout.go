@@ -288,35 +288,6 @@ func (gui *Gui) onInitialViewsCreation() error {
 	return nil
 }
 
-// getFocusLayout returns a manager function for when view gain and lose focus
-func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
-	var previousView *gocui.View
-	return func(g *gocui.Gui) error {
-		newView := gui.g.CurrentView()
-		// for now we don't consider losing focus to a popup panel as actually losing focus
-		if newView != previousView && !gui.helpers.Confirmation.IsPopupPanel(newView.Name()) {
-			if err := gui.onViewFocusLost(previousView); err != nil {
-				return err
-			}
-
-			previousView = newView
-		}
-		return nil
-	}
-}
-
-func (gui *Gui) onViewFocusLost(oldView *gocui.View) error {
-	if oldView == nil {
-		return nil
-	}
-
-	oldView.Highlight = false
-
-	_ = oldView.SetOriginX(0)
-
-	return nil
-}
-
 func (gui *Gui) transientContexts() []types.Context {
 	return lo.Filter(gui.State.Contexts.Flatten(), func(context types.Context, _ int) bool {
 		return context.IsTransient()

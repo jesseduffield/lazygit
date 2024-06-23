@@ -186,6 +186,18 @@
                 "blue"
               ]
             },
+            "inactiveViewSelectedLineBgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Background color of selected line when view doesn't have focus.",
+              "default": [
+                "bold"
+              ]
+            },
             "cherryPickedCommitFgColor": {
               "items": {
                 "type": "string"

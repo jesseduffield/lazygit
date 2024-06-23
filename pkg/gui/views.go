@@ -92,6 +92,7 @@ func (gui *Gui) createAllViews() error {
 		(*mapping.viewPtr).FrameRunes = frameRunes
 		(*mapping.viewPtr).FgColor = theme.GocuiDefaultTextColor
 		(*mapping.viewPtr).SelBgColor = theme.GocuiSelectedLineBgColor
+		(*mapping.viewPtr).InactiveViewSelBgColor = theme.GocuiInactiveViewSelectedLineBgColor
 	}
 
 	gui.Views.Options.Frame = false

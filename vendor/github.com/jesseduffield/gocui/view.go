@@ -81,6 +81,11 @@ type View struct {
 	// foreground colors of the selected line, when it is highlighted.
 	SelBgColor, SelFgColor Attribute
 
+	// InactiveViewSelBgColor is used to configure the background color of the
+	// selected line, when it is highlighted but the view doesn't have the
+	// focus.
+	InactiveViewSelBgColor Attribute
+
 	// If Editable is true, keystrokes will be added to the view's internal
 	// buffer at the cursor position.
 	Editable bool
@@ -96,6 +101,9 @@ type View struct {
 	// If Highlight is true, Sel{Bg,Fg}Colors will be used
 	// for the line under the cursor position.
 	Highlight bool
+	// If HighlightInactive is true, InavtiveViewSel{Bg,Fg}Colors will be used
+	// instead of Sel{Bg,Fg}Colors for highlighting selected lines.
+	HighlightInactive bool
 
 	// If Frame is true, a border will be drawn around the view.
 	Frame bool
@@ -404,6 +412,7 @@ func newView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 
 	v.FgColor, v.BgColor = ColorDefault, ColorDefault
 	v.SelFgColor, v.SelBgColor = ColorDefault, ColorDefault
+	v.InactiveViewSelBgColor = ColorDefault
 	v.TitleColor, v.FrameColor = ColorDefault, ColorDefault
 	return v
 }
@@ -506,7 +515,11 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 				fgColor += 8
 			}
 			fgColor = fgColor | AttrBold
-			bgColor = bgColor | v.SelBgColor
+			if v.HighlightInactive {
+				bgColor = bgColor | v.InactiveViewSelBgColor
+			} else {
+				bgColor = bgColor | v.SelBgColor
+			}
 		}
 	}
 

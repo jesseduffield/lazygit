@@ -24,11 +24,15 @@ var (
 
 	// GocuiSelectedLineBgColor is the background color for the selected line in gocui
 	GocuiSelectedLineBgColor gocui.Attribute
+	// GocuiInactiveViewSelectedLineBgColor is the background color for the selected line in gocui if the view doesn't have focus
+	GocuiInactiveViewSelectedLineBgColor gocui.Attribute
 
 	OptionsColor gocui.Attribute
 
 	// SelectedLineBgColor is the background color for the selected line
 	SelectedLineBgColor = style.New()
+	// InactiveViewSelectedLineBgColor is the background color for the selected line if the view doesn't have the focus
+	InactiveViewSelectedLineBgColor = style.New()
 
 	// CherryPickedCommitColor is the text style when cherry picking a commit
 	CherryPickedCommitTextStyle = style.New()
@@ -49,6 +53,7 @@ func UpdateTheme(themeConfig config.ThemeConfig) {
 	InactiveBorderColor = GetGocuiStyle(themeConfig.InactiveBorderColor)
 	SearchingActiveBorderColor = GetGocuiStyle(themeConfig.SearchingActiveBorderColor)
 	SelectedLineBgColor = GetTextStyle(themeConfig.SelectedLineBgColor, true)
+	InactiveViewSelectedLineBgColor = GetTextStyle(themeConfig.InactiveViewSelectedLineBgColor, true)
 
 	cherryPickedCommitBgTextStyle := GetTextStyle(themeConfig.CherryPickedCommitBgColor, true)
 	cherryPickedCommitFgTextStyle := GetTextStyle(themeConfig.CherryPickedCommitFgColor, false)
@@ -62,6 +67,7 @@ func UpdateTheme(themeConfig config.ThemeConfig) {
 	UnstagedChangesColor = unstagedChangesTextStyle
 
 	GocuiSelectedLineBgColor = GetGocuiStyle(themeConfig.SelectedLineBgColor)
+	GocuiInactiveViewSelectedLineBgColor = GetGocuiStyle(themeConfig.InactiveViewSelectedLineBgColor)
 	OptionsColor = GetGocuiStyle(themeConfig.OptionsTextColor)
 	OptionsFgColor = GetTextStyle(themeConfig.OptionsTextColor, false)
 
