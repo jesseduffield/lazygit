@@ -107,7 +107,21 @@ func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 			keyLabel = style.FgCyan.Sprint(keybindings.LabelFromKey(item.Key))
 		}
 
-		displayStrings = utils.Prepend(displayStrings, keyLabel)
+		checkMark := ""
+		switch item.Widget {
+		case types.MenuWidgetNone:
+			// do nothing
+		case types.MenuWidgetRadioButtonSelected:
+			checkMark = "(•)"
+		case types.MenuWidgetRadioButtonUnselected:
+			checkMark = "( )"
+		case types.MenuWidgetCheckboxSelected:
+			checkMark = "[✓]"
+		case types.MenuWidgetCheckboxUnselected:
+			checkMark = "[ ]"
+		}
+
+		displayStrings = utils.Prepend(displayStrings, keyLabel, checkMark)
 		return displayStrings
 	})
 }

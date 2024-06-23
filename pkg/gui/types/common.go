@@ -217,6 +217,30 @@ type DisabledReason struct {
 	ShowErrorInPanel bool
 }
 
+type MenuWidget int
+
+const (
+	MenuWidgetNone MenuWidget = iota
+	MenuWidgetRadioButtonSelected
+	MenuWidgetRadioButtonUnselected
+	MenuWidgetCheckboxSelected
+	MenuWidgetCheckboxUnselected
+)
+
+func MakeMenuRadioButton(value bool) MenuWidget {
+	if value {
+		return MenuWidgetRadioButtonSelected
+	}
+	return MenuWidgetRadioButtonUnselected
+}
+
+func MakeMenuCheckBox(value bool) MenuWidget {
+	if value {
+		return MenuWidgetCheckboxSelected
+	}
+	return MenuWidgetCheckboxUnselected
+}
+
 type MenuItem struct {
 	Label string
 
@@ -231,6 +255,12 @@ type MenuItem struct {
 	// If Key is defined it allows the user to press the key to invoke the menu
 	// item, as opposed to having to navigate to it
 	Key Key
+
+	// A widget to show in front of the menu item. Supported widget types are
+	// checkboxes and radio buttons,
+	// This only handles the rendering of the widget; the behavior needs to be
+	// provided by the client.
+	Widget MenuWidget
 
 	// The tooltip will be displayed upon highlighting the menu item
 	Tooltip string
