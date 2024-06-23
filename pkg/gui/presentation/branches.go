@@ -79,10 +79,10 @@ func getBranchDisplayStrings(
 	}
 
 	// Don't bother shortening branch names that are already 3 characters or less
-	if len(displayName) > max(availableWidth, 3) {
+	if runewidth.StringWidth(displayName) > max(availableWidth, 3) {
 		// Never shorten the branch name to less then 3 characters
 		len := max(availableWidth, 4)
-		displayName = displayName[:len-1] + "…"
+		displayName = runewidth.Truncate(displayName, len, "…")
 	}
 	coloredName := nameTextStyle.Sprint(displayName)
 	if checkedOutByWorkTree {
