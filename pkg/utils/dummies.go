@@ -21,7 +21,7 @@ func NewDummyCommon() *common.Common {
 	tr := i18n.EnglishTranslationSet()
 	return &common.Common{
 		Log:        NewDummyLog(),
-		Tr:         &tr,
+		Tr:         tr,
 		UserConfig: config.GetDefaultConfig(),
 		Fs:         afero.NewOsFs(),
 	}
@@ -31,7 +31,7 @@ func NewDummyCommonWithUserConfigAndAppState(userConfig *config.UserConfig, appS
 	tr := i18n.EnglishTranslationSet()
 	return &common.Common{
 		Log:        NewDummyLog(),
-		Tr:         &tr,
+		Tr:         tr,
 		UserConfig: userConfig,
 		AppState:   appState,
 		// TODO: remove dependency on actual filesystem in tests and switch to using
