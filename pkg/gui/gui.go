@@ -959,3 +959,12 @@ func (gui *Gui) onWorker(f func(gocui.Task) error) {
 func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
 	return gui.helpers.WindowArrangement.GetWindowDimensions(informationStr, appStatus)
 }
+
+func (gui *Gui) afterLayout(f func() error) {
+	select {
+	case gui.afterLayoutFuncs <- f:
+	default:
+		// hopefully this never happens
+		gui.c.Log.Error("afterLayoutFuncs channel is full, skipping function")
+	}
+}

@@ -20,7 +20,10 @@ func (gui *Gui) runTaskForView(view *gocui.View, task types.UpdateTask) error {
 		return gui.newCmdTask(view, v.Cmd, v.Prefix)
 
 	case *types.RunPtyTask:
-		return gui.newPtyTask(view, v.Cmd, v.Prefix)
+		gui.afterLayout(func() error {
+			return gui.newPtyTask(view, v.Cmd, v.Prefix)
+		})
+		return nil
 	}
 
 	return nil
