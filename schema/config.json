@@ -332,16 +332,6 @@
           "description": "If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.",
           "default": true
         },
-        "commitAuthorFormat": {
-          "type": "string",
-          "enum": [
-            "auto",
-            "short",
-            "full"
-          ],
-          "description": "Whether to show full author names or their shortened form in the commit graph.\nOne of 'auto' (default) | 'full' | 'short'\nIf 'auto', initials will be shown in small windows, and full names - in larger ones.",
-          "default": "auto"
-        },
         "commitHashLength": {
           "type": "integer",
           "minimum": 0,

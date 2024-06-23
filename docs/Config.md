@@ -185,11 +185,6 @@ gui:
   # If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.
   showFileIcons: true
 
-  # Whether to show full author names or their shortened form in the commit graph.
-  # One of 'auto' (default) | 'full' | 'short'
-  # If 'auto', initials will be shown in small windows, and full names - in larger ones.
-  commitAuthorFormat: auto
-
   # Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.
   commitHashLength: 8
 
