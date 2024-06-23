@@ -2,12 +2,14 @@ package helpers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // NOTE: this helper supports both filtering and searching. Filtering is when
@@ -156,17 +158,26 @@ func (self *SearchHelper) ConfirmSearch() error {
 		context.GetSearchHistory().Push(searchString)
 	}
 
-	view := context.GetView()
-
 	if err := self.c.PopContext(); err != nil {
 		return err
 	}
 
-	if err := view.Search(searchString); err != nil {
-		return err
+	return context.GetView().Search(searchString, modelSearchResults(context))
+}
+
+func modelSearchResults(context types.ISearchableContext) []gocui.SearchPosition {
+	searchString := context.GetSearchString()
+
+	var normalizedSearchStr string
+	// if we have any uppercase characters we'll do a case-sensitive search
+	caseSensitive := utils.ContainsUppercase(searchString)
+	if caseSensitive {
+		normalizedSearchStr = searchString
+	} else {
+		normalizedSearchStr = strings.ToLower(searchString)
 	}
 
-	return nil
+	return context.ModelSearchResults(normalizedSearchStr, caseSensitive)
 }
 
 func (self *SearchHelper) CancelPrompt() error {
@@ -235,6 +246,25 @@ func (self *SearchHelper) ReApplyFilter(context types.Context) {
 			filterableContext.SetSelection(0)
 			_ = filterableContext.GetView().SetOriginY(0)
 			filterableContext.ReApplyFilter(self.c.UserConfig.Gui.UseFuzzySearch())
+		}
+	}
+}
+
+func (self *SearchHelper) ReApplySearch(ctx types.Context) {
+	// Reapply the search if the model has changed. This is needed for contexts
+	// that use the model for searching, to pass the new model search positions
+	// to the view.
+	searchableContext, ok := ctx.(types.ISearchableContext)
+	if ok {
+		ctx.GetView().UpdateSearchResults(searchableContext.GetSearchString(), modelSearchResults(searchableContext))
+
+		state := self.searchState()
+		if ctx == state.Context {
+			// Re-render the "x of y" search status, unless the search prompt is
+			// open for typing.
+			if self.c.CurrentContext().GetKey() != context.SEARCH_CONTEXT_KEY {
+				self.RenderSearchStatus(searchableContext)
+			}
 		}
 	}
 }

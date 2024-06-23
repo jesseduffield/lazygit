@@ -35,6 +35,7 @@ type ListRenderer struct {
 	numNonModelItems        int
 	viewIndicesByModelIndex []int
 	modelIndicesByViewIndex []int
+	columnPositions         []int
 }
 
 func (self *ListRenderer) GetList() types.IList {
@@ -57,6 +58,10 @@ func (self *ListRenderer) ViewIndexToModelIndex(viewIndex int) int {
 	}
 
 	return viewIndex
+}
+
+func (self *ListRenderer) ColumnPositions() []int {
+	return self.columnPositions
 }
 
 // startIdx and endIdx are view indices, not model indices. If you want to
@@ -87,6 +92,7 @@ func (self *ListRenderer) renderLines(startIdx int, endIdx int) string {
 	lines, columnPositions := utils.RenderDisplayStrings(
 		self.getDisplayStrings(startModelIdx, endModelIdx),
 		columnAlignments)
+	self.columnPositions = columnPositions
 	lines = self.insertNonModelItems(nonModelItems, endIdx, startIdx, lines, columnPositions)
 	return strings.Join(lines, "\n")
 }

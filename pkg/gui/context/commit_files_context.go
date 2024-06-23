@@ -1,6 +1,7 @@
 package context
 
 import (
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -18,8 +19,9 @@ type CommitFilesContext struct {
 }
 
 var (
-	_ types.IListContext    = (*CommitFilesContext)(nil)
-	_ types.DiffableContext = (*CommitFilesContext)(nil)
+	_ types.IListContext       = (*CommitFilesContext)(nil)
+	_ types.DiffableContext    = (*CommitFilesContext)(nil)
+	_ types.ISearchableContext = (*CommitFilesContext)(nil)
 )
 
 func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
@@ -64,14 +66,15 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 		},
 	}
 
-	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(func(selectedLineIdx int) error {
-		ctx.GetList().SetSelection(selectedLineIdx)
-		return ctx.HandleFocus(types.OnFocusOpts{})
-	}))
+	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(ctx.OnSearchSelect))
 
 	return ctx
 }
 
 func (self *CommitFilesContext) GetDiffTerminals() []string {
 	return []string{self.GetRef().RefName()}
+}
+
+func (self *CommitFilesContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
+	return nil
 }

@@ -18,7 +18,10 @@ type PatchExplorerContext struct {
 	mutex                  *deadlock.Mutex
 }
 
-var _ types.IPatchExplorerContext = (*PatchExplorerContext)(nil)
+var (
+	_ types.IPatchExplorerContext = (*PatchExplorerContext)(nil)
+	_ types.ISearchableContext    = (*PatchExplorerContext)(nil)
+)
 
 func NewPatchExplorerContext(
 	view *gocui.View,
@@ -138,4 +141,8 @@ func (self *PatchExplorerContext) NavigateTo(isFocused bool, selectedLineIdx int
 
 func (self *PatchExplorerContext) GetMutex() *deadlock.Mutex {
 	return self.mutex
+}
+
+func (self *PatchExplorerContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
+	return nil
 }
