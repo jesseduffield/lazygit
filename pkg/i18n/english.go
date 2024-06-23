@@ -175,6 +175,7 @@ type TranslationSet struct {
 	UndoMergeResolveTooltip               string
 	DiscardAllTooltip                     string
 	DiscardUnstagedTooltip                string
+	DiscardUnstagedDisabled               string
 	Pop                                   string
 	StashPopTooltip                       string
 	Drop                                  string
@@ -1143,6 +1144,7 @@ func EnglishTranslationSet() TranslationSet {
 		UndoMergeResolveTooltip:              "Undo last merge conflict resolution.",
 		DiscardAllTooltip:                    "Discard both staged and unstaged changes in '{{.path}}'.",
 		DiscardUnstagedTooltip:               "Discard unstaged changes in '{{.path}}'.",
+		DiscardUnstagedDisabled:              "The selected items don't have both staged and unstaged changes.",
 		Pop:                                  "Pop",
 		StashPopTooltip:                      "Apply the stash entry to your working directory and remove the stash entry.",
 		Drop:                                 "Drop",
