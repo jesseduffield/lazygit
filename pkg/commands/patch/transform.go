@@ -1,6 +1,10 @@
 package patch
 
-import "github.com/samber/lo"
+import (
+	"strings"
+
+	"github.com/samber/lo"
+)
 
 type patchTransformer struct {
 	patch *Patch
@@ -21,6 +25,13 @@ type TransformOpts struct {
 	// but with building and applying patches the original header gives git
 	// information it needs to cleanly apply patches
 	FileNameOverride string
+
+	// Custom patches tend to work better when treating new files as diffs
+	// against an empty file. The only case where we need this to be false is
+	// when moving a custom patch to an earlier commit; in that case the patch
+	// command would fail with the error "file does not exist in index" if we
+	// treat it as a diff against an empty file.
+	TurnAddedFilesIntoDiffAgainstEmptyFile bool
 
 	// The indices of lines that should be included in the patch.
 	IncludedLineIndices []int
@@ -61,6 +72,18 @@ func (self *patchTransformer) transformHeader() []string {
 			"--- a/" + self.opts.FileNameOverride,
 			"+++ b/" + self.opts.FileNameOverride,
 		}
+	} else if self.opts.TurnAddedFilesIntoDiffAgainstEmptyFile {
+		result := make([]string, 0, len(self.patch.header))
+		for idx, line := range self.patch.header {
+			if strings.HasPrefix(line, "new file mode") {
+				continue
+			}
+			if line == "--- /dev/null" && strings.HasPrefix(self.patch.header[idx+1], "+++ b/") {
+				line = "--- a/" + self.patch.header[idx+1][6:]
+			}
+			result = append(result, line)
+		}
+		return result
 	} else {
 		return self.patch.header
 	}
