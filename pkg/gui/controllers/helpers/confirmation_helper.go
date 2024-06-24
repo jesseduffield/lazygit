@@ -454,12 +454,12 @@ func (self *ConfirmationHelper) ResizeCommitMessagePanels() {
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().CommitDescription.Name(), x0, y0+summaryViewHeight, x1, y1+summaryViewHeight, 0)
 }
 
-func (self *ConfirmationHelper) IsPopupPanel(viewName string) bool {
-	return viewName == "commitMessage" || viewName == "confirmation" || viewName == "menu"
+func (self *ConfirmationHelper) IsPopupPanel(context types.Context) bool {
+	return context.GetKind() == types.PERSISTENT_POPUP || context.GetKind() == types.TEMPORARY_POPUP
 }
 
 func (self *ConfirmationHelper) IsPopupPanelFocused() bool {
-	return self.IsPopupPanel(self.c.CurrentContext().GetViewName())
+	return self.IsPopupPanel(self.c.CurrentContext())
 }
 
 func (self *ConfirmationHelper) TooltipForMenuItem(menuItem *types.MenuItem) string {
