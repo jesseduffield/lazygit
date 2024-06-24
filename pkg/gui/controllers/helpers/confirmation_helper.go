@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
-
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -116,12 +114,6 @@ func wrapMessageToWidth(wrap bool, message string, width int) []string {
 	}
 
 	return wrappedLines
-}
-
-func (self *ConfirmationHelper) getPopupPanelDimensions(wrap bool, prompt string) (int, int, int, int) {
-	panelWidth := self.getPopupPanelWidth()
-	panelHeight := getMessageHeight(wrap, prompt, panelWidth)
-	return self.getPopupPanelDimensionsAux(panelWidth, panelHeight)
 }
 
 func (self *ConfirmationHelper) getPopupPanelDimensionsForContentHeight(panelWidth, contentHeight int) (int, int, int, int) {
@@ -359,12 +351,6 @@ func (self *ConfirmationHelper) ResizeCurrentPopupPanel() error {
 	}
 
 	return nil
-}
-
-func (self *ConfirmationHelper) ResizePopupPanel(v *gocui.View, content string) error {
-	x0, y0, x1, y1 := self.getPopupPanelDimensions(v.Wrap, content)
-	_, err := self.c.GocuiGui().SetView(v.Name(), x0, y0, x1, y1, 0)
-	return err
 }
 
 func (self *ConfirmationHelper) resizeMenu() {
