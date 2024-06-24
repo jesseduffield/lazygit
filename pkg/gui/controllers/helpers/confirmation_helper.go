@@ -169,7 +169,7 @@ func (self *ConfirmationHelper) prepareConfirmationPanel(
 		suggestionsView.Subtitle = ""
 	}
 
-	self.ResizeConfirmationPanel()
+	self.resizeConfirmationPanel()
 	return nil
 }
 
@@ -219,7 +219,7 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 		textArea := confirmationView.TextArea
 		textArea.Clear()
 		textArea.TypeString(opts.Prompt)
-		self.ResizeConfirmationPanel()
+		self.resizeConfirmationPanel()
 		confirmationView.RenderTextArea()
 	} else {
 		self.c.ResetViewOrigin(confirmationView)
@@ -315,27 +315,6 @@ func (self *ConfirmationHelper) getSelectedSuggestionValue() string {
 	}
 
 	return ""
-}
-
-func (self *ConfirmationHelper) ResizeConfirmationPanel() {
-	suggestionsViewHeight := 0
-	if self.c.Views().Suggestions.Visible {
-		suggestionsViewHeight = 11
-	}
-	panelWidth := self.getPopupPanelWidth()
-	prompt := self.c.Views().Confirmation.Buffer()
-	wrap := true
-	if self.c.Views().Confirmation.Editable {
-		prompt = self.c.Views().Confirmation.TextArea.GetContent()
-		wrap = false
-	}
-	panelHeight := getMessageHeight(wrap, prompt, panelWidth) + suggestionsViewHeight
-	x0, y0, x1, y1 := self.getPopupPanelDimensionsAux(panelWidth, panelHeight)
-	confirmationViewBottom := y1 - suggestionsViewHeight
-	_, _ = self.c.GocuiGui().SetView(self.c.Views().Confirmation.Name(), x0, y0, x1, confirmationViewBottom, 0)
-
-	suggestionsViewTop := confirmationViewBottom + 1
-	_, _ = self.c.GocuiGui().SetView(self.c.Views().Suggestions.Name(), x0, suggestionsViewTop, x1, suggestionsViewTop+suggestionsViewHeight, 0)
 }
 
 func (self *ConfirmationHelper) ResizeCurrentPopupPanel() error {
