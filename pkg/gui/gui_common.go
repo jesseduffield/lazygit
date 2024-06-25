@@ -73,6 +73,10 @@ func (self *guiCommon) CurrentSideContext() types.Context {
 	return self.gui.State.ContextMgr.CurrentSide()
 }
 
+func (self *guiCommon) CurrentPopupContexts() []types.Context {
+	return self.gui.State.ContextMgr.PopupContexts()
+}
+
 func (self *guiCommon) IsCurrentContext(c types.Context) bool {
 	return self.gui.State.ContextMgr.IsCurrent(c)
 }

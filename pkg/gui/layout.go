@@ -173,7 +173,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// if you run `lazygit --logs`
 	// this will let you see these branches as prettified json
 	// gui.c.Log.Info(utils.AsJson(gui.State.Model.Branches[0:4]))
-	gui.helpers.Confirmation.ResizeCurrentPopupPanel()
+	gui.helpers.Confirmation.ResizeCurrentPopupPanels()
 
 	gui.renderContextOptionsMap()
 

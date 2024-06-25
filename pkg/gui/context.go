@@ -391,3 +391,12 @@ func (self *ContextMgr) ContextForKey(key types.ContextKey) types.Context {
 
 	return nil
 }
+
+func (self *ContextMgr) PopupContexts() []types.Context {
+	self.RLock()
+	defer self.RUnlock()
+
+	return lo.Filter(self.ContextStack, func(context types.Context, _ int) bool {
+		return context.GetKind() == types.TEMPORARY_POPUP || context.GetKind() == types.PERSISTENT_POPUP
+	})
+}

@@ -315,16 +315,16 @@ func (self *ConfirmationHelper) getSelectedSuggestionValue() string {
 	return ""
 }
 
-func (self *ConfirmationHelper) ResizeCurrentPopupPanel() {
-	c := self.c.CurrentContext()
-
-	switch c {
-	case self.c.Contexts().Menu:
-		self.resizeMenu()
-	case self.c.Contexts().Confirmation, self.c.Contexts().Suggestions:
-		self.resizeConfirmationPanel()
-	case self.c.Contexts().CommitMessage, self.c.Contexts().CommitDescription:
-		self.ResizeCommitMessagePanels()
+func (self *ConfirmationHelper) ResizeCurrentPopupPanels() {
+	for _, c := range self.c.CurrentPopupContexts() {
+		switch c {
+		case self.c.Contexts().Menu:
+			self.resizeMenu()
+		case self.c.Contexts().Confirmation, self.c.Contexts().Suggestions:
+			self.resizeConfirmationPanel()
+		case self.c.Contexts().CommitMessage, self.c.Contexts().CommitDescription:
+			self.ResizeCommitMessagePanels()
+		}
 	}
 }
 
