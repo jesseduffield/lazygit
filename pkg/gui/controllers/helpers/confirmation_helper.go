@@ -218,7 +218,6 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 		textArea := confirmationView.TextArea
 		textArea.Clear()
 		textArea.TypeString(opts.Prompt)
-		self.resizeConfirmationPanel()
 		confirmationView.RenderTextArea()
 	} else {
 		self.c.ResetViewOrigin(confirmationView)

@@ -404,7 +404,6 @@ func (gui *Gui) getCommitMessageSetTextareaTextFn(getView func() *gocui.View) fu
 		view := getView()
 		view.ClearTextArea()
 		view.TextArea.TypeString(text)
-		gui.helpers.Confirmation.ResizeCommitMessagePanels()
 		view.RenderTextArea()
 	}
 }
