@@ -271,6 +271,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` g `` | 檢視重設選項 |  |
 | `` R `` | 重新命名分支 |  |
 | `` u `` | 檢視上游設定 | 檢視有關上游分支的設定（例如重設至上游） |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -284,6 +285,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | 推送標籤 | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -359,6 +361,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` u `` | Set as upstream | 將此分支設為當前分支之上游 |
 | `` s `` | Sort order |  |
 | `` g `` | 檢視重設選項 | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |

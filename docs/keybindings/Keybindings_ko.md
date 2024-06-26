@@ -196,6 +196,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` g `` | View reset options |  |
 | `` R `` | 브랜치 이름 변경 |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -248,6 +249,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` u `` | Set as upstream | Set the selected remote branch as the upstream of the checked-out branch. |
 | `` s `` | Sort order |  |
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -322,6 +324,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | 태그를 push | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |

@@ -108,6 +108,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` g `` | Bekijk reset opties |  |
 | `` R `` | Hernoem branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -249,6 +250,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` u `` | Set as upstream | Stel in als upstream van uitgecheckte branch |
 | `` s `` | Sort order |  |
 | `` g `` | Bekijk reset opties | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -349,6 +351,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | Push tag | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |

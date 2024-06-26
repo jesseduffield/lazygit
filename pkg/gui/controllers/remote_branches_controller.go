@@ -94,6 +94,14 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			Tooltip:           self.c.Tr.ResetTooltip,
 			OpensMenu:         true,
 		},
+		{
+			Key: opts.GetKey(opts.Config.Universal.OpenDiffTool),
+			Handler: self.withItem(func(selectedBranch *models.RemoteBranch) error {
+				return self.c.Helpers().Diff.OpenDiffToolForRef(selectedBranch)
+			}),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.OpenDiffTool,
+		},
 	}
 }
 
