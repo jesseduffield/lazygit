@@ -796,7 +796,11 @@
         },
         "copyToClipboardCmd": {
           "type": "string",
-          "description": "CopyToClipboardCmd is the command for copying to clipboard.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard"
+          "description": "CopyToClipboardCmd is the command for copying to clipboard.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard"
+        },
+        "readFromClipboardCmd": {
+          "type": "string",
+          "description": "ReadFromClipboardCmd is the command for reading the clipboard.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard"
         }
       },
       "additionalProperties": false,

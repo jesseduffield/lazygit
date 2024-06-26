@@ -565,8 +565,12 @@ type OSConfig struct {
 	OpenLinkCommand string `yaml:"openLinkCommand,omitempty"`
 
 	// CopyToClipboardCmd is the command for copying to clipboard.
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
 	CopyToClipboardCmd string `yaml:"copyToClipboardCmd,omitempty"`
+
+	// ReadFromClipboardCmd is the command for reading the clipboard.
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
+	ReadFromClipboardCmd string `yaml:"readFromClipboardCmd,omitempty"`
 }
 
 type CustomCommandAfterHook struct {
