@@ -169,7 +169,6 @@ func (self *ConfirmationHelper) prepareConfirmationPanel(
 		suggestionsView.Subtitle = ""
 	}
 
-	self.resizeConfirmationPanel()
 	return nil
 }
 
