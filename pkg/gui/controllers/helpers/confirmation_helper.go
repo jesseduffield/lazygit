@@ -315,7 +315,7 @@ func (self *ConfirmationHelper) getSelectedSuggestionValue() string {
 	return ""
 }
 
-func (self *ConfirmationHelper) ResizeCurrentPopupPanel() error {
+func (self *ConfirmationHelper) ResizeCurrentPopupPanel() {
 	c := self.c.CurrentContext()
 
 	switch c {
@@ -326,8 +326,6 @@ func (self *ConfirmationHelper) ResizeCurrentPopupPanel() error {
 	case self.c.Contexts().CommitMessage, self.c.Contexts().CommitDescription:
 		self.ResizeCommitMessagePanels()
 	}
-
-	return nil
 }
 
 func (self *ConfirmationHelper) resizeMenu() {
