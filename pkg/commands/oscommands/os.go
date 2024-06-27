@@ -302,6 +302,23 @@ func (c *OSCommand) CopyToClipboard(str string) error {
 	return clipboard.WriteAll(str)
 }
 
+func (c *OSCommand) PasteFromClipboard() (string, error) {
+	var s string
+	var err error
+	if c.UserConfig.OS.CopyToClipboardCmd != "" {
+		cmdStr := c.UserConfig.OS.ReadFromClipboardCmd
+		s, err = c.Cmd.NewShell(cmdStr).RunWithOutput()
+	} else {
+		s, err = clipboard.ReadAll()
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	return strings.ReplaceAll(s, "\r\n", "\n"), nil
+}
+
 func (c *OSCommand) RemoveFile(path string) error {
 	msg := utils.ResolvePlaceholderString(
 		c.Tr.Log.RemoveFile,

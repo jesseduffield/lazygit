@@ -415,8 +415,12 @@ os:
   openLinkCommand: ""
 
   # CopyToClipboardCmd is the command for copying to clipboard.
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
   copyToClipboardCmd: ""
+
+  # ReadFromClipboardCmd is the command for reading the clipboard.
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
+  readFromClipboardCmd: ""
 
 # If true, don't display introductory popups upon opening Lazygit.
 disableStartupPopups: false
@@ -620,7 +624,7 @@ os:
   open: 'open {{filename}}'
 ```
 
-## Custom Command for Copying to Clipboard
+## Custom Command for Copying to and Pasting from Clipboard
 ```yaml
 os:
   copyToClipboardCmd: ''
@@ -633,6 +637,12 @@ os:
   copyToClipboardCmd: printf "\033]52;c;$(printf {{text}} | base64)\a" > /dev/tty
 ```
 
+A custom command for reading from the clipboard can be set using
+```yaml
+os:
+  readFromClipboardCmd: ''
+```
+It is used, for example, when pasting a commit message into the commit message panel. The command is supposed to output the clipboard content to stdout.
 
 ## Configuring File Editing
 
