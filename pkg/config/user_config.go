@@ -51,6 +51,8 @@ type RefresherConfig struct {
 type GuiConfig struct {
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
 	AuthorColors map[string]string `yaml:"authorColors"`
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#unspecified-author-color
+	UnspecifiedAuthorColors []string `yaml:"unspecifiedAuthorColors"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
 	BranchColors map[string]string `yaml:"branchColors"`
 	// The number of lines you scroll by when scrolling the main window

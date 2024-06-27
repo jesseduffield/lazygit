@@ -57,9 +57,19 @@ func IsValidHexValue(v string) bool {
 
 func SetCustomColors(customColors map[string]string) map[string]style.TextStyle {
 	return lo.MapValues(customColors, func(c string, key string) style.TextStyle {
-		if s, ok := style.ColorMap[c]; ok {
-			return s.Foreground
-		}
-		return style.New().SetFg(style.NewRGBColor(color.HEX(c, false)))
+		return GetStyleFromColorString(c)
 	})
+}
+
+func GetStylesFromColorStrings(colorStrings []string) []style.TextStyle {
+	return lo.Map(colorStrings, func(c string, index int) style.TextStyle {
+		return GetStyleFromColorString(c)
+	})
+}
+
+func GetStyleFromColorString(colorString string) style.TextStyle {
+	if s, ok := style.ColorMap[colorString]; ok {
+		return s.Foreground
+	}
+	return style.New().SetFg(style.NewRGBColor(color.HEX(colorString, false)))
 }

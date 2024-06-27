@@ -18,3 +18,13 @@ func TestGetInitials(t *testing.T) {
 		}
 	}
 }
+
+func TestSetUnspecifiedAuthorColors(t *testing.T) {
+	customAuthorColors := []string{"#FF0000", "red", "cyan"}
+
+	SetUnspecifiedAuthorColors(customAuthorColors)
+
+	if len(unspecifiedAuthorColors) != len(customAuthorColors) {
+		t.Errorf("Expected %d unspecified author colors, but got %d", len(customAuthorColors), len(unspecifiedAuthorColors))
+	}
+}

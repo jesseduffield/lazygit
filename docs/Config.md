@@ -760,15 +760,17 @@ gui:
     'Alan Smithee': '#00ff00' # use green for Alan Smithee
 ```
 
-You can use wildcard to set a unified color in case your are lazy to customize the color for every author or you just want a single color for all/other authors:
+
+## Unspecified Author Color
+
+You can customize the set of random colors that lazygit picks from for authors who do not have an already specified author color
 
 ```yaml
 gui:
-  authorColors:
-    # use red for John Smith
-    'John Smith': 'red'
-    # use blue for other authors
-    '*': '#0000ff'
+  unspecifiedAuthorColors:
+    - 'red'
+    - '#00ff00'
+    - 'blue'
 ```
 
 ## Custom Branch Color
