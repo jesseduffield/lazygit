@@ -331,6 +331,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` d `` | Usuń | Wyświetl opcje usuwania lokalnego/odległego tagu. |
 | `` P `` | Wyślij tag | Wyślij wybrany tag do zdalnego. Zostaniesz poproszony o wybranie zdalnego. |
 | `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
+| `` M `` | Scal | Merge selected tag into currently checked out branch |
 | `` <enter> `` | Pokaż commity |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |

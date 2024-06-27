@@ -129,7 +129,7 @@ func (self *RemoteBranchesController) delete(selectedBranch *models.RemoteBranch
 }
 
 func (self *RemoteBranchesController) merge(selectedBranch *models.RemoteBranch) error {
-	return self.c.Helpers().MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranch.FullName())
+	return self.c.Helpers().MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranch.FullName(), nil)
 }
 
 func (self *RemoteBranchesController) rebase(selectedBranch *models.RemoteBranch) error {

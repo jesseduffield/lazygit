@@ -284,6 +284,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | 推送標籤 | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` M `` | 合併到當前檢出的分支 | Merge selected tag into currently checked out branch |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |

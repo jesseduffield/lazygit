@@ -361,7 +361,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 	})
 }
 
-func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) error {
+func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string, confirmCallback func() error) error {
 	if self.c.Git().Branch.IsHeadDetached() {
 		return errors.New("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
 	}
@@ -383,7 +383,11 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.Merge)
 			err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{})
-			return self.CheckMergeOrRebase(err)
+			err = self.CheckMergeOrRebase(err)
+			if err != nil || confirmCallback == nil {
+				return err
+			}
+			return confirmCallback()
 		},
 	})
 }
