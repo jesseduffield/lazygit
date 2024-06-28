@@ -68,7 +68,7 @@ var zohorepoServiceDef = ServiceDefinition{
 	provider:                        "zohorepo",
 	pullRequestURLIntoDefaultBranch: "#/mergerequests/new?sourceBranch={{.From}}",
 	pullRequestURLIntoTargetBranch:  "#/mergerequests/new?sourceBranch={{.From}}&targetBranch={{.To}}",
-	commitURL:                       "#/commit/{{.CommitSha}}",
+	commitURL:                       "#/commit/{{.CommitHash}}",
 	regexStrings:                    defaultUrlRegexStrings,
 	repoURLTemplate:                 defaultRepoURLTemplate,
 }
@@ -117,5 +117,10 @@ var defaultServiceDomains = []ServiceDomain{
 		serviceDefinition: giteaServiceDef,
 		gitDomain:         "try.gitea.io",
 		webDomain:         "try.gitea.io",
+	},
+	{
+		serviceDefinition: zohorepoServiceDef,
+		gitDomain:         "repository.zoho.com",
+		webDomain:         "repository.zoho.com",
 	},
 }
