@@ -116,6 +116,8 @@ func (self *CommitMessageContext) SetPanelState(
 			"togglePanelKeyBinding": keybindings.Label(self.c.UserConfig.Keybinding.Universal.TogglePanel),
 			"commitMenuKeybinding":  keybindings.Label(self.c.UserConfig.Keybinding.CommitMessage.CommitMenu),
 		})
+
+	self.c.Views().CommitDescription.Visible = true
 }
 
 func (self *CommitMessageContext) RenderCommitLength() {

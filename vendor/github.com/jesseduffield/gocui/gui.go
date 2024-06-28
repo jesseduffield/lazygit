@@ -307,14 +307,26 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 	}
 
 	if v, err := g.View(name); err == nil {
-		if v.x0 != x0 || v.x1 != x1 || v.y0 != y0 || v.y1 != y1 {
-			v.clearViewLines()
-		}
+		sizeChanged := v.x0 != x0 || v.x1 != x1 || v.y0 != y0 || v.y1 != y1
 
 		v.x0 = x0
 		v.y0 = y0
 		v.x1 = x1
 		v.y1 = y1
+
+		if sizeChanged {
+			v.clearViewLines()
+
+			if v.Editable {
+				cursorX, cursorY := v.TextArea.GetCursorXY()
+				newViewCursorX, newOriginX := updatedCursorAndOrigin(0, v.InnerWidth(), cursorX)
+				newViewCursorY, newOriginY := updatedCursorAndOrigin(0, v.InnerHeight(), cursorY)
+
+				_ = v.SetCursor(newViewCursorX, newViewCursorY)
+				_ = v.SetOrigin(newOriginX, newOriginY)
+			}
+		}
+
 		return v, nil
 	}
 
