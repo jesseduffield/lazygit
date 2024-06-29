@@ -287,6 +287,10 @@ func getRemotesToOwnersMap(remotes []*models.Remote) map[string]string {
 			continue
 		}
 
+		if !strings.Contains(remote.Urls[0], ":") {
+			continue
+		}
+
 		res[remote.Name] = getRepoInfoFromURL(remote.Urls[0]).Owner
 	}
 	return res
