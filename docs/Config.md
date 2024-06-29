@@ -514,6 +514,8 @@ keybinding:
     toggleWhitespaceInDiffView: <c-w>
     increaseContextInDiffView: '}'
     decreaseContextInDiffView: '{'
+    increaseRenameSimilarityThreshold: )
+    decreaseRenameSimilarityThreshold: (
     openDiffTool: <c-t>
   status:
     checkForUpdate: u

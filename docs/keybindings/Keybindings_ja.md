@@ -14,6 +14,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` @ `` | コマンドログメニューを開く | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | Push | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | Pull | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename. |
+| `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
 | `` } `` | Increase diff context size | Increase the amount of the context shown around changes in the diff view. |
 | `` { `` | Decrease diff context size | Decrease the amount of the context shown around changes in the diff view. |
 | `` : `` | カスタムコマンドを実行 | Bring up a prompt where you can enter a shell command to execute. Not to be confused with pre-configured custom commands. |

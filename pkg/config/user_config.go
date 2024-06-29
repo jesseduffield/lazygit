@@ -400,6 +400,8 @@ type KeybindingUniversalConfig struct {
 	ToggleWhitespaceInDiffView   string   `yaml:"toggleWhitespaceInDiffView"`
 	IncreaseContextInDiffView    string   `yaml:"increaseContextInDiffView"`
 	DecreaseContextInDiffView    string   `yaml:"decreaseContextInDiffView"`
+	IncreaseRenameSimilarityThreshold string   `yaml:"increaseRenameSimilarityThreshold"`
+	DecreaseRenameSimilarityThreshold string   `yaml:"decreaseRenameSimilarityThreshold"`
 	OpenDiffTool                 string   `yaml:"openDiffTool"`
 }
 
@@ -834,6 +836,8 @@ func GetDefaultConfig() *UserConfig {
 				ToggleWhitespaceInDiffView:   "<c-w>",
 				IncreaseContextInDiffView:    "}",
 				DecreaseContextInDiffView:    "{",
+				IncreaseRenameSimilarityThreshold: ")",
+				DecreaseRenameSimilarityThreshold: "(",
 				OpenDiffTool:                 "<c-t>",
 			},
 			Status: KeybindingStatusConfig{

@@ -670,6 +670,11 @@ type TranslationSet struct {
 	DecreaseContextInDiffView            string
 	DecreaseContextInDiffViewTooltip     string
 	DiffContextSizeChanged               string
+	IncreaseRenameSimilarityThreshold        string
+	IncreaseRenameSimilarityThresholdTooltip string
+	DecreaseRenameSimilarityThreshold        string
+	DecreaseRenameSimilarityThresholdTooltip string
+	RenameSimilarityThresholdChanged         string
 	CreatePullRequestOptions             string
 	DefaultBranch                        string
 	SelectBranch                         string
@@ -1642,6 +1647,11 @@ func EnglishTranslationSet() *TranslationSet {
 		DecreaseContextInDiffView:             "Decrease diff context size",
 		DecreaseContextInDiffViewTooltip:      "Decrease the amount of the context shown around changes in the diff view.",
 		DiffContextSizeChanged:                "Changed diff context size to %d",
+		IncreaseRenameSimilarityThresholdTooltip: "Increase the similarity threshold for a deletion and addition pair to be treated as a rename.",
+		IncreaseRenameSimilarityThreshold:        "Increase rename similarity threshold",
+		DecreaseRenameSimilarityThresholdTooltip: "Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.",
+		DecreaseRenameSimilarityThreshold:        "Decrease rename similarity threshold",
+		RenameSimilarityThresholdChanged:         "Changed rename similarity threshold to %d%%",
 		CreatePullRequestOptions:              "View create pull request options",
 		DefaultBranch:                         "Default branch",
 		SelectBranch:                          "Select branch",
