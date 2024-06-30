@@ -19,10 +19,20 @@ var (
 )
 
 var remoteIcons = map[string]string{
-	"github.com":    "\ue709",     // 
-	"bitbucket.org": "\ue703",     // 
-	"gitlab.com":    "\uf296",     // 
-	"dev.azure.com": "\U000f0805", // 󰠅
+	"github.com":             "\ue709",     // 
+	"bitbucket.org":          "\ue703",     // 
+	"gitlab.com":             "\uf296",     // 
+	"dev.azure.com":          "\U000f0805", // 󰠅
+	"codeberg.org":           "\uf330",     // 
+	"git.FreeBSD.org":        "\uf30c",     // 
+	"gitlab.archlinux.org":   "\uf303",     // 
+	"gitlab.freedesktop.org": "\uf360",     // 
+	"gitlab.gnome.org":       "\uf361",     // 
+	"gnu.org":                "\ue779",     // 
+	"invent.kde.org":         "\uf373",     // 
+	"kernel.org":             "\uf31a",     // 
+	"salsa.debian.org":       "\uf306",     // 
+	"sr.ht":                  "\uf1db",     // 
 }
 
 func patchGitIconsForNerdFontsV2() {
