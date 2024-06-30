@@ -30,9 +30,6 @@ var CommitWithNonMatchingBranchName = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().CommitMessagePanel().
 			Title(Equals("Commit summary")).
-			/* EXPECTED:
 			InitialText(Equals(""))
-			ACTUAL: */
-			InitialText(Equals("branchnomatch"))
 	},
 })

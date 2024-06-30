@@ -152,12 +152,16 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 		if commitPrefixConfig != nil {
 			prefixPattern := commitPrefixConfig.Pattern
 			prefixReplace := commitPrefixConfig.Replace
+			branchName := self.refHelper.GetCheckedOutRef().Name
 			rgx, err := regexp.Compile(prefixPattern)
 			if err != nil {
 				return fmt.Errorf("%s: %s", self.c.Tr.CommitPrefixPatternError, err.Error())
 			}
-			prefix := rgx.ReplaceAllString(self.refHelper.GetCheckedOutRef().Name, prefixReplace)
-			message = prefix
+
+			if rgx.MatchString(branchName) {
+				prefix := rgx.ReplaceAllString(branchName, prefixReplace)
+				message = prefix
+			}
 		}
 	}
 
