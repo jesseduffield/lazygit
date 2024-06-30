@@ -4,7 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"io/fs"
-	"path/filepath"
+	"path"
 	"strings"
 
 	"github.com/cloudfoundry/jibber_jabber"
@@ -83,7 +83,7 @@ func getSupportedLanguageCodes() ([]string, error) {
 }
 
 func readLanguageFile(languageCode string) (*TranslationSet, error) {
-	jsonData, err := embedFS.ReadFile(filepath.Join("translations", languageCode+".json"))
+	jsonData, err := embedFS.ReadFile(path.Join("translations", languageCode+".json"))
 	if err != nil {
 		return nil, err
 	}
