@@ -1796,6 +1796,7 @@ func EnglishTranslationSet() *TranslationSet {
 			AmendCommit:                    "Amend commit",
 			ResetCommitAuthor:              "Reset commit author",
 			SetCommitAuthor:                "Set commit author",
+			AddCommitCoAuthor:              "Add commit co-author",
 			RevertCommit:                   "Revert commit",
 			CreateFixupCommit:              "Create fixup commit",
 			SquashAllAboveFixupCommits:     "Squash all above fixup commits",
