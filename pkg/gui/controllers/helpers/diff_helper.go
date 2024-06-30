@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -118,4 +119,19 @@ func (self *DiffHelper) IgnoringWhitespaceSubTitle() string {
 	}
 
 	return ""
+}
+
+func (self *DiffHelper) OpenDiffToolForRef(selectedRef types.Ref) error {
+	to := selectedRef.RefName()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff("")
+	_, err := self.c.RunSubprocess(self.c.Git().Diff.OpenDiffToolCmdObj(
+		git_commands.DiffToolCmdOptions{
+			Filepath:    ".",
+			FromCommit:  from,
+			ToCommit:    to,
+			Reverse:     reverse,
+			IsDirectory: true,
+			Staged:      false,
+		}))
+	return err
 }
