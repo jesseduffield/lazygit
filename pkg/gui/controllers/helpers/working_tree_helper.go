@@ -157,10 +157,10 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 			if err != nil {
 				return fmt.Errorf("%s: %s", self.c.Tr.CommitPrefixPatternError, err.Error())
 			}
-			
+
 			if rgx.MatchString(branchName) {
 				prefix := rgx.ReplaceAllString(branchName, prefixReplace)
-		
+
 				message = prefix
 			}
 		}
