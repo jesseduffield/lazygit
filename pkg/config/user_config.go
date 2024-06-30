@@ -285,6 +285,8 @@ type MergingConfig struct {
 	ManualCommit bool `yaml:"manualCommit"`
 	// Extra args passed to `git merge`, e.g. --no-ff
 	Args string `yaml:"args" jsonschema:"example=--no-ff"`
+	// The commit message to use for a squash merge commit. Can contain "{{selectedRef}}" and "{{currentBranch}}" placeholders.
+	SquashMergeMessage string `yaml:"squashMergeMessage"`
 }
 
 type LogConfig struct {
@@ -730,8 +732,9 @@ func GetDefaultConfig() *UserConfig {
 				AutoWrapWidth:         72,
 			},
 			Merging: MergingConfig{
-				ManualCommit: false,
-				Args:         "",
+				ManualCommit:       false,
+				Args:               "",
+				SquashMergeMessage: "Squash merge {{selectedRef}} into {{currentBranch}}",
 			},
 			Log: LogConfig{
 				Order:          "topo-order",

@@ -91,7 +91,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` F `` | 强制检出 | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |
 | `` r `` | 将已检出的分支变基到该分支 | Rebase the checked-out branch onto the selected branch. |
-| `` M `` | 合并到当前检出的分支 | Merge selected branch into currently checked out branch. |
+| `` M `` | 合并到当前检出的分支 | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` f `` | 从上游快进此分支 | Fast-forward selected branch from its upstream. |
 | `` T `` | 创建标签 |  |
 | `` s `` | Sort order |  |
@@ -342,7 +342,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-o> `` | 将分支名称复制到剪贴板 |  |
 | `` <space> `` | 检出 | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | 新分支 |  |
-| `` M `` | 合并到当前检出的分支 | Merge selected branch into currently checked out branch. |
+| `` M `` | 合并到当前检出的分支 | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` r `` | 将已检出的分支变基到该分支 | Rebase the checked-out branch onto the selected branch. |
 | `` d `` | Delete | Delete the remote branch from the remote. |
 | `` u `` | Set as upstream | 设置为检出分支的上游 |

@@ -369,23 +369,82 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 	if checkedOutBranchName == refName {
 		return errors.New(self.c.Tr.CantMergeBranchIntoItself)
 	}
-	prompt := utils.ResolvePlaceholderString(
-		self.c.Tr.ConfirmMerge,
-		map[string]string{
-			"checkedOutBranch": checkedOutBranchName,
-			"selectedBranch":   refName,
-		},
-	)
 
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.MergeConfirmTitle,
-		Prompt: prompt,
-		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.Merge)
-			err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{})
-			return self.CheckMergeOrRebase(err)
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.Merge,
+		Items: []*types.MenuItem{
+			{
+				Label:   self.c.Tr.RegularMerge,
+				OnPress: self.RegularMerge(refName),
+				Key:     'm',
+				Tooltip: utils.ResolvePlaceholderString(
+					self.c.Tr.RegularMergeTooltip,
+					map[string]string{
+						"checkedOutBranch": checkedOutBranchName,
+						"selectedBranch":   refName,
+					},
+				),
+			},
+			{
+				Label:   self.c.Tr.SquashMergeUncommittedTitle,
+				OnPress: self.SquashMergeUncommitted(refName),
+				Key:     's',
+				Tooltip: utils.ResolvePlaceholderString(
+					self.c.Tr.SquashMergeUncommitted,
+					map[string]string{
+						"selectedBranch": refName,
+					},
+				),
+			},
+			{
+				Label:   self.c.Tr.SquashMergeCommittedTitle,
+				OnPress: self.SquashMergeCommitted(refName, checkedOutBranchName),
+				Key:     'S',
+				Tooltip: utils.ResolvePlaceholderString(
+					self.c.Tr.SquashMergeCommitted,
+					map[string]string{
+						"checkedOutBranch": checkedOutBranchName,
+						"selectedBranch":   refName,
+					},
+				),
+			},
 		},
 	})
+}
+
+func (self *MergeAndRebaseHelper) RegularMerge(refName string) func() error {
+	return func() error {
+		self.c.LogAction(self.c.Tr.Actions.Merge)
+		err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{})
+		return self.CheckMergeOrRebase(err)
+	}
+}
+
+func (self *MergeAndRebaseHelper) SquashMergeUncommitted(refName string) func() error {
+	return func() error {
+		self.c.LogAction(self.c.Tr.Actions.SquashMerge)
+		err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{Squash: true})
+		return self.CheckMergeOrRebase(err)
+	}
+}
+
+func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranchName string) func() error {
+	return func() error {
+		self.c.LogAction(self.c.Tr.Actions.SquashMerge)
+		err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{Squash: true})
+		if err = self.CheckMergeOrRebase(err); err != nil {
+			return err
+		}
+		message := utils.ResolvePlaceholderString(self.c.UserConfig.Git.Merging.SquashMergeMessage, map[string]string{
+			"selectedRef":   refName,
+			"currentBranch": checkedOutBranchName,
+		})
+		err = self.c.Git().Commit.CommitCmdObj(message, "").Run()
+		if err != nil {
+			return err
+		}
+		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	}
 }
 
 func (self *MergeAndRebaseHelper) ResetMarkedBaseCommit() error {

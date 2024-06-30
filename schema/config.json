@@ -530,6 +530,11 @@
               "examples": [
                 "--no-ff"
               ]
+            },
+            "squashMergeMessage": {
+              "type": "string",
+              "description": "The commit message to use for a squash merge commit. Can contain \"{{selectedRef}}\" and \"{{currentBranch}}\" placeholders.",
+              "default": "Squash merge {{selectedRef}} into {{currentBranch}}"
             }
           },
           "additionalProperties": false,

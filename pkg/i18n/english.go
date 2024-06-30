@@ -24,7 +24,11 @@ type TranslationSet struct {
 	MainTitle                             string
 	StagingTitle                          string
 	MergingTitle                          string
-	MergeConfirmTitle                     string
+	SquashMergeUncommittedTitle           string
+	SquashMergeCommittedTitle             string
+	SquashMergeUncommitted                string
+	SquashMergeCommitted                  string
+	RegularMergeTooltip                   string
 	NormalTitle                           string
 	LogTitle                              string
 	CommitSummary                         string
@@ -133,6 +137,7 @@ type TranslationSet struct {
 	SureFixupThisCommit                   string
 	SureSquashThisCommit                  string
 	Squash                                string
+	SquashMerge                           string
 	PickCommitTooltip                     string
 	Pick                                  string
 	CantPickDisabledReason                string
@@ -229,6 +234,7 @@ type TranslationSet struct {
 	ExcludeFile                           string
 	RefreshFiles                          string
 	Merge                                 string
+	RegularMerge                          string
 	MergeBranchTooltip                    string
 	ConfirmQuit                           string
 	SwitchRepo                            string
@@ -296,7 +302,6 @@ type TranslationSet struct {
 	InteractiveRebaseTooltip              string
 	RebaseOntoBaseBranchTooltip           string
 	MustSelectTodoCommits                 string
-	ConfirmMerge                          string
 	FwdNoUpstream                         string
 	FwdNoLocalUpstream                    string
 	FwdCommitsToPush                      string
@@ -841,6 +846,7 @@ type Actions struct {
 	DeleteLocalBranch                 string
 	DeleteBranch                      string
 	Merge                             string
+	SquashMerge                       string
 	RebaseBranch                      string
 	RenameBranch                      string
 	CreateBranch                      string
@@ -993,7 +999,8 @@ func EnglishTranslationSet() *TranslationSet {
 		UnstagedChanges:                      "Unstaged changes",
 		StagedChanges:                        "Staged changes",
 		MainTitle:                            "Main",
-		MergeConfirmTitle:                    "Merge",
+		SquashMergeUncommittedTitle:          "Squash merge and leave uncommitted",
+		SquashMergeCommittedTitle:            "Squash merge and commit",
 		StagingTitle:                         "Main panel (staging)",
 		MergingTitle:                         "Main panel (merging)",
 		NormalTitle:                          "Main panel (normal)",
@@ -1105,6 +1112,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SureFixupThisCommit:                  "Are you sure you want to 'fixup' the selected commit(s) into the commit below?",
 		SureSquashThisCommit:                 "Are you sure you want to squash the selected commit(s) into the commit below?",
 		Squash:                               "Squash",
+		SquashMerge:                          "Squash Merge",
 		PickCommitTooltip:                    "Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase.",
 		Pick:                                 "Pick",
 		CantPickDisabledReason:               "Cannot pick a commit when not mid-rebase",
@@ -1200,7 +1208,8 @@ func EnglishTranslationSet() *TranslationSet {
 		ExcludeFile:                          `Add to .git/info/exclude`,
 		RefreshFiles:                         `Refresh files`,
 		Merge:                                `Merge`,
-		MergeBranchTooltip:                   "Merge selected branch into currently checked out branch.",
+		RegularMerge:                         "Regular merge",
+		MergeBranchTooltip:                   "View options for merging the selected item into the current branch (regular merge, squash merge)",
 		ConfirmQuit:                          `Are you sure you want to quit?`,
 		SwitchRepo:                           `Switch to a recent repo`,
 		AllBranchesLogGraph:                  `Show all branch logs`,
@@ -1271,7 +1280,9 @@ func EnglishTranslationSet() *TranslationSet {
 		InteractiveRebaseTooltip:             "Begin an interactive rebase with a break at the start, so you can update the TODO commits before continuing.",
 		RebaseOntoBaseBranchTooltip:          "Rebase the checked out branch onto its base branch (i.e. the closest main branch).",
 		MustSelectTodoCommits:                "When rebasing, this action only works on a selection of TODO commits.",
-		ConfirmMerge:                         "Are you sure you want to merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'?",
+		SquashMergeUncommitted:               "Squash merge '{{.selectedBranch}}' into the working tree.",
+		SquashMergeCommitted:                 "Squash merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}' as a single commit.",
+		RegularMergeTooltip:                  "Merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'.",
 		FwdNoUpstream:                        "Cannot fast-forward a branch with no upstream",
 		FwdNoLocalUpstream:                   "Cannot fast-forward a branch whose remote is not registered locally",
 		FwdCommitsToPush:                     "Cannot fast-forward a branch with commits to push",
@@ -1770,6 +1781,7 @@ func EnglishTranslationSet() *TranslationSet {
 			DeleteLocalBranch:              "Delete local branch",
 			DeleteBranch:                   "Delete branch",
 			Merge:                          "Merge",
+			SquashMerge:                    "Squash merge",
 			RebaseBranch:                   "Rebase branch",
 			RenameBranch:                   "Rename branch",
 			CreateBranch:                   "Create branch",
