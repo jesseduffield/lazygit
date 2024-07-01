@@ -244,6 +244,9 @@ type GitConfig struct {
 	// When copying commit hashes to the clipboard, truncate them to this
 	// length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
+	// When creating a new branch from a remote branch, setup newly created branch to track the remote branch
+	// One of: 'always' (default) | 'whenBranchNamesMatch' | 'never'
+	AutomaticTrackingWhenCreatingNewBranchFromRemoteBranch string `yaml:"automaticTrackingWhenCreatingNewBranchFromRemoteBranch"`
 }
 
 type PagerType string
@@ -752,6 +755,7 @@ func GetDefaultConfig() *UserConfig {
 			CommitPrefixes:               map[string]CommitPrefixConfig(nil),
 			ParseEmoji:                   false,
 			TruncateCopiedCommitHashesTo: 12,
+			AutomaticTrackingWhenCreatingNewBranchFromRemoteBranch: "always",
 		},
 		Refresher: RefresherConfig{
 			RefreshInterval: 10,

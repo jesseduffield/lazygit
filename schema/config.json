@@ -680,6 +680,11 @@
           "type": "integer",
           "description": "When copying commit hashes to the clipboard, truncate them to this\nlength. Set to 40 to disable truncation.",
           "default": 12
+        },
+        "automaticTrackingWhenCreatingNewBranchFromRemoteBranch": {
+          "type": "string",
+          "description": "When creating a new branch from a remote branch, setup newly created branch to track the remote branch\nOne of: 'always' (default) | 'whenBranchNamesMatch' | 'never'",
+          "default": "always"
         }
       },
       "additionalProperties": false,

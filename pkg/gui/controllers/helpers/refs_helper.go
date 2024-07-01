@@ -279,8 +279,27 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		InitialContent: suggestedBranchName,
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.CreateBranch)
-			if err := self.c.Git().Branch.New(SanitizedBranchName(response), from); err != nil {
-				return err
+			newBranchName := SanitizedBranchName(response)
+			mode := self.c.UserConfig.Git.AutomaticTrackingWhenCreatingNewBranchFromRemoteBranch
+			switch mode {
+			case "never":
+				if err := self.c.Git().Branch.NewWithoutTracking(newBranchName, from); err != nil {
+					return err
+				}
+			case "whenBranchNamesMatch":
+				if newBranchName == suggestedBranchName {
+					if err := self.c.Git().Branch.New(newBranchName, from); err != nil {
+						return err
+					}
+				} else {
+					if err := self.c.Git().Branch.NewWithoutTracking(newBranchName, from); err != nil {
+						return err
+					}
+				}
+			default:
+				if err := self.c.Git().Branch.New(newBranchName, from); err != nil {
+					return err
+				}
 			}
 
 			if self.c.CurrentContext() != self.c.Contexts().Branches {

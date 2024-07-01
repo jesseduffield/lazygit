@@ -349,6 +349,10 @@ git:
   # length. Set to 40 to disable truncation.
   truncateCopiedCommitHashesTo: 12
 
+  # When creating a new branch from a remote branch, setup newly created branch to track the remote branch
+  # One of: 'always' (default) | 'whenBranchNamesMatch' | 'never'
+  automaticTrackingWhenCreatingNewBranchFromRemoteBranch: always
+
 # Periodic update checks
 update:
   # One of: 'prompt' (default) | 'background' | 'never'
