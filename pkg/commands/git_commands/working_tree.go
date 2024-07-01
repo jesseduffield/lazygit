@@ -385,3 +385,17 @@ func (self *WorkingTreeCommands) ResetMixed(ref string) error {
 
 	return self.cmd.New(cmdArgs).Run()
 }
+
+func (self *WorkingTreeCommands) CheckoutTheirs(name string) error {
+	cmdArgs := NewGitCmd("checkout").Arg("--theirs", "--", name).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
+func (self *WorkingTreeCommands) CheckoutOurs(name string) error {
+	cmdArgs := NewGitCmd("checkout").Arg("--ours", "--", name).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
