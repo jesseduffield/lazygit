@@ -57,7 +57,6 @@
   "CloseCancel": "关闭",
   "Confirm": "确认",
   "Quit": "退出",
-  "CannotSquashOrFixupFirstCommit": "There's no commit below to squash into",
   "Fixup": "修正（fixup）",
   "SureFixupThisCommit": "您确定要“修正”此提交吗？它将合并到下面的提交中",
   "SureSquashThisCommit": "您确定要将这个提交压缩到下面的提交中吗？",
@@ -88,8 +87,6 @@
   "SureApplyStashEntry": "您确定要应用此贮藏条目？",
   "NoTrackedStagedFilesStash": "没有可以贮藏的已跟踪/暂存文件",
   "StashChanges": "贮藏更改",
-  "RenameStash": "Rename stash",
-  "RenameStashPrompt": "Rename stash: {{.stashName}}",
   "OpenConfig": "打开配置文件",
   "EditConfig": "编辑配置文件",
   "ForcePush": "强制推送",
@@ -149,7 +146,6 @@
   "SecondaryTitle": "次要",
   "ReflogCommitsTitle": "Reflog 页面",
   "ConflictsResolved": "已解决所有冲突。是否继续？",
-  "ConfirmMerge": "您确定要将分支 {{.selectedBranch}} 合并到 {{.checkedOutBranch}} 吗？",
   "FwdNoUpstream": "此分支没有上游，无法快进",
   "FwdNoLocalUpstream": "此分支的远程未在本地注册，无法快进",
   "FwdCommitsToPush": "此分支带有尚未推送的提交，无法快进",
@@ -241,8 +237,8 @@
   "NoPatchError": "尚未创建补丁。你可以在提交中的文件上按下“空格”或使用“回车”添加其中的特定行以开始构建补丁",
   "EnterCommitFile": "输入文件以将所选行添加到补丁中（或切换目录折叠）",
   "ExitCustomPatchBuilder": "退出逐行模式",
-  "EnterUpstream": "以这种格式输入上游：'\u003c远程仓库\u003e \u003c分支名称\u003e'",
-  "InvalidUpstream": "上游格式无效，格式应当为：'\u003cremote\u003e \u003cbranchname\u003e'",
+  "EnterUpstream": "以这种格式输入上游：'<远程仓库> <分支名称>'",
+  "InvalidUpstream": "上游格式无效，格式应当为：'<remote> <branchname>'",
   "ReturnToRemotesList": "返回远程仓库列表",
   "NewRemote": "添加新的远程仓库",
   "NewRemoteName": "新远程仓库名称:",
@@ -460,7 +456,6 @@
     "UpdateRemote": "更新远程",
     "ApplyPatch": "应用补丁",
     "Stash": "贮藏 (Stash)",
-    "RenameStash": "Rename stash",
     "RemoveSubmodule": "删除子模块",
     "ResetSubmodule": "重置子模块",
     "AddSubmodule": "添加子模块",
@@ -501,5 +496,7 @@
     "CompleteTitle": "二分查找完成",
     "CompletePrompt": "二分查找完成！以下提交引入了此变更：\n\n%s\n\n您现在要重置 'git bisect' 吗？",
     "CompletePromptIndeterminate": "二分查找完成！一些提交被跳过了，所以下列提交中的任何一个都可能引入了此变更：\n\n%s\n\n您现在要重置 'git bisect' 吗？"
-  }
+  },
+  "Log": {},
+  "BreakingChangesByVersion": {}
 }

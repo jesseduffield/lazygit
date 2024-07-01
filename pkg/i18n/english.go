@@ -255,7 +255,6 @@ type TranslationSet struct {
 	ToggleSelectHunk                      string
 	ToggleSelectHunkTooltip               string
 	ToggleSelectionForPatch               string
-	ToggleSelectionForPatchTooltip        string
 	EditHunk                              string
 	EditHunkTooltip                       string
 	ToggleStagingView                     string
@@ -314,7 +313,6 @@ type TranslationSet struct {
 	ChangingThisActionIsNotAllowed        string
 	CherryPickCopy                        string
 	CherryPickCopyTooltip                 string
-	CherryPickCopyRange                   string
 	CherryPickCopyRangeTooltip            string
 	PasteCommits                          string
 	SureCherryPick                        string
@@ -562,7 +560,6 @@ type TranslationSet struct {
 	OpenFilteringMenuTooltip              string
 	FilterBy                              string
 	ExitFilterMode                        string
-	ExitFilterModeAuthor                  string
 	FilterPathOption                      string
 	FilterAuthorOption                    string
 	EnterFileName                         string
@@ -805,8 +802,6 @@ type TranslationSet struct {
 
 type Bisect struct {
 	MarkStart                   string
-	MarkSkipCurrent             string
-	MarkSkipSelected            string
 	ResetTitle                  string
 	ResetPrompt                 string
 	ResetOption                 string
@@ -895,7 +890,6 @@ type Actions struct {
 	Push                              string
 	Pull                              string
 	OpenFile                          string
-	OpenFileTooltip                   string
 	StashAllChanges                   string
 	StashAllChangesKeepIndex          string
 	StashStagedChanges                string
@@ -1796,6 +1790,7 @@ func EnglishTranslationSet() *TranslationSet {
 			AmendCommit:                    "Amend commit",
 			ResetCommitAuthor:              "Reset commit author",
 			SetCommitAuthor:                "Set commit author",
+			AddCommitCoAuthor:              "Add commit co-author",
 			RevertCommit:                   "Revert commit",
 			CreateFixupCommit:              "Create fixup commit",
 			SquashAllAboveFixupCommits:     "Squash all above fixup commits",
