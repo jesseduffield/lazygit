@@ -244,6 +244,8 @@ type GitConfig struct {
 	// When copying commit hashes to the clipboard, truncate them to this
 	// length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
+	// If true and if if `gh` is installed and on version >=2, we will use `gh` to display pull requests against branches.
+	EnableGithubCli bool `yaml:"enableGithubCli"`
 }
 
 type PagerType string
@@ -752,6 +754,7 @@ func GetDefaultConfig() *UserConfig {
 			CommitPrefixes:               map[string]CommitPrefixConfig(nil),
 			ParseEmoji:                   false,
 			TruncateCopiedCommitHashesTo: 12,
+			EnableGithubCli:              true,
 		},
 		Refresher: RefresherConfig{
 			RefreshInterval: 10,

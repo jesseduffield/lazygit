@@ -7,6 +7,7 @@ package agent
 import (
 	"crypto/dsa"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rsa"
 	"encoding/binary"
@@ -16,11 +17,10 @@ import (
 	"log"
 	"math/big"
 
-	"golang.org/x/crypto/ed25519"
 	"golang.org/x/crypto/ssh"
 )
 
-// Server wraps an Agent and uses it to implement the agent side of
+// server wraps an Agent and uses it to implement the agent side of
 // the SSH-agent, wire protocol.
 type server struct {
 	agent Agent
