@@ -76,6 +76,7 @@ func AddCoAuthorToDescription(description string, author string) string {
 // ResetToCommit reset to commit
 func (self *CommitCommands) ResetToCommit(hash string, strength string, envVars []string) error {
 	cmdArgs := NewGitCmd("reset").Arg("--"+strength, hash).ToArgv()
+	self.Log.Warn("Here")
 
 	return self.cmd.New(cmdArgs).
 		// prevents git from prompting us for input which would freeze the program
