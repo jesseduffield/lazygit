@@ -391,6 +391,8 @@ type TranslationSet struct {
 	DiscardUntrackedFiles                 string
 	DiscardStagedChanges                  string
 	HardReset                             string
+	HardResetTitle                        string
+	HardResetPrompt                       string
 	BranchDeleteTooltip                   string
 	TagDeleteTooltip                      string
 	Delete                                string
@@ -1367,6 +1369,8 @@ func EnglishTranslationSet() *TranslationSet {
 		DiscardUntrackedFiles:                "Discard untracked files",
 		DiscardStagedChanges:                 "Discard staged changes",
 		HardReset:                            "Hard reset",
+		HardResetTitle:                       "Hard reset",
+		HardResetPrompt:                      "This will also reset the uncommited files",
 		BranchDeleteTooltip:                  "View delete options for local/remote branch.",
 		TagDeleteTooltip:                     "View delete options for local/remote tag.",
 		Delete:                               "Delete",
