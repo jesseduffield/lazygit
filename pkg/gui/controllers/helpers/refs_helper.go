@@ -279,7 +279,12 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		InitialContent: suggestedBranchName,
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.CreateBranch)
-			if err := self.c.Git().Branch.New(SanitizedBranchName(response), from); err != nil {
+			newBranchName := SanitizedBranchName(response)
+			newBranchFunc := self.c.Git().Branch.New
+			if newBranchName != suggestedBranchName {
+				newBranchFunc = self.c.Git().Branch.NewWithoutTracking
+			}
+			if err := newBranchFunc(newBranchName, from); err != nil {
 				return err
 			}
 

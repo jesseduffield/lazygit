@@ -42,6 +42,8 @@ var tests = []*components.IntegrationTest{
 	branch.Delete,
 	branch.DeleteRemoteBranchWithCredentialPrompt,
 	branch.DetachedHead,
+	branch.NewBranchFromRemoteTrackingDifferentName,
+	branch.NewBranchFromRemoteTrackingSameName,
 	branch.OpenPullRequestNoUpstream,
 	branch.OpenWithCliArg,
 	branch.Rebase,
