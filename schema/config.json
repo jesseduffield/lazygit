@@ -580,8 +580,15 @@
         },
         "allBranchesLogCmd": {
           "type": "string",
-          "description": "Command used to display git log of all branches in the main window",
+          "description": "Command used to display git log of all branches in the main window.\nDeprecated: User `allBranchesLogCmds` instead.",
           "default": "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"
+        },
+        "allBranchesLogCmds": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Commands used to display git log of all branches in the main window, they will be cycled in order of appearance"
         },
         "overrideGpg": {
           "type": "boolean",
