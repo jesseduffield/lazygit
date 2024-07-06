@@ -1208,7 +1208,7 @@ func EnglishTranslationSet() *TranslationSet {
 		MergeBranchTooltip:                   "View options for merging the selected item into the current branch (regular merge, squash merge)",
 		ConfirmQuit:                          `Are you sure you want to quit?`,
 		SwitchRepo:                           `Switch to a recent repo`,
-		AllBranchesLogGraph:                  `Show all branch logs`,
+		AllBranchesLogGraph:                  `Show/cycle all branch logs`,
 		UnsupportedGitService:                `Unsupported git service`,
 		CreatePullRequest:                    `Create pull request`,
 		CopyPullRequestURL:                   `Copy pull request URL to clipboard`,

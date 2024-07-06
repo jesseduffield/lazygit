@@ -286,6 +286,7 @@ var tests = []*components.IntegrationTest{
 	status.ClickRepoNameToOpenReposMenu,
 	status.ClickToFocus,
 	status.ClickWorkingTreeStateToOpenRebaseOptionsMenu,
+	status.LogCmd,
 	status.ShowDivergenceFromBaseBranch,
 	submodule.Add,
 	submodule.Enter,

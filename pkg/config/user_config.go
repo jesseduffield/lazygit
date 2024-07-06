@@ -226,8 +226,11 @@ type GitConfig struct {
 	FetchAll bool `yaml:"fetchAll"`
 	// Command used when displaying the current branch git log in the main window
 	BranchLogCmd string `yaml:"branchLogCmd"`
-	// Command used to display git log of all branches in the main window
+	// Command used to display git log of all branches in the main window.
+	// Deprecated: User `allBranchesLogCmds` instead.
 	AllBranchesLogCmd string `yaml:"allBranchesLogCmd"`
+	// Commands used to display git log of all branches in the main window, they will be cycled in order of appearance
+	AllBranchesLogCmds []string `yaml:"allBranchesLogCmds"`
 	// If true, do not spawn a separate process when using GPG
 	OverrideGpg bool `yaml:"overrideGpg"`
 	// If true, do not allow force pushes
