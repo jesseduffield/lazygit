@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -24,6 +25,26 @@ func (self *CommandLogController) GetKeybindings(opts types.KeybindingsOpts) []*
 	bindings := []*types.Binding{}
 
 	return bindings
+}
+
+func (self *CommandLogController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName: self.Context().GetViewName(),
+			Key:      gocui.MouseLeft,
+			Handler:  self.onClick,
+		},
+	}
+}
+
+func (self *CommandLogController) onClick(opts gocui.ViewMouseBindingOpts) error {
+	if err := self.c.PushContext(self.context(), types.OnFocusOpts{
+		ClickedWindowName:  self.context().GetWindowName(),
+		ClickedViewLineIdx: opts.Y,
+	}); err != nil {
+		return err
+	}
+	return self.c.HandleGenericClick(self.c.Views().Extras)
 }
 
 func (self *CommandLogController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
