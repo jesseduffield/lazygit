@@ -14,7 +14,6 @@ import (
 	"github.com/spf13/afero"
 
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -119,7 +118,14 @@ func NewApp(config config.AppConfigurer, test integrationTypes.IntegrationTest, 
 		return app, err
 	}
 
-	showRecentRepos, err := app.setupRepo()
+	// If we're not in a repo, repoPaths will be nil. The error is moot for us
+	// at this stage, since we'll try to init a new repo in setupRepo(), below
+	repoPaths, err := git_commands.GetRepoPaths(app.OSCommand.Cmd, gitVersion)
+	if err != nil {
+		return app, err
+	}
+
+	showRecentRepos, err := app.setupRepo(repoPaths)
 	if err != nil {
 		return app, err
 	}
@@ -168,14 +174,16 @@ func openRecentRepo(app *App) bool {
 	return false
 }
 
-func (app *App) setupRepo() (bool, error) {
+func (app *App) setupRepo(
+	repoPaths *git_commands.RepoPaths,
+) (bool, error) {
 	if env.GetGitDirEnv() != "" {
-		// we've been given the git dir directly. We'll verify this dir when initializing our Git object
+		// we've been given the git dir directly. Skip setup
 		return false, nil
 	}
 
 	// if we are not in a git repo, we ask if we want to `git init`
-	if err := commands.VerifyInGitRepo(app.OSCommand); err != nil {
+	if repoPaths == nil {
 		cwd, err := os.Getwd()
 		if err != nil {
 			return false, err
@@ -221,6 +229,7 @@ func (app *App) setupRepo() (bool, error) {
 			if err := app.OSCommand.Cmd.New(args).Run(); err != nil {
 				return false, err
 			}
+
 			return false, nil
 		}
 
@@ -238,10 +247,7 @@ func (app *App) setupRepo() (bool, error) {
 	}
 
 	// Run this afterward so that the previous repo creation steps can run without this interfering
-	if isBare, err := git_commands.IsBareRepo(app.OSCommand); isBare {
-		if err != nil {
-			return false, err
-		}
+	if repoPaths.IsBareRepo() {
 
 		fmt.Print(app.Tr.BareRepo)
 

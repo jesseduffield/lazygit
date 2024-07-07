@@ -8,12 +8,7 @@ import (
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,
 // so that we can open the same repo via the 'recent repos' menu
 func (gui *Gui) updateRecentRepoList() error {
-	isBareRepo, err := gui.git.Status.IsBareRepo()
-	if err != nil {
-		return err
-	}
-
-	if isBareRepo {
+	if gui.git.Status.IsBareRepo() {
 		// we could totally do this but it would require storing both the git-dir and the
 		// worktree in our recent repos list, which is a change that would need to be
 		// backwards compatible
