@@ -11,6 +11,8 @@ Todo list when making a new translation
 package i18n
 
 type TranslationSet struct {
+	Yes                                   string
+	No                                    string
 	NotEnoughSpace                        string
 	DiffTitle                             string
 	FilesTitle                            string
@@ -946,6 +948,7 @@ type Actions struct {
 	BisectMark                        string
 	RemoveWorktree                    string
 	AddWorktree                       string
+	AckToContinue                     string
 }
 
 const englishIntroPopupMessage = `
@@ -983,6 +986,8 @@ for up-to-date information how to configure your editor.
 // exporting this so we can use it in tests
 func EnglishTranslationSet() *TranslationSet {
 	return &TranslationSet{
+		Yes:                                  "Yes",
+		No:                                   "No",
 		NotEnoughSpace:                       "Not enough space to render panels",
 		DiffTitle:                            "Diff",
 		FilesTitle:                           "Files",
@@ -1884,6 +1889,7 @@ func EnglishTranslationSet() *TranslationSet {
 			BisectMark:                      "Bisect mark",
 			RemoveWorktree:                  "Remove worktree",
 			AddWorktree:                     "Add worktree",
+			AckToContinue:                   "Are you sure you want to continue?",
 		},
 		Bisect: Bisect{
 			Mark:                        "Mark current commit (%s) as %s",
