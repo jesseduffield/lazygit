@@ -167,6 +167,7 @@ type SessionState struct {
 	SelectedLocalCommit    *Commit
 	SelectedReflogCommit   *Commit
 	SelectedSubCommit      *Commit
+	SelectedCommit         *Commit
 	SelectedFile           *File
 	SelectedPath           string
 	SelectedLocalBranch    *Branch
@@ -181,11 +182,22 @@ type SessionState struct {
 }
 
 func (self *SessionStateLoader) call() *SessionState {
+	var commit = commitShimFromModelCommit(self.c.Contexts().LocalCommits.GetSelected())
+
+	if commit == nil {
+		commit = commitShimFromModelCommit(self.c.Contexts().ReflogCommits.GetSelected())
+
+		if commit == nil {
+			commit = commitShimFromModelCommit(self.c.Contexts().SubCommits.GetSelected())
+		}
+	}
+
 	return &SessionState{
 		SelectedFile:           fileShimFromModelFile(self.c.Contexts().Files.GetSelectedFile()),
 		SelectedPath:           self.c.Contexts().Files.GetSelectedPath(),
-		SelectedLocalCommit:    commitShimFromModelCommit(self.c.Contexts().LocalCommits.GetSelected()),
-		SelectedReflogCommit:   commitShimFromModelCommit(self.c.Contexts().ReflogCommits.GetSelected()),
+		SelectedLocalCommit:    commit,
+		SelectedReflogCommit:   commit,
+		SelectedCommit:         commit,
 		SelectedLocalBranch:    branchShimFromModelBranch(self.c.Contexts().Branches.GetSelected()),
 		SelectedRemoteBranch:   remoteBranchShimFromModelRemoteBranch(self.c.Contexts().RemoteBranches.GetSelected()),
 		SelectedRemote:         remoteShimFromModelRemote(self.c.Contexts().Remotes.GetSelected()),
@@ -193,7 +205,7 @@ func (self *SessionStateLoader) call() *SessionState {
 		SelectedStashEntry:     stashEntryShimFromModelRemote(self.c.Contexts().Stash.GetSelected()),
 		SelectedCommitFile:     commitFileShimFromModelRemote(self.c.Contexts().CommitFiles.GetSelectedFile()),
 		SelectedCommitFilePath: self.c.Contexts().CommitFiles.GetSelectedPath(),
-		SelectedSubCommit:      commitShimFromModelCommit(self.c.Contexts().SubCommits.GetSelected()),
+		SelectedSubCommit:      commit,
 		SelectedWorktree:       worktreeShimFromModelRemote(self.c.Contexts().Worktrees.GetSelected()),
 		CheckedOutBranch:       branchShimFromModelBranch(self.refsHelper.GetCheckedOutRef()),
 	}
