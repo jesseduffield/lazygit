@@ -175,10 +175,12 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description:       self.c.Tr.OpenDiffTool,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
-			Handler:     self.c.Helpers().WorkingTree.OpenMergeTool,
-			Description: self.c.Tr.OpenMergeTool,
-			Tooltip:     self.c.Tr.OpenMergeToolTooltip,
+			Key:             opts.GetKey(opts.Config.Files.OpenMergeTool),
+			Handler:         self.createMergeConflictToolMenu,
+			Description:     self.c.Tr.ViewMergeConflictOptions,
+			Tooltip:         self.c.Tr.ViewMergeConflictOptionsTooltip,
+			OpensMenu:       true,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.Fetch),
@@ -814,6 +816,39 @@ func (self *FilesController) createStashMenu() error {
 					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashUnstagedChanges)
 				},
 				Key: 'u',
+			},
+		},
+	})
+}
+
+func (self *FilesController) createMergeConflictToolMenu() error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.MergeConflictOptions,
+		Items: []*types.MenuItem{
+			{
+				Label:   self.c.Tr.OpenMergeTool,
+				OnPress: self.c.Helpers().WorkingTree.OpenMergeTool,
+				Key:     'm',
+			},
+			{
+				Label: self.c.Tr.CheckoutOurs,
+				OnPress: func() error {
+					if err := self.c.Git().WorkingTree.CheckoutOurs(self.context().GetSelected().GetPath()); err != nil {
+						return self.c.Error(err)
+					}
+					return nil
+				},
+				Key: 'o',
+			},
+			{
+				Label: self.c.Tr.CheckoutTheirs,
+				OnPress: func() error {
+					if err := self.c.Git().WorkingTree.CheckoutTheirs(self.context().GetSelected().GetPath()); err != nil {
+						return self.c.Error(err)
+					}
+					return nil
+				},
+				Key: 't',
 			},
 		},
 	})
