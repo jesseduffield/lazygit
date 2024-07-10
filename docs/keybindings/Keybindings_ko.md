@@ -325,6 +325,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` P `` | 태그를 push | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` M `` | 현재 브랜치에 병합 | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |

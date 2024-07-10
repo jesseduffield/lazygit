@@ -286,6 +286,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` P `` | 推送標籤 | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` M `` | 合併到當前檢出的分支 | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
