@@ -219,3 +219,25 @@ jobs:
           CODACY_PROJECT_TOKEN=${{ secrets.CODACY_PROJECT_TOKEN }} \
             bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
             --force-coverage-parser go -r coverage.out
+
+  check-for-fixups:
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/master'
+    steps:
+      # See https://github.com/actions/checkout/issues/552#issuecomment-1167086216
+      - name: "PR commits + 1"
+        run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> "${GITHUB_ENV}"
+
+      - name: "Checkout PR branch and all PR commits"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: ${{ env.PR_FETCH_DEPTH }}
+
+      - name: "Fetch the other branch with enough history for a common merge-base commit"
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+
+      - name: Check for fixups
+        run: |
+          ./scripts/check_for_fixups.sh ${{ github.event.pull_request.base.ref }}
