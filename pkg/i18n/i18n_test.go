@@ -83,7 +83,7 @@ func TestNewTranslationSetFromConfig(t *testing.T) {
 			configLanguage: "auto",
 			envLanguage:    "nl_NL",
 			expected:       "nl",
-			expectedErr:    true, // Demonstrates the bug, this should be false
+			expectedErr:    false,
 		},
 		{
 			name:           "auto-detection with LANG set to zh-CN",

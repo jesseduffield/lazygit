@@ -24,7 +24,7 @@ func NewTranslationSetFromConfig(log *logrus.Entry, configLanguage string) (*Tra
 		language := detectLanguage(jibber_jabber.DetectIETF)
 		for _, languageCode := range languageCodes {
 			if strings.HasPrefix(language, languageCode) {
-				return newTranslationSet(log, language)
+				return newTranslationSet(log, languageCode)
 			}
 		}
 
