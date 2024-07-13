@@ -8,6 +8,7 @@ import (
 
 	"github.com/adrg/xdg"
 	"github.com/jesseduffield/lazygit/pkg/utils/yaml_utils"
+	"github.com/samber/lo"
 	"gopkg.in/yaml.v3"
 )
 
@@ -19,7 +20,7 @@ type AppConfig struct {
 	name            string `long:"name" env:"NAME" default:"lazygit"`
 	buildSource     string `long:"build-source" env:"BUILD_SOURCE" default:""`
 	userConfig      *UserConfig
-	userConfigPaths []string
+	userConfigFiles []*ConfigFile
 	userConfigDir   string
 	tempDir         string
 	appState        *AppState
@@ -42,6 +43,18 @@ type AppConfigurer interface {
 	SaveAppState() error
 }
 
+type ConfigFilePolicy int
+
+const (
+	ConfigFilePolicyCreateIfMissing ConfigFilePolicy = iota
+	ConfigFilePolicyErrorIfMissing
+)
+
+type ConfigFile struct {
+	Path   string
+	Policy ConfigFilePolicy
+}
+
 // NewAppConfig makes a new app config
 func NewAppConfig(
 	name string,
@@ -57,17 +70,22 @@ func NewAppConfig(
 		return nil, err
 	}
 
-	var userConfigPaths []string
+	var configFiles []*ConfigFile
 	customConfigFiles := os.Getenv("LG_CONFIG_FILE")
 	if customConfigFiles != "" {
 		// Load user defined config files
-		userConfigPaths = strings.Split(customConfigFiles, ",")
+		userConfigPaths := strings.Split(customConfigFiles, ",")
+		configFiles = lo.Map(userConfigPaths, func(path string, _ int) *ConfigFile {
+			return &ConfigFile{Path: path, Policy: ConfigFilePolicyErrorIfMissing}
+		})
 	} else {
 		// Load default config files
-		userConfigPaths = []string{filepath.Join(configDir, ConfigFilename)}
+		path := filepath.Join(configDir, ConfigFilename)
+		configFile := &ConfigFile{Path: path, Policy: ConfigFilePolicyCreateIfMissing}
+		configFiles = []*ConfigFile{configFile}
 	}
 
-	userConfig, err := loadUserConfigWithDefaults(userConfigPaths)
+	userConfig, err := loadUserConfigWithDefaults(configFiles)
 	if err != nil {
 		return nil, err
 	}
@@ -95,17 +113,13 @@ func NewAppConfig(
 		debug:           debuggingFlag,
 		buildSource:     buildSource,
 		userConfig:      userConfig,
-		userConfigPaths: userConfigPaths,
+		userConfigFiles: configFiles,
 		userConfigDir:   configDir,
 		tempDir:         tempDir,
 		appState:        appState,
 	}
 
 	return appConfig, nil
-}
-
-func isCustomConfigFile(path string) bool {
-	return path != filepath.Join(ConfigDir(), ConfigFilename)
 }
 
 func ConfigDir() string {
@@ -119,32 +133,33 @@ func findOrCreateConfigDir() (string, error) {
 	return folder, os.MkdirAll(folder, 0o755)
 }
 
-func loadUserConfigWithDefaults(configFiles []string) (*UserConfig, error) {
+func loadUserConfigWithDefaults(configFiles []*ConfigFile) (*UserConfig, error) {
 	return loadUserConfig(configFiles, GetDefaultConfig())
 }
 
-func loadUserConfig(configFiles []string, base *UserConfig) (*UserConfig, error) {
-	for _, path := range configFiles {
+func loadUserConfig(configFiles []*ConfigFile, base *UserConfig) (*UserConfig, error) {
+	for _, configFile := range configFiles {
+		path := configFile.Path
 		if _, err := os.Stat(path); err != nil {
 			if !os.IsNotExist(err) {
 				return nil, err
 			}
 
-			// if use has supplied their own custom config file path(s), we assume
-			// the files have already been created, so we won't go and create them here.
-			if isCustomConfigFile(path) {
+			switch configFile.Policy {
+			case ConfigFilePolicyErrorIfMissing:
 				return nil, err
-			}
 
-			file, err := os.Create(path)
-			if err != nil {
-				if os.IsPermission(err) {
-					// apparently when people have read-only permissions they prefer us to fail silently
-					continue
+			case ConfigFilePolicyCreateIfMissing:
+				file, err := os.Create(path)
+				if err != nil {
+					if os.IsPermission(err) {
+						// apparently when people have read-only permissions they prefer us to fail silently
+						continue
+					}
+					return nil, err
 				}
-				return nil, err
+				file.Close()
 			}
-			file.Close()
 		}
 
 		content, err := os.ReadFile(path)
@@ -244,7 +259,9 @@ func (c *AppConfig) GetAppState() *AppState {
 }
 
 func (c *AppConfig) GetUserConfigPaths() []string {
-	return c.userConfigPaths
+	return lo.Map(c.userConfigFiles, func(f *ConfigFile, _ int) string {
+		return f.Path
+	})
 }
 
 func (c *AppConfig) GetUserConfigDir() string {
