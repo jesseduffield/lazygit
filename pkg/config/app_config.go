@@ -23,7 +23,6 @@ type AppConfig struct {
 	UserConfigDir   string
 	TempDir         string
 	AppState        *AppState
-	IsNewRepo       bool
 }
 
 type AppConfigurer interface {
@@ -101,7 +100,6 @@ func NewAppConfig(
 		UserConfigDir:   configDir,
 		TempDir:         tempDir,
 		AppState:        appState,
-		IsNewRepo:       false,
 	}
 
 	return appConfig, nil
