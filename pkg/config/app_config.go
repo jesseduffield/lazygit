@@ -13,18 +13,17 @@ import (
 
 // AppConfig contains the base configuration fields required for lazygit.
 type AppConfig struct {
-	Debug            bool   `long:"debug" env:"DEBUG" default:"false"`
-	Version          string `long:"version" env:"VERSION" default:"unversioned"`
-	BuildDate        string `long:"build-date" env:"BUILD_DATE"`
-	Name             string `long:"name" env:"NAME" default:"lazygit"`
-	BuildSource      string `long:"build-source" env:"BUILD_SOURCE" default:""`
-	UserConfig       *UserConfig
-	UserConfigPaths  []string
-	DeafultConfFiles bool
-	UserConfigDir    string
-	TempDir          string
-	AppState         *AppState
-	IsNewRepo        bool
+	Debug           bool   `long:"debug" env:"DEBUG" default:"false"`
+	Version         string `long:"version" env:"VERSION" default:"unversioned"`
+	BuildDate       string `long:"build-date" env:"BUILD_DATE"`
+	Name            string `long:"name" env:"NAME" default:"lazygit"`
+	BuildSource     string `long:"build-source" env:"BUILD_SOURCE" default:""`
+	UserConfig      *UserConfig
+	UserConfigPaths []string
+	UserConfigDir   string
+	TempDir         string
+	AppState        *AppState
+	IsNewRepo       bool
 }
 
 type AppConfigurer interface {
