@@ -30,7 +30,8 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 	if userConfig.Git.AutoFetch {
 		fetchInterval := userConfig.Refresher.FetchInterval
 		if fetchInterval > 0 {
-			go utils.Safe(self.startBackgroundFetch)
+			refreshInterval := self.gui.UserConfig.Refresher.FetchInterval
+			go utils.Safe(func() { self.startBackgroundFetch(refreshInterval) })
 		} else {
 			self.gui.c.Log.Errorf(
 				"Value of config option 'refresher.fetchInterval' (%d) is invalid, disabling auto-fetch",
@@ -73,19 +74,15 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 	}
 }
 
-func (self *BackgroundRoutineMgr) startBackgroundFetch() {
+func (self *BackgroundRoutineMgr) startBackgroundFetch(refreshInterval int) {
 	self.gui.waitForIntro.Wait()
 
 	isNew := self.gui.IsNewRepo
-	userConfig := self.gui.UserConfig
-	if !isNew {
-		time.After(time.Duration(userConfig.Refresher.FetchInterval) * time.Second)
-	}
 	err := self.backgroundFetch()
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
 		_ = self.gui.c.Alert(self.gui.c.Tr.NoAutomaticGitFetchTitle, self.gui.c.Tr.NoAutomaticGitFetchBody)
 	} else {
-		self.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), self.gui.stopChan, func() error {
+		self.goEvery(time.Second*time.Duration(refreshInterval), self.gui.stopChan, func() error {
 			err := self.backgroundFetch()
 			self.gui.c.Render()
 			return err
@@ -129,7 +126,7 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
 	err = self.gui.git.Sync.FetchBackground()
 
-	_ = self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
+	_ = self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS, types.PULL_REQUESTS}, Mode: types.ASYNC})
 
 	return err
 }
