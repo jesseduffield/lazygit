@@ -13,7 +13,7 @@ fi
 echo "Base commit: $base_commit"
 
 # Get commits with "fixup!" in the message from base_commit to HEAD
-commits=$(git log -i -P --grep "fixup\!" --format="%h %s" "$base_commit..HEAD")
+commits=$(git log -i -E --grep "fixup\!" --format="%h %s" "$base_commit..HEAD")
 
 if [ -z "$commits" ]; then
     echo "No fixup commits found."
