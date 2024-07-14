@@ -671,9 +671,7 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 		gui.g.Mouse = true
 	}
 
-	if err := gui.setColorScheme(); err != nil {
-		return err
-	}
+	gui.setColorScheme()
 
 	gui.g.SetManager(gocui.ManagerFunc(gui.layout))
 
@@ -931,7 +929,7 @@ func (gui *Gui) showBreakingChangesMessage() {
 }
 
 // setColorScheme sets the color scheme for the app based on the user config
-func (gui *Gui) setColorScheme() error {
+func (gui *Gui) setColorScheme() {
 	userConfig := gui.UserConfig
 	theme.UpdateTheme(userConfig.Gui.Theme)
 
@@ -939,8 +937,6 @@ func (gui *Gui) setColorScheme() error {
 	gui.g.SelFgColor = theme.ActiveBorderColor
 	gui.g.FrameColor = theme.InactiveBorderColor
 	gui.g.SelFrameColor = theme.ActiveBorderColor
-
-	return nil
 }
 
 func (gui *Gui) onUIThread(f func() error) {
