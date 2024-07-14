@@ -679,6 +679,8 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 		return err
 	}
 
+	gui.configureViewProperties()
+
 	// onNewRepo must be called after g.SetManager because SetManager deletes keybindings
 	if err := gui.onNewRepo(startArgs, context.NO_CONTEXT); err != nil {
 		return err
