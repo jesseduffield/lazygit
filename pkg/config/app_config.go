@@ -13,16 +13,16 @@ import (
 
 // AppConfig contains the base configuration fields required for lazygit.
 type AppConfig struct {
-	Debug           bool   `long:"debug" env:"DEBUG" default:"false"`
-	Version         string `long:"version" env:"VERSION" default:"unversioned"`
-	BuildDate       string `long:"build-date" env:"BUILD_DATE"`
-	Name            string `long:"name" env:"NAME" default:"lazygit"`
-	BuildSource     string `long:"build-source" env:"BUILD_SOURCE" default:""`
-	UserConfig      *UserConfig
-	UserConfigPaths []string
-	UserConfigDir   string
-	TempDir         string
-	AppState        *AppState
+	debug           bool   `long:"debug" env:"DEBUG" default:"false"`
+	version         string `long:"version" env:"VERSION" default:"unversioned"`
+	buildDate       string `long:"build-date" env:"BUILD_DATE"`
+	name            string `long:"name" env:"NAME" default:"lazygit"`
+	buildSource     string `long:"build-source" env:"BUILD_SOURCE" default:""`
+	userConfig      *UserConfig
+	userConfigPaths []string
+	userConfigDir   string
+	tempDir         string
+	appState        *AppState
 }
 
 type AppConfigurer interface {
@@ -90,16 +90,16 @@ func NewAppConfig(
 	}
 
 	appConfig := &AppConfig{
-		Name:            name,
-		Version:         version,
-		BuildDate:       date,
-		Debug:           debuggingFlag,
-		BuildSource:     buildSource,
-		UserConfig:      userConfig,
-		UserConfigPaths: userConfigPaths,
-		UserConfigDir:   configDir,
-		TempDir:         tempDir,
-		AppState:        appState,
+		name:            name,
+		version:         version,
+		buildDate:       date,
+		debug:           debuggingFlag,
+		buildSource:     buildSource,
+		userConfig:      userConfig,
+		userConfigPaths: userConfigPaths,
+		userConfigDir:   configDir,
+		tempDir:         tempDir,
+		appState:        appState,
 	}
 
 	return appConfig, nil
@@ -217,53 +217,53 @@ func changeNullKeybindingsToDisabled(changedContent []byte) ([]byte, error) {
 }
 
 func (c *AppConfig) GetDebug() bool {
-	return c.Debug
+	return c.debug
 }
 
 func (c *AppConfig) GetVersion() string {
-	return c.Version
+	return c.version
 }
 
 func (c *AppConfig) GetName() string {
-	return c.Name
+	return c.name
 }
 
 // GetBuildSource returns the source of the build. For builds from goreleaser
 // this will be binaryBuild
 func (c *AppConfig) GetBuildSource() string {
-	return c.BuildSource
+	return c.buildSource
 }
 
 // GetUserConfig returns the user config
 func (c *AppConfig) GetUserConfig() *UserConfig {
-	return c.UserConfig
+	return c.userConfig
 }
 
 // GetAppState returns the app state
 func (c *AppConfig) GetAppState() *AppState {
-	return c.AppState
+	return c.appState
 }
 
 func (c *AppConfig) GetUserConfigPaths() []string {
-	return c.UserConfigPaths
+	return c.userConfigPaths
 }
 
 func (c *AppConfig) GetUserConfigDir() string {
-	return c.UserConfigDir
+	return c.userConfigDir
 }
 
 func (c *AppConfig) ReloadUserConfig() error {
-	userConfig, err := loadUserConfigWithDefaults(c.UserConfigPaths)
+	userConfig, err := loadUserConfigWithDefaults(c.userConfigPaths)
 	if err != nil {
 		return err
 	}
 
-	c.UserConfig = userConfig
+	c.userConfig = userConfig
 	return nil
 }
 
 func (c *AppConfig) GetTempDir() string {
-	return c.TempDir
+	return c.tempDir
 }
 
 // findConfigFile looks for a possibly existing config file.
@@ -304,7 +304,7 @@ func stateFilePath(filename string) (string, error) {
 
 // SaveAppState marshalls the AppState struct and writes it to the disk
 func (c *AppConfig) SaveAppState() error {
-	marshalledAppState, err := yaml.Marshal(c.AppState)
+	marshalledAppState, err := yaml.Marshal(c.appState)
 	if err != nil {
 		return err
 	}
