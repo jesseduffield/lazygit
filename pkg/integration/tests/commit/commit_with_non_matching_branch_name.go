@@ -9,8 +9,8 @@ var CommitWithNonMatchingBranchName = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Commit with defined config commitPrefixes",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig: func(testConfig *config.AppConfig) {
-		testConfig.UserConfig.Git.CommitPrefix = &config.CommitPrefixConfig{
+	SetupConfig: func(cfg *config.AppConfig) {
+		cfg.GetUserConfig().Git.CommitPrefix = &config.CommitPrefixConfig{
 			Pattern: "^\\w+\\/(\\w+-\\w+).*",
 			Replace: "[$1]: ",
 		}

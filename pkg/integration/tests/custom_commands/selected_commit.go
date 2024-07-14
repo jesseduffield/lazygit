@@ -13,7 +13,7 @@ var SelectedCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateNCommits(3)
 	},
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.UserConfig.CustomCommands = []config.CustomCommand{
+		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
 				Key:     "X",
 				Context: "global",
