@@ -302,11 +302,6 @@ func stateFilePath(filename string) (string, error) {
 	return xdg.StateFile(filepath.Join("lazygit", filename))
 }
 
-// ConfigFilename returns the filename of the default config file
-func (c *AppConfig) ConfigFilename() string {
-	return filepath.Join(c.UserConfigDir, ConfigFilename)
-}
-
 // SaveAppState marshalls the AppState struct and writes it to the disk
 func (c *AppConfig) SaveAppState() error {
 	marshalledAppState, err := yaml.Marshal(c.AppState)
