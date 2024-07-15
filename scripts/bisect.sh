@@ -11,7 +11,7 @@
 # It's assumed that the current commit (i.e. HEAD) is broken.
 
 if [[ $# -ne 3 ]] ; then
-    echo 'Usage: scripts/bisect.sh <ref thats broken> <ref thats working> <integration test name>'
+    echo 'Usage: scripts/bisect.sh <ref that's broken> <ref that's working> <integration test name>'
     exit 1
 fi
 

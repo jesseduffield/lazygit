@@ -122,7 +122,7 @@ is this:
  	"github.com/jesseduffield/lazygit/pkg/utils"
 +	"github.com/samber/lo"
  	"golang.org/x/sync/errgroup"
-@@ -308,9 +309,5 @@ func (self *FixupHelper) blameAddedLines(addedLineHunks []*hunk) ([]string, erro
+@@ -308,9 +309,5 @@ func (self *FixupHelper) blameAddedLines(addedLineHunks []*hunk) ([]string, error
  func findCommit(hash string) (*models.Commit, int, bool) {
 -	for i, commit := range self.c.Model().Commits {
 -		if commit.Hash == hash {
