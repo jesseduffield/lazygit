@@ -344,6 +344,7 @@ type KeybindingUniversalConfig struct {
 	Quit                              string   `yaml:"quit"`
 	QuitAlt1                          string   `yaml:"quit-alt1"`
 	Return                            string   `yaml:"return"`
+	ReturnAlt1                        string   `yaml:"return-alt1"`
 	QuitWithoutChangingDirectory      string   `yaml:"quitWithoutChangingDirectory"`
 	TogglePanel                       string   `yaml:"togglePanel"`
 	PrevItem                          string   `yaml:"prevItem"`

@@ -47,6 +47,10 @@ func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) 
 			Handler:     self.Escape,
 			Description: self.c.Tr.ExitCustomPatchBuilder,
 		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.ReturnAlt1),
+			Handler: self.Escape,
+		},
 	}
 }
 
