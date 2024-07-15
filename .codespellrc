@@ -3,5 +3,5 @@
 skip = .git*,go.sum,*.lock,.codespellrc,vendor,translations,Keybindings_*.md
 check-hidden = true
 # camel-cased
-ignore-regex = (\b[A-Za-z][a-z]*[A-Z]\S+\b|\.edn\b|\S+…)
+ignore-regex = (\b[A-Za-z][a-z]*[A-Z]\S+\b|\.edn\b|\S+…|\\nd\b)
 ignore-words-list = fomrat,inbetween
