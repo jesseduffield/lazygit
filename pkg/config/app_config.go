@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -359,6 +360,24 @@ func loadAppState() (*AppState, error) {
 	}
 
 	return appState, nil
+}
+
+// SaveGlobalUserConfig saves the UserConfig back to disk. This is only used in
+// integration tests, so we are a bit sloppy with error handling.
+func (c *AppConfig) SaveGlobalUserConfig() {
+	if len(c.userConfigFiles) != 1 {
+		panic("expected exactly one global user config file")
+	}
+
+	yamlContent, err := yaml.Marshal(c.userConfig)
+	if err != nil {
+		log.Fatalf("error marshalling user config: %v", err)
+	}
+
+	err = os.WriteFile(c.userConfigFiles[0].Path, yamlContent, 0o644)
+	if err != nil {
+		log.Fatalf("error saving user config: %v", err)
+	}
 }
 
 // AppState stores data between runs of the app like when the last update check
