@@ -30,7 +30,7 @@ func Test_underlineLinks(t *testing.T) {
 			expectedResult: "\x1b[4mhttps://example.com\x1b[24m",
 		},
 		{
-			name:           "link preceeded and followed by text",
+			name:           "link preceded and followed by text",
 			text:           "bla https://example.com xyz",
 			expectedResult: "bla \x1b[4mhttps://example.com\x1b[24m xyz",
 		},
