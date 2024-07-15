@@ -1,6 +1,7 @@
 [codespell]
 # Ref: https://github.com/codespell-project/codespell#using-a-config-file
-skip = .git*,go.sum,*.lock,.codespellrc
+skip = .git*,go.sum,*.lock,.codespellrc,vendor,translations,Keybindings_*.md
 check-hidden = true
-# ignore-regex = 
-# ignore-words-list =
+# camel-cased
+ignore-regex = (\b[A-Za-z][a-z]*[A-Z]\S+\b|\.edn\b|\S+…)
+ignore-words-list = fomrat,inbetween
