@@ -19,19 +19,38 @@ var AccessCommitProperties = NewIntegrationTest(NewIntegrationTestArgs{
 			{
 				Key:     "X",
 				Context: "commits",
-				Command: "printf '%s\n%s\n%s' '{{ .SelectedLocalCommit.Name }}' '{{ .SelectedLocalCommit.Hash }}' '{{ .SelectedLocalCommit.Sha }}' > file.txt",
+				Command: "printf '%s\n%s\n%s' '{{ .SelectedCommit.Name }}' '{{ .SelectedLocalCommit.Hash }}' '{{ .SelectedLocalCommit.Sha }}' > file.txt",
+			},
+			{
+				Key:     "X",
+				Context: "reflogCommits",
+				Command: "printf '%s\n%s\n%s' '{{ .SelectedCommit.Name }}' '{{ .SelectedReflogCommit.Hash }}' '{{ .SelectedReflogCommit.Sha }}' > file.txt",
 			},
 		}
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Commits().
-			Focus().
-			Lines(
-				Contains("my change").IsSelected(),
-			).
-			Press("X")
+		{
+			t.Views().Commits().
+				Focus().
+				Lines(
+					Contains("my change").IsSelected(),
+				).
+				Press("X")
 
-		hash := t.Git().GetCommitHash("HEAD")
-		t.FileSystem().FileContent("file.txt", Equals(fmt.Sprintf("my change\n%s\n%s", hash, hash)))
+			hash := t.Git().GetCommitHash("HEAD")
+			t.FileSystem().FileContent("file.txt", Equals(fmt.Sprintf("my change\n%s\n%s", hash, hash)))
+		}
+
+		{
+			t.Views().Commits().
+				Focus().
+				Lines(
+					Contains("my change").IsSelected(),
+				).
+				Press("X")
+
+			hash := t.Git().GetCommitHash("HEAD")
+			t.FileSystem().FileContent("file.txt", Equals(fmt.Sprintf("my change\n%s\n%s", hash, hash)))
+		}
 	},
 })
