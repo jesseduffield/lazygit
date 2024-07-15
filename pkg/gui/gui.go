@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -307,6 +308,16 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		return err
 	}
 
+	err = gui.Config.ReloadUserConfigForRepo(gui.getPerRepoConfigFiles())
+	if err != nil {
+		return err
+	}
+
+	err = gui.onUserConfigLoaded()
+	if err != nil {
+		return err
+	}
+
 	contextToPush := gui.resetState(startArgs)
 
 	gui.resetHelpersAndControllers()
@@ -338,6 +349,39 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 	if err := gui.c.Context().Push(contextToPush); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (gui *Gui) getPerRepoConfigFiles() []*config.ConfigFile {
+	repoConfigFiles := []*config.ConfigFile{
+		// TODO: add filepath.Join(gui.git.RepoPaths.RepoPath(), ".lazygit.yml"),
+		// with trust prompt
+		{
+			Path:   filepath.Join(gui.git.RepoPaths.RepoGitDirPath(), "lazygit.yml"),
+			Policy: config.ConfigFilePolicySkipIfMissing,
+		},
+	}
+
+	prevDir := gui.c.Git().RepoPaths.RepoPath()
+	dir := filepath.Dir(prevDir)
+	for dir != prevDir {
+		repoConfigFiles = utils.Prepend(repoConfigFiles, &config.ConfigFile{
+			Path:   filepath.Join(dir, ".lazygit.yml"),
+			Policy: config.ConfigFilePolicySkipIfMissing,
+		})
+		prevDir = dir
+		dir = filepath.Dir(dir)
+	}
+	return repoConfigFiles
+}
+
+func (gui *Gui) onUserConfigLoaded() error {
+	userConfig := gui.Config.GetUserConfig()
+	gui.Common.SetUserConfig(userConfig)
+
+	gui.setColorScheme()
+	gui.configureViewProperties()
 
 	return nil
 }
