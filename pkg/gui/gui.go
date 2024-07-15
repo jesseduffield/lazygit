@@ -331,8 +331,23 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 
 	gui.g.SetFocusHandler(func(Focused bool) error {
 		if Focused {
+			reloadErr, didChange := gui.Config.ReloadChangedUserConfigFiles()
+			if didChange && reloadErr == nil {
+				gui.c.Log.Info("User config changed - reloading")
+				reloadErr = gui.onUserConfigLoaded()
+				if err := gui.resetKeybindings(); err != nil {
+					return err
+				}
+			}
+
 			gui.c.Log.Info("Receiving focus - refreshing")
-			return gui.helpers.Refresh.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			refreshErr := gui.helpers.Refresh.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			if reloadErr != nil {
+				// An error from reloading the config is the more important one
+				// to report to the user
+				return reloadErr
+			}
+			return refreshErr
 		}
 
 		return nil

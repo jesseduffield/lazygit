@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/adrg/xdg"
 	"github.com/jesseduffield/lazygit/pkg/utils/yaml_utils"
@@ -40,6 +41,7 @@ type AppConfigurer interface {
 	GetUserConfigPaths() []string
 	GetUserConfigDir() string
 	ReloadUserConfigForRepo(repoConfigFiles []*ConfigFile) error
+	ReloadChangedUserConfigFiles() (error, bool)
 	GetTempDir() string
 
 	GetAppState() *AppState
@@ -55,9 +57,10 @@ const (
 )
 
 type ConfigFile struct {
-	Path   string
-	Policy ConfigFilePolicy
-	exists bool
+	Path    string
+	Policy  ConfigFilePolicy
+	modDate time.Time
+	exists  bool
 }
 
 // NewAppConfig makes a new app config
@@ -146,9 +149,10 @@ func loadUserConfigWithDefaults(configFiles []*ConfigFile) (*UserConfig, error) 
 func loadUserConfig(configFiles []*ConfigFile, base *UserConfig) (*UserConfig, error) {
 	for _, configFile := range configFiles {
 		path := configFile.Path
-		_, err := os.Stat(path)
+		statInfo, err := os.Stat(path)
 		if err == nil {
 			configFile.exists = true
+			configFile.modDate = statInfo.ModTime()
 		} else {
 			if !os.IsNotExist(err) {
 				return nil, err
@@ -174,6 +178,11 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig) (*UserConfig, e
 				file.Close()
 
 				configFile.exists = true
+				statInfo, err := os.Stat(configFile.Path)
+				if err != nil {
+					return nil, err
+				}
+				configFile.modDate = statInfo.ModTime()
 			}
 		}
 
@@ -293,6 +302,30 @@ func (c *AppConfig) ReloadUserConfigForRepo(repoConfigFiles []*ConfigFile) error
 	c.userConfig = userConfig
 	c.userConfigFiles = configFiles
 	return nil
+}
+
+func (c *AppConfig) ReloadChangedUserConfigFiles() (error, bool) {
+	fileHasChanged := func(f *ConfigFile) bool {
+		info, err := os.Stat(f.Path)
+		if err != nil && !os.IsNotExist(err) {
+			// If we can't stat the file, assume it hasn't changed
+			return false
+		}
+		exists := err == nil
+		return exists != f.exists || (exists && info.ModTime() != f.modDate)
+	}
+
+	if lo.NoneBy(c.userConfigFiles, fileHasChanged) {
+		return nil, false
+	}
+
+	userConfig, err := loadUserConfigWithDefaults(c.userConfigFiles)
+	if err != nil {
+		return err, false
+	}
+
+	c.userConfig = userConfig
+	return nil, true
 }
 
 func (c *AppConfig) GetTempDir() string {
