@@ -21,9 +21,9 @@ var StageChildrenRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("▼ baz").IsSelected(),
+				Contains("⌄ baz").IsSelected(),
 				Contains("  ??").Contains("file"),
-				Contains("▼ bazbam"),
+				Contains("⌄ bazbam"),
 				Contains("  ??").Contains("file"),
 				Contains("??").Contains("foo"),
 				Contains("??").Contains("foobar"),
@@ -34,9 +34,9 @@ var StageChildrenRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			// Stage
 			PressPrimaryAction().
 			Lines(
-				Contains("▼ baz").IsSelected(),
+				Contains("⌄ baz").IsSelected(),
 				Contains("  A ").Contains("file").IsSelected(),
-				Contains("▼ bazbam").IsSelected(),
+				Contains("⌄ bazbam").IsSelected(),
 				Contains("  A ").Contains("file").IsSelected(),
 				Contains("A ").Contains("foo").IsSelected(),
 				Contains("A ").Contains("foobar").IsSelected(),

@@ -26,10 +26,10 @@ var StageRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("▼ dir1").IsSelected(),
+				Contains("⌄ dir1").IsSelected(),
 				Contains("  ??").Contains("file-a"),
 				Contains("  ??").Contains("file-b"),
-				Contains("▼ dir2"),
+				Contains("⌄ dir2"),
 				Contains("  ??").Contains("file-c"),
 				Contains("   M").Contains("file-d"),
 				Contains("??").Contains("file-e"),
@@ -41,10 +41,10 @@ var StageRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			// Stage
 			PressPrimaryAction().
 			Lines(
-				Contains("▼ dir1"),
+				Contains("⌄ dir1"),
 				Contains("  ??").Contains("file-a"),
 				Contains("  A ").Contains("file-b").IsSelected(),
-				Contains("▼ dir2").IsSelected(),
+				Contains("⌄ dir2").IsSelected(),
 				Contains("  A ").Contains("file-c").IsSelected(),
 				// Staged because dir2 was part of the selection when he hit space
 				Contains("  M ").Contains("file-d"),
@@ -54,10 +54,10 @@ var StageRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			// Unstage; back to everything being unstaged
 			PressPrimaryAction().
 			Lines(
-				Contains("▼ dir1"),
+				Contains("⌄ dir1"),
 				Contains("  ??").Contains("file-a"),
 				Contains("  ??").Contains("file-b").IsSelected(),
-				Contains("▼ dir2").IsSelected(),
+				Contains("⌄ dir2").IsSelected(),
 				Contains("  ??").Contains("file-c").IsSelected(),
 				Contains("   M").Contains("file-d"),
 				Contains("??").Contains("file-e"),
@@ -69,10 +69,10 @@ var StageRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			// Collapse the directory
 			PressEnter().
 			Lines(
-				Contains("▼ dir1"),
+				Contains("⌄ dir1"),
 				Contains("  ??").Contains("file-a"),
 				Contains("  ??").Contains("file-b"),
-				Contains("▶ dir2").IsSelected(),
+				Contains("❭ dir2").IsSelected(),
 				Contains("??").Contains("file-e"),
 				Contains("??").Contains("file-f"),
 			).
@@ -81,10 +81,10 @@ var StageRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			// Stage
 			PressPrimaryAction().
 			Lines(
-				Contains("▼ dir1"),
+				Contains("⌄ dir1"),
 				Contains("  ??").Contains("file-a"),
 				Contains("  ??").Contains("file-b"),
-				Contains("▶ dir2").IsSelected(),
+				Contains("❭ dir2").IsSelected(),
 				Contains("A ").Contains("file-e").IsSelected(),
 				Contains("??").Contains("file-f"),
 			).
@@ -93,10 +93,10 @@ var StageRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			// Expand the directory again to verify it's been staged
 			PressEnter().
 			Lines(
-				Contains("▼ dir1"),
+				Contains("⌄ dir1"),
 				Contains("  ??").Contains("file-a"),
 				Contains("  ??").Contains("file-b"),
-				Contains("▼ dir2").IsSelected(),
+				Contains("⌄ dir2").IsSelected(),
 				Contains("  A ").Contains("file-c"),
 				Contains("  M ").Contains("file-d"),
 				Contains("A ").Contains("file-e"),

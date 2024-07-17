@@ -29,13 +29,13 @@ var DiscardRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("▼ dir1").IsSelected(),
+				Contains("⌄ dir1").IsSelected(),
 				Contains("  ??").Contains("file-1a"),
 				Contains("  ??").Contains("file-1b"),
-				Contains("▼ dir2"),
+				Contains("⌄ dir2"),
 				Contains("  ??").Contains("file-2a"),
 				Contains("   M").Contains("file-2b"),
-				Contains("▼ dir3"),
+				Contains("⌄ dir3"),
 				Contains("  ??").Contains("file-3a"),
 				Contains("   M").Contains("file-3b"),
 				Contains("??").Contains("file-a"),
@@ -45,13 +45,13 @@ var DiscardRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("file-2a")).
 			Lines(
-				Contains("▼ dir1"),
+				Contains("⌄ dir1"),
 				Contains("  ??").Contains("file-1a"),
 				Contains("  ??").Contains("file-1b").IsSelected(),
-				Contains("▼ dir2").IsSelected(),
+				Contains("⌄ dir2").IsSelected(),
 				Contains("  ??").Contains("file-2a").IsSelected(),
 				Contains("   M").Contains("file-2b"),
-				Contains("▼ dir3"),
+				Contains("⌄ dir3"),
 				Contains("  ??").Contains("file-3a"),
 				Contains("   M").Contains("file-3b"),
 				Contains("??").Contains("file-a"),
@@ -66,9 +66,9 @@ var DiscardRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("▼ dir1"),
+				Contains("⌄ dir1"),
 				Contains("  ??").Contains("file-1a"),
-				Contains("▼ dir3").IsSelected(),
+				Contains("⌄ dir3").IsSelected(),
 				Contains("  ??").Contains("file-3a"),
 				Contains("   M").Contains("file-3b"),
 				Contains("??").Contains("file-a"),
@@ -79,9 +79,9 @@ var DiscardRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("file-a")).
 			Lines(
-				Contains("▼ dir1"),
+				Contains("⌄ dir1"),
 				Contains("  ??").Contains("file-1a"),
-				Contains("▶ dir3").IsSelected(),
+				Contains("⌄ dir3").IsSelected(),
 				Contains("??").Contains("file-a").IsSelected(),
 				Contains("??").Contains("file-b"),
 			).
@@ -93,7 +93,7 @@ var DiscardRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("▼ dir1"),
+				Contains("⌄ dir1"),
 				Contains("  ??").Contains("file-1a"),
 				Contains("??").Contains("file-b").IsSelected(),
 			)
