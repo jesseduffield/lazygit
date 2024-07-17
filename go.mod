@@ -1,4 +1,4 @@
-module github.com/jesseduffield/lazygit
+module github.com/sayanta01/lazygit
 
 go 1.22
 
@@ -14,12 +14,12 @@ require (
 	github.com/iancoleman/orderedmap v0.3.0
 	github.com/imdario/mergo v0.3.11
 	github.com/integrii/flaggy v1.4.0
-	github.com/jesseduffield/generics v0.0.0-20220320043834-727e535cbe68
-	github.com/jesseduffield/go-git/v5 v5.1.2-0.20221018185014-fdd53fef665d
-	github.com/jesseduffield/gocui v0.3.1-0.20240628061234-aed9e133e65b
-	github.com/jesseduffield/kill v0.0.0-20220618033138-bfbe04675d10
-	github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
-	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
+	github.com/sayanta01/generics v0.0.0-20220320043834-727e535cbe68
+	github.com/sayanta01/go-git/v5 v5.1.2-0.20221018185014-fdd53fef665d
+	github.com/sayanta01/gocui v0.3.1-0.20240628061234-aed9e133e65b
+	github.com/sayanta01/kill v0.0.0-20220618033138-bfbe04675d10
+	github.com/sayanta01/lazycore v0.0.0-20221012050358-03d2e40243c5
+	github.com/sayanta01/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/karimkhaleel/jsonschema v0.0.0-20231001195015-d933f0d94ea3
 	github.com/kyokomi/emoji/v2 v2.2.8
