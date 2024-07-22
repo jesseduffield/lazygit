@@ -154,7 +154,7 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 
 	self.UpdateCommitPanelView(opts.InitialMessage)
 
-	return self.pushCommitMessageContexts()
+	return self.c.PushContext(self.c.Contexts().CommitMessage)
 }
 
 func (self *CommitsHelper) OnCommitSuccess() {
@@ -190,28 +190,10 @@ func (self *CommitsHelper) CloseCommitMessagePanel() error {
 
 	self.c.Contexts().CommitMessage.SetHistoryMessage("")
 
-	return self.PopCommitMessageContexts()
-}
+	self.c.Views().CommitMessage.Visible = false
+	self.c.Views().CommitDescription.Visible = false
 
-func (self *CommitsHelper) PopCommitMessageContexts() error {
-	return self.c.RemoveContexts(self.commitMessageContexts())
-}
-
-func (self *CommitsHelper) pushCommitMessageContexts() error {
-	for _, context := range self.commitMessageContexts() {
-		if err := self.c.PushContext(context); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (self *CommitsHelper) commitMessageContexts() []types.Context {
-	return []types.Context{
-		self.c.Contexts().CommitDescription,
-		self.c.Contexts().CommitMessage,
-	}
+	return self.c.PopContext()
 }
 
 func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.Suggestion) error {

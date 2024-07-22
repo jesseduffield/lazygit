@@ -185,10 +185,11 @@ gui:
   # If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.
   showFileIcons: true
 
-  # Whether to show full author names or their shortened form in the commit graph.
-  # One of 'auto' (default) | 'full' | 'short'
-  # If 'auto', initials will be shown in small windows, and full names - in larger ones.
-  commitAuthorFormat: auto
+  # Length of author name in (non-expanded) commits view. 2 means show initials only.
+  commitAuthorShortLength: 2
+
+  # Length of author name in expanded commits view. 2 means show initials only.
+  commitAuthorLongLength: 17
 
   # Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.
   commitHashLength: 8
@@ -282,6 +283,9 @@ git:
     # Extra args passed to `git merge`, e.g. --no-ff
     args: ""
 
+    # The commit message to use for a squash merge commit. Can contain "{{selectedRef}}" and "{{currentBranch}}" placeholders.
+    squashMergeMessage: Squash merge {{selectedRef}} into {{currentBranch}}
+
   # list of branches that are considered 'main' branches, used when displaying commits
   mainBranches:
     - master
@@ -302,7 +306,8 @@ git:
   # Command used when displaying the current branch git log in the main window
   branchLogCmd: git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --
 
-  # Command used to display git log of all branches in the main window
+  # Command used to display git log of all branches in the main window.
+  # Deprecated: User `allBranchesLogCmds` instead.
   allBranchesLogCmd: git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium
 
   # If true, do not spawn a separate process when using GPG
@@ -318,6 +323,9 @@ git:
 
     # Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use "[$1] "
     replace: ""
+
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix
+  branchPrefix: ""
 
   # If true, parse emoji strings in commit messages e.g. render :rocket: as 🚀
   # (This should really be under 'gui', not 'git')
@@ -513,6 +521,8 @@ keybinding:
     toggleWhitespaceInDiffView: <c-w>
     increaseContextInDiffView: '}'
     decreaseContextInDiffView: '{'
+    increaseRenameSimilarityThreshold: )
+    decreaseRenameSimilarityThreshold: (
     openDiffTool: <c-t>
   status:
     checkForUpdate: u
@@ -879,6 +889,21 @@ git:
     my_project: # This is repository folder name
       pattern: "^\\w+\\/(\\w+-\\w+).*"
       replace: '[$1] '
+```
+
+## Predefined branch name prefix
+
+In situations where certain naming pattern is used for branches, this can be used to populate new branch creation with a static prefix.
+
+Example:
+
+Some branches:
+- jsmith/AB-123
+- cwilson/AB-125
+
+```yaml
+git:
+  branchPrefix: "firstlast/"
 ```
 
 ## Custom git log command

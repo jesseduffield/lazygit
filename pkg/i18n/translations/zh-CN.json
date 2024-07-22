@@ -445,8 +445,8 @@
   "EnterCommitFile": "输入文件以将所选行添加到补丁中(或切换目录折叠)",
   "EnterCommitFileTooltip": "If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory.",
   "ExitCustomPatchBuilder": "退出逐行模式",
-  "EnterUpstream": "以这种格式输入上游：'\u003c远程仓库\u003e \u003c分支名称\u003e'",
-  "InvalidUpstream": "上游格式无效，格式应当为：'\u003cremote\u003e \u003cbranchname\u003e'",
+  "EnterUpstream": "以这种格式输入上游：'<远程仓库> <分支名称>'",
+  "InvalidUpstream": "上游格式无效，格式应当为：'<remote> <branchname>'",
   "ReturnToRemotesList": "返回远程仓库列表",
   "NewRemote": "添加新的远程仓库",
   "NewRemoteName": "新远程仓库名称:",
@@ -915,4 +915,5 @@
     "AppendingLineToFile": "Appending '{{.line}}' to file '{{.filename}}'",
     "EditRebaseFromBaseCommit": "Beginning interactive rebase from '{{.baseCommit}}' onto '{{.targetBranchName}}"
   }
+  "BreakingChangesByVersion": {}
 }

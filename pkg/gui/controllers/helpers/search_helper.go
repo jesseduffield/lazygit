@@ -239,14 +239,14 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 }
 
 func (self *SearchHelper) ReApplyFilter(context types.Context) {
-	state := self.searchState()
-	if context == state.Context {
-		filterableContext, ok := context.(types.IFilterableContext)
-		if ok {
+	filterableContext, ok := context.(types.IFilterableContext)
+	if ok {
+		state := self.searchState()
+		if context == state.Context {
 			filterableContext.SetSelection(0)
 			_ = filterableContext.GetView().SetOriginY(0)
-			filterableContext.ReApplyFilter(self.c.UserConfig.Gui.UseFuzzySearch())
 		}
+		filterableContext.ReApplyFilter(self.c.UserConfig.Gui.UseFuzzySearch())
 	}
 }
 

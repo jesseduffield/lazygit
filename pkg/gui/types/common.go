@@ -67,6 +67,7 @@ type IGuiCommon interface {
 	CurrentContext() Context
 	CurrentStaticContext() Context
 	CurrentSideContext() Context
+	CurrentPopupContexts() []Context
 	IsCurrentContext(Context) bool
 	// TODO: replace the above context-based methods with just using Context() e.g. replace PushContext() with Context().Push()
 	Context() IContextMgr

@@ -332,15 +332,15 @@
           "description": "If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.",
           "default": true
         },
-        "commitAuthorFormat": {
-          "type": "string",
-          "enum": [
-            "auto",
-            "short",
-            "full"
-          ],
-          "description": "Whether to show full author names or their shortened form in the commit graph.\nOne of 'auto' (default) | 'full' | 'short'\nIf 'auto', initials will be shown in small windows, and full names - in larger ones.",
-          "default": "auto"
+        "commitAuthorShortLength": {
+          "type": "integer",
+          "description": "Length of author name in (non-expanded) commits view. 2 means show initials only.",
+          "default": 2
+        },
+        "commitAuthorLongLength": {
+          "type": "integer",
+          "description": "Length of author name in expanded commits view. 2 means show initials only.",
+          "default": 17
         },
         "commitHashLength": {
           "type": "integer",
@@ -530,6 +530,11 @@
               "examples": [
                 "--no-ff"
               ]
+            },
+            "squashMergeMessage": {
+              "type": "string",
+              "description": "The commit message to use for a squash merge commit. Can contain \"{{selectedRef}}\" and \"{{currentBranch}}\" placeholders.",
+              "default": "Squash merge {{selectedRef}} into {{currentBranch}}"
             }
           },
           "additionalProperties": false,
@@ -575,8 +580,15 @@
         },
         "allBranchesLogCmd": {
           "type": "string",
-          "description": "Command used to display git log of all branches in the main window",
+          "description": "Command used to display git log of all branches in the main window.\nDeprecated: User `allBranchesLogCmds` instead.",
           "default": "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"
+        },
+        "allBranchesLogCmds": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Commands used to display git log of all branches in the main window, they will be cycled in order of appearance"
         },
         "overrideGpg": {
           "type": "boolean",
@@ -632,6 +644,10 @@
           },
           "type": "object",
           "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix"
+        },
+        "branchPrefix": {
+          "type": "string",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix"
         },
         "parseEmoji": {
           "type": "boolean",
@@ -1305,6 +1321,14 @@
             "decreaseContextInDiffView": {
               "type": "string",
               "default": "{"
+            },
+            "increaseRenameSimilarityThreshold": {
+              "type": "string",
+              "default": ")"
+            },
+            "decreaseRenameSimilarityThreshold": {
+              "type": "string",
+              "default": "("
             },
             "openDiffTool": {
               "type": "string",
