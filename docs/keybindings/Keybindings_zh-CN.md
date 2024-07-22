@@ -145,7 +145,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` r `` | 改写提交 | Reword the selected commit's message. |
 | `` R `` | 使用编辑器重命名提交 |  |
 | `` d `` | 删除提交 | Drop the selected commit. This will remove the commit from the branch via a rebase. If the commit makes changes that later commits depend on, you may need to resolve merge conflicts. |
-| `` e `` | Edit (start interactive rebase) | 编辑提交 |
+| `` e `` | 编辑(开始交互式变基) | 编辑提交 |
 | `` i `` | Start interactive rebase | Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.
 If you would instead like to start an interactive rebase from the selected commit, press `e`. |
 | `` p `` | 拣选(Pick) | 选择提交(变基过程中) |
