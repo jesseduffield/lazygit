@@ -1,5 +1,4 @@
-url' not found, but can be installed with:
-sudo snap install curl  # ve<div align="center">
+<div align="center">
 <sup>Special thanks to:</sup>
 <br>
 <br>
