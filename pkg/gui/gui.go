@@ -395,6 +395,11 @@ func (gui *Gui) onUserConfigLoaded() error {
 		gui.previousLanguageConfig = userConfig.Gui.Language
 	}
 
+	// originally we could only hide the command log permanently via the config
+	// but now we do it via state. So we need to still support the config for the
+	// sake of backwards compatibility. We're making use of short circuiting here
+	gui.ShowExtrasWindow = userConfig.Gui.ShowCommandLog && !gui.c.GetAppState().HideCommandLog
+
 	return nil
 }
 
@@ -534,10 +539,10 @@ func NewGui(
 		RepoStateMap:         map[Repo]*GuiRepoState{},
 		GuiLog:               []string{},
 
-		// originally we could only hide the command log permanently via the config
-		// but now we do it via state. So we need to still support the config for the
-		// sake of backwards compatibility. We're making use of short circuiting here
-		ShowExtrasWindow: cmn.UserConfig().Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
+		// initializing this to true for the time being; it will be reset to the
+		// real value after loading the user config:
+		ShowExtrasWindow: true,
+
 		Mutexes: types.Mutexes{
 			RefreshingFilesMutex:    &deadlock.Mutex{},
 			RefreshingBranchesMutex: &deadlock.Mutex{},
