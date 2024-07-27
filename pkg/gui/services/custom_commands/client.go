@@ -39,11 +39,11 @@ func (self *Client) GetCustomCommandKeybindings() ([]*types.Binding, error) {
 	bindings := []*types.Binding{}
 	for _, customCommand := range self.customCommands {
 		handler := self.handlerCreator.call(customCommand)
-		binding, err := self.keybindingCreator.call(customCommand, handler)
+		compoundBindings, err := self.keybindingCreator.call(customCommand, handler)
 		if err != nil {
 			return nil, err
 		}
-		bindings = append(bindings, binding)
+		bindings = append(bindings, compoundBindings...)
 	}
 
 	return bindings, nil

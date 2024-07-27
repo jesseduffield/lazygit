@@ -126,6 +126,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.History,
 	custom_commands.MenuFromCommand,
 	custom_commands.MenuFromCommandsOutput,
+	custom_commands.MultipleContexts,
 	custom_commands.MultiplePrompts,
 	custom_commands.OmitFromHistory,
 	custom_commands.ShowOutputInPanel,

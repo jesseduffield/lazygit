@@ -87,6 +87,11 @@ The permitted contexts are:
 | stash          | The 'Stash' tab                                                                                          |
 | global         | This keybinding will take affect everywhere                                                              |
 
+> **Bonus**
+>
+> You can use a comma-separated string, such as `context: 'commits, subCommits'`, to make it effective in multiple contexts.
+
+
 ## Prompts
 
 ### Common fields
