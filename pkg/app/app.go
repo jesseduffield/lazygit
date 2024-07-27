@@ -63,13 +63,10 @@ func Run(
 func NewCommon(config config.AppConfigurer) (*common.Common, error) {
 	userConfig := config.GetUserConfig()
 	appState := config.GetAppState()
-
-	var err error
 	log := newLogger(config)
-	tr, err := i18n.NewTranslationSetFromConfig(log, userConfig.Gui.Language)
-	if err != nil {
-		return nil, err
-	}
+	// Initialize with English for the time being; the real translation set for
+	// the configured language will be read after reading the user config
+	tr := i18n.EnglishTranslationSet()
 
 	cmn := &common.Common{
 		Log:      log,

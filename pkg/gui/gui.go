@@ -36,6 +36,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/status"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
@@ -137,6 +138,8 @@ type Gui struct {
 
 	c       *helpers.HelperCommon
 	helpers *helpers.Helpers
+
+	previousLanguageConfig string
 
 	integrationTest integrationTypes.IntegrationTest
 
@@ -382,6 +385,15 @@ func (gui *Gui) onUserConfigLoaded() error {
 
 	gui.setColorScheme()
 	gui.configureViewProperties()
+
+	if gui.previousLanguageConfig != userConfig.Gui.Language {
+		tr, err := i18n.NewTranslationSetFromConfig(gui.Log, userConfig.Gui.Language)
+		if err != nil {
+			return err
+		}
+		gui.c.Tr = tr
+		gui.previousLanguageConfig = userConfig.Gui.Language
+	}
 
 	return nil
 }
