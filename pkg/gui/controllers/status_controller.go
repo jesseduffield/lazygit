@@ -89,15 +89,15 @@ func (self *StatusController) onClickMain(opts gocui.ViewMouseBindingOpts) error
 }
 
 func (self *StatusController) GetOnRenderToMain() func() error {
-	config := self.c.UserConfig().Gui
-
-	switch config.StatusPanelView {
-	case "dashboard":
-		return self.showDashboard
-	case "allBranchesLog":
-		return self.showAllBranchLogs
-	default:
-		return self.showDashboard
+	return func() error {
+		switch self.c.UserConfig().Gui.StatusPanelView {
+		case "dashboard":
+			return self.showDashboard()
+		case "allBranchesLog":
+			return self.showAllBranchLogs()
+		default:
+			return self.showDashboard()
+		}
 	}
 }
 
