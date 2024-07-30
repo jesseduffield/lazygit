@@ -386,6 +386,14 @@ func (gui *Gui) onUserConfigLoaded() error {
 	gui.setColorScheme()
 	gui.configureViewProperties()
 
+	gui.g.SearchEscapeKey = keybindings.GetKey(userConfig.Keybinding.Universal.Return)
+	gui.g.NextSearchMatchKey = keybindings.GetKey(userConfig.Keybinding.Universal.NextMatch)
+	gui.g.PrevSearchMatchKey = keybindings.GetKey(userConfig.Keybinding.Universal.PrevMatch)
+
+	gui.g.ShowListFooter = userConfig.Gui.ShowListFooter
+
+	gui.g.Mouse = userConfig.Gui.MouseEvents
+
 	if gui.previousLanguageConfig != userConfig.Gui.Language {
 		tr, err := i18n.NewTranslationSetFromConfig(gui.Log, userConfig.Gui.Language)
 		if err != nil {
@@ -719,28 +727,13 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	// breakpoints and stepping through code can easily take more than 30s.
 	deadlock.Opts.Disable = !gui.Debug || os.Getenv(components.WAIT_FOR_DEBUGGER_ENV_VAR) != ""
 
-	userConfig := gui.UserConfig
-
 	gui.g.OnSearchEscape = func() error { gui.helpers.Search.Cancel(); return nil }
-	gui.g.SearchEscapeKey = keybindings.GetKey(userConfig().Keybinding.Universal.Return)
-	gui.g.NextSearchMatchKey = keybindings.GetKey(userConfig().Keybinding.Universal.NextMatch)
-	gui.g.PrevSearchMatchKey = keybindings.GetKey(userConfig().Keybinding.Universal.PrevMatch)
-
-	gui.g.ShowListFooter = userConfig().Gui.ShowListFooter
-
-	if userConfig().Gui.MouseEvents {
-		gui.g.Mouse = true
-	}
-
-	gui.setColorScheme()
 
 	gui.g.SetManager(gocui.ManagerFunc(gui.layout))
 
 	if err := gui.createAllViews(); err != nil {
 		return err
 	}
-
-	gui.configureViewProperties()
 
 	// onNewRepo must be called after g.SetManager because SetManager deletes keybindings
 	if err := gui.onNewRepo(startArgs, context.NO_CONTEXT); err != nil {
