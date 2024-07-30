@@ -18,6 +18,8 @@ type MainBranches struct {
 	// depending on which one exists for a given bare name.
 	existingMainBranches []string
 
+	previousMainBranches []string
+
 	cmd   oscommands.ICmdObjBuilder
 	mutex *deadlock.Mutex
 }
@@ -40,8 +42,11 @@ func (self *MainBranches) Get() []string {
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
 
-	if self.existingMainBranches == nil {
-		self.existingMainBranches = self.determineMainBranches()
+	configuredMainBranches := self.c.UserConfig().Git.MainBranches
+
+	if self.existingMainBranches == nil || !utils.EqualSlices(self.previousMainBranches, configuredMainBranches) {
+		self.existingMainBranches = self.determineMainBranches(configuredMainBranches)
+		self.previousMainBranches = configuredMainBranches
 	}
 
 	return self.existingMainBranches
@@ -71,11 +76,10 @@ func (self *MainBranches) GetMergeBase(refName string) string {
 	return ignoringWarnings(output)
 }
 
-func (self *MainBranches) determineMainBranches() []string {
+func (self *MainBranches) determineMainBranches(configuredMainBranches []string) []string {
 	var existingBranches []string
 	var wg sync.WaitGroup
 
-	configuredMainBranches := self.c.UserConfig().Git.MainBranches
 	existingBranches = make([]string, len(configuredMainBranches))
 
 	for i, branchName := range configuredMainBranches {
