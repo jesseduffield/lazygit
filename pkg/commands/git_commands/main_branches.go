@@ -5,17 +5,17 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
 )
 
 type MainBranches struct {
-	// List of main branches configured by the user. Just the bare names.
-	configuredMainBranches []string
-	// Which of these actually exist in the repository. Full ref names, and it
-	// could be either "refs/heads/..." or "refs/remotes/origin/..." depending
-	// on which one exists for a given bare name.
+	c *common.Common
+	// Which of the configured main branches actually exist in the repository. Full
+	// ref names, and it could be either "refs/heads/..." or "refs/remotes/origin/..."
+	// depending on which one exists for a given bare name.
 	existingMainBranches []string
 
 	cmd   oscommands.ICmdObjBuilder
@@ -23,14 +23,14 @@ type MainBranches struct {
 }
 
 func NewMainBranches(
-	configuredMainBranches []string,
+	cmn *common.Common,
 	cmd oscommands.ICmdObjBuilder,
 ) *MainBranches {
 	return &MainBranches{
-		configuredMainBranches: configuredMainBranches,
-		existingMainBranches:   nil,
-		cmd:                    cmd,
-		mutex:                  &deadlock.Mutex{},
+		c:                    cmn,
+		existingMainBranches: nil,
+		cmd:                  cmd,
+		mutex:                &deadlock.Mutex{},
 	}
 }
 
@@ -75,9 +75,10 @@ func (self *MainBranches) determineMainBranches() []string {
 	var existingBranches []string
 	var wg sync.WaitGroup
 
-	existingBranches = make([]string, len(self.configuredMainBranches))
+	configuredMainBranches := self.c.UserConfig().Git.MainBranches
+	existingBranches = make([]string, len(configuredMainBranches))
 
-	for i, branchName := range self.configuredMainBranches {
+	for i, branchName := range configuredMainBranches {
 		wg.Add(1)
 		go utils.Safe(func() {
 			defer wg.Done()
