@@ -121,11 +121,11 @@ func (self *CommitMessageContext) SetPanelState(
 }
 
 func (self *CommitMessageContext) RenderCommitLength() {
-	if !self.c.UserConfig().Gui.CommitLength.Show {
-		return
+	if self.c.UserConfig().Gui.CommitLength.Show {
+		self.c.Views().CommitMessage.Subtitle = getBufferLength(self.c.Views().CommitMessage)
+	} else {
+		self.c.Views().CommitMessage.Subtitle = ""
 	}
-
-	self.c.Views().CommitMessage.Subtitle = getBufferLength(self.c.Views().CommitMessage)
 }
 
 func getBufferLength(view *gocui.View) string {
