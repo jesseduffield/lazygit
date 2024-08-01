@@ -449,6 +449,8 @@ keybinding:
     quit: q
     quit-alt1: <c-c>
     return: <esc>
+    # When set to a printable character, this will work for returning from non-prompt panels
+    return-alt1: null
     quitWithoutChangingDirectory: Q
     togglePanel: <tab>
     prevItem: <up>
