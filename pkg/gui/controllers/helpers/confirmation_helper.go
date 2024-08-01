@@ -173,7 +173,7 @@ func (self *ConfirmationHelper) prepareConfirmationPanel(
 		suggestionsView.FgColor = theme.GocuiDefaultTextColor
 		suggestionsContext.SetSuggestions(opts.FindSuggestionsFunc(""))
 		suggestionsView.Visible = true
-		suggestionsView.Title = fmt.Sprintf(self.c.Tr.SuggestionsTitle, self.c.UserConfig.Keybinding.Universal.TogglePanel)
+		suggestionsView.Title = fmt.Sprintf(self.c.Tr.SuggestionsTitle, self.c.UserConfig().Keybinding.Universal.TogglePanel)
 		suggestionsView.Subtitle = ""
 	}
 

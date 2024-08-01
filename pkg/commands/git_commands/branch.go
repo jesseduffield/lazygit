@@ -145,7 +145,7 @@ func (self *BranchCommands) GetGraph(branchName string) (string, error) {
 }
 
 func (self *BranchCommands) GetGraphCmdObj(branchName string) oscommands.ICmdObj {
-	branchLogCmdTemplate := self.UserConfig.Git.BranchLogCmd
+	branchLogCmdTemplate := self.UserConfig().Git.BranchLogCmd
 	templateValues := map[string]string{
 		"branchName": self.cmd.Quote(branchName),
 	}
@@ -236,7 +236,7 @@ func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
 	}
 	cmdArgs := NewGitCmd("merge").
 		Arg("--no-edit").
-		Arg(strings.Fields(self.UserConfig.Git.Merging.Args)...).
+		Arg(strings.Fields(self.UserConfig().Git.Merging.Args)...).
 		ArgIf(opts.FastForwardOnly, "--ff-only").
 		ArgIf(opts.Squash, "--squash", "--ff").
 		Arg(branchName).
@@ -248,9 +248,9 @@ func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
 func (self *BranchCommands) AllBranchesLogCmdObj() oscommands.ICmdObj {
 	// Only choose between non-empty, non-identical commands
 	candidates := lo.Uniq(lo.WithoutEmpty(append([]string{
-		self.UserConfig.Git.AllBranchesLogCmd,
+		self.UserConfig().Git.AllBranchesLogCmd,
 	},
-		self.UserConfig.Git.AllBranchesLogCmds...,
+		self.UserConfig().Git.AllBranchesLogCmds...,
 	)))
 
 	n := len(candidates)

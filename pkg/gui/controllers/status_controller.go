@@ -89,7 +89,7 @@ func (self *StatusController) onClickMain(opts gocui.ViewMouseBindingOpts) error
 }
 
 func (self *StatusController) GetOnRenderToMain() func() error {
-	config := self.c.UserConfig.Gui
+	config := self.c.UserConfig().Gui
 
 	switch config.StatusPanelView {
 	case "dashboard":
@@ -117,7 +117,7 @@ func (self *StatusController) onClick(opts gocui.ViewMouseBindingOpts) error {
 		return err
 	}
 
-	upstreamStatus := utils.Decolorise(presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now(), self.c.UserConfig))
+	upstreamStatus := utils.Decolorise(presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now(), self.c.UserConfig()))
 	repoName := self.c.Git().RepoPaths.RepoName()
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	switch workingTreeState {

@@ -54,10 +54,10 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
 			c.Modes().MarkedBaseCommit.GetHash(),
-			c.UserConfig.Gui.TimeFormat,
-			c.UserConfig.Gui.ShortTimeFormat,
+			c.UserConfig().Gui.TimeFormat,
+			c.UserConfig().Gui.ShortTimeFormat,
 			time.Now(),
-			c.UserConfig.Git.ParseEmoji,
+			c.UserConfig().Git.ParseEmoji,
 			selectedCommitHash,
 			startIdx,
 			endIdx,
@@ -110,7 +110,7 @@ func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon
 	self := &LocalCommitsViewModel{
 		ListViewModel:     NewListViewModel(getModel),
 		limitCommits:      true,
-		showWholeGitGraph: c.UserConfig.Git.Log.ShowWholeGraph,
+		showWholeGitGraph: c.UserConfig().Git.Log.ShowWholeGraph,
 	}
 
 	return self

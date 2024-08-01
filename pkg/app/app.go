@@ -71,14 +71,15 @@ func NewCommon(config config.AppConfigurer) (*common.Common, error) {
 		return nil, err
 	}
 
-	return &common.Common{
-		Log:        log,
-		Tr:         tr,
-		UserConfig: userConfig,
-		AppState:   appState,
-		Debug:      config.GetDebug(),
-		Fs:         afero.NewOsFs(),
-	}, nil
+	cmn := &common.Common{
+		Log:      log,
+		Tr:       tr,
+		AppState: appState,
+		Debug:    config.GetDebug(),
+		Fs:       afero.NewOsFs(),
+	}
+	cmn.SetUserConfig(userConfig)
+	return cmn, nil
 }
 
 func newLogger(cfg config.AppConfigurer) *logrus.Entry {
@@ -195,7 +196,7 @@ func (app *App) setupRepo(
 
 		var shouldInitRepo bool
 		initialBranchArg := ""
-		switch app.UserConfig.NotARepository {
+		switch app.UserConfig().NotARepository {
 		case "prompt":
 			// Offer to initialize a new repository in current directory.
 			fmt.Print(app.Tr.CreateRepo)

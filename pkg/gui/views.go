@@ -179,7 +179,7 @@ func (gui *Gui) createAllViews() error {
 
 func (gui *Gui) configureViewProperties() {
 	frameRunes := []rune{'─', '│', '┌', '┐', '└', '┘'}
-	switch gui.c.UserConfig.Gui.Border {
+	switch gui.c.UserConfig().Gui.Border {
 	case "double":
 		frameRunes = []rune{'═', '║', '╔', '╗', '╚', '╝'}
 	case "rounded":
@@ -198,15 +198,15 @@ func (gui *Gui) configureViewProperties() {
 	}
 
 	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.MergeConflicts} {
-		view.CanScrollPastBottom = gui.c.UserConfig.Gui.ScrollPastBottom
+		view.CanScrollPastBottom = gui.c.UserConfig().Gui.ScrollPastBottom
 	}
 
 	gui.Views.CommitDescription.FgColor = theme.GocuiDefaultTextColor
-	gui.Views.CommitDescription.TextArea.AutoWrap = gui.c.UserConfig.Git.Commit.AutoWrapCommitMessage
-	gui.Views.CommitDescription.TextArea.AutoWrapWidth = gui.c.UserConfig.Git.Commit.AutoWrapWidth
+	gui.Views.CommitDescription.TextArea.AutoWrap = gui.c.UserConfig().Git.Commit.AutoWrapCommitMessage
+	gui.Views.CommitDescription.TextArea.AutoWrapWidth = gui.c.UserConfig().Git.Commit.AutoWrapWidth
 
-	if gui.c.UserConfig.Gui.ShowPanelJumps {
-		jumpBindings := gui.c.UserConfig.Keybinding.Universal.JumpToBlock
+	if gui.c.UserConfig().Gui.ShowPanelJumps {
+		jumpBindings := gui.c.UserConfig().Keybinding.Universal.JumpToBlock
 		jumpLabels := lo.Map(jumpBindings, func(binding string, _ int) string {
 			return fmt.Sprintf("[%s]", binding)
 		})

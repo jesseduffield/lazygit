@@ -66,7 +66,7 @@ func matchesToSuggestions(matches []string) []*types.Suggestion {
 func (self *SuggestionsHelper) GetRemoteSuggestionsFunc() func(string) []*types.Suggestion {
 	remoteNames := self.getRemoteNames()
 
-	return FilterFunc(remoteNames, self.c.UserConfig.Gui.UseFuzzySearch())
+	return FilterFunc(remoteNames, self.c.UserConfig().Gui.UseFuzzySearch())
 }
 
 func (self *SuggestionsHelper) getBranchNames() []string {
@@ -83,7 +83,7 @@ func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*ty
 		if input == "" {
 			matchingBranchNames = branchNames
 		} else {
-			matchingBranchNames = utils.FilterStrings(input, branchNames, self.c.UserConfig.Gui.UseFuzzySearch())
+			matchingBranchNames = utils.FilterStrings(input, branchNames, self.c.UserConfig().Gui.UseFuzzySearch())
 		}
 
 		return lo.Map(matchingBranchNames, func(branchName string, _ int) *types.Suggestion {
@@ -129,7 +129,7 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 
 	return func(input string) []*types.Suggestion {
 		matchingNames := []string{}
-		if self.c.UserConfig.Gui.UseFuzzySearch() {
+		if self.c.UserConfig().Gui.UseFuzzySearch() {
 			_ = self.c.Model().FilesTrie.VisitFuzzy(patricia.Prefix(input), true, func(prefix patricia.Prefix, item patricia.Item, skipped int) error {
 				matchingNames = append(matchingNames, item.(string))
 				return nil
@@ -163,7 +163,7 @@ func (self *SuggestionsHelper) getRemoteBranchNames(separator string) []string {
 }
 
 func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string) func(string) []*types.Suggestion {
-	return FilterFunc(self.getRemoteBranchNames(separator), self.c.UserConfig.Gui.UseFuzzySearch())
+	return FilterFunc(self.getRemoteBranchNames(separator), self.c.UserConfig().Gui.UseFuzzySearch())
 }
 
 func (self *SuggestionsHelper) getTagNames() []string {
@@ -175,7 +175,7 @@ func (self *SuggestionsHelper) getTagNames() []string {
 func (self *SuggestionsHelper) GetTagsSuggestionsFunc() func(string) []*types.Suggestion {
 	tagNames := self.getTagNames()
 
-	return FilterFunc(tagNames, self.c.UserConfig.Gui.UseFuzzySearch())
+	return FilterFunc(tagNames, self.c.UserConfig().Gui.UseFuzzySearch())
 }
 
 func (self *SuggestionsHelper) GetRefsSuggestionsFunc() func(string) []*types.Suggestion {
@@ -186,7 +186,7 @@ func (self *SuggestionsHelper) GetRefsSuggestionsFunc() func(string) []*types.Su
 
 	refNames := append(append(append(remoteBranchNames, localBranchNames...), tagNames...), additionalRefNames...)
 
-	return FilterFunc(refNames, self.c.UserConfig.Gui.UseFuzzySearch())
+	return FilterFunc(refNames, self.c.UserConfig().Gui.UseFuzzySearch())
 }
 
 func (self *SuggestionsHelper) GetAuthorsSuggestionsFunc() func(string) []*types.Suggestion {
@@ -196,7 +196,7 @@ func (self *SuggestionsHelper) GetAuthorsSuggestionsFunc() func(string) []*types
 
 	slices.Sort(authors)
 
-	return FilterFunc(authors, self.c.UserConfig.Gui.UseFuzzySearch())
+	return FilterFunc(authors, self.c.UserConfig().Gui.UseFuzzySearch())
 }
 
 func FilterFunc(options []string, useFuzzySearch bool) func(string) []*types.Suggestion {

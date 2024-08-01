@@ -26,7 +26,7 @@ func NewClient(
 		helpers.MergeAndRebase,
 	)
 	keybindingCreator := NewKeybindingCreator(c)
-	customCommands := c.UserConfig.CustomCommands
+	customCommands := c.UserConfig().CustomCommands
 
 	return &Client{
 		customCommands:    customCommands,

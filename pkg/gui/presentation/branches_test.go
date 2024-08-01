@@ -324,7 +324,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 
 	for i, s := range scenarios {
 		icons.SetNerdFontsVersion(lo.Ternary(s.useIcons, "3", ""))
-		c.UserConfig.Gui.ShowDivergenceFromBaseBranch = s.showDivergenceCfg
+		c.UserConfig().Gui.ShowDivergenceFromBaseBranch = s.showDivergenceCfg
 
 		worktrees := []*models.Worktree{}
 		if s.checkedOutByWorktree {
@@ -332,7 +332,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 		}
 
 		t.Run(fmt.Sprintf("getBranchDisplayStrings_%d", i), func(t *testing.T) {
-			strings := getBranchDisplayStrings(s.branch, s.itemOperation, s.fullDescription, false, s.viewWidth, c.Tr, c.UserConfig, worktrees, time.Time{})
+			strings := getBranchDisplayStrings(s.branch, s.itemOperation, s.fullDescription, false, s.viewWidth, c.Tr, c.UserConfig(), worktrees, time.Time{})
 			assert.Equal(t, s.expected, strings)
 		})
 	}

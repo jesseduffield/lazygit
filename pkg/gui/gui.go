@@ -379,7 +379,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 			BisectInfo:            git_commands.NewNullBisectInfo(),
 			FilesTrie:             patricia.NewTrie(),
 			Authors:               map[string]*models.Author{},
-			MainBranches:          git_commands.NewMainBranches(gui.UserConfig.Git.MainBranches, gui.os.Cmd),
+			MainBranches:          git_commands.NewMainBranches(gui.UserConfig().Git.MainBranches, gui.os.Cmd),
 		},
 		Modes: &types.Modes{
 			Filtering:        filtering.New(startArgs.FilterPath, ""),
@@ -481,7 +481,7 @@ func NewGui(
 		// originally we could only hide the command log permanently via the config
 		// but now we do it via state. So we need to still support the config for the
 		// sake of backwards compatibility. We're making use of short circuiting here
-		ShowExtrasWindow: cmn.UserConfig.Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
+		ShowExtrasWindow: cmn.UserConfig().Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
 		Mutexes: types.Mutexes{
 			RefreshingFilesMutex:    &deadlock.Mutex{},
 			RefreshingBranchesMutex: &deadlock.Mutex{},
@@ -538,13 +538,13 @@ func NewGui(
 	// TODO: reset these controllers upon changing repos due to state changing
 	gui.c = helperCommon
 
-	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
-	if gui.UserConfig.Gui.NerdFontsVersion != "" {
-		icons.SetNerdFontsVersion(gui.UserConfig.Gui.NerdFontsVersion)
-	} else if gui.UserConfig.Gui.ShowIcons {
+	authors.SetCustomAuthors(gui.UserConfig().Gui.AuthorColors)
+	if gui.UserConfig().Gui.NerdFontsVersion != "" {
+		icons.SetNerdFontsVersion(gui.UserConfig().Gui.NerdFontsVersion)
+	} else if gui.UserConfig().Gui.ShowIcons {
 		icons.SetNerdFontsVersion("2")
 	}
-	presentation.SetCustomBranches(gui.UserConfig.Gui.BranchColors)
+	presentation.SetCustomBranches(gui.UserConfig().Gui.BranchColors)
 
 	gui.BackgroundRoutineMgr = &BackgroundRoutineMgr{gui: gui}
 	gui.stateAccessor = &StateAccessor{gui: gui}
@@ -661,13 +661,13 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	userConfig := gui.UserConfig
 
 	gui.g.OnSearchEscape = func() error { gui.helpers.Search.Cancel(); return nil }
-	gui.g.SearchEscapeKey = keybindings.GetKey(userConfig.Keybinding.Universal.Return)
-	gui.g.NextSearchMatchKey = keybindings.GetKey(userConfig.Keybinding.Universal.NextMatch)
-	gui.g.PrevSearchMatchKey = keybindings.GetKey(userConfig.Keybinding.Universal.PrevMatch)
+	gui.g.SearchEscapeKey = keybindings.GetKey(userConfig().Keybinding.Universal.Return)
+	gui.g.NextSearchMatchKey = keybindings.GetKey(userConfig().Keybinding.Universal.NextMatch)
+	gui.g.PrevSearchMatchKey = keybindings.GetKey(userConfig().Keybinding.Universal.PrevMatch)
 
-	gui.g.ShowListFooter = userConfig.Gui.ShowListFooter
+	gui.g.ShowListFooter = userConfig().Gui.ShowListFooter
 
-	if userConfig.Gui.MouseEvents {
+	if userConfig().Gui.MouseEvents {
 		gui.g.Mouse = true
 	}
 
@@ -732,7 +732,7 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 }
 
 func (gui *Gui) checkForDeprecatedEditConfigs() {
-	osConfig := &gui.UserConfig.OS
+	osConfig := &gui.UserConfig().OS
 	deprecatedConfigs := []struct {
 		config  string
 		oldName string
@@ -932,7 +932,7 @@ func (gui *Gui) showBreakingChangesMessage() {
 
 // setColorScheme sets the color scheme for the app based on the user config
 func (gui *Gui) setColorScheme() {
-	userConfig := gui.UserConfig
+	userConfig := gui.UserConfig()
 	theme.UpdateTheme(userConfig.Gui.Theme)
 
 	gui.g.FgColor = theme.InactiveBorderColor
