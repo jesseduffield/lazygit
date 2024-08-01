@@ -122,6 +122,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.DeleteFromHistory,
 	custom_commands.EditHistory,
 	custom_commands.FormPrompts,
+	custom_commands.GlobalContext,
 	custom_commands.History,
 	custom_commands.MenuFromCommand,
 	custom_commands.MenuFromCommandsOutput,
