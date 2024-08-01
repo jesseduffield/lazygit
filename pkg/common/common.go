@@ -1,6 +1,8 @@
 package common
 
 import (
+	"sync/atomic"
+
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/sirupsen/logrus"
@@ -11,7 +13,7 @@ import (
 type Common struct {
 	Log        *logrus.Entry
 	Tr         *i18n.TranslationSet
-	userConfig *config.UserConfig
+	userConfig atomic.Pointer[config.UserConfig]
 	AppState   *config.AppState
 	Debug      bool
 	// for interacting with the filesystem. We use afero rather than the default
@@ -20,9 +22,9 @@ type Common struct {
 }
 
 func (c *Common) UserConfig() *config.UserConfig {
-	return c.userConfig
+	return c.userConfig.Load()
 }
 
 func (c *Common) SetUserConfig(userConfig *config.UserConfig) {
-	c.userConfig = userConfig
+	c.userConfig.Store(userConfig)
 }
