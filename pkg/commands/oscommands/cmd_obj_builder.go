@@ -43,10 +43,16 @@ func (self *CmdObjBuilder) NewWithEnviron(args []string, env []string) ICmdObj {
 }
 
 func (self *CmdObjBuilder) NewShell(commandStr string) ICmdObj {
-	var quotedCommand string
+	quotedCommand := self.quotedCommandString(commandStr)
+	cmdArgs := str.ToArgv(fmt.Sprintf("%s %s %s", self.platform.Shell, self.platform.ShellArg, quotedCommand))
+
+	return self.New(cmdArgs)
+}
+
+func (self *CmdObjBuilder) quotedCommandString(commandStr string) string {
 	// Windows does not seem to like quotes around the command
 	if self.platform.OS == "windows" {
-		quotedCommand = strings.NewReplacer(
+		return strings.NewReplacer(
 			"^", "^^",
 			"&", "^&",
 			"|", "^|",
@@ -54,13 +60,9 @@ func (self *CmdObjBuilder) NewShell(commandStr string) ICmdObj {
 			">", "^>",
 			"%", "^%",
 		).Replace(commandStr)
-	} else {
-		quotedCommand = self.Quote(commandStr)
 	}
 
-	cmdArgs := str.ToArgv(fmt.Sprintf("%s %s %s", self.platform.Shell, self.platform.ShellArg, quotedCommand))
-
-	return self.New(cmdArgs)
+	return self.Quote(commandStr)
 }
 
 func (self *CmdObjBuilder) CloneWithNewRunner(decorate func(ICmdObjRunner) ICmdObjRunner) *CmdObjBuilder {
