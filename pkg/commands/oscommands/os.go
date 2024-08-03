@@ -35,11 +35,13 @@ type OSCommand struct {
 
 // Platform stores the os state
 type Platform struct {
-	OS              string
-	Shell           string
-	ShellArg        string
-	OpenCommand     string
-	OpenLinkCommand string
+	OS                  string
+	Shell               string
+	InteractiveShell    string
+	ShellArg            string
+	InteractiveShellArg string
+	OpenCommand         string
+	OpenLinkCommand     string
 }
 
 // NewOSCommand os command runner
