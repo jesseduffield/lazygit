@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strings"
 	"sync"
@@ -331,11 +332,16 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 
 	gui.g.SetFocusHandler(func(Focused bool) error {
 		if Focused {
+			oldConfig := gui.Config.GetUserConfig()
 			reloadErr, didChange := gui.Config.ReloadChangedUserConfigFiles()
 			if didChange && reloadErr == nil {
 				gui.c.Log.Info("User config changed - reloading")
 				reloadErr = gui.onUserConfigLoaded()
 				if err := gui.resetKeybindings(); err != nil {
+					return err
+				}
+
+				if err := gui.checkForChangedConfigsThatDontAutoReload(oldConfig, gui.Config.GetUserConfig()); err != nil {
 					return err
 				}
 			}
@@ -432,6 +438,56 @@ func (gui *Gui) onUserConfigLoaded() error {
 	presentation.SetCustomBranches(userConfig.Gui.BranchColors)
 
 	return nil
+}
+
+func (gui *Gui) checkForChangedConfigsThatDontAutoReload(oldConfig *config.UserConfig, newConfig *config.UserConfig) error {
+	configsThatDontAutoReload := []string{
+		"Git.AutoFetch",
+		"Git.AutoRefresh",
+		"Refresher.RefreshInterval",
+		"Refresher.FetchInterval",
+		"Update.Method",
+		"Update.Days",
+	}
+
+	changedConfigs := []string{}
+	for _, config := range configsThatDontAutoReload {
+		old := reflect.ValueOf(oldConfig).Elem()
+		new := reflect.ValueOf(newConfig).Elem()
+		fieldNames := strings.Split(config, ".")
+		userFacingPath := make([]string, 0, len(fieldNames))
+		// navigate to the leaves in old and new config
+		for _, fieldName := range fieldNames {
+			f, _ := old.Type().FieldByName(fieldName)
+			userFacingName := f.Tag.Get("yaml")
+			if userFacingName == "" {
+				userFacingName = fieldName
+			}
+			userFacingPath = append(userFacingPath, userFacingName)
+			old = old.FieldByName(fieldName)
+			new = new.FieldByName(fieldName)
+		}
+		// if the value has changed, ...
+		if !old.Equal(new) {
+			// ... append it to the list of changed configs
+			changedConfigs = append(changedConfigs, strings.Join(userFacingPath, "."))
+		}
+	}
+
+	if len(changedConfigs) == 0 {
+		return nil
+	}
+
+	message := utils.ResolvePlaceholderString(
+		gui.c.Tr.NonReloadableConfigWarning,
+		map[string]string{
+			"configs": strings.Join(changedConfigs, "\n"),
+		},
+	)
+	return gui.c.Confirm(types.ConfirmOpts{
+		Title:  gui.c.Tr.NonReloadableConfigWarningTitle,
+		Prompt: message,
+	})
 }
 
 // resetState reuses the repo state from our repo state map, if the repo was
