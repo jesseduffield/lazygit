@@ -153,10 +153,10 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 			localSectionStart = len(commits)
 		}
 
-		setCommitMergedStatuses(remoteAncestor, commits[:localSectionStart])
-		setCommitMergedStatuses(ancestor, commits[localSectionStart:])
+		self.setCommitMergedStatuses(remoteAncestor, commits[:localSectionStart])
+		self.setCommitMergedStatuses(ancestor, commits[localSectionStart:])
 	} else {
-		setCommitMergedStatuses(ancestor, commits)
+		self.setCommitMergedStatuses(ancestor, commits)
 	}
 
 	return commits, nil
@@ -448,21 +448,33 @@ func (self *CommitLoader) getConflictedCommitImpl(todos []todo.Todo, doneTodos [
 	return lastTodo.Commit
 }
 
-func setCommitMergedStatuses(ancestor string, commits []*models.Commit) {
+func (self *CommitLoader) setCommitMergedStatuses(ancestor string, commits []*models.Commit) {
 	if ancestor == "" {
 		return
 	}
 
-	passedAncestor := false
+	mergedCommits := make(map[string]bool)
+
+	err := self.cmd.New(
+		NewGitCmd("rev-list").
+			Arg(ancestor).
+			ToArgv(),
+	).
+		RunAndProcessLines(func(line string) (bool, error) {
+			hash := strings.TrimSpace(line)
+			mergedCommits[hash] = true
+			return false, nil
+		})
+	if err != nil {
+		return
+	}
+
 	for i, commit := range commits {
-		// some commits aren't really commits and don't have hashes, such as the update-ref todo
-		if commit.Hash != "" && strings.HasPrefix(ancestor, commit.Hash) {
-			passedAncestor = true
-		}
 		if commit.Status != models.StatusPushed && commit.Status != models.StatusUnpushed {
 			continue
 		}
-		if passedAncestor {
+
+		if _, isMerged := mergedCommits[commit.Hash]; isMerged {
 			commits[i].Status = models.StatusMerged
 		}
 	}
