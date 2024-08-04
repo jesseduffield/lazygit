@@ -24,7 +24,10 @@ d8084cd558925eb7c9c38afeed5725c21653ab90|1640821426|Jesse Duffield|jessedduffiel
 3d4470a6c072208722e5ae9a54bcb9634959a1c5|1640748818|Jesse Duffield|jessedduffield@gmail.com||053a66a7be3da43aacdc|>|WIP
 053a66a7be3da43aacdc7aa78e1fe757b82c4dd2|1640739815|Jesse Duffield|jessedduffield@gmail.com||985fe482e806b172aea4|>|refactoring the config struct`, "|", "\x00", -1)
 
-var singleCommitOutput = strings.Replace(`0eea75e8c631fba6b58135697835d58ba4c18dbc|1640826609|Jesse Duffield|jessedduffield@gmail.com|HEAD -> better-tests|b21997d6b4cbdf84b149|>|better typing for rebase mode`, "|", "\x00", -1)
+var (
+	singleCommitOutput = strings.Replace(`0eea75e8c631fba6b58135697835d58ba4c18dbc|1640826609|Jesse Duffield|jessedduffield@gmail.com|HEAD -> better-tests|b21997d6b4cbdf84b149|>|better typing for rebase mode`, "|", "\x00", -1)
+	mergedCommitOutput = strings.Replace(`26c07b1ab33860a1a7591a0638f9925ccf497ffa|3d4470a6c072208722e5ae9a54bcb9634959a1c5|053a66a7be3da43aacdc7aa78e1fe757b82c4dd2`, "|", "\n", -1)
+)
 
 func TestGetCommits(t *testing.T) {
 	type scenario struct {
@@ -82,7 +85,8 @@ func TestGetCommits(t *testing.T) {
 				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/remotes/origin/develop"}, "", errors.New("error")). // doesn't exist there, either, so it checks for a local branch
 				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/develop"}, "", errors.New("error")).          // no local branch either
 				// here it's seeing where our branch diverged from the master branch so that we can mark that commit and parent commits as 'merged'
-				ExpectGitArgs([]string{"merge-base", "HEAD", "refs/remotes/origin/master", "refs/remotes/origin/main"}, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
+				ExpectGitArgs([]string{"merge-base", "HEAD", "refs/remotes/origin/master", "refs/remotes/origin/main"}, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil).
+				ExpectGitArgs([]string{"rev-list", "26c07b1ab33860a1a7591a0638f9925ccf497ffa"}, mergedCommitOutput, nil),
 
 			expectedCommits: []*models.Commit{
 				{
@@ -256,7 +260,8 @@ func TestGetCommits(t *testing.T) {
 				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "develop@{u}"}, "refs/remotes/origin/develop", nil).
 				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "1.0-hotfixes@{u}"}, "refs/remotes/origin/1.0-hotfixes", nil).
 				// here it's seeing where our branch diverged from the master branch so that we can mark that commit and parent commits as 'merged'
-				ExpectGitArgs([]string{"merge-base", "HEAD", "refs/remotes/origin/master", "refs/remotes/origin/develop", "refs/remotes/origin/1.0-hotfixes"}, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
+				ExpectGitArgs([]string{"merge-base", "HEAD", "refs/remotes/origin/master", "refs/remotes/origin/develop", "refs/remotes/origin/1.0-hotfixes"}, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil).
+				ExpectGitArgs([]string{"rev-list", "26c07b1ab33860a1a7591a0638f9925ccf497ffa"}, mergedCommitOutput, nil),
 
 			expectedCommits: []*models.Commit{
 				{
@@ -517,6 +522,7 @@ func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
 		commits         []*models.Commit
 		ancestor        string
 		expectedCommits []*models.Commit
+		runner          *oscommands.FakeCmdObjRunner
 	}
 
 	scenarios := []scenario{
@@ -533,6 +539,9 @@ func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
 				{Hash: "67890", Name: "2", Action: models.ActionNone, Status: models.StatusMerged},
 				{Hash: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusMerged},
 			},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"merge-base", "mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"rev-list", "67890"}, "abcde\n67890", nil),
 		},
 		{
 			testName: "with update-ref",
@@ -547,13 +556,53 @@ func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
 				{Hash: "", Name: "", Action: todo.UpdateRef, Status: models.StatusNone},
 				{Hash: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
 			},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-list", "26c07b1ab33860a1a7591a0638f9925ccf497ffa"}, mergedCommitOutput, nil).
+				ExpectGitArgs([]string{"rev-list", "deadbeef"}, "", nil),
+		},
+		{
+			testName: "merge with main",
+			commits: []*models.Commit{
+				{Hash: "11111", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
+				{Hash: "22222", Name: "2", Action: models.ActionNone, Status: models.StatusPushed},
+				{Hash: "33333", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
+				{Hash: "44444", Name: "4", Action: models.ActionNone, Status: models.StatusPushed},
+				{Hash: "55555", Name: "5", Action: models.ActionNone, Status: models.StatusPushed},
+				{Hash: "66666", Name: "6", Action: models.ActionNone, Status: models.StatusPushed},
+			},
+			ancestor: "22222",
+			expectedCommits: []*models.Commit{
+				{Hash: "11111", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
+				{Hash: "22222", Name: "2", Action: models.ActionNone, Status: models.StatusMerged},
+				{Hash: "33333", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
+				{Hash: "44444", Name: "4", Action: models.ActionNone, Status: models.StatusPushed},
+				{Hash: "55555", Name: "5", Action: models.ActionNone, Status: models.StatusMerged},
+				{Hash: "66666", Name: "6", Action: models.ActionNone, Status: models.StatusMerged},
+			},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"merge-base", "mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"rev-list", "22222"}, "22222\n55555\n66666", nil),
 		},
 	}
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.testName, func(t *testing.T) {
+			common := utils.NewDummyCommon()
+
+			builder := &CommitLoader{
+				Common:        common,
+				cmd:           oscommands.NewDummyCmdObjBuilder(scenario.runner),
+				getRebaseMode: func() (enums.RebaseMode, error) { return enums.REBASE_MODE_INTERACTIVE, nil },
+				dotGitDir:     ".git",
+				readFile: func(filename string) ([]byte, error) {
+					return []byte(""), nil
+				},
+				walkFiles: func(root string, fn filepath.WalkFunc) error {
+					return nil
+				},
+			}
 			expectedCommits := scenario.commits
-			setCommitMergedStatuses(scenario.ancestor, expectedCommits)
+			builder.setCommitMergedStatuses(scenario.ancestor, expectedCommits)
 			assert.Equal(t, scenario.expectedCommits, expectedCommits)
 		})
 	}
