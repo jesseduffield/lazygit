@@ -22,7 +22,13 @@ func NewCommitCommands(gitCommon *GitCommon) *CommitCommands {
 
 // ResetAuthor resets the author of the topmost commit
 func (self *CommitCommands) ResetAuthor() error {
+	message, err := self.GetCommitMessage("HEAD")
+	if err != nil {
+		return err
+	}
+	skipHookPrefix := self.UserConfig.Git.SkipHookPrefix
 	cmdArgs := NewGitCmd("commit").
+		ArgIf(skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix), "--no-verify").
 		Arg("--allow-empty", "--only", "--no-edit", "--amend", "--reset-author").
 		ToArgv()
 
@@ -31,7 +37,14 @@ func (self *CommitCommands) ResetAuthor() error {
 
 // Sets the commit's author to the supplied value. Value is expected to be of the form 'Name <Email>'
 func (self *CommitCommands) SetAuthor(value string) error {
+	message, err := self.GetCommitMessage("HEAD")
+	if err != nil {
+		return err
+	}
+	skipHookPrefix := self.UserConfig.Git.SkipHookPrefix
+
 	cmdArgs := NewGitCmd("commit").
+		ArgIf(skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix), "--no-verify").
 		Arg("--allow-empty", "--only", "--no-edit", "--amend", "--author="+value).
 		ToArgv()
 
@@ -47,7 +60,10 @@ func (self *CommitCommands) AddCoAuthor(hash string, author string) error {
 
 	message = AddCoAuthorToMessage(message, author)
 
+	skipHookPrefix := self.UserConfig.Git.SkipHookPrefix
+
 	cmdArgs := NewGitCmd("commit").
+		ArgIf(skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix), "--no-verify").
 		Arg("--allow-empty", "--amend", "--only", "-m", message).
 		ToArgv()
 
@@ -100,11 +116,15 @@ func (self *CommitCommands) CommitCmdObj(summary string, description string) osc
 }
 
 func (self *CommitCommands) RewordLastCommitInEditorCmdObj() oscommands.ICmdObj {
-	return self.cmd.New(NewGitCmd("commit").Arg("--allow-empty", "--amend", "--only").ToArgv())
+
+	return self.cmd.New(NewGitCmd("commit").
+		// TODO: how to decide if we should add --no-verify if we're using the editor?
+		Arg("--allow-empty", "--amend", "--only").ToArgv())
 }
 
 func (self *CommitCommands) RewordLastCommitInEditorWithMessageFileCmdObj(tmpMessageFile string) oscommands.ICmdObj {
 	return self.cmd.New(NewGitCmd("commit").
+		// TODO: how to decide if we should add --no-verify if we're using the editor?
 		Arg("--allow-empty", "--amend", "--only", "--edit", "--file="+tmpMessageFile).ToArgv())
 }
 
@@ -120,7 +140,10 @@ func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile s
 func (self *CommitCommands) RewordLastCommit(summary string, description string) error {
 	messageArgs := self.commitMessageArgs(summary, description)
 
+	skipHookPrefix := self.UserConfig.Git.SkipHookPrefix
+
 	cmdArgs := NewGitCmd("commit").
+		ArgIf(skipHookPrefix != "" && strings.HasPrefix(summary, skipHookPrefix), "--no-verify").
 		Arg("--allow-empty", "--amend", "--only").
 		Arg(messageArgs...).
 		ToArgv()
@@ -248,7 +271,15 @@ func (self *CommitCommands) AmendHead() error {
 }
 
 func (self *CommitCommands) AmendHeadCmdObj() oscommands.ICmdObj {
+	message, err := self.GetCommitMessage("HEAD")
+	if err != nil {
+		// TODO: what to do here? we can't return err
+		// return err
+	}
+	skipHookPrefix := self.UserConfig.Git.SkipHookPrefix
+
 	cmdArgs := NewGitCmd("commit").
+		ArgIf(skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix), "--no-verify").
 		Arg("--amend", "--no-edit", "--allow-empty").
 		ToArgv()
 
