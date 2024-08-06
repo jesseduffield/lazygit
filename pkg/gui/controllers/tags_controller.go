@@ -82,6 +82,16 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.OpenDiffTool,
 		},
+		{
+			Key:               opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
+			Handler:           opts.Guards.OutsideFilterMode(self.withItem(self.merge)),
+			// Eventually want a check that the tag isn't just merging into something that already has tag at head.
+			//GetDisabledReason: self.require(self.singleItemSelected(self.notMergingIntoYourself)),
+			Description:       self.c.Tr.Merge,
+			Tooltip:           self.c.Tr.MergeBranchTooltip,
+			DisplayOnScreen:   true,
+			OpensMenu:         true,
+		},
 	}
 
 	return bindings
@@ -125,6 +135,17 @@ func (self *TagsController) localDelete(tag *models.Tag) error {
 		_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
 		return err
 	})
+}
+
+func (self *TagsController) merge(tag *models.Tag) error {
+	err := self.c.Helpers().MergeAndRebase.MergeRefIntoCheckedOutBranch(tag.RefName(), func() error{
+		context, ok := self.c.Helpers().View.ContextForView(self.c.Views().Branches.Name())
+		if !ok {
+			return nil
+		}
+		return self.c.PushContext(context)
+	})
+	return err
 }
 
 func (self *TagsController) remoteDelete(tag *models.Tag) error {

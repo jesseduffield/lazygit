@@ -638,7 +638,7 @@ func (self *BranchesController) delete(branch *models.Branch) error {
 
 func (self *BranchesController) merge() error {
 	selectedBranchName := self.context().GetSelected().Name
-	return self.c.Helpers().MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranchName)
+	return self.c.Helpers().MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranchName, nil)
 }
 
 func (self *BranchesController) rebase(branch *models.Branch) error {
