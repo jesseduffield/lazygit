@@ -1,4 +1,4 @@
-package custom_commands
+package shell_commands
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
