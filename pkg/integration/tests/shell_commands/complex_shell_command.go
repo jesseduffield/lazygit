@@ -17,10 +17,10 @@ var ComplexShellCommand = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsEmpty().
 			IsFocused().
-			Press(keys.Universal.ExecuteCustomCommand)
+			Press(keys.Universal.ExecuteShellCommand)
 
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom command:")).
+			Title(Equals("Shell command:")).
 			Type("sh -c \"touch file.txt\"").
 			Confirm()
 

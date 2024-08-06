@@ -415,9 +415,9 @@ type TranslationSet struct {
 	SquashCommitsInCurrentBranch          string
 	SquashCommitsAboveSelectedCommit      string
 	CannotSquashCommitsInCurrentBranch    string
-	ExecuteCustomCommand                  string
-	ExecuteCustomCommandTooltip           string
-	CustomCommand                         string
+	ExecuteShellCommand                   string
+	ExecuteShellCommandTooltip            string
+	ShellCommand                          string
 	CommitChangesWithoutHook              string
 	SkipHookPrefixNotConfigured           string
 	ResetTo                               string
@@ -1401,9 +1401,9 @@ func EnglishTranslationSet() *TranslationSet {
 		SquashCommitsInCurrentBranch:         "In current branch",
 		SquashCommitsAboveSelectedCommit:     "Above the selected commit",
 		CannotSquashCommitsInCurrentBranch:   "Cannot squash commits in current branch: the HEAD commit is a merge commit or is present on the main branch.",
-		ExecuteCustomCommand:                 "Execute custom command",
-		ExecuteCustomCommandTooltip:          "Bring up a prompt where you can enter a shell command to execute. Not to be confused with pre-configured custom commands.",
-		CustomCommand:                        "Custom command:",
+		ExecuteShellCommand:                  "Execute shell command",
+		ExecuteShellCommandTooltip:           "Bring up a prompt where you can enter a shell command to execute.",
+		ShellCommand:                         "Shell command:",
 		CommitChangesWithoutHook:             "Commit changes without pre-commit hook",
 		SkipHookPrefixNotConfigured:          "You have not configured a commit message prefix for skipping hooks. Set `git.skipHookPrefix = 'WIP'` in your config",
 		ResetTo:                              `Reset to`,

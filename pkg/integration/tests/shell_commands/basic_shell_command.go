@@ -17,10 +17,10 @@ var BasicShellCommand = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsEmpty().
 			IsFocused().
-			Press(keys.Universal.ExecuteCustomCommand)
+			Press(keys.Universal.ExecuteShellCommand)
 
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom command:")).
+			Title(Equals("Shell command:")).
 			Type("touch file.txt").
 			Confirm()
 
