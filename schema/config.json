@@ -1232,7 +1232,7 @@
               "type": "string",
               "default": "\u003cc-d\u003e"
             },
-            "executeCustomCommand": {
+            "executeShellCommand": {
               "type": "string",
               "default": ":"
             },

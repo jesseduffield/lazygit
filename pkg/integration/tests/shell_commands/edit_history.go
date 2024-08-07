@@ -1,4 +1,4 @@
-package custom_commands
+package shell_commands
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -12,15 +12,15 @@ var EditHistory = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupRepo:    func(shell *Shell) {},
 	SetupConfig:  func(cfg *config.AppConfig) {},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.GlobalPress(keys.Universal.ExecuteCustomCommand)
+		t.GlobalPress(keys.Universal.ExecuteShellCommand)
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom command:")).
+			Title(Equals("Shell command:")).
 			Type("echo x").
 			Confirm()
 
-		t.GlobalPress(keys.Universal.ExecuteCustomCommand)
+		t.GlobalPress(keys.Universal.ExecuteShellCommand)
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom command:")).
+			Title(Equals("Shell command:")).
 			Type("ec").
 			SuggestionLines(
 				Equals("echo x"),

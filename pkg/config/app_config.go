@@ -184,6 +184,12 @@ func migrateUserConfig(path string, content []byte) ([]byte, error) {
 		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
 	}
 
+	changedContent, err = yaml_utils.RenameYamlKey(changedContent, []string{"keybinding", "universal", "executeCustomCommand"},
+		"executeShellCommand")
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+	}
+
 	changedContent, err = changeNullKeybindingsToDisabled(changedContent)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
@@ -365,8 +371,10 @@ type AppState struct {
 	StartupPopupVersion int
 	LastVersion         string // this is the last version the user was using, for the purpose of showing release notes
 
-	// these are for custom commands typed in directly, not for custom commands in the lazygit config
-	CustomCommandsHistory      []string
+	// these are for shell commands typed in directly, not for custom commands in the lazygit config.
+	// For backwards compatibility we keep the old name in yaml files.
+	ShellCommandsHistory []string `yaml:"customcommandshistory"`
+
 	HideCommandLog             bool
 	IgnoreWhitespaceInDiffView bool
 	DiffContextSize            int

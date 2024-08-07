@@ -1,12 +1,12 @@
-package custom_commands
+package shell_commands
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var ComplexCmdAtRuntime = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Using a custom command provided at runtime to create a new file, via a shell command. We invoke custom commands through a shell already. This test proves that we can run a shell within a shell, which requires complex escaping.",
+var BasicShellCommand = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Using a custom command provided at runtime to create a new file",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupRepo: func(shell *Shell) {
@@ -17,11 +17,11 @@ var ComplexCmdAtRuntime = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsEmpty().
 			IsFocused().
-			Press(keys.Universal.ExecuteCustomCommand)
+			Press(keys.Universal.ExecuteShellCommand)
 
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom command:")).
-			Type("sh -c \"touch file.txt\"").
+			Title(Equals("Shell command:")).
+			Type("touch file.txt").
 			Confirm()
 
 		t.GlobalPress(keys.Files.RefreshFiles)

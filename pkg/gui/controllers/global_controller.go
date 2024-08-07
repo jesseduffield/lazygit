@@ -22,10 +22,10 @@ func NewGlobalController(
 func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.ExecuteCustomCommand),
-			Handler:     self.customCommand,
-			Description: self.c.Tr.ExecuteCustomCommand,
-			Tooltip:     self.c.Tr.ExecuteCustomCommandTooltip,
+			Key:         opts.GetKey(opts.Config.Universal.ExecuteShellCommand),
+			Handler:     self.shellCommand,
+			Description: self.c.Tr.ExecuteShellCommand,
+			Tooltip:     self.c.Tr.ExecuteShellCommandTooltip,
 			OpensMenu:   true,
 		},
 		{
@@ -132,8 +132,8 @@ func (self *GlobalController) Context() types.Context {
 	return nil
 }
 
-func (self *GlobalController) customCommand() error {
-	return (&CustomCommandAction{c: self.c}).Call()
+func (self *GlobalController) shellCommand() error {
+	return (&ShellCommandAction{c: self.c}).Call()
 }
 
 func (self *GlobalController) createCustomPatchOptionsMenu() error {

@@ -10,19 +10,19 @@ import (
 	"github.com/samber/lo"
 )
 
-type CustomCommandAction struct {
+type ShellCommandAction struct {
 	c *ControllerCommon
 }
 
-func (self *CustomCommandAction) Call() error {
+func (self *ShellCommandAction) Call() error {
 	return self.c.Prompt(types.PromptOpts{
-		Title:               self.c.Tr.CustomCommand,
-		FindSuggestionsFunc: self.GetCustomCommandsHistorySuggestionsFunc(),
+		Title:               self.c.Tr.ShellCommand,
+		FindSuggestionsFunc: self.GetShellCommandsHistorySuggestionsFunc(),
 		AllowEditSuggestion: true,
 		HandleConfirm: func(command string) error {
 			if self.shouldSaveCommand(command) {
-				self.c.GetAppState().CustomCommandsHistory = utils.Limit(
-					lo.Uniq(append([]string{command}, self.c.GetAppState().CustomCommandsHistory...)),
+				self.c.GetAppState().ShellCommandsHistory = utils.Limit(
+					lo.Uniq(append([]string{command}, self.c.GetAppState().ShellCommandsHistory...)),
 					1000,
 				)
 			}
@@ -38,17 +38,17 @@ func (self *CustomCommandAction) Call() error {
 			// index is the index in the _filtered_ list of suggestions, so we
 			// need to map it back to the full list. There's no really good way
 			// to do this, but fortunately we keep the items in the
-			// CustomCommandsHistory unique, which allows us to simply search
+			// ShellCommandsHistory unique, which allows us to simply search
 			// for it by string.
 			item := self.c.Contexts().Suggestions.GetItems()[index].Value
-			fullIndex := lo.IndexOf(self.c.GetAppState().CustomCommandsHistory, item)
+			fullIndex := lo.IndexOf(self.c.GetAppState().ShellCommandsHistory, item)
 			if fullIndex == -1 {
 				// Should never happen, but better be safe
 				return nil
 			}
 
-			self.c.GetAppState().CustomCommandsHistory = slices.Delete(
-				self.c.GetAppState().CustomCommandsHistory, fullIndex, fullIndex+1)
+			self.c.GetAppState().ShellCommandsHistory = slices.Delete(
+				self.c.GetAppState().ShellCommandsHistory, fullIndex, fullIndex+1)
 			self.c.SaveAppStateAndLogError()
 			self.c.Contexts().Suggestions.RefreshSuggestions()
 			return nil
@@ -56,9 +56,9 @@ func (self *CustomCommandAction) Call() error {
 	})
 }
 
-func (self *CustomCommandAction) GetCustomCommandsHistorySuggestionsFunc() func(string) []*types.Suggestion {
+func (self *ShellCommandAction) GetShellCommandsHistorySuggestionsFunc() func(string) []*types.Suggestion {
 	return func(input string) []*types.Suggestion {
-		history := self.c.GetAppState().CustomCommandsHistory
+		history := self.c.GetAppState().ShellCommandsHistory
 
 		return helpers.FilterFunc(history, self.c.UserConfig.Gui.UseFuzzySearch())(input)
 	}
@@ -66,6 +66,6 @@ func (self *CustomCommandAction) GetCustomCommandsHistorySuggestionsFunc() func(
 
 // this mimics the shell functionality `ignorespace`
 // which doesn't save a command to history if it starts with a space
-func (self *CustomCommandAction) shouldSaveCommand(command string) bool {
+func (self *ShellCommandAction) shouldSaveCommand(command string) bool {
 	return !strings.HasPrefix(command, " ")
 }

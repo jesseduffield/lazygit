@@ -21,6 +21,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/patch_building"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/reflog"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/shell_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/staging"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/status"
@@ -115,20 +116,14 @@ var tests = []*components.IntegrationTest{
 	conflicts.ResolveMultipleFiles,
 	conflicts.UndoChooseHunk,
 	custom_commands.AccessCommitProperties,
-	custom_commands.BasicCmdAtRuntime,
-	custom_commands.BasicCmdFromConfig,
+	custom_commands.BasicCommand,
 	custom_commands.CheckForConflicts,
-	custom_commands.ComplexCmdAtRuntime,
-	custom_commands.DeleteFromHistory,
-	custom_commands.EditHistory,
 	custom_commands.FormPrompts,
 	custom_commands.GlobalContext,
-	custom_commands.History,
 	custom_commands.MenuFromCommand,
 	custom_commands.MenuFromCommandsOutput,
 	custom_commands.MultipleContexts,
 	custom_commands.MultiplePrompts,
-	custom_commands.OmitFromHistory,
 	custom_commands.ShowOutputInPanel,
 	custom_commands.SuggestionsCommand,
 	custom_commands.SuggestionsPreset,
@@ -267,6 +262,12 @@ var tests = []*components.IntegrationTest{
 	reflog.DoNotShowBranchMarkersInReflogSubcommits,
 	reflog.Patch,
 	reflog.Reset,
+	shell_commands.BasicShellCommand,
+	shell_commands.ComplexShellCommand,
+	shell_commands.DeleteFromHistory,
+	shell_commands.EditHistory,
+	shell_commands.History,
+	shell_commands.OmitFromHistory,
 	staging.DiffChangeScreenMode,
 	staging.DiffContextChange,
 	staging.DiscardAllChanges,
