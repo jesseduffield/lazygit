@@ -193,9 +193,16 @@ func (self *SessionStateLoader) call() *SessionState {
 		selectedCommit = selectedSubCommit
 	}
 
+	selectedPath := self.c.Contexts().Files.GetSelectedPath()
+	selectedCommitFilePath := self.c.Contexts().CommitFiles.GetSelectedPath()
+
+	if self.c.Context().IsCurrent(self.c.Contexts().CommitFiles) {
+		selectedPath = selectedCommitFilePath
+	}
+
 	return &SessionState{
 		SelectedFile:           fileShimFromModelFile(self.c.Contexts().Files.GetSelectedFile()),
-		SelectedPath:           self.c.Contexts().Files.GetSelectedPath(),
+		SelectedPath:           selectedPath,
 		SelectedLocalCommit:    selectedLocalCommit,
 		SelectedReflogCommit:   selectedReflogCommit,
 		SelectedSubCommit:      selectedSubCommit,
@@ -206,7 +213,7 @@ func (self *SessionStateLoader) call() *SessionState {
 		SelectedTag:            tagShimFromModelRemote(self.c.Contexts().Tags.GetSelected()),
 		SelectedStashEntry:     stashEntryShimFromModelRemote(self.c.Contexts().Stash.GetSelected()),
 		SelectedCommitFile:     commitFileShimFromModelRemote(self.c.Contexts().CommitFiles.GetSelectedFile()),
-		SelectedCommitFilePath: self.c.Contexts().CommitFiles.GetSelectedPath(),
+		SelectedCommitFilePath: selectedCommitFilePath,
 		SelectedWorktree:       worktreeShimFromModelRemote(self.c.Contexts().Worktrees.GetSelected()),
 		CheckedOutBranch:       branchShimFromModelBranch(self.refsHelper.GetCheckedOutRef()),
 	}
