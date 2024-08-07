@@ -95,7 +95,7 @@ func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
 		Arg("--no-edit").
 		ArgIf(opts.FastForwardOnly, "--ff-only").
 		ArgIf(opts.RemoteName != "", opts.RemoteName).
-		ArgIf(opts.BranchName != "", opts.BranchName).
+		ArgIf(opts.BranchName != "", "refs/heads/"+opts.BranchName).
 		GitDirIf(opts.WorktreeGitDir != "", opts.WorktreeGitDir).
 		ToArgv()
 
@@ -112,7 +112,7 @@ func (self *SyncCommands) FastForward(
 ) error {
 	cmdArgs := self.fetchCommandBuilder(false).
 		Arg(remoteName).
-		Arg(remoteBranchName + ":" + branchName).
+		Arg("refs/heads/" + remoteBranchName + ":" + branchName).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
