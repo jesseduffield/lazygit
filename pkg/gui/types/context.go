@@ -20,7 +20,7 @@ const (
 	// When you open a popup over it, we'll let you return to it upon pressing escape
 	PERSISTENT_POPUP
 	// A temporary popup is one that could be used for various things (e.g. a generic menu or confirmation popup).
-	// Because we re-use these contexts, they're temporary in that you can't return to them after you've switched from them
+	// Because we reuse these contexts, they're temporary in that you can't return to them after you've switched from them
 	// to some other context, because the context you switched to might actually be the same context but rendering different content.
 	// We should really be able to spawn new contexts for menus/prompts so that we can actually return to old ones.
 	TEMPORARY_POPUP

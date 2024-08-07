@@ -2,7 +2,7 @@
 
 ## Packages
 
-* `pkg/app`: Contains startup code, inititalises a bunch of stuff like logging, the user config, etc, before starting the gui. Catches and handles some errors that the gui raises.
+* `pkg/app`: Contains startup code, initialises a bunch of stuff like logging, the user config, etc, before starting the gui. Catches and handles some errors that the gui raises.
 * `pkg/app/daemon`: Contains code relating to the lazygit daemon. This could be better named: it's is not a daemon in the sense that it's a long-running background process; rather it's a short-lived background process that we pass to git for certain tasks, like GIT_EDITOR for when we want to set the TODO file for an interactive rebase.
 * `pkg/cheatsheet`: Generates the keybinding cheatsheets in `docs/keybindings`.
 * `pkg/commands/git_commands`: All communication to the git binary happens here. So for example there's a `Checkout` method which calls `git checkout`.
