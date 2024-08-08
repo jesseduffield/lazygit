@@ -128,7 +128,7 @@ func (gui *Gui) handleCopySelectedSideContextItemCommitHashToClipboard() error {
 
 func (gui *Gui) handleCopySelectedSideContextItemToClipboardWithTruncation(maxWidth int) error {
 	// important to note that this assumes we've selected an item in a side context
-	currentSideContext := gui.c.CurrentSideContext()
+	currentSideContext := gui.c.Context().CurrentSide()
 	if currentSideContext == nil {
 		return nil
 	}
@@ -162,7 +162,7 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboardWithTruncation(maxWi
 
 func (gui *Gui) getCopySelectedSideContextItemToClipboardDisabledReason() *types.DisabledReason {
 	// important to note that this assumes we've selected an item in a side context
-	currentSideContext := gui.c.CurrentSideContext()
+	currentSideContext := gui.c.Context().CurrentSide()
 	if currentSideContext == nil {
 		// This should never happen but if it does we'll just ignore the keypress
 		return nil

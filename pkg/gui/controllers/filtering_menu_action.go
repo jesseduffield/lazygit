@@ -14,7 +14,7 @@ type FilteringMenuAction struct {
 func (self *FilteringMenuAction) Call() error {
 	fileName := ""
 	author := ""
-	switch self.c.CurrentSideContext() {
+	switch self.c.Context().CurrentSide() {
 	case self.c.Contexts().Files:
 		node := self.c.Contexts().Files.GetSelected()
 		if node != nil {

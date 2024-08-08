@@ -70,7 +70,7 @@ func (self *DiffHelper) RenderDiff() error {
 // which becomes an option when you bring up the diff menu, but when you're just
 // flicking through branches it will be using the local branch name.
 func (self *DiffHelper) CurrentDiffTerminals() []string {
-	c := self.c.CurrentSideContext()
+	c := self.c.Context().CurrentSide()
 
 	if c.GetKey() == "" {
 		return nil

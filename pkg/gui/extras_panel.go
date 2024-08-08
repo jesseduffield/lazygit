@@ -39,7 +39,7 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 func (gui *Gui) handleFocusCommandLog() error {
 	gui.c.State().SetShowExtrasWindow(true)
 	// TODO: is this necessary? Can't I just call 'return from context'?
-	gui.State.Contexts.CommandLog.SetParentContext(gui.c.CurrentSideContext())
+	gui.State.Contexts.CommandLog.SetParentContext(gui.c.Context().CurrentSide())
 	return gui.c.Context().Push(gui.State.Contexts.CommandLog)
 }
 
