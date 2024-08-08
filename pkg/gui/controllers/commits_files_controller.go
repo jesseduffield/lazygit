@@ -354,7 +354,7 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 			}
 		}
 
-		return self.c.PushContext(self.c.Contexts().CustomPatchBuilder, opts)
+		return self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
 	}
 
 	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.To != self.context().GetRef().RefName() {

@@ -62,7 +62,7 @@ func (self *MergeConflictsHelper) EscapeMerge() error {
 		// files context over it.
 		// So long as both places call OnUIThread, we're fine.
 		if self.c.IsCurrentContext(self.c.Contexts().MergeConflicts) {
-			return self.c.PushContext(self.c.Contexts().Files)
+			return self.c.Context().Push(self.c.Contexts().Files)
 		}
 		return nil
 	})
@@ -93,7 +93,7 @@ func (self *MergeConflictsHelper) SwitchToMerge(path string) error {
 		}
 	}
 
-	return self.c.PushContext(self.c.Contexts().MergeConflicts)
+	return self.c.Context().Push(self.c.Contexts().MergeConflicts)
 }
 
 func (self *MergeConflictsHelper) context() *context.MergeConflictsContext {

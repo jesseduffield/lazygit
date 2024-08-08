@@ -220,7 +220,7 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 						return err
 					}
-					return self.c.PushContext(self.c.Contexts().LocalCommits)
+					return self.c.Context().Push(self.c.Contexts().LocalCommits)
 				})
 			},
 		},

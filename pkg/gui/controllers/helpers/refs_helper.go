@@ -110,7 +110,7 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 		// Switch to the branches context _before_ starting to check out the
 		// branch, so that we see the inline status
 		if self.c.CurrentContext() != self.c.Contexts().Branches {
-			if err := self.c.PushContext(self.c.Contexts().Branches); err != nil {
+			if err := self.c.Context().Push(self.c.Contexts().Branches); err != nil {
 				return err
 			}
 		}
@@ -293,7 +293,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 			}
 
 			if self.c.CurrentContext() != self.c.Contexts().Branches {
-				if err := self.c.PushContext(self.c.Contexts().Branches); err != nil {
+				if err := self.c.Context().Push(self.c.Contexts().Branches); err != nil {
 					return err
 				}
 			}

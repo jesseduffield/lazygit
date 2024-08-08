@@ -57,7 +57,6 @@ type IGuiCommon interface {
 	RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error)
 	RunSubprocessAndRefresh(oscommands.ICmdObj) error
 
-	PushContext(context Context, opts ...OnFocusOpts) error
 	PopContext() error
 	ReplaceContext(context Context) error
 	// Removes all given contexts from the stack. If a given context is not in the stack, it is ignored.

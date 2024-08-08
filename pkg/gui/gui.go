@@ -335,7 +335,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		}
 	}
 
-	if err := gui.c.PushContext(contextToPush); err != nil {
+	if err := gui.c.Context().Push(contextToPush); err != nil {
 		return err
 	}
 

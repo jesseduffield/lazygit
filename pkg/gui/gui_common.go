@@ -45,10 +45,6 @@ func (self *guiCommon) RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error) {
 	return self.gui.runSubprocessWithSuspense(cmdObj)
 }
 
-func (self *guiCommon) PushContext(context types.Context, opts ...types.OnFocusOpts) error {
-	return self.gui.State.ContextMgr.Push(context, opts...)
-}
-
 func (self *guiCommon) PopContext() error {
 	return self.gui.State.ContextMgr.Pop()
 }

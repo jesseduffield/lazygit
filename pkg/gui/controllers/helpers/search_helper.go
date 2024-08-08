@@ -41,7 +41,7 @@ func (self *SearchHelper) OpenFilterPrompt(context types.IFilterableContext) err
 	self.OnPromptContentChanged("")
 	promptView.RenderTextArea()
 
-	if err := self.c.PushContext(self.c.Contexts().Search); err != nil {
+	if err := self.c.Context().Push(self.c.Contexts().Search); err != nil {
 		return err
 	}
 
@@ -60,7 +60,7 @@ func (self *SearchHelper) OpenSearchPrompt(context types.ISearchableContext) err
 	promptView.ClearTextArea()
 	promptView.RenderTextArea()
 
-	if err := self.c.PushContext(self.c.Contexts().Search); err != nil {
+	if err := self.c.Context().Push(self.c.Contexts().Search); err != nil {
 		return err
 	}
 

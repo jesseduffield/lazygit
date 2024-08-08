@@ -241,7 +241,7 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 
 	self.c.State().GetRepoState().SetCurrentPopupOpts(&opts)
 
-	return self.c.PushContext(self.c.Contexts().Confirmation)
+	return self.c.Context().Push(self.c.Contexts().Confirmation)
 }
 
 func underlineLinks(text string) string {
