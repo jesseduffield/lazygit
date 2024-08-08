@@ -28,7 +28,7 @@ func (self *ConfirmationHelper) wrappedConfirmationFunction(cancel goContext.Can
 	return func() error {
 		cancel()
 
-		if err := self.c.PopContext(); err != nil {
+		if err := self.c.Context().Pop(); err != nil {
 			return err
 		}
 
@@ -241,7 +241,7 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 
 	self.c.State().GetRepoState().SetCurrentPopupOpts(&opts)
 
-	return self.c.PushContext(self.c.Contexts().Confirmation)
+	return self.c.Context().Push(self.c.Contexts().Confirmation)
 }
 
 func underlineLinks(text string) string {
@@ -325,7 +325,7 @@ func (self *ConfirmationHelper) getSelectedSuggestionValue() string {
 
 func (self *ConfirmationHelper) ResizeCurrentPopupPanels() {
 	var parentPopupContext types.Context
-	for _, c := range self.c.CurrentPopupContexts() {
+	for _, c := range self.c.Context().CurrentPopup() {
 		switch c {
 		case self.c.Contexts().Menu:
 			self.resizeMenu(parentPopupContext)
@@ -431,7 +431,7 @@ func (self *ConfirmationHelper) IsPopupPanel(context types.Context) bool {
 }
 
 func (self *ConfirmationHelper) IsPopupPanelFocused() bool {
-	return self.IsPopupPanel(self.c.CurrentContext())
+	return self.IsPopupPanel(self.c.Context().Current())
 }
 
 func (self *ConfirmationHelper) TooltipForMenuItem(menuItem *types.MenuItem) string {

@@ -178,8 +178,8 @@ func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error
 }
 
 func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileNode) error {
-	parentContext, ok := self.c.CurrentContext().GetParentContext()
-	if !ok || parentContext.GetKey() != context.LOCAL_COMMITS_CONTEXT_KEY {
+	parentContext := self.c.Context().Current().GetParentContext()
+	if parentContext == nil || parentContext.GetKey() != context.LOCAL_COMMITS_CONTEXT_KEY {
 		return errors.New(self.c.Tr.CanOnlyDiscardFromLocalCommits)
 	}
 
@@ -354,7 +354,7 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 			}
 		}
 
-		return self.c.PushContext(self.c.Contexts().CustomPatchBuilder, opts)
+		return self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
 	}
 
 	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.To != self.context().GetRef().RefName() {

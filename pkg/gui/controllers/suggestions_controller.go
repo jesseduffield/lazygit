@@ -72,7 +72,7 @@ func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []
 func (self *SuggestionsController) switchToConfirmation() error {
 	self.c.Views().Suggestions.Subtitle = ""
 	self.c.Views().Suggestions.Highlight = false
-	return self.c.ReplaceContext(self.c.Contexts().Confirmation)
+	return self.c.Context().Replace(self.c.Contexts().Confirmation)
 }
 
 func (self *SuggestionsController) GetOnFocusLost() func(types.OnFocusLostOpts) error {

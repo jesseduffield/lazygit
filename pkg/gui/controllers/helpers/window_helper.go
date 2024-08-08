@@ -61,7 +61,7 @@ func (self *WindowHelper) windowViewNameMap() *utils.ThreadSafeMap[string, strin
 }
 
 func (self *WindowHelper) CurrentWindow() string {
-	return self.c.CurrentContext().GetWindowName()
+	return self.c.Context().Current().GetWindowName()
 }
 
 // assumes the context's windowName has been set to the new window if necessary

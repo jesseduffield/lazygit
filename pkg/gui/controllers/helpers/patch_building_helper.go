@@ -34,14 +34,14 @@ func (self *PatchBuildingHelper) ValidateNormalWorkingTreeState() (bool, error) 
 
 // takes us from the patch building panel back to the commit files panel
 func (self *PatchBuildingHelper) Escape() error {
-	return self.c.PopContext()
+	return self.c.Context().Pop()
 }
 
 // kills the custom patch and returns us back to the commit files panel if needed
 func (self *PatchBuildingHelper) Reset() error {
 	self.c.Git().Patch.PatchBuilder.Reset()
 
-	if self.c.CurrentStaticContext().GetKind() != types.SIDE_CONTEXT {
+	if self.c.Context().CurrentStatic().GetKind() != types.SIDE_CONTEXT {
 		if err := self.Escape(); err != nil {
 			return err
 		}
@@ -54,7 +54,7 @@ func (self *PatchBuildingHelper) Reset() error {
 	}
 
 	// refreshing the current context so that the secondary panel is hidden if necessary.
-	return self.c.PostRefreshUpdate(self.c.CurrentContext())
+	return self.c.PostRefreshUpdate(self.c.Context().Current())
 }
 
 func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpts) error {

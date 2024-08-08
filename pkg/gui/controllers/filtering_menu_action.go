@@ -14,7 +14,7 @@ type FilteringMenuAction struct {
 func (self *FilteringMenuAction) Call() error {
 	fileName := ""
 	author := ""
-	switch self.c.CurrentSideContext() {
+	switch self.c.Context().CurrentSide() {
 	case self.c.Contexts().Files:
 		node := self.c.Contexts().Files.GetSelected()
 		if node != nil {
@@ -116,7 +116,7 @@ func (self *FilteringMenuAction) setFiltering() error {
 		repoState.SetScreenMode(types.SCREEN_HALF)
 	}
 
-	if err := self.c.PushContext(self.c.Contexts().LocalCommits); err != nil {
+	if err := self.c.Context().Push(self.c.Contexts().LocalCommits); err != nil {
 		return err
 	}
 

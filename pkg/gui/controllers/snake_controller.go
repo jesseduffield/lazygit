@@ -75,5 +75,5 @@ func (self *SnakeController) SetDirection(direction snake.Direction) func() erro
 }
 
 func (self *SnakeController) Escape() error {
-	return self.c.PushContext(self.c.Contexts().Submodules)
+	return self.c.Context().Push(self.c.Contexts().Submodules)
 }

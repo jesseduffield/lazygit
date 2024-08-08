@@ -85,7 +85,7 @@ func (self *CommitMessageController) handleNextCommit() error {
 }
 
 func (self *CommitMessageController) switchToCommitDescription() error {
-	if err := self.c.ReplaceContext(self.c.Contexts().CommitDescription); err != nil {
+	if err := self.c.Context().Replace(self.c.Contexts().CommitDescription); err != nil {
 		return err
 	}
 	return nil

@@ -113,7 +113,7 @@ func (self *StatusController) onClick(opts gocui.ViewMouseBindingOpts) error {
 		return nil
 	}
 
-	if err := self.c.PushContext(self.Context()); err != nil {
+	if err := self.c.Context().Push(self.Context()); err != nil {
 		return err
 	}
 

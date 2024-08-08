@@ -83,11 +83,11 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) erro
 	}
 
 	if mainState == nil && !secondaryFocused {
-		return self.c.PushContext(secondaryContext, focusOpts)
+		return self.c.Context().Push(secondaryContext, focusOpts)
 	}
 
 	if secondaryState == nil && secondaryFocused {
-		return self.c.PushContext(mainContext, focusOpts)
+		return self.c.Context().Push(mainContext, focusOpts)
 	}
 
 	if secondaryFocused {
@@ -110,13 +110,13 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) erro
 }
 
 func (self *StagingHelper) handleStagingEscape() error {
-	return self.c.PushContext(self.c.Contexts().Files)
+	return self.c.Context().Push(self.c.Contexts().Files)
 }
 
 func (self *StagingHelper) secondaryStagingFocused() bool {
-	return self.c.CurrentStaticContext().GetKey() == self.c.Contexts().StagingSecondary.GetKey()
+	return self.c.Context().CurrentStatic().GetKey() == self.c.Contexts().StagingSecondary.GetKey()
 }
 
 func (self *StagingHelper) mainStagingFocused() bool {
-	return self.c.CurrentStaticContext().GetKey() == self.c.Contexts().Staging.GetKey()
+	return self.c.Context().CurrentStatic().GetKey() == self.c.Contexts().Staging.GetKey()
 }

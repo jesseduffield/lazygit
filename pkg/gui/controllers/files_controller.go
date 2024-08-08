@@ -500,7 +500,7 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 		return errors.New(self.c.Tr.FileStagingRequirements)
 	}
 
-	return self.c.PushContext(self.c.Contexts().Staging, opts)
+	return self.c.Context().Push(self.c.Contexts().Staging, opts)
 }
 
 func (self *FilesController) toggleStagedAll() error {

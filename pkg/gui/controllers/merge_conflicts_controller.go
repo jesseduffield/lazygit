@@ -194,7 +194,7 @@ func (self *MergeConflictsController) context() *context.MergeConflictsContext {
 }
 
 func (self *MergeConflictsController) Escape() error {
-	return self.c.PopContext()
+	return self.c.Context().Pop()
 }
 
 func (self *MergeConflictsController) HandleEditFile() error {

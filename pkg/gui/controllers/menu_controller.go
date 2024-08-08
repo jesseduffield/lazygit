@@ -79,7 +79,7 @@ func (self *MenuController) close() error {
 		return nil
 	}
 
-	return self.c.PopContext()
+	return self.c.Context().Pop()
 }
 
 func (self *MenuController) context() *context.MenuContext {

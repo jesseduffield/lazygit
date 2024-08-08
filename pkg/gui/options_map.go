@@ -33,7 +33,7 @@ func (gui *Gui) renderContextOptionsMap() {
 // to want to press that key. For example, when in cherry-picking mode, we
 // want to prominently show the keybinding for pasting commits.
 func (self *OptionsMapMgr) renderContextOptionsMap() {
-	currentContext := self.c.CurrentContext()
+	currentContext := self.c.Context().Current()
 
 	currentContextBindings := currentContext.GetKeybindings(self.c.KeybindingsOpts())
 	globalBindings := self.c.Contexts().Global.GetKeybindings(self.c.KeybindingsOpts())

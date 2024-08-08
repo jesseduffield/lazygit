@@ -48,6 +48,6 @@ func (self *JumpToSideWindowController) goToSideWindow(window string) func() err
 	return func() error {
 		context := self.c.Helpers().Window.GetContextForWindow(window)
 
-		return self.c.PushContext(context)
+		return self.c.Context().Push(context)
 	}
 }

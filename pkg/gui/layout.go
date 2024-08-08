@@ -211,8 +211,8 @@ func (gui *Gui) onInitialViewsCreationForRepo() error {
 		}
 	}
 
-	initialContext := gui.c.CurrentContext()
-	if err := gui.c.ActivateContext(initialContext); err != nil {
+	initialContext := gui.c.Context().Current()
+	if err := gui.c.Context().Activate(initialContext, types.OnFocusOpts{}); err != nil {
 		return err
 	}
 

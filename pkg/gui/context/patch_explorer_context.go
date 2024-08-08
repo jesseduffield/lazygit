@@ -53,7 +53,7 @@ func NewPatchExplorerContext(
 		func(selectedLineIdx int) error {
 			ctx.GetMutex().Lock()
 			defer ctx.GetMutex().Unlock()
-			return ctx.NavigateTo(ctx.c.IsCurrentContext(ctx), selectedLineIdx)
+			return ctx.NavigateTo(ctx.c.Context().IsCurrent(ctx), selectedLineIdx)
 		}),
 	)
 

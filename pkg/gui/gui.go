@@ -335,7 +335,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		}
 	}
 
-	if err := gui.c.PushContext(contextToPush); err != nil {
+	if err := gui.c.Context().Push(contextToPush); err != nil {
 		return err
 	}
 
@@ -360,7 +360,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 		gui.State.CurrentPopupOpts = nil
 		gui.Mutexes.PopupMutex.Unlock()
 
-		return gui.c.CurrentContext()
+		return gui.c.Context().Current()
 	}
 
 	contextTree := gui.contextTree()

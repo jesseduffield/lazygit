@@ -15,9 +15,9 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 			{
 				Label: gui.c.Tr.ToggleShowCommandLog,
 				OnPress: func() error {
-					currentContext := gui.c.CurrentStaticContext()
+					currentContext := gui.c.Context().CurrentStatic()
 					if gui.c.State().GetShowExtrasWindow() && currentContext.GetKey() == context.COMMAND_LOG_CONTEXT_KEY {
-						if err := gui.c.PopContext(); err != nil {
+						if err := gui.c.Context().Pop(); err != nil {
 							return err
 						}
 					}
@@ -39,8 +39,8 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 func (gui *Gui) handleFocusCommandLog() error {
 	gui.c.State().SetShowExtrasWindow(true)
 	// TODO: is this necessary? Can't I just call 'return from context'?
-	gui.State.Contexts.CommandLog.SetParentContext(gui.c.CurrentSideContext())
-	return gui.c.PushContext(gui.State.Contexts.CommandLog)
+	gui.State.Contexts.CommandLog.SetParentContext(gui.c.Context().CurrentSide())
+	return gui.c.Context().Push(gui.State.Contexts.CommandLog)
 }
 
 func (gui *Gui) scrollUpExtra() error {

@@ -78,7 +78,7 @@ func (gui *Gui) onViewTabClick(windowName string, tabIndex int) error {
 		return nil
 	}
 
-	return gui.c.PushContext(context)
+	return gui.c.Context().Push(context)
 }
 
 func (gui *Gui) handleNextTab() error {
@@ -119,7 +119,7 @@ func (gui *Gui) handlePrevTab() error {
 
 func getTabbedView(gui *Gui) *gocui.View {
 	// It safe assumption that only static contexts have tabs
-	context := gui.c.CurrentStaticContext()
+	context := gui.c.Context().CurrentStatic()
 	view, _ := gui.g.View(context.GetViewName())
 	return view
 }
