@@ -71,8 +71,8 @@ func (self *QuitActions) Escape() error {
 		}
 	}
 
-	parentContext, hasParent := currentContext.GetParentContext()
-	if hasParent && currentContext != nil && parentContext != nil {
+	parentContext := currentContext.GetParentContext()
+	if parentContext != nil {
 		// TODO: think about whether this should be marked as a return rather than adding to the stack
 		return self.c.Context().Push(parentContext)
 	}

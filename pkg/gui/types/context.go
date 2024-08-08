@@ -35,8 +35,7 @@ const (
 
 type ParentContexter interface {
 	SetParentContext(Context)
-	// we return a bool here to tell us whether or not the returned value just wraps a nil
-	GetParentContext() (Context, bool)
+	GetParentContext() Context
 }
 
 type NeedsRerenderOnWidthChangeLevel int

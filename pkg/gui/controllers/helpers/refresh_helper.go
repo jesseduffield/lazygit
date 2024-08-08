@@ -276,8 +276,8 @@ func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, keepB
 
 func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
 	_ = self.refreshCommitsWithLimit()
-	ctx, ok := self.c.Contexts().CommitFiles.GetParentContext()
-	if ok && ctx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
+	ctx := self.c.Contexts().CommitFiles.GetParentContext()
+	if ctx != nil && ctx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
 		// This makes sense when we've e.g. just amended a commit, meaning we get a new commit hash at the same position.
 		// However if we've just added a brand new commit, it pushes the list down by one and so we would end up
 		// showing the contents of a different commit than the one we initially entered.
