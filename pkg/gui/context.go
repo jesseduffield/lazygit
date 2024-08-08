@@ -167,36 +167,6 @@ func (self *ContextMgr) Pop() error {
 	return self.ActivateContext(newContext, types.OnFocusOpts{})
 }
 
-func (self *ContextMgr) RemoveContexts(contextsToRemove []types.Context) error {
-	self.Lock()
-
-	if len(self.ContextStack) == 1 {
-		self.Unlock()
-		return nil
-	}
-
-	rest := lo.Filter(self.ContextStack, func(context types.Context, _ int) bool {
-		for _, contextToRemove := range contextsToRemove {
-			if context.GetKey() == contextToRemove.GetKey() {
-				return false
-			}
-		}
-		return true
-	})
-	self.ContextStack = rest
-	contextToActivate := rest[len(rest)-1]
-	self.Unlock()
-
-	for _, context := range contextsToRemove {
-		if err := self.deactivateContext(context, types.OnFocusLostOpts{NewContextKey: contextToActivate.GetKey()}); err != nil {
-			return err
-		}
-	}
-
-	// activate the item at the top of the stack
-	return self.ActivateContext(contextToActivate, types.OnFocusOpts{})
-}
-
 func (self *ContextMgr) deactivateContext(c types.Context, opts types.OnFocusLostOpts) error {
 	view, _ := self.gui.c.GocuiGui().View(c.GetViewName())
 
