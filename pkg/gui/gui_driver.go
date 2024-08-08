@@ -75,7 +75,7 @@ func (self *GuiDriver) Keys() config.KeybindingConfig {
 }
 
 func (self *GuiDriver) CurrentContext() types.Context {
-	return self.gui.c.CurrentContext()
+	return self.gui.c.Context().Current()
 }
 
 func (self *GuiDriver) ContextForView(viewName string) types.Context {

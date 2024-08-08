@@ -49,7 +49,7 @@ func (self *QuitActions) confirmQuitDuringUpdate() error {
 }
 
 func (self *QuitActions) Escape() error {
-	currentContext := self.c.CurrentContext()
+	currentContext := self.c.Context().Current()
 
 	if listContext, ok := currentContext.(types.IListContext); ok {
 		if listContext.GetList().IsSelectingRange() {

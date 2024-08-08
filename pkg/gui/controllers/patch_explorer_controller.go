@@ -293,7 +293,7 @@ func (self *PatchExplorerController) CopySelectedToClipboard() error {
 }
 
 func (self *PatchExplorerController) isFocused() bool {
-	return self.c.CurrentContext().GetKey() == self.context.GetKey()
+	return self.c.Context().Current().GetKey() == self.context.GetKey()
 }
 
 func (self *PatchExplorerController) withRenderAndFocus(f func() error) func() error {

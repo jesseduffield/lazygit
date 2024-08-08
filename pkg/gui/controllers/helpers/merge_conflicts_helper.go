@@ -123,7 +123,7 @@ func (self *MergeConflictsHelper) RefreshMergeState() error {
 	self.c.Contexts().MergeConflicts.GetMutex().Lock()
 	defer self.c.Contexts().MergeConflicts.GetMutex().Unlock()
 
-	if self.c.CurrentContext().GetKey() != context.MERGE_CONFLICTS_CONTEXT_KEY {
+	if self.c.Context().Current().GetKey() != context.MERGE_CONFLICTS_CONTEXT_KEY {
 		return nil
 	}
 

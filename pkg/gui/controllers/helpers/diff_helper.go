@@ -93,7 +93,7 @@ func (self *DiffHelper) currentDiffTerminal() string {
 }
 
 func (self *DiffHelper) currentlySelectedFilename() string {
-	currentContext := self.c.CurrentContext()
+	currentContext := self.c.Context().Current()
 
 	switch currentContext := currentContext.(type) {
 	case types.IListContext:

@@ -178,7 +178,7 @@ func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error
 }
 
 func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileNode) error {
-	parentContext, ok := self.c.CurrentContext().GetParentContext()
+	parentContext, ok := self.c.Context().Current().GetParentContext()
 	if !ok || parentContext.GetKey() != context.LOCAL_COMMITS_CONTEXT_KEY {
 		return errors.New(self.c.Tr.CanOnlyDiscardFromLocalCommits)
 	}

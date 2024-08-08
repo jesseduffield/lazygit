@@ -262,7 +262,7 @@ func (self *SearchHelper) ReApplySearch(ctx types.Context) {
 		if ctx == state.Context {
 			// Re-render the "x of y" search status, unless the search prompt is
 			// open for typing.
-			if self.c.CurrentContext().GetKey() != context.SEARCH_CONTEXT_KEY {
+			if self.c.Context().Current().GetKey() != context.SEARCH_CONTEXT_KEY {
 				self.RenderSearchStatus(searchableContext)
 			}
 		}

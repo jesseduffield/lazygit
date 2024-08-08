@@ -431,7 +431,7 @@ func (self *ConfirmationHelper) IsPopupPanel(context types.Context) bool {
 }
 
 func (self *ConfirmationHelper) IsPopupPanelFocused() bool {
-	return self.IsPopupPanel(self.c.CurrentContext())
+	return self.IsPopupPanel(self.c.Context().Current())
 }
 
 func (self *ConfirmationHelper) TooltipForMenuItem(menuItem *types.MenuItem) string {

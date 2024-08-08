@@ -54,7 +54,7 @@ func (self *PatchBuildingHelper) Reset() error {
 	}
 
 	// refreshing the current context so that the secondary panel is hidden if necessary.
-	return self.c.PostRefreshUpdate(self.c.CurrentContext())
+	return self.c.PostRefreshUpdate(self.c.Context().Current())
 }
 
 func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpts) error {

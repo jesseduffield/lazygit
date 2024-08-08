@@ -27,7 +27,7 @@ func (gui *Gui) scrollDownView(view *gocui.View) {
 
 func (gui *Gui) scrollUpMain() error {
 	var view *gocui.View
-	if gui.c.CurrentContext().GetWindowName() == "secondary" {
+	if gui.c.Context().Current().GetWindowName() == "secondary" {
 		view = gui.secondaryView()
 	} else {
 		view = gui.mainView()
@@ -48,7 +48,7 @@ func (gui *Gui) scrollUpMain() error {
 
 func (gui *Gui) scrollDownMain() error {
 	var view *gocui.View
-	if gui.c.CurrentContext().GetWindowName() == "secondary" {
+	if gui.c.Context().Current().GetWindowName() == "secondary" {
 		view = gui.secondaryView()
 	} else {
 		view = gui.mainView()

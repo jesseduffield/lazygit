@@ -360,7 +360,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 		gui.State.CurrentPopupOpts = nil
 		gui.Mutexes.PopupMutex.Unlock()
 
-		return gui.c.CurrentContext()
+		return gui.c.Context().Current()
 	}
 
 	contextTree := gui.contextTree()

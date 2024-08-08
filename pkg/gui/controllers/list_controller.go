@@ -185,7 +185,7 @@ func (self *ListController) pushContextIfNotFocused() error {
 }
 
 func (self *ListController) isFocused() bool {
-	return self.c.CurrentContext().GetKey() == self.context.GetKey()
+	return self.c.Context().Current().GetKey() == self.context.GetKey()
 }
 
 func (self *ListController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {

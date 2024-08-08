@@ -66,7 +66,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 			},
 		}...)
 
-		if self.c.CurrentContext().GetKey() == self.c.Contexts().LocalCommits.GetKey() {
+		if self.c.Context().Current().GetKey() == self.c.Contexts().LocalCommits.GetKey() {
 			selectedCommit := self.c.Contexts().LocalCommits.GetSelected()
 			if selectedCommit != nil && self.c.Git().Patch.PatchBuilder.To != selectedCommit.Hash {
 
@@ -122,7 +122,7 @@ func (self *CustomPatchOptionsMenuAction) validateNormalWorkingTreeState() (bool
 }
 
 func (self *CustomPatchOptionsMenuAction) returnFocusFromPatchExplorerIfNecessary() error {
-	if self.c.CurrentContext().GetKey() == self.c.Contexts().CustomPatchBuilder.GetKey() {
+	if self.c.Context().Current().GetKey() == self.c.Contexts().CustomPatchBuilder.GetKey() {
 		return self.c.Helpers().PatchBuilding.Escape()
 	}
 	return nil
