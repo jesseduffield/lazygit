@@ -53,10 +53,6 @@ func (self *guiCommon) ContextForKey(key types.ContextKey) types.Context {
 	return self.gui.State.ContextMgr.ContextForKey(key)
 }
 
-func (self *guiCommon) ActivateContext(context types.Context) error {
-	return self.gui.State.ContextMgr.Activate(context, types.OnFocusOpts{})
-}
-
 func (self *guiCommon) GetAppState() *config.AppState {
 	return self.gui.Config.GetAppState()
 }

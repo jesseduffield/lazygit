@@ -60,8 +60,6 @@ type IGuiCommon interface {
 	Context() IContextMgr
 	ContextForKey(key ContextKey) Context
 
-	ActivateContext(context Context) error
-
 	GetConfig() config.AppConfigurer
 	GetAppState() *config.AppState
 	SaveAppState() error

@@ -279,6 +279,7 @@ type IContextMgr interface {
 	Push(context Context, opts ...OnFocusOpts) error
 	Pop() error
 	Replace(context Context) error
+	Activate(context Context, opts OnFocusOpts) error
 	Current() Context
 	CurrentStatic() Context
 	CurrentSide() Context
