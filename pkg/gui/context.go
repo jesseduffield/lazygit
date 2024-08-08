@@ -53,7 +53,7 @@ func (self *ContextMgr) Replace(c types.Context) error {
 
 	defer self.Unlock()
 
-	return self.ActivateContext(c, types.OnFocusOpts{})
+	return self.Activate(c, types.OnFocusOpts{})
 }
 
 func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) error {
@@ -74,7 +74,7 @@ func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) error {
 	contextsToDeactivate, contextToActivate := self.pushToContextStack(c)
 
 	for _, contextToDeactivate := range contextsToDeactivate {
-		if err := self.deactivateContext(contextToDeactivate, types.OnFocusLostOpts{NewContextKey: c.GetKey()}); err != nil {
+		if err := self.deactivate(contextToDeactivate, types.OnFocusLostOpts{NewContextKey: c.GetKey()}); err != nil {
 			return err
 		}
 	}
@@ -83,7 +83,7 @@ func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) error {
 		return nil
 	}
 
-	return self.ActivateContext(contextToActivate, singleOpts)
+	return self.Activate(contextToActivate, singleOpts)
 }
 
 // Adjusts the context stack based on the context that's being pushed and
@@ -160,14 +160,14 @@ func (self *ContextMgr) Pop() error {
 
 	self.Unlock()
 
-	if err := self.deactivateContext(currentContext, types.OnFocusLostOpts{NewContextKey: newContext.GetKey()}); err != nil {
+	if err := self.deactivate(currentContext, types.OnFocusLostOpts{NewContextKey: newContext.GetKey()}); err != nil {
 		return err
 	}
 
-	return self.ActivateContext(newContext, types.OnFocusOpts{})
+	return self.Activate(newContext, types.OnFocusOpts{})
 }
 
-func (self *ContextMgr) deactivateContext(c types.Context, opts types.OnFocusLostOpts) error {
+func (self *ContextMgr) deactivate(c types.Context, opts types.OnFocusLostOpts) error {
 	view, _ := self.gui.c.GocuiGui().View(c.GetViewName())
 
 	if opts.NewContextKey != context.SEARCH_CONTEXT_KEY {
@@ -190,7 +190,7 @@ func (self *ContextMgr) deactivateContext(c types.Context, opts types.OnFocusLos
 	return nil
 }
 
-func (self *ContextMgr) ActivateContext(c types.Context, opts types.OnFocusOpts) error {
+func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) error {
 	viewName := c.GetViewName()
 	v, err := self.gui.c.GocuiGui().View(viewName)
 	if err != nil {
