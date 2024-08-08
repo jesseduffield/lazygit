@@ -45,10 +45,6 @@ func (self *guiCommon) RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error) {
 	return self.gui.runSubprocessWithSuspense(cmdObj)
 }
 
-func (self *guiCommon) IsCurrentContext(c types.Context) bool {
-	return self.gui.State.ContextMgr.IsCurrent(c)
-}
-
 func (self *guiCommon) Context() types.IContextMgr {
 	return self.gui.State.ContextMgr
 }

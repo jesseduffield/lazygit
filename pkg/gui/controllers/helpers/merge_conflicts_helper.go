@@ -61,7 +61,7 @@ func (self *MergeConflictsHelper) EscapeMerge() error {
 		// to continue the merge/rebase. In that case, we don't want to then push the
 		// files context over it.
 		// So long as both places call OnUIThread, we're fine.
-		if self.c.IsCurrentContext(self.c.Contexts().MergeConflicts) {
+		if self.c.Context().IsCurrent(self.c.Contexts().MergeConflicts) {
 			return self.c.Context().Push(self.c.Contexts().Files)
 		}
 		return nil
