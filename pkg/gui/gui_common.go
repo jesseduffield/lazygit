@@ -45,10 +45,6 @@ func (self *guiCommon) RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error) {
 	return self.gui.runSubprocessWithSuspense(cmdObj)
 }
 
-func (self *guiCommon) CurrentPopupContexts() []types.Context {
-	return self.gui.State.ContextMgr.CurrentPopup()
-}
-
 func (self *guiCommon) IsCurrentContext(c types.Context) bool {
 	return self.gui.State.ContextMgr.IsCurrent(c)
 }

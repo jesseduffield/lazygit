@@ -282,6 +282,7 @@ type IContextMgr interface {
 	Current() Context
 	CurrentStatic() Context
 	CurrentSide() Context
+	CurrentPopup() []Context
 	IsCurrent(c Context) bool
 	ForEach(func(Context))
 	AllList() []IListContext

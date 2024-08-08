@@ -325,7 +325,7 @@ func (self *ConfirmationHelper) getSelectedSuggestionValue() string {
 
 func (self *ConfirmationHelper) ResizeCurrentPopupPanels() {
 	var parentPopupContext types.Context
-	for _, c := range self.c.CurrentPopupContexts() {
+	for _, c := range self.c.Context().CurrentPopup() {
 		switch c {
 		case self.c.Contexts().Menu:
 			self.resizeMenu(parentPopupContext)
