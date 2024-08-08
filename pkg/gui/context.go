@@ -362,7 +362,7 @@ func (self *ContextMgr) ContextForKey(key types.ContextKey) types.Context {
 	return nil
 }
 
-func (self *ContextMgr) PopupContexts() []types.Context {
+func (self *ContextMgr) CurrentPopup() []types.Context {
 	self.RLock()
 	defer self.RUnlock()
 
