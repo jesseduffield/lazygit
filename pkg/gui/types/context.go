@@ -284,6 +284,7 @@ type IContextMgr interface {
 	CurrentSide() Context
 	CurrentPopup() []Context
 	IsCurrent(c Context) bool
+	IsCurrentOrParent(c Context) bool
 	ForEach(func(Context))
 	AllList() []IListContext
 	AllFilterable() []IFilterableContext
