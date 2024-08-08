@@ -114,9 +114,9 @@ func (self *StagingHelper) handleStagingEscape() error {
 }
 
 func (self *StagingHelper) secondaryStagingFocused() bool {
-	return self.c.CurrentStaticContext().GetKey() == self.c.Contexts().StagingSecondary.GetKey()
+	return self.c.Context().CurrentStatic().GetKey() == self.c.Contexts().StagingSecondary.GetKey()
 }
 
 func (self *StagingHelper) mainStagingFocused() bool {
-	return self.c.CurrentStaticContext().GetKey() == self.c.Contexts().Staging.GetKey()
+	return self.c.Context().CurrentStatic().GetKey() == self.c.Contexts().Staging.GetKey()
 }

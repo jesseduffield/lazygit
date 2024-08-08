@@ -57,7 +57,6 @@ type IGuiCommon interface {
 	RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error)
 	RunSubprocessAndRefresh(oscommands.ICmdObj) error
 
-	CurrentStaticContext() Context
 	CurrentSideContext() Context
 	CurrentPopupContexts() []Context
 	IsCurrentContext(Context) bool

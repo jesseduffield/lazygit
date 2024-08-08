@@ -119,7 +119,7 @@ func (gui *Gui) handlePrevTab() error {
 
 func getTabbedView(gui *Gui) *gocui.View {
 	// It safe assumption that only static contexts have tabs
-	context := gui.c.CurrentStaticContext()
+	context := gui.c.Context().CurrentStatic()
 	view, _ := gui.g.View(context.GetViewName())
 	return view
 }

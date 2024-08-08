@@ -15,7 +15,7 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 			{
 				Label: gui.c.Tr.ToggleShowCommandLog,
 				OnPress: func() error {
-					currentContext := gui.c.CurrentStaticContext()
+					currentContext := gui.c.Context().CurrentStatic()
 					if gui.c.State().GetShowExtrasWindow() && currentContext.GetKey() == context.COMMAND_LOG_CONTEXT_KEY {
 						if err := gui.c.Context().Pop(); err != nil {
 							return err

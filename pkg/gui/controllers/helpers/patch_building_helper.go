@@ -41,7 +41,7 @@ func (self *PatchBuildingHelper) Escape() error {
 func (self *PatchBuildingHelper) Reset() error {
 	self.c.Git().Patch.PatchBuilder.Reset()
 
-	if self.c.CurrentStaticContext().GetKind() != types.SIDE_CONTEXT {
+	if self.c.Context().CurrentStatic().GetKind() != types.SIDE_CONTEXT {
 		if err := self.Escape(); err != nil {
 			return err
 		}
