@@ -57,7 +57,6 @@ type IGuiCommon interface {
 	RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error)
 	RunSubprocessAndRefresh(oscommands.ICmdObj) error
 
-	ReplaceContext(context Context) error
 	// Removes all given contexts from the stack. If a given context is not in the stack, it is ignored.
 	// This is for when you have a group of contexts that are bundled together e.g. with the commit message panel.
 	// If you want to remove a single context, you should probably use PopContext instead.

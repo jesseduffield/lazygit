@@ -45,10 +45,6 @@ func (self *guiCommon) RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error) {
 	return self.gui.runSubprocessWithSuspense(cmdObj)
 }
 
-func (self *guiCommon) ReplaceContext(context types.Context) error {
-	return self.gui.State.ContextMgr.Replace(context)
-}
-
 func (self *guiCommon) RemoveContexts(contexts []types.Context) error {
 	return self.gui.State.ContextMgr.RemoveContexts(contexts)
 }
