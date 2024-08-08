@@ -193,7 +193,7 @@ func (self *CommitsHelper) CloseCommitMessagePanel() error {
 	self.c.Views().CommitMessage.Visible = false
 	self.c.Views().CommitDescription.Visible = false
 
-	return self.c.PopContext()
+	return self.c.Context().Pop()
 }
 
 func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.Suggestion) error {

@@ -172,7 +172,7 @@ func (self *StagingController) Escape() error {
 		return self.c.PostRefreshUpdate(self.context)
 	}
 
-	return self.c.PopContext()
+	return self.c.Context().Pop()
 }
 
 func (self *StagingController) TogglePanel() error {

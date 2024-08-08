@@ -28,7 +28,7 @@ func (self *ConfirmationHelper) wrappedConfirmationFunction(cancel goContext.Can
 	return func() error {
 		cancel()
 
-		if err := self.c.PopContext(); err != nil {
+		if err := self.c.Context().Pop(); err != nil {
 			return err
 		}
 
