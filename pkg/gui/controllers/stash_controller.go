@@ -114,7 +114,7 @@ func (self *StashController) handleStashApply(stashEntry *models.StashEntry) err
 		return nil
 	}
 
-	if self.c.UserConfig.Gui.SkipStashWarning {
+	if self.c.UserConfig().Gui.SkipStashWarning {
 		return apply()
 	}
 
@@ -138,7 +138,7 @@ func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error
 		return nil
 	}
 
-	if self.c.UserConfig.Gui.SkipStashWarning {
+	if self.c.UserConfig().Gui.SkipStashWarning {
 		return pop()
 	}
 

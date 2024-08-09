@@ -48,8 +48,8 @@ func (self *TagsHelper) OpenCreateTagPrompt(ref string, onCreate func()) error {
 				self.c.Tr.ForceTagPrompt,
 				map[string]string{
 					"tagName":    tagName,
-					"cancelKey":  self.c.UserConfig.Keybinding.Universal.Return,
-					"confirmKey": self.c.UserConfig.Keybinding.Universal.Confirm,
+					"cancelKey":  self.c.UserConfig().Keybinding.Universal.Return,
+					"confirmKey": self.c.UserConfig().Keybinding.Universal.Confirm,
 				},
 			)
 			return self.c.Confirm(types.ConfirmOpts{

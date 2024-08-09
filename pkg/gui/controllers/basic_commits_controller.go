@@ -311,8 +311,8 @@ func (self *BasicCommitsController) canCopyCommits(selectedCommits []*models.Com
 func (self *BasicCommitsController) handleOldCherryPickKey() error {
 	msg := utils.ResolvePlaceholderString(self.c.Tr.OldCherryPickKeyWarning,
 		map[string]string{
-			"copy":  keybindings.Label(self.c.UserConfig.Keybinding.Commits.CherryPickCopy),
-			"paste": keybindings.Label(self.c.UserConfig.Keybinding.Commits.PasteCommits),
+			"copy":  keybindings.Label(self.c.UserConfig().Keybinding.Commits.CherryPickCopy),
+			"paste": keybindings.Label(self.c.UserConfig().Keybinding.Commits.PasteCommits),
 		})
 
 	return errors.New(msg)

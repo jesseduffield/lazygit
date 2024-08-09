@@ -3,7 +3,7 @@ package git_commands
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -233,7 +233,7 @@ func (self *WorkingTreeCommands) Ignore(filename string) error {
 
 // Exclude adds a file to the .git/info/exclude for the repo
 func (self *WorkingTreeCommands) Exclude(filename string) error {
-	excludeFile := path.Join(self.repoPaths.repoGitDirPath, "info", "exclude")
+	excludeFile := filepath.Join(self.repoPaths.repoGitDirPath, "info", "exclude")
 	return self.os.AppendLineToFile(excludeFile, filename)
 }
 
@@ -245,7 +245,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool,
 }
 
 func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) oscommands.ICmdObj {
-	colorArg := self.UserConfig.Git.Paging.ColorArg
+	colorArg := self.UserConfig().Git.Paging.ColorArg
 	if plain {
 		colorArg = "never"
 	}
@@ -253,7 +253,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	contextSize := self.AppState.DiffContextSize
 	prevPath := node.GetPreviousPath()
 	noIndex := !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached && node.GetIsFile()
-	extDiffCmd := self.UserConfig.Git.Paging.ExternalDiffCommand
+	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
 	useExtDiff := extDiffCmd != "" && !plain
 
 	cmdArgs := NewGitCmd("diff").
@@ -285,12 +285,12 @@ func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bo
 func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileName string, plain bool) oscommands.ICmdObj {
 	contextSize := self.AppState.DiffContextSize
 
-	colorArg := self.UserConfig.Git.Paging.ColorArg
+	colorArg := self.UserConfig().Git.Paging.ColorArg
 	if plain {
 		colorArg = "never"
 	}
 
-	extDiffCmd := self.UserConfig.Git.Paging.ExternalDiffCommand
+	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
 	useExtDiff := extDiffCmd != "" && !plain
 
 	cmdArgs := NewGitCmd("diff").

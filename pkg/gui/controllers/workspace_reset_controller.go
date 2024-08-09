@@ -35,7 +35,7 @@ func (self *FilesController) createResetMenu() error {
 					return err
 				}
 
-				if self.c.UserConfig.Gui.AnimateExplosion {
+				if self.c.UserConfig().Gui.AnimateExplosion {
 					self.animateExplosion()
 				}
 

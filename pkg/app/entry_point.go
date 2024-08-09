@@ -136,6 +136,12 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 
 	if integrationTest != nil {
 		integrationTest.SetupConfig(appConfig)
+
+		// Preserve the changes that the test setup just made to the config, so
+		// they don't get lost when we reload the config while running the test
+		// (which happens when switching between repos, going in and out of
+		// submodules, etc).
+		appConfig.SaveGlobalUserConfig()
 	}
 
 	common, err := NewCommon(appConfig)

@@ -31,7 +31,7 @@ func (self *UpdateHelper) CheckForUpdateInBackground() {
 		if newVersion == "" {
 			return nil
 		}
-		if self.c.UserConfig.Update.Method == "background" {
+		if self.c.UserConfig().Update.Method == "background" {
 			self.startUpdating(newVersion)
 			return nil
 		}

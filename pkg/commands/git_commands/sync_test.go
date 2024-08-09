@@ -133,7 +133,7 @@ func TestSyncFetch(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildSyncCommands(commonDeps{})
-			instance.UserConfig.Git.FetchAll = s.fetchAllConfig
+			instance.UserConfig().Git.FetchAll = s.fetchAllConfig
 			task := gocui.NewFakeTask()
 			s.test(instance.FetchCmdObj(task))
 		})
@@ -171,7 +171,7 @@ func TestSyncFetchBackground(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildSyncCommands(commonDeps{})
-			instance.UserConfig.Git.FetchAll = s.fetchAllConfig
+			instance.UserConfig().Git.FetchAll = s.fetchAllConfig
 			s.test(instance.FetchBackgroundCmdObj())
 		})
 	}

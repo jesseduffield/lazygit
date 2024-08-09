@@ -87,7 +87,7 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 	args := WindowArrangementArgs{
 		Width:               width,
 		Height:              height,
-		UserConfig:          self.c.UserConfig,
+		UserConfig:          self.c.UserConfig(),
 		CurrentWindow:       self.windowHelper.CurrentWindow(),
 		CurrentSideWindow:   self.c.CurrentSideContext().GetWindowName(),
 		CurrentStaticWindow: self.c.CurrentStaticContext().GetWindowName(),

@@ -51,7 +51,7 @@ func (self *SearchTrait) onSelectItemWrapper(innerFunc func(int) error) func(int
 }
 
 func (self *SearchTrait) RenderSearchStatus(index int, total int) {
-	keybindingConfig := self.c.UserConfig.Keybinding
+	keybindingConfig := self.c.UserConfig().Keybinding
 
 	if total == 0 {
 		self.c.SetViewContent(

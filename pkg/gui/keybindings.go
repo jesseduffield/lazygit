@@ -60,7 +60,7 @@ func (self *Gui) GetCheatsheetKeybindings() []*types.Binding {
 }
 
 func (self *Gui) keybindingOpts() types.KeybindingsOpts {
-	config := self.c.UserConfig.Keybinding
+	config := self.c.UserConfig().Keybinding
 
 	guards := types.KeybindingGuards{
 		OutsideFilterMode: self.outsideFilterMode,

@@ -58,9 +58,9 @@ func buildGitCommon(deps commonDeps) *GitCommon {
 	}
 	gitCommon.cmd = cmd
 
-	gitCommon.Common.UserConfig = deps.userConfig
-	if gitCommon.Common.UserConfig == nil {
-		gitCommon.Common.UserConfig = config.GetDefaultConfig()
+	gitCommon.Common.SetUserConfig(deps.userConfig)
+	if gitCommon.Common.UserConfig() == nil {
+		gitCommon.Common.SetUserConfig(config.GetDefaultConfig())
 	}
 
 	gitCommon.version = deps.gitVersion

@@ -140,7 +140,7 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 		}
 	}
 
-	if loadBehindCounts && self.UserConfig.Gui.ShowDivergenceFromBaseBranch != "none" {
+	if loadBehindCounts && self.UserConfig().Gui.ShowDivergenceFromBaseBranch != "none" {
 		onWorker(func() error {
 			return self.GetBehindBaseBranchValuesForAllBranches(branches, mainBranches, renderFunc)
 		})

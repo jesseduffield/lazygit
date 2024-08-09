@@ -32,7 +32,7 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 			c.Modes().Diffing.Ref,
 			c.Views().Branches.Width(),
 			c.Tr,
-			c.UserConfig,
+			c.UserConfig(),
 			c.Model().Worktrees,
 		)
 	}

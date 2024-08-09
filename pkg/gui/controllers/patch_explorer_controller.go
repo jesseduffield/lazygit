@@ -173,7 +173,7 @@ func (self *PatchExplorerController) HandlePrevLine() error {
 	after := self.context.GetState().GetSelectedLineIdx()
 
 	if self.context.GetState().SelectingLine() {
-		checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig, before, after)
+		checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig(), before, after)
 	}
 
 	return nil
@@ -185,7 +185,7 @@ func (self *PatchExplorerController) HandleNextLine() error {
 	after := self.context.GetState().GetSelectedLineIdx()
 
 	if self.context.GetState().SelectingLine() {
-		checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig, before, after)
+		checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig(), before, after)
 	}
 
 	return nil

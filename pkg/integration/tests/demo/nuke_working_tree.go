@@ -12,7 +12,7 @@ var NukeWorkingTree = NewIntegrationTest(NewIntegrationTestArgs{
 	IsDemo:       true,
 	SetupConfig: func(config *config.AppConfig) {
 		setDefaultDemoConfig(config)
-		config.UserConfig.Gui.AnimateExplosion = true
+		config.GetUserConfig().Gui.AnimateExplosion = true
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("blah")

@@ -13,7 +13,7 @@ var KeybindingSuggestionsWhenSwitchingRepos = NewIntegrationTest(NewIntegrationT
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 		otherRepo, _ := filepath.Abs("../other")
-		config.AppState.RecentRepos = []string{otherRepo}
+		config.GetAppState().RecentRepos = []string{otherRepo}
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CloneNonBare("other")

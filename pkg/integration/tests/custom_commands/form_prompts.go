@@ -13,7 +13,7 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("blah")
 	},
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.UserConfig.CustomCommands = []config.CustomCommand{
+		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
 				Key:     "a",
 				Context: "files",

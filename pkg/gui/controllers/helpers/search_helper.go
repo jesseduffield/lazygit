@@ -76,7 +76,7 @@ func (self *SearchHelper) DisplayFilterStatus(context types.IFilterableContext) 
 	self.searchPrefixView().SetContent(self.c.Tr.FilterPrefix)
 
 	promptView := self.promptView()
-	keybindingConfig := self.c.UserConfig.Keybinding
+	keybindingConfig := self.c.UserConfig().Keybinding
 	promptView.SetContent(fmt.Sprintf("matches for '%s' ", searchString) + theme.OptionsFgColor.Sprintf(self.c.Tr.ExitTextFilterMode, keybindings.Label(keybindingConfig.Universal.Return)))
 }
 
@@ -229,7 +229,7 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 	case types.IFilterableContext:
 		context.SetSelection(0)
 		_ = context.GetView().SetOriginY(0)
-		context.SetFilter(searchString, self.c.UserConfig.Gui.UseFuzzySearch())
+		context.SetFilter(searchString, self.c.UserConfig().Gui.UseFuzzySearch())
 		_ = self.c.PostRefreshUpdate(context)
 	case types.ISearchableContext:
 		// do nothing
@@ -246,7 +246,7 @@ func (self *SearchHelper) ReApplyFilter(context types.Context) {
 			filterableContext.SetSelection(0)
 			_ = filterableContext.GetView().SetOriginY(0)
 		}
-		filterableContext.ReApplyFilter(self.c.UserConfig.Gui.UseFuzzySearch())
+		filterableContext.ReApplyFilter(self.c.UserConfig().Gui.UseFuzzySearch())
 	}
 }
 

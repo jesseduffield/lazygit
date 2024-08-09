@@ -12,7 +12,7 @@ var AmendOldCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	IsDemo:       true,
 	SetupConfig: func(config *config.AppConfig) {
 		setDefaultDemoConfig(config)
-		config.UserConfig.Gui.ShowFileTree = false
+		config.GetUserConfig().Gui.ShowFileTree = false
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateNCommitsWithRandomMessages(60)

@@ -13,8 +13,8 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(config *config.AppConfig) {
 		setDefaultDemoConfig(config)
 
-		config.UserConfig.Gui.ShowFileTree = false
-		config.UserConfig.Gui.ShowCommandLog = false
+		config.GetUserConfig().Gui.ShowFileTree = false
+		config.GetUserConfig().Gui.ShowCommandLog = false
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateNCommitsWithRandomMessages(50)

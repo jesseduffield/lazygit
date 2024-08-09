@@ -10,10 +10,10 @@ var DisabledKeybindings = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.Keybinding.Universal.PrevItem = "<disabled>"
-		config.UserConfig.Keybinding.Universal.NextItem = "<disabled>"
-		config.UserConfig.Keybinding.Universal.NextTab = "<up>"
-		config.UserConfig.Keybinding.Universal.PrevTab = "<down>"
+		config.GetUserConfig().Keybinding.Universal.PrevItem = "<disabled>"
+		config.GetUserConfig().Keybinding.Universal.NextItem = "<disabled>"
+		config.GetUserConfig().Keybinding.Universal.NextTab = "<up>"
+		config.GetUserConfig().Keybinding.Universal.PrevTab = "<down>"
 	},
 	SetupRepo: func(shell *Shell) {},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {

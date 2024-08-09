@@ -51,7 +51,7 @@ func (self *ListController) HandleScrollRight() error {
 }
 
 func (self *ListController) HandleScrollUp() error {
-	scrollHeight := self.c.UserConfig.Gui.ScrollHeight
+	scrollHeight := self.c.UserConfig().Gui.ScrollHeight
 	self.context.GetViewTrait().ScrollUp(scrollHeight)
 	if self.context.RenderOnlyVisibleLines() {
 		return self.context.HandleRender()
@@ -61,7 +61,7 @@ func (self *ListController) HandleScrollUp() error {
 }
 
 func (self *ListController) HandleScrollDown() error {
-	scrollHeight := self.c.UserConfig.Gui.ScrollHeight
+	scrollHeight := self.c.UserConfig().Gui.ScrollHeight
 	self.context.GetViewTrait().ScrollDown(scrollHeight)
 	if self.context.RenderOnlyVisibleLines() {
 		return self.context.HandleRender()
@@ -106,10 +106,10 @@ func (self *ListController) handleLineChangeAux(f func(int), change int) error {
 	cursorMoved := before != after
 	if cursorMoved {
 		if change == -1 {
-			checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig,
+			checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig(),
 				self.context.ModelIndexToViewIndex(before), self.context.ModelIndexToViewIndex(after))
 		} else if change == 1 {
-			checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig,
+			checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig(),
 				self.context.ModelIndexToViewIndex(before), self.context.ModelIndexToViewIndex(after))
 		}
 	}

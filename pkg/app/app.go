@@ -63,22 +63,20 @@ func Run(
 func NewCommon(config config.AppConfigurer) (*common.Common, error) {
 	userConfig := config.GetUserConfig()
 	appState := config.GetAppState()
-
-	var err error
 	log := newLogger(config)
-	tr, err := i18n.NewTranslationSetFromConfig(log, userConfig.Gui.Language)
-	if err != nil {
-		return nil, err
-	}
+	// Initialize with English for the time being; the real translation set for
+	// the configured language will be read after reading the user config
+	tr := i18n.EnglishTranslationSet()
 
-	return &common.Common{
-		Log:        log,
-		Tr:         tr,
-		UserConfig: userConfig,
-		AppState:   appState,
-		Debug:      config.GetDebug(),
-		Fs:         afero.NewOsFs(),
-	}, nil
+	cmn := &common.Common{
+		Log:      log,
+		Tr:       tr,
+		AppState: appState,
+		Debug:    config.GetDebug(),
+		Fs:       afero.NewOsFs(),
+	}
+	cmn.SetUserConfig(userConfig)
+	return cmn, nil
 }
 
 func newLogger(cfg config.AppConfigurer) *logrus.Entry {
@@ -195,7 +193,7 @@ func (app *App) setupRepo(
 
 		var shouldInitRepo bool
 		initialBranchArg := ""
-		switch app.UserConfig.NotARepository {
+		switch app.UserConfig().NotARepository {
 		case "prompt":
 			// Offer to initialize a new repository in current directory.
 			fmt.Print(app.Tr.CreateRepo)

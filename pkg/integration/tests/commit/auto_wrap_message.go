@@ -11,7 +11,7 @@ var AutoWrapMessage = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 		// Use a ridiculously small width so that we don't have to use so much test data
-		config.UserConfig.Git.Commit.AutoWrapWidth = 20
+		config.GetUserConfig().Git.Commit.AutoWrapWidth = 20
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFile("file", "file content")

@@ -357,8 +357,8 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 	if err != nil {
 		return err
 	}
-	if self.c.UserConfig.Git.Commit.AutoWrapCommitMessage {
-		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig.Git.Commit.AutoWrapWidth)
+	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
+		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
 	}
 	return self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
@@ -429,7 +429,7 @@ func (self *LocalCommitsController) doRewordEditor() error {
 }
 
 func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
-	if self.c.UserConfig.Gui.SkipRewordInEditorWarning {
+	if self.c.UserConfig().Gui.SkipRewordInEditorWarning {
 		return self.doRewordEditor()
 	} else {
 		return self.c.Confirm(types.ConfirmOpts{
@@ -555,7 +555,7 @@ func (self *LocalCommitsController) findCommitForQuickStartInteractiveRebase() (
 
 	if !ok || index == 0 {
 		errorMsg := utils.ResolvePlaceholderString(self.c.Tr.CannotQuickStartInteractiveRebase, map[string]string{
-			"editKey": keybindings.Label(self.c.UserConfig.Keybinding.Universal.Edit),
+			"editKey": keybindings.Label(self.c.UserConfig().Keybinding.Universal.Edit),
 		})
 
 		return nil, errors.New(errorMsg)
@@ -896,8 +896,8 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 	if err != nil {
 		return err
 	}
-	if self.c.UserConfig.Git.Commit.AutoWrapCommitMessage {
-		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig.Git.Commit.AutoWrapWidth)
+	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
+		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
 	}
 	originalSubject, _, _ := strings.Cut(commitMessage, "\n")
 	return self.c.Helpers().Commits.OpenCommitMessagePanel(

@@ -322,9 +322,9 @@ func TestGetCommits(t *testing.T) {
 				},
 			}
 
-			common.UserConfig.Git.MainBranches = scenario.mainBranches
+			common.UserConfig().Git.MainBranches = scenario.mainBranches
 			opts := scenario.opts
-			opts.MainBranches = NewMainBranches(scenario.mainBranches, cmd)
+			opts.MainBranches = NewMainBranches(common, cmd)
 			commits, err := builder.GetCommits(opts)
 
 			assert.Equal(t, scenario.expectedCommits, commits)

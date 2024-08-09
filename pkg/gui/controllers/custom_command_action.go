@@ -60,7 +60,7 @@ func (self *CustomCommandAction) GetCustomCommandsHistorySuggestionsFunc() func(
 	return func(input string) []*types.Suggestion {
 		history := self.c.GetAppState().CustomCommandsHistory
 
-		return helpers.FilterFunc(history, self.c.UserConfig.Gui.UseFuzzySearch())(input)
+		return helpers.FilterFunc(history, self.c.UserConfig().Gui.UseFuzzySearch())(input)
 	}
 }
 
