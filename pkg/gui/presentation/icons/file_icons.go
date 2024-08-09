@@ -2,6 +2,7 @@ package icons
 
 import (
 	"path/filepath"
+	"strings"
 )
 
 // NOTE: Visit next links for inspiration:
@@ -728,7 +729,7 @@ func IconForFile(name string, isSubmodule bool, isLinkedWorktree bool, isDirecto
 		return icon
 	}
 
-	ext := filepath.Ext(name)
+	ext := strings.ToLower(filepath.Ext(name))
 	if icon, ok := extIconMap[ext]; ok {
 		return icon
 	}
