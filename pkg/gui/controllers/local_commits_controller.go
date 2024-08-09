@@ -207,14 +207,8 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description:       self.c.Tr.MarkAsBaseCommit,
 			Tooltip:           self.c.Tr.MarkAsBaseCommitTooltip,
 		},
-		// overriding these navigation keybindings because we might need to load
+		// overriding this navigation keybinding because we might need to load
 		// more commits on demand
-		{
-			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
-			Handler:     self.openSearch,
-			Description: self.c.Tr.StartSearch,
-			Tag:         "navigation",
-		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.GotoBottom),
 			Handler:     self.gotoBottom,
@@ -228,6 +222,14 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 	}
 
 	bindings := append(outsideFilterModeBindings, []*types.Binding{
+		// overriding this navigation keybinding because we might need to load
+		// more commits on demand
+		{
+			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
+			Handler:     self.openSearch,
+			Description: self.c.Tr.StartSearch,
+			Tag:         "navigation",
+		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.AmendToCommit),
 			Handler:           self.withItem(self.amendTo),
