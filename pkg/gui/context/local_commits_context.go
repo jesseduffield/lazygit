@@ -202,6 +202,15 @@ func shouldShowGraph(c *ContextCommon) bool {
 }
 
 func searchModelCommits(caseSensitive bool, commits []*models.Commit, columnPositions []int, searchStr string) []gocui.SearchPosition {
+	if columnPositions == nil {
+		// This should never happen. We are being called at a time where our
+		// entire view content is scrolled out of view, so that we didn't draw
+		// anything the last time we rendered. If we run into a scenario where
+		// this happens, we should fix it, but until we found them all, at least
+		// make sure we don't crash.
+		return []gocui.SearchPosition{}
+	}
+
 	normalize := lo.Ternary(caseSensitive, func(s string) string { return s }, strings.ToLower)
 	return lo.FilterMap(commits, func(commit *models.Commit, idx int) (gocui.SearchPosition, bool) {
 		// The XStart and XEnd values are only used if the search string can't
