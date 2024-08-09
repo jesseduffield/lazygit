@@ -10,15 +10,18 @@ import (
 
 type JumpToSideWindowController struct {
 	baseController
-	c *ControllerCommon
+	c           *ControllerCommon
+	nextTabFunc func() error
 }
 
 func NewJumpToSideWindowController(
 	c *ControllerCommon,
+	nextTabFunc func() error,
 ) *JumpToSideWindowController {
 	return &JumpToSideWindowController{
 		baseController: baseController{},
 		c:              c,
+		nextTabFunc:    nextTabFunc,
 	}
 }
 
@@ -46,6 +49,10 @@ func (self *JumpToSideWindowController) GetKeybindings(opts types.KeybindingsOpt
 
 func (self *JumpToSideWindowController) goToSideWindow(window string) func() error {
 	return func() error {
+		if self.c.Helpers().Window.CurrentWindow() == window {
+			return self.nextTabFunc()
+		}
+
 		context := self.c.Helpers().Window.GetContextForWindow(window)
 
 		return self.c.PushContext(context)

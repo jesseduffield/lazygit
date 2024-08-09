@@ -338,6 +338,7 @@ var tests = []*components.IntegrationTest{
 	ui.OpenLinkFailure,
 	ui.RangeSelect,
 	ui.SwitchTabFromMenu,
+	ui.SwitchTabWithPanelJumpKeys,
 	undo.UndoCheckoutAndDrop,
 	undo.UndoDrop,
 	worktree.AddFromBranch,
