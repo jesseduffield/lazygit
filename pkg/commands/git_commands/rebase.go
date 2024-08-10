@@ -35,6 +35,10 @@ func NewRebaseCommands(
 }
 
 func (self *RebaseCommands) RewordCommit(commits []*models.Commit, index int, summary string, description string) error {
+	if self.config.UsingGpg() {
+		return errors.New(self.Tr.DisabledForGPG)
+	}
+
 	if models.IsHeadCommit(commits, index) {
 		// we've selected the top commit so no rebase is required
 		return self.commit.RewordLastCommit(summary, description)
