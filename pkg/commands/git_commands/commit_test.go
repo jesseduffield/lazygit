@@ -33,7 +33,7 @@ func TestCommitRewordCommit(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildCommitCommands(commonDeps{runner: s.runner})
 
-			assert.NoError(t, instance.RewordLastCommit(s.summary, s.description))
+			assert.NoError(t, instance.RewordLastCommit(s.summary, s.description).Run())
 			s.runner.CheckForMissingCalls()
 		})
 	}

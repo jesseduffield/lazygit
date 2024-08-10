@@ -117,7 +117,7 @@ func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile s
 }
 
 // RewordLastCommit rewords the topmost commit with the given message
-func (self *CommitCommands) RewordLastCommit(summary string, description string) error {
+func (self *CommitCommands) RewordLastCommit(summary string, description string) oscommands.ICmdObj {
 	messageArgs := self.commitMessageArgs(summary, description)
 
 	cmdArgs := NewGitCmd("commit").
@@ -125,7 +125,7 @@ func (self *CommitCommands) RewordLastCommit(summary string, description string)
 		Arg(messageArgs...).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).Run()
+	return self.cmd.New(cmdArgs)
 }
 
 func (self *CommitCommands) commitMessageArgs(summary string, description string) []string {

@@ -39,18 +39,13 @@ func (self *RebaseCommands) RewordCommit(commits []*models.Commit, index int, su
 		return errors.New(self.Tr.DisabledForGPG)
 	}
 
-	if models.IsHeadCommit(commits, index) {
-		// we've selected the top commit so no rebase is required
-		return self.commit.RewordLastCommit(summary, description)
-	}
-
 	err := self.BeginInteractiveRebaseForCommit(commits, index, false)
 	if err != nil {
 		return err
 	}
 
 	// now the selected commit should be our head so we'll amend it with the new message
-	err = self.commit.RewordLastCommit(summary, description)
+	err = self.commit.RewordLastCommit(summary, description).Run()
 	if err != nil {
 		return err
 	}
