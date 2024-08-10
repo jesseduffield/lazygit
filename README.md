@@ -86,6 +86,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Fedora and RHEL](#fedora-and-rhel)
   - [Solus Linux](#solus-linux)
   - [Ubuntu](#ubuntu)
+  - [Ubuntu (ARM)](#ubuntu-arm)
   - [Funtoo Linux](#funtoo-linux)
   - [Gentoo Linux](#gentoo-linux)
   - [FreeBSD](#freebsd)
@@ -308,6 +309,21 @@ sudo eopkg install lazygit
 ```sh
 LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
 curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+tar xf lazygit.tar.gz lazygit
+sudo install lazygit /usr/local/bin
+```
+
+Verify the correct installation of lazygit:
+
+```sh
+lazygit --version
+```
+
+### Ubuntu (ARM)
+
+```sh
+LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_arm64.tar.gz"
 tar xf lazygit.tar.gz lazygit
 sudo install lazygit /usr/local/bin
 ```
