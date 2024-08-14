@@ -470,7 +470,7 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, comma
 	return nil
 }
 
-func (self *RebaseCommands) runSkipEditorCommand(cmdObj oscommands.ICmdObj) error {
+func (self *RebaseCommands) AddSkipEditorCommand(cmdObj oscommands.ICmdObj) oscommands.ICmdObj {
 	instruction := daemon.NewExitImmediatelyInstruction()
 	lazyGitPath := oscommands.GetLazygitPath()
 	return cmdObj.
@@ -480,8 +480,11 @@ func (self *RebaseCommands) runSkipEditorCommand(cmdObj oscommands.ICmdObj) erro
 			"EDITOR="+lazyGitPath,
 			"VISUAL="+lazyGitPath,
 		).
-		AddEnvVars(daemon.ToEnvVars(instruction)...).
-		Run()
+		AddEnvVars(daemon.ToEnvVars(instruction)...)
+}
+
+func (self *RebaseCommands) runSkipEditorCommand(cmdObj oscommands.ICmdObj) error {
+	return self.AddSkipEditorCommand(cmdObj).Run()
 }
 
 // DiscardOldFileChanges discards changes to a file from an old commit

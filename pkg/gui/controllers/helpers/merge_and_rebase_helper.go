@@ -123,7 +123,17 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 			self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command),
 		)
 	}
-	result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
+
+	runCmd := self.c.Git().Rebase.AddSkipEditorCommand(
+		self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command))
+
+	var result error = nil
+	if self.c.Git().Config.UsingGpg() && command != REBASE_OPTION_ABORT {
+		result = self.c.RunSubprocessAndRefresh(runCmd)
+	} else {
+		result = runCmd.Run()
+	}
+
 	if err := self.CheckMergeOrRebase(result); err != nil {
 		return err
 	}
