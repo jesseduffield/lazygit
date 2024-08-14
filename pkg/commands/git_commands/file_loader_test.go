@@ -5,27 +5,31 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFileGetStatusFiles(t *testing.T) {
 	type scenario struct {
-		testName      string
-		runner        oscommands.ICmdObjRunner
-		expectedFiles []*models.File
+		testName            string
+		similarityThreshold int
+		runner              oscommands.ICmdObjRunner
+		expectedFiles       []*models.File
 	}
 
 	scenarios := []scenario{
 		{
 			"No files found",
+			50,
 			oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z"}, "", nil),
+				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"}, "", nil),
 			[]*models.File{},
 		},
 		{
 			"Several files found",
+			50,
 			oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z"},
+				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
 					"MM file1.txt\x00A  file3.txt\x00AM file2.txt\x00?? file4.txt\x00UU file5.txt",
 					nil,
 				),
@@ -94,8 +98,9 @@ func TestFileGetStatusFiles(t *testing.T) {
 		},
 		{
 			"File with new line char",
+			50,
 			oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z"}, "MM a\nb.txt", nil),
+				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"}, "MM a\nb.txt", nil),
 			[]*models.File{
 				{
 					Name:                    "a\nb.txt",
@@ -113,8 +118,9 @@ func TestFileGetStatusFiles(t *testing.T) {
 		},
 		{
 			"Renamed files",
+			50,
 			oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z"},
+				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
 					"R  after1.txt\x00before1.txt\x00RM after2.txt\x00before2.txt",
 					nil,
 				),
@@ -149,8 +155,9 @@ func TestFileGetStatusFiles(t *testing.T) {
 		},
 		{
 			"File with arrow in name",
+			50,
 			oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z"},
+				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
 					`?? a -> b.txt`,
 					nil,
 				),
@@ -175,8 +182,11 @@ func TestFileGetStatusFiles(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			cmd := oscommands.NewDummyCmdObjBuilder(s.runner)
 
+			appState := &config.AppState{}
+			appState.RenameSimilarityThreshold = s.similarityThreshold
+
 			loader := &FileLoader{
-				GitCommon:   buildGitCommon(commonDeps{}),
+				GitCommon:   buildGitCommon(commonDeps{appState: appState}),
 				cmd:         cmd,
 				config:      &FakeFileLoaderConfig{showUntrackedFiles: "yes"},
 				getFileType: func(string) string { return "file" },

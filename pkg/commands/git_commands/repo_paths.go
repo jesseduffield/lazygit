@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	ioFs "io/fs"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -18,6 +19,7 @@ type RepoPaths struct {
 	repoPath           string
 	repoGitDirPath     string
 	repoName           string
+	isBareRepo         bool
 }
 
 var gitPathFormatVersion GitVersion = GitVersion{2, 31, 0, ""}
@@ -54,6 +56,10 @@ func (self *RepoPaths) RepoName() string {
 	return self.repoName
 }
 
+func (self *RepoPaths) IsBareRepo() bool {
+	return self.isBareRepo
+}
+
 // Returns the repo paths for a typical repo
 func MockRepoPaths(currentPath string) *RepoPaths {
 	return &RepoPaths{
@@ -62,6 +68,7 @@ func MockRepoPaths(currentPath string) *RepoPaths {
 		repoPath:           currentPath,
 		repoGitDirPath:     path.Join(currentPath, ".git"),
 		repoName:           "lazygit",
+		isBareRepo:         false,
 	}
 }
 
@@ -69,7 +76,19 @@ func GetRepoPaths(
 	cmd oscommands.ICmdObjBuilder,
 	version *GitVersion,
 ) (*RepoPaths, error) {
-	gitDirOutput, err := callGitRevParse(cmd, version, "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree")
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	return GetRepoPathsForDir(cwd, cmd, version)
+}
+
+func GetRepoPathsForDir(
+	dir string,
+	cmd oscommands.ICmdObjBuilder,
+	version *GitVersion,
+) (*RepoPaths, error) {
+	gitDirOutput, err := callGitRevParseWithDir(cmd, version, dir, "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
 	if err != nil {
 		return nil, err
 	}
@@ -84,13 +103,14 @@ func GetRepoPaths(
 			return nil, err
 		}
 	}
+	isBareRepo := gitDirResults[3] == "true"
 
 	// If we're in a submodule, --show-superproject-working-tree will return
-	// a value, meaning gitDirResults will be length 4. In that case
+	// a value, meaning gitDirResults will be length 5. In that case
 	// return the worktree path as the repoPath. Otherwise we're in a
 	// normal repo or a worktree so return the parent of the git common
 	// dir (repoGitDirPath)
-	isSubmodule := len(gitDirResults) == 4
+	isSubmodule := len(gitDirResults) == 5
 
 	var repoPath string
 	if isSubmodule {
@@ -106,15 +126,8 @@ func GetRepoPaths(
 		repoPath:           repoPath,
 		repoGitDirPath:     repoGitDirPath,
 		repoName:           repoName,
+		isBareRepo:         isBareRepo,
 	}, nil
-}
-
-func callGitRevParse(
-	cmd oscommands.ICmdObjBuilder,
-	version *GitVersion,
-	gitRevArgs ...string,
-) (string, error) {
-	return callGitRevParseWithDir(cmd, version, "", gitRevArgs...)
 }
 
 func callGitRevParseWithDir(

@@ -14,6 +14,8 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` @ `` | Pokaż opcje dziennika poleceń | Pokaż opcje dla dziennika poleceń, np. pokazywanie/ukrywanie dziennika poleceń i skupienie na dzienniku poleceń. |
 | `` P `` | Wypchnij | Wypchnij bieżącą gałąź do jej gałęzi nadrzędnej. Jeśli nie skonfigurowano gałęzi nadrzędnej, zostaniesz poproszony o skonfigurowanie gałęzi nadrzędnej. |
 | `` p `` | Pociągnij | Pociągnij zmiany z zdalnego dla bieżącej gałęzi. Jeśli nie skonfigurowano gałęzi nadrzędnej, zostaniesz poproszony o skonfigurowanie gałęzi nadrzędnej. |
+| `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename. |
+| `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
 | `` } `` | Zwiększ rozmiar kontekstu w widoku różnic | Zwiększ ilość kontekstu pokazywanego wokół zmian w widoku różnic. |
 | `` { `` | Zmniejsz rozmiar kontekstu w widoku różnic | Zmniejsz ilość kontekstu pokazywanego wokół zmian w widoku różnic. |
 | `` : `` | Wykonaj polecenie niestandardowe | Wyświetl monit, w którym możesz wprowadzić polecenie powłoki do wykonania. Nie należy mylić z wcześniej skonfigurowanymi poleceniami niestandardowymi. |
