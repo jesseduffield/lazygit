@@ -472,6 +472,9 @@ type TranslationSet struct {
 	DeleteRemoteBranch                    string
 	DeleteRemoteBranchMessage             string
 	DeleteRemoteBranchTooltip             string
+	DeleteRemoteAndLocalBranch            string
+	DeleteRemoteAndLocalBranchMessage     string
+	DeleteRemoteAndLocalBranchTooltip     string
 	SetAsUpstream                         string
 	SetAsUpstreamTooltip                  string
 	SetUpstream                           string
@@ -910,6 +913,9 @@ type Actions struct {
 	MovePatchIntoIndex                string
 	MovePatchIntoNewCommit            string
 	DeleteRemoteBranch                string
+	DeleteRemoteAndLocalBranch        string
+	DeleteRemoteAndLocalBranchMessage string
+	DeleteRemoteAndLocalBranchTooltip string
 	SetBranchUpstream                 string
 	AddRemote                         string
 	RemoveRemote                      string
@@ -1455,6 +1461,9 @@ func EnglishTranslationSet() *TranslationSet {
 		DeleteRemoteBranch:                   "Delete remote branch",
 		DeleteRemoteBranchMessage:            "Are you sure you want to delete remote branch",
 		DeleteRemoteBranchTooltip:            "Delete the remote branch from the remote.",
+		DeleteRemoteAndLocalBranch:           "Delete remote and local branches",
+		DeleteRemoteAndLocalBranchMessage:    "Are you sure you want to delete both remote and local branches",
+		DeleteRemoteAndLocalBranchTooltip:    "First remote, then local branch will be deleted.",
 		SetAsUpstream:                        "Set as upstream",
 		SetAsUpstreamTooltip:                 "Set the selected remote branch as the upstream of the checked-out branch.",
 		SetUpstream:                          "Set upstream of selected branch",
