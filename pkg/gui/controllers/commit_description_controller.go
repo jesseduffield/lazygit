@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -45,11 +44,7 @@ func (self *CommitDescriptionController) GetKeybindings(opts types.KeybindingsOp
 }
 
 func (self *CommitDescriptionController) Context() types.Context {
-	return self.context()
-}
-
-func (self *CommitDescriptionController) context() *context.CommitMessageContext {
-	return self.c.Contexts().CommitMessage
+	return self.c.Contexts().CommitDescription
 }
 
 func (self *CommitDescriptionController) switchToCommitMessage() error {
