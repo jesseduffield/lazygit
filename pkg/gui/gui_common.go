@@ -33,10 +33,6 @@ func (self *guiCommon) PostRefreshUpdate(context types.Context) error {
 	return self.gui.postRefreshUpdate(context)
 }
 
-func (self *guiCommon) HandleGenericClick(view *gocui.View) error {
-	return self.gui.handleGenericClick(view)
-}
-
 func (self *guiCommon) RunSubprocessAndRefresh(cmdObj oscommands.ICmdObj) error {
 	return self.gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 }
