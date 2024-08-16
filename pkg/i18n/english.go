@@ -785,7 +785,6 @@ type TranslationSet struct {
 	MarkAsBaseCommitTooltip                  string
 	MarkedCommitMarker                       string
 	FailedToOpenURL                          string
-	PleaseGoToURL                            string
 	InvalidLazygitEditURL                    string
 	NoCopiedCommits                          string
 	DisabledMenuItemPrefix                   string
@@ -1773,7 +1772,6 @@ func EnglishTranslationSet() *TranslationSet {
 		MarkAsBaseCommitTooltip:                  "Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command.",
 		MarkedCommitMarker:                       "↑↑↑ Will rebase from here ↑↑↑",
 		FailedToOpenURL:                          "Failed to open URL %s\n\nError: %v",
-		PleaseGoToURL:                            "Please go to {{.url}}",
 		InvalidLazygitEditURL:                    "Invalid lazygit-edit URL format: %s",
 		DisabledMenuItemPrefix:                   "Disabled: ",
 		NoCopiedCommits:                          "No copied commits",

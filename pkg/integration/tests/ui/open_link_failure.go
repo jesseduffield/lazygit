@@ -17,8 +17,8 @@ var OpenLinkFailure = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Information().Click(0, 0)
 
 		t.ExpectPopup().Confirmation().
-			Title(Equals("Donate")).
-			Content(Equals("Please go to https://github.com/sponsors/jesseduffield")).
+			Title(Equals("Error")).
+			Content(Equals("Failed to open URL https://github.com/sponsors/jesseduffield\n\nError: exit status 42")).
 			Confirm()
 	},
 })
