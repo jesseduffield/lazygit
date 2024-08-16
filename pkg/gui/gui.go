@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -354,6 +355,28 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 				return reloadErr
 			}
 			return refreshErr
+		}
+
+		return nil
+	})
+
+	gui.g.SetOpenHyperlinkFunc(func(url string) error {
+		if strings.HasPrefix(url, "lazygit-edit:") {
+			re := regexp.MustCompile(`^lazygit-edit://(.+?)(?::(\d+))?$`)
+			matches := re.FindStringSubmatch(url)
+			if matches == nil {
+				return fmt.Errorf(gui.Tr.InvalidLazygitEditURL, url)
+			}
+			filepath := matches[1]
+			if matches[2] != "" {
+				lineNumber := utils.MustConvertToInt(matches[2])
+				return gui.helpers.Files.EditFileAtLine(filepath, lineNumber)
+			}
+			return gui.helpers.Files.EditFiles([]string{filepath})
+		}
+
+		if err := gui.os.OpenLink(url); err != nil {
+			return fmt.Errorf(gui.Tr.FailedToOpenURL, url, err)
 		}
 
 		return nil
