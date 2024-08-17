@@ -30,8 +30,8 @@ func (gui *Gui) resetHelpersAndControllers() {
 	refsHelper := helpers.NewRefsHelper(helperCommon)
 	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon)
 	worktreeHelper := helpers.NewWorktreeHelper(helperCommon, reposHelper, refsHelper, suggestionsHelper)
-
-	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, refsHelper)
+	gpgHelper := helpers.NewGpgHelper(helperCommon)
+	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, refsHelper, gpgHelper)
 
 	setCommitSummary := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
 	setCommitDescription := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitDescription })
@@ -53,7 +53,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 		setCommitDescription,
 	)
 
-	gpgHelper := helpers.NewGpgHelper(helperCommon)
 	viewHelper := helpers.NewViewHelper(helperCommon, gui.State.Contexts)
 	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon)
 	stagingHelper := helpers.NewStagingHelper(helperCommon)
