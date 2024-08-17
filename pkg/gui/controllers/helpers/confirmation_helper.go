@@ -347,7 +347,7 @@ func (self *ConfirmationHelper) resizeMenu(parentPopupContext types.Context) {
 }
 
 // Wraps the lines of the menu prompt to the available width and rerenders the
-// menu if neeeded. Returns the number of lines the prompt takes up.
+// menu if needed. Returns the number of lines the prompt takes up.
 func (self *ConfirmationHelper) layoutMenuPrompt(contentWidth int) int {
 	oldPromptLines := self.c.Contexts().Menu.GetPromptLines()
 	var promptLines []string

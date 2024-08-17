@@ -40,7 +40,7 @@ func NewSubCommitsContext(
 
 	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
 		// This can happen if a sub-commits view is asked to be rerendered while
-		// it is invisble; for example when switching screen modes, which
+		// it is invisible; for example when switching screen modes, which
 		// rerenders all views.
 		if viewModel.GetRef() == nil {
 			return [][]string{}
