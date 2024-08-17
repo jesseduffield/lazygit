@@ -18,7 +18,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
 | `` } `` | Increase diff context size | Increase the amount of the context shown around changes in the diff view. |
 | `` { `` | Decrease diff context size | Decrease the amount of the context shown around changes in the diff view. |
-| `` : `` | カスタムコマンドを実行 | Bring up a prompt where you can enter a shell command to execute. Not to be confused with pre-configured custom commands. |
+| `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
 | `` <c-p> `` | View custom patch options |  |
 | `` m `` | View merge/rebase options | View options to abort/continue/skip the current merge/rebase. |
 | `` R `` | リフレッシュ | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |

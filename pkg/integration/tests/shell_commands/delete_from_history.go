@@ -1,4 +1,4 @@
-package custom_commands
+package shell_commands
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -13,9 +13,9 @@ var DeleteFromHistory = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig:  func(cfg *config.AppConfig) {},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		createCustomCommand := func(command string) {
-			t.GlobalPress(keys.Universal.ExecuteCustomCommand)
+			t.GlobalPress(keys.Universal.ExecuteShellCommand)
 			t.ExpectPopup().Prompt().
-				Title(Equals("Custom command:")).
+				Title(Equals("Shell command:")).
 				Type(command).
 				Confirm()
 		}
@@ -24,9 +24,9 @@ var DeleteFromHistory = NewIntegrationTest(NewIntegrationTestArgs{
 		createCustomCommand("echo 2")
 		createCustomCommand("echo 3")
 
-		t.GlobalPress(keys.Universal.ExecuteCustomCommand)
+		t.GlobalPress(keys.Universal.ExecuteShellCommand)
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom command:")).
+			Title(Equals("Shell command:")).
 			SuggestionLines(
 				Contains("3"),
 				Contains("2"),

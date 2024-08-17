@@ -47,9 +47,9 @@ var FilterUpdatesWhenModelChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().Focus()
 
 		// To do that, we use a custom command to create a new branch that matches the filter
-		t.GlobalPress(keys.Universal.ExecuteCustomCommand)
+		t.GlobalPress(keys.Universal.ExecuteShellCommand)
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom command:")).
+			Title(Equals("Shell command:")).
 			Type("git branch new-branch").
 			Confirm()
 

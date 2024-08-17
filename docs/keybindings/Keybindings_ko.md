@@ -18,7 +18,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
 | `` } `` | Diff 보기의 변경 사항 주위에 표시되는 컨텍스트의 크기를 늘리기 | Increase the amount of the context shown around changes in the diff view. |
 | `` { `` | Diff 보기의 변경 사항 주위에 표시되는 컨텍스트 크기 줄이기 | Decrease the amount of the context shown around changes in the diff view. |
-| `` : `` | Execute custom command | Bring up a prompt where you can enter a shell command to execute. Not to be confused with pre-configured custom commands. |
+| `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
 | `` <c-p> `` | 커스텀 Patch 옵션 보기 |  |
 | `` m `` | View merge/rebase options | View options to abort/continue/skip the current merge/rebase. |
 | `` R `` | 새로고침 | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
