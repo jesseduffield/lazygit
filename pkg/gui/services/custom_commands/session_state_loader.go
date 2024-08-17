@@ -164,9 +164,10 @@ func worktreeShimFromModelRemote(worktree *models.Worktree) *Worktree {
 
 // SessionState captures the current state of the application for use in custom commands
 type SessionState struct {
-	SelectedLocalCommit    *Commit
-	SelectedReflogCommit   *Commit
-	SelectedSubCommit      *Commit
+	SelectedLocalCommit    *Commit // deprecated, use SelectedCommit
+	SelectedReflogCommit   *Commit // deprecated, use SelectedCommit
+	SelectedSubCommit      *Commit // deprecated, use SelectedCommit
+	SelectedCommit         *Commit
 	SelectedFile           *File
 	SelectedPath           string
 	SelectedLocalBranch    *Branch
@@ -181,19 +182,38 @@ type SessionState struct {
 }
 
 func (self *SessionStateLoader) call() *SessionState {
+	selectedLocalCommit := commitShimFromModelCommit(self.c.Contexts().LocalCommits.GetSelected())
+	selectedReflogCommit := commitShimFromModelCommit(self.c.Contexts().ReflogCommits.GetSelected())
+	selectedSubCommit := commitShimFromModelCommit(self.c.Contexts().SubCommits.GetSelected())
+
+	selectedCommit := selectedLocalCommit
+	if self.c.Context().IsCurrentOrParent(self.c.Contexts().ReflogCommits) {
+		selectedCommit = selectedReflogCommit
+	} else if self.c.Context().IsCurrentOrParent(self.c.Contexts().SubCommits) {
+		selectedCommit = selectedSubCommit
+	}
+
+	selectedPath := self.c.Contexts().Files.GetSelectedPath()
+	selectedCommitFilePath := self.c.Contexts().CommitFiles.GetSelectedPath()
+
+	if self.c.Context().IsCurrent(self.c.Contexts().CommitFiles) {
+		selectedPath = selectedCommitFilePath
+	}
+
 	return &SessionState{
 		SelectedFile:           fileShimFromModelFile(self.c.Contexts().Files.GetSelectedFile()),
-		SelectedPath:           self.c.Contexts().Files.GetSelectedPath(),
-		SelectedLocalCommit:    commitShimFromModelCommit(self.c.Contexts().LocalCommits.GetSelected()),
-		SelectedReflogCommit:   commitShimFromModelCommit(self.c.Contexts().ReflogCommits.GetSelected()),
+		SelectedPath:           selectedPath,
+		SelectedLocalCommit:    selectedLocalCommit,
+		SelectedReflogCommit:   selectedReflogCommit,
+		SelectedSubCommit:      selectedSubCommit,
+		SelectedCommit:         selectedCommit,
 		SelectedLocalBranch:    branchShimFromModelBranch(self.c.Contexts().Branches.GetSelected()),
 		SelectedRemoteBranch:   remoteBranchShimFromModelRemoteBranch(self.c.Contexts().RemoteBranches.GetSelected()),
 		SelectedRemote:         remoteShimFromModelRemote(self.c.Contexts().Remotes.GetSelected()),
 		SelectedTag:            tagShimFromModelRemote(self.c.Contexts().Tags.GetSelected()),
 		SelectedStashEntry:     stashEntryShimFromModelRemote(self.c.Contexts().Stash.GetSelected()),
 		SelectedCommitFile:     commitFileShimFromModelRemote(self.c.Contexts().CommitFiles.GetSelectedFile()),
-		SelectedCommitFilePath: self.c.Contexts().CommitFiles.GetSelectedPath(),
-		SelectedSubCommit:      commitShimFromModelCommit(self.c.Contexts().SubCommits.GetSelected()),
+		SelectedCommitFilePath: selectedCommitFilePath,
 		SelectedWorktree:       worktreeShimFromModelRemote(self.c.Contexts().Worktrees.GetSelected()),
 		CheckedOutBranch:       branchShimFromModelBranch(self.refsHelper.GetCheckedOutRef()),
 	}

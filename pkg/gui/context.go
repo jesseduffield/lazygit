@@ -300,6 +300,18 @@ func (self *ContextMgr) IsCurrent(c types.Context) bool {
 	return self.Current().GetKey() == c.GetKey()
 }
 
+func (self *ContextMgr) IsCurrentOrParent(c types.Context) bool {
+	current := self.Current()
+	for current != nil {
+		if current.GetKey() == c.GetKey() {
+			return true
+		}
+		current = current.GetParentContext()
+	}
+
+	return false
+}
+
 func (self *ContextMgr) AllFilterable() []types.IFilterableContext {
 	var result []types.IFilterableContext
 
