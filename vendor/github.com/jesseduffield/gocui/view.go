@@ -789,9 +789,11 @@ func (v *View) writeRunes(p []rune) {
 				continue
 			}
 			v.writeCells(v.wx, v.wy, cells)
-			v.wx += len(cells)
 			if truncateLine {
-				v.lines[v.wy] = v.lines[v.wy][:v.wx]
+				length := v.wx + len(cells)
+				v.lines[v.wy] = v.lines[v.wy][:length]
+			} else {
+				v.wx += len(cells)
 			}
 		}
 	}
@@ -830,9 +832,14 @@ func (v *View) parseInput(ch rune, x int, _ int) (bool, []cell) {
 	} else {
 		repeatCount := 1
 		if _, ok := v.ei.instruction.(eraseInLineFromCursor); ok {
-			// truncate line
+			// fill rest of line
 			v.ei.instructionRead()
-			repeatCount = 0
+			cx := 0
+			for _, cell := range v.lines[v.wy][0:v.wx] {
+				cx += runewidth.RuneWidth(cell.chr)
+			}
+			repeatCount = v.InnerWidth() - cx + 1
+			ch = ' '
 			truncateLine = true
 		} else if isEscape {
 			// do not output anything
