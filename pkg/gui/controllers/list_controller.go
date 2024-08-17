@@ -176,7 +176,7 @@ func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
 
 func (self *ListController) pushContextIfNotFocused() error {
 	if !self.isFocused() {
-		if err := self.c.PushContext(self.context); err != nil {
+		if err := self.c.Context().Push(self.context); err != nil {
 			return err
 		}
 	}
@@ -185,7 +185,7 @@ func (self *ListController) pushContextIfNotFocused() error {
 }
 
 func (self *ListController) isFocused() bool {
-	return self.c.CurrentContext().GetKey() == self.context.GetKey()
+	return self.c.Context().Current().GetKey() == self.context.GetKey()
 }
 
 func (self *ListController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {

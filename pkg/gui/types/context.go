@@ -35,8 +35,7 @@ const (
 
 type ParentContexter interface {
 	SetParentContext(Context)
-	// we return a bool here to tell us whether or not the returned value just wraps a nil
-	GetParentContext() (Context, bool)
+	GetParentContext() Context
 }
 
 type NeedsRerenderOnWidthChangeLevel int
@@ -279,9 +278,11 @@ type IContextMgr interface {
 	Push(context Context, opts ...OnFocusOpts) error
 	Pop() error
 	Replace(context Context) error
+	Activate(context Context, opts OnFocusOpts) error
 	Current() Context
 	CurrentStatic() Context
 	CurrentSide() Context
+	CurrentPopup() []Context
 	IsCurrent(c Context) bool
 	ForEach(func(Context))
 	AllList() []IListContext

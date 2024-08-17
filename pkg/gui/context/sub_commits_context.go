@@ -47,7 +47,7 @@ func NewSubCommitsContext(
 		}
 
 		selectedCommitHash := ""
-		if c.CurrentContext().GetKey() == SUB_COMMITS_CONTEXT_KEY {
+		if c.Context().Current().GetKey() == SUB_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
 			if selectedCommit != nil {
 				selectedCommitHash = selectedCommit.Hash

@@ -154,7 +154,7 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 
 	self.UpdateCommitPanelView(opts.InitialMessage)
 
-	return self.c.PushContext(self.c.Contexts().CommitMessage)
+	return self.c.Context().Push(self.c.Contexts().CommitMessage)
 }
 
 func (self *CommitsHelper) OnCommitSuccess() {
@@ -193,7 +193,7 @@ func (self *CommitsHelper) CloseCommitMessagePanel() error {
 	self.c.Views().CommitMessage.Visible = false
 	self.c.Views().CommitDescription.Visible = false
 
-	return self.c.PopContext()
+	return self.c.Context().Pop()
 }
 
 func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.Suggestion) error {

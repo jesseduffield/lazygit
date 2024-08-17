@@ -53,7 +53,7 @@ func (self *CommitDescriptionController) context() *context.CommitMessageContext
 }
 
 func (self *CommitDescriptionController) switchToCommitMessage() error {
-	return self.c.ReplaceContext(self.c.Contexts().CommitMessage)
+	return self.c.Context().Replace(self.c.Contexts().CommitMessage)
 }
 
 func (self *CommitDescriptionController) close() error {

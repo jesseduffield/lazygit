@@ -197,7 +197,7 @@ func (self *MenuContext) OnMenuPress(selectedItem *types.MenuItem) error {
 		return nil
 	}
 
-	if err := self.c.PopContext(); err != nil {
+	if err := self.c.Context().Pop(); err != nil {
 		return err
 	}
 

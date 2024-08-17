@@ -115,7 +115,7 @@ func (self *TagsController) checkout(tag *models.Tag) error {
 	if err := self.c.Helpers().Refs.CheckoutRef(tag.FullRefName(), types.CheckoutRefOptions{}); err != nil {
 		return err
 	}
-	return self.c.PushContext(self.c.Contexts().Branches)
+	return self.c.Context().Push(self.c.Contexts().Branches)
 }
 
 func (self *TagsController) localDelete(tag *models.Tag) error {

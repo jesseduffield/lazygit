@@ -57,23 +57,8 @@ type IGuiCommon interface {
 	RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error)
 	RunSubprocessAndRefresh(oscommands.ICmdObj) error
 
-	PushContext(context Context, opts ...OnFocusOpts) error
-	PopContext() error
-	ReplaceContext(context Context) error
-	// Removes all given contexts from the stack. If a given context is not in the stack, it is ignored.
-	// This is for when you have a group of contexts that are bundled together e.g. with the commit message panel.
-	// If you want to remove a single context, you should probably use PopContext instead.
-	RemoveContexts([]Context) error
-	CurrentContext() Context
-	CurrentStaticContext() Context
-	CurrentSideContext() Context
-	CurrentPopupContexts() []Context
-	IsCurrentContext(Context) bool
-	// TODO: replace the above context-based methods with just using Context() e.g. replace PushContext() with Context().Push()
 	Context() IContextMgr
 	ContextForKey(key ContextKey) Context
-
-	ActivateContext(context Context) error
 
 	GetConfig() config.AppConfigurer
 	GetAppState() *config.AppState
