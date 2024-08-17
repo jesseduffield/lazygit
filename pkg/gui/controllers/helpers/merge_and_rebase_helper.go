@@ -135,6 +135,12 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 		result = self.c.Git().Rebase.AddSkipEditorCommand(runCmd).Run()
 	}
 
+	result = self.c.Git().Rebase.ProcessMergeRebaseResult(result)
+	if result != nil {
+		return result
+	}
+
+	result = self.c.Git().Rebase.InvokeGenericMergeOrRebaseActionCallback(commandType, command)
 	if err := self.CheckMergeOrRebase(result); err != nil {
 		return err
 	}
