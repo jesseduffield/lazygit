@@ -13,7 +13,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shared.MergeConflictsSetup(shell)
-		// addin a couple additional commits so that we can drop one
+		// adding a couple additional commits so that we can drop one
 		shell.EmptyCommit("to remove")
 		shell.EmptyCommit("to keep")
 	},
