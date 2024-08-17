@@ -1603,6 +1603,7 @@ func (v *View) overwriteLines(y int, content string) {
 	// break by newline, then for each line, write it, then add that erase command
 	v.wx = 0
 	v.wy = y
+	v.clearViewLines()
 
 	lines := strings.Replace(content, "\n", "\x1b[K\n", -1)
 	// If the last line doesn't end with a linefeed, add the erase command at
