@@ -31,7 +31,7 @@ func (self *FileCommands) Cat(fileName string) (string, error) {
 }
 
 func (self *FileCommands) GetEditCmdStrLegacy(filename string, lineNumber int) (string, error) {
-	editor := self.UserConfig.OS.EditCommand
+	editor := self.UserConfig().OS.EditCommand
 
 	if editor == "" {
 		editor = self.config.GetCoreEditor()
@@ -60,7 +60,7 @@ func (self *FileCommands) GetEditCmdStrLegacy(filename string, lineNumber int) (
 		"line":     strconv.Itoa(lineNumber),
 	}
 
-	editCmdTemplate := self.UserConfig.OS.EditCommandTemplate
+	editCmdTemplate := self.UserConfig().OS.EditCommandTemplate
 	if len(editCmdTemplate) == 0 {
 		switch editor {
 		case "emacs", "nano", "vi", "vim", "nvim":
@@ -78,7 +78,7 @@ func (self *FileCommands) GetEditCmdStrLegacy(filename string, lineNumber int) (
 
 func (self *FileCommands) GetEditCmdStr(filenames []string) (string, bool) {
 	// Legacy support for old config; to be removed at some point
-	if self.UserConfig.OS.Edit == "" && self.UserConfig.OS.EditCommandTemplate != "" {
+	if self.UserConfig().OS.Edit == "" && self.UserConfig().OS.EditCommandTemplate != "" {
 		// If multiple files are selected, we'll simply edit just the first one.
 		// It's not worth fixing this for the legacy support.
 		if cmdStr, err := self.GetEditCmdStrLegacy(filenames[0], 1); err == nil {
@@ -86,7 +86,7 @@ func (self *FileCommands) GetEditCmdStr(filenames []string) (string, bool) {
 		}
 	}
 
-	template, suspend := config.GetEditTemplate(&self.UserConfig.OS, self.guessDefaultEditor)
+	template, suspend := config.GetEditTemplate(&self.UserConfig().OS, self.guessDefaultEditor)
 	quotedFilenames := lo.Map(filenames, func(filename string, _ int) string { return self.cmd.Quote(filename) })
 
 	templateValues := map[string]string{
@@ -99,13 +99,13 @@ func (self *FileCommands) GetEditCmdStr(filenames []string) (string, bool) {
 
 func (self *FileCommands) GetEditAtLineCmdStr(filename string, lineNumber int) (string, bool) {
 	// Legacy support for old config; to be removed at some point
-	if self.UserConfig.OS.EditAtLine == "" && self.UserConfig.OS.EditCommandTemplate != "" {
+	if self.UserConfig().OS.EditAtLine == "" && self.UserConfig().OS.EditCommandTemplate != "" {
 		if cmdStr, err := self.GetEditCmdStrLegacy(filename, lineNumber); err == nil {
 			return cmdStr, true
 		}
 	}
 
-	template, suspend := config.GetEditAtLineTemplate(&self.UserConfig.OS, self.guessDefaultEditor)
+	template, suspend := config.GetEditAtLineTemplate(&self.UserConfig().OS, self.guessDefaultEditor)
 
 	templateValues := map[string]string{
 		"filename": self.cmd.Quote(filename),
@@ -118,13 +118,13 @@ func (self *FileCommands) GetEditAtLineCmdStr(filename string, lineNumber int) (
 
 func (self *FileCommands) GetEditAtLineAndWaitCmdStr(filename string, lineNumber int) string {
 	// Legacy support for old config; to be removed at some point
-	if self.UserConfig.OS.EditAtLineAndWait == "" && self.UserConfig.OS.EditCommandTemplate != "" {
+	if self.UserConfig().OS.EditAtLineAndWait == "" && self.UserConfig().OS.EditCommandTemplate != "" {
 		if cmdStr, err := self.GetEditCmdStrLegacy(filename, lineNumber); err == nil {
 			return cmdStr
 		}
 	}
 
-	template := config.GetEditAtLineAndWaitTemplate(&self.UserConfig.OS, self.guessDefaultEditor)
+	template := config.GetEditAtLineAndWaitTemplate(&self.UserConfig().OS, self.guessDefaultEditor)
 
 	templateValues := map[string]string{
 		"filename": self.cmd.Quote(filename),
@@ -136,7 +136,7 @@ func (self *FileCommands) GetEditAtLineAndWaitCmdStr(filename string, lineNumber
 }
 
 func (self *FileCommands) GetOpenDirInEditorCmdStr(path string) (string, bool) {
-	template, suspend := config.GetOpenDirInEditorTemplate(&self.UserConfig.OS, self.guessDefaultEditor)
+	template, suspend := config.GetOpenDirInEditorTemplate(&self.UserConfig().OS, self.guessDefaultEditor)
 
 	templateValues := map[string]string{
 		"dir": self.cmd.Quote(path),

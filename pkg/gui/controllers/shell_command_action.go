@@ -60,7 +60,7 @@ func (self *ShellCommandAction) GetShellCommandsHistorySuggestionsFunc() func(st
 	return func(input string) []*types.Suggestion {
 		history := self.c.GetAppState().ShellCommandsHistory
 
-		return helpers.FilterFunc(history, self.c.UserConfig.Gui.UseFuzzySearch())(input)
+		return helpers.FilterFunc(history, self.c.UserConfig().Gui.UseFuzzySearch())(input)
 	}
 }
 

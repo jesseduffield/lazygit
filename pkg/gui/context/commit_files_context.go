@@ -28,7 +28,7 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 	viewModel := filetree.NewCommitFileTreeViewModel(
 		func() []*models.CommitFile { return c.Model().CommitFiles },
 		c.Log,
-		c.UserConfig.Gui.ShowFileTree,
+		c.UserConfig().Gui.ShowFileTree,
 	)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {
@@ -36,7 +36,7 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 			return [][]string{{style.FgRed.Sprint("(none)")}}
 		}
 
-		showFileIcons := icons.IsIconEnabled() && c.UserConfig.Gui.ShowFileIcons
+		showFileIcons := icons.IsIconEnabled() && c.UserConfig().Gui.ShowFileIcons
 		lines := presentation.RenderCommitFileTree(viewModel, c.Git().Patch.PatchBuilder, showFileIcons)
 		return lo.Map(lines, func(line string, _ int) []string {
 			return []string{line}

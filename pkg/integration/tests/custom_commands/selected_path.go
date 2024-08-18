@@ -17,7 +17,7 @@ var SelectedPath = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFile("folder2/file2", "")
 	},
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.UserConfig.CustomCommands = []config.CustomCommand{
+		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
 				Key:     "X",
 				Context: "global",

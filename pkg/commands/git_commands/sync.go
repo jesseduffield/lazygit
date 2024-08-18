@@ -60,7 +60,7 @@ func (self *SyncCommands) fetchCommandBuilder(fetchAll bool) *GitCommandBuilder 
 }
 
 func (self *SyncCommands) FetchCmdObj(task gocui.Task) oscommands.ICmdObj {
-	cmdArgs := self.fetchCommandBuilder(self.UserConfig.Git.FetchAll).ToArgv()
+	cmdArgs := self.fetchCommandBuilder(self.UserConfig().Git.FetchAll).ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
 	cmdObj.PromptOnCredentialRequest(task)
@@ -72,7 +72,7 @@ func (self *SyncCommands) Fetch(task gocui.Task) error {
 }
 
 func (self *SyncCommands) FetchBackgroundCmdObj() oscommands.ICmdObj {
-	cmdArgs := self.fetchCommandBuilder(self.UserConfig.Git.FetchAll).ToArgv()
+	cmdArgs := self.fetchCommandBuilder(self.UserConfig().Git.FetchAll).ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
 	cmdObj.DontLog().FailOnCredentialRequest()

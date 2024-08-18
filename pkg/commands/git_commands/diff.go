@@ -17,7 +17,7 @@ func NewDiffCommands(gitCommon *GitCommon) *DiffCommands {
 }
 
 func (self *DiffCommands) DiffCmdObj(diffArgs []string) oscommands.ICmdObj {
-	extDiffCmd := self.UserConfig.Git.Paging.ExternalDiffCommand
+	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
 	useExtDiff := extDiffCmd != ""
 
 	return self.cmd.New(
@@ -26,7 +26,7 @@ func (self *DiffCommands) DiffCmdObj(diffArgs []string) oscommands.ICmdObj {
 			ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
 			ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
 			Arg("--submodule").
-			Arg(fmt.Sprintf("--color=%s", self.UserConfig.Git.Paging.ColorArg)).
+			Arg(fmt.Sprintf("--color=%s", self.UserConfig().Git.Paging.ColorArg)).
 			Arg(diffArgs...).
 			Dir(self.repoPaths.worktreePath).
 			ToArgv(),

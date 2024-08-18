@@ -6,6 +6,7 @@
 * [ ] Code has been formatted (see [here](https://github.com/jesseduffield/lazygit/blob/master/CONTRIBUTING.md#code-formatting))
 * [ ] Tests have been added/updated (see [here](https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.md) for the integration test guide)
 * [ ] Text is internationalised (see [here](https://github.com/jesseduffield/lazygit/blob/master/CONTRIBUTING.md#internationalisation))
+* [ ] If a new UserConfig entry was added, make sure it can be hot-reloaded (see [here](https://github.com/jesseduffield/lazygit/blob/master/docs/dev/Codebase_Guide.md#using-userconfig))
 * [ ] Docs have been updated if necessary
 * [ ] You've read through your own file changes for silly mistakes etc
 

@@ -112,7 +112,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
-	needsSubprocess := (status == enums.REBASE_MODE_MERGING && command != REBASE_OPTION_ABORT && self.c.UserConfig.Git.Merging.ManualCommit) ||
+	needsSubprocess := (status == enums.REBASE_MODE_MERGING && command != REBASE_OPTION_ABORT && self.c.UserConfig().Git.Merging.ManualCommit) ||
 		// but we'll also use a subprocess if we have exec todos; those are likely to be lengthy build
 		// tasks whose output the user will want to see in the terminal
 		(status == enums.REBASE_MODE_REBASING && command != REBASE_OPTION_ABORT && self.hasExecTodos())
@@ -435,7 +435,7 @@ func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranch
 		if err = self.CheckMergeOrRebase(err); err != nil {
 			return err
 		}
-		message := utils.ResolvePlaceholderString(self.c.UserConfig.Git.Merging.SquashMergeMessage, map[string]string{
+		message := utils.ResolvePlaceholderString(self.c.UserConfig().Git.Merging.SquashMergeMessage, map[string]string{
 			"selectedRef":   refName,
 			"currentBranch": checkedOutBranchName,
 		})

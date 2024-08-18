@@ -25,7 +25,7 @@ func (self *QuitActions) quitAux() error {
 		return self.confirmQuitDuringUpdate()
 	}
 
-	if self.c.UserConfig.ConfirmOnQuit {
+	if self.c.UserConfig().ConfirmOnQuit {
 		return self.c.Confirm(types.ConfirmOpts{
 			Title:  "",
 			Prompt: self.c.Tr.ConfirmQuit,
@@ -88,7 +88,7 @@ func (self *QuitActions) Escape() error {
 		return self.c.Helpers().Repos.DispatchSwitchToRepo(repoPathStack.Pop(), context.NO_CONTEXT)
 	}
 
-	if self.c.UserConfig.QuitOnTopLevelReturn {
+	if self.c.UserConfig().QuitOnTopLevelReturn {
 		return self.Quit()
 	}
 

@@ -63,6 +63,11 @@ func generateAtDir(cheatsheetDir string) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		tr, err := i18n.NewTranslationSetFromConfig(common.Log, lang)
+		if err != nil {
+			log.Fatal(err)
+		}
+		common.Tr = tr
 		mApp, _ := app.NewApp(mConfig, nil, common)
 		path := cheatsheetDir + "/Keybindings_" + lang + ".md"
 		file, err := os.Create(path)

@@ -13,11 +13,11 @@ import (
 const HORIZONTAL_SCROLL_FACTOR = 3
 
 func (gui *Gui) scrollUpView(view *gocui.View) {
-	view.ScrollUp(gui.c.UserConfig.Gui.ScrollHeight)
+	view.ScrollUp(gui.c.UserConfig().Gui.ScrollHeight)
 }
 
 func (gui *Gui) scrollDownView(view *gocui.View) {
-	scrollHeight := gui.c.UserConfig.Gui.ScrollHeight
+	scrollHeight := gui.c.UserConfig().Gui.ScrollHeight
 	view.ScrollDown(scrollHeight)
 
 	if manager, ok := gui.viewBufferManagerMap[view.Name()]; ok {
@@ -123,7 +123,7 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 
 func (gui *Gui) handleCopySelectedSideContextItemCommitHashToClipboard() error {
 	return gui.handleCopySelectedSideContextItemToClipboardWithTruncation(
-		gui.UserConfig.Git.TruncateCopiedCommitHashesTo)
+		gui.UserConfig().Git.TruncateCopiedCommitHashesTo)
 }
 
 func (gui *Gui) handleCopySelectedSideContextItemToClipboardWithTruncation(maxWidth int) error {

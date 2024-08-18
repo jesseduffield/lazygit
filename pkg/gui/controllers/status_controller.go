@@ -89,15 +89,15 @@ func (self *StatusController) onClickMain(opts gocui.ViewMouseBindingOpts) error
 }
 
 func (self *StatusController) GetOnRenderToMain() func() error {
-	config := self.c.UserConfig.Gui
-
-	switch config.StatusPanelView {
-	case "dashboard":
-		return self.showDashboard
-	case "allBranchesLog":
-		return self.showAllBranchLogs
-	default:
-		return self.showDashboard
+	return func() error {
+		switch self.c.UserConfig().Gui.StatusPanelView {
+		case "dashboard":
+			return self.showDashboard()
+		case "allBranchesLog":
+			return self.showAllBranchLogs()
+		default:
+			return self.showDashboard()
+		}
 	}
 }
 
@@ -117,7 +117,7 @@ func (self *StatusController) onClick(opts gocui.ViewMouseBindingOpts) error {
 		return err
 	}
 
-	upstreamStatus := utils.Decolorise(presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now(), self.c.UserConfig))
+	upstreamStatus := utils.Decolorise(presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now(), self.c.UserConfig()))
 	repoName := self.c.Git().RepoPaths.RepoName()
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	switch workingTreeState {

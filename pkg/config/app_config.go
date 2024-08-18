@@ -2,29 +2,31 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/adrg/xdg"
 	"github.com/jesseduffield/lazygit/pkg/utils/yaml_utils"
+	"github.com/samber/lo"
 	"gopkg.in/yaml.v3"
 )
 
 // AppConfig contains the base configuration fields required for lazygit.
 type AppConfig struct {
-	Debug            bool   `long:"debug" env:"DEBUG" default:"false"`
-	Version          string `long:"version" env:"VERSION" default:"unversioned"`
-	BuildDate        string `long:"build-date" env:"BUILD_DATE"`
-	Name             string `long:"name" env:"NAME" default:"lazygit"`
-	BuildSource      string `long:"build-source" env:"BUILD_SOURCE" default:""`
-	UserConfig       *UserConfig
-	UserConfigPaths  []string
-	DeafultConfFiles bool
-	UserConfigDir    string
-	TempDir          string
-	AppState         *AppState
-	IsNewRepo        bool
+	debug                 bool   `long:"debug" env:"DEBUG" default:"false"`
+	version               string `long:"version" env:"VERSION" default:"unversioned"`
+	buildDate             string `long:"build-date" env:"BUILD_DATE"`
+	name                  string `long:"name" env:"NAME" default:"lazygit"`
+	buildSource           string `long:"build-source" env:"BUILD_SOURCE" default:""`
+	userConfig            *UserConfig
+	globalUserConfigFiles []*ConfigFile
+	userConfigFiles       []*ConfigFile
+	userConfigDir         string
+	tempDir               string
+	appState              *AppState
 }
 
 type AppConfigurer interface {
@@ -38,11 +40,27 @@ type AppConfigurer interface {
 	GetUserConfig() *UserConfig
 	GetUserConfigPaths() []string
 	GetUserConfigDir() string
-	ReloadUserConfig() error
+	ReloadUserConfigForRepo(repoConfigFiles []*ConfigFile) error
+	ReloadChangedUserConfigFiles() (error, bool)
 	GetTempDir() string
 
 	GetAppState() *AppState
 	SaveAppState() error
+}
+
+type ConfigFilePolicy int
+
+const (
+	ConfigFilePolicyCreateIfMissing ConfigFilePolicy = iota
+	ConfigFilePolicyErrorIfMissing
+	ConfigFilePolicySkipIfMissing
+)
+
+type ConfigFile struct {
+	Path    string
+	Policy  ConfigFilePolicy
+	modDate time.Time
+	exists  bool
 }
 
 // NewAppConfig makes a new app config
@@ -60,17 +78,22 @@ func NewAppConfig(
 		return nil, err
 	}
 
-	var userConfigPaths []string
+	var configFiles []*ConfigFile
 	customConfigFiles := os.Getenv("LG_CONFIG_FILE")
 	if customConfigFiles != "" {
 		// Load user defined config files
-		userConfigPaths = strings.Split(customConfigFiles, ",")
+		userConfigPaths := strings.Split(customConfigFiles, ",")
+		configFiles = lo.Map(userConfigPaths, func(path string, _ int) *ConfigFile {
+			return &ConfigFile{Path: path, Policy: ConfigFilePolicyErrorIfMissing}
+		})
 	} else {
 		// Load default config files
-		userConfigPaths = []string{filepath.Join(configDir, ConfigFilename)}
+		path := filepath.Join(configDir, ConfigFilename)
+		configFile := &ConfigFile{Path: path, Policy: ConfigFilePolicyCreateIfMissing}
+		configFiles = []*ConfigFile{configFile}
 	}
 
-	userConfig, err := loadUserConfigWithDefaults(userConfigPaths)
+	userConfig, err := loadUserConfigWithDefaults(configFiles)
 	if err != nil {
 		return nil, err
 	}
@@ -92,24 +115,20 @@ func NewAppConfig(
 	}
 
 	appConfig := &AppConfig{
-		Name:            name,
-		Version:         version,
-		BuildDate:       date,
-		Debug:           debuggingFlag,
-		BuildSource:     buildSource,
-		UserConfig:      userConfig,
-		UserConfigPaths: userConfigPaths,
-		UserConfigDir:   configDir,
-		TempDir:         tempDir,
-		AppState:        appState,
-		IsNewRepo:       false,
+		name:                  name,
+		version:               version,
+		buildDate:             date,
+		debug:                 debuggingFlag,
+		buildSource:           buildSource,
+		userConfig:            userConfig,
+		globalUserConfigFiles: configFiles,
+		userConfigFiles:       configFiles,
+		userConfigDir:         configDir,
+		tempDir:               tempDir,
+		appState:              appState,
 	}
 
 	return appConfig, nil
-}
-
-func isCustomConfigFile(path string) bool {
-	return path != filepath.Join(ConfigDir(), ConfigFilename)
 }
 
 func ConfigDir() string {
@@ -123,32 +142,48 @@ func findOrCreateConfigDir() (string, error) {
 	return folder, os.MkdirAll(folder, 0o755)
 }
 
-func loadUserConfigWithDefaults(configFiles []string) (*UserConfig, error) {
+func loadUserConfigWithDefaults(configFiles []*ConfigFile) (*UserConfig, error) {
 	return loadUserConfig(configFiles, GetDefaultConfig())
 }
 
-func loadUserConfig(configFiles []string, base *UserConfig) (*UserConfig, error) {
-	for _, path := range configFiles {
-		if _, err := os.Stat(path); err != nil {
+func loadUserConfig(configFiles []*ConfigFile, base *UserConfig) (*UserConfig, error) {
+	for _, configFile := range configFiles {
+		path := configFile.Path
+		statInfo, err := os.Stat(path)
+		if err == nil {
+			configFile.exists = true
+			configFile.modDate = statInfo.ModTime()
+		} else {
 			if !os.IsNotExist(err) {
 				return nil, err
 			}
 
-			// if use has supplied their own custom config file path(s), we assume
-			// the files have already been created, so we won't go and create them here.
-			if isCustomConfigFile(path) {
+			switch configFile.Policy {
+			case ConfigFilePolicyErrorIfMissing:
 				return nil, err
-			}
 
-			file, err := os.Create(path)
-			if err != nil {
-				if os.IsPermission(err) {
-					// apparently when people have read-only permissions they prefer us to fail silently
-					continue
+			case ConfigFilePolicySkipIfMissing:
+				configFile.exists = false
+				continue
+
+			case ConfigFilePolicyCreateIfMissing:
+				file, err := os.Create(path)
+				if err != nil {
+					if os.IsPermission(err) {
+						// apparently when people have read-only permissions they prefer us to fail silently
+						continue
+					}
+					return nil, err
 				}
-				return nil, err
+				file.Close()
+
+				configFile.exists = true
+				statInfo, err := os.Stat(configFile.Path)
+				if err != nil {
+					return nil, err
+				}
+				configFile.modDate = statInfo.ModTime()
 			}
-			file.Close()
 		}
 
 		content, err := os.ReadFile(path)
@@ -220,53 +255,81 @@ func changeNullKeybindingsToDisabled(changedContent []byte) ([]byte, error) {
 }
 
 func (c *AppConfig) GetDebug() bool {
-	return c.Debug
+	return c.debug
 }
 
 func (c *AppConfig) GetVersion() string {
-	return c.Version
+	return c.version
 }
 
 func (c *AppConfig) GetName() string {
-	return c.Name
+	return c.name
 }
 
 // GetBuildSource returns the source of the build. For builds from goreleaser
 // this will be binaryBuild
 func (c *AppConfig) GetBuildSource() string {
-	return c.BuildSource
+	return c.buildSource
 }
 
 // GetUserConfig returns the user config
 func (c *AppConfig) GetUserConfig() *UserConfig {
-	return c.UserConfig
+	return c.userConfig
 }
 
 // GetAppState returns the app state
 func (c *AppConfig) GetAppState() *AppState {
-	return c.AppState
+	return c.appState
 }
 
 func (c *AppConfig) GetUserConfigPaths() []string {
-	return c.UserConfigPaths
+	return lo.FilterMap(c.userConfigFiles, func(f *ConfigFile, _ int) (string, bool) {
+		return f.Path, f.exists
+	})
 }
 
 func (c *AppConfig) GetUserConfigDir() string {
-	return c.UserConfigDir
+	return c.userConfigDir
 }
 
-func (c *AppConfig) ReloadUserConfig() error {
-	userConfig, err := loadUserConfigWithDefaults(c.UserConfigPaths)
+func (c *AppConfig) ReloadUserConfigForRepo(repoConfigFiles []*ConfigFile) error {
+	configFiles := append(c.globalUserConfigFiles, repoConfigFiles...)
+	userConfig, err := loadUserConfigWithDefaults(configFiles)
 	if err != nil {
 		return err
 	}
 
-	c.UserConfig = userConfig
+	c.userConfig = userConfig
+	c.userConfigFiles = configFiles
 	return nil
 }
 
+func (c *AppConfig) ReloadChangedUserConfigFiles() (error, bool) {
+	fileHasChanged := func(f *ConfigFile) bool {
+		info, err := os.Stat(f.Path)
+		if err != nil && !os.IsNotExist(err) {
+			// If we can't stat the file, assume it hasn't changed
+			return false
+		}
+		exists := err == nil
+		return exists != f.exists || (exists && info.ModTime() != f.modDate)
+	}
+
+	if lo.NoneBy(c.userConfigFiles, fileHasChanged) {
+		return nil, false
+	}
+
+	userConfig, err := loadUserConfigWithDefaults(c.userConfigFiles)
+	if err != nil {
+		return err, false
+	}
+
+	c.userConfig = userConfig
+	return nil, true
+}
+
 func (c *AppConfig) GetTempDir() string {
-	return c.TempDir
+	return c.tempDir
 }
 
 // findConfigFile looks for a possibly existing config file.
@@ -305,14 +368,9 @@ func stateFilePath(filename string) (string, error) {
 	return xdg.StateFile(filepath.Join("lazygit", filename))
 }
 
-// ConfigFilename returns the filename of the default config file
-func (c *AppConfig) ConfigFilename() string {
-	return filepath.Join(c.UserConfigDir, ConfigFilename)
-}
-
 // SaveAppState marshalls the AppState struct and writes it to the disk
 func (c *AppConfig) SaveAppState() error {
-	marshalledAppState, err := yaml.Marshal(c.AppState)
+	marshalledAppState, err := yaml.Marshal(c.appState)
 	if err != nil {
 		return err
 	}
@@ -361,6 +419,24 @@ func loadAppState() (*AppState, error) {
 	}
 
 	return appState, nil
+}
+
+// SaveGlobalUserConfig saves the UserConfig back to disk. This is only used in
+// integration tests, so we are a bit sloppy with error handling.
+func (c *AppConfig) SaveGlobalUserConfig() {
+	if len(c.globalUserConfigFiles) != 1 {
+		panic("expected exactly one global user config file")
+	}
+
+	yamlContent, err := yaml.Marshal(c.userConfig)
+	if err != nil {
+		log.Fatalf("error marshalling user config: %v", err)
+	}
+
+	err = os.WriteFile(c.globalUserConfigFiles[0].Path, yamlContent, 0o644)
+	if err != nil {
+		log.Fatalf("error saving user config: %v", err)
+	}
 }
 
 // AppState stores data between runs of the app like when the last update check

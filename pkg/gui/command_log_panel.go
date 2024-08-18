@@ -55,11 +55,11 @@ func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {
 func (gui *Gui) printCommandLogHeader() {
 	introStr := fmt.Sprintf(
 		gui.c.Tr.CommandLogHeader,
-		keybindings.Label(gui.c.UserConfig.Keybinding.Universal.ExtrasMenu),
+		keybindings.Label(gui.c.UserConfig().Keybinding.Universal.ExtrasMenu),
 	)
 	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(introStr))
 
-	if gui.c.UserConfig.Gui.ShowRandomTip {
+	if gui.c.UserConfig().Gui.ShowRandomTip {
 		fmt.Fprintf(
 			gui.Views.Extras,
 			"%s: %s",
@@ -70,7 +70,7 @@ func (gui *Gui) printCommandLogHeader() {
 }
 
 func (gui *Gui) getRandomTip() string {
-	config := gui.c.UserConfig.Keybinding
+	config := gui.c.UserConfig().Keybinding
 
 	formattedKey := func(key string) string {
 		return keybindings.Label(key)

@@ -25,7 +25,7 @@ func (self *BackgroundRoutineMgr) PauseBackgroundRefreshes(pause bool) {
 }
 
 func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
-	userConfig := self.gui.UserConfig
+	userConfig := self.gui.UserConfig()
 
 	if userConfig.Git.AutoFetch {
 		fetchInterval := userConfig.Refresher.FetchInterval
@@ -77,7 +77,7 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	self.gui.waitForIntro.Wait()
 
 	isNew := self.gui.IsNewRepo
-	userConfig := self.gui.UserConfig
+	userConfig := self.gui.UserConfig()
 	if !isNew {
 		time.After(time.Duration(userConfig.Refresher.FetchInterval) * time.Second)
 	}

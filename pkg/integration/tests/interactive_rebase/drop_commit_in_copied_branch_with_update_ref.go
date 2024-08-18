@@ -11,7 +11,7 @@ var DropCommitInCopiedBranchWithUpdateRef = NewIntegrationTest(NewIntegrationTes
 	Skip:         false,
 	GitVersion:   AtLeast("2.38.0"),
 	SetupConfig: func(config *config.AppConfig) {
-		config.AppState.GitLogShowGraph = "never"
+		config.GetAppState().GitLogShowGraph = "never"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.

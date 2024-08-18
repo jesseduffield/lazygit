@@ -33,9 +33,9 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
 			time.Now(),
-			c.UserConfig.Gui.TimeFormat,
-			c.UserConfig.Gui.ShortTimeFormat,
-			c.UserConfig.Git.ParseEmoji,
+			c.UserConfig().Gui.TimeFormat,
+			c.UserConfig().Gui.ShortTimeFormat,
+			c.UserConfig().Git.ParseEmoji,
 		)
 	}
 

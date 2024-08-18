@@ -10,7 +10,7 @@ var OpenLinkFailure = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.OS.OpenLink = "exit 42"
+		config.GetUserConfig().OS.OpenLink = "exit 42"
 	},
 	SetupRepo: func(shell *Shell) {},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
