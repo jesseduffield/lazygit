@@ -14,6 +14,7 @@ import (
 // (sticky range, press 'v') -> no range
 // (sticky range, press 'escape') -> no range
 // (sticky range, press arrow) -> sticky range
+// (sticky range, press `<`/`>` or `,`/`.`) -> sticky range
 // (sticky range, press shift+arrow) -> nonsticky range
 // (nonsticky range, press 'v') -> no range
 // (nonsticky range, press 'escape') -> no range
@@ -138,19 +139,18 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				SelectedLines(
 					Contains("line 8"),
 				).
+				// (sticky range, press '>') -> sticky range
 				Press(keys.Universal.ToggleRangeSelect).
-				SelectedLines(
-					Contains("line 8"),
-				).
-				SelectNextItem().
+				Press(keys.Universal.GotoBottom).
 				SelectedLines(
 					Contains("line 8"),
 					Contains("line 9"),
+					Contains("line 10"),
 				).
 				// (sticky range, press 'escape') -> no range
 				PressEscape().
 				SelectedLines(
-					Contains("line 9"),
+					Contains("line 10"),
 				)
 		}
 

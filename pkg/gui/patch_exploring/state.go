@@ -123,6 +123,12 @@ func (s *State) SetLineSelectMode() {
 	s.selectMode = LINE
 }
 
+func (s *State) DismissHunkSelectMode() {
+	if s.SelectingHunk() {
+		s.selectMode = LINE
+	}
+}
+
 // For when you move the cursor without holding shift (meaning if we're in
 // a non-sticky range select, we'll cancel it)
 func (s *State) SelectLine(newSelectedLineIdx int) {
@@ -239,7 +245,7 @@ func (s *State) CurrentLineNumber() int {
 }
 
 func (s *State) AdjustSelectedLineIdx(change int) {
-	s.SetLineSelectMode()
+	s.DismissHunkSelectMode()
 	s.SelectLine(s.selectedLineIdx + change)
 }
 
@@ -256,12 +262,12 @@ func (s *State) PlainRenderSelected() string {
 }
 
 func (s *State) SelectBottom() {
-	s.SetLineSelectMode()
+	s.DismissHunkSelectMode()
 	s.SelectLine(s.patch.LineCount() - 1)
 }
 
 func (s *State) SelectTop() {
-	s.SetLineSelectMode()
+	s.DismissHunkSelectMode()
 	s.SelectLine(0)
 }
 
