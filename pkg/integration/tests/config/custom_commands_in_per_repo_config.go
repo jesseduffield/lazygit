@@ -49,10 +49,7 @@ customCommands:
 		t.Views().Status().Content(Contains("other → master"))
 
 		t.GlobalPress("X")
-		/* EXPECTED:
 		t.FileSystem().FileContent("../other/file.txt", Equals("global X"))
-		ACTUAL: */
-		t.FileSystem().PathNotPresent("../other/file.txt")
 
 		t.GlobalPress("Y")
 		t.FileSystem().FileContent("../other/file.txt", Equals("local Y"))
