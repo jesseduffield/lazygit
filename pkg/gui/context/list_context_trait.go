@@ -140,3 +140,11 @@ func (self *ListContextTrait) RangeSelectEnabled() bool {
 func (self *ListContextTrait) RenderOnlyVisibleLines() bool {
 	return self.renderOnlyVisibleLines
 }
+
+func (self *ListContextTrait) TotalContentHeight() int {
+	result := self.list.Len()
+	if self.getNonModelItems != nil {
+		result += len(self.getNonModelItems())
+	}
+	return result
+}

@@ -212,3 +212,7 @@ func (self *BaseContext) NeedsRerenderOnHeightChange() bool {
 func (self *BaseContext) Title() string {
 	return ""
 }
+
+func (self *BaseContext) TotalContentHeight() int {
+	return self.view.ViewLinesHeight()
+}

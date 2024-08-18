@@ -71,6 +71,9 @@ type IBaseContext interface {
 	// determined independently.
 	HasControlledBounds() bool
 
+	// the total height of the content that the view is currently showing
+	TotalContentHeight() int
+
 	// to what extent the view needs to be rerendered when its width changes
 	NeedsRerenderOnWidthChange() NeedsRerenderOnWidthChangeLevel
 
