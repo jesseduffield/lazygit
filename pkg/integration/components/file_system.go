@@ -30,7 +30,7 @@ func (self *FileSystem) FileContent(path string, matcher *TextMatcher) {
 	self.assertWithRetries(func() (bool, string) {
 		_, err := os.Stat(path)
 		if os.IsNotExist(err) {
-			return false, fmt.Sprintf("Expected path '%s' to not exist, but it does", path)
+			return false, fmt.Sprintf("Expected path '%s' to exist, but it does not", path)
 		}
 
 		output, err := os.ReadFile(path)
