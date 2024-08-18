@@ -239,6 +239,7 @@ func (s *State) CurrentLineNumber() int {
 }
 
 func (s *State) AdjustSelectedLineIdx(change int) {
+	s.SetLineSelectMode()
 	s.SelectLine(s.selectedLineIdx + change)
 }
 

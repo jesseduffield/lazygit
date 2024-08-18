@@ -244,14 +244,12 @@ func (self *PatchExplorerController) HandleScrollRight() error {
 }
 
 func (self *PatchExplorerController) HandlePrevPage() error {
-	self.context.GetState().SetLineSelectMode()
 	self.context.GetState().AdjustSelectedLineIdx(-self.context.GetViewTrait().PageDelta())
 
 	return nil
 }
 
 func (self *PatchExplorerController) HandleNextPage() error {
-	self.context.GetState().SetLineSelectMode()
 	self.context.GetState().AdjustSelectedLineIdx(self.context.GetViewTrait().PageDelta())
 
 	return nil
