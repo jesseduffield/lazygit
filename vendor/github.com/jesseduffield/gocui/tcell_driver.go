@@ -176,6 +176,7 @@ const (
 	eventKey
 	eventResize
 	eventMouse
+	eventMouseMove // only used when no button is down, otherwise it's eventMouse
 	eventFocus
 	eventInterrupt
 	eventError
@@ -387,7 +388,11 @@ func (g *Gui) pollEvent() GocuiEvent {
 		if !wheeling {
 			switch dragState {
 			case NOT_DRAGGING:
-				return GocuiEvent{Type: eventNone}
+				return GocuiEvent{
+					Type:   eventMouseMove,
+					MouseX: x,
+					MouseY: y,
+				}
 			// if we haven't released the left mouse button and we've moved the cursor then we're dragging
 			case MAYBE_DRAGGING:
 				if x != lastX || y != lastY {
