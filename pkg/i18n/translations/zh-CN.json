@@ -187,7 +187,7 @@
   "CherryPickingStatus": "正在拣选",
   "UndoingStatus": "正在撤销",
   "RedoingStatus": "正在重做",
-  "CheckingOutStatus": "长子检出",
+  "CheckingOutStatus": "正在检出",
   "CommittingStatus": "正在提交",
   "CommitFiles": "提交文件",
   "ViewItemFiles": "查看提交的文件",
