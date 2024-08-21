@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -47,6 +48,32 @@ func (self *DiffHelper) DiffArgs() []string {
 	}
 
 	return output
+}
+
+// Returns an update task that can be passed to RenderToMainViews to render a
+// diff for the selected commit(s). We need to pass both the selected commit
+// and the refRange for a range selection. If the refRange is nil (meaning that
+// either there's no range, or it can't be diffed for some reason), then we want
+// to fall back to rendering the diff for the single commit.
+func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Commit, refRange *types.RefRange) types.UpdateTask {
+	if refRange != nil {
+		from, to := refRange.From, refRange.To
+		args := []string{from.ParentRefName(), to.RefName(), "--stat", "-p"}
+		if self.c.GetAppState().IgnoreWhitespaceInDiffView {
+			args = append(args, "--ignore-all-space")
+		}
+		args = append(args, "--")
+		if path := self.c.Modes().Filtering.GetPath(); path != "" {
+			args = append(args, path)
+		}
+		cmdObj := self.c.Git().Diff.DiffCmdObj(args)
+		task := types.NewRunPtyTask(cmdObj.GetCmd())
+		task.Prefix = style.FgYellow.Sprintf("%s %s-%s\n\n", self.c.Tr.ShowingDiffForRange, from.ShortRefName(), to.ShortRefName())
+		return task
+	}
+
+	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash, self.c.Modes().Filtering.GetPath())
+	return types.NewRunPtyTask(cmdObj.GetCmd())
 }
 
 func (self *DiffHelper) ExitDiffMode() error {

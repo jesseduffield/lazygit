@@ -128,6 +128,19 @@ func (self *LocalCommitsContext) GetSelectedRef() types.Ref {
 	return commit
 }
 
+func (self *LocalCommitsContext) GetSelectedRefRangeForDiffFiles() *types.RefRange {
+	commits, startIdx, endIdx := self.GetSelectedItems()
+	if commits == nil || startIdx == endIdx {
+		return nil
+	}
+	from := commits[len(commits)-1]
+	to := commits[0]
+	if from.IsTODO() || to.IsTODO() {
+		return nil
+	}
+	return &types.RefRange{From: from, To: to}
+}
+
 // Returns the commit hash of the selected commit, or an empty string if no
 // commit is selected
 func (self *LocalCommitsContext) GetSelectedCommitHash() string {

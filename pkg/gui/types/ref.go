@@ -7,3 +7,8 @@ type Ref interface {
 	ParentRefName() string
 	Description() string
 }
+
+type RefRange struct {
+	From Ref
+	To   Ref
+}
