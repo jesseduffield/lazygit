@@ -50,7 +50,7 @@ Custom command keybindings will appear alongside inbuilt keybindings when you vi
 For a given custom command, here are the allowed fields:
 | _field_ | _description_ | required |
 |-----------------|----------------------|-|
-| key | The key to trigger the command. Use a single letter or one of the values from [here](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md) | yes |
+| key | The key to trigger the command. Use a single letter or one of the values from [here](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md). Custom commands without a key specified can be triggered by selecting them from the keybindings (`?`) menu | no |
 | command | The command to run (using Go template syntax for placeholder values) | yes |
 | context | The context in which to listen for the key (see [below](#contexts)) | yes |
 | subprocess | Whether you want the command to run in a subprocess (e.g. if the command requires user input) | no |
