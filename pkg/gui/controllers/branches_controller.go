@@ -810,7 +810,7 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 
 	menuItems = append(menuItems, menuItemsForBranch(selectedBranch)...)
 
-	return self.c.Menu(types.CreateMenuOptions{Title: fmt.Sprintf(self.c.Tr.CreatePullRequestOptions), Items: menuItems})
+	return self.c.Menu(types.CreateMenuOptions{Title: fmt.Sprint(self.c.Tr.CreatePullRequestOptions), Items: menuItems})
 }
 
 func (self *BranchesController) createPullRequest(from string, to string) error {

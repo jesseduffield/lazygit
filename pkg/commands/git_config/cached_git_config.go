@@ -42,7 +42,7 @@ func (self *CachedGitConfig) Get(key string) string {
 	defer self.mutex.Unlock()
 
 	if value, ok := self.cache[key]; ok {
-		self.log.Debugf("using cache for key " + key)
+		self.log.Debug("using cache for key " + key)
 		return value
 	}
 
@@ -56,7 +56,7 @@ func (self *CachedGitConfig) GetGeneral(args string) string {
 	defer self.mutex.Unlock()
 
 	if value, ok := self.cache[args]; ok {
-		self.log.Debugf("using cache for args " + args)
+		self.log.Debug("using cache for args " + args)
 		return value
 	}
 
