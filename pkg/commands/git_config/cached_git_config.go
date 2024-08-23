@@ -69,7 +69,7 @@ func (self *CachedGitConfig) getGeneralAux(args string) string {
 	cmd := getGitConfigGeneralCmd(args)
 	value, err := self.runGitConfigCmd(cmd)
 	if err != nil {
-		self.log.Debugf("Error getting git config value for args: " + args + ". Error: " + err.Error())
+		self.log.Debugf("Error getting git config value for args: %s. Error: %v", args, err.Error())
 		return ""
 	}
 	return strings.TrimSpace(value)
@@ -79,7 +79,7 @@ func (self *CachedGitConfig) getAux(key string) string {
 	cmd := getGitConfigCmd(key)
 	value, err := self.runGitConfigCmd(cmd)
 	if err != nil {
-		self.log.Debugf("Error getting git config value for key: " + key + ". Error: " + err.Error())
+		self.log.Debugf("Error getting git config value for key: %s. Error: %v", key, err.Error())
 		return ""
 	}
 	return strings.TrimSpace(value)
