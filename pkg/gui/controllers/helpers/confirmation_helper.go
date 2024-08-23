@@ -157,7 +157,7 @@ func (self *ConfirmationHelper) getPopupPanelWidth() int {
 
 func (self *ConfirmationHelper) prepareConfirmationPanel(
 	opts types.ConfirmOpts,
-) error {
+) {
 	self.c.Views().Confirmation.Title = opts.Title
 	// for now we do not support wrapping in our editor
 	self.c.Views().Confirmation.Wrap = !opts.Editable
@@ -176,8 +176,6 @@ func (self *ConfirmationHelper) prepareConfirmationPanel(
 		suggestionsView.Title = fmt.Sprintf(self.c.Tr.SuggestionsTitle, self.c.UserConfig().Keybinding.Universal.TogglePanel)
 		suggestionsView.Subtitle = ""
 	}
-
-	return nil
 }
 
 func runeForMask(mask bool) rune {
@@ -207,7 +205,7 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 	// remove any previous keybindings
 	self.clearConfirmationViewKeyBindings()
 
-	err := self.prepareConfirmationPanel(
+	self.prepareConfirmationPanel(
 		types.ConfirmOpts{
 			Title:               opts.Title,
 			Prompt:              opts.Prompt,
@@ -215,10 +213,6 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 			Editable:            opts.Editable,
 			Mask:                opts.Mask,
 		})
-	if err != nil {
-		cancel()
-		return err
-	}
 	confirmationView := self.c.Views().Confirmation
 	confirmationView.Editable = opts.Editable
 
@@ -232,10 +226,7 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 		self.c.SetViewContent(confirmationView, style.AttrBold.Sprint(underlineLinks(opts.Prompt)))
 	}
 
-	if err := self.setKeyBindings(cancel, opts); err != nil {
-		cancel()
-		return err
-	}
+	self.setKeyBindings(cancel, opts)
 
 	self.c.Contexts().Suggestions.State.AllowEditSuggestion = opts.AllowEditSuggestion
 
@@ -266,7 +257,7 @@ func underlineLinks(text string) string {
 	return result + remaining
 }
 
-func (self *ConfirmationHelper) setKeyBindings(cancel goContext.CancelFunc, opts types.CreatePopupPanelOpts) error {
+func (self *ConfirmationHelper) setKeyBindings(cancel goContext.CancelFunc, opts types.CreatePopupPanelOpts) {
 	var onConfirm func() error
 	if opts.HandleConfirmPrompt != nil {
 		onConfirm = self.wrappedPromptConfirmationFunction(cancel, opts.HandleConfirmPrompt, func() string { return self.c.Views().Confirmation.TextArea.GetContent() })
@@ -296,8 +287,6 @@ func (self *ConfirmationHelper) setKeyBindings(cancel goContext.CancelFunc, opts
 	self.c.Contexts().Suggestions.State.OnConfirm = onSuggestionConfirm
 	self.c.Contexts().Suggestions.State.OnClose = onClose
 	self.c.Contexts().Suggestions.State.OnDeleteSuggestion = onDeleteSuggestion
-
-	return nil
 }
 
 func (self *ConfirmationHelper) clearConfirmationViewKeyBindings() {
