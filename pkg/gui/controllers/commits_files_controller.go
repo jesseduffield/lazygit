@@ -136,9 +136,8 @@ func (self *CommitFilesController) GetOnRenderToMain() func() error {
 			return nil
 		}
 
-		ref := self.context().GetRef()
-		to := ref.RefName()
-		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+		from, to := self.context().GetFromAndToForDiff()
+		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
 		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
 		task := types.NewRunPtyTask(cmdObj.GetCmd())
@@ -250,9 +249,8 @@ func (self *CommitFilesController) canEditFiles(nodes []*filetree.CommitFileNode
 }
 
 func (self *CommitFilesController) openDiffTool(node *filetree.CommitFileNode) error {
-	ref := self.context().GetRef()
-	to := ref.RefName()
-	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	from, to := self.context().GetFromAndToForDiff()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 	_, err := self.c.RunSubprocess(self.c.Git().Diff.OpenDiffToolCmdObj(
 		git_commands.DiffToolCmdOptions{
 			Filepath:    node.GetPath(),
@@ -340,9 +338,8 @@ func (self *CommitFilesController) startPatchBuilder() error {
 func (self *CommitFilesController) currentFromToReverseForPatchBuilding() (string, string, bool) {
 	commitFilesContext := self.context()
 
-	ref := commitFilesContext.GetRef()
-	to := ref.RefName()
-	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	from, to := commitFilesContext.GetFromAndToForDiff()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 	return from, to, reverse
 }
 

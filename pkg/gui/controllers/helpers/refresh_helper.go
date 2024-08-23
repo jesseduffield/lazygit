@@ -285,7 +285,8 @@ func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
 		// For now the awkwardness remains.
 		commit := self.c.Contexts().LocalCommits.GetSelected()
 		if commit != nil && commit.RefName() != "" {
-			self.c.Contexts().CommitFiles.ReInit(commit)
+			refRange := self.c.Contexts().LocalCommits.GetSelectedRefRangeForDiffFiles()
+			self.c.Contexts().CommitFiles.ReInit(commit, refRange)
 			_ = self.refreshCommitFilesContext()
 		}
 	}
@@ -386,9 +387,8 @@ func (self *RefreshHelper) RefreshAuthors(commits []*models.Commit) {
 }
 
 func (self *RefreshHelper) refreshCommitFilesContext() error {
-	ref := self.c.Contexts().CommitFiles.GetRef()
-	to := ref.RefName()
-	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
 	files, err := self.c.Git().Loaders.CommitFileLoader.GetFilesInDiff(from, to, reverse)
 	if err != nil {

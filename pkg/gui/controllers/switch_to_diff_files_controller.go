@@ -12,6 +12,7 @@ type CanSwitchToDiffFiles interface {
 	types.IListContext
 	CanRebase() bool
 	GetSelectedRef() types.Ref
+	GetSelectedRefRangeForDiffFiles() *types.RefRange
 }
 
 // Not using our ListControllerTrait because our 'selected' item is not a list item
@@ -46,8 +47,8 @@ func (self *SwitchToDiffFilesController) GetKeybindings(opts types.KeybindingsOp
 	bindings := []*types.Binding{
 		{
 			Key:               opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:           self.withItem(self.enter),
-			GetDisabledReason: self.require(self.singleItemSelected(self.itemRepresentsCommit)),
+			Handler:           self.enter,
+			GetDisabledReason: self.canEnter,
 			Description:       self.c.Tr.ViewItemFiles,
 		},
 	}
@@ -56,10 +57,18 @@ func (self *SwitchToDiffFilesController) GetKeybindings(opts types.KeybindingsOp
 }
 
 func (self *SwitchToDiffFilesController) GetOnClick() func() error {
-	return self.withItemGraceful(self.enter)
+	return func() error {
+		if self.canEnter() == nil {
+			return self.enter()
+		}
+
+		return nil
+	}
 }
 
-func (self *SwitchToDiffFilesController) enter(ref types.Ref) error {
+func (self *SwitchToDiffFilesController) enter() error {
+	ref := self.context.GetSelectedRef()
+	refsRange := self.context.GetSelectedRefRangeForDiffFiles()
 	commitFilesContext := self.c.Contexts().CommitFiles
 
 	canRebase := self.context.CanRebase()
@@ -68,10 +77,12 @@ func (self *SwitchToDiffFilesController) enter(ref types.Ref) error {
 			if self.c.Modes().Diffing.Ref != ref.RefName() {
 				canRebase = false
 			}
+		} else if refsRange != nil {
+			canRebase = false
 		}
 	}
 
-	commitFilesContext.ReInit(ref)
+	commitFilesContext.ReInit(ref, refsRange)
 	commitFilesContext.SetSelection(0)
 	commitFilesContext.SetCanRebase(canRebase)
 	commitFilesContext.SetParentContext(self.context)
@@ -88,7 +99,15 @@ func (self *SwitchToDiffFilesController) enter(ref types.Ref) error {
 	return self.c.Context().Push(commitFilesContext)
 }
 
-func (self *SwitchToDiffFilesController) itemRepresentsCommit(ref types.Ref) *types.DisabledReason {
+func (self *SwitchToDiffFilesController) canEnter() *types.DisabledReason {
+	refRange := self.context.GetSelectedRefRangeForDiffFiles()
+	if refRange != nil {
+		return nil
+	}
+	ref := self.context.GetSelectedRef()
+	if ref == nil {
+		return &types.DisabledReason{Text: self.c.Tr.NoItemSelected}
+	}
 	if ref.RefName() == "" {
 		return &types.DisabledReason{Text: self.c.Tr.SelectedItemDoesNotHaveFiles}
 	}
