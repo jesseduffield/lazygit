@@ -62,10 +62,19 @@ func (self *SwitchToDiffFilesController) GetOnClick() func() error {
 func (self *SwitchToDiffFilesController) enter(ref types.Ref) error {
 	commitFilesContext := self.c.Contexts().CommitFiles
 
+	canRebase := self.context.CanRebase()
+	if canRebase {
+		if self.c.Modes().Diffing.Active() {
+			if self.c.Modes().Diffing.Ref != ref.RefName() {
+				canRebase = false
+			}
+		}
+	}
+
 	commitFilesContext.SetSelection(0)
 	commitFilesContext.SetRef(ref)
 	commitFilesContext.SetTitleRef(ref.Description())
-	commitFilesContext.SetCanRebase(self.context.CanRebase())
+	commitFilesContext.SetCanRebase(canRebase)
 	commitFilesContext.SetParentContext(self.context)
 	commitFilesContext.SetWindowName(self.context.GetWindowName())
 	commitFilesContext.ClearSearchString()
