@@ -41,7 +41,7 @@ func (self *SearchHelper) OpenFilterPrompt(context types.IFilterableContext) err
 	self.OnPromptContentChanged("")
 	promptView.RenderTextArea()
 
-	if err := self.c.PushContext(self.c.Contexts().Search); err != nil {
+	if err := self.c.Context().Push(self.c.Contexts().Search); err != nil {
 		return err
 	}
 
@@ -60,7 +60,7 @@ func (self *SearchHelper) OpenSearchPrompt(context types.ISearchableContext) err
 	promptView.ClearTextArea()
 	promptView.RenderTextArea()
 
-	if err := self.c.PushContext(self.c.Contexts().Search); err != nil {
+	if err := self.c.Context().Push(self.c.Contexts().Search); err != nil {
 		return err
 	}
 
@@ -76,7 +76,7 @@ func (self *SearchHelper) DisplayFilterStatus(context types.IFilterableContext) 
 	self.searchPrefixView().SetContent(self.c.Tr.FilterPrefix)
 
 	promptView := self.promptView()
-	keybindingConfig := self.c.UserConfig.Keybinding
+	keybindingConfig := self.c.UserConfig().Keybinding
 	promptView.SetContent(fmt.Sprintf("matches for '%s' ", searchString) + theme.OptionsFgColor.Sprintf(self.c.Tr.ExitTextFilterMode, keybindings.Label(keybindingConfig.Universal.Return)))
 }
 
@@ -118,7 +118,7 @@ func (self *SearchHelper) Confirm() error {
 	case types.SearchTypeSearch:
 		return self.ConfirmSearch()
 	case types.SearchTypeNone:
-		return self.c.PopContext()
+		return self.c.Context().Pop()
 	}
 
 	return nil
@@ -140,7 +140,7 @@ func (self *SearchHelper) ConfirmFilter() error {
 		context.GetSearchHistory().Push(filterString)
 	}
 
-	return self.c.PopContext()
+	return self.c.Context().Pop()
 }
 
 func (self *SearchHelper) ConfirmSearch() error {
@@ -158,7 +158,7 @@ func (self *SearchHelper) ConfirmSearch() error {
 		context.GetSearchHistory().Push(searchString)
 	}
 
-	if err := self.c.PopContext(); err != nil {
+	if err := self.c.Context().Pop(); err != nil {
 		return err
 	}
 
@@ -183,7 +183,7 @@ func modelSearchResults(context types.ISearchableContext) []gocui.SearchPosition
 func (self *SearchHelper) CancelPrompt() error {
 	self.Cancel()
 
-	return self.c.PopContext()
+	return self.c.Context().Pop()
 }
 
 func (self *SearchHelper) ScrollHistory(scrollIncrement int) {
@@ -229,7 +229,7 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 	case types.IFilterableContext:
 		context.SetSelection(0)
 		_ = context.GetView().SetOriginY(0)
-		context.SetFilter(searchString, self.c.UserConfig.Gui.UseFuzzySearch())
+		context.SetFilter(searchString, self.c.UserConfig().Gui.UseFuzzySearch())
 		_ = self.c.PostRefreshUpdate(context)
 	case types.ISearchableContext:
 		// do nothing
@@ -239,14 +239,14 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 }
 
 func (self *SearchHelper) ReApplyFilter(context types.Context) {
-	state := self.searchState()
-	if context == state.Context {
-		filterableContext, ok := context.(types.IFilterableContext)
-		if ok {
+	filterableContext, ok := context.(types.IFilterableContext)
+	if ok {
+		state := self.searchState()
+		if context == state.Context {
 			filterableContext.SetSelection(0)
 			_ = filterableContext.GetView().SetOriginY(0)
-			filterableContext.ReApplyFilter(self.c.UserConfig.Gui.UseFuzzySearch())
 		}
+		filterableContext.ReApplyFilter(self.c.UserConfig().Gui.UseFuzzySearch())
 	}
 }
 
@@ -262,7 +262,7 @@ func (self *SearchHelper) ReApplySearch(ctx types.Context) {
 		if ctx == state.Context {
 			// Re-render the "x of y" search status, unless the search prompt is
 			// open for typing.
-			if self.c.CurrentContext().GetKey() != context.SEARCH_CONTEXT_KEY {
+			if self.c.Context().Current().GetKey() != context.SEARCH_CONTEXT_KEY {
 				self.RenderSearchStatus(searchableContext)
 			}
 		}

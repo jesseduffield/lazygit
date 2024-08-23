@@ -45,48 +45,12 @@ func (self *guiCommon) RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error) {
 	return self.gui.runSubprocessWithSuspense(cmdObj)
 }
 
-func (self *guiCommon) PushContext(context types.Context, opts ...types.OnFocusOpts) error {
-	return self.gui.State.ContextMgr.Push(context, opts...)
-}
-
-func (self *guiCommon) PopContext() error {
-	return self.gui.State.ContextMgr.Pop()
-}
-
-func (self *guiCommon) ReplaceContext(context types.Context) error {
-	return self.gui.State.ContextMgr.Replace(context)
-}
-
-func (self *guiCommon) RemoveContexts(contexts []types.Context) error {
-	return self.gui.State.ContextMgr.RemoveContexts(contexts)
-}
-
-func (self *guiCommon) CurrentContext() types.Context {
-	return self.gui.State.ContextMgr.Current()
-}
-
-func (self *guiCommon) CurrentStaticContext() types.Context {
-	return self.gui.State.ContextMgr.CurrentStatic()
-}
-
-func (self *guiCommon) CurrentSideContext() types.Context {
-	return self.gui.State.ContextMgr.CurrentSide()
-}
-
-func (self *guiCommon) IsCurrentContext(c types.Context) bool {
-	return self.gui.State.ContextMgr.IsCurrent(c)
-}
-
 func (self *guiCommon) Context() types.IContextMgr {
 	return self.gui.State.ContextMgr
 }
 
 func (self *guiCommon) ContextForKey(key types.ContextKey) types.Context {
 	return self.gui.State.ContextMgr.ContextForKey(key)
-}
-
-func (self *guiCommon) ActivateContext(context types.Context) error {
-	return self.gui.State.ContextMgr.ActivateContext(context, types.OnFocusOpts{})
 }
 
 func (self *guiCommon) GetAppState() *config.AppState {

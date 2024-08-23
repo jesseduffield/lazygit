@@ -168,7 +168,7 @@ func (u *Updater) skipUpdateCheck() bool {
 		return true
 	}
 
-	userConfig := u.UserConfig
+	userConfig := u.UserConfig()
 	if userConfig.Update.Method == "never" {
 		u.Log.Info("Update method is set to never so we won't check for an update")
 		return true

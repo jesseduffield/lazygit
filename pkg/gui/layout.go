@@ -173,9 +173,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// if you run `lazygit --logs`
 	// this will let you see these branches as prettified json
 	// gui.c.Log.Info(utils.AsJson(gui.State.Model.Branches[0:4]))
-	if err := gui.helpers.Confirmation.ResizeCurrentPopupPanel(); err != nil {
-		return err
-	}
+	gui.helpers.Confirmation.ResizeCurrentPopupPanels()
 
 	gui.renderContextOptionsMap()
 
@@ -213,8 +211,8 @@ func (gui *Gui) onInitialViewsCreationForRepo() error {
 		}
 	}
 
-	initialContext := gui.c.CurrentContext()
-	if err := gui.c.ActivateContext(initialContext); err != nil {
+	initialContext := gui.c.Context().Current()
+	if err := gui.c.Context().Activate(initialContext, types.OnFocusOpts{}); err != nil {
 		return err
 	}
 
@@ -262,7 +260,7 @@ func (gui *Gui) onRepoViewReset() error {
 }
 
 func (gui *Gui) onInitialViewsCreation() error {
-	if !gui.c.UserConfig.DisableStartupPopups {
+	if !gui.c.UserConfig().DisableStartupPopups {
 		storedPopupVersion := gui.c.GetAppState().StartupPopupVersion
 		if storedPopupVersion < StartupPopupVersion {
 			gui.showIntroPopupMessage()

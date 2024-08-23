@@ -19,6 +19,7 @@ lazygit.exe
 
 # Exceptions
 !.gitignore
+!.gitattributes
 !.goreleaser.yml
 !.golangci.yml
 !.circleci/

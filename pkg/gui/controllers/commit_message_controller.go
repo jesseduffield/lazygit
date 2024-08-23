@@ -85,7 +85,7 @@ func (self *CommitMessageController) handleNextCommit() error {
 }
 
 func (self *CommitMessageController) switchToCommitDescription() error {
-	if err := self.c.PushContext(self.c.Contexts().CommitDescription); err != nil {
+	if err := self.c.Context().Replace(self.c.Contexts().CommitDescription); err != nil {
 		return err
 	}
 	return nil
@@ -118,8 +118,8 @@ func (self *CommitMessageController) setCommitMessageAtIndex(index int) (bool, e
 		}
 		return false, errors.New(self.c.Tr.CommitWithoutMessageErr)
 	}
-	if self.c.UserConfig.Git.Commit.AutoWrapCommitMessage {
-		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig.Git.Commit.AutoWrapWidth)
+	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
+		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
 	}
 	self.c.Helpers().Commits.UpdateCommitPanelView(commitMessage)
 	return true, nil

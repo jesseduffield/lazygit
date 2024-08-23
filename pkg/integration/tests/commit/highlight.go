@@ -10,7 +10,7 @@ var Highlight = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.AppState.GitLogShowGraph = "always"
+		config.GetAppState().GitLogShowGraph = "always"
 		config.GetUserConfig().Gui.AuthorColors = map[string]string{
 			"CI": "red",
 		}

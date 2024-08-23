@@ -89,7 +89,7 @@ func (self *SwitchToDiffFilesController) viewFiles(opts SwitchToCommitFilesConte
 		return err
 	}
 
-	return self.c.PushContext(diffFilesContext)
+	return self.c.Context().Push(diffFilesContext)
 }
 
 func (self *SwitchToDiffFilesController) itemRepresentsCommit(ref types.Ref) *types.DisabledReason {

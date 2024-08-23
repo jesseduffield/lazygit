@@ -13,11 +13,11 @@ import (
 const HORIZONTAL_SCROLL_FACTOR = 3
 
 func (gui *Gui) scrollUpView(view *gocui.View) {
-	view.ScrollUp(gui.c.UserConfig.Gui.ScrollHeight)
+	view.ScrollUp(gui.c.UserConfig().Gui.ScrollHeight)
 }
 
 func (gui *Gui) scrollDownView(view *gocui.View) {
-	scrollHeight := gui.c.UserConfig.Gui.ScrollHeight
+	scrollHeight := gui.c.UserConfig().Gui.ScrollHeight
 	view.ScrollDown(scrollHeight)
 
 	if manager, ok := gui.viewBufferManagerMap[view.Name()]; ok {
@@ -27,7 +27,7 @@ func (gui *Gui) scrollDownView(view *gocui.View) {
 
 func (gui *Gui) scrollUpMain() error {
 	var view *gocui.View
-	if gui.c.CurrentContext().GetWindowName() == "secondary" {
+	if gui.c.Context().Current().GetWindowName() == "secondary" {
 		view = gui.secondaryView()
 	} else {
 		view = gui.mainView()
@@ -48,7 +48,7 @@ func (gui *Gui) scrollUpMain() error {
 
 func (gui *Gui) scrollDownMain() error {
 	var view *gocui.View
-	if gui.c.CurrentContext().GetWindowName() == "secondary" {
+	if gui.c.Context().Current().GetWindowName() == "secondary" {
 		view = gui.secondaryView()
 	} else {
 		view = gui.mainView()
@@ -123,12 +123,12 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 
 func (gui *Gui) handleCopySelectedSideContextItemCommitHashToClipboard() error {
 	return gui.handleCopySelectedSideContextItemToClipboardWithTruncation(
-		gui.UserConfig.Git.TruncateCopiedCommitHashesTo)
+		gui.UserConfig().Git.TruncateCopiedCommitHashesTo)
 }
 
 func (gui *Gui) handleCopySelectedSideContextItemToClipboardWithTruncation(maxWidth int) error {
 	// important to note that this assumes we've selected an item in a side context
-	currentSideContext := gui.c.CurrentSideContext()
+	currentSideContext := gui.c.Context().CurrentSide()
 	if currentSideContext == nil {
 		return nil
 	}
@@ -162,7 +162,7 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboardWithTruncation(maxWi
 
 func (gui *Gui) getCopySelectedSideContextItemToClipboardDisabledReason() *types.DisabledReason {
 	// important to note that this assumes we've selected an item in a side context
-	currentSideContext := gui.c.CurrentSideContext()
+	currentSideContext := gui.c.Context().CurrentSide()
 	if currentSideContext == nil {
 		// This should never happen but if it does we'll just ignore the keypress
 		return nil

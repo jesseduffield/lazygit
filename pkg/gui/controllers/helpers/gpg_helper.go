@@ -46,7 +46,7 @@ func (self *GpgHelper) runAndStream(cmdObj oscommands.ICmdObj, waitingStatus str
 		if err := cmdObj.StreamOutput().Run(); err != nil {
 			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 			return fmt.Errorf(
-				self.c.Tr.GitCommandFailed, self.c.UserConfig.Keybinding.Universal.ExtrasMenu,
+				self.c.Tr.GitCommandFailed, self.c.UserConfig().Keybinding.Universal.ExtrasMenu,
 			)
 		}
 

@@ -173,7 +173,7 @@ func GetCommitListDisplayStrings(
 					// Don't show a marker for the current branch
 					b.Name != currentBranchName &&
 					// Don't show a marker for main branches
-					!lo.Contains(common.UserConfig.Git.MainBranches, b.Name) &&
+					!lo.Contains(common.UserConfig().Git.MainBranches, b.Name) &&
 					// Don't show a marker for the head commit unless the
 					// rebase.updateRefs config is on
 					(hasRebaseUpdateRefsConfig || b.CommitHash != commits[0].Hash)
@@ -370,7 +370,7 @@ func displayCommit(
 
 	hashString := ""
 	hashColor := getHashColor(commit, diffName, cherryPickedCommitHashSet, bisectStatus, bisectInfo)
-	hashLength := common.UserConfig.Gui.CommitHashLength
+	hashLength := common.UserConfig().Gui.CommitHashLength
 	if hashLength >= len(commit.Hash) {
 		hashString = hashColor.Sprint(commit.Hash)
 	} else if hashLength > 0 {
@@ -440,15 +440,11 @@ func displayCommit(
 		mark = fmt.Sprintf("%s ", willBeRebased)
 	}
 
-	var authorFunc func(string) string
-	switch common.UserConfig.Gui.CommitAuthorFormat {
-	case "short":
-		authorFunc = authors.ShortAuthor
-	case "full":
-		authorFunc = authors.LongAuthor
-	default:
-		authorFunc = lo.Ternary(fullDescription, authors.LongAuthor, authors.ShortAuthor)
+	authorLength := common.UserConfig().Gui.CommitAuthorShortLength
+	if fullDescription {
+		authorLength = common.UserConfig().Gui.CommitAuthorLongLength
 	}
+	author := authors.AuthorWithLength(commit.AuthorName, authorLength)
 
 	cols := make([]string, 0, 7)
 	cols = append(
@@ -458,7 +454,7 @@ func displayCommit(
 		bisectString,
 		descriptionString,
 		actionString,
-		authorFunc(commit.AuthorName),
+		author,
 		graphLine+mark+tagString+theme.DefaultTextColor.Sprint(name),
 	)
 

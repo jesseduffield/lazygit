@@ -87,6 +87,11 @@ The permitted contexts are:
 | stash          | The 'Stash' tab                                                                                          |
 | global         | This keybinding will take affect everywhere                                                              |
 
+> **Bonus**
+>
+> You can use a comma-separated string, such as `context: 'commits, subCommits'`, to make it effective in multiple contexts.
+
+
 ## Prompts
 
 ### Common fields
@@ -291,9 +296,7 @@ Here's an example using a command but not specifying anything else: so each line
 Your commands can contain placeholder strings using Go's [template syntax](https://jan.newmarch.name/golang/template/chapter-template.html). The template syntax is pretty powerful, letting you do things like conditionals if you want, but for the most part you'll simply want to be accessing the fields on the following objects:
 
 ```
-SelectedLocalCommit
-SelectedReflogCommit
-SelectedSubCommit
+SelectedCommit
 SelectedFile
 SelectedPath
 SelectedLocalBranch
@@ -305,6 +308,9 @@ SelectedCommitFile
 SelectedWorktree
 CheckedOutBranch
 ```
+
+(For legacy reasons, `SelectedLocalCommit`, `SelectedReflogCommit`, and `SelectedSubCommit` are also available, but they are deprecated.)
+
 
 To see what fields are available on e.g. the `SelectedFile`, see [here](https://github.com/jesseduffield/lazygit/blob/master/pkg/gui/services/custom_commands/models.go) (all the modelling lives in the same file).
 

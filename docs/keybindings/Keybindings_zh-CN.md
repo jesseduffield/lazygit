@@ -14,9 +14,11 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` @ `` | 打开命令日志菜单 | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | 推送 | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | 拉取 | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename. |
+| `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
 | `` } `` | 扩大差异视图中显示的上下文范围 | Increase the amount of the context shown around changes in the diff view. |
 | `` { `` | 缩小差异视图中显示的上下文范围 | Decrease the amount of the context shown around changes in the diff view. |
-| `` : `` | 执行自定义命令 | Bring up a prompt where you can enter a shell command to execute. Not to be confused with pre-configured custom commands. |
+| `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
 | `` <c-p> `` | 查看自定义补丁选项 |  |
 | `` m `` | 查看 合并/变基 选项 | View options to abort/continue/skip the current merge/rebase. |
 | `` R `` | 刷新 | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
@@ -91,13 +93,14 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` F `` | 强制检出 | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |
 | `` r `` | 将已检出的分支变基到该分支 | Rebase the checked-out branch onto the selected branch. |
-| `` M `` | 合并到当前检出的分支 | Merge selected branch into currently checked out branch. |
+| `` M `` | 合并到当前检出的分支 | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` f `` | 从上游快进此分支 | Fast-forward selected branch from its upstream. |
 | `` T `` | 创建标签 |  |
 | `` s `` | Sort order |  |
 | `` g `` | 查看重置选项 |  |
 | `` R `` | 重命名分支 |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -248,6 +251,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | 推送标签 | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -342,12 +346,13 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-o> `` | 将分支名称复制到剪贴板 |  |
 | `` <space> `` | 检出 | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | 新分支 |  |
-| `` M `` | 合并到当前检出的分支 | Merge selected branch into currently checked out branch. |
+| `` M `` | 合并到当前检出的分支 | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` r `` | 将已检出的分支变基到该分支 | Rebase the checked-out branch onto the selected branch. |
 | `` d `` | Delete | Delete the remote branch from the remote. |
 | `` u `` | Set as upstream | 设置为检出分支的上游 |
 | `` s `` | Sort order |  |
 | `` g `` | 查看重置选项 | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |

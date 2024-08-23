@@ -14,7 +14,6 @@ import (
 	"github.com/spf13/afero"
 
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -64,22 +63,20 @@ func Run(
 func NewCommon(config config.AppConfigurer) (*common.Common, error) {
 	userConfig := config.GetUserConfig()
 	appState := config.GetAppState()
-
-	var err error
 	log := newLogger(config)
-	tr, err := i18n.NewTranslationSetFromConfig(log, userConfig.Gui.Language)
-	if err != nil {
-		return nil, err
-	}
+	// Initialize with English for the time being; the real translation set for
+	// the configured language will be read after reading the user config
+	tr := i18n.EnglishTranslationSet()
 
-	return &common.Common{
-		Log:        log,
-		Tr:         tr,
-		UserConfig: userConfig,
-		AppState:   appState,
-		Debug:      config.GetDebug(),
-		Fs:         afero.NewOsFs(),
-	}, nil
+	cmn := &common.Common{
+		Log:      log,
+		Tr:       tr,
+		AppState: appState,
+		Debug:    config.GetDebug(),
+		Fs:       afero.NewOsFs(),
+	}
+	cmn.SetUserConfig(userConfig)
+	return cmn, nil
 }
 
 func newLogger(cfg config.AppConfigurer) *logrus.Entry {
@@ -119,7 +116,14 @@ func NewApp(config config.AppConfigurer, test integrationTypes.IntegrationTest, 
 		return app, err
 	}
 
-	showRecentRepos, err := app.setupRepo()
+	// If we're not in a repo, GetRepoPaths will return an error. The error is moot for us
+	// at this stage, since we'll try to init a new repo in setupRepo(), below
+	repoPaths, err := git_commands.GetRepoPaths(app.OSCommand.Cmd, gitVersion)
+	if err != nil {
+		common.Log.Infof("Error getting repo paths: %v", err)
+	}
+
+	showRecentRepos, err := app.setupRepo(repoPaths)
 	if err != nil {
 		return app, err
 	}
@@ -168,14 +172,16 @@ func openRecentRepo(app *App) bool {
 	return false
 }
 
-func (app *App) setupRepo() (bool, error) {
+func (app *App) setupRepo(
+	repoPaths *git_commands.RepoPaths,
+) (bool, error) {
 	if env.GetGitDirEnv() != "" {
-		// we've been given the git dir directly. We'll verify this dir when initializing our Git object
+		// we've been given the git dir directly. Skip setup
 		return false, nil
 	}
 
 	// if we are not in a git repo, we ask if we want to `git init`
-	if err := commands.VerifyInGitRepo(app.OSCommand); err != nil {
+	if repoPaths == nil {
 		cwd, err := os.Getwd()
 		if err != nil {
 			return false, err
@@ -187,7 +193,7 @@ func (app *App) setupRepo() (bool, error) {
 
 		var shouldInitRepo bool
 		initialBranchArg := ""
-		switch app.UserConfig.NotARepository {
+		switch app.UserConfig().NotARepository {
 		case "prompt":
 			// Offer to initialize a new repository in current directory.
 			fmt.Print(app.Tr.CreateRepo)
@@ -221,6 +227,7 @@ func (app *App) setupRepo() (bool, error) {
 			if err := app.OSCommand.Cmd.New(args).Run(); err != nil {
 				return false, err
 			}
+
 			return false, nil
 		}
 
@@ -238,10 +245,7 @@ func (app *App) setupRepo() (bool, error) {
 	}
 
 	// Run this afterward so that the previous repo creation steps can run without this interfering
-	if isBare, err := git_commands.IsBareRepo(app.OSCommand); isBare {
-		if err != nil {
-			return false, err
-		}
+	if repoPaths.IsBareRepo() {
 
 		fmt.Print(app.Tr.BareRepo)
 

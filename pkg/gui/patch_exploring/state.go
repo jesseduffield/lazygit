@@ -112,7 +112,7 @@ func (s *State) SelectingHunk() bool {
 }
 
 func (s *State) SelectingRange() bool {
-	return s.selectMode == RANGE
+	return s.selectMode == RANGE && (s.rangeIsSticky || s.rangeStartLineIdx != s.selectedLineIdx)
 }
 
 func (s *State) SelectingLine() bool {

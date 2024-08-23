@@ -131,7 +131,7 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 		return err
 	}
 
-	return self.c.PushContext(remoteBranchesContext)
+	return self.c.Context().Push(remoteBranchesContext)
 }
 
 func (self *RemotesController) add() error {

@@ -24,7 +24,11 @@ type TranslationSet struct {
 	MainTitle                             string
 	StagingTitle                          string
 	MergingTitle                          string
-	MergeConfirmTitle                     string
+	SquashMergeUncommittedTitle           string
+	SquashMergeCommittedTitle             string
+	SquashMergeUncommitted                string
+	SquashMergeCommitted                  string
+	RegularMergeTooltip                   string
 	NormalTitle                           string
 	LogTitle                              string
 	CommitSummary                         string
@@ -32,6 +36,7 @@ type TranslationSet struct {
 	CredentialsPassword                   string
 	CredentialsPassphrase                 string
 	CredentialsPIN                        string
+	CredentialsToken                      string
 	PassUnameWrong                        string
 	Commit                                string
 	CommitTooltip                         string
@@ -133,6 +138,7 @@ type TranslationSet struct {
 	SureFixupThisCommit                   string
 	SureSquashThisCommit                  string
 	Squash                                string
+	SquashMerge                           string
 	PickCommitTooltip                     string
 	Pick                                  string
 	CantPickDisabledReason                string
@@ -219,6 +225,8 @@ type TranslationSet struct {
 	MergeToolPrompt                       string
 	IntroPopupMessage                     string
 	DeprecatedEditConfigWarning           string
+	NonReloadableConfigWarningTitle       string
+	NonReloadableConfigWarning            string
 	GitconfigParseErr                     string
 	EditFile                              string
 	EditFileTooltip                       string
@@ -229,6 +237,7 @@ type TranslationSet struct {
 	ExcludeFile                           string
 	RefreshFiles                          string
 	Merge                                 string
+	RegularMerge                          string
 	MergeBranchTooltip                    string
 	ConfirmQuit                           string
 	SwitchRepo                            string
@@ -249,7 +258,6 @@ type TranslationSet struct {
 	ToggleSelectHunk                      string
 	ToggleSelectHunkTooltip               string
 	ToggleSelectionForPatch               string
-	ToggleSelectionForPatchTooltip        string
 	EditHunk                              string
 	EditHunkTooltip                       string
 	ToggleStagingView                     string
@@ -296,7 +304,6 @@ type TranslationSet struct {
 	InteractiveRebaseTooltip              string
 	RebaseOntoBaseBranchTooltip           string
 	MustSelectTodoCommits                 string
-	ConfirmMerge                          string
 	FwdNoUpstream                         string
 	FwdNoLocalUpstream                    string
 	FwdCommitsToPush                      string
@@ -309,7 +316,6 @@ type TranslationSet struct {
 	ChangingThisActionIsNotAllowed        string
 	CherryPickCopy                        string
 	CherryPickCopyTooltip                 string
-	CherryPickCopyRange                   string
 	CherryPickCopyRangeTooltip            string
 	PasteCommits                          string
 	SureCherryPick                        string
@@ -411,9 +417,9 @@ type TranslationSet struct {
 	SquashCommitsInCurrentBranch          string
 	SquashCommitsAboveSelectedCommit      string
 	CannotSquashCommitsInCurrentBranch    string
-	ExecuteCustomCommand                  string
-	ExecuteCustomCommandTooltip           string
-	CustomCommand                         string
+	ExecuteShellCommand                   string
+	ExecuteShellCommandTooltip            string
+	ShellCommand                          string
 	CommitChangesWithoutHook              string
 	SkipHookPrefixNotConfigured           string
 	ResetTo                               string
@@ -557,7 +563,6 @@ type TranslationSet struct {
 	OpenFilteringMenuTooltip              string
 	FilterBy                              string
 	ExitFilterMode                        string
-	ExitFilterModeAuthor                  string
 	FilterPathOption                      string
 	FilterAuthorOption                    string
 	EnterFileName                         string
@@ -582,6 +587,8 @@ type TranslationSet struct {
 	CommitHash                            string
 	CommitURL                             string
 	CopyCommitMessageToClipboard          string
+	PasteCommitMessageFromClipboard       string
+	SurePasteCommitMessage                string
 	CommitMessage                         string
 	CommitSubject                         string
 	CommitAuthor                          string
@@ -637,169 +644,172 @@ type TranslationSet struct {
 	NavigationTitle                       string
 	SuggestionsCheatsheetTitle            string
 	// Unlike the cheatsheet title above, the real suggestions title has a little message saying press tab to focus
-	SuggestionsTitle                     string
-	SuggestionsSubtitle                  string
-	ExtrasTitle                          string
-	PushingTagStatus                     string
-	PullRequestURLCopiedToClipboard      string
-	CommitDiffCopiedToClipboard          string
-	CommitURLCopiedToClipboard           string
-	CommitMessageCopiedToClipboard       string
-	CommitSubjectCopiedToClipboard       string
-	CommitAuthorCopiedToClipboard        string
-	PatchCopiedToClipboard               string
-	CopiedToClipboard                    string
-	ErrCannotEditDirectory               string
-	ErrStageDirWithInlineMergeConflicts  string
-	ErrRepositoryMovedOrDeleted          string
-	ErrWorktreeMovedOrRemoved            string
-	CommandLog                           string
-	ToggleShowCommandLog                 string
-	FocusCommandLog                      string
-	CommandLogHeader                     string
-	RandomTip                            string
-	SelectParentCommitForMerge           string
-	ToggleWhitespaceInDiffView           string
-	ToggleWhitespaceInDiffViewTooltip    string
-	IgnoreWhitespaceDiffViewSubTitle     string
-	IgnoreWhitespaceNotSupportedHere     string
-	IncreaseContextInDiffView            string
-	IncreaseContextInDiffViewTooltip     string
-	DecreaseContextInDiffView            string
-	DecreaseContextInDiffViewTooltip     string
-	DiffContextSizeChanged               string
-	CreatePullRequestOptions             string
-	DefaultBranch                        string
-	SelectBranch                         string
-	CreatePullRequest                    string
-	SelectConfigFile                     string
-	NoConfigFileFoundErr                 string
-	LoadingFileSuggestions               string
-	LoadingCommits                       string
-	MustSpecifyOriginError               string
-	GitOutput                            string
-	GitCommandFailed                     string
-	AbortTitle                           string
-	AbortPrompt                          string
-	OpenLogMenu                          string
-	OpenLogMenuTooltip                   string
-	LogMenuTitle                         string
-	ToggleShowGitGraphAll                string
-	ShowGitGraph                         string
-	SortOrder                            string
-	SortAlphabetical                     string
-	SortByDate                           string
-	SortByRecency                        string
-	SortBasedOnReflog                    string
-	SortCommits                          string
-	CantChangeContextSizeError           string
-	OpenCommitInBrowser                  string
-	ViewBisectOptions                    string
-	ConfirmRevertCommit                  string
-	RewordInEditorTitle                  string
-	RewordInEditorPrompt                 string
-	CheckoutPrompt                       string
-	HardResetAutostashPrompt             string
-	UpstreamGone                         string
-	NukeDescription                      string
-	DiscardStagedChangesDescription      string
-	EmptyOutput                          string
-	Patch                                string
-	CustomPatch                          string
-	CommitsCopied                        string
-	CommitCopied                         string
-	ResetPatch                           string
-	ResetPatchTooltip                    string
-	ApplyPatch                           string
-	ApplyPatchTooltip                    string
-	ApplyPatchInReverse                  string
-	ApplyPatchInReverseTooltip           string
-	RemovePatchFromOriginalCommit        string
-	RemovePatchFromOriginalCommitTooltip string
-	MovePatchOutIntoIndex                string
-	MovePatchOutIntoIndexTooltip         string
-	MovePatchIntoNewCommit               string
-	MovePatchIntoNewCommitTooltip        string
-	MovePatchToSelectedCommit            string
-	MovePatchToSelectedCommitTooltip     string
-	CopyPatchToClipboard                 string
-	NoMatchesFor                         string
-	MatchesFor                           string
-	SearchKeybindings                    string
-	SearchPrefix                         string
-	FilterPrefix                         string
-	ExitSearchMode                       string
-	ExitTextFilterMode                   string
-	Switch                               string
-	SwitchToWorktree                     string
-	SwitchToWorktreeTooltip              string
-	AlreadyCheckedOutByWorktree          string
-	BranchCheckedOutByWorktree           string
-	DetachWorktreeTooltip                string
-	Switching                            string
-	RemoveWorktree                       string
-	RemoveWorktreeTitle                  string
-	DetachWorktree                       string
-	DetachingWorktree                    string
-	WorktreesTitle                       string
-	WorktreeTitle                        string
-	RemoveWorktreePrompt                 string
-	ForceRemoveWorktreePrompt            string
-	RemovingWorktree                     string
-	AddingWorktree                       string
-	CantDeleteCurrentWorktree            string
-	AlreadyInWorktree                    string
-	CantDeleteMainWorktree               string
-	NoWorktreesThisRepo                  string
-	MissingWorktree                      string
-	MainWorktree                         string
-	NewWorktree                          string
-	NewWorktreePath                      string
-	NewWorktreeBase                      string
-	RemoveWorktreeTooltip                string
-	BranchNameCannotBeBlank              string
-	NewBranchName                        string
-	NewBranchNameLeaveBlank              string
-	ViewWorktreeOptions                  string
-	CreateWorktreeFrom                   string
-	CreateWorktreeFromDetached           string
-	LcWorktree                           string
-	ChangingDirectoryTo                  string
-	Name                                 string
-	Branch                               string
-	Path                                 string
-	MarkedBaseCommitStatus               string
-	MarkAsBaseCommit                     string
-	MarkAsBaseCommitTooltip              string
-	MarkedCommitMarker                   string
-	PleaseGoToURL                        string
-	NoCopiedCommits                      string
-	DisabledMenuItemPrefix               string
-	QuickStartInteractiveRebase          string
-	QuickStartInteractiveRebaseTooltip   string
-	CannotQuickStartInteractiveRebase    string
-	ToggleRangeSelect                    string
-	RangeSelectUp                        string
-	RangeSelectDown                      string
-	RangeSelectNotSupported              string
-	NoItemSelected                       string
-	SelectedItemIsNotABranch             string
-	SelectedItemDoesNotHaveFiles         string
-	RangeSelectNotSupportedForSubmodules string
-	OldCherryPickKeyWarning              string
-	CommandDoesNotSupportOpeningInEditor string
-	Actions                              Actions
-	Bisect                               Bisect
-	Log                                  Log
-	BreakingChangesTitle                 string
-	BreakingChangesMessage               string
-	BreakingChangesByVersion             map[string]string
+	SuggestionsTitle                         string
+	SuggestionsSubtitle                      string
+	ExtrasTitle                              string
+	PushingTagStatus                         string
+	PullRequestURLCopiedToClipboard          string
+	CommitDiffCopiedToClipboard              string
+	CommitURLCopiedToClipboard               string
+	CommitMessageCopiedToClipboard           string
+	CommitSubjectCopiedToClipboard           string
+	CommitAuthorCopiedToClipboard            string
+	PatchCopiedToClipboard                   string
+	CopiedToClipboard                        string
+	ErrCannotEditDirectory                   string
+	ErrStageDirWithInlineMergeConflicts      string
+	ErrRepositoryMovedOrDeleted              string
+	ErrWorktreeMovedOrRemoved                string
+	CommandLog                               string
+	ToggleShowCommandLog                     string
+	FocusCommandLog                          string
+	CommandLogHeader                         string
+	RandomTip                                string
+	SelectParentCommitForMerge               string
+	ToggleWhitespaceInDiffView               string
+	ToggleWhitespaceInDiffViewTooltip        string
+	IgnoreWhitespaceDiffViewSubTitle         string
+	IgnoreWhitespaceNotSupportedHere         string
+	IncreaseContextInDiffView                string
+	IncreaseContextInDiffViewTooltip         string
+	DecreaseContextInDiffView                string
+	DecreaseContextInDiffViewTooltip         string
+	DiffContextSizeChanged                   string
+	IncreaseRenameSimilarityThreshold        string
+	IncreaseRenameSimilarityThresholdTooltip string
+	DecreaseRenameSimilarityThreshold        string
+	DecreaseRenameSimilarityThresholdTooltip string
+	RenameSimilarityThresholdChanged         string
+	CreatePullRequestOptions                 string
+	DefaultBranch                            string
+	SelectBranch                             string
+	CreatePullRequest                        string
+	SelectConfigFile                         string
+	NoConfigFileFoundErr                     string
+	LoadingFileSuggestions                   string
+	LoadingCommits                           string
+	MustSpecifyOriginError                   string
+	GitOutput                                string
+	GitCommandFailed                         string
+	AbortTitle                               string
+	AbortPrompt                              string
+	OpenLogMenu                              string
+	OpenLogMenuTooltip                       string
+	LogMenuTitle                             string
+	ToggleShowGitGraphAll                    string
+	ShowGitGraph                             string
+	SortOrder                                string
+	SortAlphabetical                         string
+	SortByDate                               string
+	SortByRecency                            string
+	SortBasedOnReflog                        string
+	SortCommits                              string
+	CantChangeContextSizeError               string
+	OpenCommitInBrowser                      string
+	ViewBisectOptions                        string
+	ConfirmRevertCommit                      string
+	RewordInEditorTitle                      string
+	RewordInEditorPrompt                     string
+	CheckoutPrompt                           string
+	HardResetAutostashPrompt                 string
+	UpstreamGone                             string
+	NukeDescription                          string
+	DiscardStagedChangesDescription          string
+	EmptyOutput                              string
+	Patch                                    string
+	CustomPatch                              string
+	CommitsCopied                            string
+	CommitCopied                             string
+	ResetPatch                               string
+	ResetPatchTooltip                        string
+	ApplyPatch                               string
+	ApplyPatchTooltip                        string
+	ApplyPatchInReverse                      string
+	ApplyPatchInReverseTooltip               string
+	RemovePatchFromOriginalCommit            string
+	RemovePatchFromOriginalCommitTooltip     string
+	MovePatchOutIntoIndex                    string
+	MovePatchOutIntoIndexTooltip             string
+	MovePatchIntoNewCommit                   string
+	MovePatchIntoNewCommitTooltip            string
+	MovePatchToSelectedCommit                string
+	MovePatchToSelectedCommitTooltip         string
+	CopyPatchToClipboard                     string
+	NoMatchesFor                             string
+	MatchesFor                               string
+	SearchKeybindings                        string
+	SearchPrefix                             string
+	FilterPrefix                             string
+	ExitSearchMode                           string
+	ExitTextFilterMode                       string
+	Switch                                   string
+	SwitchToWorktree                         string
+	SwitchToWorktreeTooltip                  string
+	AlreadyCheckedOutByWorktree              string
+	BranchCheckedOutByWorktree               string
+	DetachWorktreeTooltip                    string
+	Switching                                string
+	RemoveWorktree                           string
+	RemoveWorktreeTitle                      string
+	DetachWorktree                           string
+	DetachingWorktree                        string
+	WorktreesTitle                           string
+	WorktreeTitle                            string
+	RemoveWorktreePrompt                     string
+	ForceRemoveWorktreePrompt                string
+	RemovingWorktree                         string
+	AddingWorktree                           string
+	CantDeleteCurrentWorktree                string
+	AlreadyInWorktree                        string
+	CantDeleteMainWorktree                   string
+	NoWorktreesThisRepo                      string
+	MissingWorktree                          string
+	MainWorktree                             string
+	NewWorktree                              string
+	NewWorktreePath                          string
+	NewWorktreeBase                          string
+	RemoveWorktreeTooltip                    string
+	BranchNameCannotBeBlank                  string
+	NewBranchName                            string
+	NewBranchNameLeaveBlank                  string
+	ViewWorktreeOptions                      string
+	CreateWorktreeFrom                       string
+	CreateWorktreeFromDetached               string
+	LcWorktree                               string
+	ChangingDirectoryTo                      string
+	Name                                     string
+	Branch                                   string
+	Path                                     string
+	MarkedBaseCommitStatus                   string
+	MarkAsBaseCommit                         string
+	MarkAsBaseCommitTooltip                  string
+	MarkedCommitMarker                       string
+	PleaseGoToURL                            string
+	NoCopiedCommits                          string
+	DisabledMenuItemPrefix                   string
+	QuickStartInteractiveRebase              string
+	QuickStartInteractiveRebaseTooltip       string
+	CannotQuickStartInteractiveRebase        string
+	ToggleRangeSelect                        string
+	RangeSelectUp                            string
+	RangeSelectDown                          string
+	RangeSelectNotSupported                  string
+	NoItemSelected                           string
+	SelectedItemIsNotABranch                 string
+	SelectedItemDoesNotHaveFiles             string
+	RangeSelectNotSupportedForSubmodules     string
+	OldCherryPickKeyWarning                  string
+	CommandDoesNotSupportOpeningInEditor     string
+	Actions                                  Actions
+	Bisect                                   Bisect
+	Log                                      Log
+	BreakingChangesTitle                     string
+	BreakingChangesMessage                   string
+	BreakingChangesByVersion                 map[string]string
 }
 
 type Bisect struct {
 	MarkStart                   string
-	MarkSkipCurrent             string
-	MarkSkipSelected            string
 	ResetTitle                  string
 	ResetPrompt                 string
 	ResetOption                 string
@@ -839,6 +849,7 @@ type Actions struct {
 	DeleteLocalBranch                 string
 	DeleteBranch                      string
 	Merge                             string
+	SquashMerge                       string
 	RebaseBranch                      string
 	RenameBranch                      string
 	CreateBranch                      string
@@ -887,7 +898,6 @@ type Actions struct {
 	Push                              string
 	Pull                              string
 	OpenFile                          string
-	OpenFileTooltip                   string
 	StashAllChanges                   string
 	StashAllChangesKeepIndex          string
 	StashStagedChanges                string
@@ -977,6 +987,10 @@ for up-to-date information how to configure your editor.
 
 `
 
+const englishNonReloadableConfigWarning = `The following config settings were changed, but the change doesn't take effect immediately. Please quit and restart lazygit for changes to take effect:
+
+{{configs}}`
+
 // exporting this so we can use it in tests
 func EnglishTranslationSet() *TranslationSet {
 	return &TranslationSet{
@@ -991,7 +1005,8 @@ func EnglishTranslationSet() *TranslationSet {
 		UnstagedChanges:                      "Unstaged changes",
 		StagedChanges:                        "Staged changes",
 		MainTitle:                            "Main",
-		MergeConfirmTitle:                    "Merge",
+		SquashMergeUncommittedTitle:          "Squash merge and leave uncommitted",
+		SquashMergeCommittedTitle:            "Squash merge and commit",
 		StagingTitle:                         "Main panel (staging)",
 		MergingTitle:                         "Main panel (merging)",
 		NormalTitle:                          "Main panel (normal)",
@@ -1001,6 +1016,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CredentialsPassword:                  "Password",
 		CredentialsPassphrase:                "Enter passphrase for SSH key",
 		CredentialsPIN:                       "Enter PIN for SSH key",
+		CredentialsToken:                     "Enter Token for SSH key",
 		PassUnameWrong:                       "Password, passphrase and/or username wrong",
 		Commit:                               "Commit",
 		CommitTooltip:                        "Commit staged changes.",
@@ -1103,6 +1119,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SureFixupThisCommit:                  "Are you sure you want to 'fixup' the selected commit(s) into the commit below?",
 		SureSquashThisCommit:                 "Are you sure you want to squash the selected commit(s) into the commit below?",
 		Squash:                               "Squash",
+		SquashMerge:                          "Squash Merge",
 		PickCommitTooltip:                    "Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase.",
 		Pick:                                 "Pick",
 		CantPickDisabledReason:               "Cannot pick a commit when not mid-rebase",
@@ -1188,6 +1205,8 @@ func EnglishTranslationSet() *TranslationSet {
 		MergeToolPrompt:                      "Are you sure you want to open `git mergetool`?",
 		IntroPopupMessage:                    englishIntroPopupMessage,
 		DeprecatedEditConfigWarning:          englishDeprecatedEditConfigWarning,
+		NonReloadableConfigWarningTitle:      "Config changed",
+		NonReloadableConfigWarning:           englishNonReloadableConfigWarning,
 		GitconfigParseErr:                    `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		EditFile:                             `Edit file`,
 		EditFileTooltip:                      "Open file in external editor.",
@@ -1198,10 +1217,11 @@ func EnglishTranslationSet() *TranslationSet {
 		ExcludeFile:                          `Add to .git/info/exclude`,
 		RefreshFiles:                         `Refresh files`,
 		Merge:                                `Merge`,
-		MergeBranchTooltip:                   "Merge selected branch into currently checked out branch.",
+		RegularMerge:                         "Regular merge",
+		MergeBranchTooltip:                   "View options for merging the selected item into the current branch (regular merge, squash merge)",
 		ConfirmQuit:                          `Are you sure you want to quit?`,
 		SwitchRepo:                           `Switch to a recent repo`,
-		AllBranchesLogGraph:                  `Show all branch logs`,
+		AllBranchesLogGraph:                  `Show/cycle all branch logs`,
 		UnsupportedGitService:                `Unsupported git service`,
 		CreatePullRequest:                    `Create pull request`,
 		CopyPullRequestURL:                   `Copy pull request URL to clipboard`,
@@ -1269,7 +1289,9 @@ func EnglishTranslationSet() *TranslationSet {
 		InteractiveRebaseTooltip:             "Begin an interactive rebase with a break at the start, so you can update the TODO commits before continuing.",
 		RebaseOntoBaseBranchTooltip:          "Rebase the checked out branch onto its base branch (i.e. the closest main branch).",
 		MustSelectTodoCommits:                "When rebasing, this action only works on a selection of TODO commits.",
-		ConfirmMerge:                         "Are you sure you want to merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'?",
+		SquashMergeUncommitted:               "Squash merge '{{.selectedBranch}}' into the working tree.",
+		SquashMergeCommitted:                 "Squash merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}' as a single commit.",
+		RegularMergeTooltip:                  "Merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'.",
 		FwdNoUpstream:                        "Cannot fast-forward a branch with no upstream",
 		FwdNoLocalUpstream:                   "Cannot fast-forward a branch whose remote is not registered locally",
 		FwdCommitsToPush:                     "Cannot fast-forward a branch with commits to push",
@@ -1387,9 +1409,9 @@ func EnglishTranslationSet() *TranslationSet {
 		SquashCommitsInCurrentBranch:         "In current branch",
 		SquashCommitsAboveSelectedCommit:     "Above the selected commit",
 		CannotSquashCommitsInCurrentBranch:   "Cannot squash commits in current branch: the HEAD commit is a merge commit or is present on the main branch.",
-		ExecuteCustomCommand:                 "Execute custom command",
-		ExecuteCustomCommandTooltip:          "Bring up a prompt where you can enter a shell command to execute. Not to be confused with pre-configured custom commands.",
-		CustomCommand:                        "Custom command:",
+		ExecuteShellCommand:                  "Execute shell command",
+		ExecuteShellCommandTooltip:           "Bring up a prompt where you can enter a shell command to execute.",
+		ShellCommand:                         "Shell command:",
 		CommitChangesWithoutHook:             "Commit changes without pre-commit hook",
 		SkipHookPrefixNotConfigured:          "You have not configured a commit message prefix for skipping hooks. Set `git.skipHookPrefix = 'WIP'` in your config",
 		ResetTo:                              `Reset to`,
@@ -1545,217 +1567,224 @@ func EnglishTranslationSet() *TranslationSet {
 		ViewDiffingOptions:               "View diffing options",
 		ViewDiffingOptionsTooltip:        "View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction.",
 		// the actual view is the extras view which I intend to give more tabs in future but for now we'll only mention the command log part
-		OpenCommandLogMenu:                    "View command log options",
-		OpenCommandLogMenuTooltip:             "View options for the command log e.g. show/hide the command log and focus the command log.",
-		ShowingGitDiff:                        "Showing output for:",
-		CommitDiff:                            "Commit diff",
-		CopyCommitHashToClipboard:             "Copy commit hash to clipboard",
-		CommitHash:                            "Commit hash",
-		CommitURL:                             "Commit URL",
-		CopyCommitMessageToClipboard:          "Copy commit message to clipboard",
-		CommitMessage:                         "Commit message",
-		CommitSubject:                         "Commit subject",
-		CommitAuthor:                          "Commit author",
-		CopyCommitAttributeToClipboard:        "Copy commit attribute to clipboard",
-		CopyCommitAttributeToClipboardTooltip: "Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author).",
-		CopyBranchNameToClipboard:             "Copy branch name to clipboard",
-		CopyPathToClipboard:                   "Copy path to clipboard",
-		CopySelectedTextToClipboard:           "Copy selected text to clipboard",
-		CommitPrefixPatternError:              "Error in commitPrefix pattern",
-		NoFilesStagedTitle:                    "No files staged",
-		NoFilesStagedPrompt:                   "You have not staged any files. Commit all files?",
-		BranchNotFoundTitle:                   "Branch not found",
-		BranchNotFoundPrompt:                  "Branch not found. Create a new branch named",
-		BranchUnknown:                         "Branch unknown",
-		DiscardChangeTitle:                    "Discard change",
-		DiscardChangePrompt:                   "Are you sure you want to discard this change (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipDiscardChangeWarning' to true",
-		CreateNewBranchFromCommit:             "Create new branch off of commit",
-		BuildingPatch:                         "Building patch",
-		ViewCommits:                           "View commits",
-		MinGitVersionError:                    "Git version must be at least 2.20 (i.e. from 2018 onwards). Please upgrade your git version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
-		RunningCustomCommandStatus:            "Running custom command",
-		SubmoduleStashAndReset:                "Stash uncommitted submodule changes and update",
-		AndResetSubmodules:                    "And reset submodules",
-		Enter:                                 "Enter",
-		EnterSubmoduleTooltip:                 "Enter submodule. After entering the submodule, you can press `{{.escape}}` to escape back to the parent repo.",
-		CopySubmoduleNameToClipboard:          "Copy submodule name to clipboard",
-		RemoveSubmodule:                       "Remove submodule",
-		RemoveSubmodulePrompt:                 "Are you sure you want to remove submodule '%s' and its corresponding directory? This is irreversible.",
-		RemoveSubmoduleTooltip:                "Remove the selected submodule and its corresponding directory.",
-		ResettingSubmoduleStatus:              "Resetting submodule",
-		NewSubmoduleName:                      "New submodule name:",
-		NewSubmoduleUrl:                       "New submodule URL:",
-		NewSubmodulePath:                      "New submodule path:",
-		NewSubmodule:                          "New submodule",
-		AddingSubmoduleStatus:                 "Adding submodule",
-		UpdateSubmoduleUrl:                    "Update URL for submodule '%s'",
-		UpdatingSubmoduleUrlStatus:            "Updating URL",
-		EditSubmoduleUrl:                      "Update submodule URL",
-		InitializingSubmoduleStatus:           "Initializing submodule",
-		InitSubmoduleTooltip:                  "Initialize the selected submodule to prepare for fetching. You probably want to follow this up by invoking the 'update' action to fetch the submodule.",
-		Update:                                "Update",
-		Initialize:                            "Initialize",
-		SubmoduleUpdateTooltip:                "Update selected submodule.",
-		UpdatingSubmoduleStatus:               "Updating submodule",
-		BulkInitSubmodules:                    "Bulk init submodules",
-		BulkUpdateSubmodules:                  "Bulk update submodules",
-		BulkDeinitSubmodules:                  "Bulk deinit submodules",
-		ViewBulkSubmoduleOptions:              "View bulk submodule options",
-		BulkSubmoduleOptions:                  "Bulk submodule options",
-		RunningCommand:                        "Running command",
-		SubCommitsTitle:                       "Sub-commits",
-		SubmodulesTitle:                       "Submodules",
-		NavigationTitle:                       "List panel navigation",
-		SuggestionsCheatsheetTitle:            "Suggestions",
-		SuggestionsTitle:                      "Suggestions (press %s to focus)",
-		SuggestionsSubtitle:                   "(press %s to delete, %s to edit)",
-		ExtrasTitle:                           "Command log",
-		PushingTagStatus:                      "Pushing tag",
-		PullRequestURLCopiedToClipboard:       "Pull request URL copied to clipboard",
-		CommitDiffCopiedToClipboard:           "Commit diff copied to clipboard",
-		CommitURLCopiedToClipboard:            "Commit URL copied to clipboard",
-		CommitMessageCopiedToClipboard:        "Commit message copied to clipboard",
-		CommitSubjectCopiedToClipboard:        "Commit subject copied to clipboard",
-		CommitAuthorCopiedToClipboard:         "Commit author copied to clipboard",
-		PatchCopiedToClipboard:                "Patch copied to clipboard",
-		CopiedToClipboard:                     "copied to clipboard",
-		ErrCannotEditDirectory:                "Cannot edit directories: you can only edit individual files",
-		ErrStageDirWithInlineMergeConflicts:   "Cannot stage/unstage directory containing files with inline merge conflicts. Please fix up the merge conflicts first",
-		ErrRepositoryMovedOrDeleted:           "Cannot find repo. It might have been moved or deleted ¯\\_(ツ)_/¯",
-		CommandLog:                            "Command log",
-		ErrWorktreeMovedOrRemoved:             "Cannot find worktree. It might have been moved or removed ¯\\_(ツ)_/¯",
-		ToggleShowCommandLog:                  "Toggle show/hide command log",
-		FocusCommandLog:                       "Focus command log",
-		CommandLogHeader:                      "You can hide/focus this panel by pressing '%s'\n",
-		RandomTip:                             "Random tip",
-		SelectParentCommitForMerge:            "Select parent commit for merge",
-		ToggleWhitespaceInDiffView:            "Toggle whitespace",
-		ToggleWhitespaceInDiffViewTooltip:     "Toggle whether or not whitespace changes are shown in the diff view.",
-		IgnoreWhitespaceDiffViewSubTitle:      "(ignoring whitespace)",
-		IgnoreWhitespaceNotSupportedHere:      "Ignoring whitespace is not supported in this view",
-		IncreaseContextInDiffView:             "Increase diff context size",
-		IncreaseContextInDiffViewTooltip:      "Increase the amount of the context shown around changes in the diff view.",
-		DecreaseContextInDiffView:             "Decrease diff context size",
-		DecreaseContextInDiffViewTooltip:      "Decrease the amount of the context shown around changes in the diff view.",
-		DiffContextSizeChanged:                "Changed diff context size to %d",
-		CreatePullRequestOptions:              "View create pull request options",
-		DefaultBranch:                         "Default branch",
-		SelectBranch:                          "Select branch",
-		SelectConfigFile:                      "Select config file",
-		NoConfigFileFoundErr:                  "No config file found",
-		LoadingFileSuggestions:                "Loading file suggestions",
-		LoadingCommits:                        "Loading commits",
-		MustSpecifyOriginError:                "Must specify a remote if specifying a branch",
-		GitOutput:                             "Git output:",
-		GitCommandFailed:                      "Git command failed. Check command log for details (open with %s)",
-		AbortTitle:                            "Abort %s",
-		AbortPrompt:                           "Are you sure you want to abort the current %s?",
-		OpenLogMenu:                           "View log options",
-		OpenLogMenuTooltip:                    "View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph.",
-		LogMenuTitle:                          "Commit Log Options",
-		ToggleShowGitGraphAll:                 "Toggle show whole git graph (pass the `--all` flag to `git log`)",
-		ShowGitGraph:                          "Show git graph",
-		SortOrder:                             "Sort order",
-		SortAlphabetical:                      "Alphabetical",
-		SortByDate:                            "Date",
-		SortByRecency:                         "Recency",
-		SortBasedOnReflog:                     "(based on reflog)",
-		SortCommits:                           "Commit sort order",
-		CantChangeContextSizeError:            "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
-		OpenCommitInBrowser:                   "Open commit in browser",
-		ViewBisectOptions:                     "View bisect options",
-		ConfirmRevertCommit:                   "Are you sure you want to revert {{.selectedCommit}}?",
-		RewordInEditorTitle:                   "Reword in editor",
-		RewordInEditorPrompt:                  "Are you sure you want to reword this commit in your editor?",
-		HardResetAutostashPrompt:              "Are you sure you want to hard reset to '%s'? An auto-stash will be performed if necessary.",
-		CheckoutPrompt:                        "Are you sure you want to checkout '%s'?",
-		UpstreamGone:                          "(upstream gone)",
-		NukeDescription:                       "If you want to make all the changes in the worktree go away, this is the way to do it. If there are dirty submodule changes this will stash those changes in the submodule(s).",
-		DiscardStagedChangesDescription:       "This will create a new stash entry containing only staged files and then drop it, so that the working tree is left with only unstaged changes",
-		EmptyOutput:                           "<Empty output>",
-		Patch:                                 "Patch",
-		CustomPatch:                           "Custom patch",
-		CommitsCopied:                         "commits copied", // lowercase because it's used in a sentence
-		CommitCopied:                          "commit copied",  // lowercase because it's used in a sentence
-		ResetPatch:                            "Reset patch",
-		ResetPatchTooltip:                     "Clear the current patch.",
-		ApplyPatch:                            "Apply patch",
-		ApplyPatchTooltip:                     "Apply the current patch to the working tree.",
-		ApplyPatchInReverse:                   "Apply patch in reverse",
-		ApplyPatchInReverseTooltip:            "Apply the current patch in reverse to the working tree.",
-		RemovePatchFromOriginalCommit:         "Remove patch from original commit (%s)",
-		RemovePatchFromOriginalCommitTooltip:  "Remove the current patch from its commit. This is achieved by starting an interactive rebase at the commit, applying the patch in reverse, and then continuing the rebase. If later commits depend on the patch, you may need to resolve conflicts.",
-		MovePatchOutIntoIndex:                 "Move patch out into index",
-		MovePatchOutIntoIndexTooltip:          "Move the patch out of its commit and into the index. This is achieved by starting an interactive rebase at the commit, applying the patch in reverse, continuing the rebase to completion, and then applying the patch to the index. If later commits depend on the patch, you may need to resolve conflicts.",
-		MovePatchIntoNewCommit:                "Move patch into new commit",
-		MovePatchIntoNewCommitTooltip:         "Move the patch out of its commit and into a new commit sitting on top of the original commit. This is achieved by starting an interactive rebase at the original commit, applying the patch in reverse, then applying the patch to the index and committing it as a new commit, before continuing the rebase to completion. If later commits depend on the patch, you may need to resolve conflicts.",
-		MovePatchToSelectedCommit:             "Move patch to selected commit (%s)",
-		MovePatchToSelectedCommitTooltip:      "Move the patch out of its original commit and into the selected commit. This is achieved by starting an interactive rebase at the original commit, applying the patch in reverse, then continuing the rebase up to the selected commit, before applying the patch forward and amending the seleced commit. The rebase is then continued to completion. If commits between the source and destination commit depend on the patch, you may need to resolve conflicts.",
-		CopyPatchToClipboard:                  "Copy patch to clipboard",
-		NoMatchesFor:                          "No matches for '%s' %s",
-		ExitSearchMode:                        "%s: Exit search mode",
-		ExitTextFilterMode:                    "%s: Exit filter mode",
-		MatchesFor:                            "matches for '%s' (%d of %d) %s", // lowercase because it's after other text
-		SearchKeybindings:                     "%s: Next match, %s: Previous match, %s: Exit search mode",
-		SearchPrefix:                          "Search: ",
-		FilterPrefix:                          "Filter: ",
-		WorktreesTitle:                        "Worktrees",
-		WorktreeTitle:                         "Worktree",
-		Switch:                                "Switch",
-		SwitchToWorktree:                      "Switch to worktree",
-		SwitchToWorktreeTooltip:               "Switch to the selected worktree.",
-		AlreadyCheckedOutByWorktree:           "This branch is checked out by worktree {{.worktreeName}}. Do you want to switch to that worktree?",
-		BranchCheckedOutByWorktree:            "Branch {{.branchName}} is checked out by worktree {{.worktreeName}}",
-		DetachWorktreeTooltip:                 "This will run `git checkout --detach` on the worktree so that it stops hogging the branch, but the worktree's working tree will be left alone.",
-		Switching:                             "Switching",
-		RemoveWorktree:                        "Remove worktree",
-		RemoveWorktreeTitle:                   "Remove worktree",
-		RemoveWorktreePrompt:                  "Are you sure you want to remove worktree '{{.worktreeName}}'?",
-		ForceRemoveWorktreePrompt:             "'{{.worktreeName}}' contains modified or untracked files (to be honest, it could contain both). Are you sure you want to remove it?",
-		RemovingWorktree:                      "Deleting worktree",
-		DetachWorktree:                        "Detach worktree",
-		DetachingWorktree:                     "Detaching worktree",
-		AddingWorktree:                        "Adding worktree",
-		CantDeleteCurrentWorktree:             "You cannot remove the current worktree!",
-		AlreadyInWorktree:                     "You are already in the selected worktree",
-		CantDeleteMainWorktree:                "You cannot remove the main worktree!",
-		NoWorktreesThisRepo:                   "No worktrees",
-		MissingWorktree:                       "(missing)",
-		MainWorktree:                          "(main)",
-		NewWorktree:                           "New worktree",
-		NewWorktreePath:                       "New worktree path",
-		NewWorktreeBase:                       "New worktree base ref",
-		RemoveWorktreeTooltip:                 "Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory.",
-		BranchNameCannotBeBlank:               "Branch name cannot be blank",
-		NewBranchName:                         "New branch name",
-		NewBranchNameLeaveBlank:               "New branch name (leave blank to checkout {{.default}})",
-		ViewWorktreeOptions:                   "View worktree options",
-		CreateWorktreeFrom:                    "Create worktree from {{.ref}}",
-		CreateWorktreeFromDetached:            "Create worktree from {{.ref}} (detached)",
-		LcWorktree:                            "worktree",
-		ChangingDirectoryTo:                   "Changing directory to {{.path}}",
-		Name:                                  "Name",
-		Branch:                                "Branch",
-		Path:                                  "Path",
-		MarkedBaseCommitStatus:                "Marked a base commit for rebase",
-		MarkAsBaseCommit:                      "Mark as base commit for rebase",
-		MarkAsBaseCommitTooltip:               "Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command.",
-		MarkedCommitMarker:                    "↑↑↑ Will rebase from here ↑↑↑",
-		PleaseGoToURL:                         "Please go to {{.url}}",
-		DisabledMenuItemPrefix:                "Disabled: ",
-		NoCopiedCommits:                       "No copied commits",
-		QuickStartInteractiveRebase:           "Start interactive rebase",
-		QuickStartInteractiveRebaseTooltip:    "Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.\nIf you would instead like to start an interactive rebase from the selected commit, press `{{.editKey}}`.",
-		CannotQuickStartInteractiveRebase:     "Cannot start interactive rebase: the HEAD commit is a merge commit or is present on the main branch, so there is no appropriate base commit to start the rebase from. You can start an interactive rebase from a specific commit by selecting the commit and pressing `{{.editKey}}`.",
-		RangeSelectUp:                         "Range select up",
-		RangeSelectDown:                       "Range select down",
-		RangeSelectNotSupported:               "Action does not support range selection, please select a single item",
-		NoItemSelected:                        "No item selected",
-		SelectedItemIsNotABranch:              "Selected item is not a branch",
-		SelectedItemDoesNotHaveFiles:          "Selected item does not have files to view",
-		RangeSelectNotSupportedForSubmodules:  "Range select not supported for submodules",
-		OldCherryPickKeyWarning:               "The 'c' key is no longer the default key for copying commits to cherry pick. Please use `{{.copy}}` instead (and `{{.paste}}` to paste). The reason for this change is that the 'v' key for selecting a range of lines when staging is now also used for selecting a range of lines in any list view, meaning that we needed to find a new key for pasting commits, and if we're going to now use `{{.paste}}` for pasting commits, we may as well use `{{.copy}}` for copying them. If you want to configure the keybindings to get the old behaviour, set the following in your config:\n\nkeybinding:\n  universal:\n    toggleRangeSelect: <something other than v>\n  commits:\n    cherryPickCopy: 'c'\n    pasteCommits: 'v'",
-		CommandDoesNotSupportOpeningInEditor:  "This command doesn't support switching to the editor",
+		OpenCommandLogMenu:                       "View command log options",
+		OpenCommandLogMenuTooltip:                "View options for the command log e.g. show/hide the command log and focus the command log.",
+		ShowingGitDiff:                           "Showing output for:",
+		CommitDiff:                               "Commit diff",
+		CopyCommitHashToClipboard:                "Copy commit hash to clipboard",
+		CommitHash:                               "Commit hash",
+		CommitURL:                                "Commit URL",
+		CopyCommitMessageToClipboard:             "Copy commit message to clipboard",
+		PasteCommitMessageFromClipboard:          "Paste commit message from clipboard",
+		SurePasteCommitMessage:                   "Pasting will overwrite the current commit message, continue?",
+		CommitMessage:                            "Commit message",
+		CommitSubject:                            "Commit subject",
+		CommitAuthor:                             "Commit author",
+		CopyCommitAttributeToClipboard:           "Copy commit attribute to clipboard",
+		CopyCommitAttributeToClipboardTooltip:    "Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author).",
+		CopyBranchNameToClipboard:                "Copy branch name to clipboard",
+		CopyPathToClipboard:                      "Copy path to clipboard",
+		CopySelectedTextToClipboard:              "Copy selected text to clipboard",
+		CommitPrefixPatternError:                 "Error in commitPrefix pattern",
+		NoFilesStagedTitle:                       "No files staged",
+		NoFilesStagedPrompt:                      "You have not staged any files. Commit all files?",
+		BranchNotFoundTitle:                      "Branch not found",
+		BranchNotFoundPrompt:                     "Branch not found. Create a new branch named",
+		BranchUnknown:                            "Branch unknown",
+		DiscardChangeTitle:                       "Discard change",
+		DiscardChangePrompt:                      "Are you sure you want to discard this change (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipDiscardChangeWarning' to true",
+		CreateNewBranchFromCommit:                "Create new branch off of commit",
+		BuildingPatch:                            "Building patch",
+		ViewCommits:                              "View commits",
+		MinGitVersionError:                       "Git version must be at least 2.20 (i.e. from 2018 onwards). Please upgrade your git version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
+		RunningCustomCommandStatus:               "Running custom command",
+		SubmoduleStashAndReset:                   "Stash uncommitted submodule changes and update",
+		AndResetSubmodules:                       "And reset submodules",
+		Enter:                                    "Enter",
+		EnterSubmoduleTooltip:                    "Enter submodule. After entering the submodule, you can press `{{.escape}}` to escape back to the parent repo.",
+		CopySubmoduleNameToClipboard:             "Copy submodule name to clipboard",
+		RemoveSubmodule:                          "Remove submodule",
+		RemoveSubmodulePrompt:                    "Are you sure you want to remove submodule '%s' and its corresponding directory? This is irreversible.",
+		RemoveSubmoduleTooltip:                   "Remove the selected submodule and its corresponding directory.",
+		ResettingSubmoduleStatus:                 "Resetting submodule",
+		NewSubmoduleName:                         "New submodule name:",
+		NewSubmoduleUrl:                          "New submodule URL:",
+		NewSubmodulePath:                         "New submodule path:",
+		NewSubmodule:                             "New submodule",
+		AddingSubmoduleStatus:                    "Adding submodule",
+		UpdateSubmoduleUrl:                       "Update URL for submodule '%s'",
+		UpdatingSubmoduleUrlStatus:               "Updating URL",
+		EditSubmoduleUrl:                         "Update submodule URL",
+		InitializingSubmoduleStatus:              "Initializing submodule",
+		InitSubmoduleTooltip:                     "Initialize the selected submodule to prepare for fetching. You probably want to follow this up by invoking the 'update' action to fetch the submodule.",
+		Update:                                   "Update",
+		Initialize:                               "Initialize",
+		SubmoduleUpdateTooltip:                   "Update selected submodule.",
+		UpdatingSubmoduleStatus:                  "Updating submodule",
+		BulkInitSubmodules:                       "Bulk init submodules",
+		BulkUpdateSubmodules:                     "Bulk update submodules",
+		BulkDeinitSubmodules:                     "Bulk deinit submodules",
+		ViewBulkSubmoduleOptions:                 "View bulk submodule options",
+		BulkSubmoduleOptions:                     "Bulk submodule options",
+		RunningCommand:                           "Running command",
+		SubCommitsTitle:                          "Sub-commits",
+		SubmodulesTitle:                          "Submodules",
+		NavigationTitle:                          "List panel navigation",
+		SuggestionsCheatsheetTitle:               "Suggestions",
+		SuggestionsTitle:                         "Suggestions (press %s to focus)",
+		SuggestionsSubtitle:                      "(press %s to delete, %s to edit)",
+		ExtrasTitle:                              "Command log",
+		PushingTagStatus:                         "Pushing tag",
+		PullRequestURLCopiedToClipboard:          "Pull request URL copied to clipboard",
+		CommitDiffCopiedToClipboard:              "Commit diff copied to clipboard",
+		CommitURLCopiedToClipboard:               "Commit URL copied to clipboard",
+		CommitMessageCopiedToClipboard:           "Commit message copied to clipboard",
+		CommitSubjectCopiedToClipboard:           "Commit subject copied to clipboard",
+		CommitAuthorCopiedToClipboard:            "Commit author copied to clipboard",
+		PatchCopiedToClipboard:                   "Patch copied to clipboard",
+		CopiedToClipboard:                        "copied to clipboard",
+		ErrCannotEditDirectory:                   "Cannot edit directories: you can only edit individual files",
+		ErrStageDirWithInlineMergeConflicts:      "Cannot stage/unstage directory containing files with inline merge conflicts. Please fix up the merge conflicts first",
+		ErrRepositoryMovedOrDeleted:              "Cannot find repo. It might have been moved or deleted ¯\\_(ツ)_/¯",
+		CommandLog:                               "Command log",
+		ErrWorktreeMovedOrRemoved:                "Cannot find worktree. It might have been moved or removed ¯\\_(ツ)_/¯",
+		ToggleShowCommandLog:                     "Toggle show/hide command log",
+		FocusCommandLog:                          "Focus command log",
+		CommandLogHeader:                         "You can hide/focus this panel by pressing '%s'\n",
+		RandomTip:                                "Random tip",
+		SelectParentCommitForMerge:               "Select parent commit for merge",
+		ToggleWhitespaceInDiffView:               "Toggle whitespace",
+		ToggleWhitespaceInDiffViewTooltip:        "Toggle whether or not whitespace changes are shown in the diff view.",
+		IgnoreWhitespaceDiffViewSubTitle:         "(ignoring whitespace)",
+		IgnoreWhitespaceNotSupportedHere:         "Ignoring whitespace is not supported in this view",
+		IncreaseContextInDiffView:                "Increase diff context size",
+		IncreaseContextInDiffViewTooltip:         "Increase the amount of the context shown around changes in the diff view.",
+		DecreaseContextInDiffView:                "Decrease diff context size",
+		DecreaseContextInDiffViewTooltip:         "Decrease the amount of the context shown around changes in the diff view.",
+		DiffContextSizeChanged:                   "Changed diff context size to %d",
+		IncreaseRenameSimilarityThresholdTooltip: "Increase the similarity threshold for a deletion and addition pair to be treated as a rename.",
+		IncreaseRenameSimilarityThreshold:        "Increase rename similarity threshold",
+		DecreaseRenameSimilarityThresholdTooltip: "Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.",
+		DecreaseRenameSimilarityThreshold:        "Decrease rename similarity threshold",
+		RenameSimilarityThresholdChanged:         "Changed rename similarity threshold to %d%%",
+		CreatePullRequestOptions:                 "View create pull request options",
+		DefaultBranch:                            "Default branch",
+		SelectBranch:                             "Select branch",
+		SelectConfigFile:                         "Select config file",
+		NoConfigFileFoundErr:                     "No config file found",
+		LoadingFileSuggestions:                   "Loading file suggestions",
+		LoadingCommits:                           "Loading commits",
+		MustSpecifyOriginError:                   "Must specify a remote if specifying a branch",
+		GitOutput:                                "Git output:",
+		GitCommandFailed:                         "Git command failed. Check command log for details (open with %s)",
+		AbortTitle:                               "Abort %s",
+		AbortPrompt:                              "Are you sure you want to abort the current %s?",
+		OpenLogMenu:                              "View log options",
+		OpenLogMenuTooltip:                       "View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph.",
+		LogMenuTitle:                             "Commit Log Options",
+		ToggleShowGitGraphAll:                    "Toggle show whole git graph (pass the `--all` flag to `git log`)",
+		ShowGitGraph:                             "Show git graph",
+		SortOrder:                                "Sort order",
+		SortAlphabetical:                         "Alphabetical",
+		SortByDate:                               "Date",
+		SortByRecency:                            "Recency",
+		SortBasedOnReflog:                        "(based on reflog)",
+		SortCommits:                              "Commit sort order",
+		CantChangeContextSizeError:               "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
+		OpenCommitInBrowser:                      "Open commit in browser",
+		ViewBisectOptions:                        "View bisect options",
+		ConfirmRevertCommit:                      "Are you sure you want to revert {{.selectedCommit}}?",
+		RewordInEditorTitle:                      "Reword in editor",
+		RewordInEditorPrompt:                     "Are you sure you want to reword this commit in your editor?",
+		HardResetAutostashPrompt:                 "Are you sure you want to hard reset to '%s'? An auto-stash will be performed if necessary.",
+		CheckoutPrompt:                           "Are you sure you want to checkout '%s'?",
+		UpstreamGone:                             "(upstream gone)",
+		NukeDescription:                          "If you want to make all the changes in the worktree go away, this is the way to do it. If there are dirty submodule changes this will stash those changes in the submodule(s).",
+		DiscardStagedChangesDescription:          "This will create a new stash entry containing only staged files and then drop it, so that the working tree is left with only unstaged changes",
+		EmptyOutput:                              "<Empty output>",
+		Patch:                                    "Patch",
+		CustomPatch:                              "Custom patch",
+		CommitsCopied:                            "commits copied", // lowercase because it's used in a sentence
+		CommitCopied:                             "commit copied",  // lowercase because it's used in a sentence
+		ResetPatch:                               "Reset patch",
+		ResetPatchTooltip:                        "Clear the current patch.",
+		ApplyPatch:                               "Apply patch",
+		ApplyPatchTooltip:                        "Apply the current patch to the working tree.",
+		ApplyPatchInReverse:                      "Apply patch in reverse",
+		ApplyPatchInReverseTooltip:               "Apply the current patch in reverse to the working tree.",
+		RemovePatchFromOriginalCommit:            "Remove patch from original commit (%s)",
+		RemovePatchFromOriginalCommitTooltip:     "Remove the current patch from its commit. This is achieved by starting an interactive rebase at the commit, applying the patch in reverse, and then continuing the rebase. If later commits depend on the patch, you may need to resolve conflicts.",
+		MovePatchOutIntoIndex:                    "Move patch out into index",
+		MovePatchOutIntoIndexTooltip:             "Move the patch out of its commit and into the index. This is achieved by starting an interactive rebase at the commit, applying the patch in reverse, continuing the rebase to completion, and then applying the patch to the index. If later commits depend on the patch, you may need to resolve conflicts.",
+		MovePatchIntoNewCommit:                   "Move patch into new commit",
+		MovePatchIntoNewCommitTooltip:            "Move the patch out of its commit and into a new commit sitting on top of the original commit. This is achieved by starting an interactive rebase at the original commit, applying the patch in reverse, then applying the patch to the index and committing it as a new commit, before continuing the rebase to completion. If later commits depend on the patch, you may need to resolve conflicts.",
+		MovePatchToSelectedCommit:                "Move patch to selected commit (%s)",
+		MovePatchToSelectedCommitTooltip:         "Move the patch out of its original commit and into the selected commit. This is achieved by starting an interactive rebase at the original commit, applying the patch in reverse, then continuing the rebase up to the selected commit, before applying the patch forward and amending the seleced commit. The rebase is then continued to completion. If commits between the source and destination commit depend on the patch, you may need to resolve conflicts.",
+		CopyPatchToClipboard:                     "Copy patch to clipboard",
+		NoMatchesFor:                             "No matches for '%s' %s",
+		ExitSearchMode:                           "%s: Exit search mode",
+		ExitTextFilterMode:                       "%s: Exit filter mode",
+		MatchesFor:                               "matches for '%s' (%d of %d) %s", // lowercase because it's after other text
+		SearchKeybindings:                        "%s: Next match, %s: Previous match, %s: Exit search mode",
+		SearchPrefix:                             "Search: ",
+		FilterPrefix:                             "Filter: ",
+		WorktreesTitle:                           "Worktrees",
+		WorktreeTitle:                            "Worktree",
+		Switch:                                   "Switch",
+		SwitchToWorktree:                         "Switch to worktree",
+		SwitchToWorktreeTooltip:                  "Switch to the selected worktree.",
+		AlreadyCheckedOutByWorktree:              "This branch is checked out by worktree {{.worktreeName}}. Do you want to switch to that worktree?",
+		BranchCheckedOutByWorktree:               "Branch {{.branchName}} is checked out by worktree {{.worktreeName}}",
+		DetachWorktreeTooltip:                    "This will run `git checkout --detach` on the worktree so that it stops hogging the branch, but the worktree's working tree will be left alone.",
+		Switching:                                "Switching",
+		RemoveWorktree:                           "Remove worktree",
+		RemoveWorktreeTitle:                      "Remove worktree",
+		RemoveWorktreePrompt:                     "Are you sure you want to remove worktree '{{.worktreeName}}'?",
+		ForceRemoveWorktreePrompt:                "'{{.worktreeName}}' contains modified or untracked files (to be honest, it could contain both). Are you sure you want to remove it?",
+		RemovingWorktree:                         "Deleting worktree",
+		DetachWorktree:                           "Detach worktree",
+		DetachingWorktree:                        "Detaching worktree",
+		AddingWorktree:                           "Adding worktree",
+		CantDeleteCurrentWorktree:                "You cannot remove the current worktree!",
+		AlreadyInWorktree:                        "You are already in the selected worktree",
+		CantDeleteMainWorktree:                   "You cannot remove the main worktree!",
+		NoWorktreesThisRepo:                      "No worktrees",
+		MissingWorktree:                          "(missing)",
+		MainWorktree:                             "(main)",
+		NewWorktree:                              "New worktree",
+		NewWorktreePath:                          "New worktree path",
+		NewWorktreeBase:                          "New worktree base ref",
+		RemoveWorktreeTooltip:                    "Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory.",
+		BranchNameCannotBeBlank:                  "Branch name cannot be blank",
+		NewBranchName:                            "New branch name",
+		NewBranchNameLeaveBlank:                  "New branch name (leave blank to checkout {{.default}})",
+		ViewWorktreeOptions:                      "View worktree options",
+		CreateWorktreeFrom:                       "Create worktree from {{.ref}}",
+		CreateWorktreeFromDetached:               "Create worktree from {{.ref}} (detached)",
+		LcWorktree:                               "worktree",
+		ChangingDirectoryTo:                      "Changing directory to {{.path}}",
+		Name:                                     "Name",
+		Branch:                                   "Branch",
+		Path:                                     "Path",
+		MarkedBaseCommitStatus:                   "Marked a base commit for rebase",
+		MarkAsBaseCommit:                         "Mark as base commit for rebase",
+		MarkAsBaseCommitTooltip:                  "Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command.",
+		MarkedCommitMarker:                       "↑↑↑ Will rebase from here ↑↑↑",
+		PleaseGoToURL:                            "Please go to {{.url}}",
+		DisabledMenuItemPrefix:                   "Disabled: ",
+		NoCopiedCommits:                          "No copied commits",
+		QuickStartInteractiveRebase:              "Start interactive rebase",
+		QuickStartInteractiveRebaseTooltip:       "Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.\nIf you would instead like to start an interactive rebase from the selected commit, press `{{.editKey}}`.",
+		CannotQuickStartInteractiveRebase:        "Cannot start interactive rebase: the HEAD commit is a merge commit or is present on the main branch, so there is no appropriate base commit to start the rebase from. You can start an interactive rebase from a specific commit by selecting the commit and pressing `{{.editKey}}`.",
+		RangeSelectUp:                            "Range select up",
+		RangeSelectDown:                          "Range select down",
+		RangeSelectNotSupported:                  "Action does not support range selection, please select a single item",
+		NoItemSelected:                           "No item selected",
+		SelectedItemIsNotABranch:                 "Selected item is not a branch",
+		SelectedItemDoesNotHaveFiles:             "Selected item does not have files to view",
+		RangeSelectNotSupportedForSubmodules:     "Range select not supported for submodules",
+		OldCherryPickKeyWarning:                  "The 'c' key is no longer the default key for copying commits to cherry pick. Please use `{{.copy}}` instead (and `{{.paste}}` to paste). The reason for this change is that the 'v' key for selecting a range of lines when staging is now also used for selecting a range of lines in any list view, meaning that we needed to find a new key for pasting commits, and if we're going to now use `{{.paste}}` for pasting commits, we may as well use `{{.copy}}` for copying them. If you want to configure the keybindings to get the old behaviour, set the following in your config:\n\nkeybinding:\n  universal:\n    toggleRangeSelect: <something other than v>\n  commits:\n    cherryPickCopy: 'c'\n    pasteCommits: 'v'",
+		CommandDoesNotSupportOpeningInEditor:     "This command doesn't support switching to the editor",
 
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
@@ -1766,6 +1795,7 @@ func EnglishTranslationSet() *TranslationSet {
 			DeleteLocalBranch:              "Delete local branch",
 			DeleteBranch:                   "Delete branch",
 			Merge:                          "Merge",
+			SquashMerge:                    "Squash merge",
 			RebaseBranch:                   "Rebase branch",
 			RenameBranch:                   "Rename branch",
 			CreateBranch:                   "Create branch",
@@ -1780,6 +1810,7 @@ func EnglishTranslationSet() *TranslationSet {
 			AmendCommit:                    "Amend commit",
 			ResetCommitAuthor:              "Reset commit author",
 			SetCommitAuthor:                "Set commit author",
+			AddCommitCoAuthor:              "Add commit co-author",
 			RevertCommit:                   "Revert commit",
 			CreateFixupCommit:              "Create fixup commit",
 			SquashAllAboveFixupCommits:     "Squash all above fixup commits",

@@ -10,7 +10,7 @@ var SymlinkIntoRepoSubdir = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.Gui.ShowFileTree = false
+		config.GetUserConfig().Gui.ShowFileTree = false
 	},
 	SetupRepo: func(shell *Shell) {
 		// we're going to have a directory structure like this:

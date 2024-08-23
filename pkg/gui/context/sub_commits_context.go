@@ -47,7 +47,7 @@ func NewSubCommitsContext(
 		}
 
 		selectedCommitHash := ""
-		if c.CurrentContext().GetKey() == SUB_COMMITS_CONTEXT_KEY {
+		if c.Context().Current().GetKey() == SUB_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
 			if selectedCommit != nil {
 				selectedCommitHash = selectedCommit.Hash
@@ -68,10 +68,10 @@ func NewSubCommitsContext(
 			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
 			"",
-			c.UserConfig.Gui.TimeFormat,
-			c.UserConfig.Gui.ShortTimeFormat,
+			c.UserConfig().Gui.TimeFormat,
+			c.UserConfig().Gui.ShortTimeFormat,
 			time.Now(),
-			c.UserConfig.Git.ParseEmoji,
+			c.UserConfig().Git.ParseEmoji,
 			selectedCommitHash,
 			startIdx,
 			endIdx,

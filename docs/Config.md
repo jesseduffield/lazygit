@@ -1,6 +1,6 @@
 # User Config
 
-Default path for the config file:
+Default path for the global config file:
 
 - Linux: `~/.config/lazygit/config.yml`
 - MacOS: `~/Library/Application\ Support/lazygit/config.yml`
@@ -15,6 +15,8 @@ For old installations (slightly embarrassing: I didn't realise at the time that 
 If you want to change the config directory:
 
 - MacOS: `export XDG_CONFIG_HOME="$HOME/.config"`
+
+In addition to the global config file you can create repo-specific config files in `<repo>/.git/lazygit.yml`. Settings in these files override settings in the global config file. In addition, files called `.lazygit.yml` in any of the parent directories of a repo will also be loaded; this can be useful if you have settings that you want to apply to a group of repositories.
 
 JSON schema is available for `config.yml` so that IntelliSense in Visual Studio Code (completion and error checking) is automatically enabled when the [YAML Red Hat][yaml] extension is installed. However, note that automatic schema detection only works if your config file is in one of the standard paths mentioned above. If you override the path to the file, you can still make IntelliSense work by adding
 
@@ -185,10 +187,11 @@ gui:
   # If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.
   showFileIcons: true
 
-  # Whether to show full author names or their shortened form in the commit graph.
-  # One of 'auto' (default) | 'full' | 'short'
-  # If 'auto', initials will be shown in small windows, and full names - in larger ones.
-  commitAuthorFormat: auto
+  # Length of author name in (non-expanded) commits view. 2 means show initials only.
+  commitAuthorShortLength: 2
+
+  # Length of author name in expanded commits view. 2 means show initials only.
+  commitAuthorLongLength: 17
 
   # Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.
   commitHashLength: 8
@@ -282,6 +285,9 @@ git:
     # Extra args passed to `git merge`, e.g. --no-ff
     args: ""
 
+    # The commit message to use for a squash merge commit. Can contain "{{selectedRef}}" and "{{currentBranch}}" placeholders.
+    squashMergeMessage: Squash merge {{selectedRef}} into {{currentBranch}}
+
   # list of branches that are considered 'main' branches, used when displaying commits
   mainBranches:
     - master
@@ -302,7 +308,8 @@ git:
   # Command used when displaying the current branch git log in the main window
   branchLogCmd: git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --
 
-  # Command used to display git log of all branches in the main window
+  # Command used to display git log of all branches in the main window.
+  # Deprecated: User `allBranchesLogCmds` instead.
   allBranchesLogCmd: git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium
 
   # If true, do not spawn a separate process when using GPG
@@ -318,6 +325,9 @@ git:
 
     # Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use "[$1] "
     replace: ""
+
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix
+  branchPrefix: ""
 
   # If true, parse emoji strings in commit messages e.g. render :rocket: as 🚀
   # (This should really be under 'gui', not 'git')
@@ -415,8 +425,12 @@ os:
   openLinkCommand: ""
 
   # CopyToClipboardCmd is the command for copying to clipboard.
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-clipboard
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
   copyToClipboardCmd: ""
+
+  # ReadFromClipboardCmd is the command for reading the clipboard.
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
+  readFromClipboardCmd: ""
 
 # If true, don't display introductory popups upon opening Lazygit.
 disableStartupPopups: false
@@ -483,7 +497,7 @@ keybinding:
     scrollDownMain-alt1: J
     scrollUpMain-alt2: <c-u>
     scrollDownMain-alt2: <c-d>
-    executeCustomCommand: ':'
+    executeShellCommand: ':'
     createRebaseOptionsMenu: m
 
     # 'Files' appended for legacy reasons
@@ -509,6 +523,8 @@ keybinding:
     toggleWhitespaceInDiffView: <c-w>
     increaseContextInDiffView: '}'
     decreaseContextInDiffView: '{'
+    increaseRenameSimilarityThreshold: )
+    decreaseRenameSimilarityThreshold: (
     openDiffTool: <c-t>
   status:
     checkForUpdate: u
@@ -620,7 +636,7 @@ os:
   open: 'open {{filename}}'
 ```
 
-## Custom Command for Copying to Clipboard
+## Custom Command for Copying to and Pasting from Clipboard
 ```yaml
 os:
   copyToClipboardCmd: ''
@@ -633,6 +649,12 @@ os:
   copyToClipboardCmd: printf "\033]52;c;$(printf {{text}} | base64)\a" > /dev/tty
 ```
 
+A custom command for reading from the clipboard can be set using
+```yaml
+os:
+  readFromClipboardCmd: ''
+```
+It is used, for example, when pasting a commit message into the commit message panel. The command is supposed to output the clipboard content to stdout.
 
 ## Configuring File Editing
 
@@ -869,6 +891,21 @@ git:
     my_project: # This is repository folder name
       pattern: "^\\w+\\/(\\w+-\\w+).*"
       replace: '[$1] '
+```
+
+## Predefined branch name prefix
+
+In situations where certain naming pattern is used for branches, this can be used to populate new branch creation with a static prefix.
+
+Example:
+
+Some branches:
+- jsmith/AB-123
+- cwilson/AB-125
+
+```yaml
+git:
+  branchPrefix: "firstlast/"
 ```
 
 ## Custom git log command

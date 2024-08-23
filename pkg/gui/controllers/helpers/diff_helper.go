@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -69,7 +70,7 @@ func (self *DiffHelper) RenderDiff() error {
 // which becomes an option when you bring up the diff menu, but when you're just
 // flicking through branches it will be using the local branch name.
 func (self *DiffHelper) CurrentDiffTerminals() []string {
-	c := self.c.CurrentSideContext()
+	c := self.c.Context().CurrentSide()
 
 	if c.GetKey() == "" {
 		return nil
@@ -92,7 +93,7 @@ func (self *DiffHelper) currentDiffTerminal() string {
 }
 
 func (self *DiffHelper) currentlySelectedFilename() string {
-	currentContext := self.c.CurrentContext()
+	currentContext := self.c.Context().Current()
 
 	switch currentContext := currentContext.(type) {
 	case types.IListContext:
@@ -118,4 +119,19 @@ func (self *DiffHelper) IgnoringWhitespaceSubTitle() string {
 	}
 
 	return ""
+}
+
+func (self *DiffHelper) OpenDiffToolForRef(selectedRef types.Ref) error {
+	to := selectedRef.RefName()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff("")
+	_, err := self.c.RunSubprocess(self.c.Git().Diff.OpenDiffToolCmdObj(
+		git_commands.DiffToolCmdOptions{
+			Filepath:    ".",
+			FromCommit:  from,
+			ToCommit:    to,
+			Reverse:     reverse,
+			IsDirectory: true,
+			Staged:      false,
+		}))
+	return err
 }

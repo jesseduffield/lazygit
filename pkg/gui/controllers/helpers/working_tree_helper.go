@@ -136,7 +136,7 @@ func (self *WorkingTreeHelper) HandleCommitEditorPress() error {
 }
 
 func (self *WorkingTreeHelper) HandleWIPCommitPress() error {
-	skipHookPrefix := self.c.UserConfig.Git.SkipHookPrefix
+	skipHookPrefix := self.c.UserConfig().Git.SkipHookPrefix
 	if skipHookPrefix == "" {
 		return errors.New(self.c.Tr.SkipHookPrefixNotConfigured)
 	}
@@ -152,12 +152,16 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 		if commitPrefixConfig != nil {
 			prefixPattern := commitPrefixConfig.Pattern
 			prefixReplace := commitPrefixConfig.Replace
+			branchName := self.refHelper.GetCheckedOutRef().Name
 			rgx, err := regexp.Compile(prefixPattern)
 			if err != nil {
 				return fmt.Errorf("%s: %s", self.c.Tr.CommitPrefixPatternError, err.Error())
 			}
-			prefix := rgx.ReplaceAllString(self.refHelper.GetCheckedOutRef().Name, prefixReplace)
-			message = prefix
+
+			if rgx.MatchString(branchName) {
+				prefix := rgx.ReplaceAllString(branchName, prefixReplace)
+				message = prefix
+			}
 		}
 	}
 
@@ -205,7 +209,7 @@ func (self *WorkingTreeHelper) syncRefresh() error {
 
 func (self *WorkingTreeHelper) prepareFilesForCommit() error {
 	noStagedFiles := !self.AnyStagedFiles()
-	if noStagedFiles && self.c.UserConfig.Gui.SkipNoStagedFilesWarning {
+	if noStagedFiles && self.c.UserConfig().Gui.SkipNoStagedFilesWarning {
 		self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
 		err := self.c.Git().WorkingTree.StageAll()
 		if err != nil {
@@ -219,10 +223,10 @@ func (self *WorkingTreeHelper) prepareFilesForCommit() error {
 }
 
 func (self *WorkingTreeHelper) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
-	cfg, ok := self.c.UserConfig.Git.CommitPrefixes[self.c.Git().RepoPaths.RepoName()]
+	cfg, ok := self.c.UserConfig().Git.CommitPrefixes[self.c.Git().RepoPaths.RepoName()]
 	if ok {
 		return &cfg
 	}
 
-	return self.c.UserConfig.Git.CommitPrefix
+	return self.c.UserConfig().Git.CommitPrefix
 }

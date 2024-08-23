@@ -17,7 +17,7 @@ var CopyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.OS.CopyToClipboardCmd = "echo {{text}} > clipboard"
+		config.GetUserConfig().OS.CopyToClipboardCmd = "echo {{text}} > clipboard"
 	},
 	SetupRepo: func(shell *Shell) {},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {

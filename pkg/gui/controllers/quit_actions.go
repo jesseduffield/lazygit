@@ -25,7 +25,7 @@ func (self *QuitActions) quitAux() error {
 		return self.confirmQuitDuringUpdate()
 	}
 
-	if self.c.UserConfig.ConfirmOnQuit {
+	if self.c.UserConfig().ConfirmOnQuit {
 		return self.c.Confirm(types.ConfirmOpts{
 			Title:  "",
 			Prompt: self.c.Tr.ConfirmQuit,
@@ -49,7 +49,7 @@ func (self *QuitActions) confirmQuitDuringUpdate() error {
 }
 
 func (self *QuitActions) Escape() error {
-	currentContext := self.c.CurrentContext()
+	currentContext := self.c.Context().Current()
 
 	if listContext, ok := currentContext.(types.IListContext); ok {
 		if listContext.GetList().IsSelectingRange() {
@@ -71,10 +71,10 @@ func (self *QuitActions) Escape() error {
 		}
 	}
 
-	parentContext, hasParent := currentContext.GetParentContext()
-	if hasParent && currentContext != nil && parentContext != nil {
+	parentContext := currentContext.GetParentContext()
+	if parentContext != nil {
 		// TODO: think about whether this should be marked as a return rather than adding to the stack
-		return self.c.PushContext(parentContext)
+		return self.c.Context().Push(parentContext)
 	}
 
 	for _, mode := range self.c.Helpers().Mode.Statuses() {
@@ -88,7 +88,7 @@ func (self *QuitActions) Escape() error {
 		return self.c.Helpers().Repos.DispatchSwitchToRepo(repoPathStack.Pop(), context.NO_CONTEXT)
 	}
 
-	if self.c.UserConfig.QuitOnTopLevelReturn {
+	if self.c.UserConfig().QuitOnTopLevelReturn {
 		return self.Quit()
 	}
 

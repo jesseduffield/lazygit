@@ -1,4 +1,4 @@
-package custom_commands
+package shell_commands
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -14,23 +14,23 @@ var OmitFromHistory = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	SetupConfig: func(cfg *config.AppConfig) {},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.GlobalPress(keys.Universal.ExecuteCustomCommand)
+		t.GlobalPress(keys.Universal.ExecuteShellCommand)
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom command:")).
+			Title(Equals("Shell command:")).
 			Type("echo aubergine").
 			Confirm()
 
-		t.GlobalPress(keys.Universal.ExecuteCustomCommand)
+		t.GlobalPress(keys.Universal.ExecuteShellCommand)
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom command:")).
+			Title(Equals("Shell command:")).
 			SuggestionLines(Contains("aubergine")).
 			SuggestionLines(DoesNotContain("tangerine")).
 			Type(" echo tangerine").
 			Confirm()
 
-		t.GlobalPress(keys.Universal.ExecuteCustomCommand)
+		t.GlobalPress(keys.Universal.ExecuteShellCommand)
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom command:")).
+			Title(Equals("Shell command:")).
 			SuggestionLines(Contains("aubergine")).
 			SuggestionLines(DoesNotContain("tangerine")).
 			Cancel()

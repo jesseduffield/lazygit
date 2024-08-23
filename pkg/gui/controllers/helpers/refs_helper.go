@@ -109,8 +109,8 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 	checkout := func(branchName string) error {
 		// Switch to the branches context _before_ starting to check out the
 		// branch, so that we see the inline status
-		if self.c.CurrentContext() != self.c.Contexts().Branches {
-			if err := self.c.PushContext(self.c.Contexts().Branches); err != nil {
+		if self.c.Context().Current() != self.c.Contexts().Branches {
+			if err := self.c.Context().Push(self.c.Contexts().Branches); err != nil {
 				return err
 			}
 		}
@@ -274,17 +274,26 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		},
 	)
 
+	if suggestedBranchName == "" {
+		suggestedBranchName = self.c.UserConfig().Git.BranchPrefix
+	}
+
 	return self.c.Prompt(types.PromptOpts{
 		Title:          message,
 		InitialContent: suggestedBranchName,
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.CreateBranch)
-			if err := self.c.Git().Branch.New(SanitizedBranchName(response), from); err != nil {
+			newBranchName := SanitizedBranchName(response)
+			newBranchFunc := self.c.Git().Branch.New
+			if newBranchName != suggestedBranchName {
+				newBranchFunc = self.c.Git().Branch.NewWithoutTracking
+			}
+			if err := newBranchFunc(newBranchName, from); err != nil {
 				return err
 			}
 
-			if self.c.CurrentContext() != self.c.Contexts().Branches {
-				if err := self.c.PushContext(self.c.Contexts().Branches); err != nil {
+			if self.c.Context().Current() != self.c.Contexts().Branches {
+				if err := self.c.Context().Push(self.c.Contexts().Branches); err != nil {
 					return err
 				}
 			}

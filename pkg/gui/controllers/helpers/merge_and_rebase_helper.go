@@ -112,7 +112,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
-	needsSubprocess := (status == enums.REBASE_MODE_MERGING && command != REBASE_OPTION_ABORT && self.c.UserConfig.Git.Merging.ManualCommit) ||
+	needsSubprocess := (status == enums.REBASE_MODE_MERGING && command != REBASE_OPTION_ABORT && self.c.UserConfig().Git.Merging.ManualCommit) ||
 		// but we'll also use a subprocess if we have exec todos; those are likely to be lengthy build
 		// tasks whose output the user will want to see in the terminal
 		(status == enums.REBASE_MODE_REBASING && command != REBASE_OPTION_ABORT && self.hasExecTodos())
@@ -202,7 +202,7 @@ func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
 			{
 				Label: self.c.Tr.ViewConflictsMenuItem,
 				OnPress: func() error {
-					return self.c.PushContext(self.c.Contexts().Files)
+					return self.c.Context().Push(self.c.Contexts().Files)
 				},
 			},
 			{
@@ -316,7 +316,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 				if err = self.ResetMarkedBaseCommit(); err != nil {
 					return err
 				}
-				return self.c.PushContext(self.c.Contexts().LocalCommits)
+				return self.c.Context().Push(self.c.Contexts().LocalCommits)
 			},
 		},
 		{
@@ -369,23 +369,82 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 	if checkedOutBranchName == refName {
 		return errors.New(self.c.Tr.CantMergeBranchIntoItself)
 	}
-	prompt := utils.ResolvePlaceholderString(
-		self.c.Tr.ConfirmMerge,
-		map[string]string{
-			"checkedOutBranch": checkedOutBranchName,
-			"selectedBranch":   refName,
-		},
-	)
 
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.MergeConfirmTitle,
-		Prompt: prompt,
-		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.Merge)
-			err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{})
-			return self.CheckMergeOrRebase(err)
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.Merge,
+		Items: []*types.MenuItem{
+			{
+				Label:   self.c.Tr.RegularMerge,
+				OnPress: self.RegularMerge(refName),
+				Key:     'm',
+				Tooltip: utils.ResolvePlaceholderString(
+					self.c.Tr.RegularMergeTooltip,
+					map[string]string{
+						"checkedOutBranch": checkedOutBranchName,
+						"selectedBranch":   refName,
+					},
+				),
+			},
+			{
+				Label:   self.c.Tr.SquashMergeUncommittedTitle,
+				OnPress: self.SquashMergeUncommitted(refName),
+				Key:     's',
+				Tooltip: utils.ResolvePlaceholderString(
+					self.c.Tr.SquashMergeUncommitted,
+					map[string]string{
+						"selectedBranch": refName,
+					},
+				),
+			},
+			{
+				Label:   self.c.Tr.SquashMergeCommittedTitle,
+				OnPress: self.SquashMergeCommitted(refName, checkedOutBranchName),
+				Key:     'S',
+				Tooltip: utils.ResolvePlaceholderString(
+					self.c.Tr.SquashMergeCommitted,
+					map[string]string{
+						"checkedOutBranch": checkedOutBranchName,
+						"selectedBranch":   refName,
+					},
+				),
+			},
 		},
 	})
+}
+
+func (self *MergeAndRebaseHelper) RegularMerge(refName string) func() error {
+	return func() error {
+		self.c.LogAction(self.c.Tr.Actions.Merge)
+		err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{})
+		return self.CheckMergeOrRebase(err)
+	}
+}
+
+func (self *MergeAndRebaseHelper) SquashMergeUncommitted(refName string) func() error {
+	return func() error {
+		self.c.LogAction(self.c.Tr.Actions.SquashMerge)
+		err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{Squash: true})
+		return self.CheckMergeOrRebase(err)
+	}
+}
+
+func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranchName string) func() error {
+	return func() error {
+		self.c.LogAction(self.c.Tr.Actions.SquashMerge)
+		err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{Squash: true})
+		if err = self.CheckMergeOrRebase(err); err != nil {
+			return err
+		}
+		message := utils.ResolvePlaceholderString(self.c.UserConfig().Git.Merging.SquashMergeMessage, map[string]string{
+			"selectedRef":   refName,
+			"currentBranch": checkedOutBranchName,
+		})
+		err = self.c.Git().Commit.CommitCmdObj(message, "").Run()
+		if err != nil {
+			return err
+		}
+		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	}
 }
 
 func (self *MergeAndRebaseHelper) ResetMarkedBaseCommit() error {

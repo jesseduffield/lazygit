@@ -154,7 +154,7 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 
 	self.UpdateCommitPanelView(opts.InitialMessage)
 
-	return self.pushCommitMessageContexts()
+	return self.c.Context().Push(self.c.Contexts().CommitMessage)
 }
 
 func (self *CommitsHelper) OnCommitSuccess() {
@@ -190,28 +190,10 @@ func (self *CommitsHelper) CloseCommitMessagePanel() error {
 
 	self.c.Contexts().CommitMessage.SetHistoryMessage("")
 
-	return self.PopCommitMessageContexts()
-}
+	self.c.Views().CommitMessage.Visible = false
+	self.c.Views().CommitDescription.Visible = false
 
-func (self *CommitsHelper) PopCommitMessageContexts() error {
-	return self.c.RemoveContexts(self.commitMessageContexts())
-}
-
-func (self *CommitsHelper) pushCommitMessageContexts() error {
-	for _, context := range self.commitMessageContexts() {
-		if err := self.c.PushContext(context); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (self *CommitsHelper) commitMessageContexts() []types.Context {
-	return []types.Context{
-		self.c.Contexts().CommitDescription,
-		self.c.Contexts().CommitMessage,
-	}
+	return self.c.Context().Pop()
 }
 
 func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.Suggestion) error {
@@ -238,6 +220,13 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 			},
 			Key: 'c',
 		},
+		{
+			Label: self.c.Tr.PasteCommitMessageFromClipboard,
+			OnPress: func() error {
+				return self.pasteCommitMessageFromClipboard()
+			},
+			Key: 'p',
+		},
 	}
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.CommitMenuTitle,
@@ -253,6 +242,31 @@ func (self *CommitsHelper) addCoAuthor(suggestionFunc func(string) []*types.Sugg
 			commitDescription := self.getCommitDescription()
 			commitDescription = git_commands.AddCoAuthorToDescription(commitDescription, value)
 			self.setCommitDescription(commitDescription)
+			return nil
+		},
+	})
+}
+
+func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
+	message, err := self.c.OS().PasteFromClipboard()
+	if err != nil {
+		return err
+	}
+	if message == "" {
+		return nil
+	}
+
+	if currentMessage := self.JoinCommitMessageAndUnwrappedDescription(); currentMessage == "" {
+		self.SetMessageAndDescriptionInView(message)
+		return nil
+	}
+
+	// Confirm before overwriting the commit message
+	return self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.PasteCommitMessageFromClipboard,
+		Prompt: self.c.Tr.SurePasteCommitMessage,
+		HandleConfirm: func() error {
+			self.SetMessageAndDescriptionInView(message)
 			return nil
 		},
 	})

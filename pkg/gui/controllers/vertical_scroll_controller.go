@@ -65,13 +65,13 @@ func (self *VerticalScrollController) GetMouseKeybindings(opts types.Keybindings
 }
 
 func (self *VerticalScrollController) HandleScrollUp() error {
-	self.context.GetViewTrait().ScrollUp(self.c.UserConfig.Gui.ScrollHeight)
+	self.context.GetViewTrait().ScrollUp(self.c.UserConfig().Gui.ScrollHeight)
 
 	return nil
 }
 
 func (self *VerticalScrollController) HandleScrollDown() error {
-	scrollHeight := self.c.UserConfig.Gui.ScrollHeight
+	scrollHeight := self.c.UserConfig().Gui.ScrollHeight
 	self.context.GetViewTrait().ScrollDown(scrollHeight)
 
 	if manager, ok := (*self.viewBufferManagerMap)[self.context.GetViewName()]; ok {
