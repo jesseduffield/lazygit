@@ -970,7 +970,7 @@ func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error { //nolint:unpara
 
 		// scan to buffer to prevent run unintentional operations when TUI resumes.
 		var buffer string
-		fmt.Scanln(&buffer) // wait for enter press
+		_, _ = fmt.Scanln(&buffer) // wait for enter press
 	}
 
 	return err
