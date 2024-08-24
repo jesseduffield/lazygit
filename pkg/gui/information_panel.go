@@ -14,8 +14,8 @@ func (gui *Gui) informationStr() string {
 	}
 
 	if gui.g.Mouse {
-		donate := style.FgMagenta.Sprint(style.PrintHyperlink(gui.c.Tr.Donate, constants.Links.Donate))
-		askQuestion := style.FgYellow.Sprint(style.PrintHyperlink(gui.c.Tr.AskQuestion, constants.Links.Discussions))
+		donate := style.FgMagenta.Sprint(style.PrintHyperlink(gui.c.Tr.Donate, constants.Links.Donate, true))
+		askQuestion := style.FgYellow.Sprint(style.PrintHyperlink(gui.c.Tr.AskQuestion, constants.Links.Discussions, true))
 		return fmt.Sprintf("%s %s %s", donate, askQuestion, gui.Config.GetVersion())
 	} else {
 		return gui.Config.GetVersion()

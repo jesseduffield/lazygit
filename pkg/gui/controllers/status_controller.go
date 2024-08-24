@@ -210,12 +210,12 @@ func (self *StatusController) showDashboard() error {
 		[]string{
 			lazygitTitle(),
 			fmt.Sprintf("Copyright %d Jesse Duffield", time.Now().Year()),
-			fmt.Sprintf("Keybindings: %s", style.PrintSimpleHyperlink(fmt.Sprintf(constants.Links.Docs.Keybindings, versionStr))),
-			fmt.Sprintf("Config Options: %s", style.PrintSimpleHyperlink(fmt.Sprintf(constants.Links.Docs.Config, versionStr))),
-			fmt.Sprintf("Tutorial: %s", style.PrintSimpleHyperlink(constants.Links.Docs.Tutorial)),
-			fmt.Sprintf("Raise an Issue: %s", style.PrintSimpleHyperlink(constants.Links.Issues)),
-			fmt.Sprintf("Release Notes: %s", style.PrintSimpleHyperlink(constants.Links.Releases)),
-			style.FgMagenta.Sprintf("Become a sponsor: %s", style.PrintSimpleHyperlink(constants.Links.Donate)), // caffeine ain't free
+			fmt.Sprintf("Keybindings: %s", style.PrintSimpleHyperlink(fmt.Sprintf(constants.Links.Docs.Keybindings, versionStr), true)),
+			fmt.Sprintf("Config Options: %s", style.PrintSimpleHyperlink(fmt.Sprintf(constants.Links.Docs.Config, versionStr), true)),
+			fmt.Sprintf("Tutorial: %s", style.PrintSimpleHyperlink(constants.Links.Docs.Tutorial, true)),
+			fmt.Sprintf("Raise an Issue: %s", style.PrintSimpleHyperlink(constants.Links.Issues, true)),
+			fmt.Sprintf("Release Notes: %s", style.PrintSimpleHyperlink(constants.Links.Releases, true)),
+			style.FgMagenta.Sprintf("Become a sponsor: %s", style.PrintSimpleHyperlink(constants.Links.Donate, true)), // caffeine ain't free
 		}, "\n\n") + "\n"
 
 	return self.c.RenderToMainViews(types.RefreshMainOpts{

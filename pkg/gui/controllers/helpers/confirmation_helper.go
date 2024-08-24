@@ -259,7 +259,7 @@ func underlineLinks(text string) string {
 		} else {
 			linkEnd += linkStart
 		}
-		underlinedLink := style.PrintSimpleHyperlink(remaining[linkStart:linkEnd])
+		underlinedLink := style.PrintSimpleHyperlink(remaining[linkStart:linkEnd], true)
 		result += remaining[:linkStart] + underlinedLink
 		remaining = remaining[linkEnd:]
 	}

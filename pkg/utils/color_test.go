@@ -192,7 +192,11 @@ func TestDecolorise(t *testing.T) {
 			output: "ta",
 		},
 		{
-			input:  "a_" + style.PrintSimpleHyperlink("xyz") + "_b",
+			input:  "a_" + style.PrintSimpleHyperlink("xyz", true) + "_b",
+			output: "a_xyz_b",
+		},
+		{
+			input:  "a_" + style.PrintSimpleHyperlink("xyz", false) + "_b",
 			output: "a_xyz_b",
 		},
 	}
