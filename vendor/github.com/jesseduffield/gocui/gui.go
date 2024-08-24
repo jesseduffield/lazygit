@@ -180,6 +180,8 @@ type Gui struct {
 	suspended      bool
 
 	taskManager *TaskManager
+
+	lastHoverView *View
 }
 
 type NewGuiOpts struct {
@@ -836,7 +838,7 @@ func (g *Gui) processRemainingEvents() error {
 // etc.)
 func (g *Gui) handleEvent(ev *GocuiEvent) error {
 	switch ev.Type {
-	case eventKey, eventMouse:
+	case eventKey, eventMouse, eventMouseMove:
 		return g.onKey(ev)
 	case eventError:
 		return ev.Err
@@ -1394,6 +1396,19 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		if err := g.execKeybindings(v, ev); err != nil {
 			return err
 		}
+
+	case eventMouseMove:
+		mx, my := ev.MouseX, ev.MouseY
+		v, err := g.VisibleViewByPosition(mx, my)
+		if err != nil {
+			break
+		}
+		if g.lastHoverView != nil && g.lastHoverView != v {
+			g.lastHoverView.lastHoverPosition = nil
+			g.lastHoverView.hoveredHyperlink = nil
+		}
+		g.lastHoverView = v
+		v.onMouseMove(mx, my)
 
 	default:
 	}
