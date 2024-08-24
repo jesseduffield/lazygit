@@ -73,6 +73,19 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 
 		mustRerender := false
+		newHeight := dimensionsObj.Y1 - dimensionsObj.Y0 + 2*frameOffset
+		maxOriginY := context.TotalContentHeight()
+		if !view.CanScrollPastBottom {
+			maxOriginY -= newHeight - 1
+		}
+		if oldOriginY := view.OriginY(); oldOriginY > maxOriginY {
+			view.ScrollUp(oldOriginY - maxOriginY)
+			// the view might not have scrolled actually (if it was at the limit
+			// already), so we need to check if it did
+			if oldOriginY != view.OriginY() && context.NeedsRerenderOnHeightChange() {
+				mustRerender = true
+			}
+		}
 		if context.NeedsRerenderOnWidthChange() == types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES {
 			// view.Width() returns the width -1 for some reason
 			oldWidth := view.Width() + 1
