@@ -1316,6 +1316,9 @@ func (v *View) LinesHeight() int {
 
 // ViewLinesHeight is the count of view lines (i.e. lines including wrapping)
 func (v *View) ViewLinesHeight() int {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	v.refreshViewLinesIfNeeded()
 	return len(v.viewLines)
 }
