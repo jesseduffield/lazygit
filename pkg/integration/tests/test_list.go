@@ -110,6 +110,7 @@ var tests = []*components.IntegrationTest{
 	commit.Staged,
 	commit.StagedWithoutHooks,
 	commit.Unstaged,
+	config.CustomCommandsInPerRepoConfig,
 	config.RemoteNamedStar,
 	conflicts.Filter,
 	conflicts.ResolveExternally,
