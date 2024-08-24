@@ -130,6 +130,7 @@ type Gui struct {
 	managers          []Manager
 	keybindings       []*keybinding
 	focusHandler      func(bool) error
+	openHyperlink     func(string) error
 	maxX, maxY        int
 	outputMode        OutputMode
 	stop              chan struct{}
@@ -622,6 +623,10 @@ func (g *Gui) WhitelistKeybinding(k Key) error {
 
 func (g *Gui) SetFocusHandler(handler func(bool) error) {
 	g.focusHandler = handler
+}
+
+func (g *Gui) SetOpenHyperlinkFunc(openHyperlinkFunc func(string) error) {
+	g.openHyperlink = openHyperlinkFunc
 }
 
 // getKey takes an empty interface with a key and returns the corresponding
@@ -1302,7 +1307,7 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 	switch ev.Type {
 	case eventKey:
 
-		_, err := g.execKeybindings(g.currentView, ev)
+		err := g.execKeybindings(g.currentView, ev)
 		if err != nil {
 			return err
 		}
@@ -1367,6 +1372,14 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			}
 		}
 
+		if ev.Key == MouseLeft && !v.Editable && g.openHyperlink != nil {
+			if newY >= 0 && newY <= len(v.viewLines)-1 && newX >= 0 && newX <= len(v.viewLines[newY].line)-1 {
+				if link := v.viewLines[newY].line[newX].hyperlink; link != "" {
+					return g.openHyperlink(link)
+				}
+			}
+		}
+
 		if IsMouseKey(ev.Key) {
 			opts := ViewMouseBindingOpts{X: newX, Y: newY}
 			matched, err := g.execMouseKeybindings(v, ev, opts)
@@ -1378,9 +1391,11 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			}
 		}
 
-		if _, err := g.execKeybindings(v, ev); err != nil {
+		if err := g.execKeybindings(v, ev); err != nil {
 			return err
 		}
+
+	default:
 	}
 
 	return nil
@@ -1440,25 +1455,25 @@ func IsMouseScrollKey(key interface{}) bool {
 }
 
 // execKeybindings executes the keybinding handlers that match the passed view
-// and event. The value of matched is true if there is a match and no errors.
-func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) (matched bool, err error) {
+// and event.
+func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 	var globalKb *keybinding
 	var matchingParentViewKb *keybinding
 
 	// if we're searching, and we've hit n/N/Esc, we ignore the default keybinding
 	if v != nil && v.IsSearching() && ev.Mod == ModNone {
 		if eventMatchesKey(ev, g.NextSearchMatchKey) {
-			return true, v.gotoNextMatch()
+			return v.gotoNextMatch()
 		} else if eventMatchesKey(ev, g.PrevSearchMatchKey) {
-			return true, v.gotoPreviousMatch()
+			return v.gotoPreviousMatch()
 		} else if eventMatchesKey(ev, g.SearchEscapeKey) {
 			v.searcher.clearSearch()
 			if g.OnSearchEscape != nil {
 				if err := g.OnSearchEscape(); err != nil {
-					return true, err
+					return err
 				}
 			}
-			return true, nil
+			return nil
 		}
 	}
 
@@ -1486,26 +1501,26 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) (matched bool, err error)
 	if g.currentView != nil && g.currentView.Editable && g.currentView.Editor != nil {
 		matched := g.currentView.Editor.Edit(g.currentView, ev.Key, ev.Ch, ev.Mod)
 		if matched {
-			return true, nil
+			return nil
 		}
 	}
 
 	if globalKb != nil {
 		return g.execKeybinding(v, globalKb)
 	}
-	return false, nil
+	return nil
 }
 
 // execKeybinding executes a given keybinding
-func (g *Gui) execKeybinding(v *View, kb *keybinding) (bool, error) {
+func (g *Gui) execKeybinding(v *View, kb *keybinding) error {
 	if g.isBlacklisted(kb.key) {
-		return true, nil
+		return nil
 	}
 
 	if err := kb.handler(g, v); err != nil {
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 }
 
 func (g *Gui) onFocus(ev *GocuiEvent) error {

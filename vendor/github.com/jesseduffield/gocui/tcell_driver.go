@@ -363,6 +363,7 @@ func (g *Gui) pollEvent() GocuiEvent {
 				mouseKey = MouseRight
 			case tcell.ButtonMiddle:
 				mouseKey = MouseMiddle
+			default:
 			}
 		}
 
@@ -374,11 +375,13 @@ func (g *Gui) pollEvent() GocuiEvent {
 					dragState = NOT_DRAGGING
 				case tcell.ButtonSecondary:
 				case tcell.ButtonMiddle:
+				default:
 				}
 				mouseMod = Modifier(lastMouseMod)
 				lastMouseMod = tcell.ModNone
 				lastMouseKey = tcell.ButtonNone
 			}
+		default:
 		}
 
 		if !wheeling {

@@ -259,11 +259,7 @@ func underlineLinks(text string) string {
 		} else {
 			linkEnd += linkStart
 		}
-		underlinedLink := style.AttrUnderline.Sprint(remaining[linkStart:linkEnd])
-		if strings.HasSuffix(underlinedLink, "\x1b[0m") {
-			// Replace the "all styles off" code with "underline off" code
-			underlinedLink = underlinedLink[:len(underlinedLink)-2] + "24m"
-		}
+		underlinedLink := style.PrintSimpleHyperlink(remaining[linkStart:linkEnd])
 		result += remaining[:linkStart] + underlinedLink
 		remaining = remaining[linkEnd:]
 	}
