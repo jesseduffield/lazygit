@@ -354,6 +354,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.CommitDescription,
 		commitDescriptionController,
+		verticalScrollControllerFactory.Create(gui.State.Contexts.CommitDescription),
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.RemoteBranches,
