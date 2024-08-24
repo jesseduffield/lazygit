@@ -117,6 +117,7 @@ func (gui *Gui) createAllViews() error {
 		view.Title = gui.c.Tr.DiffTitle
 		view.Wrap = true
 		view.IgnoreCarriageReturns = true
+		view.UnderlineHyperLinksOnlyOnHover = true
 	}
 
 	gui.Views.Staging.Title = gui.c.Tr.UnstagedChanges
