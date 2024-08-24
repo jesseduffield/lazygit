@@ -765,8 +765,18 @@ func (self *RefreshHelper) refreshView(context types.Context) error {
 
 	err := self.c.PostRefreshUpdate(context)
 
-	// Re-applying the search must be done after re-rendering the view though,
-	// so that the "x of y" status is shown correctly.
-	self.searchHelper.ReApplySearch(context)
+	self.c.AfterLayout(func() error {
+		// Re-applying the search must be done after re-rendering the view though,
+		// so that the "x of y" status is shown correctly.
+		//
+		// Also, it must be done after layout, because otherwise FocusPoint
+		// hasn't been called yet (see ListContextTrait.FocusLine), which means
+		// that the scroll position might be such that the entire visible
+		// content is outside the viewport. And this would cause problems in
+		// searchModelCommits.
+		self.searchHelper.ReApplySearch(context)
+		return nil
+	})
+
 	return err
 }
