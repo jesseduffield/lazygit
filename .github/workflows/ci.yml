@@ -170,7 +170,7 @@ jobs:
         with:
           go-version: 1.22.x
       - name: Lint
-        uses: golangci/golangci-lint-action@v3.7.0
+        uses: golangci/golangci-lint-action@v6.1.0
         with:
           version: v1.60
       - name: errors
