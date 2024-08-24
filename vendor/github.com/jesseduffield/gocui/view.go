@@ -56,6 +56,13 @@ type View struct {
 	// tained is true if the viewLines must be updated
 	tainted bool
 
+	// the last position that the mouse was hovering over; nil if the mouse is outside of
+	// this view, or not hovering over a cell
+	lastHoverPosition *pos
+
+	// the location of the hyperlink that the mouse is currently hovering over; nil if none
+	hoveredHyperlink *SearchPosition
+
 	// internal representation of the view's buffer. We will keep viewLines around
 	// from a previous render until we explicitly set them to nil, allowing us to
 	// render the same content twice without flicker. Wherever we want to render
@@ -180,6 +187,14 @@ type View struct {
 
 	// if true, the user can scroll all the way past the last item until it appears at the top of the view
 	CanScrollPastBottom bool
+
+	// if true, the view will underline hyperlinks only when the cursor is on
+	// them; otherwise, they will always be underlined
+	UnderlineHyperLinksOnlyOnHover bool
+}
+
+type pos struct {
+	x, y int
 }
 
 // call this in the event of a view resize, or if you want to render new content
@@ -188,6 +203,7 @@ type View struct {
 func (v *View) clearViewLines() {
 	v.tainted = true
 	v.viewLines = nil
+	v.clearHover()
 }
 
 type searcher struct {
@@ -532,6 +548,10 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 		}
 	}
 
+	if v.isHoveredHyperlink(x, y) {
+		fgColor |= AttrUnderline
+	}
+
 	// Don't display NUL characters
 	if ch == 0 {
 		ch = ' '
@@ -756,6 +776,7 @@ func (v *View) WriteRunes(p []rune) {
 // writeRunes copies slice of runes into internal lines buffer.
 func (v *View) writeRunes(p []rune) {
 	v.tainted = true
+	v.clearHover()
 
 	// Fill with empty cells, if writing outside current view buffer
 	v.makeWriteable(v.wx, v.wy)
@@ -1164,7 +1185,7 @@ func (v *View) draw() error {
 			if bgColor == ColorDefault {
 				bgColor = v.BgColor
 			}
-			if c.hyperlink != "" {
+			if c.hyperlink != "" && !v.UnderlineHyperLinksOnlyOnHover {
 				fgColor |= AttrUnderline
 			}
 
@@ -1234,6 +1255,15 @@ func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
 		}
 	}
 	return false, false
+}
+
+func (v *View) isHoveredHyperlink(x, y int) bool {
+	if v.UnderlineHyperLinksOnlyOnHover && v.hoveredHyperlink != nil {
+		adjustedY := y + v.oy
+		adjustedX := x + v.ox
+		return adjustedY == v.hoveredHyperlink.Y && adjustedX >= v.hoveredHyperlink.XStart && adjustedX < v.hoveredHyperlink.XEnd
+	}
+	return false
 }
 
 // realPosition returns the position in the internal buffer corresponding to the
@@ -1406,6 +1436,7 @@ func (v *View) SetHighlight(y int, on bool) error {
 	}
 	v.tainted = true
 	v.lines[y] = cells
+	v.clearHover()
 	return nil
 }
 
@@ -1672,8 +1703,12 @@ func (v *View) ScrollUp(amount int) {
 		amount = v.oy
 	}
 
-	v.oy -= amount
-	v.cy += amount
+	if amount != 0 {
+		v.oy -= amount
+		v.cy += amount
+
+		v.clearHover()
+	}
 }
 
 // ensures we don't scroll past the end of the view's content
@@ -1682,6 +1717,8 @@ func (v *View) ScrollDown(amount int) {
 	if adjustedAmount > 0 {
 		v.oy += adjustedAmount
 		v.cy -= adjustedAmount
+
+		v.clearHover()
 	}
 }
 
@@ -1690,12 +1727,18 @@ func (v *View) ScrollLeft(amount int) {
 	if newOx < 0 {
 		newOx = 0
 	}
-	v.ox = newOx
+	if newOx != v.ox {
+		v.ox = newOx
+
+		v.clearHover()
+	}
 }
 
 // not applying any limits to this
 func (v *View) ScrollRight(amount int) {
 	v.ox += amount
+
+	v.clearHover()
 }
 
 func (v *View) adjustDownwardScrollAmount(scrollHeight int) int {
@@ -1768,4 +1811,50 @@ func containsColoredTextInLine(fgColorStr string, text string, line []cell) bool
 	}
 
 	return strings.Contains(currentMatch, text)
+}
+
+func (v *View) onMouseMove(x int, y int) {
+	if v.Editable || !v.UnderlineHyperLinksOnlyOnHover {
+		return
+	}
+
+	// newCx and newCy are relative to the view port, i.e. to the visible area of the view
+	newCx := x - v.x0 - 1
+	newCy := y - v.y0 - 1
+	// newX and newY are relative to the view's content, independent of its scroll position
+	newX := newCx + v.ox
+	newY := newCy + v.oy
+
+	if newY >= 0 && newY <= len(v.viewLines)-1 && newX >= 0 && newX <= len(v.viewLines[newY].line)-1 {
+		if v.lastHoverPosition == nil || v.lastHoverPosition.x != newX || v.lastHoverPosition.y != newY {
+			v.hoveredHyperlink = v.findHyperlinkAt(newX, newY)
+		}
+		v.lastHoverPosition = &pos{x: newX, y: newY}
+	} else {
+		v.lastHoverPosition = nil
+		v.hoveredHyperlink = nil
+	}
+}
+
+func (v *View) findHyperlinkAt(x, y int) *SearchPosition {
+	linkStr := v.viewLines[y].line[x].hyperlink
+	if linkStr == "" {
+		return nil
+	}
+
+	xStart := x
+	for xStart > 0 && v.viewLines[y].line[xStart-1].hyperlink == linkStr {
+		xStart--
+	}
+	xEnd := x + 1
+	for xEnd < len(v.viewLines[y].line) && v.viewLines[y].line[xEnd].hyperlink == linkStr {
+		xEnd++
+	}
+
+	return &SearchPosition{XStart: xStart, XEnd: xEnd, Y: y}
+}
+
+func (v *View) clearHover() {
+	v.hoveredHyperlink = nil
+	v.lastHoverPosition = nil
 }
