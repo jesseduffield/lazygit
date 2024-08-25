@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -20,15 +19,13 @@ type CanSwitchToDiffFiles interface {
 type SwitchToDiffFilesController struct {
 	baseController
 	*ListControllerTrait[types.Ref]
-	c                *ControllerCommon
-	context          CanSwitchToDiffFiles
-	diffFilesContext *context.CommitFilesContext
+	c       *ControllerCommon
+	context CanSwitchToDiffFiles
 }
 
 func NewSwitchToDiffFilesController(
 	c *ControllerCommon,
 	context CanSwitchToDiffFiles,
-	diffFilesContext *context.CommitFilesContext,
 ) *SwitchToDiffFilesController {
 	return &SwitchToDiffFilesController{
 		baseController: baseController{},
@@ -40,9 +37,8 @@ func NewSwitchToDiffFilesController(
 				panic("Not implemented")
 			},
 		),
-		c:                c,
-		context:          context,
-		diffFilesContext: diffFilesContext,
+		c:       c,
+		context: context,
 	}
 }
 
@@ -72,16 +68,16 @@ func (self *SwitchToDiffFilesController) enter(ref types.Ref) error {
 }
 
 func (self *SwitchToDiffFilesController) viewFiles(opts SwitchToCommitFilesContextOpts) error {
-	diffFilesContext := self.diffFilesContext
+	commitFilesContext := self.c.Contexts().CommitFiles
 
-	diffFilesContext.SetSelection(0)
-	diffFilesContext.SetRef(opts.Ref)
-	diffFilesContext.SetTitleRef(opts.Ref.Description())
-	diffFilesContext.SetCanRebase(opts.CanRebase)
-	diffFilesContext.SetParentContext(opts.Context)
-	diffFilesContext.SetWindowName(opts.Context.GetWindowName())
-	diffFilesContext.ClearSearchString()
-	diffFilesContext.GetView().TitlePrefix = opts.Context.GetView().TitlePrefix
+	commitFilesContext.SetSelection(0)
+	commitFilesContext.SetRef(opts.Ref)
+	commitFilesContext.SetTitleRef(opts.Ref.Description())
+	commitFilesContext.SetCanRebase(opts.CanRebase)
+	commitFilesContext.SetParentContext(opts.Context)
+	commitFilesContext.SetWindowName(opts.Context.GetWindowName())
+	commitFilesContext.ClearSearchString()
+	commitFilesContext.GetView().TitlePrefix = opts.Context.GetView().TitlePrefix
 
 	if err := self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.COMMIT_FILES},
@@ -89,7 +85,7 @@ func (self *SwitchToDiffFilesController) viewFiles(opts SwitchToCommitFilesConte
 		return err
 	}
 
-	return self.c.Context().Push(diffFilesContext)
+	return self.c.Context().Push(commitFilesContext)
 }
 
 func (self *SwitchToDiffFilesController) itemRepresentsCommit(ref types.Ref) *types.DisabledReason {
