@@ -22,7 +22,7 @@ func NewDiffHelper(c *HelperCommon) *DiffHelper {
 }
 
 func (self *DiffHelper) DiffArgs() []string {
-	output := []string{self.c.Modes().Diffing.Ref}
+	output := []string{"--stat", "-p", self.c.Modes().Diffing.Ref}
 
 	right := self.currentDiffTerminal()
 	if right != "" {
