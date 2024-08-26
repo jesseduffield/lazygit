@@ -286,7 +286,8 @@ func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
 		commit := self.c.Contexts().LocalCommits.GetSelected()
 		if commit != nil && commit.RefName() != "" {
 			self.c.Contexts().CommitFiles.SetRef(commit)
-			self.c.Contexts().CommitFiles.SetTitleRef(commit.RefName())
+			self.c.Contexts().CommitFiles.SetTitleRef(commit.Description())
+			self.c.Contexts().CommitFiles.GetView().Title = self.c.Contexts().CommitFiles.Title()
 			_ = self.refreshCommitFilesContext()
 		}
 	}
