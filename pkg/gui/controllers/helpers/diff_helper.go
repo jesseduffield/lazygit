@@ -1,9 +1,12 @@
 package helpers
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -52,8 +55,14 @@ func (self *DiffHelper) ExitDiffMode() error {
 }
 
 func (self *DiffHelper) RenderDiff() error {
-	cmdObj := self.c.Git().Diff.DiffCmdObj(self.DiffArgs())
+	args := self.DiffArgs()
+	cmdObj := self.c.Git().Diff.DiffCmdObj(args)
 	task := types.NewRunPtyTask(cmdObj.GetCmd())
+	task.Prefix = style.FgMagenta.Sprintf(
+		"%s %s\n\n",
+		self.c.Tr.ShowingGitDiff,
+		"git diff "+strings.Join(args, " "),
+	)
 
 	return self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
