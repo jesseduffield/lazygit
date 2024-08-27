@@ -54,7 +54,19 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 
 	refreshOptions := types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true}
 
-	f := func(gocui.Task) error {
+	localBranch, found := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
+		return branch.Name == ref
+	})
+
+	withCheckoutStatus := func(f func(gocui.Task) error) error {
+		if found {
+			return self.c.WithInlineStatus(localBranch, types.ItemOperationCheckingOut, context.LOCAL_BRANCHES_CONTEXT_KEY, f)
+		} else {
+			return self.c.WithWaitingStatus(waitingStatus, f)
+		}
+	}
+
+	return withCheckoutStatus(func(gocui.Task) error {
 		if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {
 			// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
 
@@ -64,27 +76,34 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 
 			if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
 				// offer to autostash changes
-				return self.c.Confirm(types.ConfirmOpts{
-					Title:  self.c.Tr.AutoStashTitle,
-					Prompt: self.c.Tr.AutoStashPrompt,
-					HandleConfirm: func() error {
-						if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + ref); err != nil {
-							return err
-						}
-						if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {
-							return err
-						}
+				self.c.OnUIThread(func() error {
+					// (Before showing the prompt, render again to remove the inline status)
+					_ = self.c.Contexts().Branches.HandleRender()
+					return self.c.Confirm(types.ConfirmOpts{
+						Title:  self.c.Tr.AutoStashTitle,
+						Prompt: self.c.Tr.AutoStashPrompt,
+						HandleConfirm: func() error {
+							return withCheckoutStatus(func(gocui.Task) error {
+								if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + ref); err != nil {
+									return err
+								}
+								if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {
+									return err
+								}
 
-						onSuccess()
-						if err := self.c.Git().Stash.Pop(0); err != nil {
-							if err := self.c.Refresh(refreshOptions); err != nil {
-								return err
-							}
-							return err
-						}
-						return self.c.Refresh(refreshOptions)
-					},
+								onSuccess()
+								if err := self.c.Git().Stash.Pop(0); err != nil {
+									if err := self.c.Refresh(refreshOptions); err != nil {
+										return err
+									}
+									return err
+								}
+								return self.c.Refresh(refreshOptions)
+							})
+						},
+					})
 				})
+				return nil
 			}
 
 			return err
@@ -92,16 +111,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		onSuccess()
 
 		return self.c.Refresh(refreshOptions)
-	}
-
-	localBranch, found := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
-		return branch.Name == ref
 	})
-	if found {
-		return self.c.WithInlineStatus(localBranch, types.ItemOperationCheckingOut, context.LOCAL_BRANCHES_CONTEXT_KEY, f)
-	} else {
-		return self.c.WithWaitingStatus(waitingStatus, f)
-	}
 }
 
 // Shows a prompt to choose between creating a new branch or checking out a detached head
