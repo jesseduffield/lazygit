@@ -1,13 +1,10 @@
 linters:
-  disable:
-    - structcheck # gives false positives
   enable:
     - gofumpt
     - thelper
     - goimports
     - tparallel
     - wastedassign
-    - exportloopref
     - unparam
     - prealloc
     - unconvert

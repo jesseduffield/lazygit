@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -60,7 +59,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 
 	t := time.Now()
 	defer func() {
-		self.c.Log.Infof(fmt.Sprintf("Refresh took %s", time.Since(t)))
+		self.c.Log.Infof("Refresh took %s", time.Since(t))
 	}()
 
 	if options.Scope == nil {
@@ -114,7 +113,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 					t := time.Now()
 					defer wg.Done()
 					f()
-					self.c.Log.Infof(fmt.Sprintf("refreshed %s in %s", name, time.Since(t)))
+					self.c.Log.Infof("refreshed %s in %s", name, time.Since(t))
 				})
 			}
 		}
