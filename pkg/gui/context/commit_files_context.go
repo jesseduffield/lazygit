@@ -78,3 +78,9 @@ func (self *CommitFilesContext) GetDiffTerminals() []string {
 func (self *CommitFilesContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
 	return nil
 }
+
+func (self *CommitFilesContext) ReInit(ref types.Ref) {
+	self.SetRef(ref)
+	self.SetTitleRef(ref.Description())
+	self.GetView().Title = self.Title()
+}

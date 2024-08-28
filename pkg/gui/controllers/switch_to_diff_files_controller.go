@@ -71,9 +71,8 @@ func (self *SwitchToDiffFilesController) enter(ref types.Ref) error {
 		}
 	}
 
+	commitFilesContext.ReInit(ref)
 	commitFilesContext.SetSelection(0)
-	commitFilesContext.SetRef(ref)
-	commitFilesContext.SetTitleRef(ref.Description())
 	commitFilesContext.SetCanRebase(canRebase)
 	commitFilesContext.SetParentContext(self.context)
 	commitFilesContext.SetWindowName(self.context.GetWindowName())
