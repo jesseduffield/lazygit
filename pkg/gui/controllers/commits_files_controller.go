@@ -307,7 +307,8 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 		})
 	}
 
-	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.To != self.context().GetRef().RefName() {
+	from, to, reverse := self.currentFromToReverseForPatchBuilding()
+	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse) {
 		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardPatch,
 			Prompt: self.c.Tr.DiscardPatchConfirm,
@@ -364,7 +365,8 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 		return self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
 	}
 
-	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.To != self.context().GetRef().RefName() {
+	from, to, reverse := self.currentFromToReverseForPatchBuilding()
+	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse) {
 		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardPatch,
 			Prompt: self.c.Tr.DiscardPatchConfirm,
