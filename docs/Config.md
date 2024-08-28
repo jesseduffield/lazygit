@@ -305,6 +305,12 @@ git:
   # If true, pass the --all arg to git fetch
   fetchAll: true
 
+  # If true, lazygit will automatically stage files that used to have merge
+  # conflicts but no longer do; and it will also ask you if you want to
+  # continue a merge or rebase if you've resolved all conflicts. If false, it
+  # won't do either of these things.
+  autoStageResolvedConflicts: true
+
   # Command used when displaying the current branch git log in the main window
   branchLogCmd: git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --
 

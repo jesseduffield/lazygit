@@ -115,6 +115,7 @@ var tests = []*components.IntegrationTest{
 	conflicts.Filter,
 	conflicts.ResolveExternally,
 	conflicts.ResolveMultipleFiles,
+	conflicts.ResolveNoAutoStage,
 	conflicts.UndoChooseHunk,
 	custom_commands.AccessCommitProperties,
 	custom_commands.BasicCommand,

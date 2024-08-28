@@ -224,6 +224,11 @@ type GitConfig struct {
 	AutoRefresh bool `yaml:"autoRefresh"`
 	// If true, pass the --all arg to git fetch
 	FetchAll bool `yaml:"fetchAll"`
+	// If true, lazygit will automatically stage files that used to have merge
+	// conflicts but no longer do; and it will also ask you if you want to
+	// continue a merge or rebase if you've resolved all conflicts. If false, it
+	// won't do either of these things.
+	AutoStageResolvedConflicts bool `yaml:"autoStageResolvedConflicts"`
 	// Command used when displaying the current branch git log in the main window
 	BranchLogCmd string `yaml:"branchLogCmd"`
 	// Command used to display git log of all branches in the main window.
@@ -753,6 +758,7 @@ func GetDefaultConfig() *UserConfig {
 			AutoFetch:                    true,
 			AutoRefresh:                  true,
 			FetchAll:                     true,
+			AutoStageResolvedConflicts:   true,
 			BranchLogCmd:                 "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
 			AllBranchesLogCmd:            "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
 			DisableForcePushing:          false,

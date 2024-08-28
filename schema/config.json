@@ -573,6 +573,11 @@
           "description": "If true, pass the --all arg to git fetch",
           "default": true
         },
+        "autoStageResolvedConflicts": {
+          "type": "boolean",
+          "description": "If true, lazygit will automatically stage files that used to have merge\nconflicts but no longer do; and it will also ask you if you want to\ncontinue a merge or rebase if you've resolved all conflicts. If false, it\nwon't do either of these things.",
+          "default": true
+        },
         "branchLogCmd": {
           "type": "string",
           "description": "Command used when displaying the current branch git log in the main window",

@@ -546,33 +546,35 @@ func (self *RefreshHelper) refreshFilesAndSubmodules() error {
 func (self *RefreshHelper) refreshStateFiles() error {
 	fileTreeViewModel := self.c.Contexts().Files.FileTreeViewModel
 
-	// If git thinks any of our files have inline merge conflicts, but they actually don't,
-	// we stage them.
-	// Note that if files with merge conflicts have both arisen and have been resolved
-	// between refreshes, we won't stage them here. This is super unlikely though,
-	// and this approach spares us from having to call `git status` twice in a row.
-	// Although this also means that at startup we won't be staging anything until
-	// we call git status again.
-	pathsToStage := []string{}
 	prevConflictFileCount := 0
-	for _, file := range self.c.Model().Files {
-		if file.HasMergeConflicts {
-			prevConflictFileCount++
-		}
-		if file.HasInlineMergeConflicts {
-			hasConflicts, err := mergeconflicts.FileHasConflictMarkers(file.Name)
-			if err != nil {
-				self.c.Log.Error(err)
-			} else if !hasConflicts {
-				pathsToStage = append(pathsToStage, file.Name)
+	if self.c.UserConfig().Git.AutoStageResolvedConflicts {
+		// If git thinks any of our files have inline merge conflicts, but they actually don't,
+		// we stage them.
+		// Note that if files with merge conflicts have both arisen and have been resolved
+		// between refreshes, we won't stage them here. This is super unlikely though,
+		// and this approach spares us from having to call `git status` twice in a row.
+		// Although this also means that at startup we won't be staging anything until
+		// we call git status again.
+		pathsToStage := []string{}
+		for _, file := range self.c.Model().Files {
+			if file.HasMergeConflicts {
+				prevConflictFileCount++
+			}
+			if file.HasInlineMergeConflicts {
+				hasConflicts, err := mergeconflicts.FileHasConflictMarkers(file.Name)
+				if err != nil {
+					self.c.Log.Error(err)
+				} else if !hasConflicts {
+					pathsToStage = append(pathsToStage, file.Name)
+				}
 			}
 		}
-	}
 
-	if len(pathsToStage) > 0 {
-		self.c.LogAction(self.c.Tr.Actions.StageResolvedFiles)
-		if err := self.c.Git().WorkingTree.StageFiles(pathsToStage); err != nil {
-			return err
+		if len(pathsToStage) > 0 {
+			self.c.LogAction(self.c.Tr.Actions.StageResolvedFiles)
+			if err := self.c.Git().WorkingTree.StageFiles(pathsToStage); err != nil {
+				return err
+			}
 		}
 	}
 
