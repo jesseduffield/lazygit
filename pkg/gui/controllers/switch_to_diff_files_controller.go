@@ -60,24 +60,16 @@ func (self *SwitchToDiffFilesController) GetOnClick() func() error {
 }
 
 func (self *SwitchToDiffFilesController) enter(ref types.Ref) error {
-	return self.viewFiles(SwitchToCommitFilesContextOpts{
-		Ref:       ref,
-		CanRebase: self.context.CanRebase(),
-		Context:   self.context,
-	})
-}
-
-func (self *SwitchToDiffFilesController) viewFiles(opts SwitchToCommitFilesContextOpts) error {
 	commitFilesContext := self.c.Contexts().CommitFiles
 
 	commitFilesContext.SetSelection(0)
-	commitFilesContext.SetRef(opts.Ref)
-	commitFilesContext.SetTitleRef(opts.Ref.Description())
-	commitFilesContext.SetCanRebase(opts.CanRebase)
-	commitFilesContext.SetParentContext(opts.Context)
-	commitFilesContext.SetWindowName(opts.Context.GetWindowName())
+	commitFilesContext.SetRef(ref)
+	commitFilesContext.SetTitleRef(ref.Description())
+	commitFilesContext.SetCanRebase(self.context.CanRebase())
+	commitFilesContext.SetParentContext(self.context)
+	commitFilesContext.SetWindowName(self.context.GetWindowName())
 	commitFilesContext.ClearSearchString()
-	commitFilesContext.GetView().TitlePrefix = opts.Context.GetView().TitlePrefix
+	commitFilesContext.GetView().TitlePrefix = self.context.GetView().TitlePrefix
 
 	if err := self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.COMMIT_FILES},
