@@ -445,7 +445,6 @@ type TranslationSet struct {
 	ScrollRight                           string
 	DiscardPatch                          string
 	DiscardPatchConfirm                   string
-	DiscardPatchSameCommitConfirm         string
 	CantPatchWhileRebasingError           string
 	ToggleAddToPatch                      string
 	ToggleAddToPatchTooltip               string
@@ -1435,7 +1434,6 @@ func EnglishTranslationSet() *TranslationSet {
 		ScrollRight:                          "Scroll right",
 		DiscardPatch:                         "Discard patch",
 		DiscardPatchConfirm:                  "You can only build a patch from one commit/stash-entry at a time. Discard current patch?",
-		DiscardPatchSameCommitConfirm:        "You currently have changes added to a patch for this commit. Discard current patch?",
 		CantPatchWhileRebasingError:          "You cannot build a patch or run patch commands while in a merging or rebasing state",
 		ToggleAddToPatch:                     "Toggle file included in patch",
 		ToggleAddToPatchTooltip:              "Toggle whether the file is included in the custom patch. See {{.doc}}.",
