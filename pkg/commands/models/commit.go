@@ -70,6 +70,10 @@ func (c *Commit) RefName() string {
 	return c.Hash
 }
 
+func (c *Commit) ShortRefName() string {
+	return c.Hash[:7]
+}
+
 func (c *Commit) ParentRefName() string {
 	if c.IsFirstCommit() {
 		return EmptyTreeCommitHash
