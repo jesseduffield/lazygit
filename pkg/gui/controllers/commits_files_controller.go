@@ -330,12 +330,19 @@ func (self *CommitFilesController) startPatchBuilder() error {
 	commitFilesContext := self.context()
 
 	canRebase := commitFilesContext.GetCanRebase()
-	ref := commitFilesContext.GetRef()
-	to := ref.RefName()
-	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	from, to, reverse := self.currentFromToReverseForPatchBuilding()
 
 	self.c.Git().Patch.PatchBuilder.Start(from, to, reverse, canRebase)
 	return nil
+}
+
+func (self *CommitFilesController) currentFromToReverseForPatchBuilding() (string, string, bool) {
+	commitFilesContext := self.context()
+
+	ref := commitFilesContext.GetRef()
+	to := ref.RefName()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	return from, to, reverse
 }
 
 func (self *CommitFilesController) enter(node *filetree.CommitFileNode) error {
