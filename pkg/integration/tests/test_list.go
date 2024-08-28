@@ -148,6 +148,7 @@ var tests = []*components.IntegrationTest{
 	diff.Diff,
 	diff.DiffAndApplyPatch,
 	diff.DiffCommits,
+	diff.DiffNonStickyRange,
 	diff.IgnoreWhitespace,
 	diff.RenameSimilarityThresholdChange,
 	file.CopyMenu,
