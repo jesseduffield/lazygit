@@ -15,11 +15,10 @@ type CanSwitchToDiffFiles interface {
 	GetSelectedRefRangeForDiffFiles() *types.RefRange
 }
 
-// Not using our ListControllerTrait because our 'selected' item is not a list item
-// but an attribute on it i.e. the ref of an item.
+// Not using our ListControllerTrait because we have our own way of working with
+// range selections that's different from ListControllerTrait's
 type SwitchToDiffFilesController struct {
 	baseController
-	*ListControllerTrait[types.Ref]
 	c       *ControllerCommon
 	context CanSwitchToDiffFiles
 }
@@ -30,16 +29,8 @@ func NewSwitchToDiffFilesController(
 ) *SwitchToDiffFilesController {
 	return &SwitchToDiffFilesController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[types.Ref](
-			c,
-			context,
-			context.GetSelectedRef,
-			func() ([]types.Ref, int, int) {
-				panic("Not implemented")
-			},
-		),
-		c:       c,
-		context: context,
+		c:              c,
+		context:        context,
 	}
 }
 
@@ -54,6 +45,10 @@ func (self *SwitchToDiffFilesController) GetKeybindings(opts types.KeybindingsOp
 	}
 
 	return bindings
+}
+
+func (self *SwitchToDiffFilesController) Context() types.Context {
+	return self.context
 }
 
 func (self *SwitchToDiffFilesController) GetOnClick() func() error {
