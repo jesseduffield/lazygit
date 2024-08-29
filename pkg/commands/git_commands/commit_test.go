@@ -124,12 +124,12 @@ func TestCommitCommitEditorCmdObj(t *testing.T) {
 		{
 			testName:      "Commit using editor",
 			configSignoff: false,
-			expected:      []string{"commit"},
+			expected:      []string{"commit", "--verbose"},
 		},
 		{
 			testName:      "Commit with --signoff",
 			configSignoff: true,
-			expected:      []string{"commit", "--signoff"},
+			expected:      []string{"commit", "--verbose", "--signoff"},
 		},
 	}
 

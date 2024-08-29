@@ -110,6 +110,7 @@ func (self *CommitCommands) RewordLastCommitInEditorWithMessageFileCmdObj(tmpMes
 
 func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile string) oscommands.ICmdObj {
 	return self.cmd.New(NewGitCmd("commit").
+		Arg("--verbose").
 		Arg("--edit").
 		Arg("--file="+tmpMessageFile).
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
@@ -141,6 +142,7 @@ func (self *CommitCommands) commitMessageArgs(summary string, description string
 // runs git commit without the -m argument meaning it will invoke the user's editor
 func (self *CommitCommands) CommitEditorCmdObj() oscommands.ICmdObj {
 	cmdArgs := NewGitCmd("commit").
+		Arg("--verbose").
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
 		ToArgv()
 
