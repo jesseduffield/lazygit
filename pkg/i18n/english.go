@@ -151,6 +151,16 @@ type TranslationSet struct {
 	CheckoutTypeDetachedHeadTooltip       string
 	NewBranch                             string
 	NewBranchFromStashTooltip             string
+	MoveCommitsToNewBranch                string
+	MoveCommitsToNewBranchTooltip         string
+	MoveCommitsToNewBranchFromMainPrompt  string
+	MoveCommitsToNewBranchMenuPrompt      string
+	MoveCommitsToNewBranchFromBaseItem    string
+	MoveCommitsToNewBranchStackedItem     string
+	CannotMoveCommitsFromDetachedHead     string
+	CannotMoveCommitsNoUpstream           string
+	CannotMoveCommitsBehindUpstream       string
+	CannotMoveCommitsNoUnpushedCommits    string
 	NoBranchesThisRepo                    string
 	CommitWithoutMessageErr               string
 	Close                                 string
@@ -401,6 +411,7 @@ type TranslationSet struct {
 	RewordingStatus                       string
 	RevertingStatus                       string
 	CreatingFixupCommitStatus             string
+	MovingCommitsToNewBranchStatus        string
 	CommitFiles                           string
 	SubCommitsDynamicTitle                string
 	CommitFilesDynamicTitle               string
@@ -1203,6 +1214,16 @@ func EnglishTranslationSet() *TranslationSet {
 		CheckoutTypeDetachedHeadTooltip:      "Checkout the remote branch as a detached head, which can be useful if you just want to test the branch but not work on it yourself. You can still create a local branch from it later.",
 		NewBranch:                            "New branch",
 		NewBranchFromStashTooltip:            "Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit.",
+		MoveCommitsToNewBranch:               "Move commits to new branch",
+		MoveCommitsToNewBranchTooltip:        "Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.\n\nNote that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which).",
+		MoveCommitsToNewBranchFromMainPrompt: "This will take all unpushed commits and move them to a new branch (off of {{.baseBranchName}}). It will then hard-reset the current branch its the upstream branch. Do you want to continue?",
+		MoveCommitsToNewBranchMenuPrompt:     "This will take all unpushed commits and move them to a new branch. This new branch can either be created from the main branch ({{.baseBranchName}}) or stacked on top of the current branch. Which of these would you like to do?",
+		MoveCommitsToNewBranchFromBaseItem:   "New branch from base branch (%s)",
+		MoveCommitsToNewBranchStackedItem:    "New branch stacked on current branch (%s)",
+		CannotMoveCommitsFromDetachedHead:    "Cannot move commits from a detached head",
+		CannotMoveCommitsNoUpstream:          "Cannot move commits from a branch that has no upstream branch",
+		CannotMoveCommitsBehindUpstream:      "Cannot move commits from a branch that is behind its upstream branch",
+		CannotMoveCommitsNoUnpushedCommits:   "There are no unpushed commits to move to a new branch",
 		NoBranchesThisRepo:                   "No branches for this repo",
 		CommitWithoutMessageErr:              "You cannot commit without a commit message",
 		Close:                                "Close",
@@ -1462,6 +1483,7 @@ func EnglishTranslationSet() *TranslationSet {
 		RewordingStatus:                      "Rewording",
 		RevertingStatus:                      "Reverting",
 		CreatingFixupCommitStatus:            "Creating fixup commit",
+		MovingCommitsToNewBranchStatus:       "Moving commits to new branch",
 		CommitFiles:                          "Commit files",
 		SubCommitsDynamicTitle:               "Commits (%s)",
 		CommitFilesDynamicTitle:              "Diff files (%s)",
