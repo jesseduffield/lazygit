@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type WorkingTreeHelper struct {
@@ -34,25 +35,27 @@ func NewWorkingTreeHelper(
 }
 
 func (self *WorkingTreeHelper) AnyStagedFiles() bool {
-	for _, file := range self.c.Model().Files {
-		if file.HasStagedChanges {
-			return true
-		}
-	}
-	return false
+	return AnyStagedFiles(self.c.Model().Files)
+}
+
+func AnyStagedFiles(files []*models.File) bool {
+	return lo.SomeBy(files, func(f *models.File) bool { return f.HasStagedChanges })
 }
 
 func (self *WorkingTreeHelper) AnyTrackedFiles() bool {
-	for _, file := range self.c.Model().Files {
-		if file.Tracked {
-			return true
-		}
-	}
-	return false
+	return AnyTrackedFiles(self.c.Model().Files)
+}
+
+func AnyTrackedFiles(files []*models.File) bool {
+	return lo.SomeBy(files, func(f *models.File) bool { return f.Tracked })
 }
 
 func (self *WorkingTreeHelper) IsWorkingTreeDirty() bool {
-	return self.AnyStagedFiles() || self.AnyTrackedFiles()
+	return IsWorkingTreeDirty(self.c.Model().Files)
+}
+
+func IsWorkingTreeDirty(files []*models.File) bool {
+	return AnyStagedFiles(files) || AnyTrackedFiles(files)
 }
 
 func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfig) *models.File {
