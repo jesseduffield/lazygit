@@ -27,11 +27,10 @@ func (gui *Gui) resetHelpersAndControllers() {
 	helperCommon := gui.c
 	recordDirectoryHelper := helpers.NewRecordDirectoryHelper(helperCommon)
 	reposHelper := helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo)
-	refsHelper := helpers.NewRefsHelper(helperCommon)
+	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon)
+	refsHelper := helpers.NewRefsHelper(helperCommon, rebaseHelper)
 	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon)
 	worktreeHelper := helpers.NewWorktreeHelper(helperCommon, reposHelper, refsHelper, suggestionsHelper)
-
-	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon)
 
 	setCommitSummary := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
 	setCommitDescription := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitDescription })
