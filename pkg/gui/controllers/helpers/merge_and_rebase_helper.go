@@ -247,6 +247,36 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 		Title:  self.c.Tr.Continue,
 		Prompt: self.c.Tr.ConflictsResolved,
 		HandleConfirm: func() error {
+			// By the time we get here, we might have unstaged changes again,
+			// e.g. if the user had to fix build errors after resolving the
+			// conflicts, but after lazygit opened the prompt already. Ask again
+			// to auto-stage these.
+
+			// Need to refresh the files to be really sure if this is the case.
+			// We would otherwise be relying on lazygit's auto-refresh on focus,
+			// but this is not supported by all terminals or on all platforms.
+			if err := self.c.Refresh(types.RefreshOptions{
+				Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES},
+			}); err != nil {
+				return err
+			}
+
+			root := self.c.Contexts().Files.FileTreeViewModel.GetRoot()
+			if root.GetHasUnstagedChanges() {
+				return self.c.Confirm(types.ConfirmOpts{
+					Title:  self.c.Tr.Continue,
+					Prompt: self.c.Tr.UnstagedFilesAfterConflictsResolved,
+					HandleConfirm: func() error {
+						self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
+						if err := self.c.Git().WorkingTree.StageAll(); err != nil {
+							return err
+						}
+
+						return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
+					},
+				})
+			}
+
 			return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
 		},
 	})
