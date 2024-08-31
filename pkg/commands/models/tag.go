@@ -16,6 +16,10 @@ func (t *Tag) RefName() string {
 	return t.Name
 }
 
+func (t *Tag) ShortRefName() string {
+	return t.RefName()
+}
+
 func (t *Tag) ParentRefName() string {
 	return t.RefName() + "^"
 }

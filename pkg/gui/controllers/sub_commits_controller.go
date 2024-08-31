@@ -46,9 +46,8 @@ func (self *SubCommitsController) GetOnRenderToMain() func() error {
 			if commit == nil {
 				task = types.NewRenderStringTask("No commits")
 			} else {
-				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash, self.c.Modes().Filtering.GetPath())
-
-				task = types.NewRunPtyTask(cmdObj.GetCmd())
+				refRange := self.context().GetSelectedRefRangeForDiffFiles()
+				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange)
 			}
 
 			return self.c.RenderToMainViews(types.RefreshMainOpts{

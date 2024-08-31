@@ -445,7 +445,6 @@ type TranslationSet struct {
 	ScrollRight                           string
 	DiscardPatch                          string
 	DiscardPatchConfirm                   string
-	DiscardPatchSameCommitConfirm         string
 	CantPatchWhileRebasingError           string
 	ToggleAddToPatch                      string
 	ToggleAddToPatchTooltip               string
@@ -582,6 +581,7 @@ type TranslationSet struct {
 	OpenCommandLogMenu                    string
 	OpenCommandLogMenuTooltip             string
 	ShowingGitDiff                        string
+	ShowingDiffForRange                   string
 	CommitDiff                            string
 	CopyCommitHashToClipboard             string
 	CommitHash                            string
@@ -1435,7 +1435,6 @@ func EnglishTranslationSet() *TranslationSet {
 		ScrollRight:                          "Scroll right",
 		DiscardPatch:                         "Discard patch",
 		DiscardPatchConfirm:                  "You can only build a patch from one commit/stash-entry at a time. Discard current patch?",
-		DiscardPatchSameCommitConfirm:        "You currently have changes added to a patch for this commit. Discard current patch?",
 		CantPatchWhileRebasingError:          "You cannot build a patch or run patch commands while in a merging or rebasing state",
 		ToggleAddToPatch:                     "Toggle file included in patch",
 		ToggleAddToPatchTooltip:              "Toggle whether the file is included in the custom patch. See {{.doc}}.",
@@ -1571,6 +1570,7 @@ func EnglishTranslationSet() *TranslationSet {
 		OpenCommandLogMenu:                       "View command log options",
 		OpenCommandLogMenuTooltip:                "View options for the command log e.g. show/hide the command log and focus the command log.",
 		ShowingGitDiff:                           "Showing output for:",
+		ShowingDiffForRange:                      "Showing diff for range",
 		CommitDiff:                               "Commit diff",
 		CopyCommitHashToClipboard:                "Copy commit hash to clipboard",
 		CommitHash:                               "Commit hash",

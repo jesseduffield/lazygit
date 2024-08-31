@@ -71,6 +71,11 @@ func (self *ReflogCommitsContext) GetSelectedRef() types.Ref {
 	return commit
 }
 
+func (self *ReflogCommitsContext) GetSelectedRefRangeForDiffFiles() *types.RefRange {
+	// It doesn't make much sense to show a range diff between two reflog entries.
+	return nil
+}
+
 func (self *ReflogCommitsContext) GetCommits() []*models.Commit {
 	return self.getModel()
 }

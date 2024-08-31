@@ -73,9 +73,8 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 		return nil
 	}
 
-	ref := self.c.Contexts().CommitFiles.CommitFileTreeViewModel.GetRef()
-	to := ref.RefName()
-	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 	diff, err := self.c.Git().WorkingTree.ShowFileDiff(from, to, reverse, path, true)
 	if err != nil {
 		return err

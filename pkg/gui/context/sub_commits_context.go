@@ -186,6 +186,19 @@ func (self *SubCommitsContext) GetSelectedRef() types.Ref {
 	return commit
 }
 
+func (self *SubCommitsContext) GetSelectedRefRangeForDiffFiles() *types.RefRange {
+	commits, startIdx, endIdx := self.GetSelectedItems()
+	if commits == nil || startIdx == endIdx {
+		return nil
+	}
+	from := commits[len(commits)-1]
+	to := commits[0]
+	if from.Divergence != to.Divergence {
+		return nil
+	}
+	return &types.RefRange{From: from, To: to}
+}
+
 func (self *SubCommitsContext) GetCommits() []*models.Commit {
 	return self.getModel()
 }
