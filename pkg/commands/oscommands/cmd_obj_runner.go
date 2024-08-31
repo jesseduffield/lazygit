@@ -320,7 +320,7 @@ func (self *cmdObjRunner) getCredentialPromptFn(cmdObj ICmdObj) (func(InputType)
 }
 
 // runAndDetectCredentialRequest detect a username / password / passphrase question in a command
-// promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
+// promptUserForCredential is a function that gets executed when this function detect you need to fill in a password or passphrase
 // The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
 func (self *cmdObjRunner) runAndDetectCredentialRequest(
 	cmdObj ICmdObj,

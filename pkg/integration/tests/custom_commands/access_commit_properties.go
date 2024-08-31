@@ -15,7 +15,7 @@ var AccessCommitProperties = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("my change")
 	},
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.UserConfig.CustomCommands = []config.CustomCommand{
+		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
 				Key:     "X",
 				Context: "commits",

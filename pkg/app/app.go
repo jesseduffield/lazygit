@@ -63,22 +63,20 @@ func Run(
 func NewCommon(config config.AppConfigurer) (*common.Common, error) {
 	userConfig := config.GetUserConfig()
 	appState := config.GetAppState()
-
-	var err error
 	log := newLogger(config)
-	tr, err := i18n.NewTranslationSetFromConfig(log, userConfig.Gui.Language)
-	if err != nil {
-		return nil, err
-	}
+	// Initialize with English for the time being; the real translation set for
+	// the configured language will be read after reading the user config
+	tr := i18n.EnglishTranslationSet()
 
-	return &common.Common{
-		Log:        log,
-		Tr:         tr,
-		UserConfig: userConfig,
-		AppState:   appState,
-		Debug:      config.GetDebug(),
-		Fs:         afero.NewOsFs(),
-	}, nil
+	cmn := &common.Common{
+		Log:      log,
+		Tr:       tr,
+		AppState: appState,
+		Debug:    config.GetDebug(),
+		Fs:       afero.NewOsFs(),
+	}
+	cmn.SetUserConfig(userConfig)
+	return cmn, nil
 }
 
 func newLogger(cfg config.AppConfigurer) *logrus.Entry {
@@ -118,11 +116,11 @@ func NewApp(config config.AppConfigurer, test integrationTypes.IntegrationTest, 
 		return app, err
 	}
 
-	// If we're not in a repo, repoPaths will be nil. The error is moot for us
+	// If we're not in a repo, GetRepoPaths will return an error. The error is moot for us
 	// at this stage, since we'll try to init a new repo in setupRepo(), below
 	repoPaths, err := git_commands.GetRepoPaths(app.OSCommand.Cmd, gitVersion)
 	if err != nil {
-		return app, err
+		common.Log.Infof("Error getting repo paths: %v", err)
 	}
 
 	showRecentRepos, err := app.setupRepo(repoPaths)
@@ -195,7 +193,7 @@ func (app *App) setupRepo(
 
 		var shouldInitRepo bool
 		initialBranchArg := ""
-		switch app.UserConfig.NotARepository {
+		switch app.UserConfig().NotARepository {
 		case "prompt":
 			// Offer to initialize a new repository in current directory.
 			fmt.Print(app.Tr.CreateRepo)

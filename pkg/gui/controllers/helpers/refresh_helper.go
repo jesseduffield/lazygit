@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -60,7 +59,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 
 	t := time.Now()
 	defer func() {
-		self.c.Log.Infof(fmt.Sprintf("Refresh took %s", time.Since(t)))
+		self.c.Log.Infof("Refresh took %s", time.Since(t))
 	}()
 
 	if options.Scope == nil {
@@ -114,7 +113,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 					t := time.Now()
 					defer wg.Done()
 					f()
-					self.c.Log.Infof(fmt.Sprintf("refreshed %s in %s", name, time.Since(t)))
+					self.c.Log.Infof("refreshed %s in %s", name, time.Since(t))
 				})
 			}
 		}
@@ -276,8 +275,8 @@ func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, keepB
 
 func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
 	_ = self.refreshCommitsWithLimit()
-	ctx, ok := self.c.Contexts().CommitFiles.GetParentContext()
-	if ok && ctx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
+	ctx := self.c.Contexts().CommitFiles.GetParentContext()
+	if ctx != nil && ctx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
 		// This makes sense when we've e.g. just amended a commit, meaning we get a new commit hash at the same position.
 		// However if we've just added a brand new commit, it pushes the list down by one and so we would end up
 		// showing the contents of a different commit than the one we initially entered.
@@ -286,8 +285,8 @@ func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
 		// For now the awkwardness remains.
 		commit := self.c.Contexts().LocalCommits.GetSelected()
 		if commit != nil && commit.RefName() != "" {
-			self.c.Contexts().CommitFiles.SetRef(commit)
-			self.c.Contexts().CommitFiles.SetTitleRef(commit.RefName())
+			refRange := self.c.Contexts().LocalCommits.GetSelectedRefRangeForDiffFiles()
+			self.c.Contexts().CommitFiles.ReInit(commit, refRange)
 			_ = self.refreshCommitFilesContext()
 		}
 	}
@@ -388,9 +387,8 @@ func (self *RefreshHelper) RefreshAuthors(commits []*models.Commit) {
 }
 
 func (self *RefreshHelper) refreshCommitFilesContext() error {
-	ref := self.c.Contexts().CommitFiles.GetRef()
-	to := ref.RefName()
-	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
 	files, err := self.c.Git().Loaders.CommitFileLoader.GetFilesInDiff(from, to, reverse)
 	if err != nil {
@@ -622,7 +620,7 @@ func (self *RefreshHelper) refreshStateFiles() error {
 // FilteredReflogCommits are rendered in the reflogs panel, and ReflogCommits
 // are used by the branches panel to obtain recency values for sorting.
 func (self *RefreshHelper) refreshReflogCommits() error {
-	// pulling state into its own variable incase it gets swapped out for another state
+	// pulling state into its own variable in case it gets swapped out for another state
 	// and we get an out of bounds exception
 	model := self.c.Model()
 	var lastReflogCommit *models.Commit
@@ -737,7 +735,7 @@ func (self *RefreshHelper) refreshStatus() {
 
 	repoName := self.c.Git().RepoPaths.RepoName()
 
-	status := presentation.FormatStatus(repoName, currentBranch, types.ItemOperationNone, linkedWorktreeName, workingTreeState, self.c.Tr, self.c.UserConfig)
+	status := presentation.FormatStatus(repoName, currentBranch, types.ItemOperationNone, linkedWorktreeName, workingTreeState, self.c.Tr, self.c.UserConfig())
 
 	self.c.SetViewContent(self.c.Views().Status, status)
 }
@@ -765,8 +763,18 @@ func (self *RefreshHelper) refreshView(context types.Context) error {
 
 	err := self.c.PostRefreshUpdate(context)
 
-	// Re-applying the search must be done after re-rendering the view though,
-	// so that the "x of y" status is shown correctly.
-	self.searchHelper.ReApplySearch(context)
+	self.c.AfterLayout(func() error {
+		// Re-applying the search must be done after re-rendering the view though,
+		// so that the "x of y" status is shown correctly.
+		//
+		// Also, it must be done after layout, because otherwise FocusPoint
+		// hasn't been called yet (see ListContextTrait.FocusLine), which means
+		// that the scroll position might be such that the entire visible
+		// content is outside the viewport. And this would cause problems in
+		// searchModelCommits.
+		self.searchHelper.ReApplySearch(context)
+		return nil
+	})
+
 	return err
 }

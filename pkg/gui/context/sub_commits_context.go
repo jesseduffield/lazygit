@@ -40,14 +40,14 @@ func NewSubCommitsContext(
 
 	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
 		// This can happen if a sub-commits view is asked to be rerendered while
-		// it is invisble; for example when switching screen modes, which
+		// it is invisible; for example when switching screen modes, which
 		// rerenders all views.
 		if viewModel.GetRef() == nil {
 			return [][]string{}
 		}
 
 		selectedCommitHash := ""
-		if c.CurrentContext().GetKey() == SUB_COMMITS_CONTEXT_KEY {
+		if c.Context().Current().GetKey() == SUB_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
 			if selectedCommit != nil {
 				selectedCommitHash = selectedCommit.Hash
@@ -68,10 +68,10 @@ func NewSubCommitsContext(
 			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
 			"",
-			c.UserConfig.Gui.TimeFormat,
-			c.UserConfig.Gui.ShortTimeFormat,
+			c.UserConfig().Gui.TimeFormat,
+			c.UserConfig().Gui.ShortTimeFormat,
 			time.Now(),
-			c.UserConfig.Git.ParseEmoji,
+			c.UserConfig().Git.ParseEmoji,
 			selectedCommitHash,
 			startIdx,
 			endIdx,
@@ -184,6 +184,19 @@ func (self *SubCommitsContext) GetSelectedRef() types.Ref {
 		return nil
 	}
 	return commit
+}
+
+func (self *SubCommitsContext) GetSelectedRefRangeForDiffFiles() *types.RefRange {
+	commits, startIdx, endIdx := self.GetSelectedItems()
+	if commits == nil || startIdx == endIdx {
+		return nil
+	}
+	from := commits[len(commits)-1]
+	to := commits[0]
+	if from.Divergence != to.Divergence {
+		return nil
+	}
+	return &types.RefRange{From: from, To: to}
 }
 
 func (self *SubCommitsContext) GetCommits() []*models.Commit {

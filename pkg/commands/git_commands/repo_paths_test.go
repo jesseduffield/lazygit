@@ -2,11 +2,13 @@ package git_commands
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,7 +31,17 @@ func TestGetRepoPaths(t *testing.T) {
 			Name: "typical case",
 			BeforeFunc: func(runner *oscommands.FakeCmdObjRunner, getRevParseArgs argFn) {
 				// setup for main worktree
-				expectedOutput := []string{
+				mockOutput := lo.Ternary(runtime.GOOS == "windows", []string{
+					// --show-toplevel
+					`C:\path\to\repo`,
+					// --git-dir
+					`C:\path\to\repo\.git`,
+					// --git-common-dir
+					`C:\path\to\repo\.git`,
+					// --is-bare-repository
+					"false",
+					// --show-superproject-working-tree
+				}, []string{
 					// --show-toplevel
 					"/path/to/repo",
 					// --git-dir
@@ -39,28 +51,45 @@ func TestGetRepoPaths(t *testing.T) {
 					// --is-bare-repository
 					"false",
 					// --show-superproject-working-tree
-				}
+				})
 				runner.ExpectGitArgs(
 					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree"),
-					strings.Join(expectedOutput, "\n"),
+					strings.Join(mockOutput, "\n"),
 					nil)
 			},
 			Path: "/path/to/repo",
-			Expected: &RepoPaths{
+			Expected: lo.Ternary(runtime.GOOS == "windows", &RepoPaths{
+				worktreePath:       `C:\path\to\repo`,
+				worktreeGitDirPath: `C:\path\to\repo\.git`,
+				repoPath:           `C:\path\to\repo`,
+				repoGitDirPath:     `C:\path\to\repo\.git`,
+				repoName:           `repo`,
+				isBareRepo:         false,
+			}, &RepoPaths{
 				worktreePath:       "/path/to/repo",
 				worktreeGitDirPath: "/path/to/repo/.git",
 				repoPath:           "/path/to/repo",
 				repoGitDirPath:     "/path/to/repo/.git",
 				repoName:           "repo",
 				isBareRepo:         false,
-			},
+			}),
 			Err: nil,
 		},
 		{
 			Name: "bare repo",
 			BeforeFunc: func(runner *oscommands.FakeCmdObjRunner, getRevParseArgs argFn) {
 				// setup for main worktree
-				expectedOutput := []string{
+				mockOutput := lo.Ternary(runtime.GOOS == "windows", []string{
+					// --show-toplevel
+					`C:\path\to\repo`,
+					// --git-dir
+					`C:\path\to\bare_repo\bare.git`,
+					// --git-common-dir
+					`C:\path\to\bare_repo\bare.git`,
+					// --is-bare-repository
+					`true`,
+					// --show-superproject-working-tree
+				}, []string{
 					// --show-toplevel
 					"/path/to/repo",
 					// --git-dir
@@ -70,27 +99,45 @@ func TestGetRepoPaths(t *testing.T) {
 					// --is-bare-repository
 					"true",
 					// --show-superproject-working-tree
-				}
+				})
 				runner.ExpectGitArgs(
 					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree"),
-					strings.Join(expectedOutput, "\n"),
+					strings.Join(mockOutput, "\n"),
 					nil)
 			},
 			Path: "/path/to/repo",
-			Expected: &RepoPaths{
+			Expected: lo.Ternary(runtime.GOOS == "windows", &RepoPaths{
+				worktreePath:       `C:\path\to\repo`,
+				worktreeGitDirPath: `C:\path\to\bare_repo\bare.git`,
+				repoPath:           `C:\path\to\bare_repo`,
+				repoGitDirPath:     `C:\path\to\bare_repo\bare.git`,
+				repoName:           `bare_repo`,
+				isBareRepo:         true,
+			}, &RepoPaths{
 				worktreePath:       "/path/to/repo",
 				worktreeGitDirPath: "/path/to/bare_repo/bare.git",
 				repoPath:           "/path/to/bare_repo",
 				repoGitDirPath:     "/path/to/bare_repo/bare.git",
 				repoName:           "bare_repo",
 				isBareRepo:         true,
-			},
+			}),
 			Err: nil,
 		},
 		{
 			Name: "submodule",
 			BeforeFunc: func(runner *oscommands.FakeCmdObjRunner, getRevParseArgs argFn) {
-				expectedOutput := []string{
+				mockOutput := lo.Ternary(runtime.GOOS == "windows", []string{
+					// --show-toplevel
+					`C:\path\to\repo\submodule1`,
+					// --git-dir
+					`C:\path\to\repo\.git\modules\submodule1`,
+					// --git-common-dir
+					`C:\path\to\repo\.git\modules\submodule1`,
+					// --is-bare-repository
+					`false`,
+					// --show-superproject-working-tree
+					`C:\path\to\repo`,
+				}, []string{
 					// --show-toplevel
 					"/path/to/repo/submodule1",
 					// --git-dir
@@ -101,21 +148,28 @@ func TestGetRepoPaths(t *testing.T) {
 					"false",
 					// --show-superproject-working-tree
 					"/path/to/repo",
-				}
+				})
 				runner.ExpectGitArgs(
 					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree"),
-					strings.Join(expectedOutput, "\n"),
+					strings.Join(mockOutput, "\n"),
 					nil)
 			},
 			Path: "/path/to/repo/submodule1",
-			Expected: &RepoPaths{
+			Expected: lo.Ternary(runtime.GOOS == "windows", &RepoPaths{
+				worktreePath:       `C:\path\to\repo\submodule1`,
+				worktreeGitDirPath: `C:\path\to\repo\.git\modules\submodule1`,
+				repoPath:           `C:\path\to\repo\submodule1`,
+				repoGitDirPath:     `C:\path\to\repo\.git\modules\submodule1`,
+				repoName:           `submodule1`,
+				isBareRepo:         false,
+			}, &RepoPaths{
 				worktreePath:       "/path/to/repo/submodule1",
 				worktreeGitDirPath: "/path/to/repo/.git/modules/submodule1",
 				repoPath:           "/path/to/repo/submodule1",
 				repoGitDirPath:     "/path/to/repo/.git/modules/submodule1",
 				repoName:           "submodule1",
 				isBareRepo:         false,
-			},
+			}),
 			Err: nil,
 		},
 		{

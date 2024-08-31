@@ -10,7 +10,7 @@ var FilterFuzzy = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.Gui.FilterMode = "fuzzy"
+		config.GetUserConfig().Gui.FilterMode = "fuzzy"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.NewBranch("this-is-my-branch")

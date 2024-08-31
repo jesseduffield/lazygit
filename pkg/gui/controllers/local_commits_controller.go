@@ -207,14 +207,8 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description:       self.c.Tr.MarkAsBaseCommit,
 			Tooltip:           self.c.Tr.MarkAsBaseCommitTooltip,
 		},
-		// overriding these navigation keybindings because we might need to load
+		// overriding this navigation keybinding because we might need to load
 		// more commits on demand
-		{
-			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
-			Handler:     self.openSearch,
-			Description: self.c.Tr.StartSearch,
-			Tag:         "navigation",
-		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.GotoBottom),
 			Handler:     self.gotoBottom,
@@ -228,6 +222,14 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 	}
 
 	bindings := append(outsideFilterModeBindings, []*types.Binding{
+		// overriding this navigation keybinding because we might need to load
+		// more commits on demand
+		{
+			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
+			Handler:     self.openSearch,
+			Description: self.c.Tr.StartSearch,
+			Tag:         "navigation",
+		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.AmendToCommit),
 			Handler:           self.withItem(self.amendTo),
@@ -288,8 +290,8 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() error {
 				task = types.NewRenderStringTask(
 					self.c.Tr.ExecCommandHere + "\n\n" + commit.Name)
 			} else {
-				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash, self.c.Modes().Filtering.GetPath())
-				task = types.NewRunPtyTask(cmdObj.GetCmd())
+				refRange := self.context().GetSelectedRefRangeForDiffFiles()
+				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange)
 			}
 
 			return self.c.RenderToMainViews(types.RefreshMainOpts{
@@ -357,8 +359,8 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 	if err != nil {
 		return err
 	}
-	if self.c.UserConfig.Git.Commit.AutoWrapCommitMessage {
-		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig.Git.Commit.AutoWrapWidth)
+	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
+		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
 	}
 	return self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
@@ -400,7 +402,16 @@ func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepat
 }
 
 func (self *LocalCommitsController) handleReword(summary string, description string) error {
-	err := self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), summary, description)
+	var err error
+
+	if models.IsHeadCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx()) {
+		// we've selected the top commit so no rebase is required
+		err = self.c.Helpers().GPG.WithGpgHandling(self.c.Git().Commit.RewordLastCommit(summary, description),
+			self.c.Tr.CommittingStatus, nil)
+	} else {
+		err = self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), summary, description)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -429,7 +440,7 @@ func (self *LocalCommitsController) doRewordEditor() error {
 }
 
 func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
-	if self.c.UserConfig.Gui.SkipRewordInEditorWarning {
+	if self.c.UserConfig().Gui.SkipRewordInEditorWarning {
 		return self.doRewordEditor()
 	} else {
 		return self.c.Confirm(types.ConfirmOpts{
@@ -555,7 +566,7 @@ func (self *LocalCommitsController) findCommitForQuickStartInteractiveRebase() (
 
 	if !ok || index == 0 {
 		errorMsg := utils.ResolvePlaceholderString(self.c.Tr.CannotQuickStartInteractiveRebase, map[string]string{
-			"editKey": keybindings.Label(self.c.UserConfig.Keybinding.Universal.Edit),
+			"editKey": keybindings.Label(self.c.UserConfig().Keybinding.Universal.Edit),
 		})
 
 		return nil, errors.New(errorMsg)
@@ -896,8 +907,8 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 	if err != nil {
 		return err
 	}
-	if self.c.UserConfig.Git.Commit.AutoWrapCommitMessage {
-		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig.Git.Commit.AutoWrapWidth)
+	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
+		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
 	}
 	originalSubject, _, _ := strings.Cut(commitMessage, "\n")
 	return self.c.Helpers().Commits.OpenCommitMessagePanel(

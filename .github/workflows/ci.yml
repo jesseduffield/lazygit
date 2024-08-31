@@ -170,9 +170,9 @@ jobs:
         with:
           go-version: 1.22.x
       - name: Lint
-        uses: golangci/golangci-lint-action@v3.7.0
+        uses: golangci/golangci-lint-action@v6.1.0
         with:
-          version: v1.58
+          version: v1.60
       - name: errors
         run: golangci-lint run
         if: ${{ failure() }}
@@ -219,3 +219,22 @@ jobs:
           CODACY_PROJECT_TOKEN=${{ secrets.CODACY_PROJECT_TOKEN }} \
             bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
             --force-coverage-parser go -r coverage.out
+
+  check-for-fixups:
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/master'
+    steps:
+      # See https://github.com/actions/checkout/issues/552#issuecomment-1167086216
+      - name: "PR commits"
+        run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} ))" >> "${GITHUB_ENV}"
+
+      - name: "Checkout PR branch and all PR commits"
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: ${{ env.PR_FETCH_DEPTH }}
+
+      - name: Check for fixups
+        run: |
+          ./scripts/check_for_fixups.sh ${{ github.event.pull_request.base.ref }}

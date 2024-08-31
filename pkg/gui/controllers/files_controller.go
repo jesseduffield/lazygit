@@ -258,7 +258,7 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 				pair = self.c.MainViewPairs().Staging
 			}
 
-			split := self.c.UserConfig.Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
+			split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
 			mainShowsStaged := !split && node.GetHasStagedChanges()
 
 			cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged)
@@ -401,16 +401,18 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 
 	selectedNodes = normalisedSelectedNodes(selectedNodes)
 
-	// If any node has unstaged changes, we'll stage all the selected nodes. Otherwise,
-	// we unstage all the selected nodes.
-	if someNodesHaveUnstagedChanges(selectedNodes) {
+	// If any node has unstaged changes, we'll stage all the selected unstaged nodes (staging already staged deleted files/folders would fail).
+	// Otherwise, we unstage all the selected nodes.
+	unstagedSelectedNodes := filterNodesHaveUnstagedChanges(selectedNodes)
+
+	if len(unstagedSelectedNodes) > 0 {
 		self.c.LogAction(self.c.Tr.Actions.StageFile)
 
-		if err := self.optimisticChange(selectedNodes, self.optimisticStage); err != nil {
+		if err := self.optimisticChange(unstagedSelectedNodes, self.optimisticStage); err != nil {
 			return err
 		}
 
-		if err := self.c.Git().WorkingTree.StageFiles(toPaths(selectedNodes)); err != nil {
+		if err := self.c.Git().WorkingTree.StageFiles(toPaths(unstagedSelectedNodes)); err != nil {
 			return err
 		}
 	} else {
@@ -500,7 +502,7 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 		return errors.New(self.c.Tr.FileStagingRequirements)
 	}
 
-	return self.c.PushContext(self.c.Contexts().Staging, opts)
+	return self.c.Context().Push(self.c.Contexts().Staging, opts)
 }
 
 func (self *FilesController) toggleStagedAll() error {
@@ -1031,6 +1033,12 @@ func someNodesHaveStagedChanges(nodes []*filetree.FileNode) bool {
 	return lo.SomeBy(nodes, (*filetree.FileNode).GetHasStagedChanges)
 }
 
+func filterNodesHaveUnstagedChanges(nodes []*filetree.FileNode) []*filetree.FileNode {
+	return lo.Filter(nodes, func(node *filetree.FileNode, _ int) bool {
+		return node.GetHasUnstagedChanges()
+	})
+}
+
 func (self *FilesController) canRemove(selectedNodes []*filetree.FileNode) *types.DisabledReason {
 	submodules := self.c.Model().Submodules
 	submoduleCount := lo.CountBy(selectedNodes, func(node *filetree.FileNode) bool {
@@ -1083,7 +1091,7 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
 		},
-		Key: self.c.KeybindingsOpts().GetKey(self.c.UserConfig.Keybinding.Files.ConfirmDiscard),
+		Key: self.c.KeybindingsOpts().GetKey(self.c.UserConfig().Keybinding.Files.ConfirmDiscard),
 		Tooltip: utils.ResolvePlaceholderString(
 			self.c.Tr.DiscardAllTooltip,
 			map[string]string{

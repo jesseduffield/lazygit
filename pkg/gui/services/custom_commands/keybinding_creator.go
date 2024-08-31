@@ -24,12 +24,12 @@ func NewKeybindingCreator(c *helpers.HelperCommon) *KeybindingCreator {
 	}
 }
 
-func (self *KeybindingCreator) call(customCommand config.CustomCommand, handler func() error) (*types.Binding, error) {
+func (self *KeybindingCreator) call(customCommand config.CustomCommand, handler func() error) ([]*types.Binding, error) {
 	if customCommand.Context == "" {
 		return nil, formatContextNotProvidedError(customCommand)
 	}
 
-	viewName, err := self.getViewNameAndContexts(customCommand)
+	viewNames, err := self.getViewNamesAndContexts(customCommand)
 	if err != nil {
 		return nil, err
 	}
@@ -39,27 +39,38 @@ func (self *KeybindingCreator) call(customCommand config.CustomCommand, handler 
 		description = customCommand.Command
 	}
 
-	return &types.Binding{
-		ViewName:    viewName,
-		Key:         keybindings.GetKey(customCommand.Key),
-		Modifier:    gocui.ModNone,
-		Handler:     handler,
-		Description: description,
-	}, nil
+	return lo.Map(viewNames, func(viewName string, _ int) *types.Binding {
+		return &types.Binding{
+			ViewName:    viewName,
+			Key:         keybindings.GetKey(customCommand.Key),
+			Modifier:    gocui.ModNone,
+			Handler:     handler,
+			Description: description,
+		}
+	}), nil
 }
 
-func (self *KeybindingCreator) getViewNameAndContexts(customCommand config.CustomCommand) (string, error) {
+func (self *KeybindingCreator) getViewNamesAndContexts(customCommand config.CustomCommand) ([]string, error) {
 	if customCommand.Context == "global" {
-		return "", nil
+		return []string{""}, nil
 	}
 
-	ctx, ok := self.contextForContextKey(types.ContextKey(customCommand.Context))
-	if !ok {
-		return "", formatUnknownContextError(customCommand)
+	contexts := strings.Split(customCommand.Context, ",")
+	contexts = lo.Map(contexts, func(context string, _ int) string {
+		return strings.TrimSpace(context)
+	})
+
+	viewNames := []string{}
+	for _, context := range contexts {
+		ctx, ok := self.contextForContextKey(types.ContextKey(context))
+		if !ok {
+			return []string{}, formatUnknownContextError(customCommand)
+		}
+
+		viewNames = append(viewNames, ctx.GetViewName())
 	}
 
-	viewName := ctx.GetViewName()
-	return viewName, nil
+	return viewNames, nil
 }
 
 func (self *KeybindingCreator) contextForContextKey(contextKey types.ContextKey) (types.Context, bool) {

@@ -136,9 +136,8 @@ func (self *CommitFilesController) GetOnRenderToMain() func() error {
 			return nil
 		}
 
-		ref := self.context().GetRef()
-		to := ref.RefName()
-		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+		from, to := self.context().GetFromAndToForDiff()
+		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
 		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
 		task := types.NewRunPtyTask(cmdObj.GetCmd())
@@ -178,8 +177,8 @@ func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error
 }
 
 func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileNode) error {
-	parentContext, ok := self.c.CurrentContext().GetParentContext()
-	if !ok || parentContext.GetKey() != context.LOCAL_COMMITS_CONTEXT_KEY {
+	parentContext := self.c.Context().Current().GetParentContext()
+	if parentContext == nil || parentContext.GetKey() != context.LOCAL_COMMITS_CONTEXT_KEY {
 		return errors.New(self.c.Tr.CanOnlyDiscardFromLocalCommits)
 	}
 
@@ -250,9 +249,8 @@ func (self *CommitFilesController) canEditFiles(nodes []*filetree.CommitFileNode
 }
 
 func (self *CommitFilesController) openDiffTool(node *filetree.CommitFileNode) error {
-	ref := self.context().GetRef()
-	to := ref.RefName()
-	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	from, to := self.context().GetFromAndToForDiff()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 	_, err := self.c.RunSubprocess(self.c.Git().Diff.OpenDiffToolCmdObj(
 		git_commands.DiffToolCmdOptions{
 			Filepath:    node.GetPath(),
@@ -307,7 +305,8 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 		})
 	}
 
-	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.To != self.context().GetRef().RefName() {
+	from, to, reverse := self.currentFromToReverseForPatchBuilding()
+	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse) {
 		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardPatch,
 			Prompt: self.c.Tr.DiscardPatchConfirm,
@@ -330,12 +329,18 @@ func (self *CommitFilesController) startPatchBuilder() error {
 	commitFilesContext := self.context()
 
 	canRebase := commitFilesContext.GetCanRebase()
-	ref := commitFilesContext.GetRef()
-	to := ref.RefName()
-	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	from, to, reverse := self.currentFromToReverseForPatchBuilding()
 
 	self.c.Git().Patch.PatchBuilder.Start(from, to, reverse, canRebase)
 	return nil
+}
+
+func (self *CommitFilesController) currentFromToReverseForPatchBuilding() (string, string, bool) {
+	commitFilesContext := self.context()
+
+	from, to := commitFilesContext.GetFromAndToForDiff()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
+	return from, to, reverse
 }
 
 func (self *CommitFilesController) enter(node *filetree.CommitFileNode) error {
@@ -354,10 +359,11 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 			}
 		}
 
-		return self.c.PushContext(self.c.Contexts().CustomPatchBuilder, opts)
+		return self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
 	}
 
-	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.To != self.context().GetRef().RefName() {
+	from, to, reverse := self.currentFromToReverseForPatchBuilding()
+	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse) {
 		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardPatch,
 			Prompt: self.c.Tr.DiscardPatchConfirm,

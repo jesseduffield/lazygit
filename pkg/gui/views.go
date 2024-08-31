@@ -73,26 +73,12 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 }
 
 func (gui *Gui) createAllViews() error {
-	frameRunes := []rune{'─', '│', '┌', '┐', '└', '┘'}
-	switch gui.c.UserConfig.Gui.Border {
-	case "double":
-		frameRunes = []rune{'═', '║', '╔', '╗', '╚', '╝'}
-	case "rounded":
-		frameRunes = []rune{'─', '│', '╭', '╮', '╰', '╯'}
-	case "hidden":
-		frameRunes = []rune{' ', ' ', ' ', ' ', ' ', ' '}
-	}
-
 	var err error
 	for _, mapping := range gui.orderedViewNameMappings() {
 		*mapping.viewPtr, err = gui.prepareView(mapping.name)
 		if err != nil && !gocui.IsUnknownView(err) {
 			return err
 		}
-		(*mapping.viewPtr).FrameRunes = frameRunes
-		(*mapping.viewPtr).FgColor = theme.GocuiDefaultTextColor
-		(*mapping.viewPtr).SelBgColor = theme.GocuiSelectedLineBgColor
-		(*mapping.viewPtr).InactiveViewSelBgColor = theme.GocuiInactiveViewSelectedLineBgColor
 	}
 
 	gui.Views.Options.Frame = false
@@ -131,7 +117,7 @@ func (gui *Gui) createAllViews() error {
 		view.Title = gui.c.Tr.DiffTitle
 		view.Wrap = true
 		view.IgnoreCarriageReturns = true
-		view.CanScrollPastBottom = gui.c.UserConfig.Gui.ScrollPastBottom
+		view.UnderlineHyperLinksOnlyOnHover = true
 	}
 
 	gui.Views.Staging.Title = gui.c.Tr.UnstagedChanges
@@ -166,11 +152,8 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.CommitDescription.Visible = false
 	gui.Views.CommitDescription.Title = gui.c.Tr.CommitDescriptionTitle
-	gui.Views.CommitDescription.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.CommitDescription.Editable = true
 	gui.Views.CommitDescription.Editor = gocui.EditorFunc(gui.commitDescriptionEditor)
-	gui.Views.CommitDescription.TextArea.AutoWrap = gui.c.UserConfig.Git.Commit.AutoWrapCommitMessage
-	gui.Views.CommitDescription.TextArea.AutoWrapWidth = gui.c.UserConfig.Git.Commit.AutoWrapWidth
 
 	gui.Views.Confirmation.Visible = false
 	gui.Views.Confirmation.Editor = gocui.EditorFunc(gui.promptEditor)
@@ -192,8 +175,39 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Snake.Title = gui.c.Tr.SnakeTitle
 	gui.Views.Snake.FgColor = gocui.ColorGreen
 
-	if gui.c.UserConfig.Gui.ShowPanelJumps {
-		jumpBindings := gui.c.UserConfig.Keybinding.Universal.JumpToBlock
+	return nil
+}
+
+func (gui *Gui) configureViewProperties() {
+	frameRunes := []rune{'─', '│', '┌', '┐', '└', '┘'}
+	switch gui.c.UserConfig().Gui.Border {
+	case "double":
+		frameRunes = []rune{'═', '║', '╔', '╗', '╚', '╝'}
+	case "rounded":
+		frameRunes = []rune{'─', '│', '╭', '╮', '╰', '╯'}
+	case "hidden":
+		frameRunes = []rune{' ', ' ', ' ', ' ', ' ', ' '}
+	}
+
+	for _, mapping := range gui.orderedViewNameMappings() {
+		(*mapping.viewPtr).FrameRunes = frameRunes
+		(*mapping.viewPtr).BgColor = gui.g.BgColor
+		(*mapping.viewPtr).FgColor = theme.GocuiDefaultTextColor
+		(*mapping.viewPtr).SelBgColor = theme.GocuiSelectedLineBgColor
+		(*mapping.viewPtr).SelFgColor = gui.g.SelFgColor
+		(*mapping.viewPtr).InactiveViewSelBgColor = theme.GocuiInactiveViewSelectedLineBgColor
+	}
+
+	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.MergeConflicts} {
+		view.CanScrollPastBottom = gui.c.UserConfig().Gui.ScrollPastBottom
+	}
+
+	gui.Views.CommitDescription.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.CommitDescription.TextArea.AutoWrap = gui.c.UserConfig().Git.Commit.AutoWrapCommitMessage
+	gui.Views.CommitDescription.TextArea.AutoWrapWidth = gui.c.UserConfig().Git.Commit.AutoWrapWidth
+
+	if gui.c.UserConfig().Gui.ShowPanelJumps {
+		jumpBindings := gui.c.UserConfig().Keybinding.Universal.JumpToBlock
 		jumpLabels := lo.Map(jumpBindings, func(binding string, _ int) string {
 			return fmt.Sprintf("[%s]", binding)
 		})
@@ -212,7 +226,20 @@ func (gui *Gui) createAllViews() error {
 		gui.Views.ReflogCommits.TitlePrefix = jumpLabels[3]
 
 		gui.Views.Stash.TitlePrefix = jumpLabels[4]
-	}
+	} else {
+		gui.Views.Status.TitlePrefix = ""
 
-	return nil
+		gui.Views.Files.TitlePrefix = ""
+		gui.Views.Worktrees.TitlePrefix = ""
+		gui.Views.Submodules.TitlePrefix = ""
+
+		gui.Views.Branches.TitlePrefix = ""
+		gui.Views.Remotes.TitlePrefix = ""
+		gui.Views.Tags.TitlePrefix = ""
+
+		gui.Views.Commits.TitlePrefix = ""
+		gui.Views.ReflogCommits.TitlePrefix = ""
+
+		gui.Views.Stash.TitlePrefix = ""
+	}
 }

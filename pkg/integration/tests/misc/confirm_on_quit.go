@@ -10,7 +10,7 @@ var ConfirmOnQuit = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.ConfirmOnQuit = true
+		config.GetUserConfig().ConfirmOnQuit = true
 	},
 	SetupRepo: func(shell *Shell) {},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {

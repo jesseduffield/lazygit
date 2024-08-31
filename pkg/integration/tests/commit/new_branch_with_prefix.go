@@ -10,7 +10,7 @@ var NewBranchWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.UserConfig.Git.BranchPrefix = "myprefix/"
+		cfg.GetUserConfig().Git.BranchPrefix = "myprefix/"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.

@@ -34,7 +34,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
 		selectedCommitHash := ""
 
-		if c.CurrentContext().GetKey() == LOCAL_COMMITS_CONTEXT_KEY {
+		if c.Context().Current().GetKey() == LOCAL_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
 			if selectedCommit != nil {
 				selectedCommitHash = selectedCommit.Hash
@@ -54,10 +54,10 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
 			c.Modes().MarkedBaseCommit.GetHash(),
-			c.UserConfig.Gui.TimeFormat,
-			c.UserConfig.Gui.ShortTimeFormat,
+			c.UserConfig().Gui.TimeFormat,
+			c.UserConfig().Gui.ShortTimeFormat,
 			time.Now(),
-			c.UserConfig.Git.ParseEmoji,
+			c.UserConfig().Git.ParseEmoji,
 			selectedCommitHash,
 			startIdx,
 			endIdx,
@@ -110,7 +110,7 @@ func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon
 	self := &LocalCommitsViewModel{
 		ListViewModel:     NewListViewModel(getModel),
 		limitCommits:      true,
-		showWholeGitGraph: c.UserConfig.Git.Log.ShowWholeGraph,
+		showWholeGitGraph: c.UserConfig().Git.Log.ShowWholeGraph,
 	}
 
 	return self
@@ -126,6 +126,19 @@ func (self *LocalCommitsContext) GetSelectedRef() types.Ref {
 		return nil
 	}
 	return commit
+}
+
+func (self *LocalCommitsContext) GetSelectedRefRangeForDiffFiles() *types.RefRange {
+	commits, startIdx, endIdx := self.GetSelectedItems()
+	if commits == nil || startIdx == endIdx {
+		return nil
+	}
+	from := commits[len(commits)-1]
+	to := commits[0]
+	if from.IsTODO() || to.IsTODO() {
+		return nil
+	}
+	return &types.RefRange{From: from, To: to}
 }
 
 // Returns the commit hash of the selected commit, or an empty string if no
@@ -202,6 +215,15 @@ func shouldShowGraph(c *ContextCommon) bool {
 }
 
 func searchModelCommits(caseSensitive bool, commits []*models.Commit, columnPositions []int, searchStr string) []gocui.SearchPosition {
+	if columnPositions == nil {
+		// This should never happen. We are being called at a time where our
+		// entire view content is scrolled out of view, so that we didn't draw
+		// anything the last time we rendered. If we run into a scenario where
+		// this happens, we should fix it, but until we found them all, at least
+		// make sure we don't crash.
+		return []gocui.SearchPosition{}
+	}
+
 	normalize := lo.Ternary(caseSensitive, func(s string) string { return s }, strings.ToLower)
 	return lo.FilterMap(commits, func(commit *models.Commit, idx int) (gocui.SearchPosition, bool) {
 		// The XStart and XEnd values are only used if the search string can't

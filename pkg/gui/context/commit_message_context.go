@@ -113,19 +113,19 @@ func (self *CommitMessageContext) SetPanelState(
 
 	self.c.Views().CommitDescription.Subtitle = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionSubTitle,
 		map[string]string{
-			"togglePanelKeyBinding": keybindings.Label(self.c.UserConfig.Keybinding.Universal.TogglePanel),
-			"commitMenuKeybinding":  keybindings.Label(self.c.UserConfig.Keybinding.CommitMessage.CommitMenu),
+			"togglePanelKeyBinding": keybindings.Label(self.c.UserConfig().Keybinding.Universal.TogglePanel),
+			"commitMenuKeybinding":  keybindings.Label(self.c.UserConfig().Keybinding.CommitMessage.CommitMenu),
 		})
 
 	self.c.Views().CommitDescription.Visible = true
 }
 
 func (self *CommitMessageContext) RenderCommitLength() {
-	if !self.c.UserConfig.Gui.CommitLength.Show {
-		return
+	if self.c.UserConfig().Gui.CommitLength.Show {
+		self.c.Views().CommitMessage.Subtitle = getBufferLength(self.c.Views().CommitMessage)
+	} else {
+		self.c.Views().CommitMessage.Subtitle = ""
 	}
-
-	self.c.Views().CommitMessage.Subtitle = getBufferLength(self.c.Views().CommitMessage)
 }
 
 func getBufferLength(view *gocui.View) string {

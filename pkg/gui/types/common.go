@@ -35,10 +35,6 @@ type IGuiCommon interface {
 	// case would be overkill, although refresh will internally call 'PostRefreshUpdate'
 	PostRefreshUpdate(Context) error
 
-	// a generic click handler that can be used for any view; it handles opening
-	// URLs in the browser when the user clicks on one
-	HandleGenericClick(view *gocui.View) error
-
 	// renders string to a view without resetting its origin
 	SetViewContent(view *gocui.View, content string)
 	// resets cursor and origin of view. Often used before calling SetViewContent
@@ -57,23 +53,8 @@ type IGuiCommon interface {
 	RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error)
 	RunSubprocessAndRefresh(oscommands.ICmdObj) error
 
-	PushContext(context Context, opts ...OnFocusOpts) error
-	PopContext() error
-	ReplaceContext(context Context) error
-	// Removes all given contexts from the stack. If a given context is not in the stack, it is ignored.
-	// This is for when you have a group of contexts that are bundled together e.g. with the commit message panel.
-	// If you want to remove a single context, you should probably use PopContext instead.
-	RemoveContexts([]Context) error
-	CurrentContext() Context
-	CurrentStaticContext() Context
-	CurrentSideContext() Context
-	CurrentPopupContexts() []Context
-	IsCurrentContext(Context) bool
-	// TODO: replace the above context-based methods with just using Context() e.g. replace PushContext() with Context().Push()
 	Context() IContextMgr
 	ContextForKey(key ContextKey) Context
-
-	ActivateContext(context Context) error
 
 	GetConfig() config.AppConfigurer
 	GetAppState() *config.AppState

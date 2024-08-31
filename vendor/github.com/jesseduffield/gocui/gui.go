@@ -130,6 +130,7 @@ type Gui struct {
 	managers          []Manager
 	keybindings       []*keybinding
 	focusHandler      func(bool) error
+	openHyperlink     func(string) error
 	maxX, maxY        int
 	outputMode        OutputMode
 	stop              chan struct{}
@@ -179,6 +180,8 @@ type Gui struct {
 	suspended      bool
 
 	taskManager *TaskManager
+
+	lastHoverView *View
 }
 
 type NewGuiOpts struct {
@@ -624,6 +627,10 @@ func (g *Gui) SetFocusHandler(handler func(bool) error) {
 	g.focusHandler = handler
 }
 
+func (g *Gui) SetOpenHyperlinkFunc(openHyperlinkFunc func(string) error) {
+	g.openHyperlink = openHyperlinkFunc
+}
+
 // getKey takes an empty interface with a key and returns the corresponding
 // typed Key or rune.
 func getKey(key interface{}) (Key, rune, error) {
@@ -751,13 +758,20 @@ func (g *Gui) MainLoop() error {
 		}
 	}()
 
-	if g.Mouse {
-		Screen.EnableMouse()
-	}
-
 	Screen.EnableFocus()
 
+	previousEnableMouse := false
 	for {
+		if g.Mouse != previousEnableMouse {
+			if g.Mouse {
+				Screen.EnableMouse()
+			} else {
+				Screen.DisableMouse()
+			}
+
+			previousEnableMouse = g.Mouse
+		}
+
 		err := g.processEvent()
 		if err != nil {
 			return err
@@ -824,7 +838,7 @@ func (g *Gui) processRemainingEvents() error {
 // etc.)
 func (g *Gui) handleEvent(ev *GocuiEvent) error {
 	switch ev.Type {
-	case eventKey, eventMouse:
+	case eventKey, eventMouse, eventMouseMove:
 		return g.onKey(ev)
 	case eventError:
 		return ev.Err
@@ -1084,7 +1098,7 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 		if i >= currentTabStart && i <= currentTabEnd {
 			currentFgColor = v.SelFgColor
 			if v != g.currentView {
-				currentFgColor -= AttrBold
+				currentFgColor &= ^AttrBold
 			}
 		}
 		if err := g.SetRune(x, v.y0, ch, currentFgColor, currentBgColor); err != nil {
@@ -1295,7 +1309,7 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 	switch ev.Type {
 	case eventKey:
 
-		_, err := g.execKeybindings(g.currentView, ev)
+		err := g.execKeybindings(g.currentView, ev)
 		if err != nil {
 			return err
 		}
@@ -1320,23 +1334,56 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			}
 		}
 
+		// newCx and newCy are relative to the view port, i.e. to the visible area of the view
 		newCx := mx - v.x0 - 1
 		newCy := my - v.y0 - 1
-		// if view  is editable don't go further than the furthest character for that line
-		if v.Editable && newCy >= 0 && newCy <= len(v.lines)-1 {
-			lastCharForLine := len(v.lines[newCy])
-			if lastCharForLine < newCx {
-				newCx = lastCharForLine
+		// newX and newY are relative to the view's content, independent of its scroll position
+		newX := newCx + v.ox
+		newY := newCy + v.oy
+		// if view is editable don't go further than the furthest character for that line
+		if v.Editable {
+			if newY < 0 {
+				newY = 0
+				newCy = -v.oy
+			} else if newY >= len(v.lines) {
+				newY = len(v.lines) - 1
+				newCy = newY - v.oy
+			}
+
+			lastCharForLine := len(v.lines[newY])
+			for lastCharForLine > 0 && v.lines[newY][lastCharForLine-1].chr == 0 {
+				lastCharForLine--
+			}
+			if lastCharForLine < newX {
+				newX = lastCharForLine
+				newCx = lastCharForLine - v.ox
 			}
 		}
 		if !IsMouseScrollKey(ev.Key) {
 			if err := v.SetCursor(newCx, newCy); err != nil {
 				return err
 			}
+			if v.Editable {
+				v.TextArea.SetCursor2D(newX, newY)
+
+				// SetCursor2D might have adjusted the text area's cursor to the
+				// left to move left from a soft line break, so we need to
+				// update the view's cursor to match the text area's cursor.
+				cX, _ := v.TextArea.GetCursorXY()
+				v.SetCursorX(cX)
+			}
+		}
+
+		if ev.Key == MouseLeft && !v.Editable && g.openHyperlink != nil {
+			if newY >= 0 && newY <= len(v.viewLines)-1 && newX >= 0 && newX <= len(v.viewLines[newY].line)-1 {
+				if link := v.viewLines[newY].line[newX].hyperlink; link != "" {
+					return g.openHyperlink(link)
+				}
+			}
 		}
 
 		if IsMouseKey(ev.Key) {
-			opts := ViewMouseBindingOpts{X: newCx + v.ox, Y: newCy + v.oy}
+			opts := ViewMouseBindingOpts{X: newX, Y: newY}
 			matched, err := g.execMouseKeybindings(v, ev, opts)
 			if err != nil {
 				return err
@@ -1346,9 +1393,24 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			}
 		}
 
-		if _, err := g.execKeybindings(v, ev); err != nil {
+		if err := g.execKeybindings(v, ev); err != nil {
 			return err
 		}
+
+	case eventMouseMove:
+		mx, my := ev.MouseX, ev.MouseY
+		v, err := g.VisibleViewByPosition(mx, my)
+		if err != nil {
+			break
+		}
+		if g.lastHoverView != nil && g.lastHoverView != v {
+			g.lastHoverView.lastHoverPosition = nil
+			g.lastHoverView.hoveredHyperlink = nil
+		}
+		g.lastHoverView = v
+		v.onMouseMove(mx, my)
+
+	default:
 	}
 
 	return nil
@@ -1408,25 +1470,25 @@ func IsMouseScrollKey(key interface{}) bool {
 }
 
 // execKeybindings executes the keybinding handlers that match the passed view
-// and event. The value of matched is true if there is a match and no errors.
-func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) (matched bool, err error) {
+// and event.
+func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 	var globalKb *keybinding
 	var matchingParentViewKb *keybinding
 
 	// if we're searching, and we've hit n/N/Esc, we ignore the default keybinding
 	if v != nil && v.IsSearching() && ev.Mod == ModNone {
 		if eventMatchesKey(ev, g.NextSearchMatchKey) {
-			return true, v.gotoNextMatch()
+			return v.gotoNextMatch()
 		} else if eventMatchesKey(ev, g.PrevSearchMatchKey) {
-			return true, v.gotoPreviousMatch()
+			return v.gotoPreviousMatch()
 		} else if eventMatchesKey(ev, g.SearchEscapeKey) {
 			v.searcher.clearSearch()
 			if g.OnSearchEscape != nil {
 				if err := g.OnSearchEscape(); err != nil {
-					return true, err
+					return err
 				}
 			}
-			return true, nil
+			return nil
 		}
 	}
 
@@ -1454,26 +1516,26 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) (matched bool, err error)
 	if g.currentView != nil && g.currentView.Editable && g.currentView.Editor != nil {
 		matched := g.currentView.Editor.Edit(g.currentView, ev.Key, ev.Ch, ev.Mod)
 		if matched {
-			return true, nil
+			return nil
 		}
 	}
 
 	if globalKb != nil {
 		return g.execKeybinding(v, globalKb)
 	}
-	return false, nil
+	return nil
 }
 
 // execKeybinding executes a given keybinding
-func (g *Gui) execKeybinding(v *View, kb *keybinding) (bool, error) {
+func (g *Gui) execKeybinding(v *View, kb *keybinding) error {
 	if g.isBlacklisted(kb.key) {
-		return true, nil
+		return nil
 	}
 
 	if err := kb.handler(g, v); err != nil {
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 }
 
 func (g *Gui) onFocus(ev *GocuiEvent) error {

@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
@@ -58,6 +59,16 @@ func (self *CommitMessageController) GetKeybindings(opts types.KeybindingsOpts) 
 	return bindings
 }
 
+func (self *CommitMessageController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName: self.Context().GetViewName(),
+			Key:      gocui.MouseLeft,
+			Handler:  self.onClick,
+		},
+	}
+}
+
 func (self *CommitMessageController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
 	return func(types.OnFocusLostOpts) error {
 		self.context().RenderCommitLength()
@@ -85,7 +96,7 @@ func (self *CommitMessageController) handleNextCommit() error {
 }
 
 func (self *CommitMessageController) switchToCommitDescription() error {
-	if err := self.c.ReplaceContext(self.c.Contexts().CommitDescription); err != nil {
+	if err := self.c.Context().Replace(self.c.Contexts().CommitDescription); err != nil {
 		return err
 	}
 	return nil
@@ -118,8 +129,8 @@ func (self *CommitMessageController) setCommitMessageAtIndex(index int) (bool, e
 		}
 		return false, errors.New(self.c.Tr.CommitWithoutMessageErr)
 	}
-	if self.c.UserConfig.Git.Commit.AutoWrapCommitMessage {
-		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig.Git.Commit.AutoWrapWidth)
+	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
+		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
 	}
 	self.c.Helpers().Commits.UpdateCommitPanelView(commitMessage)
 	return true, nil
@@ -136,4 +147,13 @@ func (self *CommitMessageController) close() error {
 func (self *CommitMessageController) openCommitMenu() error {
 	authorSuggestion := self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc()
 	return self.c.Helpers().Commits.OpenCommitMenu(authorSuggestion)
+}
+
+func (self *CommitMessageController) onClick(opts gocui.ViewMouseBindingOpts) error {
+	// Activate the commit message panel when the commit description panel is currently active
+	if self.c.Context().Current().GetKey() == context.COMMIT_DESCRIPTION_CONTEXT_KEY {
+		return self.c.Context().Replace(self.c.Contexts().CommitMessage)
+	}
+
+	return nil
 }

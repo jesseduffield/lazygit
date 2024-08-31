@@ -173,14 +173,14 @@ func (self *MergeConflictsController) GetOnFocusLost() func(types.OnFocusLostOpt
 
 func (self *MergeConflictsController) HandleScrollUp() error {
 	self.context().SetUserScrolling(true)
-	self.context().GetViewTrait().ScrollUp(self.c.UserConfig.Gui.ScrollHeight)
+	self.context().GetViewTrait().ScrollUp(self.c.UserConfig().Gui.ScrollHeight)
 
 	return nil
 }
 
 func (self *MergeConflictsController) HandleScrollDown() error {
 	self.context().SetUserScrolling(true)
-	self.context().GetViewTrait().ScrollDown(self.c.UserConfig.Gui.ScrollHeight)
+	self.context().GetViewTrait().ScrollDown(self.c.UserConfig().Gui.ScrollHeight)
 
 	return nil
 }
@@ -194,7 +194,7 @@ func (self *MergeConflictsController) context() *context.MergeConflictsContext {
 }
 
 func (self *MergeConflictsController) Escape() error {
-	return self.c.PopContext()
+	return self.c.Context().Pop()
 }
 
 func (self *MergeConflictsController) HandleEditFile() error {

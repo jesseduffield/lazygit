@@ -25,7 +25,9 @@ func Decolorise(str string) string {
 	}
 
 	re := regexp.MustCompile(`\x1B\[([0-9]{1,3}(;[0-9]{1,3})*)?[mGK]`)
+	linkRe := regexp.MustCompile(`\x1B]8;[^;]*;(.*?)(\x1B.|\x07)`)
 	ret := re.ReplaceAllString(str, "")
+	ret = linkRe.ReplaceAllString(ret, "")
 
 	decoloriseMutex.Lock()
 	decoloriseCache[str] = ret

@@ -46,10 +46,10 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 						// We assume that whenever things are deletable, they
 						// are also editable, so we show both keybindings
 						subtitle = fmt.Sprintf(self.c.Tr.SuggestionsSubtitle,
-							self.c.UserConfig.Keybinding.Universal.Remove, self.c.UserConfig.Keybinding.Universal.Edit)
+							self.c.UserConfig().Keybinding.Universal.Remove, self.c.UserConfig().Keybinding.Universal.Edit)
 					}
 					self.c.Views().Suggestions.Subtitle = subtitle
-					return self.c.ReplaceContext(self.c.Contexts().Suggestions)
+					return self.c.Context().Replace(self.c.Contexts().Suggestions)
 				}
 				return nil
 			},

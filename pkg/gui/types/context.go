@@ -20,7 +20,7 @@ const (
 	// When you open a popup over it, we'll let you return to it upon pressing escape
 	PERSISTENT_POPUP
 	// A temporary popup is one that could be used for various things (e.g. a generic menu or confirmation popup).
-	// Because we re-use these contexts, they're temporary in that you can't return to them after you've switched from them
+	// Because we reuse these contexts, they're temporary in that you can't return to them after you've switched from them
 	// to some other context, because the context you switched to might actually be the same context but rendering different content.
 	// We should really be able to spawn new contexts for menus/prompts so that we can actually return to old ones.
 	TEMPORARY_POPUP
@@ -35,8 +35,7 @@ const (
 
 type ParentContexter interface {
 	SetParentContext(Context)
-	// we return a bool here to tell us whether or not the returned value just wraps a nil
-	GetParentContext() (Context, bool)
+	GetParentContext() Context
 }
 
 type NeedsRerenderOnWidthChangeLevel int
@@ -71,6 +70,9 @@ type IBaseContext interface {
 	// this tells us if the view's bounds are determined by its window or if they're
 	// determined independently.
 	HasControlledBounds() bool
+
+	// the total height of the content that the view is currently showing
+	TotalContentHeight() int
 
 	// to what extent the view needs to be rerendered when its width changes
 	NeedsRerenderOnWidthChange() NeedsRerenderOnWidthChangeLevel
@@ -279,10 +281,13 @@ type IContextMgr interface {
 	Push(context Context, opts ...OnFocusOpts) error
 	Pop() error
 	Replace(context Context) error
+	Activate(context Context, opts OnFocusOpts) error
 	Current() Context
 	CurrentStatic() Context
 	CurrentSide() Context
+	CurrentPopup() []Context
 	IsCurrent(c Context) bool
+	IsCurrentOrParent(c Context) bool
 	ForEach(func(Context))
 	AllList() []IListContext
 	AllFilterable() []IFilterableContext

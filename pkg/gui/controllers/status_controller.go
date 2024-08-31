@@ -72,11 +72,6 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 func (self *StatusController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
 	return []*gocui.ViewMouseBinding{
 		{
-			ViewName: "main",
-			Key:      gocui.MouseLeft,
-			Handler:  self.onClickMain,
-		},
-		{
 			ViewName: self.Context().GetViewName(),
 			Key:      gocui.MouseLeft,
 			Handler:  self.onClick,
@@ -84,20 +79,16 @@ func (self *StatusController) GetMouseKeybindings(opts types.KeybindingsOpts) []
 	}
 }
 
-func (self *StatusController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	return self.c.HandleGenericClick(self.c.Views().Main)
-}
-
 func (self *StatusController) GetOnRenderToMain() func() error {
-	config := self.c.UserConfig.Gui
-
-	switch config.StatusPanelView {
-	case "dashboard":
-		return self.showDashboard
-	case "allBranchesLog":
-		return self.showAllBranchLogs
-	default:
-		return self.showDashboard
+	return func() error {
+		switch self.c.UserConfig().Gui.StatusPanelView {
+		case "dashboard":
+			return self.showDashboard()
+		case "allBranchesLog":
+			return self.showAllBranchLogs()
+		default:
+			return self.showDashboard()
+		}
 	}
 }
 
@@ -113,11 +104,11 @@ func (self *StatusController) onClick(opts gocui.ViewMouseBindingOpts) error {
 		return nil
 	}
 
-	if err := self.c.PushContext(self.Context()); err != nil {
+	if err := self.c.Context().Push(self.Context()); err != nil {
 		return err
 	}
 
-	upstreamStatus := utils.Decolorise(presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now(), self.c.UserConfig))
+	upstreamStatus := utils.Decolorise(presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now(), self.c.UserConfig()))
 	repoName := self.c.Git().RepoPaths.RepoName()
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	switch workingTreeState {
@@ -219,12 +210,12 @@ func (self *StatusController) showDashboard() error {
 		[]string{
 			lazygitTitle(),
 			fmt.Sprintf("Copyright %d Jesse Duffield", time.Now().Year()),
-			fmt.Sprintf("Keybindings: %s", style.AttrUnderline.Sprint(fmt.Sprintf(constants.Links.Docs.Keybindings, versionStr))),
-			fmt.Sprintf("Config Options: %s", style.AttrUnderline.Sprint(fmt.Sprintf(constants.Links.Docs.Config, versionStr))),
-			fmt.Sprintf("Tutorial: %s", style.AttrUnderline.Sprint(constants.Links.Docs.Tutorial)),
-			fmt.Sprintf("Raise an Issue: %s", style.AttrUnderline.Sprint(constants.Links.Issues)),
-			fmt.Sprintf("Release Notes: %s", style.AttrUnderline.Sprint(constants.Links.Releases)),
-			style.FgMagenta.Sprintf("Become a sponsor: %s", style.AttrUnderline.Sprint(constants.Links.Donate)), // caffeine ain't free
+			fmt.Sprintf("Keybindings: %s", style.PrintSimpleHyperlink(fmt.Sprintf(constants.Links.Docs.Keybindings, versionStr))),
+			fmt.Sprintf("Config Options: %s", style.PrintSimpleHyperlink(fmt.Sprintf(constants.Links.Docs.Config, versionStr))),
+			fmt.Sprintf("Tutorial: %s", style.PrintSimpleHyperlink(constants.Links.Docs.Tutorial)),
+			fmt.Sprintf("Raise an Issue: %s", style.PrintSimpleHyperlink(constants.Links.Issues)),
+			fmt.Sprintf("Release Notes: %s", style.PrintSimpleHyperlink(constants.Links.Releases)),
+			style.FgMagenta.Sprintf("Become a sponsor: %s", style.PrintSimpleHyperlink(constants.Links.Donate)), // caffeine ain't free
 		}, "\n\n") + "\n"
 
 	return self.c.RenderToMainViews(types.RefreshMainOpts{

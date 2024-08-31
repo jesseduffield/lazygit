@@ -5,7 +5,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var BasicCmdFromConfig = NewIntegrationTest(NewIntegrationTestArgs{
+var BasicCommand = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Using a custom command to create a new file",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
@@ -13,7 +13,7 @@ var BasicCmdFromConfig = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("blah")
 	},
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.UserConfig.CustomCommands = []config.CustomCommand{
+		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
 				Key:     "a",
 				Context: "files",

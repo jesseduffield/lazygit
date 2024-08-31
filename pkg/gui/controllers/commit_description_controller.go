@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -45,15 +46,21 @@ func (self *CommitDescriptionController) GetKeybindings(opts types.KeybindingsOp
 }
 
 func (self *CommitDescriptionController) Context() types.Context {
-	return self.context()
+	return self.c.Contexts().CommitDescription
 }
 
-func (self *CommitDescriptionController) context() *context.CommitMessageContext {
-	return self.c.Contexts().CommitMessage
+func (self *CommitDescriptionController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName: self.Context().GetViewName(),
+			Key:      gocui.MouseLeft,
+			Handler:  self.onClick,
+		},
+	}
 }
 
 func (self *CommitDescriptionController) switchToCommitMessage() error {
-	return self.c.ReplaceContext(self.c.Contexts().CommitMessage)
+	return self.c.Context().Replace(self.c.Contexts().CommitMessage)
 }
 
 func (self *CommitDescriptionController) close() error {
@@ -67,4 +74,13 @@ func (self *CommitDescriptionController) confirm() error {
 func (self *CommitDescriptionController) openCommitMenu() error {
 	authorSuggestion := self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc()
 	return self.c.Helpers().Commits.OpenCommitMenu(authorSuggestion)
+}
+
+func (self *CommitDescriptionController) onClick(opts gocui.ViewMouseBindingOpts) error {
+	// Activate the description panel when the commit message panel is currently active
+	if self.c.Context().Current().GetKey() == context.COMMIT_MESSAGE_CONTEXT_KEY {
+		return self.c.Context().Replace(self.c.Contexts().CommitDescription)
+	}
+
+	return nil
 }

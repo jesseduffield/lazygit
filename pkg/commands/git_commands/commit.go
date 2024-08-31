@@ -88,7 +88,7 @@ func (self *CommitCommands) ResetToCommit(hash string, strength string, envVars 
 func (self *CommitCommands) CommitCmdObj(summary string, description string) oscommands.ICmdObj {
 	messageArgs := self.commitMessageArgs(summary, description)
 
-	skipHookPrefix := self.UserConfig.Git.SkipHookPrefix
+	skipHookPrefix := self.UserConfig().Git.SkipHookPrefix
 
 	cmdArgs := NewGitCmd("commit").
 		ArgIf(skipHookPrefix != "" && strings.HasPrefix(summary, skipHookPrefix), "--no-verify").
@@ -117,7 +117,7 @@ func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile s
 }
 
 // RewordLastCommit rewords the topmost commit with the given message
-func (self *CommitCommands) RewordLastCommit(summary string, description string) error {
+func (self *CommitCommands) RewordLastCommit(summary string, description string) oscommands.ICmdObj {
 	messageArgs := self.commitMessageArgs(summary, description)
 
 	cmdArgs := NewGitCmd("commit").
@@ -125,7 +125,7 @@ func (self *CommitCommands) RewordLastCommit(summary string, description string)
 		Arg(messageArgs...).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).Run()
+	return self.cmd.New(cmdArgs)
 }
 
 func (self *CommitCommands) commitMessageArgs(summary string, description string) []string {
@@ -148,7 +148,7 @@ func (self *CommitCommands) CommitEditorCmdObj() oscommands.ICmdObj {
 }
 
 func (self *CommitCommands) signoffFlag() string {
-	if self.UserConfig.Git.Commit.SignOff {
+	if self.UserConfig().Git.Commit.SignOff {
 		return "--signoff"
 	} else {
 		return ""
@@ -258,19 +258,20 @@ func (self *CommitCommands) AmendHeadCmdObj() oscommands.ICmdObj {
 func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) oscommands.ICmdObj {
 	contextSize := self.AppState.DiffContextSize
 
-	extDiffCmd := self.UserConfig.Git.Paging.ExternalDiffCommand
+	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
 	cmdArgs := NewGitCmd("show").
 		Config("diff.noprefix=false").
 		ConfigIf(extDiffCmd != "", "diff.external="+extDiffCmd).
 		ArgIfElse(extDiffCmd != "", "--ext-diff", "--no-ext-diff").
 		Arg("--submodule").
-		Arg("--color="+self.UserConfig.Git.Paging.ColorArg).
+		Arg("--color="+self.UserConfig().Git.Paging.ColorArg).
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
 		Arg("--stat").
 		Arg("--decorate").
 		Arg("-p").
 		Arg(hash).
 		ArgIf(self.AppState.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		Arg(fmt.Sprintf("--find-renames=%d%%", self.AppState.RenameSimilarityThreshold)).
 		ArgIf(filterPath != "", "--", filterPath).
 		Dir(self.repoPaths.worktreePath).
 		ToArgv()

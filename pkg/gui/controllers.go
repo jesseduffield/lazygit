@@ -179,6 +179,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	undoController := controllers.NewUndoController(common)
 	globalController := controllers.NewGlobalController(common)
 	contextLinesController := controllers.NewContextLinesController(common)
+	renameSimilarityThresholdController := controllers.NewRenameSimilarityThresholdController(common)
 	verticalScrollControllerFactory := controllers.NewVerticalScrollControllerFactory(common, &gui.viewBufferManagerMap)
 
 	branchesController := controllers.NewBranchesController(common)
@@ -196,7 +197,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	commandLogController := controllers.NewCommandLogController(common)
 	confirmationController := controllers.NewConfirmationController(common)
 	suggestionsController := controllers.NewSuggestionsController(common)
-	jumpToSideWindowController := controllers.NewJumpToSideWindowController(common)
+	jumpToSideWindowController := controllers.NewJumpToSideWindowController(common, gui.handleNextTab)
 
 	sideWindowControllerFactory := controllers.NewSideWindowControllerFactory(common)
 
@@ -258,7 +259,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		gui.State.Contexts.Stash,
 	} {
 		controllers.AttachControllers(context, controllers.NewSwitchToDiffFilesController(
-			common, context, gui.State.Contexts.CommitFiles,
+			common, context,
 		))
 	}
 
@@ -353,6 +354,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.CommitDescription,
 		commitDescriptionController,
+		verticalScrollControllerFactory.Create(gui.State.Contexts.CommitDescription),
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.RemoteBranches,
@@ -383,6 +385,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		undoController,
 		globalController,
 		contextLinesController,
+		renameSimilarityThresholdController,
 		jumpToSideWindowController,
 		syncController,
 	)

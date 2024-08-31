@@ -60,7 +60,7 @@ func (self *SyncCommands) fetchCommandBuilder(fetchAll bool) *GitCommandBuilder 
 }
 
 func (self *SyncCommands) FetchCmdObj(task gocui.Task) oscommands.ICmdObj {
-	cmdArgs := self.fetchCommandBuilder(self.UserConfig.Git.FetchAll).ToArgv()
+	cmdArgs := self.fetchCommandBuilder(self.UserConfig().Git.FetchAll).ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
 	cmdObj.PromptOnCredentialRequest(task)
@@ -72,7 +72,7 @@ func (self *SyncCommands) Fetch(task gocui.Task) error {
 }
 
 func (self *SyncCommands) FetchBackgroundCmdObj() oscommands.ICmdObj {
-	cmdArgs := self.fetchCommandBuilder(self.UserConfig.Git.FetchAll).ToArgv()
+	cmdArgs := self.fetchCommandBuilder(self.UserConfig().Git.FetchAll).ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
 	cmdObj.DontLog().FailOnCredentialRequest()
@@ -95,7 +95,7 @@ func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
 		Arg("--no-edit").
 		ArgIf(opts.FastForwardOnly, "--ff-only").
 		ArgIf(opts.RemoteName != "", opts.RemoteName).
-		ArgIf(opts.BranchName != "", opts.BranchName).
+		ArgIf(opts.BranchName != "", "refs/heads/"+opts.BranchName).
 		GitDirIf(opts.WorktreeGitDir != "", opts.WorktreeGitDir).
 		ToArgv()
 
@@ -112,7 +112,7 @@ func (self *SyncCommands) FastForward(
 ) error {
 	cmdArgs := self.fetchCommandBuilder(false).
 		Arg(remoteName).
-		Arg(remoteBranchName + ":" + branchName).
+		Arg("refs/heads/" + remoteBranchName + ":" + branchName).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()

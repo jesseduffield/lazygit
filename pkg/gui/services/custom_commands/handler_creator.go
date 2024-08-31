@@ -131,11 +131,9 @@ func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrap
 func (self *HandlerCreator) generateFindSuggestionsFunc(prompt *config.CustomCommandPrompt) (func(string) []*types.Suggestion, error) {
 	if prompt.Suggestions.Preset != "" && prompt.Suggestions.Command != "" {
 		return nil, fmt.Errorf(
-			fmt.Sprintf(
-				"Custom command prompt cannot have both a preset and a command for suggestions. Preset: '%s', Command: '%s'",
-				prompt.Suggestions.Preset,
-				prompt.Suggestions.Command,
-			),
+			"Custom command prompt cannot have both a preset and a command for suggestions. Preset: '%s', Command: '%s'",
+			prompt.Suggestions.Preset,
+			prompt.Suggestions.Command,
 		)
 	} else if prompt.Suggestions.Preset != "" {
 		return self.getPresetSuggestionsFn(prompt.Suggestions.Preset)

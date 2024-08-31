@@ -35,11 +35,13 @@ type OSCommand struct {
 
 // Platform stores the os state
 type Platform struct {
-	OS              string
-	Shell           string
-	ShellArg        string
-	OpenCommand     string
-	OpenLinkCommand string
+	OS                  string
+	Shell               string
+	InteractiveShell    string
+	ShellArg            string
+	InteractiveShellArg string
+	OpenCommand         string
+	OpenLinkCommand     string
 }
 
 // NewOSCommand os command runner
@@ -78,10 +80,10 @@ func FileType(path string) string {
 }
 
 func (c *OSCommand) OpenFile(filename string) error {
-	commandTemplate := c.UserConfig.OS.Open
+	commandTemplate := c.UserConfig().OS.Open
 	if commandTemplate == "" {
 		// Legacy support
-		commandTemplate = c.UserConfig.OS.OpenCommand
+		commandTemplate = c.UserConfig().OS.OpenCommand
 	}
 	if commandTemplate == "" {
 		commandTemplate = config.GetPlatformDefaultConfig().Open
@@ -94,10 +96,10 @@ func (c *OSCommand) OpenFile(filename string) error {
 }
 
 func (c *OSCommand) OpenLink(link string) error {
-	commandTemplate := c.UserConfig.OS.OpenLink
+	commandTemplate := c.UserConfig().OS.OpenLink
 	if commandTemplate == "" {
 		// Legacy support
-		commandTemplate = c.UserConfig.OS.OpenLinkCommand
+		commandTemplate = c.UserConfig().OS.OpenLinkCommand
 	}
 	if commandTemplate == "" {
 		commandTemplate = config.GetPlatformDefaultConfig().OpenLink
@@ -292,8 +294,8 @@ func (c *OSCommand) CopyToClipboard(str string) error {
 		},
 	)
 	c.LogCommand(msg, false)
-	if c.UserConfig.OS.CopyToClipboardCmd != "" {
-		cmdStr := utils.ResolvePlaceholderString(c.UserConfig.OS.CopyToClipboardCmd, map[string]string{
+	if c.UserConfig().OS.CopyToClipboardCmd != "" {
+		cmdStr := utils.ResolvePlaceholderString(c.UserConfig().OS.CopyToClipboardCmd, map[string]string{
 			"text": c.Cmd.Quote(str),
 		})
 		return c.Cmd.NewShell(cmdStr).Run()
@@ -305,8 +307,8 @@ func (c *OSCommand) CopyToClipboard(str string) error {
 func (c *OSCommand) PasteFromClipboard() (string, error) {
 	var s string
 	var err error
-	if c.UserConfig.OS.CopyToClipboardCmd != "" {
-		cmdStr := c.UserConfig.OS.ReadFromClipboardCmd
+	if c.UserConfig().OS.CopyToClipboardCmd != "" {
+		cmdStr := c.UserConfig().OS.ReadFromClipboardCmd
 		s, err = c.Cmd.NewShell(cmdStr).RunWithOutput()
 	} else {
 		s, err = clipboard.ReadAll()

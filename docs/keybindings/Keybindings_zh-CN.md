@@ -14,9 +14,11 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` @ `` | 打开命令日志菜单 | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | 推送 | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | 拉取 | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename. |
+| `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
 | `` } `` | 扩大差异视图中显示的上下文范围 | Increase the amount of the context shown around changes in the diff view. |
 | `` { `` | 缩小差异视图中显示的上下文范围 | Decrease the amount of the context shown around changes in the diff view. |
-| `` : `` | 执行自定义命令 | Bring up a prompt where you can enter a shell command to execute. Not to be confused with pre-configured custom commands. |
+| `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
 | `` <c-p> `` | 查看自定义补丁选项 |  |
 | `` m `` | 查看 合并/变基 选项 | View options to abort/continue/skip the current merge/rebase. |
 | `` R `` | 刷新 | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
