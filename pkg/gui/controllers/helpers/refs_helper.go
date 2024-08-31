@@ -44,15 +44,15 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 
 	cmdOptions := git_commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
-	onSuccess := func() {
+	refresh := func() {
 		self.c.Contexts().Branches.SetSelection(0)
 		self.c.Contexts().ReflogCommits.SetSelection(0)
 		self.c.Contexts().LocalCommits.SetSelection(0)
 		// loading a heap of commits is slow so we limit them whenever doing a reset
 		self.c.Contexts().LocalCommits.SetLimitCommits(true)
-	}
 
-	refreshOptions := types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true}
+		_ = self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+	}
 
 	localBranch, found := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
 		return branch.Name == ref
@@ -90,15 +90,10 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 								if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {
 									return err
 								}
-
-								onSuccess()
-								if err := self.c.Git().Stash.Pop(0); err != nil {
-									if err := self.c.Refresh(refreshOptions); err != nil {
-										return err
-									}
-									return err
-								}
-								return self.c.Refresh(refreshOptions)
+								err := self.c.Git().Stash.Pop(0)
+								// Branch switch successful so re-render the UI even if the pop operation failed (e.g. conflict).
+								refresh()
+								return err
 							})
 						},
 					})
@@ -108,9 +103,9 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 
 			return err
 		}
-		onSuccess()
 
-		return self.c.Refresh(refreshOptions)
+		refresh()
+		return nil
 	})
 }
 
