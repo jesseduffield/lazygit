@@ -31,6 +31,10 @@ func knownError(tr *i18n.TranslationSet, err error) (string, bool) {
 			originalError: "getwd: no such file or directory",
 			newError:      tr.WorkingDirectoryDoesNotExist,
 		},
+		{
+			originalError: "fatal: detected dubious ownership in repository",
+			newError:      tr.UnsafeOrNetworkDirectoryError,
+		},
 	}
 
 	if mapping, ok := lo.Find(mappings, func(mapping errorMapping) bool {

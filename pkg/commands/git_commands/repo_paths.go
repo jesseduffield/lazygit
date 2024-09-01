@@ -143,6 +143,10 @@ func callGitRevParseWithDir(
 	gitCmd := cmd.New(gitRevParse.ToArgv()).DontLog()
 	res, err := gitCmd.RunWithOutput()
 	if err != nil {
+		if strings.Contains(err.Error(), "fatal: detected dubious ownership in repository") {
+			err = errors.New("fatal: detected dubious ownership in repository")
+			return "", err
+		}
 		return "", errors.Errorf("'%s' failed: %v", gitCmd.ToString(), err)
 	}
 	return strings.TrimSpace(res), nil
