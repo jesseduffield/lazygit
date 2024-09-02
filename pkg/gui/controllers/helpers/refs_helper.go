@@ -316,6 +316,77 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 	})
 }
 
+func (self *RefsHelper) MoveCommitsToNewBranch() error {
+	currentBranch := self.c.Model().Branches[0].Name
+	prompt := utils.ResolvePlaceholderString(
+		self.c.Tr.NewBranchNameBranchOff,
+		map[string]string{
+			"branchName": currentBranch,
+		},
+	)
+
+	return self.c.Prompt(types.PromptOpts{
+		Title: prompt,
+		HandleConfirm: func(response string) error {
+			self.c.LogAction(self.c.Tr.MoveCommitsToNewBranch)
+			newBranchName := SanitizedBranchName(response)
+			if err := self.c.Git().Branch.NewWithoutCheckout(newBranchName, "HEAD"); err != nil {
+				return err
+			}
+
+			mustStash := IsWorkingTreeDirty(self.c.Model().Files)
+			if mustStash {
+				if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + currentBranch); err != nil {
+					return err
+				}
+			}
+
+			if err := self.c.Git().Commit.ResetToCommit("@{u}", "hard", []string{}); err != nil {
+				return err
+			}
+
+			if err := self.c.Git().Branch.Checkout(newBranchName, git_commands.CheckoutOptions{}); err != nil {
+				return err
+			}
+
+			if mustStash {
+				if err := self.c.Git().Stash.Pop(0); err != nil {
+					return err
+				}
+			}
+
+			self.c.Contexts().LocalCommits.SetSelection(0)
+			self.c.Contexts().Branches.SetSelection(0)
+
+			return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+		},
+	})
+}
+
+func (self *RefsHelper) CanMoveCommitsToNewBranch() *types.DisabledReason {
+	if len(self.c.Model().Branches) == 0 {
+		return &types.DisabledReason{Text: self.c.Tr.NoBranchesThisRepo}
+	}
+	currentBranch := self.c.Model().Branches[0]
+	if !currentBranch.Head {
+		panic("We rely on the first branch being the current branch")
+	}
+	if currentBranch.DetachedHead {
+		return &types.DisabledReason{Text: self.c.Tr.CannotMoveCommitsFromDetachedHead, ShowErrorInPanel: true}
+	}
+	if !currentBranch.RemoteBranchStoredLocally() {
+		return &types.DisabledReason{Text: self.c.Tr.CannotMoveCommitsNoUpstream, ShowErrorInPanel: true}
+	}
+	if currentBranch.IsBehindForPull() {
+		return &types.DisabledReason{Text: self.c.Tr.CannotMoveCommitsBehindUpstream, ShowErrorInPanel: true}
+	}
+	if !currentBranch.IsAheadForPull() {
+		return &types.DisabledReason{Text: self.c.Tr.CannotMoveCommitsNoUnpushedCommits, ShowErrorInPanel: true}
+	}
+
+	return nil
+}
+
 // SanitizedBranchName will remove all spaces in favor of a dash "-" to meet
 // git's branch naming requirement.
 func SanitizedBranchName(input string) string {

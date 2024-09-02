@@ -60,6 +60,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` y `` | 커밋 attribute 복사 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 브라우저에서 커밋 열기 |  |
 | `` n `` | 커밋에서 새 브랜치를 만듭니다. |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created from the tip of the current branch. |
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset cherry-picked (copied) commits selection |  |
@@ -90,6 +93,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` y `` | 커밋 attribute 복사 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 브라우저에서 커밋 열기 |  |
 | `` n `` | 커밋에서 새 브랜치를 만듭니다. |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created from the tip of the current branch. |
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset cherry-picked (copied) commits selection |  |
@@ -184,6 +190,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` i `` | Git-flow 옵션 보기 |  |
 | `` <space> `` | 체크아웃 | Checkout selected item. |
 | `` n `` | 새 브랜치 생성 |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created from the tip of the current branch. |
 | `` o `` | 풀 리퀘스트 생성 |  |
 | `` O `` | 풀 리퀘스트 생성 옵션 |  |
 | `` <c-y> `` | 풀 리퀘스트 URL을 클립보드에 복사 |  |
@@ -287,6 +296,9 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` y `` | 커밋 attribute 복사 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 브라우저에서 커밋 열기 |  |
 | `` n `` | 커밋에서 새 브랜치를 만듭니다. |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created from the tip of the current branch. |
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |

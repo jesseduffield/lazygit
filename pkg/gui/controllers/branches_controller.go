@@ -59,6 +59,13 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			DisplayOnScreen:   true,
 		},
 		{
+			Key:               opts.GetKey(opts.Config.Branches.MoveCommitsToNewBranch),
+			Handler:           self.moveCommitsToNewBranch,
+			GetDisabledReason: self.canMoveCommitsToNewBranch,
+			Description:       self.c.Tr.MoveCommitsToNewBranch,
+			Tooltip:           self.c.Tr.MoveCommitsToNewBranchTooltip,
+		},
+		{
 			Key:               opts.GetKey(opts.Config.Branches.CreatePullRequest),
 			Handler:           self.withItem(self.handleCreatePullRequest),
 			GetDisabledReason: self.require(self.singleItemSelected()),
@@ -761,6 +768,14 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 
 func (self *BranchesController) newBranch(selectedBranch *models.Branch) error {
 	return self.c.Helpers().Refs.NewBranch(selectedBranch.FullRefName(), selectedBranch.RefName(), "")
+}
+
+func (self *BranchesController) moveCommitsToNewBranch() error {
+	return self.c.Helpers().Refs.MoveCommitsToNewBranch()
+}
+
+func (self *BranchesController) canMoveCommitsToNewBranch() *types.DisabledReason {
+	return self.c.Helpers().Refs.CanMoveCommitsToNewBranch()
 }
 
 func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Branch, checkedOutBranch *models.Branch) error {

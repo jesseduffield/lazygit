@@ -60,6 +60,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 在浏览器中打开提交 |  |
 | `` n `` | 从提交创建新分支 |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created from the tip of the current branch. |
 | `` g `` | 查看重置选项 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 复制提交（拣选） | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | 重置已拣选（复制）的提交 |  |
@@ -86,6 +89,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` i `` | 显示 git-flow 选项 |  |
 | `` <space> `` | 检出 | Checkout selected item. |
 | `` n `` | 新分支 |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created from the tip of the current branch. |
 | `` o `` | 创建抓取请求 |  |
 | `` O `` | 创建抓取请求选项 |  |
 | `` <c-y> `` | 将抓取请求 URL 复制到剪贴板 |  |
@@ -114,6 +120,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 在浏览器中打开提交 |  |
 | `` n `` | 从提交创建新分支 |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created from the tip of the current branch. |
 | `` g `` | 查看重置选项 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 复制提交（拣选） | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | 重置已拣选（复制）的提交 |  |
@@ -167,6 +176,9 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 在浏览器中打开提交 |  |
 | `` n `` | 从提交创建新分支 |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created from the tip of the current branch. |
 | `` g `` | 查看重置选项 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 复制提交（拣选） | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |

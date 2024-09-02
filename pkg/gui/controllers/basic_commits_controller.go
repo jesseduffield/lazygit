@@ -76,6 +76,17 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description:       self.c.Tr.CreateNewBranchFromCommit,
 		},
 		{
+			// Putting this in BasicCommitsController even though we really only want it in the commits
+			// panel. But I find it important that this ends up next to "New Branch", and I couldn't
+			// find another way to achieve this. It's not such a big deal to have it in subcommits and
+			// reflog too, I'd say.
+			Key:               opts.GetKey(opts.Config.Branches.MoveCommitsToNewBranch),
+			Handler:           self.moveCommitsToNewBranch,
+			GetDisabledReason: self.canMoveCommitsToNewBranch,
+			Description:       self.c.Tr.MoveCommitsToNewBranch,
+			Tooltip:           self.c.Tr.MoveCommitsToNewBranchTooltip,
+		},
+		{
 			Key:               opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:           self.withItem(self.createResetMenu),
 			GetDisabledReason: self.require(self.singleItemSelected()),
@@ -273,6 +284,14 @@ func (self *BasicCommitsController) openInBrowser(commit *models.Commit) error {
 
 func (self *BasicCommitsController) newBranch(commit *models.Commit) error {
 	return self.c.Helpers().Refs.NewBranch(commit.RefName(), commit.Description(), "")
+}
+
+func (self *BasicCommitsController) moveCommitsToNewBranch() error {
+	return self.c.Helpers().Refs.MoveCommitsToNewBranch()
+}
+
+func (self *BasicCommitsController) canMoveCommitsToNewBranch() *types.DisabledReason {
+	return self.c.Helpers().Refs.CanMoveCommitsToNewBranch()
 }
 
 func (self *BasicCommitsController) createResetMenu(commit *models.Commit) error {
