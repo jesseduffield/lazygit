@@ -51,6 +51,7 @@ var tests = []*components.IntegrationTest{
 	branch.RebaseAbortOnConflict,
 	branch.RebaseAndDrop,
 	branch.RebaseCancelOnConflict,
+	branch.RebaseConflictsFixBuildErrors,
 	branch.RebaseCopiedBranch,
 	branch.RebaseDoesNotAutosquash,
 	branch.RebaseFromMarkedBase,
