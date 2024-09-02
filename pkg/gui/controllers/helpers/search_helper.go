@@ -45,7 +45,7 @@ func (self *SearchHelper) OpenFilterPrompt(context types.IFilterableContext) err
 		return err
 	}
 
-	return nil
+	return self.c.ResetKeybindings()
 }
 
 func (self *SearchHelper) OpenSearchPrompt(context types.ISearchableContext) error {
@@ -64,7 +64,7 @@ func (self *SearchHelper) OpenSearchPrompt(context types.ISearchableContext) err
 		return err
 	}
 
-	return nil
+	return self.c.ResetKeybindings()
 }
 
 func (self *SearchHelper) DisplayFilterStatus(context types.IFilterableContext) {
@@ -112,16 +112,21 @@ func (self *SearchHelper) Confirm() error {
 		return self.CancelPrompt()
 	}
 
+	var err error
 	switch state.SearchType() {
 	case types.SearchTypeFilter:
-		return self.ConfirmFilter()
+		err = self.ConfirmFilter()
 	case types.SearchTypeSearch:
-		return self.ConfirmSearch()
+		err = self.ConfirmSearch()
 	case types.SearchTypeNone:
-		return self.c.Context().Pop()
+		err = self.c.Context().Pop()
 	}
 
-	return nil
+	if err != nil {
+		return err
+	}
+
+	return self.c.ResetKeybindings()
 }
 
 func (self *SearchHelper) ConfirmFilter() error {
@@ -183,7 +188,11 @@ func modelSearchResults(context types.ISearchableContext) []gocui.SearchPosition
 func (self *SearchHelper) CancelPrompt() error {
 	self.Cancel()
 
-	return self.c.Context().Pop()
+	if err := self.c.Context().Pop(); err != nil {
+		return err
+	}
+
+	return self.c.ResetKeybindings()
 }
 
 func (self *SearchHelper) ScrollHistory(scrollIncrement int) {
