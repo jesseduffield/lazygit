@@ -788,7 +788,8 @@
             "sublime",
             "kakoune",
             "helix",
-            "xcode"
+            "xcode",
+            "zed"
           ]
         },
         "open": {
