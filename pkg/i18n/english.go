@@ -296,6 +296,7 @@ type TranslationSet struct {
 	ReflogCommitsTitle                    string
 	ConflictsResolved                     string
 	Continue                              string
+	UnstagedFilesAfterConflictsResolved   string
 	RebasingTitle                         string
 	RebasingFromBaseCommitTitle           string
 	SimpleRebase                          string
@@ -1279,6 +1280,7 @@ func EnglishTranslationSet() *TranslationSet {
 		GlobalTitle:                          "Global keybindings",
 		ConflictsResolved:                    "All merge conflicts resolved. Continue?",
 		Continue:                             "Continue",
+		UnstagedFilesAfterConflictsResolved:  "Files have been modified since conflicts were resolved. Auto-stage them and continue?",
 		Keybindings:                          "Keybindings",
 		KeybindingsMenuSectionLocal:          "Local",
 		KeybindingsMenuSectionGlobal:         "Global",

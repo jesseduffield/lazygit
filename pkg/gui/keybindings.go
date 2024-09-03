@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -345,6 +346,18 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 }
 
 func (self *Gui) GetInitialKeybindingsWithCustomCommands() ([]*types.Binding, []*gocui.ViewMouseBinding) {
+	// if the search or filter prompt is open, we only want the keybindings for
+	// that context. It shouldn't be possible, for example, to open a menu while
+	// the prompt is showing; you first need to confirm or cancel the search/filter.
+	if currentContext := self.State.ContextMgr.Current(); currentContext.GetKey() == context.SEARCH_CONTEXT_KEY {
+		bindings := currentContext.GetKeybindings(self.c.KeybindingsOpts())
+		viewName := currentContext.GetViewName()
+		for _, binding := range bindings {
+			binding.ViewName = viewName
+		}
+		return bindings, nil
+	}
+
 	bindings, mouseBindings := self.GetInitialKeybindings()
 	customBindings, err := self.CustomCommandsClient.GetCustomCommandKeybindings()
 	if err != nil {
