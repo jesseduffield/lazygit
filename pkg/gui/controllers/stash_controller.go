@@ -111,6 +111,7 @@ func (self *StashController) handleStashApply(stashEntry *models.StashEntry) err
 		if err != nil {
 			return err
 		}
+		self.c.Context().Push(self.c.Contexts().Files)
 		return nil
 	}
 
@@ -137,6 +138,7 @@ func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error
 		if err != nil {
 			return err
 		}
+		self.c.Context().Push(self.c.Contexts().Files)
 		return nil
 	}
 
