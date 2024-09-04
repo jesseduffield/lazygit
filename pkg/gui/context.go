@@ -51,7 +51,7 @@ func (self *ContextMgr) Replace(c types.Context) error {
 		self.ContextStack = append(self.ContextStack[0:len(self.ContextStack)-1], c)
 	}
 
-	defer self.Unlock()
+	self.Unlock()
 
 	return self.Activate(c, types.OnFocusOpts{})
 }
