@@ -309,6 +309,19 @@ func (self *RebaseCommands) AmendTo(commits []*models.Commit, commitIndex int) e
 	}).Run()
 }
 
+func (self *RebaseCommands) MoveFixupCommitDown(commits []*models.Commit, targetCommitIndex int) error {
+	fixupHash, err := self.getHashOfLastCommitMade()
+	if err != nil {
+		return err
+	}
+
+	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
+		baseHashOrRoot: getBaseHashOrRoot(commits, targetCommitIndex+1),
+		overrideEditor: true,
+		instruction:    daemon.NewMoveFixupCommitDownInstruction(commits[targetCommitIndex].Hash, fixupHash, false),
+	}).Run()
+}
+
 func todoFromCommit(commit *models.Commit) utils.Todo {
 	if commit.Action == todo.UpdateRef {
 		return utils.Todo{Ref: commit.Name, Action: commit.Action}

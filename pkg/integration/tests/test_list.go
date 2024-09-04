@@ -87,6 +87,7 @@ var tests = []*components.IntegrationTest{
 	commit.CommitWithNonMatchingBranchName,
 	commit.CommitWithPrefix,
 	commit.CreateAmendCommit,
+	commit.CreateFixupCommitInBranchStack,
 	commit.CreateTag,
 	commit.DiscardOldFileChanges,
 	commit.FindBaseCommitForFixup,

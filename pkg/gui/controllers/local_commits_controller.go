@@ -895,6 +895,10 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 								return err
 							}
 
+							if err := self.moveFixupCommitToOwnerStackedBranch(commit); err != nil {
+								return err
+							}
+
 							self.context().MoveSelectedLine(1)
 							return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
 						})
@@ -924,6 +928,50 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 	})
 }
 
+func (self *LocalCommitsController) moveFixupCommitToOwnerStackedBranch(targetCommit *models.Commit) error {
+	if self.c.Git().Version.IsOlderThan(2, 38, 0) {
+		// Git 2.38.0 introduced the `rebase.updateRefs` config option. Don't
+		// move the commit down with older versions, as it would break the stack.
+		return nil
+	}
+
+	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+		// Can't move commits while rebasing
+		return nil
+	}
+
+	if targetCommit.Status == models.StatusMerged {
+		// Target commit is already on main. It's a bit questionable that we
+		// allow creating a fixup commit for it in the first place, but we
+		// always did, so why restrict that now; however, it doesn't make sense
+		// to move the created fixup commit down in that case.
+		return nil
+	}
+
+	if !self.c.Git().Config.GetRebaseUpdateRefs() {
+		// If the user has disabled rebase.updateRefs, we don't move the fixup
+		// because this would break the stack of branches (presumably they like
+		// to manage it themselves manually, or something).
+		return nil
+	}
+
+	headOfOwnerBranchIdx := -1
+	for i := self.context().GetSelectedLineIdx(); i > 0; i-- {
+		if lo.SomeBy(self.c.Model().Branches, func(b *models.Branch) bool {
+			return b.CommitHash == self.c.Model().Commits[i].Hash
+		}) {
+			headOfOwnerBranchIdx = i
+			break
+		}
+	}
+
+	if headOfOwnerBranchIdx == -1 {
+		return nil
+	}
+
+	return self.c.Git().Rebase.MoveFixupCommitDown(self.c.Model().Commits, headOfOwnerBranchIdx)
+}
+
 func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, includeFileChanges bool) error {
 	commitMessage, err := self.c.Git().Commit.GetCommitMessage(commit.Hash)
 	if err != nil {
@@ -944,6 +992,10 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 				self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
 				return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
 					if err := self.c.Git().Commit.CreateAmendCommit(originalSubject, summary, description, includeFileChanges); err != nil {
+						return err
+					}
+
+					if err := self.moveFixupCommitToOwnerStackedBranch(commit); err != nil {
 						return err
 					}
 
