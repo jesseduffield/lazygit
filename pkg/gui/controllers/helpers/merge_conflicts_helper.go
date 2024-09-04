@@ -100,7 +100,7 @@ func (self *MergeConflictsHelper) context() *context.MergeConflictsContext {
 	return self.c.Contexts().MergeConflicts
 }
 
-func (self *MergeConflictsHelper) Render() error {
+func (self *MergeConflictsHelper) Render() {
 	content := self.context().GetContentToRender()
 
 	var task types.UpdateTask
@@ -111,7 +111,7 @@ func (self *MergeConflictsHelper) Render() error {
 		task = types.NewRenderStringWithScrollTask(content, 0, originY)
 	}
 
-	return self.c.RenderToMainViews(types.RefreshMainOpts{
+	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().MergeConflicts,
 		Main: &types.ViewUpdateOpts{
 			Task: task,

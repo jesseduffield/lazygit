@@ -61,7 +61,7 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Status.AllBranchesLogGraph),
-			Handler:     self.showAllBranchLogs,
+			Handler:     func() error { self.showAllBranchLogs(); return nil },
 			Description: self.c.Tr.AllBranchesLogGraph,
 		},
 	}
@@ -79,15 +79,15 @@ func (self *StatusController) GetMouseKeybindings(opts types.KeybindingsOpts) []
 	}
 }
 
-func (self *StatusController) GetOnRenderToMain() func() error {
-	return func() error {
+func (self *StatusController) GetOnRenderToMain() func() {
+	return func() {
 		switch self.c.UserConfig().Gui.StatusPanelView {
 		case "dashboard":
-			return self.showDashboard()
+			self.showDashboard()
 		case "allBranchesLog":
-			return self.showAllBranchLogs()
+			self.showAllBranchLogs()
 		default:
-			return self.showDashboard()
+			self.showDashboard()
 		}
 	}
 }
@@ -183,11 +183,11 @@ func (self *StatusController) editConfig() error {
 	})
 }
 
-func (self *StatusController) showAllBranchLogs() error {
+func (self *StatusController) showAllBranchLogs() {
 	cmdObj := self.c.Git().Branch.AllBranchesLogCmdObj()
 	task := types.NewRunPtyTask(cmdObj.GetCmd())
 
-	return self.c.RenderToMainViews(types.RefreshMainOpts{
+	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
 			Title: self.c.Tr.LogTitle,
@@ -196,7 +196,7 @@ func (self *StatusController) showAllBranchLogs() error {
 	})
 }
 
-func (self *StatusController) showDashboard() error {
+func (self *StatusController) showDashboard() {
 	versionStr := "master"
 	version, err := types.ParseVersionNumber(self.c.GetConfig().GetVersion())
 	if err == nil {
@@ -218,7 +218,7 @@ func (self *StatusController) showDashboard() error {
 			style.FgMagenta.Sprintf("Become a sponsor: %s", style.PrintSimpleHyperlink(constants.Links.Donate)), // caffeine ain't free
 		}, "\n\n") + "\n"
 
-	return self.c.RenderToMainViews(types.RefreshMainOpts{
+	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
 			Title: self.c.Tr.StatusTitle,

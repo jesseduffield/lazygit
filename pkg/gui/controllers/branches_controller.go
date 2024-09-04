@@ -170,9 +170,9 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 	}
 }
 
-func (self *BranchesController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *BranchesController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			var task types.UpdateTask
 			branch := self.context().GetSelected()
 			if branch == nil {
@@ -183,7 +183,7 @@ func (self *BranchesController) GetOnRenderToMain() func() error {
 				task = types.NewRunPtyTask(cmdObj.GetCmd())
 			}
 
-			return self.c.RenderToMainViews(types.RefreshMainOpts{
+			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title: self.c.Tr.LogTitle,

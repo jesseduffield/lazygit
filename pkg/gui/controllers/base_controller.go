@@ -19,7 +19,7 @@ func (self *baseController) GetOnClick() func() error {
 	return nil
 }
 
-func (self *baseController) GetOnRenderToMain() func() error {
+func (self *baseController) GetOnRenderToMain() func() {
 	return nil
 }
 

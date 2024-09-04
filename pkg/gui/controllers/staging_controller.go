@@ -121,7 +121,8 @@ func (self *StagingController) GetOnFocus() func(types.OnFocusOpts) error {
 		self.c.Views().Staging.Wrap = false
 		self.c.Views().StagingSecondary.Wrap = false
 
-		return self.c.Helpers().Staging.RefreshStagingPanel(opts)
+		self.c.Helpers().Staging.RefreshStagingPanel(opts)
+		return nil
 	}
 }
 

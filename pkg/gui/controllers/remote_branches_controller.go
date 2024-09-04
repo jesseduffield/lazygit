@@ -105,9 +105,9 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 	}
 }
 
-func (self *RemoteBranchesController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *RemoteBranchesController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			var task types.UpdateTask
 			remoteBranch := self.context().GetSelected()
 			if remoteBranch == nil {
@@ -117,7 +117,7 @@ func (self *RemoteBranchesController) GetOnRenderToMain() func() error {
 				task = types.NewRunCommandTask(cmdObj.GetCmd())
 			}
 
-			return self.c.RenderToMainViews(types.RefreshMainOpts{
+			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title: "Remote Branch",

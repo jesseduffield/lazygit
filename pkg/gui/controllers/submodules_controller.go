@@ -106,9 +106,9 @@ func (self *SubmodulesController) GetOnClick() func() error {
 	return self.withItemGraceful(self.enter)
 }
 
-func (self *SubmodulesController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *SubmodulesController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			var task types.UpdateTask
 			submodule := self.context().GetSelected()
 			if submodule == nil {
@@ -130,7 +130,7 @@ func (self *SubmodulesController) GetOnRenderToMain() func() error {
 				}
 			}
 
-			return self.c.RenderToMainViews(types.RefreshMainOpts{
+			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title: "Submodule",

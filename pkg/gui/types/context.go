@@ -95,7 +95,7 @@ type IBaseContext interface {
 	// We'll need to think of a better way to do this.
 	AddOnClickFn(func() error)
 
-	AddOnRenderToMainFn(func() error)
+	AddOnRenderToMainFn(func())
 	AddOnFocusFn(func(OnFocusOpts) error)
 	AddOnFocusLostFn(func(OnFocusLostOpts) error)
 }
@@ -106,7 +106,7 @@ type Context interface {
 	HandleFocus(opts OnFocusOpts) error
 	HandleFocusLost(opts OnFocusLostOpts) error
 	HandleRender()
-	HandleRenderToMain() error
+	HandleRenderToMain()
 }
 
 type ISearchHistoryContext interface {
@@ -232,7 +232,7 @@ type HasKeybindings interface {
 	GetKeybindings(opts KeybindingsOpts) []*Binding
 	GetMouseKeybindings(opts KeybindingsOpts) []*gocui.ViewMouseBinding
 	GetOnClick() func() error
-	GetOnRenderToMain() func() error
+	GetOnRenderToMain() func()
 	GetOnFocus() func(OnFocusOpts) error
 	GetOnFocusLost() func(OnFocusLostOpts) error
 }

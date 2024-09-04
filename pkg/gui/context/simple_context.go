@@ -43,9 +43,7 @@ func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) error {
 	}
 
 	if self.onRenderToMainFn != nil {
-		if err := self.onRenderToMainFn(); err != nil {
-			return err
-		}
+		self.onRenderToMainFn()
 	}
 
 	return nil
@@ -63,10 +61,8 @@ func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) error {
 func (self *SimpleContext) HandleRender() {
 }
 
-func (self *SimpleContext) HandleRenderToMain() error {
+func (self *SimpleContext) HandleRenderToMain() {
 	if self.onRenderToMainFn != nil {
-		return self.onRenderToMainFn()
+		self.onRenderToMainFn()
 	}
-
-	return nil
 }

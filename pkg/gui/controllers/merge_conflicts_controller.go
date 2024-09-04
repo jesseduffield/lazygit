@@ -151,9 +151,7 @@ func (self *MergeConflictsController) GetOnFocus() func(types.OnFocusOpts) error
 	return func(types.OnFocusOpts) error {
 		self.c.Views().MergeConflicts.Wrap = false
 
-		if err := self.c.Helpers().MergeConflicts.Render(); err != nil {
-			return err
-		}
+		self.c.Helpers().MergeConflicts.Render()
 
 		self.context().SetSelectedLineRange()
 

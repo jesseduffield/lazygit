@@ -45,7 +45,7 @@ type IGuiCommon interface {
 	// allows rendering to main views (i.e. the ones to the right of the side panel)
 	// in such a way that avoids concurrency issues when there are slow commands
 	// to display the output of
-	RenderToMainViews(opts RefreshMainOpts) error
+	RenderToMainViews(opts RefreshMainOpts)
 	// used purely for the sake of RenderToMainViews to provide the pair of main views we want to render to
 	MainViewPairs() MainViewPairs
 

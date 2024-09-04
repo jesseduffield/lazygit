@@ -129,11 +129,11 @@ func (self *CommitFilesController) context() *context.CommitFilesContext {
 	return self.c.Contexts().CommitFiles
 }
 
-func (self *CommitFilesController) GetOnRenderToMain() func() error {
-	return func() error {
+func (self *CommitFilesController) GetOnRenderToMain() func() {
+	return func() {
 		node := self.context().GetSelected()
 		if node == nil {
-			return nil
+			return
 		}
 
 		from, to := self.context().GetFromAndToForDiff()
@@ -147,7 +147,7 @@ func (self *CommitFilesController) GetOnRenderToMain() func() error {
 			pair = self.c.MainViewPairs().PatchBuilding
 		}
 
-		return self.c.RenderToMainViews(types.RefreshMainOpts{
+		self.c.RenderToMainViews(types.RefreshMainOpts{
 			Pair: pair,
 			Main: &types.ViewUpdateOpts{
 				Title:    self.c.Tr.Patch,

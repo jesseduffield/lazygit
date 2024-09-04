@@ -175,7 +175,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		if scopeSet.Includes(types.STAGING) {
 			refresh("staging", func() {
 				fileWg.Wait()
-				_ = self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{})
+				self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{})
 			})
 		}
 

@@ -74,9 +74,9 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 	return bindings
 }
 
-func (self *StashController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *StashController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			var task types.UpdateTask
 			stashEntry := self.context().GetSelected()
 			if stashEntry == nil {
@@ -87,7 +87,7 @@ func (self *StashController) GetOnRenderToMain() func() error {
 				)
 			}
 
-			return self.c.RenderToMainViews(types.RefreshMainOpts{
+			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title:    "Stash",

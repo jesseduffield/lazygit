@@ -101,7 +101,7 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 
 	self.c.Contexts().CustomPatchBuilder.FocusSelection()
 
-	return self.c.RenderToMainViews(types.RefreshMainOpts{
+	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().PatchBuilding,
 		Main: &types.ViewUpdateOpts{
 			Task:  types.NewRenderStringWithoutScrollTask(mainContent),
@@ -112,4 +112,6 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 			Title: self.c.Tr.CustomPatch,
 		},
 	})
+
+	return nil
 }

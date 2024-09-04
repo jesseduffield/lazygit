@@ -87,9 +87,9 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 	return bindings
 }
 
-func (self *TagsController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *TagsController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			var task types.UpdateTask
 			tag := self.context().GetSelected()
 			if tag == nil {
@@ -99,7 +99,7 @@ func (self *TagsController) GetOnRenderToMain() func() error {
 				task = types.NewRunCommandTask(cmdObj.GetCmd())
 			}
 
-			return self.c.RenderToMainViews(types.RefreshMainOpts{
+			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title: "Tag",

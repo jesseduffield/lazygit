@@ -224,13 +224,13 @@ func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*
 	}
 }
 
-func (self *FilesController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *FilesController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			node := self.context().GetSelected()
 
 			if node == nil {
-				return self.c.RenderToMainViews(types.RefreshMainOpts{
+				self.c.RenderToMainViews(types.RefreshMainOpts{
 					Pair: self.c.MainViewPairs().Normal,
 					Main: &types.ViewUpdateOpts{
 						Title:    self.c.Tr.DiffTitle,
@@ -238,16 +238,18 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 						Task:     types.NewRenderStringTask(self.c.Tr.NoChangedFiles),
 					},
 				})
+				return
 			}
 
 			if node.File != nil && node.File.HasInlineMergeConflicts {
 				hasConflicts, err := self.c.Helpers().MergeConflicts.SetMergeState(node.GetPath())
 				if err != nil {
-					return err
+					return
 				}
 
 				if hasConflicts {
-					return self.c.Helpers().MergeConflicts.Render()
+					self.c.Helpers().MergeConflicts.Render()
+					return
 				}
 			}
 
@@ -290,7 +292,7 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 				}
 			}
 
-			return self.c.RenderToMainViews(refreshOpts)
+			self.c.RenderToMainViews(refreshOpts)
 		})
 	}
 }

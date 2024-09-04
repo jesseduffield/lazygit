@@ -87,9 +87,9 @@ func (self *RemotesController) context() *context.RemotesContext {
 	return self.c.Contexts().Remotes
 }
 
-func (self *RemotesController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *RemotesController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			var task types.UpdateTask
 			remote := self.context().GetSelected()
 			if remote == nil {
@@ -98,7 +98,7 @@ func (self *RemotesController) GetOnRenderToMain() func() error {
 				task = types.NewRenderStringTask(fmt.Sprintf("%s\nUrls:\n%s", style.FgGreen.Sprint(remote.Name), strings.Join(remote.Urls, "\n")))
 			}
 
-			return self.c.RenderToMainViews(types.RefreshMainOpts{
+			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title: "Remote",
