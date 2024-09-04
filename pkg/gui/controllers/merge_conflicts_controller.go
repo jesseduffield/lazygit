@@ -147,25 +147,21 @@ func (self *MergeConflictsController) GetMouseKeybindings(opts types.Keybindings
 	}
 }
 
-func (self *MergeConflictsController) GetOnFocus() func(types.OnFocusOpts) error {
-	return func(types.OnFocusOpts) error {
+func (self *MergeConflictsController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(types.OnFocusOpts) {
 		self.c.Views().MergeConflicts.Wrap = false
 
 		self.c.Helpers().MergeConflicts.Render()
 
 		self.context().SetSelectedLineRange()
-
-		return nil
 	}
 }
 
-func (self *MergeConflictsController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
-	return func(types.OnFocusLostOpts) error {
+func (self *MergeConflictsController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
 		self.context().SetUserScrolling(false)
 		self.context().GetState().ResetConflictSelection()
 		self.c.Views().MergeConflicts.Wrap = true
-
-		return nil
 	}
 }
 

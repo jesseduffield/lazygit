@@ -69,10 +69,9 @@ func (self *CommitMessageController) GetMouseKeybindings(opts types.KeybindingsO
 	}
 }
 
-func (self *CommitMessageController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
-	return func(types.OnFocusLostOpts) error {
+func (self *CommitMessageController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
 		self.context().RenderCommitLength()
-		return nil
 	}
 }
 

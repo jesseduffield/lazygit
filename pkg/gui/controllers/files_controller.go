@@ -456,7 +456,8 @@ func (self *FilesController) press(nodes []*filetree.FileNode) error {
 		return err
 	}
 
-	return self.context().HandleFocus(types.OnFocusOpts{})
+	self.context().HandleFocus(types.OnFocusOpts{})
+	return nil
 }
 
 func (self *FilesController) Context() types.Context {
@@ -516,7 +517,8 @@ func (self *FilesController) toggleStagedAll() error {
 		return err
 	}
 
-	return self.context().HandleFocus(types.OnFocusOpts{})
+	self.context().HandleFocus(types.OnFocusOpts{})
+	return nil
 }
 
 func (self *FilesController) toggleStagedAllWithLock() error {

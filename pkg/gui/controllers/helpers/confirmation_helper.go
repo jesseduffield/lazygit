@@ -370,7 +370,7 @@ func (self *ConfirmationHelper) layoutMenuPrompt(contentWidth int) int {
 
 		// Then we need to refocus to ensure the cursor is in the right place in
 		// the view.
-		_ = self.c.Contexts().Menu.HandleFocus(types.OnFocusOpts{})
+		self.c.Contexts().Menu.HandleFocus(types.OnFocusOpts{})
 	}
 	return len(promptLines)
 }

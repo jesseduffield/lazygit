@@ -75,10 +75,9 @@ func (self *SuggestionsController) switchToConfirmation() error {
 	return self.c.Context().Replace(self.c.Contexts().Confirmation)
 }
 
-func (self *SuggestionsController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
-	return func(types.OnFocusLostOpts) error {
+func (self *SuggestionsController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
 		self.c.Helpers().Confirmation.DeactivateConfirmationPrompt()
-		return nil
 	}
 }
 

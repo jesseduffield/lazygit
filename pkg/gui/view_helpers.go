@@ -134,9 +134,7 @@ func (gui *Gui) postRefreshUpdate(c types.Context) error {
 	c.HandleRender()
 
 	if gui.currentViewName() == c.GetViewName() {
-		if err := c.HandleFocus(types.OnFocusOpts{}); err != nil {
-			return err
-		}
+		c.HandleFocus(types.OnFocusOpts{})
 	}
 
 	return nil

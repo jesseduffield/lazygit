@@ -31,31 +31,26 @@ func NewDisplayContext(key types.ContextKey, view *gocui.View, windowName string
 	)
 }
 
-func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) error {
+func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) {
 	if self.highlightOnFocus {
 		self.GetViewTrait().SetHighlight(true)
 	}
 
 	if self.onFocusFn != nil {
-		if err := self.onFocusFn(opts); err != nil {
-			return err
-		}
+		self.onFocusFn(opts)
 	}
 
 	if self.onRenderToMainFn != nil {
 		self.onRenderToMainFn()
 	}
-
-	return nil
 }
 
-func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) error {
+func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) {
 	self.GetViewTrait().SetHighlight(false)
 	self.view.SetOriginX(0)
 	if self.onFocusLostFn != nil {
-		return self.onFocusLostFn(opts)
+		self.onFocusLostFn(opts)
 	}
-	return nil
 }
 
 func (self *SimpleContext) HandleRender() {

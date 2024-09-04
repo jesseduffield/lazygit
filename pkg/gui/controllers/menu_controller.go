@@ -59,13 +59,12 @@ func (self *MenuController) GetOnClick() func() error {
 	return self.withItemGraceful(self.press)
 }
 
-func (self *MenuController) GetOnFocus() func(types.OnFocusOpts) error {
-	return func(types.OnFocusOpts) error {
+func (self *MenuController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(types.OnFocusOpts) {
 		selectedMenuItem := self.context().GetSelected()
 		if selectedMenuItem != nil {
 			self.c.Views().Tooltip.SetContent(self.c.Helpers().Confirmation.TooltipForMenuItem(selectedMenuItem))
 		}
-		return nil
 	}
 }
 

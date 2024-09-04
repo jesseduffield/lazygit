@@ -59,10 +59,9 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 	return bindings
 }
 
-func (self *ConfirmationController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
-	return func(types.OnFocusLostOpts) error {
+func (self *ConfirmationController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
 		self.c.Helpers().Confirmation.DeactivateConfirmationPrompt()
-		return nil
 	}
 }
 

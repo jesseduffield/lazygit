@@ -92,11 +92,9 @@ func (self *PatchExplorerContext) Render(isFocused bool) {
 	self.c.Render()
 }
 
-func (self *PatchExplorerContext) Focus() error {
+func (self *PatchExplorerContext) Focus() {
 	self.FocusSelection()
 	self.c.Render()
-
-	return nil
 }
 
 func (self *PatchExplorerContext) setContent(isFocused bool) {

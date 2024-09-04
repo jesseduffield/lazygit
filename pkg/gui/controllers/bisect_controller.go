@@ -290,7 +290,7 @@ func (self *BisectController) selectCurrentBisectCommit() {
 		for i, commit := range self.c.Model().Commits {
 			if commit.Hash == info.GetCurrentHash() {
 				self.context().SetSelection(i)
-				_ = self.context().HandleFocus(types.OnFocusOpts{})
+				self.context().HandleFocus(types.OnFocusOpts{})
 				break
 			}
 		}

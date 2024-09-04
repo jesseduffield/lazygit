@@ -96,15 +96,15 @@ type IBaseContext interface {
 	AddOnClickFn(func() error)
 
 	AddOnRenderToMainFn(func())
-	AddOnFocusFn(func(OnFocusOpts) error)
-	AddOnFocusLostFn(func(OnFocusLostOpts) error)
+	AddOnFocusFn(func(OnFocusOpts))
+	AddOnFocusLostFn(func(OnFocusLostOpts))
 }
 
 type Context interface {
 	IBaseContext
 
-	HandleFocus(opts OnFocusOpts) error
-	HandleFocusLost(opts OnFocusLostOpts) error
+	HandleFocus(opts OnFocusOpts)
+	HandleFocusLost(opts OnFocusLostOpts)
 	HandleRender()
 	HandleRenderToMain()
 }
@@ -179,7 +179,7 @@ type IPatchExplorerContext interface {
 	GetIncludedLineIndices() []int
 	RenderAndFocus(isFocused bool)
 	Render(isFocused bool)
-	Focus() error
+	Focus()
 	GetContentToRender(isFocused bool) string
 	NavigateTo(isFocused bool, selectedLineIdx int)
 	GetMutex() *deadlock.Mutex
@@ -233,8 +233,8 @@ type HasKeybindings interface {
 	GetMouseKeybindings(opts KeybindingsOpts) []*gocui.ViewMouseBinding
 	GetOnClick() func() error
 	GetOnRenderToMain() func()
-	GetOnFocus() func(OnFocusOpts) error
-	GetOnFocusLost() func(OnFocusLostOpts) error
+	GetOnFocus() func(OnFocusOpts)
+	GetOnFocusLost() func(OnFocusLostOpts)
 }
 
 type IController interface {

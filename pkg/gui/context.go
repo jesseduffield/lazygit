@@ -183,9 +183,7 @@ func (self *ContextMgr) deactivate(c types.Context, opts types.OnFocusLostOpts) 
 		view.Visible = false
 	}
 
-	if err := c.HandleFocusLost(opts); err != nil {
-		return err
-	}
+	c.HandleFocusLost(opts)
 
 	return nil
 }
@@ -219,9 +217,7 @@ func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) error 
 
 	self.gui.c.GocuiGui().Cursor = v.Editable
 
-	if err := c.HandleFocus(opts); err != nil {
-		return err
-	}
+	c.HandleFocus(opts)
 
 	return nil
 }

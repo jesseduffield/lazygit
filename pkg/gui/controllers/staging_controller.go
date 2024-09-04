@@ -116,18 +116,17 @@ func (self *StagingController) GetMouseKeybindings(opts types.KeybindingsOpts) [
 	return []*gocui.ViewMouseBinding{}
 }
 
-func (self *StagingController) GetOnFocus() func(types.OnFocusOpts) error {
-	return func(opts types.OnFocusOpts) error {
+func (self *StagingController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(opts types.OnFocusOpts) {
 		self.c.Views().Staging.Wrap = false
 		self.c.Views().StagingSecondary.Wrap = false
 
 		self.c.Helpers().Staging.RefreshStagingPanel(opts)
-		return nil
 	}
 }
 
-func (self *StagingController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
-	return func(opts types.OnFocusLostOpts) error {
+func (self *StagingController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(opts types.OnFocusLostOpts) {
 		self.context.SetState(nil)
 
 		if opts.NewContextKey != self.otherContext.GetKey() {
@@ -136,7 +135,6 @@ func (self *StagingController) GetOnFocusLost() func(types.OnFocusLostOpts) erro
 			self.c.Contexts().Staging.Render(false)
 			self.c.Contexts().StagingSecondary.Render(false)
 		}
-		return nil
 	}
 }
 

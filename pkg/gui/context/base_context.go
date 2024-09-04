@@ -31,8 +31,8 @@ type BaseContext struct {
 }
 
 type (
-	onFocusFn     = func(types.OnFocusOpts) error
-	onFocusLostFn = func(types.OnFocusLostOpts) error
+	onFocusFn     = func(types.OnFocusOpts)
+	onFocusLostFn = func(types.OnFocusLostOpts)
 )
 
 var _ types.IBaseContext = &BaseContext{}

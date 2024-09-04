@@ -73,7 +73,8 @@ func (self *ListController) HandleScrollDown() error {
 func (self *ListController) scrollHorizontal(scrollFunc func()) error {
 	scrollFunc()
 
-	return self.context.HandleFocus(types.OnFocusOpts{})
+	self.context.HandleFocus(types.OnFocusOpts{})
+	return nil
 }
 
 func (self *ListController) handleLineChange(change int) error {
@@ -115,7 +116,7 @@ func (self *ListController) handleLineChangeAux(f func(int), change int) error {
 	}
 
 	if cursorMoved || rangeBefore != rangeAfter {
-		return self.context.HandleFocus(types.OnFocusOpts{})
+		self.context.HandleFocus(types.OnFocusOpts{})
 	}
 
 	return nil
@@ -142,7 +143,8 @@ func (self *ListController) HandleToggleRangeSelect() error {
 
 	list.ToggleStickyRange()
 
-	return self.context.HandleFocus(types.OnFocusOpts{})
+	self.context.HandleFocus(types.OnFocusOpts{})
+	return nil
 }
 
 func (self *ListController) HandleRangeSelectDown() error {
@@ -171,7 +173,8 @@ func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
 	if prevSelectedLineIdx == newSelectedLineIdx && alreadyFocused && self.context.GetOnClick() != nil {
 		return self.context.GetOnClick()()
 	}
-	return self.context.HandleFocus(types.OnFocusOpts{})
+	self.context.HandleFocus(types.OnFocusOpts{})
+	return nil
 }
 
 func (self *ListController) pushContextIfNotFocused() error {

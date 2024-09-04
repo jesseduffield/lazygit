@@ -72,22 +72,22 @@ func formatListFooter(selectedLineIdx int, length int) string {
 	return fmt.Sprintf("%d of %d", selectedLineIdx+1, length)
 }
 
-func (self *ListContextTrait) HandleFocus(opts types.OnFocusOpts) error {
+func (self *ListContextTrait) HandleFocus(opts types.OnFocusOpts) {
 	self.FocusLine()
 
 	self.GetViewTrait().SetHighlight(self.list.Len() > 0)
 
-	return self.Context.HandleFocus(opts)
+	self.Context.HandleFocus(opts)
 }
 
-func (self *ListContextTrait) HandleFocusLost(opts types.OnFocusLostOpts) error {
+func (self *ListContextTrait) HandleFocusLost(opts types.OnFocusLostOpts) {
 	self.GetViewTrait().SetOriginX(0)
 
 	if self.refreshViewportOnChange {
 		self.refreshViewport()
 	}
 
-	return self.Context.HandleFocusLost(opts)
+	self.Context.HandleFocusLost(opts)
 }
 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
@@ -114,7 +114,8 @@ func (self *ListContextTrait) HandleRender() {
 
 func (self *ListContextTrait) OnSearchSelect(selectedLineIdx int) error {
 	self.GetList().SetSelection(self.ViewIndexToModelIndex(selectedLineIdx))
-	return self.HandleFocus(types.OnFocusOpts{})
+	self.HandleFocus(types.OnFocusOpts{})
+	return nil
 }
 
 func (self *ListContextTrait) IsItemVisible(item types.HasUrn) bool {
