@@ -105,7 +105,7 @@ type Context interface {
 
 	HandleFocus(opts OnFocusOpts) error
 	HandleFocusLost(opts OnFocusLostOpts) error
-	HandleRender() error
+	HandleRender()
 	HandleRenderToMain() error
 }
 

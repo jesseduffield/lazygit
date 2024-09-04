@@ -177,9 +177,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	for _, context := range contextsToRerender {
-		if err := context.HandleRender(); err != nil {
-			return err
-		}
+		context.HandleRender()
 	}
 
 	// here is a good place log some stuff

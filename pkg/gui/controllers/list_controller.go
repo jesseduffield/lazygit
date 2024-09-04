@@ -54,7 +54,7 @@ func (self *ListController) HandleScrollUp() error {
 	scrollHeight := self.c.UserConfig().Gui.ScrollHeight
 	self.context.GetViewTrait().ScrollUp(scrollHeight)
 	if self.context.RenderOnlyVisibleLines() {
-		return self.context.HandleRender()
+		self.context.HandleRender()
 	}
 
 	return nil
@@ -64,7 +64,7 @@ func (self *ListController) HandleScrollDown() error {
 	scrollHeight := self.c.UserConfig().Gui.ScrollHeight
 	self.context.GetViewTrait().ScrollDown(scrollHeight)
 	if self.context.RenderOnlyVisibleLines() {
-		return self.context.HandleRender()
+		self.context.HandleRender()
 	}
 
 	return nil

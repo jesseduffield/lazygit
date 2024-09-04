@@ -734,9 +734,7 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 				for i, newBranch := range self.c.Model().Branches {
 					if newBranch.Name == newBranchName {
 						self.context().SetSelection(i)
-						if err := self.context().HandleRender(); err != nil {
-							return err
-						}
+						self.context().HandleRender()
 					}
 				}
 

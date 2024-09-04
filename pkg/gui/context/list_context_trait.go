@@ -49,7 +49,7 @@ func (self *ListContextTrait) FocusLine() {
 		} else if self.renderOnlyVisibleLines {
 			newOrigin, _ := self.GetViewTrait().ViewPortYBounds()
 			if oldOrigin != newOrigin {
-				return self.HandleRender()
+				self.HandleRender()
 			}
 		}
 		return nil
@@ -91,7 +91,7 @@ func (self *ListContextTrait) HandleFocusLost(opts types.OnFocusLostOpts) error 
 }
 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
-func (self *ListContextTrait) HandleRender() error {
+func (self *ListContextTrait) HandleRender() {
 	self.list.ClampSelection()
 	if self.renderOnlyVisibleLines {
 		// Rendering only the visible area can save a lot of cell memory for
@@ -110,8 +110,6 @@ func (self *ListContextTrait) HandleRender() error {
 	}
 	self.c.Render()
 	self.setFooter()
-
-	return nil
 }
 
 func (self *ListContextTrait) OnSearchSelect(selectedLineIdx int) error {

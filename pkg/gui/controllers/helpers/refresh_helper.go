@@ -469,9 +469,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 		},
 		func() {
 			self.c.OnUIThread(func() error {
-				if err := self.c.Contexts().Branches.HandleRender(); err != nil {
-					self.c.Log.Error(err)
-				}
+				self.c.Contexts().Branches.HandleRender()
 				self.refreshStatus()
 				return nil
 			})
@@ -504,9 +502,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 	// Need to re-render the commits view because the visualization of local
 	// branch heads might have changed
 	self.c.Mutexes().LocalCommitsMutex.Lock()
-	if err := self.c.Contexts().LocalCommits.HandleRender(); err != nil {
-		self.c.Log.Error(err)
-	}
+	self.c.Contexts().LocalCommits.HandleRender()
 	self.c.Mutexes().LocalCommitsMutex.Unlock()
 
 	self.refreshStatus()

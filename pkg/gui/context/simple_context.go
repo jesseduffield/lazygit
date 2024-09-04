@@ -60,8 +60,7 @@ func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) error {
 	return nil
 }
 
-func (self *SimpleContext) HandleRender() error {
-	return nil
+func (self *SimpleContext) HandleRender() {
 }
 
 func (self *SimpleContext) HandleRenderToMain() error {

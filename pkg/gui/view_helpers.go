@@ -131,9 +131,7 @@ func (gui *Gui) postRefreshUpdate(c types.Context) error {
 		gui.Log.Infof("postRefreshUpdate for %s took %s", c.GetKey(), time.Since(t))
 	}()
 
-	if err := c.HandleRender(); err != nil {
-		return err
-	}
+	c.HandleRender()
 
 	if gui.currentViewName() == c.GetViewName() {
 		if err := c.HandleFocus(types.OnFocusOpts{}); err != nil {

@@ -78,7 +78,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 				// offer to autostash changes
 				self.c.OnUIThread(func() error {
 					// (Before showing the prompt, render again to remove the inline status)
-					_ = self.c.Contexts().Branches.HandleRender()
+					self.c.Contexts().Branches.HandleRender()
 					return self.c.Confirm(types.ConfirmOpts{
 						Title:  self.c.Tr.AutoStashTitle,
 						Prompt: self.c.Tr.AutoStashPrompt,

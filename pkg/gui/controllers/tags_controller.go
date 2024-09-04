@@ -223,7 +223,7 @@ func (self *TagsController) push(tag *models.Tag) error {
 
 				// Render again to remove the inline status:
 				self.c.OnUIThread(func() error {
-					_ = self.c.Contexts().Tags.HandleRender()
+					self.c.Contexts().Tags.HandleRender()
 					return nil
 				})
 

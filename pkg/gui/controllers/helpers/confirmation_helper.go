@@ -366,7 +366,7 @@ func (self *ConfirmationHelper) layoutMenuPrompt(contentWidth int) int {
 		// We need to rerender to give the menu context a chance to update its
 		// non-model items, and reinitialize the data it uses for converting
 		// between view index and model index.
-		_ = self.c.Contexts().Menu.HandleRender()
+		self.c.Contexts().Menu.HandleRender()
 
 		// Then we need to refocus to ensure the cursor is in the right place in
 		// the view.
