@@ -177,11 +177,11 @@ type IPatchExplorerContext interface {
 	GetState() *patch_exploring.State
 	SetState(*patch_exploring.State)
 	GetIncludedLineIndices() []int
-	RenderAndFocus(isFocused bool) error
-	Render(isFocused bool) error
+	RenderAndFocus(isFocused bool)
+	Render(isFocused bool)
 	Focus() error
 	GetContentToRender(isFocused bool) string
-	NavigateTo(isFocused bool, selectedLineIdx int) error
+	NavigateTo(isFocused bool, selectedLineIdx int)
 	GetMutex() *deadlock.Mutex
 	IsPatchExplorerContext() // used for type switch
 }

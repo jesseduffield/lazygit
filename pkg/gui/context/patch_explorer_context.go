@@ -53,7 +53,8 @@ func NewPatchExplorerContext(
 		func(selectedLineIdx int) error {
 			ctx.GetMutex().Lock()
 			defer ctx.GetMutex().Unlock()
-			return ctx.NavigateTo(ctx.c.Context().IsCurrent(ctx), selectedLineIdx)
+			ctx.NavigateTo(ctx.c.Context().IsCurrent(ctx), selectedLineIdx)
+			return nil
 		}),
 	)
 
@@ -78,21 +79,17 @@ func (self *PatchExplorerContext) GetIncludedLineIndices() []int {
 	return self.getIncludedLineIndices()
 }
 
-func (self *PatchExplorerContext) RenderAndFocus(isFocused bool) error {
+func (self *PatchExplorerContext) RenderAndFocus(isFocused bool) {
 	self.setContent(isFocused)
 
 	self.FocusSelection()
 	self.c.Render()
-
-	return nil
 }
 
-func (self *PatchExplorerContext) Render(isFocused bool) error {
+func (self *PatchExplorerContext) Render(isFocused bool) {
 	self.setContent(isFocused)
 
 	self.c.Render()
-
-	return nil
 }
 
 func (self *PatchExplorerContext) Focus() error {
@@ -132,11 +129,11 @@ func (self *PatchExplorerContext) GetContentToRender(isFocused bool) string {
 	return self.GetState().RenderForLineIndices(isFocused, self.GetIncludedLineIndices())
 }
 
-func (self *PatchExplorerContext) NavigateTo(isFocused bool, selectedLineIdx int) error {
+func (self *PatchExplorerContext) NavigateTo(isFocused bool, selectedLineIdx int) {
 	self.GetState().SetLineSelectMode()
 	self.GetState().SelectLine(selectedLineIdx)
 
-	return self.RenderAndFocus(isFocused)
+	self.RenderAndFocus(isFocused)
 }
 
 func (self *PatchExplorerContext) GetMutex() *deadlock.Mutex {

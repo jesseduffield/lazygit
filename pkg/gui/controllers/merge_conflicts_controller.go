@@ -329,7 +329,8 @@ func (self *MergeConflictsController) withRenderAndFocus(f func() error) func() 
 			return err
 		}
 
-		return self.context().RenderAndFocus()
+		self.context().RenderAndFocus()
+		return nil
 	})
 }
 

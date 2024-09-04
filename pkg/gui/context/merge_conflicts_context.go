@@ -68,13 +68,11 @@ func (self *MergeConflictsContext) IsUserScrolling() bool {
 	return self.viewModel.userVerticalScrolling
 }
 
-func (self *MergeConflictsContext) RenderAndFocus() error {
+func (self *MergeConflictsContext) RenderAndFocus() {
 	self.setContent()
 	self.FocusSelection()
 
 	self.c.Render()
-
-	return nil
 }
 
 func (self *MergeConflictsContext) Render() error {

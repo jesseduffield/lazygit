@@ -300,7 +300,8 @@ func (self *PatchExplorerController) withRenderAndFocus(f func() error) func() e
 			return err
 		}
 
-		return self.context.RenderAndFocus(self.isFocused())
+		self.context.RenderAndFocus(self.isFocused())
+		return nil
 	})
 }
 
