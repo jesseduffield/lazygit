@@ -49,7 +49,7 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 	}
 
 	if file == nil || (!file.HasUnstagedChanges && !file.HasStagedChanges) {
-		_ = self.handleStagingEscape()
+		self.handleStagingEscape()
 		return
 	}
 
@@ -80,17 +80,17 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 	secondaryContext.GetMutex().Unlock()
 
 	if mainState == nil && secondaryState == nil {
-		_ = self.handleStagingEscape()
+		self.handleStagingEscape()
 		return
 	}
 
 	if mainState == nil && !secondaryFocused {
-		_ = self.c.Context().Push(secondaryContext, focusOpts)
+		self.c.Context().Push(secondaryContext, focusOpts)
 		return
 	}
 
 	if secondaryState == nil && secondaryFocused {
-		_ = self.c.Context().Push(mainContext, focusOpts)
+		self.c.Context().Push(mainContext, focusOpts)
 		return
 	}
 
@@ -113,8 +113,8 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 	})
 }
 
-func (self *StagingHelper) handleStagingEscape() error {
-	return self.c.Context().Push(self.c.Contexts().Files)
+func (self *StagingHelper) handleStagingEscape() {
+	self.c.Context().Push(self.c.Contexts().Files)
 }
 
 func (self *StagingHelper) secondaryStagingFocused() bool {

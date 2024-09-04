@@ -72,7 +72,8 @@ func (gui *Gui) onViewTabClick(windowName string, tabIndex int) error {
 		return nil
 	}
 
-	return gui.c.Context().Push(context)
+	gui.c.Context().Push(context)
+	return nil
 }
 
 func (gui *Gui) handleNextTab() error {

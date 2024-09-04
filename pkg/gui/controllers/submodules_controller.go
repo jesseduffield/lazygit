@@ -285,7 +285,8 @@ func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) erro
 }
 
 func (self *SubmodulesController) easterEgg() error {
-	return self.c.Context().Push(self.c.Contexts().Snake)
+	self.c.Context().Push(self.c.Contexts().Snake)
+	return nil
 }
 
 func (self *SubmodulesController) context() *context.SubmodulesContext {

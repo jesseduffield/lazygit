@@ -137,7 +137,8 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		}
 
 		self.c.Contexts().LocalCommits.SetSelection(index)
-		return self.c.Context().Push(self.c.Contexts().LocalCommits)
+		self.c.Context().Push(self.c.Contexts().LocalCommits)
+		return nil
 	}
 
 	if warnAboutAddedLines {

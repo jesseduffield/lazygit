@@ -91,7 +91,8 @@ func (self *SwitchToDiffFilesController) enter() error {
 		return err
 	}
 
-	return self.c.Context().Push(commitFilesContext)
+	self.c.Context().Push(commitFilesContext)
+	return nil
 }
 
 func (self *SwitchToDiffFilesController) canEnter() *types.DisabledReason {

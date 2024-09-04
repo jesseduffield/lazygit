@@ -33,8 +33,8 @@ func (self *PatchBuildingHelper) ValidateNormalWorkingTreeState() (bool, error) 
 }
 
 // takes us from the patch building panel back to the commit files panel
-func (self *PatchBuildingHelper) Escape() error {
-	return self.c.Context().Pop()
+func (self *PatchBuildingHelper) Escape() {
+	self.c.Context().Pop()
 }
 
 // kills the custom patch and returns us back to the commit files panel if needed
@@ -42,9 +42,7 @@ func (self *PatchBuildingHelper) Reset() error {
 	self.c.Git().Patch.PatchBuilder.Reset()
 
 	if self.c.Context().CurrentStatic().GetKind() != types.SIDE_CONTEXT {
-		if err := self.Escape(); err != nil {
-			return err
-		}
+		self.Escape()
 	}
 
 	if err := self.c.Refresh(types.RefreshOptions{
@@ -64,7 +62,8 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 	}
 
 	if !self.c.Git().Patch.PatchBuilder.Active() {
-		return self.Escape()
+		self.Escape()
+		return nil
 	}
 
 	// get diff from commit file that's currently selected
@@ -94,7 +93,8 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 	state := patch_exploring.NewState(diff, selectedLineIdx, oldState, self.c.Log)
 	context.SetState(state)
 	if state == nil {
-		return self.Escape()
+		self.Escape()
+		return nil
 	}
 
 	mainContent := context.GetContentToRender(true)

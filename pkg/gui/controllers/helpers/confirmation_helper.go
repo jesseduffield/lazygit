@@ -28,9 +28,7 @@ func (self *ConfirmationHelper) wrappedConfirmationFunction(cancel goContext.Can
 	return func() error {
 		cancel()
 
-		if err := self.c.Context().Pop(); err != nil {
-			return err
-		}
+		self.c.Context().Pop()
 
 		if function != nil {
 			if err := function(); err != nil {
@@ -232,7 +230,8 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 
 	self.c.State().GetRepoState().SetCurrentPopupOpts(&opts)
 
-	return self.c.Context().Push(self.c.Contexts().Confirmation)
+	self.c.Context().Push(self.c.Contexts().Confirmation)
+	return nil
 }
 
 func underlineLinks(text string) string {

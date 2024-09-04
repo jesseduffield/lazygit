@@ -165,5 +165,6 @@ func (self *PatchBuildingController) Escape() error {
 		return self.c.PostRefreshUpdate(context)
 	}
 
-	return self.c.Helpers().PatchBuilding.Escape()
+	self.c.Helpers().PatchBuilding.Escape()
+	return nil
 }

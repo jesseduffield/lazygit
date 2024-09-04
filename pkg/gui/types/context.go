@@ -278,10 +278,10 @@ type ListItem interface {
 }
 
 type IContextMgr interface {
-	Push(context Context, opts ...OnFocusOpts) error
-	Pop() error
-	Replace(context Context) error
-	Activate(context Context, opts OnFocusOpts) error
+	Push(context Context, opts ...OnFocusOpts)
+	Pop()
+	Replace(context Context)
+	Activate(context Context, opts OnFocusOpts)
 	Current() Context
 	CurrentStatic() Context
 	CurrentSide() Context

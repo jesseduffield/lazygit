@@ -14,7 +14,7 @@ type PopupHandler struct {
 	*common.Common
 	createPopupPanelFn      func(context.Context, types.CreatePopupPanelOpts) error
 	onErrorFn               func() error
-	popContextFn            func() error
+	popContextFn            func()
 	currentContextFn        func() types.Context
 	createMenuFn            func(types.CreateMenuOptions) error
 	withWaitingStatusFn     func(message string, f func(gocui.Task) error)
@@ -30,7 +30,7 @@ func NewPopupHandler(
 	common *common.Common,
 	createPopupPanelFn func(context.Context, types.CreatePopupPanelOpts) error,
 	onErrorFn func() error,
-	popContextFn func() error,
+	popContextFn func(),
 	currentContextFn func() types.Context,
 	createMenuFn func(types.CreateMenuOptions) error,
 	withWaitingStatusFn func(message string, f func(gocui.Task) error),

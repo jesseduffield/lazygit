@@ -104,9 +104,7 @@ func (self *StatusController) onClick(opts gocui.ViewMouseBindingOpts) error {
 		return nil
 	}
 
-	if err := self.c.Context().Push(self.Context()); err != nil {
-		return err
-	}
+	self.c.Context().Push(self.Context())
 
 	upstreamStatus := utils.Decolorise(presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now(), self.c.UserConfig()))
 	repoName := self.c.Git().RepoPaths.RepoName()

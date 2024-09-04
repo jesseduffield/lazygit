@@ -359,7 +359,8 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 			}
 		}
 
-		return self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
+		self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
+		return nil
 	}
 
 	from, to, reverse := self.currentFromToReverseForPatchBuilding()

@@ -101,10 +101,7 @@ func (self *CommitsHelper) SwitchToEditor() error {
 		return err
 	}
 
-	err = self.CloseCommitMessagePanel()
-	if err != nil {
-		return err
-	}
+	self.CloseCommitMessagePanel()
 
 	return self.c.Contexts().CommitMessage.SwitchToEditor(filepath)
 }
@@ -136,9 +133,7 @@ type OpenCommitMessagePanelOpts struct {
 
 func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOpts) error {
 	onConfirm := func(summary string, description string) error {
-		if err := self.CloseCommitMessagePanel(); err != nil {
-			return err
-		}
+		self.CloseCommitMessagePanel()
 
 		return opts.OnConfirm(summary, description)
 	}
@@ -154,7 +149,8 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 
 	self.UpdateCommitPanelView(opts.InitialMessage)
 
-	return self.c.Context().Push(self.c.Contexts().CommitMessage)
+	self.c.Context().Push(self.c.Contexts().CommitMessage)
+	return nil
 }
 
 func (self *CommitsHelper) OnCommitSuccess() {
@@ -179,7 +175,7 @@ func (self *CommitsHelper) HandleCommitConfirm() error {
 	return nil
 }
 
-func (self *CommitsHelper) CloseCommitMessagePanel() error {
+func (self *CommitsHelper) CloseCommitMessagePanel() {
 	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
 		message := self.JoinCommitMessageAndUnwrappedDescription()
 
@@ -193,7 +189,7 @@ func (self *CommitsHelper) CloseCommitMessagePanel() error {
 	self.c.Views().CommitMessage.Visible = false
 	self.c.Views().CommitDescription.Visible = false
 
-	return self.c.Context().Pop()
+	self.c.Context().Pop()
 }
 
 func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.Suggestion) error {

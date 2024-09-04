@@ -179,9 +179,7 @@ func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
 
 func (self *ListController) pushContextIfNotFocused() error {
 	if !self.isFocused() {
-		if err := self.c.Context().Push(self.context); err != nil {
-			return err
-		}
+		self.c.Context().Push(self.context)
 	}
 
 	return nil

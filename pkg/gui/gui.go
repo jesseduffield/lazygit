@@ -393,9 +393,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		}
 	}
 
-	if err := gui.c.Context().Push(contextToPush); err != nil {
-		return err
-	}
+	gui.c.Context().Push(contextToPush)
 
 	return nil
 }
@@ -677,7 +675,7 @@ func NewGui(
 			return gui.helpers.Confirmation.CreatePopupPanel(ctx, opts)
 		},
 		func() error { return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}) },
-		func() error { return gui.State.ContextMgr.Pop() },
+		func() { gui.State.ContextMgr.Pop() },
 		func() types.Context { return gui.State.ContextMgr.Current() },
 		gui.createMenu,
 		func(message string, f func(gocui.Task) error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },

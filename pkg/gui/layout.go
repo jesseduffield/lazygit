@@ -223,9 +223,7 @@ func (gui *Gui) onInitialViewsCreationForRepo() error {
 	}
 
 	initialContext := gui.c.Context().Current()
-	if err := gui.c.Context().Activate(initialContext, types.OnFocusOpts{}); err != nil {
-		return err
-	}
+	gui.c.Context().Activate(initialContext, types.OnFocusOpts{})
 
 	return gui.loadNewRepo()
 }

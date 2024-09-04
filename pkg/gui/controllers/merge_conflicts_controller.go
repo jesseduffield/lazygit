@@ -188,7 +188,8 @@ func (self *MergeConflictsController) context() *context.MergeConflictsContext {
 }
 
 func (self *MergeConflictsController) Escape() error {
-	return self.c.Context().Pop()
+	self.c.Context().Pop()
+	return nil
 }
 
 func (self *MergeConflictsController) HandleEditFile() error {

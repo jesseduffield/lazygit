@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"errors"
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -37,9 +36,9 @@ func NewContextMgr(
 
 // use when you don't want to return to the original context upon
 // hitting escape: you want to go that context's parent instead.
-func (self *ContextMgr) Replace(c types.Context) error {
+func (self *ContextMgr) Replace(c types.Context) {
 	if !c.IsFocusable() {
-		return nil
+		return
 	}
 
 	self.Lock()
@@ -53,12 +52,12 @@ func (self *ContextMgr) Replace(c types.Context) error {
 
 	self.Unlock()
 
-	return self.Activate(c, types.OnFocusOpts{})
+	self.Activate(c, types.OnFocusOpts{})
 }
 
-func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) error {
+func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) {
 	if len(opts) > 1 {
-		return errors.New("cannot pass multiple opts to Push")
+		panic("cannot pass multiple opts to Push")
 	}
 
 	singleOpts := types.OnFocusOpts{}
@@ -68,22 +67,18 @@ func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) error {
 	}
 
 	if !c.IsFocusable() {
-		return nil
+		return
 	}
 
 	contextsToDeactivate, contextToActivate := self.pushToContextStack(c)
 
 	for _, contextToDeactivate := range contextsToDeactivate {
-		if err := self.deactivate(contextToDeactivate, types.OnFocusLostOpts{NewContextKey: c.GetKey()}); err != nil {
-			return err
-		}
+		self.deactivate(contextToDeactivate, types.OnFocusLostOpts{NewContextKey: c.GetKey()})
 	}
 
-	if contextToActivate == nil {
-		return nil
+	if contextToActivate != nil {
+		self.Activate(contextToActivate, singleOpts)
 	}
-
-	return self.Activate(contextToActivate, singleOpts)
 }
 
 // Adjusts the context stack based on the context that's being pushed and
@@ -144,13 +139,13 @@ func (self *ContextMgr) pushToContextStack(c types.Context) ([]types.Context, ty
 	return contextsToDeactivate, c
 }
 
-func (self *ContextMgr) Pop() error {
+func (self *ContextMgr) Pop() {
 	self.Lock()
 
 	if len(self.ContextStack) == 1 {
 		// cannot escape from bottommost context
 		self.Unlock()
-		return nil
+		return
 	}
 
 	var currentContext types.Context
@@ -160,14 +155,12 @@ func (self *ContextMgr) Pop() error {
 
 	self.Unlock()
 
-	if err := self.deactivate(currentContext, types.OnFocusLostOpts{NewContextKey: newContext.GetKey()}); err != nil {
-		return err
-	}
+	self.deactivate(currentContext, types.OnFocusLostOpts{NewContextKey: newContext.GetKey()})
 
-	return self.Activate(newContext, types.OnFocusOpts{})
+	self.Activate(newContext, types.OnFocusOpts{})
 }
 
-func (self *ContextMgr) deactivate(c types.Context, opts types.OnFocusLostOpts) error {
+func (self *ContextMgr) deactivate(c types.Context, opts types.OnFocusLostOpts) {
 	view, _ := self.gui.c.GocuiGui().View(c.GetViewName())
 
 	if opts.NewContextKey != context.SEARCH_CONTEXT_KEY {
@@ -184,15 +177,13 @@ func (self *ContextMgr) deactivate(c types.Context, opts types.OnFocusLostOpts) 
 	}
 
 	c.HandleFocusLost(opts)
-
-	return nil
 }
 
-func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) error {
+func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) {
 	viewName := c.GetViewName()
 	v, err := self.gui.c.GocuiGui().View(viewName)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	self.gui.helpers.Window.SetWindowContext(c)
@@ -203,7 +194,7 @@ func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) error 
 		oldView.HighlightInactive = true
 	}
 	if _, err := self.gui.c.GocuiGui().SetCurrentView(viewName); err != nil {
-		return err
+		panic(err)
 	}
 
 	self.gui.helpers.Search.RenderSearchStatus(c)
@@ -218,8 +209,6 @@ func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) error 
 	self.gui.c.GocuiGui().Cursor = v.Editable
 
 	c.HandleFocus(opts)
-
-	return nil
 }
 
 func (self *ContextMgr) Current() types.Context {
