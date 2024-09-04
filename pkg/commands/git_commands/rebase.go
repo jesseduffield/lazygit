@@ -302,7 +302,7 @@ func (self *RebaseCommands) AmendTo(commits []*models.Commit, commitIndex int) e
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseHashOrRoot: getBaseHashOrRoot(commits, commitIndex+1),
 		overrideEditor: true,
-		instruction:    daemon.NewMoveFixupCommitDownInstruction(commit.Hash, fixupHash),
+		instruction:    daemon.NewMoveFixupCommitDownInstruction(commit.Hash, fixupHash, true),
 	}).Run()
 }
 

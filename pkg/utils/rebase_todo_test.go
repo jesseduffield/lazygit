@@ -266,20 +266,37 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 		todos         []todo.Todo
 		originalHash  string
 		fixupHash     string
+		changeToFixup bool
 		expectedTodos []todo.Todo
 		expectedErr   error
 	}{
 		{
-			name: "fixup commit is the last commit",
+			name: "fixup commit is the last commit (change to fixup)",
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "original"},
 				{Command: todo.Pick, Commit: "fixup"},
 			},
-			originalHash: "original",
-			fixupHash:    "fixup",
+			originalHash:  "original",
+			fixupHash:     "fixup",
+			changeToFixup: true,
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "original"},
 				{Command: todo.Fixup, Commit: "fixup"},
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "fixup commit is the last commit (don't change to fixup)",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "original"},
+				{Command: todo.Pick, Commit: "fixup"},
+			},
+			originalHash:  "original",
+			fixupHash:     "fixup",
+			changeToFixup: false,
+			expectedTodos: []todo.Todo{
+				{Command: todo.Pick, Commit: "original"},
+				{Command: todo.Pick, Commit: "fixup"},
 			},
 			expectedErr: nil,
 		},
@@ -290,8 +307,9 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "other"},
 				{Command: todo.Pick, Commit: "fixup"},
 			},
-			originalHash: "original",
-			fixupHash:    "fixup",
+			originalHash:  "original",
+			fixupHash:     "fixup",
+			changeToFixup: true,
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "original"},
 				{Command: todo.Fixup, Commit: "fixup"},
@@ -306,8 +324,9 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "other"},
 				{Command: todo.Pick, Commit: "fixup"},
 			},
-			originalHash: "original",
-			fixupHash:    "fixup",
+			originalHash:  "original",
+			fixupHash:     "fixup",
+			changeToFixup: true,
 			expectedTodos: []todo.Todo{
 				{Command: todo.Merge, Commit: "original"},
 				{Command: todo.Fixup, Commit: "fixup"},
@@ -324,6 +343,7 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 			},
 			originalHash:  "original",
 			fixupHash:     "fixup",
+			changeToFixup: true,
 			expectedTodos: nil,
 			expectedErr:   errors.New("Expected exactly one original hash, found 2"),
 		},
@@ -336,6 +356,7 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 			},
 			originalHash:  "original",
 			fixupHash:     "fixup",
+			changeToFixup: true,
 			expectedTodos: nil,
 			expectedErr:   errors.New("Expected exactly one fixup hash, found 2"),
 		},
@@ -346,6 +367,7 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 			},
 			originalHash:  "original",
 			fixupHash:     "fixup",
+			changeToFixup: true,
 			expectedTodos: nil,
 			expectedErr:   errors.New("Expected exactly one fixup hash, found 0"),
 		},
@@ -356,6 +378,7 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 			},
 			originalHash:  "original",
 			fixupHash:     "fixup",
+			changeToFixup: true,
 			expectedTodos: nil,
 			expectedErr:   errors.New("Expected exactly one original hash, found 0"),
 		},
@@ -363,7 +386,7 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.name, func(t *testing.T) {
-			actualTodos, actualErr := moveFixupCommitDown(scenario.todos, scenario.originalHash, scenario.fixupHash)
+			actualTodos, actualErr := moveFixupCommitDown(scenario.todos, scenario.originalHash, scenario.fixupHash, scenario.changeToFixup)
 
 			if scenario.expectedErr == nil {
 				assert.NoError(t, actualErr)
