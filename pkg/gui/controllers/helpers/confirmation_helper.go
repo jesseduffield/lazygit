@@ -183,7 +183,7 @@ func runeForMask(mask bool) rune {
 	return 0
 }
 
-func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts types.CreatePopupPanelOpts) error {
+func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts types.CreatePopupPanelOpts) {
 	self.c.Mutexes().PopupMutex.Lock()
 	defer self.c.Mutexes().PopupMutex.Unlock()
 
@@ -197,7 +197,7 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 	if currentPopupOpts != nil && !currentPopupOpts.HasLoader {
 		self.c.Log.Error("ignoring create popup panel because a popup panel is already open")
 		cancel()
-		return nil
+		return
 	}
 
 	// remove any previous keybindings
@@ -231,7 +231,6 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 	self.c.State().GetRepoState().SetCurrentPopupOpts(&opts)
 
 	self.c.Context().Push(self.c.Contexts().Confirmation)
-	return nil
 }
 
 func underlineLinks(text string) string {

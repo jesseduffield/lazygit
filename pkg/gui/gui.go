@@ -671,8 +671,8 @@ func NewGui(
 
 	gui.PopupHandler = popup.NewPopupHandler(
 		cmn,
-		func(ctx goContext.Context, opts types.CreatePopupPanelOpts) error {
-			return gui.helpers.Confirmation.CreatePopupPanel(ctx, opts)
+		func(ctx goContext.Context, opts types.CreatePopupPanelOpts) {
+			gui.helpers.Confirmation.CreatePopupPanel(ctx, opts)
 		},
 		func() error { return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}) },
 		func() { gui.State.ContextMgr.Pop() },

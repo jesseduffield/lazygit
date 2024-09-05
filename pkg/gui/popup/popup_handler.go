@@ -12,7 +12,7 @@ import (
 
 type PopupHandler struct {
 	*common.Common
-	createPopupPanelFn      func(context.Context, types.CreatePopupPanelOpts) error
+	createPopupPanelFn      func(context.Context, types.CreatePopupPanelOpts)
 	onErrorFn               func() error
 	popContextFn            func()
 	currentContextFn        func() types.Context
@@ -28,7 +28,7 @@ var _ types.IPopupHandler = &PopupHandler{}
 
 func NewPopupHandler(
 	common *common.Common,
-	createPopupPanelFn func(context.Context, types.CreatePopupPanelOpts) error,
+	createPopupPanelFn func(context.Context, types.CreatePopupPanelOpts),
 	onErrorFn func() error,
 	popContextFn func(),
 	currentContextFn func() types.Context,
@@ -94,16 +94,17 @@ func (self *PopupHandler) Alert(title string, message string) error {
 }
 
 func (self *PopupHandler) Confirm(opts types.ConfirmOpts) error {
-	return self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
+	self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
 		Title:         opts.Title,
 		Prompt:        opts.Prompt,
 		HandleConfirm: opts.HandleConfirm,
 		HandleClose:   opts.HandleClose,
 	})
+	return nil
 }
 
 func (self *PopupHandler) Prompt(opts types.PromptOpts) error {
-	return self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
+	self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
 		Title:                  opts.Title,
 		Prompt:                 opts.InitialContent,
 		Editable:               true,
@@ -114,6 +115,7 @@ func (self *PopupHandler) Prompt(opts types.PromptOpts) error {
 		AllowEditSuggestion:    opts.AllowEditSuggestion,
 		Mask:                   opts.Mask,
 	})
+	return nil
 }
 
 // returns the content that has currently been typed into the prompt. Useful for
