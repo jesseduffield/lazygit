@@ -88,7 +88,7 @@ func (self *WorkingTreeHelper) OpenMergeTool() error {
 
 func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage string) error {
 	return self.WithEnsureCommitableFiles(func() error {
-		return self.commitsHelper.OpenCommitMessagePanel(
+		self.commitsHelper.OpenCommitMessagePanel(
 			&OpenCommitMessagePanelOpts{
 				CommitIndex:      context.NoCommitIndex,
 				InitialMessage:   initialMessage,
@@ -99,6 +99,8 @@ func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage strin
 				OnSwitchToEditor: self.switchFromCommitMessagePanelToEditor,
 			},
 		)
+
+		return nil
 	})
 }
 

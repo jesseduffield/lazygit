@@ -131,7 +131,7 @@ type OpenCommitMessagePanelOpts struct {
 	InitialMessage   string
 }
 
-func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOpts) error {
+func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOpts) {
 	onConfirm := func(summary string, description string) error {
 		self.CloseCommitMessagePanel()
 
@@ -150,7 +150,6 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 	self.UpdateCommitPanelView(opts.InitialMessage)
 
 	self.c.Context().Push(self.c.Contexts().CommitMessage)
-	return nil
 }
 
 func (self *CommitsHelper) OnCommitSuccess() {

@@ -366,7 +366,7 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
 		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
 	}
-	return self.c.Helpers().Commits.OpenCommitMessagePanel(
+	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
 			CommitIndex:      self.context().GetSelectedLineIdx(),
 			InitialMessage:   commitMessage,
@@ -377,6 +377,8 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 			OnSwitchToEditor: self.switchFromCommitMessagePanelToEditor,
 		},
 	)
+
+	return nil
 }
 
 func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepath string) error {
@@ -931,7 +933,7 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
 	}
 	originalSubject, _, _ := strings.Cut(commitMessage, "\n")
-	return self.c.Helpers().Commits.OpenCommitMessagePanel(
+	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
 			CommitIndex:      self.context().GetSelectedLineIdx(),
 			InitialMessage:   commitMessage,
@@ -952,6 +954,8 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 			OnSwitchToEditor: nil,
 		},
 	)
+
+	return nil
 }
 
 func (self *LocalCommitsController) squashFixupCommits() error {

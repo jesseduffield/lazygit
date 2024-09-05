@@ -66,7 +66,7 @@ func (self *TagsHelper) OpenCreateTagPrompt(ref string, onCreate func()) error {
 		return doCreateTag(tagName, description, false)
 	}
 
-	return self.commitsHelper.OpenCommitMessagePanel(
+	self.commitsHelper.OpenCommitMessagePanel(
 		&OpenCommitMessagePanelOpts{
 			CommitIndex:      context.NoCommitIndex,
 			InitialMessage:   "",
@@ -76,4 +76,6 @@ func (self *TagsHelper) OpenCreateTagPrompt(ref string, onCreate func()) error {
 			OnConfirm:        onConfirm,
 		},
 	)
+
+	return nil
 }
