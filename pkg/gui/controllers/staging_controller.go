@@ -191,11 +191,13 @@ func (self *StagingController) DiscardSelection() error {
 	reset := func() error { return self.applySelectionAndRefresh(true) }
 
 	if !self.staged && !self.c.UserConfig().Gui.SkipDiscardChangeWarning {
-		return self.c.Confirm(types.ConfirmOpts{
+		self.c.Confirm(types.ConfirmOpts{
 			Title:         self.c.Tr.DiscardChangeTitle,
 			Prompt:        self.c.Tr.DiscardChangePrompt,
 			HandleConfirm: reset,
 		})
+
+		return nil
 	}
 
 	return reset()

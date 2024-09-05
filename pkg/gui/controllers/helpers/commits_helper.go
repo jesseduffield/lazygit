@@ -231,7 +231,7 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 }
 
 func (self *CommitsHelper) addCoAuthor(suggestionFunc func(string) []*types.Suggestion) error {
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.AddCoAuthorPromptTitle,
 		FindSuggestionsFunc: suggestionFunc,
 		HandleConfirm: func(value string) error {
@@ -241,6 +241,8 @@ func (self *CommitsHelper) addCoAuthor(suggestionFunc func(string) []*types.Sugg
 			return nil
 		},
 	})
+
+	return nil
 }
 
 func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
@@ -258,7 +260,7 @@ func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
 	}
 
 	// Confirm before overwriting the commit message
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.PasteCommitMessageFromClipboard,
 		Prompt: self.c.Tr.SurePasteCommitMessage,
 		HandleConfirm: func() error {
@@ -266,4 +268,6 @@ func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
 			return nil
 		},
 	})
+
+	return nil
 }

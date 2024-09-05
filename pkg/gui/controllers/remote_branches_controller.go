@@ -172,7 +172,7 @@ func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.Remot
 		},
 	)
 
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.SetUpstreamTitle,
 		Prompt: message,
 		HandleConfirm: func() error {
@@ -184,6 +184,8 @@ func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.Remot
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 		},
 	})
+
+	return nil
 }
 
 func (self *RemoteBranchesController) newLocalBranch(selectedBranch *models.RemoteBranch) error {

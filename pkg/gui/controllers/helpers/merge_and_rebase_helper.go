@@ -221,13 +221,15 @@ func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
 func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 	// prompt user to confirm that they want to abort, then do it
 	mode := self.workingTreeStateNoun()
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  fmt.Sprintf(self.c.Tr.AbortTitle, mode),
 		Prompt: fmt.Sprintf(self.c.Tr.AbortPrompt, mode),
 		HandleConfirm: func() error {
 			return self.genericMergeCommand(REBASE_OPTION_ABORT)
 		},
 	})
+
+	return nil
 }
 
 func (self *MergeAndRebaseHelper) workingTreeStateNoun() string {
@@ -244,7 +246,7 @@ func (self *MergeAndRebaseHelper) workingTreeStateNoun() string {
 
 // PromptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
 func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.Continue,
 		Prompt: self.c.Tr.ConflictsResolved,
 		HandleConfirm: func() error {
@@ -264,7 +266,7 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 
 			root := self.c.Contexts().Files.FileTreeViewModel.GetRoot()
 			if root.GetHasUnstagedChanges() {
-				return self.c.Confirm(types.ConfirmOpts{
+				self.c.Confirm(types.ConfirmOpts{
 					Title:  self.c.Tr.Continue,
 					Prompt: self.c.Tr.UnstagedFilesAfterConflictsResolved,
 					HandleConfirm: func() error {
@@ -276,11 +278,15 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 						return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
 					},
 				})
+
+				return nil
 			}
 
 			return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
 		},
 	})
+
+	return nil
 }
 
 func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {

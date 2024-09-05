@@ -26,26 +26,30 @@ func (self *QuitActions) quitAux() error {
 	}
 
 	if self.c.UserConfig().ConfirmOnQuit {
-		return self.c.Confirm(types.ConfirmOpts{
+		self.c.Confirm(types.ConfirmOpts{
 			Title:  "",
 			Prompt: self.c.Tr.ConfirmQuit,
 			HandleConfirm: func() error {
 				return gocui.ErrQuit
 			},
 		})
+
+		return nil
 	}
 
 	return gocui.ErrQuit
 }
 
 func (self *QuitActions) confirmQuitDuringUpdate() error {
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.ConfirmQuitDuringUpdateTitle,
 		Prompt: self.c.Tr.ConfirmQuitDuringUpdate,
 		HandleConfirm: func() error {
 			return gocui.ErrQuit
 		},
 	})
+
+	return nil
 }
 
 func (self *QuitActions) Escape() error {

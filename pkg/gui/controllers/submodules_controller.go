@@ -146,16 +146,16 @@ func (self *SubmodulesController) enter(submodule *models.SubmoduleConfig) error
 }
 
 func (self *SubmodulesController) add() error {
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.NewSubmoduleUrl,
 		HandleConfirm: func(submoduleUrl string) error {
 			nameSuggestion := filepath.Base(strings.TrimSuffix(submoduleUrl, filepath.Ext(submoduleUrl)))
 
-			return self.c.Prompt(types.PromptOpts{
+			self.c.Prompt(types.PromptOpts{
 				Title:          self.c.Tr.NewSubmoduleName,
 				InitialContent: nameSuggestion,
 				HandleConfirm: func(submoduleName string) error {
-					return self.c.Prompt(types.PromptOpts{
+					self.c.Prompt(types.PromptOpts{
 						Title:          self.c.Tr.NewSubmodulePath,
 						InitialContent: submoduleName,
 						HandleConfirm: func(submodulePath string) error {
@@ -170,14 +170,20 @@ func (self *SubmodulesController) add() error {
 							})
 						},
 					})
+
+					return nil
 				},
 			})
+
+			return nil
 		},
 	})
+
+	return nil
 }
 
 func (self *SubmodulesController) editURL(submodule *models.SubmoduleConfig) error {
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title:          fmt.Sprintf(self.c.Tr.UpdateSubmoduleUrl, submodule.FullName()),
 		InitialContent: submodule.Url,
 		HandleConfirm: func(newUrl string) error {
@@ -192,6 +198,8 @@ func (self *SubmodulesController) editURL(submodule *models.SubmoduleConfig) err
 			})
 		},
 	})
+
+	return nil
 }
 
 func (self *SubmodulesController) init(submodule *models.SubmoduleConfig) error {
@@ -270,7 +278,7 @@ func (self *SubmodulesController) update(submodule *models.SubmoduleConfig) erro
 }
 
 func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) error {
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.RemoveSubmodule,
 		Prompt: fmt.Sprintf(self.c.Tr.RemoveSubmodulePrompt, submodule.FullName()),
 		HandleConfirm: func() error {
@@ -282,6 +290,8 @@ func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) erro
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES, types.FILES}})
 		},
 	})
+
+	return nil
 }
 
 func (self *SubmodulesController) easterEgg() error {

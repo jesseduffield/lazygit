@@ -79,7 +79,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 				self.c.OnUIThread(func() error {
 					// (Before showing the prompt, render again to remove the inline status)
 					self.c.Contexts().Branches.HandleRender()
-					return self.c.Confirm(types.ConfirmOpts{
+					self.c.Confirm(types.ConfirmOpts{
 						Title:  self.c.Tr.AutoStashTitle,
 						Prompt: self.c.Tr.AutoStashPrompt,
 						HandleConfirm: func() error {
@@ -97,6 +97,8 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 							})
 						},
 					})
+
+					return nil
 				})
 				return nil
 			}
@@ -292,7 +294,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
 	}
 
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title:          message,
 		InitialContent: suggestedBranchName,
 		HandleConfirm: func(response string) error {
@@ -305,7 +307,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 			if err := newBranchFunc(newBranchName, from); err != nil {
 				if IsSwitchBranchUncommitedChangesError(err) {
 					// offer to autostash changes
-					return self.c.Confirm(types.ConfirmOpts{
+					self.c.Confirm(types.ConfirmOpts{
 						Title:  self.c.Tr.AutoStashTitle,
 						Prompt: self.c.Tr.AutoStashPrompt,
 						HandleConfirm: func() error {
@@ -325,6 +327,8 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 							return refreshError
 						},
 					})
+
+					return nil
 				}
 
 				return err
@@ -333,6 +337,8 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 			return refresh()
 		},
 	})
+
+	return nil
 }
 
 // SanitizedBranchName will remove all spaces in favor of a dash "-" to meet

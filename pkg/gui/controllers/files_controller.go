@@ -601,13 +601,15 @@ func (self *FilesController) ignoreOrExcludeUntracked(node *filetree.FileNode, t
 
 func (self *FilesController) ignoreOrExcludeFile(node *filetree.FileNode, trText string, trPrompt string, trAction string, f func(string) error) error {
 	if node.GetIsTracked() {
-		return self.c.Confirm(types.ConfirmOpts{
+		self.c.Confirm(types.ConfirmOpts{
 			Title:  trText,
 			Prompt: trPrompt,
 			HandleConfirm: func() error {
 				return self.ignoreOrExcludeTracked(node, trAction, f)
 			},
 		})
+
+		return nil
 	}
 	return self.ignoreOrExcludeUntracked(node, trAction, f)
 }
@@ -660,7 +662,7 @@ func (self *FilesController) refresh() error {
 }
 
 func (self *FilesController) handleAmendCommitPress() error {
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.AmendLastCommitTitle,
 		Prompt: self.c.Tr.SureToAmend,
 		HandleConfirm: func() error {
@@ -673,6 +675,8 @@ func (self *FilesController) handleAmendCommitPress() error {
 			})
 		},
 	})
+
+	return nil
 }
 
 func (self *FilesController) handleStatusFilterPressed() error {
@@ -959,7 +963,7 @@ func (self *FilesController) toggleTreeView() error {
 }
 
 func (self *FilesController) handleStashSave(stashFunc func(message string) error, action string) error {
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.StashChanges,
 		HandleConfirm: func(stashComment string) error {
 			self.c.LogAction(action)
@@ -970,6 +974,8 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
 		},
 	})
+
+	return nil
 }
 
 func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {

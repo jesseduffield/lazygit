@@ -505,10 +505,12 @@ func (gui *Gui) checkForChangedConfigsThatDontAutoReload(oldConfig *config.UserC
 			"configs": strings.Join(changedConfigs, "\n"),
 		},
 	)
-	return gui.c.Confirm(types.ConfirmOpts{
+	gui.c.Confirm(types.ConfirmOpts{
 		Title:  gui.c.Tr.NonReloadableConfigWarningTitle,
 		Prompt: message,
 	})
+
+	return nil
 }
 
 // resetState reuses the repo state from our repo state map, if the repo was
@@ -1001,12 +1003,14 @@ func (gui *Gui) showIntroPopupMessage() {
 			return err
 		}
 
-		return gui.c.Confirm(types.ConfirmOpts{
+		gui.c.Confirm(types.ConfirmOpts{
 			Title:         "",
 			Prompt:        gui.c.Tr.IntroPopupMessage,
 			HandleConfirm: onConfirm,
 			HandleClose:   onConfirm,
 		})
+
+		return nil
 	})
 }
 
@@ -1066,12 +1070,13 @@ func (gui *Gui) showBreakingChangesMessage() {
 				return nil
 			}
 
-			return gui.c.Confirm(types.ConfirmOpts{
+			gui.c.Confirm(types.ConfirmOpts{
 				Title:         gui.Tr.BreakingChangesTitle,
 				Prompt:        gui.Tr.BreakingChangesMessage + "\n\n" + message,
 				HandleConfirm: onConfirm,
 				HandleClose:   onConfirm,
 			})
+			return nil
 		})
 	}
 }

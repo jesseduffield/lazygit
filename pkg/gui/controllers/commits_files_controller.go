@@ -186,7 +186,7 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 		return err
 	}
 
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DiscardFileChangesTitle,
 		Prompt: self.c.Tr.DiscardFileChangesPrompt,
 		HandleConfirm: func() error {
@@ -224,6 +224,8 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 			})
 		},
 	})
+
+	return nil
 }
 
 func (self *CommitFilesController) open(node *filetree.CommitFileNode) error {
@@ -307,7 +309,7 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 
 	from, to, reverse := self.currentFromToReverseForPatchBuilding()
 	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse) {
-		return self.c.Confirm(types.ConfirmOpts{
+		self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardPatch,
 			Prompt: self.c.Tr.DiscardPatchConfirm,
 			HandleConfirm: func() error {
@@ -315,6 +317,8 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 				return toggle()
 			},
 		})
+
+		return nil
 	}
 
 	return toggle()
@@ -365,7 +369,7 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 
 	from, to, reverse := self.currentFromToReverseForPatchBuilding()
 	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse) {
-		return self.c.Confirm(types.ConfirmOpts{
+		self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardPatch,
 			Prompt: self.c.Tr.DiscardPatchConfirm,
 			HandleConfirm: func() error {
@@ -373,6 +377,8 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 				return enterTheFile()
 			},
 		})
+
+		return nil
 	}
 
 	return enterTheFile()

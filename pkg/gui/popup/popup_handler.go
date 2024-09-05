@@ -86,24 +86,25 @@ func (self *PopupHandler) ErrorHandler(err error) error {
 		return err
 	}
 
-	return self.Alert(self.Tr.Error, coloredMessage)
+	self.Alert(self.Tr.Error, coloredMessage)
+
+	return nil
 }
 
-func (self *PopupHandler) Alert(title string, message string) error {
-	return self.Confirm(types.ConfirmOpts{Title: title, Prompt: message})
+func (self *PopupHandler) Alert(title string, message string) {
+	self.Confirm(types.ConfirmOpts{Title: title, Prompt: message})
 }
 
-func (self *PopupHandler) Confirm(opts types.ConfirmOpts) error {
+func (self *PopupHandler) Confirm(opts types.ConfirmOpts) {
 	self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
 		Title:         opts.Title,
 		Prompt:        opts.Prompt,
 		HandleConfirm: opts.HandleConfirm,
 		HandleClose:   opts.HandleClose,
 	})
-	return nil
 }
 
-func (self *PopupHandler) Prompt(opts types.PromptOpts) error {
+func (self *PopupHandler) Prompt(opts types.PromptOpts) {
 	self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
 		Title:                  opts.Title,
 		Prompt:                 opts.InitialContent,
@@ -115,7 +116,6 @@ func (self *PopupHandler) Prompt(opts types.PromptOpts) error {
 		AllowEditSuggestion:    opts.AllowEditSuggestion,
 		Mask:                   opts.Mask,
 	})
-	return nil
 }
 
 // returns the content that has currently been typed into the prompt. Useful for

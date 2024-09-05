@@ -118,13 +118,15 @@ func (self *StashController) handleStashApply(stashEntry *models.StashEntry) err
 		return apply()
 	}
 
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.StashApply,
 		Prompt: self.c.Tr.SureApplyStashEntry,
 		HandleConfirm: func() error {
 			return apply()
 		},
 	})
+
+	return nil
 }
 
 func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error {
@@ -142,17 +144,19 @@ func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error
 		return pop()
 	}
 
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.StashPop,
 		Prompt: self.c.Tr.SurePopStashEntry,
 		HandleConfirm: func() error {
 			return pop()
 		},
 	})
+
+	return nil
 }
 
 func (self *StashController) handleStashDrop(stashEntry *models.StashEntry) error {
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.StashDrop,
 		Prompt: self.c.Tr.SureDropStashEntry,
 		HandleConfirm: func() error {
@@ -165,6 +169,8 @@ func (self *StashController) handleStashDrop(stashEntry *models.StashEntry) erro
 			return nil
 		},
 	})
+
+	return nil
 }
 
 func (self *StashController) postStashRefresh() error {
@@ -183,7 +189,7 @@ func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntr
 		},
 	)
 
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title:          message,
 		InitialContent: stashEntry.Name,
 		HandleConfirm: func(response string) error {
@@ -198,4 +204,6 @@ func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntr
 			return nil
 		},
 	})
+
+	return nil
 }

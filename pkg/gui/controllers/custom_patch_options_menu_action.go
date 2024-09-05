@@ -174,13 +174,15 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error
 	}
 
 	if self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
-		return self.c.Confirm(types.ConfirmOpts{
+		self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.MustStashTitle,
 			Prompt: self.c.Tr.MustStashWarning,
 			HandleConfirm: func() error {
 				return pull(true)
 			},
 		})
+
+		return nil
 	} else {
 		return pull(false)
 	}
