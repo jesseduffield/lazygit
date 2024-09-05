@@ -55,7 +55,7 @@ func (self *PatchBuildingHelper) Reset() error {
 	return self.c.PostRefreshUpdate(self.c.Context().Current())
 }
 
-func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpts) error {
+func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpts) {
 	selectedLineIdx := -1
 	if opts.ClickedWindowName == "main" {
 		selectedLineIdx = opts.ClickedViewLineIdx
@@ -63,20 +63,20 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 
 	if !self.c.Git().Patch.PatchBuilder.Active() {
 		self.Escape()
-		return nil
+		return
 	}
 
 	// get diff from commit file that's currently selected
 	path := self.c.Contexts().CommitFiles.GetSelectedPath()
 	if path == "" {
-		return nil
+		return
 	}
 
 	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 	diff, err := self.c.Git().WorkingTree.ShowFileDiff(from, to, reverse, path, true)
 	if err != nil {
-		return err
+		return
 	}
 
 	secondaryDiff := self.c.Git().Patch.PatchBuilder.RenderPatchForFile(patch.RenderPatchForFileOpts{
@@ -94,7 +94,7 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 	context.SetState(state)
 	if state == nil {
 		self.Escape()
-		return nil
+		return
 	}
 
 	mainContent := context.GetContentToRender(true)
@@ -112,6 +112,4 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 			Title: self.c.Tr.CustomPatch,
 		},
 	})
-
-	return nil
 }

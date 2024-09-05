@@ -180,7 +180,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		}
 
 		if scopeSet.Includes(types.PATCH_BUILDING) {
-			refresh("patch building", func() { _ = self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{}) })
+			refresh("patch building", func() { self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{}) })
 		}
 
 		if scopeSet.Includes(types.MERGE_CONFLICTS) || scopeSet.Includes(types.FILES) {

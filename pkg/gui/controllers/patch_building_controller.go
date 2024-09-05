@@ -67,9 +67,7 @@ func (self *PatchBuildingController) GetOnFocus() func(types.OnFocusOpts) {
 		// no need to change wrap on the secondary view because it can't be interacted with
 		self.c.Views().PatchBuilding.Wrap = false
 
-		// Swallowing the error here for now. This will change shortly to not
-		// return an error any more.
-		_ = self.c.Helpers().PatchBuilding.RefreshPatchBuildingPanel(opts) // FIXME
+		self.c.Helpers().PatchBuilding.RefreshPatchBuildingPanel(opts)
 	}
 }
 
