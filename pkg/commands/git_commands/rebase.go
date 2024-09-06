@@ -284,6 +284,11 @@ func (self *RebaseCommands) GitRebaseEditTodo(todosFileContent []byte) error {
 	return cmdObj.Run()
 }
 
+func (self *RebaseCommands) getHashOfLastCommitMade() (string, error) {
+	cmdArgs := NewGitCmd("rev-parse").Arg("--verify", "HEAD").ToArgv()
+	return self.cmd.New(cmdArgs).RunWithOutput()
+}
+
 // AmendTo amends the given commit with whatever files are staged
 func (self *RebaseCommands) AmendTo(commits []*models.Commit, commitIndex int) error {
 	commit := commits[commitIndex]
@@ -292,9 +297,7 @@ func (self *RebaseCommands) AmendTo(commits []*models.Commit, commitIndex int) e
 		return err
 	}
 
-	// Get the hash of the commit we just created
-	cmdArgs := NewGitCmd("rev-parse").Arg("--verify", "HEAD").ToArgv()
-	fixupHash, err := self.cmd.New(cmdArgs).RunWithOutput()
+	fixupHash, err := self.getHashOfLastCommitMade()
 	if err != nil {
 		return err
 	}
