@@ -163,7 +163,7 @@ func (self *ConfirmationHelper) prepareConfirmationPanel(
 	self.c.Views().Confirmation.Wrap = !opts.Editable
 	self.c.Views().Confirmation.FgColor = theme.GocuiDefaultTextColor
 	self.c.Views().Confirmation.Mask = runeForMask(opts.Mask)
-	_ = self.c.Views().Confirmation.SetOrigin(0, 0)
+	self.c.Views().Confirmation.SetOrigin(0, 0)
 
 	suggestionsContext := self.c.Contexts().Suggestions
 	suggestionsContext.State.FindSuggestions = opts.FindSuggestionsFunc

@@ -116,10 +116,10 @@ func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) error {
 	// need to reset scroll positions of all other main views
 	for _, pair := range gui.allMainContextPairs() {
 		if pair.Main != opts.Pair.Main {
-			_ = pair.Main.GetView().SetOrigin(0, 0)
+			pair.Main.GetView().SetOrigin(0, 0)
 		}
 		if pair.Secondary != nil && pair.Secondary != opts.Pair.Secondary {
-			_ = pair.Secondary.GetView().SetOrigin(0, 0)
+			pair.Secondary.GetView().SetOrigin(0, 0)
 		}
 	}
 

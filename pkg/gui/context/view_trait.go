@@ -57,7 +57,7 @@ func (self *ViewTrait) SetFooter(value string) {
 }
 
 func (self *ViewTrait) SetOriginX(value int) {
-	_ = self.view.SetOriginX(value)
+	self.view.SetOriginX(value)
 }
 
 // tells us the start of line indexes shown in the view currently as well as the capacity of lines shown in the viewport.

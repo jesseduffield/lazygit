@@ -116,7 +116,7 @@ func (self *PatchExplorerContext) FocusSelection() {
 
 	newOriginY := state.CalculateOrigin(origin, bufferHeight, numLines)
 
-	_ = view.SetOriginY(newOriginY)
+	view.SetOriginY(newOriginY)
 
 	startIdx, endIdx := state.SelectedRange()
 	// As far as the view is concerned, we are always selecting a range

@@ -53,7 +53,7 @@ func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) error {
 
 func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) error {
 	self.GetViewTrait().SetHighlight(false)
-	_ = self.view.SetOriginX(0)
+	self.view.SetOriginX(0)
 	if self.onFocusLostFn != nil {
 		return self.onFocusLostFn(opts)
 	}

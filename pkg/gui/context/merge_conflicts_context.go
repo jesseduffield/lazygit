@@ -99,7 +99,7 @@ func (self *MergeConflictsContext) setContent() {
 
 func (self *MergeConflictsContext) FocusSelection() {
 	if !self.IsUserScrolling() {
-		_ = self.GetView().SetOriginY(self.GetOriginY())
+		self.GetView().SetOriginY(self.GetOriginY())
 	}
 
 	self.SetSelectedLineRange()

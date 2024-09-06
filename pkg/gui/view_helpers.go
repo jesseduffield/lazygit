@@ -11,13 +11,8 @@ import (
 )
 
 func (gui *Gui) resetViewOrigin(v *gocui.View) {
-	if err := v.SetCursor(0, 0); err != nil {
-		gui.Log.Error(err)
-	}
-
-	if err := v.SetOrigin(0, 0); err != nil {
-		gui.Log.Error(err)
-	}
+	v.SetCursor(0, 0)
+	v.SetOrigin(0, 0)
 }
 
 // Returns the number of lines that we should read initially from a cmd task so

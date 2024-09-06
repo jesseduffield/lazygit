@@ -237,7 +237,7 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 	switch context := state.Context.(type) {
 	case types.IFilterableContext:
 		context.SetSelection(0)
-		_ = context.GetView().SetOriginY(0)
+		context.GetView().SetOriginY(0)
 		context.SetFilter(searchString, self.c.UserConfig().Gui.UseFuzzySearch())
 		_ = self.c.PostRefreshUpdate(context)
 	case types.ISearchableContext:
@@ -253,7 +253,7 @@ func (self *SearchHelper) ReApplyFilter(context types.Context) {
 		state := self.searchState()
 		if context == state.Context {
 			filterableContext.SetSelection(0)
-			_ = filterableContext.GetView().SetOriginY(0)
+			filterableContext.GetView().SetOriginY(0)
 		}
 		filterableContext.ReApplyFilter(self.c.UserConfig().Gui.UseFuzzySearch())
 	}
