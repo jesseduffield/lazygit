@@ -95,18 +95,18 @@ type IBaseContext interface {
 	// We'll need to think of a better way to do this.
 	AddOnClickFn(func() error)
 
-	AddOnRenderToMainFn(func() error)
-	AddOnFocusFn(func(OnFocusOpts) error)
-	AddOnFocusLostFn(func(OnFocusLostOpts) error)
+	AddOnRenderToMainFn(func())
+	AddOnFocusFn(func(OnFocusOpts))
+	AddOnFocusLostFn(func(OnFocusLostOpts))
 }
 
 type Context interface {
 	IBaseContext
 
-	HandleFocus(opts OnFocusOpts) error
-	HandleFocusLost(opts OnFocusLostOpts) error
-	HandleRender() error
-	HandleRenderToMain() error
+	HandleFocus(opts OnFocusOpts)
+	HandleFocusLost(opts OnFocusLostOpts)
+	HandleRender()
+	HandleRenderToMain()
 }
 
 type ISearchHistoryContext interface {
@@ -177,11 +177,11 @@ type IPatchExplorerContext interface {
 	GetState() *patch_exploring.State
 	SetState(*patch_exploring.State)
 	GetIncludedLineIndices() []int
-	RenderAndFocus(isFocused bool) error
-	Render(isFocused bool) error
-	Focus() error
+	RenderAndFocus(isFocused bool)
+	Render(isFocused bool)
+	Focus()
 	GetContentToRender(isFocused bool) string
-	NavigateTo(isFocused bool, selectedLineIdx int) error
+	NavigateTo(isFocused bool, selectedLineIdx int)
 	GetMutex() *deadlock.Mutex
 	IsPatchExplorerContext() // used for type switch
 }
@@ -232,9 +232,9 @@ type HasKeybindings interface {
 	GetKeybindings(opts KeybindingsOpts) []*Binding
 	GetMouseKeybindings(opts KeybindingsOpts) []*gocui.ViewMouseBinding
 	GetOnClick() func() error
-	GetOnRenderToMain() func() error
-	GetOnFocus() func(OnFocusOpts) error
-	GetOnFocusLost() func(OnFocusLostOpts) error
+	GetOnRenderToMain() func()
+	GetOnFocus() func(OnFocusOpts)
+	GetOnFocusLost() func(OnFocusLostOpts)
 }
 
 type IController interface {
@@ -278,10 +278,10 @@ type ListItem interface {
 }
 
 type IContextMgr interface {
-	Push(context Context, opts ...OnFocusOpts) error
-	Pop() error
-	Replace(context Context) error
-	Activate(context Context, opts OnFocusOpts) error
+	Push(context Context, opts ...OnFocusOpts)
+	Pop()
+	Replace(context Context)
+	Activate(context Context, opts OnFocusOpts)
 	Current() Context
 	CurrentStatic() Context
 	CurrentSide() Context

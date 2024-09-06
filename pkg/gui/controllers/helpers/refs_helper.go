@@ -78,8 +78,8 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 				// offer to autostash changes
 				self.c.OnUIThread(func() error {
 					// (Before showing the prompt, render again to remove the inline status)
-					_ = self.c.Contexts().Branches.HandleRender()
-					return self.c.Confirm(types.ConfirmOpts{
+					self.c.Contexts().Branches.HandleRender()
+					self.c.Confirm(types.ConfirmOpts{
 						Title:  self.c.Tr.AutoStashTitle,
 						Prompt: self.c.Tr.AutoStashPrompt,
 						HandleConfirm: func() error {
@@ -97,6 +97,8 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 							})
 						},
 					})
+
+					return nil
 				})
 				return nil
 			}
@@ -115,9 +117,7 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 		// Switch to the branches context _before_ starting to check out the
 		// branch, so that we see the inline status
 		if self.c.Context().Current() != self.c.Contexts().Branches {
-			if err := self.c.Context().Push(self.c.Contexts().Branches); err != nil {
-				return err
-			}
+			self.c.Context().Push(self.c.Contexts().Branches)
 		}
 		return self.CheckoutRef(branchName, types.CheckoutRefOptions{})
 	}
@@ -285,9 +285,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 
 	refresh := func() error {
 		if self.c.Context().Current() != self.c.Contexts().Branches {
-			if err := self.c.Context().Push(self.c.Contexts().Branches); err != nil {
-				return err
-			}
+			self.c.Context().Push(self.c.Contexts().Branches)
 		}
 
 		self.c.Contexts().LocalCommits.SetSelection(0)
@@ -296,7 +294,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
 	}
 
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title:          message,
 		InitialContent: suggestedBranchName,
 		HandleConfirm: func(response string) error {
@@ -309,7 +307,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 			if err := newBranchFunc(newBranchName, from); err != nil {
 				if IsSwitchBranchUncommitedChangesError(err) {
 					// offer to autostash changes
-					return self.c.Confirm(types.ConfirmOpts{
+					self.c.Confirm(types.ConfirmOpts{
 						Title:  self.c.Tr.AutoStashTitle,
 						Prompt: self.c.Tr.AutoStashPrompt,
 						HandleConfirm: func() error {
@@ -329,6 +327,8 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 							return refreshError
 						},
 					})
+
+					return nil
 				}
 
 				return err
@@ -337,6 +337,8 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 			return refresh()
 		},
 	})
+
+	return nil
 }
 
 // SanitizedBranchName will remove all spaces in favor of a dash "-" to meet

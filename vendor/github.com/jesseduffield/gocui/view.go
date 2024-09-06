@@ -14,7 +14,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/go-errors/errors"
 	"github.com/mattn/go-runewidth"
 )
 
@@ -25,10 +24,6 @@ const (
 	LEFT   = 4 // view is overlapping at left edge
 	RIGHT  = 8 // view is overlapping at right edge
 )
-
-// ErrInvalidPoint is returned when client passed invalid coordinates of a cell.
-// Most likely client has passed negative coordinates of a cell.
-var ErrInvalidPoint = errors.New("invalid point")
 
 // A View is a window. It maintains its own internal buffer and cursor
 // position.
@@ -487,10 +482,10 @@ func (v *View) Name() string {
 // setRune sets a rune at the given point relative to the view. It applies the
 // specified colors, taking into account if the cell must be highlighted. Also,
 // it checks if the position is valid.
-func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
+func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) {
 	maxX, maxY := v.Size()
 	if x < 0 || x >= maxX || y < 0 || y >= maxY {
-		return ErrInvalidPoint
+		return
 	}
 
 	if v.Mask != 0 {
@@ -498,27 +493,24 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 		bgColor = v.BgColor
 		ch = v.Mask
 	} else if v.Highlight {
-		var (
-			ry, rcy int
-			err     error
-		)
+		var ry, rcy int
 
-		_, ry, err = v.realPosition(x, y)
-		if err != nil {
-			return err
+		_, ry, ok := v.realPosition(x, y)
+		if !ok {
+			return
 		}
-		_, rrcy, err := v.realPosition(v.cx, v.cy)
-		// if error is not nil, then the cursor is out of bounds, which is fine
-		if err == nil {
+		_, rrcy, ok := v.realPosition(v.cx, v.cy)
+		// out of bounds is fine
+		if ok {
 			rcy = rrcy
 		}
 
 		rangeSelectStart := rcy
 		rangeSelectEnd := rcy
 		if v.rangeSelectStartY != -1 {
-			_, realRangeSelectStart, err := v.realPosition(0, v.rangeSelectStartY-v.oy)
-			if err != nil {
-				return err
+			_, realRangeSelectStart, ok := v.realPosition(0, v.rangeSelectStartY-v.oy)
+			if !ok {
+				return
 			}
 
 			rangeSelectStart = min(realRangeSelectStart, rcy)
@@ -558,8 +550,6 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 	}
 
 	tcellSetCell(v.x0+x+1, v.y0+y+1, ch, fgColor, bgColor, v.outMode)
-
-	return nil
 }
 
 func min(a, b int) int {
@@ -578,14 +568,13 @@ func max(a, b int) int {
 
 // SetCursor sets the cursor position of the view at the given point,
 // relative to the view. It checks if the position is valid.
-func (v *View) SetCursor(x, y int) error {
+func (v *View) SetCursor(x, y int) {
 	maxX, maxY := v.Size()
 	if x < 0 || x >= maxX || y < 0 || y >= maxY {
-		return nil
+		return
 	}
 	v.cx = x
 	v.cy = y
-	return nil
 }
 
 func (v *View) SetCursorX(x int) {
@@ -622,29 +611,30 @@ func (v *View) CursorY() int {
 // it is linked with the origin point of view. It can be used to
 // implement Horizontal and Vertical scrolling with just incrementing
 // or decrementing ox and oy.
-func (v *View) SetOrigin(x, y int) error {
-	if x < 0 || y < 0 {
-		return ErrInvalidPoint
-	}
-	v.ox = x
-	v.oy = y
-	return nil
-}
-
-func (v *View) SetOriginX(x int) error {
+func (v *View) SetOrigin(x, y int) {
 	if x < 0 {
-		return ErrInvalidPoint
+		x = 0
 	}
+	if y < 0 {
+		y = 0
+	}
+
 	v.ox = x
-	return nil
+	v.oy = y
 }
 
-func (v *View) SetOriginY(y int) error {
+func (v *View) SetOriginX(x int) {
+	if x < 0 {
+		x = 0
+	}
+	v.ox = x
+}
+
+func (v *View) SetOriginY(y int) {
 	if y < 0 {
-		return ErrInvalidPoint
+		y = 0
 	}
 	v.oy = y
-	return nil
 }
 
 // Origin returns the origin position of the view.
@@ -662,13 +652,16 @@ func (v *View) OriginY() int {
 
 // SetWritePos sets the write position of the view's internal buffer.
 // So the next Write call would write directly to the specified position.
-func (v *View) SetWritePos(x, y int) error {
-	if x < 0 || y < 0 {
-		return ErrInvalidPoint
+func (v *View) SetWritePos(x, y int) {
+	if x < 0 {
+		x = 0
 	}
+	if y < 0 {
+		y = 0
+	}
+
 	v.wx = x
 	v.wy = y
-	return nil
 }
 
 // WritePos returns the current write position of the view's internal buffer.
@@ -678,14 +671,17 @@ func (v *View) WritePos() (x, y int) {
 
 // SetReadPos sets the read position of the view's internal buffer.
 // So the next Read call would read from the specified position.
-func (v *View) SetReadPos(x, y int) error {
-	if x < 0 || y < 0 {
-		return ErrInvalidPoint
+func (v *View) SetReadPos(x, y int) {
+	if x < 0 {
+		x = 0
 	}
+	if y < 0 {
+		y = 0
+	}
+
 	v.readBuffer = nil
 	v.rx = x
 	v.ry = y
-	return nil
 }
 
 // ReadPos returns the current read position of the view's internal buffer.
@@ -992,16 +988,8 @@ func (v *View) FlushStaleCells() {
 func (v *View) rewind() {
 	v.ei.reset()
 
-	if err := v.SetReadPos(0, 0); err != nil {
-		// SetReadPos returns error only if x and y are negative
-		// we are passing 0, 0, thus no error should occur.
-		panic(err)
-	}
-	if err := v.SetWritePos(0, 0); err != nil {
-		// SetWritePos returns error only if x and y are negative
-		// we are passing 0, 0, thus no error should occur.
-		panic(err)
-	}
+	v.SetReadPos(0, 0)
+	v.SetWritePos(0, 0)
 }
 
 func containsUpcaseChar(str string) bool {
@@ -1098,12 +1086,12 @@ func (v *View) IsTainted() bool {
 }
 
 // draw re-draws the view's contents.
-func (v *View) draw() error {
+func (v *View) draw() {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
 	if !v.Visible {
-		return nil
+		return
 	}
 
 	v.clearRunes()
@@ -1112,7 +1100,7 @@ func (v *View) draw() error {
 
 	if v.Wrap {
 		if maxX == 0 {
-			return nil
+			return
 		}
 		v.ox = 0
 	}
@@ -1125,7 +1113,7 @@ func (v *View) draw() error {
 	}
 
 	if len(v.viewLines) == 0 {
-		return nil
+		return
 	}
 
 	start := v.oy
@@ -1189,9 +1177,7 @@ func (v *View) draw() error {
 				fgColor |= AttrUnderline
 			}
 
-			if err := v.setRune(x, y, c.chr, fgColor, bgColor); err != nil {
-				return err
-			}
+			v.setRune(x, y, c.chr, fgColor, bgColor)
 
 			// Not sure why the previous code was here but it caused problems
 			// when typing wide characters in an editor
@@ -1199,7 +1185,6 @@ func (v *View) draw() error {
 			cellIdx++
 		}
 	}
-	return nil
 }
 
 func (v *View) refreshViewLinesIfNeeded() {
@@ -1268,16 +1253,16 @@ func (v *View) isHoveredHyperlink(x, y int) bool {
 
 // realPosition returns the position in the internal buffer corresponding to the
 // point (x, y) of the view.
-func (v *View) realPosition(vx, vy int) (x, y int, err error) {
+func (v *View) realPosition(vx, vy int) (x, y int, ok bool) {
 	vx = v.ox + vx
 	vy = v.oy + vy
 
 	if vx < 0 || vy < 0 {
-		return 0, 0, ErrInvalidPoint
+		return 0, 0, false
 	}
 
 	if len(v.viewLines) == 0 {
-		return vx, vy, nil
+		return vx, vy, true
 	}
 
 	if vy < len(v.viewLines) {
@@ -1290,7 +1275,7 @@ func (v *View) realPosition(vx, vy int) (x, y int, err error) {
 		y = vline.linesY + vy - len(v.viewLines) + 1
 	}
 
-	return x, y, nil
+	return x, y, true
 }
 
 // clearRunes erases all the cells in the view.
@@ -1366,29 +1351,29 @@ func (v *View) ViewBuffer() string {
 
 // Line returns a string with the line of the view's internal buffer
 // at the position corresponding to the point (x, y).
-func (v *View) Line(y int) (string, error) {
-	_, y, err := v.realPosition(0, y)
-	if err != nil {
-		return "", err
+func (v *View) Line(y int) (string, bool) {
+	_, y, ok := v.realPosition(0, y)
+	if !ok {
+		return "", false
 	}
 
 	if y < 0 || y >= len(v.lines) {
-		return "", ErrInvalidPoint
+		return "", false
 	}
 
-	return lineType(v.lines[y]).String(), nil
+	return lineType(v.lines[y]).String(), true
 }
 
 // Word returns a string with the word of the view's internal buffer
 // at the position corresponding to the point (x, y).
-func (v *View) Word(x, y int) (string, error) {
-	x, y, err := v.realPosition(x, y)
-	if err != nil {
-		return "", err
+func (v *View) Word(x, y int) (string, bool) {
+	x, y, ok := v.realPosition(x, y)
+	if !ok {
+		return "", false
 	}
 
 	if x < 0 || y < 0 || y >= len(v.lines) || x >= len(v.lines[y]) {
-		return "", ErrInvalidPoint
+		return "", false
 	}
 
 	str := lineType(v.lines[y]).String()
@@ -1405,7 +1390,7 @@ func (v *View) Word(x, y int) (string, error) {
 	} else {
 		nr = nr + x
 	}
-	return str[nl:nr], nil
+	return str[nl:nr], true
 }
 
 // indexFunc allows to split lines by words taking into account spaces
@@ -1416,10 +1401,9 @@ func indexFunc(r rune) bool {
 
 // SetHighlight toggles highlighting of separate lines, for custom lists
 // or multiple selection in views.
-func (v *View) SetHighlight(y int, on bool) error {
+func (v *View) SetHighlight(y int, on bool) {
 	if y < 0 || y >= len(v.lines) {
-		err := ErrInvalidPoint
-		return err
+		return
 	}
 
 	line := v.lines[y]
@@ -1437,7 +1421,6 @@ func (v *View) SetHighlight(y int, on bool) error {
 	v.tainted = true
 	v.lines[y] = cells
 	v.clearHover()
-	return nil
 }
 
 func lineWrap(line []cell, columns int) [][]cell {
@@ -1620,8 +1603,8 @@ func (v *View) RenderTextArea() {
 	newViewCursorX, newOriginX := updatedCursorAndOrigin(prevOriginX, width, cursorX)
 	newViewCursorY, newOriginY := updatedCursorAndOrigin(prevOriginY, height, cursorY)
 
-	_ = v.SetCursor(newViewCursorX, newViewCursorY)
-	_ = v.SetOrigin(newOriginX, newOriginY)
+	v.SetCursor(newViewCursorX, newViewCursorY)
+	v.SetOrigin(newOriginX, newOriginY)
 }
 
 func updatedCursorAndOrigin(prevOrigin int, size int, cursor int) (int, int) {
@@ -1648,8 +1631,8 @@ func (v *View) ClearTextArea() {
 	defer v.writeMutex.Unlock()
 
 	v.TextArea.Clear()
-	_ = v.SetOrigin(0, 0)
-	_ = v.SetCursor(0, 0)
+	v.SetOrigin(0, 0)
+	v.SetCursor(0, 0)
 }
 
 func (v *View) overwriteLines(y int, content string) {

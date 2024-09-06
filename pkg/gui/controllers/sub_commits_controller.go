@@ -38,9 +38,9 @@ func (self *SubCommitsController) context() *context.SubCommitsContext {
 	return self.c.Contexts().SubCommits
 }
 
-func (self *SubCommitsController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *SubCommitsController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			commit := self.context().GetSelected()
 			var task types.UpdateTask
 			if commit == nil {
@@ -50,7 +50,7 @@ func (self *SubCommitsController) GetOnRenderToMain() func() error {
 				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange)
 			}
 
-			return self.c.RenderToMainViews(types.RefreshMainOpts{
+			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title:    "Commit",
@@ -62,8 +62,8 @@ func (self *SubCommitsController) GetOnRenderToMain() func() error {
 	}
 }
 
-func (self *SubCommitsController) GetOnFocus() func(types.OnFocusOpts) error {
-	return func(types.OnFocusOpts) error {
+func (self *SubCommitsController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(types.OnFocusOpts) {
 		context := self.context()
 		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
 			context.SetLimitCommits(false)
@@ -71,7 +71,5 @@ func (self *SubCommitsController) GetOnFocus() func(types.OnFocusOpts) error {
 				return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUB_COMMITS}})
 			})
 		}
-
-		return nil
 	}
 }

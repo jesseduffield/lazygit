@@ -45,7 +45,7 @@ type IGuiCommon interface {
 	// allows rendering to main views (i.e. the ones to the right of the side panel)
 	// in such a way that avoids concurrency issues when there are slow commands
 	// to display the output of
-	RenderToMainViews(opts RefreshMainOpts) error
+	RenderToMainViews(opts RefreshMainOpts)
 	// used purely for the sake of RenderToMainViews to provide the pair of main views we want to render to
 	MainViewPairs() MainViewPairs
 
@@ -120,11 +120,11 @@ type IPopupHandler interface {
 	// Shows a notification popup with the given title and message to the user.
 	//
 	// This is a convenience wrapper around Confirm(), thus the popup can be closed using both 'Enter' and 'ESC'.
-	Alert(title string, message string) error
+	Alert(title string, message string)
 	// Shows a popup asking the user for confirmation.
-	Confirm(opts ConfirmOpts) error
+	Confirm(opts ConfirmOpts)
 	// Shows a popup prompting the user for input.
-	Prompt(opts PromptOpts) error
+	Prompt(opts PromptOpts)
 	WithWaitingStatus(message string, f func(gocui.Task) error) error
 	WithWaitingStatusSync(message string, f func() error) error
 	Menu(opts CreateMenuOptions) error

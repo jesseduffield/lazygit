@@ -63,7 +63,7 @@ func (self *CherryPickHelper) CopyRange(commitsList []*models.Commit, context ty
 // HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied.
 // Only to be called from the branch commits controller
 func (self *CherryPickHelper) Paste() error {
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.CherryPick,
 		Prompt: self.c.Tr.SureCherryPick,
 		HandleConfirm: func() error {
@@ -108,6 +108,8 @@ func (self *CherryPickHelper) Paste() error {
 			})
 		},
 	})
+
+	return nil
 }
 
 func (self *CherryPickHelper) CanPaste() bool {

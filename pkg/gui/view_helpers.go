@@ -11,13 +11,8 @@ import (
 )
 
 func (gui *Gui) resetViewOrigin(v *gocui.View) {
-	if err := v.SetCursor(0, 0); err != nil {
-		gui.Log.Error(err)
-	}
-
-	if err := v.SetOrigin(0, 0); err != nil {
-		gui.Log.Error(err)
-	}
+	v.SetCursor(0, 0)
+	v.SetOrigin(0, 0)
 }
 
 // Returns the number of lines that we should read initially from a cmd task so
@@ -77,7 +72,8 @@ func (gui *Gui) onViewTabClick(windowName string, tabIndex int) error {
 		return nil
 	}
 
-	return gui.c.Context().Push(context)
+	gui.c.Context().Push(context)
+	return nil
 }
 
 func (gui *Gui) handleNextTab() error {
@@ -136,14 +132,10 @@ func (gui *Gui) postRefreshUpdate(c types.Context) error {
 		gui.Log.Infof("postRefreshUpdate for %s took %s", c.GetKey(), time.Since(t))
 	}()
 
-	if err := c.HandleRender(); err != nil {
-		return err
-	}
+	c.HandleRender()
 
 	if gui.currentViewName() == c.GetViewName() {
-		if err := c.HandleFocus(types.OnFocusOpts{}); err != nil {
-			return err
-		}
+		c.HandleFocus(types.OnFocusOpts{})
 	}
 
 	return nil

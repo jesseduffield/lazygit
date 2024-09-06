@@ -47,12 +47,14 @@ func (self *UpstreamHelper) ParseUpstream(upstream string) (string, string, erro
 }
 
 func (self *UpstreamHelper) promptForUpstream(initialContent string, onConfirm func(string) error) error {
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.EnterUpstream,
 		InitialContent:      initialContent,
 		FindSuggestionsFunc: self.getRemoteBranchesSuggestionsFunc(" "),
 		HandleConfirm:       onConfirm,
 	})
+
+	return nil
 }
 
 func (self *UpstreamHelper) PromptForUpstreamWithInitialContent(currentBranch *models.Branch, onConfirm func(string) error) error {

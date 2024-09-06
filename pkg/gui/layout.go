@@ -177,9 +177,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	for _, context := range contextsToRerender {
-		if err := context.HandleRender(); err != nil {
-			return err
-		}
+		context.HandleRender()
 	}
 
 	// here is a good place log some stuff
@@ -225,9 +223,7 @@ func (gui *Gui) onInitialViewsCreationForRepo() error {
 	}
 
 	initialContext := gui.c.Context().Current()
-	if err := gui.c.Context().Activate(initialContext, types.OnFocusOpts{}); err != nil {
-		return err
-	}
+	gui.c.Context().Activate(initialContext, types.OnFocusOpts{})
 
 	return gui.loadNewRepo()
 }

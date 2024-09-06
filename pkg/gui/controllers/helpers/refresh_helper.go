@@ -175,12 +175,12 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		if scopeSet.Includes(types.STAGING) {
 			refresh("staging", func() {
 				fileWg.Wait()
-				_ = self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{})
+				self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{})
 			})
 		}
 
 		if scopeSet.Includes(types.PATCH_BUILDING) {
-			refresh("patch building", func() { _ = self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{}) })
+			refresh("patch building", func() { self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{}) })
 		}
 
 		if scopeSet.Includes(types.MERGE_CONFLICTS) || scopeSet.Includes(types.FILES) {
@@ -469,9 +469,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 		},
 		func() {
 			self.c.OnUIThread(func() error {
-				if err := self.c.Contexts().Branches.HandleRender(); err != nil {
-					self.c.Log.Error(err)
-				}
+				self.c.Contexts().Branches.HandleRender()
 				self.refreshStatus()
 				return nil
 			})
@@ -504,9 +502,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 	// Need to re-render the commits view because the visualization of local
 	// branch heads might have changed
 	self.c.Mutexes().LocalCommitsMutex.Lock()
-	if err := self.c.Contexts().LocalCommits.HandleRender(); err != nil {
-		self.c.Log.Error(err)
-	}
+	self.c.Contexts().LocalCommits.HandleRender()
 	self.c.Mutexes().LocalCommitsMutex.Unlock()
 
 	self.refreshStatus()
