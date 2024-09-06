@@ -52,19 +52,21 @@ func (self *TagsHelper) OpenCreateTagPrompt(ref string, onCreate func()) error {
 					"confirmKey": self.c.UserConfig().Keybinding.Universal.Confirm,
 				},
 			)
-			return self.c.Confirm(types.ConfirmOpts{
+			self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.ForceTag,
 				Prompt: prompt,
 				HandleConfirm: func() error {
 					return doCreateTag(tagName, description, true)
 				},
 			})
-		} else {
-			return doCreateTag(tagName, description, false)
+
+			return nil
 		}
+
+		return doCreateTag(tagName, description, false)
 	}
 
-	return self.commitsHelper.OpenCommitMessagePanel(
+	self.commitsHelper.OpenCommitMessagePanel(
 		&OpenCommitMessagePanelOpts{
 			CommitIndex:      context.NoCommitIndex,
 			InitialMessage:   "",
@@ -74,4 +76,6 @@ func (self *TagsHelper) OpenCreateTagPrompt(ref string, onCreate func()) error {
 			OnConfirm:        onConfirm,
 		},
 	)
+
+	return nil
 }

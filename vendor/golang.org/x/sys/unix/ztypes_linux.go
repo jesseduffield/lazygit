@@ -2486,7 +2486,7 @@ type XDPMmapOffsets struct {
 type XDPUmemReg struct {
 	Addr            uint64
 	Len             uint64
-	Chunk_size      uint32
+	Size            uint32
 	Headroom        uint32
 	Flags           uint32
 	Tx_metadata_len uint32

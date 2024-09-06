@@ -72,5 +72,6 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 		return err
 	}
 
-	return self.c.Context().Push(self.c.Contexts().SubCommits)
+	self.c.Context().Push(self.c.Contexts().SubCommits)
+	return nil
 }

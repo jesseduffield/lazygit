@@ -96,7 +96,7 @@ func (self *TextMatcher) IsSelected() *TextMatcher {
 
 // if the matcher has an `IsSelected` rule, it returns true, along with the matcher after that rule has been removed
 func (self *TextMatcher) checkIsSelected() (bool, *TextMatcher) {
-	// copying into a new matcher in case we want to re-use the original later
+	// copying into a new matcher in case we want to reuse the original later
 	newMatcher := &TextMatcher{Matcher: &Matcher[string]{}}
 	*newMatcher.Matcher = *self.Matcher
 

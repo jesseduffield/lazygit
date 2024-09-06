@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -32,7 +33,7 @@ func (gui *Gui) outsideFilterMode(f func() error) func() error {
 
 func (gui *Gui) validateNotInFilterMode() bool {
 	if gui.State.Modes.Filtering.Active() {
-		_ = gui.c.Confirm(types.ConfirmOpts{
+		gui.c.Confirm(types.ConfirmOpts{
 			Title:         gui.c.Tr.MustExitFilterModeTitle,
 			Prompt:        gui.c.Tr.MustExitFilterModePrompt,
 			HandleConfirm: gui.helpers.Mode.ExitFilterMode,
@@ -250,12 +251,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName: "confirmation",
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModNone,
-			Handler:  self.handleConfirmationClick,
-		},
-		{
-			ViewName: "confirmation",
 			Key:      gocui.MouseWheelUp,
 			Handler:  self.scrollUpConfirmationPanel,
 		},
@@ -351,6 +346,18 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 }
 
 func (self *Gui) GetInitialKeybindingsWithCustomCommands() ([]*types.Binding, []*gocui.ViewMouseBinding) {
+	// if the search or filter prompt is open, we only want the keybindings for
+	// that context. It shouldn't be possible, for example, to open a menu while
+	// the prompt is showing; you first need to confirm or cancel the search/filter.
+	if currentContext := self.State.ContextMgr.Current(); currentContext.GetKey() == context.SEARCH_CONTEXT_KEY {
+		bindings := currentContext.GetKeybindings(self.c.KeybindingsOpts())
+		viewName := currentContext.GetViewName()
+		for _, binding := range bindings {
+			binding.ViewName = viewName
+		}
+		return bindings, nil
+	}
+
 	bindings, mouseBindings := self.GetInitialKeybindings()
 	customBindings, err := self.CustomCommandsClient.GetCustomCommandKeybindings()
 	if err != nil {
@@ -424,8 +431,14 @@ func (gui *Gui) SetKeybinding(binding *types.Binding) error {
 func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
 	baseHandler := binding.Handler
 	newHandler := func(opts gocui.ViewMouseBindingOpts) error {
-		// we ignore click events on views that aren't popup panels, when a popup panel is focused
-		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != binding.ViewName {
+		// we ignore click events on views that aren't popup panels, when a popup panel is focused.
+		// Unless both the current view and the clicked-on view are either commit message or commit
+		// description, because we want to allow switching between those two views by clicking.
+		isCommitMessageView := func(viewName string) bool {
+			return viewName == "commitMessage" || viewName == "commitDescription"
+		}
+		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != binding.ViewName &&
+			(!isCommitMessageView(gui.currentViewName()) || !isCommitMessageView(binding.ViewName)) {
 			return nil
 		}
 

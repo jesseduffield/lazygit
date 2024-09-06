@@ -13,7 +13,7 @@ func NewBisectHelper(c *HelperCommon) *BisectHelper {
 }
 
 func (self *BisectHelper) Reset() error {
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.Bisect.ResetTitle,
 		Prompt: self.c.Tr.Bisect.ResetPrompt,
 		HandleConfirm: func() error {
@@ -25,6 +25,8 @@ func (self *BisectHelper) Reset() error {
 			return self.PostBisectCommandRefresh()
 		},
 	})
+
+	return nil
 }
 
 func (self *BisectHelper) PostBisectCommandRefresh() error {

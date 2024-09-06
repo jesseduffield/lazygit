@@ -137,17 +137,20 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		}
 
 		self.c.Contexts().LocalCommits.SetSelection(index)
-		return self.c.Context().Push(self.c.Contexts().LocalCommits)
+		self.c.Context().Push(self.c.Contexts().LocalCommits)
+		return nil
 	}
 
 	if warnAboutAddedLines {
-		return self.c.Confirm(types.ConfirmOpts{
+		self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.FindBaseCommitForFixup,
 			Prompt: self.c.Tr.HunksWithOnlyAddedLinesWarning,
 			HandleConfirm: func() error {
 				return doIt()
 			},
 		})
+
+		return nil
 	}
 
 	return doIt()

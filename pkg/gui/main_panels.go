@@ -58,7 +58,7 @@ func (gui *Gui) moveMainContextToTop(context types.Context) {
 	}
 }
 
-func (gui *Gui) RefreshMainView(opts *types.ViewUpdateOpts, context types.Context) error {
+func (gui *Gui) RefreshMainView(opts *types.ViewUpdateOpts, context types.Context) {
 	view := context.GetView()
 
 	if opts.Title != "" {
@@ -69,10 +69,7 @@ func (gui *Gui) RefreshMainView(opts *types.ViewUpdateOpts, context types.Contex
 
 	if err := gui.runTaskForView(view, opts.Task); err != nil {
 		gui.c.Log.Error(err)
-		return nil
 	}
-
-	return nil
 }
 
 func (gui *Gui) normalMainContextPair() types.MainContextPair {
@@ -112,27 +109,23 @@ func (gui *Gui) allMainContextPairs() []types.MainContextPair {
 	}
 }
 
-func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) error {
+func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) {
 	// need to reset scroll positions of all other main views
 	for _, pair := range gui.allMainContextPairs() {
 		if pair.Main != opts.Pair.Main {
-			_ = pair.Main.GetView().SetOrigin(0, 0)
+			pair.Main.GetView().SetOrigin(0, 0)
 		}
 		if pair.Secondary != nil && pair.Secondary != opts.Pair.Secondary {
-			_ = pair.Secondary.GetView().SetOrigin(0, 0)
+			pair.Secondary.GetView().SetOrigin(0, 0)
 		}
 	}
 
 	if opts.Main != nil {
-		if err := gui.RefreshMainView(opts.Main, opts.Pair.Main); err != nil {
-			return err
-		}
+		gui.RefreshMainView(opts.Main, opts.Pair.Main)
 	}
 
 	if opts.Secondary != nil {
-		if err := gui.RefreshMainView(opts.Secondary, opts.Pair.Secondary); err != nil {
-			return err
-		}
+		gui.RefreshMainView(opts.Secondary, opts.Pair.Secondary)
 	} else if opts.Pair.Secondary != nil {
 		opts.Pair.Secondary.GetView().Clear()
 	}
@@ -140,8 +133,6 @@ func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) error {
 	gui.moveMainContextPairToTop(opts.Pair)
 
 	gui.splitMainPanel(opts.Secondary != nil)
-
-	return nil
 }
 
 func (gui *Gui) splitMainPanel(splitMainPanel bool) {

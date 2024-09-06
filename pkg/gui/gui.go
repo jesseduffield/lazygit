@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -359,6 +360,28 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		return nil
 	})
 
+	gui.g.SetOpenHyperlinkFunc(func(url string) error {
+		if strings.HasPrefix(url, "lazygit-edit:") {
+			re := regexp.MustCompile(`^lazygit-edit://(.+?)(?::(\d+))?$`)
+			matches := re.FindStringSubmatch(url)
+			if matches == nil {
+				return fmt.Errorf(gui.Tr.InvalidLazygitEditURL, url)
+			}
+			filepath := matches[1]
+			if matches[2] != "" {
+				lineNumber := utils.MustConvertToInt(matches[2])
+				return gui.helpers.Files.EditFileAtLine(filepath, lineNumber)
+			}
+			return gui.helpers.Files.EditFiles([]string{filepath})
+		}
+
+		if err := gui.os.OpenLink(url); err != nil {
+			return fmt.Errorf(gui.Tr.FailedToOpenURL, url, err)
+		}
+
+		return nil
+	})
+
 	// if a context key has been given, push that instead, and set its index to 0
 	if contextKey != context.NO_CONTEXT {
 		contextToPush = gui.c.ContextForKey(contextKey)
@@ -370,9 +393,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		}
 	}
 
-	if err := gui.c.Context().Push(contextToPush); err != nil {
-		return err
-	}
+	gui.c.Context().Push(contextToPush)
 
 	return nil
 }
@@ -484,10 +505,12 @@ func (gui *Gui) checkForChangedConfigsThatDontAutoReload(oldConfig *config.UserC
 			"configs": strings.Join(changedConfigs, "\n"),
 		},
 	)
-	return gui.c.Confirm(types.ConfirmOpts{
+	gui.c.Confirm(types.ConfirmOpts{
 		Title:  gui.c.Tr.NonReloadableConfigWarningTitle,
 		Prompt: message,
 	})
+
+	return nil
 }
 
 // resetState reuses the repo state from our repo state map, if the repo was
@@ -650,11 +673,11 @@ func NewGui(
 
 	gui.PopupHandler = popup.NewPopupHandler(
 		cmn,
-		func(ctx goContext.Context, opts types.CreatePopupPanelOpts) error {
-			return gui.helpers.Confirmation.CreatePopupPanel(ctx, opts)
+		func(ctx goContext.Context, opts types.CreatePopupPanelOpts) {
+			gui.helpers.Confirmation.CreatePopupPanel(ctx, opts)
 		},
 		func() error { return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}) },
-		func() error { return gui.State.ContextMgr.Pop() },
+		func() { gui.State.ContextMgr.Pop() },
 		func() types.Context { return gui.State.ContextMgr.Current() },
 		gui.createMenu,
 		func(message string, f func(gocui.Task) error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
@@ -947,7 +970,7 @@ func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error { //nolint:unpara
 
 		// scan to buffer to prevent run unintentional operations when TUI resumes.
 		var buffer string
-		fmt.Scanln(&buffer) // wait for enter press
+		_, _ = fmt.Scanln(&buffer) // wait for enter press
 	}
 
 	return err
@@ -980,12 +1003,14 @@ func (gui *Gui) showIntroPopupMessage() {
 			return err
 		}
 
-		return gui.c.Confirm(types.ConfirmOpts{
+		gui.c.Confirm(types.ConfirmOpts{
 			Title:         "",
 			Prompt:        gui.c.Tr.IntroPopupMessage,
 			HandleConfirm: onConfirm,
 			HandleClose:   onConfirm,
 		})
+
+		return nil
 	})
 }
 
@@ -1045,12 +1070,13 @@ func (gui *Gui) showBreakingChangesMessage() {
 				return nil
 			}
 
-			return gui.c.Confirm(types.ConfirmOpts{
+			gui.c.Confirm(types.ConfirmOpts{
 				Title:         gui.Tr.BreakingChangesTitle,
 				Prompt:        gui.Tr.BreakingChangesMessage + "\n\n" + message,
 				HandleConfirm: onConfirm,
 				HandleClose:   onConfirm,
 			})
+			return nil
 		})
 	}
 }
