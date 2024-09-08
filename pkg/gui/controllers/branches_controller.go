@@ -3,7 +3,6 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -521,90 +520,12 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, KeepBranchSelectionIndex: true})
 }
 
-func (self *BranchesController) checkedOutByOtherWorktree(branch *models.Branch) bool {
-	return git_commands.CheckedOutByOtherWorktree(branch, self.c.Model().Worktrees)
-}
-
-func (self *BranchesController) promptWorktreeBranchDelete(selectedBranch *models.Branch) error {
-	worktree, ok := self.worktreeForBranch(selectedBranch)
-	if !ok {
-		self.c.Log.Error("promptWorktreeBranchDelete out of sync with list of worktrees")
-		return nil
-	}
-
-	title := utils.ResolvePlaceholderString(self.c.Tr.BranchCheckedOutByWorktree, map[string]string{
-		"worktreeName": worktree.Name,
-		"branchName":   selectedBranch.Name,
-	})
-	return self.c.Menu(types.CreateMenuOptions{
-		Title: title,
-		Items: []*types.MenuItem{
-			{
-				Label: self.c.Tr.SwitchToWorktree,
-				OnPress: func() error {
-					return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
-				},
-			},
-			{
-				Label:   self.c.Tr.DetachWorktree,
-				Tooltip: self.c.Tr.DetachWorktreeTooltip,
-				OnPress: func() error {
-					return self.c.Helpers().Worktree.Detach(worktree)
-				},
-			},
-			{
-				Label: self.c.Tr.RemoveWorktree,
-				OnPress: func() error {
-					return self.c.Helpers().Worktree.Remove(worktree, false)
-				},
-			},
-		},
-	})
-}
-
 func (self *BranchesController) localDelete(branch *models.Branch) error {
-	if self.checkedOutByOtherWorktree(branch) {
-		return self.promptWorktreeBranchDelete(branch)
-	}
-
-	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(_ gocui.Task) error {
-		self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
-		err := self.c.Git().Branch.LocalDelete(branch.Name, false)
-		if err != nil && strings.Contains(err.Error(), "git branch -D ") {
-			return self.forceDelete(branch)
-		}
-		if err != nil {
-			return err
-		}
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
-	})
+	return self.c.Helpers().BranchesHelper.ConfirmLocalDelete(branch)
 }
 
 func (self *BranchesController) remoteDelete(branch *models.Branch) error {
 	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(branch.UpstreamRemote, branch.UpstreamBranch)
-}
-
-func (self *BranchesController) forceDelete(branch *models.Branch) error {
-	title := self.c.Tr.ForceDeleteBranchTitle
-	message := utils.ResolvePlaceholderString(
-		self.c.Tr.ForceDeleteBranchMessage,
-		map[string]string{
-			"selectedBranchName": branch.Name,
-		},
-	)
-
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  title,
-		Prompt: message,
-		HandleConfirm: func() error {
-			if err := self.c.Git().Branch.LocalDelete(branch.Name, true); err != nil {
-				return err
-			}
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
-		},
-	})
-
-	return nil
 }
 
 func (self *BranchesController) delete(branch *models.Branch) error {
