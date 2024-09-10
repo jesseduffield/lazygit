@@ -115,8 +115,8 @@ func (self *guiCommon) OnWorker(f func(gocui.Task) error) {
 	self.gui.onWorker(f)
 }
 
-func (self *guiCommon) RenderToMainViews(opts types.RefreshMainOpts) error {
-	return self.gui.refreshMainViews(opts)
+func (self *guiCommon) RenderToMainViews(opts types.RefreshMainOpts) {
+	self.gui.refreshMainViews(opts)
 }
 
 func (self *guiCommon) MainViewPairs() types.MainViewPairs {

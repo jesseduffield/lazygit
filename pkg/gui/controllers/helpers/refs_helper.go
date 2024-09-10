@@ -44,15 +44,15 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 
 	cmdOptions := git_commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
-	onSuccess := func() {
+	refresh := func() {
 		self.c.Contexts().Branches.SetSelection(0)
 		self.c.Contexts().ReflogCommits.SetSelection(0)
 		self.c.Contexts().LocalCommits.SetSelection(0)
 		// loading a heap of commits is slow so we limit them whenever doing a reset
 		self.c.Contexts().LocalCommits.SetLimitCommits(true)
-	}
 
-	refreshOptions := types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true}
+		_ = self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+	}
 
 	localBranch, found := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
 		return branch.Name == ref
@@ -74,12 +74,12 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 				return options.OnRefNotFound(ref)
 			}
 
-			if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
+			if IsSwitchBranchUncommitedChangesError(err) {
 				// offer to autostash changes
 				self.c.OnUIThread(func() error {
 					// (Before showing the prompt, render again to remove the inline status)
-					_ = self.c.Contexts().Branches.HandleRender()
-					return self.c.Confirm(types.ConfirmOpts{
+					self.c.Contexts().Branches.HandleRender()
+					self.c.Confirm(types.ConfirmOpts{
 						Title:  self.c.Tr.AutoStashTitle,
 						Prompt: self.c.Tr.AutoStashPrompt,
 						HandleConfirm: func() error {
@@ -90,27 +90,24 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 								if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {
 									return err
 								}
-
-								onSuccess()
-								if err := self.c.Git().Stash.Pop(0); err != nil {
-									if err := self.c.Refresh(refreshOptions); err != nil {
-										return err
-									}
-									return err
-								}
-								return self.c.Refresh(refreshOptions)
+								err := self.c.Git().Stash.Pop(0)
+								// Branch switch successful so re-render the UI even if the pop operation failed (e.g. conflict).
+								refresh()
+								return err
 							})
 						},
 					})
+
+					return nil
 				})
 				return nil
 			}
 
 			return err
 		}
-		onSuccess()
 
-		return self.c.Refresh(refreshOptions)
+		refresh()
+		return nil
 	})
 }
 
@@ -120,9 +117,7 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 		// Switch to the branches context _before_ starting to check out the
 		// branch, so that we see the inline status
 		if self.c.Context().Current() != self.c.Contexts().Branches {
-			if err := self.c.Context().Push(self.c.Contexts().Branches); err != nil {
-				return err
-			}
+			self.c.Context().Push(self.c.Contexts().Branches)
 		}
 		return self.CheckoutRef(branchName, types.CheckoutRefOptions{})
 	}
@@ -288,7 +283,18 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		suggestedBranchName = self.c.UserConfig().Git.BranchPrefix
 	}
 
-	return self.c.Prompt(types.PromptOpts{
+	refresh := func() error {
+		if self.c.Context().Current() != self.c.Contexts().Branches {
+			self.c.Context().Push(self.c.Contexts().Branches)
+		}
+
+		self.c.Contexts().LocalCommits.SetSelection(0)
+		self.c.Contexts().Branches.SetSelection(0)
+
+		return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+	}
+
+	self.c.Prompt(types.PromptOpts{
 		Title:          message,
 		InitialContent: suggestedBranchName,
 		HandleConfirm: func(response string) error {
@@ -299,21 +305,40 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 				newBranchFunc = self.c.Git().Branch.NewWithoutTracking
 			}
 			if err := newBranchFunc(newBranchName, from); err != nil {
+				if IsSwitchBranchUncommitedChangesError(err) {
+					// offer to autostash changes
+					self.c.Confirm(types.ConfirmOpts{
+						Title:  self.c.Tr.AutoStashTitle,
+						Prompt: self.c.Tr.AutoStashPrompt,
+						HandleConfirm: func() error {
+							if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + newBranchName); err != nil {
+								return err
+							}
+							if err := newBranchFunc(newBranchName, from); err != nil {
+								return err
+							}
+							popErr := self.c.Git().Stash.Pop(0)
+							// Branch switch successful so re-render the UI even if the pop operation failed (e.g. conflict).
+							refreshError := refresh()
+							if popErr != nil {
+								// An error from pop is the more important one to report to the user
+								return popErr
+							}
+							return refreshError
+						},
+					})
+
+					return nil
+				}
+
 				return err
 			}
 
-			if self.c.Context().Current() != self.c.Contexts().Branches {
-				if err := self.c.Context().Push(self.c.Contexts().Branches); err != nil {
-					return err
-				}
-			}
-
-			self.c.Contexts().LocalCommits.SetSelection(0)
-			self.c.Contexts().Branches.SetSelection(0)
-
-			return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+			return refresh()
 		},
 	})
+
+	return nil
 }
 
 // SanitizedBranchName will remove all spaces in favor of a dash "-" to meet
@@ -338,4 +363,8 @@ func (self *RefsHelper) ParseRemoteBranchName(fullBranchName string) (string, st
 	}
 
 	return remoteName, branchName, true
+}
+
+func IsSwitchBranchUncommitedChangesError(err error) bool {
+	return strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch")
 }

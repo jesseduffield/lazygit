@@ -150,10 +150,12 @@ func (self *PatchExplorerController) GetMouseKeybindings(opts types.KeybindingsO
 					return self.withRenderAndFocus(self.HandleMouseDown)()
 				}
 
-				return self.c.Context().Push(self.context, types.OnFocusOpts{
+				self.c.Context().Push(self.context, types.OnFocusOpts{
 					ClickedWindowName:  self.context.GetWindowName(),
 					ClickedViewLineIdx: opts.Y,
 				})
+
+				return nil
 			},
 		},
 		{
@@ -300,7 +302,8 @@ func (self *PatchExplorerController) withRenderAndFocus(f func() error) func() e
 			return err
 		}
 
-		return self.context.RenderAndFocus(self.isFocused())
+		self.context.RenderAndFocus(self.isFocused())
+		return nil
 	})
 }
 

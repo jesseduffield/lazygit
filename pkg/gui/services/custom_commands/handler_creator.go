@@ -118,7 +118,7 @@ func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrap
 		return err
 	}
 
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title:               prompt.Title,
 		InitialContent:      prompt.InitialValue,
 		FindSuggestionsFunc: findSuggestionsFn,
@@ -126,6 +126,8 @@ func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrap
 			return wrappedF(str)
 		},
 	})
+
+	return nil
 }
 
 func (self *HandlerCreator) generateFindSuggestionsFunc(prompt *config.CustomCommandPrompt) (func(string) []*types.Suggestion, error) {
@@ -183,11 +185,13 @@ func (self *HandlerCreator) getPresetSuggestionsFn(preset string) (func(string) 
 }
 
 func (self *HandlerCreator) confirmPrompt(prompt *config.CustomCommandPrompt, handleConfirm func() error) error {
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:         prompt.Title,
 		Prompt:        prompt.Body,
 		HandleConfirm: handleConfirm,
 	})
+
+	return nil
 }
 
 func (self *HandlerCreator) menuPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
@@ -298,7 +302,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 					return err
 				}
 			}
-			return self.c.Alert(title, output)
+			self.c.Alert(title, output)
 		}
 
 		return nil

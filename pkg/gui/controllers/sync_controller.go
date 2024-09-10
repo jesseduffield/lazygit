@@ -214,7 +214,7 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 				if forcePushDisabled {
 					return errors.New(self.c.Tr.UpdatesRejectedAndForcePushDisabled)
 				}
-				_ = self.c.Confirm(types.ConfirmOpts{
+				self.c.Confirm(types.ConfirmOpts{
 					Title:  self.c.Tr.ForcePush,
 					Prompt: self.forcePushPrompt(),
 					HandleConfirm: func() error {
@@ -238,7 +238,7 @@ func (self *SyncController) requestToForcePush(currentBranch *models.Branch, opt
 		return errors.New(self.c.Tr.ForcePushDisabled)
 	}
 
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.ForcePush,
 		Prompt: self.forcePushPrompt(),
 		HandleConfirm: func() error {
@@ -246,6 +246,8 @@ func (self *SyncController) requestToForcePush(currentBranch *models.Branch, opt
 			return self.pushAux(currentBranch, opts)
 		},
 	})
+
+	return nil
 }
 
 func (self *SyncController) forcePushPrompt() string {

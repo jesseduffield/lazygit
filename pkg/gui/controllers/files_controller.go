@@ -224,13 +224,13 @@ func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*
 	}
 }
 
-func (self *FilesController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *FilesController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			node := self.context().GetSelected()
 
 			if node == nil {
-				return self.c.RenderToMainViews(types.RefreshMainOpts{
+				self.c.RenderToMainViews(types.RefreshMainOpts{
 					Pair: self.c.MainViewPairs().Normal,
 					Main: &types.ViewUpdateOpts{
 						Title:    self.c.Tr.DiffTitle,
@@ -238,16 +238,18 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 						Task:     types.NewRenderStringTask(self.c.Tr.NoChangedFiles),
 					},
 				})
+				return
 			}
 
 			if node.File != nil && node.File.HasInlineMergeConflicts {
 				hasConflicts, err := self.c.Helpers().MergeConflicts.SetMergeState(node.GetPath())
 				if err != nil {
-					return err
+					return
 				}
 
 				if hasConflicts {
-					return self.c.Helpers().MergeConflicts.Render()
+					self.c.Helpers().MergeConflicts.Render()
+					return
 				}
 			}
 
@@ -290,7 +292,7 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 				}
 			}
 
-			return self.c.RenderToMainViews(refreshOpts)
+			self.c.RenderToMainViews(refreshOpts)
 		})
 	}
 }
@@ -454,7 +456,8 @@ func (self *FilesController) press(nodes []*filetree.FileNode) error {
 		return err
 	}
 
-	return self.context().HandleFocus(types.OnFocusOpts{})
+	self.context().HandleFocus(types.OnFocusOpts{})
+	return nil
 }
 
 func (self *FilesController) Context() types.Context {
@@ -502,7 +505,8 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 		return errors.New(self.c.Tr.FileStagingRequirements)
 	}
 
-	return self.c.Context().Push(self.c.Contexts().Staging, opts)
+	self.c.Context().Push(self.c.Contexts().Staging, opts)
+	return nil
 }
 
 func (self *FilesController) toggleStagedAll() error {
@@ -514,7 +518,8 @@ func (self *FilesController) toggleStagedAll() error {
 		return err
 	}
 
-	return self.context().HandleFocus(types.OnFocusOpts{})
+	self.context().HandleFocus(types.OnFocusOpts{})
+	return nil
 }
 
 func (self *FilesController) toggleStagedAllWithLock() error {
@@ -596,13 +601,15 @@ func (self *FilesController) ignoreOrExcludeUntracked(node *filetree.FileNode, t
 
 func (self *FilesController) ignoreOrExcludeFile(node *filetree.FileNode, trText string, trPrompt string, trAction string, f func(string) error) error {
 	if node.GetIsTracked() {
-		return self.c.Confirm(types.ConfirmOpts{
+		self.c.Confirm(types.ConfirmOpts{
 			Title:  trText,
 			Prompt: trPrompt,
 			HandleConfirm: func() error {
 				return self.ignoreOrExcludeTracked(node, trAction, f)
 			},
 		})
+
+		return nil
 	}
 	return self.ignoreOrExcludeUntracked(node, trAction, f)
 }
@@ -655,7 +662,7 @@ func (self *FilesController) refresh() error {
 }
 
 func (self *FilesController) handleAmendCommitPress() error {
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.AmendLastCommitTitle,
 		Prompt: self.c.Tr.SureToAmend,
 		HandleConfirm: func() error {
@@ -668,6 +675,8 @@ func (self *FilesController) handleAmendCommitPress() error {
 			})
 		},
 	})
+
+	return nil
 }
 
 func (self *FilesController) handleStatusFilterPressed() error {
@@ -954,7 +963,7 @@ func (self *FilesController) toggleTreeView() error {
 }
 
 func (self *FilesController) handleStashSave(stashFunc func(message string) error, action string) error {
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.StashChanges,
 		HandleConfirm: func(stashComment string) error {
 			self.c.LogAction(action)
@@ -965,6 +974,8 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
 		},
 	})
+
+	return nil
 }
 
 func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {

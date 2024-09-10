@@ -69,10 +69,9 @@ func (self *CommitMessageController) GetMouseKeybindings(opts types.KeybindingsO
 	}
 }
 
-func (self *CommitMessageController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
-	return func(types.OnFocusLostOpts) error {
+func (self *CommitMessageController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
 		self.context().RenderCommitLength()
-		return nil
 	}
 }
 
@@ -96,9 +95,7 @@ func (self *CommitMessageController) handleNextCommit() error {
 }
 
 func (self *CommitMessageController) switchToCommitDescription() error {
-	if err := self.c.Context().Replace(self.c.Contexts().CommitDescription); err != nil {
-		return err
-	}
+	self.c.Context().Replace(self.c.Contexts().CommitDescription)
 	return nil
 }
 
@@ -141,7 +138,8 @@ func (self *CommitMessageController) confirm() error {
 }
 
 func (self *CommitMessageController) close() error {
-	return self.c.Helpers().Commits.CloseCommitMessagePanel()
+	self.c.Helpers().Commits.CloseCommitMessagePanel()
+	return nil
 }
 
 func (self *CommitMessageController) openCommitMenu() error {
@@ -152,7 +150,7 @@ func (self *CommitMessageController) openCommitMenu() error {
 func (self *CommitMessageController) onClick(opts gocui.ViewMouseBindingOpts) error {
 	// Activate the commit message panel when the commit description panel is currently active
 	if self.c.Context().Current().GetKey() == context.COMMIT_DESCRIPTION_CONTEXT_KEY {
-		return self.c.Context().Replace(self.c.Contexts().CommitMessage)
+		self.c.Context().Replace(self.c.Contexts().CommitMessage)
 	}
 
 	return nil

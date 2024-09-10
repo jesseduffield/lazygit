@@ -60,11 +60,13 @@ func (self *CommitDescriptionController) GetMouseKeybindings(opts types.Keybindi
 }
 
 func (self *CommitDescriptionController) switchToCommitMessage() error {
-	return self.c.Context().Replace(self.c.Contexts().CommitMessage)
+	self.c.Context().Replace(self.c.Contexts().CommitMessage)
+	return nil
 }
 
 func (self *CommitDescriptionController) close() error {
-	return self.c.Helpers().Commits.CloseCommitMessagePanel()
+	self.c.Helpers().Commits.CloseCommitMessagePanel()
+	return nil
 }
 
 func (self *CommitDescriptionController) confirm() error {
@@ -79,7 +81,7 @@ func (self *CommitDescriptionController) openCommitMenu() error {
 func (self *CommitDescriptionController) onClick(opts gocui.ViewMouseBindingOpts) error {
 	// Activate the description panel when the commit message panel is currently active
 	if self.c.Context().Current().GetKey() == context.COMMIT_MESSAGE_CONTEXT_KEY {
-		return self.c.Context().Replace(self.c.Contexts().CommitDescription)
+		self.c.Context().Replace(self.c.Contexts().CommitDescription)
 	}
 
 	return nil

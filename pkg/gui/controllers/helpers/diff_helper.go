@@ -81,7 +81,7 @@ func (self *DiffHelper) ExitDiffMode() error {
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
-func (self *DiffHelper) RenderDiff() error {
+func (self *DiffHelper) RenderDiff() {
 	args := self.DiffArgs()
 	cmdObj := self.c.Git().Diff.DiffCmdObj(args)
 	task := types.NewRunPtyTask(cmdObj.GetCmd())
@@ -91,7 +91,7 @@ func (self *DiffHelper) RenderDiff() error {
 		"git diff "+strings.Join(args, " "),
 	)
 
-	return self.c.RenderToMainViews(types.RefreshMainOpts{
+	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
 			Title:    "Diff",
@@ -141,12 +141,12 @@ func (self *DiffHelper) currentlySelectedFilename() string {
 	return ""
 }
 
-func (self *DiffHelper) WithDiffModeCheck(f func() error) error {
+func (self *DiffHelper) WithDiffModeCheck(f func()) {
 	if self.c.Modes().Diffing.Active() {
-		return self.RenderDiff()
+		self.RenderDiff()
+	} else {
+		f()
 	}
-
-	return f()
 }
 
 func (self *DiffHelper) IgnoringWhitespaceSubTitle() string {

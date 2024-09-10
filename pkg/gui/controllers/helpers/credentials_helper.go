@@ -27,7 +27,7 @@ func (self *CredentialsHelper) PromptUserForCredential(passOrUname oscommands.Cr
 	self.c.OnUIThread(func() error {
 		title, mask := self.getTitleAndMask(passOrUname)
 
-		return self.c.Prompt(types.PromptOpts{
+		self.c.Prompt(types.PromptOpts{
 			Title: title,
 			Mask:  mask,
 			HandleConfirm: func(input string) error {
@@ -41,6 +41,8 @@ func (self *CredentialsHelper) PromptUserForCredential(passOrUname oscommands.Cr
 				return nil
 			},
 		})
+
+		return nil
 	})
 
 	return ch

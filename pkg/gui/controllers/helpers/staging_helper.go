@@ -19,14 +19,14 @@ func NewStagingHelper(
 }
 
 // NOTE: used from outside this file
-func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) error {
+func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 	secondaryFocused := self.secondaryStagingFocused()
 	mainFocused := self.mainStagingFocused()
 
 	// this method could be called when the staging panel is not being used,
 	// in which case we don't want to do anything.
 	if !mainFocused && !secondaryFocused {
-		return nil
+		return
 	}
 
 	mainSelectedLineIdx := -1
@@ -49,7 +49,8 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) erro
 	}
 
 	if file == nil || (!file.HasUnstagedChanges && !file.HasStagedChanges) {
-		return self.handleStagingEscape()
+		self.handleStagingEscape()
+		return
 	}
 
 	mainDiff := self.c.Git().WorkingTree.WorktreeFileDiff(file, true, false)
@@ -79,15 +80,18 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) erro
 	secondaryContext.GetMutex().Unlock()
 
 	if mainState == nil && secondaryState == nil {
-		return self.handleStagingEscape()
+		self.handleStagingEscape()
+		return
 	}
 
 	if mainState == nil && !secondaryFocused {
-		return self.c.Context().Push(secondaryContext, focusOpts)
+		self.c.Context().Push(secondaryContext, focusOpts)
+		return
 	}
 
 	if secondaryState == nil && secondaryFocused {
-		return self.c.Context().Push(mainContext, focusOpts)
+		self.c.Context().Push(mainContext, focusOpts)
+		return
 	}
 
 	if secondaryFocused {
@@ -96,7 +100,7 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) erro
 		self.c.Contexts().Staging.FocusSelection()
 	}
 
-	return self.c.RenderToMainViews(types.RefreshMainOpts{
+	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Staging,
 		Main: &types.ViewUpdateOpts{
 			Task:  types.NewRenderStringWithoutScrollTask(mainContent),
@@ -109,8 +113,8 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) erro
 	})
 }
 
-func (self *StagingHelper) handleStagingEscape() error {
-	return self.c.Context().Push(self.c.Contexts().Files)
+func (self *StagingHelper) handleStagingEscape() {
+	self.c.Context().Push(self.c.Contexts().Files)
 }
 
 func (self *StagingHelper) secondaryStagingFocused() bool {

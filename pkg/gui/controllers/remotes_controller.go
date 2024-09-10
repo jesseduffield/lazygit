@@ -87,9 +87,9 @@ func (self *RemotesController) context() *context.RemotesContext {
 	return self.c.Contexts().Remotes
 }
 
-func (self *RemotesController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *RemotesController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			var task types.UpdateTask
 			remote := self.context().GetSelected()
 			if remote == nil {
@@ -98,7 +98,7 @@ func (self *RemotesController) GetOnRenderToMain() func() error {
 				task = types.NewRenderStringTask(fmt.Sprintf("%s\nUrls:\n%s", style.FgGreen.Sprint(remote.Name), strings.Join(remote.Urls, "\n")))
 			}
 
-			return self.c.RenderToMainViews(types.RefreshMainOpts{
+			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title: "Remote",
@@ -131,14 +131,15 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 		return err
 	}
 
-	return self.c.Context().Push(remoteBranchesContext)
+	self.c.Context().Push(remoteBranchesContext)
+	return nil
 }
 
 func (self *RemotesController) add() error {
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.NewRemoteName,
 		HandleConfirm: func(remoteName string) error {
-			return self.c.Prompt(types.PromptOpts{
+			self.c.Prompt(types.PromptOpts{
 				Title: self.c.Tr.NewRemoteUrl,
 				HandleConfirm: func(remoteUrl string) error {
 					self.c.LogAction(self.c.Tr.Actions.AddRemote)
@@ -168,12 +169,16 @@ func (self *RemotesController) add() error {
 					return self.fetch(self.c.Contexts().Remotes.GetSelected())
 				},
 			})
+
+			return nil
 		},
 	})
+
+	return nil
 }
 
 func (self *RemotesController) remove(remote *models.Remote) error {
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.RemoveRemote,
 		Prompt: self.c.Tr.RemoveRemotePrompt + " '" + remote.Name + "'?",
 		HandleConfirm: func() error {
@@ -185,6 +190,8 @@ func (self *RemotesController) remove(remote *models.Remote) error {
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 		},
 	})
+
+	return nil
 }
 
 func (self *RemotesController) edit(remote *models.Remote) error {
@@ -195,7 +202,7 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 		},
 	)
 
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title:          editNameMessage,
 		InitialContent: remote.Name,
 		HandleConfirm: func(updatedRemoteName string) error {
@@ -219,7 +226,7 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 				url = urls[0]
 			}
 
-			return self.c.Prompt(types.PromptOpts{
+			self.c.Prompt(types.PromptOpts{
 				Title:          editUrlMessage,
 				InitialContent: url,
 				HandleConfirm: func(updatedRemoteUrl string) error {
@@ -230,8 +237,12 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 					return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 				},
 			})
+
+			return nil
 		},
 	})
+
+	return nil
 }
 
 func (self *RemotesController) fetch(remote *models.Remote) error {

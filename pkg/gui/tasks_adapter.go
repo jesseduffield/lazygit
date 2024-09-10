@@ -67,7 +67,7 @@ func (gui *Gui) newStringTaskWithScroll(view *gocui.View, str string, originX in
 
 	f := func(tasks.TaskOpts) error {
 		gui.c.SetViewContent(view, str)
-		_ = view.SetOrigin(originX, originY)
+		view.SetOrigin(originX, originY)
 		return nil
 	}
 
@@ -119,16 +119,13 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 				if linesHeight < originY {
 					newOriginY := linesHeight
 
-					err := view.SetOrigin(0, newOriginY)
-					if err != nil {
-						panic(err)
-					}
+					view.SetOrigin(0, newOriginY)
 				}
 
 				view.FlushStaleCells()
 			},
 			func() {
-				_ = view.SetOrigin(0, 0)
+				view.SetOrigin(0, 0)
 			},
 			func() gocui.Task {
 				return gui.c.GocuiGui().NewTask()
