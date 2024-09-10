@@ -399,7 +399,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 	})
 }
 
-func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) error {
+func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string, successCallback func() error) error {
 	if self.c.Git().Branch.IsHeadDetached() {
 		return errors.New("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
 	}
@@ -408,12 +408,22 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 		return errors.New(self.c.Tr.CantMergeBranchIntoItself)
 	}
 
+	callbackOnSuccess := func(errFunc func() error) func() error{
+		err := errFunc()
+		if err != nil || successCallback == nil {
+			return func() error {
+				return err
+			}
+		}
+		return successCallback
+	}
+
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Merge,
 		Items: []*types.MenuItem{
 			{
 				Label:   self.c.Tr.RegularMerge,
-				OnPress: self.RegularMerge(refName),
+				OnPress: callbackOnSuccess(self.RegularMerge(refName)),
 				Key:     'm',
 				Tooltip: utils.ResolvePlaceholderString(
 					self.c.Tr.RegularMergeTooltip,
@@ -425,7 +435,7 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 			},
 			{
 				Label:   self.c.Tr.SquashMergeUncommittedTitle,
-				OnPress: self.SquashMergeUncommitted(refName),
+				OnPress: callbackOnSuccess(self.SquashMergeUncommitted(refName)),
 				Key:     's',
 				Tooltip: utils.ResolvePlaceholderString(
 					self.c.Tr.SquashMergeUncommitted,
@@ -436,7 +446,7 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 			},
 			{
 				Label:   self.c.Tr.SquashMergeCommittedTitle,
-				OnPress: self.SquashMergeCommitted(refName, checkedOutBranchName),
+				OnPress: callbackOnSuccess(self.SquashMergeCommitted(refName, checkedOutBranchName)),
 				Key:     'S',
 				Tooltip: utils.ResolvePlaceholderString(
 					self.c.Tr.SquashMergeCommitted,
