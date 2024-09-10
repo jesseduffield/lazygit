@@ -214,7 +214,7 @@ type GitConfig struct {
 	Commit CommitConfig `yaml:"commit"`
 	// Config relating to merging
 	Merging MergingConfig `yaml:"merging"`
-	// list of branches that are considered 'main' branches, used when displaying commits
+	// list of branches that are considered 'main' branches (base branches), used when displaying commits
 	MainBranches []string `yaml:"mainBranches" jsonschema:"uniqueItems=true"`
 	// Prefix to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks will be skipped when the commit message starts with 'WIP'
 	SkipHookPrefix string `yaml:"skipHookPrefix"`

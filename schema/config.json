@@ -547,7 +547,7 @@
           },
           "type": "array",
           "uniqueItems": true,
-          "description": "list of branches that are considered 'main' branches, used when displaying commits",
+          "description": "list of branches that are considered 'main' branches (base branches), used when displaying commits",
           "default": [
             "master",
             "main"
