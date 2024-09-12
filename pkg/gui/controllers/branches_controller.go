@@ -532,7 +532,6 @@ func (self *BranchesController) promptWorktreeBranchDelete(selectedBranch *model
 		return nil
 	}
 
-	// TODO: i18n
 	title := utils.ResolvePlaceholderString(self.c.Tr.BranchCheckedOutByWorktree, map[string]string{
 		"worktreeName": worktree.Name,
 		"branchName":   selectedBranch.Name,
