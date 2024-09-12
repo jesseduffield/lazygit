@@ -37,20 +37,13 @@ var DeleteRemoteBranchWithDifferentName = NewIntegrationTest(NewIntegrationTestA
 			Tap(func() {
 				t.ExpectPopup().
 					Confirmation().
-					/* EXPECTED:
 					Title(Equals("Delete branch 'mybranch-remote'?")).
 					Content(Equals("Are you sure you want to delete the remote branch 'mybranch-remote' from 'origin'?")).
-					ACTUAL: */
-					Title(Equals("Delete branch 'mybranch-local'?")).
-					Content(Equals("Are you sure you want to delete the remote branch 'mybranch-local' from 'origin'?")).
 					Confirm()
 			}).
 			Lines(
 				Contains("master"),
-				/* EXPECTED:
 				Contains("mybranch-local (upstream gone)").IsSelected(),
-				ACTUAL: */
-				Contains("mybranch-local ✓").IsSelected(),
 			)
 	},
 })

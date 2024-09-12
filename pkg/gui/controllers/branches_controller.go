@@ -581,7 +581,7 @@ func (self *BranchesController) localDelete(branch *models.Branch) error {
 }
 
 func (self *BranchesController) remoteDelete(branch *models.Branch) error {
-	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(branch.UpstreamRemote, branch.Name)
+	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(branch.UpstreamRemote, branch.UpstreamBranch)
 }
 
 func (self *BranchesController) forceDelete(branch *models.Branch) error {
