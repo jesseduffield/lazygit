@@ -36,6 +36,7 @@ var Apply = NewIntegrationTest(NewIntegrationTestArgs{
 			)
 
 		t.Views().Files().
+			IsFocused().
 			Lines(
 				Contains("file"),
 			)

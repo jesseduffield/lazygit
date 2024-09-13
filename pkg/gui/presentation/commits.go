@@ -65,7 +65,7 @@ func GetCommitListDisplayStrings(
 		return nil
 	}
 
-	if startIdx > len(commits) {
+	if startIdx >= len(commits) {
 		return nil
 	}
 

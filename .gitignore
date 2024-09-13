@@ -5,6 +5,7 @@
 
 # Hidden
 .*
+!.codespellrc
 
 # Notes
 *.notes

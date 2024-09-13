@@ -26,26 +26,30 @@ func (self *QuitActions) quitAux() error {
 	}
 
 	if self.c.UserConfig().ConfirmOnQuit {
-		return self.c.Confirm(types.ConfirmOpts{
+		self.c.Confirm(types.ConfirmOpts{
 			Title:  "",
 			Prompt: self.c.Tr.ConfirmQuit,
 			HandleConfirm: func() error {
 				return gocui.ErrQuit
 			},
 		})
+
+		return nil
 	}
 
 	return gocui.ErrQuit
 }
 
 func (self *QuitActions) confirmQuitDuringUpdate() error {
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.ConfirmQuitDuringUpdateTitle,
 		Prompt: self.c.Tr.ConfirmQuitDuringUpdate,
 		HandleConfirm: func() error {
 			return gocui.ErrQuit
 		},
 	})
+
+	return nil
 }
 
 func (self *QuitActions) Escape() error {
@@ -74,7 +78,8 @@ func (self *QuitActions) Escape() error {
 	parentContext := currentContext.GetParentContext()
 	if parentContext != nil {
 		// TODO: think about whether this should be marked as a return rather than adding to the stack
-		return self.c.Context().Push(parentContext)
+		self.c.Context().Push(parentContext)
+		return nil
 	}
 
 	for _, mode := range self.c.Helpers().Mode.Statuses() {

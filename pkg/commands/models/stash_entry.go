@@ -17,6 +17,10 @@ func (s *StashEntry) RefName() string {
 	return fmt.Sprintf("stash@{%d}", s.Index)
 }
 
+func (s *StashEntry) ShortRefName() string {
+	return s.RefName()
+}
+
 func (s *StashEntry) ParentRefName() string {
 	return s.RefName() + "^"
 }

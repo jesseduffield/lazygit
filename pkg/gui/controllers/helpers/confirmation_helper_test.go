@@ -27,27 +27,27 @@ func Test_underlineLinks(t *testing.T) {
 		{
 			name:           "entire string is a link",
 			text:           "https://example.com",
-			expectedResult: "\x1b[4mhttps://example.com\x1b[24m",
+			expectedResult: "\x1b]8;;https://example.com\x1b\\https://example.com\x1b]8;;\x1b\\",
 		},
 		{
-			name:           "link preceeded and followed by text",
+			name:           "link preceded and followed by text",
 			text:           "bla https://example.com xyz",
-			expectedResult: "bla \x1b[4mhttps://example.com\x1b[24m xyz",
+			expectedResult: "bla \x1b]8;;https://example.com\x1b\\https://example.com\x1b]8;;\x1b\\ xyz",
 		},
 		{
 			name:           "more than one link",
 			text:           "bla https://link1 blubb https://link2 xyz",
-			expectedResult: "bla \x1b[4mhttps://link1\x1b[24m blubb \x1b[4mhttps://link2\x1b[24m xyz",
+			expectedResult: "bla \x1b]8;;https://link1\x1b\\https://link1\x1b]8;;\x1b\\ blubb \x1b]8;;https://link2\x1b\\https://link2\x1b]8;;\x1b\\ xyz",
 		},
 		{
 			name:           "link in angle brackets",
 			text:           "See <https://example.com> for details",
-			expectedResult: "See <\x1b[4mhttps://example.com\x1b[24m> for details",
+			expectedResult: "See <\x1b]8;;https://example.com\x1b\\https://example.com\x1b]8;;\x1b\\> for details",
 		},
 		{
 			name:           "link followed by newline",
 			text:           "URL: https://example.com\nNext line",
-			expectedResult: "URL: \x1b[4mhttps://example.com\x1b[24m\nNext line",
+			expectedResult: "URL: \x1b]8;;https://example.com\x1b\\https://example.com\x1b]8;;\x1b\\\nNext line",
 		},
 	}
 

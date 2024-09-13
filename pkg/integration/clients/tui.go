@@ -292,7 +292,7 @@ func suspendAndRunTest(test *components.IntegrationTest, sandbox bool, waitForDe
 	runTuiTest(test, sandbox, waitForDebugger, raceDetector, inputDelay)
 
 	fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint("press enter to return"))
-	fmt.Scanln() // wait for enter press
+	_, _ = fmt.Scanln() // wait for enter press
 
 	if err := gocui.Screen.Resume(); err != nil {
 		panic(err)

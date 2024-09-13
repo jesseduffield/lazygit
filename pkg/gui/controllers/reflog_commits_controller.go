@@ -37,9 +37,9 @@ func (self *ReflogCommitsController) context() *context.ReflogCommitsContext {
 	return self.c.Contexts().ReflogCommits
 }
 
-func (self *ReflogCommitsController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *ReflogCommitsController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			commit := self.context().GetSelected()
 			var task types.UpdateTask
 			if commit == nil {
@@ -50,7 +50,7 @@ func (self *ReflogCommitsController) GetOnRenderToMain() func() error {
 				task = types.NewRunPtyTask(cmdObj.GetCmd())
 			}
 
-			return self.c.RenderToMainViews(types.RefreshMainOpts{
+			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title: "Reflog Entry",

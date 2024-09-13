@@ -32,13 +32,13 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Equals("Diff branch-a")).Confirm()
 
-		t.Views().Information().Content(Contains("Showing output for: git diff branch-a branch-a"))
+		t.Views().Information().Content(Contains("Showing output for: git diff --stat -p branch-a branch-a"))
 
 		t.Views().Branches().
 			IsFocused().
 			SelectNextItem().
 			Tap(func() {
-				t.Views().Information().Content(Contains("Showing output for: git diff branch-a branch-b"))
+				t.Views().Information().Content(Contains("Showing output for: git diff --stat -p branch-a branch-b"))
 				t.Views().Main().Content(Contains("+second line"))
 			}).
 			PressEnter()

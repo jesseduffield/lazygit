@@ -188,7 +188,7 @@ func (self *FilesController) Explode(v *gocui.View, onDone func()) {
 			style := styles[(i*len(styles)/max)%len(styles)]
 			coloredImage := style.Sprint(image)
 			self.c.OnUIThread(func() error {
-				_ = v.SetOrigin(0, 0)
+				v.SetOrigin(0, 0)
 				v.SetContent(coloredImage)
 				return nil
 			})

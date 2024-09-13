@@ -151,7 +151,7 @@ func (self *InlineStatusHelper) stop(opts InlineStatusOpts) {
 
 func (self *InlineStatusHelper) renderContext(contextKey types.ContextKey) {
 	self.c.OnUIThread(func() error {
-		_ = self.c.ContextForKey(contextKey).HandleRender()
+		self.c.ContextForKey(contextKey).HandleRender()
 		return nil
 	})
 }

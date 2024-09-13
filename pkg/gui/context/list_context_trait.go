@@ -49,7 +49,7 @@ func (self *ListContextTrait) FocusLine() {
 		} else if self.renderOnlyVisibleLines {
 			newOrigin, _ := self.GetViewTrait().ViewPortYBounds()
 			if oldOrigin != newOrigin {
-				return self.HandleRender()
+				self.HandleRender()
 			}
 		}
 		return nil
@@ -72,26 +72,26 @@ func formatListFooter(selectedLineIdx int, length int) string {
 	return fmt.Sprintf("%d of %d", selectedLineIdx+1, length)
 }
 
-func (self *ListContextTrait) HandleFocus(opts types.OnFocusOpts) error {
+func (self *ListContextTrait) HandleFocus(opts types.OnFocusOpts) {
 	self.FocusLine()
 
 	self.GetViewTrait().SetHighlight(self.list.Len() > 0)
 
-	return self.Context.HandleFocus(opts)
+	self.Context.HandleFocus(opts)
 }
 
-func (self *ListContextTrait) HandleFocusLost(opts types.OnFocusLostOpts) error {
+func (self *ListContextTrait) HandleFocusLost(opts types.OnFocusLostOpts) {
 	self.GetViewTrait().SetOriginX(0)
 
 	if self.refreshViewportOnChange {
 		self.refreshViewport()
 	}
 
-	return self.Context.HandleFocusLost(opts)
+	self.Context.HandleFocusLost(opts)
 }
 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
-func (self *ListContextTrait) HandleRender() error {
+func (self *ListContextTrait) HandleRender() {
 	self.list.ClampSelection()
 	if self.renderOnlyVisibleLines {
 		// Rendering only the visible area can save a lot of cell memory for
@@ -110,13 +110,12 @@ func (self *ListContextTrait) HandleRender() error {
 	}
 	self.c.Render()
 	self.setFooter()
-
-	return nil
 }
 
 func (self *ListContextTrait) OnSearchSelect(selectedLineIdx int) error {
 	self.GetList().SetSelection(self.ViewIndexToModelIndex(selectedLineIdx))
-	return self.HandleFocus(types.OnFocusOpts{})
+	self.HandleFocus(types.OnFocusOpts{})
+	return nil
 }
 
 func (self *ListContextTrait) IsItemVisible(item types.HasUrn) bool {
@@ -139,4 +138,12 @@ func (self *ListContextTrait) RangeSelectEnabled() bool {
 
 func (self *ListContextTrait) RenderOnlyVisibleLines() bool {
 	return self.renderOnlyVisibleLines
+}
+
+func (self *ListContextTrait) TotalContentHeight() int {
+	result := self.list.Len()
+	if self.getNonModelItems != nil {
+		result += len(self.getNonModelItems())
+	}
+	return result
 }

@@ -42,7 +42,7 @@ func (self *CachedGitConfig) Get(key string) string {
 	defer self.mutex.Unlock()
 
 	if value, ok := self.cache[key]; ok {
-		self.log.Debugf("using cache for key " + key)
+		self.log.Debug("using cache for key " + key)
 		return value
 	}
 
@@ -56,7 +56,7 @@ func (self *CachedGitConfig) GetGeneral(args string) string {
 	defer self.mutex.Unlock()
 
 	if value, ok := self.cache[args]; ok {
-		self.log.Debugf("using cache for args " + args)
+		self.log.Debug("using cache for args " + args)
 		return value
 	}
 
@@ -69,7 +69,7 @@ func (self *CachedGitConfig) getGeneralAux(args string) string {
 	cmd := getGitConfigGeneralCmd(args)
 	value, err := self.runGitConfigCmd(cmd)
 	if err != nil {
-		self.log.Debugf("Error getting git config value for args: " + args + ". Error: " + err.Error())
+		self.log.Debugf("Error getting git config value for args: %s. Error: %v", args, err.Error())
 		return ""
 	}
 	return strings.TrimSpace(value)
@@ -79,7 +79,7 @@ func (self *CachedGitConfig) getAux(key string) string {
 	cmd := getGitConfigCmd(key)
 	value, err := self.runGitConfigCmd(cmd)
 	if err != nil {
-		self.log.Debugf("Error getting git config value for key: " + key + ". Error: " + err.Error())
+		self.log.Debugf("Error getting git config value for key: %s. Error: %v", key, err.Error())
 		return ""
 	}
 	return strings.TrimSpace(value)

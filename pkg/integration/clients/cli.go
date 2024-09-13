@@ -49,7 +49,7 @@ func RunCLI(testNames []string, slow bool, sandbox bool, waitForDebugger bool, r
 
 func runAndPrintFatalError(test *components.IntegrationTest, f func() error) {
 	if err := f(); err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err.Error())
 	}
 }
 

@@ -105,9 +105,9 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 	}
 }
 
-func (self *RemoteBranchesController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *RemoteBranchesController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			var task types.UpdateTask
 			remoteBranch := self.context().GetSelected()
 			if remoteBranch == nil {
@@ -117,7 +117,7 @@ func (self *RemoteBranchesController) GetOnRenderToMain() func() error {
 				task = types.NewRunCommandTask(cmdObj.GetCmd())
 			}
 
-			return self.c.RenderToMainViews(types.RefreshMainOpts{
+			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title: "Remote Branch",
@@ -172,7 +172,7 @@ func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.Remot
 		},
 	)
 
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.SetUpstreamTitle,
 		Prompt: message,
 		HandleConfirm: func() error {
@@ -184,6 +184,8 @@ func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.Remot
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 		},
 	})
+
+	return nil
 }
 
 func (self *RemoteBranchesController) newLocalBranch(selectedBranch *models.RemoteBranch) error {

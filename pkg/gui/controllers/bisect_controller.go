@@ -201,10 +201,10 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 			{
 				Label: self.c.Tr.Bisect.ChooseTerms,
 				OnPress: func() error {
-					return self.c.Prompt(types.PromptOpts{
+					self.c.Prompt(types.PromptOpts{
 						Title: self.c.Tr.Bisect.OldTermPrompt,
 						HandleConfirm: func(oldTerm string) error {
-							return self.c.Prompt(types.PromptOpts{
+							self.c.Prompt(types.PromptOpts{
 								Title: self.c.Tr.Bisect.NewTermPrompt,
 								HandleConfirm: func(newTerm string) error {
 									self.c.LogAction(self.c.Tr.Actions.StartBisect)
@@ -215,8 +215,10 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 									return self.c.Helpers().Bisect.PostBisectCommandRefresh()
 								},
 							})
+							return nil
 						},
 					})
+					return nil
 				},
 				Key: 't',
 			},
@@ -235,7 +237,7 @@ func (self *BisectController) showBisectCompleteMessage(candidateHashes []string
 		return err
 	}
 
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.Bisect.CompleteTitle,
 		Prompt: fmt.Sprintf(prompt, strings.TrimSpace(formattedCommits)),
 		HandleConfirm: func() error {
@@ -247,6 +249,8 @@ func (self *BisectController) showBisectCompleteMessage(candidateHashes []string
 			return self.c.Helpers().Bisect.PostBisectCommandRefresh()
 		},
 	})
+
+	return nil
 }
 
 func (self *BisectController) afterMark(selectCurrent bool, waitToReselect bool) error {
@@ -290,7 +294,7 @@ func (self *BisectController) selectCurrentBisectCommit() {
 		for i, commit := range self.c.Model().Commits {
 			if commit.Hash == info.GetCurrentHash() {
 				self.context().SetSelection(i)
-				_ = self.context().HandleFocus(types.OnFocusOpts{})
+				self.context().HandleFocus(types.OnFocusOpts{})
 				break
 			}
 		}

@@ -34,6 +34,7 @@ var Pop = NewIntegrationTest(NewIntegrationTestArgs{
 			IsEmpty()
 
 		t.Views().Files().
+			IsFocused().
 			Lines(
 				Contains("file"),
 			)

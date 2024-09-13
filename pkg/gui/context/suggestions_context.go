@@ -70,7 +70,7 @@ func (self *SuggestionsContext) SetSuggestions(suggestions []*types.Suggestion) 
 	self.State.Suggestions = suggestions
 	self.SetSelection(0)
 	self.c.ResetViewOrigin(self.GetView())
-	_ = self.HandleRender()
+	self.HandleRender()
 }
 
 func (self *SuggestionsContext) RefreshSuggestions() {

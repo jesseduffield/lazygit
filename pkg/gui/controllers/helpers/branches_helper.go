@@ -32,7 +32,7 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteName string, branchName st
 			"upstream":           remoteName,
 		},
 	)
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  title,
 		Prompt: prompt,
 		HandleConfirm: func() error {
@@ -45,6 +45,8 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteName string, branchName st
 			})
 		},
 	})
+
+	return nil
 }
 
 func ShortBranchName(fullBranchName string) string {

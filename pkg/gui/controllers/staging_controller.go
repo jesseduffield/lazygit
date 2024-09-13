@@ -116,26 +116,25 @@ func (self *StagingController) GetMouseKeybindings(opts types.KeybindingsOpts) [
 	return []*gocui.ViewMouseBinding{}
 }
 
-func (self *StagingController) GetOnFocus() func(types.OnFocusOpts) error {
-	return func(opts types.OnFocusOpts) error {
+func (self *StagingController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(opts types.OnFocusOpts) {
 		self.c.Views().Staging.Wrap = false
 		self.c.Views().StagingSecondary.Wrap = false
 
-		return self.c.Helpers().Staging.RefreshStagingPanel(opts)
+		self.c.Helpers().Staging.RefreshStagingPanel(opts)
 	}
 }
 
-func (self *StagingController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
-	return func(opts types.OnFocusLostOpts) error {
+func (self *StagingController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(opts types.OnFocusLostOpts) {
 		self.context.SetState(nil)
 
 		if opts.NewContextKey != self.otherContext.GetKey() {
 			self.c.Views().Staging.Wrap = true
 			self.c.Views().StagingSecondary.Wrap = true
-			_ = self.c.Contexts().Staging.Render(false)
-			_ = self.c.Contexts().StagingSecondary.Render(false)
+			self.c.Contexts().Staging.Render(false)
+			self.c.Contexts().StagingSecondary.Render(false)
 		}
-		return nil
 	}
 }
 
@@ -172,12 +171,13 @@ func (self *StagingController) Escape() error {
 		return self.c.PostRefreshUpdate(self.context)
 	}
 
-	return self.c.Context().Pop()
+	self.c.Context().Pop()
+	return nil
 }
 
 func (self *StagingController) TogglePanel() error {
 	if self.otherContext.GetState() != nil {
-		return self.c.Context().Push(self.otherContext)
+		self.c.Context().Push(self.otherContext)
 	}
 
 	return nil
@@ -191,11 +191,13 @@ func (self *StagingController) DiscardSelection() error {
 	reset := func() error { return self.applySelectionAndRefresh(true) }
 
 	if !self.staged && !self.c.UserConfig().Gui.SkipDiscardChangeWarning {
-		return self.c.Confirm(types.ConfirmOpts{
+		self.c.Confirm(types.ConfirmOpts{
 			Title:         self.c.Tr.DiscardChangeTitle,
 			Prompt:        self.c.Tr.DiscardChangePrompt,
 			HandleConfirm: reset,
 		})
+
+		return nil
 	}
 
 	return reset()

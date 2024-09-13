@@ -75,8 +75,8 @@ func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*t
 	return bindings
 }
 
-func (self *WorktreesController) GetOnRenderToMain() func() error {
-	return func() error {
+func (self *WorktreesController) GetOnRenderToMain() func() {
+	return func() {
 		var task types.UpdateTask
 		worktree := self.context().GetSelected()
 		if worktree == nil {
@@ -102,7 +102,7 @@ func (self *WorktreesController) GetOnRenderToMain() func() error {
 			task = types.NewRenderStringTask(builder.String())
 		}
 
-		return self.c.RenderToMainViews(types.RefreshMainOpts{
+		self.c.RenderToMainViews(types.RefreshMainOpts{
 			Pair: self.c.MainViewPairs().Normal,
 			Main: &types.ViewUpdateOpts{
 				Title: self.c.Tr.WorktreeTitle,

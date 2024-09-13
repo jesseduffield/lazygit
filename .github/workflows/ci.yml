@@ -170,9 +170,9 @@ jobs:
         with:
           go-version: 1.22.x
       - name: Lint
-        uses: golangci/golangci-lint-action@v3.7.0
+        uses: golangci/golangci-lint-action@v6.1.0
         with:
-          version: v1.58
+          version: v1.60
       - name: errors
         run: golangci-lint run
         if: ${{ failure() }}
@@ -225,8 +225,8 @@ jobs:
     if: github.ref != 'refs/heads/master'
     steps:
       # See https://github.com/actions/checkout/issues/552#issuecomment-1167086216
-      - name: "PR commits + 1"
-        run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> "${GITHUB_ENV}"
+      - name: "PR commits"
+        run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} ))" >> "${GITHUB_ENV}"
 
       - name: "Checkout PR branch and all PR commits"
         uses: actions/checkout@v4
@@ -234,10 +234,6 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: ${{ env.PR_FETCH_DEPTH }}
-
-      - name: "Fetch the other branch with enough history for a common merge-base commit"
-        run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }}
 
       - name: Check for fixups
         run: |

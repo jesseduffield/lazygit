@@ -88,7 +88,8 @@ func (self *RenameSimilarityThresholdController) applyChange() error {
 	case context.FILES_CONTEXT_KEY:
 		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 	default:
-		return currentContext.HandleRenderToMain()
+		currentContext.HandleRenderToMain()
+		return nil
 	}
 }
 

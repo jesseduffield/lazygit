@@ -16,7 +16,7 @@ type BaseContext struct {
 	keybindingsFns      []types.KeybindingsFn
 	mouseKeybindingsFns []types.MouseKeybindingsFn
 	onClickFn           func() error
-	onRenderToMainFn    func() error
+	onRenderToMainFn    func()
 	onFocusFn           onFocusFn
 	onFocusLostFn       onFocusLostFn
 
@@ -31,8 +31,8 @@ type BaseContext struct {
 }
 
 type (
-	onFocusFn     = func(types.OnFocusOpts) error
-	onFocusLostFn = func(types.OnFocusLostOpts) error
+	onFocusFn     = func(types.OnFocusOpts)
+	onFocusLostFn = func(types.OnFocusLostOpts)
 )
 
 var _ types.IBaseContext = &BaseContext{}
@@ -148,13 +148,13 @@ func (self *BaseContext) GetOnClick() func() error {
 	return self.onClickFn
 }
 
-func (self *BaseContext) AddOnRenderToMainFn(fn func() error) {
+func (self *BaseContext) AddOnRenderToMainFn(fn func()) {
 	if fn != nil {
 		self.onRenderToMainFn = fn
 	}
 }
 
-func (self *BaseContext) GetOnRenderToMain() func() error {
+func (self *BaseContext) GetOnRenderToMain() func() {
 	return self.onRenderToMainFn
 }
 
@@ -211,4 +211,8 @@ func (self *BaseContext) NeedsRerenderOnHeightChange() bool {
 
 func (self *BaseContext) Title() string {
 	return ""
+}
+
+func (self *BaseContext) TotalContentHeight() int {
+	return self.view.ViewLinesHeight()
 }

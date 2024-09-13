@@ -296,6 +296,7 @@ type TranslationSet struct {
 	ReflogCommitsTitle                    string
 	ConflictsResolved                     string
 	Continue                              string
+	UnstagedFilesAfterConflictsResolved   string
 	RebasingTitle                         string
 	RebasingFromBaseCommitTitle           string
 	SimpleRebase                          string
@@ -445,7 +446,6 @@ type TranslationSet struct {
 	ScrollRight                           string
 	DiscardPatch                          string
 	DiscardPatchConfirm                   string
-	DiscardPatchSameCommitConfirm         string
 	CantPatchWhileRebasingError           string
 	ToggleAddToPatch                      string
 	ToggleAddToPatchTooltip               string
@@ -582,6 +582,7 @@ type TranslationSet struct {
 	OpenCommandLogMenu                    string
 	OpenCommandLogMenuTooltip             string
 	ShowingGitDiff                        string
+	ShowingDiffForRange                   string
 	CommitDiff                            string
 	CopyCommitHashToClipboard             string
 	CommitHash                            string
@@ -784,7 +785,8 @@ type TranslationSet struct {
 	MarkAsBaseCommit                         string
 	MarkAsBaseCommitTooltip                  string
 	MarkedCommitMarker                       string
-	PleaseGoToURL                            string
+	FailedToOpenURL                          string
+	InvalidLazygitEditURL                    string
 	NoCopiedCommits                          string
 	DisabledMenuItemPrefix                   string
 	QuickStartInteractiveRebase              string
@@ -1277,6 +1279,7 @@ func EnglishTranslationSet() *TranslationSet {
 		GlobalTitle:                          "Global keybindings",
 		ConflictsResolved:                    "All merge conflicts resolved. Continue?",
 		Continue:                             "Continue",
+		UnstagedFilesAfterConflictsResolved:  "Files have been modified since conflicts were resolved. Auto-stage them and continue?",
 		Keybindings:                          "Keybindings",
 		KeybindingsMenuSectionLocal:          "Local",
 		KeybindingsMenuSectionGlobal:         "Global",
@@ -1434,7 +1437,6 @@ func EnglishTranslationSet() *TranslationSet {
 		ScrollRight:                          "Scroll right",
 		DiscardPatch:                         "Discard patch",
 		DiscardPatchConfirm:                  "You can only build a patch from one commit/stash-entry at a time. Discard current patch?",
-		DiscardPatchSameCommitConfirm:        "You currently have changes added to a patch for this commit. Discard current patch?",
 		CantPatchWhileRebasingError:          "You cannot build a patch or run patch commands while in a merging or rebasing state",
 		ToggleAddToPatch:                     "Toggle file included in patch",
 		ToggleAddToPatchTooltip:              "Toggle whether the file is included in the custom patch. See {{.doc}}.",
@@ -1570,6 +1572,7 @@ func EnglishTranslationSet() *TranslationSet {
 		OpenCommandLogMenu:                       "View command log options",
 		OpenCommandLogMenuTooltip:                "View options for the command log e.g. show/hide the command log and focus the command log.",
 		ShowingGitDiff:                           "Showing output for:",
+		ShowingDiffForRange:                      "Showing diff for range",
 		CommitDiff:                               "Commit diff",
 		CopyCommitHashToClipboard:                "Copy commit hash to clipboard",
 		CommitHash:                               "Commit hash",
@@ -1719,7 +1722,7 @@ func EnglishTranslationSet() *TranslationSet {
 		MovePatchIntoNewCommit:                   "Move patch into new commit",
 		MovePatchIntoNewCommitTooltip:            "Move the patch out of its commit and into a new commit sitting on top of the original commit. This is achieved by starting an interactive rebase at the original commit, applying the patch in reverse, then applying the patch to the index and committing it as a new commit, before continuing the rebase to completion. If later commits depend on the patch, you may need to resolve conflicts.",
 		MovePatchToSelectedCommit:                "Move patch to selected commit (%s)",
-		MovePatchToSelectedCommitTooltip:         "Move the patch out of its original commit and into the selected commit. This is achieved by starting an interactive rebase at the original commit, applying the patch in reverse, then continuing the rebase up to the selected commit, before applying the patch forward and amending the seleced commit. The rebase is then continued to completion. If commits between the source and destination commit depend on the patch, you may need to resolve conflicts.",
+		MovePatchToSelectedCommitTooltip:         "Move the patch out of its original commit and into the selected commit. This is achieved by starting an interactive rebase at the original commit, applying the patch in reverse, then continuing the rebase up to the selected commit, before applying the patch forward and amending the selected commit. The rebase is then continued to completion. If commits between the source and destination commit depend on the patch, you may need to resolve conflicts.",
 		CopyPatchToClipboard:                     "Copy patch to clipboard",
 		NoMatchesFor:                             "No matches for '%s' %s",
 		ExitSearchMode:                           "%s: Exit search mode",
@@ -1770,7 +1773,8 @@ func EnglishTranslationSet() *TranslationSet {
 		MarkAsBaseCommit:                         "Mark as base commit for rebase",
 		MarkAsBaseCommitTooltip:                  "Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command.",
 		MarkedCommitMarker:                       "↑↑↑ Will rebase from here ↑↑↑",
-		PleaseGoToURL:                            "Please go to {{.url}}",
+		FailedToOpenURL:                          "Failed to open URL %s\n\nError: %v",
+		InvalidLazygitEditURL:                    "Invalid lazygit-edit URL format: %s",
 		DisabledMenuItemPrefix:                   "Disabled: ",
 		NoCopiedCommits:                          "No copied commits",
 		QuickStartInteractiveRebase:              "Start interactive rebase",

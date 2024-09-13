@@ -10,7 +10,7 @@ var usersFileContent = `package main
 import "fmt"
 
 func main() {
-	// TODO: verify that this actuall works
+	// TODO: verify that this actually works
 	fmt.Println("hello world")
 }
 `

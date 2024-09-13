@@ -89,7 +89,7 @@ func (self *UndoController) reflogUndo() error {
 
 		switch action.kind {
 		case COMMIT, REBASE:
-			return true, self.c.Confirm(types.ConfirmOpts{
+			self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Undo,
 				Prompt: fmt.Sprintf(self.c.Tr.HardResetAutostashPrompt, action.from),
 				HandleConfirm: func() error {
@@ -100,8 +100,10 @@ func (self *UndoController) reflogUndo() error {
 					})
 				},
 			})
+			return true, nil
+
 		case CHECKOUT:
-			return true, self.c.Confirm(types.ConfirmOpts{
+			self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Undo,
 				Prompt: fmt.Sprintf(self.c.Tr.CheckoutPrompt, action.from),
 				HandleConfirm: func() error {
@@ -112,6 +114,7 @@ func (self *UndoController) reflogUndo() error {
 					})
 				},
 			})
+			return true, nil
 
 		case CURRENT_REBASE:
 			// do nothing
@@ -140,7 +143,7 @@ func (self *UndoController) reflogRedo() error {
 
 		switch action.kind {
 		case COMMIT, REBASE:
-			return true, self.c.Confirm(types.ConfirmOpts{
+			self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Redo,
 				Prompt: fmt.Sprintf(self.c.Tr.HardResetAutostashPrompt, action.to),
 				HandleConfirm: func() error {
@@ -151,9 +154,10 @@ func (self *UndoController) reflogRedo() error {
 					})
 				},
 			})
+			return true, nil
 
 		case CHECKOUT:
-			return true, self.c.Confirm(types.ConfirmOpts{
+			self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Redo,
 				Prompt: fmt.Sprintf(self.c.Tr.CheckoutPrompt, action.to),
 				HandleConfirm: func() error {
@@ -164,6 +168,8 @@ func (self *UndoController) reflogRedo() error {
 					})
 				},
 			})
+			return true, nil
+
 		case CURRENT_REBASE:
 			// do nothing
 		}
@@ -242,7 +248,7 @@ func (self *UndoController) hardResetWithAutoStash(commitHash string, options ha
 	dirtyWorkingTree := self.c.Helpers().WorkingTree.IsWorkingTreeDirty()
 	if dirtyWorkingTree {
 		// offer to autostash changes
-		return self.c.Confirm(types.ConfirmOpts{
+		self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.AutoStashTitle,
 			Prompt: self.c.Tr.AutoStashPrompt,
 			HandleConfirm: func() error {
@@ -262,6 +268,7 @@ func (self *UndoController) hardResetWithAutoStash(commitHash string, options ha
 				})
 			},
 		})
+		return nil
 	}
 
 	return self.c.WithWaitingStatus(options.WaitingStatus, func(gocui.Task) error {

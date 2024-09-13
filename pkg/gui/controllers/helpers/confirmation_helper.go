@@ -28,9 +28,7 @@ func (self *ConfirmationHelper) wrappedConfirmationFunction(cancel goContext.Can
 	return func() error {
 		cancel()
 
-		if err := self.c.Context().Pop(); err != nil {
-			return err
-		}
+		self.c.Context().Pop()
 
 		if function != nil {
 			if err := function(); err != nil {
@@ -157,13 +155,13 @@ func (self *ConfirmationHelper) getPopupPanelWidth() int {
 
 func (self *ConfirmationHelper) prepareConfirmationPanel(
 	opts types.ConfirmOpts,
-) error {
+) {
 	self.c.Views().Confirmation.Title = opts.Title
 	// for now we do not support wrapping in our editor
 	self.c.Views().Confirmation.Wrap = !opts.Editable
 	self.c.Views().Confirmation.FgColor = theme.GocuiDefaultTextColor
 	self.c.Views().Confirmation.Mask = runeForMask(opts.Mask)
-	_ = self.c.Views().Confirmation.SetOrigin(0, 0)
+	self.c.Views().Confirmation.SetOrigin(0, 0)
 
 	suggestionsContext := self.c.Contexts().Suggestions
 	suggestionsContext.State.FindSuggestions = opts.FindSuggestionsFunc
@@ -176,8 +174,6 @@ func (self *ConfirmationHelper) prepareConfirmationPanel(
 		suggestionsView.Title = fmt.Sprintf(self.c.Tr.SuggestionsTitle, self.c.UserConfig().Keybinding.Universal.TogglePanel)
 		suggestionsView.Subtitle = ""
 	}
-
-	return nil
 }
 
 func runeForMask(mask bool) rune {
@@ -187,7 +183,7 @@ func runeForMask(mask bool) rune {
 	return 0
 }
 
-func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts types.CreatePopupPanelOpts) error {
+func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts types.CreatePopupPanelOpts) {
 	self.c.Mutexes().PopupMutex.Lock()
 	defer self.c.Mutexes().PopupMutex.Unlock()
 
@@ -201,13 +197,13 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 	if currentPopupOpts != nil && !currentPopupOpts.HasLoader {
 		self.c.Log.Error("ignoring create popup panel because a popup panel is already open")
 		cancel()
-		return nil
+		return
 	}
 
 	// remove any previous keybindings
 	self.clearConfirmationViewKeyBindings()
 
-	err := self.prepareConfirmationPanel(
+	self.prepareConfirmationPanel(
 		types.ConfirmOpts{
 			Title:               opts.Title,
 			Prompt:              opts.Prompt,
@@ -215,10 +211,6 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 			Editable:            opts.Editable,
 			Mask:                opts.Mask,
 		})
-	if err != nil {
-		cancel()
-		return err
-	}
 	confirmationView := self.c.Views().Confirmation
 	confirmationView.Editable = opts.Editable
 
@@ -232,16 +224,13 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 		self.c.SetViewContent(confirmationView, style.AttrBold.Sprint(underlineLinks(opts.Prompt)))
 	}
 
-	if err := self.setKeyBindings(cancel, opts); err != nil {
-		cancel()
-		return err
-	}
+	self.setKeyBindings(cancel, opts)
 
 	self.c.Contexts().Suggestions.State.AllowEditSuggestion = opts.AllowEditSuggestion
 
 	self.c.State().GetRepoState().SetCurrentPopupOpts(&opts)
 
-	return self.c.Context().Push(self.c.Contexts().Confirmation)
+	self.c.Context().Push(self.c.Contexts().Confirmation)
 }
 
 func underlineLinks(text string) string {
@@ -259,18 +248,14 @@ func underlineLinks(text string) string {
 		} else {
 			linkEnd += linkStart
 		}
-		underlinedLink := style.AttrUnderline.Sprint(remaining[linkStart:linkEnd])
-		if strings.HasSuffix(underlinedLink, "\x1b[0m") {
-			// Replace the "all styles off" code with "underline off" code
-			underlinedLink = underlinedLink[:len(underlinedLink)-2] + "24m"
-		}
+		underlinedLink := style.PrintSimpleHyperlink(remaining[linkStart:linkEnd])
 		result += remaining[:linkStart] + underlinedLink
 		remaining = remaining[linkEnd:]
 	}
 	return result + remaining
 }
 
-func (self *ConfirmationHelper) setKeyBindings(cancel goContext.CancelFunc, opts types.CreatePopupPanelOpts) error {
+func (self *ConfirmationHelper) setKeyBindings(cancel goContext.CancelFunc, opts types.CreatePopupPanelOpts) {
 	var onConfirm func() error
 	if opts.HandleConfirmPrompt != nil {
 		onConfirm = self.wrappedPromptConfirmationFunction(cancel, opts.HandleConfirmPrompt, func() string { return self.c.Views().Confirmation.TextArea.GetContent() })
@@ -300,8 +285,6 @@ func (self *ConfirmationHelper) setKeyBindings(cancel goContext.CancelFunc, opts
 	self.c.Contexts().Suggestions.State.OnConfirm = onSuggestionConfirm
 	self.c.Contexts().Suggestions.State.OnClose = onClose
 	self.c.Contexts().Suggestions.State.OnDeleteSuggestion = onDeleteSuggestion
-
-	return nil
 }
 
 func (self *ConfirmationHelper) clearConfirmationViewKeyBindings() {
@@ -362,7 +345,7 @@ func (self *ConfirmationHelper) resizeMenu(parentPopupContext types.Context) {
 }
 
 // Wraps the lines of the menu prompt to the available width and rerenders the
-// menu if neeeded. Returns the number of lines the prompt takes up.
+// menu if needed. Returns the number of lines the prompt takes up.
 func (self *ConfirmationHelper) layoutMenuPrompt(contentWidth int) int {
 	oldPromptLines := self.c.Contexts().Menu.GetPromptLines()
 	var promptLines []string
@@ -381,11 +364,11 @@ func (self *ConfirmationHelper) layoutMenuPrompt(contentWidth int) int {
 		// We need to rerender to give the menu context a chance to update its
 		// non-model items, and reinitialize the data it uses for converting
 		// between view index and model index.
-		_ = self.c.Contexts().Menu.HandleRender()
+		self.c.Contexts().Menu.HandleRender()
 
 		// Then we need to refocus to ensure the cursor is in the right place in
 		// the view.
-		_ = self.c.Contexts().Menu.HandleFocus(types.OnFocusOpts{})
+		self.c.Contexts().Menu.HandleFocus(types.OnFocusOpts{})
 	}
 	return len(promptLines)
 }

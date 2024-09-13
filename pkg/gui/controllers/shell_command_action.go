@@ -15,7 +15,7 @@ type ShellCommandAction struct {
 }
 
 func (self *ShellCommandAction) Call() error {
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.ShellCommand,
 		FindSuggestionsFunc: self.GetShellCommandsHistorySuggestionsFunc(),
 		AllowEditSuggestion: true,
@@ -54,6 +54,8 @@ func (self *ShellCommandAction) Call() error {
 			return nil
 		},
 	})
+
+	return nil
 }
 
 func (self *ShellCommandAction) GetShellCommandsHistorySuggestionsFunc() func(string) []*types.Suggestion {

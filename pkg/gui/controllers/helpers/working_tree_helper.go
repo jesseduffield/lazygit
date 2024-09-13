@@ -72,7 +72,7 @@ func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfi
 }
 
 func (self *WorkingTreeHelper) OpenMergeTool() error {
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.MergeToolTitle,
 		Prompt: self.c.Tr.MergeToolPrompt,
 		HandleConfirm: func() error {
@@ -82,11 +82,13 @@ func (self *WorkingTreeHelper) OpenMergeTool() error {
 			)
 		},
 	})
+
+	return nil
 }
 
 func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage string) error {
 	return self.WithEnsureCommitableFiles(func() error {
-		return self.commitsHelper.OpenCommitMessagePanel(
+		self.commitsHelper.OpenCommitMessagePanel(
 			&OpenCommitMessagePanelOpts{
 				CommitIndex:      context.NoCommitIndex,
 				InitialMessage:   initialMessage,
@@ -97,6 +99,8 @@ func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage strin
 				OnSwitchToEditor: self.switchFromCommitMessagePanelToEditor,
 			},
 		)
+
+		return nil
 	})
 }
 
@@ -185,7 +189,7 @@ func (self *WorkingTreeHelper) WithEnsureCommitableFiles(handler func() error) e
 }
 
 func (self *WorkingTreeHelper) promptToStageAllAndRetry(retry func() error) error {
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.NoFilesStagedTitle,
 		Prompt: self.c.Tr.NoFilesStagedPrompt,
 		HandleConfirm: func() error {
@@ -200,6 +204,8 @@ func (self *WorkingTreeHelper) promptToStageAllAndRetry(retry func() error) erro
 			return retry()
 		},
 	})
+
+	return nil
 }
 
 // for when you need to refetch files before continuing an action. Runs synchronously.

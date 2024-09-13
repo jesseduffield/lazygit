@@ -60,5 +60,6 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	_ = gui.c.PostRefreshUpdate(gui.State.Contexts.Menu)
 
 	// TODO: ensure that if we're opened a menu from within a menu that it renders correctly
-	return gui.c.Context().Push(gui.State.Contexts.Menu)
+	gui.c.Context().Push(gui.State.Contexts.Menu)
+	return nil
 }

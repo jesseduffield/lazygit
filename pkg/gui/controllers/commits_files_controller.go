@@ -129,16 +129,15 @@ func (self *CommitFilesController) context() *context.CommitFilesContext {
 	return self.c.Contexts().CommitFiles
 }
 
-func (self *CommitFilesController) GetOnRenderToMain() func() error {
-	return func() error {
+func (self *CommitFilesController) GetOnRenderToMain() func() {
+	return func() {
 		node := self.context().GetSelected()
 		if node == nil {
-			return nil
+			return
 		}
 
-		ref := self.context().GetRef()
-		to := ref.RefName()
-		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+		from, to := self.context().GetFromAndToForDiff()
+		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
 		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
 		task := types.NewRunPtyTask(cmdObj.GetCmd())
@@ -148,7 +147,7 @@ func (self *CommitFilesController) GetOnRenderToMain() func() error {
 			pair = self.c.MainViewPairs().PatchBuilding
 		}
 
-		return self.c.RenderToMainViews(types.RefreshMainOpts{
+		self.c.RenderToMainViews(types.RefreshMainOpts{
 			Pair: pair,
 			Main: &types.ViewUpdateOpts{
 				Title:    self.c.Tr.Patch,
@@ -187,7 +186,7 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 		return err
 	}
 
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DiscardFileChangesTitle,
 		Prompt: self.c.Tr.DiscardFileChangesPrompt,
 		HandleConfirm: func() error {
@@ -225,6 +224,8 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 			})
 		},
 	})
+
+	return nil
 }
 
 func (self *CommitFilesController) open(node *filetree.CommitFileNode) error {
@@ -250,9 +251,8 @@ func (self *CommitFilesController) canEditFiles(nodes []*filetree.CommitFileNode
 }
 
 func (self *CommitFilesController) openDiffTool(node *filetree.CommitFileNode) error {
-	ref := self.context().GetRef()
-	to := ref.RefName()
-	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	from, to := self.context().GetFromAndToForDiff()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 	_, err := self.c.RunSubprocess(self.c.Git().Diff.OpenDiffToolCmdObj(
 		git_commands.DiffToolCmdOptions{
 			Filepath:    node.GetPath(),
@@ -307,8 +307,9 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 		})
 	}
 
-	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.To != self.context().GetRef().RefName() {
-		return self.c.Confirm(types.ConfirmOpts{
+	from, to, reverse := self.currentFromToReverseForPatchBuilding()
+	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse) {
+		self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardPatch,
 			Prompt: self.c.Tr.DiscardPatchConfirm,
 			HandleConfirm: func() error {
@@ -316,6 +317,8 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 				return toggle()
 			},
 		})
+
+		return nil
 	}
 
 	return toggle()
@@ -330,12 +333,18 @@ func (self *CommitFilesController) startPatchBuilder() error {
 	commitFilesContext := self.context()
 
 	canRebase := commitFilesContext.GetCanRebase()
-	ref := commitFilesContext.GetRef()
-	to := ref.RefName()
-	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	from, to, reverse := self.currentFromToReverseForPatchBuilding()
 
 	self.c.Git().Patch.PatchBuilder.Start(from, to, reverse, canRebase)
 	return nil
+}
+
+func (self *CommitFilesController) currentFromToReverseForPatchBuilding() (string, string, bool) {
+	commitFilesContext := self.context()
+
+	from, to := commitFilesContext.GetFromAndToForDiff()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
+	return from, to, reverse
 }
 
 func (self *CommitFilesController) enter(node *filetree.CommitFileNode) error {
@@ -354,11 +363,13 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 			}
 		}
 
-		return self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
+		self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
+		return nil
 	}
 
-	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.To != self.context().GetRef().RefName() {
-		return self.c.Confirm(types.ConfirmOpts{
+	from, to, reverse := self.currentFromToReverseForPatchBuilding()
+	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse) {
+		self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardPatch,
 			Prompt: self.c.Tr.DiscardPatchConfirm,
 			HandleConfirm: func() error {
@@ -366,6 +377,8 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 				return enterTheFile()
 			},
 		})
+
+		return nil
 	}
 
 	return enterTheFile()

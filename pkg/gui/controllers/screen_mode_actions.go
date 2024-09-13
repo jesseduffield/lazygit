@@ -17,7 +17,8 @@ func (self *ScreenModeActions) Next() error {
 		),
 	)
 
-	return self.rerenderViewsWithScreenModeDependentContent()
+	self.rerenderViewsWithScreenModeDependentContent()
+	return nil
 }
 
 func (self *ScreenModeActions) Prev() error {
@@ -28,31 +29,28 @@ func (self *ScreenModeActions) Prev() error {
 		),
 	)
 
-	return self.rerenderViewsWithScreenModeDependentContent()
+	self.rerenderViewsWithScreenModeDependentContent()
+	return nil
 }
 
 // these views need to be re-rendered when the screen mode changes. The commits view,
 // for example, will show authorship information in half and full screen mode.
-func (self *ScreenModeActions) rerenderViewsWithScreenModeDependentContent() error {
+func (self *ScreenModeActions) rerenderViewsWithScreenModeDependentContent() {
 	for _, context := range self.c.Context().AllList() {
 		if context.NeedsRerenderOnWidthChange() == types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_SCREEN_MODE_CHANGES {
-			if err := self.rerenderView(context.GetView()); err != nil {
-				return err
-			}
+			self.rerenderView(context.GetView())
 		}
 	}
-
-	return nil
 }
 
-func (self *ScreenModeActions) rerenderView(view *gocui.View) error {
+func (self *ScreenModeActions) rerenderView(view *gocui.View) {
 	context, ok := self.c.Helpers().View.ContextForView(view.Name())
 	if !ok {
 		self.c.Log.Errorf("no context found for view %s", view.Name())
-		return nil
+		return
 	}
 
-	return context.HandleRender()
+	context.HandleRender()
 }
 
 func nextIntInCycle(sl []types.WindowMaximisation, current types.WindowMaximisation) types.WindowMaximisation {

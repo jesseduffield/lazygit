@@ -196,9 +196,13 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig) (*UserConfig, e
 			return nil, err
 		}
 
+		existingCustomCommands := base.CustomCommands
+
 		if err := yaml.Unmarshal(content, base); err != nil {
 			return nil, fmt.Errorf("The config at `%s` couldn't be parsed, please inspect it before opening up an issue.\n%w", path, err)
 		}
+
+		base.CustomCommands = append(base.CustomCommands, existingCustomCommands...)
 
 		if err := base.Validate(); err != nil {
 			return nil, fmt.Errorf("The config at `%s` has a validation error.\n%w", path, err)
