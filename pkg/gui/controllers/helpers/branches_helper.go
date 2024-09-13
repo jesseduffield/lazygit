@@ -97,6 +97,59 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteName string, branchName st
 	return nil
 }
 
+func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branch *models.Branch) error {
+	if self.checkedOutByOtherWorktree(branch) {
+		return self.promptWorktreeBranchDelete(branch)
+	}
+
+	isMerged, err := self.c.Git().Branch.IsBranchMerged(branch, self.c.Model().MainBranches)
+	if err != nil {
+		return err
+	}
+
+	prompt := utils.ResolvePlaceholderString(
+		self.c.Tr.DeleteLocalAndRemoteBranchPrompt,
+		map[string]string{
+			"localBranchName":  branch.Name,
+			"remoteBranchName": branch.UpstreamBranch,
+			"remoteName":       branch.UpstreamRemote,
+		},
+	)
+
+	if !isMerged {
+		prompt += "\n\n" + utils.ResolvePlaceholderString(
+			self.c.Tr.ForceDeleteBranchMessage,
+			map[string]string{
+				"selectedBranchName": branch.Name,
+			},
+		)
+	}
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.DeleteLocalAndRemoteBranch,
+		Prompt: prompt,
+		HandleConfirm: func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
+				// Delete the remote branch first so that we keep the local one
+				// in case of failure
+				self.c.LogAction(self.c.Tr.Actions.DeleteRemoteBranch)
+				if err := self.c.Git().Remote.DeleteRemoteBranch(task, branch.UpstreamRemote, branch.Name); err != nil {
+					return err
+				}
+
+				self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
+				if err := self.c.Git().Branch.LocalDelete(branch.Name, true); err != nil {
+					return err
+				}
+
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+			})
+		},
+	})
+
+	return nil
+}
+
 func ShortBranchName(fullBranchName string) string {
 	return strings.TrimPrefix(strings.TrimPrefix(fullBranchName, "refs/heads/"), "refs/remotes/")
 }
