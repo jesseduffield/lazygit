@@ -321,7 +321,7 @@ If you would instead like to start an interactive rebase from the selected commi
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <space> `` | 체크아웃 | Checkout the selected tag tag as a detached HEAD. |
+| `` <space> `` | 체크아웃 | Checkout the selected tag as a detached HEAD. |
 | `` n `` | 태그를 생성 | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | 태그를 push | Push the selected tag to a remote. You'll be prompted to select a remote. |

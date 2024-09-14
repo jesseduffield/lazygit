@@ -1076,7 +1076,7 @@ func EnglishTranslationSet() *TranslationSet {
 		Checkout:                             "Checkout",
 		CheckoutTooltip:                      "Checkout selected item.",
 		CantCheckoutBranchWhilePulling:       "You cannot checkout another branch while pulling the current branch",
-		TagCheckoutTooltip:                   "Checkout the selected tag tag as a detached HEAD.",
+		TagCheckoutTooltip:                   "Checkout the selected tag as a detached HEAD.",
 		RemoteBranchCheckoutTooltip:          "Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head.",
 		CantPullOrPushSameBranchTwice:        "You cannot push or pull a branch while it is already being pushed or pulled",
 		FileFilter:                           "Filter files by status",

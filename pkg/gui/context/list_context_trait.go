@@ -131,7 +131,7 @@ func (self *ListContextTrait) IsItemVisible(item types.HasUrn) bool {
 	return false
 }
 
-// By default, list contexts supporta range select
+// By default, list contexts supports range select
 func (self *ListContextTrait) RangeSelectEnabled() bool {
 	return true
 }

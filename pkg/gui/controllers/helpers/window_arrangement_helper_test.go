@@ -422,7 +422,7 @@ func renderLayout(windows map[string]boxlayout.Dimensions) string {
 		return dimensionsA.X0 < dimensionsB.X0
 	})
 
-	// Uniquefy windows by dimensions (so perfectly overlapping windows are de-duped). This prevents getting 'fileshes' as a label where the files and branches windows overlap.
+	// Uniquify windows by dimensions (so perfectly overlapping windows are de-duped). This prevents getting 'fileshes' as a label where the files and branches windows overlap.
 	// branches windows overlap.
 	windowNames = lo.UniqBy(windowNames, func(windowName string) boxlayout.Dimensions {
 		return windows[windowName]

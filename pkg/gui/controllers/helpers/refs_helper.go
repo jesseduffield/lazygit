@@ -75,7 +75,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 				return options.OnRefNotFound(ref)
 			}
 
-			if IsSwitchBranchUncommitedChangesError(err) {
+			if IsSwitchBranchUncommittedChangesError(err) {
 				// offer to autostash changes
 				self.c.OnUIThread(func() error {
 					// (Before showing the prompt, render again to remove the inline status)
@@ -353,7 +353,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 				newBranchFunc = self.c.Git().Branch.NewWithoutTracking
 			}
 			if err := newBranchFunc(newBranchName, from); err != nil {
-				if IsSwitchBranchUncommitedChangesError(err) {
+				if IsSwitchBranchUncommittedChangesError(err) {
 					// offer to autostash changes
 					self.c.Confirm(types.ConfirmOpts{
 						Title:  self.c.Tr.AutoStashTitle,
@@ -413,6 +413,6 @@ func (self *RefsHelper) ParseRemoteBranchName(fullBranchName string) (string, st
 	return remoteName, branchName, true
 }
 
-func IsSwitchBranchUncommitedChangesError(err error) bool {
+func IsSwitchBranchUncommittedChangesError(err error) bool {
 	return strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch")
 }

@@ -348,7 +348,7 @@ If you would instead like to start an interactive rebase from the selected commi
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <space> `` | Checkout | Checkout the selected tag tag as a detached HEAD. |
+| `` <space> `` | Checkout | Checkout the selected tag as a detached HEAD. |
 | `` n `` | New tag | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | Push tag | Push the selected tag to a remote. You'll be prompted to select a remote. |
