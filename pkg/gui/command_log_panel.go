@@ -40,6 +40,7 @@ func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {
 	}
 
 	gui.Views.Extras.Autoscroll = true
+	gui.Views.Extras.UnderlineHyperLinksOnlyOnHover = true
 
 	textStyle := theme.DefaultTextColor
 	if !commandLine {
@@ -64,7 +65,7 @@ func (gui *Gui) printCommandLogHeader() {
 			gui.Views.Extras,
 			"%s: %s",
 			style.FgYellow.Sprint(gui.c.Tr.RandomTip),
-			style.FgGreen.Sprint(gui.getRandomTip()),
+			style.FgGreen.Sprint(style.UnderlineLinks(gui.getRandomTip())),
 		)
 	}
 }

@@ -1,4 +1,4 @@
-package helpers
+package style
 
 import (
 	"testing"
@@ -56,7 +56,7 @@ func Test_underlineLinks(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			result := underlineLinks(s.text)
+			result := UnderlineLinks(s.text)
 			assert.Equal(t, s.expectedResult, result)
 		})
 	}

@@ -59,7 +59,7 @@ func (gui *Gui) scrollDownExtra() error {
 }
 
 func (gui *Gui) getCmdWriter() io.Writer {
-	return &prefixWriter{writer: gui.Views.Extras, prefix: style.FgMagenta.Sprintf("\n\n%s\n", gui.c.Tr.GitOutput)}
+	return &prefixWriter{writer: gui.Views.Extras, prefix: style.FgMagenta.Sprintf("\n\n%s\n", style.UnderlineLinks(gui.c.Tr.GitOutput))}
 }
 
 // Ensures that the first write is preceded by writing a prefix.
@@ -80,5 +80,5 @@ func (self *prefixWriter) Write(p []byte) (int, error) {
 			return n, err
 		}
 	}
-	return self.writer.Write(p)
+	return self.writer.Write([]byte(style.UnderlineLinks(p)))
 }
