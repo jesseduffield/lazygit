@@ -122,7 +122,7 @@ func TestOSCommandFileType(t *testing.T) {
 			},
 		},
 		{
-			"nonExistant",
+			"nonExistent",
 			func() {},
 			func(output string) {
 				assert.EqualValues(t, "other", output)

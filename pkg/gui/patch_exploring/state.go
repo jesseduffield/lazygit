@@ -32,7 +32,7 @@ const (
 func NewState(diff string, selectedLineIdx int, oldState *State, log *logrus.Entry) *State {
 	if oldState != nil && diff == oldState.diff && selectedLineIdx == -1 {
 		// if we're here then we can return the old state. If selectedLineIdx was not -1
-		// then that would mean we were trying to click and potentiall drag a range, which
+		// then that would mean we were trying to click and potentially drag a range, which
 		// is why in that case we continue below
 		return oldState
 	}

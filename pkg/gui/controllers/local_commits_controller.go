@@ -696,7 +696,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 			Title:  self.c.Tr.AmendCommitTitle,
 			Prompt: self.c.Tr.AmendCommitPrompt,
 			HandleConfirm: func() error {
-				return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+				return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 					if err := self.c.Helpers().AmendHelper.AmendHead(); err != nil {
 						return err
 					}
@@ -712,7 +712,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		Title:  self.c.Tr.AmendCommitTitle,
 		Prompt: self.c.Tr.AmendCommitPrompt,
 		HandleConfirm: func() error {
-			return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+			return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 				return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 					self.c.LogAction(self.c.Tr.Actions.AmendCommit)
 					err := self.c.Git().Rebase.AmendTo(self.c.Model().Commits, self.context().GetView().SelectedLineIdx())
@@ -888,7 +888,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 				Label: self.c.Tr.FixupMenu_Fixup,
 				Key:   'f',
 				OnPress: func() error {
-					return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+					return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 						self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
 						return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
 							if err := self.c.Git().Commit.CreateFixupCommit(commit.Hash); err != nil {
@@ -911,7 +911,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 				Label: self.c.Tr.FixupMenu_AmendWithChanges,
 				Key:   'a',
 				OnPress: func() error {
-					return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+					return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 						return self.createAmendCommit(commit, true)
 					})
 				},
