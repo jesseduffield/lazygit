@@ -43,6 +43,7 @@ var tests = []*components.IntegrationTest{
 	branch.CreateTag,
 	branch.Delete,
 	branch.DeleteRemoteBranchWithCredentialPrompt,
+	branch.DeleteRemoteBranchWithDifferentName,
 	branch.DetachedHead,
 	branch.NewBranchAutostash,
 	branch.NewBranchFromRemoteTrackingDifferentName,
