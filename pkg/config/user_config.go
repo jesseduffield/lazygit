@@ -161,6 +161,10 @@ type GuiConfig struct {
 	// Status panel view.
 	// One of 'dashboard' (default) | 'allBranchesLog'
 	StatusPanelView string `yaml:"statusPanelView" jsonschema:"enum=dashboard,enum=allBranchesLog"`
+	// If true, jump to the Files panel after popping a stash
+	SwitchToFilesAfterStashPop bool `yaml:"switchToFilesAfterStashPop"`
+	// If true, jump to the Files panel after applying a stash
+	SwitchToFilesAfterStashApply bool `yaml:"switchToFilesAfterStashApply"`
 }
 
 func (c *GuiConfig) UseFuzzySearch() bool {
@@ -729,7 +733,9 @@ func GetDefaultConfig() *UserConfig {
 				Frames: []string{"|", "/", "-", "\\"},
 				Rate:   50,
 			},
-			StatusPanelView: "dashboard",
+			StatusPanelView:              "dashboard",
+			SwitchToFilesAfterStashPop:   true,
+			SwitchToFilesAfterStashApply: true,
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{
