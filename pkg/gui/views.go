@@ -171,6 +171,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Extras.Title = gui.c.Tr.CommandLog
 	gui.Views.Extras.Autoscroll = true
 	gui.Views.Extras.Wrap = true
+	gui.Views.Extras.AutoRenderHyperLinks = true
 
 	gui.Views.Snake.Title = gui.c.Tr.SnakeTitle
 	gui.Views.Snake.FgColor = gocui.ColorGreen
