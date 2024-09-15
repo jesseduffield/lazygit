@@ -111,7 +111,9 @@ func (self *StashController) handleStashApply(stashEntry *models.StashEntry) err
 		if err != nil {
 			return err
 		}
-		self.c.Context().Push(self.c.Contexts().Files)
+		if self.c.UserConfig().Gui.SwitchToFilesAfterStashApply {
+			self.c.Context().Push(self.c.Contexts().Files)
+		}
 		return nil
 	}
 
@@ -138,7 +140,9 @@ func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error
 		if err != nil {
 			return err
 		}
-		self.c.Context().Push(self.c.Contexts().Files)
+		if self.c.UserConfig().Gui.SwitchToFilesAfterStashPop {
+			self.c.Context().Push(self.c.Contexts().Files)
+		}
 		return nil
 	}
 

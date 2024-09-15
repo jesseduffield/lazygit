@@ -452,6 +452,16 @@
           ],
           "description": "Status panel view.\nOne of 'dashboard' (default) | 'allBranchesLog'",
           "default": "dashboard"
+        },
+        "switchToFilesAfterStashPop": {
+          "type": "boolean",
+          "description": "If true, jump to the Files panel after popping a stash",
+          "default": true
+        },
+        "switchToFilesAfterStashApply": {
+          "type": "boolean",
+          "description": "If true, jump to the Files panel after applying a stash",
+          "default": true
         }
       },
       "additionalProperties": false,

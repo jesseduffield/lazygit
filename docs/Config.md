@@ -246,6 +246,12 @@ gui:
   # One of 'dashboard' (default) | 'allBranchesLog'
   statusPanelView: dashboard
 
+  # If true, jump to the Files panel after popping a stash
+  switchToFilesAfterStashPop: true
+
+  # If true, jump to the Files panel after applying a stash
+  switchToFilesAfterStashApply: true
+
 # Config relating to git
 git:
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
