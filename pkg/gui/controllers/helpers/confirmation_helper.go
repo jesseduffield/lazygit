@@ -221,7 +221,7 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 		confirmationView.RenderTextArea()
 	} else {
 		self.c.ResetViewOrigin(confirmationView)
-		self.c.SetViewContent(confirmationView, style.AttrBold.Sprint(underlineLinks(opts.Prompt)))
+		self.c.SetViewContent(confirmationView, style.AttrBold.Sprint(opts.Prompt))
 	}
 
 	self.setKeyBindings(cancel, opts)
@@ -231,28 +231,6 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 	self.c.State().GetRepoState().SetCurrentPopupOpts(&opts)
 
 	self.c.Context().Push(self.c.Contexts().Confirmation)
-}
-
-func underlineLinks(text string) string {
-	result := ""
-	remaining := text
-	for {
-		linkStart := strings.Index(remaining, "https://")
-		if linkStart == -1 {
-			break
-		}
-
-		linkEnd := strings.IndexAny(remaining[linkStart:], " \n>")
-		if linkEnd == -1 {
-			linkEnd = len(remaining)
-		} else {
-			linkEnd += linkStart
-		}
-		underlinedLink := style.PrintSimpleHyperlink(remaining[linkStart:linkEnd])
-		result += remaining[:linkStart] + underlinedLink
-		remaining = remaining[linkEnd:]
-	}
-	return result + remaining
 }
 
 func (self *ConfirmationHelper) setKeyBindings(cancel goContext.CancelFunc, opts types.CreatePopupPanelOpts) {

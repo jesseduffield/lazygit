@@ -158,6 +158,7 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.Confirmation.Visible = false
 	gui.Views.Confirmation.Editor = gocui.EditorFunc(gui.promptEditor)
+	gui.Views.Confirmation.AutoRenderHyperLinks = true
 
 	gui.Views.Suggestions.Visible = false
 
