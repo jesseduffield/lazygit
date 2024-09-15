@@ -246,16 +246,18 @@ func (self *ChangeTodoActionsInstruction) run(common *common.Common) error {
 
 // Takes the hash of some commit, and the hash of a fixup commit that was created
 // at the end of the branch, then moves the fixup commit down to right after the
-// original commit, changing its type to "fixup"
+// original commit, changing its type to "fixup" (only if ChangeToFixup is true)
 type MoveFixupCommitDownInstruction struct {
-	OriginalHash string
-	FixupHash    string
+	OriginalHash  string
+	FixupHash     string
+	ChangeToFixup bool
 }
 
-func NewMoveFixupCommitDownInstruction(originalHash string, fixupHash string) Instruction {
+func NewMoveFixupCommitDownInstruction(originalHash string, fixupHash string, changeToFixup bool) Instruction {
 	return &MoveFixupCommitDownInstruction{
-		OriginalHash: originalHash,
-		FixupHash:    fixupHash,
+		OriginalHash:  originalHash,
+		FixupHash:     fixupHash,
+		ChangeToFixup: changeToFixup,
 	}
 }
 
@@ -269,7 +271,7 @@ func (self *MoveFixupCommitDownInstruction) SerializedInstructions() string {
 
 func (self *MoveFixupCommitDownInstruction) run(common *common.Common) error {
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveFixupCommitDown(path, self.OriginalHash, self.FixupHash, getCommentChar())
+		return utils.MoveFixupCommitDown(path, self.OriginalHash, self.FixupHash, self.ChangeToFixup, getCommentChar())
 	})
 }
 

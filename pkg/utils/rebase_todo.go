@@ -221,13 +221,13 @@ func moveTodosUp(todos []todo.Todo, todosToMove []Todo) ([]todo.Todo, error) {
 	return todos, nil
 }
 
-func MoveFixupCommitDown(fileName string, originalHash string, fixupHash string, commentChar byte) error {
+func MoveFixupCommitDown(fileName string, originalHash string, fixupHash string, changeToFixup bool, commentChar byte) error {
 	todos, err := ReadRebaseTodoFile(fileName, commentChar)
 	if err != nil {
 		return err
 	}
 
-	newTodos, err := moveFixupCommitDown(todos, originalHash, fixupHash)
+	newTodos, err := moveFixupCommitDown(todos, originalHash, fixupHash, changeToFixup)
 	if err != nil {
 		return err
 	}
@@ -235,7 +235,7 @@ func MoveFixupCommitDown(fileName string, originalHash string, fixupHash string,
 	return WriteRebaseTodoFile(fileName, newTodos, commentChar)
 }
 
-func moveFixupCommitDown(todos []todo.Todo, originalHash string, fixupHash string) ([]todo.Todo, error) {
+func moveFixupCommitDown(todos []todo.Todo, originalHash string, fixupHash string, changeToFixup bool) ([]todo.Todo, error) {
 	isOriginal := func(t todo.Todo) bool {
 		return (t.Command == todo.Pick || t.Command == todo.Merge) && equalHash(t.Commit, originalHash)
 	}
@@ -259,7 +259,9 @@ func moveFixupCommitDown(todos []todo.Todo, originalHash string, fixupHash strin
 
 	newTodos := MoveElement(todos, fixupIndex, originalIndex+1)
 
-	newTodos[originalIndex+1].Command = todo.Fixup
+	if changeToFixup {
+		newTodos[originalIndex+1].Command = todo.Fixup
+	}
 
 	return newTodos, nil
 }
