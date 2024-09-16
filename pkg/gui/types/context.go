@@ -227,8 +227,12 @@ type IViewTrait interface {
 }
 
 type OnFocusOpts struct {
-	ClickedWindowName       string
-	ClickedViewLineIdx      int
+	ClickedWindowName  string
+	ClickedViewLineIdx int
+
+	// If not -1, takes precedence over ClickedViewLineIdx.
+	ClickedViewRealLineIdx int
+
 	ScrollSelectionIntoView bool
 }
 
