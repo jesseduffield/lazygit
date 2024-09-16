@@ -66,8 +66,10 @@ func (self *PatchBuildingHelper) Reset() error {
 
 func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpts) {
 	selectedLineIdx := -1
+	selectedRealLineIdx := -1
 	if opts.ClickedWindowName == "main" {
 		selectedLineIdx = opts.ClickedViewLineIdx
+		selectedRealLineIdx = opts.ClickedViewRealLineIdx
 	}
 
 	if !self.c.Git().Patch.PatchBuilder.Active() {
@@ -99,7 +101,7 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 
 	oldState := context.GetState()
 
-	state := patch_exploring.NewState(diff, selectedLineIdx, context.GetView(), oldState, self.c.UserConfig().Gui.UseHunkModeInStagingView)
+	state := patch_exploring.NewState(diff, selectedLineIdx, selectedRealLineIdx, context.GetView(), oldState, self.c.UserConfig().Gui.UseHunkModeInStagingView)
 	context.SetState(state)
 	if state == nil {
 		self.Escape()
