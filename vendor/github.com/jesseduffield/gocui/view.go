@@ -1470,6 +1470,20 @@ func (v *View) Word(x, y int) (string, bool) {
 	return str[nl:nr], true
 }
 
+func (v *View) HyperLinkInLine(y int, urlScheme string) (string, bool) {
+	if y < 0 || y >= len(v.viewLines) {
+		return "", false
+	}
+
+	for _, c := range v.lines[v.viewLines[y].linesY] {
+		if strings.HasPrefix(c.hyperlink, urlScheme) {
+			return c.hyperlink, true
+		}
+	}
+
+	return "", false
+}
+
 // indexFunc allows to split lines by words taking into account spaces
 // and 0.
 func indexFunc(r rune) bool {

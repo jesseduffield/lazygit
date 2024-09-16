@@ -470,7 +470,7 @@ func (self *CommitFilesController) currentFromToReverseForPatchBuilding() (strin
 }
 
 func (self *CommitFilesController) enter(node *filetree.CommitFileNode) error {
-	return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
+	return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1, ClickedViewRealLineIdx: -1})
 }
 
 func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode, opts types.OnFocusOpts) error {
@@ -545,11 +545,35 @@ func (self *CommitFilesController) expandAll() error {
 
 func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
 	return func(mainViewName string, clickedLineIdx int) error {
-		node := self.getSelectedItem()
-		if node != nil && node.File != nil {
-			return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: clickedLineIdx})
+		clickedFile, line, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(mainViewName, clickedLineIdx)
+		if !ok {
+			line = -1
 		}
-		return nil
+
+		node := self.getSelectedItem()
+		if node == nil {
+			return nil
+		}
+
+		if !node.IsFile() && ok {
+			relativePath, err := filepath.Rel(self.c.Git().RepoPaths.RepoPath(), clickedFile)
+			if err != nil {
+				return err
+			}
+			relativePath = "./" + relativePath
+			self.context().CommitFileTreeViewModel.ExpandToPath(relativePath)
+			self.c.PostRefreshUpdate(self.context())
+
+			idx, ok := self.context().CommitFileTreeViewModel.GetIndexForPath(relativePath)
+			if ok {
+				self.context().SetSelectedLineIdx(idx)
+				self.context().GetViewTrait().FocusPoint(
+					self.context().ModelIndexToViewIndex(idx))
+				node = self.context().GetSelected()
+			}
+		}
+
+		return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line})
 	}
 }
 
