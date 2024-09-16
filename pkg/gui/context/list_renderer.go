@@ -121,7 +121,10 @@ func (self *ListRenderer) insertNonModelItems(
 			break
 		}
 		if item.Index+offset >= startIdx {
-			padding := strings.Repeat(" ", columnPositions[item.Column])
+			padding := ""
+			if columnPositions != nil {
+				padding = strings.Repeat(" ", columnPositions[item.Column])
+			}
 			lines = slices.Insert(lines, item.Index+offset-startIdx, padding+item.Content)
 		}
 		offset++
