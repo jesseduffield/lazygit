@@ -10,6 +10,8 @@ import (
 func BuildTreeFromFiles(files []*models.File) *Node[models.File] {
 	root := &Node[models.File]{}
 
+	childrenMapsByNode := make(map[*Node[models.File]]map[string]*Node[models.File])
+
 	var curr *Node[models.File]
 	for _, file := range files {
 		splitPath := split(file.Name)
@@ -23,11 +25,19 @@ func BuildTreeFromFiles(files []*models.File) *Node[models.File] {
 			}
 
 			path := join(splitPath[:i+1])
-			for _, existingChild := range curr.Children {
-				if existingChild.Path == path {
-					curr = existingChild
-					continue outer
-				}
+
+			var currNodeChildrenMap map[string]*Node[models.File]
+			var isCurrNodeMapped bool
+
+			if currNodeChildrenMap, isCurrNodeMapped = childrenMapsByNode[curr]; !isCurrNodeMapped {
+				currNodeChildrenMap = make(map[string]*Node[models.File])
+				childrenMapsByNode[curr] = currNodeChildrenMap
+			}
+
+			child, doesCurrNodeHaveChildAlready := currNodeChildrenMap[path]
+			if doesCurrNodeHaveChildAlready {
+				curr = child
+				continue outer
 			}
 
 			newChild := &Node[models.File]{
@@ -35,6 +45,8 @@ func BuildTreeFromFiles(files []*models.File) *Node[models.File] {
 				File: setFile,
 			}
 			curr.Children = append(curr.Children, newChild)
+
+			currNodeChildrenMap[path] = newChild
 
 			curr = newChild
 		}
