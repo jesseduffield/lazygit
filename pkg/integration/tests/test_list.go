@@ -65,6 +65,7 @@ var tests = []*components.IntegrationTest{
 	branch.SetUpstream,
 	branch.ShowDivergenceFromBaseBranch,
 	branch.ShowDivergenceFromUpstream,
+	branch.ShowDivergenceFromUpstreamNoDivergence,
 	branch.SortLocalBranches,
 	branch.SortRemoteBranches,
 	branch.SquashMerge,
