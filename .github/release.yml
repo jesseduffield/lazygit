@@ -21,6 +21,9 @@ changelog:
     - title: I18n 🌎
       labels:
         - i18n
+    - title: Performance Improvements 📊
+      labels:
+        - performance
     - title: Other Changes
       labels:
         - "*"

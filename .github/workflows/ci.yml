@@ -184,7 +184,7 @@ jobs:
         with:
           mode: exactly
           count: 1
-          labels: "ignore-for-release, feature, enhancement, bug, maintenance, docs, i18n"
+          labels: "ignore-for-release, feature, enhancement, bug, maintenance, docs, i18n, performance"
   upload-coverage:
     # List all jobs that produce coverage files
     needs: [unit-tests, integration-tests]
