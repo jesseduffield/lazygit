@@ -43,9 +43,6 @@ var CopyAuthorToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("clipboard").IsSelected(),
 			)
 
-		/* EXPECTED:
 		t.Views().Main().Content(Contains("/John Doe <john@doe.com>/"))
-		ACTUAL: */
-		t.Views().Main().Content(Contains("/'John Doe <john@doe.com'>/"))
 	},
 })
