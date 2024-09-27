@@ -21,6 +21,8 @@ var nameIconMap = map[string]IconProperties{
 	".bash_profile":              {Icon: "\ue615", Color: "#89E051"},     // 
 	".bashprofile":               {Icon: "\ue615", Color: "#89E051"},     // 
 	".bashrc":                    {Icon: "\ue795", Color: "#89E051"},     // 
+	".codespellrc":               {Icon: "\U000f04c6", Color: "#35DA60"}, // 󰓆
+	".condarc":                   {Icon: "\ue715", Color: "#43B02A"},     // 
 	".dockerignore":              {Icon: "\U000f0868", Color: "#458EE6"}, // 󰡨
 	".ds_store":                  {Icon: "\uf302", Color: "#78919C"},     // 
 	".editorconfig":              {Icon: "\ue652", Color: "#FFFFFF"},     // 
@@ -41,6 +43,7 @@ var nameIconMap = map[string]IconProperties{
 	".justfile":                  {Icon: "\uf0ad", Color: "#6D8086"},     // 
 	".luaurc":                    {Icon: "\ue615", Color: "#00A2FF"},     // 
 	".mailmap":                   {Icon: "\U000f01ee", Color: "#42A5F5"}, // 󰇮
+	".nanorc":                    {Icon: "\ue838", Color: "#440077"},     // 
 	".npmignore":                 {Icon: "\ued0e", Color: "#CC3837"},     // 
 	".npmrc":                     {Icon: "\ued0e", Color: "#CC3837"},     // 
 	".nuxtrc":                    {Icon: "\U000f1106", Color: "#00C58E"}, // 󱄆
@@ -80,6 +83,9 @@ var nameIconMap = map[string]IconProperties{
 	"Cargo.toml":                 {Icon: "\ue7a8", Color: "#DEA584"},     // 
 	"checkhealth":                {Icon: "\U000f04d9", Color: "#75B4FB"}, // 󰓙
 	"cmakelists.txt":             {Icon: "\ue615", Color: "#6D8086"},     // 
+	"CODE_OF_CONDUCT":            {Icon: "\uf4ae", Color: "#E41662"},     // 
+	"CODE_OF_CONDUCT.md":         {Icon: "\uf4ae", Color: "#E41662"},     // 
+	"CODE-OF-CONDUCT.md":         {Icon: "\uf4ae", Color: "#E41662"},     // 
 	"commit_editmsg":             {Icon: "\ue702", Color: "#F54D27"},     // 
 	"COMMIT_EDITMSG":             {Icon: "\ue702", Color: "#E54D18"},     // 
 	"commitlint.config.js":       {Icon: "\U000f0718", Color: "#039688"}, // 
@@ -130,6 +136,7 @@ var nameIconMap = map[string]IconProperties{
 	"hypridle.conf":              {Icon: "\uf359", Color: "#00AAAE"},     // 
 	"hyprland.conf":              {Icon: "\uf359", Color: "#00AAAE"},     // 
 	"hyprlock.conf":              {Icon: "\uf359", Color: "#00AAAE"},     // 
+	"hyprpaper.conf":             {Icon: "\uf359", Color: "#00AAAE"},     // 
 	"i3blocks.conf":              {Icon: "\uf35a", Color: "#E8EBEE"},     // 
 	"i3status.conf":              {Icon: "\uf35a", Color: "#E8EBEE"},     // 
 	"include":                    {Icon: "\ue5fc", Color: "#EEEEEE"},     // 
@@ -142,6 +149,8 @@ var nameIconMap = map[string]IconProperties{
 	"kritadisplayrc":             {Icon: "\uf33d", Color: "#F245FB"},     // 
 	"kritarc":                    {Icon: "\uf33d", Color: "#F245FB"},     // 
 	"lib":                        {Icon: "\U000f1517", Color: "#8BC34A"}, // 󱔗
+	"LICENSE":                    {Icon: "\uf02d", Color: "#EDEDED"},     // 
+	"LICENSE.md":                 {Icon: "\uf02d", Color: "#EDEDED"},     // 
 	"localized":                  {Icon: "\uf179", Color: "#DDDDDD"},     // 
 	"lxde-rc.xml":                {Icon: "\uf363", Color: "#909090"},     // 
 	"lxqt.conf":                  {Icon: "\uf364", Color: "#0192D3"},     // 
@@ -168,8 +177,12 @@ var nameIconMap = map[string]IconProperties{
 	"py.typed":                   {Icon: "\ue606", Color: "#ffbc03"},     // 
 	"QtProject.conf":             {Icon: "\uf375", Color: "#40CD52"},     // 
 	"R":                          {Icon: "\U000f07d4", Color: "#2266BA"}, // 󰟔
+	"README":                     {Icon: "\U000f00ba", Color: "#EDEDED"}, // 󰂺
+	"README.md":                  {Icon: "\U000f00ba", Color: "#EDEDED"}, // 󰂺
 	"robots.txt":                 {Icon: "\U000f06a9", Color: "#5D7096"}, // 󰚩
 	"rubydoc":                    {Icon: "\ue73b", Color: "#F32C24"},     // 
+	"SECURITY":                   {Icon: "\U000f0483", Color: "#BEC4C9"}, // 󰒃
+	"SECURITY.md":                {Icon: "\U000f0483", Color: "#BEC4C9"}, // 󰒃
 	"settings.gradle":            {Icon: "\ue660", Color: "#005F87"},     // 
 	"svelte.config.js":           {Icon: "\ue697", Color: "#FF5821"},     // 
 	"sxhkdrc":                    {Icon: "\uf355", Color: "#2F2F2F"},     // 
@@ -259,7 +272,8 @@ var extIconMap = map[string]IconProperties{
 	".cob":            {Icon: "\u2699", Color: "#005CA5"},     // ⚙
 	".cobol":          {Icon: "\u2699", Color: "#005CA5"},     // ⚙
 	".coffee":         {Icon: "\ue61b", Color: "#6F4E38"},     // 
-	".conf":           {Icon: "\uf013", Color: "#696969"},     // 
+	".conda":          {Icon: "\ue715", Color: "#43B02A"},     // 
+	".conf":           {Icon: "\uf013", Color: "#42A5F5"},     // 
 	".config.ru":      {Icon: "\ue791", Color: "#701516"},     // 
 	".cp":             {Icon: "\ue646", Color: "#0188D1"},     // 
 	".cpio":           {Icon: "\uf410", Color: "#ECA517"},     // 
@@ -666,13 +680,15 @@ var extIconMap = map[string]IconProperties{
 	".typoscript":     {Icon: "\ue772", Color: "#EA8220"},     // 
 	".tz":             {Icon: "\uf410", Color: "#ECA517"},     // 
 	".tzo":            {Icon: "\uf410", Color: "#ECA517"},     // 
+	".typ":            {Icon: "\uf37f", Color: "#0DBCC0"},     // 
 	".ui":             {Icon: "\uf2d0", Color: "#015BF0"},     // 
 	".v":              {Icon: "\ue6ac", Color: "#009CE5"},     // 
 	".vala":           {Icon: "\ue69e", Color: "#7B3DB9"},     // 
 	".vh":             {Icon: "\U000f035b", Color: "#009900"}, // 󰍛
 	".vhd":            {Icon: "\uf035b", Color: "#FF7043"},    // 󰍛
 	".vhdl":           {Icon: "\U000f035b", Color: "#009900"}, // 󰍛
-	".video":          {Icon: "\uf03d", Color: "#F6822B"},     // 
+	".video":          {Icon: "\uf03d", Color: "#626262"},     // 
+	".vi":             {Icon: "\ue81e", Color: "#FEC60A"},     // 
 	".vim":            {Icon: "\ue62b", Color: "#44A047"},     // 
 	".vsh":            {Icon: "\ue6ac", Color: "#5D87BF"},     // 
 	".vsix":           {Icon: "\U000f0a1e", Color: "#2296F3"}, // 󰨞
