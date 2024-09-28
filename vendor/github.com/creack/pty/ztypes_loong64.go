@@ -1,5 +1,5 @@
-//go:build s390x
-//+build s390x
+//go:build loong64
+// +build loong64
 
 // Created by cgo -godefs - DO NOT EDIT
 // cgo -godefs types.go
