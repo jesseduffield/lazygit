@@ -90,7 +90,7 @@ var nameIconMap = map[string]IconProperties{
 	"Cargo.lock":                 {Icon: "\ue7a8", Color: "#DEA584"},     // 
 	"Cargo.toml":                 {Icon: "\ue7a8", Color: "#DEA584"},     // 
 	"checkhealth":                {Icon: "\U000f04d9", Color: "#75B4FB"}, // 󰓙
-	"cmakelists.txt":             {Icon: "\ue615", Color: "#6D8086"},     // 
+	"cmakelists.txt":             {Icon: "\ue794", Color: "##DCE3EB"},    // 
 	"CODE_OF_CONDUCT":            {Icon: "\uf4ae", Color: "#E41662"},     // 
 	"CODE_OF_CONDUCT.md":         {Icon: "\uf4ae", Color: "#E41662"},     // 
 	"CODE-OF-CONDUCT.md":         {Icon: "\uf4ae", Color: "#E41662"},     // 
@@ -279,7 +279,7 @@ var extIconMap = map[string]IconProperties{
 	".cljd":           {Icon: "\ue76a", Color: "#519ABA"},     // 
 	".cljs":           {Icon: "\ue642", Color: "#2AB6F6"},     // 
 	".cls":            {Icon: "\ue69b", Color: "#4B5163"},     // 
-	".cmake":          {Icon: "\ue615", Color: "#6D8086"},     // 
+	".cmake":          {Icon: "\ue794", Color: "##DCE3EB"},    // 
 	".cmd":            {Icon: "\uebc4", Color: "#FF7043"},     // 
 	".cob":            {Icon: "\u2699", Color: "#005CA5"},     // ⚙
 	".cobol":          {Icon: "\u2699", Color: "#005CA5"},     // ⚙
@@ -433,7 +433,7 @@ var extIconMap = map[string]IconProperties{
 	".info":           {Icon: "\uf129", Color: "#FFF3D7"},     // 
 	".ini":            {Icon: "\uf013", Color: "#42A5F5"},     // 
 	".ino":            {Icon: "\uf34b", Color: "#01979D"},     // 
-	".ipynb":          {Icon: "\U000f082e", Color: "#F57D01"}, // 󰠮
+	".ipynb":          {Icon: "\ue80f", Color: "#F57D01"},     // 
 	".iso":            {Icon: "\uede9", Color: "#B1BEC5"},     // 
 	".ixx":            {Icon: "\ue61d", Color: "#519ABA"},     // 
 	".j2c":            {Icon: "\uf1c5", Color: "#4B5163"},     // 
@@ -704,7 +704,7 @@ var extIconMap = map[string]IconProperties{
 	".tzo":            {Icon: "\uf410", Color: "#ECA517"},     // 
 	".ui":             {Icon: "\uf2d0", Color: "#015BF0"},     // 
 	".v":              {Icon: "\ue6ac", Color: "#009CE5"},     // 
-	".vala":           {Icon: "\ue69e", Color: "#7B3DB9"},     // 
+	".vala":           {Icon: "\ue8d1", Color: "#7B3DB9"},     // 
 	".vh":             {Icon: "\U000f035b", Color: "#009900"}, // 󰍛
 	".vhd":            {Icon: "\U000f035b", Color: "#FF7043"}, // 󰍛
 	".vhdl":           {Icon: "\U000f035b", Color: "#009900"}, // 󰍛
