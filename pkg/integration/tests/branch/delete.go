@@ -31,6 +31,13 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			EmptyCommit("on branch-four 01").
 			PushBranchAndSetUpstream("origin", "branch-four").
 			EmptyCommit("on branch-four 02"). // branch-four is not contained in any of these, so we get a delete confirmation
+			NewBranchFrom("branch-five", "master").
+			EmptyCommit("on branch-five 01").
+			PushBranchAndSetUpstream("origin", "branch-five"). // branch-five is contained in its own upstream
+			NewBranchFrom("branch-six", "master").
+			EmptyCommit("on branch-six 01").
+			PushBranchAndSetUpstream("origin", "branch-six").
+			EmptyCommit("on branch-six 02"). // branch-six is not contained in any of these, so we get a delete confirmation
 			Checkout("current-head")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
@@ -38,6 +45,8 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains("current-head").IsSelected(),
+				Contains("branch-six ↑1"),
+				Contains("branch-five ✓"),
 				Contains("branch-four ↑1"),
 				Contains("branch-three"),
 				Contains("branch-two ✓"),
@@ -62,7 +71,7 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 
 			// Delete branch-four. This is the only branch that is not fully merged, so we get
 			// a confirmation popup.
-			SelectNextItem().
+			NavigateToLine(Contains("branch-four")).
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.ExpectPopup().
@@ -78,6 +87,8 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("current-head"),
+				Contains("branch-six ↑1"),
+				Contains("branch-five ✓"),
 				Contains("branch-three").IsSelected(),
 				Contains("branch-two ✓"),
 				Contains("master"),
@@ -96,6 +107,8 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("current-head"),
+				Contains("branch-six ↑1"),
+				Contains("branch-five ✓"),
 				Contains("branch-two ✓").IsSelected(),
 				Contains("master"),
 				Contains("branch-one ↑1"),
@@ -113,6 +126,8 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("current-head"),
+				Contains("branch-six ↑1"),
+				Contains("branch-five ✓"),
 				Contains("master").IsSelected(),
 				Contains("branch-one ↑1"),
 			).
@@ -143,7 +158,9 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Views().
 					RemoteBranches().
 					Lines(
+						Equals("branch-five"),
 						Equals("branch-four"),
+						Equals("branch-six"),
 						Equals("branch-two"),
 					).
 					Press(keys.Universal.Return)
@@ -154,6 +171,8 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("current-head"),
+				Contains("branch-six ↑1"),
+				Contains("branch-five ✓"),
 				Contains("master"),
 				Contains("branch-one (upstream gone)").IsSelected(),
 			).
@@ -166,6 +185,51 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 					Menu().
 					Title(Equals("Delete branch 'branch-one'?")).
 					Select(Contains("Delete local branch")).
+					Confirm()
+			}).
+			Lines(
+				Contains("current-head"),
+				Contains("branch-six ↑1"),
+				Contains("branch-five ✓"),
+				Contains("master").IsSelected(),
+			).
+
+			// Delete both local and remote branch of branch-six. We get the force-delete warning because it is not fully merged.
+			NavigateToLine(Contains("branch-six")).
+			Press(keys.Universal.Remove).
+			Tap(func() {
+				t.ExpectPopup().
+					Menu().
+					Title(Equals("Delete branch 'branch-six'?")).
+					Select(Contains("Delete local and remote branch")).
+					Confirm()
+				t.ExpectPopup().
+					Confirmation().
+					Title(Equals("Delete local and remote branch")).
+					Content(Contains("Are you sure you want to delete both 'branch-six' from your machine, and 'branch-six' from 'origin'?").
+						Contains("'branch-six' is not fully merged. Are you sure you want to delete it?")).
+					Confirm()
+			}).
+			Lines(
+				Contains("current-head"),
+				Contains("branch-five ✓").IsSelected(),
+				Contains("master"),
+			).
+
+			// Delete both local and remote branch of branch-five. We get the same popups, but the confirmation
+			// doesn't contain the force-delete warning.
+			Press(keys.Universal.Remove).
+			Tap(func() {
+				t.ExpectPopup().
+					Menu().
+					Title(Equals("Delete branch 'branch-five'?")).
+					Select(Contains("Delete local and remote branch")).
+					Confirm()
+				t.ExpectPopup().
+					Confirmation().
+					Title(Equals("Delete local and remote branch")).
+					Content(Equals("Are you sure you want to delete both 'branch-five' from your machine, and 'branch-five' from 'origin'?").
+						DoesNotContain("not fully merged")).
 					Confirm()
 			}).
 			Lines(

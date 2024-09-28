@@ -107,6 +107,7 @@ type TranslationSet struct {
 	DeleteLocalBranch                     string
 	DeleteRemoteBranchOption              string
 	DeleteRemoteBranchPrompt              string
+	DeleteLocalAndRemoteBranchPrompt      string
 	ForceDeleteBranchTitle                string
 	ForceDeleteBranchMessage              string
 	RebaseBranch                          string
@@ -473,6 +474,7 @@ type TranslationSet struct {
 	RemoveRemotePrompt                    string
 	DeleteRemoteBranch                    string
 	DeleteRemoteBranchTooltip             string
+	DeleteLocalAndRemoteBranch            string
 	SetAsUpstream                         string
 	SetAsUpstreamTooltip                  string
 	SetUpstream                           string
@@ -1086,6 +1088,7 @@ func EnglishTranslationSet() *TranslationSet {
 		DeleteLocalBranch:                    "Delete local branch",
 		DeleteRemoteBranchOption:             "Delete remote branch",
 		DeleteRemoteBranchPrompt:             "Are you sure you want to delete the remote branch '{{.selectedBranchName}}' from '{{.upstream}}'?",
+		DeleteLocalAndRemoteBranchPrompt:     "Are you sure you want to delete both '{{.localBranchName}}' from your machine, and '{{.remoteBranchName}}' from '{{.remoteName}}'?",
 		ForceDeleteBranchTitle:               "Force delete branch",
 		ForceDeleteBranchMessage:             "'{{.selectedBranchName}}' is not fully merged. Are you sure you want to delete it?",
 		RebaseBranch:                         "Rebase",
@@ -1462,6 +1465,7 @@ func EnglishTranslationSet() *TranslationSet {
 		RemoveRemotePrompt:                   "Are you sure you want to remove remote?",
 		DeleteRemoteBranch:                   "Delete remote branch",
 		DeleteRemoteBranchTooltip:            "Delete the remote branch from the remote.",
+		DeleteLocalAndRemoteBranch:           "Delete local and remote branch",
 		SetAsUpstream:                        "Set as upstream",
 		SetAsUpstreamTooltip:                 "Set the selected remote branch as the upstream of the checked-out branch.",
 		SetUpstream:                          "Set upstream of selected branch",
