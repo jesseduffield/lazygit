@@ -5,7 +5,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-// When in acccordion mode, Lazygit looks like this:
+// When in accordion mode, Lazygit looks like this:
 //
 // ╶─Status─────────────────────────╴┌─Patch──────────────────────────────────────────────────────────┐
 // ╶─Files - Submodules──────0 of 0─╴│commit 6e56dd04b70e548976f7f2928c4d9c359574e2bc                 ▲
