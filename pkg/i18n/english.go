@@ -107,6 +107,7 @@ type TranslationSet struct {
 	DeleteLocalBranch                     string
 	DeleteRemoteBranchOption              string
 	DeleteRemoteBranchPrompt              string
+	DeleteLocalAndRemoteBranchPrompt      string
 	ForceDeleteBranchTitle                string
 	ForceDeleteBranchMessage              string
 	RebaseBranch                          string
@@ -472,8 +473,8 @@ type TranslationSet struct {
 	RemoveRemoteTooltip                   string
 	RemoveRemotePrompt                    string
 	DeleteRemoteBranch                    string
-	DeleteRemoteBranchMessage             string
 	DeleteRemoteBranchTooltip             string
+	DeleteLocalAndRemoteBranch            string
 	SetAsUpstream                         string
 	SetAsUpstreamTooltip                  string
 	SetUpstream                           string
@@ -849,7 +850,6 @@ type Actions struct {
 	CheckoutBranch                    string
 	ForceCheckoutBranch               string
 	DeleteLocalBranch                 string
-	DeleteBranch                      string
 	Merge                             string
 	SquashMerge                       string
 	RebaseBranch                      string
@@ -1088,6 +1088,7 @@ func EnglishTranslationSet() *TranslationSet {
 		DeleteLocalBranch:                    "Delete local branch",
 		DeleteRemoteBranchOption:             "Delete remote branch",
 		DeleteRemoteBranchPrompt:             "Are you sure you want to delete the remote branch '{{.selectedBranchName}}' from '{{.upstream}}'?",
+		DeleteLocalAndRemoteBranchPrompt:     "Are you sure you want to delete both '{{.localBranchName}}' from your machine, and '{{.remoteBranchName}}' from '{{.remoteName}}'?",
 		ForceDeleteBranchTitle:               "Force delete branch",
 		ForceDeleteBranchMessage:             "'{{.selectedBranchName}}' is not fully merged. Are you sure you want to delete it?",
 		RebaseBranch:                         "Rebase",
@@ -1461,10 +1462,10 @@ func EnglishTranslationSet() *TranslationSet {
 		EditRemoteUrl:                        `Enter updated remote url for {{.remoteName}}:`,
 		RemoveRemote:                         `Remove remote`,
 		RemoveRemoteTooltip:                  `Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected.`,
-		RemoveRemotePrompt:                   "Are you sure you want to remove remote",
+		RemoveRemotePrompt:                   "Are you sure you want to remove remote?",
 		DeleteRemoteBranch:                   "Delete remote branch",
-		DeleteRemoteBranchMessage:            "Are you sure you want to delete remote branch",
 		DeleteRemoteBranchTooltip:            "Delete the remote branch from the remote.",
+		DeleteLocalAndRemoteBranch:           "Delete local and remote branch",
 		SetAsUpstream:                        "Set as upstream",
 		SetAsUpstreamTooltip:                 "Set the selected remote branch as the upstream of the checked-out branch.",
 		SetUpstream:                          "Set upstream of selected branch",
@@ -1480,7 +1481,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ViewUpstreamRebaseOptionsTooltip:     "View options for rebasing the checked-out branch onto {{upstream}}. Note: this will not rebase the selected branch onto the upstream, it will rebase the checked-out branch onto the upstream.",
 		UpstreamGenericName:                  "upstream of selected branch",
 		SetUpstreamTitle:                     "Set upstream branch",
-		SetUpstreamMessage:                   "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",
+		SetUpstreamMessage:                   "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'?",
 		EditRemoteTooltip:                    "Edit the selected remote's name or URL.",
 		TagCommit:                            "Tag commit",
 		TagCommitTooltip:                     "Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description.",
@@ -1797,7 +1798,6 @@ func EnglishTranslationSet() *TranslationSet {
 			CheckoutBranch:                 "Checkout branch",
 			ForceCheckoutBranch:            "Force checkout branch",
 			DeleteLocalBranch:              "Delete local branch",
-			DeleteBranch:                   "Delete branch",
 			Merge:                          "Merge",
 			SquashMerge:                    "Squash merge",
 			RebaseBranch:                   "Rebase branch",

@@ -189,7 +189,7 @@ type Author struct {
 
 func (self *CommitCommands) GetCommitAuthor(commitHash string) (Author, error) {
 	cmdArgs := NewGitCmd("show").
-		Arg("--no-patch", "--pretty=format:'%an%x00%ae'", commitHash).
+		Arg("--no-patch", "--pretty=format:%an%x00%ae", commitHash).
 		ToArgv()
 
 	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()

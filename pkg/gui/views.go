@@ -118,6 +118,7 @@ func (gui *Gui) createAllViews() error {
 		view.Wrap = true
 		view.IgnoreCarriageReturns = true
 		view.UnderlineHyperLinksOnlyOnHover = true
+		view.AutoRenderHyperLinks = true
 	}
 
 	gui.Views.Staging.Title = gui.c.Tr.UnstagedChanges
@@ -157,6 +158,7 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.Confirmation.Visible = false
 	gui.Views.Confirmation.Editor = gocui.EditorFunc(gui.promptEditor)
+	gui.Views.Confirmation.AutoRenderHyperLinks = true
 
 	gui.Views.Suggestions.Visible = false
 
@@ -171,6 +173,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Extras.Title = gui.c.Tr.CommandLog
 	gui.Views.Extras.Autoscroll = true
 	gui.Views.Extras.Wrap = true
+	gui.Views.Extras.AutoRenderHyperLinks = true
 
 	gui.Views.Snake.Title = gui.c.Tr.SnakeTitle
 	gui.Views.Snake.FgColor = gocui.ColorGreen

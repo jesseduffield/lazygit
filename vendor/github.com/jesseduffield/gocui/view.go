@@ -183,6 +183,10 @@ type View struct {
 	// if true, the user can scroll all the way past the last item until it appears at the top of the view
 	CanScrollPastBottom bool
 
+	// if true, the view will automatically recognize https: URLs in the content written to it and render
+	// them as hyperlinks
+	AutoRenderHyperLinks bool
+
 	// if true, the view will underline hyperlinks only when the cursor is on
 	// them; otherwise, they will always be underlined
 	UnderlineHyperLinksOnlyOnHover bool
@@ -780,6 +784,7 @@ func (v *View) writeRunes(p []rune) {
 	for _, r := range p {
 		switch r {
 		case '\n':
+			v.autoRenderHyperlinksInCurrentLine()
 			if c, ok := v.readCell(v.wx+1, v.wy); !ok || c.chr == 0 {
 				v.writeCells(v.wx, v.wy, []cell{{
 					chr:     0,
@@ -793,6 +798,7 @@ func (v *View) writeRunes(p []rune) {
 				v.lines = append(v.lines, nil)
 			}
 		case '\r':
+			v.autoRenderHyperlinksInCurrentLine()
 			if c, ok := v.readCell(v.wx, v.wy); !ok || c.chr == 0 {
 				v.writeCells(v.wx, v.wy, []cell{{
 					chr:     0,
@@ -827,6 +833,61 @@ func (v *View) WriteString(s string) {
 
 func (v *View) writeString(s string) {
 	v.writeRunes([]rune(s))
+}
+
+func findSubstring(line []cell, substringToFind []rune) int {
+	for i := 0; i < len(line)-len(substringToFind); i++ {
+		for j := 0; j < len(substringToFind); j++ {
+			if line[i+j].chr != substringToFind[j] {
+				break
+			}
+			if j == len(substringToFind)-1 {
+				return i
+			}
+		}
+	}
+	return -1
+}
+
+func (v *View) autoRenderHyperlinksInCurrentLine() {
+	if !v.AutoRenderHyperLinks {
+		return
+	}
+
+	// We need a heuristic to find the end of a hyperlink. Searching for the
+	// first character that is not a valid URI character is not quite good
+	// enough, because in markdown it's common to have a hyperlink followed by a
+	// ')', so we want to stop there. Hopefully URLs containing ')' are uncommon
+	// enough that this is not a problem.
+	lineEndCharacters := map[rune]bool{
+		'\000': true,
+		' ':    true,
+		'\n':   true,
+		'>':    true,
+		'"':    true,
+		')':    true,
+	}
+	line := v.lines[v.wy]
+	start := 0
+	for {
+		linkStart := findSubstring(line[start:], []rune("https://"))
+		if linkStart == -1 {
+			break
+		}
+		linkStart += start
+		link := ""
+		linkEnd := linkStart
+		for ; linkEnd < len(line); linkEnd++ {
+			if _, ok := lineEndCharacters[line[linkEnd].chr]; ok {
+				break
+			}
+			link += string(line[linkEnd].chr)
+		}
+		for i := linkStart; i < linkEnd; i++ {
+			v.lines[v.wy][i].hyperlink = link
+		}
+		start = linkEnd
+	}
 }
 
 // parseInput parses char by char the input written to the View. It returns nil
