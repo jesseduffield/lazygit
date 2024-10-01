@@ -49,7 +49,8 @@ func (self *JumpToSideWindowController) GetKeybindings(opts types.KeybindingsOpt
 
 func (self *JumpToSideWindowController) goToSideWindow(window string) func() error {
 	return func() error {
-		if self.c.Helpers().Window.CurrentWindow() == window {
+		sideWindowAlreadyActive := self.c.Helpers().Window.CurrentWindow() == window
+		if sideWindowAlreadyActive && self.c.UserConfig().Gui.SwitchTabsWithPanelJumpKeys {
 			return self.nextTabFunc()
 		}
 

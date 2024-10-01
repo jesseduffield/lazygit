@@ -345,6 +345,7 @@ var tests = []*components.IntegrationTest{
 	tag.ForceTagLightweight,
 	tag.Reset,
 	ui.Accordion,
+	ui.DisableSwitchTabWithPanelJumpKeys,
 	ui.DoublePopup,
 	ui.EmptyMenu,
 	ui.KeybindingSuggestionsWhenSwitchingRepos,
