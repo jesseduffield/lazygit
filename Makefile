@@ -5,6 +5,10 @@ all: build
 build:
 	go build -gcflags='all=-N -l'
 
+.PHONY: makedeb
+makedeb:
+	scripts/makedeb.sh
+
 .PHONY: install
 install:
 	go install
