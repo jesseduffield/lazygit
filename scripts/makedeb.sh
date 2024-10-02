@@ -10,3 +10,4 @@ EOF
 cp ../lazygit lazygit_deb/usr/local/bin/
 dpkg-deb --build lazygit_deb
 mv lazygit_deb.deb lazygit.deb
+rm -rf lazygit_deb
