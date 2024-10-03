@@ -908,6 +908,42 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 				Tooltip:        self.c.Tr.FixupMenu_FixupTooltip,
 			},
 			{
+				Label: self.c.Tr.FixupMenu_FixupWithMessage,
+				Key:   'm',
+				OnPress: func() error {
+					return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+						self.c.Helpers().Commits.OpenCommitMessagePanel(
+							&helpers.OpenCommitMessagePanelOpts{
+								CommitIndex:      context.NoCommitIndex,
+								InitialMessage:   "",
+								SummaryTitle:     self.c.Tr.FixupCommitSummaryTitle,
+								DescriptionTitle: self.c.Tr.FixupCommitDescriptionTitle,
+								PreserveMessage:  true,
+								OnConfirm: func(message string, description string) error {
+									self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
+									return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
+										if err := self.c.Git().Commit.CreateFixupCommitWithMessage(commit.Hash, message); err != nil {
+											return err
+										}
+
+										if err := self.moveFixupCommitToOwnerStackedBranch(commit); err != nil {
+											return err
+										}
+
+										self.context().MoveSelectedLine(1)
+										return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
+									})
+								},
+								OnSwitchToEditor: self.switchFromCommitMessagePanelToEditor,
+							},
+						)
+						return nil
+					})
+				},
+				DisabledReason: disabledReasonWhenFilesAreNeeded,
+				Tooltip:        self.c.Tr.FixupMenu_FixupWithMessageTooltip,
+			},
+			{
 				Label: self.c.Tr.FixupMenu_AmendWithChanges,
 				Key:   'a',
 				OnPress: func() error {

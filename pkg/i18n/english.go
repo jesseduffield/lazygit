@@ -282,7 +282,9 @@ type TranslationSet struct {
 	MergeOptionsTitle                     string
 	RebaseOptionsTitle                    string
 	CommitSummaryTitle                    string
+	FixupCommitSummaryTitle               string
 	CommitDescriptionTitle                string
+	FixupCommitDescriptionTitle           string
 	CommitDescriptionSubTitle             string
 	LocalBranchesTitle                    string
 	SearchTitle                           string
@@ -407,7 +409,9 @@ type TranslationSet struct {
 	CreateFixupCommitTooltip              string
 	CreateAmendCommit                     string
 	FixupMenu_Fixup                       string
+	FixupMenu_FixupWithMessage            string
 	FixupMenu_FixupTooltip                string
+	FixupMenu_FixupWithMessageTooltip     string
 	FixupMenu_AmendWithChanges            string
 	FixupMenu_AmendWithChangesTooltip     string
 	FixupMenu_AmendWithoutChanges         string
@@ -1264,7 +1268,9 @@ func EnglishTranslationSet() *TranslationSet {
 		MergeOptionsTitle:                    "Merge options",
 		RebaseOptionsTitle:                   "Rebase options",
 		CommitSummaryTitle:                   "Commit summary",
+		FixupCommitSummaryTitle:              "Fixup commit summary",
 		CommitDescriptionTitle:               "Commit description",
+		FixupCommitDescriptionTitle:          "Fixup commit description",
 		CommitDescriptionSubTitle:            "Press {{.togglePanelKeyBinding}} to toggle focus, {{.commitMenuKeybinding}} to open menu",
 		LocalBranchesTitle:                   "Local branches",
 		SearchTitle:                          "Search",
@@ -1401,7 +1407,9 @@ func EnglishTranslationSet() *TranslationSet {
 		CreateFixupCommitTooltip:             "Create 'fixup!' commit for the selected commit. Later on, you can press `{{.squashAbove}}` on this same commit to apply all above fixup commits.",
 		CreateAmendCommit:                    `Create "amend!" commit`,
 		FixupMenu_Fixup:                      "fixup! commit",
+		FixupMenu_FixupWithMessage:           "fixup! commit with message",
 		FixupMenu_FixupTooltip:               "Lets you fixup another commit and keep the original commit's message.",
+		FixupMenu_FixupWithMessageTooltip:    "Lets you fixup another commit and keep the original commit's message while adding a fixup commit message.",
 		FixupMenu_AmendWithChanges:           "amend! commit with changes",
 		FixupMenu_AmendWithChangesTooltip:    "Lets you fixup another commit and also change its commit message.",
 		FixupMenu_AmendWithoutChanges:        "amend! commit without changes (pure reword)",
