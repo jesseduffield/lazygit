@@ -1522,7 +1522,7 @@ func EnglishTranslationSet() *TranslationSet {
 		NextScreenMode:                   "Next screen mode (normal/half/fullscreen)",
 		PrevScreenMode:                   "Prev screen mode",
 		StartSearch:                      "Search the current view by text",
-		StartFilter:                      "Filter the current view by text",
+		StartFilter:                      "Filter",
 		Panel:                            "Panel",
 		KeybindingsLegend:                "Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b",
 		RenameBranch:                     "Rename branch",

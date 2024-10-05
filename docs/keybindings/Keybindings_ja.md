@@ -62,7 +62,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` r `` | Stashを変更 |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Sub-commits
 
@@ -89,7 +89,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <space> `` | Switch | Switch to the selected worktree. |
 | `` o `` | Open in editor |  |
 | `` d `` | Remove | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## コミット
 
@@ -164,7 +164,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | サブモジュールのURLを更新 |  |
 | `` i `` | Initialize | サブモジュールを初期化 |
 | `` b `` | View bulk submodule options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## ステータス
 
@@ -188,7 +188,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## ファイル
 
@@ -245,7 +245,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## メインパネル (Merging)
 
@@ -313,7 +313,7 @@ If you would instead like to start an interactive rebase from the selected commi
 |-----|--------|-------------|
 | `` <enter> `` | 実行 |  |
 | `` <esc> `` | 閉じる |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## リモート
 
@@ -324,7 +324,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
 | `` e `` | Edit | リモートを編集 |
 | `` f `` | Fetch | リモートをfetch |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## リモートブランチ
 
@@ -342,7 +342,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 参照ログ
 
@@ -359,7 +359,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 確認パネル
 

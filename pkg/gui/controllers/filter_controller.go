@@ -36,9 +36,10 @@ func (self *FilterController) Context() types.Context {
 func (self *FilterController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
-			Handler:     self.OpenFilterPrompt,
-			Description: self.c.Tr.StartFilter,
+			Key:             opts.GetKey(opts.Config.Universal.StartSearch),
+			Handler:         self.OpenFilterPrompt,
+			Description:     self.c.Tr.StartFilter,
+			DisplayOnScreen: true,
 		},
 	}
 }

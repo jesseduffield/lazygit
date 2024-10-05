@@ -66,7 +66,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Stash
 
@@ -79,7 +79,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` r `` | Rename stash |  |
 | `` <enter> `` | View selected item's files |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Sub-commits
 
@@ -106,7 +106,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <space> `` | Switch | Switch to the selected worktree. |
 | `` o `` | Open in editor |  |
 | `` d `` | Remove | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 메뉴
 
@@ -114,7 +114,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` <enter> `` | 실행 |  |
 | `` <esc> `` | 닫기 |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 메인 패널 (Merging)
 
@@ -201,7 +201,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 상태
 
@@ -225,7 +225,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` e `` | 서브모듈의 URL을 수정 |  |
 | `` i `` | Initialize | 서브모듈 초기화 |
 | `` b `` | View bulk submodule options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 원격
 
@@ -236,7 +236,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
 | `` e `` | Edit | Remote를 수정 |
 | `` f `` | Fetch | 원격을 업데이트 |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 원격 브랜치
 
@@ -254,7 +254,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 커밋
 
@@ -329,7 +329,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 파일
 
