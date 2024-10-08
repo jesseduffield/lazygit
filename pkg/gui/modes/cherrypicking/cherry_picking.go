@@ -59,11 +59,7 @@ func (self *CherryPicking) Remove(selectedCommit *models.Commit, commitsList []*
 }
 
 func (self *CherryPicking) update(selectedHashSet *set.Set[string], commitsList []*models.Commit) {
-	cherryPickedCommits := lo.Filter(commitsList, func(commit *models.Commit, _ int) bool {
+	self.CherryPickedCommits = lo.Filter(commitsList, func(commit *models.Commit, _ int) bool {
 		return selectedHashSet.Includes(commit.Hash)
-	})
-
-	self.CherryPickedCommits = lo.Map(cherryPickedCommits, func(commit *models.Commit, _ int) *models.Commit {
-		return &models.Commit{Name: commit.Name, Hash: commit.Hash}
 	})
 }
