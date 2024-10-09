@@ -21,8 +21,8 @@ func ForEachLineInFile(path string, f func(string, int)) error {
 func forEachLineInStream(reader io.Reader, f func(string, int)) {
 	bufferedReader := bufio.NewReader(reader)
 	for i := 0; true; i++ {
-		line, err := bufferedReader.ReadString('\n')
-		if err != nil {
+		line, _ := bufferedReader.ReadString('\n')
+		if len(line) == 0 {
 			break
 		}
 		f(line, i)

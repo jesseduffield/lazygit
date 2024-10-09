@@ -26,10 +26,7 @@ func Test_forEachLineInStream(t *testing.T) {
 		{
 			name:          "single line without line feed",
 			input:         "abc",
-			/* EXPECTED:
 			expectedLines: []string{"abc"},
-			ACTUAL: */
-			expectedLines: []string{},
 		},
 		{
 			name:          "multiple lines",
@@ -44,10 +41,7 @@ func Test_forEachLineInStream(t *testing.T) {
 		{
 			name:          "multiple lines without linefeed at end of file",
 			input:         "abc\ndef\nghi",
-			/* EXPECTED:
 			expectedLines: []string{"abc\n", "def\n", "ghi"},
-			ACTUAL: */
-			expectedLines: []string{"abc\n", "def\n"},
 		},
 	}
 

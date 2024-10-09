@@ -52,9 +52,6 @@ var ResolveWithoutTrailingLf = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("M  file").IsSelected(),
 			)
 
-		/* EXPECTED:
 		t.Views().Main().Content(Contains("-a1\n+a2\n").DoesNotContain("-no eol"))
-		ACTUAL: */
-		t.Views().Main().Content(Contains("-a1\n+a2\n").Contains("-no eol"))
 	},
 })
