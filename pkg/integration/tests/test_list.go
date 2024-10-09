@@ -123,6 +123,7 @@ var tests = []*components.IntegrationTest{
 	conflicts.ResolveExternally,
 	conflicts.ResolveMultipleFiles,
 	conflicts.ResolveNoAutoStage,
+	conflicts.ResolveWithoutTrailingLf,
 	conflicts.UndoChooseHunk,
 	custom_commands.AccessCommitProperties,
 	custom_commands.BasicCommand,
