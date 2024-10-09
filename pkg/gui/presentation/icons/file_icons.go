@@ -21,7 +21,7 @@ var nameIconMap = map[string]IconProperties{
 	".bash_profile":              {Icon: "\ue615", Color: 113},     // 
 	".bashprofile":               {Icon: "\ue615", Color: 113},     // 
 	".bashrc":                    {Icon: "\ue795", Color: 113},     // 
-	".dockerignore":              {Icon: "\uf0868", Color: 68},     // 󰡨
+	".dockerignore":              {Icon: "\U000f0868", Color: 68},  // 󰡨
 	".ds_store":                  {Icon: "\ue615", Color: 239},     // 
 	".editorconfig":              {Icon: "\ue652", Color: 255},     // 
 	".env":                       {Icon: "\uf462", Color: 227},     // 
@@ -44,7 +44,7 @@ var nameIconMap = map[string]IconProperties{
 	".mailmap":                   {Icon: "\U000f02a2", Color: 202}, // 󰊢
 	".npmignore":                 {Icon: "\ue71e", Color: 197},     // 
 	".npmrc":                     {Icon: "\ue71e", Color: 197},     // 
-	".nuxtrc":                    {Icon: "\uf1106", Color: 42},     // 󱄆
+	".nuxtrc":                    {Icon: "\U000f1106", Color: 42},  // 󱄆
 	".nvmrc":                     {Icon: "\ue718", Color: 71},      // 
 	".prettierignore":            {Icon: "\ue6b4", Color: 33},      // 
 	".prettierrc":                {Icon: "\ue6b4", Color: 33},      // 
@@ -76,21 +76,21 @@ var nameIconMap = map[string]IconProperties{
 	"cantorrc":                   {Icon: "\uf373", Color: 32},      // 
 	"Cargo.lock":                 {Icon: "\ue7a8", Color: 216},     // 
 	"Cargo.toml":                 {Icon: "\ue7a8", Color: 216},     // 
-	"checkhealth":                {Icon: "\uf04d9", Color: 75},     // 󰓙
+	"checkhealth":                {Icon: "\U000f04d9", Color: 75},  // 󰓙
 	"cmakelists.txt":             {Icon: "\ue615", Color: 66},      // 
 	"commit_editmsg":             {Icon: "\ue702", Color: 196},     // 
 	"COMMIT_EDITMSG":             {Icon: "\ue702", Color: 239},     // 
-	"commitlint.config.js":       {Icon: "\uf0718", Color: 30},     // 󰜘
-	"commitlint.config.ts":       {Icon: "\uf0718", Color: 30},     // 󰜘
+	"commitlint.config.js":       {Icon: "\U000f0718", Color: 30},  // 󰜘
+	"commitlint.config.ts":       {Icon: "\U000f0718", Color: 30},  // 󰜘
 	"compose.yaml":               {Icon: "\uf308", Color: 68},      // 
 	"compose.yml":                {Icon: "\uf308", Color: 68},      // 
 	"config":                     {Icon: "\ue5fc", Color: 241},     // 
-	"containerfile":              {Icon: "\uf0868", Color: 68},     // 󰡨
+	"containerfile":              {Icon: "\U000f0868", Color: 68},  // 󰡨
 	"copying":                    {Icon: "\ue60a", Color: 185},     // 
 	"copying.lesser":             {Icon: "\ue60a", Color: 185},     // 
 	"docker-compose.yaml":        {Icon: "\uf308", Color: 68},      // 
 	"docker-compose.yml":         {Icon: "\uf308", Color: 68},      // 
-	"dockerfile":                 {Icon: "\uf0868", Color: 68},     // 󰡨
+	"dockerfile":                 {Icon: "\U000f0868", Color: 68},  // 󰡨
 	"Dockerfile":                 {Icon: "\uf308", Color: 68},      // 
 	"ds_store":                   {Icon: "\uf179", Color: 15},      // 
 	"eslint.config.cjs":          {Icon: "\ue655", Color: 56},      // 
@@ -148,10 +148,10 @@ var nameIconMap = map[string]IconProperties{
 	"mpv.conf":                   {Icon: "\uf36e", Color: 53},      // 
 	"node_modules":               {Icon: "\ue718", Color: 197},     // 
 	"npmignore":                  {Icon: "\ue71e", Color: 197},     // 
-	"nuxt.config.cjs":            {Icon: "\uf1106", Color: 42},     // 󱄆
-	"nuxt.config.js":             {Icon: "\uf1106", Color: 42},     // 󱄆
-	"nuxt.config.mjs":            {Icon: "\uf1106", Color: 42},     // 󱄆
-	"nuxt.config.ts":             {Icon: "\uf1106", Color: 42},     // 󱄆
+	"nuxt.config.cjs":            {Icon: "\U000f1106", Color: 42},  // 󱄆
+	"nuxt.config.js":             {Icon: "\U000f1106", Color: 42},  // 󱄆
+	"nuxt.config.mjs":            {Icon: "\U000f1106", Color: 42},  // 󱄆
+	"nuxt.config.ts":             {Icon: "\U000f1106", Color: 42},  // 󱄆
 	"package.json":               {Icon: "\ue71e", Color: 197},     // 
 	"package-lock.json":          {Icon: "\ue71e", Color: 52},      // 
 	"PKGBUILD":                   {Icon: "\uf303", Color: 38},      // 
@@ -165,23 +165,23 @@ var nameIconMap = map[string]IconProperties{
 	"PrusaSlicer.ini":            {Icon: "\uf351", Color: 202},     // 
 	"py.typed":                   {Icon: "\ue606", Color: 214},     // 
 	"QtProject.conf":             {Icon: "\uf375", Color: 77},      // 
-	"R":                          {Icon: "\uf07d4", Color: 25},     // 󰟔
-	"robots.txt":                 {Icon: "\uf06a9", Color: 60},     // 󰚩
+	"R":                          {Icon: "\U000f07d4", Color: 25},  // 󰟔
+	"robots.txt":                 {Icon: "\U000f06a9", Color: 60},  // 󰚩
 	"rubydoc":                    {Icon: "\ue73b", Color: 160},     // 
 	"settings.gradle":            {Icon: "\ue660", Color: 24},      // 
 	"svelte.config.js":           {Icon: "\ue697", Color: 196},     // 
 	"sxhkdrc":                    {Icon: "\uf355", Color: 236},     // 
 	"sym-lib-table":              {Icon: "\uf34c", Color: 231},     // 
-	"tailwind.config.js":         {Icon: "\uf13ff", Color: 45},     // 󱏿
-	"tailwind.config.mjs":        {Icon: "\uf13ff", Color: 45},     // 󱏿
-	"tailwind.config.ts":         {Icon: "\uf13ff", Color: 45},     // 󱏿
+	"tailwind.config.js":         {Icon: "\U000f13ff", Color: 45},  // 󱏿
+	"tailwind.config.mjs":        {Icon: "\U000f13ff", Color: 45},  // 󱏿
+	"tailwind.config.ts":         {Icon: "\U000f13ff", Color: 45},  // 󱏿
 	"tmux.conf":                  {Icon: "\uebc8", Color: 34},      // 
 	"tmux.conf.local":            {Icon: "\uebc8", Color: 34},      // 
 	"tsconfig.json":              {Icon: "\ue69d", Color: 74},      // 
 	"unlicense":                  {Icon: "\ue60a", Color: 185},     // 
 	"vagrantfile$":               {Icon: "\uf2b8", Color: 27},      // 
-	"vlcrc":                      {Icon: "\uf057c", Color: 208},    // 󰕼
-	"webpack":                    {Icon: "\uf072b", Color: 74},     // 󰜫
+	"vlcrc":                      {Icon: "\U000f057c", Color: 208}, // 󰕼
+	"webpack":                    {Icon: "\U000f072b", Color: 74},  // 󰜫
 	"weston.ini":                 {Icon: "\uf367", Color: 214},     // 
 	"workspace":                  {Icon: "\ue63a", Color: 113},     // 
 	"xmobarrc.hs":                {Icon: "\uf35e", Color: 203},     // 
@@ -207,7 +207,7 @@ var extIconMap = map[string]IconProperties{
 	".app":            {Icon: "\ueae8", Color: 124},     // 
 	".apple":          {Icon: "\uf179", Color: 15},      // 
 	".applescript":    {Icon: "\uf179", Color: 66},      // 
-	".asc":            {Icon: "\uf099d", Color: 242},    // 󰦝
+	".asc":            {Icon: "\U000f099d", Color: 242}, // 󰦝
 	".ass":            {Icon: "\U000f0a16", Color: 214}, // 󰨖
 	".astro":          {Icon: "\ue6b3", Color: 197},     // 
 	".avif":           {Icon: "\uf1c5", Color: 140},     // 
@@ -320,7 +320,7 @@ var extIconMap = map[string]IconProperties{
 	".exe":            {Icon: "\uf17a", Color: 81},      // 
 	".ex":             {Icon: "\ue62d", Color: 140},     // 
 	".exs":            {Icon: "\ue62d", Color: 140},     // 
-	".f3d":            {Icon: "\uf0eeb", Color: 101},    // 󰻫
+	".f3d":            {Icon: "\U000f0eeb", Color: 101}, // 󰻫
 	".f90":            {Icon: "\U000f121a", Color: 97},  // 󱈚
 	".fbx":            {Icon: "\U000f01a7", Color: 102}, // 󰆧
 	".fcbak":          {Icon: "\uf336", Color: 160},     // 
@@ -380,7 +380,7 @@ var extIconMap = map[string]IconProperties{
 	".hs":             {Icon: "\ue777", Color: 140},     // 
 	".htm":            {Icon: "\uf13b", Color: 196},     // 
 	".html":           {Icon: "\uf13b", Color: 196},     // 
-	".huff":           {Icon: "\uf0858", Color: 56},     // 󰡘
+	".huff":           {Icon: "\U000f0858", Color: 56},  // 󰡘
 	".hurl":           {Icon: "\uf0ec", Color: 198},     // 
 	".hx":             {Icon: "\ue666", Color: 208},     // 
 	".hxx":            {Icon: "\uf0fd", Color: 140},     // 
@@ -425,7 +425,7 @@ var extIconMap = map[string]IconProperties{
 	".jsx":            {Icon: "\ue7ba", Color: 45},      // 
 	".jwmrc":          {Icon: "\uf35b", Color: 32},      // 
 	".jxl":            {Icon: "\uf1c5", Color: 241},     // 
-	".kbx":            {Icon: "\uf0bc4", Color: 243},    // 󰯄
+	".kbx":            {Icon: "\U000f0bc4", Color: 243}, // 󰯄
 	".kdb":            {Icon: "\uf23e", Color: 71},      // 
 	".kdbx":           {Icon: "\uf23e", Color: 71},      // 
 	".kdenlive":       {Icon: "\uf33c", Color: 110},     // 
@@ -472,12 +472,12 @@ var extIconMap = map[string]IconProperties{
 	".magnet":         {Icon: "\uf076", Color: 124},     // 
 	".makefile":       {Icon: "\ue779", Color: 66},      // 
 	".markdown":       {Icon: "\uf48a", Color: 74},      // 
-	".material":       {Icon: "\uf0509", Color: 163},    // 󰔉
-	".md5":            {Icon: "\uf0565", Color: 103},    // 󰕥
+	".material":       {Icon: "\U000f0509", Color: 163}, // 󰔉
+	".md5":            {Icon: "\U000f0565", Color: 103}, // 󰕥
 	".md":             {Icon: "\uf48a", Color: 74},      // 
 	".mdx":            {Icon: "\uf48a", Color: 74},      // 
 	".m":              {Icon: "\ue61e", Color: 111},     // 
-	".mint":           {Icon: "\uf032a", Color: 108},    // 󰌪
+	".mint":           {Icon: "\U000f032a", Color: 108}, // 󰌪
 	".mjs":            {Icon: "\ue74e", Color: 185},     // 
 	".mkd":            {Icon: "\uf48a", Color: 74},      // 
 	".mk":             {Icon: "\ue795", Color: 241},     // 
@@ -535,10 +535,10 @@ var extIconMap = map[string]IconProperties{
 	".properties":     {Icon: "\ue60b", Color: 185},     // 
 	".ps1":            {Icon: "\ue795", Color: 241},     // 
 	".psb":            {Icon: "\ue7b8", Color: 74},      // 
-	".psd1":           {Icon: "\uf0a0a", Color: 68},     // 󰨊
+	".psd1":           {Icon: "\U000f0a0a", Color: 68},  // 󰨊
 	".psd":            {Icon: "\ue7b8", Color: 241},     // 
-	".psm1":           {Icon: "\uf0a0a", Color: 68},     // 󰨊
-	".pub":            {Icon: "\uf0dd6", Color: 222},    // 󰷖
+	".psm1":           {Icon: "\U000f0a0a", Color: 68},  // 󰨊
+	".pub":            {Icon: "\U000f0dd6", Color: 222}, // 󰷖
 	".pxd":            {Icon: "\ue606", Color: 39},      // 
 	".pxi":            {Icon: "\ue606", Color: 39},      // 
 	".pxm":            {Icon: "\uf1c5", Color: 241},     // 
@@ -570,7 +570,7 @@ var extIconMap = map[string]IconProperties{
 	".rlib":           {Icon: "\ue7a8", Color: 216},     // 
 	".rmd":            {Icon: "\uf48a", Color: 74},      // 
 	".rpm":            {Icon: "\ue7bb", Color: 52},      // 
-	".rproj":          {Icon: "\uf05c6", Color: 29},     // 󰗆
+	".rproj":          {Icon: "\U000f05c6", Color: 29},  // 󰗆
 	".rs":             {Icon: "\ue7a8", Color: 216},     // 
 	".rspec":          {Icon: "\ue21e", Color: 160},     // 
 	".rspec_parallel": {Icon: "\ue21e", Color: 160},     // 
@@ -584,13 +584,13 @@ var extIconMap = map[string]IconProperties{
 	".scad":           {Icon: "\uf34e", Color: 220},     // 
 	".scala":          {Icon: "\ue737", Color: 74},      // 
 	".sc":             {Icon: "\ue737", Color: 167},     // 
-	".scm":            {Icon: "\uf0627", Color: 255},    // 󰘧
+	".scm":            {Icon: "\U000f0627", Color: 255}, // 󰘧
 	".scss":           {Icon: "\ue749", Color: 204},     // 
-	".sha1":           {Icon: "\uf0565", Color: 103},    // 󰕥
-	".sha224":         {Icon: "\uf0565", Color: 103},    // 󰕥
-	".sha256":         {Icon: "\uf0565", Color: 103},    // 󰕥
-	".sha384":         {Icon: "\uf0565", Color: 103},    // 󰕥
-	".sha512":         {Icon: "\uf0565", Color: 103},    // 󰕥
+	".sha1":           {Icon: "\U000f0565", Color: 103}, // 󰕥
+	".sha224":         {Icon: "\U000f0565", Color: 103}, // 󰕥
+	".sha256":         {Icon: "\U000f0565", Color: 103}, // 󰕥
+	".sha384":         {Icon: "\U000f0565", Color: 103}, // 󰕥
+	".sha512":         {Icon: "\U000f0565", Color: 103}, // 󰕥
 	".shell":          {Icon: "\ue795", Color: 239},     // 
 	".sh":             {Icon: "\ue795", Color: 239},     // 
 	".sig":            {Icon: "\u03bb", Color: 166},     // λ
@@ -631,10 +631,10 @@ var extIconMap = map[string]IconProperties{
 	".swift":          {Icon: "\ue755", Color: 208},     // 
 	".tar":            {Icon: "\uf410", Color: 241},     // 
 	".taz":            {Icon: "\uf410", Color: 241},     // 
-	".tbc":            {Icon: "\uf06d3", Color: 25},     // 󰛓
+	".tbc":            {Icon: "\U000f06d3", Color: 25},  // 󰛓
 	".tbz2":           {Icon: "\uf410", Color: 241},     // 
 	".tbz":            {Icon: "\uf410", Color: 241},     // 
-	".tcl":            {Icon: "\uf06d3", Color: 25},     // 󰛓
+	".tcl":            {Icon: "\U000f06d3", Color: 25},  // 󰛓
 	".templ":          {Icon: "\ueac4", Color: 178},     // 
 	".terminal":       {Icon: "\uf489", Color: 34},      // 
 	".test.js":        {Icon: "\uf499", Color: 185},     // 
@@ -680,7 +680,7 @@ var extIconMap = map[string]IconProperties{
 	".wav":            {Icon: "\uf001", Color: 241},     // 
 	".webmanifest":    {Icon: "\ue60b", Color: 185},     // 
 	".webm":           {Icon: "\uf03d", Color: 241},     // 
-	".webpack":        {Icon: "\uf072b", Color: 74},     // 󰜫
+	".webpack":        {Icon: "\U000f072b", Color: 74},  // 󰜫
 	".webp":           {Icon: "\uf1c5", Color: 241},     // 
 	".windows":        {Icon: "\uf17a", Color: 81},      // 
 	".wma":            {Icon: "\uf001", Color: 39},      // 
@@ -690,7 +690,7 @@ var extIconMap = map[string]IconProperties{
 	".wrz":            {Icon: "\U000f01a7", Color: 102}, // 󰆧
 	".wvc":            {Icon: "\uf001", Color: 39},      // 
 	".wv":             {Icon: "\uf001", Color: 39},      // 
-	".xaml":           {Icon: "\uf0673", Color: 56},     // 󰙳
+	".xaml":           {Icon: "\U000f0673", Color: 56},  // 󰙳
 	".xcf":            {Icon: "\uf338", Color: 240},     // 
 	".xcplayground":   {Icon: "\ue755", Color: 166},     // 
 	".xcstrings":      {Icon: "\U000f05ca", Color: 31},  // 󰗊
