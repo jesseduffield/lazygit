@@ -394,7 +394,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		}
 	}
 
-	gui.c.Context().Push(contextToPush)
+	gui.c.Context().Push(contextToPush, types.OnFocusOpts{})
 
 	return nil
 }

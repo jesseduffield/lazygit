@@ -213,7 +213,7 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 						return err
 					}
-					self.c.Context().Push(self.c.Contexts().LocalCommits)
+					self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
 					return nil
 				})
 			},

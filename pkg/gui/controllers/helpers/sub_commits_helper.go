@@ -69,6 +69,6 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 
 	self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
 
-	self.c.Context().Push(self.c.Contexts().SubCommits)
+	self.c.Context().Push(self.c.Contexts().SubCommits, types.OnFocusOpts{})
 	return nil
 }

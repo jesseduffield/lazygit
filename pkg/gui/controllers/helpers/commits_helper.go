@@ -150,7 +150,7 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 
 	self.UpdateCommitPanelView(opts.InitialMessage)
 
-	self.c.Context().Push(self.c.Contexts().CommitMessage)
+	self.c.Context().Push(self.c.Contexts().CommitMessage, types.OnFocusOpts{})
 }
 
 func (self *CommitsHelper) OnCommitSuccess() {

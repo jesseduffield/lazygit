@@ -41,7 +41,7 @@ func (self *SearchHelper) OpenFilterPrompt(context types.IFilterableContext) err
 	self.OnPromptContentChanged("")
 	promptView.RenderTextArea()
 
-	self.c.Context().Push(self.c.Contexts().Search)
+	self.c.Context().Push(self.c.Contexts().Search, types.OnFocusOpts{})
 
 	return self.c.ResetKeybindings()
 }
@@ -58,7 +58,7 @@ func (self *SearchHelper) OpenSearchPrompt(context types.ISearchableContext) err
 	promptView.ClearTextArea()
 	promptView.RenderTextArea()
 
-	self.c.Context().Push(self.c.Contexts().Search)
+	self.c.Context().Push(self.c.Contexts().Search, types.OnFocusOpts{})
 
 	return self.c.ResetKeybindings()
 }
