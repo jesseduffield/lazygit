@@ -57,6 +57,8 @@ func (self *CherryPickHelper) CopyRange(commitsList []*models.Commit, context ty
 		}
 	}
 
+	self.getData().DidPaste = false
+
 	self.rerender()
 	return nil
 }
@@ -103,7 +105,8 @@ func (self *CherryPickHelper) Paste() error {
 					return err
 				}
 				if !isInRebase {
-					return self.Reset()
+					self.getData().DidPaste = true
+					self.rerender()
 				}
 				return nil
 			})
@@ -114,7 +117,7 @@ func (self *CherryPickHelper) Paste() error {
 }
 
 func (self *CherryPickHelper) CanPaste() bool {
-	return self.getData().Active()
+	return self.getData().CanPaste()
 }
 
 func (self *CherryPickHelper) Reset() error {
