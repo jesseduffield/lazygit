@@ -26,19 +26,9 @@ import (
 // finding suggestions in this file, so that it's easy to see if a function already
 // exists for fetching a particular model.
 
-type ISuggestionsHelper interface {
-	GetRemoteSuggestionsFunc() func(string) []*types.Suggestion
-	GetBranchNameSuggestionsFunc() func(string) []*types.Suggestion
-	GetFilePathSuggestionsFunc() func(string) []*types.Suggestion
-	GetRemoteBranchesSuggestionsFunc(separator string) func(string) []*types.Suggestion
-	GetRefsSuggestionsFunc() func(string) []*types.Suggestion
-}
-
 type SuggestionsHelper struct {
 	c *HelperCommon
 }
-
-var _ ISuggestionsHelper = &SuggestionsHelper{}
 
 func NewSuggestionsHelper(
 	c *HelperCommon,

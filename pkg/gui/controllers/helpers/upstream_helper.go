@@ -14,15 +14,6 @@ type UpstreamHelper struct {
 	getRemoteBranchesSuggestionsFunc func(string) func(string) []*types.Suggestion
 }
 
-type IUpstreamHelper interface {
-	ParseUpstream(string) (string, string, error)
-	PromptForUpstreamWithInitialContent(*models.Branch, func(string) error) error
-	PromptForUpstreamWithoutInitialContent(*models.Branch, func(string) error) error
-	GetSuggestedRemote() string
-}
-
-var _ IUpstreamHelper = &UpstreamHelper{}
-
 func NewUpstreamHelper(
 	c *HelperCommon,
 	getRemoteBranchesSuggestionsFunc func(string) func(string) []*types.Suggestion,
