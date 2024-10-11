@@ -1177,10 +1177,9 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 						return func() error {
 							self.c.GetAppState().GitLogShowGraph = value
 							self.c.SaveAppStateAndLogError()
-							if err := self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits); err != nil {
-								return err
-							}
-							return self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
+							self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+							self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
+							return nil
 						}
 					}
 					return self.c.Menu(types.CreateMenuOptions{
@@ -1286,7 +1285,8 @@ func (self *LocalCommitsController) markAsBaseCommit(commit *models.Commit) erro
 	} else {
 		self.c.Modes().MarkedBaseCommit.SetHash(commit.Hash)
 	}
-	return self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+	self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+	return nil
 }
 
 func (self *LocalCommitsController) isHeadCommit(idx int) bool {

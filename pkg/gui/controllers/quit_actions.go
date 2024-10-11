@@ -58,7 +58,8 @@ func (self *QuitActions) Escape() error {
 	if listContext, ok := currentContext.(types.IListContext); ok {
 		if listContext.GetList().IsSelectingRange() {
 			listContext.GetList().CancelRangeSelect()
-			return self.c.PostRefreshUpdate(listContext)
+			self.c.PostRefreshUpdate(listContext)
+			return nil
 		}
 	}
 

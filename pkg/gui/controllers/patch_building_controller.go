@@ -160,7 +160,8 @@ func (self *PatchBuildingController) Escape() error {
 
 	if state.SelectingRange() || state.SelectingHunk() {
 		state.SetLineSelectMode()
-		return self.c.PostRefreshUpdate(context)
+		self.c.PostRefreshUpdate(context)
+		return nil
 	}
 
 	self.c.Helpers().PatchBuilding.Escape()

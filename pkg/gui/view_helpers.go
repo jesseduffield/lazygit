@@ -126,7 +126,7 @@ func (gui *Gui) render() {
 // postRefreshUpdate is to be called on a context after the state that it depends on has been refreshed
 // if the context's view is set to another context we do nothing.
 // if the context's view is the current view we trigger a focus; re-selecting the current item.
-func (gui *Gui) postRefreshUpdate(c types.Context) error {
+func (gui *Gui) postRefreshUpdate(c types.Context) {
 	t := time.Now()
 	defer func() {
 		gui.Log.Infof("postRefreshUpdate for %s took %s", c.GetKey(), time.Since(t))
@@ -137,6 +137,4 @@ func (gui *Gui) postRefreshUpdate(c types.Context) error {
 	if gui.currentViewName() == c.GetViewName() {
 		c.HandleFocus(types.OnFocusOpts{})
 	}
-
-	return nil
 }

@@ -213,7 +213,7 @@ func (self *SearchHelper) Cancel() {
 	switch context := state.Context.(type) {
 	case types.IFilterableContext:
 		context.ClearFilter()
-		_ = self.c.PostRefreshUpdate(context)
+		self.c.PostRefreshUpdate(context)
 	case types.ISearchableContext:
 		context.ClearSearchString()
 		context.GetView().ClearSearch()
@@ -231,7 +231,7 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 		context.SetSelection(0)
 		context.GetView().SetOriginY(0)
 		context.SetFilter(searchString, self.c.UserConfig().Gui.UseFuzzySearch())
-		_ = self.c.PostRefreshUpdate(context)
+		self.c.PostRefreshUpdate(context)
 	case types.ISearchableContext:
 		// do nothing
 	default:

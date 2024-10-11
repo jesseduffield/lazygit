@@ -162,10 +162,7 @@ func (self *FilesController) createResetMenu() error {
 
 func (self *FilesController) animateExplosion() {
 	self.Explode(self.c.Views().Files, func() {
-		err := self.c.PostRefreshUpdate(self.c.Contexts().Files)
-		if err != nil {
-			self.c.Log.Error(err)
-		}
+		self.c.PostRefreshUpdate(self.c.Contexts().Files)
 	})
 }
 
