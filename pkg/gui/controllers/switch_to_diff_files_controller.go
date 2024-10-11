@@ -1,6 +1,10 @@
 package controllers
 
 import (
+	"path/filepath"
+
+	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -45,6 +49,49 @@ func (self *SwitchToDiffFilesController) GetKeybindings(opts types.KeybindingsOp
 	}
 
 	return bindings
+}
+
+func (self *SwitchToDiffFilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName:    "main",
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickMain,
+			FocusedView: self.context.GetViewName(),
+		},
+	}
+}
+
+func (self *SwitchToDiffFilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
+	clickedFile, line, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine("main", opts.Y)
+	if !ok {
+		return nil
+	}
+
+	if err := self.enter(); err != nil {
+		return err
+	}
+
+	context := self.c.Contexts().CommitFiles
+	var node *filetree.CommitFileNode
+
+	relativePath, err := filepath.Rel(self.c.Git().RepoPaths.RepoPath(), clickedFile)
+	if err != nil {
+		return err
+	}
+	context.CommitFileTreeViewModel.ExpandToPath(relativePath)
+	self.c.PostRefreshUpdate(context)
+
+	idx, ok := context.CommitFileTreeViewModel.GetIndexForPath(relativePath)
+	if !ok {
+		return nil
+	}
+
+	context.SetSelectedLineIdx(idx)
+	context.GetViewTrait().FocusPoint(
+		context.ModelIndexToViewIndex(idx))
+	node = context.GetSelected()
+	return self.c.Helpers().CommitFiles.EnterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y, ClickedViewRealLineIdx: line})
 }
 
 func (self *SwitchToDiffFilesController) Context() types.Context {
