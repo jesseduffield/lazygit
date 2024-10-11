@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"path/filepath"
+
+	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -45,6 +48,41 @@ func (self *SwitchToDiffFilesController) GetKeybindings(opts types.KeybindingsOp
 	}
 
 	return bindings
+}
+
+func (self *SwitchToDiffFilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
+	return func(mainViewName string, clickedLineIdx int) error {
+		clickedFile, line, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(mainViewName, clickedLineIdx)
+		if !ok {
+			return nil
+		}
+
+		if err := self.enter(); err != nil {
+			return err
+		}
+
+		context := self.c.Contexts().CommitFiles
+		var node *filetree.CommitFileNode
+
+		relativePath, err := filepath.Rel(self.c.Git().RepoPaths.RepoPath(), clickedFile)
+		if err != nil {
+			return err
+		}
+		relativePath = "./" + relativePath
+		context.CommitFileTreeViewModel.ExpandToPath(relativePath)
+		self.c.PostRefreshUpdate(context)
+
+		idx, ok := context.CommitFileTreeViewModel.GetIndexForPath(relativePath)
+		if !ok {
+			return nil
+		}
+
+		context.SetSelectedLineIdx(idx)
+		context.GetViewTrait().FocusPoint(
+			context.ModelIndexToViewIndex(idx))
+		node = context.GetSelected()
+		return self.c.Helpers().CommitFiles.EnterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line})
+	}
 }
 
 func (self *SwitchToDiffFilesController) Context() types.Context {
