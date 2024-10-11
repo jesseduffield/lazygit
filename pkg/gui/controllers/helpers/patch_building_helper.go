@@ -9,10 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-type IPatchBuildingHelper interface {
-	ValidateNormalWorkingTreeState() (bool, error)
-}
-
 type PatchBuildingHelper struct {
 	c *HelperCommon
 }

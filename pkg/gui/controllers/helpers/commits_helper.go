@@ -12,10 +12,6 @@ import (
 	"github.com/samber/lo"
 )
 
-type ICommitsHelper interface {
-	UpdateCommitPanelView(message string)
-}
-
 type CommitsHelper struct {
 	c *HelperCommon
 
@@ -25,8 +21,6 @@ type CommitsHelper struct {
 	getUnwrappedCommitDescription func() string
 	setCommitDescription          func(string)
 }
-
-var _ ICommitsHelper = &CommitsHelper{}
 
 func NewCommitsHelper(
 	c *HelperCommon,
