@@ -9,7 +9,8 @@ import (
 type CherryPicking struct {
 	CherryPickedCommits []*models.Commit
 
-	// we only allow cherry picking from one context at a time, so you can't copy a commit from the local commits context and then also copy a commit in the reflog context
+	// we only allow cherry picking from one context at a time, so you can't copy a commit from
+	// the local commits context and then also copy a commit in the reflog context
 	ContextKey string
 }
 
