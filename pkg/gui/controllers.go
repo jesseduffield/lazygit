@@ -110,6 +110,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		FixupHelper:     helpers.NewFixupHelper(helperCommon),
 		Commits:         commitsHelper,
 		SuspendResume:   helpers.NewSuspendResumeHelper(helperCommon),
+		CommitFiles:     helpers.NewCommitFilesHelper(helperCommon, patchBuildingHelper),
 		Snake:           helpers.NewSnakeHelper(helperCommon),
 		Diff:            diffHelper,
 		Repos:           reposHelper,
