@@ -115,6 +115,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		AmendHelper:     helpers.NewAmendHelper(helperCommon, gpgHelper),
 		FixupHelper:     helpers.NewFixupHelper(helperCommon),
 		Commits:         commitsHelper,
+		CommitFiles:     helpers.NewCommitFilesHelper(helperCommon),
 		Snake:           helpers.NewSnakeHelper(helperCommon),
 		Diff:            diffHelper,
 		Repos:           reposHelper,
