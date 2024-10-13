@@ -230,7 +230,7 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 
 	self.c.State().GetRepoState().SetCurrentPopupOpts(&opts)
 
-	self.c.Context().Push(self.c.Contexts().Confirmation)
+	self.c.Context().Push(self.c.Contexts().Confirmation, types.OnFocusOpts{})
 }
 
 func (self *ConfirmationHelper) setKeyBindings(cancel goContext.CancelFunc, opts types.CreatePopupPanelOpts) {

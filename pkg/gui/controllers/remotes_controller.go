@@ -129,7 +129,7 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 
 	self.c.PostRefreshUpdate(remoteBranchesContext)
 
-	self.c.Context().Push(remoteBranchesContext)
+	self.c.Context().Push(remoteBranchesContext, types.OnFocusOpts{})
 	return nil
 }
 

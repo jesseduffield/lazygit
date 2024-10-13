@@ -209,6 +209,9 @@ type IViewTrait interface {
 type OnFocusOpts struct {
 	ClickedWindowName  string
 	ClickedViewLineIdx int
+
+	// If not -1, takes precedence over ClickedViewLineIdx.
+	ClickedViewRealLineIdx int
 }
 
 type OnFocusLostOpts struct {
@@ -278,7 +281,7 @@ type ListItem interface {
 }
 
 type IContextMgr interface {
-	Push(context Context, opts ...OnFocusOpts)
+	Push(context Context, opts OnFocusOpts)
 	Pop()
 	Replace(context Context)
 	Activate(context Context, opts OnFocusOpts)
