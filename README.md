@@ -306,16 +306,37 @@ sudo eopkg install lazygit
 ### Ubuntu
 
 ```sh
+#!/bin/sh
+
+_NAME=lazygit
+_INST="install --verbose --owner root --group root --mode "
+
 LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
-curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
-tar xf lazygit.tar.gz lazygit
-sudo install lazygit /usr/local/bin
-```
 
-Verify the correct installation of lazygit:
+_TGT=${_NAME}_${LAZYGIT_VERSION}_Linux_x86_64
+_SRCTGT=${_TGT}.tar.gz
 
-```sh
-lazygit --version
+curl -Lo ${_SRCTGT} "https://github.com/jesseduffield/lazygit/releases/latest/download/${_SRCTGT}"
+
+mkdir ${_TGT}
+mkdir -m 0755 /usr/local/share/${_NAME}
+( cd ${_TGT} ; gunzip -c ../${_SRCTGT} | tar -xvf - )
+
+printf "Pausing 5 seconds before installing binary to /usr/local/bin: " ; sleep 5 ; echo
+${_INST} 0111 ${_TGT}/${_NAME} /usr/local/bin
+
+printf "Pausing 5 seconds before installing documentation to /usr/local/share/${_NAME}: " ; sleep 5 ; echo
+
+${_INST} 0444 ${_TGT}/README.md  /usr/local/share/${_NAME}
+${_INST} 0444 ${_TGT}/LICENSE    /usr/local/share/${_NAME}
+
+printf "Results of installation:\n"
+/bin/ls -l /usr/local/bin/${_NAME}
+/bin/ls -l /usr/local/share/${_NAME}/
+
+printf "We expect version ${LAZYGIT_VERSION}:\n"
+/usr/local/bin/lazygit --version
+
 ```
 
 ### Funtoo Linux
