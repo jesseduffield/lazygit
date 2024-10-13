@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bufio"
+	"io"
 	"os"
 )
 
@@ -12,14 +13,18 @@ func ForEachLineInFile(path string, f func(string, int)) error {
 	}
 	defer file.Close()
 
-	reader := bufio.NewReader(file)
+	forEachLineInStream(file, f)
+
+	return nil
+}
+
+func forEachLineInStream(reader io.Reader, f func(string, int)) {
+	bufferedReader := bufio.NewReader(reader)
 	for i := 0; true; i++ {
-		line, err := reader.ReadString('\n')
-		if err != nil {
+		line, _ := bufferedReader.ReadString('\n')
+		if len(line) == 0 {
 			break
 		}
 		f(line, i)
 	}
-
-	return nil
 }
