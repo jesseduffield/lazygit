@@ -300,6 +300,16 @@ func (self *CommitCommands) CreateFixupCommit(hash string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// CreateFixupCommit creates a commit that fixes up a previous commit including a message
+func (self *CommitCommands) CreateFixupCommitWithMessage(hash string, message string) error {
+	cmdArgs := NewGitCmd("commit").
+		Arg("--fixup="+hash).
+		Arg("-m", message).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
 // CreateAmendCommit creates a commit that changes the commit message of a previous commit
 func (self *CommitCommands) CreateAmendCommit(originalSubject, newSubject, newDescription string, includeFileChanges bool) error {
 	description := newSubject
