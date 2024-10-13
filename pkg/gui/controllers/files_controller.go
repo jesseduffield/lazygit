@@ -664,7 +664,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 		Title:  self.c.Tr.AmendLastCommitTitle,
 		Prompt: self.c.Tr.SureToAmend,
 		HandleConfirm: func() error {
-			return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+			return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 				if len(self.c.Model().Commits) == 0 {
 					return errors.New(self.c.Tr.NoCommitToAmend)
 				}
