@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 // State represents the selection state of the merge conflict context.
@@ -37,14 +38,14 @@ func (s *State) setConflictIndex(index int) {
 	if len(s.conflicts) == 0 {
 		s.conflictIndex = 0
 	} else {
-		s.conflictIndex = utils.Clamp(index, 0, len(s.conflicts)-1)
+		s.conflictIndex = lo.Clamp(index, 0, len(s.conflicts)-1)
 	}
 	s.setSelectionIndex(s.selectionIndex)
 }
 
 func (s *State) setSelectionIndex(index int) {
 	if selections := s.availableSelections(); len(selections) != 0 {
-		s.selectionIndex = utils.Clamp(index, 0, len(selections)-1)
+		s.selectionIndex = lo.Clamp(index, 0, len(selections)-1)
 	}
 }
 
