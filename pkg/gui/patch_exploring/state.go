@@ -3,7 +3,6 @@ package patch_exploring
 import (
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/sirupsen/logrus"
 )
 
 // State represents the current state of the patch explorer context i.e. when
@@ -29,7 +28,7 @@ const (
 	HUNK
 )
 
-func NewState(diff string, selectedLineIdx int, oldState *State, log *logrus.Entry) *State {
+func NewState(diff string, selectedLineIdx int, oldState *State) *State {
 	if oldState != nil && diff == oldState.diff && selectedLineIdx == -1 {
 		// if we're here then we can return the old state. If selectedLineIdx was not -1
 		// then that would mean we were trying to click and potentiall drag a range, which
