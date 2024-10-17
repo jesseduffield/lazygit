@@ -132,8 +132,6 @@ func (self *StagingController) GetOnFocusLost() func(types.OnFocusLostOpts) {
 		if opts.NewContextKey != self.otherContext.GetKey() {
 			self.c.Views().Staging.Wrap = true
 			self.c.Views().StagingSecondary.Wrap = true
-			self.c.Contexts().Staging.Render(false)
-			self.c.Contexts().StagingSecondary.Render(false)
 		}
 	}
 }
