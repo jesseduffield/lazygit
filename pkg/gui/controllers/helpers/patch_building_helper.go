@@ -98,7 +98,7 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 		return
 	}
 
-	mainContent := context.GetContentToRender(true)
+	mainContent := context.GetContentToRender()
 
 	self.c.Contexts().CustomPatchBuilder.FocusSelection()
 
