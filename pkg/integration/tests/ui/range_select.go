@@ -159,19 +159,11 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				SelectedLines(
 					Contains("line 1"),
 				).
-				Press(keys.Universal.RangeSelectDown)
-			if lineIdxOfFirstItem == 6 {
-				v.SelectedLines(
-					// bug: it moved to line 2 instead of selecting both line 1 and line 2
-					Contains("line 2"),
-				)
-			} else {
-				// works correctly in list views though
-				v.SelectedLines(
+				Press(keys.Universal.RangeSelectDown).
+				SelectedLines(
 					Contains("line 1"),
 					Contains("line 2"),
 				)
-			}
 		}
 
 		assertRangeSelectBehaviour(t.Views().Commits().Focus(), t.Views().Branches(), 0)
