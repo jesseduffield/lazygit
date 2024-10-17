@@ -53,7 +53,7 @@ func NewPatchExplorerContext(
 		func(selectedLineIdx int) error {
 			ctx.GetMutex().Lock()
 			defer ctx.GetMutex().Unlock()
-			ctx.NavigateTo(ctx.c.Context().IsCurrent(ctx), selectedLineIdx)
+			ctx.NavigateTo(selectedLineIdx)
 			return nil
 		}),
 	)
@@ -79,15 +79,15 @@ func (self *PatchExplorerContext) GetIncludedLineIndices() []int {
 	return self.getIncludedLineIndices()
 }
 
-func (self *PatchExplorerContext) RenderAndFocus(isFocused bool) {
-	self.setContent(isFocused)
+func (self *PatchExplorerContext) RenderAndFocus() {
+	self.setContent()
 
 	self.FocusSelection()
 	self.c.Render()
 }
 
-func (self *PatchExplorerContext) Render(isFocused bool) {
-	self.setContent(isFocused)
+func (self *PatchExplorerContext) Render() {
+	self.setContent()
 
 	self.c.Render()
 }
@@ -97,8 +97,8 @@ func (self *PatchExplorerContext) Focus() {
 	self.c.Render()
 }
 
-func (self *PatchExplorerContext) setContent(isFocused bool) {
-	self.GetView().SetContent(self.GetContentToRender(isFocused))
+func (self *PatchExplorerContext) setContent() {
+	self.GetView().SetContent(self.GetContentToRender())
 }
 
 func (self *PatchExplorerContext) FocusSelection() {
@@ -119,19 +119,19 @@ func (self *PatchExplorerContext) FocusSelection() {
 	view.SetCursorY(endIdx - newOriginY)
 }
 
-func (self *PatchExplorerContext) GetContentToRender(isFocused bool) string {
+func (self *PatchExplorerContext) GetContentToRender() string {
 	if self.GetState() == nil {
 		return ""
 	}
 
-	return self.GetState().RenderForLineIndices(isFocused, self.GetIncludedLineIndices())
+	return self.GetState().RenderForLineIndices(self.GetIncludedLineIndices())
 }
 
-func (self *PatchExplorerContext) NavigateTo(isFocused bool, selectedLineIdx int) {
+func (self *PatchExplorerContext) NavigateTo(selectedLineIdx int) {
 	self.GetState().SetLineSelectMode()
 	self.GetState().SelectLine(selectedLineIdx)
 
-	self.RenderAndFocus(isFocused)
+	self.RenderAndFocus()
 }
 
 func (self *PatchExplorerContext) GetMutex() *deadlock.Mutex {

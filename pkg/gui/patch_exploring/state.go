@@ -249,7 +249,7 @@ func (s *State) AdjustSelectedLineIdx(change int) {
 	s.SelectLine(s.selectedLineIdx + change)
 }
 
-func (s *State) RenderForLineIndices(isFocused bool, includedLineIndices []int) string {
+func (s *State) RenderForLineIndices(includedLineIndices []int) string {
 	includedLineIndicesSet := set.NewFromSlice(includedLineIndices)
 	return s.patch.FormatView(patch.FormatViewOpts{
 		IncLineIndices: includedLineIndicesSet,

@@ -73,8 +73,8 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 	mainState := mainContext.GetState()
 	secondaryState := secondaryContext.GetState()
 
-	mainContent := mainContext.GetContentToRender(!secondaryFocused)
-	secondaryContent := secondaryContext.GetContentToRender(secondaryFocused)
+	mainContent := mainContext.GetContentToRender()
+	secondaryContent := secondaryContext.GetContentToRender()
 
 	mainContext.GetMutex().Unlock()
 	secondaryContext.GetMutex().Unlock()
