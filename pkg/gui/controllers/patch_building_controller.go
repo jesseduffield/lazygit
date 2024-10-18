@@ -73,6 +73,8 @@ func (self *PatchBuildingController) GetOnFocus() func(types.OnFocusOpts) {
 
 func (self *PatchBuildingController) GetOnFocusLost() func(types.OnFocusLostOpts) {
 	return func(opts types.OnFocusLostOpts) {
+		self.context().SetState(nil)
+
 		self.c.Views().PatchBuilding.Wrap = true
 
 		if self.c.Git().Patch.PatchBuilder.IsEmpty() {
