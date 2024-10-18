@@ -276,11 +276,3 @@ func (s *State) CalculateOrigin(currentOrigin int, bufferHeight int, numLines in
 
 	return calculateOrigin(currentOrigin, bufferHeight, numLines, firstLineIdx, lastLineIdx, s.GetSelectedLineIdx(), s.selectMode)
 }
-
-func (s *State) RangeStartLineIdx() (int, bool) {
-	if s.selectMode == RANGE {
-		return s.rangeStartLineIdx, true
-	}
-
-	return 0, false
-}
