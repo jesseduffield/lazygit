@@ -50,7 +50,7 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFile("file1", fileContent)
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		assertRangeSelectBehaviour := func(v *ViewDriver) {
+		assertRangeSelectBehaviour := func(v *ViewDriver, otherView *ViewDriver, lineIdxOfFirstItem int) {
 			v.
 				SelectedLines(
 					Contains("line 1"),
@@ -152,9 +152,21 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				SelectedLines(
 					Contains("line 10"),
 				)
+
+			// Click in view, press shift+arrow -> nonsticky range
+			otherView.Focus()
+			v.Click(1, lineIdxOfFirstItem).
+				SelectedLines(
+					Contains("line 1"),
+				).
+				Press(keys.Universal.RangeSelectDown).
+				SelectedLines(
+					Contains("line 1"),
+					Contains("line 2"),
+				)
 		}
 
-		assertRangeSelectBehaviour(t.Views().Commits().Focus())
+		assertRangeSelectBehaviour(t.Views().Commits().Focus(), t.Views().Branches(), 0)
 
 		t.Views().Files().
 			Focus().
@@ -163,6 +175,6 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressEnter()
 
-		assertRangeSelectBehaviour(t.Views().Staging().IsFocused())
+		assertRangeSelectBehaviour(t.Views().Staging().IsFocused(), t.Views().Files(), 6)
 	},
 })

@@ -94,7 +94,7 @@ func (s *State) ToggleStickySelectRange() {
 }
 
 func (s *State) ToggleSelectRange(sticky bool) {
-	if s.selectMode == RANGE {
+	if s.SelectingRange() {
 		s.selectMode = LINE
 	} else {
 		s.selectMode = RANGE
