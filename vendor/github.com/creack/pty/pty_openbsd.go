@@ -1,3 +1,6 @@
+//go:build openbsd
+//+build openbsd
+
 package pty
 
 import (
