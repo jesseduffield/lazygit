@@ -1,6 +1,3 @@
-//go:build arm && freebsd
-//+build arm,freebsd
-
 // Created by cgo -godefs - DO NOT EDIT
 // cgo -godefs types_freebsd.go
 
@@ -11,6 +8,7 @@ const (
 )
 
 type fiodgnameArg struct {
-	Len int32
-	Buf *byte
+	Len       int32
+	Pad_cgo_0 [4]byte
+	Buf       *byte
 }
