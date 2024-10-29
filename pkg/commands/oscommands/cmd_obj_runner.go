@@ -376,8 +376,11 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (Crede
 		`Password\s*for\s*'.+':`:                 Password,
 		`Username\s*for\s*'.+':`:                 Username,
 		`Enter\s*passphrase\s*for\s*key\s*'.+':`: Passphrase,
-		`Enter\s*PIN\s*for\s*.+\s*key\s*.+:`:     PIN,
-		`.*2FA Token.*`:                          Token,
+		// With a tpm, ssh prompts:
+		// Enter PIN for '%s':
+		// https://github.com/openssh/libopenssh/blob/05dfdd5f54d9a1bae5544141a7ee65baa3313ecd/ssh/ssh-pkcs11.c#L251
+		`Enter\s*PIN\s*for\s*.+\s*(key\s*.+|'.+'):`: PIN,
+		`.*2FA Token.*`: Token,
 	}
 
 	compiledPrompts := map[*regexp.Regexp]CredentialType{}

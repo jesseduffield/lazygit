@@ -95,6 +95,12 @@ func TestProcessOutput(t *testing.T) {
 			expectedToWrite:         "pin",
 		},
 		{
+			name:                    "tpm pin prompt",
+			promptUserForCredential: defaultPromptUserForCredential,
+			output:                  "Enter PIN for 'label':", // https://github.com/tpm2-software/tpm2-pkcs11/blob/d7fd660dd3ad2b8382afc57a768872032bd71d64/docs/SSH.md?plain=1#L86S
+			expectedToWrite:         "pin",
+		},
+		{
 			name:                    "2FA token prompt",
 			promptUserForCredential: defaultPromptUserForCredential,
 			output:                  "testuser 2FA Token (citadel)",
