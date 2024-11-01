@@ -87,6 +87,7 @@ type TranslationSet struct {
 	AllFilesDiffCopiedToast               string
 	FilterStagedFiles                     string
 	FilterUnstagedFiles                   string
+	FilterTrackedFiles                    string
 	ResetFilter                           string
 	MergeConflictsTitle                   string
 	Checkout                              string
@@ -1075,6 +1076,7 @@ func EnglishTranslationSet() *TranslationSet {
 		AllFilesDiffCopiedToast:              "All files diff copied to clipboard",
 		FilterStagedFiles:                    "Show only staged files",
 		FilterUnstagedFiles:                  "Show only unstaged files",
+		FilterTrackedFiles:                   "Show only tracked files",
 		ResetFilter:                          "Reset filter",
 		NoChangedFiles:                       "No changed files",
 		SoftReset:                            "Soft reset",
