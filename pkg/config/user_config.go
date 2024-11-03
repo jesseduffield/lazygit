@@ -197,6 +197,8 @@ type ThemeConfig struct {
 	UnstagedChangesColor []string `yaml:"unstagedChangesColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Default text color
 	DefaultFgColor []string `yaml:"defaultFgColor" jsonschema:"minItems=1,uniqueItems=true"`
+	// Color for commit tree graph
+	CommitTreeGraphHighlightColor []string `yaml:"commitTreeGraphHighlightColor" jsonschema:"minItems=1,uniqueItems=true"`
 }
 
 type CommitLengthConfig struct {
@@ -704,6 +706,7 @@ func GetDefaultConfig() *UserConfig {
 				MarkedBaseCommitFgColor:         []string{"blue"},
 				UnstagedChangesColor:            []string{"red"},
 				DefaultFgColor:                  []string{"default"},
+				CommitTreeGraphHighlightColor:   []string{"lightwhite"},
 			},
 			CommitLength:                 CommitLengthConfig{Show: true},
 			SkipNoStagedFilesWarning:     false,

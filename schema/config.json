@@ -265,6 +265,18 @@
               "default": [
                 "default"
               ]
+            },
+            "commitTreeGraphHighlightColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Color for commit tree graph",
+              "default": [
+                "lightwhite"
+              ]
             }
           },
           "additionalProperties": false,
