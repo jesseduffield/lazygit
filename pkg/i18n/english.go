@@ -208,6 +208,7 @@ type TranslationSet struct {
 	ForcePushDisabled                     string
 	UpdatesRejected                       string
 	UpdatesRejectedAndForcePushDisabled   string
+	MainBranchPushDisabled                string
 	CheckForUpdate                        string
 	CheckingForUpdates                    string
 	UpdateAvailableTitle                  string
@@ -1190,6 +1191,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ForcePushDisabled:                    "Your branch has diverged from the remote branch and you've disabled force pushing",
 		UpdatesRejected:                      "Updates were rejected. Please fetch and examine the remote changes before pushing again.",
 		UpdatesRejectedAndForcePushDisabled:  "Updates were rejected and you have disabled force pushing",
+		MainBranchPushDisabled:               "Push to main branches has been disabled",
 		CheckForUpdate:                       "Check for update",
 		CheckingForUpdates:                   "Checking for updates...",
 		UpdateAvailableTitle:                 "Update available!",
