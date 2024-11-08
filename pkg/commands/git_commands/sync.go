@@ -101,7 +101,7 @@ func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
 		WorktreePathIf(opts.WorktreePath != "", opts.WorktreePath).
 		ToArgv()
 
-	// setting GIT_SEQUENCE_EDITOR to ':' as a way of skipping if, in case the user
+	// setting GIT_SEQUENCE_EDITOR to ':' as a way of skipping it, in case the user
 	// has 'pull.rebase = interactive' configured.
 	return self.cmd.New(cmdArgs).AddEnvVars("GIT_SEQUENCE_EDITOR=:").PromptOnCredentialRequest(task).Run()
 }
