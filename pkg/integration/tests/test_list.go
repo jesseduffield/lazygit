@@ -373,6 +373,7 @@ var tests = []*components.IntegrationTest{
 	worktree.DoubleNestedLinkedSubmodule,
 	worktree.ExcludeFileInWorktree,
 	worktree.FastForwardWorktreeBranch,
+	worktree.FastForwardWorktreeBranchShouldNotPolluteCurrentWorktree,
 	worktree.ForceRemoveWorktree,
 	worktree.RemoveWorktreeFromBranch,
 	worktree.ResetWindowTabs,
