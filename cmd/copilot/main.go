@@ -235,42 +235,44 @@ func (self *CopilotChat) loadFromCache() error {
 	// If we have OAuth token but no valid API key, fetch a new one
 	if self.OAuthToken != "" {
 		fmt.Println("OAuth token found, fetching new API key...")
-		apiTokenReq, err := http.NewRequest(http.MethodGet, COPILOT_CHAT_AUTH_URL, nil)
-		if err != nil {
-			return fmt.Errorf("failed to create API token request: %v", err)
+		if err := self.fetchNewApiToken(); err != nil {
+			return fmt.Errorf("failed to fetch new API token: %v", err)
 		}
-		apiTokenReq.Header.Set("Authorization", fmt.Sprintf("token %s", self.OAuthToken))
-		setHeaders(apiTokenReq, "")
-
-		apiTokenResp, err := self.Client.Do(apiTokenReq)
-		if err != nil {
-			return fmt.Errorf("failed to get API token: %v", err)
-		}
-		defer apiTokenResp.Body.Close()
-
-		var apiTokenResponse ApiTokenResponse
-		if err := json.NewDecoder(apiTokenResp.Body).Decode(&apiTokenResponse); err != nil {
-			return fmt.Errorf("failed to decode API token response: %v", err)
-		}
-
-		self.ApiToken = &ApiToken{
-			ApiKey:    apiTokenResponse.Token,
-			ExpiresAt: time.Unix(apiTokenResponse.ExpiresAt, 0),
-		}
-
-		// Save the new API key to cache
-		if err := self.saveToCache(); err != nil {
-			log.Printf("Warning: Failed to save new API key to cache: %v", err)
-		}
-
 		fmt.Println("Successfully fetched new API key")
-
 		return nil
 	}
 
 	return nil
 }
 
+
+func (self *CopilotChat) fetchNewApiToken() error {
+    apiTokenReq, err := http.NewRequest(http.MethodGet, COPILOT_CHAT_AUTH_URL, nil)
+    if err != nil {
+        return fmt.Errorf("failed to create API token request: %v", err)
+    }
+
+    apiTokenReq.Header.Set("Authorization", fmt.Sprintf("token %s", self.OAuthToken))
+    setHeaders(apiTokenReq, "")
+
+    apiTokenResp, err := self.Client.Do(apiTokenReq)
+    if err != nil {
+        return fmt.Errorf("failed to get API token: %v", err)
+    }
+    defer apiTokenResp.Body.Close()
+
+    var apiTokenResponse ApiTokenResponse
+    if err := json.NewDecoder(apiTokenResp.Body).Decode(&apiTokenResponse); err != nil {
+        return fmt.Errorf("failed to decode API token response: %v", err)
+    }
+
+    self.ApiToken = &ApiToken{
+        ApiKey:    apiTokenResponse.Token,
+        ExpiresAt: time.Unix(apiTokenResponse.ExpiresAt, 0),
+    }
+
+    return self.saveToCache()
+}
 
 
 func setHeaders(req *http.Request, contentType string) {
@@ -370,28 +372,9 @@ func (self *CopilotChat) Authenticate() error {
 		// Successfully got the access token
 		self.OAuthToken = tokenResponse.AccessToken
 
-		// Now get the Copilot API token
-		apiTokenReq, err := http.NewRequest(http.MethodGet, COPILOT_CHAT_AUTH_URL, nil)
-		if err != nil {
-			return fmt.Errorf("failed to create API token request: %v", err)
-		}
-		apiTokenReq.Header.Set("Authorization", fmt.Sprintf("token %s", self.OAuthToken))
-		setHeaders(apiTokenReq, "")
-
-		apiTokenResp, err := self.Client.Do(apiTokenReq)
-		if err != nil {
-			return fmt.Errorf("failed to get API token: %v", err)
-		}
-		defer apiTokenResp.Body.Close()
-
-		var apiTokenResponse ApiTokenResponse
-		if err := json.NewDecoder(apiTokenResp.Body).Decode(&apiTokenResponse); err != nil {
-			return fmt.Errorf("failed to decode API token response: %v", err)
-		}
-
-		self.ApiToken = &ApiToken{
-			ApiKey:    apiTokenResponse.Token,
-			ExpiresAt: time.Unix(apiTokenResponse.ExpiresAt, 0),
+		// Now get the Copilot API token using fetchNewApiToken
+		if err := self.fetchNewApiToken(); err != nil {
+			return fmt.Errorf("failed to fetch API token: %v", err)
 		}
 
 		fmt.Println("Successfully authenticated!")
