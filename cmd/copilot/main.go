@@ -150,6 +150,27 @@ type CopilotChat struct {
 	mu         sync.Mutex
 }
 
+// TODO: import a library to count the number of tokens in a string
+func (m Model) MaxTokenCount() int {
+	switch m {
+	case Gpt4o:
+		return 64000
+	case Gpt4:
+		return 32768
+	case Gpt3_5Turbo:
+		return 12288
+	case O1Mini:
+		return 20000
+	case O1Preview:
+		return 20000
+	case Claude3_5Sonnet:
+		return 200000
+	default:
+		return 0
+	}
+}
+
+
 func NewCopilotChat(client *http.Client) *CopilotChat {
 	if client == nil {
 		client = &http.Client{}
@@ -327,6 +348,7 @@ func (self *CopilotChat) Authenticate() error {
 	startTime := time.Now()
 	attempts := 0
 
+	// FIXME: There is probably a better way to do this
 	for {
 		if time.Since(startTime) >= MAX_AUTH_TIME {
 			return fmt.Errorf("authentication timed out after 5 minutes")
