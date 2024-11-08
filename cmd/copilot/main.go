@@ -240,9 +240,7 @@ func (self *CopilotChat) loadFromCache() error {
 			return fmt.Errorf("failed to create API token request: %v", err)
 		}
 		apiTokenReq.Header.Set("Authorization", fmt.Sprintf("token %s", self.OAuthToken))
-		apiTokenReq.Header.Set("Accept", "application/json")
-		apiTokenReq.Header.Set("Editor-Version", EDITOR_VERSION)
-		apiTokenReq.Header.Set("Copilot-Integration-Id", COPILOT_INTEGRATION_ID)
+		setHeaders(apiTokenReq, "")
 
 		apiTokenResp, err := self.Client.Do(apiTokenReq)
 		if err != nil {
@@ -271,6 +269,17 @@ func (self *CopilotChat) loadFromCache() error {
 	}
 
 	return nil
+}
+
+
+
+func setHeaders(req *http.Request, contentType string) {
+    req.Header.Set("Accept", "application/json")
+    if contentType != "" {
+        req.Header.Set("Content-Type", contentType)
+    }
+    req.Header.Set("Editor-Version", EDITOR_VERSION)
+    req.Header.Set("Copilot-Integration-Id", COPILOT_INTEGRATION_ID)
 }
 
 func (self *CopilotChat) Authenticate() error {
@@ -367,9 +376,7 @@ func (self *CopilotChat) Authenticate() error {
 			return fmt.Errorf("failed to create API token request: %v", err)
 		}
 		apiTokenReq.Header.Set("Authorization", fmt.Sprintf("token %s", self.OAuthToken))
-		apiTokenReq.Header.Set("Accept", "application/json")
-		apiTokenReq.Header.Set("Editor-Version", EDITOR_VERSION)
-		apiTokenReq.Header.Set("Copilot-Integration-Id", COPILOT_INTEGRATION_ID)
+		setHeaders(apiTokenReq, "")
 
 		apiTokenResp, err := self.Client.Do(apiTokenReq)
 		if err != nil {
@@ -434,9 +441,7 @@ func (self *CopilotChat) Chat(request Request) (string, error) {
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Editor-Version", EDITOR_VERSION)
-	req.Header.Set("Copilot-Integration-Id", COPILOT_INTEGRATION_ID)
+	setHeaders(req, "")
 
 	response, err := self.Client.Do(req)
 	if err != nil {
