@@ -629,9 +629,11 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 			self.c.LogAction(action)
 
 			worktreeGitDir := ""
+			worktreePath := ""
 			// if it is the current worktree path, no need to specify the path
 			if !worktree.IsCurrent {
 				worktreeGitDir = worktree.GitDir
+				worktreePath = worktree.Path
 			}
 
 			err := self.c.Git().Sync.Pull(
@@ -641,6 +643,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 					BranchName:      branch.UpstreamBranch,
 					FastForwardOnly: true,
 					WorktreeGitDir:  worktreeGitDir,
+					WorktreePath: worktreePath,
 				},
 			)
 			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
