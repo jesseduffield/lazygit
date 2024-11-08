@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -73,6 +72,46 @@ type Request struct {
 	Temperature float32       `json:"temperature"`
 	Model       Model         `json:"model"`
 	Messages    []ChatMessage `json:"messages"`
+}
+
+type ContentFilterResult struct {
+	Filtered bool   `json:"filtered"`
+	Severity string `json:"severity"`
+}
+
+type ContentFilterResults struct {
+	Hate      ContentFilterResult `json:"hate"`
+	SelfHarm  ContentFilterResult `json:"self_harm"`
+	Sexual    ContentFilterResult `json:"sexual"`
+	Violence  ContentFilterResult `json:"violence"`
+}
+
+type ChatResponse struct {
+	Choices             []ResponseChoice      `json:"choices"`
+	Created            int64                 `json:"created"`
+	ID                 string                `json:"id"`
+	Model              string                `json:"model"`
+	SystemFingerprint  string                `json:"system_fingerprint"`
+	PromptFilterResults []PromptFilterResult  `json:"prompt_filter_results"`
+	Usage              Usage                 `json:"usage"`
+}
+
+type ResponseChoice struct {
+	ContentFilterResults ContentFilterResults `json:"content_filter_results"`
+	FinishReason        string               `json:"finish_reason"`
+	Index               int                  `json:"index"`
+	Message             ChatMessage          `json:"message"`
+}
+
+type PromptFilterResult struct {
+	ContentFilterResults ContentFilterResults `json:"content_filter_results"`
+	PromptIndex         int                  `json:"prompt_index"`
+}
+
+type Usage struct {
+	CompletionTokens int `json:"completion_tokens"`
+	PromptTokens     int `json:"prompt_tokens"`
+	TotalTokens      int `json:"total_tokens"`
 }
 
 type ApiTokenResponse struct {
@@ -236,7 +275,7 @@ func (self *CopilotChat) loadFromCache() error {
 
 func (self *CopilotChat) Authenticate() error {
 	// Try to load from cache first
-	if err := self.loadFromCache(); err == nil {
+	if err := self.loadFromCache(); err == nil && self.IsAuthenticated() {
 		return nil
 	}
 
@@ -339,21 +378,9 @@ func (self *CopilotChat) Authenticate() error {
 		defer apiTokenResp.Body.Close()
 
 		var apiTokenResponse ApiTokenResponse
-
-		var buf bytes.Buffer
-		tee := io.TeeReader(apiTokenResp.Body, &buf)
-
-		// Debug response
-		respBody, _ := io.ReadAll(tee)
-		fmt.Printf("API Token Response: %s\n", string(respBody))
-
-		// Decode using the buffer
-		if err := json.Unmarshal(buf.Bytes(), &apiTokenResponse); err != nil {
+		if err := json.NewDecoder(apiTokenResp.Body).Decode(&apiTokenResponse); err != nil {
 			return fmt.Errorf("failed to decode API token response: %v", err)
 		}
-
-		// Re-create reader for JSON decoding
-		apiTokenResp.Body = io.NopCloser(bytes.NewBuffer(respBody))
 
 		self.ApiToken = &ApiToken{
 			ApiKey:    apiTokenResponse.Token,
@@ -422,12 +449,17 @@ func (self *CopilotChat) Chat(request Request) (string, error) {
 		return "", fmt.Errorf("failed to get completion: %s", string(body))
 	}
 
-	responseBody, err := io.ReadAll(response.Body)
-	if err != nil {
-		return "", err
+	var chatResponse ChatResponse
+	decoder := json.NewDecoder(response.Body)
+	if err := decoder.Decode(&chatResponse); err != nil {
+		return "", fmt.Errorf("failed to decode response: %v", err)
 	}
 
-	return string(responseBody), nil
+	if len(chatResponse.Choices) == 0 {
+		return "", fmt.Errorf("no choices in response")
+	}
+
+	return chatResponse.Choices[0].Message.Content, nil
 }
 
 func main() {
