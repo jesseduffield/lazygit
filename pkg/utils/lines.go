@@ -3,6 +3,8 @@ package utils
 import (
 	"bytes"
 	"strings"
+
+	"github.com/mattn/go-runewidth"
 )
 
 // SplitLines takes a multiline string and splits it on newlines
@@ -99,4 +101,57 @@ func ScanLinesAndTruncateWhenLongerThanBuffer(maxBufferSize int) func(data []byt
 		// Request more data.
 		return 0, nil, nil
 	}
+}
+
+// Wrap lines to a given width.
+// If wrap is false, the text is returned as is.
+// This code needs to behave the same as `gocui.lineWrap` does.
+func WrapViewLinesToWidth(wrap bool, text string, width int) []string {
+	lines := strings.Split(text, "\n")
+	if !wrap {
+		return lines
+	}
+
+	wrappedLines := make([]string, 0, len(lines))
+
+	for _, line := range lines {
+		n := 0
+		offset := 0
+		lastWhitespaceIndex := -1
+		for i, currChr := range line {
+			rw := runewidth.RuneWidth(currChr)
+			n += rw
+
+			if n > width {
+				if currChr == ' ' {
+					wrappedLines = append(wrappedLines, line[offset:i])
+					offset = i + 1
+					n = 0
+				} else if currChr == '-' {
+					wrappedLines = append(wrappedLines, line[offset:i])
+					offset = i
+					n = rw
+				} else if lastWhitespaceIndex != -1 {
+					if line[lastWhitespaceIndex] == '-' {
+						wrappedLines = append(wrappedLines, line[offset:lastWhitespaceIndex+1])
+					} else {
+						wrappedLines = append(wrappedLines, line[offset:lastWhitespaceIndex])
+					}
+					offset = lastWhitespaceIndex + 1
+					n = runewidth.StringWidth(line[offset : i+1])
+				} else {
+					wrappedLines = append(wrappedLines, line[offset:i])
+					offset = i
+					n = rw
+				}
+				lastWhitespaceIndex = -1
+			} else if currChr == ' ' || currChr == '-' {
+				lastWhitespaceIndex = i
+			}
+		}
+
+		wrappedLines = append(wrappedLines, line[offset:])
+	}
+
+	return wrappedLines
 }

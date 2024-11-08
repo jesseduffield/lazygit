@@ -3,12 +3,11 @@ package helpers
 import (
 	goContext "context"
 	"fmt"
-	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/mattn/go-runewidth"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type ConfirmationHelper struct {
@@ -57,59 +56,9 @@ func (self *ConfirmationHelper) DeactivateConfirmationPrompt() {
 	self.clearConfirmationViewKeyBindings()
 }
 
-// Temporary hack: we're just duplicating the logic in `gocui.lineWrap`
 func getMessageHeight(wrap bool, message string, width int) int {
-	return len(wrapMessageToWidth(wrap, message, width))
-}
-
-func wrapMessageToWidth(wrap bool, message string, width int) []string {
-	lines := strings.Split(message, "\n")
-	if !wrap {
-		return lines
-	}
-
-	wrappedLines := make([]string, 0, len(lines))
-
-	for _, line := range lines {
-		n := 0
-		offset := 0
-		lastWhitespaceIndex := -1
-		for i, currChr := range line {
-			rw := runewidth.RuneWidth(currChr)
-			n += rw
-
-			if n > width {
-				if currChr == ' ' {
-					wrappedLines = append(wrappedLines, line[offset:i])
-					offset = i + 1
-					n = 0
-				} else if currChr == '-' {
-					wrappedLines = append(wrappedLines, line[offset:i])
-					offset = i
-					n = rw
-				} else if lastWhitespaceIndex != -1 {
-					if line[lastWhitespaceIndex] == '-' {
-						wrappedLines = append(wrappedLines, line[offset:lastWhitespaceIndex+1])
-					} else {
-						wrappedLines = append(wrappedLines, line[offset:lastWhitespaceIndex])
-					}
-					offset = lastWhitespaceIndex + 1
-					n = runewidth.StringWidth(line[offset : i+1])
-				} else {
-					wrappedLines = append(wrappedLines, line[offset:i])
-					offset = i
-					n = rw
-				}
-				lastWhitespaceIndex = -1
-			} else if currChr == ' ' || currChr == '-' {
-				lastWhitespaceIndex = i
-			}
-		}
-
-		wrappedLines = append(wrappedLines, line[offset:])
-	}
-
-	return wrappedLines
+	wrappedLines := utils.WrapViewLinesToWidth(wrap, message, width)
+	return len(wrappedLines)
 }
 
 func (self *ConfirmationHelper) getPopupPanelDimensionsForContentHeight(panelWidth, contentHeight int, parentPopupContext types.Context) (int, int, int, int) {
@@ -327,7 +276,7 @@ func (self *ConfirmationHelper) layoutMenuPrompt(contentWidth int) int {
 	var promptLines []string
 	prompt := self.c.Contexts().Menu.GetPrompt()
 	if len(prompt) > 0 {
-		promptLines = wrapMessageToWidth(true, prompt, contentWidth)
+		promptLines = utils.WrapViewLinesToWidth(true, prompt, contentWidth)
 		promptLines = append(promptLines, "")
 	}
 	self.c.Contexts().Menu.SetPromptLines(promptLines)

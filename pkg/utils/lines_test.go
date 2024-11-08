@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -162,5 +163,189 @@ func TestScanLinesAndTruncateWhenLongerThanBuffer(t *testing.T) {
 		}
 		assert.NoError(t, scanner.Err())
 		assert.EqualValues(t, s.expectedLines, result)
+	}
+}
+
+func TestWrapViewLinesToWidth(t *testing.T) {
+	tests := []struct {
+		name                 string
+		wrap                 bool
+		text                 string
+		width                int
+		expectedWrappedLines []string
+	}{
+		{
+			name:  "Wrap on space",
+			wrap:  true,
+			text:  "Hello World",
+			width: 5,
+			expectedWrappedLines: []string{
+				"Hello",
+				"World",
+			},
+		},
+		{
+			name:  "Wrap on hyphen",
+			wrap:  true,
+			text:  "Hello-World",
+			width: 6,
+			expectedWrappedLines: []string{
+				"Hello-",
+				"World",
+			},
+		},
+		{
+			name:  "Wrap on hyphen 2",
+			wrap:  true,
+			text:  "Blah Hello-World",
+			width: 12,
+			expectedWrappedLines: []string{
+				"Blah Hello-",
+				"World",
+			},
+		},
+		{
+			name:  "Wrap on hyphen 3",
+			wrap:  true,
+			text:  "Blah Hello-World",
+			width: 11,
+			expectedWrappedLines: []string{
+				"Blah Hello-",
+				"World",
+			},
+		},
+		{
+			name:  "Wrap on hyphen 4",
+			wrap:  true,
+			text:  "Blah Hello-World",
+			width: 10,
+			expectedWrappedLines: []string{
+				"Blah Hello",
+				"-World",
+			},
+		},
+		{
+			name:  "Wrap on space 2",
+			wrap:  true,
+			text:  "Blah Hello World",
+			width: 10,
+			expectedWrappedLines: []string{
+				"Blah Hello",
+				"World",
+			},
+		},
+		{
+			name:  "Wrap on space with more words",
+			wrap:  true,
+			text:  "Longer word here",
+			width: 10,
+			expectedWrappedLines: []string{
+				"Longer",
+				"word here",
+			},
+		},
+		{
+			name:  "Split word that's too long",
+			wrap:  true,
+			text:  "ThisWordIsWayTooLong",
+			width: 10,
+			expectedWrappedLines: []string{
+				"ThisWordIs",
+				"WayTooLong",
+			},
+		},
+		{
+			name:  "Split word that's too long over multiple lines",
+			wrap:  true,
+			text:  "ThisWordIsWayTooLong",
+			width: 5,
+			expectedWrappedLines: []string{
+				"ThisW",
+				"ordIs",
+				"WayTo",
+				"oLong",
+			},
+		},
+		{
+			name:  "Lots of hyphens",
+			wrap:  true,
+			text:  "one-two-three-four-five",
+			width: 8,
+			expectedWrappedLines: []string{
+				"one-two-",
+				"three-",
+				"four-",
+				"five",
+			},
+		},
+		{
+			name:  "Several lines using all the available width",
+			wrap:  true,
+			text:  "aaa bb cc ddd-ee ff",
+			width: 5,
+			expectedWrappedLines: []string{
+				"aaa",
+				"bb cc",
+				"ddd-",
+				"ee ff",
+			},
+		},
+		{
+			name:  "Several lines using all the available width, with multi-cell runes",
+			wrap:  true,
+			text:  "🐤🐤🐤 🐝🐝 🙉🙉 🦊🦊🦊-🐬🐬 🦢🦢",
+			width: 9,
+			expectedWrappedLines: []string{
+				"🐤🐤🐤",
+				"🐝🐝 🙉🙉",
+				"🦊🦊🦊-",
+				"🐬🐬 🦢🦢",
+			},
+		},
+		{
+			name:  "Space in last column",
+			wrap:  true,
+			text:  "hello world",
+			width: 6,
+			expectedWrappedLines: []string{
+				"hello",
+				"world",
+			},
+		},
+		{
+			name:  "Hyphen in last column",
+			wrap:  true,
+			text:  "hello-world",
+			width: 6,
+			expectedWrappedLines: []string{
+				"hello-",
+				"world",
+			},
+		},
+		{
+			name:  "English text",
+			wrap:  true,
+			text:  "+The sea reach of the Thames stretched before us like the bedinnind of an interminable waterway. In the offind the sea and the sky were welded todether without a joint, and in the luminous space the tanned sails of the bardes drifting blah blah",
+			width: 81,
+			expectedWrappedLines: []string{
+				"+The sea reach of the Thames stretched before us like the bedinnind of an",
+				"interminable waterway. In the offind the sea and the sky were welded todether",
+				"without a joint, and in the luminous space the tanned sails of the bardes",
+				"drifting blah blah",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			wrappedLines := WrapViewLinesToWidth(tt.wrap, tt.text, tt.width)
+			assert.Equal(t, tt.expectedWrappedLines, wrappedLines)
+
+			// As a sanity check, also test that gocui's line wrapping behaves the same way
+			view := gocui.NewView("", 0, 0, tt.width+1, 1000, gocui.OutputNormal)
+			assert.Equal(t, tt.width, view.InnerWidth())
+			view.Wrap = tt.wrap
+			view.SetContent(tt.text)
+			assert.Equal(t, wrappedLines, view.ViewBufferLines())
+		})
 	}
 }
