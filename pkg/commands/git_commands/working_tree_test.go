@@ -210,7 +210,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 		plain               bool
 		cached              bool
 		ignoreWhitespace    bool
-		contextSize         int
+		contextSize         uint64
 		similarityThreshold int
 		runner              *oscommands.FakeCmdObjRunner
 	}
@@ -352,7 +352,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 		reverse          bool
 		plain            bool
 		ignoreWhitespace bool
-		contextSize      int
+		contextSize      uint64
 		runner           *oscommands.FakeCmdObjRunner
 	}
 
