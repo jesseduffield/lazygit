@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mattn/go-runewidth"
 )
 
@@ -156,12 +157,14 @@ func (self *ConfirmationHelper) getPopupPanelWidth() int {
 func (self *ConfirmationHelper) prepareConfirmationPanel(
 	opts types.ConfirmOpts,
 ) {
-	self.c.Views().Confirmation.Title = opts.Title
+	self.c.Contexts().Confirmation.State.Multiline = opts.Multiline
+	confirmationView := self.c.Views().Confirmation
+	confirmationView.Title = opts.Title
 	// for now we do not support wrapping in our editor
-	self.c.Views().Confirmation.Wrap = !opts.Editable
-	self.c.Views().Confirmation.FgColor = theme.GocuiDefaultTextColor
-	self.c.Views().Confirmation.Mask = runeForMask(opts.Mask)
-	self.c.Views().Confirmation.SetOrigin(0, 0)
+	confirmationView.Wrap = !opts.Editable
+	confirmationView.FgColor = theme.GocuiDefaultTextColor
+	confirmationView.Mask = runeForMask(opts.Mask)
+	confirmationView.SetOrigin(0, 0)
 
 	suggestionsContext := self.c.Contexts().Suggestions
 	suggestionsContext.State.FindSuggestions = opts.FindSuggestionsFunc
@@ -206,6 +209,7 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 	self.prepareConfirmationPanel(
 		types.ConfirmOpts{
 			Title:               opts.Title,
+			Multiline:           opts.Multiline,
 			Prompt:              opts.Prompt,
 			FindSuggestionsFunc: opts.FindSuggestionsFunc,
 			Editable:            opts.Editable,
@@ -213,6 +217,14 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 		})
 	confirmationView := self.c.Views().Confirmation
 	confirmationView.Editable = opts.Editable
+	if opts.Multiline {
+		confirmationView.Subtitle = utils.ResolvePlaceholderString(
+			self.c.Tr.PressToSubmit,
+			map[string]string{"Key": self.c.UserConfig().Keybinding.Universal.ConfirmInEditor},
+		)
+	} else {
+		confirmationView.Subtitle = ""
+	}
 
 	if opts.Editable {
 		textArea := confirmationView.TextArea
@@ -363,7 +375,16 @@ func (self *ConfirmationHelper) resizeConfirmationPanel(parentPopupContext types
 		prompt = self.c.Views().Confirmation.TextArea.GetContent()
 		wrap = false
 	}
-	panelHeight := getMessageHeight(wrap, prompt, panelWidth) + suggestionsViewHeight
+
+	multiline := self.c.Contexts().Confirmation.State.Multiline
+	inputHeight := getMessageHeight(wrap, prompt, panelWidth)
+
+	minMultilineHeight := 5
+	if multiline && inputHeight < minMultilineHeight {
+		inputHeight = minMultilineHeight
+	}
+
+	panelHeight := inputHeight + suggestionsViewHeight
 	x0, y0, x1, y1 := self.getPopupPanelDimensionsAux(panelWidth, panelHeight, parentPopupContext)
 	confirmationViewBottom := y1 - suggestionsViewHeight
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().Confirmation.Name(), x0, y0, x1, confirmationViewBottom, 0)

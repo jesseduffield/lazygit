@@ -153,6 +153,7 @@ type CreatePopupPanelOpts struct {
 	HasLoader              bool
 	Editable               bool
 	Title                  string
+	Multiline              bool
 	Prompt                 string
 	HandleConfirm          func() error
 	HandleConfirmPrompt    func(string) error
@@ -166,6 +167,7 @@ type CreatePopupPanelOpts struct {
 
 type ConfirmOpts struct {
 	Title               string
+	Multiline           bool
 	Prompt              string
 	HandleConfirm       func() error
 	HandleClose         func() error
@@ -176,6 +178,7 @@ type ConfirmOpts struct {
 
 type PromptOpts struct {
 	Title               string
+	Multiline           bool
 	InitialContent      string
 	FindSuggestionsFunc func(string) []*Suggestion
 	HandleConfirm       func(string) error

@@ -24,20 +24,54 @@ func NewConfirmationController(
 }
 
 func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
-	bindings := []*types.Binding{
-		{
-			Key:             opts.GetKey(opts.Config.Universal.Confirm),
-			Handler:         func() error { return self.context().State.OnConfirm() },
-			Description:     self.c.Tr.Confirm,
-			DisplayOnScreen: true,
-		},
-		{
+	bindings := []*types.Binding{}
+
+	if self.context().State.Multiline {
+		bindings = append(bindings,
+			&types.Binding{
+				// Hard coding because this is always the button that adds a newline.
+				Key: opts.GetKey("<enter>"),
+				Handler: func() error {
+					self.c.Log.Warn("In <enter> handler")
+					self.c.Views().Confirmation.TextArea.TypeString("\n")
+					self.c.Views().Confirmation.RenderTextArea()
+					return nil
+				},
+				Description:     self.c.Tr.Confirm,
+				DisplayOnScreen: false,
+			},
+			&types.Binding{
+				Key: opts.GetKey(opts.Config.Universal.ConfirmInEditor),
+				Handler: func() error {
+					self.c.Log.Warn("In <alt-enter> handler")
+					return self.context().State.OnConfirm()
+				},
+				Description:     self.c.Tr.Confirm,
+				DisplayOnScreen: true,
+			},
+		)
+	} else {
+		bindings = append(bindings,
+			&types.Binding{
+				Key: opts.GetKey(opts.Config.Universal.Confirm),
+				Handler: func() error {
+					self.c.Log.Warn("In single-line confirm handler")
+					return self.context().State.OnConfirm()
+				},
+				Description:     self.c.Tr.Confirm,
+				DisplayOnScreen: true,
+			},
+		)
+	}
+
+	bindings = append(bindings,
+		&types.Binding{
 			Key:             opts.GetKey(opts.Config.Universal.Return),
 			Handler:         func() error { return self.context().State.OnClose() },
 			Description:     self.c.Tr.CloseCancel,
 			DisplayOnScreen: true,
 		},
-		{
+		&types.Binding{
 			Key: opts.GetKey(opts.Config.Universal.TogglePanel),
 			Handler: func() error {
 				if len(self.c.Contexts().Suggestions.State.Suggestions) > 0 {
@@ -54,7 +88,7 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 				return nil
 			},
 		},
-	}
+	)
 
 	return bindings
 }

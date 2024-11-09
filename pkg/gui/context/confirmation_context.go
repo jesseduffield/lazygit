@@ -14,6 +14,7 @@ type ConfirmationContext struct {
 type ConfirmationContextState struct {
 	OnConfirm func() error
 	OnClose   func() error
+	Multiline bool
 }
 
 var _ types.Context = (*ConfirmationContext)(nil)

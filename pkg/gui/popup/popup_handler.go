@@ -107,6 +107,7 @@ func (self *PopupHandler) Confirm(opts types.ConfirmOpts) {
 func (self *PopupHandler) Prompt(opts types.PromptOpts) {
 	self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
 		Title:                  opts.Title,
+		Multiline:              opts.Multiline,
 		Prompt:                 opts.InitialContent,
 		Editable:               true,
 		HandleConfirmPrompt:    opts.HandleConfirm,

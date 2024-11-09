@@ -70,6 +70,8 @@ func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) {
 		return
 	}
 
+	gui.resetHelpersAndControllers()
+
 	contextsToDeactivate, contextToActivate := self.pushToContextStack(c)
 
 	for _, contextToDeactivate := range contextsToDeactivate {

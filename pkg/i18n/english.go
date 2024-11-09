@@ -555,6 +555,7 @@ type TranslationSet struct {
 	MustStashWarning                      string
 	MustStashTitle                        string
 	ConfirmationTitle                     string
+	PressToSubmit                         string
 	PrevPage                              string
 	NextPage                              string
 	GotoTop                               string
@@ -1545,6 +1546,7 @@ func EnglishTranslationSet() *TranslationSet {
 		MustStashWarning:                 "Pulling a patch out into the index requires stashing and unstashing your changes. If something goes wrong, you'll be able to access your files from the stash. Continue?",
 		MustStashTitle:                   "Must stash",
 		ConfirmationTitle:                "Confirmation panel",
+		PressToSubmit:                    "Press {{.Key}} to submit",
 		PrevPage:                         "Previous page",
 		NextPage:                         "Next page",
 		GotoTop:                          "Scroll to top",
