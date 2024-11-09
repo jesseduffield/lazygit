@@ -252,6 +252,9 @@ gui:
   # If true, jump to the Files panel after applying a stash
   switchToFilesAfterStashApply: true
 
+  # If true, when using the panel jump keys (default 1 through 5) and target panel is already active, go to next tab instead
+  switchTabsWithPanelJumpKeys: false
+
 # Config relating to git
 git:
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
