@@ -91,7 +91,7 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 
 	oldState := context.GetState()
 
-	state := patch_exploring.NewState(diff, selectedLineIdx, oldState)
+	state := patch_exploring.NewState(diff, selectedLineIdx, context.GetView(), oldState)
 	context.SetState(state)
 	if state == nil {
 		self.Escape()

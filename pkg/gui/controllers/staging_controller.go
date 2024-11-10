@@ -220,7 +220,7 @@ func (self *StagingController) applySelection(reverse bool) error {
 		return nil
 	}
 
-	firstLineIdx, lastLineIdx := state.SelectedRange()
+	firstLineIdx, lastLineIdx := state.SelectedPatchRange()
 	patchToApply := patch.
 		Parse(state.GetDiff()).
 		Transform(patch.TransformOpts{
@@ -249,7 +249,7 @@ func (self *StagingController) applySelection(reverse bool) error {
 	}
 
 	if state.SelectingRange() {
-		firstLine, _ := state.SelectedRange()
+		firstLine, _ := state.SelectedViewRange()
 		state.SelectLine(firstLine)
 	}
 
@@ -290,7 +290,7 @@ func (self *StagingController) editHunk() error {
 	}
 
 	lineOffset := 3
-	lineIdxInHunk := state.GetSelectedLineIdx() - hunkStartIdx
+	lineIdxInHunk := state.GetSelectedPatchLineIdx() - hunkStartIdx
 	if err := self.c.Helpers().Files.EditFileAtLineAndWait(patchFilepath, lineIdxInHunk+lineOffset); err != nil {
 		return err
 	}

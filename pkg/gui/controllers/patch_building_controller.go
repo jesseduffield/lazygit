@@ -136,13 +136,13 @@ func (self *PatchBuildingController) toggleSelection() error {
 	if err != nil {
 		return err
 	}
-	currentLineIsStaged := lo.Contains(includedLineIndices, state.GetSelectedLineIdx())
+	currentLineIsStaged := lo.Contains(includedLineIndices, state.GetSelectedPatchLineIdx())
 	if currentLineIsStaged {
 		toggleFunc = self.c.Git().Patch.PatchBuilder.RemoveFileLineRange
 	}
 
 	// add range of lines to those set for the file
-	firstLineIdx, lastLineIdx := state.SelectedRange()
+	firstLineIdx, lastLineIdx := state.SelectedPatchRange()
 
 	if err := toggleFunc(filename, firstLineIdx, lastLineIdx); err != nil {
 		// might actually want to return an error here

@@ -106,13 +106,13 @@ func (self *PatchExplorerContext) FocusSelection() {
 	state := self.GetState()
 	bufferHeight := view.InnerHeight()
 	_, origin := view.Origin()
-	numLines := view.LinesHeight()
+	numLines := view.ViewLinesHeight()
 
 	newOriginY := state.CalculateOrigin(origin, bufferHeight, numLines)
 
 	view.SetOriginY(newOriginY)
 
-	startIdx, endIdx := state.SelectedRange()
+	startIdx, endIdx := state.SelectedViewRange()
 	// As far as the view is concerned, we are always selecting a range
 	view.SetRangeSelectStart(startIdx)
 	view.SetCursorY(endIdx - newOriginY)
