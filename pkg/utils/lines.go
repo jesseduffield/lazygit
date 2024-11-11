@@ -115,6 +115,15 @@ func WrapViewLinesToWidth(wrap bool, text string, width int) []string {
 	wrappedLines := make([]string, 0, len(lines))
 
 	for _, line := range lines {
+		// convert tabs to spaces
+		for i := 0; i < len(line); i++ {
+			if line[i] == '\t' {
+				numSpaces := 4 - (i % 4)
+				line = line[:i] + "    "[:numSpaces] + line[i+1:]
+				i += numSpaces - 1
+			}
+		}
+
 		n := 0
 		offset := 0
 		lastWhitespaceIndex := -1

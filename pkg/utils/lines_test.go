@@ -334,6 +334,15 @@ func TestWrapViewLinesToWidth(t *testing.T) {
 				"drifting blah blah",
 			},
 		},
+		{
+			name:  "Tabs",
+			wrap:  true,
+			text:  "\ta\tbb\tccc\tdddd\teeeee",
+			width: 50,
+			expectedWrappedLines: []string{
+				"    a   bb  ccc dddd    eeeee",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
