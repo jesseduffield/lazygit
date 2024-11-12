@@ -23,6 +23,25 @@ func NewBranchesHelper(c *HelperCommon, worktreeHelper *WorktreeHelper) *Branche
 	}
 }
 
+func (self *BranchesHelper) ConfirmLocalDeleteMany(branches []*models.Branch) error {
+	branchNames := make([]string, len(branches))
+
+	for i, branch := range branches {
+		branchNames[i] = branch.Name
+	}
+	doDelete := func() error {
+		return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(_ gocui.Task) error {
+			self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
+			if err := self.c.Git().Branch.LocalDeleteMany(branchNames, true); err != nil {
+				return err
+			}
+			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+		})
+	}
+
+	return doDelete()
+}
+
 func (self *BranchesHelper) ConfirmLocalDelete(branch *models.Branch) error {
 	if self.checkedOutByOtherWorktree(branch) {
 		return self.promptWorktreeBranchDelete(branch)

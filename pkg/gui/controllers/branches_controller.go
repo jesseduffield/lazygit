@@ -99,6 +99,15 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			DisplayOnScreen:   true,
 		},
 		{
+			Key:               opts.GetKey(opts.Config.Universal.RemoveMany),
+			Handler:           self.withItem(self.deleteMultiple),
+			GetDisabledReason: self.require(self.itemsSelected(self.branchesAreReal)),
+			Description:       self.c.Tr.Delete,
+			Tooltip:           self.c.Tr.BranchDeleteTooltip,
+			OpensMenu:         true,
+			DisplayOnScreen:   true,
+		},
+		{
 			Key:               opts.GetKey(opts.Config.Branches.RebaseBranch),
 			Handler:           opts.Guards.OutsideFilterMode(self.withItem(self.rebase)),
 			GetDisabledReason: self.require(self.singleItemSelected()),
@@ -524,12 +533,47 @@ func (self *BranchesController) localDelete(branch *models.Branch) error {
 	return self.c.Helpers().BranchesHelper.ConfirmLocalDelete(branch)
 }
 
+func (self *BranchesController) localDeleteMany(branches []*models.Branch) error {
+	return self.c.Helpers().BranchesHelper.ConfirmLocalDeleteMany(branches)
+}
+
 func (self *BranchesController) remoteDelete(branch *models.Branch) error {
 	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(branch.UpstreamRemote, branch.UpstreamBranch)
 }
 
 func (self *BranchesController) localAndRemoteDelete(branch *models.Branch) error {
 	return self.c.Helpers().BranchesHelper.ConfirmLocalAndRemoteDelete(branch)
+}
+
+func (self *BranchesController) deleteMultiple(branch *models.Branch) error {
+	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
+	selectedBranches, _, _ := self.context().GetSelectedItems()
+
+	localDeleteItems := &types.MenuItem{
+		Label: self.c.Tr.DeleteLocalBranch,
+		Key:   'c',
+		OnPress: func() error {
+			return self.localDeleteMany(selectedBranches)
+		},
+	}
+
+	for _, branch := range selectedBranches {
+		if checkedOutBranch.Name == branch.Name {
+			localDeleteItems.DisabledReason = &types.DisabledReason{Text: self.c.Tr.CantDeleteCheckOutBranch}
+		}
+	}
+
+	menuTitle := utils.ResolvePlaceholderString(
+		self.c.Tr.DeleteBranchTitle,
+		map[string]string{
+			"selectedBranchName": branch.Name,
+		},
+	)
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: menuTitle,
+		Items: []*types.MenuItem{localDeleteItems},
+	})
 }
 
 func (self *BranchesController) delete(branch *models.Branch) error {
@@ -782,6 +826,16 @@ func (self *BranchesController) createPullRequest(from string, to string) error 
 func (self *BranchesController) branchIsReal(branch *models.Branch) *types.DisabledReason {
 	if !branch.IsRealBranch() {
 		return &types.DisabledReason{Text: self.c.Tr.SelectedItemIsNotABranch}
+	}
+
+	return nil
+}
+
+func (self *BranchesController) branchesAreReal(branches []*models.Branch) *types.DisabledReason {
+	for _, branch := range branches {
+		if !branch.IsRealBranch() {
+			return &types.DisabledReason{Text: self.c.Tr.SelectedItemIsNotABranch}
+		}
 	}
 
 	return nil

@@ -118,6 +118,16 @@ func (self *BranchCommands) LocalDelete(branch string, force bool) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// LocalDelete delete many branches locally
+func (self *BranchCommands) LocalDeleteMany(branches []string, force bool) error {
+	cmdArgs := NewGitCmd("branch").
+		ArgIfElse(force, "-D", "-d").
+		Arg(branches...).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
 // Checkout checks out a branch (or commit), with --force if you set the force arg to true
 type CheckoutOptions struct {
 	Force   bool
