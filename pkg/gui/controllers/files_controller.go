@@ -696,6 +696,13 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				Key: 'u',
 			},
 			{
+				Label: self.c.Tr.FilterTrackedFiles,
+				OnPress: func() error {
+					return self.setStatusFiltering(filetree.DisplayTracked)
+				},
+				Key: 't',
+			},
+			{
 				Label: self.c.Tr.ResetFilter,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayAll)

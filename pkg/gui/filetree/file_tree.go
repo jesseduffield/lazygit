@@ -15,6 +15,7 @@ const (
 	DisplayAll FileTreeDisplayFilter = iota
 	DisplayStaged
 	DisplayUnstaged
+	DisplayTracked
 	// this shows files with merge conflicts
 	DisplayConflicted
 )
@@ -82,6 +83,8 @@ func (self *FileTree) getFilesForDisplay() []*models.File {
 		return self.FilterFiles(func(file *models.File) bool { return file.HasStagedChanges })
 	case DisplayUnstaged:
 		return self.FilterFiles(func(file *models.File) bool { return file.HasUnstagedChanges })
+	case DisplayTracked:
+		return self.FilterFiles(func(file *models.File) bool { return file.Tracked })
 	case DisplayConflicted:
 		return self.FilterFiles(func(file *models.File) bool { return file.HasMergeConflicts })
 	default:
