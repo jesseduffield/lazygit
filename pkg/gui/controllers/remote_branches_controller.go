@@ -102,6 +102,14 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.OpenDiffTool,
 		},
+		{
+			Key:               opts.GetKey(opts.Config.Branches.CreateSubtree),
+			Handler:           self.withItem(self.createSubtree),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.Subtree,
+			Tooltip:           self.c.Tr.SubtreeToolTip,
+			DisplayOnScreen:   true,
+		},
 	}
 }
 
@@ -197,4 +205,21 @@ func (self *RemoteBranchesController) newLocalBranch(selectedBranch *models.Remo
 
 func (self *RemoteBranchesController) checkoutBranch(selectedBranch *models.RemoteBranch) error {
 	return self.c.Helpers().Refs.CheckoutRemoteBranch(selectedBranch.FullName(), selectedBranch.Name)
+}
+
+func (self *RemoteBranchesController) createSubtree(branch *models.RemoteBranch) error {
+	self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.Subtree,
+		Prompt: "Create subtree from" + " '" + branch.Name + "'?",
+		HandleConfirm: func() error {
+			self.c.LogAction(self.c.Tr.Actions.CreateSubtree)
+			if err := self.c.Git().Branch.CreateSubtree(branch.RemoteName, branch.Name); err != nil {
+				return err
+			}
+
+			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+		},
+	})
+
+	return nil
 }

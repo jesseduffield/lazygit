@@ -465,6 +465,7 @@ type KeybindingBranchesConfig struct {
 	SetUpstream            string `yaml:"setUpstream"`
 	FetchRemote            string `yaml:"fetchRemote"`
 	SortOrder              string `yaml:"sortOrder"`
+	CreateSubtree          string `yaml:"createSubtree"`
 }
 
 type KeybindingWorktreesConfig struct {
@@ -904,6 +905,7 @@ func GetDefaultConfig() *UserConfig {
 				SetUpstream:            "u",
 				FetchRemote:            "f",
 				SortOrder:              "s",
+				CreateSubtree:          "S",
 			},
 			Worktrees: KeybindingWorktreesConfig{
 				ViewWorktreeOptions: "w",
