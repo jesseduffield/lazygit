@@ -39,12 +39,13 @@ func NewPatchExplorerContext(
 		mutex:                  &deadlock.Mutex{},
 		getIncludedLineIndices: getIncludedLineIndices,
 		SimpleContext: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-			View:             view,
-			WindowName:       windowName,
-			Key:              key,
-			Kind:             types.MAIN_CONTEXT,
-			Focusable:        true,
-			HighlightOnFocus: true,
+			View:                       view,
+			WindowName:                 windowName,
+			Key:                        key,
+			Kind:                       types.MAIN_CONTEXT,
+			Focusable:                  true,
+			HighlightOnFocus:           true,
+			NeedsRerenderOnWidthChange: types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES,
 		})),
 		SearchTrait: NewSearchTrait(c),
 	}
@@ -57,6 +58,8 @@ func NewPatchExplorerContext(
 			return nil
 		}),
 	)
+
+	ctx.SetHandleRenderFunc(ctx.OnViewWidthChanged)
 
 	return ctx
 }
@@ -139,4 +142,12 @@ func (self *PatchExplorerContext) GetMutex() *deadlock.Mutex {
 
 func (self *PatchExplorerContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
 	return nil
+}
+
+func (self *PatchExplorerContext) OnViewWidthChanged() {
+	if state := self.GetState(); state != nil {
+		state.OnViewWidthChanged(self.GetView())
+		self.setContent()
+		self.RenderAndFocus()
+	}
 }

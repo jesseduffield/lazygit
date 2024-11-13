@@ -90,6 +90,23 @@ func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *Stat
 	}
 }
 
+func (s *State) OnViewWidthChanged(view *gocui.View) {
+	if !view.Wrap {
+		return
+	}
+
+	selectedPatchLineIdx := s.patchLineIndices[s.selectedLineIdx]
+	var rangeStartPatchLineIdx int
+	if s.selectMode == RANGE {
+		rangeStartPatchLineIdx = s.patchLineIndices[s.rangeStartLineIdx]
+	}
+	s.viewLineIndices, s.patchLineIndices = wrapPatchLines(s.diff, view)
+	s.selectedLineIdx = s.viewLineIndices[selectedPatchLineIdx]
+	if s.selectMode == RANGE {
+		s.rangeStartLineIdx = s.viewLineIndices[rangeStartPatchLineIdx]
+	}
+}
+
 func (s *State) GetSelectedPatchLineIdx() int {
 	return s.patchLineIndices[s.selectedLineIdx]
 }
