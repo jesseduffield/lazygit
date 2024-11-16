@@ -3,6 +3,8 @@ package gui
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,
@@ -16,17 +18,39 @@ func (gui *Gui) updateRecentRepoList() error {
 		return nil
 	}
 
-	recentRepos := gui.c.GetAppState().RecentRepos
+	originalRepos := gui.c.GetAppState().RecentRepos
 	currentRepo, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	known, recentRepos := newRecentReposList(recentRepos, currentRepo)
-	gui.IsNewRepo = known
-	// TODO: migrate this file to use forward slashes on all OSes for consistency
-	// (windows uses backslashes at the moment)
-	gui.c.GetAppState().RecentRepos = recentRepos
-	return gui.c.SaveAppState()
+
+	isNew, updatedRepos := newRecentReposList(originalRepos, currentRepo)
+
+	setRecentRepos := func(repos []string) error {
+		// TODO: migrate this file to use forward slashes on all OSes for consistency
+		// (windows uses backslashes at the moment)
+		gui.c.GetAppState().RecentRepos = repos
+
+		return gui.c.SaveAppState()
+	}
+
+	if !isNew {
+		return setRecentRepos(originalRepos)
+	}
+
+	// TODO: i18n
+	gui.c.Confirm(types.ConfirmOpts{
+		Title:  "Add to recent repos",
+		Prompt: "Do you want to add this to the recent repos list?",
+		HandleClose: func() error {
+			return setRecentRepos(originalRepos)
+		},
+		HandleConfirm: func() error {
+			return setRecentRepos(updatedRepos)
+		},
+	})
+
+	return nil
 }
 
 // newRecentReposList returns a new repo list with a new entry but only when it doesn't exist yet
