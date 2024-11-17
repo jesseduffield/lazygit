@@ -57,7 +57,7 @@ func (self *ConfirmationHelper) DeactivateConfirmationPrompt() {
 }
 
 func getMessageHeight(wrap bool, message string, width int) int {
-	wrappedLines := utils.WrapViewLinesToWidth(wrap, message, width)
+	wrappedLines, _, _ := utils.WrapViewLinesToWidth(wrap, message, width)
 	return len(wrappedLines)
 }
 
@@ -276,7 +276,7 @@ func (self *ConfirmationHelper) layoutMenuPrompt(contentWidth int) int {
 	var promptLines []string
 	prompt := self.c.Contexts().Menu.GetPrompt()
 	if len(prompt) > 0 {
-		promptLines = utils.WrapViewLinesToWidth(true, prompt, contentWidth)
+		promptLines, _, _ = utils.WrapViewLinesToWidth(true, prompt, contentWidth)
 		promptLines = append(promptLines, "")
 	}
 	self.c.Contexts().Menu.SetPromptLines(promptLines)

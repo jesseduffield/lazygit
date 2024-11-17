@@ -168,12 +168,27 @@ func TestScanLinesAndTruncateWhenLongerThanBuffer(t *testing.T) {
 
 func TestWrapViewLinesToWidth(t *testing.T) {
 	tests := []struct {
-		name                 string
-		wrap                 bool
-		text                 string
-		width                int
-		expectedWrappedLines []string
+		name                         string
+		wrap                         bool
+		text                         string
+		width                        int
+		expectedWrappedLines         []string
+		expectedWrappedLinesIndices  []int
+		expectedOriginalLinesIndices []int
 	}{
+		{
+			name:  "Wrap off",
+			wrap:  false,
+			text:  "1st line\n2nd line\n3rd line",
+			width: 5,
+			expectedWrappedLines: []string{
+				"1st line",
+				"2nd line",
+				"3rd line",
+			},
+			expectedWrappedLinesIndices:  []int{0, 1, 2},
+			expectedOriginalLinesIndices: []int{0, 1, 2},
+		},
 		{
 			name:  "Wrap on space",
 			wrap:  true,
@@ -183,6 +198,8 @@ func TestWrapViewLinesToWidth(t *testing.T) {
 				"Hello",
 				"World",
 			},
+			expectedWrappedLinesIndices:  []int{0},
+			expectedOriginalLinesIndices: []int{0, 0},
 		},
 		{
 			name:  "Wrap on hyphen",
@@ -343,11 +360,36 @@ func TestWrapViewLinesToWidth(t *testing.T) {
 				"    a   bb  ccc dddd    eeeee",
 			},
 		},
+		{
+			name:  "Multiple lines",
+			wrap:  true,
+			text:  "First paragraph\nThe second paragraph is a bit longer.\nThird paragraph\n",
+			width: 10,
+			expectedWrappedLines: []string{
+				"First",
+				"paragraph",
+				"The second",
+				"paragraph",
+				"is a bit",
+				"longer.",
+				"Third",
+				"paragraph",
+				"",
+			},
+			expectedWrappedLinesIndices:  []int{0, 2, 6, 8},
+			expectedOriginalLinesIndices: []int{0, 0, 1, 1, 1, 1, 2, 2, 3},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			wrappedLines := WrapViewLinesToWidth(tt.wrap, tt.text, tt.width)
+			wrappedLines, wrappedLinesIndices, originalLinesIndices := WrapViewLinesToWidth(tt.wrap, tt.text, tt.width)
 			assert.Equal(t, tt.expectedWrappedLines, wrappedLines)
+			if tt.expectedWrappedLinesIndices != nil {
+				assert.Equal(t, tt.expectedWrappedLinesIndices, wrappedLinesIndices)
+			}
+			if tt.expectedOriginalLinesIndices != nil {
+				assert.Equal(t, tt.expectedOriginalLinesIndices, originalLinesIndices)
+			}
 
 			// As a sanity check, also test that gocui's line wrapping behaves the same way
 			view := gocui.NewView("", 0, 0, tt.width+1, 1000, gocui.OutputNormal)

@@ -103,18 +103,29 @@ func ScanLinesAndTruncateWhenLongerThanBuffer(maxBufferSize int) func(data []byt
 	}
 }
 
-// Wrap lines to a given width.
+// Wrap lines to a given width, and return:
+// - the wrapped lines
+// - the line indices of the wrapped lines, indexed by the original line indices
+// - the line indices of the original lines, indexed by the wrapped line indices
 // If wrap is false, the text is returned as is.
 // This code needs to behave the same as `gocui.lineWrap` does.
-func WrapViewLinesToWidth(wrap bool, text string, width int) []string {
+func WrapViewLinesToWidth(wrap bool, text string, width int) ([]string, []int, []int) {
 	lines := strings.Split(text, "\n")
 	if !wrap {
-		return lines
+		indices := make([]int, len(lines))
+		for i := range lines {
+			indices[i] = i
+		}
+		return lines, indices, indices
 	}
 
 	wrappedLines := make([]string, 0, len(lines))
+	wrappedLineIndices := make([]int, 0, len(lines))
+	originalLineIndices := make([]int, 0, len(lines))
 
-	for _, line := range lines {
+	for originalLineIdx, line := range lines {
+		wrappedLineIndices = append(wrappedLineIndices, len(wrappedLines))
+
 		// convert tabs to spaces
 		for i := 0; i < len(line); i++ {
 			if line[i] == '\t' {
@@ -126,6 +137,7 @@ func WrapViewLinesToWidth(wrap bool, text string, width int) []string {
 
 		appendWrappedLine := func(str string) {
 			wrappedLines = append(wrappedLines, str)
+			originalLineIndices = append(originalLineIndices, originalLineIdx)
 		}
 
 		n := 0
@@ -166,5 +178,5 @@ func WrapViewLinesToWidth(wrap bool, text string, width int) []string {
 		appendWrappedLine(line[offset:])
 	}
 
-	return wrappedLines
+	return wrappedLines, wrappedLineIndices, originalLineIndices
 }
