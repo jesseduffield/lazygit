@@ -13,6 +13,12 @@ import (
 	"time"
 
 	"github.com/sanity-io/litter"
+	"github.com/zalando/go-keyring"
+)
+
+const (
+	KEYRING_SERVICE = "lazygit"
+	KEYRING_USER    = "github-copilot"
 )
 
 // ICopilotChat defines the interface for chat operations
@@ -80,32 +86,32 @@ type ContentFilterResult struct {
 }
 
 type ContentFilterResults struct {
-	Hate      ContentFilterResult `json:"hate"`
-	SelfHarm  ContentFilterResult `json:"self_harm"`
-	Sexual    ContentFilterResult `json:"sexual"`
-	Violence  ContentFilterResult `json:"violence"`
+	Hate     ContentFilterResult `json:"hate"`
+	SelfHarm ContentFilterResult `json:"self_harm"`
+	Sexual   ContentFilterResult `json:"sexual"`
+	Violence ContentFilterResult `json:"violence"`
 }
 
 type ChatResponse struct {
-	Choices             []ResponseChoice      `json:"choices"`
-	Created            int64                 `json:"created"`
-	ID                 string                `json:"id"`
-	Model              string                `json:"model"`
-	SystemFingerprint  string                `json:"system_fingerprint"`
-	PromptFilterResults []PromptFilterResult  `json:"prompt_filter_results"`
-	Usage              Usage                 `json:"usage"`
+	Choices             []ResponseChoice     `json:"choices"`
+	Created             int64                `json:"created"`
+	ID                  string               `json:"id"`
+	Model               string               `json:"model"`
+	SystemFingerprint   string               `json:"system_fingerprint"`
+	PromptFilterResults []PromptFilterResult `json:"prompt_filter_results"`
+	Usage               Usage                `json:"usage"`
 }
 
 type ResponseChoice struct {
 	ContentFilterResults ContentFilterResults `json:"content_filter_results"`
-	FinishReason        string               `json:"finish_reason"`
-	Index               int                  `json:"index"`
-	Message             ChatMessage          `json:"message"`
+	FinishReason         string               `json:"finish_reason"`
+	Index                int                  `json:"index"`
+	Message              ChatMessage          `json:"message"`
 }
 
 type PromptFilterResult struct {
 	ContentFilterResults ContentFilterResults `json:"content_filter_results"`
-	PromptIndex         int                  `json:"prompt_index"`
+	PromptIndex          int                  `json:"prompt_index"`
 }
 
 type Usage struct {
@@ -170,7 +176,6 @@ func (m Model) MaxTokenCount() int {
 	}
 }
 
-
 func NewCopilotChat(client *http.Client) *CopilotChat {
 	if client == nil {
 		client = &http.Client{}
@@ -196,11 +201,6 @@ func getCacheFilePath() (string, error) {
 }
 
 func (self *CopilotChat) saveToCache() error {
-	cacheFilePath, err := getCacheFilePath()
-	if err != nil {
-		return err
-	}
-
 	data := CacheData{
 		OAuthToken: self.OAuthToken,
 		ApiKey:     self.ApiToken.ApiKey,
@@ -212,29 +212,24 @@ func (self *CopilotChat) saveToCache() error {
 		return fmt.Errorf("failed to marshal cache data: %v", err)
 	}
 
-	if err := os.WriteFile(cacheFilePath, fileData, 0600); err != nil {
-		return fmt.Errorf("failed to write cache file: %v", err)
+	if err := keyring.Set(KEYRING_SERVICE, KEYRING_USER, string(fileData)); err != nil {
+		return fmt.Errorf("failed to save to keyring: %v", err)
 	}
 
 	return nil
 }
 
 func (self *CopilotChat) loadFromCache() error {
-	cacheFilePath, err := getCacheFilePath()
+	jsonData, err := keyring.Get(KEYRING_SERVICE, KEYRING_USER)
 	if err != nil {
-		return err
-	}
-
-	fileData, err := os.ReadFile(cacheFilePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil // Cache doesn't exist yet, not an error
+		if err == keyring.ErrNotFound {
+			return nil // No credentials stored yet
 		}
-		return fmt.Errorf("failed to read cache file: %v", err)
+		return fmt.Errorf("failed to get credentials from keyring: %v", err)
 	}
 
 	var data CacheData
-	if err := json.Unmarshal(fileData, &data); err != nil {
+	if err := json.Unmarshal([]byte(jsonData), &data); err != nil {
 		return fmt.Errorf("failed to unmarshal cache data: %v", err)
 	}
 
@@ -266,43 +261,41 @@ func (self *CopilotChat) loadFromCache() error {
 	return nil
 }
 
-
 func (self *CopilotChat) fetchNewApiToken() error {
-    apiTokenReq, err := http.NewRequest(http.MethodGet, COPILOT_CHAT_AUTH_URL, nil)
-    if err != nil {
-        return fmt.Errorf("failed to create API token request: %v", err)
-    }
+	apiTokenReq, err := http.NewRequest(http.MethodGet, COPILOT_CHAT_AUTH_URL, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create API token request: %v", err)
+	}
 
-    apiTokenReq.Header.Set("Authorization", fmt.Sprintf("token %s", self.OAuthToken))
-    setHeaders(apiTokenReq, "")
+	apiTokenReq.Header.Set("Authorization", fmt.Sprintf("token %s", self.OAuthToken))
+	setHeaders(apiTokenReq, "")
 
-    apiTokenResp, err := self.Client.Do(apiTokenReq)
-    if err != nil {
-        return fmt.Errorf("failed to get API token: %v", err)
-    }
-    defer apiTokenResp.Body.Close()
+	apiTokenResp, err := self.Client.Do(apiTokenReq)
+	if err != nil {
+		return fmt.Errorf("failed to get API token: %v", err)
+	}
+	defer apiTokenResp.Body.Close()
 
-    var apiTokenResponse ApiTokenResponse
-    if err := json.NewDecoder(apiTokenResp.Body).Decode(&apiTokenResponse); err != nil {
-        return fmt.Errorf("failed to decode API token response: %v", err)
-    }
+	var apiTokenResponse ApiTokenResponse
+	if err := json.NewDecoder(apiTokenResp.Body).Decode(&apiTokenResponse); err != nil {
+		return fmt.Errorf("failed to decode API token response: %v", err)
+	}
 
-    self.ApiToken = &ApiToken{
-        ApiKey:    apiTokenResponse.Token,
-        ExpiresAt: time.Unix(apiTokenResponse.ExpiresAt, 0),
-    }
+	self.ApiToken = &ApiToken{
+		ApiKey:    apiTokenResponse.Token,
+		ExpiresAt: time.Unix(apiTokenResponse.ExpiresAt, 0),
+	}
 
-    return self.saveToCache()
+	return self.saveToCache()
 }
 
-
 func setHeaders(req *http.Request, contentType string) {
-    req.Header.Set("Accept", "application/json")
-    if contentType != "" {
-        req.Header.Set("Content-Type", contentType)
-    }
-    req.Header.Set("Editor-Version", EDITOR_VERSION)
-    req.Header.Set("Copilot-Integration-Id", COPILOT_INTEGRATION_ID)
+	req.Header.Set("Accept", "application/json")
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	req.Header.Set("Editor-Version", EDITOR_VERSION)
+	req.Header.Set("Copilot-Integration-Id", COPILOT_INTEGRATION_ID)
 }
 
 func (self *CopilotChat) Authenticate() error {
