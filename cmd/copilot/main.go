@@ -185,22 +185,14 @@ func NewCopilotChat(client *http.Client) *CopilotChat {
 		Client: client,
 	}
 
-	if err := chat.loadFromCache(); err != nil {
-		log.Printf("Warning: Failed to load from cache: %v", err)
+	if err := chat.loadFromKeyring(); err != nil {
+		log.Printf("Warning: Failed to load from keyring: %v", err)
 	}
 
 	return chat
 }
 
-func getCacheFilePath() (string, error) {
-	execPath, err := os.Executable()
-	if err != nil {
-		return "", fmt.Errorf("failed to get executable path: %v", err)
-	}
-	return filepath.Join(filepath.Dir(execPath), CACHE_FILE_NAME), nil
-}
-
-func (self *CopilotChat) saveToCache() error {
+func (self *CopilotChat) saveToKeyring() error {
 	data := CacheData{
 		OAuthToken: self.OAuthToken,
 		ApiKey:     self.ApiToken.ApiKey,
@@ -209,7 +201,7 @@ func (self *CopilotChat) saveToCache() error {
 
 	fileData, err := json.Marshal(data)
 	if err != nil {
-		return fmt.Errorf("failed to marshal cache data: %v", err)
+		return fmt.Errorf("failed to marshal keyring data: %v", err)
 	}
 
 	if err := keyring.Set(KEYRING_SERVICE, KEYRING_USER, string(fileData)); err != nil {
@@ -219,7 +211,7 @@ func (self *CopilotChat) saveToCache() error {
 	return nil
 }
 
-func (self *CopilotChat) loadFromCache() error {
+func (self *CopilotChat) loadFromKeyring() error {
 	jsonData, err := keyring.Get(KEYRING_SERVICE, KEYRING_USER)
 	if err != nil {
 		if err == keyring.ErrNotFound {
@@ -230,7 +222,7 @@ func (self *CopilotChat) loadFromCache() error {
 
 	var data CacheData
 	if err := json.Unmarshal([]byte(jsonData), &data); err != nil {
-		return fmt.Errorf("failed to unmarshal cache data: %v", err)
+		return fmt.Errorf("failed to unmarshal Keyring data: %v", err)
 	}
 
 	// Always load OAuth token if it exists
@@ -244,7 +236,7 @@ func (self *CopilotChat) loadFromCache() error {
 			ApiKey:    data.ApiKey,
 			ExpiresAt: data.ExpiresAt,
 		}
-		fmt.Println("Loaded valid API key from cache")
+		fmt.Println("Loaded valid API key from keyring")
 		return nil
 	}
 
@@ -286,7 +278,7 @@ func (self *CopilotChat) fetchNewApiToken() error {
 		ExpiresAt: time.Unix(apiTokenResponse.ExpiresAt, 0),
 	}
 
-	return self.saveToCache()
+	return self.saveToKeyring()
 }
 
 func setHeaders(req *http.Request, contentType string) {
@@ -299,8 +291,8 @@ func setHeaders(req *http.Request, contentType string) {
 }
 
 func (self *CopilotChat) Authenticate() error {
-	// Try to load from cache first
-	if err := self.loadFromCache(); err == nil && self.IsAuthenticated() {
+	// Try to load from keyring first
+	if err := self.loadFromKeyring(); err == nil && self.IsAuthenticated() {
 		return nil
 	}
 
@@ -394,8 +386,8 @@ func (self *CopilotChat) Authenticate() error {
 
 		fmt.Println("Successfully authenticated!")
 		// Save the new credentials to cache
-		if err := self.saveToCache(); err != nil {
-			log.Printf("Warning: Failed to save credentials to cache: %v", err)
+		if err := self.saveToKeyring(); err != nil {
+			log.Printf("Warning: Failed to save credentials to keyring: %v", err)
 		}
 		return nil
 	}
