@@ -124,6 +124,10 @@ func WrapViewLinesToWidth(wrap bool, text string, width int) []string {
 			}
 		}
 
+		appendWrappedLine := func(str string) {
+			wrappedLines = append(wrappedLines, str)
+		}
+
 		n := 0
 		offset := 0
 		lastWhitespaceIndex := -1
@@ -133,23 +137,23 @@ func WrapViewLinesToWidth(wrap bool, text string, width int) []string {
 
 			if n > width {
 				if currChr == ' ' {
-					wrappedLines = append(wrappedLines, line[offset:i])
+					appendWrappedLine(line[offset:i])
 					offset = i + 1
 					n = 0
 				} else if currChr == '-' {
-					wrappedLines = append(wrappedLines, line[offset:i])
+					appendWrappedLine(line[offset:i])
 					offset = i
 					n = rw
 				} else if lastWhitespaceIndex != -1 {
 					if line[lastWhitespaceIndex] == '-' {
-						wrappedLines = append(wrappedLines, line[offset:lastWhitespaceIndex+1])
+						appendWrappedLine(line[offset : lastWhitespaceIndex+1])
 					} else {
-						wrappedLines = append(wrappedLines, line[offset:lastWhitespaceIndex])
+						appendWrappedLine(line[offset:lastWhitespaceIndex])
 					}
 					offset = lastWhitespaceIndex + 1
 					n = runewidth.StringWidth(line[offset : i+1])
 				} else {
-					wrappedLines = append(wrappedLines, line[offset:i])
+					appendWrappedLine(line[offset:i])
 					offset = i
 					n = rw
 				}
@@ -159,7 +163,7 @@ func WrapViewLinesToWidth(wrap bool, text string, width int) []string {
 			}
 		}
 
-		wrappedLines = append(wrappedLines, line[offset:])
+		appendWrappedLine(line[offset:])
 	}
 
 	return wrappedLines
