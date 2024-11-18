@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -68,7 +69,9 @@ func (self *ContextLinesController) Increase() error {
 			return err
 		}
 
-		self.c.AppState.DiffContextSize++
+		if self.c.AppState.DiffContextSize < math.MaxUint64 {
+			self.c.AppState.DiffContextSize++
+		}
 		return self.applyChange()
 	}
 
@@ -76,14 +79,14 @@ func (self *ContextLinesController) Increase() error {
 }
 
 func (self *ContextLinesController) Decrease() error {
-	old_size := self.c.AppState.DiffContextSize
-
-	if self.isShowingDiff() && old_size > 1 {
+	if self.isShowingDiff() {
 		if err := self.checkCanChangeContext(); err != nil {
 			return err
 		}
 
-		self.c.AppState.DiffContextSize = old_size - 1
+		if self.c.AppState.DiffContextSize > 0 {
+			self.c.AppState.DiffContextSize--
+		}
 		return self.applyChange()
 	}
 
