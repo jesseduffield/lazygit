@@ -202,7 +202,7 @@ func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
 			{
 				Label: self.c.Tr.ViewConflictsMenuItem,
 				OnPress: func() error {
-					self.c.Context().Push(self.c.Contexts().Files)
+					self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
 					return nil
 				},
 			},
@@ -353,7 +353,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 				if err = self.ResetMarkedBaseCommit(); err != nil {
 					return err
 				}
-				self.c.Context().Push(self.c.Contexts().LocalCommits)
+				self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
 				return nil
 			},
 		},

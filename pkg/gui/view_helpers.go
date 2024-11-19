@@ -72,7 +72,7 @@ func (gui *Gui) onViewTabClick(windowName string, tabIndex int) error {
 		return nil
 	}
 
-	gui.c.Context().Push(context)
+	gui.c.Context().Push(context, types.OnFocusOpts{})
 	return nil
 }
 
