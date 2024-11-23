@@ -42,6 +42,7 @@ var tests = []*components.IntegrationTest{
 	branch.CheckoutByName,
 	branch.CreateTag,
 	branch.Delete,
+	branch.DeleteMultiple,
 	branch.DeleteRemoteBranchWithCredentialPrompt,
 	branch.DeleteRemoteBranchWithDifferentName,
 	branch.DetachedHead,
