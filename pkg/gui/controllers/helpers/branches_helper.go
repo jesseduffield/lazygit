@@ -66,18 +66,18 @@ func (self *BranchesHelper) ConfirmLocalDelete(branch *models.Branch) error {
 	return nil
 }
 
-func (self *BranchesHelper) ConfirmDeleteRemote(remoteName string, branchName string) error {
+func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranch *models.RemoteBranch) error {
 	title := utils.ResolvePlaceholderString(
 		self.c.Tr.DeleteBranchTitle,
 		map[string]string{
-			"selectedBranchName": branchName,
+			"selectedBranchName": remoteBranch.Name,
 		},
 	)
 	prompt := utils.ResolvePlaceholderString(
 		self.c.Tr.DeleteRemoteBranchPrompt,
 		map[string]string{
-			"selectedBranchName": branchName,
-			"upstream":           remoteName,
+			"selectedBranchName": remoteBranch.Name,
+			"upstream":           remoteBranch.RemoteName,
 		},
 	)
 	self.c.Confirm(types.ConfirmOpts{
@@ -86,7 +86,7 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteName string, branchName st
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DeleteRemoteBranch)
-				if err := self.c.Git().Remote.DeleteRemoteBranch(task, remoteName, branchName); err != nil {
+				if err := self.c.Git().Remote.DeleteRemoteBranch(task, remoteBranch.RemoteName, remoteBranch.Name); err != nil {
 					return err
 				}
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
