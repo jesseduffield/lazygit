@@ -534,6 +534,8 @@ func (self *BranchesController) localAndRemoteDelete(branch *models.Branch) erro
 
 func (self *BranchesController) delete(branch *models.Branch) error {
 	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
+	isBranchCheckedOut := checkedOutBranch.Name == branch.Name
+	hasUpstream := branch.IsTrackingRemote() && !branch.UpstreamGone
 
 	localDeleteItem := &types.MenuItem{
 		Label: self.c.Tr.DeleteLocalBranch,
@@ -542,7 +544,7 @@ func (self *BranchesController) delete(branch *models.Branch) error {
 			return self.localDelete(branch)
 		},
 	}
-	if checkedOutBranch.Name == branch.Name {
+	if isBranchCheckedOut {
 		localDeleteItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.CantDeleteCheckOutBranch}
 	}
 
@@ -553,7 +555,7 @@ func (self *BranchesController) delete(branch *models.Branch) error {
 			return self.remoteDelete(branch)
 		},
 	}
-	if !branch.IsTrackingRemote() || branch.UpstreamGone {
+	if !hasUpstream {
 		remoteDeleteItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.UpstreamNotSetError}
 	}
 
@@ -564,9 +566,9 @@ func (self *BranchesController) delete(branch *models.Branch) error {
 			return self.localAndRemoteDelete(branch)
 		},
 	}
-	if checkedOutBranch.Name == branch.Name {
+	if isBranchCheckedOut {
 		deleteBothItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.CantDeleteCheckOutBranch}
-	} else if !branch.IsTrackingRemote() || branch.UpstreamGone {
+	} else if !hasUpstream {
 		deleteBothItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.UpstreamNotSetError}
 	}
 
