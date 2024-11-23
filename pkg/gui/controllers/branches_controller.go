@@ -643,7 +643,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 					BranchName:      branch.UpstreamBranch,
 					FastForwardOnly: true,
 					WorktreeGitDir:  worktreeGitDir,
-					WorktreePath: worktreePath,
+					WorktreePath:    worktreePath,
 				},
 			)
 			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
