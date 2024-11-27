@@ -87,16 +87,14 @@ func wrapMessageToWidth(wrap bool, message string, width int) []string {
 					wrappedLines = append(wrappedLines, line[offset:i])
 					offset = i
 					n = rw
-				} else if lastWhitespaceIndex != -1 && lastWhitespaceIndex+1 != i {
+				} else if lastWhitespaceIndex != -1 {
 					if line[lastWhitespaceIndex] == '-' {
 						wrappedLines = append(wrappedLines, line[offset:lastWhitespaceIndex+1])
-						offset = lastWhitespaceIndex + 1
-						n = i - lastWhitespaceIndex
 					} else {
 						wrappedLines = append(wrappedLines, line[offset:lastWhitespaceIndex])
-						offset = lastWhitespaceIndex + 1
-						n = i - lastWhitespaceIndex + 1
 					}
+					offset = lastWhitespaceIndex + 1
+					n = runewidth.StringWidth(line[offset : i+1])
 				} else {
 					wrappedLines = append(wrappedLines, line[offset:i])
 					offset = i
