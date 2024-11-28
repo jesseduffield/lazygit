@@ -108,8 +108,6 @@ type Gui struct {
 
 	PopupHandler types.IPopupHandler
 
-	IsNewRepo bool
-
 	IsRefreshingFiles bool
 
 	// we use this to decide whether we'll return to the original directory that
