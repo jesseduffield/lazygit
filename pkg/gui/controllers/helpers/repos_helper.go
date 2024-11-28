@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 
@@ -137,7 +138,51 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 		}
 	})
 
+	// TODO: At this point maybe just re-do the recent repos menu to a prompt? I'm basically re-doing it...
+	section := types.MenuSection{
+		Title: "Actions",
+	}
+
+	menuItems = append(menuItems, &types.MenuItem{
+		// TODO: i18n
+		Label:     "Delete item",
+		OpensMenu: true,
+		Section:   &section,
+		OnPress: func() error {
+			self.c.Prompt(types.PromptOpts{
+				// TODO: i18n
+				Title:               "Delete from recent repositories",
+				AllowEditSuggestion: false,
+				FindSuggestionsFunc: self.GetRecentReposSuggestionsFunc(recentRepoPaths),
+				HandleConfirm:       func(string) error { return nil },
+				HandleClose:         func() error { return nil },
+				HandleDeleteSuggestion: func(index int) error {
+					// TODO: copied from the shell command one, might be worth pulling this out into a shared function?
+					item := self.c.Contexts().Suggestions.GetItems()[index].Value
+					fullIndex := lo.IndexOf(self.c.GetAppState().RecentRepos, item)
+					if fullIndex == -1 {
+						self.c.Log.Warnf("Failed to find this repo in the app state %s", item)
+						return nil
+					}
+
+					self.c.GetAppState().RecentRepos = slices.Delete(self.c.GetAppState().RecentRepos, fullIndex, fullIndex+1)
+					self.c.SaveAppStateAndLogError()
+					self.c.Contexts().Suggestions.RefreshSuggestions()
+					return nil
+				},
+			})
+
+			return nil
+		},
+	})
+
 	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.RecentRepos, Items: menuItems})
+}
+
+func (self *ReposHelper) GetRecentReposSuggestionsFunc(recentRepoPaths []string) func(string) []*types.Suggestion {
+	return func(input string) []*types.Suggestion {
+		return FilterFunc(recentRepoPaths, self.c.UserConfig().Gui.UseFuzzySearch())(input)
+	}
 }
 
 func (self *ReposHelper) DispatchSwitchToRepo(path string, contextKey types.ContextKey) error {
