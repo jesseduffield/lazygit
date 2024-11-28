@@ -249,8 +249,6 @@ type TranslationSet struct {
 	NoBranchOnRemote                      string
 	Fetch                                 string
 	FetchTooltip                          string
-	NoAutomaticGitFetchTitle              string
-	NoAutomaticGitFetchBody               string
 	FileEnter                             string
 	FileEnterTooltip                      string
 	FileStagingRequirements               string
@@ -1235,8 +1233,6 @@ func EnglishTranslationSet() *TranslationSet {
 		NoBranchOnRemote:                     `This branch doesn't exist on remote. You need to push it to remote first.`,
 		Fetch:                                `Fetch`,
 		FetchTooltip:                         "Fetch changes from remote.",
-		NoAutomaticGitFetchTitle:             `No automatic git fetch`,
-		NoAutomaticGitFetchBody:              `Lazygit can't use "git fetch" in a private repo; use 'f' in the files panel to run "git fetch" manually`,
 		FileEnter:                            `Stage lines / Collapse directory`,
 		FileEnterTooltip:                     "If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it.",
 		FileStagingRequirements:              `Can only stage individual lines for tracked files`,
