@@ -87,6 +87,7 @@ type TranslationSet struct {
 	AllFilesDiffCopiedToast               string
 	FilterStagedFiles                     string
 	FilterUnstagedFiles                   string
+	FilterTrackedFiles                    string
 	ResetFilter                           string
 	MergeConflictsTitle                   string
 	Checkout                              string
@@ -685,6 +686,8 @@ type TranslationSet struct {
 	CreatePullRequestOptions                 string
 	DefaultBranch                            string
 	SelectBranch                             string
+	SelectTargetRemote                       string
+	NoValidRemoteName                        string
 	CreatePullRequest                        string
 	SelectConfigFile                         string
 	NoConfigFileFoundErr                     string
@@ -1075,6 +1078,7 @@ func EnglishTranslationSet() *TranslationSet {
 		AllFilesDiffCopiedToast:              "All files diff copied to clipboard",
 		FilterStagedFiles:                    "Show only staged files",
 		FilterUnstagedFiles:                  "Show only unstaged files",
+		FilterTrackedFiles:                   "Show only tracked files",
 		ResetFilter:                          "Reset filter",
 		NoChangedFiles:                       "No changed files",
 		SoftReset:                            "Soft reset",
@@ -1674,6 +1678,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CreatePullRequestOptions:                 "View create pull request options",
 		DefaultBranch:                            "Default branch",
 		SelectBranch:                             "Select branch",
+		SelectTargetRemote:                       "Select target remote",
+		NoValidRemoteName:                        "A remote named '%s' does not exist",
 		SelectConfigFile:                         "Select config file",
 		NoConfigFileFoundErr:                     "No config file found",
 		LoadingFileSuggestions:                   "Loading file suggestions",

@@ -100,7 +100,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 	type scenario struct {
 		testName            string
 		index               int
-		contextSize         int
+		contextSize         uint64
 		similarityThreshold int
 		ignoreWhitespace    bool
 		expected            []string

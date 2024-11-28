@@ -230,7 +230,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 	type scenario struct {
 		testName            string
 		filterPath          string
-		contextSize         int
+		contextSize         uint64
 		similarityThreshold int
 		ignoreWhitespace    bool
 		extDiffCmd          string

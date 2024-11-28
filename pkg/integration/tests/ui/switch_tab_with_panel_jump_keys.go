@@ -6,10 +6,12 @@ import (
 )
 
 var SwitchTabWithPanelJumpKeys = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Switch tab with the panel jump keys",
+	Description:  "Switch tab with the panel jump keys after enabling the feature",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.SwitchTabsWithPanelJumpKeys = true
+	},
 	SetupRepo: func(shell *Shell) {
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
