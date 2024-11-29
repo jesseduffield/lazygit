@@ -50,9 +50,6 @@ var EditAndAutoAmend = NewIntegrationTest(NewIntegrationTestArgs{
 			)
 
 		t.Views().Main().
-			/* EXPECTED:
 			Content(Contains("fixup content"))
-			ACTUAL: */
-			Content(DoesNotContain("fixup content"))
 	},
 })

@@ -116,7 +116,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:     opts.GetKey(editCommitKey),
-			Handler: self.withItems(self.edit),
+			Handler: self.withItemsRange(self.edit),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(self.midRebaseCommandEnabled),
 			),
@@ -511,9 +511,23 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 	return nil
 }
 
-func (self *LocalCommitsController) edit(selectedCommits []*models.Commit) error {
+func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
 	if self.isRebasing() {
 		return self.updateTodos(todo.Edit, selectedCommits)
+	}
+
+	commits := self.c.Model().Commits
+	if !commits[endIdx].IsMerge() {
+		selectionRangeAndMode := self.getSelectionRangeAndMode()
+		err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err,
+			types.RefreshOptions{
+				Mode: types.BLOCK_UI, Then: func() error {
+					self.restoreSelectionRangeAndMode(selectionRangeAndMode)
+					return nil
+				},
+			})
 	}
 
 	return self.startInteractiveRebaseWithEdit(selectedCommits)
