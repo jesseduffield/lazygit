@@ -39,9 +39,7 @@ var EditLastCommitOfStackedBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("pick").Contains("CI commit 05"),
 				Contains("pick").Contains("CI commit 04"),
-				/* EXPECTED:
 				Contains("update-ref").Contains("branch1"),
-				*/
 				Contains("<-- YOU ARE HERE --- * commit 03").IsSelected(),
 				Contains("CI commit 02"),
 				Contains("CI commit 01"),
@@ -68,10 +66,7 @@ var EditLastCommitOfStackedBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("CI commit 05"),
 				Contains("CI commit 04"),
-				/* EXPECTED:
 				Contains("CI * commit 03"),
-				ACTUAL: */
-				Contains("CI commit 03"),
 				Contains("CI commit 02"),
 				Contains("CI commit 01"),
 			)
