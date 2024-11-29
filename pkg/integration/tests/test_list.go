@@ -211,6 +211,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.DropTodoCommitWithUpdateRef,
 	interactive_rebase.DropWithCustomCommentChar,
 	interactive_rebase.EditFirstCommit,
+	interactive_rebase.EditLastCommitOfStackedBranch,
 	interactive_rebase.EditNonTodoCommitDuringRebase,
 	interactive_rebase.EditRangeSelectOutsideRebase,
 	interactive_rebase.EditTheConflCommit,
