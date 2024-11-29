@@ -213,6 +213,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.EditFirstCommit,
 	interactive_rebase.EditLastCommitOfStackedBranch,
 	interactive_rebase.EditNonTodoCommitDuringRebase,
+	interactive_rebase.EditRangeSelectDownToMergeOutsideRebase,
 	interactive_rebase.EditRangeSelectOutsideRebase,
 	interactive_rebase.EditTheConflCommit,
 	interactive_rebase.FixupFirstCommit,
