@@ -145,11 +145,11 @@ func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, startIdx
 
 	baseHashOrRoot := getBaseHashOrRoot(commits, baseIndex)
 
-	changes := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) daemon.ChangeTodoAction {
+	changes := lo.FilterMap(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) (daemon.ChangeTodoAction, bool) {
 		return daemon.ChangeTodoAction{
 			Hash:      commit.Hash,
 			NewAction: action,
-		}
+		}, !commit.IsMerge()
 	})
 
 	self.os.LogCommand(logTodoChanges(changes), false)
