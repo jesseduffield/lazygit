@@ -209,6 +209,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.DropCommitInCopiedBranchWithUpdateRef,
 	interactive_rebase.DropTodoCommitWithUpdateRef,
 	interactive_rebase.DropWithCustomCommentChar,
+	interactive_rebase.EditAndAutoAmend,
 	interactive_rebase.EditFirstCommit,
 	interactive_rebase.EditLastCommitOfStackedBranch,
 	interactive_rebase.EditNonTodoCommitDuringRebase,
