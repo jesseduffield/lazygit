@@ -1448,6 +1448,10 @@ func (self *LocalCommitsController) midRebaseMoveCommandEnabled(selectedCommits 
 
 func (self *LocalCommitsController) canDropCommits(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
 	if !self.isRebasing() {
+		if len(selectedCommits) > 1 && lo.SomeBy(selectedCommits, func(c *models.Commit) bool { return c.IsMerge() }) {
+			return &types.DisabledReason{Text: self.c.Tr.DroppingMergeRequiresSingleSelection}
+		}
+
 		return nil
 	}
 
