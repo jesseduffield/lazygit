@@ -12,7 +12,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
-	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 // Sometimes lazygit will be invoked in daemon mode from a parent lazygit process.
@@ -235,7 +234,6 @@ func (self *ChangeTodoActionsInstruction) run(common *common.Common) error {
 		changes := lo.Map(self.Changes, func(c ChangeTodoAction, _ int) utils.TodoChange {
 			return utils.TodoChange{
 				Hash:      c.Hash,
-				OldAction: todo.Pick,
 				NewAction: c.NewAction,
 			}
 		})
@@ -296,8 +294,7 @@ func (self *MoveTodosUpInstruction) SerializedInstructions() string {
 func (self *MoveTodosUpInstruction) run(common *common.Common) error {
 	todosToMove := lo.Map(self.Hashes, func(hash string, _ int) utils.Todo {
 		return utils.Todo{
-			Hash:   hash,
-			Action: todo.Pick,
+			Hash: hash,
 		}
 	})
 
@@ -327,8 +324,7 @@ func (self *MoveTodosDownInstruction) SerializedInstructions() string {
 func (self *MoveTodosDownInstruction) run(common *common.Common) error {
 	todosToMove := lo.Map(self.Hashes, func(hash string, _ int) utils.Todo {
 		return utils.Todo{
-			Hash:   hash,
-			Action: todo.Pick,
+			Hash: hash,
 		}
 	})
 

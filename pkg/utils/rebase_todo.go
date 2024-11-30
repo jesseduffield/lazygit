@@ -6,24 +6,18 @@ import (
 	"fmt"
 	"os"
 	"slices"
-	"strings"
 
 	"github.com/samber/lo"
 	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 type Todo struct {
-	Hash   string // for todos that have one, e.g. pick, drop, fixup, etc.
-	Ref    string // for update-ref todos
-	Action todo.TodoCommand
+	Hash string // for todos that have one, e.g. pick, drop, fixup, etc.
+	Ref  string // for update-ref todos
 }
 
-// In order to change a TODO in git-rebase-todo, we need to specify the old action,
-// because sometimes the same hash appears multiple times in the file (e.g. in a pick
-// and later in a merge)
 type TodoChange struct {
 	Hash      string
-	OldAction todo.TodoCommand
 	NewAction todo.TodoCommand
 }
 
@@ -40,7 +34,7 @@ func EditRebaseTodo(filePath string, changes []TodoChange, commentChar byte) err
 		t := &todos[i]
 		// This is a nested loop, but it's ok because the number of todos should be small
 		for _, change := range changes {
-			if t.Command == change.OldAction && equalHash(t.Commit, change.Hash) {
+			if equalHash(t.Commit, change.Hash) {
 				matchCount++
 				t.Command = change.NewAction
 			}
@@ -66,13 +60,8 @@ func equalHash(a, b string) bool {
 
 func findTodo(todos []todo.Todo, todoToFind Todo) (int, bool) {
 	_, idx, ok := lo.FindIndexOf(todos, func(t todo.Todo) bool {
-		// Comparing just the hash is not enough; we need to compare both the
-		// action and the hash, as the hash could appear multiple times (e.g. in a
-		// pick and later in a merge). For update-ref todos we also must compare
-		// the Ref.
-		return t.Command == todoToFind.Action &&
-			equalHash(t.Commit, todoToFind.Hash) &&
-			t.Ref == todoToFind.Ref
+		// For update-ref todos we also must compare the Ref (they have an empty hash)
+		return equalHash(t.Commit, todoToFind.Hash) && t.Ref == todoToFind.Ref
 	})
 	return idx, ok
 }

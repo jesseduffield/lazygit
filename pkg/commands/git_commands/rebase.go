@@ -324,9 +324,9 @@ func (self *RebaseCommands) MoveFixupCommitDown(commits []*models.Commit, target
 
 func todoFromCommit(commit *models.Commit) utils.Todo {
 	if commit.Action == todo.UpdateRef {
-		return utils.Todo{Ref: commit.Name, Action: commit.Action}
+		return utils.Todo{Ref: commit.Name}
 	} else {
-		return utils.Todo{Hash: commit.Hash, Action: commit.Action}
+		return utils.Todo{Hash: commit.Hash}
 	}
 }
 
@@ -335,7 +335,6 @@ func (self *RebaseCommands) EditRebaseTodo(commits []*models.Commit, action todo
 	commitsWithAction := lo.Map(commits, func(commit *models.Commit, _ int) utils.TodoChange {
 		return utils.TodoChange{
 			Hash:      commit.Hash,
-			OldAction: commit.Action,
 			NewAction: action,
 		}
 	})
