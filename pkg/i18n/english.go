@@ -160,6 +160,7 @@ type TranslationSet struct {
 	MoveDownCommit                        string
 	MoveUpCommit                          string
 	CannotMoveAnyFurther                  string
+	CannotMoveMergeCommit                 string
 	EditCommit                            string
 	EditCommitTooltip                     string
 	AmendCommitTooltip                    string
@@ -1153,6 +1154,7 @@ func EnglishTranslationSet() *TranslationSet {
 		MoveDownCommit:                       "Move commit down one",
 		MoveUpCommit:                         "Move commit up one",
 		CannotMoveAnyFurther:                 "Cannot move any further",
+		CannotMoveMergeCommit:                "Cannot move a merge commit",
 		EditCommit:                           "Edit (start interactive rebase)",
 		EditCommitTooltip:                    "Edit the selected commit. Use this to start an interactive rebase from the selected commit. When already mid-rebase, this will mark the selected commit for editing, which means that upon continuing the rebase, the rebase will pause at the selected commit to allow you to make changes.",
 		AmendCommitTooltip:                   "Amend commit with staged changes. If the selected commit is the HEAD commit, this will perform `git commit --amend`. Otherwise the commit will be amended via a rebase.",

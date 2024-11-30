@@ -1420,6 +1420,10 @@ func (self *LocalCommitsController) midRebaseCommandEnabled(selectedCommits []*m
 // Ensures that if we are mid-rebase, we're only selecting commits that can be moved
 func (self *LocalCommitsController) midRebaseMoveCommandEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
 	if !self.isRebasing() {
+		if lo.SomeBy(selectedCommits, func(c *models.Commit) bool { return c.IsMerge() }) {
+			return &types.DisabledReason{Text: self.c.Tr.CannotMoveMergeCommit}
+		}
+
 		return nil
 	}
 
