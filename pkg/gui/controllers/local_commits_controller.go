@@ -1358,9 +1358,13 @@ func (self *LocalCommitsController) canFindCommitForSquashFixupsInCurrentBranch(
 	return nil
 }
 
-func (self *LocalCommitsController) canSquashOrFixup(_selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
+func (self *LocalCommitsController) canSquashOrFixup(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
 	if endIdx >= len(self.c.Model().Commits)-1 {
 		return &types.DisabledReason{Text: self.c.Tr.CannotSquashOrFixupFirstCommit}
+	}
+
+	if lo.SomeBy(selectedCommits, func(c *models.Commit) bool { return c.IsMerge() }) {
+		return &types.DisabledReason{Text: self.c.Tr.CannotSquashOrFixupMergeCommit}
 	}
 
 	return nil
