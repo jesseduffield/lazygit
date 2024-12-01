@@ -19,8 +19,8 @@ func (gui *Gui) resetViewOrigin(v *gocui.View) {
 // that the scrollbar has the correct size, along with the number of lines after
 // which the view is filled and we can do a first refresh.
 func (gui *Gui) linesToReadFromCmdTask(v *gocui.View) tasks.LinesToRead {
-	_, height := v.Size()
-	_, oy := v.Origin()
+	height := v.InnerHeight()
+	oy := v.OriginY()
 
 	linesForFirstRefresh := height + oy + 10
 
