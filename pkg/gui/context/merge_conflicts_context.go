@@ -115,5 +115,5 @@ func (self *MergeConflictsContext) SetSelectedLineRange() {
 func (self *MergeConflictsContext) GetOriginY() int {
 	view := self.GetView()
 	conflictMiddle := self.GetState().GetConflictMiddle()
-	return int(math.Max(0, float64(conflictMiddle-(view.Height()/2))))
+	return int(math.Max(0, float64(conflictMiddle-(view.InnerHeight()/2))))
 }

@@ -105,12 +105,17 @@ type TranslationSet struct {
 	NewBranchNameBranchOff                string
 	CantDeleteCheckOutBranch              string
 	DeleteBranchTitle                     string
+	DeleteBranchesTitle                   string
 	DeleteLocalBranch                     string
+	DeleteLocalBranches                   string
 	DeleteRemoteBranchOption              string
 	DeleteRemoteBranchPrompt              string
+	DeleteRemoteBranchesPrompt            string
 	DeleteLocalAndRemoteBranchPrompt      string
+	DeleteLocalAndRemoteBranchesPrompt    string
 	ForceDeleteBranchTitle                string
 	ForceDeleteBranchMessage              string
+	ForceDeleteBranchesMessage            string
 	RebaseBranch                          string
 	RebaseBranchTooltip                   string
 	CantRebaseOntoSelf                    string
@@ -249,8 +254,6 @@ type TranslationSet struct {
 	NoBranchOnRemote                      string
 	Fetch                                 string
 	FetchTooltip                          string
-	NoAutomaticGitFetchTitle              string
-	NoAutomaticGitFetchBody               string
 	FileEnter                             string
 	FileEnterTooltip                      string
 	FileStagingRequirements               string
@@ -474,8 +477,10 @@ type TranslationSet struct {
 	RemoveRemoteTooltip                   string
 	RemoveRemotePrompt                    string
 	DeleteRemoteBranch                    string
+	DeleteRemoteBranches                  string
 	DeleteRemoteBranchTooltip             string
 	DeleteLocalAndRemoteBranch            string
+	DeleteLocalAndRemoteBranches          string
 	SetAsUpstream                         string
 	SetAsUpstreamTooltip                  string
 	SetUpstream                           string
@@ -544,6 +549,7 @@ type TranslationSet struct {
 	ViewBranchUpstreamOptions             string
 	ViewBranchUpstreamOptionsTooltip      string
 	UpstreamNotSetError                   string
+	UpstreamsNotSetError                  string
 	NewGitFlowBranchPrompt                string
 	RenameBranchWarning                   string
 	OpenKeybindingsMenu                   string
@@ -752,6 +758,7 @@ type TranslationSet struct {
 	SwitchToWorktreeTooltip                  string
 	AlreadyCheckedOutByWorktree              string
 	BranchCheckedOutByWorktree               string
+	SomeBranchesCheckedOutByWorktreeError    string
 	DetachWorktreeTooltip                    string
 	Switching                                string
 	RemoveWorktree                           string
@@ -1089,12 +1096,17 @@ func EnglishTranslationSet() *TranslationSet {
 		NewBranchNameBranchOff:               "New branch name (branch is off of '{{.branchName}}')",
 		CantDeleteCheckOutBranch:             "You cannot delete the checked out branch!",
 		DeleteBranchTitle:                    "Delete branch '{{.selectedBranchName}}'?",
+		DeleteBranchesTitle:                  "Delete selected branches?",
 		DeleteLocalBranch:                    "Delete local branch",
+		DeleteLocalBranches:                  "Delete local branches",
 		DeleteRemoteBranchOption:             "Delete remote branch",
 		DeleteRemoteBranchPrompt:             "Are you sure you want to delete the remote branch '{{.selectedBranchName}}' from '{{.upstream}}'?",
+		DeleteRemoteBranchesPrompt:           "Are you sure you want to delete the remote branches of the selected branches from their respective remotes?",
 		DeleteLocalAndRemoteBranchPrompt:     "Are you sure you want to delete both '{{.localBranchName}}' from your machine, and '{{.remoteBranchName}}' from '{{.remoteName}}'?",
+		DeleteLocalAndRemoteBranchesPrompt:   "Are you sure you want to delete both the selected branches from your machine, and their remote branches from their respective remotes?",
 		ForceDeleteBranchTitle:               "Force delete branch",
 		ForceDeleteBranchMessage:             "'{{.selectedBranchName}}' is not fully merged. Are you sure you want to delete it?",
+		ForceDeleteBranchesMessage:           "Some of the selected branches are not fully merged. Are you sure you want to delete them?",
 		RebaseBranch:                         "Rebase",
 		RebaseBranchTooltip:                  "Rebase the checked-out branch onto the selected branch.",
 		CantRebaseOntoSelf:                   "You cannot rebase a branch onto itself",
@@ -1235,8 +1247,6 @@ func EnglishTranslationSet() *TranslationSet {
 		NoBranchOnRemote:                     `This branch doesn't exist on remote. You need to push it to remote first.`,
 		Fetch:                                `Fetch`,
 		FetchTooltip:                         "Fetch changes from remote.",
-		NoAutomaticGitFetchTitle:             `No automatic git fetch`,
-		NoAutomaticGitFetchBody:              `Lazygit can't use "git fetch" in a private repo; use 'f' in the files panel to run "git fetch" manually`,
 		FileEnter:                            `Stage lines / Collapse directory`,
 		FileEnterTooltip:                     "If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it.",
 		FileStagingRequirements:              `Can only stage individual lines for tracked files`,
@@ -1468,8 +1478,10 @@ func EnglishTranslationSet() *TranslationSet {
 		RemoveRemoteTooltip:                  `Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected.`,
 		RemoveRemotePrompt:                   "Are you sure you want to remove remote?",
 		DeleteRemoteBranch:                   "Delete remote branch",
+		DeleteRemoteBranches:                 "Delete remote branches",
 		DeleteRemoteBranchTooltip:            "Delete the remote branch from the remote.",
 		DeleteLocalAndRemoteBranch:           "Delete local and remote branch",
+		DeleteLocalAndRemoteBranches:         "Delete local and remote branches",
 		SetAsUpstream:                        "Set as upstream",
 		SetAsUpstreamTooltip:                 "Set the selected remote branch as the upstream of the checked-out branch.",
 		SetUpstream:                          "Set upstream of selected branch",
@@ -1534,6 +1546,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ViewBranchUpstreamOptions:        "View upstream options",
 		ViewBranchUpstreamOptionsTooltip: "View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream.",
 		UpstreamNotSetError:              "The selected branch has no upstream (or the upstream is not stored locally)",
+		UpstreamsNotSetError:             "Some of the selected branches have no upstream (or the upstream is not stored locally)",
 		Upstream:                         "Upstream",
 		UpstreamTooltip:                  "View upstream options for selected branch e.g. setting/unsetting the upstream and resetting to the upstream.",
 		NewBranchNamePrompt:              "Enter new branch name for branch",
@@ -1745,6 +1758,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SwitchToWorktreeTooltip:                  "Switch to the selected worktree.",
 		AlreadyCheckedOutByWorktree:              "This branch is checked out by worktree {{.worktreeName}}. Do you want to switch to that worktree?",
 		BranchCheckedOutByWorktree:               "Branch {{.branchName}} is checked out by worktree {{.worktreeName}}",
+		SomeBranchesCheckedOutByWorktreeError:    "Some of the selected branches are checked out by other worktrees. Select them one by one to delete them.",
 		DetachWorktreeTooltip:                    "This will run `git checkout --detach` on the worktree so that it stops hogging the branch, but the worktree's working tree will be left alone.",
 		Switching:                                "Switching",
 		RemoveWorktree:                           "Remove worktree",

@@ -30,7 +30,7 @@ func (gui *Gui) handleInfoClick() error {
 	view := gui.Views.Information
 
 	cx, _ := view.Cursor()
-	width, _ := view.Size()
+	width := view.Width()
 
 	if activeMode, ok := gui.helpers.Mode.GetActiveMode(); ok {
 		if width-cx > utils.StringWidth(gui.c.Tr.ResetInParentheses) {

@@ -30,7 +30,7 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 			c.State().GetItemOperation,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().Diffing.Ref,
-			c.Views().Branches.Width(),
+			c.Views().Branches.InnerWidth(),
 			c.Tr,
 			c.UserConfig(),
 			c.Model().Worktrees,

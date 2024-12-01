@@ -203,7 +203,7 @@ func (self *ViewDriver) validateVisibleLineCount(matchers []*TextMatcher) {
 	view := self.getView()
 
 	self.t.assertWithRetries(func() (bool, string) {
-		count := view.InnerHeight() + 1
+		count := view.InnerHeight()
 		return count == len(matchers), fmt.Sprintf("unexpected number of visible lines in view '%s'. Expected exactly %d, got %d", view.Name(), len(matchers), count)
 	})
 }

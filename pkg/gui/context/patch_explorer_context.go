@@ -104,8 +104,7 @@ func (self *PatchExplorerContext) setContent() {
 func (self *PatchExplorerContext) FocusSelection() {
 	view := self.GetView()
 	state := self.GetState()
-	_, viewHeight := view.Size()
-	bufferHeight := viewHeight - 1
+	bufferHeight := view.InnerHeight()
 	_, origin := view.Origin()
 	numLines := view.LinesHeight()
 

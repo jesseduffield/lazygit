@@ -5,8 +5,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Drops a commit during interactive rebase when there is an update-ref in the git-rebase-todo file",
+var EditLastCommitOfStackedBranch = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Edit and amend the last commit of a branch in a stack of branches, and ensure that it doesn't break the stack",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	GitVersion:   AtLeast("2.38.0"),
@@ -18,9 +18,9 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.
 			CreateNCommits(1).
 			NewBranch("branch1").
-			CreateNCommitsStartingAt(3, 2).
+			CreateNCommitsStartingAt(2, 2).
 			NewBranch("branch2").
-			CreateNCommitsStartingAt(3, 5)
+			CreateNCommitsStartingAt(2, 4)
 
 		shell.SetConfig("rebase.updateRefs", "true")
 	},
@@ -28,38 +28,45 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI commit 07").IsSelected(),
-				Contains("CI commit 06"),
-				Contains("CI commit 05"),
-				Contains("CI * commit 04"),
-				Contains("CI commit 03"),
+				Contains("CI commit 05").IsSelected(),
+				Contains("CI commit 04"),
+				Contains("CI * commit 03"),
 				Contains("CI commit 02"),
 				Contains("CI commit 01"),
 			).
-			NavigateToLine(Contains("commit 02")).
+			NavigateToLine(Contains("commit 03")).
 			Press(keys.Universal.Edit).
 			Lines(
-				Contains("pick").Contains("CI commit 07"),
-				Contains("pick").Contains("CI commit 06"),
 				Contains("pick").Contains("CI commit 05"),
-				Contains("update-ref").Contains("branch1").DoesNotContain("*"),
 				Contains("pick").Contains("CI commit 04"),
-				Contains("pick").Contains("CI commit 03"),
-				Contains("<-- YOU ARE HERE --- commit 02").IsSelected(),
+				Contains("update-ref").Contains("branch1"),
+				Contains("<-- YOU ARE HERE --- * commit 03").IsSelected(),
+				Contains("CI commit 02"),
 				Contains("CI commit 01"),
+			)
+
+		t.Shell().CreateFile("fixup-file", "fixup content")
+		t.Views().Files().
+			Focus().
+			Press(keys.Files.RefreshFiles).
+			Lines(
+				Contains("??").Contains("fixup-file").IsSelected(),
 			).
-			NavigateToLine(Contains("commit 06")).
-			Press(keys.Universal.Remove)
+			PressPrimaryAction().
+			Press(keys.Files.AmendLastCommit)
+		t.ExpectPopup().Confirmation().
+			Title(Equals("Amend last commit")).
+			Content(Contains("Are you sure you want to amend last commit?")).
+			Confirm()
 
 		t.Common().ContinueRebase()
 
 		t.Views().Commits().
-			IsFocused().
+			Focus().
 			Lines(
-				Contains("CI commit 07"),
 				Contains("CI commit 05"),
-				Contains("CI * commit 04"),
-				Contains("CI commit 03"),
+				Contains("CI commit 04"),
+				Contains("CI * commit 03"),
 				Contains("CI commit 02"),
 				Contains("CI commit 01"),
 			)

@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -115,7 +116,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:     opts.GetKey(editCommitKey),
-			Handler: self.withItems(self.edit),
+			Handler: self.withItemsRange(self.edit),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(self.midRebaseCommandEnabled),
 			),
@@ -510,9 +511,23 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 	return nil
 }
 
-func (self *LocalCommitsController) edit(selectedCommits []*models.Commit) error {
+func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
 	if self.isRebasing() {
 		return self.updateTodos(todo.Edit, selectedCommits)
+	}
+
+	commits := self.c.Model().Commits
+	if !commits[endIdx].IsMerge() {
+		selectionRangeAndMode := self.getSelectionRangeAndMode()
+		err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err,
+			types.RefreshOptions{
+				Mode: types.BLOCK_UI, Then: func() error {
+					self.restoreSelectionRangeAndMode(selectionRangeAndMode)
+					return nil
+				},
+			})
 	}
 
 	return self.startInteractiveRebaseWithEdit(selectedCommits)
@@ -532,10 +547,7 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 ) error {
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
-		selectedIdx, rangeStartIdx, rangeSelectMode := self.context().GetSelectionRangeAndMode()
-		commits := self.c.Model().Commits
-		selectedHash := commits[selectedIdx].Hash
-		rangeStartHash := commits[rangeStartIdx].Hash
+		selectionRangeAndMode := self.getSelectionRangeAndMode()
 		err := self.c.Git().Rebase.EditRebase(commitsToEdit[len(commitsToEdit)-1].Hash)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
@@ -554,21 +566,39 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 					}
 				}
 
-				// We need to select the same commit range again because after starting a rebase,
-				// new lines can be added for update-ref commands in the TODO file, due to
-				// stacked branches. So the selected commits may be in different positions in the list.
-				_, newSelectedIdx, ok1 := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
-					return c.Hash == selectedHash
-				})
-				_, newRangeStartIdx, ok2 := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
-					return c.Hash == rangeStartHash
-				})
-				if ok1 && ok2 {
-					self.context().SetSelectionRangeAndMode(newSelectedIdx, newRangeStartIdx, rangeSelectMode)
-				}
+				self.restoreSelectionRangeAndMode(selectionRangeAndMode)
 				return nil
 			}})
 	})
+}
+
+type SelectionRangeAndMode struct {
+	selectedHash   string
+	rangeStartHash string
+	mode           traits.RangeSelectMode
+}
+
+func (self *LocalCommitsController) getSelectionRangeAndMode() SelectionRangeAndMode {
+	selectedIdx, rangeStartIdx, rangeSelectMode := self.context().GetSelectionRangeAndMode()
+	commits := self.c.Model().Commits
+	selectedHash := commits[selectedIdx].Hash
+	rangeStartHash := commits[rangeStartIdx].Hash
+	return SelectionRangeAndMode{selectedHash, rangeStartHash, rangeSelectMode}
+}
+
+func (self *LocalCommitsController) restoreSelectionRangeAndMode(selectionRangeAndMode SelectionRangeAndMode) {
+	// We need to select the same commit range again because after starting a rebase,
+	// new lines can be added for update-ref commands in the TODO file, due to
+	// stacked branches. So the selected commits may be in different positions in the list.
+	_, newSelectedIdx, ok1 := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
+		return c.Hash == selectionRangeAndMode.selectedHash
+	})
+	_, newRangeStartIdx, ok2 := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
+		return c.Hash == selectionRangeAndMode.rangeStartHash
+	})
+	if ok1 && ok2 {
+		self.context().SetSelectionRangeAndMode(newSelectedIdx, newRangeStartIdx, selectionRangeAndMode.mode)
+	}
 }
 
 func (self *LocalCommitsController) findCommitForQuickStartInteractiveRebase() (*models.Commit, error) {
