@@ -150,24 +150,12 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Tap(func() {
-				t.Views().Remotes().
-					Focus().
-					Lines(Contains("origin")).
-					PressEnter()
-
-				t.Views().
-					RemoteBranches().
-					Lines(
-						Equals("branch-five"),
-						Equals("branch-four"),
-						Equals("branch-six"),
-						Equals("branch-two"),
-					).
-					Press(keys.Universal.Return)
-
-				t.Views().
-					Branches().
-					Focus()
+				checkRemoteBranches(t, keys, "origin", []string{
+					"branch-five",
+					"branch-four",
+					"branch-six",
+					"branch-two",
+				})
 			}).
 			Lines(
 				Contains("current-head"),

@@ -66,8 +66,8 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
-			Handler:           self.withItem(self.delete),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			Handler:           self.withItems(self.delete),
+			GetDisabledReason: self.require(self.itemRangeSelected()),
 			Description:       self.c.Tr.Delete,
 			Tooltip:           self.c.Tr.DeleteRemoteBranchTooltip,
 			DisplayOnScreen:   true,
@@ -132,8 +132,8 @@ func (self *RemoteBranchesController) context() *context.RemoteBranchesContext {
 	return self.c.Contexts().RemoteBranches
 }
 
-func (self *RemoteBranchesController) delete(selectedBranch *models.RemoteBranch) error {
-	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(selectedBranch.RemoteName, selectedBranch.Name)
+func (self *RemoteBranchesController) delete(selectedBranches []*models.RemoteBranch) error {
+	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(selectedBranches)
 }
 
 func (self *RemoteBranchesController) merge(selectedBranch *models.RemoteBranch) error {
