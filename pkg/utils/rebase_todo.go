@@ -56,7 +56,12 @@ func EditRebaseTodo(filePath string, changes []TodoChange, commentChar byte) err
 }
 
 func equalHash(a, b string) bool {
-	return strings.HasPrefix(a, b) || strings.HasPrefix(b, a)
+	if len(a) == 0 && len(b) == 0 {
+		return true
+	}
+
+	commonLength := min(len(a), len(b))
+	return commonLength > 0 && a[:commonLength] == b[:commonLength]
 }
 
 func findTodo(todos []todo.Todo, todoToFind Todo) (int, bool) {

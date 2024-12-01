@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stefanhaller/git-todo-parser/todo"
@@ -450,6 +451,29 @@ func TestRebaseCommands_deleteTodos(t *testing.T) {
 			}
 
 			assert.EqualValues(t, scenario.expectedTodos, actualTodos)
+		})
+	}
+}
+
+func Test_equalHash(t *testing.T) {
+	scenarios := []struct {
+		a        string
+		b        string
+		expected bool
+	}{
+		{"", "", true},
+		{"", "123", false},
+		{"123", "", false},
+		{"123", "123", true},
+		{"123", "123abc", true},
+		{"123abc", "123", true},
+		{"123", "a", false},
+		{"1", "abc", false},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(fmt.Sprintf("'%s' vs. '%s'", scenario.a, scenario.b), func(t *testing.T) {
+			assert.Equal(t, scenario.expected, equalHash(scenario.a, scenario.b))
 		})
 	}
 }
