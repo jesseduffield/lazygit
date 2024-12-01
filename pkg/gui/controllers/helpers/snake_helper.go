@@ -23,7 +23,7 @@ func NewSnakeHelper(c *HelperCommon) *SnakeHelper {
 func (self *SnakeHelper) StartGame() {
 	view := self.c.Views().Snake
 
-	game := snake.NewGame(view.Width(), view.Height(), self.renderSnakeGame, self.c.LogAction)
+	game := snake.NewGame(view.InnerWidth(), view.InnerHeight(), self.renderSnakeGame, self.c.LogAction)
 	self.game = game
 	game.Start()
 }
