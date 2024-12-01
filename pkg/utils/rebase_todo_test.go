@@ -65,6 +65,21 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 			},
 		},
 		{
+			testName: "move across update-ref todo",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+				{Command: todo.Pick, Commit: "5678"},
+			},
+			todoToMoveDown: Todo{Hash: "5678"},
+			expectedErr:    "",
+			expectedTodos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.Pick, Commit: "5678"},
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+			},
+		},
+		{
 			testName: "skip an invisible todo",
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
@@ -188,6 +203,21 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "5678"},
 				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+			},
+		},
+		{
+			testName: "move across update-ref todo",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+				{Command: todo.Pick, Commit: "5678"},
+			},
+			todoToMoveUp: Todo{Hash: "1234"},
+			expectedErr:  "",
+			expectedTodos: []todo.Todo{
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.Pick, Commit: "5678"},
 			},
 		},
 		{
