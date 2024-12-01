@@ -286,9 +286,9 @@ func RemoveUpdateRefsForCopiedBranch(fileName string, commentChar byte) error {
 }
 
 // We render a todo in the commits view if it's a commit or if it's an
-// update-ref. We don't render label, reset, or comment lines.
+// update-ref or exec. We don't render label, reset, or comment lines.
 func isRenderedTodo(t todo.Todo) bool {
-	return t.Commit != "" || t.Command == todo.UpdateRef
+	return t.Commit != "" || t.Command == todo.UpdateRef || t.Command == todo.Exec
 }
 
 func DropMergeCommit(fileName string, hash string, commentChar byte) error {

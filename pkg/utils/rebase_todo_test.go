@@ -89,12 +89,8 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 			todoToMoveDown: Todo{Hash: "5678"},
 			expectedErr:    "",
 			expectedTodos: []todo.Todo{
-				/* EXPECTED:
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "5678"},
-				ACTUAL: */
-				{Command: todo.Pick, Commit: "5678"},
-				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Exec, ExecCommand: "make test"},
 			},
 		},
@@ -250,12 +246,8 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 			expectedErr:  "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Exec, ExecCommand: "make test"},
-				/* EXPECTED:
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "5678"},
-				ACTUAL: */
-				{Command: todo.Pick, Commit: "5678"},
-				{Command: todo.Pick, Commit: "1234"},
 			},
 		},
 		{
