@@ -290,3 +290,29 @@ func RemoveUpdateRefsForCopiedBranch(fileName string, commentChar byte) error {
 func isRenderedTodo(t todo.Todo) bool {
 	return t.Commit != "" || t.Command == todo.UpdateRef
 }
+
+func DropMergeCommit(fileName string, hash string, commentChar byte) error {
+	todos, err := ReadRebaseTodoFile(fileName, commentChar)
+	if err != nil {
+		return err
+	}
+
+	newTodos, err := dropMergeCommit(todos, hash)
+	if err != nil {
+		return err
+	}
+
+	return WriteRebaseTodoFile(fileName, newTodos, commentChar)
+}
+
+func dropMergeCommit(todos []todo.Todo, hash string) ([]todo.Todo, error) {
+	isMerge := func(t todo.Todo) bool {
+		return t.Command == todo.Merge && t.Flag == "-C" && equalHash(t.Commit, hash)
+	}
+	if lo.CountBy(todos, isMerge) != 1 {
+		return nil, fmt.Errorf("Expected exactly one merge commit with hash %s", hash)
+	}
+
+	_, idx, _ := lo.FindIndexOf(todos, isMerge)
+	return slices.Delete(todos, idx, idx+1), nil
+}

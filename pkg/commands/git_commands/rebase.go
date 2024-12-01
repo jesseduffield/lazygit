@@ -564,6 +564,13 @@ func (self *RebaseCommands) CherryPickCommitsDuringRebase(commits []*models.Comm
 	return utils.PrependStrToTodoFile(filePath, []byte(todo))
 }
 
+func (self *RebaseCommands) DropMergeCommit(commits []*models.Commit, commitIndex int) error {
+	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
+		baseHashOrRoot: getBaseHashOrRoot(commits, commitIndex+1),
+		instruction:    daemon.NewDropMergeCommitInstruction(commits[commitIndex].Hash),
+	}).Run()
+}
+
 // we can't start an interactive rebase from the first commit without passing the
 // '--root' arg
 func getBaseHashOrRoot(commits []*models.Commit, index int) string {

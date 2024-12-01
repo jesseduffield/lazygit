@@ -38,6 +38,7 @@ const (
 	DaemonKindMoveTodosDown
 	DaemonKindInsertBreak
 	DaemonKindChangeTodoActions
+	DaemonKindDropMergeCommit
 	DaemonKindMoveFixupCommitDown
 	DaemonKindWriteRebaseTodo
 )
@@ -57,6 +58,7 @@ func getInstruction() Instruction {
 		DaemonKindRemoveUpdateRefsForCopiedBranch: deserializeInstruction[*RemoveUpdateRefsForCopiedBranchInstruction],
 		DaemonKindCherryPick:                      deserializeInstruction[*CherryPickCommitsInstruction],
 		DaemonKindChangeTodoActions:               deserializeInstruction[*ChangeTodoActionsInstruction],
+		DaemonKindDropMergeCommit:                 deserializeInstruction[*DropMergeCommitInstruction],
 		DaemonKindMoveFixupCommitDown:             deserializeInstruction[*MoveFixupCommitDownInstruction],
 		DaemonKindMoveTodosUp:                     deserializeInstruction[*MoveTodosUpInstruction],
 		DaemonKindMoveTodosDown:                   deserializeInstruction[*MoveTodosDownInstruction],
@@ -239,6 +241,30 @@ func (self *ChangeTodoActionsInstruction) run(common *common.Common) error {
 		})
 
 		return utils.EditRebaseTodo(path, changes, getCommentChar())
+	})
+}
+
+type DropMergeCommitInstruction struct {
+	Hash string
+}
+
+func NewDropMergeCommitInstruction(hash string) Instruction {
+	return &DropMergeCommitInstruction{
+		Hash: hash,
+	}
+}
+
+func (self *DropMergeCommitInstruction) Kind() DaemonKind {
+	return DaemonKindDropMergeCommit
+}
+
+func (self *DropMergeCommitInstruction) SerializedInstructions() string {
+	return serializeInstruction(self)
+}
+
+func (self *DropMergeCommitInstruction) run(common *common.Common) error {
+	return handleInteractiveRebase(common, func(path string) error {
+		return utils.DropMergeCommit(path, self.Hash, getCommentChar())
 	})
 }
 

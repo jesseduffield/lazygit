@@ -497,18 +497,28 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 		return self.updateTodos(todo.Drop, selectedCommits)
 	}
 
+	isMerge := selectedCommits[0].IsMerge()
+
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DropCommitTitle,
-		Prompt: self.c.Tr.DropCommitPrompt,
+		Prompt: lo.Ternary(isMerge, self.c.Tr.DropMergeCommitPrompt, self.c.Tr.DropCommitPrompt),
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.DroppingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DropCommit)
+				if isMerge {
+					return self.dropMergeCommit(startIdx)
+				}
 				return self.interactiveRebase(todo.Drop, startIdx, endIdx)
 			})
 		},
 	})
 
 	return nil
+}
+
+func (self *LocalCommitsController) dropMergeCommit(commitIdx int) error {
+	err := self.c.Git().Rebase.DropMergeCommit(self.c.Model().Commits, commitIdx)
+	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 }
 
 func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
