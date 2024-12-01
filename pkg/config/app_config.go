@@ -63,6 +63,14 @@ type ConfigFile struct {
 	exists  bool
 }
 
+type RecentReposPolicy int
+
+const (
+	RecentReposPolicyPerRepoConfirmation RecentReposPolicy = iota
+	RecentReposPolicyAcceptAll
+	RecentReposPolicyRejectAll
+)
+
 // NewAppConfig makes a new app config
 func NewAppConfig(
 	name string,
@@ -448,6 +456,7 @@ func (c *AppConfig) SaveGlobalUserConfig() {
 type AppState struct {
 	LastUpdateCheck     int64
 	RecentRepos         []string
+	RecentReposPolicy   RecentReposPolicy
 	StartupPopupVersion int
 	LastVersion         string // this is the last version the user was using, for the purpose of showing release notes
 
@@ -476,6 +485,7 @@ func getDefaultAppState() *AppState {
 	return &AppState{
 		LastUpdateCheck:           0,
 		RecentRepos:               []string{},
+		RecentReposPolicy:         RecentReposPolicyPerRepoConfirmation,
 		StartupPopupVersion:       0,
 		LastVersion:               "",
 		DiffContextSize:           3,
