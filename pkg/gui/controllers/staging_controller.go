@@ -118,8 +118,9 @@ func (self *StagingController) GetMouseKeybindings(opts types.KeybindingsOpts) [
 
 func (self *StagingController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(opts types.OnFocusOpts) {
-		self.c.Views().Staging.Wrap = false
-		self.c.Views().StagingSecondary.Wrap = false
+		wrap := self.c.UserConfig().Gui.WrapLinesInStagingView
+		self.c.Views().Staging.Wrap = wrap
+		self.c.Views().StagingSecondary.Wrap = wrap
 
 		self.c.Helpers().Staging.RefreshStagingPanel(opts)
 	}

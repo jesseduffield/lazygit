@@ -65,7 +65,7 @@ func (self *PatchBuildingController) GetMouseKeybindings(opts types.KeybindingsO
 func (self *PatchBuildingController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(opts types.OnFocusOpts) {
 		// no need to change wrap on the secondary view because it can't be interacted with
-		self.c.Views().PatchBuilding.Wrap = false
+		self.c.Views().PatchBuilding.Wrap = self.c.UserConfig().Gui.WrapLinesInStagingView
 
 		self.c.Helpers().PatchBuilding.RefreshPatchBuildingPanel(opts)
 	}

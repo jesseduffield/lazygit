@@ -87,6 +87,11 @@ gui:
   # - 'top': split the window vertically (side panel on top, main view below)
   enlargedSideViewLocation: left
 
+  # If true, wrap lines in the staging view to the width of the view. This
+  # makes it much easier to work with diffs that have long lines, e.g.
+  # paragraphs of markdown text.
+  wrapLinesInStagingView: true
+
   # One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
   language: auto
 
