@@ -223,6 +223,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.InteractiveRebaseOfCopiedBranch,
 	interactive_rebase.MidRebaseRangeSelect,
 	interactive_rebase.Move,
+	interactive_rebase.MoveAcrossBranchBoundaryOutsideRebase,
 	interactive_rebase.MoveInRebase,
 	interactive_rebase.MoveUpdateRefTodo,
 	interactive_rebase.MoveWithCustomCommentChar,
