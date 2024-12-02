@@ -369,7 +369,7 @@ func (self *RebaseCommands) MoveTodosDown(commits []*models.Commit) error {
 		return todoFromCommit(commit)
 	})
 
-	return utils.MoveTodosDown(fileName, todosToMove, self.config.GetCoreCommentChar())
+	return utils.MoveTodosDown(fileName, todosToMove, true, self.config.GetCoreCommentChar())
 }
 
 func (self *RebaseCommands) MoveTodosUp(commits []*models.Commit) error {
@@ -378,7 +378,7 @@ func (self *RebaseCommands) MoveTodosUp(commits []*models.Commit) error {
 		return todoFromCommit(commit)
 	})
 
-	return utils.MoveTodosUp(fileName, todosToMove, self.config.GetCoreCommentChar())
+	return utils.MoveTodosUp(fileName, todosToMove, true, self.config.GetCoreCommentChar())
 }
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one

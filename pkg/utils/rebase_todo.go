@@ -141,41 +141,41 @@ func deleteTodos(todos []todo.Todo, todosToDelete []Todo) ([]todo.Todo, error) {
 	return todos, nil
 }
 
-func MoveTodosDown(fileName string, todosToMove []Todo, commentChar byte) error {
+func MoveTodosDown(fileName string, todosToMove []Todo, isInRebase bool, commentChar byte) error {
 	todos, err := ReadRebaseTodoFile(fileName, commentChar)
 	if err != nil {
 		return err
 	}
-	rearrangedTodos, err := moveTodosDown(todos, todosToMove)
+	rearrangedTodos, err := moveTodosDown(todos, todosToMove, isInRebase)
 	if err != nil {
 		return err
 	}
 	return WriteRebaseTodoFile(fileName, rearrangedTodos, commentChar)
 }
 
-func MoveTodosUp(fileName string, todosToMove []Todo, commentChar byte) error {
+func MoveTodosUp(fileName string, todosToMove []Todo, isInRebase bool, commentChar byte) error {
 	todos, err := ReadRebaseTodoFile(fileName, commentChar)
 	if err != nil {
 		return err
 	}
-	rearrangedTodos, err := moveTodosUp(todos, todosToMove)
+	rearrangedTodos, err := moveTodosUp(todos, todosToMove, isInRebase)
 	if err != nil {
 		return err
 	}
 	return WriteRebaseTodoFile(fileName, rearrangedTodos, commentChar)
 }
 
-func moveTodoDown(todos []todo.Todo, todoToMove Todo) ([]todo.Todo, error) {
-	rearrangedTodos, err := moveTodoUp(lo.Reverse(todos), todoToMove)
+func moveTodoDown(todos []todo.Todo, todoToMove Todo, isInRebase bool) ([]todo.Todo, error) {
+	rearrangedTodos, err := moveTodoUp(lo.Reverse(todos), todoToMove, isInRebase)
 	return lo.Reverse(rearrangedTodos), err
 }
 
-func moveTodosDown(todos []todo.Todo, todosToMove []Todo) ([]todo.Todo, error) {
-	rearrangedTodos, err := moveTodosUp(lo.Reverse(todos), lo.Reverse(todosToMove))
+func moveTodosDown(todos []todo.Todo, todosToMove []Todo, isInRebase bool) ([]todo.Todo, error) {
+	rearrangedTodos, err := moveTodosUp(lo.Reverse(todos), lo.Reverse(todosToMove), isInRebase)
 	return lo.Reverse(rearrangedTodos), err
 }
 
-func moveTodoUp(todos []todo.Todo, todoToMove Todo) ([]todo.Todo, error) {
+func moveTodoUp(todos []todo.Todo, todoToMove Todo, isInRebase bool) ([]todo.Todo, error) {
 	sourceIdx, ok := findTodo(todos, todoToMove)
 
 	if !ok {
@@ -188,7 +188,7 @@ func moveTodoUp(todos []todo.Todo, todoToMove Todo) ([]todo.Todo, error) {
 	// the end of the slice)
 
 	// Find the next todo that we show in lazygit's commits view (skipping the rest)
-	_, skip, ok := lo.FindIndexOf(todos[sourceIdx+1:], isRenderedTodo)
+	_, skip, ok := lo.FindIndexOf(todos[sourceIdx+1:], func(t todo.Todo) bool { return isRenderedTodo(t, isInRebase) })
 
 	if !ok {
 		// We expect callers to guard against this
@@ -202,10 +202,10 @@ func moveTodoUp(todos []todo.Todo, todoToMove Todo) ([]todo.Todo, error) {
 	return rearrangedTodos, nil
 }
 
-func moveTodosUp(todos []todo.Todo, todosToMove []Todo) ([]todo.Todo, error) {
+func moveTodosUp(todos []todo.Todo, todosToMove []Todo, isInRebase bool) ([]todo.Todo, error) {
 	for _, todoToMove := range todosToMove {
 		var newTodos []todo.Todo
-		newTodos, err := moveTodoUp(todos, todoToMove)
+		newTodos, err := moveTodoUp(todos, todoToMove, isInRebase)
 		if err != nil {
 			return nil, err
 		}
@@ -287,8 +287,8 @@ func RemoveUpdateRefsForCopiedBranch(fileName string, commentChar byte) error {
 
 // We render a todo in the commits view if it's a commit or if it's an
 // update-ref or exec. We don't render label, reset, or comment lines.
-func isRenderedTodo(t todo.Todo) bool {
-	return t.Commit != "" || t.Command == todo.UpdateRef || t.Command == todo.Exec
+func isRenderedTodo(t todo.Todo, isInRebase bool) bool {
+	return t.Commit != "" || (isInRebase && (t.Command == todo.UpdateRef || t.Command == todo.Exec))
 }
 
 func DropMergeCommit(fileName string, hash string, commentChar byte) error {

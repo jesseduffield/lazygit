@@ -14,6 +14,7 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 		testName       string
 		todos          []todo.Todo
 		todoToMoveDown Todo
+		isInRebase     bool
 		expectedErr    string
 		expectedTodos  []todo.Todo
 	}
@@ -65,17 +66,34 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 			},
 		},
 		{
-			testName: "move across update-ref todo",
+			testName: "move across update-ref todo in rebase",
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
 				{Command: todo.Pick, Commit: "5678"},
 			},
 			todoToMoveDown: Todo{Hash: "5678"},
+			isInRebase:     true,
 			expectedErr:    "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "5678"},
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+			},
+		},
+		{
+			testName: "move across update-ref todo outside of rebase",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+				{Command: todo.Pick, Commit: "5678"},
+			},
+			todoToMoveDown: Todo{Hash: "5678"},
+			isInRebase:     false,
+			expectedErr:    "",
+			expectedTodos: []todo.Todo{
+				{Command: todo.Pick, Commit: "5678"},
+				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
 			},
 		},
@@ -87,6 +105,7 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 			},
 			todoToMoveDown: Todo{Hash: "5678"},
+			isInRebase:     true,
 			expectedErr:    "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
@@ -153,7 +172,7 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			rearrangedTodos, err := moveTodoDown(s.todos, s.todoToMoveDown)
+			rearrangedTodos, err := moveTodoDown(s.todos, s.todoToMoveDown, s.isInRebase)
 			if s.expectedErr == "" {
 				assert.NoError(t, err)
 			} else {
@@ -170,6 +189,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 		testName      string
 		todos         []todo.Todo
 		todoToMoveUp  Todo
+		isInRebase    bool
 		expectedErr   string
 		expectedTodos []todo.Todo
 	}
@@ -221,18 +241,35 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 			},
 		},
 		{
-			testName: "move across update-ref todo",
+			testName: "move across update-ref todo in rebase",
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
 				{Command: todo.Pick, Commit: "5678"},
 			},
 			todoToMoveUp: Todo{Hash: "1234"},
+			isInRebase:   true,
 			expectedErr:  "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "5678"},
+			},
+		},
+		{
+			testName: "move across update-ref todo outside of rebase",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+				{Command: todo.Pick, Commit: "5678"},
+			},
+			todoToMoveUp: Todo{Hash: "1234"},
+			isInRebase:   false,
+			expectedErr:  "",
+			expectedTodos: []todo.Todo{
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+				{Command: todo.Pick, Commit: "5678"},
+				{Command: todo.Pick, Commit: "1234"},
 			},
 		},
 		{
@@ -243,6 +280,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 			},
 			todoToMoveUp: Todo{Hash: "1234"},
+			isInRebase:   true,
 			expectedErr:  "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Exec, ExecCommand: "make test"},
@@ -309,7 +347,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			rearrangedTodos, err := moveTodoUp(s.todos, s.todoToMoveUp)
+			rearrangedTodos, err := moveTodoUp(s.todos, s.todoToMoveUp, s.isInRebase)
 			if s.expectedErr == "" {
 				assert.NoError(t, err)
 			} else {

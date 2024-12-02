@@ -37,16 +37,9 @@ var MoveAcrossBranchBoundaryOutsideRebase = NewIntegrationTest(NewIntegrationTes
 			NavigateToLine(Contains("commit 04")).
 			Press(keys.Commits.MoveDownCommit).
 			Lines(
-				/* EXPECTED:
 				Contains("CI commit 05"),
 				Contains("CI * commit 03"),
 				Contains("CI commit 04").IsSelected(),
-				Contains("CI commit 02"),
-				Contains("CI commit 01"),
-				ACTUAL: */
-				Contains("CI commit 05"),
-				Contains("CI * commit 04"),
-				Contains("CI commit 03").IsSelected(),
 				Contains("CI commit 02"),
 				Contains("CI commit 01"),
 			)
