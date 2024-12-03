@@ -1272,6 +1272,11 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 								OnPress: onPress("author-date-order"),
 								Widget:  types.MakeMenuRadioButton(currentValue == "author-date-order"),
 							},
+							{
+								Label:   "default",
+								OnPress: onPress("default"),
+								Widget:  types.MakeMenuRadioButton(currentValue == "default"),
+							},
 						},
 					})
 				},
