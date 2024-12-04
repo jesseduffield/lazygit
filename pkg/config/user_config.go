@@ -91,6 +91,10 @@ type GuiConfig struct {
 	// - 'left': split the window horizontally (side panel on the left, main view on the right)
 	// - 'top': split the window vertically (side panel on top, main view below)
 	EnlargedSideViewLocation string `yaml:"enlargedSideViewLocation"`
+	// If true, wrap lines in the staging view to the width of the view. This
+	// makes it much easier to work with diffs that have long lines, e.g.
+	// paragraphs of markdown text.
+	WrapLinesInStagingView bool `yaml:"wrapLinesInStagingView"`
 	// One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
 	Language string `yaml:"language" jsonschema:"enum=auto,enum=en,enum=zh-TW,enum=zh-CN,enum=pl,enum=nl,enum=ja,enum=ko,enum=ru"`
 	// Format used when displaying time e.g. commit time.
@@ -690,6 +694,7 @@ func GetDefaultConfig() *UserConfig {
 			ExpandedSidePanelWeight:  2,
 			MainPanelSplitMode:       "flexible",
 			EnlargedSideViewLocation: "left",
+			WrapLinesInStagingView:   true,
 			Language:                 "auto",
 			TimeFormat:               "02 Jan 06",
 			ShortTimeFormat:          time.Kitchen,

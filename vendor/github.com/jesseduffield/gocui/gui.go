@@ -335,7 +335,7 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 
 	g.Mutexes.ViewsMutex.Lock()
 
-	v := newView(name, x0, y0, x1, y1, g.outputMode)
+	v := NewView(name, x0, y0, x1, y1, g.outputMode)
 	v.BgColor, v.FgColor = g.BgColor, g.FgColor
 	v.SelBgColor, v.SelFgColor = g.SelBgColor, g.SelFgColor
 	v.Overlaps = overlaps
