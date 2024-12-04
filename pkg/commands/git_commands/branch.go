@@ -284,3 +284,12 @@ func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *
 
 	return stdout == "", nil
 }
+
+// Creates a Subtree from the selected branch
+func (self *BranchCommands) CreateSubtree(remoteName string, branch string) error {
+	cmdArgs := NewGitCmd("subtree").
+		Arg("add", fmt.Sprintf("--prefix=%s", remoteName), remoteName, branch).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}

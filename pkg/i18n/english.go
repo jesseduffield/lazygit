@@ -253,6 +253,7 @@ type TranslationSet struct {
 	CopyPullRequestURL                    string
 	NoBranchOnRemote                      string
 	Fetch                                 string
+	Subtree                               string
 	FetchTooltip                          string
 	FileEnter                             string
 	FileEnterTooltip                      string
@@ -520,6 +521,7 @@ type TranslationSet struct {
 	ForceTag                              string
 	ForceTagPrompt                        string
 	FetchRemoteTooltip                    string
+	SubtreeToolTip                        string
 	FetchingRemoteStatus                  string
 	CheckoutCommit                        string
 	CheckoutCommitTooltip                 string
@@ -927,6 +929,7 @@ type Actions struct {
 	SetBranchUpstream                 string
 	AddRemote                         string
 	RemoveRemote                      string
+	CreateSubtree                     string
 	UpdateRemote                      string
 	ApplyPatch                        string
 	Stash                             string
@@ -1246,6 +1249,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CopyPullRequestURL:                   `Copy pull request URL to clipboard`,
 		NoBranchOnRemote:                     `This branch doesn't exist on remote. You need to push it to remote first.`,
 		Fetch:                                `Fetch`,
+		Subtree:                              "Subtree",
 		FetchTooltip:                         "Fetch changes from remote.",
 		FileEnter:                            `Stage lines / Collapse directory`,
 		FileEnterTooltip:                     "If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it.",
@@ -1522,6 +1526,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ForceTag:               "Force Tag",
 		ForceTagPrompt:         "The tag '{{.tagName}}' exists already. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to overwrite.",
 		FetchRemoteTooltip:     "Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches.",
+		SubtreeToolTip:         "Create a subtree from the selected branch.",
 		FetchingRemoteStatus:   "Fetching remote",
 		CheckoutCommit:         "Checkout commit",
 		CheckoutCommitTooltip:  "Checkout the selected commit as a detached HEAD.",
