@@ -211,6 +211,68 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on Azure DevOps Server (SSH with scheme)",
+			from:      "feature/new",
+			remoteUrl: "ssh://my.server:22/DefaultCollection/myproject/myrepo",
+			configServiceDomains: map[string]string{
+				"my.server": "azuredevopsServer:my.server",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://my.server/DefaultCollection/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Azure DevOps Server (SSH without scheme)",
+			from:      "feature/new",
+			remoteUrl: "git@my.server:DefaultCollection/myproject/myrepo",
+			configServiceDomains: map[string]string{
+				"my.server": "azuredevopsServer:my.server",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://my.server/DefaultCollection/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Azure DevOps Server (SSH) with specific target",
+			from:      "feature/new",
+			to:        "dev",
+			remoteUrl: "git@my.server:DefaultCollection/myproject/myrepo",
+			configServiceDomains: map[string]string{
+				"my.server": "azuredevopsServer:my.server",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://my.server/DefaultCollection/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew&targetRef=dev", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Azure DevOps Server (HTTP)",
+			from:      "feature/new",
+			remoteUrl: "https://my.server/DefaultCollection/myproject/_git/myrepo",
+			configServiceDomains: map[string]string{
+				"my.server": "azuredevopsServer:my.server",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://my.server/DefaultCollection/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Azure DevOps Server (HTTP) with specific target",
+			from:      "feature/new",
+			to:        "dev",
+			remoteUrl: "https://my.server/DefaultCollection/myproject/_git/myrepo",
+			configServiceDomains: map[string]string{
+				"my.server": "azuredevopsServer:my.server",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://my.server/DefaultCollection/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew&targetRef=dev", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on Bitbucket Server (SSH)",
 			from:      "feature/new",
 			remoteUrl: "ssh://git@mycompany.bitbucket.com/myproject/myrepo.git",
@@ -388,7 +450,7 @@ func TestGetPullRequestURL(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page&t=1", url)
 			},
-			expectedLoggedErrors: []string{"Unknown git service type: 'noservice'. Expected one of github, bitbucket, gitlab, azuredevops, bitbucketServer, gitea"},
+			expectedLoggedErrors: []string{"Unknown git service type: 'noservice'. Expected one of github, bitbucket, gitlab, azuredevops, azuredevopsServer, bitbucketServer, gitea"},
 		},
 		{
 			testName:  "Escapes reserved URL characters in from branch name",
