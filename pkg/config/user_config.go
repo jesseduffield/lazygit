@@ -109,6 +109,8 @@ type GuiConfig struct {
 	// If true, display the files in the file views as a tree. If false, display the files as a flat list.
 	// This can be toggled from within Lazygit with the '~' key, but that will not change the default.
 	ShowFileTree bool `yaml:"showFileTree"`
+	// If true, show the number of lines changed per file in the Files view
+	ShowNumstatInFilesView bool `yaml:"showNumstatInFilesView"`
 	// If true, show a random tip in the command log when Lazygit starts
 	ShowRandomTip bool `yaml:"showRandomTip"`
 	// If true, show the command log
@@ -714,6 +716,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowBottomLine:               true,
 			ShowPanelJumps:               true,
 			ShowFileTree:                 true,
+			ShowNumstatInFilesView:       false,
 			ShowRandomTip:                true,
 			ShowIcons:                    false,
 			NerdFontsVersion:             "",
