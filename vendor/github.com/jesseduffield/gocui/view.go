@@ -326,7 +326,8 @@ func (v *View) IsSearching() bool {
 }
 
 func (v *View) FocusPoint(cx int, cy int) {
-	lineCount := len(v.lines)
+	v.refreshViewLinesIfNeeded()
+	lineCount := len(v.viewLines)
 	if cy < 0 || cy > lineCount {
 		return
 	}
