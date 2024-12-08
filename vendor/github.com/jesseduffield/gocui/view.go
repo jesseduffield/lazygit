@@ -325,7 +325,11 @@ func (v *View) IsSearching() bool {
 }
 
 func (v *View) FocusPoint(cx int, cy int, scrollIntoView bool) {
-	lineCount := len(v.lines)
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+	lineCount := len(v.viewLines)
 	if cy < 0 || cy > lineCount {
 		return
 	}
