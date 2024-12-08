@@ -164,6 +164,9 @@ gui:
   # This can be toggled from within Lazygit with the '~' key, but that will not change the default.
   showFileTree: true
 
+  # If true, show the number of lines changed per file in the Files view
+  showNumstatInFilesView: false
+
   # If true, show a random tip in the command log when Lazygit starts
   showRandomTip: true
 

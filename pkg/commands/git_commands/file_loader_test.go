@@ -11,29 +11,35 @@ import (
 
 func TestFileGetStatusFiles(t *testing.T) {
 	type scenario struct {
-		testName            string
-		similarityThreshold int
-		runner              oscommands.ICmdObjRunner
-		expectedFiles       []*models.File
+		testName               string
+		similarityThreshold    int
+		runner                 oscommands.ICmdObjRunner
+		showNumstatInFilesView bool
+		expectedFiles          []*models.File
 	}
 
 	scenarios := []scenario{
 		{
-			"No files found",
-			50,
-			oscommands.NewFakeRunner(t).
+			testName:            "No files found",
+			similarityThreshold: 50,
+			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"}, "", nil),
-			[]*models.File{},
+			expectedFiles: []*models.File{},
 		},
 		{
-			"Several files found",
-			50,
-			oscommands.NewFakeRunner(t).
+			testName:            "Several files found",
+			similarityThreshold: 50,
+			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
 					"MM file1.txt\x00A  file3.txt\x00AM file2.txt\x00?? file4.txt\x00UU file5.txt",
 					nil,
+				).
+				ExpectGitArgs([]string{"diff", "--numstat", "-z", "HEAD"},
+					"4\t1\tfile1.txt\x001\t0\tfile2.txt\x002\t2\tfile3.txt\x000\t2\tfile4.txt\x002\t2\tfile5.txt",
+					nil,
 				),
-			[]*models.File{
+			showNumstatInFilesView: true,
+			expectedFiles: []*models.File{
 				{
 					Name:                    "file1.txt",
 					HasStagedChanges:        true,
@@ -45,6 +51,8 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasInlineMergeConflicts: false,
 					DisplayString:           "MM file1.txt",
 					ShortStatus:             "MM",
+					LinesAdded:              4,
+					LinesDeleted:            1,
 				},
 				{
 					Name:                    "file3.txt",
@@ -57,6 +65,8 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasInlineMergeConflicts: false,
 					DisplayString:           "A  file3.txt",
 					ShortStatus:             "A ",
+					LinesAdded:              2,
+					LinesDeleted:            2,
 				},
 				{
 					Name:                    "file2.txt",
@@ -69,6 +79,8 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasInlineMergeConflicts: false,
 					DisplayString:           "AM file2.txt",
 					ShortStatus:             "AM",
+					LinesAdded:              1,
+					LinesDeleted:            0,
 				},
 				{
 					Name:                    "file4.txt",
@@ -81,6 +93,8 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasInlineMergeConflicts: false,
 					DisplayString:           "?? file4.txt",
 					ShortStatus:             "??",
+					LinesAdded:              0,
+					LinesDeleted:            2,
 				},
 				{
 					Name:                    "file5.txt",
@@ -93,15 +107,17 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasInlineMergeConflicts: true,
 					DisplayString:           "UU file5.txt",
 					ShortStatus:             "UU",
+					LinesAdded:              2,
+					LinesDeleted:            2,
 				},
 			},
 		},
 		{
-			"File with new line char",
-			50,
-			oscommands.NewFakeRunner(t).
+			testName:            "File with new line char",
+			similarityThreshold: 50,
+			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"}, "MM a\nb.txt", nil),
-			[]*models.File{
+			expectedFiles: []*models.File{
 				{
 					Name:                    "a\nb.txt",
 					HasStagedChanges:        true,
@@ -117,14 +133,14 @@ func TestFileGetStatusFiles(t *testing.T) {
 			},
 		},
 		{
-			"Renamed files",
-			50,
-			oscommands.NewFakeRunner(t).
+			testName:            "Renamed files",
+			similarityThreshold: 50,
+			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
 					"R  after1.txt\x00before1.txt\x00RM after2.txt\x00before2.txt",
 					nil,
 				),
-			[]*models.File{
+			expectedFiles: []*models.File{
 				{
 					Name:                    "after1.txt",
 					PreviousName:            "before1.txt",
@@ -154,14 +170,14 @@ func TestFileGetStatusFiles(t *testing.T) {
 			},
 		},
 		{
-			"File with arrow in name",
-			50,
-			oscommands.NewFakeRunner(t).
+			testName:            "File with arrow in name",
+			similarityThreshold: 50,
+			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
 					`?? a -> b.txt`,
 					nil,
 				),
-			[]*models.File{
+			expectedFiles: []*models.File{
 				{
 					Name:                    "a -> b.txt",
 					HasStagedChanges:        false,
@@ -185,8 +201,14 @@ func TestFileGetStatusFiles(t *testing.T) {
 			appState := &config.AppState{}
 			appState.RenameSimilarityThreshold = s.similarityThreshold
 
+			userConfig := &config.UserConfig{
+				Gui: config.GuiConfig{
+					ShowNumstatInFilesView: s.showNumstatInFilesView,
+				},
+			}
+
 			loader := &FileLoader{
-				GitCommon:   buildGitCommon(commonDeps{appState: appState}),
+				GitCommon:   buildGitCommon(commonDeps{appState: appState, userConfig: userConfig}),
 				cmd:         cmd,
 				config:      &FakeFileLoaderConfig{showUntrackedFiles: "yes"},
 				getFileType: func(string) string { return "file" },

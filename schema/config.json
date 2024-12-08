@@ -293,6 +293,11 @@
           "description": "If true, display the files in the file views as a tree. If false, display the files as a flat list.\nThis can be toggled from within Lazygit with the '~' key, but that will not change the default.",
           "default": true
         },
+        "showNumstatInFilesView": {
+          "type": "boolean",
+          "description": "If true, show the number of lines changed per file in the Files view",
+          "default": false
+        },
         "showRandomTip": {
           "type": "boolean",
           "description": "If true, show a random tip in the command log when Lazygit starts",
