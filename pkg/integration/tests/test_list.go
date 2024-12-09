@@ -208,6 +208,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.DeleteUpdateRefTodo,
 	interactive_rebase.DontShowBranchHeadsForTodoItems,
 	interactive_rebase.DropCommitInCopiedBranchWithUpdateRef,
+	interactive_rebase.DropMergeCommit,
 	interactive_rebase.DropTodoCommitWithUpdateRef,
 	interactive_rebase.DropWithCustomCommentChar,
 	interactive_rebase.EditAndAutoAmend,

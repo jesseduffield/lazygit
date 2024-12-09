@@ -497,18 +497,28 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 		return self.updateTodos(todo.Drop, selectedCommits)
 	}
 
+	isMerge := selectedCommits[0].IsMerge()
+
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DropCommitTitle,
-		Prompt: self.c.Tr.DropCommitPrompt,
+		Prompt: lo.Ternary(isMerge, self.c.Tr.DropMergeCommitPrompt, self.c.Tr.DropCommitPrompt),
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.DroppingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DropCommit)
+				if isMerge {
+					return self.dropMergeCommit(startIdx)
+				}
 				return self.interactiveRebase(todo.Drop, startIdx, endIdx)
 			})
 		},
 	})
 
 	return nil
+}
+
+func (self *LocalCommitsController) dropMergeCommit(commitIdx int) error {
+	err := self.c.Git().Rebase.DropMergeCommit(self.c.Model().Commits, commitIdx)
+	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 }
 
 func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
@@ -1358,9 +1368,13 @@ func (self *LocalCommitsController) canFindCommitForSquashFixupsInCurrentBranch(
 	return nil
 }
 
-func (self *LocalCommitsController) canSquashOrFixup(_selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
+func (self *LocalCommitsController) canSquashOrFixup(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
 	if endIdx >= len(self.c.Model().Commits)-1 {
 		return &types.DisabledReason{Text: self.c.Tr.CannotSquashOrFixupFirstCommit}
+	}
+
+	if lo.SomeBy(selectedCommits, func(c *models.Commit) bool { return c.IsMerge() }) {
+		return &types.DisabledReason{Text: self.c.Tr.CannotSquashOrFixupMergeCommit}
 	}
 
 	return nil
@@ -1420,6 +1434,10 @@ func (self *LocalCommitsController) midRebaseCommandEnabled(selectedCommits []*m
 // Ensures that if we are mid-rebase, we're only selecting commits that can be moved
 func (self *LocalCommitsController) midRebaseMoveCommandEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
 	if !self.isRebasing() {
+		if lo.SomeBy(selectedCommits, func(c *models.Commit) bool { return c.IsMerge() }) {
+			return &types.DisabledReason{Text: self.c.Tr.CannotMoveMergeCommit}
+		}
+
 		return nil
 	}
 
@@ -1440,6 +1458,10 @@ func (self *LocalCommitsController) midRebaseMoveCommandEnabled(selectedCommits 
 
 func (self *LocalCommitsController) canDropCommits(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
 	if !self.isRebasing() {
+		if len(selectedCommits) > 1 && lo.SomeBy(selectedCommits, func(c *models.Commit) bool { return c.IsMerge() }) {
+			return &types.DisabledReason{Text: self.c.Tr.DroppingMergeRequiresSingleSelection}
+		}
+
 		return nil
 	}
 
