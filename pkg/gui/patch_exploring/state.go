@@ -29,7 +29,7 @@ const (
 	HUNK
 )
 
-func NewState(diff string, selectedLineIdx int, oldState *State, log *logrus.Entry) *State {
+func NewState(diff string, selectedLineIdx int, selectedRealLineIdx int, oldState *State, log *logrus.Entry) *State {
 	if oldState != nil && diff == oldState.diff && selectedLineIdx == -1 {
 		// if we're here then we can return the old state. If selectedLineIdx was not -1
 		// then that would mean we were trying to click and potentiall drag a range, which
@@ -41,6 +41,10 @@ func NewState(diff string, selectedLineIdx int, oldState *State, log *logrus.Ent
 
 	if !patch.ContainsChanges() {
 		return nil
+	}
+
+	if selectedRealLineIdx != -1 {
+		selectedLineIdx = patch.PatchLineForLineNumber(selectedRealLineIdx)
 	}
 
 	rangeStartLineIdx := 0

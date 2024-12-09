@@ -12,11 +12,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type IWorktreeHelper interface {
-	GetMainWorktreeName() string
-	GetCurrentWorktreeName() string
-}
-
 type WorktreeHelper struct {
 	c                 *HelperCommon
 	reposHelper       *ReposHelper
