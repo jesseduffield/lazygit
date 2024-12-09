@@ -625,6 +625,11 @@
           "description": "If true, do not allow force pushes",
           "default": false
         },
+        "disableMainBranchPushing": {
+          "type": "boolean",
+          "description": "If true, do not allow pushes to main branches",
+          "default": false
+        },
         "commitPrefix": {
           "properties": {
             "pattern": {
