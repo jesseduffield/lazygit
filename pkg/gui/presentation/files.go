@@ -157,7 +157,7 @@ func getFileLine(
 
 	if showFileIcons {
 		icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
-		paint := color.C256(icon.Color, false)
+		paint := color.HEX(icon.Color, false)
 		output += paint.Sprint(icon.Icon) + nameColor.Sprint(" ")
 	}
 
@@ -267,7 +267,7 @@ func getCommitFileLine(
 
 	if showFileIcons {
 		icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
-		paint := color.C256(icon.Color, false)
+		paint := color.HEX(icon.Color, false)
 		output += paint.Sprint(icon.Icon) + " "
 	}
 
