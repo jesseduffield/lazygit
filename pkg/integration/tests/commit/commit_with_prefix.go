@@ -33,7 +33,20 @@ var CommitWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 		t.ExpectPopup().CommitMessagePanel().
 			Title(Equals("Commit summary")).
 			InitialText(Equals("[TEST-001]: ")).
+			Cancel()
+
+		t.Views().Files().
+			IsFocused().
+			Press(keys.Files.CommitChanges)
+
+		t.ExpectPopup().CommitMessagePanel().
+			Title(Equals("Commit summary")).
+			/* EXPECTED:
+			InitialText(Equals("[TEST-001]: ")).
 			Type("my commit message").
+			ACTUAL: */
+			InitialText(Equals("[TEST-001]:")).
+			Type(" my commit message").
 			Cancel()
 
 		t.Views().Files().
