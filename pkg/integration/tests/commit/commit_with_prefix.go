@@ -10,7 +10,12 @@ var CommitWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Git.CommitPrefixes = map[string]config.CommitPrefixConfig{"repo": {Pattern: "^\\w+\\/(\\w+-\\w+).*", Replace: "[$1]: "}}
+		cfg.GetUserConfig().Git.CommitPrefixes = map[string]config.CommitPrefixConfig{
+			"repo": {
+				Pattern: `^\w+/(\w+-\w+).*`,
+				Replace: "[$1]: ",
+			},
+		}
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.NewBranch("feature/TEST-001")
