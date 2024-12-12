@@ -30,6 +30,9 @@ type CommitMessageViewModel struct {
 	// if true, then upon escaping from the commit message panel, we will preserve
 	// the message so that it's still shown next time we open the panel
 	preserveMessage bool
+	// we remember the initial message so that we can tell whether we should preserve
+	// the message; if it's still identical to the initial message, we don't
+	initialMessage string
 	// the full preserved message (combined summary and description)
 	preservedMessage string
 	// invoked when pressing enter in the commit message panel
@@ -84,6 +87,10 @@ func (self *CommitMessageContext) SetPreservedMessage(message string) {
 	self.viewModel.preservedMessage = message
 }
 
+func (self *CommitMessageContext) GetInitialMessage() string {
+	return strings.TrimSpace(self.viewModel.initialMessage)
+}
+
 func (self *CommitMessageContext) GetHistoryMessage() string {
 	return self.viewModel.historyMessage
 }
@@ -101,11 +108,13 @@ func (self *CommitMessageContext) SetPanelState(
 	summaryTitle string,
 	descriptionTitle string,
 	preserveMessage bool,
+	initialMessage string,
 	onConfirm func(string, string) error,
 	onSwitchToEditor func(string) error,
 ) {
 	self.viewModel.selectedindex = index
 	self.viewModel.preserveMessage = preserveMessage
+	self.viewModel.initialMessage = initialMessage
 	self.viewModel.onConfirm = onConfirm
 	self.viewModel.onSwitchToEditor = onSwitchToEditor
 	self.GetView().Title = summaryTitle
