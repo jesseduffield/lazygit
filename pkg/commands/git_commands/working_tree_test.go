@@ -1,7 +1,6 @@
 package git_commands
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/go-errors/errors"
@@ -100,7 +99,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 				Added:   true,
 			},
 			removeFile: func(string) error {
-				return fmt.Errorf("an error occurred when removing file")
+				return errors.New("an error occurred when removing file")
 			},
 			runner:        oscommands.NewFakeRunner(t),
 			expectedError: "an error occurred when removing file",
