@@ -368,6 +368,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 			filepath := matches[1]
 			if matches[2] != "" {
 				lineNumber := utils.MustConvertToInt(matches[2])
+				lineNumber = gui.helpers.Diff.AdjustLineNumber(filepath, lineNumber, viewname)
 				return gui.helpers.Files.EditFileAtLine(filepath, lineNumber)
 			}
 			return gui.helpers.Files.EditFiles([]string{filepath})

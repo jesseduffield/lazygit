@@ -77,6 +77,13 @@ func (self *CommitFilesContext) GetDiffTerminals() []string {
 	return []string{self.GetRef().RefName()}
 }
 
+func (self *CommitFilesContext) RefForAdjustingLineNumberInDiff() string {
+	if refs := self.GetRefRange(); refs != nil {
+		return refs.To.RefName()
+	}
+	return self.GetRef().RefName()
+}
+
 func (self *CommitFilesContext) GetFromAndToForDiff() (string, string) {
 	if refs := self.GetRefRange(); refs != nil {
 		return refs.From.ParentRefName(), refs.To.RefName()

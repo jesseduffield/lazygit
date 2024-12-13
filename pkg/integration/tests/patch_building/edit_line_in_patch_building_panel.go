@@ -42,9 +42,6 @@ var EditLineInPatchBuildingPanel = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("+5")).
 			Press(keys.Universal.Edit)
 
-		/* EXPECTED:
 		t.FileSystem().FileContent("edit-command", Contains("file.txt:5\n"))
-		ACTUAL: */
-		t.FileSystem().FileContent("edit-command", Contains("file.txt:2\n"))
 	},
 })

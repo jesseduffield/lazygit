@@ -170,6 +170,14 @@ func (self *LocalCommitsContext) GetDiffTerminals() []string {
 	return []string{itemId}
 }
 
+func (self *LocalCommitsContext) RefForAdjustingLineNumberInDiff() string {
+	commits, _, _ := self.GetSelectedItems()
+	if commits == nil {
+		return ""
+	}
+	return commits[0].Hash
+}
+
 func (self *LocalCommitsContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
 	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), searchStr)
 }

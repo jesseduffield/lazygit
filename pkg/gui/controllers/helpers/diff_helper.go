@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -163,4 +164,46 @@ func (self *DiffHelper) OpenDiffToolForRef(selectedRef types.Ref) error {
 			Staged:      false,
 		}))
 	return err
+}
+
+// AdjustLineNumber is used to adjust a line number in the diff that's currently
+// being viewed, so that it corresponds to the line number in the actual working
+// copy state of the file. It is used when clicking on a delta hyperlink in a
+// diff, or when pressing `e` in the staging or patch building panels. It works
+// by getting a diff of what's being viewed in the main view against the working
+// copy, and then using that diff to adjust the line number.
+// path is the file path of the file being viewed
+// linenumber is the line number to adjust (one-based)
+// viewname is the name of the view that shows the diff. We need to pass it
+// because the diff adjustment is slightly different depending on which view is
+// showing the diff.
+func (self *DiffHelper) AdjustLineNumber(path string, linenumber int, viewname string) int {
+	switch viewname {
+
+	case "main", "patchBuilding":
+		if diffableContext, ok := self.c.Context().CurrentSide().(types.DiffableContext); ok {
+			ref := diffableContext.RefForAdjustingLineNumberInDiff()
+			if len(ref) != 0 {
+				return self.adjustLineNumber(linenumber, ref, "--", path)
+			}
+		}
+		// if the type cast to DiffableContext returns false, we are in the
+		// unstaged changes view of the Files panel; no need to adjust line
+		// numbers in this case
+
+	case "secondary", "stagingSecondary":
+		return self.adjustLineNumber(linenumber, "--", path)
+	}
+
+	return linenumber
+}
+
+func (self *DiffHelper) adjustLineNumber(linenumber int, diffArgs ...string) int {
+	args := append([]string{"--unified=0"}, diffArgs...)
+	diff, err := self.c.Git().Diff.GetDiff(false, args...)
+	if err != nil {
+		return linenumber
+	}
+	patch := patch.Parse(diff)
+	return patch.AdjustLineNumber(linenumber)
 }

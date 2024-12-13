@@ -71,3 +71,7 @@ func (self *StashContext) GetDiffTerminals() []string {
 
 	return []string{itemId}
 }
+
+func (self *StashContext) RefForAdjustingLineNumberInDiff() string {
+	return self.GetSelectedItemId()
+}
