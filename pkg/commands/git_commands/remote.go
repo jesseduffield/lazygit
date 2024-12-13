@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -85,5 +86,9 @@ func (self *RemoteCommands) GetRemoteURL(remoteName string) (string, error) {
 		ToArgv()
 
 	url, err := self.cmd.New(cmdArgs).RunWithOutput()
-	return strings.TrimSpace(url), err
+	url = strings.TrimSpace(url)
+	if  url == remoteName {
+		return "", errors.New("Remote not found")
+	}
+	return url, err
 }

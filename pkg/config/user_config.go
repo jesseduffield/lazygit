@@ -224,6 +224,8 @@ type GitConfig struct {
 	Merging MergingConfig `yaml:"merging"`
 	// list of branches that are considered 'main' branches, used when displaying commits
 	MainBranches []string `yaml:"mainBranches" jsonschema:"uniqueItems=true"`
+	// Prefer to specified remote repositories, E.g. when `OpenInBrowser`
+	PreferRemotes []string `yaml:"preferRemotes" jsonschema:"uniqueItems=true"`
 	// Prefix to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks will be skipped when the commit message starts with 'WIP'
 	SkipHookPrefix string `yaml:"skipHookPrefix"`
 	// If true, periodically fetch from remote
@@ -765,6 +767,7 @@ func GetDefaultConfig() *UserConfig {
 				ShowGraph:      "always",
 				ShowWholeGraph: false,
 			},
+			PreferRemotes:                []string{"origin"},
 			SkipHookPrefix:               "WIP",
 			MainBranches:                 []string{"master", "main"},
 			AutoFetch:                    true,

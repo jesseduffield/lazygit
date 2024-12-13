@@ -305,6 +305,10 @@ git:
     - master
     - main
 
+  # Prefer to specified remote repositories, E.g. when `OpenInBrowser`
+  preferRemotes:
+    - origin
+
   # Prefix to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks will be skipped when the commit message starts with 'WIP'
   skipHookPrefix: WIP
 
