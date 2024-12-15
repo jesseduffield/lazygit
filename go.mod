@@ -35,9 +35,8 @@ require (
 	github.com/spf13/afero v1.9.5
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 	github.com/stefanhaller/git-todo-parser v0.0.7-0.20240406123903-fd957137b6e2
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.8.1
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
-	github.com/zalando/go-keyring v0.2.6
 	golang.org/x/exp v0.0.0-20220318154914-8dddf5d87bd8
 	golang.org/x/sync v0.8.0
 	gopkg.in/ozeidan/fuzzy-patricia.v3 v3.0.0
@@ -45,10 +44,8 @@ require (
 )
 
 require (
-	al.essio.dev/pkg/shellescape v1.5.1 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
-	github.com/danieljoos/wincred v1.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/color v1.9.0 // indirect
@@ -57,7 +54,6 @@ require (
 	github.com/go-git/go-billy/v5 v5.0.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/invopop/jsonschema v0.10.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
@@ -79,7 +75,7 @@ require (
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
+	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/term v0.24.0 // indirect
 	golang.org/x/text v0.18.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect

@@ -1,6 +1,3 @@
-# al.essio.dev/pkg/shellescape v1.5.1
-## explicit; go 1.18
-al.essio.dev/pkg/shellescape
 # github.com/adrg/xdg v0.4.0
 ## explicit; go 1.14
 github.com/adrg/xdg
@@ -23,9 +20,6 @@ github.com/cloudfoundry/jibber_jabber
 # github.com/creack/pty v1.1.11
 ## explicit; go 1.13
 github.com/creack/pty
-# github.com/danieljoos/wincred v1.2.2
-## explicit; go 1.18
-github.com/danieljoos/wincred
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
@@ -111,9 +105,6 @@ github.com/gobwas/glob/syntax/ast
 github.com/gobwas/glob/syntax/lexer
 github.com/gobwas/glob/util/runes
 github.com/gobwas/glob/util/strings
-# github.com/godbus/dbus/v5 v5.1.0
-## explicit; go 1.12
-github.com/godbus/dbus/v5
 # github.com/google/go-cmp v0.5.6
 ## explicit; go 1.8
 # github.com/gookit/color v1.4.2
@@ -281,8 +272,8 @@ github.com/spkg/bom
 # github.com/stefanhaller/git-todo-parser v0.0.7-0.20240406123903-fd957137b6e2
 ## explicit; go 1.13
 github.com/stefanhaller/git-todo-parser/todo
-# github.com/stretchr/testify v1.9.0
-## explicit; go 1.17
+# github.com/stretchr/testify v1.8.1
+## explicit; go 1.13
 github.com/stretchr/testify/assert
 # github.com/wk8/go-ordered-map/v2 v2.1.8
 ## explicit; go 1.18
@@ -293,10 +284,6 @@ github.com/xanzy/ssh-agent
 # github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
 ## explicit; go 1.15
 github.com/xo/terminfo
-# github.com/zalando/go-keyring v0.2.6
-## explicit; go 1.18
-github.com/zalando/go-keyring
-github.com/zalando/go-keyring/secret_service
 # golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 ## explicit; go 1.17
 golang.org/x/crypto/blowfish
@@ -329,7 +316,7 @@ golang.org/x/net/proxy
 # golang.org/x/sync v0.8.0
 ## explicit; go 1.18
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.26.0
+# golang.org/x/sys v0.25.0
 ## explicit; go 1.18
 golang.org/x/sys/cpu
 golang.org/x/sys/plan9
