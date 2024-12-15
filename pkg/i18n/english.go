@@ -523,6 +523,7 @@ type TranslationSet struct {
 	FetchingRemoteStatus                  string
 	CheckoutCommit                        string
 	CheckoutCommitTooltip                 string
+	CheckoutBranchTooltip                 string
 	SureCheckoutThisCommit                string
 	GitFlowOptions                        string
 	NotAGitFlowBranch                     string
@@ -858,6 +859,7 @@ type Actions struct {
 	CheckoutCommit                    string
 	CheckoutTag                       string
 	CheckoutBranch                    string
+	CheckoutBranchOrCommit            string
 	ForceCheckoutBranch               string
 	DeleteLocalBranch                 string
 	Merge                             string
@@ -1525,6 +1527,7 @@ func EnglishTranslationSet() *TranslationSet {
 		FetchingRemoteStatus:   "Fetching remote",
 		CheckoutCommit:         "Checkout commit",
 		CheckoutCommitTooltip:  "Checkout the selected commit as a detached HEAD.",
+		CheckoutBranchTooltip:  "Checkout the selected branch.",
 		SureCheckoutThisCommit: "Are you sure you want to checkout this commit?",
 		GitFlowOptions:         "Show git-flow options",
 		NotAGitFlowBranch:      "This does not seem to be a git flow branch",
@@ -1817,6 +1820,7 @@ func EnglishTranslationSet() *TranslationSet {
 			CheckoutTag:                    "Checkout tag",
 			CheckoutBranch:                 "Checkout branch",
 			ForceCheckoutBranch:            "Force checkout branch",
+			CheckoutBranchOrCommit:         "Checkout branch or commit",
 			DeleteLocalBranch:              "Delete local branch",
 			Merge:                          "Merge",
 			SquashMerge:                    "Squash merge",
