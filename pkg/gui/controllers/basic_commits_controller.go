@@ -280,15 +280,7 @@ func (self *BasicCommitsController) createResetMenu(commit *models.Commit) error
 }
 
 func (self *BasicCommitsController) checkout(commit *models.Commit) error {
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.CheckoutCommit,
-		Prompt: self.c.Tr.SureCheckoutThisCommit,
-		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
-			return self.c.Helpers().Refs.CheckoutRef(commit.Hash, types.CheckoutRefOptions{})
-		},
-	})
-	return nil
+	return self.c.Helpers().Refs.CreateCheckoutMenu(commit)
 }
 
 func (self *BasicCommitsController) copyRange(*models.Commit) error {

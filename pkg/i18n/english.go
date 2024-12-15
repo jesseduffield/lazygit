@@ -527,6 +527,7 @@ type TranslationSet struct {
 	FetchingRemoteStatus                  string
 	CheckoutCommit                        string
 	CheckoutCommitTooltip                 string
+	NoBranchesFoundAtCommitTooltip        string
 	SureCheckoutThisCommit                string
 	GitFlowOptions                        string
 	NotAGitFlowBranch                     string
@@ -860,8 +861,11 @@ type Log struct {
 
 type Actions struct {
 	CheckoutCommit                    string
+	CheckoutBranchAtCommit            string
+	CheckoutCommitAsDetachedHead      string
 	CheckoutTag                       string
 	CheckoutBranch                    string
+	CheckoutBranchOrCommit            string
 	ForceCheckoutBranch               string
 	DeleteLocalBranch                 string
 	Merge                             string
@@ -1522,21 +1526,22 @@ func EnglishTranslationSet() *TranslationSet {
 		DeleteRemoteTagPrompt:                "Are you sure you want to delete the remote tag '{{.tagName}}' from '{{.upstream}}'?",
 		PushTagTitle:                         "Remote to push tag '{{.tagName}}' to:",
 		// Using 'push tag' rather than just 'push' to disambiguate from a global push
-		PushTag:                "Push tag",
-		PushTagTooltip:         "Push the selected tag to a remote. You'll be prompted to select a remote.",
-		NewTag:                 "New tag",
-		NewTagTooltip:          "Create new tag from current commit. You'll be prompted to enter a tag name and optional description.",
-		CreatingTag:            "Creating tag",
-		ForceTag:               "Force Tag",
-		ForceTagPrompt:         "The tag '{{.tagName}}' exists already. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to overwrite.",
-		FetchRemoteTooltip:     "Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches.",
-		FetchingRemoteStatus:   "Fetching remote",
-		CheckoutCommit:         "Checkout commit",
-		CheckoutCommitTooltip:  "Checkout the selected commit as a detached HEAD.",
-		SureCheckoutThisCommit: "Are you sure you want to checkout this commit?",
-		GitFlowOptions:         "Show git-flow options",
-		NotAGitFlowBranch:      "This does not seem to be a git flow branch",
-		NewGitFlowBranchPrompt: "New {{.branchType}} name:",
+		PushTag:                        "Push tag",
+		PushTagTooltip:                 "Push the selected tag to a remote. You'll be prompted to select a remote.",
+		NewTag:                         "New tag",
+		NewTagTooltip:                  "Create new tag from current commit. You'll be prompted to enter a tag name and optional description.",
+		CreatingTag:                    "Creating tag",
+		ForceTag:                       "Force Tag",
+		ForceTagPrompt:                 "The tag '{{.tagName}}' exists already. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to overwrite.",
+		FetchRemoteTooltip:             "Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches.",
+		FetchingRemoteStatus:           "Fetching remote",
+		CheckoutCommit:                 "Checkout commit",
+		CheckoutCommitTooltip:          "Checkout the selected commit as a detached HEAD.",
+		NoBranchesFoundAtCommitTooltip: "No branches found at selected commit.",
+		SureCheckoutThisCommit:         "Are you sure you want to checkout this commit?",
+		GitFlowOptions:                 "Show git-flow options",
+		NotAGitFlowBranch:              "This does not seem to be a git flow branch",
+		NewGitFlowBranchPrompt:         "New {{.branchType}} name:",
 
 		IgnoreTracked:                    "Ignore tracked file",
 		IgnoreTrackedPrompt:              "Are you sure you want to ignore a tracked file?",
@@ -1822,9 +1827,12 @@ func EnglishTranslationSet() *TranslationSet {
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                 "Checkout commit",
+			CheckoutBranchAtCommit:         "Checkout branch '%s'",
+			CheckoutCommitAsDetachedHead:   "Checkout commit %s as detached head",
 			CheckoutTag:                    "Checkout tag",
 			CheckoutBranch:                 "Checkout branch",
 			ForceCheckoutBranch:            "Force checkout branch",
+			CheckoutBranchOrCommit:         "Checkout branch or commit",
 			DeleteLocalBranch:              "Delete local branch",
 			Merge:                          "Merge",
 			SquashMerge:                    "Squash merge",
