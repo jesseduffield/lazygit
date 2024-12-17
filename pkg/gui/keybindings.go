@@ -195,12 +195,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName: "secondary",
-			Key:      gocui.MouseWheelUp,
-			Modifier: gocui.ModNone,
-			Handler:  self.scrollUpSecondary,
-		},
-		{
-			ViewName: "secondary",
 			Key:      gocui.MouseWheelDown,
 			Modifier: gocui.ModNone,
 			Handler:  self.scrollDownSecondary,
