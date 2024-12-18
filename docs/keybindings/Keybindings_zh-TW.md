@@ -282,7 +282,7 @@ If you would instead like to start an interactive rebase from the selected commi
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <space> `` | 檢出 | Checkout the selected tag tag as a detached HEAD. |
+| `` <space> `` | 檢出 | Checkout the selected tag as a detached HEAD. |
 | `` n `` | 建立標籤 | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
 | `` d `` | 刪除 | View delete options for local/remote tag. |
 | `` P `` | 推送標籤 | Push the selected tag to a remote. You'll be prompted to select a remote. |
