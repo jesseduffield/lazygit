@@ -327,7 +327,7 @@ git:
   branchLogCmd: git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --
 
   # Command used to display git log of all branches in the main window.
-  # Deprecated: User `allBranchesLogCmds` instead.
+  # Deprecated: Use `allBranchesLogCmds` instead.
   allBranchesLogCmd: git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium
 
   # If true, do not spawn a separate process when using GPG

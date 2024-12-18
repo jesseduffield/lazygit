@@ -240,7 +240,7 @@ type GitConfig struct {
 	// Command used when displaying the current branch git log in the main window
 	BranchLogCmd string `yaml:"branchLogCmd"`
 	// Command used to display git log of all branches in the main window.
-	// Deprecated: User `allBranchesLogCmds` instead.
+	// Deprecated: Use `allBranchesLogCmds` instead.
 	AllBranchesLogCmd string `yaml:"allBranchesLogCmd"`
 	// Commands used to display git log of all branches in the main window, they will be cycled in order of appearance
 	AllBranchesLogCmds []string `yaml:"allBranchesLogCmds"`
