@@ -105,6 +105,7 @@ func (self *PatchBuildingController) EditFile() error {
 	}
 
 	lineNumber := self.context().GetState().CurrentLineNumber()
+	lineNumber = self.c.Helpers().Diff.AdjustLineNumber(path, lineNumber, self.context().GetViewName())
 	return self.c.Helpers().Files.EditFileAtLine(path, lineNumber)
 }
 
