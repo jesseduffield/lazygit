@@ -278,7 +278,7 @@ func (self *RefsHelper) CreateCheckoutMenu(ref string, branches []*models.Branch
 			LabelColumns: []string{branch.Name},
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
-				return self.CheckoutRef(ref, types.CheckoutRefOptions{})
+				return self.c.Git().Branch.Checkout(branch.Name, git_commands.CheckoutOptions{})
 			},
 			Tooltip: self.c.Tr.CheckoutBranchTooltip,
 		}
