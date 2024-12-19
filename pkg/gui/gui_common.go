@@ -29,8 +29,8 @@ func (self *guiCommon) Refresh(opts types.RefreshOptions) error {
 	return self.gui.helpers.Refresh.Refresh(opts)
 }
 
-func (self *guiCommon) PostRefreshUpdate(context types.Context) error {
-	return self.gui.postRefreshUpdate(context)
+func (self *guiCommon) PostRefreshUpdate(context types.Context) {
+	self.gui.postRefreshUpdate(context)
 }
 
 func (self *guiCommon) RunSubprocessAndRefresh(cmdObj oscommands.ICmdObj) error {

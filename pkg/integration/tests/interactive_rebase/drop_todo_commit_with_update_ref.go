@@ -38,7 +38,6 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			NavigateToLine(Contains("commit 02")).
 			Press(keys.Universal.Edit).
-			Focus().
 			Lines(
 				Contains("pick").Contains("CI commit 07"),
 				Contains("pick").Contains("CI commit 06"),

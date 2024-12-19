@@ -16,7 +16,7 @@ import (
 )
 
 func (gui *Gui) desiredPtySize(view *gocui.View) *pty.Winsize {
-	width, height := view.Size()
+	width, height := view.InnerSize()
 
 	return &pty.Winsize{Cols: uint16(width), Rows: uint16(height)}
 }
@@ -45,7 +45,7 @@ func (gui *Gui) onResize() error {
 // pseudo-terminal meaning we'll get the behaviour we want from the underlying
 // command.
 func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
-	width, _ := view.Size()
+	width := view.InnerWidth()
 	pager := gui.git.Config.GetPager(width)
 	externalDiffCommand := gui.Config.GetUserConfig().Git.Paging.ExternalDiffCommand
 

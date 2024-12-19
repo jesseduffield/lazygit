@@ -478,7 +478,7 @@ type AppState struct {
 
 	HideCommandLog             bool
 	IgnoreWhitespaceInDiffView bool
-	DiffContextSize            int
+	DiffContextSize            uint64
 	RenameSimilarityThreshold  int
 	LocalBranchSortOrder       string
 	RemoteBranchSortOrder      string

@@ -162,8 +162,24 @@ func (self *SuggestionsHelper) getRemoteBranchNames(separator string) []string {
 	})
 }
 
+func (self *SuggestionsHelper) getRemoteBranchNamesForRemote(remoteName string) []string {
+	remote, ok := lo.Find(self.c.Model().Remotes, func(remote *models.Remote) bool {
+		return remote.Name == remoteName
+	})
+	if ok {
+		return lo.Map(remote.Branches, func(branch *models.RemoteBranch, _ int) string {
+			return branch.Name
+		})
+	}
+	return nil
+}
+
 func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string) func(string) []*types.Suggestion {
 	return FilterFunc(self.getRemoteBranchNames(separator), self.c.UserConfig().Gui.UseFuzzySearch())
+}
+
+func (self *SuggestionsHelper) GetRemoteBranchesForRemoteSuggestionsFunc(remoteName string) func(string) []*types.Suggestion {
+	return FilterFunc(self.getRemoteBranchNamesForRemote(remoteName), self.c.UserConfig().Gui.UseFuzzySearch())
 }
 
 func (self *SuggestionsHelper) getTagNames() []string {

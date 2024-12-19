@@ -11,8 +11,8 @@ func calculateOrigin(currentOrigin int, bufferHeight int, numLines int, firstLin
 // is as close to being in view as possible.
 func calculateNewOriginWithNeededAndWantedIdx(currentOrigin int, bufferHeight int, numLines int, needToSeeIdx int, wantToSeeIdx int) int {
 	origin := currentOrigin
-	if needToSeeIdx < currentOrigin || needToSeeIdx > currentOrigin+bufferHeight {
-		origin = max(min(needToSeeIdx-bufferHeight/2, numLines-bufferHeight-1), 0)
+	if needToSeeIdx < currentOrigin || needToSeeIdx >= currentOrigin+bufferHeight {
+		origin = max(min(needToSeeIdx-bufferHeight/2, numLines-bufferHeight), 0)
 	}
 
 	bottom := origin + bufferHeight
@@ -21,7 +21,7 @@ func calculateNewOriginWithNeededAndWantedIdx(currentOrigin int, bufferHeight in
 		requiredChange := origin - wantToSeeIdx
 		allowedChange := bottom - needToSeeIdx
 		return origin - min(requiredChange, allowedChange)
-	} else if wantToSeeIdx > origin+bufferHeight {
+	} else if wantToSeeIdx >= bottom {
 		requiredChange := wantToSeeIdx - bottom
 		allowedChange := needToSeeIdx - origin
 		return origin + min(requiredChange, allowedChange)

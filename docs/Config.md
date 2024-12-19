@@ -160,6 +160,9 @@ gui:
   # This can be toggled from within Lazygit with the '~' key, but that will not change the default.
   showFileTree: true
 
+  # If true, show the number of lines changed per file in the Files view
+  showNumstatInFilesView: false
+
   # If true, show a random tip in the command log when Lazygit starts
   showRandomTip: true
 
@@ -248,6 +251,9 @@ gui:
   # If true, jump to the Files panel after applying a stash
   switchToFilesAfterStashApply: true
 
+  # If true, when using the panel jump keys (default 1 through 5) and target panel is already active, go to next tab instead
+  switchTabsWithPanelJumpKeys: false
+
 # Config relating to git
 git:
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
@@ -317,7 +323,7 @@ git:
   branchLogCmd: git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --
 
   # Command used to display git log of all branches in the main window.
-  # Deprecated: User `allBranchesLogCmds` instead.
+  # Deprecated: Use `allBranchesLogCmds` instead.
   allBranchesLogCmd: git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium
 
   # If true, do not spawn a separate process when using GPG

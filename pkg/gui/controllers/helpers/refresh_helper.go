@@ -157,7 +157,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		}
 
 		if scopeSet.Includes(types.STASH) {
-			refresh("stash", func() { _ = self.refreshStashEntries() })
+			refresh("stash", func() { self.refreshStashEntries() })
 		}
 
 		if scopeSet.Includes(types.TAGS) {
@@ -169,7 +169,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		}
 
 		if scopeSet.Includes(types.WORKTREES) && !includeWorktreesWithBranches {
-			refresh("worktrees", func() { _ = self.refreshWorktrees() })
+			refresh("worktrees", func() { self.refreshWorktrees() })
 		}
 
 		if scopeSet.Includes(types.STAGING) {
@@ -343,7 +343,8 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 	self.c.Model().WorkingTreeStateAtLastCommitRefresh = self.c.Git().Status.WorkingTreeState()
 	self.c.Model().CheckedOutBranch = checkedOutBranchName
 
-	return self.refreshView(self.c.Contexts().LocalCommits)
+	self.refreshView(self.c.Contexts().LocalCommits)
+	return nil
 }
 
 func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
@@ -368,7 +369,8 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 	self.c.Model().SubCommits = commits
 	self.RefreshAuthors(commits)
 
-	return self.refreshView(self.c.Contexts().SubCommits)
+	self.refreshView(self.c.Contexts().SubCommits)
+	return nil
 }
 
 func (self *RefreshHelper) RefreshAuthors(commits []*models.Commit) {
@@ -397,7 +399,8 @@ func (self *RefreshHelper) refreshCommitFilesContext() error {
 	self.c.Model().CommitFiles = files
 	self.c.Contexts().CommitFiles.CommitFileTreeViewModel.SetTree()
 
-	return self.refreshView(self.c.Contexts().CommitFiles)
+	self.refreshView(self.c.Contexts().CommitFiles)
+	return nil
 }
 
 func (self *RefreshHelper) refreshRebaseCommits() error {
@@ -411,7 +414,8 @@ func (self *RefreshHelper) refreshRebaseCommits() error {
 	self.c.Model().Commits = updatedCommits
 	self.c.Model().WorkingTreeStateAtLastCommitRefresh = self.c.Git().Status.WorkingTreeState()
 
-	return self.refreshView(self.c.Contexts().LocalCommits)
+	self.refreshView(self.c.Contexts().LocalCommits)
+	return nil
 }
 
 func (self *RefreshHelper) refreshTags() error {
@@ -422,7 +426,8 @@ func (self *RefreshHelper) refreshTags() error {
 
 	self.c.Model().Tags = tags
 
-	return self.refreshView(self.c.Contexts().Tags)
+	self.refreshView(self.c.Contexts().Tags)
+	return nil
 }
 
 func (self *RefreshHelper) refreshStateSubmoduleConfigs() error {
@@ -482,9 +487,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 
 	if refreshWorktrees {
 		self.loadWorktrees()
-		if err := self.refreshView(self.c.Contexts().Worktrees); err != nil {
-			self.c.Log.Error(err)
-		}
+		self.refreshView(self.c.Contexts().Worktrees)
 	}
 
 	if !keepBranchSelectionIndex && prevSelectedBranch != nil {
@@ -495,9 +498,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 		}
 	}
 
-	if err := self.refreshView(self.c.Contexts().Branches); err != nil {
-		self.c.Log.Error(err)
-	}
+	self.refreshView(self.c.Contexts().Branches)
 
 	// Need to re-render the commits view because the visualization of local
 	// branch heads might have changed
@@ -525,14 +526,8 @@ func (self *RefreshHelper) refreshFilesAndSubmodules() error {
 	}
 
 	self.c.OnUIThread(func() error {
-		if err := self.refreshView(self.c.Contexts().Submodules); err != nil {
-			self.c.Log.Error(err)
-		}
-
-		if err := self.refreshView(self.c.Contexts().Files); err != nil {
-			self.c.Log.Error(err)
-		}
-
+		self.refreshView(self.c.Contexts().Submodules)
+		self.refreshView(self.c.Contexts().Files)
 		return nil
 	})
 
@@ -653,7 +648,8 @@ func (self *RefreshHelper) refreshReflogCommits() error {
 		model.FilteredReflogCommits = model.ReflogCommits
 	}
 
-	return self.refreshView(self.c.Contexts().ReflogCommits)
+	self.refreshView(self.c.Contexts().ReflogCommits)
+	return nil
 }
 
 func (self *RefreshHelper) refreshRemotes() error {
@@ -677,14 +673,8 @@ func (self *RefreshHelper) refreshRemotes() error {
 		}
 	}
 
-	if err := self.refreshView(self.c.Contexts().Remotes); err != nil {
-		return err
-	}
-
-	if err := self.refreshView(self.c.Contexts().RemoteBranches); err != nil {
-		return err
-	}
-
+	self.refreshView(self.c.Contexts().Remotes)
+	self.refreshView(self.c.Contexts().RemoteBranches)
 	return nil
 }
 
@@ -698,23 +688,20 @@ func (self *RefreshHelper) loadWorktrees() {
 	self.c.Model().Worktrees = worktrees
 }
 
-func (self *RefreshHelper) refreshWorktrees() error {
+func (self *RefreshHelper) refreshWorktrees() {
 	self.loadWorktrees()
 
 	// need to refresh branches because the branches view shows worktrees against
 	// branches
-	if err := self.refreshView(self.c.Contexts().Branches); err != nil {
-		return err
-	}
-
-	return self.refreshView(self.c.Contexts().Worktrees)
+	self.refreshView(self.c.Contexts().Branches)
+	self.refreshView(self.c.Contexts().Worktrees)
 }
 
-func (self *RefreshHelper) refreshStashEntries() error {
+func (self *RefreshHelper) refreshStashEntries() {
 	self.c.Model().StashEntries = self.c.Git().Loaders.StashLoader.
 		GetStashEntries(self.c.Modes().Filtering.GetPath())
 
-	return self.refreshView(self.c.Contexts().Stash)
+	self.refreshView(self.c.Contexts().Stash)
 }
 
 // never call this on its own, it should only be called from within refreshCommits()
@@ -754,12 +741,12 @@ func (self *RefreshHelper) refForLog() string {
 	return bisectInfo.GetStartHash()
 }
 
-func (self *RefreshHelper) refreshView(context types.Context) error {
+func (self *RefreshHelper) refreshView(context types.Context) {
 	// Re-applying the filter must be done before re-rendering the view, so that
 	// the filtered list model is up to date for rendering.
 	self.searchHelper.ReApplyFilter(context)
 
-	err := self.c.PostRefreshUpdate(context)
+	self.c.PostRefreshUpdate(context)
 
 	self.c.AfterLayout(func() error {
 		// Re-applying the search must be done after re-rendering the view though,
@@ -773,6 +760,4 @@ func (self *RefreshHelper) refreshView(context types.Context) error {
 		self.searchHelper.ReApplySearch(context)
 		return nil
 	})
-
-	return err
 }

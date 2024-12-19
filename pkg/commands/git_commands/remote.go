@@ -49,9 +49,10 @@ func (self *RemoteCommands) UpdateRemoteUrl(remoteName string, updatedUrl string
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *RemoteCommands) DeleteRemoteBranch(task gocui.Task, remoteName string, branchName string) error {
+func (self *RemoteCommands) DeleteRemoteBranch(task gocui.Task, remoteName string, branchNames []string) error {
 	cmdArgs := NewGitCmd("push").
-		Arg(remoteName, "--delete", branchName).
+		Arg(remoteName, "--delete").
+		Arg(branchNames...).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()

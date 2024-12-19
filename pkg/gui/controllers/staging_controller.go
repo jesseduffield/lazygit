@@ -132,8 +132,6 @@ func (self *StagingController) GetOnFocusLost() func(types.OnFocusLostOpts) {
 		if opts.NewContextKey != self.otherContext.GetKey() {
 			self.c.Views().Staging.Wrap = true
 			self.c.Views().StagingSecondary.Wrap = true
-			self.c.Contexts().Staging.Render(false)
-			self.c.Contexts().StagingSecondary.Render(false)
 		}
 	}
 }
@@ -168,7 +166,8 @@ func (self *StagingController) EditFile() error {
 func (self *StagingController) Escape() error {
 	if self.context.GetState().SelectingRange() || self.context.GetState().SelectingHunk() {
 		self.context.GetState().SetLineSelectMode()
-		return self.c.PostRefreshUpdate(self.context)
+		self.c.PostRefreshUpdate(self.context)
+		return nil
 	}
 
 	self.c.Context().Pop()

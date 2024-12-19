@@ -41,6 +41,19 @@ func TestFilterAction(t *testing.T) {
 			},
 		},
 		{
+			name:   "filter files that are tracked",
+			filter: DisplayTracked,
+			files: []*models.File{
+				{Name: "dir2/dir2/file4", ShortStatus: "M ", Tracked: true},
+				{Name: "dir2/file5", ShortStatus: "M ", Tracked: false},
+				{Name: "file1", ShortStatus: "M ", Tracked: true},
+			},
+			expected: []*models.File{
+				{Name: "dir2/dir2/file4", ShortStatus: "M ", Tracked: true},
+				{Name: "file1", ShortStatus: "M ", Tracked: true},
+			},
+		},
+		{
 			name:   "filter all files",
 			filter: DisplayAll,
 			files: []*models.File{

@@ -109,6 +109,8 @@ type GuiConfig struct {
 	// If true, display the files in the file views as a tree. If false, display the files as a flat list.
 	// This can be toggled from within Lazygit with the '~' key, but that will not change the default.
 	ShowFileTree bool `yaml:"showFileTree"`
+	// If true, show the number of lines changed per file in the Files view
+	ShowNumstatInFilesView bool `yaml:"showNumstatInFilesView"`
 	// If true, show a random tip in the command log when Lazygit starts
 	ShowRandomTip bool `yaml:"showRandomTip"`
 	// If true, show the command log
@@ -165,6 +167,8 @@ type GuiConfig struct {
 	SwitchToFilesAfterStashPop bool `yaml:"switchToFilesAfterStashPop"`
 	// If true, jump to the Files panel after applying a stash
 	SwitchToFilesAfterStashApply bool `yaml:"switchToFilesAfterStashApply"`
+	// If true, when using the panel jump keys (default 1 through 5) and target panel is already active, go to next tab instead
+	SwitchTabsWithPanelJumpKeys bool `yaml:"switchTabsWithPanelJumpKeys"`
 }
 
 func (c *GuiConfig) UseFuzzySearch() bool {
@@ -236,7 +240,7 @@ type GitConfig struct {
 	// Command used when displaying the current branch git log in the main window
 	BranchLogCmd string `yaml:"branchLogCmd"`
 	// Command used to display git log of all branches in the main window.
-	// Deprecated: User `allBranchesLogCmds` instead.
+	// Deprecated: Use `allBranchesLogCmds` instead.
 	AllBranchesLogCmd string `yaml:"allBranchesLogCmd"`
 	// Commands used to display git log of all branches in the main window, they will be cycled in order of appearance
 	AllBranchesLogCmds []string `yaml:"allBranchesLogCmds"`
@@ -712,6 +716,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowBottomLine:               true,
 			ShowPanelJumps:               true,
 			ShowFileTree:                 true,
+			ShowNumstatInFilesView:       false,
 			ShowRandomTip:                true,
 			ShowIcons:                    false,
 			NerdFontsVersion:             "",
@@ -736,6 +741,7 @@ func GetDefaultConfig() *UserConfig {
 			StatusPanelView:              "dashboard",
 			SwitchToFilesAfterStashPop:   true,
 			SwitchToFilesAfterStashApply: true,
+			SwitchTabsWithPanelJumpKeys:  false,
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{

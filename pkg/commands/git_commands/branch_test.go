@@ -62,15 +62,17 @@ func TestBranchNewBranch(t *testing.T) {
 
 func TestBranchDeleteBranch(t *testing.T) {
 	type scenario struct {
-		testName string
-		force    bool
-		runner   *oscommands.FakeCmdObjRunner
-		test     func(error)
+		testName    string
+		branchNames []string
+		force       bool
+		runner      *oscommands.FakeCmdObjRunner
+		test        func(error)
 	}
 
 	scenarios := []scenario{
 		{
 			"Delete a branch",
+			[]string{"test"},
 			false,
 			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"branch", "-d", "test"}, "", nil),
 			func(err error) {
@@ -78,9 +80,28 @@ func TestBranchDeleteBranch(t *testing.T) {
 			},
 		},
 		{
+			"Delete multiple branches",
+			[]string{"test1", "test2", "test3"},
+			false,
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"branch", "-d", "test1", "test2", "test3"}, "", nil),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
 			"Force delete a branch",
+			[]string{"test"},
 			true,
 			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"branch", "-D", "test"}, "", nil),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Force delete multiple branches",
+			[]string{"test1", "test2", "test3"},
+			true,
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"branch", "-D", "test1", "test2", "test3"}, "", nil),
 			func(err error) {
 				assert.NoError(t, err)
 			},
@@ -91,7 +112,7 @@ func TestBranchDeleteBranch(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildBranchCommands(commonDeps{runner: s.runner})
 
-			s.test(instance.LocalDelete("test", s.force))
+			s.test(instance.LocalDelete(s.branchNames, s.force))
 			s.runner.CheckForMissingCalls()
 		})
 	}

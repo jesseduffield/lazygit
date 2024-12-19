@@ -39,7 +39,7 @@ jobs:
           mkdir -p /tmp/code_coverage
           go test ./... -short -cover -args "-test.gocoverdir=/tmp/code_coverage"
       - name: Upload code coverage artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-unit-${{ matrix.os }}-${{ github.run_id }}
           path: /tmp/code_coverage
@@ -100,7 +100,7 @@ jobs:
           mkdir -p /tmp/code_coverage
           ./scripts/run_integration_tests.sh
       - name: Upload code coverage artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-integration-${{ matrix.git-version }}-${{ github.run_id }}
           path: /tmp/code_coverage
@@ -200,7 +200,7 @@ jobs:
           go-version: 1.22.x
 
       - name: Download all coverage artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: /tmp/code_coverage
 

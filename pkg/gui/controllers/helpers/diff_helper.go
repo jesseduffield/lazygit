@@ -34,10 +34,6 @@ func (self *DiffHelper) DiffArgs() []string {
 		output = append(output, "-R")
 	}
 
-	if self.c.GetAppState().IgnoreWhitespaceInDiffView {
-		output = append(output, "--ignore-all-space")
-	}
-
 	output = append(output, "--")
 
 	file := self.currentlySelectedFilename()
@@ -59,9 +55,6 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 	if refRange != nil {
 		from, to := refRange.From, refRange.To
 		args := []string{from.ParentRefName(), to.RefName(), "--stat", "-p"}
-		if self.c.GetAppState().IgnoreWhitespaceInDiffView {
-			args = append(args, "--ignore-all-space")
-		}
 		args = append(args, "--")
 		if path := self.c.Modes().Filtering.GetPath(); path != "" {
 			args = append(args, path)

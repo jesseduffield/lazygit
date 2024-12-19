@@ -21,8 +21,8 @@ func isContainer() bool {
 func GetPlatformDefaultConfig() OSConfig {
 	if isWSL() && !isContainer() {
 		return OSConfig{
-			Open:     `powershell.exe start explorer.exe {{filename}} >/dev/null`,
-			OpenLink: `powershell.exe start {{link}} >/dev/null`,
+			Open:     `powershell.exe start explorer.exe "$(wslpath -w {{filename}})" >/dev/null`,
+			OpenLink: `powershell.exe start '{{link}}' >/dev/null`,
 		}
 	}
 

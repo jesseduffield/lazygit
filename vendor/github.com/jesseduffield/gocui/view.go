@@ -322,14 +322,9 @@ func (v *View) FocusPoint(cx int, cy int) {
 	if cy < 0 || cy > lineCount {
 		return
 	}
-	_, height := v.Size()
+	height := v.InnerHeight()
 
-	ly := height - 1
-	if ly < 0 {
-		ly = 0
-	}
-
-	v.oy = calculateNewOrigin(cy, v.oy, lineCount, ly)
+	v.oy = calculateNewOrigin(cy, v.oy, lineCount, height)
 	v.cx = cx
 	v.cy = cy - v.oy
 }
@@ -343,16 +338,16 @@ func (v *View) CancelRangeSelect() {
 }
 
 func calculateNewOrigin(selectedLine int, oldOrigin int, lineCount int, viewHeight int) int {
-	if viewHeight > lineCount {
+	if viewHeight >= lineCount {
 		return 0
-	} else if selectedLine < oldOrigin || selectedLine > oldOrigin+viewHeight {
+	} else if selectedLine < oldOrigin || selectedLine >= oldOrigin+viewHeight {
 		// If the selected line is outside the visible area, scroll the view so
 		// that the selected line is in the middle.
 		newOrigin := selectedLine - viewHeight/2
 
 		// However, take care not to overflow if the total line count is less
 		// than the view height.
-		maxOrigin := lineCount - viewHeight - 1
+		maxOrigin := lineCount - viewHeight
 		if newOrigin > maxOrigin {
 			newOrigin = maxOrigin
 		}
@@ -438,22 +433,32 @@ func (v *View) Dimensions() (int, int, int, int) {
 	return v.x0, v.y0, v.x1, v.y1
 }
 
-// Size returns the number of visible columns and rows in the View.
+// Size returns the number of visible columns and rows in the View, including
+// the frame if any
 func (v *View) Size() (x, y int) {
 	return v.Width(), v.Height()
 }
 
+// InnerSize returns the number of usable columns and rows in the View, excluding
+// the frame if any
+func (v *View) InnerSize() (x, y int) {
+	return v.InnerWidth(), v.InnerHeight()
+}
+
 func (v *View) Width() int {
-	return v.x1 - v.x0 - 1
+	return v.x1 - v.x0 + 1
 }
 
 func (v *View) Height() int {
-	return v.y1 - v.y0 - 1
+	return v.y1 - v.y0 + 1
 }
 
-// if a view has a frame, that leaves less space for its writeable area
+// The writeable area of the view is always two less then the view's size,
+// because if it has a frame, we need to subtract that, but if it doesn't, the
+// view is made 1 larger on all sides. I'd like to clean this up at some point,
+// but for now we live with this weirdness.
 func (v *View) InnerWidth() int {
-	innerWidth := v.Width() - v.frameOffset()
+	innerWidth := v.Width() - 2
 	if innerWidth < 0 {
 		return 0
 	}
@@ -462,20 +467,12 @@ func (v *View) InnerWidth() int {
 }
 
 func (v *View) InnerHeight() int {
-	innerHeight := v.Height() - v.frameOffset()
+	innerHeight := v.Height() - 2
 	if innerHeight < 0 {
 		return 0
 	}
 
 	return innerHeight
-}
-
-func (v *View) frameOffset() int {
-	if v.Frame {
-		return 1
-	} else {
-		return 0
-	}
 }
 
 // Name returns the name of the view.
@@ -573,7 +570,7 @@ func max(a, b int) int {
 // SetCursor sets the cursor position of the view at the given point,
 // relative to the view. It checks if the position is valid.
 func (v *View) SetCursor(x, y int) {
-	maxX, maxY := v.Size()
+	maxX, maxY := v.InnerSize()
 	if x < 0 || x >= maxX || y < 0 || y >= maxY {
 		return
 	}
@@ -582,7 +579,7 @@ func (v *View) SetCursor(x, y int) {
 }
 
 func (v *View) SetCursorX(x int) {
-	maxX, _ := v.Size()
+	maxX := v.InnerWidth()
 	if x < 0 || x >= maxX {
 		return
 	}
@@ -590,7 +587,7 @@ func (v *View) SetCursorX(x int) {
 }
 
 func (v *View) SetCursorY(y int) {
-	_, maxY := v.Size()
+	maxY := v.InnerHeight()
 	if y < 0 || y >= maxY {
 		return
 	}
@@ -917,7 +914,7 @@ func (v *View) parseInput(ch rune, x int, _ int) (bool, []cell) {
 			for _, cell := range v.lines[v.wy][0:v.wx] {
 				cx += runewidth.RuneWidth(cell.chr)
 			}
-			repeatCount = v.InnerWidth() - cx + 1
+			repeatCount = v.InnerWidth() - cx
 			ch = ' '
 			truncateLine = true
 		} else if isEscape {
@@ -1157,7 +1154,7 @@ func (v *View) draw() {
 
 	v.clearRunes()
 
-	maxX, maxY := v.Size()
+	maxX, maxY := v.InnerSize()
 
 	if v.Wrap {
 		if maxX == 0 {
@@ -1250,7 +1247,7 @@ func (v *View) draw() {
 
 func (v *View) refreshViewLinesIfNeeded() {
 	if v.tainted {
-		maxX := v.Width()
+		maxX := v.InnerWidth()
 		lineIdx := 0
 		lines := v.lines
 		if v.HasLoader {
@@ -1341,7 +1338,7 @@ func (v *View) realPosition(vx, vy int) (x, y int, ok bool) {
 
 // clearRunes erases all the cells in the view.
 func (v *View) clearRunes() {
-	maxX, maxY := v.Size()
+	maxX, maxY := v.InnerSize()
 	for x := 0; x < maxX; x++ {
 		for y := 0; y < maxY; y++ {
 			tcellSetCell(v.x0+x+1, v.y0+y+1, ' ', v.FgColor, v.BgColor, v.outMode)
@@ -1789,7 +1786,7 @@ func (v *View) adjustDownwardScrollAmount(scrollHeight int) int {
 	_, oy := v.Origin()
 	y := oy
 	if !v.CanScrollPastBottom {
-		_, sy := v.Size()
+		sy := v.InnerHeight()
 		y += sy
 	}
 	scrollableLines := v.ViewLinesHeight() - y

@@ -373,9 +373,7 @@ func (self *FilesController) optimisticChange(nodes []*filetree.FileNode, optimi
 	}
 
 	if rerender {
-		if err := self.c.PostRefreshUpdate(self.c.Contexts().Files); err != nil {
-			return err
-		}
+		self.c.PostRefreshUpdate(self.c.Contexts().Files)
 	}
 
 	return nil
@@ -698,6 +696,13 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				Key: 'u',
 			},
 			{
+				Label: self.c.Tr.FilterTrackedFiles,
+				OnPress: func() error {
+					return self.setStatusFiltering(filetree.DisplayTracked)
+				},
+				Key: 't',
+			},
+			{
 				Label: self.c.Tr.ResetFilter,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayAll)
@@ -710,7 +715,8 @@ func (self *FilesController) handleStatusFilterPressed() error {
 
 func (self *FilesController) setStatusFiltering(filter filetree.FileTreeDisplayFilter) error {
 	self.context().FileTreeViewModel.SetStatusFilter(filter)
-	return self.c.PostRefreshUpdate(self.context())
+	self.c.PostRefreshUpdate(self.context())
+	return nil
 }
 
 func (self *FilesController) edit(nodes []*filetree.FileNode) error {
@@ -949,9 +955,7 @@ func (self *FilesController) handleToggleDirCollapsed() error {
 
 	self.context().FileTreeViewModel.ToggleCollapsed(node.GetPath())
 
-	if err := self.c.PostRefreshUpdate(self.c.Contexts().Files); err != nil {
-		self.c.Log.Error(err)
-	}
+	self.c.PostRefreshUpdate(self.c.Contexts().Files)
 
 	return nil
 }
@@ -959,7 +963,8 @@ func (self *FilesController) handleToggleDirCollapsed() error {
 func (self *FilesController) toggleTreeView() error {
 	self.context().FileTreeViewModel.ToggleShowTree()
 
-	return self.c.PostRefreshUpdate(self.context())
+	self.c.PostRefreshUpdate(self.context())
+	return nil
 }
 
 func (self *FilesController) handleStashSave(stashFunc func(message string) error, action string) error {

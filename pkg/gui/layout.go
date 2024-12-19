@@ -30,8 +30,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// reading more lines into main view buffers upon resize
 	prevMainView := gui.Views.Main
 	if prevMainView != nil {
-		_, prevMainHeight := prevMainView.Size()
-		newMainHeight := viewDimensions["main"].Y1 - viewDimensions["main"].Y0 - 1
+		prevMainHeight := prevMainView.Height()
+		newMainHeight := viewDimensions["main"].Y1 - viewDimensions["main"].Y0 + 1
 		heightDiff := newMainHeight - prevMainHeight
 		if heightDiff > 0 {
 			if manager, ok := gui.viewBufferManagerMap["main"]; ok {
@@ -87,17 +87,15 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			}
 		}
 		if context.NeedsRerenderOnWidthChange() == types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES {
-			// view.Width() returns the width -1 for some reason
-			oldWidth := view.Width() + 1
-			newWidth := dimensionsObj.X1 - dimensionsObj.X0 + 2*frameOffset
+			oldWidth := view.Width()
+			newWidth := dimensionsObj.X1 - dimensionsObj.X0 + 1
 			if oldWidth != newWidth {
 				mustRerender = true
 			}
 		}
 		if context.NeedsRerenderOnHeightChange() {
-			// view.Height() returns the height -1 for some reason
-			oldHeight := view.Height() + 1
-			newHeight := dimensionsObj.Y1 - dimensionsObj.Y0 + 2*frameOffset
+			oldHeight := view.Height()
+			newHeight := dimensionsObj.Y1 - dimensionsObj.Y0 + 1
 			if oldHeight != newHeight {
 				mustRerender = true
 			}

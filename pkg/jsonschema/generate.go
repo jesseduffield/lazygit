@@ -20,6 +20,7 @@ func GetSchemaDir() string {
 func GenerateSchema() {
 	schema := customReflect(&config.UserConfig{})
 	obj, _ := json.MarshalIndent(schema, "", "  ")
+	obj = append(obj, '\n')
 
 	if err := os.WriteFile(GetSchemaDir()+"/config.json", obj, 0o644); err != nil {
 		fmt.Println("Error writing to file:", err)

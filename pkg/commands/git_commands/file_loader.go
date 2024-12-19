@@ -3,6 +3,7 @@ package git_commands
 import (
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -48,6 +49,14 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 	}
 	files := []*models.File{}
 
+	fileDiffs := map[string]FileDiff{}
+	if self.GitCommon.Common.UserConfig().Gui.ShowNumstatInFilesView {
+		fileDiffs, err = self.getFileDiffs()
+		if err != nil {
+			self.Log.Error(err)
+		}
+	}
+
 	for _, status := range statuses {
 		if strings.HasPrefix(status.StatusString, "warning") {
 			self.Log.Warningf("warning when calling git status: %s", status.StatusString)
@@ -58,6 +67,11 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 			Name:          status.Name,
 			PreviousName:  status.PreviousName,
 			DisplayString: status.StatusString,
+		}
+
+		if diff, ok := fileDiffs[status.Name]; ok {
+			file.LinesAdded = diff.LinesAdded
+			file.LinesDeleted = diff.LinesDeleted
 		}
 
 		models.SetStatusFields(file, status.Change)
@@ -87,6 +101,45 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 	return files
 }
 
+type FileDiff struct {
+	LinesAdded   int
+	LinesDeleted int
+}
+
+func (fileLoader *FileLoader) getFileDiffs() (map[string]FileDiff, error) {
+	diffs, err := fileLoader.gitDiffNumStat()
+	if err != nil {
+		return nil, err
+	}
+
+	splitLines := strings.Split(diffs, "\x00")
+
+	fileDiffs := map[string]FileDiff{}
+	for _, line := range splitLines {
+		splitLine := strings.Split(line, "\t")
+		if len(splitLine) != 3 {
+			continue
+		}
+
+		linesAdded, err := strconv.Atoi(splitLine[0])
+		if err != nil {
+			continue
+		}
+		linesDeleted, err := strconv.Atoi(splitLine[1])
+		if err != nil {
+			continue
+		}
+
+		fileName := splitLine[2]
+		fileDiffs[fileName] = FileDiff{
+			LinesAdded:   linesAdded,
+			LinesDeleted: linesDeleted,
+		}
+	}
+
+	return fileDiffs, nil
+}
+
 // GitStatus returns the file status of the repo
 type GitStatusOptions struct {
 	NoRenames         bool
@@ -98,6 +151,16 @@ type FileStatus struct {
 	Change       string // ??, MM, AM, ...
 	Name         string
 	PreviousName string
+}
+
+func (fileLoader *FileLoader) gitDiffNumStat() (string, error) {
+	return fileLoader.cmd.New(
+		NewGitCmd("diff").
+			Arg("--numstat").
+			Arg("-z").
+			Arg("HEAD").
+			ToArgv(),
+	).DontLog().RunWithOutput()
 }
 
 func (self *FileLoader) gitStatus(opts GitStatusOptions) ([]FileStatus, error) {

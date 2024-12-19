@@ -162,17 +162,14 @@ func (self *FilesController) createResetMenu() error {
 
 func (self *FilesController) animateExplosion() {
 	self.Explode(self.c.Views().Files, func() {
-		err := self.c.PostRefreshUpdate(self.c.Contexts().Files)
-		if err != nil {
-			self.c.Log.Error(err)
-		}
+		self.c.PostRefreshUpdate(self.c.Contexts().Files)
 	})
 }
 
 // Animates an explosion within the view by drawing a bunch of flamey characters
 func (self *FilesController) Explode(v *gocui.View, onDone func()) {
 	width := v.InnerWidth()
-	height := v.InnerHeight() + 1
+	height := v.InnerHeight()
 	styles := []style.TextStyle{
 		style.FgLightWhite.SetBold(),
 		style.FgYellow.SetBold(),

@@ -303,7 +303,8 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 				self.c.Git().Patch.PatchBuilder.Reset()
 			}
 
-			return self.c.PostRefreshUpdate(self.context())
+			self.c.PostRefreshUpdate(self.context())
+			return nil
 		})
 	}
 
@@ -387,9 +388,7 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 func (self *CommitFilesController) handleToggleCommitFileDirCollapsed(node *filetree.CommitFileNode) error {
 	self.context().CommitFileTreeViewModel.ToggleCollapsed(node.GetPath())
 
-	if err := self.c.PostRefreshUpdate(self.context()); err != nil {
-		self.c.Log.Error(err)
-	}
+	self.c.PostRefreshUpdate(self.context())
 
 	return nil
 }
@@ -398,7 +397,8 @@ func (self *CommitFilesController) handleToggleCommitFileDirCollapsed(node *file
 func (self *CommitFilesController) toggleTreeView() error {
 	self.context().CommitFileTreeViewModel.ToggleShowTree()
 
-	return self.c.PostRefreshUpdate(self.context())
+	self.c.PostRefreshUpdate(self.context())
+	return nil
 }
 
 // NOTE: these functions are identical to those in files_controller.go (except for types) and

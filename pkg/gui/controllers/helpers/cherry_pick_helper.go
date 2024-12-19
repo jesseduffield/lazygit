@@ -57,7 +57,10 @@ func (self *CherryPickHelper) CopyRange(commitsList []*models.Commit, context ty
 		}
 	}
 
-	return self.rerender()
+	self.getData().DidPaste = false
+
+	self.rerender()
+	return nil
 }
 
 // HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied.
@@ -102,7 +105,8 @@ func (self *CherryPickHelper) Paste() error {
 					return err
 				}
 				if !isInRebase {
-					return self.Reset()
+					self.getData().DidPaste = true
+					self.rerender()
 				}
 				return nil
 			})
@@ -113,14 +117,15 @@ func (self *CherryPickHelper) Paste() error {
 }
 
 func (self *CherryPickHelper) CanPaste() bool {
-	return self.getData().Active()
+	return self.getData().CanPaste()
 }
 
 func (self *CherryPickHelper) Reset() error {
 	self.getData().ContextKey = ""
 	self.getData().CherryPickedCommits = nil
 
-	return self.rerender()
+	self.rerender()
+	return nil
 }
 
 // you can only copy from one context at a time, because the order and position of commits matter
@@ -136,16 +141,12 @@ func (self *CherryPickHelper) resetIfNecessary(context types.Context) error {
 	return nil
 }
 
-func (self *CherryPickHelper) rerender() error {
+func (self *CherryPickHelper) rerender() {
 	for _, context := range []types.Context{
 		self.c.Contexts().LocalCommits,
 		self.c.Contexts().ReflogCommits,
 		self.c.Contexts().SubCommits,
 	} {
-		if err := self.c.PostRefreshUpdate(context); err != nil {
-			return err
-		}
+		self.c.PostRefreshUpdate(context)
 	}
-
-	return nil
 }

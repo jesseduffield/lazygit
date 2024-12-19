@@ -293,6 +293,11 @@
           "description": "If true, display the files in the file views as a tree. If false, display the files as a flat list.\nThis can be toggled from within Lazygit with the '~' key, but that will not change the default.",
           "default": true
         },
+        "showNumstatInFilesView": {
+          "type": "boolean",
+          "description": "If true, show the number of lines changed per file in the Files view",
+          "default": false
+        },
         "showRandomTip": {
           "type": "boolean",
           "description": "If true, show a random tip in the command log when Lazygit starts",
@@ -462,6 +467,11 @@
           "type": "boolean",
           "description": "If true, jump to the Files panel after applying a stash",
           "default": true
+        },
+        "switchTabsWithPanelJumpKeys": {
+          "type": "boolean",
+          "description": "If true, when using the panel jump keys (default 1 through 5) and target panel is already active, go to next tab instead",
+          "default": false
         }
       },
       "additionalProperties": false,
@@ -595,7 +605,7 @@
         },
         "allBranchesLogCmd": {
           "type": "string",
-          "description": "Command used to display git log of all branches in the main window.\nDeprecated: User `allBranchesLogCmds` instead.",
+          "description": "Command used to display git log of all branches in the main window.\nDeprecated: Use `allBranchesLogCmds` instead.",
           "default": "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"
         },
         "allBranchesLogCmds": {

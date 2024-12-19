@@ -127,6 +127,26 @@ var DiffContextChange = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains(`+3b`),
 				Contains(` 4a`),
 			).
+			Press(keys.Universal.DecreaseContextInDiffView).
+			Tap(func() {
+				t.ExpectToast(Equals("Changed diff context size to 0"))
+			}).
+			SelectedLines(
+				Contains(`@@ -3,1 +3 @@`),
+				Contains(`-3a`),
+				Contains(`+3b`),
+			).
+			Press(keys.Universal.IncreaseContextInDiffView).
+			Tap(func() {
+				t.ExpectToast(Equals("Changed diff context size to 1"))
+			}).
+			SelectedLines(
+				Contains(`@@ -2,3 +2,3 @@`),
+				Contains(` 2a`),
+				Contains(`-3a`),
+				Contains(`+3b`),
+				Contains(` 4a`),
+			).
 			Press(keys.Universal.IncreaseContextInDiffView).
 			Tap(func() {
 				t.ExpectToast(Equals("Changed diff context size to 2"))

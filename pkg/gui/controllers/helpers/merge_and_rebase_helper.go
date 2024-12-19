@@ -487,5 +487,6 @@ func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranch
 
 func (self *MergeAndRebaseHelper) ResetMarkedBaseCommit() error {
 	self.c.Modes().MarkedBaseCommit.Reset()
-	return self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+	self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+	return nil
 }
