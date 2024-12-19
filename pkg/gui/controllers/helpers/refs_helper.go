@@ -273,26 +273,10 @@ func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 }
 
 func (self *RefsHelper) CreateCheckoutMenu(ref string, branches []*models.Branch) error {
-	menuItems := lo.Map(branches, func(branch *models.Branch, _ int) *types.MenuItem {
-		return &types.MenuItem{
-			LabelColumns: []string{branch.Name},
-			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
-				if err := self.c.Git().Branch.Checkout(branch.Name, git_commands.CheckoutOptions{}); err != nil {
-					return err
-				}
-				return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
-					return self.c.Refresh(
-						types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}},
-					)
-				})
-			},
-			Tooltip: self.c.Tr.CheckoutBranchTooltip,
-		}
-	})
+	var menuItems []*types.MenuItem
 
 	menuItems = append(menuItems, &types.MenuItem{
-		LabelColumns: []string{ref},
+		LabelColumns: []string{fmt.Sprintf("%s %s", self.c.Tr.CheckoutCommit, self.c.Tr.AsDetachedHead), style.FgRed.Sprint(ref[:8])},
 		OnPress: func() error {
 			self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.CheckoutCommit,
@@ -305,7 +289,35 @@ func (self *RefsHelper) CreateCheckoutMenu(ref string, branches []*models.Branch
 			return nil
 		},
 		Tooltip: self.c.Tr.CheckoutCommitTooltip,
+		Key:     'd',
 	})
+
+	if len(branches) > 0 {
+		menuItems = append(menuItems, lo.Map(branches, func(branch *models.Branch, index int) *types.MenuItem {
+			return &types.MenuItem{
+				LabelColumns: []string{self.c.Tr.Actions.CheckoutBranch, style.FgBlue.Sprint(branch.Name)},
+				OnPress: func() error {
+					self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
+					if err := self.c.Git().Branch.Checkout(branch.Name, git_commands.CheckoutOptions{}); err != nil {
+						return err
+					}
+					return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
+						return self.c.Refresh(
+							types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}},
+						)
+					})
+				},
+				Tooltip: self.c.Tr.CheckoutBranchTooltip,
+				Key:     rune(index + 1 + '0'), // Convert 1-based index to key
+			}
+		})...)
+	} else {
+		menuItems = append(menuItems, &types.MenuItem{
+			LabelColumns:   []string{style.FgDefault.SetStrikethrough().Sprint(self.c.Tr.Actions.CheckoutBranch)},
+			OnPress:        func() error { return nil },
+			DisabledReason: &types.DisabledReason{Text: self.c.Tr.NoBranchesFoundAtCommitTooltip},
+		})
+	}
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Actions.CheckoutBranchOrCommit,
