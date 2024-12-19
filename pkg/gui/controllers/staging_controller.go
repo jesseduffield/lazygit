@@ -118,8 +118,9 @@ func (self *StagingController) GetMouseKeybindings(opts types.KeybindingsOpts) [
 
 func (self *StagingController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(opts types.OnFocusOpts) {
-		self.c.Views().Staging.Wrap = false
-		self.c.Views().StagingSecondary.Wrap = false
+		wrap := self.c.UserConfig().Gui.WrapLinesInStagingView
+		self.c.Views().Staging.Wrap = wrap
+		self.c.Views().StagingSecondary.Wrap = wrap
 
 		self.c.Helpers().Staging.RefreshStagingPanel(opts)
 	}
@@ -220,7 +221,7 @@ func (self *StagingController) applySelection(reverse bool) error {
 		return nil
 	}
 
-	firstLineIdx, lastLineIdx := state.SelectedRange()
+	firstLineIdx, lastLineIdx := state.SelectedPatchRange()
 	patchToApply := patch.
 		Parse(state.GetDiff()).
 		Transform(patch.TransformOpts{
@@ -249,7 +250,7 @@ func (self *StagingController) applySelection(reverse bool) error {
 	}
 
 	if state.SelectingRange() {
-		firstLine, _ := state.SelectedRange()
+		firstLine, _ := state.SelectedViewRange()
 		state.SelectLine(firstLine)
 	}
 
@@ -290,7 +291,7 @@ func (self *StagingController) editHunk() error {
 	}
 
 	lineOffset := 3
-	lineIdxInHunk := state.GetSelectedLineIdx() - hunkStartIdx
+	lineIdxInHunk := state.GetSelectedPatchLineIdx() - hunkStartIdx
 	if err := self.c.Helpers().Files.EditFileAtLineAndWait(patchFilepath, lineIdxInHunk+lineOffset); err != nil {
 		return err
 	}
