@@ -278,7 +278,14 @@ func (self *RefsHelper) CreateCheckoutMenu(ref string, branches []*models.Branch
 			LabelColumns: []string{branch.Name},
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
-				return self.c.Git().Branch.Checkout(branch.Name, git_commands.CheckoutOptions{})
+				if err := self.c.Git().Branch.Checkout(branch.Name, git_commands.CheckoutOptions{}); err != nil {
+					return err
+				}
+				return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
+					return self.c.Refresh(
+						types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}},
+					)
+				})
 			},
 			Tooltip: self.c.Tr.CheckoutBranchTooltip,
 		}
