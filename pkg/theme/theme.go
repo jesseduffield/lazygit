@@ -45,6 +45,8 @@ var (
 	DiffTerminalColor = style.FgMagenta
 
 	UnstagedChangesColor = style.New()
+
+	CommitTreeGraphHighlightColor = style.New()
 )
 
 // UpdateTheme updates all theme variables
@@ -73,4 +75,6 @@ func UpdateTheme(themeConfig config.ThemeConfig) {
 
 	DefaultTextColor = GetTextStyle(themeConfig.DefaultFgColor, false)
 	GocuiDefaultTextColor = GetGocuiStyle(themeConfig.DefaultFgColor)
+
+  CommitTreeGraphHighlightColor = GetTextStyle(themeConfig.CommitTreeGraphHighlightColor, false)
 }
