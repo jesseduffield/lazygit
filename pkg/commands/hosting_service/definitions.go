@@ -48,6 +48,7 @@ var azdoServiceDef = ServiceDefinition{
 	regexStrings: []string{
 		`^git@ssh.dev.azure.com.*/(?P<org>.*)/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
 		`^https://.*@dev.azure.com/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`,
+		`^https://.*/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`,
 	},
 	repoURLTemplate: "https://{{.webDomain}}/{{.org}}/{{.project}}/_git/{{.repo}}",
 }
