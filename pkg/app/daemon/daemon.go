@@ -325,7 +325,7 @@ func (self *MoveTodosUpInstruction) run(common *common.Common) error {
 	})
 
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveTodosUp(path, todosToMove, getCommentChar())
+		return utils.MoveTodosUp(path, todosToMove, false, getCommentChar())
 	})
 }
 
@@ -355,7 +355,7 @@ func (self *MoveTodosDownInstruction) run(common *common.Common) error {
 	})
 
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveTodosDown(path, todosToMove, getCommentChar())
+		return utils.MoveTodosDown(path, todosToMove, false, getCommentChar())
 	})
 }
 
