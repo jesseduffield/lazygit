@@ -86,6 +86,10 @@ func (self *ReflogCommitsContext) GetDiffTerminals() []string {
 	return []string{itemId}
 }
 
+func (self *ReflogCommitsContext) RefForAdjustingLineNumberInDiff() string {
+	return self.GetSelectedItemId()
+}
+
 func (self *ReflogCommitsContext) ShowBranchHeadsInSubCommits() bool {
 	return false
 }
