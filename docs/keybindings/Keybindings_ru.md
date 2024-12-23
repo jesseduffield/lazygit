@@ -286,7 +286,7 @@ If you would instead like to start an interactive rebase from the selected commi
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <space> `` | Переключить | Checkout the selected tag tag as a detached HEAD. |
+| `` <space> `` | Переключить | Checkout the selected tag as a detached HEAD. |
 | `` n `` | Создать тег | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | Отправить тег | Push the selected tag to a remote. You'll be prompted to select a remote. |
