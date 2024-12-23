@@ -52,6 +52,18 @@ var azdoServiceDef = ServiceDefinition{
 	repoURLTemplate: "https://{{.webDomain}}/{{.org}}/{{.project}}/_git/{{.repo}}",
 }
 
+var azdoServerServiceDef = ServiceDefinition{
+	provider:                        "azuredevopsServer",
+	pullRequestURLIntoDefaultBranch: "/pullrequestcreate?sourceRef={{.From}}",
+	pullRequestURLIntoTargetBranch:  "/pullrequestcreate?sourceRef={{.From}}&targetRef={{.To}}",
+	commitURL:                       "/commit/{{.CommitHash}}",
+	regexStrings: []string{
+		`^(?:ssh://)?(?:git@)?[^:/]+(?::\d+)?[:/](?P<collection>[^/]+)/(?P<project>[^/]+)/(?P<repo>.+)$`,
+		`^https://[^/]+/(?P<collection>[^/]+)/(?P<project>[^/]+)/_git/(?P<repo>.+)$`,
+	},
+	repoURLTemplate: "https://{{.webDomain}}/{{.collection}}/{{.project}}/_git/{{.repo}}",
+}
+
 var bitbucketServerServiceDef = ServiceDefinition{
 	provider:                        "bitbucketServer",
 	pullRequestURLIntoDefaultBranch: "/pull-requests?create&sourceBranch={{.From}}",
@@ -78,6 +90,7 @@ var serviceDefinitions = []ServiceDefinition{
 	bitbucketServiceDef,
 	gitLabServiceDef,
 	azdoServiceDef,
+	azdoServerServiceDef,
 	bitbucketServerServiceDef,
 	giteaServiceDef,
 }
