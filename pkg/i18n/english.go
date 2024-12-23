@@ -130,6 +130,7 @@ type TranslationSet struct {
 	CheckoutTypeNewBranchTooltip          string
 	CheckoutTypeDetachedHead              string
 	CheckoutTypeDetachedHeadTooltip       string
+	AsDetachedHead                        string
 	NewBranch                             string
 	NewBranchFromStashTooltip             string
 	NoBranchesThisRepo                    string
@@ -527,6 +528,8 @@ type TranslationSet struct {
 	FetchingRemoteStatus                  string
 	CheckoutCommit                        string
 	CheckoutCommitTooltip                 string
+	CheckoutBranchTooltip                 string
+	NoBranchesFoundAtCommitTooltip        string
 	SureCheckoutThisCommit                string
 	GitFlowOptions                        string
 	NotAGitFlowBranch                     string
@@ -862,6 +865,7 @@ type Actions struct {
 	CheckoutCommit                    string
 	CheckoutTag                       string
 	CheckoutBranch                    string
+	CheckoutBranchOrCommit            string
 	ForceCheckoutBranch               string
 	DeleteLocalBranch                 string
 	Merge                             string
@@ -1125,6 +1129,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CheckoutTypeNewBranchTooltip:         "Checkout the remote branch as a local branch, tracking the remote branch.",
 		CheckoutTypeDetachedHead:             "Detached head",
 		CheckoutTypeDetachedHeadTooltip:      "Checkout the remote branch as a detached head, which can be useful if you just want to test the branch but not work on it yourself. You can still create a local branch from it later.",
+		AsDetachedHead:                       "as detached head",
 		NewBranch:                            "New branch",
 		NewBranchFromStashTooltip:            "Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit.",
 		NoBranchesThisRepo:                   "No branches for this repo",
@@ -1522,21 +1527,23 @@ func EnglishTranslationSet() *TranslationSet {
 		DeleteRemoteTagPrompt:                "Are you sure you want to delete the remote tag '{{.tagName}}' from '{{.upstream}}'?",
 		PushTagTitle:                         "Remote to push tag '{{.tagName}}' to:",
 		// Using 'push tag' rather than just 'push' to disambiguate from a global push
-		PushTag:                "Push tag",
-		PushTagTooltip:         "Push the selected tag to a remote. You'll be prompted to select a remote.",
-		NewTag:                 "New tag",
-		NewTagTooltip:          "Create new tag from current commit. You'll be prompted to enter a tag name and optional description.",
-		CreatingTag:            "Creating tag",
-		ForceTag:               "Force Tag",
-		ForceTagPrompt:         "The tag '{{.tagName}}' exists already. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to overwrite.",
-		FetchRemoteTooltip:     "Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches.",
-		FetchingRemoteStatus:   "Fetching remote",
-		CheckoutCommit:         "Checkout commit",
-		CheckoutCommitTooltip:  "Checkout the selected commit as a detached HEAD.",
-		SureCheckoutThisCommit: "Are you sure you want to checkout this commit?",
-		GitFlowOptions:         "Show git-flow options",
-		NotAGitFlowBranch:      "This does not seem to be a git flow branch",
-		NewGitFlowBranchPrompt: "New {{.branchType}} name:",
+		PushTag:                        "Push tag",
+		PushTagTooltip:                 "Push the selected tag to a remote. You'll be prompted to select a remote.",
+		NewTag:                         "New tag",
+		NewTagTooltip:                  "Create new tag from current commit. You'll be prompted to enter a tag name and optional description.",
+		CreatingTag:                    "Creating tag",
+		ForceTag:                       "Force Tag",
+		ForceTagPrompt:                 "The tag '{{.tagName}}' exists already. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to overwrite.",
+		FetchRemoteTooltip:             "Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches.",
+		FetchingRemoteStatus:           "Fetching remote",
+		CheckoutCommit:                 "Checkout commit",
+		CheckoutCommitTooltip:          "Checkout the selected commit as a detached HEAD.",
+		CheckoutBranchTooltip:          "Checkout the selected branch.",
+		NoBranchesFoundAtCommitTooltip: "No branches found at selected commit.",
+		SureCheckoutThisCommit:         "Are you sure you want to checkout this commit?",
+		GitFlowOptions:                 "Show git-flow options",
+		NotAGitFlowBranch:              "This does not seem to be a git flow branch",
+		NewGitFlowBranchPrompt:         "New {{.branchType}} name:",
 
 		IgnoreTracked:                    "Ignore tracked file",
 		IgnoreTrackedPrompt:              "Are you sure you want to ignore a tracked file?",
@@ -1825,6 +1832,7 @@ func EnglishTranslationSet() *TranslationSet {
 			CheckoutTag:                    "Checkout tag",
 			CheckoutBranch:                 "Checkout branch",
 			ForceCheckoutBranch:            "Force checkout branch",
+			CheckoutBranchOrCommit:         "Checkout branch or commit",
 			DeleteLocalBranch:              "Delete local branch",
 			Merge:                          "Merge",
 			SquashMerge:                    "Squash merge",

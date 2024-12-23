@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 // This controller is for all contexts that contain a list of commits.
@@ -280,15 +281,11 @@ func (self *BasicCommitsController) createResetMenu(commit *models.Commit) error
 }
 
 func (self *BasicCommitsController) checkout(commit *models.Commit) error {
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.CheckoutCommit,
-		Prompt: self.c.Tr.SureCheckoutThisCommit,
-		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
-			return self.c.Helpers().Refs.CheckoutRef(commit.Hash, types.CheckoutRefOptions{})
-		},
+	commitBranches := lo.Filter(self.c.Model().Branches, func(branch *models.Branch, _ int) bool {
+		return commit.Hash == branch.CommitHash && branch.Name != self.c.Model().CheckedOutBranch
 	})
-	return nil
+
+	return self.c.Helpers().Refs.CreateCheckoutMenu(commit.Hash, commitBranches)
 }
 
 func (self *BasicCommitsController) copyRange(*models.Commit) error {
