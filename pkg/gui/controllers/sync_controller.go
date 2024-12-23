@@ -87,6 +87,16 @@ func (self *SyncController) branchCheckedOut(f func(*models.Branch) error) func(
 }
 
 func (self *SyncController) push(currentBranch *models.Branch) error {
+	mainBranchPushDisabled := self.c.UserConfig().Git.DisableMainBranchPushing
+	mainBranches := self.c.UserConfig().Git.MainBranches
+	if mainBranchPushDisabled {
+		for _, branch := range mainBranches {
+			if currentBranch.Name == branch {
+				return errors.New(self.c.Tr.MainBranchPushDisabled)
+			}
+		}
+	}
+
 	// if we are behind our upstream branch we'll ask if the user wants to force push
 	if currentBranch.IsTrackingRemote() {
 		opts := pushOpts{remoteBranchStoredLocally: currentBranch.RemoteBranchStoredLocally()}
