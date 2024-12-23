@@ -52,7 +52,7 @@ func (self *CmdObjBuilder) NewShell(commandStr string) ICmdObj {
 }
 
 func (self *CmdObjBuilder) NewInteractiveShell(commandStr string) ICmdObj {
-	quotedCommand := self.quotedCommandString(commandStr)
+	quotedCommand := self.quotedCommandString(commandStr + self.platform.InteractiveShellExit)
 	cmdArgs := str.ToArgv(fmt.Sprintf("%s %s %s %s", self.platform.InteractiveShell, self.platform.InteractiveShellArg, self.platform.ShellArg, quotedCommand))
 
 	return self.New(cmdArgs)
