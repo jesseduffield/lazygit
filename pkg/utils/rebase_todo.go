@@ -6,24 +6,18 @@ import (
 	"fmt"
 	"os"
 	"slices"
-	"strings"
 
 	"github.com/samber/lo"
 	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 type Todo struct {
-	Hash   string // for todos that have one, e.g. pick, drop, fixup, etc.
-	Ref    string // for update-ref todos
-	Action todo.TodoCommand
+	Hash string // for todos that have one, e.g. pick, drop, fixup, etc.
+	Ref  string // for update-ref todos
 }
 
-// In order to change a TODO in git-rebase-todo, we need to specify the old action,
-// because sometimes the same hash appears multiple times in the file (e.g. in a pick
-// and later in a merge)
 type TodoChange struct {
 	Hash      string
-	OldAction todo.TodoCommand
 	NewAction todo.TodoCommand
 }
 
@@ -40,7 +34,7 @@ func EditRebaseTodo(filePath string, changes []TodoChange, commentChar byte) err
 		t := &todos[i]
 		// This is a nested loop, but it's ok because the number of todos should be small
 		for _, change := range changes {
-			if t.Command == change.OldAction && equalHash(t.Commit, change.Hash) {
+			if equalHash(t.Commit, change.Hash) {
 				matchCount++
 				t.Command = change.NewAction
 			}
@@ -56,18 +50,18 @@ func EditRebaseTodo(filePath string, changes []TodoChange, commentChar byte) err
 }
 
 func equalHash(a, b string) bool {
-	return strings.HasPrefix(a, b) || strings.HasPrefix(b, a)
+	if len(a) == 0 && len(b) == 0 {
+		return true
+	}
+
+	commonLength := min(len(a), len(b))
+	return commonLength > 0 && a[:commonLength] == b[:commonLength]
 }
 
 func findTodo(todos []todo.Todo, todoToFind Todo) (int, bool) {
 	_, idx, ok := lo.FindIndexOf(todos, func(t todo.Todo) bool {
-		// Comparing just the hash is not enough; we need to compare both the
-		// action and the hash, as the hash could appear multiple times (e.g. in a
-		// pick and later in a merge). For update-ref todos we also must compare
-		// the Ref.
-		return t.Command == todoToFind.Action &&
-			equalHash(t.Commit, todoToFind.Hash) &&
-			t.Ref == todoToFind.Ref
+		// For update-ref todos we also must compare the Ref (they have an empty hash)
+		return equalHash(t.Commit, todoToFind.Hash) && t.Ref == todoToFind.Ref
 	})
 	return idx, ok
 }
@@ -295,4 +289,30 @@ func RemoveUpdateRefsForCopiedBranch(fileName string, commentChar byte) error {
 // update-ref. We don't render label, reset, or comment lines.
 func isRenderedTodo(t todo.Todo) bool {
 	return t.Commit != "" || t.Command == todo.UpdateRef
+}
+
+func DropMergeCommit(fileName string, hash string, commentChar byte) error {
+	todos, err := ReadRebaseTodoFile(fileName, commentChar)
+	if err != nil {
+		return err
+	}
+
+	newTodos, err := dropMergeCommit(todos, hash)
+	if err != nil {
+		return err
+	}
+
+	return WriteRebaseTodoFile(fileName, newTodos, commentChar)
+}
+
+func dropMergeCommit(todos []todo.Todo, hash string) ([]todo.Todo, error) {
+	isMerge := func(t todo.Todo) bool {
+		return t.Command == todo.Merge && t.Flag == "-C" && equalHash(t.Commit, hash)
+	}
+	if lo.CountBy(todos, isMerge) != 1 {
+		return nil, fmt.Errorf("Expected exactly one merge commit with hash %s", hash)
+	}
+
+	_, idx, _ := lo.FindIndexOf(todos, isMerge)
+	return slices.Delete(todos, idx, idx+1), nil
 }

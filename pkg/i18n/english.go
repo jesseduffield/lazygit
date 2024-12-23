@@ -140,6 +140,7 @@ type TranslationSet struct {
 	Quit                                  string
 	SquashTooltip                         string
 	CannotSquashOrFixupFirstCommit        string
+	CannotSquashOrFixupMergeCommit        string
 	Fixup                                 string
 	FixupTooltip                          string
 	SureFixupThisCommit                   string
@@ -160,6 +161,7 @@ type TranslationSet struct {
 	MoveDownCommit                        string
 	MoveUpCommit                          string
 	CannotMoveAnyFurther                  string
+	CannotMoveMergeCommit                 string
 	EditCommit                            string
 	EditCommitTooltip                     string
 	AmendCommitTooltip                    string
@@ -320,6 +322,7 @@ type TranslationSet struct {
 	YouDied                               string
 	RewordNotSupported                    string
 	ChangingThisActionIsNotAllowed        string
+	DroppingMergeRequiresSingleSelection  string
 	CherryPickCopy                        string
 	CherryPickCopyTooltip                 string
 	CherryPickCopyRangeTooltip            string
@@ -347,6 +350,7 @@ type TranslationSet struct {
 	DropCommitTitle                       string
 	DropCommitPrompt                      string
 	DropUpdateRefPrompt                   string
+	DropMergeCommitPrompt                 string
 	PullingStatus                         string
 	PushingStatus                         string
 	FetchingStatus                        string
@@ -1134,6 +1138,7 @@ func EnglishTranslationSet() *TranslationSet {
 		UpdateRefHere:                        "Update branch '{{.ref}}' here",
 		ExecCommandHere:                      "Execute the following command here:",
 		CannotSquashOrFixupFirstCommit:       "There's no commit below to squash into",
+		CannotSquashOrFixupMergeCommit:       "Cannot squash or fixup a merge commit",
 		Fixup:                                "Fixup",
 		SureFixupThisCommit:                  "Are you sure you want to 'fixup' the selected commit(s) into the commit below?",
 		SureSquashThisCommit:                 "Are you sure you want to squash the selected commit(s) into the commit below?",
@@ -1153,6 +1158,7 @@ func EnglishTranslationSet() *TranslationSet {
 		MoveDownCommit:                       "Move commit down one",
 		MoveUpCommit:                         "Move commit up one",
 		CannotMoveAnyFurther:                 "Cannot move any further",
+		CannotMoveMergeCommit:                "Cannot move a merge commit",
 		EditCommit:                           "Edit (start interactive rebase)",
 		EditCommitTooltip:                    "Edit the selected commit. Use this to start an interactive rebase from the selected commit. When already mid-rebase, this will mark the selected commit for editing, which means that upon continuing the rebase, the rebase will pause at the selected commit to allow you to make changes.",
 		AmendCommitTooltip:                   "Amend commit with staged changes. If the selected commit is the HEAD commit, this will perform `git commit --amend`. Otherwise the commit will be amended via a rebase.",
@@ -1320,6 +1326,7 @@ func EnglishTranslationSet() *TranslationSet {
 		YouDied:                              "YOU DIED!",
 		RewordNotSupported:                   "Rewording commits while interactively rebasing is not currently supported",
 		ChangingThisActionIsNotAllowed:       "Changing this kind of rebase todo entry is not allowed",
+		DroppingMergeRequiresSingleSelection: "Dropping a merge commit requires a single selected item",
 		CherryPickCopy:                       "Copy (cherry-pick)",
 		CherryPickCopyTooltip:                "Mark commit as copied. Then, within the local commits view, you can press `{{.paste}}` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `{{.escape}}` to cancel the selection.",
 		CherryPickCopyRangeTooltip:           "Mark commits as copied from the last copied commit to the selected commit.",
@@ -1346,6 +1353,7 @@ func EnglishTranslationSet() *TranslationSet {
 		AmendCommitPrompt:                    "Are you sure you want to amend this commit with your staged files?",
 		DropCommitTitle:                      "Drop commit",
 		DropCommitPrompt:                     "Are you sure you want to drop the selected commit(s)?",
+		DropMergeCommitPrompt:                "Are you sure you want to drop the selected merge commit? Note that it will also drop all the commits that were merged in by it.",
 		DropUpdateRefPrompt:                  "Are you sure you want to delete the selected update-ref todo(s)? This is irreversible except by aborting the rebase.",
 		PullingStatus:                        "Pulling",
 		PushingStatus:                        "Pushing",
