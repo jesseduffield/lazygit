@@ -51,13 +51,14 @@ func NewDummyCmdObjBuilder(runner ICmdObjRunner) *CmdObjBuilder {
 }
 
 var dummyPlatform = &Platform{
-	OS:                  "darwin",
-	Shell:               "bash",
-	InteractiveShell:    "bash",
-	ShellArg:            "-c",
-	InteractiveShellArg: "-i",
-	OpenCommand:         "open {{filename}}",
-	OpenLinkCommand:     "open {{link}}",
+	OS:                   "darwin",
+	Shell:                "bash",
+	InteractiveShell:     "bash",
+	ShellArg:             "-c",
+	InteractiveShellArg:  "-i",
+	InteractiveShellExit: "; exit $?",
+	OpenCommand:          "open {{filename}}",
+	OpenLinkCommand:      "open {{link}}",
 }
 
 func NewDummyOSCommandWithRunner(runner *FakeCmdObjRunner) *OSCommand {

@@ -10,13 +10,14 @@ import (
 
 func GetPlatform() *Platform {
 	return &Platform{
-		OS:                  runtime.GOOS,
-		Shell:               "bash",
-		InteractiveShell:    getUserShell(),
-		ShellArg:            "-c",
-		InteractiveShellArg: "-i",
-		OpenCommand:         "open {{filename}}",
-		OpenLinkCommand:     "open {{link}}",
+		OS:                   runtime.GOOS,
+		Shell:                "bash",
+		InteractiveShell:     getUserShell(),
+		ShellArg:             "-c",
+		InteractiveShellArg:  "-i",
+		InteractiveShellExit: "; exit $?",
+		OpenCommand:          "open {{filename}}",
+		OpenLinkCommand:      "open {{link}}",
 	}
 }
 
