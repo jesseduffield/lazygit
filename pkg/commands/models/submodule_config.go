@@ -3,9 +3,13 @@ package models
 import "path/filepath"
 
 type SubmoduleConfig struct {
-	Name string
-	Path string
-	Url  string
+	Name                string
+	Path                string
+	Url                 string
+	Head                string
+	NumStagedFiles      int
+	NumUnstagedChanges  int
+	NumUntrackedChanges int
 
 	ParentModule *SubmoduleConfig // nil if top-level
 }
