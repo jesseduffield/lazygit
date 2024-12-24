@@ -144,20 +144,36 @@ func (self *FilesController) createResetMenu() error {
 				red.Sprint("git reset --hard HEAD"),
 			},
 			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.HardReset)
-				if err := self.c.Git().WorkingTree.ResetHard("HEAD"); err != nil {
-					return err
+				dirtyWorkingTree := self.c.Helpers().WorkingTree.IsWorkingTreeDirty()
+				self.c.Log.Warn(dirtyWorkingTree)
+				if dirtyWorkingTree {
+					return self.c.Confirm(types.ConfirmOpts{
+						Title:         self.c.Tr.HardResetTitle,
+						Prompt:        self.c.Tr.HardResetPrompt,
+						HandleConfirm: hardReset(self),
+					})
+				} else {
+					return hardReset(self)()
 				}
-
-				return self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
-				)
 			},
 			Key: 'h',
 		},
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{Title: "", Items: menuItems})
+}
+
+func hardReset(self *FilesController) func() error {
+	return func() error {
+		self.c.LogAction(self.c.Tr.Actions.HardReset)
+		if err := self.c.Git().WorkingTree.ResetHard("HEAD"); err != nil {
+			return err
+		}
+
+		return self.c.Refresh(
+			types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+		)
+	}
 }
 
 func (self *FilesController) animateExplosion() {
