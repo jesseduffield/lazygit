@@ -1,3 +1,4 @@
+# NOTE: Using 1.13 as a base to build the RISCV compiler, the resulting version is based on go1.6.
 FROM golang:1.13
 
 # Clone and complie a riscv compatible version of the go compiler.
@@ -8,7 +9,15 @@ ENV PATH=/riscv-go/misc/riscv:/riscv-go/bin:$PATH
 RUN cd /riscv-go/src && GOROOT_BOOTSTRAP=$(go env GOROOT) ./make.bash
 ENV GOROOT=/riscv-go
 
-# Make sure we compile.
+# Set the base env.
+ENV GOOS=linux GOARCH=riscv CGO_ENABLED=0 GOFLAGS='-v -ldflags=-s -ldflags=-w'
+
+# Pre compile the stdlib.
+RUN go build -a std
+
+# Add the code to the image.
 WORKDIR pty
 ADD . .
-RUN GOOS=linux GOARCH=riscv go build
+
+# Build the lib.
+RUN go build

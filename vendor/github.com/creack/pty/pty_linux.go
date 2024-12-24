@@ -1,3 +1,6 @@
+//go:build linux
+//+build linux
+
 package pty
 
 import (
@@ -28,7 +31,7 @@ func open() (pty, tty *os.File, err error) {
 		return nil, nil, err
 	}
 
-	t, err := os.OpenFile(sname, os.O_RDWR|syscall.O_NOCTTY, 0)
+	t, err := os.OpenFile(sname, os.O_RDWR|syscall.O_NOCTTY, 0) //nolint:gosec // Expected Open from a variable.
 	if err != nil {
 		return nil, nil, err
 	}
@@ -37,7 +40,7 @@ func open() (pty, tty *os.File, err error) {
 
 func ptsname(f *os.File) (string, error) {
 	var n _C_uint
-	err := ioctl(f.Fd(), syscall.TIOCGPTN, uintptr(unsafe.Pointer(&n)))
+	err := ioctl(f.Fd(), syscall.TIOCGPTN, uintptr(unsafe.Pointer(&n))) //nolint:gosec // Expected unsafe pointer for Syscall call.
 	if err != nil {
 		return "", err
 	}
@@ -47,5 +50,5 @@ func ptsname(f *os.File) (string, error) {
 func unlockpt(f *os.File) error {
 	var u _C_int
 	// use TIOCSPTLCK with a pointer to zero to clear the lock
-	return ioctl(f.Fd(), syscall.TIOCSPTLCK, uintptr(unsafe.Pointer(&u)))
+	return ioctl(f.Fd(), syscall.TIOCSPTLCK, uintptr(unsafe.Pointer(&u))) //nolint:gosec // Expected unsafe pointer for Syscall call.
 }
