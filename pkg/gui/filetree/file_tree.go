@@ -44,6 +44,8 @@ type IFileTree interface {
 	GetAllFiles() []*models.File
 	GetFilter() FileTreeDisplayFilter
 	GetRoot() *FileNode
+	CollapseAll(paths []string)
+	UncollapseAll(paths []string)
 }
 
 type FileTree struct {
@@ -169,6 +171,18 @@ func (self *FileTree) IsCollapsed(path string) bool {
 
 func (self *FileTree) ToggleCollapsed(path string) {
 	self.collapsedPaths.ToggleCollapsed(path)
+}
+
+func (self *FileTree) CollapseAll(paths []string) {
+	for _, path := range paths {
+		self.collapsedPaths.Collapse(path)
+	}
+}
+
+func (self *FileTree) UncollapseAll(paths []string) {
+	for _, path := range paths {
+		self.collapsedPaths.ExpandToPath(path)
+	}
 }
 
 func (self *FileTree) Tree() *FileNode {
