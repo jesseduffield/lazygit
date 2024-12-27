@@ -321,6 +321,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 	defer color.ForceSetColorLevel(oldColorLevel)
 
 	c := utils.NewDummyCommon()
+	SetCustomBranches(c.UserConfig().Gui.BranchColorPatterns, true)
 
 	for i, s := range scenarios {
 		icons.SetNerdFontsVersion(lo.Ternary(s.useIcons, "3", ""))
