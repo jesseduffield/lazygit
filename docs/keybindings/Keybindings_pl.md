@@ -229,6 +229,8 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
 | `` M `` | Otwórz zewnętrzne narzędzie scalania | Uruchom `git mergetool`. |
 | `` f `` | Pobierz | Pobierz zmiany ze zdalnego serwera. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Pliki commita
@@ -245,6 +247,8 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` a `` | Przełącz wszystkie pliki | Dodaj/usuń wszystkie pliki commita do niestandardowej łatki. Zobacz https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` <enter> `` | Wejdź do pliku / Przełącz zwiń katalog | Jeśli plik jest wybrany, wejdź do pliku, aby móc dodawać/usuwać poszczególne linie do niestandardowej łatki. Jeśli wybrany jest katalog, przełącz katalog. |
 | `` ` `` | Przełącz widok drzewa plików | Przełącz widok plików między płaskim a drzewem. Płaski układ pokazuje wszystkie ścieżki plików na jednej liście, układ drzewa grupuje pliki według katalogów. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Podsumowanie commita

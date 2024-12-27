@@ -25,6 +25,20 @@ type CommitFileTree struct {
 	collapsedPaths *CollapsedPaths
 }
 
+func (self *CommitFileTree) CollapseAll() {
+	dirPaths := lo.FilterMap(self.GetAllItems(), func(file *CommitFileNode, index int) (string, bool) {
+		return file.Path, !file.IsFile()
+	})
+
+	for _, path := range dirPaths {
+		self.collapsedPaths.Collapse(path)
+	}
+}
+
+func (self *CommitFileTree) ExpandAll() {
+	self.collapsedPaths.ExpandAll()
+}
+
 var _ ICommitFileTree = &CommitFileTree{}
 
 func NewCommitFileTree(getFiles func() []*models.CommitFile, log *logrus.Entry, showTree bool) *CommitFileTree {

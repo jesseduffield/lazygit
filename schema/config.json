@@ -1463,6 +1463,14 @@
             "copyFileInfoToClipboard": {
               "type": "string",
               "default": "y"
+            },
+            "collapseAll": {
+              "type": "string",
+              "default": "-"
+            },
+            "expandAll": {
+              "type": "string",
+              "default": "="
             }
           },
           "additionalProperties": false,

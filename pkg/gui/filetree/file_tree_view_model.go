@@ -1,6 +1,7 @@
 package filetree
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -186,6 +187,36 @@ func (self *FileTreeViewModel) ToggleShowTree() {
 	}
 
 	index, found := self.GetIndexForPath(path)
+	if found {
+		self.SetSelectedLineIdx(index)
+	}
+}
+
+func (self *FileTreeViewModel) CollapseAll() {
+	selectedNode := self.GetSelected()
+
+	self.IFileTree.CollapseAll()
+	if selectedNode == nil {
+		return
+	}
+
+	topLevelPath := strings.Split(selectedNode.Path, "/")[0]
+	index, found := self.GetIndexForPath(topLevelPath)
+	if found {
+		self.SetSelectedLineIdx(index)
+	}
+}
+
+func (self *FileTreeViewModel) ExpandAll() {
+	selectedNode := self.GetSelected()
+
+	self.IFileTree.ExpandAll()
+
+	if selectedNode == nil {
+		return
+	}
+
+	index, found := self.GetIndexForPath(selectedNode.Path)
 	if found {
 		self.SetSelectedLineIdx(index)
 	}

@@ -571,6 +571,8 @@ keybinding:
     openMergeTool: M
     openStatusFilter: <c-b>
     copyFileInfoToClipboard: "y"
+    collapseAll: '-'
+    expandAll: =
   branches:
     createPullRequest: o
     viewPullRequestOptions: O

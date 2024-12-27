@@ -256,6 +256,11 @@ type TranslationSet struct {
 	NoBranchOnRemote                      string
 	Fetch                                 string
 	FetchTooltip                          string
+	CollapseAll                           string
+	CollapseAllTooltip                    string
+	ExpandAll                             string
+	ExpandAllTooltip                      string
+	DisabledInFlatView                    string
 	FileEnter                             string
 	FileEnterTooltip                      string
 	FileStagingRequirements               string
@@ -1258,6 +1263,11 @@ func EnglishTranslationSet() *TranslationSet {
 		NoBranchOnRemote:                     `This branch doesn't exist on remote. You need to push it to remote first.`,
 		Fetch:                                `Fetch`,
 		FetchTooltip:                         "Fetch changes from remote.",
+		CollapseAll:                          "Collapse all files",
+		CollapseAllTooltip:                   "Collapse all directories in the files tree",
+		ExpandAll:                            "Expand all files",
+		ExpandAllTooltip:                     "Expand all directories in the file tree",
+		DisabledInFlatView:                   "Not available in flat view",
 		FileEnter:                            `Stage lines / Collapse directory`,
 		FileEnterTooltip:                     "If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it.",
 		FileStagingRequirements:              `Can only stage individual lines for tracked files`,
