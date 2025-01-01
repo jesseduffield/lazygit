@@ -84,6 +84,7 @@ var tests = []*components.IntegrationTest{
 	commit.AddCoAuthorWhileCommitting,
 	commit.Amend,
 	commit.AutoWrapMessage,
+	commit.Checkout,
 	commit.Commit,
 	commit.CommitMultiline,
 	commit.CommitSwitchToEditor,
