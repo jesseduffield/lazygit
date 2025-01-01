@@ -220,7 +220,7 @@ If you press `shift+w` on a commit (or branch/ref) a menu will open that allows 
 
 ## Installation
 
-[![Packaging status](https://repology.org/badge/vertical-allrepos/lazygit.svg)](https://repology.org/project/lazygit/versions)
+[![Packaging status](https://repology.org/badge/vertical-allrepos/lazygit.svg?columns=3)](https://repology.org/project/lazygit/versions)
 
 _Most of the above packages are maintained by third parties so be sure to vet them yourself and confirm that the maintainer is a trustworthy looking person who attends local sports games and gives back to their communities with barbeque fundraisers etc_
 
