@@ -368,7 +368,7 @@ nix-shell -p lazygit
 nix run nixpkgs#lazygit
 ```
 
-Or you can add lazygit to you configuration.nix in the environment.systemPackages section.
+Or you can add lazygit to you `configuration.nix` using the `environment.systemPackages` option.
 More details can be found via NixOs search [page](https://search.nixos.org/).
 
 ### Flox
