@@ -29,16 +29,17 @@ type cliArgs struct {
 	RepoPath           string
 	FilterPath         string
 	GitArg             string
+	UseConfigDir       string
+	WorkTree           string
+	GitDir             string
+	CustomConfigFile   string
+	ScreenMode         string
 	PrintVersionInfo   bool
 	Debug              bool
 	TailLogs           bool
 	Profile            bool
 	PrintDefaultConfig bool
 	PrintConfigDir     bool
-	UseConfigDir       string
-	WorkTree           string
-	GitDir             string
-	CustomConfigFile   string
 }
 
 type BuildInfo struct {
@@ -164,7 +165,7 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 
 	parsedGitArg := parseGitArg(cliArgs.GitArg)
 
-	Run(appConfig, common, appTypes.NewStartArgs(cliArgs.FilterPath, parsedGitArg, integrationTest))
+	Run(appConfig, common, appTypes.NewStartArgs(cliArgs.FilterPath, parsedGitArg, cliArgs.ScreenMode, integrationTest))
 }
 
 func parseCliArgsAndEnvVars() *cliArgs {
@@ -209,6 +210,9 @@ func parseCliArgsAndEnvVars() *cliArgs {
 	customConfigFile := ""
 	flaggy.String(&customConfigFile, "ucf", "use-config-file", "Comma separated list to custom config file(s)")
 
+	screenMode := ""
+	flaggy.String(&screenMode, "sm", "screen-mode", "The initial screen-mode, which determines the size of the focused panel. Valid options: 'normal' (default), 'half', 'full'")
+
 	flaggy.Parse()
 
 	if os.Getenv("DEBUG") == "TRUE" {
@@ -229,6 +233,7 @@ func parseCliArgsAndEnvVars() *cliArgs {
 		WorkTree:           workTree,
 		GitDir:             gitDir,
 		CustomConfigFile:   customConfigFile,
+		ScreenMode:         screenMode,
 	}
 }
 
