@@ -453,7 +453,9 @@ func (gui *Gui) callKeybindingHandler(binding *types.Binding) error {
 			return errors.New(disabledReason.Text)
 		}
 
-		gui.c.ErrorToast(gui.Tr.DisabledMenuItemPrefix + disabledReason.Text)
+		if len(disabledReason.Text) > 0 {
+			gui.c.ErrorToast(gui.Tr.DisabledMenuItemPrefix + disabledReason.Text)
+		}
 		return nil
 	}
 	return binding.Handler()
