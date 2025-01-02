@@ -14,6 +14,6 @@ func setGeneratedAuthorColours(config *config.AppConfig) {
 }
 
 func setDefaultDemoConfig(config *config.AppConfig) {
-	// demos look much nicers with icons shown
+	// demos look much nicer with icons shown
 	config.GetUserConfig().Gui.NerdFontsVersion = "3"
 }

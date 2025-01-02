@@ -19,7 +19,7 @@ const (
 	// which is good to test for.
 	PWD = "PWD"
 
-	// We set $HOME and $GIT_CONFIG_NOGLOBAL during integrationt tests so
+	// We set $HOME and $GIT_CONFIG_NOGLOBAL during integration tests so
 	// that older versions of git that don't respect $GIT_CONFIG_GLOBAL
 	// will find the correct global config file for testing
 	HOME                = "HOME"
