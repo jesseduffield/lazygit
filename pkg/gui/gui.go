@@ -583,7 +583,7 @@ func initialScreenMode(startArgs appTypes.StartArgs, config config.AppConfigurer
 	if startArgs.ScreenMode != "" {
 		return getWindowMaximisation(startArgs.ScreenMode)
 	} else if startArgs.FilterPath != "" || startArgs.GitArg != appTypes.GitArgNone {
-		return types.SCREEN_FULL
+		return types.SCREEN_HALF
 	} else {
 		return getWindowMaximisation(config.GetUserConfig().Gui.WindowSize)
 	}
