@@ -25,7 +25,7 @@ func TestGetWindowDimensions(t *testing.T) {
 			CurrentSideWindow:   "files",
 			CurrentStaticWindow: "files",
 			SplitMainPanel:      false,
-			ScreenMode:          types.SCREEN_NORMAL,
+			PanelSize:           types.PANEL_SIZE_NORMAL,
 			AppStatus:           "",
 			InformationStr:      "information",
 			ShowExtrasWindow:    false,
@@ -203,10 +203,10 @@ func TestGetWindowDimensions(t *testing.T) {
 			`,
 		},
 		{
-			name: "half screen mode, enlargedSideViewLocation left",
+			name: "half panel size, enlargedSideViewLocation left",
 			mutateArgs: func(args *WindowArrangementArgs) {
 				args.Height = 20 // smaller height because we don't more here
-				args.ScreenMode = types.SCREEN_HALF
+				args.PanelSize = types.PANEL_SIZE_HALF
 				args.UserConfig.Gui.EnlargedSideViewLocation = "left"
 			},
 			expected: `
@@ -235,10 +235,10 @@ func TestGetWindowDimensions(t *testing.T) {
 			`,
 		},
 		{
-			name: "half screen mode, enlargedSideViewLocation top",
+			name: "half panel size, enlargedSideViewLocation top",
 			mutateArgs: func(args *WindowArrangementArgs) {
 				args.Height = 20 // smaller height because we don't more here
-				args.ScreenMode = types.SCREEN_HALF
+				args.PanelSize = types.PANEL_SIZE_HALF
 				args.UserConfig.Gui.EnlargedSideViewLocation = "top"
 			},
 			expected: `

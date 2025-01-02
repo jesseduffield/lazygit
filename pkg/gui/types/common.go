@@ -362,8 +362,8 @@ type IRepoStateAccessor interface {
 	SetStartupStage(stage StartupStage)
 	GetCurrentPopupOpts() *CreatePopupPanelOpts
 	SetCurrentPopupOpts(*CreatePopupPanelOpts)
-	GetScreenMode() WindowMaximisation
-	SetScreenMode(WindowMaximisation)
+	GetPanelSize() PanelSize
+	SetPanelSize(PanelSize)
 	InSearchPrompt() bool
 	GetSearchState() *SearchState
 	SetSplitMainPanel(bool)
@@ -378,14 +378,11 @@ const (
 	COMPLETE
 )
 
-// screen sizing determines how much space your selected window takes up (window
-// as in panel, not your terminal's window). Sometimes you want a bit more space
-// to see the contents of a panel, and this keeps track of how much maximisation
-// you've set
-type WindowMaximisation int
+// Determines how much space your selected panel takes up.
+type PanelSize int
 
 const (
-	SCREEN_NORMAL WindowMaximisation = iota
-	SCREEN_HALF
-	SCREEN_FULL
+	PANEL_SIZE_NORMAL PanelSize = iota
+	PANEL_SIZE_HALF
+	PANEL_SIZE_FULL
 )

@@ -46,8 +46,8 @@ const (
 	// view renders differently when its width changes. An example is a view
 	// that truncates long lines to the view width, e.g. the branches view
 	NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES
-	// view renders differently only when the screen mode changes
-	NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_SCREEN_MODE_CHANGES
+	// view renders differently only when the panel size changes
+	NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_PANEL_SIZE_CHANGES
 )
 
 type IBaseContext interface {

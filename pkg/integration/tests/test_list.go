@@ -291,7 +291,7 @@ var tests = []*components.IntegrationTest{
 	shell_commands.EditHistory,
 	shell_commands.History,
 	shell_commands.OmitFromHistory,
-	staging.DiffChangeScreenMode,
+	staging.DiffChangePanelSize,
 	staging.DiffContextChange,
 	staging.DiscardAllChanges,
 	staging.Search,

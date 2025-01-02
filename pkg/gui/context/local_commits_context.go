@@ -50,7 +50,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			c.Model().Branches,
 			c.Model().CheckedOutBranch,
 			hasRebaseUpdateRefsConfig,
-			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
+			c.State().GetRepoState().GetPanelSize() != types.PANEL_SIZE_NORMAL,
 			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
 			c.Modes().MarkedBaseCommit.GetHash(),
@@ -77,7 +77,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 				Key:                         LOCAL_COMMITS_CONTEXT_KEY,
 				Kind:                        types.SIDE_CONTEXT,
 				Focusable:                   true,
-				NeedsRerenderOnWidthChange:  types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_SCREEN_MODE_CHANGES,
+				NeedsRerenderOnWidthChange:  types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_PANEL_SIZE_CHANGES,
 				NeedsRerenderOnHeightChange: true,
 			})),
 			ListRenderer: ListRenderer{
@@ -207,7 +207,7 @@ func shouldShowGraph(c *ContextCommon) bool {
 	case "never":
 		return false
 	case "when-maximised":
-		return c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL
+		return c.State().GetRepoState().GetPanelSize() != types.PANEL_SIZE_NORMAL
 	}
 
 	log.Fatalf("Unknown value for git.log.showGraph: %s. Expected one of: 'always', 'never', 'when-maximised'", value)

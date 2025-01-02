@@ -7,7 +7,7 @@ import (
 
 var InteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Interactive rebase",
-	ExtraCmdArgs: []string{"log", "--screen-mode=full"},
+	ExtraCmdArgs: []string{"log", "--panel-size=full"},
 	Skip:         false,
 	IsDemo:       true,
 	SetupConfig: func(config *config.AppConfig) {
@@ -50,7 +50,7 @@ var InteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			SetCaptionPrefix("Push to remote").
-			Press(keys.Universal.NextScreenMode).
+			Press(keys.Universal.NextPanelSize).
 			Press(keys.Universal.Push).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().

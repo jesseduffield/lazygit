@@ -12,8 +12,8 @@ type StartArgs struct {
 	IntegrationTest integrationTypes.IntegrationTest
 	// FilterPath determines which path we're going to filter on so that we only see commits from that file.
 	FilterPath string
-	// ScreenMode determines the initial Screen Mode (normal, half or full) to use
-	ScreenMode string
+	// PanelSize determines the initial panel size (normal, half or full) to use
+	PanelSize string
 }
 
 type GitArg string
@@ -26,11 +26,11 @@ const (
 	GitArgStash  GitArg = "stash"
 )
 
-func NewStartArgs(filterPath string, gitArg GitArg, screenMode string, test integrationTypes.IntegrationTest) StartArgs {
+func NewStartArgs(filterPath string, gitArg GitArg, PanelSize string, test integrationTypes.IntegrationTest) StartArgs {
 	return StartArgs{
 		FilterPath:      filterPath,
 		GitArg:          gitArg,
-		ScreenMode:      screenMode,
+		PanelSize:       PanelSize,
 		IntegrationTest: test,
 	}
 }

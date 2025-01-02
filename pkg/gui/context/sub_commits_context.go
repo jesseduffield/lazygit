@@ -40,7 +40,7 @@ func NewSubCommitsContext(
 
 	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
 		// This can happen if a sub-commits view is asked to be rerendered while
-		// it is invisible; for example when switching screen modes, which
+		// it is invisible; for example when switching panel size, which
 		// rerenders all views.
 		if viewModel.GetRef() == nil {
 			return [][]string{}
@@ -64,7 +64,7 @@ func NewSubCommitsContext(
 			branches,
 			viewModel.GetRef().RefName(),
 			hasRebaseUpdateRefsConfig,
-			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
+			c.State().GetRepoState().GetPanelSize() != types.PANEL_SIZE_NORMAL,
 			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
 			"",
@@ -121,7 +121,7 @@ func NewSubCommitsContext(
 				Kind:                        types.SIDE_CONTEXT,
 				Focusable:                   true,
 				Transient:                   true,
-				NeedsRerenderOnWidthChange:  types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_SCREEN_MODE_CHANGES,
+				NeedsRerenderOnWidthChange:  types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_PANEL_SIZE_CHANGES,
 				NeedsRerenderOnHeightChange: true,
 			})),
 			ListRenderer: ListRenderer{

@@ -116,8 +116,8 @@ func (self *FilteringMenuAction) setFiltering() error {
 	self.c.Modes().Filtering.SetSelectedCommitHash(self.c.Contexts().LocalCommits.GetSelectedCommitHash())
 
 	repoState := self.c.State().GetRepoState()
-	if repoState.GetScreenMode() == types.SCREEN_NORMAL {
-		repoState.SetScreenMode(types.SCREEN_HALF)
+	if repoState.GetPanelSize() == types.PANEL_SIZE_NORMAL {
+		repoState.SetPanelSize(types.PANEL_SIZE_HALF)
 	}
 
 	self.c.Context().Push(self.c.Contexts().LocalCommits)

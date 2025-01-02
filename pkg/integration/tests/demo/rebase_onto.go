@@ -47,13 +47,13 @@ var RebaseOnto = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			Focus().
-			Press(keys.Universal.PrevScreenMode).
+			Press(keys.Universal.PrevPanelSize).
 			Wait(500).
 			NavigateToLine(Contains("Develop commit 3")).
 			Wait(500).
 			Press(keys.Commits.MarkCommitAsBaseForRebase).
 			Wait(1000).
-			Press(keys.Universal.NextScreenMode).
+			Press(keys.Universal.NextPanelSize).
 			Wait(500)
 
 		t.Views().Branches().

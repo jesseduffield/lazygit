@@ -7,7 +7,7 @@ import (
 
 var Bisect = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Interactive rebase",
-	ExtraCmdArgs: []string{"log", "--screen-mode=full"},
+	ExtraCmdArgs: []string{"log", "--panel-size=full"},
 	Skip:         false,
 	IsDemo:       true,
 	SetupConfig: func(config *config.AppConfig) {
@@ -65,7 +65,7 @@ var Bisect = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			SetCaptionPrefix("Inspect problematic commit").
 			Wait(500).
-			Press(keys.Universal.PrevScreenMode).
+			Press(keys.Universal.PrevPanelSize).
 			IsFocused().
 			Content(Contains("Add end-to-end tests for checkout flow")).
 			Wait(500).
