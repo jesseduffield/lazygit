@@ -478,6 +478,34 @@ func (self *FilesController) enter() error {
 	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
 }
 
+func (self *FilesController) collapseAll() error {
+	nodes := self.context().GetAllItems()
+
+	dirPaths := lo.FilterMap(nodes, func(file *filetree.FileNode, index int) (string, bool) {
+		return file.Path, !file.IsFile()
+	})
+
+	self.context().FileTreeViewModel.CollapseAll(dirPaths)
+
+	self.c.PostRefreshUpdate(self.c.Contexts().Files)
+
+	return nil
+}
+
+func (self *FilesController) uncollapseAll() error {
+	files := self.context().GetAllFiles()
+
+	filePaths := lo.Map(files, func(file *models.File, index int) string {
+		return file.GetPath()
+	})
+
+	self.context().FileTreeViewModel.UncollapseAll(filePaths)
+
+	self.c.PostRefreshUpdate(self.c.Contexts().Files)
+
+	return nil
+}
+
 func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 	node := self.context().GetSelected()
 	if node == nil {
