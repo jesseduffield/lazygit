@@ -1,13 +1,14 @@
-name: Continuous Integration
-
-env:
-  GO_VERSION: 1.22
+name: Automated Release
 
 on:
   push:
     branches:
       - master
   pull_request:
+  # schedule:
+  #   # Runs at 2:00 AM UTC on the first Saturday of every month
+  #   - cron: '0 2 * * 6'
+  # workflow_dispatch: # Allow manual triggering of the workflow
 
 jobs:
   check-and-release:
@@ -92,3 +93,23 @@ jobs:
                 - title: Other Changes
                   labels:
                     - "*"
+
+      # - name: Push New Tag
+      #   run: |
+      #     git config user.name "github-actions[bot]"
+      #     git config user.email "github-actions[bot]@users.noreply.github.com"
+      #     git tag ${{ env.new_tag }}
+      #     git push origin ${{ env.new_tag }}
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Create GitHub Release
+      #   uses: actions/create-release@v1
+      #   with:
+      #     tag_name: ${{ env.new_tag }}
+      #     release_name: "Release ${{ env.new_tag }}"
+      #     body: ${{ steps.generate_notes.outputs.changelog }}
+      #     draft: false
+      #     prerelease: false
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
