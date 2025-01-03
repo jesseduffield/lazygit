@@ -538,8 +538,8 @@ type TranslationSet struct {
 	IgnoreTrackedPrompt                   string
 	ExcludeTrackedPrompt                  string
 	ViewResetToUpstreamOptions            string
-	NextScreenMode                        string
-	PrevScreenMode                        string
+	NextPanelSize                         string
+	PrevPanelSize                         string
 	StartSearch                           string
 	StartFilter                           string
 	Panel                                 string
@@ -1550,8 +1550,8 @@ func EnglishTranslationSet() *TranslationSet {
 		ExcludeTracked:                   "Exclude tracked file",
 		ExcludeTrackedPrompt:             "Are you sure you want to exclude a tracked file?",
 		ViewResetToUpstreamOptions:       "View upstream reset options",
-		NextScreenMode:                   "Next screen mode (normal/half/fullscreen)",
-		PrevScreenMode:                   "Prev screen mode",
+		NextPanelSize:                    "Next panel size (normal/half/fullscreen)",
+		PrevPanelSize:                    "Prev panel size",
 		StartSearch:                      "Search the current view by text",
 		StartFilter:                      "Filter the current view by text",
 		Panel:                            "Panel",

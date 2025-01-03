@@ -48,14 +48,14 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Tooltip:     self.c.Tr.RefreshTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.NextScreenMode),
-			Handler:     self.nextScreenMode,
-			Description: self.c.Tr.NextScreenMode,
+			Key:         opts.GetKey(opts.Config.Universal.NextPanelSize),
+			Handler:     self.nextPanelSize,
+			Description: self.c.Tr.NextPanelSize,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.PrevScreenMode),
-			Handler:     self.prevScreenMode,
-			Description: self.c.Tr.PrevScreenMode,
+			Key:         opts.GetKey(opts.Config.Universal.PrevPanelSize),
+			Handler:     self.prevPanelSize,
+			Description: self.c.Tr.PrevPanelSize,
 		},
 		{
 			ViewName:  "",
@@ -145,12 +145,12 @@ func (self *GlobalController) refresh() error {
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
-func (self *GlobalController) nextScreenMode() error {
-	return (&ScreenModeActions{c: self.c}).Next()
+func (self *GlobalController) nextPanelSize() error {
+	return (&PanelSizeActions{c: self.c}).Next()
 }
 
-func (self *GlobalController) prevScreenMode() error {
-	return (&ScreenModeActions{c: self.c}).Prev()
+func (self *GlobalController) prevPanelSize() error {
+	return (&PanelSizeActions{c: self.c}).Prev()
 }
 
 func (self *GlobalController) createOptionsMenu() error {

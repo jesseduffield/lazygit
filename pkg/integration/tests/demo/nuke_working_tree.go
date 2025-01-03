@@ -7,7 +7,7 @@ import (
 
 var NukeWorkingTree = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Nuke the working tree",
-	ExtraCmdArgs: []string{"status", "--screen-mode=full"},
+	ExtraCmdArgs: []string{"status", "--panel-size=full"},
 	Skip:         false,
 	IsDemo:       true,
 	SetupConfig: func(config *config.AppConfig) {

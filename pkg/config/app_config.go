@@ -217,16 +217,25 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig) (*UserConfig, e
 // from one container to another, or changing the type of a key (e.g. from bool
 // to an enum).
 func migrateUserConfig(path string, content []byte) ([]byte, error) {
-	changedContent, err := yaml_utils.RenameYamlKey(content, []string{"gui", "skipUnstageLineWarning"},
-		"skipDiscardChangeWarning")
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+	changedContent := content
+
+	pathsToReplace := []struct {
+		oldPath []string
+		newName string
+	}{
+		{[]string{"gui", "skipUnstageLineWarning"}, "skipDiscardChangeWarning"},
+		{[]string{"keybinding", "universal", "executeCustomCommand"}, "executeShellCommand"},
+		{[]string{"gui", "windowSize"}, "panelSize"},
+		{[]string{"keybinding", "nextScreenMode"}, "nextPanelSize"},
+		{[]string{"keybinding", "prevScreenMode"}, "prevPanelSize"},
 	}
 
-	changedContent, err = yaml_utils.RenameYamlKey(changedContent, []string{"keybinding", "universal", "executeCustomCommand"},
-		"executeShellCommand")
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+	var err error
+	for _, pathToReplace := range pathsToReplace {
+		changedContent, err = yaml_utils.RenameYamlKey(changedContent, pathToReplace.oldPath, pathToReplace.newName)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't migrate config file at `%s` for key %s: %s", path, strings.Join(pathToReplace.oldPath, "."), err)
+		}
 	}
 
 	changedContent, err = changeNullKeybindingsToDisabled(changedContent)

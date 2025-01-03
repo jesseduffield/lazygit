@@ -165,8 +165,8 @@ func (self *ModeHelper) ExitFilterMode() error {
 func (self *ModeHelper) ClearFiltering() error {
 	selectedCommitHash := self.c.Contexts().LocalCommits.GetSelectedCommitHash()
 	self.c.Modes().Filtering.Reset()
-	if self.c.State().GetRepoState().GetScreenMode() == types.SCREEN_HALF {
-		self.c.State().GetRepoState().SetScreenMode(types.SCREEN_NORMAL)
+	if self.c.State().GetRepoState().GetPanelSize() == types.PANEL_SIZE_HALF {
+		self.c.State().GetRepoState().SetPanelSize(types.PANEL_SIZE_NORMAL)
 	}
 
 	return self.c.Refresh(types.RefreshOptions{

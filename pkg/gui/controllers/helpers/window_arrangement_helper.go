@@ -52,8 +52,8 @@ type WindowArrangementArgs struct {
 	// Whether the main panel is split (as is the case e.g. when a file has both
 	// staged and unstaged changes)
 	SplitMainPanel bool
-	// The current screen mode (normal, half, full)
-	ScreenMode types.WindowMaximisation
+	// The current panel size (normal, half, full)
+	PanelSize types.PanelSize
 	// The content shown on the bottom left of the screen when showing a loader
 	// or toast e.g. 'Rebasing /'
 	AppStatus string
@@ -92,7 +92,7 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 		CurrentSideWindow:   self.c.Context().CurrentSide().GetWindowName(),
 		CurrentStaticWindow: self.c.Context().CurrentStatic().GetWindowName(),
 		SplitMainPanel:      repoState.GetSplitMainPanel(),
-		ScreenMode:          repoState.GetScreenMode(),
+		PanelSize:           repoState.GetPanelSize(),
 		AppStatus:           appStatus,
 		InformationStr:      informationStr,
 		ShowExtrasWindow:    self.c.State().GetShowExtrasWindow(),
@@ -106,7 +106,7 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 }
 
 func shouldUsePortraitMode(args WindowArrangementArgs) bool {
-	if args.ScreenMode == types.SCREEN_HALF {
+	if args.PanelSize == types.PANEL_SIZE_HALF {
 		return args.UserConfig.Gui.EnlargedSideViewLocation == "top"
 	}
 
@@ -205,8 +205,8 @@ func MergeMaps[K comparable, V any](maps ...map[K]V) map[K]V {
 
 func mainSectionChildren(args WindowArrangementArgs) []*boxlayout.Box {
 	// if we're not in split mode we can just show the one main panel. Likewise if
-	// the main panel is focused and we're in full-screen mode
-	if !args.SplitMainPanel || (args.ScreenMode == types.SCREEN_FULL && args.CurrentWindow == "main") {
+	// the main panel is focused and we're in full panel-size mode
+	if !args.SplitMainPanel || (args.PanelSize == types.PANEL_SIZE_FULL && args.CurrentWindow == "main") {
 		return []*boxlayout.Box{
 			{
 				Window: "main",
@@ -215,7 +215,7 @@ func mainSectionChildren(args WindowArrangementArgs) []*boxlayout.Box {
 		}
 	}
 
-	if args.CurrentWindow == "secondary" && args.ScreenMode == types.SCREEN_FULL {
+	if args.CurrentWindow == "secondary" && args.PanelSize == types.PANEL_SIZE_FULL {
 		return []*boxlayout.Box{
 			{
 				Window: "secondary",
@@ -248,17 +248,17 @@ func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
 	}
 
 	if args.CurrentWindow == "main" || args.CurrentWindow == "secondary" {
-		if args.ScreenMode == types.SCREEN_HALF || args.ScreenMode == types.SCREEN_FULL {
+		if args.PanelSize == types.PANEL_SIZE_HALF || args.PanelSize == types.PANEL_SIZE_FULL {
 			sideSectionWeight = 0
 		}
 	} else {
-		if args.ScreenMode == types.SCREEN_HALF {
+		if args.PanelSize == types.PANEL_SIZE_HALF {
 			if args.UserConfig.Gui.EnlargedSideViewLocation == "top" {
 				mainSectionWeight = 2
 			} else {
 				mainSectionWeight = 1
 			}
-		} else if args.ScreenMode == types.SCREEN_FULL {
+		} else if args.PanelSize == types.PANEL_SIZE_FULL {
 			mainSectionWeight = 0
 		}
 	}
@@ -423,7 +423,7 @@ func getDefaultStashWindowBox(args WindowArrangementArgs) *boxlayout.Box {
 
 func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) []*boxlayout.Box {
 	return func(width int, height int) []*boxlayout.Box {
-		if args.ScreenMode == types.SCREEN_FULL || args.ScreenMode == types.SCREEN_HALF {
+		if args.PanelSize == types.PANEL_SIZE_FULL || args.PanelSize == types.PANEL_SIZE_HALF {
 			fullHeightBox := func(window string) *boxlayout.Box {
 				if window == args.CurrentSideWindow {
 					return &boxlayout.Box{

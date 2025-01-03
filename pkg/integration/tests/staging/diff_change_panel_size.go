@@ -5,8 +5,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var DiffChangeScreenMode = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Change the staged changes screen mode",
+var DiffChangePanelSize = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Change the staged changes panel size",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -29,14 +29,14 @@ var DiffChangeScreenMode = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Title(Equals("Staged changes")).
 			Content(Contains("+first line").DoesNotContain("+second line")).
-			Press(keys.Universal.NextScreenMode).
+			Press(keys.Universal.NextPanelSize).
 			Tap(func() {
 				t.Views().AppStatus().
 					IsInvisible()
 				t.Views().Staging().
 					IsVisible()
 			}).
-			Press(keys.Universal.NextScreenMode).
+			Press(keys.Universal.NextPanelSize).
 			Tap(func() {
 				t.Views().AppStatus().
 					IsInvisible()

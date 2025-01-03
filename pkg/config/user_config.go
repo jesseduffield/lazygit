@@ -86,7 +86,7 @@ type GuiConfig struct {
 	// - 'vertical': split the window vertically
 	// - 'flexible': (default) split the window horizontally if the window is wide enough, otherwise split vertically
 	MainPanelSplitMode string `yaml:"mainPanelSplitMode" jsonschema:"enum=horizontal,enum=flexible,enum=vertical"`
-	// How the window is split when in half screen mode (i.e. after hitting '+' once).
+	// How the window is split when in half panel-size mode (i.e. after hitting '+' once).
 	// Possible values:
 	// - 'left': split the window horizontally (side panel on the left, main view on the right)
 	// - 'top': split the window vertically (side panel on top, main view below)
@@ -150,7 +150,7 @@ type GuiConfig struct {
 	SplitDiff string `yaml:"splitDiff" jsonschema:"enum=auto,enum=always"`
 	// Default size for focused window. Window size can be changed from within Lazygit with '+' and '_' (but this won't change the default).
 	// One of: 'normal' (default) | 'half' | 'full'
-	WindowSize string `yaml:"windowSize" jsonschema:"enum=normal,enum=half,enum=full"`
+	PanelSize string `yaml:"panelSize" jsonschema:"enum=normal,enum=half,enum=full"`
 	// Window border style.
 	// One of 'rounded' (default) | 'single' | 'double' | 'hidden'
 	Border string `yaml:"border" jsonschema:"enum=single,enum=double,enum=rounded,enum=hidden"`
@@ -410,8 +410,8 @@ type KeybindingUniversalConfig struct {
 	CreatePatchOptionsMenu            string   `yaml:"createPatchOptionsMenu"`
 	NextTab                           string   `yaml:"nextTab"`
 	PrevTab                           string   `yaml:"prevTab"`
-	NextScreenMode                    string   `yaml:"nextScreenMode"`
-	PrevScreenMode                    string   `yaml:"prevScreenMode"`
+	NextPanelSize                     string   `yaml:"nextPanelSize"`
+	PrevPanelSize                     string   `yaml:"prevPanelSize"`
 	Undo                              string   `yaml:"undo"`
 	Redo                              string   `yaml:"redo"`
 	FilteringMenu                     string   `yaml:"filteringMenu"`
@@ -734,7 +734,7 @@ func GetDefaultConfig() *UserConfig {
 			CommandLogSize:               8,
 			SplitDiff:                    "auto",
 			SkipRewordInEditorWarning:    false,
-			WindowSize:                   "normal",
+			PanelSize:                    "normal",
 			Border:                       "rounded",
 			AnimateExplosion:             true,
 			PortraitMode:                 "auto",
@@ -855,8 +855,8 @@ func GetDefaultConfig() *UserConfig {
 				CreatePatchOptionsMenu:            "<c-p>",
 				NextTab:                           "]",
 				PrevTab:                           "[",
-				NextScreenMode:                    "+",
-				PrevScreenMode:                    "_",
+				NextPanelSize:                     "+",
+				PrevPanelSize:                     "_",
 				Undo:                              "z",
 				Redo:                              "<c-z>",
 				FilteringMenu:                     "<c-s>",

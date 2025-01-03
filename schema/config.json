@@ -93,7 +93,7 @@
         },
         "enlargedSideViewLocation": {
           "type": "string",
-          "description": "How the window is split when in half screen mode (i.e. after hitting '+' once).\nPossible values:\n- 'left': split the window horizontally (side panel on the left, main view on the right)\n- 'top': split the window vertically (side panel on top, main view below)",
+          "description": "How the window is split when in half panel-size mode (i.e. after hitting '+' once).\nPossible values:\n- 'left': split the window horizontally (side panel on the left, main view on the right)\n- 'top': split the window vertically (side panel on top, main view below)",
           "default": "left"
         },
         "wrapLinesInStagingView": {
@@ -388,7 +388,7 @@
           "description": "Whether to split the main window when viewing file changes.\nOne of: 'auto' | 'always'\nIf 'auto', only split the main window when a file has both staged and unstaged changes",
           "default": "auto"
         },
-        "windowSize": {
+        "panelSize": {
           "type": "string",
           "enum": [
             "normal",
@@ -1297,11 +1297,11 @@
               "type": "string",
               "default": "["
             },
-            "nextScreenMode": {
+            "nextPanelSize": {
               "type": "string",
               "default": "+"
             },
-            "prevScreenMode": {
+            "prevPanelSize": {
               "type": "string",
               "default": "_"
             },

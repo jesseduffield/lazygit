@@ -17,7 +17,7 @@ var SetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().
 			Focus().
-			Press(keys.Universal.NextScreenMode). // we need to enlargen the window to see the upstream
+			Press(keys.Universal.NextPanelSize). // we need to enlargen the window to see the upstream
 			Lines(
 				Contains("master").DoesNotContain("origin master").IsSelected(),
 			).

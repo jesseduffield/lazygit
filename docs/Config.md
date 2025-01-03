@@ -81,7 +81,7 @@ gui:
   # - 'flexible': (default) split the window horizontally if the window is wide enough, otherwise split vertically
   mainPanelSplitMode: flexible
 
-  # How the window is split when in half screen mode (i.e. after hitting '+' once).
+  # How the window is split when in half panel-size mode (i.e. after hitting '+' once).
   # Possible values:
   # - 'left': split the window horizontally (side panel on the left, main view on the right)
   # - 'top': split the window vertically (side panel on top, main view below)
@@ -221,7 +221,7 @@ gui:
 
   # Default size for focused window. Window size can be changed from within Lazygit with '+' and '_' (but this won't change the default).
   # One of: 'normal' (default) | 'half' | 'full'
-  windowSize: normal
+  panelSize: normal
 
   # Window border style.
   # One of 'rounded' (default) | 'single' | 'double' | 'hidden'
@@ -532,8 +532,8 @@ keybinding:
     createPatchOptionsMenu: <c-p>
     nextTab: ']'
     prevTab: '['
-    nextScreenMode: +
-    prevScreenMode: _
+    nextPanelSize: +
+    prevPanelSize: _
     undo: z
     redo: <c-z>
     filteringMenu: <c-s>

@@ -7,7 +7,7 @@ import (
 
 var CommitGraph = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Show commit graph",
-	ExtraCmdArgs: []string{"log", "--screen-mode=full"},
+	ExtraCmdArgs: []string{"log", "--panel-size=full"},
 	Skip:         false,
 	IsDemo:       true,
 	SetupConfig: func(config *config.AppConfig) {

@@ -33,7 +33,7 @@ type cliArgs struct {
 	WorkTree           string
 	GitDir             string
 	CustomConfigFile   string
-	ScreenMode         string
+	PanelSize          string
 	PrintVersionInfo   bool
 	Debug              bool
 	TailLogs           bool
@@ -165,7 +165,7 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 
 	parsedGitArg := parseGitArg(cliArgs.GitArg)
 
-	Run(appConfig, common, appTypes.NewStartArgs(cliArgs.FilterPath, parsedGitArg, cliArgs.ScreenMode, integrationTest))
+	Run(appConfig, common, appTypes.NewStartArgs(cliArgs.FilterPath, parsedGitArg, cliArgs.PanelSize, integrationTest))
 }
 
 func parseCliArgsAndEnvVars() *cliArgs {
@@ -210,8 +210,8 @@ func parseCliArgsAndEnvVars() *cliArgs {
 	customConfigFile := ""
 	flaggy.String(&customConfigFile, "ucf", "use-config-file", "Comma separated list to custom config file(s)")
 
-	screenMode := ""
-	flaggy.String(&screenMode, "sm", "screen-mode", "The initial screen-mode, which determines the size of the focused panel. Valid options: 'normal' (default), 'half', 'full'")
+	PanelSize := ""
+	flaggy.String(&PanelSize, "ps", "panel-size", "The initial size of the focused panel. Valid options: 'normal' (default), 'half', 'full'")
 
 	flaggy.Parse()
 
@@ -233,7 +233,7 @@ func parseCliArgsAndEnvVars() *cliArgs {
 		WorkTree:           workTree,
 		GitDir:             gitDir,
 		CustomConfigFile:   customConfigFile,
-		ScreenMode:         screenMode,
+		PanelSize:          PanelSize,
 	}
 }
 

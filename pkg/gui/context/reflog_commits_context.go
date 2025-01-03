@@ -29,7 +29,7 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 	getDisplayStrings := func(_ int, _ int) [][]string {
 		return presentation.GetReflogCommitListDisplayStrings(
 			viewModel.GetItems(),
-			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
+			c.State().GetRepoState().GetPanelSize() != types.PANEL_SIZE_NORMAL,
 			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
 			time.Now(),
@@ -48,7 +48,7 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 				Key:                        REFLOG_COMMITS_CONTEXT_KEY,
 				Kind:                       types.SIDE_CONTEXT,
 				Focusable:                  true,
-				NeedsRerenderOnWidthChange: types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_SCREEN_MODE_CHANGES,
+				NeedsRerenderOnWidthChange: types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_PANEL_SIZE_CHANGES,
 			})),
 			ListRenderer: ListRenderer{
 				list:              viewModel,

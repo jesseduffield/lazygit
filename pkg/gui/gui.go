@@ -244,7 +244,7 @@ type GuiRepoState struct {
 	// back in sync with the repo state
 	ViewsSetup bool
 
-	ScreenMode types.WindowMaximisation
+	PanelSize types.PanelSize
 
 	CurrentPopupOpts *types.CreatePopupPanelOpts
 }
@@ -275,12 +275,12 @@ func (self *GuiRepoState) SetCurrentPopupOpts(value *types.CreatePopupPanelOpts)
 	self.CurrentPopupOpts = value
 }
 
-func (self *GuiRepoState) GetScreenMode() types.WindowMaximisation {
-	return self.ScreenMode
+func (self *GuiRepoState) GetPanelSize() types.PanelSize {
+	return self.PanelSize
 }
 
-func (self *GuiRepoState) SetScreenMode(value types.WindowMaximisation) {
-	self.ScreenMode = value
+func (self *GuiRepoState) SetPanelSize(value types.PanelSize) {
+	self.PanelSize = value
 }
 
 func (self *GuiRepoState) InSearchPrompt() bool {
@@ -534,7 +534,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 
 	contextTree := gui.contextTree()
 
-	initialScreenMode := initialScreenMode(startArgs, gui.Config)
+	initialPanelSize := initialPanelSize(startArgs, gui.Config)
 
 	gui.State = &GuiRepoState{
 		ViewsSetup: false,
@@ -556,7 +556,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 			Diffing:          diffing.New(),
 			MarkedBaseCommit: marked_base_commit.New(),
 		},
-		ScreenMode: initialScreenMode,
+		PanelSize: initialPanelSize,
 		// TODO: only use contexts from context manager
 		ContextMgr:        NewContextMgr(gui, contextTree),
 		Contexts:          contextTree,
@@ -579,24 +579,24 @@ func initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSaf
 	return result
 }
 
-func initialScreenMode(startArgs appTypes.StartArgs, config config.AppConfigurer) types.WindowMaximisation {
-	if startArgs.ScreenMode != "" {
-		return getWindowMaximisation(startArgs.ScreenMode)
+func initialPanelSize(startArgs appTypes.StartArgs, config config.AppConfigurer) types.PanelSize {
+	if startArgs.PanelSize != "" {
+		return parsePanelSize(startArgs.PanelSize)
 	} else if startArgs.FilterPath != "" || startArgs.GitArg != appTypes.GitArgNone {
-		return types.SCREEN_HALF
+		return types.PANEL_SIZE_HALF
 	} else {
-		return getWindowMaximisation(config.GetUserConfig().Gui.WindowSize)
+		return parsePanelSize(config.GetUserConfig().Gui.PanelSize)
 	}
 }
 
-func getWindowMaximisation(modeString string) types.WindowMaximisation {
-	switch modeString {
+func parsePanelSize(panelSizeString string) types.PanelSize {
+	switch panelSizeString {
 	case "half":
-		return types.SCREEN_HALF
+		return types.PANEL_SIZE_HALF
 	case "full":
-		return types.SCREEN_FULL
+		return types.PANEL_SIZE_FULL
 	default:
-		return types.SCREEN_NORMAL
+		return types.PANEL_SIZE_NORMAL
 	}
 }
 
