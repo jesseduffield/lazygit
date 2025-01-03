@@ -829,8 +829,15 @@ You can customize the color of branches based on the branch prefix:
 
 ```yaml
 gui:
+  # NOTE: that this configuration will be deprecated in favor of using branchColorPatterns below
   branchColors:
     'docs': '#11aaff' # use a light blue for branches beginning with 'docs/'
+
+  # alternatively you can use a regex pattern as your coloring rules
+  # NOTE: this configuration overwrites the one above, if you would like to set a similar rule see the example below
+  branchColorPatterns:
+    'docs/.+': '#11aaff' # similar to the previous configuration above, setting branches that begin with 'docs/'
+    'ISSUE-\d+': '#ff5733' # use a bright orange for branches beginning with 'ISSUE-'
 ```
 
 ## Example Coloring

@@ -52,7 +52,9 @@ type GuiConfig struct {
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
 	AuthorColors map[string]string `yaml:"authorColors"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
-	BranchColors map[string]string `yaml:"branchColors"`
+	// NOTE: BranchColors is being deprecated in favor of BranchColorPatterns
+	BranchColors        map[string]string `yaml:"branchColors"`
+	BranchColorPatterns map[string]string `yaml:"branchColorPatterns"`
 	// The number of lines you scroll by when scrolling the main window
 	ScrollHeight int `yaml:"scrollHeight" jsonschema:"minimum=1"`
 	// If true, allow scrolling past the bottom of the content in the main window
