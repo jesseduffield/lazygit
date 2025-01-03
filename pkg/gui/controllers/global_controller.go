@@ -69,10 +69,11 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Modifier: gocui.ModNone,
 			// we have the description on the alt key and not the main key for legacy reasons
 			// (the original main key was 'x' but we've reassigned that to other purposes)
-			Description:      self.c.Tr.OpenKeybindingsMenu,
-			Handler:          self.createOptionsMenu,
-			ShortDescription: self.c.Tr.Keybindings,
-			DisplayOnScreen:  true,
+			Description:       self.c.Tr.OpenKeybindingsMenu,
+			Handler:           self.createOptionsMenu,
+			ShortDescription:  self.c.Tr.Keybindings,
+			DisplayOnScreen:   true,
+			GetDisabledReason: self.optionsMenuDisabledReason,
 		},
 		{
 			ViewName:    "",
@@ -154,6 +155,17 @@ func (self *GlobalController) prevScreenMode() error {
 
 func (self *GlobalController) createOptionsMenu() error {
 	return (&OptionsMenuAction{c: self.c}).Call()
+}
+
+func (self *GlobalController) optionsMenuDisabledReason() *types.DisabledReason {
+	ctx := self.c.Context().Current()
+	// Don't show options menu while displaying popup.
+	if ctx.GetKind() == types.PERSISTENT_POPUP || ctx.GetKind() == types.TEMPORARY_POPUP {
+		// The empty error text is intentional. We don't want to show an error
+		// toast for this, but only hide it from the options map.
+		return &types.DisabledReason{Text: ""}
+	}
+	return nil
 }
 
 func (self *GlobalController) createFilteringMenu() error {
