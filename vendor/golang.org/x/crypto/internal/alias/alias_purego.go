@@ -3,11 +3,9 @@
 // license that can be found in the LICENSE file.
 
 //go:build purego
-// +build purego
 
-// Package subtle implements functions that are often useful in cryptographic
-// code but require careful thought to use correctly.
-package subtle // import "golang.org/x/crypto/internal/subtle"
+// Package alias implements memory aliasing tests.
+package alias
 
 // This is the Google App Engine standard variant based on reflect
 // because the unsafe package and cgo are disallowed.

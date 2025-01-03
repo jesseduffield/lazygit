@@ -402,7 +402,7 @@ func (s signatureWriter) Close() error {
 	return s.encryptedData.Close()
 }
 
-// noOpCloser is like an ioutil.NopCloser, but for an io.Writer.
+// noOpCloser is like an io.NopCloser, but for an io.Writer.
 // TODO: we have two of these in OpenPGP packages alone. This probably needs
 // to be promoted somewhere more common.
 type noOpCloser struct {

@@ -10,14 +10,15 @@
 // for their specific task. If you are required to interoperate with OpenPGP
 // systems and need a maintained package, consider a community fork.
 // See https://golang.org/issue/44226.
-package armor // import "golang.org/x/crypto/openpgp/armor"
+package armor
 
 import (
 	"bufio"
 	"bytes"
 	"encoding/base64"
-	"golang.org/x/crypto/openpgp/errors"
 	"io"
+
+	"golang.org/x/crypto/openpgp/errors"
 )
 
 // A Block represents an OpenPGP armored structure.
@@ -156,7 +157,7 @@ func (r *openpgpReader) Read(p []byte) (n int, err error) {
 	n, err = r.b64Reader.Read(p)
 	r.currentCRC = crc24(r.currentCRC, p[:n])
 
-	if err == io.EOF && r.lReader.crcSet && r.lReader.crc != uint32(r.currentCRC&crc24Mask) {
+	if err == io.EOF && r.lReader.crcSet && r.lReader.crc != r.currentCRC&crc24Mask {
 		return 0, ArmorCorrupt
 	}
 
