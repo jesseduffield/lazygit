@@ -940,6 +940,14 @@ git:
       replace: '[$1] '
 ```
 
+> [!IMPORTANT]
+> The way golang regex works is when you use `$n` in the replacement string, where `n` is a number, it puts the nth captured subgroup at that place. If `n` is out of range because there aren't that many capture groups in the regex, it puts an empty string there.
+>
+> So make sure you are capturing group or groups in your regex.
+>
+> For example `^[A-Z]+-\d+$` won't work on branch name like BRANCH-1111
+> But `^([A-Z]+-\d+)$` will
+
 ## Predefined branch name prefix
 
 In situations where certain naming pattern is used for branches, this can be used to populate new branch creation with a static prefix.
