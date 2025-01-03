@@ -19,8 +19,7 @@
 // The differences in this and the original implementation are
 // due to the calling conventions and initialization of constants.
 
-//go:build gc && !purego
-// +build gc,!purego
+//go:build gc && !purego && (ppc64 || ppc64le)
 
 #include "textflag.h"
 
@@ -34,27 +33,70 @@
 #define CONSTBASE  R16
 #define BLOCKS R17
 
-DATA consts<>+0x00(SB)/8, $0x3320646e61707865
-DATA consts<>+0x08(SB)/8, $0x6b20657479622d32
-DATA consts<>+0x10(SB)/8, $0x0000000000000001
-DATA consts<>+0x18(SB)/8, $0x0000000000000000
-DATA consts<>+0x20(SB)/8, $0x0000000000000004
-DATA consts<>+0x28(SB)/8, $0x0000000000000000
-DATA consts<>+0x30(SB)/8, $0x0a0b08090e0f0c0d
-DATA consts<>+0x38(SB)/8, $0x0203000106070405
-DATA consts<>+0x40(SB)/8, $0x090a0b080d0e0f0c
-DATA consts<>+0x48(SB)/8, $0x0102030005060704
-DATA consts<>+0x50(SB)/8, $0x6170786561707865
-DATA consts<>+0x58(SB)/8, $0x6170786561707865
-DATA consts<>+0x60(SB)/8, $0x3320646e3320646e
-DATA consts<>+0x68(SB)/8, $0x3320646e3320646e
-DATA consts<>+0x70(SB)/8, $0x79622d3279622d32
-DATA consts<>+0x78(SB)/8, $0x79622d3279622d32
-DATA consts<>+0x80(SB)/8, $0x6b2065746b206574
-DATA consts<>+0x88(SB)/8, $0x6b2065746b206574
-DATA consts<>+0x90(SB)/8, $0x0000000100000000
-DATA consts<>+0x98(SB)/8, $0x0000000300000002
-GLOBL consts<>(SB), RODATA, $0xa0
+// for VPERMXOR
+#define MASK  R18
+
+DATA consts<>+0x00(SB)/4, $0x61707865
+DATA consts<>+0x04(SB)/4, $0x3320646e
+DATA consts<>+0x08(SB)/4, $0x79622d32
+DATA consts<>+0x0c(SB)/4, $0x6b206574
+DATA consts<>+0x10(SB)/4, $0x00000001
+DATA consts<>+0x14(SB)/4, $0x00000000
+DATA consts<>+0x18(SB)/4, $0x00000000
+DATA consts<>+0x1c(SB)/4, $0x00000000
+DATA consts<>+0x20(SB)/4, $0x00000004
+DATA consts<>+0x24(SB)/4, $0x00000000
+DATA consts<>+0x28(SB)/4, $0x00000000
+DATA consts<>+0x2c(SB)/4, $0x00000000
+DATA consts<>+0x30(SB)/4, $0x0e0f0c0d
+DATA consts<>+0x34(SB)/4, $0x0a0b0809
+DATA consts<>+0x38(SB)/4, $0x06070405
+DATA consts<>+0x3c(SB)/4, $0x02030001
+DATA consts<>+0x40(SB)/4, $0x0d0e0f0c
+DATA consts<>+0x44(SB)/4, $0x090a0b08
+DATA consts<>+0x48(SB)/4, $0x05060704
+DATA consts<>+0x4c(SB)/4, $0x01020300
+DATA consts<>+0x50(SB)/4, $0x61707865
+DATA consts<>+0x54(SB)/4, $0x61707865
+DATA consts<>+0x58(SB)/4, $0x61707865
+DATA consts<>+0x5c(SB)/4, $0x61707865
+DATA consts<>+0x60(SB)/4, $0x3320646e
+DATA consts<>+0x64(SB)/4, $0x3320646e
+DATA consts<>+0x68(SB)/4, $0x3320646e
+DATA consts<>+0x6c(SB)/4, $0x3320646e
+DATA consts<>+0x70(SB)/4, $0x79622d32
+DATA consts<>+0x74(SB)/4, $0x79622d32
+DATA consts<>+0x78(SB)/4, $0x79622d32
+DATA consts<>+0x7c(SB)/4, $0x79622d32
+DATA consts<>+0x80(SB)/4, $0x6b206574
+DATA consts<>+0x84(SB)/4, $0x6b206574
+DATA consts<>+0x88(SB)/4, $0x6b206574
+DATA consts<>+0x8c(SB)/4, $0x6b206574
+DATA consts<>+0x90(SB)/4, $0x00000000
+DATA consts<>+0x94(SB)/4, $0x00000001
+DATA consts<>+0x98(SB)/4, $0x00000002
+DATA consts<>+0x9c(SB)/4, $0x00000003
+DATA consts<>+0xa0(SB)/4, $0x11223300
+DATA consts<>+0xa4(SB)/4, $0x55667744
+DATA consts<>+0xa8(SB)/4, $0x99aabb88
+DATA consts<>+0xac(SB)/4, $0xddeeffcc
+DATA consts<>+0xb0(SB)/4, $0x22330011
+DATA consts<>+0xb4(SB)/4, $0x66774455
+DATA consts<>+0xb8(SB)/4, $0xaabb8899
+DATA consts<>+0xbc(SB)/4, $0xeeffccdd
+GLOBL consts<>(SB), RODATA, $0xc0
+
+#ifdef GOARCH_ppc64
+#define BE_XXBRW_INIT() \
+		LVSL (R0)(R0), V24 \
+		VSPLTISB $3, V25   \
+		VXOR V24, V25, V24 \
+
+#define BE_XXBRW(vr) VPERM vr, vr, V24, vr
+#else
+#define BE_XXBRW_INIT()
+#define BE_XXBRW(vr)
+#endif
 
 //func chaCha20_ctr32_vsx(out, inp *byte, len int, key *[8]uint32, counter *uint32)
 TEXT ·chaCha20_ctr32_vsx(SB),NOSPLIT,$64-40
@@ -71,6 +113,9 @@ TEXT ·chaCha20_ctr32_vsx(SB),NOSPLIT,$64-40
 	MOVD $48, R10
 	MOVD $64, R11
 	SRD $6, LEN, BLOCKS
+	// for VPERMXOR
+	MOVD $consts<>+0xa0(SB), MASK
+	MOVD $16, R20
 	// V16
 	LXVW4X (CONSTBASE)(R0), VS48
 	ADD $80,CONSTBASE
@@ -85,8 +130,14 @@ TEXT ·chaCha20_ctr32_vsx(SB),NOSPLIT,$64-40
 	// Clear V27
 	VXOR V27, V27, V27
 
+	BE_XXBRW_INIT()
+
 	// V28
 	LXVW4X (CONSTBASE)(R11), VS60
+
+	// Load mask constants for VPERMXOR
+	LXVW4X (MASK)(R0), V20
+	LXVW4X (MASK)(R20), V21
 
 	// splat slot from V19 -> V26
 	VSPLTW $0, V19, V26
@@ -98,7 +149,7 @@ TEXT ·chaCha20_ctr32_vsx(SB),NOSPLIT,$64-40
 
 	MOVD $10, R14
 	MOVD R14, CTR
-
+	PCALIGN $16
 loop_outer_vsx:
 	// V0, V1, V2, V3
 	LXVW4X (R0)(CONSTBASE), VS32
@@ -129,22 +180,17 @@ loop_outer_vsx:
 	VSPLTISW $12, V28
 	VSPLTISW $8, V29
 	VSPLTISW $7, V30
-
+	PCALIGN $16
 loop_vsx:
 	VADDUWM V0, V4, V0
 	VADDUWM V1, V5, V1
 	VADDUWM V2, V6, V2
 	VADDUWM V3, V7, V3
 
-	VXOR V12, V0, V12
-	VXOR V13, V1, V13
-	VXOR V14, V2, V14
-	VXOR V15, V3, V15
-
-	VRLW V12, V27, V12
-	VRLW V13, V27, V13
-	VRLW V14, V27, V14
-	VRLW V15, V27, V15
+	VPERMXOR V12, V0, V21, V12
+	VPERMXOR V13, V1, V21, V13
+	VPERMXOR V14, V2, V21, V14
+	VPERMXOR V15, V3, V21, V15
 
 	VADDUWM V8, V12, V8
 	VADDUWM V9, V13, V9
@@ -166,15 +212,10 @@ loop_vsx:
 	VADDUWM V2, V6, V2
 	VADDUWM V3, V7, V3
 
-	VXOR V12, V0, V12
-	VXOR V13, V1, V13
-	VXOR V14, V2, V14
-	VXOR V15, V3, V15
-
-	VRLW V12, V29, V12
-	VRLW V13, V29, V13
-	VRLW V14, V29, V14
-	VRLW V15, V29, V15
+	VPERMXOR V12, V0, V20, V12
+	VPERMXOR V13, V1, V20, V13
+	VPERMXOR V14, V2, V20, V14
+	VPERMXOR V15, V3, V20, V15
 
 	VADDUWM V8, V12, V8
 	VADDUWM V9, V13, V9
@@ -196,15 +237,10 @@ loop_vsx:
 	VADDUWM V2, V7, V2
 	VADDUWM V3, V4, V3
 
-	VXOR V15, V0, V15
-	VXOR V12, V1, V12
-	VXOR V13, V2, V13
-	VXOR V14, V3, V14
-
-	VRLW V15, V27, V15
-	VRLW V12, V27, V12
-	VRLW V13, V27, V13
-	VRLW V14, V27, V14
+	VPERMXOR V15, V0, V21, V15
+	VPERMXOR V12, V1, V21, V12
+	VPERMXOR V13, V2, V21, V13
+	VPERMXOR V14, V3, V21, V14
 
 	VADDUWM V10, V15, V10
 	VADDUWM V11, V12, V11
@@ -226,15 +262,10 @@ loop_vsx:
 	VADDUWM V2, V7, V2
 	VADDUWM V3, V4, V3
 
-	VXOR V15, V0, V15
-	VXOR V12, V1, V12
-	VXOR V13, V2, V13
-	VXOR V14, V3, V14
-
-	VRLW V15, V29, V15
-	VRLW V12, V29, V12
-	VRLW V13, V29, V13
-	VRLW V14, V29, V14
+	VPERMXOR V15, V0, V20, V15
+	VPERMXOR V12, V1, V20, V12
+	VPERMXOR V13, V2, V20, V13
+	VPERMXOR V14, V3, V20, V14
 
 	VADDUWM V10, V15, V10
 	VADDUWM V11, V12, V11
@@ -250,48 +281,48 @@ loop_vsx:
 	VRLW V6, V30, V6
 	VRLW V7, V30, V7
 	VRLW V4, V30, V4
-	BC   16, LT, loop_vsx
+	BDNZ   loop_vsx
 
 	VADDUWM V12, V26, V12
 
-	WORD $0x13600F8C		// VMRGEW V0, V1, V27
-	WORD $0x13821F8C		// VMRGEW V2, V3, V28
+	VMRGEW V0, V1, V27
+	VMRGEW V2, V3, V28
 
-	WORD $0x10000E8C		// VMRGOW V0, V1, V0
-	WORD $0x10421E8C		// VMRGOW V2, V3, V2
+	VMRGOW V0, V1, V0
+	VMRGOW V2, V3, V2
 
-	WORD $0x13A42F8C		// VMRGEW V4, V5, V29
-	WORD $0x13C63F8C		// VMRGEW V6, V7, V30
+	VMRGEW V4, V5, V29
+	VMRGEW V6, V7, V30
 
 	XXPERMDI VS32, VS34, $0, VS33
 	XXPERMDI VS32, VS34, $3, VS35
 	XXPERMDI VS59, VS60, $0, VS32
 	XXPERMDI VS59, VS60, $3, VS34
 
-	WORD $0x10842E8C		// VMRGOW V4, V5, V4
-	WORD $0x10C63E8C		// VMRGOW V6, V7, V6
+	VMRGOW V4, V5, V4
+	VMRGOW V6, V7, V6
 
-	WORD $0x13684F8C		// VMRGEW V8, V9, V27
-	WORD $0x138A5F8C		// VMRGEW V10, V11, V28
+	VMRGEW V8, V9, V27
+	VMRGEW V10, V11, V28
 
 	XXPERMDI VS36, VS38, $0, VS37
 	XXPERMDI VS36, VS38, $3, VS39
 	XXPERMDI VS61, VS62, $0, VS36
 	XXPERMDI VS61, VS62, $3, VS38
 
-	WORD $0x11084E8C		// VMRGOW V8, V9, V8
-	WORD $0x114A5E8C		// VMRGOW V10, V11, V10
+	VMRGOW V8, V9, V8
+	VMRGOW V10, V11, V10
 
-	WORD $0x13AC6F8C		// VMRGEW V12, V13, V29
-	WORD $0x13CE7F8C		// VMRGEW V14, V15, V30
+	VMRGEW V12, V13, V29
+	VMRGEW V14, V15, V30
 
 	XXPERMDI VS40, VS42, $0, VS41
 	XXPERMDI VS40, VS42, $3, VS43
 	XXPERMDI VS59, VS60, $0, VS40
 	XXPERMDI VS59, VS60, $3, VS42
 
-	WORD $0x118C6E8C		// VMRGOW V12, V13, V12
-	WORD $0x11CE7E8C		// VMRGOW V14, V15, V14
+	VMRGOW V12, V13, V12
+	VMRGOW V14, V15, V14
 
 	VSPLTISW $4, V27
 	VADDUWM V26, V27, V26
@@ -305,6 +336,11 @@ loop_vsx:
 	VADDUWM V4, V17, V4
 	VADDUWM V8, V18, V8
 	VADDUWM V12, V19, V12
+
+	BE_XXBRW(V0)
+	BE_XXBRW(V4)
+	BE_XXBRW(V8)
+	BE_XXBRW(V12)
 
 	CMPU LEN, $64
 	BLT tail_vsx
@@ -334,6 +370,11 @@ loop_vsx:
 	VADDUWM V9, V18, V8
 	VADDUWM V13, V19, V12
 
+	BE_XXBRW(V0)
+	BE_XXBRW(V4)
+	BE_XXBRW(V8)
+	BE_XXBRW(V12)
+
 	CMPU  LEN, $64
 	BLT   tail_vsx
 
@@ -341,8 +382,8 @@ loop_vsx:
 	LXVW4X (INP)(R8), VS60
 	LXVW4X (INP)(R9), VS61
 	LXVW4X (INP)(R10), VS62
-	VXOR   V27, V0, V27
 
+	VXOR V27, V0, V27
 	VXOR V28, V4, V28
 	VXOR V29, V8, V29
 	VXOR V30, V12, V30
@@ -360,6 +401,11 @@ loop_vsx:
 	VADDUWM V6, V17, V4
 	VADDUWM V10, V18, V8
 	VADDUWM V14, V19, V12
+
+	BE_XXBRW(V0)
+	BE_XXBRW(V4)
+	BE_XXBRW(V8)
+	BE_XXBRW(V12)
 
 	CMPU LEN, $64
 	BLT  tail_vsx
@@ -388,6 +434,11 @@ loop_vsx:
 	VADDUWM V11, V18, V8
 	VADDUWM V15, V19, V12
 
+	BE_XXBRW(V0)
+	BE_XXBRW(V4)
+	BE_XXBRW(V8)
+	BE_XXBRW(V12)
+
 	CMPU  LEN, $64
 	BLT   tail_vsx
 
@@ -415,9 +466,9 @@ loop_vsx:
 
 done_vsx:
 	// Increment counter by number of 64 byte blocks
-	MOVD (CNT), R14
+	MOVWZ (CNT), R14
 	ADD  BLOCKS, R14
-	MOVD R14, (CNT)
+	MOVWZ R14, (CNT)
 	RET
 
 tail_vsx:
@@ -432,7 +483,7 @@ tail_vsx:
 	ADD $-1, R11, R12
 	ADD $-1, INP
 	ADD $-1, OUT
-
+	PCALIGN $16
 looptail_vsx:
 	// Copying the result to OUT
 	// in bytes.
@@ -440,7 +491,7 @@ looptail_vsx:
 	MOVBZU 1(INP), TMP
 	XOR    KEY, TMP, KEY
 	MOVBU  KEY, 1(OUT)
-	BC     16, LT, looptail_vsx
+	BDNZ   looptail_vsx
 
 	// Clear the stack values
 	STXVW4X VS48, (R11)(R0)

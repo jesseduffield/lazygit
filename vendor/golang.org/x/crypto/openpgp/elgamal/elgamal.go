@@ -16,7 +16,7 @@
 // https://golang.org/issue/44226), and ElGamal in the OpenPGP ecosystem has
 // compatibility and security issues (see https://eprint.iacr.org/2021/923).
 // Moreover, this package doesn't protect against side-channel attacks.
-package elgamal // import "golang.org/x/crypto/openpgp/elgamal"
+package elgamal
 
 import (
 	"crypto/rand"

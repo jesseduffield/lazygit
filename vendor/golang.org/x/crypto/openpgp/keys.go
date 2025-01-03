@@ -61,7 +61,7 @@ type Key struct {
 type KeyRing interface {
 	// KeysById returns the set of keys that have the given key id.
 	KeysById(id uint64) []Key
-	// KeysByIdAndUsage returns the set of keys with the given id
+	// KeysByIdUsage returns the set of keys with the given id
 	// that also meet the key usage given by requiredUsage.
 	// The requiredUsage is expressed as the bitwise-OR of
 	// packet.KeyFlag* values.
@@ -183,7 +183,7 @@ func (el EntityList) KeysById(id uint64) (keys []Key) {
 	return
 }
 
-// KeysByIdAndUsage returns the set of keys with the given id that also meet
+// KeysByIdUsage returns the set of keys with the given id that also meet
 // the key usage given by requiredUsage.  The requiredUsage is expressed as
 // the bitwise-OR of packet.KeyFlag* values.
 func (el EntityList) KeysByIdUsage(id uint64, requiredUsage byte) (keys []Key) {

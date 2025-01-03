@@ -10,7 +10,7 @@
 // for their specific task. If you are required to interoperate with OpenPGP
 // systems and need a maintained package, consider a community fork.
 // See https://golang.org/issue/44226.
-package s2k // import "golang.org/x/crypto/openpgp/s2k"
+package s2k
 
 import (
 	"crypto"
@@ -268,7 +268,7 @@ func HashIdToString(id byte) (name string, ok bool) {
 	return "", false
 }
 
-// HashIdToHash returns an OpenPGP hash id which corresponds the given Hash.
+// HashToHashId returns an OpenPGP hash id which corresponds the given Hash.
 func HashToHashId(h crypto.Hash) (id byte, ok bool) {
 	for _, m := range hashToHashIdMapping {
 		if m.hash == h {
