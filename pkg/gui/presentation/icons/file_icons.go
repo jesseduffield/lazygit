@@ -10,9 +10,9 @@ import (
 // https://github.com/nvim-tree/nvim-web-devicons/blob/master/lua/nvim-web-devicons/icons-default.lua
 
 var (
-	DEFAULT_FILE_ICON      = IconProperties{Icon: "\uf15b", Color: "#ECECEC"}     // 
+	DEFAULT_FILE_ICON      = IconProperties{Icon: "\uf15b", Color: "#878787"}     // 
 	DEFAULT_SUBMODULE_ICON = IconProperties{Icon: "\U000f02a2", Color: "#FF4F00"} // 󰊢
-	DEFAULT_DIRECTORY_ICON = IconProperties{Icon: "\uf07b", Color: "#0087FF"}     // 
+	DEFAULT_DIRECTORY_ICON = IconProperties{Icon: "\uf07b", Color: "#878787"}     // 
 )
 
 var nameIconMap = map[string]IconProperties{
@@ -742,8 +742,8 @@ var extIconMap = map[string]IconProperties{
 	".xpi":            {Icon: "\ueae6", Color: "#375A8E"},     // 
 	".xul":            {Icon: "\uf121", Color: "#DC682E"},     // 
 	".xz":             {Icon: "\uf410", Color: "#ECA517"},     // 
-	".yaml":           {Icon: "\ue6a8", Color: "#C90F02"},     // 
-	".yml":            {Icon: "\ue6a8", Color: "#C90F02"},     // 
+	".yaml":           {Icon: "\ue6a8", Color: "#a074b3"},     // 
+	".yml":            {Icon: "\ue6a8", Color: "#a074b3"},     // 
 	".zig":            {Icon: "\ue6a9", Color: "#FAA825"},     // 
 	".zip":            {Icon: "\uf410", Color: "#ECA517"},     // 
 	".zsh":            {Icon: "\U000f018d", Color: "#FF7043"}, // 󰆍
