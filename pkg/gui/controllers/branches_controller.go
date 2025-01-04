@@ -194,6 +194,10 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 }
 
 func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branch) error {
+	upstream := lo.Ternary(selectedBranch.RemoteBranchStoredLocally(),
+		selectedBranch.ShortUpstreamRefName(),
+		self.c.Tr.UpstreamGenericName)
+
 	viewDivergenceItem := &types.MenuItem{
 		LabelColumns: []string{self.c.Tr.ViewDivergenceFromUpstream},
 		OnPress: func() error {
@@ -204,7 +208,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 
 			return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
 				Ref:                     branch,
-				TitleRef:                fmt.Sprintf("%s <-> %s", branch.RefName(), branch.ShortUpstreamRefName()),
+				TitleRef:                fmt.Sprintf("%s <-> %s", branch.RefName(), upstream),
 				RefToShowDivergenceFrom: branch.FullUpstreamRefName(),
 				Context:                 self.context(),
 				ShowBranchHeads:         false,
@@ -293,9 +297,6 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 		Key: 's',
 	}
 
-	upstream := lo.Ternary(selectedBranch.RemoteBranchStoredLocally(),
-		selectedBranch.ShortUpstreamRefName(),
-		self.c.Tr.UpstreamGenericName)
 	upstreamResetOptions := utils.ResolvePlaceholderString(
 		self.c.Tr.ViewUpstreamResetOptions,
 		map[string]string{"upstream": upstream},
@@ -332,7 +333,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 		LabelColumns: []string{upstreamRebaseOptions},
 		OpensMenu:    true,
 		OnPress: func() error {
-			if err := self.c.Helpers().MergeAndRebase.RebaseOntoRef(selectedBranch.ShortUpstreamRefName()); err != nil {
+			if err := self.c.Helpers().MergeAndRebase.RebaseOntoRef(upstream); err != nil {
 				return err
 			}
 			return nil
