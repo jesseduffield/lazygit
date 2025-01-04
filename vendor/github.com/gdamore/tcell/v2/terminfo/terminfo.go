@@ -150,6 +150,7 @@ type Terminfo struct {
 	KeyPrint     string // kprt
 	KeyCancel    string // kcan
 	Mouse        string // kmous
+	MouseMode    string // XM
 	AltChars     string // acsc
 	EnterAcs     string // smacs
 	ExitAcs      string // rmacs

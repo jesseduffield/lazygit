@@ -27,4 +27,5 @@ wy60
 wy99-ansi,wy99a-ansi
 xfce
 xterm,xterm-88color,xterm-256color
+xterm-ghostty
 xterm-kitty
