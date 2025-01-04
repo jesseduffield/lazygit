@@ -19,6 +19,7 @@ var ResetToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			NewBranch("soft-branch").
 			EmptyCommit("soft commit").
 			PushBranchAndSetUpstream("origin", "soft-branch").
+			RenameCurrentBranch("soft-branch-local").
 			NewBranch("base").
 			EmptyCommit("base-branch commit").
 			CreateFile("file-1", "content").
@@ -33,7 +34,7 @@ var ResetToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains("base").IsSelected(),
-				Contains("soft-branch"),
+				Contains("soft-branch-local"),
 				Contains("hard-branch"),
 			).
 			Press(keys.Branches.SetUpstream).
@@ -51,21 +52,34 @@ var ResetToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			Lines(
 				Contains("base"),
-				Contains("soft-branch").IsSelected(),
+				Contains("soft-branch-local").IsSelected(),
 				Contains("hard-branch"),
 			).
 			Press(keys.Branches.SetUpstream).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Upstream options")).
+					/* EXPECTED:
 					Select(Contains("Reset checked-out branch onto origin/soft-branch...")).
+					ACTUAL: */
+					Select(Contains("Reset checked-out branch onto origin/soft-branch-local...")).
 					Confirm()
 
 				t.ExpectPopup().Menu().
+					/* EXPECTED:
 					Title(Equals("Reset to origin/soft-branch")).
+					ACTUAL: */
+					Title(Equals("Reset to origin/soft-branch-local")).
 					Select(Contains("Soft reset")).
 					Confirm()
+
+				// Bug: the command fails
+				t.ExpectPopup().Alert().
+					Title(Equals("Error")).
+					Content(Contains("fatal: ambiguous argument 'origin/soft-branch-local': unknown revision or path not in the working tree.")).
+					Confirm()
 			})
+		/* Since the command failed, the following assertions are not valid
 		t.Views().Commits().Lines(
 			Contains("soft commit"),
 			Contains("hard commit"),
@@ -74,13 +88,14 @@ var ResetToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			Contains("file-1").Contains("A"),
 			Contains("file-2").Contains("A"),
 		)
+		*/
 
 		// hard reset
 		t.Views().Branches().
 			Focus().
 			Lines(
 				Contains("base"),
-				Contains("soft-branch").IsSelected(),
+				Contains("soft-branch-local").IsSelected(),
 				Contains("hard-branch"),
 			).
 			NavigateToLine(Contains("hard-branch")).
