@@ -65,10 +65,7 @@ var RebaseToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Upstream options")).
-					/* EXPECTED:
 					Select(Contains("Rebase checked-out branch onto origin/master...")).
-					ACTUAL: */
-					Select(Contains("Rebase checked-out branch onto origin/master-local...")).
 					Confirm()
 				t.ExpectPopup().Menu().
 					Title(Equals("Rebase 'target'")).

@@ -294,7 +294,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 	}
 
 	upstream := lo.Ternary(selectedBranch.RemoteBranchStoredLocally(),
-		fmt.Sprintf("%s/%s", selectedBranch.UpstreamRemote, selectedBranch.Name),
+		selectedBranch.ShortUpstreamRefName(),
 		self.c.Tr.UpstreamGenericName)
 	upstreamResetOptions := utils.ResolvePlaceholderString(
 		self.c.Tr.ViewUpstreamResetOptions,
