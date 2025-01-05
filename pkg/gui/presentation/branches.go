@@ -131,16 +131,7 @@ func GetBranchTextStyle(name string) style.TextStyle {
 		return value
 	}
 
-	switch branchType {
-	case "feature":
-		return style.FgGreen
-	case "bugfix":
-		return style.FgYellow
-	case "hotfix":
-		return style.FgRed
-	default:
-		return theme.DefaultTextColor
-	}
+	return theme.DefaultTextColor
 }
 
 func BranchStatus(
