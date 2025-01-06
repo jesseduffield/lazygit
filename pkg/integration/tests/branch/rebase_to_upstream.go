@@ -16,8 +16,9 @@ var RebaseToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			EmptyCommit("ensure-master").
 			EmptyCommit("to-be-added"). // <- this will only exist remotely
 			PushBranchAndSetUpstream("origin", "master").
+			RenameCurrentBranch("master-local").
 			HardReset("HEAD~1").
-			NewBranchFrom("base-branch", "master").
+			NewBranchFrom("base-branch", "master-local").
 			EmptyCommit("base-branch-commit").
 			NewBranch("target").
 			EmptyCommit("target-commit")
@@ -34,13 +35,13 @@ var RebaseToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("target").IsSelected(),
 				Contains("base-branch"),
-				Contains("master"),
+				Contains("master-local"),
 			).
 			SelectNextItem().
 			Lines(
 				Contains("target"),
 				Contains("base-branch").IsSelected(),
-				Contains("master"),
+				Contains("master-local"),
 			).
 			Press(keys.Branches.SetUpstream).
 			Tap(func() {
@@ -58,7 +59,7 @@ var RebaseToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("target"),
 				Contains("base-branch"),
-				Contains("master").IsSelected(),
+				Contains("master-local").IsSelected(),
 			).
 			Press(keys.Branches.SetUpstream).
 			Tap(func() {
