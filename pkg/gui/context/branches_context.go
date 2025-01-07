@@ -80,6 +80,14 @@ func (self *BranchesContext) GetDiffTerminals() []string {
 	return nil
 }
 
+func (self *BranchesContext) RefForAdjustingLineNumberInDiff() string {
+	branch := self.GetSelected()
+	if branch != nil {
+		return branch.ID()
+	}
+	return ""
+}
+
 func (self *BranchesContext) ShowBranchHeadsInSubCommits() bool {
 	return true
 }

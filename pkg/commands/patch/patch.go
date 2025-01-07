@@ -154,3 +154,24 @@ func (self *Patch) LineCount() int {
 func (self *Patch) HunkCount() int {
 	return len(self.hunks)
 }
+
+// Adjust the given line number (one-based) according to the current patch. The
+// patch is supposed to be a diff of an old file state against the working
+// directory; the line number is a line number in that old file, and the
+// function returns the corresponding line number in the working directory file.
+func (self *Patch) AdjustLineNumber(lineNumber int) int {
+	adjustedLineNumber := lineNumber
+	for _, hunk := range self.hunks {
+		if hunk.oldStart >= lineNumber {
+			break
+		}
+
+		if hunk.oldStart+hunk.oldLength() > lineNumber {
+			return hunk.newStart
+		}
+
+		adjustedLineNumber += hunk.newLength() - hunk.oldLength()
+	}
+
+	return adjustedLineNumber
+}

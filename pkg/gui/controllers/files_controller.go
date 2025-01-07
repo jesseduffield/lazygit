@@ -869,7 +869,7 @@ func (self *FilesController) openCopyMenu() error {
 		OnPress: func() error {
 			path := self.context().GetSelectedPath()
 			hasStaged := self.hasPathStagedChanges(node)
-			diff, err := self.c.Git().Diff.GetPathDiff(path, hasStaged)
+			diff, err := self.c.Git().Diff.GetDiff(hasStaged, "--", path)
 			if err != nil {
 				return err
 			}
@@ -894,7 +894,7 @@ func (self *FilesController) openCopyMenu() error {
 		Tooltip: self.c.Tr.CopyFileDiffTooltip,
 		OnPress: func() error {
 			hasStaged := self.c.Helpers().WorkingTree.AnyStagedFiles()
-			diff, err := self.c.Git().Diff.GetAllDiff(hasStaged)
+			diff, err := self.c.Git().Diff.GetDiff(hasStaged, "--")
 			if err != nil {
 				return err
 			}
