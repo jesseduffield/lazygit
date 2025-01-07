@@ -358,7 +358,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		return nil
 	})
 
-	gui.g.SetOpenHyperlinkFunc(func(url string) error {
+	gui.g.SetOpenHyperlinkFunc(func(url string, viewname string) error {
 		if strings.HasPrefix(url, "lazygit-edit:") {
 			re := regexp.MustCompile(`^lazygit-edit://(.+?)(?::(\d+))?$`)
 			matches := re.FindStringSubmatch(url)

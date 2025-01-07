@@ -130,7 +130,7 @@ type Gui struct {
 	managers          []Manager
 	keybindings       []*keybinding
 	focusHandler      func(bool) error
-	openHyperlink     func(string) error
+	openHyperlink     func(string, string) error
 	maxX, maxY        int
 	outputMode        OutputMode
 	stop              chan struct{}
@@ -627,7 +627,7 @@ func (g *Gui) SetFocusHandler(handler func(bool) error) {
 	g.focusHandler = handler
 }
 
-func (g *Gui) SetOpenHyperlinkFunc(openHyperlinkFunc func(string) error) {
+func (g *Gui) SetOpenHyperlinkFunc(openHyperlinkFunc func(string, string) error) {
 	g.openHyperlink = openHyperlinkFunc
 }
 
@@ -1371,7 +1371,7 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		if ev.Key == MouseLeft && !v.Editable && g.openHyperlink != nil {
 			if newY >= 0 && newY <= len(v.viewLines)-1 && newX >= 0 && newX <= len(v.viewLines[newY].line)-1 {
 				if link := v.viewLines[newY].line[newX].hyperlink; link != "" {
-					return g.openHyperlink(link)
+					return g.openHyperlink(link, v.name)
 				}
 			}
 		}
