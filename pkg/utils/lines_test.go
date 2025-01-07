@@ -374,10 +374,9 @@ func TestWrapViewLinesToWidth(t *testing.T) {
 				"longer.",
 				"Third",
 				"paragraph",
-				"",
 			},
-			expectedWrappedLinesIndices:  []int{0, 2, 6, 8},
-			expectedOriginalLinesIndices: []int{0, 0, 1, 1, 1, 1, 2, 2, 3},
+			expectedWrappedLinesIndices:  []int{0, 2, 6},
+			expectedOriginalLinesIndices: []int{0, 0, 1, 1, 1, 1, 2, 2},
 		},
 	}
 	for _, tt := range tests {
