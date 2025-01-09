@@ -3,7 +3,9 @@ package controllers
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type CommitDescriptionController struct {
@@ -56,6 +58,15 @@ func (self *CommitDescriptionController) GetMouseKeybindings(opts types.Keybindi
 			Key:      gocui.MouseLeft,
 			Handler:  self.onClick,
 		},
+	}
+}
+
+func (self *CommitDescriptionController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(types.OnFocusOpts) {
+		self.c.Views().CommitDescription.Footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooter,
+			map[string]string{
+				"confirmInEditorKeybinding": keybindings.Label(self.c.UserConfig().Keybinding.Universal.ConfirmInEditor),
+			})
 	}
 }
 

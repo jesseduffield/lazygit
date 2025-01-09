@@ -373,9 +373,7 @@ func (self *FilesController) optimisticChange(nodes []*filetree.FileNode, optimi
 	}
 
 	if rerender {
-		if err := self.c.PostRefreshUpdate(self.c.Contexts().Files); err != nil {
-			return err
-		}
+		self.c.PostRefreshUpdate(self.c.Contexts().Files)
 	}
 
 	return nil
@@ -666,7 +664,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 		Title:  self.c.Tr.AmendLastCommitTitle,
 		Prompt: self.c.Tr.SureToAmend,
 		HandleConfirm: func() error {
-			return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+			return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 				if len(self.c.Model().Commits) == 0 {
 					return errors.New(self.c.Tr.NoCommitToAmend)
 				}
@@ -698,6 +696,13 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				Key: 'u',
 			},
 			{
+				Label: self.c.Tr.FilterTrackedFiles,
+				OnPress: func() error {
+					return self.setStatusFiltering(filetree.DisplayTracked)
+				},
+				Key: 't',
+			},
+			{
 				Label: self.c.Tr.ResetFilter,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayAll)
@@ -710,7 +715,8 @@ func (self *FilesController) handleStatusFilterPressed() error {
 
 func (self *FilesController) setStatusFiltering(filter filetree.FileTreeDisplayFilter) error {
 	self.context().FileTreeViewModel.SetStatusFilter(filter)
-	return self.c.PostRefreshUpdate(self.context())
+	self.c.PostRefreshUpdate(self.context())
+	return nil
 }
 
 func (self *FilesController) edit(nodes []*filetree.FileNode) error {
@@ -863,7 +869,7 @@ func (self *FilesController) openCopyMenu() error {
 		OnPress: func() error {
 			path := self.context().GetSelectedPath()
 			hasStaged := self.hasPathStagedChanges(node)
-			diff, err := self.c.Git().Diff.GetPathDiff(path, hasStaged)
+			diff, err := self.c.Git().Diff.GetDiff(hasStaged, "--", path)
 			if err != nil {
 				return err
 			}
@@ -888,7 +894,7 @@ func (self *FilesController) openCopyMenu() error {
 		Tooltip: self.c.Tr.CopyFileDiffTooltip,
 		OnPress: func() error {
 			hasStaged := self.c.Helpers().WorkingTree.AnyStagedFiles()
-			diff, err := self.c.Git().Diff.GetAllDiff(hasStaged)
+			diff, err := self.c.Git().Diff.GetDiff(hasStaged, "--")
 			if err != nil {
 				return err
 			}
@@ -949,9 +955,7 @@ func (self *FilesController) handleToggleDirCollapsed() error {
 
 	self.context().FileTreeViewModel.ToggleCollapsed(node.GetPath())
 
-	if err := self.c.PostRefreshUpdate(self.c.Contexts().Files); err != nil {
-		self.c.Log.Error(err)
-	}
+	self.c.PostRefreshUpdate(self.c.Contexts().Files)
 
 	return nil
 }
@@ -959,7 +963,8 @@ func (self *FilesController) handleToggleDirCollapsed() error {
 func (self *FilesController) toggleTreeView() error {
 	self.context().FileTreeViewModel.ToggleShowTree()
 
-	return self.c.PostRefreshUpdate(self.context())
+	self.c.PostRefreshUpdate(self.context())
+	return nil
 }
 
 func (self *FilesController) handleStashSave(stashFunc func(message string) error, action string) error {

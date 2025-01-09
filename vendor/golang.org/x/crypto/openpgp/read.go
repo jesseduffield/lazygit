@@ -9,7 +9,7 @@
 // for their specific task. If you are required to interoperate with OpenPGP
 // systems and need a maintained package, consider a community fork.
 // See https://golang.org/issue/44226.
-package openpgp // import "golang.org/x/crypto/openpgp"
+package openpgp
 
 import (
 	"crypto"

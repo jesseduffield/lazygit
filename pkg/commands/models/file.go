@@ -19,6 +19,8 @@ type File struct {
 	HasInlineMergeConflicts bool
 	DisplayString           string
 	ShortStatus             string // e.g. 'AD', ' A', 'M ', '??'
+	LinesDeleted            int
+	LinesAdded              int
 
 	// If true, this must be a worktree folder
 	IsWorktree bool

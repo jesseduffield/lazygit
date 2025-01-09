@@ -170,9 +170,9 @@ func (self *PatchExplorerController) GetMouseKeybindings(opts types.KeybindingsO
 }
 
 func (self *PatchExplorerController) HandlePrevLine() error {
-	before := self.context.GetState().GetSelectedLineIdx()
+	before := self.context.GetState().GetSelectedViewLineIdx()
 	self.context.GetState().CycleSelection(false)
-	after := self.context.GetState().GetSelectedLineIdx()
+	after := self.context.GetState().GetSelectedViewLineIdx()
 
 	if self.context.GetState().SelectingLine() {
 		checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig(), before, after)
@@ -182,9 +182,9 @@ func (self *PatchExplorerController) HandlePrevLine() error {
 }
 
 func (self *PatchExplorerController) HandleNextLine() error {
-	before := self.context.GetState().GetSelectedLineIdx()
+	before := self.context.GetState().GetSelectedViewLineIdx()
 	self.context.GetState().CycleSelection(true)
-	after := self.context.GetState().GetSelectedLineIdx()
+	after := self.context.GetState().GetSelectedViewLineIdx()
 
 	if self.context.GetState().SelectingLine() {
 		checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig(), before, after)
@@ -302,7 +302,7 @@ func (self *PatchExplorerController) withRenderAndFocus(f func() error) func() e
 			return err
 		}
 
-		self.context.RenderAndFocus(self.isFocused())
+		self.context.RenderAndFocus()
 		return nil
 	})
 }

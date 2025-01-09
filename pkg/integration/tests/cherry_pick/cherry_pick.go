@@ -66,7 +66,7 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Alert().
 					Title(Equals("Cherry-pick")).
-					Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
+					Content(Contains("Are you sure you want to cherry-pick the 2 copied commit(s) onto this branch?")).
 					Confirm()
 			}).
 			Tap(func() {
@@ -77,6 +77,33 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("three"),
 				Contains("two"),
 				Contains("one"),
+				Contains("base"),
+			)
+
+		// Even though the cherry-picking mode has been reset, it's still possible to paste the copied commits again:
+		t.Views().Branches().
+			Focus().
+			NavigateToLine(Contains("master")).
+			PressPrimaryAction()
+
+		t.Views().Commits().
+			Focus().
+			Lines(
+				Contains("base").IsSelected(),
+			).
+			Press(keys.Commits.PasteCommits).
+			Tap(func() {
+				t.ExpectPopup().Alert().
+					Title(Equals("Cherry-pick")).
+					Content(Contains("Are you sure you want to cherry-pick the 2 copied commit(s) onto this branch?")).
+					Confirm()
+			}).
+			Tap(func() {
+				t.Views().Information().Content(DoesNotContain("commits copied"))
+			}).
+			Lines(
+				Contains("four"),
+				Contains("three"),
 				Contains("base"),
 			)
 	},

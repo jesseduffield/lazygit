@@ -87,7 +87,7 @@ func (self *WorkingTreeHelper) OpenMergeTool() error {
 }
 
 func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage string) error {
-	return self.WithEnsureCommitableFiles(func() error {
+	return self.WithEnsureCommittableFiles(func() error {
 		self.commitsHelper.OpenCommitMessagePanel(
 			&OpenCommitMessagePanelOpts{
 				CommitIndex:      context.NoCommitIndex,
@@ -131,7 +131,7 @@ func (self *WorkingTreeHelper) switchFromCommitMessagePanelToEditor(filepath str
 // HandleCommitEditorPress - handle when the user wants to commit changes via
 // their editor rather than via the popup panel
 func (self *WorkingTreeHelper) HandleCommitEditorPress() error {
-	return self.WithEnsureCommitableFiles(func() error {
+	return self.WithEnsureCommittableFiles(func() error {
 		self.c.LogAction(self.c.Tr.Actions.Commit)
 		return self.c.RunSubprocessAndRefresh(
 			self.c.Git().Commit.CommitEditorCmdObj(),
@@ -172,7 +172,7 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 	return self.HandleCommitPressWithMessage(message)
 }
 
-func (self *WorkingTreeHelper) WithEnsureCommitableFiles(handler func() error) error {
+func (self *WorkingTreeHelper) WithEnsureCommittableFiles(handler func() error) error {
 	if err := self.prepareFilesForCommit(); err != nil {
 		return err
 	}

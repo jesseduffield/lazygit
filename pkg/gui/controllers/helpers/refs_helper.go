@@ -18,6 +18,7 @@ type IRefsHelper interface {
 	CheckoutRef(ref string, options types.CheckoutRefOptions) error
 	GetCheckedOutRef() *models.Branch
 	CreateGitResetMenu(ref string) error
+	CreateCheckoutMenu(commit *models.Commit) error
 	ResetToRef(ref string, strength string, envVars []string) error
 	NewBranch(from string, fromDescription string, suggestedBranchname string) error
 }
@@ -74,7 +75,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 				return options.OnRefNotFound(ref)
 			}
 
-			if IsSwitchBranchUncommitedChangesError(err) {
+			if IsSwitchBranchUncommittedChangesError(err) {
 				// offer to autostash changes
 				self.c.OnUIThread(func() error {
 					// (Before showing the prompt, render again to remove the inline status)
@@ -271,6 +272,53 @@ func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 	})
 }
 
+func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
+	branches := lo.Filter(self.c.Model().Branches, func(branch *models.Branch, _ int) bool {
+		return commit.Hash == branch.CommitHash && branch.Name != self.c.Model().CheckedOutBranch
+	})
+
+	hash := commit.Hash
+	var menuItems []*types.MenuItem
+
+	if len(branches) > 0 {
+		menuItems = append(menuItems, lo.Map(branches, func(branch *models.Branch, index int) *types.MenuItem {
+			var key types.Key
+			if index < 9 {
+				key = rune(index + 1 + '0') // Convert 1-based index to key
+			}
+			return &types.MenuItem{
+				LabelColumns: []string{fmt.Sprintf(self.c.Tr.Actions.CheckoutBranchAtCommit, branch.Name)},
+				OnPress: func() error {
+					self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
+					return self.CheckoutRef(branch.RefName(), types.CheckoutRefOptions{})
+				},
+				Key: key,
+			}
+		})...)
+	} else {
+		menuItems = append(menuItems, &types.MenuItem{
+			LabelColumns:   []string{self.c.Tr.Actions.CheckoutBranch},
+			OnPress:        func() error { return nil },
+			DisabledReason: &types.DisabledReason{Text: self.c.Tr.NoBranchesFoundAtCommitTooltip},
+			Key:            '1',
+		})
+	}
+
+	menuItems = append(menuItems, &types.MenuItem{
+		LabelColumns: []string{fmt.Sprintf(self.c.Tr.Actions.CheckoutCommitAsDetachedHead, utils.ShortHash(hash))},
+		OnPress: func() error {
+			self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
+			return self.CheckoutRef(hash, types.CheckoutRefOptions{})
+		},
+		Key: 'd',
+	})
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.Actions.CheckoutBranchOrCommit,
+		Items: menuItems,
+	})
+}
+
 func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggestedBranchName string) error {
 	message := utils.ResolvePlaceholderString(
 		self.c.Tr.NewBranchNameBranchOff,
@@ -305,7 +353,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 				newBranchFunc = self.c.Git().Branch.NewWithoutTracking
 			}
 			if err := newBranchFunc(newBranchName, from); err != nil {
-				if IsSwitchBranchUncommitedChangesError(err) {
+				if IsSwitchBranchUncommittedChangesError(err) {
 					// offer to autostash changes
 					self.c.Confirm(types.ConfirmOpts{
 						Title:  self.c.Tr.AutoStashTitle,
@@ -365,6 +413,6 @@ func (self *RefsHelper) ParseRemoteBranchName(fullBranchName string) (string, st
 	return remoteName, branchName, true
 }
 
-func IsSwitchBranchUncommitedChangesError(err error) bool {
+func IsSwitchBranchUncommittedChangesError(err error) bool {
 	return strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch")
 }

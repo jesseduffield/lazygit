@@ -16,9 +16,12 @@ func NewDiffCommands(gitCommon *GitCommon) *DiffCommands {
 	}
 }
 
+// This is for generating diffs to be shown in the UI (e.g. rendering a range
+// diff to the main view). It uses a custom pager if one is configured.
 func (self *DiffCommands) DiffCmdObj(diffArgs []string) oscommands.ICmdObj {
 	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
 	useExtDiff := extDiffCmd != ""
+	ignoreWhitespace := self.AppState.IgnoreWhitespaceInDiffView
 
 	return self.cmd.New(
 		NewGitCmd("diff").
@@ -27,33 +30,29 @@ func (self *DiffCommands) DiffCmdObj(diffArgs []string) oscommands.ICmdObj {
 			ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
 			Arg("--submodule").
 			Arg(fmt.Sprintf("--color=%s", self.UserConfig().Git.Paging.ColorArg)).
+			ArgIf(ignoreWhitespace, "--ignore-all-space").
+			Arg(fmt.Sprintf("--unified=%d", self.AppState.DiffContextSize)).
 			Arg(diffArgs...).
 			Dir(self.repoPaths.worktreePath).
 			ToArgv(),
 	)
 }
 
-func (self *DiffCommands) internalDiffCmdObj(diffArgs ...string) *GitCommandBuilder {
-	return NewGitCmd("diff").
-		Config("diff.noprefix=false").
-		Arg("--no-ext-diff", "--no-color").
-		Arg(diffArgs...).
-		Dir(self.repoPaths.worktreePath)
-}
-
-func (self *DiffCommands) GetPathDiff(path string, staged bool) (string, error) {
+// This is a basic generic diff command that can be used for any diff operation
+// (e.g. copying a diff to the clipboard). It will not use a custom pager, and
+// does not use user configs such as ignore whitespace.
+// If you want to diff specific refs (one or two), you need to add them yourself
+// in additionalArgs; it is recommended to also pass `--` after that. If you
+// want to restrict the diff to specific paths, pass them in additionalArgs
+// after the `--`.
+func (self *DiffCommands) GetDiff(staged bool, additionalArgs ...string) (string, error) {
 	return self.cmd.New(
-		self.internalDiffCmdObj().
+		NewGitCmd("diff").
+			Config("diff.noprefix=false").
+			Arg("--no-ext-diff", "--no-color").
 			ArgIf(staged, "--staged").
-			Arg(path).
-			ToArgv(),
-	).RunWithOutput()
-}
-
-func (self *DiffCommands) GetAllDiff(staged bool) (string, error) {
-	return self.cmd.New(
-		self.internalDiffCmdObj().
-			ArgIf(staged, "--staged").
+			Dir(self.repoPaths.worktreePath).
+			Arg(additionalArgs...).
 			ToArgv(),
 	).RunWithOutput()
 }

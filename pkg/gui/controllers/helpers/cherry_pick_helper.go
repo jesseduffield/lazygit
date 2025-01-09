@@ -1,10 +1,13 @@
 package helpers
 
 import (
+	"strconv"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -57,15 +60,22 @@ func (self *CherryPickHelper) CopyRange(commitsList []*models.Commit, context ty
 		}
 	}
 
-	return self.rerender()
+	self.getData().DidPaste = false
+
+	self.rerender()
+	return nil
 }
 
 // HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied.
 // Only to be called from the branch commits controller
 func (self *CherryPickHelper) Paste() error {
 	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.CherryPick,
-		Prompt: self.c.Tr.SureCherryPick,
+		Title: self.c.Tr.CherryPick,
+		Prompt: utils.ResolvePlaceholderString(
+			self.c.Tr.SureCherryPick,
+			map[string]string{
+				"numCommits": strconv.Itoa(len(self.getData().CherryPickedCommits)),
+			}),
 		HandleConfirm: func() error {
 			isInRebase, err := self.c.Git().Status.IsInInteractiveRebase()
 			if err != nil {
@@ -102,7 +112,8 @@ func (self *CherryPickHelper) Paste() error {
 					return err
 				}
 				if !isInRebase {
-					return self.Reset()
+					self.getData().DidPaste = true
+					self.rerender()
 				}
 				return nil
 			})
@@ -113,14 +124,15 @@ func (self *CherryPickHelper) Paste() error {
 }
 
 func (self *CherryPickHelper) CanPaste() bool {
-	return self.getData().Active()
+	return self.getData().CanPaste()
 }
 
 func (self *CherryPickHelper) Reset() error {
 	self.getData().ContextKey = ""
 	self.getData().CherryPickedCommits = nil
 
-	return self.rerender()
+	self.rerender()
+	return nil
 }
 
 // you can only copy from one context at a time, because the order and position of commits matter
@@ -136,16 +148,12 @@ func (self *CherryPickHelper) resetIfNecessary(context types.Context) error {
 	return nil
 }
 
-func (self *CherryPickHelper) rerender() error {
+func (self *CherryPickHelper) rerender() {
 	for _, context := range []types.Context{
 		self.c.Contexts().LocalCommits,
 		self.c.Contexts().ReflogCommits,
 		self.c.Contexts().SubCommits,
 	} {
-		if err := self.c.PostRefreshUpdate(context); err != nil {
-			return err
-		}
+		self.c.PostRefreshUpdate(context)
 	}
-
-	return nil
 }

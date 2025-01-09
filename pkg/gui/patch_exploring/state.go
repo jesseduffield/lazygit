@@ -1,15 +1,19 @@
 package patch_exploring
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/sirupsen/logrus"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // State represents the current state of the patch explorer context i.e. when
 // you're staging a file or you're building a patch from an existing commit
 // this struct holds the info about the diff you're interacting with and what's currently selected.
 type State struct {
+	// These are in terms of view lines (wrapped), not patch lines
 	selectedLineIdx   int
 	rangeStartLineIdx int
 	// If a range is sticky, it means we expand the range when we move up or down.
@@ -18,6 +22,11 @@ type State struct {
 	diff          string
 	patch         *patch.Patch
 	selectMode    selectMode
+
+	// Array of indices of the wrapped lines indexed by a patch line index
+	viewLineIndices []int
+	// Array of indices of the original patch lines indexed by a wrapped view line index
+	patchLineIndices []int
 }
 
 // these represent what select mode we're in
@@ -29,10 +38,10 @@ const (
 	HUNK
 )
 
-func NewState(diff string, selectedLineIdx int, oldState *State, log *logrus.Entry) *State {
+func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *State) *State {
 	if oldState != nil && diff == oldState.diff && selectedLineIdx == -1 {
 		// if we're here then we can return the old state. If selectedLineIdx was not -1
-		// then that would mean we were trying to click and potentiall drag a range, which
+		// then that would mean we were trying to click and potentially drag a range, which
 		// is why in that case we continue below
 		return oldState
 	}
@@ -43,6 +52,8 @@ func NewState(diff string, selectedLineIdx int, oldState *State, log *logrus.Ent
 		return nil
 	}
 
+	viewLineIndices, patchLineIndices := wrapPatchLines(diff, view)
+
 	rangeStartLineIdx := 0
 	if oldState != nil {
 		rangeStartLineIdx = oldState.rangeStartLineIdx
@@ -51,6 +62,10 @@ func NewState(diff string, selectedLineIdx int, oldState *State, log *logrus.Ent
 	selectMode := LINE
 	// if we have clicked from the outside to focus the main view we'll pass in a non-negative line index so that we can instantly select that line
 	if selectedLineIdx >= 0 {
+		// Clamp to the number of wrapped view lines; index might be out of
+		// bounds if a custom pager is being used which produces more lines
+		selectedLineIdx = min(selectedLineIdx, len(viewLineIndices)-1)
+
 		selectMode = RANGE
 		rangeStartLineIdx = selectedLineIdx
 	} else if oldState != nil {
@@ -58,9 +73,9 @@ func NewState(diff string, selectedLineIdx int, oldState *State, log *logrus.Ent
 		if oldState.selectMode == HUNK {
 			selectMode = HUNK
 		}
-		selectedLineIdx = patch.GetNextChangeIdx(oldState.selectedLineIdx)
+		selectedLineIdx = viewLineIndices[patch.GetNextChangeIdx(oldState.patchLineIndices[oldState.selectedLineIdx])]
 	} else {
-		selectedLineIdx = patch.GetNextChangeIdx(0)
+		selectedLineIdx = viewLineIndices[patch.GetNextChangeIdx(0)]
 	}
 
 	return &State{
@@ -70,10 +85,33 @@ func NewState(diff string, selectedLineIdx int, oldState *State, log *logrus.Ent
 		rangeStartLineIdx: rangeStartLineIdx,
 		rangeIsSticky:     false,
 		diff:              diff,
+		viewLineIndices:   viewLineIndices,
+		patchLineIndices:  patchLineIndices,
 	}
 }
 
-func (s *State) GetSelectedLineIdx() int {
+func (s *State) OnViewWidthChanged(view *gocui.View) {
+	if !view.Wrap {
+		return
+	}
+
+	selectedPatchLineIdx := s.patchLineIndices[s.selectedLineIdx]
+	var rangeStartPatchLineIdx int
+	if s.selectMode == RANGE {
+		rangeStartPatchLineIdx = s.patchLineIndices[s.rangeStartLineIdx]
+	}
+	s.viewLineIndices, s.patchLineIndices = wrapPatchLines(s.diff, view)
+	s.selectedLineIdx = s.viewLineIndices[selectedPatchLineIdx]
+	if s.selectMode == RANGE {
+		s.rangeStartLineIdx = s.viewLineIndices[rangeStartPatchLineIdx]
+	}
+}
+
+func (s *State) GetSelectedPatchLineIdx() int {
+	return s.patchLineIndices[s.selectedLineIdx]
+}
+
+func (s *State) GetSelectedViewLineIdx() int {
 	return s.selectedLineIdx
 }
 
@@ -94,7 +132,7 @@ func (s *State) ToggleStickySelectRange() {
 }
 
 func (s *State) ToggleSelectRange(sticky bool) {
-	if s.selectMode == RANGE {
+	if s.SelectingRange() {
 		s.selectMode = LINE
 	} else {
 		s.selectMode = RANGE
@@ -143,8 +181,8 @@ func (s *State) SelectLine(newSelectedLineIdx int) {
 func (s *State) selectLineWithoutRangeCheck(newSelectedLineIdx int) {
 	if newSelectedLineIdx < 0 {
 		newSelectedLineIdx = 0
-	} else if newSelectedLineIdx > s.patch.LineCount()-1 {
-		newSelectedLineIdx = s.patch.LineCount() - 1
+	} else if newSelectedLineIdx > len(s.patchLineIndices)-1 {
+		newSelectedLineIdx = len(s.patchLineIndices) - 1
 	}
 
 	s.selectedLineIdx = newSelectedLineIdx
@@ -178,12 +216,12 @@ func (s *State) CycleHunk(forward bool) {
 		change = -1
 	}
 
-	hunkIdx := s.patch.HunkContainingLine(s.selectedLineIdx)
+	hunkIdx := s.patch.HunkContainingLine(s.patchLineIndices[s.selectedLineIdx])
 	if hunkIdx != -1 {
 		newHunkIdx := hunkIdx + change
 		if newHunkIdx >= 0 && newHunkIdx < s.patch.HunkCount() {
 			start := s.patch.HunkStartIdx(newHunkIdx)
-			s.selectedLineIdx = s.patch.GetNextChangeIdx(start)
+			s.selectedLineIdx = s.viewLineIndices[s.patch.GetNextChangeIdx(start)]
 		}
 	}
 }
@@ -216,16 +254,17 @@ func (s *State) CycleRange(forward bool) {
 
 // returns first and last patch line index of current hunk
 func (s *State) CurrentHunkBounds() (int, int) {
-	hunkIdx := s.patch.HunkContainingLine(s.selectedLineIdx)
+	hunkIdx := s.patch.HunkContainingLine(s.patchLineIndices[s.selectedLineIdx])
 	start := s.patch.HunkStartIdx(hunkIdx)
 	end := s.patch.HunkEndIdx(hunkIdx)
 	return start, end
 }
 
-func (s *State) SelectedRange() (int, int) {
+func (s *State) SelectedViewRange() (int, int) {
 	switch s.selectMode {
 	case HUNK:
-		return s.CurrentHunkBounds()
+		start, end := s.CurrentHunkBounds()
+		return s.viewLineIndices[start], s.viewLineIndices[end]
 	case RANGE:
 		if s.rangeStartLineIdx > s.selectedLineIdx {
 			return s.selectedLineIdx, s.rangeStartLineIdx
@@ -240,8 +279,13 @@ func (s *State) SelectedRange() (int, int) {
 	}
 }
 
+func (s *State) SelectedPatchRange() (int, int) {
+	start, end := s.SelectedViewRange()
+	return s.patchLineIndices[start], s.patchLineIndices[end]
+}
+
 func (s *State) CurrentLineNumber() int {
-	return s.patch.LineNumberOfLine(s.selectedLineIdx)
+	return s.patch.LineNumberOfLine(s.patchLineIndices[s.selectedLineIdx])
 }
 
 func (s *State) AdjustSelectedLineIdx(change int) {
@@ -249,7 +293,7 @@ func (s *State) AdjustSelectedLineIdx(change int) {
 	s.SelectLine(s.selectedLineIdx + change)
 }
 
-func (s *State) RenderForLineIndices(isFocused bool, includedLineIndices []int) string {
+func (s *State) RenderForLineIndices(includedLineIndices []int) string {
 	includedLineIndicesSet := set.NewFromSlice(includedLineIndices)
 	return s.patch.FormatView(patch.FormatViewOpts{
 		IncLineIndices: includedLineIndicesSet,
@@ -257,13 +301,13 @@ func (s *State) RenderForLineIndices(isFocused bool, includedLineIndices []int) 
 }
 
 func (s *State) PlainRenderSelected() string {
-	firstLineIdx, lastLineIdx := s.SelectedRange()
+	firstLineIdx, lastLineIdx := s.SelectedPatchRange()
 	return s.patch.FormatRangePlain(firstLineIdx, lastLineIdx)
 }
 
 func (s *State) SelectBottom() {
 	s.DismissHunkSelectMode()
-	s.SelectLine(s.patch.LineCount() - 1)
+	s.SelectLine(len(s.patchLineIndices) - 1)
 }
 
 func (s *State) SelectTop() {
@@ -272,15 +316,13 @@ func (s *State) SelectTop() {
 }
 
 func (s *State) CalculateOrigin(currentOrigin int, bufferHeight int, numLines int) int {
-	firstLineIdx, lastLineIdx := s.SelectedRange()
+	firstLineIdx, lastLineIdx := s.SelectedViewRange()
 
-	return calculateOrigin(currentOrigin, bufferHeight, numLines, firstLineIdx, lastLineIdx, s.GetSelectedLineIdx(), s.selectMode)
+	return calculateOrigin(currentOrigin, bufferHeight, numLines, firstLineIdx, lastLineIdx, s.GetSelectedViewLineIdx(), s.selectMode)
 }
 
-func (s *State) RangeStartLineIdx() (int, bool) {
-	if s.selectMode == RANGE {
-		return s.rangeStartLineIdx, true
-	}
-
-	return 0, false
+func wrapPatchLines(diff string, view *gocui.View) ([]int, []int) {
+	_, viewLineIndices, patchLineIndices := utils.WrapViewLinesToWidth(
+		view.Wrap, strings.TrimSuffix(diff, "\n"), view.InnerWidth())
+	return viewLineIndices, patchLineIndices
 }

@@ -63,18 +63,18 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 	secondaryContext.GetMutex().Lock()
 
 	mainContext.SetState(
-		patch_exploring.NewState(mainDiff, mainSelectedLineIdx, mainContext.GetState(), self.c.Log),
+		patch_exploring.NewState(mainDiff, mainSelectedLineIdx, mainContext.GetView(), mainContext.GetState()),
 	)
 
 	secondaryContext.SetState(
-		patch_exploring.NewState(secondaryDiff, secondarySelectedLineIdx, secondaryContext.GetState(), self.c.Log),
+		patch_exploring.NewState(secondaryDiff, secondarySelectedLineIdx, secondaryContext.GetView(), secondaryContext.GetState()),
 	)
 
 	mainState := mainContext.GetState()
 	secondaryState := secondaryContext.GetState()
 
-	mainContent := mainContext.GetContentToRender(!secondaryFocused)
-	secondaryContent := secondaryContext.GetContentToRender(secondaryFocused)
+	mainContent := mainContext.GetContentToRender()
+	secondaryContent := secondaryContext.GetContentToRender()
 
 	mainContext.GetMutex().Unlock()
 	secondaryContext.GetMutex().Unlock()

@@ -194,18 +194,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			OpensMenu:   true,
 		},
 		{
-			ViewName: "secondary",
-			Key:      gocui.MouseWheelUp,
-			Modifier: gocui.ModNone,
-			Handler:  self.scrollUpSecondary,
-		},
-		{
-			ViewName: "secondary",
-			Key:      gocui.MouseWheelDown,
-			Modifier: gocui.ModNone,
-			Handler:  self.scrollDownSecondary,
-		},
-		{
 			ViewName:    "main",
 			Key:         gocui.MouseWheelDown,
 			Handler:     self.scrollDownMain,
@@ -218,6 +206,12 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Handler:     self.scrollUpMain,
 			Description: self.c.Tr.ScrollUp,
 			Alternative: "fn+down",
+		},
+		{
+			ViewName: "secondary",
+			Key:      gocui.MouseWheelDown,
+			Modifier: gocui.ModNone,
+			Handler:  self.scrollDownSecondary,
 		},
 		{
 			ViewName: "secondary",
@@ -459,7 +453,9 @@ func (gui *Gui) callKeybindingHandler(binding *types.Binding) error {
 			return errors.New(disabledReason.Text)
 		}
 
-		gui.c.ErrorToast(gui.Tr.DisabledMenuItemPrefix + disabledReason.Text)
+		if len(disabledReason.Text) > 0 {
+			gui.c.ErrorToast(gui.Tr.DisabledMenuItemPrefix + disabledReason.Text)
+		}
 		return nil
 	}
 	return binding.Handler()

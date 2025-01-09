@@ -8,7 +8,7 @@ import (
 // This case is identical to dotfile_bare_repo.go, except
 // that it invokes lazygit with $GIT_DIR set but not
 // $GIT_WORK_TREE. Instead, the repo uses the core.worktree
-// config to identify the main worktre.
+// config to identify the main worktree.
 
 var BareRepoWorktreeConfig = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Open lazygit in the worktree of a vcsh-style bare repo and add a file and commit",

@@ -87,6 +87,7 @@ type TranslationSet struct {
 	AllFilesDiffCopiedToast               string
 	FilterStagedFiles                     string
 	FilterUnstagedFiles                   string
+	FilterTrackedFiles                    string
 	ResetFilter                           string
 	MergeConflictsTitle                   string
 	Checkout                              string
@@ -104,11 +105,17 @@ type TranslationSet struct {
 	NewBranchNameBranchOff                string
 	CantDeleteCheckOutBranch              string
 	DeleteBranchTitle                     string
+	DeleteBranchesTitle                   string
 	DeleteLocalBranch                     string
+	DeleteLocalBranches                   string
 	DeleteRemoteBranchOption              string
 	DeleteRemoteBranchPrompt              string
+	DeleteRemoteBranchesPrompt            string
+	DeleteLocalAndRemoteBranchPrompt      string
+	DeleteLocalAndRemoteBranchesPrompt    string
 	ForceDeleteBranchTitle                string
 	ForceDeleteBranchMessage              string
+	ForceDeleteBranchesMessage            string
 	RebaseBranch                          string
 	RebaseBranchTooltip                   string
 	CantRebaseOntoSelf                    string
@@ -133,6 +140,7 @@ type TranslationSet struct {
 	Quit                                  string
 	SquashTooltip                         string
 	CannotSquashOrFixupFirstCommit        string
+	CannotSquashOrFixupMergeCommit        string
 	Fixup                                 string
 	FixupTooltip                          string
 	SureFixupThisCommit                   string
@@ -153,6 +161,7 @@ type TranslationSet struct {
 	MoveDownCommit                        string
 	MoveUpCommit                          string
 	CannotMoveAnyFurther                  string
+	CannotMoveMergeCommit                 string
 	EditCommit                            string
 	EditCommitTooltip                     string
 	AmendCommitTooltip                    string
@@ -247,8 +256,6 @@ type TranslationSet struct {
 	NoBranchOnRemote                      string
 	Fetch                                 string
 	FetchTooltip                          string
-	NoAutomaticGitFetchTitle              string
-	NoAutomaticGitFetchBody               string
 	FileEnter                             string
 	FileEnterTooltip                      string
 	FileStagingRequirements               string
@@ -283,6 +290,7 @@ type TranslationSet struct {
 	CommitSummaryTitle                    string
 	CommitDescriptionTitle                string
 	CommitDescriptionSubTitle             string
+	CommitDescriptionFooter               string
 	LocalBranchesTitle                    string
 	SearchTitle                           string
 	TagsTitle                             string
@@ -315,6 +323,7 @@ type TranslationSet struct {
 	YouDied                               string
 	RewordNotSupported                    string
 	ChangingThisActionIsNotAllowed        string
+	DroppingMergeRequiresSingleSelection  string
 	CherryPickCopy                        string
 	CherryPickCopyTooltip                 string
 	CherryPickCopyRangeTooltip            string
@@ -342,6 +351,7 @@ type TranslationSet struct {
 	DropCommitTitle                       string
 	DropCommitPrompt                      string
 	DropUpdateRefPrompt                   string
+	DropMergeCommitPrompt                 string
 	PullingStatus                         string
 	PushingStatus                         string
 	FetchingStatus                        string
@@ -472,8 +482,10 @@ type TranslationSet struct {
 	RemoveRemoteTooltip                   string
 	RemoveRemotePrompt                    string
 	DeleteRemoteBranch                    string
-	DeleteRemoteBranchMessage             string
+	DeleteRemoteBranches                  string
 	DeleteRemoteBranchTooltip             string
+	DeleteLocalAndRemoteBranch            string
+	DeleteLocalAndRemoteBranches          string
 	SetAsUpstream                         string
 	SetAsUpstreamTooltip                  string
 	SetUpstream                           string
@@ -516,6 +528,7 @@ type TranslationSet struct {
 	FetchingRemoteStatus                  string
 	CheckoutCommit                        string
 	CheckoutCommitTooltip                 string
+	NoBranchesFoundAtCommitTooltip        string
 	SureCheckoutThisCommit                string
 	GitFlowOptions                        string
 	NotAGitFlowBranch                     string
@@ -542,6 +555,7 @@ type TranslationSet struct {
 	ViewBranchUpstreamOptions             string
 	ViewBranchUpstreamOptionsTooltip      string
 	UpstreamNotSetError                   string
+	UpstreamsNotSetError                  string
 	NewGitFlowBranchPrompt                string
 	RenameBranchWarning                   string
 	OpenKeybindingsMenu                   string
@@ -684,6 +698,8 @@ type TranslationSet struct {
 	CreatePullRequestOptions                 string
 	DefaultBranch                            string
 	SelectBranch                             string
+	SelectTargetRemote                       string
+	NoValidRemoteName                        string
 	CreatePullRequest                        string
 	SelectConfigFile                         string
 	NoConfigFileFoundErr                     string
@@ -748,6 +764,7 @@ type TranslationSet struct {
 	SwitchToWorktreeTooltip                  string
 	AlreadyCheckedOutByWorktree              string
 	BranchCheckedOutByWorktree               string
+	SomeBranchesCheckedOutByWorktreeError    string
 	DetachWorktreeTooltip                    string
 	Switching                                string
 	RemoveWorktree                           string
@@ -846,11 +863,13 @@ type Log struct {
 
 type Actions struct {
 	CheckoutCommit                    string
+	CheckoutBranchAtCommit            string
+	CheckoutCommitAsDetachedHead      string
 	CheckoutTag                       string
 	CheckoutBranch                    string
+	CheckoutBranchOrCommit            string
 	ForceCheckoutBranch               string
 	DeleteLocalBranch                 string
-	DeleteBranch                      string
 	Merge                             string
 	SquashMerge                       string
 	RebaseBranch                      string
@@ -1059,7 +1078,7 @@ func EnglishTranslationSet() *TranslationSet {
 		Checkout:                             "Checkout",
 		CheckoutTooltip:                      "Checkout selected item.",
 		CantCheckoutBranchWhilePulling:       "You cannot checkout another branch while pulling the current branch",
-		TagCheckoutTooltip:                   "Checkout the selected tag tag as a detached HEAD.",
+		TagCheckoutTooltip:                   "Checkout the selected tag as a detached HEAD.",
 		RemoteBranchCheckoutTooltip:          "Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head.",
 		CantPullOrPushSameBranchTwice:        "You cannot push or pull a branch while it is already being pushed or pulled",
 		FileFilter:                           "Filter files by status",
@@ -1076,6 +1095,7 @@ func EnglishTranslationSet() *TranslationSet {
 		AllFilesDiffCopiedToast:              "All files diff copied to clipboard",
 		FilterStagedFiles:                    "Show only staged files",
 		FilterUnstagedFiles:                  "Show only unstaged files",
+		FilterTrackedFiles:                   "Show only tracked files",
 		ResetFilter:                          "Reset filter",
 		NoChangedFiles:                       "No changed files",
 		SoftReset:                            "Soft reset",
@@ -1086,11 +1106,17 @@ func EnglishTranslationSet() *TranslationSet {
 		NewBranchNameBranchOff:               "New branch name (branch is off of '{{.branchName}}')",
 		CantDeleteCheckOutBranch:             "You cannot delete the checked out branch!",
 		DeleteBranchTitle:                    "Delete branch '{{.selectedBranchName}}'?",
+		DeleteBranchesTitle:                  "Delete selected branches?",
 		DeleteLocalBranch:                    "Delete local branch",
+		DeleteLocalBranches:                  "Delete local branches",
 		DeleteRemoteBranchOption:             "Delete remote branch",
 		DeleteRemoteBranchPrompt:             "Are you sure you want to delete the remote branch '{{.selectedBranchName}}' from '{{.upstream}}'?",
+		DeleteRemoteBranchesPrompt:           "Are you sure you want to delete the remote branches of the selected branches from their respective remotes?",
+		DeleteLocalAndRemoteBranchPrompt:     "Are you sure you want to delete both '{{.localBranchName}}' from your machine, and '{{.remoteBranchName}}' from '{{.remoteName}}'?",
+		DeleteLocalAndRemoteBranchesPrompt:   "Are you sure you want to delete both the selected branches from your machine, and their remote branches from their respective remotes?",
 		ForceDeleteBranchTitle:               "Force delete branch",
 		ForceDeleteBranchMessage:             "'{{.selectedBranchName}}' is not fully merged. Are you sure you want to delete it?",
+		ForceDeleteBranchesMessage:           "Some of the selected branches are not fully merged. Are you sure you want to delete them?",
 		RebaseBranch:                         "Rebase",
 		RebaseBranchTooltip:                  "Rebase the checked-out branch onto the selected branch.",
 		CantRebaseOntoSelf:                   "You cannot rebase a branch onto itself",
@@ -1118,6 +1144,7 @@ func EnglishTranslationSet() *TranslationSet {
 		UpdateRefHere:                        "Update branch '{{.ref}}' here",
 		ExecCommandHere:                      "Execute the following command here:",
 		CannotSquashOrFixupFirstCommit:       "There's no commit below to squash into",
+		CannotSquashOrFixupMergeCommit:       "Cannot squash or fixup a merge commit",
 		Fixup:                                "Fixup",
 		SureFixupThisCommit:                  "Are you sure you want to 'fixup' the selected commit(s) into the commit below?",
 		SureSquashThisCommit:                 "Are you sure you want to squash the selected commit(s) into the commit below?",
@@ -1137,6 +1164,7 @@ func EnglishTranslationSet() *TranslationSet {
 		MoveDownCommit:                       "Move commit down one",
 		MoveUpCommit:                         "Move commit up one",
 		CannotMoveAnyFurther:                 "Cannot move any further",
+		CannotMoveMergeCommit:                "Cannot move a merge commit",
 		EditCommit:                           "Edit (start interactive rebase)",
 		EditCommitTooltip:                    "Edit the selected commit. Use this to start an interactive rebase from the selected commit. When already mid-rebase, this will mark the selected commit for editing, which means that upon continuing the rebase, the rebase will pause at the selected commit to allow you to make changes.",
 		AmendCommitTooltip:                   "Amend commit with staged changes. If the selected commit is the HEAD commit, this will perform `git commit --amend`. Otherwise the commit will be amended via a rebase.",
@@ -1231,8 +1259,6 @@ func EnglishTranslationSet() *TranslationSet {
 		NoBranchOnRemote:                     `This branch doesn't exist on remote. You need to push it to remote first.`,
 		Fetch:                                `Fetch`,
 		FetchTooltip:                         "Fetch changes from remote.",
-		NoAutomaticGitFetchTitle:             `No automatic git fetch`,
-		NoAutomaticGitFetchBody:              `Lazygit can't use "git fetch" in a private repo; use 'f' in the files panel to run "git fetch" manually`,
 		FileEnter:                            `Stage lines / Collapse directory`,
 		FileEnterTooltip:                     "If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it.",
 		FileStagingRequirements:              `Can only stage individual lines for tracked files`,
@@ -1266,6 +1292,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CommitSummaryTitle:                   "Commit summary",
 		CommitDescriptionTitle:               "Commit description",
 		CommitDescriptionSubTitle:            "Press {{.togglePanelKeyBinding}} to toggle focus, {{.commitMenuKeybinding}} to open menu",
+		CommitDescriptionFooter:              "Press {{.confirmInEditorKeybinding}} to commit",
 		LocalBranchesTitle:                   "Local branches",
 		SearchTitle:                          "Search",
 		TagsTitle:                            "Tags",
@@ -1306,11 +1333,12 @@ func EnglishTranslationSet() *TranslationSet {
 		YouDied:                              "YOU DIED!",
 		RewordNotSupported:                   "Rewording commits while interactively rebasing is not currently supported",
 		ChangingThisActionIsNotAllowed:       "Changing this kind of rebase todo entry is not allowed",
+		DroppingMergeRequiresSingleSelection: "Dropping a merge commit requires a single selected item",
 		CherryPickCopy:                       "Copy (cherry-pick)",
 		CherryPickCopyTooltip:                "Mark commit as copied. Then, within the local commits view, you can press `{{.paste}}` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `{{.escape}}` to cancel the selection.",
 		CherryPickCopyRangeTooltip:           "Mark commits as copied from the last copied commit to the selected commit.",
 		PasteCommits:                         "Paste (cherry-pick)",
-		SureCherryPick:                       "Are you sure you want to cherry-pick the copied commits onto this branch?",
+		SureCherryPick:                       "Are you sure you want to cherry-pick the {{.numCommits}} copied commit(s) onto this branch?",
 		CherryPick:                           "Cherry-pick",
 		CannotCherryPickNonCommit:            "Cannot cherry-pick this kind of todo item",
 		CannotCherryPickMergeCommit:          "Cherry-picking merge commits is not supported",
@@ -1332,6 +1360,7 @@ func EnglishTranslationSet() *TranslationSet {
 		AmendCommitPrompt:                    "Are you sure you want to amend this commit with your staged files?",
 		DropCommitTitle:                      "Drop commit",
 		DropCommitPrompt:                     "Are you sure you want to drop the selected commit(s)?",
+		DropMergeCommitPrompt:                "Are you sure you want to drop the selected merge commit? Note that it will also drop all the commits that were merged in by it.",
 		DropUpdateRefPrompt:                  "Are you sure you want to delete the selected update-ref todo(s)? This is irreversible except by aborting the rebase.",
 		PullingStatus:                        "Pulling",
 		PushingStatus:                        "Pushing",
@@ -1462,10 +1491,12 @@ func EnglishTranslationSet() *TranslationSet {
 		EditRemoteUrl:                        `Enter updated remote url for {{.remoteName}}:`,
 		RemoveRemote:                         `Remove remote`,
 		RemoveRemoteTooltip:                  `Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected.`,
-		RemoveRemotePrompt:                   "Are you sure you want to remove remote",
+		RemoveRemotePrompt:                   "Are you sure you want to remove remote?",
 		DeleteRemoteBranch:                   "Delete remote branch",
-		DeleteRemoteBranchMessage:            "Are you sure you want to delete remote branch",
+		DeleteRemoteBranches:                 "Delete remote branches",
 		DeleteRemoteBranchTooltip:            "Delete the remote branch from the remote.",
+		DeleteLocalAndRemoteBranch:           "Delete local and remote branch",
+		DeleteLocalAndRemoteBranches:         "Delete local and remote branches",
 		SetAsUpstream:                        "Set as upstream",
 		SetAsUpstreamTooltip:                 "Set the selected remote branch as the upstream of the checked-out branch.",
 		SetUpstream:                          "Set upstream of selected branch",
@@ -1481,7 +1512,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ViewUpstreamRebaseOptionsTooltip:     "View options for rebasing the checked-out branch onto {{upstream}}. Note: this will not rebase the selected branch onto the upstream, it will rebase the checked-out branch onto the upstream.",
 		UpstreamGenericName:                  "upstream of selected branch",
 		SetUpstreamTitle:                     "Set upstream branch",
-		SetUpstreamMessage:                   "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",
+		SetUpstreamMessage:                   "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'?",
 		EditRemoteTooltip:                    "Edit the selected remote's name or URL.",
 		TagCommit:                            "Tag commit",
 		TagCommitTooltip:                     "Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description.",
@@ -1498,21 +1529,22 @@ func EnglishTranslationSet() *TranslationSet {
 		DeleteRemoteTagPrompt:                "Are you sure you want to delete the remote tag '{{.tagName}}' from '{{.upstream}}'?",
 		PushTagTitle:                         "Remote to push tag '{{.tagName}}' to:",
 		// Using 'push tag' rather than just 'push' to disambiguate from a global push
-		PushTag:                "Push tag",
-		PushTagTooltip:         "Push the selected tag to a remote. You'll be prompted to select a remote.",
-		NewTag:                 "New tag",
-		NewTagTooltip:          "Create new tag from current commit. You'll be prompted to enter a tag name and optional description.",
-		CreatingTag:            "Creating tag",
-		ForceTag:               "Force Tag",
-		ForceTagPrompt:         "The tag '{{.tagName}}' exists already. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to overwrite.",
-		FetchRemoteTooltip:     "Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches.",
-		FetchingRemoteStatus:   "Fetching remote",
-		CheckoutCommit:         "Checkout commit",
-		CheckoutCommitTooltip:  "Checkout the selected commit as a detached HEAD.",
-		SureCheckoutThisCommit: "Are you sure you want to checkout this commit?",
-		GitFlowOptions:         "Show git-flow options",
-		NotAGitFlowBranch:      "This does not seem to be a git flow branch",
-		NewGitFlowBranchPrompt: "New {{.branchType}} name:",
+		PushTag:                        "Push tag",
+		PushTagTooltip:                 "Push the selected tag to a remote. You'll be prompted to select a remote.",
+		NewTag:                         "New tag",
+		NewTagTooltip:                  "Create new tag from current commit. You'll be prompted to enter a tag name and optional description.",
+		CreatingTag:                    "Creating tag",
+		ForceTag:                       "Force Tag",
+		ForceTagPrompt:                 "The tag '{{.tagName}}' exists already. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to overwrite.",
+		FetchRemoteTooltip:             "Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches.",
+		FetchingRemoteStatus:           "Fetching remote",
+		CheckoutCommit:                 "Checkout commit",
+		CheckoutCommitTooltip:          "Checkout the selected commit as a detached HEAD.",
+		NoBranchesFoundAtCommitTooltip: "No branches found at selected commit.",
+		SureCheckoutThisCommit:         "Are you sure you want to checkout this commit?",
+		GitFlowOptions:                 "Show git-flow options",
+		NotAGitFlowBranch:              "This does not seem to be a git flow branch",
+		NewGitFlowBranchPrompt:         "New {{.branchType}} name:",
 
 		IgnoreTracked:                    "Ignore tracked file",
 		IgnoreTrackedPrompt:              "Are you sure you want to ignore a tracked file?",
@@ -1530,6 +1562,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ViewBranchUpstreamOptions:        "View upstream options",
 		ViewBranchUpstreamOptionsTooltip: "View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream.",
 		UpstreamNotSetError:              "The selected branch has no upstream (or the upstream is not stored locally)",
+		UpstreamsNotSetError:             "Some of the selected branches have no upstream (or the upstream is not stored locally)",
 		Upstream:                         "Upstream",
 		UpstreamTooltip:                  "View upstream options for selected branch e.g. setting/unsetting the upstream and resetting to the upstream.",
 		NewBranchNamePrompt:              "Enter new branch name for branch",
@@ -1674,6 +1707,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CreatePullRequestOptions:                 "View create pull request options",
 		DefaultBranch:                            "Default branch",
 		SelectBranch:                             "Select branch",
+		SelectTargetRemote:                       "Select target remote",
+		NoValidRemoteName:                        "A remote named '%s' does not exist",
 		SelectConfigFile:                         "Select config file",
 		NoConfigFileFoundErr:                     "No config file found",
 		LoadingFileSuggestions:                   "Loading file suggestions",
@@ -1739,6 +1774,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SwitchToWorktreeTooltip:                  "Switch to the selected worktree.",
 		AlreadyCheckedOutByWorktree:              "This branch is checked out by worktree {{.worktreeName}}. Do you want to switch to that worktree?",
 		BranchCheckedOutByWorktree:               "Branch {{.branchName}} is checked out by worktree {{.worktreeName}}",
+		SomeBranchesCheckedOutByWorktreeError:    "Some of the selected branches are checked out by other worktrees. Select them one by one to delete them.",
 		DetachWorktreeTooltip:                    "This will run `git checkout --detach` on the worktree so that it stops hogging the branch, but the worktree's working tree will be left alone.",
 		Switching:                                "Switching",
 		RemoveWorktree:                           "Remove worktree",
@@ -1802,11 +1838,13 @@ For more information, see 'https://git-scm.com/docs/git-config/2.35.2#Documentat
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                 "Checkout commit",
+			CheckoutBranchAtCommit:         "Checkout branch '%s'",
+			CheckoutCommitAsDetachedHead:   "Checkout commit %s as detached head",
 			CheckoutTag:                    "Checkout tag",
 			CheckoutBranch:                 "Checkout branch",
 			ForceCheckoutBranch:            "Force checkout branch",
+			CheckoutBranchOrCommit:         "Checkout branch or commit",
 			DeleteLocalBranch:              "Delete local branch",
-			DeleteBranch:                   "Delete branch",
 			Merge:                          "Merge",
 			SquashMerge:                    "Squash merge",
 			RebaseBranch:                   "Rebase branch",

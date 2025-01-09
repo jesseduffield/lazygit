@@ -142,6 +142,10 @@ func (self *Shell) NewBranchFrom(name string, from string) *Shell {
 	return self.RunCommand([]string{"git", "checkout", "-b", name, from})
 }
 
+func (self *Shell) RenameCurrentBranch(newName string) *Shell {
+	return self.RunCommand([]string{"git", "branch", "-m", newName})
+}
+
 func (self *Shell) Checkout(name string) *Shell {
 	return self.RunCommand([]string{"git", "checkout", name})
 }

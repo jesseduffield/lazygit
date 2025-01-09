@@ -23,12 +23,12 @@ var StashStagedPartialFile = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Staging().
 			Content(
-				Contains(" line1\n-line2\n+line2 mod\n line3\n-line4\n+line4 mod\n"),
+				Contains(" line1\n-line2\n+line2 mod\n line3\n-line4\n+line4 mod"),
 			).
 			PressPrimaryAction().
 			PressPrimaryAction().
 			Content(
-				Contains(" line1\n line2 mod\n line3\n-line4\n+line4 mod\n"),
+				Contains(" line1\n line2 mod\n line3\n-line4\n+line4 mod"),
 			).
 			PressEscape()
 
@@ -54,7 +54,7 @@ var StashStagedPartialFile = NewIntegrationTest(NewIntegrationTestArgs{
 			)
 		t.Views().Main().
 			Content(
-				Contains(" line1\n-line2\n+line2 mod\n line3\n line4\n"),
+				Contains(" line1\n-line2\n+line2 mod\n line3\n line4"),
 			)
 
 		t.Views().Files().
@@ -64,7 +64,7 @@ var StashStagedPartialFile = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Staging().
 			Content(
-				Contains(" line1\n line2\n line3\n-line4\n+line4 mod\n"),
+				Contains(" line1\n line2\n line3\n-line4\n+line4 mod"),
 			)
 	},
 })

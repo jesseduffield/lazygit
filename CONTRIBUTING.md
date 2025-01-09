@@ -10,6 +10,10 @@ before making a change.
 
 [This video](https://www.youtube.com/watch?v=kNavnhzZHtk) walks through the process of adding a small feature to lazygit. If you have no idea where to start, watching that video is a good first step.
 
+## Design principles
+
+See [here](./VISION.md) for a set of design principles that we want to consider when building a feature or making a change.
+
 ## Codebase guide
 
 [This doc](./docs/dev/Codebase_Guide.md) explains:

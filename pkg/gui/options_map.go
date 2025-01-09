@@ -108,7 +108,7 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 }
 
 func (self *OptionsMapMgr) formatBindingInfos(bindingInfos []bindingInfo) string {
-	width := self.c.Views().Options.Width() - 4 // -4 for the padding
+	width := self.c.Views().Options.InnerWidth() - 2 // -2 for some padding
 	var builder strings.Builder
 	ellipsis := "…"
 	separator := " | "

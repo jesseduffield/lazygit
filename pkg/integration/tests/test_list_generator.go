@@ -33,7 +33,7 @@ func main() {
 }
 
 func generateCode() []byte {
-	// traverse parent directory to get all subling directories
+	// traverse parent directory to get all sibling directories
 	directories, err := os.ReadDir("../tests")
 	if err != nil {
 		panic(err)

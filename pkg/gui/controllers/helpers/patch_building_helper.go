@@ -52,7 +52,8 @@ func (self *PatchBuildingHelper) Reset() error {
 	}
 
 	// refreshing the current context so that the secondary panel is hidden if necessary.
-	return self.c.PostRefreshUpdate(self.c.Context().Current())
+	self.c.PostRefreshUpdate(self.c.Context().Current())
+	return nil
 }
 
 func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpts) {
@@ -90,14 +91,14 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 
 	oldState := context.GetState()
 
-	state := patch_exploring.NewState(diff, selectedLineIdx, oldState, self.c.Log)
+	state := patch_exploring.NewState(diff, selectedLineIdx, context.GetView(), oldState)
 	context.SetState(state)
 	if state == nil {
 		self.Escape()
 		return
 	}
 
-	mainContent := context.GetContentToRender(true)
+	mainContent := context.GetContentToRender()
 
 	self.c.Contexts().CustomPatchBuilder.FocusSelection()
 

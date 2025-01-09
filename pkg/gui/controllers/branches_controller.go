@@ -3,7 +3,6 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -92,8 +91,8 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
-			Handler:           self.withItem(self.delete),
-			GetDisabledReason: self.require(self.singleItemSelected(self.branchIsReal)),
+			Handler:           self.withItems(self.delete),
+			GetDisabledReason: self.require(self.itemRangeSelected(self.branchesAreReal)),
 			Description:       self.c.Tr.Delete,
 			Tooltip:           self.c.Tr.BranchDeleteTooltip,
 			OpensMenu:         true,
@@ -195,6 +194,10 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 }
 
 func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branch) error {
+	upstream := lo.Ternary(selectedBranch.RemoteBranchStoredLocally(),
+		selectedBranch.ShortUpstreamRefName(),
+		self.c.Tr.UpstreamGenericName)
+
 	viewDivergenceItem := &types.MenuItem{
 		LabelColumns: []string{self.c.Tr.ViewDivergenceFromUpstream},
 		OnPress: func() error {
@@ -205,7 +208,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 
 			return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
 				Ref:                     branch,
-				TitleRef:                fmt.Sprintf("%s <-> %s", branch.RefName(), branch.ShortUpstreamRefName()),
+				TitleRef:                fmt.Sprintf("%s <-> %s", branch.RefName(), upstream),
 				RefToShowDivergenceFrom: branch.FullUpstreamRefName(),
 				Context:                 self.context(),
 				ShowBranchHeads:         false,
@@ -294,9 +297,6 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 		Key: 's',
 	}
 
-	upstream := lo.Ternary(selectedBranch.RemoteBranchStoredLocally(),
-		fmt.Sprintf("%s/%s", selectedBranch.UpstreamRemote, selectedBranch.Name),
-		self.c.Tr.UpstreamGenericName)
 	upstreamResetOptions := utils.ResolvePlaceholderString(
 		self.c.Tr.ViewUpstreamResetOptions,
 		map[string]string{"upstream": upstream},
@@ -333,7 +333,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 		LabelColumns: []string{upstreamRebaseOptions},
 		OpensMenu:    true,
 		OnPress: func() error {
-			if err := self.c.Helpers().MergeAndRebase.RebaseOntoRef(selectedBranch.ShortUpstreamRefName()); err != nil {
+			if err := self.c.Helpers().MergeAndRebase.RebaseOntoRef(upstream); err != nil {
 				return err
 			}
 			return nil
@@ -521,128 +521,84 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, KeepBranchSelectionIndex: true})
 }
 
-func (self *BranchesController) checkedOutByOtherWorktree(branch *models.Branch) bool {
-	return git_commands.CheckedOutByOtherWorktree(branch, self.c.Model().Worktrees)
+func (self *BranchesController) localDelete(branches []*models.Branch) error {
+	return self.c.Helpers().BranchesHelper.ConfirmLocalDelete(branches)
 }
 
-func (self *BranchesController) promptWorktreeBranchDelete(selectedBranch *models.Branch) error {
-	worktree, ok := self.worktreeForBranch(selectedBranch)
-	if !ok {
-		self.c.Log.Error("promptWorktreeBranchDelete out of sync with list of worktrees")
-		return nil
-	}
-
-	// TODO: i18n
-	title := utils.ResolvePlaceholderString(self.c.Tr.BranchCheckedOutByWorktree, map[string]string{
-		"worktreeName": worktree.Name,
-		"branchName":   selectedBranch.Name,
+func (self *BranchesController) remoteDelete(branches []*models.Branch) error {
+	remoteBranches := lo.Map(branches, func(branch *models.Branch, _ int) *models.RemoteBranch {
+		return &models.RemoteBranch{Name: branch.UpstreamBranch, RemoteName: branch.UpstreamRemote}
 	})
-	return self.c.Menu(types.CreateMenuOptions{
-		Title: title,
-		Items: []*types.MenuItem{
-			{
-				Label: self.c.Tr.SwitchToWorktree,
-				OnPress: func() error {
-					return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
-				},
-			},
-			{
-				Label:   self.c.Tr.DetachWorktree,
-				Tooltip: self.c.Tr.DetachWorktreeTooltip,
-				OnPress: func() error {
-					return self.c.Helpers().Worktree.Detach(worktree)
-				},
-			},
-			{
-				Label: self.c.Tr.RemoveWorktree,
-				OnPress: func() error {
-					return self.c.Helpers().Worktree.Remove(worktree, false)
-				},
-			},
-		},
-	})
+	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(remoteBranches)
 }
 
-func (self *BranchesController) localDelete(branch *models.Branch) error {
-	if self.checkedOutByOtherWorktree(branch) {
-		return self.promptWorktreeBranchDelete(branch)
-	}
-
-	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(_ gocui.Task) error {
-		self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
-		err := self.c.Git().Branch.LocalDelete(branch.Name, false)
-		if err != nil && strings.Contains(err.Error(), "git branch -D ") {
-			return self.forceDelete(branch)
-		}
-		if err != nil {
-			return err
-		}
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
-	})
+func (self *BranchesController) localAndRemoteDelete(branches []*models.Branch) error {
+	return self.c.Helpers().BranchesHelper.ConfirmLocalAndRemoteDelete(branches)
 }
 
-func (self *BranchesController) remoteDelete(branch *models.Branch) error {
-	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(branch.UpstreamRemote, branch.Name)
-}
-
-func (self *BranchesController) forceDelete(branch *models.Branch) error {
-	title := self.c.Tr.ForceDeleteBranchTitle
-	message := utils.ResolvePlaceholderString(
-		self.c.Tr.ForceDeleteBranchMessage,
-		map[string]string{
-			"selectedBranchName": branch.Name,
-		},
-	)
-
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  title,
-		Prompt: message,
-		HandleConfirm: func() error {
-			if err := self.c.Git().Branch.LocalDelete(branch.Name, true); err != nil {
-				return err
-			}
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
-		},
-	})
-
-	return nil
-}
-
-func (self *BranchesController) delete(branch *models.Branch) error {
+func (self *BranchesController) delete(branches []*models.Branch) error {
 	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
+	isBranchCheckedOut := lo.SomeBy(branches, func(branch *models.Branch) bool {
+		return checkedOutBranch.Name == branch.Name
+	})
+	hasUpstream := lo.EveryBy(branches, func(branch *models.Branch) bool {
+		return branch.IsTrackingRemote() && !branch.UpstreamGone
+	})
 
 	localDeleteItem := &types.MenuItem{
-		Label: self.c.Tr.DeleteLocalBranch,
+		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteLocalBranches, self.c.Tr.DeleteLocalBranch),
 		Key:   'c',
 		OnPress: func() error {
-			return self.localDelete(branch)
+			return self.localDelete(branches)
 		},
 	}
-	if checkedOutBranch.Name == branch.Name {
+	if isBranchCheckedOut {
 		localDeleteItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.CantDeleteCheckOutBranch}
 	}
 
 	remoteDeleteItem := &types.MenuItem{
-		Label: self.c.Tr.DeleteRemoteBranch,
+		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteRemoteBranches, self.c.Tr.DeleteRemoteBranch),
 		Key:   'r',
 		OnPress: func() error {
-			return self.remoteDelete(branch)
+			return self.remoteDelete(branches)
 		},
 	}
-	if !branch.IsTrackingRemote() || branch.UpstreamGone {
-		remoteDeleteItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.UpstreamNotSetError}
+	if !hasUpstream {
+		remoteDeleteItem.DisabledReason = &types.DisabledReason{
+			Text: lo.Ternary(len(branches) > 1, self.c.Tr.UpstreamsNotSetError, self.c.Tr.UpstreamNotSetError),
+		}
 	}
 
-	menuTitle := utils.ResolvePlaceholderString(
-		self.c.Tr.DeleteBranchTitle,
-		map[string]string{
-			"selectedBranchName": branch.Name,
+	deleteBothItem := &types.MenuItem{
+		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteLocalAndRemoteBranches, self.c.Tr.DeleteLocalAndRemoteBranch),
+		Key:   'b',
+		OnPress: func() error {
+			return self.localAndRemoteDelete(branches)
 		},
-	)
+	}
+	if isBranchCheckedOut {
+		deleteBothItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.CantDeleteCheckOutBranch}
+	} else if !hasUpstream {
+		deleteBothItem.DisabledReason = &types.DisabledReason{
+			Text: lo.Ternary(len(branches) > 1, self.c.Tr.UpstreamsNotSetError, self.c.Tr.UpstreamNotSetError),
+		}
+	}
+
+	var menuTitle string
+	if len(branches) == 1 {
+		menuTitle = utils.ResolvePlaceholderString(
+			self.c.Tr.DeleteBranchTitle,
+			map[string]string{
+				"selectedBranchName": branches[0].Name,
+			},
+		)
+	} else {
+		menuTitle = self.c.Tr.DeleteBranchesTitle
+	}
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: menuTitle,
-		Items: []*types.MenuItem{localDeleteItem, remoteDeleteItem},
+		Items: []*types.MenuItem{localDeleteItem, remoteDeleteItem, deleteBothItem},
 	})
 }
 
@@ -674,9 +630,11 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 			self.c.LogAction(action)
 
 			worktreeGitDir := ""
+			worktreePath := ""
 			// if it is the current worktree path, no need to specify the path
 			if !worktree.IsCurrent {
 				worktreeGitDir = worktree.GitDir
+				worktreePath = worktree.Path
 			}
 
 			err := self.c.Git().Sync.Pull(
@@ -686,6 +644,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 					BranchName:      branch.UpstreamBranch,
 					FastForwardOnly: true,
 					WorktreeGitDir:  worktreeGitDir,
+					WorktreePath:    worktreePath,
 				},
 			)
 			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
@@ -793,11 +752,23 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 			{
 				LabelColumns: fromToLabelColumns(branch.Name, self.c.Tr.SelectBranch),
 				OnPress: func() error {
+					if !branch.IsTrackingRemote() {
+						return errors.New(self.c.Tr.PullRequestNoUpstream)
+					}
+
+					if len(self.c.Model().Remotes) == 1 {
+						toRemote := self.c.Model().Remotes[0].Name
+						self.c.Log.Debugf("PR will target the only existing remote '%s'", toRemote)
+						return self.promptForTargetBranchNameAndCreatePullRequest(branch, toRemote)
+					}
+
 					self.c.Prompt(types.PromptOpts{
-						Title:               branch.Name + " →",
-						FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRemoteBranchesSuggestionsFunc("/"),
-						HandleConfirm: func(targetBranchName string) error {
-							return self.createPullRequest(branch.Name, targetBranchName)
+						Title:               self.c.Tr.SelectTargetRemote,
+						FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRemoteSuggestionsFunc(),
+						HandleConfirm: func(toRemote string) error {
+							self.c.Log.Debugf("PR will target remote '%s'", toRemote)
+
+							return self.promptForTargetBranchNameAndCreatePullRequest(branch, toRemote)
 						},
 					})
 
@@ -827,6 +798,26 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 	return self.c.Menu(types.CreateMenuOptions{Title: fmt.Sprint(self.c.Tr.CreatePullRequestOptions), Items: menuItems})
 }
 
+func (self *BranchesController) promptForTargetBranchNameAndCreatePullRequest(fromBranch *models.Branch, toRemote string) error {
+	remoteDoesNotExist := lo.NoneBy(self.c.Model().Remotes, func(remote *models.Remote) bool {
+		return remote.Name == toRemote
+	})
+	if remoteDoesNotExist {
+		return fmt.Errorf(self.c.Tr.NoValidRemoteName, toRemote)
+	}
+
+	self.c.Prompt(types.PromptOpts{
+		Title:               fmt.Sprintf("%s → %s/", fromBranch.UpstreamBranch, toRemote),
+		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRemoteBranchesForRemoteSuggestionsFunc(toRemote),
+		HandleConfirm: func(toBranch string) error {
+			self.c.Log.Debugf("PR will target branch '%s' on remote '%s'", toBranch, toRemote)
+			return self.createPullRequest(fromBranch.UpstreamBranch, toBranch)
+		},
+	})
+
+	return nil
+}
+
 func (self *BranchesController) createPullRequest(from string, to string) error {
 	url, err := self.c.Helpers().Host.GetPullRequestURL(from, to)
 	if err != nil {
@@ -844,6 +835,16 @@ func (self *BranchesController) createPullRequest(from string, to string) error 
 
 func (self *BranchesController) branchIsReal(branch *models.Branch) *types.DisabledReason {
 	if !branch.IsRealBranch() {
+		return &types.DisabledReason{Text: self.c.Tr.SelectedItemIsNotABranch}
+	}
+
+	return nil
+}
+
+func (self *BranchesController) branchesAreReal(selectedBranches []*models.Branch, startIdx int, endIdx int) *types.DisabledReason {
+	if !lo.EveryBy(selectedBranches, func(branch *models.Branch) bool {
+		return branch.IsRealBranch()
+	}) {
 		return &types.DisabledReason{Text: self.c.Tr.SelectedItemIsNotABranch}
 	}
 

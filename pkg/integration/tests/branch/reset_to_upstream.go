@@ -19,6 +19,7 @@ var ResetToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			NewBranch("soft-branch").
 			EmptyCommit("soft commit").
 			PushBranchAndSetUpstream("origin", "soft-branch").
+			RenameCurrentBranch("soft-branch-local").
 			NewBranch("base").
 			EmptyCommit("base-branch commit").
 			CreateFile("file-1", "content").
@@ -33,7 +34,7 @@ var ResetToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains("base").IsSelected(),
-				Contains("soft-branch"),
+				Contains("soft-branch-local"),
 				Contains("hard-branch"),
 			).
 			Press(keys.Branches.SetUpstream).
@@ -51,7 +52,7 @@ var ResetToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			Lines(
 				Contains("base"),
-				Contains("soft-branch").IsSelected(),
+				Contains("soft-branch-local").IsSelected(),
 				Contains("hard-branch"),
 			).
 			Press(keys.Branches.SetUpstream).
@@ -80,7 +81,7 @@ var ResetToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains("base"),
-				Contains("soft-branch").IsSelected(),
+				Contains("soft-branch-local").IsSelected(),
 				Contains("hard-branch"),
 			).
 			NavigateToLine(Contains("hard-branch")).

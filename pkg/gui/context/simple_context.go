@@ -7,6 +7,7 @@ import (
 
 type SimpleContext struct {
 	*BaseContext
+	handleRenderFunc func()
 }
 
 func NewSimpleContext(baseContext *BaseContext) *SimpleContext {
@@ -54,6 +55,13 @@ func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) {
 }
 
 func (self *SimpleContext) HandleRender() {
+	if self.handleRenderFunc != nil {
+		self.handleRenderFunc()
+	}
+}
+
+func (self *SimpleContext) SetHandleRenderFunc(f func()) {
+	self.handleRenderFunc = f
 }
 
 func (self *SimpleContext) HandleRenderToMain() {

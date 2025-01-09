@@ -108,8 +108,6 @@ type Gui struct {
 
 	PopupHandler types.IPopupHandler
 
-	IsNewRepo bool
-
 	IsRefreshingFiles bool
 
 	// we use this to decide whether we'll return to the original directory that
@@ -360,7 +358,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		return nil
 	})
 
-	gui.g.SetOpenHyperlinkFunc(func(url string) error {
+	gui.g.SetOpenHyperlinkFunc(func(url string, viewname string) error {
 		if strings.HasPrefix(url, "lazygit-edit:") {
 			re := regexp.MustCompile(`^lazygit-edit://(.+?)(?::(\d+))?$`)
 			matches := re.FindStringSubmatch(url)
@@ -370,6 +368,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 			filepath := matches[1]
 			if matches[2] != "" {
 				lineNumber := utils.MustConvertToInt(matches[2])
+				lineNumber = gui.helpers.Diff.AdjustLineNumber(filepath, lineNumber, viewname)
 				return gui.helpers.Files.EditFileAtLine(filepath, lineNumber)
 			}
 			return gui.helpers.Files.EditFiles([]string{filepath})
@@ -582,19 +581,23 @@ func initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSaf
 }
 
 func initialScreenMode(startArgs appTypes.StartArgs, config config.AppConfigurer) types.WindowMaximisation {
-	if startArgs.FilterPath != "" || startArgs.GitArg != appTypes.GitArgNone {
-		return types.SCREEN_FULL
+	if startArgs.ScreenMode != "" {
+		return getWindowMaximisation(startArgs.ScreenMode)
+	} else if startArgs.FilterPath != "" || startArgs.GitArg != appTypes.GitArgNone {
+		return types.SCREEN_HALF
 	} else {
-		defaultWindowSize := config.GetUserConfig().Gui.WindowSize
+		return getWindowMaximisation(config.GetUserConfig().Gui.WindowSize)
+	}
+}
 
-		switch defaultWindowSize {
-		case "half":
-			return types.SCREEN_HALF
-		case "full":
-			return types.SCREEN_FULL
-		default:
-			return types.SCREEN_NORMAL
-		}
+func getWindowMaximisation(modeString string) types.WindowMaximisation {
+	switch modeString {
+	case "half":
+		return types.SCREEN_HALF
+	case "full":
+		return types.SCREEN_FULL
+	default:
+		return types.SCREEN_NORMAL
 	}
 }
 

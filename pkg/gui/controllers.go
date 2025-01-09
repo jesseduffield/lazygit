@@ -107,7 +107,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		Files:           helpers.NewFilesHelper(helperCommon),
 		WorkingTree:     helpers.NewWorkingTreeHelper(helperCommon, refsHelper, commitsHelper, gpgHelper),
 		Tags:            helpers.NewTagsHelper(helperCommon, commitsHelper),
-		BranchesHelper:  helpers.NewBranchesHelper(helperCommon),
+		BranchesHelper:  helpers.NewBranchesHelper(helperCommon, worktreeHelper),
 		GPG:             helpers.NewGpgHelper(helperCommon),
 		MergeAndRebase:  rebaseHelper,
 		MergeConflicts:  mergeConflictsHelper,
@@ -299,7 +299,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.CustomPatchBuilderSecondary,
-		verticalScrollControllerFactory.Create(gui.State.Contexts.CustomPatchBuilder),
+		verticalScrollControllerFactory.Create(gui.State.Contexts.CustomPatchBuilderSecondary),
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.MergeConflicts,

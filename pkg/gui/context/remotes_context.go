@@ -53,3 +53,7 @@ func (self *RemotesContext) GetDiffTerminals() []string {
 
 	return []string{itemId}
 }
+
+func (self *RemotesContext) RefForAdjustingLineNumberInDiff() string {
+	return ""
+}

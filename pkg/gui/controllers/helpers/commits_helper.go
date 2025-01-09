@@ -143,6 +143,7 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 		opts.SummaryTitle,
 		opts.DescriptionTitle,
 		opts.PreserveMessage,
+		opts.InitialMessage,
 		onConfirm,
 		opts.OnSwitchToEditor,
 	)
@@ -177,8 +178,9 @@ func (self *CommitsHelper) HandleCommitConfirm() error {
 func (self *CommitsHelper) CloseCommitMessagePanel() {
 	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
 		message := self.JoinCommitMessageAndUnwrappedDescription()
-
-		self.c.Contexts().CommitMessage.SetPreservedMessage(message)
+		if message != self.c.Contexts().CommitMessage.GetInitialMessage() {
+			self.c.Contexts().CommitMessage.SetPreservedMessage(message)
+		}
 	} else {
 		self.SetMessageAndDescriptionInView("")
 	}

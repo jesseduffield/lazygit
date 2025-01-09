@@ -30,7 +30,7 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 			c.State().GetItemOperation,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().Diffing.Ref,
-			c.Views().Branches.Width(),
+			c.Views().Branches.InnerWidth(),
 			c.Tr,
 			c.UserConfig(),
 			c.Model().Worktrees,
@@ -78,6 +78,14 @@ func (self *BranchesContext) GetDiffTerminals() []string {
 		return names
 	}
 	return nil
+}
+
+func (self *BranchesContext) RefForAdjustingLineNumberInDiff() string {
+	branch := self.GetSelected()
+	if branch != nil {
+		return branch.ID()
+	}
+	return ""
 }
 
 func (self *BranchesContext) ShowBranchHeadsInSubCommits() bool {

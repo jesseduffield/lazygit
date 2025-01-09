@@ -3,6 +3,8 @@ package utils
 import (
 	"bytes"
 	"strings"
+
+	"github.com/mattn/go-runewidth"
 )
 
 // SplitLines takes a multiline string and splits it on newlines
@@ -99,4 +101,83 @@ func ScanLinesAndTruncateWhenLongerThanBuffer(maxBufferSize int) func(data []byt
 		// Request more data.
 		return 0, nil, nil
 	}
+}
+
+// Wrap lines to a given width, and return:
+// - the wrapped lines
+// - the line indices of the wrapped lines, indexed by the original line indices
+// - the line indices of the original lines, indexed by the wrapped line indices
+// If wrap is false, the text is returned as is.
+// This code needs to behave the same as `gocui.lineWrap` does.
+func WrapViewLinesToWidth(wrap bool, text string, width int) ([]string, []int, []int) {
+	text = strings.TrimSuffix(text, "\n")
+	lines := strings.Split(text, "\n")
+	if !wrap {
+		indices := make([]int, len(lines))
+		for i := range lines {
+			indices[i] = i
+		}
+		return lines, indices, indices
+	}
+
+	wrappedLines := make([]string, 0, len(lines))
+	wrappedLineIndices := make([]int, 0, len(lines))
+	originalLineIndices := make([]int, 0, len(lines))
+
+	for originalLineIdx, line := range lines {
+		wrappedLineIndices = append(wrappedLineIndices, len(wrappedLines))
+
+		// convert tabs to spaces
+		for i := 0; i < len(line); i++ {
+			if line[i] == '\t' {
+				numSpaces := 4 - (i % 4)
+				line = line[:i] + "    "[:numSpaces] + line[i+1:]
+				i += numSpaces - 1
+			}
+		}
+
+		appendWrappedLine := func(str string) {
+			wrappedLines = append(wrappedLines, str)
+			originalLineIndices = append(originalLineIndices, originalLineIdx)
+		}
+
+		n := 0
+		offset := 0
+		lastWhitespaceIndex := -1
+		for i, currChr := range line {
+			rw := runewidth.RuneWidth(currChr)
+			n += rw
+
+			if n > width {
+				if currChr == ' ' {
+					appendWrappedLine(line[offset:i])
+					offset = i + 1
+					n = 0
+				} else if currChr == '-' {
+					appendWrappedLine(line[offset:i])
+					offset = i
+					n = rw
+				} else if lastWhitespaceIndex != -1 {
+					if line[lastWhitespaceIndex] == '-' {
+						appendWrappedLine(line[offset : lastWhitespaceIndex+1])
+					} else {
+						appendWrappedLine(line[offset:lastWhitespaceIndex])
+					}
+					offset = lastWhitespaceIndex + 1
+					n = runewidth.StringWidth(line[offset : i+1])
+				} else {
+					appendWrappedLine(line[offset:i])
+					offset = i
+					n = rw
+				}
+				lastWhitespaceIndex = -1
+			} else if currChr == ' ' || currChr == '-' {
+				lastWhitespaceIndex = i
+			}
+		}
+
+		appendWrappedLine(line[offset:])
+	}
+
+	return wrappedLines, wrappedLineIndices, originalLineIndices
 }

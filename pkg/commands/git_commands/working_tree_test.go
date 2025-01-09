@@ -1,7 +1,6 @@
 package git_commands
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/go-errors/errors"
@@ -100,7 +99,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 				Added:   true,
 			},
 			removeFile: func(string) error {
-				return fmt.Errorf("an error occurred when removing file")
+				return errors.New("an error occurred when removing file")
 			},
 			runner:        oscommands.NewFakeRunner(t),
 			expectedError: "an error occurred when removing file",
@@ -210,7 +209,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 		plain               bool
 		cached              bool
 		ignoreWhitespace    bool
-		contextSize         int
+		contextSize         uint64
 		similarityThreshold int
 		runner              *oscommands.FakeCmdObjRunner
 	}
@@ -352,7 +351,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 		reverse          bool
 		plain            bool
 		ignoreWhitespace bool
-		contextSize      int
+		contextSize      uint64
 		runner           *oscommands.FakeCmdObjRunner
 	}
 

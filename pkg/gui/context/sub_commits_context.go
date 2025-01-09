@@ -217,6 +217,14 @@ func (self *SubCommitsContext) GetDiffTerminals() []string {
 	return []string{itemId}
 }
 
+func (self *SubCommitsContext) RefForAdjustingLineNumberInDiff() string {
+	commits, _, _ := self.GetSelectedItems()
+	if commits == nil {
+		return ""
+	}
+	return commits[0].Hash
+}
+
 func (self *SubCommitsContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
 	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), searchStr)
 }

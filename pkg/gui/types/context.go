@@ -152,6 +152,14 @@ type DiffableContext interface {
 	// which becomes an option when you bring up the diff menu, but when you're just
 	// flicking through branches it will be using the local branch name.
 	GetDiffTerminals() []string
+
+	// Returns the ref that should be used for creating a diff of what's
+	// currently shown in the main view against the working directory, in order
+	// to adjust line numbers in the diff to match the current state of the
+	// shown file. For example, if the main view shows a range diff of commits,
+	// we need to pass the first commit of the range. This is used by
+	// DiffHelper.AdjustLineNumber.
+	RefForAdjustingLineNumberInDiff() string
 }
 
 type IListContext interface {
@@ -177,11 +185,11 @@ type IPatchExplorerContext interface {
 	GetState() *patch_exploring.State
 	SetState(*patch_exploring.State)
 	GetIncludedLineIndices() []int
-	RenderAndFocus(isFocused bool)
-	Render(isFocused bool)
+	RenderAndFocus()
+	Render()
 	Focus()
-	GetContentToRender(isFocused bool) string
-	NavigateTo(isFocused bool, selectedLineIdx int)
+	GetContentToRender() string
+	NavigateTo(selectedLineIdx int)
 	GetMutex() *deadlock.Mutex
 	IsPatchExplorerContext() // used for type switch
 }

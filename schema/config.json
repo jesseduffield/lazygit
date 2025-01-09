@@ -96,6 +96,11 @@
           "description": "How the window is split when in half screen mode (i.e. after hitting '+' once).\nPossible values:\n- 'left': split the window horizontally (side panel on the left, main view on the right)\n- 'top': split the window vertically (side panel on top, main view below)",
           "default": "left"
         },
+        "wrapLinesInStagingView": {
+          "type": "boolean",
+          "description": "If true, wrap lines in the staging view to the width of the view. This\nmakes it much easier to work with diffs that have long lines, e.g.\nparagraphs of markdown text.",
+          "default": true
+        },
         "language": {
           "type": "string",
           "enum": [
@@ -293,6 +298,11 @@
           "description": "If true, display the files in the file views as a tree. If false, display the files as a flat list.\nThis can be toggled from within Lazygit with the '~' key, but that will not change the default.",
           "default": true
         },
+        "showNumstatInFilesView": {
+          "type": "boolean",
+          "description": "If true, show the number of lines changed per file in the Files view",
+          "default": false
+        },
         "showRandomTip": {
           "type": "boolean",
           "description": "If true, show a random tip in the command log when Lazygit starts",
@@ -452,6 +462,21 @@
           ],
           "description": "Status panel view.\nOne of 'dashboard' (default) | 'allBranchesLog'",
           "default": "dashboard"
+        },
+        "switchToFilesAfterStashPop": {
+          "type": "boolean",
+          "description": "If true, jump to the Files panel after popping a stash",
+          "default": true
+        },
+        "switchToFilesAfterStashApply": {
+          "type": "boolean",
+          "description": "If true, jump to the Files panel after applying a stash",
+          "default": true
+        },
+        "switchTabsWithPanelJumpKeys": {
+          "type": "boolean",
+          "description": "If true, when using the panel jump keys (default 1 through 5) and target panel is already active, go to next tab instead",
+          "default": false
         }
       },
       "additionalProperties": false,
@@ -585,7 +610,7 @@
         },
         "allBranchesLogCmd": {
           "type": "string",
-          "description": "Command used to display git log of all branches in the main window.\nDeprecated: User `allBranchesLogCmds` instead.",
+          "description": "Command used to display git log of all branches in the main window.\nDeprecated: Use `allBranchesLogCmds` instead.",
           "default": "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"
         },
         "allBranchesLogCmds": {

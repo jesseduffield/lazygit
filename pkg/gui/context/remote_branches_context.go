@@ -78,6 +78,10 @@ func (self *RemoteBranchesContext) GetDiffTerminals() []string {
 	return []string{itemId}
 }
 
+func (self *RemoteBranchesContext) RefForAdjustingLineNumberInDiff() string {
+	return self.GetSelectedItemId()
+}
+
 func (self *RemoteBranchesContext) ShowBranchHeadsInSubCommits() bool {
 	return true
 }

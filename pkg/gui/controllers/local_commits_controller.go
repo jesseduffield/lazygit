@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -115,7 +116,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:     opts.GetKey(editCommitKey),
-			Handler: self.withItems(self.edit),
+			Handler: self.withItemsRange(self.edit),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(self.midRebaseCommandEnabled),
 			),
@@ -496,12 +497,17 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 		return self.updateTodos(todo.Drop, selectedCommits)
 	}
 
+	isMerge := selectedCommits[0].IsMerge()
+
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DropCommitTitle,
-		Prompt: self.c.Tr.DropCommitPrompt,
+		Prompt: lo.Ternary(isMerge, self.c.Tr.DropMergeCommitPrompt, self.c.Tr.DropCommitPrompt),
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.DroppingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DropCommit)
+				if isMerge {
+					return self.dropMergeCommit(startIdx)
+				}
 				return self.interactiveRebase(todo.Drop, startIdx, endIdx)
 			})
 		},
@@ -510,9 +516,28 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 	return nil
 }
 
-func (self *LocalCommitsController) edit(selectedCommits []*models.Commit) error {
+func (self *LocalCommitsController) dropMergeCommit(commitIdx int) error {
+	err := self.c.Git().Rebase.DropMergeCommit(self.c.Model().Commits, commitIdx)
+	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+}
+
+func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
 	if self.isRebasing() {
 		return self.updateTodos(todo.Edit, selectedCommits)
+	}
+
+	commits := self.c.Model().Commits
+	if !commits[endIdx].IsMerge() {
+		selectionRangeAndMode := self.getSelectionRangeAndMode()
+		err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err,
+			types.RefreshOptions{
+				Mode: types.BLOCK_UI, Then: func() error {
+					self.restoreSelectionRangeAndMode(selectionRangeAndMode)
+					return nil
+				},
+			})
 	}
 
 	return self.startInteractiveRebaseWithEdit(selectedCommits)
@@ -532,10 +557,7 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 ) error {
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
-		selectedIdx, rangeStartIdx, rangeSelectMode := self.context().GetSelectionRangeAndMode()
-		commits := self.c.Model().Commits
-		selectedHash := commits[selectedIdx].Hash
-		rangeStartHash := commits[rangeStartIdx].Hash
+		selectionRangeAndMode := self.getSelectionRangeAndMode()
 		err := self.c.Git().Rebase.EditRebase(commitsToEdit[len(commitsToEdit)-1].Hash)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
@@ -554,21 +576,39 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 					}
 				}
 
-				// We need to select the same commit range again because after starting a rebase,
-				// new lines can be added for update-ref commands in the TODO file, due to
-				// stacked branches. So the selected commits may be in different positions in the list.
-				_, newSelectedIdx, ok1 := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
-					return c.Hash == selectedHash
-				})
-				_, newRangeStartIdx, ok2 := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
-					return c.Hash == rangeStartHash
-				})
-				if ok1 && ok2 {
-					self.context().SetSelectionRangeAndMode(newSelectedIdx, newRangeStartIdx, rangeSelectMode)
-				}
+				self.restoreSelectionRangeAndMode(selectionRangeAndMode)
 				return nil
 			}})
 	})
+}
+
+type SelectionRangeAndMode struct {
+	selectedHash   string
+	rangeStartHash string
+	mode           traits.RangeSelectMode
+}
+
+func (self *LocalCommitsController) getSelectionRangeAndMode() SelectionRangeAndMode {
+	selectedIdx, rangeStartIdx, rangeSelectMode := self.context().GetSelectionRangeAndMode()
+	commits := self.c.Model().Commits
+	selectedHash := commits[selectedIdx].Hash
+	rangeStartHash := commits[rangeStartIdx].Hash
+	return SelectionRangeAndMode{selectedHash, rangeStartHash, rangeSelectMode}
+}
+
+func (self *LocalCommitsController) restoreSelectionRangeAndMode(selectionRangeAndMode SelectionRangeAndMode) {
+	// We need to select the same commit range again because after starting a rebase,
+	// new lines can be added for update-ref commands in the TODO file, due to
+	// stacked branches. So the selected commits may be in different positions in the list.
+	_, newSelectedIdx, ok1 := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
+		return c.Hash == selectionRangeAndMode.selectedHash
+	})
+	_, newRangeStartIdx, ok2 := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
+		return c.Hash == selectionRangeAndMode.rangeStartHash
+	})
+	if ok1 && ok2 {
+		self.context().SetSelectionRangeAndMode(newSelectedIdx, newRangeStartIdx, selectionRangeAndMode.mode)
+	}
 }
 
 func (self *LocalCommitsController) findCommitForQuickStartInteractiveRebase() (*models.Commit, error) {
@@ -696,7 +736,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 			Title:  self.c.Tr.AmendCommitTitle,
 			Prompt: self.c.Tr.AmendCommitPrompt,
 			HandleConfirm: func() error {
-				return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+				return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 					if err := self.c.Helpers().AmendHelper.AmendHead(); err != nil {
 						return err
 					}
@@ -712,7 +752,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		Title:  self.c.Tr.AmendCommitTitle,
 		Prompt: self.c.Tr.AmendCommitPrompt,
 		HandleConfirm: func() error {
-			return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+			return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 				return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 					self.c.LogAction(self.c.Tr.Actions.AmendCommit)
 					err := self.c.Git().Rebase.AmendTo(self.c.Model().Commits, self.context().GetView().SelectedLineIdx())
@@ -888,10 +928,14 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 				Label: self.c.Tr.FixupMenu_Fixup,
 				Key:   'f',
 				OnPress: func() error {
-					return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+					return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 						self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
 						return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
 							if err := self.c.Git().Commit.CreateFixupCommit(commit.Hash); err != nil {
+								return err
+							}
+
+							if err := self.moveFixupCommitToOwnerStackedBranch(commit); err != nil {
 								return err
 							}
 
@@ -907,7 +951,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 				Label: self.c.Tr.FixupMenu_AmendWithChanges,
 				Key:   'a',
 				OnPress: func() error {
-					return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+					return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 						return self.createAmendCommit(commit, true)
 					})
 				},
@@ -922,6 +966,50 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 			},
 		},
 	})
+}
+
+func (self *LocalCommitsController) moveFixupCommitToOwnerStackedBranch(targetCommit *models.Commit) error {
+	if self.c.Git().Version.IsOlderThan(2, 38, 0) {
+		// Git 2.38.0 introduced the `rebase.updateRefs` config option. Don't
+		// move the commit down with older versions, as it would break the stack.
+		return nil
+	}
+
+	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+		// Can't move commits while rebasing
+		return nil
+	}
+
+	if targetCommit.Status == models.StatusMerged {
+		// Target commit is already on main. It's a bit questionable that we
+		// allow creating a fixup commit for it in the first place, but we
+		// always did, so why restrict that now; however, it doesn't make sense
+		// to move the created fixup commit down in that case.
+		return nil
+	}
+
+	if !self.c.Git().Config.GetRebaseUpdateRefs() {
+		// If the user has disabled rebase.updateRefs, we don't move the fixup
+		// because this would break the stack of branches (presumably they like
+		// to manage it themselves manually, or something).
+		return nil
+	}
+
+	headOfOwnerBranchIdx := -1
+	for i := self.context().GetSelectedLineIdx(); i > 0; i-- {
+		if lo.SomeBy(self.c.Model().Branches, func(b *models.Branch) bool {
+			return b.CommitHash == self.c.Model().Commits[i].Hash
+		}) {
+			headOfOwnerBranchIdx = i
+			break
+		}
+	}
+
+	if headOfOwnerBranchIdx == -1 {
+		return nil
+	}
+
+	return self.c.Git().Rebase.MoveFixupCommitDown(self.c.Model().Commits, headOfOwnerBranchIdx)
 }
 
 func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, includeFileChanges bool) error {
@@ -944,6 +1032,10 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 				self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
 				return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
 					if err := self.c.Git().Commit.CreateAmendCommit(originalSubject, summary, description, includeFileChanges); err != nil {
+						return err
+					}
+
+					if err := self.moveFixupCommitToOwnerStackedBranch(commit); err != nil {
 						return err
 					}
 
@@ -1125,10 +1217,9 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 						return func() error {
 							self.c.GetAppState().GitLogShowGraph = value
 							self.c.SaveAppStateAndLogError()
-							if err := self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits); err != nil {
-								return err
-							}
-							return self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
+							self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+							self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
+							return nil
 						}
 					}
 					return self.c.Menu(types.CreateMenuOptions{
@@ -1191,6 +1282,11 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 								OnPress: onPress("author-date-order"),
 								Widget:  types.MakeMenuRadioButton(currentValue == "author-date-order"),
 							},
+							{
+								Label:   "default",
+								OnPress: onPress("default"),
+								Widget:  types.MakeMenuRadioButton(currentValue == "default"),
+							},
 						},
 					})
 				},
@@ -1234,7 +1330,8 @@ func (self *LocalCommitsController) markAsBaseCommit(commit *models.Commit) erro
 	} else {
 		self.c.Modes().MarkedBaseCommit.SetHash(commit.Hash)
 	}
-	return self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+	self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+	return nil
 }
 
 func (self *LocalCommitsController) isHeadCommit(idx int) bool {
@@ -1271,9 +1368,13 @@ func (self *LocalCommitsController) canFindCommitForSquashFixupsInCurrentBranch(
 	return nil
 }
 
-func (self *LocalCommitsController) canSquashOrFixup(_selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
+func (self *LocalCommitsController) canSquashOrFixup(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
 	if endIdx >= len(self.c.Model().Commits)-1 {
 		return &types.DisabledReason{Text: self.c.Tr.CannotSquashOrFixupFirstCommit}
+	}
+
+	if lo.SomeBy(selectedCommits, func(c *models.Commit) bool { return c.IsMerge() }) {
+		return &types.DisabledReason{Text: self.c.Tr.CannotSquashOrFixupMergeCommit}
 	}
 
 	return nil
@@ -1333,6 +1434,10 @@ func (self *LocalCommitsController) midRebaseCommandEnabled(selectedCommits []*m
 // Ensures that if we are mid-rebase, we're only selecting commits that can be moved
 func (self *LocalCommitsController) midRebaseMoveCommandEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
 	if !self.isRebasing() {
+		if lo.SomeBy(selectedCommits, func(c *models.Commit) bool { return c.IsMerge() }) {
+			return &types.DisabledReason{Text: self.c.Tr.CannotMoveMergeCommit}
+		}
+
 		return nil
 	}
 
@@ -1353,6 +1458,10 @@ func (self *LocalCommitsController) midRebaseMoveCommandEnabled(selectedCommits 
 
 func (self *LocalCommitsController) canDropCommits(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
 	if !self.isRebasing() {
+		if len(selectedCommits) > 1 && lo.SomeBy(selectedCommits, func(c *models.Commit) bool { return c.IsMerge() }) {
+			return &types.DisabledReason{Text: self.c.Tr.DroppingMergeRequiresSingleSelection}
+		}
+
 		return nil
 	}
 
