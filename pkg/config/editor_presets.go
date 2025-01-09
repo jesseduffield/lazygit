@@ -66,9 +66,15 @@ func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset
 				return !ok
 			},
 		},
-		"lvim":    standardTerminalEditorPreset("lvim"),
-		"emacs":   standardTerminalEditorPreset("emacs"),
-		"micro":   standardTerminalEditorPreset("micro"),
+		"lvim":  standardTerminalEditorPreset("lvim"),
+		"emacs": standardTerminalEditorPreset("emacs"),
+		"micro": {
+			editTemplate:              "micro {{filename}}",
+			editAtLineTemplate:        "micro +{{line}} {{filename}}",
+			editAtLineAndWaitTemplate: "micro +{{line}} {{filename}}",
+			openDirInEditorTemplate:   "micro {{dir}}",
+			suspend:                   returnBool(true),
+		},
 		"nano":    standardTerminalEditorPreset("nano"),
 		"kakoune": standardTerminalEditorPreset("kak"),
 		"helix": {
