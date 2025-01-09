@@ -1337,7 +1337,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CherryPickCopyTooltip:                "Mark commit as copied. Then, within the local commits view, you can press `{{.paste}}` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `{{.escape}}` to cancel the selection.",
 		CherryPickCopyRangeTooltip:           "Mark commits as copied from the last copied commit to the selected commit.",
 		PasteCommits:                         "Paste (cherry-pick)",
-		SureCherryPick:                       "Are you sure you want to cherry-pick the copied commits onto this branch?",
+		SureCherryPick:                       "Are you sure you want to cherry-pick the {{.numCommits}} copied commit(s) onto this branch?",
 		CherryPick:                           "Cherry-pick",
 		CannotCherryPickNonCommit:            "Cannot cherry-pick this kind of todo item",
 		CannotCherryPickMergeCommit:          "Cherry-picking merge commits is not supported",
