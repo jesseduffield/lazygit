@@ -1,10 +1,13 @@
 package helpers
 
 import (
+	"strconv"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -67,8 +70,12 @@ func (self *CherryPickHelper) CopyRange(commitsList []*models.Commit, context ty
 // Only to be called from the branch commits controller
 func (self *CherryPickHelper) Paste() error {
 	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.CherryPick,
-		Prompt: self.c.Tr.SureCherryPick,
+		Title: self.c.Tr.CherryPick,
+		Prompt: utils.ResolvePlaceholderString(
+			self.c.Tr.SureCherryPick,
+			map[string]string{
+				"numCommits": strconv.Itoa(len(self.getData().CherryPickedCommits)),
+			}),
 		HandleConfirm: func() error {
 			isInRebase, err := self.c.Git().Status.IsInInteractiveRebase()
 			if err != nil {
