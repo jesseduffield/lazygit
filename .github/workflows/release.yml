@@ -27,16 +27,12 @@ jobs:
       #       exit 1
       #     fi
 
-      - name: Setup GitHub CLI
-        run: |
-          gh auth setup-git
-          gh auth status
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Check for Blocking Issues/PRs
         id: check_blocks
         run: |
+          gh auth setup-git
+          gh auth status
+
           echo "Checking for blocking issues and PRs..."
 
           # Check for blocking issues
@@ -59,27 +55,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get Latest Tag
-        id: get_latest_tag
+      - name: Calculate next version
         run: |
           latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) || echo "v0.0.0")
           echo "Latest tag: $latest_tag"
-          echo "latest_tag=$latest_tag" >> $GITHUB_ENV
-
-      - name: Bump Version
-        id: bump_version
-        run: |
-          IFS='.' read -r major minor patch <<< "${{ env.latest_tag }}"
+          IFS='.' read -r major minor patch <<< "$latest_tag"
           new_minor=$((minor + 1))
           new_tag="$major.$new_minor.0"
           echo "New tag: $new_tag"
           echo "new_tag=$new_tag" >> $GITHUB_ENV
 
-      # - name: Push New Tag
-      #   run: |
-      #     git config user.name "github-actions[bot]"
-      #     git config user.email "github-actions[bot]@users.noreply.github.com"
-      #     git tag example-${{ env.new_tag }}
-      #     git push origin example-${{ env.new_tag }}
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push New Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag example-${{ env.new_tag }}
+          git push origin example-${{ env.new_tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
