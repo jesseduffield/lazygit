@@ -148,9 +148,9 @@ type GuiConfig struct {
 	// One of: 'auto' | 'always'
 	// If 'auto', only split the main window when a file has both staged and unstaged changes
 	SplitDiff string `yaml:"splitDiff" jsonschema:"enum=auto,enum=always"`
-	// Default size for focused window. Window size can be changed from within Lazygit with '+' and '_' (but this won't change the default).
+	// Default size for focused window. Can be changed from within Lazygit with '+' and '_' (but this won't change the default).
 	// One of: 'normal' (default) | 'half' | 'full'
-	WindowSize string `yaml:"windowSize" jsonschema:"enum=normal,enum=half,enum=full"`
+	ScreenMode string `yaml:"screenMode" jsonschema:"enum=normal,enum=half,enum=full"`
 	// Window border style.
 	// One of 'rounded' (default) | 'single' | 'double' | 'hidden'
 	Border string `yaml:"border" jsonschema:"enum=single,enum=double,enum=rounded,enum=hidden"`
@@ -734,7 +734,7 @@ func GetDefaultConfig() *UserConfig {
 			CommandLogSize:               8,
 			SplitDiff:                    "auto",
 			SkipRewordInEditorWarning:    false,
-			WindowSize:                   "normal",
+			ScreenMode:                   "normal",
 			Border:                       "rounded",
 			AnimateExplosion:             true,
 			PortraitMode:                 "auto",

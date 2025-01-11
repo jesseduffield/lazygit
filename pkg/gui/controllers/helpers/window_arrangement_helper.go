@@ -53,7 +53,7 @@ type WindowArrangementArgs struct {
 	// staged and unstaged changes)
 	SplitMainPanel bool
 	// The current screen mode (normal, half, full)
-	ScreenMode types.WindowMaximisation
+	ScreenMode types.ScreenMode
 	// The content shown on the bottom left of the screen when showing a loader
 	// or toast e.g. 'Rebasing /'
 	AppStatus string

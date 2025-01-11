@@ -200,7 +200,7 @@ Undo uses the reflog which is specific to commits and branches so we can't undo 
 
 ### Commit graph
 
-When viewing the commit graph in an enlarged window (use `+` and `_` to cycle window sizes), the commit graph is shown. Colours correspond to the commit authors, and as you navigate down the graph, the parent commits of the selected commit are highlighted.
+When viewing the commit graph in an enlarged window (use `+` and `_` to cycle screen modes), the commit graph is shown. Colours correspond to the commit authors, and as you navigate down the graph, the parent commits of the selected commit are highlighted.
 
 ![commit_graph](../assets/demo/commit_graph-compressed.gif)
 
