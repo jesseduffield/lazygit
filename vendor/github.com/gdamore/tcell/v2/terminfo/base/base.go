@@ -23,7 +23,7 @@ package base
 
 import (
 	// The following imports just register themselves --
-	// thse are the terminal types we aggregate in this package.
+	// these are the terminal types we aggregate in this package.
 	_ "github.com/gdamore/tcell/v2/terminfo/a/ansi"
 	_ "github.com/gdamore/tcell/v2/terminfo/v/vt100"
 	_ "github.com/gdamore/tcell/v2/terminfo/v/vt102"

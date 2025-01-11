@@ -1,4 +1,4 @@
-// Copyright 2023 The TCell Authors
+// Copyright 2024 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -19,11 +19,13 @@ package tcell
 
 import (
 	"errors"
-	"github.com/gdamore/tcell/v2/terminfo"
+	"fmt"
 	"strings"
 	"sync"
 	"syscall/js"
 	"unicode/utf8"
+
+	"github.com/gdamore/tcell/v2/terminfo"
 )
 
 func NewTerminfoScreen() (Screen, error) {
@@ -66,6 +68,9 @@ func (t *wScreen) Init() error {
 	t.Unlock()
 
 	js.Global().Set("onKeyEvent", js.FuncOf(t.onKeyEvent))
+	js.Global().Set("onMouseClick", js.FuncOf(t.unset))
+	js.Global().Set("onMouseMove", js.FuncOf(t.unset))
+	js.Global().Set("onFocus", js.FuncOf(t.unset))
 
 	return nil
 }
@@ -133,14 +138,23 @@ func (t *wScreen) drawCell(x, y int) int {
 	if bg == -1 {
 		bg = 0x000000
 	}
+	us, uc := style.ulStyle, paletteColor(style.ulColor)
+	if uc == -1 {
+		uc = 0x000000
+	}
 
-	var combcarr []interface{} = make([]interface{}, len(combc))
-	for i, c := range combc {
-		combcarr[i] = c
+	s := ""
+	if len(combc) > 0 {
+		b := make([]rune, 0, 1 + len(combc))
+		b = append(b, mainc)
+		b = append(b, combc...)
+		s = string(b)
+	} else {
+		s = string(mainc)
 	}
 
 	t.cells.SetDirty(x, y, false)
-	js.Global().Call("drawCell", x, y, mainc, combcarr, fg, bg, int(style.attrs))
+	js.Global().Call("drawCell", x, y, s, fg, bg, int(style.attrs), int(us), int(uc))
 
 	return width
 }
@@ -151,9 +165,12 @@ func (t *wScreen) ShowCursor(x, y int) {
 	t.Unlock()
 }
 
-func (t *wScreen) SetCursorStyle(cs CursorStyle) {
+func (t *wScreen) SetCursor(cs CursorStyle, cc Color) {
+	if !cc.Valid() {
+		cc = ColorLightGray
+	}
 	t.Lock()
-	js.Global().Call("setCursorStyle", curStyleClasses[cs])
+	js.Global().Call("setCursorStyle", curStyleClasses[cs], fmt.Sprintf("#%06x", cc.Hex()))
 	t.Unlock()
 }
 
@@ -509,6 +526,10 @@ func (t *wScreen) EventQ() chan Event {
 
 func (t *wScreen) StopQ() <-chan struct{} {
 	return t.quit
+}
+
+func (t *wScreen) SetTitle(title string) {
+	js.Global().Call("setTitle", title)
 }
 
 // WebKeyNames maps string names reported from HTML

@@ -58,7 +58,7 @@ func (cb *CellBuffer) SetContent(x int, y int,
 		// dirty as well as the base cell, to make sure we consider
 		// both cells as dirty together.  We only need to do this
 		// if we're changing content
-		if (c.width > 0) && (mainc != c.currMain || !reflect.DeepEqual(combc, c.currComb)) {
+		if (c.width > 0) && (mainc != c.currMain || len(combc) != len(c.currComb) || (len(combc) > 0 && !reflect.DeepEqual(combc, c.currComb))) {
 			for i := 0; i < c.width; i++ {
 				cb.SetDirty(x+i, y, true)
 			}
@@ -245,12 +245,5 @@ func init() {
 	// it is set.
 	if os.Getenv("RUNEWIDTH_EASTASIAN") == "" {
 		runewidth.DefaultCondition.EastAsianWidth = false
-	}
-
-	// For performance reasons, we create a lookup table.  However, some users
-	// might be more memory conscious.  If that's you, set the TCELL_MINIMIZE
-	// environment variable.
-	if os.Getenv("TCELL_MINIMIZE") == "" {
-		runewidth.CreateLUT()
 	}
 }
