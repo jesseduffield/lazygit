@@ -1,0 +1,72 @@
+name: Automated Release
+
+on:
+  schedule:
+    # Runs at 2:00 AM UTC on the first Saturday of every month
+    - cron: '0 2 * * 6'
+  workflow_dispatch: # Allow manual triggering of the workflow
+
+jobs:
+  check-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes since last release
+        run: |
+          if [ -z "$(git diff --name-only ${{ env.latest_tag }})" ]; then
+            echo "No changes detected since last release"
+            exit 1
+          fi
+
+      - name: Check for Blocking Issues/PRs
+        id: check_blocks
+        run: |
+          gh auth setup-git
+          gh auth status
+
+          echo "Checking for blocking issues and PRs..."
+
+          # Check for blocking issues
+          blocking_issues=$(gh issue list -l blocks-release --json number,title --jq '.[] | "- \(.title) (#\(.number))"')
+
+          # Check for blocking PRs
+          blocking_prs=$(gh pr list -l blocks-release --json number,title --jq '.[] | "- \(.title) (#\(.number)) (PR)"')
+
+          # Combine the results
+          blocking_items="$blocking_issues"$'\n'"$blocking_prs"
+
+          # Remove empty lines
+          blocking_items=$(echo "$blocking_items" | grep . || true)
+
+          if [ -n "$blocking_items" ]; then
+            echo "Blocking issues/PRs detected:"
+            echo "$blocking_items"
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Calculate next version
+        run: |
+          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) || echo "v0.0.0")
+          echo "Latest tag: $latest_tag"
+          IFS='.' read -r major minor patch <<< "$latest_tag"
+          new_minor=$((minor + 1))
+          new_tag="$major.$new_minor.0"
+          echo "New tag: $new_tag"
+          echo "new_tag=$new_tag" >> $GITHUB_ENV
+
+      # This will trigger a deploy via .github/workflows/cd.yml
+      - name: Push New Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ env.new_tag }}
+          git push origin ${{ env.new_tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
