@@ -20,47 +20,46 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup GitHub CLI
+        run: |
+          gh auth setup-git
+          gh auth status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Check for Blocking Issues/PRs
         id: check_blocks
-        uses: actions/github-script@v6
-        with:
-          script: |
-            // Check for issues with blocks-release label
-            const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              labels: 'blocks-release',
-              state: 'open'
-            });
+        run: |
+          echo "Checking for blocking issues and PRs..."
 
-            // Check for PRs with blocks-release label
-            const { data: prs } = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open'
-            });
+          # Check for blocking issues
+          blocking_issues=$(gh issue list -l blocks-release --json number,title --jq '.[] | "- \(.title) (#\(.number))"')
 
-            const blockingPRs = prs.filter(pr =>
-              pr.labels.some(label => label.name === 'blocks-release')
-            );
+          # Check for blocking PRs
+          blocking_prs=$(gh pr list -l blocks-release --json number,title --jq '.[] | "- \(.title) (#\(.number)) (PR)"')
 
-            const blockingItems = [
-              ...issues.map(issue => `- ${issue.title} (#${issue.number})`),
-              ...blockingPRs.map(pr => `- ${pr.title} (#${pr.number}) (PR)`)
-            ];
+          # Combine the results
+          blocking_items="$blocking_issues"$'\n'"$blocking_prs"
 
-            if (blockingItems.length > 0) {
-              core.setOutput('block_release', 'true');
-              core.setOutput('blocking_items', blockingItems.join("\n"));
-            } else {
-              core.setOutput('block_release', 'false');
-            }
+          # Remove empty lines
+          blocking_items=$(echo "$blocking_items" | grep . || true)
+
+          if [ -n "$blocking_items" ]; then
+            echo "block_release=true" >> $GITHUB_OUTPUT
+            echo "blocking_items<<EOF" >> $GITHUB_OUTPUT
+            echo "$blocking_items" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "block_release=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Stop if Blocks Exist
-        if: steps.check-blocks.outputs.block_release == 'true'
+        if: steps.check_blocks.outputs.block_release == 'true'
         run: |
           echo "Blocking issues/PRs detected:"
-          echo "${{ steps.check-blocks.outputs.blocking_items }}"
+          echo "${{ steps.check_blocks.outputs.blocking_items }}"
           exit 1
 
       # - name: Check for changes since last release
@@ -86,11 +85,11 @@ jobs:
           echo "New tag: $new_tag"
           echo "new_tag=$new_tag" >> $GITHUB_ENV
 
-      - name: Push New Tag
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag example-${{ env.new_tag }}
-          git push origin ${{ env.new_tag }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Push New Tag
+      #   run: |
+      #     git config user.name "github-actions[bot]"
+      #     git config user.email "github-actions[bot]@users.noreply.github.com"
+      #     git tag example-${{ env.new_tag }}
+      #     git push origin example-${{ env.new_tag }}
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
