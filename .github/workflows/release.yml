@@ -1,0 +1,78 @@
+name: Automated Release
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  # schedule:
+  #   # Runs at 2:00 AM UTC on the first Saturday of every month
+  #   - cron: '0 2 * * 6'
+  # workflow_dispatch: # Allow manual triggering of the workflow
+
+jobs:
+  check-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check for Blocking Issues/PRs
+        id: check_blocks
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'blocks-release',
+              state: 'open'
+            });
+            if (issues.length > 0) {
+              core.setOutput('block_release', 'true');
+              core.setOutput('blocking_items', issues.map(issue => `- ${issue.title} (#${issue.number})`).join("\n"));
+            } else {
+              core.setOutput('block_release', 'false');
+            }
+
+      - name: Stop if Blocks Exist
+        if: steps.check-blocks.outputs.block_release == 'true'
+        run: |
+          echo "Blocking issues/PRs detected:"
+          echo "${{ steps.check-blocks.outputs.blocking_items }}"
+          exit 1
+
+      # - name: Check for changes since last release
+      #   run: |
+      #     if [ -z "$(git diff --name-only ${{ env.latest_tag }})" ]; then
+      #       echo "No changes detected since last release"
+      #       exit 1
+      #     fi
+
+      - name: Get Latest Tag
+        id: get_latest_tag
+        run: |
+          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) || echo "v0.0.0")
+          echo "Latest tag: $latest_tag"
+          echo "latest_tag=$latest_tag" >> $GITHUB_ENV
+
+      - name: Bump Version
+        id: bump_version
+        run: |
+          IFS='.' read -r major minor patch <<< "${{ env.latest_tag }}"
+          new_minor=$((minor + 1))
+          new_tag="$major.$new_minor.0"
+          echo "New tag: $new_tag"
+          echo "new_tag=$new_tag" >> $GITHUB_ENV
+
+      # - name: Push New Tag
+      #   run: |
+      #     git config user.name "github-actions[bot]"
+      #     git config user.email "github-actions[bot]@users.noreply.github.com"
+      #     git tag ${{ env.new_tag }}
+      #     git push origin ${{ env.new_tag }}
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
