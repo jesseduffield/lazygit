@@ -25,15 +25,33 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            // Check for issues with blocks-release label
             const { data: issues } = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
               labels: 'blocks-release',
               state: 'open'
             });
-            if (issues.length > 0) {
+
+            // Check for PRs with blocks-release label
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+
+            const blockingPRs = prs.filter(pr =>
+              pr.labels.some(label => label.name === 'blocks-release')
+            );
+
+            const blockingItems = [
+              ...issues.map(issue => `- ${issue.title} (#${issue.number})`),
+              ...blockingPRs.map(pr => `- ${pr.title} (#${pr.number}) (PR)`)
+            ];
+
+            if (blockingItems.length > 0) {
               core.setOutput('block_release', 'true');
-              core.setOutput('blocking_items', issues.map(issue => `- ${issue.title} (#${issue.number})`).join("\n"));
+              core.setOutput('blocking_items', blockingItems.join("\n"));
             } else {
               core.setOutput('block_release', 'false');
             }
@@ -68,11 +86,11 @@ jobs:
           echo "New tag: $new_tag"
           echo "new_tag=$new_tag" >> $GITHUB_ENV
 
-      # - name: Push New Tag
-      #   run: |
-      #     git config user.name "github-actions[bot]"
-      #     git config user.email "github-actions[bot]@users.noreply.github.com"
-      #     git tag ${{ env.new_tag }}
-      #     git push origin ${{ env.new_tag }}
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push New Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag example-${{ env.new_tag }}
+          git push origin ${{ env.new_tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
