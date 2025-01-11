@@ -244,7 +244,7 @@ type GuiRepoState struct {
 	// back in sync with the repo state
 	ViewsSetup bool
 
-	ScreenMode types.WindowMaximisation
+	ScreenMode types.ScreenMode
 
 	CurrentPopupOpts *types.CreatePopupPanelOpts
 }
@@ -275,11 +275,11 @@ func (self *GuiRepoState) SetCurrentPopupOpts(value *types.CreatePopupPanelOpts)
 	self.CurrentPopupOpts = value
 }
 
-func (self *GuiRepoState) GetScreenMode() types.WindowMaximisation {
+func (self *GuiRepoState) GetScreenMode() types.ScreenMode {
 	return self.ScreenMode
 }
 
-func (self *GuiRepoState) SetScreenMode(value types.WindowMaximisation) {
+func (self *GuiRepoState) SetScreenMode(value types.ScreenMode) {
 	self.ScreenMode = value
 }
 
@@ -580,18 +580,18 @@ func initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSaf
 	return result
 }
 
-func initialScreenMode(startArgs appTypes.StartArgs, config config.AppConfigurer) types.WindowMaximisation {
+func initialScreenMode(startArgs appTypes.StartArgs, config config.AppConfigurer) types.ScreenMode {
 	if startArgs.ScreenMode != "" {
-		return getWindowMaximisation(startArgs.ScreenMode)
+		return parseScreenModeArg(startArgs.ScreenMode)
 	} else if startArgs.FilterPath != "" || startArgs.GitArg != appTypes.GitArgNone {
 		return types.SCREEN_HALF
 	} else {
-		return getWindowMaximisation(config.GetUserConfig().Gui.WindowSize)
+		return parseScreenModeArg(config.GetUserConfig().Gui.ScreenMode)
 	}
 }
 
-func getWindowMaximisation(modeString string) types.WindowMaximisation {
-	switch modeString {
+func parseScreenModeArg(screenModeArg string) types.ScreenMode {
+	switch screenModeArg {
 	case "half":
 		return types.SCREEN_HALF
 	case "full":
