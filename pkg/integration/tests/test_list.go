@@ -367,6 +367,7 @@ var tests = []*components.IntegrationTest{
 	ui.SwitchTabFromMenu,
 	ui.SwitchTabWithPanelJumpKeys,
 	undo.UndoCheckoutAndDrop,
+	undo.UndoCommit,
 	undo.UndoDrop,
 	worktree.AddFromBranch,
 	worktree.AddFromBranchDetached,
