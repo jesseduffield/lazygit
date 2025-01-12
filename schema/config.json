@@ -16,6 +16,13 @@
             "type": "string"
           },
           "type": "object",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color\nDeprecated: use branchColorPatterns instead"
+        },
+        "branchColorPatterns": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
           "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color"
         },
         "scrollHeight": {

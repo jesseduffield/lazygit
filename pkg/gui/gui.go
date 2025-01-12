@@ -455,7 +455,13 @@ func (gui *Gui) onUserConfigLoaded() error {
 	} else if userConfig.Gui.ShowIcons {
 		icons.SetNerdFontsVersion("2")
 	}
-	presentation.SetCustomBranches(userConfig.Gui.BranchColors)
+
+	if len(userConfig.Gui.BranchColorPatterns) > 0 {
+		presentation.SetCustomBranches(userConfig.Gui.BranchColorPatterns, true)
+	} else {
+		// Fall back to the deprecated branchColors config
+		presentation.SetCustomBranches(userConfig.Gui.BranchColors, false)
+	}
 
 	return nil
 }
