@@ -550,6 +550,7 @@
   "RewordInEditorPrompt": "是否在編輯器中改寫此提交？",
   "CheckoutPrompt": "是否檢出 '%s' ？",
   "HardResetAutostashPrompt": "是否強制重設為 '%s' ？如果需要會進行自動存儲。",
+  "SoftResetAutostashPrompt": "是否軟重設為 '%s' ？如果需要會進行自動存儲。",
   "UpstreamGone": "(遠端已經不存在)",
   "NukeDescription": "如果你想讓所有工作樹上的變更消失，這就是正確的選項。如果有未提交的子模組變更，它們將被收藏在子模組中。",
   "DiscardStagedChangesDescription": "這將創建一個新的存儲條目，其中只包含預存檔案，然後如果存儲條目不需要，將其刪除，因此工作樹僅保留未預存的變更。",

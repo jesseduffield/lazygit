@@ -229,6 +229,8 @@ type GitConfig struct {
 	Commit CommitConfig `yaml:"commit"`
 	// Config relating to merging
 	Merging MergingConfig `yaml:"merging"`
+	// Config relating to undoing
+	Undo UndoConfig `yaml:"undo"`
 	// list of branches that are considered 'main' branches, used when displaying commits
 	MainBranches []string `yaml:"mainBranches" jsonschema:"uniqueItems=true"`
 	// Prefix to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks will be skipped when the commit message starts with 'WIP'
@@ -312,6 +314,13 @@ type MergingConfig struct {
 	Args string `yaml:"args" jsonschema:"example=--no-ff"`
 	// The commit message to use for a squash merge commit. Can contain "{{selectedRef}}" and "{{currentBranch}}" placeholders.
 	SquashMergeMessage string `yaml:"squashMergeMessage"`
+}
+
+type UndoConfig struct {
+	// One of: 'hard' | 'soft'
+	CommitReset string `yaml:"commitReset" jsonschema:"enum=hard,enum=soft"`
+	// One of: 'hard' | 'soft'
+	RebaseReset string `yaml:"rebaseReset" jsonschema:"enum=hard,enum=soft"`
 }
 
 type LogConfig struct {
@@ -767,6 +776,10 @@ func GetDefaultConfig() *UserConfig {
 				ManualCommit:       false,
 				Args:               "",
 				SquashMergeMessage: "Squash merge {{selectedRef}} into {{currentBranch}}",
+			},
+			Undo: UndoConfig{
+				CommitReset: "hard",
+				RebaseReset: "hard",
 			},
 			Log: LogConfig{
 				Order:          "topo-order",

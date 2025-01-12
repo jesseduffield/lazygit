@@ -89,12 +89,30 @@ func (self *UndoController) reflogUndo() error {
 
 		switch action.kind {
 		case COMMIT, REBASE:
+			var resetMode string
+			switch action.kind {
+			case COMMIT:
+				resetMode = self.c.UserConfig().Git.Undo.CommitReset
+			case REBASE:
+				resetMode = self.c.UserConfig().Git.Undo.RebaseReset
+			}
+
+			var resetPrompt string
+			switch resetMode {
+			case "hard":
+				resetPrompt = self.c.Tr.HardResetAutostashPrompt
+			case "soft":
+				resetPrompt = self.c.Tr.SoftResetAutostashPrompt
+			}
+
+			// 3. Use those in the confirm step
 			self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Undo,
-				Prompt: fmt.Sprintf(self.c.Tr.HardResetAutostashPrompt, action.from),
+				Prompt: fmt.Sprintf(resetPrompt, action.from),
 				HandleConfirm: func() error {
 					self.c.LogAction(self.c.Tr.Actions.Undo)
-					return self.hardResetWithAutoStash(action.from, hardResetOptions{
+					return self.resetWithAutoStash(action.from, resetOptions{
+						Mode:          resetMode,
 						EnvVars:       undoEnvVars,
 						WaitingStatus: undoingStatus,
 					})
@@ -143,12 +161,29 @@ func (self *UndoController) reflogRedo() error {
 
 		switch action.kind {
 		case COMMIT, REBASE:
+			var resetMode string
+			switch action.kind {
+			case COMMIT:
+				resetMode = self.c.UserConfig().Git.Undo.CommitReset
+			case REBASE:
+				resetMode = self.c.UserConfig().Git.Undo.RebaseReset
+			}
+
+			var resetPrompt string
+			switch resetMode {
+			case "hard":
+				resetPrompt = self.c.Tr.HardResetAutostashPrompt
+			case "soft":
+				resetPrompt = self.c.Tr.SoftResetAutostashPrompt
+			}
+
 			self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Redo,
-				Prompt: fmt.Sprintf(self.c.Tr.HardResetAutostashPrompt, action.to),
+				Prompt: fmt.Sprintf(resetPrompt, action.to),
 				HandleConfirm: func() error {
 					self.c.LogAction(self.c.Tr.Actions.Redo)
-					return self.hardResetWithAutoStash(action.to, hardResetOptions{
+					return self.resetWithAutoStash(action.to, resetOptions{
+						Mode:          resetMode,
 						EnvVars:       redoEnvVars,
 						WaitingStatus: redoingStatus,
 					})
@@ -233,15 +268,16 @@ func (self *UndoController) parseReflogForActions(onUserAction func(counter int,
 	return nil
 }
 
-type hardResetOptions struct {
+type resetOptions struct {
+	Mode string
 	WaitingStatus string
 	EnvVars       []string
 }
 
 // only to be used in the undo flow for now (does an autostash)
-func (self *UndoController) hardResetWithAutoStash(commitHash string, options hardResetOptions) error {
+func (self *UndoController) resetWithAutoStash(commitHash string, options resetOptions) error {
 	reset := func() error {
-		return self.c.Helpers().Refs.ResetToRef(commitHash, "hard", options.EnvVars)
+		return self.c.Helpers().Refs.ResetToRef(commitHash, options.Mode, options.EnvVars)
 	}
 
 	// if we have any modified tracked files we need to ask the user if they want us to stash for them

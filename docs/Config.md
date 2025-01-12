@@ -305,6 +305,13 @@ git:
     # The commit message to use for a squash merge commit. Can contain "{{selectedRef}}" and "{{currentBranch}}" placeholders.
     squashMergeMessage: Squash merge {{selectedRef}} into {{currentBranch}}
 
+  # Config relating to undoing
+  undo:
+    # Wether to use hard or soft git reset when undoing commits
+    commitReset: hard
+    # Wether to use hard or soft git reset when undoing rebases
+    rebaseReset: hard
+
   # list of branches that are considered 'main' branches, used when displaying commits
   mainBranches:
     - master

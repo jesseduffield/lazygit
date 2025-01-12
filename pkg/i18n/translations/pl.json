@@ -644,6 +644,7 @@
   "RewordInEditorPrompt": "Czy na pewno chcesz przeformułować ten commit w swoim edytorze?",
   "CheckoutPrompt": "Czy na pewno chcesz przełączyć się na '%s'?",
   "HardResetAutostashPrompt": "Czy na pewno chcesz zrobić twardy reset do '%s'? Auto-stash zostanie wykonany jeśli będzie potrzebny.",
+  "SoftResetAutostashPrompt": "Czy na pewno chcesz zrobić miękki reset do '%s'? Auto-stash zostanie wykonany jeśli będzie potrzebny.",
   "UpstreamGone": "(upstream zniknął)",
   "NukeDescription": "Jeśli chcesz, aby wszystkie zmiany w drzewie pracy zniknęły, to jest sposób na to. Jeśli są brudne zmiany w submodule, to zostaną one zapisane w submodule(s).",
   "DiscardStagedChangesDescription": "To stworzy nowy wpis stash zawierający tylko pliki w stanie staged, a następnie go usunie, tak że drzewo pracy zostanie tylko ze zmianami niezatwierdzonymi",

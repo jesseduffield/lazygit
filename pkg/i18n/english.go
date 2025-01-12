@@ -729,6 +729,7 @@ type TranslationSet struct {
 	RewordInEditorPrompt                     string
 	CheckoutPrompt                           string
 	HardResetAutostashPrompt                 string
+	SoftResetAutostashPrompt                 string
 	UpstreamGone                             string
 	NukeDescription                          string
 	DiscardStagedChangesDescription          string
@@ -1735,6 +1736,7 @@ func EnglishTranslationSet() *TranslationSet {
 		RewordInEditorTitle:                      "Reword in editor",
 		RewordInEditorPrompt:                     "Are you sure you want to reword this commit in your editor?",
 		HardResetAutostashPrompt:                 "Are you sure you want to hard reset to '%s'? An auto-stash will be performed if necessary.",
+		SoftResetAutostashPrompt:                 "Are you sure you want to soft reset to '%s'? An auto-stash will be performed if necessary.",
 		CheckoutPrompt:                           "Are you sure you want to checkout '%s'?",
 		UpstreamGone:                             "(upstream gone)",
 		NukeDescription:                          "If you want to make all the changes in the worktree go away, this is the way to do it. If there are dirty submodule changes this will stash those changes in the submodule(s).",
