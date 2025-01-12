@@ -52,5 +52,6 @@ import (
 	_ "github.com/gdamore/tcell/v2/terminfo/w/wy99_ansi"
 	_ "github.com/gdamore/tcell/v2/terminfo/x/xfce"
 	_ "github.com/gdamore/tcell/v2/terminfo/x/xterm"
+	_ "github.com/gdamore/tcell/v2/terminfo/x/xterm_ghostty"
 	_ "github.com/gdamore/tcell/v2/terminfo/x/xterm_kitty"
 )

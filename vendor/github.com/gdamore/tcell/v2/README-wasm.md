@@ -20,7 +20,7 @@ In `tcell.js`, you also need to change the constant
 ```js
 const wasmFilePath = "yourfile.wasm"
 ```
-to the file you outputed to when building.
+to the file you outputted to when building.
 
 ## Displaying your project
 
@@ -49,7 +49,7 @@ func main() {
 To see the webpage with this example, you can type in `localhost:8080/tcell.html` into your browser while `server.go` is running.
 
 ### Embedding
-It is recomended to use an iframe if you want to embed the app into a webpage:
+It is recommended to use an iframe if you want to embed the app into a webpage:
 ```html
 <iframe src="tcell.html" title="Tcell app"></iframe>
 ```

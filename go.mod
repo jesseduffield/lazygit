@@ -8,7 +8,7 @@ require (
 	github.com/aybabtme/humanlog v0.4.1
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 	github.com/creack/pty v1.1.11
-	github.com/gdamore/tcell/v2 v2.7.4
+	github.com/gdamore/tcell/v2 v2.8.0
 	github.com/go-errors/errors v1.5.1
 	github.com/gookit/color v1.4.2
 	github.com/iancoleman/orderedmap v0.3.0
@@ -16,7 +16,7 @@ require (
 	github.com/integrii/flaggy v1.4.0
 	github.com/jesseduffield/generics v0.0.0-20220320043834-727e535cbe68
 	github.com/jesseduffield/go-git/v5 v5.1.2-0.20221018185014-fdd53fef665d
-	github.com/jesseduffield/gocui v0.3.1-0.20250107151125-716b1eb82fb4
+	github.com/jesseduffield/gocui v0.3.1-0.20250111205211-82d518436b5a
 	github.com/jesseduffield/kill v0.0.0-20250101124109-e216ddbe133a
 	github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
 	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
@@ -54,7 +54,6 @@ require (
 	github.com/go-git/go-billy/v5 v5.0.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/invopop/jsonschema v0.10.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd // indirect

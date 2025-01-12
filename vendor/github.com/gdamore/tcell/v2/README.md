@@ -33,7 +33,7 @@ A brief, and still somewhat rough, [tutorial](TUTORIAL.md) is available.
 - [godu](https://github.com/viktomas/godu) - utility to discover large files/folders
 - [tview](https://github.com/rivo/tview/) - rich interactive widgets
 - [cview](https://code.rocketnine.space/tslocum/cview) - user interface toolkit (fork of _tview_)
-- [awsome gocui](https://github.com/awesome-gocui/gocui) - Go Console User Interface
+- [awesome gocui](https://github.com/awesome-gocui/gocui) - Go Console User Interface
 - [gomandelbrot](https://github.com/rgm3/gomandelbrot) - Mandelbrot!
 - [WTF](https://github.com/senorprogrammer/wtf) - personal information dashboard
 - [browsh](https://github.com/browsh-org/browsh) - modern web browser ([video](https://www.youtube.com/watch?v=HZq86XfBoRo))
@@ -67,6 +67,8 @@ A brief, and still somewhat rough, [tutorial](TUTORIAL.md) is available.
 - [gbb](https://github.com/sdemingo/gbb) - A classical bulletin board app for tildes or public unix servers
 - [lil](https://github.com/andrievsky/lil) - A simple and flexible interface for any service by implementing only list and get operations
 - [hero.go](https://github.com/barisbll/hero.go) - 2d monster shooter ([video](https://user-images.githubusercontent.com/40062673/277157369-240d7606-b471-4aa1-8c54-4379a513122b.mp4))
+- [go-tetris](https://github.com/aaronriekenberg/go-tetris) - simple tetris game for native terminal and WASM using github actions+pages
+- [oddshub](https://github.com/dos-2/oddshub) - A TUI designed for analyzing sports betting odds
 
 ## Pure Go Terminfo Database
 
@@ -143,7 +145,7 @@ Most _termbox-go_ programs will probably work without further modification.
 Internally _Tcell_ uses UTF-8, just like Go.
 However, _Tcell_ understands how to
 convert to and from other character sets, using the capabilities of
-the `golang.org/x/text/encoding packages`.
+the `golang.org/x/text/encoding` packages.
 Your application must supply
 them, as the full set of the most common ones bloats the program by about 2 MB.
 If you're lazy, and want them all anyway, see the `encoding` sub-directory.

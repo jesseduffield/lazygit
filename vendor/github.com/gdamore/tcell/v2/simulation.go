@@ -1,4 +1,4 @@
-// Copyright 2023 The TCell Authors
+// Copyright 2024 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -60,6 +60,12 @@ type SimulationScreen interface {
 
 	// GetCursor returns the cursor details.
 	GetCursor() (x int, y int, visible bool)
+
+	// GetTitle gets the previously set title.
+	GetTitle() string
+
+	// GetClipboardData gets the actual data for the clipboard.
+	GetClipboardData() []byte
 }
 
 // SimCell represents a simulated screen cell.  The purpose of this
@@ -98,6 +104,8 @@ type simscreen struct {
 	fillchar  rune
 	fillstyle Style
 	fallback  map[rune]string
+	title     string
+	clipboard []byte
 
 	Screen
 	sync.Mutex
@@ -239,7 +247,7 @@ func (s *simscreen) hideCursor() {
 	s.cursorvis = false
 }
 
-func (s *simscreen) SetCursorStyle(CursorStyle) {}
+func (s *simscreen) SetCursor(CursorStyle, Color) {}
 
 func (s *simscreen) Show() {
 	s.Lock()
@@ -494,4 +502,27 @@ func (s *simscreen) EventQ() chan Event {
 
 func (s *simscreen) StopQ() <-chan struct{} {
 	return s.quit
+}
+
+func (s *simscreen) SetTitle(title string) {
+	s.title = title
+}
+
+func (s *simscreen) GetTitle() string {
+	return s.title
+}
+
+func (s *simscreen) SetClipboard(data []byte) {
+	s.clipboard = data
+}
+
+func (s *simscreen) GetClipboard() {
+	if s.clipboard != nil {
+		ev := NewEventClipboard(s.clipboard)
+		s.postEvent(ev)
+	}
+}
+
+func (s *simscreen) GetClipboardData() []byte {
+	return s.clipboard
 }

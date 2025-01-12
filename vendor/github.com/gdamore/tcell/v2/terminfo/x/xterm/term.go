@@ -68,6 +68,7 @@ func init() {
 		KeyBacktab:        "\x1b[Z",
 		Modifiers:         1,
 		AutoMargin:        true,
+		XTermLike:         true,
 	})
 
 	// xterm with 88 colors
@@ -131,6 +132,7 @@ func init() {
 		KeyBacktab:        "\x1b[Z",
 		Modifiers:         1,
 		AutoMargin:        true,
+		XTermLike:         true,
 	})
 
 	// xterm with 256 colors
@@ -194,5 +196,6 @@ func init() {
 		KeyBacktab:        "\x1b[Z",
 		Modifiers:         1,
 		AutoMargin:        true,
+		XTermLike:         true,
 	})
 }

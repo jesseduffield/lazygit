@@ -67,6 +67,7 @@ func init() {
 		KeyClear:      "\x1b[3;5~",
 		Modifiers:     1,
 		AutoMargin:    true,
+		XTermLike:     true,
 	})
 
 	// simpleterm with 256 colors
@@ -130,5 +131,6 @@ func init() {
 		KeyClear:      "\x1b[3;5~",
 		Modifiers:     1,
 		AutoMargin:    true,
+		XTermLike:     true,
 	})
 }
