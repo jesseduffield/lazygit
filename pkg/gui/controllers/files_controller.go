@@ -186,6 +186,20 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.Fetch,
 			Tooltip:     self.c.Tr.FetchTooltip,
 		},
+		{
+			Key:               opts.GetKey(opts.Config.Files.CollapseAll),
+			Handler:           self.collapseAll,
+			Description:       self.c.Tr.CollapseAll,
+			Tooltip:           self.c.Tr.CollapseAllTooltip,
+			GetDisabledReason: self.require(self.isInTreeMode),
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Files.ExpandAll),
+			Handler:           self.expandAll,
+			Description:       self.c.Tr.ExpandAll,
+			Tooltip:           self.c.Tr.ExpandAllTooltip,
+			GetDisabledReason: self.require(self.isInTreeMode),
+		},
 	}
 }
 
@@ -476,6 +490,22 @@ func (self *FilesController) getSelectedFile() *models.File {
 
 func (self *FilesController) enter() error {
 	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
+}
+
+func (self *FilesController) collapseAll() error {
+	self.context().FileTreeViewModel.CollapseAll()
+
+	self.c.PostRefreshUpdate(self.context())
+
+	return nil
+}
+
+func (self *FilesController) expandAll() error {
+	self.context().FileTreeViewModel.ExpandAll()
+
+	self.c.PostRefreshUpdate(self.context())
+
+	return nil
 }
 
 func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
@@ -1180,4 +1210,12 @@ func (self *FilesController) formattedPaths(nodes []*filetree.FileNode) string {
 	return utils.FormatPaths(lo.Map(nodes, func(node *filetree.FileNode, _ int) string {
 		return node.GetPath()
 	}))
+}
+
+func (self *FilesController) isInTreeMode() *types.DisabledReason {
+	if !self.context().FileTreeViewModel.InTreeMode() {
+		return &types.DisabledReason{Text: self.c.Tr.DisabledInFlatView}
+	}
+
+	return nil
 }

@@ -109,6 +109,20 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Description: self.c.Tr.ToggleTreeView,
 			Tooltip:     self.c.Tr.ToggleTreeViewTooltip,
 		},
+		{
+			Key:               opts.GetKey(opts.Config.Files.CollapseAll),
+			Handler:           self.collapseAll,
+			Description:       self.c.Tr.CollapseAll,
+			Tooltip:           self.c.Tr.CollapseAllTooltip,
+			GetDisabledReason: self.require(self.isInTreeMode),
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Files.ExpandAll),
+			Handler:           self.expandAll,
+			Description:       self.c.Tr.ExpandAll,
+			Tooltip:           self.c.Tr.ExpandAllTooltip,
+			GetDisabledReason: self.require(self.isInTreeMode),
+		},
 	}
 
 	return bindings
@@ -401,6 +415,22 @@ func (self *CommitFilesController) toggleTreeView() error {
 	return nil
 }
 
+func (self *CommitFilesController) collapseAll() error {
+	self.context().CommitFileTreeViewModel.CollapseAll()
+
+	self.c.PostRefreshUpdate(self.context())
+
+	return nil
+}
+
+func (self *CommitFilesController) expandAll() error {
+	self.context().CommitFileTreeViewModel.ExpandAll()
+
+	self.c.PostRefreshUpdate(self.context())
+
+	return nil
+}
+
 // NOTE: these functions are identical to those in files_controller.go (except for types) and
 // could also be cleaned up with some generics
 func normalisedSelectedCommitFileNodes(selectedNodes []*filetree.CommitFileNode) []*filetree.CommitFileNode {
@@ -419,4 +449,12 @@ func isDescendentOfSelectedCommitFileNodes(node *filetree.CommitFileNode, select
 		}
 	}
 	return false
+}
+
+func (self *CommitFilesController) isInTreeMode() *types.DisabledReason {
+	if !self.context().CommitFileTreeViewModel.InTreeMode() {
+		return &types.DisabledReason{Text: self.c.Tr.DisabledInFlatView}
+	}
+
+	return nil
 }

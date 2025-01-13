@@ -143,6 +143,8 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` a `` | Toggle all files | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` <enter> `` | Enter file / Toggle directory collapsed | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
 | `` ` `` | ファイルツリーの表示を切り替え | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
 | `` / `` | 検索を開始 |  |
 
 ## コミットメッセージ
@@ -218,6 +220,8 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` M `` | Git mergetoolを開く | Run `git mergetool`. |
 | `` f `` | Fetch | Fetch changes from remote. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
 | `` / `` | 検索を開始 |  |
 
 ## ブランチ

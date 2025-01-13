@@ -195,6 +195,8 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` a `` | 操作所有文件 | 添加或删除所有提交中的文件到自定义的补丁中。请参阅 https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches。 |
 | `` <enter> `` | 输入文件以将所选行添加到补丁中(或切换目录折叠) | 如果已选择一个文件，则Enter进入该文件，以便您可以向自定义补丁添加/删除单独的行。如果选择了目录，则切换目录。 |
 | `` ` `` | 切换文件树视图 | 在平铺部署与树布局之间切换文件视图。平铺布局在一个列表中展示所有文件路径，树布局则根据目录分组展示。 |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
 | `` / `` | 开始搜索 |  |
 
 ## 文件
@@ -225,6 +227,8 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` M `` | 打开外部合并工具(git mergetool) | 执行 `git mergetool`. |
 | `` f `` | 抓取 | 从远程获取变更 |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
 | `` / `` | 开始搜索 |  |
 
 ## 构建补丁中

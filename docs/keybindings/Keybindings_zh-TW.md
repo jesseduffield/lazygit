@@ -219,6 +219,8 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` a `` | 切換所有檔案是否包含在補丁中 | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` <enter> `` | 輸入檔案以將選定的行添加至補丁（或切換目錄折疊） | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
 | `` ` `` | 顯示檔案樹狀視圖 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
 | `` / `` | 搜尋 |  |
 
 ## 收藏 (Stash)
@@ -320,6 +322,8 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` M `` | 開啟外部合併工具 | 執行 `git mergetool`。 |
 | `` f `` | 擷取 | 同步遠端異動 |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
 | `` / `` | 搜尋 |  |
 
 ## 狀態

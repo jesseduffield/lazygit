@@ -31,6 +31,8 @@ type ITree[T any] interface {
 	IsCollapsed(path string) bool
 	ToggleCollapsed(path string)
 	CollapsedPaths() *CollapsedPaths
+	CollapseAll()
+	ExpandAll()
 }
 
 type IFileTree interface {
@@ -169,6 +171,20 @@ func (self *FileTree) IsCollapsed(path string) bool {
 
 func (self *FileTree) ToggleCollapsed(path string) {
 	self.collapsedPaths.ToggleCollapsed(path)
+}
+
+func (self *FileTree) CollapseAll() {
+	dirPaths := lo.FilterMap(self.GetAllItems(), func(file *FileNode, index int) (string, bool) {
+		return file.Path, !file.IsFile()
+	})
+
+	for _, path := range dirPaths {
+		self.collapsedPaths.Collapse(path)
+	}
+}
+
+func (self *FileTree) ExpandAll() {
+	self.collapsedPaths.ExpandAll()
 }
 
 func (self *FileTree) Tree() *FileNode {

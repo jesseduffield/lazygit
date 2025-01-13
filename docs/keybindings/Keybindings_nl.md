@@ -79,6 +79,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` M `` | Open external merge tool | Run `git mergetool`. |
 | `` f `` | Fetch | Fetch changes from remote. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
 | `` / `` | Start met zoeken |  |
 
 ## Bevestigingspaneel
@@ -136,6 +138,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` a `` | Toggle all files | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` <enter> `` | Enter bestand om geselecteerde regels toe te voegen aan de patch | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
 | `` ` `` | Toggle bestandsboom weergave | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
 | `` / `` | Start met zoeken |  |
 
 ## Commits
