@@ -691,6 +691,7 @@
   "RewordInEditorPrompt": "您确定要在编辑器中重写此提交吗？",
   "CheckoutPrompt": "您确定要检出 '%s' 吗？",
   "HardResetAutostashPrompt": "您确定要硬重置到 '%s' 吗？如有必要，将执行自动贮藏。",
+  "SoftResetAutostashPrompt": "您确定要软重置到 '%s' 吗？如有必要，将执行自动贮藏。",
   "UpstreamGone": "（上游不存在）",
   "NukeDescription": "如果您想让工作树中的所有更改消失，可以这样做。如果存在受污染的子模块更改，这会将这些更改贮藏在子模块中。",
   "DiscardStagedChangesDescription": "这将创建一个仅包含已暂存更改的新贮藏条目，然后这些更改删除，以便工作树仅保留未暂存的更改。",
