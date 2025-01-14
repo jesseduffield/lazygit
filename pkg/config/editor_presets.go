@@ -52,9 +52,10 @@ func returnBool(a bool) func() bool { return (func() bool { return a }) }
 // IF YOU ADD A PRESET TO THIS FUNCTION YOU MUST UPDATE THE `Supported presets` SECTION OF docs/Config.md
 func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset {
 	presets := map[string]*editPreset{
-		"vi":   standardTerminalEditorPreset("vi"),
-		"vim":  standardTerminalEditorPreset("vim"),
-		"nvim": standardTerminalEditorPreset("nvim"),
+		"vi":      standardTerminalEditorPreset("vi"),
+		"vim":     standardTerminalEditorPreset("vim"),
+		"nvim":    standardTerminalEditorPreset("nvim"),
+		"nvim-qt": standardTerminalEditorPreset("nvim-qt"),
 		"nvim-remote": {
 			editTemplate:       `[ -z "$NVIM" ] && (nvim -- {{filename}}) || (nvim --server "$NVIM" --remote-send "q" && nvim --server "$NVIM" --remote-tab {{filename}})`,
 			editAtLineTemplate: `[ -z "$NVIM" ] && (nvim +{{line}} -- {{filename}}) || (nvim --server "$NVIM" --remote-send "q" &&  nvim --server "$NVIM" --remote-tab {{filename}} && nvim --server "$NVIM" --remote-send ":{{line}}<CR>")`,
