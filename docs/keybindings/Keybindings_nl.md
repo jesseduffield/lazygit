@@ -115,7 +115,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Commit bericht
 
@@ -186,7 +186,7 @@ If you would instead like to start an interactive rebase from the selected commi
 |-----|--------|-------------|
 | `` <enter> `` | Uitvoeren |  |
 | `` <esc> `` | Sluiten |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Mergen
 
@@ -241,7 +241,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Remote branches
 
@@ -259,7 +259,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Remotes
 
@@ -270,7 +270,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
 | `` e `` | Edit | Wijzig remote |
 | `` f `` | Fetch | Fetch remote |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Staging
 
@@ -305,7 +305,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` r `` | Rename stash |  |
 | `` <enter> `` | Bekijk gecommite bestanden |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Status
 
@@ -346,7 +346,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | Update submodule URL |  |
 | `` i `` | Initialize | Initialiseer submodule |
 | `` b `` | Bekijk bulk submodule opties |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Tags
 
@@ -360,7 +360,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Worktrees
 
@@ -370,4 +370,4 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <space> `` | Switch | Switch to the selected worktree. |
 | `` o `` | Open in editor |  |
 | `` d `` | Remove | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
