@@ -126,6 +126,13 @@ func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset
 			openDirInEditorTemplate:   "zed -- {{dir}}",
 			suspend:                   returnBool(false),
 		},
+		"nvim-qt": {
+			editTemplate:              "nvim-qt -- {{filename}}",
+			editAtLineTemplate:        "nvim-qt +{{line}} -- {{filename}}",
+			editAtLineAndWaitTemplate: "nvim-qt +{{line}} -- {{filename}}",
+			openDirInEditorTemplate:   "nvim-qt -- {{dir}}",
+			suspend:                   returnBool(false),
+		},
 	}
 
 	// Some of our presets have a different name than the editor they are using.
