@@ -88,7 +88,20 @@ func (self *UndoController) reflogUndo() error {
 		}
 
 		switch action.kind {
-		case COMMIT, REBASE:
+		case COMMIT:
+			self.c.Confirm(types.ConfirmOpts{
+				Title:  self.c.Tr.Actions.Undo,
+				Prompt: fmt.Sprintf(self.c.Tr.SoftResetPrompt, action.from),
+				HandleConfirm: func() error {
+					self.c.LogAction(self.c.Tr.Actions.Undo)
+					return self.c.WithWaitingStatus(undoingStatus, func(gocui.Task) error {
+						return self.c.Helpers().Refs.ResetToRef(action.from, "soft", undoEnvVars)
+					})
+				},
+			})
+			return true, nil
+
+		case REBASE:
 			self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Undo,
 				Prompt: fmt.Sprintf(self.c.Tr.HardResetAutostashPrompt, action.from),
@@ -105,7 +118,7 @@ func (self *UndoController) reflogUndo() error {
 		case CHECKOUT:
 			self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Undo,
-				Prompt: fmt.Sprintf(self.c.Tr.CheckoutPrompt, action.from),
+				Prompt: fmt.Sprintf(self.c.Tr.CheckoutAutostashPrompt, action.from),
 				HandleConfirm: func() error {
 					self.c.LogAction(self.c.Tr.Actions.Undo)
 					return self.c.Helpers().Refs.CheckoutRef(action.from, types.CheckoutRefOptions{
@@ -159,7 +172,7 @@ func (self *UndoController) reflogRedo() error {
 		case CHECKOUT:
 			self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Redo,
-				Prompt: fmt.Sprintf(self.c.Tr.CheckoutPrompt, action.to),
+				Prompt: fmt.Sprintf(self.c.Tr.CheckoutAutostashPrompt, action.to),
 				HandleConfirm: func() error {
 					self.c.LogAction(self.c.Tr.Actions.Redo)
 					return self.c.Helpers().Refs.CheckoutRef(action.to, types.CheckoutRefOptions{
@@ -244,31 +257,23 @@ func (self *UndoController) hardResetWithAutoStash(commitHash string, options ha
 		return self.c.Helpers().Refs.ResetToRef(commitHash, "hard", options.EnvVars)
 	}
 
-	// if we have any modified tracked files we need to ask the user if they want us to stash for them
+	// if we have any modified tracked files we need to auto-stash
 	dirtyWorkingTree := self.c.Helpers().WorkingTree.IsWorkingTreeDirty()
 	if dirtyWorkingTree {
-		// offer to autostash changes
-		self.c.Confirm(types.ConfirmOpts{
-			Title:  self.c.Tr.AutoStashTitle,
-			Prompt: self.c.Tr.AutoStashPrompt,
-			HandleConfirm: func() error {
-				return self.c.WithWaitingStatus(options.WaitingStatus, func(gocui.Task) error {
-					if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + commitHash); err != nil {
-						return err
-					}
-					if err := reset(); err != nil {
-						return err
-					}
+		return self.c.WithWaitingStatus(options.WaitingStatus, func(gocui.Task) error {
+			if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + commitHash); err != nil {
+				return err
+			}
+			if err := reset(); err != nil {
+				return err
+			}
 
-					err := self.c.Git().Stash.Pop(0)
-					if err != nil {
-						return err
-					}
-					return self.c.Refresh(types.RefreshOptions{})
-				})
-			},
+			err := self.c.Git().Stash.Pop(0)
+			if err != nil {
+				return err
+			}
+			return self.c.Refresh(types.RefreshOptions{})
 		})
-		return nil
 	}
 
 	return self.c.WithWaitingStatus(options.WaitingStatus, func(gocui.Task) error {
