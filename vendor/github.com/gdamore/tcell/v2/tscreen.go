@@ -387,7 +387,7 @@ func (t *tScreen) prepareUnderlines() {
 	// practice since these were introduced at about the same time.
 	if t.ti.UnderlineColor != "" {
 		t.underColor = t.ti.UnderlineColor
-	} else if t.ti.CurlyUnderline != "" {
+	} else if t.curlyUnder != "" {
 		t.underColor = "\x1b[58:5:%p1%dm"
 	}
 	if t.ti.UnderlineColorRGB != "" {
@@ -395,14 +395,14 @@ func (t *tScreen) prepareUnderlines() {
 		// using just a single parameter, the Setulc parameter takes
 		// the 24-bit color as an integer rather than separate bytes.
 		// This matches the "new" style direct color approach that
-		// ncurses took, even though everyone else when another way.
+		// ncurses took, even though everyone else went another way.
 		t.underRGB = t.ti.UnderlineColorRGB
-	} else if t.ti.CurlyUnderline != "" {
+	} else if t.underColor != "" {
 		t.underRGB = "\x1b[58:2::%p1%d:%p2%d:%p3%dm"
 	}
 	if t.ti.UnderlineColorReset != "" {
 		t.underFg = t.ti.UnderlineColorReset
-	} else if t.ti.CurlyUnderline != "" {
+	} else if t.curlyUnder != "" {
 		t.underFg = "\x1b[59m"
 	}
 }
@@ -1529,15 +1529,15 @@ func (t *tScreen) parseClipboard(buf *bytes.Buffer, evs *[]Event) (bool, bool) {
 
 	for _, c := range b {
 		// valid base64 digits
-		if (state == 0) {
+		if state == 0 {
 			if (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || (c == '+') || (c == '/') || (c == '=') {
 				continue
 			}
-			if (c == '\x1b') {
+			if c == '\x1b' {
 				state = 1
 				continue
 			}
-			if (c == '\a') {
+			if c == '\a' {
 				// matched with BEL instead of ST
 				b = b[:len(b)-1] // drop the trailing BEL
 				decoded := make([]byte, base64.StdEncoding.DecodedLen(len(b)))
@@ -1549,8 +1549,8 @@ func (t *tScreen) parseClipboard(buf *bytes.Buffer, evs *[]Event) (bool, bool) {
 			}
 			return false, false
 		}
-		if (state == 1)  {
-			if (c == '\\') {
+		if state == 1 {
+			if c == '\\' {
 				b = b[:len(b)-2] // drop the trailing ST (\x1b\\)
 				// now decode the data
 				decoded := make([]byte, base64.StdEncoding.DecodedLen(len(b)))
