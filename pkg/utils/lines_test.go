@@ -170,6 +170,7 @@ func TestWrapViewLinesToWidth(t *testing.T) {
 	tests := []struct {
 		name                         string
 		wrap                         bool
+		editable                     bool
 		text                         string
 		width                        int
 		expectedWrappedLines         []string
@@ -378,10 +379,53 @@ func TestWrapViewLinesToWidth(t *testing.T) {
 			expectedWrappedLinesIndices:  []int{0, 2, 6},
 			expectedOriginalLinesIndices: []int{0, 0, 1, 1, 1, 1, 2, 2},
 		},
+		{
+			name:     "Avoid blank line at end if not editable",
+			wrap:     true,
+			editable: false,
+			text:     "First\nSecond\nThird\n",
+			width:    10,
+			expectedWrappedLines: []string{
+				"First",
+				"Second",
+				"Third",
+			},
+			expectedWrappedLinesIndices:  []int{0, 1, 2},
+			expectedOriginalLinesIndices: []int{0, 1, 2},
+		},
+		{
+			name:     "Avoid blank line at end if not editable",
+			wrap:     true,
+			editable: false,
+			text:     "First\nSecond\nThird\n",
+			width:    10,
+			expectedWrappedLines: []string{
+				"First",
+				"Second",
+				"Third",
+			},
+			expectedWrappedLinesIndices:  []int{0, 1, 2},
+			expectedOriginalLinesIndices: []int{0, 1, 2},
+		},
+		{
+			name:     "Keep blank line at end if editable",
+			wrap:     true,
+			editable: true,
+			text:     "First\nSecond\nThird\n",
+			width:    10,
+			expectedWrappedLines: []string{
+				"First",
+				"Second",
+				"Third",
+				"",
+			},
+			expectedWrappedLinesIndices:  []int{0, 1, 2, 3},
+			expectedOriginalLinesIndices: []int{0, 1, 2, 3},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			wrappedLines, wrappedLinesIndices, originalLinesIndices := WrapViewLinesToWidth(tt.wrap, tt.text, tt.width)
+			wrappedLines, wrappedLinesIndices, originalLinesIndices := WrapViewLinesToWidth(tt.wrap, tt.editable, tt.text, tt.width)
 			assert.Equal(t, tt.expectedWrappedLines, wrappedLines)
 			if tt.expectedWrappedLinesIndices != nil {
 				assert.Equal(t, tt.expectedWrappedLinesIndices, wrappedLinesIndices)
@@ -394,6 +438,7 @@ func TestWrapViewLinesToWidth(t *testing.T) {
 			view := gocui.NewView("", 0, 0, tt.width+1, 1000, gocui.OutputNormal)
 			assert.Equal(t, tt.width, view.InnerWidth())
 			view.Wrap = tt.wrap
+			view.Editable = tt.editable
 			view.SetContent(tt.text)
 			assert.Equal(t, wrappedLines, view.ViewBufferLines())
 		})
