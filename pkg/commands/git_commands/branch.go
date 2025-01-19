@@ -275,6 +275,7 @@ func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *
 		Arg(lo.Map(branchesToCheckAgainst, func(branch string, _ int) string {
 			return fmt.Sprintf("^%s", branch)
 		})...).
+		Arg("--").
 		ToArgv()
 
 	stdout, _, err := self.cmd.New(cmdArgs).RunWithOutputs()
