@@ -787,7 +787,7 @@ func (v *View) writeRunes(p []rune) {
 	}
 
 	until := len(p)
-	if until > 0 && p[until-1] == '\n' {
+	if !v.Editable && until > 0 && p[until-1] == '\n' {
 		v.pendingNewline = true
 		until--
 	}
