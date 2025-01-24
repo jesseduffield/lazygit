@@ -245,9 +245,11 @@ func migrateUserConfig(path string, content []byte) ([]byte, error) {
 
 	// Write config back if changed
 	if string(changedContent) != string(content) {
+		fmt.Println("Provided user config is deprecated but auto-fixable. Attempting to write fixed version back to file...")
 		if err := os.WriteFile(path, changedContent, 0o644); err != nil {
-			return nil, fmt.Errorf("Couldn't write migrated config back to `%s`: %s", path, err)
+			return nil, fmt.Errorf("While attempting to write back fixed user config to %s, an error occurred: %s", path, err)
 		}
+		fmt.Printf("Success. New config written to %s\n", path)
 		return changedContent, nil
 	}
 
