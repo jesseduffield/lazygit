@@ -76,9 +76,9 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	self.gui.waitForIntro.Wait()
 
 	fetch := func() error {
-		err := self.backgroundFetch()
-		self.gui.c.Render()
-		return err
+		return self.gui.PopupHandler.WithWaitingStatusSync(self.gui.Tr.FetchingStatus, func() error {
+			return self.backgroundFetch()
+		})
 	}
 
 	// We want an immediate fetch at startup, and since goEvery starts by
