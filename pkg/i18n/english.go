@@ -612,9 +612,11 @@ type TranslationSet struct {
 	CommitMessage                         string
 	CommitSubject                         string
 	CommitAuthor                          string
+	CommitTags                            string
 	CopyCommitAttributeToClipboard        string
 	CopyCommitAttributeToClipboardTooltip string
 	CopyBranchNameToClipboard             string
+	CopyTagToClipboard                    string
 	CopyPathToClipboard                   string
 	CommitPrefixPatternError              string
 	CopySelectedTextToClipboard           string
@@ -674,6 +676,8 @@ type TranslationSet struct {
 	CommitMessageCopiedToClipboard           string
 	CommitSubjectCopiedToClipboard           string
 	CommitAuthorCopiedToClipboard            string
+	CommitTagsCopiedToClipboard              string
+	NoTags                                   string
 	PatchCopiedToClipboard                   string
 	CopiedToClipboard                        string
 	ErrCannotEditDirectory                   string
@@ -905,6 +909,7 @@ type Actions struct {
 	CopyCommitURLToClipboard          string
 	CopyCommitAuthorToClipboard       string
 	CopyCommitAttributeToClipboard    string
+	CopyCommitTagsToClipboard         string
 	CopyPatchToClipboard              string
 	CustomCommand                     string
 	DiscardAllChangesInDirectory      string
@@ -1627,9 +1632,11 @@ func EnglishTranslationSet() *TranslationSet {
 		CommitMessage:                            "Commit message",
 		CommitSubject:                            "Commit subject",
 		CommitAuthor:                             "Commit author",
+		CommitTags:                               "Commit tags",
 		CopyCommitAttributeToClipboard:           "Copy commit attribute to clipboard",
 		CopyCommitAttributeToClipboardTooltip:    "Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author).",
 		CopyBranchNameToClipboard:                "Copy branch name to clipboard",
+		CopyTagToClipboard:                       "Copy tag to clipboard",
 		CopyPathToClipboard:                      "Copy path to clipboard",
 		CopySelectedTextToClipboard:              "Copy selected text to clipboard",
 		CommitPrefixPatternError:                 "Error in commitPrefix pattern",
@@ -1688,6 +1695,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CommitMessageCopiedToClipboard:           "Commit message copied to clipboard",
 		CommitSubjectCopiedToClipboard:           "Commit subject copied to clipboard",
 		CommitAuthorCopiedToClipboard:            "Commit author copied to clipboard",
+		CommitTagsCopiedToClipboard:              "Commit tags copied to clipboard",
+		NoTags:                                   "No tags",
 		PatchCopiedToClipboard:                   "Patch copied to clipboard",
 		CopiedToClipboard:                        "copied to clipboard",
 		ErrCannotEditDirectory:                   "Cannot edit directories: you can only edit individual files",

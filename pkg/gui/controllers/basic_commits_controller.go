@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -122,51 +123,67 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 }
 
 func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) error {
-	return self.c.Menu(types.CreateMenuOptions{
-		Title: self.c.Tr.Actions.CopyCommitAttributeToClipboard,
-		Items: []*types.MenuItem{
-			{
-				Label: self.c.Tr.CommitHash,
-				OnPress: func() error {
-					return self.copyCommitHashToClipboard(commit)
-				},
-			},
-			{
-				Label: self.c.Tr.CommitSubject,
-				OnPress: func() error {
-					return self.copyCommitSubjectToClipboard(commit)
-				},
-				Key: 's',
-			},
-			{
-				Label: self.c.Tr.CommitMessage,
-				OnPress: func() error {
-					return self.copyCommitMessageToClipboard(commit)
-				},
-				Key: 'm',
-			},
-			{
-				Label: self.c.Tr.CommitURL,
-				OnPress: func() error {
-					return self.copyCommitURLToClipboard(commit)
-				},
-				Key: 'u',
-			},
-			{
-				Label: self.c.Tr.CommitDiff,
-				OnPress: func() error {
-					return self.copyCommitDiffToClipboard(commit)
-				},
-				Key: 'd',
-			},
-			{
-				Label: self.c.Tr.CommitAuthor,
-				OnPress: func() error {
-					return self.copyAuthorToClipboard(commit)
-				},
-				Key: 'a',
+	items := []*types.MenuItem{
+		{
+			Label: self.c.Tr.CommitHash,
+			OnPress: func() error {
+				return self.copyCommitHashToClipboard(commit)
 			},
 		},
+		{
+			Label: self.c.Tr.CommitSubject,
+			OnPress: func() error {
+				return self.copyCommitSubjectToClipboard(commit)
+			},
+			Key: 's',
+		},
+		{
+			Label: self.c.Tr.CommitMessage,
+			OnPress: func() error {
+				return self.copyCommitMessageToClipboard(commit)
+			},
+			Key: 'm',
+		},
+		{
+			Label: self.c.Tr.CommitURL,
+			OnPress: func() error {
+				return self.copyCommitURLToClipboard(commit)
+			},
+			Key: 'u',
+		},
+		{
+			Label: self.c.Tr.CommitDiff,
+			OnPress: func() error {
+				return self.copyCommitDiffToClipboard(commit)
+			},
+			Key: 'd',
+		},
+		{
+			Label: self.c.Tr.CommitAuthor,
+			OnPress: func() error {
+				return self.copyAuthorToClipboard(commit)
+			},
+			Key: 'a',
+		},
+	}
+
+	commitTagsItem := types.MenuItem{
+		Label: self.c.Tr.CommitTags,
+		OnPress: func() error {
+			return self.copyCommitTagsToClipboard(commit)
+		},
+		Key: 't',
+	}
+
+	if len(commit.Tags) == 0 {
+		commitTagsItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.NoTags}
+	}
+
+	items = append(items, &commitTagsItem)
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.Actions.CopyCommitAttributeToClipboard,
+		Items: items,
 	})
 }
 
@@ -254,6 +271,18 @@ func (self *BasicCommitsController) copyCommitSubjectToClipboard(commit *models.
 	}
 
 	self.c.Toast(self.c.Tr.CommitSubjectCopiedToClipboard)
+	return nil
+}
+
+func (self *BasicCommitsController) copyCommitTagsToClipboard(commit *models.Commit) error {
+	message := strings.Join(commit.Tags, "\n")
+
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitTagsToClipboard)
+	if err := self.c.OS().CopyToClipboard(message); err != nil {
+		return err
+	}
+
+	self.c.Toast(self.c.Tr.CommitTagsCopiedToClipboard)
 	return nil
 }
 
