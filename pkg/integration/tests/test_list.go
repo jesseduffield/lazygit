@@ -139,6 +139,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.MultipleContexts,
 	custom_commands.MultiplePrompts,
 	custom_commands.SelectedCommit,
+	custom_commands.SelectedCommitRange,
 	custom_commands.SelectedPath,
 	custom_commands.ShowOutputInPanel,
 	custom_commands.SuggestionsCommand,
