@@ -177,6 +177,59 @@ func (self *TagsController) remoteDelete(tag *models.Tag) error {
 	return nil
 }
 
+func (self *TagsController) localAndRemoteDelete(tag *models.Tag) error {
+	title := utils.ResolvePlaceholderString(
+		self.c.Tr.SelectRemoteTagUpstream,
+		map[string]string{
+			"tagName": tag.Name,
+		},
+	)
+
+	self.c.Prompt(types.PromptOpts{
+		Title:               title,
+		InitialContent:      "origin",
+		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRemoteSuggestionsFunc(),
+		HandleConfirm: func(upstream string) error {
+			confirmTitle := utils.ResolvePlaceholderString(
+				self.c.Tr.DeleteTagTitle,
+				map[string]string{
+					"tagName": tag.Name,
+				},
+			)
+			confirmPrompt := utils.ResolvePlaceholderString(
+				self.c.Tr.DeleteLocalAndRemoteTagPrompt,
+				map[string]string{
+					"tagName":  tag.Name,
+					"upstream": upstream,
+				},
+			)
+
+			self.c.Confirm(types.ConfirmOpts{
+				Title:  confirmTitle,
+				Prompt: confirmPrompt,
+				HandleConfirm: func() error {
+					return self.c.WithInlineStatus(tag, types.ItemOperationDeleting, context.TAGS_CONTEXT_KEY, func(task gocui.Task) error {
+						self.c.LogAction(self.c.Tr.Actions.DeleteRemoteTag)
+						if err := self.c.Git().Remote.DeleteRemoteTag(task, upstream, tag.Name); err != nil {
+							return err
+						}
+
+						self.c.LogAction(self.c.Tr.Actions.DeleteLocalTag)
+						if err := self.c.Git().Tag.LocalDelete(tag.Name); err != nil {
+							return err
+						}
+						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
+					})
+				},
+			})
+
+			return nil
+		},
+	})
+
+	return nil
+}
+
 func (self *TagsController) delete(tag *models.Tag) error {
 	menuTitle := utils.ResolvePlaceholderString(
 		self.c.Tr.DeleteTagTitle,
@@ -199,6 +252,14 @@ func (self *TagsController) delete(tag *models.Tag) error {
 			OpensMenu: true,
 			OnPress: func() error {
 				return self.remoteDelete(tag)
+			},
+		},
+		{
+			Label:     self.c.Tr.DeleteLocalAndRemoteTag,
+			Key:       'b',
+			OpensMenu: true,
+			OnPress: func() error {
+				return self.localAndRemoteDelete(tag)
 			},
 		},
 	}

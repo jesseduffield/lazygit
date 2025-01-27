@@ -190,6 +190,10 @@ func (self *Shell) Revert(ref string) *Shell {
 	return self.RunCommand([]string{"git", "revert", ref})
 }
 
+func (self *Shell) AssertRemoteTagNotFound(upstream, name string) *Shell {
+	return self.RunCommandExpectError([]string{"git", "ls-remote", "--exit-code", upstream, fmt.Sprintf("refs/tags/%s", name)})
+}
+
 func (self *Shell) CreateLightweightTag(name string, ref string) *Shell {
 	return self.RunCommand([]string{"git", "tag", name, ref})
 }
