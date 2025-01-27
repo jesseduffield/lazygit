@@ -1,6 +1,8 @@
 package git_commands
 
 import (
+	"fmt"
+
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -20,6 +22,7 @@ func NewSyncCommands(gitCommon *GitCommon) *SyncCommands {
 type PushOpts struct {
 	Force          bool
 	ForceWithLease bool
+	CurrentBranch  string
 	UpstreamRemote string
 	UpstreamBranch string
 	SetUpstream    bool
@@ -35,7 +38,7 @@ func (self *SyncCommands) PushCmdObj(task gocui.Task, opts PushOpts) (oscommands
 		ArgIf(opts.ForceWithLease, "--force-with-lease").
 		ArgIf(opts.SetUpstream, "--set-upstream").
 		ArgIf(opts.UpstreamRemote != "", opts.UpstreamRemote).
-		ArgIf(opts.UpstreamBranch != "", "HEAD:"+opts.UpstreamBranch).
+		ArgIf(opts.UpstreamBranch != "", fmt.Sprintf("refs/heads/%s:%s", opts.CurrentBranch, opts.UpstreamBranch)).
 		ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs).PromptOnCredentialRequest(task)

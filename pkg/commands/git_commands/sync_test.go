@@ -44,11 +44,12 @@ func TestSyncPush(t *testing.T) {
 			testName: "Push with force disabled, upstream supplied",
 			opts: PushOpts{
 				ForceWithLease: false,
+				CurrentBranch:  "master",
 				UpstreamRemote: "origin",
 				UpstreamBranch: "master",
 			},
 			test: func(cmdObj oscommands.ICmdObj, err error) {
-				assert.Equal(t, cmdObj.Args(), []string{"git", "push", "origin", "HEAD:master"})
+				assert.Equal(t, cmdObj.Args(), []string{"git", "push", "origin", "refs/heads/master:master"})
 				assert.NoError(t, err)
 			},
 		},
@@ -56,12 +57,13 @@ func TestSyncPush(t *testing.T) {
 			testName: "Push with force disabled, setting upstream",
 			opts: PushOpts{
 				ForceWithLease: false,
+				CurrentBranch:  "master-local",
 				UpstreamRemote: "origin",
 				UpstreamBranch: "master",
 				SetUpstream:    true,
 			},
 			test: func(cmdObj oscommands.ICmdObj, err error) {
-				assert.Equal(t, cmdObj.Args(), []string{"git", "push", "--set-upstream", "origin", "HEAD:master"})
+				assert.Equal(t, cmdObj.Args(), []string{"git", "push", "--set-upstream", "origin", "refs/heads/master-local:master"})
 				assert.NoError(t, err)
 			},
 		},
@@ -69,12 +71,13 @@ func TestSyncPush(t *testing.T) {
 			testName: "Push with force-with-lease enabled, setting upstream",
 			opts: PushOpts{
 				ForceWithLease: true,
+				CurrentBranch:  "master",
 				UpstreamRemote: "origin",
 				UpstreamBranch: "master",
 				SetUpstream:    true,
 			},
 			test: func(cmdObj oscommands.ICmdObj, err error) {
-				assert.Equal(t, cmdObj.Args(), []string{"git", "push", "--force-with-lease", "--set-upstream", "origin", "HEAD:master"})
+				assert.Equal(t, cmdObj.Args(), []string{"git", "push", "--force-with-lease", "--set-upstream", "origin", "refs/heads/master:master"})
 				assert.NoError(t, err)
 			},
 		},
