@@ -1881,6 +1881,7 @@ func EnglishTranslationSet() *TranslationSet {
 			CreateAnnotatedTag:             "Create annotated tag",
 			CopyCommitMessageToClipboard:   "Copy commit message to clipboard",
 			CopyCommitSubjectToClipboard:   "Copy commit subject to clipboard",
+			CopyCommitTagsToClipboard:      "Copy commit tags to clipboard",
 			CopyCommitDiffToClipboard:      "Copy commit diff to clipboard",
 			CopyCommitHashToClipboard:      "Copy full commit hash to clipboard",
 			CopyCommitURLToClipboard:       "Copy commit URL to clipboard",
