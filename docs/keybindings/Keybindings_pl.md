@@ -333,6 +333,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 
 | Key | Action | Info |
 |-----|--------|-------------|
+| `` <c-o> `` | Copy tag to clipboard |  |
 | `` <space> `` | Przełącz | Przełącz wybrany tag jako odłączoną głowę (detached HEAD). |
 | `` n `` | Nowy tag | Utwórz nowy tag z bieżącego commita. Zostaniesz poproszony o wprowadzenie nazwy tagu i opcjonalnego opisu. |
 | `` d `` | Usuń | Wyświetl opcje usuwania lokalnego/odległego tagu. |

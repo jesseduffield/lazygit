@@ -182,6 +182,7 @@ If you would instead like to start an interactive rebase from the selected commi
 
 | Key | Action | Info |
 |-----|--------|-------------|
+| `` <c-o> `` | Copy tag to clipboard |  |
 | `` <space> `` | チェックアウト | Checkout the selected tag as a detached HEAD. |
 | `` n `` | タグを作成 | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
 | `` d `` | Delete | View delete options for local/remote tag. |
