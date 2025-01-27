@@ -11,9 +11,7 @@ compression: lzo
 contact: 
   - https://discord.gg/ehwFt2t4wt
   - https://twitter.com/DuffieldJesse
-donation: 
-  - https://github.com/jesseduffield
-  - https://donorbox.org/lazygit
+donation: https://github.com/sponsors/jesseduffield
 issues: https://github.com/jesseduffield/lazygit/issues
 source-code: https://github.com/jesseduffield/lazygit
 website: https://jesseduffield.com
