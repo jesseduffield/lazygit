@@ -677,7 +677,7 @@ type TranslationSet struct {
 	CommitSubjectCopiedToClipboard           string
 	CommitAuthorCopiedToClipboard            string
 	CommitTagsCopiedToClipboard              string
-	NoTags                                   string
+	CommitHasNoTags                          string
 	PatchCopiedToClipboard                   string
 	CopiedToClipboard                        string
 	ErrCannotEditDirectory                   string
@@ -1696,7 +1696,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CommitSubjectCopiedToClipboard:           "Commit subject copied to clipboard",
 		CommitAuthorCopiedToClipboard:            "Commit author copied to clipboard",
 		CommitTagsCopiedToClipboard:              "Commit tags copied to clipboard",
-		NoTags:                                   "No tags",
+		CommitHasNoTags:                          "Commit has no tags",
 		PatchCopiedToClipboard:                   "Patch copied to clipboard",
 		CopiedToClipboard:                        "copied to clipboard",
 		ErrCannotEditDirectory:                   "Cannot edit directories: you can only edit individual files",

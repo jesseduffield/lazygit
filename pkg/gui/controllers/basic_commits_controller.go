@@ -176,7 +176,7 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 	}
 
 	if len(commit.Tags) == 0 {
-		commitTagsItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.NoTags}
+		commitTagsItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.CommitHasNoTags}
 	}
 
 	items = append(items, &commitTagsItem)
