@@ -77,6 +77,10 @@ func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 	return self.c.Menu(types.CreateMenuOptions{Title: title, Items: menuItems})
 }
 
+func (self *MergeAndRebaseHelper) ContinueRebase() error {
+	return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
+}
+
 func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	status := self.c.Git().Status.WorkingTreeState()
 
