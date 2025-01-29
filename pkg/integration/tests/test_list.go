@@ -356,6 +356,7 @@ var tests = []*components.IntegrationTest{
 	tag.CreateWhileCommitting,
 	tag.CrudAnnotated,
 	tag.CrudLightweight,
+	tag.DeleteLocalAndRemote,
 	tag.ForceTagAnnotated,
 	tag.ForceTagLightweight,
 	tag.Reset,
