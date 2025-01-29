@@ -4,6 +4,7 @@ base: core24
 adopt-info: lazygit
 summary: simple terminal UI for git commands
 description: A simple terminal UI for git commands, written in Go with the gocui library.
+version: '0.42.0'
 license: MIT
 grade: stable
 confinement: classic
@@ -24,9 +25,6 @@ parts:
     source-depth: 1
     build-snaps:
       - go
-    override-pull: |
-      craftctl default
-      craftctl set version=$(git describe --tags --abbrev=0 | cut -c 2-)
     build-attributes:
       - enable-patchelf
 
