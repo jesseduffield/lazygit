@@ -88,6 +88,7 @@ type TranslationSet struct {
 	FilterStagedFiles                     string
 	FilterUnstagedFiles                   string
 	FilterTrackedFiles                    string
+	FilterUntrackedFiles                  string
 	ResetFilter                           string
 	MergeConflictsTitle                   string
 	Checkout                              string
@@ -1113,6 +1114,7 @@ func EnglishTranslationSet() *TranslationSet {
 		FilterStagedFiles:                    "Show only staged files",
 		FilterUnstagedFiles:                  "Show only unstaged files",
 		FilterTrackedFiles:                   "Show only tracked files",
+		FilterUntrackedFiles:                 "Show only untracked files",
 		ResetFilter:                          "Reset filter",
 		NoChangedFiles:                       "No changed files",
 		SoftReset:                            "Soft reset",

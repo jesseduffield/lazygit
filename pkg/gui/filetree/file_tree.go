@@ -16,6 +16,7 @@ const (
 	DisplayStaged
 	DisplayUnstaged
 	DisplayTracked
+	DisplayUntracked
 	// this shows files with merge conflicts
 	DisplayConflicted
 )
@@ -40,6 +41,7 @@ type IFileTree interface {
 
 	FilterFiles(test func(*models.File) bool) []*models.File
 	SetStatusFilter(filter FileTreeDisplayFilter)
+	ForceShowUntracked() bool
 	Get(index int) *FileNode
 	GetFile(path string) *models.File
 	GetAllItems() []*FileNode
@@ -87,11 +89,17 @@ func (self *FileTree) getFilesForDisplay() []*models.File {
 		return self.FilterFiles(func(file *models.File) bool { return file.HasUnstagedChanges })
 	case DisplayTracked:
 		return self.FilterFiles(func(file *models.File) bool { return file.Tracked })
+	case DisplayUntracked:
+		return self.FilterFiles(func(file *models.File) bool { return !file.Tracked })
 	case DisplayConflicted:
 		return self.FilterFiles(func(file *models.File) bool { return file.HasMergeConflicts })
 	default:
 		panic(fmt.Sprintf("Unexpected files display filter: %d", self.filter))
 	}
+}
+
+func (self *FileTree) ForceShowUntracked() bool {
+	return self.filter == DisplayUntracked
 }
 
 func (self *FileTree) FilterFiles(test func(*models.File) bool) []*models.File {

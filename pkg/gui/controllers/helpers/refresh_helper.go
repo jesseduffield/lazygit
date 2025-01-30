@@ -570,7 +570,9 @@ func (self *RefreshHelper) refreshStateFiles() error {
 	}
 
 	files := self.c.Git().Loaders.FileLoader.
-		GetStatusFiles(git_commands.GetStatusFileOptions{})
+		GetStatusFiles(git_commands.GetStatusFileOptions{
+			ForceShowUntracked: self.c.Contexts().Files.ForceShowUntracked(),
+		})
 
 	conflictFileCount := 0
 	for _, file := range files {
