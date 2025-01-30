@@ -353,6 +353,9 @@ type TranslationSet struct {
 	ScrollDownMainWindow                  string
 	AmendCommitTitle                      string
 	AmendCommitPrompt                     string
+	AmendCommitWithConflictsMenuPrompt    string
+	AmendCommitWithConflictsContinue      string
+	AmendCommitWithConflictsAmend         string
 	DropCommitTitle                       string
 	DropCommitPrompt                      string
 	DropUpdateRefPrompt                   string
@@ -1375,6 +1378,9 @@ func EnglishTranslationSet() *TranslationSet {
 		ScrollDownMainWindow:                 "Scroll down main window",
 		AmendCommitTitle:                     "Amend commit",
 		AmendCommitPrompt:                    "Are you sure you want to amend this commit with your staged files?",
+		AmendCommitWithConflictsMenuPrompt:   "WARNING: you are about to amend the last finished commit with your resolved conflicts. This is very unlikely to be what you want at this point. More likely, you simply want to continue the rebase instead.\n\nDo you still want to amend the previous commit?",
+		AmendCommitWithConflictsContinue:     "No, continue rebase",
+		AmendCommitWithConflictsAmend:        "Yes, amend previous commit",
 		DropCommitTitle:                      "Drop commit",
 		DropCommitPrompt:                     "Are you sure you want to drop the selected commit(s)?",
 		DropMergeCommitPrompt:                "Are you sure you want to drop the selected merge commit? Note that it will also drop all the commits that were merged in by it.",

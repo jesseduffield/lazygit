@@ -690,21 +690,66 @@ func (self *FilesController) refresh() error {
 }
 
 func (self *FilesController) handleAmendCommitPress() error {
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.AmendLastCommitTitle,
-		Prompt: self.c.Tr.SureToAmend,
-		HandleConfirm: func() error {
-			return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
-				if len(self.c.Model().Commits) == 0 {
-					return errors.New(self.c.Tr.NoCommitToAmend)
-				}
+	doAmend := func() error {
+		return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
+			if len(self.c.Model().Commits) == 0 {
+				return errors.New(self.c.Tr.NoCommitToAmend)
+			}
 
-				return self.c.Helpers().AmendHelper.AmendHead()
-			})
-		},
-	})
+			return self.c.Helpers().AmendHelper.AmendHead()
+		})
+	}
+
+	if self.isResolvingConflicts() {
+		return self.c.Menu(types.CreateMenuOptions{
+			Title:      self.c.Tr.AmendCommitTitle,
+			Prompt:     self.c.Tr.AmendCommitWithConflictsMenuPrompt,
+			HideCancel: true, // We want the cancel item first, so we add one manually
+			Items: []*types.MenuItem{
+				{
+					Label: self.c.Tr.Cancel,
+					OnPress: func() error {
+						return nil
+					},
+				},
+				{
+					Label: self.c.Tr.AmendCommitWithConflictsContinue,
+					OnPress: func() error {
+						return self.c.Helpers().MergeAndRebase.ContinueRebase()
+					},
+				},
+				{
+					Label: self.c.Tr.AmendCommitWithConflictsAmend,
+					OnPress: func() error {
+						return doAmend()
+					},
+				},
+			},
+		})
+	} else {
+		self.c.Confirm(types.ConfirmOpts{
+			Title:  self.c.Tr.AmendLastCommitTitle,
+			Prompt: self.c.Tr.SureToAmend,
+			HandleConfirm: func() error {
+				return doAmend()
+			},
+		})
+	}
 
 	return nil
+}
+
+func (self *FilesController) isResolvingConflicts() bool {
+	commits := self.c.Model().Commits
+	for _, c := range commits {
+		if c.Status != models.StatusRebasing {
+			break
+		}
+		if c.Action == models.ActionConflict {
+			return true
+		}
+	}
+	return false
 }
 
 func (self *FilesController) handleStatusFilterPressed() error {
