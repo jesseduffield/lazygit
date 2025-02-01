@@ -52,7 +52,7 @@ var FilterByFileStatus = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Filtering")).
-					Select(Contains("Reset filter")).
+					Select(Contains("No filter")).
 					Confirm()
 			}).
 			Lines(

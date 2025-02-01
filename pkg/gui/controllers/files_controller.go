@@ -753,6 +753,7 @@ func (self *FilesController) isResolvingConflicts() bool {
 }
 
 func (self *FilesController) handleStatusFilterPressed() error {
+	currentFilter := self.context().GetFilter()
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.FilteringMenuTitle,
 		Items: []*types.MenuItem{
@@ -761,35 +762,40 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayStaged)
 				},
-				Key: 's',
+				Key:    's',
+				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayStaged),
 			},
 			{
 				Label: self.c.Tr.FilterUnstagedFiles,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayUnstaged)
 				},
-				Key: 'u',
+				Key:    'u',
+				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayUnstaged),
 			},
 			{
 				Label: self.c.Tr.FilterTrackedFiles,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayTracked)
 				},
-				Key: 't',
+				Key:    't',
+				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayTracked),
 			},
 			{
 				Label: self.c.Tr.FilterUntrackedFiles,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayUntracked)
 				},
-				Key: 'T',
+				Key:    'T',
+				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayUntracked),
 			},
 			{
-				Label: self.c.Tr.ResetFilter,
+				Label: self.c.Tr.NoFilter,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayAll)
 				},
-				Key: 'r',
+				Key:    'r',
+				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayAll),
 			},
 		},
 	})
