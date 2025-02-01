@@ -591,9 +591,11 @@ func (self *RefreshHelper) refreshStateFiles() error {
 	if conflictFileCount > 0 && prevConflictFileCount == 0 {
 		if fileTreeViewModel.GetFilter() == filetree.DisplayAll {
 			fileTreeViewModel.SetStatusFilter(filetree.DisplayConflicted)
+			self.c.Contexts().Files.GetView().Subtitle = self.c.Tr.FilterLabelConflictingFiles
 		}
 	} else if conflictFileCount == 0 && fileTreeViewModel.GetFilter() == filetree.DisplayConflicted {
 		fileTreeViewModel.SetStatusFilter(filetree.DisplayAll)
+		self.c.Contexts().Files.GetView().Subtitle = ""
 	}
 
 	self.c.Model().Files = files

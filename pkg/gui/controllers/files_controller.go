@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -801,10 +802,30 @@ func (self *FilesController) handleStatusFilterPressed() error {
 	})
 }
 
+func (self *FilesController) filteringLabel(filter filetree.FileTreeDisplayFilter) string {
+	switch filter {
+	case filetree.DisplayAll:
+		return ""
+	case filetree.DisplayStaged:
+		return self.c.Tr.FilterLabelStagedFiles
+	case filetree.DisplayUnstaged:
+		return self.c.Tr.FilterLabelUnstagedFiles
+	case filetree.DisplayTracked:
+		return self.c.Tr.FilterLabelTrackedFiles
+	case filetree.DisplayUntracked:
+		return self.c.Tr.FilterLabelUntrackedFiles
+	case filetree.DisplayConflicted:
+		return self.c.Tr.FilterLabelConflictingFiles
+	}
+
+	panic(fmt.Sprintf("Unexpected files display filter: %d", filter))
+}
+
 func (self *FilesController) setStatusFiltering(filter filetree.FileTreeDisplayFilter) error {
 	previousFilter := self.context().GetFilter()
 
 	self.context().FileTreeViewModel.SetStatusFilter(filter)
+	self.c.Contexts().Files.GetView().Subtitle = self.filteringLabel(filter)
 
 	// Whenever we switch between untracked and other filters, we need to refresh the files view
 	// because the untracked files filter applies when running `git status`.
