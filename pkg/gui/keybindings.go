@@ -148,7 +148,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		{
 			ViewName:          "tags",
 			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
-			Handler:           self.handleCopySelectedSideContextItemCommitHashToClipboard,
+			Handler:           self.handleCopySelectedSideContextItemToClipboard,
 			GetDisabledReason: self.getCopySelectedSideContextItemToClipboardDisabledReason,
 			Description:       self.c.Tr.CopyTagToClipboard,
 		},

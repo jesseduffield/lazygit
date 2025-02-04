@@ -15,7 +15,7 @@ var CopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("one")
-		shell.CreateLightweightTag("tag1", "HEAD")
+		shell.CreateLightweightTag("super.l000ongtag", "HEAD")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Tags().
@@ -25,7 +25,7 @@ var CopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.CopyToClipboard)
 
-		t.ExpectToast(Equals("'tag1' copied to clipboard"))
+		t.ExpectToast(Equals("'super.l000ongtag' copied to clipboard"))
 
 		t.Views().Files().
 			Focus().
@@ -34,6 +34,6 @@ var CopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("clipboard").IsSelected(),
 			)
 
-		t.Views().Main().Content(Contains("_tag1_"))
+		t.Views().Main().Content(Contains("super.l000ongtag"))
 	},
 })
