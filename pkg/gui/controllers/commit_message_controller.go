@@ -48,7 +48,7 @@ func (self *CommitMessageController) GetKeybindings(opts types.KeybindingsOpts) 
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Universal.TogglePanel),
-			Handler: self.switchToCommitDescription,
+			Handler: self.handleTogglePanel,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.CommitMessage.CommitMenu),
@@ -105,6 +105,32 @@ func (self *CommitMessageController) switchToCommitDescription() error {
 	return nil
 }
 
+func (self *CommitMessageController) handleTogglePanel() error {
+	// The default keybinding for this action is "<tab>", which means that we
+	// also get here when pasting multi-line text that contains tabs. In that
+	// case we don't want to toggle the panel, but insert the tab as a character
+	// (somehow, see below).
+	//
+	// Only do this if the TogglePanel command is actually mapped to "<tab>"
+	// (the default). If it's not, we can only hope that it's mapped to some
+	// ctrl key or fn key, which is unlikely to occur in pasted text. And if
+	// they mapped some *other* command to "<tab>", then we're totally out of
+	// luck.
+	if self.c.GocuiGui().IsPasting && self.c.UserConfig().Keybinding.Universal.TogglePanel == "<tab>" {
+		// It is unlikely that a pasted commit message contains a tab in the
+		// subject line, so it shouldn't matter too much how we handle it.
+		// Simply insert 4 spaces instead; all that matters is that we don't
+		// switch to the description panel.
+		view := self.context().GetView()
+		for range 4 {
+			view.Editor.Edit(view, gocui.KeySpace, ' ', 0)
+		}
+		return nil
+	}
+
+	return self.switchToCommitDescription()
+}
+
 func (self *CommitMessageController) handleCommitIndexChange(value int) error {
 	currentIndex := self.context().GetSelectedIndex()
 	newIndex := currentIndex + value
@@ -140,6 +166,20 @@ func (self *CommitMessageController) setCommitMessageAtIndex(index int) (bool, e
 }
 
 func (self *CommitMessageController) confirm() error {
+	// The default keybinding for this action is "<enter>", which means that we
+	// also get here when pasting multi-line text that contains newlines. In
+	// that case we don't want to confirm the commit, but switch to the
+	// description panel instead so that the rest of the pasted text goes there.
+	//
+	// Only do this if the SubmitEditorText command is actually mapped to
+	// "<enter>" (the default). If it's not, we can only hope that it's mapped
+	// to some ctrl key or fn key, which is unlikely to occur in pasted text.
+	// And if they mapped some *other* command to "<enter>", then we're totally
+	// out of luck.
+	if self.c.GocuiGui().IsPasting && self.c.UserConfig().Keybinding.Universal.SubmitEditorText == "<enter>" {
+		return self.switchToCommitDescription()
+	}
+
 	return self.c.Helpers().Commits.HandleCommitConfirm()
 }
 
