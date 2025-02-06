@@ -32,10 +32,11 @@ var Checkout = NewIntegrationTest(NewIntegrationTestArgs{
 		t.ExpectPopup().Menu().
 			Title(Contains("Checkout branch or commit")).
 			Lines(
-				Contains("Checkout branch").IsSelected(),
-				MatchesRegexp("Checkout commit [a-f0-9]+ as detached head"),
+				MatchesRegexp("Checkout commit [a-f0-9]+ as detached head").IsSelected(),
+				Contains("Checkout branch"),
 				Contains("Cancel"),
 			).
+			Select(Contains("Checkout branch")).
 			Tooltip(Contains("Disabled: No branches found at selected commit.")).
 			Select(MatchesRegexp("Checkout commit [a-f0-9]+ as detached head")).
 			Confirm()
@@ -53,9 +54,9 @@ var Checkout = NewIntegrationTest(NewIntegrationTestArgs{
 		t.ExpectPopup().Menu().
 			Title(Contains("Checkout branch or commit")).
 			Lines(
-				Contains("Checkout branch 'branch1'").IsSelected(),
+				MatchesRegexp("Checkout commit [a-f0-9]+ as detached head").IsSelected(),
+				Contains("Checkout branch 'branch1'"),
 				Contains("Checkout branch 'master'"),
-				MatchesRegexp("Checkout commit [a-f0-9]+ as detached head"),
 				Contains("Cancel"),
 			).
 			Select(Contains("Checkout branch 'master'")).
