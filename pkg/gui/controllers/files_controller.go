@@ -778,6 +778,13 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				Key: 't',
 			},
 			{
+				Label: self.c.Tr.FilterUntrackedFiles,
+				OnPress: func() error {
+					return self.setStatusFiltering(filetree.DisplayUntracked)
+				},
+				Key: 'T',
+			},
+			{
 				Label: self.c.Tr.ResetFilter,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayAll)
@@ -789,9 +796,19 @@ func (self *FilesController) handleStatusFilterPressed() error {
 }
 
 func (self *FilesController) setStatusFiltering(filter filetree.FileTreeDisplayFilter) error {
+	previousFilter := self.context().GetFilter()
+
 	self.context().FileTreeViewModel.SetStatusFilter(filter)
-	self.c.PostRefreshUpdate(self.context())
-	return nil
+
+	// Whenever we switch between untracked and other filters, we need to refresh the files view
+	// because the untracked files filter applies when running `git status`.
+	if previousFilter != filter && (previousFilter == filetree.DisplayUntracked || filter == filetree.DisplayUntracked) {
+		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}, Mode: types.ASYNC})
+	} else {
+		self.c.PostRefreshUpdate(self.context())
+
+		return nil
+	}
 }
 
 func (self *FilesController) edit(nodes []*filetree.FileNode) error {
