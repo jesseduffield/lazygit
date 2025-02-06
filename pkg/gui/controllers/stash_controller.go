@@ -201,13 +201,13 @@ func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntr
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.RenameStash)
 			err := self.c.Git().Stash.Rename(stashEntry.Index, response)
-			_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			if err != nil {
+				_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 				return err
 			}
 			self.context().SetSelection(0) // Select the renamed stash
 			self.context().FocusLine()
-			return nil
+			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 		},
 	})
 
