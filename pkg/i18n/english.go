@@ -926,6 +926,8 @@ type Actions struct {
 	UnstageFile                       string
 	UnstageAllFiles                   string
 	StageAllFiles                     string
+	NotEnoughContextToStage           string
+	NotEnoughContextToDiscard         string
 	IgnoreExcludeFile                 string
 	IgnoreFileErr                     string
 	ExcludeFile                       string
@@ -1913,6 +1915,8 @@ func EnglishTranslationSet() *TranslationSet {
 			UnstageFile:                     "Unstage file",
 			UnstageAllFiles:                 "Unstage all files",
 			StageAllFiles:                   "Stage all files",
+			NotEnoughContextToStage:         "Staging or unstaging changes is not possible with a diff context size of 0. Increase the context using '%s'.",
+			NotEnoughContextToDiscard:       "Discarding changes is not possible with a diff context size of 0. Increase the context using '%s'.",
 			IgnoreExcludeFile:               "Ignore or exclude file",
 			IgnoreFileErr:                   "Cannot ignore .gitignore",
 			ExcludeFile:                     "Exclude file",

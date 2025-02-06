@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -185,10 +187,20 @@ func (self *StagingController) TogglePanel() error {
 }
 
 func (self *StagingController) ToggleStaged() error {
+	if self.c.AppState.DiffContextSize == 0 {
+		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToStage,
+			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
+	}
+
 	return self.applySelectionAndRefresh(self.staged)
 }
 
 func (self *StagingController) DiscardSelection() error {
+	if self.c.AppState.DiffContextSize == 0 {
+		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToDiscard,
+			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
+	}
+
 	reset := func() error { return self.applySelectionAndRefresh(true) }
 
 	if !self.staged && !self.c.UserConfig().Gui.SkipDiscardChangeWarning {
