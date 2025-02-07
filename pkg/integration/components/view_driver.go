@@ -40,6 +40,24 @@ func (self *ViewDriver) Title(expected *TextMatcher) *ViewDriver {
 	return self
 }
 
+func (self *ViewDriver) Clear() *ViewDriver {
+	// clearing multiple times in case there's multiple lines
+	//  (the clear button only clears a single line at a time)
+	maxAttempts := 100
+	for i := 0; i < maxAttempts+1; i++ {
+		if self.getView().Buffer() == "" {
+			break
+		}
+
+		self.t.press(ClearKey)
+		if i == maxAttempts {
+			panic("failed to clear view buffer")
+		}
+	}
+
+	return self
+}
+
 // asserts that the view has lines matching the given matchers. One matcher must be passed for each line.
 // If you only care about the top n lines, use the TopLines method instead.
 // If you only care about a subset of lines, use the ContainsLines method instead.

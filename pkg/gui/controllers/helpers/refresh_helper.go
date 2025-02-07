@@ -492,6 +492,8 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 		self.refreshView(self.c.Contexts().Worktrees)
 	}
 
+	self.refreshView(self.c.Contexts().Branches)
+
 	if !keepBranchSelectionIndex && prevSelectedBranch != nil {
 		_, idx, found := lo.FindIndexOf(self.c.Contexts().Branches.GetItems(),
 			func(b *models.Branch) bool { return b.Name == prevSelectedBranch.Name })
@@ -499,8 +501,6 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 			self.c.Contexts().Branches.SetSelectedLineIdx(idx)
 		}
 	}
-
-	self.refreshView(self.c.Contexts().Branches)
 
 	// Need to re-render the commits view because the visualization of local
 	// branch heads might have changed
@@ -590,16 +590,14 @@ func (self *RefreshHelper) refreshStateFiles() error {
 	fileTreeViewModel.RWMutex.Lock()
 
 	// only taking over the filter if it hasn't already been set by the user.
-	// Though this does make it impossible for the user to actually say they want to display all if
-	// conflicts are currently being shown. Hmm. Worth it I reckon. If we need to add some
-	// extra state here to see if the user's set the filter themselves we can do that, but
-	// I'd prefer to maintain as little state as possible.
-	if conflictFileCount > 0 {
+	if conflictFileCount > 0 && prevConflictFileCount == 0 {
 		if fileTreeViewModel.GetFilter() == filetree.DisplayAll {
 			fileTreeViewModel.SetStatusFilter(filetree.DisplayConflicted)
+			self.c.Contexts().Files.GetView().Subtitle = self.c.Tr.FilterLabelConflictingFiles
 		}
-	} else if fileTreeViewModel.GetFilter() == filetree.DisplayConflicted {
+	} else if conflictFileCount == 0 && fileTreeViewModel.GetFilter() == filetree.DisplayConflicted {
 		fileTreeViewModel.SetStatusFilter(filetree.DisplayAll)
+		self.c.Contexts().Files.GetView().Subtitle = ""
 	}
 
 	self.c.Model().Files = files

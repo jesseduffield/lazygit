@@ -39,20 +39,7 @@ func (self *CommitMessagePanelDriver) SwitchToDescription() *CommitDescriptionPa
 }
 
 func (self *CommitMessagePanelDriver) Clear() *CommitMessagePanelDriver {
-	// clearing multiple times in case there's multiple lines
-	//  (the clear button only clears a single line at a time)
-	maxAttempts := 100
-	for i := 0; i < maxAttempts+1; i++ {
-		if self.getViewDriver().getView().Buffer() == "" {
-			break
-		}
-
-		self.t.press(ClearKey)
-		if i == maxAttempts {
-			panic("failed to clear commit message panel")
-		}
-	}
-
+	self.getViewDriver().Clear()
 	return self
 }
 

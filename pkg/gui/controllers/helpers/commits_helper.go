@@ -113,7 +113,7 @@ func (self *CommitsHelper) UpdateCommitPanelView(message string) {
 	}
 
 	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
-		preservedMessage := self.c.Contexts().CommitMessage.GetPreservedMessage()
+		preservedMessage := self.c.Contexts().CommitMessage.GetPreservedMessageAndLogError()
 		self.SetMessageAndDescriptionInView(preservedMessage)
 		return
 	}
@@ -156,7 +156,7 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 func (self *CommitsHelper) OnCommitSuccess() {
 	// if we have a preserved message we want to clear it on success
 	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
-		self.c.Contexts().CommitMessage.SetPreservedMessage("")
+		self.c.Contexts().CommitMessage.SetPreservedMessageAndLogError("")
 	}
 }
 
@@ -179,7 +179,7 @@ func (self *CommitsHelper) CloseCommitMessagePanel() {
 	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
 		message := self.JoinCommitMessageAndUnwrappedDescription()
 		if message != self.c.Contexts().CommitMessage.GetInitialMessage() {
-			self.c.Contexts().CommitMessage.SetPreservedMessage(message)
+			self.c.Contexts().CommitMessage.SetPreservedMessageAndLogError(message)
 		}
 	} else {
 		self.SetMessageAndDescriptionInView("")
