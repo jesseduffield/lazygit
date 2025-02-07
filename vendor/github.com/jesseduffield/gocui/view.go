@@ -523,6 +523,7 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) {
 	}
 
 	if matched, selected := v.isPatternMatchedRune(x, y); matched {
+		fgColor = ColorBlack
 		if selected {
 			bgColor = ColorCyan
 		} else {
