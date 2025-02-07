@@ -149,7 +149,7 @@ func (self *WorkingTreeHelper) HandleWIPCommitPress() error {
 }
 
 func (self *WorkingTreeHelper) HandleCommitPress() error {
-	message := self.c.Contexts().CommitMessage.GetPreservedMessage()
+	message := self.c.Contexts().CommitMessage.GetPreservedMessageAndLogError()
 
 	if message == "" {
 		commitPrefixConfig := self.commitPrefixConfigForRepo()

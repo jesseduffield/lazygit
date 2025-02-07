@@ -52,6 +52,11 @@ func (self *CommitDescriptionPanelDriver) AddCoAuthor(author string) *CommitDesc
 	return self
 }
 
+func (self *CommitDescriptionPanelDriver) Clear() *CommitDescriptionPanelDriver {
+	self.getViewDriver().Clear()
+	return self
+}
+
 func (self *CommitDescriptionPanelDriver) Title(expected *TextMatcher) *CommitDescriptionPanelDriver {
 	self.getViewDriver().Title(expected)
 
