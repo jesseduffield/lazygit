@@ -89,7 +89,12 @@ type TranslationSet struct {
 	FilterUnstagedFiles                   string
 	FilterTrackedFiles                    string
 	FilterUntrackedFiles                  string
-	ResetFilter                           string
+	NoFilter                              string
+	FilterLabelStagedFiles                string
+	FilterLabelUnstagedFiles              string
+	FilterLabelTrackedFiles               string
+	FilterLabelUntrackedFiles             string
+	FilterLabelConflictingFiles           string
 	MergeConflictsTitle                   string
 	Checkout                              string
 	CheckoutTooltip                       string
@@ -1115,7 +1120,12 @@ func EnglishTranslationSet() *TranslationSet {
 		FilterUnstagedFiles:                  "Show only unstaged files",
 		FilterTrackedFiles:                   "Show only tracked files",
 		FilterUntrackedFiles:                 "Show only untracked files",
-		ResetFilter:                          "Reset filter",
+		NoFilter:                             "No filter",
+		FilterLabelStagedFiles:               "(only staged)",
+		FilterLabelUnstagedFiles:             "(only unstaged)",
+		FilterLabelTrackedFiles:              "(only tracked)",
+		FilterLabelUntrackedFiles:            "(only untracked)",
+		FilterLabelConflictingFiles:          "(only conflicting)",
 		NoChangedFiles:                       "No changed files",
 		SoftReset:                            "Soft reset",
 		AlreadyCheckedOutBranch:              "You have already checked out this branch",

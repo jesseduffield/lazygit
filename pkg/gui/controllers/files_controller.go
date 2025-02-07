@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -753,6 +754,7 @@ func (self *FilesController) isResolvingConflicts() bool {
 }
 
 func (self *FilesController) handleStatusFilterPressed() error {
+	currentFilter := self.context().GetFilter()
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.FilteringMenuTitle,
 		Items: []*types.MenuItem{
@@ -761,44 +763,69 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayStaged)
 				},
-				Key: 's',
+				Key:    's',
+				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayStaged),
 			},
 			{
 				Label: self.c.Tr.FilterUnstagedFiles,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayUnstaged)
 				},
-				Key: 'u',
+				Key:    'u',
+				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayUnstaged),
 			},
 			{
 				Label: self.c.Tr.FilterTrackedFiles,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayTracked)
 				},
-				Key: 't',
+				Key:    't',
+				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayTracked),
 			},
 			{
 				Label: self.c.Tr.FilterUntrackedFiles,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayUntracked)
 				},
-				Key: 'T',
+				Key:    'T',
+				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayUntracked),
 			},
 			{
-				Label: self.c.Tr.ResetFilter,
+				Label: self.c.Tr.NoFilter,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayAll)
 				},
-				Key: 'r',
+				Key:    'r',
+				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayAll),
 			},
 		},
 	})
+}
+
+func (self *FilesController) filteringLabel(filter filetree.FileTreeDisplayFilter) string {
+	switch filter {
+	case filetree.DisplayAll:
+		return ""
+	case filetree.DisplayStaged:
+		return self.c.Tr.FilterLabelStagedFiles
+	case filetree.DisplayUnstaged:
+		return self.c.Tr.FilterLabelUnstagedFiles
+	case filetree.DisplayTracked:
+		return self.c.Tr.FilterLabelTrackedFiles
+	case filetree.DisplayUntracked:
+		return self.c.Tr.FilterLabelUntrackedFiles
+	case filetree.DisplayConflicted:
+		return self.c.Tr.FilterLabelConflictingFiles
+	}
+
+	panic(fmt.Sprintf("Unexpected files display filter: %d", filter))
 }
 
 func (self *FilesController) setStatusFiltering(filter filetree.FileTreeDisplayFilter) error {
 	previousFilter := self.context().GetFilter()
 
 	self.context().FileTreeViewModel.SetStatusFilter(filter)
+	self.c.Contexts().Files.GetView().Subtitle = self.filteringLabel(filter)
 
 	// Whenever we switch between untracked and other filters, we need to refresh the files view
 	// because the untracked files filter applies when running `git status`.
