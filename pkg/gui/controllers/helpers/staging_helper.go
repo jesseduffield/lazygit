@@ -62,12 +62,14 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 	mainContext.GetMutex().Lock()
 	secondaryContext.GetMutex().Lock()
 
+	pagerCommand := string(self.c.UserConfig().Git.Paging.PagerForStaging)
+
 	mainContext.SetState(
-		patch_exploring.NewState(mainDiff, mainSelectedLineIdx, mainContext.GetView(), mainContext.GetState()),
+		patch_exploring.NewState(mainDiff, mainSelectedLineIdx, mainContext.GetView(), mainContext.GetState(), pagerCommand),
 	)
 
 	secondaryContext.SetState(
-		patch_exploring.NewState(secondaryDiff, secondarySelectedLineIdx, secondaryContext.GetView(), secondaryContext.GetState()),
+		patch_exploring.NewState(secondaryDiff, secondarySelectedLineIdx, secondaryContext.GetView(), secondaryContext.GetState(), pagerCommand),
 	)
 
 	mainState := mainContext.GetState()
