@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/kyokomi/emoji/v2"
 	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
 	"github.com/stefanhaller/git-todo-parser/todo"
@@ -35,6 +35,12 @@ var (
 type bisectBounds struct {
 	newIndex int
 	oldIndex int
+}
+
+func stripEmojis(text string) string {
+	// This regex matches most common emoji patterns
+	re := regexp.MustCompile(`[\x{1F600}-\x{1F64F}]|[\x{1F300}-\x{1F5FF}]|[\x{1F680}-\x{1F6FF}]|[\x{2600}-\x{26FF}]|[\x{2700}-\x{27BF}]`)
+	return re.ReplaceAllString(text, "")
 }
 
 func GetCommitListDisplayStrings(
@@ -366,6 +372,7 @@ func displayCommit(
 	bisectInfo *git_commands.BisectInfo,
 	isYouAreHereCommit bool,
 ) []string {
+	_ = parseEmoji
 	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
 
 	hashString := ""
@@ -423,9 +430,8 @@ func displayCommit(
 	if commit.Action == todo.UpdateRef {
 		name = strings.TrimPrefix(name, "refs/heads/")
 	}
-	if parseEmoji {
-		name = emoji.Sprint(name)
-	}
+
+	name = stripEmojis(name) // Strip emojis
 
 	mark := ""
 	if isYouAreHereCommit {
