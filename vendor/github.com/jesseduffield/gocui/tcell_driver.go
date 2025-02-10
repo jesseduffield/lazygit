@@ -155,6 +155,8 @@ type gocuiEventType uint8
 //	The 'MouseX' and 'MouseY' fields are valid if 'Type' is 'eventMouse'.
 //	The 'Width' and 'Height' fields are valid if 'Type' is 'eventResize'.
 //	The 'Focused' field is valid if 'Type' is 'eventFocus'.
+//	The 'Start' field is valid if 'Type' is 'eventPaste'. It is true for the
+//	  beginning of a paste operation, false for the end.
 //	The 'Err' field is valid if 'Type' is 'eventError'.
 type GocuiEvent struct {
 	Type    gocuiEventType
@@ -167,6 +169,7 @@ type GocuiEvent struct {
 	MouseX  int
 	MouseY  int
 	Focused bool
+	Start   bool
 	N       int
 }
 
@@ -178,6 +181,7 @@ const (
 	eventMouse
 	eventMouseMove // only used when no button is down, otherwise it's eventMouse
 	eventFocus
+	eventPaste
 	eventInterrupt
 	eventError
 	eventRaw
@@ -416,6 +420,11 @@ func (g *Gui) pollEvent() GocuiEvent {
 		return GocuiEvent{
 			Type:    eventFocus,
 			Focused: tev.Focused,
+		}
+	case *tcell.EventPaste:
+		return GocuiEvent{
+			Type:  eventPaste,
+			Start: tev.Start(),
 		}
 	default:
 		return GocuiEvent{Type: eventNone}

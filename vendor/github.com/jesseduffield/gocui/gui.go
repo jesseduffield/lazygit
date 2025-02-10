@@ -157,6 +157,8 @@ type Gui struct {
 	// If Mouse is true then mouse events will be enabled.
 	Mouse bool
 
+	IsPasting bool
+
 	// If InputEsc is true, when ESC sequence is in the buffer and it doesn't
 	// match any known sequence, ESC means KeyEsc.
 	InputEsc bool
@@ -759,6 +761,7 @@ func (g *Gui) MainLoop() error {
 	}()
 
 	Screen.EnableFocus()
+	Screen.EnablePaste()
 
 	previousEnableMouse := false
 	for {
@@ -847,6 +850,9 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 		return nil
 	case eventFocus:
 		return g.onFocus(ev)
+	case eventPaste:
+		g.IsPasting = ev.Start
+		return nil
 	default:
 		return nil
 	}
@@ -1305,6 +1311,20 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 	switch ev.Type {
 	case eventKey:
 
+		// When pasting text in Ghostty, it sends us '\r' instead of '\n' for
+		// newlines. I actually don't quite understand why, because from reading
+		// Ghostty's source code (e.g.
+		// https://github.com/ghostty-org/ghostty/commit/010338354a0) it does
+		// this conversion only for non-bracketed paste mode, but I'm seeing it
+		// in bracketed paste mode. Whatever I'm missing here, converting '\r'
+		// back to '\n' fixes pasting multi-line text from Ghostty, and doesn't
+		// seem harmful for other terminal emulators.
+		//
+		// KeyCtrlJ (int value 10) is '\r', and KeyCtrlM (int value 13) is '\n'.
+		if g.IsPasting && ev.Key == KeyCtrlJ {
+			ev.Key = KeyCtrlM
+		}
+
 		err := g.execKeybindings(g.currentView, ev)
 		if err != nil {
 			return err
@@ -1468,6 +1488,10 @@ func IsMouseScrollKey(key interface{}) bool {
 func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 	var globalKb *keybinding
 	var matchingParentViewKb *keybinding
+
+	if g.IsPasting && v != nil && !v.Editable {
+		return nil
+	}
 
 	// if we're searching, and we've hit n/N/Esc, we ignore the default keybinding
 	if v != nil && v.IsSearching() && ev.Mod == ModNone {
