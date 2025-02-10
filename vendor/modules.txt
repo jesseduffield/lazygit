@@ -233,8 +233,8 @@ github.com/mitchellh/go-ps
 ## explicit
 # github.com/onsi/gomega v1.7.1
 ## explicit
-# github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5
-## explicit
+# github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7
+## explicit; go 1.17
 github.com/petermattis/goid
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
@@ -251,7 +251,7 @@ github.com/samber/lo
 # github.com/sanity-io/litter v1.5.2
 ## explicit; go 1.14
 github.com/sanity-io/litter
-# github.com/sasha-s/go-deadlock v0.3.1
+# github.com/sasha-s/go-deadlock v0.3.5
 ## explicit
 github.com/sasha-s/go-deadlock
 # github.com/sergi/go-diff v1.1.0
