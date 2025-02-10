@@ -278,7 +278,17 @@ func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 	})
 
 	hash := commit.Hash
-	var menuItems []*types.MenuItem
+
+	menuItems := []*types.MenuItem{
+		{
+			LabelColumns: []string{fmt.Sprintf(self.c.Tr.Actions.CheckoutCommitAsDetachedHead, utils.ShortHash(hash))},
+			OnPress: func() error {
+				self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
+				return self.CheckoutRef(hash, types.CheckoutRefOptions{})
+			},
+			Key: 'd',
+		},
+	}
 
 	if len(branches) > 0 {
 		menuItems = append(menuItems, lo.Map(branches, func(branch *models.Branch, index int) *types.MenuItem {
@@ -303,15 +313,6 @@ func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 			Key:            '1',
 		})
 	}
-
-	menuItems = append(menuItems, &types.MenuItem{
-		LabelColumns: []string{fmt.Sprintf(self.c.Tr.Actions.CheckoutCommitAsDetachedHead, utils.ShortHash(hash))},
-		OnPress: func() error {
-			self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
-			return self.CheckoutRef(hash, types.CheckoutRefOptions{})
-		},
-		Key: 'd',
-	})
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Actions.CheckoutBranchOrCommit,
