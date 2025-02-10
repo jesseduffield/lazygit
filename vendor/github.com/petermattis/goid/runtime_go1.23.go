@@ -1,10 +1,7 @@
-//go:build gc && go1.6 && !go1.9
-// +build gc,go1.6,!go1.9
+//go:build gc && go1.23
+// +build gc,go1.23
 
 package goid
-
-// Just enough of the structs from runtime/runtime2.go to get the offset to goid.
-// See https://github.com/golang/go/blob/release-branch.go1.6/src/runtime/runtime2.go
 
 type stack struct {
 	lo uintptr
@@ -29,12 +26,10 @@ type g struct {
 	_panic       uintptr
 	_defer       uintptr
 	m            uintptr
-	stackAlloc   uintptr
 	sched        gobuf
 	syscallsp    uintptr
 	syscallpc    uintptr
-	stkbar       []uintptr
-	stkbarPos    uintptr
+	syscallbp    uintptr
 	stktopsp     uintptr
 	param        uintptr
 	atomicstatus uint32

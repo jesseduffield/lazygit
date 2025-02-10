@@ -1,8 +1,9 @@
+//go:build gccgo && go1.8
 // +build gccgo,go1.8
 
 package goid
 
-// https://github.com/gcc-mirror/gcc/blob/gcc-7-branch/libgo/go/runtime/runtime2.go#L329-L422
+// https://github.com/gcc-mirror/gcc/blob/releases/gcc-7/libgo/go/runtime/runtime2.go#L329-L354
 
 type g struct {
 	_panic       uintptr

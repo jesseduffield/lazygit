@@ -13,9 +13,16 @@
 // permissions and limitations under the License. See the AUTHORS file
 // for names of contributors.
 
-// +build amd64 amd64p32
-// +build gc,go1.5
+//go:build (386 || amd64 || amd64p32 || arm || arm64 || s390x) && gc && go1.5
+// +build 386 amd64 amd64p32 arm arm64 s390x
+// +build gc
+// +build go1.5
 
 package goid
 
-func Get() int64
+// Defined in goid_go1.5.s.
+func getg() *g
+
+func Get() int64 {
+	return getg().goid
+}
