@@ -93,6 +93,7 @@ var tests = []*components.IntegrationTest{
 	commit.CommitMultiline,
 	commit.CommitSwitchToEditor,
 	commit.CommitWipWithPrefix,
+	commit.CommitWithFallthroughPrefix,
 	commit.CommitWithGlobalPrefix,
 	commit.CommitWithNonMatchingBranchName,
 	commit.CommitWithPrefix,
