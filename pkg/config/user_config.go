@@ -256,9 +256,9 @@ type GitConfig struct {
 	// If true, do not allow force pushes
 	DisableForcePushing bool `yaml:"disableForcePushing"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
-	CommitPrefix *CommitPrefixConfig `yaml:"commitPrefix"`
+	CommitPrefix CommitPrefixConfigs `yaml:"commitPrefix"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
-	CommitPrefixes map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
+	CommitPrefixes map[string]CommitPrefixConfigs `yaml:"commitPrefixes"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix
 	BranchPrefix string `yaml:"branchPrefix"`
 	// If true, parse emoji strings in commit messages e.g. render :rocket: as 🚀
@@ -270,6 +270,8 @@ type GitConfig struct {
 	// length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
 }
+
+type CommitPrefixConfigs []CommitPrefixConfig
 
 type PagerType string
 
@@ -784,7 +786,7 @@ func GetDefaultConfig() *UserConfig {
 			BranchLogCmd:                 "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
 			AllBranchesLogCmd:            "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
 			DisableForcePushing:          false,
-			CommitPrefixes:               map[string]CommitPrefixConfig(nil),
+			CommitPrefixes:               map[string]CommitPrefixConfigs(nil),
 			BranchPrefix:                 "",
 			ParseEmoji:                   false,
 			TruncateCopiedCommitHashesTo: 12,

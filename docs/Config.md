@@ -341,14 +341,6 @@ git:
   # If true, do not allow force pushes
   disableForcePushing: false
 
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
-  commitPrefix:
-    # pattern to match on. E.g. for 'feature/AB-123' to match on the AB-123 use "^\\w+\\/(\\w+-\\w+).*"
-    pattern: ""
-
-    # Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use "[$1] "
-    replace: ""
-
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix
   branchPrefix: ""
 
@@ -931,19 +923,28 @@ Example:
 ```yaml
 git:
   commitPrefix:
-    pattern: "^\\w+\\/(\\w+-\\w+).*"
-    replace: '[$1] '
+    - pattern: "^\\w+\\/(\\w+-\\w+).*"
+      replace: '[$1] '
 ```
 
-If you want repository-specific prefixes, you can map them with `commitPrefixes`. If you have both `commitPrefixes` defined and an entry in `commitPrefixes` for the current repo, the `commitPrefixes` entry is given higher precedence. Repository folder names must be an exact match.
+If you want repository-specific prefixes, you can map them with `commitPrefixes`. If you have both entries in `commitPrefix` defined and an repository match in `commitPrefixes` for the current repo, the `commitPrefixes` entry is given higher precedence. Repository folder names must be an exact match.
 
 ```yaml
 git:
   commitPrefixes:
     my_project: # This is repository folder name
-      pattern: "^\\w+\\/(\\w+-\\w+).*"
-      replace: '[$1] '
+      - pattern: "^\\w+\\/(\\w+-\\w+).*"
+        replace: '[$1] '
+  commitPrefix:
+      - pattern: "^(\\w+)-.*" # A more general match for any leading word
+        replace : '[$1] '
+      - pattern: ".*" # The final fallthrough regex that copies over the whole branch name
+        replace : '[$0] '
 ```
+
+> Outside of `my_project`, only the `commitPrefix` entry will be attempted. 
+Inside of `my_project`, the repository specific pattern will be attempted. 
+If there is no match, the `commitPrefix` entries will then be attempted in order until a match is found
 
 > [!IMPORTANT]
 > The way golang regex works is when you use `$n` in the replacement string, where `n` is a number, it puts the nth captured subgroup at that place. If `n` is out of range because there aren't that many capture groups in the regex, it puts an empty string there.

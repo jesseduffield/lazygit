@@ -212,6 +212,22 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig) (*UserConfig, e
 	return base, nil
 }
 
+func (a *CommitPrefixConfigs) UnmarshalYAML(value *yaml.Node) error {
+	var multi []CommitPrefixConfig
+	err := value.Decode(&multi)
+	if err != nil {
+		var single CommitPrefixConfig
+		err := value.Decode(&single)
+		if err != nil {
+			return err
+		}
+		*a = []CommitPrefixConfig{single}
+	} else {
+		*a = multi
+	}
+	return nil
+}
+
 // Do any backward-compatibility migrations of things that have changed in the
 // config over time; examples are renaming a key to a better name, moving a key
 // from one container to another, or changing the type of a key (e.g. from bool
