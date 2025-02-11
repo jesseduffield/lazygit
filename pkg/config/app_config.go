@@ -217,6 +217,26 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig) (*UserConfig, e
 // from one container to another, or changing the type of a key (e.g. from bool
 // to an enum).
 func migrateUserConfig(path string, content []byte) ([]byte, error) {
+	changedContent, err := computeMigratedConfig(path, content)
+	if err != nil {
+		return nil, err
+	}
+
+	// Write config back if changed
+	if string(changedContent) != string(content) {
+		fmt.Println("Provided user config is deprecated but auto-fixable. Attempting to write fixed version back to file...")
+		if err := os.WriteFile(path, changedContent, 0o644); err != nil {
+			return nil, fmt.Errorf("While attempting to write back fixed user config to %s, an error occurred: %s", path, err)
+		}
+		fmt.Printf("Success. New config written to %s\n", path)
+		return changedContent, nil
+	}
+
+	return content, nil
+}
+
+// A pure function helper for testing purposes
+func computeMigratedConfig(path string, content []byte) ([]byte, error) {
 	changedContent := content
 
 	pathsToReplace := []struct {
@@ -241,19 +261,18 @@ func migrateUserConfig(path string, content []byte) ([]byte, error) {
 		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
 	}
 
-	// Add more migrations here...
-
-	// Write config back if changed
-	if string(changedContent) != string(content) {
-		fmt.Println("Provided user config is deprecated but auto-fixable. Attempting to write fixed version back to file...")
-		if err := os.WriteFile(path, changedContent, 0o644); err != nil {
-			return nil, fmt.Errorf("While attempting to write back fixed user config to %s, an error occurred: %s", path, err)
-		}
-		fmt.Printf("Success. New config written to %s\n", path)
-		return changedContent, nil
+	changedContent, err = changeElementToSequence(changedContent, []string{"git", "commitPrefix"})
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
 	}
 
-	return content, nil
+	changedContent, err = changeCommitPrefixesMap(changedContent)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+	}
+	// Add more migrations here...
+
+	return changedContent, nil
 }
 
 func changeNullKeybindingsToDisabled(changedContent []byte) ([]byte, error) {
@@ -264,6 +283,46 @@ func changeNullKeybindingsToDisabled(changedContent []byte) ([]byte, error) {
 			return true
 		}
 		return false
+	})
+}
+
+func changeElementToSequence(changedContent []byte, path []string) ([]byte, error) {
+	return yaml_utils.TransformNode(changedContent, path, func(node *yaml.Node) (bool, error) {
+		if node.Kind == yaml.MappingNode {
+			nodeContentCopy := node.Content
+			node.Kind = yaml.SequenceNode
+			node.Value = ""
+			node.Tag = "!!seq"
+			node.Content = []*yaml.Node{{
+				Kind:    yaml.MappingNode,
+				Content: nodeContentCopy,
+			}}
+
+			return true, nil
+		}
+		return false, nil
+	})
+}
+
+func changeCommitPrefixesMap(changedContent []byte) ([]byte, error) {
+	return yaml_utils.TransformNode(changedContent, []string{"git", "commitPrefixes"}, func(prefixesNode *yaml.Node) (bool, error) {
+		if prefixesNode.Kind == yaml.MappingNode {
+			for _, contentNode := range prefixesNode.Content {
+				if contentNode.Kind == yaml.MappingNode {
+					nodeContentCopy := contentNode.Content
+					contentNode.Kind = yaml.SequenceNode
+					contentNode.Value = ""
+					contentNode.Tag = "!!seq"
+					contentNode.Content = []*yaml.Node{{
+						Kind:    yaml.MappingNode,
+						Content: nodeContentCopy,
+					}}
+
+				}
+			}
+			return true, nil
+		}
+		return false, nil
 	})
 }
 

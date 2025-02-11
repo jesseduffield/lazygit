@@ -638,28 +638,7 @@
           "default": false
         },
         "commitPrefix": {
-          "properties": {
-            "pattern": {
-              "type": "string",
-              "description": "pattern to match on. E.g. for 'feature/AB-123' to match on the AB-123 use \"^\\\\w+\\\\/(\\\\w+-\\\\w+).*\"",
-              "examples": [
-                "^\\w+\\/(\\w+-\\w+).*"
-              ]
-            },
-            "replace": {
-              "type": "string",
-              "description": "Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use \"[$1] \"",
-              "examples": [
-                "[$1]"
-              ]
-            }
-          },
-          "additionalProperties": false,
-          "type": "object",
-          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix"
-        },
-        "commitPrefixes": {
-          "additionalProperties": {
+          "items": {
             "properties": {
               "pattern": {
                 "type": "string",
@@ -678,6 +657,33 @@
             },
             "additionalProperties": false,
             "type": "object"
+          },
+          "type": "array",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix"
+        },
+        "commitPrefixes": {
+          "additionalProperties": {
+            "items": {
+              "properties": {
+                "pattern": {
+                  "type": "string",
+                  "description": "pattern to match on. E.g. for 'feature/AB-123' to match on the AB-123 use \"^\\\\w+\\\\/(\\\\w+-\\\\w+).*\"",
+                  "examples": [
+                    "^\\w+\\/(\\w+-\\w+).*"
+                  ]
+                },
+                "replace": {
+                  "type": "string",
+                  "description": "Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use \"[$1] \"",
+                  "examples": [
+                    "[$1]"
+                  ]
+                }
+              },
+              "additionalProperties": false,
+              "type": "object"
+            },
+            "type": "array"
           },
           "type": "object",
           "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix"
