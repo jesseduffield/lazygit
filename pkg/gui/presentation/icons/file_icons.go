@@ -82,7 +82,7 @@ var nameIconMap = map[string]IconProperties{
 	"bin":                        {Icon: "\U000f12a7", Color: "#25A79A"}, // 󱊧
 	"brewfile":                   {Icon: "\ue791", Color: "#701516"},     // 
 	"bspwmrc":                    {Icon: "\uf355", Color: "#2F2F2F"},     // 
-	"build":                      {Icon: "\ue63a", Color: "#89E051"},     // 
+	"BUILD":                      {Icon: "\ue63a", Color: "#89E051"},     // 
 	"build.gradle":               {Icon: "\ue660", Color: "#005F87"},     // 
 	"build.zig.zon":              {Icon: "\ue6a9", Color: "#F69A1B"},     // 
 	"bun.lockb":                  {Icon: "\ue76f", Color: "#EADCD1"},     // 
@@ -207,7 +207,8 @@ var nameIconMap = map[string]IconProperties{
 	"vlcrc":                      {Icon: "\U000f057c", Color: "#E85E00"}, // 󰕼
 	"webpack":                    {Icon: "\U000f072b", Color: "#519ABA"}, // 󰜫
 	"weston.ini":                 {Icon: "\uf367", Color: "#FFBB01"},     // 
-	"workspace":                  {Icon: "\ue63a", Color: "#89E051"},     // 
+	"WORKSPACE":                  {Icon: "\ue63a", Color: "#89E051"},     // 
+	"WORKSPACE.bzlmod":           {Icon: "\ue63a", Color: "#89E051"},     // 
 	"xmobarrc":                   {Icon: "\uf35e", Color: "#FD4D5D"},     // 
 	"xmobarrc.hs":                {Icon: "\uf35e", Color: "#FD4D5D"},     // 
 	"xmonad.hs":                  {Icon: "\uf35e", Color: "#FD4D5D"},     // 
