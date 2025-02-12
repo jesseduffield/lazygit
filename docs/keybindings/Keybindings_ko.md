@@ -189,7 +189,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-y> `` | 풀 리퀘스트 URL을 클립보드에 복사 |  |
 | `` c `` | 이름으로 체크아웃 | Checkout by name. In the input box you can enter '-' to switch to the last branch. |
 | `` F `` | 강제 체크아웃 | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
-| `` d `` | Delete | View delete options for local/remote branch. |
+| `` d `` | 삭제 | View delete options for local/remote branch. |
 | `` r `` | 체크아웃된 브랜치를 이 브랜치에 리베이스 | Rebase the checked-out branch onto the selected branch. |
 | `` M `` | 현재 브랜치에 병합 | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` f `` | Fast-forward this branch from its upstream | Fast-forward selected branch from its upstream. |
@@ -247,7 +247,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` n `` | 새 브랜치 생성 |  |
 | `` M `` | 현재 브랜치에 병합 | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` r `` | 체크아웃된 브랜치를 이 브랜치에 리베이스 | Rebase the checked-out branch onto the selected branch. |
-| `` d `` | Delete | Delete the remote branch from the remote. |
+| `` d `` | 삭제 | Delete the remote branch from the remote. |
 | `` u `` | Set as upstream | Set the selected remote branch as the upstream of the checked-out branch. |
 | `` s `` | Sort order |  |
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
@@ -263,7 +263,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-o> `` | 커밋 해시를 클립보드에 복사 |  |
 | `` <c-r> `` | Reset cherry-picked (copied) commits selection |  |
 | `` b `` | Bisect 옵션 보기 |  |
-| `` s `` | Squash | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
+| `` s `` | 스쿼시 | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
 | `` f `` | Fixup | Meld the selected commit into the commit below it. Similar to squash, but the selected commit's message will be discarded. |
 | `` r `` | 커밋메시지 변경 | Reword the selected commit's message. |
 | `` R `` | 에디터에서 커밋메시지 수정 |  |
@@ -326,9 +326,9 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-o> `` | Copy tag to clipboard |  |
 | `` <space> `` | 체크아웃 | Checkout the selected tag as a detached HEAD. |
 | `` n `` | 태그를 생성 | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
-| `` d `` | Delete | View delete options for local/remote tag. |
+| `` d `` | 삭제 | View delete options for local/remote tag. |
 | `` P `` | 태그를 push | Push the selected tag to a remote. You'll be prompted to select a remote. |
-| `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` g `` | 초기화 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
@@ -341,7 +341,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-o> `` | 파일명을 클립보드에 복사 |  |
 | `` <space> `` | Staged 전환 | Toggle staged for selected file. |
 | `` <c-b> `` | 파일을 필터하기 (Staged/unstaged) |  |
-| `` y `` | Copy to clipboard |  |
+| `` y `` | 클립보드에 복사 |  |
 | `` c `` | 커밋 변경내용 | Commit staged changes. |
 | `` w `` | Commit changes without pre-commit hook |  |
 | `` A `` | 마지맛 커밋 수정 |  |
@@ -357,7 +357,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <enter> `` | Stage individual hunks/lines for file, or collapse/expand for directory | If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it. |
 | `` d `` | View 'discard changes' options | View options for discarding changes to the selected file. |
 | `` g `` | View upstream reset options |  |
-| `` D `` | Reset | View reset options for working tree (e.g. nuking the working tree). |
+| `` D `` | 초기화 | View reset options for working tree (e.g. nuking the working tree). |
 | `` ` `` | 파일 트리뷰로 전환 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` M `` | Git mergetool를 열기 | Run `git mergetool`. |

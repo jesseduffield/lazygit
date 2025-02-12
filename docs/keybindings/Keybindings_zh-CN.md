@@ -12,8 +12,8 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` <pgup> (fn+up/shift+k) `` | 向上滚动主面板 |  |
 | `` <pgdown> (fn+down/shift+j) `` | 向下滚动主面板 |  |
 | `` @ `` | 打开命令日志菜单 | 查看命令日志的选项，例如显示/隐藏命令日志以及聚焦命令日志 |
-| `` P `` | 推送 | 推送当前分支到它的上游。如果上游为配置，你可以在弹窗中配置上游分支。 |
-| `` p `` | 拉取 | 从当前分支的远程分支获取改动。如果上游为配置，你可以在弹窗中配置上游分支。 |
+| `` P `` | 推送 | 推送当前分支到它的上游。如果上游未配置，你可以在弹窗中配置上游分支。 |
+| `` p `` | 拉取 | 从当前分支的远程分支获取改动。如果上游未配置，你可以在弹窗中配置上游分支。 |
 | `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename. |
 | `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
 | `` } `` | 扩大差异视图中显示的上下文范围 | 增加diff视图中围绕更改显示的上下文数量 |

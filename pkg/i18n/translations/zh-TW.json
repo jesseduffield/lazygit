@@ -199,7 +199,7 @@
   "FastForwarding": "的擷取和快進中",
   "FoundConflictsTitle": "自動合併失敗",
   "ViewConflictsMenuItem": "檢視衝突",
-  "AbortMenuItem": "關於%s",
+  "AbortMenuItem": "中止%s",
   "PickHunk": "挑選程式碼片段",
   "PickAllHunks": "挑選所有程式碼片段",
   "ViewMergeRebaseOptions": "查看合併/變基選項",
