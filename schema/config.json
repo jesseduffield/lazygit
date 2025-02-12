@@ -875,7 +875,8 @@
           },
           "context": {
             "type": "string",
-            "enum": [
+            "description": "The context in which to listen for the key. Valid values are: status, files, worktrees, localBranches, remotes, remoteBranches, tags, commits, reflogCommits, subCommits, commitFiles, stash, and global. Multiple contexts separated by comma are allowed; most useful for \"commits, subCommits\" or \"files, commitFiles\".",
+            "examples": [
               "status",
               "files",
               "worktrees",
@@ -889,8 +890,7 @@
               "commitFiles",
               "stash",
               "global"
-            ],
-            "description": "The context in which to listen for the key"
+            ]
           },
           "command": {
             "type": "string",
