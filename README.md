@@ -454,9 +454,13 @@ Call `lazygit` in your terminal, while inside a git repository.
 $ lazygit
 ```
 
-If you want, you can
-also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or
-whichever rc file you're using).
+### Add ZSH/Bash Alias
+
+Create a shortcut for lazygit by adding an alias to the shell configuration file.
+
+```sh
+echo "alias lg='lazygit'" >> "$HOME/.$(basename $SHELL)rc"
+```
 
 ### Keybindings
 
