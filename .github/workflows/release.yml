@@ -74,4 +74,4 @@ jobs:
           git tag ${{ env.new_tag }}
           git push origin ${{ env.new_tag }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}
