@@ -640,6 +640,14 @@ type CustomCommand struct {
 	After *CustomCommandAfterHook `yaml:"after"`
 }
 
+func (c *CustomCommand) GetDescription() string {
+	if c.Description != "" {
+		return c.Description
+	}
+
+	return c.Command
+}
+
 type CustomCommandPrompt struct {
 	// One of: 'input' | 'menu' | 'confirm' | 'menuFromCommand'
 	Type string `yaml:"type"`
