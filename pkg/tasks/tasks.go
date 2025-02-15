@@ -137,29 +137,37 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 		cmd, r := start()
 		timeToStart := time.Since(startTime)
 
-		go utils.Safe(func() {
-			<-opts.Stop
-			// we use the time it took to start the program as a way of checking if things
-			// are running slow at the moment. This is admittedly a crude estimate, but
-			// the point is that we only want to throttle when things are running slow
-			// and the user is flicking through a bunch of items.
-			self.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
-			if err := oscommands.Kill(cmd); err != nil {
-				if !strings.Contains(err.Error(), "process already finished") {
-					self.Log.Errorf("error when running cmd task: %v", err)
-				}
-			}
+		done := make(chan struct{})
 
-			// for pty's we need to call onDone here so that cmd.Wait() doesn't block forever
-			onDone()
+		go utils.Safe(func() {
+			select {
+			case <-done:
+				// The command finished and did not have to be preemptively stopped before the next command.
+				// No need to throttle.
+				self.throttle = false
+			case <-opts.Stop:
+				// we use the time it took to start the program as a way of checking if things
+				// are running slow at the moment. This is admittedly a crude estimate, but
+				// the point is that we only want to throttle when things are running slow
+				// and the user is flicking through a bunch of items.
+				self.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
+
+				// Kill the still-running command.
+				if err := oscommands.Kill(cmd); err != nil {
+					if !strings.Contains(err.Error(), "process already finished") {
+						self.Log.Errorf("error when trying to kill cmd task: %v; Command: %v %v", err, cmd.Path, cmd.Args)
+					}
+				}
+
+				// for pty's we need to call onDone here so that cmd.Wait() doesn't block forever
+				onDone()
+			}
 		})
 
 		loadingMutex := deadlock.Mutex{}
 
 		// not sure if it's the right move to redefine this or not
 		self.readLines = make(chan LinesToRead, 1024)
-
-		done := make(chan struct{})
 
 		scanner := bufio.NewScanner(r)
 		scanner.Split(utils.ScanLinesAndTruncateWhenLongerThanBuffer(bufio.MaxScanTokenSize))
@@ -269,8 +277,10 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 			refreshViewIfStale()
 
 			if err := cmd.Wait(); err != nil {
-				// it's fine if we've killed this program ourselves
-				if !strings.Contains(err.Error(), "signal: killed") {
+				select {
+				case <-opts.Stop:
+					// it's fine if we've killed this program ourselves
+				default:
 					self.Log.Errorf("Unexpected error when running cmd task: %v; Failed command: %v %v", err, cmd.Path, cmd.Args)
 				}
 			}
