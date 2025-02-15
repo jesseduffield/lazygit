@@ -42,6 +42,12 @@ func NewCommitFilesController(
 func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
+			Key:         opts.GetKey(opts.Config.Files.CopyFileInfoToClipboard),
+			Handler:     self.openCopyMenu,
+			Description: self.c.Tr.CopyToClipboardMenu,
+			OpensMenu:   true,
+		},
+		{
 			Key:               opts.GetKey(opts.Config.CommitFiles.CheckoutCommitFile),
 			Handler:           self.withItem(self.checkout),
 			GetDisabledReason: self.require(self.singleItemSelected()),
@@ -179,6 +185,77 @@ func (self *CommitFilesController) onClickMain(opts gocui.ViewMouseBindingOpts) 
 		return nil
 	}
 	return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
+}
+
+func (self *CommitFilesController) copyDiffToClipboard(path string, toastMessage string) error {
+	from, to := self.context().GetFromAndToForDiff()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
+
+	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, path, true)
+	diff, err := cmdObj.RunWithOutput()
+	if err != nil {
+		return err
+	}
+	if err := self.c.OS().CopyToClipboard(diff); err != nil {
+		return err
+	}
+	self.c.Toast(toastMessage)
+	return nil
+}
+
+func (self *CommitFilesController) openCopyMenu() error {
+	node := self.context().GetSelected()
+
+	copyNameItem := &types.MenuItem{
+		Label: self.c.Tr.CopyFileName,
+		OnPress: func() error {
+			if err := self.c.OS().CopyToClipboard(node.Name()); err != nil {
+				return err
+			}
+			self.c.Toast(self.c.Tr.FileNameCopiedToast)
+			return nil
+		},
+		DisabledReason: self.require(self.singleItemSelected())(),
+		Key:            'n',
+	}
+	copyPathItem := &types.MenuItem{
+		Label: self.c.Tr.CopyFilePath,
+		OnPress: func() error {
+			if err := self.c.OS().CopyToClipboard(node.Path); err != nil {
+				return err
+			}
+			self.c.Toast(self.c.Tr.FilePathCopiedToast)
+			return nil
+		},
+		DisabledReason: self.require(self.singleItemSelected())(),
+		Key:            'p',
+	}
+	copyFileDiffItem := &types.MenuItem{
+		Label: self.c.Tr.CopySelectedDiff,
+		OnPress: func() error {
+			return self.copyDiffToClipboard(node.GetPath(), self.c.Tr.FileDiffCopiedToast)
+		},
+		DisabledReason: self.require(self.singleItemSelected())(),
+		Key:            's',
+	}
+	copyAllDiff := &types.MenuItem{
+		Label: self.c.Tr.CopyAllFilesDiff,
+		OnPress: func() error {
+			return self.copyDiffToClipboard(".", self.c.Tr.AllFilesDiffCopiedToast)
+		},
+		DisabledReason: self.require(self.itemsSelected())(),
+		Key:            'a',
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.CopyToClipboardMenu,
+		Items: []*types.MenuItem{
+			copyNameItem,
+			copyPathItem,
+			copyFileDiffItem,
+			copyAllDiff,
+		},
+	})
 }
 
 func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error {

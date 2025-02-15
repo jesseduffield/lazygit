@@ -167,6 +167,7 @@ var tests = []*components.IntegrationTest{
 	demo.StageLines,
 	demo.Undo,
 	demo.WorktreeCreateFromBranches,
+	diff.CopyToClipboard,
 	diff.Diff,
 	diff.DiffAndApplyPatch,
 	diff.DiffCommits,
