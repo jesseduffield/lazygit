@@ -219,6 +219,14 @@ func (u *Updater) zipExtension() string {
 	return "tar.gz"
 }
 
+func (u *Updater) executableName() string {
+	if runtime.GOOS == "windows" {
+		return "lazygit.exe"
+	}
+
+	return "lazygit"
+}
+
 // example: https://github.com/jesseduffield/lazygit/releases/download/v0.1.73/lazygit_0.1.73_Darwin_x86_64.tar.gz
 func (u *Updater) getBinaryUrl(newVersion string) string {
 	url := fmt.Sprintf(
@@ -282,8 +290,10 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 		return err
 	}
 
+	executableName := u.executableName()
+
 	u.Log.Info("untarring tarball/unzipping zip file")
-	err = u.OSCommand.Cmd.New([]string{"tar", "-zxf", zipPath, "lazygit"}).Run()
+	err = u.OSCommand.Cmd.New([]string{"tar", "-zxf", zipPath, executableName}).Run()
 	if err != nil {
 		return err
 	}
@@ -291,7 +301,7 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 	// the `tar` terminal cannot store things in a new location without permission
 	// so it creates it in the current directory. As such our path is fairly simple.
 	// You won't see it because it's gitignored.
-	tempLazygitFilePath := "lazygit"
+	tempLazygitFilePath := executableName
 
 	u.Log.Infof("Path to temp binary is %s", tempLazygitFilePath)
 
