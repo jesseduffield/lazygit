@@ -140,6 +140,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.AccessCommitProperties,
 	custom_commands.BasicCommand,
 	custom_commands.CheckForConflicts,
+	custom_commands.CustomCommandsMenu,
 	custom_commands.FormPrompts,
 	custom_commands.GlobalContext,
 	custom_commands.MenuFromCommand,

@@ -197,12 +197,15 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig) (*UserConfig, e
 		}
 
 		existingCustomCommands := base.CustomCommands
+		existingCustomCommandsMenus := base.CustomCommandsMenus
 
 		if err := yaml.Unmarshal(content, base); err != nil {
 			return nil, fmt.Errorf("The config at `%s` couldn't be parsed, please inspect it before opening up an issue.\n%w", path, err)
 		}
 
 		base.CustomCommands = append(base.CustomCommands, existingCustomCommands...)
+		// TODO: is this good enough? Should we maybe merge the customCommandsMenus based on their key bindings?
+		base.CustomCommandsMenus = append(base.CustomCommandsMenus, existingCustomCommandsMenus...)
 
 		if err := base.Validate(); err != nil {
 			return nil, fmt.Errorf("The config at `%s` has a validation error.\n%w", path, err)

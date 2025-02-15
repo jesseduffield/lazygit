@@ -25,6 +25,9 @@ func (config *UserConfig) Validate() error {
 	if err := validateCustomCommands(config.CustomCommands); err != nil {
 		return err
 	}
+	if err := validateCustomCommandsMenus(config.CustomCommandsMenus); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -95,6 +98,21 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 	for _, customCommand := range customCommands {
 		if err := validateCustomCommandKey(customCommand.Key); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+func validateCustomCommandsMenus(customCommandsMenus []CustomCommandsMenu) error {
+	for _, customCommandsMenu := range customCommandsMenus {
+		if err := validateCustomCommandKey(customCommandsMenu.Key); err != nil {
+			return err
+		}
+
+		for _, customCommand := range customCommandsMenu.Commands {
+			if err := validateCustomCommandKey(customCommand.Key); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

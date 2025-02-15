@@ -25,6 +25,8 @@ type UserConfig struct {
 	DisableStartupPopups bool `yaml:"disableStartupPopups"`
 	// User-configured commands that can be invoked from within Lazygit
 	CustomCommands []CustomCommand `yaml:"customCommands" jsonschema:"uniqueItems=true"`
+	// Menus containing custom commands. Useful for grouping not-so-frequently used commands under a single key binding.
+	CustomCommandsMenus []CustomCommandsMenu `yaml:"customCommandsMenus" jsonschema:"uniqueItems=true"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-pull-request-urls
 	Services map[string]string `yaml:"services"`
 	// What to do when opening Lazygit outside of a git repo.
@@ -642,6 +644,15 @@ func (c *CustomCommand) GetDescription() string {
 	}
 
 	return c.Command
+}
+
+type CustomCommandsMenu struct {
+	// The key to open the menu. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md
+	Key string `yaml:"key"`
+	// Label for the custom commands menu when displayed in the global keybindings menu
+	Description string `yaml:"description"`
+	// The commands to show in this menu
+	Commands []CustomCommand `yaml:"commands"`
 }
 
 type CustomCommandPrompt struct {
