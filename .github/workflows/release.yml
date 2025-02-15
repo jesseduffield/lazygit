@@ -16,6 +16,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Get Latest Tag
+        run: |
+          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) || echo "v0.0.0")
+          echo "Latest tag: $latest_tag"
+          echo "latest_tag=$latest_tag" >> $GITHUB_ENV
+
       - name: Check for changes since last release
         run: |
           if [ -z "$(git diff --name-only ${{ env.latest_tag }})" ]; then
@@ -53,9 +59,8 @@ jobs:
 
       - name: Calculate next version
         run: |
-          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) || echo "v0.0.0")
-          echo "Latest tag: $latest_tag"
-          IFS='.' read -r major minor patch <<< "$latest_tag"
+          echo "Latest tag: ${{ env.latest_tag }}"
+          IFS='.' read -r major minor patch <<< "${{ env.latest_tag }}"
           new_minor=$((minor + 1))
           new_tag="$major.$new_minor.0"
           echo "New tag: $new_tag"
