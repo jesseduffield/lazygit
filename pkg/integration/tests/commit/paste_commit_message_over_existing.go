@@ -10,7 +10,7 @@ var PasteCommitMessageOverExisting = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().OS.CopyToClipboardCmd = "echo {{text}} > ../clipboard"
+		config.GetUserConfig().OS.CopyToClipboardCmd = "printf '%s' {{text}} > ../clipboard"
 		config.GetUserConfig().OS.ReadFromClipboardCmd = "cat ../clipboard"
 	},
 	SetupRepo: func(shell *Shell) {
