@@ -122,7 +122,24 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 	return bindings
 }
 
+func (self *BasicCommitsController) getCommitMessageBody(hash string) string {
+	commitMessageBody, err := self.c.Git().Commit.GetCommitMessage(hash)
+	if err != nil {
+		return ""
+	}
+	_, body := self.c.Helpers().Commits.SplitCommitMessageAndDescription(commitMessageBody)
+	return body
+}
+
 func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) error {
+	commitMessageBody := self.getCommitMessageBody(commit.Hash)
+	var commitMessageBodyDisabled *types.DisabledReason
+	if commitMessageBody == "" {
+		commitMessageBodyDisabled = &types.DisabledReason{
+			Text: self.c.Tr.CommitHasNoMessageBody,
+		}
+	}
+
 	items := []*types.MenuItem{
 		{
 			Label: self.c.Tr.CommitHash,
@@ -143,6 +160,14 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 				return self.copyCommitMessageToClipboard(commit)
 			},
 			Key: 'm',
+		},
+		{
+			Label:          self.c.Tr.CommitMessageBody,
+			DisabledReason: commitMessageBodyDisabled,
+			OnPress: func() error {
+				return self.copyCommitMessageBodyToClipboard(commitMessageBody)
+			},
+			Key: 'b',
 		},
 		{
 			Label: self.c.Tr.CommitURL,
@@ -256,6 +281,16 @@ func (self *BasicCommitsController) copyCommitMessageToClipboard(commit *models.
 	}
 
 	self.c.Toast(self.c.Tr.CommitMessageCopiedToClipboard)
+	return nil
+}
+
+func (self *BasicCommitsController) copyCommitMessageBodyToClipboard(commitMessageBody string) error {
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitMessageBodyToClipboard)
+	if err := self.c.OS().CopyToClipboard(commitMessageBody); err != nil {
+		return err
+	}
+
+	self.c.Toast(self.c.Tr.CommitMessageBodyCopiedToClipboard)
 	return nil
 }
 
