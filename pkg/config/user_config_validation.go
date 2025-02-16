@@ -2,8 +2,12 @@ package config
 
 import (
 	"fmt"
+	"log"
+	"reflect"
 	"slices"
 	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/constants"
 )
 
 func (config *UserConfig) Validate() error {
@@ -15,6 +19,9 @@ func (config *UserConfig) Validate() error {
 		[]string{"none", "onlyArrow", "arrowAndNumber"}); err != nil {
 		return err
 	}
+	if err := validateKeybindings(config.Keybinding); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -24,4 +31,42 @@ func validateEnum(name string, value string, allowedValues []string) error {
 	}
 	allowedValuesStr := strings.Join(allowedValues, ", ")
 	return fmt.Errorf("Unexpected value '%s' for '%s'. Allowed values: %s", value, name, allowedValuesStr)
+}
+
+func validateKeybindingsRecurse(path string, node any) error {
+	value := reflect.ValueOf(node)
+	if value.Kind() == reflect.Struct {
+		for _, field := range reflect.VisibleFields(reflect.TypeOf(node)) {
+			var newPath string
+			if len(path) == 0 {
+				newPath = field.Name
+			} else {
+				newPath = fmt.Sprintf("%s.%s", path, field.Name)
+			}
+			if err := validateKeybindingsRecurse(newPath,
+				value.FieldByName(field.Name).Interface()); err != nil {
+				return err
+			}
+		}
+	} else if value.Kind() == reflect.Slice {
+		for i := 0; i < value.Len(); i++ {
+			if err := validateKeybindingsRecurse(
+				fmt.Sprintf("%s[%d]", path, i), value.Index(i).Interface()); err != nil {
+				return err
+			}
+		}
+	} else if value.Kind() == reflect.String {
+		key := node.(string)
+		if !isValidKeybindingKey(key) {
+			return fmt.Errorf("Unrecognized key '%s' for keybinding '%s'. For permitted values see %s",
+				key, path, constants.Links.Docs.CustomKeybindings)
+		}
+	} else {
+		log.Fatalf("Unexpected type for property '%s': %s", path, value.Kind())
+	}
+	return nil
+}
+
+func validateKeybindings(keybindingConfig KeybindingConfig) error {
+	return validateKeybindingsRecurse("", keybindingConfig)
 }

@@ -29,6 +29,19 @@ func TestUserConfigValidate_enums(t *testing.T) {
 				{value: "invalid_value", valid: false},
 			},
 		},
+		{
+			name: "Keybindings",
+			setup: func(config *UserConfig, value string) {
+				config.Keybinding.Universal.Quit = value
+			},
+			testCases: []testCase{
+				{value: "", valid: true},
+				{value: "<disabled>", valid: true},
+				{value: "q", valid: true},
+				{value: "<c-c>", valid: true},
+				{value: "invalid_value", valid: false},
+			},
+		},
 	}
 
 	for _, s := range scenarios {

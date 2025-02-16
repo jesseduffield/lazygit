@@ -1,6 +1,9 @@
 package config
 
 import (
+	"strings"
+	"unicode/utf8"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/samber/lo"
 )
@@ -74,3 +77,17 @@ var LabelByKey = map[gocui.Key]string{
 }
 
 var KeyByLabel = lo.Invert(LabelByKey)
+
+func isValidKeybindingKey(key string) bool {
+	runeCount := utf8.RuneCountInString(key)
+	if key == "<disabled>" {
+		return true
+	}
+
+	if runeCount > 1 {
+		_, ok := KeyByLabel[strings.ToLower(key)]
+		return ok
+	}
+
+	return true
+}
