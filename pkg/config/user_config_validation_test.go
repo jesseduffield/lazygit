@@ -1,6 +1,7 @@
 package config
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -40,6 +41,19 @@ func TestUserConfigValidate_enums(t *testing.T) {
 				{value: "q", valid: true},
 				{value: "<c-c>", valid: true},
 				{value: "invalid_value", valid: false},
+			},
+		},
+		{
+			name: "JumpToBlock keybinding",
+			setup: func(config *UserConfig, value string) {
+				config.Keybinding.Universal.JumpToBlock = strings.Split(value, ",")
+			},
+			testCases: []testCase{
+				{value: "", valid: false},
+				{value: "1,2,3", valid: false},
+				{value: "1,2,3,4,5", valid: true},
+				{value: "1,2,3,4,invalid", valid: false},
+				{value: "1,2,3,4,5,6", valid: false},
 			},
 		},
 	}

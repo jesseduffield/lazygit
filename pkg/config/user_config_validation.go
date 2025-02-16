@@ -68,5 +68,14 @@ func validateKeybindingsRecurse(path string, node any) error {
 }
 
 func validateKeybindings(keybindingConfig KeybindingConfig) error {
-	return validateKeybindingsRecurse("", keybindingConfig)
+	if err := validateKeybindingsRecurse("", keybindingConfig); err != nil {
+		return err
+	}
+
+	if len(keybindingConfig.Universal.JumpToBlock) != 5 {
+		return fmt.Errorf("keybinding.universal.jumpToBlock must have 5 elements; found %d.",
+			len(keybindingConfig.Universal.JumpToBlock))
+	}
+
+	return nil
 }
