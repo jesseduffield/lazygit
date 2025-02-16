@@ -22,6 +22,9 @@ func (config *UserConfig) Validate() error {
 	if err := validateKeybindings(config.Keybinding); err != nil {
 		return err
 	}
+	if err := validateCustomCommands(config.CustomCommands); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -77,5 +80,22 @@ func validateKeybindings(keybindingConfig KeybindingConfig) error {
 			len(keybindingConfig.Universal.JumpToBlock))
 	}
 
+	return nil
+}
+
+func validateCustomCommandKey(key string) error {
+	if !isValidKeybindingKey(key) {
+		return fmt.Errorf("Unrecognized key '%s' for custom command. For permitted values see %s",
+			key, constants.Links.Docs.CustomKeybindings)
+	}
+	return nil
+}
+
+func validateCustomCommands(customCommands []CustomCommand) error {
+	for _, customCommand := range customCommands {
+		if err := validateCustomCommandKey(customCommand.Key); err != nil {
+			return err
+		}
+	}
 	return nil
 }

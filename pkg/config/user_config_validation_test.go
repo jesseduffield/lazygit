@@ -56,6 +56,24 @@ func TestUserConfigValidate_enums(t *testing.T) {
 				{value: "1,2,3,4,5,6", valid: false},
 			},
 		},
+		{
+			name: "Custom command keybinding",
+			setup: func(config *UserConfig, value string) {
+				config.CustomCommands = []CustomCommand{
+					{
+						Key:     value,
+						Command: "echo 'hello'",
+					},
+				}
+			},
+			testCases: []testCase{
+				{value: "", valid: true},
+				{value: "<disabled>", valid: true},
+				{value: "q", valid: true},
+				{value: "<c-c>", valid: true},
+				{value: "invalid_value", valid: false},
+			},
+		},
 	}
 
 	for _, s := range scenarios {
