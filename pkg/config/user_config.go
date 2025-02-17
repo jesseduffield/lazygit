@@ -114,7 +114,7 @@ type GuiConfig struct {
 	// If true, show the '5 of 20' footer at the bottom of list views
 	ShowListFooter bool `yaml:"showListFooter"`
 	// If true, display the files in the file views as a tree. If false, display the files as a flat list.
-	// This can be toggled from within Lazygit with the '~' key, but that will not change the default.
+	// This can be toggled from within Lazygit with the '`' key, but that will not change the default.
 	ShowFileTree bool `yaml:"showFileTree"`
 	// If true, show the number of lines changed per file in the Files view
 	ShowNumstatInFilesView bool `yaml:"showNumstatInFilesView"`
