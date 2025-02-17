@@ -302,7 +302,7 @@
         },
         "showFileTree": {
           "type": "boolean",
-          "description": "If true, display the files in the file views as a tree. If false, display the files as a flat list.\nThis can be toggled from within Lazygit with the '~' key, but that will not change the default.",
+          "description": "If true, display the files in the file views as a tree. If false, display the files as a flat list.\nThis can be toggled from within Lazygit with the '`' key, but that will not change the default.",
           "default": true
         },
         "showNumstatInFilesView": {
