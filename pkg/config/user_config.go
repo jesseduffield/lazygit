@@ -255,6 +255,8 @@ type GitConfig struct {
 	OverrideGpg bool `yaml:"overrideGpg"`
 	// If true, do not allow force pushes
 	DisableForcePushing bool `yaml:"disableForcePushing"`
+	// If true, do not allow pushes to main branches
+	DisableMainBranchPushing bool `yaml:"disableMainBranchPushing"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
 	CommitPrefix *CommitPrefixConfig `yaml:"commitPrefix"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
@@ -784,6 +786,7 @@ func GetDefaultConfig() *UserConfig {
 			BranchLogCmd:                 "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
 			AllBranchesLogCmd:            "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
 			DisableForcePushing:          false,
+			DisableMainBranchPushing:     false,
 			CommitPrefixes:               map[string]CommitPrefixConfig(nil),
 			BranchPrefix:                 "",
 			ParseEmoji:                   false,
