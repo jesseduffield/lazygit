@@ -61,6 +61,12 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 
 func (self *ConfirmationController) GetOnFocusLost() func(types.OnFocusLostOpts) {
 	return func(types.OnFocusLostOpts) {
+		if self.context().State.OnClose != nil {
+			err := self.context().State.OnClose()
+			if err != nil {
+				self.c.Log.Error(err)
+			}
+		}
 		self.c.Helpers().Confirmation.DeactivateConfirmationPrompt()
 	}
 }
