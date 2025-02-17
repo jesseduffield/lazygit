@@ -26,7 +26,7 @@ var PasteCommitMessage = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Commits.CopyCommitAttributeToClipboard)
 
 		t.ExpectPopup().Menu().Title(Equals("Copy to clipboard")).
-			Select(Contains("Commit message")).Confirm()
+			Select(Contains("Commit message (subject and body)")).Confirm()
 
 		t.ExpectToast(Equals("Commit message copied to clipboard"))
 
