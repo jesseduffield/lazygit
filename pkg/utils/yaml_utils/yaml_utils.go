@@ -99,6 +99,55 @@ func lookupKey(node *yaml.Node, key string) (*yaml.Node, *yaml.Node) {
 	return nil, nil
 }
 
+// Walks a yaml document to the specified path, and then applies the transformation to that node.
+//
+// The transform must return true if it made changes to the node.
+// If the requested path is not defined in the document, no changes are made to the document.
+//
+// If no changes are made, the original document is returned.
+// If changes are made, a newly marshalled document is returned. (This may result in different indentation for all nodes)
+func TransformNode(yamlBytes []byte, path []string, transform func(node *yaml.Node) (bool, error)) ([]byte, error) {
+	// Parse the YAML file.
+	var node yaml.Node
+	err := yaml.Unmarshal(yamlBytes, &node)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse YAML: %w", err)
+	}
+
+	// Empty document: nothing to do.
+	if len(node.Content) == 0 {
+		return yamlBytes, nil
+	}
+
+	body := node.Content[0]
+
+	if didTransform, err := transformNode(body, path, transform); err != nil || !didTransform {
+		return yamlBytes, err
+	}
+
+	// Convert the updated YAML node back to YAML bytes.
+	updatedYAMLBytes, err := yaml.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert YAML node to bytes: %w", err)
+	}
+
+	return updatedYAMLBytes, nil
+}
+
+// A recursive function to walk down the tree. See TransformNode for more details.
+func transformNode(node *yaml.Node, path []string, transform func(node *yaml.Node) (bool, error)) (bool, error) {
+	if len(path) == 0 {
+		return transform(node)
+	}
+
+	keyNode, valueNode := lookupKey(node, path[0])
+	if keyNode == nil {
+		return false, nil
+	}
+
+	return transformNode(valueNode, path[1:], transform)
+}
+
 // takes a yaml document in bytes, a path to a key, and a new name for the key.
 // Will rename the key to the new name if it exists, and do nothing otherwise.
 func RenameYamlKey(yamlBytes []byte, path []string, newKey string) ([]byte, error) {
@@ -106,7 +155,7 @@ func RenameYamlKey(yamlBytes []byte, path []string, newKey string) ([]byte, erro
 	var node yaml.Node
 	err := yaml.Unmarshal(yamlBytes, &node)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse YAML: %w", err)
+		return nil, fmt.Errorf("failed to parse YAML: %w for bytes %s", err, string(yamlBytes))
 	}
 
 	// Empty document: nothing to do.

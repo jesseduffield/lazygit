@@ -10,7 +10,7 @@ var CommitWithGlobalPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Git.CommitPrefix = &config.CommitPrefixConfig{Pattern: "^\\w+\\/(\\w+-\\w+).*", Replace: "[$1]: "}
+		cfg.GetUserConfig().Git.CommitPrefix = []config.CommitPrefixConfig{{Pattern: "^\\w+\\/(\\w+-\\w+).*", Replace: "[$1]: "}}
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.NewBranch("feature/TEST-001")

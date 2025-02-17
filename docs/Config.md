@@ -341,14 +341,6 @@ git:
   # If true, do not allow force pushes
   disableForcePushing: false
 
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
-  commitPrefix:
-    # pattern to match on. E.g. for 'feature/AB-123' to match on the AB-123 use "^\\w+\\/(\\w+-\\w+).*"
-    pattern: ""
-
-    # Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use "[$1] "
-    replace: ""
-
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix
   branchPrefix: ""
 
@@ -922,27 +914,40 @@ Where:
 ## Predefined commit message prefix
 
 In situations where certain naming pattern is used for branches and commits, pattern can be used to populate commit message with prefix that is parsed from the branch name.
+If you define multiple naming patterns, they will be attempted in order until one matches.
 
-Example:
+Example hitting first match:
 
 - Branch name: feature/AB-123
-- Commit message: [AB-123] Adding feature
+- Generated commit message prefix: [AB-123]
+
+Example hitting second match:
+
+- Branch name: CD-456_fix_problem
+- Generated commit message prefix: (CD-456)
 
 ```yaml
 git:
   commitPrefix:
-    pattern: "^\\w+\\/(\\w+-\\w+).*"
-    replace: '[$1] '
+    - pattern: "^\\w+\\/(\\w+-\\w+).*"
+      replace: '[$1] '
+    - pattern: "^([^_]+)_.*" # Take all text prior to the first underscore
+      replace: '($1) '
 ```
 
-If you want repository-specific prefixes, you can map them with `commitPrefixes`. If you have both `commitPrefixes` defined and an entry in `commitPrefixes` for the current repo, the `commitPrefixes` entry is given higher precedence. Repository folder names must be an exact match.
+If you want repository-specific prefixes, you can map them with `commitPrefixes`. If you have both entries in `commitPrefix` defined and an repository match in `commitPrefixes` for the current repo, the `commitPrefixes` entries will be attempted first. Repository folder names must be an exact match.
 
 ```yaml
 git:
   commitPrefixes:
     my_project: # This is repository folder name
-      pattern: "^\\w+\\/(\\w+-\\w+).*"
-      replace: '[$1] '
+      - pattern: "^\\w+\\/(\\w+-\\w+).*"
+        replace: '[$1] '
+  commitPrefix:
+      - pattern: "^(\\w+)-.*" # A more general match for any leading word
+        replace : '[$1] '
+      - pattern: ".*" # The final fallthrough regex that copies over the whole branch name
+        replace : '[$0] '
 ```
 
 > [!IMPORTANT]

@@ -1,6 +1,7 @@
 package yaml_utils
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -310,6 +311,83 @@ func TestWalk_inPlaceChanges(t *testing.T) {
 			result, err := Walk([]byte(test.in), test.callback)
 
 			assert.NoError(t, err)
+			assert.Equal(t, test.expectedOut, string(result))
+		})
+	}
+}
+
+func TestTransformNode(t *testing.T) {
+	transformIntValueToString := func(node *yaml.Node) (bool, error) {
+		if node.Kind == yaml.ScalarNode {
+			if node.ShortTag() == "!!int" {
+				node.Tag = "!!str"
+				return true, nil
+			} else if node.ShortTag() == "!!str" {
+				// We have already transformed it,
+				return false, nil
+			} else {
+				return false, fmt.Errorf("Node was of bad type")
+			}
+		} else {
+			return false, fmt.Errorf("Node was not a scalar")
+		}
+	}
+
+	tests := []struct {
+		name        string
+		in          string
+		path        []string
+		transform   func(node *yaml.Node) (bool, error)
+		expectedOut string
+	}{
+		{
+			name:        "Path not present",
+			in:          "foo: 1",
+			path:        []string{"bar"},
+			transform:   transformIntValueToString,
+			expectedOut: "foo: 1",
+		},
+		{
+			name: "Part of path present",
+			in: `
+foo:
+  bar: 2`,
+			path:      []string{"foo", "baz"},
+			transform: transformIntValueToString,
+			expectedOut: `
+foo:
+  bar: 2`,
+		},
+		{
+			name: "Successfully Transforms to string",
+			in: `
+foo:
+  bar: 2`,
+			path:      []string{"foo", "bar"},
+			transform: transformIntValueToString,
+			expectedOut: `foo:
+    bar: "2"
+`, // Note the indentiation change and newlines because of how it re-marshalls
+		},
+		{
+			name: "Does nothing when already transformed",
+			in: `
+foo:
+  bar: "2"`,
+			path:      []string{"foo", "bar"},
+			transform: transformIntValueToString,
+			expectedOut: `
+foo:
+  bar: "2"`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := TransformNode([]byte(test.in), test.path, test.transform)
+			if err != nil {
+				t.Fatal(err)
+			}
 			assert.Equal(t, test.expectedOut, string(result))
 		})
 	}
