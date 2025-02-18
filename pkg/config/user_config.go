@@ -78,6 +78,12 @@ type GuiConfig struct {
 	// Fraction of the total screen width to use for the left side section. You may want to pick a small number (e.g. 0.2) if you're using a narrow screen, so that you can see more of the main section.
 	// Number from 0 to 1.0.
 	SidePanelWidth float64 `yaml:"sidePanelWidth" jsonschema:"maximum=1,minimum=0"`
+	// Fraction of the total screen width to use for the left side section when in half screen mode. You may want to pick a small number (e.g. 0.2) if you're using a narrow screen, so that you can see more of the main section.
+	// Number from 0 to 1.0.
+	HalfSidePanelWidth float64 `yaml:"halfSidePanelWidth" jsonschema:"maximum=1,minimum=0"`
+	// Fraction of the total screen width to use for the left side section when in half screen mode with the enlargedSideViewLocation set to top. You may want to pick a small number (e.g. 0.2) if you're using a narrow screen, so that you can see more of the main section.
+	// Number from 0 to 1.0.
+	TallSidePanelWidth float64 `yaml:"tallSidePanelWidth" jsonschema:"maximum=1,minimum=0"`
 	// If true, increase the height of the focused side window; creating an accordion effect.
 	ExpandFocusedSidePanel bool `yaml:"expandFocusedSidePanel"`
 	// The weight of the expanded side panel, relative to the other panels. 2 means
@@ -697,6 +703,8 @@ func GetDefaultConfig() *UserConfig {
 			SkipDiscardChangeWarning: false,
 			SkipStashWarning:         false,
 			SidePanelWidth:           0.3333,
+			HalfSidePanelWidth:       0.5,
+			TallSidePanelWidth:       0.3333,
 			ExpandFocusedSidePanel:   false,
 			ExpandedSidePanelWeight:  2,
 			MainPanelSplitMode:       "flexible",

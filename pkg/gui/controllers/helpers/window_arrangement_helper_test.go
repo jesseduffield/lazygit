@@ -267,6 +267,104 @@ func TestGetWindowDimensions(t *testing.T) {
 			`,
 		},
 		{
+			name: "side panel width ratio",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.Height = 20
+				args.UserConfig.Gui.SidePanelWidth = 0.2
+			},
+			expected: `
+			<status───────>╭main──────────────────────────────────────────────────────╮
+			╭files────────╮│                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			╰─────────────╯│                                                          │
+			<branches─────>│                                                          │
+			<commits──────>│                                                          │
+			<stash────────>╰──────────────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+
+		{
+			name: "half screen mode, enlargedSideViewLocation left, side panel width ratio",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.Height = 20 // smaller height because we don't more here
+				args.ScreenMode = types.SCREEN_HALF
+				args.UserConfig.Gui.EnlargedSideViewLocation = "left"
+				args.UserConfig.Gui.HalfSidePanelWidth = 0.2
+			},
+			expected: `
+			╭status───────╮╭main──────────────────────────────────────────────────────╮
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			╰─────────────╯╰──────────────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "half screen mode, enlargedSideViewLocation top, side panel width ratio",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.Height = 20 // smaller height because we don't more here
+				args.ScreenMode = types.SCREEN_HALF
+				args.UserConfig.Gui.EnlargedSideViewLocation = "top"
+				args.UserConfig.Gui.TallSidePanelWidth = 0.2
+			},
+			expected: `
+			╭status───────────────────────────────────────────────────────────────────╮
+			│                                                                         │
+			│                                                                         │
+			╰─────────────────────────────────────────────────────────────────────────╯
+			╭main─────────────────────────────────────────────────────────────────────╮
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			╰─────────────────────────────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
 			name: "search mode",
 			mutateArgs: func(args *WindowArrangementArgs) {
 				args.InSearchPrompt = true
