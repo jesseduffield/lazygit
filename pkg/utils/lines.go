@@ -109,7 +109,7 @@ func ScanLinesAndTruncateWhenLongerThanBuffer(maxBufferSize int) func(data []byt
 // - the line indices of the original lines, indexed by the wrapped line indices
 // If wrap is false, the text is returned as is.
 // This code needs to behave the same as `gocui.lineWrap` does.
-func WrapViewLinesToWidth(wrap bool, editable bool, text string, width int) ([]string, []int, []int) {
+func WrapViewLinesToWidth(wrap bool, editable bool, text string, width int, tabWidth int) ([]string, []int, []int) {
 	if !editable {
 		text = strings.TrimSuffix(text, "\n")
 	}
@@ -126,14 +126,18 @@ func WrapViewLinesToWidth(wrap bool, editable bool, text string, width int) ([]s
 	wrappedLineIndices := make([]int, 0, len(lines))
 	originalLineIndices := make([]int, 0, len(lines))
 
+	if tabWidth < 1 {
+		tabWidth = 4
+	}
+
 	for originalLineIdx, line := range lines {
 		wrappedLineIndices = append(wrappedLineIndices, len(wrappedLines))
 
 		// convert tabs to spaces
 		for i := 0; i < len(line); i++ {
 			if line[i] == '\t' {
-				numSpaces := 4 - (i % 4)
-				line = line[:i] + "    "[:numSpaces] + line[i+1:]
+				numSpaces := tabWidth - (i % tabWidth)
+				line = line[:i] + strings.Repeat(" ", numSpaces) + line[i+1:]
 				i += numSpaces - 1
 			}
 		}

@@ -56,8 +56,8 @@ func (self *ConfirmationHelper) DeactivateConfirmationPrompt() {
 	self.clearConfirmationViewKeyBindings()
 }
 
-func getMessageHeight(wrap bool, editable bool, message string, width int) int {
-	wrappedLines, _, _ := utils.WrapViewLinesToWidth(wrap, editable, message, width)
+func getMessageHeight(wrap bool, editable bool, message string, width int, tabWidth int) int {
+	wrappedLines, _, _ := utils.WrapViewLinesToWidth(wrap, editable, message, width, tabWidth)
 	return len(wrappedLines)
 }
 
@@ -265,7 +265,7 @@ func (self *ConfirmationHelper) resizeMenu(parentPopupContext types.Context) {
 	if selectedItem != nil {
 		tooltip = self.TooltipForMenuItem(selectedItem)
 	}
-	tooltipHeight := getMessageHeight(true, false, tooltip, contentWidth) + 2 // plus 2 for the frame
+	tooltipHeight := getMessageHeight(true, false, tooltip, contentWidth, self.c.Views().Menu.TabWidth) + 2 // plus 2 for the frame
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().Tooltip.Name(), x0, tooltipTop, x1, tooltipTop+tooltipHeight-1, 0)
 }
 
@@ -276,7 +276,7 @@ func (self *ConfirmationHelper) layoutMenuPrompt(contentWidth int) int {
 	var promptLines []string
 	prompt := self.c.Contexts().Menu.GetPrompt()
 	if len(prompt) > 0 {
-		promptLines, _, _ = utils.WrapViewLinesToWidth(true, false, prompt, contentWidth)
+		promptLines, _, _ = utils.WrapViewLinesToWidth(true, false, prompt, contentWidth, self.c.Views().Menu.TabWidth)
 		promptLines = append(promptLines, "")
 	}
 	self.c.Contexts().Menu.SetPromptLines(promptLines)
@@ -305,17 +305,18 @@ func (self *ConfirmationHelper) resizeConfirmationPanel(parentPopupContext types
 	}
 	panelWidth := self.getPopupPanelWidth()
 	contentWidth := panelWidth - 2 // minus 2 for the frame
-	prompt := self.c.Views().Confirmation.Buffer()
+	confirmationView := self.c.Views().Confirmation
+	prompt := confirmationView.Buffer()
 	wrap := true
-	editable := self.c.Views().Confirmation.Editable
+	editable := confirmationView.Editable
 	if editable {
-		prompt = self.c.Views().Confirmation.TextArea.GetContent()
+		prompt = confirmationView.TextArea.GetContent()
 		wrap = false
 	}
-	panelHeight := getMessageHeight(wrap, editable, prompt, contentWidth) + suggestionsViewHeight
+	panelHeight := getMessageHeight(wrap, editable, prompt, contentWidth, confirmationView.TabWidth) + suggestionsViewHeight
 	x0, y0, x1, y1 := self.getPopupPanelDimensionsAux(panelWidth, panelHeight, parentPopupContext)
 	confirmationViewBottom := y1 - suggestionsViewHeight
-	_, _ = self.c.GocuiGui().SetView(self.c.Views().Confirmation.Name(), x0, y0, x1, confirmationViewBottom, 0)
+	_, _ = self.c.GocuiGui().SetView(confirmationView.Name(), x0, y0, x1, confirmationViewBottom, 0)
 
 	suggestionsViewTop := confirmationViewBottom + 1
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().Suggestions.Name(), x0, suggestionsViewTop, x1, suggestionsViewTop+suggestionsViewHeight, 0)
@@ -325,7 +326,7 @@ func (self *ConfirmationHelper) ResizeCommitMessagePanels(parentPopupContext typ
 	panelWidth := self.getPopupPanelWidth()
 	content := self.c.Views().CommitDescription.TextArea.GetContent()
 	summaryViewHeight := 3
-	panelHeight := getMessageHeight(false, true, content, panelWidth)
+	panelHeight := getMessageHeight(false, true, content, panelWidth, self.c.Views().CommitDescription.TabWidth)
 	minHeight := 7
 	if panelHeight < minHeight {
 		panelHeight = minHeight
