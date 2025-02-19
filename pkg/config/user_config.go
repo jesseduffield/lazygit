@@ -64,6 +64,9 @@ type GuiConfig struct {
 	ScrollOffMargin int `yaml:"scrollOffMargin"`
 	// One of: 'margin' (default) | 'jump'
 	ScrollOffBehavior string `yaml:"scrollOffBehavior"`
+	// The number of spaces per tab; used for everything that's shown in the main view, but probably mostly relevant for diffs.
+	// Note that when using a pager, the pager has its own tab width setting, so you need to pass it separately in the pager command.
+	TabWidth int `yaml:"tabWidth" jsonschema:"minimum=1"`
 	// If true, capture mouse events.
 	// When mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.
 	MouseEvents bool `yaml:"mouseEvents"`
@@ -693,6 +696,7 @@ func GetDefaultConfig() *UserConfig {
 			ScrollPastBottom:         true,
 			ScrollOffMargin:          2,
 			ScrollOffBehavior:        "margin",
+			TabWidth:                 4,
 			MouseEvents:              true,
 			SkipDiscardChangeWarning: false,
 			SkipStashWarning:         false,

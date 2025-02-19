@@ -46,6 +46,12 @@
           "description": "One of: 'margin' (default) | 'jump'",
           "default": "margin"
         },
+        "tabWidth": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The number of spaces per tab; used for everything that's shown in the main view, but probably mostly relevant for diffs.\nNote that when using a pager, the pager has its own tab width setting, so you need to pass it separately in the pager command.",
+          "default": 4
+        },
         "mouseEvents": {
           "type": "boolean",
           "description": "If true, capture mouse events.\nWhen mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.",
