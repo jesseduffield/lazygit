@@ -12,8 +12,7 @@ var CopyAuthorToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		// Include delimiters around the text so that we can assert on the entire content
-		config.GetUserConfig().OS.CopyToClipboardCmd = "echo /{{text}}/ > clipboard"
+		config.GetUserConfig().OS.CopyToClipboardCmd = "printf '%s' {{text}} > clipboard"
 	},
 
 	SetupRepo: func(shell *Shell) {
@@ -36,13 +35,6 @@ var CopyAuthorToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectToast(Equals("Commit author copied to clipboard"))
 
-		t.Views().Files().
-			Focus().
-			Press(keys.Files.RefreshFiles).
-			Lines(
-				Contains("clipboard").IsSelected(),
-			)
-
-		t.Views().Main().Content(Contains("/John Doe <john@doe.com>/"))
+		t.FileSystem().FileContent("clipboard", Equals("John Doe <john@doe.com>"))
 	},
 })

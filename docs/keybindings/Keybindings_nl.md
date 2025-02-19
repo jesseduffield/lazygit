@@ -129,6 +129,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Kopieer de bestandsnaam naar het klembord |  |
+| `` y `` | Copy to clipboard |  |
 | `` c `` | Uitchecken | Bestand uitchecken |
 | `` d `` | Remove | Uitsluit deze commit zijn veranderingen aan dit bestand |
 | `` o `` | Open bestand | Open file in default application. |

@@ -238,6 +238,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Kopiuj ścieżkę do schowka |  |
+| `` y `` | Kopiuj do schowka |  |
 | `` c `` | Przełącz | Przełącz plik. Zastępuje plik w twoim drzewie roboczym wersją z wybranego commita. |
 | `` d `` | Usuń | Odrzuć zmiany w tym pliku z tego commita. Uruchamia interaktywny rebase w tle, więc możesz otrzymać konflikt scalania, jeśli późniejszy commit również zmienia ten plik. |
 | `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
