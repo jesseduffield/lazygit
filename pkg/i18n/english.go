@@ -1019,6 +1019,8 @@ Thanks for using lazygit! Seriously you rock. Three things to share with you:
     You can also sponsor me and tell me what to work on by clicking the donate
     button at the bottom right.
     Or even just star the repo to share the love!
+
+Press {{confirmationKey}} to get started.
 `
 
 const englishDeprecatedEditConfigWarning = `
