@@ -28,9 +28,11 @@ var SetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 					Select(Contains(" Set upstream of selected branch")). // using leading space to disambiguate from the 'reset' option
 					Confirm()
 
+				// Origin is preselected on the users behalf because there is only one remote
+
 				t.ExpectPopup().Prompt().
-					Title(Equals("Enter upstream as '<remote> <branchname>'")).
-					SuggestionLines(Equals("origin master")).
+					Title(Equals("Enter upstream branch on remote 'origin'")).
+					SuggestionLines(Equals("master")).
 					ConfirmFirstSuggestion()
 			}).
 			Lines(
