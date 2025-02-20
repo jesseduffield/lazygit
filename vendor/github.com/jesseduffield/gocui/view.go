@@ -195,6 +195,9 @@ type View struct {
 	// if true, the view will underline hyperlinks only when the cursor is on
 	// them; otherwise, they will always be underlined
 	UnderlineHyperLinksOnlyOnHover bool
+
+	// number of spaces per \t character, defaults to 4
+	TabWidth int
 }
 
 type pos struct {
@@ -424,6 +427,7 @@ func NewView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 		searcher:          &searcher{},
 		TextArea:          &TextArea{},
 		rangeSelectStartY: -1,
+		TabWidth:          4,
 	}
 
 	v.FgColor, v.BgColor = ColorDefault, ColorDefault
@@ -923,9 +927,12 @@ func (v *View) parseInput(ch rune, x int, _ int) (bool, []cell) {
 			return truncateLine, nil
 		} else if ch == '\t' {
 			// fill tab-sized space
-			const tabStop = 4
+			tabWidth := v.TabWidth
+			if tabWidth < 1 {
+				tabWidth = 4
+			}
 			ch = ' '
-			repeatCount = tabStop - (x % tabStop)
+			repeatCount = tabWidth - (x % tabWidth)
 		}
 		c := cell{
 			fgColor:   v.ei.curFgColor,
