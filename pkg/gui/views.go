@@ -203,6 +203,7 @@ func (gui *Gui) configureViewProperties() {
 
 	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.MergeConflicts} {
 		view.CanScrollPastBottom = gui.c.UserConfig().Gui.ScrollPastBottom
+		view.TabWidth = gui.c.UserConfig().Gui.TabWidth
 	}
 
 	gui.Views.CommitDescription.FgColor = theme.GocuiDefaultTextColor
