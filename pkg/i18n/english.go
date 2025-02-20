@@ -843,6 +843,8 @@ type TranslationSet struct {
 	RangeSelectNotSupportedForSubmodules     string
 	OldCherryPickKeyWarning                  string
 	CommandDoesNotSupportOpeningInEditor     string
+	CustomCommands                           string
+	NoApplicableCommandsInThisContext        string
 	Actions                                  Actions
 	Bisect                                   Bisect
 	Log                                      Log
@@ -1879,6 +1881,8 @@ func EnglishTranslationSet() *TranslationSet {
 		RangeSelectNotSupportedForSubmodules:     "Range select not supported for submodules",
 		OldCherryPickKeyWarning:                  "The 'c' key is no longer the default key for copying commits to cherry pick. Please use `{{.copy}}` instead (and `{{.paste}}` to paste). The reason for this change is that the 'v' key for selecting a range of lines when staging is now also used for selecting a range of lines in any list view, meaning that we needed to find a new key for pasting commits, and if we're going to now use `{{.paste}}` for pasting commits, we may as well use `{{.copy}}` for copying them. If you want to configure the keybindings to get the old behaviour, set the following in your config:\n\nkeybinding:\n  universal:\n    toggleRangeSelect: <something other than v>\n  commits:\n    cherryPickCopy: 'c'\n    pasteCommits: 'v'",
 		CommandDoesNotSupportOpeningInEditor:     "This command doesn't support switching to the editor",
+		CustomCommands:                           "Custom commands",
+		NoApplicableCommandsInThisContext:        "(No applicable commands in this context)",
 
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
