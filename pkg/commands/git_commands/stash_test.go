@@ -113,7 +113,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "--color=always", "--unified=3", "--find-renames=50%", "stash@{5}"},
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--color=always", "--unified=3", "--find-renames=50%", "stash@{5}"},
 		},
 		{
 			testName:            "Show diff with custom context size",
@@ -121,7 +121,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         77,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "--color=always", "--unified=77", "--find-renames=50%", "stash@{5}"},
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--color=always", "--unified=77", "--find-renames=50%", "stash@{5}"},
 		},
 		{
 			testName:            "Show diff with custom similarity threshold",
@@ -129,7 +129,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 33,
 			ignoreWhitespace:    false,
-			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "--color=always", "--unified=3", "--find-renames=33%", "stash@{5}"},
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--color=always", "--unified=3", "--find-renames=33%", "stash@{5}"},
 		},
 		{
 			testName:            "Default case",
@@ -137,7 +137,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    true,
-			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "--color=always", "--unified=3", "--ignore-all-space", "--find-renames=50%", "stash@{5}"},
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--color=always", "--unified=3", "--ignore-all-space", "--find-renames=50%", "stash@{5}"},
 		},
 	}
 
