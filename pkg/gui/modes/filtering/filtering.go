@@ -4,6 +4,8 @@ type Filtering struct {
 	path               string // the filename that gets passed to git log
 	author             string // the author that gets passed to git log
 	selectedCommitHash string // the commit that was selected before we entered filtering mode
+	since              string
+	until              string
 }
 
 func New(path string, author string) Filtering {
@@ -41,4 +43,20 @@ func (m *Filtering) SetSelectedCommitHash(hash string) {
 
 func (m *Filtering) GetSelectedCommitHash() string {
 	return m.selectedCommitHash
+}
+
+func (m *Filtering) SetSince(since string) {
+	m.since = since
+}
+
+func (m *Filtering) SetUntil(until string) {
+	m.until = until
+}
+
+func (m *Filtering) GetSince() string {
+	return m.since
+}
+
+func (m *Filtering) GetUntil() string {
+	return m.until
 }

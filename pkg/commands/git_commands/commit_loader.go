@@ -67,6 +67,8 @@ type GetCommitsOptions struct {
 	// If non-empty, show divergence from this ref (left-right log)
 	RefToShowDivergenceFrom string
 	MainBranches            *MainBranches
+	Since                   string
+	Until                   string
 }
 
 // GetCommits obtains the commits of the current branch
@@ -517,6 +519,8 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 		ArgIf(opts.FilterPath != "", "--follow").
 		Arg("--no-show-signature").
 		ArgIf(opts.RefToShowDivergenceFrom != "", "--left-right").
+		ArgIf(opts.Since != "", "--since="+opts.Since). // Date filtering (start date)
+		ArgIf(opts.Until != "", "--until="+opts.Until). // Date filtering (end date)
 		Arg("--").
 		ArgIf(opts.FilterPath != "", opts.FilterPath).
 		ToArgv()
