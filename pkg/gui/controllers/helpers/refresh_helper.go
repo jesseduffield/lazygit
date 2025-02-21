@@ -490,15 +490,17 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 		self.refreshView(self.c.Contexts().Worktrees)
 	}
 
-	self.refreshView(self.c.Contexts().Branches)
-
 	if !keepBranchSelectionIndex && prevSelectedBranch != nil {
+		self.searchHelper.ReApplyFilter(self.c.Contexts().Branches)
+
 		_, idx, found := lo.FindIndexOf(self.c.Contexts().Branches.GetItems(),
 			func(b *models.Branch) bool { return b.Name == prevSelectedBranch.Name })
 		if found {
 			self.c.Contexts().Branches.SetSelectedLineIdx(idx)
 		}
 	}
+
+	self.refreshView(self.c.Contexts().Branches)
 
 	// Need to re-render the commits view because the visualization of local
 	// branch heads might have changed
