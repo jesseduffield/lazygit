@@ -48,6 +48,7 @@ var (
 		"magenta": {FgMagenta, BgMagenta},
 		"cyan":    {FgCyan, BgCyan},
 		"white":   {FgWhite, BgWhite},
+		"lightwhite": {FgLightWhite, BgWhite},
 	}
 )
 

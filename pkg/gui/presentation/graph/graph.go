@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
@@ -30,7 +31,7 @@ type Pipe struct {
 	style    style.TextStyle
 }
 
-var highlightStyle = style.FgLightWhite.SetBold()
+var highlightStyle = theme.CommitTreeGraphHighlightColor.SetBold()
 
 func ContainsCommitHash(pipes []*Pipe, hash string) bool {
 	for _, pipe := range pipes {

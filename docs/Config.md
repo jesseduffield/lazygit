@@ -161,6 +161,10 @@ gui:
     defaultFgColor:
       - default
 
+    # Color for commit tree graph
+    commitTreeGraphHighlightColor:
+      - lightwhite
+
   # Config relating to the commit length indicator
   commitLength:
     # If true, show an indicator of commit message length
