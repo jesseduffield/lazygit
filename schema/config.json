@@ -1070,6 +1070,216 @@
       "uniqueItems": true,
       "description": "User-configured commands that can be invoked from within Lazygit"
     },
+    "customCommandsMenus": {
+      "items": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The key to open the menu. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md"
+          },
+          "description": {
+            "type": "string",
+            "description": "Label for the custom commands menu when displayed in the global keybindings menu"
+          },
+          "commands": {
+            "items": {
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "description": "The key to trigger the command. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md"
+                },
+                "context": {
+                  "type": "string",
+                  "description": "The context in which to listen for the key. Valid values are: status, files, worktrees, localBranches, remotes, remoteBranches, tags, commits, reflogCommits, subCommits, commitFiles, stash, and global. Multiple contexts separated by comma are allowed; most useful for \"commits, subCommits\" or \"files, commitFiles\".",
+                  "examples": [
+                    "status",
+                    "files",
+                    "worktrees",
+                    "localBranches",
+                    "remotes",
+                    "remoteBranches",
+                    "tags",
+                    "commits",
+                    "reflogCommits",
+                    "subCommits",
+                    "commitFiles",
+                    "stash",
+                    "global"
+                  ]
+                },
+                "command": {
+                  "type": "string",
+                  "description": "The command to run (using Go template syntax for placeholder values)",
+                  "examples": [
+                    "git fetch {{.Form.Remote}} {{.Form.Branch}} \u0026\u0026 git checkout FETCH_HEAD"
+                  ]
+                },
+                "subprocess": {
+                  "type": "boolean",
+                  "description": "If true, run the command in a subprocess (e.g. if the command requires user input)"
+                },
+                "prompts": {
+                  "items": {
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "description": "One of: 'input' | 'menu' | 'confirm' | 'menuFromCommand'"
+                      },
+                      "key": {
+                        "type": "string",
+                        "description": "Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command"
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The title to display in the popup panel"
+                      },
+                      "initialValue": {
+                        "type": "string",
+                        "description": "The initial value to appear in the text box.\nOnly for input prompts."
+                      },
+                      "suggestions": {
+                        "properties": {
+                          "preset": {
+                            "type": "string",
+                            "enum": [
+                              "authors",
+                              "branches",
+                              "files",
+                              "refs",
+                              "remotes",
+                              "remoteBranches",
+                              "tags"
+                            ],
+                            "description": "Uses built-in logic to obtain the suggestions. One of 'authors' | 'branches' | 'files' | 'refs' | 'remotes' | 'remoteBranches' | 'tags'"
+                          },
+                          "command": {
+                            "type": "string",
+                            "description": "Command to run such that each line in the output becomes a suggestion. Mutually exclusive with 'preset' field.",
+                            "examples": [
+                              "git fetch {{.Form.Remote}} {{.Form.Branch}} \u0026\u0026 git checkout FETCH_HEAD"
+                            ]
+                          }
+                        },
+                        "additionalProperties": false,
+                        "type": "object",
+                        "description": "Shows suggestions as the input is entered\nOnly for input prompts."
+                      },
+                      "body": {
+                        "type": "string",
+                        "description": "The message of the confirmation prompt.\nOnly for confirm prompts.",
+                        "examples": [
+                          "Are you sure you want to push to the remote?"
+                        ]
+                      },
+                      "options": {
+                        "items": {
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "The first part of the label"
+                            },
+                            "description": {
+                              "type": "string",
+                              "description": "The second part of the label"
+                            },
+                            "value": {
+                              "type": "string",
+                              "minLength": 1,
+                              "description": "The value that will be used in the command",
+                              "examples": [
+                                "feature"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false,
+                          "type": "object"
+                        },
+                        "type": "array",
+                        "description": "Menu options.\nOnly for menu prompts."
+                      },
+                      "command": {
+                        "type": "string",
+                        "description": "The command to run to generate menu options\nOnly for menuFromCommand prompts.",
+                        "examples": [
+                          "git fetch {{.Form.Remote}} {{.Form.Branch}} \u0026\u0026 git checkout FETCH_HEAD"
+                        ]
+                      },
+                      "filter": {
+                        "type": "string",
+                        "description": "The regexp to run specifying groups which are going to be kept from the command's output.\nOnly for menuFromCommand prompts.",
+                        "examples": [
+                          ".*{{.SelectedRemote.Name }}/(?P\u003cbranch\u003e.*)"
+                        ]
+                      },
+                      "valueFormat": {
+                        "type": "string",
+                        "description": "How to format matched groups from the filter to construct a menu item's value.\nOnly for menuFromCommand prompts.",
+                        "examples": [
+                          "{{ .branch }}"
+                        ]
+                      },
+                      "labelFormat": {
+                        "type": "string",
+                        "description": "Like valueFormat but for the labels. If `labelFormat` is not specified, `valueFormat` is shown instead.\nOnly for menuFromCommand prompts.",
+                        "examples": [
+                          "{{ .branch | green }}"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false,
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "description": "A list of prompts that will request user input before running the final command"
+                },
+                "loadingText": {
+                  "type": "string",
+                  "description": "Text to display while waiting for command to finish",
+                  "examples": [
+                    "Loading..."
+                  ]
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Label for the custom command when displayed in the keybindings menu"
+                },
+                "stream": {
+                  "type": "boolean",
+                  "description": "If true, stream the command's output to the Command Log panel"
+                },
+                "showOutput": {
+                  "type": "boolean",
+                  "description": "If true, show the command's output in a popup within Lazygit"
+                },
+                "outputTitle": {
+                  "type": "string",
+                  "description": "The title to display in the popup panel if showOutput is true. If left unset, the command will be used as the title."
+                },
+                "after": {
+                  "properties": {
+                    "checkForConflicts": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "type": "object",
+                  "description": "Actions to take after the command has completed"
+                }
+              },
+              "additionalProperties": false,
+              "type": "object"
+            },
+            "type": "array",
+            "description": "The commands to show in this menu"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object"
+      },
+      "type": "array",
+      "uniqueItems": true,
+      "description": "Menus containing custom commands. Useful for grouping not-so-frequently used commands under a single key binding."
+    },
     "services": {
       "additionalProperties": {
         "type": "string"
