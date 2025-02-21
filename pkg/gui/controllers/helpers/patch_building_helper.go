@@ -9,10 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-type IPatchBuildingHelper interface {
-	ValidateNormalWorkingTreeState() (bool, error)
-}
-
 type PatchBuildingHelper struct {
 	c *HelperCommon
 }
@@ -58,8 +54,10 @@ func (self *PatchBuildingHelper) Reset() error {
 
 func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpts) {
 	selectedLineIdx := -1
+	selectedRealLineIdx := -1
 	if opts.ClickedWindowName == "main" {
 		selectedLineIdx = opts.ClickedViewLineIdx
+		selectedRealLineIdx = opts.ClickedViewRealLineIdx
 	}
 
 	if !self.c.Git().Patch.PatchBuilder.Active() {
@@ -91,7 +89,7 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 
 	oldState := context.GetState()
 
-	state := patch_exploring.NewState(diff, selectedLineIdx, context.GetView(), oldState)
+	state := patch_exploring.NewState(diff, selectedLineIdx, selectedRealLineIdx, context.GetView(), oldState)
 	context.SetState(state)
 	if state == nil {
 		self.Escape()

@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -490,7 +491,7 @@ func (self *FilesController) getSelectedFile() *models.File {
 }
 
 func (self *FilesController) enter() error {
-	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
+	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1, ClickedViewRealLineIdx: -1})
 }
 
 func (self *FilesController) collapseAll() error {
@@ -1102,12 +1103,42 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 	return nil
 }
 
+func (self *FilesController) onClickMainOrSecondary(windowName string, opts gocui.ViewMouseBindingOpts) error {
+	clickedFile, line, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(windowName, opts.Y)
+	if !ok {
+		line = -1
+	}
+
+	node := self.context().GetSelected()
+	if node == nil {
+		return nil
+	}
+
+	if !node.IsFile() && ok {
+		relativePath, err := filepath.Rel(self.c.Git().RepoPaths.RepoPath(), clickedFile)
+		if err != nil {
+			return err
+		}
+		self.context().FileTreeViewModel.ExpandToPath(relativePath)
+		self.c.PostRefreshUpdate(self.context())
+
+		idx, ok := self.context().FileTreeViewModel.GetIndexForPath(relativePath)
+		if ok {
+			self.context().SetSelectedLineIdx(idx)
+			self.context().GetViewTrait().FocusPoint(
+				self.context().ModelIndexToViewIndex(idx))
+		}
+	}
+
+	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: windowName, ClickedViewLineIdx: line, ClickedViewRealLineIdx: line})
+}
+
 func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
+	return self.onClickMainOrSecondary("main", opts)
 }
 
 func (self *FilesController) onClickSecondary(opts gocui.ViewMouseBindingOpts) error {
-	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "secondary", ClickedViewLineIdx: opts.Y})
+	return self.onClickMainOrSecondary("secondary", opts)
 }
 
 func (self *FilesController) fetch() error {
