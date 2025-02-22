@@ -169,6 +169,22 @@ func (self *Node[T]) EveryFile(predicate func(*T) bool) bool {
 	return true
 }
 
+func (self *Node[T]) FindFirstFileBy(predicate func(*T) bool) *T {
+	if self.IsFile() {
+		if predicate(self.File) {
+			return self.File
+		}
+	} else {
+		for _, child := range self.Children {
+			if file := child.FindFirstFileBy(predicate); file != nil {
+				return file
+			}
+		}
+	}
+
+	return nil
+}
+
 func (self *Node[T]) Flatten(collapsedPaths *CollapsedPaths) []*Node[T] {
 	result := []*Node[T]{self}
 
