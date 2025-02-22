@@ -411,6 +411,11 @@ os:
   # window is closed.
   editAtLineAndWait: ""
 
+  # Whether lazygit suspends until an edit process returns
+  # Pointer to bool so that we can distinguish unset (nil) from false.
+  # We're naming this `editInTerminal` for backwards compatibility
+  editInTerminal: false
+
   # For opening a directory in an editor
   openDirInEditor: ""
 
