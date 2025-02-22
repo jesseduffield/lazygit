@@ -1,18 +1,32 @@
-name: Automated Release
+name: Release
 
 on:
   schedule:
     # Runs at 2:00 AM UTC on the first Saturday of every month
     - cron: '0 2 1-7 * 6'
-  workflow_dispatch: # Allow manual triggering of the workflow
+  # Allow manual triggering of the workflow
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        type: choice
+        required: true
+        default: 'patch'
+        options:
+          - minor
+          - patch
+      ignore_blocks:
+        description: 'Ignore blocking PRs/issues'
+        type: boolean
+        required: true
+        default: false
 
 jobs:
   check-and-release:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -30,6 +44,7 @@ jobs:
           fi
 
       - name: Check for Blocking Issues/PRs
+        if: ${{ !inputs.ignore_blocks }}
         id: check_blocks
         run: |
           gh auth setup-git
@@ -60,14 +75,26 @@ jobs:
       - name: Calculate next version
         run: |
           echo "Latest tag: ${{ env.latest_tag }}"
-          IFS='.' read -r major minor patch <<< "${{ env.latest_tag }}"
-          new_minor=$((minor + 1))
-          new_tag="$major.$new_minor.0"
+          IFS='.' read -r major minor patch <<< "${env.latest_tag#v}"
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "${{ inputs.version_bump }}" == "patch" ]]; then
+              patch=$((patch + 1))
+            else
+              minor=$((minor + 1))
+              patch=0
+            fi
+          else
+            # Default behavior for scheduled runs
+            minor=$((minor + 1))
+            patch=0
+          fi
+
+          new_tag="v$major.$minor.$patch"
           echo "New tag: $new_tag"
           echo "new_tag=$new_tag" >> $GITHUB_ENV
 
-      # This will trigger a deploy via .github/workflows/cd.yml
-      - name: Push New Tag
+      - name: Create and Push Tag
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -75,3 +102,24 @@ jobs:
           git push origin ${{ env.new_tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.x
+
+      - name: Run goreleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: v1.17.2
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_API_TOKEN}}
+
+      - name: Bump Homebrew formula
+        uses: dawidd6/action-homebrew-bump-formula@v3
+        with:
+          token: ${{secrets.GITHUB_API_TOKEN}}
+          formula: lazygit
+          tag: ${{env.new_tag}}
