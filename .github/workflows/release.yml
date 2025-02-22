@@ -3,7 +3,7 @@ name: Automated Release
 on:
   schedule:
     # Runs at 2:00 AM UTC on the first Saturday of every month
-    - cron: '0 2 * * 6'
+    - cron: '0 2 1-7 * 6'
   workflow_dispatch: # Allow manual triggering of the workflow
 
 jobs:
