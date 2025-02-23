@@ -14,24 +14,24 @@ func TestCommitPrefixMigrations(t *testing.T) {
 		expected string
 	}{
 		{
-			"Empty String",
-			"",
-			"",
+			name:     "Empty String",
+			input:    "",
+			expected: "",
 		}, {
-			"Single CommitPrefix Rename",
-			`
+			name: "Single CommitPrefix Rename",
+			input: `
 git:
   commitPrefix:
      pattern: "^\\w+-\\w+.*"
      replace: '[JIRA $0] '`,
-			`
+			expected: `
 git:
   commitPrefix:
     - pattern: "^\\w+-\\w+.*"
       replace: '[JIRA $0] '`,
 		}, {
-			"Complicated CommitPrefixes Rename",
-			`
+			name: "Complicated CommitPrefixes Rename",
+			input: `
 git:
   commitPrefixes:
     foo:
@@ -40,7 +40,7 @@ git:
     CrazyName!@#$^*&)_-)[[}{f{[]:
       pattern: "^foo.bar*"
       replace: '[FUN $0] '`,
-			`
+			expected: `
 git:
   commitPrefixes:
      foo:
@@ -50,9 +50,9 @@ git:
        - pattern: "^foo.bar*"
          replace: '[FUN $0] '`,
 		}, {
-			"Incomplete Configuration",
-			"git:",
-			"git:",
+			name:     "Incomplete Configuration",
+			input:    "git:",
+			expected: "git:",
 		},
 	}
 
