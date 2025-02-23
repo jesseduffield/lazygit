@@ -1012,9 +1012,16 @@ func (gui *Gui) showIntroPopupMessage() {
 			return err
 		}
 
+		introMessage := utils.ResolvePlaceholderString(
+			gui.c.Tr.IntroPopupMessage,
+			map[string]string{
+				"confirmationKey": gui.c.UserConfig().Keybinding.Universal.Confirm,
+			},
+		)
+
 		gui.c.Confirm(types.ConfirmOpts{
 			Title:         "",
-			Prompt:        gui.c.Tr.IntroPopupMessage,
+			Prompt:        introMessage,
 			HandleConfirm: onConfirm,
 			HandleClose:   onConfirm,
 		})

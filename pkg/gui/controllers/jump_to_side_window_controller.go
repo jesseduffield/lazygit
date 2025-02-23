@@ -42,7 +42,7 @@ func (self *JumpToSideWindowController) GetKeybindings(opts types.KeybindingsOpt
 			// by default the keys are 1, 2, 3, etc
 			Key:      opts.GetKey(opts.Config.Universal.JumpToBlock[index]),
 			Modifier: gocui.ModNone,
-			Handler:  self.goToSideWindow(window),
+			Handler:  opts.Guards.NoPopupPanel(self.goToSideWindow(window)),
 		}
 	})
 }
