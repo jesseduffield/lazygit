@@ -306,6 +306,7 @@ func changeElementToSequence(changedContent []byte, path []string) ([]byte, erro
 
 func changeCommitPrefixesMap(changedContent []byte) ([]byte, error) {
 	return yaml_utils.TransformNode(changedContent, []string{"git", "commitPrefixes"}, func(prefixesNode *yaml.Node) (bool, error) {
+		changedAnyNodes := false
 		if prefixesNode.Kind == yaml.MappingNode {
 			for _, contentNode := range prefixesNode.Content {
 				if contentNode.Kind == yaml.MappingNode {
@@ -317,12 +318,11 @@ func changeCommitPrefixesMap(changedContent []byte) ([]byte, error) {
 						Kind:    yaml.MappingNode,
 						Content: nodeContentCopy,
 					}}
-
+					changedAnyNodes = true
 				}
 			}
-			return true, nil
 		}
-		return false, nil
+		return changedAnyNodes, nil
 	})
 }
 
