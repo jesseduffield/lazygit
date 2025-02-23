@@ -11,7 +11,6 @@ require (
 	github.com/gdamore/tcell/v2 v2.8.1
 	github.com/go-errors/errors v1.5.1
 	github.com/gookit/color v1.4.2
-	github.com/iancoleman/orderedmap v0.3.0
 	github.com/imdario/mergo v0.3.11
 	github.com/integrii/flaggy v1.4.0
 	github.com/jesseduffield/generics v0.0.0-20220320043834-727e535cbe68

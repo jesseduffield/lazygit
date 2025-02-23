@@ -411,6 +411,9 @@ os:
   # window is closed.
   editAtLineAndWait: ""
 
+  # Whether lazygit suspends until an edit process returns
+  editInTerminal: false
+
   # For opening a directory in an editor
   openDirInEditor: ""
 
