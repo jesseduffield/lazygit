@@ -52,6 +52,28 @@ func TestCommitPrefixMigrations(t *testing.T) {
 			name:     "Incomplete Configuration",
 			input:    "git:",
 			expected: "git:",
+		}, {
+			// This test intentionally uses non-standard indentation to test that the migration
+			// does not change the input.
+			name: "No changes made when already migrated",
+			input: `
+git:
+   commitPrefix:
+    - pattern: "Hello World"
+      replace: "Goodbye"
+   commitPrefixes:
+    foo:
+      - pattern: "^\\w+-\\w+.*"
+        replace: '[JIRA $0] '`,
+			expected: `
+git:
+   commitPrefix:
+    - pattern: "Hello World"
+      replace: "Goodbye"
+   commitPrefixes:
+    foo:
+      - pattern: "^\\w+-\\w+.*"
+        replace: '[JIRA $0] '`,
 		},
 	}
 
