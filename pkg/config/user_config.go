@@ -557,8 +557,8 @@ type OSConfig struct {
 	EditAtLineAndWait string `yaml:"editAtLineAndWait,omitempty"`
 
 	// Whether lazygit suspends until an edit process returns
-	// Pointer to bool so that we can distinguish unset (nil) from false.
-	// We're naming this `editInTerminal` for backwards compatibility
+	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
+	// [dev] We're naming this `editInTerminal` for backwards compatibility
 	SuspendOnEdit *bool `yaml:"editInTerminal,omitempty"`
 
 	// For opening a directory in an editor

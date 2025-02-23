@@ -1468,7 +1468,7 @@
         },
         "editInTerminal": {
           "type": "boolean",
-          "description": "Whether lazygit suspends until an edit process returns\nPointer to bool so that we can distinguish unset (nil) from false.\nWe're naming this `editInTerminal` for backwards compatibility"
+          "description": "Whether lazygit suspends until an edit process returns\n[dev] Pointer to bool so that we can distinguish unset (nil) from false.\n[dev] We're naming this `editInTerminal` for backwards compatibility"
         },
         "openDirInEditor": {
           "type": "string",
