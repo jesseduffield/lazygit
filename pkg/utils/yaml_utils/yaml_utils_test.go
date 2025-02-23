@@ -50,12 +50,11 @@ func TestUpdateYamlValue(t *testing.T) {
 			expectedErr: "",
 		},
 		{
-			name:  "nested update",
-			in:    "foo:\n  bar: baz\n",
-			path:  []string{"foo", "bar"},
-			value: "qux",
-			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
-			expectedOut: "foo:\n    bar: qux\n",
+			name:        "nested update",
+			in:          "foo:\n  bar: baz\n",
+			path:        []string{"foo", "bar"},
+			value:       "qux",
+			expectedOut: "foo:\n  bar: qux\n",
 			expectedErr: "",
 		},
 		{
@@ -63,7 +62,7 @@ func TestUpdateYamlValue(t *testing.T) {
 			in:          "",
 			path:        []string{"foo", "bar", "baz"},
 			value:       "qux",
-			expectedOut: "foo:\n    bar:\n        baz: qux\n",
+			expectedOut: "foo:\n  bar:\n    baz: qux\n",
 			expectedErr: "",
 		},
 		{
@@ -134,21 +133,19 @@ func TestRenameYamlKey(t *testing.T) {
 			expectedErr: "",
 		},
 		{
-			name:   "rename key, nested",
-			in:     "foo:\n  bar: 5\n",
-			path:   []string{"foo", "bar"},
-			newKey: "baz",
-			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
-			expectedOut: "foo:\n    baz: 5\n",
+			name:        "rename key, nested",
+			in:          "foo:\n  bar: 5\n",
+			path:        []string{"foo", "bar"},
+			newKey:      "baz",
+			expectedOut: "foo:\n  baz: 5\n",
 			expectedErr: "",
 		},
 		{
-			name:   "rename non-scalar key",
-			in:     "foo:\n  bar: 5\n",
-			path:   []string{"foo"},
-			newKey: "qux",
-			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
-			expectedOut: "qux:\n    bar: 5\n",
+			name:        "rename non-scalar key",
+			in:          "foo:\n  bar: 5\n",
+			path:        []string{"foo"},
+			newKey:      "qux",
+			expectedOut: "qux:\n  bar: 5\n",
 			expectedErr: "",
 		},
 		{
@@ -288,8 +285,7 @@ func TestWalk_inPlaceChanges(t *testing.T) {
 				}
 				return false
 			},
-			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
-			expectedOut: "x:\n    y: 7\n",
+			expectedOut: "x:\n  y: 7\n",
 		},
 		{
 			name: "change array value",
@@ -301,8 +297,7 @@ func TestWalk_inPlaceChanges(t *testing.T) {
 				}
 				return false
 			},
-			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
-			expectedOut: "x:\n    - y: 7\n",
+			expectedOut: "x:\n  - y: 7\n",
 		},
 	}
 
@@ -366,8 +361,8 @@ foo:
 			path:      []string{"foo", "bar"},
 			transform: transformIntValueToString,
 			expectedOut: `foo:
-    bar: "2"
-`, // Note the indentiation change and newlines because of how it re-marshalls
+  bar: "2"
+`, // Note the trailing newline changes because of how it re-marshalls
 		},
 		{
 			name: "Does nothing when already transformed",

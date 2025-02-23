@@ -1,6 +1,7 @@
 package yaml_utils
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 
@@ -34,7 +35,7 @@ func UpdateYamlValue(yamlBytes []byte, path []string, value string) ([]byte, err
 	}
 
 	// Convert the updated YAML node back to YAML bytes.
-	updatedYAMLBytes, err := yaml.Marshal(body)
+	updatedYAMLBytes, err := yamlMarshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert YAML node to bytes: %w", err)
 	}
@@ -126,7 +127,7 @@ func TransformNode(yamlBytes []byte, path []string, transform func(node *yaml.No
 	}
 
 	// Convert the updated YAML node back to YAML bytes.
-	updatedYAMLBytes, err := yaml.Marshal(body)
+	updatedYAMLBytes, err := yamlMarshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert YAML node to bytes: %w", err)
 	}
@@ -170,7 +171,7 @@ func RenameYamlKey(yamlBytes []byte, path []string, newKey string) ([]byte, erro
 	}
 
 	// Convert the updated YAML node back to YAML bytes.
-	updatedYAMLBytes, err := yaml.Marshal(body)
+	updatedYAMLBytes, err := yamlMarshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert YAML node to bytes: %w", err)
 	}
@@ -227,7 +228,7 @@ func Walk(yamlBytes []byte, callback func(node *yaml.Node, path string) bool) ([
 	}
 
 	// Convert the updated YAML node back to YAML bytes.
-	updatedYAMLBytes, err := yaml.Marshal(body)
+	updatedYAMLBytes, err := yamlMarshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert YAML node to bytes: %w", err)
 	}
@@ -272,4 +273,13 @@ func walk(node *yaml.Node, path string, callback func(*yaml.Node, string) bool) 
 	}
 
 	return didChange, nil
+}
+
+func yamlMarshal(node *yaml.Node) ([]byte, error) {
+	var buffer bytes.Buffer
+	encoder := yaml.NewEncoder(&buffer)
+	encoder.SetIndent(2)
+
+	err := encoder.Encode(node)
+	return buffer.Bytes(), err
 }
