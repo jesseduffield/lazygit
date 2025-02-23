@@ -21,11 +21,32 @@ func NewCredentialsHelper(
 // We return a channel rather than returning the string directly so that the calling function knows
 // when the prompt has been created (before the user has entered anything) so that it can
 // note that we're now waiting on user input and lazygit isn't processing anything.
-func (self *CredentialsHelper) PromptUserForCredential(passOrUname oscommands.CredentialType) <-chan string {
+func (self *CredentialsHelper) PromptUserForInput(inputType oscommands.InputType) <-chan string {
 	ch := make(chan string)
 
 	self.c.OnUIThread(func() error {
-		title, mask := self.getTitleAndMask(passOrUname)
+		if inputType == oscommands.Ack {
+			return self.c.Menu(types.CreateMenuOptions{
+				Title: self.c.Tr.CommandLog + ": " + self.c.Tr.Actions.AckToContinue,
+				Items: []*types.MenuItem{
+					{
+						Label: self.c.Tr.Yes,
+						OnPress: func() error {
+							ch <- "yes" + "\n"
+							return nil
+						},
+					},
+					{
+						Label: self.c.Tr.No,
+						OnPress: func() error {
+							ch <- "no" + "\n"
+							return nil
+						},
+					},
+				},
+			})
+		}
+		title, mask := self.getTitleAndMask(inputType)
 
 		self.c.Prompt(types.PromptOpts{
 			Title: title,
@@ -48,7 +69,7 @@ func (self *CredentialsHelper) PromptUserForCredential(passOrUname oscommands.Cr
 	return ch
 }
 
-func (self *CredentialsHelper) getTitleAndMask(passOrUname oscommands.CredentialType) (string, bool) {
+func (self *CredentialsHelper) getTitleAndMask(passOrUname oscommands.InputType) (string, bool) {
 	switch passOrUname {
 	case oscommands.Username:
 		return self.c.Tr.CredentialsUsername, false
@@ -60,6 +81,8 @@ func (self *CredentialsHelper) getTitleAndMask(passOrUname oscommands.Credential
 		return self.c.Tr.CredentialsPIN, true
 	case oscommands.Token:
 		return self.c.Tr.CredentialsToken, true
+	case oscommands.Ack:
+		return self.c.Tr.Actions.AckToContinue, false
 	}
 
 	// should never land here
