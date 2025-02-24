@@ -360,8 +360,8 @@ func (self *Shell) CloneIntoRemote(name string) *Shell {
 }
 
 func (self *Shell) CloneIntoSubmodule(submoduleName string, submodulePath string) *Shell {
-	self.Clone("other_repo")
-	self.RunCommand([]string{"git", "submodule", "add", "--name", submoduleName, "../other_repo", submodulePath})
+	self.Clone(submoduleName)
+	self.RunCommand([]string{"git", "submodule", "add", "--name", submoduleName, "../" + submoduleName, submodulePath})
 
 	return self
 }
