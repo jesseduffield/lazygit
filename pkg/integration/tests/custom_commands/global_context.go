@@ -15,10 +15,9 @@ var GlobalContext = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:        "X",
-				Context:    "global",
-				Command:    "touch myfile",
-				ShowOutput: false,
+				Key:     "X",
+				Context: "global",
+				Command: "touch myfile",
 			},
 		}
 	},
