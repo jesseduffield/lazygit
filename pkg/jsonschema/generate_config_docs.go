@@ -77,20 +77,13 @@ func prepareMarshalledConfig(buffer bytes.Buffer) []byte {
 }
 
 func setComment(yamlNode *yaml.Node, description string) {
-	// Filter out lines containing "[dev]"; this allows us to add developer
-	// documentation to properties that don't get included in the docs
-	lines := strings.Split(description, "\n")
-	lines = lo.Filter(lines, func(s string, _ int) bool {
-		return !strings.Contains(s, "[dev]")
-	})
-
 	// Workaround for the way yaml formats the HeadComment if it contains
 	// blank lines: it renders these without a leading "#", but we want a
 	// leading "#" even on blank lines. However, yaml respects it if the
 	// HeadComment already contains a leading "#", so we prefix all lines
 	// (including blank ones) with "#".
 	yamlNode.HeadComment = strings.Join(
-		lo.Map(lines, func(s string, _ int) string {
+		lo.Map(strings.Split(description, "\n"), func(s string, _ int) string {
 			if s == "" {
 				return "#" // avoid trailing space on blank lines
 			}
