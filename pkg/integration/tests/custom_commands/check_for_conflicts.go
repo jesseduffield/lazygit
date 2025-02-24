@@ -19,7 +19,7 @@ var CheckForConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 				Key:     "m",
 				Context: "localBranches",
 				Command: "git merge {{ .SelectedLocalBranch.Name | quote }}",
-				After: config.CustomCommandAfterHook{
+				After: &config.CustomCommandAfterHook{
 					CheckForConflicts: true,
 				},
 			},

@@ -619,7 +619,8 @@ type CustomCommand struct {
 	// The command to run (using Go template syntax for placeholder values)
 	Command string `yaml:"command" jsonschema:"example=git fetch {{.Form.Remote}} {{.Form.Branch}} && git checkout FETCH_HEAD"`
 	// If true, run the command in a subprocess (e.g. if the command requires user input)
-	Subprocess bool `yaml:"subprocess"`
+	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
+	Subprocess *bool `yaml:"subprocess"`
 	// A list of prompts that will request user input before running the final command
 	Prompts []CustomCommandPrompt `yaml:"prompts"`
 	// Text to display while waiting for command to finish
@@ -627,13 +628,16 @@ type CustomCommand struct {
 	// Label for the custom command when displayed in the keybindings menu
 	Description string `yaml:"description"`
 	// If true, stream the command's output to the Command Log panel
-	Stream bool `yaml:"stream"`
+	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
+	Stream *bool `yaml:"stream"`
 	// If true, show the command's output in a popup within Lazygit
-	ShowOutput bool `yaml:"showOutput"`
+	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
+	ShowOutput *bool `yaml:"showOutput"`
 	// The title to display in the popup panel if showOutput is true. If left unset, the command will be used as the title.
 	OutputTitle string `yaml:"outputTitle"`
 	// Actions to take after the command has completed
-	After CustomCommandAfterHook `yaml:"after"`
+	// [dev] Pointer so that we can tell whether it appears in the config file
+	After *CustomCommandAfterHook `yaml:"after"`
 }
 
 type CustomCommandPrompt struct {
