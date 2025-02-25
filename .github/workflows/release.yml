@@ -33,6 +33,12 @@ jobs:
       - name: Get Latest Tag
         run: |
           latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) || echo "v0.0.0")
+
+          if ! [[ $latest_tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Tag format is invalid. Expected format: vX.X.X"
+            exit 1
+          fi
+
           echo "Latest tag: $latest_tag"
           echo "latest_tag=$latest_tag" >> $GITHUB_ENV
 
@@ -90,7 +96,13 @@ jobs:
             patch=0
           fi
 
-          new_tag="v$major.$minor.$patch"
+          new_tag="$major.$minor.$patch"
+
+          if ! [[ $new_tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: New tag's format is invalid. Expected format: vX.X.X"
+            exit 1
+          fi
+
           echo "New tag: $new_tag"
           echo "new_tag=$new_tag" >> $GITHUB_ENV
 
