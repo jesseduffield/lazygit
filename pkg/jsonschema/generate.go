@@ -56,6 +56,7 @@ func customReflect(v *config.UserConfig) *jsonschema.Schema {
 	if err := r.AddGoComments("github.com/jesseduffield/lazygit/pkg/config", "../config"); err != nil {
 		panic(err)
 	}
+	filterOutDevComments(r)
 	schema := r.Reflect(v)
 	defaultConfig := config.GetDefaultConfig()
 	userConfigSchema := schema.Definitions["UserConfig"]
@@ -74,6 +75,16 @@ func customReflect(v *config.UserConfig) *jsonschema.Schema {
 	}
 
 	return schema
+}
+
+func filterOutDevComments(r *jsonschema.Reflector) {
+	for k, v := range r.CommentMap {
+		commentLines := strings.Split(v, "\n")
+		filteredCommentLines := lo.Filter(commentLines, func(line string, _ int) bool {
+			return !strings.Contains(line, "[dev]")
+		})
+		r.CommentMap[k] = strings.Join(filteredCommentLines, "\n")
+	}
 }
 
 func setDefaultVals(rootSchema, schema *jsonschema.Schema, defaults any) {
