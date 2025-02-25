@@ -333,6 +333,8 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 			RefForPushedStatus:   checkedOutBranchName,
 			All:                  self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
 			MainBranches:         self.c.Model().MainBranches,
+			Since:                self.c.Modes().Filtering.GetSince(),
+			Until:                self.c.Modes().Filtering.GetUntil(),
 		},
 	)
 	if err != nil {
