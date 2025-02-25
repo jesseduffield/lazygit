@@ -237,7 +237,14 @@ func migrateUserConfig(path string, content []byte) ([]byte, error) {
 
 // A pure function helper for testing purposes
 func computeMigratedConfig(path string, content []byte) ([]byte, error) {
-	changedContent := content
+	var err error
+	var rootNode yaml.Node
+	// Track if any of the transformations did anything
+	anyMigrations := false
+	err = yaml.Unmarshal(content, &rootNode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse YAML: %w", err)
+	}
 
 	pathsToReplace := []struct {
 		oldPath []string
@@ -248,35 +255,47 @@ func computeMigratedConfig(path string, content []byte) ([]byte, error) {
 		{[]string{"gui", "windowSize"}, "screenMode"},
 	}
 
-	var err error
 	for _, pathToReplace := range pathsToReplace {
-		changedContent, err = yaml_utils.RenameYamlKey(changedContent, pathToReplace.oldPath, pathToReplace.newName)
+		migrated, err := yaml_utils.RenameYamlKey(&rootNode, pathToReplace.oldPath, pathToReplace.newName)
 		if err != nil {
 			return nil, fmt.Errorf("Couldn't migrate config file at `%s` for key %s: %s", path, strings.Join(pathToReplace.oldPath, "."), err)
 		}
+		anyMigrations = anyMigrations || migrated
 	}
 
-	changedContent, err = changeNullKeybindingsToDisabled(changedContent)
+	migrated, err := changeNullKeybindingsToDisabled(&rootNode)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
 	}
+	anyMigrations = anyMigrations || migrated
 
-	changedContent, err = changeElementToSequence(changedContent, []string{"git", "commitPrefix"})
+	migrated, err = changeElementToSequence(&rootNode, []string{"git", "commitPrefix"})
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
 	}
+	anyMigrations = anyMigrations || migrated
 
-	changedContent, err = changeCommitPrefixesMap(changedContent)
+	migrated, err = changeCommitPrefixesMap(&rootNode)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
 	}
+	anyMigrations = anyMigrations || migrated
+
 	// Add more migrations here...
 
-	return changedContent, nil
+	if anyMigrations {
+		newContent, err := yaml_utils.YamlMarshal(&rootNode)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to remarsall!")
+		}
+		return newContent, nil
+	} else {
+		return content, nil
+	}
 }
 
-func changeNullKeybindingsToDisabled(changedContent []byte) ([]byte, error) {
-	return yaml_utils.Walk(changedContent, func(node *yaml.Node, path string) bool {
+func changeNullKeybindingsToDisabled(rootNode *yaml.Node) (bool, error) {
+	return yaml_utils.Walk(rootNode, func(node *yaml.Node, path string) bool {
 		if strings.HasPrefix(path, "keybinding.") && node.Kind == yaml.ScalarNode && node.Tag == "!!null" {
 			node.Value = "<disabled>"
 			node.Tag = "!!str"
@@ -286,8 +305,8 @@ func changeNullKeybindingsToDisabled(changedContent []byte) ([]byte, error) {
 	})
 }
 
-func changeElementToSequence(changedContent []byte, path []string) ([]byte, error) {
-	return yaml_utils.TransformNode(changedContent, path, func(node *yaml.Node) (bool, error) {
+func changeElementToSequence(rootNode *yaml.Node, path []string) (bool, error) {
+	return yaml_utils.TransformNode(rootNode, path, func(node *yaml.Node) (bool, error) {
 		if node.Kind == yaml.MappingNode {
 			nodeContentCopy := node.Content
 			node.Kind = yaml.SequenceNode
@@ -304,8 +323,8 @@ func changeElementToSequence(changedContent []byte, path []string) ([]byte, erro
 	})
 }
 
-func changeCommitPrefixesMap(changedContent []byte) ([]byte, error) {
-	return yaml_utils.TransformNode(changedContent, []string{"git", "commitPrefixes"}, func(prefixesNode *yaml.Node) (bool, error) {
+func changeCommitPrefixesMap(rootNode *yaml.Node) (bool, error) {
+	return yaml_utils.TransformNode(rootNode, []string{"git", "commitPrefixes"}, func(prefixesNode *yaml.Node) (bool, error) {
 		changedAnyNodes := false
 		if prefixesNode.Kind == yaml.MappingNode {
 			for _, contentNode := range prefixesNode.Content {

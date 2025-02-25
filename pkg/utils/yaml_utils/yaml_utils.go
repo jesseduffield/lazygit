@@ -35,7 +35,7 @@ func UpdateYamlValue(yamlBytes []byte, path []string, value string) ([]byte, err
 	}
 
 	// Convert the updated YAML node back to YAML bytes.
-	updatedYAMLBytes, err := yamlMarshal(body)
+	updatedYAMLBytes, err := YamlMarshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert YAML node to bytes: %w", err)
 	}
@@ -100,39 +100,25 @@ func lookupKey(node *yaml.Node, key string) (*yaml.Node, *yaml.Node) {
 	return nil, nil
 }
 
-// Walks a yaml document to the specified path, and then applies the transformation to that node.
+// Walks a yaml document from the root node to the specified path, and then applies the transformation to that node.
 //
 // The transform must return true if it made changes to the node.
 // If the requested path is not defined in the document, no changes are made to the document.
 //
-// If no changes are made, the original document is returned.
-// If changes are made, a newly marshalled document is returned. (This may result in different indentation for all nodes)
-func TransformNode(yamlBytes []byte, path []string, transform func(node *yaml.Node) (bool, error)) ([]byte, error) {
-	// Parse the YAML file.
-	var node yaml.Node
-	err := yaml.Unmarshal(yamlBytes, &node)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse YAML: %w", err)
-	}
-
+// Returns true if the transform function made changes to any node
+func TransformNode(rootNode *yaml.Node, path []string, transform func(node *yaml.Node) (bool, error)) (bool, error) {
 	// Empty document: nothing to do.
-	if len(node.Content) == 0 {
-		return yamlBytes, nil
+	if len(rootNode.Content) == 0 {
+		return false, nil
 	}
 
-	body := node.Content[0]
+	body := rootNode.Content[0]
 
 	if didTransform, err := transformNode(body, path, transform); err != nil || !didTransform {
-		return yamlBytes, err
+		return false, err
 	}
 
-	// Convert the updated YAML node back to YAML bytes.
-	updatedYAMLBytes, err := yamlMarshal(body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert YAML node to bytes: %w", err)
-	}
-
-	return updatedYAMLBytes, nil
+	return true, nil
 }
 
 // A recursive function to walk down the tree. See TransformNode for more details.
@@ -149,34 +135,22 @@ func transformNode(node *yaml.Node, path []string, transform func(node *yaml.Nod
 	return transformNode(valueNode, path[1:], transform)
 }
 
-// takes a yaml document in bytes, a path to a key, and a new name for the key.
+// Takes the root node of a yaml document, a path to a key, and a new name for the key.
 // Will rename the key to the new name if it exists, and do nothing otherwise.
-func RenameYamlKey(yamlBytes []byte, path []string, newKey string) ([]byte, error) {
-	// Parse the YAML file.
-	var node yaml.Node
-	err := yaml.Unmarshal(yamlBytes, &node)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse YAML: %w for bytes %s", err, string(yamlBytes))
-	}
-
+// Returns true if it found the old path and renamed the key
+func RenameYamlKey(rootNode *yaml.Node, path []string, newKey string) (bool, error) {
 	// Empty document: nothing to do.
-	if len(node.Content) == 0 {
-		return yamlBytes, nil
+	if len(rootNode.Content) == 0 {
+		return false, nil
 	}
 
-	body := node.Content[0]
+	body := rootNode.Content[0]
 
 	if didRename, err := renameYamlKey(body, path, newKey); err != nil || !didRename {
-		return yamlBytes, err
+		return false, err
 	}
 
-	// Convert the updated YAML node back to YAML bytes.
-	updatedYAMLBytes, err := yamlMarshal(body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert YAML node to bytes: %w", err)
-	}
-
-	return updatedYAMLBytes, nil
+	return true, nil
 }
 
 // Recursive function to rename the YAML key.
@@ -206,34 +180,21 @@ func renameYamlKey(node *yaml.Node, path []string, newKey string) (bool, error) 
 
 // Traverses a yaml document, calling the callback function for each node. The
 // callback is allowed to modify the node in place, in which case it should
-// return true. The function returns the original yaml document if none of the
-// callbacks returned true, and the modified document otherwise.
-func Walk(yamlBytes []byte, callback func(node *yaml.Node, path string) bool) ([]byte, error) {
-	// Parse the YAML file.
-	var node yaml.Node
-	err := yaml.Unmarshal(yamlBytes, &node)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse YAML: %w", err)
-	}
-
+// return true. The function returns true if the callback modified the document at all,
+// and false otherwise.
+func Walk(rootNode *yaml.Node, callback func(node *yaml.Node, path string) bool) (bool, error) {
 	// Empty document: nothing to do.
-	if len(node.Content) == 0 {
-		return yamlBytes, nil
+	if len(rootNode.Content) == 0 {
+		return false, nil
 	}
 
-	body := node.Content[0]
+	body := rootNode.Content[0]
 
 	if didChange, err := walk(body, "", callback); err != nil || !didChange {
-		return yamlBytes, err
+		return false, err
 	}
 
-	// Convert the updated YAML node back to YAML bytes.
-	updatedYAMLBytes, err := yamlMarshal(body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert YAML node to bytes: %w", err)
-	}
-
-	return updatedYAMLBytes, nil
+	return true, nil
 }
 
 func walk(node *yaml.Node, path string, callback func(*yaml.Node, string) bool) (bool, error) {
@@ -275,7 +236,7 @@ func walk(node *yaml.Node, path string, callback func(*yaml.Node, string) bool) 
 	return didChange, nil
 }
 
-func yamlMarshal(node *yaml.Node) ([]byte, error) {
+func YamlMarshal(node *yaml.Node) ([]byte, error) {
 	var buffer bytes.Buffer
 	encoder := yaml.NewEncoder(&buffer)
 	encoder.SetIndent(2)
