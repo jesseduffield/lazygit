@@ -74,6 +74,58 @@ func TestUserConfigValidate_enums(t *testing.T) {
 				{value: "invalid_value", valid: false},
 			},
 		},
+		{
+			name: "Custom command sub menu",
+			setup: func(config *UserConfig, _ string) {
+				config.CustomCommands = []CustomCommand{
+					{
+						Key:         "X",
+						Description: "My Custom Commands",
+						SubCommands: []CustomCommand{
+							{Key: "1", Command: "echo 'hello'", Context: "global"},
+						},
+					},
+				}
+			},
+			testCases: []testCase{
+				{value: "", valid: true},
+			},
+		},
+		{
+			name: "Custom command sub menu",
+			setup: func(config *UserConfig, _ string) {
+				config.CustomCommands = []CustomCommand{
+					{
+						Key:     "X",
+						Context: "global",
+						SubCommands: []CustomCommand{
+							{Key: "1", Command: "echo 'hello'", Context: "global"},
+						},
+					},
+				}
+			},
+			testCases: []testCase{
+				{value: "", valid: false},
+			},
+		},
+		{
+			name: "Custom command sub menu",
+			setup: func(config *UserConfig, _ string) {
+				falseVal := false
+				config.CustomCommands = []CustomCommand{
+					{
+						Key:        "X",
+						Subprocess: &falseVal,
+						SubCommands: []CustomCommand{
+							{Key: "1", Command: "echo 'hello'", Context: "global"},
+						},
+					},
+				}
+			},
+			testCases: []testCase{
+				{value: "", valid: false},
+			},
+		},
 	}
 
 	for _, s := range scenarios {

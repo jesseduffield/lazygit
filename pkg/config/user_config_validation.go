@@ -96,6 +96,23 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 		if err := validateCustomCommandKey(customCommand.Key); err != nil {
 			return err
 		}
+
+		if len(customCommand.SubCommands) > 0 &&
+			(len(customCommand.Context) > 0 ||
+				len(customCommand.Command) > 0 ||
+				customCommand.Subprocess != nil ||
+				len(customCommand.Prompts) > 0 ||
+				len(customCommand.LoadingText) > 0 ||
+				customCommand.Stream != nil ||
+				customCommand.ShowOutput != nil ||
+				len(customCommand.OutputTitle) > 0 ||
+				customCommand.After != nil) {
+			commandRef := ""
+			if len(customCommand.Key) > 0 {
+				commandRef = fmt.Sprintf(" with key '%s'", customCommand.Key)
+			}
+			return fmt.Errorf("Error with custom command%s: it is not allowed to use both subCommands and any of the other fields except key and description.", commandRef)
+		}
 	}
 	return nil
 }

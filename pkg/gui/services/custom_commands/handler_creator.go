@@ -261,7 +261,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 
 	cmdObj := self.c.OS().Cmd.NewShell(cmdStr)
 
-	if customCommand.Subprocess {
+	if customCommand.Subprocess != nil && *customCommand.Subprocess {
 		return self.c.RunSubprocessAndRefresh(cmdObj)
 	}
 
@@ -273,7 +273,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 	return self.c.WithWaitingStatus(loadingText, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.CustomCommand)
 
-		if customCommand.Stream {
+		if customCommand.Stream != nil && *customCommand.Stream {
 			cmdObj.StreamOutput()
 		}
 		output, err := cmdObj.RunWithOutput()
@@ -283,14 +283,14 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 		}
 
 		if err != nil {
-			if customCommand.After.CheckForConflicts {
+			if customCommand.After != nil && customCommand.After.CheckForConflicts {
 				return self.mergeAndRebaseHelper.CheckForConflicts(err)
 			}
 
 			return err
 		}
 
-		if customCommand.ShowOutput {
+		if customCommand.ShowOutput != nil && *customCommand.ShowOutput {
 			if strings.TrimSpace(output) == "" {
 				output = self.c.Tr.EmptyOutput
 			}

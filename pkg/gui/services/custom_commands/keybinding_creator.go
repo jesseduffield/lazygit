@@ -34,18 +34,13 @@ func (self *KeybindingCreator) call(customCommand config.CustomCommand, handler 
 		return nil, err
 	}
 
-	description := customCommand.Description
-	if description == "" {
-		description = customCommand.Command
-	}
-
 	return lo.Map(viewNames, func(viewName string, _ int) *types.Binding {
 		return &types.Binding{
 			ViewName:    viewName,
 			Key:         keybindings.GetKey(customCommand.Key),
 			Modifier:    gocui.ModNone,
 			Handler:     handler,
-			Description: description,
+			Description: customCommand.GetDescription(),
 		}
 	}), nil
 }

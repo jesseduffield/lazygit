@@ -14,8 +14,8 @@ import (
 // compatibility. We already did this for Commit.Sha, which was renamed to Hash.
 
 type Commit struct {
-	Hash          string // deprecated: use Sha
-	Sha           string
+	Hash          string
+	Sha           string // deprecated: use Hash
 	Name          string
 	Status        models.CommitStatus
 	Action        todo.TodoCommand
