@@ -257,11 +257,7 @@ func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
 
 func (self *BranchCommands) AllBranchesLogCmdObj() *oscommands.CmdObj {
 	// Only choose between non-empty, non-identical commands
-	candidates := lo.Uniq(lo.WithoutEmpty(append([]string{
-		self.UserConfig().Git.AllBranchesLogCmd,
-	},
-		self.UserConfig().Git.AllBranchesLogCmds...,
-	)))
+	candidates := lo.Uniq(lo.WithoutEmpty(self.UserConfig().Git.AllBranchesLogCmds))
 
 	n := len(candidates)
 
