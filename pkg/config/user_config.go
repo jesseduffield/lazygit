@@ -253,9 +253,6 @@ type GitConfig struct {
 	AutoStageResolvedConflicts bool `yaml:"autoStageResolvedConflicts"`
 	// Command used when displaying the current branch git log in the main window
 	BranchLogCmd string `yaml:"branchLogCmd"`
-	// Command used to display git log of all branches in the main window.
-	// Deprecated: Use `allBranchesLogCmds` instead.
-	AllBranchesLogCmd string `yaml:"allBranchesLogCmd" jsonschema:"deprecated"`
 	// Commands used to display git log of all branches in the main window, they will be cycled in order of appearance (array of strings)
 	AllBranchesLogCmds []string `yaml:"allBranchesLogCmds"`
 	// If true, do not spawn a separate process when using GPG
@@ -823,7 +820,7 @@ func GetDefaultConfig() *UserConfig {
 			FetchAll:                     true,
 			AutoStageResolvedConflicts:   true,
 			BranchLogCmd:                 "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
-			AllBranchesLogCmd:            "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
+			AllBranchesLogCmds:           []string{"git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"},
 			DisableForcePushing:          false,
 			CommitPrefixes:               map[string][]CommitPrefixConfig(nil),
 			BranchPrefix:                 "",
