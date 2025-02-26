@@ -10,8 +10,7 @@ var LogCmd = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Git.AllBranchesLogCmd = `echo "view1"`
-		config.GetUserConfig().Git.AllBranchesLogCmds = []string{`echo "view2"`}
+		config.GetUserConfig().Git.AllBranchesLogCmds = []string{`echo "view1"`, `echo "view2"`}
 	},
 	SetupRepo: func(shell *Shell) {},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
