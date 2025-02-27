@@ -279,6 +279,13 @@ func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) oscommand
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
+func (self *CommitCommands) ShowFileContentCmdObj(hash string, filePath string) oscommands.ICmdObj {
+	cmdArgs := NewGitCmd("show").
+		Arg(fmt.Sprintf("%s:%s", hash, filePath)).
+		ToArgv()
+	return self.cmd.New(cmdArgs).DontLog()
+}
+
 // Revert reverts the selected commit by hash
 func (self *CommitCommands) Revert(hash string) error {
 	cmdArgs := NewGitCmd("revert").Arg(hash).ToArgv()

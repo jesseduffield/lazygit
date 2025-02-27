@@ -203,6 +203,16 @@ func (self *CommitFilesController) copyDiffToClipboard(path string, toastMessage
 	return nil
 }
 
+func (self *CommitFilesController) copyFileContentToClipboard(path string) error {
+	_, to := self.context().GetFromAndToForDiff()
+	cmdObj := self.c.Git().Commit.ShowFileContentCmdObj(to, path)
+	diff, err := cmdObj.RunWithOutput()
+	if err != nil {
+		return err
+	}
+	return self.c.OS().CopyToClipboard(diff)
+}
+
 func (self *CommitFilesController) openCopyMenu() error {
 	node := self.context().GetSelected()
 
@@ -246,6 +256,27 @@ func (self *CommitFilesController) openCopyMenu() error {
 		DisabledReason: self.require(self.itemsSelected())(),
 		Key:            'a',
 	}
+	copyFileContentItem := &types.MenuItem{
+		Label: self.c.Tr.CopyFileContent,
+		OnPress: func() error {
+			if err := self.copyFileContentToClipboard(node.GetPath()); err != nil {
+				return err
+			}
+			self.c.Toast(self.c.Tr.FileContentCopiedToast)
+			return nil
+		},
+		DisabledReason: self.require(self.singleItemSelected(
+			func(node *filetree.CommitFileNode) *types.DisabledReason {
+				if !node.IsFile() {
+					return &types.DisabledReason{
+						Text:             self.c.Tr.ErrCannotCopyContentOfDirectory,
+						ShowErrorInPanel: true,
+					}
+				}
+				return nil
+			}))(),
+		Key: 'c',
+	}
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.CopyToClipboardMenu,
@@ -254,6 +285,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 			copyPathItem,
 			copyFileDiffItem,
 			copyAllDiff,
+			copyFileContentItem,
 		},
 	})
 }
