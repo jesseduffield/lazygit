@@ -191,15 +191,25 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig) (*UserConfig, e
 			return nil, err
 		}
 
-		content, err = migrateUserConfig(path, content)
-		if err != nil {
-			return nil, err
-		}
-
 		existingCustomCommands := base.CustomCommands
 
-		if err := yaml.Unmarshal(content, base); err != nil {
-			return nil, fmt.Errorf("The config at `%s` couldn't be parsed, please inspect it before opening up an issue.\n%w", path, err)
+		var node yaml.Node
+		err = yaml.Unmarshal(content, &node)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to parse config at `%s` as YAML document. Please check your file before opening an issue\n %w", path, err)
+		}
+
+		err = node.Decode(base)
+		if err != nil {
+			// We attempt to migrate the configuration, and then re-attempt to unmarshal
+			content, err = migrateUserConfig(path, content)
+			if err != nil {
+				return nil, err
+			}
+			err = yaml.Unmarshal(content, base)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to decode config at path `%s` after attempting auto-migration. Please check your file before opening an issue\n %w", path, err)
+			}
 		}
 
 		base.CustomCommands = append(base.CustomCommands, existingCustomCommands...)
