@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"context"
 	"time"
 
 	"github.com/jesseduffield/gocui"
@@ -62,6 +63,18 @@ func (self *AppStatusHelper) WithWaitingStatus(message string, f func(gocui.Task
 	self.c.OnWorker(func(task gocui.Task) error {
 		return self.WithWaitingStatusImpl(message, f, task)
 	})
+}
+
+// WithPendingMessage displays message and begins executing pending.
+// After pending finishes, via completion or cancellation, the message will be removed.
+// If pending finishes with success, main will begin executing.
+func (self *AppStatusHelper) WithPendingMessage(
+	message string,
+	pending func(gocui.Task) error,
+	main func(gocui.Task) error,
+) {
+	pendingTask := self.c.OnWorkerPending(context.Background(), pending, main)
+	self.WithWaitingStatus(message, func(_ gocui.Task) error { <-pendingTask.Ctx.Done(); return nil })
 }
 
 func (self *AppStatusHelper) WithWaitingStatusImpl(message string, f func(gocui.Task) error, task gocui.Task) error {

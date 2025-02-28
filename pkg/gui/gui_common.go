@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"context"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -113,6 +115,10 @@ func (self *guiCommon) OnUIThread(f func() error) {
 
 func (self *guiCommon) OnWorker(f func(gocui.Task) error) {
 	self.gui.onWorker(f)
+}
+
+func (self *guiCommon) OnWorkerPending(ctx context.Context, pending func(gocui.Task) error, main func(gocui.Task) error) *gocui.PendingTask {
+	return self.gui.onWorkerPending(ctx, pending, main)
 }
 
 func (self *guiCommon) RenderToMainViews(opts types.RefreshMainOpts) {
