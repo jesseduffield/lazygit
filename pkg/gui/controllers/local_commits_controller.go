@@ -415,11 +415,13 @@ func (self *LocalCommitsController) handleReword(summary string, description str
 			self.c.Tr.CommittingStatus, nil)
 	}
 
-	err := self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), summary, description)
-	if err != nil {
-		return err
-	}
-	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	return self.c.WithWaitingStatus(self.c.Tr.RewordingStatus, func(gocui.Task) error {
+		err := self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), summary, description)
+		if err != nil {
+			return err
+		}
+		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	})
 }
 
 func (self *LocalCommitsController) doRewordEditor() error {
