@@ -103,8 +103,8 @@ func (self *FileTreeViewModel) SetTree() {
 
 	// for when you stage the old file of a rename and the new file is in a collapsed dir
 	for _, file := range newFiles {
-		if selectedNode != nil && selectedNode.Path != "" && file.PreviousName == selectedNode.Path {
-			self.ExpandToPath(file.Name)
+		if selectedNode != nil && selectedNode.Path != "" && file.PreviousPath == selectedNode.Path {
+			self.ExpandToPath(file.Path)
 		}
 	}
 
@@ -151,7 +151,7 @@ func (self *FileTreeViewModel) findNewSelectedIdx(prevNodes []*FileNode, currNod
 
 			// If you started off with a rename selected, and now it's broken in two, we want you to jump to the new file, not the old file.
 			// This is because the new should be in the same position as the rename was meaning less cursor jumping
-			foundOldFileInRename := prevNode.File != nil && prevNode.File.IsRename() && node.Path == prevNode.File.PreviousName
+			foundOldFileInRename := prevNode.File != nil && prevNode.File.IsRename() && node.Path == prevNode.File.PreviousPath
 			foundNode := utils.StringArraysOverlap(paths, selectedPaths) && !foundOldFileInRename
 			if foundNode {
 				return idx

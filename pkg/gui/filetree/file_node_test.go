@@ -23,13 +23,13 @@ func TestCompress(t *testing.T) {
 			root: &Node[models.File]{
 				Path: "",
 				Children: []*Node[models.File]{
-					{File: &models.File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
+					{File: &models.File{Path: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
 				},
 			},
 			expected: &Node[models.File]{
 				Path: "",
 				Children: []*Node[models.File]{
-					{File: &models.File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
+					{File: &models.File{Path: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
 				},
 			},
 		},
@@ -42,7 +42,7 @@ func TestCompress(t *testing.T) {
 						Path: "dir1",
 						Children: []*Node[models.File]{
 							{
-								File: &models.File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
+								File: &models.File{Path: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
 								Path: "dir1/file2",
 							},
 						},
@@ -51,11 +51,11 @@ func TestCompress(t *testing.T) {
 						Path: "dir2",
 						Children: []*Node[models.File]{
 							{
-								File: &models.File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
+								File: &models.File{Path: "file3", ShortStatus: " M", HasStagedChanges: true},
 								Path: "dir2/file3",
 							},
 							{
-								File: &models.File{Name: "file4", ShortStatus: "M ", HasUnstagedChanges: true},
+								File: &models.File{Path: "file4", ShortStatus: "M ", HasUnstagedChanges: true},
 								Path: "dir2/file4",
 							},
 						},
@@ -67,7 +67,7 @@ func TestCompress(t *testing.T) {
 								Path: "dir3/dir3-1",
 								Children: []*Node[models.File]{
 									{
-										File: &models.File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
+										File: &models.File{Path: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
 										Path: "dir3/dir3-1/file5",
 									},
 								},
@@ -75,7 +75,7 @@ func TestCompress(t *testing.T) {
 						},
 					},
 					{
-						File: &models.File{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
+						File: &models.File{Path: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
 						Path: "file1",
 					},
 				},
@@ -87,7 +87,7 @@ func TestCompress(t *testing.T) {
 						Path: "dir1",
 						Children: []*Node[models.File]{
 							{
-								File: &models.File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
+								File: &models.File{Path: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
 								Path: "dir1/file2",
 							},
 						},
@@ -96,11 +96,11 @@ func TestCompress(t *testing.T) {
 						Path: "dir2",
 						Children: []*Node[models.File]{
 							{
-								File: &models.File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
+								File: &models.File{Path: "file3", ShortStatus: " M", HasStagedChanges: true},
 								Path: "dir2/file3",
 							},
 							{
-								File: &models.File{Name: "file4", ShortStatus: "M ", HasUnstagedChanges: true},
+								File: &models.File{Path: "file4", ShortStatus: "M ", HasUnstagedChanges: true},
 								Path: "dir2/file4",
 							},
 						},
@@ -110,13 +110,13 @@ func TestCompress(t *testing.T) {
 						CompressionLevel: 1,
 						Children: []*Node[models.File]{
 							{
-								File: &models.File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
+								File: &models.File{Path: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
 								Path: "dir3/dir3-1/file5",
 							},
 						},
 					},
 					{
-						File: &models.File{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
+						File: &models.File{Path: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
 						Path: "file1",
 					},
 				},
@@ -141,13 +141,13 @@ func TestGetFile(t *testing.T) {
 	}{
 		{
 			name:      "valid case",
-			viewModel: NewFileTree(func() []*models.File { return []*models.File{{Name: "blah/one"}, {Name: "blah/two"}} }, nil, false),
+			viewModel: NewFileTree(func() []*models.File { return []*models.File{{Path: "blah/one"}, {Path: "blah/two"}} }, nil, false),
 			path:      "blah/two",
-			expected:  &models.File{Name: "blah/two"},
+			expected:  &models.File{Path: "blah/two"},
 		},
 		{
 			name:      "not found",
-			viewModel: NewFileTree(func() []*models.File { return []*models.File{{Name: "blah/one"}, {Name: "blah/two"}} }, nil, false),
+			viewModel: NewFileTree(func() []*models.File { return []*models.File{{Path: "blah/one"}, {Path: "blah/two"}} }, nil, false),
 			path:      "blah/three",
 			expected:  nil,
 		},

@@ -51,7 +51,7 @@ func (self *FileNode) GetHasInlineMergeConflicts() bool {
 		if !file.HasInlineMergeConflicts {
 			return false
 		}
-		hasConflicts, _ := mergeconflicts.FileHasConflictMarkers(file.Name)
+		hasConflicts, _ := mergeconflicts.FileHasConflictMarkers(file.Path)
 		return hasConflicts
 	})
 }
@@ -69,5 +69,5 @@ func (self *FileNode) GetPreviousPath() string {
 		return ""
 	}
 
-	return self.File.PreviousName
+	return self.File.PreviousPath
 }

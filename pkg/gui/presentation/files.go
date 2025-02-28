@@ -52,11 +52,11 @@ func commitFilePatchStatus(node *filetree.Node[models.CommitFile], tree *filetre
 	// be whatever status it is, but if it's a non-leaf it will determine its status
 	// based on the leaves of that subtree
 	if node.EveryFile(func(file *models.CommitFile) bool {
-		return patchBuilder.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.WHOLE
+		return patchBuilder.GetFileStatus(file.Path, tree.GetRef().RefName()) == patch.WHOLE
 	}) {
 		return patch.WHOLE
 	} else if node.EveryFile(func(file *models.CommitFile) bool {
-		return patchBuilder.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.UNSELECTED
+		return patchBuilder.GetFileStatus(file.Path, tree.GetRef().RefName()) == patch.UNSELECTED
 	}) {
 		return patch.UNSELECTED
 	} else {
@@ -297,9 +297,9 @@ func fileNameAtDepth(node *filetree.Node[models.File], depth int) string {
 	name := join(splitName[depth:])
 
 	if node.File != nil && node.File.IsRename() {
-		splitPrevName := split(node.File.PreviousName)
+		splitPrevName := split(node.File.PreviousPath)
 
-		prevName := node.File.PreviousName
+		prevName := node.File.PreviousPath
 		// if the file has just been renamed inside the same directory, we can shave off
 		// the prefix for the previous path too. Otherwise we'll keep it unchanged
 		sameParentDir := len(splitName) == len(splitPrevName) && join(splitName[0:depth]) == join(splitPrevName[0:depth])
