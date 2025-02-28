@@ -1,6 +1,6 @@
 # Custom Command Keybindings
 
-You can add custom command keybindings in your config.yml (accessible by pressing 'o' on the status panel from within lazygit) like so:
+You can add custom command keybindings in your config.yml (accessible by pressing 'e' on the status panel from within lazygit) like so:
 
 ```yml
 customCommands:
@@ -323,6 +323,27 @@ We don't support accessing all elements of a range selection yet. We might add t
 ## Keybinding collisions
 
 If your custom keybinding collides with an inbuilt keybinding that is defined for the same context, only the custom keybinding will be executed. This also applies to the global context. However, one caveat is that if you have a custom keybinding defined on the global context for some key, and there is an in-built keybinding defined for the same key and for a specific context (say the 'files' context), then the in-built keybinding will take precedence. See how to change in-built keybindings [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#keybindings)
+
+## Menus of custom commands
+
+For custom commands that are not used very frequently it may be preferable to hide them in a menu; you can assign a key to open the menu, and the commands will appear inside. This has the advantage that you don't have to come up with individual unique keybindings for all those commands that you don't use often; the keybindings for the commands in the menu only need to be unique within the menu. Here is an example:
+
+```yml
+customCommands:
+- key: X
+  description: "Copy/paste commits across repos"
+  commandMenu:
+  - key: c
+    command: 'git format-patch --stdout {{.SelectedCommitRange.From}}^..{{.SelectedCommitRange.To}} | pbcopy'
+    context: commits, subCommits
+    description: "Copy selected commits to clipboard"
+  - key: v
+    command: 'pbpaste | git am'
+    context: "commits"
+    description: "Paste selected commits from clipboard"
+```
+
+If you use the commandMenu property, none of the other properties except key and description can be used.
 
 ## Debugging
 

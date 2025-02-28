@@ -614,12 +614,16 @@ type CustomCommandAfterHook struct {
 type CustomCommand struct {
 	// The key to trigger the command. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md
 	Key string `yaml:"key"`
+	// Instead of defining a single custom command, create a menu of custom commands. Useful for grouping related commands together under a single keybinding, and for keeping them out of the global keybindings menu.
+	// When using this, all other fields except Key and Description are ignored and must be empty.
+	CommandMenu []CustomCommand `yaml:"commandMenu"`
 	// The context in which to listen for the key. Valid values are: status, files, worktrees, localBranches, remotes, remoteBranches, tags, commits, reflogCommits, subCommits, commitFiles, stash, and global. Multiple contexts separated by comma are allowed; most useful for "commits, subCommits" or "files, commitFiles".
 	Context string `yaml:"context" jsonschema:"example=status,example=files,example=worktrees,example=localBranches,example=remotes,example=remoteBranches,example=tags,example=commits,example=reflogCommits,example=subCommits,example=commitFiles,example=stash,example=global"`
 	// The command to run (using Go template syntax for placeholder values)
 	Command string `yaml:"command" jsonschema:"example=git fetch {{.Form.Remote}} {{.Form.Branch}} && git checkout FETCH_HEAD"`
 	// If true, run the command in a subprocess (e.g. if the command requires user input)
-	Subprocess bool `yaml:"subprocess"`
+	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
+	Subprocess *bool `yaml:"subprocess"`
 	// A list of prompts that will request user input before running the final command
 	Prompts []CustomCommandPrompt `yaml:"prompts"`
 	// Text to display while waiting for command to finish
@@ -627,13 +631,24 @@ type CustomCommand struct {
 	// Label for the custom command when displayed in the keybindings menu
 	Description string `yaml:"description"`
 	// If true, stream the command's output to the Command Log panel
-	Stream bool `yaml:"stream"`
+	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
+	Stream *bool `yaml:"stream"`
 	// If true, show the command's output in a popup within Lazygit
-	ShowOutput bool `yaml:"showOutput"`
+	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
+	ShowOutput *bool `yaml:"showOutput"`
 	// The title to display in the popup panel if showOutput is true. If left unset, the command will be used as the title.
 	OutputTitle string `yaml:"outputTitle"`
 	// Actions to take after the command has completed
-	After CustomCommandAfterHook `yaml:"after"`
+	// [dev] Pointer so that we can tell whether it appears in the config file
+	After *CustomCommandAfterHook `yaml:"after"`
+}
+
+func (c *CustomCommand) GetDescription() string {
+	if c.Description != "" {
+		return c.Description
+	}
+
+	return c.Command
 }
 
 type CustomCommandPrompt struct {
