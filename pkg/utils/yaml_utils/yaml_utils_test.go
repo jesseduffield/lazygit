@@ -186,14 +186,16 @@ func TestRenameYamlKey(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			out, actualErr := RenameYamlKey([]byte(test.in), test.path, test.newKey)
+			node := unmarshalForTest(t, test.in)
+			actualErr := RenameYamlKey(&node, test.path, test.newKey)
 			if test.expectedErr == "" {
 				assert.NoError(t, actualErr)
 			} else {
 				assert.EqualError(t, actualErr, test.expectedErr)
 			}
+			out := marshalForTest(t, &node)
 
-			assert.Equal(t, test.expectedOut, string(out))
+			assert.Equal(t, test.expectedOut, out)
 		})
 	}
 }
@@ -238,10 +240,10 @@ func TestWalk_paths(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			node := unmarshalForTest(t, test.document)
 			paths := []string{}
-			_, err := Walk([]byte(test.document), func(node *yaml.Node, path string) bool {
+			err := Walk(&node, func(node *yaml.Node, path string) {
 				paths = append(paths, path)
-				return true
 			})
 
 			assert.NoError(t, err)
@@ -254,48 +256,41 @@ func TestWalk_inPlaceChanges(t *testing.T) {
 	tests := []struct {
 		name        string
 		in          string
-		callback    func(node *yaml.Node, path string) bool
+		callback    func(node *yaml.Node, path string)
 		expectedOut string
 	}{
 		{
-			name:        "no change",
-			in:          "x: 5",
-			callback:    func(node *yaml.Node, path string) bool { return false },
-			expectedOut: "x: 5",
+			name:     "no change",
+			in:       "x: 5",
+			callback: func(node *yaml.Node, path string) {},
 		},
 		{
 			name: "change value",
 			in:   "x: 5\ny: 3",
-			callback: func(node *yaml.Node, path string) bool {
+			callback: func(node *yaml.Node, path string) {
 				if path == "x" {
 					node.Value = "7"
-					return true
 				}
-				return false
 			},
 			expectedOut: "x: 7\ny: 3\n",
 		},
 		{
 			name: "change nested value",
 			in:   "x:\n  y: 5",
-			callback: func(node *yaml.Node, path string) bool {
+			callback: func(node *yaml.Node, path string) {
 				if path == "x.y" {
 					node.Value = "7"
-					return true
 				}
-				return false
 			},
 			expectedOut: "x:\n  y: 7\n",
 		},
 		{
 			name: "change array value",
 			in:   "x:\n  - y: 5",
-			callback: func(node *yaml.Node, path string) bool {
+			callback: func(node *yaml.Node, path string) {
 				if path == "x[0].y" {
 					node.Value = "7"
-					return true
 				}
-				return false
 			},
 			expectedOut: "x:\n  - y: 7\n",
 		},
@@ -303,28 +298,34 @@ func TestWalk_inPlaceChanges(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := Walk([]byte(test.in), test.callback)
-
+			node := unmarshalForTest(t, test.in)
+			err := Walk(&node, test.callback)
 			assert.NoError(t, err)
-			assert.Equal(t, test.expectedOut, string(result))
+			if test.expectedOut == "" {
+				unmodifiedOriginal := unmarshalForTest(t, test.in)
+				assert.Equal(t, unmodifiedOriginal, node)
+			} else {
+				result := marshalForTest(t, &node)
+				assert.Equal(t, test.expectedOut, result)
+			}
 		})
 	}
 }
 
 func TestTransformNode(t *testing.T) {
-	transformIntValueToString := func(node *yaml.Node) (bool, error) {
+	transformIntValueToString := func(node *yaml.Node) error {
 		if node.Kind == yaml.ScalarNode {
 			if node.ShortTag() == "!!int" {
 				node.Tag = "!!str"
-				return true, nil
+				return nil
 			} else if node.ShortTag() == "!!str" {
 				// We have already transformed it,
-				return false, nil
+				return nil
 			} else {
-				return false, fmt.Errorf("Node was of bad type")
+				return fmt.Errorf("Node was of bad type")
 			}
 		} else {
-			return false, fmt.Errorf("Node was not a scalar")
+			return fmt.Errorf("Node was not a scalar")
 		}
 	}
 
@@ -332,15 +333,14 @@ func TestTransformNode(t *testing.T) {
 		name        string
 		in          string
 		path        []string
-		transform   func(node *yaml.Node) (bool, error)
+		transform   func(node *yaml.Node) error
 		expectedOut string
 	}{
 		{
-			name:        "Path not present",
-			in:          "foo: 1",
-			path:        []string{"bar"},
-			transform:   transformIntValueToString,
-			expectedOut: "foo: 1",
+			name:      "Path not present",
+			in:        "foo: 1",
+			path:      []string{"bar"},
+			transform: transformIntValueToString,
 		},
 		{
 			name: "Part of path present",
@@ -349,9 +349,6 @@ foo:
   bar: 2`,
 			path:      []string{"foo", "baz"},
 			transform: transformIntValueToString,
-			expectedOut: `
-foo:
-  bar: 2`,
 		},
 		{
 			name: "Successfully Transforms to string",
@@ -371,19 +368,42 @@ foo:
   bar: "2"`,
 			path:      []string{"foo", "bar"},
 			transform: transformIntValueToString,
-			expectedOut: `
-foo:
-  bar: "2"`,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := TransformNode([]byte(test.in), test.path, test.transform)
+			node := unmarshalForTest(t, test.in)
+			err := TransformNode(&node, test.path, test.transform)
 			if err != nil {
 				t.Fatal(err)
 			}
-			assert.Equal(t, test.expectedOut, string(result))
+			if test.expectedOut == "" {
+				unmodifiedOriginal := unmarshalForTest(t, test.in)
+				assert.Equal(t, unmodifiedOriginal, node)
+			} else {
+				result := marshalForTest(t, &node)
+				assert.Equal(t, test.expectedOut, result)
+			}
 		})
 	}
+}
+
+func unmarshalForTest(t *testing.T, input string) yaml.Node {
+	t.Helper()
+	var node yaml.Node
+	err := yaml.Unmarshal([]byte(input), &node)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return node
+}
+
+func marshalForTest(t *testing.T, node *yaml.Node) string {
+	t.Helper()
+	result, err := YamlMarshal(node)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(result)
 }
