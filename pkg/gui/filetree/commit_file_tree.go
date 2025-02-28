@@ -27,7 +27,7 @@ type CommitFileTree struct {
 
 func (self *CommitFileTree) CollapseAll() {
 	dirPaths := lo.FilterMap(self.GetAllItems(), func(file *CommitFileNode, index int) (string, bool) {
-		return file.Path, !file.IsFile()
+		return file.path, !file.IsFile()
 	})
 
 	for _, path := range dirPaths {

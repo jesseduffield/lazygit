@@ -183,7 +183,7 @@ func (self *FileTree) ToggleCollapsed(path string) {
 
 func (self *FileTree) CollapseAll() {
 	dirPaths := lo.FilterMap(self.GetAllItems(), func(file *FileNode, index int) (string, bool) {
-		return file.Path, !file.IsFile()
+		return file.path, !file.IsFile()
 	})
 
 	for _, path := range dirPaths {
