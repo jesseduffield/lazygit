@@ -412,7 +412,7 @@ func (self *LocalCommitsController) handleReword(summary string, description str
 	if models.IsHeadCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx()) {
 		// we've selected the top commit so no rebase is required
 		return self.c.Helpers().GPG.WithGpgHandling(self.c.Git().Commit.RewordLastCommit(summary, description),
-			self.c.Tr.CommittingStatus, nil)
+			self.c.Tr.RewordingStatus, nil)
 	}
 
 	return self.c.WithWaitingStatus(self.c.Tr.RewordingStatus, func(gocui.Task) error {
