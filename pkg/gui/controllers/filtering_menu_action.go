@@ -90,6 +90,27 @@ func (self *FilteringMenuAction) Call() error {
 		Tooltip: tooltip,
 	})
 
+	menuItems = append(menuItems, &types.MenuItem{
+		Label: self.c.Tr.FilterDateRangeOption,
+		OnPress: func() error {
+			self.c.Prompt(types.PromptOpts{
+				Title: "Enter start date (YYYY-MM-DD)",
+				HandleConfirm: func(since string) error {
+					self.c.Prompt(types.PromptOpts{
+						Title: "Enter end date (YYYY-MM-DD)",
+						HandleConfirm: func(until string) error {
+							return self.setFilteringDateRange(strings.TrimSpace(since), strings.TrimSpace(until))
+						},
+					})
+					return nil
+				},
+			})
+
+			return nil
+		},
+		Tooltip: tooltip,
+	})
+
 	if self.c.Modes().Filtering.Active() {
 		menuItems = append(menuItems, &types.MenuItem{
 			Label:   self.c.Tr.ExitFilterMode,
@@ -109,6 +130,13 @@ func (self *FilteringMenuAction) setFilteringPath(path string) error {
 func (self *FilteringMenuAction) setFilteringAuthor(author string) error {
 	self.c.Modes().Filtering.Reset()
 	self.c.Modes().Filtering.SetAuthor(author)
+	return self.setFiltering()
+}
+
+func (self *FilteringMenuAction) setFilteringDateRange(since string, until string) error {
+	self.c.Modes().Filtering.Reset()
+	self.c.Modes().Filtering.SetSince(since)
+	self.c.Modes().Filtering.SetUntil(until)
 	return self.setFiltering()
 }
 
