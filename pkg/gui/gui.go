@@ -95,6 +95,8 @@ type Gui struct {
 	// so that you can return to the superproject
 	RepoPathStack *utils.StringStack
 
+	branchesBeingPushed sync.Map // keys: branchName string, value: deadlock.WaitGroup
+
 	// this tells us whether our views have been initially set up
 	ViewsSetup bool
 

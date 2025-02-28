@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -11,21 +12,25 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sasha-s/go-deadlock"
 )
 
 type SyncController struct {
 	baseController
-	c *ControllerCommon
+	c                   *ControllerCommon
+	branchesBeingPushed *sync.Map
 }
 
 var _ types.IController = &SyncController{}
 
 func NewSyncController(
 	common *ControllerCommon,
+	branchesBeingPushed *sync.Map,
 ) *SyncController {
 	return &SyncController{
-		baseController: baseController{},
-		c:              common,
+		baseController:      baseController{},
+		c:                   common,
+		branchesBeingPushed: branchesBeingPushed,
 	}
 }
 
@@ -194,6 +199,12 @@ type pushOpts struct {
 
 func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts) error {
 	return self.c.WithInlineStatus(currentBranch, types.ItemOperationPushing, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
+		val, _ := self.branchesBeingPushed.LoadOrStore(currentBranch.Name, &deadlock.WaitGroup{})
+		wg, ok := val.(*deadlock.WaitGroup)
+		wg.Add(1)
+		if !ok {
+			self.c.Log.Fatalf("Somehow the WaitGroup we put in, didn't come back out as a WaitGroup! Received %s instead of type %t", val, val)
+		}
 		self.c.LogAction(self.c.Tr.Actions.Push)
 		err := self.c.Git().Sync.Push(
 			task,
@@ -229,7 +240,10 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 			}
 			return err
 		}
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Then: func() error {
+			wg.Done()
+			return nil
+		}})
 	})
 }
 
