@@ -370,7 +370,7 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 			// Find if any file in the selection is unselected or partially added
 			adding := lo.SomeBy(selectedNodes, func(node *filetree.CommitFileNode) bool {
 				return node.SomeFile(func(file *models.CommitFile) bool {
-					fileStatus := self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Name, self.context().GetRef().RefName())
+					fileStatus := self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Path, self.context().GetRef().RefName())
 					return fileStatus == patch.PART || fileStatus == patch.UNSELECTED
 				})
 			})
@@ -383,7 +383,7 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 
 			for _, node := range selectedNodes {
 				err := node.ForEachFile(func(file *models.CommitFile) error {
-					return patchOperationFunction(file.Name)
+					return patchOperationFunction(file.Path)
 				})
 				if err != nil {
 					return err

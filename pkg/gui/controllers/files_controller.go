@@ -372,7 +372,7 @@ func (self *FilesController) optimisticChange(nodes []*filetree.FileNode, optimi
 		err := node.ForEachFile(func(f *models.File) error {
 			// can't act on the file itself: we need to update the original model file
 			for _, modelFile := range self.c.Model().Files {
-				if modelFile.Name == f.Name {
+				if modelFile.Path == f.Path {
 					if optimisticChangeFn(modelFile) {
 						rerender = true
 					}
@@ -891,7 +891,7 @@ func (self *FilesController) switchToMerge() error {
 		return nil
 	}
 
-	return self.c.Helpers().MergeConflicts.SwitchToMerge(file.Name)
+	return self.c.Helpers().MergeConflicts.SwitchToMerge(file.Path)
 }
 
 func (self *FilesController) createStashMenu() error {

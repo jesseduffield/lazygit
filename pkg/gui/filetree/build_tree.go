@@ -14,7 +14,7 @@ func BuildTreeFromFiles(files []*models.File) *Node[models.File] {
 
 	var curr *Node[models.File]
 	for _, file := range files {
-		splitPath := split(file.Name)
+		splitPath := split(file.Path)
 		curr = root
 	outer:
 		for i := range splitPath {
@@ -70,7 +70,7 @@ func BuildTreeFromCommitFiles(files []*models.CommitFile) *Node[models.CommitFil
 
 	var curr *Node[models.CommitFile]
 	for _, file := range files {
-		splitPath := split(file.Name)
+		splitPath := split(file.Path)
 		curr = root
 	outer:
 		for i := range splitPath {

@@ -34,17 +34,17 @@ func TestRenderFileTree(t *testing.T) {
 		{
 			name: "leaf node",
 			files: []*models.File{
-				{Name: "test", ShortStatus: " M", HasStagedChanges: true},
+				{Path: "test", ShortStatus: " M", HasStagedChanges: true},
 			},
 			expected: []string{" M test"},
 		},
 		{
 			name: "numstat",
 			files: []*models.File{
-				{Name: "test", ShortStatus: " M", HasStagedChanges: true, LinesAdded: 1, LinesDeleted: 1},
-				{Name: "test2", ShortStatus: " M", HasStagedChanges: true, LinesAdded: 1},
-				{Name: "test3", ShortStatus: " M", HasStagedChanges: true, LinesDeleted: 1},
-				{Name: "test4", ShortStatus: " M", HasStagedChanges: true, LinesAdded: 0, LinesDeleted: 0},
+				{Path: "test", ShortStatus: " M", HasStagedChanges: true, LinesAdded: 1, LinesDeleted: 1},
+				{Path: "test2", ShortStatus: " M", HasStagedChanges: true, LinesAdded: 1},
+				{Path: "test3", ShortStatus: " M", HasStagedChanges: true, LinesDeleted: 1},
+				{Path: "test4", ShortStatus: " M", HasStagedChanges: true, LinesAdded: 0, LinesDeleted: 0},
 			},
 			showLineChanges: true,
 			expected: []string{
@@ -57,12 +57,12 @@ func TestRenderFileTree(t *testing.T) {
 		{
 			name: "big example",
 			files: []*models.File{
-				{Name: "dir1/file2", ShortStatus: "M ", HasUnstagedChanges: true},
-				{Name: "dir1/file3", ShortStatus: "M ", HasUnstagedChanges: true},
-				{Name: "dir2/dir2/file3", ShortStatus: " M", HasStagedChanges: true},
-				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true},
-				{Name: "dir2/file5", ShortStatus: "M ", HasUnstagedChanges: true},
-				{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
+				{Path: "dir1/file2", ShortStatus: "M ", HasUnstagedChanges: true},
+				{Path: "dir1/file3", ShortStatus: "M ", HasUnstagedChanges: true},
+				{Path: "dir2/dir2/file3", ShortStatus: " M", HasStagedChanges: true},
+				{Path: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true},
+				{Path: "dir2/file5", ShortStatus: "M ", HasUnstagedChanges: true},
+				{Path: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
 			},
 			expected: toStringSlice(
 				`
@@ -111,19 +111,19 @@ func TestRenderCommitFileTree(t *testing.T) {
 		{
 			name: "leaf node",
 			files: []*models.CommitFile{
-				{Name: "test", ChangeStatus: "A"},
+				{Path: "test", ChangeStatus: "A"},
 			},
 			expected: []string{"A test"},
 		},
 		{
 			name: "big example",
 			files: []*models.CommitFile{
-				{Name: "dir1/file2", ChangeStatus: "M"},
-				{Name: "dir1/file3", ChangeStatus: "A"},
-				{Name: "dir2/dir2/file3", ChangeStatus: "D"},
-				{Name: "dir2/dir2/file4", ChangeStatus: "M"},
-				{Name: "dir2/file5", ChangeStatus: "M"},
-				{Name: "file1", ChangeStatus: "M"},
+				{Path: "dir1/file2", ChangeStatus: "M"},
+				{Path: "dir1/file3", ChangeStatus: "A"},
+				{Path: "dir2/dir2/file3", ChangeStatus: "D"},
+				{Path: "dir2/dir2/file4", ChangeStatus: "M"},
+				{Path: "dir2/file5", ChangeStatus: "M"},
+				{Path: "file1", ChangeStatus: "M"},
 			},
 			expected: toStringSlice(
 				`

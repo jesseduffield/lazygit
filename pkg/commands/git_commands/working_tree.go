@@ -88,11 +88,11 @@ func (self *WorkingTreeCommands) BeforeAndAfterFileForRename(file *models.File) 
 	var beforeFile *models.File
 	var afterFile *models.File
 	for _, f := range filesWithoutRenames {
-		if f.Name == file.PreviousName {
+		if f.Path == file.PreviousPath {
 			beforeFile = f
 		}
 
-		if f.Name == file.Name {
+		if f.Path == file.Path {
 			afterFile = f
 		}
 	}
@@ -134,13 +134,13 @@ func (self *WorkingTreeCommands) DiscardAllFileChanges(file *models.File) error 
 
 	if file.ShortStatus == "AA" {
 		if err := self.cmd.New(
-			newCheckoutCommand().Arg("--ours", "--", file.Name).ToArgv(),
+			newCheckoutCommand().Arg("--ours", "--", file.Path).ToArgv(),
 		).Run(); err != nil {
 			return err
 		}
 
 		if err := self.cmd.New(
-			NewGitCmd("add").Arg("--", file.Name).ToArgv(),
+			NewGitCmd("add").Arg("--", file.Path).ToArgv(),
 		).Run(); err != nil {
 			return err
 		}
@@ -149,14 +149,14 @@ func (self *WorkingTreeCommands) DiscardAllFileChanges(file *models.File) error 
 
 	if file.ShortStatus == "DU" {
 		return self.cmd.New(
-			NewGitCmd("rm").Arg("--", file.Name).ToArgv(),
+			NewGitCmd("rm").Arg("--", file.Path).ToArgv(),
 		).Run()
 	}
 
 	// if the file isn't tracked, we assume you want to delete it
 	if file.HasStagedChanges || file.HasMergeConflicts {
 		if err := self.cmd.New(
-			NewGitCmd("reset").Arg("--", file.Name).ToArgv(),
+			NewGitCmd("reset").Arg("--", file.Path).ToArgv(),
 		).Run(); err != nil {
 			return err
 		}
@@ -167,7 +167,7 @@ func (self *WorkingTreeCommands) DiscardAllFileChanges(file *models.File) error 
 	}
 
 	if file.Added {
-		return self.os.RemoveFile(file.Name)
+		return self.os.RemoveFile(file.Path)
 	}
 
 	return self.DiscardUnstagedFileChanges(file)
@@ -199,7 +199,7 @@ func (self *WorkingTreeCommands) DiscardUnstagedDirChanges(node IFileNode) error
 		}
 	} else {
 		if file.Added && !file.HasStagedChanges {
-			return self.os.RemoveFile(file.Name)
+			return self.os.RemoveFile(file.Path)
 		}
 
 		if err := self.DiscardUnstagedFileChanges(file); err != nil {
@@ -226,7 +226,7 @@ func (self *WorkingTreeCommands) RemoveUntrackedDirFiles(node IFileNode) error {
 }
 
 func (self *WorkingTreeCommands) DiscardUnstagedFileChanges(file *models.File) error {
-	cmdArgs := newCheckoutCommand().Arg("--", file.Name).ToArgv()
+	cmdArgs := newCheckoutCommand().Arg("--", file.Path).ToArgv()
 	return self.cmd.New(cmdArgs).Run()
 }
 

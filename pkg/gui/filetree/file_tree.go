@@ -123,7 +123,7 @@ func (self *FileTree) Get(index int) *FileNode {
 
 func (self *FileTree) GetFile(path string) *models.File {
 	for _, file := range self.getFiles() {
-		if file.Name == path {
+		if file.Path == path {
 			return file
 		}
 	}

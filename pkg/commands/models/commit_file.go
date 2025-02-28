@@ -2,18 +2,17 @@ package models
 
 // CommitFile : A git commit file
 type CommitFile struct {
-	// TODO: rename this to Path
-	Name string
+	Path string
 
 	ChangeStatus string // e.g. 'A' for added or 'M' for modified. This is based on the result from git diff --name-status
 }
 
 func (f *CommitFile) ID() string {
-	return f.Name
+	return f.Path
 }
 
 func (f *CommitFile) Description() string {
-	return f.Name
+	return f.Path
 }
 
 func (f *CommitFile) Added() bool {
@@ -25,5 +24,5 @@ func (f *CommitFile) Deleted() bool {
 }
 
 func (f *CommitFile) GetPath() string {
-	return f.Name
+	return f.Path
 }

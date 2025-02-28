@@ -8,8 +8,8 @@ import (
 // File : A file from git status
 // duplicating this for now
 type File struct {
-	Name                    string
-	PreviousName            string
+	Path                    string
+	PreviousPath            string
 	HasStagedChanges        bool
 	HasUnstagedChanges      bool
 	Tracked                 bool
@@ -37,14 +37,14 @@ type IFile interface {
 }
 
 func (f *File) IsRename() bool {
-	return f.PreviousName != ""
+	return f.PreviousPath != ""
 }
 
 // Names returns an array containing just the filename, or in the case of a rename, the after filename and the before filename
 func (f *File) Names() []string {
-	result := []string{f.Name}
-	if f.PreviousName != "" {
-		result = append(result, f.PreviousName)
+	result := []string{f.Path}
+	if f.PreviousPath != "" {
+		result = append(result, f.PreviousPath)
 	}
 	return result
 }
@@ -55,11 +55,11 @@ func (f *File) Matches(f2 *File) bool {
 }
 
 func (f *File) ID() string {
-	return f.Name
+	return f.Path
 }
 
 func (f *File) Description() string {
-	return f.Name
+	return f.Path
 }
 
 func (f *File) IsSubmodule(configs []*SubmoduleConfig) bool {
@@ -68,7 +68,7 @@ func (f *File) IsSubmodule(configs []*SubmoduleConfig) bool {
 
 func (f *File) SubmoduleConfig(configs []*SubmoduleConfig) *SubmoduleConfig {
 	for _, config := range configs {
-		if f.Name == config.Path {
+		if f.Path == config.Path {
 			return config
 		}
 	}
@@ -90,11 +90,11 @@ func (f *File) GetIsTracked() bool {
 
 func (f *File) GetPath() string {
 	// TODO: remove concept of name; just use path
-	return f.Name
+	return f.Path
 }
 
 func (f *File) GetPreviousPath() string {
-	return f.PreviousName
+	return f.PreviousPath
 }
 
 func (f *File) GetIsFile() bool {
