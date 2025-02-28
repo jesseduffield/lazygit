@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -12,18 +13,21 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
+	"github.com/sasha-s/go-deadlock"
 )
 
 type BranchesController struct {
 	baseController
 	*ListControllerTrait[*models.Branch]
-	c *ControllerCommon
+	c                   *ControllerCommon
+	branchesBeingPushed *sync.Map
 }
 
 var _ types.IController = &BranchesController{}
 
 func NewBranchesController(
 	c *ControllerCommon,
+	branchesBeingPushed *sync.Map,
 ) *BranchesController {
 	return &BranchesController{
 		baseController: baseController{},
@@ -34,6 +38,7 @@ func NewBranchesController(
 			c.Contexts().Branches.GetSelected,
 			c.Contexts().Branches.GetSelectedItems,
 		),
+		branchesBeingPushed: branchesBeingPushed,
 	}
 }
 
@@ -421,11 +426,35 @@ func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktr
 	return nil
 }
 
-func (self *BranchesController) handleCreatePullRequest(selectedBranch *models.Branch) error {
-	if !selectedBranch.IsTrackingRemote() {
-		return errors.New(self.c.Tr.PullRequestNoUpstream)
+func (self *BranchesController) blockForBranchFinishPush(branch *models.Branch) *models.Branch {
+	if val, ok := self.branchesBeingPushed.Load(branch.Name); ok {
+		// We only store waitgroups in here, so there isn't much thought into the false case
+		if wg, ok := val.(*deadlock.WaitGroup); ok {
+			wg.Wait()
+			// When we refresh after a branch push, the entire branch list gets replaced, so we must re-retrieve the
+			// branch pointer. The currently selected item might have changed since we initially requested the pull request,
+			// but the commit hash should continue to be the same.
+			updatedBranch, found := lo.Find(self.context().ListViewModel.GetItems(), func(b *models.Branch) bool {
+				return b.CommitHash == branch.CommitHash
+			})
+			// If it _isn't_ found, something wack is going on, so lets stick with the original
+			if found {
+				branch = updatedBranch
+			}
+		}
 	}
-	return self.createPullRequest(selectedBranch.UpstreamBranch, "")
+	return branch
+}
+
+func (self *BranchesController) handleCreatePullRequest(selectedBranch *models.Branch) error {
+	self.c.OnWorker(func(_ gocui.Task) error {
+		selectedBranch = self.blockForBranchFinishPush(selectedBranch)
+		if !selectedBranch.IsTrackingRemote() {
+			return errors.New(self.c.Tr.PullRequestNoUpstream)
+		}
+		return self.createPullRequest(selectedBranch.UpstreamBranch, "")
+	})
+	return nil
 }
 
 func (self *BranchesController) handleCreatePullRequestMenu(selectedBranch *models.Branch) error {

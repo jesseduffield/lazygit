@@ -53,10 +53,6 @@ func NewRefreshHelper(
 }
 
 func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
-	if options.Mode == types.ASYNC && options.Then != nil {
-		panic("RefreshOptions.Then doesn't work with mode ASYNC")
-	}
-
 	t := time.Now()
 	defer func() {
 		self.c.Log.Infof("Refresh took %s", time.Since(t))
@@ -103,8 +99,10 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			// everything happens fast and it's better to have everything update
 			// in the one frame
 			if !self.c.InDemo() && options.Mode == types.ASYNC {
+				wg.Add(1)
 				self.c.OnWorker(func(t gocui.Task) error {
 					f()
+					wg.Done()
 					return nil
 				})
 			} else {
@@ -189,11 +187,20 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 
 		self.refreshStatus()
 
-		wg.Wait()
-
-		if options.Then != nil {
-			if err := options.Then(); err != nil {
-				return err
+		if options.Mode == types.ASYNC {
+			self.c.OnWorker(func(t gocui.Task) error {
+				wg.Wait()
+				if options.Then != nil {
+					return options.Then()
+				}
+				return nil
+			})
+		} else {
+			wg.Wait()
+			if options.Then != nil {
+				if err := options.Then(); err != nil {
+					return err
+				}
 			}
 		}
 
