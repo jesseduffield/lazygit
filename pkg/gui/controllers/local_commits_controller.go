@@ -409,16 +409,13 @@ func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepat
 }
 
 func (self *LocalCommitsController) handleReword(summary string, description string) error {
-	var err error
-
 	if models.IsHeadCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx()) {
 		// we've selected the top commit so no rebase is required
-		err = self.c.Helpers().GPG.WithGpgHandling(self.c.Git().Commit.RewordLastCommit(summary, description),
+		return self.c.Helpers().GPG.WithGpgHandling(self.c.Git().Commit.RewordLastCommit(summary, description),
 			self.c.Tr.CommittingStatus, nil)
-	} else {
-		err = self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), summary, description)
 	}
 
+	err := self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), summary, description)
 	if err != nil {
 		return err
 	}
