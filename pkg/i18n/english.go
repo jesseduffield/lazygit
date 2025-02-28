@@ -80,11 +80,13 @@ type TranslationSet struct {
 	CopyFileDiffTooltip                   string
 	CopySelectedDiff                      string
 	CopyAllFilesDiff                      string
+	CopyFileContent                       string
 	NoContentToCopyError                  string
 	FileNameCopiedToast                   string
 	FilePathCopiedToast                   string
 	FileDiffCopiedToast                   string
 	AllFilesDiffCopiedToast               string
+	FileContentCopiedToast                string
 	FilterStagedFiles                     string
 	FilterUnstagedFiles                   string
 	FilterTrackedFiles                    string
@@ -695,6 +697,7 @@ type TranslationSet struct {
 	PatchCopiedToClipboard                   string
 	CopiedToClipboard                        string
 	ErrCannotEditDirectory                   string
+	ErrCannotCopyContentOfDirectory          string
 	ErrStageDirWithInlineMergeConflicts      string
 	ErrRepositoryMovedOrDeleted              string
 	ErrWorktreeMovedOrRemoved                string
@@ -1119,11 +1122,13 @@ func EnglishTranslationSet() *TranslationSet {
 		CopyFileDiffTooltip:                  "If there are staged items, this command considers only them. Otherwise, it considers all the unstaged ones.",
 		CopySelectedDiff:                     "Diff of selected file",
 		CopyAllFilesDiff:                     "Diff of all files",
+		CopyFileContent:                      "Content of selected file",
 		NoContentToCopyError:                 "Nothing to copy",
 		FileNameCopiedToast:                  "File name copied to clipboard",
 		FilePathCopiedToast:                  "File path copied to clipboard",
 		FileDiffCopiedToast:                  "File diff copied to clipboard",
 		AllFilesDiffCopiedToast:              "All files diff copied to clipboard",
+		FileContentCopiedToast:               "File content copied to clipboard",
 		FilterStagedFiles:                    "Show only staged files",
 		FilterUnstagedFiles:                  "Show only unstaged files",
 		FilterTrackedFiles:                   "Show only tracked files",
@@ -1735,6 +1740,7 @@ func EnglishTranslationSet() *TranslationSet {
 		PatchCopiedToClipboard:                   "Patch copied to clipboard",
 		CopiedToClipboard:                        "copied to clipboard",
 		ErrCannotEditDirectory:                   "Cannot edit directories: you can only edit individual files",
+		ErrCannotCopyContentOfDirectory:          "Cannot copy content of directories: you can only copy content of individual files",
 		ErrStageDirWithInlineMergeConflicts:      "Cannot stage/unstage directory containing files with inline merge conflicts. Please fix up the merge conflicts first",
 		ErrRepositoryMovedOrDeleted:              "Cannot find repo. It might have been moved or deleted ¯\\_(ツ)_/¯",
 		CommandLog:                               "Command log",
