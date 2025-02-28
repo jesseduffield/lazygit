@@ -422,7 +422,6 @@ func (self *LocalCommitsController) handleReword(summary string, description str
 	if err != nil {
 		return err
 	}
-	self.c.Helpers().Commits.OnCommitSuccess()
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
