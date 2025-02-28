@@ -221,7 +221,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 	copyPathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyFilePath,
 		OnPress: func() error {
-			if err := self.c.OS().CopyToClipboard(node.Path); err != nil {
+			if err := self.c.OS().CopyToClipboard(node.GetPath()); err != nil {
 				return err
 			}
 			self.c.Toast(self.c.Tr.FilePathCopiedToast)

@@ -410,7 +410,7 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 
 	toPaths := func(nodes []*filetree.FileNode) []string {
 		return lo.Map(nodes, func(node *filetree.FileNode, _ int) string {
-			return node.Path
+			return node.GetPath()
 		})
 	}
 
@@ -875,7 +875,7 @@ func (self *FilesController) openDiffTool(node *filetree.FileNode) error {
 	return self.c.RunSubprocessAndRefresh(
 		self.c.Git().Diff.OpenDiffToolCmdObj(
 			git_commands.DiffToolCmdOptions{
-				Filepath:    node.Path,
+				Filepath:    node.GetPath(),
 				FromCommit:  fromCommit,
 				ToCommit:    "",
 				Reverse:     reverse,
@@ -973,7 +973,7 @@ func (self *FilesController) openCopyMenu() error {
 	copyPathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyFilePath,
 		OnPress: func() error {
-			if err := self.c.OS().CopyToClipboard(node.Path); err != nil {
+			if err := self.c.OS().CopyToClipboard(node.GetPath()); err != nil {
 				return err
 			}
 			self.c.Toast(self.c.Tr.FilePathCopiedToast)

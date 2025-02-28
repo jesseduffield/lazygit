@@ -293,7 +293,7 @@ func getColorForChangeStatus(changeStatus string) style.TextStyle {
 }
 
 func fileNameAtDepth(node *filetree.Node[models.File], depth int) string {
-	splitName := split(node.Path)
+	splitName := split(node.GetPath())
 	name := join(splitName[depth:])
 
 	if node.File != nil && node.File.IsRename() {
@@ -314,7 +314,7 @@ func fileNameAtDepth(node *filetree.Node[models.File], depth int) string {
 }
 
 func commitFileNameAtDepth(node *filetree.Node[models.CommitFile], depth int) string {
-	splitName := split(node.Path)
+	splitName := split(node.GetPath())
 	name := join(splitName[depth:])
 
 	return name
