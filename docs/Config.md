@@ -280,6 +280,11 @@ git:
     # ydiff -p cat -s --wrap --width={{columnWidth}}
     pager: ""
 
+    # e.g.
+    # delta --dark --paging=never --color-only
+    # diff-so-fancy --patch
+    pagerForStaging: ""
+
     # If true, Lazygit will use whatever pager is specified in `$GIT_PAGER`, `$PAGER`, or your *git config*. If the pager ends with something like ` | less` we will strip that part out, because less doesn't play nice with our rendering approach. If the custom pager uses less under the hood, that will also break rendering (hence the `--paging=never` flag for the `delta` pager).
     useConfig: false
 
