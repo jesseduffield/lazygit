@@ -41,7 +41,7 @@ func BuildTreeFromFiles(files []*models.File) *Node[models.File] {
 			}
 
 			newChild := &Node[models.File]{
-				Path: path,
+				path: path,
 				File: setFile,
 			}
 			curr.Children = append(curr.Children, newChild)
@@ -83,14 +83,14 @@ func BuildTreeFromCommitFiles(files []*models.CommitFile) *Node[models.CommitFil
 			path := join(splitPath[:i+1])
 
 			for _, existingChild := range curr.Children {
-				if existingChild.Path == path {
+				if existingChild.path == path {
 					curr = existingChild
 					continue outer
 				}
 			}
 
 			newChild := &Node[models.CommitFile]{
-				Path: path,
+				path: path,
 				File: setFile,
 			}
 			curr.Children = append(curr.Children, newChild)

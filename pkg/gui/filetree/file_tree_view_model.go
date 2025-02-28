@@ -103,7 +103,7 @@ func (self *FileTreeViewModel) SetTree() {
 
 	// for when you stage the old file of a rename and the new file is in a collapsed dir
 	for _, file := range newFiles {
-		if selectedNode != nil && selectedNode.Path != "" && file.PreviousPath == selectedNode.Path {
+		if selectedNode != nil && selectedNode.path != "" && file.PreviousPath == selectedNode.path {
 			self.ExpandToPath(file.Path)
 		}
 	}
@@ -139,7 +139,7 @@ func (self *FileTreeViewModel) findNewSelectedIdx(prevNodes []*FileNode, currNod
 		if node.File != nil && node.File.IsRename() {
 			return node.File.Names()
 		} else {
-			return []string{node.Path}
+			return []string{node.path}
 		}
 	}
 
@@ -151,7 +151,7 @@ func (self *FileTreeViewModel) findNewSelectedIdx(prevNodes []*FileNode, currNod
 
 			// If you started off with a rename selected, and now it's broken in two, we want you to jump to the new file, not the old file.
 			// This is because the new should be in the same position as the rename was meaning less cursor jumping
-			foundOldFileInRename := prevNode.File != nil && prevNode.File.IsRename() && node.Path == prevNode.File.PreviousPath
+			foundOldFileInRename := prevNode.File != nil && prevNode.File.IsRename() && node.path == prevNode.File.PreviousPath
 			foundNode := utils.StringArraysOverlap(paths, selectedPaths) && !foundOldFileInRename
 			if foundNode {
 				return idx
@@ -178,12 +178,12 @@ func (self *FileTreeViewModel) ToggleShowTree() {
 	if selectedNode == nil {
 		return
 	}
-	path := selectedNode.Path
+	path := selectedNode.path
 
 	if self.InTreeMode() {
 		self.ExpandToPath(path)
 	} else if len(selectedNode.Children) > 0 {
-		path = selectedNode.GetLeaves()[0].Path
+		path = selectedNode.GetLeaves()[0].path
 	}
 
 	index, found := self.GetIndexForPath(path)
@@ -200,7 +200,7 @@ func (self *FileTreeViewModel) CollapseAll() {
 		return
 	}
 
-	topLevelPath := strings.Split(selectedNode.Path, "/")[0]
+	topLevelPath := strings.Split(selectedNode.path, "/")[0]
 	index, found := self.GetIndexForPath(topLevelPath)
 	if found {
 		self.SetSelectedLineIdx(index)
@@ -216,7 +216,7 @@ func (self *FileTreeViewModel) ExpandAll() {
 		return
 	}
 
-	index, found := self.GetIndexForPath(selectedNode.Path)
+	index, found := self.GetIndexForPath(selectedNode.path)
 	if found {
 		self.SetSelectedLineIdx(index)
 	}
