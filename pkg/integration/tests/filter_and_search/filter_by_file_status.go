@@ -29,8 +29,9 @@ var FilterByFileStatus = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			Focus().
 			Lines(
-				Equals("A  file-staged-but-untracked").IsSelected(),
-				Equals(" M file-tracked"),
+				Equals("▼ /").IsSelected(),
+				Equals("  A  file-staged-but-untracked"),
+				Equals("   M file-tracked"),
 			).
 			Press(keys.Files.OpenStatusFilter).
 			Tap(func() {
@@ -50,8 +51,9 @@ var FilterByFileStatus = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Equals("A  file-staged-but-untracked").IsSelected(),
-				Equals(" M file-tracked"),
+				Equals("▼ /").IsSelected(),
+				Equals("  A  file-staged-but-untracked"),
+				Equals("   M file-tracked"),
 			).
 			Press(keys.Files.OpenStatusFilter).
 			Tap(func() {
@@ -61,8 +63,9 @@ var FilterByFileStatus = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Equals("A  file-staged-but-untracked").IsSelected(),
-				Equals(" M file-tracked"),
+				Equals("▼ /").IsSelected(),
+				Equals("  A  file-staged-but-untracked"),
+				Equals("   M file-tracked"),
 			)
 	},
 })

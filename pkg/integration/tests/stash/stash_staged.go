@@ -23,8 +23,9 @@ var StashStaged = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			Lines(
-				Equals("M  file-staged"),
-				Equals(" M file-unstaged"),
+				Equals("▼ /"),
+				Equals("  M  file-staged"),
+				Equals("   M file-unstaged"),
 			).
 			Press(keys.Files.ViewStashOptions)
 

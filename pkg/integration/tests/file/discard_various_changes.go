@@ -21,11 +21,17 @@ var DiscardVariousChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			label  string
 		}
 
+		t.Views().Files().
+			IsFocused().
+			TopLines(
+				Equals("▼ /").IsSelected(),
+			)
+
 		discardOneByOne := func(files []statusFile) {
 			for _, file := range files {
 				t.Views().Files().
 					IsFocused().
-					SelectedLine(Contains(file.status + " " + file.label)).
+					NavigateToLine(Contains(file.status + " " + file.label)).
 					Press(keys.Universal.Remove)
 
 				t.ExpectPopup().Menu().

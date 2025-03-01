@@ -66,11 +66,12 @@ var MoveToEarlierCommitNoKeepEmpty = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Equals("▼ dir").IsSelected(),
-				Equals("  M file1"),
-				Equals("  D file2"),
-				Equals("  A file3"),
-				Equals("A unrelated-file"),
+				Equals("▼ /").IsSelected(),
+				Equals("  ▼ dir"),
+				Equals("    M file1"),
+				Equals("    D file2"),
+				Equals("    A file3"),
+				Equals("  A unrelated-file"),
 			).
 			PressEscape()
 	},

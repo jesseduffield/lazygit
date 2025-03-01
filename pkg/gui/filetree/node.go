@@ -20,7 +20,7 @@ type Node[T any] struct {
 	Children []*Node[T]
 
 	// path of the file/directory
-	// private; use GetPath() to access
+	// private; use either GetPath() or GetInternalPath() to access
 	path string
 
 	// rather than render a tree as:
@@ -47,7 +47,19 @@ func (self *Node[T]) GetFile() *T {
 	return self.File
 }
 
+// This returns the logical path from the user's point of view. It is the
+// relative path from the root of the repository.
+// Use this for display, or when you want to perform some action on the path
+// (e.g. a git command).
 func (self *Node[T]) GetPath() string {
+	return strings.TrimPrefix(self.path, "./")
+}
+
+// This returns the internal path from the tree's point of view. It's the same
+// as GetPath(), but prefixed with "./" for the root item.
+// Use this when interacting with the tree itself, e.g. when calling
+// ToggleCollapsed.
+func (self *Node[T]) GetInternalPath() string {
 	return self.path
 }
 

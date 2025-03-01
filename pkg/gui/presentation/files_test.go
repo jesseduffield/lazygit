@@ -48,10 +48,11 @@ func TestRenderFileTree(t *testing.T) {
 			},
 			showLineChanges: true,
 			expected: []string{
-				" M test +1 -1",
-				" M test2 +1",
-				" M test3 -1",
-				" M test4",
+				"▼ /",
+				"   M test +1 -1",
+				"   M test2 +1",
+				"   M test3 -1",
+				"   M test4",
 			},
 		},
 		{
@@ -66,16 +67,17 @@ func TestRenderFileTree(t *testing.T) {
 			},
 			expected: toStringSlice(
 				`
-▶ dir1
-▼ dir2
+▼ /
+  ▶ dir1
   ▼ dir2
-     M file3
-    M  file4
-  M  file5
-M  file1
+    ▼ dir2
+       M file3
+      M  file4
+    M  file5
+  M  file1
 `,
 			),
-			collapsedPaths: []string{"dir1"},
+			collapsedPaths: []string{"./dir1"},
 		},
 	}
 
@@ -127,16 +129,17 @@ func TestRenderCommitFileTree(t *testing.T) {
 			},
 			expected: toStringSlice(
 				`
-▶ dir1
-▼ dir2
+▼ /
+  ▶ dir1
   ▼ dir2
-    D file3
-    M file4
-  M file5
-M file1
+    ▼ dir2
+      D file3
+      M file4
+    M file5
+  M file1
 `,
 			),
-			collapsedPaths: []string{"dir1"},
+			collapsedPaths: []string{"./dir1"},
 		},
 	}
 

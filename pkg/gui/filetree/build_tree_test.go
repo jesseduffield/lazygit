@@ -35,15 +35,16 @@ func TestBuildTreeFromFiles(t *testing.T) {
 				path: "",
 				Children: []*Node[models.File]{
 					{
-						path: "dir1",
+						path:             "./dir1",
+						CompressionLevel: 1,
 						Children: []*Node[models.File]{
 							{
 								File: &models.File{Path: "dir1/a"},
-								path: "dir1/a",
+								path: "./dir1/a",
 							},
 							{
 								File: &models.File{Path: "dir1/b"},
-								path: "dir1/b",
+								path: "./dir1/b",
 							},
 						},
 					},
@@ -64,24 +65,29 @@ func TestBuildTreeFromFiles(t *testing.T) {
 				path: "",
 				Children: []*Node[models.File]{
 					{
-						path: "dir1/dir3",
+						path: ".",
 						Children: []*Node[models.File]{
 							{
-								File: &models.File{Path: "dir1/dir3/a"},
-								path: "dir1/dir3/a",
+								path: "./dir1/dir3",
+								Children: []*Node[models.File]{
+									{
+										File: &models.File{Path: "dir1/dir3/a"},
+										path: "./dir1/dir3/a",
+									},
+								},
+								CompressionLevel: 1,
 							},
-						},
-						CompressionLevel: 1,
-					},
-					{
-						path: "dir2/dir4",
-						Children: []*Node[models.File]{
 							{
-								File: &models.File{Path: "dir2/dir4/b"},
-								path: "dir2/dir4/b",
+								path: "./dir2/dir4",
+								Children: []*Node[models.File]{
+									{
+										File: &models.File{Path: "dir2/dir4/b"},
+										path: "./dir2/dir4/b",
+									},
+								},
+								CompressionLevel: 1,
 							},
 						},
-						CompressionLevel: 1,
 					},
 				},
 			},
@@ -100,12 +106,17 @@ func TestBuildTreeFromFiles(t *testing.T) {
 				path: "",
 				Children: []*Node[models.File]{
 					{
-						File: &models.File{Path: "a"},
-						path: "a",
-					},
-					{
-						File: &models.File{Path: "b"},
-						path: "b",
+						path: ".",
+						Children: []*Node[models.File]{
+							{
+								File: &models.File{Path: "a"},
+								path: "./a",
+							},
+							{
+								File: &models.File{Path: "b"},
+								path: "./b",
+							},
+						},
 					},
 				},
 			},
@@ -126,20 +137,25 @@ func TestBuildTreeFromFiles(t *testing.T) {
 			},
 			expected: &Node[models.File]{
 				path: "",
-				// it is a little strange that we're not bubbling up our merge conflict
-				// here but we are technically still in tree mode and that's the rule
 				Children: []*Node[models.File]{
 					{
-						File: &models.File{Path: "a"},
-						path: "a",
-					},
-					{
-						File: &models.File{Path: "b"},
-						path: "b",
-					},
-					{
-						File: &models.File{Path: "z", HasMergeConflicts: true},
-						path: "z",
+						path: ".",
+						// it is a little strange that we're not bubbling up our merge conflict
+						// here but we are technically still in tree mode and that's the rule
+						Children: []*Node[models.File]{
+							{
+								File: &models.File{Path: "a"},
+								path: "./a",
+							},
+							{
+								File: &models.File{Path: "b"},
+								path: "./b",
+							},
+							{
+								File: &models.File{Path: "z", HasMergeConflicts: true},
+								path: "./z",
+							},
+						},
 					},
 				},
 			},
@@ -183,12 +199,12 @@ func TestBuildFlatTreeFromFiles(t *testing.T) {
 				Children: []*Node[models.File]{
 					{
 						File:             &models.File{Path: "dir1/a"},
-						path:             "dir1/a",
+						path:             "./dir1/a",
 						CompressionLevel: 0,
 					},
 					{
 						File:             &models.File{Path: "dir1/b"},
-						path:             "dir1/b",
+						path:             "./dir1/b",
 						CompressionLevel: 0,
 					},
 				},
@@ -209,12 +225,12 @@ func TestBuildFlatTreeFromFiles(t *testing.T) {
 				Children: []*Node[models.File]{
 					{
 						File:             &models.File{Path: "dir1/a"},
-						path:             "dir1/a",
+						path:             "./dir1/a",
 						CompressionLevel: 0,
 					},
 					{
 						File:             &models.File{Path: "dir2/b"},
-						path:             "dir2/b",
+						path:             "./dir2/b",
 						CompressionLevel: 0,
 					},
 				},
@@ -235,11 +251,11 @@ func TestBuildFlatTreeFromFiles(t *testing.T) {
 				Children: []*Node[models.File]{
 					{
 						File: &models.File{Path: "a"},
-						path: "a",
+						path: "./a",
 					},
 					{
 						File: &models.File{Path: "b"},
-						path: "b",
+						path: "./b",
 					},
 				},
 			},
@@ -277,27 +293,27 @@ func TestBuildFlatTreeFromFiles(t *testing.T) {
 				Children: []*Node[models.File]{
 					{
 						File: &models.File{Path: "c1", HasMergeConflicts: true},
-						path: "c1",
+						path: "./c1",
 					},
 					{
 						File: &models.File{Path: "c2", HasMergeConflicts: true},
-						path: "c2",
+						path: "./c2",
 					},
 					{
 						File: &models.File{Path: "b1", Tracked: true},
-						path: "b1",
+						path: "./b1",
 					},
 					{
 						File: &models.File{Path: "b2", Tracked: true},
-						path: "b2",
+						path: "./b2",
 					},
 					{
 						File: &models.File{Path: "a1", Tracked: false},
-						path: "a1",
+						path: "./a1",
 					},
 					{
 						File: &models.File{Path: "a2", Tracked: false},
-						path: "a2",
+						path: "./a2",
 					},
 				},
 			},
@@ -340,15 +356,16 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 				path: "",
 				Children: []*Node[models.CommitFile]{
 					{
-						path: "dir1",
+						path:             "./dir1",
+						CompressionLevel: 1,
 						Children: []*Node[models.CommitFile]{
 							{
 								File: &models.CommitFile{Path: "dir1/a"},
-								path: "dir1/a",
+								path: "./dir1/a",
 							},
 							{
 								File: &models.CommitFile{Path: "dir1/b"},
-								path: "dir1/b",
+								path: "./dir1/b",
 							},
 						},
 					},
@@ -369,24 +386,29 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 				path: "",
 				Children: []*Node[models.CommitFile]{
 					{
-						path: "dir1/dir3",
+						path: ".",
 						Children: []*Node[models.CommitFile]{
 							{
-								File: &models.CommitFile{Path: "dir1/dir3/a"},
-								path: "dir1/dir3/a",
+								path: "./dir1/dir3",
+								Children: []*Node[models.CommitFile]{
+									{
+										File: &models.CommitFile{Path: "dir1/dir3/a"},
+										path: "./dir1/dir3/a",
+									},
+								},
+								CompressionLevel: 1,
 							},
-						},
-						CompressionLevel: 1,
-					},
-					{
-						path: "dir2/dir4",
-						Children: []*Node[models.CommitFile]{
 							{
-								File: &models.CommitFile{Path: "dir2/dir4/b"},
-								path: "dir2/dir4/b",
+								path: "./dir2/dir4",
+								Children: []*Node[models.CommitFile]{
+									{
+										File: &models.CommitFile{Path: "dir2/dir4/b"},
+										path: "./dir2/dir4/b",
+									},
+								},
+								CompressionLevel: 1,
 							},
 						},
-						CompressionLevel: 1,
 					},
 				},
 			},
@@ -405,12 +427,17 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 				path: "",
 				Children: []*Node[models.CommitFile]{
 					{
-						File: &models.CommitFile{Path: "a"},
-						path: "a",
-					},
-					{
-						File: &models.CommitFile{Path: "b"},
-						path: "b",
+						path: ".",
+						Children: []*Node[models.CommitFile]{
+							{
+								File: &models.CommitFile{Path: "a"},
+								path: "./a",
+							},
+							{
+								File: &models.CommitFile{Path: "b"},
+								path: "./b",
+							},
+						},
 					},
 				},
 			},
@@ -454,12 +481,12 @@ func TestBuildFlatTreeFromCommitFiles(t *testing.T) {
 				Children: []*Node[models.CommitFile]{
 					{
 						File:             &models.CommitFile{Path: "dir1/a"},
-						path:             "dir1/a",
+						path:             "./dir1/a",
 						CompressionLevel: 0,
 					},
 					{
 						File:             &models.CommitFile{Path: "dir1/b"},
-						path:             "dir1/b",
+						path:             "./dir1/b",
 						CompressionLevel: 0,
 					},
 				},
@@ -480,12 +507,12 @@ func TestBuildFlatTreeFromCommitFiles(t *testing.T) {
 				Children: []*Node[models.CommitFile]{
 					{
 						File:             &models.CommitFile{Path: "dir1/a"},
-						path:             "dir1/a",
+						path:             "./dir1/a",
 						CompressionLevel: 0,
 					},
 					{
 						File:             &models.CommitFile{Path: "dir2/b"},
-						path:             "dir2/b",
+						path:             "./dir2/b",
 						CompressionLevel: 0,
 					},
 				},
@@ -506,11 +533,11 @@ func TestBuildFlatTreeFromCommitFiles(t *testing.T) {
 				Children: []*Node[models.CommitFile]{
 					{
 						File: &models.CommitFile{Path: "a"},
-						path: "a",
+						path: "./a",
 					},
 					{
 						File: &models.CommitFile{Path: "b"},
-						path: "b",
+						path: "./b",
 					},
 				},
 			},

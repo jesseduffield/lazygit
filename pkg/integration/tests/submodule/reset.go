@@ -71,15 +71,17 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().Focus().
 			Lines(
-				Equals(" M my_submodule_path (submodule)"),
-				Equals("?? other_file").IsSelected(),
+				Equals("▼ /"),
+				Equals("   M my_submodule_path (submodule)"),
+				Equals("  ?? other_file").IsSelected(),
 			).
 			// Verify we can't use range select on submodules
 			Press(keys.Universal.ToggleRangeSelect).
 			SelectPreviousItem().
 			Lines(
-				Equals(" M my_submodule_path (submodule)").IsSelected(),
-				Equals("?? other_file").IsSelected(),
+				Equals("▼ /"),
+				Equals("   M my_submodule_path (submodule)").IsSelected(),
+				Equals("  ?? other_file").IsSelected(),
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
@@ -87,8 +89,9 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Press(keys.Universal.ToggleRangeSelect).
 			Lines(
-				Equals(" M my_submodule_path (submodule)").IsSelected(),
-				Equals("?? other_file"),
+				Equals("▼ /"),
+				Equals("   M my_submodule_path (submodule)").IsSelected(),
+				Equals("  ?? other_file"),
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {

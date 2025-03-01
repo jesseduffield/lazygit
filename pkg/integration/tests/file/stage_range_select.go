@@ -26,14 +26,15 @@ var StageRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Equals("▼ dir1").IsSelected(),
-				Equals("  ?? file-a"),
-				Equals("  ?? file-b"),
-				Equals("▼ dir2"),
-				Equals("  ?? file-c"),
-				Equals("   M file-d"),
-				Equals("?? file-e"),
-				Equals("?? file-f"),
+				Equals("▼ /").IsSelected(),
+				Equals("  ▼ dir1"),
+				Equals("    ?? file-a"),
+				Equals("    ?? file-b"),
+				Equals("  ▼ dir2"),
+				Equals("    ?? file-c"),
+				Equals("     M file-d"),
+				Equals("  ?? file-e"),
+				Equals("  ?? file-f"),
 			).
 			NavigateToLine(Contains("file-b")).
 			Press(keys.Universal.ToggleRangeSelect).
@@ -41,27 +42,29 @@ var StageRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			// Stage
 			PressPrimaryAction().
 			Lines(
-				Equals("▼ dir1"),
-				Equals("  ?? file-a"),
-				Equals("  A  file-b").IsSelected(),
-				Equals("▼ dir2").IsSelected(),
-				Equals("  A  file-c").IsSelected(),
+				Equals("▼ /"),
+				Equals("  ▼ dir1"),
+				Equals("    ?? file-a"),
+				Equals("    A  file-b").IsSelected(),
+				Equals("  ▼ dir2").IsSelected(),
+				Equals("    A  file-c").IsSelected(),
 				// Staged because dir2 was part of the selection when he hit space
-				Equals("  M  file-d"),
-				Equals("?? file-e"),
-				Equals("?? file-f"),
+				Equals("    M  file-d"),
+				Equals("  ?? file-e"),
+				Equals("  ?? file-f"),
 			).
 			// Unstage; back to everything being unstaged
 			PressPrimaryAction().
 			Lines(
-				Equals("▼ dir1"),
-				Equals("  ?? file-a"),
-				Equals("  ?? file-b").IsSelected(),
-				Equals("▼ dir2").IsSelected(),
-				Equals("  ?? file-c").IsSelected(),
-				Equals("   M file-d"),
-				Equals("?? file-e"),
-				Equals("?? file-f"),
+				Equals("▼ /"),
+				Equals("  ▼ dir1"),
+				Equals("    ?? file-a"),
+				Equals("    ?? file-b").IsSelected(),
+				Equals("  ▼ dir2").IsSelected(),
+				Equals("    ?? file-c").IsSelected(),
+				Equals("     M file-d"),
+				Equals("  ?? file-e"),
+				Equals("  ?? file-f"),
 			).
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("dir2")).
@@ -69,38 +72,41 @@ var StageRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			// Collapse the directory
 			PressEnter().
 			Lines(
-				Equals("▼ dir1"),
-				Equals("  ?? file-a"),
-				Equals("  ?? file-b"),
-				Equals("▶ dir2").IsSelected(),
-				Equals("?? file-e"),
-				Equals("?? file-f"),
+				Equals("▼ /"),
+				Equals("  ▼ dir1"),
+				Equals("    ?? file-a"),
+				Equals("    ?? file-b"),
+				Equals("  ▶ dir2").IsSelected(),
+				Equals("  ?? file-e"),
+				Equals("  ?? file-f"),
 			).
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("file-e")).
 			// Stage
 			PressPrimaryAction().
 			Lines(
-				Equals("▼ dir1"),
-				Equals("  ?? file-a"),
-				Equals("  ?? file-b"),
-				Equals("▶ dir2").IsSelected(),
-				Equals("A  file-e").IsSelected(),
-				Equals("?? file-f"),
+				Equals("▼ /"),
+				Equals("  ▼ dir1"),
+				Equals("    ?? file-a"),
+				Equals("    ?? file-b"),
+				Equals("  ▶ dir2").IsSelected(),
+				Equals("  A  file-e").IsSelected(),
+				Equals("  ?? file-f"),
 			).
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("dir2")).
 			// Expand the directory again to verify it's been staged
 			PressEnter().
 			Lines(
-				Equals("▼ dir1"),
-				Equals("  ?? file-a"),
-				Equals("  ?? file-b"),
-				Equals("▼ dir2").IsSelected(),
-				Equals("  A  file-c"),
-				Equals("  M  file-d"),
-				Equals("A  file-e"),
-				Equals("?? file-f"),
+				Equals("▼ /"),
+				Equals("  ▼ dir1"),
+				Equals("    ?? file-a"),
+				Equals("    ?? file-b"),
+				Equals("  ▼ dir2").IsSelected(),
+				Equals("    A  file-c"),
+				Equals("    M  file-d"),
+				Equals("  A  file-e"),
+				Equals("  ?? file-f"),
 			)
 	},
 })

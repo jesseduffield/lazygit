@@ -30,13 +30,15 @@ var DiscardUnstagedDirChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Equals("▼ dir").IsSelected(),
-				Equals("  ▼ subdir"),
-				Equals("    ?? unstaged-file-one"),
-				Equals("  MM file-one"),
-				Equals("  ?? unstaged-file-two"),
-				Equals("?? unstaged-file-three"),
+				Equals("▼ /").IsSelected(),
+				Equals("  ▼ dir"),
+				Equals("    ▼ subdir"),
+				Equals("      ?? unstaged-file-one"),
+				Equals("    MM file-one"),
+				Equals("    ?? unstaged-file-two"),
+				Equals("  ?? unstaged-file-three"),
 			).
+			SelectNextItem().
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.ExpectPopup().Menu().
@@ -45,10 +47,11 @@ var DiscardUnstagedDirChanges = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Equals("▼ dir").IsSelected(),
-				Equals("  M  file-one"),
+				Equals("▼ /"),
+				Equals("  ▼ dir").IsSelected(),
+				Equals("    M  file-one"),
 				// this guy remains untouched because it wasn't inside the 'dir' directory
-				Equals("?? unstaged-file-three"),
+				Equals("  ?? unstaged-file-three"),
 			)
 
 		t.FileSystem().FileContent("dir/file-one", Equals("original content\nnew content\n"))

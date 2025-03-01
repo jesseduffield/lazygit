@@ -21,19 +21,23 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Equals("?? myfile").IsSelected(),
-				Equals("?? myfile2"),
+				Equals("▼ /").IsSelected(),
+				Equals("  ?? myfile"),
+				Equals("  ?? myfile2"),
 			).
+			SelectNextItem().
 			PressPrimaryAction(). // stage file
 			Lines(
-				Equals("A  myfile").IsSelected(),
-				Equals("?? myfile2"),
+				Equals("▼ /"),
+				Equals("  A  myfile").IsSelected(),
+				Equals("  ?? myfile2"),
 			).
 			SelectNextItem().
 			PressPrimaryAction(). // stage other file
 			Lines(
-				Equals("A  myfile"),
-				Equals("A  myfile2").IsSelected(),
+				Equals("▼ /"),
+				Equals("  A  myfile"),
+				Equals("  A  myfile2").IsSelected(),
 			).
 			Press(keys.Files.CommitChanges)
 
@@ -54,8 +58,9 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Equals("A myfile"),
-				Equals("A myfile2"),
+				Equals("▼ /"),
+				Equals("  A myfile"),
+				Equals("  A myfile2"),
 			)
 	},
 })

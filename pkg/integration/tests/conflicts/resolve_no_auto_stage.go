@@ -20,9 +20,11 @@ var ResolveNoAutoStage = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Equals("UU file1").IsSelected(),
-				Equals("UU file2"),
+				Equals("▼ /").IsSelected(),
+				Equals("  UU file1"),
+				Equals("  UU file2"),
 			).
+			SelectNextItem().
 			PressEnter()
 
 		t.Views().MergeConflicts().
@@ -38,8 +40,9 @@ var ResolveNoAutoStage = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			// Resolving the conflict didn't auto-stage it
 			Lines(
-				Equals("UU file1").IsSelected(),
-				Equals("UU file2"),
+				Equals("▼ /"),
+				Equals("  UU file1").IsSelected(),
+				Equals("  UU file2"),
 			).
 			// So do that manually
 			PressPrimaryAction().

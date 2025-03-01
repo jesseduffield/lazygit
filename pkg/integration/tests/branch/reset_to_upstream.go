@@ -72,8 +72,9 @@ var ResetToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			Contains("hard commit"),
 		)
 		t.Views().Files().Lines(
-			Equals("A  file-1"),
-			Equals("A  file-2"),
+			Equals("▼ /"),
+			Equals("  A  file-1"),
+			Equals("  A  file-2"),
 		)
 
 		// hard reset

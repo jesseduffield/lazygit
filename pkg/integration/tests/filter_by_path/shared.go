@@ -40,6 +40,7 @@ func postFilterTest(t *TestDriver) {
 	t.Views().CommitFiles().
 		IsFocused().
 		Lines(
+			Equals("▼ /"),
 			Contains(`filterFile`),
 			Contains(`otherFile`),
 		)

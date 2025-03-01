@@ -21,26 +21,27 @@ var CollapseExpand = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Equals("▼ dir").IsSelected(),
-				Equals("  ?? file-one"),
-				Equals("▼ dir2"),
-				Equals("  ?? file-two"),
+				Equals("▼ /").IsSelected(),
+				Equals("  ▼ dir"),
+				Equals("    ?? file-one"),
+				Equals("  ▼ dir2"),
+				Equals("    ?? file-two"),
 			)
 
 		t.Views().Files().
 			Press(keys.Files.CollapseAll).
 			Lines(
-				Equals("▶ dir"),
-				Equals("▶ dir2"),
+				Equals("▶ /"),
 			)
 
 		t.Views().Files().
 			Press(keys.Files.ExpandAll).
 			Lines(
-				Equals("▼ dir").IsSelected(),
-				Equals("  ?? file-one"),
-				Equals("▼ dir2"),
-				Equals("  ?? file-two"),
+				Equals("▼ /").IsSelected(),
+				Equals("  ▼ dir"),
+				Equals("    ?? file-one"),
+				Equals("  ▼ dir2"),
+				Equals("    ?? file-two"),
 			)
 	},
 })

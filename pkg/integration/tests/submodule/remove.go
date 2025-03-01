@@ -35,9 +35,11 @@ var Remove = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().Focus().
 			Lines(
-				Equals("M  .gitmodules").IsSelected(),
-				Equals("D  my_submodule_path"),
-			)
+				Equals("▼ /").IsSelected(),
+				Equals("  M  .gitmodules"),
+				Equals("  D  my_submodule_path"),
+			).
+			SelectNextItem()
 
 		t.Views().Main().Content(
 			Contains("-[submodule \"my_submodule_name\"]").

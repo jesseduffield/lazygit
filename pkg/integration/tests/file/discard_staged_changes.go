@@ -24,16 +24,18 @@ var DiscardStagedChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Equals(" M file2").IsSelected(),
-				Equals("?? file3"),
-				Equals(" M fileToRemove"),
+				Equals("▼ /").IsSelected(),
+				Equals("   M file2"),
+				Equals("  ?? file3"),
+				Equals("   M fileToRemove"),
 			).
 			NavigateToLine(Contains(`fileToRemove`)).
 			PressPrimaryAction().
 			Lines(
-				Equals(" M file2"),
-				Equals("?? file3"),
-				Equals("M  fileToRemove").IsSelected(),
+				Equals("▼ /"),
+				Equals("   M file2"),
+				Equals("  ?? file3"),
+				Equals("  M  fileToRemove").IsSelected(),
 			).
 			Press(keys.Files.ViewResetOptions)
 
@@ -42,8 +44,9 @@ var DiscardStagedChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		// staged file has been removed
 		t.Views().Files().
 			Lines(
-				Equals(" M file2"),
-				Equals("?? file3").IsSelected(),
+				Equals("▼ /"),
+				Equals("   M file2"),
+				Equals("  ?? file3").IsSelected(),
 			)
 
 		// the file should have the same content that it originally had, given that that was committed already

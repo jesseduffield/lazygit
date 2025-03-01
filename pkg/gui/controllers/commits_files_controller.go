@@ -509,7 +509,7 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 }
 
 func (self *CommitFilesController) handleToggleCommitFileDirCollapsed(node *filetree.CommitFileNode) error {
-	self.context().CommitFileTreeViewModel.ToggleCollapsed(node.GetPath())
+	self.context().CommitFileTreeViewModel.ToggleCollapsed(node.GetInternalPath())
 
 	self.c.PostRefreshUpdate(self.context())
 

@@ -21,8 +21,9 @@ var RenameSimilarityThresholdChange = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Equals("D  original"),
-				Equals("A  renamed"),
+				Equals("▼ /"),
+				Equals("  D  original"),
+				Equals("  A  renamed"),
 			).
 			Press(keys.Universal.DecreaseRenameSimilarityThreshold).
 			Tap(func() {

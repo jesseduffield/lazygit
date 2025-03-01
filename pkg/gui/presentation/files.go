@@ -91,11 +91,11 @@ func renderAux[T any](
 
 	arr := []string{}
 	if !isRoot {
-		isCollapsed := collapsedPaths.IsCollapsed(node.GetPath())
+		isCollapsed := collapsedPaths.IsCollapsed(node.GetInternalPath())
 		arr = append(arr, renderLine(node, treeDepth, visualDepth, isCollapsed))
 	}
 
-	if collapsedPaths.IsCollapsed(node.GetPath()) {
+	if collapsedPaths.IsCollapsed(node.GetInternalPath()) {
 		return arr
 	}
 
@@ -293,7 +293,13 @@ func getColorForChangeStatus(changeStatus string) style.TextStyle {
 }
 
 func fileNameAtDepth(node *filetree.Node[models.File], depth int) string {
-	splitName := split(node.GetPath())
+	splitName := split(node.GetInternalPath())
+	if depth == 0 && splitName[0] == "." {
+		if len(splitName) == 1 {
+			return "/"
+		}
+		depth = 1
+	}
 	name := join(splitName[depth:])
 
 	if node.File != nil && node.File.IsRename() {
@@ -314,7 +320,13 @@ func fileNameAtDepth(node *filetree.Node[models.File], depth int) string {
 }
 
 func commitFileNameAtDepth(node *filetree.Node[models.CommitFile], depth int) string {
-	splitName := split(node.GetPath())
+	splitName := split(node.GetInternalPath())
+	if depth == 0 && splitName[0] == "." {
+		if len(splitName) == 1 {
+			return "/"
+		}
+		depth = 1
+	}
 	name := join(splitName[depth:])
 
 	return name

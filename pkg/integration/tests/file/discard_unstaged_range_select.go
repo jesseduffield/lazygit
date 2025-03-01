@@ -26,27 +26,29 @@ var DiscardUnstagedRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Equals("▼ dir1").IsSelected(),
-				Equals("  ?? file-a"),
-				Equals("  ?? file-b"),
-				Equals("▼ dir2"),
-				Equals("  A  file-c"),
-				Equals("   M file-d"),
-				Equals("?? file-e"),
-				Equals("?? file-f"),
+				Equals("▼ /").IsSelected(),
+				Equals("  ▼ dir1"),
+				Equals("    ?? file-a"),
+				Equals("    ?? file-b"),
+				Equals("  ▼ dir2"),
+				Equals("    A  file-c"),
+				Equals("     M file-d"),
+				Equals("  ?? file-e"),
+				Equals("  ?? file-f"),
 			).
 			NavigateToLine(Contains("file-b")).
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("file-c")).
 			Lines(
-				Equals("▼ dir1"),
-				Equals("  ?? file-a"),
-				Equals("  ?? file-b").IsSelected(),
-				Equals("▼ dir2").IsSelected(),
-				Equals("  A  file-c").IsSelected(),
-				Equals("   M file-d"),
-				Equals("?? file-e"),
-				Equals("?? file-f"),
+				Equals("▼ /"),
+				Equals("  ▼ dir1"),
+				Equals("    ?? file-a"),
+				Equals("    ?? file-b").IsSelected(),
+				Equals("  ▼ dir2").IsSelected(),
+				Equals("    A  file-c").IsSelected(),
+				Equals("     M file-d"),
+				Equals("  ?? file-e"),
+				Equals("  ?? file-f"),
 			).
 			// Discard
 			Press(keys.Universal.Remove).
@@ -60,14 +62,15 @@ var DiscardUnstagedRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			// file-c is still there because it contained no unstaged changes
 			// file-d is gone because it was selected via dir2 and contained only unstaged changes
 			Lines(
-				Equals("▼ dir1"),
-				Equals("  ?? file-a"),
-				Equals("▼ dir2"),
+				Equals("▼ /"),
+				Equals("  ▼ dir1"),
+				Equals("    ?? file-a"),
+				Equals("  ▼ dir2"),
 				// Re-selecting file-c because it's where the selected line index
 				// was before performing the action.
-				Equals("  A  file-c").IsSelected(),
-				Equals("?? file-e"),
-				Equals("?? file-f"),
+				Equals("    A  file-c").IsSelected(),
+				Equals("  ?? file-e"),
+				Equals("  ?? file-f"),
 			)
 	},
 })

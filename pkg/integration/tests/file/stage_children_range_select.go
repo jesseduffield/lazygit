@@ -21,12 +21,13 @@ var StageChildrenRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Equals("▼ baz").IsSelected(),
-				Equals("  ?? file"),
-				Equals("▼ bazbam"),
-				Equals("  ?? file"),
-				Equals("?? foo"),
-				Equals("?? foobar"),
+				Equals("▼ /").IsSelected(),
+				Equals("  ▼ baz"),
+				Equals("    ?? file"),
+				Equals("  ▼ bazbam"),
+				Equals("    ?? file"),
+				Equals("  ?? foo"),
+				Equals("  ?? foobar"),
 			).
 			// Select everything
 			Press(keys.Universal.ToggleRangeSelect).
@@ -34,12 +35,13 @@ var StageChildrenRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			// Stage
 			PressPrimaryAction().
 			Lines(
-				Equals("▼ baz").IsSelected(),
-				Equals("  A  file").IsSelected(),
-				Equals("▼ bazbam").IsSelected(),
-				Equals("  A  file").IsSelected(),
-				Equals("A  foo").IsSelected(),
-				Equals("A  foobar").IsSelected(),
+				Equals("▼ /").IsSelected(),
+				Equals("  ▼ baz").IsSelected(),
+				Equals("    A  file").IsSelected(),
+				Equals("  ▼ bazbam").IsSelected(),
+				Equals("    A  file").IsSelected(),
+				Equals("  A  foo").IsSelected(),
+				Equals("  A  foobar").IsSelected(),
 			)
 	},
 })

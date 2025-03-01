@@ -57,8 +57,9 @@ var UndoCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			Lines(
-				Equals("A  file"),
-				Equals(" M other-file"),
+				Equals("▼ /"),
+				Equals("  A  file"),
+				Equals("   M other-file"),
 			)
 
 		t.Views().Commits().Focus().
@@ -84,8 +85,9 @@ var UndoCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().Focus().
 			Lines(
-				Equals("A  file"),
-				Equals(" M other-file").IsSelected(),
+				Equals("▼ /"),
+				Equals("  A  file"),
+				Equals("   M other-file").IsSelected(),
 			).
 			Press(keys.Universal.PrevItem).
 			Press(keys.Universal.Remove).
