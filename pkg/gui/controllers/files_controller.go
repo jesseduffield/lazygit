@@ -1072,7 +1072,7 @@ func (self *FilesController) handleToggleDirCollapsed() error {
 		return nil
 	}
 
-	self.context().FileTreeViewModel.ToggleCollapsed(node.GetPath())
+	self.context().FileTreeViewModel.ToggleCollapsed(node.GetInternalPath())
 
 	self.c.PostRefreshUpdate(self.c.Contexts().Files)
 

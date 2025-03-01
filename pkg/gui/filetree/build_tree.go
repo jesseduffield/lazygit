@@ -14,7 +14,7 @@ func BuildTreeFromFiles(files []*models.File) *Node[models.File] {
 
 	var curr *Node[models.File]
 	for _, file := range files {
-		splitPath := split(file.Path)
+		splitPath := split("./" + file.Path)
 		curr = root
 	outer:
 		for i := range splitPath {
@@ -37,6 +37,11 @@ func BuildTreeFromFiles(files []*models.File) *Node[models.File] {
 			child, doesCurrNodeHaveChildAlready := currNodeChildrenMap[path]
 			if doesCurrNodeHaveChildAlready {
 				curr = child
+				continue outer
+			}
+
+			if i == 0 && len(files) == 1 {
+				// skip the root item when there's only one file; we don't need it in that case
 				continue outer
 			}
 
@@ -70,7 +75,7 @@ func BuildTreeFromCommitFiles(files []*models.CommitFile) *Node[models.CommitFil
 
 	var curr *Node[models.CommitFile]
 	for _, file := range files {
-		splitPath := split(file.Path)
+		splitPath := split("./" + file.Path)
 		curr = root
 	outer:
 		for i := range splitPath {
@@ -87,6 +92,11 @@ func BuildTreeFromCommitFiles(files []*models.CommitFile) *Node[models.CommitFil
 					curr = existingChild
 					continue outer
 				}
+			}
+
+			if i == 0 && len(files) == 1 {
+				// skip the root item when there's only one file; we don't need it in that case
+				continue outer
 			}
 
 			newChild := &Node[models.CommitFile]{
