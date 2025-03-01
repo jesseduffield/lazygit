@@ -11,13 +11,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-type IWorkingTreeHelper interface {
-	AnyStagedFiles() bool
-	AnyTrackedFiles() bool
-	IsWorkingTreeDirty() bool
-	FileForSubmodule(submodule *models.SubmoduleConfig) *models.File
-}
-
 type WorkingTreeHelper struct {
 	c             *HelperCommon
 	refHelper     *RefsHelper
