@@ -89,7 +89,7 @@ func (self *Node[T]) SortChildren() {
 			return 1
 		}
 
-		return strings.Compare(a.GetPath(), b.GetPath())
+		return strings.Compare(a.Path, b.Path)
 	})
 
 	// TODO: think about making this in-place
@@ -159,7 +159,7 @@ func (self *Node[T]) EveryFile(test func(*T) bool) bool {
 func (self *Node[T]) Flatten(collapsedPaths *CollapsedPaths) []*Node[T] {
 	result := []*Node[T]{self}
 
-	if len(self.Children) > 0 && !collapsedPaths.IsCollapsed(self.GetPath()) {
+	if len(self.Children) > 0 && !collapsedPaths.IsCollapsed(self.Path) {
 		result = append(result, lo.FlatMap(self.Children, func(child *Node[T], _ int) []*Node[T] {
 			return child.Flatten(collapsedPaths)
 		})...)
@@ -185,7 +185,7 @@ func (self *Node[T]) getNodeAtIndexAux(index int, collapsedPaths *CollapsedPaths
 		return self, offset
 	}
 
-	if !collapsedPaths.IsCollapsed(self.GetPath()) {
+	if !collapsedPaths.IsCollapsed(self.Path) {
 		for _, child := range self.Children {
 			foundNode, offsetChange := child.getNodeAtIndexAux(index-offset, collapsedPaths)
 			offset += offsetChange
@@ -201,11 +201,11 @@ func (self *Node[T]) getNodeAtIndexAux(index int, collapsedPaths *CollapsedPaths
 func (self *Node[T]) GetIndexForPath(path string, collapsedPaths *CollapsedPaths) (int, bool) {
 	offset := 0
 
-	if self.GetPath() == path {
+	if self.Path == path {
 		return offset, true
 	}
 
-	if !collapsedPaths.IsCollapsed(self.GetPath()) {
+	if !collapsedPaths.IsCollapsed(self.Path) {
 		for _, child := range self.Children {
 			offsetChange, found := child.GetIndexForPath(path, collapsedPaths)
 			offset += offsetChange + 1
@@ -225,7 +225,7 @@ func (self *Node[T]) Size(collapsedPaths *CollapsedPaths) int {
 
 	output := 1
 
-	if !collapsedPaths.IsCollapsed(self.GetPath()) {
+	if !collapsedPaths.IsCollapsed(self.Path) {
 		for _, child := range self.Children {
 			output += child.Size(collapsedPaths)
 		}
