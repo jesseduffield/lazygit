@@ -72,6 +72,7 @@ var ResetToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			Contains("hard commit"),
 		)
 		t.Views().Files().Lines(
+			Contains("<root>"),
 			Contains("file-1").Contains("A"),
 			Contains("file-2").Contains("A"),
 		)

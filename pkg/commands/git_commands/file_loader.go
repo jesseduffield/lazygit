@@ -68,12 +68,12 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 		}
 
 		file := &models.File{
-			Name:          status.Name,
-			PreviousName:  status.PreviousName,
+			Path:          status.Path,
+			PreviousPath:  status.PreviousPath,
 			DisplayString: status.StatusString,
 		}
 
-		if diff, ok := fileDiffs[status.Name]; ok {
+		if diff, ok := fileDiffs[status.Path]; ok {
 			file.LinesAdded = diff.LinesAdded
 			file.LinesDeleted = diff.LinesDeleted
 		}
@@ -87,7 +87,7 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 	worktreePaths := linkedWortkreePaths(self.Fs, self.repoPaths.RepoGitDirPath())
 	for _, file := range files {
 		for _, worktreePath := range worktreePaths {
-			absFilePath, err := filepath.Abs(file.Name)
+			absFilePath, err := filepath.Abs(file.Path)
 			if err != nil {
 				self.Log.Error(err)
 				continue
@@ -96,7 +96,7 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 				file.IsWorktree = true
 				// `git status` renders this worktree as a folder with a trailing slash but we'll represent it as a singular worktree
 				// If we include the slash, it will be rendered as a folder with a null file inside.
-				file.Name = strings.TrimSuffix(file.Name, "/")
+				file.Path = strings.TrimSuffix(file.Path, "/")
 				break
 			}
 		}
@@ -153,8 +153,8 @@ type GitStatusOptions struct {
 type FileStatus struct {
 	StatusString string
 	Change       string // ??, MM, AM, ...
-	Name         string
-	PreviousName string
+	Path         string
+	PreviousPath string
 }
 
 func (fileLoader *FileLoader) gitDiffNumStat() (string, error) {
@@ -197,14 +197,14 @@ func (self *FileLoader) gitStatus(opts GitStatusOptions) ([]FileStatus, error) {
 		status := FileStatus{
 			StatusString: original,
 			Change:       original[:2],
-			Name:         original[3:],
-			PreviousName: "",
+			Path:         original[3:],
+			PreviousPath: "",
 		}
 
 		if strings.HasPrefix(status.Change, "R") {
 			// if a line starts with 'R' then the next line is the original file.
-			status.PreviousName = splitLines[i+1]
-			status.StatusString = fmt.Sprintf("%s %s -> %s", status.Change, status.PreviousName, status.Name)
+			status.PreviousPath = splitLines[i+1]
+			status.StatusString = fmt.Sprintf("%s %s -> %s", status.Change, status.PreviousPath, status.Path)
 			i++
 		}
 
