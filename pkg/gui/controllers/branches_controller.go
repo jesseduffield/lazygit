@@ -28,7 +28,7 @@ func NewBranchesController(
 	return &BranchesController{
 		baseController: baseController{},
 		c:              c,
-		ListControllerTrait: NewListControllerTrait[*models.Branch](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Branches,
 			c.Contexts().Branches.GetSelected,

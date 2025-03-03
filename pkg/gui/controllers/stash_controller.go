@@ -20,7 +20,7 @@ func NewStashController(
 ) *StashController {
 	return &StashController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.StashEntry](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Stash,
 			c.Contexts().Stash.GetSelected,

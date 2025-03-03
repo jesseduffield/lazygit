@@ -30,7 +30,7 @@ func NewCommitFilesController(
 	return &CommitFilesController{
 		baseController: baseController{},
 		c:              c,
-		ListControllerTrait: NewListControllerTrait[*filetree.CommitFileNode](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().CommitFiles,
 			c.Contexts().CommitFiles.GetSelected,

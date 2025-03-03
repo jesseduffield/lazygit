@@ -37,7 +37,7 @@ func NewBasicCommitsController(c *ControllerCommon, context ContainsCommits) *Ba
 		baseController: baseController{},
 		c:              c,
 		context:        context,
-		ListControllerTrait: NewListControllerTrait[*models.Commit](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			context,
 			context.GetSelected,

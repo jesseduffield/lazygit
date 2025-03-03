@@ -20,7 +20,7 @@ func NewSubCommitsController(
 ) *SubCommitsController {
 	return &SubCommitsController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.Commit](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().SubCommits,
 			c.Contexts().SubCommits.GetSelected,
