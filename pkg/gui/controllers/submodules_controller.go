@@ -27,7 +27,7 @@ func NewSubmodulesController(
 ) *SubmodulesController {
 	return &SubmodulesController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.SubmoduleConfig](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Submodules,
 			c.Contexts().Submodules.GetSelected,

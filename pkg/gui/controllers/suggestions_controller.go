@@ -18,7 +18,7 @@ func NewSuggestionsController(
 ) *SuggestionsController {
 	return &SuggestionsController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*types.Suggestion](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Suggestions,
 			c.Contexts().Suggestions.GetSelected,
