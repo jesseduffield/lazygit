@@ -2,10 +2,8 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
-	"golang.org/x/exp/slices"
 )
 
 // layout is called for every screen re-render e.g. when the screen is resized
@@ -243,25 +241,6 @@ func (gui *Gui) onRepoViewReset() error {
 			return err
 		}
 	}
-
-	gui.g.Mutexes.ViewsMutex.Lock()
-	// add tabs to views
-	for _, view := range gui.g.Views() {
-		// if the view is in our mapping, we'll set the tabs and the tab index
-		for _, values := range gui.viewTabMap() {
-			index := slices.IndexFunc(values, func(tabContext context.TabView) bool {
-				return tabContext.ViewName == view.Name()
-			})
-
-			if index != -1 {
-				view.Tabs = lo.Map(values, func(tabContext context.TabView, _ int) string {
-					return tabContext.Tab
-				})
-				view.TabIndex = index
-			}
-		}
-	}
-	gui.g.Mutexes.ViewsMutex.Unlock()
 
 	return nil
 }

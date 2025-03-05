@@ -4,8 +4,10 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/samber/lo"
+	"golang.org/x/exp/slices"
 )
 
 type viewNameMapping struct {
@@ -233,5 +235,21 @@ func (gui *Gui) configureViewProperties() {
 		gui.Views.ReflogCommits.TitlePrefix = ""
 
 		gui.Views.Stash.TitlePrefix = ""
+	}
+
+	for _, view := range gui.g.Views() {
+		// if the view is in our mapping, we'll set the tabs and the tab index
+		for _, values := range gui.viewTabMap() {
+			index := slices.IndexFunc(values, func(tabContext context.TabView) bool {
+				return tabContext.ViewName == view.Name()
+			})
+
+			if index != -1 {
+				view.Tabs = lo.Map(values, func(tabContext context.TabView, _ int) string {
+					return tabContext.Tab
+				})
+				view.TabIndex = index
+			}
+		}
 	}
 }
