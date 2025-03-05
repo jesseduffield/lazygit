@@ -86,7 +86,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.SearchPrefix.BgColor = gocui.ColorDefault
 	gui.Views.SearchPrefix.FgColor = gocui.ColorCyan
 	gui.Views.SearchPrefix.Frame = false
-	gui.c.SetViewContent(gui.Views.SearchPrefix, gui.Tr.SearchPrefix)
+	gui.c.SetViewContent(gui.Views.SearchPrefix, gui.c.Tr.SearchPrefix)
 
 	gui.Views.StatusSpacer1.Frame = false
 	gui.Views.StatusSpacer2.Frame = false
@@ -127,10 +127,10 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.StagingSecondary.Title = gui.c.Tr.StagedChanges
 	gui.Views.StagingSecondary.Wrap = true
 
-	gui.Views.PatchBuilding.Title = gui.Tr.Patch
+	gui.Views.PatchBuilding.Title = gui.c.Tr.Patch
 	gui.Views.PatchBuilding.Wrap = true
 
-	gui.Views.PatchBuildingSecondary.Title = gui.Tr.CustomPatch
+	gui.Views.PatchBuildingSecondary.Title = gui.c.Tr.CustomPatch
 	gui.Views.PatchBuildingSecondary.Wrap = true
 
 	gui.Views.MergeConflicts.Title = gui.c.Tr.MergeConflictsTitle
