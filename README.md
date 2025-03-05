@@ -86,7 +86,6 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Void Linux](#void-linux)
   - [Scoop (Windows)](#scoop-windows)
   - [Arch Linux](#arch-linux)
-  - [Fedora and RHEL](#fedora-and-rhel)
   - [Solus Linux](#solus-linux)
   - [Ubuntu](#ubuntu)
   - [Funtoo Linux](#funtoo-linux)
@@ -290,15 +289,6 @@ and the git version which builds from the most recent commit.
 
 Instruction of how to install AUR content can be found here:
 <https://wiki.archlinux.org/index.php/Arch_User_Repository>
-
-### Fedora and RHEL
-
-Packages for Fedora/RHEL and CentOS Stream are available via [Copr](https://copr.fedorainfracloud.org/coprs/atim/lazygit/) (Cool Other Package Repo).
-
-```sh
-sudo dnf copr enable atim/lazygit -y
-sudo dnf install lazygit
-```
 
 ### Solus Linux
 
