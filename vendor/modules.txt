@@ -196,8 +196,6 @@ github.com/konsorten/go-windows-terminal-sequences
 # github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
 ## explicit
 github.com/kr/logfmt
-# github.com/kylelemons/godebug v1.1.0
-## explicit; go 1.11
 # github.com/kyokomi/emoji/v2 v2.2.8
 ## explicit; go 1.14
 github.com/kyokomi/emoji/v2
@@ -226,10 +224,6 @@ github.com/mitchellh/go-homedir
 # github.com/mitchellh/go-ps v1.0.0
 ## explicit; go 1.13
 github.com/mitchellh/go-ps
-# github.com/onsi/ginkgo v1.10.3
-## explicit
-# github.com/onsi/gomega v1.7.1
-## explicit
 # github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7
 ## explicit; go 1.17
 github.com/petermattis/goid
