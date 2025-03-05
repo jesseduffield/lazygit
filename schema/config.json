@@ -1494,7 +1494,8 @@
             "kakoune",
             "helix",
             "xcode",
-            "zed"
+            "zed",
+            "acme"
           ]
         },
         "open": {
