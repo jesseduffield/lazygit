@@ -11,6 +11,9 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
+		shell.CreateFile(".git/hooks/pre-commit", blockingHook)
+		shell.MakeExecutable(".git/hooks/pre-commit")
+
 		shell.
 			CreateFile("myfile", "myfile content\nwith a second line").
 			CreateFile("myfile2", "myfile2 content")
@@ -18,6 +21,8 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			IsEmpty()
+
+		checkBlockingHook(t, keys)
 
 		// stage the file
 		t.Views().Files().
@@ -50,12 +55,12 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(DoesNotContain("+myfile content").Contains("+with a second line")).
 			Press(keys.Files.CommitChangesWithoutHook)
 
-		commitMessage := ": my commit message"
-		t.ExpectPopup().CommitMessagePanel().InitialText(Contains("WIP")).Type(commitMessage).Confirm()
+		commitMessage := "my commit message"
+		t.ExpectPopup().CommitMessagePanel().Type(commitMessage).Confirm()
 
 		t.Views().Commits().
 			Lines(
-				Contains("WIP" + commitMessage),
+				Contains(commitMessage),
 			)
 
 		t.Views().StagingSecondary().

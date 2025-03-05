@@ -72,3 +72,38 @@ func checkCommitContainsChange(t *TestDriver, commitSubject string, change strin
 	t.Views().Main().
 		Content(Contains(change))
 }
+
+func checkBlockingHook(t *TestDriver, keys config.KeybindingConfig) {
+	// Shared function for tests using the blockingHook pre-commit hook for testing hook skipping
+	// Stage first file
+	t.Views().Files().
+		IsFocused().
+		PressPrimaryAction().
+		Press(keys.Files.CommitChanges)
+
+	// Try to commit with hook
+	t.ExpectPopup().CommitMessagePanel().
+		Title(Equals("Commit summary")).
+		Type("Commit should fail").
+		Confirm()
+
+	t.ExpectPopup().Alert().
+		Title(Equals("Error")).
+		Content(Contains("Git command failed.")).
+		Confirm()
+
+	// Clear the message
+	t.Views().Files().
+		IsFocused().
+		Press(keys.Files.CommitChanges)
+
+	t.ExpectPopup().CommitMessagePanel().
+		Title(Equals("Commit summary")).
+		Clear().
+		Cancel()
+
+	// Unstage the file
+	t.Views().Files().
+		IsFocused().
+		PressPrimaryAction()
+}
