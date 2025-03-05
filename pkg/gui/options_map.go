@@ -119,7 +119,8 @@ func (self *OptionsMapMgr) formatBindingInfos(bindingInfos []bindingInfo) string
 		plainText := fmt.Sprintf("%s: %s", info.description, info.key)
 
 		// Check if adding the next formatted string exceeds the available width
-		if i > 0 && length+len(separator)+len(plainText) > width {
+		textLen := utils.StringWidth(plainText)
+		if i > 0 && length+len(separator)+textLen > width {
 			builder.WriteString(theme.OptionsFgColor.Sprint(separator + ellipsis))
 			break
 		}
@@ -131,7 +132,7 @@ func (self *OptionsMapMgr) formatBindingInfos(bindingInfos []bindingInfo) string
 			length += len(separator)
 		}
 		builder.WriteString(formatted)
-		length += len(plainText)
+		length += textLen
 	}
 
 	return builder.String()
