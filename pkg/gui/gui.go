@@ -424,6 +424,15 @@ func (gui *Gui) onUserConfigLoaded() error {
 	userConfig := gui.Config.GetUserConfig()
 	gui.Common.SetUserConfig(userConfig)
 
+	if gui.previousLanguageConfig != userConfig.Gui.Language {
+		tr, err := i18n.NewTranslationSetFromConfig(gui.Log, userConfig.Gui.Language)
+		if err != nil {
+			return err
+		}
+		gui.c.Tr = tr
+		gui.previousLanguageConfig = userConfig.Gui.Language
+	}
+
 	gui.setColorScheme()
 	gui.configureViewProperties()
 
@@ -434,15 +443,6 @@ func (gui *Gui) onUserConfigLoaded() error {
 	gui.g.ShowListFooter = userConfig.Gui.ShowListFooter
 
 	gui.g.Mouse = userConfig.Gui.MouseEvents
-
-	if gui.previousLanguageConfig != userConfig.Gui.Language {
-		tr, err := i18n.NewTranslationSetFromConfig(gui.Log, userConfig.Gui.Language)
-		if err != nil {
-			return err
-		}
-		gui.c.Tr = tr
-		gui.previousLanguageConfig = userConfig.Gui.Language
-	}
 
 	// originally we could only hide the command log permanently via the config
 	// but now we do it via state. So we need to still support the config for the
