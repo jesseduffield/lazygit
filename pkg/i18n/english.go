@@ -384,6 +384,7 @@ type TranslationSet struct {
 	RedoingStatus                         string
 	CheckingOutStatus                     string
 	CommittingStatus                      string
+	RewordingStatus                       string
 	RevertingStatus                       string
 	CreatingFixupCommitStatus             string
 	CommitFiles                           string
@@ -1425,6 +1426,7 @@ func EnglishTranslationSet() *TranslationSet {
 		RedoingStatus:                        "Redoing",
 		CheckingOutStatus:                    "Checking out",
 		CommittingStatus:                     "Committing",
+		RewordingStatus:                      "Rewording",
 		RevertingStatus:                      "Reverting",
 		CreatingFixupCommitStatus:            "Creating fixup commit",
 		CommitFiles:                          "Commit files",
