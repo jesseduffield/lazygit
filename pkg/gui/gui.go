@@ -156,6 +156,10 @@ func (self *StateAccessor) GetRepoPathStack() *utils.StringStack {
 	return self.gui.RepoPathStack
 }
 
+func (self *StateAccessor) GetPendingTasks() []*gocui.PendingTask {
+	return self.gui.g.PendingTasks()
+}
+
 func (self *StateAccessor) GetUpdating() bool {
 	return self.gui.Updating
 }
