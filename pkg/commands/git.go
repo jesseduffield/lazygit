@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-errors/errors"
 
-	gogit "github.com/jesseduffield/go-git/v5"
+	gogit "github.com/go-git/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"

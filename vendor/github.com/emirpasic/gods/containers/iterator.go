@@ -28,6 +28,12 @@ type IteratorWithIndex interface {
 	// If First() returns true, then first element's index and value can be retrieved by Index() and Value().
 	// Modifies the state of the iterator.
 	First() bool
+
+	// NextTo moves the iterator to the next element from current position that satisfies the condition given by the
+	// passed function, and returns true if there was a next element in the container.
+	// If NextTo() returns true, then next element's index and value can be retrieved by Index() and Value().
+	// Modifies the state of the iterator.
+	NextTo(func(index int, value interface{}) bool) bool
 }
 
 // IteratorWithKey is a stateful iterator for ordered containers whose elements are key value pairs.
@@ -54,6 +60,12 @@ type IteratorWithKey interface {
 	// If First() returns true, then first element's key and value can be retrieved by Key() and Value().
 	// Modifies the state of the iterator.
 	First() bool
+
+	// NextTo moves the iterator to the next element from current position that satisfies the condition given by the
+	// passed function, and returns true if there was a next element in the container.
+	// If NextTo() returns true, then next element's key and value can be retrieved by Key() and Value().
+	// Modifies the state of the iterator.
+	NextTo(func(key interface{}, value interface{}) bool) bool
 }
 
 // ReverseIteratorWithIndex is stateful iterator for ordered containers whose values can be fetched by an index.
@@ -80,6 +92,12 @@ type ReverseIteratorWithIndex interface {
 	// Modifies the state of the iterator.
 	Last() bool
 
+	// PrevTo moves the iterator to the previous element from current position that satisfies the condition given by the
+	// passed function, and returns true if there was a next element in the container.
+	// If PrevTo() returns true, then next element's index and value can be retrieved by Index() and Value().
+	// Modifies the state of the iterator.
+	PrevTo(func(index int, value interface{}) bool) bool
+
 	IteratorWithIndex
 }
 
@@ -104,6 +122,12 @@ type ReverseIteratorWithKey interface {
 	// If Last() returns true, then last element's key and value can be retrieved by Key() and Value().
 	// Modifies the state of the iterator.
 	Last() bool
+
+	// PrevTo moves the iterator to the previous element from current position that satisfies the condition given by the
+	// passed function, and returns true if there was a next element in the container.
+	// If PrevTo() returns true, then next element's key and value can be retrieved by Key() and Value().
+	// Modifies the state of the iterator.
+	PrevTo(func(key interface{}, value interface{}) bool) bool
 
 	IteratorWithKey
 }

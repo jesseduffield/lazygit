@@ -3,18 +3,18 @@ package git_commands
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/go-git/go-git/v5/config"
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/go-git/v5/config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
-	"golang.org/x/exp/slices"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -95,8 +95,8 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 
 		// Sort branches that don't have a recency value alphabetically
 		// (we're really doing this for the sake of deterministic behaviour across git versions)
-		slices.SortFunc(branches, func(a *models.Branch, b *models.Branch) bool {
-			return a.Name < b.Name
+		slices.SortFunc(branches, func(a *models.Branch, b *models.Branch) int {
+			return strings.Compare(a.Name, b.Name)
 		})
 
 		branches = utils.Prepend(branches, branchesWithRecency...)

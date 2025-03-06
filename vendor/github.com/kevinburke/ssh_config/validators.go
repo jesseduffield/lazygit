@@ -160,3 +160,27 @@ var defaults = map[string]string{
 	strings.ToLower("VisualHostKey"):      "no",
 	strings.ToLower("XAuthLocation"):      "/usr/X11R6/bin/xauth",
 }
+
+// these identities are used for SSH protocol 2
+var defaultProtocol2Identities = []string{
+	"~/.ssh/id_dsa",
+	"~/.ssh/id_ecdsa",
+	"~/.ssh/id_ed25519",
+	"~/.ssh/id_rsa",
+}
+
+// these directives support multiple items that can be collected
+// across multiple files
+var pluralDirectives = map[string]bool{
+	"CertificateFile": true,
+	"IdentityFile":    true,
+	"DynamicForward":  true,
+	"RemoteForward":   true,
+	"SendEnv":         true,
+	"SetEnv":          true,
+}
+
+// SupportsMultiple reports whether a directive can be specified multiple times.
+func SupportsMultiple(key string) bool {
+	return pluralDirectives[strings.ToLower(key)]
+}

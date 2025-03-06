@@ -9,15 +9,15 @@ on:
   workflow_dispatch:
     inputs:
       version_bump:
-        description: 'Version bump type'
+        description: "Version bump type"
         type: choice
         required: true
-        default: 'patch'
+        default: "patch"
         options:
           - minor
           - patch
       ignore_blocks:
-        description: 'Ignore blocking PRs/issues'
+        description: "Ignore blocking PRs/issues"
         type: boolean
         required: true
         default: false
@@ -126,7 +126,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.x
+          go-version: 1.24.x
 
       - name: Run goreleaser
         uses: goreleaser/goreleaser-action@v4

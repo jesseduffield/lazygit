@@ -2,11 +2,12 @@ package filetree
 
 import (
 	"path"
+	"slices"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
-	"golang.org/x/exp/slices"
 )
 
 // Represents a file or directory in a file tree.
@@ -80,15 +81,15 @@ func (self *Node[T]) SortChildren() {
 
 	children := slices.Clone(self.Children)
 
-	slices.SortFunc(children, func(a, b *Node[T]) bool {
+	slices.SortFunc(children, func(a, b *Node[T]) int {
 		if !a.IsFile() && b.IsFile() {
-			return true
+			return -1
 		}
 		if a.IsFile() && !b.IsFile() {
-			return false
+			return 1
 		}
 
-		return a.GetPath() < b.GetPath()
+		return strings.Compare(a.GetPath(), b.GetPath())
 	})
 
 	// TODO: think about making this in-place

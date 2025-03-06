@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/go-errors/errors"
-	gogit "github.com/jesseduffield/go-git/v5"
+	gogit "github.com/go-git/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
