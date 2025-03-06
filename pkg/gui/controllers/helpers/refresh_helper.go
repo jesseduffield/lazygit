@@ -99,7 +99,9 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			// everything happens fast and it's better to have everything update
 			// in the one frame
 			if !self.c.InDemo() && options.Mode == types.ASYNC {
+				wg.Add(1)
 				self.c.OnWorker(func(t gocui.Task) error {
+					defer wg.Done()
 					f()
 					return nil
 				})
