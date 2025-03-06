@@ -44,7 +44,7 @@ func NewLocalCommitsController(
 		baseController: baseController{},
 		c:              c,
 		pullFiles:      pullFiles,
-		ListControllerTrait: NewListControllerTrait[*models.Commit](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().LocalCommits,
 			c.Contexts().LocalCommits.GetSelected,

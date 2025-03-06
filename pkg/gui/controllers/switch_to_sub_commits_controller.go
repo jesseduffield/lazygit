@@ -28,7 +28,7 @@ func NewSwitchToSubCommitsController(
 ) *SwitchToSubCommitsController {
 	return &SwitchToSubCommitsController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[types.Ref](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			context,
 			context.GetSelectedRef,

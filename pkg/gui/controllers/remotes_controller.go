@@ -28,7 +28,7 @@ func NewRemotesController(
 ) *RemotesController {
 	return &RemotesController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.Remote](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Remotes,
 			c.Contexts().Remotes.GetSelected,
