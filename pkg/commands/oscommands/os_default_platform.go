@@ -16,7 +16,9 @@ func GetPlatform() *Platform {
 	interactiveShellArg := "-i"
 	interactiveShellExit := "; exit $?"
 
-	if !(strings.HasSuffix(shell, "bash") || strings.HasSuffix(shell, "zsh")) {
+	if strings.HasSuffix(shell, "fish") {
+		interactiveShellExit = "; exit $status"
+	} else if !(strings.HasSuffix(shell, "bash") || strings.HasSuffix(shell, "zsh")) {
 		interactiveShell = "bash"
 		interactiveShellArg = ""
 		interactiveShellExit = ""
