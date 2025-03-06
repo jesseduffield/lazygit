@@ -566,7 +566,7 @@ type OSConfig struct {
 
 	// A built-in preset that sets all of the above settings. Supported presets
 	// are defined in the getPreset function in editor_presets.go.
-	EditPreset string `yaml:"editPreset,omitempty" jsonschema:"example=vim,example=nvim,example=emacs,example=nano,example=vscode,example=sublime,example=kakoune,example=helix,example=xcode,example=zed"`
+	EditPreset string `yaml:"editPreset,omitempty" jsonschema:"example=vim,example=nvim,example=emacs,example=nano,example=vscode,example=sublime,example=kakoune,example=helix,example=xcode,example=zed,example=acme"`
 
 	// Command for opening a file, as if the file is double-clicked. Should
 	// contain "{{filename}}", but doesn't support "{{line}}".
