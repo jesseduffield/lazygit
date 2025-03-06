@@ -2,6 +2,7 @@ package filetree
 
 import (
 	"path"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -19,7 +20,8 @@ type Node[T any] struct {
 	Children []*Node[T]
 
 	// path of the file/directory
-	Path string
+	// private; use either GetPath() or GetInternalPath() to access
+	path string
 
 	// rather than render a tree as:
 	// a/
@@ -45,8 +47,20 @@ func (self *Node[T]) GetFile() *T {
 	return self.File
 }
 
+// This returns the logical path from the user's point of view. It is the
+// relative path from the root of the repository.
+// Use this for display, or when you want to perform some action on the path
+// (e.g. a git command).
 func (self *Node[T]) GetPath() string {
-	return self.Path
+	return strings.TrimPrefix(self.path, "./")
+}
+
+// This returns the internal path from the tree's point of view. It's the same
+// as GetPath(), but prefixed with "./" for the root item.
+// Use this when interacting with the tree itself, e.g. when calling
+// ToggleCollapsed.
+func (self *Node[T]) GetInternalPath() string {
+	return self.path
 }
 
 func (self *Node[T]) Sort() {
@@ -88,7 +102,7 @@ func (self *Node[T]) SortChildren() {
 			return false
 		}
 
-		return a.GetPath() < b.GetPath()
+		return a.path < b.path
 	})
 
 	// TODO: think about making this in-place
@@ -158,7 +172,7 @@ func (self *Node[T]) EveryFile(test func(*T) bool) bool {
 func (self *Node[T]) Flatten(collapsedPaths *CollapsedPaths) []*Node[T] {
 	result := []*Node[T]{self}
 
-	if len(self.Children) > 0 && !collapsedPaths.IsCollapsed(self.GetPath()) {
+	if len(self.Children) > 0 && !collapsedPaths.IsCollapsed(self.path) {
 		result = append(result, lo.FlatMap(self.Children, func(child *Node[T], _ int) []*Node[T] {
 			return child.Flatten(collapsedPaths)
 		})...)
@@ -184,7 +198,7 @@ func (self *Node[T]) getNodeAtIndexAux(index int, collapsedPaths *CollapsedPaths
 		return self, offset
 	}
 
-	if !collapsedPaths.IsCollapsed(self.GetPath()) {
+	if !collapsedPaths.IsCollapsed(self.path) {
 		for _, child := range self.Children {
 			foundNode, offsetChange := child.getNodeAtIndexAux(index-offset, collapsedPaths)
 			offset += offsetChange
@@ -200,11 +214,11 @@ func (self *Node[T]) getNodeAtIndexAux(index int, collapsedPaths *CollapsedPaths
 func (self *Node[T]) GetIndexForPath(path string, collapsedPaths *CollapsedPaths) (int, bool) {
 	offset := 0
 
-	if self.GetPath() == path {
+	if self.path == path {
 		return offset, true
 	}
 
-	if !collapsedPaths.IsCollapsed(self.GetPath()) {
+	if !collapsedPaths.IsCollapsed(self.path) {
 		for _, child := range self.Children {
 			offsetChange, found := child.GetIndexForPath(path, collapsedPaths)
 			offset += offsetChange + 1
@@ -224,7 +238,7 @@ func (self *Node[T]) Size(collapsedPaths *CollapsedPaths) int {
 
 	output := 1
 
-	if !collapsedPaths.IsCollapsed(self.GetPath()) {
+	if !collapsedPaths.IsCollapsed(self.path) {
 		for _, child := range self.Children {
 			output += child.Size(collapsedPaths)
 		}
@@ -308,5 +322,5 @@ func (self *Node[T]) Description() string {
 }
 
 func (self *Node[T]) Name() string {
-	return path.Base(self.Path)
+	return path.Base(self.path)
 }

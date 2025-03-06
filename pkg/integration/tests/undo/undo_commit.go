@@ -57,6 +57,7 @@ var UndoCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			Lines(
+				Contains("/"),
 				Contains("A  file"),
 				Contains(" M other-file"),
 			)
@@ -84,6 +85,7 @@ var UndoCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().Focus().
 			Lines(
+				Contains("/"),
 				Contains("A  file"),
 				Contains(" M other-file").IsSelected(),
 			).
