@@ -53,6 +53,13 @@ func (self *QuitActions) confirmQuitDuringUpdate() error {
 }
 
 func (self *QuitActions) Escape() error {
+	pendingTasks := self.c.State().GetPendingTasks()
+	if len(pendingTasks) > 0 {
+		head := pendingTasks[0]
+		head.CancelFunc()
+		return nil
+	}
+
 	currentContext := self.c.Context().Current()
 
 	if listContext, ok := currentContext.(types.IListContext); ok {
