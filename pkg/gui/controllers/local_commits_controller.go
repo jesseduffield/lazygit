@@ -382,7 +382,7 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 	return nil
 }
 
-func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepath string) error {
+func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepath string, verify bool) error {
 	if self.isSelectedHeadCommit() {
 		return self.c.RunSubprocessAndRefresh(
 			self.c.Git().Commit.RewordLastCommitInEditorWithMessageFileCmdObj(filepath))
@@ -408,7 +408,7 @@ func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepat
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
-func (self *LocalCommitsController) handleReword(summary string, description string) error {
+func (self *LocalCommitsController) handleReword(summary string, description string, verify bool) error {
 	if models.IsHeadCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx()) {
 		// we've selected the top commit so no rebase is required
 		return self.c.Helpers().GPG.WithGpgHandling(self.c.Git().Commit.RewordLastCommit(summary, description),
@@ -1026,7 +1026,7 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 			SummaryTitle:     self.c.Tr.CreateAmendCommit,
 			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
 			PreserveMessage:  false,
-			OnConfirm: func(summary string, description string) error {
+			OnConfirm: func(summary string, description string, verify bool) error {
 				self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
 				return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
 					if err := self.c.Git().Commit.CreateAmendCommit(originalSubject, summary, description, includeFileChanges); err != nil {

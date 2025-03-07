@@ -205,7 +205,7 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 			SummaryTitle:     self.c.Tr.CommitSummaryTitle,
 			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
 			PreserveMessage:  false,
-			OnConfirm: func(summary string, description string) error {
+			OnConfirm: func(summary string, description string, verify bool) error {
 				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 					self.c.Helpers().Commits.CloseCommitMessagePanel()
 					self.c.LogAction(self.c.Tr.Actions.MovePatchIntoNewCommit)

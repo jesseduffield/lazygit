@@ -42,6 +42,10 @@ func (self *Views) MergeConflicts() *ViewDriver {
 	return self.regularView("mergeConflicts")
 }
 
+func (self *Views) Extras() *ViewDriver {
+	return self.regularView("extras")
+}
+
 func (self *Views) Commits() *ViewDriver {
 	return self.regularView("commits")
 }

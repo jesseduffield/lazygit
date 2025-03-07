@@ -85,13 +85,11 @@ func (self *CommitCommands) ResetToCommit(hash string, strength string, envVars 
 		Run()
 }
 
-func (self *CommitCommands) CommitCmdObj(summary string, description string) oscommands.ICmdObj {
+func (self *CommitCommands) CommitCmdObj(summary string, description string, verify bool) oscommands.ICmdObj {
 	messageArgs := self.commitMessageArgs(summary, description)
 
-	skipHookPrefix := self.UserConfig().Git.SkipHookPrefix
-
 	cmdArgs := NewGitCmd("commit").
-		ArgIf(skipHookPrefix != "" && strings.HasPrefix(summary, skipHookPrefix), "--no-verify").
+		ArgIf(verify, "--no-verify").
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
 		Arg(messageArgs...).
 		ToArgv()
@@ -108,8 +106,9 @@ func (self *CommitCommands) RewordLastCommitInEditorWithMessageFileCmdObj(tmpMes
 		Arg("--allow-empty", "--amend", "--only", "--edit", "--file="+tmpMessageFile).ToArgv())
 }
 
-func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile string) oscommands.ICmdObj {
+func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile string, verify bool) oscommands.ICmdObj {
 	return self.cmd.New(NewGitCmd("commit").
+		ArgIf(verify, "--no-verify").
 		Arg("--edit").
 		Arg("--file="+tmpMessageFile).
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
