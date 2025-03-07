@@ -45,16 +45,11 @@ var CheckoutFileFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains("M  file"),
-				/* EXPECTED:
 				Contains("?? hook-result"),
-				*/
 			)
 
 		t.FileSystem().FileContent("file", Equals("one\n"))
-		/* EXPECTED:
 		t.FileSystem().FileContent("hook-result", Equals("post-checkout hook called\n"))
-		ACTUAL: */
-		t.FileSystem().PathNotPresent("hook-result")
 	},
 },
 )

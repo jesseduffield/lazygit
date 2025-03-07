@@ -422,6 +422,7 @@ func TestWorkingTreeCheckoutFile(t *testing.T) {
 		testName   string
 		commitHash string
 		fileName   string
+		skipHooks  bool
 		runner     *oscommands.FakeCmdObjRunner
 		test       func(error)
 	}
@@ -431,8 +432,20 @@ func TestWorkingTreeCheckoutFile(t *testing.T) {
 			testName:   "typical case",
 			commitHash: "11af912",
 			fileName:   "test999.txt",
+			skipHooks:  true,
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"-c", disableHooksFlag, "checkout", "11af912", "--", "test999.txt"}, "", nil),
+			test: func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			testName:   "typical case",
+			commitHash: "11af912",
+			fileName:   "test999.txt",
+			skipHooks:  false,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"checkout", "11af912", "--", "test999.txt"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -441,6 +454,7 @@ func TestWorkingTreeCheckoutFile(t *testing.T) {
 			testName:   "returns error if there is one",
 			commitHash: "11af912",
 			fileName:   "test999.txt",
+			skipHooks:  true,
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"-c", disableHooksFlag, "checkout", "11af912", "--", "test999.txt"}, "", errors.New("error")),
 			test: func(err error) {
@@ -453,7 +467,7 @@ func TestWorkingTreeCheckoutFile(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
 
-			s.test(instance.CheckoutFile(s.commitHash, s.fileName))
+			s.test(instance.CheckoutFile(s.commitHash, s.fileName, s.skipHooks))
 			s.runner.CheckForMissingCalls()
 		})
 	}
