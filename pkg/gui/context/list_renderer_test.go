@@ -115,7 +115,7 @@ func TestListRenderer_renderLines(t *testing.T) {
 	}
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			viewModel := NewListViewModel[mystring](func() []mystring { return s.modelStrings })
+			viewModel := NewListViewModel(func() []mystring { return s.modelStrings })
 			var getNonModelItems func() []*NonModelItem
 			if s.nonModelIndices != nil {
 				getNonModelItems = func() []*NonModelItem {
@@ -236,7 +236,7 @@ func TestListRenderer_ModelIndexToViewIndex_and_back(t *testing.T) {
 			assert.Equal(t, len(s.viewIndices), len(s.expectedModelIndices))
 
 			modelInts := lo.Map(lo.Range(s.numModelItems), func(i int, _ int) myint { return myint(i) })
-			viewModel := NewListViewModel[myint](func() []myint { return modelInts })
+			viewModel := NewListViewModel(func() []myint { return modelInts })
 			var getNonModelItems func() []*NonModelItem
 			if s.nonModelIndices != nil {
 				getNonModelItems = func() []*NonModelItem {
