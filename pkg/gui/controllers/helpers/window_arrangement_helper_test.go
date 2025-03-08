@@ -1,7 +1,9 @@
 package helpers
 
 import (
+	"cmp"
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -9,7 +11,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
-	"golang.org/x/exp/slices"
 )
 
 // The best way to add test cases here is to set your args and then get the
@@ -490,16 +491,13 @@ func renderLayout(windows map[string]boxlayout.Dimensions) string {
 	// Sort first by name, then by position. This means our short labels will
 	// increment in the order that the windows appear on the screen.
 	slices.Sort(windowNames)
-	slices.SortStableFunc(windowNames, func(a, b string) bool {
+	slices.SortStableFunc(windowNames, func(a, b string) int {
 		dimensionsA := windows[a]
 		dimensionsB := windows[b]
-		if dimensionsA.Y0 < dimensionsB.Y0 {
-			return true
+		if dimensionsA.Y0 != dimensionsB.Y0 {
+			return cmp.Compare(dimensionsA.Y0, dimensionsB.Y0)
 		}
-		if dimensionsA.Y0 > dimensionsB.Y0 {
-			return false
-		}
-		return dimensionsA.X0 < dimensionsB.X0
+		return cmp.Compare(dimensionsA.X0, dimensionsB.X0)
 	})
 
 	// Uniquify windows by dimensions (so perfectly overlapping windows are de-duped). This prevents getting 'fileshes' as a label where the files and branches windows overlap.
