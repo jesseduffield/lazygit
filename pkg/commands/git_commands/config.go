@@ -111,3 +111,7 @@ func (self *ConfigCommands) GetCoreCommentChar() byte {
 func (self *ConfigCommands) GetRebaseUpdateRefs() bool {
 	return self.gitConfig.GetBool("rebase.updateRefs")
 }
+
+func (self *ConfigCommands) DropConfigCache() {
+	self.gitConfig.DropCache()
+}
