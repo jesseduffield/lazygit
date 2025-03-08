@@ -11,9 +11,12 @@
 package cheatsheet
 
 import (
+	"cmp"
 	"fmt"
 	"log"
 	"os"
+	"slices"
+	"strings"
 
 	"github.com/jesseduffield/generics/maps"
 	"github.com/jesseduffield/lazycore/pkg/utils"
@@ -23,7 +26,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/samber/lo"
-	"golang.org/x/exp/slices"
 )
 
 type bindingSection struct {
@@ -164,11 +166,11 @@ func getBindingSections(bindings []*types.Binding, tr *i18n.TranslationSet) []*b
 		},
 	)
 
-	slices.SortFunc(bindingGroups, func(a, b headerWithBindings) bool {
+	slices.SortFunc(bindingGroups, func(a, b headerWithBindings) int {
 		if a.header.priority != b.header.priority {
-			return a.header.priority > b.header.priority
+			return cmp.Compare(b.header.priority, a.header.priority)
 		}
-		return a.header.title < b.header.title
+		return strings.Compare(a.header.title, b.header.title)
 	})
 
 	return lo.Map(bindingGroups, func(hb headerWithBindings, _ int) *bindingSection {
