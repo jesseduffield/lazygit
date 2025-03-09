@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -99,18 +100,17 @@ func (self *SyncController) push(currentBranch *models.Branch) error {
 		if self.c.Git().Config.GetPushToCurrent() {
 			return self.pushAux(currentBranch, pushOpts{setUpstream: true})
 		} else {
-			return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
-				upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
-				if err != nil {
-					return err
-				}
-
-				return self.pushAux(currentBranch, pushOpts{
-					setUpstream:    true,
-					upstreamRemote: upstreamRemote,
-					upstreamBranch: upstreamBranch,
+			return self.c.Helpers().Upstream.PromptForUpstream(currentBranch.Name,
+				func(remote string) string {
+					return fmt.Sprintf("Enter upstream branch on remote '%s'", remote)
+				},
+				func(upstream helpers.Upstream) error {
+					return self.pushAux(currentBranch, pushOpts{
+						setUpstream:    true,
+						upstreamRemote: upstream.Remote,
+						upstreamBranch: upstream.Branch,
+					})
 				})
-			})
 		}
 	}
 }
@@ -120,29 +120,28 @@ func (self *SyncController) pull(currentBranch *models.Branch) error {
 
 	// if we have no upstream branch we need to set that first
 	if !currentBranch.IsTrackingRemote() {
-		return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
-			if err := self.setCurrentBranchUpstream(upstream); err != nil {
-				return err
-			}
+		return self.c.Helpers().Upstream.PromptForUpstream(currentBranch.Name,
+			func(remote string) string {
+				return fmt.Sprintf("Enter upstream branch on remote '%s'", remote)
+			},
+			func(upstream helpers.Upstream) error {
+				if err := self.setCurrentBranchUpstream(upstream); err != nil {
+					return err
+				}
 
-			return self.PullAux(currentBranch, PullFilesOptions{Action: action})
-		})
+				return self.PullAux(currentBranch, PullFilesOptions{Action: action})
+			})
 	}
 
 	return self.PullAux(currentBranch, PullFilesOptions{Action: action})
 }
 
-func (self *SyncController) setCurrentBranchUpstream(upstream string) error {
-	upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
-	if err != nil {
-		return err
-	}
-
-	if err := self.c.Git().Branch.SetCurrentBranchUpstream(upstreamRemote, upstreamBranch); err != nil {
+func (self *SyncController) setCurrentBranchUpstream(upstream helpers.Upstream) error {
+	if err := self.c.Git().Branch.SetCurrentBranchUpstream(upstream.Remote, upstream.Branch); err != nil {
 		if strings.Contains(err.Error(), "does not exist") {
 			return fmt.Errorf(
 				"upstream branch %s/%s not found.\nIf you expect it to exist, you should fetch (with 'f').\nOtherwise, you should push (with 'shift+P')",
-				upstreamRemote, upstreamBranch,
+				upstream.Remote, upstream.Branch,
 			)
 		}
 		return err
