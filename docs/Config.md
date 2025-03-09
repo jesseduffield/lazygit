@@ -31,6 +31,8 @@ to the top of your config file or via [Visual Studio Code settings.json config][
 
 ## Default
 
+This is only meant as a reference for what config options exist, and what their default values are. It is not meant to be copied and pasted into your config file as a whole; that's not a good idea for several reasons. It is recommended to include only those settings in your config file that you actually want to change.
+
 <!-- START CONFIG YAML: AUTOMATICALLY GENERATED with `go generate ./..., DO NOT UPDATE MANUALLY -->
 ```yaml
 # Config relating to the Lazygit UI
