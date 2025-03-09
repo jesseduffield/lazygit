@@ -148,7 +148,7 @@ func (self *HandlerCreator) generateFindSuggestionsFunc(prompt *config.CustomCom
 
 func (self *HandlerCreator) getCommandSuggestionsFn(command string) (func(string) []*types.Suggestion, error) {
 	lines := []*types.Suggestion{}
-	err := self.c.OS().Cmd.NewShell(command).RunAndProcessLines(func(line string) (bool, error) {
+	err := self.c.OS().Cmd.NewShell(command, self.c.UserConfig().OS.ShellAliasesFile).RunAndProcessLines(func(line string) (bool, error) {
 		lines = append(lines, &types.Suggestion{Value: line, Label: line})
 		return false, nil
 	})
@@ -259,7 +259,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 		return err
 	}
 
-	cmdObj := self.c.OS().Cmd.NewShell(cmdStr)
+	cmdObj := self.c.OS().Cmd.NewShell(cmdStr, self.c.UserConfig().OS.ShellAliasesFile)
 
 	if customCommand.Subprocess != nil && *customCommand.Subprocess {
 		return self.c.RunSubprocessAndRefresh(cmdObj)

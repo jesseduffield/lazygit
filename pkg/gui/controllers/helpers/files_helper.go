@@ -71,11 +71,11 @@ func (self *FilesHelper) OpenDirInEditor(path string) error {
 func (self *FilesHelper) callEditor(cmdStr string, suspend bool) error {
 	if suspend {
 		return self.c.RunSubprocessAndRefresh(
-			self.c.OS().Cmd.NewShell(cmdStr),
+			self.c.OS().Cmd.NewShell(cmdStr, self.c.UserConfig().OS.ShellAliasesFile),
 		)
 	}
 
-	return self.c.OS().Cmd.NewShell(cmdStr).Run()
+	return self.c.OS().Cmd.NewShell(cmdStr, self.c.UserConfig().OS.ShellAliasesFile).Run()
 }
 
 func (self *FilesHelper) OpenFile(filename string) error {

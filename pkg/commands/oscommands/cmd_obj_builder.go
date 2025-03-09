@@ -13,7 +13,7 @@ type ICmdObjBuilder interface {
 	// NewFromArgs takes a slice of strings like []string{"git", "commit"} and returns a new command object.
 	New(args []string) ICmdObj
 	// NewShell takes a string like `git commit` and returns an executable shell command for it e.g. `sh -c 'git commit'`
-	NewShell(commandStr string) ICmdObj
+	NewShell(commandStr string, aliasesFile string) ICmdObj
 	// Quote wraps a string in quotes with any necessary escaping applied. The reason for bundling this up with the other methods in this interface is that we basically always need to make use of this when creating new command objects.
 	Quote(str string) string
 }
@@ -42,7 +42,10 @@ func (self *CmdObjBuilder) NewWithEnviron(args []string, env []string) ICmdObj {
 	}
 }
 
-func (self *CmdObjBuilder) NewShell(commandStr string) ICmdObj {
+func (self *CmdObjBuilder) NewShell(commandStr string, aliasesFile string) ICmdObj {
+	if len(aliasesFile) > 0 {
+		commandStr = fmt.Sprintf("%ssource %s\n%s", self.platform.PrefixForShellAliasesFile, aliasesFile, commandStr)
+	}
 	quotedCommand := self.quotedCommandString(commandStr)
 	cmdArgs := str.ToArgv(fmt.Sprintf("%s %s %s", self.platform.Shell, self.platform.ShellArg, quotedCommand))
 

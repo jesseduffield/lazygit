@@ -35,11 +35,12 @@ type OSCommand struct {
 
 // Platform stores the os state
 type Platform struct {
-	OS              string
-	Shell           string
-	ShellArg        string
-	OpenCommand     string
-	OpenLinkCommand string
+	OS                        string
+	Shell                     string
+	ShellArg                  string
+	PrefixForShellAliasesFile string
+	OpenCommand               string
+	OpenLinkCommand           string
 }
 
 // NewOSCommand os command runner
@@ -90,7 +91,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 		"filename": c.Quote(filename),
 	}
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	return c.Cmd.NewShell(command).Run()
+	return c.Cmd.NewShell(command, c.UserConfig().OS.ShellAliasesFile).Run()
 }
 
 func (c *OSCommand) OpenLink(link string) error {
@@ -107,7 +108,7 @@ func (c *OSCommand) OpenLink(link string) error {
 	}
 
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	return c.Cmd.NewShell(command).Run()
+	return c.Cmd.NewShell(command, c.UserConfig().OS.ShellAliasesFile).Run()
 }
 
 // Quote wraps a message in platform-specific quotation marks
@@ -296,7 +297,7 @@ func (c *OSCommand) CopyToClipboard(str string) error {
 		cmdStr := utils.ResolvePlaceholderString(c.UserConfig().OS.CopyToClipboardCmd, map[string]string{
 			"text": c.Cmd.Quote(str),
 		})
-		return c.Cmd.NewShell(cmdStr).Run()
+		return c.Cmd.NewShell(cmdStr, c.UserConfig().OS.ShellAliasesFile).Run()
 	}
 
 	return clipboard.WriteAll(str)
@@ -307,7 +308,7 @@ func (c *OSCommand) PasteFromClipboard() (string, error) {
 	var err error
 	if c.UserConfig().OS.CopyToClipboardCmd != "" {
 		cmdStr := c.UserConfig().OS.ReadFromClipboardCmd
-		s, err = c.Cmd.NewShell(cmdStr).RunWithOutput()
+		s, err = c.Cmd.NewShell(cmdStr, c.UserConfig().OS.ShellAliasesFile).RunWithOutput()
 	} else {
 		s, err = clipboard.ReadAll()
 	}
@@ -357,5 +358,5 @@ func (c *OSCommand) UpdateWindowTitle() error {
 		return getWdErr
 	}
 	argString := fmt.Sprint("title ", filepath.Base(path), " - Lazygit")
-	return c.Cmd.NewShell(argString).Run()
+	return c.Cmd.NewShell(argString, c.UserConfig().OS.ShellAliasesFile).Run()
 }

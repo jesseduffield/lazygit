@@ -1514,6 +1514,10 @@
           "type": "string",
           "description": "ReadFromClipboardCmd is the command for reading the clipboard.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard"
         },
+        "shellAliasesFile": {
+          "type": "string",
+          "description": "A shell startup file containing shell aliases or shell functions. This will be sourced before running any shell commands, so that shell aliases are available in the `:` command prompt or even in custom commands.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#using-aliases-or-functions-in-shell-commands"
+        },
         "editCommand": {
           "type": "string",
           "description": "EditCommand is the command for editing a file.\nDeprecated: use Edit instead. Note that semantics are different:\nEditCommand is just the command itself, whereas Edit contains a\n\"{{filename}}\" variable."
