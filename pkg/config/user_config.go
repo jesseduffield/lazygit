@@ -589,6 +589,10 @@ type OSConfig struct {
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
 	ReadFromClipboardCmd string `yaml:"readFromClipboardCmd,omitempty"`
 
+	// A shell startup file containing shell aliases or shell functions. This will be sourced before running any shell commands, so that shell functions are available in the `:` command prompt or even in custom commands.
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#using-aliases-or-functions-in-shell-commands
+	ShellFunctionsFile string `yaml:"shellFunctionsFile"`
+
 	// --------
 
 	// The following configs are all deprecated and kept for backward
