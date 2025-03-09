@@ -31,7 +31,7 @@ func (self *ShellCommandAction) Call() error {
 
 			self.c.LogAction(self.c.Tr.Actions.CustomCommand)
 			return self.c.RunSubprocessAndRefresh(
-				self.c.OS().Cmd.NewInteractiveShell(command),
+				self.c.OS().Cmd.NewShell(command),
 			)
 		},
 		HandleDeleteSuggestion: func(index int) error {
