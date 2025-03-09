@@ -575,6 +575,14 @@ type OSConfig struct {
 	// Command for opening a link. Should contain "{{link}}".
 	OpenLink string `yaml:"openLink,omitempty"`
 
+	// CopyToClipboardCmd is the command for copying to clipboard.
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
+	CopyToClipboardCmd string `yaml:"copyToClipboardCmd,omitempty"`
+
+	// ReadFromClipboardCmd is the command for reading the clipboard.
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
+	ReadFromClipboardCmd string `yaml:"readFromClipboardCmd,omitempty"`
+
 	// --------
 
 	// The following configs are all deprecated and kept for backward
@@ -597,14 +605,6 @@ type OSConfig struct {
 	// OpenLinkCommand is the command for opening a link
 	// Deprecated: use OpenLink instead.
 	OpenLinkCommand string `yaml:"openLinkCommand,omitempty"`
-
-	// CopyToClipboardCmd is the command for copying to clipboard.
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
-	CopyToClipboardCmd string `yaml:"copyToClipboardCmd,omitempty"`
-
-	// ReadFromClipboardCmd is the command for reading the clipboard.
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
-	ReadFromClipboardCmd string `yaml:"readFromClipboardCmd,omitempty"`
 }
 
 type CustomCommandAfterHook struct {

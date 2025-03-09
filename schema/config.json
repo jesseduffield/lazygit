@@ -1506,6 +1506,14 @@
           "type": "string",
           "description": "Command for opening a link. Should contain \"{{link}}\"."
         },
+        "copyToClipboardCmd": {
+          "type": "string",
+          "description": "CopyToClipboardCmd is the command for copying to clipboard.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard"
+        },
+        "readFromClipboardCmd": {
+          "type": "string",
+          "description": "ReadFromClipboardCmd is the command for reading the clipboard.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard"
+        },
         "editCommand": {
           "type": "string",
           "description": "EditCommand is the command for editing a file.\nDeprecated: use Edit instead. Note that semantics are different:\nEditCommand is just the command itself, whereas Edit contains a\n\"{{filename}}\" variable."
@@ -1521,14 +1529,6 @@
         "openLinkCommand": {
           "type": "string",
           "description": "OpenLinkCommand is the command for opening a link\nDeprecated: use OpenLink instead."
-        },
-        "copyToClipboardCmd": {
-          "type": "string",
-          "description": "CopyToClipboardCmd is the command for copying to clipboard.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard"
-        },
-        "readFromClipboardCmd": {
-          "type": "string",
-          "description": "ReadFromClipboardCmd is the command for reading the clipboard.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard"
         }
       },
       "additionalProperties": false,

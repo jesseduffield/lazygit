@@ -428,6 +428,14 @@ os:
   # Command for opening a link. Should contain "{{link}}".
   openLink: ""
 
+  # CopyToClipboardCmd is the command for copying to clipboard.
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
+  copyToClipboardCmd: ""
+
+  # ReadFromClipboardCmd is the command for reading the clipboard.
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
+  readFromClipboardCmd: ""
+
   # EditCommand is the command for editing a file.
   # Deprecated: use Edit instead. Note that semantics are different:
   # EditCommand is just the command itself, whereas Edit contains a
@@ -445,14 +453,6 @@ os:
   # OpenLinkCommand is the command for opening a link
   # Deprecated: use OpenLink instead.
   openLinkCommand: ""
-
-  # CopyToClipboardCmd is the command for copying to clipboard.
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
-  copyToClipboardCmd: ""
-
-  # ReadFromClipboardCmd is the command for reading the clipboard.
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
-  readFromClipboardCmd: ""
 
 # If true, don't display introductory popups upon opening Lazygit.
 disableStartupPopups: false
