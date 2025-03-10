@@ -18,8 +18,8 @@ var ResolveMultipleFiles = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("UU").Contains("file1").IsSelected(),
-				Contains("UU").Contains("file2"),
+				Equals("UU file1").IsSelected(),
+				Equals("UU file2"),
 			).
 			PressEnter()
 
@@ -35,7 +35,7 @@ var ResolveMultipleFiles = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("UU").Contains("file2").IsSelected(),
+				Equals("UU file2").IsSelected(),
 			).
 			PressEnter()
 

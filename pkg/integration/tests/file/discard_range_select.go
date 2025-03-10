@@ -29,33 +29,33 @@ var DiscardRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("▼ dir1").IsSelected(),
-				Contains("  ??").Contains("file-1a"),
-				Contains("  ??").Contains("file-1b"),
-				Contains("▼ dir2"),
-				Contains("  ??").Contains("file-2a"),
-				Contains("   M").Contains("file-2b"),
-				Contains("▼ dir3"),
-				Contains("  ??").Contains("file-3a"),
-				Contains("   M").Contains("file-3b"),
-				Contains("??").Contains("file-a"),
-				Contains("??").Contains("file-b"),
+				Equals("▼ dir1").IsSelected(),
+				Equals("  ?? file-1a"),
+				Equals("  ?? file-1b"),
+				Equals("▼ dir2"),
+				Equals("  ?? file-2a"),
+				Equals("   M file-2b"),
+				Equals("▼ dir3"),
+				Equals("  ?? file-3a"),
+				Equals("   M file-3b"),
+				Equals("?? file-a"),
+				Equals("?? file-b"),
 			).
 			NavigateToLine(Contains("file-1b")).
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("file-2a")).
 			Lines(
-				Contains("▼ dir1"),
-				Contains("  ??").Contains("file-1a"),
-				Contains("  ??").Contains("file-1b").IsSelected(),
-				Contains("▼ dir2").IsSelected(),
-				Contains("  ??").Contains("file-2a").IsSelected(),
-				Contains("   M").Contains("file-2b"),
-				Contains("▼ dir3"),
-				Contains("  ??").Contains("file-3a"),
-				Contains("   M").Contains("file-3b"),
-				Contains("??").Contains("file-a"),
-				Contains("??").Contains("file-b"),
+				Equals("▼ dir1"),
+				Equals("  ?? file-1a"),
+				Equals("  ?? file-1b").IsSelected(),
+				Equals("▼ dir2").IsSelected(),
+				Equals("  ?? file-2a").IsSelected(),
+				Equals("   M file-2b"),
+				Equals("▼ dir3"),
+				Equals("  ?? file-3a"),
+				Equals("   M file-3b"),
+				Equals("?? file-a"),
+				Equals("?? file-b"),
 			).
 			// Discard
 			Press(keys.Universal.Remove).
@@ -66,24 +66,24 @@ var DiscardRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("▼ dir1"),
-				Contains("  ??").Contains("file-1a"),
-				Contains("▼ dir3").IsSelected(),
-				Contains("  ??").Contains("file-3a"),
-				Contains("   M").Contains("file-3b"),
-				Contains("??").Contains("file-a"),
-				Contains("??").Contains("file-b"),
+				Equals("▼ dir1"),
+				Equals("  ?? file-1a"),
+				Equals("▼ dir3").IsSelected(),
+				Equals("  ?? file-3a"),
+				Equals("   M file-3b"),
+				Equals("?? file-a"),
+				Equals("?? file-b"),
 			).
 			// Verify you can discard collapsed directories in range select
 			PressEnter().
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("file-a")).
 			Lines(
-				Contains("▼ dir1"),
-				Contains("  ??").Contains("file-1a"),
-				Contains("▶ dir3").IsSelected(),
-				Contains("??").Contains("file-a").IsSelected(),
-				Contains("??").Contains("file-b"),
+				Equals("▼ dir1"),
+				Equals("  ?? file-1a"),
+				Equals("▶ dir3").IsSelected(),
+				Equals("?? file-a").IsSelected(),
+				Equals("?? file-b"),
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
@@ -93,9 +93,9 @@ var DiscardRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("▼ dir1"),
-				Contains("  ??").Contains("file-1a"),
-				Contains("??").Contains("file-b").IsSelected(),
+				Equals("▼ dir1"),
+				Equals("  ?? file-1a"),
+				Equals("?? file-b").IsSelected(),
 			)
 	},
 })

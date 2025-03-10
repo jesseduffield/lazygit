@@ -23,8 +23,8 @@ var StashAndKeepIndex = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			Lines(
-				Contains("file-staged"),
-				Contains("file-unstaged"),
+				Equals("M  file-staged"),
+				Equals(" M file-unstaged"),
 			).
 			Press(keys.Files.ViewStashOptions)
 
@@ -39,7 +39,7 @@ var StashAndKeepIndex = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			Lines(
-				Contains("file-staged"),
+				Equals("M  file-staged"),
 			)
 
 		t.Views().Stash().
@@ -49,8 +49,8 @@ var StashAndKeepIndex = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("file-staged"),
-				Contains("file-unstaged"),
+				Equals("M file-staged"),
+				Equals("M file-unstaged"),
 			)
 	},
 })

@@ -34,28 +34,28 @@ var ToggleRange = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("▼ dir1").IsSelected(),
-				Contains("  A").Contains("file1-a"),
-				Contains("  A").Contains("file2-a"),
-				Contains("  A").Contains("file3-a"),
-				Contains("▼ dir2"),
-				Contains("  A").Contains("file1-b"),
-				Contains("  A").Contains("file2-b"),
-				Contains("  A").Contains("file3-b"),
+				Equals("▼ dir1").IsSelected(),
+				Equals("  A file1-a"),
+				Equals("  A file2-a"),
+				Equals("  A file3-a"),
+				Equals("▼ dir2"),
+				Equals("  A file1-b"),
+				Equals("  A file2-b"),
+				Equals("  A file3-b"),
 			).
 			NavigateToLine(Contains("file1-a")).
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("file3-a")).
 			PressPrimaryAction().
 			Lines(
-				Contains("▼ dir1"),
-				Contains("  ●").Contains("file1-a").IsSelected(),
-				Contains("  ●").Contains("file2-a").IsSelected(),
-				Contains("  ●").Contains("file3-a").IsSelected(),
-				Contains("▼ dir2"),
-				Contains("  A").Contains("file1-b"),
-				Contains("  A").Contains("file2-b"),
-				Contains("  A").Contains("file3-b"),
+				Equals("▼ dir1"),
+				Equals("  ● file1-a").IsSelected(),
+				Equals("  ● file2-a").IsSelected(),
+				Equals("  ● file3-a").IsSelected(),
+				Equals("▼ dir2"),
+				Equals("  A file1-b"),
+				Equals("  A file2-b"),
+				Equals("  A file3-b"),
 			).
 			PressEscape().
 			NavigateToLine(Contains("file3-b")).
@@ -69,39 +69,39 @@ var ToggleRange = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("▼ dir1"),
-				Contains("  ●").Contains("file1-a"),
-				Contains("  ●").Contains("file2-a"),
-				Contains("  ●").Contains("file3-a"),
-				Contains("▼ dir2"),
-				Contains("  A").Contains("file1-b"),
-				Contains("  A").Contains("file2-b"),
-				Contains("  ◐").Contains("file3-b").IsSelected(),
+				Equals("▼ dir1"),
+				Equals("  ● file1-a"),
+				Equals("  ● file2-a"),
+				Equals("  ● file3-a"),
+				Equals("▼ dir2"),
+				Equals("  A file1-b"),
+				Equals("  A file2-b"),
+				Equals("  ◐ file3-b").IsSelected(),
 			).
 			NavigateToLine(Contains("dir1")).
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("dir2")).
 			PressPrimaryAction().
 			Lines(
-				Contains("▼ dir1").IsSelected(),
-				Contains("  ●").Contains("file1-a").IsSelected(),
-				Contains("  ●").Contains("file2-a").IsSelected(),
-				Contains("  ●").Contains("file3-a").IsSelected(),
-				Contains("▼ dir2").IsSelected(),
-				Contains("  ●").Contains("file1-b"),
-				Contains("  ●").Contains("file2-b"),
-				Contains("  ●").Contains("file3-b"),
+				Equals("▼ dir1").IsSelected(),
+				Equals("  ● file1-a").IsSelected(),
+				Equals("  ● file2-a").IsSelected(),
+				Equals("  ● file3-a").IsSelected(),
+				Equals("▼ dir2").IsSelected(),
+				Equals("  ● file1-b"),
+				Equals("  ● file2-b"),
+				Equals("  ● file3-b"),
 			).
 			PressPrimaryAction().
 			Lines(
-				Contains("▼ dir1").IsSelected(),
-				Contains("  A").Contains("file1-a").IsSelected(),
-				Contains("  A").Contains("file2-a").IsSelected(),
-				Contains("  A").Contains("file3-a").IsSelected(),
-				Contains("▼ dir2").IsSelected(),
-				Contains("  A").Contains("file1-b"),
-				Contains("  A").Contains("file2-b"),
-				Contains("  A").Contains("file3-b"),
+				Equals("▼ dir1").IsSelected(),
+				Equals("  A file1-a").IsSelected(),
+				Equals("  A file2-a").IsSelected(),
+				Equals("  A file3-a").IsSelected(),
+				Equals("▼ dir2").IsSelected(),
+				Equals("  A file1-b"),
+				Equals("  A file2-b"),
+				Equals("  A file3-b"),
 			)
 	},
 })

@@ -57,8 +57,8 @@ var UndoCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			Lines(
-				Contains("A  file"),
-				Contains(" M other-file"),
+				Equals("A  file"),
+				Equals(" M other-file"),
 			)
 
 		t.Views().Commits().Focus().
@@ -71,7 +71,7 @@ var UndoCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			Lines(
-				Contains(" M other-file"),
+				Equals(" M other-file"),
 			)
 
 		// Undo again, this time discarding the original change before redoing again
@@ -84,14 +84,14 @@ var UndoCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().Focus().
 			Lines(
-				Contains("A  file"),
-				Contains(" M other-file").IsSelected(),
+				Equals("A  file"),
+				Equals(" M other-file").IsSelected(),
 			).
 			Press(keys.Universal.PrevItem).
 			Press(keys.Universal.Remove).
 			Tap(confirmDiscardFile).
 			Lines(
-				Contains(" M other-file"),
+				Equals(" M other-file"),
 			).
 			Press(keys.Universal.Redo).
 			Tap(confirmRedo)
@@ -104,7 +104,7 @@ var UndoCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			Lines(
-				Contains(" M other-file"),
+				Equals(" M other-file"),
 			)
 	},
 })

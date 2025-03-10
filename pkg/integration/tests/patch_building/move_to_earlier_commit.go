@@ -66,11 +66,11 @@ var MoveToEarlierCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("dir").IsSelected(),
-				Contains("  M file1"),
-				Contains("  D file2"),
-				Contains("  A file3"),
-				Contains("A unrelated-file"),
+				Equals("▼ dir").IsSelected(),
+				Equals("  M file1"),
+				Equals("  D file2"),
+				Equals("  A file3"),
+				Equals("A unrelated-file"),
 			).
 			PressEscape()
 

@@ -26,8 +26,8 @@ var DiscardUnstagedFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("MM").Contains("file-one").IsSelected(),
-				Contains("AM").Contains("file-two"),
+				Equals("MM file-one").IsSelected(),
+				Equals("AM file-two"),
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
@@ -37,13 +37,13 @@ var DiscardUnstagedFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("M ").Contains("file-one").IsSelected(),
-				Contains("AM").Contains("file-two"),
+				Equals("M  file-one").IsSelected(),
+				Equals("AM file-two"),
 			).
 			SelectNextItem().
 			Lines(
-				Contains("M ").Contains("file-one"),
-				Contains("AM").Contains("file-two").IsSelected(),
+				Equals("M  file-one"),
+				Equals("AM file-two").IsSelected(),
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
@@ -53,8 +53,8 @@ var DiscardUnstagedFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("M ").Contains("file-one"),
-				Contains("A ").Contains("file-two").IsSelected(),
+				Equals("M  file-one"),
+				Equals("A  file-two").IsSelected(),
 			)
 
 		t.FileSystem().FileContent("file-one", Equals("original content\nnew content\n"))

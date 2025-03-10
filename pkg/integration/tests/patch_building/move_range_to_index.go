@@ -31,9 +31,9 @@ var MoveRangeToIndex = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("M file1").IsSelected(),
-				Contains("A file2"),
-				Contains("A file3"),
+				Equals("M file1").IsSelected(),
+				Equals("A file2"),
+				Equals("A file3"),
 			).
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("file2")).
@@ -55,8 +55,8 @@ var MoveRangeToIndex = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			Focus().
 			Lines(
-				Contains("file1").IsSelected(),
-				Contains("file2"),
+				Equals("M  file1").IsSelected(),
+				Equals("A  file2"),
 			)
 
 		t.Views().Main().

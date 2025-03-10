@@ -20,9 +20,9 @@ var Gitignore = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains(`?? .gitignore`).IsSelected(),
-				Contains(`?? toExclude`),
-				Contains(`?? toIgnore`),
+				Equals("?? .gitignore").IsSelected(),
+				Equals("?? toExclude"),
+				Equals("?? toIgnore"),
 			).
 			Press(keys.Files.IgnoreFile).
 			// ensure we can't exclude the .gitignore file

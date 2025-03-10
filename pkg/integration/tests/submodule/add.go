@@ -44,8 +44,8 @@ var Add = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().Focus().
 			Lines(
-				Contains(".gitmodules").IsSelected(),
-				Contains("my_submodule_path (submodule)"),
+				Equals("A  .gitmodules").IsSelected(),
+				Equals("A  my_submodule_path (submodule)"),
 			).
 			Tap(func() {
 				t.Views().Main().Content(

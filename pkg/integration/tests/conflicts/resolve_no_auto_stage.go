@@ -20,8 +20,8 @@ var ResolveNoAutoStage = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("UU").Contains("file1").IsSelected(),
-				Contains("UU").Contains("file2"),
+				Equals("UU file1").IsSelected(),
+				Equals("UU file2"),
 			).
 			PressEnter()
 
@@ -38,13 +38,13 @@ var ResolveNoAutoStage = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			// Resolving the conflict didn't auto-stage it
 			Lines(
-				Contains("UU").Contains("file1").IsSelected(),
-				Contains("UU").Contains("file2"),
+				Equals("UU file1").IsSelected(),
+				Equals("UU file2"),
 			).
 			// So do that manually
 			PressPrimaryAction().
 			Lines(
-				Contains("UU").Contains("file2").IsSelected(),
+				Equals("UU file2").IsSelected(),
 			).
 			// Trying to stage a file that still has conflicts is not allowed:
 			PressPrimaryAction().
@@ -70,12 +70,12 @@ var ResolveNoAutoStage = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			// Again, resolving the conflict didn't auto-stage it
 			Lines(
-				Contains("UU").Contains("file2").IsSelected(),
+				Equals("UU file2").IsSelected(),
 			).
 			// Doing that manually now works:
 			PressPrimaryAction().
 			Lines(
-				Contains("A").Contains("file3").IsSelected(),
+				Equals("A  file3").IsSelected(),
 			)
 	},
 })

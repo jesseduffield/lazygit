@@ -21,15 +21,15 @@ var RenameSimilarityThresholdChange = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("D ").Contains("original"),
-				Contains("A ").Contains("renamed"),
+				Equals("D  original"),
+				Equals("A  renamed"),
 			).
 			Press(keys.Universal.DecreaseRenameSimilarityThreshold).
 			Tap(func() {
 				t.ExpectToast(Equals("Changed rename similarity threshold to 45%"))
 			}).
 			Lines(
-				Contains("R ").Contains("original → renamed"),
+				Equals("R  original → renamed"),
 			)
 	},
 })

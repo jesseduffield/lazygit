@@ -18,8 +18,8 @@ var Filter = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("UU").Contains("file1").IsSelected(),
-				Contains("UU").Contains("file2"),
+				Equals("UU file1").IsSelected(),
+				Equals("UU file2"),
 			).
 			Press(keys.Files.OpenStatusFilter).
 			Tap(func() {
@@ -29,10 +29,10 @@ var Filter = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("UU").Contains("file1").IsSelected(),
-				Contains("UU").Contains("file2"),
+				Equals("UU file1").IsSelected(),
+				Equals("UU file2"),
 				// now we see the non-merge conflict file
-				Contains("A ").Contains("file3"),
+				Equals("A  file3"),
 			)
 	},
 })

@@ -22,8 +22,8 @@ var StashIncludingUntrackedFiles = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			Lines(
-				Contains("file_1"),
-				Contains("file_2"),
+				Equals("A  file_1"),
+				Equals("?? file_2"),
 			).
 			Press(keys.Files.ViewStashOptions)
 

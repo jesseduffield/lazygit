@@ -27,9 +27,9 @@ var SelectAllFiles = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("file1").IsSelected(),
-				Contains("file2"),
-				Contains("file3"),
+				Equals("A file1").IsSelected(),
+				Equals("A file2"),
+				Equals("A file3"),
 			).
 			Press(keys.Files.ToggleStagedAll)
 

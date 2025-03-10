@@ -26,27 +26,27 @@ var DiscardUnstagedRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("▼ dir1").IsSelected(),
-				Contains("  ??").Contains("file-a"),
-				Contains("  ??").Contains("file-b"),
-				Contains("▼ dir2"),
-				Contains("  A ").Contains("file-c"),
-				Contains("   M").Contains("file-d"),
-				Contains("??").Contains("file-e"),
-				Contains("??").Contains("file-f"),
+				Equals("▼ dir1").IsSelected(),
+				Equals("  ?? file-a"),
+				Equals("  ?? file-b"),
+				Equals("▼ dir2"),
+				Equals("  A  file-c"),
+				Equals("   M file-d"),
+				Equals("?? file-e"),
+				Equals("?? file-f"),
 			).
 			NavigateToLine(Contains("file-b")).
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("file-c")).
 			Lines(
-				Contains("▼ dir1"),
-				Contains("  ??").Contains("file-a"),
-				Contains("  ??").Contains("file-b").IsSelected(),
-				Contains("▼ dir2").IsSelected(),
-				Contains("  A ").Contains("file-c").IsSelected(),
-				Contains("   M").Contains("file-d"),
-				Contains("??").Contains("file-e"),
-				Contains("??").Contains("file-f"),
+				Equals("▼ dir1"),
+				Equals("  ?? file-a"),
+				Equals("  ?? file-b").IsSelected(),
+				Equals("▼ dir2").IsSelected(),
+				Equals("  A  file-c").IsSelected(),
+				Equals("   M file-d"),
+				Equals("?? file-e"),
+				Equals("?? file-f"),
 			).
 			// Discard
 			Press(keys.Universal.Remove).
@@ -60,14 +60,14 @@ var DiscardUnstagedRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			// file-c is still there because it contained no unstaged changes
 			// file-d is gone because it was selected via dir2 and contained only unstaged changes
 			Lines(
-				Contains("▼ dir1"),
-				Contains("  ??").Contains("file-a"),
-				Contains("▼ dir2"),
+				Equals("▼ dir1"),
+				Equals("  ?? file-a"),
+				Equals("▼ dir2"),
 				// Re-selecting file-c because it's where the selected line index
 				// was before performing the action.
-				Contains("  A ").Contains("file-c").IsSelected(),
-				Contains("??").Contains("file-e"),
-				Contains("??").Contains("file-f"),
+				Equals("  A  file-c").IsSelected(),
+				Equals("?? file-e"),
+				Equals("?? file-f"),
 			)
 	},
 })

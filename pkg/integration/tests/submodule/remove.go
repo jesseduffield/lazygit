@@ -35,8 +35,8 @@ var Remove = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().Focus().
 			Lines(
-				MatchesRegexp(`M.*\.gitmodules`).IsSelected(),
-				MatchesRegexp(`D.*my_submodule_path`),
+				Equals("M  .gitmodules").IsSelected(),
+				Equals("D  my_submodule_path"),
 			)
 
 		t.Views().Main().Content(

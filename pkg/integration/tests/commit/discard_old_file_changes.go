@@ -43,13 +43,13 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("dir1").IsSelected(),
-				Contains("subd1"),
-				Contains("subfile0"),
-				Contains("d1_file0"),
-				Contains("dir2"),
-				Contains("d2_file1"),
-				Contains("d2_file2"),
+				Equals("▼ dir1").IsSelected(),
+				Equals("  ▼ subd1"),
+				Equals("    A subfile0"),
+				Equals("  A d1_file0"),
+				Equals("▼ dir2"),
+				Equals("  A d2_file1"),
+				Equals("  A d2_file2"),
 			).
 			NavigateToLine(Contains("d1_file0")).
 			Press(keys.Universal.Remove)
@@ -62,11 +62,11 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("dir1/subd1"),
-				Contains("subfile0"),
-				Contains("dir2"),
-				Contains("d2_file1").IsSelected(),
-				Contains("d2_file2"),
+				Equals("▼ dir1/subd1"),
+				Equals("  A subfile0"),
+				Equals("▼ dir2"),
+				Equals("  A d2_file1").IsSelected(),
+				Equals("  A d2_file2"),
 			).
 			PressEscape()
 
@@ -84,11 +84,11 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("dir2").IsSelected(),
-				Contains("d2_file1"),
-				Contains("d2_file2"),
-				Contains("d2_file3"),
-				Contains("d2_file4"),
+				Equals("▼ dir2").IsSelected(),
+				Equals("  M d2_file1"),
+				Equals("  D d2_file2"),
+				Equals("  A d2_file3"),
+				Equals("  A d2_file4"),
 			).
 			NavigateToLine(Contains("d2_file1")).
 			Press(keys.Universal.ToggleRangeSelect).
@@ -122,11 +122,11 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("dir1").IsSelected(),
-				Contains("subd1"),
-				Contains("file2ToRemove"),
-				Contains("fileToRemove"),
-				Contains("multiLineFile"),
+				Equals("▼ dir1").IsSelected(),
+				Equals("  ▼ subd1"),
+				Equals("    A file2ToRemove"),
+				Equals("  A fileToRemove"),
+				Equals("  A multiLineFile"),
 			).
 			NavigateToLine(Contains("multiLineFile")).
 			PressEnter()
@@ -142,11 +142,11 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("dir1"),
-				Contains("subd1"),
-				Contains("file2ToRemove"),
-				Contains("fileToRemove"),
-				Contains("multiLineFile").IsSelected(),
+				Equals("▼ dir1"),
+				Equals("  ▼ subd1"),
+				Equals("    A file2ToRemove"),
+				Equals("  A fileToRemove"),
+				Equals("  ◐ multiLineFile").IsSelected(),
 			).
 			NavigateToLine(Contains("dir1")).
 			Press(keys.Universal.ToggleRangeSelect).

@@ -22,8 +22,8 @@ var DiscardAllChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("file1").IsSelected(),
-				Contains("file2"),
+				Equals(" M file1").IsSelected(),
+				Equals(" M file2"),
 			).
 			PressEnter()
 
@@ -44,7 +44,7 @@ var DiscardAllChanges = NewIntegrationTest(NewIntegrationTestArgs{
 				// because there are no more changes in file1 we switch to file2
 				t.Views().Files().
 					Lines(
-						Contains("file2").IsSelected(),
+						Equals(" M file2").IsSelected(),
 					)
 			}).
 			// assert we are still in the staging panel, but now looking at the changes of the other file
