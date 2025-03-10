@@ -12,12 +12,13 @@ func New(path string, author string) Filtering {
 }
 
 func (m *Filtering) Active() bool {
-	return m.path != "" || m.author != ""
+	return m.path != "" || m.author != "" || m.changes != ""
 }
 
 func (m *Filtering) Reset() {
 	m.path = ""
 	m.author = ""
+	m.changes = ""
 }
 
 func (m *Filtering) SetPath(path string) {

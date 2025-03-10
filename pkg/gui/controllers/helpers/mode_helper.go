@@ -46,6 +46,24 @@ type ModeStatus struct {
 	Reset       func() error
 }
 
+func (self *ModeHelper) getFilter() string {
+	filtering := self.c.Modes().Filtering
+
+	if path := filtering.GetPath(); path != "" {
+		return path
+	}
+
+	if author := filtering.GetAuthor(); author != "" {
+		return author
+	}
+
+	if changes := filtering.GetChanges(); changes != "" {
+		return changes
+	}
+
+	return ""
+}
+
 func (self *ModeHelper) Statuses() []ModeStatus {
 	return []ModeStatus{
 		{
@@ -72,12 +90,11 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 		{
 			IsActive: self.c.Modes().Filtering.Active,
 			Description: func() string {
-				filterContent := lo.Ternary(self.c.Modes().Filtering.GetPath() != "", self.c.Modes().Filtering.GetPath(), self.c.Modes().Filtering.GetAuthor())
 				return self.withResetButton(
 					fmt.Sprintf(
 						"%s '%s'",
 						self.c.Tr.FilteringBy,
-						filterContent,
+						self.getFilter(),
 					),
 					style.FgRed,
 				)

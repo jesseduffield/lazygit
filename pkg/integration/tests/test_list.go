@@ -16,6 +16,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_and_search"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_author"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_changes"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_path"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
@@ -212,6 +213,7 @@ var tests = []*components.IntegrationTest{
 	filter_by_path.KeepSameCommitSelectedOnExit,
 	filter_by_path.SelectFile,
 	filter_by_path.TypeFile,
+	filter_by_changes.TypeChanges,
 	interactive_rebase.AdvancedInteractiveRebase,
 	interactive_rebase.AmendCommitWithConflict,
 	interactive_rebase.AmendFirstCommit,
