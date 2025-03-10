@@ -174,6 +174,10 @@ func (self *Shell) EmptyCommit(message string) *Shell {
 	return self.RunCommand([]string{"git", "commit", "--allow-empty", "-m", message})
 }
 
+func (self *Shell) EmptyCommitWithBody(subject string, body string) *Shell {
+	return self.RunCommand([]string{"git", "commit", "--allow-empty", "-m", subject, "-m", body})
+}
+
 func (self *Shell) EmptyCommitDaysAgo(message string, daysAgo int) *Shell {
 	return self.RunCommand([]string{"git", "commit", "--allow-empty", "--date", fmt.Sprintf("%d days ago", daysAgo), "-m", message})
 }

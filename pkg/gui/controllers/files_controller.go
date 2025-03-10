@@ -28,7 +28,7 @@ func NewFilesController(
 ) *FilesController {
 	return &FilesController{
 		c: c,
-		ListControllerTrait: NewListControllerTrait[*filetree.FileNode](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Files,
 			c.Contexts().Files.GetSelected,

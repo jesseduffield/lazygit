@@ -81,9 +81,11 @@ func (self *StashCommands) Hash(index int) (string, error) {
 }
 
 func (self *StashCommands) ShowStashEntryCmdObj(index int) oscommands.ICmdObj {
+	// "-u" is the same as "--include-untracked", but the latter fails in older git versions for some reason
 	cmdArgs := NewGitCmd("stash").Arg("show").
 		Arg("-p").
 		Arg("--stat").
+		Arg("-u").
 		Arg(fmt.Sprintf("--color=%s", self.UserConfig().Git.Paging.ColorArg)).
 		Arg(fmt.Sprintf("--unified=%d", self.AppState.DiffContextSize)).
 		ArgIf(self.AppState.IgnoreWhitespaceInDiffView, "--ignore-all-space").

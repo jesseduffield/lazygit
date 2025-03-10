@@ -83,7 +83,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.OpenRecentRepos),
-			Handler:     self.helpers.Repos.CreateRecentReposMenu,
+			Handler:     opts.Guards.NoPopupPanel(self.helpers.Repos.CreateRecentReposMenu),
 			Description: self.c.Tr.SwitchRepo,
 		},
 		{
@@ -195,7 +195,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.ExtrasMenu),
-			Handler:     self.handleCreateExtrasMenuPanel,
+			Handler:     opts.Guards.NoPopupPanel(self.handleCreateExtrasMenuPanel),
 			Description: self.c.Tr.OpenCommandLogMenu,
 			Tooltip:     self.c.Tr.OpenCommandLogMenuTooltip,
 			OpensMenu:   true,
@@ -330,14 +330,14 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.NextTab),
-			Handler:     self.handleNextTab,
+			Handler:     opts.Guards.NoPopupPanel(self.handleNextTab),
 			Description: self.c.Tr.NextTab,
 			Tag:         "navigation",
 		},
 		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.PrevTab),
-			Handler:     self.handlePrevTab,
+			Handler:     opts.Guards.NoPopupPanel(self.handlePrevTab),
 			Description: self.c.Tr.PrevTab,
 			Tag:         "navigation",
 		},

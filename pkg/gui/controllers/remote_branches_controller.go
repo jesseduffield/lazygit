@@ -22,7 +22,7 @@ func NewRemoteBranchesController(
 ) *RemoteBranchesController {
 	return &RemoteBranchesController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.RemoteBranch](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().RemoteBranches,
 			c.Contexts().RemoteBranches.GetSelected,

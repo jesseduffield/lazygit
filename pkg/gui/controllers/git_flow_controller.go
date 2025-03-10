@@ -22,7 +22,7 @@ func NewGitFlowController(
 ) *GitFlowController {
 	return &GitFlowController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.Branch](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Branches,
 			c.Contexts().Branches.GetSelected,

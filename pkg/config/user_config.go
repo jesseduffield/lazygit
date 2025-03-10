@@ -64,6 +64,9 @@ type GuiConfig struct {
 	ScrollOffMargin int `yaml:"scrollOffMargin"`
 	// One of: 'margin' (default) | 'jump'
 	ScrollOffBehavior string `yaml:"scrollOffBehavior"`
+	// The number of spaces per tab; used for everything that's shown in the main view, but probably mostly relevant for diffs.
+	// Note that when using a pager, the pager has its own tab width setting, so you need to pass it separately in the pager command.
+	TabWidth int `yaml:"tabWidth" jsonschema:"minimum=1"`
 	// If true, capture mouse events.
 	// When mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.
 	MouseEvents bool `yaml:"mouseEvents"`
@@ -114,7 +117,7 @@ type GuiConfig struct {
 	// If true, show the '5 of 20' footer at the bottom of list views
 	ShowListFooter bool `yaml:"showListFooter"`
 	// If true, display the files in the file views as a tree. If false, display the files as a flat list.
-	// This can be toggled from within Lazygit with the '~' key, but that will not change the default.
+	// This can be toggled from within Lazygit with the '`' key, but that will not change the default.
 	ShowFileTree bool `yaml:"showFileTree"`
 	// If true, show the number of lines changed per file in the Files view
 	ShowNumstatInFilesView bool `yaml:"showNumstatInFilesView"`
@@ -256,9 +259,9 @@ type GitConfig struct {
 	// If true, do not allow force pushes
 	DisableForcePushing bool `yaml:"disableForcePushing"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
-	CommitPrefix *CommitPrefixConfig `yaml:"commitPrefix"`
+	CommitPrefix []CommitPrefixConfig `yaml:"commitPrefix"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
-	CommitPrefixes map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
+	CommitPrefixes map[string][]CommitPrefixConfig `yaml:"commitPrefixes"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix
 	BranchPrefix string `yaml:"branchPrefix"`
 	// If true, parse emoji strings in commit messages e.g. render :rocket: as 🚀
@@ -554,8 +557,8 @@ type OSConfig struct {
 	EditAtLineAndWait string `yaml:"editAtLineAndWait,omitempty"`
 
 	// Whether lazygit suspends until an edit process returns
-	// Pointer to bool so that we can distinguish unset (nil) from false.
-	// We're naming this `editInTerminal` for backwards compatibility
+	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
+	// [dev] We're naming this `editInTerminal` for backwards compatibility
 	SuspendOnEdit *bool `yaml:"editInTerminal,omitempty"`
 
 	// For opening a directory in an editor
@@ -563,7 +566,7 @@ type OSConfig struct {
 
 	// A built-in preset that sets all of the above settings. Supported presets
 	// are defined in the getPreset function in editor_presets.go.
-	EditPreset string `yaml:"editPreset,omitempty" jsonschema:"example=vim,example=nvim,example=emacs,example=nano,example=vscode,example=sublime,example=kakoune,example=helix,example=xcode,example=zed"`
+	EditPreset string `yaml:"editPreset,omitempty" jsonschema:"example=vim,example=nvim,example=emacs,example=nano,example=vscode,example=sublime,example=kakoune,example=helix,example=xcode,example=zed,example=acme"`
 
 	// Command for opening a file, as if the file is double-clicked. Should
 	// contain "{{filename}}", but doesn't support "{{line}}".
@@ -611,12 +614,16 @@ type CustomCommandAfterHook struct {
 type CustomCommand struct {
 	// The key to trigger the command. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md
 	Key string `yaml:"key"`
+	// Instead of defining a single custom command, create a menu of custom commands. Useful for grouping related commands together under a single keybinding, and for keeping them out of the global keybindings menu.
+	// When using this, all other fields except Key and Description are ignored and must be empty.
+	CommandMenu []CustomCommand `yaml:"commandMenu"`
 	// The context in which to listen for the key. Valid values are: status, files, worktrees, localBranches, remotes, remoteBranches, tags, commits, reflogCommits, subCommits, commitFiles, stash, and global. Multiple contexts separated by comma are allowed; most useful for "commits, subCommits" or "files, commitFiles".
 	Context string `yaml:"context" jsonschema:"example=status,example=files,example=worktrees,example=localBranches,example=remotes,example=remoteBranches,example=tags,example=commits,example=reflogCommits,example=subCommits,example=commitFiles,example=stash,example=global"`
 	// The command to run (using Go template syntax for placeholder values)
 	Command string `yaml:"command" jsonschema:"example=git fetch {{.Form.Remote}} {{.Form.Branch}} && git checkout FETCH_HEAD"`
 	// If true, run the command in a subprocess (e.g. if the command requires user input)
-	Subprocess bool `yaml:"subprocess"`
+	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
+	Subprocess *bool `yaml:"subprocess"`
 	// A list of prompts that will request user input before running the final command
 	Prompts []CustomCommandPrompt `yaml:"prompts"`
 	// Text to display while waiting for command to finish
@@ -624,13 +631,24 @@ type CustomCommand struct {
 	// Label for the custom command when displayed in the keybindings menu
 	Description string `yaml:"description"`
 	// If true, stream the command's output to the Command Log panel
-	Stream bool `yaml:"stream"`
+	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
+	Stream *bool `yaml:"stream"`
 	// If true, show the command's output in a popup within Lazygit
-	ShowOutput bool `yaml:"showOutput"`
+	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
+	ShowOutput *bool `yaml:"showOutput"`
 	// The title to display in the popup panel if showOutput is true. If left unset, the command will be used as the title.
 	OutputTitle string `yaml:"outputTitle"`
 	// Actions to take after the command has completed
-	After CustomCommandAfterHook `yaml:"after"`
+	// [dev] Pointer so that we can tell whether it appears in the config file
+	After *CustomCommandAfterHook `yaml:"after"`
+}
+
+func (c *CustomCommand) GetDescription() string {
+	if c.Description != "" {
+		return c.Description
+	}
+
+	return c.Command
 }
 
 type CustomCommandPrompt struct {
@@ -693,6 +711,7 @@ func GetDefaultConfig() *UserConfig {
 			ScrollPastBottom:         true,
 			ScrollOffMargin:          2,
 			ScrollOffBehavior:        "margin",
+			TabWidth:                 4,
 			MouseEvents:              true,
 			SkipDiscardChangeWarning: false,
 			SkipStashWarning:         false,
@@ -784,7 +803,7 @@ func GetDefaultConfig() *UserConfig {
 			BranchLogCmd:                 "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
 			AllBranchesLogCmd:            "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
 			DisableForcePushing:          false,
-			CommitPrefixes:               map[string]CommitPrefixConfig(nil),
+			CommitPrefixes:               map[string][]CommitPrefixConfig(nil),
 			BranchPrefix:                 "",
 			ParseEmoji:                   false,
 			TruncateCopiedCommitHashesTo: 12,

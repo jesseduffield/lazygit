@@ -22,7 +22,7 @@ type WorktreeOptionsController struct {
 func NewWorktreeOptionsController(c *ControllerCommon, context CanViewWorktreeOptions) *WorktreeOptionsController {
 	return &WorktreeOptionsController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[string](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			context,
 			context.GetSelectedItemId,

@@ -152,8 +152,8 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 	message := self.c.Contexts().CommitMessage.GetPreservedMessageAndLogError()
 
 	if message == "" {
-		commitPrefixConfig := self.commitPrefixConfigForRepo()
-		if commitPrefixConfig != nil {
+		commitPrefixConfigs := self.commitPrefixConfigsForRepo()
+		for _, commitPrefixConfig := range commitPrefixConfigs {
 			prefixPattern := commitPrefixConfig.Pattern
 			prefixReplace := commitPrefixConfig.Replace
 			branchName := self.refHelper.GetCheckedOutRef().Name
@@ -165,6 +165,7 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 			if rgx.MatchString(branchName) {
 				prefix := rgx.ReplaceAllString(branchName, prefixReplace)
 				message = prefix
+				break
 			}
 		}
 	}
@@ -228,11 +229,11 @@ func (self *WorkingTreeHelper) prepareFilesForCommit() error {
 	return nil
 }
 
-func (self *WorkingTreeHelper) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
+func (self *WorkingTreeHelper) commitPrefixConfigsForRepo() []config.CommitPrefixConfig {
 	cfg, ok := self.c.UserConfig().Git.CommitPrefixes[self.c.Git().RepoPaths.RepoName()]
 	if ok {
-		return &cfg
+		return append(cfg, self.c.UserConfig().Git.CommitPrefix...)
+	} else {
+		return self.c.UserConfig().Git.CommitPrefix
 	}
-
-	return self.c.UserConfig().Git.CommitPrefix
 }

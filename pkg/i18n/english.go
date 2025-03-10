@@ -384,6 +384,7 @@ type TranslationSet struct {
 	RedoingStatus                         string
 	CheckingOutStatus                     string
 	CommittingStatus                      string
+	RewordingStatus                       string
 	RevertingStatus                       string
 	CreatingFixupCommitStatus             string
 	CommitFiles                           string
@@ -621,6 +622,7 @@ type TranslationSet struct {
 	PasteCommitMessageFromClipboard       string
 	SurePasteCommitMessage                string
 	CommitMessage                         string
+	CommitMessageBody                     string
 	CommitSubject                         string
 	CommitAuthor                          string
 	CommitTags                            string
@@ -685,10 +687,12 @@ type TranslationSet struct {
 	CommitDiffCopiedToClipboard              string
 	CommitURLCopiedToClipboard               string
 	CommitMessageCopiedToClipboard           string
+	CommitMessageBodyCopiedToClipboard       string
 	CommitSubjectCopiedToClipboard           string
 	CommitAuthorCopiedToClipboard            string
 	CommitTagsCopiedToClipboard              string
 	CommitHasNoTags                          string
+	CommitHasNoMessageBody                   string
 	PatchCopiedToClipboard                   string
 	CopiedToClipboard                        string
 	ErrCannotEditDirectory                   string
@@ -840,6 +844,8 @@ type TranslationSet struct {
 	RangeSelectNotSupportedForSubmodules     string
 	OldCherryPickKeyWarning                  string
 	CommandDoesNotSupportOpeningInEditor     string
+	CustomCommands                           string
+	NoApplicableCommandsInThisContext        string
 	Actions                                  Actions
 	Bisect                                   Bisect
 	Log                                      Log
@@ -914,6 +920,7 @@ type Actions struct {
 	MoveCommitUp                      string
 	MoveCommitDown                    string
 	CopyCommitMessageToClipboard      string
+	CopyCommitMessageBodyToClipboard  string
 	CopyCommitSubjectToClipboard      string
 	CopyCommitDiffToClipboard         string
 	CopyCommitHashToClipboard         string
@@ -1016,6 +1023,8 @@ Thanks for using lazygit! Seriously you rock. Three things to share with you:
     You can also sponsor me and tell me what to work on by clicking the donate
     button at the bottom right.
     Or even just star the repo to share the love!
+
+Press {{confirmationKey}} to get started.
 `
 
 const englishDeprecatedEditConfigWarning = `
@@ -1418,6 +1427,7 @@ func EnglishTranslationSet() *TranslationSet {
 		RedoingStatus:                        "Redoing",
 		CheckingOutStatus:                    "Checking out",
 		CommittingStatus:                     "Committing",
+		RewordingStatus:                      "Rewording",
 		RevertingStatus:                      "Reverting",
 		CreatingFixupCommitStatus:            "Creating fixup commit",
 		CommitFiles:                          "Commit files",
@@ -1433,7 +1443,7 @@ func EnglishTranslationSet() *TranslationSet {
 		DiscardOldFileChangeTooltip:          "Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file.",
 		DiscardFileChangesTitle:              "Discard file changes",
 		DiscardFileChangesPrompt:             "Are you sure you want to remove changes to the selected file(s) from this commit?\n\nThis action will start a rebase, reverting these file changes. Be aware that if subsequent commits depend on these changes, you may need to resolve conflicts.\nNote: This will also reset any active custom patches.",
-		DisabledForGPG:                       "Feature not available for users using GPG",
+		DisabledForGPG:                       "Feature not available for users using GPG.\n\nIf you are using a passphrase agent (e.g. gpg-agent) so that you don't have to type your passphrase when signing, you can enable this feature by adding\n\ngit:\n  overrideGpg: true\n\nto your lazygit config file.",
 		CreateRepo:                           "Not in a git repository. Create a new git repository? (y/n): ",
 		BareRepo:                             "You've attempted to open Lazygit in a bare repo but Lazygit does not yet support bare repos. Open most recent repo? (y/n) ",
 		InitialBranch:                        "Branch name? (leave empty for git's default): ",
@@ -1654,7 +1664,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CopyCommitMessageToClipboard:             "Copy commit message to clipboard",
 		PasteCommitMessageFromClipboard:          "Paste commit message from clipboard",
 		SurePasteCommitMessage:                   "Pasting will overwrite the current commit message, continue?",
-		CommitMessage:                            "Commit message",
+		CommitMessage:                            "Commit message (subject and body)",
+		CommitMessageBody:                        "Commit message body",
 		CommitSubject:                            "Commit subject",
 		CommitAuthor:                             "Commit author",
 		CommitTags:                               "Commit tags",
@@ -1718,10 +1729,12 @@ func EnglishTranslationSet() *TranslationSet {
 		CommitDiffCopiedToClipboard:              "Commit diff copied to clipboard",
 		CommitURLCopiedToClipboard:               "Commit URL copied to clipboard",
 		CommitMessageCopiedToClipboard:           "Commit message copied to clipboard",
+		CommitMessageBodyCopiedToClipboard:       "Commit message body copied to clipboard",
 		CommitSubjectCopiedToClipboard:           "Commit subject copied to clipboard",
 		CommitAuthorCopiedToClipboard:            "Commit author copied to clipboard",
 		CommitTagsCopiedToClipboard:              "Commit tags copied to clipboard",
 		CommitHasNoTags:                          "Commit has no tags",
+		CommitHasNoMessageBody:                   "Commit has no message body",
 		PatchCopiedToClipboard:                   "Patch copied to clipboard",
 		CopiedToClipboard:                        "copied to clipboard",
 		ErrCannotEditDirectory:                   "Cannot edit directories: you can only edit individual files",
@@ -1871,51 +1884,54 @@ func EnglishTranslationSet() *TranslationSet {
 		RangeSelectNotSupportedForSubmodules:     "Range select not supported for submodules",
 		OldCherryPickKeyWarning:                  "The 'c' key is no longer the default key for copying commits to cherry pick. Please use `{{.copy}}` instead (and `{{.paste}}` to paste). The reason for this change is that the 'v' key for selecting a range of lines when staging is now also used for selecting a range of lines in any list view, meaning that we needed to find a new key for pasting commits, and if we're going to now use `{{.paste}}` for pasting commits, we may as well use `{{.copy}}` for copying them. If you want to configure the keybindings to get the old behaviour, set the following in your config:\n\nkeybinding:\n  universal:\n    toggleRangeSelect: <something other than v>\n  commits:\n    cherryPickCopy: 'c'\n    pasteCommits: 'v'",
 		CommandDoesNotSupportOpeningInEditor:     "This command doesn't support switching to the editor",
+		CustomCommands:                           "Custom commands",
+		NoApplicableCommandsInThisContext:        "(No applicable commands in this context)",
 
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
-			CheckoutCommit:                 "Checkout commit",
-			CheckoutBranchAtCommit:         "Checkout branch '%s'",
-			CheckoutCommitAsDetachedHead:   "Checkout commit %s as detached head",
-			CheckoutTag:                    "Checkout tag",
-			CheckoutBranch:                 "Checkout branch",
-			ForceCheckoutBranch:            "Force checkout branch",
-			CheckoutBranchOrCommit:         "Checkout branch or commit",
-			DeleteLocalBranch:              "Delete local branch",
-			Merge:                          "Merge",
-			SquashMerge:                    "Squash merge",
-			RebaseBranch:                   "Rebase branch",
-			RenameBranch:                   "Rename branch",
-			CreateBranch:                   "Create branch",
-			CherryPick:                     "(Cherry-pick) paste commits",
-			CheckoutFile:                   "Checkout file",
-			DiscardOldFileChange:           "Discard old file change",
-			SquashCommitDown:               "Squash commit down",
-			FixupCommit:                    "Fixup commit",
-			RewordCommit:                   "Reword commit",
-			DropCommit:                     "Drop commit",
-			EditCommit:                     "Edit commit",
-			AmendCommit:                    "Amend commit",
-			ResetCommitAuthor:              "Reset commit author",
-			SetCommitAuthor:                "Set commit author",
-			AddCommitCoAuthor:              "Add commit co-author",
-			RevertCommit:                   "Revert commit",
-			CreateFixupCommit:              "Create fixup commit",
-			SquashAllAboveFixupCommits:     "Squash all above fixup commits",
-			CreateLightweightTag:           "Create lightweight tag",
-			CreateAnnotatedTag:             "Create annotated tag",
-			CopyCommitMessageToClipboard:   "Copy commit message to clipboard",
-			CopyCommitSubjectToClipboard:   "Copy commit subject to clipboard",
-			CopyCommitTagsToClipboard:      "Copy commit tags to clipboard",
-			CopyCommitDiffToClipboard:      "Copy commit diff to clipboard",
-			CopyCommitHashToClipboard:      "Copy full commit hash to clipboard",
-			CopyCommitURLToClipboard:       "Copy commit URL to clipboard",
-			CopyCommitAuthorToClipboard:    "Copy commit author to clipboard",
-			CopyCommitAttributeToClipboard: "Copy to clipboard",
-			CopyPatchToClipboard:           "Copy patch to clipboard",
-			MoveCommitUp:                   "Move commit up",
-			MoveCommitDown:                 "Move commit down",
-			CustomCommand:                  "Custom command",
+			CheckoutCommit:                   "Checkout commit",
+			CheckoutBranchAtCommit:           "Checkout branch '%s'",
+			CheckoutCommitAsDetachedHead:     "Checkout commit %s as detached head",
+			CheckoutTag:                      "Checkout tag",
+			CheckoutBranch:                   "Checkout branch",
+			ForceCheckoutBranch:              "Force checkout branch",
+			CheckoutBranchOrCommit:           "Checkout branch or commit",
+			DeleteLocalBranch:                "Delete local branch",
+			Merge:                            "Merge",
+			SquashMerge:                      "Squash merge",
+			RebaseBranch:                     "Rebase branch",
+			RenameBranch:                     "Rename branch",
+			CreateBranch:                     "Create branch",
+			CherryPick:                       "(Cherry-pick) paste commits",
+			CheckoutFile:                     "Checkout file",
+			DiscardOldFileChange:             "Discard old file change",
+			SquashCommitDown:                 "Squash commit down",
+			FixupCommit:                      "Fixup commit",
+			RewordCommit:                     "Reword commit",
+			DropCommit:                       "Drop commit",
+			EditCommit:                       "Edit commit",
+			AmendCommit:                      "Amend commit",
+			ResetCommitAuthor:                "Reset commit author",
+			SetCommitAuthor:                  "Set commit author",
+			AddCommitCoAuthor:                "Add commit co-author",
+			RevertCommit:                     "Revert commit",
+			CreateFixupCommit:                "Create fixup commit",
+			SquashAllAboveFixupCommits:       "Squash all above fixup commits",
+			CreateLightweightTag:             "Create lightweight tag",
+			CreateAnnotatedTag:               "Create annotated tag",
+			CopyCommitMessageToClipboard:     "Copy commit message to clipboard",
+			CopyCommitMessageBodyToClipboard: "Copy commit message body to clipboard",
+			CopyCommitSubjectToClipboard:     "Copy commit subject to clipboard",
+			CopyCommitTagsToClipboard:        "Copy commit tags to clipboard",
+			CopyCommitDiffToClipboard:        "Copy commit diff to clipboard",
+			CopyCommitHashToClipboard:        "Copy full commit hash to clipboard",
+			CopyCommitURLToClipboard:         "Copy commit URL to clipboard",
+			CopyCommitAuthorToClipboard:      "Copy commit author to clipboard",
+			CopyCommitAttributeToClipboard:   "Copy to clipboard",
+			CopyPatchToClipboard:             "Copy patch to clipboard",
+			MoveCommitUp:                     "Move commit up",
+			MoveCommitDown:                   "Move commit down",
+			CustomCommand:                    "Custom command",
 
 			// TODO: remove
 			DiscardAllChangesInDirectory:      "Discard all changes in directory",

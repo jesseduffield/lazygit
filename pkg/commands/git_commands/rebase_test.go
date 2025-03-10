@@ -149,7 +149,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"rebase", "--interactive", "--autostash", "--keep-empty", "--no-autosquash", "--rebase-merges", "abcdef"}, "", nil).
 				ExpectGitArgs([]string{"cat-file", "-e", "HEAD^:test999.txt"}, "", nil).
-				ExpectGitArgs([]string{"checkout", "HEAD^", "--", "test999.txt"}, "", nil).
+				ExpectGitArgs([]string{"-c", disableHooksFlag, "checkout", "HEAD^", "--", "test999.txt"}, "", nil).
 				ExpectGitArgs([]string{"commit", "--amend", "--no-edit", "--allow-empty"}, "", nil).
 				ExpectGitArgs([]string{"rebase", "--continue"}, "", nil),
 			test: func(err error) {

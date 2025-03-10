@@ -12,8 +12,7 @@ var CopyTagToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		// Include delimiters around the text so that we can assert on the entire content
-		config.GetUserConfig().OS.CopyToClipboardCmd = "echo _{{text}}_ > clipboard"
+		config.GetUserConfig().OS.CopyToClipboardCmd = "printf '%s' {{text}} > clipboard"
 	},
 
 	SetupRepo: func(shell *Shell) {
@@ -38,14 +37,6 @@ var CopyTagToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectToast(Equals("Commit tags copied to clipboard"))
 
-		t.Views().Files().
-			Focus().
-			Press(keys.Files.RefreshFiles).
-			Lines(
-				Contains("clipboard").IsSelected(),
-			)
-
-		t.Views().Main().Content(Contains("+_tag2"))
-		t.Views().Main().Content(Contains("+tag1_"))
+		t.FileSystem().FileContent("clipboard", Equals("tag2\ntag1"))
 	},
 })

@@ -4,9 +4,12 @@
 <br>
 <a href="https://www.warp.dev/?utm_source=github&utm_medium=referral&utm_campaign=lazygit_20231023">
   <div>
-    <img src="../assets/warp.png" width="230" alt="Warp">
+    <img src="../assets/warp.png" width="330" alt="Warp">
   </div>
-  <b>Warp is a modern, Rust-based terminal with AI built in so you and your team can build great software, faster.</b>
+  <b>Warp, the intelligent terminal</b>
+  <br>
+  <b>Available for MacOS and Linux</b>
+  <br>
   <div>
     <sup>Visit warp.dev to learn more.</sup>
   </div>

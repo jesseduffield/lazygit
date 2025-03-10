@@ -323,6 +323,6 @@ func (s *State) CalculateOrigin(currentOrigin int, bufferHeight int, numLines in
 
 func wrapPatchLines(diff string, view *gocui.View) ([]int, []int) {
 	_, viewLineIndices, patchLineIndices := utils.WrapViewLinesToWidth(
-		view.Wrap, view.Editable, strings.TrimSuffix(diff, "\n"), view.InnerWidth())
+		view.Wrap, view.Editable, strings.TrimSuffix(diff, "\n"), view.InnerWidth(), view.TabWidth)
 	return viewLineIndices, patchLineIndices
 }

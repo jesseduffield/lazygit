@@ -210,6 +210,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | 複製檔案名稱到剪貼簿 |  |
+| `` y `` | 複製到剪貼簿 |  |
 | `` c `` | 檢出 | 檢出檔案 |
 | `` d `` | Remove | Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file. |
 | `` o `` | 開啟檔案 | 使用預設軟體開啟 |

@@ -135,6 +135,7 @@ Veja a documentação:
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Copy path to clipboard |  |
+| `` y `` | Copy to clipboard |  |
 | `` c `` | Verificar | Checkout file. This replaces the file in your working tree with the version from the selected commit. |
 | `` d `` | Remove | Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file. |
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |

@@ -44,7 +44,7 @@ func NewLocalCommitsController(
 		baseController: baseController{},
 		c:              c,
 		pullFiles:      pullFiles,
-		ListControllerTrait: NewListControllerTrait[*models.Commit](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().LocalCommits,
 			c.Contexts().LocalCommits.GetSelected,
@@ -409,21 +409,19 @@ func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepat
 }
 
 func (self *LocalCommitsController) handleReword(summary string, description string) error {
-	var err error
-
 	if models.IsHeadCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx()) {
 		// we've selected the top commit so no rebase is required
-		err = self.c.Helpers().GPG.WithGpgHandling(self.c.Git().Commit.RewordLastCommit(summary, description),
-			self.c.Tr.CommittingStatus, nil)
-	} else {
-		err = self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), summary, description)
+		return self.c.Helpers().GPG.WithGpgHandling(self.c.Git().Commit.RewordLastCommit(summary, description),
+			self.c.Tr.RewordingStatus, nil)
 	}
 
-	if err != nil {
-		return err
-	}
-	self.c.Helpers().Commits.OnCommitSuccess()
-	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	return self.c.WithWaitingStatus(self.c.Tr.RewordingStatus, func(gocui.Task) error {
+		err := self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), summary, description)
+		if err != nil {
+			return err
+		}
+		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	})
 }
 
 func (self *LocalCommitsController) doRewordEditor() error {

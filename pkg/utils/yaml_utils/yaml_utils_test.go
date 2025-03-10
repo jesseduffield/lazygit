@@ -1,6 +1,7 @@
 package yaml_utils
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -49,12 +50,11 @@ func TestUpdateYamlValue(t *testing.T) {
 			expectedErr: "",
 		},
 		{
-			name:  "nested update",
-			in:    "foo:\n  bar: baz\n",
-			path:  []string{"foo", "bar"},
-			value: "qux",
-			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
-			expectedOut: "foo:\n    bar: qux\n",
+			name:        "nested update",
+			in:          "foo:\n  bar: baz\n",
+			path:        []string{"foo", "bar"},
+			value:       "qux",
+			expectedOut: "foo:\n  bar: qux\n",
 			expectedErr: "",
 		},
 		{
@@ -62,7 +62,7 @@ func TestUpdateYamlValue(t *testing.T) {
 			in:          "",
 			path:        []string{"foo", "bar", "baz"},
 			value:       "qux",
-			expectedOut: "foo:\n    bar:\n        baz: qux\n",
+			expectedOut: "foo:\n  bar:\n    baz: qux\n",
 			expectedErr: "",
 		},
 		{
@@ -133,21 +133,19 @@ func TestRenameYamlKey(t *testing.T) {
 			expectedErr: "",
 		},
 		{
-			name:   "rename key, nested",
-			in:     "foo:\n  bar: 5\n",
-			path:   []string{"foo", "bar"},
-			newKey: "baz",
-			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
-			expectedOut: "foo:\n    baz: 5\n",
+			name:        "rename key, nested",
+			in:          "foo:\n  bar: 5\n",
+			path:        []string{"foo", "bar"},
+			newKey:      "baz",
+			expectedOut: "foo:\n  baz: 5\n",
 			expectedErr: "",
 		},
 		{
-			name:   "rename non-scalar key",
-			in:     "foo:\n  bar: 5\n",
-			path:   []string{"foo"},
-			newKey: "qux",
-			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
-			expectedOut: "qux:\n    bar: 5\n",
+			name:        "rename non-scalar key",
+			in:          "foo:\n  bar: 5\n",
+			path:        []string{"foo"},
+			newKey:      "qux",
+			expectedOut: "qux:\n  bar: 5\n",
 			expectedErr: "",
 		},
 		{
@@ -188,14 +186,16 @@ func TestRenameYamlKey(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			out, actualErr := RenameYamlKey([]byte(test.in), test.path, test.newKey)
+			node := unmarshalForTest(t, test.in)
+			actualErr := RenameYamlKey(&node, test.path, test.newKey)
 			if test.expectedErr == "" {
 				assert.NoError(t, actualErr)
 			} else {
 				assert.EqualError(t, actualErr, test.expectedErr)
 			}
+			out := marshalForTest(t, &node)
 
-			assert.Equal(t, test.expectedOut, string(out))
+			assert.Equal(t, test.expectedOut, out)
 		})
 	}
 }
@@ -240,10 +240,10 @@ func TestWalk_paths(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			node := unmarshalForTest(t, test.document)
 			paths := []string{}
-			_, err := Walk([]byte(test.document), func(node *yaml.Node, path string) bool {
+			err := Walk(&node, func(node *yaml.Node, path string) {
 				paths = append(paths, path)
-				return true
 			})
 
 			assert.NoError(t, err)
@@ -256,61 +256,154 @@ func TestWalk_inPlaceChanges(t *testing.T) {
 	tests := []struct {
 		name        string
 		in          string
-		callback    func(node *yaml.Node, path string) bool
+		callback    func(node *yaml.Node, path string)
 		expectedOut string
 	}{
 		{
-			name:        "no change",
-			in:          "x: 5",
-			callback:    func(node *yaml.Node, path string) bool { return false },
-			expectedOut: "x: 5",
+			name:     "no change",
+			in:       "x: 5",
+			callback: func(node *yaml.Node, path string) {},
 		},
 		{
 			name: "change value",
 			in:   "x: 5\ny: 3",
-			callback: func(node *yaml.Node, path string) bool {
+			callback: func(node *yaml.Node, path string) {
 				if path == "x" {
 					node.Value = "7"
-					return true
 				}
-				return false
 			},
 			expectedOut: "x: 7\ny: 3\n",
 		},
 		{
 			name: "change nested value",
 			in:   "x:\n  y: 5",
-			callback: func(node *yaml.Node, path string) bool {
+			callback: func(node *yaml.Node, path string) {
 				if path == "x.y" {
 					node.Value = "7"
-					return true
 				}
-				return false
 			},
-			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
-			expectedOut: "x:\n    y: 7\n",
+			expectedOut: "x:\n  y: 7\n",
 		},
 		{
 			name: "change array value",
 			in:   "x:\n  - y: 5",
-			callback: func(node *yaml.Node, path string) bool {
+			callback: func(node *yaml.Node, path string) {
 				if path == "x[0].y" {
 					node.Value = "7"
-					return true
 				}
-				return false
 			},
-			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
-			expectedOut: "x:\n    - y: 7\n",
+			expectedOut: "x:\n  - y: 7\n",
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := Walk([]byte(test.in), test.callback)
-
+			node := unmarshalForTest(t, test.in)
+			err := Walk(&node, test.callback)
 			assert.NoError(t, err)
-			assert.Equal(t, test.expectedOut, string(result))
+			if test.expectedOut == "" {
+				unmodifiedOriginal := unmarshalForTest(t, test.in)
+				assert.Equal(t, unmodifiedOriginal, node)
+			} else {
+				result := marshalForTest(t, &node)
+				assert.Equal(t, test.expectedOut, result)
+			}
 		})
 	}
+}
+
+func TestTransformNode(t *testing.T) {
+	transformIntValueToString := func(node *yaml.Node) error {
+		if node.Kind == yaml.ScalarNode {
+			if node.ShortTag() == "!!int" {
+				node.Tag = "!!str"
+				return nil
+			} else if node.ShortTag() == "!!str" {
+				// We have already transformed it,
+				return nil
+			} else {
+				return fmt.Errorf("Node was of bad type")
+			}
+		} else {
+			return fmt.Errorf("Node was not a scalar")
+		}
+	}
+
+	tests := []struct {
+		name        string
+		in          string
+		path        []string
+		transform   func(node *yaml.Node) error
+		expectedOut string
+	}{
+		{
+			name:      "Path not present",
+			in:        "foo: 1",
+			path:      []string{"bar"},
+			transform: transformIntValueToString,
+		},
+		{
+			name: "Part of path present",
+			in: `
+foo:
+  bar: 2`,
+			path:      []string{"foo", "baz"},
+			transform: transformIntValueToString,
+		},
+		{
+			name: "Successfully Transforms to string",
+			in: `
+foo:
+  bar: 2`,
+			path:      []string{"foo", "bar"},
+			transform: transformIntValueToString,
+			expectedOut: `foo:
+  bar: "2"
+`, // Note the trailing newline changes because of how it re-marshalls
+		},
+		{
+			name: "Does nothing when already transformed",
+			in: `
+foo:
+  bar: "2"`,
+			path:      []string{"foo", "bar"},
+			transform: transformIntValueToString,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			node := unmarshalForTest(t, test.in)
+			err := TransformNode(&node, test.path, test.transform)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if test.expectedOut == "" {
+				unmodifiedOriginal := unmarshalForTest(t, test.in)
+				assert.Equal(t, unmodifiedOriginal, node)
+			} else {
+				result := marshalForTest(t, &node)
+				assert.Equal(t, test.expectedOut, result)
+			}
+		})
+	}
+}
+
+func unmarshalForTest(t *testing.T, input string) yaml.Node {
+	t.Helper()
+	var node yaml.Node
+	err := yaml.Unmarshal([]byte(input), &node)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return node
+}
+
+func marshalForTest(t *testing.T, node *yaml.Node) string {
+	t.Helper()
+	result, err := YamlMarshal(node)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(result)
 }

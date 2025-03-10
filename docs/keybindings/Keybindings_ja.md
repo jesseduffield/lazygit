@@ -134,6 +134,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | ファイル名をクリップボードにコピー |  |
+| `` y `` | Copy to clipboard |  |
 | `` c `` | チェックアウト | Checkout file. This replaces the file in your working tree with the version from the selected commit. |
 | `` d `` | Remove | Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file. |
 | `` o `` | ファイルを開く | Open file in default application. |

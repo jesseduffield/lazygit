@@ -19,7 +19,7 @@ func NewReflogCommitsController(
 ) *ReflogCommitsController {
 	return &ReflogCommitsController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.Commit](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().ReflogCommits,
 			c.Contexts().ReflogCommits.GetSelected,

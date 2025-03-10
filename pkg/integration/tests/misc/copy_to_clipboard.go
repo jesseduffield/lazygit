@@ -12,7 +12,7 @@ var CopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().OS.CopyToClipboardCmd = "echo {{text}} > clipboard"
+		config.GetUserConfig().OS.CopyToClipboardCmd = "printf '%s' {{text}} > clipboard"
 	},
 
 	SetupRepo: func(shell *Shell) {
@@ -34,13 +34,6 @@ var CopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.GlobalPress(keys.Files.RefreshFiles)
 
-		// Expect to see the clipboard file with contents
-		t.Views().Files().
-			IsFocused().
-			Lines(
-				Contains("clipboard").IsSelected(),
-			)
-
-		t.Views().Main().Content(Contains("branch-a"))
+		t.FileSystem().FileContent("clipboard", Equals("branch-a"))
 	},
 })

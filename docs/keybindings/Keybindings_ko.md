@@ -299,6 +299,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | 파일명을 클립보드에 복사 |  |
+| `` y `` | 클립보드에 복사 |  |
 | `` c `` | 체크아웃 | Checkout file |
 | `` d `` | Remove | Discard this commit's changes to this file |
 | `` o `` | 파일 닫기 | Open file in default application. |

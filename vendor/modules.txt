@@ -109,9 +109,6 @@ github.com/gobwas/glob/util/strings
 # github.com/gookit/color v1.4.2
 ## explicit; go 1.12
 github.com/gookit/color
-# github.com/iancoleman/orderedmap v0.3.0
-## explicit; go 1.16
-github.com/iancoleman/orderedmap
 # github.com/imdario/mergo v0.3.11
 ## explicit; go 1.13
 github.com/imdario/mergo
@@ -171,7 +168,7 @@ github.com/jesseduffield/go-git/v5/utils/merkletrie/filesystem
 github.com/jesseduffield/go-git/v5/utils/merkletrie/index
 github.com/jesseduffield/go-git/v5/utils/merkletrie/internal/frame
 github.com/jesseduffield/go-git/v5/utils/merkletrie/noder
-# github.com/jesseduffield/gocui v0.3.1-0.20250210123912-aba68ae65951
+# github.com/jesseduffield/gocui v0.3.1-0.20250220081214-b376cb0857ac
 ## explicit; go 1.12
 github.com/jesseduffield/gocui
 # github.com/jesseduffield/kill v0.0.0-20250101124109-e216ddbe133a

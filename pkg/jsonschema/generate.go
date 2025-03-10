@@ -7,47 +7,111 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/karimkhaleel/jsonschema"
+	"github.com/samber/lo"
 )
 
 func GetSchemaDir() string {
 	return utils.GetLazyRootDirectory() + "/schema"
 }
 
-func GenerateSchema() {
+func GenerateSchema() *jsonschema.Schema {
 	schema := customReflect(&config.UserConfig{})
 	obj, _ := json.MarshalIndent(schema, "", "  ")
 	obj = append(obj, '\n')
 
 	if err := os.WriteFile(GetSchemaDir()+"/config.json", obj, 0o644); err != nil {
 		fmt.Println("Error writing to file:", err)
-		return
+		return nil
 	}
+	return schema
+}
+
+func getSubSchema(rootSchema, parentSchema *jsonschema.Schema, key string) *jsonschema.Schema {
+	subSchema, found := parentSchema.Properties.Get(key)
+	if !found {
+		panic(fmt.Sprintf("Failed to find subSchema at %s on parent", key))
+	}
+
+	// This means the schema is defined on the rootSchema's Definitions
+	if subSchema.Ref != "" {
+		key, _ = strings.CutPrefix(subSchema.Ref, "#/$defs/")
+		refSchema, ok := rootSchema.Definitions[key]
+		if !ok {
+			panic(fmt.Sprintf("Failed to find #/$defs/%s", key))
+		}
+		refSchema.Description = subSchema.Description
+		return refSchema
+	}
+
+	return subSchema
 }
 
 func customReflect(v *config.UserConfig) *jsonschema.Schema {
-	defaultConfig := config.GetDefaultConfig()
-	r := &jsonschema.Reflector{FieldNameTag: "yaml", RequiredFromJSONSchemaTags: true, DoNotReference: true}
+	r := &jsonschema.Reflector{FieldNameTag: "yaml", RequiredFromJSONSchemaTags: true}
 	if err := r.AddGoComments("github.com/jesseduffield/lazygit/pkg/config", "../config"); err != nil {
 		panic(err)
 	}
+	filterOutDevComments(r)
 	schema := r.Reflect(v)
+	defaultConfig := config.GetDefaultConfig()
+	userConfigSchema := schema.Definitions["UserConfig"]
 
-	setDefaultVals(defaultConfig, schema)
+	defaultValue := reflect.ValueOf(defaultConfig).Elem()
+
+	yamlToFieldNames := lo.Invert(userConfigSchema.OriginalPropertiesMapping)
+
+	for pair := userConfigSchema.Properties.Oldest(); pair != nil; pair = pair.Next() {
+		yamlName := pair.Key
+		fieldName := yamlToFieldNames[yamlName]
+
+		subSchema := getSubSchema(schema, userConfigSchema, yamlName)
+
+		setDefaultVals(schema, subSchema, defaultValue.FieldByName(fieldName).Interface())
+	}
 
 	return schema
 }
 
-func setDefaultVals(defaults any, schema *jsonschema.Schema) {
+func filterOutDevComments(r *jsonschema.Reflector) {
+	for k, v := range r.CommentMap {
+		commentLines := strings.Split(v, "\n")
+		filteredCommentLines := lo.Filter(commentLines, func(line string, _ int) bool {
+			return !strings.Contains(line, "[dev]")
+		})
+		r.CommentMap[k] = strings.Join(filteredCommentLines, "\n")
+	}
+}
+
+func setDefaultVals(rootSchema, schema *jsonschema.Schema, defaults any) {
 	t := reflect.TypeOf(defaults)
 	v := reflect.ValueOf(defaults)
 
 	if t.Kind() == reflect.Ptr || t.Kind() == reflect.Interface {
 		t = t.Elem()
 		v = v.Elem()
+	}
+
+	k := t.Kind()
+	_ = k
+
+	switch t.Kind() {
+	case reflect.Bool:
+		schema.Default = v.Bool()
+	case reflect.Int:
+		schema.Default = v.Int()
+	case reflect.String:
+		schema.Default = v.String()
+	default:
+		// Do nothing
+	}
+
+	if t.Kind() != reflect.Struct {
+		return
 	}
 
 	for i := 0; i < t.NumField(); i++ {
@@ -59,13 +123,10 @@ func setDefaultVals(defaults any, schema *jsonschema.Schema) {
 			continue
 		}
 
-		subSchema, ok := schema.Properties.Get(key)
-		if !ok {
-			continue
-		}
+		subSchema := getSubSchema(rootSchema, schema, key)
 
 		if isStruct(value) {
-			setDefaultVals(value, subSchema)
+			setDefaultVals(rootSchema, subSchema, value)
 		} else if !isZeroValue(value) {
 			subSchema.Default = value
 		}

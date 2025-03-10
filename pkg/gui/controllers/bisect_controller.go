@@ -26,7 +26,7 @@ func NewBisectController(
 	return &BisectController{
 		baseController: baseController{},
 		c:              c,
-		ListControllerTrait: NewListControllerTrait[*models.Commit](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().LocalCommits,
 			c.Contexts().LocalCommits.GetSelected,

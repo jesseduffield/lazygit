@@ -18,7 +18,7 @@ func NewMenuController(
 ) *MenuController {
 	return &MenuController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*types.MenuItem](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Menu,
 			c.Contexts().Menu.GetSelected,

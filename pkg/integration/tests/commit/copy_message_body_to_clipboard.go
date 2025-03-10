@@ -7,8 +7,8 @@ import (
 
 // We're emulating the clipboard by writing to a file called clipboard
 
-var CopyAuthorToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Copy a commit author name to the clipboard",
+var CopyMessageBodyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Copy a commit message body to the clipboard",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
@@ -16,25 +16,24 @@ var CopyAuthorToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 
 	SetupRepo: func(shell *Shell) {
-		shell.SetAuthor("John Doe", "john@doe.com")
-		shell.EmptyCommit("commit")
+		shell.EmptyCommitWithBody("My Subject", "My awesome commit message body")
 	},
 
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit").IsSelected(),
+				Contains("My Subject").IsSelected(),
 			).
 			Press(keys.Commits.CopyCommitAttributeToClipboard)
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Copy to clipboard")).
-			Select(Contains("Commit author")).
+			Select(Contains("Commit message body")).
 			Confirm()
 
-		t.ExpectToast(Equals("Commit author copied to clipboard"))
+		t.ExpectToast(Equals("Commit message body copied to clipboard"))
 
-		t.FileSystem().FileContent("clipboard", Equals("John Doe <john@doe.com>"))
+		t.FileSystem().FileContent("clipboard", Equals("My awesome commit message body"))
 	},
 })

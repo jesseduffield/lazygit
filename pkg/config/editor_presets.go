@@ -126,6 +126,13 @@ func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset
 			openDirInEditorTemplate:   "zed -- {{dir}}",
 			suspend:                   returnBool(false),
 		},
+		"acme": {
+			editTemplate:              "B {{filename}}",
+			editAtLineTemplate:        "B {{filename}}:{{line}}",
+			editAtLineAndWaitTemplate: "E {{filename}}:{{line}}",
+			openDirInEditorTemplate:   "B {{dir}}",
+			suspend:                   returnBool(false),
+		},
 	}
 
 	// Some of our presets have a different name than the editor they are using.

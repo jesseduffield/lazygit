@@ -261,6 +261,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Скопировать название файла в буфер обмена |  |
+| `` y `` | Copy to clipboard |  |
 | `` c `` | Переключить | Переключить файл |
 | `` d `` | Remove | Отменить изменения коммита в этом файле |
 | `` o `` | Открыть файл | Open file in default application. |

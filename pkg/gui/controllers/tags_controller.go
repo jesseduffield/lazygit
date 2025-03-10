@@ -21,7 +21,7 @@ func NewTagsController(
 ) *TagsController {
 	return &TagsController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.Tag](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Tags,
 			c.Contexts().Tags.GetSelected,
