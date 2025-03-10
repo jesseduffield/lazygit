@@ -12,27 +12,18 @@ import (
 func GetPlatform() *Platform {
 	shell := getUserShell()
 
-	interactiveShell := shell
-	interactiveShellArg := "-i"
-	interactiveShellExit := "; exit $?"
-
-	if strings.HasSuffix(shell, "fish") {
-		interactiveShellExit = "; exit $status"
-	} else if !(strings.HasSuffix(shell, "bash") || strings.HasSuffix(shell, "zsh")) {
-		interactiveShell = "bash"
-		interactiveShellArg = ""
-		interactiveShellExit = ""
+	prefixForShellAliasesFile := ""
+	if strings.HasSuffix(shell, "bash") {
+		prefixForShellAliasesFile = "shopt -s expand_aliases\n"
 	}
 
 	return &Platform{
-		OS:                   runtime.GOOS,
-		Shell:                "bash",
-		InteractiveShell:     interactiveShell,
-		ShellArg:             "-c",
-		InteractiveShellArg:  interactiveShellArg,
-		InteractiveShellExit: interactiveShellExit,
-		OpenCommand:          "open {{filename}}",
-		OpenLinkCommand:      "open {{link}}",
+		OS:                        runtime.GOOS,
+		Shell:                     shell,
+		ShellArg:                  "-c",
+		PrefixForShellAliasesFile: prefixForShellAliasesFile,
+		OpenCommand:               "open {{filename}}",
+		OpenLinkCommand:           "open {{link}}",
 	}
 }
 
