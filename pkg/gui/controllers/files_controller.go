@@ -421,13 +421,21 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 	unstagedSelectedNodes := filterNodesHaveUnstagedChanges(selectedNodes)
 
 	if len(unstagedSelectedNodes) > 0 {
-		self.c.LogAction(self.c.Tr.Actions.StageFile)
+		logAction := self.c.Tr.Actions.StageFile
+		stageFn := self.c.Git().WorkingTree.StageFiles
+
+		if self.context().GetFilter() == filetree.DisplayTracked {
+			logAction = self.c.Tr.Actions.StageTrackedFiles
+			stageFn = self.c.Git().WorkingTree.StageTrackedFiles
+		}
+
+		self.c.LogAction(logAction)
 
 		if err := self.optimisticChange(unstagedSelectedNodes, self.optimisticStage); err != nil {
 			return err
 		}
 
-		if err := self.c.Git().WorkingTree.StageFiles(toPaths(unstagedSelectedNodes)); err != nil {
+		if err := stageFn(toPaths(unstagedSelectedNodes)); err != nil {
 			return err
 		}
 	} else {

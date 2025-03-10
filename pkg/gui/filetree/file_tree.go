@@ -88,9 +88,11 @@ func (self *FileTree) getFilesForDisplay() []*models.File {
 	case DisplayUnstaged:
 		return self.FilterFiles(func(file *models.File) bool { return file.HasUnstagedChanges })
 	case DisplayTracked:
-		return self.FilterFiles(func(file *models.File) bool { return file.Tracked })
+		// untracked but staged files are technically not tracked by git
+		// but including such files in the filtered mode helps see what files are getting committed
+		return self.FilterFiles(func(file *models.File) bool { return file.Tracked || file.HasStagedChanges })
 	case DisplayUntracked:
-		return self.FilterFiles(func(file *models.File) bool { return !file.Tracked })
+		return self.FilterFiles(func(file *models.File) bool { return !(file.Tracked || file.HasStagedChanges) })
 	case DisplayConflicted:
 		return self.FilterFiles(func(file *models.File) bool { return file.HasMergeConflicts })
 	default:
