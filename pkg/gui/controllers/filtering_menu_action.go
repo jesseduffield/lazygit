@@ -90,6 +90,21 @@ func (self *FilteringMenuAction) Call() error {
 		Tooltip: tooltip,
 	})
 
+	menuItems = append(menuItems, &types.MenuItem{
+		Label: self.c.Tr.FilterChangesOption,
+		OnPress: func() error {
+			self.c.Prompt(types.PromptOpts{
+				Title: self.c.Tr.EnterChanges,
+				HandleConfirm: func(response string) error {
+					return self.setFilteringChanges(strings.TrimSpace(response))
+				},
+			})
+
+			return nil
+		},
+		Tooltip: tooltip,
+	})
+
 	if self.c.Modes().Filtering.Active() {
 		menuItems = append(menuItems, &types.MenuItem{
 			Label:   self.c.Tr.ExitFilterMode,
@@ -109,6 +124,12 @@ func (self *FilteringMenuAction) setFilteringPath(path string) error {
 func (self *FilteringMenuAction) setFilteringAuthor(author string) error {
 	self.c.Modes().Filtering.Reset()
 	self.c.Modes().Filtering.SetAuthor(author)
+	return self.setFiltering()
+}
+
+func (self *FilteringMenuAction) setFilteringChanges(changes string) error {
+	self.c.Modes().Filtering.Reset()
+	self.c.Modes().Filtering.SetChanges(changes)
 	return self.setFiltering()
 }
 

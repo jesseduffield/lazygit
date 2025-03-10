@@ -4,6 +4,7 @@ type Filtering struct {
 	path               string // the filename that gets passed to git log
 	author             string // the author that gets passed to git log
 	selectedCommitHash string // the commit that was selected before we entered filtering mode
+	changes            string // changes that geds passed to git log after the -S flag
 }
 
 func New(path string, author string) Filtering {
@@ -31,8 +32,16 @@ func (m *Filtering) SetAuthor(author string) {
 	m.author = author
 }
 
+func (m *Filtering) SetChanges(changes string) {
+	m.changes = changes
+}
+
 func (m *Filtering) GetAuthor() string {
 	return m.author
+}
+
+func (m *Filtering) GetChanges() string {
+	return m.changes
 }
 
 func (m *Filtering) SetSelectedCommitHash(hash string) {

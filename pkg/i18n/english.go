@@ -596,8 +596,10 @@ type TranslationSet struct {
 	ExitFilterMode                        string
 	FilterPathOption                      string
 	FilterAuthorOption                    string
+	FilterChangesOption                   string
 	EnterFileName                         string
 	EnterAuthor                           string
+	EnterChanges                          string
 	FilteringMenuTitle                    string
 	WillCancelExistingFilterTooltip       string
 	MustExitFilterModeTitle               string
@@ -1637,8 +1639,10 @@ func EnglishTranslationSet() *TranslationSet {
 		ExitFilterMode:                   "Stop filtering",
 		FilterPathOption:                 "Enter path to filter by",
 		FilterAuthorOption:               "Enter author to filter by",
+		FilterChangesOption:              "Enter changes to filter by",
 		EnterFileName:                    "Enter path:",
 		EnterAuthor:                      "Enter author:",
+		EnterChanges:                     "Enter changes:",
 		FilteringMenuTitle:               "Filtering",
 		WillCancelExistingFilterTooltip:  "Note: this will cancel the existing filter",
 		MustExitFilterModeTitle:          "Command not available",
