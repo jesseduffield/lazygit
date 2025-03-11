@@ -1,7 +1,9 @@
 package graph
 
 import (
+	"cmp"
 	"runtime"
+	"slices"
 	"strings"
 	"sync"
 
@@ -10,7 +12,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
-	"golang.org/x/exp/slices"
 )
 
 type PipeKind uint8
@@ -269,11 +270,11 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	}
 
 	// not efficient but doing it for now: sorting my pipes by toPos, then by kind
-	slices.SortFunc(newPipes, func(a, b *Pipe) bool {
+	slices.SortFunc(newPipes, func(a, b *Pipe) int {
 		if a.toPos == b.toPos {
-			return a.kind < b.kind
+			return cmp.Compare(a.kind, b.kind)
 		}
-		return a.toPos < b.toPos
+		return cmp.Compare(a.toPos, b.toPos)
 	})
 
 	return newPipes
