@@ -430,6 +430,18 @@ os:
   # Command for opening a link. Should contain "{{link}}".
   openLink: ""
 
+  # CopyToClipboardCmd is the command for copying to clipboard.
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
+  copyToClipboardCmd: ""
+
+  # ReadFromClipboardCmd is the command for reading the clipboard.
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
+  readFromClipboardCmd: ""
+
+  # A shell startup file containing shell aliases or shell functions. This will be sourced before running any shell commands, so that shell functions are available in the `:` command prompt or even in custom commands.
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#using-aliases-or-functions-in-shell-commands
+  shellFunctionsFile: ""
+
   # EditCommand is the command for editing a file.
   # Deprecated: use Edit instead. Note that semantics are different:
   # EditCommand is just the command itself, whereas Edit contains a
@@ -447,14 +459,6 @@ os:
   # OpenLinkCommand is the command for opening a link
   # Deprecated: use OpenLink instead.
   openLinkCommand: ""
-
-  # CopyToClipboardCmd is the command for copying to clipboard.
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
-  copyToClipboardCmd: ""
-
-  # ReadFromClipboardCmd is the command for reading the clipboard.
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
-  readFromClipboardCmd: ""
 
 # If true, don't display introductory popups upon opening Lazygit.
 disableStartupPopups: false
@@ -735,6 +739,21 @@ os:
 The `editInTerminal` option is used to decide whether lazygit needs to suspend itself to the background before calling the editor. It should really be named `suspend` because for some cases like when lazygit is opened from within a neovim session and you're using the `nvim-remote` preset, you're technically still in a terminal. Nonetheless we're sticking with the name `editInTerminal` for backwards compatibility.
 
 Contributions of new editor presets are welcome; see the `getPreset` function in [`editor_presets.go`](https://github.com/jesseduffield/lazygit/blob/master/pkg/config/editor_presets.go).
+
+## Using aliases or functions in shell commands
+
+Lazygit has a command prompt (`:`) for quickly executing shell commands without having to quit lazygit or switch to a different terminal. Most people find it convenient to have their usual shell aliases or shell functions available at this prompt. To achieve this, put your alias definitions in a separate shell startup file (which you source from your normal startup file, i.e. from `.bashrc` or `.zshrc`), and then tell lazygit about this file like so:
+
+```yml
+os:
+  shellAliasesFile: ~/.my_aliases.sh
+```
+
+For many people it might work well enough to use their entire shell config file (`~/.bashrc` or `~/.zshrc`) as the `shellAliasesFile`, but these config files typically do a lot more than defining aliases (e.g. initialize the completion system, start an ssh-agent, etc.) and this may unnecessarily delay execution of shell commands.
+
+When using zsh, aliases can't be used here, but functions can. It is easy to convert your existing aliases into functions, just change `alias l="ls -la"` to `l() ls -la`, for example. This way it will work as before both in the shell and in lazygit.
+
+Note that the shell aliases file is not only used when executing shell commands, but also for [custom commands](Custom_Command_Keybindings.md), and when opening a file in the editor.
 
 ## Overriding default config file location
 
