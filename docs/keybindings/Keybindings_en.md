@@ -138,6 +138,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | Edit | Open file in external editor. |
 | `` o `` | Open file | Open file in default application. |
 | `` i `` | Ignore or exclude file |  |
+| `` I `` | Add extension to .gitignore |  |
 | `` r `` | Refresh files |  |
 | `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | View stash options | View stash options (e.g. stash all, stash staged, stash unstaged). |

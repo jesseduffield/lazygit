@@ -312,6 +312,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | 編輯 | 使用外部編輯器開啟 |
 | `` o `` | 開啟檔案 | 使用預設軟體開啟 |
 | `` i `` | 忽略或排除檔案 |  |
+| `` I `` | Add extension to .gitignore |  |
 | `` r `` | 重新整理檔案 |  |
 | `` s `` | 收藏 | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | 檢視收藏選項 | View stash options (e.g. stash all, stash staged, stash unstaged). |
