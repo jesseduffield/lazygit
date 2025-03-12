@@ -217,6 +217,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` e `` | Edytuj | Otwórz plik w zewnętrznym edytorze. |
 | `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
 | `` i `` | Ignoruj lub wyklucz plik |  |
+| `` I `` | Add extension to .gitignore |  |
 | `` r `` | Odśwież pliki |  |
 | `` s `` | Schowaj | Schowaj wszystkie zmiany. Dla innych wariantów schowania, użyj klawisza wyświetlania opcji schowka. |
 | `` S `` | Wyświetl opcje schowka | Wyświetl opcje schowka (np. schowaj wszystko, schowaj zatwierdzone, schowaj niezatwierdzone). |

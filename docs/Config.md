@@ -562,6 +562,7 @@ keybinding:
     findBaseCommitForFixup: <c-f>
     confirmDiscard: x
     ignoreFile: i
+    ignoreFileExtension: I
     refreshFiles: r
     stashAllChanges: s
     viewStashOptions: S

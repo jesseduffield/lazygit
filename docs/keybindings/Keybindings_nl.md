@@ -67,6 +67,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` e `` | Edit | Open file in external editor. |
 | `` o `` | Open bestand | Open file in default application. |
 | `` i `` | Ignore or exclude file |  |
+| `` I `` | Add extension to .gitignore |  |
 | `` r `` | Refresh bestanden |  |
 | `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | Bekijk stash opties | View stash options (e.g. stash all, stash staged, stash unstaged). |
