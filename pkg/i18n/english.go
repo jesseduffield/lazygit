@@ -249,6 +249,7 @@ type TranslationSet struct {
 	OpenFileTooltip                       string
 	OpenInEditor                          string
 	IgnoreFile                            string
+	IgnoreFileExtension                   string
 	ExcludeFile                           string
 	RefreshFiles                          string
 	Merge                                 string
@@ -1283,6 +1284,7 @@ func EnglishTranslationSet() *TranslationSet {
 		OpenFileTooltip:                      "Open file in default application.",
 		OpenInEditor:                         "Open in editor",
 		IgnoreFile:                           `Add to .gitignore`,
+		IgnoreFileExtension:                  `Add extension to .gitignore`,
 		ExcludeFile:                          `Add to .git/info/exclude`,
 		RefreshFiles:                         `Refresh files`,
 		Merge:                                `Merge`,

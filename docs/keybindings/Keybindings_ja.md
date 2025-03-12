@@ -210,6 +210,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | Edit | Open file in external editor. |
 | `` o `` | ファイルを開く | Open file in default application. |
 | `` i `` | ファイルをignore |  |
+| `` I `` | Add extension to .gitignore |  |
 | `` r `` | ファイルをリフレッシュ |  |
 | `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | View stash options | View stash options (e.g. stash all, stash staged, stash unstaged). |
