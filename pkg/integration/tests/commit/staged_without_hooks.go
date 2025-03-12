@@ -22,7 +22,12 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 		// stage the file
 		t.Views().Files().
 			IsFocused().
-			SelectedLine(Contains("myfile")).
+			Lines(
+				Equals("▼ /").IsSelected(),
+				Contains("myfile"),
+				Contains("myfile2"),
+			).
+			SelectNextItem().
 			PressPrimaryAction().
 			PressEnter()
 

@@ -33,10 +33,12 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("direct-file").IsSelected(),
+				Equals("▼ /").IsSelected(),
+				Contains("direct-file"),
 				Contains("hunk-file"),
 				Contains("line-file"),
 			).
+			SelectNextItem().
 			PressPrimaryAction().
 			Tap(func() {
 				t.Views().Information().Content(Contains("Building patch"))

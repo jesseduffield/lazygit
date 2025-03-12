@@ -554,11 +554,11 @@ func (self *RefreshHelper) refreshStateFiles() error {
 				prevConflictFileCount++
 			}
 			if file.HasInlineMergeConflicts {
-				hasConflicts, err := mergeconflicts.FileHasConflictMarkers(file.Name)
+				hasConflicts, err := mergeconflicts.FileHasConflictMarkers(file.Path)
 				if err != nil {
 					self.c.Log.Error(err)
 				} else if !hasConflicts {
-					pathsToStage = append(pathsToStage, file.Name)
+					pathsToStage = append(pathsToStage, file.Path)
 				}
 			}
 		}

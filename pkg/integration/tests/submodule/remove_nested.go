@@ -39,9 +39,10 @@ var RemoveNested = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().IsFocused().
 			Lines(
-				Contains("modules").IsSelected(),
-				MatchesRegexp(`D.*innerSubPath`),
-				MatchesRegexp(`M.*\.gitmodules`),
+				Equals("▼ /").IsSelected(),
+				Equals("  ▼ modules"),
+				Equals("    D  innerSubPath"),
+				Equals("  M  .gitmodules"),
 			).
 			NavigateToLine(Contains(".gitmodules"))
 

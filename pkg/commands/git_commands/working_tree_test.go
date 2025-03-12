@@ -87,7 +87,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 		{
 			testName: "An error occurred when resetting",
 			file: &models.File{
-				Name:             "test",
+				Path:             "test",
 				HasStagedChanges: true,
 			},
 			removeFile: func(string) error { return nil },
@@ -98,7 +98,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 		{
 			testName: "An error occurred when removing file",
 			file: &models.File{
-				Name:    "test",
+				Path:    "test",
 				Tracked: false,
 				Added:   true,
 			},
@@ -111,7 +111,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 		{
 			testName: "An error occurred with checkout",
 			file: &models.File{
-				Name:             "test",
+				Path:             "test",
 				Tracked:          true,
 				HasStagedChanges: false,
 			},
@@ -123,7 +123,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 		{
 			testName: "Checkout only",
 			file: &models.File{
-				Name:             "test",
+				Path:             "test",
 				Tracked:          true,
 				HasStagedChanges: false,
 			},
@@ -135,7 +135,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 		{
 			testName: "Reset and checkout staged changes",
 			file: &models.File{
-				Name:             "test",
+				Path:             "test",
 				Tracked:          true,
 				HasStagedChanges: true,
 			},
@@ -148,7 +148,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 		{
 			testName: "Reset and checkout merge conflicts",
 			file: &models.File{
-				Name:              "test",
+				Path:              "test",
 				Tracked:           true,
 				HasMergeConflicts: true,
 			},
@@ -161,7 +161,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 		{
 			testName: "Reset and remove",
 			file: &models.File{
-				Name:             "test",
+				Path:             "test",
 				Tracked:          false,
 				Added:            true,
 				HasStagedChanges: true,
@@ -177,7 +177,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 		{
 			testName: "Remove only",
 			file: &models.File{
-				Name:             "test",
+				Path:             "test",
 				Tracked:          false,
 				Added:            true,
 				HasStagedChanges: false,
@@ -224,7 +224,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 		{
 			testName: "Default case",
 			file: &models.File{
-				Name:             "test.txt",
+				Path:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          true,
 			},
@@ -239,7 +239,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 		{
 			testName: "cached",
 			file: &models.File{
-				Name:             "test.txt",
+				Path:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          true,
 			},
@@ -254,7 +254,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 		{
 			testName: "plain",
 			file: &models.File{
-				Name:             "test.txt",
+				Path:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          true,
 			},
@@ -269,7 +269,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 		{
 			testName: "File not tracked and file has no staged changes",
 			file: &models.File{
-				Name:             "test.txt",
+				Path:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          false,
 			},
@@ -284,7 +284,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 		{
 			testName: "Default case (ignore whitespace)",
 			file: &models.File{
-				Name:             "test.txt",
+				Path:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          true,
 			},
@@ -299,7 +299,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 		{
 			testName: "Show diff with custom context size",
 			file: &models.File{
-				Name:             "test.txt",
+				Path:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          true,
 			},
@@ -314,7 +314,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 		{
 			testName: "Show diff with custom similarity threshold",
 			file: &models.File{
-				Name:             "test.txt",
+				Path:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          true,
 			},
@@ -470,7 +470,7 @@ func TestWorkingTreeDiscardUnstagedFileChanges(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName: "valid case",
-			file:     &models.File{Name: "test.txt"},
+			file:     &models.File{Path: "test.txt"},
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"-c", disableHooksFlag, "checkout", "--", "test.txt"}, "", nil),
 			test: func(err error) {

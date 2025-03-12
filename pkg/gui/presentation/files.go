@@ -52,11 +52,11 @@ func commitFilePatchStatus(node *filetree.Node[models.CommitFile], tree *filetre
 	// be whatever status it is, but if it's a non-leaf it will determine its status
 	// based on the leaves of that subtree
 	if node.EveryFile(func(file *models.CommitFile) bool {
-		return patchBuilder.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.WHOLE
+		return patchBuilder.GetFileStatus(file.Path, tree.GetRef().RefName()) == patch.WHOLE
 	}) {
 		return patch.WHOLE
 	} else if node.EveryFile(func(file *models.CommitFile) bool {
-		return patchBuilder.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.UNSELECTED
+		return patchBuilder.GetFileStatus(file.Path, tree.GetRef().RefName()) == patch.UNSELECTED
 	}) {
 		return patch.UNSELECTED
 	} else {
@@ -91,11 +91,11 @@ func renderAux[T any](
 
 	arr := []string{}
 	if !isRoot {
-		isCollapsed := collapsedPaths.IsCollapsed(node.GetPath())
+		isCollapsed := collapsedPaths.IsCollapsed(node.GetInternalPath())
 		arr = append(arr, renderLine(node, treeDepth, visualDepth, isCollapsed))
 	}
 
-	if collapsedPaths.IsCollapsed(node.GetPath()) {
+	if collapsedPaths.IsCollapsed(node.GetInternalPath()) {
 		return arr
 	}
 
@@ -293,13 +293,19 @@ func getColorForChangeStatus(changeStatus string) style.TextStyle {
 }
 
 func fileNameAtDepth(node *filetree.Node[models.File], depth int) string {
-	splitName := split(node.Path)
+	splitName := split(node.GetInternalPath())
+	if depth == 0 && splitName[0] == "." {
+		if len(splitName) == 1 {
+			return "/"
+		}
+		depth = 1
+	}
 	name := join(splitName[depth:])
 
 	if node.File != nil && node.File.IsRename() {
-		splitPrevName := split(node.File.PreviousName)
+		splitPrevName := split(node.File.PreviousPath)
 
-		prevName := node.File.PreviousName
+		prevName := node.File.PreviousPath
 		// if the file has just been renamed inside the same directory, we can shave off
 		// the prefix for the previous path too. Otherwise we'll keep it unchanged
 		sameParentDir := len(splitName) == len(splitPrevName) && join(splitName[0:depth]) == join(splitPrevName[0:depth])
@@ -314,7 +320,13 @@ func fileNameAtDepth(node *filetree.Node[models.File], depth int) string {
 }
 
 func commitFileNameAtDepth(node *filetree.Node[models.CommitFile], depth int) string {
-	splitName := split(node.Path)
+	splitName := split(node.GetInternalPath())
+	if depth == 0 && splitName[0] == "." {
+		if len(splitName) == 1 {
+			return "/"
+		}
+		depth = 1
+	}
 	name := join(splitName[depth:])
 
 	return name

@@ -25,6 +25,12 @@ var CommitSwitchToEditor = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			IsFocused().
+			Lines(
+				Equals("▼ /").IsSelected(),
+				Equals("  ?? file1"),
+				Equals("  ?? file2"),
+			).
+			SelectNextItem().
 			PressPrimaryAction(). // stage one of the files
 			Press(keys.Files.CommitChanges)
 
@@ -45,6 +51,9 @@ var CommitSwitchToEditor = NewIntegrationTest(NewIntegrationTestArgs{
 		// Now check that the preserved commit message was cleared:
 		t.Views().Files().
 			Focus().
+			Lines(
+				Equals("?? file2"),
+			).
 			PressPrimaryAction(). // stage the other file
 			Press(keys.Files.CommitChanges)
 

@@ -67,9 +67,11 @@ var MoveToLaterCommitPartialHunk = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("file1").IsSelected(),
+				Equals("▼ /").IsSelected(),
+				Contains("file1"),
 				Contains("unrelated-file"),
 			).
+			SelectNextItem().
 			Tap(func() {
 				t.Views().Main().
 					Content(Contains("+1st line\n 2nd line"))

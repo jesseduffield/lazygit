@@ -21,7 +21,12 @@ var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			IsFocused().
-			SelectedLine(Contains("myfile")).
+			Lines(
+				Equals("▼ /").IsSelected(),
+				Contains("myfile"),
+				Contains("myfile2"),
+			).
+			SelectNextItem().
 			PressEnter()
 
 		t.Views().Staging().

@@ -47,8 +47,8 @@ func fileShimFromModelFile(file *models.File) *File {
 	}
 
 	return &File{
-		Name:                    file.Name,
-		PreviousName:            file.PreviousName,
+		Name:                    file.Path,
+		PreviousName:            file.PreviousPath,
 		HasStagedChanges:        file.HasStagedChanges,
 		HasUnstagedChanges:      file.HasUnstagedChanges,
 		Tracked:                 file.Tracked,
@@ -141,7 +141,7 @@ func commitFileShimFromModelRemote(commitFile *models.CommitFile) *CommitFile {
 	}
 
 	return &CommitFile{
-		Name:         commitFile.Name,
+		Name:         commitFile.Path,
 		ChangeStatus: commitFile.ChangeStatus,
 	}
 }

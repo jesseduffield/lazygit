@@ -20,6 +20,12 @@ var Reword = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			IsFocused().
+			Lines(
+				Equals("▼ /").IsSelected(),
+				Contains("myfile"),
+				Contains("myfile2"),
+			).
+			SelectNextItem().
 			PressPrimaryAction().
 			Press(keys.Files.CommitChanges)
 
