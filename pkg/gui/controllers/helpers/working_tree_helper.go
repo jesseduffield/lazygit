@@ -155,6 +155,9 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 		commitPrefixConfigs := self.commitPrefixConfigsForRepo()
 		for _, commitPrefixConfig := range commitPrefixConfigs {
 			prefixPattern := commitPrefixConfig.Pattern
+			if prefixPattern == "" {
+				continue
+			}
 			prefixReplace := commitPrefixConfig.Replace
 			branchName := self.refHelper.GetCheckedOutRef().Name
 			rgx, err := regexp.Compile(prefixPattern)
