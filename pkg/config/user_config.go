@@ -455,6 +455,7 @@ type KeybindingFilesConfig struct {
 	FindBaseCommitForFixup   string `yaml:"findBaseCommitForFixup"`
 	ConfirmDiscard           string `yaml:"confirmDiscard"`
 	IgnoreFile               string `yaml:"ignoreFile"`
+	IgnoreFileExtension      string `yaml:"ignoreFileExtension"`
 	RefreshFiles             string `yaml:"refreshFiles"`
 	StashAllChanges          string `yaml:"stashAllChanges"`
 	ViewStashOptions         string `yaml:"viewStashOptions"`
@@ -928,6 +929,7 @@ func GetDefaultConfig() *UserConfig {
 				CommitChangesWithEditor:  "C",
 				FindBaseCommitForFixup:   "<c-f>",
 				IgnoreFile:               "i",
+				IgnoreFileExtension:      "I",
 				RefreshFiles:             "r",
 				StashAllChanges:          "s",
 				ViewStashOptions:         "S",
