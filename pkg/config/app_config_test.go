@@ -695,3 +695,82 @@ func BenchmarkMigrationOnLargeConfiguration(b *testing.B) {
 		_, _ = computeMigratedConfig("path doesn't matter", largeConfiguration)
 	}
 }
+
+func TestAllBranchesLogCmdMigrations(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "Incomplete Configuration Passes uneventfully",
+			input:    "git:",
+			expected: "git:",
+		}, {
+			name: "Single Cmd with no Cmds",
+			input: `git:
+  allBranchesLogCmd: git log --graph --oneline
+`,
+			expected: `git:
+  allBranchesLogCmds:
+    - git log --graph --oneline
+`,
+		}, {
+			name: "Cmd with one existing Cmds",
+			input: `git:
+  allBranchesLogCmd: git log --graph --oneline
+  allBranchesLogCmds:
+    - git log --graph --oneline --pretty
+`,
+			expected: `git:
+  allBranchesLogCmds:
+    - git log --graph --oneline
+    - git log --graph --oneline --pretty
+`,
+		}, {
+			name: "Only Cmds set have no changes",
+			input: `git:
+  allBranchesLogCmds:
+    - git log
+`,
+			expected: `git:
+  allBranchesLogCmds:
+    - git log
+`,
+		}, {
+			name: "Removes Empty Cmd When at end of yaml",
+			input: `git:
+  allBranchesLogCmds:
+    - git log --graph --oneline
+  allBranchesLogCmd:
+`,
+			expected: `git:
+  allBranchesLogCmds:
+    - git log --graph --oneline
+`,
+		}, {
+			name: "Removes Empty Cmd With Keys Afterwards",
+			input: `git:
+  allBranchesLogCmds:
+    - git log --graph --oneline
+  allBranchesLogCmd:
+  foo: bar
+`,
+			expected: `git:
+  allBranchesLogCmds:
+    - git log --graph --oneline
+  foo: bar
+`,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			actual, err := computeMigratedConfig("path doesn't matter", []byte(s.input))
+			if err != nil {
+				t.Error(err)
+			}
+			assert.Equal(t, s.expected, string(actual))
+		})
+	}
+}
