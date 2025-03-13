@@ -74,7 +74,7 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 				MatchesRegexp(` M.*my_submodule_path \(submodule\)`),
 				Contains("other_file").IsSelected(),
 			).
-			// Verify we can't use range select on submodules
+			// Verify we can't reset a submodule and file change at the same time.
 			Press(keys.Universal.ToggleRangeSelect).
 			SelectPreviousItem().
 			Lines(
@@ -83,7 +83,7 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectToast(Contains("Disabled: Range select not supported for submodules"))
+				t.ExpectToast(Contains("Disabled: Multiselection not supported for submodules"))
 			}).
 			Press(keys.Universal.ToggleRangeSelect).
 			Lines(

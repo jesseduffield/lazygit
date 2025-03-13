@@ -338,6 +338,7 @@ var tests = []*components.IntegrationTest{
 	submodule.Remove,
 	submodule.RemoveNested,
 	submodule.Reset,
+	submodule.ResetFolder,
 	sync.FetchPrune,
 	sync.FetchWhenSortedByDate,
 	sync.ForcePush,

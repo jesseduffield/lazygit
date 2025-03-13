@@ -42,7 +42,7 @@ var Remove = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Main().Content(
 			Contains("-[submodule \"my_submodule_name\"]").
 				Contains("-   path = my_submodule_path").
-				Contains("-   url = ../other_repo"),
+				Contains("-   url = ../my_submodule_name"),
 		)
 
 		t.FileSystem().PathNotPresent(gitDirSubmodulePath)
