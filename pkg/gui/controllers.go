@@ -112,7 +112,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		MergeAndRebase:  rebaseHelper,
 		MergeConflicts:  mergeConflictsHelper,
 		CherryPick:      cherryPickHelper,
-		Upstream:        helpers.NewUpstreamHelper(helperCommon, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
+		Upstream:        helpers.NewUpstreamHelper(helperCommon, suggestionsHelper),
 		AmendHelper:     helpers.NewAmendHelper(helperCommon, gpgHelper),
 		FixupHelper:     helpers.NewFixupHelper(helperCommon),
 		Commits:         commitsHelper,
