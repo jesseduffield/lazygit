@@ -516,7 +516,7 @@ func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, comm
 			if err := self.workingTree.StageFile(filePath); err != nil {
 				return err
 			}
-		} else if err := self.workingTree.CheckoutFile("HEAD^", filePath); err != nil {
+		} else if err := self.workingTree.CheckoutFile("HEAD^", filePath, true); err != nil {
 			return err
 		}
 	}
