@@ -261,6 +261,20 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 				},
 				Key: 'd',
 			},
+			{
+				LabelColumns: []string{self.c.Tr.BulkUpdateRecursiveSubmodules, style.FgRed.Sprint(self.c.Git().Submodule.BulkUpdateRecursivelyCmdObj().ToString())},
+				OnPress: func() error {
+					return self.c.WithWaitingStatus(self.c.Tr.RunningCommand, func(gocui.Task) error {
+						self.c.LogAction(self.c.Tr.Actions.BulkUpdateRecursiveSubmodules)
+						if err := self.c.Git().Submodule.BulkUpdateRecursivelyCmdObj().Run(); err != nil {
+							return err
+						}
+
+						return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+					})
+				},
+				Key: 'r',
+			},
 		},
 	})
 }
