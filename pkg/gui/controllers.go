@@ -148,6 +148,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	syncController := controllers.NewSyncController(
 		common,
+		&gui.branchesBeingPushed,
 	)
 
 	submodulesController := controllers.NewSubmodulesController(common)
@@ -182,7 +183,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	renameSimilarityThresholdController := controllers.NewRenameSimilarityThresholdController(common)
 	verticalScrollControllerFactory := controllers.NewVerticalScrollControllerFactory(common, &gui.viewBufferManagerMap)
 
-	branchesController := controllers.NewBranchesController(common)
+	branchesController := controllers.NewBranchesController(common, &gui.branchesBeingPushed)
 	gitFlowController := controllers.NewGitFlowController(common)
 	stashController := controllers.NewStashController(common)
 	commitFilesController := controllers.NewCommitFilesController(common)
