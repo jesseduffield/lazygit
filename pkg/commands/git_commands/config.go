@@ -66,7 +66,7 @@ func (self *ConfigCommands) NeedsGpgSubprocessForCommit() bool {
 		return false
 	}
 
-	return self.gitConfig.GetBool("commit.gpgsign")
+	return self.gitConfig.GetBool("commit.gpgSign")
 }
 
 func (self *ConfigCommands) GetCoreEditor() string {
