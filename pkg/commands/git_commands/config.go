@@ -69,6 +69,22 @@ func (self *ConfigCommands) NeedsGpgSubprocessForCommit() bool {
 	return self.gitConfig.GetBool("commit.gpgSign")
 }
 
+// NeedsGpgSubprocessForTag tells us whether the user has gpg enabled for tag actions
+// and needs a subprocess because they have a process where they manually
+// enter their password every time a GPG action is taken
+func (self *ConfigCommands) NeedsGpgSubprocessForTag() bool {
+	overrideGpg := self.UserConfig().Git.OverrideGpg
+	if overrideGpg {
+		return false
+	}
+
+	return self.gitConfig.GetBool("tag.gpgSign")
+}
+
+func (self *ConfigCommands) GetTagGpgSign() bool {
+	return self.gitConfig.GetBool("tag.gpgSign")
+}
+
 func (self *ConfigCommands) GetCoreEditor() string {
 	return self.gitConfig.Get("core.editor")
 }
