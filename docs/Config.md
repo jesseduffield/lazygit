@@ -43,6 +43,15 @@ gui:
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
   branchColorPatterns: {}
 
+  # Custom icons for filenames and file extensions
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color
+  customIcons:
+    # Map of filenames to icon properties (icon and color)
+    filenames: {}
+
+    # Map of file extensions (including the dot) to icon properties (icon and color)
+    extensions: {}
+
   # The number of lines you scroll by when scrolling the main window
   scrollHeight: 2
 
@@ -840,6 +849,27 @@ gui:
 ```
 
 Note that the regular expressions are not implicitly anchored to the beginning/end of the branch name. If you want to do that, add leading `^` and/or trailing `$` as needed.
+
+## Custom Files Icon & Color
+
+You can customize the icon and color of files based on filenames or extensions:
+
+```yaml
+gui:
+  customIcons:
+    filenames:
+      "CONTRIBUTING.md": { icon: "\uede2", color: "#FEDDEF" }
+      "HACKING.md": { icon: "\uede2", color: "#FEDDEF" }
+    extensions:
+      ".cat":
+        icon: "\U000f011b"
+        color: "#BC4009"
+      ".dog":
+        icon: "\U000f0a43"
+        color: "#B6977E"
+```
+
+Note that there is no support for regular expressions.
 
 ## Example Coloring
 

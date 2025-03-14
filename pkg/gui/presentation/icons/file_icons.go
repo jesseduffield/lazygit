@@ -3,6 +3,8 @@ package icons
 import (
 	"path/filepath"
 	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/config"
 )
 
 // NOTE: Visit next links for inspiration:
@@ -763,13 +765,19 @@ func patchFileIconsForNerdFontsV2() {
 	extIconMap[".vue"] = IconProperties{Icon: "\ufd42", Color: "#89e051"}     // ﵂
 }
 
-func IconForFile(name string, isSubmodule bool, isLinkedWorktree bool, isDirectory bool) IconProperties {
+func IconForFile(name string, isSubmodule bool, isLinkedWorktree bool, isDirectory bool, customIconsConfig *config.CustomIconsConfig) IconProperties {
 	base := filepath.Base(name)
+	if icon, ok := customIconsConfig.Filenames[base]; ok {
+		return IconProperties{Color: icon.Color, Icon: icon.Icon}
+	}
 	if icon, ok := nameIconMap[base]; ok {
 		return icon
 	}
 
 	ext := strings.ToLower(filepath.Ext(name))
+	if icon, ok := customIconsConfig.Extensions[ext]; ok {
+		return IconProperties{Color: icon.Color, Icon: icon.Icon}
+	}
 	if icon, ok := extIconMap[ext]; ok {
 		return icon
 	}
