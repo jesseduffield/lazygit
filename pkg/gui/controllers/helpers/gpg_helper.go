@@ -23,7 +23,7 @@ func NewGpgHelper(c *HelperCommon) *GpgHelper {
 // fix this bug, or just stop running subprocesses from within there, given that
 // we don't need to see a loading status if we're in a subprocess.
 func (self *GpgHelper) WithGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
-	useSubprocess := self.c.Git().Config.UsingGpg()
+	useSubprocess := self.c.Git().Config.NeedsGpgSubprocessForCommit()
 	if useSubprocess {
 		success, err := self.c.RunSubprocess(cmdObj)
 		if success && onSuccess != nil {

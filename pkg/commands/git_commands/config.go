@@ -57,9 +57,10 @@ func (self *ConfigCommands) GetPager(width int) string {
 	return utils.ResolvePlaceholderString(pagerTemplate, templateValues)
 }
 
-// UsingGpg tells us whether the user has gpg enabled so that we can know
-// whether we need to run a subprocess to allow them to enter their password
-func (self *ConfigCommands) UsingGpg() bool {
+// NeedsGpgSubprocessForCommit tells us whether the user has gpg enabled for commit actions
+// and needs a subprocess because they have a process where they manually
+// enter their password every time a GPG action is taken
+func (self *ConfigCommands) NeedsGpgSubprocessForCommit() bool {
 	overrideGpg := self.UserConfig().Git.OverrideGpg
 	if overrideGpg {
 		return false
