@@ -850,6 +850,7 @@ Note that the regular expressions are not implicitly anchored to the beginning/e
 
 ![border example](../../assets/colored-border-example.png)
 
+You can find preset themes on [this repository](https://github.com/catppuccin/lazygit) by Catppuccin (this is unofficial: be sure to check the source!).
 ## Display Nerd Fonts Icons
 
 If you are using [Nerd Fonts](https://www.nerdfonts.com), you can display icons.
