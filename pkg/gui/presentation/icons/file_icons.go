@@ -765,11 +765,17 @@ func patchFileIconsForNerdFontsV2() {
 
 func IconForFile(name string, isSubmodule bool, isLinkedWorktree bool, isDirectory bool) IconProperties {
 	base := filepath.Base(name)
+	if icon, ok := customNameIconMap[base]; ok {
+		return icon
+	}
 	if icon, ok := nameIconMap[base]; ok {
 		return icon
 	}
 
 	ext := strings.ToLower(filepath.Ext(name))
+	if icon, ok := customExtIconMap[ext]; ok {
+		return icon
+	}
 	if icon, ok := extIconMap[ext]; ok {
 		return icon
 	}

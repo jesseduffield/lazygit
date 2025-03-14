@@ -463,6 +463,11 @@ func (gui *Gui) onUserConfigLoaded() error {
 		presentation.SetCustomBranches(userConfig.Gui.BranchColors, false)
 	}
 
+	// Set custom icons from user configuration
+	if len(userConfig.Gui.CustomIcons.Filenames) > 0 || len(userConfig.Gui.CustomIcons.Extensions) > 0 {
+		icons.SetCustomIcons(userConfig.Gui.CustomIcons)
+	}
+
 	return nil
 }
 
