@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"errors"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -22,7 +24,11 @@ func NewTagsHelper(c *HelperCommon, commitsHelper *CommitsHelper) *TagsHelper {
 func (self *TagsHelper) OpenCreateTagPrompt(ref string, onCreate func()) error {
 	doCreateTag := func(tagName string, description string, force bool) error {
 		return self.c.WithWaitingStatus(self.c.Tr.CreatingTag, func(gocui.Task) error {
-			if description != "" {
+			if self.c.Git().Config.NeedsGpgSubprocessForTag() {
+				return errors.New(self.c.Tr.DisabledForGPG)
+			}
+			// We must create an annotated tag when users use GPG, even if the message is empty
+			if description != "" || self.c.Git().Config.GetTagGpgSign() {
 				self.c.LogAction(self.c.Tr.Actions.CreateAnnotatedTag)
 				if err := self.c.Git().Tag.CreateAnnotated(tagName, ref, description, force); err != nil {
 					return err
