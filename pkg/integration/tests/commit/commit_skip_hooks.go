@@ -7,9 +7,8 @@ import (
 
 var fileModHook = `#!/bin/bash
 
-if [[ -f test-wip-commit-prefix ]]; then
-  echo "Modified text" > test-wip-commit-prefix
-fi
+# For this test all we need is a hook that always fails
+exit 1
 `
 
 var CommitSkipHooks = NewIntegrationTest(NewIntegrationTestArgs{
@@ -21,16 +20,29 @@ var CommitSkipHooks = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFile(".git/hooks/pre-commit", fileModHook)
 		shell.MakeExecutable(".git/hooks/pre-commit")
 
-		shell.NewBranch("feature/TEST-002")
-		shell.CreateFile("test-wip-commit-prefix", "Initial text")
+		shell.CreateFileAndAdd("file.txt", "content")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Commits().
-			IsEmpty()
-
 		t.Views().Files().
 			IsFocused().
-			PressPrimaryAction().
+			Lines(
+				Equals("A  file.txt"),
+			).
+			// Sanity check to make sure the hook is working:
+			Press(keys.Files.CommitChanges)
+
+		t.ExpectPopup().CommitMessagePanel().
+			Title(Equals("Commit summary")).
+			Type("foo bar").
+			Confirm()
+
+		t.ExpectPopup().Alert().
+			Title(Equals("Error")).
+			Content(Contains("Git command failed.")).
+			Confirm()
+
+		// Committing without hook works:
+		t.Views().Files().
 			Press(keys.Files.CommitChangesWithoutHook)
 
 		t.ExpectPopup().CommitMessagePanel().
@@ -38,10 +50,7 @@ var CommitSkipHooks = NewIntegrationTest(NewIntegrationTestArgs{
 			Type("foo bar").
 			Confirm()
 
-		t.FileSystem().FileContent("test-wip-commit-prefix", Equals("Initial text"))
-
 		t.Views().Commits().Focus()
 		t.Views().Main().Content(Contains("foo bar"))
-		t.Views().Extras().Content(Contains("--no-verify"))
 	},
 })

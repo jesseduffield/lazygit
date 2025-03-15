@@ -7,9 +7,8 @@ import (
 
 var preCommitHook = `#!/bin/bash
 
-if [[ -f bad ]]; then
-  exit 1
-fi
+# For this test all we need is a hook that always fails
+exit 1
 `
 
 var FailHooksThenCommitNoHooks = NewIntegrationTest(NewIntegrationTestArgs{
@@ -23,15 +22,11 @@ var FailHooksThenCommitNoHooks = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.MakeExecutable(".git/hooks/pre-commit")
 
 		shell.CreateFileAndAdd("one", "one")
-
-		// the presence of this file will cause the pre-commit hook to fail
-		shell.CreateFileAndAdd("bad", "bad")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("bad"),
 				Contains("one"),
 			).
 			Press(keys.Files.CommitChanges).
@@ -53,7 +48,5 @@ var FailHooksThenCommitNoHooks = NewIntegrationTest(NewIntegrationTestArgs{
 			})
 		t.Views().Commits().Focus()
 		t.Views().Main().Content(Contains("my message"))
-
-		t.Views().Extras().Content(Contains("--no-verify"))
 	},
 })
