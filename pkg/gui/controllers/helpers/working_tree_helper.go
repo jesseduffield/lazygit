@@ -86,7 +86,7 @@ func (self *WorkingTreeHelper) OpenMergeTool() error {
 	return nil
 }
 
-func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage string) error {
+func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage string, forceSkipHooks bool) error {
 	return self.WithEnsureCommittableFiles(func() error {
 		self.commitsHelper.OpenCommitMessagePanel(
 			&OpenCommitMessagePanelOpts{
@@ -95,8 +95,12 @@ func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage strin
 				SummaryTitle:     self.c.Tr.CommitSummaryTitle,
 				DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
 				PreserveMessage:  true,
-				OnConfirm:        self.handleCommit,
-				OnSwitchToEditor: self.switchFromCommitMessagePanelToEditor,
+				OnConfirm: func(summary string, description string) error {
+					return self.handleCommit(summary, description, forceSkipHooks)
+				},
+				OnSwitchToEditor: func(filepath string) error {
+					return self.switchFromCommitMessagePanelToEditor(filepath, forceSkipHooks)
+				},
 			},
 		)
 
@@ -104,8 +108,8 @@ func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage strin
 	})
 }
 
-func (self *WorkingTreeHelper) handleCommit(summary string, description string) error {
-	cmdObj := self.c.Git().Commit.CommitCmdObj(summary, description)
+func (self *WorkingTreeHelper) handleCommit(summary string, description string, forceSkipHooks bool) error {
+	cmdObj := self.c.Git().Commit.CommitCmdObj(summary, description, forceSkipHooks)
 	self.c.LogAction(self.c.Tr.Actions.Commit)
 	return self.gpgHelper.WithGpgHandling(cmdObj, self.c.Tr.CommittingStatus, func() error {
 		self.commitsHelper.OnCommitSuccess()
@@ -113,7 +117,7 @@ func (self *WorkingTreeHelper) handleCommit(summary string, description string) 
 	})
 }
 
-func (self *WorkingTreeHelper) switchFromCommitMessagePanelToEditor(filepath string) error {
+func (self *WorkingTreeHelper) switchFromCommitMessagePanelToEditor(filepath string, forceSkipHooks bool) error {
 	// We won't be able to tell whether the commit was successful, because
 	// RunSubprocessAndRefresh doesn't return the error (it opens an error alert
 	// itself and returns nil on error). But even if we could, we wouldn't have
@@ -124,7 +128,7 @@ func (self *WorkingTreeHelper) switchFromCommitMessagePanelToEditor(filepath str
 
 	self.c.LogAction(self.c.Tr.Actions.Commit)
 	return self.c.RunSubprocessAndRefresh(
-		self.c.Git().Commit.CommitInEditorWithMessageFileCmdObj(filepath),
+		self.c.Git().Commit.CommitInEditorWithMessageFileCmdObj(filepath, forceSkipHooks),
 	)
 }
 
@@ -140,12 +144,7 @@ func (self *WorkingTreeHelper) HandleCommitEditorPress() error {
 }
 
 func (self *WorkingTreeHelper) HandleWIPCommitPress() error {
-	skipHookPrefix := self.c.UserConfig().Git.SkipHookPrefix
-	if skipHookPrefix == "" {
-		return errors.New(self.c.Tr.SkipHookPrefixNotConfigured)
-	}
-
-	return self.HandleCommitPressWithMessage(skipHookPrefix)
+	return self.HandleCommitPressWithMessage("", true)
 }
 
 func (self *WorkingTreeHelper) HandleCommitPress() error {
@@ -173,7 +172,7 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 		}
 	}
 
-	return self.HandleCommitPressWithMessage(message)
+	return self.HandleCommitPressWithMessage(message, false)
 }
 
 func (self *WorkingTreeHelper) WithEnsureCommittableFiles(handler func() error) error {

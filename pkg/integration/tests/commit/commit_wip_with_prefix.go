@@ -27,31 +27,31 @@ var CommitWipWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().CommitMessagePanel().
 			Title(Equals("Commit summary")).
-			InitialText(Equals("WIP")).
-			Type(" foo").
+			Type("foo").
 			Cancel()
 
 		t.Views().Files().
 			IsFocused().
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.CommitChangesWithoutHook)
 
 		t.ExpectPopup().CommitMessagePanel().
 			Title(Equals("Commit summary")).
-			InitialText(Equals("WIP foo")).
+			InitialText(Equals("foo")).
 			Type(" bar").
 			Cancel()
 
 		t.Views().Files().
 			IsFocused().
-			Press(keys.Files.CommitChanges)
+			Press(keys.Files.CommitChangesWithoutHook)
 
 		t.ExpectPopup().CommitMessagePanel().
 			Title(Equals("Commit summary")).
-			InitialText(Equals("WIP foo bar")).
+			InitialText(Equals("foo bar")).
 			Type(". Added something else").
 			Confirm()
 
 		t.Views().Commits().Focus()
-		t.Views().Main().Content(Contains("WIP foo bar. Added something else"))
+		t.Views().Main().Content(Contains("foo bar. Added something else"))
+		t.Views().Extras().Content(Contains("--no-verify"))
 	},
 })

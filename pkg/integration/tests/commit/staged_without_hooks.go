@@ -45,12 +45,13 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(DoesNotContain("+myfile content").Contains("+with a second line")).
 			Press(keys.Files.CommitChangesWithoutHook)
 
-		commitMessage := ": my commit message"
-		t.ExpectPopup().CommitMessagePanel().InitialText(Contains("WIP")).Type(commitMessage).Confirm()
+		commitMessage := "my commit message"
+		t.ExpectPopup().CommitMessagePanel().Type(commitMessage).Confirm()
 
+		t.Views().Extras().Content(Contains("--no-verify"))
 		t.Views().Commits().
 			Lines(
-				Contains("WIP" + commitMessage),
+				Contains(commitMessage),
 			)
 
 		t.Views().StagingSecondary().
