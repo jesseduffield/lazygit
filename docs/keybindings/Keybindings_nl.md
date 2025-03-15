@@ -40,8 +40,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` , `` | Vorige pagina |  |
 | `` . `` | Volgende pagina |  |
-| `` < `` | Scroll naar boven |  |
-| `` > `` | Scroll naar beneden |  |
+| `` < (<home>) `` | Scroll naar boven |  |
+| `` > (<end>) `` | Scroll naar beneden |  |
 | `` v `` | Toggle drag selecteer |  |
 | `` <s-down> `` | Range select down |  |
 | `` <s-up> `` | Range select up |  |
