@@ -40,8 +40,8 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 |-----|--------|-------------|
 | `` , `` | Poprzednia strona |  |
 | `` . `` | Następna strona |  |
-| `` < `` | Przewiń do góry |  |
-| `` > `` | Przewiń do dołu |  |
+| `` < (<home>) `` | Przewiń do góry |  |
+| `` > (<end>) `` | Przewiń do dołu |  |
 | `` v `` | Przełącz zaznaczenie zakresu |  |
 | `` <s-down> `` | Zaznacz zakres w dół |  |
 | `` <s-up> `` | Zaznacz zakres w górę |  |

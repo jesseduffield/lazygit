@@ -379,6 +379,8 @@ type KeybindingUniversalConfig struct {
 	ScrollRight                       string   `yaml:"scrollRight"`
 	GotoTop                           string   `yaml:"gotoTop"`
 	GotoBottom                        string   `yaml:"gotoBottom"`
+	GotoTopAlt                        string   `yaml:"gotoTop-alt"`
+	GotoBottomAlt                     string   `yaml:"gotoBottom-alt"`
 	ToggleRangeSelect                 string   `yaml:"toggleRangeSelect"`
 	RangeSelectDown                   string   `yaml:"rangeSelectDown"`
 	RangeSelectUp                     string   `yaml:"rangeSelectUp"`
@@ -841,6 +843,8 @@ func GetDefaultConfig() *UserConfig {
 				ScrollRight:                       "L",
 				GotoTop:                           "<",
 				GotoBottom:                        ">",
+				GotoTopAlt:                        "<home>",
+				GotoBottomAlt:                     "<end>",
 				ToggleRangeSelect:                 "v",
 				RangeSelectDown:                   "<s-down>",
 				RangeSelectUp:                     "<s-up>",
