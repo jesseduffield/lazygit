@@ -94,10 +94,13 @@ func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage strin
 				InitialMessage:   initialMessage,
 				SummaryTitle:     self.c.Tr.CommitSummaryTitle,
 				DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
-				forceSkipHooks:   forceSkipHooks,
 				PreserveMessage:  true,
-				OnConfirm:        self.handleCommit,
-				OnSwitchToEditor: self.switchFromCommitMessagePanelToEditor,
+				OnConfirm: func(summary string, description string) error {
+					return self.handleCommit(summary, description, forceSkipHooks)
+				},
+				OnSwitchToEditor: func(filepath string) error {
+					return self.switchFromCommitMessagePanelToEditor(filepath, forceSkipHooks)
+				},
 			},
 		)
 
