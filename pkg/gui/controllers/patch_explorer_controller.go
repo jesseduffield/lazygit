@@ -124,6 +124,16 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 		},
 		{
 			Tag:     "navigation",
+			Key:     opts.GetKey(opts.Config.Universal.GotoTopAlt),
+			Handler: self.withRenderAndFocus(self.HandleGotoTop),
+		},
+		{
+			Tag:     "navigation",
+			Key:     opts.GetKey(opts.Config.Universal.GotoBottomAlt),
+			Handler: self.withRenderAndFocus(self.HandleGotoBottom),
+		},
+		{
+			Tag:     "navigation",
 			Key:     opts.GetKey(opts.Config.Universal.ScrollLeft),
 			Handler: self.withRenderAndFocus(self.HandleScrollLeft),
 		},
