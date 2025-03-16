@@ -80,6 +80,10 @@ func (self *ConfigCommands) NeedsGpgSubprocessForCommit() bool {
 	return self.NeedsGpgSubprocess(CommitGpgSign)
 }
 
+func (self *ConfigCommands) GetGpgTagSign() bool {
+	return self.gitConfig.GetBool(string(TagGpgSign))
+}
+
 func (self *ConfigCommands) GetCoreEditor() string {
 	return self.gitConfig.Get("core.editor")
 }
