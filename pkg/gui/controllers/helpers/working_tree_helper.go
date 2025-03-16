@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -107,10 +108,11 @@ func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage strin
 func (self *WorkingTreeHelper) handleCommit(summary string, description string) error {
 	cmdObj := self.c.Git().Commit.CommitCmdObj(summary, description)
 	self.c.LogAction(self.c.Tr.Actions.Commit)
-	return self.gpgHelper.WithGpgHandling(cmdObj, self.c.Tr.CommittingStatus, func() error {
-		self.commitsHelper.OnCommitSuccess()
-		return nil
-	})
+	return self.gpgHelper.WithGpgHandling(cmdObj, git_commands.CommitGpgSign, self.c.Tr.CommittingStatus,
+		func() error {
+			self.commitsHelper.OnCommitSuccess()
+			return nil
+		})
 }
 
 func (self *WorkingTreeHelper) switchFromCommitMessagePanelToEditor(filepath string) error {
