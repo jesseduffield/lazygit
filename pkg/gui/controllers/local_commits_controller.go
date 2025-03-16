@@ -414,7 +414,7 @@ func (self *LocalCommitsController) handleReword(summary string, description str
 		// we've selected the top commit so no rebase is required
 		return self.c.Helpers().GPG.WithGpgHandling(self.c.Git().Commit.RewordLastCommit(summary, description),
 			git_commands.CommitGpgSign,
-			self.c.Tr.RewordingStatus, nil)
+			self.c.Tr.RewordingStatus, nil, nil)
 	}
 
 	return self.c.WithWaitingStatus(self.c.Tr.RewordingStatus, func(gocui.Task) error {
