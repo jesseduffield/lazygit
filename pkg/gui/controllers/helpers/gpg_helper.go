@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -22,8 +23,8 @@ func NewGpgHelper(c *HelperCommon) *GpgHelper {
 // WithWaitingStatus we get stuck there and can't return to lazygit. We could
 // fix this bug, or just stop running subprocesses from within there, given that
 // we don't need to see a loading status if we're in a subprocess.
-func (self *GpgHelper) WithGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
-	useSubprocess := self.c.Git().Config.NeedsGpgSubprocessForCommit()
+func (self *GpgHelper) WithGpgHandling(cmdObj oscommands.ICmdObj, configKey git_commands.GpgConfigKey, waitingStatus string, onSuccess func() error) error {
+	useSubprocess := self.c.Git().Config.NeedsGpgSubprocess(configKey)
 	if useSubprocess {
 		success, err := self.c.RunSubprocess(cmdObj)
 		if success && onSuccess != nil {

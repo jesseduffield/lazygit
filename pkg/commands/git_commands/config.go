@@ -57,16 +57,27 @@ func (self *ConfigCommands) GetPager(width int) string {
 	return utils.ResolvePlaceholderString(pagerTemplate, templateValues)
 }
 
-// NeedsGpgSubprocessForCommit tells us whether the user has gpg enabled for commit actions
+type GpgConfigKey string
+
+const (
+	CommitGpgSign GpgConfigKey = "commit.gpgSign"
+	TagGpgSign    GpgConfigKey = "tag.gpgSign"
+)
+
+// NeedsGpgSubprocess tells us whether the user has gpg enabled for the specified action type
 // and needs a subprocess because they have a process where they manually
 // enter their password every time a GPG action is taken
-func (self *ConfigCommands) NeedsGpgSubprocessForCommit() bool {
+func (self *ConfigCommands) NeedsGpgSubprocess(key GpgConfigKey) bool {
 	overrideGpg := self.UserConfig().Git.OverrideGpg
 	if overrideGpg {
 		return false
 	}
 
-	return self.gitConfig.GetBool("commit.gpgSign")
+	return self.gitConfig.GetBool(string(key))
+}
+
+func (self *ConfigCommands) NeedsGpgSubprocessForCommit() bool {
+	return self.NeedsGpgSubprocess(CommitGpgSign)
 }
 
 func (self *ConfigCommands) GetCoreEditor() string {
