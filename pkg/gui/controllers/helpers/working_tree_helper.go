@@ -116,7 +116,7 @@ func (self *WorkingTreeHelper) handleCommit(summary string, description string, 
 		func() error {
 			self.commitsHelper.OnCommitSuccess()
 			return nil
-		})
+		}, nil)
 }
 
 func (self *WorkingTreeHelper) switchFromCommitMessagePanelToEditor(filepath string, forceSkipHooks bool) error {

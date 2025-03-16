@@ -36,7 +36,7 @@ func (self *TagsHelper) OpenCreateTagPrompt(ref string, onCreate func()) error {
 		return self.gpg.WithGpgHandling(command, git_commands.TagGpgSign, self.c.Tr.CreatingTag, func() error {
 			self.commitsHelper.OnCommitSuccess()
 			return nil
-		})
+		}, []types.RefreshableView{types.COMMITS, types.TAGS})
 	}
 
 	onConfirm := func(tagName string, description string) error {
