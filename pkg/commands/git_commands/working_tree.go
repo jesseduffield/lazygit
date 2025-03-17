@@ -34,11 +34,15 @@ func (self *WorkingTreeCommands) OpenMergeToolCmdObj() oscommands.ICmdObj {
 
 // StageFile stages a file
 func (self *WorkingTreeCommands) StageFile(path string) error {
-	return self.StageFiles([]string{path})
+	return self.StageFiles([]string{path}, nil)
 }
 
-func (self *WorkingTreeCommands) StageFiles(paths []string) error {
-	cmdArgs := NewGitCmd("add").Arg("--").Arg(paths...).ToArgv()
+func (self *WorkingTreeCommands) StageFiles(paths []string, extraArgs []string) error {
+	cmdArgs := NewGitCmd("add").
+		Arg(extraArgs...).
+		Arg("--").
+		Arg(paths...).
+		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
 }

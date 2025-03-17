@@ -30,7 +30,7 @@ func TestWorkingTreeStageFiles(t *testing.T) {
 
 	instance := buildWorkingTreeCommands(commonDeps{runner: runner})
 
-	assert.NoError(t, instance.StageFiles([]string{"test.txt", "test2.txt"}))
+	assert.NoError(t, instance.StageFiles([]string{"test.txt", "test2.txt"}, nil))
 	runner.CheckForMissingCalls()
 }
 

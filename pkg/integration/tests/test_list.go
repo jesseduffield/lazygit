@@ -207,6 +207,7 @@ var tests = []*components.IntegrationTest{
 	filter_and_search.NestedFilter,
 	filter_and_search.NestedFilterTransient,
 	filter_and_search.NewSearch,
+	filter_and_search.StagingFolderStagesOnlyTrackedFilesInTrackedOnlyFilter,
 	filter_by_author.SelectAuthor,
 	filter_by_author.TypeAuthor,
 	filter_by_path.CliArg,
