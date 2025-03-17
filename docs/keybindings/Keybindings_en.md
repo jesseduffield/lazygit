@@ -40,8 +40,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` , `` | Previous page |  |
 | `` . `` | Next page |  |
-| `` < `` | Scroll to top |  |
-| `` > `` | Scroll to bottom |  |
+| `` < (<home>) `` | Scroll to top |  |
+| `` > (<end>) `` | Scroll to bottom |  |
 | `` v `` | Toggle range select |  |
 | `` <s-down> `` | Range select down |  |
 | `` <s-up> `` | Range select up |  |

@@ -487,6 +487,8 @@ keybinding:
     scrollRight: L
     gotoTop: <
     gotoBottom: '>'
+    gotoTop-alt: <home>
+    gotoBottom-alt: <end>
     toggleRangeSelect: v
     rangeSelectDown: <s-down>
     rangeSelectUp: <s-up>

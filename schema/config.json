@@ -1161,6 +1161,14 @@
           "type": "string",
           "default": "\u003e"
         },
+        "gotoTop-alt": {
+          "type": "string",
+          "default": "\u003chome\u003e"
+        },
+        "gotoBottom-alt": {
+          "type": "string",
+          "default": "\u003cend\u003e"
+        },
         "toggleRangeSelect": {
           "type": "string",
           "default": "v"
