@@ -869,12 +869,12 @@ gui:
       "CONTRIBUTING.md": { icon: "\uede2", color: "#FEDDEF" }
       "HACKING.md": { icon: "\uede2", color: "#FEDDEF" }
     extensions:
-      ".dog":
-        icon: "\U000f0a43"
-        color: "#B6977E"
       ".cat":
         icon: "\U000f011b"
         color: "#BC4009"
+      ".dog":
+        icon: "\U000f0a43"
+        color: "#B6977E"
 ```
 
 Note that there is no support for regular expressions.
