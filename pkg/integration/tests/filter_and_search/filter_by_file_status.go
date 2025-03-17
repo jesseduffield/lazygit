@@ -21,12 +21,16 @@ var FilterByFileStatus = NewIntegrationTest(NewIntegrationTestArgs{
 
 		shell.CreateFile("file-untracked", "bar")
 		shell.UpdateFile("file-tracked", "baz")
+
+		shell.CreateFile("file-staged-but-untracked", "qux")
+		shell.GitAdd("file-staged-but-untracked")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().
 			Focus().
 			Lines(
-				Contains(`file-tracked`).IsSelected(),
+				Equals("A  file-staged-but-untracked").IsSelected(),
+				Equals(" M file-tracked"),
 			).
 			Press(keys.Files.OpenStatusFilter).
 			Tap(func() {
@@ -36,7 +40,7 @@ var FilterByFileStatus = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains(`file-untracked`).IsSelected(),
+				Equals("?? file-untracked").IsSelected(),
 			).
 			Press(keys.Files.OpenStatusFilter).
 			Tap(func() {
@@ -46,7 +50,8 @@ var FilterByFileStatus = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains(`file-tracked`).IsSelected(),
+				Equals("A  file-staged-but-untracked").IsSelected(),
+				Equals(" M file-tracked"),
 			).
 			Press(keys.Files.OpenStatusFilter).
 			Tap(func() {
@@ -56,7 +61,8 @@ var FilterByFileStatus = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains(`file-tracked`).IsSelected(),
+				Equals("A  file-staged-but-untracked").IsSelected(),
+				Equals(" M file-tracked"),
 			)
 	},
 })

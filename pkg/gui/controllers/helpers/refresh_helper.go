@@ -565,7 +565,7 @@ func (self *RefreshHelper) refreshStateFiles() error {
 
 		if len(pathsToStage) > 0 {
 			self.c.LogAction(self.c.Tr.Actions.StageResolvedFiles)
-			if err := self.c.Git().WorkingTree.StageFiles(pathsToStage); err != nil {
+			if err := self.c.Git().WorkingTree.StageFiles(pathsToStage, nil); err != nil {
 				return err
 			}
 		}
