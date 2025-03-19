@@ -109,6 +109,46 @@ func (gui *Gui) scrollDownConfirmationPanel() error {
 	return nil
 }
 
+func (gui *Gui) pageUpConfirmationPanel() error {
+	if gui.Views.Confirmation.Editable {
+		return nil
+	}
+
+	gui.Views.Confirmation.ScrollUp(gui.Contexts().Confirmation.GetViewTrait().PageDelta())
+
+	return nil
+}
+
+func (gui *Gui) pageDownConfirmationPanel() error {
+	if gui.Views.Confirmation.Editable {
+		return nil
+	}
+
+	gui.Views.Confirmation.ScrollDown(gui.Contexts().Confirmation.GetViewTrait().PageDelta())
+
+	return nil
+}
+
+func (gui *Gui) goToConfirmationPanelTop() error {
+	if gui.Views.Confirmation.Editable {
+		return nil
+	}
+
+	gui.Views.Confirmation.ScrollUp(gui.Views.Confirmation.ViewLinesHeight())
+
+	return nil
+}
+
+func (gui *Gui) goToConfirmationPanelBottom() error {
+	if gui.Views.Confirmation.Editable {
+		return nil
+	}
+
+	gui.Views.Confirmation.ScrollDown(gui.Views.Confirmation.ViewLinesHeight())
+
+	return nil
+}
+
 func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 	return gui.handleCopySelectedSideContextItemToClipboardWithTruncation(-1)
 }
