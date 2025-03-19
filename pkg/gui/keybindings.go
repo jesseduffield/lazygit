@@ -343,6 +343,42 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName: "extras",
+			Key:      opts.GetKey(opts.Config.Universal.NextPage),
+			Modifier: gocui.ModNone,
+			Handler:  self.pageDownExtrasPanel,
+		},
+		{
+			ViewName: "extras",
+			Key:      opts.GetKey(opts.Config.Universal.PrevPage),
+			Modifier: gocui.ModNone,
+			Handler:  self.pageUpExtrasPanel,
+		},
+		{
+			ViewName: "extras",
+			Key:      opts.GetKey(opts.Config.Universal.GotoTop),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToExtrasPanelTop,
+		},
+		{
+			ViewName: "extras",
+			Key:      opts.GetKey(opts.Config.Universal.GotoTopAlt),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToExtrasPanelTop,
+		},
+		{
+			ViewName: "extras",
+			Key:      opts.GetKey(opts.Config.Universal.GotoBottom),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToExtrasPanelBottom,
+		},
+		{
+			ViewName: "extras",
+			Key:      opts.GetKey(opts.Config.Universal.GotoBottomAlt),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToExtrasPanelBottom,
+		},
+		{
+			ViewName: "extras",
 			Tag:      "navigation",
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,
