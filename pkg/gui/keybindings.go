@@ -261,6 +261,42 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Handler:  self.scrollDownConfirmationPanel,
 		},
 		{
+			ViewName: "confirmation",
+			Key:      opts.GetKey(opts.Config.Universal.NextPage),
+			Modifier: gocui.ModNone,
+			Handler:  self.pageDownConfirmationPanel,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      opts.GetKey(opts.Config.Universal.PrevPage),
+			Modifier: gocui.ModNone,
+			Handler:  self.pageUpConfirmationPanel,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      opts.GetKey(opts.Config.Universal.GotoTop),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToConfirmationPanelTop,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      opts.GetKey(opts.Config.Universal.GotoTopAlt),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToConfirmationPanelTop,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      opts.GetKey(opts.Config.Universal.GotoBottom),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToConfirmationPanelBottom,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      opts.GetKey(opts.Config.Universal.GotoBottomAlt),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToConfirmationPanelBottom,
+		},
+		{
 			ViewName:          "submodules",
 			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:           self.handleCopySelectedSideContextItemToClipboard,
