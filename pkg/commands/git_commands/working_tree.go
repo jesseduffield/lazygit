@@ -113,10 +113,6 @@ func (self *WorkingTreeCommands) BeforeAndAfterFileForRename(file *models.File) 
 	return beforeFile, afterFile, nil
 }
 
-func newCheckoutCommand() *GitCommandBuilder {
-	return NewGitCmd("checkout").Config(fmt.Sprintf("core.hooksPath=%s", os.DevNull))
-}
-
 // DiscardAllFileChanges directly
 func (self *WorkingTreeCommands) DiscardAllFileChanges(file *models.File) error {
 	if file.IsRename() {
@@ -138,7 +134,7 @@ func (self *WorkingTreeCommands) DiscardAllFileChanges(file *models.File) error 
 
 	if file.ShortStatus == "AA" {
 		if err := self.cmd.New(
-			newCheckoutCommand().Arg("--ours", "--", file.Name).ToArgv(),
+			NewGitCmd("checkout").Arg("--ours", "--", file.Name).ToArgv(),
 		).Run(); err != nil {
 			return err
 		}
@@ -197,7 +193,7 @@ func (self *WorkingTreeCommands) DiscardUnstagedDirChanges(node IFileNode) error
 			return err
 		}
 
-		cmdArgs := newCheckoutCommand().Arg("--", node.GetPath()).ToArgv()
+		cmdArgs := NewGitCmd("checkout").Arg("--", node.GetPath()).ToArgv()
 		if err := self.cmd.New(cmdArgs).Run(); err != nil {
 			return err
 		}
@@ -230,7 +226,7 @@ func (self *WorkingTreeCommands) RemoveUntrackedDirFiles(node IFileNode) error {
 }
 
 func (self *WorkingTreeCommands) DiscardUnstagedFileChanges(file *models.File) error {
-	cmdArgs := newCheckoutCommand().Arg("--", file.Name).ToArgv()
+	cmdArgs := NewGitCmd("checkout").Arg("--", file.Name).ToArgv()
 	return self.cmd.New(cmdArgs).Run()
 }
 
@@ -323,7 +319,7 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 
 // CheckoutFile checks out the file for the given commit
 func (self *WorkingTreeCommands) CheckoutFile(commitHash, fileName string) error {
-	cmdArgs := newCheckoutCommand().Arg(commitHash, "--", fileName).
+	cmdArgs := NewGitCmd("checkout").Arg(commitHash, "--", fileName).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
@@ -331,7 +327,7 @@ func (self *WorkingTreeCommands) CheckoutFile(commitHash, fileName string) error
 
 // DiscardAnyUnstagedFileChanges discards any unstaged file changes via `git checkout -- .`
 func (self *WorkingTreeCommands) DiscardAnyUnstagedFileChanges() error {
-	cmdArgs := newCheckoutCommand().Arg("--", ".").
+	cmdArgs := NewGitCmd("checkout").Arg("--", ".").
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()

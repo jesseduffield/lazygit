@@ -1,8 +1,6 @@
 package git_commands
 
 import (
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/go-errors/errors"
@@ -11,8 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
-
-var disableHooksFlag = fmt.Sprintf("core.hooksPath=%s", os.DevNull)
 
 func TestWorkingTreeStageFile(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
@@ -117,7 +113,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 			},
 			removeFile: func(string) error { return nil },
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-c", disableHooksFlag, "checkout", "--", "test"}, "", errors.New("error")),
+				ExpectGitArgs([]string{"checkout", "--", "test"}, "", errors.New("error")),
 			expectedError: "error",
 		},
 		{
@@ -129,7 +125,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 			},
 			removeFile: func(string) error { return nil },
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-c", disableHooksFlag, "checkout", "--", "test"}, "", nil),
+				ExpectGitArgs([]string{"checkout", "--", "test"}, "", nil),
 			expectedError: "",
 		},
 		{
@@ -142,7 +138,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 			removeFile: func(string) error { return nil },
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"reset", "--", "test"}, "", nil).
-				ExpectGitArgs([]string{"-c", disableHooksFlag, "checkout", "--", "test"}, "", nil),
+				ExpectGitArgs([]string{"checkout", "--", "test"}, "", nil),
 			expectedError: "",
 		},
 		{
@@ -155,7 +151,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 			removeFile: func(string) error { return nil },
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"reset", "--", "test"}, "", nil).
-				ExpectGitArgs([]string{"-c", disableHooksFlag, "checkout", "--", "test"}, "", nil),
+				ExpectGitArgs([]string{"checkout", "--", "test"}, "", nil),
 			expectedError: "",
 		},
 		{
@@ -432,7 +428,7 @@ func TestWorkingTreeCheckoutFile(t *testing.T) {
 			commitHash: "11af912",
 			fileName:   "test999.txt",
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-c", disableHooksFlag, "checkout", "11af912", "--", "test999.txt"}, "", nil),
+				ExpectGitArgs([]string{"checkout", "11af912", "--", "test999.txt"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -442,7 +438,7 @@ func TestWorkingTreeCheckoutFile(t *testing.T) {
 			commitHash: "11af912",
 			fileName:   "test999.txt",
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-c", disableHooksFlag, "checkout", "11af912", "--", "test999.txt"}, "", errors.New("error")),
+				ExpectGitArgs([]string{"checkout", "11af912", "--", "test999.txt"}, "", errors.New("error")),
 			test: func(err error) {
 				assert.Error(t, err)
 			},
@@ -472,7 +468,7 @@ func TestWorkingTreeDiscardUnstagedFileChanges(t *testing.T) {
 			testName: "valid case",
 			file:     &models.File{Name: "test.txt"},
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-c", disableHooksFlag, "checkout", "--", "test.txt"}, "", nil),
+				ExpectGitArgs([]string{"checkout", "--", "test.txt"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -499,7 +495,7 @@ func TestWorkingTreeDiscardAnyUnstagedFileChanges(t *testing.T) {
 		{
 			testName: "valid case",
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-c", disableHooksFlag, "checkout", "--", "."}, "", nil),
+				ExpectGitArgs([]string{"checkout", "--", "."}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
