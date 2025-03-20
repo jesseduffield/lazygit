@@ -331,6 +331,8 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 
 	gui.g.SetFocusHandler(func(Focused bool) error {
 		if Focused {
+			gui.git.Config.DropConfigCache()
+
 			oldConfig := gui.Config.GetUserConfig()
 			reloadErr, didChange := gui.Config.ReloadChangedUserConfigFiles()
 			if didChange && reloadErr == nil {

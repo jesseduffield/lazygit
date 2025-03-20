@@ -15,6 +15,8 @@ type IGitConfig interface {
 	GetGeneral(string) string
 	// this is for when you want to pass 'mykey' and check if the result is truthy
 	GetBool(string) bool
+
+	DropCache()
 }
 
 type CachedGitConfig struct {
@@ -92,4 +94,11 @@ func (self *CachedGitConfig) GetBool(key string) bool {
 func isTruthy(value string) bool {
 	lcValue := strings.ToLower(value)
 	return lcValue == "true" || lcValue == "1" || lcValue == "yes" || lcValue == "on"
+}
+
+func (self *CachedGitConfig) DropCache() {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	self.cache = make(map[string]string)
 }
