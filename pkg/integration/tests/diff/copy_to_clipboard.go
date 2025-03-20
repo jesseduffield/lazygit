@@ -23,17 +23,21 @@ var CopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateDir("dir")
 		shell.CreateFileAndAdd("dir/file1", "1st line\n")
 		shell.Commit("1")
-		shell.CreateFileAndAdd("dir/file1", "1st line\n2nd line\n")
+		shell.UpdateFileAndAdd("dir/file1", "1st line\n2nd line\n")
 		shell.CreateFileAndAdd("dir/file2", "file2\n")
 		shell.Commit("2")
+		shell.UpdateFileAndAdd("dir/file1", "1st line\n2nd line\n3rd line\n")
+		shell.Commit("3")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("2").IsSelected(),
+				Contains("3").IsSelected(),
+				Contains("2"),
 				Contains("1"),
 			).
+			SelectNextItem().
 			PressEnter()
 
 		t.Views().CommitFiles().
@@ -91,11 +95,22 @@ var CopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 							Contains("diff --git a/dir/file1 b/dir/file1").Contains("+2nd line").DoesNotContain("+1st line").
 								Contains("diff --git a/dir/file2 b/dir/file2").Contains("+file2"))
 					})
+			}).
+			Press(keys.Files.CopyFileInfoToClipboard).
+			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("Copy to clipboard")).
+					Select(Contains("Content of selected file")).
+					Confirm().
+					Tap(func() {
+						t.ExpectToast(Equals("File content copied to clipboard"))
+						expectClipboard(t, Equals("1st line\n2nd line\n"))
+					})
 			})
 
 		t.Views().Commits().
 			Focus().
-			// Select both commits
+			// Select commits 1 and 2
 			Press(keys.Universal.RangeSelectDown).
 			PressEnter()
 
@@ -117,6 +132,17 @@ var CopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 						t.ExpectToast(Equals("File diff copied to clipboard"))
 						expectClipboard(t,
 							Contains("diff --git a/dir/file1 b/dir/file1").Contains("+1st line").Contains("+2nd line"))
+					})
+			}).
+			Press(keys.Files.CopyFileInfoToClipboard).
+			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("Copy to clipboard")).
+					Select(Contains("Content of selected file")).
+					Confirm().
+					Tap(func() {
+						t.ExpectToast(Equals("File content copied to clipboard"))
+						expectClipboard(t, Equals("1st line\n2nd line\n"))
 					})
 			})
 	},
