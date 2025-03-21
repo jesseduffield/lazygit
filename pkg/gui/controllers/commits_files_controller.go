@@ -231,7 +231,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 	copyPathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyFilePath,
 		OnPress: func() error {
-			if err := self.c.OS().CopyToClipboard(node.Path); err != nil {
+			if err := self.c.OS().CopyToClipboard(node.GetPath()); err != nil {
 				return err
 			}
 			self.c.Toast(self.c.Tr.FilePathCopiedToast)
@@ -402,7 +402,7 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 			// Find if any file in the selection is unselected or partially added
 			adding := lo.SomeBy(selectedNodes, func(node *filetree.CommitFileNode) bool {
 				return node.SomeFile(func(file *models.CommitFile) bool {
-					fileStatus := self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Name, self.context().GetRef().RefName())
+					fileStatus := self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Path, self.context().GetRef().RefName())
 					return fileStatus == patch.PART || fileStatus == patch.UNSELECTED
 				})
 			})
@@ -415,7 +415,7 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 
 			for _, node := range selectedNodes {
 				err := node.ForEachFile(func(file *models.CommitFile) error {
-					return patchOperationFunction(file.Name)
+					return patchOperationFunction(file.Path)
 				})
 				if err != nil {
 					return err
@@ -509,7 +509,7 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 }
 
 func (self *CommitFilesController) handleToggleCommitFileDirCollapsed(node *filetree.CommitFileNode) error {
-	self.context().CommitFileTreeViewModel.ToggleCollapsed(node.GetPath())
+	self.context().CommitFileTreeViewModel.ToggleCollapsed(node.GetInternalPath())
 
 	self.c.PostRefreshUpdate(self.context())
 

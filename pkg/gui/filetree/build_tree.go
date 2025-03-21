@@ -14,7 +14,7 @@ func BuildTreeFromFiles(files []*models.File) *Node[models.File] {
 
 	var curr *Node[models.File]
 	for _, file := range files {
-		splitPath := split(file.Name)
+		splitPath := split("./" + file.Path)
 		curr = root
 	outer:
 		for i := range splitPath {
@@ -40,8 +40,13 @@ func BuildTreeFromFiles(files []*models.File) *Node[models.File] {
 				continue outer
 			}
 
+			if i == 0 && len(files) == 1 && len(splitPath) == 2 {
+				// skip the root item when there's only one file at top level; we don't need it in that case
+				continue outer
+			}
+
 			newChild := &Node[models.File]{
-				Path: path,
+				path: path,
 				File: setFile,
 			}
 			curr.Children = append(curr.Children, newChild)
@@ -70,7 +75,7 @@ func BuildTreeFromCommitFiles(files []*models.CommitFile) *Node[models.CommitFil
 
 	var curr *Node[models.CommitFile]
 	for _, file := range files {
-		splitPath := split(file.Name)
+		splitPath := split("./" + file.Path)
 		curr = root
 	outer:
 		for i := range splitPath {
@@ -83,14 +88,19 @@ func BuildTreeFromCommitFiles(files []*models.CommitFile) *Node[models.CommitFil
 			path := join(splitPath[:i+1])
 
 			for _, existingChild := range curr.Children {
-				if existingChild.Path == path {
+				if existingChild.path == path {
 					curr = existingChild
 					continue outer
 				}
 			}
 
+			if i == 0 && len(files) == 1 && len(splitPath) == 2 {
+				// skip the root item when there's only one file at top level; we don't need it in that case
+				continue outer
+			}
+
 			newChild := &Node[models.CommitFile]{
-				Path: path,
+				path: path,
 				File: setFile,
 			}
 			curr.Children = append(curr.Children, newChild)

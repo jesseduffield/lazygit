@@ -26,9 +26,11 @@ var ApplyInReverse = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("file1").IsSelected(),
-				Contains("file2"),
+				Equals("▼ /").IsSelected(),
+				Equals("  A file1"),
+				Equals("  A file2"),
 			).
+			SelectNextItem().
 			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("Building patch"))

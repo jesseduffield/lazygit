@@ -372,7 +372,7 @@ func (self *FilesController) optimisticChange(nodes []*filetree.FileNode, optimi
 		err := node.ForEachFile(func(f *models.File) error {
 			// can't act on the file itself: we need to update the original model file
 			for _, modelFile := range self.c.Model().Files {
-				if modelFile.Name == f.Name {
+				if modelFile.Path == f.Path {
 					if optimisticChangeFn(modelFile) {
 						rerender = true
 					}
@@ -410,7 +410,7 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 
 	toPaths := func(nodes []*filetree.FileNode) []string {
 		return lo.Map(nodes, func(node *filetree.FileNode, _ int) string {
-			return node.Path
+			return node.GetPath()
 		})
 	}
 
@@ -881,7 +881,7 @@ func (self *FilesController) openDiffTool(node *filetree.FileNode) error {
 	return self.c.RunSubprocessAndRefresh(
 		self.c.Git().Diff.OpenDiffToolCmdObj(
 			git_commands.DiffToolCmdOptions{
-				Filepath:    node.Path,
+				Filepath:    node.GetPath(),
 				FromCommit:  fromCommit,
 				ToCommit:    "",
 				Reverse:     reverse,
@@ -897,7 +897,7 @@ func (self *FilesController) switchToMerge() error {
 		return nil
 	}
 
-	return self.c.Helpers().MergeConflicts.SwitchToMerge(file.Name)
+	return self.c.Helpers().MergeConflicts.SwitchToMerge(file.Path)
 }
 
 func (self *FilesController) createStashMenu() error {
@@ -979,7 +979,7 @@ func (self *FilesController) openCopyMenu() error {
 	copyPathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyFilePath,
 		OnPress: func() error {
-			if err := self.c.OS().CopyToClipboard(node.Path); err != nil {
+			if err := self.c.OS().CopyToClipboard(node.GetPath()); err != nil {
 				return err
 			}
 			self.c.Toast(self.c.Tr.FilePathCopiedToast)
@@ -1078,7 +1078,7 @@ func (self *FilesController) handleToggleDirCollapsed() error {
 		return nil
 	}
 
-	self.context().FileTreeViewModel.ToggleCollapsed(node.GetPath())
+	self.context().FileTreeViewModel.ToggleCollapsed(node.GetInternalPath())
 
 	self.c.PostRefreshUpdate(self.c.Contexts().Files)
 

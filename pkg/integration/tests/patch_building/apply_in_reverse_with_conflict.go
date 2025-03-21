@@ -34,9 +34,11 @@ var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("M").Contains("file1").IsSelected(),
-				Contains("M").Contains("file2"),
+				Equals("▼ /").IsSelected(),
+				Equals("  M file1"),
+				Equals("  M file2"),
 			).
+			SelectNextItem().
 			// Add both files to the patch; the first will conflict, the second won't
 			PressPrimaryAction().
 			Tap(func() {
@@ -61,7 +63,7 @@ var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			Focus().
 			Lines(
-				Contains("UU").Contains("file1").IsSelected(),
+				Equals("UU file1").IsSelected(),
 			).
 			PressEnter()
 
@@ -81,9 +83,11 @@ var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			Focus().
 			Lines(
-				Contains("M").Contains("file1").IsSelected(),
-				Contains("M").Contains("file2"),
-			)
+				Equals("▼ /").IsSelected(),
+				Equals("  M  file1"),
+				Equals("  M  file2"),
+			).
+			SelectNextItem()
 
 		t.Views().Main().
 			ContainsLines(

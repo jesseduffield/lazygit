@@ -68,6 +68,7 @@ var CustomCommandsSubmenu = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			Lines(
+				Equals("▼ /"),
 				Contains("myfile-commits"),
 				Contains("myfile-files"),
 			)
