@@ -3,7 +3,6 @@ package icons
 import (
 	"log"
 
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/samber/lo"
 )
 
@@ -12,10 +11,7 @@ type IconProperties struct {
 	Color string
 }
 
-var (
-	isIconEnabled = false
-	customIcons   = config.CustomIconsConfig{}
-)
+var isIconEnabled = false
 
 func IsIconEnabled() bool {
 	return isIconEnabled
@@ -36,8 +32,4 @@ func SetNerdFontsVersion(version string) {
 
 		isIconEnabled = true
 	}
-}
-
-func SetCustomIcons(icons config.CustomIconsConfig) {
-	customIcons = icons
 }

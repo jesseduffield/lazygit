@@ -6,6 +6,7 @@ import (
 	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -23,12 +24,13 @@ func RenderFileTree(
 	submoduleConfigs []*models.SubmoduleConfig,
 	showFileIcons bool,
 	showNumstat bool,
+	customIconsConfig *config.CustomIconsConfig,
 ) []string {
 	collapsedPaths := tree.CollapsedPaths()
 	return renderAux(tree.GetRoot().Raw(), collapsedPaths, -1, -1, func(node *filetree.Node[models.File], treeDepth int, visualDepth int, isCollapsed bool) string {
 		fileNode := filetree.NewFileNode(node)
 
-		return getFileLine(isCollapsed, fileNode.GetHasUnstagedChanges(), fileNode.GetHasStagedChanges(), treeDepth, visualDepth, showNumstat, showFileIcons, submoduleConfigs, node)
+		return getFileLine(isCollapsed, fileNode.GetHasUnstagedChanges(), fileNode.GetHasStagedChanges(), treeDepth, visualDepth, showNumstat, showFileIcons, submoduleConfigs, node, customIconsConfig)
 	})
 }
 
@@ -36,12 +38,13 @@ func RenderCommitFileTree(
 	tree *filetree.CommitFileTreeViewModel,
 	patchBuilder *patch.PatchBuilder,
 	showFileIcons bool,
+	customIconsConfig *config.CustomIconsConfig,
 ) []string {
 	collapsedPaths := tree.CollapsedPaths()
 	return renderAux(tree.GetRoot().Raw(), collapsedPaths, -1, -1, func(node *filetree.Node[models.CommitFile], treeDepth int, visualDepth int, isCollapsed bool) string {
 		status := commitFilePatchStatus(node, tree, patchBuilder)
 
-		return getCommitFileLine(isCollapsed, treeDepth, visualDepth, node, status, showFileIcons)
+		return getCommitFileLine(isCollapsed, treeDepth, visualDepth, node, status, showFileIcons, customIconsConfig)
 	})
 }
 
@@ -116,6 +119,7 @@ func getFileLine(
 	showFileIcons bool,
 	submoduleConfigs []*models.SubmoduleConfig,
 	node *filetree.Node[models.File],
+	customIconsConfig *config.CustomIconsConfig,
 ) string {
 	name := fileNameAtDepth(node, treeDepth)
 	output := ""
@@ -156,7 +160,7 @@ func getFileLine(
 	isDirectory := file == nil
 
 	if showFileIcons {
-		icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
+		icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory, customIconsConfig)
 		paint := color.HEX(icon.Color, false)
 		output += paint.Sprint(icon.Icon) + nameColor.Sprint(" ")
 	}
@@ -218,6 +222,7 @@ func getCommitFileLine(
 	node *filetree.Node[models.CommitFile],
 	status patch.PatchStatus,
 	showFileIcons bool,
+	customIconsConfig *config.CustomIconsConfig,
 ) string {
 	indentation := strings.Repeat("  ", visualDepth)
 	name := commitFileNameAtDepth(node, treeDepth)
@@ -266,7 +271,7 @@ func getCommitFileLine(
 	isLinkedWorktree := false
 
 	if showFileIcons {
-		icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory)
+		icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory, customIconsConfig)
 		paint := color.HEX(icon.Color, false)
 		output += paint.Sprint(icon.Icon) + " "
 	}
