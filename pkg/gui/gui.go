@@ -95,6 +95,8 @@ type Gui struct {
 	// so that you can return to the superproject
 	RepoPathStack *utils.StringStack
 
+	branchesBeingPushed sync.Map // keys: branchName string, value: deadlock.WaitGroup
+
 	// this tells us whether our views have been initially set up
 	ViewsSetup bool
 
@@ -154,6 +156,10 @@ var _ types.IStateAccessor = new(StateAccessor)
 
 func (self *StateAccessor) GetRepoPathStack() *utils.StringStack {
 	return self.gui.RepoPathStack
+}
+
+func (self *StateAccessor) GetPendingTasks() []*gocui.PendingTask {
+	return self.gui.g.PendingTasks()
 }
 
 func (self *StateAccessor) GetUpdating() bool {
@@ -692,6 +698,9 @@ func NewGui(
 		func() types.Context { return gui.State.ContextMgr.Current() },
 		gui.createMenu,
 		func(message string, f func(gocui.Task) error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
+		func(message string, pending func(gocui.Task) error, f func(gocui.Task) error) {
+			gui.helpers.AppStatus.WithPendingMessage(message, pending, f)
+		},
 		func(message string, f func() error) error {
 			return gui.helpers.AppStatus.WithWaitingStatusSync(message, f)
 		},
@@ -1118,6 +1127,10 @@ func (gui *Gui) onUIThread(f func() error) {
 
 func (gui *Gui) onWorker(f func(gocui.Task) error) {
 	gui.g.OnWorker(f)
+}
+
+func (gui *Gui) onWorkerPending(ctx goContext.Context, pending func(gocui.Task) error, main func(gocui.Task) error) *gocui.PendingTask {
+	return gui.g.OnWorkerPending(ctx, pending, main)
 }
 
 func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {

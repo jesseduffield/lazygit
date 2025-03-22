@@ -260,6 +260,15 @@ func (g *Gui) NewTask() *TaskImpl {
 	return g.taskManager.NewTask()
 }
 
+// All pending tasks that are currently waiting to complete or be cancelled
+func (g *Gui) PendingTasks() []*PendingTask {
+	return g.taskManager.GetPendingTasks()
+}
+
+func (g *Gui) NewPendingTask(ctx context.Context) *PendingTask {
+	return g.taskManager.NewPendingTask(ctx)
+}
+
 // An idle listener listens for when the program is idle. This is useful for
 // integration tests which can wait for the program to be idle before taking
 // the next step in the test.
@@ -690,6 +699,50 @@ func (g *Gui) OnWorker(f func(Task) error) {
 		g.onWorkerAux(f, task)
 		task.Done()
 	}()
+}
+
+// A wrapper around [OnWorker] that allows the scheduling of a main function of work
+// that is dependent on the pending function completing.
+// If pending returns an error, the main function will not be executed.
+//
+// If the provided ctx, or the CancelFunc on the returned PendingTask is cancelled prior
+// to pending completing, main will not be executed.
+//
+// The created PendingTask is returned.
+// A slice of all PendingTasks is also available via [Gui.PendingTasks].
+func (g *Gui) OnWorkerPending(ctx context.Context, pending func(Task) error, main func(Task) error) *PendingTask {
+	pendingTask := g.NewPendingTask(ctx)
+	beginMain := make(chan struct{})
+
+	// Pending task
+	g.OnWorker(func(t Task) error {
+		err := pending(t)
+		closeReason := pendingTask.Ctx.Err()
+		if err != nil && closeReason == nil {
+			// We only want to return our error if the user has not cancelled the task
+			if closeReason != nil {
+				return nil
+			}
+			pendingTask.CancelFunc()
+			return err
+		}
+		close(beginMain)
+		return nil
+	})
+
+	// Main task
+	g.OnWorker(func(_ Task) error {
+		select {
+		case <-beginMain:
+			g.OnWorker(main)
+			pendingTask.CancelFunc()
+			return nil
+		case <-pendingTask.Ctx.Done():
+			return nil
+		}
+	})
+
+	return pendingTask
 }
 
 func (g *Gui) onWorkerAux(f func(Task) error, task Task) {

@@ -728,6 +728,7 @@ type TranslationSet struct {
 	SelectTargetRemote                       string
 	NoValidRemoteName                        string
 	CreatePullRequest                        string
+	PendingCreatePullRequest                 string
 	SelectConfigFile                         string
 	NoConfigFileFoundErr                     string
 	LoadingFileSuggestions                   string
@@ -1299,6 +1300,7 @@ func EnglishTranslationSet() *TranslationSet {
 		AllBranchesLogGraph:                  `Show/cycle all branch logs`,
 		UnsupportedGitService:                `Unsupported git service`,
 		CreatePullRequest:                    `Create pull request`,
+		PendingCreatePullRequest:             `Waiting to create pull request for {{.branchName}}`,
 		CopyPullRequestURL:                   `Copy pull request URL to clipboard`,
 		NoBranchOnRemote:                     `This branch doesn't exist on remote. You need to push it to remote first.`,
 		Fetch:                                `Fetch`,
