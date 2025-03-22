@@ -37,6 +37,16 @@ This is only meant as a reference for what config options exist, and what their 
 ```yaml
 # Config relating to the Lazygit UI
 gui:
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
+  authorColors: {}
+
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
+  # Deprecated: use branchColorPatterns instead
+  branchColors: {}
+
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
+  branchColorPatterns: {}
+
   # The number of lines you scroll by when scrolling the main window
   scrollHeight: 2
 
@@ -341,11 +351,20 @@ git:
   # Deprecated: Use `allBranchesLogCmds` instead.
   allBranchesLogCmd: git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium
 
+  # Commands used to display git log of all branches in the main window, they will be cycled in order of appearance (array of strings)
+  allBranchesLogCmds: []
+
   # If true, do not spawn a separate process when using GPG
   overrideGpg: false
 
   # If true, do not allow force pushes
   disableForcePushing: false
+
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
+  commitPrefix: []
+
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
+  commitPrefixes: {}
 
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix
   branchPrefix: ""
@@ -458,6 +477,13 @@ os:
 
 # If true, don't display introductory popups upon opening Lazygit.
 disableStartupPopups: false
+
+# User-configured commands that can be invoked from within Lazygit
+# See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md
+customCommands: []
+
+# See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-pull-request-urls
+services: {}
 
 # What to do when opening Lazygit outside of a git repo.
 # - 'prompt': (default) ask whether to initialize a new repo or open in the most recent repo
