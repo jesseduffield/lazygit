@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -976,8 +977,8 @@ func (self *FilesController) openCopyMenu() error {
 		DisabledReason: self.require(self.singleItemSelected())(),
 		Key:            'n',
 	}
-	copyPathItem := &types.MenuItem{
-		Label: self.c.Tr.CopyFilePath,
+	copyRelativePathItem := &types.MenuItem{
+		Label: self.c.Tr.CopyRelativeFilePath,
 		OnPress: func() error {
 			if err := self.c.OS().CopyToClipboard(node.GetPath()); err != nil {
 				return err
@@ -987,6 +988,18 @@ func (self *FilesController) openCopyMenu() error {
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
 		Key:            'p',
+	}
+	copyAbsolutePathItem := &types.MenuItem{
+		Label: self.c.Tr.CopyAbsoluteFilePath,
+		OnPress: func() error {
+			if err := self.c.OS().CopyToClipboard(filepath.Join(self.c.Git().RepoPaths.RepoPath(), node.GetPath())); err != nil {
+				return err
+			}
+			self.c.Toast(self.c.Tr.FilePathCopiedToast)
+			return nil
+		},
+		DisabledReason: self.require(self.singleItemSelected())(),
+		Key:            'P',
 	}
 	copyFileDiffItem := &types.MenuItem{
 		Label:   self.c.Tr.CopySelectedDiff,
@@ -1044,7 +1057,8 @@ func (self *FilesController) openCopyMenu() error {
 		Title: self.c.Tr.CopyToClipboardMenu,
 		Items: []*types.MenuItem{
 			copyNameItem,
-			copyPathItem,
+			copyRelativePathItem,
+			copyAbsolutePathItem,
 			copyFileDiffItem,
 			copyAllDiff,
 		},

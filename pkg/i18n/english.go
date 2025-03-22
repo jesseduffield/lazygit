@@ -76,7 +76,8 @@ type TranslationSet struct {
 	FileFilter                            string
 	CopyToClipboardMenu                   string
 	CopyFileName                          string
-	CopyFilePath                          string
+	CopyRelativeFilePath                  string
+	CopyAbsoluteFilePath                  string
 	CopyFileDiffTooltip                   string
 	CopySelectedDiff                      string
 	CopyAllFilesDiff                      string
@@ -1120,7 +1121,8 @@ func EnglishTranslationSet() *TranslationSet {
 		FileFilter:                           "Filter files by status",
 		CopyToClipboardMenu:                  "Copy to clipboard",
 		CopyFileName:                         "File name",
-		CopyFilePath:                         "Path",
+		CopyRelativeFilePath:                 "Relative path",
+		CopyAbsoluteFilePath:                 "Absolute path",
 		CopyFileDiffTooltip:                  "If there are staged items, this command considers only them. Otherwise, it considers all the unstaged ones.",
 		CopySelectedDiff:                     "Diff of selected file",
 		CopyAllFilesDiff:                     "Diff of all files",
