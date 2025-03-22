@@ -13,9 +13,8 @@ type IconProperties struct {
 }
 
 var (
-	isIconEnabled     = false
-	customNameIconMap = map[string]IconProperties{}
-	customExtIconMap  = map[string]IconProperties{}
+	isIconEnabled = false
+	customIcons   = config.CustomIconsConfig{}
 )
 
 func IsIconEnabled() bool {
@@ -39,17 +38,6 @@ func SetNerdFontsVersion(version string) {
 	}
 }
 
-func SetCustomIcons(customIcons config.CustomIconsConfig) {
-	for name, icon := range customIcons.Filenames {
-		customNameIconMap[name] = IconProperties{
-			Icon:  icon.Icon,
-			Color: icon.Color,
-		}
-	}
-	for ext, icon := range customIcons.Extensions {
-		customExtIconMap[ext] = IconProperties{
-			Icon:  icon.Icon,
-			Color: icon.Color,
-		}
-	}
+func SetCustomIcons(icons config.CustomIconsConfig) {
+	customIcons = icons
 }
