@@ -205,6 +205,10 @@ func recurseOverSchema(rootSchema, schema *jsonschema.Schema, parent *Node) {
 	for pair := schema.Properties.Oldest(); pair != nil; pair = pair.Next() {
 		subSchema := getSubSchema(rootSchema, schema, pair.Key)
 
+		if strings.Contains(strings.ToLower(subSchema.Description), "deprecated") {
+			continue
+		}
+
 		node := Node{
 			Name:        pair.Key,
 			Description: subSchema.Description,

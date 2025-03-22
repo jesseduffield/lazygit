@@ -41,10 +41,6 @@ gui:
   authorColors: {}
 
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
-  # Deprecated: use branchColorPatterns instead
-  branchColors: {}
-
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
   branchColorPatterns: {}
 
   # The number of lines you scroll by when scrolling the main window
@@ -200,9 +196,6 @@ gui:
   # If true, show jump-to-window keybindings in window titles.
   showPanelJumps: true
 
-  # Deprecated: use nerdFontsVersion instead
-  showIcons: false
-
   # Nerd fonts version to use.
   # One of: '2' | '3' | empty string (default)
   # If empty, do not show icons.
@@ -347,10 +340,6 @@ git:
   # Command used when displaying the current branch git log in the main window
   branchLogCmd: git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --
 
-  # Command used to display git log of all branches in the main window.
-  # Deprecated: Use `allBranchesLogCmds` instead.
-  allBranchesLogCmd: git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium
-
   # Commands used to display git log of all branches in the main window, they will be cycled in order of appearance (array of strings)
   allBranchesLogCmds: []
 
@@ -375,19 +364,6 @@ git:
 
   # Config for showing the log in the commits view
   log:
-    # One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'
-    # 'topo-order' makes it easier to read the git log graph, but commits may not
-    # appear chronologically. See https://git-scm.com/docs/
-    #
-    # Deprecated: Configure this with `Log menu -> Commit sort order` (<c-l> in the commits window by default).
-    order: topo-order
-
-    # This determines whether the git graph is rendered in the commits panel
-    # One of 'always' | 'never' | 'when-maximised'
-    #
-    # Deprecated: Configure this with `Log menu -> Show git graph` (<c-l> in the commits window by default).
-    showGraph: always
-
     # displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
     showWholeGraph: false
 
@@ -448,24 +424,6 @@ os:
 
   # Command for opening a link. Should contain "{{link}}".
   openLink: ""
-
-  # EditCommand is the command for editing a file.
-  # Deprecated: use Edit instead. Note that semantics are different:
-  # EditCommand is just the command itself, whereas Edit contains a
-  # "{{filename}}" variable.
-  editCommand: ""
-
-  # EditCommandTemplate is the command template for editing a file
-  # Deprecated: use EditAtLine instead.
-  editCommandTemplate: ""
-
-  # OpenCommand is the command for opening a file
-  # Deprecated: use Open instead.
-  openCommand: ""
-
-  # OpenLinkCommand is the command for opening a link
-  # Deprecated: use OpenLink instead.
-  openLinkCommand: ""
 
   # CopyToClipboardCmd is the command for copying to clipboard.
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
