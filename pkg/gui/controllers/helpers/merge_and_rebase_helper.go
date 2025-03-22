@@ -481,7 +481,7 @@ func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranch
 			"selectedRef":   refName,
 			"currentBranch": checkedOutBranchName,
 		})
-		err = self.c.Git().Commit.CommitCmdObj(message, "").Run()
+		err = self.c.Git().Commit.CommitCmdObj(message, "", false).Run()
 		if err != nil {
 			return err
 		}

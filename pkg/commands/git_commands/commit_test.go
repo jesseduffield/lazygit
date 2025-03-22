@@ -53,6 +53,7 @@ func TestCommitCommitCmdObj(t *testing.T) {
 	type scenario struct {
 		testName             string
 		summary              string
+		forceSkipHooks       bool
 		description          string
 		configSignoff        bool
 		configSkipHookPrefix string
@@ -63,20 +64,39 @@ func TestCommitCommitCmdObj(t *testing.T) {
 		{
 			testName:             "Commit",
 			summary:              "test",
+			forceSkipHooks:       false,
 			configSignoff:        false,
 			configSkipHookPrefix: "",
 			expectedArgs:         []string{"commit", "-m", "test"},
 		},
 		{
-			testName:             "Commit with --no-verify flag",
+			testName:             "Commit with --no-verify flag < only prefix",
 			summary:              "WIP: test",
+			forceSkipHooks:       false,
 			configSignoff:        false,
 			configSkipHookPrefix: "WIP",
 			expectedArgs:         []string{"commit", "--no-verify", "-m", "WIP: test"},
 		},
 		{
+			testName:             "Commit with --no-verify flag < skip flag and prefix",
+			summary:              "WIP: test",
+			forceSkipHooks:       true,
+			configSignoff:        false,
+			configSkipHookPrefix: "WIP",
+			expectedArgs:         []string{"commit", "--no-verify", "-m", "WIP: test"},
+		},
+		{
+			testName:             "Commit with --no-verify flag < skip flag no prefix",
+			summary:              "test",
+			forceSkipHooks:       true,
+			configSignoff:        false,
+			configSkipHookPrefix: "WIP",
+			expectedArgs:         []string{"commit", "--no-verify", "-m", "test"},
+		},
+		{
 			testName:             "Commit with multiline message",
 			summary:              "line1",
+			forceSkipHooks:       false,
 			description:          "line2",
 			configSignoff:        false,
 			configSkipHookPrefix: "",
@@ -85,6 +105,7 @@ func TestCommitCommitCmdObj(t *testing.T) {
 		{
 			testName:             "Commit with signoff",
 			summary:              "test",
+			forceSkipHooks:       false,
 			configSignoff:        true,
 			configSkipHookPrefix: "",
 			expectedArgs:         []string{"commit", "--signoff", "-m", "test"},
@@ -92,6 +113,7 @@ func TestCommitCommitCmdObj(t *testing.T) {
 		{
 			testName:             "Commit with signoff and no-verify",
 			summary:              "WIP: test",
+			forceSkipHooks:       true,
 			configSignoff:        true,
 			configSkipHookPrefix: "WIP",
 			expectedArgs:         []string{"commit", "--no-verify", "--signoff", "-m", "WIP: test"},
@@ -107,7 +129,7 @@ func TestCommitCommitCmdObj(t *testing.T) {
 			runner := oscommands.NewFakeRunner(t).ExpectGitArgs(s.expectedArgs, "", nil)
 			instance := buildCommitCommands(commonDeps{userConfig: userConfig, runner: runner})
 
-			assert.NoError(t, instance.CommitCmdObj(s.summary, s.description).Run())
+			assert.NoError(t, instance.CommitCmdObj(s.summary, s.description, s.forceSkipHooks).Run())
 			runner.CheckForMissingCalls()
 		})
 	}

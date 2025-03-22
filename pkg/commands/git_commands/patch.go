@@ -303,7 +303,7 @@ func (self *PatchCommands) PullPatchIntoNewCommit(
 		return err
 	}
 
-	if err := self.commit.CommitCmdObj(commitSummary, commitDescription).Run(); err != nil {
+	if err := self.commit.CommitCmdObj(commitSummary, commitDescription, false).Run(); err != nil {
 		return err
 	}
 
