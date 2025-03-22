@@ -673,6 +673,7 @@ type TranslationSet struct {
 	BulkInitSubmodules                    string
 	BulkUpdateSubmodules                  string
 	BulkDeinitSubmodules                  string
+	BulkUpdateRecursiveSubmodules         string
 	ViewBulkSubmoduleOptions              string
 	BulkSubmoduleOptions                  string
 	RunningCommand                        string
@@ -982,6 +983,7 @@ type Actions struct {
 	BulkInitialiseSubmodules          string
 	BulkUpdateSubmodules              string
 	BulkDeinitialiseSubmodules        string
+	BulkUpdateRecursiveSubmodules     string
 	UpdateSubmodule                   string
 	CreateLightweightTag              string
 	CreateAnnotatedTag                string
@@ -1718,6 +1720,7 @@ func EnglishTranslationSet() *TranslationSet {
 		BulkInitSubmodules:                       "Bulk init submodules",
 		BulkUpdateSubmodules:                     "Bulk update submodules",
 		BulkDeinitSubmodules:                     "Bulk deinit submodules",
+		BulkUpdateRecursiveSubmodules:            "Bulk init and update submodules recursively",
 		ViewBulkSubmoduleOptions:                 "View bulk submodule options",
 		BulkSubmoduleOptions:                     "Bulk submodule options",
 		RunningCommand:                           "Running command",
@@ -1989,6 +1992,7 @@ func EnglishTranslationSet() *TranslationSet {
 			BulkInitialiseSubmodules:        "Bulk initialise submodules",
 			BulkUpdateSubmodules:            "Bulk update submodules",
 			BulkDeinitialiseSubmodules:      "Bulk deinitialise submodules",
+			BulkUpdateRecursiveSubmodules:   "Bulk initialise and update submodules recursively",
 			UpdateSubmodule:                 "Update submodule",
 			DeleteLocalTag:                  "Delete local tag",
 			DeleteRemoteTag:                 "Delete remote tag",

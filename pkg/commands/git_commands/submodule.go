@@ -258,6 +258,13 @@ func (self *SubmoduleCommands) ForceBulkUpdateCmdObj() oscommands.ICmdObj {
 	return self.cmd.New(cmdArgs)
 }
 
+func (self *SubmoduleCommands) BulkUpdateRecursivelyCmdObj() oscommands.ICmdObj {
+	cmdArgs := NewGitCmd("submodule").Arg("update", "--init", "--recursive").
+		ToArgv()
+
+	return self.cmd.New(cmdArgs)
+}
+
 func (self *SubmoduleCommands) BulkDeinitCmdObj() oscommands.ICmdObj {
 	cmdArgs := NewGitCmd("submodule").Arg("deinit", "--all", "--force").
 		ToArgv()
