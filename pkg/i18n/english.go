@@ -449,7 +449,6 @@ type TranslationSet struct {
 	ExecuteShellCommandTooltip            string
 	ShellCommand                          string
 	CommitChangesWithoutHook              string
-	SkipHookPrefixNotConfigured           string
 	ResetTo                               string
 	ResetSoftTooltip                      string
 	ResetMixedTooltip                     string
@@ -1500,7 +1499,6 @@ func EnglishTranslationSet() *TranslationSet {
 		ExecuteShellCommandTooltip:           "Bring up a prompt where you can enter a shell command to execute.",
 		ShellCommand:                         "Shell command:",
 		CommitChangesWithoutHook:             "Commit changes without pre-commit hook",
-		SkipHookPrefixNotConfigured:          "You have not configured a commit message prefix for skipping hooks. Set `git.skipHookPrefix = 'WIP'` in your config",
 		ResetTo:                              `Reset to`,
 		PressEnterToReturn:                   "Press enter to return to lazygit",
 		ViewStashOptions:                     "View stash options",
