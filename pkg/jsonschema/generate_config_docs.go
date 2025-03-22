@@ -205,16 +205,6 @@ func recurseOverSchema(rootSchema, schema *jsonschema.Schema, parent *Node) {
 	for pair := schema.Properties.Oldest(); pair != nil; pair = pair.Next() {
 		subSchema := getSubSchema(rootSchema, schema, pair.Key)
 
-		// Skip empty objects
-		if subSchema.Type == "object" && subSchema.Properties == nil {
-			continue
-		}
-
-		// Skip empty arrays
-		if isZeroValue(subSchema.Default) && subSchema.Type == "array" {
-			continue
-		}
-
 		node := Node{
 			Name:        pair.Key,
 			Description: subSchema.Description,
@@ -235,6 +225,10 @@ func getZeroValue(val any, t string) any {
 		return ""
 	case "boolean":
 		return false
+	case "object":
+		return map[string]any{}
+	case "array":
+		return []any{}
 	default:
 		return nil
 	}
