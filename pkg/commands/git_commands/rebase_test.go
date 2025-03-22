@@ -128,7 +128,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 		},
 		{
 			testName:               "returns error when using gpg",
-			gitConfigMockResponses: map[string]string{"commit.gpgsign": "true"},
+			gitConfigMockResponses: map[string]string{"commit.gpgSign": "true"},
 			commits:                []*models.Commit{{Name: "commit", Hash: "123456"}},
 			commitIndex:            0,
 			fileName:               []string{"test999.txt"},

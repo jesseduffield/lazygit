@@ -35,7 +35,7 @@ func NewRebaseCommands(
 }
 
 func (self *RebaseCommands) RewordCommit(commits []*models.Commit, index int, summary string, description string) error {
-	if self.config.UsingGpg() {
+	if self.config.NeedsGpgSubprocessForCommit() {
 		return errors.New(self.Tr.DisabledForGPG)
 	}
 
@@ -413,7 +413,7 @@ func (self *RebaseCommands) BeginInteractiveRebaseForCommitRange(
 	// we can make this GPG thing possible it just means we need to do this in two parts:
 	// one where we handle the possibility of a credential request, and the other
 	// where we continue the rebase
-	if self.config.UsingGpg() {
+	if self.config.NeedsGpgSubprocessForCommit() {
 		return errors.New(self.Tr.DisabledForGPG)
 	}
 
