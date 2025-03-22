@@ -7,6 +7,7 @@ import (
 	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
@@ -91,7 +92,7 @@ func TestRenderFileTree(t *testing.T) {
 			for _, path := range s.collapsedPaths {
 				viewModel.ToggleCollapsed(path)
 			}
-			result := RenderFileTree(viewModel, nil, false, s.showLineChanges)
+			result := RenderFileTree(viewModel, nil, false, s.showLineChanges, &config.CustomIconsConfig{})
 			assert.EqualValues(t, s.expected, result)
 		})
 	}
@@ -161,7 +162,7 @@ func TestRenderCommitFileTree(t *testing.T) {
 				},
 			)
 			patchBuilder.Start("from", "to", false, false)
-			result := RenderCommitFileTree(viewModel, patchBuilder, false)
+			result := RenderCommitFileTree(viewModel, patchBuilder, false, &config.CustomIconsConfig{})
 			assert.EqualValues(t, s.expected, result)
 		})
 	}
