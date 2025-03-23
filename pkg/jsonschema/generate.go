@@ -55,7 +55,6 @@ func customReflect(v *config.UserConfig) *jsonschema.Schema {
 	yamlToFieldNames := make(map[string]string)
 	keyNamer := func(yamlName string, originalFieldName string) string {
 		yamlToFieldNames[yamlName] = originalFieldName
-		yamlToFieldNames[originalFieldName] = yamlName
 		return yamlName
 	}
 
@@ -76,7 +75,7 @@ func customReflect(v *config.UserConfig) *jsonschema.Schema {
 
 		subSchema := getSubSchema(schema, userConfigSchema, yamlName)
 
-		setDefaultVals(schema, subSchema, defaultValue.FieldByName(fieldName).Interface(), yamlToFieldNames)
+		setDefaultVals(schema, subSchema, defaultValue.FieldByName(fieldName).Interface(), lo.Invert(yamlToFieldNames))
 	}
 
 	return schema
@@ -92,7 +91,7 @@ func filterOutDevComments(r *jsonschema.Reflector) {
 	}
 }
 
-func setDefaultVals(rootSchema, schema *jsonschema.Schema, defaults any, yamlToFieldNames map[string]string) {
+func setDefaultVals(rootSchema, schema *jsonschema.Schema, defaults any, fieldToYamlNames map[string]string) {
 	t := reflect.TypeOf(defaults)
 	v := reflect.ValueOf(defaults)
 
@@ -123,7 +122,7 @@ func setDefaultVals(rootSchema, schema *jsonschema.Schema, defaults any, yamlToF
 		value := v.Field(i).Interface()
 		parentKey := t.Field(i).Name
 
-		key, ok := yamlToFieldNames[parentKey]
+		key, ok := fieldToYamlNames[parentKey]
 		if !ok {
 			fmt.Println(key)
 			continue
@@ -132,7 +131,7 @@ func setDefaultVals(rootSchema, schema *jsonschema.Schema, defaults any, yamlToF
 		subSchema := getSubSchema(rootSchema, schema, key)
 
 		if isStruct(value) {
-			setDefaultVals(rootSchema, subSchema, value, yamlToFieldNames)
+			setDefaultVals(rootSchema, subSchema, value, fieldToYamlNames)
 		} else if !isZeroValue(value) {
 			subSchema.Default = value
 		}
