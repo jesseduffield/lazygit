@@ -22,7 +22,7 @@ var ForceTagLightweight = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("second commit").IsSelected(),
 				Contains("new-tag").Contains("first commit"),
 			).
-			Press(keys.Commits.CreateTag).
+			Press(keys.Commits.TagCommit).
 			Tap(func() {
 				t.ExpectPopup().CommitMessagePanel().
 					Title(Equals("Tag name")).

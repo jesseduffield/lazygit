@@ -52,7 +52,14 @@ func getSubSchema(rootSchema, parentSchema *jsonschema.Schema, key string) *json
 }
 
 func customReflect(v *config.UserConfig) *jsonschema.Schema {
-	r := &jsonschema.Reflector{FieldNameTag: "yaml", RequiredFromJSONSchemaTags: true}
+	yamlToFieldNames := make(map[string]string)
+	keyNamer := func(yamlName string, originalFieldName string) string {
+		yamlToFieldNames[yamlName] = originalFieldName
+		yamlToFieldNames[originalFieldName] = yamlName
+		return yamlName
+	}
+
+	r := &jsonschema.Reflector{FieldNameTag: "yaml", RequiredFromJSONSchemaTags: true, KeyNamerWithOriginalFieldName: keyNamer}
 	if err := r.AddGoComments("github.com/jesseduffield/lazygit/pkg/config", "../config"); err != nil {
 		panic(err)
 	}
@@ -63,15 +70,13 @@ func customReflect(v *config.UserConfig) *jsonschema.Schema {
 
 	defaultValue := reflect.ValueOf(defaultConfig).Elem()
 
-	yamlToFieldNames := lo.Invert(userConfigSchema.OriginalPropertiesMapping)
-
 	for pair := userConfigSchema.Properties.Oldest(); pair != nil; pair = pair.Next() {
 		yamlName := pair.Key
 		fieldName := yamlToFieldNames[yamlName]
 
 		subSchema := getSubSchema(schema, userConfigSchema, yamlName)
 
-		setDefaultVals(schema, subSchema, defaultValue.FieldByName(fieldName).Interface())
+		setDefaultVals(schema, subSchema, defaultValue.FieldByName(fieldName).Interface(), yamlToFieldNames)
 	}
 
 	return schema
@@ -87,7 +92,7 @@ func filterOutDevComments(r *jsonschema.Reflector) {
 	}
 }
 
-func setDefaultVals(rootSchema, schema *jsonschema.Schema, defaults any) {
+func setDefaultVals(rootSchema, schema *jsonschema.Schema, defaults any, yamlToFieldNames map[string]string) {
 	t := reflect.TypeOf(defaults)
 	v := reflect.ValueOf(defaults)
 
@@ -118,15 +123,16 @@ func setDefaultVals(rootSchema, schema *jsonschema.Schema, defaults any) {
 		value := v.Field(i).Interface()
 		parentKey := t.Field(i).Name
 
-		key, ok := schema.OriginalPropertiesMapping[parentKey]
+		key, ok := yamlToFieldNames[parentKey]
 		if !ok {
+			fmt.Println(key)
 			continue
 		}
 
 		subSchema := getSubSchema(rootSchema, schema, key)
 
 		if isStruct(value) {
-			setDefaultVals(rootSchema, subSchema, value)
+			setDefaultVals(rootSchema, subSchema, value, yamlToFieldNames)
 		} else if !isZeroValue(value) {
 			subSchema.Default = value
 		}

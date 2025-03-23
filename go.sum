@@ -200,8 +200,8 @@ github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024/go.mod h1
 github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/XSXhF0NWZEnDohbsk=
 github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 h1:iQTw/8FWTuc7uiaSepXwyf3o52HaUYcV+Tu66S3F5GA=
 github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0/go.mod h1:1NbS8ALrpOvjt0rHPNLyCIeMtbizbir8U//inJ+zuB8=
-github.com/karimkhaleel/jsonschema v0.0.0-20231001195015-d933f0d94ea3 h1:s995u+gNQADMaixtNOs+jilRC/Q78q0UXSI7+4T0cDE=
-github.com/karimkhaleel/jsonschema v0.0.0-20231001195015-d933f0d94ea3/go.mod h1:MCbEh21gjOzxc31udr3u4QM9DAdf8TFJCZz3u5hYIxA=
+github.com/karimkhaleel/jsonschema v0.0.0-20250323054317-7eb70f14797b h1:fO3alvlIx8s0Ou+lkV6I46UzkUALHhdQYEWWqYMsirY=
+github.com/karimkhaleel/jsonschema v0.0.0-20250323054317-7eb70f14797b/go.mod h1:MCbEh21gjOzxc31udr3u4QM9DAdf8TFJCZz3u5hYIxA=
 github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd h1:Coekwdh0v2wtGp9Gmz1Ze3eVRAWJMLokvN3QjdzCHLY=
 github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd/go.mod h1:CT57kijsi8u/K/BOFA39wgDQJ9CxiF4nAY/ojJ6r6mM=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=

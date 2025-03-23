@@ -21,7 +21,7 @@ var CreateTag = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("two").IsSelected(),
 				Contains("one"),
 			).
-			Press(keys.Commits.CreateTag)
+			Press(keys.Commits.TagCommit)
 
 		t.ExpectPopup().CommitMessagePanel().
 			Title(Equals("Tag name")).
