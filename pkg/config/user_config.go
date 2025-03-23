@@ -24,6 +24,7 @@ type UserConfig struct {
 	// If true, don't display introductory popups upon opening Lazygit.
 	DisableStartupPopups bool `yaml:"disableStartupPopups"`
 	// User-configured commands that can be invoked from within Lazygit
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md
 	CustomCommands []CustomCommand `yaml:"customCommands" jsonschema:"uniqueItems=true"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-pull-request-urls
 	Services map[string]string `yaml:"services"`
@@ -252,7 +253,7 @@ type GitConfig struct {
 	// Command used to display git log of all branches in the main window.
 	// Deprecated: Use `allBranchesLogCmds` instead.
 	AllBranchesLogCmd string `yaml:"allBranchesLogCmd"`
-	// Commands used to display git log of all branches in the main window, they will be cycled in order of appearance
+	// Commands used to display git log of all branches in the main window, they will be cycled in order of appearance (array of strings)
 	AllBranchesLogCmds []string `yaml:"allBranchesLogCmds"`
 	// If true, do not spawn a separate process when using GPG
 	OverrideGpg bool `yaml:"overrideGpg"`

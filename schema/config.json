@@ -329,7 +329,7 @@
             "type": "string"
           },
           "type": "array",
-          "description": "Commands used to display git log of all branches in the main window, they will be cycled in order of appearance"
+          "description": "Commands used to display git log of all branches in the main window, they will be cycled in order of appearance (array of strings)"
         },
         "overrideGpg": {
           "type": "boolean",
@@ -1838,7 +1838,7 @@
           },
           "type": "array",
           "uniqueItems": true,
-          "description": "User-configured commands that can be invoked from within Lazygit"
+          "description": "User-configured commands that can be invoked from within Lazygit\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md"
         },
         "services": {
           "additionalProperties": {
