@@ -54,7 +54,7 @@ type GuiConfig struct {
 	AuthorColors map[string]string `yaml:"authorColors"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
 	// Deprecated: use branchColorPatterns instead
-	BranchColors map[string]string `yaml:"branchColors"`
+	BranchColors map[string]string `yaml:"branchColors" jsonschema:"deprecated"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
 	BranchColorPatterns map[string]string `yaml:"branchColorPatterns"`
 	// The number of lines you scroll by when scrolling the main window
@@ -131,7 +131,7 @@ type GuiConfig struct {
 	// If true, show jump-to-window keybindings in window titles.
 	ShowPanelJumps bool `yaml:"showPanelJumps"`
 	// Deprecated: use nerdFontsVersion instead
-	ShowIcons bool `yaml:"showIcons"`
+	ShowIcons bool `yaml:"showIcons" jsonschema:"deprecated"`
 	// Nerd fonts version to use.
 	// One of: '2' | '3' | empty string (default)
 	// If empty, do not show icons.
@@ -252,7 +252,7 @@ type GitConfig struct {
 	BranchLogCmd string `yaml:"branchLogCmd"`
 	// Command used to display git log of all branches in the main window.
 	// Deprecated: Use `allBranchesLogCmds` instead.
-	AllBranchesLogCmd string `yaml:"allBranchesLogCmd"`
+	AllBranchesLogCmd string `yaml:"allBranchesLogCmd" jsonschema:"deprecated"`
 	// Commands used to display git log of all branches in the main window, they will be cycled in order of appearance (array of strings)
 	AllBranchesLogCmds []string `yaml:"allBranchesLogCmds"`
 	// If true, do not spawn a separate process when using GPG
@@ -587,19 +587,19 @@ type OSConfig struct {
 	// Deprecated: use Edit instead. Note that semantics are different:
 	// EditCommand is just the command itself, whereas Edit contains a
 	// "{{filename}}" variable.
-	EditCommand string `yaml:"editCommand,omitempty"`
+	EditCommand string `yaml:"editCommand,omitempty" jsonschema:"deprecated"`
 
 	// EditCommandTemplate is the command template for editing a file
 	// Deprecated: use EditAtLine instead.
-	EditCommandTemplate string `yaml:"editCommandTemplate,omitempty"`
+	EditCommandTemplate string `yaml:"editCommandTemplate,omitempty" jsonschema:"deprecated"`
 
 	// OpenCommand is the command for opening a file
 	// Deprecated: use Open instead.
-	OpenCommand string `yaml:"openCommand,omitempty"`
+	OpenCommand string `yaml:"openCommand,omitempty" jsonschema:"deprecated"`
 
 	// OpenLinkCommand is the command for opening a link
 	// Deprecated: use OpenLink instead.
-	OpenLinkCommand string `yaml:"openLinkCommand,omitempty"`
+	OpenLinkCommand string `yaml:"openLinkCommand,omitempty" jsonschema:"deprecated"`
 
 	// CopyToClipboardCmd is the command for copying to clipboard.
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard
