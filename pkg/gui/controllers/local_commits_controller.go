@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -412,7 +413,8 @@ func (self *LocalCommitsController) handleReword(summary string, description str
 	if models.IsHeadCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx()) {
 		// we've selected the top commit so no rebase is required
 		return self.c.Helpers().GPG.WithGpgHandling(self.c.Git().Commit.RewordLastCommit(summary, description),
-			self.c.Tr.RewordingStatus, nil)
+			git_commands.CommitGpgSign,
+			self.c.Tr.RewordingStatus, nil, nil)
 	}
 
 	return self.c.WithWaitingStatus(self.c.Tr.RewordingStatus, func(gocui.Task) error {

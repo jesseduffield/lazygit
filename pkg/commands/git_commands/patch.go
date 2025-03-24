@@ -150,7 +150,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	// we can make this GPG thing possible it just means we need to do this in two parts:
 	// one where we handle the possibility of a credential request, and the other
 	// where we continue the rebase
-	if self.config.UsingGpg() {
+	if self.config.NeedsGpgSubprocessForCommit() {
 		return errors.New(self.Tr.DisabledForGPG)
 	}
 
