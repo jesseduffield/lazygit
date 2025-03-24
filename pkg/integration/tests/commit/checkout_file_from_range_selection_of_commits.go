@@ -51,9 +51,6 @@ var CheckoutFileFromRangeSelectionOfCommits = NewIntegrationTest(NewIntegrationT
 				Equals("M  file.txt"),
 			)
 
-		/* EXPECTED:
 		t.FileSystem().FileContent("file.txt", Equals("three\n"))
-		ACTUAL: */
-		t.FileSystem().FileContent("file.txt", Equals("two\n"))
 	},
 })
