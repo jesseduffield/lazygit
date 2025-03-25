@@ -98,8 +98,8 @@ type ContextTree struct {
 	SubCommits                  *SubCommitsContext
 	Stash                       *StashContext
 	Suggestions                 *SuggestionsContext
-	Normal                      types.Context
-	NormalSecondary             types.Context
+	Normal                      *MainContext
+	NormalSecondary             *MainContext
 	Staging                     *PatchExplorerContext
 	StagingSecondary            *PatchExplorerContext
 	CustomPatchBuilder          *PatchExplorerContext
