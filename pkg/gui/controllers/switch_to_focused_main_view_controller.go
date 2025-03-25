@@ -45,6 +45,9 @@ func (self *SwitchToFocusedMainViewController) Context() types.Context {
 func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
 	mainViewContext := self.c.Helpers().Window.GetContextForWindow("main")
 	mainViewContext.SetParentContext(self.context)
+	if context := mainViewContext.(types.ISearchableContext); context != nil {
+		context.ClearSearchString()
+	}
 	mainView := mainViewContext.GetView()
 	lineIdx := mainView.OriginY() + mainView.Height()/2
 	lineIdx = lo.Clamp(lineIdx, 0, mainView.LinesHeight()-1)
