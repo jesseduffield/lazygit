@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -38,20 +39,53 @@ func (self *SwitchToFocusedMainViewController) GetKeybindings(opts types.Keybind
 	return bindings
 }
 
+func (self *SwitchToFocusedMainViewController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName:    "main",
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickMain,
+			FocusedView: self.context.GetViewName(),
+		},
+		{
+			ViewName:    "secondary",
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickSecondary,
+			FocusedView: self.context.GetViewName(),
+		},
+	}
+}
+
 func (self *SwitchToFocusedMainViewController) Context() types.Context {
 	return self.context
 }
 
+func (self *SwitchToFocusedMainViewController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
+	return self.focusMainView("main", opts.Y)
+}
+
+func (self *SwitchToFocusedMainViewController) onClickSecondary(opts gocui.ViewMouseBindingOpts) error {
+	return self.focusMainView("secondary", opts.Y)
+}
+
 func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
-	mainViewContext := self.c.Helpers().Window.GetContextForWindow("main")
+	return self.focusMainView("main", -1)
+}
+
+func (self *SwitchToFocusedMainViewController) focusMainView(mainViewName string, clickedViewLineIdx int) error {
+	mainViewContext := self.c.Helpers().Window.GetContextForWindow(mainViewName)
 	mainViewContext.SetParentContext(self.context)
 	if context := mainViewContext.(types.ISearchableContext); context != nil {
 		context.ClearSearchString()
 	}
-	mainView := mainViewContext.GetView()
-	lineIdx := mainView.OriginY() + mainView.Height()/2
-	lineIdx = lo.Clamp(lineIdx, 0, mainView.LinesHeight()-1)
-	self.c.Context().Push(mainViewContext,
-		types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: lineIdx})
+	onFocusOpts := types.OnFocusOpts{ClickedWindowName: mainViewName}
+	if clickedViewLineIdx >= 0 {
+		onFocusOpts.ClickedViewLineIdx = clickedViewLineIdx
+	} else {
+		mainView := mainViewContext.GetView()
+		lineIdx := mainView.OriginY() + mainView.Height()/2
+		onFocusOpts.ClickedViewLineIdx = lo.Clamp(lineIdx, 0, mainView.LinesHeight()-1)
+	}
+	self.c.Context().Push(mainViewContext, onFocusOpts)
 	return nil
 }
