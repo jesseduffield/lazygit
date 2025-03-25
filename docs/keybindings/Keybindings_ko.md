@@ -76,6 +76,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` / `` | 검색 시작 |  |
 
 ## Stash
 
@@ -152,6 +153,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` mouse wheel up (fn+down) `` | 위로 스크롤 |  |
 | `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` / `` | 검색 시작 |  |
 
 ## 메인 패널 (Patch Building)
 

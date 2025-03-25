@@ -210,6 +210,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` mouse wheel up (fn+down) `` | Scroll up |  |
 | `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` / `` | Search the current view by text |  |
 
 ## Main panel (patch building)
 
@@ -311,6 +312,7 @@ If you would instead like to start an interactive rebase from the selected commi
 |-----|--------|-------------|
 | `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` / `` | Search the current view by text |  |
 
 ## Stash
 
