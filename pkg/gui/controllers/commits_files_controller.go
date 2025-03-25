@@ -135,17 +135,6 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 	return bindings
 }
 
-func (self *CommitFilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
-	return []*gocui.ViewMouseBinding{
-		{
-			ViewName:    "main",
-			Key:         gocui.MouseLeft,
-			Handler:     self.onClickMain,
-			FocusedView: self.context().GetViewName(),
-		},
-	}
-}
-
 func (self *CommitFilesController) context() *context.CommitFilesContext {
 	return self.c.Contexts().CommitFiles
 }
@@ -173,14 +162,6 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 			Secondary: secondaryPatchPanelUpdateOpts(self.c),
 		})
 	}
-}
-
-func (self *CommitFilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	node := self.context().GetSelected()
-	if node == nil {
-		return nil
-	}
-	return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
 }
 
 func (self *CommitFilesController) copyDiffToClipboard(path string, toastMessage string) error {
