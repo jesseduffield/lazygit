@@ -89,6 +89,8 @@ var tests = []*components.IntegrationTest{
 	commit.AmendWhenThereAreConflictsAndContinue,
 	commit.AutoWrapMessage,
 	commit.Checkout,
+	commit.CheckoutFileFromCommit,
+	commit.CheckoutFileFromRangeSelectionOfCommits,
 	commit.Commit,
 	commit.CommitMultiline,
 	commit.CommitSkipHooks,
