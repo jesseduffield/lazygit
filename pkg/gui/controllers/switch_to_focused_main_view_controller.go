@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 // This controller is for all contexts that can focus their main view.
@@ -44,6 +45,10 @@ func (self *SwitchToFocusedMainViewController) Context() types.Context {
 func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
 	mainViewContext := self.c.Helpers().Window.GetContextForWindow("main")
 	mainViewContext.SetParentContext(self.context)
-	self.c.Context().Push(mainViewContext, types.OnFocusOpts{})
+	mainView := mainViewContext.GetView()
+	lineIdx := mainView.OriginY() + mainView.Height()/2
+	lineIdx = lo.Clamp(lineIdx, 0, mainView.LinesHeight()-1)
+	self.c.Context().Push(mainViewContext,
+		types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: lineIdx})
 	return nil
 }
