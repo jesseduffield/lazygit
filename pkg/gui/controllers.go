@@ -189,6 +189,8 @@ func (gui *Gui) resetHelpersAndControllers() {
 	patchExplorerControllerFactory := controllers.NewPatchExplorerControllerFactory(common)
 	stagingController := controllers.NewStagingController(common, gui.State.Contexts.Staging, gui.State.Contexts.StagingSecondary, false)
 	stagingSecondaryController := controllers.NewStagingController(common, gui.State.Contexts.StagingSecondary, gui.State.Contexts.Staging, true)
+	mainViewController := controllers.NewMainViewController(common, gui.State.Contexts.Normal, gui.State.Contexts.NormalSecondary)
+	secondaryViewController := controllers.NewMainViewController(common, gui.State.Contexts.NormalSecondary, gui.State.Contexts.Normal)
 	patchBuildingController := controllers.NewPatchBuildingController(common)
 	snakeController := controllers.NewSnakeController(common)
 	reflogCommitsController := controllers.NewReflogCommitsController(common)
@@ -263,6 +265,22 @@ func (gui *Gui) resetHelpersAndControllers() {
 		))
 	}
 
+	for _, context := range []types.Context{
+		gui.State.Contexts.Files,
+		gui.State.Contexts.Branches,
+		gui.State.Contexts.RemoteBranches,
+		gui.State.Contexts.Tags,
+		gui.State.Contexts.LocalCommits,
+		gui.State.Contexts.ReflogCommits,
+		gui.State.Contexts.SubCommits,
+		gui.State.Contexts.CommitFiles,
+		gui.State.Contexts.Stash,
+	} {
+		controllers.AttachControllers(context, controllers.NewSwitchToFocusedMainViewController(
+			common, context,
+		))
+	}
+
 	for _, context := range []controllers.ContainsCommits{
 		gui.State.Contexts.LocalCommits,
 		gui.State.Contexts.ReflogCommits,
@@ -304,6 +322,16 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.MergeConflicts,
 		mergeConflictsController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Normal,
+		mainViewController,
+		verticalScrollControllerFactory.Create(gui.State.Contexts.Normal),
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.NormalSecondary,
+		secondaryViewController,
+		verticalScrollControllerFactory.Create(gui.State.Contexts.NormalSecondary),
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Files,
