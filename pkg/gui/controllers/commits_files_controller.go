@@ -138,7 +138,7 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 func (self *CommitFilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
 	return []*gocui.ViewMouseBinding{
 		{
-			ViewName:    "patchBuilding",
+			ViewName:    "main",
 			Key:         gocui.MouseLeft,
 			Handler:     self.onClickMain,
 			FocusedView: self.context().GetViewName(),
@@ -163,13 +163,8 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
 		task := types.NewRunPtyTask(cmdObj.GetCmd())
 
-		pair := self.c.MainViewPairs().Normal
-		if node.File != nil {
-			pair = self.c.MainViewPairs().PatchBuilding
-		}
-
 		self.c.RenderToMainViews(types.RefreshMainOpts{
-			Pair: pair,
+			Pair: self.c.MainViewPairs().Normal,
 			Main: &types.ViewUpdateOpts{
 				Title:    self.c.Tr.Patch,
 				SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),

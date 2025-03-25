@@ -214,12 +214,6 @@ func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*
 			FocusedView: self.context().GetViewName(),
 		},
 		{
-			ViewName:    "patchBuilding",
-			Key:         gocui.MouseLeft,
-			Handler:     self.onClickMain,
-			FocusedView: self.context().GetViewName(),
-		},
-		{
 			ViewName:    "mergeConflicts",
 			Key:         gocui.MouseLeft,
 			Handler:     self.onClickMain,
@@ -227,12 +221,6 @@ func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*
 		},
 		{
 			ViewName:    "secondary",
-			Key:         gocui.MouseLeft,
-			Handler:     self.onClickSecondary,
-			FocusedView: self.context().GetViewName(),
-		},
-		{
-			ViewName:    "patchBuildingSecondary",
 			Key:         gocui.MouseLeft,
 			Handler:     self.onClickSecondary,
 			FocusedView: self.context().GetViewName(),
@@ -271,11 +259,6 @@ func (self *FilesController) GetOnRenderToMain() func() {
 
 			self.c.Helpers().MergeConflicts.ResetMergeState()
 
-			pair := self.c.MainViewPairs().Normal
-			if node.File != nil {
-				pair = self.c.MainViewPairs().Staging
-			}
-
 			split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
 			mainShowsStaged := !split && node.GetHasStagedChanges()
 
@@ -285,7 +268,7 @@ func (self *FilesController) GetOnRenderToMain() func() {
 				title = self.c.Tr.StagedChanges
 			}
 			refreshOpts := types.RefreshMainOpts{
-				Pair: pair,
+				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
 					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
