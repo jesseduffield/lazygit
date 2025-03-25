@@ -104,6 +104,11 @@ func (self *ViewSelectionController) handleGotoTop() error {
 }
 
 func (self *ViewSelectionController) handleGotoBottom() error {
+	if manager, ok := (*self.viewBufferManagerMap)[self.context.GetViewName()]; ok {
+		manager.ReadToEnd()
+		// TODO: how can we block here until reading is done?
+	}
+
 	v := self.Context().GetView()
 	v.FocusPoint(0, v.ViewLinesHeight()-1)
 	return nil
