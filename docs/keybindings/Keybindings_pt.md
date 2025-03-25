@@ -232,6 +232,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` mouse wheel up (fn+down) `` | Rolar para cima |  |
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` / `` | Search the current view by text |  |
 
 ## Painel Principal (preparação)
 
@@ -324,6 +325,7 @@ Veja a documentação:
 |-----|--------|-------------|
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` / `` | Search the current view by text |  |
 
 ## Stash
 

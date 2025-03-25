@@ -7,12 +7,16 @@ import (
 
 type MainContext struct {
 	*SimpleContext
+	*SearchTrait
 }
+
+var _ types.ISearchableContext = (*MainContext)(nil)
 
 func NewMainContext(
 	view *gocui.View,
 	windowName string,
 	key types.ContextKey,
+	c *ContextCommon,
 ) *MainContext {
 	ctx := &MainContext{
 		SimpleContext: NewSimpleContext(
@@ -24,7 +28,14 @@ func NewMainContext(
 				Focusable:        true,
 				HighlightOnFocus: false,
 			})),
+		SearchTrait: NewSearchTrait(c),
 	}
 
+	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(func(int) error { return nil }))
+
 	return ctx
+}
+
+func (self *MainContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
+	return nil
 }

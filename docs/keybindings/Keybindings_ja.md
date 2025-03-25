@@ -57,6 +57,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` <tab> `` | パネルを切り替え | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` / `` | 検索を開始 |  |
 
 ## Stash
 
@@ -293,6 +294,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` mouse wheel up (fn+down) `` | 上にスクロール |  |
 | `` <tab> `` | パネルを切り替え | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` / `` | 検索を開始 |  |
 
 ## メインパネル (Patch Building)
 

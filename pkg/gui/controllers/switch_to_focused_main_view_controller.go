@@ -44,6 +44,9 @@ func (self *SwitchToFocusedMainViewController) Context() types.Context {
 func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
 	mainViewContext := self.c.Helpers().Window.GetContextForWindow("main")
 	mainViewContext.SetParentContext(self.context)
+	if context, ok := mainViewContext.(types.ISearchableContext); ok {
+		context.ClearSearchString()
+	}
 	self.c.Context().Push(mainViewContext, types.OnFocusOpts{})
 	return nil
 }
