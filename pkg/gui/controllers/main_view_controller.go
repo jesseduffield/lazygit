@@ -91,6 +91,14 @@ func (self *MainViewController) Context() types.Context {
 	return self.context
 }
 
+func (self *MainViewController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(opts types.OnFocusOpts) {
+		if opts.ClickedWindowName != "" {
+			self.context.GetView().FocusPoint(0, opts.ClickedViewLineIdx)
+		}
+	}
+}
+
 func (self *MainViewController) togglePanel() error {
 	if self.otherContext.GetView().Visible {
 		self.otherContext.SetParentContext(self.context.GetParentContext())
