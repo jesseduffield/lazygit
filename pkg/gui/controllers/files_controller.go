@@ -209,21 +209,9 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
 	return []*gocui.ViewMouseBinding{
 		{
-			ViewName:    "main",
-			Key:         gocui.MouseLeft,
-			Handler:     self.onClickMain,
-			FocusedView: self.context().GetViewName(),
-		},
-		{
 			ViewName:    "mergeConflicts",
 			Key:         gocui.MouseLeft,
 			Handler:     self.onClickMain,
-			FocusedView: self.context().GetViewName(),
-		},
-		{
-			ViewName:    "secondary",
-			Key:         gocui.MouseLeft,
-			Handler:     self.onClickSecondary,
 			FocusedView: self.context().GetViewName(),
 		},
 	}
@@ -1186,10 +1174,6 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 
 func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
 	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
-}
-
-func (self *FilesController) onClickSecondary(opts gocui.ViewMouseBindingOpts) error {
-	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "secondary", ClickedViewLineIdx: opts.Y})
 }
 
 func (self *FilesController) fetch() error {

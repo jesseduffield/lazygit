@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -37,12 +38,41 @@ func (self *SwitchToFocusedMainViewController) GetKeybindings(opts types.Keybind
 	return bindings
 }
 
+func (self *SwitchToFocusedMainViewController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName:    "main",
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickMain,
+			FocusedView: self.context.GetViewName(),
+		},
+		{
+			ViewName:    "secondary",
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickSecondary,
+			FocusedView: self.context.GetViewName(),
+		},
+	}
+}
+
 func (self *SwitchToFocusedMainViewController) Context() types.Context {
 	return self.context
 }
 
+func (self *SwitchToFocusedMainViewController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
+	return self.focusMainView("main")
+}
+
+func (self *SwitchToFocusedMainViewController) onClickSecondary(opts gocui.ViewMouseBindingOpts) error {
+	return self.focusMainView("secondary")
+}
+
 func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
-	mainViewContext := self.c.Helpers().Window.GetContextForWindow("main")
+	return self.focusMainView("main")
+}
+
+func (self *SwitchToFocusedMainViewController) focusMainView(mainViewName string) error {
+	mainViewContext := self.c.Helpers().Window.GetContextForWindow(mainViewName)
 	mainViewContext.SetParentContext(self.context)
 	if context := mainViewContext.(types.ISearchableContext); context != nil {
 		context.ClearSearchString()
