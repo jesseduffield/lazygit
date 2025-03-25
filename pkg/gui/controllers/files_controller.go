@@ -1194,13 +1194,49 @@ func filterNodesHaveUnstagedChanges(nodes []*filetree.FileNode) []*filetree.File
 	})
 }
 
+func findSubmoduleNode(nodes []*filetree.FileNode, submodules []*models.SubmoduleConfig) *models.File {
+	for _, node := range nodes {
+		submoduleNode := node.FindFirstFile(func(f *models.File) bool {
+			return f.IsSubmodule(submodules)
+		})
+		if submoduleNode != nil {
+			return submoduleNode
+		}
+	}
+	return nil
+}
+
 func (self *FilesController) canRemove(selectedNodes []*filetree.FileNode) *types.DisabledReason {
+	// Return disabled if the selection contains multiple changed items and includes a submodule change.
 	submodules := self.c.Model().Submodules
-	submoduleCount := lo.CountBy(selectedNodes, func(node *filetree.FileNode) bool {
-		return node.File != nil && node.File.IsSubmodule(submodules)
-	})
-	if submoduleCount > 0 && len(selectedNodes) > 1 {
-		return &types.DisabledReason{Text: self.c.Tr.RangeSelectNotSupportedForSubmodules}
+	// Track if we've encountered any file or submodule changes so far.
+	encounteredFile := false
+	var encounteredSubmodule *models.File = nil
+
+	for _, node := range selectedNodes {
+		passed := node.EveryFile(func(f *models.File) bool {
+			if f.IsSubmodule(submodules) {
+				if encounteredFile {
+					// Already encountered a file change -> fail.
+					return false
+				} else if encounteredSubmodule != nil && encounteredSubmodule != f {
+					// Already encountered another submodule change -> fail.
+					// (It may be the same submodule change because selectedNodes may include both a folder and their children)
+					return false
+				}
+				encounteredSubmodule = f
+			} else {
+				if encounteredSubmodule != nil {
+					// Already encountered a submodule change -> fail.
+					return false
+				}
+				encounteredFile = true
+			}
+			return true
+		})
+		if !passed {
+			return &types.DisabledReason{Text: self.c.Tr.MultiSelectNotSupportedForSubmodules}
+		}
 	}
 
 	return nil
@@ -1209,11 +1245,13 @@ func (self *FilesController) canRemove(selectedNodes []*filetree.FileNode) *type
 func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 	submodules := self.c.Model().Submodules
 
+	selectedNodes = normalisedSelectedNodes(selectedNodes)
+
 	// If we have one submodule then we must only have one submodule or `canRemove` would have
 	// returned an error
-	firstNode := selectedNodes[0]
-	if firstNode.File != nil && firstNode.File.IsSubmodule(submodules) {
-		submodule := firstNode.File.SubmoduleConfig(submodules)
+	submoduleNode := findSubmoduleNode(selectedNodes, submodules)
+	if submoduleNode != nil {
+		submodule := submoduleNode.SubmoduleConfig(submodules)
 
 		menuItems := []*types.MenuItem{
 			{
@@ -1224,10 +1262,8 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 			},
 		}
 
-		return self.c.Menu(types.CreateMenuOptions{Title: firstNode.GetPath(), Items: menuItems})
+		return self.c.Menu(types.CreateMenuOptions{Title: submoduleNode.GetPath(), Items: menuItems})
 	}
-
-	selectedNodes = normalisedSelectedNodes(selectedNodes)
 
 	discardAllChangesItem := types.MenuItem{
 		Label: self.c.Tr.DiscardAllChanges,
