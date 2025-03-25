@@ -95,7 +95,15 @@ func (self *ViewSelectionController) handleGotoTop() error {
 }
 
 func (self *ViewSelectionController) handleGotoBottom() error {
-	v := self.Context().GetView()
-	self.handleLineChange(v.ViewLinesHeight())
+	if manager := self.c.GetViewBufferManagerForView(self.context.GetView()); manager != nil {
+		manager.ReadToEnd(func() {
+			self.c.OnUIThread(func() error {
+				v := self.Context().GetView()
+				self.handleLineChange(v.ViewLinesHeight())
+				return nil
+			})
+		})
+	}
+
 	return nil
 }
