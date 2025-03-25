@@ -43,6 +43,15 @@ gui:
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
   branchColorPatterns: {}
 
+  # Custom icons for filenames and file extensions
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color
+  customIcons:
+    # Map of filenames to icon properties (icon and color)
+    filenames: {}
+
+    # Map of file extensions (including the dot) to icon properties (icon and color)
+    extensions: {}
+
   # The number of lines you scroll by when scrolling the main window
   scrollHeight: 2
 
@@ -649,32 +658,39 @@ os:
 ```
 
 ## Custom Command for Opening a Link
+
 ```yaml
 os:
   openLink: 'bash -C /path/to/your/shell-script.sh {{link}}'
 ```
+
 Specify the external command to invoke when opening URL links (i.e. creating MR/PR in GitLab, BitBucket or GitHub). `{{link}}` will be replaced by the URL to be opened. A simple shell script can be used to further mangle the passed URL.
 
 ## Custom Command for Copying to and Pasting from Clipboard
+
 ```yaml
 os:
   copyToClipboardCmd: ''
 ```
+
 Specify an external command to invoke when copying to clipboard is requested. `{{text}` will be replaced by text to be copied. Default is to copy to system clipboard.
 
 If you are working on a terminal that supports OSC52, the following command will let you take advantage of it:
+
 ```yaml
 os:
   copyToClipboardCmd: printf "\033]52;c;$(printf {{text}} | base64 -w 0)\a" > /dev/tty
 ```
 
 For tmux you need to wrap it with the [tmux escape sequence](https://github.com/tmux/tmux/wiki/FAQ#what-is-the-passthrough-escape-sequence-and-how-do-i-use-it), and enable passthrough in tmux config with `set -g allow-passthrough on`:
+
 ```yaml
 os:
   copyToClipboardCmd: printf "\033Ptmux;\033\033]52;c;$(printf {{text}} | base64 -w 0)\a\033\\" > /dev/tty
 ```
 
 For the best of both worlds, we can let the command determine if we are running in a tmux session and send the correct sequence:
+
 ```yaml
 os:
   copyToClipboardCmd: >
@@ -686,10 +702,12 @@ os:
 ```
 
 A custom command for reading from the clipboard can be set using
+
 ```yaml
 os:
   readFromClipboardCmd: ''
 ```
+
 It is used, for example, when pasting a commit message into the commit message panel. The command is supposed to output the clipboard content to stdout.
 
 ## Configuring File Editing
@@ -832,6 +850,27 @@ gui:
 
 Note that the regular expressions are not implicitly anchored to the beginning/end of the branch name. If you want to do that, add leading `^` and/or trailing `$` as needed.
 
+## Custom Files Icon & Color
+
+You can customize the icon and color of files based on filenames or extensions:
+
+```yaml
+gui:
+  customIcons:
+    filenames:
+      "CONTRIBUTING.md": { icon: "\uede2", color: "#FEDDEF" }
+      "HACKING.md": { icon: "\uede2", color: "#FEDDEF" }
+    extensions:
+      ".cat":
+        icon: "\U000f011b"
+        color: "#BC4009"
+      ".dog":
+        icon: "\U000f0a43"
+        color: "#B6977E"
+```
+
+Note that there is no support for regular expressions.
+
 ## Example Coloring
 
 ![border example](../../assets/colored-border-example.png)
@@ -960,6 +999,7 @@ In situations where certain naming pattern is used for branches, this can be use
 Example:
 
 Some branches:
+
 - jsmith/AB-123
 - cwilson/AB-125
 

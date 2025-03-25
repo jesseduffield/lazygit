@@ -57,6 +57,9 @@ type GuiConfig struct {
 	BranchColors map[string]string `yaml:"branchColors" jsonschema:"deprecated"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
 	BranchColorPatterns map[string]string `yaml:"branchColorPatterns"`
+	// Custom icons for filenames and file extensions
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color
+	CustomIcons CustomIconsConfig `yaml:"customIcons"`
 	// The number of lines you scroll by when scrolling the main window
 	ScrollHeight int `yaml:"scrollHeight" jsonschema:"minimum=1"`
 	// If true, allow scrolling past the bottom of the content in the main window
@@ -705,6 +708,18 @@ type CustomCommandMenuOption struct {
 	Description string `yaml:"description"`
 	// The value that will be used in the command
 	Value string `yaml:"value" jsonschema:"example=feature,minLength=1"`
+}
+
+type CustomIconsConfig struct {
+	// Map of filenames to icon properties (icon and color)
+	Filenames map[string]IconProperties `yaml:"filenames"`
+	// Map of file extensions (including the dot) to icon properties (icon and color)
+	Extensions map[string]IconProperties `yaml:"extensions"`
+}
+
+type IconProperties struct {
+	Icon  string `yaml:"icon"`
+	Color string `yaml:"color"`
 }
 
 func GetDefaultConfig() *UserConfig {

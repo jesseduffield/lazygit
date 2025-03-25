@@ -263,6 +263,27 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "CustomIconsConfig": {
+      "properties": {
+        "filenames": {
+          "additionalProperties": {
+            "$ref": "#/$defs/IconProperties"
+          },
+          "type": "object",
+          "description": "Map of filenames to icon properties (icon and color)"
+        },
+        "extensions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/IconProperties"
+          },
+          "type": "object",
+          "description": "Map of file extensions (including the dot) to icon properties (icon and color)"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Custom icons for filenames and file extensions\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color"
+    },
     "GitConfig": {
       "properties": {
         "paging": {
@@ -403,6 +424,10 @@
           },
           "type": "object",
           "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color"
+        },
+        "customIcons": {
+          "$ref": "#/$defs/CustomIconsConfig",
+          "description": "Custom icons for filenames and file extensions\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color"
         },
         "scrollHeight": {
           "type": "integer",
@@ -699,6 +724,18 @@
       "additionalProperties": false,
       "type": "object",
       "description": "Config relating to the Lazygit UI"
+    },
+    "IconProperties": {
+      "properties": {
+        "icon": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "KeybindingAmendAttributeConfig": {
       "properties": {

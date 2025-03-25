@@ -39,7 +39,7 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 		}
 
 		showFileIcons := icons.IsIconEnabled() && c.UserConfig().Gui.ShowFileIcons
-		lines := presentation.RenderCommitFileTree(viewModel, c.Git().Patch.PatchBuilder, showFileIcons)
+		lines := presentation.RenderCommitFileTree(viewModel, c.Git().Patch.PatchBuilder, showFileIcons, &c.UserConfig().Gui.CustomIcons)
 		return lo.Map(lines, func(line string, _ int) []string {
 			return []string{line}
 		})

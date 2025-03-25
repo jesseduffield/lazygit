@@ -3,11 +3,13 @@ package icons
 import (
 	"path/filepath"
 	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/config"
 )
 
 // NOTE: Visit next links for inspiration:
 // https://github.com/eza-community/eza/blob/main/src/output/icons.rs
-// https://github.com/nvim-tree/nvim-web-devicons/blob/master/lua/nvim-web-devicons/icons-default.lua
+// https://github.com/nvim-tree/nvim-web-devicons/tree/master/lua/nvim-web-devicons/default
 
 var (
 	DEFAULT_FILE_ICON      = IconProperties{Icon: "\uf15b", Color: "#878787"}     // 
@@ -15,6 +17,7 @@ var (
 	DEFAULT_DIRECTORY_ICON = IconProperties{Icon: "\uf07b", Color: "#878787"}     // 
 )
 
+// NOTE: The filename map is case sensitive.
 var nameIconMap = map[string]IconProperties{
 	".atom":                      {Icon: "\ue764", Color: "#EED9B7"},     // 
 	".babelrc":                   {Icon: "\ue639", Color: "#FED836"},     // 
@@ -90,7 +93,7 @@ var nameIconMap = map[string]IconProperties{
 	"Cargo.lock":                 {Icon: "\ue7a8", Color: "#DEA584"},     // 
 	"Cargo.toml":                 {Icon: "\ue7a8", Color: "#DEA584"},     // 
 	"checkhealth":                {Icon: "\U000f04d9", Color: "#75B4FB"}, // 󰓙
-	"cmakelists.txt":             {Icon: "\ue794", Color: "##DCE3EB"},    // 
+	"CMakeLists.txt":             {Icon: "\ue794", Color: "#DCE3EB"},     // 
 	"CODE_OF_CONDUCT":            {Icon: "\uf4ae", Color: "#E41662"},     // 
 	"CODE_OF_CONDUCT.md":         {Icon: "\uf4ae", Color: "#E41662"},     // 
 	"CODE-OF-CONDUCT.md":         {Icon: "\uf4ae", Color: "#E41662"},     // 
@@ -280,7 +283,7 @@ var extIconMap = map[string]IconProperties{
 	".cljd":           {Icon: "\ue76a", Color: "#519ABA"},     // 
 	".cljs":           {Icon: "\ue642", Color: "#2AB6F6"},     // 
 	".cls":            {Icon: "\ue69b", Color: "#4B5163"},     // 
-	".cmake":          {Icon: "\ue794", Color: "##DCE3EB"},    // 
+	".cmake":          {Icon: "\ue794", Color: "#DCE3EB"},     // 
 	".cmd":            {Icon: "\uebc4", Color: "#FF7043"},     // 
 	".cob":            {Icon: "\u2699", Color: "#005CA5"},     // ⚙
 	".cobol":          {Icon: "\u2699", Color: "#005CA5"},     // ⚙
@@ -402,14 +405,14 @@ var extIconMap = map[string]IconProperties{
 	".guardfile":      {Icon: "\ue21e", Color: "#626262"},     // 
 	".gv":             {Icon: "\U000f1049", Color: "#005F87"}, // 󱁉
 	".gz":             {Icon: "\uf410", Color: "#ECA517"},     // 
-	".h":              {Icon: "\uf0fd", Color: "##A074C4"},    // 
+	".h":              {Icon: "\uf0fd", Color: "#A074C4"},     // 
 	".haml":           {Icon: "\ue664", Color: "#F4521E"},     // 
 	".hbs":            {Icon: "\U000f15de", Color: "#FF7043"}, // 󱗞
 	".hc":             {Icon: "\U000f00a2", Color: "#FAF743"}, // 󰂢
 	".heex":           {Icon: "\ue62d", Color: "#9575CE"},     // 
 	".hex":            {Icon: "\U000f12a7", Color: "#25A79A"}, // 󱊧
-	".hh":             {Icon: "\uf0fd", Color: "##A074C4"},    // 
-	".hpp":            {Icon: "\uf0fd", Color: "##A074C4"},    // 
+	".hh":             {Icon: "\uf0fd", Color: "#A074C4"},     // 
+	".hpp":            {Icon: "\uf0fd", Color: "#A074C4"},     // 
 	".hrl":            {Icon: "\ue7b1", Color: "#B83998"},     // 
 	".hs":             {Icon: "\ue61f", Color: "#FFA726"},     // 
 	".htm":            {Icon: "\uf13b", Color: "#E44E27"},     // 
@@ -417,7 +420,7 @@ var extIconMap = map[string]IconProperties{
 	".huff":           {Icon: "\U000f0858", Color: "#CFD8DD"}, // 󰡘
 	".hurl":           {Icon: "\uf0ec", Color: "#FF0288"},     // 
 	".hx":             {Icon: "\ue666", Color: "#F68713"},     // 
-	".hxx":            {Icon: "\uf0fd", Color: "##A074C4"},    // 
+	".hxx":            {Icon: "\uf0fd", Color: "#A074C4"},     // 
 	".ical":           {Icon: "\uf073", Color: "#2B9EF3"},     // 
 	".icalendar":      {Icon: "\uf073", Color: "#2B9EF3"},     // 
 	".ico":            {Icon: "\U000f021f", Color: "#25A6A0"}, // 󰈟
@@ -688,7 +691,7 @@ var extIconMap = map[string]IconProperties{
 	".tlz":            {Icon: "\uf410", Color: "#ECA517"},     // 
 	".tmux":           {Icon: "\uebc8", Color: "#14BA19"},     // 
 	".toml":           {Icon: "\ue6b2", Color: "#9C4221"},     // 
-	".torrent":        {Icon: "\ue275", Color: "##4C90E8"},    // 
+	".torrent":        {Icon: "\ue275", Color: "#4C90E8"},     // 
 	".tres":           {Icon: "\ue65f", Color: "#42A5F5"},     // 
 	".ts":             {Icon: "\U000f06e6", Color: "#0188D1"}, // 󰛦
 	".tscn":           {Icon: "\ue65f", Color: "#42A5F5"},     // 
@@ -763,13 +766,19 @@ func patchFileIconsForNerdFontsV2() {
 	extIconMap[".vue"] = IconProperties{Icon: "\ufd42", Color: "#89e051"}     // ﵂
 }
 
-func IconForFile(name string, isSubmodule bool, isLinkedWorktree bool, isDirectory bool) IconProperties {
+func IconForFile(name string, isSubmodule bool, isLinkedWorktree bool, isDirectory bool, customIconsConfig *config.CustomIconsConfig) IconProperties {
 	base := filepath.Base(name)
+	if icon, ok := customIconsConfig.Filenames[base]; ok {
+		return IconProperties{Color: icon.Color, Icon: icon.Icon}
+	}
 	if icon, ok := nameIconMap[base]; ok {
 		return icon
 	}
 
 	ext := strings.ToLower(filepath.Ext(name))
+	if icon, ok := customIconsConfig.Extensions[ext]; ok {
+		return IconProperties{Color: icon.Color, Icon: icon.Icon}
+	}
 	if icon, ok := extIconMap[ext]; ok {
 		return icon
 	}
