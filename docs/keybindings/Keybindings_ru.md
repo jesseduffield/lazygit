@@ -59,7 +59,7 @@ _Связки клавиш_
 | `` <space> `` | Switch | Switch to the selected worktree. |
 | `` o `` | Open in editor |  |
 | `` d `` | Remove | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Главная панель (Индексирование)
 
@@ -136,7 +136,7 @@ _Связки клавиш_
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Коммиты
 
@@ -201,7 +201,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Меню
 
@@ -209,7 +209,7 @@ If you would instead like to start an interactive rebase from the selected commi
 |-----|--------|-------------|
 | `` <enter> `` | Выполнить |  |
 | `` <esc> `` | Закрыть |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Панель Подтверждения
 
@@ -247,7 +247,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | Обновить URL подмодуля |  |
 | `` i `` | Initialize | Инициализировать подмодуль |
 | `` b `` | Просмотреть параметры массового подмодуля |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Сводка коммита
 
@@ -298,7 +298,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Удалённые ветки
 
@@ -316,7 +316,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Удалённые репозитории
 
@@ -327,7 +327,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
 | `` e `` | Edit | Редактировать удалённый репозитории |
 | `` f `` | Получить изменения | Получение изменения из удалённого репозитория |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Файлы
 
@@ -372,4 +372,4 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` r `` | Переименовать хранилище |  |
 | `` <enter> `` | Просмотреть файлы выбранного элемента |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
