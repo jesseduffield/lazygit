@@ -96,6 +96,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 |-----|--------|-------------|
 | `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Drzewa pracy
 
@@ -166,6 +167,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` mouse wheel up (fn+down) `` | Przewiń w górę |  |
 | `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Panel główny (scalanie)
 
