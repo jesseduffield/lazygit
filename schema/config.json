@@ -1259,6 +1259,10 @@
             "5"
           ]
         },
+        "focusMainView": {
+          "type": "string",
+          "default": "0"
+        },
         "nextMatch": {
           "type": "string",
           "default": "n"

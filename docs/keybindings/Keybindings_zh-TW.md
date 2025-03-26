@@ -72,6 +72,8 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 |-----|--------|-------------|
 | `` mouse wheel down (fn+up) `` | 向下捲動 |  |
 | `` mouse wheel up (fn+down) `` | 向上捲動 |  |
+| `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
 
 ## 主面板（合併）
 
@@ -133,6 +135,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` <c-r> `` | 重設選定的揀選 (複製) 提交 |  |
 | `` <c-t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -196,6 +199,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` C `` | 複製提交 (揀選) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -224,6 +228,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` ` `` | 顯示檔案樹狀視圖 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | 搜尋 |  |
 
 ## 收藏 (Stash)
@@ -235,6 +240,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | 捨棄 | Remove the stash entry from the stash list. |
 | `` n `` | 新分支 | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
 | `` r `` | 重新命名收藏 |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -253,6 +259,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-r> `` | 重設選定的揀選 (複製) 提交 |  |
 | `` <c-t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -280,6 +287,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` R `` | 重新命名分支 |  |
 | `` u `` | 檢視遠端設定 | 檢視有關遠端分支的設定（例如重設至遠端） |
 | `` <c-t> `` | 開啟外部差異工具 (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -295,6 +303,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` P `` | 推送標籤 | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | 重設 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <c-t> `` | 開啟外部差異工具 (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -329,7 +338,15 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` f `` | 擷取 | 同步遠端異動 |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | 搜尋 |  |
+
+## 次要
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
 
 ## 狀態
 
@@ -373,6 +390,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` s `` | 排序規則 |  |
 | `` g `` | 檢視重設選項 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <c-t> `` | 開啟外部差異工具 (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |

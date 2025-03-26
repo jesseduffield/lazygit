@@ -81,6 +81,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` f `` | Fetch | Fetch changes from remote. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | Start met zoeken |  |
 
 ## Bevestigingspaneel
@@ -113,6 +114,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` R `` | Hernoem branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -141,6 +143,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` ` `` | Toggle bestandsboom weergave | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | Start met zoeken |  |
 
 ## Commits
@@ -178,6 +181,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` C `` | Kopieer commit (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk gecommite bestanden |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Start met zoeken |  |
@@ -212,6 +216,8 @@ If you would instead like to start an interactive rebase from the selected commi
 |-----|--------|-------------|
 | `` mouse wheel down (fn+up) `` | Scroll omlaag |  |
 | `` mouse wheel up (fn+down) `` | Scroll omhoog |  |
+| `` <tab> `` | Ga naar een ander paneel | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
 
 ## Patch bouwen
 
@@ -242,6 +248,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-r> `` | Reset cherry-picked (gekopieerde) commits selectie |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -260,6 +267,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` s `` | Sort order |  |
 | `` g `` | Bekijk reset opties | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -274,6 +282,13 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | Edit | Wijzig remote |
 | `` f `` | Fetch | Fetch remote |
 | `` / `` | Filter the current view by text |  |
+
+## Secondary
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <tab> `` | Ga naar een ander paneel | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
 
 ## Staging
 
@@ -306,6 +321,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Laten vallen | Remove the stash entry from the stash list. |
 | `` n `` | Nieuwe branch | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
 | `` r `` | Rename stash |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk gecommite bestanden |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -334,6 +350,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-r> `` | Reset cherry-picked (gekopieerde) commits selectie |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk gecommite bestanden |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Start met zoeken |  |
@@ -363,6 +380,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` P `` | Push tag | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
