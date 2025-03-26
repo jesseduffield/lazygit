@@ -58,7 +58,19 @@ func (self *MainViewController) GetMouseKeybindings(opts types.KeybindingsOpts) 
 		{
 			ViewName: self.context.GetViewName(),
 			Key:      gocui.MouseLeft,
-			Handler:  self.onClick,
+			Handler: func(opts gocui.ViewMouseBindingOpts) error {
+				if self.isFocused() {
+					return self.onClick(opts)
+				}
+
+				self.context.SetParentContext(self.otherContext.GetParentContext())
+				self.c.Context().Push(self.context, types.OnFocusOpts{
+					ClickedWindowName:  self.context.GetWindowName(),
+					ClickedViewLineIdx: opts.Y,
+				})
+
+				return nil
+			},
 		},
 	}
 }
@@ -99,4 +111,8 @@ func (self *MainViewController) openSearch() error {
 	}
 
 	return nil
+}
+
+func (self *MainViewController) isFocused() bool {
+	return self.c.Context().Current().GetKey() == self.context.GetKey()
 }
