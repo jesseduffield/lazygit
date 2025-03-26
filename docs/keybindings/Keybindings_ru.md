@@ -67,6 +67,7 @@ _Связки клавиш_
 |-----|--------|-------------|
 | `` <tab> `` | Переключиться на другую панель (проиндексированные/непроиндексированные изменения) | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` <enter> `` | Enter staging/patch building |  |
 | `` / `` | Найти |  |
 
 ## Главная панель (Индексирование)
@@ -99,6 +100,7 @@ _Связки клавиш_
 | `` mouse wheel up (fn+down) `` | Прокрутить вверх |  |
 | `` <tab> `` | Переключиться на другую панель (проиндексированные/непроиндексированные изменения) | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` <enter> `` | Enter staging/patch building |  |
 | `` / `` | Найти |  |
 
 ## Главная панель (Слияние)

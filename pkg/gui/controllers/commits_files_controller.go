@@ -531,6 +531,16 @@ func (self *CommitFilesController) expandAll() error {
 	return nil
 }
 
+func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
+	return func(mainViewName string, clickedLineIdx int) error {
+		node := self.getSelectedItem()
+		if node != nil && node.File != nil {
+			return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: clickedLineIdx})
+		}
+		return nil
+	}
+}
+
 // NOTE: these functions are identical to those in files_controller.go (except for types) and
 // could also be cleaned up with some generics
 func normalisedSelectedCommitFileNodes(selectedNodes []*filetree.CommitFileNode) []*filetree.CommitFileNode {

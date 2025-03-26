@@ -217,6 +217,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` mouse wheel up (fn+down) `` | Scroll omhoog |  |
 | `` <tab> `` | Ga naar een ander paneel | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` <enter> `` | Enter staging/patch building |  |
 | `` / `` | Start met zoeken |  |
 
 ## Patch bouwen
@@ -288,6 +289,7 @@ If you would instead like to start an interactive rebase from the selected commi
 |-----|--------|-------------|
 | `` <tab> `` | Ga naar een ander paneel | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` <enter> `` | Enter staging/patch building |  |
 | `` / `` | Start met zoeken |  |
 
 ## Staging

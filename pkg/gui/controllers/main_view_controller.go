@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -41,6 +42,21 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Handler:     self.escape,
 			Description: self.c.Tr.ExitFocusedMainView,
 		},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.GoInto),
+			Handler:     self.enter,
+			Description: self.c.Tr.EnterStaging,
+		},
+	}
+}
+
+func (self *MainViewController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName: self.context.GetViewName(),
+			Key:      gocui.MouseLeft,
+			Handler:  self.onClick,
+		},
 	}
 }
 
@@ -58,6 +74,7 @@ func (self *MainViewController) GetOnFocus() func(types.OnFocusOpts) {
 
 func (self *MainViewController) togglePanel() error {
 	if self.otherContext.GetView().Visible {
+		self.otherContext.SetParentContext(self.context.GetParentContext())
 		self.c.Context().Push(self.otherContext)
 	}
 
@@ -66,5 +83,25 @@ func (self *MainViewController) togglePanel() error {
 
 func (self *MainViewController) escape() error {
 	self.c.Context().Pop()
+	return nil
+}
+
+func (self *MainViewController) enter() error {
+	parentCtx := self.context.GetParentContext()
+	if parentCtx.GetOnClickFocusedMainView() != nil {
+		return parentCtx.GetOnClickFocusedMainView()(self.context.GetViewName(), self.context.GetView().SelectedLineIdx())
+	}
+	return nil
+}
+
+func (self *MainViewController) onClick(opts gocui.ViewMouseBindingOpts) error {
+	if opts.Y != opts.PreviousY {
+		return nil
+	}
+
+	parentCtx := self.context.GetParentContext()
+	if parentCtx.GetOnClickFocusedMainView() != nil {
+		return parentCtx.GetOnClickFocusedMainView()(self.context.GetViewName(), opts.Y)
+	}
 	return nil
 }
