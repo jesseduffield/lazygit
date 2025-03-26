@@ -103,6 +103,12 @@ func (self *ViewBufferManager) ReadLines(n int) {
 	})
 }
 
+func (self *ViewBufferManager) ReadToEnd() {
+	go utils.Safe(func() {
+		self.readLines <- LinesToRead{Total: -1, InitialRefreshAfter: -1}
+	})
+}
+
 func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), prefix string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
 	return func(opts TaskOpts) error {
 		var onDoneOnce sync.Once
@@ -233,7 +239,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				case <-opts.Stop:
 					break outer
 				case linesToRead := <-self.readLines:
-					for i := 0; i < linesToRead.Total; i++ {
+					for i := 0; linesToRead.Total == -1 || i < linesToRead.Total; i++ {
 						var ok bool
 						var line []byte
 						select {

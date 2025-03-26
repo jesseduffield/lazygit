@@ -254,6 +254,7 @@ type TranslationSet struct {
 	IgnoreFile                            string
 	ExcludeFile                           string
 	RefreshFiles                          string
+	FocusMainView                         string
 	Merge                                 string
 	RegularMerge                          string
 	MergeBranchTooltip                    string
@@ -485,7 +486,9 @@ type TranslationSet struct {
 	EmptyPatchError                       string
 	EnterCommitFile                       string
 	EnterCommitFileTooltip                string
+	EnterStaging                          string
 	ExitCustomPatchBuilder                string
+	ExitFocusedMainView                   string
 	EnterUpstream                         string
 	InvalidUpstream                       string
 	ReturnToRemotesList                   string
@@ -1293,6 +1296,7 @@ func EnglishTranslationSet() *TranslationSet {
 		IgnoreFile:                           `Add to .gitignore`,
 		ExcludeFile:                          `Add to .git/info/exclude`,
 		RefreshFiles:                         `Refresh files`,
+		FocusMainView:                        "Focus main view",
 		Merge:                                `Merge`,
 		RegularMerge:                         "Regular merge",
 		MergeBranchTooltip:                   "View options for merging the selected item into the current branch (regular merge, squash merge)",
@@ -1533,7 +1537,9 @@ func EnglishTranslationSet() *TranslationSet {
 		EmptyPatchError:                      "Patch is still empty. Add some files or lines to your patch first.",
 		EnterCommitFile:                      "Enter file / Toggle directory collapsed",
 		EnterCommitFileTooltip:               "If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory.",
+		EnterStaging:                         "Enter staging/patch building",
 		ExitCustomPatchBuilder:               `Exit custom patch builder`,
+		ExitFocusedMainView:                  "Exit back to side panel",
 		EnterUpstream:                        `Enter upstream as '<remote> <branchname>'`,
 		InvalidUpstream:                      "Invalid upstream. Must be in the format '<remote> <branchname>'",
 		ReturnToRemotesList:                  `Return to remotes list`,

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -136,5 +137,11 @@ func (gui *Gui) postRefreshUpdate(c types.Context) {
 
 	if gui.currentViewName() == c.GetViewName() {
 		c.HandleFocus(types.OnFocusOpts{})
+	} else {
+		currentCtx := gui.State.ContextMgr.Current()
+		if currentCtx.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY || currentCtx.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {
+			parentCtx := currentCtx.GetParentContext()
+			parentCtx.HandleRenderToMain()
+		}
 	}
 }

@@ -39,7 +39,7 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 		// separately)
 		// In both views we're going to have 10 lines starting from 'line 1' going down to
 		// 'line 10'.
-		fileContent := ""
+		fileContent := "staged\n"
 		total := 10
 		for i := 1; i <= total; i++ {
 			remaining := total - i + 1
@@ -47,10 +47,11 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			shell.EmptyCommit(fmt.Sprintf("line %d", remaining))
 			fileContent = fmt.Sprintf("%sline %d\n", fileContent, i)
 		}
-		shell.CreateFile("file1", fileContent)
+		shell.CreateFileAndAdd("file1", "staged\n")
+		shell.UpdateFile("file1", fileContent)
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		assertRangeSelectBehaviour := func(v *ViewDriver, otherView *ViewDriver, lineIdxOfFirstItem int) {
+		assertRangeSelectBehaviour := func(v *ViewDriver, focusOtherView func(), lineIdxOfFirstItem int) {
 			v.
 				SelectedLines(
 					Contains("line 1"),
@@ -154,7 +155,7 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				)
 
 			// Click in view, press shift+arrow -> nonsticky range
-			otherView.Focus()
+			focusOtherView()
 			v.Click(1, lineIdxOfFirstItem).
 				SelectedLines(
 					Contains("line 1"),
@@ -166,7 +167,7 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				)
 		}
 
-		assertRangeSelectBehaviour(t.Views().Commits().Focus(), t.Views().Branches(), 0)
+		assertRangeSelectBehaviour(t.Views().Commits().Focus(), func() { t.Views().Branches().Focus() }, 0)
 
 		t.Views().Files().
 			Focus().
@@ -175,6 +176,6 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressEnter()
 
-		assertRangeSelectBehaviour(t.Views().Staging().IsFocused(), t.Views().Files(), 6)
+		assertRangeSelectBehaviour(t.Views().Staging().IsFocused(), func() { t.Views().Staging().PressTab() }, 6)
 	},
 })
