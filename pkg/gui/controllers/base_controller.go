@@ -19,6 +19,10 @@ func (self *baseController) GetOnClick() func() error {
 	return nil
 }
 
+func (self *baseController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
+	return nil
+}
+
 func (self *baseController) GetOnRenderToMain() func() {
 	return nil
 }
