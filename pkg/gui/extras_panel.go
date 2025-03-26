@@ -58,6 +58,38 @@ func (gui *Gui) scrollDownExtra() error {
 	return nil
 }
 
+func (gui *Gui) pageUpExtrasPanel() error {
+	gui.Views.Extras.Autoscroll = false
+
+	gui.Views.Extras.ScrollUp(gui.Contexts().CommandLog.GetViewTrait().PageDelta())
+
+	return nil
+}
+
+func (gui *Gui) pageDownExtrasPanel() error {
+	gui.Views.Extras.Autoscroll = false
+
+	gui.Views.Extras.ScrollDown(gui.Contexts().CommandLog.GetViewTrait().PageDelta())
+
+	return nil
+}
+
+func (gui *Gui) goToExtrasPanelTop() error {
+	gui.Views.Extras.Autoscroll = false
+
+	gui.Views.Extras.ScrollUp(gui.Views.Extras.ViewLinesHeight())
+
+	return nil
+}
+
+func (gui *Gui) goToExtrasPanelBottom() error {
+	gui.Views.Extras.Autoscroll = true
+
+	gui.Views.Extras.ScrollDown(gui.Views.Extras.ViewLinesHeight())
+
+	return nil
+}
+
 func (gui *Gui) getCmdWriter() io.Writer {
 	return &prefixWriter{writer: gui.Views.Extras, prefix: style.FgMagenta.Sprintf("\n\n%s\n", gui.c.Tr.GitOutput)}
 }
