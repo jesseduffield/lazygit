@@ -268,6 +268,38 @@ func (self *FilesController) GetOnRenderToMain() func() {
 					self.c.Helpers().MergeConflicts.Render()
 					return
 				}
+			} else if node.File != nil && node.File.HasMergeConflicts {
+				opts := types.RefreshMainOpts{
+					Pair: self.c.MainViewPairs().Normal,
+					Main: &types.ViewUpdateOpts{
+						Title:    self.c.Tr.DiffTitle,
+						SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+					},
+				}
+				message := node.File.GetMergeStateDescription(self.c.Tr)
+				message += "\n\n" + fmt.Sprintf(self.c.Tr.MergeConflictPressEnterToResolve,
+					self.c.UserConfig().Keybinding.Universal.GoInto)
+				if self.c.Views().Main.InnerWidth() > 70 {
+					// If the main view is very wide, wrap the message to increase readability
+					lines, _, _ := utils.WrapViewLinesToWidth(true, false, message, 70, 4)
+					message = strings.Join(lines, "\n")
+				}
+				if node.File.ShortStatus == "DU" || node.File.ShortStatus == "UD" {
+					cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()})
+					task := types.NewRunPtyTask(cmdObj.GetCmd())
+					task.Prefix = message + "\n\n"
+					if node.File.ShortStatus == "DU" {
+						task.Prefix += self.c.Tr.MergeConflictIncomingDiff
+					} else {
+						task.Prefix += self.c.Tr.MergeConflictCurrentDiff
+					}
+					task.Prefix += "\n\n"
+					opts.Main.Task = task
+				} else {
+					opts.Main.Task = types.NewRenderStringTask(message)
+				}
+				self.c.RenderToMainViews(opts)
+				return
 			}
 
 			self.c.Helpers().MergeConflicts.ResetMergeState()

@@ -99,6 +99,14 @@ type TranslationSet struct {
 	FilterLabelUntrackedFiles             string
 	FilterLabelConflictingFiles           string
 	MergeConflictsTitle                   string
+	MergeConflictDescription_DD           string
+	MergeConflictDescription_AU           string
+	MergeConflictDescription_UA           string
+	MergeConflictDescription_DU           string
+	MergeConflictDescription_UD           string
+	MergeConflictIncomingDiff             string
+	MergeConflictCurrentDiff              string
+	MergeConflictPressEnterToResolve      string
 	Checkout                              string
 	CheckoutTooltip                       string
 	CantCheckoutBranchWhilePulling        string
@@ -1112,6 +1120,14 @@ func EnglishTranslationSet() *TranslationSet {
 		PullTooltip:                          "Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch.",
 		Scroll:                               "Scroll",
 		MergeConflictsTitle:                  "Merge conflicts",
+		MergeConflictDescription_DD:          "Conflict: this file was moved or renamed both in the current and the incoming changes, but to different destinations. I don't know which ones, but they should both show up as conflicts too (marked 'AU' and 'UA', respectively). The most likely resolution is to delete this file, and pick one of the destinations and delete the other.",
+		MergeConflictDescription_AU:          "Conflict: this file is the destination of a move or rename in the current changes, but was moved or renamed to a different destination in the incoming changes. That other destination should also show up as a conflict (marked 'UA'), as well as the file that both were renamed from (marked 'DD').",
+		MergeConflictDescription_UA:          "Conflict: this file is the destination of a move or rename in the incoming changes, but was moved or renamed to a different destination in the current changes. That other destination should also show up as a conflict (marked 'AU'), as well as the file that both were renamed from (marked 'DD').",
+		MergeConflictDescription_DU:          "Conflict: this file was deleted in the current changes and modified in the incoming changes.\n\nThe most likely resolution is to delete the file after applying the incoming modifications manually to some other place in the code.",
+		MergeConflictDescription_UD:          "Conflict: this file was modified in the current changes and deleted in incoming changes.\n\nThe most likely resolution is to delete the file after applying the current modifications manually to some other place in the code.",
+		MergeConflictIncomingDiff:            "Incoming changes:",
+		MergeConflictCurrentDiff:             "Current changes:",
+		MergeConflictPressEnterToResolve:     "Press %s to resolve.",
 		Checkout:                             "Checkout",
 		CheckoutTooltip:                      "Checkout selected item.",
 		CantCheckoutBranchWhilePulling:       "You cannot checkout another branch while pulling the current branch",
