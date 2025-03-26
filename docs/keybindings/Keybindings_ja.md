@@ -51,6 +51,13 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` ] `` | 次のタブ |  |
 | `` [ `` | 前のタブ |  |
 
+## Secondary
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <tab> `` | パネルを切り替え | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
+
 ## Stash
 
 | Key | Action | Info |
@@ -60,6 +67,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` d `` | Drop | Remove the stash entry from the stash list. |
 | `` n `` | 新しいブランチを作成 | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
 | `` r `` | Stashを変更 |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -78,6 +86,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | 検索を開始 |  |
@@ -127,6 +136,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` C `` | コミットをコピー (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | 検索を開始 |  |
@@ -148,6 +158,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` ` `` | ファイルツリーの表示を切り替え | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | 検索を開始 |  |
 
 ## コミットメッセージ
@@ -192,6 +203,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` P `` | タグをpush | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -226,6 +238,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` f `` | Fetch | Fetch changes from remote. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | 検索を開始 |  |
 
 ## ブランチ
@@ -251,6 +264,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` R `` | ブランチ名を変更 |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -277,6 +291,8 @@ If you would instead like to start an interactive rebase from the selected commi
 |-----|--------|-------------|
 | `` mouse wheel down (fn+up) `` | 下にスクロール |  |
 | `` mouse wheel up (fn+down) `` | 上にスクロール |  |
+| `` <tab> `` | パネルを切り替え | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
 
 ## メインパネル (Patch Building)
 
@@ -348,6 +364,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` s `` | 並び替え |  |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -366,6 +383,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |

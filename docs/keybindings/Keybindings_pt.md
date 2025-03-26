@@ -83,6 +83,7 @@ Veja a documentação:
 | `` f `` | Buscar | Buscar alterações do controle remoto. |
 | `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
 | `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
+| `` 0 `` | Focus main view |  |
 | `` / `` | Search the current view by text |  |
 
 ## Branches locais
@@ -108,6 +109,7 @@ Veja a documentação:
 | `` R `` | Rename branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -126,6 +128,7 @@ Veja a documentação:
 | `` s `` | Sort order |  |
 | `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -147,6 +150,7 @@ Veja a documentação:
 | `` ` `` | Alternar exibição de árvore de arquivo | Alternar a visualização de arquivo entre layout plano e layout de árvore. Layout plano mostra todos os caminhos de arquivo em uma única lista, layout de árvore agrupa arquivos por diretório. |
 | `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
 | `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
+| `` 0 `` | Focus main view |  |
 | `` / `` | Search the current view by text |  |
 
 ## Commits
@@ -184,6 +188,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` C `` | Copiar (cherry-pick) | Marcar commit como copiado. Então, dentro da visualização local de commits, você pode pressionar `V` para colar (cherry-pick) o(s) commit(s) copiado(s) em seu branch de check-out. A qualquer momento você pode pressionar `<esc>` para cancelar a seleção. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Ver arquivos |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Search the current view by text |  |
@@ -206,6 +211,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` P `` | Push tag | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -224,6 +230,8 @@ If you would instead like to start an interactive rebase from the selected commi
 |-----|--------|-------------|
 | `` mouse wheel down (fn+up) `` | Rolar para baixo |  |
 | `` mouse wheel up (fn+down) `` | Rolar para cima |  |
+| `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
+| `` <esc> `` | Exit back to side panel |  |
 
 ## Painel Principal (preparação)
 
@@ -294,6 +302,7 @@ Veja a documentação:
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -309,6 +318,13 @@ Veja a documentação:
 | `` f `` | Buscar | Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches. |
 | `` / `` | Filter the current view by text |  |
 
+## Secundário
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
+| `` <esc> `` | Exit back to side panel |  |
+
 ## Stash
 
 | Key | Action | Info |
@@ -318,6 +334,7 @@ Veja a documentação:
 | `` d `` | Descartar | Remova a entrada do stash da lista de armazenamento. |
 | `` n `` | Nova branch | Criar um novo ramo a partir da entrada de lixo selecionada. Isso funciona verificando o commit do qual a entrada de lixo foi criada, criar um novo branch a partir desse commit e, em seguida, aplicar a entrada de lixo ao novo branch como um commit adicional. |
 | `` r `` | Renomear o stasj |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Ver arquivos |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -346,6 +363,7 @@ Veja a documentação:
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Ver arquivos |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Search the current view by text |  |

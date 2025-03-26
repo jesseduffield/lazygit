@@ -501,6 +501,7 @@ keybinding:
       - "3"
       - "4"
       - "5"
+    focusMainView: "0"
     nextMatch: "n"
     prevMatch: "N"
     startSearch: /

@@ -65,9 +65,17 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-r> `` | Reset cherry-picked (copied) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
+
+## Secondary
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
 
 ## Stash
 
@@ -78,6 +86,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` d `` | Drop | Remove the stash entry from the stash list. |
 | `` n `` | 새 브랜치 생성 | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
 | `` r `` | Rename stash |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View selected item's files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -96,6 +105,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-r> `` | Reset cherry-picked (copied) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View selected item's files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | 검색 시작 |  |
@@ -140,6 +150,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` mouse wheel down (fn+up) `` | 아래로 스크롤 |  |
 | `` mouse wheel up (fn+down) `` | 위로 스크롤 |  |
+| `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
 
 ## 메인 패널 (Patch Building)
 
@@ -201,6 +213,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` R `` | 브랜치 이름 변경 |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -254,6 +267,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` s `` | Sort order |  |
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -293,6 +307,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View selected item's files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | 검색 시작 |  |
@@ -314,6 +329,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` ` `` | 파일 트리뷰로 전환 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | 검색 시작 |  |
 
 ## 커밋메시지
@@ -334,6 +350,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` P `` | 태그를 push | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | 초기화 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -368,6 +385,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` f `` | Fetch | Fetch changes from remote. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | 검색 시작 |  |
 
 ## 확인 패널
