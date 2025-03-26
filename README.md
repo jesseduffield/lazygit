@@ -148,7 +148,7 @@ Press `b` in the commits view to mark a commit as good/bad in order to begin a g
 
 ### Nuke the working tree
 
-For when you really want to just get rid of anything that shows up when you run `git status` (and yes that includes dirty submodules) [kidpix style](https://www.youtube.com/watch?v=Ur7_A4JusMU), press `shift+d` to bring up the reset options menu and then select the 'nuke' option.
+For when you really want to just get rid of anything that shows up when you run `git status` (and yes that includes dirty submodules) [kidpix style](https://www.youtube.com/watch?v=N4E2B_k2Bss), press `shift+d` to bring up the reset options menu and then select the 'nuke' option.
 
 ![Nuke working tree](../assets/demo/nuke_working_tree-compressed.gif)
 
