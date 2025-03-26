@@ -94,6 +94,9 @@ type IBaseContext interface {
 	// our list controller can come along and wrap it in a list-specific click handler.
 	// We'll need to think of a better way to do this.
 	AddOnClickFn(func() error)
+	// Likewise for the focused main view: we need this to communicate between a
+	// side panel controller and the focused main view controller.
+	AddOnClickFocusedMainViewFn(func(mainViewName string, clickedLineIdx int) error)
 
 	AddOnRenderToMainFn(func())
 	AddOnFocusFn(func(OnFocusOpts))
@@ -240,6 +243,7 @@ type HasKeybindings interface {
 	GetKeybindings(opts KeybindingsOpts) []*Binding
 	GetMouseKeybindings(opts KeybindingsOpts) []*gocui.ViewMouseBinding
 	GetOnClick() func() error
+	GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error
 	GetOnRenderToMain() func()
 	GetOnFocus() func(OnFocusOpts)
 	GetOnFocusLost() func(OnFocusLostOpts)

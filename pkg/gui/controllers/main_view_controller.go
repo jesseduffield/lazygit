@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -52,6 +53,16 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 	}
 }
 
+func (self *MainViewController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName: self.context.GetViewName(),
+			Key:      gocui.MouseLeft,
+			Handler:  self.onClick,
+		},
+	}
+}
+
 func (self *MainViewController) Context() types.Context {
 	return self.context
 }
@@ -67,6 +78,14 @@ func (self *MainViewController) togglePanel() error {
 
 func (self *MainViewController) escape() error {
 	self.c.Context().Pop()
+	return nil
+}
+
+func (self *MainViewController) onClick(opts gocui.ViewMouseBindingOpts) error {
+	parentCtx := self.context.GetParentContext()
+	if parentCtx.GetOnClickFocusedMainView() != nil {
+		return parentCtx.GetOnClickFocusedMainView()(self.context.GetViewName(), opts.Y)
+	}
 	return nil
 }
 

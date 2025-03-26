@@ -323,6 +323,16 @@ func (self *FilesController) GetOnClick() func() error {
 	})
 }
 
+func (self *FilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
+	return func(mainViewName string, clickedLineIdx int) error {
+		node := self.getSelectedItem()
+		if node != nil && node.File != nil {
+			return self.EnterFile(types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: clickedLineIdx})
+		}
+		return nil
+	}
+}
+
 // if we are dealing with a status for which there is no key in this map,
 // then we won't optimistically render: we'll just let `git status` tell
 // us what the new status is.
@@ -545,7 +555,8 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 		return self.handleNonInlineConflict(file)
 	}
 
-	self.c.Context().Push(self.c.Contexts().Staging, opts)
+	context := lo.Ternary(opts.ClickedWindowName == "secondary", self.c.Contexts().StagingSecondary, self.c.Contexts().Staging)
+	self.c.Context().Push(context, opts)
 	return nil
 }
 
