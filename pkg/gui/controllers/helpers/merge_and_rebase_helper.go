@@ -20,15 +20,18 @@ import (
 type MergeAndRebaseHelper struct {
 	c          *HelperCommon
 	refsHelper *RefsHelper
+	gpgHelper  *GpgHelper
 }
 
 func NewMergeAndRebaseHelper(
 	c *HelperCommon,
 	refsHelper *RefsHelper,
+	gpgHelper *GpgHelper,
 ) *MergeAndRebaseHelper {
 	return &MergeAndRebaseHelper{
 		c:          c,
 		refsHelper: refsHelper,
+		gpgHelper:  gpgHelper,
 	}
 }
 
@@ -127,7 +130,21 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 			self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command),
 		)
 	}
-	result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
+
+	var result error
+	runCmd := self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command)
+	if self.c.Git().Config.UsingGpg() && command != REBASE_OPTION_ABORT {
+		result = self.gpgHelper.WithGpgHandling(runCmd, self.c.Tr.CommittingStatus, nil)
+	} else {
+		result = self.c.Git().Rebase.AddSkipEditorCommand(runCmd).Run()
+	}
+
+	result = self.c.Git().Rebase.ProcessMergeRebaseResult(result)
+	if result != nil {
+		return result
+	}
+
+	result = self.c.Git().Rebase.InvokeGenericMergeOrRebaseActionCallback(commandType, command)
 	if err := self.CheckMergeOrRebase(result); err != nil {
 		return err
 	}
