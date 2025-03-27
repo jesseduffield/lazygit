@@ -341,6 +341,13 @@ func (self *WorkingTreeCommands) RemoveTrackedFiles(name string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+func (self *WorkingTreeCommands) RemoveConflictedFile(name string) error {
+	cmdArgs := NewGitCmd("rm").Arg("--", name).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
 // RemoveUntrackedFiles runs `git clean -fd`
 func (self *WorkingTreeCommands) RemoveUntrackedFiles() error {
 	cmdArgs := NewGitCmd("clean").Arg("-fd").ToArgv()

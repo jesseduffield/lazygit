@@ -107,6 +107,8 @@ type TranslationSet struct {
 	MergeConflictIncomingDiff             string
 	MergeConflictCurrentDiff              string
 	MergeConflictPressEnterToResolve      string
+	MergeConflictKeepFile                 string
+	MergeConflictDeleteFile               string
 	Checkout                              string
 	CheckoutTooltip                       string
 	CantCheckoutBranchWhilePulling        string
@@ -951,6 +953,8 @@ type Actions struct {
 	UnstageFile                       string
 	UnstageAllFiles                   string
 	StageAllFiles                     string
+	ResolveConflictByKeepingFile      string
+	ResolveConflictByDeletingFile     string
 	NotEnoughContextToStage           string
 	NotEnoughContextToDiscard         string
 	IgnoreExcludeFile                 string
@@ -1128,6 +1132,8 @@ func EnglishTranslationSet() *TranslationSet {
 		MergeConflictIncomingDiff:            "Incoming changes:",
 		MergeConflictCurrentDiff:             "Current changes:",
 		MergeConflictPressEnterToResolve:     "Press %s to resolve.",
+		MergeConflictKeepFile:                "Keep file",
+		MergeConflictDeleteFile:              "Delete file",
 		Checkout:                             "Checkout",
 		CheckoutTooltip:                      "Checkout selected item.",
 		CantCheckoutBranchWhilePulling:       "You cannot checkout another branch while pulling the current branch",
@@ -1968,6 +1974,8 @@ func EnglishTranslationSet() *TranslationSet {
 			UnstageFile:                     "Unstage file",
 			UnstageAllFiles:                 "Unstage all files",
 			StageAllFiles:                   "Stage all files",
+			ResolveConflictByKeepingFile:    "Resolve by keeping file",
+			ResolveConflictByDeletingFile:   "Resolve by deleting file",
 			NotEnoughContextToStage:         "Staging or unstaging changes is not possible with a diff context size of 0. Increase the context using '%s'.",
 			NotEnoughContextToDiscard:       "Discarding changes is not possible with a diff context size of 0. Increase the context using '%s'.",
 			IgnoreExcludeFile:               "Ignore or exclude file",
