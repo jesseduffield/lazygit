@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
@@ -99,6 +100,22 @@ func (f *File) GetPreviousPath() string {
 
 func (f *File) GetIsFile() bool {
 	return true
+}
+
+func (f *File) GetMergeStateDescription(tr *i18n.TranslationSet) string {
+	m := map[string]string{
+		"DD": tr.MergeConflictDescription_DD,
+		"AU": tr.MergeConflictDescription_AU,
+		"UA": tr.MergeConflictDescription_UA,
+		"DU": tr.MergeConflictDescription_DU,
+		"UD": tr.MergeConflictDescription_UD,
+	}
+
+	if description, ok := m[f.ShortStatus]; ok {
+		return description
+	}
+
+	panic("should only be called if there's a merge conflict")
 }
 
 type StatusFields struct {
