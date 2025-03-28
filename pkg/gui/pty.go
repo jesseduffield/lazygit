@@ -90,11 +90,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	}
 
 	linesToRead := gui.linesToReadFromCmdTask(view)
-	if err := manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr); err != nil {
-		return err
-	}
-
-	return nil
+	return manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr)
 }
 
 func removeExistingTermEnvVars(env []string) []string {
