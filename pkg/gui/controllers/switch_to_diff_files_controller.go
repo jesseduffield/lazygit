@@ -81,6 +81,7 @@ func (self *SwitchToDiffFilesController) GetOnClickFocusedMainView() func(mainVi
 		context.GetViewTrait().FocusPoint(
 			context.ModelIndexToViewIndex(idx))
 		node = context.GetSelected()
+		self.c.Contexts().CustomPatchBuilder.SetParentContext(self.context)
 		return self.c.Helpers().CommitFiles.EnterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line})
 	}
 }
