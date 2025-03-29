@@ -29,7 +29,11 @@ func (self *PatchBuildingHelper) ValidateNormalWorkingTreeState() (bool, error) 
 
 // takes us from the patch building panel back to the commit files panel
 func (self *PatchBuildingHelper) Escape() {
-	self.c.Context().Pop()
+	if parentCtx := self.c.Contexts().CustomPatchBuilder.GetParentContext(); parentCtx != nil {
+		self.c.Context().Push(parentCtx, types.OnFocusOpts{})
+	} else {
+		self.c.Context().Pop()
+	}
 }
 
 // kills the custom patch and returns us back to the commit files panel if needed
