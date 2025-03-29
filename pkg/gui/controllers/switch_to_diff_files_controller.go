@@ -83,7 +83,10 @@ func (self *SwitchToDiffFilesController) GetOnClickFocusedMainView() func(mainVi
 		context.GetViewTrait().FocusPoint(
 			context.ModelIndexToViewIndex(idx), false)
 		node = context.GetSelected()
-		return self.c.Helpers().CommitFiles.EnterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line})
+		// We entered patch building straight from the focused main view, so
+		// escaping it should take us all the way back out to this side panel,
+		// skipping the commit files panel we never really visited.
+		return self.c.Helpers().CommitFiles.EnterCommitFile(node, self.context, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line})
 	}
 }
 
