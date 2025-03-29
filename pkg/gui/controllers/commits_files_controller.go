@@ -516,7 +516,7 @@ func (self *CommitFilesController) toggleAllForPatch(_ *filetree.CommitFileNode)
 }
 
 func (self *CommitFilesController) enter(node *filetree.CommitFileNode) error {
-	return self.c.Helpers().CommitFiles.EnterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1, ClickedViewRealLineIdx: -1})
+	return self.c.Helpers().CommitFiles.EnterCommitFile(node, nil, types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1, ClickedViewRealLineIdx: -1})
 }
 
 // NOTE: this is very similar to handleToggleFileTreeView, could be DRY'd with generics
@@ -573,7 +573,9 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 			}
 		}
 
-		return self.c.Helpers().CommitFiles.EnterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line})
+		// Entered from the commit files panel's own focused main view, so escape
+		// should just pop back to it; no special escape context needed.
+		return self.c.Helpers().CommitFiles.EnterCommitFile(node, nil, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line})
 	}
 }
 
