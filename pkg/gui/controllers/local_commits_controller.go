@@ -872,19 +872,15 @@ func (self *LocalCommitsController) revert(commit *models.Commit) error {
 				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(result); err != nil {
 					return err
 				}
-				return self.afterRevertCommit()
+				self.context().MoveSelection(1)
+				return self.c.Refresh(types.RefreshOptions{
+					Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS, types.BRANCHES},
+				})
 			})
 		},
 	})
 
 	return nil
-}
-
-func (self *LocalCommitsController) afterRevertCommit() error {
-	self.context().MoveSelection(1)
-	return self.c.Refresh(types.RefreshOptions{
-		Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS, types.BRANCHES},
-	})
 }
 
 func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) error {
