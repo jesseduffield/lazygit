@@ -138,6 +138,8 @@ var conflictStrings = []string{
 	"fix conflicts",
 	"Resolve all conflicts manually",
 	"Merge conflict in file",
+	"hint: after resolving the conflicts",
+	"CONFLICT (content):",
 }
 
 func isMergeConflictErr(errStr string) bool {

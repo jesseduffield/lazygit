@@ -868,7 +868,8 @@ func (self *LocalCommitsController) revert(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RevertCommit)
 			return self.c.WithWaitingStatusSync(self.c.Tr.RevertingStatus, func() error {
-				if err := self.c.Git().Commit.Revert(commit.Hash); err != nil {
+				result := self.c.Git().Commit.Revert(commit.Hash)
+				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(result); err != nil {
 					return err
 				}
 				return self.afterRevertCommit()
