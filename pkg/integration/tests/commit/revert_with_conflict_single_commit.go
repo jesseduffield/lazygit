@@ -33,11 +33,9 @@ var RevertWithConflictSingleCommit = NewIntegrationTest(NewIntegrationTestArgs{
 					Title(Equals("Revert commit")).
 					Content(MatchesRegexp(`Are you sure you want to revert \w+?`)).
 					Confirm()
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					// The exact error message is different on different git versions,
-					// but they all contain the word 'conflict' somewhere.
-					Content(Contains("conflict")).
+				t.ExpectPopup().Menu().
+					Title(Equals("Conflicts!")).
+					Select(Contains("View conflicts")).
 					Confirm()
 			}).
 			Lines(
@@ -56,7 +54,7 @@ var RevertWithConflictSingleCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Options().Content(Contains("View revert options: m"))
 		t.Views().Information().Content(Contains("Reverting (Reset)"))
 
-		t.Views().Files().Focus().
+		t.Views().Files().IsFocused().
 			Lines(
 				Contains("UU myfile").IsSelected(),
 			).
