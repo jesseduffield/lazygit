@@ -716,7 +716,6 @@ type TranslationSet struct {
 	FocusCommandLog                          string
 	CommandLogHeader                         string
 	RandomTip                                string
-	SelectParentCommitForMerge               string
 	ToggleWhitespaceInDiffView               string
 	ToggleWhitespaceInDiffViewTooltip        string
 	IgnoreWhitespaceDiffViewSubTitle         string
@@ -1770,7 +1769,6 @@ func EnglishTranslationSet() *TranslationSet {
 		FocusCommandLog:                          "Focus command log",
 		CommandLogHeader:                         "You can hide/focus this panel by pressing '%s'\n",
 		RandomTip:                                "Random tip",
-		SelectParentCommitForMerge:               "Select parent commit for merge",
 		ToggleWhitespaceInDiffView:               "Toggle whitespace",
 		ToggleWhitespaceInDiffViewTooltip:        "Toggle whether or not whitespace changes are shown in the diff view.",
 		IgnoreWhitespaceDiffViewSubTitle:         "(ignoring whitespace)",

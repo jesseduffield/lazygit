@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/go-errors/errors"
@@ -859,10 +858,6 @@ func (self *LocalCommitsController) addCoAuthor(start, end int) error {
 }
 
 func (self *LocalCommitsController) revert(commit *models.Commit) error {
-	if commit.IsMerge() {
-		return self.createRevertMergeCommitMenu(commit)
-	}
-
 	self.c.Confirm(types.ConfirmOpts{
 		Title: self.c.Tr.Actions.RevertCommit,
 		Prompt: utils.ResolvePlaceholderString(
@@ -873,7 +868,7 @@ func (self *LocalCommitsController) revert(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RevertCommit)
 			return self.c.WithWaitingStatusSync(self.c.Tr.RevertingStatus, func() error {
-				result := self.c.Git().Commit.Revert(commit.Hash)
+				result := self.c.Git().Commit.Revert(commit.Hash, commit.IsMerge())
 				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(result); err != nil {
 					return err
 				}
@@ -883,32 +878,6 @@ func (self *LocalCommitsController) revert(commit *models.Commit) error {
 	})
 
 	return nil
-}
-
-func (self *LocalCommitsController) createRevertMergeCommitMenu(commit *models.Commit) error {
-	menuItems := make([]*types.MenuItem, len(commit.Parents))
-	for i, parentHash := range commit.Parents {
-		message, err := self.c.Git().Commit.GetCommitMessageFirstLine(parentHash)
-		if err != nil {
-			return err
-		}
-
-		menuItems[i] = &types.MenuItem{
-			Label: fmt.Sprintf("%s: %s", utils.SafeTruncate(parentHash, 8), message),
-			OnPress: func() error {
-				parentNumber := i + 1
-				self.c.LogAction(self.c.Tr.Actions.RevertCommit)
-				return self.c.WithWaitingStatusSync(self.c.Tr.RevertingStatus, func() error {
-					if err := self.c.Git().Commit.RevertMerge(commit.Hash, parentNumber); err != nil {
-						return err
-					}
-					return self.afterRevertCommit()
-				})
-			},
-		}
-	}
-
-	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.SelectParentCommitForMerge, Items: menuItems})
 }
 
 func (self *LocalCommitsController) afterRevertCommit() error {

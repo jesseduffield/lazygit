@@ -285,15 +285,14 @@ func (self *CommitCommands) ShowFileContentCmdObj(hash string, filePath string) 
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
-// Revert reverts the selected commit by hash
-func (self *CommitCommands) Revert(hash string) error {
-	cmdArgs := NewGitCmd("revert").Arg(hash).ToArgv()
-
-	return self.cmd.New(cmdArgs).Run()
-}
-
-func (self *CommitCommands) RevertMerge(hash string, parentNumber int) error {
-	cmdArgs := NewGitCmd("revert").Arg(hash, "-m", fmt.Sprintf("%d", parentNumber)).
+// Revert reverts the selected commit by hash. If isMerge is true, we'll pass -m 1
+// to say we want to revert the first parent of the merge commit, which is the one
+// people want in 99.9% of cases. In current git versions we could unconditionally
+// pass -m 1 even for non-merge commits, but older versions of git choke on it.
+func (self *CommitCommands) Revert(hash string, isMerge bool) error {
+	cmdArgs := NewGitCmd("revert").
+		Arg(hash).
+		ArgIf(isMerge, "-m", "1").
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
