@@ -771,6 +771,7 @@ type TranslationSet struct {
 	OpenCommitInBrowser                      string
 	ViewBisectOptions                        string
 	ConfirmRevertCommit                      string
+	ConfirmRevertCommitRange                 string
 	RewordInEditorTitle                      string
 	RewordInEditorPrompt                     string
 	CheckoutAutostashPrompt                  string
@@ -1837,6 +1838,7 @@ func EnglishTranslationSet() *TranslationSet {
 		OpenCommitInBrowser:                      "Open commit in browser",
 		ViewBisectOptions:                        "View bisect options",
 		ConfirmRevertCommit:                      "Are you sure you want to revert {{.selectedCommit}}?",
+		ConfirmRevertCommitRange:                 "Are you sure you want to revert the selected commits?",
 		RewordInEditorTitle:                      "Reword in editor",
 		RewordInEditorPrompt:                     "Are you sure you want to reword this commit in your editor?",
 		HardResetAutostashPrompt:                 "Are you sure you want to hard reset to '%s'? An auto-stash will be performed if necessary.",

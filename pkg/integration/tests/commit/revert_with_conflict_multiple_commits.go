@@ -9,16 +9,7 @@ var RevertWithConflictMultipleCommits = NewIntegrationTest(NewIntegrationTestArg
 	Description:  "Reverts a range of commits, the first of which conflicts",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig: func(cfg *config.AppConfig) {
-		// TODO: use our revert UI once we support range-select for reverts
-		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
-			{
-				Key:     "X",
-				Context: "commits",
-				Command: "git -c core.editor=: revert HEAD^ HEAD^^",
-			},
-		}
-	},
+	SetupConfig:  func(cfg *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("myfile", "")
 		shell.Commit("add empty file")
@@ -38,13 +29,18 @@ var RevertWithConflictMultipleCommits = NewIntegrationTest(NewIntegrationTestArg
 				Contains("CI ◯ unrelated change"),
 				Contains("CI ◯ add empty file"),
 			).
-			Press("X").
+			SelectNextItem().
+			Press(keys.Universal.RangeSelectDown).
+			Press(keys.Commits.RevertCommit).
 			Tap(func() {
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					// The exact error message is different on different git versions,
-					// but they all contain the word 'conflict' somewhere.
-					Content(Contains("conflict")).
+				t.ExpectPopup().Confirmation().
+					Title(Equals("Revert commit")).
+					Content(Equals("Are you sure you want to revert the selected commits?")).
+					Confirm()
+
+				t.ExpectPopup().Menu().
+					Title(Equals("Conflicts!")).
+					Select(Contains("View conflicts")).
 					Confirm()
 			}).
 			Lines(
@@ -59,7 +55,7 @@ var RevertWithConflictMultipleCommits = NewIntegrationTest(NewIntegrationTestArg
 		t.Views().Options().Content(Contains("View revert options: m"))
 		t.Views().Information().Content(Contains("Reverting (Reset)"))
 
-		t.Views().Files().Focus().
+		t.Views().Files().IsFocused().
 			Lines(
 				Contains("UU myfile").IsSelected(),
 			).

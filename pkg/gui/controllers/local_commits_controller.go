@@ -248,8 +248,8 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.RevertCommit),
-			Handler:           self.withItem(self.revert),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			Handler:           self.withItemsRange(self.revert),
+			GetDisabledReason: self.require(self.itemRangeSelected()),
 			Description:       self.c.Tr.Revert,
 			Tooltip:           self.c.Tr.RevertCommitTooltip,
 		},
@@ -857,22 +857,31 @@ func (self *LocalCommitsController) addCoAuthor(start, end int) error {
 	return nil
 }
 
-func (self *LocalCommitsController) revert(commit *models.Commit) error {
-	self.c.Confirm(types.ConfirmOpts{
-		Title: self.c.Tr.Actions.RevertCommit,
-		Prompt: utils.ResolvePlaceholderString(
+func (self *LocalCommitsController) revert(commits []*models.Commit, start, end int) error {
+	var promptText string
+	if len(commits) == 1 {
+		promptText = utils.ResolvePlaceholderString(
 			self.c.Tr.ConfirmRevertCommit,
 			map[string]string{
-				"selectedCommit": commit.ShortHash(),
-			}),
+				"selectedCommit": commits[0].ShortHash(),
+			})
+	} else {
+		promptText = self.c.Tr.ConfirmRevertCommitRange
+	}
+	hashes := lo.Map(commits, func(c *models.Commit, _ int) string { return c.Hash })
+	isMerge := lo.SomeBy(commits, func(c *models.Commit) bool { return c.IsMerge() })
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.Actions.RevertCommit,
+		Prompt: promptText,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RevertCommit)
 			return self.c.WithWaitingStatusSync(self.c.Tr.RevertingStatus, func() error {
-				result := self.c.Git().Commit.Revert(commit.Hash, commit.IsMerge())
+				result := self.c.Git().Commit.Revert(hashes, isMerge)
 				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(result); err != nil {
 					return err
 				}
-				self.context().MoveSelection(1)
+				self.context().MoveSelection(len(commits))
 				return self.c.Refresh(types.RefreshOptions{
 					Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS, types.BRANCHES},
 				})
