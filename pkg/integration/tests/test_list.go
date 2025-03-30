@@ -128,6 +128,7 @@ var tests = []*components.IntegrationTest{
 	commit.ResetAuthorRange,
 	commit.Revert,
 	commit.RevertMerge,
+	commit.RevertWithConflictSingleCommit,
 	commit.Reword,
 	commit.Search,
 	commit.SetAuthor,
