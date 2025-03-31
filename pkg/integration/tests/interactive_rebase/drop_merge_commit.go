@@ -10,7 +10,6 @@ var DropMergeCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Drops a merge commit outside of an interactive rebase",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	GitVersion:   AtLeast("2.22.0"), // first version that supports the --rebase-merges option
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shared.CreateMergeCommit(shell)
