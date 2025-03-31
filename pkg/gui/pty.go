@@ -54,45 +54,51 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		return gui.newCmdTask(view, cmd, prefix)
 	}
 
-	cmdStr := strings.Join(cmd.Args, " ")
+	// Run the pty after layout so that it gets the correct size
+	gui.afterLayout(func() error {
+		// Need to get the width and the pager again because the layout might have
+		// changed the size of the view
+		width = view.InnerWidth()
+		pager = gui.git.Config.GetPager(width)
 
-	// This communicates to pagers that we're in a very simple
-	// terminal that they should not expect to have much capabilities.
-	// Moving the cursor, clearing the screen, or querying for colors are among such "advanced" capabilities.
-	// Context: https://github.com/jesseduffield/lazygit/issues/3419
-	cmd.Env = removeExistingTermEnvVars(cmd.Env)
-	cmd.Env = append(cmd.Env, "TERM=dumb")
+		cmdStr := strings.Join(cmd.Args, " ")
 
-	cmd.Env = append(cmd.Env, "GIT_PAGER="+pager)
+		// This communicates to pagers that we're in a very simple
+		// terminal that they should not expect to have much capabilities.
+		// Moving the cursor, clearing the screen, or querying for colors are among such "advanced" capabilities.
+		// Context: https://github.com/jesseduffield/lazygit/issues/3419
+		cmd.Env = removeExistingTermEnvVars(cmd.Env)
+		cmd.Env = append(cmd.Env, "TERM=dumb")
 
-	manager := gui.getManager(view)
+		cmd.Env = append(cmd.Env, "GIT_PAGER="+pager)
 
-	var ptmx *os.File
-	start := func() (*exec.Cmd, io.Reader) {
-		var err error
-		ptmx, err = pty.StartWithSize(cmd, gui.desiredPtySize(view))
-		if err != nil {
-			gui.c.Log.Error(err)
+		manager := gui.getManager(view)
+
+		var ptmx *os.File
+		start := func() (*exec.Cmd, io.Reader) {
+			var err error
+			ptmx, err = pty.StartWithSize(cmd, gui.desiredPtySize(view))
+			if err != nil {
+				gui.c.Log.Error(err)
+			}
+
+			gui.Mutexes.PtyMutex.Lock()
+			gui.viewPtmxMap[view.Name()] = ptmx
+			gui.Mutexes.PtyMutex.Unlock()
+
+			return cmd, ptmx
 		}
 
-		gui.Mutexes.PtyMutex.Lock()
-		gui.viewPtmxMap[view.Name()] = ptmx
-		gui.Mutexes.PtyMutex.Unlock()
+		onClose := func() {
+			gui.Mutexes.PtyMutex.Lock()
+			ptmx.Close()
+			delete(gui.viewPtmxMap, view.Name())
+			gui.Mutexes.PtyMutex.Unlock()
+		}
 
-		return cmd, ptmx
-	}
-
-	onClose := func() {
-		gui.Mutexes.PtyMutex.Lock()
-		ptmx.Close()
-		delete(gui.viewPtmxMap, view.Name())
-		gui.Mutexes.PtyMutex.Unlock()
-	}
-
-	linesToRead := gui.linesToReadFromCmdTask(view)
-	if err := manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr); err != nil {
-		return err
-	}
+		linesToRead := gui.linesToReadFromCmdTask(view)
+		return manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr)
+	})
 
 	return nil
 }
