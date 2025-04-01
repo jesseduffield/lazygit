@@ -94,6 +94,10 @@ func (self *MainViewController) escape() error {
 }
 
 func (self *MainViewController) onClick(opts gocui.ViewMouseBindingOpts) error {
+	if self.context.GetView().Highlight && opts.Y != opts.PreviousY {
+		return nil
+	}
+
 	parentCtx := self.context.GetParentContext()
 	if parentCtx.GetOnClickFocusedMainView() != nil {
 		return parentCtx.GetOnClickFocusedMainView()(self.context.GetViewName(), opts.Y)
