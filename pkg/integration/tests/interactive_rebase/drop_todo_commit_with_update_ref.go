@@ -49,10 +49,7 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("CI commit 01"),
 			).
 			Tap(func() {
-				/* EXPECTED:
 				t.Views().Main().Content(Contains("commit 02"))
-				ACTUAL: */
-				t.Views().Main().Content(Contains("commit 03"))
 			}).
 			NavigateToLine(Contains("commit 06")).
 			Press(keys.Universal.Remove)
