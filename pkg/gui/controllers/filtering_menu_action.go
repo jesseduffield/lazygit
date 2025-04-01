@@ -120,7 +120,7 @@ func (self *FilteringMenuAction) setFiltering() error {
 		repoState.SetScreenMode(types.SCREEN_HALF)
 	}
 
-	self.c.Context().Push(self.c.Contexts().LocalCommits)
+	self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
 
 	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}, Then: func() error {
 		self.c.Contexts().LocalCommits.SetSelection(0)

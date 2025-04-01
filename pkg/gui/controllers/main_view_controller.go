@@ -82,7 +82,7 @@ func (self *MainViewController) Context() types.Context {
 func (self *MainViewController) togglePanel() error {
 	if self.otherContext.GetView().Visible {
 		self.otherContext.SetParentContext(self.context.GetParentContext())
-		self.c.Context().Push(self.otherContext)
+		self.c.Context().Push(self.otherContext, types.OnFocusOpts{})
 	}
 
 	return nil

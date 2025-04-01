@@ -114,7 +114,7 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 }
 
 func (self *StagingHelper) handleStagingEscape() {
-	self.c.Context().Push(self.c.Contexts().Files)
+	self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
 }
 
 func (self *StagingHelper) secondaryStagingFocused() bool {

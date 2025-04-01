@@ -180,7 +180,7 @@ func (self *StagingController) Escape() error {
 
 func (self *StagingController) TogglePanel() error {
 	if self.otherContext.GetState() != nil {
-		self.c.Context().Push(self.otherContext)
+		self.c.Context().Push(self.otherContext, types.OnFocusOpts{})
 	}
 
 	return nil
