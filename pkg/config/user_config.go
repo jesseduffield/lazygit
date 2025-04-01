@@ -129,6 +129,8 @@ type GuiConfig struct {
 	WrapLinesInStagingView bool `yaml:"wrapLinesInStagingView"`
 	// If true, hunk selection mode will be enabled by default when entering the staging view.
 	UseHunkModeInStagingView bool `yaml:"useHunkModeInStagingView"`
+	// If true, show a selection when the main view is focused.
+	ShowSelectionInFocusedMainView bool `yaml:"showSelectionInFocusedMainView"`
 	// One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru' | 'pt'
 	Language string `yaml:"language" jsonschema:"enum=auto,enum=en,enum=zh-TW,enum=zh-CN,enum=pl,enum=nl,enum=ja,enum=ko,enum=ru"`
 	// Format used when displaying time e.g. commit time.
@@ -861,13 +863,14 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				{"commits", "reflog"},
 				{"stash"},
 			},
-			MainPanelSplitMode:       "flexible",
-			EnlargedSideViewLocation: "left",
-			WrapLinesInStagingView:   true,
-			UseHunkModeInStagingView: true,
-			Language:                 "auto",
-			TimeFormat:               "02 Jan 06",
-			ShortTimeFormat:          time.Kitchen,
+			MainPanelSplitMode:             "flexible",
+			EnlargedSideViewLocation:       "left",
+			WrapLinesInStagingView:         true,
+			UseHunkModeInStagingView:       true,
+			ShowSelectionInFocusedMainView: false,
+			Language:                       "auto",
+			TimeFormat:                     "02 Jan 06",
+			ShortTimeFormat:                time.Kitchen,
 			Theme: ThemeConfig{
 				ActiveBorderColor:               []string{"green", "bold"},
 				SearchingActiveBorderColor:      []string{"cyan", "bold"},
