@@ -30,6 +30,13 @@ func NewMainViewController(
 }
 
 func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+	var goIntoDescription string
+	// We only want to show the "enter" menu item if the user config is true;
+	// leaving the description empty causes it to be hidden
+	if self.c.UserConfig().Gui.ShowSelectionInFocusedMainView {
+		goIntoDescription = self.c.Tr.EnterStaging
+	}
+
 	return []*types.Binding{
 		{
 			Keys:            opts.GetKeys(opts.Config.Universal.TogglePanel),
@@ -43,6 +50,11 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Handler:         self.escape,
 			Description:     self.c.Tr.ExitFocusedMainView,
 			DisplayOnScreen: true,
+		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Universal.GoInto),
+			Handler:     self.enter,
+			Description: goIntoDescription,
 		},
 		{
 			// overriding this because we want to read all of the task's output before we start searching
@@ -85,6 +97,15 @@ func (self *MainViewController) togglePanel() error {
 
 func (self *MainViewController) escape() error {
 	self.c.Context().Pop()
+	return nil
+}
+
+func (self *MainViewController) enter() error {
+	sidePanelContext := self.c.Context().NextInStack(self.context)
+	if sidePanelContext != nil && sidePanelContext.GetOnClickFocusedMainView() != nil {
+		return sidePanelContext.GetOnClickFocusedMainView()(
+			self.context.GetViewName(), self.context.GetView().SelectedLineIdx())
+	}
 	return nil
 }
 
