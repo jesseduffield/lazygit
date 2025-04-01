@@ -2,7 +2,7 @@
 # docker build -t lazygit .
 # docker run -it lazygit:latest /bin/sh
 
-FROM golang:1.24 as build
+FROM golang:1.24 AS build
 WORKDIR /go/src/github.com/jesseduffield/lazygit/
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -mod=vendor
