@@ -1,6 +1,6 @@
 # run with:
 # docker build -t lazygit .
-# docker run -it lazygit:latest /bin/sh
+# docker run -it lazygit:latest
 
 FROM golang:1.24 AS build
 WORKDIR /go/src/github.com/jesseduffield/lazygit/
