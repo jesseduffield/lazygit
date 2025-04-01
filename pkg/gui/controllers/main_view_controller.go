@@ -89,6 +89,10 @@ func (self *MainViewController) escape() error {
 }
 
 func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouseBindingOpts) error {
+	if self.context.GetView().Highlight && !opts.IsDoubleClick {
+		return nil
+	}
+
 	sidePanelContext := self.c.Context().NextInStack(self.context)
 	if sidePanelContext != nil && sidePanelContext.GetOnClickFocusedMainView() != nil {
 		return sidePanelContext.GetOnClickFocusedMainView()(self.context.GetViewName(), opts.Y)
