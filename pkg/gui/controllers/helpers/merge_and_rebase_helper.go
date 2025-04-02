@@ -18,17 +18,14 @@ import (
 )
 
 type MergeAndRebaseHelper struct {
-	c          *HelperCommon
-	refsHelper *RefsHelper
+	c *HelperCommon
 }
 
 func NewMergeAndRebaseHelper(
 	c *HelperCommon,
-	refsHelper *RefsHelper,
 ) *MergeAndRebaseHelper {
 	return &MergeAndRebaseHelper{
-		c:          c,
-		refsHelper: refsHelper,
+		c: c,
 	}
 }
 
