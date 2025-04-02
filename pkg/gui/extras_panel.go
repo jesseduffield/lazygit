@@ -38,7 +38,7 @@ func (gui *Gui) handleFocusCommandLog() error {
 	gui.c.State().SetShowExtrasWindow(true)
 	// TODO: is this necessary? Can't I just call 'return from context'?
 	gui.State.Contexts.CommandLog.SetParentContext(gui.c.Context().CurrentSide())
-	gui.c.Context().Push(gui.State.Contexts.CommandLog)
+	gui.c.Context().Push(gui.State.Contexts.CommandLog, types.OnFocusOpts{})
 	return nil
 }
 
