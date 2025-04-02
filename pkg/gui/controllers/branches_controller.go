@@ -58,6 +58,13 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			DisplayOnScreen:   true,
 		},
 		{
+			Key:               opts.GetKey(opts.Config.Branches.MoveCommitsToNewBranch),
+			Handler:           self.c.Helpers().Refs.MoveCommitsToNewBranch,
+			GetDisabledReason: self.c.Helpers().Refs.CanMoveCommitsToNewBranch,
+			Description:       self.c.Tr.MoveCommitsToNewBranch,
+			Tooltip:           self.c.Tr.MoveCommitsToNewBranchTooltip,
+		},
+		{
 			Key:               opts.GetKey(opts.Config.Branches.CreatePullRequest),
 			Handler:           self.withItem(self.handleCreatePullRequest),
 			GetDisabledReason: self.require(self.singleItemSelected()),

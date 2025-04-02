@@ -789,6 +789,10 @@
           "type": "string",
           "default": "M"
         },
+        "moveCommitsToNewBranch": {
+          "type": "string",
+          "default": "N"
+        },
         "viewGitFlowOptions": {
           "type": "string",
           "default": "i"
