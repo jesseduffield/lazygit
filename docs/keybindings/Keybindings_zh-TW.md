@@ -132,6 +132,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` C `` | 複製提交 (揀選) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | 重設選定的揀選 (複製) 提交 |  |
 | `` <c-t> `` | 開啟外部差異工具 (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -194,6 +195,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` g `` | 檢視重設選項 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 複製提交 (揀選) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | 開啟外部差異工具 (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -250,6 +252,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` C `` | 複製提交 (揀選) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | 重設選定的揀選 (複製) 提交 |  |
 | `` <c-t> `` | 開啟外部差異工具 (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |

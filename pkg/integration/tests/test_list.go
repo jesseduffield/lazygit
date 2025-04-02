@@ -67,6 +67,7 @@ var tests = []*components.IntegrationTest{
 	branch.Rename,
 	branch.Reset,
 	branch.ResetToUpstream,
+	branch.SelectCommitsOfCurrentBranch,
 	branch.SetUpstream,
 	branch.ShowDivergenceFromBaseBranch,
 	branch.ShowDivergenceFromUpstream,

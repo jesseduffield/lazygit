@@ -938,6 +938,10 @@
         "startInteractiveRebase": {
           "type": "string",
           "default": "i"
+        },
+        "selectCommitsOfCurrentBranch": {
+          "type": "string",
+          "default": ";"
         }
       },
       "additionalProperties": false,

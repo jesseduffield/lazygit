@@ -64,6 +64,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset cherry-picked (copied) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -94,6 +95,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset cherry-picked (copied) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | View selected item's files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | 검색 시작 |  |
@@ -290,6 +292,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | View selected item's files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | 검색 시작 |  |

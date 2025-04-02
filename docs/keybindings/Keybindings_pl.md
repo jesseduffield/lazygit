@@ -85,6 +85,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
 | `` C `` | Kopiuj (cherry-pick) | Oznacz commit jako skopiowany. Następnie, w widoku lokalnych commitów, możesz nacisnąć `V`, aby wkleić (cherry-pick) skopiowane commity do sprawdzonej gałęzi. W dowolnym momencie możesz nacisnąć `<esc>`, aby anulować zaznaczenie. |
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | Wyświetl pliki |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
@@ -272,6 +273,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` C `` | Kopiuj (cherry-pick) | Oznacz commit jako skopiowany. Następnie, w widoku lokalnych commitów, możesz nacisnąć `V`, aby wkleić (cherry-pick) skopiowane commity do sprawdzonej gałęzi. W dowolnym momencie możesz nacisnąć `<esc>`, aby anulować zaznaczenie. |
 | `` <c-r> `` | Resetuj wybrane (cherry-picked) commity |  |
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | Pokaż commity |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
@@ -312,6 +314,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` C `` | Kopiuj (cherry-pick) | Oznacz commit jako skopiowany. Następnie, w widoku lokalnych commitów, możesz nacisnąć `V`, aby wkleić (cherry-pick) skopiowane commity do sprawdzonej gałęzi. W dowolnym momencie możesz nacisnąć `<esc>`, aby anulować zaznaczenie. |
 | `` <c-r> `` | Resetuj wybrane (cherry-picked) commity |  |
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | Wyświetl pliki |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |

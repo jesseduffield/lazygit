@@ -7,9 +7,11 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 // This controller is for all contexts that contain a list of commits.
@@ -23,6 +25,8 @@ type ContainsCommits interface {
 	GetSelectedItems() ([]*models.Commit, int, int)
 	GetCommits() []*models.Commit
 	GetSelectedLineIdx() int
+	GetSelectionRangeAndMode() (int, int, traits.RangeSelectMode)
+	SetSelectionRangeAndMode(int, int, traits.RangeSelectMode)
 }
 
 type BasicCommitsController struct {
@@ -108,6 +112,12 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Handler:           self.withItem(self.openDiffTool),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.OpenDiffTool,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Commits.SelectCommitsOfCurrentBranch),
+			Handler:           self.selectCommitsOfCurrentBranch,
+			GetDisabledReason: self.require(self.canSelectCommitsOfCurrentBranch),
+			Description:       self.c.Tr.SelectCommitsOfCurrentBranch,
 		},
 		// Putting this at the bottom of the list so that it has the lowest priority,
 		// meaning that if the user has configured another keybinding to the same key
@@ -388,4 +398,42 @@ func (self *BasicCommitsController) openDiffTool(commit *models.Commit) error {
 			Staged:      false,
 		}))
 	return err
+}
+
+func (self *BasicCommitsController) canSelectCommitsOfCurrentBranch() *types.DisabledReason {
+	if index := self.findFirstCommitAfterCurrentBranch(); index <= 0 {
+		return &types.DisabledReason{Text: self.c.Tr.NoCommitsThisBranch}
+	}
+
+	return nil
+}
+
+func (self *BasicCommitsController) findFirstCommitAfterCurrentBranch() int {
+	_, index, ok := lo.FindIndexOf(self.context.GetCommits(), func(c *models.Commit) bool {
+		return c.IsMerge() || c.Status == models.StatusMerged
+	})
+
+	if !ok {
+		return 0
+	}
+
+	return index
+}
+
+func (self *BasicCommitsController) selectCommitsOfCurrentBranch() error {
+	index := self.findFirstCommitAfterCurrentBranch()
+	if index <= 0 {
+		return nil
+	}
+
+	_, _, mode := self.context.GetSelectionRangeAndMode()
+	if mode != traits.RangeSelectModeSticky {
+		// If we are in sticky range mode already, keep that; otherwise, open a non-sticky range
+		mode = traits.RangeSelectModeNonSticky
+	}
+	// Create the range from bottom to top, so that when you cancel the range,
+	// the head commit is selected
+	self.context.SetSelectionRangeAndMode(0, index-1, mode)
+	self.context.HandleFocus(types.OnFocusOpts{})
+	return nil
 }

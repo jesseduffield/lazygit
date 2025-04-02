@@ -850,6 +850,7 @@ type TranslationSet struct {
 	CommandDoesNotSupportOpeningInEditor     string
 	CustomCommands                           string
 	NoApplicableCommandsInThisContext        string
+	SelectCommitsOfCurrentBranch             string
 	Actions                                  Actions
 	Bisect                                   Bisect
 	Log                                      Log
@@ -1894,6 +1895,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CommandDoesNotSupportOpeningInEditor:     "This command doesn't support switching to the editor",
 		CustomCommands:                           "Custom commands",
 		NoApplicableCommandsInThisContext:        "(No applicable commands in this context)",
+		SelectCommitsOfCurrentBranch:             "Select commits of current branch",
 
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)

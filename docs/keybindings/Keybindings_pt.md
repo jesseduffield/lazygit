@@ -183,6 +183,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Copiar (cherry-pick) | Marcar commit como copiado. Então, dentro da visualização local de commits, você pode pressionar `V` para colar (cherry-pick) o(s) commit(s) copiado(s) em seu branch de check-out. A qualquer momento você pode pressionar `<esc>` para cancelar a seleção. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Search the current view by text |  |
@@ -292,6 +293,7 @@ Veja a documentação:
 | `` C `` | Copiar (cherry-pick) | Marcar commit como copiado. Então, dentro da visualização local de commits, você pode pressionar `V` para colar (cherry-pick) o(s) commit(s) copiado(s) em seu branch de check-out. A qualquer momento você pode pressionar `<esc>` para cancelar a seleção. |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -343,6 +345,7 @@ Veja a documentação:
 | `` C `` | Copiar (cherry-pick) | Marcar commit como copiado. Então, dentro da visualização local de commits, você pode pressionar `V` para colar (cherry-pick) o(s) commit(s) copiado(s) em seu branch de check-out. A qualquer momento você pode pressionar `<esc>` para cancelar a seleção. |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Search the current view by text |  |

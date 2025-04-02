@@ -177,6 +177,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` g `` | Bekijk reset opties | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Kopieer commit (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | Bekijk gecommite bestanden |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Start met zoeken |  |
@@ -240,6 +241,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` C `` | Kopieer commit (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset cherry-picked (gekopieerde) commits selectie |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -331,6 +333,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` C `` | Kopieer commit (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset cherry-picked (gekopieerde) commits selectie |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` ; `` | Select commits of current branch |  |
 | `` <enter> `` | Bekijk gecommite bestanden |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Start met zoeken |  |

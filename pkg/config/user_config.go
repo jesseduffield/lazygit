@@ -516,6 +516,7 @@ type KeybindingCommitsConfig struct {
 	OpenInBrowser                  string `yaml:"openInBrowser"`
 	ViewBisectOptions              string `yaml:"viewBisectOptions"`
 	StartInteractiveRebase         string `yaml:"startInteractiveRebase"`
+	SelectCommitsOfCurrentBranch   string `yaml:"selectCommitsOfCurrentBranch"`
 }
 
 type KeybindingAmendAttributeConfig struct {
@@ -987,6 +988,7 @@ func GetDefaultConfig() *UserConfig {
 				OpenInBrowser:                  "o",
 				ViewBisectOptions:              "b",
 				StartInteractiveRebase:         "i",
+				SelectCommitsOfCurrentBranch:   ";",
 			},
 			AmendAttribute: KeybindingAmendAttributeConfig{
 				ResetAuthor: "a",
