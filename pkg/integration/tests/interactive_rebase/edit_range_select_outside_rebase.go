@@ -10,7 +10,6 @@ var EditRangeSelectOutsideRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Select a range of commits to edit outside of a rebase",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	GitVersion:   AtLeast("2.22.0"), // first version that supports the --rebase-merges option
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shared.CreateMergeCommit(shell)

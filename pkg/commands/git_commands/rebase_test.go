@@ -54,16 +54,6 @@ func TestRebaseRebaseBranch(t *testing.T) {
 				assert.NoError(t, err)
 			},
 		},
-		{
-			testName:   "successful rebase (< 2.22.0)",
-			arg:        "master",
-			gitVersion: &GitVersion{2, 21, 9, ""},
-			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"rebase", "--interactive", "--autostash", "--keep-empty", "--no-autosquash", "master"}, "", nil),
-			test: func(err error) {
-				assert.NoError(t, err)
-			},
-		},
 	}
 
 	for _, s := range scenarios {
