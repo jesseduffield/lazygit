@@ -608,6 +608,7 @@ func (self *LocalCommitsController) restoreSelectionRangeAndMode(selectionRangeA
 	})
 	if ok1 && ok2 {
 		self.context().SetSelectionRangeAndMode(newSelectedIdx, newRangeStartIdx, selectionRangeAndMode.mode)
+		self.context().HandleFocus(types.OnFocusOpts{})
 	}
 }
 
