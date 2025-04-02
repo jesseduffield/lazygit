@@ -294,8 +294,8 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 }
 
 func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
-	checkedOutBranch := self.refsHelper.GetCheckedOutRef()
-	checkedOutBranchName := self.refsHelper.GetCheckedOutRef().Name
+	checkedOutBranch := self.c.Model().Branches[0]
+	checkedOutBranchName := checkedOutBranch.Name
 	var disabledReason, baseBranchDisabledReason *types.DisabledReason
 	if checkedOutBranchName == ref {
 		disabledReason = &types.DisabledReason{Text: self.c.Tr.CantRebaseOntoSelf}
@@ -407,7 +407,7 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 	if self.c.Git().Branch.IsHeadDetached() {
 		return errors.New("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
 	}
-	checkedOutBranchName := self.refsHelper.GetCheckedOutRef().Name
+	checkedOutBranchName := self.c.Model().Branches[0].Name
 	if checkedOutBranchName == refName {
 		return errors.New(self.c.Tr.CantMergeBranchIntoItself)
 	}
