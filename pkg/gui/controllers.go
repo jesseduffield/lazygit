@@ -31,7 +31,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon)
 	worktreeHelper := helpers.NewWorktreeHelper(helperCommon, reposHelper, refsHelper, suggestionsHelper)
 
-	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, refsHelper)
+	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon)
 
 	setCommitSummary := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
 	setCommitDescription := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitDescription })
