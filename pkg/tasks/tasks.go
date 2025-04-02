@@ -91,16 +91,18 @@ func NewViewBufferManager(
 		beforeStart:  beforeStart,
 		refreshView:  refreshView,
 		onEndOfInput: onEndOfInput,
-		readLines:    make(chan LinesToRead, 1024),
+		readLines:    nil,
 		onNewKey:     onNewKey,
 		newGocuiTask: newGocuiTask,
 	}
 }
 
 func (self *ViewBufferManager) ReadLines(n int) {
-	go utils.Safe(func() {
-		self.readLines <- LinesToRead{Total: n, InitialRefreshAfter: -1}
-	})
+	if self.readLines != nil {
+		go utils.Safe(func() {
+			self.readLines <- LinesToRead{Total: n, InitialRefreshAfter: -1}
+		})
+	}
 }
 
 func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), prefix string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
@@ -166,7 +168,6 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 
 		loadingMutex := deadlock.Mutex{}
 
-		// not sure if it's the right move to redefine this or not
 		self.readLines = make(chan LinesToRead, 1024)
 
 		scanner := bufio.NewScanner(r)
@@ -274,6 +275,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				}
 			}
 
+			self.readLines = nil
+
 			refreshViewIfStale()
 
 			if err := cmd.Wait(); err != nil {
@@ -348,6 +351,8 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 
 	go utils.Safe(func() {
 		defer completeGocuiTask()
+
+		self.readLines = nil
 
 		self.taskIDMutex.Lock()
 		self.newTaskID++
