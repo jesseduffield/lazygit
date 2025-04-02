@@ -29,7 +29,7 @@ var RenamedFiles = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("▼ /"),
 				Equals("  ▼ dir"),
 				Equals("    R  file1 → file1"),
-				Equals("    R  dir/file2 → file2-renamed"), // don't want the 'dir/' prefix here
+				Equals("    R  file2 → file2-renamed"),
 				Equals("  R  dir/nested/file3 → file3"),
 			)
 	},
