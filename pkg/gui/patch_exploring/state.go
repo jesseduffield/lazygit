@@ -1,12 +1,16 @@
 package patch_exploring
 
 import (
+	"bytes"
+	"io"
+	"os/exec"
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/mgutz/str"
 )
 
 // State represents the current state of the patch explorer context i.e. when
@@ -20,6 +24,7 @@ type State struct {
 	// Otherwise, we cancel the range when we move up or down.
 	rangeIsSticky bool
 	diff          string
+	diffFromPager string
 	patch         *patch.Patch
 	selectMode    selectMode
 
@@ -38,7 +43,7 @@ const (
 	HUNK
 )
 
-func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *State) *State {
+func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *State, pagerCommand string) *State {
 	if oldState != nil && diff == oldState.diff && selectedLineIdx == -1 {
 		// if we're here then we can return the old state. If selectedLineIdx was not -1
 		// then that would mean we were trying to click and potentially drag a range, which
@@ -52,7 +57,13 @@ func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *Stat
 		return nil
 	}
 
-	viewLineIndices, patchLineIndices := wrapPatchLines(diff, view)
+	diffFromPager := formatDiffForStaging(diff, pagerCommand)
+	diffToWrap := diff
+	if len(diffFromPager) > 0 {
+		diffToWrap = utils.Decolorise(diffFromPager)
+	}
+
+	viewLineIndices, patchLineIndices := wrapPatchLines(diffToWrap, view)
 
 	rangeStartLineIdx := 0
 	if oldState != nil {
@@ -85,9 +96,35 @@ func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *Stat
 		rangeStartLineIdx: rangeStartLineIdx,
 		rangeIsSticky:     false,
 		diff:              diff,
+		diffFromPager:     diffFromPager,
 		viewLineIndices:   viewLineIndices,
 		patchLineIndices:  patchLineIndices,
 	}
+}
+
+func formatDiffForStaging(diff string, pagerCommand string) string {
+	if len(pagerCommand) == 0 {
+		return ""
+	}
+
+	args := str.ToArgv(pagerCommand)
+	cmd := exec.Command(args[0], args[1:]...)
+	var stdout bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = io.Discard
+	cmd.Stdin = strings.NewReader(diff)
+
+	err := cmd.Run()
+	if err != nil {
+		// TODO report error somehow
+		return ""
+	}
+	diffFromPager := stdout.String()
+	if len(strings.Split(diffFromPager, "\n")) != len(strings.Split(diff, "\n")) {
+		// TODO report error somehow
+		return ""
+	}
+	return diffFromPager
 }
 
 func (s *State) OnViewWidthChanged(view *gocui.View) {
@@ -294,6 +331,9 @@ func (s *State) AdjustSelectedLineIdx(change int) {
 }
 
 func (s *State) RenderForLineIndices(includedLineIndices []int) string {
+	if includedLineIndices == nil && len(s.diffFromPager) > 0 {
+		return s.diffFromPager
+	}
 	includedLineIndicesSet := set.NewFromSlice(includedLineIndices)
 	return s.patch.FormatView(patch.FormatViewOpts{
 		IncLineIndices: includedLineIndicesSet,
