@@ -20,7 +20,7 @@ func (gui *Gui) scrollDownView(view *gocui.View) {
 	scrollHeight := gui.c.UserConfig().Gui.ScrollHeight
 	view.ScrollDown(scrollHeight)
 
-	if manager, ok := gui.viewBufferManagerMap[view.Name()]; ok {
+	if manager := gui.getViewBufferManagerForView(view); manager != nil {
 		manager.ReadLines(scrollHeight)
 	}
 }
