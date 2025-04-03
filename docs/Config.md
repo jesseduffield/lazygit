@@ -113,6 +113,9 @@ gui:
   # paragraphs of markdown text.
   wrapLinesInStagingView: true
 
+  # If true, show a selection when the main view is focused.
+  showSelectionInFocusedMainView: false
+
   # One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
   language: auto
 
