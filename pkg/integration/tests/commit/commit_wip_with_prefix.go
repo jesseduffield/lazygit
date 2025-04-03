@@ -32,7 +32,8 @@ var CommitWipWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().CommitMessagePanel().
 			Title(Equals("Commit summary")).
-			Type("foo").
+			InitialText(Equals("WIP")).
+			Type(" foo").
 			Cancel()
 
 		t.Views().Files().
@@ -41,7 +42,7 @@ var CommitWipWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().CommitMessagePanel().
 			Title(Equals("Commit summary")).
-			InitialText(Equals("foo")).
+			InitialText(Equals("WIP foo")).
 			Type(" bar").
 			Cancel()
 
@@ -51,11 +52,11 @@ var CommitWipWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().CommitMessagePanel().
 			Title(Equals("Commit summary")).
-			InitialText(Equals("foo bar")).
+			InitialText(Equals("WIP foo bar")).
 			Type(". Added something else").
 			Confirm()
 
 		t.Views().Commits().Focus()
-		t.Views().Main().Content(Contains("foo bar. Added something else"))
+		t.Views().Main().Content(Contains("WIP foo bar. Added something else"))
 	},
 })

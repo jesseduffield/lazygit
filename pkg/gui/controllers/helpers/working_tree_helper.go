@@ -146,7 +146,13 @@ func (self *WorkingTreeHelper) HandleCommitEditorPress() error {
 }
 
 func (self *WorkingTreeHelper) HandleWIPCommitPress() error {
-	return self.HandleCommitPressWithMessage("", true)
+	var initialMessage string
+	preservedMessage := self.c.Contexts().CommitMessage.GetPreservedMessageAndLogError()
+	if preservedMessage == "" {
+		// Use the skipHook prefix only if we don't have a preserved message
+		initialMessage = self.c.UserConfig().Git.SkipHookPrefix
+	}
+	return self.HandleCommitPressWithMessage(initialMessage, true)
 }
 
 func (self *WorkingTreeHelper) HandleCommitPress() error {
