@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -8,16 +9,16 @@ type MainViewController struct {
 	baseController
 	c *ControllerCommon
 
-	context      types.Context
-	otherContext types.Context
+	context      *context.MainContext
+	otherContext *context.MainContext
 }
 
 var _ types.IController = &MainViewController{}
 
 func NewMainViewController(
 	c *ControllerCommon,
-	context types.Context,
-	otherContext types.Context,
+	context *context.MainContext,
+	otherContext *context.MainContext,
 ) *MainViewController {
 	return &MainViewController{
 		baseController: baseController{},
@@ -41,6 +42,13 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Handler:     self.escape,
 			Description: self.c.Tr.ExitFocusedMainView,
 		},
+		{
+			// overriding this because we want to read all of the task's output before we start searching
+			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
+			Handler:     self.openSearch,
+			Description: self.c.Tr.StartSearch,
+			Tag:         "navigation",
+		},
 	}
 }
 
@@ -59,5 +67,17 @@ func (self *MainViewController) togglePanel() error {
 
 func (self *MainViewController) escape() error {
 	self.c.Context().Pop()
+	return nil
+}
+
+func (self *MainViewController) openSearch() error {
+	if manager := self.c.GetViewBufferManagerForView(self.context.GetView()); manager != nil {
+		manager.ReadToEnd(func() {
+			self.c.OnUIThread(func() error {
+				return self.c.Helpers().Search.OpenSearchPrompt(self.context)
+			})
+		})
+	}
+
 	return nil
 }
