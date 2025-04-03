@@ -32,10 +32,10 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		newMainHeight := viewDimensions["main"].Y1 - viewDimensions["main"].Y0 + 1
 		heightDiff := newMainHeight - prevMainHeight
 		if heightDiff > 0 {
-			if manager, ok := gui.viewBufferManagerMap["main"]; ok {
+			if manager := gui.getViewBufferManagerForView(gui.Views.Main); manager != nil {
 				manager.ReadLines(heightDiff)
 			}
-			if manager, ok := gui.viewBufferManagerMap["secondary"]; ok {
+			if manager := gui.getViewBufferManagerForView(gui.Views.Secondary); manager != nil {
 				manager.ReadLines(heightDiff)
 			}
 		}

@@ -180,7 +180,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	globalController := controllers.NewGlobalController(common)
 	contextLinesController := controllers.NewContextLinesController(common)
 	renameSimilarityThresholdController := controllers.NewRenameSimilarityThresholdController(common)
-	verticalScrollControllerFactory := controllers.NewVerticalScrollControllerFactory(common, &gui.viewBufferManagerMap)
+	verticalScrollControllerFactory := controllers.NewVerticalScrollControllerFactory(common)
 
 	branchesController := controllers.NewBranchesController(common)
 	gitFlowController := controllers.NewGitFlowController(common)
