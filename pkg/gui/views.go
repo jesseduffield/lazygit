@@ -134,6 +134,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Menu.Visible = false
 
 	gui.Views.Tooltip.Visible = false
+	gui.Views.Tooltip.AutoRenderHyperLinks = true
 
 	gui.Views.Information.BgColor = gocui.ColorDefault
 	gui.Views.Information.FgColor = gocui.ColorGreen
