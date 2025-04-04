@@ -70,7 +70,7 @@ var nameIconMap = map[string]IconProperties{
 	".tmux.conf.local":           {Icon: "\uebc8", Color: "#14BA19"},     // 
 	".Trash":                     {Icon: "\uf1f8", Color: "#ACBCEF"},     // 
 	".vimrc":                     {Icon: "\ue62b", Color: "#019833"},     // 
-	".vscode":                    {Icon: "\ue70c", Color: "#854CC7"},     // 
+	".vscode":                    {Icon: "\ue70c", Color: "#007ACC"},     // 
 	".Xauthority":                {Icon: "\uf369", Color: "#E54D18"},     // 
 	".Xresources":                {Icon: "\uf369", Color: "#E54D18"},     // 
 	".xinitrc":                   {Icon: "\uf369", Color: "#E54D18"},     // 
