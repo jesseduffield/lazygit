@@ -1,4 +1,4 @@
-package commit
+package branch
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
