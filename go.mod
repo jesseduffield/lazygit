@@ -3,6 +3,7 @@ module github.com/jesseduffield/lazygit
 go 1.24.0
 
 require (
+	dario.cat/mergo v1.0.1
 	github.com/adrg/xdg v0.4.0
 	github.com/atotto/clipboard v0.1.4
 	github.com/aybabtme/humanlog v0.4.1
@@ -11,7 +12,6 @@ require (
 	github.com/gdamore/tcell/v2 v2.8.1
 	github.com/go-errors/errors v1.5.1
 	github.com/gookit/color v1.4.2
-	github.com/imdario/mergo v0.3.11
 	github.com/integrii/flaggy v1.4.0
 	github.com/jesseduffield/generics v0.0.0-20250406224309-4f541cb84918
 	github.com/jesseduffield/go-git/v5 v5.14.1-0.20250407170251-e1a013310ccd
@@ -43,7 +43,6 @@ require (
 )
 
 require (
-	dario.cat/mergo v1.0.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.1.6 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect

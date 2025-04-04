@@ -166,9 +166,6 @@ github.com/golang/groupcache/lru
 github.com/gookit/color
 # github.com/hpcloud/tail v1.0.0
 ## explicit
-# github.com/imdario/mergo v0.3.11
-## explicit; go 1.13
-github.com/imdario/mergo
 # github.com/integrii/flaggy v1.4.0
 ## explicit; go 1.12
 github.com/integrii/flaggy
