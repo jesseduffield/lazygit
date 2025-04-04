@@ -164,6 +164,8 @@ type File interface {
 	// Name returns the name of the file as presented to Open.
 	Name() string
 	io.Writer
+	// TODO: Add io.WriterAt for v6  
+	// io.WriterAt
 	io.Reader
 	io.ReaderAt
 	io.Seeker

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/jesseduffield/go-git/v5/plumbing"
@@ -210,4 +211,21 @@ type EndOfIndexEntry struct {
 	// Hash is a SHA-1 over the extension types and their sizes (but not
 	//	their contents).
 	Hash plumbing.Hash
+}
+
+// SkipUnless applies patterns in the form of A, A/B, A/B/C
+// to the index to prevent the files from being checked out
+func (i *Index) SkipUnless(patterns []string) {
+	for _, e := range i.Entries {
+		var include bool
+		for _, pattern := range patterns {
+			if strings.HasPrefix(e.Name, pattern) {
+				include = true
+				break
+			}
+		}
+		if !include {
+			e.SkipWorktree = true
+		}
+	}
 }

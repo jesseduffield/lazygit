@@ -17,6 +17,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+//go:build windows
 // +build windows
 
 package sshagent
@@ -31,6 +32,8 @@ import (
 	"sync"
 	"syscall"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 // Maximum size of message can be sent to pageant
@@ -59,18 +62,18 @@ type copyData struct {
 var (
 	lock sync.Mutex
 
-	winFindWindow         = winAPI("user32.dll", "FindWindowW")
-	winGetCurrentThreadID = winAPI("kernel32.dll", "GetCurrentThreadId")
-	winSendMessage        = winAPI("user32.dll", "SendMessageW")
+	user32dll      = windows.NewLazySystemDLL("user32.dll")
+	winFindWindow  = winAPI(user32dll, "FindWindowW")
+	winSendMessage = winAPI(user32dll, "SendMessageW")
+
+	kernel32dll           = windows.NewLazySystemDLL("kernel32.dll")
+	winGetCurrentThreadID = winAPI(kernel32dll, "GetCurrentThreadId")
 )
 
-func winAPI(dllName, funcName string) func(...uintptr) (uintptr, uintptr, error) {
-	proc := syscall.MustLoadDLL(dllName).MustFindProc(funcName)
+func winAPI(dll *windows.LazyDLL, funcName string) func(...uintptr) (uintptr, uintptr, error) {
+	proc := dll.NewProc(funcName)
 	return func(a ...uintptr) (uintptr, uintptr, error) { return proc.Call(a...) }
 }
-
-// Available returns true if Pageant is running
-func Available() bool { return pageantWindow() != 0 }
 
 // Query sends message msg to Pageant and returns response or error.
 // 'msg' is raw agent request with length prefix

@@ -9,10 +9,6 @@ import (
 	"github.com/jesseduffield/go-git/v5/plumbing/protocol/packp/capability"
 )
 
-var (
-	zeroHashString = plumbing.ZeroHash.String()
-)
-
 // Encode writes the ReferenceUpdateRequest encoding to the stream.
 func (req *ReferenceUpdateRequest) Encode(w io.Writer) error {
 	if err := req.validate(); err != nil {
@@ -27,6 +23,12 @@ func (req *ReferenceUpdateRequest) Encode(w io.Writer) error {
 
 	if err := req.encodeCommands(e, req.Commands, req.Capabilities); err != nil {
 		return err
+	}
+
+	if req.Capabilities.Supports(capability.PushOptions) {
+		if err := req.encodeOptions(e, req.Options); err != nil {
+			return err
+		}
 	}
 
 	if req.Packfile != nil {
@@ -72,4 +74,16 @@ func formatCommand(cmd *Command) string {
 	o := cmd.Old.String()
 	n := cmd.New.String()
 	return fmt.Sprintf("%s %s %s", o, n, cmd.Name)
+}
+
+func (req *ReferenceUpdateRequest) encodeOptions(e *pktline.Encoder,
+	opts []*Option) error {
+
+	for _, opt := range opts {
+		if err := e.Encodef("%s=%s", opt.Key, opt.Value); err != nil {
+			return err
+		}
+	}
+
+	return e.Flush()
 }

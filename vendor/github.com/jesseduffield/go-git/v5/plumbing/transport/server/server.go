@@ -108,6 +108,10 @@ type upSession struct {
 }
 
 func (s *upSession) AdvertisedReferences() (*packp.AdvRefs, error) {
+	return s.AdvertisedReferencesContext(context.TODO())
+}
+
+func (s *upSession) AdvertisedReferencesContext(ctx context.Context) (*packp.AdvRefs, error) {
 	ar := packp.NewAdvRefs()
 
 	if err := s.setSupportedCapabilities(ar.Capabilities); err != nil {
@@ -185,7 +189,7 @@ func (s *upSession) objectsToUpload(req *packp.UploadPackRequest) ([]plumbing.Ha
 }
 
 func (*upSession) setSupportedCapabilities(c *capability.List) error {
-	if err := c.Set(capability.Agent, capability.DefaultAgent); err != nil {
+	if err := c.Set(capability.Agent, capability.DefaultAgent()); err != nil {
 		return err
 	}
 
@@ -204,6 +208,10 @@ type rpSession struct {
 }
 
 func (s *rpSession) AdvertisedReferences() (*packp.AdvRefs, error) {
+	return s.AdvertisedReferencesContext(context.TODO())
+}
+
+func (s *rpSession) AdvertisedReferencesContext(ctx context.Context) (*packp.AdvRefs, error) {
 	ar := packp.NewAdvRefs()
 
 	if err := s.setSupportedCapabilities(ar.Capabilities); err != nil {
@@ -347,7 +355,7 @@ func (s *rpSession) reportStatus() *packp.ReportStatus {
 }
 
 func (*rpSession) setSupportedCapabilities(c *capability.List) error {
-	if err := c.Set(capability.Agent, capability.DefaultAgent); err != nil {
+	if err := c.Set(capability.Agent, capability.DefaultAgent()); err != nil {
 		return err
 	}
 

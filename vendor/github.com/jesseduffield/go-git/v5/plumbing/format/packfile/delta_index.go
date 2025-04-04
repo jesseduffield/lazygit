@@ -32,18 +32,16 @@ func (idx *deltaIndex) findMatch(src, tgt []byte, tgtOffset int) (srcOffset, l i
 		return 0, -1
 	}
 
-	if len(tgt) >= tgtOffset+s && len(src) >= blksz {
-		h := hashBlock(tgt, tgtOffset)
-		tIdx := h & idx.mask
-		eIdx := idx.table[tIdx]
-		if eIdx != 0 {
-			srcOffset = idx.entries[eIdx]
-		} else {
-			return
-		}
-
-		l = matchLength(src, tgt, tgtOffset, srcOffset)
+	h := hashBlock(tgt, tgtOffset)
+	tIdx := h & idx.mask
+	eIdx := idx.table[tIdx]
+	if eIdx == 0 {
+		return
 	}
+
+	srcOffset = idx.entries[eIdx]
+
+	l = matchLength(src, tgt, tgtOffset, srcOffset)
 
 	return
 }

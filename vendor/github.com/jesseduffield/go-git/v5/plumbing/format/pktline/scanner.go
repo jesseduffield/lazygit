@@ -1,8 +1,12 @@
 package pktline
 
 import (
+	"bytes"
 	"errors"
 	"io"
+	"strings"
+
+	"github.com/jesseduffield/go-git/v5/utils/trace"
 )
 
 const (
@@ -65,6 +69,14 @@ func (s *Scanner) Scan() bool {
 		return false
 	}
 	s.payload = s.payload[:l]
+	trace.Packet.Printf("packet: < %04x %s", l, s.payload)
+
+	if bytes.HasPrefix(s.payload, errPrefix) {
+		s.err = &ErrorLine{
+			Text: strings.TrimSpace(string(s.payload[4:])),
+		}
+		return false
+	}
 
 	return true
 }
@@ -128,6 +140,8 @@ func asciiHexToByte(b byte) (byte, error) {
 		return b - '0', nil
 	case b >= 'a' && b <= 'f':
 		return b - 'a' + 10, nil
+	case b >= 'A' && b <= 'F':
+		return b - 'A' + 10, nil
 	default:
 		return 0, ErrInvalidPktLen
 	}

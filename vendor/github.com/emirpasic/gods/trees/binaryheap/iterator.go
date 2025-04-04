@@ -4,11 +4,12 @@
 
 package binaryheap
 
-import "github.com/emirpasic/gods/containers"
+import (
+	"github.com/emirpasic/gods/containers"
+)
 
-func assertIteratorImplementation() {
-	var _ containers.ReverseIteratorWithIndex = (*Iterator)(nil)
-}
+// Assert Iterator implementation
+var _ containers.ReverseIteratorWithIndex = (*Iterator)(nil)
 
 // Iterator returns a stateful iterator whose values can be fetched by an index.
 type Iterator struct {
@@ -45,7 +46,19 @@ func (iterator *Iterator) Prev() bool {
 // Value returns the current element's value.
 // Does not modify the state of the iterator.
 func (iterator *Iterator) Value() interface{} {
-	value, _ := iterator.heap.list.Get(iterator.index)
+	start, end := evaluateRange(iterator.index)
+	if end > iterator.heap.Size() {
+		end = iterator.heap.Size()
+	}
+	tmpHeap := NewWith(iterator.heap.Comparator)
+	for n := start; n < end; n++ {
+		value, _ := iterator.heap.list.Get(n)
+		tmpHeap.Push(value)
+	}
+	for n := 0; n < iterator.index-start; n++ {
+		tmpHeap.Pop()
+	}
+	value, _ := tmpHeap.Pop()
 	return value
 }
 
@@ -81,4 +94,50 @@ func (iterator *Iterator) First() bool {
 func (iterator *Iterator) Last() bool {
 	iterator.End()
 	return iterator.Prev()
+}
+
+// NextTo moves the iterator to the next element from current position that satisfies the condition given by the
+// passed function, and returns true if there was a next element in the container.
+// If NextTo() returns true, then next element's index and value can be retrieved by Index() and Value().
+// Modifies the state of the iterator.
+func (iterator *Iterator) NextTo(f func(index int, value interface{}) bool) bool {
+	for iterator.Next() {
+		index, value := iterator.Index(), iterator.Value()
+		if f(index, value) {
+			return true
+		}
+	}
+	return false
+}
+
+// PrevTo moves the iterator to the previous element from current position that satisfies the condition given by the
+// passed function, and returns true if there was a next element in the container.
+// If PrevTo() returns true, then next element's index and value can be retrieved by Index() and Value().
+// Modifies the state of the iterator.
+func (iterator *Iterator) PrevTo(f func(index int, value interface{}) bool) bool {
+	for iterator.Prev() {
+		index, value := iterator.Index(), iterator.Value()
+		if f(index, value) {
+			return true
+		}
+	}
+	return false
+}
+
+// numOfBits counts the number of bits of an int
+func numOfBits(n int) uint {
+	var count uint
+	for n != 0 {
+		count++
+		n >>= 1
+	}
+	return count
+}
+
+// evaluateRange evaluates the index range [start,end) of same level nodes in the heap as the index
+func evaluateRange(index int) (start int, end int) {
+	bits := numOfBits(index+1) - 1
+	start = 1<<bits - 1
+	end = start + 1<<bits
+	return
 }

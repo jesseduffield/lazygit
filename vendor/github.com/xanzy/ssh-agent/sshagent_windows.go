@@ -17,6 +17,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+//go:build windows
 // +build windows
 
 package sshagent
@@ -27,17 +28,40 @@ import (
 	"net"
 	"sync"
 
+	"github.com/Microsoft/go-winio"
 	"golang.org/x/crypto/ssh/agent"
 )
+
+const (
+	sshAgentPipe = `\\.\pipe\openssh-ssh-agent`
+)
+
+// Available returns true if Pageant is running
+func Available() bool {
+	if pageantWindow() != 0 {
+		return true
+	}
+	conn, err := winio.DialPipe(sshAgentPipe, nil)
+	if err != nil {
+		return false
+	}
+	conn.Close()
+	return true
+}
 
 // New returns a new agent.Agent and the (custom) connection it uses
 // to communicate with a running pagent.exe instance (see README.md)
 func New() (agent.Agent, net.Conn, error) {
-	if !Available() {
-		return nil, nil, errors.New("SSH agent requested but Pageant not running")
+	if pageantWindow() != 0 {
+		return agent.NewClient(&conn{}), nil, nil
 	}
-
-	return agent.NewClient(&conn{}), nil, nil
+	conn, err := winio.DialPipe(sshAgentPipe, nil)
+	if err != nil {
+		return nil, nil, errors.New(
+			"SSH agent requested, but could not detect Pageant or Windows native SSH agent",
+		)
+	}
+	return agent.NewClient(conn), nil, nil
 }
 
 type conn struct {

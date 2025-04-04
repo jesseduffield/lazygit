@@ -7,9 +7,9 @@ import (
 	"io/fs"
 	"strings"
 
+	"dario.cat/mergo"
 	"github.com/cloudfoundry/jibber_jabber"
 	"github.com/go-errors/errors"
-	"github.com/imdario/mergo"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )

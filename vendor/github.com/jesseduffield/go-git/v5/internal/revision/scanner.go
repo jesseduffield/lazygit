@@ -43,6 +43,11 @@ func tokenizeExpression(ch rune, tokenType token, check runeCategoryValidator, r
 	return tokenType, string(data), nil
 }
 
+// maxRevisionLength holds the maximum length that will be parsed for a
+// revision. Git itself doesn't enforce a max length, but rather leans on
+// the OS to enforce it via its ARG_MAX.
+const maxRevisionLength = 128 * 1024 // 128kb
+
 var zeroRune = rune(0)
 
 // scanner represents a lexical scanner.
@@ -52,7 +57,7 @@ type scanner struct {
 
 // newScanner returns a new instance of scanner.
 func newScanner(r io.Reader) *scanner {
-	return &scanner{r: bufio.NewReader(r)}
+	return &scanner{r: bufio.NewReader(io.LimitReader(r, maxRevisionLength))}
 }
 
 // Scan extracts tokens and their strings counterpart

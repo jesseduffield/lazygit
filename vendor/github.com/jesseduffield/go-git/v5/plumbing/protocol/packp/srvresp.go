@@ -21,11 +21,6 @@ type ServerResponse struct {
 // Decode decodes the response into the struct, isMultiACK should be true, if
 // the request was done with multi_ack or multi_ack_detailed capabilities.
 func (r *ServerResponse) Decode(reader *bufio.Reader, isMultiACK bool) error {
-	// TODO: implement support for multi_ack or multi_ack_detailed responses
-	if isMultiACK {
-		return errors.New("multi_ack and multi_ack_detailed are not supported")
-	}
-
 	s := pktline.NewScanner(reader)
 
 	for s.Scan() {
@@ -48,7 +43,23 @@ func (r *ServerResponse) Decode(reader *bufio.Reader, isMultiACK bool) error {
 		}
 	}
 
-	return s.Err()
+	// isMultiACK is true when the remote server advertises the related
+	// capabilities when they are not in transport.UnsupportedCapabilities.
+	//
+	// Users may decide to remove multi_ack and multi_ack_detailed from the
+	// unsupported capabilities list, which allows them to do initial clones
+	// from Azure DevOps.
+	//
+	// Follow-up fetches may error, therefore errors are wrapped with additional
+	// information highlighting that this capabilities are not supported by go-git.
+	//
+	// TODO: Implement support for multi_ack or multi_ack_detailed responses.
+	err := s.Err()
+	if err != nil && isMultiACK {
+		return fmt.Errorf("multi_ack and multi_ack_detailed are not supported: %w", err)
+	}
+
+	return err
 }
 
 // stopReading detects when a valid command such as ACK or NAK is found to be
@@ -90,12 +101,14 @@ func (r *ServerResponse) decodeLine(line []byte) error {
 		return fmt.Errorf("unexpected flush")
 	}
 
-	if bytes.Equal(line[0:3], ack) {
-		return r.decodeACKLine(line)
-	}
+	if len(line) >= 3 {
+		if bytes.Equal(line[0:3], ack) {
+			return r.decodeACKLine(line)
+		}
 
-	if bytes.Equal(line[0:3], nak) {
-		return nil
+		if bytes.Equal(line[0:3], nak) {
+			return nil
+		}
 	}
 
 	return fmt.Errorf("unexpected content %q", string(line))
@@ -107,14 +120,18 @@ func (r *ServerResponse) decodeACKLine(line []byte) error {
 	}
 
 	sp := bytes.Index(line, []byte(" "))
+	if sp+41 > len(line) {
+		return fmt.Errorf("malformed ACK %q", line)
+	}
 	h := plumbing.NewHash(string(line[sp+1 : sp+41]))
 	r.ACKs = append(r.ACKs, h)
 	return nil
 }
 
 // Encode encodes the ServerResponse into a writer.
-func (r *ServerResponse) Encode(w io.Writer) error {
-	if len(r.ACKs) > 1 {
+func (r *ServerResponse) Encode(w io.Writer, isMultiACK bool) error {
+	if len(r.ACKs) > 1 && !isMultiACK {
+		// For further information, refer to comments in the Decode func above.
 		return errors.New("multi_ack and multi_ack_detailed are not supported")
 	}
 

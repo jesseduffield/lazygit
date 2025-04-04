@@ -1,6 +1,11 @@
 // Package capability defines the server and client capabilities.
 package capability
 
+import (
+	"fmt"
+	"os"
+)
+
 // Capability describes a server or client capability.
 type Capability string
 
@@ -230,9 +235,23 @@ const (
 	PushCert Capability = "push-cert"
 	// SymRef symbolic reference support for better negotiation.
 	SymRef Capability = "symref"
+	// ObjectFormat takes a hash algorithm as an argument, indicates that the
+	// server supports the given hash algorithms.
+	ObjectFormat Capability = "object-format"
+	// Filter if present, fetch-pack may send "filter" commands to request a
+	// partial clone or partial fetch and request that the server omit various objects from the packfile
+	Filter Capability = "filter"
 )
 
-const DefaultAgent = "go-git/4.x"
+const userAgent = "go-git/5.x"
+
+// DefaultAgent provides the user agent string.
+func DefaultAgent() string {
+	if envUserAgent, ok := os.LookupEnv("GO_GIT_USER_AGENT_EXTRA"); ok {
+		return fmt.Sprintf("%s %s", userAgent, envUserAgent)
+	}
+	return userAgent
+}
 
 var known = map[Capability]bool{
 	MultiACK: true, MultiACKDetailed: true, NoDone: true, ThinPack: true,
@@ -241,10 +260,11 @@ var known = map[Capability]bool{
 	NoProgress: true, IncludeTag: true, ReportStatus: true, DeleteRefs: true,
 	Quiet: true, Atomic: true, PushOptions: true, AllowTipSHA1InWant: true,
 	AllowReachableSHA1InWant: true, PushCert: true, SymRef: true,
+	ObjectFormat: true, Filter: true,
 }
 
 var requiresArgument = map[Capability]bool{
-	Agent: true, PushCert: true, SymRef: true,
+	Agent: true, PushCert: true, SymRef: true, ObjectFormat: true,
 }
 
 var multipleArgument = map[Capability]bool{
