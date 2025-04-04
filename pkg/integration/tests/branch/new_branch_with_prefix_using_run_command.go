@@ -1,16 +1,16 @@
-package commit
+package branch
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var NewBranchWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Creating a new branch from a commit with a default name",
+var NewBranchWithPrefixUsingRunCommand = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Creating a new branch with a branch prefix using a runCommand",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Git.BranchPrefix = "myprefix/"
+		cfg.GetUserConfig().Git.BranchPrefix = "myprefix/{{ runCommand \"echo dynamic\" }}/"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.
@@ -25,9 +25,12 @@ var NewBranchWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			Press(keys.Universal.New).
 			Tap(func() {
-				branchName := "my-branch-name"
-				t.ExpectPopup().Prompt().Title(Contains("New branch name")).Type(branchName).Confirm()
-				t.Git().CurrentBranchName("myprefix/" + branchName)
+				t.ExpectPopup().Prompt().
+					Title(Contains("New branch name")).
+					InitialText(Equals("myprefix/dynamic/")).
+					Type("my-branch").
+					Confirm()
+				t.Git().CurrentBranchName("myprefix/dynamic/my-branch")
 			})
 	},
 })
