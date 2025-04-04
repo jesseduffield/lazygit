@@ -23,6 +23,8 @@ var EditNonTodoCommitDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.Edit).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 02"),
 				Contains("commit 01"),
 			).

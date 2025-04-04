@@ -24,11 +24,13 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			// Start a rebase
 			Press(keys.Universal.Edit).
 			TopLines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08"),
 				Contains("pick").Contains("commit 07"),
 				Contains("pick").Contains("commit 06"),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 05").IsSelected(),
 				Contains("commit 04"),
 			).
@@ -36,61 +38,73 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			// perform various actions on a range of commits
 			Press(keys.Universal.RangeSelectUp).
 			TopLines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08"),
 				Contains("pick").Contains("commit 07").IsSelected(),
 				Contains("pick").Contains("commit 06").IsSelected(),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Commits.MarkCommitAsFixup).
 			TopLines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08"),
 				Contains("fixup").Contains("commit 07").IsSelected(),
 				Contains("fixup").Contains("commit 06").IsSelected(),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Commits.PickCommit).
 			TopLines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08"),
 				Contains("pick").Contains("commit 07").IsSelected(),
 				Contains("pick").Contains("commit 06").IsSelected(),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Universal.Edit).
 			TopLines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08"),
 				Contains("edit").Contains("commit 07").IsSelected(),
 				Contains("edit").Contains("commit 06").IsSelected(),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Commits.SquashDown).
 			TopLines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08"),
 				Contains("squash").Contains("commit 07").IsSelected(),
 				Contains("squash").Contains("commit 06").IsSelected(),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Commits.MoveDownCommit).
 			TopLines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08"),
 				Contains("squash").Contains("commit 07").IsSelected(),
 				Contains("squash").Contains("commit 06").IsSelected(),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 05"),
 				Contains("commit 04"),
 			).
@@ -99,31 +113,37 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Press(keys.Commits.MoveUpCommit).
 			TopLines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
 				Contains("squash").Contains("commit 07").IsSelected(),
 				Contains("squash").Contains("commit 06").IsSelected(),
 				Contains("pick").Contains("commit 08"),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Commits.MoveUpCommit).
 			TopLines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("commit 10"),
 				Contains("squash").Contains("commit 07").IsSelected(),
 				Contains("squash").Contains("commit 06").IsSelected(),
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08"),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Commits.MoveUpCommit).
 			TopLines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("squash").Contains("commit 07").IsSelected(),
 				Contains("squash").Contains("commit 06").IsSelected(),
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08"),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 05"),
 				Contains("commit 04"),
 			).
@@ -132,11 +152,13 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				t.ExpectToast(Contains("Disabled: Cannot move any further"))
 			}).
 			TopLines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("squash").Contains("commit 07").IsSelected(),
 				Contains("squash").Contains("commit 06").IsSelected(),
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08"),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 05"),
 				Contains("commit 04"),
 			).
@@ -145,11 +167,13 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit 08")).
 			Press(keys.Universal.RangeSelectDown).
 			TopLines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("squash").Contains("commit 07"),
 				Contains("squash").Contains("commit 06"),
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08").IsSelected(),
+				Contains("--- Commits ---").IsSelected(),
 				Contains("<-- YOU ARE HERE --- commit 05").IsSelected(),
 				Contains("commit 04"),
 			).
@@ -158,11 +182,13 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				t.ExpectToast(Contains("Disabled: When rebasing, this action only works on a selection of TODO commits."))
 			}).
 			TopLines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("squash").Contains("commit 07"),
 				Contains("squash").Contains("commit 06"),
 				Contains("pick").Contains("commit 10"),
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08").IsSelected(),
+				Contains("--- Commits ---").IsSelected(),
 				Contains("<-- YOU ARE HERE --- commit 05").IsSelected(),
 				Contains("commit 04"),
 			).

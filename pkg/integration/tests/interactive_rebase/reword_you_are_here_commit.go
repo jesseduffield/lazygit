@@ -25,7 +25,9 @@ var RewordYouAreHereCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit 02")).
 			Press(keys.Universal.Edit).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("commit 03"),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 02").IsSelected(),
 				Contains("commit 01"),
 			).
@@ -39,7 +41,9 @@ var RewordYouAreHereCommit = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("commit 03"),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- renamed 02").IsSelected(),
 				Contains("commit 01"),
 			)

@@ -350,6 +350,10 @@ type TranslationSet struct {
 	NoRoom                                string
 	YouAreHere                            string
 	ConflictLabel                         string
+	PendingRebaseTodosSectionHeader       string
+	PendingCherryPicksSectionHeader       string
+	PendingRevertsSectionHeader           string
+	CommitsSectionHeader                  string
 	YouDied                               string
 	RewordNotSupported                    string
 	ChangingThisActionIsNotAllowed        string
@@ -1419,6 +1423,10 @@ func EnglishTranslationSet() *TranslationSet {
 		NoRoom:                               "Not enough room",
 		YouAreHere:                           "YOU ARE HERE",
 		ConflictLabel:                        "CONFLICT",
+		PendingRebaseTodosSectionHeader:      "Pending rebase todos",
+		PendingCherryPicksSectionHeader:      "Pending cherry-picks",
+		PendingRevertsSectionHeader:          "Pending reverts",
+		CommitsSectionHeader:                 "Commits",
 		YouDied:                              "YOU DIED!",
 		RewordNotSupported:                   "Rewording commits while interactively rebasing is not currently supported",
 		ChangingThisActionIsNotAllowed:       "Changing this kind of rebase todo entry is not allowed",

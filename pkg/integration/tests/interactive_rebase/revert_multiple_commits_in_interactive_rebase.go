@@ -50,10 +50,13 @@ var RevertMultipleCommitsInInteractiveRebase = NewIntegrationTest(NewIntegration
 					Confirm()
 			}).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("CI unrelated change 3"),
 				Contains("CI unrelated change 2"),
+				Contains("--- Pending reverts ---"),
 				Contains("revert").Contains("CI unrelated change 1"),
 				Contains("revert").Contains("CI <-- CONFLICT --- add first line"),
+				Contains("--- Commits ---"),
 				Contains("CI ◯ add second line"),
 				Contains("CI ◯ add first line"),
 				Contains("CI ◯ unrelated change 1"),
@@ -80,8 +83,10 @@ var RevertMultipleCommitsInInteractiveRebase = NewIntegrationTest(NewIntegration
 
 		t.Views().Commits().
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("CI unrelated change 3"),
 				Contains("pick").Contains("CI unrelated change 2"),
+				Contains("--- Commits ---"),
 				Contains(`CI ◯ <-- YOU ARE HERE --- Revert "unrelated change 1"`),
 				Contains(`CI ◯ Revert "add first line"`),
 				Contains("CI ◯ add second line"),

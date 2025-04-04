@@ -41,12 +41,14 @@ var DontShowBranchHeadsForTodoItems = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit 04")).
 			Press(keys.Universal.Edit).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("CI commit 09"),
 				Contains("pick").Contains("CI commit 08"),
 				Contains("pick").Contains("CI commit 07"),
 				Contains("update-ref").Contains("branch2"),
 				Contains("pick").Contains("CI commit 06"), // no star on this entry, even though branch2 points to it
 				Contains("pick").Contains("CI commit 05"),
+				Contains("--- Commits ---"),
 				Contains("CI <-- YOU ARE HERE --- commit 04"),
 				Contains("CI commit 03"),
 				Contains("CI * commit 02"), // this star is fine though

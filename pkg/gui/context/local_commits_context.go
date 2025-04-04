@@ -1,6 +1,7 @@
 package context
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -66,6 +67,51 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 		)
 	}
 
+	getNonModelItems := func() []*NonModelItem {
+		result := []*NonModelItem{}
+		if c.Model().WorkingTreeStateAtLastCommitRefresh.CanShowTodos() {
+			if c.Model().WorkingTreeStateAtLastCommitRefresh.Rebasing {
+				result = append(result, &NonModelItem{
+					Index:   0,
+					Content: fmt.Sprintf("--- %s ---", c.Tr.PendingRebaseTodosSectionHeader),
+				})
+			}
+
+			if c.Model().WorkingTreeStateAtLastCommitRefresh.CherryPicking ||
+				c.Model().WorkingTreeStateAtLastCommitRefresh.Reverting {
+				_, firstCherryPickOrRevertTodo, found := lo.FindIndexOf(
+					c.Model().Commits, func(c *models.Commit) bool {
+						return c.Status == models.StatusCherryPickingOrReverting ||
+							c.Status == models.StatusConflicted
+					})
+				if !found {
+					firstCherryPickOrRevertTodo = 0
+				}
+				label := lo.Ternary(c.Model().WorkingTreeStateAtLastCommitRefresh.CherryPicking,
+					c.Tr.PendingCherryPicksSectionHeader,
+					c.Tr.PendingRevertsSectionHeader)
+				result = append(result, &NonModelItem{
+					Index:   firstCherryPickOrRevertTodo,
+					Content: fmt.Sprintf("--- %s ---", label),
+				})
+			}
+
+			_, firstRealCommit, found := lo.FindIndexOf(
+				c.Model().Commits, func(c *models.Commit) bool {
+					return !c.IsTODO()
+				})
+			if !found {
+				firstRealCommit = 0
+			}
+			result = append(result, &NonModelItem{
+				Index:   firstRealCommit,
+				Content: fmt.Sprintf("--- %s ---", c.Tr.CommitsSectionHeader),
+			})
+		}
+
+		return result
+	}
+
 	ctx := &LocalCommitsContext{
 		LocalCommitsViewModel: viewModel,
 		SearchTrait:           NewSearchTrait(c),
@@ -82,6 +128,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			ListRenderer: ListRenderer{
 				list:              viewModel,
 				getDisplayStrings: getDisplayStrings,
+				getNonModelItems:  getNonModelItems,
 			},
 			c:                       c,
 			refreshViewportOnChange: true,

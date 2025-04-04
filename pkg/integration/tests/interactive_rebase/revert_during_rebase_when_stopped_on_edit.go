@@ -30,7 +30,9 @@ var RevertDuringRebaseWhenStoppedOnEdit = NewIntegrationTest(NewIntegrationTestA
 			NavigateToLine(Contains("commit 03")).
 			Press(keys.Universal.Edit).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("commit 04"),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 03").IsSelected(),
 				Contains("commit 02"),
 				Contains("commit 01"),
@@ -47,7 +49,9 @@ var RevertDuringRebaseWhenStoppedOnEdit = NewIntegrationTest(NewIntegrationTestA
 					Confirm()
 			}).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("commit 04"),
+				Contains("--- Commits ---"),
 				Contains(`<-- YOU ARE HERE --- Revert "commit 01"`),
 				Contains(`Revert "commit 02"`),
 				Contains("commit 03"),
