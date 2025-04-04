@@ -37,9 +37,11 @@ var EditLastCommitOfStackedBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit 03")).
 			Press(keys.Universal.Edit).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("CI commit 05"),
 				Contains("pick").Contains("CI commit 04"),
 				Contains("update-ref").Contains("branch1"),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- * commit 03").IsSelected(),
 				Contains("CI commit 02"),
 				Contains("CI commit 01"),

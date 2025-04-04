@@ -27,8 +27,10 @@ var EditRangeSelectDownToMergeOutsideRebase = NewIntegrationTest(NewIntegrationT
 			Press(keys.Universal.RangeSelectDown).
 			Press(keys.Universal.Edit).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("edit  CI commit 02").IsSelected(),
 				Contains("edit  CI commit 01").IsSelected(),
+				Contains("--- Commits ---").IsSelected(),
 				Contains("      CI ⏣─╮ <-- YOU ARE HERE --- Merge branch 'second-change-branch' into first-change-branch").IsSelected(),
 				Contains("      CI │ ◯ * second-change-branch unrelated change"),
 				Contains("      CI │ ◯ second change"),

@@ -24,7 +24,9 @@ var AmendNonHeadCommitDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit 02")).
 			Press(keys.Universal.Edit).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("commit 03"),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 02"),
 				Contains("commit 01"),
 			)

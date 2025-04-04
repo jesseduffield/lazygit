@@ -34,8 +34,10 @@ var AmendCommitWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Common().AcknowledgeConflicts()
 			}).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("three"),
 				Contains("fixup").Contains("<-- CONFLICT --- fixup! two"),
+				Contains("--- Commits ---"),
 				Contains("two"),
 				Contains("one"),
 			)
@@ -66,7 +68,9 @@ var AmendCommitWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("<-- CONFLICT --- three"),
+				Contains("--- Commits ---"),
 				Contains("two"),
 				Contains("one"),
 			)

@@ -33,7 +33,9 @@ var RewordCommitWithEditorAndFail = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("commit 03"),
+				Contains("--- Commits ---"),
 				Contains("<-- YOU ARE HERE --- commit 02").IsSelected(),
 				Contains("commit 01"),
 			)
