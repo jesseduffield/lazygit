@@ -750,10 +750,10 @@ Lazygit has a command prompt (`:`) for quickly executing shell commands without 
 
 ```yml
 os:
-  shellAliasesFile: ~/.my_aliases.sh
+  shellFunctionsFile: ~/.my_aliases.sh
 ```
 
-For many people it might work well enough to use their entire shell config file (`~/.bashrc` or `~/.zshrc`) as the `shellAliasesFile`, but these config files typically do a lot more than defining aliases (e.g. initialize the completion system, start an ssh-agent, etc.) and this may unnecessarily delay execution of shell commands.
+For many people it might work well enough to use their entire shell config file (`~/.bashrc` or `~/.zshrc`) as the `shellFunctionsFile`, but these config files typically do a lot more than defining aliases (e.g. initialize the completion system, start an ssh-agent, etc.) and this may unnecessarily delay execution of shell commands.
 
 When using zsh, aliases can't be used here, but functions can. It is easy to convert your existing aliases into functions, just change `alias l="ls -la"` to `l() ls -la`, for example. This way it will work as before both in the shell and in lazygit.
 
