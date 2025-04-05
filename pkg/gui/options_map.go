@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
@@ -82,16 +83,10 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 	}
 
 	// Mode-specific global keybindings
-	if self.c.Model().WorkingTreeStateAtLastCommitRefresh.IsRebasing() {
+	if state := self.c.Model().WorkingTreeStateAtLastCommitRefresh; state != enums.WORKING_TREE_STATE_NONE {
 		optionsMap = utils.Prepend(optionsMap, bindingInfo{
 			key:         keybindings.Label(self.c.KeybindingsOpts().Config.Universal.CreateRebaseOptionsMenu),
-			description: self.c.Tr.ViewRebaseOptions,
-			style:       style.FgYellow,
-		})
-	} else if self.c.Model().WorkingTreeStateAtLastCommitRefresh.IsMerging() {
-		optionsMap = utils.Prepend(optionsMap, bindingInfo{
-			key:         keybindings.Label(self.c.KeybindingsOpts().Config.Universal.CreateRebaseOptionsMenu),
-			description: self.c.Tr.ViewMergeOptions,
+			description: state.OptionsMapTitle(self.c.Tr),
 			style:       style.FgYellow,
 		})
 	}

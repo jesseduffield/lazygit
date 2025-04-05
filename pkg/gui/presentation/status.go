@@ -18,7 +18,7 @@ func FormatStatus(
 	currentBranch *models.Branch,
 	itemOperation types.ItemOperation,
 	linkedWorktreeName string,
-	workingTreeState enums.RebaseMode,
+	workingTreeState enums.WorkingTreeState,
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
 ) string {
@@ -31,8 +31,8 @@ func FormatStatus(
 		}
 	}
 
-	if workingTreeState != enums.REBASE_MODE_NONE {
-		status += style.FgYellow.Sprintf("(%s) ", FormatWorkingTreeStateLower(tr, workingTreeState))
+	if workingTreeState != enums.WORKING_TREE_STATE_NONE {
+		status += style.FgYellow.Sprintf("(%s) ", workingTreeState.LowerCaseTitle(tr))
 	}
 
 	name := GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)

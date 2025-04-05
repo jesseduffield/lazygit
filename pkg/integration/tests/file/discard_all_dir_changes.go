@@ -93,7 +93,7 @@ var DiscardAllDirChanges = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Tap(func() {
-				t.Common().ContinueOnConflictsResolved()
+				t.Common().ContinueOnConflictsResolved("merge")
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Continue")).
 					Content(Contains("Files have been modified since conflicts were resolved. Auto-stage them and continue?")).

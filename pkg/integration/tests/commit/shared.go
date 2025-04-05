@@ -61,7 +61,7 @@ func doTheRebaseForAmendTests(t *TestDriver, keys config.KeybindingConfig) {
 
 	t.ExpectPopup().Confirmation().
 		Title(Equals("Continue")).
-		Content(Contains("All merge conflicts resolved. Continue?")).
+		Content(Contains("All merge conflicts resolved. Continue the rebase?")).
 		Cancel()
 }
 

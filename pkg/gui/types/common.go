@@ -288,7 +288,7 @@ type Model struct {
 	ReflogCommits []*models.Commit
 
 	BisectInfo                          *git_commands.BisectInfo
-	WorkingTreeStateAtLastCommitRefresh enums.RebaseMode
+	WorkingTreeStateAtLastCommitRefresh enums.WorkingTreeState
 	RemoteBranches                      []*models.RemoteBranch
 	Tags                                []*models.Tag
 
