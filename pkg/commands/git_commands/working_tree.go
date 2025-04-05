@@ -236,6 +236,8 @@ func escapeFilename(filename string) string {
 	if strings.HasPrefix(filename, "#") || strings.HasPrefix(filename, "!") {
 		escapedFilename = "\\" + filename
 	}
+	escapedFilename = strings.ReplaceAll(escapedFilename, "[", "\\[")
+	escapedFilename = strings.ReplaceAll(escapedFilename, "]", "\\]")
 	return escapedFilename
 }
 
