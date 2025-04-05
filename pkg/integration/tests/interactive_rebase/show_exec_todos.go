@@ -35,7 +35,7 @@ var ShowExecTodos = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("exec").Contains("false"),
 				Contains("pick").Contains("CI commit 03"),
 				Contains("--- Commits ---"),
-				Contains("CI ◯ <-- YOU ARE HERE --- commit 02"),
+				Contains("CI ◯ commit 02"),
 				Contains("CI ◯ commit 01"),
 			).
 			Tap(func() {
@@ -45,7 +45,7 @@ var ShowExecTodos = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("--- Pending rebase todos ---"),
 				Contains("--- Commits ---"),
-				Contains("CI ◯ <-- YOU ARE HERE --- commit 03"),
+				Contains("CI ◯ commit 03"),
 				Contains("CI ◯ commit 02"),
 				Contains("CI ◯ commit 01"),
 			).

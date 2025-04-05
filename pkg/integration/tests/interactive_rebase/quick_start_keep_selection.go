@@ -48,7 +48,7 @@ var QuickStartKeepSelection = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("CI commit 03"),
 				Contains("CI commit 02").IsSelected(),
 				Contains("--- Commits ---"),
-				Contains("CI <-- YOU ARE HERE --- commit 01"),
+				Contains("CI commit 01"),
 			)
 	},
 })

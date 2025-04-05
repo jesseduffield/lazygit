@@ -27,7 +27,7 @@ var AmendHeadCommitDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("--- Pending rebase todos ---"),
 				Contains("commit 03"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 02").IsSelected(),
+				Contains("commit 02").IsSelected(),
 				Contains("commit 01"),
 			)
 
@@ -53,7 +53,7 @@ var AmendHeadCommitDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("--- Pending rebase todos ---"),
 				Contains("commit 03"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 02").IsSelected(),
+				Contains("commit 02").IsSelected(),
 				Contains("commit 01"),
 			)
 

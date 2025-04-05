@@ -31,7 +31,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("commit 07"),
 				Contains("pick").Contains("commit 06"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 05").IsSelected(),
+				Contains("commit 05").IsSelected(),
 				Contains("commit 04"),
 			).
 			SelectPreviousItem().
@@ -45,7 +45,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("commit 07").IsSelected(),
 				Contains("pick").Contains("commit 06").IsSelected(),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 05"),
+				Contains("commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Commits.MarkCommitAsFixup).
@@ -57,7 +57,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("fixup").Contains("commit 07").IsSelected(),
 				Contains("fixup").Contains("commit 06").IsSelected(),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 05"),
+				Contains("commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Commits.PickCommit).
@@ -69,7 +69,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("commit 07").IsSelected(),
 				Contains("pick").Contains("commit 06").IsSelected(),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 05"),
+				Contains("commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Universal.Edit).
@@ -81,7 +81,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("edit").Contains("commit 07").IsSelected(),
 				Contains("edit").Contains("commit 06").IsSelected(),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 05"),
+				Contains("commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Commits.SquashDown).
@@ -93,7 +93,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("squash").Contains("commit 07").IsSelected(),
 				Contains("squash").Contains("commit 06").IsSelected(),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 05"),
+				Contains("commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Commits.MoveDownCommit).
@@ -105,7 +105,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("squash").Contains("commit 07").IsSelected(),
 				Contains("squash").Contains("commit 06").IsSelected(),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 05"),
+				Contains("commit 05"),
 				Contains("commit 04"),
 			).
 			Tap(func() {
@@ -120,7 +120,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("squash").Contains("commit 06").IsSelected(),
 				Contains("pick").Contains("commit 08"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 05"),
+				Contains("commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Commits.MoveUpCommit).
@@ -132,7 +132,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 05"),
+				Contains("commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Commits.MoveUpCommit).
@@ -144,7 +144,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 05"),
+				Contains("commit 05"),
 				Contains("commit 04"),
 			).
 			Press(keys.Commits.MoveUpCommit).
@@ -159,7 +159,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 05"),
+				Contains("commit 05"),
 				Contains("commit 04"),
 			).
 			// Verify we can't perform an action on a range that includes both
@@ -174,7 +174,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08").IsSelected(),
 				Contains("--- Commits ---").IsSelected(),
-				Contains("<-- YOU ARE HERE --- commit 05").IsSelected(),
+				Contains("commit 05").IsSelected(),
 				Contains("commit 04"),
 			).
 			Press(keys.Commits.MarkCommitAsFixup).
@@ -189,7 +189,7 @@ var MidRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("commit 09"),
 				Contains("pick").Contains("commit 08").IsSelected(),
 				Contains("--- Commits ---").IsSelected(),
-				Contains("<-- YOU ARE HERE --- commit 05").IsSelected(),
+				Contains("commit 05").IsSelected(),
 				Contains("commit 04"),
 			).
 			// continue the rebase

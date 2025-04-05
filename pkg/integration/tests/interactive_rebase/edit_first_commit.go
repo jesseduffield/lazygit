@@ -27,7 +27,7 @@ var EditFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("--- Pending rebase todos ---"),
 				Contains("commit 02"),
 				Contains("--- Commits ---"),
-				MatchesRegexp("YOU ARE HERE.*commit 01").IsSelected(),
+				Contains("commit 01").IsSelected(),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()

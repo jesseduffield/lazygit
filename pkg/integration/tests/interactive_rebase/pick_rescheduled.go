@@ -30,7 +30,7 @@ var PickRescheduled = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("three"),
 				Contains("pick").Contains("two"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- one").IsSelected(),
+				Contains("one").IsSelected(),
 			).
 			Tap(func() {
 				t.Shell().CreateFile("file3", "other content\n")
@@ -44,7 +44,7 @@ var PickRescheduled = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("three"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- two"),
+				Contains("two"),
 				Contains("one"),
 			)
 	},

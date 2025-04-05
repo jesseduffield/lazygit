@@ -47,7 +47,7 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("CI commit 04"),
 				Contains("pick").Contains("CI commit 03"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 02").IsSelected(),
+				Contains("CI commit 02").IsSelected(),
 				Contains("CI commit 01"),
 			).
 			Tap(func() {

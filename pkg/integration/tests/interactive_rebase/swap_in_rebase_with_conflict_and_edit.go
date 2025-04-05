@@ -33,7 +33,7 @@ var SwapInRebaseWithConflictAndEdit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit three"),
 				Contains("commit two"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit one").IsSelected(),
+				Contains("commit one").IsSelected(),
 			).
 			NavigateToLine(Contains("commit two")).
 			Press(keys.Commits.MoveUpCommit).
@@ -42,7 +42,7 @@ var SwapInRebaseWithConflictAndEdit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit two").IsSelected(),
 				Contains("commit three"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit one"),
+				Contains("commit one"),
 			).
 			NavigateToLine(Contains("commit three")).
 			Press(keys.Universal.Edit).

@@ -42,7 +42,7 @@ var EditLastCommitOfStackedBranch = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("CI commit 04"),
 				Contains("update-ref").Contains("branch1"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- * commit 03").IsSelected(),
+				Contains("CI * commit 03").IsSelected(),
 				Contains("CI commit 02"),
 				Contains("CI commit 01"),
 			)

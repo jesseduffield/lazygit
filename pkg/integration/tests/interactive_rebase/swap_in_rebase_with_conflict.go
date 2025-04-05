@@ -33,7 +33,7 @@ var SwapInRebaseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit three"),
 				Contains("commit two"),
 				Contains("--- Commits ---"),
-				Contains("YOU ARE HERE").Contains("commit one").IsSelected(),
+				Contains("commit one").IsSelected(),
 			).
 			SelectPreviousItem().
 			Press(keys.Commits.MoveUpCommit).
@@ -42,7 +42,7 @@ var SwapInRebaseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit two").IsSelected(),
 				Contains("commit three"),
 				Contains("--- Commits ---"),
-				Contains("YOU ARE HERE").Contains("commit one"),
+				Contains("commit one"),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()

@@ -34,7 +34,7 @@ var MoveUpdateRefTodo = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("CI commit 03"),
 				Contains("pick").Contains("CI commit 02"),
 				Contains("--- Commits ---"),
-				Contains("CI ◯ <-- YOU ARE HERE --- commit 01"),
+				Contains("CI ◯ commit 01"),
 			).
 			NavigateToLine(Contains("update-ref")).
 			Press(keys.Commits.MoveUpCommit).
@@ -48,7 +48,7 @@ var MoveUpdateRefTodo = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("CI commit 03"),
 				Contains("pick").Contains("CI commit 02"),
 				Contains("--- Commits ---"),
-				Contains("CI ◯ <-- YOU ARE HERE --- commit 01"),
+				Contains("CI ◯ commit 01"),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()

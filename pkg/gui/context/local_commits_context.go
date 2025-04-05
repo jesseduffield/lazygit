@@ -41,7 +41,6 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			}
 		}
 
-		showYouAreHereLabel := c.Model().WorkingTreeStateAtLastCommitRefresh.CanShowTodos()
 		hasRebaseUpdateRefsConfig := c.Git().Config.GetRebaseUpdateRefs()
 
 		return presentation.GetCommitListDisplayStrings(
@@ -63,7 +62,6 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			endIdx,
 			shouldShowGraph(c),
 			c.Model().BisectInfo,
-			showYouAreHereLabel,
 		)
 	}
 

@@ -28,7 +28,7 @@ var RewordYouAreHereCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("--- Pending rebase todos ---"),
 				Contains("commit 03"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- commit 02").IsSelected(),
+				Contains("commit 02").IsSelected(),
 				Contains("commit 01"),
 			).
 			Press(keys.Commits.RenameCommit).
@@ -44,7 +44,7 @@ var RewordYouAreHereCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("--- Pending rebase todos ---"),
 				Contains("commit 03"),
 				Contains("--- Commits ---"),
-				Contains("<-- YOU ARE HERE --- renamed 02").IsSelected(),
+				Contains("renamed 02").IsSelected(),
 				Contains("commit 01"),
 			)
 	},
