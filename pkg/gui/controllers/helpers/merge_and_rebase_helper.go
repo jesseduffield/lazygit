@@ -9,7 +9,6 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -122,7 +121,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 
 func (self *MergeAndRebaseHelper) hasExecTodos() bool {
 	for _, commit := range self.c.Model().Commits {
-		if commit.Status != models.StatusRebasing {
+		if !commit.IsTODO() {
 			break
 		}
 		if commit.Action == todo.Exec {

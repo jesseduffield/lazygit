@@ -750,7 +750,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 func (self *FilesController) isResolvingConflicts() bool {
 	commits := self.c.Model().Commits
 	for _, c := range commits {
-		if c.Status != models.StatusRebasing {
+		if !c.IsTODO() {
 			break
 		}
 		if c.Action == models.ActionConflict {
