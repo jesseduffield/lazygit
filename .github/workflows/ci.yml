@@ -49,8 +49,7 @@ jobs:
       fail-fast: false
       matrix:
         git-version:
-          - 2.20.0 # oldest supported version
-          - 2.22.5
+          - 2.22.0 # oldest supported version
           - 2.23.0
           - 2.25.1
           - 2.30.8

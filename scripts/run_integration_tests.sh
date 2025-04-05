@@ -1,5 +1,7 @@
 #!/bin/sh
 
+echo "Running integration tests with $(git --version)"
+
 # This is ugly, but older versions of git don't support the GIT_CONFIG_GLOBAL
 # env var; the only way to run tests for these old versions is to copy our test
 # config file to the actual global location. Move an existing file out of the
