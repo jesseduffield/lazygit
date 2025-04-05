@@ -18,6 +18,7 @@ const (
 	StatusPushed
 	StatusMerged
 	StatusRebasing
+	StatusCherryPickingOrReverting
 	StatusConflicted
 	StatusReflog
 )
