@@ -33,7 +33,7 @@ var ResetFolder = NewIntegrationTest(NewIntegrationTestArgs{
 			// Verify we cannot reset the entire folder (has nested file and submodule changes).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectToast(Contains("Disabled: Range select not supported for submodules"))
+				t.ExpectToast(Contains("Disabled: Multiselection not supported for submodules"))
 			}).
 			// Verify we cannot reset submodule + file or submodule + submodule via range select.
 			SelectNextItem().
@@ -47,7 +47,7 @@ var ResetFolder = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectToast(Contains("Disabled: Range select not supported for submodules"))
+				t.ExpectToast(Contains("Disabled: Multiselection not supported for submodules"))
 			}).
 			Press(keys.Universal.ToggleRangeSelect).
 			Press(keys.Universal.ToggleRangeSelect).
@@ -60,7 +60,7 @@ var ResetFolder = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectToast(Contains("Disabled: Range select not supported for submodules"))
+				t.ExpectToast(Contains("Disabled: Multiselection not supported for submodules"))
 			}).
 			// Reset the file change.
 			Press(keys.Universal.ToggleRangeSelect).
@@ -81,7 +81,7 @@ var ResetFolder = NewIntegrationTest(NewIntegrationTestArgs{
 			// Verify we still cannot reset the entire folder (has two submodule changes).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectToast(Contains("Disabled: Range select not supported for submodules"))
+				t.ExpectToast(Contains("Disabled: Multiselection not supported for submodules"))
 			}).
 			// Reset one of the submodule changes.
 			SelectNextItem().
