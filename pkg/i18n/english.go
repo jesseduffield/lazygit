@@ -1831,7 +1831,7 @@ func EnglishTranslationSet() *TranslationSet {
 Whilst there is a solution/workaround, please understand the relevant risks and purpose of this warning!
 See 'https://github.com/git/git/commit/8959555cee7ec045958f9b6dd62e541affb7e7d9' for background information on said risks
 
-This error is unrelated to lazygit
+This error is unrelated to lazygit.
 For more information, see 'https://git-scm.com/docs/git-config/2.35.2#Documentation/git-config.txt-safedirectory'
 `,
 

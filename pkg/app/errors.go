@@ -3,8 +3,15 @@ package app
 import (
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/samber/lo"
+
+	"github.com/jesseduffield/lazygit/pkg/i18n"
+)
+
+const (
+	notAGitRepo      string = "fatal: not a git repository"
+	noWorkingDir     string = "getwd: no such file or directory"
+	dubiousOwnership string = "fatal: detected dubious ownership in repository"
 )
 
 type errorMapping struct {
@@ -24,15 +31,15 @@ func knownError(tr *i18n.TranslationSet, err error) (string, bool) {
 
 	mappings := []errorMapping{
 		{
-			originalError: "fatal: not a git repository",
+			originalError: notAGitRepo,
 			newError:      tr.NotARepository,
 		},
 		{
-			originalError: "getwd: no such file or directory",
+			originalError: noWorkingDir,
 			newError:      tr.WorkingDirectoryDoesNotExist,
 		},
 		{
-			originalError: "fatal: detected dubious ownership in repository",
+			originalError: dubiousOwnership,
 			newError:      tr.UnsafeOrNetworkDirectoryError,
 		},
 	}
