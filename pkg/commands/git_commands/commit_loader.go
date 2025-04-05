@@ -126,7 +126,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 		if commit.Hash == firstPushedCommit {
 			passedFirstPushedCommit = true
 		}
-		if commit.Status != models.StatusRebasing {
+		if !commit.IsTODO() {
 			if passedFirstPushedCommit {
 				commit.Status = models.StatusPushed
 			} else {
