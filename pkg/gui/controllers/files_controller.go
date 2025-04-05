@@ -1223,7 +1223,7 @@ func (self *FilesController) canRemove(selectedNodes []*filetree.FileNode) *type
 			return nil
 		})
 		if uniqueSelectedSubmodules.Len() > 0 && (hasFiles || uniqueSelectedSubmodules.Len() > 1) {
-			return &types.DisabledReason{Text: self.c.Tr.RangeSelectNotSupportedForSubmodules}
+			return &types.DisabledReason{Text: self.c.Tr.MultiSelectNotSupportedForSubmodules}
 		}
 	}
 
