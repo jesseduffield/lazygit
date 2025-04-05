@@ -37,7 +37,7 @@ var InteractiveRebaseOfCopiedBranch = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("CI commit 03"),
 				Contains("pick").Contains("CI commit 02"),
 				Contains("--- Commits ---"),
-				Contains("CI <-- YOU ARE HERE --- commit 01"),
+				Contains("CI commit 01"),
 			)
 	},
 })

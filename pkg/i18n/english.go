@@ -337,7 +337,6 @@ type TranslationSet struct {
 	PullRequestNoUpstream                 string
 	ErrorOccurred                         string
 	NoRoom                                string
-	YouAreHere                            string
 	ConflictLabel                         string
 	PendingRebaseTodosSectionHeader       string
 	PendingCherryPicksSectionHeader       string
@@ -1396,7 +1395,6 @@ func EnglishTranslationSet() *TranslationSet {
 		PullRequestNoUpstream:                "Cannot open a pull request for a branch with no upstream",
 		ErrorOccurred:                        "An error occurred! Please create an issue at",
 		NoRoom:                               "Not enough room",
-		YouAreHere:                           "YOU ARE HERE",
 		ConflictLabel:                        "CONFLICT",
 		PendingRebaseTodosSectionHeader:      "Pending rebase todos",
 		PendingCherryPicksSectionHeader:      "Pending cherry-picks",

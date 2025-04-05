@@ -56,7 +56,6 @@ func GetCommitListDisplayStrings(
 	endIdx int,
 	showGraph bool,
 	bisectInfo *git_commands.BisectInfo,
-	showYouAreHereLabel bool,
 ) [][]string {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -185,11 +184,6 @@ func GetCommitListDisplayStrings(
 	for i, commit := range filteredCommits {
 		unfilteredIdx := i + startIdx
 		bisectStatus = getBisectStatus(unfilteredIdx, commit.Hash, bisectInfo, bisectBounds)
-		isYouAreHereCommit := false
-		if showYouAreHereLabel && (commit.Status == models.StatusConflicted || unfilteredIdx == rebaseOffset) {
-			isYouAreHereCommit = true
-			showYouAreHereLabel = false
-		}
 		isMarkedBaseCommit := commit.Hash != "" && commit.Hash == markedBaseCommit
 		if isMarkedBaseCommit {
 			willBeRebased = true
@@ -211,7 +205,6 @@ func GetCommitListDisplayStrings(
 			fullDescription,
 			bisectStatus,
 			bisectInfo,
-			isYouAreHereCommit,
 		))
 	}
 	return lines
@@ -364,7 +357,6 @@ func displayCommit(
 	fullDescription bool,
 	bisectStatus BisectStatus,
 	bisectInfo *git_commands.BisectInfo,
-	isYouAreHereCommit bool,
 ) []string {
 	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
 
@@ -427,14 +419,8 @@ func displayCommit(
 	}
 
 	mark := ""
-	if isYouAreHereCommit {
-		color := style.FgYellow
-		text := common.Tr.YouAreHere
-		if commit.Status == models.StatusConflicted {
-			color = style.FgRed
-			text = common.Tr.ConflictLabel
-		}
-		youAreHere := color.Sprintf("<-- %s ---", text)
+	if commit.Status == models.StatusConflicted {
+		youAreHere := style.FgRed.Sprintf("<-- %s ---", common.Tr.ConflictLabel)
 		mark = fmt.Sprintf("%s ", youAreHere)
 	} else if isMarkedBaseCommit {
 		rebaseFromHere := style.FgYellow.Sprint(common.Tr.MarkedCommitMarker)

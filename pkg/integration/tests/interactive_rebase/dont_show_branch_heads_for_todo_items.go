@@ -49,7 +49,7 @@ var DontShowBranchHeadsForTodoItems = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("CI commit 06"), // no star on this entry, even though branch2 points to it
 				Contains("pick").Contains("CI commit 05"),
 				Contains("--- Commits ---"),
-				Contains("CI <-- YOU ARE HERE --- commit 04"),
+				Contains("CI commit 04"),
 				Contains("CI commit 03"),
 				Contains("CI * commit 02"), // this star is fine though
 				Contains("CI commit 01"),

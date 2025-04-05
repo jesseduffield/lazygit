@@ -88,7 +88,7 @@ var RevertSingleCommitInInteractiveRebase = NewIntegrationTest(NewIntegrationTes
 				Contains("pick").Contains("CI unrelated change 2"),
 				Contains("pick").Contains("CI unrelated change 1"),
 				Contains("--- Commits ---"),
-				Contains(`CI ◯ <-- YOU ARE HERE --- Revert "add first line"`),
+				Contains(`CI ◯ Revert "add first line"`),
 				Contains("CI ◯ add second line"),
 				Contains("CI ◯ add first line"),
 				Contains("CI ◯ add empty file"),

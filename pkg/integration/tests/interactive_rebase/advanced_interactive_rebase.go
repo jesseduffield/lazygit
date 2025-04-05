@@ -48,7 +48,7 @@ var AdvancedInteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("--- Pending rebase todos ---"),
 				Contains(TOP_COMMIT),
 				Contains("--- Commits ---"),
-				Contains(BASE_COMMIT).Contains("YOU ARE HERE"),
+				Contains(BASE_COMMIT),
 			).
 			NavigateToLine(Contains(TOP_COMMIT)).
 			Press(keys.Universal.Edit).
@@ -56,7 +56,7 @@ var AdvancedInteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("--- Pending rebase todos ---"),
 				Contains(TOP_COMMIT).Contains("edit"),
 				Contains("--- Commits ---"),
-				Contains(BASE_COMMIT).Contains("YOU ARE HERE"),
+				Contains(BASE_COMMIT),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()
@@ -64,7 +64,7 @@ var AdvancedInteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("--- Pending rebase todos ---"),
 				Contains("--- Commits ---"),
-				Contains(TOP_COMMIT).Contains("YOU ARE HERE"),
+				Contains(TOP_COMMIT),
 				Contains(BASE_COMMIT),
 			)
 	},

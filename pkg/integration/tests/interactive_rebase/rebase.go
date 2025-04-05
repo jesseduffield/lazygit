@@ -40,7 +40,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 				MatchesRegexp("pick.*second commit to edit"),
 				MatchesRegexp("pick.*commit to squash"),
 				Contains("--- Commits ---"),
-				MatchesRegexp("YOU ARE HERE.*first commit to edit").IsSelected(),
+				Contains("first commit to edit").IsSelected(),
 				Contains("initial commit"),
 			).
 			SelectPreviousItem().
@@ -52,7 +52,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 				MatchesRegexp("pick.*second commit to edit"),
 				MatchesRegexp("squash.*commit to squash").IsSelected(),
 				Contains("--- Commits ---"),
-				MatchesRegexp("YOU ARE HERE.*first commit to edit"),
+				Contains("first commit to edit"),
 				Contains("initial commit"),
 			).
 			SelectPreviousItem().
@@ -64,7 +64,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 				MatchesRegexp("edit.*second commit to edit").IsSelected(),
 				MatchesRegexp("squash.*commit to squash"),
 				Contains("--- Commits ---"),
-				MatchesRegexp("YOU ARE HERE.*first commit to edit"),
+				Contains("first commit to edit"),
 				Contains("initial commit"),
 			).
 			SelectPreviousItem().
@@ -76,7 +76,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 				MatchesRegexp("edit.*second commit to edit"),
 				MatchesRegexp("squash.*commit to squash"),
 				Contains("--- Commits ---"),
-				MatchesRegexp("YOU ARE HERE.*first commit to edit"),
+				Contains("first commit to edit"),
 				Contains("initial commit"),
 			).
 			SelectPreviousItem().
@@ -88,7 +88,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 				MatchesRegexp("edit.*second commit to edit"),
 				MatchesRegexp("squash.*commit to squash"),
 				Contains("--- Commits ---"),
-				MatchesRegexp("YOU ARE HERE.*first commit to edit"),
+				Contains("first commit to edit"),
 				Contains("initial commit"),
 			).
 			Tap(func() {
@@ -99,7 +99,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 				MatchesRegexp("fixup.*commit to fixup").IsSelected(),
 				MatchesRegexp("drop.*commit to drop"),
 				Contains("--- Commits ---"),
-				MatchesRegexp("YOU ARE HERE.*second commit to edit"),
+				Contains("second commit to edit"),
 				MatchesRegexp("first commit to edit"),
 				Contains("initial commit"),
 			).

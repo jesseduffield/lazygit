@@ -87,7 +87,7 @@ var RevertMultipleCommitsInInteractiveRebase = NewIntegrationTest(NewIntegration
 				Contains("pick").Contains("CI unrelated change 3"),
 				Contains("pick").Contains("CI unrelated change 2"),
 				Contains("--- Commits ---"),
-				Contains(`CI ◯ <-- YOU ARE HERE --- Revert "unrelated change 1"`),
+				Contains(`CI ◯ Revert "unrelated change 1"`),
 				Contains(`CI ◯ Revert "add first line"`),
 				Contains("CI ◯ add second line"),
 				Contains("CI ◯ add first line"),

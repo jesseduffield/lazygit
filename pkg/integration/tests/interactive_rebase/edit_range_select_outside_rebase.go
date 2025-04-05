@@ -44,7 +44,7 @@ var EditRangeSelectOutsideRebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("edit   CI second change").IsSelected(),
 				Contains("edit   CI * original").IsSelected(),
 				Contains("--- Commits ---").IsSelected(),
-				Contains("       CI ◯ <-- YOU ARE HERE --- three").IsSelected(),
+				Contains("       CI ◯ three").IsSelected(),
 				Contains("       CI ◯ two"),
 				Contains("       CI ◯ one"),
 			)
