@@ -44,7 +44,7 @@ func doTheRebaseForAmendTests(t *TestDriver, keys config.KeybindingConfig) {
 	t.Views().Commits().
 		Lines(
 			Contains("pick").Contains("commit three"),
-			Contains("conflict").Contains("<-- YOU ARE HERE --- file1 changed in branch"),
+			Contains("pick").Contains("<-- CONFLICT --- file1 changed in branch"),
 			Contains("commit two"),
 			Contains("file1 changed in master"),
 			Contains("base commit"),
