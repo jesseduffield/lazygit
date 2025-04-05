@@ -453,24 +453,34 @@ func (self *RebaseCommands) GenericMergeOrRebaseActionCmdObj(commandType string,
 }
 
 func (self *RebaseCommands) ContinueRebase() error {
-	return self.GenericMergeOrRebaseAction("rebase", "continue")
+	err := self.runSkipEditorCommand(self.GenericMergeOrRebaseActionCmdObj("rebase", "continue"))
+	if self.ProcessMergeRebaseResult(err) != nil {
+		return err
+	}
+	return self.InvokeGenericMergeOrRebaseActionCallback("rebase", "continue")
 }
 
 func (self *RebaseCommands) AbortRebase() error {
-	return self.GenericMergeOrRebaseAction("rebase", "abort")
+	err := self.runSkipEditorCommand(self.GenericMergeOrRebaseActionCmdObj("rebase", "abort"))
+	if self.ProcessMergeRebaseResult(err) != nil {
+		return err
+	}
+	return self.InvokeGenericMergeOrRebaseActionCallback("rebase", "abort")
+}
+
+func (self *RebaseCommands) ProcessMergeRebaseResult(result error) error {
+	if result != nil {
+		if !strings.Contains(result.Error(), "no rebase in progress") {
+			return result
+		}
+		self.Log.Warn(result)
+	}
+	return nil
 }
 
 // GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
 // By default we skip the editor in the case where a commit will be made
-func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, command string) error {
-	err := self.runSkipEditorCommand(self.GenericMergeOrRebaseActionCmdObj(commandType, command))
-	if err != nil {
-		if !strings.Contains(err.Error(), "no rebase in progress") {
-			return err
-		}
-		self.Log.Warn(err)
-	}
-
+func (self *RebaseCommands) InvokeGenericMergeOrRebaseActionCallback(commandType string, command string) error {
 	// sometimes we need to do a sequence of things in a rebase but the user needs to
 	// fix merge conflicts along the way. When this happens we queue up the next step
 	// so that after the next successful rebase continue we can continue from where we left off
@@ -485,7 +495,7 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, comma
 	return nil
 }
 
-func (self *RebaseCommands) runSkipEditorCommand(cmdObj oscommands.ICmdObj) error {
+func (self *RebaseCommands) AddSkipEditorCommand(cmdObj oscommands.ICmdObj) oscommands.ICmdObj {
 	instruction := daemon.NewExitImmediatelyInstruction()
 	lazyGitPath := oscommands.GetLazygitPath()
 	return cmdObj.
@@ -495,8 +505,11 @@ func (self *RebaseCommands) runSkipEditorCommand(cmdObj oscommands.ICmdObj) erro
 			"EDITOR="+lazyGitPath,
 			"VISUAL="+lazyGitPath,
 		).
-		AddEnvVars(daemon.ToEnvVars(instruction)...).
-		Run()
+		AddEnvVars(daemon.ToEnvVars(instruction)...)
+}
+
+func (self *RebaseCommands) runSkipEditorCommand(cmdObj oscommands.ICmdObj) error {
+	return self.AddSkipEditorCommand(cmdObj).Run()
 }
 
 // DiscardOldFileChanges discards changes to a file from an old commit
