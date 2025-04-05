@@ -1247,7 +1247,7 @@ func EnglishTranslationSet() *TranslationSet {
 		StashApplyTooltip:                    "Apply the stash entry to your working directory.",
 		NoStashEntries:                       "No stash entries",
 		StashDrop:                            "Stash drop",
-		SureDropStashEntry:                   "Are you sure you want to drop this stash entry?",
+		SureDropStashEntry:                   "Are you sure you want to drop the selected stash entry(ies)?",
 		StashPop:                             "Stash pop",
 		SurePopStashEntry:                    "Are you sure you want to pop this stash entry?",
 		StashApply:                           "Stash apply",
