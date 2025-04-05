@@ -48,8 +48,10 @@ var PullRebaseInteractiveConflict = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("five"),
 				Contains("pick").Contains("CONFLICT").Contains("four"),
+				Contains("--- Commits ---"),
 				Contains("three"),
 				Contains("two"),
 				Contains("one"),

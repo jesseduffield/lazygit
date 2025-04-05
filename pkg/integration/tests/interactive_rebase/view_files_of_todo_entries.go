@@ -28,10 +28,12 @@ var ViewFilesOfTodoEntries = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Press(keys.Commits.StartInteractiveRebase).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("CI commit 03").IsSelected(),
 				Contains("update-ref").Contains("branch1"),
 				Contains("pick").Contains("CI commit 02"),
-				Contains("CI <-- YOU ARE HERE --- commit 01"),
+				Contains("--- Commits ---"),
+				Contains("CI commit 01"),
 			).
 			Press(keys.Universal.GoInto)
 

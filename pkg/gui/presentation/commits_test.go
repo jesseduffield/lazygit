@@ -40,7 +40,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		endIdx                    int
 		showGraph                 bool
 		bisectInfo                *git_commands.BisectInfo
-		showYouAreHereLabel       bool
 		expected                  string
 		focus                     bool
 	}{
@@ -223,12 +222,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       true,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		hash1 pick  commit1
 		hash2 pick  commit2
-		hash3       ◯ <-- YOU ARE HERE --- commit3
+		hash3       ◯ commit3
 		hash4       ◯ commit4
 		hash5       ◯ commit5
 				`),
@@ -247,11 +245,10 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       true,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		hash2 pick  commit2
-		hash3       ◯ <-- YOU ARE HERE --- commit3
+		hash3       ◯ commit3
 		hash4       ◯ commit4
 		hash5       ◯ commit5
 				`),
@@ -270,7 +267,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       true,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		hash4 ◯ commit4
@@ -291,7 +287,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       true,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		hash1 pick  commit1
@@ -312,7 +307,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       true,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 			hash5 ◯ commit5
@@ -332,31 +326,10 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       true,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 			hash1 pick  commit1
 			hash2 pick  commit2
-				`),
-		},
-		{
-			testName: "don't show YOU ARE HERE label when not asked for (e.g. in branches panel)",
-			commits: []*models.Commit{
-				{Name: "commit1", Hash: "hash1", Parents: []string{"hash2"}, Action: todo.Pick},
-				{Name: "commit2", Hash: "hash2", Parents: []string{"hash3"}},
-				{Name: "commit3", Hash: "hash3", Parents: []string{"hash4"}},
-			},
-			startIdx:                  0,
-			endIdx:                    3,
-			showGraph:                 true,
-			bisectInfo:                git_commands.NewNullBisectInfo(),
-			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
-			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
-			expected: formatExpected(`
-		hash1 pick  commit1
-		hash2       ◯ commit2
-		hash3       ◯ commit3
 				`),
 		},
 		{
@@ -376,7 +349,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		↓ hash1r ◯ commit1
@@ -406,7 +378,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		↓ hash3r ◯ │ commit3
@@ -434,7 +405,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		↓ hash1r ◯ commit1
@@ -461,7 +431,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		↑ hash2l ⏣─╮ commit2
@@ -487,7 +456,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		↓ hash1r ◯ commit1
@@ -508,7 +476,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		↑ hash1l ◯ commit1
@@ -530,7 +497,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		↓ hash1r ◯ commit1
@@ -596,7 +562,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 					s.endIdx,
 					s.showGraph,
 					s.bisectInfo,
-					s.showYouAreHereLabel,
 				)
 
 				renderedLines, _ := utils.RenderDisplayStrings(result, nil)

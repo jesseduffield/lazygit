@@ -39,7 +39,9 @@ var RevertWithConflictSingleCommit = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
+				Contains("--- Pending reverts ---"),
 				Contains("revert").Contains("CI <-- CONFLICT --- add first line"),
+				Contains("--- Commits ---"),
 				Contains("CI ◯ add second line"),
 				Contains("CI ◯ add first line"),
 				Contains("CI ◯ add empty file"),
