@@ -109,13 +109,13 @@ func (self *Node[T]) SortChildren() {
 	self.Children = children
 }
 
-func (self *Node[T]) Some(test func(*Node[T]) bool) bool {
-	if test(self) {
+func (self *Node[T]) Some(predicate func(*Node[T]) bool) bool {
+	if predicate(self) {
 		return true
 	}
 
 	for _, child := range self.Children {
-		if child.Some(test) {
+		if child.Some(predicate) {
 			return true
 		}
 	}
@@ -123,14 +123,14 @@ func (self *Node[T]) Some(test func(*Node[T]) bool) bool {
 	return false
 }
 
-func (self *Node[T]) SomeFile(test func(*T) bool) bool {
+func (self *Node[T]) SomeFile(predicate func(*T) bool) bool {
 	if self.IsFile() {
-		if test(self.File) {
+		if predicate(self.File) {
 			return true
 		}
 	} else {
 		for _, child := range self.Children {
-			if child.SomeFile(test) {
+			if child.SomeFile(predicate) {
 				return true
 			}
 		}
@@ -139,13 +139,13 @@ func (self *Node[T]) SomeFile(test func(*T) bool) bool {
 	return false
 }
 
-func (self *Node[T]) Every(test func(*Node[T]) bool) bool {
-	if !test(self) {
+func (self *Node[T]) Every(predicate func(*Node[T]) bool) bool {
+	if !predicate(self) {
 		return false
 	}
 
 	for _, child := range self.Children {
-		if !child.Every(test) {
+		if !child.Every(predicate) {
 			return false
 		}
 	}
@@ -153,14 +153,14 @@ func (self *Node[T]) Every(test func(*Node[T]) bool) bool {
 	return true
 }
 
-func (self *Node[T]) EveryFile(test func(*T) bool) bool {
+func (self *Node[T]) EveryFile(predicate func(*T) bool) bool {
 	if self.IsFile() {
-		if !test(self.File) {
+		if !predicate(self.File) {
 			return false
 		}
 	} else {
 		for _, child := range self.Children {
-			if !child.EveryFile(test) {
+			if !child.EveryFile(predicate) {
 				return false
 			}
 		}
@@ -279,23 +279,23 @@ func (self *Node[T]) compressAux() *Node[T] {
 	return self
 }
 
-func (self *Node[T]) GetPathsMatching(test func(*Node[T]) bool) []string {
+func (self *Node[T]) GetPathsMatching(predicate func(*Node[T]) bool) []string {
 	paths := []string{}
 
-	if test(self) {
+	if predicate(self) {
 		paths = append(paths, self.GetPath())
 	}
 
 	for _, child := range self.Children {
-		paths = append(paths, child.GetPathsMatching(test)...)
+		paths = append(paths, child.GetPathsMatching(predicate)...)
 	}
 
 	return paths
 }
 
-func (self *Node[T]) GetFilePathsMatching(test func(*T) bool) []string {
+func (self *Node[T]) GetFilePathsMatching(predicate func(*T) bool) []string {
 	matchingFileNodes := lo.Filter(self.GetLeaves(), func(node *Node[T], _ int) bool {
-		return test(node.File)
+		return predicate(node.File)
 	})
 
 	return lo.Map(matchingFileNodes, func(node *Node[T], _ int) string {
