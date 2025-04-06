@@ -136,5 +136,12 @@ func (gui *Gui) postRefreshUpdate(c types.Context) {
 
 	if gui.currentViewName() == c.GetViewName() {
 		c.HandleFocus(types.OnFocusOpts{})
+	} else {
+		// The FocusLine call is included in the HandleFocus method which we
+		// call for focused views above; but we need to call it here for
+		// non-focused views to ensure that an inactive selection is painted
+		// correctly, and that integration tests see the up to date selection
+		// state.
+		c.FocusLine()
 	}
 }
