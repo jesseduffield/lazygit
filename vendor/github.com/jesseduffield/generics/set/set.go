@@ -39,6 +39,10 @@ func (s *Set[T]) Includes(value T) bool {
 	return s.hashMap[value]
 }
 
+func (s *Set[T]) Len() int {
+	return len(s.hashMap)
+}
+
 // output slice is not necessarily in the same order that items were added
 func (s *Set[T]) ToSlice() []T {
 	return maps.Keys(s.hashMap)
