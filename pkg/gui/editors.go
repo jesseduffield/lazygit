@@ -68,7 +68,6 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 func (gui *Gui) commitDescriptionEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
 	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, true)
 	v.RenderTextArea()
-	gui.c.Contexts().CommitMessage.RenderCommitLength()
 	return matched
 }
 
