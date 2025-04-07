@@ -77,7 +77,7 @@ func (self *CommitMessageController) GetOnFocus() func(types.OnFocusOpts) {
 
 func (self *CommitMessageController) GetOnFocusLost() func(types.OnFocusLostOpts) {
 	return func(types.OnFocusLostOpts) {
-		self.context().RenderCommitLength()
+		self.context().RenderSubtitle()
 	}
 }
 

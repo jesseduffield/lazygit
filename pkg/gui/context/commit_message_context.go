@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -42,6 +41,10 @@ type CommitMessageViewModel struct {
 	onConfirm func(string, string) error
 	// invoked when pressing the switch-to-editor key binding
 	onSwitchToEditor func(string) error
+
+	// the following two fields are used for the display of the "hooks disabled" subtitle
+	forceSkipHooks  bool
+	skipHooksPrefix string
 
 	// The message typed in before cycling through history
 	// We store this separately to 'preservedMessage' because 'preservedMessage'
@@ -149,12 +152,16 @@ func (self *CommitMessageContext) SetPanelState(
 	initialMessage string,
 	onConfirm func(string, string) error,
 	onSwitchToEditor func(string) error,
+	forceSkipHooks bool,
+	skipHooksPrefix string,
 ) {
 	self.viewModel.selectedindex = index
 	self.viewModel.preserveMessage = preserveMessage
 	self.viewModel.initialMessage = initialMessage
 	self.viewModel.onConfirm = onConfirm
 	self.viewModel.onSwitchToEditor = onSwitchToEditor
+	self.viewModel.forceSkipHooks = forceSkipHooks
+	self.viewModel.skipHooksPrefix = skipHooksPrefix
 	self.GetView().Title = summaryTitle
 	self.c.Views().CommitDescription.Title = descriptionTitle
 
@@ -167,16 +174,24 @@ func (self *CommitMessageContext) SetPanelState(
 	self.c.Views().CommitDescription.Visible = true
 }
 
-func (self *CommitMessageContext) RenderCommitLength() {
-	if self.c.UserConfig().Gui.CommitLength.Show {
-		self.c.Views().CommitMessage.Subtitle = getBufferLength(self.c.Views().CommitMessage)
-	} else {
-		self.c.Views().CommitMessage.Subtitle = ""
+func (self *CommitMessageContext) RenderSubtitle() {
+	skipHookPrefix := self.viewModel.skipHooksPrefix
+	subject := self.c.Views().CommitMessage.TextArea.GetContent()
+	var subtitle string
+	if self.viewModel.forceSkipHooks || (skipHookPrefix != "" && strings.HasPrefix(subject, skipHookPrefix)) {
+		subtitle = self.c.Tr.CommitHooksDisabledSubTitle
 	}
+	if self.c.UserConfig().Gui.CommitLength.Show {
+		if subtitle != "" {
+			subtitle += "─"
+		}
+		subtitle += getBufferLength(subject)
+	}
+	self.c.Views().CommitMessage.Subtitle = subtitle
 }
 
-func getBufferLength(view *gocui.View) string {
-	return " " + strconv.Itoa(strings.Count(view.TextArea.GetContent(), "")-1) + " "
+func getBufferLength(subject string) string {
+	return " " + strconv.Itoa(strings.Count(subject, "")-1) + " "
 }
 
 func (self *CommitMessageContext) SwitchToEditor(message string) error {
