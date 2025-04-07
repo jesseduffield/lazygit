@@ -42,6 +42,7 @@ var OpenPullRequestInvalidTargetRemoteName = NewIntegrationTest(NewIntegrationTe
 		t.ExpectPopup().
 			Prompt().
 			Title(Equals("Select target remote")).
+			Clear().
 			Type("non-existing-remote").
 			Confirm()
 

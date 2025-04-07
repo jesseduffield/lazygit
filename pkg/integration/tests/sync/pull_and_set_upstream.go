@@ -30,8 +30,8 @@ var PullAndSetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().IsFocused().Press(keys.Universal.Pull)
 
 		t.ExpectPopup().Prompt().
-			Title(Equals("Enter upstream as '<remote> <branchname>'")).
-			SuggestionLines(Equals("origin master")).
+			Title(Equals("Enter upstream branch on remote 'origin'")).
+			SuggestionLines(Equals("master")).
 			ConfirmFirstSuggestion()
 
 		t.Views().Commits().
