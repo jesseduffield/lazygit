@@ -6,7 +6,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -288,7 +287,7 @@ type Model struct {
 	ReflogCommits []*models.Commit
 
 	BisectInfo                          *git_commands.BisectInfo
-	WorkingTreeStateAtLastCommitRefresh enums.WorkingTreeState
+	WorkingTreeStateAtLastCommitRefresh models.WorkingTreeState
 	RemoteBranches                      []*models.RemoteBranch
 	Tags                                []*models.Tag
 

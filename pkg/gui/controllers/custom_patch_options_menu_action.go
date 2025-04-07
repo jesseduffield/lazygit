@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -44,7 +44,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 		},
 	}
 
-	if self.c.Git().Patch.PatchBuilder.CanRebase && self.c.Git().Status.WorkingTreeState() == enums.WORKING_TREE_STATE_NONE {
+	if self.c.Git().Patch.PatchBuilder.CanRebase && self.c.Git().Status.WorkingTreeState() == models.WORKING_TREE_STATE_NONE {
 		menuItems = append(menuItems, []*types.MenuItem{
 			{
 				Label:   fmt.Sprintf(self.c.Tr.RemovePatchFromOriginalCommit, self.c.Git().Patch.PatchBuilder.To),
@@ -115,7 +115,7 @@ func (self *CustomPatchOptionsMenuAction) getPatchCommitIndex() int {
 }
 
 func (self *CustomPatchOptionsMenuAction) validateNormalWorkingTreeState() (bool, error) {
-	if self.c.Git().Status.WorkingTreeState() != enums.WORKING_TREE_STATE_NONE {
+	if self.c.Git().Status.WorkingTreeState() != models.WORKING_TREE_STATE_NONE {
 		return false, errors.New(self.c.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil

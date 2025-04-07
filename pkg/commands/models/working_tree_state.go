@@ -1,4 +1,4 @@
-package enums
+package models
 
 import "github.com/jesseduffield/lazygit/pkg/i18n"
 

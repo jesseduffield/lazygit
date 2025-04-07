@@ -7,7 +7,6 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -41,7 +40,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			}
 		}
 
-		showYouAreHereLabel := c.Model().WorkingTreeStateAtLastCommitRefresh == enums.WORKING_TREE_STATE_REBASING
+		showYouAreHereLabel := c.Model().WorkingTreeStateAtLastCommitRefresh == models.WORKING_TREE_STATE_REBASING
 		hasRebaseUpdateRefsConfig := c.Git().Config.GetRebaseUpdateRefs()
 
 		return presentation.GetCommitListDisplayStrings(

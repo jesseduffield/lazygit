@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
@@ -682,7 +681,7 @@ func (self *LocalCommitsController) rewordEnabled(commit *models.Commit) *types.
 }
 
 func (self *LocalCommitsController) isRebasing() bool {
-	return self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.WORKING_TREE_STATE_NONE
+	return self.c.Model().WorkingTreeStateAtLastCommitRefresh != models.WORKING_TREE_STATE_NONE
 }
 
 func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
@@ -976,7 +975,7 @@ func (self *LocalCommitsController) moveFixupCommitToOwnerStackedBranch(targetCo
 		return nil
 	}
 
-	if self.c.Git().Status.WorkingTreeState() != enums.WORKING_TREE_STATE_NONE {
+	if self.c.Git().Status.WorkingTreeState() != models.WORKING_TREE_STATE_NONE {
 		// Can't move commits while rebasing
 		return nil
 	}

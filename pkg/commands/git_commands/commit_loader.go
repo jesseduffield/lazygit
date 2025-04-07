@@ -13,7 +13,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -31,7 +30,7 @@ type CommitLoader struct {
 	*common.Common
 	cmd oscommands.ICmdObjBuilder
 
-	getWorkingTreeState func() enums.WorkingTreeState
+	getWorkingTreeState func() models.WorkingTreeState
 	readFile            func(filename string) ([]byte, error)
 	walkFiles           func(root string, fn filepath.WalkFunc) error
 	dotGitDir           string
@@ -42,7 +41,7 @@ type CommitLoader struct {
 func NewCommitLoader(
 	cmn *common.Common,
 	cmd oscommands.ICmdObjBuilder,
-	getWorkingTreeState func() enums.WorkingTreeState,
+	getWorkingTreeState func() models.WorkingTreeState,
 	gitCommon *GitCommon,
 ) *CommitLoader {
 	return &CommitLoader{

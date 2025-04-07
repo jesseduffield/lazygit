@@ -9,7 +9,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
@@ -583,7 +582,7 @@ func (self *RefreshHelper) refreshStateFiles() error {
 		}
 	}
 
-	if self.c.Git().Status.WorkingTreeState() != enums.WORKING_TREE_STATE_NONE && conflictFileCount == 0 && prevConflictFileCount > 0 {
+	if self.c.Git().Status.WorkingTreeState() != models.WORKING_TREE_STATE_NONE && conflictFileCount == 0 && prevConflictFileCount > 0 {
 		self.c.OnUIThread(func() error { return self.mergeAndRebaseHelper.PromptToContinueRebase() })
 	}
 

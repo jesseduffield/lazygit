@@ -10,7 +10,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -51,7 +50,7 @@ func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 		{option: REBASE_OPTION_ABORT, key: 'a'},
 	}
 
-	if self.c.Git().Status.WorkingTreeState() == enums.WORKING_TREE_STATE_REBASING {
+	if self.c.Git().Status.WorkingTreeState() == models.WORKING_TREE_STATE_REBASING {
 		options = append(options, optionAndKey{
 			option: REBASE_OPTION_SKIP, key: 's',
 		})
@@ -78,12 +77,12 @@ func (self *MergeAndRebaseHelper) ContinueRebase() error {
 func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	status := self.c.Git().Status.WorkingTreeState()
 
-	if status != enums.WORKING_TREE_STATE_MERGING && status != enums.WORKING_TREE_STATE_REBASING {
+	if status != models.WORKING_TREE_STATE_MERGING && status != models.WORKING_TREE_STATE_REBASING {
 		return errors.New(self.c.Tr.NotMergingOrRebasing)
 	}
 
 	self.c.LogAction(fmt.Sprintf("Merge/Rebase: %s", command))
-	if status == enums.WORKING_TREE_STATE_REBASING {
+	if status == models.WORKING_TREE_STATE_REBASING {
 		todoFile, err := os.ReadFile(
 			filepath.Join(self.c.Git().RepoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"),
 		)
@@ -102,10 +101,10 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
-	needsSubprocess := (status == enums.WORKING_TREE_STATE_MERGING && command != REBASE_OPTION_ABORT && self.c.UserConfig().Git.Merging.ManualCommit) ||
+	needsSubprocess := (status == models.WORKING_TREE_STATE_MERGING && command != REBASE_OPTION_ABORT && self.c.UserConfig().Git.Merging.ManualCommit) ||
 		// but we'll also use a subprocess if we have exec todos; those are likely to be lengthy build
 		// tasks whose output the user will want to see in the terminal
-		(status == enums.WORKING_TREE_STATE_REBASING && command != REBASE_OPTION_ABORT && self.hasExecTodos())
+		(status == models.WORKING_TREE_STATE_REBASING && command != REBASE_OPTION_ABORT && self.hasExecTodos())
 
 	if needsSubprocess {
 		// TODO: see if we should be calling more of the code from self.Git.Rebase.GenericMergeOrRebaseAction

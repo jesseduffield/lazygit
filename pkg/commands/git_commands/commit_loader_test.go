@@ -8,7 +8,6 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stefanhaller/git-todo-parser/todo"
@@ -304,7 +303,7 @@ func TestGetCommits(t *testing.T) {
 			builder := &CommitLoader{
 				Common:              common,
 				cmd:                 cmd,
-				getWorkingTreeState: func() enums.WorkingTreeState { return enums.WORKING_TREE_STATE_NONE },
+				getWorkingTreeState: func() models.WorkingTreeState { return models.WORKING_TREE_STATE_NONE },
 				dotGitDir:           ".git",
 				readFile: func(filename string) ([]byte, error) {
 					return []byte(""), nil
@@ -487,7 +486,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 			builder := &CommitLoader{
 				Common:              common,
 				cmd:                 oscommands.NewDummyCmdObjBuilder(oscommands.NewFakeRunner(t)),
-				getWorkingTreeState: func() enums.WorkingTreeState { return enums.WORKING_TREE_STATE_REBASING },
+				getWorkingTreeState: func() models.WorkingTreeState { return models.WORKING_TREE_STATE_REBASING },
 				dotGitDir:           ".git",
 				readFile: func(filename string) ([]byte, error) {
 					return []byte(""), nil

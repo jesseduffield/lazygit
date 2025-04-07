@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -18,7 +17,7 @@ func FormatStatus(
 	currentBranch *models.Branch,
 	itemOperation types.ItemOperation,
 	linkedWorktreeName string,
-	workingTreeState enums.WorkingTreeState,
+	workingTreeState models.WorkingTreeState,
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
 ) string {
@@ -31,7 +30,7 @@ func FormatStatus(
 		}
 	}
 
-	if workingTreeState != enums.WORKING_TREE_STATE_NONE {
+	if workingTreeState != models.WORKING_TREE_STATE_NONE {
 		status += style.FgYellow.Sprintf("(%s) ", workingTreeState.LowerCaseTitle(tr))
 	}
 

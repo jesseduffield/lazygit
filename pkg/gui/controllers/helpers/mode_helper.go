@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -115,7 +115,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 		},
 		{
 			IsActive: func() bool {
-				return !self.suppressRebasingMode && self.c.Git().Status.WorkingTreeState() != enums.WORKING_TREE_STATE_NONE
+				return !self.suppressRebasingMode && self.c.Git().Status.WorkingTreeState() != models.WORKING_TREE_STATE_NONE
 			},
 			Description: func() string {
 				workingTreeState := self.c.Git().Status.WorkingTreeState()

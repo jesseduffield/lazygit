@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -110,7 +110,7 @@ func (self *StatusController) onClick(opts gocui.ViewMouseBindingOpts) error {
 	repoName := self.c.Git().RepoPaths.RepoName()
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	switch workingTreeState {
-	case enums.WORKING_TREE_STATE_REBASING, enums.WORKING_TREE_STATE_MERGING:
+	case models.WORKING_TREE_STATE_REBASING, models.WORKING_TREE_STATE_MERGING:
 		workingTreeStatus := fmt.Sprintf("(%s)", workingTreeState.LowerCaseTitle(self.c.Tr))
 		if cursorInSubstring(opts.X, upstreamStatus+" ", workingTreeStatus) {
 			return self.c.Helpers().MergeAndRebase.CreateRebaseOptionsMenu()

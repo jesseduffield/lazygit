@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
 type StatusCommands struct {
@@ -20,16 +20,16 @@ func NewStatusCommands(
 	}
 }
 
-func (self *StatusCommands) WorkingTreeState() enums.WorkingTreeState {
+func (self *StatusCommands) WorkingTreeState() models.WorkingTreeState {
 	isInRebase, _ := self.IsInRebase()
 	if isInRebase {
-		return enums.WORKING_TREE_STATE_REBASING
+		return models.WORKING_TREE_STATE_REBASING
 	}
 	merging, _ := self.IsInMergeState()
 	if merging {
-		return enums.WORKING_TREE_STATE_MERGING
+		return models.WORKING_TREE_STATE_MERGING
 	}
-	return enums.WORKING_TREE_STATE_NONE
+	return models.WORKING_TREE_STATE_NONE
 }
 
 func (self *StatusCommands) IsBareRepo() bool {

@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
@@ -229,7 +228,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 	}
 
 	if err := self.ApplyCustomPatch(true, true); err != nil {
-		if self.status.WorkingTreeState() == enums.WORKING_TREE_STATE_REBASING {
+		if self.status.WorkingTreeState() == models.WORKING_TREE_STATE_REBASING {
 			_ = self.rebase.AbortRebase()
 		}
 		return err
@@ -253,7 +252,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 	self.rebase.onSuccessfulContinue = func() error {
 		// add patches to index
 		if err := self.ApplyPatch(patch, ApplyPatchOpts{Index: true, ThreeWay: true}); err != nil {
-			if self.status.WorkingTreeState() == enums.WORKING_TREE_STATE_REBASING {
+			if self.status.WorkingTreeState() == models.WORKING_TREE_STATE_REBASING {
 				_ = self.rebase.AbortRebase()
 			}
 			return err
