@@ -6,12 +6,6 @@ import (
 	"github.com/samber/lo"
 )
 
-type IFilesHelper interface {
-	EditFiles(filenames []string) error
-	EditFileAtLine(filename string, lineNumber int) error
-	OpenFile(filename string) error
-}
-
 type FilesHelper struct {
 	c *HelperCommon
 }
@@ -21,8 +15,6 @@ func NewFilesHelper(c *HelperCommon) *FilesHelper {
 		c: c,
 	}
 }
-
-var _ IFilesHelper = &FilesHelper{}
 
 func (self *FilesHelper) EditFiles(filenames []string) error {
 	absPaths := lo.Map(filenames, func(filename string, _ int) string {

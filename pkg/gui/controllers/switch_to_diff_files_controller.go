@@ -91,7 +91,7 @@ func (self *SwitchToDiffFilesController) enter() error {
 		return err
 	}
 
-	self.c.Context().Push(commitFilesContext)
+	self.c.Context().Push(commitFilesContext, types.OnFocusOpts{})
 	return nil
 }
 
