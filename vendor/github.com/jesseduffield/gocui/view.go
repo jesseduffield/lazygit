@@ -822,6 +822,8 @@ func (v *View) writeRunes(p []rune) {
 
 	if v.pendingNewline {
 		finishLine()
+	} else {
+		v.autoRenderHyperlinksInCurrentLine()
 	}
 
 	v.updateSearchPositions()
