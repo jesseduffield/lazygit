@@ -286,7 +286,7 @@ type ListItem interface {
 }
 
 type IContextMgr interface {
-	Push(context Context, opts ...OnFocusOpts)
+	Push(context Context, opts OnFocusOpts)
 	Pop()
 	Replace(context Context)
 	Activate(context Context, opts OnFocusOpts)

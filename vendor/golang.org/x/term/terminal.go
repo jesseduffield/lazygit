@@ -44,6 +44,8 @@ type Terminal struct {
 	// bytes, as an index into |line|). If it returns ok=false, the key
 	// press is processed normally. Otherwise it returns a replacement line
 	// and the new cursor position.
+	//
+	// This will be disabled during ReadPassword.
 	AutoCompleteCallback func(line string, pos int, key rune) (newLine string, newPos int, ok bool)
 
 	// Escape contains a pointer to the escape codes for this terminal.
@@ -692,6 +694,8 @@ func (t *Terminal) Write(buf []byte) (n int, err error) {
 
 // ReadPassword temporarily changes the prompt and reads a password, without
 // echo, from the terminal.
+//
+// The AutoCompleteCallback is disabled during this call.
 func (t *Terminal) ReadPassword(prompt string) (line string, err error) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
@@ -699,6 +703,11 @@ func (t *Terminal) ReadPassword(prompt string) (line string, err error) {
 	oldPrompt := t.prompt
 	t.prompt = []rune(prompt)
 	t.echo = false
+	oldAutoCompleteCallback := t.AutoCompleteCallback
+	t.AutoCompleteCallback = nil
+	defer func() {
+		t.AutoCompleteCallback = oldAutoCompleteCallback
+	}()
 
 	line, err = t.readLine()
 

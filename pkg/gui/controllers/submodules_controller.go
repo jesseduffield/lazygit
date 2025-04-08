@@ -309,7 +309,7 @@ func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) erro
 }
 
 func (self *SubmodulesController) easterEgg() error {
-	self.c.Context().Push(self.c.Contexts().Snake)
+	self.c.Context().Push(self.c.Contexts().Snake, types.OnFocusOpts{})
 	return nil
 }
 

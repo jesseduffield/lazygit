@@ -12,10 +12,6 @@ import (
 	"github.com/samber/lo"
 )
 
-type ICommitsHelper interface {
-	UpdateCommitPanelView(message string)
-}
-
 type CommitsHelper struct {
 	c *HelperCommon
 
@@ -25,8 +21,6 @@ type CommitsHelper struct {
 	getUnwrappedCommitDescription func() string
 	setCommitDescription          func(string)
 }
-
-var _ ICommitsHelper = &CommitsHelper{}
 
 func NewCommitsHelper(
 	c *HelperCommon,
@@ -150,7 +144,7 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 
 	self.UpdateCommitPanelView(opts.InitialMessage)
 
-	self.c.Context().Push(self.c.Contexts().CommitMessage)
+	self.c.Context().Push(self.c.Contexts().CommitMessage, types.OnFocusOpts{})
 }
 
 func (self *CommitsHelper) OnCommitSuccess() {

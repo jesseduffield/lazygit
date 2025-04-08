@@ -14,15 +14,6 @@ import (
 	"github.com/samber/lo"
 )
 
-type IRefsHelper interface {
-	CheckoutRef(ref string, options types.CheckoutRefOptions) error
-	GetCheckedOutRef() *models.Branch
-	CreateGitResetMenu(ref string) error
-	CreateCheckoutMenu(commit *models.Commit) error
-	ResetToRef(ref string, strength string, envVars []string) error
-	NewBranch(from string, fromDescription string, suggestedBranchname string) error
-}
-
 type RefsHelper struct {
 	c *HelperCommon
 }
@@ -34,8 +25,6 @@ func NewRefsHelper(
 		c: c,
 	}
 }
-
-var _ IRefsHelper = &RefsHelper{}
 
 func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions) error {
 	waitingStatus := options.WaitingStatus
@@ -118,7 +107,7 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 		// Switch to the branches context _before_ starting to check out the
 		// branch, so that we see the inline status
 		if self.c.Context().Current() != self.c.Contexts().Branches {
-			self.c.Context().Push(self.c.Contexts().Branches)
+			self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
 		}
 		return self.CheckoutRef(branchName, types.CheckoutRefOptions{})
 	}
@@ -334,7 +323,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 
 	refresh := func() error {
 		if self.c.Context().Current() != self.c.Contexts().Branches {
-			self.c.Context().Push(self.c.Contexts().Branches)
+			self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
 		}
 
 		self.c.Contexts().LocalCommits.SetSelection(0)

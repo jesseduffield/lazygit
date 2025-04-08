@@ -845,7 +845,7 @@ type TranslationSet struct {
 	NoItemSelected                           string
 	SelectedItemIsNotABranch                 string
 	SelectedItemDoesNotHaveFiles             string
-	RangeSelectNotSupportedForSubmodules     string
+	MultiSelectNotSupportedForSubmodules     string
 	OldCherryPickKeyWarning                  string
 	CommandDoesNotSupportOpeningInEditor     string
 	CustomCommands                           string
@@ -1889,7 +1889,7 @@ func EnglishTranslationSet() *TranslationSet {
 		NoItemSelected:                           "No item selected",
 		SelectedItemIsNotABranch:                 "Selected item is not a branch",
 		SelectedItemDoesNotHaveFiles:             "Selected item does not have files to view",
-		RangeSelectNotSupportedForSubmodules:     "Range select not supported for submodules",
+		MultiSelectNotSupportedForSubmodules:     "Multiselection not supported for submodules",
 		OldCherryPickKeyWarning:                  "The 'c' key is no longer the default key for copying commits to cherry pick. Please use `{{.copy}}` instead (and `{{.paste}}` to paste). The reason for this change is that the 'v' key for selecting a range of lines when staging is now also used for selecting a range of lines in any list view, meaning that we needed to find a new key for pasting commits, and if we're going to now use `{{.paste}}` for pasting commits, we may as well use `{{.copy}}` for copying them. If you want to configure the keybindings to get the old behaviour, set the following in your config:\n\nkeybinding:\n  universal:\n    toggleRangeSelect: <something other than v>\n  commits:\n    cherryPickCopy: 'c'\n    pasteCommits: 'v'",
 		CommandDoesNotSupportOpeningInEditor:     "This command doesn't support switching to the editor",
 		CustomCommands:                           "Custom commands",
@@ -2082,6 +2082,7 @@ gui:
 	  `,
 			"0.44.0": `- The gui.branchColors config option is deprecated; it will be removed in a future version. Please use gui.branchColorPatterns instead.
 - The automatic coloring of branches starting with "feature/", "bugfix/", or "hotfix/" has been removed; if you want this, it's easy to set up using the new gui.branchColorPatterns option.`,
+			"0.49.0": `- Executing shell commands (with the ':' prompt) no longer uses an interactive shell, which means that if you want to use your shell aliases in this prompt, you need to do a little bit of setup work. See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#using-aliases-or-functions-in-shell-commands for details.`,
 		},
 	}
 }

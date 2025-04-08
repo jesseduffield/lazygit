@@ -55,17 +55,7 @@ func (self *ContextMgr) Replace(c types.Context) {
 	self.Activate(c, types.OnFocusOpts{})
 }
 
-func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) {
-	if len(opts) > 1 {
-		panic("cannot pass multiple opts to Push")
-	}
-
-	singleOpts := types.OnFocusOpts{}
-	if len(opts) > 0 {
-		// using triple dot but you should only ever pass one of these opt structs
-		singleOpts = opts[0]
-	}
-
+func (self *ContextMgr) Push(c types.Context, opts types.OnFocusOpts) {
 	if !c.IsFocusable() {
 		return
 	}
@@ -77,7 +67,7 @@ func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) {
 	}
 
 	if contextToActivate != nil {
-		self.Activate(contextToActivate, singleOpts)
+		self.Activate(contextToActivate, opts)
 	}
 }
 
