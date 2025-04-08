@@ -308,7 +308,7 @@ func fileNameAtDepth(node *filetree.Node[models.File], depth int) string {
 	name := join(splitName[depth:])
 
 	if node.File != nil && node.File.IsRename() {
-		splitPrevName := split(node.File.PreviousPath)
+		splitPrevName := split("./" + node.File.PreviousPath)
 
 		prevName := node.File.PreviousPath
 		// if the file has just been renamed inside the same directory, we can shave off
