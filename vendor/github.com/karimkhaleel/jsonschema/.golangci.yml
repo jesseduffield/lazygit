@@ -1,11 +1,6 @@
 run:
   tests: true
   max-same-issues: 50
-  skip-dirs:
-    - resources
-    - old
-  skip-files:
-    - cmd/protopkg/main.go
 
 output:
   print-issued-lines: false
@@ -19,13 +14,12 @@ linters:
     - unconvert
     - goimports
     - unused
-    - vetshadow
+    - govet
     - nakedret
     - errcheck
     - revive
     - ineffassign
     - goconst
-    - vet
     - unparam
     - gofmt
 
@@ -45,14 +39,19 @@ linters-settings:
       - ifElseChain
   gofmt:
     rewrite-rules:
-    - pattern:     'interface{}'
-      replacement: 'any'
-    - pattern:     'a[b:len(a)]'
-      replacement: 'a[b:]'
+      - pattern: "interface{}"
+        replacement: "any"
+      - pattern: "a[b:len(a)]"
+        replacement: "a[b:]"
 
 issues:
   max-per-linter: 0
   max-same: 0
+  exclude-dirs:
+    - resources
+    - old
+  exclude-files:
+    - cmd/protopkg/main.go
   exclude-use-default: false
   exclude:
     # Captured by errcheck.

@@ -508,7 +508,7 @@ type KeybindingCommitsConfig struct {
 	CherryPickCopy                 string `yaml:"cherryPickCopy"`
 	PasteCommits                   string `yaml:"pasteCommits"`
 	MarkCommitAsBaseForRebase      string `yaml:"markCommitAsBaseForRebase"`
-	CreateTag                      string `yaml:"tagCommit"`
+	TagCommit                      string `yaml:"tagCommit"`
 	CheckoutCommit                 string `yaml:"checkoutCommit"`
 	ResetCherryPick                string `yaml:"resetCherryPick"`
 	CopyCommitAttributeToClipboard string `yaml:"copyCommitAttributeToClipboard"`
@@ -983,7 +983,7 @@ func GetDefaultConfig() *UserConfig {
 				CherryPickCopy:                 "C",
 				PasteCommits:                   "V",
 				MarkCommitAsBaseForRebase:      "B",
-				CreateTag:                      "T",
+				TagCommit:                      "T",
 				CheckoutCommit:                 "<space>",
 				ResetCherryPick:                "<c-R>",
 				CopyCommitAttributeToClipboard: "y",

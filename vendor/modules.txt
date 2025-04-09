@@ -184,7 +184,7 @@ github.com/jesseduffield/minimal/gitignore
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 ## explicit
 github.com/kardianos/osext
-# github.com/karimkhaleel/jsonschema v0.0.0-20231001195015-d933f0d94ea3
+# github.com/karimkhaleel/jsonschema v0.0.0-20250323054317-7eb70f14797b
 ## explicit; go 1.18
 github.com/karimkhaleel/jsonschema
 # github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd

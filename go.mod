@@ -20,7 +20,7 @@ require (
 	github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
 	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
-	github.com/karimkhaleel/jsonschema v0.0.0-20231001195015-d933f0d94ea3
+	github.com/karimkhaleel/jsonschema v0.0.0-20250323054317-7eb70f14797b
 	github.com/kyokomi/emoji/v2 v2.2.8
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/mattn/go-runewidth v0.0.16

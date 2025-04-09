@@ -256,7 +256,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Tooltip:           self.c.Tr.RevertCommitTooltip,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Commits.CreateTag),
+			Key:               opts.GetKey(opts.Config.Commits.TagCommit),
 			Handler:           self.withItem(self.createTag),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.TagCommit,
