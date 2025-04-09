@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 	"strings"
+	"text/template"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -318,7 +319,15 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 	)
 
 	if suggestedBranchName == "" {
-		suggestedBranchName = self.c.UserConfig().Git.BranchPrefix
+		var err error
+
+		suggestedBranchName, err = utils.ResolveTemplate(self.c.UserConfig().Git.BranchPrefix, nil, template.FuncMap{
+			"runCommand": self.c.Git().Custom.TemplateFunctionRunCommand,
+		})
+		if err != nil {
+			return err
+		}
+		suggestedBranchName = strings.ReplaceAll(suggestedBranchName, "\t", " ")
 	}
 
 	refresh := func() error {

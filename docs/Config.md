@@ -1027,6 +1027,15 @@ git:
   branchPrefix: "firstlast/"
 ```
 
+It's possible to use a dynamic prefix by using the `runCommand` function:
+
+```yaml
+git:
+  branchPrefix: "firstlast/{{ runCommand "date +\"%Y/%-m\"" }}/"
+```
+
+This would produce something like: `firstlast/2025/4/`
+
 ## Custom git log command
 
 You can override the `git log` command that's used to render the log of the selected branch like so:
