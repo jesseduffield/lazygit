@@ -19,8 +19,11 @@ race-test: lint
 $(BUMP_VERSION):
 	go get -u github.com/kevinburke/bump_version
 
+$(WRITE_MAILMAP):
+	go get -u github.com/kevinburke/write_mailmap
+
 release: test | $(BUMP_VERSION)
-	$(BUMP_VERSION) minor config.go
+	$(BUMP_VERSION) --tag-prefix=v minor config.go
 
 force: ;
 

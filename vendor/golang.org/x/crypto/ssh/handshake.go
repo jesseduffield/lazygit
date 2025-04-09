@@ -5,7 +5,6 @@
 package ssh
 
 import (
-	"crypto/rand"
 	"errors"
 	"fmt"
 	"io"
@@ -24,6 +23,11 @@ const debugHandshake = false
 // primarily for testing: setting chanSize=0 uncovers deadlocks more
 // quickly.
 const chanSize = 16
+
+// maxPendingPackets sets the maximum number of packets to queue while waiting
+// for KEX to complete. This limits the total pending data to maxPendingPackets
+// * maxPacket bytes, which is ~16.8MB.
+const maxPendingPackets = 64
 
 // keyingTransport is a packet based transport that supports key
 // changes. It need not be thread-safe. It should pass through
@@ -73,13 +77,22 @@ type handshakeTransport struct {
 	incoming  chan []byte
 	readError error
 
-	mu               sync.Mutex
-	writeError       error
-	sentInitPacket   []byte
-	sentInitMsg      *kexInitMsg
-	pendingPackets   [][]byte // Used when a key exchange is in progress.
+	mu sync.Mutex
+	// Condition for the above mutex. It is used to notify a completed key
+	// exchange or a write failure. Writes can wait for this condition while a
+	// key exchange is in progress.
+	writeCond      *sync.Cond
+	writeError     error
+	sentInitPacket []byte
+	sentInitMsg    *kexInitMsg
+	// Used to queue writes when a key exchange is in progress. The length is
+	// limited by pendingPacketsSize. Once full, writes will block until the key
+	// exchange is completed or an error occurs. If not empty, it is emptied
+	// all at once when the key exchange is completed in kexLoop.
+	pendingPackets   [][]byte
 	writePacketsLeft uint32
 	writeBytesLeft   int64
+	userAuthComplete bool // whether the user authentication phase is complete
 
 	// If the read loop wants to schedule a kex, it pings this
 	// channel, and the write loop will send out a kex
@@ -133,6 +146,7 @@ func newHandshakeTransport(conn keyingTransport, config *Config, clientVersion, 
 
 		config: config,
 	}
+	t.writeCond = sync.NewCond(&t.mu)
 	t.resetReadThresholds()
 	t.resetWriteThresholds()
 
@@ -259,6 +273,7 @@ func (t *handshakeTransport) recordWriteError(err error) {
 	defer t.mu.Unlock()
 	if t.writeError == nil && err != nil {
 		t.writeError = err
+		t.writeCond.Broadcast()
 	}
 }
 
@@ -362,6 +377,8 @@ write:
 			}
 		}
 		t.pendingPackets = t.pendingPackets[:0]
+		// Unblock writePacket if waiting for KEX.
+		t.writeCond.Broadcast()
 		t.mu.Unlock()
 	}
 
@@ -483,7 +500,7 @@ func (t *handshakeTransport) sendKexInit() error {
 		CompressionClientServer: supportedCompressions,
 		CompressionServerClient: supportedCompressions,
 	}
-	io.ReadFull(rand.Reader, msg.Cookie[:])
+	io.ReadFull(t.config.Rand, msg.Cookie[:])
 
 	// We mutate the KexAlgos slice, in order to add the kex-strict extension algorithm,
 	// and possibly to add the ext-info extension algorithm. Since the slice may be the
@@ -552,26 +569,44 @@ func (t *handshakeTransport) sendKexInit() error {
 	return nil
 }
 
+var errSendBannerPhase = errors.New("ssh: SendAuthBanner outside of authentication phase")
+
 func (t *handshakeTransport) writePacket(p []byte) error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
 	switch p[0] {
 	case msgKexInit:
 		return errors.New("ssh: only handshakeTransport can send kexInit")
 	case msgNewKeys:
 		return errors.New("ssh: only handshakeTransport can send newKeys")
+	case msgUserAuthBanner:
+		if t.userAuthComplete {
+			return errSendBannerPhase
+		}
+	case msgUserAuthSuccess:
+		t.userAuthComplete = true
 	}
 
-	t.mu.Lock()
-	defer t.mu.Unlock()
 	if t.writeError != nil {
 		return t.writeError
 	}
 
 	if t.sentInitMsg != nil {
-		// Copy the packet so the writer can reuse the buffer.
-		cp := make([]byte, len(p))
-		copy(cp, p)
-		t.pendingPackets = append(t.pendingPackets, cp)
-		return nil
+		if len(t.pendingPackets) < maxPendingPackets {
+			// Copy the packet so the writer can reuse the buffer.
+			cp := make([]byte, len(p))
+			copy(cp, p)
+			t.pendingPackets = append(t.pendingPackets, cp)
+			return nil
+		}
+		for t.sentInitMsg != nil {
+			// Block and wait for KEX to complete or an error.
+			t.writeCond.Wait()
+			if t.writeError != nil {
+				return t.writeError
+			}
+		}
 	}
 
 	if t.writeBytesLeft > 0 {
@@ -588,6 +623,7 @@ func (t *handshakeTransport) writePacket(p []byte) error {
 
 	if err := t.pushPacket(p); err != nil {
 		t.writeError = err
+		t.writeCond.Broadcast()
 	}
 
 	return nil

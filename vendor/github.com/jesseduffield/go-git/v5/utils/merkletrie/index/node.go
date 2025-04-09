@@ -19,6 +19,7 @@ type node struct {
 	entry    *index.Entry
 	children []noder.Noder
 	isDir    bool
+	skip     bool
 }
 
 // NewRootNode returns the root node of a computed tree from a index.Index,
@@ -39,7 +40,7 @@ func NewRootNode(idx *index.Index) noder.Noder {
 				continue
 			}
 
-			n := &node{path: fullpath}
+			n := &node{path: fullpath, skip: e.SkipWorktree}
 			if fullpath == e.Name {
 				n.entry = e
 			} else {
@@ -56,6 +57,10 @@ func NewRootNode(idx *index.Index) noder.Noder {
 
 func (n *node) String() string {
 	return n.path
+}
+
+func (n *node) Skip() bool {
+	return n.skip
 }
 
 // Hash the hash of a filesystem is a 24-byte slice, is the result of

@@ -82,7 +82,7 @@ func (t ObjectType) Valid() bool {
 	return t >= CommitObject && t <= REFDeltaObject
 }
 
-// IsDelta returns true for any ObjectTyoe that represents a delta (i.e.
+// IsDelta returns true for any ObjectType that represents a delta (i.e.
 // REFDeltaObject or OFSDeltaObject).
 func (t ObjectType) IsDelta() bool {
 	return t == REFDeltaObject || t == OFSDeltaObject

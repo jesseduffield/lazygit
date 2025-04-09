@@ -43,7 +43,7 @@ func (d *ulReqDecoder) Decode(v *UploadRequest) error {
 	return d.err
 }
 
-// fills out the parser stiky error
+// fills out the parser sticky error
 func (d *ulReqDecoder) error(format string, a ...interface{}) {
 	msg := fmt.Sprintf(
 		"pkt-line %d: %s", d.nLine,

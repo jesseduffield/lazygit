@@ -6,20 +6,21 @@ import (
 	"errors"
 	"io"
 
+	"github.com/jesseduffield/go-git/v5/plumbing/hash"
 	"github.com/jesseduffield/go-git/v5/utils/binary"
 )
 
 var (
 	// ErrUnsupportedVersion is returned by Decode when the idx file version
 	// is not supported.
-	ErrUnsupportedVersion = errors.New("Unsupported version")
+	ErrUnsupportedVersion = errors.New("unsupported version")
 	// ErrMalformedIdxFile is returned by Decode when the idx file is corrupted.
-	ErrMalformedIdxFile = errors.New("Malformed IDX file")
+	ErrMalformedIdxFile = errors.New("malformed IDX file")
 )
 
 const (
 	fanout         = 256
-	objectIDLength = 20
+	objectIDLength = hash.Size
 )
 
 // Decoder reads and decodes idx files from an input stream.

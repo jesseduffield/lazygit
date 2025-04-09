@@ -322,6 +322,8 @@ func (p *Parser) parseAt() (Revisioner, error) {
 				}
 
 				return AtDate{t}, nil
+			case tok == eof:
+				return nil, &ErrInvalidRevision{s: `missing "}" in @{<data>} structure`}
 			default:
 				date += lit
 			}
@@ -424,6 +426,8 @@ func (p *Parser) parseCaretBraces() (Revisioner, error) {
 			p.unscan()
 		case tok != slash && start:
 			return nil, &ErrInvalidRevision{fmt.Sprintf(`"%s" is not a valid revision suffix brace component`, lit)}
+		case tok == eof:
+			return nil, &ErrInvalidRevision{s: `missing "}" in ^{<data>} structure`}
 		case tok != cbrace:
 			p.unscan()
 			re += lit

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/jesseduffield/go-git/v5/plumbing"
@@ -145,6 +146,19 @@ func (s *ObjectStorage) SetEncodedObject(o plumbing.EncodedObject) (h plumbing.H
 	return o.Hash(), err
 }
 
+// LazyWriter returns a lazy ObjectWriter that is bound to a DotGit file.
+// It first write the header passing on the object type and size, so
+// that the object contents can be written later, without the need to
+// create a MemoryObject and buffering its entire contents into memory.
+func (s *ObjectStorage) LazyWriter() (w io.WriteCloser, wh func(typ plumbing.ObjectType, sz int64) error, err error) {
+	ow, err := s.dir.NewObject()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return ow, ow.WriteHeader, nil
+}
+
 // HasEncodedObject returns nil if the object exists, without actually
 // reading the object data from storage.
 func (s *ObjectStorage) HasEncodedObject(h plumbing.Hash) (err error) {
@@ -204,9 +218,9 @@ func (s *ObjectStorage) packfile(idx idxfile.Index, pack plumbing.Hash) (*packfi
 
 	var p *packfile.Packfile
 	if s.objectCache != nil {
-		p = packfile.NewPackfileWithCache(idx, s.dir.Fs(), f, s.objectCache)
+		p = packfile.NewPackfileWithCache(idx, s.dir.Fs(), f, s.objectCache, s.options.LargeObjectThreshold)
 	} else {
-		p = packfile.NewPackfile(idx, s.dir.Fs(), f)
+		p = packfile.NewPackfile(idx, s.dir.Fs(), f, s.options.LargeObjectThreshold)
 	}
 
 	return p, s.storePackfileInCache(pack, p)
@@ -389,7 +403,6 @@ func (s *ObjectStorage) getFromUnpacked(h plumbing.Hash) (obj plumbing.EncodedOb
 		return cacheObj, nil
 	}
 
-	obj = s.NewEncodedObject()
 	r, err := objfile.NewReader(f)
 	if err != nil {
 		return nil, err
@@ -402,6 +415,13 @@ func (s *ObjectStorage) getFromUnpacked(h plumbing.Hash) (obj plumbing.EncodedOb
 		return nil, err
 	}
 
+	if s.options.LargeObjectThreshold > 0 && size > s.options.LargeObjectThreshold {
+		obj = dotgit.NewEncodedObject(s.dir, h, t, size)
+		return obj, nil
+	}
+
+	obj = s.NewEncodedObject()
+
 	obj.SetType(t)
 	obj.SetSize(size)
 	w, err := obj.Writer()
@@ -411,10 +431,21 @@ func (s *ObjectStorage) getFromUnpacked(h plumbing.Hash) (obj plumbing.EncodedOb
 
 	defer ioutil.CheckClose(w, &err)
 
+	bufp := copyBufferPool.Get().(*[]byte)
+	buf := *bufp
+	_, err = io.CopyBuffer(w, r, buf)
+	copyBufferPool.Put(bufp)
+
 	s.objectCache.Put(obj)
 
-	_, err = io.Copy(w, r)
 	return obj, err
+}
+
+var copyBufferPool = sync.Pool{
+	New: func() interface{} {
+		b := make([]byte, 32*1024)
+		return &b
+	},
 }
 
 // Get returns the object with the given hash, by searching for it in
@@ -519,14 +550,21 @@ func (s *ObjectStorage) findObjectInPackfile(h plumbing.Hash) (plumbing.Hash, pl
 	return plumbing.ZeroHash, plumbing.ZeroHash, -1
 }
 
+// HashesWithPrefix returns all objects with a hash that starts with a prefix by searching for
+// them in the packfile and the git object directories.
 func (s *ObjectStorage) HashesWithPrefix(prefix []byte) ([]plumbing.Hash, error) {
 	hashes, err := s.dir.ObjectsWithPrefix(prefix)
 	if err != nil {
 		return nil, err
 	}
 
+	seen := hashListAsMap(hashes)
+
 	// TODO: This could be faster with some idxfile changes,
 	// or diving into the packfile.
+	if err := s.requireIndex(); err != nil {
+		return nil, err
+	}
 	for _, index := range s.index {
 		ei, err := index.Entries()
 		if err != nil {
@@ -540,6 +578,9 @@ func (s *ObjectStorage) HashesWithPrefix(prefix []byte) ([]plumbing.Hash, error)
 				return nil, err
 			}
 			if bytes.HasPrefix(e.Hash[:], prefix) {
+				if _, ok := seen[e.Hash]; ok {
+					continue
+				}
 				hashes = append(hashes, e.Hash)
 			}
 		}
@@ -595,6 +636,7 @@ func (s *ObjectStorage) buildPackfileIters(
 			return newPackfileIter(
 				s.dir.Fs(), pack, t, seen, s.index[h],
 				s.objectCache, s.options.KeepDescriptors,
+				s.options.LargeObjectThreshold,
 			)
 		},
 	}, nil
@@ -684,6 +726,7 @@ func NewPackfileIter(
 	idxFile billy.File,
 	t plumbing.ObjectType,
 	keepPack bool,
+	largeObjectThreshold int64,
 ) (storer.EncodedObjectIter, error) {
 	idx := idxfile.NewMemoryIndex()
 	if err := idxfile.NewDecoder(idxFile).Decode(idx); err != nil {
@@ -695,7 +738,7 @@ func NewPackfileIter(
 	}
 
 	seen := make(map[plumbing.Hash]struct{})
-	return newPackfileIter(fs, f, t, seen, idx, nil, keepPack)
+	return newPackfileIter(fs, f, t, seen, idx, nil, keepPack, largeObjectThreshold)
 }
 
 func newPackfileIter(
@@ -706,12 +749,13 @@ func newPackfileIter(
 	index idxfile.Index,
 	cache cache.Object,
 	keepPack bool,
+	largeObjectThreshold int64,
 ) (storer.EncodedObjectIter, error) {
 	var p *packfile.Packfile
 	if cache != nil {
-		p = packfile.NewPackfileWithCache(index, fs, f, cache)
+		p = packfile.NewPackfileWithCache(index, fs, f, cache, largeObjectThreshold)
 	} else {
-		p = packfile.NewPackfile(index, fs, f)
+		p = packfile.NewPackfile(index, fs, f, largeObjectThreshold)
 	}
 
 	iter, err := p.GetByType(t)

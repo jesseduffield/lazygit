@@ -18,4 +18,5 @@ type Tree interface {
 	// Size() int
 	// Clear()
 	// Values() []interface{}
+	// String() string
 }
