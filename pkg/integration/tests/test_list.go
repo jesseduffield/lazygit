@@ -197,6 +197,7 @@ var tests = []*components.IntegrationTest{
 	file.DiscardVariousChanges,
 	file.DiscardVariousChangesRangeSelect,
 	file.Gitignore,
+	file.GitignoreSpecialCharacters,
 	file.RememberCommitMessageAfterFail,
 	file.RenameSimilarityThresholdChange,
 	file.RenamedFiles,
