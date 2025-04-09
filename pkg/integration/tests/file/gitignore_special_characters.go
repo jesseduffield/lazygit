@@ -55,33 +55,12 @@ var GitignoreSpecialCharacters = NewIntegrationTest(NewIntegrationTestArgs{
 		excludeFile("file[x]")
 
 		t.Views().Files().
-			/* EXPECTED:
 			Lines(
 				Equals("▼ /"),
 				Equals("  ?? .gitignore"),
 				Equals("  ?? abc_def"),
 			)
-			ACTUAL:
-			  As you can see, it did ignore the 'file!abc' and 'file#abc' files
-			  correctly. Those don't need to be quoted because # and ! are only
-			  special at the beginning.
 
-			  Most of the other files are not ignored properly because their
-			  special characters need to be escaped. For * it's the other way
-			  round: while it does hide 'abc*def', it also hides 'abc_def',
-			  which we don't want.
-			*/
-			Lines(
-				Equals("▼ /"),
-				Equals("  ?? !file"),
-				Equals("  ?? #file"),
-				Equals("  ?? .gitignore"),
-				Equals("  ?? file[x]"),
-			)
-
-		/* EXPECTED:
 		t.FileSystem().FileContent(".gitignore", Equals("\\#file\nfile#abc\n\\!file\nfile!abc\nabc\\*def\nfile\\[x\\]\n"))
-		ACTUAL: */
-		t.FileSystem().FileContent(".gitignore", Equals("#file\nfile#abc\n!file\nfile!abc\nabc*def\nfile[x]\n"))
 	},
 })
