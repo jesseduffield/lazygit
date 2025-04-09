@@ -39,7 +39,7 @@ func (c *Change) Action() (merkletrie.Action, error) {
 	return merkletrie.Modify, nil
 }
 
-// Files return the files before and after a change.
+// Files returns the files before and after a change.
 // For insertions from will be nil. For deletions to will be nil.
 func (c *Change) Files() (from, to *File, err error) {
 	action, err := c.Action()

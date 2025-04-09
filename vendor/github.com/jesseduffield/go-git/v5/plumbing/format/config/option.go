@@ -54,6 +54,16 @@ func (opts Options) Get(key string) string {
 	return ""
 }
 
+// Has checks if an Option exist with the given key.
+func (opts Options) Has(key string) bool {
+	for _, o := range opts {
+		if o.IsKey(key) {
+			return true
+		}
+	}
+	return false
+}
+
 // GetAll returns all possible values for the same key.
 func (opts Options) GetAll(key string) []string {
 	result := []string{}

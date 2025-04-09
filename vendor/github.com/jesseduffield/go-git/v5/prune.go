@@ -17,7 +17,7 @@ type PruneOptions struct {
 	Handler PruneHandler
 }
 
-var ErrLooseObjectsNotSupported = errors.New("Loose objects not supported")
+var ErrLooseObjectsNotSupported = errors.New("loose objects not supported")
 
 // DeleteObject deletes an object from a repository.
 // The type conveniently matches PruneHandler.

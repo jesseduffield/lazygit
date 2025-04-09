@@ -2,7 +2,10 @@ package git
 
 import (
 	"bytes"
+	"errors"
+	"io"
 	"path"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -12,8 +15,19 @@ import (
 	"github.com/jesseduffield/go-git/v5/plumbing/object"
 	"github.com/jesseduffield/go-git/v5/storage"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/go-git/go-billy/v5"
-	"golang.org/x/crypto/openpgp"
+)
+
+var (
+	// ErrEmptyCommit occurs when a commit is attempted using a clean
+	// working tree, with no changes to be committed.
+	ErrEmptyCommit = errors.New("cannot create empty commit: clean working tree")
+
+	// characters to be removed from user name and/or email before using them to build a commit object
+	// See https://git-scm.com/docs/git-commit#_commit_information
+	invalidCharactersRe = regexp.MustCompile(`[<>\n]`)
 )
 
 // Commit stores the current contents of the index in a new commit along with
@@ -29,9 +43,30 @@ func (w *Worktree) Commit(msg string, opts *CommitOptions) (plumbing.Hash, error
 		}
 	}
 
+	if opts.Amend {
+		head, err := w.r.Head()
+		if err != nil {
+			return plumbing.ZeroHash, err
+		}
+		headCommit, err := w.r.CommitObject(head.Hash())
+		if err != nil {
+			return plumbing.ZeroHash, err
+		}
+
+		opts.Parents = nil
+		if len(headCommit.ParentHashes) != 0 {
+			opts.Parents = []plumbing.Hash{headCommit.ParentHashes[0]}
+		}
+	}
+
 	idx, err := w.r.Storer.Index()
 	if err != nil {
 		return plumbing.ZeroHash, err
+	}
+
+	// First handle the case of the first commit in the repository being empty.
+	if len(opts.Parents) == 0 && len(idx.Entries) == 0 && !opts.AllowEmptyCommits {
+		return plumbing.ZeroHash, ErrEmptyCommit
 	}
 
 	h := &buildTreeHelper{
@@ -39,12 +74,25 @@ func (w *Worktree) Commit(msg string, opts *CommitOptions) (plumbing.Hash, error
 		s:  w.r.Storer,
 	}
 
-	tree, err := h.BuildTree(idx)
+	treeHash, err := h.BuildTree(idx, opts)
 	if err != nil {
 		return plumbing.ZeroHash, err
 	}
 
-	commit, err := w.buildCommitObject(msg, opts, tree)
+	previousTree := plumbing.ZeroHash
+	if len(opts.Parents) > 0 {
+		parentCommit, err := w.r.CommitObject(opts.Parents[0])
+		if err != nil {
+			return plumbing.ZeroHash, err
+		}
+		previousTree = parentCommit.TreeHash
+	}
+
+	if treeHash == previousTree && !opts.AllowEmptyCommits {
+		return plumbing.ZeroHash, ErrEmptyCommit
+	}
+
+	commit, err := w.buildCommitObject(msg, opts, treeHash)
 	if err != nil {
 		return plumbing.ZeroHash, err
 	}
@@ -94,19 +142,24 @@ func (w *Worktree) updateHEAD(commit plumbing.Hash) error {
 
 func (w *Worktree) buildCommitObject(msg string, opts *CommitOptions, tree plumbing.Hash) (plumbing.Hash, error) {
 	commit := &object.Commit{
-		Author:       *opts.Author,
-		Committer:    *opts.Committer,
+		Author:       w.sanitize(*opts.Author),
+		Committer:    w.sanitize(*opts.Committer),
 		Message:      msg,
 		TreeHash:     tree,
 		ParentHashes: opts.Parents,
 	}
 
-	if opts.SignKey != nil {
-		sig, err := w.buildCommitSignature(commit, opts.SignKey)
+	// Convert SignKey into a Signer if set. Existing Signer should take priority.
+	signer := opts.Signer
+	if signer == nil && opts.SignKey != nil {
+		signer = &gpgSigner{key: opts.SignKey}
+	}
+	if signer != nil {
+		sig, err := signObject(signer, commit)
 		if err != nil {
 			return plumbing.ZeroHash, err
 		}
-		commit.PGPSignature = sig
+		commit.PGPSignature = string(sig)
 	}
 
 	obj := w.r.Storer.NewEncodedObject()
@@ -116,20 +169,25 @@ func (w *Worktree) buildCommitObject(msg string, opts *CommitOptions, tree plumb
 	return w.r.Storer.SetEncodedObject(obj)
 }
 
-func (w *Worktree) buildCommitSignature(commit *object.Commit, signKey *openpgp.Entity) (string, error) {
-	encoded := &plumbing.MemoryObject{}
-	if err := commit.Encode(encoded); err != nil {
-		return "", err
+func (w *Worktree) sanitize(signature object.Signature) object.Signature {
+	return object.Signature{
+		Name:  invalidCharactersRe.ReplaceAllString(signature.Name, ""),
+		Email: invalidCharactersRe.ReplaceAllString(signature.Email, ""),
+		When:  signature.When,
 	}
-	r, err := encoded.Reader()
-	if err != nil {
-		return "", err
-	}
+}
+
+type gpgSigner struct {
+	key *openpgp.Entity
+	cfg *packet.Config
+}
+
+func (s *gpgSigner) Sign(message io.Reader) ([]byte, error) {
 	var b bytes.Buffer
-	if err := openpgp.ArmoredDetachSign(&b, signKey, r, nil); err != nil {
-		return "", err
+	if err := openpgp.ArmoredDetachSign(&b, s.key, message, s.cfg); err != nil {
+		return nil, err
 	}
-	return b.String(), nil
+	return b.Bytes(), nil
 }
 
 // buildTreeHelper converts a given index.Index file into multiple git objects
@@ -145,7 +203,7 @@ type buildTreeHelper struct {
 
 // BuildTree builds the tree objects and push its to the storer, the hash
 // of the root tree is returned.
-func (h *buildTreeHelper) BuildTree(idx *index.Index) (plumbing.Hash, error) {
+func (h *buildTreeHelper) BuildTree(idx *index.Index, opts *CommitOptions) (plumbing.Hash, error) {
 	const rootNode = ""
 	h.trees = map[string]*object.Tree{rootNode: {}}
 	h.entries = map[string]*object.TreeEntry{}
@@ -230,5 +288,9 @@ func (h *buildTreeHelper) copyTreeToStorageRecursive(parent string, t *object.Tr
 		return plumbing.ZeroHash, err
 	}
 
+	hash := o.Hash()
+	if h.s.HasEncodedObject(hash) == nil {
+		return hash, nil
+	}
 	return h.s.SetEncodedObject(o)
 }

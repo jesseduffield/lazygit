@@ -34,7 +34,7 @@ func (s *ShallowStorage) SetShallow(commits []plumbing.Hash) error {
 	return err
 }
 
-// Shallow return the shallow commits reading from shallo file from .git
+// Shallow returns the shallow commits reading from shallo file from .git
 func (s *ShallowStorage) Shallow() ([]plumbing.Hash, error) {
 	f, err := s.dir.Shallow()
 	if f == nil || err != nil {

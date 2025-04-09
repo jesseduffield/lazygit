@@ -38,6 +38,10 @@ type UnifiedEncoder struct {
 	// a change.
 	contextLines int
 
+	// srcPrefix and dstPrefix are prepended to file paths when encoding a diff.
+	srcPrefix string
+	dstPrefix string
+
 	// colorConfig is the color configuration. The default is no color.
 	color ColorConfig
 }
@@ -46,6 +50,8 @@ type UnifiedEncoder struct {
 func NewUnifiedEncoder(w io.Writer, contextLines int) *UnifiedEncoder {
 	return &UnifiedEncoder{
 		Writer:       w,
+		srcPrefix:    "a/",
+		dstPrefix:    "b/",
 		contextLines: contextLines,
 	}
 }
@@ -53,6 +59,18 @@ func NewUnifiedEncoder(w io.Writer, contextLines int) *UnifiedEncoder {
 // SetColor sets e's color configuration and returns e.
 func (e *UnifiedEncoder) SetColor(colorConfig ColorConfig) *UnifiedEncoder {
 	e.color = colorConfig
+	return e
+}
+
+// SetSrcPrefix sets e's srcPrefix and returns e.
+func (e *UnifiedEncoder) SetSrcPrefix(prefix string) *UnifiedEncoder {
+	e.srcPrefix = prefix
+	return e
+}
+
+// SetDstPrefix sets e's dstPrefix and returns e.
+func (e *UnifiedEncoder) SetDstPrefix(prefix string) *UnifiedEncoder {
+	e.dstPrefix = prefix
 	return e
 }
 
@@ -91,7 +109,8 @@ func (e *UnifiedEncoder) writeFilePatchHeader(sb *strings.Builder, filePatch Fil
 	case from != nil && to != nil:
 		hashEquals := from.Hash() == to.Hash()
 		lines = append(lines,
-			fmt.Sprintf("diff --git a/%s b/%s", from.Path(), to.Path()),
+			fmt.Sprintf("diff --git %s%s %s%s",
+				e.srcPrefix, from.Path(), e.dstPrefix, to.Path()),
 		)
 		if from.Mode() != to.Mode() {
 			lines = append(lines,
@@ -115,22 +134,22 @@ func (e *UnifiedEncoder) writeFilePatchHeader(sb *strings.Builder, filePatch Fil
 			)
 		}
 		if !hashEquals {
-			lines = e.appendPathLines(lines, "a/"+from.Path(), "b/"+to.Path(), isBinary)
+			lines = e.appendPathLines(lines, e.srcPrefix+from.Path(), e.dstPrefix+to.Path(), isBinary)
 		}
 	case from == nil:
 		lines = append(lines,
-			fmt.Sprintf("diff --git a/%s b/%s", to.Path(), to.Path()),
+			fmt.Sprintf("diff --git %s %s", e.srcPrefix+to.Path(), e.dstPrefix+to.Path()),
 			fmt.Sprintf("new file mode %o", to.Mode()),
 			fmt.Sprintf("index %s..%s", plumbing.ZeroHash, to.Hash()),
 		)
-		lines = e.appendPathLines(lines, "/dev/null", "b/"+to.Path(), isBinary)
+		lines = e.appendPathLines(lines, "/dev/null", e.dstPrefix+to.Path(), isBinary)
 	case to == nil:
 		lines = append(lines,
-			fmt.Sprintf("diff --git a/%s b/%s", from.Path(), from.Path()),
+			fmt.Sprintf("diff --git %s %s", e.srcPrefix+from.Path(), e.dstPrefix+from.Path()),
 			fmt.Sprintf("deleted file mode %o", from.Mode()),
 			fmt.Sprintf("index %s..%s", from.Hash(), plumbing.ZeroHash),
 		)
-		lines = e.appendPathLines(lines, "a/"+from.Path(), "/dev/null", isBinary)
+		lines = e.appendPathLines(lines, e.srcPrefix+from.Path(), "/dev/null", isBinary)
 	}
 
 	sb.WriteString(e.color[Meta])

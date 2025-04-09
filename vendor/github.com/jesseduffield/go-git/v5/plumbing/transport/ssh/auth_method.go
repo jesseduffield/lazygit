@@ -1,21 +1,17 @@
 package ssh
 
 import (
-	"crypto/x509"
-	"encoding/pem"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
 
 	"github.com/jesseduffield/go-git/v5/plumbing/transport"
 
-	"github.com/mitchellh/go-homedir"
+	"github.com/skeema/knownhosts"
 	sshagent "github.com/xanzy/ssh-agent"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/knownhosts"
 )
 
 const DefaultUsername = "git"
@@ -121,27 +117,15 @@ type PublicKeys struct {
 // NewPublicKeys returns a PublicKeys from a PEM encoded private key. An
 // encryption password should be given if the pemBytes contains a password
 // encrypted PEM block otherwise password should be empty. It supports RSA
-// (PKCS#1), DSA (OpenSSL), and ECDSA private keys.
+// (PKCS#1), PKCS#8, DSA (OpenSSL), and ECDSA private keys.
 func NewPublicKeys(user string, pemBytes []byte, password string) (*PublicKeys, error) {
-	block, _ := pem.Decode(pemBytes)
-	if block == nil {
-		return nil, errors.New("invalid PEM data")
-	}
-	if x509.IsEncryptedPEMBlock(block) {
-		key, err := x509.DecryptPEMBlock(block, []byte(password))
-		if err != nil {
-			return nil, err
-		}
-
-		block = &pem.Block{Type: block.Type, Bytes: key}
-		pemBytes = pem.EncodeToMemory(block)
-	}
-
 	signer, err := ssh.ParsePrivateKey(pemBytes)
+	if _, ok := err.(*ssh.PassphraseMissingError); ok {
+		signer, err = ssh.ParsePrivateKeyWithPassphrase(pemBytes, []byte(password))
+	}
 	if err != nil {
 		return nil, err
 	}
-
 	return &PublicKeys{User: user, Signer: signer}, nil
 }
 
@@ -149,7 +133,7 @@ func NewPublicKeys(user string, pemBytes []byte, password string) (*PublicKeys, 
 // encoded private key. An encryption password should be given if the pemBytes
 // contains a password encrypted PEM block otherwise password should be empty.
 func NewPublicKeysFromFile(user, pemFile, password string) (*PublicKeys, error) {
-	bytes, err := ioutil.ReadFile(pemFile)
+	bytes, err := os.ReadFile(pemFile)
 	if err != nil {
 		return nil, err
 	}
@@ -238,12 +222,19 @@ func (a *PublicKeysCallback) ClientConfig() (*ssh.ClientConfig, error) {
 //
 // If list of files is empty, then it will be read from the SSH_KNOWN_HOSTS
 // environment variable, example:
-//   /home/foo/custom_known_hosts_file:/etc/custom_known/hosts_file
+//
+//	/home/foo/custom_known_hosts_file:/etc/custom_known/hosts_file
 //
 // If SSH_KNOWN_HOSTS is not set the following file locations will be used:
-//   ~/.ssh/known_hosts
-//   /etc/ssh/ssh_known_hosts
+//
+//	~/.ssh/known_hosts
+//	/etc/ssh/ssh_known_hosts
 func NewKnownHostsCallback(files ...string) (ssh.HostKeyCallback, error) {
+	kh, err := newKnownHosts(files...)
+	return ssh.HostKeyCallback(kh), err
+}
+
+func newKnownHosts(files ...string) (knownhosts.HostKeyCallback, error) {
 	var err error
 
 	if len(files) == 0 {
@@ -265,7 +256,7 @@ func getDefaultKnownHostsFiles() ([]string, error) {
 		return files, nil
 	}
 
-	homeDirPath, err := homedir.Dir()
+	homeDirPath, err := os.UserHomeDir()
 	if err != nil {
 		return nil, err
 	}

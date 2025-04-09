@@ -1,7 +1,6 @@
 package object
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"errors"
@@ -9,21 +8,33 @@ import (
 	"io"
 	"strings"
 
-	"golang.org/x/crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp"
 
 	"github.com/jesseduffield/go-git/v5/plumbing"
 	"github.com/jesseduffield/go-git/v5/plumbing/storer"
 	"github.com/jesseduffield/go-git/v5/utils/ioutil"
+	"github.com/jesseduffield/go-git/v5/utils/sync"
 )
 
 const (
-	beginpgp  string = "-----BEGIN PGP SIGNATURE-----"
-	endpgp    string = "-----END PGP SIGNATURE-----"
-	headerpgp string = "gpgsig"
+	beginpgp       string = "-----BEGIN PGP SIGNATURE-----"
+	endpgp         string = "-----END PGP SIGNATURE-----"
+	headerpgp      string = "gpgsig"
+	headerencoding string = "encoding"
+
+	// https://github.com/git/git/blob/bcb6cae2966cc407ca1afc77413b3ef11103c175/Documentation/gitformat-signature.txt#L153
+	// When a merge commit is created from a signed tag, the tag is embedded in
+	// the commit with the "mergetag" header.
+	headermergetag string = "mergetag"
+
+	defaultUtf8CommitMessageEncoding MessageEncoding = "UTF-8"
 )
 
 // Hash represents the hash of an object
 type Hash plumbing.Hash
+
+// MessageEncoding represents the encoding of a commit
+type MessageEncoding string
 
 // Commit points to a single tree, marking it as what the project looked like
 // at a certain point in time. It contains meta-information about that point
@@ -38,6 +49,9 @@ type Commit struct {
 	// Committer is the one performing the commit, might be different from
 	// Author.
 	Committer Signature
+	// MergeTag is the embedded tag object when a merge commit is created by
+	// merging a signed tag.
+	MergeTag string
 	// PGPSignature is the PGP signature of the commit.
 	PGPSignature string
 	// Message is the commit message, contains arbitrary text.
@@ -46,6 +60,8 @@ type Commit struct {
 	TreeHash plumbing.Hash
 	// ParentHashes are the hashes of the parent commits of the commit.
 	ParentHashes []plumbing.Hash
+	// Encoding is the encoding of the commit.
+	Encoding MessageEncoding
 
 	s storer.EncodedObjectStorer
 }
@@ -173,6 +189,7 @@ func (c *Commit) Decode(o plumbing.EncodedObject) (err error) {
 	}
 
 	c.Hash = o.Hash()
+	c.Encoding = defaultUtf8CommitMessageEncoding
 
 	reader, err := o.Reader()
 	if err != nil {
@@ -180,17 +197,27 @@ func (c *Commit) Decode(o plumbing.EncodedObject) (err error) {
 	}
 	defer ioutil.CheckClose(reader, &err)
 
-	r := bufPool.Get().(*bufio.Reader)
-	defer bufPool.Put(r)
-	r.Reset(reader)
+	r := sync.GetBufioReader(reader)
+	defer sync.PutBufioReader(r)
 
 	var message bool
+	var mergetag bool
 	var pgpsig bool
 	var msgbuf bytes.Buffer
 	for {
 		line, err := r.ReadBytes('\n')
 		if err != nil && err != io.EOF {
 			return err
+		}
+
+		if mergetag {
+			if len(line) > 0 && line[0] == ' ' {
+				line = bytes.TrimLeft(line, " ")
+				c.MergeTag += string(line)
+				continue
+			} else {
+				mergetag = false
+			}
 		}
 
 		if pgpsig {
@@ -226,6 +253,11 @@ func (c *Commit) Decode(o plumbing.EncodedObject) (err error) {
 				c.Author.Decode(data)
 			case "committer":
 				c.Committer.Decode(data)
+			case headermergetag:
+				c.MergeTag += string(data) + "\n"
+				mergetag = true
+			case headerencoding:
+				c.Encoding = MessageEncoding(data)
 			case headerpgp:
 				c.PGPSignature += string(data) + "\n"
 				pgpsig = true
@@ -285,6 +317,28 @@ func (c *Commit) encode(o plumbing.EncodedObject, includeSig bool) (err error) {
 
 	if err = c.Committer.Encode(w); err != nil {
 		return err
+	}
+
+	if c.MergeTag != "" {
+		if _, err = fmt.Fprint(w, "\n"+headermergetag+" "); err != nil {
+			return err
+		}
+
+		// Split tag information lines and re-write with a left padding and
+		// newline. Use join for this so it's clear that a newline should not be
+		// added after this section. The newline will be added either as part of
+		// the PGP signature or the commit message.
+		mergetag := strings.TrimSuffix(c.MergeTag, "\n")
+		lines := strings.Split(mergetag, "\n")
+		if _, err = fmt.Fprint(w, strings.Join(lines, "\n ")); err != nil {
+			return err
+		}
+	}
+
+	if string(c.Encoding) != "" && c.Encoding != defaultUtf8CommitMessageEncoding {
+		if _, err = fmt.Fprintf(w, "\n%s %s", headerencoding, c.Encoding); err != nil {
+			return err
+		}
 	}
 
 	if c.PGPSignature != "" && includeSig {
@@ -374,7 +428,18 @@ func (c *Commit) Verify(armoredKeyRing string) (*openpgp.Entity, error) {
 		return nil, err
 	}
 
-	return openpgp.CheckArmoredDetachedSignature(keyring, er, signature)
+	return openpgp.CheckArmoredDetachedSignature(keyring, er, signature, nil)
+}
+
+// Less defines a compare function to determine which commit is 'earlier' by:
+// - First use Committer.When
+// - If Committer.When are equal then use Author.When
+// - If Author.When also equal then compare the string value of the hash
+func (c *Commit) Less(rhs *Commit) bool {
+	return c.Committer.When.Before(rhs.Committer.When) ||
+		(c.Committer.When.Equal(rhs.Committer.When) &&
+			(c.Author.When.Before(rhs.Author.When) ||
+				(c.Author.When.Equal(rhs.Author.When) && bytes.Compare(c.Hash[:], rhs.Hash[:]) < 0)))
 }
 
 func indent(t string) string {

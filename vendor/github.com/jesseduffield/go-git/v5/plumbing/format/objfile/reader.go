@@ -1,13 +1,13 @@
 package objfile
 
 import (
-	"compress/zlib"
 	"errors"
 	"io"
 	"strconv"
 
 	"github.com/jesseduffield/go-git/v5/plumbing"
 	"github.com/jesseduffield/go-git/v5/plumbing/format/packfile"
+	"github.com/jesseduffield/go-git/v5/utils/sync"
 )
 
 var (
@@ -20,20 +20,22 @@ var (
 // Reader implements io.ReadCloser. Close should be called when finished with
 // the Reader. Close will not close the underlying io.Reader.
 type Reader struct {
-	multi  io.Reader
-	zlib   io.ReadCloser
-	hasher plumbing.Hasher
+	multi   io.Reader
+	zlib    io.Reader
+	zlibref sync.ZLibReader
+	hasher  plumbing.Hasher
 }
 
 // NewReader returns a new Reader reading from r.
 func NewReader(r io.Reader) (*Reader, error) {
-	zlib, err := zlib.NewReader(r)
+	zlib, err := sync.GetZlibReader(r)
 	if err != nil {
 		return nil, packfile.ErrZLib.AddDetails(err.Error())
 	}
 
 	return &Reader{
-		zlib: zlib,
+		zlib:    zlib.Reader,
+		zlibref: zlib,
 	}, nil
 }
 
@@ -110,5 +112,6 @@ func (r *Reader) Hash() plumbing.Hash {
 // Close releases any resources consumed by the Reader. Calling Close does not
 // close the wrapped io.Reader originally passed to NewReader.
 func (r *Reader) Close() error {
-	return r.zlib.Close()
+	sync.PutZlibReader(r.zlibref)
+	return nil
 }
