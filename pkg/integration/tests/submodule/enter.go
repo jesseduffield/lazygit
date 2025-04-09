@@ -29,11 +29,7 @@ var Enter = NewIntegrationTest(NewIntegrationTestArgs{
 			t.Views().Status().Content(Contains("repo"))
 		}
 		assertInSubmodule := func() {
-			if t.Git().Version().IsAtLeast(2, 22, 0) {
-				t.Views().Status().Content(Contains("my_submodule_path(my_submodule_name)"))
-			} else {
-				t.Views().Status().Content(Contains("my_submodule_path"))
-			}
+			t.Views().Status().Content(Contains("my_submodule_path(my_submodule_name)"))
 		}
 
 		assertInParentRepo()
