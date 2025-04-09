@@ -351,6 +351,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | Edit | Open file in external editor. |
 | `` o `` | 파일 닫기 | Open file in default application. |
 | `` i `` | Ignore file |  |
+| `` I `` | Add extension to .gitignore |  |
 | `` r `` | 파일 새로고침 |  |
 | `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | Stash 옵션 보기 | View stash options (e.g. stash all, stash staged, stash unstaged). |
