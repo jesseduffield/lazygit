@@ -268,6 +268,38 @@ func (self *FilesController) GetOnRenderToMain() func() {
 					self.c.Helpers().MergeConflicts.Render()
 					return
 				}
+			} else if node.File != nil && node.File.HasMergeConflicts {
+				opts := types.RefreshMainOpts{
+					Pair: self.c.MainViewPairs().Normal,
+					Main: &types.ViewUpdateOpts{
+						Title:    self.c.Tr.DiffTitle,
+						SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+					},
+				}
+				message := node.File.GetMergeStateDescription(self.c.Tr)
+				message += "\n\n" + fmt.Sprintf(self.c.Tr.MergeConflictPressEnterToResolve,
+					self.c.UserConfig().Keybinding.Universal.GoInto)
+				if self.c.Views().Main.InnerWidth() > 70 {
+					// If the main view is very wide, wrap the message to increase readability
+					lines, _, _ := utils.WrapViewLinesToWidth(true, false, message, 70, 4)
+					message = strings.Join(lines, "\n")
+				}
+				if node.File.ShortStatus == "DU" || node.File.ShortStatus == "UD" {
+					cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()})
+					task := types.NewRunPtyTask(cmdObj.GetCmd())
+					task.Prefix = message + "\n\n"
+					if node.File.ShortStatus == "DU" {
+						task.Prefix += self.c.Tr.MergeConflictIncomingDiff
+					} else {
+						task.Prefix += self.c.Tr.MergeConflictCurrentDiff
+					}
+					task.Prefix += "\n\n"
+					opts.Main.Task = task
+				} else {
+					opts.Main.Task = types.NewRenderStringTask(message)
+				}
+				self.c.RenderToMainViews(opts)
+				return
 			}
 
 			self.c.Helpers().MergeConflicts.ResetMergeState()
@@ -539,11 +571,57 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 		return self.switchToMerge()
 	}
 	if file.HasMergeConflicts {
-		return errors.New(self.c.Tr.FileStagingRequirements)
+		return self.handleNonInlineConflict(file)
 	}
 
 	self.c.Context().Push(self.c.Contexts().Staging, opts)
 	return nil
+}
+
+func (self *FilesController) handleNonInlineConflict(file *models.File) error {
+	handle := func(command func(command string) error, logText string) error {
+		self.c.LogAction(logText)
+		if err := command(file.GetPath()); err != nil {
+			return err
+		}
+		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+	}
+	keepItem := &types.MenuItem{
+		Label: self.c.Tr.MergeConflictKeepFile,
+		OnPress: func() error {
+			return handle(self.c.Git().WorkingTree.StageFile, self.c.Tr.Actions.ResolveConflictByKeepingFile)
+		},
+		Key: 'k',
+	}
+	deleteItem := &types.MenuItem{
+		Label: self.c.Tr.MergeConflictDeleteFile,
+		OnPress: func() error {
+			return handle(self.c.Git().WorkingTree.RemoveConflictedFile, self.c.Tr.Actions.ResolveConflictByDeletingFile)
+		},
+		Key: 'd',
+	}
+	items := []*types.MenuItem{}
+	switch file.ShortStatus {
+	case "DD":
+		// For "both deleted" conflicts, deleting the file is the only reasonable thing you can do.
+		// Restoring to the state before deletion is not the responsibility of a conflict resolution tool.
+		items = append(items, deleteItem)
+	case "DU", "UD":
+		// For these, we put the delete option first because it's the most common one,
+		// even if it's more destructive.
+		items = append(items, deleteItem, keepItem)
+	case "AU", "UA":
+		// For these, we put the keep option first because it's less destructive,
+		// and the chances between keep and delete are 50/50.
+		items = append(items, keepItem, deleteItem)
+	default:
+		panic("should only be called if there's a merge conflict")
+	}
+	return self.c.Menu(types.CreateMenuOptions{
+		Title:  self.c.Tr.MergeConflictsTitle,
+		Prompt: file.GetMergeStateDescription(self.c.Tr),
+		Items:  items,
+	})
 }
 
 func (self *FilesController) toggleStagedAll() error {
