@@ -318,7 +318,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | Verander config bestand | Open file in external editor. |
 | `` u `` | Check voor updates |  |
 | `` <enter> `` | Wissel naar een recente repo |  |
-| `` a `` | Alle logs van de branch laten zien |  |
+| `` a `` | Show/cycle all branch logs |  |
 
 ## Sub-commits
 

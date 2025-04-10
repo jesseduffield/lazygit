@@ -339,7 +339,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | 編輯設定檔案 | 使用外部編輯器開啟 |
 | `` u `` | 檢查更新 |  |
 | `` <enter> `` | 切換到最近使用的版本庫 |  |
-| `` a `` | 顯示所有分支日誌 |  |
+| `` a `` | Show/cycle all branch logs |  |
 
 ## 確認面板
 

@@ -286,7 +286,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | Редактировать файл конфигурации | Open file in external editor. |
 | `` u `` | Проверить обновления |  |
 | `` <enter> `` | Переключиться на последний репозиторий |  |
-| `` a `` | Показать все логи ветки |  |
+| `` a `` | Show/cycle all branch logs |  |
 
 ## Теги
 
