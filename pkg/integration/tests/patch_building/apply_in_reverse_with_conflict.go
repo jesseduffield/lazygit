@@ -44,13 +44,13 @@ var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.Views().Information().Content(Contains("Building patch"))
 
-				t.Views().PatchBuildingSecondary().Content(
+				t.Views().Secondary().Content(
 					Contains("+more file1 content"))
 			}).
 			SelectNextItem().
 			PressPrimaryAction()
 
-		t.Views().PatchBuildingSecondary().Content(
+		t.Views().Secondary().Content(
 			Contains("+more file1 content").Contains("+more file2 content"))
 
 		t.Common().SelectPatchOption(Contains("Apply patch in reverse"))

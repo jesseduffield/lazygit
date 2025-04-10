@@ -209,33 +209,9 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
 	return []*gocui.ViewMouseBinding{
 		{
-			ViewName:    "main",
-			Key:         gocui.MouseLeft,
-			Handler:     self.onClickMain,
-			FocusedView: self.context().GetViewName(),
-		},
-		{
-			ViewName:    "patchBuilding",
-			Key:         gocui.MouseLeft,
-			Handler:     self.onClickMain,
-			FocusedView: self.context().GetViewName(),
-		},
-		{
 			ViewName:    "mergeConflicts",
 			Key:         gocui.MouseLeft,
 			Handler:     self.onClickMain,
-			FocusedView: self.context().GetViewName(),
-		},
-		{
-			ViewName:    "secondary",
-			Key:         gocui.MouseLeft,
-			Handler:     self.onClickSecondary,
-			FocusedView: self.context().GetViewName(),
-		},
-		{
-			ViewName:    "patchBuildingSecondary",
-			Key:         gocui.MouseLeft,
-			Handler:     self.onClickSecondary,
 			FocusedView: self.context().GetViewName(),
 		},
 	}
@@ -304,11 +280,6 @@ func (self *FilesController) GetOnRenderToMain() func() {
 
 			self.c.Helpers().MergeConflicts.ResetMergeState()
 
-			pair := self.c.MainViewPairs().Normal
-			if node.File != nil {
-				pair = self.c.MainViewPairs().Staging
-			}
-
 			split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
 			mainShowsStaged := !split && node.GetHasStagedChanges()
 
@@ -318,7 +289,7 @@ func (self *FilesController) GetOnRenderToMain() func() {
 				title = self.c.Tr.StagedChanges
 			}
 			refreshOpts := types.RefreshMainOpts{
-				Pair: pair,
+				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
 					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
@@ -350,6 +321,16 @@ func (self *FilesController) GetOnClick() func() error {
 	return self.withItemGraceful(func(node *filetree.FileNode) error {
 		return self.press([]*filetree.FileNode{node})
 	})
+}
+
+func (self *FilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
+	return func(mainViewName string, clickedLineIdx int) error {
+		node := self.getSelectedItem()
+		if node != nil && node.File != nil {
+			return self.EnterFile(types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: clickedLineIdx})
+		}
+		return nil
+	}
 }
 
 // if we are dealing with a status for which there is no key in this map,
@@ -574,7 +555,8 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 		return self.handleNonInlineConflict(file)
 	}
 
-	self.c.Context().Push(self.c.Contexts().Staging, opts)
+	context := lo.Ternary(opts.ClickedWindowName == "secondary", self.c.Contexts().StagingSecondary, self.c.Contexts().Staging)
+	self.c.Context().Push(context, opts)
 	return nil
 }
 
@@ -1203,10 +1185,6 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 
 func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
 	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
-}
-
-func (self *FilesController) onClickSecondary(opts gocui.ViewMouseBindingOpts) error {
-	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "secondary", ClickedViewLineIdx: opts.Y})
 }
 
 func (self *FilesController) fetch() error {

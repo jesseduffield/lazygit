@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
@@ -48,6 +49,9 @@ type IGuiCommon interface {
 	RenderToMainViews(opts RefreshMainOpts)
 	// used purely for the sake of RenderToMainViews to provide the pair of main views we want to render to
 	MainViewPairs() MainViewPairs
+
+	// return the view buffer manager for the given view, or nil if it doesn't have one
+	GetViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager
 
 	// returns true if command completed successfully
 	RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error)

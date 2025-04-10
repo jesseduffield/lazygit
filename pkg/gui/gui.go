@@ -578,6 +578,15 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 	return initialContext(contextTree, startArgs)
 }
 
+func (self *Gui) getViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager {
+	manager, ok := self.viewBufferManagerMap[view.Name()]
+	if !ok {
+		return nil
+	}
+
+	return manager
+}
+
 func initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSafeMap[string, string] {
 	result := utils.NewThreadSafeMap[string, string]()
 
