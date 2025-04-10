@@ -299,7 +299,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` e `` | Edytuj plik konfiguracyjny | Otwórz plik w zewnętrznym edytorze. |
 | `` u `` | Sprawdź aktualizacje |  |
 | `` <enter> `` | Przełącz na ostatnie repozytorium |  |
-| `` a `` | Pokaż wszystkie gałęzie w logach |  |
+| `` a `` | Show/cycle all branch logs |  |
 
 ## Sub-commity
 

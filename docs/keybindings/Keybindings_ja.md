@@ -107,7 +107,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` e `` | Edit (start interactive rebase) | コミットを編集 |
 | `` i `` | Start interactive rebase | Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.
 If you would instead like to start an interactive rebase from the selected commit, press `e`. |
-| `` p `` | Pick | Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase. |
+| `` p `` | 選択 | Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase. |
 | `` F `` | Fixupコミットを作成 | このコミットに対するfixupコミットを作成 |
 | `` S `` | Apply fixup commits | Squash all 'fixup!' commits, either above the selected commit, or all in current branch (autosquash). |
 | `` <c-j> `` | コミットを1つ下に移動 |  |
@@ -140,7 +140,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` c `` | チェックアウト | Checkout file. This replaces the file in your working tree with the version from the selected commit. |
 | `` d `` | Remove | Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file. |
 | `` o `` | ファイルを開く | Open file in default application. |
-| `` e `` | Edit | Open file in external editor. |
+| `` e `` | 編集 | Open file in external editor. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <space> `` | Toggle file included in patch | Toggle whether the file is included in the custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | Toggle all files | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
@@ -179,7 +179,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | 設定ファイルを編集 | Open file in external editor. |
 | `` u `` | 更新を確認 |  |
 | `` <enter> `` | 最近使用したリポジトリに切り替え |  |
-| `` a `` | すべてのブランチログを表示 |  |
+| `` a `` | Show/cycle all branch logs |  |
 
 ## タグ
 
@@ -209,7 +209,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` A `` | 最新のコミットにamend |  |
 | `` C `` | gitエディタを使用して変更をコミット |  |
 | `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
-| `` e `` | Edit | Open file in external editor. |
+| `` e `` | 編集 | Open file in external editor. |
 | `` o `` | ファイルを開く | Open file in default application. |
 | `` i `` | ファイルをignore |  |
 | `` r `` | ファイルをリフレッシュ |  |
@@ -240,7 +240,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` O `` | View create pull request options |  |
 | `` <c-y> `` | Pull RequestのURLをクリップボードにコピー |  |
 | `` c `` | Checkout by name | Checkout by name. In the input box you can enter '-' to switch to the last branch. |
-| `` F `` | Force checkout | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
+| `` F `` | 強制的にチェックアウト | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |
 | `` r `` | Rebase | Rebase the checked-out branch onto the selected branch. |
 | `` M `` | 現在のブランチにマージ | View options for merging the selected item into the current branch (regular merge, squash merge) |
@@ -330,7 +330,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <enter> `` | View branches |  |
 | `` n `` | リモートを新規追加 |  |
 | `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
-| `` e `` | Edit | リモートを編集 |
+| `` e `` | 編集 | リモートを編集 |
 | `` f `` | Fetch | リモートをfetch |
 | `` / `` | Filter the current view by text |  |
 

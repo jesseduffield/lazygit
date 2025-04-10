@@ -213,7 +213,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` e `` | 설정 파일 수정 | Open file in external editor. |
 | `` u `` | 업데이트 확인 |  |
 | `` <enter> `` | 최근에 사용한 저장소로 전환 |  |
-| `` a `` | 모든 브랜치 로그 표시 |  |
+| `` a `` | Show/cycle all branch logs |  |
 
 ## 서브모듈
 

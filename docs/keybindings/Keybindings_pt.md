@@ -9,8 +9,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-r> `` | Mudar para um repositório recente |  |
-| `` <pgup> (fn+up/shift+k) `` | Scroll up main window |  |
-| `` <pgdown> (fn+down/shift+j) `` | Scroll down main window |  |
+| `` <pgup> (fn+up/shift+k) `` | Rolar janela principal para cima |  |
+| `` <pgdown> (fn+down/shift+j) `` | Rolar a janela principal para baixo |  |
 | `` @ `` | View command log options | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | Empurre (Push) | Faça push do branch atual para o seu branch upstream. Se nenhum upstream estiver configurado, você será solicitado a configurar um branch a montante. |
 | `` p `` | Puxar (Pull) | Puxe alterações do controle remoto para o ramo atual. Se nenhum upstream estiver configurado, será solicitado configurar um ramo a montante. |
@@ -18,8 +18,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
 | `` } `` | Increase diff context size | Increase the amount of the context shown around changes in the diff view. |
 | `` { `` | Decrease diff context size | Decrease the amount of the context shown around changes in the diff view. |
-| `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
-| `` <c-p> `` | View custom patch options |  |
+| `` : `` | Executar comando da shell | Traga um prompt onde você pode digitar um comando shell para executar. |
+| `` <c-p> `` | Ver opções de patch personalizadas |  |
 | `` m `` | Ver opções de mesclar/rebase | Ver opções para abortar/continuar/pular o merge/rebase atual. |
 | `` R `` | Atualizar | Atualize o estado do git (ou seja, execute `git status`, `git branch`, etc em segundo plano para atualizar o conteúdo de painéis). Isso não executa `git fetch`. |
 | `` + `` | Next screen mode (normal/half/fullscreen) |  |
@@ -29,7 +29,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` W `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` <c-e> `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | Sair |  |
-| `` <esc> `` | Cancel |  |
+| `` <esc> `` | Cancelar |  |
 | `` <c-w> `` | Toggle whitespace | Toggle whether or not whitespace changes are shown in the diff view. |
 | `` z `` | Desfazer | O reflog será usado para determinar qual comando git para executar para desfazer o último comando git. Isto não inclui mudanças na árvore de trabalho; apenas compromissos são tidos em consideração. |
 | `` <c-z> `` | Refazer | O reflog será usado para determinar qual comando git para executar para refazer o último comando git. Isto não inclui mudanças na árvore de trabalho; apenas compromissos são tidos em consideração. |
@@ -46,8 +46,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <s-down> `` | Range select down |  |
 | `` <s-up> `` | Range select up |  |
 | `` / `` | Search the current view by text |  |
-| `` H `` | Scroll left |  |
-| `` L `` | Scroll right |  |
+| `` H `` | Rolar à esquerda |  |
+| `` L `` | Scroll para a direita |  |
 | `` ] `` | Next tab |  |
 | `` [ `` | Previous tab |  |
 
@@ -60,7 +60,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-b> `` | Filtrar arquivos por status |  |
 | `` y `` | Copy to clipboard |  |
 | `` c `` | Commit | Submeter mudanças em staging |
-| `` w `` | Commit changes without pre-commit hook |  |
+| `` w `` | Fazer commit de alterações sem pré-commit |  |
 | `` A `` | Alterar último commit |  |
 | `` C `` | Enviar alteração usando um editor Git |  |
 | `` <c-f> `` | Encontrar commit da base para consertar | Encontre o commit em que as suas mudanças atuais estão se baseando, para alterar/consertar o commit. Isso poupa-te você de ter que olhar pelos commits da sua branch um por um para ver qual commit deve ser alterado/consertado
@@ -70,19 +70,19 @@ Veja a documentação:
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
 | `` i `` | Ignore or exclude file |  |
 | `` r `` | Atualizar arquivos |  |
-| `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
-| `` S `` | View stash options | View stash options (e.g. stash all, stash staged, stash unstaged). |
+| `` s `` | Stash | Stash todas as alterações. Para outras variações de armazenamento, use a fixação de teclas de armazenamento. |
+| `` S `` | Ver opções de stash | Ver opções de stash (por exemplo, trash all, stash staged, stash unsttued). |
 | `` a `` | Stage completo | Alternar para todos os arquivos na árvore de trabalho |
 | `` <enter> `` | Stage lines / Colapso diretório | Se o item selecionado for um arquivo, o foco na exibição de preparo para o estágio de cenas/linhas individuais. Se o item selecionado for um diretório, recolher/expandi-lo. |
-| `` d `` | Discard | View options for discarding changes to the selected file. |
+| `` d `` | Descartar | Exibir opções para descartar alterações para o arquivo selecionado. |
 | `` g `` | View upstream reset options |  |
-| `` D `` | Reset | View reset options for working tree (e.g. nuking the working tree). |
+| `` D `` | Restaurar | Opções de redefinição de exibição para árvore de trabalho (por exemplo, nukando a árvore de trabalho). |
 | `` ` `` | Alternar exibição de árvore de arquivo | Alternar a visualização de arquivo entre layout plano e layout de árvore. Layout plano mostra todos os caminhos de arquivo em uma única lista, layout de árvore agrupa arquivos por diretório. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` M `` | Abrir ferramenta de merge externa | Execute `git mergetool`. |
 | `` f `` | Buscar | Buscar alterações do controle remoto. |
-| `` - `` | Collapse all files | Collapse all directories in the files tree |
-| `` = `` | Expand all files | Expand all directories in the file tree |
+| `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
+| `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
 | `` / `` | Search the current view by text |  |
 
 ## Branches locais
@@ -98,13 +98,13 @@ Veja a documentação:
 | `` <c-y> `` | Copiar URL do pull request para área de transferência |  |
 | `` c `` | Checar por nome | Checar por nome. Na caixa de entrada você pode inserir '-' para trocar para a última branch  |
 | `` F `` | Forçar checagem | Forçar checagem da branch selecionada. Isso irá descartar todas as mudanças no seu diretório de trabalho antes cheque a branch selecionada   |
-| `` d `` | Delete | View delete options for local/remote branch. |
+| `` d `` | Apagar | Ver opções de exclusão para a branch local/remoto. |
 | `` r `` | Refazer | Refazer a branch checada na branch selecionada |
 | `` M `` | Mesclar | Ver opções para mesclar o item selecionado no branch atual (mesclar regularmente, mesclar squash) |
 | `` f `` | Avanço rápido | Encaminhamento rápido de branch selecionada a partir do upstream. |
 | `` T `` | New tag |  |
 | `` s `` | Sort order |  |
-| `` g `` | Reset |  |
+| `` g `` | Restaurar |  |
 | `` R `` | Rename branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
@@ -121,32 +121,32 @@ Veja a documentação:
 | `` n `` | Nova branch |  |
 | `` M `` | Mesclar | Ver opções para mesclar o item selecionado no branch atual (mesclar regularmente, mesclar squash) |
 | `` r `` | Refazer | Refazer a branch checada na branch selecionada |
-| `` d `` | Delete | Delete the remote branch from the remote. |
-| `` u `` | Set as upstream | Set the selected remote branch as the upstream of the checked-out branch. |
+| `` d `` | Apagar | Excluir o branch remoto do controle remoto. |
+| `` u `` | Definir como upstream | Definir o ramo remoto selecionado como fluxo do branch check-out. |
 | `` s `` | Sort order |  |
-| `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
 
-## Commit files
+## Commit arquivos
 
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Copy path to clipboard |  |
 | `` y `` | Copy to clipboard |  |
-| `` c `` | Verificar | Checkout file. This replaces the file in your working tree with the version from the selected commit. |
-| `` d `` | Remove | Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file. |
+| `` c `` | Verificar | Arquivo de check-out. Isso substitui o arquivo em sua árvore de trabalho com a versão do commit selecionado. |
+| `` d `` | Remover | Descartar as alterações desse commit para este arquivo. Isso executa uma rebase interativa em segundo plano, então você pode ter um conflito de merge se um commit posterior também alterar este arquivo. |
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
 | `` e `` | Editar | Abrir arquivo no editor externo. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
-| `` <space> `` | Toggle file included in patch | Toggle whether the file is included in the custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
-| `` a `` | Toggle all files | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
-| `` <enter> `` | Enter file / Toggle directory collapsed | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
+| `` <space> `` | Alternar entre o arquivo incluído no patch | Alternar se o arquivo está incluído no patch personalizado. Veja https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
+| `` a `` | Alternar todos os arquivos | Adicionar/remover todos os arquivos de commit para atualização personalizada. Consulte https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
+| `` <enter> `` | Insira o arquivo / Alternar diretório recolhido | Se um arquivo estiver selecionado, insira o arquivo para que você possa adicionar/remover linhas individuais no patch personalizado. Se um diretório for selecionado, ative o diretório. |
 | `` ` `` | Alternar exibição de árvore de arquivo | Alternar a visualização de arquivo entre layout plano e layout de árvore. Layout plano mostra todos os caminhos de arquivo em uma única lista, layout de árvore agrupa arquivos por diretório. |
-| `` - `` | Collapse all files | Collapse all directories in the files tree |
-| `` = `` | Expand all files | Expand all directories in the file tree |
+| `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
+| `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
 | `` / `` | Search the current view by text |  |
 
 ## Commits
@@ -165,8 +165,8 @@ Veja a documentação:
 | `` i `` | Start interactive rebase | Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.
 If you would instead like to start an interactive rebase from the selected commit, press `e`. |
 | `` p `` | Escolher | Marque o commit selecionado para ser escolhido (quando meados da base). Isso significa que o commit será mantido ao continuar o rebase. |
-| `` F `` | Create fixup commit | Create 'fixup!' commit for the selected commit. Later on, you can press `S` on this same commit to apply all above fixup commits. |
-| `` S `` | Apply fixup commits | Squash all 'fixup!' commits, either above the selected commit, or all in current branch (autosquash). |
+| `` F `` | Criar commit de correção | Crie o commit 'correção!' para o commit selecionado. Mais tarde, você pode pressionar `S` neste mesmo commit para aplicar todas os commits de correção acima. |
+| `` S `` | Aplicar commits de correções | Aplicar Squash all 'correção!', seja acima do commit selecionado, ou tudo no branch atual (autosquash). |
 | `` <c-j> `` | Mover commit um para baixo |  |
 | `` <c-k> `` | Mover o commit um para cima |  |
 | `` V `` | Colar (cherry-pick) |  |
@@ -180,11 +180,11 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
 | `` n `` | Create new branch off of commit |  |
-| `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` C `` | Copiar (cherry-pick) | Marcar commit como copiado. Então, dentro da visualização local de commits, você pode pressionar `V` para colar (cherry-pick) o(s) commit(s) copiado(s) em seu branch de check-out. A qualquer momento você pode pressionar `<esc>` para cancelar a seleção. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
-| `` <enter> `` | View files |  |
+| `` <enter> `` | Ver arquivos |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Search the current view by text |  |
 
@@ -202,9 +202,9 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-o> `` | Copy tag to clipboard |  |
 | `` <space> `` | Verificar | Checar a tag selecionada como um HEAD, desanexado |
 | `` n `` | New tag | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
-| `` d `` | Delete | View delete options for local/remote tag. |
+| `` d `` | Apagar | Ver opções de exclusão para tag local/remoto. |
 | `` P `` | Push tag | Push the selected tag to a remote. You'll be prompted to select a remote. |
-| `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
@@ -222,15 +222,15 @@ If you would instead like to start an interactive rebase from the selected commi
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` mouse wheel down (fn+up) `` | Scroll down |  |
-| `` mouse wheel up (fn+down) `` | Scroll up |  |
+| `` mouse wheel down (fn+up) `` | Rolar para baixo |  |
+| `` mouse wheel up (fn+down) `` | Rolar para cima |  |
 
 ## Painel Principal (preparação)
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Go to previous hunk |  |
-| `` <right> `` | Go to next hunk |  |
+| `` <left> `` | Ir para o local anterior |  |
+| `` <right> `` | Ir para o próximo trecho |  |
 | `` v `` | Toggle range select |  |
 | `` a `` | Selecione o local | Ativa/desativa modo seleção de hunk  |
 | `` <c-o> `` | Copy selected text to clipboard |  |
@@ -242,7 +242,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` E `` | Editar hunk | Editar o local selecionado no editor externo. |
 | `` c `` | Commit | Submeter mudanças em staging |
-| `` w `` | Commit changes without pre-commit hook |  |
+| `` w `` | Fazer commit de alterações sem pré-commit |  |
 | `` C `` | Enviar alteração usando um editor Git |  |
 | `` <c-f> `` | Encontrar commit da base para consertar | Encontre o commit em que as suas mudanças atuais estão se baseando, para alterar/consertar o commit. Isso poupa-te você de ter que olhar pelos commits da sua branch um por um para ver qual commit deve ser alterado/consertado
 Veja a documentação:
@@ -255,10 +255,10 @@ Veja a documentação:
 |-----|--------|-------------|
 | `` <space> `` | Escolha o local |  |
 | `` b `` | Pegar todos os pedaços |  |
-| `` <up> `` | Previous hunk |  |
-| `` <down> `` | Next hunk |  |
-| `` <left> `` | Previous conflict |  |
-| `` <right> `` | Next conflict |  |
+| `` <up> `` | Trecho anterior |  |
+| `` <down> `` | Próximo trecho |  |
+| `` <left> `` | Conflito anterior |  |
+| `` <right> `` | Próximo conflito |  |
 | `` z `` | Desfazer | Desfazer resolução de conflitos de última mesclagem. |
 | `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
@@ -269,15 +269,15 @@ Veja a documentação:
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Go to previous hunk |  |
-| `` <right> `` | Go to next hunk |  |
+| `` <left> `` | Ir para o local anterior |  |
+| `` <right> `` | Ir para o próximo trecho |  |
 | `` v `` | Toggle range select |  |
 | `` a `` | Selecione o local | Ativa/desativa modo seleção de hunk  |
 | `` <c-o> `` | Copy selected text to clipboard |  |
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
 | `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
 | `` <space> `` | Alternar linhas no caminho |  |
-| `` <esc> `` | Exit custom patch builder |  |
+| `` <esc> `` | Sair do construtor de patch personalizado |  |
 | `` / `` | Search the current view by text |  |
 
 ## Reflog
@@ -289,7 +289,7 @@ Veja a documentação:
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
 | `` n `` | Create new branch off of commit |  |
-| `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` C `` | Copiar (cherry-pick) | Marcar commit como copiado. Então, dentro da visualização local de commits, você pode pressionar `V` para colar (cherry-pick) o(s) commit(s) copiado(s) em seu branch de check-out. A qualquer momento você pode pressionar `<esc>` para cancelar a seleção. |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
@@ -302,9 +302,9 @@ Veja a documentação:
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <enter> `` | View branches |  |
-| `` n `` | New remote |  |
-| `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
+| `` <enter> `` | Ver branches |  |
+| `` n `` | Novo controle |  |
+| `` d `` | Remover | Remover o controle remoto. Quaisquer ramificações locais de rastreamento de um ramo remoto do controle não serão afetadas. |
 | `` e `` | Editar | Edit the selected remote's name or URL. |
 | `` f `` | Buscar | Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches. |
 | `` / `` | Filter the current view by text |  |
@@ -318,7 +318,7 @@ Veja a documentação:
 | `` d `` | Descartar | Remova a entrada do stash da lista de armazenamento. |
 | `` n `` | Nova branch | Criar um novo ramo a partir da entrada de lixo selecionada. Isso funciona verificando o commit do qual a entrada de lixo foi criada, criar um novo branch a partir desse commit e, em seguida, aplicar a entrada de lixo ao novo branch como um commit adicional. |
 | `` r `` | Renomear o stasj |  |
-| `` <enter> `` | View files |  |
+| `` <enter> `` | Ver arquivos |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
 
@@ -330,7 +330,7 @@ Veja a documentação:
 | `` e `` | Editar arquivo de configuração | Abrir arquivo no editor externo. |
 | `` u `` | Verificar atualização |  |
 | `` <enter> `` | Mudar para um repositório recente |  |
-| `` a `` | Mostrar todos os logs da branch |  |
+| `` a `` | Mostrar/ciclo todos os logs de filiais |  |
 
 ## Sub-commits
 
@@ -341,12 +341,12 @@ Veja a documentação:
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
 | `` n `` | Create new branch off of commit |  |
-| `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` C `` | Copiar (cherry-pick) | Marcar commit como copiado. Então, dentro da visualização local de commits, você pode pressionar `V` para colar (cherry-pick) o(s) commit(s) copiado(s) em seu branch de check-out. A qualquer momento você pode pressionar `<esc>` para cancelar a seleção. |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
-| `` <enter> `` | View files |  |
+| `` <enter> `` | Ver arquivos |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Search the current view by text |  |
 
@@ -356,7 +356,7 @@ Veja a documentação:
 |-----|--------|-------------|
 | `` <c-o> `` | Copy submodule name to clipboard |  |
 | `` <enter> `` | Enter | Enter submodule. After entering the submodule, you can press `<esc>` to escape back to the parent repo. |
-| `` d `` | Remove | Remove the selected submodule and its corresponding directory. |
+| `` d `` | Remover | Remove the selected submodule and its corresponding directory. |
 | `` u `` | Update | Update selected submodule. |
 | `` n `` | New submodule |  |
 | `` e `` | Update submodule URL |  |
@@ -378,5 +378,5 @@ Veja a documentação:
 | `` n `` | New worktree |  |
 | `` <space> `` | Switch | Switch to the selected worktree. |
 | `` o `` | Abrir no editor |  |
-| `` d `` | Remove | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
+| `` d `` | Remover | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
 | `` / `` | Filter the current view by text |  |
