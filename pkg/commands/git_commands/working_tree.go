@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -230,15 +231,21 @@ func (self *WorkingTreeCommands) DiscardUnstagedFileChanges(file *models.File) e
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// Escapes special characters in a filename for gitignore and exclude files
+func escapeFilename(filename string) string {
+	re := regexp.MustCompile(`^[!#]|[\[\]*]`)
+	return re.ReplaceAllString(filename, `\${0}`)
+}
+
 // Ignore adds a file to the gitignore for the repo
 func (self *WorkingTreeCommands) Ignore(filename string) error {
-	return self.os.AppendLineToFile(".gitignore", filename)
+	return self.os.AppendLineToFile(".gitignore", escapeFilename(filename))
 }
 
 // Exclude adds a file to the .git/info/exclude for the repo
 func (self *WorkingTreeCommands) Exclude(filename string) error {
 	excludeFile := filepath.Join(self.repoPaths.repoGitDirPath, "info", "exclude")
-	return self.os.AppendLineToFile(excludeFile, filename)
+	return self.os.AppendLineToFile(excludeFile, escapeFilename(filename))
 }
 
 // WorktreeFileDiff returns the diff of a file
