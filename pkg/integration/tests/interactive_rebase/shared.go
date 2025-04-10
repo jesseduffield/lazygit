@@ -4,13 +4,13 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-func handleConflictsFromSwap(t *TestDriver) {
+func handleConflictsFromSwap(t *TestDriver, expectedCommand string) {
 	t.Common().AcknowledgeConflicts()
 
 	t.Views().Commits().
 		Lines(
 			Contains("pick").Contains("commit two"),
-			Contains("conflict").Contains("<-- YOU ARE HERE --- commit three"),
+			Contains(expectedCommand).Contains("<-- CONFLICT --- commit three"),
 			Contains("commit one"),
 		)
 

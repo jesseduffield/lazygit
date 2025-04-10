@@ -122,7 +122,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 
 func (self *MergeAndRebaseHelper) hasExecTodos() bool {
 	for _, commit := range self.c.Model().Commits {
-		if commit.Status != models.StatusRebasing {
+		if !commit.IsTODO() {
 			break
 		}
 		if commit.Action == todo.Exec {

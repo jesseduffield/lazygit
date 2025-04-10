@@ -33,10 +33,10 @@ var EditTheConflCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains("pick").Contains("commit two"),
-				Contains("conflict").Contains("<-- YOU ARE HERE --- commit three"),
+				Contains("pick").Contains("<-- CONFLICT --- commit three"),
 				Contains("commit one"),
 			).
-			NavigateToLine(Contains("<-- YOU ARE HERE --- commit three")).
+			NavigateToLine(Contains("<-- CONFLICT --- commit three")).
 			Press(keys.Commits.RenameCommit)
 
 		t.ExpectToast(Contains("Disabled: Rewording commits while interactively rebasing is not currently supported"))

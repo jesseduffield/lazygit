@@ -328,18 +328,19 @@ func TestGetCommits(t *testing.T) {
 
 func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 	scenarios := []struct {
-		testName        string
-		todos           []todo.Todo
-		doneTodos       []todo.Todo
-		amendFileExists bool
-		expectedHash    string
+		testName          string
+		todos             []todo.Todo
+		doneTodos         []todo.Todo
+		amendFileExists   bool
+		messageFileExists bool
+		expectedResult    *models.Commit
 	}{
 		{
 			testName:        "no done todos",
 			todos:           []todo.Todo{},
 			doneTodos:       []todo.Todo{},
 			amendFileExists: false,
-			expectedHash:    "",
+			expectedResult:  nil,
 		},
 		{
 			testName: "common case (conflict)",
@@ -355,7 +356,11 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedHash:    "fa1afe1",
+			expectedResult: &models.Commit{
+				Hash:   "fa1afe1",
+				Action: todo.Pick,
+				Status: models.StatusConflicted,
+			},
 		},
 		{
 			testName: "last command was 'break'",
@@ -364,7 +369,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				{Command: todo.Break},
 			},
 			amendFileExists: false,
-			expectedHash:    "",
+			expectedResult:  nil,
 		},
 		{
 			testName: "last command was 'exec'",
@@ -376,7 +381,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedHash:    "",
+			expectedResult:  nil,
 		},
 		{
 			testName: "last command was 'reword'",
@@ -385,7 +390,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				{Command: todo.Reword},
 			},
 			amendFileExists: false,
-			expectedHash:    "",
+			expectedResult:  nil,
 		},
 		{
 			testName: "'pick' was rescheduled",
@@ -402,7 +407,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedHash:    "",
+			expectedResult:  nil,
 		},
 		{
 			testName: "'pick' was rescheduled, buggy git version",
@@ -427,7 +432,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedHash:    "",
+			expectedResult:  nil,
 		},
 		{
 			testName: "conflicting 'pick' after 'exec'",
@@ -452,7 +457,11 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedHash:    "fa1afe1",
+			expectedResult: &models.Commit{
+				Hash:   "fa1afe1",
+				Action: todo.Pick,
+				Status: models.StatusConflicted,
+			},
 		},
 		{
 			testName: "'edit' with amend file",
@@ -464,10 +473,10 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: true,
-			expectedHash:    "",
+			expectedResult:  nil,
 		},
 		{
-			testName: "'edit' without amend file",
+			testName: "'edit' without amend file but message file",
 			todos:    []todo.Todo{},
 			doneTodos: []todo.Todo{
 				{
@@ -475,8 +484,26 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 					Commit:  "fa1afe1",
 				},
 			},
-			amendFileExists: false,
-			expectedHash:    "fa1afe1",
+			amendFileExists:   false,
+			messageFileExists: true,
+			expectedResult: &models.Commit{
+				Hash:   "fa1afe1",
+				Action: todo.Edit,
+				Status: models.StatusConflicted,
+			},
+		},
+		{
+			testName: "'edit' without amend and without message file",
+			todos:    []todo.Todo{},
+			doneTodos: []todo.Todo{
+				{
+					Command: todo.Edit,
+					Commit:  "fa1afe1",
+				},
+			},
+			amendFileExists:   false,
+			messageFileExists: false,
+			expectedResult:    nil,
 		},
 	}
 	for _, scenario := range scenarios {
@@ -496,8 +523,8 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			}
 
-			hash := builder.getConflictedCommitImpl(scenario.todos, scenario.doneTodos, scenario.amendFileExists)
-			assert.Equal(t, scenario.expectedHash, hash)
+			hash := builder.getConflictedCommitImpl(scenario.todos, scenario.doneTodos, scenario.amendFileExists, scenario.messageFileExists)
+			assert.Equal(t, scenario.expectedResult, hash)
 		})
 	}
 }
