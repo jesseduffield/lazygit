@@ -105,6 +105,7 @@ type Context interface {
 
 	HandleFocus(opts OnFocusOpts)
 	HandleFocusLost(opts OnFocusLostOpts)
+	FocusLine()
 	HandleRender()
 	HandleRenderToMain()
 }
@@ -173,7 +174,6 @@ type IListContext interface {
 	ViewIndexToModelIndex(int) int
 	ModelIndexToViewIndex(int) int
 
-	FocusLine()
 	IsListContext() // used for type switch
 	RangeSelectEnabled() bool
 	RenderOnlyVisibleLines() bool

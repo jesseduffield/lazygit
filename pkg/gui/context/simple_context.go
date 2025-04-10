@@ -54,6 +54,9 @@ func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) {
 	}
 }
 
+func (self *SimpleContext) FocusLine() {
+}
+
 func (self *SimpleContext) HandleRender() {
 	if self.handleRenderFunc != nil {
 		self.handleRenderFunc()

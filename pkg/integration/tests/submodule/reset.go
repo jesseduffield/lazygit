@@ -107,8 +107,8 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 
 		// submodule has been hard reset to the commit the parent repo specifies
 		t.Views().Branches().Lines(
-			Contains("HEAD detached").IsSelected(),
-			Contains("master"),
+			Contains("HEAD detached"),
+			Contains("master").IsSelected(),
 		)
 
 		// empty commit is gone

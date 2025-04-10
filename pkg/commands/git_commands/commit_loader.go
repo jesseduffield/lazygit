@@ -496,7 +496,7 @@ func (self *CommitLoader) getSequencerCommits() []*models.Commit {
 		commits = utils.Prepend(commits, &models.Commit{
 			Hash:   t.Commit,
 			Name:   t.Msg,
-			Status: models.StatusRebasing,
+			Status: models.StatusCherryPickingOrReverting,
 			Action: t.Command,
 		})
 	}

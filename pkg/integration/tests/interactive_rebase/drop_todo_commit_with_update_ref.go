@@ -39,13 +39,15 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit 02")).
 			Press(keys.Universal.Edit).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("CI commit 07"),
 				Contains("pick").Contains("CI commit 06"),
 				Contains("pick").Contains("CI commit 05"),
 				Contains("update-ref").Contains("branch1").DoesNotContain("*"),
 				Contains("pick").Contains("CI commit 04"),
 				Contains("pick").Contains("CI commit 03"),
-				Contains("<-- YOU ARE HERE --- commit 02").IsSelected(),
+				Contains("--- Commits ---"),
+				Contains("CI commit 02").IsSelected(),
 				Contains("CI commit 01"),
 			).
 			Tap(func() {
