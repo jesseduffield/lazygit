@@ -1,5 +1,7 @@
 package components
 
+import "fmt"
+
 // for running common actions
 type Common struct {
 	t *TestDriver
@@ -43,10 +45,10 @@ func (self *Common) AcknowledgeConflicts() {
 		Confirm()
 }
 
-func (self *Common) ContinueOnConflictsResolved() {
+func (self *Common) ContinueOnConflictsResolved(command string) {
 	self.t.ExpectPopup().Confirmation().
 		Title(Equals("Continue")).
-		Content(Contains("All merge conflicts resolved. Continue?")).
+		Content(Contains(fmt.Sprintf("All merge conflicts resolved. Continue the %s?", command))).
 		Confirm()
 }
 

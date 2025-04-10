@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
@@ -682,7 +681,7 @@ func (self *LocalCommitsController) rewordEnabled(commit *models.Commit) *types.
 }
 
 func (self *LocalCommitsController) isRebasing() bool {
-	return self.c.Model().WorkingTreeStateAtLastCommitRefresh != enums.REBASE_MODE_NONE
+	return self.c.Model().WorkingTreeStateAtLastCommitRefresh.Any()
 }
 
 func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
@@ -869,7 +868,8 @@ func (self *LocalCommitsController) revert(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RevertCommit)
 			return self.c.WithWaitingStatusSync(self.c.Tr.RevertingStatus, func() error {
-				if err := self.c.Git().Commit.Revert(commit.Hash); err != nil {
+				result := self.c.Git().Commit.Revert(commit.Hash)
+				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(result); err != nil {
 					return err
 				}
 				return self.afterRevertCommit()
@@ -976,7 +976,7 @@ func (self *LocalCommitsController) moveFixupCommitToOwnerStackedBranch(targetCo
 		return nil
 	}
 
-	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+	if self.c.Git().Status.WorkingTreeState().Any() {
 		// Can't move commits while rebasing
 		return nil
 	}
