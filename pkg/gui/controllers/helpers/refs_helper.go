@@ -17,13 +17,17 @@ import (
 
 type RefsHelper struct {
 	c *HelperCommon
+
+	rebaseHelper *MergeAndRebaseHelper
 }
 
 func NewRefsHelper(
 	c *HelperCommon,
+	rebaseHelper *MergeAndRebaseHelper,
 ) *RefsHelper {
 	return &RefsHelper{
-		c: c,
+		c:            c,
+		rebaseHelper: rebaseHelper,
 	}
 }
 
@@ -384,6 +388,174 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 			return refresh()
 		},
 	})
+
+	return nil
+}
+
+func (self *RefsHelper) MoveCommitsToNewBranch() error {
+	currentBranch := self.c.Model().Branches[0]
+	baseBranchRef, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(currentBranch, self.c.Model().MainBranches)
+	if err != nil {
+		return err
+	}
+
+	withNewBranchNamePrompt := func(baseBranchName string, f func(string, string) error) {
+		prompt := utils.ResolvePlaceholderString(
+			self.c.Tr.NewBranchNameBranchOff,
+			map[string]string{
+				"branchName": baseBranchName,
+			},
+		)
+
+		self.c.Prompt(types.PromptOpts{
+			Title: prompt,
+			HandleConfirm: func(response string) error {
+				self.c.LogAction(self.c.Tr.MoveCommitsToNewBranch)
+				newBranchName := SanitizedBranchName(response)
+				return self.c.WithWaitingStatus(self.c.Tr.MovingCommitsToNewBranchStatus, func(gocui.Task) error {
+					return f(currentBranch.Name, newBranchName)
+				})
+			},
+		})
+	}
+
+	isMainBranch := lo.Contains(self.c.UserConfig().Git.MainBranches, currentBranch.Name)
+	if isMainBranch {
+		prompt := utils.ResolvePlaceholderString(
+			self.c.Tr.MoveCommitsToNewBranchFromMainPrompt,
+			map[string]string{
+				"baseBranchName": currentBranch.Name,
+			},
+		)
+		self.c.Confirm(types.ConfirmOpts{
+			Title:  self.c.Tr.MoveCommitsToNewBranch,
+			Prompt: prompt,
+			HandleConfirm: func() error {
+				withNewBranchNamePrompt(currentBranch.Name, self.moveCommitsToNewBranchStackedOnCurrentBranch)
+				return nil
+			},
+		})
+		return nil
+	}
+
+	shortBaseBranchName := ShortBranchName(baseBranchRef)
+	prompt := utils.ResolvePlaceholderString(
+		self.c.Tr.MoveCommitsToNewBranchMenuPrompt,
+		map[string]string{
+			"baseBranchName": shortBaseBranchName,
+		},
+	)
+	return self.c.Menu(types.CreateMenuOptions{
+		Title:  self.c.Tr.MoveCommitsToNewBranch,
+		Prompt: prompt,
+		Items: []*types.MenuItem{
+			{
+				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchFromBaseItem, shortBaseBranchName),
+				OnPress: func() error {
+					withNewBranchNamePrompt(shortBaseBranchName, func(currentBranch string, newBranchName string) error {
+						return self.moveCommitsToNewBranchOffOfMainBranch(currentBranch, newBranchName, baseBranchRef)
+					})
+					return nil
+				},
+			},
+			{
+				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchStackedItem, currentBranch.Name),
+				OnPress: func() error {
+					withNewBranchNamePrompt(currentBranch.Name, self.moveCommitsToNewBranchStackedOnCurrentBranch)
+					return nil
+				},
+			},
+		},
+	})
+}
+
+func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(currentBranch string, newBranchName string) error {
+	if err := self.c.Git().Branch.NewWithoutCheckout(newBranchName, "HEAD"); err != nil {
+		return err
+	}
+
+	mustStash := IsWorkingTreeDirty(self.c.Model().Files)
+	if mustStash {
+		if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + currentBranch); err != nil {
+			return err
+		}
+	}
+
+	if err := self.c.Git().Commit.ResetToCommit("@{u}", "hard", []string{}); err != nil {
+		return err
+	}
+
+	if err := self.c.Git().Branch.Checkout(newBranchName, git_commands.CheckoutOptions{}); err != nil {
+		return err
+	}
+
+	if mustStash {
+		if err := self.c.Git().Stash.Pop(0); err != nil {
+			return err
+		}
+	}
+
+	self.c.Contexts().LocalCommits.SetSelection(0)
+	self.c.Contexts().Branches.SetSelection(0)
+
+	return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+}
+
+func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(currentBranch string, newBranchName string, baseBranchRef string) error {
+	commitsToCherryPick := lo.Filter(self.c.Model().Commits, func(commit *models.Commit, _ int) bool {
+		return commit.Status == models.StatusUnpushed
+	})
+
+	mustStash := IsWorkingTreeDirty(self.c.Model().Files)
+	if mustStash {
+		if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + currentBranch); err != nil {
+			return err
+		}
+	}
+
+	if err := self.c.Git().Commit.ResetToCommit("@{u}", "hard", []string{}); err != nil {
+		return err
+	}
+
+	if err := self.c.Git().Branch.NewWithoutTracking(newBranchName, baseBranchRef); err != nil {
+		return err
+	}
+
+	err := self.c.Git().Rebase.CherryPickCommits(commitsToCherryPick)
+	err = self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptions(err, types.RefreshOptions{Mode: types.SYNC})
+	if err != nil {
+		return err
+	}
+
+	if mustStash {
+		if err := self.c.Git().Stash.Pop(0); err != nil {
+			return err
+		}
+	}
+
+	self.c.Contexts().LocalCommits.SetSelection(0)
+	self.c.Contexts().Branches.SetSelection(0)
+
+	return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+}
+
+func (self *RefsHelper) CanMoveCommitsToNewBranch() *types.DisabledReason {
+	if len(self.c.Model().Branches) == 0 {
+		return &types.DisabledReason{Text: self.c.Tr.NoBranchesThisRepo}
+	}
+	currentBranch := self.GetCheckedOutRef()
+	if currentBranch.DetachedHead {
+		return &types.DisabledReason{Text: self.c.Tr.CannotMoveCommitsFromDetachedHead, ShowErrorInPanel: true}
+	}
+	if !currentBranch.RemoteBranchStoredLocally() {
+		return &types.DisabledReason{Text: self.c.Tr.CannotMoveCommitsNoUpstream, ShowErrorInPanel: true}
+	}
+	if currentBranch.IsBehindForPull() {
+		return &types.DisabledReason{Text: self.c.Tr.CannotMoveCommitsBehindUpstream, ShowErrorInPanel: true}
+	}
+	if !currentBranch.IsAheadForPull() {
+		return &types.DisabledReason{Text: self.c.Tr.CannotMoveCommitsNoUnpushedCommits, ShowErrorInPanel: true}
+	}
 
 	return nil
 }
