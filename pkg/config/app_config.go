@@ -281,6 +281,11 @@ func computeMigratedConfig(path string, content []byte) ([]byte, error) {
 		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
 	}
 
+	err = migrateAllBranchesLogCmd(&rootNode)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+	}
+
 	// Add more migrations here...
 
 	if !reflect.DeepEqual(rootNode, originalCopy) {
@@ -337,6 +342,44 @@ func changeCommitPrefixesMap(rootNode *yaml.Node) error {
 				}
 			}
 		}
+		return nil
+	})
+}
+
+// This migration is special because users have already defined
+// a single element at `allBranchesLogCmd` and the sequence at `allBranchesLogCmds`.
+// Some users have explicitly set `allBranchesLogCmd` to be an empty string in order
+// to remove it, so in that case we just delete the element, and add nothing to the list
+func migrateAllBranchesLogCmd(rootNode *yaml.Node) error {
+	return yaml_utils.TransformNode(rootNode, []string{"git"}, func(gitNode *yaml.Node) error {
+		cmdKeyNode, cmdValueNode := yaml_utils.LookupKey(gitNode, "allBranchesLogCmd")
+		// Nothing to do if they do not have the deprecated item
+		if cmdKeyNode == nil {
+			return nil
+		}
+
+		cmdsKeyNode, cmdsValueNode := yaml_utils.LookupKey(gitNode, "allBranchesLogCmds")
+		if cmdsKeyNode == nil {
+			// Create dummy node and attach it onto the root git node
+			cmdsKeyNode = &yaml.Node{Kind: yaml.ScalarNode, Value: "allBranchesLogCmds"}
+			cmdsValueNode = &yaml.Node{Kind: yaml.SequenceNode, Content: []*yaml.Node{}}
+			gitNode.Content = append(gitNode.Content,
+				cmdsKeyNode,
+				cmdsValueNode,
+			)
+		}
+
+		if cmdValueNode.Value != "" {
+			if cmdsValueNode.Kind != yaml.SequenceNode {
+				return fmt.Errorf("You should have an allBranchesLogCmds defined as a sequence!")
+			}
+			// Prepending the individual element to make it show up first in the list, which was prior behavior
+			cmdsValueNode.Content = append([]*yaml.Node{{Kind: yaml.ScalarNode, Value: cmdValueNode.Value}}, cmdsValueNode.Content...)
+		}
+
+		// Clear out the existing allBranchesLogCmd, now that we have migrated it into the list
+		_, _ = yaml_utils.RemoveKey(gitNode, "allBranchesLogCmd")
+
 		return nil
 	})
 }
