@@ -188,7 +188,7 @@ func (s *State) selectLineWithoutRangeCheck(newSelectedLineIdx int) {
 }
 
 func (s *State) SelectNewLineForRange(newSelectedLineIdx int) {
-	s.rangeStartLineIdx = newSelectedLineIdx
+	s.rangeStartLineIdx = s.clampLineIdx(newSelectedLineIdx)
 
 	s.selectMode = RANGE
 
