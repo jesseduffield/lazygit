@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 // State represents the current state of the patch explorer context i.e. when
@@ -177,19 +178,17 @@ func (s *State) SelectLine(newSelectedLineIdx int) {
 	s.selectLineWithoutRangeCheck(newSelectedLineIdx)
 }
 
+func (s *State) clampLineIdx(lineIdx int) int {
+	return lo.Clamp(lineIdx, 0, len(s.patchLineIndices)-1)
+}
+
 // This just moves the cursor without caring about range select
 func (s *State) selectLineWithoutRangeCheck(newSelectedLineIdx int) {
-	if newSelectedLineIdx < 0 {
-		newSelectedLineIdx = 0
-	} else if newSelectedLineIdx > len(s.patchLineIndices)-1 {
-		newSelectedLineIdx = len(s.patchLineIndices) - 1
-	}
-
-	s.selectedLineIdx = newSelectedLineIdx
+	s.selectedLineIdx = s.clampLineIdx(newSelectedLineIdx)
 }
 
 func (s *State) SelectNewLineForRange(newSelectedLineIdx int) {
-	s.rangeStartLineIdx = newSelectedLineIdx
+	s.rangeStartLineIdx = s.clampLineIdx(newSelectedLineIdx)
 
 	s.selectMode = RANGE
 
