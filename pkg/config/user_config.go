@@ -288,6 +288,15 @@ func (PagerType) JSONSchemaExtend(schema *jsonschema.Schema) {
 	}
 }
 
+type PagerForStagingType string
+
+func (PagerForStagingType) JSONSchemaExtend(schema *jsonschema.Schema) {
+	schema.Examples = []any{
+		"delta --dark --paging=never --color-only",
+		"diff-so-fancy --patch",
+	}
+}
+
 type PagingConfig struct {
 	// Value of the --color arg in the git diff command. Some pagers want this to be set to 'always' and some want it set to 'never'
 	ColorArg string `yaml:"colorArg" jsonschema:"enum=always,enum=never"`
@@ -296,6 +305,10 @@ type PagingConfig struct {
 	// delta --dark --paging=never
 	// ydiff -p cat -s --wrap --width={{columnWidth}}
 	Pager PagerType `yaml:"pager"`
+	// e.g.
+	// delta --dark --paging=never --color-only
+	// diff-so-fancy --patch
+	PagerForStaging PagerForStagingType `yaml:"pagerForStaging"`
 	// If true, Lazygit will use whatever pager is specified in `$GIT_PAGER`, `$PAGER`, or your *git config*. If the pager ends with something like ` | less` we will strip that part out, because less doesn't play nice with our rendering approach. If the custom pager uses less under the hood, that will also break rendering (hence the `--paging=never` flag for the `delta` pager).
 	UseConfig bool `yaml:"useConfig"`
 	// e.g. 'difft --color=always'
