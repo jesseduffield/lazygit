@@ -57,7 +57,7 @@ func (self appStatusHelperTask) Continue() {
 	self.waitingStatusHandle.Show()
 }
 
-// withWaitingStatus wraps a function and shows a waiting status while the function is still executing
+// WithWaitingStatus wraps a function and shows a waiting status while the function is still executing
 func (self *AppStatusHelper) WithWaitingStatus(message string, f func(gocui.Task) error) {
 	self.c.OnWorker(func(task gocui.Task) error {
 		return self.WithWaitingStatusImpl(message, f, task)

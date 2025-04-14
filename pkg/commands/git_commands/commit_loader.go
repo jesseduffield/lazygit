@@ -496,7 +496,7 @@ func (self *CommitLoader) getFirstPushedCommit(refName string) (string, error) {
 	return ignoringWarnings(output), nil
 }
 
-// getLog gets the git log.
+// getLogCmd gets the git log.
 func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 	gitLogOrder := self.AppState.GitLogOrder
 
