@@ -88,6 +88,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Arch Linux](#arch-linux)
   - [Fedora and RHEL](#fedora-and-rhel)
   - [Solus Linux](#solus-linux)
+  - [Debian](#debian)
   - [Ubuntu](#ubuntu)
   - [Funtoo Linux](#funtoo-linux)
   - [Gentoo Linux](#gentoo-linux)
@@ -320,6 +321,19 @@ Verify the correct installation of lazygit:
 ```sh
 lazygit --version
 ```
+
+### Debian
+
+You can install lazygit using the [Unofficial repository](https://debian.griffo.io) by running:
+
+```sh
+curl -sS https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc | sudo gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/debian.griffo.io.gpg
+echo "deb https://debian.griffo.io/apt $(lsb_release -sc 2>/dev/null) main" | sudo tee /etc/apt/sources.list.d/debian.griffo.io.list
+apt install -y lazygit
+```
+
+Package built at [lazygit-debian](https://github.com/dariogriffo/lazygit-debian) maintained by [Dario Griffo](https://github.com/dariogriffo) 
+
 
 ### Funtoo Linux
 
