@@ -1020,6 +1020,10 @@
           "type": "string",
           "default": "i"
         },
+        "ignoreFileExtension": {
+          "type": "string",
+          "default": "I"
+        },
         "refreshFiles": {
           "type": "string",
           "default": "r"
