@@ -77,7 +77,7 @@ func (self *CherryPickHelper) Paste() error {
 				"numCommits": strconv.Itoa(len(self.getData().CherryPickedCommits)),
 			}),
 		HandleConfirm: func() error {
-			isInRebase, err := self.c.Git().Status.IsInInteractiveRebase()
+			isInRebase, err := self.c.Git().Status.IsInRebase()
 			if err != nil {
 				return err
 			}
@@ -107,7 +107,7 @@ func (self *CherryPickHelper) Paste() error {
 				// be because there were conflicts. Don't clear the copied
 				// commits in this case, since we might want to abort and
 				// try pasting them again.
-				isInRebase, err = self.c.Git().Status.IsInInteractiveRebase()
+				isInRebase, err = self.c.Git().Status.IsInRebase()
 				if err != nil {
 					return err
 				}

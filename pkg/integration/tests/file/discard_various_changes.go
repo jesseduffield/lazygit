@@ -53,7 +53,7 @@ var DiscardVariousChanges = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Continue")).
-			Content(Contains("All merge conflicts resolved. Continue?")).
+			Content(Contains("All merge conflicts resolved. Continue the merge?")).
 			Cancel()
 
 		discardOneByOne([]statusFile{
