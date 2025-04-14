@@ -27,6 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check for first Saturday of the month
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         run: |
           if (( $(date +%e) > 7 )); then
             echo "This is not the first Saturday of the month"
