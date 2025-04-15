@@ -33,15 +33,6 @@ type Pipe struct {
 
 var highlightStyle = style.FgLightWhite.SetBold()
 
-func ContainsCommitHash(pipes []*Pipe, hash string) bool {
-	for _, pipe := range pipes {
-		if equalHashes(pipe.fromHash, hash) {
-			return true
-		}
-	}
-	return false
-}
-
 func (self Pipe) left() int {
 	return min(self.fromPos, self.toPos)
 }
