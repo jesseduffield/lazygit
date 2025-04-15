@@ -36,7 +36,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		shortTimeFormat           string
 		now                       time.Time
 		parseEmoji                bool
-		selectedCommitHash        string
+		selectedCommitHashPtr     *string
 		startIdx                  int
 		endIdx                    int
 		showGraph                 bool
@@ -563,7 +563,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 					s.shortTimeFormat,
 					s.now,
 					s.parseEmoji,
-					s.selectedCommitHash,
+					s.selectedCommitHashPtr,
 					s.startIdx,
 					s.endIdx,
 					s.showGraph,

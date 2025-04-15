@@ -93,6 +93,10 @@ func (c *Commit) Hash() string {
 	return *c.hash
 }
 
+func (c *Commit) HashPtr() *string {
+	return c.hash
+}
+
 func (c *Commit) ShortHash() string {
 	return utils.ShortHash(c.Hash())
 }
@@ -118,6 +122,10 @@ func (c *Commit) ParentRefName() string {
 
 func (c *Commit) Parents() []string {
 	return lo.Map(c.parents, func(s *string, _ int) string { return *s })
+}
+
+func (c *Commit) ParentPtrs() []*string {
+	return c.parents
 }
 
 func (c *Commit) IsFirstCommit() bool {

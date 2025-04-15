@@ -46,11 +46,11 @@ func NewSubCommitsContext(
 			return [][]string{}
 		}
 
-		selectedCommitHash := ""
+		var selectedCommitHashPtr *string
 		if c.Context().Current().GetKey() == SUB_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
 			if selectedCommit != nil {
-				selectedCommitHash = selectedCommit.Hash()
+				selectedCommitHashPtr = selectedCommit.HashPtr()
 			}
 		}
 		branches := []*models.Branch{}
@@ -72,7 +72,7 @@ func NewSubCommitsContext(
 			c.UserConfig().Gui.ShortTimeFormat,
 			time.Now(),
 			c.UserConfig().Git.ParseEmoji,
-			selectedCommitHash,
+			selectedCommitHashPtr,
 			startIdx,
 			endIdx,
 			shouldShowGraph(c),

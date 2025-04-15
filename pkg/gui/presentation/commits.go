@@ -51,7 +51,7 @@ func GetCommitListDisplayStrings(
 	shortTimeFormat string,
 	now time.Time,
 	parseEmoji bool,
-	selectedCommitHash string,
+	selectedCommitHashPtr *string,
 	startIdx int,
 	endIdx int,
 	showGraph bool,
@@ -102,7 +102,7 @@ func GetCommitListDisplayStrings(
 					graphLines := graph.RenderAux(
 						graphPipeSets,
 						graphCommits,
-						selectedCommitHash,
+						selectedCommitHashPtr,
 					)
 					allGraphLines = append(allGraphLines, graphLines...)
 				}
@@ -119,7 +119,7 @@ func GetCommitListDisplayStrings(
 					graphLines := graph.RenderAux(
 						graphPipeSets,
 						graphCommits,
-						selectedCommitHash,
+						selectedCommitHashPtr,
 					)
 					allGraphLines = append(allGraphLines, graphLines...)
 				}
@@ -140,7 +140,7 @@ func GetCommitListDisplayStrings(
 			graphLines := graph.RenderAux(
 				graphPipeSets,
 				graphCommits,
-				selectedCommitHash,
+				selectedCommitHashPtr,
 			)
 			getGraphLine = func(idx int) string {
 				if idx >= graphOffset {

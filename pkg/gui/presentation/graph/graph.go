@@ -25,13 +25,17 @@ const (
 type Pipe struct {
 	fromPos  int
 	toPos    int
-	fromHash string
-	toHash   string
+	fromHash *string
+	toHash   *string
 	kind     PipeKind
 	style    style.TextStyle
 }
 
-var highlightStyle = style.FgLightWhite.SetBold()
+var (
+	highlightStyle      = style.FgLightWhite.SetBold()
+	EmptyTreeCommitHash = models.EmptyTreeCommitHash
+	StartCommitHash     = "START"
+)
 
 func (self Pipe) left() int {
 	return min(self.fromPos, self.toPos)
@@ -41,13 +45,13 @@ func (self Pipe) right() int {
 	return max(self.fromPos, self.toPos)
 }
 
-func RenderCommitGraph(commits []*models.Commit, selectedCommitHash string, getStyle func(c *models.Commit) style.TextStyle) []string {
+func RenderCommitGraph(commits []*models.Commit, selectedCommitHashPtr *string, getStyle func(c *models.Commit) style.TextStyle) []string {
 	pipeSets := GetPipeSets(commits, getStyle)
 	if len(pipeSets) == 0 {
 		return nil
 	}
 
-	lines := RenderAux(pipeSets, commits, selectedCommitHash)
+	lines := RenderAux(pipeSets, commits, selectedCommitHashPtr)
 
 	return lines
 }
@@ -57,7 +61,7 @@ func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) style
 		return nil
 	}
 
-	pipes := []*Pipe{{fromPos: 0, toPos: 0, fromHash: "START", toHash: commits[0].Hash(), kind: STARTS, style: style.FgDefault}}
+	pipes := []*Pipe{{fromPos: 0, toPos: 0, fromHash: &StartCommitHash, toHash: commits[0].HashPtr(), kind: STARTS, style: style.FgDefault}}
 
 	return lo.Map(commits, func(commit *models.Commit, _ int) []*Pipe {
 		pipes = getNextPipes(pipes, commit, getStyle)
@@ -65,7 +69,7 @@ func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) style
 	})
 }
 
-func RenderAux(pipeSets [][]*Pipe, commits []*models.Commit, selectedCommitHash string) []string {
+func RenderAux(pipeSets [][]*Pipe, commits []*models.Commit, selectedCommitHashPtr *string) []string {
 	maxProcs := runtime.GOMAXPROCS(0)
 
 	// splitting up the rendering of the graph into multiple goroutines allows us to render the graph in parallel
@@ -89,7 +93,7 @@ func RenderAux(pipeSets [][]*Pipe, commits []*models.Commit, selectedCommitHash 
 				if k > 0 {
 					prevCommit = commits[k-1]
 				}
-				line := renderPipeSet(pipeSet, selectedCommitHash, prevCommit)
+				line := renderPipeSet(pipeSet, selectedCommitHashPtr, prevCommit)
 				innerLines = append(innerLines, line)
 			}
 			chunks[i] = innerLines
@@ -116,12 +120,12 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 		return pipe.kind != TERMINATES
 	})
 
-	newPipes := make([]*Pipe, 0, len(currentPipes)+len(commit.Parents()))
+	newPipes := make([]*Pipe, 0, len(currentPipes)+len(commit.ParentPtrs()))
 	// start by assuming that we've got a brand new commit not related to any preceding commit.
 	// (this only happens when we're doing `git log --all`). These will be tacked onto the far end.
 	pos := maxPos + 1
 	for _, pipe := range currentPipes {
-		if equalHashes(pipe.toHash, commit.Hash()) {
+		if equalHashes(pipe.toHash, commit.HashPtr()) {
 			// turns out this commit does have a descendant so we'll place it right under the first instance
 			pos = pipe.toPos
 			break
@@ -133,16 +137,16 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	// a traversed spot is one where a current pipe is starting on, ending on, or passing through
 	traversedSpots := set.New[int]()
 
-	var toHash string
+	var toHash *string
 	if commit.IsFirstCommit() {
-		toHash = models.EmptyTreeCommitHash
+		toHash = &EmptyTreeCommitHash
 	} else {
-		toHash = commit.Parents()[0]
+		toHash = commit.ParentPtrs()[0]
 	}
 	newPipes = append(newPipes, &Pipe{
 		fromPos:  pos,
 		toPos:    pos,
-		fromHash: commit.Hash(),
+		fromHash: commit.HashPtr(),
 		toHash:   toHash,
 		kind:     STARTS,
 		style:    getStyle(commit),
@@ -150,7 +154,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 
 	traversedSpotsForContinuingPipes := set.New[int]()
 	for _, pipe := range currentPipes {
-		if !equalHashes(pipe.toHash, commit.Hash()) {
+		if !equalHashes(pipe.toHash, commit.HashPtr()) {
 			traversedSpotsForContinuingPipes.Add(pipe.toPos)
 		}
 	}
@@ -189,7 +193,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	}
 
 	for _, pipe := range currentPipes {
-		if equalHashes(pipe.toHash, commit.Hash()) {
+		if equalHashes(pipe.toHash, commit.HashPtr()) {
 			// terminating here
 			newPipes = append(newPipes, &Pipe{
 				fromPos:  pipe.toPos,
@@ -216,13 +220,13 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	}
 
 	if commit.IsMerge() {
-		for _, parent := range commit.Parents()[1:] {
+		for _, parent := range commit.ParentPtrs()[1:] {
 			availablePos := getNextAvailablePosForNewPipe()
 			// need to act as if continuing pipes are going to continue on the same line.
 			newPipes = append(newPipes, &Pipe{
 				fromPos:  pos,
 				toPos:    availablePos,
-				fromHash: commit.Hash(),
+				fromHash: commit.HashPtr(),
 				toHash:   parent,
 				kind:     STARTS,
 				style:    getStyle(commit),
@@ -233,7 +237,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	}
 
 	for _, pipe := range currentPipes {
-		if !equalHashes(pipe.toHash, commit.Hash()) && pipe.toPos > pos {
+		if !equalHashes(pipe.toHash, commit.HashPtr()) && pipe.toPos > pos {
 			// continuing on, potentially moving left to fill in a blank spot
 			last := pipe.toPos
 			for i := pipe.toPos; i > pos; i-- {
@@ -268,7 +272,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 
 func renderPipeSet(
 	pipes []*Pipe,
-	selectedCommitHash string,
+	selectedCommitHashPtr *string,
 	prevCommit *models.Commit,
 ) string {
 	maxPos := 0
@@ -315,10 +319,10 @@ func renderPipeSet(
 	// we don't want to highlight two commits if they're contiguous. We only want
 	// to highlight multiple things if there's an actual visible pipe involved.
 	highlight := true
-	if prevCommit != nil && equalHashes(prevCommit.Hash(), selectedCommitHash) {
+	if prevCommit != nil && equalHashes(prevCommit.HashPtr(), selectedCommitHashPtr) {
 		highlight = false
 		for _, pipe := range pipes {
-			if equalHashes(pipe.fromHash, selectedCommitHash) && (pipe.kind != TERMINATES || pipe.fromPos != pipe.toPos) {
+			if equalHashes(pipe.fromHash, selectedCommitHashPtr) && (pipe.kind != TERMINATES || pipe.fromPos != pipe.toPos) {
 				highlight = true
 			}
 		}
@@ -327,7 +331,7 @@ func renderPipeSet(
 	// so we have our commit pos again, now it's time to build the cells.
 	// we'll handle the one that's sourced from our selected commit last so that it can override the other cells.
 	selectedPipes, nonSelectedPipes := utils.Partition(pipes, func(pipe *Pipe) bool {
-		return highlight && equalHashes(pipe.fromHash, selectedCommitHash)
+		return highlight && equalHashes(pipe.fromHash, selectedCommitHashPtr)
 	})
 
 	for _, pipe := range nonSelectedPipes {
@@ -370,13 +374,13 @@ func renderPipeSet(
 	return writer.String()
 }
 
-func equalHashes(a, b string) bool {
-	// if our selectedCommitHash is an empty string we treat that as meaning there is no selected commit hash
-	if a == "" || b == "" {
+func equalHashes(a, b *string) bool {
+	// if our selectedCommitHashPtr is nil, there is no selected commit
+	if a == nil || b == nil {
 		return false
 	}
 
-	length := min(len(a), len(b))
+	length := min(len(*a), len(*b))
 	// parent hashes are only stored up to 20 characters for some reason so we'll truncate to that for comparison
-	return a[:length] == b[:length]
+	return (*a)[:length] == (*b)[:length]
 }
