@@ -167,7 +167,7 @@ func (gui *Gui) getRandomTip() string {
 
 		// general advice
 		"`git commit` is really just the programmer equivalent of saving your game. Always do it before embarking on an ambitious change!",
-		"Try to separate commits that refactor code from commits that add new functionality: if they're squashed into the one commit, it can be hard to spot what's new.",
+		"Try to separate commits that refactor code from commits that add new functionality: if they're squashed into one commit, it can be hard to spot what's new.",
 		"If you ever want to experiment, it's easy to create a new branch off your current one and go nuts, then delete it afterwards",
 		"Always read through the diff of your changes before assigning somebody to review your code. Better for you to catch any silly mistakes than your colleagues!",
 		"If something goes wrong, you can always checkout a commit from your reflog to return to an earlier state",
