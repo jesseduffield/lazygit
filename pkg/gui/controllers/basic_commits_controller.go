@@ -81,6 +81,17 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description:       self.c.Tr.CreateNewBranchFromCommit,
 		},
 		{
+			// Putting this in BasicCommitsController even though we really only want it in the commits
+			// panel. But I find it important that this ends up next to "New Branch", and I couldn't
+			// find another way to achieve this. It's not such a big deal to have it in subcommits and
+			// reflog too, I'd say.
+			Key:               opts.GetKey(opts.Config.Branches.MoveCommitsToNewBranch),
+			Handler:           self.c.Helpers().Refs.MoveCommitsToNewBranch,
+			GetDisabledReason: self.c.Helpers().Refs.CanMoveCommitsToNewBranch,
+			Description:       self.c.Tr.MoveCommitsToNewBranch,
+			Tooltip:           self.c.Tr.MoveCommitsToNewBranchTooltip,
+		},
+		{
 			Key:               opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:           self.withItem(self.createResetMenu),
 			GetDisabledReason: self.require(self.singleItemSelected()),
