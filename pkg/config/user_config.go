@@ -395,6 +395,7 @@ type KeybindingUniversalConfig struct {
 	NextBlockAlt2                     string   `yaml:"nextBlock-alt2"`
 	PrevBlockAlt2                     string   `yaml:"prevBlock-alt2"`
 	JumpToBlock                       []string `yaml:"jumpToBlock"`
+	FocusMainView                     string   `yaml:"focusMainView"`
 	NextMatch                         string   `yaml:"nextMatch"`
 	PrevMatch                         string   `yaml:"prevMatch"`
 	StartSearch                       string   `yaml:"startSearch"`
@@ -876,6 +877,7 @@ func GetDefaultConfig() *UserConfig {
 				PrevBlockAlt2:                     "<backtab>",
 				NextBlockAlt2:                     "<tab>",
 				JumpToBlock:                       []string{"1", "2", "3", "4", "5"},
+				FocusMainView:                     "0",
 				NextMatch:                         "n",
 				PrevMatch:                         "N",
 				StartSearch:                       "/",

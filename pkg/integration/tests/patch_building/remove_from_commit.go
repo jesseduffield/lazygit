@@ -35,7 +35,7 @@ var RemoveFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("Building patch"))
 
-		t.Views().PatchBuildingSecondary().Content(Contains("+file1 content"))
+		t.Views().Secondary().Content(Contains("+file1 content"))
 
 		t.Common().SelectPatchOption(Contains("Remove patch from original commit"))
 
