@@ -28,7 +28,7 @@ type pipeSetCacheKey struct {
 }
 
 var (
-	pipeSetCache = make(map[pipeSetCacheKey][][]*graph.Pipe)
+	pipeSetCache = make(map[pipeSetCacheKey][][]graph.Pipe)
 	mutex        deadlock.Mutex
 )
 
@@ -245,7 +245,7 @@ func indexOfFirstNonTODOCommit(commits []*models.Commit) int {
 	return 0
 }
 
-func loadPipesets(commits []*models.Commit) [][]*graph.Pipe {
+func loadPipesets(commits []*models.Commit) [][]graph.Pipe {
 	// given that our cache key is a commit hash and a commit count, it's very important that we don't actually try to render pipes
 	// when dealing with things like filtered commits.
 	cacheKey := pipeSetCacheKey{
