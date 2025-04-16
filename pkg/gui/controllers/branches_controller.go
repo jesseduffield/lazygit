@@ -731,6 +731,15 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 }
 
 func (self *BranchesController) newBranch(selectedBranch *models.Branch) error {
+	isMainBranch := lo.Contains(self.c.UserConfig().Git.MainBranches, selectedBranch.Name)
+	if isMainBranch && selectedBranch.RemoteBranchStoredLocally() {
+		isStrictlyBehind := selectedBranch.IsBehindForPull() && !selectedBranch.IsAheadForPull()
+		if isStrictlyBehind {
+			return self.c.Helpers().Refs.NewBranch(
+				selectedBranch.FullUpstreamRefName(), selectedBranch.ShortUpstreamRefName(), "")
+		}
+	}
+
 	return self.c.Helpers().Refs.NewBranch(selectedBranch.FullRefName(), selectedBranch.RefName(), "")
 }
 
