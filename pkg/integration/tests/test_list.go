@@ -48,6 +48,7 @@ var tests = []*components.IntegrationTest{
 	branch.DeleteWhileFiltering,
 	branch.DetachedHead,
 	branch.NewBranchAutostash,
+	branch.NewBranchFromMainBranchBehindUpstream,
 	branch.NewBranchFromRemoteTrackingDifferentName,
 	branch.NewBranchFromRemoteTrackingSameName,
 	branch.NewBranchWithPrefix,
