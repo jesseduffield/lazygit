@@ -1189,21 +1189,17 @@ func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error 
 
 func (self *FilesController) fetch() error {
 	return self.c.WithWaitingStatus(self.c.Tr.FetchingStatus, func(task gocui.Task) error {
-		return self.fetchAux(task)
+		self.c.LogAction("Fetch")
+		err := self.c.Git().Sync.Fetch(task)
+
+		if err != nil && strings.Contains(err.Error(), "exit status 128") {
+			return errors.New(self.c.Tr.PassUnameWrong)
+		}
+
+		_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
+
+		return err
 	})
-}
-
-func (self *FilesController) fetchAux(task gocui.Task) (err error) {
-	self.c.LogAction("Fetch")
-	err = self.c.Git().Sync.Fetch(task)
-
-	if err != nil && strings.Contains(err.Error(), "exit status 128") {
-		return errors.New(self.c.Tr.PassUnameWrong)
-	}
-
-	_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
-
-	return err
 }
 
 // Couldn't think of a better term than 'normalised'. Alas.
