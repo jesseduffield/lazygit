@@ -1189,10 +1189,7 @@ func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error 
 
 func (self *FilesController) fetch() error {
 	return self.c.WithWaitingStatus(self.c.Tr.FetchingStatus, func(task gocui.Task) error {
-		if err := self.fetchAux(task); err != nil {
-			return err
-		}
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		return self.fetchAux(task)
 	})
 }
 
