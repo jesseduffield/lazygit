@@ -325,6 +325,16 @@
           "description": "If true, periodically refresh files and submodules",
           "default": true
         },
+        "autoForwardBranches": {
+          "type": "string",
+          "enum": [
+            "none",
+            "onlyMainBranches",
+            "allBranches"
+          ],
+          "description": "If not \"none\", lazygit will automatically forward branches to their upstream after fetching. Applies to branches that are not the currently checked out branch, and only to those that are strictly behind their upstream (as opposed to diverged).\nPossible values: 'none' | 'onlyMainBranches' | 'allBranches'",
+          "default": "onlyMainBranches"
+        },
         "fetchAll": {
           "type": "boolean",
           "description": "If true, pass the --all arg to git fetch",
