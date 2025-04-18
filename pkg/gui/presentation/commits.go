@@ -258,7 +258,7 @@ func loadPipesets(commits []*models.Commit) [][]graph.Pipe {
 	if !ok {
 		// pipe sets are unique to a commit head. and a commit count. Sometimes we haven't loaded everything for that.
 		// so let's just cache it based on that.
-		getStyle := func(commit *models.Commit) style.TextStyle {
+		getStyle := func(commit *models.Commit) *style.TextStyle {
 			return authors.AuthorStyle(commit.AuthorName)
 		}
 		pipeSets = graph.GetPipeSets(commits, getStyle)

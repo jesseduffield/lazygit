@@ -28,7 +28,7 @@ type Pipe struct {
 	fromHash *string
 	toHash   *string
 	kind     PipeKind
-	style    style.TextStyle
+	style    *style.TextStyle
 }
 
 var (
@@ -45,7 +45,7 @@ func (self Pipe) right() int {
 	return max(self.fromPos, self.toPos)
 }
 
-func RenderCommitGraph(commits []*models.Commit, selectedCommitHashPtr *string, getStyle func(c *models.Commit) style.TextStyle) []string {
+func RenderCommitGraph(commits []*models.Commit, selectedCommitHashPtr *string, getStyle func(c *models.Commit) *style.TextStyle) []string {
 	pipeSets := GetPipeSets(commits, getStyle)
 	if len(pipeSets) == 0 {
 		return nil
@@ -56,12 +56,12 @@ func RenderCommitGraph(commits []*models.Commit, selectedCommitHashPtr *string, 
 	return lines
 }
 
-func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) style.TextStyle) [][]Pipe {
+func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) *style.TextStyle) [][]Pipe {
 	if len(commits) == 0 {
 		return nil
 	}
 
-	pipes := []Pipe{{fromPos: 0, toPos: 0, fromHash: &StartCommitHash, toHash: commits[0].HashPtr(), kind: STARTS, style: style.FgDefault}}
+	pipes := []Pipe{{fromPos: 0, toPos: 0, fromHash: &StartCommitHash, toHash: commits[0].HashPtr(), kind: STARTS, style: &style.FgDefault}}
 
 	return lo.Map(commits, func(commit *models.Commit, _ int) []Pipe {
 		pipes = getNextPipes(pipes, commit, getStyle)
@@ -106,7 +106,7 @@ func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPt
 	return lo.Flatten(chunks)
 }
 
-func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *models.Commit) style.TextStyle) []Pipe {
+func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *models.Commit) *style.TextStyle) []Pipe {
 	maxPos := 0
 	for _, pipe := range prevPipes {
 		if pipe.toPos > maxPos {
@@ -293,10 +293,10 @@ func renderPipeSet(
 	isMerge := startCount > 1
 
 	cells := lo.Map(lo.Range(maxPos+1), func(i int, _ int) *Cell {
-		return &Cell{cellType: CONNECTION, style: style.FgDefault}
+		return &Cell{cellType: CONNECTION, style: &style.FgDefault}
 	})
 
-	renderPipe := func(pipe *Pipe, style style.TextStyle, overrideRightStyle bool) {
+	renderPipe := func(pipe *Pipe, style *style.TextStyle, overrideRightStyle bool) {
 		left := pipe.left()
 		right := pipe.right()
 
@@ -352,9 +352,9 @@ func renderPipeSet(
 		}
 	}
 	for _, pipe := range selectedPipes {
-		renderPipe(&pipe, highlightStyle, true)
+		renderPipe(&pipe, &highlightStyle, true)
 		if pipe.toPos == commitPos {
-			cells[pipe.toPos].setStyle(highlightStyle)
+			cells[pipe.toPos].setStyle(&highlightStyle)
 		}
 	}
 

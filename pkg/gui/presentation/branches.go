@@ -20,7 +20,7 @@ import (
 )
 
 type colorMatcher struct {
-	patterns map[string]style.TextStyle
+	patterns map[string]*style.TextStyle
 	isRegex  bool // NOTE: this value is needed only until the deprecated branchColors config is removed and only regex color patterns are used
 }
 
@@ -142,14 +142,14 @@ func (m *colorMatcher) match(name string) (*style.TextStyle, bool) {
 	if m.isRegex {
 		for pattern, style := range m.patterns {
 			if matched, _ := regexp.MatchString(pattern, name); matched {
-				return &style, true
+				return style, true
 			}
 		}
 	} else {
 		// old behavior using the deprecated branchColors behavior matching on branch type
 		branchType := strings.Split(name, "/")[0]
 		if value, ok := m.patterns[branchType]; ok {
-			return &value, true
+			return value, true
 		}
 	}
 
