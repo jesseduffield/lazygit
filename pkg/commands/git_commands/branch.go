@@ -294,3 +294,11 @@ func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *
 
 	return stdout == "", nil
 }
+
+func (self *BranchCommands) UpdateBranchRefs(updateCommands string) error {
+	cmdArgs := NewGitCmd("update-ref").
+		Arg("--stdin").
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).SetStdin(updateCommands).Run()
+}
