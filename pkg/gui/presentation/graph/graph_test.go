@@ -548,7 +548,7 @@ func BenchmarkRenderCommitGraph(b *testing.B) {
 		return authors.AuthorStyle(commit.AuthorName)
 	}
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		RenderCommitGraph(commits, "selected", getStyle)
 	}
 }

@@ -691,7 +691,7 @@ keybinding:
 `)
 
 func BenchmarkMigrationOnLargeConfiguration(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, _ = computeMigratedConfig("path doesn't matter", largeConfiguration)
 	}
 }
