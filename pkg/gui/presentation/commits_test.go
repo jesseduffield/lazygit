@@ -544,8 +544,10 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 	for _, s := range scenarios {
 		if !focusing || s.focus {
 			t.Run(s.testName, func(t *testing.T) {
+				hashPool := &utils.StringPool{}
+
 				commits := lo.Map(s.commitOpts,
-					func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(opts) })
+					func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
 
 				result := GetCommitListDisplayStrings(
 					common,

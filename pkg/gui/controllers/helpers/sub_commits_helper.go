@@ -45,6 +45,7 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 			RefForPushedStatus:      opts.Ref.FullRefName(),
 			RefToShowDivergenceFrom: opts.RefToShowDivergenceFrom,
 			MainBranches:            self.c.Model().MainBranches,
+			HashPool:                self.c.Model().HashPool,
 		},
 	)
 	if err != nil {

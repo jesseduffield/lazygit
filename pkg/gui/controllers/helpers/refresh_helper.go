@@ -332,6 +332,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 			RefForPushedStatus:   checkedOutBranchName,
 			All:                  self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
 			MainBranches:         self.c.Model().MainBranches,
+			HashPool:             self.c.Model().HashPool,
 		},
 	)
 	if err != nil {
@@ -360,6 +361,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 			RefToShowDivergenceFrom: self.c.Contexts().SubCommits.GetRefToShowDivergenceFrom(),
 			RefForPushedStatus:      self.c.Contexts().SubCommits.GetRef().FullRefName(),
 			MainBranches:            self.c.Model().MainBranches,
+			HashPool:                self.c.Model().HashPool,
 		},
 	)
 	if err != nil {
@@ -406,7 +408,7 @@ func (self *RefreshHelper) refreshRebaseCommits() error {
 	self.c.Mutexes().LocalCommitsMutex.Lock()
 	defer self.c.Mutexes().LocalCommitsMutex.Unlock()
 
-	updatedCommits, err := self.c.Git().Loaders.CommitLoader.MergeRebasingCommits(self.c.Model().Commits)
+	updatedCommits, err := self.c.Git().Loaders.CommitLoader.MergeRebasingCommits(self.c.Model().HashPool, self.c.Model().Commits)
 	if err != nil {
 		return err
 	}
@@ -455,7 +457,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 		// which allows us to order them correctly. So if we're filtering we'll just
 		// manually load all the reflog commits here
 		var err error
-		reflogCommits, _, err = self.c.Git().Loaders.ReflogCommitLoader.GetReflogCommits(nil, "", "")
+		reflogCommits, _, err = self.c.Git().Loaders.ReflogCommitLoader.GetReflogCommits(self.c.Model().HashPool, nil, "", "")
 		if err != nil {
 			self.c.Log.Error(err)
 		}
@@ -624,7 +626,7 @@ func (self *RefreshHelper) refreshReflogCommits() error {
 
 	refresh := func(stateCommits *[]*models.Commit, filterPath string, filterAuthor string) error {
 		commits, onlyObtainedNewReflogCommits, err := self.c.Git().Loaders.ReflogCommitLoader.
-			GetReflogCommits(lastReflogCommit, filterPath, filterAuthor)
+			GetReflogCommits(self.c.Model().HashPool, lastReflogCommit, filterPath, filterAuthor)
 		if err != nil {
 			return err
 		}

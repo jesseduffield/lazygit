@@ -219,9 +219,11 @@ func TestRenderCommitGraph(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			hashPool := &utils.StringPool{}
+
 			getStyle := func(c *models.Commit) style.TextStyle { return style.FgDefault }
 			commits := lo.Map(test.commitOpts,
-				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(opts) })
+				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
 			lines := RenderCommitGraph(commits, "blah", getStyle)
 
 			trimmedExpectedOutput := ""
@@ -254,6 +256,8 @@ func TestRenderPipeSet(t *testing.T) {
 	magenta := style.FgMagenta
 	nothing := style.Nothing
 
+	hashPool := &utils.StringPool{}
+
 	tests := []struct {
 		name           string
 		pipes          []*Pipe
@@ -268,7 +272,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromHash: "a", toHash: "b", kind: TERMINATES, style: cyan},
 				{fromPos: 0, toPos: 0, fromHash: "b", toHash: "c", kind: STARTS, style: green},
 			},
-			prevCommit:     models.NewCommit(models.NewCommitOpts{Hash: "a"}),
+			prevCommit:     models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a"}),
 			expectedStr:    "◯",
 			expectedStyles: []style.TextStyle{green},
 		},
@@ -278,7 +282,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromHash: "a", toHash: "selected", kind: TERMINATES, style: cyan},
 				{fromPos: 0, toPos: 0, fromHash: "selected", toHash: "c", kind: STARTS, style: green},
 			},
-			prevCommit:     models.NewCommit(models.NewCommitOpts{Hash: "a"}),
+			prevCommit:     models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a"}),
 			expectedStr:    "◯",
 			expectedStyles: []style.TextStyle{highlightStyle},
 		},
@@ -290,7 +294,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromHash: "selected", toHash: "d", kind: STARTS, style: green},
 				{fromPos: 0, toPos: 1, fromHash: "selected", toHash: "e", kind: STARTS, style: green},
 			},
-			prevCommit:  models.NewCommit(models.NewCommitOpts{Hash: "a"}),
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a"}),
 			expectedStr: "⏣─╮",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, highlightStyle, highlightStyle,
@@ -304,7 +308,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromHash: "b", toHash: "d", kind: STARTS, style: green},
 				{fromPos: 0, toPos: 1, fromHash: "b", toHash: "e", kind: STARTS, style: green},
 			},
-			prevCommit:  models.NewCommit(models.NewCommitOpts{Hash: "a"}),
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a"}),
 			expectedStr: "⏣─│",
 			expectedStyles: []style.TextStyle{
 				green, green, magenta,
@@ -319,7 +323,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 3, toPos: 0, fromHash: "e1", toHash: "a2", kind: TERMINATES, style: green},
 				{fromPos: 0, toPos: 2, fromHash: "a2", toHash: "c3", kind: STARTS, style: yellow},
 			},
-			prevCommit:  models.NewCommit(models.NewCommitOpts{Hash: "a1"}),
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
 			expectedStr: "⏣─│─┬─╯",
 			expectedStyles: []style.TextStyle{
 				yellow, yellow, magenta, yellow, yellow, green, green,
@@ -334,7 +338,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 3, toPos: 0, fromHash: "e1", toHash: "selected", kind: TERMINATES, style: green},
 				{fromPos: 0, toPos: 2, fromHash: "selected", toHash: "c3", kind: STARTS, style: yellow},
 			},
-			prevCommit:  models.NewCommit(models.NewCommitOpts{Hash: "a1"}),
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
 			expectedStr: "⏣───╮ ╯",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, highlightStyle, highlightStyle, highlightStyle, highlightStyle, nothing, green,
@@ -348,7 +352,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 1, toPos: 0, fromHash: "b1", toHash: "a2", kind: TERMINATES, style: magenta},
 				{fromPos: 2, toPos: 0, fromHash: "c1", toHash: "a2", kind: TERMINATES, style: green},
 			},
-			prevCommit:  models.NewCommit(models.NewCommitOpts{Hash: "a1"}),
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
 			expectedStr: "◯─┴─╯",
 			expectedStyles: []style.TextStyle{
 				yellow, magenta, magenta, green, green,
@@ -363,7 +367,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 1, toPos: 1, fromHash: "b1", toHash: "b3", kind: CONTINUES, style: magenta},
 				{fromPos: 2, toPos: 2, fromHash: "c1", toHash: "c3", kind: CONTINUES, style: green},
 			},
-			prevCommit:  models.NewCommit(models.NewCommitOpts{Hash: "a1"}),
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
 			expectedStr: "⏣─│─│─╮",
 			expectedStyles: []style.TextStyle{
 				yellow, yellow, magenta, yellow, green, yellow, yellow,
@@ -378,7 +382,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 1, toPos: 1, fromHash: "b1", toHash: "a2", kind: CONTINUES, style: green},
 				{fromPos: 2, toPos: 0, fromHash: "c1", toHash: "a2", kind: TERMINATES, style: magenta},
 			},
-			prevCommit:  models.NewCommit(models.NewCommitOpts{Hash: "a1"}),
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
 			expectedStr: "⏣─│─╯",
 			expectedStyles: []style.TextStyle{
 				yellow, yellow, green, magenta, magenta,
@@ -393,7 +397,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 2, toPos: 2, fromHash: "c1", toHash: "c3", kind: CONTINUES, style: green},
 				{fromPos: 3, toPos: 0, fromHash: "d1", toHash: "a2", kind: TERMINATES, style: magenta},
 			},
-			prevCommit:  models.NewCommit(models.NewCommitOpts{Hash: "a1"}),
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
 			expectedStr: "⏣─┬─│─╯",
 			expectedStyles: []style.TextStyle{
 				yellow, yellow, yellow, magenta, green, magenta, magenta,
@@ -405,7 +409,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromHash: "selected", toHash: "a2", kind: TERMINATES, style: red},
 				{fromPos: 0, toPos: 0, fromHash: "a2", toHash: "a3", kind: STARTS, style: yellow},
 			},
-			prevCommit:  models.NewCommit(models.NewCommitOpts{Hash: "selected"}),
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "selected"}),
 			expectedStr: "◯",
 			expectedStyles: []style.TextStyle{
 				yellow,
@@ -417,7 +421,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromHash: "selected", toHash: "a2", kind: TERMINATES, style: red},
 				{fromPos: 1, toPos: 1, fromHash: "selected", toHash: "b3", kind: CONTINUES, style: red},
 			},
-			prevCommit:  models.NewCommit(models.NewCommitOpts{Hash: "selected"}),
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "selected"}),
 			expectedStr: "◯ │",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, nothing, highlightStyle,
@@ -430,7 +434,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 1, toPos: 1, fromHash: "z1", toHash: "z3", kind: CONTINUES, style: green},
 				{fromPos: 2, toPos: 2, fromHash: "selected", toHash: "b3", kind: CONTINUES, style: red},
 			},
-			prevCommit:  models.NewCommit(models.NewCommitOpts{Hash: "selected"}),
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "selected"}),
 			expectedStr: "◯ │ │",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, nothing, green, nothing, highlightStyle,
@@ -444,7 +448,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 1, fromHash: "a2", toHash: "b3", kind: STARTS, style: green},
 				{fromPos: 1, toPos: 0, fromHash: "selected", toHash: "a2", kind: TERMINATES, style: yellow},
 			},
-			prevCommit:  models.NewCommit(models.NewCommitOpts{Hash: "selected"}),
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "selected"}),
 			expectedStr: "⏣─╯",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, highlightStyle, highlightStyle,
@@ -477,6 +481,8 @@ func TestRenderPipeSet(t *testing.T) {
 }
 
 func TestGetNextPipes(t *testing.T) {
+	hashPool := &utils.StringPool{}
+
 	tests := []struct {
 		prevPipes []*Pipe
 		commit    *models.Commit
@@ -486,7 +492,7 @@ func TestGetNextPipes(t *testing.T) {
 			prevPipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromHash: "a", toHash: "b", kind: STARTS, style: style.FgDefault},
 			},
-			commit: models.NewCommit(models.NewCommitOpts{
+			commit: models.NewCommit(hashPool, models.NewCommitOpts{
 				Hash:    "b",
 				Parents: []string{"c"},
 			}),
@@ -501,7 +507,7 @@ func TestGetNextPipes(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromHash: "b", toHash: "c", kind: STARTS, style: style.FgDefault},
 				{fromPos: 0, toPos: 1, fromHash: "b", toHash: "d", kind: STARTS, style: style.FgDefault},
 			},
-			commit: models.NewCommit(models.NewCommitOpts{
+			commit: models.NewCommit(hashPool, models.NewCommitOpts{
 				Hash:    "d",
 				Parents: []string{"e"},
 			}),
@@ -515,7 +521,7 @@ func TestGetNextPipes(t *testing.T) {
 			prevPipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromHash: "a", toHash: "root", kind: TERMINATES, style: style.FgDefault},
 			},
-			commit: models.NewCommit(models.NewCommitOpts{
+			commit: models.NewCommit(hashPool, models.NewCommitOpts{
 				Hash:    "root",
 				Parents: []string{},
 			}),
@@ -557,8 +563,10 @@ func BenchmarkRenderCommitGraph(b *testing.B) {
 }
 
 func generateCommits(count int) []*models.Commit {
+	hashPool := &utils.StringPool{}
+
 	rnd := rand.New(rand.NewSource(1234))
-	pool := []*models.Commit{models.NewCommit(models.NewCommitOpts{Hash: "a", AuthorName: "A"})}
+	pool := []*models.Commit{models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a", AuthorName: "A"})}
 	commits := make([]*models.Commit, 0, count)
 	authorPool := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
 	for len(commits) < count {
@@ -575,7 +583,7 @@ func generateCommits(count int) []*models.Commit {
 			if reuseParent {
 				newParent = pool[j]
 			} else {
-				newParent = models.NewCommit(models.NewCommitOpts{
+				newParent = models.NewCommit(hashPool, models.NewCommitOpts{
 					Hash:       fmt.Sprintf("%s%d", currentCommit.Hash(), j),
 					AuthorName: authorPool[rnd.Intn(len(authorPool))],
 				})
@@ -584,7 +592,7 @@ func generateCommits(count int) []*models.Commit {
 			parentHashes = append(parentHashes, newParent.Hash())
 		}
 
-		changedCommit := models.NewCommit(models.NewCommitOpts{
+		changedCommit := models.NewCommit(hashPool, models.NewCommitOpts{
 			Hash:       currentCommit.Hash(),
 			AuthorName: currentCommit.AuthorName,
 			Parents:    parentHashes,

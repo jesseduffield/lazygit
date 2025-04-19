@@ -564,7 +564,7 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 				for _, c := range commitsToEdit[:len(commitsToEdit)-1] {
 					// Merge commits can't be set to "edit", so just skip them
 					if !c.IsMerge() {
-						todos = append(todos, models.NewCommit(models.NewCommitOpts{Hash: c.Hash(), Action: todo.Pick}))
+						todos = append(todos, models.NewCommit(self.c.Model().HashPool, models.NewCommitOpts{Hash: c.Hash(), Action: todo.Pick}))
 					}
 				}
 				if len(todos) > 0 {

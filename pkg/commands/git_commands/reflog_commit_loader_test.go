@@ -32,6 +32,8 @@ func TestGetReflogCommits(t *testing.T) {
 		expectedError           error
 	}
 
+	hashPool := &utils.StringPool{}
+
 	scenarios := []scenario{
 		{
 			testName: "no reflog entries",
@@ -94,7 +96,7 @@ func TestGetReflogCommits(t *testing.T) {
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p"}, reflogOutput, nil),
 
-			lastReflogCommit: models.NewCommit(models.NewCommitOpts{
+			lastReflogCommit: models.NewCommit(hashPool, models.NewCommitOpts{
 				Hash:          "c3c4b66b64c97ffeecde",
 				Name:          "checkout: moving from B to A",
 				Status:        models.StatusReflog,
@@ -118,7 +120,7 @@ func TestGetReflogCommits(t *testing.T) {
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p", "--follow", "--", "path"}, reflogOutput, nil),
 
-			lastReflogCommit: models.NewCommit(models.NewCommitOpts{
+			lastReflogCommit: models.NewCommit(hashPool, models.NewCommitOpts{
 				Hash:          "c3c4b66b64c97ffeecde",
 				Name:          "checkout: moving from B to A",
 				Status:        models.StatusReflog,
@@ -143,7 +145,7 @@ func TestGetReflogCommits(t *testing.T) {
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p", "--author=John Doe <john@doe.com>"}, reflogOutput, nil),
 
-			lastReflogCommit: models.NewCommit(models.NewCommitOpts{
+			lastReflogCommit: models.NewCommit(hashPool, models.NewCommitOpts{
 				Hash:          "c3c4b66b64c97ffeecde",
 				Name:          "checkout: moving from B to A",
 				Status:        models.StatusReflog,
@@ -183,14 +185,14 @@ func TestGetReflogCommits(t *testing.T) {
 				cmd:    oscommands.NewDummyCmdObjBuilder(scenario.runner),
 			}
 
-			commits, onlyObtainednew, err := builder.GetReflogCommits(scenario.lastReflogCommit, scenario.filterPath, scenario.filterAuthor)
+			commits, onlyObtainednew, err := builder.GetReflogCommits(hashPool, scenario.lastReflogCommit, scenario.filterPath, scenario.filterAuthor)
 			assert.Equal(t, scenario.expectedOnlyObtainedNew, onlyObtainednew)
 			assert.Equal(t, scenario.expectedError, err)
 			t.Logf("actual commits: \n%s", litter.Sdump(commits))
 			var expectedCommits []*models.Commit
 			if scenario.expectedCommitOpts != nil {
 				expectedCommits = lo.Map(scenario.expectedCommitOpts,
-					func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(opts) })
+					func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
 			}
 			assert.Equal(t, expectedCommits, commits)
 

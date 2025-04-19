@@ -314,13 +314,16 @@ func TestGetCommits(t *testing.T) {
 				},
 			}
 
+			hashPool := &utils.StringPool{}
+
 			common.UserConfig().Git.MainBranches = scenario.mainBranches
 			opts := scenario.opts
 			opts.MainBranches = NewMainBranches(common, cmd)
+			opts.HashPool = hashPool
 			commits, err := builder.GetCommits(opts)
 
 			expectedCommits := lo.Map(scenario.expectedCommitOpts,
-				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(opts) })
+				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
 			assert.Equal(t, expectedCommits, commits)
 			assert.Equal(t, scenario.expectedError, err)
 
@@ -330,6 +333,8 @@ func TestGetCommits(t *testing.T) {
 }
 
 func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
+	hashPool := &utils.StringPool{}
+
 	scenarios := []struct {
 		testName          string
 		todos             []todo.Todo
@@ -359,7 +364,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedResult: models.NewCommit(models.NewCommitOpts{
+			expectedResult: models.NewCommit(hashPool, models.NewCommitOpts{
 				Hash:   "fa1afe1",
 				Action: todo.Pick,
 				Status: models.StatusConflicted,
@@ -460,7 +465,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedResult: models.NewCommit(models.NewCommitOpts{
+			expectedResult: models.NewCommit(hashPool, models.NewCommitOpts{
 				Hash:   "fa1afe1",
 				Action: todo.Pick,
 				Status: models.StatusConflicted,
@@ -489,7 +494,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 			},
 			amendFileExists:   false,
 			messageFileExists: true,
-			expectedResult: models.NewCommit(models.NewCommitOpts{
+			expectedResult: models.NewCommit(hashPool, models.NewCommitOpts{
 				Hash:   "fa1afe1",
 				Action: todo.Edit,
 				Status: models.StatusConflicted,
@@ -526,7 +531,7 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			}
 
-			hash := builder.getConflictedCommitImpl(scenario.todos, scenario.doneTodos, scenario.amendFileExists, scenario.messageFileExists)
+			hash := builder.getConflictedCommitImpl(hashPool, scenario.todos, scenario.doneTodos, scenario.amendFileExists, scenario.messageFileExists)
 			assert.Equal(t, scenario.expectedResult, hash)
 		})
 	}
@@ -573,11 +578,13 @@ func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.testName, func(t *testing.T) {
+			hashPool := &utils.StringPool{}
+
 			commits := lo.Map(scenario.commitOpts,
-				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(opts) })
+				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
 			setCommitMergedStatuses(scenario.ancestor, commits)
 			expectedCommits := lo.Map(scenario.expectedCommitOpts,
-				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(opts) })
+				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
 			assert.Equal(t, expectedCommits, commits)
 		})
 	}

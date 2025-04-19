@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
@@ -158,8 +159,9 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 				gitConfig:  git_config.NewFakeGitConfig(s.gitConfigMockResponses),
 			})
 
+			hashPool := &utils.StringPool{}
 			commits := lo.Map(s.commitOpts,
-				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(opts) })
+				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
 
 			s.test(instance.DiscardOldFileChanges(commits, s.commitIndex, s.fileName))
 			s.runner.CheckForMissingCalls()

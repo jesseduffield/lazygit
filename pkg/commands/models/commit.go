@@ -42,7 +42,7 @@ const (
 
 // Commit : A git commit
 type Commit struct {
-	hash          string
+	hash          *string
 	Name          string
 	Status        CommitStatus
 	Action        todo.TodoCommand
@@ -71,9 +71,9 @@ type NewCommitOpts struct {
 	Parents       []string
 }
 
-func NewCommit(opts NewCommitOpts) *Commit {
+func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
 	return &Commit{
-		hash:          opts.Hash,
+		hash:          hashPool.Add(opts.Hash),
 		Name:          opts.Name,
 		Status:        opts.Status,
 		Action:        opts.Action,
@@ -88,7 +88,7 @@ func NewCommit(opts NewCommitOpts) *Commit {
 }
 
 func (c *Commit) Hash() string {
-	return c.hash
+	return *c.hash
 }
 
 func (c *Commit) ShortHash() string {
