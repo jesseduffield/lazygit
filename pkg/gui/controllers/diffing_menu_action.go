@@ -45,6 +45,15 @@ func (self *DiffingMenuAction) Call() error {
 				return nil
 			},
 		},
+		{
+			Label: fmt.Sprintf("Toggle three-dot diff (currently: %v)", self.c.UserConfig().Git.DiffUseTripleDot),
+			OnPress: func() error {
+				cfg := self.c.UserConfig()
+				cfg.Git.DiffUseTripleDot = !cfg.Git.DiffUseTripleDot
+				self.c.SetUserConfig(cfg)
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			},
+		},
 	}...)
 
 	if self.c.Modes().Diffing.Active() {

@@ -276,6 +276,9 @@ type GitConfig struct {
 	// When copying commit hashes to the clipboard, truncate them to this
 	// length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
+	// Whether to use three-dot (A...B) syntax for diff ranges instead of two-dot (A B).
+	// Three-dot diffs show changes from the merge-base of A and B to B.
+	DiffUseTripleDot bool `yaml:"diffUseTripleDot" jsonschema:"default=false,description=Use three-dot syntax for range diffs"`
 }
 
 type PagerType string

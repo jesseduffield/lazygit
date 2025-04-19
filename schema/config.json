@@ -396,6 +396,11 @@
           "type": "integer",
           "description": "When copying commit hashes to the clipboard, truncate them to this\nlength. Set to 40 to disable truncation.",
           "default": 12
+        },
+        "diffUseTripleDot": {
+          "type": "boolean",
+          "description": "Use three-dot syntax for range diffs",
+          "default": false
         }
       },
       "additionalProperties": false,

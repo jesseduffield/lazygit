@@ -24,11 +24,17 @@ func NewDiffHelper(c *HelperCommon) *DiffHelper {
 }
 
 func (self *DiffHelper) DiffArgs() []string {
-	output := []string{"--stat", "-p", self.c.Modes().Diffing.Ref}
-
-	right := self.currentDiffTerminal()
-	if right != "" {
-		output = append(output, right)
+	useTriple := self.c.UserConfig().Git.DiffUseTripleDot
+	refA := self.c.Modes().Diffing.Ref
+	refB := self.currentDiffTerminal()
+	output := []string{"--stat", "-p"}
+	if useTriple && refB != "" {
+		output = append(output, refA+"..."+refB)
+	} else {
+		output = append(output, refA)
+		if refB != "" {
+			output = append(output, refB)
+		}
 	}
 
 	if self.c.Modes().Diffing.Reverse {
