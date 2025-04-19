@@ -380,7 +380,6 @@ func equalHashes(a, b *string) bool {
 		return false
 	}
 
-	length := min(len(*a), len(*b))
-	// parent hashes are only stored up to 20 characters for some reason so we'll truncate to that for comparison
-	return (*a)[:length] == (*b)[:length]
+	// We know that all hashes are stored in the pool, so we can compare their addresses
+	return a == b
 }
