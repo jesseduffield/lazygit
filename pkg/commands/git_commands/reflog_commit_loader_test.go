@@ -38,7 +38,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "no reflog entries",
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p"}, "", nil),
+				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%P"}, "", nil),
 
 			lastReflogCommit:        nil,
 			expectedCommitOpts:      []models.NewCommitOpts{},
@@ -48,7 +48,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "some reflog entries",
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p"}, reflogOutput, nil),
+				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%P"}, reflogOutput, nil),
 
 			lastReflogCommit: nil,
 			expectedCommitOpts: []models.NewCommitOpts{
@@ -94,7 +94,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "some reflog entries where last commit is given",
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p"}, reflogOutput, nil),
+				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%P"}, reflogOutput, nil),
 
 			lastReflogCommit: models.NewCommit(hashPool, models.NewCommitOpts{
 				Hash:          "c3c4b66b64c97ffeecde",
@@ -118,7 +118,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "when passing filterPath",
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p", "--follow", "--", "path"}, reflogOutput, nil),
+				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%P", "--follow", "--", "path"}, reflogOutput, nil),
 
 			lastReflogCommit: models.NewCommit(hashPool, models.NewCommitOpts{
 				Hash:          "c3c4b66b64c97ffeecde",
@@ -143,7 +143,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "when passing filterAuthor",
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p", "--author=John Doe <john@doe.com>"}, reflogOutput, nil),
+				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%P", "--author=John Doe <john@doe.com>"}, reflogOutput, nil),
 
 			lastReflogCommit: models.NewCommit(hashPool, models.NewCommitOpts{
 				Hash:          "c3c4b66b64c97ffeecde",
@@ -168,7 +168,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "when command returns error",
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p"}, "", errors.New("haha")),
+				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%P"}, "", errors.New("haha")),
 
 			lastReflogCommit:        nil,
 			filterPath:              "",

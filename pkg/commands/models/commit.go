@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
@@ -54,7 +55,7 @@ type Commit struct {
 	Divergence    Divergence // set to DivergenceNone unless we are showing the divergence view
 
 	// Hashes of parent commits (will be multiple if it's a merge commit)
-	parents []string
+	parents []*string
 }
 
 type NewCommitOpts struct {
@@ -83,7 +84,7 @@ func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
 		AuthorEmail:   opts.AuthorEmail,
 		UnixTimestamp: opts.UnixTimestamp,
 		Divergence:    opts.Divergence,
-		parents:       opts.Parents,
+		parents:       lo.Map(opts.Parents, func(s string, _ int) *string { return hashPool.Add(s) }),
 	}
 }
 
@@ -115,7 +116,7 @@ func (c *Commit) ParentRefName() string {
 }
 
 func (c *Commit) Parents() []string {
-	return c.parents
+	return lo.Map(c.parents, func(s *string, _ int) string { return *s })
 }
 
 func (c *Commit) IsFirstCommit() bool {

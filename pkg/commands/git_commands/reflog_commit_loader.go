@@ -31,7 +31,7 @@ func (self *ReflogCommitLoader) GetReflogCommits(hashPool *utils.StringPool, las
 		Config("log.showSignature=false").
 		Arg("-g").
 		Arg("--abbrev=40").
-		Arg("--format=%h%x00%ct%x00%gs%x00%p").
+		Arg("--format=%h%x00%ct%x00%gs%x00%P").
 		ArgIf(filterAuthor != "", "--author="+filterAuthor).
 		ArgIf(filterPath != "", "--follow", "--", filterPath).
 		ToArgv()
