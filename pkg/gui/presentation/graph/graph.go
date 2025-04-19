@@ -23,12 +23,12 @@ const (
 )
 
 type Pipe struct {
-	fromPos  int
-	toPos    int
 	fromHash *string
 	toHash   *string
-	kind     PipeKind
 	style    *style.TextStyle
+	fromPos  int16
+	toPos    int16
+	kind     PipeKind
 }
 
 var (
@@ -37,11 +37,11 @@ var (
 	StartCommitHash     = "START"
 )
 
-func (self Pipe) left() int {
+func (self Pipe) left() int16 {
 	return min(self.fromPos, self.toPos)
 }
 
-func (self Pipe) right() int {
+func (self Pipe) right() int16 {
 	return max(self.fromPos, self.toPos)
 }
 
@@ -107,7 +107,7 @@ func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPt
 }
 
 func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *models.Commit) *style.TextStyle) []Pipe {
-	maxPos := 0
+	maxPos := int16(0)
 	for _, pipe := range prevPipes {
 		if pipe.toPos > maxPos {
 			maxPos = pipe.toPos
@@ -133,6 +133,9 @@ func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *mode
 	}
 
 	// a taken spot is one where a current pipe is ending on
+	// Note: this set and similar ones below use int instead of int16 because
+	// that's much more efficient. We cast the int16 values we store in these
+	// sets to int on every access.
 	takenSpots := set.New[int]()
 	// a traversed spot is one where a current pipe is starting on, ending on, or passing through
 	traversedSpots := set.New[int]()
@@ -155,41 +158,41 @@ func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *mode
 	traversedSpotsForContinuingPipes := set.New[int]()
 	for _, pipe := range currentPipes {
 		if !equalHashes(pipe.toHash, commit.HashPtr()) {
-			traversedSpotsForContinuingPipes.Add(pipe.toPos)
+			traversedSpotsForContinuingPipes.Add(int(pipe.toPos))
 		}
 	}
 
-	getNextAvailablePosForContinuingPipe := func() int {
-		i := 0
+	getNextAvailablePosForContinuingPipe := func() int16 {
+		i := int16(0)
 		for {
-			if !traversedSpots.Includes(i) {
+			if !traversedSpots.Includes(int(i)) {
 				return i
 			}
 			i++
 		}
 	}
 
-	getNextAvailablePosForNewPipe := func() int {
-		i := 0
+	getNextAvailablePosForNewPipe := func() int16 {
+		i := int16(0)
 		for {
 			// a newly created pipe is not allowed to end on a spot that's already taken,
 			// nor on a spot that's been traversed by a continuing pipe.
-			if !takenSpots.Includes(i) && !traversedSpotsForContinuingPipes.Includes(i) {
+			if !takenSpots.Includes(int(i)) && !traversedSpotsForContinuingPipes.Includes(int(i)) {
 				return i
 			}
 			i++
 		}
 	}
 
-	traverse := func(from, to int) {
+	traverse := func(from, to int16) {
 		left, right := from, to
 		if left > right {
 			left, right = right, left
 		}
 		for i := left; i <= right; i++ {
-			traversedSpots.Add(i)
+			traversedSpots.Add(int(i))
 		}
-		takenSpots.Add(to)
+		takenSpots.Add(int(to))
 	}
 
 	for _, pipe := range currentPipes {
@@ -232,7 +235,7 @@ func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *mode
 				style:    getStyle(commit),
 			})
 
-			takenSpots.Add(availablePos)
+			takenSpots.Add(int(availablePos))
 		}
 	}
 
@@ -241,7 +244,7 @@ func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *mode
 			// continuing on, potentially moving left to fill in a blank spot
 			last := pipe.toPos
 			for i := pipe.toPos; i > pos; i-- {
-				if takenSpots.Includes(i) || traversedSpots.Includes(i) {
+				if takenSpots.Includes(int(i)) || traversedSpots.Includes(int(i)) {
 					break
 				} else {
 					last = i
@@ -275,8 +278,8 @@ func renderPipeSet(
 	selectedCommitHashPtr *string,
 	prevCommit *models.Commit,
 ) string {
-	maxPos := 0
-	commitPos := 0
+	maxPos := int16(0)
+	commitPos := int16(0)
 	startCount := 0
 	for _, pipe := range pipes {
 		if pipe.kind == STARTS {
@@ -292,7 +295,7 @@ func renderPipeSet(
 	}
 	isMerge := startCount > 1
 
-	cells := lo.Map(lo.Range(maxPos+1), func(i int, _ int) *Cell {
+	cells := lo.Map(lo.Range(int(maxPos)+1), func(i int, _ int) *Cell {
 		return &Cell{cellType: CONNECTION, style: &style.FgDefault}
 	})
 
