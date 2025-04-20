@@ -186,7 +186,7 @@ func GetCommitListDisplayStrings(
 		unfilteredIdx := i + startIdx
 		bisectStatus = getBisectStatus(unfilteredIdx, commit.Hash, bisectInfo, bisectBounds)
 		isYouAreHereCommit := false
-		if showYouAreHereLabel && (commit.Action == models.ActionConflict || unfilteredIdx == rebaseOffset) {
+		if showYouAreHereLabel && (commit.Status == models.StatusConflicted || unfilteredIdx == rebaseOffset) {
 			isYouAreHereCommit = true
 			showYouAreHereLabel = false
 		}
@@ -395,8 +395,7 @@ func displayCommit(
 
 	actionString := ""
 	if commit.Action != models.ActionNone {
-		todoString := lo.Ternary(commit.Action == models.ActionConflict, "conflict", commit.Action.String())
-		actionString = actionColorMap(commit.Action).Sprint(todoString) + " "
+		actionString = actionColorMap(commit.Action, commit.Status).Sprint(commit.Action.String()) + " "
 	}
 
 	tagString := ""
@@ -429,8 +428,13 @@ func displayCommit(
 
 	mark := ""
 	if isYouAreHereCommit {
-		color := lo.Ternary(commit.Action == models.ActionConflict, style.FgRed, style.FgYellow)
-		youAreHere := color.Sprintf("<-- %s ---", common.Tr.YouAreHere)
+		color := style.FgYellow
+		text := common.Tr.YouAreHere
+		if commit.Status == models.StatusConflicted {
+			color = style.FgRed
+			text = common.Tr.ConflictLabel
+		}
+		youAreHere := color.Sprintf("<-- %s ---", text)
 		mark = fmt.Sprintf("%s ", youAreHere)
 	} else if isMarkedBaseCommit {
 		rebaseFromHere := style.FgYellow.Sprint(common.Tr.MarkedCommitMarker)
@@ -501,7 +505,7 @@ func getHashColor(
 		hashColor = style.FgYellow
 	case models.StatusMerged:
 		hashColor = style.FgGreen
-	case models.StatusRebasing:
+	case models.StatusRebasing, models.StatusConflicted:
 		hashColor = style.FgBlue
 	case models.StatusReflog:
 		hashColor = style.FgBlue
@@ -519,7 +523,11 @@ func getHashColor(
 	return hashColor
 }
 
-func actionColorMap(action todo.TodoCommand) style.TextStyle {
+func actionColorMap(action todo.TodoCommand, status models.CommitStatus) style.TextStyle {
+	if status == models.StatusConflicted {
+		return style.FgRed
+	}
+
 	switch action {
 	case todo.Pick:
 		return style.FgCyan
@@ -529,8 +537,6 @@ func actionColorMap(action todo.TodoCommand) style.TextStyle {
 		return style.FgGreen
 	case todo.Fixup:
 		return style.FgMagenta
-	case models.ActionConflict:
-		return style.FgRed
 	default:
 		return style.FgYellow
 	}
