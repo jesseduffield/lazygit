@@ -82,16 +82,10 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 	}
 
 	// Mode-specific global keybindings
-	if self.c.Model().WorkingTreeStateAtLastCommitRefresh.IsRebasing() {
+	if state := self.c.Model().WorkingTreeStateAtLastCommitRefresh; state.Any() {
 		optionsMap = utils.Prepend(optionsMap, bindingInfo{
 			key:         keybindings.Label(self.c.KeybindingsOpts().Config.Universal.CreateRebaseOptionsMenu),
-			description: self.c.Tr.ViewRebaseOptions,
-			style:       style.FgYellow,
-		})
-	} else if self.c.Model().WorkingTreeStateAtLastCommitRefresh.IsMerging() {
-		optionsMap = utils.Prepend(optionsMap, bindingInfo{
-			key:         keybindings.Label(self.c.KeybindingsOpts().Config.Universal.CreateRebaseOptionsMenu),
-			description: self.c.Tr.ViewMergeOptions,
+			description: state.OptionsMapTitle(self.c.Tr),
 			style:       style.FgYellow,
 		})
 	}

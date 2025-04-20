@@ -35,11 +35,12 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			OpensMenu:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.CreateRebaseOptionsMenu),
-			Handler:     opts.Guards.NoPopupPanel(self.c.Helpers().MergeAndRebase.CreateRebaseOptionsMenu),
-			Description: self.c.Tr.ViewMergeRebaseOptions,
-			Tooltip:     self.c.Tr.ViewMergeRebaseOptionsTooltip,
-			OpensMenu:   true,
+			Key:               opts.GetKey(opts.Config.Universal.CreateRebaseOptionsMenu),
+			Handler:           opts.Guards.NoPopupPanel(self.c.Helpers().MergeAndRebase.CreateRebaseOptionsMenu),
+			Description:       self.c.Tr.ViewMergeRebaseOptions,
+			Tooltip:           self.c.Tr.ViewMergeRebaseOptionsTooltip,
+			OpensMenu:         true,
+			GetDisabledReason: self.canShowRebaseOptions,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Refresh),
@@ -190,4 +191,13 @@ func (self *GlobalController) escape() error {
 
 func (self *GlobalController) toggleWhitespace() error {
 	return (&ToggleWhitespaceAction{c: self.c}).Call()
+}
+
+func (self *GlobalController) canShowRebaseOptions() *types.DisabledReason {
+	if self.c.Model().WorkingTreeStateAtLastCommitRefresh.None() {
+		return &types.DisabledReason{
+			Text: self.c.Tr.NotMergingOrRebasing,
+		}
+	}
+	return nil
 }

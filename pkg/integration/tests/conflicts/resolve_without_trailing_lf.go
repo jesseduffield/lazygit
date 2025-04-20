@@ -43,7 +43,7 @@ var ResolveWithoutTrailingLf = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Alert().
 			Title(Equals("Continue")).
-			Content(Contains("All merge conflicts resolved. Continue?")).
+			Content(Contains("All merge conflicts resolved. Continue the merge?")).
 			Cancel()
 
 		t.Views().Files().

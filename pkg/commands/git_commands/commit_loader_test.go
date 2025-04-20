@@ -8,7 +8,6 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stefanhaller/git-todo-parser/todo"
@@ -33,17 +32,15 @@ func TestGetCommits(t *testing.T) {
 		expectedCommits []*models.Commit
 		expectedError   error
 		logOrder        string
-		rebaseMode      enums.RebaseMode
 		opts            GetCommitsOptions
 		mainBranches    []string
 	}
 
 	scenarios := []scenario{
 		{
-			testName:   "should return no commits if there are none",
-			logOrder:   "topo-order",
-			rebaseMode: enums.REBASE_MODE_NONE,
-			opts:       GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", IncludeRebaseCommits: false},
+			testName: "should return no commits if there are none",
+			logOrder: "topo-order",
+			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"merge-base", "mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%m%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
@@ -52,10 +49,9 @@ func TestGetCommits(t *testing.T) {
 			expectedError:   nil,
 		},
 		{
-			testName:   "should use proper upstream name for branch",
-			logOrder:   "topo-order",
-			rebaseMode: enums.REBASE_MODE_NONE,
-			opts:       GetCommitsOptions{RefName: "refs/heads/mybranch", RefForPushedStatus: "refs/heads/mybranch", IncludeRebaseCommits: false},
+			testName: "should use proper upstream name for branch",
+			logOrder: "topo-order",
+			opts:     GetCommitsOptions{RefName: "refs/heads/mybranch", RefForPushedStatus: "refs/heads/mybranch", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"merge-base", "refs/heads/mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				ExpectGitArgs([]string{"log", "refs/heads/mybranch", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%m%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
@@ -66,7 +62,6 @@ func TestGetCommits(t *testing.T) {
 		{
 			testName:     "should return commits if they are present",
 			logOrder:     "topo-order",
-			rebaseMode:   enums.REBASE_MODE_NONE,
 			opts:         GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", IncludeRebaseCommits: false},
 			mainBranches: []string{"master", "main", "develop"},
 			runner: oscommands.NewFakeRunner(t).
@@ -203,7 +198,6 @@ func TestGetCommits(t *testing.T) {
 		{
 			testName:     "should not call merge-base for mainBranches if none exist",
 			logOrder:     "topo-order",
-			rebaseMode:   enums.REBASE_MODE_NONE,
 			opts:         GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", IncludeRebaseCommits: false},
 			mainBranches: []string{"master", "main"},
 			runner: oscommands.NewFakeRunner(t).
@@ -240,7 +234,6 @@ func TestGetCommits(t *testing.T) {
 		{
 			testName:     "should call merge-base for all main branches that exist",
 			logOrder:     "topo-order",
-			rebaseMode:   enums.REBASE_MODE_NONE,
 			opts:         GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", IncludeRebaseCommits: false},
 			mainBranches: []string{"master", "main", "develop", "1.0-hotfixes"},
 			runner: oscommands.NewFakeRunner(t).
@@ -277,10 +270,9 @@ func TestGetCommits(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			testName:   "should not specify order if `log.order` is `default`",
-			logOrder:   "default",
-			rebaseMode: enums.REBASE_MODE_NONE,
-			opts:       GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", IncludeRebaseCommits: false},
+			testName: "should not specify order if `log.order` is `default`",
+			logOrder: "default",
+			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"merge-base", "mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%m%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
@@ -289,10 +281,9 @@ func TestGetCommits(t *testing.T) {
 			expectedError:   nil,
 		},
 		{
-			testName:   "should set filter path",
-			logOrder:   "default",
-			rebaseMode: enums.REBASE_MODE_NONE,
-			opts:       GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", FilterPath: "src"},
+			testName: "should set filter path",
+			logOrder: "default",
+			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", FilterPath: "src"},
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"merge-base", "mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%m%x00%s", "--abbrev=40", "--follow", "--no-show-signature", "--", "src"}, "", nil),
@@ -310,10 +301,10 @@ func TestGetCommits(t *testing.T) {
 			cmd := oscommands.NewDummyCmdObjBuilder(scenario.runner)
 
 			builder := &CommitLoader{
-				Common:        common,
-				cmd:           cmd,
-				getRebaseMode: func() (enums.RebaseMode, error) { return scenario.rebaseMode, nil },
-				dotGitDir:     ".git",
+				Common:              common,
+				cmd:                 cmd,
+				getWorkingTreeState: func() models.WorkingTreeState { return models.WorkingTreeState{} },
+				dotGitDir:           ".git",
 				readFile: func(filename string) ([]byte, error) {
 					return []byte(""), nil
 				},
@@ -493,10 +484,10 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 			common := utils.NewDummyCommon()
 
 			builder := &CommitLoader{
-				Common:        common,
-				cmd:           oscommands.NewDummyCmdObjBuilder(oscommands.NewFakeRunner(t)),
-				getRebaseMode: func() (enums.RebaseMode, error) { return enums.REBASE_MODE_INTERACTIVE, nil },
-				dotGitDir:     ".git",
+				Common:              common,
+				cmd:                 oscommands.NewDummyCmdObjBuilder(oscommands.NewFakeRunner(t)),
+				getWorkingTreeState: func() models.WorkingTreeState { return models.WorkingTreeState{Rebasing: true} },
+				dotGitDir:           ".git",
 				readFile: func(filename string) ([]byte, error) {
 					return []byte(""), nil
 				},

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -116,12 +114,12 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 		},
 		{
 			IsActive: func() bool {
-				return !self.suppressRebasingMode && self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE
+				return !self.suppressRebasingMode && self.c.Git().Status.WorkingTreeState().Any()
 			},
 			Description: func() string {
 				workingTreeState := self.c.Git().Status.WorkingTreeState()
 				return self.withResetButton(
-					presentation.FormatWorkingTreeStateTitle(self.c.Tr, workingTreeState), style.FgYellow,
+					workingTreeState.Title(self.c.Tr), style.FgYellow,
 				)
 			},
 			Reset: self.mergeAndRebaseHelper.AbortMergeOrRebaseWithConfirm,
