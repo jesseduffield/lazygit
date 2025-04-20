@@ -37,12 +37,14 @@ var EditRangeSelectOutsideRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.Edit).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("merge  CI Merge branch 'second-change-branch' into first-change-branch").IsSelected(),
 				Contains("edit   CI first change").IsSelected(),
 				Contains("edit   CI * second-change-branch unrelated change").IsSelected(),
 				Contains("edit   CI second change").IsSelected(),
 				Contains("edit   CI * original").IsSelected(),
-				Contains("       CI ◯ <-- YOU ARE HERE --- three").IsSelected(),
+				Contains("--- Commits ---").IsSelected(),
+				Contains("       CI ◯ three").IsSelected(),
 				Contains("       CI ◯ two"),
 				Contains("       CI ◯ one"),
 			)

@@ -348,8 +348,11 @@ type TranslationSet struct {
 	PullRequestNoUpstream                 string
 	ErrorOccurred                         string
 	NoRoom                                string
-	YouAreHere                            string
 	ConflictLabel                         string
+	PendingRebaseTodosSectionHeader       string
+	PendingCherryPicksSectionHeader       string
+	PendingRevertsSectionHeader           string
+	CommitsSectionHeader                  string
 	YouDied                               string
 	RewordNotSupported                    string
 	ChangingThisActionIsNotAllowed        string
@@ -1417,8 +1420,11 @@ func EnglishTranslationSet() *TranslationSet {
 		PullRequestNoUpstream:                "Cannot open a pull request for a branch with no upstream",
 		ErrorOccurred:                        "An error occurred! Please create an issue at",
 		NoRoom:                               "Not enough room",
-		YouAreHere:                           "YOU ARE HERE",
 		ConflictLabel:                        "CONFLICT",
+		PendingRebaseTodosSectionHeader:      "Pending rebase todos",
+		PendingCherryPicksSectionHeader:      "Pending cherry-picks",
+		PendingRevertsSectionHeader:          "Pending reverts",
+		CommitsSectionHeader:                 "Commits",
 		YouDied:                              "YOU DIED!",
 		RewordNotSupported:                   "Rewording commits while interactively rebasing is not currently supported",
 		ChangingThisActionIsNotAllowed:       "Changing this kind of rebase todo entry is not allowed",
