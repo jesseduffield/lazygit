@@ -727,7 +727,6 @@ type TranslationSet struct {
 	FocusCommandLog                          string
 	CommandLogHeader                         string
 	RandomTip                                string
-	SelectParentCommitForMerge               string
 	ToggleWhitespaceInDiffView               string
 	ToggleWhitespaceInDiffViewTooltip        string
 	IgnoreWhitespaceDiffViewSubTitle         string
@@ -772,6 +771,7 @@ type TranslationSet struct {
 	OpenCommitInBrowser                      string
 	ViewBisectOptions                        string
 	ConfirmRevertCommit                      string
+	ConfirmRevertCommitRange                 string
 	RewordInEditorTitle                      string
 	RewordInEditorPrompt                     string
 	CheckoutAutostashPrompt                  string
@@ -1795,7 +1795,6 @@ func EnglishTranslationSet() *TranslationSet {
 		FocusCommandLog:                          "Focus command log",
 		CommandLogHeader:                         "You can hide/focus this panel by pressing '%s'\n",
 		RandomTip:                                "Random tip",
-		SelectParentCommitForMerge:               "Select parent commit for merge",
 		ToggleWhitespaceInDiffView:               "Toggle whitespace",
 		ToggleWhitespaceInDiffViewTooltip:        "Toggle whether or not whitespace changes are shown in the diff view.",
 		IgnoreWhitespaceDiffViewSubTitle:         "(ignoring whitespace)",
@@ -1839,6 +1838,7 @@ func EnglishTranslationSet() *TranslationSet {
 		OpenCommitInBrowser:                      "Open commit in browser",
 		ViewBisectOptions:                        "View bisect options",
 		ConfirmRevertCommit:                      "Are you sure you want to revert {{.selectedCommit}}?",
+		ConfirmRevertCommitRange:                 "Are you sure you want to revert the selected commits?",
 		RewordInEditorTitle:                      "Reword in editor",
 		RewordInEditorPrompt:                     "Are you sure you want to reword this commit in your editor?",
 		HardResetAutostashPrompt:                 "Are you sure you want to hard reset to '%s'? An auto-stash will be performed if necessary.",
