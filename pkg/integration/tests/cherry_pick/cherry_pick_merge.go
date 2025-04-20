@@ -5,24 +5,24 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Cherry pick commits from the subcommits view during a rebase",
+var CherryPickMerge = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Cherry pick a merge commit",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig: func(config *config.AppConfig) {
-		config.GetAppState().GitLogShowGraph = "never"
-	},
+	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.
 			EmptyCommit("base").
 			NewBranch("first-branch").
 			NewBranch("second-branch").
 			Checkout("first-branch").
-			EmptyCommit("one").
-			EmptyCommit("two").
 			Checkout("second-branch").
-			EmptyCommit("three").
-			EmptyCommit("four").
+			CreateFileAndAdd("file1.txt", "content").
+			Commit("one").
+			CreateFileAndAdd("file2.txt", "content").
+			Commit("two").
+			Checkout("master").
+			Merge("second-branch").
 			Checkout("first-branch")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
@@ -30,8 +30,8 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains("first-branch"),
-				Contains("second-branch"),
 				Contains("master"),
+				Contains("second-branch"),
 			).
 			SelectNextItem().
 			PressEnter()
@@ -39,12 +39,12 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().SubCommits().
 			IsFocused().
 			Lines(
-				Contains("four").IsSelected(),
-				Contains("three"),
-				Contains("base"),
+				Contains("⏣─╮ Merge branch 'second-branch'").IsSelected(),
+				Contains("│ ◯ two"),
+				Contains("│ ◯ one"),
+				Contains("◯ ╯ base"),
 			).
-			// copy commit 'three'
-			SelectNextItem().
+			// copy the merge commit
 			Press(keys.Commits.CherryPickCopy)
 
 		t.Views().Information().Content(Contains("1 commit copied"))
@@ -52,16 +52,7 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI two").IsSelected(),
-				Contains("CI one"),
-				Contains("CI base"),
-			).
-			SelectNextItem().
-			Press(keys.Universal.Edit).
-			Lines(
-				Contains("pick  CI two"),
-				Contains("      CI <-- YOU ARE HERE --- one").IsSelected(),
-				Contains("      CI base"),
+				Contains("base").IsSelected(),
 			).
 			Press(keys.Commits.PasteCommits).
 			Tap(func() {
@@ -74,19 +65,16 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Views().Information().Content(DoesNotContain("commit copied"))
 			}).
 			Lines(
-				Contains("pick  CI two"),
-				Contains("      CI <-- YOU ARE HERE --- three"),
-				Contains("      CI one"),
-				Contains("      CI base"),
-			).
-			Tap(func() {
-				t.Common().ContinueRebase()
-			}).
-			Lines(
-				Contains("CI two"),
-				Contains("CI three"),
-				Contains("CI one"),
-				Contains("CI base"),
+				Contains("Merge branch 'second-branch'").IsSelected(),
+				Contains("base"),
 			)
+
+		t.Views().Main().ContainsLines(
+			Contains("Merge branch 'second-branch'"),
+			Contains("---"),
+			Contains("file1.txt | 1 +"),
+			Contains("file2.txt | 1 +"),
+			Contains("2 files changed, 2 insertions(+)"),
+		)
 	},
 })

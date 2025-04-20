@@ -69,7 +69,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			PressPrimaryAction()
 
-		t.Common().ContinueOnConflictsResolved("rebase")
+		t.Common().ContinueOnConflictsResolved("cherry-pick")
 
 		t.Views().Files().IsEmpty()
 
