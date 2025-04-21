@@ -125,7 +125,11 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
 	err = self.gui.git.Sync.FetchBackground()
 
-	_ = self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
+	_ = self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.SYNC})
+
+	if err == nil {
+		err = self.gui.helpers.BranchesHelper.AutoForwardBranches()
+	}
 
 	return err
 }

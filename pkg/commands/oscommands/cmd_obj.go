@@ -21,6 +21,9 @@ type ICmdObj interface {
 	// outputs args vector e.g. ["git", "commit", "-m", "my message"]
 	Args() []string
 
+	// Set a string to be used as stdin for the command.
+	SetStdin(input string) ICmdObj
+
 	AddEnvVars(...string) ICmdObj
 	GetEnvVars() []string
 
@@ -129,6 +132,12 @@ func (self *CmdObj) ToString() string {
 
 func (self *CmdObj) Args() []string {
 	return self.cmd.Args
+}
+
+func (self *CmdObj) SetStdin(input string) ICmdObj {
+	self.cmd.Stdin = strings.NewReader(input)
+
+	return self
 }
 
 func (self *CmdObj) AddEnvVars(vars ...string) ICmdObj {

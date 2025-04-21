@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -262,4 +263,35 @@ func (self *BranchesHelper) deleteRemoteBranches(remoteBranches []*models.Remote
 		}
 	}
 	return nil
+}
+
+func (self *BranchesHelper) AutoForwardBranches() error {
+	if self.c.UserConfig().Git.AutoForwardBranches == "none" {
+		return nil
+	}
+
+	allBranches := self.c.UserConfig().Git.AutoForwardBranches == "allBranches"
+	branches := self.c.Model().Branches
+	updateCommands := ""
+	// The first branch is the currently checked out branch; skip it
+	for _, branch := range branches[1:] {
+		if branch.RemoteBranchStoredLocally() && (allBranches || lo.Contains(self.c.UserConfig().Git.MainBranches, branch.Name)) {
+			isStrictlyBehind := branch.IsBehindForPull() && !branch.IsAheadForPull()
+			if isStrictlyBehind {
+				updateCommands += fmt.Sprintf("update %s %s %s\n", branch.FullRefName(), branch.FullUpstreamRefName(), branch.CommitHash)
+			}
+		}
+	}
+
+	if updateCommands == "" {
+		return nil
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.AutoForwardBranches)
+	self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
+	err := self.c.Git().Branch.UpdateBranchRefs(updateCommands)
+
+	_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Mode: types.SYNC})
+
+	return err
 }

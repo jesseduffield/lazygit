@@ -19,6 +19,10 @@ func (config *UserConfig) Validate() error {
 		[]string{"none", "onlyArrow", "arrowAndNumber"}); err != nil {
 		return err
 	}
+	if err := validateEnum("git.autoForwardBranches", config.Git.AutoForwardBranches,
+		[]string{"none", "onlyMainBranches", "allBranches"}); err != nil {
+		return err
+	}
 	if err := validateKeybindings(config.Keybinding); err != nil {
 		return err
 	}
