@@ -53,7 +53,7 @@ var MoveToIndexPartial = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.Views().Information().Content(Contains("Building patch"))
 
-				t.Views().PatchBuildingSecondary().
+				t.Views().Secondary().
 					ContainsLines(
 						Contains(`-first line`),
 						Contains(`+first line2`),

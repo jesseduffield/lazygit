@@ -43,8 +43,8 @@ var MoveRangeToIndex = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("Building patch"))
 
-		t.Views().PatchBuildingSecondary().Content(Contains("second line"))
-		t.Views().PatchBuildingSecondary().Content(Contains("file two content"))
+		t.Views().Secondary().Content(Contains("second line"))
+		t.Views().Secondary().Content(Contains("file two content"))
 
 		t.Common().SelectPatchOption(MatchesRegexp(`Move patch out into index$`))
 

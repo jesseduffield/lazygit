@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/tasks"
 )
 
 // hacking this by including the gui struct for now until we split more things out
@@ -126,6 +127,10 @@ func (self *guiCommon) MainViewPairs() types.MainViewPairs {
 		PatchBuilding:  self.gui.patchBuildingMainContextPair(),
 		MergeConflicts: self.gui.mergingMainContextPair(),
 	}
+}
+
+func (self *guiCommon) GetViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager {
+	return self.gui.getViewBufferManagerForView(view)
 }
 
 func (self *guiCommon) State() types.IStateAccessor {

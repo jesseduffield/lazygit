@@ -135,17 +135,6 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 	return bindings
 }
 
-func (self *CommitFilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
-	return []*gocui.ViewMouseBinding{
-		{
-			ViewName:    "patchBuilding",
-			Key:         gocui.MouseLeft,
-			Handler:     self.onClickMain,
-			FocusedView: self.context().GetViewName(),
-		},
-	}
-}
-
 func (self *CommitFilesController) context() *context.CommitFilesContext {
 	return self.c.Contexts().CommitFiles
 }
@@ -163,13 +152,8 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
 		task := types.NewRunPtyTask(cmdObj.GetCmd())
 
-		pair := self.c.MainViewPairs().Normal
-		if node.File != nil {
-			pair = self.c.MainViewPairs().PatchBuilding
-		}
-
 		self.c.RenderToMainViews(types.RefreshMainOpts{
-			Pair: pair,
+			Pair: self.c.MainViewPairs().Normal,
 			Main: &types.ViewUpdateOpts{
 				Title:    self.c.Tr.Patch,
 				SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
@@ -178,14 +162,6 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 			Secondary: secondaryPatchPanelUpdateOpts(self.c),
 		})
 	}
-}
-
-func (self *CommitFilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	node := self.context().GetSelected()
-	if node == nil {
-		return nil
-	}
-	return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
 }
 
 func (self *CommitFilesController) copyDiffToClipboard(path string, toastMessage string) error {
@@ -553,6 +529,16 @@ func (self *CommitFilesController) expandAll() error {
 	self.c.PostRefreshUpdate(self.context())
 
 	return nil
+}
+
+func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
+	return func(mainViewName string, clickedLineIdx int) error {
+		node := self.getSelectedItem()
+		if node != nil && node.File != nil {
+			return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: clickedLineIdx})
+		}
+		return nil
+	}
 }
 
 // NOTE: these functions are identical to those in files_controller.go (except for types) and

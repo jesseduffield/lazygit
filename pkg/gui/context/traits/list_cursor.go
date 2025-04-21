@@ -3,6 +3,7 @@ package traits
 import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type RangeSelectMode int
@@ -85,7 +86,7 @@ func (self *ListCursor) clampValue(value int) int {
 	clampedValue := -1
 	length := self.getLength()
 	if length > 0 {
-		clampedValue = utils.Clamp(value, 0, length-1)
+		clampedValue = lo.Clamp(value, 0, length-1)
 	}
 
 	return clampedValue
