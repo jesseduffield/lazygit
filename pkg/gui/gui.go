@@ -718,7 +718,7 @@ func NewGui(
 		cmn.Log,
 		gui.LogCommand,
 		gui.getCmdWriter,
-		credentialsHelper.PromptUserForCredential,
+		credentialsHelper.PromptUserForInput,
 	)
 
 	osCommand := oscommands.NewOSCommand(cmn, config, oscommands.GetPlatform(), guiIO)

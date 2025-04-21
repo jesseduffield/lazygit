@@ -277,19 +277,20 @@ func (self *cmdObjRunner) runAndStreamAux(
 	return nil
 }
 
-type CredentialType int
+type InputType int
 
 const (
-	Password CredentialType = iota
+	Password InputType = iota
 	Username
 	Passphrase
 	PIN
 	Token
+	Ack
 )
 
 // Whenever we're asked for a password we just enter a newline, which will
 // eventually cause the command to fail.
-var failPromptFn = func(CredentialType) <-chan string {
+var failPromptFn = func(InputType) <-chan string {
 	ch := make(chan string)
 	go func() {
 		ch <- "\n"
@@ -306,7 +307,7 @@ func (self *cmdObjRunner) runWithCredentialHandling(cmdObj ICmdObj) error {
 	return self.runAndDetectCredentialRequest(cmdObj, promptFn)
 }
 
-func (self *cmdObjRunner) getCredentialPromptFn(cmdObj ICmdObj) (func(CredentialType) <-chan string, error) {
+func (self *cmdObjRunner) getCredentialPromptFn(cmdObj ICmdObj) (func(InputType) <-chan string, error) {
 	switch cmdObj.GetCredentialStrategy() {
 	case PROMPT:
 		return self.guiIO.promptForCredentialFn, nil
@@ -323,7 +324,7 @@ func (self *cmdObjRunner) getCredentialPromptFn(cmdObj ICmdObj) (func(Credential
 // The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
 func (self *cmdObjRunner) runAndDetectCredentialRequest(
 	cmdObj ICmdObj,
-	promptUserForCredential func(CredentialType) <-chan string,
+	promptUserForCredential func(InputType) <-chan string,
 ) error {
 	// setting the output to english so we can parse it for a username/password request
 	cmdObj.AddEnvVars("LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8")
@@ -340,7 +341,7 @@ func (self *cmdObjRunner) runAndDetectCredentialRequest(
 func (self *cmdObjRunner) processOutput(
 	reader io.Reader,
 	writer io.Writer,
-	promptUserForCredential func(CredentialType) <-chan string,
+	promptUserForCredential func(InputType) <-chan string,
 	task gocui.Task,
 ) {
 	checkForCredentialRequest := self.getCheckForCredentialRequestFunc()
@@ -368,9 +369,9 @@ func (self *cmdObjRunner) processOutput(
 }
 
 // having a function that returns a function because we need to maintain some state inbetween calls hence the closure
-func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (CredentialType, bool) {
+func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (InputType, bool) {
 	var ttyText strings.Builder
-	prompts := map[string]CredentialType{
+	prompts := map[string]InputType{
 		`Password:`:                              Password,
 		`.+'s password:`:                         Password,
 		`Password\s*for\s*'.+':`:                 Password,
@@ -378,9 +379,10 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (Crede
 		`Enter\s*passphrase\s*for\s*key\s*'.+':`: Passphrase,
 		`Enter\s*PIN\s*for\s*.+\s*key\s*.+:`:     PIN,
 		`.*2FA Token.*`:                          Token,
+		`Are you sure you want to continue.*\?`:  Ack,
 	}
 
-	compiledPrompts := map[*regexp.Regexp]CredentialType{}
+	compiledPrompts := map[*regexp.Regexp]InputType{}
 	for pattern, askFor := range prompts {
 		compiledPattern := regexp.MustCompile(pattern)
 		compiledPrompts[compiledPattern] = askFor
@@ -389,7 +391,7 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (Crede
 	newlineRegex := regexp.MustCompile("\n")
 
 	// this function takes each word of output from the command and builds up a string to see if we're being asked for a password
-	return func(newBytes []byte) (CredentialType, bool) {
+	return func(newBytes []byte) (InputType, bool) {
 		_, err := ttyText.Write(newBytes)
 		if err != nil {
 			self.log.Error(err)

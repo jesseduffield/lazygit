@@ -16,8 +16,8 @@ func getRunner() *cmdObjRunner {
 	}
 }
 
-func toChanFn(f func(ct CredentialType) string) func(CredentialType) <-chan string {
-	return func(ct CredentialType) <-chan string {
+func toChanFn(f func(ct InputType) string) func(InputType) <-chan string {
+	return func(ct InputType) <-chan string {
 		ch := make(chan string)
 
 		go func() {
@@ -29,7 +29,7 @@ func toChanFn(f func(ct CredentialType) string) func(CredentialType) <-chan stri
 }
 
 func TestProcessOutput(t *testing.T) {
-	defaultPromptUserForCredential := func(ct CredentialType) string {
+	defaultPromptUserForCredential := func(ct InputType) string {
 		switch ct {
 		case Password:
 			return "password"
@@ -41,6 +41,8 @@ func TestProcessOutput(t *testing.T) {
 			return "pin"
 		case Token:
 			return "token"
+		case Ack:
+			return "acknowledgement"
 		default:
 			panic("unexpected credential type")
 		}
@@ -48,7 +50,7 @@ func TestProcessOutput(t *testing.T) {
 
 	scenarios := []struct {
 		name                    string
-		promptUserForCredential func(CredentialType) string
+		promptUserForCredential func(InputType) string
 		output                  string
 		expectedToWrite         string
 	}{
@@ -107,8 +109,14 @@ func TestProcessOutput(t *testing.T) {
 			expectedToWrite:         "passwordusername",
 		},
 		{
+			name:                    "ssh known hosts fingerprint acknowledgement",
+			promptUserForCredential: defaultPromptUserForCredential,
+			output:                  "Are you sure you want to continue connecting (yes/no/[fingerprint])?:\n",
+			expectedToWrite:         "acknowledgement",
+		},
+		{
 			name:                    "user submits empty credential",
-			promptUserForCredential: func(ct CredentialType) string { return "" },
+			promptUserForCredential: func(ct InputType) string { return "" },
 			output:                  "Password:\n",
 			expectedToWrite:         "",
 		},
