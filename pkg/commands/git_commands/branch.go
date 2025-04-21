@@ -40,6 +40,15 @@ func (self *BranchCommands) NewWithoutTracking(name string, base string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// NewWithoutCheckout creates a new branch without checking it out
+func (self *BranchCommands) NewWithoutCheckout(name string, base string) error {
+	cmdArgs := NewGitCmd("branch").
+		Arg(name, base).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
 // CreateWithUpstream creates a new branch with a given upstream, but without
 // checking it out
 func (self *BranchCommands) CreateWithUpstream(name string, upstream string) error {
