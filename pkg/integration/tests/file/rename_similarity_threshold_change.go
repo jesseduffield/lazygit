@@ -31,6 +31,17 @@ var RenameSimilarityThresholdChange = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Equals("R  original → renamed"),
+			).
+			Press(keys.Universal.FocusMainView).
+			Tap(func() {
+				t.Views().Main().
+					Press(keys.Universal.IncreaseRenameSimilarityThreshold)
+				t.ExpectToast(Equals("Changed rename similarity threshold to 50%"))
+			}).
+			Lines(
+				Equals("▼ /"),
+				Equals("  D  original"),
+				Equals("  A  renamed"),
 			)
 	},
 })

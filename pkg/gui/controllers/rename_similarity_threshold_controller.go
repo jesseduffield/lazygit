@@ -15,6 +15,8 @@ var CONTEXT_KEYS_SHOWING_RENAMES = []types.ContextKey{
 	context.SUB_COMMITS_CONTEXT_KEY,
 	context.LOCAL_COMMITS_CONTEXT_KEY,
 	context.STASH_CONTEXT_KEY,
+	context.NORMAL_MAIN_CONTEXT_KEY,
+	context.NORMAL_SECONDARY_CONTEXT_KEY,
 }
 
 type RenameSimilarityThresholdController struct {
@@ -82,7 +84,7 @@ func (self *RenameSimilarityThresholdController) applyChange() error {
 	self.c.Toast(fmt.Sprintf(self.c.Tr.RenameSimilarityThresholdChanged, self.c.AppState.RenameSimilarityThreshold))
 	self.c.SaveAppStateAndLogError()
 
-	currentContext := self.c.Context().CurrentStatic()
+	currentContext := self.currentSidePanel()
 	switch currentContext.GetKey() {
 	// we make an exception for our files context, because it actually need to refresh its state afterwards.
 	case context.FILES_CONTEXT_KEY:
@@ -96,6 +98,16 @@ func (self *RenameSimilarityThresholdController) applyChange() error {
 func (self *RenameSimilarityThresholdController) isShowingRenames() bool {
 	return lo.Contains(
 		CONTEXT_KEYS_SHOWING_RENAMES,
-		self.c.Context().CurrentStatic().GetKey(),
+		self.currentSidePanel().GetKey(),
 	)
+}
+
+func (self *RenameSimilarityThresholdController) currentSidePanel() types.Context {
+	currentContext := self.c.Context().CurrentStatic()
+	if currentContext.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY ||
+		currentContext.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {
+		return currentContext.GetParentContext()
+	}
+
+	return currentContext
 }
