@@ -86,7 +86,7 @@ func (self *FileCommands) GetEditCmdStr(filenames []string) (string, bool) {
 		}
 	}
 
-	template, suspend := config.GetEditTemplate(&self.UserConfig().OS, self.guessDefaultEditor)
+	template, suspend := config.GetEditTemplate(self.os.Platform.Shell, &self.UserConfig().OS, self.guessDefaultEditor)
 	quotedFilenames := lo.Map(filenames, func(filename string, _ int) string { return self.cmd.Quote(filename) })
 
 	templateValues := map[string]string{
@@ -105,7 +105,7 @@ func (self *FileCommands) GetEditAtLineCmdStr(filename string, lineNumber int) (
 		}
 	}
 
-	template, suspend := config.GetEditAtLineTemplate(&self.UserConfig().OS, self.guessDefaultEditor)
+	template, suspend := config.GetEditAtLineTemplate(self.os.Platform.Shell, &self.UserConfig().OS, self.guessDefaultEditor)
 
 	templateValues := map[string]string{
 		"filename": self.cmd.Quote(filename),
@@ -124,7 +124,7 @@ func (self *FileCommands) GetEditAtLineAndWaitCmdStr(filename string, lineNumber
 		}
 	}
 
-	template := config.GetEditAtLineAndWaitTemplate(&self.UserConfig().OS, self.guessDefaultEditor)
+	template := config.GetEditAtLineAndWaitTemplate(self.os.Platform.Shell, &self.UserConfig().OS, self.guessDefaultEditor)
 
 	templateValues := map[string]string{
 		"filename": self.cmd.Quote(filename),
@@ -136,7 +136,7 @@ func (self *FileCommands) GetEditAtLineAndWaitCmdStr(filename string, lineNumber
 }
 
 func (self *FileCommands) GetOpenDirInEditorCmdStr(path string) (string, bool) {
-	template, suspend := config.GetOpenDirInEditorTemplate(&self.UserConfig().OS, self.guessDefaultEditor)
+	template, suspend := config.GetOpenDirInEditorTemplate(self.os.Platform.Shell, &self.UserConfig().OS, self.guessDefaultEditor)
 
 	templateValues := map[string]string{
 		"dir": self.cmd.Quote(path),
