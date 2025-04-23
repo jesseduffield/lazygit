@@ -37,5 +37,17 @@ var RenameSimilarityThresholdChange = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("original => renamed"),
 				Contains("1 file changed, 5 insertions(+)"),
 			)
+
+		t.Views().Commits().
+			Press(keys.Universal.FocusMainView)
+
+		t.Views().Main().
+			Press(keys.Universal.IncreaseRenameSimilarityThreshold).
+			Tap(func() {
+				t.ExpectToast(Equals("Changed rename similarity threshold to 50%"))
+			}).
+			ContainsLines(
+				Contains("2 files changed, 10 insertions(+), 5 deletions(-)"),
+			)
 	},
 })
