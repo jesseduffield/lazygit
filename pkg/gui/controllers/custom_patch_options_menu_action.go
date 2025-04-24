@@ -67,7 +67,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 
 		if self.c.Context().Current().GetKey() == self.c.Contexts().LocalCommits.GetKey() {
 			selectedCommit := self.c.Contexts().LocalCommits.GetSelected()
-			if selectedCommit != nil && self.c.Git().Patch.PatchBuilder.To != selectedCommit.Hash {
+			if selectedCommit != nil && self.c.Git().Patch.PatchBuilder.To != selectedCommit.Hash() {
 
 				var disabledReason *types.DisabledReason
 				if self.c.Contexts().LocalCommits.AreMultipleItemsSelected() {
@@ -80,7 +80,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 					append(
 						[]*types.MenuItem{
 							{
-								Label:          fmt.Sprintf(self.c.Tr.MovePatchToSelectedCommit, selectedCommit.Hash),
+								Label:          fmt.Sprintf(self.c.Tr.MovePatchToSelectedCommit, selectedCommit.Hash()),
 								Tooltip:        self.c.Tr.MovePatchToSelectedCommitTooltip,
 								OnPress:        self.handleMovePatchToSelectedCommit,
 								Key:            'm',
@@ -106,7 +106,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 
 func (self *CustomPatchOptionsMenuAction) getPatchCommitIndex() int {
 	for index, commit := range self.c.Model().Commits {
-		if commit.Hash == self.c.Git().Patch.PatchBuilder.To {
+		if commit.Hash() == self.c.Git().Patch.PatchBuilder.To {
 			return index
 		}
 	}

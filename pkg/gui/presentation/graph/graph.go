@@ -57,7 +57,7 @@ func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) style
 		return nil
 	}
 
-	pipes := []*Pipe{{fromPos: 0, toPos: 0, fromHash: "START", toHash: commits[0].Hash, kind: STARTS, style: style.FgDefault}}
+	pipes := []*Pipe{{fromPos: 0, toPos: 0, fromHash: "START", toHash: commits[0].Hash(), kind: STARTS, style: style.FgDefault}}
 
 	return lo.Map(commits, func(commit *models.Commit, _ int) []*Pipe {
 		pipes = getNextPipes(pipes, commit, getStyle)
@@ -121,7 +121,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	// (this only happens when we're doing `git log --all`). These will be tacked onto the far end.
 	pos := maxPos + 1
 	for _, pipe := range currentPipes {
-		if equalHashes(pipe.toHash, commit.Hash) {
+		if equalHashes(pipe.toHash, commit.Hash()) {
 			// turns out this commit does have a descendant so we'll place it right under the first instance
 			pos = pipe.toPos
 			break
@@ -142,7 +142,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	newPipes = append(newPipes, &Pipe{
 		fromPos:  pos,
 		toPos:    pos,
-		fromHash: commit.Hash,
+		fromHash: commit.Hash(),
 		toHash:   toHash,
 		kind:     STARTS,
 		style:    getStyle(commit),
@@ -150,7 +150,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 
 	traversedSpotsForContinuingPipes := set.New[int]()
 	for _, pipe := range currentPipes {
-		if !equalHashes(pipe.toHash, commit.Hash) {
+		if !equalHashes(pipe.toHash, commit.Hash()) {
 			traversedSpotsForContinuingPipes.Add(pipe.toPos)
 		}
 	}
@@ -189,7 +189,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	}
 
 	for _, pipe := range currentPipes {
-		if equalHashes(pipe.toHash, commit.Hash) {
+		if equalHashes(pipe.toHash, commit.Hash()) {
 			// terminating here
 			newPipes = append(newPipes, &Pipe{
 				fromPos:  pipe.toPos,
@@ -222,7 +222,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 			newPipes = append(newPipes, &Pipe{
 				fromPos:  pos,
 				toPos:    availablePos,
-				fromHash: commit.Hash,
+				fromHash: commit.Hash(),
 				toHash:   parent,
 				kind:     STARTS,
 				style:    getStyle(commit),
@@ -233,7 +233,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	}
 
 	for _, pipe := range currentPipes {
-		if !equalHashes(pipe.toHash, commit.Hash) && pipe.toPos > pos {
+		if !equalHashes(pipe.toHash, commit.Hash()) && pipe.toPos > pos {
 			// continuing on, potentially moving left to fill in a blank spot
 			last := pipe.toPos
 			for i := pipe.toPos; i > pos; i-- {
@@ -315,7 +315,7 @@ func renderPipeSet(
 	// we don't want to highlight two commits if they're contiguous. We only want
 	// to highlight multiple things if there's an actual visible pipe involved.
 	highlight := true
-	if prevCommit != nil && equalHashes(prevCommit.Hash, selectedCommitHash) {
+	if prevCommit != nil && equalHashes(prevCommit.Hash(), selectedCommitHash) {
 		highlight = false
 		for _, pipe := range pipes {
 			if equalHashes(pipe.fromHash, selectedCommitHash) && (pipe.kind != TERMINATES || pipe.fromPos != pipe.toPos) {

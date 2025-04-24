@@ -50,7 +50,7 @@ func NewSubCommitsContext(
 		if c.Context().Current().GetKey() == SUB_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
 			if selectedCommit != nil {
-				selectedCommitHash = selectedCommit.Hash
+				selectedCommitHash = selectedCommit.Hash()
 			}
 		}
 		branches := []*models.Branch{}
@@ -221,7 +221,7 @@ func (self *SubCommitsContext) RefForAdjustingLineNumberInDiff() string {
 	if commits == nil {
 		return ""
 	}
-	return commits[0].Hash
+	return commits[0].Hash()
 }
 
 func (self *SubCommitsContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {

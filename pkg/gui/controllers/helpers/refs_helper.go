@@ -268,10 +268,10 @@ func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 
 func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 	branches := lo.Filter(self.c.Model().Branches, func(branch *models.Branch, _ int) bool {
-		return commit.Hash == branch.CommitHash && branch.Name != self.c.Model().CheckedOutBranch
+		return commit.Hash() == branch.CommitHash && branch.Name != self.c.Model().CheckedOutBranch
 	})
 
-	hash := commit.Hash
+	hash := commit.Hash()
 
 	menuItems := []*types.MenuItem{
 		{

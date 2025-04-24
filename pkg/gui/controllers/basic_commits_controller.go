@@ -153,7 +153,7 @@ func (self *BasicCommitsController) getCommitMessageBody(hash string) string {
 }
 
 func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) error {
-	commitMessageBody := self.getCommitMessageBody(commit.Hash)
+	commitMessageBody := self.getCommitMessageBody(commit.Hash())
 	var commitMessageBodyDisabled *types.DisabledReason
 	if commitMessageBody == "" {
 		commitMessageBodyDisabled = &types.DisabledReason{
@@ -235,16 +235,16 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 
 func (self *BasicCommitsController) copyCommitHashToClipboard(commit *models.Commit) error {
 	self.c.LogAction(self.c.Tr.Actions.CopyCommitHashToClipboard)
-	if err := self.c.OS().CopyToClipboard(commit.Hash); err != nil {
+	if err := self.c.OS().CopyToClipboard(commit.Hash()); err != nil {
 		return err
 	}
 
-	self.c.Toast(fmt.Sprintf("'%s' %s", commit.Hash, self.c.Tr.CopiedToClipboard))
+	self.c.Toast(fmt.Sprintf("'%s' %s", commit.Hash(), self.c.Tr.CopiedToClipboard))
 	return nil
 }
 
 func (self *BasicCommitsController) copyCommitURLToClipboard(commit *models.Commit) error {
-	url, err := self.c.Helpers().Host.GetCommitURL(commit.Hash)
+	url, err := self.c.Helpers().Host.GetCommitURL(commit.Hash())
 	if err != nil {
 		return err
 	}
@@ -259,7 +259,7 @@ func (self *BasicCommitsController) copyCommitURLToClipboard(commit *models.Comm
 }
 
 func (self *BasicCommitsController) copyCommitDiffToClipboard(commit *models.Commit) error {
-	diff, err := self.c.Git().Commit.GetCommitDiff(commit.Hash)
+	diff, err := self.c.Git().Commit.GetCommitDiff(commit.Hash())
 	if err != nil {
 		return err
 	}
@@ -274,7 +274,7 @@ func (self *BasicCommitsController) copyCommitDiffToClipboard(commit *models.Com
 }
 
 func (self *BasicCommitsController) copyAuthorToClipboard(commit *models.Commit) error {
-	author, err := self.c.Git().Commit.GetCommitAuthor(commit.Hash)
+	author, err := self.c.Git().Commit.GetCommitAuthor(commit.Hash())
 	if err != nil {
 		return err
 	}
@@ -291,7 +291,7 @@ func (self *BasicCommitsController) copyAuthorToClipboard(commit *models.Commit)
 }
 
 func (self *BasicCommitsController) copyCommitMessageToClipboard(commit *models.Commit) error {
-	message, err := self.c.Git().Commit.GetCommitMessage(commit.Hash)
+	message, err := self.c.Git().Commit.GetCommitMessage(commit.Hash())
 	if err != nil {
 		return err
 	}
@@ -316,7 +316,7 @@ func (self *BasicCommitsController) copyCommitMessageBodyToClipboard(commitMessa
 }
 
 func (self *BasicCommitsController) copyCommitSubjectToClipboard(commit *models.Commit) error {
-	message, err := self.c.Git().Commit.GetCommitSubject(commit.Hash)
+	message, err := self.c.Git().Commit.GetCommitSubject(commit.Hash())
 	if err != nil {
 		return err
 	}
@@ -343,7 +343,7 @@ func (self *BasicCommitsController) copyCommitTagsToClipboard(commit *models.Com
 }
 
 func (self *BasicCommitsController) openInBrowser(commit *models.Commit) error {
-	url, err := self.c.Helpers().Host.GetCommitURL(commit.Hash)
+	url, err := self.c.Helpers().Host.GetCommitURL(commit.Hash())
 	if err != nil {
 		return err
 	}
@@ -361,7 +361,7 @@ func (self *BasicCommitsController) newBranch(commit *models.Commit) error {
 }
 
 func (self *BasicCommitsController) createResetMenu(commit *models.Commit) error {
-	return self.c.Helpers().Refs.CreateGitResetMenu(commit.Hash)
+	return self.c.Helpers().Refs.CreateGitResetMenu(commit.Hash())
 }
 
 func (self *BasicCommitsController) checkout(commit *models.Commit) error {
@@ -374,7 +374,7 @@ func (self *BasicCommitsController) copyRange(*models.Commit) error {
 
 func (self *BasicCommitsController) canCopyCommits(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
 	for _, commit := range selectedCommits {
-		if commit.Hash == "" {
+		if commit.Hash() == "" {
 			return &types.DisabledReason{Text: self.c.Tr.CannotCherryPickNonCommit, ShowErrorInPanel: true}
 		}
 	}

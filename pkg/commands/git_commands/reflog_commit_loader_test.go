@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/sanity-io/litter"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,7 +27,7 @@ func TestGetReflogCommits(t *testing.T) {
 		lastReflogCommit        *models.Commit
 		filterPath              string
 		filterAuthor            string
-		expectedCommits         []*models.Commit
+		expectedCommitOpts      []models.NewCommitOpts
 		expectedOnlyObtainedNew bool
 		expectedError           error
 	}
@@ -38,7 +39,7 @@ func TestGetReflogCommits(t *testing.T) {
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p"}, "", nil),
 
 			lastReflogCommit:        nil,
-			expectedCommits:         []*models.Commit{},
+			expectedCommitOpts:      []models.NewCommitOpts{},
 			expectedOnlyObtainedNew: false,
 			expectedError:           nil,
 		},
@@ -48,7 +49,7 @@ func TestGetReflogCommits(t *testing.T) {
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p"}, reflogOutput, nil),
 
 			lastReflogCommit: nil,
-			expectedCommits: []*models.Commit{
+			expectedCommitOpts: []models.NewCommitOpts{
 				{
 					Hash:          "c3c4b66b64c97ffeecde",
 					Name:          "checkout: moving from A to B",
@@ -93,14 +94,14 @@ func TestGetReflogCommits(t *testing.T) {
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p"}, reflogOutput, nil),
 
-			lastReflogCommit: &models.Commit{
+			lastReflogCommit: models.NewCommit(models.NewCommitOpts{
 				Hash:          "c3c4b66b64c97ffeecde",
 				Name:          "checkout: moving from B to A",
 				Status:        models.StatusReflog,
 				UnixTimestamp: 1643150483,
 				Parents:       []string{"51baa8c1"},
-			},
-			expectedCommits: []*models.Commit{
+			}),
+			expectedCommitOpts: []models.NewCommitOpts{
 				{
 					Hash:          "c3c4b66b64c97ffeecde",
 					Name:          "checkout: moving from A to B",
@@ -117,15 +118,15 @@ func TestGetReflogCommits(t *testing.T) {
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p", "--follow", "--", "path"}, reflogOutput, nil),
 
-			lastReflogCommit: &models.Commit{
+			lastReflogCommit: models.NewCommit(models.NewCommitOpts{
 				Hash:          "c3c4b66b64c97ffeecde",
 				Name:          "checkout: moving from B to A",
 				Status:        models.StatusReflog,
 				UnixTimestamp: 1643150483,
 				Parents:       []string{"51baa8c1"},
-			},
+			}),
 			filterPath: "path",
-			expectedCommits: []*models.Commit{
+			expectedCommitOpts: []models.NewCommitOpts{
 				{
 					Hash:          "c3c4b66b64c97ffeecde",
 					Name:          "checkout: moving from A to B",
@@ -142,15 +143,15 @@ func TestGetReflogCommits(t *testing.T) {
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--abbrev=40", "--format=%h%x00%ct%x00%gs%x00%p", "--author=John Doe <john@doe.com>"}, reflogOutput, nil),
 
-			lastReflogCommit: &models.Commit{
+			lastReflogCommit: models.NewCommit(models.NewCommitOpts{
 				Hash:          "c3c4b66b64c97ffeecde",
 				Name:          "checkout: moving from B to A",
 				Status:        models.StatusReflog,
 				UnixTimestamp: 1643150483,
 				Parents:       []string{"51baa8c1"},
-			},
+			}),
 			filterAuthor: "John Doe <john@doe.com>",
-			expectedCommits: []*models.Commit{
+			expectedCommitOpts: []models.NewCommitOpts{
 				{
 					Hash:          "c3c4b66b64c97ffeecde",
 					Name:          "checkout: moving from A to B",
@@ -169,7 +170,7 @@ func TestGetReflogCommits(t *testing.T) {
 
 			lastReflogCommit:        nil,
 			filterPath:              "",
-			expectedCommits:         nil,
+			expectedCommitOpts:      nil,
 			expectedOnlyObtainedNew: false,
 			expectedError:           errors.New("haha"),
 		},
@@ -186,7 +187,12 @@ func TestGetReflogCommits(t *testing.T) {
 			assert.Equal(t, scenario.expectedOnlyObtainedNew, onlyObtainednew)
 			assert.Equal(t, scenario.expectedError, err)
 			t.Logf("actual commits: \n%s", litter.Sdump(commits))
-			assert.Equal(t, scenario.expectedCommits, commits)
+			var expectedCommits []*models.Commit
+			if scenario.expectedCommitOpts != nil {
+				expectedCommits = lo.Map(scenario.expectedCommitOpts,
+					func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(opts) })
+			}
+			assert.Equal(t, expectedCommits, commits)
 
 			scenario.runner.CheckForMissingCalls()
 		})

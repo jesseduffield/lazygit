@@ -121,7 +121,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 	}
 
 	for _, commit := range commits {
-		if commit.Hash == firstPushedCommit {
+		if commit.Hash() == firstPushedCommit {
 			passedFirstPushedCommit = true
 		}
 		if !commit.IsTODO() {
@@ -234,7 +234,7 @@ func (self *CommitLoader) extractCommitFromLine(line string, showDivergence bool
 		parents = strings.Split(parentHashes, " ")
 	}
 
-	return &models.Commit{
+	return models.NewCommit(models.NewCommitOpts{
 		Hash:          hash,
 		Name:          message,
 		Tags:          tags,
@@ -244,7 +244,7 @@ func (self *CommitLoader) extractCommitFromLine(line string, showDivergence bool
 		AuthorEmail:   authorEmail,
 		Parents:       parents,
 		Divergence:    divergence,
-	}
+	})
 }
 
 func (self *CommitLoader) getHydratedRebasingCommits(addConflictingCommit bool) ([]*models.Commit, error) {
@@ -277,7 +277,7 @@ func (self *CommitLoader) getHydratedTodoCommits(todoCommits []*models.Commit, t
 	}
 
 	commitHashes := lo.FilterMap(todoCommits, func(commit *models.Commit, _ int) (string, bool) {
-		return commit.Hash, commit.Hash != ""
+		return commit.Hash(), commit.Hash() != ""
 	})
 
 	// note that we're not filtering these as we do non-rebasing commits just because
@@ -293,7 +293,7 @@ func (self *CommitLoader) getHydratedTodoCommits(todoCommits []*models.Commit, t
 	fullCommits := map[string]*models.Commit{}
 	err := cmdObj.RunAndProcessLines(func(line string) (bool, error) {
 		commit := self.extractCommitFromLine(line, false)
-		fullCommits[commit.Hash] = commit
+		fullCommits[commit.Hash()] = commit
 		return false, nil
 	})
 	if err != nil {
@@ -315,9 +315,9 @@ func (self *CommitLoader) getHydratedTodoCommits(todoCommits []*models.Commit, t
 
 	hydratedCommits := make([]*models.Commit, 0, len(todoCommits))
 	for _, rebasingCommit := range todoCommits {
-		if rebasingCommit.Hash == "" {
+		if rebasingCommit.Hash() == "" {
 			hydratedCommits = append(hydratedCommits, rebasingCommit)
-		} else if commit := findFullCommit(rebasingCommit.Hash); commit != nil {
+		} else if commit := findFullCommit(rebasingCommit.Hash()); commit != nil {
 			commit.Action = rebasingCommit.Action
 			commit.Status = rebasingCommit.Status
 			hydratedCommits = append(hydratedCommits, commit)
@@ -364,12 +364,12 @@ func (self *CommitLoader) getRebasingCommits(addConflictingCommit bool) []*model
 			// Command does not have a commit associated, skip
 			continue
 		}
-		commits = utils.Prepend(commits, &models.Commit{
+		commits = utils.Prepend(commits, models.NewCommit(models.NewCommitOpts{
 			Hash:   t.Commit,
 			Name:   t.Msg,
 			Status: models.StatusRebasing,
 			Action: t.Command,
-		})
+		}))
 	}
 
 	return commits
@@ -465,11 +465,11 @@ func (self *CommitLoader) getConflictedCommitImpl(todos []todo.Todo, doneTodos [
 
 	// Any other todo that has a commit associated with it must have failed with
 	// a conflict, otherwise we wouldn't have stopped the rebase:
-	return &models.Commit{
+	return models.NewCommit(models.NewCommitOpts{
 		Hash:   lastTodo.Commit,
 		Action: lastTodo.Command,
 		Status: models.StatusConflicted,
-	}
+	})
 }
 
 func (self *CommitLoader) getSequencerCommits() []*models.Commit {
@@ -493,12 +493,12 @@ func (self *CommitLoader) getSequencerCommits() []*models.Commit {
 			// Command does not have a commit associated, skip
 			continue
 		}
-		commits = utils.Prepend(commits, &models.Commit{
+		commits = utils.Prepend(commits, models.NewCommit(models.NewCommitOpts{
 			Hash:   t.Commit,
 			Name:   t.Msg,
 			Status: models.StatusCherryPickingOrReverting,
 			Action: t.Command,
-		})
+		}))
 	}
 
 	return commits
@@ -526,11 +526,11 @@ func (self *CommitLoader) getConflictedSequencerCommit(workingTreeState models.W
 	if len(lines) == 0 {
 		return nil
 	}
-	return &models.Commit{
+	return models.NewCommit(models.NewCommitOpts{
 		Hash:   lines[0],
 		Status: models.StatusConflicted,
 		Action: action,
-	}
+	})
 }
 
 func setCommitMergedStatuses(ancestor string, commits []*models.Commit) {
@@ -541,7 +541,7 @@ func setCommitMergedStatuses(ancestor string, commits []*models.Commit) {
 	passedAncestor := false
 	for i, commit := range commits {
 		// some commits aren't really commits and don't have hashes, such as the update-ref todo
-		if commit.Hash != "" && strings.HasPrefix(ancestor, commit.Hash) {
+		if commit.Hash() != "" && strings.HasPrefix(ancestor, commit.Hash()) {
 			passedAncestor = true
 		}
 		if commit.Status != models.StatusPushed && commit.Status != models.StatusUnpushed {

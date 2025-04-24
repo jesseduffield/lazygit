@@ -207,7 +207,7 @@ func (self *UndoController) parseReflogForActions(onUserAction func(counter int,
 
 		prevCommitHash := ""
 		if len(reflogCommits)-1 >= reflogCommitIdx+1 {
-			prevCommitHash = reflogCommits[reflogCommitIdx+1].Hash
+			prevCommitHash = reflogCommits[reflogCommitIdx+1].Hash()
 		}
 
 		if rebaseFinishCommitHash == "" {
@@ -216,11 +216,11 @@ func (self *UndoController) parseReflogForActions(onUserAction func(counter int,
 			} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^\[lazygit redo\]`); ok {
 				counter--
 			} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^rebase (-i )?\(abort\)|^rebase (-i )?\(finish\)`); ok {
-				rebaseFinishCommitHash = reflogCommit.Hash
+				rebaseFinishCommitHash = reflogCommit.Hash()
 			} else if ok, match := utils.FindStringSubmatch(reflogCommit.Name, `^checkout: moving from ([\S]+) to ([\S]+)`); ok {
 				action = &reflogAction{kind: CHECKOUT, from: match[1], to: match[2]}
 			} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^commit|^reset: moving to|^pull`); ok {
-				action = &reflogAction{kind: COMMIT, from: prevCommitHash, to: reflogCommit.Hash}
+				action = &reflogAction{kind: COMMIT, from: prevCommitHash, to: reflogCommit.Hash()}
 			} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^rebase (-i )?\(start\)`); ok {
 				// if we're here then we must be currently inside an interactive rebase
 				action = &reflogAction{kind: CURRENT_REBASE, from: prevCommitHash}

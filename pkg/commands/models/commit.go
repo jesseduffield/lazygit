@@ -42,7 +42,7 @@ const (
 
 // Commit : A git commit
 type Commit struct {
-	Hash          string
+	hash          string
 	Name          string
 	Status        CommitStatus
 	Action        todo.TodoCommand
@@ -57,20 +57,54 @@ type Commit struct {
 	Parents []string
 }
 
+type NewCommitOpts struct {
+	Hash          string
+	Name          string
+	Status        CommitStatus
+	Action        todo.TodoCommand
+	Tags          []string
+	ExtraInfo     string
+	AuthorName    string
+	AuthorEmail   string
+	UnixTimestamp int64
+	Divergence    Divergence
+	Parents       []string
+}
+
+func NewCommit(opts NewCommitOpts) *Commit {
+	return &Commit{
+		hash:          opts.Hash,
+		Name:          opts.Name,
+		Status:        opts.Status,
+		Action:        opts.Action,
+		Tags:          opts.Tags,
+		ExtraInfo:     opts.ExtraInfo,
+		AuthorName:    opts.AuthorName,
+		AuthorEmail:   opts.AuthorEmail,
+		UnixTimestamp: opts.UnixTimestamp,
+		Divergence:    opts.Divergence,
+		Parents:       opts.Parents,
+	}
+}
+
+func (c *Commit) Hash() string {
+	return c.hash
+}
+
 func (c *Commit) ShortHash() string {
-	return utils.ShortHash(c.Hash)
+	return utils.ShortHash(c.Hash())
 }
 
 func (c *Commit) FullRefName() string {
-	return c.Hash
+	return c.Hash()
 }
 
 func (c *Commit) RefName() string {
-	return c.Hash
+	return c.Hash()
 }
 
 func (c *Commit) ShortRefName() string {
-	return c.Hash[:7]
+	return c.Hash()[:7]
 }
 
 func (c *Commit) ParentRefName() string {
@@ -89,7 +123,7 @@ func (c *Commit) ID() string {
 }
 
 func (c *Commit) Description() string {
-	return fmt.Sprintf("%s %s", c.Hash[:7], c.Name)
+	return fmt.Sprintf("%s %s", c.Hash()[:7], c.Name)
 }
 
 func (c *Commit) IsMerge() bool {

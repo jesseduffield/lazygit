@@ -175,7 +175,7 @@ func GetCommitListDisplayStrings(
 					!lo.Contains(common.UserConfig().Git.MainBranches, b.Name) &&
 					// Don't show a marker for the head commit unless the
 					// rebase.updateRefs config is on
-					(hasRebaseUpdateRefsConfig || b.CommitHash != commits[0].Hash)
+					(hasRebaseUpdateRefsConfig || b.CommitHash != commits[0].Hash())
 		}))
 
 	lines := make([][]string, 0, len(filteredCommits))
@@ -183,8 +183,8 @@ func GetCommitListDisplayStrings(
 	willBeRebased := markedBaseCommit == ""
 	for i, commit := range filteredCommits {
 		unfilteredIdx := i + startIdx
-		bisectStatus = getBisectStatus(unfilteredIdx, commit.Hash, bisectInfo, bisectBounds)
-		isMarkedBaseCommit := commit.Hash != "" && commit.Hash == markedBaseCommit
+		bisectStatus = getBisectStatus(unfilteredIdx, commit.Hash(), bisectInfo, bisectBounds)
+		isMarkedBaseCommit := commit.Hash() != "" && commit.Hash() == markedBaseCommit
 		if isMarkedBaseCommit {
 			willBeRebased = true
 		}
@@ -218,11 +218,11 @@ func getbisectBounds(commits []*models.Commit, bisectInfo *git_commands.BisectIn
 	bisectBounds := &bisectBounds{}
 
 	for i, commit := range commits {
-		if commit.Hash == bisectInfo.GetNewHash() {
+		if commit.Hash() == bisectInfo.GetNewHash() {
 			bisectBounds.newIndex = i
 		}
 
-		status, ok := bisectInfo.Status(commit.Hash)
+		status, ok := bisectInfo.Status(commit.Hash())
 		if ok && status == git_commands.BisectStatusOld {
 			bisectBounds.oldIndex = i
 			return bisectBounds
@@ -249,7 +249,7 @@ func loadPipesets(commits []*models.Commit) [][]*graph.Pipe {
 	// given that our cache key is a commit hash and a commit count, it's very important that we don't actually try to render pipes
 	// when dealing with things like filtered commits.
 	cacheKey := pipeSetCacheKey{
-		commitHash:  commits[0].Hash,
+		commitHash:  commits[0].Hash(),
 		commitCount: len(commits),
 		divergence:  commits[0].Divergence,
 	}
@@ -363,10 +363,10 @@ func displayCommit(
 	hashString := ""
 	hashColor := getHashColor(commit, diffName, cherryPickedCommitHashSet, bisectStatus, bisectInfo)
 	hashLength := common.UserConfig().Gui.CommitHashLength
-	if hashLength >= len(commit.Hash) {
-		hashString = hashColor.Sprint(commit.Hash)
+	if hashLength >= len(commit.Hash()) {
+		hashString = hashColor.Sprint(commit.Hash())
 	} else if hashLength > 0 {
-		hashString = hashColor.Sprint(commit.Hash[:hashLength])
+		hashString = hashColor.Sprint(commit.Hash()[:hashLength])
 	} else if !icons.IsIconEnabled() { // hashLength <= 0
 		hashString = hashColor.Sprint("*")
 	}
@@ -400,7 +400,7 @@ func displayCommit(
 			tagString = theme.DiffTerminalColor.SetBold().Sprint(strings.Join(commit.Tags, " ")) + " "
 		}
 
-		if branchHeadsToVisualize.Includes(commit.Hash) &&
+		if branchHeadsToVisualize.Includes(commit.Hash()) &&
 			// Don't show branch head on commits that are already merged to a main branch
 			commit.Status != models.StatusMerged &&
 			// Don't show branch head on a "pick" todo if the rebase.updateRefs config is on
@@ -482,7 +482,7 @@ func getHashColor(
 		return getBisectStatusColor(bisectStatus)
 	}
 
-	diffed := commit.Hash != "" && commit.Hash == diffName
+	diffed := commit.Hash() != "" && commit.Hash() == diffName
 	hashColor := theme.DefaultTextColor
 	switch commit.Status {
 	case models.StatusUnpushed:
@@ -500,7 +500,7 @@ func getHashColor(
 
 	if diffed {
 		hashColor = theme.DiffTerminalColor
-	} else if cherryPickedCommitHashSet.Includes(commit.Hash) {
+	} else if cherryPickedCommitHashSet.Includes(commit.Hash()) {
 		hashColor = theme.CherryPickedCommitTextStyle
 	} else if commit.Divergence == models.DivergenceRight && commit.Status != models.StatusMerged {
 		hashColor = style.FgBlue

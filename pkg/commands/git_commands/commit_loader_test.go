@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/stefanhaller/git-todo-parser/todo"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,13 +28,13 @@ var singleCommitOutput = strings.Replace(`0eea75e8c631fba6b58135697835d58ba4c18d
 
 func TestGetCommits(t *testing.T) {
 	type scenario struct {
-		testName        string
-		runner          *oscommands.FakeCmdObjRunner
-		expectedCommits []*models.Commit
-		expectedError   error
-		logOrder        string
-		opts            GetCommitsOptions
-		mainBranches    []string
+		testName           string
+		runner             *oscommands.FakeCmdObjRunner
+		expectedCommitOpts []models.NewCommitOpts
+		expectedError      error
+		logOrder           string
+		opts               GetCommitsOptions
+		mainBranches       []string
 	}
 
 	scenarios := []scenario{
@@ -45,8 +46,8 @@ func TestGetCommits(t *testing.T) {
 				ExpectGitArgs([]string{"merge-base", "mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%m%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
-			expectedCommits: []*models.Commit{},
-			expectedError:   nil,
+			expectedCommitOpts: []models.NewCommitOpts{},
+			expectedError:      nil,
 		},
 		{
 			testName: "should use proper upstream name for branch",
@@ -56,8 +57,8 @@ func TestGetCommits(t *testing.T) {
 				ExpectGitArgs([]string{"merge-base", "refs/heads/mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				ExpectGitArgs([]string{"log", "refs/heads/mybranch", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%m%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
-			expectedCommits: []*models.Commit{},
-			expectedError:   nil,
+			expectedCommitOpts: []models.NewCommitOpts{},
+			expectedError:      nil,
 		},
 		{
 			testName:     "should return commits if they are present",
@@ -79,7 +80,7 @@ func TestGetCommits(t *testing.T) {
 				// here it's seeing where our branch diverged from the master branch so that we can mark that commit and parent commits as 'merged'
 				ExpectGitArgs([]string{"merge-base", "HEAD", "refs/remotes/origin/master", "refs/remotes/origin/main"}, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
 
-			expectedCommits: []*models.Commit{
+			expectedCommitOpts: []models.NewCommitOpts{
 				{
 					Hash:          "0eea75e8c631fba6b58135697835d58ba4c18dbc",
 					Name:          "better typing for rebase mode",
@@ -213,7 +214,7 @@ func TestGetCommits(t *testing.T) {
 				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/remotes/origin/main"}, "", errors.New("error")).
 				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/main"}, "", errors.New("error")),
 
-			expectedCommits: []*models.Commit{
+			expectedCommitOpts: []models.NewCommitOpts{
 				{
 					Hash:          "0eea75e8c631fba6b58135697835d58ba4c18dbc",
 					Name:          "better typing for rebase mode",
@@ -251,7 +252,7 @@ func TestGetCommits(t *testing.T) {
 				// here it's seeing where our branch diverged from the master branch so that we can mark that commit and parent commits as 'merged'
 				ExpectGitArgs([]string{"merge-base", "HEAD", "refs/remotes/origin/master", "refs/remotes/origin/develop", "refs/remotes/origin/1.0-hotfixes"}, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
 
-			expectedCommits: []*models.Commit{
+			expectedCommitOpts: []models.NewCommitOpts{
 				{
 					Hash:          "0eea75e8c631fba6b58135697835d58ba4c18dbc",
 					Name:          "better typing for rebase mode",
@@ -277,8 +278,8 @@ func TestGetCommits(t *testing.T) {
 				ExpectGitArgs([]string{"merge-base", "mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%m%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
-			expectedCommits: []*models.Commit{},
-			expectedError:   nil,
+			expectedCommitOpts: []models.NewCommitOpts{},
+			expectedError:      nil,
 		},
 		{
 			testName: "should set filter path",
@@ -288,8 +289,8 @@ func TestGetCommits(t *testing.T) {
 				ExpectGitArgs([]string{"merge-base", "mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%m%x00%s", "--abbrev=40", "--follow", "--no-show-signature", "--", "src"}, "", nil),
 
-			expectedCommits: []*models.Commit{},
-			expectedError:   nil,
+			expectedCommitOpts: []models.NewCommitOpts{},
+			expectedError:      nil,
 		},
 	}
 
@@ -318,7 +319,9 @@ func TestGetCommits(t *testing.T) {
 			opts.MainBranches = NewMainBranches(common, cmd)
 			commits, err := builder.GetCommits(opts)
 
-			assert.Equal(t, scenario.expectedCommits, commits)
+			expectedCommits := lo.Map(scenario.expectedCommitOpts,
+				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(opts) })
+			assert.Equal(t, expectedCommits, commits)
 			assert.Equal(t, scenario.expectedError, err)
 
 			scenario.runner.CheckForMissingCalls()
@@ -356,11 +359,11 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedResult: &models.Commit{
+			expectedResult: models.NewCommit(models.NewCommitOpts{
 				Hash:   "fa1afe1",
 				Action: todo.Pick,
 				Status: models.StatusConflicted,
-			},
+			}),
 		},
 		{
 			testName: "last command was 'break'",
@@ -457,11 +460,11 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 				},
 			},
 			amendFileExists: false,
-			expectedResult: &models.Commit{
+			expectedResult: models.NewCommit(models.NewCommitOpts{
 				Hash:   "fa1afe1",
 				Action: todo.Pick,
 				Status: models.StatusConflicted,
-			},
+			}),
 		},
 		{
 			testName: "'edit' with amend file",
@@ -486,11 +489,11 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 			},
 			amendFileExists:   false,
 			messageFileExists: true,
-			expectedResult: &models.Commit{
+			expectedResult: models.NewCommit(models.NewCommitOpts{
 				Hash:   "fa1afe1",
 				Action: todo.Edit,
 				Status: models.StatusConflicted,
-			},
+			}),
 		},
 		{
 			testName: "'edit' without amend and without message file",
@@ -531,22 +534,22 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 
 func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
 	type scenario struct {
-		testName        string
-		commits         []*models.Commit
-		ancestor        string
-		expectedCommits []*models.Commit
+		testName           string
+		commitOpts         []models.NewCommitOpts
+		ancestor           string
+		expectedCommitOpts []models.NewCommitOpts
 	}
 
 	scenarios := []scenario{
 		{
 			testName: "basic",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Hash: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
 				{Hash: "67890", Name: "2", Action: models.ActionNone, Status: models.StatusPushed},
 				{Hash: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
 			},
 			ancestor: "67890",
-			expectedCommits: []*models.Commit{
+			expectedCommitOpts: []models.NewCommitOpts{
 				{Hash: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
 				{Hash: "67890", Name: "2", Action: models.ActionNone, Status: models.StatusMerged},
 				{Hash: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusMerged},
@@ -554,13 +557,13 @@ func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
 		},
 		{
 			testName: "with update-ref",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Hash: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
 				{Hash: "", Name: "", Action: todo.UpdateRef, Status: models.StatusNone},
 				{Hash: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
 			},
 			ancestor: "deadbeef",
-			expectedCommits: []*models.Commit{
+			expectedCommitOpts: []models.NewCommitOpts{
 				{Hash: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
 				{Hash: "", Name: "", Action: todo.UpdateRef, Status: models.StatusNone},
 				{Hash: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
@@ -570,9 +573,12 @@ func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.testName, func(t *testing.T) {
-			commits := scenario.commits
+			commits := lo.Map(scenario.commitOpts,
+				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(opts) })
 			setCommitMergedStatuses(scenario.ancestor, commits)
-			assert.Equal(t, scenario.expectedCommits, commits)
+			expectedCommits := lo.Map(scenario.expectedCommitOpts,
+				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(opts) })
+			assert.Equal(t, expectedCommits, commits)
 		})
 	}
 }
