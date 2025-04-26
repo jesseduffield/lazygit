@@ -54,7 +54,7 @@ type Commit struct {
 	Divergence    Divergence // set to DivergenceNone unless we are showing the divergence view
 
 	// Hashes of parent commits (will be multiple if it's a merge commit)
-	Parents []string
+	parents []string
 }
 
 type NewCommitOpts struct {
@@ -83,7 +83,7 @@ func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
 		AuthorEmail:   opts.AuthorEmail,
 		UnixTimestamp: opts.UnixTimestamp,
 		Divergence:    opts.Divergence,
-		Parents:       opts.Parents,
+		parents:       opts.Parents,
 	}
 }
 
@@ -114,8 +114,12 @@ func (c *Commit) ParentRefName() string {
 	return c.RefName() + "^"
 }
 
+func (c *Commit) Parents() []string {
+	return c.parents
+}
+
 func (c *Commit) IsFirstCommit() bool {
-	return len(c.Parents) == 0
+	return len(c.parents) == 0
 }
 
 func (c *Commit) ID() string {
@@ -127,7 +131,7 @@ func (c *Commit) Description() string {
 }
 
 func (c *Commit) IsMerge() bool {
-	return len(c.Parents) > 1
+	return len(c.parents) > 1
 }
 
 // returns true if this commit is not actually in the git log but instead

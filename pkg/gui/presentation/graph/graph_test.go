@@ -576,7 +576,7 @@ func generateCommits(count int) []*models.Commit {
 		// I need to pick a random number of parents to add
 		parentCount := rnd.Intn(2) + 1
 
-		parentHashes := currentCommit.Parents
+		parentHashes := currentCommit.Parents()
 		for j := 0; j < parentCount; j++ {
 			reuseParent := rnd.Intn(6) != 1 && j <= len(pool)-1 && j != 0
 			var newParent *models.Commit

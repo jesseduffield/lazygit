@@ -116,7 +116,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 		return pipe.kind != TERMINATES
 	})
 
-	newPipes := make([]*Pipe, 0, len(currentPipes)+len(commit.Parents))
+	newPipes := make([]*Pipe, 0, len(currentPipes)+len(commit.Parents()))
 	// start by assuming that we've got a brand new commit not related to any preceding commit.
 	// (this only happens when we're doing `git log --all`). These will be tacked onto the far end.
 	pos := maxPos + 1
@@ -137,7 +137,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	if commit.IsFirstCommit() {
 		toHash = models.EmptyTreeCommitHash
 	} else {
-		toHash = commit.Parents[0]
+		toHash = commit.Parents()[0]
 	}
 	newPipes = append(newPipes, &Pipe{
 		fromPos:  pos,
@@ -216,7 +216,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	}
 
 	if commit.IsMerge() {
-		for _, parent := range commit.Parents[1:] {
+		for _, parent := range commit.Parents()[1:] {
 			availablePos := getNextAvailablePosForNewPipe()
 			// need to act as if continuing pipes are going to continue on the same line.
 			newPipes = append(newPipes, &Pipe{
