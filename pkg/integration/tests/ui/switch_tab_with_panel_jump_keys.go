@@ -10,7 +10,6 @@ var SwitchTabWithPanelJumpKeys = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Gui.SwitchTabsWithPanelJumpKeys = true
 	},
 	SetupRepo: func(shell *Shell) {
 	},

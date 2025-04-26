@@ -728,7 +728,7 @@
         "switchTabsWithPanelJumpKeys": {
           "type": "boolean",
           "description": "If true, when using the panel jump keys (default 1 through 5) and target panel is already active, go to next tab instead",
-          "default": false
+          "default": true
         }
       },
       "additionalProperties": false,

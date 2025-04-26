@@ -798,7 +798,7 @@ func GetDefaultConfig() *UserConfig {
 			StatusPanelView:              "dashboard",
 			SwitchToFilesAfterStashPop:   true,
 			SwitchToFilesAfterStashApply: true,
-			SwitchTabsWithPanelJumpKeys:  false,
+			SwitchTabsWithPanelJumpKeys:  true,
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{

@@ -6,10 +6,11 @@ import (
 )
 
 var DisableSwitchTabWithPanelJumpKeys = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Verify that the tab does not change by default when jumping to an already focused panel",
+	Description:  "Verify that the tab does not change when jumping to an already focused panel with the config SwitchTabsWithPanelJumpKeys to false",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.SwitchTabsWithPanelJumpKeys = false
 	},
 	SetupRepo: func(shell *Shell) {
 	},
