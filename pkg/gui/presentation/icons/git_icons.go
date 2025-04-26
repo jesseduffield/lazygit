@@ -62,7 +62,7 @@ func IconForTag(tag *models.Tag) string {
 }
 
 func IconForCommit(commit *models.Commit) string {
-	if len(commit.Parents) > 1 {
+	if commit.IsMerge() {
 		return MERGE_COMMIT_ICON
 	}
 	return COMMIT_ICON
