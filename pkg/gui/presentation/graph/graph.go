@@ -133,25 +133,20 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	// a traversed spot is one where a current pipe is starting on, ending on, or passing through
 	traversedSpots := set.New[int]()
 
-	if len(commit.Parents) > 0 { // merge commit
-		newPipes = append(newPipes, &Pipe{
-			fromPos:  pos,
-			toPos:    pos,
-			fromHash: commit.Hash,
-			toHash:   commit.Parents[0],
-			kind:     STARTS,
-			style:    getStyle(commit),
-		})
-	} else if len(commit.Parents) == 0 { // root commit
-		newPipes = append(newPipes, &Pipe{
-			fromPos:  pos,
-			toPos:    pos,
-			fromHash: commit.Hash,
-			toHash:   models.EmptyTreeCommitHash,
-			kind:     STARTS,
-			style:    getStyle(commit),
-		})
+	var toHash string
+	if commit.IsFirstCommit() {
+		toHash = models.EmptyTreeCommitHash
+	} else {
+		toHash = commit.Parents[0]
 	}
+	newPipes = append(newPipes, &Pipe{
+		fromPos:  pos,
+		toPos:    pos,
+		fromHash: commit.Hash,
+		toHash:   toHash,
+		kind:     STARTS,
+		style:    getStyle(commit),
+	})
 
 	traversedSpotsForContinuingPipes := set.New[int]()
 	for _, pipe := range currentPipes {
