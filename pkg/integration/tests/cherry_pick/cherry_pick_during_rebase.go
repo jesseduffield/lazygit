@@ -60,10 +60,10 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.Edit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("pick  CI two"),
+				Contains("pick CI two"),
 				Contains("--- Commits ---"),
-				Contains("      CI one").IsSelected(),
-				Contains("      CI base"),
+				Contains("     CI one").IsSelected(),
+				Contains("     CI base"),
 			).
 			Press(keys.Commits.PasteCommits).
 			Tap(func() {
@@ -77,11 +77,11 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("pick  CI two"),
+				Contains("pick CI two"),
 				Contains("--- Commits ---"),
-				Contains("      CI three"),
-				Contains("      CI one"),
-				Contains("      CI base"),
+				Contains("     CI three"),
+				Contains("     CI one"),
+				Contains("     CI base"),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()
