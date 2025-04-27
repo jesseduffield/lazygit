@@ -373,8 +373,6 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 	go utils.Safe(func() {
 		defer completeGocuiTask()
 
-		self.readLines = nil
-
 		self.taskIDMutex.Lock()
 		self.newTaskID++
 		taskID := self.newTaskID
@@ -399,6 +397,8 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		if self.stopCurrentTask != nil {
 			self.stopCurrentTask()
 		}
+
+		self.readLines = nil
 
 		stop := make(chan struct{})
 		notifyStopped := make(chan struct{})
