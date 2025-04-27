@@ -1,9 +1,12 @@
 package config
 
-import "os"
+import (
+	"os"
+	"strings"
+)
 
-func GetEditTemplate(osConfig *OSConfig, guessDefaultEditor func() string) (string, bool) {
-	preset := getPreset(osConfig, guessDefaultEditor)
+func GetEditTemplate(shell string, osConfig *OSConfig, guessDefaultEditor func() string) (string, bool) {
+	preset := getPreset(shell, osConfig, guessDefaultEditor)
 	template := osConfig.Edit
 	if template == "" {
 		template = preset.editTemplate
@@ -12,8 +15,8 @@ func GetEditTemplate(osConfig *OSConfig, guessDefaultEditor func() string) (stri
 	return template, getEditInTerminal(osConfig, preset)
 }
 
-func GetEditAtLineTemplate(osConfig *OSConfig, guessDefaultEditor func() string) (string, bool) {
-	preset := getPreset(osConfig, guessDefaultEditor)
+func GetEditAtLineTemplate(shell string, osConfig *OSConfig, guessDefaultEditor func() string) (string, bool) {
+	preset := getPreset(shell, osConfig, guessDefaultEditor)
 	template := osConfig.EditAtLine
 	if template == "" {
 		template = preset.editAtLineTemplate
@@ -21,8 +24,8 @@ func GetEditAtLineTemplate(osConfig *OSConfig, guessDefaultEditor func() string)
 	return template, getEditInTerminal(osConfig, preset)
 }
 
-func GetEditAtLineAndWaitTemplate(osConfig *OSConfig, guessDefaultEditor func() string) string {
-	preset := getPreset(osConfig, guessDefaultEditor)
+func GetEditAtLineAndWaitTemplate(shell string, osConfig *OSConfig, guessDefaultEditor func() string) string {
+	preset := getPreset(shell, osConfig, guessDefaultEditor)
 	template := osConfig.EditAtLineAndWait
 	if template == "" {
 		template = preset.editAtLineAndWaitTemplate
@@ -30,8 +33,8 @@ func GetEditAtLineAndWaitTemplate(osConfig *OSConfig, guessDefaultEditor func() 
 	return template
 }
 
-func GetOpenDirInEditorTemplate(osConfig *OSConfig, guessDefaultEditor func() string) (string, bool) {
-	preset := getPreset(osConfig, guessDefaultEditor)
+func GetOpenDirInEditorTemplate(shell string, osConfig *OSConfig, guessDefaultEditor func() string) (string, bool) {
+	preset := getPreset(shell, osConfig, guessDefaultEditor)
 	template := osConfig.OpenDirInEditor
 	if template == "" {
 		template = preset.openDirInEditorTemplate
@@ -50,17 +53,28 @@ type editPreset struct {
 func returnBool(a bool) func() bool { return (func() bool { return a }) }
 
 // IF YOU ADD A PRESET TO THIS FUNCTION YOU MUST UPDATE THE `Supported presets` SECTION OF docs/Config.md
-func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset {
+func getPreset(shell string, osConfig *OSConfig, guessDefaultEditor func() string) *editPreset {
+	var nvimRemoteEditTemplate, nvimRemoteEditAtLineTemplate, nvimRemoteOpenDirInEditorTemplate string
+	// By default fish doesn't have SHELL variable set, but it does have FISH_VERSION since Nov 2012.
+	if (strings.HasSuffix(shell, "fish")) || (os.Getenv("FISH_VERSION") != "") {
+		nvimRemoteEditTemplate = `begin; if test -z "$NVIM"; nvim -- {{filename}}; else; nvim --server "$NVIM" --remote-send "q"; nvim --server "$NVIM" --remote-tab {{filename}}; end; end`
+		nvimRemoteEditAtLineTemplate = `begin; if test -z "$NVIM"; nvim +{{line}} -- {{filename}}; else; nvim --server "$NVIM" --remote-send "q"; nvim --server "$NVIM" --remote-tab {{filename}}; nvim --server "$NVIM" --remote-send ":{{line}}<CR>"; end; end`
+		nvimRemoteOpenDirInEditorTemplate = `begin; if test -z "$NVIM"; nvim -- {{dir}}; else; nvim --server "$NVIM" --remote-send "q"; nvim --server "$NVIM" --remote-tab {{dir}}; end; end`
+	} else {
+		nvimRemoteEditTemplate = `[ -z "$NVIM" ] && (nvim -- {{filename}}) || (nvim --server "$NVIM" --remote-send "q" && nvim --server "$NVIM" --remote-tab {{filename}})`
+		nvimRemoteEditAtLineTemplate = `[ -z "$NVIM" ] && (nvim +{{line}} -- {{filename}}) || (nvim --server "$NVIM" --remote-send "q" &&  nvim --server "$NVIM" --remote-tab {{filename}} && nvim --server "$NVIM" --remote-send ":{{line}}<CR>")`
+		nvimRemoteOpenDirInEditorTemplate = `[ -z "$NVIM" ] && (nvim -- {{dir}}) || (nvim --server "$NVIM" --remote-send "q" && nvim --server "$NVIM" --remote-tab {{dir}})`
+	}
 	presets := map[string]*editPreset{
 		"vi":   standardTerminalEditorPreset("vi"),
 		"vim":  standardTerminalEditorPreset("vim"),
 		"nvim": standardTerminalEditorPreset("nvim"),
 		"nvim-remote": {
-			editTemplate:       `[ -z "$NVIM" ] && (nvim -- {{filename}}) || (nvim --server "$NVIM" --remote-send "q" && nvim --server "$NVIM" --remote-tab {{filename}})`,
-			editAtLineTemplate: `[ -z "$NVIM" ] && (nvim +{{line}} -- {{filename}}) || (nvim --server "$NVIM" --remote-send "q" &&  nvim --server "$NVIM" --remote-tab {{filename}} && nvim --server "$NVIM" --remote-send ":{{line}}<CR>")`,
+			editTemplate:       nvimRemoteEditTemplate,
+			editAtLineTemplate: nvimRemoteEditAtLineTemplate,
 			// No remote-wait support yet. See https://github.com/neovim/neovim/pull/17856
 			editAtLineAndWaitTemplate: `nvim +{{line}} {{filename}}`,
-			openDirInEditorTemplate:   `[ -z "$NVIM" ] && (nvim -- {{dir}}) || (nvim --server "$NVIM" --remote-send "q" && nvim --server "$NVIM" --remote-tab {{dir}})`,
+			openDirInEditorTemplate:   nvimRemoteOpenDirInEditorTemplate,
 			suspend: func() bool {
 				_, ok := os.LookupEnv("NVIM")
 				return !ok
