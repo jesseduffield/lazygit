@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type PatchExplorerControllerFactory struct {
@@ -295,11 +298,47 @@ func (self *PatchExplorerController) CopySelectedToClipboard() error {
 	selected := self.context.GetState().PlainRenderSelected()
 
 	self.c.LogAction(self.c.Tr.Actions.CopySelectedTextToClipboard)
-	if err := self.c.OS().CopyToClipboard(selected); err != nil {
+	if err := self.c.OS().CopyToClipboard(dropDiffPrefix(selected)); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// Removes '+' or '-' from the beginning of each line in the diff string, except
+// when both '+' and '-' lines are present, or diff header lines, in which case
+// the diff is returned unchanged. This is useful for copying parts of diffs to
+// the clipboard in order to paste them into code.
+func dropDiffPrefix(diff string) string {
+	lines := strings.Split(strings.TrimRight(diff, "\n"), "\n")
+
+	const (
+		PLUS int = iota
+		MINUS
+		CONTEXT
+		OTHER
+	)
+
+	linesByType := lo.GroupBy(lines, func(line string) int {
+		switch {
+		case strings.HasPrefix(line, "+"):
+			return PLUS
+		case strings.HasPrefix(line, "-"):
+			return MINUS
+		case strings.HasPrefix(line, " "):
+			return CONTEXT
+		}
+		return OTHER
+	})
+
+	hasLinesOfType := func(lineType int) bool { return len(linesByType[lineType]) > 0 }
+
+	keepPrefix := hasLinesOfType(OTHER) || (hasLinesOfType(PLUS) && hasLinesOfType(MINUS))
+	if keepPrefix {
+		return diff
+	}
+
+	return strings.Join(lo.Map(lines, func(line string, _ int) string { return line[1:] + "\n" }), "")
 }
 
 func (self *PatchExplorerController) isFocused() bool {
