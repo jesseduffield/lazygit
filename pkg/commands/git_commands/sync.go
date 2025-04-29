@@ -28,7 +28,7 @@ type PushOpts struct {
 	SetUpstream    bool
 }
 
-func (self *SyncCommands) PushCmdObj(task gocui.Task, opts PushOpts) (oscommands.ICmdObj, error) {
+func (self *SyncCommands) PushCmdObj(task gocui.Task, opts PushOpts) (*oscommands.CmdObj, error) {
 	if opts.UpstreamBranch != "" && opts.UpstreamRemote == "" {
 		return nil, errors.New(self.Tr.MustSpecifyOriginError)
 	}
@@ -62,7 +62,7 @@ func (self *SyncCommands) fetchCommandBuilder(fetchAll bool) *GitCommandBuilder 
 		ArgIf(self.version.IsAtLeast(2, 29, 0), "--no-write-fetch-head")
 }
 
-func (self *SyncCommands) FetchCmdObj(task gocui.Task) oscommands.ICmdObj {
+func (self *SyncCommands) FetchCmdObj(task gocui.Task) *oscommands.CmdObj {
 	cmdArgs := self.fetchCommandBuilder(self.UserConfig().Git.FetchAll).ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
@@ -74,7 +74,7 @@ func (self *SyncCommands) Fetch(task gocui.Task) error {
 	return self.FetchCmdObj(task).Run()
 }
 
-func (self *SyncCommands) FetchBackgroundCmdObj() oscommands.ICmdObj {
+func (self *SyncCommands) FetchBackgroundCmdObj() *oscommands.CmdObj {
 	cmdArgs := self.fetchCommandBuilder(self.UserConfig().Git.FetchAll).ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)

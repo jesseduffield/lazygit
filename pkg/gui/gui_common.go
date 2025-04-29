@@ -34,11 +34,11 @@ func (self *guiCommon) PostRefreshUpdate(context types.Context) {
 	self.gui.postRefreshUpdate(context)
 }
 
-func (self *guiCommon) RunSubprocessAndRefresh(cmdObj oscommands.ICmdObj) error {
+func (self *guiCommon) RunSubprocessAndRefresh(cmdObj *oscommands.CmdObj) error {
 	return self.gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 }
 
-func (self *guiCommon) RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error) {
+func (self *guiCommon) RunSubprocess(cmdObj *oscommands.CmdObj) (bool, error) {
 	return self.gui.runSubprocessWithSuspense(cmdObj)
 }
 

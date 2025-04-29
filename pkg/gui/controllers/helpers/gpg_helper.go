@@ -23,7 +23,7 @@ func NewGpgHelper(c *HelperCommon) *GpgHelper {
 // WithWaitingStatus we get stuck there and can't return to lazygit. We could
 // fix this bug, or just stop running subprocesses from within there, given that
 // we don't need to see a loading status if we're in a subprocess.
-func (self *GpgHelper) WithGpgHandling(cmdObj oscommands.ICmdObj, configKey git_commands.GpgConfigKey, waitingStatus string, onSuccess func() error, refreshScope []types.RefreshableView) error {
+func (self *GpgHelper) WithGpgHandling(cmdObj *oscommands.CmdObj, configKey git_commands.GpgConfigKey, waitingStatus string, onSuccess func() error, refreshScope []types.RefreshableView) error {
 	useSubprocess := self.c.Git().Config.NeedsGpgSubprocess(configKey)
 	if useSubprocess {
 		success, err := self.c.RunSubprocess(cmdObj)
@@ -42,7 +42,7 @@ func (self *GpgHelper) WithGpgHandling(cmdObj oscommands.ICmdObj, configKey git_
 	}
 }
 
-func (self *GpgHelper) runAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error, refreshScope []types.RefreshableView) error {
+func (self *GpgHelper) runAndStream(cmdObj *oscommands.CmdObj, waitingStatus string, onSuccess func() error, refreshScope []types.RefreshableView) error {
 	return self.c.WithWaitingStatus(waitingStatus, func(gocui.Task) error {
 		if err := cmdObj.StreamOutput().Run(); err != nil {
 			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope})

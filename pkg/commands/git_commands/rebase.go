@@ -53,7 +53,7 @@ func (self *RebaseCommands) RewordCommit(commits []*models.Commit, index int, su
 	return self.ContinueRebase()
 }
 
-func (self *RebaseCommands) RewordCommitInEditor(commits []*models.Commit, index int) (oscommands.ICmdObj, error) {
+func (self *RebaseCommands) RewordCommitInEditor(commits []*models.Commit, index int) (*oscommands.CmdObj, error) {
 	changes := []daemon.ChangeTodoAction{{
 		Hash:      commits[index].Hash(),
 		NewAction: todo.Reword,
@@ -209,7 +209,7 @@ type PrepareInteractiveRebaseCommandOpts struct {
 // PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
 // we tell git to run lazygit to edit the todo list, and we pass the client
 // lazygit instructions what to do with the todo file
-func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteractiveRebaseCommandOpts) oscommands.ICmdObj {
+func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteractiveRebaseCommandOpts) *oscommands.CmdObj {
 	ex := oscommands.GetLazygitPath()
 
 	cmdArgs := NewGitCmd("rebase").
@@ -446,7 +446,7 @@ func (self *RebaseCommands) RebaseBranchFromBaseCommit(targetBranchName string, 
 	}).Run()
 }
 
-func (self *RebaseCommands) GenericMergeOrRebaseActionCmdObj(commandType string, command string) oscommands.ICmdObj {
+func (self *RebaseCommands) GenericMergeOrRebaseActionCmdObj(commandType string, command string) *oscommands.CmdObj {
 	cmdArgs := NewGitCmd(commandType).Arg("--" + command).ToArgv()
 
 	return self.cmd.New(cmdArgs)
@@ -485,7 +485,7 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, comma
 	return nil
 }
 
-func (self *RebaseCommands) runSkipEditorCommand(cmdObj oscommands.ICmdObj) error {
+func (self *RebaseCommands) runSkipEditorCommand(cmdObj *oscommands.CmdObj) error {
 	instruction := daemon.NewExitImmediatelyInstruction()
 	lazyGitPath := oscommands.GetLazygitPath()
 	return cmdObj.

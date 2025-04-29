@@ -24,7 +24,7 @@ func (self *FlowCommands) GitFlowEnabled() bool {
 	return self.config.GetGitFlowPrefixes() != ""
 }
 
-func (self *FlowCommands) FinishCmdObj(branchName string) (oscommands.ICmdObj, error) {
+func (self *FlowCommands) FinishCmdObj(branchName string) (*oscommands.CmdObj, error) {
 	prefixes := self.config.GetGitFlowPrefixes()
 
 	// need to find out what kind of branch this is
@@ -54,7 +54,7 @@ func (self *FlowCommands) FinishCmdObj(branchName string) (oscommands.ICmdObj, e
 	return self.cmd.New(cmdArgs), nil
 }
 
-func (self *FlowCommands) StartCmdObj(branchType string, name string) oscommands.ICmdObj {
+func (self *FlowCommands) StartCmdObj(branchType string, name string) *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("flow").Arg(branchType, "start", name).ToArgv()
 
 	return self.cmd.New(cmdArgs)

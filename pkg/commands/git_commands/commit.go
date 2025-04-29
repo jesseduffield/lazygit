@@ -85,7 +85,7 @@ func (self *CommitCommands) ResetToCommit(hash string, strength string, envVars 
 		Run()
 }
 
-func (self *CommitCommands) CommitCmdObj(summary string, description string, forceSkipHooks bool) oscommands.ICmdObj {
+func (self *CommitCommands) CommitCmdObj(summary string, description string, forceSkipHooks bool) *oscommands.CmdObj {
 	messageArgs := self.commitMessageArgs(summary, description)
 	skipHookPrefix := self.UserConfig().Git.SkipHookPrefix
 	cmdArgs := NewGitCmd("commit").
@@ -97,16 +97,16 @@ func (self *CommitCommands) CommitCmdObj(summary string, description string, for
 	return self.cmd.New(cmdArgs)
 }
 
-func (self *CommitCommands) RewordLastCommitInEditorCmdObj() oscommands.ICmdObj {
+func (self *CommitCommands) RewordLastCommitInEditorCmdObj() *oscommands.CmdObj {
 	return self.cmd.New(NewGitCmd("commit").Arg("--allow-empty", "--amend", "--only").ToArgv())
 }
 
-func (self *CommitCommands) RewordLastCommitInEditorWithMessageFileCmdObj(tmpMessageFile string) oscommands.ICmdObj {
+func (self *CommitCommands) RewordLastCommitInEditorWithMessageFileCmdObj(tmpMessageFile string) *oscommands.CmdObj {
 	return self.cmd.New(NewGitCmd("commit").
 		Arg("--allow-empty", "--amend", "--only", "--edit", "--file="+tmpMessageFile).ToArgv())
 }
 
-func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile string, forceSkipHooks bool) oscommands.ICmdObj {
+func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile string, forceSkipHooks bool) *oscommands.CmdObj {
 	return self.cmd.New(NewGitCmd("commit").
 		ArgIf(forceSkipHooks, "--no-verify").
 		Arg("--edit").
@@ -116,7 +116,7 @@ func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile s
 }
 
 // RewordLastCommit rewords the topmost commit with the given message
-func (self *CommitCommands) RewordLastCommit(summary string, description string) oscommands.ICmdObj {
+func (self *CommitCommands) RewordLastCommit(summary string, description string) *oscommands.CmdObj {
 	messageArgs := self.commitMessageArgs(summary, description)
 
 	cmdArgs := NewGitCmd("commit").
@@ -138,7 +138,7 @@ func (self *CommitCommands) commitMessageArgs(summary string, description string
 }
 
 // runs git commit without the -m argument meaning it will invoke the user's editor
-func (self *CommitCommands) CommitEditorCmdObj() oscommands.ICmdObj {
+func (self *CommitCommands) CommitEditorCmdObj() *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("commit").
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
 		ToArgv()
@@ -246,7 +246,7 @@ func (self *CommitCommands) AmendHead() error {
 	return self.AmendHeadCmdObj().Run()
 }
 
-func (self *CommitCommands) AmendHeadCmdObj() oscommands.ICmdObj {
+func (self *CommitCommands) AmendHeadCmdObj() *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("commit").
 		Arg("--amend", "--no-edit", "--allow-empty").
 		ToArgv()
@@ -254,7 +254,7 @@ func (self *CommitCommands) AmendHeadCmdObj() oscommands.ICmdObj {
 	return self.cmd.New(cmdArgs)
 }
 
-func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) oscommands.ICmdObj {
+func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) *oscommands.CmdObj {
 	contextSize := self.AppState.DiffContextSize
 
 	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
@@ -278,7 +278,7 @@ func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) oscommand
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
-func (self *CommitCommands) ShowFileContentCmdObj(hash string, filePath string) oscommands.ICmdObj {
+func (self *CommitCommands) ShowFileContentCmdObj(hash string, filePath string) *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("show").
 		Arg(fmt.Sprintf("%s:%s", hash, filePath)).
 		ToArgv()

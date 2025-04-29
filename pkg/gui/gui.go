@@ -932,7 +932,7 @@ func (gui *Gui) checkForDeprecatedEditConfigs() {
 }
 
 // returns whether command exited without error or not
-func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess oscommands.ICmdObj) error {
+func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess *oscommands.CmdObj) error {
 	_, err := gui.runSubprocessWithSuspense(subprocess)
 	if err != nil {
 		return err
@@ -946,7 +946,7 @@ func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess oscommands.ICmdOb
 }
 
 // returns whether command exited without error or not
-func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, error) {
+func (gui *Gui) runSubprocessWithSuspense(subprocess *oscommands.CmdObj) (bool, error) {
 	gui.Mutexes.SubprocessMutex.Lock()
 	defer gui.Mutexes.SubprocessMutex.Unlock()
 
@@ -970,7 +970,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 	return true, nil
 }
 
-func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error { //nolint:unparam
+func (gui *Gui) runSubprocess(cmdObj *oscommands.CmdObj) error { //nolint:unparam
 	gui.LogCommand(cmdObj.ToString(), true)
 
 	subprocess := cmdObj.GetCmd()

@@ -53,8 +53,8 @@ type IGuiCommon interface {
 	GetViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager
 
 	// returns true if command completed successfully
-	RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error)
-	RunSubprocessAndRefresh(oscommands.ICmdObj) error
+	RunSubprocess(cmdObj *oscommands.CmdObj) (bool, error)
+	RunSubprocessAndRefresh(*oscommands.CmdObj) error
 
 	Context() IContextMgr
 	ContextForKey(key ContextKey) Context

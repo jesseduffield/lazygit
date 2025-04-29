@@ -15,10 +15,10 @@ import (
 )
 
 type ICmdObjRunner interface {
-	Run(cmdObj ICmdObj) error
-	RunWithOutput(cmdObj ICmdObj) (string, error)
-	RunWithOutputs(cmdObj ICmdObj) (string, string, error)
-	RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error
+	Run(cmdObj *CmdObj) error
+	RunWithOutput(cmdObj *CmdObj) (string, error)
+	RunWithOutputs(cmdObj *CmdObj) (string, string, error)
+	RunAndProcessLines(cmdObj *CmdObj, onLine func(line string) (bool, error)) error
 }
 
 type cmdObjRunner struct {
@@ -28,7 +28,7 @@ type cmdObjRunner struct {
 
 var _ ICmdObjRunner = &cmdObjRunner{}
 
-func (self *cmdObjRunner) Run(cmdObj ICmdObj) error {
+func (self *cmdObjRunner) Run(cmdObj *CmdObj) error {
 	if cmdObj.Mutex() != nil {
 		cmdObj.Mutex().Lock()
 		defer cmdObj.Mutex().Unlock()
@@ -46,7 +46,7 @@ func (self *cmdObjRunner) Run(cmdObj ICmdObj) error {
 	return err
 }
 
-func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
+func (self *cmdObjRunner) RunWithOutput(cmdObj *CmdObj) (string, error) {
 	if cmdObj.Mutex() != nil {
 		cmdObj.Mutex().Lock()
 		defer cmdObj.Mutex().Unlock()
@@ -71,7 +71,7 @@ func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 	return self.RunWithOutputAux(cmdObj)
 }
 
-func (self *cmdObjRunner) RunWithOutputs(cmdObj ICmdObj) (string, string, error) {
+func (self *cmdObjRunner) RunWithOutputs(cmdObj *CmdObj) (string, string, error) {
 	if cmdObj.Mutex() != nil {
 		cmdObj.Mutex().Lock()
 		defer cmdObj.Mutex().Unlock()
@@ -96,7 +96,7 @@ func (self *cmdObjRunner) RunWithOutputs(cmdObj ICmdObj) (string, string, error)
 	return self.RunWithOutputsAux(cmdObj)
 }
 
-func (self *cmdObjRunner) RunWithOutputAux(cmdObj ICmdObj) (string, error) {
+func (self *cmdObjRunner) RunWithOutputAux(cmdObj *CmdObj) (string, error) {
 	self.log.WithField("command", cmdObj.ToString()).Debug("RunCommand")
 
 	if cmdObj.ShouldLog() {
@@ -114,7 +114,7 @@ func (self *cmdObjRunner) RunWithOutputAux(cmdObj ICmdObj) (string, error) {
 	return output, err
 }
 
-func (self *cmdObjRunner) RunWithOutputsAux(cmdObj ICmdObj) (string, string, error) {
+func (self *cmdObjRunner) RunWithOutputsAux(cmdObj *CmdObj) (string, string, error) {
 	self.log.WithField("command", cmdObj.ToString()).Debug("RunCommand")
 
 	if cmdObj.ShouldLog() {
@@ -139,7 +139,7 @@ func (self *cmdObjRunner) RunWithOutputsAux(cmdObj ICmdObj) (string, string, err
 	return stdout, stderr, err
 }
 
-func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
+func (self *cmdObjRunner) RunAndProcessLines(cmdObj *CmdObj, onLine func(line string) (bool, error)) error {
 	if cmdObj.Mutex() != nil {
 		cmdObj.Mutex().Lock()
 		defer cmdObj.Mutex().Unlock()
@@ -190,7 +190,7 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line st
 	return nil
 }
 
-func (self *cmdObjRunner) logCmdObj(cmdObj ICmdObj) {
+func (self *cmdObjRunner) logCmdObj(cmdObj *CmdObj) {
 	self.guiIO.logCommandFn(cmdObj.ToString(), true)
 }
 
@@ -213,7 +213,7 @@ type cmdHandler struct {
 	close      func() error
 }
 
-func (self *cmdObjRunner) runAndStream(cmdObj ICmdObj) error {
+func (self *cmdObjRunner) runAndStream(cmdObj *CmdObj) error {
 	return self.runAndStreamAux(cmdObj, func(handler *cmdHandler, cmdWriter io.Writer) {
 		go func() {
 			_, _ = io.Copy(cmdWriter, handler.stdoutPipe)
@@ -222,7 +222,7 @@ func (self *cmdObjRunner) runAndStream(cmdObj ICmdObj) error {
 }
 
 func (self *cmdObjRunner) runAndStreamAux(
-	cmdObj ICmdObj,
+	cmdObj *CmdObj,
 	onRun func(*cmdHandler, io.Writer),
 ) error {
 	cmdWriter := self.guiIO.newCmdWriterFn()
@@ -297,7 +297,7 @@ var failPromptFn = func(CredentialType) <-chan string {
 	return ch
 }
 
-func (self *cmdObjRunner) runWithCredentialHandling(cmdObj ICmdObj) error {
+func (self *cmdObjRunner) runWithCredentialHandling(cmdObj *CmdObj) error {
 	promptFn, err := self.getCredentialPromptFn(cmdObj)
 	if err != nil {
 		return err
@@ -306,7 +306,7 @@ func (self *cmdObjRunner) runWithCredentialHandling(cmdObj ICmdObj) error {
 	return self.runAndDetectCredentialRequest(cmdObj, promptFn)
 }
 
-func (self *cmdObjRunner) getCredentialPromptFn(cmdObj ICmdObj) (func(CredentialType) <-chan string, error) {
+func (self *cmdObjRunner) getCredentialPromptFn(cmdObj *CmdObj) (func(CredentialType) <-chan string, error) {
 	switch cmdObj.GetCredentialStrategy() {
 	case PROMPT:
 		return self.guiIO.promptForCredentialFn, nil
@@ -322,7 +322,7 @@ func (self *cmdObjRunner) getCredentialPromptFn(cmdObj ICmdObj) (func(Credential
 // promptUserForCredential is a function that gets executed when this function detect you need to fill in a password or passphrase
 // The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
 func (self *cmdObjRunner) runAndDetectCredentialRequest(
-	cmdObj ICmdObj,
+	cmdObj *CmdObj,
 	promptUserForCredential func(CredentialType) <-chan string,
 ) error {
 	// setting the output to english so we can parse it for a username/password request
