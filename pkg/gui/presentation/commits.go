@@ -387,7 +387,7 @@ func displayCommit(
 
 	actionString := ""
 	if commit.Action != models.ActionNone {
-		actionString = actionColorMap(commit.Action, commit.Status).Sprint(commit.Action.String()) + " "
+		actionString = actionColorMap(commit.Action, commit.Status).Sprint(commit.Action.String())
 	}
 
 	tagString := ""
