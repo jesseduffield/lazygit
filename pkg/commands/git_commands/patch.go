@@ -71,6 +71,7 @@ func (self *PatchCommands) applyPatchFile(filepath string, opts ApplyPatchOpts) 
 		ArgIf(opts.Cached, "--cached").
 		ArgIf(opts.Index, "--index").
 		ArgIf(opts.Reverse, "--reverse").
+		Arg("--unidiff-zero").
 		Arg(filepath).
 		ToArgv()
 
