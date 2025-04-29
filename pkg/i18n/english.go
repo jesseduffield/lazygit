@@ -984,6 +984,7 @@ type Actions struct {
 	ResolveConflictByDeletingFile     string
 	NotEnoughContextToStage           string
 	NotEnoughContextToDiscard         string
+	NotEnoughContextForCustomPatch    string
 	IgnoreExcludeFile                 string
 	IgnoreFileErr                     string
 	ExcludeFile                       string
@@ -2031,6 +2032,7 @@ func EnglishTranslationSet() *TranslationSet {
 			ResolveConflictByDeletingFile:   "Resolve by deleting file",
 			NotEnoughContextToStage:         "Staging or unstaging changes is not possible with a diff context size of 0. Increase the context using '%s'.",
 			NotEnoughContextToDiscard:       "Discarding changes is not possible with a diff context size of 0. Increase the context using '%s'.",
+			NotEnoughContextForCustomPatch:  "Creating custom patches is not possible with a diff context size of 0. Increase the context using '%s'.",
 			IgnoreExcludeFile:               "Ignore or exclude file",
 			IgnoreFileErr:                   "Cannot ignore .gitignore",
 			ExcludeFile:                     "Exclude file",
