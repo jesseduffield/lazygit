@@ -558,6 +558,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 			FilesTrie:             patricia.NewTrie(),
 			Authors:               map[string]*models.Author{},
 			MainBranches:          git_commands.NewMainBranches(gui.c.Common, gui.os.Cmd),
+			HashPool:              &utils.StringPool{},
 		},
 		Modes: &types.Modes{
 			Filtering:        filtering.New(startArgs.FilterPath, ""),

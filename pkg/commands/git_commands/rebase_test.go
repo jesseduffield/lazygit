@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
@@ -97,7 +98,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 	type scenario struct {
 		testName               string
 		gitConfigMockResponses map[string]string
-		commits                []*models.Commit
+		commitOpts             []models.NewCommitOpts
 		commitIndex            int
 		fileName               []string
 		runner                 *oscommands.FakeCmdObjRunner
@@ -108,7 +109,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 		{
 			testName:               "returns error when index outside of range of commits",
 			gitConfigMockResponses: nil,
-			commits:                []*models.Commit{},
+			commitOpts:             []models.NewCommitOpts{},
 			commitIndex:            0,
 			fileName:               []string{"test999.txt"},
 			runner:                 oscommands.NewFakeRunner(t),
@@ -119,7 +120,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 		{
 			testName:               "returns error when using gpg",
 			gitConfigMockResponses: map[string]string{"commit.gpgSign": "true"},
-			commits:                []*models.Commit{{Name: "commit", Hash: "123456"}},
+			commitOpts:             []models.NewCommitOpts{{Name: "commit", Hash: "123456"}},
 			commitIndex:            0,
 			fileName:               []string{"test999.txt"},
 			runner:                 oscommands.NewFakeRunner(t),
@@ -130,7 +131,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 		{
 			testName:               "checks out file if it already existed",
 			gitConfigMockResponses: nil,
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit", Hash: "123456"},
 				{Name: "commit2", Hash: "abcdef"},
 			},
@@ -158,7 +159,11 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 				gitConfig:  git_config.NewFakeGitConfig(s.gitConfigMockResponses),
 			})
 
-			s.test(instance.DiscardOldFileChanges(s.commits, s.commitIndex, s.fileName))
+			hashPool := &utils.StringPool{}
+			commits := lo.Map(s.commitOpts,
+				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
+
+			s.test(instance.DiscardOldFileChanges(commits, s.commitIndex, s.fileName))
 			s.runner.CheckForMissingCalls()
 		})
 	}

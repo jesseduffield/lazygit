@@ -149,8 +149,10 @@ func TestRenderCommitFileTree(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
+			hashPool := &utils.StringPool{}
+
 			viewModel := filetree.NewCommitFileTreeViewModel(func() []*models.CommitFile { return s.files }, utils.NewDummyLog(), true)
-			viewModel.SetRef(&models.Commit{})
+			viewModel.SetRef(models.NewCommit(hashPool, models.NewCommitOpts{Hash: "1234"}))
 			viewModel.SetTree()
 			for _, path := range s.collapsedPaths {
 				viewModel.ToggleCollapsed(path)

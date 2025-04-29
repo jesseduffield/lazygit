@@ -66,7 +66,7 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 		return task
 	}
 
-	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash, self.c.Modes().Filtering.GetPath())
+	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.c.Modes().Filtering.GetPath())
 	return types.NewRunPtyTask(cmdObj.GetCmd())
 }
 

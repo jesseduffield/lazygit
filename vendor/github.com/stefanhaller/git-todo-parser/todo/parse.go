@@ -150,9 +150,6 @@ func parseLine(line string, commentChar byte) (Todo, error) {
 }
 
 func isCommand(i TodoCommand, s string) bool {
-	if i < 0 || i > Comment {
-		return false
-	}
 	return len(s) > 0 &&
 		(todoCommandInfo[i].cmd == s || todoCommandInfo[i].nickname == s)
 }

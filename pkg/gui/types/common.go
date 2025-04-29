@@ -305,6 +305,8 @@ type Model struct {
 	FilesTrie *patricia.Trie
 
 	Authors map[string]*models.Author
+
+	HashPool *utils.StringPool
 }
 
 // if you add a new mutex here be sure to instantiate it. We're using pointers to

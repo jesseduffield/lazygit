@@ -69,7 +69,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 	// Originally we were allowing the user to, from the bisect menu, select whether
 	// they were talking about the selected commit or the current bisect commit,
 	// and that was a bit confusing (and required extra keypresses).
-	selectCurrentAfter := info.GetCurrentHash() == "" || info.GetCurrentHash() == commit.Hash
+	selectCurrentAfter := info.GetCurrentHash() == "" || info.GetCurrentHash() == commit.Hash()
 	// we need to wait to reselect if our bisect commits aren't ancestors of our 'start'
 	// ref, because we'll be reloading our commits in that case.
 	waitToReselect := selectCurrentAfter && !self.c.Git().Bisect.ReachableFromStart(info)
@@ -79,7 +79,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 	// use the selected commit in that case.
 
 	bisecting := info.GetCurrentHash() != ""
-	hashToMark := lo.Ternary(bisecting, info.GetCurrentHash(), commit.Hash)
+	hashToMark := lo.Ternary(bisecting, info.GetCurrentHash(), commit.Hash())
 	shortHashToMark := utils.ShortHash(hashToMark)
 
 	// For marking a commit as bad, when we're not already bisecting, we require
@@ -131,12 +131,12 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Key:            's',
 		},
 	}
-	if info.GetCurrentHash() != "" && info.GetCurrentHash() != commit.Hash {
+	if info.GetCurrentHash() != "" && info.GetCurrentHash() != commit.Hash() {
 		menuItems = append(menuItems, lo.ToPtr(types.MenuItem{
 			Label: fmt.Sprintf(self.c.Tr.Bisect.SkipSelected, commit.ShortHash()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectSkip)
-				if err := self.c.Git().Bisect.Skip(commit.Hash); err != nil {
+				if err := self.c.Git().Bisect.Skip(commit.Hash()); err != nil {
 					return err
 				}
 
@@ -172,7 +172,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 						return err
 					}
 
-					if err := self.c.Git().Bisect.Mark(commit.Hash, info.NewTerm()); err != nil {
+					if err := self.c.Git().Bisect.Mark(commit.Hash(), info.NewTerm()); err != nil {
 						return err
 					}
 
@@ -189,7 +189,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 						return err
 					}
 
-					if err := self.c.Git().Bisect.Mark(commit.Hash, info.OldTerm()); err != nil {
+					if err := self.c.Git().Bisect.Mark(commit.Hash(), info.OldTerm()); err != nil {
 						return err
 					}
 
@@ -292,7 +292,7 @@ func (self *BisectController) selectCurrentBisectCommit() {
 	if info.GetCurrentHash() != "" {
 		// find index of commit with that hash, move cursor to that.
 		for i, commit := range self.c.Model().Commits {
-			if commit.Hash == info.GetCurrentHash() {
+			if commit.Hash() == info.GetCurrentHash() {
 				self.context().SetSelection(i)
 				self.context().HandleFocus(types.OnFocusOpts{})
 				break

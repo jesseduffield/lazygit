@@ -26,8 +26,8 @@ func commitShimFromModelCommit(commit *models.Commit) *Commit {
 	}
 
 	return &Commit{
-		Hash:          commit.Hash,
-		Sha:           commit.Hash,
+		Hash:          commit.Hash(),
+		Sha:           commit.Hash(),
 		Name:          commit.Name,
 		Status:        commit.Status,
 		Action:        commit.Action,
@@ -37,7 +37,7 @@ func commitShimFromModelCommit(commit *models.Commit) *Commit {
 		AuthorEmail:   commit.AuthorEmail,
 		UnixTimestamp: commit.UnixTimestamp,
 		Divergence:    commit.Divergence,
-		Parents:       commit.Parents,
+		Parents:       commit.Parents(),
 	}
 }
 
@@ -173,8 +173,8 @@ func makeCommitRange(commits []*models.Commit, _ int, _ int) *CommitRange {
 	}
 
 	return &CommitRange{
-		From: commits[len(commits)-1].Hash,
-		To:   commits[0].Hash,
+		From: commits[len(commits)-1].Hash(),
+		To:   commits[0].Hash(),
 	}
 }
 

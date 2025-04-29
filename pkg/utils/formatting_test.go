@@ -253,25 +253,25 @@ func TestRenderDisplayStrings(t *testing.T) {
 }
 
 func BenchmarkStringWidthAsciiOriginal(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		runewidth.StringWidth("some ASCII string")
 	}
 }
 
 func BenchmarkStringWidthAsciiOptimized(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		StringWidth("some ASCII string")
 	}
 }
 
 func BenchmarkStringWidthNonAsciiOriginal(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		runewidth.StringWidth("some non-ASCII string 🍉")
 	}
 }
 
 func BenchmarkStringWidthNonAsciiOptimized(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		StringWidth("some non-ASCII string 🍉")
 	}
 }

@@ -25,7 +25,7 @@ type Cell struct {
 	up, down, left, right bool
 	cellType              cellType
 	rightStyle            *style.TextStyle
-	style                 style.TextStyle
+	style                 *style.TextStyle
 }
 
 func (cell *Cell) render(writer io.StringWriter) {
@@ -44,7 +44,7 @@ func (cell *Cell) render(writer io.StringWriter) {
 
 	var rightStyle *style.TextStyle
 	if cell.rightStyle == nil {
-		rightStyle = &cell.style
+		rightStyle = cell.style
 	} else {
 		rightStyle = cell.rightStyle
 	}
@@ -59,7 +59,7 @@ func (cell *Cell) render(writer io.StringWriter) {
 		styledSecondChar = cachedSprint(*rightStyle, second)
 	}
 
-	_, _ = writer.WriteString(cachedSprint(cell.style, adjustedFirst))
+	_, _ = writer.WriteString(cachedSprint(*cell.style, adjustedFirst))
 	_, _ = writer.WriteString(styledSecondChar)
 }
 
@@ -104,19 +104,19 @@ func (cell *Cell) reset() {
 	cell.right = false
 }
 
-func (cell *Cell) setUp(style style.TextStyle) *Cell {
+func (cell *Cell) setUp(style *style.TextStyle) *Cell {
 	cell.up = true
 	cell.style = style
 	return cell
 }
 
-func (cell *Cell) setDown(style style.TextStyle) *Cell {
+func (cell *Cell) setDown(style *style.TextStyle) *Cell {
 	cell.down = true
 	cell.style = style
 	return cell
 }
 
-func (cell *Cell) setLeft(style style.TextStyle) *Cell {
+func (cell *Cell) setLeft(style *style.TextStyle) *Cell {
 	cell.left = true
 	if !cell.up && !cell.down {
 		// vertical trumps left
@@ -126,15 +126,15 @@ func (cell *Cell) setLeft(style style.TextStyle) *Cell {
 }
 
 //nolint:unparam
-func (cell *Cell) setRight(style style.TextStyle, override bool) *Cell {
+func (cell *Cell) setRight(style *style.TextStyle, override bool) *Cell {
 	cell.right = true
 	if cell.rightStyle == nil || override {
-		cell.rightStyle = &style
+		cell.rightStyle = style
 	}
 	return cell
 }
 
-func (cell *Cell) setStyle(style style.TextStyle) *Cell {
+func (cell *Cell) setStyle(style *style.TextStyle) *Cell {
 	cell.style = style
 	return cell
 }
