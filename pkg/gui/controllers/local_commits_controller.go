@@ -299,7 +299,7 @@ func secondaryPatchPanelUpdateOpts(c *ControllerCommon) *types.ViewUpdateOpts {
 
 func (self *LocalCommitsController) squashDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
 	if self.isRebasing() {
-		return self.updateTodos(todo.Squash, selectedCommits)
+		return self.updateTodos(todo.Squash, "", selectedCommits)
 	}
 
 	self.c.Confirm(types.ConfirmOpts{
@@ -308,7 +308,7 @@ func (self *LocalCommitsController) squashDown(selectedCommits []*models.Commit,
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SquashCommitDown)
-				return self.interactiveRebase(todo.Squash, startIdx, endIdx)
+				return self.interactiveRebase(todo.Squash, "", startIdx, endIdx)
 			})
 		},
 	})
@@ -318,7 +318,7 @@ func (self *LocalCommitsController) squashDown(selectedCommits []*models.Commit,
 
 func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
 	if self.isRebasing() {
-		return self.updateTodos(todo.Fixup, selectedCommits)
+		return self.updateTodos(todo.Fixup, "", selectedCommits)
 	}
 
 	self.c.Confirm(types.ConfirmOpts{
@@ -327,7 +327,7 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.FixupCommit)
-				return self.interactiveRebase(todo.Fixup, startIdx, endIdx)
+				return self.interactiveRebase(todo.Fixup, "", startIdx, endIdx)
 			})
 		},
 	})
@@ -463,14 +463,14 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 
 					self.context().SetSelectionRangeAndMode(selectedIdx, rangeStartIdx, rangeSelectMode)
 
-					return self.updateTodos(todo.Drop, nonUpdateRefTodos)
+					return self.updateTodos(todo.Drop, "", nonUpdateRefTodos)
 				},
 			})
 
 			return nil
 		}
 
-		return self.updateTodos(todo.Drop, selectedCommits)
+		return self.updateTodos(todo.Drop, "", selectedCommits)
 	}
 
 	isMerge := selectedCommits[0].IsMerge()
@@ -484,7 +484,7 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 				if isMerge {
 					return self.dropMergeCommit(startIdx)
 				}
-				return self.interactiveRebase(todo.Drop, startIdx, endIdx)
+				return self.interactiveRebase(todo.Drop, "", startIdx, endIdx)
 			})
 		},
 	})
@@ -499,13 +499,13 @@ func (self *LocalCommitsController) dropMergeCommit(commitIdx int) error {
 
 func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
 	if self.isRebasing() {
-		return self.updateTodos(todo.Edit, selectedCommits)
+		return self.updateTodos(todo.Edit, "", selectedCommits)
 	}
 
 	commits := self.c.Model().Commits
 	if !commits[endIdx].IsMerge() {
 		selectionRangeAndMode := self.getSelectionRangeAndMode()
-		err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit)
+		err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit, "")
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
 			types.RefreshOptions{
@@ -545,7 +545,7 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 					}
 				}
 				if len(todos) > 0 {
-					err := self.updateTodos(todo.Edit, todos)
+					err := self.updateTodos(todo.Edit, "", todos)
 					if err != nil {
 						self.c.Log.Errorf("error when updating todos: %v", err)
 					}
@@ -604,20 +604,20 @@ func (self *LocalCommitsController) findCommitForQuickStartInteractiveRebase() (
 
 func (self *LocalCommitsController) pick(selectedCommits []*models.Commit) error {
 	if self.isRebasing() {
-		return self.updateTodos(todo.Pick, selectedCommits)
+		return self.updateTodos(todo.Pick, "", selectedCommits)
 	}
 
 	panic("should be disabled when not rebasing")
 }
 
-func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand, startIdx int, endIdx int) error {
+func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand, flag string, startIdx int, endIdx int) error {
 	// When performing an action that will remove the selected commits, we need to select the
 	// next commit down (which will end up at the start index after the action is performed)
 	if action == todo.Drop || action == todo.Fixup || action == todo.Squash {
 		self.context().SetSelection(startIdx)
 	}
 
-	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, startIdx, endIdx, action)
+	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, startIdx, endIdx, action, flag)
 
 	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 }
@@ -625,8 +625,8 @@ func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand, s
 // updateTodos sees if the selected commit is in fact a rebasing
 // commit meaning you are trying to edit the todo file rather than actually
 // begin a rebase. It then updates the todo file with that action
-func (self *LocalCommitsController) updateTodos(action todo.TodoCommand, selectedCommits []*models.Commit) error {
-	if err := self.c.Git().Rebase.EditRebaseTodo(selectedCommits, action); err != nil {
+func (self *LocalCommitsController) updateTodos(action todo.TodoCommand, flag string, selectedCommits []*models.Commit) error {
+	if err := self.c.Git().Rebase.EditRebaseTodo(selectedCommits, action, flag); err != nil {
 		return err
 	}
 
