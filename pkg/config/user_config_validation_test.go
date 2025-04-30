@@ -92,10 +92,7 @@ func TestUserConfigValidate_enums(t *testing.T) {
 				{value: "<disabled>", valid: true},
 				{value: "q", valid: true},
 				{value: "<c-c>", valid: true},
-				/* EXPECTED:
 				{value: "invalid_value", valid: false},
-				ACTUAL */
-				{value: "invalid_value", valid: true},
 			},
 		},
 		{
