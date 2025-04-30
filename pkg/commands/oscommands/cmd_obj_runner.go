@@ -238,7 +238,13 @@ func (self *cmdObjRunner) runAndStreamAux(
 	var stderr bytes.Buffer
 	cmd.Stderr = io.MultiWriter(cmdWriter, &stderr)
 
-	handler, err := self.getCmdHandlerPty(cmd)
+	var handler *cmdHandler
+	var err error
+	if cmdObj.ShouldUsePty() {
+		handler, err = self.getCmdHandlerPty(cmd)
+	} else {
+		handler, err = self.getCmdHandlerNonPty(cmd)
+	}
 	if err != nil {
 		return err
 	}

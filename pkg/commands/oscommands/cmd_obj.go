@@ -22,6 +22,9 @@ type CmdObj struct {
 	// see StreamOutput()
 	streamOutput bool
 
+	// see UsePty()
+	usePty bool
+
 	// see IgnoreEmptyError()
 	ignoreEmptyError bool
 
@@ -125,6 +128,19 @@ func (self *CmdObj) ShouldStreamOutput() bool {
 	return self.streamOutput
 }
 
+// when you call this, then call Run(), we'll use a PTY to run the command. Only
+// has an effect if StreamOutput() was also called. Ignored on Windows.
+func (self *CmdObj) UsePty() *CmdObj {
+	self.usePty = true
+
+	return self
+}
+
+// returns true if UsePty() was called
+func (self *CmdObj) ShouldUsePty() bool {
+	return self.usePty
+}
+
 // if you call this before ShouldStreamOutput we'll consider an error with no
 // stderr content as a non-error. Not yet supported for Run or RunWithOutput (
 // but adding support is trivial)
@@ -172,6 +188,7 @@ func (self *CmdObj) RunAndProcessLines(onLine func(line string) (bool, error)) e
 
 func (self *CmdObj) PromptOnCredentialRequest(task gocui.Task) *CmdObj {
 	self.credentialStrategy = PROMPT
+	self.usePty = true
 	self.task = task
 
 	return self
