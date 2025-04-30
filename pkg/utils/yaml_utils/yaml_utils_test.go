@@ -282,6 +282,55 @@ foo:
 	}
 }
 
+func TestRemoveKey(t *testing.T) {
+	tests := []struct {
+		name                 string
+		in                   string
+		key                  string
+		expectedOut          string
+		expectedRemovedKey   string
+		expectedRemovedValue string
+	}{
+		{
+			name: "Key not present",
+			in:   "foo: 1",
+			key:  "bar",
+		},
+		{
+			name:                 "Key present",
+			in:                   "foo: 1\nbar: 2\nbaz: 3\n",
+			key:                  "bar",
+			expectedOut:          "foo: 1\nbaz: 3\n",
+			expectedRemovedKey:   "bar",
+			expectedRemovedValue: "2",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			node := unmarshalForTest(t, test.in)
+			removedKey, removedValue := RemoveKey(node.Content[0], test.key)
+			if test.expectedOut == "" {
+				unmodifiedOriginal := unmarshalForTest(t, test.in)
+				assert.Equal(t, unmodifiedOriginal, node)
+			} else {
+				result := marshalForTest(t, &node)
+				assert.Equal(t, test.expectedOut, result)
+			}
+			if test.expectedRemovedKey == "" {
+				assert.Nil(t, removedKey)
+			} else {
+				assert.Equal(t, test.expectedRemovedKey, removedKey.Value)
+			}
+			if test.expectedRemovedValue == "" {
+				assert.Nil(t, removedValue)
+			} else {
+				assert.Equal(t, test.expectedRemovedValue, removedValue.Value)
+			}
+		})
+	}
+}
+
 func unmarshalForTest(t *testing.T, input string) yaml.Node {
 	t.Helper()
 	var node yaml.Node

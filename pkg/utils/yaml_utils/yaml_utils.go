@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"slices"
 
 	"gopkg.in/yaml.v3"
 )
@@ -12,6 +13,19 @@ func lookupKey(node *yaml.Node, key string) (*yaml.Node, *yaml.Node) {
 	for i := 0; i < len(node.Content)-1; i += 2 {
 		if node.Content[i].Value == key {
 			return node.Content[i], node.Content[i+1]
+		}
+	}
+
+	return nil, nil
+}
+
+// Returns the key and value if they were present
+func RemoveKey(node *yaml.Node, key string) (*yaml.Node, *yaml.Node) {
+	for i := 0; i < len(node.Content)-1; i += 2 {
+		if node.Content[i].Value == key {
+			key, value := node.Content[i], node.Content[i+1]
+			node.Content = slices.Delete(node.Content, i, i+2)
+			return key, value
 		}
 	}
 
