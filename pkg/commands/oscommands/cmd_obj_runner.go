@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"io"
+	"os/exec"
 	"regexp"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sasha-s/go-deadlock"
 	"github.com/sirupsen/logrus"
 )
 
@@ -236,7 +238,7 @@ func (self *cmdObjRunner) runAndStreamAux(
 	var stderr bytes.Buffer
 	cmd.Stderr = io.MultiWriter(cmdWriter, &stderr)
 
-	handler, err := self.getCmdHandler(cmd)
+	handler, err := self.getCmdHandlerPty(cmd)
 	if err != nil {
 		return err
 	}
@@ -409,4 +411,39 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (Crede
 		}
 		return 0, false
 	}
+}
+
+type Buffer struct {
+	b bytes.Buffer
+	m deadlock.Mutex
+}
+
+func (b *Buffer) Read(p []byte) (n int, err error) {
+	b.m.Lock()
+	defer b.m.Unlock()
+	return b.b.Read(p)
+}
+
+func (b *Buffer) Write(p []byte) (n int, err error) {
+	b.m.Lock()
+	defer b.m.Unlock()
+	return b.b.Write(p)
+}
+
+func (self *cmdObjRunner) getCmdHandlerNonPty(cmd *exec.Cmd) (*cmdHandler, error) {
+	stdoutReader, stdoutWriter := io.Pipe()
+	cmd.Stdout = stdoutWriter
+
+	buf := &Buffer{}
+	cmd.Stdin = buf
+
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+
+	return &cmdHandler{
+		stdoutPipe: stdoutReader,
+		stdinPipe:  buf,
+		close:      func() error { return nil },
+	}, nil
 }
