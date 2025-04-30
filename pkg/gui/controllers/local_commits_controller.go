@@ -317,22 +317,35 @@ func (self *LocalCommitsController) squashDown(selectedCommits []*models.Commit,
 }
 
 func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
-	if self.isRebasing() {
-		return self.updateTodos(todo.Fixup, "", selectedCommits)
+	f := func(flag string) error {
+		if self.isRebasing() {
+			return self.updateTodos(todo.Fixup, flag, selectedCommits)
+		}
+
+		return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
+			self.c.LogAction(self.c.Tr.Actions.FixupCommit)
+			return self.interactiveRebase(todo.Fixup, flag, startIdx, endIdx)
+		})
 	}
 
-	self.c.Confirm(types.ConfirmOpts{
+	return self.c.Menu(types.CreateMenuOptions{
 		Title:  self.c.Tr.Fixup,
-		Prompt: self.c.Tr.SureFixupThisCommit,
-		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
-				self.c.LogAction(self.c.Tr.Actions.FixupCommit)
-				return self.interactiveRebase(todo.Fixup, "", startIdx, endIdx)
-			})
+		Prompt: "This squashes the selected commit(s) into the commit below it. You can decide which commit message to keep:",
+		Items: []*types.MenuItem{
+			{
+				Label: "Keep the message of the commit below",
+				OnPress: func() error {
+					return f("")
+				},
+			},
+			{
+				Label: "Keep the message of the first selected commit",
+				OnPress: func() error {
+					return f("-C")
+				},
+			},
 		},
 	})
-
-	return nil
 }
 
 func (self *LocalCommitsController) reword(commit *models.Commit) error {
