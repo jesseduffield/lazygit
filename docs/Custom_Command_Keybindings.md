@@ -14,7 +14,7 @@ customCommands:
   - key: 'C'
     context: 'global'
     command: "git commit"
-    subprocess: true
+    output: terminal
   - key: 'n'
     context: 'localBranches'
     prompts:
@@ -53,13 +53,11 @@ For a given custom command, here are the allowed fields:
 | key | The key to trigger the command. Use a single letter or one of the values from [here](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md). Custom commands without a key specified can be triggered by selecting them from the keybindings (`?`) menu | no |
 | command | The command to run (using Go template syntax for placeholder values) | yes |
 | context | The context in which to listen for the key (see [below](#contexts)) | yes |
-| subprocess | Whether you want the command to run in a subprocess (e.g. if the command requires user input) | no |
 | prompts | A list of prompts that will request user input before running the final command | no |
 | loadingText | Text to display while waiting for command to finish | no |
 | description | Label for the custom command when displayed in the keybindings menu | no |
-| stream | Whether you want to stream the command's output to the Command Log panel | no |
-| showOutput | Whether you want to show the command's output in a popup within Lazygit | no |
-| outputTitle | The title to display in the popup panel if showOutput is true. If left unset, the command will be used as the title. | no |
+| output | Where the output of the command should go. 'none' discards it, 'terminal' suspends lazygit and runs the command in the terminal (useful for commands that require user input), 'log' streams it to the command log, 'logWithPty' is like 'log' but runs the command in a pseudo terminal (can be useful for commands that produce colored output when the output is a terminal), and 'popup' shows it in a popup. | no |
+| outputTitle | The title to display in the popup panel if output is set to 'popup'. If left unset, the command will be used as the title. | no |
 | after | Actions to take after the command has completed | no |
 
 Here are the options for the `after` key:
@@ -365,7 +363,7 @@ If you use the commandMenu property, none of the other properties except key and
 
 ## Debugging
 
-If you want to verify that your command actually does what you expect, you can wrap it in an 'echo' call and set `showOutput: true` so that it doesn't actually execute the command but you can see how the placeholders were resolved.
+If you want to verify that your command actually does what you expect, you can wrap it in an 'echo' call and set `output: popup` so that it doesn't actually execute the command but you can see how the placeholders were resolved.
 
 ## More Examples
 

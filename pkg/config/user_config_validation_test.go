@@ -96,6 +96,25 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			},
 		},
 		{
+			name: "Custom command output",
+			setup: func(config *UserConfig, value string) {
+				config.CustomCommands = []CustomCommand{
+					{
+						Output: value,
+					},
+				}
+			},
+			testCases: []testCase{
+				{value: "", valid: true},
+				{value: "none", valid: true},
+				{value: "terminal", valid: true},
+				{value: "log", valid: true},
+				{value: "logWithPty", valid: true},
+				{value: "popup", valid: true},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
 			name: "Custom command sub menu",
 			setup: func(config *UserConfig, _ string) {
 				config.CustomCommands = []CustomCommand{
@@ -132,11 +151,10 @@ func TestUserConfigValidate_enums(t *testing.T) {
 		{
 			name: "Custom command sub menu",
 			setup: func(config *UserConfig, _ string) {
-				falseVal := false
 				config.CustomCommands = []CustomCommand{
 					{
-						Key:        "X",
-						Subprocess: &falseVal, // other properties are not allowed for submenus (using subprocess as an example)
+						Key:         "X",
+						LoadingText: "loading", // other properties are not allowed for submenus (using loadingText as an example)
 						CommandMenu: []CustomCommand{
 							{Key: "1", Command: "echo 'hello'", Context: "global"},
 						},

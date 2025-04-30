@@ -88,6 +88,92 @@ git:
 	}
 }
 
+func TestCustomCommandsOutputMigration(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "Empty String",
+			input:    "",
+			expected: "",
+		}, {
+			name: "Convert subprocess to output=terminal",
+			input: `customCommands:
+  - command: echo 'hello'
+    subprocess: true
+  `,
+			expected: `customCommands:
+  - command: echo 'hello'
+    output: terminal
+`,
+		}, {
+			name: "Convert stream to output=log",
+			input: `customCommands:
+  - command: echo 'hello'
+    stream: true
+  `,
+			expected: `customCommands:
+  - command: echo 'hello'
+    output: log
+`,
+		}, {
+			name: "Convert showOutput to output=popup",
+			input: `customCommands:
+  - command: echo 'hello'
+    showOutput: true
+  `,
+			expected: `customCommands:
+  - command: echo 'hello'
+    output: popup
+`,
+		}, {
+			name: "Subprocess wins over the other two",
+			input: `customCommands:
+  - command: echo 'hello'
+    subprocess: true
+    stream: true
+    showOutput: true
+  `,
+			expected: `customCommands:
+  - command: echo 'hello'
+    output: terminal
+`,
+		}, {
+			name: "Stream wins over showOutput",
+			input: `customCommands:
+  - command: echo 'hello'
+    stream: true
+    showOutput: true
+  `,
+			expected: `customCommands:
+  - command: echo 'hello'
+    output: log
+`,
+		}, {
+			name: "Explicitly setting to false doesn't create an output=none key",
+			input: `customCommands:
+  - command: echo 'hello'
+    subprocess: false
+    stream: false
+    showOutput: false
+  `,
+			expected: `customCommands:
+  - command: echo 'hello'
+`,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			actual, err := computeMigratedConfig("path doesn't matter", []byte(s.input))
+			assert.NoError(t, err)
+			assert.Equal(t, s.expected, string(actual))
+		})
+	}
+}
+
 var largeConfiguration = []byte(`
 # Config relating to the Lazygit UI
 gui:

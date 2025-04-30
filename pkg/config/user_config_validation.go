@@ -104,11 +104,9 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 		if len(customCommand.CommandMenu) > 0 {
 			if len(customCommand.Context) > 0 ||
 				len(customCommand.Command) > 0 ||
-				customCommand.Subprocess != nil ||
 				len(customCommand.Prompts) > 0 ||
 				len(customCommand.LoadingText) > 0 ||
-				customCommand.Stream != nil ||
-				customCommand.ShowOutput != nil ||
+				len(customCommand.Output) > 0 ||
 				len(customCommand.OutputTitle) > 0 ||
 				customCommand.After != nil {
 				commandRef := ""
@@ -119,6 +117,11 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 			}
 
 			if err := validateCustomCommands(customCommand.CommandMenu); err != nil {
+				return err
+			}
+		} else {
+			if err := validateEnum("customCommand.output", customCommand.Output,
+				[]string{"", "none", "terminal", "log", "logWithPty", "popup"}); err != nil {
 				return err
 			}
 		}
