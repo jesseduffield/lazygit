@@ -97,7 +97,7 @@ func TestUserConfigValidate_enums(t *testing.T) {
 				config.CustomCommands = []CustomCommand{
 					{
 						Key:     "X",
-						Context: "global",
+						Context: "global", // context is not allowed for submenus
 						CommandMenu: []CustomCommand{
 							{Key: "1", Command: "echo 'hello'", Context: "global"},
 						},
@@ -115,7 +115,7 @@ func TestUserConfigValidate_enums(t *testing.T) {
 				config.CustomCommands = []CustomCommand{
 					{
 						Key:        "X",
-						Subprocess: &falseVal,
+						Subprocess: &falseVal, // other properties are not allowed for submenus (using subprocess as an example)
 						CommandMenu: []CustomCommand{
 							{Key: "1", Command: "echo 'hello'", Context: "global"},
 						},
