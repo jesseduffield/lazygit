@@ -4,6 +4,7 @@
 package gui
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/creack/pty"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
@@ -81,6 +83,8 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 			if err != nil {
 				gui.c.Log.Error(err)
 			}
+
+			oscommands.LogCmd(fmt.Sprintf("Started cmd: %s, pid: %d", cmd.Args, cmd.Process.Pid))
 
 			gui.Mutexes.PtyMutex.Lock()
 			gui.viewPtmxMap[view.Name()] = ptmx

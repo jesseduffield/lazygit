@@ -168,6 +168,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				self.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
 
 				// Kill the still-running command.
+				oscommands.LogCmd(fmt.Sprintf("Killing cmd pid: %d", cmd.Process.Pid))
 				if err := oscommands.Kill(cmd); err != nil {
 					if !strings.Contains(err.Error(), "process already finished") {
 						self.Log.Errorf("error when trying to kill cmd task: %v; Command: %v %v", err, cmd.Path, cmd.Args)
@@ -307,6 +308,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				default:
 					self.Log.Errorf("Unexpected error when running cmd task: %v; Failed command: %v %v", err, cmd.Path, cmd.Args)
 				}
+			} else {
+				oscommands.LogCmd(fmt.Sprintf("Done running cmd pid: %d", cmd.Process.Pid))
 			}
 
 			// calling this here again in case the program ended on its own accord

@@ -4,6 +4,7 @@
 package oscommands
 
 import (
+	"fmt"
 	"os/exec"
 
 	"github.com/creack/pty"
@@ -16,6 +17,8 @@ func (self *cmdObjRunner) getCmdHandlerPty(cmd *exec.Cmd) (*cmdHandler, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	LogCmd(fmt.Sprintf("Started cmd: %s, pid: %d", cmd.Args, cmd.Process.Pid))
 
 	return &cmdHandler{
 		stdoutPipe: ptmx,

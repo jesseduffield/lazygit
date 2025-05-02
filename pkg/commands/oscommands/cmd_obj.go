@@ -19,6 +19,8 @@ type CmdObj struct {
 	// see DontLog()
 	dontLog bool
 
+	LogHackSuppressed bool
+
 	// see StreamOutput()
 	streamOutput bool
 
@@ -108,6 +110,11 @@ func (self *CmdObj) SetWd(wd string) *CmdObj {
 // to notify the user about.
 func (self *CmdObj) DontLog() *CmdObj {
 	self.dontLog = true
+	return self
+}
+
+func (self *CmdObj) SuppressLogHack() *CmdObj {
+	self.LogHackSuppressed = true
 	return self
 }
 

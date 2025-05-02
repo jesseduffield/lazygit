@@ -1,11 +1,13 @@
 package gui
 
 import (
+	"fmt"
 	"io"
 	"os/exec"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 )
 
@@ -28,6 +30,8 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		if err := cmd.Start(); err != nil {
 			gui.c.Log.Error(err)
 		}
+
+		oscommands.LogCmd(fmt.Sprintf("Started cmd: %s, pid: %d", cmd.Args, cmd.Process.Pid))
 
 		return cmd, r
 	}

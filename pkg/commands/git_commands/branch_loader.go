@@ -176,7 +176,7 @@ func (self *BranchLoader) GetBehindBaseBranchValuesForAllBranches(
 						Arg("--count").
 						Arg(fmt.Sprintf("%s...%s", branch.FullRefName(), baseBranch)).
 						ToArgv(),
-				).DontLog().RunWithOutput()
+				).DontLog().SuppressLogHack().RunWithOutput()
 				if err != nil {
 					return err
 				}
@@ -220,7 +220,7 @@ func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *Mai
 			Arg("--format=%(refname)").
 			Arg(mainBranches.Get()...).
 			ToArgv(),
-	).DontLog().RunWithOutput()
+	).DontLog().SuppressLogHack().RunWithOutput()
 	if err != nil {
 		return "", err
 	}

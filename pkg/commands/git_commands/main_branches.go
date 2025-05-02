@@ -71,7 +71,7 @@ func (self *MainBranches) GetMergeBase(refName string) string {
 	output, _ := self.cmd.New(
 		NewGitCmd("merge-base").Arg(refName).Arg(mainBranches...).
 			ToArgv(),
-	).DontLog().RunWithOutput()
+	).DontLog().SuppressLogHack().RunWithOutput()
 	return ignoringWarnings(output)
 }
 

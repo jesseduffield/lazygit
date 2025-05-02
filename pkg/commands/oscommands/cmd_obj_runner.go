@@ -3,7 +3,9 @@ package oscommands
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -28,6 +30,16 @@ type cmdObjRunner struct {
 }
 
 var _ ICmdObjRunner = &cmdObjRunner{}
+
+func LogCmd(message string) {
+	f, err := os.OpenFile("/tmp/git.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o644)
+	if err != nil {
+		return
+	}
+	timestamp := time.Now().Format(time.DateTime)
+	_, _ = f.WriteString(fmt.Sprintf("%s: # lazygit # %s\n", timestamp, message))
+	_ = f.Close()
+}
 
 func (self *cmdObjRunner) Run(cmdObj *CmdObj) error {
 	if cmdObj.Mutex() != nil {
@@ -105,7 +117,13 @@ func (self *cmdObjRunner) RunWithOutputAux(cmdObj *CmdObj) (string, error) {
 	}
 
 	t := time.Now()
+	if !cmdObj.LogHackSuppressed {
+		LogCmd(fmt.Sprintf("Starting cmd: %s", cmdObj.ToString()))
+	}
 	output, err := sanitisedCommandOutput(cmdObj.GetCmd().CombinedOutput())
+	if !cmdObj.LogHackSuppressed {
+		LogCmd(fmt.Sprintf("Done running cmd: %s, pid: %d", cmdObj.ToString(), cmdObj.GetCmd().Process.Pid))
+	}
 	if err != nil {
 		self.log.WithField("command", cmdObj.ToString()).Error(output)
 	}
@@ -127,7 +145,13 @@ func (self *cmdObjRunner) RunWithOutputsAux(cmdObj *CmdObj) (string, string, err
 	cmd := cmdObj.GetCmd()
 	cmd.Stdout = &outBuffer
 	cmd.Stderr = &errBuffer
+	if !cmdObj.LogHackSuppressed {
+		LogCmd(fmt.Sprintf("Starting cmd: %s", cmdObj.ToString()))
+	}
 	err := cmd.Run()
+	if !cmdObj.LogHackSuppressed {
+		LogCmd(fmt.Sprintf("Done running cmd: %s, pid: %d", cmdObj.ToString(), cmdObj.GetCmd().Process.Pid))
+	}
 
 	self.log.Infof("%s (%s)", cmdObj.ToString(), time.Since(t))
 
@@ -167,6 +191,10 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj *CmdObj, onLine func(line st
 		return err
 	}
 
+	if !cmdObj.LogHackSuppressed {
+		LogCmd(fmt.Sprintf("Started cmd: %s, pid: %d", cmdObj.ToString(), cmdObj.GetCmd().Process.Pid))
+	}
+
 	for scanner.Scan() {
 		line := scanner.Text()
 		stop, err := onLine(line)
@@ -174,17 +202,23 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj *CmdObj, onLine func(line st
 			return err
 		}
 		if stop {
+			LogCmd(fmt.Sprintf("Killing cmd pid: %d", cmdObj.GetCmd().Process.Pid))
 			_ = Kill(cmd)
 			break
 		}
 	}
 
 	if scanner.Err() != nil {
+		LogCmd(fmt.Sprintf("Scanner failed, killing cmd pid: %d", cmdObj.GetCmd().Process.Pid))
 		_ = Kill(cmd)
 		return scanner.Err()
 	}
 
 	_ = cmd.Wait()
+
+	if !cmdObj.LogHackSuppressed {
+		LogCmd(fmt.Sprintf("Done running cmd: %s, pid: %d", cmdObj.ToString(), cmdObj.GetCmd().Process.Pid))
+	}
 
 	self.log.Infof("%s (%s)", cmdObj.ToString(), time.Since(t))
 
@@ -361,6 +395,8 @@ func (self *cmdObjRunner) processOutput(
 				// Note that we don't break the loop after this, because we
 				// still need to drain the output, otherwise the Wait() call
 				// later might block.
+
+				LogCmd(fmt.Sprintf("Killing cmd pid: %d", cmdObj.GetCmd().Process.Pid))
 				if err := Kill(cmdObj.GetCmd()); err != nil {
 					self.log.Error(err)
 				}
@@ -453,6 +489,8 @@ func (self *cmdObjRunner) getCmdHandlerNonPty(cmd *exec.Cmd) (*cmdHandler, error
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
+
+	LogCmd(fmt.Sprintf("Started cmd: %s, pid: %d", cmd.Args, cmd.Process.Pid))
 
 	return &cmdHandler{
 		stdoutPipe: stdoutReader,
