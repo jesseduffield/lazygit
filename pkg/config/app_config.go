@@ -96,7 +96,7 @@ func NewAppConfig(
 		configFiles = []*ConfigFile{configFile}
 	}
 
-	userConfig, err := loadUserConfigWithDefaults(configFiles)
+	userConfig, err := loadUserConfigWithDefaults(configFiles, false)
 	if err != nil {
 		return nil, err
 	}
@@ -145,11 +145,11 @@ func findOrCreateConfigDir() (string, error) {
 	return folder, os.MkdirAll(folder, 0o755)
 }
 
-func loadUserConfigWithDefaults(configFiles []*ConfigFile) (*UserConfig, error) {
-	return loadUserConfig(configFiles, GetDefaultConfig())
+func loadUserConfigWithDefaults(configFiles []*ConfigFile, isGuiInitialized bool) (*UserConfig, error) {
+	return loadUserConfig(configFiles, GetDefaultConfig(), isGuiInitialized)
 }
 
-func loadUserConfig(configFiles []*ConfigFile, base *UserConfig) (*UserConfig, error) {
+func loadUserConfig(configFiles []*ConfigFile, base *UserConfig, isGuiInitialized bool) (*UserConfig, error) {
 	for _, configFile := range configFiles {
 		path := configFile.Path
 		statInfo, err := os.Stat(path)
@@ -194,7 +194,7 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig) (*UserConfig, e
 			return nil, err
 		}
 
-		content, err = migrateUserConfig(path, content)
+		content, err = migrateUserConfig(path, content, isGuiInitialized)
 		if err != nil {
 			return nil, err
 		}
@@ -219,7 +219,7 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig) (*UserConfig, e
 // config over time; examples are renaming a key to a better name, moving a key
 // from one container to another, or changing the type of a key (e.g. from bool
 // to an enum).
-func migrateUserConfig(path string, content []byte) ([]byte, error) {
+func migrateUserConfig(path string, content []byte, isGuiInitialized bool) ([]byte, error) {
 	changedContent, didChange, err := computeMigratedConfig(path, content)
 	if err != nil {
 		return nil, err
@@ -231,11 +231,15 @@ func migrateUserConfig(path string, content []byte) ([]byte, error) {
 	}
 
 	// Write config back
-	fmt.Println("Provided user config is deprecated but auto-fixable. Attempting to write fixed version back to file...")
+	if !isGuiInitialized {
+		fmt.Println("Provided user config is deprecated but auto-fixable. Attempting to write fixed version back to file...")
+	}
 	if err := os.WriteFile(path, changedContent, 0o644); err != nil {
 		return nil, fmt.Errorf("While attempting to write back fixed user config to %s, an error occurred: %s", path, err)
 	}
-	fmt.Printf("Success. New config written to %s\n", path)
+	if !isGuiInitialized {
+		fmt.Printf("Success. New config written to %s\n", path)
+	}
 	return changedContent, nil
 }
 
@@ -472,7 +476,7 @@ func (c *AppConfig) GetUserConfigDir() string {
 
 func (c *AppConfig) ReloadUserConfigForRepo(repoConfigFiles []*ConfigFile) error {
 	configFiles := append(c.globalUserConfigFiles, repoConfigFiles...)
-	userConfig, err := loadUserConfigWithDefaults(configFiles)
+	userConfig, err := loadUserConfigWithDefaults(configFiles, true)
 	if err != nil {
 		return err
 	}
@@ -497,7 +501,7 @@ func (c *AppConfig) ReloadChangedUserConfigFiles() (error, bool) {
 		return nil, false
 	}
 
-	userConfig, err := loadUserConfigWithDefaults(c.userConfigFiles)
+	userConfig, err := loadUserConfigWithDefaults(c.userConfigFiles, true)
 	if err != nil {
 		return err, false
 	}
