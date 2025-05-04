@@ -80,9 +80,7 @@ git:
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
 			actual, err := computeMigratedConfig("path doesn't matter", []byte(s.input))
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 			assert.Equal(t, s.expected, string(actual))
 		})
 	}
