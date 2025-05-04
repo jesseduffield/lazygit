@@ -220,13 +220,13 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig) (*UserConfig, e
 // from one container to another, or changing the type of a key (e.g. from bool
 // to an enum).
 func migrateUserConfig(path string, content []byte) ([]byte, error) {
-	changedContent, err := computeMigratedConfig(path, content)
+	changedContent, didChange, err := computeMigratedConfig(path, content)
 	if err != nil {
 		return nil, err
 	}
 
 	// Nothing to do if config didn't change
-	if string(changedContent) == string(content) {
+	if !didChange {
 		return content, nil
 	}
 
@@ -240,17 +240,17 @@ func migrateUserConfig(path string, content []byte) ([]byte, error) {
 }
 
 // A pure function helper for testing purposes
-func computeMigratedConfig(path string, content []byte) ([]byte, error) {
+func computeMigratedConfig(path string, content []byte) ([]byte, bool, error) {
 	var err error
 	var rootNode yaml.Node
 	err = yaml.Unmarshal(content, &rootNode)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse YAML: %w", err)
+		return nil, false, fmt.Errorf("failed to parse YAML: %w", err)
 	}
 	var originalCopy yaml.Node
 	err = yaml.Unmarshal(content, &originalCopy)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse YAML, but only the second time!?!? How did that happen: %w", err)
+		return nil, false, fmt.Errorf("failed to parse YAML, but only the second time!?!? How did that happen: %w", err)
 	}
 
 	pathsToReplace := []struct {
@@ -265,46 +265,46 @@ func computeMigratedConfig(path string, content []byte) ([]byte, error) {
 	for _, pathToReplace := range pathsToReplace {
 		err := yaml_utils.RenameYamlKey(&rootNode, pathToReplace.oldPath, pathToReplace.newName)
 		if err != nil {
-			return nil, fmt.Errorf("Couldn't migrate config file at `%s` for key %s: %s", path, strings.Join(pathToReplace.oldPath, "."), err)
+			return nil, false, fmt.Errorf("Couldn't migrate config file at `%s` for key %s: %s", path, strings.Join(pathToReplace.oldPath, "."), err)
 		}
 	}
 
 	err = changeNullKeybindingsToDisabled(&rootNode)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
 	}
 
 	err = changeElementToSequence(&rootNode, []string{"git", "commitPrefix"})
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
 	}
 
 	err = changeCommitPrefixesMap(&rootNode)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
 	}
 
 	err = changeCustomCommandStreamAndOutputToOutputEnum(&rootNode)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
 	}
 
 	err = migrateAllBranchesLogCmd(&rootNode)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
 	}
 
 	// Add more migrations here...
 
 	if reflect.DeepEqual(rootNode, originalCopy) {
-		return content, nil
+		return nil, false, nil
 	}
 
 	newContent, err := yaml_utils.YamlMarshal(&rootNode)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to remarsal!\n %w", err)
+		return nil, false, fmt.Errorf("Failed to remarsal!\n %w", err)
 	}
-	return newContent, nil
+	return newContent, true, nil
 }
 
 func changeNullKeybindingsToDisabled(rootNode *yaml.Node) error {
