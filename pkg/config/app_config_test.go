@@ -8,14 +8,15 @@ import (
 
 func TestCommitPrefixMigrations(t *testing.T) {
 	scenarios := []struct {
-		name     string
-		input    string
-		expected string
+		name              string
+		input             string
+		expected          string
+		expectedDidChange bool
 	}{
 		{
-			name:     "Empty String",
-			input:    "",
-			expected: "",
+			name:              "Empty String",
+			input:             "",
+			expectedDidChange: false,
 		},
 		{
 			name: "Single CommitPrefix Rename",
@@ -29,6 +30,7 @@ func TestCommitPrefixMigrations(t *testing.T) {
     - pattern: "^\\w+-\\w+.*"
       replace: '[JIRA $0] '
 `,
+			expectedDidChange: true,
 		},
 		{
 			name: "Complicated CommitPrefixes Rename",
@@ -50,15 +52,14 @@ func TestCommitPrefixMigrations(t *testing.T) {
       - pattern: "^foo.bar*"
         replace: '[FUN $0] '
 `,
+			expectedDidChange: true,
 		},
 		{
-			name:     "Incomplete Configuration",
-			input:    "git:",
-			expected: "git:",
+			name:              "Incomplete Configuration",
+			input:             "git:",
+			expectedDidChange: false,
 		},
 		{
-			// This test intentionally uses non-standard indentation to test that the migration
-			// does not change the input.
 			name: "No changes made when already migrated",
 			input: `
 git:
@@ -69,37 +70,33 @@ git:
     foo:
       - pattern: "^\\w+-\\w+.*"
         replace: '[JIRA $0] '`,
-			expected: `
-git:
-   commitPrefix:
-    - pattern: "Hello World"
-      replace: "Goodbye"
-   commitPrefixes:
-    foo:
-      - pattern: "^\\w+-\\w+.*"
-        replace: '[JIRA $0] '`,
+			expectedDidChange: false,
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			actual, err := computeMigratedConfig("path doesn't matter", []byte(s.input))
+			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input))
 			assert.NoError(t, err)
-			assert.Equal(t, s.expected, string(actual))
+			assert.Equal(t, s.expectedDidChange, didChange)
+			if didChange {
+				assert.Equal(t, s.expected, string(actual))
+			}
 		})
 	}
 }
 
 func TestCustomCommandsOutputMigration(t *testing.T) {
 	scenarios := []struct {
-		name     string
-		input    string
-		expected string
+		name              string
+		input             string
+		expected          string
+		expectedDidChange bool
 	}{
 		{
-			name:     "Empty String",
-			input:    "",
-			expected: "",
+			name:              "Empty String",
+			input:             "",
+			expectedDidChange: false,
 		},
 		{
 			name: "Convert subprocess to output=terminal",
@@ -111,6 +108,7 @@ func TestCustomCommandsOutputMigration(t *testing.T) {
   - command: echo 'hello'
     output: terminal
 `,
+			expectedDidChange: true,
 		},
 		{
 			name: "Convert stream to output=log",
@@ -122,6 +120,7 @@ func TestCustomCommandsOutputMigration(t *testing.T) {
   - command: echo 'hello'
     output: log
 `,
+			expectedDidChange: true,
 		},
 		{
 			name: "Convert showOutput to output=popup",
@@ -133,6 +132,7 @@ func TestCustomCommandsOutputMigration(t *testing.T) {
   - command: echo 'hello'
     output: popup
 `,
+			expectedDidChange: true,
 		},
 		{
 			name: "Subprocess wins over the other two",
@@ -146,6 +146,7 @@ func TestCustomCommandsOutputMigration(t *testing.T) {
   - command: echo 'hello'
     output: terminal
 `,
+			expectedDidChange: true,
 		},
 		{
 			name: "Stream wins over showOutput",
@@ -158,6 +159,7 @@ func TestCustomCommandsOutputMigration(t *testing.T) {
   - command: echo 'hello'
     output: log
 `,
+			expectedDidChange: true,
 		},
 		{
 			name: "Explicitly setting to false doesn't create an output=none key",
@@ -170,14 +172,18 @@ func TestCustomCommandsOutputMigration(t *testing.T) {
 			expected: `customCommands:
   - command: echo 'hello'
 `,
+			expectedDidChange: true,
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			actual, err := computeMigratedConfig("path doesn't matter", []byte(s.input))
+			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input))
 			assert.NoError(t, err)
-			assert.Equal(t, s.expected, string(actual))
+			assert.Equal(t, s.expectedDidChange, didChange)
+			if didChange {
+				assert.Equal(t, s.expected, string(actual))
+			}
 		})
 	}
 }
@@ -786,20 +792,21 @@ keybinding:
 
 func BenchmarkMigrationOnLargeConfiguration(b *testing.B) {
 	for b.Loop() {
-		_, _ = computeMigratedConfig("path doesn't matter", largeConfiguration)
+		_, _, _ = computeMigratedConfig("path doesn't matter", largeConfiguration)
 	}
 }
 
 func TestAllBranchesLogCmdMigrations(t *testing.T) {
 	scenarios := []struct {
-		name     string
-		input    string
-		expected string
+		name              string
+		input             string
+		expected          string
+		expectedDidChange bool
 	}{
 		{
-			name:     "Incomplete Configuration Passes uneventfully",
-			input:    "git:",
-			expected: "git:",
+			name:              "Incomplete Configuration Passes uneventfully",
+			input:             "git:",
+			expectedDidChange: false,
 		},
 		{
 			name: "Single Cmd with no Cmds",
@@ -810,6 +817,7 @@ func TestAllBranchesLogCmdMigrations(t *testing.T) {
   allBranchesLogCmds:
     - git log --graph --oneline
 `,
+			expectedDidChange: true,
 		},
 		{
 			name: "Cmd with one existing Cmds",
@@ -823,6 +831,7 @@ func TestAllBranchesLogCmdMigrations(t *testing.T) {
     - git log --graph --oneline
     - git log --graph --oneline --pretty
 `,
+			expectedDidChange: true,
 		},
 		{
 			name: "Only Cmds set have no changes",
@@ -830,10 +839,7 @@ func TestAllBranchesLogCmdMigrations(t *testing.T) {
   allBranchesLogCmds:
     - git log
 `,
-			expected: `git:
-  allBranchesLogCmds:
-    - git log
-`,
+			expected: "",
 		},
 		{
 			name: "Removes Empty Cmd When at end of yaml",
@@ -846,6 +852,7 @@ func TestAllBranchesLogCmdMigrations(t *testing.T) {
   allBranchesLogCmds:
     - git log --graph --oneline
 `,
+			expectedDidChange: true,
 		},
 		{
 			name: "Migrates when sequence defined inline",
@@ -856,6 +863,7 @@ func TestAllBranchesLogCmdMigrations(t *testing.T) {
 			expected: `git:
   allBranchesLogCmds: [baz, foo, bar]
 `,
+			expectedDidChange: true,
 		},
 		{
 			name: "Removes Empty Cmd With Keys Afterwards",
@@ -870,14 +878,18 @@ func TestAllBranchesLogCmdMigrations(t *testing.T) {
     - git log --graph --oneline
   foo: bar
 `,
+			expectedDidChange: true,
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			actual, err := computeMigratedConfig("path doesn't matter", []byte(s.input))
+			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input))
 			assert.NoError(t, err)
-			assert.Equal(t, s.expected, string(actual))
+			assert.Equal(t, s.expectedDidChange, didChange)
+			if didChange {
+				assert.Equal(t, s.expected, string(actual))
+			}
 		})
 	}
 }
