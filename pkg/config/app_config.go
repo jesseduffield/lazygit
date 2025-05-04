@@ -225,17 +225,18 @@ func migrateUserConfig(path string, content []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	// Write config back if changed
-	if string(changedContent) != string(content) {
-		fmt.Println("Provided user config is deprecated but auto-fixable. Attempting to write fixed version back to file...")
-		if err := os.WriteFile(path, changedContent, 0o644); err != nil {
-			return nil, fmt.Errorf("While attempting to write back fixed user config to %s, an error occurred: %s", path, err)
-		}
-		fmt.Printf("Success. New config written to %s\n", path)
-		return changedContent, nil
+	// Nothing to do if config didn't change
+	if string(changedContent) == string(content) {
+		return content, nil
 	}
 
-	return content, nil
+	// Write config back
+	fmt.Println("Provided user config is deprecated but auto-fixable. Attempting to write fixed version back to file...")
+	if err := os.WriteFile(path, changedContent, 0o644); err != nil {
+		return nil, fmt.Errorf("While attempting to write back fixed user config to %s, an error occurred: %s", path, err)
+	}
+	fmt.Printf("Success. New config written to %s\n", path)
+	return changedContent, nil
 }
 
 // A pure function helper for testing purposes
@@ -295,15 +296,15 @@ func computeMigratedConfig(path string, content []byte) ([]byte, error) {
 
 	// Add more migrations here...
 
-	if !reflect.DeepEqual(rootNode, originalCopy) {
-		newContent, err := yaml_utils.YamlMarshal(&rootNode)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to remarsal!\n %w", err)
-		}
-		return newContent, nil
-	} else {
+	if reflect.DeepEqual(rootNode, originalCopy) {
 		return content, nil
 	}
+
+	newContent, err := yaml_utils.YamlMarshal(&rootNode)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to remarsal!\n %w", err)
+	}
+	return newContent, nil
 }
 
 func changeNullKeybindingsToDisabled(rootNode *yaml.Node) error {
