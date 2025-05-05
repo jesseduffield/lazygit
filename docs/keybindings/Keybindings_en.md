@@ -190,7 +190,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Main panel (merging)
 
@@ -261,7 +261,7 @@ Note that this disregards the selection, the new branch is always created either
 |-----|--------|-------------|
 | `` <enter> `` | Execute |  |
 | `` <esc> `` | Close |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Reflog
 
@@ -283,7 +283,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Remote branches
 
@@ -302,7 +302,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Remotes
 
@@ -313,7 +313,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
 | `` e `` | Edit | Edit the selected remote's name or URL. |
 | `` f `` | Fetch | Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches. |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Secondary
 
@@ -335,7 +335,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Status
 
@@ -381,7 +381,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` e `` | Update submodule URL |  |
 | `` i `` | Initialize | Initialize the selected submodule to prepare for fetching. You probably want to follow this up by invoking the 'update' action to fetch the submodule. |
 | `` b `` | View bulk submodule options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Tags
 
@@ -397,7 +397,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Worktrees
 
@@ -407,4 +407,4 @@ Note that this disregards the selection, the new branch is always created either
 | `` <space> `` | Switch | Switch to the selected worktree. |
 | `` o `` | Open in editor |  |
 | `` d `` | Remove | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |

@@ -59,7 +59,7 @@ _Связки клавиш_
 | `` <space> `` | Switch | Switch to the selected worktree. |
 | `` o `` | Open in editor |  |
 | `` d `` | Remove | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Вторичный
 
@@ -152,7 +152,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Коммиты
 
@@ -226,7 +226,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Меню
 
@@ -234,7 +234,7 @@ Note that this disregards the selection, the new branch is always created either
 |-----|--------|-------------|
 | `` <enter> `` | Выполнить |  |
 | `` <esc> `` | Закрыть |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Панель Подтверждения
 
@@ -277,7 +277,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` e `` | Обновить URL подмодуля |  |
 | `` i `` | Initialize | Инициализировать подмодуль |
 | `` b `` | Просмотреть параметры массового подмодуля |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Сводка коммита
 
@@ -330,7 +330,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Удалённые ветки
 
@@ -349,7 +349,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Удалённые репозитории
 
@@ -360,7 +360,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
 | `` e `` | Edit | Редактировать удалённый репозитории |
 | `` f `` | Получить изменения | Получение изменения из удалённого репозитория |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Файлы
 
@@ -407,4 +407,4 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть файлы выбранного элемента |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
