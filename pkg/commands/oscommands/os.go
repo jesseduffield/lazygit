@@ -208,13 +208,13 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 }
 
 // PipeCommands runs a heap of commands and pipes their inputs/outputs together like A | B | C
-func (c *OSCommand) PipeCommands(cmdObjs ...ICmdObj) error {
-	cmds := lo.Map(cmdObjs, func(cmdObj ICmdObj, _ int) *exec.Cmd {
+func (c *OSCommand) PipeCommands(cmdObjs ...*CmdObj) error {
+	cmds := lo.Map(cmdObjs, func(cmdObj *CmdObj, _ int) *exec.Cmd {
 		return cmdObj.GetCmd()
 	})
 
 	logCmdStr := strings.Join(
-		lo.Map(cmdObjs, func(cmdObj ICmdObj, _ int) string {
+		lo.Map(cmdObjs, func(cmdObj *CmdObj, _ int) string {
 			return cmdObj.ToString()
 		}),
 		" | ",

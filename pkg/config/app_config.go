@@ -281,6 +281,11 @@ func computeMigratedConfig(path string, content []byte) ([]byte, error) {
 		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
 	}
 
+	err = changeCustomCommandStreamAndOutputToOutputEnum(&rootNode)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+	}
+
 	// Add more migrations here...
 
 	if !reflect.DeepEqual(rootNode, originalCopy) {
@@ -338,6 +343,46 @@ func changeCommitPrefixesMap(rootNode *yaml.Node) error {
 			}
 		}
 		return nil
+	})
+}
+
+func changeCustomCommandStreamAndOutputToOutputEnum(rootNode *yaml.Node) error {
+	return yaml_utils.Walk(rootNode, func(node *yaml.Node, path string) {
+		// We are being lazy here and rely on the fact that the only mapping
+		// nodes in the tree under customCommands are actual custom commands. If
+		// this ever changes (e.g. because we add a struct field to
+		// customCommand), then we need to change this to iterate properly.
+		if strings.HasPrefix(path, "customCommands[") && node.Kind == yaml.MappingNode {
+			output := ""
+			if streamKey, streamValue := yaml_utils.RemoveKey(node, "subprocess"); streamKey != nil {
+				if streamValue.Kind == yaml.ScalarNode && streamValue.Value == "true" {
+					output = "terminal"
+				}
+			}
+			if streamKey, streamValue := yaml_utils.RemoveKey(node, "stream"); streamKey != nil {
+				if streamValue.Kind == yaml.ScalarNode && streamValue.Value == "true" && output == "" {
+					output = "log"
+				}
+			}
+			if streamKey, streamValue := yaml_utils.RemoveKey(node, "showOutput"); streamKey != nil {
+				if streamValue.Kind == yaml.ScalarNode && streamValue.Value == "true" && output == "" {
+					output = "popup"
+				}
+			}
+			if output != "" {
+				outputKeyNode := &yaml.Node{
+					Kind:  yaml.ScalarNode,
+					Value: "output",
+					Tag:   "!!str",
+				}
+				outputValueNode := &yaml.Node{
+					Kind:  yaml.ScalarNode,
+					Value: output,
+					Tag:   "!!str",
+				}
+				node.Content = append(node.Content, outputKeyNode, outputValueNode)
+			}
+		}
 	})
 }
 

@@ -69,7 +69,7 @@ func TestRebaseRebaseBranch(t *testing.T) {
 // environment variables that suppress an interactive editor
 func TestRebaseSkipEditorCommand(t *testing.T) {
 	cmdArgs := []string{"git", "blah"}
-	runner := oscommands.NewFakeRunner(t).ExpectFunc("matches editor env var", func(cmdObj oscommands.ICmdObj) bool {
+	runner := oscommands.NewFakeRunner(t).ExpectFunc("matches editor env var", func(cmdObj *oscommands.CmdObj) bool {
 		assert.EqualValues(t, cmdArgs, cmdObj.Args())
 		envVars := cmdObj.GetEnvVars()
 		for _, regexStr := range []string{

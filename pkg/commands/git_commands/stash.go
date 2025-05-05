@@ -80,7 +80,7 @@ func (self *StashCommands) Hash(index int) (string, error) {
 	return strings.Trim(hash, "\r\n"), err
 }
 
-func (self *StashCommands) ShowStashEntryCmdObj(index int) oscommands.ICmdObj {
+func (self *StashCommands) ShowStashEntryCmdObj(index int) *oscommands.CmdObj {
 	// "-u" is the same as "--include-untracked", but the latter fails in older git versions for some reason
 	cmdArgs := NewGitCmd("stash").Arg("show").
 		Arg("-p").

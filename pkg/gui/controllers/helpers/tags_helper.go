@@ -24,7 +24,7 @@ func NewTagsHelper(c *HelperCommon, commitsHelper *CommitsHelper, gpg *GpgHelper
 
 func (self *TagsHelper) OpenCreateTagPrompt(ref string, onCreate func()) error {
 	doCreateTag := func(tagName string, description string, force bool) error {
-		var command oscommands.ICmdObj
+		var command *oscommands.CmdObj
 		if description != "" || self.c.Git().Config.GetGpgTagSign() {
 			self.c.LogAction(self.c.Tr.Actions.CreateAnnotatedTag)
 			command = self.c.Git().Tag.CreateAnnotatedObj(tagName, ref, description, force)

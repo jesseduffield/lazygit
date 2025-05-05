@@ -15,7 +15,7 @@ func NewTagCommands(gitCommon *GitCommon) *TagCommands {
 	}
 }
 
-func (self *TagCommands) CreateLightweightObj(tagName string, ref string, force bool) oscommands.ICmdObj {
+func (self *TagCommands) CreateLightweightObj(tagName string, ref string, force bool) *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("tag").
 		ArgIf(force, "--force").
 		Arg("--", tagName).
@@ -25,7 +25,7 @@ func (self *TagCommands) CreateLightweightObj(tagName string, ref string, force 
 	return self.cmd.New(cmdArgs)
 }
 
-func (self *TagCommands) CreateAnnotatedObj(tagName, ref, msg string, force bool) oscommands.ICmdObj {
+func (self *TagCommands) CreateAnnotatedObj(tagName, ref, msg string, force bool) *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("tag").Arg(tagName).
 		ArgIf(force, "--force").
 		ArgIf(len(ref) > 0, ref).

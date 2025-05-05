@@ -101,21 +101,29 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 			return err
 		}
 
-		if len(customCommand.CommandMenu) > 0 &&
-			(len(customCommand.Context) > 0 ||
+		if len(customCommand.CommandMenu) > 0 {
+			if len(customCommand.Context) > 0 ||
 				len(customCommand.Command) > 0 ||
-				customCommand.Subprocess != nil ||
 				len(customCommand.Prompts) > 0 ||
 				len(customCommand.LoadingText) > 0 ||
-				customCommand.Stream != nil ||
-				customCommand.ShowOutput != nil ||
+				len(customCommand.Output) > 0 ||
 				len(customCommand.OutputTitle) > 0 ||
-				customCommand.After != nil) {
-			commandRef := ""
-			if len(customCommand.Key) > 0 {
-				commandRef = fmt.Sprintf(" with key '%s'", customCommand.Key)
+				customCommand.After != nil {
+				commandRef := ""
+				if len(customCommand.Key) > 0 {
+					commandRef = fmt.Sprintf(" with key '%s'", customCommand.Key)
+				}
+				return fmt.Errorf("Error with custom command%s: it is not allowed to use both commandMenu and any of the other fields except key and description.", commandRef)
 			}
-			return fmt.Errorf("Error with custom command%s: it is not allowed to use both commandMenu and any of the other fields except key and description.", commandRef)
+
+			if err := validateCustomCommands(customCommand.CommandMenu); err != nil {
+				return err
+			}
+		} else {
+			if err := validateEnum("customCommand.output", customCommand.Output,
+				[]string{"", "none", "terminal", "log", "logWithPty", "popup"}); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

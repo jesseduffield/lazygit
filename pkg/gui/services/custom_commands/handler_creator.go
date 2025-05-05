@@ -262,7 +262,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 
 	cmdObj := self.c.OS().Cmd.NewShell(cmdStr, self.c.UserConfig().OS.ShellFunctionsFile)
 
-	if customCommand.Subprocess != nil && *customCommand.Subprocess {
+	if customCommand.Output == "terminal" {
 		return self.c.RunSubprocessAndRefresh(cmdObj)
 	}
 
@@ -274,8 +274,11 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 	return self.c.WithWaitingStatus(loadingText, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.CustomCommand)
 
-		if customCommand.Stream != nil && *customCommand.Stream {
+		if customCommand.Output == "log" || customCommand.Output == "logWithPty" {
 			cmdObj.StreamOutput()
+		}
+		if customCommand.Output == "logWithPty" {
+			cmdObj.UsePty()
 		}
 		output, err := cmdObj.RunWithOutput()
 
@@ -291,7 +294,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 			return err
 		}
 
-		if customCommand.ShowOutput != nil && *customCommand.ShowOutput {
+		if customCommand.Output == "popup" {
 			if strings.TrimSpace(output) == "" {
 				output = self.c.Tr.EmptyOutput
 			}

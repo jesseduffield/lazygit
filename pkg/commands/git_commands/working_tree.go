@@ -29,7 +29,7 @@ func NewWorkingTreeCommands(
 	}
 }
 
-func (self *WorkingTreeCommands) OpenMergeToolCmdObj() oscommands.ICmdObj {
+func (self *WorkingTreeCommands) OpenMergeToolCmdObj() *oscommands.CmdObj {
 	return self.cmd.New(NewGitCmd("mergetool").ToArgv())
 }
 
@@ -255,7 +255,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool,
 	return s
 }
 
-func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) oscommands.ICmdObj {
+func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) *oscommands.CmdObj {
 	colorArg := self.UserConfig().Git.Paging.ColorArg
 	if plain {
 		colorArg = "never"
@@ -293,7 +293,7 @@ func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bo
 	return self.ShowFileDiffCmdObj(from, to, reverse, fileName, plain).RunWithOutput()
 }
 
-func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileName string, plain bool) oscommands.ICmdObj {
+func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileName string, plain bool) *oscommands.CmdObj {
 	contextSize := self.AppState.DiffContextSize
 
 	colorArg := self.UserConfig().Git.Paging.ColorArg

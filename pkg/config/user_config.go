@@ -637,22 +637,15 @@ type CustomCommand struct {
 	Context string `yaml:"context" jsonschema:"example=status,example=files,example=worktrees,example=localBranches,example=remotes,example=remoteBranches,example=tags,example=commits,example=reflogCommits,example=subCommits,example=commitFiles,example=stash,example=global"`
 	// The command to run (using Go template syntax for placeholder values)
 	Command string `yaml:"command" jsonschema:"example=git fetch {{.Form.Remote}} {{.Form.Branch}} && git checkout FETCH_HEAD"`
-	// If true, run the command in a subprocess (e.g. if the command requires user input)
-	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
-	Subprocess *bool `yaml:"subprocess"`
 	// A list of prompts that will request user input before running the final command
 	Prompts []CustomCommandPrompt `yaml:"prompts"`
 	// Text to display while waiting for command to finish
 	LoadingText string `yaml:"loadingText" jsonschema:"example=Loading..."`
 	// Label for the custom command when displayed in the keybindings menu
 	Description string `yaml:"description"`
-	// If true, stream the command's output to the Command Log panel
-	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
-	Stream *bool `yaml:"stream"`
-	// If true, show the command's output in a popup within Lazygit
-	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
-	ShowOutput *bool `yaml:"showOutput"`
-	// The title to display in the popup panel if showOutput is true. If left unset, the command will be used as the title.
+	// Where the output of the command should go. 'none' discards it, 'terminal' suspends lazygit and runs the command in the terminal (useful for commands that require user input), 'log' streams it to the command log, 'logWithPty' is like 'log' but runs the command in a pseudo terminal (can be useful for commands that produce colored output when the output is a terminal), and 'popup' shows it in a popup.
+	Output string `yaml:"output" jsonschema:"enum=none,enum=terminal,enum=log,enum=logWithPty,enum=popup"`
+	// The title to display in the popup panel if output is set to 'popup'. If left unset, the command will be used as the title.
 	OutputTitle string `yaml:"outputTitle"`
 	// Actions to take after the command has completed
 	// [dev] Pointer so that we can tell whether it appears in the config file

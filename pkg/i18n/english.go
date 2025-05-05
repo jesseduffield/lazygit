@@ -2169,6 +2169,7 @@ git:
   autoForwardBranches: none
 
 If, on the other hand, you want this even for feature branches, you can set it to 'allBranches' instead.`,
+			"0.51.0": `- The 'subprocess', 'stream', and 'showOutput' fields of custom commands have been replaced by a single 'output' field. This should be transparent, if you used these in your config file it should have been automatically updated for you. There's one notable change though: the 'stream' field used to mean both that the command's output would be streamed to the command log, and that the command would be run in a pseudo terminal (pty). We converted this to 'output: log', which means that the command's output will be streamed to the command log, but not use a pty, on the assumption that this is what most people wanted. If you do actually want to run a command in a pty, you can change this to 'output: logWithPty' instead.`,
 		},
 	}
 }

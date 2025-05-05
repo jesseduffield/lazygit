@@ -154,7 +154,7 @@ func (self *BranchCommands) GetGraph(branchName string) (string, error) {
 	return self.GetGraphCmdObj(branchName).DontLog().RunWithOutput()
 }
 
-func (self *BranchCommands) GetGraphCmdObj(branchName string) oscommands.ICmdObj {
+func (self *BranchCommands) GetGraphCmdObj(branchName string) *oscommands.CmdObj {
 	branchLogCmdTemplate := self.UserConfig().Git.BranchLogCmd
 	templateValues := map[string]string{
 		"branchName": self.cmd.Quote(branchName),
@@ -255,7 +255,7 @@ func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *BranchCommands) AllBranchesLogCmdObj() oscommands.ICmdObj {
+func (self *BranchCommands) AllBranchesLogCmdObj() *oscommands.CmdObj {
 	// Only choose between non-empty, non-identical commands
 	candidates := lo.Uniq(lo.WithoutEmpty(append([]string{
 		self.UserConfig().Git.AllBranchesLogCmd,
