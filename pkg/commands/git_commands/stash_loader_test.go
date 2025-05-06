@@ -5,7 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -50,7 +50,7 @@ func TestGetStashEntries(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			cmd := oscommands.NewDummyCmdObjBuilder(s.runner)
 
-			loader := NewStashLoader(utils.NewDummyCommon(), cmd)
+			loader := NewStashLoader(common.NewDummyCommon(), cmd)
 
 			assert.EqualValues(t, s.expectedStashEntries, loader.GetStashEntries(s.filterPath))
 		})

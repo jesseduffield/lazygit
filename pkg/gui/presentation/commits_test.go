@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/stefanhaller/git-todo-parser/todo"
@@ -539,7 +540,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		}
 	}
 
-	common := utils.NewDummyCommon()
+	common := common.NewDummyCommon()
 
 	for _, s := range scenarios {
 		if !focusing || s.focus {

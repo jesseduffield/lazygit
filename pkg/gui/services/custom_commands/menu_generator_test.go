@@ -3,7 +3,7 @@ package custom_commands
 import (
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -82,7 +82,7 @@ func TestMenuGenerator(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			s.test(NewMenuGenerator(utils.NewDummyCommon()).call(s.cmdOut, s.filter, s.valueFormat, s.labelFormat))
+			s.test(NewMenuGenerator(common.NewDummyCommon()).call(s.cmdOut, s.filter, s.valueFormat, s.labelFormat))
 		})
 	}
 }
