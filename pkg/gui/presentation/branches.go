@@ -165,7 +165,7 @@ func BranchStatus(
 ) string {
 	itemOperationStr := ItemOperationToString(itemOperation, tr)
 	if itemOperationStr != "" {
-		return style.FgCyan.Sprintf("%s %s", itemOperationStr, utils.Loader(now, userConfig.Gui.Spinner))
+		return style.FgCyan.Sprintf("%s %s", itemOperationStr, Loader(now, userConfig.Gui.Spinner))
 	}
 
 	result := ""

@@ -5,8 +5,8 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
 )
@@ -75,7 +75,7 @@ func (self *StatusManager) GetStatusString(userConfig *config.UserConfig) (strin
 	}
 	topStatus := self.statuses[0]
 	if topStatus.statusType == "waiting" {
-		return topStatus.message + " " + utils.Loader(time.Now(), userConfig.Gui.Spinner), topStatus.color
+		return topStatus.message + " " + presentation.Loader(time.Now(), userConfig.Gui.Spinner), topStatus.color
 	}
 	return topStatus.message, topStatus.color
 }
