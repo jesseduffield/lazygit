@@ -7,6 +7,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/sanity-io/litter"
@@ -181,7 +182,7 @@ func TestGetReflogCommits(t *testing.T) {
 	for _, scenario := range scenarios {
 		t.Run(scenario.testName, func(t *testing.T) {
 			builder := &ReflogCommitLoader{
-				Common: utils.NewDummyCommon(),
+				Common: common.NewDummyCommon(),
 				cmd:    oscommands.NewDummyCmdObjBuilder(scenario.runner),
 			}
 

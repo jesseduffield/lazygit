@@ -8,10 +8,8 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/config"
 )
 
 // GetProjectRoot returns the path to the root of the project. Only to be used
@@ -23,13 +21,6 @@ func GetProjectRoot() string {
 		panic(err)
 	}
 	return strings.Split(dir, "lazygit")[0] + "lazygit"
-}
-
-// Loader dumps a string to be displayed as a loader
-func Loader(now time.Time, config config.SpinnerConfig) string {
-	milliseconds := now.UnixMilli()
-	index := milliseconds / int64(config.Rate) % int64(len(config.Frames))
-	return config.Frames[index]
 }
 
 func SortRange(x int, y int) (int, int) {
