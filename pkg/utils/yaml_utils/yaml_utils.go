@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func lookupKey(node *yaml.Node, key string) (*yaml.Node, *yaml.Node) {
+func LookupKey(node *yaml.Node, key string) (*yaml.Node, *yaml.Node) {
 	for i := 0; i < len(node.Content)-1; i += 2 {
 		if node.Content[i].Value == key {
 			return node.Content[i], node.Content[i+1]
@@ -55,7 +55,7 @@ func transformNode(node *yaml.Node, path []string, transform func(node *yaml.Nod
 		return transform(node)
 	}
 
-	keyNode, valueNode := lookupKey(node, path[0])
+	keyNode, valueNode := LookupKey(node, path[0])
 	if keyNode == nil {
 		return nil
 	}
@@ -86,7 +86,7 @@ func renameYamlKey(node *yaml.Node, path []string, newKey string) error {
 		return errors.New("yaml node in path is not a dictionary")
 	}
 
-	keyNode, valueNode := lookupKey(node, path[0])
+	keyNode, valueNode := LookupKey(node, path[0])
 	if keyNode == nil {
 		return nil
 	}
@@ -94,7 +94,7 @@ func renameYamlKey(node *yaml.Node, path []string, newKey string) error {
 	// end of path reached: rename key
 	if len(path) == 1 {
 		// Check that new key doesn't exist yet
-		if newKeyNode, _ := lookupKey(node, newKey); newKeyNode != nil {
+		if newKeyNode, _ := LookupKey(node, newKey); newKeyNode != nil {
 			return fmt.Errorf("new key `%s' already exists", newKey)
 		}
 
