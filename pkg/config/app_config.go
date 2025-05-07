@@ -267,7 +267,7 @@ func computeMigratedConfig(path string, content []byte) ([]byte, bool, error) {
 	}
 
 	for _, pathToReplace := range pathsToReplace {
-		err := yaml_utils.RenameYamlKey(&rootNode, pathToReplace.oldPath, pathToReplace.newName)
+		err, _ := yaml_utils.RenameYamlKey(&rootNode, pathToReplace.oldPath, pathToReplace.newName)
 		if err != nil {
 			return nil, false, fmt.Errorf("Couldn't migrate config file at `%s` for key %s: %s", path, strings.Join(pathToReplace.oldPath, "."), err)
 		}

@@ -65,10 +65,10 @@ func transformNode(node *yaml.Node, path []string, transform func(node *yaml.Nod
 
 // Takes the root node of a yaml document, a path to a key, and a new name for the key.
 // Will rename the key to the new name if it exists, and do nothing otherwise.
-func RenameYamlKey(rootNode *yaml.Node, path []string, newKey string) error {
+func RenameYamlKey(rootNode *yaml.Node, path []string, newKey string) (error, bool) {
 	// Empty document: nothing to do.
 	if len(rootNode.Content) == 0 {
-		return nil
+		return nil, false
 	}
 
 	body := rootNode.Content[0]
@@ -77,25 +77,25 @@ func RenameYamlKey(rootNode *yaml.Node, path []string, newKey string) error {
 }
 
 // Recursive function to rename the YAML key.
-func renameYamlKey(node *yaml.Node, path []string, newKey string) error {
+func renameYamlKey(node *yaml.Node, path []string, newKey string) (error, bool) {
 	if node.Kind != yaml.MappingNode {
-		return errors.New("yaml node in path is not a dictionary")
+		return errors.New("yaml node in path is not a dictionary"), false
 	}
 
 	keyNode, valueNode := LookupKey(node, path[0])
 	if keyNode == nil {
-		return nil
+		return nil, false
 	}
 
 	// end of path reached: rename key
 	if len(path) == 1 {
 		// Check that new key doesn't exist yet
 		if newKeyNode, _ := LookupKey(node, newKey); newKeyNode != nil {
-			return fmt.Errorf("new key `%s' already exists", newKey)
+			return fmt.Errorf("new key `%s' already exists", newKey), false
 		}
 
 		keyNode.Value = newKey
-		return nil
+		return nil, true
 	}
 
 	return renameYamlKey(valueNode, path[1:], newKey)
