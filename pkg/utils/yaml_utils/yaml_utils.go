@@ -73,11 +73,7 @@ func RenameYamlKey(rootNode *yaml.Node, path []string, newKey string) error {
 
 	body := rootNode.Content[0]
 
-	if err := renameYamlKey(body, path, newKey); err != nil {
-		return err
-	}
-
-	return nil
+	return renameYamlKey(body, path, newKey)
 }
 
 // Recursive function to rename the YAML key.
