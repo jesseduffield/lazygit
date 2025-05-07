@@ -10,77 +10,85 @@ import (
 
 func TestRenameYamlKey(t *testing.T) {
 	tests := []struct {
-		name        string
-		in          string
-		path        []string
-		newKey      string
-		expectedOut string
-		expectedErr string
+		name              string
+		in                string
+		path              []string
+		newKey            string
+		expectedOut       string
+		expectedDidRename bool
+		expectedErr       string
 	}{
 		{
-			name:        "rename key",
-			in:          "foo: 5\n",
-			path:        []string{"foo"},
-			newKey:      "bar",
-			expectedOut: "bar: 5\n",
-			expectedErr: "",
+			name:              "rename key",
+			in:                "foo: 5\n",
+			path:              []string{"foo"},
+			newKey:            "bar",
+			expectedOut:       "bar: 5\n",
+			expectedDidRename: true,
+			expectedErr:       "",
 		},
 		{
-			name:        "rename key, nested",
-			in:          "foo:\n  bar: 5\n",
-			path:        []string{"foo", "bar"},
-			newKey:      "baz",
-			expectedOut: "foo:\n  baz: 5\n",
-			expectedErr: "",
+			name:              "rename key, nested",
+			in:                "foo:\n  bar: 5\n",
+			path:              []string{"foo", "bar"},
+			newKey:            "baz",
+			expectedOut:       "foo:\n  baz: 5\n",
+			expectedDidRename: true,
+			expectedErr:       "",
 		},
 		{
-			name:        "rename non-scalar key",
-			in:          "foo:\n  bar: 5\n",
-			path:        []string{"foo"},
-			newKey:      "qux",
-			expectedOut: "qux:\n  bar: 5\n",
-			expectedErr: "",
+			name:              "rename non-scalar key",
+			in:                "foo:\n  bar: 5\n",
+			path:              []string{"foo"},
+			newKey:            "qux",
+			expectedOut:       "qux:\n  bar: 5\n",
+			expectedDidRename: true,
+			expectedErr:       "",
 		},
 		{
-			name:        "don't rewrite file if value didn't change",
-			in:          "foo:\n  bar: 5\n",
-			path:        []string{"nonExistingKey"},
-			newKey:      "qux",
-			expectedOut: "foo:\n  bar: 5\n",
-			expectedErr: "",
+			name:              "don't rewrite file if value didn't change",
+			in:                "foo:\n  bar: 5\n",
+			path:              []string{"nonExistingKey"},
+			newKey:            "qux",
+			expectedOut:       "foo:\n  bar: 5\n",
+			expectedDidRename: false,
+			expectedErr:       "",
 		},
 
 		// Error cases
 		{
-			name:        "existing document is not a dictionary",
-			in:          "42\n",
-			path:        []string{"foo"},
-			newKey:      "bar",
-			expectedOut: "42\n",
-			expectedErr: "yaml node in path is not a dictionary",
+			name:              "existing document is not a dictionary",
+			in:                "42\n",
+			path:              []string{"foo"},
+			newKey:            "bar",
+			expectedOut:       "42\n",
+			expectedDidRename: false,
+			expectedErr:       "yaml node in path is not a dictionary",
 		},
 		{
-			name:        "not all path elements are dictionaries",
-			in:          "foo:\n  bar: [1, 2, 3]\n",
-			path:        []string{"foo", "bar", "baz"},
-			newKey:      "qux",
-			expectedOut: "foo:\n  bar: [1, 2, 3]\n",
-			expectedErr: "yaml node in path is not a dictionary",
+			name:              "not all path elements are dictionaries",
+			in:                "foo:\n  bar: [1, 2, 3]\n",
+			path:              []string{"foo", "bar", "baz"},
+			newKey:            "qux",
+			expectedOut:       "foo:\n  bar: [1, 2, 3]\n",
+			expectedDidRename: false,
+			expectedErr:       "yaml node in path is not a dictionary",
 		},
 		{
-			name:        "new key exists",
-			in:          "foo: 5\nbar: 7\n",
-			path:        []string{"foo"},
-			newKey:      "bar",
-			expectedOut: "foo: 5\nbar: 7\n",
-			expectedErr: "new key `bar' already exists",
+			name:              "new key exists",
+			in:                "foo: 5\nbar: 7\n",
+			path:              []string{"foo"},
+			newKey:            "bar",
+			expectedOut:       "foo: 5\nbar: 7\n",
+			expectedDidRename: false,
+			expectedErr:       "new key `bar' already exists",
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			node := unmarshalForTest(t, test.in)
-			actualErr := RenameYamlKey(&node, test.path, test.newKey)
+			actualErr, didRename := RenameYamlKey(&node, test.path, test.newKey)
 			if test.expectedErr == "" {
 				assert.NoError(t, actualErr)
 			} else {
@@ -89,6 +97,8 @@ func TestRenameYamlKey(t *testing.T) {
 			out := marshalForTest(t, &node)
 
 			assert.Equal(t, test.expectedOut, out)
+
+			assert.Equal(t, test.expectedDidRename, didRename)
 		})
 	}
 }
