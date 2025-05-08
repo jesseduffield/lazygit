@@ -180,6 +180,8 @@ type IListContext interface {
 	IsListContext() // used for type switch
 	RangeSelectEnabled() bool
 	RenderOnlyVisibleLines() bool
+
+	IndexForGotoBottom() int
 }
 
 type IPatchExplorerContext interface {

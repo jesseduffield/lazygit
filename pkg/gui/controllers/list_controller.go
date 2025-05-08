@@ -138,7 +138,9 @@ func (self *ListController) HandleGotoTop() error {
 }
 
 func (self *ListController) HandleGotoBottom() error {
-	return self.handleLineChange(self.context.GetList().Len())
+	bottomIdx := self.context.IndexForGotoBottom()
+	change := bottomIdx - self.context.GetList().GetSelectedLineIdx()
+	return self.handleLineChange(change)
 }
 
 func (self *ListController) HandleToggleRangeSelect() error {
