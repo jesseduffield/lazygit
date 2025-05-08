@@ -67,6 +67,68 @@ keybinding:
 	}
 }
 
+func TestMigrateNullKeybindingsToDisabled(t *testing.T) {
+	scenarios := []struct {
+		name              string
+		input             string
+		expected          string
+		expectedDidChange bool
+	}{
+		{
+			name:              "Empty String",
+			input:             "",
+			expectedDidChange: false,
+		},
+		{
+			name: "No change needed",
+			input: `keybinding:
+  universal:
+    quit: q
+`,
+			expectedDidChange: false,
+		},
+		{
+			name: "Change one",
+			input: `keybinding:
+  universal:
+    quit: null
+`,
+			expected: `keybinding:
+  universal:
+    quit: <disabled>
+`,
+			expectedDidChange: true,
+		},
+		{
+			name: "Change several",
+			input: `keybinding:
+  universal:
+    quit: null
+    return: <esc>
+    new: null
+`,
+			expected: `keybinding:
+  universal:
+    quit: <disabled>
+    return: <esc>
+    new: <disabled>
+`,
+			expectedDidChange: true,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input))
+			assert.NoError(t, err)
+			assert.Equal(t, s.expectedDidChange, didChange)
+			if didChange {
+				assert.Equal(t, s.expected, string(actual))
+			}
+		})
+	}
+}
+
 func TestCommitPrefixMigrations(t *testing.T) {
 	scenarios := []struct {
 		name              string
