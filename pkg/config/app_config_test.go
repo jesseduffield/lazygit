@@ -6,6 +6,67 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestMigrationOfRenamedKeys(t *testing.T) {
+	scenarios := []struct {
+		name              string
+		input             string
+		expected          string
+		expectedDidChange bool
+	}{
+		{
+			name:              "Empty String",
+			input:             "",
+			expectedDidChange: false,
+		},
+		{
+			name: "No rename needed",
+			input: `foo:
+  bar: 5
+`,
+			expectedDidChange: false,
+		},
+		{
+			name: "Rename one",
+			input: `gui:
+  skipUnstageLineWarning: true
+`,
+			expected: `gui:
+  skipDiscardChangeWarning: true
+`,
+			expectedDidChange: true,
+		},
+		{
+			name: "Rename several",
+			input: `gui:
+  windowSize: half
+  skipUnstageLineWarning: true
+keybinding:
+  universal:
+    executeCustomCommand: a
+`,
+			expected: `gui:
+  screenMode: half
+  skipDiscardChangeWarning: true
+keybinding:
+  universal:
+    executeShellCommand: a
+`,
+			expectedDidChange: true,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input))
+			assert.NoError(t, err)
+			assert.Equal(t, s.expectedDidChange, didChange)
+			if didChange {
+				assert.Equal(t, s.expected, string(actual))
+			}
+		})
+	}
+}
+
 func TestCommitPrefixMigrations(t *testing.T) {
 	scenarios := []struct {
 		name              string
