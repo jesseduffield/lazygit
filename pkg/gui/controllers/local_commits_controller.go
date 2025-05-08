@@ -207,14 +207,6 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description:       self.c.Tr.MarkAsBaseCommit,
 			Tooltip:           self.c.Tr.MarkAsBaseCommitTooltip,
 		},
-		// overriding this navigation keybinding because we might need to load
-		// more commits on demand
-		{
-			Key:         opts.GetKey(opts.Config.Universal.GotoBottom),
-			Handler:     self.gotoBottom,
-			Description: self.c.Tr.GotoBottom,
-			Tag:         "navigation",
-		},
 	}
 
 	for _, binding := range outsideFilterModeBindings {
@@ -1152,20 +1144,6 @@ func (self *LocalCommitsController) openSearch() error {
 	}
 
 	return self.c.Helpers().Search.OpenSearchPrompt(self.context())
-}
-
-func (self *LocalCommitsController) gotoBottom() error {
-	// we usually lazyload these commits but now that we're jumping to the bottom we need to load them now
-	if self.context().GetLimitCommits() {
-		self.context().SetLimitCommits(false)
-		if err := self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}}); err != nil {
-			return err
-		}
-	}
-
-	self.context().SetSelectedLineIdx(self.context().Len() - 1)
-
-	return nil
 }
 
 func (self *LocalCommitsController) handleOpenLogMenu() error {
