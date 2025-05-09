@@ -330,6 +330,7 @@ type TranslationSet struct {
 	CommitDescriptionTitle                string
 	CommitDescriptionSubTitle             string
 	CommitDescriptionFooter               string
+	CommitDescriptionFooterTwoBindings    string
 	CommitHooksDisabledSubTitle           string
 	LocalBranchesTitle                    string
 	SearchTitle                           string
@@ -1408,7 +1409,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CommitSummaryTitle:                   "Commit summary",
 		CommitDescriptionTitle:               "Commit description",
 		CommitDescriptionSubTitle:            "Press {{.togglePanelKeyBinding}} to toggle focus, {{.commitMenuKeybinding}} to open menu",
-		CommitDescriptionFooter:              "Press {{.confirmInEditorKeybinding}} to commit",
+		CommitDescriptionFooter:              "Press {{.confirmInEditorKeybinding}} to submit",
+		CommitDescriptionFooterTwoBindings:   "Press {{.confirmInEditorKeybinding1}} or {{.confirmInEditorKeybinding2}} to submit",
 		CommitHooksDisabledSubTitle:          "(hooks disabled)",
 		LocalBranchesTitle:                   "Local branches",
 		SearchTitle:                          "Search",

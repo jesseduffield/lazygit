@@ -39,6 +39,10 @@ func (self *CommitDescriptionController) GetKeybindings(opts types.KeybindingsOp
 			Handler: self.confirm,
 		},
 		{
+			Key:     opts.GetKey(opts.Config.Universal.ConfirmInEditorAlt),
+			Handler: self.confirm,
+		},
+		{
 			Key:     opts.GetKey(opts.Config.CommitMessage.CommitMenu),
 			Handler: self.openCommitMenu,
 		},
@@ -63,10 +67,27 @@ func (self *CommitDescriptionController) GetMouseKeybindings(opts types.Keybindi
 
 func (self *CommitDescriptionController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {
-		self.c.Views().CommitDescription.Footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooter,
-			map[string]string{
-				"confirmInEditorKeybinding": keybindings.Label(self.c.UserConfig().Keybinding.Universal.ConfirmInEditor),
-			})
+		footer := ""
+		if self.c.UserConfig().Keybinding.Universal.ConfirmInEditor != "<disabled>" || self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt != "<disabled>" {
+			if self.c.UserConfig().Keybinding.Universal.ConfirmInEditor == "<disabled>" {
+				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooter,
+					map[string]string{
+						"confirmInEditorKeybinding": keybindings.Label(self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt),
+					})
+			} else if self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt == "<disabled>" {
+				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooter,
+					map[string]string{
+						"confirmInEditorKeybinding": keybindings.Label(self.c.UserConfig().Keybinding.Universal.ConfirmInEditor),
+					})
+			} else {
+				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooterTwoBindings,
+					map[string]string{
+						"confirmInEditorKeybinding1": keybindings.Label(self.c.UserConfig().Keybinding.Universal.ConfirmInEditor),
+						"confirmInEditorKeybinding2": keybindings.Label(self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt),
+					})
+			}
+		}
+		self.c.Views().CommitDescription.Footer = footer
 	}
 }
 

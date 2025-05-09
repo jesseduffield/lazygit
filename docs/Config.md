@@ -516,6 +516,7 @@ keybinding:
     goInto: <enter>
     confirm: <enter>
     confirmInEditor: <a-enter>
+    confirmInEditor-alt: <c-s>
     remove: d
     new: "n"
     edit: e
