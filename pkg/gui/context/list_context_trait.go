@@ -149,3 +149,7 @@ func (self *ListContextTrait) TotalContentHeight() int {
 	}
 	return result
 }
+
+func (self *ListContextTrait) IndexForGotoBottom() int {
+	return self.list.Len() - 1
+}

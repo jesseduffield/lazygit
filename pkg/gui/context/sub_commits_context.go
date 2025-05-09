@@ -227,3 +227,20 @@ func (self *SubCommitsContext) RefForAdjustingLineNumberInDiff() string {
 func (self *SubCommitsContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
 	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), searchStr)
 }
+
+func (self *SubCommitsContext) IndexForGotoBottom() int {
+	commits := self.GetCommits()
+	selectedIdx := self.GetSelectedLineIdx()
+	if selectedIdx >= 0 && selectedIdx < len(commits)-1 {
+		if commits[selectedIdx+1].Status != models.StatusMerged {
+			_, idx, found := lo.FindIndexOf(commits, func(c *models.Commit) bool {
+				return c.Status == models.StatusMerged
+			})
+			if found {
+				return idx - 1
+			}
+		}
+	}
+
+	return self.list.Len() - 1
+}

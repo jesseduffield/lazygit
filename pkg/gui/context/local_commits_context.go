@@ -289,3 +289,20 @@ func searchModelCommits(caseSensitive bool, commits []*models.Commit, columnPosi
 			strings.Contains(normalize(commit.ExtraInfo), searchStr) // allow searching for tags
 	})
 }
+
+func (self *LocalCommitsContext) IndexForGotoBottom() int {
+	commits := self.GetCommits()
+	selectedIdx := self.GetSelectedLineIdx()
+	if selectedIdx >= 0 && selectedIdx < len(commits)-1 {
+		if commits[selectedIdx+1].Status != models.StatusMerged {
+			_, idx, found := lo.FindIndexOf(commits, func(c *models.Commit) bool {
+				return c.Status == models.StatusMerged
+			})
+			if found {
+				return idx - 1
+			}
+		}
+	}
+
+	return self.list.Len() - 1
+}
