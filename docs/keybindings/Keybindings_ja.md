@@ -231,6 +231,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` e `` | 編集 | Open file in external editor. |
 | `` o `` | ファイルを開く | Open file in default application. |
 | `` i `` | ファイルをignore |  |
+| `` I `` | Add extension to .gitignore |  |
 | `` r `` | ファイルをリフレッシュ |  |
 | `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | View stash options | View stash options (e.g. stash all, stash staged, stash unstaged). |
