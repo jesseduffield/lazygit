@@ -40,17 +40,11 @@ var RewordMergeCommit = NewIntegrationTest(NewIntegrationTestArgs{
 					Type("renamed merge").
 					Confirm()
 			}).
-			/* EXPECTED:
 			Lines(
 				Contains("CI ◯ two"),
 				Contains("CI ⏣─╮ renamed merge").IsSelected(),
 				Contains("CI │ ◯ one"),
 				Contains("CI ◯ ╯ base"),
 			)
-			ACTUAL: */
-			Tap(func() {
-				t.ExpectPopup().Alert().Title(Equals("Error")).
-					Content(Contains("error: 'edit' does not accept merge commits"))
-			})
 	},
 })
