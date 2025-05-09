@@ -250,7 +250,11 @@ func migrateUserConfig(path string, content []byte, isGuiInitialized bool) ([]by
 		fmt.Println(changesText)
 	}
 	if err := os.WriteFile(path, changedContent, 0o644); err != nil {
-		return nil, fmt.Errorf("While attempting to write back fixed user config to %s, an error occurred: %s", path, err)
+		errorMsg := fmt.Sprintf("While attempting to write back migrated user config to %s, an error occurred: %s", path, err)
+		if isGuiInitialized {
+			errorMsg += "\n\n" + changesText
+		}
+		return nil, errors.New(errorMsg)
 	}
 	if !isGuiInitialized {
 		fmt.Printf("Config file saved successfully to %s\n", path)
