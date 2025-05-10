@@ -275,6 +275,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.RewordFirstCommit,
 	interactive_rebase.RewordLastCommit,
 	interactive_rebase.RewordLastCommitOfStackedBranch,
+	interactive_rebase.RewordMergeCommit,
 	interactive_rebase.RewordYouAreHereCommit,
 	interactive_rebase.RewordYouAreHereCommitWithEditor,
 	interactive_rebase.ShowExecTodos,
