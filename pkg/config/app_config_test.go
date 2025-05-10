@@ -4,16 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
-
-func orderedMapToSlice(m *orderedmap.OrderedMap[string, bool]) []string {
-	result := make([]string, 0, m.Len())
-	for i := m.Oldest(); i != nil; i = i.Next() {
-		result = append(result, i.Key)
-	}
-	return result
-}
 
 func TestMigrationOfRenamedKeys(t *testing.T) {
 	scenarios := []struct {
@@ -75,14 +66,14 @@ keybinding:
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			changes := orderedmap.New[string, bool]()
+			changes := NewChangesSet()
 			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input), changes)
 			assert.NoError(t, err)
 			assert.Equal(t, s.expectedDidChange, didChange)
 			if didChange {
 				assert.Equal(t, s.expected, string(actual))
 			}
-			assert.Equal(t, s.expectedChanges, orderedMapToSlice(changes))
+			assert.Equal(t, s.expectedChanges, changes.ToSliceFromOldest())
 		})
 	}
 }
@@ -147,14 +138,14 @@ func TestMigrateNullKeybindingsToDisabled(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			changes := orderedmap.New[string, bool]()
+			changes := NewChangesSet()
 			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input), changes)
 			assert.NoError(t, err)
 			assert.Equal(t, s.expectedDidChange, didChange)
 			if didChange {
 				assert.Equal(t, s.expected, string(actual))
 			}
-			assert.Equal(t, s.expectedChanges, orderedMapToSlice(changes))
+			assert.Equal(t, s.expectedChanges, changes.ToSliceFromOldest())
 		})
 	}
 }
@@ -235,14 +226,14 @@ git:
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			changes := orderedmap.New[string, bool]()
+			changes := NewChangesSet()
 			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input), changes)
 			assert.NoError(t, err)
 			assert.Equal(t, s.expectedDidChange, didChange)
 			if didChange {
 				assert.Equal(t, s.expected, string(actual))
 			}
-			assert.Equal(t, s.expectedChanges, orderedMapToSlice(changes))
+			assert.Equal(t, s.expectedChanges, changes.ToSliceFromOldest())
 		})
 	}
 }
@@ -358,14 +349,14 @@ func TestCustomCommandsOutputMigration(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			changes := orderedmap.New[string, bool]()
+			changes := NewChangesSet()
 			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input), changes)
 			assert.NoError(t, err)
 			assert.Equal(t, s.expectedDidChange, didChange)
 			if didChange {
 				assert.Equal(t, s.expected, string(actual))
 			}
-			assert.Equal(t, s.expectedChanges, orderedMapToSlice(changes))
+			assert.Equal(t, s.expectedChanges, changes.ToSliceFromOldest())
 		})
 	}
 }
@@ -974,7 +965,7 @@ keybinding:
 
 func BenchmarkMigrationOnLargeConfiguration(b *testing.B) {
 	for b.Loop() {
-		changes := orderedmap.New[string, bool]()
+		changes := NewChangesSet()
 		_, _, _ = computeMigratedConfig("path doesn't matter", largeConfiguration, changes)
 	}
 }
@@ -1084,14 +1075,14 @@ func TestAllBranchesLogCmdMigrations(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			changes := orderedmap.New[string, bool]()
+			changes := NewChangesSet()
 			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input), changes)
 			assert.NoError(t, err)
 			assert.Equal(t, s.expectedDidChange, didChange)
 			if didChange {
 				assert.Equal(t, s.expected, string(actual))
 			}
-			assert.Equal(t, s.expectedChanges, orderedMapToSlice(changes))
+			assert.Equal(t, s.expectedChanges, changes.ToSliceFromOldest())
 		})
 	}
 }

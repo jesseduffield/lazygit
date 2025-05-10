@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/adrg/xdg"
+	"github.com/jesseduffield/generics/orderedset"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/utils/yaml_utils"
 	"github.com/samber/lo"
-	orderedmap "github.com/wk8/go-ordered-map/v2"
 	"gopkg.in/yaml.v3"
 )
 
@@ -216,12 +216,18 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig, isGuiInitialize
 	return base, nil
 }
 
+type ChangesSet = orderedset.OrderedSet[string]
+
+func NewChangesSet() *ChangesSet {
+	return orderedset.New[string]()
+}
+
 // Do any backward-compatibility migrations of things that have changed in the
 // config over time; examples are renaming a key to a better name, moving a key
 // from one container to another, or changing the type of a key (e.g. from bool
 // to an enum).
 func migrateUserConfig(path string, content []byte, isGuiInitialized bool) ([]byte, error) {
-	changes := orderedmap.New[string, bool]()
+	changes := NewChangesSet()
 
 	changedContent, didChange, err := computeMigratedConfig(path, content, changes)
 	if err != nil {
@@ -234,9 +240,9 @@ func migrateUserConfig(path string, content []byte, isGuiInitialized bool) ([]by
 	}
 
 	changesText := "The following changes were made:\n\n"
-	for pair := changes.Oldest(); pair != nil; pair = pair.Next() {
-		changesText += fmt.Sprintf("- %s\n", pair.Key)
-	}
+	changesText += strings.Join(lo.Map(changes.ToSliceFromOldest(), func(change string, _ int) string {
+		return fmt.Sprintf("- %s\n", change)
+	}), "")
 
 	// Write config back
 	if !isGuiInitialized {
@@ -257,7 +263,7 @@ func migrateUserConfig(path string, content []byte, isGuiInitialized bool) ([]by
 }
 
 // A pure function helper for testing purposes
-func computeMigratedConfig(path string, content []byte, changes *orderedmap.OrderedMap[string, bool]) ([]byte, bool, error) {
+func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]byte, bool, error) {
 	var err error
 	var rootNode yaml.Node
 	err = yaml.Unmarshal(content, &rootNode)
@@ -285,7 +291,7 @@ func computeMigratedConfig(path string, content []byte, changes *orderedmap.Orde
 			return nil, false, fmt.Errorf("Couldn't migrate config file at `%s` for key %s: %s", path, strings.Join(pathToReplace.oldPath, "."), err)
 		}
 		if didReplace {
-			changes.Set(fmt.Sprintf("Renamed '%s' to '%s'", strings.Join(pathToReplace.oldPath, "."), pathToReplace.newName), true)
+			changes.Add(fmt.Sprintf("Renamed '%s' to '%s'", strings.Join(pathToReplace.oldPath, "."), pathToReplace.newName))
 		}
 	}
 
@@ -327,17 +333,17 @@ func computeMigratedConfig(path string, content []byte, changes *orderedmap.Orde
 	return newContent, true, nil
 }
 
-func changeNullKeybindingsToDisabled(rootNode *yaml.Node, changes *orderedmap.OrderedMap[string, bool]) error {
+func changeNullKeybindingsToDisabled(rootNode *yaml.Node, changes *ChangesSet) error {
 	return yaml_utils.Walk(rootNode, func(node *yaml.Node, path string) {
 		if strings.HasPrefix(path, "keybinding.") && node.Kind == yaml.ScalarNode && node.Tag == "!!null" {
 			node.Value = "<disabled>"
 			node.Tag = "!!str"
-			changes.Set(fmt.Sprintf("Changed 'null' to '<disabled>' for keybinding '%s'", path), true)
+			changes.Add(fmt.Sprintf("Changed 'null' to '<disabled>' for keybinding '%s'", path))
 		}
 	})
 }
 
-func changeElementToSequence(rootNode *yaml.Node, path []string, changes *orderedmap.OrderedMap[string, bool]) error {
+func changeElementToSequence(rootNode *yaml.Node, path []string, changes *ChangesSet) error {
 	return yaml_utils.TransformNode(rootNode, path, func(node *yaml.Node) error {
 		if node.Kind == yaml.MappingNode {
 			nodeContentCopy := node.Content
@@ -349,7 +355,7 @@ func changeElementToSequence(rootNode *yaml.Node, path []string, changes *ordere
 				Content: nodeContentCopy,
 			}}
 
-			changes.Set(fmt.Sprintf("Changed '%s' to an array of strings", strings.Join(path, ".")), true)
+			changes.Add(fmt.Sprintf("Changed '%s' to an array of strings", strings.Join(path, ".")))
 
 			return nil
 		}
@@ -357,7 +363,7 @@ func changeElementToSequence(rootNode *yaml.Node, path []string, changes *ordere
 	})
 }
 
-func changeCommitPrefixesMap(rootNode *yaml.Node, changes *orderedmap.OrderedMap[string, bool]) error {
+func changeCommitPrefixesMap(rootNode *yaml.Node, changes *ChangesSet) error {
 	return yaml_utils.TransformNode(rootNode, []string{"git", "commitPrefixes"}, func(prefixesNode *yaml.Node) error {
 		if prefixesNode.Kind == yaml.MappingNode {
 			for _, contentNode := range prefixesNode.Content {
@@ -370,7 +376,7 @@ func changeCommitPrefixesMap(rootNode *yaml.Node, changes *orderedmap.OrderedMap
 						Kind:    yaml.MappingNode,
 						Content: nodeContentCopy,
 					}}
-					changes.Set("Changed 'git.commitPrefixes' elements to arrays of strings", true)
+					changes.Add("Changed 'git.commitPrefixes' elements to arrays of strings")
 				}
 			}
 		}
@@ -378,7 +384,7 @@ func changeCommitPrefixesMap(rootNode *yaml.Node, changes *orderedmap.OrderedMap
 	})
 }
 
-func changeCustomCommandStreamAndOutputToOutputEnum(rootNode *yaml.Node, changes *orderedmap.OrderedMap[string, bool]) error {
+func changeCustomCommandStreamAndOutputToOutputEnum(rootNode *yaml.Node, changes *ChangesSet) error {
 	return yaml_utils.Walk(rootNode, func(node *yaml.Node, path string) {
 		// We are being lazy here and rely on the fact that the only mapping
 		// nodes in the tree under customCommands are actual custom commands. If
@@ -389,25 +395,25 @@ func changeCustomCommandStreamAndOutputToOutputEnum(rootNode *yaml.Node, changes
 			if streamKey, streamValue := yaml_utils.RemoveKey(node, "subprocess"); streamKey != nil {
 				if streamValue.Kind == yaml.ScalarNode && streamValue.Value == "true" {
 					output = "terminal"
-					changes.Set("Changed 'subprocess: true' to 'output: terminal' in custom command", true)
+					changes.Add("Changed 'subprocess: true' to 'output: terminal' in custom command")
 				} else {
-					changes.Set("Deleted redundant 'subprocess: false' in custom command", true)
+					changes.Add("Deleted redundant 'subprocess: false' in custom command")
 				}
 			}
 			if streamKey, streamValue := yaml_utils.RemoveKey(node, "stream"); streamKey != nil {
 				if streamValue.Kind == yaml.ScalarNode && streamValue.Value == "true" && output == "" {
 					output = "log"
-					changes.Set("Changed 'stream: true' to 'output: log' in custom command", true)
+					changes.Add("Changed 'stream: true' to 'output: log' in custom command")
 				} else {
-					changes.Set(fmt.Sprintf("Deleted redundant 'stream: %v' property in custom command", streamValue.Value), true)
+					changes.Add(fmt.Sprintf("Deleted redundant 'stream: %v' property in custom command", streamValue.Value))
 				}
 			}
 			if streamKey, streamValue := yaml_utils.RemoveKey(node, "showOutput"); streamKey != nil {
 				if streamValue.Kind == yaml.ScalarNode && streamValue.Value == "true" && output == "" {
-					changes.Set("Changed 'showOutput: true' to 'output: popup' in custom command", true)
+					changes.Add("Changed 'showOutput: true' to 'output: popup' in custom command")
 					output = "popup"
 				} else {
-					changes.Set(fmt.Sprintf("Deleted redundant 'showOutput: %v' property in custom command", streamValue.Value), true)
+					changes.Add(fmt.Sprintf("Deleted redundant 'showOutput: %v' property in custom command", streamValue.Value))
 				}
 			}
 			if output != "" {
@@ -431,7 +437,7 @@ func changeCustomCommandStreamAndOutputToOutputEnum(rootNode *yaml.Node, changes
 // a single element at `allBranchesLogCmd` and the sequence at `allBranchesLogCmds`.
 // Some users have explicitly set `allBranchesLogCmd` to be an empty string in order
 // to remove it, so in that case we just delete the element, and add nothing to the list
-func migrateAllBranchesLogCmd(rootNode *yaml.Node, changes *orderedmap.OrderedMap[string, bool]) error {
+func migrateAllBranchesLogCmd(rootNode *yaml.Node, changes *ChangesSet) error {
 	return yaml_utils.TransformNode(rootNode, []string{"git"}, func(gitNode *yaml.Node) error {
 		cmdKeyNode, cmdValueNode := yaml_utils.LookupKey(gitNode, "allBranchesLogCmd")
 		// Nothing to do if they do not have the deprecated item
@@ -462,12 +468,12 @@ func migrateAllBranchesLogCmd(rootNode *yaml.Node, changes *orderedmap.OrderedMa
 		if cmdValueNode.Value != "" {
 			// Prepending the individual element to make it show up first in the list, which was prior behavior
 			cmdsValueNode.Content = utils.Prepend(cmdsValueNode.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: cmdValueNode.Value})
-			changes.Set(change, true)
+			changes.Add(change)
 		}
 
 		// Clear out the existing allBranchesLogCmd, now that we have migrated it into the list
 		_, _ = yaml_utils.RemoveKey(gitNode, "allBranchesLogCmd")
-		changes.Set("Removed obsolete git.allBranchesLogCmd", true)
+		changes.Add("Removed obsolete git.allBranchesLogCmd")
 
 		return nil
 	})
