@@ -137,7 +137,7 @@ func (self *RebaseCommands) MoveCommitsUp(commits []*models.Commit, startIdx int
 	}).Run()
 }
 
-func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, startIdx int, endIdx int, action todo.TodoCommand) error {
+func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, startIdx int, endIdx int, action todo.TodoCommand, flag string) error {
 	baseIndex := endIdx + 1
 	if action == todo.Squash || action == todo.Fixup {
 		baseIndex++
@@ -149,6 +149,7 @@ func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, startIdx
 		return daemon.ChangeTodoAction{
 			Hash:      commit.Hash(),
 			NewAction: action,
+			NewFlag:   flag,
 		}, !commit.IsMerge()
 	})
 
@@ -331,11 +332,12 @@ func todoFromCommit(commit *models.Commit) utils.Todo {
 }
 
 // Sets the action for the given commits in the git-rebase-todo file
-func (self *RebaseCommands) EditRebaseTodo(commits []*models.Commit, action todo.TodoCommand) error {
+func (self *RebaseCommands) EditRebaseTodo(commits []*models.Commit, action todo.TodoCommand, flag string) error {
 	commitsWithAction := lo.Map(commits, func(commit *models.Commit, _ int) utils.TodoChange {
 		return utils.TodoChange{
 			Hash:      commit.Hash(),
 			NewAction: action,
+			NewFlag:   flag,
 		}
 	})
 

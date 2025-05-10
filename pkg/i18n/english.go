@@ -172,7 +172,6 @@ type TranslationSet struct {
 	CannotSquashOrFixupMergeCommit        string
 	Fixup                                 string
 	FixupTooltip                          string
-	SureFixupThisCommit                   string
 	SureSquashThisCommit                  string
 	Squash                                string
 	SquashMerge                           string
@@ -1252,7 +1251,6 @@ func EnglishTranslationSet() *TranslationSet {
 		CannotSquashOrFixupFirstCommit:       "There's no commit below to squash into",
 		CannotSquashOrFixupMergeCommit:       "Cannot squash or fixup a merge commit",
 		Fixup:                                "Fixup",
-		SureFixupThisCommit:                  "Are you sure you want to 'fixup' the selected commit(s) into the commit below?",
 		SureSquashThisCommit:                 "Are you sure you want to squash the selected commit(s) into the commit below?",
 		Squash:                               "Squash",
 		SquashMerge:                          "Squash Merge",
