@@ -15,8 +15,6 @@ var CherryPickMerge = NewIntegrationTest(NewIntegrationTestArgs{
 			EmptyCommit("base").
 			NewBranch("first-branch").
 			NewBranch("second-branch").
-			Checkout("first-branch").
-			Checkout("second-branch").
 			CreateFileAndAdd("file1.txt", "content").
 			Commit("one").
 			CreateFileAndAdd("file2.txt", "content").

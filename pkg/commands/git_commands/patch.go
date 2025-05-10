@@ -314,6 +314,29 @@ func (self *PatchCommands) PullPatchIntoNewCommit(
 	return self.rebase.ContinueRebase()
 }
 
+func (self *PatchCommands) PullPatchIntoNewCommitBefore(
+	commits []*models.Commit,
+	commitIdx int,
+	commitSummary string,
+	commitDescription string,
+) error {
+	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx+1, true); err != nil {
+		return err
+	}
+
+	if err := self.ApplyCustomPatch(false, false); err != nil {
+		_ = self.rebase.AbortRebase()
+		return err
+	}
+
+	if err := self.commit.CommitCmdObj(commitSummary, commitDescription, false).Run(); err != nil {
+		return err
+	}
+
+	self.PatchBuilder.Reset()
+	return self.rebase.ContinueRebase()
+}
+
 // We have just applied a patch in reverse to discard it from a commit; if we
 // now try to apply the patch again to move it to a later commit, or to the
 // index, then this would conflict "with itself" in case the patch contained

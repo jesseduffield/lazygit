@@ -813,6 +813,8 @@ type TranslationSet struct {
 	MovePatchOutIntoIndexTooltip             string
 	MovePatchIntoNewCommit                   string
 	MovePatchIntoNewCommitTooltip            string
+	MovePatchIntoNewCommitBefore             string
+	MovePatchIntoNewCommitBeforeTooltip      string
 	MovePatchToSelectedCommit                string
 	MovePatchToSelectedCommitTooltip         string
 	CopyPatchToClipboard                     string
@@ -1896,8 +1898,10 @@ func EnglishTranslationSet() *TranslationSet {
 		RemovePatchFromOriginalCommitTooltip:     "Remove the current patch from its commit. This is achieved by starting an interactive rebase at the commit, applying the patch in reverse, and then continuing the rebase. If later commits depend on the patch, you may need to resolve conflicts.",
 		MovePatchOutIntoIndex:                    "Move patch out into index",
 		MovePatchOutIntoIndexTooltip:             "Move the patch out of its commit and into the index. This is achieved by starting an interactive rebase at the commit, applying the patch in reverse, continuing the rebase to completion, and then applying the patch to the index. If later commits depend on the patch, you may need to resolve conflicts.",
-		MovePatchIntoNewCommit:                   "Move patch into new commit",
+		MovePatchIntoNewCommit:                   "Move patch into new commit after the original commit",
 		MovePatchIntoNewCommitTooltip:            "Move the patch out of its commit and into a new commit sitting on top of the original commit. This is achieved by starting an interactive rebase at the original commit, applying the patch in reverse, then applying the patch to the index and committing it as a new commit, before continuing the rebase to completion. If later commits depend on the patch, you may need to resolve conflicts.",
+		MovePatchIntoNewCommitBefore:             "Move patch into new commit before the original commit",
+		MovePatchIntoNewCommitBeforeTooltip:      "Move the patch out of its commit and into a new commit before the original commit. This works best when the custom patch contains only entire hunks or even entire files; if it contains partial hunks, you are likely to get conflicts.",
 		MovePatchToSelectedCommit:                "Move patch to selected commit (%s)",
 		MovePatchToSelectedCommitTooltip:         "Move the patch out of its original commit and into the selected commit. This is achieved by starting an interactive rebase at the original commit, applying the patch in reverse, then continuing the rebase up to the selected commit, before applying the patch forward and amending the selected commit. The rebase is then continued to completion. If commits between the source and destination commit depend on the patch, you may need to resolve conflicts.",
 		CopyPatchToClipboard:                     "Copy patch to clipboard",

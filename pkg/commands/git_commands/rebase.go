@@ -400,7 +400,19 @@ func (self *RebaseCommands) SquashAllAboveFixupCommits(commit *models.Commit) er
 func (self *RebaseCommands) BeginInteractiveRebaseForCommit(
 	commits []*models.Commit, commitIndex int, keepCommitsThatBecomeEmpty bool,
 ) error {
-	return self.BeginInteractiveRebaseForCommitRange(commits, commitIndex, commitIndex, keepCommitsThatBecomeEmpty)
+	if commitIndex < len(commits) && commits[commitIndex].IsMerge() {
+		if self.config.NeedsGpgSubprocessForCommit() {
+			return errors.New(self.Tr.DisabledForGPG)
+		}
+
+		return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
+			baseHashOrRoot:             getBaseHashOrRoot(commits, commitIndex),
+			instruction:                daemon.NewInsertBreakInstruction(),
+			keepCommitsThatBecomeEmpty: keepCommitsThatBecomeEmpty,
+		}).Run()
+	} else {
+		return self.BeginInteractiveRebaseForCommitRange(commits, commitIndex, commitIndex, keepCommitsThatBecomeEmpty)
+	}
 }
 
 func (self *RebaseCommands) BeginInteractiveRebaseForCommitRange(

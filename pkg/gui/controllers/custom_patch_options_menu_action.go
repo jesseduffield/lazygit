@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type CustomPatchOptionsMenuAction struct {
@@ -46,7 +47,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 	if self.c.Git().Patch.PatchBuilder.CanRebase && self.c.Git().Status.WorkingTreeState().None() {
 		menuItems = append(menuItems, []*types.MenuItem{
 			{
-				Label:   fmt.Sprintf(self.c.Tr.RemovePatchFromOriginalCommit, self.c.Git().Patch.PatchBuilder.To),
+				Label:   fmt.Sprintf(self.c.Tr.RemovePatchFromOriginalCommit, utils.ShortHash(self.c.Git().Patch.PatchBuilder.To)),
 				Tooltip: self.c.Tr.RemovePatchFromOriginalCommitTooltip,
 				OnPress: self.handleDeletePatchFromCommit,
 				Key:     'd',
@@ -62,6 +63,12 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 				Tooltip: self.c.Tr.MovePatchIntoNewCommitTooltip,
 				OnPress: self.handlePullPatchIntoNewCommit,
 				Key:     'n',
+			},
+			{
+				Label:   self.c.Tr.MovePatchIntoNewCommitBefore,
+				Tooltip: self.c.Tr.MovePatchIntoNewCommitBeforeTooltip,
+				OnPress: self.handlePullPatchIntoNewCommitBefore,
+				Key:     'N',
 			},
 		}...)
 
@@ -209,6 +216,41 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 					self.c.Helpers().Commits.CloseCommitMessagePanel()
 					self.c.LogAction(self.c.Tr.Actions.MovePatchIntoNewCommit)
 					err := self.c.Git().Patch.PullPatchIntoNewCommit(self.c.Model().Commits, commitIndex, summary, description)
+					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
+						return err
+					}
+					self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
+					return nil
+				})
+			},
+		},
+	)
+
+	return nil
+}
+
+func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommitBefore() error {
+	if ok, err := self.validateNormalWorkingTreeState(); !ok {
+		return err
+	}
+
+	self.returnFocusFromPatchExplorerIfNecessary()
+
+	commitIndex := self.getPatchCommitIndex()
+	self.c.Helpers().Commits.OpenCommitMessagePanel(
+		&helpers.OpenCommitMessagePanelOpts{
+			// Pass a commit index of one less than the moved-from commit, so that
+			// you can press up arrow once to recall the original commit message:
+			CommitIndex:      commitIndex - 1,
+			InitialMessage:   "",
+			SummaryTitle:     self.c.Tr.CommitSummaryTitle,
+			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
+			PreserveMessage:  false,
+			OnConfirm: func(summary string, description string) error {
+				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+					self.c.Helpers().Commits.CloseCommitMessagePanel()
+					self.c.LogAction(self.c.Tr.Actions.MovePatchIntoNewCommit)
+					err := self.c.Git().Patch.PullPatchIntoNewCommitBefore(self.c.Model().Commits, commitIndex, summary, description)
 					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 						return err
 					}
