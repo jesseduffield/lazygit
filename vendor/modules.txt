@@ -177,6 +177,7 @@ github.com/jbenet/go-context/io
 # github.com/jesseduffield/generics v0.0.0-20250406224309-4f541cb84918
 ## explicit; go 1.18
 github.com/jesseduffield/generics/maps
+github.com/jesseduffield/generics/orderedset
 github.com/jesseduffield/generics/set
 # github.com/jesseduffield/go-git/v5 v5.14.1-0.20250407170251-e1a013310ccd
 ## explicit; go 1.23.0
