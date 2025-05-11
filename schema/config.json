@@ -1310,6 +1310,10 @@
           "type": "string",
           "default": "\u003ca-enter\u003e"
         },
+        "confirmInEditor-alt": {
+          "type": "string",
+          "default": "\u003cc-s\u003e"
+        },
         "remove": {
           "type": "string",
           "default": "d"
