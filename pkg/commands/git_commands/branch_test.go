@@ -230,7 +230,7 @@ func TestBranchGetAllBranchGraph(t *testing.T) {
 		"log", "--graph", "--all", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium",
 	}, "", nil)
 	instance := buildBranchCommands(commonDeps{runner: runner})
-	err := instance.AllBranchesLogCmdObj().Run()
+	err := instance.RotateAllBranchesLogCmdObj().Run()
 	assert.NoError(t, err)
 }
 

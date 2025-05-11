@@ -255,16 +255,28 @@ func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *BranchCommands) AllBranchesLogCmdObj() *oscommands.CmdObj {
-	// Only choose between non-empty, non-identical commands
-	candidates := lo.Uniq(lo.WithoutEmpty(self.UserConfig().Git.AllBranchesLogCmds))
+// Only choose between non-empty, non-identical commands
+func (self *BranchCommands) allBranchesLogCandidates() []string {
+	return lo.Uniq(lo.WithoutEmpty(self.UserConfig().Git.AllBranchesLogCmds))
+}
 
-	n := len(candidates)
+func (self *BranchCommands) CurrentAllBranchesLogCmdObj() *oscommands.CmdObj {
+	candidates := self.allBranchesLogCandidates()
 
 	i := self.allBranchesLogCmdIndex
-	self.allBranchesLogCmdIndex = uint8((int(i) + 1) % n)
-
 	return self.cmd.New(str.ToArgv(candidates[i])).DontLog()
+}
+
+func (self *BranchCommands) rotateAllBranchesIdx() {
+	n := len(self.allBranchesLogCandidates())
+	i := self.allBranchesLogCmdIndex
+	self.allBranchesLogCmdIndex = uint8((int(i) + 1) % n)
+}
+
+func (self *BranchCommands) RotateAllBranchesLogCmdObj() *oscommands.CmdObj {
+	cmd := self.CurrentAllBranchesLogCmdObj()
+	self.rotateAllBranchesIdx()
+	return cmd
 }
 
 func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *MainBranches) (bool, error) {

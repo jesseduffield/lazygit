@@ -60,7 +60,7 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Status.AllBranchesLogGraph),
-			Handler:     func() error { self.showAllBranchLogs(); return nil },
+			Handler:     func() error { self.rotateAllBranchesLogs(); return nil },
 			Description: self.c.Tr.AllBranchesLogGraph,
 		},
 	}
@@ -178,7 +178,21 @@ func (self *StatusController) editConfig() error {
 }
 
 func (self *StatusController) showAllBranchLogs() {
-	cmdObj := self.c.Git().Branch.AllBranchesLogCmdObj()
+	cmdObj := self.c.Git().Branch.CurrentAllBranchesLogCmdObj()
+	task := types.NewRunPtyTask(cmdObj.GetCmd())
+
+	self.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: self.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title: self.c.Tr.LogTitle,
+			Task:  task,
+		},
+	})
+}
+
+// Switches to the next branch command and renders it onto the screen
+func (self *StatusController) rotateAllBranchesLogs() {
+	cmdObj := self.c.Git().Branch.RotateAllBranchesLogCmdObj()
 	task := types.NewRunPtyTask(cmdObj.GetCmd())
 
 	self.c.RenderToMainViews(types.RefreshMainOpts{
