@@ -274,9 +274,8 @@ func (self *BranchCommands) rotateAllBranchesIdx() {
 }
 
 func (self *BranchCommands) RotateAllBranchesLogCmdObj() *oscommands.CmdObj {
-	cmd := self.CurrentAllBranchesLogCmdObj()
 	self.rotateAllBranchesIdx()
-	return cmd
+	return self.CurrentAllBranchesLogCmdObj()
 }
 
 func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *MainBranches) (bool, error) {
