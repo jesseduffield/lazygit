@@ -201,6 +201,7 @@ func (self *ChangeTodoActionsInstruction) run(common *common.Common) error {
 			return utils.TodoChange{
 				Hash:      c.Hash,
 				NewAction: c.NewAction,
+				NewFlag:   c.NewFlag,
 			}
 		})
 

@@ -387,7 +387,15 @@ func displayCommit(
 
 	actionString := ""
 	if commit.Action != models.ActionNone {
-		actionString = actionColorMap(commit.Action, commit.Status).Sprint(commit.Action.String())
+		actionName := commit.Action.String()
+		if commit.Action == todo.Fixup {
+			if commit.FixupFlag {
+				actionName += "←"
+			} else {
+				actionName += "↓"
+			}
+		}
+		actionString = actionColorMap(commit.Action, commit.Status).Sprint(actionName)
 	}
 
 	tagString := ""

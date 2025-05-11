@@ -19,6 +19,7 @@ type Todo struct {
 type TodoChange struct {
 	Hash      string
 	NewAction todo.TodoCommand
+	NewFlag   string
 }
 
 // Read a git-rebase-todo file, change the actions for the given commits,
@@ -37,6 +38,7 @@ func EditRebaseTodo(filePath string, changes []TodoChange, commentChar byte) err
 			if equalHash(t.Commit, change.Hash) {
 				matchCount++
 				t.Command = change.NewAction
+				t.Flag = change.NewFlag
 			}
 		}
 	}
