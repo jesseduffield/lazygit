@@ -360,6 +360,7 @@ var tests = []*components.IntegrationTest{
 	status.ClickToFocus,
 	status.ClickWorkingTreeStateToOpenRebaseOptionsMenu,
 	status.LogCmd,
+	status.LogCmdStatusPanelAllBranchesLog,
 	status.ShowDivergenceFromBaseBranch,
 	submodule.Add,
 	submodule.Enter,
