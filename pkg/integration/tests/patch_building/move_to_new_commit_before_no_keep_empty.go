@@ -5,10 +5,11 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Move a patch from a commit to a new commit",
+var MoveToNewCommitBeforeNoKeepEmpty = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Move a patch from a commit to a new commit before the original one, for older git versions that don't keep the empty commit",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
+	GitVersion:   Before("2.26.0"),
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateDir("dir")
@@ -48,7 +49,7 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("Building patch"))
 
-		t.Common().SelectPatchOption(Contains("Move patch into new commit after the original commit"))
+		t.Common().SelectPatchOption(Contains("Move patch into new commit before the original commit"))
 
 		t.ExpectPopup().CommitMessagePanel().
 			InitialText(Equals("")).
@@ -59,7 +60,6 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("third commit"),
 				Contains("new commit").IsSelected(),
-				Contains("commit to move from"),
 				Contains("first commit"),
 			).
 			PressEnter()
@@ -73,23 +73,5 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("  A file3"),
 			).
 			PressEscape()
-
-		t.Views().Commits().
-			IsFocused().
-			Lines(
-				Contains("third commit"),
-				Contains("new commit").IsSelected(),
-				Contains("commit to move from"),
-				Contains("first commit"),
-			).
-			SelectNextItem().
-			PressEnter()
-
-		// the original commit has no more files in it
-		t.Views().CommitFiles().
-			IsFocused().
-			Lines(
-				Contains("(none)"),
-			)
 	},
 })
