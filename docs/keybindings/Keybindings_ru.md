@@ -315,6 +315,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` u `` | Проверить обновления |  |
 | `` <enter> `` | Переключиться на последний репозиторий |  |
 | `` a `` | Show/cycle all branch logs |  |
+| `` 0 `` | Focus main view |  |
 
 ## Теги
 

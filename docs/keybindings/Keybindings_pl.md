@@ -326,6 +326,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` u `` | Sprawdź aktualizacje |  |
 | `` <enter> `` | Przełącz na ostatnie repozytorium |  |
 | `` a `` | Show/cycle all branch logs |  |
+| `` 0 `` | Focus main view |  |
 
 ## Sub-commity
 

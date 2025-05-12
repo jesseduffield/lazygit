@@ -359,6 +359,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` u `` | Verificar atualização |  |
 | `` <enter> `` | Mudar para um repositório recente |  |
 | `` a `` | Mostrar/ciclo todos os logs de filiais |  |
+| `` 0 `` | Focus main view |  |
 
 ## Sub-commits
 

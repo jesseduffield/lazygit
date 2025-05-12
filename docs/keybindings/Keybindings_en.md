@@ -346,6 +346,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` u `` | Check for update |  |
 | `` <enter> `` | Switch to a recent repo |  |
 | `` a `` | Show/cycle all branch logs |  |
+| `` 0 `` | Focus main view |  |
 
 ## Sub-commits
 

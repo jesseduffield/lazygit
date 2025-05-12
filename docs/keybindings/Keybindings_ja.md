@@ -198,6 +198,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` u `` | 更新を確認 |  |
 | `` <enter> `` | 最近使用したリポジトリに切り替え |  |
 | `` a `` | Show/cycle all branch logs |  |
+| `` 0 `` | Focus main view |  |
 
 ## タグ
 

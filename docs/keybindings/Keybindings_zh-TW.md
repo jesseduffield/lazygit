@@ -371,6 +371,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` u `` | 檢查更新 |  |
 | `` <enter> `` | 切換到最近使用的版本庫 |  |
 | `` a `` | Show/cycle all branch logs |  |
+| `` 0 `` | Focus main view |  |
 
 ## 確認面板
 

@@ -349,6 +349,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` u `` | 检查更新 |  |
 | `` <enter> `` | 切换到最近的仓库 |  |
 | `` a `` | Show/cycle all branch logs |  |
+| `` 0 `` | Focus main view |  |
 
 ## 确认面板
 
