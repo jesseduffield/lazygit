@@ -136,6 +136,10 @@ func (self *WorkingTreeHelper) switchFromCommitMessagePanelToEditor(filepath str
 // their editor rather than via the popup panel
 func (self *WorkingTreeHelper) HandleCommitEditorPress() error {
 	return self.WithEnsureCommittableFiles(func() error {
+		// See reasoning in switchFromCommitMessagePanelToEditor for why it makes sense
+		// to clear this message before calling into the editor
+		self.commitsHelper.ClearPreservedCommitMessage()
+
 		self.c.LogAction(self.c.Tr.Actions.Commit)
 		return self.c.RunSubprocessAndRefresh(
 			self.c.Git().Commit.CommitEditorCmdObj(),
