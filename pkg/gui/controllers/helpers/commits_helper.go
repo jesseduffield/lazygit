@@ -157,11 +157,8 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 	self.c.Context().Push(self.c.Contexts().CommitMessage, types.OnFocusOpts{})
 }
 
-func (self *CommitsHelper) OnCommitSuccess() {
-	// if we have a preserved message we want to clear it on success
-	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
-		self.c.Contexts().CommitMessage.SetPreservedMessageAndLogError("")
-	}
+func (self *CommitsHelper) ClearPreservedCommitMessage() {
+	self.c.Contexts().CommitMessage.SetPreservedMessageAndLogError("")
 }
 
 func (self *CommitsHelper) HandleCommitConfirm() error {
