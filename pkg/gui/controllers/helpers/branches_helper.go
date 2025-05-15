@@ -270,8 +270,12 @@ func (self *BranchesHelper) AutoForwardBranches() error {
 		return nil
 	}
 
-	allBranches := self.c.UserConfig().Git.AutoForwardBranches == "allBranches"
 	branches := self.c.Model().Branches
+	if len(branches) == 0 {
+		return nil
+	}
+
+	allBranches := self.c.UserConfig().Git.AutoForwardBranches == "allBranches"
 	updateCommands := ""
 	// The first branch is the currently checked out branch; skip it
 	for _, branch := range branches[1:] {
