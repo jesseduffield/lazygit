@@ -1,13 +1,11 @@
 # run with:
 # docker build -t lazygit .
-# docker run -it lazygit:latest /bin/sh
+# docker run -it lazygit:latest
 
-FROM golang:1.24 as build
+FROM golang:1.24 AS build
 WORKDIR /go/src/github.com/jesseduffield/lazygit/
-COPY go.mod go.sum ./
-RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build
+RUN CGO_ENABLED=0 GOOS=linux go build -mod=vendor
 
 FROM alpine:3.19
 RUN apk add --no-cache -U git xdg-utils
