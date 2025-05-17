@@ -56,21 +56,16 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 func (self *MainViewController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
 	return []*gocui.ViewMouseBinding{
 		{
-			ViewName: self.context.GetViewName(),
-			Key:      gocui.MouseLeft,
-			Handler: func(opts gocui.ViewMouseBindingOpts) error {
-				if self.isFocused() {
-					return self.onClick(opts)
-				}
-
-				self.context.SetParentContext(self.otherContext.GetParentContext())
-				self.c.Context().Push(self.context, types.OnFocusOpts{
-					ClickedWindowName:  self.context.GetWindowName(),
-					ClickedViewLineIdx: opts.Y,
-				})
-
-				return nil
-			},
+			ViewName:    self.context.GetViewName(),
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickInAlreadyFocusedView,
+			FocusedView: self.context.GetViewName(),
+		},
+		{
+			ViewName:    self.context.GetViewName(),
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickInOtherViewOfMainViewPair,
+			FocusedView: self.otherContext.GetViewName(),
 		},
 	}
 }
@@ -93,11 +88,21 @@ func (self *MainViewController) escape() error {
 	return nil
 }
 
-func (self *MainViewController) onClick(opts gocui.ViewMouseBindingOpts) error {
+func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouseBindingOpts) error {
 	parentCtx := self.context.GetParentContext()
 	if parentCtx.GetOnClickFocusedMainView() != nil {
 		return parentCtx.GetOnClickFocusedMainView()(self.context.GetViewName(), opts.Y)
 	}
+	return nil
+}
+
+func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.ViewMouseBindingOpts) error {
+	self.context.SetParentContext(self.otherContext.GetParentContext())
+	self.c.Context().Push(self.context, types.OnFocusOpts{
+		ClickedWindowName:  self.context.GetWindowName(),
+		ClickedViewLineIdx: opts.Y,
+	})
+
 	return nil
 }
 
@@ -111,8 +116,4 @@ func (self *MainViewController) openSearch() error {
 	}
 
 	return nil
-}
-
-func (self *MainViewController) isFocused() bool {
-	return self.c.Context().Current().GetKey() == self.context.GetKey()
 }
