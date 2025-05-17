@@ -60,19 +60,18 @@ func (self *SwitchToFocusedMainViewController) Context() types.Context {
 }
 
 func (self *SwitchToFocusedMainViewController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	return self.focusMainView("main")
+	return self.focusMainView(self.c.Contexts().Normal)
 }
 
 func (self *SwitchToFocusedMainViewController) onClickSecondary(opts gocui.ViewMouseBindingOpts) error {
-	return self.focusMainView("secondary")
+	return self.focusMainView(self.c.Contexts().NormalSecondary)
 }
 
 func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
-	return self.focusMainView("main")
+	return self.focusMainView(self.c.Contexts().Normal)
 }
 
-func (self *SwitchToFocusedMainViewController) focusMainView(mainViewName string) error {
-	mainViewContext := self.c.Helpers().Window.GetContextForWindow(mainViewName)
+func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext types.Context) error {
 	mainViewContext.SetParentContext(self.context)
 	if context, ok := mainViewContext.(types.ISearchableContext); ok {
 		context.ClearSearchString()
