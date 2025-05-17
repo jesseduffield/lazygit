@@ -190,8 +190,8 @@ github.com/invopop/jsonschema v0.10.0 h1:c1ktzNLBun3LyQQhyty5WE3lulbOdIIyOVlkmDL
 github.com/invopop/jsonschema v0.10.0/go.mod h1:ffZ5Km5SWWRAIN6wbDXItl95euhFz2uON45H2qjYt+0=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
-github.com/jesseduffield/generics v0.0.0-20250406224309-4f541cb84918 h1:meoUDZGF6jZAbhW5IBwj92mTqGmrOn+Cuu0jM7/aUcs=
-github.com/jesseduffield/generics v0.0.0-20250406224309-4f541cb84918/go.mod h1:+LLj9/WUPAP8LqCchs7P+7X0R98HiFujVFANdNaxhGk=
+github.com/jesseduffield/generics v0.0.0-20250517122708-b0b4a53a6f5c h1:tC2PaiisXAC5sOjDPfMArSnbswDObtCssx+xn28edX4=
+github.com/jesseduffield/generics v0.0.0-20250517122708-b0b4a53a6f5c/go.mod h1:F2fEBk0ddf6ixrBrJjY7phfQ3hL9rXG0uSjvwYe50bE=
 github.com/jesseduffield/go-git/v5 v5.14.1-0.20250407170251-e1a013310ccd h1:ViKj6qth8FgcIWizn9KiACWwPemWSymx62OPN0tHT+Q=
 github.com/jesseduffield/go-git/v5 v5.14.1-0.20250407170251-e1a013310ccd/go.mod h1:lRhCiBr6XjQrvcQVa+UYsy/99d3wMXn/a0nSQlhnhlA=
 github.com/jesseduffield/gocui v0.3.1-0.20250421160159-82c9aaeba2b9 h1:k23sCKHCNpAvwJP8Yr16CBUItuarmUHBGH7FaAm2glc=
