@@ -128,7 +128,6 @@ func (self *patchPresenter) formatLine(str string, textStyle style.TextStyle, in
 	return self.formatLineAux(str, textStyle, included)
 }
 
-// 'selected' means you've got it highlighted with your cursor
 // 'included' means the line has been included in the patch (only applicable when
 // building a patch)
 func (self *patchPresenter) formatLineAux(str string, textStyle style.TextStyle, included bool) string {
