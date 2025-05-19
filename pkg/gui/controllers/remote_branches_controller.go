@@ -158,7 +158,7 @@ func (self *RemoteBranchesController) createSortMenu() error {
 }
 
 func (self *RemoteBranchesController) createResetMenu(selectedBranch *models.RemoteBranch) error {
-	return self.c.Helpers().Refs.CreateGitResetMenu(selectedBranch.FullName())
+	return self.c.Helpers().Refs.CreateGitResetMenu(selectedBranch.FullName(), selectedBranch.FullRefName())
 }
 
 func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.RemoteBranch) error {
