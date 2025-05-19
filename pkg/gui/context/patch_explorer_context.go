@@ -118,7 +118,8 @@ func (self *PatchExplorerContext) FocusSelection() {
 	startIdx, endIdx := state.SelectedViewRange()
 	// As far as the view is concerned, we are always selecting a range
 	view.SetRangeSelectStart(startIdx)
-	view.SetCursorY(endIdx - newOriginY)
+	cursorY := min(endIdx-newOriginY, bufferHeight-1)
+	view.SetCursorY(cursorY)
 }
 
 func (self *PatchExplorerContext) GetContentToRender() string {

@@ -109,7 +109,8 @@ func (self *MergeConflictsContext) SetSelectedLineRange() {
 	originY := view.OriginY()
 	// As far as the view is concerned, we are always selecting a range
 	view.SetRangeSelectStart(startIdx)
-	view.SetCursorY(endIdx - originY)
+	cursorY := min(endIdx-originY, view.InnerHeight()-1)
+	view.SetCursorY(cursorY)
 }
 
 func (self *MergeConflictsContext) GetOriginY() int {
