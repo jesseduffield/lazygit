@@ -1144,7 +1144,7 @@ func (self *FilesController) stash() error {
 }
 
 func (self *FilesController) createResetToUpstreamMenu() error {
-	return self.c.Helpers().Refs.CreateGitResetMenu("@{upstream}")
+	return self.c.Helpers().Refs.CreateGitResetMenu("@{upstream}", "@{upstream}")
 }
 
 func (self *FilesController) handleToggleDirCollapsed() error {
