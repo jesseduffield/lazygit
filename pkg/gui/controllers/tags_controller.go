@@ -302,7 +302,7 @@ func (self *TagsController) push(tag *models.Tag) error {
 }
 
 func (self *TagsController) createResetMenu(tag *models.Tag) error {
-	return self.c.Helpers().Refs.CreateGitResetMenu(tag.Name)
+	return self.c.Helpers().Refs.CreateGitResetMenu(tag.Name, tag.FullRefName())
 }
 
 func (self *TagsController) create() error {
