@@ -153,7 +153,9 @@ func (gui *Gui) postRefreshUpdate(c types.Context) {
 			// either search or change their data, but not both at the same time.
 			if !currentCtx.GetView().IsSearching() {
 				parentCtx := currentCtx.GetParentContext()
-				parentCtx.HandleRenderToMain()
+				if parentCtx.GetKey() == c.GetKey() {
+					parentCtx.HandleRenderToMain()
+				}
 			}
 		}
 	}
