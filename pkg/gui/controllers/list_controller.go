@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type ListControllerFactory struct {
@@ -51,7 +52,8 @@ func (self *ListController) HandleScrollRight() error {
 }
 
 func (self *ListController) HandleScrollUp() error {
-	scrollHeight := self.c.UserConfig().Gui.ScrollHeight
+	var _, windowHeight int = self.context.GetViewTrait().ViewPortYBounds()
+	scrollHeight := utils.ScrollHeight(windowHeight, self.c.UserConfig().Gui.ScrollHeight)
 	self.context.GetViewTrait().ScrollUp(scrollHeight)
 	if self.context.RenderOnlyVisibleLines() {
 		self.context.HandleRender()
@@ -61,7 +63,8 @@ func (self *ListController) HandleScrollUp() error {
 }
 
 func (self *ListController) HandleScrollDown() error {
-	scrollHeight := self.c.UserConfig().Gui.ScrollHeight
+	var _, windowHeight int = self.context.GetViewTrait().ViewPortYBounds()
+	scrollHeight := utils.ScrollHeight(windowHeight, self.c.UserConfig().Gui.ScrollHeight)
 	self.context.GetViewTrait().ScrollDown(scrollHeight)
 	if self.context.RenderOnlyVisibleLines() {
 		self.context.HandleRender()
