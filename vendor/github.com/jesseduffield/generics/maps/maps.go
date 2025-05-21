@@ -19,7 +19,7 @@ func Values[Key comparable, Value any](m map[Key]Value) []Value {
 func TransformValues[Key comparable, Value any, NewValue any](
 	m map[Key]Value, fn func(Value) NewValue,
 ) map[Key]NewValue {
-	output := make(map[Key]NewValue)
+	output := make(map[Key]NewValue, len(m))
 	for key, value := range m {
 		output[key] = fn(value)
 	}
@@ -27,7 +27,7 @@ func TransformValues[Key comparable, Value any, NewValue any](
 }
 
 func TransformKeys[Key comparable, Value any, NewKey comparable](m map[Key]Value, fn func(Key) NewKey) map[NewKey]Value {
-	output := make(map[NewKey]Value)
+	output := make(map[NewKey]Value, len(m))
 	for key, value := range m {
 		output[fn(key)] = value
 	}
