@@ -357,3 +357,19 @@ func (self *ContextMgr) CurrentPopup() []types.Context {
 		return context.GetKind() == types.TEMPORARY_POPUP || context.GetKind() == types.PERSISTENT_POPUP
 	})
 }
+
+func (self *ContextMgr) NextInStack(c types.Context) types.Context {
+	self.RLock()
+	defer self.RUnlock()
+
+	for i := range self.ContextStack {
+		if self.ContextStack[i].GetKey() == c.GetKey() {
+			if i == 0 {
+				return nil
+			}
+			return self.ContextStack[i-1]
+		}
+	}
+
+	panic("context not in stack")
+}

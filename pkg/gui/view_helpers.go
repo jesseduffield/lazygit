@@ -152,9 +152,9 @@ func (gui *Gui) postRefreshUpdate(c types.Context) {
 			// just don't rerender the view while searching, on the assumption that users will probably
 			// either search or change their data, but not both at the same time.
 			if !currentCtx.GetView().IsSearching() {
-				parentCtx := currentCtx.GetParentContext()
-				if parentCtx.GetKey() == c.GetKey() {
-					parentCtx.HandleRenderToMain()
+				sidePanelContext := gui.State.ContextMgr.NextInStack(currentCtx)
+				if sidePanelContext != nil && sidePanelContext.GetKey() == c.GetKey() {
+					sidePanelContext.HandleRenderToMain()
 				}
 			}
 		}

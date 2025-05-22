@@ -106,7 +106,9 @@ func (self *RenameSimilarityThresholdController) currentSidePanel() types.Contex
 	currentContext := self.c.Context().CurrentStatic()
 	if currentContext.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY ||
 		currentContext.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {
-		return currentContext.GetParentContext()
+		if sidePanelContext := self.c.Context().NextInStack(currentContext); sidePanelContext != nil {
+			return sidePanelContext
+		}
 	}
 
 	return currentContext

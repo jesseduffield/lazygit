@@ -76,7 +76,6 @@ func (self *MainViewController) Context() types.Context {
 
 func (self *MainViewController) togglePanel() error {
 	if self.otherContext.GetView().Visible {
-		self.otherContext.SetParentContext(self.context.GetParentContext())
 		self.c.Context().Push(self.otherContext, types.OnFocusOpts{})
 	}
 
@@ -89,15 +88,14 @@ func (self *MainViewController) escape() error {
 }
 
 func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouseBindingOpts) error {
-	parentCtx := self.context.GetParentContext()
-	if parentCtx.GetOnClickFocusedMainView() != nil {
-		return parentCtx.GetOnClickFocusedMainView()(self.context.GetViewName(), opts.Y)
+	sidePanelContext := self.c.Context().NextInStack(self.context)
+	if sidePanelContext != nil && sidePanelContext.GetOnClickFocusedMainView() != nil {
+		return sidePanelContext.GetOnClickFocusedMainView()(self.context.GetViewName(), opts.Y)
 	}
 	return nil
 }
 
 func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.ViewMouseBindingOpts) error {
-	self.context.SetParentContext(self.otherContext.GetParentContext())
 	self.c.Context().Push(self.context, types.OnFocusOpts{
 		ClickedWindowName:  self.context.GetWindowName(),
 		ClickedViewLineIdx: opts.Y,
