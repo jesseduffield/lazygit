@@ -39,6 +39,9 @@ var (
 
 	// ErrQuit is used to decide if the MainLoop finished successfully.
 	ErrQuit = standardErrors.New("quit")
+
+	// ErrKeybindingNotHandled is returned when a keybinding is not handled, so that the key can be dispatched further
+	ErrKeybindingNotHandled = standardErrors.New("keybinding not handled")
 )
 
 const (
@@ -1518,7 +1521,13 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 			continue
 		}
 		if g.matchView(v, kb) {
-			return g.execKeybinding(v, kb)
+			err := g.execKeybinding(v, kb)
+			if IsKeybindingNotHandled(err) {
+				matchingParentViewKb = nil
+				break
+			} else {
+				return err
+			}
 		}
 		if v != nil && g.matchView(v.ParentView, kb) {
 			matchingParentViewKb = kb
@@ -1528,7 +1537,10 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 		}
 	}
 	if matchingParentViewKb != nil {
-		return g.execKeybinding(v.ParentView, matchingParentViewKb)
+		err := g.execKeybinding(v.ParentView, matchingParentViewKb)
+		if !IsKeybindingNotHandled(err) {
+			return err
+		}
 	}
 
 	if g.currentView != nil && g.currentView.Editable && g.currentView.Editor != nil {
@@ -1613,6 +1625,10 @@ func IsUnknownView(err error) bool {
 // IsQuit reports whether the contents of an error is "quit".
 func IsQuit(err error) bool {
 	return err != nil && err.Error() == ErrQuit.Error()
+}
+
+func IsKeybindingNotHandled(err error) bool {
+	return err != nil && err.Error() == ErrKeybindingNotHandled.Error()
 }
 
 func (g *Gui) Suspend() error {

@@ -131,7 +131,7 @@ func (gui *Gui) pageDownConfirmationPanel() error {
 
 func (gui *Gui) goToConfirmationPanelTop() error {
 	if gui.Views.Confirmation.Editable {
-		return nil
+		return gocui.ErrKeybindingNotHandled
 	}
 
 	gui.Views.Confirmation.ScrollUp(gui.Views.Confirmation.ViewLinesHeight())
@@ -141,7 +141,7 @@ func (gui *Gui) goToConfirmationPanelTop() error {
 
 func (gui *Gui) goToConfirmationPanelBottom() error {
 	if gui.Views.Confirmation.Editable {
-		return nil
+		return gocui.ErrKeybindingNotHandled
 	}
 
 	gui.Views.Confirmation.ScrollDown(gui.Views.Confirmation.ViewLinesHeight())
