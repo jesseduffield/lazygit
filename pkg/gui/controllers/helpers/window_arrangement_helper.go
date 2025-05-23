@@ -249,10 +249,7 @@ func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
 	}
 
 	if args.CurrentWindow == "main" || args.CurrentWindow == "secondary" {
-		if args.ScreenMode == types.SCREEN_HALF || args.ScreenMode == types.SCREEN_FULL {
-			sideSectionWeight = 0
-			mainSectionWeight = 1
-		} else if mainSectionWeight == 0 {
+		if args.ScreenMode == types.SCREEN_HALF || args.ScreenMode == types.SCREEN_FULL || mainSectionWeight == 0 {
 			sideSectionWeight = 0
 			mainSectionWeight = 1
 		}
