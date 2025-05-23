@@ -562,29 +562,19 @@ func max(a, b int) int {
 }
 
 // SetCursor sets the cursor position of the view at the given point,
-// relative to the view. It checks if the position is valid.
+// relative to the view. It is allowed to set the position to a point outside
+// the visible portion of the view, or even outside the content of the view.
+// Clients are responsible for clamping to valid positions.
 func (v *View) SetCursor(x, y int) {
-	maxX, maxY := v.InnerSize()
-	if x < 0 || x >= maxX || y < 0 || y >= maxY {
-		return
-	}
 	v.cx = x
 	v.cy = y
 }
 
 func (v *View) SetCursorX(x int) {
-	maxX := v.InnerWidth()
-	if x < 0 || x >= maxX {
-		return
-	}
 	v.cx = x
 }
 
 func (v *View) SetCursorY(y int) {
-	maxY := v.InnerHeight()
-	if y < 0 || y >= maxY {
-		return
-	}
 	v.cy = y
 }
 
@@ -1685,10 +1675,11 @@ func (v *View) RenderTextArea() {
 func updatedCursorAndOrigin(prevOrigin int, size int, cursor int) (int, int) {
 	var newViewCursor int
 	newOrigin := prevOrigin
+	usableSize := size - 1
 
-	if cursor > prevOrigin+size {
-		newOrigin = cursor - size
-		newViewCursor = size
+	if cursor > prevOrigin+usableSize {
+		newOrigin = cursor - usableSize
+		newViewCursor = usableSize
 	} else if cursor < prevOrigin {
 		newOrigin = cursor
 		newViewCursor = 0
