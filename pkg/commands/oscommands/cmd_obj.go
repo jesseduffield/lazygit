@@ -196,6 +196,7 @@ func (self *CmdObj) PromptOnCredentialRequest(task gocui.Task) *CmdObj {
 
 func (self *CmdObj) FailOnCredentialRequest() *CmdObj {
 	self.credentialStrategy = FAIL
+	self.usePty = true
 
 	return self
 }
