@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 	"github.com/sirupsen/logrus"
@@ -340,7 +339,7 @@ func (self *cmdObjRunner) runAndDetectCredentialRequest(
 		tr := io.TeeReader(handler.stdoutPipe, cmdWriter)
 
 		go utils.Safe(func() {
-			self.processOutput(tr, handler.stdinPipe, promptUserForCredential, cmdObj.GetTask())
+			self.processOutput(tr, handler.stdinPipe, promptUserForCredential, cmdObj)
 		})
 	})
 }
@@ -349,9 +348,10 @@ func (self *cmdObjRunner) processOutput(
 	reader io.Reader,
 	writer io.Writer,
 	promptUserForCredential func(CredentialType) <-chan string,
-	task gocui.Task,
+	cmdObj *CmdObj,
 ) {
 	checkForCredentialRequest := self.getCheckForCredentialRequestFunc()
+	task := cmdObj.GetTask()
 
 	scanner := bufio.NewScanner(reader)
 	scanner.Split(bufio.ScanBytes)
