@@ -294,14 +294,10 @@ const (
 	Token
 )
 
-// Whenever we're asked for a password we just enter a newline, which will
-// eventually cause the command to fail.
+// Whenever we're asked for a password we return a nil channel to tell the
+// caller to kill the process.
 var failPromptFn = func(CredentialType) <-chan string {
-	ch := make(chan string)
-	go func() {
-		ch <- "\n"
-	}()
-	return ch
+	return nil
 }
 
 func (self *cmdObjRunner) runWithCredentialHandling(cmdObj *CmdObj) error {
@@ -360,16 +356,26 @@ func (self *cmdObjRunner) processOutput(
 		askFor, ok := checkForCredentialRequest(newBytes)
 		if ok {
 			responseChan := promptUserForCredential(askFor)
-			if task != nil {
-				task.Pause()
-			}
-			toInput := <-responseChan
-			if task != nil {
-				task.Continue()
-			}
-			// If the return data is empty we don't write anything to stdin
-			if toInput != "" {
-				_, _ = writer.Write([]byte(toInput))
+			if responseChan == nil {
+				// Returning a nil channel means we should kill the process.
+				// Note that we don't break the loop after this, because we
+				// still need to drain the output, otherwise the Wait() call
+				// later might block.
+				if err := Kill(cmdObj.GetCmd()); err != nil {
+					self.log.Error(err)
+				}
+			} else {
+				if task != nil {
+					task.Pause()
+				}
+				toInput := <-responseChan
+				if task != nil {
+					task.Continue()
+				}
+				// If the return data is empty we don't write anything to stdin
+				if toInput != "" {
+					_, _ = writer.Write([]byte(toInput))
+				}
 			}
 		}
 	}
