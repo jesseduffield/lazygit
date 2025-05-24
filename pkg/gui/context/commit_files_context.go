@@ -29,7 +29,7 @@ var (
 func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 	viewModel := filetree.NewCommitFileTreeViewModel(
 		func() []*models.CommitFile { return c.Model().CommitFiles },
-		c.Log,
+		c.Common,
 		c.UserConfig().Gui.ShowFileTree,
 	)
 

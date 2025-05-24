@@ -5,10 +5,10 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
-	"github.com/sirupsen/logrus"
 )
 
 type ICommitFileTreeViewModel interface {
@@ -43,8 +43,8 @@ type CommitFileTreeViewModel struct {
 
 var _ ICommitFileTreeViewModel = &CommitFileTreeViewModel{}
 
-func NewCommitFileTreeViewModel(getFiles func() []*models.CommitFile, log *logrus.Entry, showTree bool) *CommitFileTreeViewModel {
-	fileTree := NewCommitFileTree(getFiles, log, showTree)
+func NewCommitFileTreeViewModel(getFiles func() []*models.CommitFile, common *common.Common, showTree bool) *CommitFileTreeViewModel {
+	fileTree := NewCommitFileTree(getFiles, common, showTree)
 	listCursor := traits.NewListCursor(fileTree.Len)
 	return &CommitFileTreeViewModel{
 		ICommitFileTree: fileTree,

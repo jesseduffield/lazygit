@@ -7,6 +7,7 @@ import (
 	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -25,6 +26,7 @@ func TestRenderFileTree(t *testing.T) {
 		files           []*models.File
 		collapsedPaths  []string
 		showLineChanges bool
+		showRootItem    bool
 		expected        []string
 	}{
 		{
@@ -37,7 +39,8 @@ func TestRenderFileTree(t *testing.T) {
 			files: []*models.File{
 				{Path: "test", ShortStatus: " M", HasStagedChanges: true},
 			},
-			expected: []string{" M test"},
+			showRootItem: true,
+			expected:     []string{" M test"},
 		},
 		{
 			name: "numstat",
@@ -48,6 +51,7 @@ func TestRenderFileTree(t *testing.T) {
 				{Path: "test4", ShortStatus: " M", HasStagedChanges: true, LinesAdded: 0, LinesDeleted: 0},
 			},
 			showLineChanges: true,
+			showRootItem:    true,
 			expected: []string{
 				"▼ /",
 				"   M test +1 -1",
@@ -66,6 +70,7 @@ func TestRenderFileTree(t *testing.T) {
 				{Path: "dir2/file5", ShortStatus: "M ", HasUnstagedChanges: true},
 				{Path: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
 			},
+			showRootItem: true,
 			expected: toStringSlice(
 				`
 ▼ /
@@ -80,6 +85,30 @@ func TestRenderFileTree(t *testing.T) {
 			),
 			collapsedPaths: []string{"./dir1"},
 		},
+		{
+			name: "big example without root item",
+			files: []*models.File{
+				{Path: "dir1/file2", ShortStatus: "M ", HasUnstagedChanges: true},
+				{Path: "dir1/file3", ShortStatus: "M ", HasUnstagedChanges: true},
+				{Path: "dir2/dir2/file3", ShortStatus: " M", HasStagedChanges: true},
+				{Path: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true},
+				{Path: "dir2/file5", ShortStatus: "M ", HasUnstagedChanges: true},
+				{Path: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
+			},
+			showRootItem: false,
+			expected: toStringSlice(
+				`
+▶ dir1
+▼ dir2
+  ▼ dir2
+     M file3
+    M  file4
+  M  file5
+M  file1
+`,
+			),
+			collapsedPaths: []string{"dir1"},
+		},
 	}
 
 	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
@@ -87,12 +116,14 @@ func TestRenderFileTree(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			viewModel := filetree.NewFileTree(func() []*models.File { return s.files }, utils.NewDummyLog(), true)
+			common := common.NewDummyCommon()
+			common.UserConfig().Gui.ShowRootItemInFileTree = s.showRootItem
+			viewModel := filetree.NewFileTree(func() []*models.File { return s.files }, common, true)
 			viewModel.SetTree()
 			for _, path := range s.collapsedPaths {
 				viewModel.ToggleCollapsed(path)
 			}
-			result := RenderFileTree(viewModel, nil, false, s.showLineChanges, &config.CustomIconsConfig{})
+			result := RenderFileTree(viewModel, nil, false, s.showLineChanges, &config.CustomIconsConfig{}, s.showRootItem)
 			assert.EqualValues(t, s.expected, result)
 		})
 	}
@@ -104,6 +135,7 @@ func TestRenderCommitFileTree(t *testing.T) {
 		root           *filetree.FileNode
 		files          []*models.CommitFile
 		collapsedPaths []string
+		showRootItem   bool
 		expected       []string
 	}{
 		{
@@ -116,7 +148,8 @@ func TestRenderCommitFileTree(t *testing.T) {
 			files: []*models.CommitFile{
 				{Path: "test", ChangeStatus: "A"},
 			},
-			expected: []string{"A test"},
+			showRootItem: true,
+			expected:     []string{"A test"},
 		},
 		{
 			name: "big example",
@@ -128,6 +161,7 @@ func TestRenderCommitFileTree(t *testing.T) {
 				{Path: "dir2/file5", ChangeStatus: "M"},
 				{Path: "file1", ChangeStatus: "M"},
 			},
+			showRootItem: true,
 			expected: toStringSlice(
 				`
 ▼ /
@@ -142,6 +176,30 @@ func TestRenderCommitFileTree(t *testing.T) {
 			),
 			collapsedPaths: []string{"./dir1"},
 		},
+		{
+			name: "big example without root item",
+			files: []*models.CommitFile{
+				{Path: "dir1/file2", ChangeStatus: "M"},
+				{Path: "dir1/file3", ChangeStatus: "A"},
+				{Path: "dir2/dir2/file3", ChangeStatus: "D"},
+				{Path: "dir2/dir2/file4", ChangeStatus: "M"},
+				{Path: "dir2/file5", ChangeStatus: "M"},
+				{Path: "file1", ChangeStatus: "M"},
+			},
+			showRootItem: false,
+			expected: toStringSlice(
+				`
+▶ dir1
+▼ dir2
+  ▼ dir2
+    D file3
+    M file4
+  M file5
+M file1
+`,
+			),
+			collapsedPaths: []string{"dir1"},
+		},
 	}
 
 	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
@@ -151,7 +209,9 @@ func TestRenderCommitFileTree(t *testing.T) {
 		t.Run(s.name, func(t *testing.T) {
 			hashPool := &utils.StringPool{}
 
-			viewModel := filetree.NewCommitFileTreeViewModel(func() []*models.CommitFile { return s.files }, utils.NewDummyLog(), true)
+			common := common.NewDummyCommon()
+			common.UserConfig().Gui.ShowRootItemInFileTree = s.showRootItem
+			viewModel := filetree.NewCommitFileTreeViewModel(func() []*models.CommitFile { return s.files }, common, true)
 			viewModel.SetRef(models.NewCommit(hashPool, models.NewCommitOpts{Hash: "1234"}))
 			viewModel.SetTree()
 			for _, path := range s.collapsedPaths {
