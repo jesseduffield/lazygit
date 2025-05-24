@@ -94,10 +94,11 @@ func (self *CommitFileTree) GetAllFiles() []*models.CommitFile {
 }
 
 func (self *CommitFileTree) SetTree() {
+	showRootItem := self.common.UserConfig().Gui.ShowRootItemInFileTree
 	if self.showTree {
-		self.tree = BuildTreeFromCommitFiles(self.getFiles())
+		self.tree = BuildTreeFromCommitFiles(self.getFiles(), showRootItem)
 	} else {
-		self.tree = BuildFlatTreeFromCommitFiles(self.getFiles())
+		self.tree = BuildFlatTreeFromCommitFiles(self.getFiles(), showRootItem)
 	}
 }
 

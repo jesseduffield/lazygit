@@ -168,10 +168,11 @@ func (self *FileTree) GetAllFiles() []*models.File {
 
 func (self *FileTree) SetTree() {
 	filesForDisplay := self.getFilesForDisplay()
+	showRootItem := self.common.UserConfig().Gui.ShowRootItemInFileTree
 	if self.showTree {
-		self.tree = BuildTreeFromFiles(filesForDisplay)
+		self.tree = BuildTreeFromFiles(filesForDisplay, showRootItem)
 	} else {
-		self.tree = BuildFlatTreeFromFiles(filesForDisplay)
+		self.tree = BuildFlatTreeFromFiles(filesForDisplay, showRootItem)
 	}
 }
 

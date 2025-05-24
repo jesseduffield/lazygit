@@ -190,6 +190,9 @@ gui:
   # This can be toggled from within Lazygit with the '`' key, but that will not change the default.
   showFileTree: true
 
+  # If true, add a "/" root item in the file tree representing the root of the repository. It is only added when necessary, i.e. when there is more than one item at top level.
+  showRootItemInFileTree: true
+
   # If true, show the number of lines changed per file in the Files view
   showNumstatInFilesView: false
 
