@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type ViewSelectionControllerFactory struct {
@@ -61,10 +62,21 @@ func (self *ViewSelectionController) handleLineChange(delta int) {
 	}
 
 	v := self.Context().GetView()
-	if delta < 0 {
-		v.ScrollUp(-delta)
+	if self.context.GetView().Highlight {
+		lineIdxBefore := v.CursorY() + v.OriginY()
+		lineIdxAfter := lo.Clamp(lineIdxBefore+delta, 0, v.ViewLinesHeight()-1)
+		if delta == -1 {
+			checkScrollUp(self.Context().GetViewTrait(), self.c.UserConfig(), lineIdxBefore, lineIdxAfter)
+		} else if delta == 1 {
+			checkScrollDown(self.Context().GetViewTrait(), self.c.UserConfig(), lineIdxBefore, lineIdxAfter)
+		}
+		v.FocusPoint(0, lineIdxAfter)
 	} else {
-		v.ScrollDown(delta)
+		if delta < 0 {
+			v.ScrollUp(-delta)
+		} else {
+			v.ScrollDown(delta)
+		}
 	}
 }
 
@@ -90,7 +102,11 @@ func (self *ViewSelectionController) handleNextPage() error {
 
 func (self *ViewSelectionController) handleGotoTop() error {
 	v := self.Context().GetView()
-	self.handleLineChange(-v.ViewLinesHeight())
+	if self.context.GetView().Highlight {
+		v.FocusPoint(0, 0)
+	} else {
+		self.handleLineChange(-v.ViewLinesHeight())
+	}
 	return nil
 }
 
@@ -99,7 +115,11 @@ func (self *ViewSelectionController) handleGotoBottom() error {
 		manager.ReadToEnd(func() {
 			self.c.OnUIThread(func() error {
 				v := self.Context().GetView()
-				self.handleLineChange(v.ViewLinesHeight())
+				if self.context.GetView().Highlight {
+					v.FocusPoint(0, v.ViewLinesHeight()-1)
+				} else {
+					self.handleLineChange(v.ViewLinesHeight())
+				}
 				return nil
 			})
 		})
