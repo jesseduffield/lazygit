@@ -5,11 +5,11 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
-	"github.com/sirupsen/logrus"
 )
 
 type IFileTreeViewModel interface {
@@ -28,8 +28,8 @@ type FileTreeViewModel struct {
 
 var _ IFileTreeViewModel = &FileTreeViewModel{}
 
-func NewFileTreeViewModel(getFiles func() []*models.File, log *logrus.Entry, showTree bool) *FileTreeViewModel {
-	fileTree := NewFileTree(getFiles, log, showTree)
+func NewFileTreeViewModel(getFiles func() []*models.File, common *common.Common, showTree bool) *FileTreeViewModel {
+	fileTree := NewFileTree(getFiles, common, showTree)
 	listCursor := traits.NewListCursor(fileTree.Len)
 	return &FileTreeViewModel{
 		IFileTree:   fileTree,

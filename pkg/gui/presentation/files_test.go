@@ -7,6 +7,7 @@ import (
 	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -87,7 +88,8 @@ func TestRenderFileTree(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			viewModel := filetree.NewFileTree(func() []*models.File { return s.files }, utils.NewDummyLog(), true)
+			common := common.NewDummyCommon()
+			viewModel := filetree.NewFileTree(func() []*models.File { return s.files }, common, true)
 			viewModel.SetTree()
 			for _, path := range s.collapsedPaths {
 				viewModel.ToggleCollapsed(path)
@@ -151,7 +153,8 @@ func TestRenderCommitFileTree(t *testing.T) {
 		t.Run(s.name, func(t *testing.T) {
 			hashPool := &utils.StringPool{}
 
-			viewModel := filetree.NewCommitFileTreeViewModel(func() []*models.CommitFile { return s.files }, utils.NewDummyLog(), true)
+			common := common.NewDummyCommon()
+			viewModel := filetree.NewCommitFileTreeViewModel(func() []*models.CommitFile { return s.files }, common, true)
 			viewModel.SetRef(models.NewCommit(hashPool, models.NewCommitOpts{Hash: "1234"}))
 			viewModel.SetTree()
 			for _, path := range s.collapsedPaths {

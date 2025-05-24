@@ -24,7 +24,7 @@ var (
 func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 	viewModel := filetree.NewFileTreeViewModel(
 		func() []*models.File { return c.Model().Files },
-		c.Log,
+		c.Common,
 		c.UserConfig().Gui.ShowFileTree,
 	)
 
