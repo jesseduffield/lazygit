@@ -326,7 +326,8 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 		LabelColumns: []string{upstreamResetOptions},
 		OpensMenu:    true,
 		OnPress: func() error {
-			err := self.c.Helpers().Refs.CreateGitResetMenu(upstream)
+			// We only can invoke this when the remote branch is stored locally, so using the selectedBranch here is fine.
+			err := self.c.Helpers().Refs.CreateGitResetMenu(upstream, selectedBranch.FullUpstreamRefName())
 			if err != nil {
 				return err
 			}
@@ -686,7 +687,7 @@ func (self *BranchesController) createSortMenu() error {
 }
 
 func (self *BranchesController) createResetMenu(selectedBranch *models.Branch) error {
-	return self.c.Helpers().Refs.CreateGitResetMenu(selectedBranch.Name)
+	return self.c.Helpers().Refs.CreateGitResetMenu(selectedBranch.Name, selectedBranch.FullRefName())
 }
 
 func (self *BranchesController) rename(branch *models.Branch) error {

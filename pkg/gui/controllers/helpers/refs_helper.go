@@ -231,7 +231,7 @@ func (self *RefsHelper) CreateSortOrderMenu(sortOptionsOrder []string, onSelecte
 	})
 }
 
-func (self *RefsHelper) CreateGitResetMenu(ref string) error {
+func (self *RefsHelper) CreateGitResetMenu(name string, ref string) error {
 	type strengthWithKey struct {
 		strength string
 		label    string
@@ -249,7 +249,7 @@ func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 		return &types.MenuItem{
 			LabelColumns: []string{
 				row.label,
-				style.FgRed.Sprintf("reset --%s %s", row.strength, ref),
+				style.FgRed.Sprintf("reset --%s %s", row.strength, name),
 			},
 			OnPress: func() error {
 				self.c.LogAction("Reset")
@@ -261,7 +261,7 @@ func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 	})
 
 	return self.c.Menu(types.CreateMenuOptions{
-		Title: fmt.Sprintf("%s %s", self.c.Tr.ResetTo, ref),
+		Title: fmt.Sprintf("%s %s", self.c.Tr.ResetTo, name),
 		Items: menuItems,
 	})
 }
