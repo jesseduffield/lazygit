@@ -60,6 +60,7 @@ func (self *FilteringMenuAction) Call() error {
 
 	menuItems = append(menuItems, &types.MenuItem{
 		Label: self.c.Tr.FilterPathOption,
+		Key:   'p',
 		OnPress: func() error {
 			self.c.Prompt(types.PromptOpts{
 				FindSuggestionsFunc: self.c.Helpers().Suggestions.GetFilePathSuggestionsFunc(),
@@ -76,6 +77,7 @@ func (self *FilteringMenuAction) Call() error {
 
 	menuItems = append(menuItems, &types.MenuItem{
 		Label: self.c.Tr.FilterAuthorOption,
+		Key:   'a',
 		OnPress: func() error {
 			self.c.Prompt(types.PromptOpts{
 				FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
@@ -93,6 +95,7 @@ func (self *FilteringMenuAction) Call() error {
 	if self.c.Modes().Filtering.Active() {
 		menuItems = append(menuItems, &types.MenuItem{
 			Label:   self.c.Tr.ExitFilterMode,
+			Key:     's',
 			OnPress: self.c.Helpers().Mode.ClearFiltering,
 		})
 	}
