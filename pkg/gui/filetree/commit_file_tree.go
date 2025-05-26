@@ -2,9 +2,9 @@ package filetree
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
-	"github.com/sirupsen/logrus"
 )
 
 type ICommitFileTree interface {
@@ -21,7 +21,7 @@ type CommitFileTree struct {
 	getFiles       func() []*models.CommitFile
 	tree           *Node[models.CommitFile]
 	showTree       bool
-	log            *logrus.Entry
+	common         *common.Common
 	collapsedPaths *CollapsedPaths
 }
 
@@ -41,10 +41,10 @@ func (self *CommitFileTree) ExpandAll() {
 
 var _ ICommitFileTree = &CommitFileTree{}
 
-func NewCommitFileTree(getFiles func() []*models.CommitFile, log *logrus.Entry, showTree bool) *CommitFileTree {
+func NewCommitFileTree(getFiles func() []*models.CommitFile, common *common.Common, showTree bool) *CommitFileTree {
 	return &CommitFileTree{
 		getFiles:       getFiles,
-		log:            log,
+		common:         common,
 		showTree:       showTree,
 		collapsedPaths: NewCollapsedPaths(),
 	}
@@ -94,10 +94,11 @@ func (self *CommitFileTree) GetAllFiles() []*models.CommitFile {
 }
 
 func (self *CommitFileTree) SetTree() {
+	showRootItem := self.common.UserConfig().Gui.ShowRootItemInFileTree
 	if self.showTree {
-		self.tree = BuildTreeFromCommitFiles(self.getFiles())
+		self.tree = BuildTreeFromCommitFiles(self.getFiles(), showRootItem)
 	} else {
-		self.tree = BuildFlatTreeFromCommitFiles(self.getFiles())
+		self.tree = BuildFlatTreeFromCommitFiles(self.getFiles(), showRootItem)
 	}
 }
 

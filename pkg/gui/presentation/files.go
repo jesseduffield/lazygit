@@ -25,12 +25,13 @@ func RenderFileTree(
 	showFileIcons bool,
 	showNumstat bool,
 	customIconsConfig *config.CustomIconsConfig,
+	showRootItem bool,
 ) []string {
 	collapsedPaths := tree.CollapsedPaths()
 	return renderAux(tree.GetRoot().Raw(), collapsedPaths, -1, -1, func(node *filetree.Node[models.File], treeDepth int, visualDepth int, isCollapsed bool) string {
 		fileNode := filetree.NewFileNode(node)
 
-		return getFileLine(isCollapsed, fileNode.GetHasUnstagedChanges(), fileNode.GetHasStagedChanges(), treeDepth, visualDepth, showNumstat, showFileIcons, submoduleConfigs, node, customIconsConfig)
+		return getFileLine(isCollapsed, fileNode.GetHasUnstagedChanges(), fileNode.GetHasStagedChanges(), treeDepth, visualDepth, showNumstat, showFileIcons, submoduleConfigs, node, customIconsConfig, showRootItem)
 	})
 }
 
@@ -120,8 +121,9 @@ func getFileLine(
 	submoduleConfigs []*models.SubmoduleConfig,
 	node *filetree.Node[models.File],
 	customIconsConfig *config.CustomIconsConfig,
+	showRootItem bool,
 ) string {
-	name := fileNameAtDepth(node, treeDepth)
+	name := fileNameAtDepth(node, treeDepth, showRootItem)
 	output := ""
 
 	var nameColor style.TextStyle
@@ -297,7 +299,7 @@ func getColorForChangeStatus(changeStatus string) style.TextStyle {
 	}
 }
 
-func fileNameAtDepth(node *filetree.Node[models.File], depth int) string {
+func fileNameAtDepth(node *filetree.Node[models.File], depth int, showRootItem bool) string {
 	splitName := split(node.GetInternalPath())
 	if depth == 0 && splitName[0] == "." {
 		if len(splitName) == 1 {
@@ -308,7 +310,7 @@ func fileNameAtDepth(node *filetree.Node[models.File], depth int) string {
 	name := join(splitName[depth:])
 
 	if node.File != nil && node.File.IsRename() {
-		splitPrevName := split("./" + node.File.PreviousPath)
+		splitPrevName := filetree.SplitFileTreePath(node.File.PreviousPath, showRootItem)
 
 		prevName := node.File.PreviousPath
 		// if the file has just been renamed inside the same directory, we can shave off

@@ -207,6 +207,7 @@ var tests = []*components.IntegrationTest{
 	file.RememberCommitMessageAfterFail,
 	file.RenameSimilarityThresholdChange,
 	file.RenamedFiles,
+	file.RenamedFilesNoRootItem,
 	file.StageChildrenRangeSelect,
 	file.StageDeletedRangeSelect,
 	file.StageRangeSelect,
