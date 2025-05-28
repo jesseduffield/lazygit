@@ -325,13 +325,10 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 	if suggestedBranchName == "" {
 		var err error
 
-		suggestedBranchName, err = utils.ResolveTemplate(self.c.UserConfig().Git.BranchPrefix, nil, template.FuncMap{
-			"runCommand": self.c.Git().Custom.TemplateFunctionRunCommand,
-		})
+		suggestedBranchName, err = self.getSuggestedBranchName()
 		if err != nil {
 			return err
 		}
-		suggestedBranchName = strings.ReplaceAll(suggestedBranchName, "\t", " ")
 	}
 
 	refresh := func() error {
@@ -586,4 +583,15 @@ func (self *RefsHelper) ParseRemoteBranchName(fullBranchName string) (string, st
 
 func IsSwitchBranchUncommittedChangesError(err error) bool {
 	return strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch")
+}
+
+func (self *RefsHelper) getSuggestedBranchName() (string, error) {
+	suggestedBranchName, err := utils.ResolveTemplate(self.c.UserConfig().Git.BranchPrefix, nil, template.FuncMap{
+		"runCommand": self.c.Git().Custom.TemplateFunctionRunCommand,
+	})
+	if err != nil {
+		return suggestedBranchName, err
+	}
+	suggestedBranchName = strings.ReplaceAll(suggestedBranchName, "\t", " ")
+	return suggestedBranchName, nil
 }
