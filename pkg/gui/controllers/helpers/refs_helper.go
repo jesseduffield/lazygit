@@ -396,16 +396,21 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 		return err
 	}
 
-	withNewBranchNamePrompt := func(baseBranchName string, f func(string, string) error) {
+	withNewBranchNamePrompt := func(baseBranchName string, f func(string, string) error) error {
 		prompt := utils.ResolvePlaceholderString(
 			self.c.Tr.NewBranchNameBranchOff,
 			map[string]string{
 				"branchName": baseBranchName,
 			},
 		)
+		suggestedBranchName, err := self.getSuggestedBranchName()
+		if err != nil {
+			return err
+		}
 
 		self.c.Prompt(types.PromptOpts{
-			Title: prompt,
+			Title:          prompt,
+			InitialContent: suggestedBranchName,
 			HandleConfirm: func(response string) error {
 				self.c.LogAction(self.c.Tr.MoveCommitsToNewBranch)
 				newBranchName := SanitizedBranchName(response)
@@ -414,6 +419,7 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 				})
 			},
 		})
+		return nil
 	}
 
 	isMainBranch := lo.Contains(self.c.UserConfig().Git.MainBranches, currentBranch.Name)
@@ -428,8 +434,7 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 			Title:  self.c.Tr.MoveCommitsToNewBranch,
 			Prompt: prompt,
 			HandleConfirm: func() error {
-				withNewBranchNamePrompt(currentBranch.Name, self.moveCommitsToNewBranchStackedOnCurrentBranch)
-				return nil
+				return withNewBranchNamePrompt(currentBranch.Name, self.moveCommitsToNewBranchStackedOnCurrentBranch)
 			},
 		})
 		return nil
@@ -449,17 +454,15 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 			{
 				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchFromBaseItem, shortBaseBranchName),
 				OnPress: func() error {
-					withNewBranchNamePrompt(shortBaseBranchName, func(currentBranch string, newBranchName string) error {
+					return withNewBranchNamePrompt(shortBaseBranchName, func(currentBranch string, newBranchName string) error {
 						return self.moveCommitsToNewBranchOffOfMainBranch(currentBranch, newBranchName, baseBranchRef)
 					})
-					return nil
 				},
 			},
 			{
 				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchStackedItem, currentBranch.Name),
 				OnPress: func() error {
-					withNewBranchNamePrompt(currentBranch.Name, self.moveCommitsToNewBranchStackedOnCurrentBranch)
-					return nil
+					return withNewBranchNamePrompt(currentBranch.Name, self.moveCommitsToNewBranchStackedOnCurrentBranch)
 				},
 			},
 		},
