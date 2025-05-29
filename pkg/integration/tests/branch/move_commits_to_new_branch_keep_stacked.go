@@ -9,7 +9,9 @@ var MoveCommitsToNewBranchKeepStacked = NewIntegrationTest(NewIntegrationTestArg
 	Description:  "Create a new branch from the commits that you accidentally made on the wrong branch; choosing stacked on current branch",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.BranchPrefix = "myprefix/"
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("initial commit")
 		shell.CloneIntoRemote("origin")
@@ -42,12 +44,13 @@ var MoveCommitsToNewBranchKeepStacked = NewIntegrationTest(NewIntegrationTestArg
 
 		t.ExpectPopup().Prompt().
 			Title(Equals("New branch name (branch is off of 'feature')")).
+			InitialText(Equals("myprefix/")).
 			Type("new branch").
 			Confirm()
 
 		t.Views().Branches().
 			Lines(
-				Contains("new-branch").DoesNotContain("↑").IsSelected(),
+				Contains("myprefix/new-branch").DoesNotContain("↑").IsSelected(),
 				Contains("feature ✓"),
 				Contains("master ✓"),
 			)
