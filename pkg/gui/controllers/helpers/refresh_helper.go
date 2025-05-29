@@ -448,8 +448,6 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 	self.c.Mutexes().RefreshingBranchesMutex.Lock()
 	defer self.c.Mutexes().RefreshingBranchesMutex.Unlock()
 
-	prevSelectedBranch := self.c.Contexts().Branches.GetSelected()
-
 	reflogCommits := self.c.Model().FilteredReflogCommits
 	if self.c.Modes().Filtering.Active() && self.c.AppState.LocalBranchSortOrder == "recency" {
 		// in filter mode we filter our reflog commits to just those containing the path
@@ -483,6 +481,8 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 	if err != nil {
 		self.c.Log.Error(err)
 	}
+
+	prevSelectedBranch := self.c.Contexts().Branches.GetSelected()
 
 	self.c.Model().Branches = branches
 
