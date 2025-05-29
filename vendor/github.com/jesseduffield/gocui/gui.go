@@ -1232,24 +1232,9 @@ func (g *Gui) draw(v *View) error {
 
 	if g.Cursor {
 		if curview := g.currentView; curview != nil {
-			vMaxX, vMaxY := curview.Size()
-			if curview.cx < 0 {
-				curview.cx = 0
-			} else if curview.cx >= vMaxX {
-				curview.cx = vMaxX - 1
-			}
-			if curview.cy < 0 {
-				curview.cy = 0
-			} else if curview.cy >= vMaxY {
-				curview.cy = vMaxY - 1
-			}
-
-			gMaxX, gMaxY := g.Size()
-			cx, cy := curview.x0+curview.cx+1, curview.y0+curview.cy+1
-			// This test probably doesn't need to be here.
-			// tcell is hiding cursor by setting coordinates outside of screen.
-			// Keeping it here for now, as I'm not 100% sure :)
-			if cx >= 0 && cx < gMaxX && cy >= 0 && cy < gMaxY {
+			vMaxX, vMaxY := curview.InnerSize()
+			if curview.cx >= 0 && curview.cx < vMaxX && curview.cy >= 0 && curview.cy < vMaxY {
+				cx, cy := curview.x0+curview.cx+1, curview.y0+curview.cy+1
 				Screen.ShowCursor(cx, cy)
 			} else {
 				Screen.HideCursor()
