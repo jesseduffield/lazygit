@@ -120,8 +120,8 @@ func TestProcessOutput(t *testing.T) {
 			reader := strings.NewReader(scenario.output)
 			writer := &strings.Builder{}
 
-			task := gocui.NewFakeTask()
-			runner.processOutput(reader, writer, toChanFn(scenario.promptUserForCredential), task)
+			cmdObj := &CmdObj{task: gocui.NewFakeTask()}
+			runner.processOutput(reader, writer, toChanFn(scenario.promptUserForCredential), cmdObj)
 
 			if writer.String() != scenario.expectedToWrite {
 				t.Errorf("expected to write '%s' but got '%s'", scenario.expectedToWrite, writer.String())
