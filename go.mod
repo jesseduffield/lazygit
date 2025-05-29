@@ -15,7 +15,7 @@ require (
 	github.com/integrii/flaggy v1.4.0
 	github.com/jesseduffield/generics v0.0.0-20250517122708-b0b4a53a6f5c
 	github.com/jesseduffield/go-git/v5 v5.14.1-0.20250407170251-e1a013310ccd
-	github.com/jesseduffield/gocui v0.3.1-0.20250522064656-07eb9218e08e
+	github.com/jesseduffield/gocui v0.3.1-0.20250529123049-319bd37ff248
 	github.com/jesseduffield/kill v0.0.0-20250101124109-e216ddbe133a
 	github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
 	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
