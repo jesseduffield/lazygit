@@ -280,7 +280,7 @@
   "CheckoutCommitFileTooltip": "檢出檔案",
   "DiscardFileChangesTitle": "捨棄檔案更改",
   "DiscardFileChangesPrompt": "是否捨棄此提交？如果這個檔案是在此提交中創建的，它將被刪除",
-  "CreateRepo": "未在 git 版本庫中。是否建立新版本庫？ (y/n): ",
+  "CreateRepo": "未在 git 版本庫中。是否建立新版本庫？ (y/N): ",
   "BareRepo": "你嘗試在裸版本庫中開啟 Lazygit，但 Lazygit 尚未支援裸版本庫。是否開啟最新版本庫？ (y/n) ",
   "InitialBranch": "分支名稱？（留空使用 git 的預設值）：",
   "NoRecentRepositories": "必須在 git 版本庫中開啟 lazygit。沒有有效的最近版本庫。退出。",

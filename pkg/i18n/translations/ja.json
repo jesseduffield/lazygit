@@ -159,7 +159,7 @@
   "RemoteBranchesDynamicTitle": "リモートブランチ (%s)",
   "CommitFilesTitle": "コミットファイル",
   "DiscardFileChangesTitle": "ファイルの変更を破棄",
-  "CreateRepo": "Gitリポジトリではありません。リポジトリを作成しますか? (y/n): ",
+  "CreateRepo": "Gitリポジトリではありません。リポジトリを作成しますか? (y/N): ",
   "Cancel": "キャンセル",
   "DiscardAllChanges": "すべての変更を破棄",
   "HardReset": "hardリセット",

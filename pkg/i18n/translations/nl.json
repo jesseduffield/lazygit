@@ -159,7 +159,7 @@
   "DiscardOldFileChangeTooltip": "Uitsluit deze commit zijn veranderingen aan dit bestand",
   "DiscardFileChangesTitle": "Uitsluit bestand zijn veranderingen",
   "DiscardFileChangesPrompt": "Weet je zeker dat je de wijzigingen van deze commit in dit bestand wilt weggooien? Als dit bestand is gecreëerd in deze commit dan zal dit bestand worden verwijdert",
-  "CreateRepo": "Niet in een git repository. Creëer een nieuwe git repository? (y/n): ",
+  "CreateRepo": "Niet in een git repository. Creëer een nieuwe git repository? (y/N): ",
   "AutoStashPrompt": "Je moet je veranderingen stashen en poppen om ze over te brengen. Dit automatisch doen? (enter/esc)",
   "StashPrefix": "Auto-stashing veranderingen voor ",
   "Discard": "Bekijk 'veranderingen ongedaan maken' opties",
