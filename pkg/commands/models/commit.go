@@ -54,6 +54,10 @@ type Commit struct {
 	// Hashes of parent commits (will be multiple if it's a merge commit)
 	parents []*string
 
+	// When filtering by path, this contains the paths that were changed in this
+	// commit; nil when not filtering by path.
+	FilterPaths []string
+
 	Status     CommitStatus
 	Action     todo.TodoCommand
 	Divergence Divergence // set to DivergenceNone unless we are showing the divergence view

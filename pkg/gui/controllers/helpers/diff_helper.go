@@ -65,8 +65,19 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 		return types.NewRunPtyTaskWithPrefix(cmdObj.GetCmd(), prefix)
 	}
 
-	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.c.Modes().Filtering.GetPath())
+	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.FilterPathsForCommit(commit))
 	return types.NewRunPtyTask(cmdObj.GetCmd())
+}
+
+func (self *DiffHelper) FilterPathsForCommit(commit *models.Commit) []string {
+	filterPath := self.c.Modes().Filtering.GetPath()
+	if filterPath != "" {
+		if len(commit.FilterPaths) > 0 {
+			return commit.FilterPaths
+		}
+		return []string{filterPath}
+	}
+	return nil
 }
 
 func (self *DiffHelper) ExitDiffMode() error {

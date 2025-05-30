@@ -80,7 +80,6 @@ var ShowDiffsForRenamedFile = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Main().ContainsLines(
 			Equals("    rename file"),
 			Equals("---"),
-			/* EXPECTED:
 			Equals(" oldFile => newFile | 0"),
 			Equals(" 1 file changed, 0 insertions(+), 0 deletions(-)"),
 			Equals(""),
@@ -88,24 +87,10 @@ var ShowDiffsForRenamedFile = NewIntegrationTest(NewIntegrationTestArgs{
 			Equals("similarity index 100%"),
 			Equals("rename from oldFile"),
 			Equals("rename to newFile"),
-			ACTUAL: */
-			Equals(" newFile | 3 +++"),
-			Equals(" 1 file changed, 3 insertions(+)"),
-			Equals(""),
-			Equals("diff --git a/newFile b/newFile"),
-			Equals("new file mode 100644"),
-			Contains("index"),
-			Equals("--- /dev/null"),
-			Equals("+++ b/newFile"),
-			Equals("@@ -0,0 +1,3 @@"),
-			Equals("+x"),
-			Equals("+b"),
-			Equals("+c"),
 		)
 
 		t.Views().Commits().SelectNextItem()
 
-		/* EXPECTED:
 		t.Views().Main().ContainsLines(
 			Equals("    update old file"),
 			Equals("---"),
@@ -122,7 +107,5 @@ var ShowDiffsForRenamedFile = NewIntegrationTest(NewIntegrationTestArgs{
 			Equals(" b"),
 			Equals(" c"),
 		)
-		ACTUAL: */
-		t.Views().Main().IsEmpty()
 	},
 })

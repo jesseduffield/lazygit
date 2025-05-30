@@ -28,16 +28,16 @@ func (self *ReflogCommitLoader) GetReflogCommits(hashPool *utils.StringPool, las
 	cmdArgs := NewGitCmd("log").
 		Config("log.showSignature=false").
 		Arg("-g").
-		Arg("--format=%H%x00%ct%x00%gs%x00%P").
+		Arg("--format=+%H%x00%ct%x00%gs%x00%P").
 		ArgIf(filterAuthor != "", "--author="+filterAuthor).
-		ArgIf(filterPath != "", "--follow", "--", filterPath).
+		ArgIf(filterPath != "", "--follow", "--name-status", "--", filterPath).
 		ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs).DontLog()
 
 	onlyObtainedNewReflogCommits := false
 
-	commits, err := loadCommits(cmdObj, func(line string) (*models.Commit, bool) {
+	commits, err := loadCommits(cmdObj, filterPath, func(line string) (*models.Commit, bool) {
 		commit, ok := self.parseLine(hashPool, line)
 		if !ok {
 			return nil, false
