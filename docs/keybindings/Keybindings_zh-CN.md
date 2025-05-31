@@ -205,6 +205,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` e `` | 编辑 | 使用外部编辑器打开文件 |
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
 | `` i `` | 忽略文件 |  |
+| `` I `` | Add extension to .gitignore |  |
 | `` r `` | 刷新文件 |  |
 | `` s `` | 贮藏 | 贮藏所有变更.若要使用其他贮藏变体,请使用查看贮藏选项快捷键 |
 | `` S `` | 查看贮藏选项 | 查看贮藏选项（例如：贮藏所有、贮藏已暂存变更、贮藏未暂存变更） |
