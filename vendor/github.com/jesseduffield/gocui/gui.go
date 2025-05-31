@@ -95,6 +95,12 @@ type ViewMouseBinding struct {
 type ViewMouseBindingOpts struct {
 	X int // i.e. origin x + cursor x
 	Y int // i.e. origin y + cursor y
+
+	// the previous cursor right before the click; useful because by the time
+	// the event is dispatched to handlers, gocui has already set the cursor to
+	// the new position. This is useful for detecting double clicks.
+	PreviousX int
+	PreviousY int
 }
 
 type GuiMutexes struct {
@@ -1363,6 +1369,8 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 				newCx = lastCharForLine - v.ox
 			}
 		}
+		previousX := v.cx + v.ox
+		previousY := v.cy + v.oy
 		if !IsMouseScrollKey(ev.Key) {
 			v.SetCursor(newCx, newCy)
 			if v.Editable {
@@ -1385,7 +1393,7 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		}
 
 		if IsMouseKey(ev.Key) {
-			opts := ViewMouseBindingOpts{X: newX, Y: newY}
+			opts := ViewMouseBindingOpts{X: newX, Y: newY, PreviousX: previousX, PreviousY: previousY}
 			matched, err := g.execMouseKeybindings(v, ev, opts)
 			if err != nil {
 				return err

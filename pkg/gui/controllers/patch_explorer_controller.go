@@ -163,9 +163,15 @@ func (self *PatchExplorerController) GetMouseKeybindings(opts types.KeybindingsO
 					return self.withRenderAndFocus(self.HandleMouseDown)()
 				}
 
+				_, line, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(self.context.GetWindowName(), opts.Y)
+				if !ok {
+					line = -1
+				}
+
 				self.c.Context().Push(self.context, types.OnFocusOpts{
-					ClickedWindowName:  self.context.GetWindowName(),
-					ClickedViewLineIdx: opts.Y,
+					ClickedWindowName:      self.context.GetWindowName(),
+					ClickedViewLineIdx:     opts.Y,
+					ClickedViewRealLineIdx: line,
 				})
 
 				return nil
