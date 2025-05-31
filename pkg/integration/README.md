@@ -70,7 +70,8 @@ Debugging an integration test is possible in two ways:
 1. Use the -debug option of the integration test runner's "cli" command, e.g. `go run cmd/integration_test/main.go cli -debug tag/reset.go`
 2. Select a test in the "tui" runner and hit "d" to debug it.
 
-In both cases the test runner will print to the console that it is waiting for a debugger to attach, so now you need to tell your debugger to attach to a running process with the name "test_lazygit". If you are using Visual Studio Code, an easy way to do that is to use the "Attach to integration test runner" debug configuration. The test runner will resume automatically when it detects that a debugger was attached. Don't forget to set a breakpoint in the code that you want to step through, otherwise the test will just finish (i.e. it doesn't stop in the debugger automatically).
+In both cases the test runner will print to the console that it is waiting for a debugger to attach, so now you need to tell your debugger to attach to a running process with the name "test_lazygit".
+If you are using Visual Studio Code, an easy way to do that is to use the "Attach to integration test runner" debug configuration. The test runner will resume automatically when it detects that a debugger was attached. Don't forget to set a breakpoint in the code that you want to step through, otherwise the test will just finish (i.e. it doesn't stop in the debugger automatically).
 
 ### Sandbox mode
 
