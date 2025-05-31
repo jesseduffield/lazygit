@@ -136,7 +136,7 @@ func NewAppConfig(
 }
 
 func ConfigDir() string {
-	_, filePath := findConfigFile("config.yml")
+	_, filePath := findConfigFile(ConfigFilename)
 
 	return filepath.Dir(filePath)
 }
