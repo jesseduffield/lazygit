@@ -361,7 +361,7 @@ func (self *BasicCommitsController) newBranch(commit *models.Commit) error {
 }
 
 func (self *BasicCommitsController) createResetMenu(commit *models.Commit) error {
-	return self.c.Helpers().Refs.CreateGitResetMenu(commit.Hash())
+	return self.c.Helpers().Refs.CreateGitResetMenu(commit.Hash(), commit.Hash())
 }
 
 func (self *BasicCommitsController) checkout(commit *models.Commit) error {
