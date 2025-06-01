@@ -523,19 +523,18 @@ func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
 }
 
 func (gui *Gui) callKeybindingHandler(binding *types.Binding) error {
-	var disabledReason *types.DisabledReason
 	if binding.GetDisabledReason != nil {
-		disabledReason = binding.GetDisabledReason()
-	}
-	if disabledReason != nil {
-		if disabledReason.ShowErrorInPanel {
-			return errors.New(disabledReason.Text)
-		}
+		if disabledReason := binding.GetDisabledReason(); disabledReason != nil {
+			if disabledReason.ShowErrorInPanel {
+				return errors.New(disabledReason.Text)
+			}
 
-		if len(disabledReason.Text) > 0 {
-			gui.c.ErrorToast(gui.Tr.DisabledMenuItemPrefix + disabledReason.Text)
+			if len(disabledReason.Text) > 0 {
+				gui.c.ErrorToast(gui.Tr.DisabledMenuItemPrefix + disabledReason.Text)
+			}
+			return nil
 		}
-		return nil
 	}
+
 	return binding.Handler()
 }
