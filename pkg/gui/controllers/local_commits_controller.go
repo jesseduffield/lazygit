@@ -144,14 +144,6 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			),
 			Description: self.c.Tr.Pick,
 			Tooltip:     self.c.Tr.PickCommitTooltip,
-			// Not displaying this because we only want to display it when a TODO commit
-			// is selected. A keybinding is displayed in the options view if Display is true,
-			// and if it's not disabled, but if we disable it whenever a non-TODO commit is
-			// selected, we'll be preventing pulls from happening within the commits view
-			// (given they both use the 'p' key). Some approaches that come to mind:
-			// * Allow a disabled keybinding to conditionally fallback to a global keybinding
-			// * Allow a separate way of deciding whether a keybinding is displayed in the options view
-			DisplayOnScreen: false,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.CreateFixupCommit),
@@ -623,9 +615,7 @@ func (self *LocalCommitsController) pick(selectedCommits []*models.Commit) error
 		return self.updateTodos(todo.Pick, selectedCommits)
 	}
 
-	// at this point we aren't actually rebasing so we will interpret this as an
-	// attempt to pull. We might revoke this later after enabling configurable keybindings
-	return self.pullFiles()
+	panic("should be disabled when not rebasing")
 }
 
 func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand, startIdx int, endIdx int) error {
@@ -1476,8 +1466,7 @@ func (self *LocalCommitsController) pickEnabled(selectedCommits []*models.Commit
 	}
 
 	if !self.isRebasing() {
-		// if not rebasing, we're going to do a pull so we don't care about the selection
-		return nil
+		return &types.DisabledReason{Text: self.c.Tr.PickIsOnlyAllowedDuringRebase, AllowFurtherDispatching: true}
 	}
 
 	return self.midRebaseCommandEnabled(selectedCommits, startIdx, endIdx)
