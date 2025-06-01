@@ -270,7 +270,8 @@ func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) *oscomman
 		Arg(hash).
 		ArgIf(self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
-		ArgIf(filterPath != "", "--", filterPath).
+		Arg("--").
+		ArgIf(filterPath != "", filterPath).
 		Dir(self.repoPaths.worktreePath).
 		ToArgv()
 
