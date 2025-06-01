@@ -525,6 +525,10 @@ func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
 func (gui *Gui) callKeybindingHandler(binding *types.Binding) error {
 	if binding.GetDisabledReason != nil {
 		if disabledReason := binding.GetDisabledReason(); disabledReason != nil {
+			if disabledReason.AllowFurtherDispatching {
+				return &types.ErrKeybindingNotHandled{DisabledReason: disabledReason}
+			}
+
 			if disabledReason.ShowErrorInPanel {
 				return errors.New(disabledReason.Text)
 			}
