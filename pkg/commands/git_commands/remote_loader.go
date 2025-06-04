@@ -96,19 +96,23 @@ func (self *RemoteLoader) getRemoteBranchesByRemoteName() (map[string][]*models.
 
 	cmdArgs := NewGitCmd("for-each-ref").
 		Arg(fmt.Sprintf("--sort=%s", sortOrder)).
-		Arg("--format=%(refname:short)").
+		Arg("--format=%(refname)").
 		Arg("refs/remotes").
 		ToArgv()
 
 	err := self.cmd.New(cmdArgs).DontLog().RunAndProcessLines(func(line string) (bool, error) {
 		line = strings.TrimSpace(line)
 
-		split := strings.SplitN(line, "/", 2)
-		if len(split) != 2 {
+		split := strings.SplitN(line, "/", 4)
+		if len(split) != 4 {
 			return false, nil
 		}
-		remoteName := split[0]
-		name := split[1]
+		remoteName := split[2]
+		name := split[3]
+
+		if name == "HEAD" {
+			return false, nil
+		}
 
 		_, ok := remoteBranchesByRemoteName[remoteName]
 		if !ok {
