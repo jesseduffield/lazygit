@@ -1,0 +1,74 @@
+name: Sync Fork and Create Release
+
+on:
+  repository_dispatch:
+    types: [new-release]
+  workflow_dispatch:
+
+jobs:
+  sync_and_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # We need to fetch all history and tags for the sync and release process
+          fetch-depth: 0
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: git remote add upstream https://github.com/jesseduffield/lazygit.git
+
+      - name: Fetch upstream
+        run: git fetch upstream --tags
+
+      - name: Merge upstream/master to local master
+        run: |
+          git checkout master
+          git merge upstream/master -X theirs --no-edit
+          # In case of merge conflicts, this will fail. Manual intervention would be needed.
+          # Consider adding a strategy to handle conflicts if they are common.
+
+      - name: Push changes to local master
+        run: git push origin master --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Upstream Release Details
+        id: upstream_release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const release = await github.rest.repos.getLatestRelease({
+              owner: 'jesseduffield',
+              repo: 'lazygit'
+            });
+            core.setOutput('tag_name', release.data.tag_name);
+            core.setOutput('name', release.data.name);
+            core.setOutput('body', release.data.body);
+            core.setOutput('prerelease', release.data.prerelease);
+            return release.data;
+          result-encoding: json
+
+      - name: Create Release in Fork
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.upstream_release.outputs.tag_name }}
+          release_name: ${{ steps.upstream_release.outputs.name }}
+          body: |
+            Synced from upstream release: ${{ steps.upstream_release.outputs.name }}
+
+            ${{ steps.upstream_release.outputs.body }}
+          draft: false
+          prerelease: ${{ steps.upstream_release.outputs.prerelease }}
