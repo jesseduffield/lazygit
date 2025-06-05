@@ -45,6 +45,7 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 			RefForPushedStatus:      opts.Ref.FullRefName(),
 			RefToShowDivergenceFrom: opts.RefToShowDivergenceFrom,
 			MainBranches:            self.c.Model().MainBranches,
+			HashPool:                self.c.Model().HashPool,
 		},
 	)
 	if err != nil {
@@ -67,10 +68,8 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 	subCommitsContext.GetView().ClearSearch()
 	subCommitsContext.GetView().TitlePrefix = opts.Context.GetView().TitlePrefix
 
-	err = self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
-	if err != nil {
-		return err
-	}
+	self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
 
-	return self.c.PushContext(self.c.Contexts().SubCommits)
+	self.c.Context().Push(self.c.Contexts().SubCommits, types.OnFocusOpts{})
+	return nil
 }

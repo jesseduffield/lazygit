@@ -22,7 +22,7 @@ func NewGitFlowController(
 ) *GitFlowController {
 	return &GitFlowController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.Branch](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Branches,
 			c.Contexts().Branches.GetSelected,
@@ -54,7 +54,7 @@ func (self *GitFlowController) handleCreateGitFlowMenu(branch *models.Branch) er
 		return func() error {
 			title := utils.ResolvePlaceholderString(self.c.Tr.NewGitFlowBranchPrompt, map[string]string{"branchType": branchType})
 
-			return self.c.Prompt(types.PromptOpts{
+			self.c.Prompt(types.PromptOpts{
 				Title: title,
 				HandleConfirm: func(name string) error {
 					self.c.LogAction(self.c.Tr.Actions.GitFlowStart)
@@ -63,6 +63,8 @@ func (self *GitFlowController) handleCreateGitFlowMenu(branch *models.Branch) er
 					)
 				},
 			})
+
+			return nil
 		}
 	}
 

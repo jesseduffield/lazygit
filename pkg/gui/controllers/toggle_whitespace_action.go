@@ -19,7 +19,7 @@ func (self *ToggleWhitespaceAction) Call() error {
 		context.PATCH_BUILDING_MAIN_CONTEXT_KEY,
 	}
 
-	if lo.Contains(contextsThatDontSupportIgnoringWhitespace, self.c.CurrentContext().GetKey()) {
+	if lo.Contains(contextsThatDontSupportIgnoringWhitespace, self.c.Context().Current().GetKey()) {
 		// Ignoring whitespace is not supported in these views. Let the user
 		// know that it's not going to work in case they try to turn it on.
 		return errors.New(self.c.Tr.IgnoreWhitespaceNotSupportedHere)
@@ -28,5 +28,6 @@ func (self *ToggleWhitespaceAction) Call() error {
 	self.c.GetAppState().IgnoreWhitespaceInDiffView = !self.c.GetAppState().IgnoreWhitespaceInDiffView
 	self.c.SaveAppStateAndLogError()
 
-	return self.c.CurrentSideContext().HandleFocus(types.OnFocusOpts{})
+	self.c.Context().CurrentSide().HandleFocus(types.OnFocusOpts{})
+	return nil
 }

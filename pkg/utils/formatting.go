@@ -54,6 +54,10 @@ func WithPadding(str string, padding int, alignment Alignment) string {
 // returns a list of strings that should be joined with "\n", and an array of
 // the column positions
 func RenderDisplayStrings(displayStringsArr [][]string, columnAlignments []Alignment) ([]string, []int) {
+	if len(displayStringsArr) == 0 {
+		return []string{}, nil
+	}
+
 	displayStringsArr, columnAlignments, removedColumns := excludeBlankColumns(displayStringsArr, columnAlignments)
 	padWidths := getPadWidths(displayStringsArr)
 	columnConfigs := make([]ColumnConfig, len(padWidths))

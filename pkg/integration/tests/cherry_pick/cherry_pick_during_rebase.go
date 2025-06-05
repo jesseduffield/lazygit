@@ -10,7 +10,7 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.AppState.GitLogShowGraph = "never"
+		config.GetAppState().GitLogShowGraph = "never"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.
@@ -59,25 +59,29 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			Press(keys.Universal.Edit).
 			Lines(
-				Contains("pick  CI two"),
-				Contains("      CI <-- YOU ARE HERE --- one").IsSelected(),
-				Contains("      CI base"),
+				Contains("--- Pending rebase todos ---"),
+				Contains("pick CI two"),
+				Contains("--- Commits ---"),
+				Contains("     CI one").IsSelected(),
+				Contains("     CI base"),
 			).
 			Press(keys.Commits.PasteCommits).
 			Tap(func() {
 				t.ExpectPopup().Alert().
 					Title(Equals("Cherry-pick")).
-					Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
+					Content(Contains("Are you sure you want to cherry-pick the 1 copied commit(s) onto this branch?")).
 					Confirm()
 			}).
 			Tap(func() {
 				t.Views().Information().Content(DoesNotContain("commit copied"))
 			}).
 			Lines(
-				Contains("pick  CI two"),
-				Contains("pick  CI three"),
-				Contains("      CI <-- YOU ARE HERE --- one"),
-				Contains("      CI base"),
+				Contains("--- Pending rebase todos ---"),
+				Contains("pick CI two"),
+				Contains("--- Commits ---"),
+				Contains("     CI three"),
+				Contains("     CI one"),
+				Contains("     CI base"),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()

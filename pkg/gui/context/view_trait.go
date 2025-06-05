@@ -57,13 +57,13 @@ func (self *ViewTrait) SetFooter(value string) {
 }
 
 func (self *ViewTrait) SetOriginX(value int) {
-	_ = self.view.SetOriginX(value)
+	self.view.SetOriginX(value)
 }
 
 // tells us the start of line indexes shown in the view currently as well as the capacity of lines shown in the viewport.
 func (self *ViewTrait) ViewPortYBounds() (int, int) {
 	_, start := self.view.Origin()
-	length := self.view.InnerHeight() + 1
+	length := self.view.InnerHeight()
 	return start, length
 }
 
@@ -89,7 +89,7 @@ func (self *ViewTrait) ScrollDown(value int) {
 
 // this returns the amount we'll scroll if we want to scroll by a page.
 func (self *ViewTrait) PageDelta() int {
-	_, height := self.view.Size()
+	height := self.view.InnerHeight()
 
 	delta := height - 1
 	if delta == 0 {

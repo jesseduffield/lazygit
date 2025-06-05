@@ -10,8 +10,8 @@ var PasteCommitMessageOverExisting = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.OS.CopyToClipboardCmd = "echo {{text}} > ../clipboard"
-		config.UserConfig.OS.ReadFromClipboardCmd = "cat ../clipboard"
+		config.GetUserConfig().OS.CopyToClipboardCmd = "printf '%s' {{text}} > ../clipboard"
+		config.GetUserConfig().OS.ReadFromClipboardCmd = "cat ../clipboard"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("subject\n\nbody 1st line\nbody 2nd line")
@@ -26,7 +26,7 @@ var PasteCommitMessageOverExisting = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Commits.CopyCommitAttributeToClipboard)
 
 		t.ExpectPopup().Menu().Title(Equals("Copy to clipboard")).
-			Select(Contains("Commit message")).Confirm()
+			Select(Contains("Commit message (subject and body)")).Confirm()
 
 		t.ExpectToast(Equals("Commit message copied to clipboard"))
 

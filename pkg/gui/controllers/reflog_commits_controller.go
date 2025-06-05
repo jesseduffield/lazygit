@@ -19,7 +19,7 @@ func NewReflogCommitsController(
 ) *ReflogCommitsController {
 	return &ReflogCommitsController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.Commit](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().ReflogCommits,
 			c.Contexts().ReflogCommits.GetSelected,
@@ -37,20 +37,20 @@ func (self *ReflogCommitsController) context() *context.ReflogCommitsContext {
 	return self.c.Contexts().ReflogCommits
 }
 
-func (self *ReflogCommitsController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *ReflogCommitsController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			commit := self.context().GetSelected()
 			var task types.UpdateTask
 			if commit == nil {
 				task = types.NewRenderStringTask("No reflog history")
 			} else {
-				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash, self.c.Modes().Filtering.GetPath())
+				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.c.Modes().Filtering.GetPath())
 
 				task = types.NewRunPtyTask(cmdObj.GetCmd())
 			}
 
-			return self.c.RenderToMainViews(types.RefreshMainOpts{
+			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title: "Reflog Entry",

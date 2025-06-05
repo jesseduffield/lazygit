@@ -9,7 +9,7 @@ import (
 type Operation int
 
 const (
-	// Equal item represents a equals diff.
+	// Equal item represents an equals diff.
 	Equal Operation = iota
 	// Add item represents an insert diff.
 	Add
@@ -26,15 +26,15 @@ type Patch interface {
 	Message() string
 }
 
-// FilePatch represents the necessary steps to transform one file to another.
+// FilePatch represents the necessary steps to transform one file into another.
 type FilePatch interface {
 	// IsBinary returns true if this patch is representing a binary file.
 	IsBinary() bool
-	// Files returns the from and to Files, with all the necessary metadata to
+	// Files returns the from and to Files, with all the necessary metadata
 	// about them. If the patch creates a new file, "from" will be nil.
 	// If the patch deletes a file, "to" will be nil.
 	Files() (from, to File)
-	// Chunks returns a slice of ordered changes to transform "from" File to
+	// Chunks returns a slice of ordered changes to transform "from" File into
 	// "to" File. If the file is a binary one, Chunks will be empty.
 	Chunks() []Chunk
 }
@@ -49,7 +49,7 @@ type File interface {
 	Path() string
 }
 
-// Chunk represents a portion of a file transformation to another.
+// Chunk represents a portion of a file transformation into another.
 type Chunk interface {
 	// Content contains the portion of the file.
 	Content() string

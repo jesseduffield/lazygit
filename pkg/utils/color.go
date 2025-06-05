@@ -25,7 +25,9 @@ func Decolorise(str string) string {
 	}
 
 	re := regexp.MustCompile(`\x1B\[([0-9]{1,3}(;[0-9]{1,3})*)?[mGK]`)
+	linkRe := regexp.MustCompile(`\x1B]8;[^;]*;(.*?)(\x1B.|\x07)`)
 	ret := re.ReplaceAllString(str, "")
+	ret = linkRe.ReplaceAllString(ret, "")
 
 	decoloriseMutex.Lock()
 	decoloriseCache[str] = ret
@@ -55,11 +57,12 @@ func IsValidHexValue(v string) bool {
 	return true
 }
 
-func SetCustomColors(customColors map[string]string) map[string]style.TextStyle {
-	return lo.MapValues(customColors, func(c string, key string) style.TextStyle {
+func SetCustomColors(customColors map[string]string) map[string]*style.TextStyle {
+	return lo.MapValues(customColors, func(c string, key string) *style.TextStyle {
 		if s, ok := style.ColorMap[c]; ok {
-			return s.Foreground
+			return &s.Foreground
 		}
-		return style.New().SetFg(style.NewRGBColor(color.HEX(c, false)))
+		value := style.New().SetFg(style.NewRGBColor(color.HEX(c, false)))
+		return &value
 	})
 }

@@ -3,7 +3,6 @@ package gui
 import (
 	"fmt"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/jesseduffield/gocui"
@@ -25,7 +24,7 @@ func (self *BackgroundRoutineMgr) PauseBackgroundRefreshes(pause bool) {
 }
 
 func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
-	userConfig := self.gui.UserConfig
+	userConfig := self.gui.UserConfig()
 
 	if userConfig.Git.AutoFetch {
 		fetchInterval := userConfig.Refresher.FetchInterval
@@ -76,21 +75,18 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	self.gui.waitForIntro.Wait()
 
-	isNew := self.gui.IsNewRepo
-	userConfig := self.gui.UserConfig
-	if !isNew {
-		time.After(time.Duration(userConfig.Refresher.FetchInterval) * time.Second)
+	fetch := func() error {
+		return self.gui.helpers.AppStatus.WithWaitingStatusImpl(self.gui.Tr.FetchingStatus, func(gocui.Task) error {
+			return self.backgroundFetch()
+		}, nil)
 	}
-	err := self.backgroundFetch()
-	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
-		_ = self.gui.c.Alert(self.gui.c.Tr.NoAutomaticGitFetchTitle, self.gui.c.Tr.NoAutomaticGitFetchBody)
-	} else {
-		self.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), self.gui.stopChan, func() error {
-			err := self.backgroundFetch()
-			self.gui.c.Render()
-			return err
-		})
-	}
+
+	// We want an immediate fetch at startup, and since goEvery starts by
+	// waiting for the interval, we need to trigger one manually first
+	_ = fetch()
+
+	userConfig := self.gui.UserConfig()
+	self.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), self.gui.stopChan, fetch)
 }
 
 func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh(refreshInterval int) {
@@ -129,7 +125,11 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
 	err = self.gui.git.Sync.FetchBackground()
 
-	_ = self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
+	_ = self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.SYNC})
+
+	if err == nil {
+		err = self.gui.helpers.BranchesHelper.AutoForwardBranches()
+	}
 
 	return err
 }

@@ -46,10 +46,10 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 						// We assume that whenever things are deletable, they
 						// are also editable, so we show both keybindings
 						subtitle = fmt.Sprintf(self.c.Tr.SuggestionsSubtitle,
-							self.c.UserConfig.Keybinding.Universal.Remove, self.c.UserConfig.Keybinding.Universal.Edit)
+							self.c.UserConfig().Keybinding.Universal.Remove, self.c.UserConfig().Keybinding.Universal.Edit)
 					}
 					self.c.Views().Suggestions.Subtitle = subtitle
-					return self.c.ReplaceContext(self.c.Contexts().Suggestions)
+					self.c.Context().Replace(self.c.Contexts().Suggestions)
 				}
 				return nil
 			},
@@ -59,10 +59,9 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 	return bindings
 }
 
-func (self *ConfirmationController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
-	return func(types.OnFocusLostOpts) error {
+func (self *ConfirmationController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
 		self.c.Helpers().Confirmation.DeactivateConfirmationPrompt()
-		return nil
 	}
 }
 

@@ -61,15 +61,17 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains(`apple`).IsSelected(),
-				Contains(`grape`),
-				Contains(`orange`),
+				Equals("▼ /").IsSelected(),
+				Equals("  A apple"),
+				Equals("  A grape"),
+				Equals("  A orange"),
 			).
 			FilterOrSearch("grape").
 			Lines(
-				Contains(`apple`),
-				Contains(`grape`).IsSelected(),
-				Contains(`orange`),
+				Equals("▼ /"),
+				Equals("  A apple"),
+				Equals("  A grape").IsSelected(),
+				Equals("  A orange"),
 			).
 			PressEnter()
 
@@ -87,9 +89,10 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains(`apple`),
-				Contains(`grape`).IsSelected(),
-				Contains(`orange`),
+				Equals("▼ /"),
+				Equals("  A apple"),
+				Equals("  A grape").IsSelected(),
+				Equals("  A orange"),
 			).
 			Tap(func() {
 				t.Views().Search().IsVisible().Content(Contains("matches for 'grape'"))
@@ -100,9 +103,10 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Views().Search().IsInvisible()
 			}).
 			Lines(
-				Contains(`apple`),
-				Contains(`grape`).IsSelected(),
-				Contains(`orange`),
+				Equals("▼ /"),
+				Equals("  A apple"),
+				Equals("  A grape").IsSelected(),
+				Equals("  A orange"),
 			).
 			// escape to sub-commits view
 			PressEscape()

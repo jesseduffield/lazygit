@@ -30,7 +30,7 @@ func NewTagsContext(
 		return presentation.GetTagListDisplayStrings(
 			viewModel.GetItems(),
 			c.State().GetItemOperation,
-			c.Modes().Diffing.Ref, c.Tr, c.UserConfig)
+			c.Modes().Diffing.Ref, c.Tr, c.UserConfig())
 	}
 
 	return &TagsContext{
@@ -64,6 +64,10 @@ func (self *TagsContext) GetDiffTerminals() []string {
 	itemId := self.GetSelectedItemId()
 
 	return []string{itemId}
+}
+
+func (self *TagsContext) RefForAdjustingLineNumberInDiff() string {
+	return self.GetSelectedItemId()
 }
 
 func (self *TagsContext) ShowBranchHeadsInSubCommits() bool {

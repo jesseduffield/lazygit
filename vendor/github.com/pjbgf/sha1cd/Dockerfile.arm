@@ -1,0 +1,22 @@
+FROM golang:1.23@sha256:51a6466e8dbf3e00e422eb0f7a97ac450b2d57b33617bbe8d2ee0bddcd9d0d37
+
+ENV GOOS=linux
+ENV GOARCH=arm
+ENV CGO_ENABLED=1
+ENV CC=arm-linux-gnueabihf-gcc
+ENV PATH="/go/bin/${GOOS}_${GOARCH}:${PATH}"
+ENV PKG_CONFIG_PATH=/usr/lib/arm-linux-gnueabihf/pkgconfig
+
+RUN dpkg --add-architecture armhf \
+    && apt update \
+    && apt install -y --no-install-recommends \
+        gcc-arm-linux-gnueabihf \
+        libc6-dev-armhf-cross \
+        pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY . /src/workdir
+
+WORKDIR /src/workdir
+
+RUN go build ./...

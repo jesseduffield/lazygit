@@ -1,4 +1,4 @@
-// Package binary implements sintax-sugar functions on top of the standard
+// Package binary implements syntax-sugar functions on top of the standard
 // library binary package
 package binary
 

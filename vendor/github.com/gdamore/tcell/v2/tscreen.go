@@ -19,6 +19,7 @@ package tcell
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"io"
 	"os"
@@ -32,9 +33,6 @@ import (
 	"golang.org/x/text/transform"
 
 	"github.com/gdamore/tcell/v2/terminfo"
-
-	// import the stock terminals
-	_ "github.com/gdamore/tcell/v2/terminfo/base"
 )
 
 // NewTerminfoScreen returns a Screen that uses the stock TTY interface
@@ -154,8 +152,18 @@ type tScreen struct {
 	setWinSize   string
 	enableFocus  string
 	disableFocus string
+	doubleUnder  string
+	curlyUnder   string
+	dottedUnder  string
+	dashedUnder  string
+	underColor   string
+	underRGB     string
+	underFg      string
 	cursorStyles map[CursorStyle]string
 	cursorStyle  CursorStyle
+	cursorColor  Color
+	cursorRGB    string
+	cursorFg     string
 	saved        *term.State
 	stopQ        chan struct{}
 	eventQ       chan Event
@@ -164,6 +172,11 @@ type tScreen struct {
 	mouseFlags   MouseFlags
 	pasteEnabled bool
 	focusEnabled bool
+	setTitle     string
+	saveTitle    string
+	restoreTitle string
+	title        string
+	setClipboard string
 
 	sync.Mutex
 }
@@ -338,11 +351,59 @@ func (t *tScreen) prepareBracketedPaste() {
 		t.disablePaste = t.ti.DisablePaste
 		t.prepareKey(keyPasteStart, t.ti.PasteStart)
 		t.prepareKey(keyPasteEnd, t.ti.PasteEnd)
-	} else if t.ti.Mouse != "" {
+	} else if t.ti.Mouse != "" || t.ti.XTermLike {
 		t.enablePaste = "\x1b[?2004h"
 		t.disablePaste = "\x1b[?2004l"
 		t.prepareKey(keyPasteStart, "\x1b[200~")
 		t.prepareKey(keyPasteEnd, "\x1b[201~")
+	}
+}
+
+func (t *tScreen) prepareUnderlines() {
+	if t.ti.DoubleUnderline != "" {
+		t.doubleUnder = t.ti.DoubleUnderline
+	} else if t.ti.XTermLike {
+		t.doubleUnder = "\x1b[4:2m"
+	}
+	if t.ti.CurlyUnderline != "" {
+		t.curlyUnder = t.ti.CurlyUnderline
+	} else if t.ti.XTermLike {
+		t.curlyUnder = "\x1b[4:3m"
+	}
+	if t.ti.DottedUnderline != "" {
+		t.dottedUnder = t.ti.DottedUnderline
+	} else if t.ti.XTermLike {
+		t.dottedUnder = "\x1b[4:4m"
+	}
+	if t.ti.DashedUnderline != "" {
+		t.dashedUnder = t.ti.DashedUnderline
+	} else if t.ti.XTermLike {
+		t.dashedUnder = "\x1b[4:5m"
+	}
+
+	// Underline colors.  We're not going to rely upon terminfo for this
+	// Essentially all terminals that support the curly underlines are
+	// expected to also support coloring them too - which reflects actual
+	// practice since these were introduced at about the same time.
+	if t.ti.UnderlineColor != "" {
+		t.underColor = t.ti.UnderlineColor
+	} else if t.curlyUnder != "" {
+		t.underColor = "\x1b[58:5:%p1%dm"
+	}
+	if t.ti.UnderlineColorRGB != "" {
+		// An interesting wart here is that in order to facilitate
+		// using just a single parameter, the Setulc parameter takes
+		// the 24-bit color as an integer rather than separate bytes.
+		// This matches the "new" style direct color approach that
+		// ncurses took, even though everyone else went another way.
+		t.underRGB = t.ti.UnderlineColorRGB
+	} else if t.underColor != "" {
+		t.underRGB = "\x1b[58:2::%p1%d:%p2%d:%p3%dm"
+	}
+	if t.ti.UnderlineColorReset != "" {
+		t.underFg = t.ti.UnderlineColorReset
+	} else if t.curlyUnder != "" {
+		t.underFg = "\x1b[59m"
 	}
 }
 
@@ -359,26 +420,42 @@ func (t *tScreen) prepareExtendedOSC() {
 	if t.ti.EnterUrl != "" {
 		t.enterUrl = t.ti.EnterUrl
 		t.exitUrl = t.ti.ExitUrl
-	} else if t.ti.Mouse != "" {
+	} else if t.ti.Mouse != "" || t.ti.XTermLike {
 		t.enterUrl = "\x1b]8;%p2%s;%p1%s\x1b\\"
 		t.exitUrl = "\x1b]8;;\x1b\\"
 	}
 
 	if t.ti.SetWindowSize != "" {
 		t.setWinSize = t.ti.SetWindowSize
-	} else if t.ti.Mouse != "" {
+	} else if t.ti.Mouse != "" || t.ti.XTermLike {
 		t.setWinSize = "\x1b[8;%p1%p2%d;%dt"
 	}
 
 	if t.ti.EnableFocusReporting != "" {
 		t.enableFocus = t.ti.EnableFocusReporting
-	} else if t.ti.Mouse != "" {
+	} else if t.ti.Mouse != "" || t.ti.XTermLike {
 		t.enableFocus = "\x1b[?1004h"
 	}
 	if t.ti.DisableFocusReporting != "" {
 		t.disableFocus = t.ti.DisableFocusReporting
-	} else if t.ti.Mouse != "" {
+	} else if t.ti.Mouse != "" || t.ti.XTermLike {
 		t.disableFocus = "\x1b[?1004l"
+	}
+
+	if t.ti.SetWindowTitle != "" {
+		t.setTitle = t.ti.SetWindowTitle
+	} else if t.ti.XTermLike {
+		t.saveTitle = "\x1b[22;2t"
+		t.restoreTitle = "\x1b[23;2t"
+		// this also tries to request that UTF-8 is allowed in the title
+		t.setTitle = "\x1b[>2t\x1b]2;%p1%s\x1b\\"
+	}
+
+	if t.setClipboard == "" && t.ti.XTermLike {
+		// this string takes a base64 string and sends it to the clipboard.
+		// it will also be able to retrieve the clipboard using "?" as the
+		// sent string, when we support that.
+		t.setClipboard = "\x1b]52;c;%p1%s\x1b\\"
 	}
 }
 
@@ -397,7 +474,7 @@ func (t *tScreen) prepareCursorStyles() {
 			CursorStyleBlinkingBar:       t.ti.CursorBlinkingBar,
 			CursorStyleSteadyBar:         t.ti.CursorSteadyBar,
 		}
-	} else if t.ti.Mouse != "" {
+	} else if t.ti.Mouse != "" || t.ti.XTermLike {
 		t.cursorStyles = map[CursorStyle]string{
 			CursorStyleDefault:           "\x1b[0 q",
 			CursorStyleBlinkingBlock:     "\x1b[1 q",
@@ -408,6 +485,20 @@ func (t *tScreen) prepareCursorStyles() {
 			CursorStyleSteadyBar:         "\x1b[6 q",
 		}
 	}
+	if t.ti.CursorColorRGB != "" {
+		// if it was X11 style with just a single %p1%s, then convert
+		t.cursorRGB = t.ti.CursorColorRGB
+	}
+	if t.ti.CursorColorReset != "" {
+		t.cursorFg = t.ti.CursorColorReset
+	}
+	if t.cursorRGB == "" {
+		t.cursorRGB = "\x1b]12;%p1%s\007"
+		t.cursorFg = "\x1b]112\007"
+	}
+
+	// convert XTERM style color names to RGB color code.  We have no way to do palette colors
+	t.cursorRGB = strings.Replace(t.cursorRGB, "%p1%s", "#%p1%02x%p2%02x%p3%02x", 1)
 }
 
 func (t *tScreen) prepareKey(key Key, val string) {
@@ -416,6 +507,11 @@ func (t *tScreen) prepareKey(key Key, val string) {
 
 func (t *tScreen) prepareKeys() {
 	ti := t.ti
+	if strings.HasPrefix(ti.Name, "xterm") {
+		// assume its some form of XTerm clone
+		t.ti.XTermLike = true
+		ti.XTermLike = true
+	}
 	t.prepareKey(KeyBackspace, ti.KeyBackspace)
 	t.prepareKey(KeyF1, ti.KeyF1)
 	t.prepareKey(KeyF2, ti.KeyF2)
@@ -550,6 +646,7 @@ func (t *tScreen) prepareKeys() {
 	t.prepareXtermModifiers()
 	t.prepareBracketedPaste()
 	t.prepareCursorStyles()
+	t.prepareUnderlines()
 	t.prepareExtendedOSC()
 
 outer:
@@ -742,7 +839,7 @@ func (t *tScreen) drawCell(x, y int) int {
 		style = t.style
 	}
 	if style != t.curstyle {
-		fg, bg, attrs := style.Decompose()
+		fg, bg, attrs := style.fg, style.bg, style.attrs
 
 		t.TPuts(ti.AttrOff)
 
@@ -750,8 +847,39 @@ func (t *tScreen) drawCell(x, y int) int {
 		if attrs&AttrBold != 0 {
 			t.TPuts(ti.Bold)
 		}
-		if attrs&AttrUnderline != 0 {
-			t.TPuts(ti.Underline)
+		if us, uc := style.ulStyle, style.ulColor; us != UnderlineStyleNone {
+			if t.underColor != "" || t.underRGB != "" {
+				if uc == ColorReset {
+					t.TPuts(t.underFg)
+				} else if uc.IsRGB() {
+					if t.underRGB != "" {
+						r, g, b := uc.RGB()
+						t.TPuts(ti.TParm(t.underRGB, int(r), int(g), int(b)))
+					} else {
+						if v, ok := t.colors[uc]; ok {
+							uc = v
+						} else {
+							v = FindColor(uc, t.palette)
+							t.colors[uc] = v
+							uc = v
+						}
+						t.TPuts(ti.TParm(t.underColor, int(uc&0xff)))
+					}
+				} else if uc.Valid() {
+					t.TPuts(ti.TParm(t.underColor, int(uc&0xff)))
+				}
+			}
+			t.TPuts(ti.Underline) // to ensure everyone gets at least a basic underline
+			switch us {
+			case UnderlineStyleDouble:
+				t.TPuts(t.doubleUnder)
+			case UnderlineStyleCurly:
+				t.TPuts(t.curlyUnder)
+			case UnderlineStyleDotted:
+				t.TPuts(t.dottedUnder)
+			case UnderlineStyleDashed:
+				t.TPuts(t.dashedUnder)
+			}
 		}
 		if attrs&AttrReverse != 0 {
 			t.TPuts(ti.Reverse)
@@ -827,9 +955,10 @@ func (t *tScreen) ShowCursor(x, y int) {
 	t.Unlock()
 }
 
-func (t *tScreen) SetCursorStyle(cs CursorStyle) {
+func (t *tScreen) SetCursor(cs CursorStyle, cc Color) {
 	t.Lock()
 	t.cursorStyle = cs
+	t.cursorColor = cc
 	t.Unlock()
 }
 
@@ -850,6 +979,14 @@ func (t *tScreen) showCursor() {
 	if t.cursorStyles != nil {
 		if esc, ok := t.cursorStyles[t.cursorStyle]; ok {
 			t.TPuts(esc)
+		}
+	}
+	if t.cursorRGB != "" {
+		if t.cursorColor == ColorReset {
+			t.TPuts(t.cursorFg)
+		} else if t.cursorColor.Valid() {
+			r, g, b := t.cursorColor.RGB()
+			t.TPuts(t.ti.TParm(t.cursorRGB, int(r), int(g), int(b)))
 		}
 	}
 	t.cx = x
@@ -890,8 +1027,7 @@ func (t *tScreen) Show() {
 func (t *tScreen) clearScreen() {
 	t.TPuts(t.ti.AttrOff)
 	t.TPuts(t.exitUrl)
-	fg, bg, _ := t.style.Decompose()
-	_ = t.sendFgBg(fg, bg, AttrNone)
+	_ = t.sendFgBg(t.style.fg, t.style.bg, AttrNone)
 	t.TPuts(t.ti.Clear)
 	t.clear = false
 }
@@ -1376,6 +1512,61 @@ func (t *tScreen) parseFocus(buf *bytes.Buffer, evs *[]Event) (bool, bool) {
 	return true, false
 }
 
+func (t *tScreen) parseClipboard(buf *bytes.Buffer, evs *[]Event) (bool, bool) {
+	b := buf.Bytes()
+	state := 0
+	prefix := []byte("\x1b]52;c;")
+
+	if len(prefix) >= len(b) {
+		if bytes.HasPrefix(prefix, b) {
+			// inconclusive so far
+			return true, false
+		}
+		// definitely not a match
+		return false, false
+	}
+	b = b[len(prefix):]
+
+	for _, c := range b {
+		// valid base64 digits
+		if state == 0 {
+			if (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || (c == '+') || (c == '/') || (c == '=') {
+				continue
+			}
+			if c == '\x1b' {
+				state = 1
+				continue
+			}
+			if c == '\a' {
+				// matched with BEL instead of ST
+				b = b[:len(b)-1] // drop the trailing BEL
+				decoded := make([]byte, base64.StdEncoding.DecodedLen(len(b)))
+				if num, err := base64.StdEncoding.Decode(decoded, b); err == nil {
+					*evs = append(*evs, NewEventClipboard(decoded[:num]))
+				}
+				_, _ = buf.ReadBytes('\a')
+				return true, true
+			}
+			return false, false
+		}
+		if state == 1 {
+			if c == '\\' {
+				b = b[:len(b)-2] // drop the trailing ST (\x1b\\)
+				// now decode the data
+				decoded := make([]byte, base64.StdEncoding.DecodedLen(len(b)))
+				if num, err := base64.StdEncoding.Decode(decoded, b); err == nil {
+					*evs = append(*evs, NewEventClipboard(decoded[:num]))
+				}
+				_, _ = buf.ReadBytes('\\')
+				return true, true
+			}
+			return false, false
+		}
+	}
+	// not enough data yet (not terminated)
+	return true, false
+}
+
 // parseXtermMouse is like parseSgrMouse, but it parses a legacy
 // X11 mouse record.
 func (t *tScreen) parseXtermMouse(buf *bytes.Buffer, evs *[]Event) (bool, bool) {
@@ -1573,6 +1764,14 @@ func (t *tScreen) collectEventsFromInput(buf *bytes.Buffer, expire bool) []Event
 			}
 
 			if part, comp := t.parseSgrMouse(buf, &res); comp {
+				continue
+			} else if part {
+				partials++
+			}
+		}
+
+		if t.setClipboard != "" {
+			if part, comp := t.parseClipboard(buf, &res); comp {
 				continue
 			} else if part {
 				partials++
@@ -1829,12 +2028,18 @@ func (t *tScreen) engage() error {
 		// (In theory there could be terminals that don't support X,Y cursor
 		// positions without a setup command, but we don't support them.)
 		t.TPuts(ti.EnterCA)
+		if t.saveTitle != "" {
+			t.TPuts(t.saveTitle)
+		}
 	}
 	t.TPuts(ti.EnterKeypad)
 	t.TPuts(ti.HideCursor)
 	t.TPuts(ti.EnableAcs)
 	t.TPuts(ti.DisableAutoMargin)
 	t.TPuts(ti.Clear)
+	if t.title != "" && t.setTitle != "" {
+		t.TPuts(t.ti.TParm(t.setTitle, t.title))
+	}
 
 	t.wg.Add(2)
 	go t.inputLoop(stopQ)
@@ -1870,11 +2075,17 @@ func (t *tScreen) disengage() {
 	if t.cursorStyles != nil && t.cursorStyle != CursorStyleDefault {
 		t.TPuts(t.cursorStyles[CursorStyleDefault])
 	}
+	if t.cursorFg != "" && t.cursorColor.Valid() {
+		t.TPuts(t.cursorFg)
+	}
 	t.TPuts(ti.ResetFgBg)
 	t.TPuts(ti.AttrOff)
 	t.TPuts(ti.ExitKeypad)
 	t.TPuts(ti.EnableAutoMargin)
 	if os.Getenv("TCELL_ALTSCREEN") != "disable" {
+		if t.restoreTitle != "" {
+			t.TPuts(t.restoreTitle)
+		}
 		t.TPuts(ti.Clear) // only needed if ExitCA is empty
 		t.TPuts(ti.ExitCA)
 	}
@@ -1908,4 +2119,31 @@ func (t *tScreen) EventQ() chan Event {
 
 func (t *tScreen) GetCells() *CellBuffer {
 	return &t.cells
+}
+
+func (t *tScreen) SetTitle(title string) {
+	t.Lock()
+	t.title = title
+	if t.setTitle != "" && t.running {
+		t.TPuts(t.ti.TParm(t.setTitle, title))
+	}
+	t.Unlock()
+}
+
+func (t *tScreen) SetClipboard(data []byte) {
+	// Post binary data to the system clipboard.  It might be UTF-8, it might not be.
+	t.Lock()
+	if t.setClipboard != "" {
+		encoded := base64.StdEncoding.EncodeToString(data)
+		t.TPuts(t.ti.TParm(t.setClipboard, encoded))
+	}
+	t.Unlock()
+}
+
+func (t *tScreen) GetClipboard() {
+	t.Lock()
+	if t.setClipboard != "" {
+		t.TPuts(t.ti.TParm(t.setClipboard, "?"))
+	}
+	t.Unlock()
 }

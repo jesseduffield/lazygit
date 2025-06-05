@@ -33,7 +33,7 @@ func (self *DiffingMenuAction) Call() error {
 		{
 			Label: self.c.Tr.EnterRefToDiff,
 			OnPress: func() error {
-				return self.c.Prompt(types.PromptOpts{
+				self.c.Prompt(types.PromptOpts{
 					Title:               self.c.Tr.EnterRefName,
 					FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRefsSuggestionsFunc(),
 					HandleConfirm: func(response string) error {
@@ -41,6 +41,8 @@ func (self *DiffingMenuAction) Call() error {
 						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 					},
 				})
+
+				return nil
 			},
 		},
 	}...)

@@ -1,10 +1,10 @@
 package gui
 
 import (
-	"regexp"
 	"time"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -12,21 +12,16 @@ import (
 )
 
 func (gui *Gui) resetViewOrigin(v *gocui.View) {
-	if err := v.SetCursor(0, 0); err != nil {
-		gui.Log.Error(err)
-	}
-
-	if err := v.SetOrigin(0, 0); err != nil {
-		gui.Log.Error(err)
-	}
+	v.SetCursor(0, 0)
+	v.SetOrigin(0, 0)
 }
 
 // Returns the number of lines that we should read initially from a cmd task so
 // that the scrollbar has the correct size, along with the number of lines after
 // which the view is filled and we can do a first refresh.
 func (gui *Gui) linesToReadFromCmdTask(v *gocui.View) tasks.LinesToRead {
-	_, height := v.Size()
-	_, oy := v.Origin()
+	height := v.InnerHeight()
+	oy := v.OriginY()
 
 	linesForFirstRefresh := height + oy + 10
 
@@ -78,7 +73,8 @@ func (gui *Gui) onViewTabClick(windowName string, tabIndex int) error {
 		return nil
 	}
 
-	return gui.c.PushContext(context)
+	gui.c.Context().Push(context, types.OnFocusOpts{})
+	return nil
 }
 
 func (gui *Gui) handleNextTab() error {
@@ -119,7 +115,7 @@ func (gui *Gui) handlePrevTab() error {
 
 func getTabbedView(gui *Gui) *gocui.View {
 	// It safe assumption that only static contexts have tabs
-	context := gui.c.CurrentStaticContext()
+	context := gui.c.Context().CurrentStatic()
 	view, _ := gui.g.View(context.GetViewName())
 	return view
 }
@@ -131,46 +127,36 @@ func (gui *Gui) render() {
 // postRefreshUpdate is to be called on a context after the state that it depends on has been refreshed
 // if the context's view is set to another context we do nothing.
 // if the context's view is the current view we trigger a focus; re-selecting the current item.
-func (gui *Gui) postRefreshUpdate(c types.Context) error {
+func (gui *Gui) postRefreshUpdate(c types.Context) {
 	t := time.Now()
 	defer func() {
 		gui.Log.Infof("postRefreshUpdate for %s took %s", c.GetKey(), time.Since(t))
 	}()
 
-	if err := c.HandleRender(); err != nil {
-		return err
-	}
+	c.HandleRender()
 
 	if gui.currentViewName() == c.GetViewName() {
-		if err := c.HandleFocus(types.OnFocusOpts{}); err != nil {
-			return err
+		c.HandleFocus(types.OnFocusOpts{})
+	} else {
+		// The FocusLine call is included in the HandleFocus method which we
+		// call for focused views above; but we need to call it here for
+		// non-focused views to ensure that an inactive selection is painted
+		// correctly, and that integration tests see the up to date selection
+		// state.
+		c.FocusLine()
+
+		currentCtx := gui.State.ContextMgr.Current()
+		if currentCtx.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY || currentCtx.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {
+			// Searching can't cope well with the view being updated while it is being searched.
+			// We might be able to fix the problems with this, but it doesn't seem easy, so for now
+			// just don't rerender the view while searching, on the assumption that users will probably
+			// either search or change their data, but not both at the same time.
+			if !currentCtx.GetView().IsSearching() {
+				sidePanelContext := gui.State.ContextMgr.NextInStack(currentCtx)
+				if sidePanelContext != nil && sidePanelContext.GetKey() == c.GetKey() {
+					sidePanelContext.HandleRenderToMain()
+				}
+			}
 		}
 	}
-
-	return nil
-}
-
-// handleGenericClick is a generic click handler that can be used for any view.
-// It handles opening URLs in the browser when the user clicks on one.
-func (gui *Gui) handleGenericClick(view *gocui.View) error {
-	cx, cy := view.Cursor()
-	word, err := view.Word(cx, cy)
-	if err != nil {
-		return nil
-	}
-
-	// Allow URLs to be wrapped in angle brackets, and the closing bracket to
-	// be followed by punctuation:
-	re := regexp.MustCompile(`^<?(https://.+?)(>[,.;!]*)?$`)
-	matches := re.FindStringSubmatch(word)
-	if matches == nil {
-		return nil
-	}
-
-	// Ignore errors (opening the link via the OS can fail if the
-	// `os.openLink` config key references a command that doesn't exist, or
-	// that errors when called.)
-	_ = gui.c.OS().OpenLink(matches[1])
-
-	return nil
 }

@@ -10,15 +10,18 @@ import (
 
 type JumpToSideWindowController struct {
 	baseController
-	c *ControllerCommon
+	c           *ControllerCommon
+	nextTabFunc func() error
 }
 
 func NewJumpToSideWindowController(
 	c *ControllerCommon,
+	nextTabFunc func() error,
 ) *JumpToSideWindowController {
 	return &JumpToSideWindowController{
 		baseController: baseController{},
 		c:              c,
+		nextTabFunc:    nextTabFunc,
 	}
 }
 
@@ -39,15 +42,21 @@ func (self *JumpToSideWindowController) GetKeybindings(opts types.KeybindingsOpt
 			// by default the keys are 1, 2, 3, etc
 			Key:      opts.GetKey(opts.Config.Universal.JumpToBlock[index]),
 			Modifier: gocui.ModNone,
-			Handler:  self.goToSideWindow(window),
+			Handler:  opts.Guards.NoPopupPanel(self.goToSideWindow(window)),
 		}
 	})
 }
 
 func (self *JumpToSideWindowController) goToSideWindow(window string) func() error {
 	return func() error {
+		sideWindowAlreadyActive := self.c.Helpers().Window.CurrentWindow() == window
+		if sideWindowAlreadyActive && self.c.UserConfig().Gui.SwitchTabsWithPanelJumpKeys {
+			return self.nextTabFunc()
+		}
+
 		context := self.c.Helpers().Window.GetContextForWindow(window)
 
-		return self.c.PushContext(context)
+		self.c.Context().Push(context, types.OnFocusOpts{})
+		return nil
 	}
 }

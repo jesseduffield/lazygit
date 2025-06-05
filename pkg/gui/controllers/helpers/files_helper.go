@@ -6,12 +6,6 @@ import (
 	"github.com/samber/lo"
 )
 
-type IFilesHelper interface {
-	EditFiles(filenames []string) error
-	EditFileAtLine(filename string, lineNumber int) error
-	OpenFile(filename string) error
-}
-
 type FilesHelper struct {
 	c *HelperCommon
 }
@@ -21,8 +15,6 @@ func NewFilesHelper(c *HelperCommon) *FilesHelper {
 		c: c,
 	}
 }
-
-var _ IFilesHelper = &FilesHelper{}
 
 func (self *FilesHelper) EditFiles(filenames []string) error {
 	absPaths := lo.Map(filenames, func(filename string, _ int) string {
@@ -71,11 +63,11 @@ func (self *FilesHelper) OpenDirInEditor(path string) error {
 func (self *FilesHelper) callEditor(cmdStr string, suspend bool) error {
 	if suspend {
 		return self.c.RunSubprocessAndRefresh(
-			self.c.OS().Cmd.NewShell(cmdStr),
+			self.c.OS().Cmd.NewShell(cmdStr, self.c.UserConfig().OS.ShellFunctionsFile),
 		)
 	}
 
-	return self.c.OS().Cmd.NewShell(cmdStr).Run()
+	return self.c.OS().Cmd.NewShell(cmdStr, self.c.UserConfig().OS.ShellFunctionsFile).Run()
 }
 
 func (self *FilesHelper) OpenFile(filename string) error {

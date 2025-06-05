@@ -139,7 +139,7 @@ func (self *MenuViewModel) GetNonModelItems() []*NonModelItem {
 	// Don't display section headers when we are filtering, and the filter mode
 	// is fuzzy. The reason is that filtering changes the order of the items
 	// (they are sorted by best match), so all the sections would be messed up.
-	if self.FilteredListViewModel.IsFiltering() && self.c.UserConfig.Gui.UseFuzzySearch() {
+	if self.FilteredListViewModel.IsFiltering() && self.c.UserConfig().Gui.UseFuzzySearch() {
 		return result
 	}
 
@@ -197,9 +197,7 @@ func (self *MenuContext) OnMenuPress(selectedItem *types.MenuItem) error {
 		return nil
 	}
 
-	if err := self.c.PopContext(); err != nil {
-		return err
-	}
+	self.c.Context().Pop()
 
 	if selectedItem == nil {
 		return nil

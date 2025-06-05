@@ -7,7 +7,7 @@ import (
 
 var InteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Interactive rebase",
-	ExtraCmdArgs: []string{"log"},
+	ExtraCmdArgs: []string{"log", "--screen-mode=full"},
 	Skip:         false,
 	IsDemo:       true,
 	SetupConfig: func(config *config.AppConfig) {

@@ -9,8 +9,13 @@ var CommitWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Commit with defined config commitPrefixes",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig: func(testConfig *config.AppConfig) {
-		testConfig.UserConfig.Git.CommitPrefixes = map[string]config.CommitPrefixConfig{"repo": {Pattern: "^\\w+\\/(\\w+-\\w+).*", Replace: "[$1]: "}}
+	SetupConfig: func(cfg *config.AppConfig) {
+		cfg.GetUserConfig().Git.CommitPrefixes = map[string][]config.CommitPrefixConfig{
+			"repo": {{
+				Pattern: `^\w+/(\w+-\w+).*`,
+				Replace: "[$1]: ",
+			}},
+		}
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.NewBranch("feature/TEST-001")
@@ -23,6 +28,15 @@ var CommitWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			PressPrimaryAction().
+			Press(keys.Files.CommitChanges)
+
+		t.ExpectPopup().CommitMessagePanel().
+			Title(Equals("Commit summary")).
+			InitialText(Equals("[TEST-001]: ")).
+			Cancel()
+
+		t.Views().Files().
+			IsFocused().
 			Press(keys.Files.CommitChanges)
 
 		t.ExpectPopup().CommitMessagePanel().

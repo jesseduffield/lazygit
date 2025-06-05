@@ -27,17 +27,20 @@ func postFilterTest(t *TestDriver) {
 			Contains(`only filterFile`).IsSelected(),
 			Contains(`both files`),
 		).
-		SelectNextItem().
-		PressEnter()
+		SelectNextItem()
 
 	// we only show the filtered file's changes in the main view
 	t.Views().Main().
 		Content(Contains("filterFile").DoesNotContain("otherFile"))
 
+	t.Views().Commits().
+		PressEnter()
+
 	// when you click into the commit itself, you see all files from that commit
 	t.Views().CommitFiles().
 		IsFocused().
 		Lines(
+			Equals("▼ /"),
 			Contains(`filterFile`),
 			Contains(`otherFile`),
 		)

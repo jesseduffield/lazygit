@@ -48,7 +48,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("Rebasing"))
 
-		t.Common().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved("rebase")
 
 		t.Views().Information().Content(DoesNotContain("Rebasing"))
 

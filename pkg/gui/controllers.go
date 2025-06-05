@@ -27,11 +27,10 @@ func (gui *Gui) resetHelpersAndControllers() {
 	helperCommon := gui.c
 	recordDirectoryHelper := helpers.NewRecordDirectoryHelper(helperCommon)
 	reposHelper := helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo)
-	refsHelper := helpers.NewRefsHelper(helperCommon)
+	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon)
+	refsHelper := helpers.NewRefsHelper(helperCommon, rebaseHelper)
 	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon)
 	worktreeHelper := helpers.NewWorktreeHelper(helperCommon, reposHelper, refsHelper, suggestionsHelper)
-
-	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, refsHelper)
 
 	setCommitSummary := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
 	setCommitDescription := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitDescription })
@@ -106,8 +105,8 @@ func (gui *Gui) resetHelpersAndControllers() {
 		Suggestions:     suggestionsHelper,
 		Files:           helpers.NewFilesHelper(helperCommon),
 		WorkingTree:     helpers.NewWorkingTreeHelper(helperCommon, refsHelper, commitsHelper, gpgHelper),
-		Tags:            helpers.NewTagsHelper(helperCommon, commitsHelper),
-		BranchesHelper:  helpers.NewBranchesHelper(helperCommon),
+		Tags:            helpers.NewTagsHelper(helperCommon, commitsHelper, gpgHelper),
+		BranchesHelper:  helpers.NewBranchesHelper(helperCommon, worktreeHelper),
 		GPG:             helpers.NewGpgHelper(helperCommon),
 		MergeAndRebase:  rebaseHelper,
 		MergeConflicts:  mergeConflictsHelper,
@@ -179,7 +178,9 @@ func (gui *Gui) resetHelpersAndControllers() {
 	undoController := controllers.NewUndoController(common)
 	globalController := controllers.NewGlobalController(common)
 	contextLinesController := controllers.NewContextLinesController(common)
-	verticalScrollControllerFactory := controllers.NewVerticalScrollControllerFactory(common, &gui.viewBufferManagerMap)
+	renameSimilarityThresholdController := controllers.NewRenameSimilarityThresholdController(common)
+	verticalScrollControllerFactory := controllers.NewVerticalScrollControllerFactory(common)
+	viewSelectionControllerFactory := controllers.NewViewSelectionControllerFactory(common)
 
 	branchesController := controllers.NewBranchesController(common)
 	gitFlowController := controllers.NewGitFlowController(common)
@@ -188,6 +189,8 @@ func (gui *Gui) resetHelpersAndControllers() {
 	patchExplorerControllerFactory := controllers.NewPatchExplorerControllerFactory(common)
 	stagingController := controllers.NewStagingController(common, gui.State.Contexts.Staging, gui.State.Contexts.StagingSecondary, false)
 	stagingSecondaryController := controllers.NewStagingController(common, gui.State.Contexts.StagingSecondary, gui.State.Contexts.Staging, true)
+	mainViewController := controllers.NewMainViewController(common, gui.State.Contexts.Normal, gui.State.Contexts.NormalSecondary)
+	secondaryViewController := controllers.NewMainViewController(common, gui.State.Contexts.NormalSecondary, gui.State.Contexts.Normal)
 	patchBuildingController := controllers.NewPatchBuildingController(common)
 	snakeController := controllers.NewSnakeController(common)
 	reflogCommitsController := controllers.NewReflogCommitsController(common)
@@ -196,7 +199,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	commandLogController := controllers.NewCommandLogController(common)
 	confirmationController := controllers.NewConfirmationController(common)
 	suggestionsController := controllers.NewSuggestionsController(common)
-	jumpToSideWindowController := controllers.NewJumpToSideWindowController(common)
+	jumpToSideWindowController := controllers.NewJumpToSideWindowController(common, gui.handleNextTab)
 
 	sideWindowControllerFactory := controllers.NewSideWindowControllerFactory(common)
 
@@ -258,7 +261,23 @@ func (gui *Gui) resetHelpersAndControllers() {
 		gui.State.Contexts.Stash,
 	} {
 		controllers.AttachControllers(context, controllers.NewSwitchToDiffFilesController(
-			common, context, gui.State.Contexts.CommitFiles,
+			common, context,
+		))
+	}
+
+	for _, context := range []types.Context{
+		gui.State.Contexts.Files,
+		gui.State.Contexts.Branches,
+		gui.State.Contexts.RemoteBranches,
+		gui.State.Contexts.Tags,
+		gui.State.Contexts.LocalCommits,
+		gui.State.Contexts.ReflogCommits,
+		gui.State.Contexts.SubCommits,
+		gui.State.Contexts.CommitFiles,
+		gui.State.Contexts.Stash,
+	} {
+		controllers.AttachControllers(context, controllers.NewSwitchToFocusedMainViewController(
+			common, context,
 		))
 	}
 
@@ -298,11 +317,23 @@ func (gui *Gui) resetHelpersAndControllers() {
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.CustomPatchBuilderSecondary,
-		verticalScrollControllerFactory.Create(gui.State.Contexts.CustomPatchBuilder),
+		verticalScrollControllerFactory.Create(gui.State.Contexts.CustomPatchBuilderSecondary),
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.MergeConflicts,
 		mergeConflictsController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Normal,
+		mainViewController,
+		verticalScrollControllerFactory.Create(gui.State.Contexts.Normal),
+		viewSelectionControllerFactory.Create(gui.State.Contexts.Normal),
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.NormalSecondary,
+		secondaryViewController,
+		verticalScrollControllerFactory.Create(gui.State.Contexts.NormalSecondary),
+		viewSelectionControllerFactory.Create(gui.State.Contexts.NormalSecondary),
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Files,
@@ -353,6 +384,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.CommitDescription,
 		commitDescriptionController,
+		verticalScrollControllerFactory.Create(gui.State.Contexts.CommitDescription),
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.RemoteBranches,
@@ -383,6 +415,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		undoController,
 		globalController,
 		contextLinesController,
+		renameSimilarityThresholdController,
 		jumpToSideWindowController,
 		syncController,
 	)
@@ -404,7 +437,6 @@ func (gui *Gui) getCommitMessageSetTextareaTextFn(getView func() *gocui.View) fu
 		view := getView()
 		view.ClearTextArea()
 		view.TextArea.TypeString(text)
-		gui.helpers.Confirmation.ResizeCommitMessagePanels()
 		view.RenderTextArea()
 	}
 }

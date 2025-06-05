@@ -62,24 +62,24 @@ func (self *PatchBuildingController) GetMouseKeybindings(opts types.KeybindingsO
 	return []*gocui.ViewMouseBinding{}
 }
 
-func (self *PatchBuildingController) GetOnFocus() func(types.OnFocusOpts) error {
-	return func(opts types.OnFocusOpts) error {
+func (self *PatchBuildingController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(opts types.OnFocusOpts) {
 		// no need to change wrap on the secondary view because it can't be interacted with
-		self.c.Views().PatchBuilding.Wrap = false
+		self.c.Views().PatchBuilding.Wrap = self.c.UserConfig().Gui.WrapLinesInStagingView
 
-		return self.c.Helpers().PatchBuilding.RefreshPatchBuildingPanel(opts)
+		self.c.Helpers().PatchBuilding.RefreshPatchBuildingPanel(opts)
 	}
 }
 
-func (self *PatchBuildingController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
-	return func(opts types.OnFocusLostOpts) error {
+func (self *PatchBuildingController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(opts types.OnFocusLostOpts) {
+		self.context().SetState(nil)
+
 		self.c.Views().PatchBuilding.Wrap = true
 
 		if self.c.Git().Patch.PatchBuilder.IsEmpty() {
 			self.c.Git().Patch.PatchBuilder.Reset()
 		}
-
-		return nil
 	}
 }
 
@@ -107,6 +107,7 @@ func (self *PatchBuildingController) EditFile() error {
 	}
 
 	lineNumber := self.context().GetState().CurrentLineNumber()
+	lineNumber = self.c.Helpers().Diff.AdjustLineNumber(path, lineNumber, self.context().GetViewName())
 	return self.c.Helpers().Files.EditFileAtLine(path, lineNumber)
 }
 
@@ -136,13 +137,13 @@ func (self *PatchBuildingController) toggleSelection() error {
 	if err != nil {
 		return err
 	}
-	currentLineIsStaged := lo.Contains(includedLineIndices, state.GetSelectedLineIdx())
+	currentLineIsStaged := lo.Contains(includedLineIndices, state.GetSelectedPatchLineIdx())
 	if currentLineIsStaged {
 		toggleFunc = self.c.Git().Patch.PatchBuilder.RemoveFileLineRange
 	}
 
 	// add range of lines to those set for the file
-	firstLineIdx, lastLineIdx := state.SelectedRange()
+	firstLineIdx, lastLineIdx := state.SelectedPatchRange()
 
 	if err := toggleFunc(filename, firstLineIdx, lastLineIdx); err != nil {
 		// might actually want to return an error here
@@ -162,8 +163,10 @@ func (self *PatchBuildingController) Escape() error {
 
 	if state.SelectingRange() || state.SelectingHunk() {
 		state.SetLineSelectMode()
-		return self.c.PostRefreshUpdate(context)
+		self.c.PostRefreshUpdate(context)
+		return nil
 	}
 
-	return self.c.Helpers().PatchBuilding.Escape()
+	self.c.Helpers().PatchBuilding.Escape()
+	return nil
 }

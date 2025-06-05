@@ -1,11 +1,11 @@
 package gui
 
 import (
+	"errors"
+
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
-	"golang.org/x/exp/slices"
 )
 
 // layout is called for every screen re-render e.g. when the screen is resized
@@ -30,14 +30,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// reading more lines into main view buffers upon resize
 	prevMainView := gui.Views.Main
 	if prevMainView != nil {
-		_, prevMainHeight := prevMainView.Size()
-		newMainHeight := viewDimensions["main"].Y1 - viewDimensions["main"].Y0 - 1
+		prevMainHeight := prevMainView.Height()
+		newMainHeight := viewDimensions["main"].Y1 - viewDimensions["main"].Y0 + 1
 		heightDiff := newMainHeight - prevMainHeight
 		if heightDiff > 0 {
-			if manager, ok := gui.viewBufferManagerMap["main"]; ok {
+			if manager := gui.getViewBufferManagerForView(gui.Views.Main); manager != nil {
 				manager.ReadLines(heightDiff)
 			}
-			if manager, ok := gui.viewBufferManagerMap["secondary"]; ok {
+			if manager := gui.getViewBufferManagerForView(gui.Views.Secondary); manager != nil {
 				manager.ReadLines(heightDiff)
 			}
 		}
@@ -73,18 +73,29 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 
 		mustRerender := false
+		newHeight := dimensionsObj.Y1 - dimensionsObj.Y0 + 2*frameOffset
+		maxOriginY := context.TotalContentHeight()
+		if !view.CanScrollPastBottom {
+			maxOriginY -= newHeight - 1
+		}
+		if oldOriginY := view.OriginY(); oldOriginY > maxOriginY {
+			view.ScrollUp(oldOriginY - maxOriginY)
+			// the view might not have scrolled actually (if it was at the limit
+			// already), so we need to check if it did
+			if oldOriginY != view.OriginY() && context.NeedsRerenderOnHeightChange() {
+				mustRerender = true
+			}
+		}
 		if context.NeedsRerenderOnWidthChange() == types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES {
-			// view.Width() returns the width -1 for some reason
-			oldWidth := view.Width() + 1
-			newWidth := dimensionsObj.X1 - dimensionsObj.X0 + 2*frameOffset
+			oldWidth := view.Width()
+			newWidth := dimensionsObj.X1 - dimensionsObj.X0 + 1
 			if oldWidth != newWidth {
 				mustRerender = true
 			}
 		}
 		if context.NeedsRerenderOnHeightChange() {
-			// view.Height() returns the height -1 for some reason
-			oldHeight := view.Height() + 1
-			newHeight := dimensionsObj.Y1 - dimensionsObj.Y0 + 2*frameOffset
+			oldHeight := view.Height()
+			newHeight := dimensionsObj.Y1 - dimensionsObj.Y0 + 1
 			if oldHeight != newHeight {
 				mustRerender = true
 			}
@@ -112,7 +123,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 
 		_, err := setViewFromDimensions(context)
-		if err != nil && !gocui.IsUnknownView(err) {
+		if err != nil && !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
 	}
@@ -125,7 +136,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	for _, context := range gui.transientContexts() {
 		view, err := gui.g.View(context.GetViewName())
-		if err != nil && !gocui.IsUnknownView(err) {
+		if err != nil && !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
 		view.Visible = gui.helpers.Window.GetViewNameForWindow(context.GetWindowName()) == context.GetViewName()
@@ -164,18 +175,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	for _, context := range contextsToRerender {
-		if err := context.HandleRender(); err != nil {
-			return err
-		}
+		context.HandleRender()
 	}
 
 	// here is a good place log some stuff
 	// if you run `lazygit --logs`
 	// this will let you see these branches as prettified json
 	// gui.c.Log.Info(utils.AsJson(gui.State.Model.Branches[0:4]))
-	if err := gui.helpers.Confirmation.ResizeCurrentPopupPanel(); err != nil {
-		return err
-	}
+	gui.helpers.Confirmation.ResizeCurrentPopupPanels()
 
 	gui.renderContextOptionsMap()
 
@@ -213,10 +220,8 @@ func (gui *Gui) onInitialViewsCreationForRepo() error {
 		}
 	}
 
-	initialContext := gui.c.CurrentContext()
-	if err := gui.c.ActivateContext(initialContext); err != nil {
-		return err
-	}
+	initialContext := gui.c.Context().Current()
+	gui.c.Context().Activate(initialContext, types.OnFocusOpts{})
 
 	return gui.loadNewRepo()
 }
@@ -239,30 +244,11 @@ func (gui *Gui) onRepoViewReset() error {
 		}
 	}
 
-	gui.g.Mutexes.ViewsMutex.Lock()
-	// add tabs to views
-	for _, view := range gui.g.Views() {
-		// if the view is in our mapping, we'll set the tabs and the tab index
-		for _, values := range gui.viewTabMap() {
-			index := slices.IndexFunc(values, func(tabContext context.TabView) bool {
-				return tabContext.ViewName == view.Name()
-			})
-
-			if index != -1 {
-				view.Tabs = lo.Map(values, func(tabContext context.TabView, _ int) string {
-					return tabContext.Tab
-				})
-				view.TabIndex = index
-			}
-		}
-	}
-	gui.g.Mutexes.ViewsMutex.Unlock()
-
 	return nil
 }
 
 func (gui *Gui) onInitialViewsCreation() error {
-	if !gui.c.UserConfig.DisableStartupPopups {
+	if !gui.c.UserConfig().DisableStartupPopups {
 		storedPopupVersion := gui.c.GetAppState().StartupPopupVersion
 		if storedPopupVersion < StartupPopupVersion {
 			gui.showIntroPopupMessage()

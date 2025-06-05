@@ -15,18 +15,18 @@ var ShowOutputInPanel = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("my change")
 	},
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.UserConfig.CustomCommands = []config.CustomCommand{
+		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:        "X",
-				Context:    "commits",
-				Command:    "printf '%s' '{{ .SelectedLocalCommit.Name }}'",
-				ShowOutput: true,
+				Key:     "X",
+				Context: "commits",
+				Command: "printf '%s' '{{ .SelectedLocalCommit.Name }}'",
+				Output:  "popup",
 			},
 			{
 				Key:         "Y",
 				Context:     "commits",
 				Command:     "printf '%s' '{{ .SelectedLocalCommit.Name }}'",
-				ShowOutput:  true,
+				Output:      "popup",
 				OutputTitle: "Subject of commit {{ .SelectedLocalCommit.Hash }}",
 			},
 		}

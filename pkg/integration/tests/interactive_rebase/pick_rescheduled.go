@@ -26,9 +26,11 @@ var PickRescheduled = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("one")).
 			Press(keys.Universal.Edit).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("three"),
 				Contains("pick").Contains("two"),
-				Contains("<-- YOU ARE HERE --- one").IsSelected(),
+				Contains("--- Commits ---"),
+				Contains("one").IsSelected(),
 			).
 			Tap(func() {
 				t.Shell().CreateFile("file3", "other content\n")
@@ -39,8 +41,10 @@ var PickRescheduled = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("three"),
-				Contains("<-- YOU ARE HERE --- two"),
+				Contains("--- Commits ---"),
+				Contains("two"),
 				Contains("one"),
 			)
 	},

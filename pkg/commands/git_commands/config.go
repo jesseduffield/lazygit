@@ -43,7 +43,7 @@ func (self *ConfigCommands) ConfiguredPager() string {
 }
 
 func (self *ConfigCommands) GetPager(width int) string {
-	useConfig := self.UserConfig.Git.Paging.UseConfig
+	useConfig := self.UserConfig().Git.Paging.UseConfig
 	if useConfig {
 		pager := self.ConfiguredPager()
 		return strings.Split(pager, "| less")[0]
@@ -53,19 +53,35 @@ func (self *ConfigCommands) GetPager(width int) string {
 		"columnWidth": strconv.Itoa(width/2 - 6),
 	}
 
-	pagerTemplate := string(self.UserConfig.Git.Paging.Pager)
+	pagerTemplate := string(self.UserConfig().Git.Paging.Pager)
 	return utils.ResolvePlaceholderString(pagerTemplate, templateValues)
 }
 
-// UsingGpg tells us whether the user has gpg enabled so that we can know
-// whether we need to run a subprocess to allow them to enter their password
-func (self *ConfigCommands) UsingGpg() bool {
-	overrideGpg := self.UserConfig.Git.OverrideGpg
+type GpgConfigKey string
+
+const (
+	CommitGpgSign GpgConfigKey = "commit.gpgSign"
+	TagGpgSign    GpgConfigKey = "tag.gpgSign"
+)
+
+// NeedsGpgSubprocess tells us whether the user has gpg enabled for the specified action type
+// and needs a subprocess because they have a process where they manually
+// enter their password every time a GPG action is taken
+func (self *ConfigCommands) NeedsGpgSubprocess(key GpgConfigKey) bool {
+	overrideGpg := self.UserConfig().Git.OverrideGpg
 	if overrideGpg {
 		return false
 	}
 
-	return self.gitConfig.GetBool("commit.gpgsign")
+	return self.gitConfig.GetBool(string(key))
+}
+
+func (self *ConfigCommands) NeedsGpgSubprocessForCommit() bool {
+	return self.NeedsGpgSubprocess(CommitGpgSign)
+}
+
+func (self *ConfigCommands) GetGpgTagSign() bool {
+	return self.gitConfig.GetBool(string(TagGpgSign))
 }
 
 func (self *ConfigCommands) GetCoreEditor() string {
@@ -110,4 +126,8 @@ func (self *ConfigCommands) GetCoreCommentChar() byte {
 
 func (self *ConfigCommands) GetRebaseUpdateRefs() bool {
 	return self.gitConfig.GetBool("rebase.updateRefs")
+}
+
+func (self *ConfigCommands) DropConfigCache() {
+	self.gitConfig.DropCache()
 }

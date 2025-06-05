@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -21,6 +22,8 @@ var CONTEXT_KEYS_SHOWING_DIFFS = []types.ContextKey{
 	context.STAGING_SECONDARY_CONTEXT_KEY,
 	context.PATCH_BUILDING_MAIN_CONTEXT_KEY,
 	context.PATCH_BUILDING_SECONDARY_CONTEXT_KEY,
+	context.NORMAL_MAIN_CONTEXT_KEY,
+	context.NORMAL_SECONDARY_CONTEXT_KEY,
 }
 
 type ContextLinesController struct {
@@ -68,7 +71,9 @@ func (self *ContextLinesController) Increase() error {
 			return err
 		}
 
-		self.c.AppState.DiffContextSize++
+		if self.c.AppState.DiffContextSize < math.MaxUint64 {
+			self.c.AppState.DiffContextSize++
+		}
 		return self.applyChange()
 	}
 
@@ -76,14 +81,14 @@ func (self *ContextLinesController) Increase() error {
 }
 
 func (self *ContextLinesController) Decrease() error {
-	old_size := self.c.AppState.DiffContextSize
-
-	if self.isShowingDiff() && old_size > 1 {
+	if self.isShowingDiff() {
 		if err := self.checkCanChangeContext(); err != nil {
 			return err
 		}
 
-		self.c.AppState.DiffContextSize = old_size - 1
+		if self.c.AppState.DiffContextSize > 0 {
+			self.c.AppState.DiffContextSize--
+		}
 		return self.applyChange()
 	}
 
@@ -94,7 +99,7 @@ func (self *ContextLinesController) applyChange() error {
 	self.c.Toast(fmt.Sprintf(self.c.Tr.DiffContextSizeChanged, self.c.AppState.DiffContextSize))
 	self.c.SaveAppStateAndLogError()
 
-	currentContext := self.c.CurrentStaticContext()
+	currentContext := self.currentSidePanel()
 	switch currentContext.GetKey() {
 	// we make an exception for our staging and patch building contexts because they actually need to refresh their state afterwards.
 	case context.PATCH_BUILDING_MAIN_CONTEXT_KEY:
@@ -102,7 +107,8 @@ func (self *ContextLinesController) applyChange() error {
 	case context.STAGING_MAIN_CONTEXT_KEY, context.STAGING_SECONDARY_CONTEXT_KEY:
 		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STAGING}})
 	default:
-		return currentContext.HandleRenderToMain()
+		currentContext.HandleRenderToMain()
+		return nil
 	}
 }
 
@@ -117,6 +123,18 @@ func (self *ContextLinesController) checkCanChangeContext() error {
 func (self *ContextLinesController) isShowingDiff() bool {
 	return lo.Contains(
 		CONTEXT_KEYS_SHOWING_DIFFS,
-		self.c.CurrentStaticContext().GetKey(),
+		self.currentSidePanel().GetKey(),
 	)
+}
+
+func (self *ContextLinesController) currentSidePanel() types.Context {
+	currentContext := self.c.Context().CurrentStatic()
+	if currentContext.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY ||
+		currentContext.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {
+		if sidePanelContext := self.c.Context().NextInStack(currentContext); sidePanelContext != nil {
+			return sidePanelContext
+		}
+	}
+
+	return currentContext
 }

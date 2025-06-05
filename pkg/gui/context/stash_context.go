@@ -61,8 +61,17 @@ func (self *StashContext) GetSelectedRef() types.Ref {
 	return stash
 }
 
+func (self *StashContext) GetSelectedRefRangeForDiffFiles() *types.RefRange {
+	// It doesn't make much sense to show a range diff between two stash entries.
+	return nil
+}
+
 func (self *StashContext) GetDiffTerminals() []string {
 	itemId := self.GetSelectedItemId()
 
 	return []string{itemId}
+}
+
+func (self *StashContext) RefForAdjustingLineNumberInDiff() string {
+	return self.GetSelectedItemId()
 }

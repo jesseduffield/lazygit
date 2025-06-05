@@ -31,5 +31,7 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 				t.ExpectPopup().Prompt().Title(Equals("Rename stash: stash@{1}")).Type(" baz").Confirm()
 			}).
 			SelectedLine(Contains("On master: foo baz"))
+
+		t.Views().Main().Content(Contains("file-1"))
 	},
 })

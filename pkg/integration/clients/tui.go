@@ -1,6 +1,7 @@
 package clients
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -292,7 +293,7 @@ func suspendAndRunTest(test *components.IntegrationTest, sandbox bool, waitForDe
 	runTuiTest(test, sandbox, waitForDebugger, raceDetector, inputDelay)
 
 	fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint("press enter to return"))
-	fmt.Scanln() // wait for enter press
+	_, _ = fmt.Scanln() // wait for enter press
 
 	if err := gocui.Screen.Resume(); err != nil {
 		panic(err)
@@ -314,7 +315,7 @@ func (self *app) layout(g *gocui.Gui) error {
 	g.FgColor = gocui.ColorGreen
 	listView, err := g.SetView("list", 0, 0, maxX-1, maxY-descriptionViewHeight-keybindingsViewHeight-editorViewHeight-1, 0)
 	if err != nil {
-		if !gocui.IsUnknownView(err) {
+		if !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
 
@@ -334,7 +335,7 @@ func (self *app) layout(g *gocui.Gui) error {
 
 	descriptionView, err := g.SetViewBeneath("description", "list", descriptionViewHeight)
 	if err != nil {
-		if !gocui.IsUnknownView(err) {
+		if !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
 		descriptionView.Title = "Test description"
@@ -344,7 +345,7 @@ func (self *app) layout(g *gocui.Gui) error {
 
 	keybindingsView, err := g.SetViewBeneath("keybindings", "description", keybindingsViewHeight)
 	if err != nil {
-		if !gocui.IsUnknownView(err) {
+		if !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
 		keybindingsView.Title = "Keybindings"
@@ -355,7 +356,7 @@ func (self *app) layout(g *gocui.Gui) error {
 
 	editorView, err := g.SetViewBeneath("editor", "keybindings", editorViewHeight)
 	if err != nil {
-		if !gocui.IsUnknownView(err) {
+		if !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
 

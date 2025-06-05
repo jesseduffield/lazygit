@@ -8,7 +8,7 @@ import (
 
 // NewDummyOSCommand creates a new dummy OSCommand for testing
 func NewDummyOSCommand() *OSCommand {
-	osCmd := NewOSCommand(utils.NewDummyCommon(), config.NewDummyAppConfig(), dummyPlatform, NewNullGuiIO(utils.NewDummyLog()))
+	osCmd := NewOSCommand(common.NewDummyCommon(), config.NewDummyAppConfig(), dummyPlatform, NewNullGuiIO(utils.NewDummyLog()))
 
 	return osCmd
 }
@@ -23,9 +23,9 @@ type OSCommandDeps struct {
 }
 
 func NewDummyOSCommandWithDeps(deps OSCommandDeps) *OSCommand {
-	common := deps.Common
-	if common == nil {
-		common = utils.NewDummyCommon()
+	cmn := deps.Common
+	if cmn == nil {
+		cmn = common.NewDummyCommon()
 	}
 
 	platform := deps.Platform
@@ -34,7 +34,7 @@ func NewDummyOSCommandWithDeps(deps OSCommandDeps) *OSCommand {
 	}
 
 	return &OSCommand{
-		Common:       common,
+		Common:       cmn,
 		Platform:     platform,
 		getenvFn:     deps.GetenvFn,
 		removeFileFn: deps.RemoveFileFn,
@@ -59,7 +59,7 @@ var dummyPlatform = &Platform{
 }
 
 func NewDummyOSCommandWithRunner(runner *FakeCmdObjRunner) *OSCommand {
-	osCommand := NewOSCommand(utils.NewDummyCommon(), config.NewDummyAppConfig(), dummyPlatform, NewNullGuiIO(utils.NewDummyLog()))
+	osCommand := NewOSCommand(common.NewDummyCommon(), config.NewDummyAppConfig(), dummyPlatform, NewNullGuiIO(utils.NewDummyLog()))
 	osCommand.Cmd = NewDummyCmdObjBuilder(runner)
 
 	return osCommand

@@ -39,12 +39,13 @@ func NewPatchExplorerContext(
 		mutex:                  &deadlock.Mutex{},
 		getIncludedLineIndices: getIncludedLineIndices,
 		SimpleContext: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-			View:             view,
-			WindowName:       windowName,
-			Key:              key,
-			Kind:             types.MAIN_CONTEXT,
-			Focusable:        true,
-			HighlightOnFocus: true,
+			View:                       view,
+			WindowName:                 windowName,
+			Key:                        key,
+			Kind:                       types.MAIN_CONTEXT,
+			Focusable:                  true,
+			HighlightOnFocus:           true,
+			NeedsRerenderOnWidthChange: types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES,
 		})),
 		SearchTrait: NewSearchTrait(c),
 	}
@@ -53,9 +54,12 @@ func NewPatchExplorerContext(
 		func(selectedLineIdx int) error {
 			ctx.GetMutex().Lock()
 			defer ctx.GetMutex().Unlock()
-			return ctx.NavigateTo(ctx.c.IsCurrentContext(ctx), selectedLineIdx)
+			ctx.NavigateTo(selectedLineIdx)
+			return nil
 		}),
 	)
+
+	ctx.SetHandleRenderFunc(ctx.OnViewWidthChanged)
 
 	return ctx
 }
@@ -78,65 +82,58 @@ func (self *PatchExplorerContext) GetIncludedLineIndices() []int {
 	return self.getIncludedLineIndices()
 }
 
-func (self *PatchExplorerContext) RenderAndFocus(isFocused bool) error {
-	self.setContent(isFocused)
+func (self *PatchExplorerContext) RenderAndFocus() {
+	self.setContent()
 
 	self.FocusSelection()
 	self.c.Render()
-
-	return nil
 }
 
-func (self *PatchExplorerContext) Render(isFocused bool) error {
-	self.setContent(isFocused)
+func (self *PatchExplorerContext) Render() {
+	self.setContent()
 
 	self.c.Render()
-
-	return nil
 }
 
-func (self *PatchExplorerContext) Focus() error {
+func (self *PatchExplorerContext) Focus() {
 	self.FocusSelection()
 	self.c.Render()
-
-	return nil
 }
 
-func (self *PatchExplorerContext) setContent(isFocused bool) {
-	self.GetView().SetContent(self.GetContentToRender(isFocused))
+func (self *PatchExplorerContext) setContent() {
+	self.GetView().SetContent(self.GetContentToRender())
 }
 
 func (self *PatchExplorerContext) FocusSelection() {
 	view := self.GetView()
 	state := self.GetState()
-	_, viewHeight := view.Size()
-	bufferHeight := viewHeight - 1
+	bufferHeight := view.InnerHeight()
 	_, origin := view.Origin()
-	numLines := view.LinesHeight()
+	numLines := view.ViewLinesHeight()
 
 	newOriginY := state.CalculateOrigin(origin, bufferHeight, numLines)
 
-	_ = view.SetOriginY(newOriginY)
+	view.SetOriginY(newOriginY)
 
-	startIdx, endIdx := state.SelectedRange()
+	startIdx, endIdx := state.SelectedViewRange()
 	// As far as the view is concerned, we are always selecting a range
 	view.SetRangeSelectStart(startIdx)
 	view.SetCursorY(endIdx - newOriginY)
 }
 
-func (self *PatchExplorerContext) GetContentToRender(isFocused bool) string {
+func (self *PatchExplorerContext) GetContentToRender() string {
 	if self.GetState() == nil {
 		return ""
 	}
 
-	return self.GetState().RenderForLineIndices(isFocused, self.GetIncludedLineIndices())
+	return self.GetState().RenderForLineIndices(self.GetIncludedLineIndices())
 }
 
-func (self *PatchExplorerContext) NavigateTo(isFocused bool, selectedLineIdx int) error {
+func (self *PatchExplorerContext) NavigateTo(selectedLineIdx int) {
 	self.GetState().SetLineSelectMode()
 	self.GetState().SelectLine(selectedLineIdx)
 
-	return self.RenderAndFocus(isFocused)
+	self.RenderAndFocus()
 }
 
 func (self *PatchExplorerContext) GetMutex() *deadlock.Mutex {
@@ -145,4 +142,12 @@ func (self *PatchExplorerContext) GetMutex() *deadlock.Mutex {
 
 func (self *PatchExplorerContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
 	return nil
+}
+
+func (self *PatchExplorerContext) OnViewWidthChanged() {
+	if state := self.GetState(); state != nil {
+		state.OnViewWidthChanged(self.GetView())
+		self.setContent()
+		self.RenderAndFocus()
+	}
 }

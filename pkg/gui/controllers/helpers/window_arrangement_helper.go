@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/jesseduffield/lazycore/pkg/boxlayout"
@@ -53,7 +54,7 @@ type WindowArrangementArgs struct {
 	// staged and unstaged changes)
 	SplitMainPanel bool
 	// The current screen mode (normal, half, full)
-	ScreenMode types.WindowMaximisation
+	ScreenMode types.ScreenMode
 	// The content shown on the bottom left of the screen when showing a loader
 	// or toast e.g. 'Rebasing /'
 	AppStatus string
@@ -87,10 +88,10 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 	args := WindowArrangementArgs{
 		Width:               width,
 		Height:              height,
-		UserConfig:          self.c.UserConfig,
+		UserConfig:          self.c.UserConfig(),
 		CurrentWindow:       self.windowHelper.CurrentWindow(),
-		CurrentSideWindow:   self.c.CurrentSideContext().GetWindowName(),
-		CurrentStaticWindow: self.c.CurrentStaticContext().GetWindowName(),
+		CurrentSideWindow:   self.c.Context().CurrentSide().GetWindowName(),
+		CurrentStaticWindow: self.c.Context().CurrentStatic().GetWindowName(),
 		SplitMainPanel:      repoState.GetSplitMainPanel(),
 		ScreenMode:          repoState.GetScreenMode(),
 		AppStatus:           appStatus,
@@ -237,14 +238,14 @@ func mainSectionChildren(args WindowArrangementArgs) []*boxlayout.Box {
 }
 
 func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
-	// we originally specified this as a ratio i.e. .20 would correspond to a weight of 1 against 4
 	sidePanelWidthRatio := args.UserConfig.Gui.SidePanelWidth
-	// we could make this better by creating ratios like 2:3 rather than always 1:something
-	mainSectionWeight := int(1/sidePanelWidthRatio) - 1
-	sideSectionWeight := 1
+	// Using 120 so that the default of 0.3333 will remain consistent with previous behavior
+	const maxColumnCount = 120
+	mainSectionWeight := int(math.Round(maxColumnCount * (1 - sidePanelWidthRatio)))
+	sideSectionWeight := int(math.Round(maxColumnCount * sidePanelWidthRatio))
 
 	if splitMainPanelSideBySide(args) {
-		mainSectionWeight = 5 // need to shrink side panel to make way for main panels if side-by-side
+		mainSectionWeight = sideSectionWeight * 5 // need to shrink side panel to make way for main panels if side-by-side
 	}
 
 	if args.CurrentWindow == "main" || args.CurrentWindow == "secondary" {
@@ -254,9 +255,9 @@ func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
 	} else {
 		if args.ScreenMode == types.SCREEN_HALF {
 			if args.UserConfig.Gui.EnlargedSideViewLocation == "top" {
-				mainSectionWeight = 2
+				mainSectionWeight = sideSectionWeight * 2
 			} else {
-				mainSectionWeight = 1
+				mainSectionWeight = sideSectionWeight
 			}
 		} else if args.ScreenMode == types.SCREEN_FULL {
 			mainSectionWeight = 0

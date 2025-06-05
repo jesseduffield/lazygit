@@ -142,6 +142,10 @@ func (self *Shell) NewBranchFrom(name string, from string) *Shell {
 	return self.RunCommand([]string{"git", "checkout", "-b", name, from})
 }
 
+func (self *Shell) RenameCurrentBranch(newName string) *Shell {
+	return self.RunCommand([]string{"git", "branch", "-m", newName})
+}
+
 func (self *Shell) Checkout(name string) *Shell {
 	return self.RunCommand([]string{"git", "checkout", name})
 }
@@ -170,6 +174,10 @@ func (self *Shell) EmptyCommit(message string) *Shell {
 	return self.RunCommand([]string{"git", "commit", "--allow-empty", "-m", message})
 }
 
+func (self *Shell) EmptyCommitWithBody(subject string, body string) *Shell {
+	return self.RunCommand([]string{"git", "commit", "--allow-empty", "-m", subject, "-m", body})
+}
+
 func (self *Shell) EmptyCommitDaysAgo(message string, daysAgo int) *Shell {
 	return self.RunCommand([]string{"git", "commit", "--allow-empty", "--date", fmt.Sprintf("%d days ago", daysAgo), "-m", message})
 }
@@ -184,6 +192,10 @@ func (self *Shell) EmptyCommitWithDate(message string, date string) *Shell {
 
 func (self *Shell) Revert(ref string) *Shell {
 	return self.RunCommand([]string{"git", "revert", ref})
+}
+
+func (self *Shell) AssertRemoteTagNotFound(upstream, name string) *Shell {
+	return self.RunCommandExpectError([]string{"git", "ls-remote", "--exit-code", upstream, fmt.Sprintf("refs/tags/%s", name)})
 }
 
 func (self *Shell) CreateLightweightTag(name string, ref string) *Shell {
@@ -348,8 +360,8 @@ func (self *Shell) CloneIntoRemote(name string) *Shell {
 }
 
 func (self *Shell) CloneIntoSubmodule(submoduleName string, submodulePath string) *Shell {
-	self.Clone("other_repo")
-	self.RunCommand([]string{"git", "submodule", "add", "--name", submoduleName, "../other_repo", submodulePath})
+	self.Clone(submoduleName)
+	self.RunCommand([]string{"git", "submodule", "add", "--name", submoduleName, "../" + submoduleName, submodulePath})
 
 	return self
 }

@@ -2,14 +2,13 @@ package jsonschema
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/iancoleman/orderedmap"
 	"github.com/jesseduffield/lazycore/pkg/utils"
+	"github.com/karimkhaleel/jsonschema"
 	"github.com/samber/lo"
 
 	"gopkg.in/yaml.v3"
@@ -106,16 +105,7 @@ func (n *Node) MarshalYAML() (interface{}, error) {
 		setComment(&keyNode, n.Description)
 	}
 
-	if n.Default != nil {
-		valueNode := yaml.Node{
-			Kind: yaml.ScalarNode,
-		}
-		err := valueNode.Encode(n.Default)
-		if err != nil {
-			return nil, err
-		}
-		node.Content = append(node.Content, &keyNode, &valueNode)
-	} else if len(n.Children) > 0 {
+	if len(n.Children) > 0 {
 		childrenNode := yaml.Node{
 			Kind: yaml.MappingNode,
 		}
@@ -136,60 +126,18 @@ func (n *Node) MarshalYAML() (interface{}, error) {
 			childrenNode.Content = append(childrenNode.Content, childYaml.(*yaml.Node).Content...)
 		}
 		node.Content = append(node.Content, &keyNode, &childrenNode)
+	} else {
+		valueNode := yaml.Node{
+			Kind: yaml.ScalarNode,
+		}
+		err := valueNode.Encode(n.Default)
+		if err != nil {
+			return nil, err
+		}
+		node.Content = append(node.Content, &keyNode, &valueNode)
 	}
 
 	return &node, nil
-}
-
-func getDescription(v *orderedmap.OrderedMap) string {
-	description, ok := v.Get("description")
-	if !ok {
-		description = ""
-	}
-	return description.(string)
-}
-
-func getDefault(v *orderedmap.OrderedMap) (error, any) {
-	defaultValue, ok := v.Get("default")
-	if ok {
-		return nil, defaultValue
-	}
-
-	dataType, ok := v.Get("type")
-	if ok {
-		dataTypeString := dataType.(string)
-		if dataTypeString == "string" {
-			return nil, ""
-		}
-	}
-
-	return errors.New("Failed to get default value"), nil
-}
-
-func parseNode(parent *Node, name string, value *orderedmap.OrderedMap) {
-	description := getDescription(value)
-	err, defaultValue := getDefault(value)
-	if err == nil {
-		leaf := &Node{Name: name, Description: description, Default: defaultValue}
-		parent.Children = append(parent.Children, leaf)
-	}
-
-	properties, ok := value.Get("properties")
-	if !ok {
-		return
-	}
-
-	orderedProperties := properties.(orderedmap.OrderedMap)
-
-	node := &Node{Name: name, Description: description}
-	parent.Children = append(parent.Children, node)
-
-	keys := orderedProperties.Keys()
-	for _, name := range keys {
-		value, _ := orderedProperties.Get(name)
-		typedValue := value.(orderedmap.OrderedMap)
-		parseNode(node, name, &typedValue)
-	}
 }
 
 func writeToConfigDocs(config []byte) error {
@@ -222,31 +170,12 @@ func writeToConfigDocs(config []byte) error {
 	return nil
 }
 
-func GenerateConfigDocs() {
-	content, err := os.ReadFile(GetSchemaDir() + "/config.json")
-	if err != nil {
-		panic("Error reading config.json")
+func GenerateConfigDocs(schema *jsonschema.Schema) {
+	rootNode := &Node{
+		Children: make([]*Node, 0),
 	}
 
-	schema := orderedmap.New()
-
-	err = json.Unmarshal(content, &schema)
-	if err != nil {
-		panic("Failed to unmarshal config.json")
-	}
-
-	root, ok := schema.Get("properties")
-	if !ok {
-		panic("properties key not found in schema")
-	}
-	orderedRoot := root.(orderedmap.OrderedMap)
-
-	rootNode := Node{}
-	for _, name := range orderedRoot.Keys() {
-		value, _ := orderedRoot.Get(name)
-		typedValue := value.(orderedmap.OrderedMap)
-		parseNode(&rootNode, name, &typedValue)
-	}
+	recurseOverSchema(schema, schema.Definitions["UserConfig"], rootNode)
 
 	var buffer bytes.Buffer
 	encoder := yaml.NewEncoder(&buffer)
@@ -262,8 +191,49 @@ func GenerateConfigDocs() {
 
 	config := prepareMarshalledConfig(buffer)
 
-	err = writeToConfigDocs(config)
+	err := writeToConfigDocs(config)
 	if err != nil {
 		panic(err)
+	}
+}
+
+func recurseOverSchema(rootSchema, schema *jsonschema.Schema, parent *Node) {
+	if schema == nil || schema.Properties == nil || schema.Properties.Len() == 0 {
+		return
+	}
+
+	for pair := schema.Properties.Oldest(); pair != nil; pair = pair.Next() {
+		subSchema := getSubSchema(rootSchema, schema, pair.Key)
+
+		if strings.Contains(strings.ToLower(subSchema.Description), "deprecated") {
+			continue
+		}
+
+		node := Node{
+			Name:        pair.Key,
+			Description: subSchema.Description,
+			Default:     getZeroValue(subSchema.Default, subSchema.Type),
+		}
+		parent.Children = append(parent.Children, &node)
+		recurseOverSchema(rootSchema, subSchema, &node)
+	}
+}
+
+func getZeroValue(val any, t string) any {
+	if !isZeroValue(val) {
+		return val
+	}
+
+	switch t {
+	case "string":
+		return ""
+	case "boolean":
+		return false
+	case "object":
+		return map[string]any{}
+	case "array":
+		return []any{}
+	default:
+		return nil
 	}
 }

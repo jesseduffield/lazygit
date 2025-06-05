@@ -44,6 +44,46 @@ func (c *Config) Section(name string) *Section {
 	return s
 }
 
+// HasSection checks if the Config has a section with the specified name.
+func (c *Config) HasSection(name string) bool {
+	for _, s := range c.Sections {
+		if s.IsName(name) {
+			return true
+		}
+	}
+	return false
+}
+
+// RemoveSection removes a section from a config file.
+func (c *Config) RemoveSection(name string) *Config {
+	result := Sections{}
+	for _, s := range c.Sections {
+		if !s.IsName(name) {
+			result = append(result, s)
+		}
+	}
+
+	c.Sections = result
+	return c
+}
+
+// RemoveSubsection remove a subsection from a config file.
+func (c *Config) RemoveSubsection(section string, subsection string) *Config {
+	for _, s := range c.Sections {
+		if s.IsName(section) {
+			result := Subsections{}
+			for _, ss := range s.Subsections {
+				if !ss.IsName(subsection) {
+					result = append(result, ss)
+				}
+			}
+			s.Subsections = result
+		}
+	}
+
+	return c
+}
+
 // AddOption adds an option to a given section and subsection. Use the
 // NoSubsection constant for the subsection argument if no subsection is wanted.
 func (c *Config) AddOption(section string, subsection string, key string, value string) *Config {
@@ -63,36 +103,6 @@ func (c *Config) SetOption(section string, subsection string, key string, value 
 		c.Section(section).SetOption(key, value)
 	} else {
 		c.Section(section).Subsection(subsection).SetOption(key, value)
-	}
-
-	return c
-}
-
-// RemoveSection removes a section from a config file.
-func (c *Config) RemoveSection(name string) *Config {
-	result := Sections{}
-	for _, s := range c.Sections {
-		if !s.IsName(name) {
-			result = append(result, s)
-		}
-	}
-
-	c.Sections = result
-	return c
-}
-
-// RemoveSubsection remove	s a subsection from a config file.
-func (c *Config) RemoveSubsection(section string, subsection string) *Config {
-	for _, s := range c.Sections {
-		if s.IsName(section) {
-			result := Subsections{}
-			for _, ss := range s.Subsections {
-				if !ss.IsName(subsection) {
-					result = append(result, ss)
-				}
-			}
-			s.Subsections = result
-		}
 	}
 
 	return c

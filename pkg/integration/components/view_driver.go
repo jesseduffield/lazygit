@@ -40,6 +40,24 @@ func (self *ViewDriver) Title(expected *TextMatcher) *ViewDriver {
 	return self
 }
 
+func (self *ViewDriver) Clear() *ViewDriver {
+	// clearing multiple times in case there's multiple lines
+	//  (the clear button only clears a single line at a time)
+	maxAttempts := 100
+	for i := 0; i < maxAttempts+1; i++ {
+		if self.getView().Buffer() == "" {
+			break
+		}
+
+		self.t.press(ClearKey)
+		if i == maxAttempts {
+			panic("failed to clear view buffer")
+		}
+	}
+
+	return self
+}
+
 // asserts that the view has lines matching the given matchers. One matcher must be passed for each line.
 // If you only care about the top n lines, use the TopLines method instead.
 // If you only care about a subset of lines, use the ContainsLines method instead.
@@ -75,7 +93,7 @@ func (self *ViewDriver) VisibleLines(matchers ...*TextMatcher) *ViewDriver {
 	return self.assertLines(originY, matchers...)
 }
 
-// asserts that somewhere in the view there are consequetive lines matching the given matchers.
+// asserts that somewhere in the view there are consecutive lines matching the given matchers.
 func (self *ViewDriver) ContainsLines(matchers ...*TextMatcher) *ViewDriver {
 	self.validateMatchersPassed(matchers)
 	self.validateEnoughLines(matchers)
@@ -203,7 +221,7 @@ func (self *ViewDriver) validateVisibleLineCount(matchers []*TextMatcher) {
 	view := self.getView()
 
 	self.t.assertWithRetries(func() (bool, string) {
-		count := view.InnerHeight() + 1
+		count := view.InnerHeight()
 		return count == len(matchers), fmt.Sprintf("unexpected number of visible lines in view '%s'. Expected exactly %d, got %d", view.Name(), len(matchers), count)
 	})
 }

@@ -3,13 +3,13 @@ package i18n
 import (
 	"embed"
 	"encoding/json"
+	"fmt"
 	"io/fs"
-	"path/filepath"
 	"strings"
 
+	"dario.cat/mergo"
 	"github.com/cloudfoundry/jibber_jabber"
 	"github.com/go-errors/errors"
-	"github.com/imdario/mergo"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
@@ -24,7 +24,7 @@ func NewTranslationSetFromConfig(log *logrus.Entry, configLanguage string) (*Tra
 		language := detectLanguage(jibber_jabber.DetectIETF)
 		for _, languageCode := range languageCodes {
 			if strings.HasPrefix(language, languageCode) {
-				return newTranslationSet(log, language)
+				return newTranslationSet(log, languageCode)
 			}
 		}
 
@@ -83,7 +83,7 @@ func getSupportedLanguageCodes() ([]string, error) {
 }
 
 func readLanguageFile(languageCode string) (*TranslationSet, error) {
-	jsonData, err := embedFS.ReadFile(filepath.Join("translations", languageCode+".json"))
+	jsonData, err := embedFS.ReadFile(fmt.Sprintf("translations/%s.json", languageCode))
 	if err != nil {
 		return nil, err
 	}

@@ -13,12 +13,13 @@ type BaseContext struct {
 	windowName      string
 	onGetOptionsMap func() map[string]string
 
-	keybindingsFns      []types.KeybindingsFn
-	mouseKeybindingsFns []types.MouseKeybindingsFn
-	onClickFn           func() error
-	onRenderToMainFn    func() error
-	onFocusFn           onFocusFn
-	onFocusLostFn       onFocusLostFn
+	keybindingsFns           []types.KeybindingsFn
+	mouseKeybindingsFns      []types.MouseKeybindingsFn
+	onClickFn                func() error
+	onClickFocusedMainViewFn onClickFocusedMainViewFn
+	onRenderToMainFn         func()
+	onFocusFn                onFocusFn
+	onFocusLostFn            onFocusLostFn
 
 	focusable                   bool
 	transient                   bool
@@ -31,8 +32,9 @@ type BaseContext struct {
 }
 
 type (
-	onFocusFn     = func(types.OnFocusOpts) error
-	onFocusLostFn = func(types.OnFocusLostOpts) error
+	onFocusFn                = func(types.OnFocusOpts)
+	onFocusLostFn            = func(types.OnFocusLostOpts)
+	onClickFocusedMainViewFn = func(mainViewName string, clickedLineIdx int) error
 )
 
 var _ types.IBaseContext = &BaseContext{}
@@ -144,17 +146,27 @@ func (self *BaseContext) AddOnClickFn(fn func() error) {
 	}
 }
 
+func (self *BaseContext) AddOnClickFocusedMainViewFn(fn onClickFocusedMainViewFn) {
+	if fn != nil {
+		self.onClickFocusedMainViewFn = fn
+	}
+}
+
 func (self *BaseContext) GetOnClick() func() error {
 	return self.onClickFn
 }
 
-func (self *BaseContext) AddOnRenderToMainFn(fn func() error) {
+func (self *BaseContext) GetOnClickFocusedMainView() onClickFocusedMainViewFn {
+	return self.onClickFocusedMainViewFn
+}
+
+func (self *BaseContext) AddOnRenderToMainFn(fn func()) {
 	if fn != nil {
 		self.onRenderToMainFn = fn
 	}
 }
 
-func (self *BaseContext) GetOnRenderToMain() func() error {
+func (self *BaseContext) GetOnRenderToMain() func() {
 	return self.onRenderToMainFn
 }
 
@@ -211,4 +223,8 @@ func (self *BaseContext) NeedsRerenderOnHeightChange() bool {
 
 func (self *BaseContext) Title() string {
 	return ""
+}
+
+func (self *BaseContext) TotalContentHeight() int {
+	return self.view.ViewLinesHeight()
 }

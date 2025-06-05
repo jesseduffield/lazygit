@@ -14,9 +14,11 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` @ `` | コマンドログメニューを開く | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | Push | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | Pull | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename. |
+| `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
 | `` } `` | Increase diff context size | Increase the amount of the context shown around changes in the diff view. |
 | `` { `` | Decrease diff context size | Decrease the amount of the context shown around changes in the diff view. |
-| `` : `` | カスタムコマンドを実行 | Bring up a prompt where you can enter a shell command to execute. Not to be confused with pre-configured custom commands. |
+| `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
 | `` <c-p> `` | View custom patch options |  |
 | `` m `` | View merge/rebase options | View options to abort/continue/skip the current merge/rebase. |
 | `` R `` | リフレッシュ | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
@@ -38,8 +40,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` , `` | 前のページ |  |
 | `` . `` | 次のページ |  |
-| `` < `` | 最上部までスクロール |  |
-| `` > `` | 最下部までスクロール |  |
+| `` < (<home>) `` | 最上部までスクロール |  |
+| `` > (<end>) `` | 最下部までスクロール |  |
 | `` v `` | 範囲選択を切り替え |  |
 | `` <s-down> `` | Range select down |  |
 | `` <s-up> `` | Range select up |  |
@@ -48,6 +50,14 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` L `` | 右スクロール |  |
 | `` ] `` | 次のタブ |  |
 | `` [ `` | 前のタブ |  |
+
+## Secondary
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <tab> `` | パネルを切り替え | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
+| `` / `` | 検索を開始 |  |
 
 ## Stash
 
@@ -58,6 +68,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` d `` | Drop | Remove the stash entry from the stash list. |
 | `` n `` | 新しいブランチを作成 | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
 | `` r `` | Stashを変更 |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -71,10 +82,15 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` y `` | コミットの情報をコピー | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | ブラウザでコミットを開く |  |
 | `` n `` | コミットにブランチを作成 |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | コミットをコピー (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | 検索を開始 |  |
@@ -104,7 +120,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` e `` | Edit (start interactive rebase) | コミットを編集 |
 | `` i `` | Start interactive rebase | Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.
 If you would instead like to start an interactive rebase from the selected commit, press `e`. |
-| `` p `` | Pick | Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase. |
+| `` p `` | 選択 | Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase. |
 | `` F `` | Fixupコミットを作成 | このコミットに対するfixupコミットを作成 |
 | `` S `` | Apply fixup commits | Squash all 'fixup!' commits, either above the selected commit, or all in current branch (autosquash). |
 | `` <c-j> `` | コミットを1つ下に移動 |  |
@@ -120,9 +136,14 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` y `` | コミットの情報をコピー | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | ブラウザでコミットを開く |  |
 | `` n `` | コミットにブランチを作成 |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | コミットをコピー (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | 検索を開始 |  |
@@ -132,15 +153,19 @@ If you would instead like to start an interactive rebase from the selected commi
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | ファイル名をクリップボードにコピー |  |
+| `` y `` | Copy to clipboard |  |
 | `` c `` | チェックアウト | Checkout file. This replaces the file in your working tree with the version from the selected commit. |
 | `` d `` | Remove | Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file. |
 | `` o `` | ファイルを開く | Open file in default application. |
-| `` e `` | Edit | Open file in external editor. |
+| `` e `` | 編集 | Open file in external editor. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` <space> `` | Toggle file included in patch | Toggle whether the file is included in the custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | Toggle all files | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` <enter> `` | Enter file / Toggle directory collapsed | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
 | `` ` `` | ファイルツリーの表示を切り替え | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | 検索を開始 |  |
 
 ## コミットメッセージ
@@ -172,17 +197,20 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | 設定ファイルを編集 | Open file in external editor. |
 | `` u `` | 更新を確認 |  |
 | `` <enter> `` | 最近使用したリポジトリに切り替え |  |
-| `` a `` | すべてのブランチログを表示 |  |
+| `` a `` | Show/cycle all branch logs |  |
 
 ## タグ
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <space> `` | チェックアウト | Checkout the selected tag tag as a detached HEAD. |
+| `` <c-o> `` | Copy tag to clipboard |  |
+| `` <space> `` | チェックアウト | Checkout the selected tag as a detached HEAD. |
 | `` n `` | タグを作成 | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | タグをpush | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -200,7 +228,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` A `` | 最新のコミットにamend |  |
 | `` C `` | gitエディタを使用して変更をコミット |  |
 | `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
-| `` e `` | Edit | Open file in external editor. |
+| `` e `` | 編集 | Open file in external editor. |
 | `` o `` | ファイルを開く | Open file in default application. |
 | `` i `` | ファイルをignore |  |
 | `` r `` | ファイルをリフレッシュ |  |
@@ -215,6 +243,9 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` M `` | Git mergetoolを開く | Run `git mergetool`. |
 | `` f `` | Fetch | Fetch changes from remote. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | 検索を開始 |  |
 
 ## ブランチ
@@ -225,20 +256,25 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` i `` | Show git-flow options |  |
 | `` <space> `` | チェックアウト | Checkout selected item. |
 | `` n `` | 新しいブランチを作成 |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` o `` | Pull Requestを作成 |  |
 | `` O `` | View create pull request options |  |
 | `` <c-y> `` | Pull RequestのURLをクリップボードにコピー |  |
 | `` c `` | Checkout by name | Checkout by name. In the input box you can enter '-' to switch to the last branch. |
-| `` F `` | Force checkout | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
+| `` F `` | 強制的にチェックアウト | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |
 | `` r `` | Rebase | Rebase the checked-out branch onto the selected branch. |
-| `` M `` | 現在のブランチにマージ | Merge selected branch into currently checked out branch. |
+| `` M `` | 現在のブランチにマージ | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` f `` | Fast-forward | Fast-forward selected branch from its upstream. |
 | `` T `` | タグを作成 |  |
 | `` s `` | 並び替え |  |
 | `` g `` | Reset |  |
 | `` R `` | ブランチ名を変更 |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -265,6 +301,9 @@ If you would instead like to start an interactive rebase from the selected commi
 |-----|--------|-------------|
 | `` mouse wheel down (fn+up) `` | 下にスクロール |  |
 | `` mouse wheel up (fn+down) `` | 上にスクロール |  |
+| `` <tab> `` | パネルを切り替え | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
+| `` / `` | 検索を開始 |  |
 
 ## メインパネル (Patch Building)
 
@@ -318,7 +357,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <enter> `` | View branches |  |
 | `` n `` | リモートを新規追加 |  |
 | `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
-| `` e `` | Edit | リモートを編集 |
+| `` e `` | 編集 | リモートを編集 |
 | `` f `` | Fetch | リモートをfetch |
 | `` / `` | Filter the current view by text |  |
 
@@ -329,12 +368,14 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-o> `` | ブランチ名をクリップボードにコピー |  |
 | `` <space> `` | チェックアウト | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | 新しいブランチを作成 |  |
-| `` M `` | 現在のブランチにマージ | Merge selected branch into currently checked out branch. |
+| `` M `` | 現在のブランチにマージ | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` r `` | Rebase | Rebase the checked-out branch onto the selected branch. |
 | `` d `` | Delete | Delete the remote branch from the remote. |
 | `` u `` | Set as upstream | Set the selected remote branch as the upstream of the checked-out branch. |
 | `` s `` | 並び替え |  |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -348,10 +389,15 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` y `` | コミットの情報をコピー | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | ブラウザでコミットを開く |  |
 | `` n `` | コミットにブランチを作成 |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | コミットをコピー (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |

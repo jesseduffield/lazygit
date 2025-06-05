@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -18,7 +19,12 @@ import (
 	"github.com/samber/lo"
 )
 
-var branchPrefixColorCache = make(map[string]style.TextStyle)
+type colorMatcher struct {
+	patterns map[string]*style.TextStyle
+	isRegex  bool // NOTE: this value is needed only until the deprecated branchColors config is removed and only regex color patterns are used
+}
+
+var colorPatterns *colorMatcher
 
 func GetBranchListDisplayStrings(
 	branches []*models.Branch,
@@ -125,22 +131,29 @@ func getBranchDisplayStrings(
 
 // GetBranchTextStyle branch color
 func GetBranchTextStyle(name string) style.TextStyle {
-	branchType := strings.Split(name, "/")[0]
-
-	if value, ok := branchPrefixColorCache[branchType]; ok {
-		return value
+	if style, ok := colorPatterns.match(name); ok {
+		return *style
 	}
 
-	switch branchType {
-	case "feature":
-		return style.FgGreen
-	case "bugfix":
-		return style.FgYellow
-	case "hotfix":
-		return style.FgRed
-	default:
-		return theme.DefaultTextColor
+	return theme.DefaultTextColor
+}
+
+func (m *colorMatcher) match(name string) (*style.TextStyle, bool) {
+	if m.isRegex {
+		for pattern, style := range m.patterns {
+			if matched, _ := regexp.MatchString(pattern, name); matched {
+				return style, true
+			}
+		}
+	} else {
+		// old behavior using the deprecated branchColors behavior matching on branch type
+		branchType := strings.Split(name, "/")[0]
+		if value, ok := m.patterns[branchType]; ok {
+			return value, true
+		}
 	}
+
+	return nil, false
 }
 
 func BranchStatus(
@@ -152,7 +165,7 @@ func BranchStatus(
 ) string {
 	itemOperationStr := ItemOperationToString(itemOperation, tr)
 	if itemOperationStr != "" {
-		return style.FgCyan.Sprintf("%s %s", itemOperationStr, utils.Loader(now, userConfig.Gui.Spinner))
+		return style.FgCyan.Sprintf("%s %s", itemOperationStr, Loader(now, userConfig.Gui.Spinner))
 	}
 
 	result := ""
@@ -189,6 +202,9 @@ func BranchStatus(
 	return result
 }
 
-func SetCustomBranches(customBranchColors map[string]string) {
-	branchPrefixColorCache = utils.SetCustomColors(customBranchColors)
+func SetCustomBranches(customBranchColors map[string]string, isRegex bool) {
+	colorPatterns = &colorMatcher{
+		patterns: utils.SetCustomColors(customBranchColors),
+		isRegex:  isRegex,
+	}
 }

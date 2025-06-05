@@ -65,5 +65,6 @@ func init() {
 		KeyBacktab:        "\x1b[Z",
 		Modifiers:         1,
 		AutoMargin:        true,
+		XTermLike:         true,
 	})
 }

@@ -1,0 +1,146 @@
+name: Release
+
+on:
+  schedule:
+    # Runs at 2:00 AM UTC on every Saturday
+    # We'll check below if it's the first Saturday of the month, and fail if not
+    - cron: '0 2 * * 6'
+  # Allow manual triggering of the workflow
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        type: choice
+        required: true
+        default: 'patch'
+        options:
+          - minor
+          - patch
+      ignore_blocks:
+        description: 'Ignore blocking PRs/issues'
+        type: boolean
+        required: true
+        default: false
+
+jobs:
+  check-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for first Saturday of the month
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        run: |
+          if (( $(date +%e) > 7 )); then
+            echo "This is not the first Saturday of the month"
+            exit 1
+          fi
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Latest Tag
+        run: |
+          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) || echo "v0.0.0")
+
+          if ! [[ $latest_tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Tag format is invalid. Expected format: vX.X.X"
+            exit 1
+          fi
+
+          echo "Latest tag: $latest_tag"
+          echo "latest_tag=$latest_tag" >> $GITHUB_ENV
+
+      - name: Check for changes since last release
+        run: |
+          if [ -z "$(git diff --name-only ${{ env.latest_tag }})" ]; then
+            echo "No changes detected since last release"
+            exit 1
+          fi
+
+      - name: Check for Blocking Issues/PRs
+        if: ${{ !inputs.ignore_blocks }}
+        id: check_blocks
+        run: |
+          gh auth setup-git
+          gh auth status
+
+          echo "Checking for blocking issues and PRs..."
+
+          # Check for blocking issues
+          blocking_issues=$(gh issue list -l blocks-release --json number,title --jq '.[] | "- \(.title) (#\(.number))"')
+
+          # Check for blocking PRs
+          blocking_prs=$(gh pr list -l blocks-release --json number,title --jq '.[] | "- \(.title) (#\(.number)) (PR)"')
+
+          # Combine the results
+          blocking_items="$blocking_issues"$'\n'"$blocking_prs"
+
+          # Remove empty lines
+          blocking_items=$(echo "$blocking_items" | grep . || true)
+
+          if [ -n "$blocking_items" ]; then
+            echo "Blocking issues/PRs detected:"
+            echo "$blocking_items"
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Calculate next version
+        run: |
+          echo "Latest tag: ${{ env.latest_tag }}"
+          IFS='.' read -r major minor patch <<< "${{ env.latest_tag }}"
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "${{ inputs.version_bump }}" == "patch" ]]; then
+              patch=$((patch + 1))
+            else
+              minor=$((minor + 1))
+              patch=0
+            fi
+          else
+            # Default behavior for scheduled runs
+            minor=$((minor + 1))
+            patch=0
+          fi
+
+          new_tag="$major.$minor.$patch"
+
+          if ! [[ $new_tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: New tag's format is invalid. Expected format: vX.X.X"
+            exit 1
+          fi
+
+          echo "New tag: $new_tag"
+          echo "new_tag=$new_tag" >> $GITHUB_ENV
+
+      - name: Create and Push Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ env.new_tag }}
+          git push origin ${{ env.new_tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24.x
+
+      - name: Run goreleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: v1.17.2
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_API_TOKEN}}
+
+      - name: Bump Homebrew formula
+        uses: dawidd6/action-homebrew-bump-formula@v3
+        with:
+          token: ${{secrets.GITHUB_API_TOKEN}}
+          formula: lazygit
+          tag: ${{env.new_tag}}

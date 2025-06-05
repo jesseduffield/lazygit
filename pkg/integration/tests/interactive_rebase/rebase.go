@@ -34,60 +34,72 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("first commit to edit")).
 			Press(keys.Universal.Edit).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				MatchesRegexp("pick.*commit to fixup"),
 				MatchesRegexp("pick.*commit to drop"),
 				MatchesRegexp("pick.*second commit to edit"),
 				MatchesRegexp("pick.*commit to squash"),
-				MatchesRegexp("YOU ARE HERE.*first commit to edit").IsSelected(),
+				Contains("--- Commits ---"),
+				Contains("first commit to edit").IsSelected(),
 				Contains("initial commit"),
 			).
 			SelectPreviousItem().
 			Press(keys.Commits.SquashDown).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				MatchesRegexp("pick.*commit to fixup"),
 				MatchesRegexp("pick.*commit to drop"),
 				MatchesRegexp("pick.*second commit to edit"),
 				MatchesRegexp("squash.*commit to squash").IsSelected(),
-				MatchesRegexp("YOU ARE HERE.*first commit to edit"),
+				Contains("--- Commits ---"),
+				Contains("first commit to edit"),
 				Contains("initial commit"),
 			).
 			SelectPreviousItem().
 			Press(keys.Universal.Edit).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				MatchesRegexp("pick.*commit to fixup"),
 				MatchesRegexp("pick.*commit to drop"),
 				MatchesRegexp("edit.*second commit to edit").IsSelected(),
 				MatchesRegexp("squash.*commit to squash"),
-				MatchesRegexp("YOU ARE HERE.*first commit to edit"),
+				Contains("--- Commits ---"),
+				Contains("first commit to edit"),
 				Contains("initial commit"),
 			).
 			SelectPreviousItem().
 			Press(keys.Universal.Remove).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				MatchesRegexp("pick.*commit to fixup"),
 				MatchesRegexp("drop.*commit to drop").IsSelected(),
 				MatchesRegexp("edit.*second commit to edit"),
 				MatchesRegexp("squash.*commit to squash"),
-				MatchesRegexp("YOU ARE HERE.*first commit to edit"),
+				Contains("--- Commits ---"),
+				Contains("first commit to edit"),
 				Contains("initial commit"),
 			).
 			SelectPreviousItem().
 			Press(keys.Commits.MarkCommitAsFixup).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				MatchesRegexp("fixup.*commit to fixup").IsSelected(),
 				MatchesRegexp("drop.*commit to drop"),
 				MatchesRegexp("edit.*second commit to edit"),
 				MatchesRegexp("squash.*commit to squash"),
-				MatchesRegexp("YOU ARE HERE.*first commit to edit"),
+				Contains("--- Commits ---"),
+				Contains("first commit to edit"),
 				Contains("initial commit"),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()
 			}).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				MatchesRegexp("fixup.*commit to fixup").IsSelected(),
 				MatchesRegexp("drop.*commit to drop"),
-				MatchesRegexp("YOU ARE HERE.*second commit to edit"),
+				Contains("--- Commits ---"),
+				Contains("second commit to edit"),
 				MatchesRegexp("first commit to edit"),
 				Contains("initial commit"),
 			).

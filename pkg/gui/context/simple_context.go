@@ -7,6 +7,7 @@ import (
 
 type SimpleContext struct {
 	*BaseContext
+	handleRenderFunc func()
 }
 
 func NewSimpleContext(baseContext *BaseContext) *SimpleContext {
@@ -31,43 +32,43 @@ func NewDisplayContext(key types.ContextKey, view *gocui.View, windowName string
 	)
 }
 
-func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) error {
+func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) {
 	if self.highlightOnFocus {
 		self.GetViewTrait().SetHighlight(true)
 	}
 
 	if self.onFocusFn != nil {
-		if err := self.onFocusFn(opts); err != nil {
-			return err
-		}
+		self.onFocusFn(opts)
 	}
 
 	if self.onRenderToMainFn != nil {
-		if err := self.onRenderToMainFn(); err != nil {
-			return err
-		}
+		self.onRenderToMainFn()
 	}
-
-	return nil
 }
 
-func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) error {
+func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) {
 	self.GetViewTrait().SetHighlight(false)
-	_ = self.view.SetOriginX(0)
+	self.view.SetOriginX(0)
 	if self.onFocusLostFn != nil {
-		return self.onFocusLostFn(opts)
+		self.onFocusLostFn(opts)
 	}
-	return nil
 }
 
-func (self *SimpleContext) HandleRender() error {
-	return nil
+func (self *SimpleContext) FocusLine() {
 }
 
-func (self *SimpleContext) HandleRenderToMain() error {
+func (self *SimpleContext) HandleRender() {
+	if self.handleRenderFunc != nil {
+		self.handleRenderFunc()
+	}
+}
+
+func (self *SimpleContext) SetHandleRenderFunc(f func()) {
+	self.handleRenderFunc = f
+}
+
+func (self *SimpleContext) HandleRenderToMain() {
 	if self.onRenderToMainFn != nil {
-		return self.onRenderToMainFn()
+		self.onRenderToMainFn()
 	}
-
-	return nil
 }

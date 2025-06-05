@@ -7,12 +7,12 @@ import (
 
 var NukeWorkingTree = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Nuke the working tree",
-	ExtraCmdArgs: []string{"status"},
+	ExtraCmdArgs: []string{"status", "--screen-mode=full"},
 	Skip:         false,
 	IsDemo:       true,
 	SetupConfig: func(config *config.AppConfig) {
 		setDefaultDemoConfig(config)
-		config.UserConfig.Gui.AnimateExplosion = true
+		config.GetUserConfig().Gui.AnimateExplosion = true
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("blah")

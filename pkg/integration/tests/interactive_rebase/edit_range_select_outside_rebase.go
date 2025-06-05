@@ -10,7 +10,6 @@ var EditRangeSelectOutsideRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Select a range of commits to edit outside of a rebase",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	GitVersion:   AtLeast("2.22.0"), // first version that supports the --rebase-merges option
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shared.CreateMergeCommit(shell)
@@ -38,14 +37,16 @@ var EditRangeSelectOutsideRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.Edit).
 			Lines(
-				Contains("merge  CI Merge branch 'second-change-branch' into first-change-branch").IsSelected(),
-				Contains("edit   CI first change").IsSelected(),
-				Contains("edit   CI * second-change-branch unrelated change").IsSelected(),
-				Contains("edit   CI second change").IsSelected(),
-				Contains("edit   CI * original").IsSelected(),
-				Contains("       CI ◯ <-- YOU ARE HERE --- three").IsSelected(),
-				Contains("       CI ◯ two"),
-				Contains("       CI ◯ one"),
+				Contains("--- Pending rebase todos ---"),
+				Contains("merge CI Merge branch 'second-change-branch' into first-change-branch").IsSelected(),
+				Contains("edit  CI first change").IsSelected(),
+				Contains("edit  CI * second-change-branch unrelated change").IsSelected(),
+				Contains("edit  CI second change").IsSelected(),
+				Contains("edit  CI * original").IsSelected(),
+				Contains("--- Commits ---").IsSelected(),
+				Contains("      CI ◯ three").IsSelected(),
+				Contains("      CI ◯ two"),
+				Contains("      CI ◯ one"),
 			)
 	},
 })

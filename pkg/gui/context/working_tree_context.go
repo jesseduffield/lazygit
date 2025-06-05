@@ -24,13 +24,14 @@ var (
 func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 	viewModel := filetree.NewFileTreeViewModel(
 		func() []*models.File { return c.Model().Files },
-		c.Log,
-		c.UserConfig.Gui.ShowFileTree,
+		c.Common,
+		c.UserConfig().Gui.ShowFileTree,
 	)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {
-		showFileIcons := icons.IsIconEnabled() && c.UserConfig.Gui.ShowFileIcons
-		lines := presentation.RenderFileTree(viewModel, c.Model().Submodules, showFileIcons)
+		showFileIcons := icons.IsIconEnabled() && c.UserConfig().Gui.ShowFileIcons
+		showNumstat := c.UserConfig().Gui.ShowNumstatInFilesView
+		lines := presentation.RenderFileTree(viewModel, c.Model().Submodules, showFileIcons, showNumstat, &c.UserConfig().Gui.CustomIcons, c.UserConfig().Gui.ShowRootItemInFileTree)
 		return lo.Map(lines, func(line string, _ int) []string {
 			return []string{line}
 		})

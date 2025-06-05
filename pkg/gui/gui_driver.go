@@ -57,6 +57,11 @@ func (self *GuiDriver) Click(x, y int) {
 		0,
 	)
 	self.waitTillIdle()
+	self.gui.g.ReplayedEvents.MouseEvents <- gocui.NewTcellMouseEventWrapper(
+		tcell.NewEventMouse(x, y, tcell.ButtonNone, 0),
+		0,
+	)
+	self.waitTillIdle()
 }
 
 // wait until lazygit is idle (i.e. all processing is done) before continuing
@@ -75,7 +80,7 @@ func (self *GuiDriver) Keys() config.KeybindingConfig {
 }
 
 func (self *GuiDriver) CurrentContext() types.Context {
-	return self.gui.c.CurrentContext()
+	return self.gui.c.Context().Current()
 }
 
 func (self *GuiDriver) ContextForView(viewName string) types.Context {

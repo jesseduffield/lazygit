@@ -39,7 +39,7 @@ var MoveToNewCommitFromAddedFile = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("Building patch"))
 
-		t.Common().SelectPatchOption(Contains("Move patch into new commit"))
+		t.Common().SelectPatchOption(Contains("Move patch into new commit after the original commit"))
 
 		t.ExpectPopup().CommitMessagePanel().
 			InitialText(Equals("")).

@@ -69,7 +69,8 @@ func (self *SideWindowController) previousSideWindow() error {
 
 	context := self.c.Helpers().Window.GetContextForWindow(newWindow)
 
-	return self.c.PushContext(context)
+	self.c.Context().Push(context, types.OnFocusOpts{})
+	return nil
 }
 
 func (self *SideWindowController) nextSideWindow() error {
@@ -92,5 +93,6 @@ func (self *SideWindowController) nextSideWindow() error {
 
 	context := self.c.Helpers().Window.GetContextForWindow(newWindow)
 
-	return self.c.PushContext(context)
+	self.c.Context().Push(context, types.OnFocusOpts{})
+	return nil
 }

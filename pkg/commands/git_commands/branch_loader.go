@@ -3,6 +3,7 @@ package git_commands
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -14,7 +15,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
-	"golang.org/x/exp/slices"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -72,7 +72,7 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 	onWorker func(func() error),
 	renderFunc func(),
 ) ([]*models.Branch, error) {
-	branches := self.obtainBranches(self.version.IsAtLeast(2, 22, 0))
+	branches := self.obtainBranches()
 
 	if self.AppState.LocalBranchSortOrder == "recency" {
 		reflogBranches := self.obtainReflogBranches(reflogCommits)
@@ -95,8 +95,8 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 
 		// Sort branches that don't have a recency value alphabetically
 		// (we're really doing this for the sake of deterministic behaviour across git versions)
-		slices.SortFunc(branches, func(a *models.Branch, b *models.Branch) bool {
-			return a.Name < b.Name
+		slices.SortFunc(branches, func(a *models.Branch, b *models.Branch) int {
+			return strings.Compare(a.Name, b.Name)
 		})
 
 		branches = utils.Prepend(branches, branchesWithRecency...)
@@ -140,7 +140,7 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 		}
 	}
 
-	if loadBehindCounts && self.UserConfig.Gui.ShowDivergenceFromBaseBranch != "none" {
+	if loadBehindCounts && self.UserConfig().Gui.ShowDivergenceFromBaseBranch != "none" {
 		onWorker(func() error {
 			return self.GetBehindBaseBranchValuesForAllBranches(branches, mainBranches, renderFunc)
 		})
@@ -232,7 +232,7 @@ func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *Mai
 	return split[0], nil
 }
 
-func (self *BranchLoader) obtainBranches(canUsePushTrack bool) []*models.Branch {
+func (self *BranchLoader) obtainBranches() []*models.Branch {
 	output, err := self.getRawBranches()
 	if err != nil {
 		panic(err)
@@ -255,7 +255,7 @@ func (self *BranchLoader) obtainBranches(canUsePushTrack bool) []*models.Branch 
 		}
 
 		storeCommitDateAsRecency := self.AppState.LocalBranchSortOrder != "recency"
-		return obtainBranch(split, storeCommitDateAsRecency, canUsePushTrack), true
+		return obtainBranch(split, storeCommitDateAsRecency), true
 	})
 }
 
@@ -298,7 +298,7 @@ var branchFields = []string{
 }
 
 // Obtain branch information from parsed line output of getRawBranches()
-func obtainBranch(split []string, storeCommitDateAsRecency bool, canUsePushTrack bool) *models.Branch {
+func obtainBranch(split []string, storeCommitDateAsRecency bool) *models.Branch {
 	headMarker := split[0]
 	fullName := split[1]
 	upstreamName := split[2]
@@ -310,12 +310,7 @@ func obtainBranch(split []string, storeCommitDateAsRecency bool, canUsePushTrack
 
 	name := strings.TrimPrefix(fullName, "heads/")
 	aheadForPull, behindForPull, gone := parseUpstreamInfo(upstreamName, track)
-	var aheadForPush, behindForPush string
-	if canUsePushTrack {
-		aheadForPush, behindForPush, _ = parseUpstreamInfo(upstreamName, pushTrack)
-	} else {
-		aheadForPush, behindForPush = aheadForPull, behindForPull
-	}
+	aheadForPush, behindForPush, _ := parseUpstreamInfo(upstreamName, pushTrack)
 
 	recency := ""
 	if storeCommitDateAsRecency {

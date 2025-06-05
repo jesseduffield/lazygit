@@ -3,11 +3,36 @@
 package kill
 
 import (
+	"golang.org/x/sys/windows"
 	"os"
 	"os/exec"
 	"syscall"
 	"unsafe"
 )
+
+const PROCESS_ALL_ACCESS = windows.STANDARD_RIGHTS_REQUIRED | windows.SYNCHRONIZE | 0xffff
+
+func GetWindowsHandle(pid int) (handle windows.Handle, err error) {
+	handle, err = windows.OpenProcess(PROCESS_ALL_ACCESS, false, uint32(pid))
+	return
+}
+
+func GetCreationTime(pid int) (time int64, err error) {
+	handle, err := GetWindowsHandle(pid)
+	if err != nil {
+		return
+	}
+	defer closeHandle(HANDLE(handle))
+
+	var u syscall.Rusage
+	err = syscall.GetProcessTimes(syscall.Handle(handle), &u.CreationTime, &u.ExitTime, &u.KernelTime, &u.UserTime)
+	if err != nil {
+		return
+	}
+
+	time = u.CreationTime.Nanoseconds()
+	return
+}
 
 // Kill kills a process, along with any child processes it may have spawned.
 func Kill(cmd *exec.Cmd) error {
@@ -16,7 +41,12 @@ func Kill(cmd *exec.Cmd) error {
 		return nil
 	}
 
-	pids := Getppids(uint32(cmd.Process.Pid))
+	ptime, err := GetCreationTime(cmd.Process.Pid)
+	if err != nil {
+		return err
+	}
+
+	pids := Getppids(uint32(cmd.Process.Pid), ptime)
 	for _, pid := range pids {
 		pro, err := os.FindProcess(int(pid))
 		if err != nil {
@@ -70,7 +100,7 @@ var (
 	procCloseHandle              = modkernel32.NewProc("CloseHandle")
 )
 
-func Getppids(pid uint32) []uint32 {
+func Getppids(pid uint32, ptime int64) []uint32 {
 	infos, err := GetProcs()
 	if err != nil {
 		return []uint32{pid}
@@ -83,7 +113,15 @@ func Getppids(pid uint32) []uint32 {
 	for index < length {
 		for _, info := range infos {
 			if info.PPid == pids[index] {
-				pids = append(pids, info.Pid)
+				ctime, err := GetCreationTime(int(info.Pid))
+				if err != nil {
+					continue
+				}
+
+				if ctime >= ptime {
+					// Only appending if child is newer than parent, otherwise PPid was reused
+					pids = append(pids, info.Pid)
+				}
 			}
 		}
 		index += 1

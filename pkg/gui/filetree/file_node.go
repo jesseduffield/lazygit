@@ -1,6 +1,9 @@
 package filetree
 
-import "github.com/jesseduffield/lazygit/pkg/commands/models"
+import (
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
+)
 
 // FileNode wraps a node and provides some file-specific methods for it.
 type FileNode struct {
@@ -44,7 +47,13 @@ func (self *FileNode) GetHasStagedChanges() bool {
 }
 
 func (self *FileNode) GetHasInlineMergeConflicts() bool {
-	return self.SomeFile(func(file *models.File) bool { return file.HasInlineMergeConflicts })
+	return self.SomeFile(func(file *models.File) bool {
+		if !file.HasInlineMergeConflicts {
+			return false
+		}
+		hasConflicts, _ := mergeconflicts.FileHasConflictMarkers(file.Path)
+		return hasConflicts
+	})
 }
 
 func (self *FileNode) GetIsTracked() bool {
@@ -60,5 +69,5 @@ func (self *FileNode) GetPreviousPath() string {
 		return ""
 	}
 
-	return self.File.PreviousName
+	return self.File.PreviousPath
 }

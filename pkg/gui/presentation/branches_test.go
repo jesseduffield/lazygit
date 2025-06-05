@@ -8,9 +8,9 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/xo/terminfo"
@@ -320,11 +320,12 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
 	defer color.ForceSetColorLevel(oldColorLevel)
 
-	c := utils.NewDummyCommon()
+	c := common.NewDummyCommon()
+	SetCustomBranches(c.UserConfig().Gui.BranchColorPatterns, true)
 
 	for i, s := range scenarios {
 		icons.SetNerdFontsVersion(lo.Ternary(s.useIcons, "3", ""))
-		c.UserConfig.Gui.ShowDivergenceFromBaseBranch = s.showDivergenceCfg
+		c.UserConfig().Gui.ShowDivergenceFromBaseBranch = s.showDivergenceCfg
 
 		worktrees := []*models.Worktree{}
 		if s.checkedOutByWorktree {
@@ -332,7 +333,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 		}
 
 		t.Run(fmt.Sprintf("getBranchDisplayStrings_%d", i), func(t *testing.T) {
-			strings := getBranchDisplayStrings(s.branch, s.itemOperation, s.fullDescription, false, s.viewWidth, c.Tr, c.UserConfig, worktrees, time.Time{})
+			strings := getBranchDisplayStrings(s.branch, s.itemOperation, s.fullDescription, false, s.viewWidth, c.Tr, c.UserConfig(), worktrees, time.Time{})
 			assert.Equal(t, s.expected, strings)
 		})
 	}

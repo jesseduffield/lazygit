@@ -6,9 +6,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
@@ -33,11 +33,7 @@ type IGuiCommon interface {
 	// we call this when we've changed something in the view model but not the actual model,
 	// e.g. expanding or collapsing a folder in a file view. Calling 'Refresh' in this
 	// case would be overkill, although refresh will internally call 'PostRefreshUpdate'
-	PostRefreshUpdate(Context) error
-
-	// a generic click handler that can be used for any view; it handles opening
-	// URLs in the browser when the user clicks on one
-	HandleGenericClick(view *gocui.View) error
+	PostRefreshUpdate(Context)
 
 	// renders string to a view without resetting its origin
 	SetViewContent(view *gocui.View, content string)
@@ -49,30 +45,19 @@ type IGuiCommon interface {
 	// allows rendering to main views (i.e. the ones to the right of the side panel)
 	// in such a way that avoids concurrency issues when there are slow commands
 	// to display the output of
-	RenderToMainViews(opts RefreshMainOpts) error
+	RenderToMainViews(opts RefreshMainOpts)
 	// used purely for the sake of RenderToMainViews to provide the pair of main views we want to render to
 	MainViewPairs() MainViewPairs
 
-	// returns true if command completed successfully
-	RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error)
-	RunSubprocessAndRefresh(oscommands.ICmdObj) error
+	// return the view buffer manager for the given view, or nil if it doesn't have one
+	GetViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager
 
-	PushContext(context Context, opts ...OnFocusOpts) error
-	PopContext() error
-	ReplaceContext(context Context) error
-	// Removes all given contexts from the stack. If a given context is not in the stack, it is ignored.
-	// This is for when you have a group of contexts that are bundled together e.g. with the commit message panel.
-	// If you want to remove a single context, you should probably use PopContext instead.
-	RemoveContexts([]Context) error
-	CurrentContext() Context
-	CurrentStaticContext() Context
-	CurrentSideContext() Context
-	IsCurrentContext(Context) bool
-	// TODO: replace the above context-based methods with just using Context() e.g. replace PushContext() with Context().Push()
+	// returns true if command completed successfully
+	RunSubprocess(cmdObj *oscommands.CmdObj) (bool, error)
+	RunSubprocessAndRefresh(*oscommands.CmdObj) error
+
 	Context() IContextMgr
 	ContextForKey(key ContextKey) Context
-
-	ActivateContext(context Context) error
 
 	GetConfig() config.AppConfigurer
 	GetAppState() *config.AppState
@@ -116,6 +101,8 @@ type IGuiCommon interface {
 	KeybindingsOpts() KeybindingsOpts
 	CallKeybindingHandler(binding *Binding) error
 
+	ResetKeybindings() error
+
 	// hopefully we can remove this once we've moved all our keybinding stuff out of the gui god struct.
 	GetInitialKeybindingsWithCustomCommands() ([]*Binding, []*gocui.ViewMouseBinding)
 
@@ -136,11 +123,11 @@ type IPopupHandler interface {
 	// Shows a notification popup with the given title and message to the user.
 	//
 	// This is a convenience wrapper around Confirm(), thus the popup can be closed using both 'Enter' and 'ESC'.
-	Alert(title string, message string) error
+	Alert(title string, message string)
 	// Shows a popup asking the user for confirmation.
-	Confirm(opts ConfirmOpts) error
+	Confirm(opts ConfirmOpts)
 	// Shows a popup prompting the user for input.
-	Prompt(opts PromptOpts) error
+	Prompt(opts PromptOpts)
 	WithWaitingStatus(message string, f func(gocui.Task) error) error
 	WithWaitingStatusSync(message string, f func() error) error
 	Menu(opts CreateMenuOptions) error
@@ -215,6 +202,10 @@ type DisabledReason struct {
 	// error panel instead. This is useful if the text is very long, or if it is
 	// important enough to show it more prominently, or both.
 	ShowErrorInPanel bool
+
+	// If true, the keybinding dispatch mechanism will continue to look for
+	// other handlers for the keypress.
+	AllowFurtherDispatching bool
 }
 
 type MenuWidget int
@@ -304,7 +295,7 @@ type Model struct {
 	ReflogCommits []*models.Commit
 
 	BisectInfo                          *git_commands.BisectInfo
-	WorkingTreeStateAtLastCommitRefresh enums.RebaseMode
+	WorkingTreeStateAtLastCommitRefresh models.WorkingTreeState
 	RemoteBranches                      []*models.RemoteBranch
 	Tags                                []*models.Tag
 
@@ -318,6 +309,8 @@ type Model struct {
 	FilesTrie *patricia.Trie
 
 	Authors map[string]*models.Author
+
+	HashPool *utils.StringPool
 }
 
 // if you add a new mutex here be sure to instantiate it. We're using pointers to
@@ -378,8 +371,8 @@ type IRepoStateAccessor interface {
 	SetStartupStage(stage StartupStage)
 	GetCurrentPopupOpts() *CreatePopupPanelOpts
 	SetCurrentPopupOpts(*CreatePopupPanelOpts)
-	GetScreenMode() WindowMaximisation
-	SetScreenMode(WindowMaximisation)
+	GetScreenMode() ScreenMode
+	SetScreenMode(ScreenMode)
 	InSearchPrompt() bool
 	GetSearchState() *SearchState
 	SetSplitMainPanel(bool)
@@ -398,10 +391,10 @@ const (
 // as in panel, not your terminal's window). Sometimes you want a bit more space
 // to see the contents of a panel, and this keeps track of how much maximisation
 // you've set
-type WindowMaximisation int
+type ScreenMode int
 
 const (
-	SCREEN_NORMAL WindowMaximisation = iota
+	SCREEN_NORMAL ScreenMode = iota
 	SCREEN_HALF
 	SCREEN_FULL
 )

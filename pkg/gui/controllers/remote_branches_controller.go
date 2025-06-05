@@ -22,7 +22,7 @@ func NewRemoteBranchesController(
 ) *RemoteBranchesController {
 	return &RemoteBranchesController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.RemoteBranch](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().RemoteBranches,
 			c.Contexts().RemoteBranches.GetSelected,
@@ -66,8 +66,8 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
-			Handler:           self.withItem(self.delete),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			Handler:           self.withItems(self.delete),
+			GetDisabledReason: self.require(self.itemRangeSelected()),
 			Description:       self.c.Tr.Delete,
 			Tooltip:           self.c.Tr.DeleteRemoteBranchTooltip,
 			DisplayOnScreen:   true,
@@ -94,12 +94,20 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			Tooltip:           self.c.Tr.ResetTooltip,
 			OpensMenu:         true,
 		},
+		{
+			Key: opts.GetKey(opts.Config.Universal.OpenDiffTool),
+			Handler: self.withItem(func(selectedBranch *models.RemoteBranch) error {
+				return self.c.Helpers().Diff.OpenDiffToolForRef(selectedBranch)
+			}),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.OpenDiffTool,
+		},
 	}
 }
 
-func (self *RemoteBranchesController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *RemoteBranchesController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			var task types.UpdateTask
 			remoteBranch := self.context().GetSelected()
 			if remoteBranch == nil {
@@ -109,7 +117,7 @@ func (self *RemoteBranchesController) GetOnRenderToMain() func() error {
 				task = types.NewRunCommandTask(cmdObj.GetCmd())
 			}
 
-			return self.c.RenderToMainViews(types.RefreshMainOpts{
+			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title: "Remote Branch",
@@ -124,8 +132,8 @@ func (self *RemoteBranchesController) context() *context.RemoteBranchesContext {
 	return self.c.Contexts().RemoteBranches
 }
 
-func (self *RemoteBranchesController) delete(selectedBranch *models.RemoteBranch) error {
-	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(selectedBranch.RemoteName, selectedBranch.Name)
+func (self *RemoteBranchesController) delete(selectedBranches []*models.RemoteBranch) error {
+	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(selectedBranches)
 }
 
 func (self *RemoteBranchesController) merge(selectedBranch *models.RemoteBranch) error {
@@ -150,7 +158,7 @@ func (self *RemoteBranchesController) createSortMenu() error {
 }
 
 func (self *RemoteBranchesController) createResetMenu(selectedBranch *models.RemoteBranch) error {
-	return self.c.Helpers().Refs.CreateGitResetMenu(selectedBranch.FullName())
+	return self.c.Helpers().Refs.CreateGitResetMenu(selectedBranch.FullName(), selectedBranch.FullRefName())
 }
 
 func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.RemoteBranch) error {
@@ -164,7 +172,7 @@ func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.Remot
 		},
 	)
 
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.SetUpstreamTitle,
 		Prompt: message,
 		HandleConfirm: func() error {
@@ -176,6 +184,8 @@ func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.Remot
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 		},
 	})
+
+	return nil
 }
 
 func (self *RemoteBranchesController) newLocalBranch(selectedBranch *models.RemoteBranch) error {

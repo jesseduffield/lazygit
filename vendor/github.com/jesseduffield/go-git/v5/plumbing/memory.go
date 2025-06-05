@@ -25,13 +25,13 @@ func (o *MemoryObject) Hash() Hash {
 	return o.h
 }
 
-// Type return the ObjectType
+// Type returns the ObjectType
 func (o *MemoryObject) Type() ObjectType { return o.t }
 
 // SetType sets the ObjectType
 func (o *MemoryObject) SetType(t ObjectType) { o.t = t }
 
-// Size return the size of the object
+// Size returns the size of the object
 func (o *MemoryObject) Size() int64 { return o.sz }
 
 // SetSize set the object size, a content of the given size should be written

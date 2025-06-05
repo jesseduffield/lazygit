@@ -51,20 +51,20 @@ func (self *ListController) HandleScrollRight() error {
 }
 
 func (self *ListController) HandleScrollUp() error {
-	scrollHeight := self.c.UserConfig.Gui.ScrollHeight
+	scrollHeight := self.c.UserConfig().Gui.ScrollHeight
 	self.context.GetViewTrait().ScrollUp(scrollHeight)
 	if self.context.RenderOnlyVisibleLines() {
-		return self.context.HandleRender()
+		self.context.HandleRender()
 	}
 
 	return nil
 }
 
 func (self *ListController) HandleScrollDown() error {
-	scrollHeight := self.c.UserConfig.Gui.ScrollHeight
+	scrollHeight := self.c.UserConfig().Gui.ScrollHeight
 	self.context.GetViewTrait().ScrollDown(scrollHeight)
 	if self.context.RenderOnlyVisibleLines() {
-		return self.context.HandleRender()
+		self.context.HandleRender()
 	}
 
 	return nil
@@ -73,7 +73,11 @@ func (self *ListController) HandleScrollDown() error {
 func (self *ListController) scrollHorizontal(scrollFunc func()) error {
 	scrollFunc()
 
-	return self.context.HandleFocus(types.OnFocusOpts{})
+	self.context.HandleFocus(types.OnFocusOpts{})
+	if self.context.NeedsRerenderOnWidthChange() == types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES {
+		self.context.HandleRender()
+	}
+	return nil
 }
 
 func (self *ListController) handleLineChange(change int) error {
@@ -106,16 +110,16 @@ func (self *ListController) handleLineChangeAux(f func(int), change int) error {
 	cursorMoved := before != after
 	if cursorMoved {
 		if change == -1 {
-			checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig,
+			checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig(),
 				self.context.ModelIndexToViewIndex(before), self.context.ModelIndexToViewIndex(after))
 		} else if change == 1 {
-			checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig,
+			checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig(),
 				self.context.ModelIndexToViewIndex(before), self.context.ModelIndexToViewIndex(after))
 		}
 	}
 
 	if cursorMoved || rangeBefore != rangeAfter {
-		return self.context.HandleFocus(types.OnFocusOpts{})
+		self.context.HandleFocus(types.OnFocusOpts{})
 	}
 
 	return nil
@@ -134,7 +138,9 @@ func (self *ListController) HandleGotoTop() error {
 }
 
 func (self *ListController) HandleGotoBottom() error {
-	return self.handleLineChange(self.context.GetList().Len())
+	bottomIdx := self.context.IndexForGotoBottom()
+	change := bottomIdx - self.context.GetList().GetSelectedLineIdx()
+	return self.handleLineChange(change)
 }
 
 func (self *ListController) HandleToggleRangeSelect() error {
@@ -142,7 +148,8 @@ func (self *ListController) HandleToggleRangeSelect() error {
 
 	list.ToggleStickyRange()
 
-	return self.context.HandleFocus(types.OnFocusOpts{})
+	self.context.HandleFocus(types.OnFocusOpts{})
+	return nil
 }
 
 func (self *ListController) HandleRangeSelectDown() error {
@@ -171,21 +178,20 @@ func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
 	if prevSelectedLineIdx == newSelectedLineIdx && alreadyFocused && self.context.GetOnClick() != nil {
 		return self.context.GetOnClick()()
 	}
-	return self.context.HandleFocus(types.OnFocusOpts{})
+	self.context.HandleFocus(types.OnFocusOpts{})
+	return nil
 }
 
 func (self *ListController) pushContextIfNotFocused() error {
 	if !self.isFocused() {
-		if err := self.c.PushContext(self.context); err != nil {
-			return err
-		}
+		self.c.Context().Push(self.context, types.OnFocusOpts{})
 	}
 
 	return nil
 }
 
 func (self *ListController) isFocused() bool {
-	return self.c.CurrentContext().GetKey() == self.context.GetKey()
+	return self.c.Context().Current().GetKey() == self.context.GetKey()
 }
 
 func (self *ListController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
@@ -196,10 +202,12 @@ func (self *ListController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextItem), Handler: self.HandleNextLine},
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevPage), Handler: self.HandlePrevPage, Description: self.c.Tr.PrevPage},
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextPage), Handler: self.HandleNextPage, Description: self.c.Tr.NextPage},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoTop), Handler: self.HandleGotoTop, Description: self.c.Tr.GotoTop},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoTop), Handler: self.HandleGotoTop, Description: self.c.Tr.GotoTop, Alternative: "<home>"},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoBottom), Handler: self.HandleGotoBottom, Description: self.c.Tr.GotoBottom, Alternative: "<end>"},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoTopAlt), Handler: self.HandleGotoTop},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoBottomAlt), Handler: self.HandleGotoBottom},
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollLeft), Handler: self.HandleScrollLeft},
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollRight), Handler: self.HandleScrollRight},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoBottom), Handler: self.HandleGotoBottom, Description: self.c.Tr.GotoBottom},
 	}
 
 	if self.context.RangeSelectEnabled() {

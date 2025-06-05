@@ -6,11 +6,6 @@ import (
 
 // this helper just wraps our hosting_service package
 
-type IHostHelper interface {
-	GetPullRequestURL(from string, to string) (string, error)
-	GetCommitURL(commitHash string) (string, error)
-}
-
 type HostHelper struct {
 	c *HelperCommon
 }
@@ -46,6 +41,6 @@ func (self *HostHelper) getHostingServiceMgr() (*hosting_service.HostingServiceM
 	if err != nil {
 		return nil, err
 	}
-	configServices := self.c.UserConfig.Services
+	configServices := self.c.UserConfig().Services
 	return hosting_service.NewHostingServiceMgr(self.c.Log, self.c.Tr, remoteUrl, configServices), nil
 }

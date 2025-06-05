@@ -10,7 +10,7 @@ import (
 // can be relocated elsewhere if you need them somewhere else. So for example if
 // I hit enter on a branch I'll see the sub-commits view, but if I then navigate
 // to the reflog context and hit enter on a reflog, the sub-commits view is moved
-// to the reflog window. This is because we re-use the same view (it's a limitation
+// to the reflog window. This is because we reuse the same view (it's a limitation
 // that would be nice to remove in the future).
 // Nonetheless, we need to ensure that upon moving the view, the filter is cancelled.
 
@@ -69,13 +69,15 @@ var NestedFilterTransient = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains(`file-one`).IsSelected(),
-				Contains(`file-two`),
+				Equals("▼ /").IsSelected(),
+				Equals("  A file-one"),
+				Equals("  A file-two"),
 			).
 			FilterOrSearch("two").
 			Lines(
-				Contains(`file-one`),
-				Contains(`file-two`).IsSelected(),
+				Equals("▼ /"),
+				Equals("  A file-one"),
+				Equals("  A file-two").IsSelected(),
 			)
 
 		t.Views().Branches().
@@ -96,8 +98,9 @@ var NestedFilterTransient = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			// the search on the commit-files context has been cancelled
 			Lines(
-				Contains(`file-one`).IsSelected(),
-				Contains(`file-two`),
+				Equals("▼ /").IsSelected(),
+				Equals("  A file-one"),
+				Equals("  A file-two"),
 			).
 			Tap(func() {
 				t.Views().Search().IsInvisible()

@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -32,7 +33,7 @@ func (gui *Gui) outsideFilterMode(f func() error) func() error {
 
 func (gui *Gui) validateNotInFilterMode() bool {
 	if gui.State.Modes.Filtering.Active() {
-		_ = gui.c.Confirm(types.ConfirmOpts{
+		gui.c.Confirm(types.ConfirmOpts{
 			Title:         gui.c.Tr.MustExitFilterModeTitle,
 			Prompt:        gui.c.Tr.MustExitFilterModePrompt,
 			HandleConfirm: gui.helpers.Mode.ExitFilterMode,
@@ -60,7 +61,7 @@ func (self *Gui) GetCheatsheetKeybindings() []*types.Binding {
 }
 
 func (self *Gui) keybindingOpts() types.KeybindingsOpts {
-	config := self.c.UserConfig.Keybinding
+	config := self.c.UserConfig().Keybinding
 
 	guards := types.KeybindingGuards{
 		OutsideFilterMode: self.outsideFilterMode,
@@ -82,7 +83,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.OpenRecentRepos),
-			Handler:     self.helpers.Repos.CreateRecentReposMenu,
+			Handler:     opts.Guards.NoPopupPanel(self.helpers.Repos.CreateRecentReposMenu),
 			Description: self.c.Tr.SwitchRepo,
 		},
 		{
@@ -145,6 +146,13 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Description:       self.c.Tr.CopyBranchNameToClipboard,
 		},
 		{
+			ViewName:          "tags",
+			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Handler:           self.handleCopySelectedSideContextItemToClipboard,
+			GetDisabledReason: self.getCopySelectedSideContextItemToClipboardDisabledReason,
+			Description:       self.c.Tr.CopyTagToClipboard,
+		},
+		{
 			ViewName:          "commits",
 			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:           self.handleCopySelectedSideContextItemCommitHashToClipboard,
@@ -187,22 +195,10 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.ExtrasMenu),
-			Handler:     self.handleCreateExtrasMenuPanel,
+			Handler:     opts.Guards.NoPopupPanel(self.handleCreateExtrasMenuPanel),
 			Description: self.c.Tr.OpenCommandLogMenu,
 			Tooltip:     self.c.Tr.OpenCommandLogMenuTooltip,
 			OpensMenu:   true,
-		},
-		{
-			ViewName: "secondary",
-			Key:      gocui.MouseWheelUp,
-			Modifier: gocui.ModNone,
-			Handler:  self.scrollUpSecondary,
-		},
-		{
-			ViewName: "secondary",
-			Key:      gocui.MouseWheelDown,
-			Modifier: gocui.ModNone,
-			Handler:  self.scrollDownSecondary,
 		},
 		{
 			ViewName:    "main",
@@ -217,6 +213,12 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Handler:     self.scrollUpMain,
 			Description: self.c.Tr.ScrollUp,
 			Alternative: "fn+down",
+		},
+		{
+			ViewName: "secondary",
+			Key:      gocui.MouseWheelDown,
+			Modifier: gocui.ModNone,
+			Handler:  self.scrollDownSecondary,
 		},
 		{
 			ViewName: "secondary",
@@ -250,12 +252,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName: "confirmation",
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModNone,
-			Handler:  self.handleConfirmationClick,
-		},
-		{
-			ViewName: "confirmation",
 			Key:      gocui.MouseWheelUp,
 			Handler:  self.scrollUpConfirmationPanel,
 		},
@@ -263,6 +259,42 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			ViewName: "confirmation",
 			Key:      gocui.MouseWheelDown,
 			Handler:  self.scrollDownConfirmationPanel,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      opts.GetKey(opts.Config.Universal.NextPage),
+			Modifier: gocui.ModNone,
+			Handler:  self.pageDownConfirmationPanel,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      opts.GetKey(opts.Config.Universal.PrevPage),
+			Modifier: gocui.ModNone,
+			Handler:  self.pageUpConfirmationPanel,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      opts.GetKey(opts.Config.Universal.GotoTop),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToConfirmationPanelTop,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      opts.GetKey(opts.Config.Universal.GotoTopAlt),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToConfirmationPanelTop,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      opts.GetKey(opts.Config.Universal.GotoBottom),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToConfirmationPanelBottom,
+		},
+		{
+			ViewName: "confirmation",
+			Key:      opts.GetKey(opts.Config.Universal.GotoBottomAlt),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToConfirmationPanelBottom,
 		},
 		{
 			ViewName:          "submodules",
@@ -311,6 +343,42 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName: "extras",
+			Key:      opts.GetKey(opts.Config.Universal.NextPage),
+			Modifier: gocui.ModNone,
+			Handler:  self.pageDownExtrasPanel,
+		},
+		{
+			ViewName: "extras",
+			Key:      opts.GetKey(opts.Config.Universal.PrevPage),
+			Modifier: gocui.ModNone,
+			Handler:  self.pageUpExtrasPanel,
+		},
+		{
+			ViewName: "extras",
+			Key:      opts.GetKey(opts.Config.Universal.GotoTop),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToExtrasPanelTop,
+		},
+		{
+			ViewName: "extras",
+			Key:      opts.GetKey(opts.Config.Universal.GotoTopAlt),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToExtrasPanelTop,
+		},
+		{
+			ViewName: "extras",
+			Key:      opts.GetKey(opts.Config.Universal.GotoBottom),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToExtrasPanelBottom,
+		},
+		{
+			ViewName: "extras",
+			Key:      opts.GetKey(opts.Config.Universal.GotoBottomAlt),
+			Modifier: gocui.ModNone,
+			Handler:  self.goToExtrasPanelBottom,
+		},
+		{
+			ViewName: "extras",
 			Tag:      "navigation",
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,
@@ -334,14 +402,14 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.NextTab),
-			Handler:     self.handleNextTab,
+			Handler:     opts.Guards.NoPopupPanel(self.handleNextTab),
 			Description: self.c.Tr.NextTab,
 			Tag:         "navigation",
 		},
 		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.PrevTab),
-			Handler:     self.handlePrevTab,
+			Handler:     opts.Guards.NoPopupPanel(self.handlePrevTab),
 			Description: self.c.Tr.PrevTab,
 			Tag:         "navigation",
 		},
@@ -351,6 +419,18 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 }
 
 func (self *Gui) GetInitialKeybindingsWithCustomCommands() ([]*types.Binding, []*gocui.ViewMouseBinding) {
+	// if the search or filter prompt is open, we only want the keybindings for
+	// that context. It shouldn't be possible, for example, to open a menu while
+	// the prompt is showing; you first need to confirm or cancel the search/filter.
+	if currentContext := self.State.ContextMgr.Current(); currentContext.GetKey() == context.SEARCH_CONTEXT_KEY {
+		bindings := currentContext.GetKeybindings(self.c.KeybindingsOpts())
+		viewName := currentContext.GetViewName()
+		for _, binding := range bindings {
+			binding.ViewName = viewName
+		}
+		return bindings, nil
+	}
+
 	bindings, mouseBindings := self.GetInitialKeybindings()
 	customBindings, err := self.CustomCommandsClient.GetCustomCommandKeybindings()
 	if err != nil {
@@ -424,8 +504,14 @@ func (gui *Gui) SetKeybinding(binding *types.Binding) error {
 func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
 	baseHandler := binding.Handler
 	newHandler := func(opts gocui.ViewMouseBindingOpts) error {
-		// we ignore click events on views that aren't popup panels, when a popup panel is focused
-		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != binding.ViewName {
+		// we ignore click events on views that aren't popup panels, when a popup panel is focused.
+		// Unless both the current view and the clicked-on view are either commit message or commit
+		// description, because we want to allow switching between those two views by clicking.
+		isCommitMessageView := func(viewName string) bool {
+			return viewName == "commitMessage" || viewName == "commitDescription"
+		}
+		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != binding.ViewName &&
+			(!isCommitMessageView(gui.currentViewName()) || !isCommitMessageView(binding.ViewName)) {
 			return nil
 		}
 
@@ -437,17 +523,22 @@ func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
 }
 
 func (gui *Gui) callKeybindingHandler(binding *types.Binding) error {
-	var disabledReason *types.DisabledReason
 	if binding.GetDisabledReason != nil {
-		disabledReason = binding.GetDisabledReason()
-	}
-	if disabledReason != nil {
-		if disabledReason.ShowErrorInPanel {
-			return errors.New(disabledReason.Text)
-		}
+		if disabledReason := binding.GetDisabledReason(); disabledReason != nil {
+			if disabledReason.AllowFurtherDispatching {
+				return &types.ErrKeybindingNotHandled{DisabledReason: disabledReason}
+			}
 
-		gui.c.ErrorToast(gui.Tr.DisabledMenuItemPrefix + disabledReason.Text)
-		return nil
+			if disabledReason.ShowErrorInPanel {
+				return errors.New(disabledReason.Text)
+			}
+
+			if len(disabledReason.Text) > 0 {
+				gui.c.ErrorToast(gui.Tr.DisabledMenuItemPrefix + disabledReason.Text)
+			}
+			return nil
+		}
 	}
+
 	return binding.Handler()
 }

@@ -20,7 +20,7 @@ func NewStashController(
 ) *StashController {
 	return &StashController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.StashEntry](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Stash,
 			c.Contexts().Stash.GetSelected,
@@ -50,8 +50,8 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
-			Handler:           self.withItem(self.handleStashDrop),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			Handler:           self.withItems(self.handleStashDrop),
+			GetDisabledReason: self.require(self.itemRangeSelected()),
 			Description:       self.c.Tr.Drop,
 			Tooltip:           self.c.Tr.StashDropTooltip,
 			DisplayOnScreen:   true,
@@ -74,9 +74,9 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 	return bindings
 }
 
-func (self *StashController) GetOnRenderToMain() func() error {
-	return func() error {
-		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+func (self *StashController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			var task types.UpdateTask
 			stashEntry := self.context().GetSelected()
 			if stashEntry == nil {
@@ -87,7 +87,7 @@ func (self *StashController) GetOnRenderToMain() func() error {
 				)
 			}
 
-			return self.c.RenderToMainViews(types.RefreshMainOpts{
+			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title:    "Stash",
@@ -111,20 +111,25 @@ func (self *StashController) handleStashApply(stashEntry *models.StashEntry) err
 		if err != nil {
 			return err
 		}
+		if self.c.UserConfig().Gui.SwitchToFilesAfterStashApply {
+			self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
+		}
 		return nil
 	}
 
-	if self.c.UserConfig.Gui.SkipStashWarning {
+	if self.c.UserConfig().Gui.SkipStashWarning {
 		return apply()
 	}
 
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.StashApply,
 		Prompt: self.c.Tr.SureApplyStashEntry,
 		HandleConfirm: func() error {
 			return apply()
 		},
 	})
+
+	return nil
 }
 
 func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error {
@@ -135,36 +140,46 @@ func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error
 		if err != nil {
 			return err
 		}
+		if self.c.UserConfig().Gui.SwitchToFilesAfterStashPop {
+			self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
+		}
 		return nil
 	}
 
-	if self.c.UserConfig.Gui.SkipStashWarning {
+	if self.c.UserConfig().Gui.SkipStashWarning {
 		return pop()
 	}
 
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.StashPop,
 		Prompt: self.c.Tr.SurePopStashEntry,
 		HandleConfirm: func() error {
 			return pop()
 		},
 	})
+
+	return nil
 }
 
-func (self *StashController) handleStashDrop(stashEntry *models.StashEntry) error {
-	return self.c.Confirm(types.ConfirmOpts{
+func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) error {
+	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.StashDrop,
 		Prompt: self.c.Tr.SureDropStashEntry,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.Stash)
-			err := self.c.Git().Stash.Drop(stashEntry.Index)
-			_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
-			if err != nil {
-				return err
+			startIndex := stashEntries[0].Index
+			for range stashEntries {
+				err := self.c.Git().Stash.Drop(startIndex)
+				_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
+				if err != nil {
+					return err
+				}
 			}
 			return nil
 		},
 	})
+
+	return nil
 }
 
 func (self *StashController) postStashRefresh() error {
@@ -183,19 +198,21 @@ func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntr
 		},
 	)
 
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title:          message,
 		InitialContent: stashEntry.Name,
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.RenameStash)
 			err := self.c.Git().Stash.Rename(stashEntry.Index, response)
-			_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			if err != nil {
+				_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 				return err
 			}
 			self.context().SetSelection(0) // Select the renamed stash
 			self.context().FocusLine()
-			return nil
+			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 		},
 	})
+
+	return nil
 }

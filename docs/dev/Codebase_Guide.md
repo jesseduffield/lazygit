@@ -2,7 +2,7 @@
 
 ## Packages
 
-* `pkg/app`: Contains startup code, inititalises a bunch of stuff like logging, the user config, etc, before starting the gui. Catches and handles some errors that the gui raises.
+* `pkg/app`: Contains startup code, initialises a bunch of stuff like logging, the user config, etc, before starting the gui. Catches and handles some errors that the gui raises.
 * `pkg/app/daemon`: Contains code relating to the lazygit daemon. This could be better named: it's is not a daemon in the sense that it's a long-running background process; rather it's a short-lived background process that we pass to git for certain tasks, like GIT_EDITOR for when we want to set the TODO file for an interactive rebase.
 * `pkg/cheatsheet`: Generates the keybinding cheatsheets in `docs/keybindings`.
 * `pkg/commands/git_commands`: All communication to the git binary happens here. So for example there's a `Checkout` method which calls `git checkout`.
@@ -12,7 +12,7 @@
 * `pkg/commands/models`: Contains model structs that represent commits, branches, files, etc.
 * `pkg/commands/patch`: Contains code for parsing and working with git patches
 * `pkg/common`: Contains the `Common` struct which holds common dependencies like the logger, i18n, and the user config. Most structs in the code will have a field named `c` which holds a common struct (or a derivative of the common struct).
-* `pkg/config`: Contains code relating to the Lazygit user config. Specifically `pkg/config/user_config/go` defines the user config struct and its default values.
+* `pkg/config`: Contains code relating to the Lazygit user config. Specifically `pkg/config/user_config/go` defines the user config struct and its default values. See [below](#using-userconfig) for some important information about using it.
 * `pkg/constants`: Contains some constant strings (e.g. links to docs)
 * `pkg/env`: Contains code relating to setting/getting environment variables
 * `pkg/i18n`: Contains internationalised strings
@@ -85,6 +85,12 @@ In terms of dependencies, controllers sit at the highest level, so they can refe
 The event loop is managed in the `MainLoop` function of `vendor/github.com/jesseduffield/gocui/gui.go`. Any time there is an event like a key press or a window resize, the event will be processed and then the screen will be redrawn. This involves calling the `layout` function defined in `pkg/gui/layout.go`, which lays out the windows and invokes some on-render hooks.
 
 Often, as part of handling a keypress, we'll want to run some code asynchronously so that it doesn't block the UI thread. For this we'll typically run `self.c.OnWorker(myFunc)`. If the worker wants to then do something on the UI thread again it can call `self.c.OnUIThread(myOtherFunc)`.
+
+## Using UserConfig
+
+The UserConfig struct is loaded from lazygit's global config file (and possibly repo-specific config files). It can be re-loaded while lazygit is running, e.g. when the user edits one of the config files. In this case we should make sure that any new or changed config values take effect immediately. The easiest way to achieve this is what we do in most controllers or helpers: these have a pointer to the `common.Common` struct, which contains the UserConfig, and access it from there. Since the UserConfig instance in `common.Common` is updated whenever we reload the config, the code can be sure that it always uses an up-to-date value, and there's nothing else to do.
+
+If that's not possible for some reason, see if you can add code to `Gui.onUserConfigLoaded` to update things from the new config; there are some examples in that function to use as a guide. If that's too hard to do too, add the config to the list in `Gui.checkForChangedConfigsThatDontAutoReload` so that the user is asked to quit and restart lazygit.
 
 ## Legacy code structure
 

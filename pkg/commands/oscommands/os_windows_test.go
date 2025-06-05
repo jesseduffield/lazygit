@@ -71,7 +71,7 @@ func TestOSCommandOpenFileWindows(t *testing.T) {
 		}
 		oSCmd.Platform = platform
 		oSCmd.Cmd.platform = platform
-		oSCmd.UserConfig.OS.OpenCommand = `start "" {{filename}}`
+		oSCmd.UserConfig().OS.OpenCommand = `start "" {{filename}}`
 
 		s.test(oSCmd.OpenFile(s.filename))
 	}

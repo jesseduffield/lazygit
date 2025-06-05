@@ -85,13 +85,11 @@ func (self *CommitCommands) ResetToCommit(hash string, strength string, envVars 
 		Run()
 }
 
-func (self *CommitCommands) CommitCmdObj(summary string, description string) oscommands.ICmdObj {
+func (self *CommitCommands) CommitCmdObj(summary string, description string, forceSkipHooks bool) *oscommands.CmdObj {
 	messageArgs := self.commitMessageArgs(summary, description)
-
-	skipHookPrefix := self.UserConfig.Git.SkipHookPrefix
-
+	skipHookPrefix := self.UserConfig().Git.SkipHookPrefix
 	cmdArgs := NewGitCmd("commit").
-		ArgIf(skipHookPrefix != "" && strings.HasPrefix(summary, skipHookPrefix), "--no-verify").
+		ArgIf(forceSkipHooks || (skipHookPrefix != "" && strings.HasPrefix(summary, skipHookPrefix)), "--no-verify").
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
 		Arg(messageArgs...).
 		ToArgv()
@@ -99,17 +97,18 @@ func (self *CommitCommands) CommitCmdObj(summary string, description string) osc
 	return self.cmd.New(cmdArgs)
 }
 
-func (self *CommitCommands) RewordLastCommitInEditorCmdObj() oscommands.ICmdObj {
+func (self *CommitCommands) RewordLastCommitInEditorCmdObj() *oscommands.CmdObj {
 	return self.cmd.New(NewGitCmd("commit").Arg("--allow-empty", "--amend", "--only").ToArgv())
 }
 
-func (self *CommitCommands) RewordLastCommitInEditorWithMessageFileCmdObj(tmpMessageFile string) oscommands.ICmdObj {
+func (self *CommitCommands) RewordLastCommitInEditorWithMessageFileCmdObj(tmpMessageFile string) *oscommands.CmdObj {
 	return self.cmd.New(NewGitCmd("commit").
 		Arg("--allow-empty", "--amend", "--only", "--edit", "--file="+tmpMessageFile).ToArgv())
 }
 
-func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile string) oscommands.ICmdObj {
+func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile string, forceSkipHooks bool) *oscommands.CmdObj {
 	return self.cmd.New(NewGitCmd("commit").
+		ArgIf(forceSkipHooks, "--no-verify").
 		Arg("--edit").
 		Arg("--file="+tmpMessageFile).
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
@@ -117,7 +116,7 @@ func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile s
 }
 
 // RewordLastCommit rewords the topmost commit with the given message
-func (self *CommitCommands) RewordLastCommit(summary string, description string) error {
+func (self *CommitCommands) RewordLastCommit(summary string, description string) *oscommands.CmdObj {
 	messageArgs := self.commitMessageArgs(summary, description)
 
 	cmdArgs := NewGitCmd("commit").
@@ -125,7 +124,7 @@ func (self *CommitCommands) RewordLastCommit(summary string, description string)
 		Arg(messageArgs...).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).Run()
+	return self.cmd.New(cmdArgs)
 }
 
 func (self *CommitCommands) commitMessageArgs(summary string, description string) []string {
@@ -139,7 +138,7 @@ func (self *CommitCommands) commitMessageArgs(summary string, description string
 }
 
 // runs git commit without the -m argument meaning it will invoke the user's editor
-func (self *CommitCommands) CommitEditorCmdObj() oscommands.ICmdObj {
+func (self *CommitCommands) CommitEditorCmdObj() *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("commit").
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
 		ToArgv()
@@ -148,7 +147,7 @@ func (self *CommitCommands) CommitEditorCmdObj() oscommands.ICmdObj {
 }
 
 func (self *CommitCommands) signoffFlag() string {
-	if self.UserConfig.Git.Commit.SignOff {
+	if self.UserConfig().Git.Commit.SignOff {
 		return "--signoff"
 	} else {
 		return ""
@@ -189,7 +188,7 @@ type Author struct {
 
 func (self *CommitCommands) GetCommitAuthor(commitHash string) (Author, error) {
 	cmdArgs := NewGitCmd("show").
-		Arg("--no-patch", "--pretty=format:'%an%x00%ae'", commitHash).
+		Arg("--no-patch", "--pretty=format:%an%x00%ae", commitHash).
 		ToArgv()
 
 	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
@@ -247,7 +246,7 @@ func (self *CommitCommands) AmendHead() error {
 	return self.AmendHeadCmdObj().Run()
 }
 
-func (self *CommitCommands) AmendHeadCmdObj() oscommands.ICmdObj {
+func (self *CommitCommands) AmendHeadCmdObj() *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("commit").
 		Arg("--amend", "--no-edit", "--allow-empty").
 		ToArgv()
@@ -255,22 +254,23 @@ func (self *CommitCommands) AmendHeadCmdObj() oscommands.ICmdObj {
 	return self.cmd.New(cmdArgs)
 }
 
-func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) oscommands.ICmdObj {
+func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) *oscommands.CmdObj {
 	contextSize := self.AppState.DiffContextSize
 
-	extDiffCmd := self.UserConfig.Git.Paging.ExternalDiffCommand
+	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
 	cmdArgs := NewGitCmd("show").
 		Config("diff.noprefix=false").
 		ConfigIf(extDiffCmd != "", "diff.external="+extDiffCmd).
 		ArgIfElse(extDiffCmd != "", "--ext-diff", "--no-ext-diff").
 		Arg("--submodule").
-		Arg("--color="+self.UserConfig.Git.Paging.ColorArg).
+		Arg("--color="+self.UserConfig().Git.Paging.ColorArg).
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
 		Arg("--stat").
 		Arg("--decorate").
 		Arg("-p").
 		Arg(hash).
 		ArgIf(self.AppState.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		Arg(fmt.Sprintf("--find-renames=%d%%", self.AppState.RenameSimilarityThreshold)).
 		ArgIf(filterPath != "", "--", filterPath).
 		Dir(self.repoPaths.worktreePath).
 		ToArgv()
@@ -278,15 +278,21 @@ func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) oscommand
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
-// Revert reverts the selected commit by hash
-func (self *CommitCommands) Revert(hash string) error {
-	cmdArgs := NewGitCmd("revert").Arg(hash).ToArgv()
-
-	return self.cmd.New(cmdArgs).Run()
+func (self *CommitCommands) ShowFileContentCmdObj(hash string, filePath string) *oscommands.CmdObj {
+	cmdArgs := NewGitCmd("show").
+		Arg(fmt.Sprintf("%s:%s", hash, filePath)).
+		ToArgv()
+	return self.cmd.New(cmdArgs).DontLog()
 }
 
-func (self *CommitCommands) RevertMerge(hash string, parentNumber int) error {
-	cmdArgs := NewGitCmd("revert").Arg(hash, "-m", fmt.Sprintf("%d", parentNumber)).
+// Revert reverts the selected commits by hash. If isMerge is true, we'll pass -m 1
+// to say we want to revert the first parent of the merge commit, which is the one
+// people want in 99.9% of cases. In current git versions we could unconditionally
+// pass -m 1 even for non-merge commits, but older versions of git choke on it.
+func (self *CommitCommands) Revert(hashes []string, isMerge bool) error {
+	cmdArgs := NewGitCmd("revert").
+		ArgIf(isMerge, "-m", "1").
+		Arg(hashes...).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()

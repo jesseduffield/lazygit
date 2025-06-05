@@ -68,13 +68,11 @@ func (self *MergeConflictsContext) IsUserScrolling() bool {
 	return self.viewModel.userVerticalScrolling
 }
 
-func (self *MergeConflictsContext) RenderAndFocus() error {
+func (self *MergeConflictsContext) RenderAndFocus() {
 	self.setContent()
 	self.FocusSelection()
 
 	self.c.Render()
-
-	return nil
 }
 
 func (self *MergeConflictsContext) Render() error {
@@ -99,7 +97,7 @@ func (self *MergeConflictsContext) setContent() {
 
 func (self *MergeConflictsContext) FocusSelection() {
 	if !self.IsUserScrolling() {
-		_ = self.GetView().SetOriginY(self.GetOriginY())
+		self.GetView().SetOriginY(self.GetOriginY())
 	}
 
 	self.SetSelectedLineRange()
@@ -117,5 +115,5 @@ func (self *MergeConflictsContext) SetSelectedLineRange() {
 func (self *MergeConflictsContext) GetOriginY() int {
 	view := self.GetView()
 	conflictMiddle := self.GetState().GetConflictMiddle()
-	return int(math.Max(0, float64(conflictMiddle-(view.Height()/2))))
+	return int(math.Max(0, float64(conflictMiddle-(view.InnerHeight()/2))))
 }

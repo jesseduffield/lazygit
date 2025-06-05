@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -61,7 +60,7 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Status.AllBranchesLogGraph),
-			Handler:     self.showAllBranchLogs,
+			Handler:     func() error { self.switchToOrRotateAllBranchesLogs(); return nil },
 			Description: self.c.Tr.AllBranchesLogGraph,
 		},
 	}
@@ -72,11 +71,6 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 func (self *StatusController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
 	return []*gocui.ViewMouseBinding{
 		{
-			ViewName: "main",
-			Key:      gocui.MouseLeft,
-			Handler:  self.onClickMain,
-		},
-		{
 			ViewName: self.Context().GetViewName(),
 			Key:      gocui.MouseLeft,
 			Handler:  self.onClick,
@@ -84,20 +78,16 @@ func (self *StatusController) GetMouseKeybindings(opts types.KeybindingsOpts) []
 	}
 }
 
-func (self *StatusController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	return self.c.HandleGenericClick(self.c.Views().Main)
-}
-
-func (self *StatusController) GetOnRenderToMain() func() error {
-	config := self.c.UserConfig.Gui
-
-	switch config.StatusPanelView {
-	case "dashboard":
-		return self.showDashboard
-	case "allBranchesLog":
-		return self.showAllBranchLogs
-	default:
-		return self.showDashboard
+func (self *StatusController) GetOnRenderToMain() func() {
+	return func() {
+		switch self.c.UserConfig().Gui.StatusPanelView {
+		case "dashboard":
+			self.showDashboard()
+		case "allBranchesLog":
+			self.showAllBranchLogs()
+		default:
+			self.showDashboard()
+		}
 	}
 }
 
@@ -113,26 +103,21 @@ func (self *StatusController) onClick(opts gocui.ViewMouseBindingOpts) error {
 		return nil
 	}
 
-	if err := self.c.PushContext(self.Context()); err != nil {
-		return err
-	}
+	self.c.Context().Push(self.Context(), types.OnFocusOpts{})
 
-	upstreamStatus := utils.Decolorise(presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now(), self.c.UserConfig))
+	upstreamStatus := utils.Decolorise(presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now(), self.c.UserConfig()))
 	repoName := self.c.Git().RepoPaths.RepoName()
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
-	switch workingTreeState {
-	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
-		workingTreeStatus := fmt.Sprintf("(%s)", presentation.FormatWorkingTreeStateLower(self.c.Tr, workingTreeState))
+	if workingTreeState.Any() {
+		workingTreeStatus := fmt.Sprintf("(%s)", workingTreeState.LowerCaseTitle(self.c.Tr))
 		if cursorInSubstring(opts.X, upstreamStatus+" ", workingTreeStatus) {
 			return self.c.Helpers().MergeAndRebase.CreateRebaseOptionsMenu()
 		}
 		if cursorInSubstring(opts.X, upstreamStatus+" "+workingTreeStatus+" ", repoName) {
 			return self.c.Helpers().Repos.CreateRecentReposMenu()
 		}
-	default:
-		if cursorInSubstring(opts.X, upstreamStatus+" ", repoName) {
-			return self.c.Helpers().Repos.CreateRecentReposMenu()
-		}
+	} else if cursorInSubstring(opts.X, upstreamStatus+" ", repoName) {
+		return self.c.Helpers().Repos.CreateRecentReposMenu()
 	}
 
 	return nil
@@ -192,11 +177,11 @@ func (self *StatusController) editConfig() error {
 	})
 }
 
-func (self *StatusController) showAllBranchLogs() error {
+func (self *StatusController) showAllBranchLogs() {
 	cmdObj := self.c.Git().Branch.AllBranchesLogCmdObj()
 	task := types.NewRunPtyTask(cmdObj.GetCmd())
 
-	return self.c.RenderToMainViews(types.RefreshMainOpts{
+	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
 			Title: self.c.Tr.LogTitle,
@@ -205,7 +190,19 @@ func (self *StatusController) showAllBranchLogs() error {
 	})
 }
 
-func (self *StatusController) showDashboard() error {
+// Switches to the all branches view, or, if already on that view,
+// rotates to the next command in the list, and then renders it.
+func (self *StatusController) switchToOrRotateAllBranchesLogs() {
+	// A bit of a hack to ensure we only rotate to the next branch log command
+	// if we currently are looking at a branch log. Otherwise, we should just show
+	// the current index (if we are coming from the dashboard).
+	if self.c.Views().Main.Title == self.c.Tr.LogTitle {
+		self.c.Git().Branch.RotateAllBranchesLogIdx()
+	}
+	self.showAllBranchLogs()
+}
+
+func (self *StatusController) showDashboard() {
 	versionStr := "master"
 	version, err := types.ParseVersionNumber(self.c.GetConfig().GetVersion())
 	if err == nil {
@@ -219,15 +216,15 @@ func (self *StatusController) showDashboard() error {
 		[]string{
 			lazygitTitle(),
 			fmt.Sprintf("Copyright %d Jesse Duffield", time.Now().Year()),
-			fmt.Sprintf("Keybindings: %s", style.AttrUnderline.Sprint(fmt.Sprintf(constants.Links.Docs.Keybindings, versionStr))),
-			fmt.Sprintf("Config Options: %s", style.AttrUnderline.Sprint(fmt.Sprintf(constants.Links.Docs.Config, versionStr))),
-			fmt.Sprintf("Tutorial: %s", style.AttrUnderline.Sprint(constants.Links.Docs.Tutorial)),
-			fmt.Sprintf("Raise an Issue: %s", style.AttrUnderline.Sprint(constants.Links.Issues)),
-			fmt.Sprintf("Release Notes: %s", style.AttrUnderline.Sprint(constants.Links.Releases)),
-			style.FgMagenta.Sprintf("Become a sponsor: %s", style.AttrUnderline.Sprint(constants.Links.Donate)), // caffeine ain't free
+			fmt.Sprintf("Keybindings: %s", fmt.Sprintf(constants.Links.Docs.Keybindings, versionStr)),
+			fmt.Sprintf("Config Options: %s", fmt.Sprintf(constants.Links.Docs.Config, versionStr)),
+			fmt.Sprintf("Tutorial: %s", constants.Links.Docs.Tutorial),
+			fmt.Sprintf("Raise an Issue: %s", constants.Links.Issues),
+			fmt.Sprintf("Release Notes: %s", constants.Links.Releases),
+			style.FgMagenta.Sprintf("Become a sponsor: %s", constants.Links.Donate), // caffeine ain't free
 		}, "\n\n") + "\n"
 
-	return self.c.RenderToMainViews(types.RefreshMainOpts{
+	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
 			Title: self.c.Tr.StatusTitle,

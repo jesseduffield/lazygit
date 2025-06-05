@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
@@ -150,20 +149,20 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	// we can make this GPG thing possible it just means we need to do this in two parts:
 	// one where we handle the possibility of a credential request, and the other
 	// where we continue the rebase
-	if self.config.UsingGpg() {
+	if self.config.NeedsGpgSubprocessForCommit() {
 		return errors.New(self.Tr.DisabledForGPG)
 	}
 
 	baseIndex := sourceCommitIdx + 1
 
 	changes := []daemon.ChangeTodoAction{
-		{Hash: commits[sourceCommitIdx].Hash, NewAction: todo.Edit},
-		{Hash: commits[destinationCommitIdx].Hash, NewAction: todo.Edit},
+		{Hash: commits[sourceCommitIdx].Hash(), NewAction: todo.Edit},
+		{Hash: commits[destinationCommitIdx].Hash(), NewAction: todo.Edit},
 	}
 	self.os.LogCommand(logTodoChanges(changes), false)
 
 	err := self.rebase.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseHashOrRoot: commits[baseIndex].Hash,
+		baseHashOrRoot: commits[baseIndex].Hash(),
 		overrideEditor: true,
 		instruction:    daemon.NewChangeTodoActionsInstruction(changes),
 	}).Run()
@@ -219,7 +218,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 
 func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, stash bool) error {
 	if stash {
-		if err := self.stash.Push(self.Tr.StashPrefix + commits[commitIdx].Hash); err != nil {
+		if err := self.stash.Push(self.Tr.StashPrefix + commits[commitIdx].Hash()); err != nil {
 			return err
 		}
 	}
@@ -229,7 +228,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 	}
 
 	if err := self.ApplyCustomPatch(true, true); err != nil {
-		if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+		if self.status.WorkingTreeState().Rebasing {
 			_ = self.rebase.AbortRebase()
 		}
 		return err
@@ -253,7 +252,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 	self.rebase.onSuccessfulContinue = func() error {
 		// add patches to index
 		if err := self.ApplyPatch(patch, ApplyPatchOpts{Index: true, ThreeWay: true}); err != nil {
-			if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+			if self.status.WorkingTreeState().Rebasing {
 				_ = self.rebase.AbortRebase()
 			}
 			return err
@@ -303,12 +302,35 @@ func (self *PatchCommands) PullPatchIntoNewCommit(
 		return err
 	}
 
-	if err := self.commit.CommitCmdObj(commitSummary, commitDescription).Run(); err != nil {
+	if err := self.commit.CommitCmdObj(commitSummary, commitDescription, false).Run(); err != nil {
 		return err
 	}
 
 	if self.rebase.onSuccessfulContinue != nil {
 		return errors.New("You are midway through another rebase operation. Please abort to start again")
+	}
+
+	self.PatchBuilder.Reset()
+	return self.rebase.ContinueRebase()
+}
+
+func (self *PatchCommands) PullPatchIntoNewCommitBefore(
+	commits []*models.Commit,
+	commitIdx int,
+	commitSummary string,
+	commitDescription string,
+) error {
+	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx+1, true); err != nil {
+		return err
+	}
+
+	if err := self.ApplyCustomPatch(false, false); err != nil {
+		_ = self.rebase.AbortRebase()
+		return err
+	}
+
+	if err := self.commit.CommitCmdObj(commitSummary, commitDescription, false).Run(); err != nil {
+		return err
 	}
 
 	self.PatchBuilder.Reset()
@@ -324,7 +346,7 @@ func (self *PatchCommands) diffHeadAgainstCommit(commit *models.Commit) (string,
 	cmdArgs := NewGitCmd("diff").
 		Config("diff.noprefix=false").
 		Arg("--no-ext-diff").
-		Arg("HEAD.." + commit.Hash).
+		Arg("HEAD.." + commit.Hash()).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).RunWithOutput()

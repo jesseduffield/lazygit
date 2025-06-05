@@ -1,7 +1,6 @@
 package patch
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -54,7 +53,7 @@ func (self *Patch) Lines() []*PatchLine {
 
 // Returns the patch line index of the first line in the given hunk
 func (self *Patch) HunkStartIdx(hunkIndex int) int {
-	hunkIndex = utils.Clamp(hunkIndex, 0, len(self.hunks)-1)
+	hunkIndex = lo.Clamp(hunkIndex, 0, len(self.hunks)-1)
 
 	result := len(self.header)
 	for i := 0; i < hunkIndex; i++ {
@@ -65,7 +64,7 @@ func (self *Patch) HunkStartIdx(hunkIndex int) int {
 
 // Returns the patch line index of the last line in the given hunk
 func (self *Patch) HunkEndIdx(hunkIndex int) int {
-	hunkIndex = utils.Clamp(hunkIndex, 0, len(self.hunks)-1)
+	hunkIndex = lo.Clamp(hunkIndex, 0, len(self.hunks)-1)
 
 	return self.HunkStartIdx(hunkIndex) + self.hunks[hunkIndex].lineCount() - 1
 }
@@ -118,7 +117,7 @@ func (self *Patch) HunkContainingLine(idx int) int {
 
 // Returns the patch line index of the next change (i.e. addition or deletion).
 func (self *Patch) GetNextChangeIdx(idx int) int {
-	idx = utils.Clamp(idx, 0, self.LineCount()-1)
+	idx = lo.Clamp(idx, 0, self.LineCount()-1)
 
 	lines := self.Lines()
 
@@ -153,4 +152,25 @@ func (self *Patch) LineCount() int {
 // Returns the number of hunks of the patch
 func (self *Patch) HunkCount() int {
 	return len(self.hunks)
+}
+
+// Adjust the given line number (one-based) according to the current patch. The
+// patch is supposed to be a diff of an old file state against the working
+// directory; the line number is a line number in that old file, and the
+// function returns the corresponding line number in the working directory file.
+func (self *Patch) AdjustLineNumber(lineNumber int) int {
+	adjustedLineNumber := lineNumber
+	for _, hunk := range self.hunks {
+		if hunk.oldStart >= lineNumber {
+			break
+		}
+
+		if hunk.oldStart+hunk.oldLength() > lineNumber {
+			return hunk.newStart
+		}
+
+		adjustedLineNumber += hunk.newLength() - hunk.oldLength()
+	}
+
+	return adjustedLineNumber
 }

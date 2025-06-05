@@ -67,5 +67,9 @@ func init() {
 		Modifiers:         1,
 		TrueColor:         true,
 		AutoMargin:        true,
+		DoubleUnderline:   "\x1b[4:2m",
+		CurlyUnderline:    "\x1b[4:3m",
+		DottedUnderline:   "\x1b[4:4m",
+		DashedUnderline:   "\x1b[4:5m",
 	})
 }

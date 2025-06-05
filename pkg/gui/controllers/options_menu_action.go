@@ -12,12 +12,7 @@ type OptionsMenuAction struct {
 }
 
 func (self *OptionsMenuAction) Call() error {
-	ctx := self.c.CurrentContext()
-	// Don't show menu while displaying popup.
-	if ctx.GetKind() == types.PERSISTENT_POPUP || ctx.GetKind() == types.TEMPORARY_POPUP {
-		return nil
-	}
-
+	ctx := self.c.Context().Current()
 	local, global, navigation := self.getBindings(ctx)
 
 	menuItems := []*types.MenuItem{}

@@ -118,7 +118,7 @@ func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrap
 		return err
 	}
 
-	return self.c.Prompt(types.PromptOpts{
+	self.c.Prompt(types.PromptOpts{
 		Title:               prompt.Title,
 		InitialContent:      prompt.InitialValue,
 		FindSuggestionsFunc: findSuggestionsFn,
@@ -126,16 +126,16 @@ func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrap
 			return wrappedF(str)
 		},
 	})
+
+	return nil
 }
 
 func (self *HandlerCreator) generateFindSuggestionsFunc(prompt *config.CustomCommandPrompt) (func(string) []*types.Suggestion, error) {
 	if prompt.Suggestions.Preset != "" && prompt.Suggestions.Command != "" {
 		return nil, fmt.Errorf(
-			fmt.Sprintf(
-				"Custom command prompt cannot have both a preset and a command for suggestions. Preset: '%s', Command: '%s'",
-				prompt.Suggestions.Preset,
-				prompt.Suggestions.Command,
-			),
+			"Custom command prompt cannot have both a preset and a command for suggestions. Preset: '%s', Command: '%s'",
+			prompt.Suggestions.Preset,
+			prompt.Suggestions.Command,
 		)
 	} else if prompt.Suggestions.Preset != "" {
 		return self.getPresetSuggestionsFn(prompt.Suggestions.Preset)
@@ -148,7 +148,7 @@ func (self *HandlerCreator) generateFindSuggestionsFunc(prompt *config.CustomCom
 
 func (self *HandlerCreator) getCommandSuggestionsFn(command string) (func(string) []*types.Suggestion, error) {
 	lines := []*types.Suggestion{}
-	err := self.c.OS().Cmd.NewShell(command).RunAndProcessLines(func(line string) (bool, error) {
+	err := self.c.OS().Cmd.NewShell(command, self.c.UserConfig().OS.ShellFunctionsFile).RunAndProcessLines(func(line string) (bool, error) {
 		lines = append(lines, &types.Suggestion{Value: line, Label: line})
 		return false, nil
 	})
@@ -185,11 +185,13 @@ func (self *HandlerCreator) getPresetSuggestionsFn(preset string) (func(string) 
 }
 
 func (self *HandlerCreator) confirmPrompt(prompt *config.CustomCommandPrompt, handleConfirm func() error) error {
-	return self.c.Confirm(types.ConfirmOpts{
+	self.c.Confirm(types.ConfirmOpts{
 		Title:         prompt.Title,
 		Prompt:        prompt.Body,
 		HandleConfirm: handleConfirm,
 	})
+
+	return nil
 }
 
 func (self *HandlerCreator) menuPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
@@ -244,7 +246,8 @@ func (self *HandlerCreator) getResolveTemplateFn(form map[string]string, promptR
 	}
 
 	funcs := template.FuncMap{
-		"quote": self.c.OS().Quote,
+		"quote":      self.c.OS().Quote,
+		"runCommand": self.c.Git().Custom.TemplateFunctionRunCommand,
 	}
 
 	return func(templateStr string) (string, error) { return utils.ResolveTemplate(templateStr, objects, funcs) }
@@ -257,9 +260,9 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 		return err
 	}
 
-	cmdObj := self.c.OS().Cmd.NewShell(cmdStr)
+	cmdObj := self.c.OS().Cmd.NewShell(cmdStr, self.c.UserConfig().OS.ShellFunctionsFile)
 
-	if customCommand.Subprocess {
+	if customCommand.Output == "terminal" {
 		return self.c.RunSubprocessAndRefresh(cmdObj)
 	}
 
@@ -271,8 +274,11 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 	return self.c.WithWaitingStatus(loadingText, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.CustomCommand)
 
-		if customCommand.Stream {
+		if customCommand.Output == "log" || customCommand.Output == "logWithPty" {
 			cmdObj.StreamOutput()
+		}
+		if customCommand.Output == "logWithPty" {
+			cmdObj.UsePty()
 		}
 		output, err := cmdObj.RunWithOutput()
 
@@ -281,14 +287,14 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 		}
 
 		if err != nil {
-			if customCommand.After.CheckForConflicts {
+			if customCommand.After != nil && customCommand.After.CheckForConflicts {
 				return self.mergeAndRebaseHelper.CheckForConflicts(err)
 			}
 
 			return err
 		}
 
-		if customCommand.ShowOutput {
+		if customCommand.Output == "popup" {
 			if strings.TrimSpace(output) == "" {
 				output = self.c.Tr.EmptyOutput
 			}
@@ -300,7 +306,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 					return err
 				}
 			}
-			return self.c.Alert(title, output)
+			self.c.Alert(title, output)
 		}
 
 		return nil

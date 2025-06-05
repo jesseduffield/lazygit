@@ -147,40 +147,34 @@ func (self *MergeConflictsController) GetMouseKeybindings(opts types.Keybindings
 	}
 }
 
-func (self *MergeConflictsController) GetOnFocus() func(types.OnFocusOpts) error {
-	return func(types.OnFocusOpts) error {
+func (self *MergeConflictsController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(types.OnFocusOpts) {
 		self.c.Views().MergeConflicts.Wrap = false
 
-		if err := self.c.Helpers().MergeConflicts.Render(); err != nil {
-			return err
-		}
+		self.c.Helpers().MergeConflicts.Render()
 
 		self.context().SetSelectedLineRange()
-
-		return nil
 	}
 }
 
-func (self *MergeConflictsController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
-	return func(types.OnFocusLostOpts) error {
+func (self *MergeConflictsController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
 		self.context().SetUserScrolling(false)
 		self.context().GetState().ResetConflictSelection()
 		self.c.Views().MergeConflicts.Wrap = true
-
-		return nil
 	}
 }
 
 func (self *MergeConflictsController) HandleScrollUp() error {
 	self.context().SetUserScrolling(true)
-	self.context().GetViewTrait().ScrollUp(self.c.UserConfig.Gui.ScrollHeight)
+	self.context().GetViewTrait().ScrollUp(self.c.UserConfig().Gui.ScrollHeight)
 
 	return nil
 }
 
 func (self *MergeConflictsController) HandleScrollDown() error {
 	self.context().SetUserScrolling(true)
-	self.context().GetViewTrait().ScrollDown(self.c.UserConfig.Gui.ScrollHeight)
+	self.context().GetViewTrait().ScrollDown(self.c.UserConfig().Gui.ScrollHeight)
 
 	return nil
 }
@@ -194,7 +188,8 @@ func (self *MergeConflictsController) context() *context.MergeConflictsContext {
 }
 
 func (self *MergeConflictsController) Escape() error {
-	return self.c.PopContext()
+	self.c.Context().Pop()
+	return nil
 }
 
 func (self *MergeConflictsController) HandleEditFile() error {
@@ -331,7 +326,8 @@ func (self *MergeConflictsController) withRenderAndFocus(f func() error) func() 
 			return err
 		}
 
-		return self.context().RenderAndFocus()
+		self.context().RenderAndFocus()
+		return nil
 	})
 }
 

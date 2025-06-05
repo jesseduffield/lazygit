@@ -33,7 +33,7 @@ func (gui *Gui) renderContextOptionsMap() {
 // to want to press that key. For example, when in cherry-picking mode, we
 // want to prominently show the keybinding for pasting commits.
 func (self *OptionsMapMgr) renderContextOptionsMap() {
-	currentContext := self.c.CurrentContext()
+	currentContext := self.c.Context().Current()
 
 	currentContextBindings := currentContext.GetKeybindings(self.c.KeybindingsOpts())
 	globalBindings := self.c.Contexts().Global.GetKeybindings(self.c.KeybindingsOpts())
@@ -82,16 +82,10 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 	}
 
 	// Mode-specific global keybindings
-	if self.c.Model().WorkingTreeStateAtLastCommitRefresh.IsRebasing() {
+	if state := self.c.Model().WorkingTreeStateAtLastCommitRefresh; state.Any() {
 		optionsMap = utils.Prepend(optionsMap, bindingInfo{
 			key:         keybindings.Label(self.c.KeybindingsOpts().Config.Universal.CreateRebaseOptionsMenu),
-			description: self.c.Tr.ViewRebaseOptions,
-			style:       style.FgYellow,
-		})
-	} else if self.c.Model().WorkingTreeStateAtLastCommitRefresh.IsMerging() {
-		optionsMap = utils.Prepend(optionsMap, bindingInfo{
-			key:         keybindings.Label(self.c.KeybindingsOpts().Config.Universal.CreateRebaseOptionsMenu),
-			description: self.c.Tr.ViewMergeOptions,
+			description: state.OptionsMapTitle(self.c.Tr),
 			style:       style.FgYellow,
 		})
 	}
@@ -108,7 +102,7 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 }
 
 func (self *OptionsMapMgr) formatBindingInfos(bindingInfos []bindingInfo) string {
-	width := self.c.Views().Options.Width() - 4 // -4 for the padding
+	width := self.c.Views().Options.InnerWidth() - 2 // -2 for some padding
 	var builder strings.Builder
 	ellipsis := "…"
 	separator := " | "
@@ -119,7 +113,8 @@ func (self *OptionsMapMgr) formatBindingInfos(bindingInfos []bindingInfo) string
 		plainText := fmt.Sprintf("%s: %s", info.description, info.key)
 
 		// Check if adding the next formatted string exceeds the available width
-		if i > 0 && length+len(separator)+len(plainText) > width {
+		textLen := utils.StringWidth(plainText)
+		if i > 0 && length+len(separator)+textLen > width {
 			builder.WriteString(theme.OptionsFgColor.Sprint(separator + ellipsis))
 			break
 		}
@@ -131,7 +126,7 @@ func (self *OptionsMapMgr) formatBindingInfos(bindingInfos []bindingInfo) string
 			length += len(separator)
 		}
 		builder.WriteString(formatted)
-		length += len(plainText)
+		length += textLen
 	}
 
 	return builder.String()

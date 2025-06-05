@@ -1,6 +1,9 @@
 package git_commands
 
-import "github.com/jesseduffield/gocui"
+import (
+	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+)
 
 type TagCommands struct {
 	*GitCommon
@@ -12,24 +15,24 @@ func NewTagCommands(gitCommon *GitCommon) *TagCommands {
 	}
 }
 
-func (self *TagCommands) CreateLightweight(tagName string, ref string, force bool) error {
+func (self *TagCommands) CreateLightweightObj(tagName string, ref string, force bool) *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("tag").
 		ArgIf(force, "--force").
 		Arg("--", tagName).
 		ArgIf(len(ref) > 0, ref).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).Run()
+	return self.cmd.New(cmdArgs)
 }
 
-func (self *TagCommands) CreateAnnotated(tagName, ref, msg string, force bool) error {
+func (self *TagCommands) CreateAnnotatedObj(tagName, ref, msg string, force bool) *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("tag").Arg(tagName).
 		ArgIf(force, "--force").
 		ArgIf(len(ref) > 0, ref).
 		Arg("-m", msg).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).Run()
+	return self.cmd.New(cmdArgs)
 }
 
 func (self *TagCommands) HasTag(tagName string) bool {

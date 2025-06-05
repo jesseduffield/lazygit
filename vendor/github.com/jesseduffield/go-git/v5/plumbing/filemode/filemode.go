@@ -133,7 +133,7 @@ func (m FileMode) IsMalformed() bool {
 		m != Submodule
 }
 
-// String returns the FileMode as a string in the standatd git format,
+// String returns the FileMode as a string in the standard git format,
 // this is, an octal number padded with ceros to 7 digits.  Malformed
 // modes are printed in that same format, for easier debugging.
 //

@@ -62,7 +62,7 @@ var MoveToIndexWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressPrimaryAction()
 
-		t.Common().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved("rebase")
 
 		t.ExpectPopup().Alert().
 			Title(Equals("Error")).

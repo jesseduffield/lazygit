@@ -21,11 +21,17 @@ var DiscardVariousChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			label  string
 		}
 
+		t.Views().Files().
+			IsFocused().
+			TopLines(
+				Equals("▼ /").IsSelected(),
+			)
+
 		discardOneByOne := func(files []statusFile) {
 			for _, file := range files {
 				t.Views().Files().
 					IsFocused().
-					SelectedLine(Contains(file.status + " " + file.label)).
+					NavigateToLine(Contains(file.status + " " + file.label)).
 					Press(keys.Universal.Remove)
 
 				t.ExpectPopup().Menu().
@@ -47,7 +53,7 @@ var DiscardVariousChanges = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Continue")).
-			Content(Contains("All merge conflicts resolved. Continue?")).
+			Content(Contains("All merge conflicts resolved. Continue the merge?")).
 			Cancel()
 
 		discardOneByOne([]statusFile{

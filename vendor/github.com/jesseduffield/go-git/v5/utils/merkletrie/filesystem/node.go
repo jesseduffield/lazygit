@@ -29,6 +29,8 @@ type node struct {
 	hash     []byte
 	children []noder.Noder
 	isDir    bool
+	mode     os.FileMode
+	size     int64
 }
 
 // NewRootNode returns the root node based on a given billy.Filesystem.
@@ -48,8 +50,15 @@ func NewRootNode(
 // difftree algorithm will detect changes in the contents of files and also in
 // their mode.
 //
+// Please note that the hash is calculated on first invocation of Hash(),
+// meaning that it will not update when the underlying file changes
+// between invocations.
+//
 // The hash of a directory is always a 24-bytes slice of zero values
 func (n *node) Hash() []byte {
+	if n.hash == nil {
+		n.calculateHash()
+	}
 	return n.hash
 }
 
@@ -59,6 +68,10 @@ func (n *node) Name() string {
 
 func (n *node) IsDir() bool {
 	return n.isDir
+}
+
+func (n *node) Skip() bool {
+	return false
 }
 
 func (n *node) Children() ([]noder.Noder, error) {
@@ -99,6 +112,10 @@ func (n *node) calculateChildren() error {
 			continue
 		}
 
+		if file.Mode()&os.ModeSocket != 0 {
+			continue
+		}
+
 		c, err := n.newChildNode(file)
 		if err != nil {
 			return err
@@ -113,81 +130,74 @@ func (n *node) calculateChildren() error {
 func (n *node) newChildNode(file os.FileInfo) (*node, error) {
 	path := path.Join(n.path, file.Name())
 
-	hash, err := n.calculateHash(path, file)
-	if err != nil {
-		return nil, err
-	}
-
 	node := &node{
 		fs:         n.fs,
 		submodules: n.submodules,
 
 		path:  path,
-		hash:  hash,
 		isDir: file.IsDir(),
+		size:  file.Size(),
+		mode:  file.Mode(),
 	}
 
-	if hash, isSubmodule := n.submodules[path]; isSubmodule {
-		node.hash = append(hash[:], filemode.Submodule.Bytes()...)
+	if _, isSubmodule := n.submodules[path]; isSubmodule {
 		node.isDir = false
 	}
 
 	return node, nil
 }
 
-func (n *node) calculateHash(path string, file os.FileInfo) ([]byte, error) {
-	if file.IsDir() {
-		return make([]byte, 24), nil
+func (n *node) calculateHash() {
+	if n.isDir {
+		n.hash = make([]byte, 24)
+		return
 	}
-
+	mode, err := filemode.NewFromOSFileMode(n.mode)
+	if err != nil {
+		n.hash = plumbing.ZeroHash[:]
+		return
+	}
+	if submoduleHash, isSubmodule := n.submodules[n.path]; isSubmodule {
+		n.hash = append(submoduleHash[:], filemode.Submodule.Bytes()...)
+		return
+	}
 	var hash plumbing.Hash
-	var err error
-	if file.Mode()&os.ModeSymlink != 0 {
-		hash, err = n.doCalculateHashForSymlink(path, file)
+	if n.mode&os.ModeSymlink != 0 {
+		hash = n.doCalculateHashForSymlink()
 	} else {
-		hash, err = n.doCalculateHashForRegular(path, file)
+		hash = n.doCalculateHashForRegular()
 	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	mode, err := filemode.NewFromOSFileMode(file.Mode())
-	if err != nil {
-		return nil, err
-	}
-
-	return append(hash[:], mode.Bytes()...), nil
+	n.hash = append(hash[:], mode.Bytes()...)
 }
 
-func (n *node) doCalculateHashForRegular(path string, file os.FileInfo) (plumbing.Hash, error) {
-	f, err := n.fs.Open(path)
+func (n *node) doCalculateHashForRegular() plumbing.Hash {
+	f, err := n.fs.Open(n.path)
 	if err != nil {
-		return plumbing.ZeroHash, err
+		return plumbing.ZeroHash
 	}
 
 	defer f.Close()
 
-	h := plumbing.NewHasher(plumbing.BlobObject, file.Size())
+	h := plumbing.NewHasher(plumbing.BlobObject, n.size)
 	if _, err := io.Copy(h, f); err != nil {
-		return plumbing.ZeroHash, err
+		return plumbing.ZeroHash
 	}
 
-	return h.Sum(), nil
+	return h.Sum()
 }
 
-func (n *node) doCalculateHashForSymlink(path string, file os.FileInfo) (plumbing.Hash, error) {
-	target, err := n.fs.Readlink(path)
+func (n *node) doCalculateHashForSymlink() plumbing.Hash {
+	target, err := n.fs.Readlink(n.path)
 	if err != nil {
-		return plumbing.ZeroHash, err
+		return plumbing.ZeroHash
 	}
 
-	h := plumbing.NewHasher(plumbing.BlobObject, file.Size())
+	h := plumbing.NewHasher(plumbing.BlobObject, n.size)
 	if _, err := h.Write([]byte(target)); err != nil {
-		return plumbing.ZeroHash, err
+		return plumbing.ZeroHash
 	}
 
-	return h.Sum(), nil
+	return h.Sum()
 }
 
 func (n *node) String() string {

@@ -14,7 +14,7 @@ type FilteringMenuAction struct {
 func (self *FilteringMenuAction) Call() error {
 	fileName := ""
 	author := ""
-	switch self.c.CurrentSideContext() {
+	switch self.c.Context().CurrentSide() {
 	case self.c.Contexts().Files:
 		node := self.c.Contexts().Files.GetSelected()
 		if node != nil {
@@ -61,13 +61,15 @@ func (self *FilteringMenuAction) Call() error {
 	menuItems = append(menuItems, &types.MenuItem{
 		Label: self.c.Tr.FilterPathOption,
 		OnPress: func() error {
-			return self.c.Prompt(types.PromptOpts{
+			self.c.Prompt(types.PromptOpts{
 				FindSuggestionsFunc: self.c.Helpers().Suggestions.GetFilePathSuggestionsFunc(),
 				Title:               self.c.Tr.EnterFileName,
 				HandleConfirm: func(response string) error {
 					return self.setFilteringPath(strings.TrimSpace(response))
 				},
 			})
+
+			return nil
 		},
 		Tooltip: tooltip,
 	})
@@ -75,13 +77,15 @@ func (self *FilteringMenuAction) Call() error {
 	menuItems = append(menuItems, &types.MenuItem{
 		Label: self.c.Tr.FilterAuthorOption,
 		OnPress: func() error {
-			return self.c.Prompt(types.PromptOpts{
+			self.c.Prompt(types.PromptOpts{
 				FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 				Title:               self.c.Tr.EnterAuthor,
 				HandleConfirm: func(response string) error {
 					return self.setFilteringAuthor(strings.TrimSpace(response))
 				},
 			})
+
+			return nil
 		},
 		Tooltip: tooltip,
 	})
@@ -116,9 +120,7 @@ func (self *FilteringMenuAction) setFiltering() error {
 		repoState.SetScreenMode(types.SCREEN_HALF)
 	}
 
-	if err := self.c.PushContext(self.c.Contexts().LocalCommits); err != nil {
-		return err
-	}
+	self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
 
 	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}, Then: func() error {
 		self.c.Contexts().LocalCommits.SetSelection(0)

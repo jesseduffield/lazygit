@@ -1,6 +1,6 @@
 # Custom Command Keybindings
 
-You can add custom command keybindings in your config.yml (accessible by pressing 'o' on the status panel from within lazygit) like so:
+You can add custom command keybindings in your config.yml (accessible by pressing 'e' on the status panel from within lazygit) like so:
 
 ```yml
 customCommands:
@@ -14,7 +14,7 @@ customCommands:
   - key: 'C'
     context: 'global'
     command: "git commit"
-    subprocess: true
+    output: terminal
   - key: 'n'
     context: 'localBranches'
     prompts:
@@ -50,16 +50,14 @@ Custom command keybindings will appear alongside inbuilt keybindings when you vi
 For a given custom command, here are the allowed fields:
 | _field_ | _description_ | required |
 |-----------------|----------------------|-|
-| key | The key to trigger the command. Use a single letter or one of the values from [here](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md) | yes |
+| key | The key to trigger the command. Use a single letter or one of the values from [here](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md). Custom commands without a key specified can be triggered by selecting them from the keybindings (`?`) menu | no |
 | command | The command to run (using Go template syntax for placeholder values) | yes |
 | context | The context in which to listen for the key (see [below](#contexts)) | yes |
-| subprocess | Whether you want the command to run in a subprocess (e.g. if the command requires user input) | no |
 | prompts | A list of prompts that will request user input before running the final command | no |
 | loadingText | Text to display while waiting for command to finish | no |
 | description | Label for the custom command when displayed in the keybindings menu | no |
-| stream | Whether you want to stream the command's output to the Command Log panel | no |
-| showOutput | Whether you want to show the command's output in a popup within Lazygit | no |
-| outputTitle | The title to display in the popup panel if showOutput is true. If left unset, the command will be used as the title. | no |
+| output | Where the output of the command should go. 'none' discards it, 'terminal' suspends lazygit and runs the command in the terminal (useful for commands that require user input), 'log' streams it to the command log, 'logWithPty' is like 'log' but runs the command in a pseudo terminal (can be useful for commands that produce colored output when the output is a terminal), and 'popup' shows it in a popup. | no |
+| outputTitle | The title to display in the popup panel if output is set to 'popup'. If left unset, the command will be used as the title. | no |
 | after | Actions to take after the command has completed | no |
 
 Here are the options for the `after` key:
@@ -86,6 +84,11 @@ The permitted contexts are:
 | commitFiles    | The context you see when pressing enter on a commit or stash entry (warning, might be renamed in future) |
 | stash          | The 'Stash' tab                                                                                          |
 | global         | This keybinding will take affect everywhere                                                              |
+
+> **Bonus**
+>
+> You can use a comma-separated string, such as `context: 'commits, subCommits'`, to make it effective in multiple contexts.
+
 
 ## Prompts
 
@@ -291,9 +294,8 @@ Here's an example using a command but not specifying anything else: so each line
 Your commands can contain placeholder strings using Go's [template syntax](https://jan.newmarch.name/golang/template/chapter-template.html). The template syntax is pretty powerful, letting you do things like conditionals if you want, but for the most part you'll simply want to be accessing the fields on the following objects:
 
 ```
-SelectedLocalCommit
-SelectedReflogCommit
-SelectedSubCommit
+SelectedCommit
+SelectedCommitRange
 SelectedFile
 SelectedPath
 SelectedLocalBranch
@@ -306,15 +308,62 @@ SelectedWorktree
 CheckedOutBranch
 ```
 
+(For legacy reasons, `SelectedLocalCommit`, `SelectedReflogCommit`, and `SelectedSubCommit` are also available, but they are deprecated.)
+
+
 To see what fields are available on e.g. the `SelectedFile`, see [here](https://github.com/jesseduffield/lazygit/blob/master/pkg/gui/services/custom_commands/models.go) (all the modelling lives in the same file).
+
+We don't support accessing all elements of a range selection yet. We might add this in the future, but as a special case you can access the range of selected commits by using `SelectedCommitRange`, which has two properties `.To` and `.From` which are the hashes of the bottom and top selected commits, respectively. This is useful for passing them to a git command that operates on a range of commits. For example, to create patches for all selected commits, you might use
+```yml
+  command: "git format-patch {{.SelectedCommitRange.From}}^..{{.SelectedCommitRange.To}}"
+```
+
+We support the following functions:
+
+### Quoting
+
+Quote wraps a string in quotes with necessary escaping for the current platform.
+
+```
+git {{.SelectedFile.Name | quote}}
+```
+
+### Running a command
+
+Runs a command and returns the output. If the command outputs more than a single line, it will produce an error.
+
+```
+initialValue: "username/{{ runCommand "date +\"%Y/%-m\"" }}/"
+```
 
 ## Keybinding collisions
 
 If your custom keybinding collides with an inbuilt keybinding that is defined for the same context, only the custom keybinding will be executed. This also applies to the global context. However, one caveat is that if you have a custom keybinding defined on the global context for some key, and there is an in-built keybinding defined for the same key and for a specific context (say the 'files' context), then the in-built keybinding will take precedence. See how to change in-built keybindings [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#keybindings)
 
+## Menus of custom commands
+
+For custom commands that are not used very frequently it may be preferable to hide them in a menu; you can assign a key to open the menu, and the commands will appear inside. This has the advantage that you don't have to come up with individual unique keybindings for all those commands that you don't use often; the keybindings for the commands in the menu only need to be unique within the menu. Here is an example:
+
+```yml
+customCommands:
+- key: X
+  description: "Copy/paste commits across repos"
+  commandMenu:
+  - key: c
+    command: 'git format-patch --stdout {{.SelectedCommitRange.From}}^..{{.SelectedCommitRange.To}} | pbcopy'
+    context: commits, subCommits
+    description: "Copy selected commits to clipboard"
+  - key: v
+    command: 'pbpaste | git am'
+    context: "commits"
+    description: "Paste selected commits from clipboard"
+```
+
+If you use the commandMenu property, none of the other properties except key and description can be used.
+
 ## Debugging
 
-If you want to verify that your command actually does what you expect, you can wrap it in an 'echo' call and set `showOutput: true` so that it doesn't actually execute the command but you can see how the placeholders were resolved.
+If you want to verify that your command actually does what you expect, you can wrap it in an 'echo' call and set `output: popup` so that it doesn't actually execute the command but you can see how the placeholders were resolved.
 
 ## More Examples
 

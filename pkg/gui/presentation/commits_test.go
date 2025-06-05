@@ -10,7 +10,9 @@ import (
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/stefanhaller/git-todo-parser/todo"
 	"github.com/stretchr/testify/assert"
 	"github.com/xo/terminfo"
@@ -23,7 +25,7 @@ func formatExpected(expected string) string {
 func TestGetCommitListDisplayStrings(t *testing.T) {
 	scenarios := []struct {
 		testName                  string
-		commits                   []*models.Commit
+		commitOpts                []models.NewCommitOpts
 		branches                  []*models.Branch
 		currentBranchName         string
 		hasUpdateRefConfig        bool
@@ -35,18 +37,17 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		shortTimeFormat           string
 		now                       time.Time
 		parseEmoji                bool
-		selectedCommitHash        string
+		selectedCommitHashPtr     *string
 		startIdx                  int
 		endIdx                    int
 		showGraph                 bool
 		bisectInfo                *git_commands.BisectInfo
-		showYouAreHereLabel       bool
 		expected                  string
 		focus                     bool
 	}{
 		{
 			testName:                  "no commits",
-			commits:                   []*models.Commit{},
+			commitOpts:                []models.NewCommitOpts{},
 			startIdx:                  0,
 			endIdx:                    1,
 			showGraph:                 false,
@@ -57,7 +58,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "some commits",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1"},
 				{Name: "commit2", Hash: "hash2"},
 			},
@@ -74,7 +75,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "commit with tags",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1", Tags: []string{"tag1", "tag2"}},
 				{Name: "commit2", Hash: "hash2"},
 			},
@@ -91,7 +92,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "show local branch head, except the current branch, main branches, or merged branches",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1"},
 				{Name: "commit2", Hash: "hash2"},
 				{Name: "commit3", Hash: "hash3"},
@@ -120,7 +121,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "show local branch head for head commit if updateRefs is on",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1"},
 				{Name: "commit2", Hash: "hash2"},
 			},
@@ -143,7 +144,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "don't show local branch head for head commit if updateRefs is off",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1"},
 				{Name: "commit2", Hash: "hash2"},
 			},
@@ -166,7 +167,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "show local branch head and tag if both exist",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1"},
 				{Name: "commit2", Hash: "hash2", Tags: []string{"some-tag"}},
 				{Name: "commit3", Hash: "hash3"},
@@ -188,7 +189,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "showing graph",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1", Parents: []string{"hash2", "hash3"}},
 				{Name: "commit2", Hash: "hash2", Parents: []string{"hash3"}},
 				{Name: "commit3", Hash: "hash3", Parents: []string{"hash4"}},
@@ -211,7 +212,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "showing graph, including rebase commits",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1", Parents: []string{"hash2", "hash3"}, Action: todo.Pick},
 				{Name: "commit2", Hash: "hash2", Parents: []string{"hash3"}, Action: todo.Pick},
 				{Name: "commit3", Hash: "hash3", Parents: []string{"hash4"}},
@@ -223,19 +224,18 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       true,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-		hash1 pick  commit1
-		hash2 pick  commit2
-		hash3       ◯ <-- YOU ARE HERE --- commit3
-		hash4       ◯ commit4
-		hash5       ◯ commit5
+		hash1 pick commit1
+		hash2 pick commit2
+		hash3      ◯ commit3
+		hash4      ◯ commit4
+		hash5      ◯ commit5
 				`),
 		},
 		{
 			testName: "showing graph, including rebase commits, with offset",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1", Parents: []string{"hash2", "hash3"}, Action: todo.Pick},
 				{Name: "commit2", Hash: "hash2", Parents: []string{"hash3"}, Action: todo.Pick},
 				{Name: "commit3", Hash: "hash3", Parents: []string{"hash4"}},
@@ -247,18 +247,17 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       true,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-		hash2 pick  commit2
-		hash3       ◯ <-- YOU ARE HERE --- commit3
-		hash4       ◯ commit4
-		hash5       ◯ commit5
+		hash2 pick commit2
+		hash3      ◯ commit3
+		hash4      ◯ commit4
+		hash5      ◯ commit5
 				`),
 		},
 		{
 			testName: "startIdx is past TODO commits",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1", Parents: []string{"hash2", "hash3"}, Action: todo.Pick},
 				{Name: "commit2", Hash: "hash2", Parents: []string{"hash3"}, Action: todo.Pick},
 				{Name: "commit3", Hash: "hash3", Parents: []string{"hash4"}},
@@ -270,7 +269,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       true,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		hash4 ◯ commit4
@@ -279,7 +277,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "only showing TODO commits",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1", Parents: []string{"hash2", "hash3"}, Action: todo.Pick},
 				{Name: "commit2", Hash: "hash2", Parents: []string{"hash3"}, Action: todo.Pick},
 				{Name: "commit3", Hash: "hash3", Parents: []string{"hash4"}},
@@ -291,16 +289,15 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       true,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-		hash1 pick  commit1
-		hash2 pick  commit2
+		hash1 pick commit1
+		hash2 pick commit2
 				`),
 		},
 		{
 			testName: "no TODO commits, towards bottom",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1", Parents: []string{"hash2", "hash3"}},
 				{Name: "commit2", Hash: "hash2", Parents: []string{"hash3"}},
 				{Name: "commit3", Hash: "hash3", Parents: []string{"hash4"}},
@@ -312,7 +309,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       true,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 			hash5 ◯ commit5
@@ -320,7 +316,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "only TODO commits except last",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1", Parents: []string{"hash2", "hash3"}, Action: todo.Pick},
 				{Name: "commit2", Hash: "hash2", Parents: []string{"hash3"}, Action: todo.Pick},
 				{Name: "commit3", Hash: "hash3", Parents: []string{"hash4"}, Action: todo.Pick},
@@ -332,36 +328,15 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       true,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-			hash1 pick  commit1
-			hash2 pick  commit2
-				`),
-		},
-		{
-			testName: "don't show YOU ARE HERE label when not asked for (e.g. in branches panel)",
-			commits: []*models.Commit{
-				{Name: "commit1", Hash: "hash1", Parents: []string{"hash2"}, Action: todo.Pick},
-				{Name: "commit2", Hash: "hash2", Parents: []string{"hash3"}},
-				{Name: "commit3", Hash: "hash3", Parents: []string{"hash4"}},
-			},
-			startIdx:                  0,
-			endIdx:                    3,
-			showGraph:                 true,
-			bisectInfo:                git_commands.NewNullBisectInfo(),
-			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
-			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
-			expected: formatExpected(`
-		hash1 pick  commit1
-		hash2       ◯ commit2
-		hash3       ◯ commit3
+			hash1 pick commit1
+			hash2 pick commit2
 				`),
 		},
 		{
 			testName: "graph in divergence view - all commits visible",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1r", Parents: []string{"hash2r"}, Divergence: models.DivergenceRight},
 				{Name: "commit2", Hash: "hash2r", Parents: []string{"hash3r", "hash5r"}, Divergence: models.DivergenceRight},
 				{Name: "commit3", Hash: "hash3r", Parents: []string{"hash4r"}, Divergence: models.DivergenceRight},
@@ -376,7 +351,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		↓ hash1r ◯ commit1
@@ -391,7 +365,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "graph in divergence view - not all remote commits visible",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1r", Parents: []string{"hash2r"}, Divergence: models.DivergenceRight},
 				{Name: "commit2", Hash: "hash2r", Parents: []string{"hash3r", "hash5r"}, Divergence: models.DivergenceRight},
 				{Name: "commit3", Hash: "hash3r", Parents: []string{"hash4r"}, Divergence: models.DivergenceRight},
@@ -406,7 +380,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		↓ hash3r ◯ │ commit3
@@ -419,7 +392,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "graph in divergence view - not all local commits",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1r", Parents: []string{"hash2r"}, Divergence: models.DivergenceRight},
 				{Name: "commit2", Hash: "hash2r", Parents: []string{"hash3r", "hash5r"}, Divergence: models.DivergenceRight},
 				{Name: "commit3", Hash: "hash3r", Parents: []string{"hash4r"}, Divergence: models.DivergenceRight},
@@ -434,7 +407,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		↓ hash1r ◯ commit1
@@ -446,7 +418,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "graph in divergence view - no remote commits visible",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1r", Parents: []string{"hash2r"}, Divergence: models.DivergenceRight},
 				{Name: "commit2", Hash: "hash2r", Parents: []string{"hash3r", "hash5r"}, Divergence: models.DivergenceRight},
 				{Name: "commit3", Hash: "hash3r", Parents: []string{"hash4r"}, Divergence: models.DivergenceRight},
@@ -461,7 +433,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		↑ hash2l ⏣─╮ commit2
@@ -472,7 +443,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "graph in divergence view - no local commits visible",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1r", Parents: []string{"hash2r"}, Divergence: models.DivergenceRight},
 				{Name: "commit2", Hash: "hash2r", Parents: []string{"hash3r", "hash5r"}, Divergence: models.DivergenceRight},
 				{Name: "commit3", Hash: "hash3r", Parents: []string{"hash4r"}, Divergence: models.DivergenceRight},
@@ -487,7 +458,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		↓ hash1r ◯ commit1
@@ -496,7 +466,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "graph in divergence view - no remote commits present",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1l", Parents: []string{"hash2l"}, Divergence: models.DivergenceLeft},
 				{Name: "commit2", Hash: "hash2l", Parents: []string{"hash3l", "hash4l"}, Divergence: models.DivergenceLeft},
 				{Name: "commit3", Hash: "hash3l", Parents: []string{"hash4l"}, Divergence: models.DivergenceLeft},
@@ -508,7 +478,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		↑ hash1l ◯ commit1
@@ -520,7 +489,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "graph in divergence view - no local commits present",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1r", Parents: []string{"hash2r"}, Divergence: models.DivergenceRight},
 				{Name: "commit2", Hash: "hash2r", Parents: []string{"hash3r", "hash5r"}, Divergence: models.DivergenceRight},
 				{Name: "commit3", Hash: "hash3r", Parents: []string{"hash4r"}, Divergence: models.DivergenceRight},
@@ -530,7 +499,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                 true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
-			showYouAreHereLabel:       false,
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		↓ hash1r ◯ commit1
@@ -540,7 +508,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		},
 		{
 			testName: "custom time format",
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1", UnixTimestamp: 1577844184, AuthorName: "Jesse Duffield"},
 				{Name: "commit2", Hash: "hash2", UnixTimestamp: 1576844184, AuthorName: "Jesse Duffield"},
 			},
@@ -572,14 +540,19 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		}
 	}
 
-	common := utils.NewDummyCommon()
+	common := common.NewDummyCommon()
 
 	for _, s := range scenarios {
 		if !focusing || s.focus {
 			t.Run(s.testName, func(t *testing.T) {
+				hashPool := &utils.StringPool{}
+
+				commits := lo.Map(s.commitOpts,
+					func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
+
 				result := GetCommitListDisplayStrings(
 					common,
-					s.commits,
+					commits,
 					s.branches,
 					s.currentBranchName,
 					s.hasUpdateRefConfig,
@@ -591,12 +564,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 					s.shortTimeFormat,
 					s.now,
 					s.parseEmoji,
-					s.selectedCommitHash,
+					s.selectedCommitHashPtr,
 					s.startIdx,
 					s.endIdx,
 					s.showGraph,
 					s.bisectInfo,
-					s.showYouAreHereLabel,
 				)
 
 				renderedLines, _ := utils.RenderDisplayStrings(result, nil)

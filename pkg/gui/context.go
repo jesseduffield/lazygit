@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"errors"
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -37,9 +36,9 @@ func NewContextMgr(
 
 // use when you don't want to return to the original context upon
 // hitting escape: you want to go that context's parent instead.
-func (self *ContextMgr) Replace(c types.Context) error {
+func (self *ContextMgr) Replace(c types.Context) {
 	if !c.IsFocusable() {
-		return nil
+		return
 	}
 
 	self.Lock()
@@ -51,39 +50,25 @@ func (self *ContextMgr) Replace(c types.Context) error {
 		self.ContextStack = append(self.ContextStack[0:len(self.ContextStack)-1], c)
 	}
 
-	defer self.Unlock()
+	self.Unlock()
 
-	return self.ActivateContext(c, types.OnFocusOpts{})
+	self.Activate(c, types.OnFocusOpts{})
 }
 
-func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) error {
-	if len(opts) > 1 {
-		return errors.New("cannot pass multiple opts to Push")
-	}
-
-	singleOpts := types.OnFocusOpts{}
-	if len(opts) > 0 {
-		// using triple dot but you should only ever pass one of these opt structs
-		singleOpts = opts[0]
-	}
-
+func (self *ContextMgr) Push(c types.Context, opts types.OnFocusOpts) {
 	if !c.IsFocusable() {
-		return nil
+		return
 	}
 
 	contextsToDeactivate, contextToActivate := self.pushToContextStack(c)
 
 	for _, contextToDeactivate := range contextsToDeactivate {
-		if err := self.deactivateContext(contextToDeactivate, types.OnFocusLostOpts{NewContextKey: c.GetKey()}); err != nil {
-			return err
-		}
+		self.deactivate(contextToDeactivate, types.OnFocusLostOpts{NewContextKey: c.GetKey()})
 	}
 
-	if contextToActivate == nil {
-		return nil
+	if contextToActivate != nil {
+		self.Activate(contextToActivate, opts)
 	}
-
-	return self.ActivateContext(contextToActivate, singleOpts)
 }
 
 // Adjusts the context stack based on the context that's being pushed and
@@ -144,13 +129,13 @@ func (self *ContextMgr) pushToContextStack(c types.Context) ([]types.Context, ty
 	return contextsToDeactivate, c
 }
 
-func (self *ContextMgr) Pop() error {
+func (self *ContextMgr) Pop() {
 	self.Lock()
 
 	if len(self.ContextStack) == 1 {
 		// cannot escape from bottommost context
 		self.Unlock()
-		return nil
+		return
 	}
 
 	var currentContext types.Context
@@ -160,44 +145,12 @@ func (self *ContextMgr) Pop() error {
 
 	self.Unlock()
 
-	if err := self.deactivateContext(currentContext, types.OnFocusLostOpts{NewContextKey: newContext.GetKey()}); err != nil {
-		return err
-	}
+	self.deactivate(currentContext, types.OnFocusLostOpts{NewContextKey: newContext.GetKey()})
 
-	return self.ActivateContext(newContext, types.OnFocusOpts{})
+	self.Activate(newContext, types.OnFocusOpts{})
 }
 
-func (self *ContextMgr) RemoveContexts(contextsToRemove []types.Context) error {
-	self.Lock()
-
-	if len(self.ContextStack) == 1 {
-		self.Unlock()
-		return nil
-	}
-
-	rest := lo.Filter(self.ContextStack, func(context types.Context, _ int) bool {
-		for _, contextToRemove := range contextsToRemove {
-			if context.GetKey() == contextToRemove.GetKey() {
-				return false
-			}
-		}
-		return true
-	})
-	self.ContextStack = rest
-	contextToActivate := rest[len(rest)-1]
-	self.Unlock()
-
-	for _, context := range contextsToRemove {
-		if err := self.deactivateContext(context, types.OnFocusLostOpts{NewContextKey: contextToActivate.GetKey()}); err != nil {
-			return err
-		}
-	}
-
-	// activate the item at the top of the stack
-	return self.ActivateContext(contextToActivate, types.OnFocusOpts{})
-}
-
-func (self *ContextMgr) deactivateContext(c types.Context, opts types.OnFocusLostOpts) error {
+func (self *ContextMgr) deactivate(c types.Context, opts types.OnFocusLostOpts) {
 	view, _ := self.gui.c.GocuiGui().View(c.GetViewName())
 
 	if opts.NewContextKey != context.SEARCH_CONTEXT_KEY {
@@ -213,18 +166,14 @@ func (self *ContextMgr) deactivateContext(c types.Context, opts types.OnFocusLos
 		view.Visible = false
 	}
 
-	if err := c.HandleFocusLost(opts); err != nil {
-		return err
-	}
-
-	return nil
+	c.HandleFocusLost(opts)
 }
 
-func (self *ContextMgr) ActivateContext(c types.Context, opts types.OnFocusOpts) error {
+func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) {
 	viewName := c.GetViewName()
 	v, err := self.gui.c.GocuiGui().View(viewName)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	self.gui.helpers.Window.SetWindowContext(c)
@@ -235,7 +184,7 @@ func (self *ContextMgr) ActivateContext(c types.Context, opts types.OnFocusOpts)
 		oldView.HighlightInactive = true
 	}
 	if _, err := self.gui.c.GocuiGui().SetCurrentView(viewName); err != nil {
-		return err
+		panic(err)
 	}
 
 	self.gui.helpers.Search.RenderSearchStatus(c)
@@ -249,11 +198,7 @@ func (self *ContextMgr) ActivateContext(c types.Context, opts types.OnFocusOpts)
 
 	self.gui.c.GocuiGui().Cursor = v.Editable
 
-	if err := c.HandleFocus(opts); err != nil {
-		return err
-	}
-
-	return nil
+	c.HandleFocus(opts)
 }
 
 func (self *ContextMgr) Current() types.Context {
@@ -330,6 +275,18 @@ func (self *ContextMgr) IsCurrent(c types.Context) bool {
 	return self.Current().GetKey() == c.GetKey()
 }
 
+func (self *ContextMgr) IsCurrentOrParent(c types.Context) bool {
+	current := self.Current()
+	for current != nil {
+		if current.GetKey() == c.GetKey() {
+			return true
+		}
+		current = current.GetParentContext()
+	}
+
+	return false
+}
+
 func (self *ContextMgr) AllFilterable() []types.IFilterableContext {
 	var result []types.IFilterableContext
 
@@ -390,4 +347,29 @@ func (self *ContextMgr) ContextForKey(key types.ContextKey) types.Context {
 	}
 
 	return nil
+}
+
+func (self *ContextMgr) CurrentPopup() []types.Context {
+	self.RLock()
+	defer self.RUnlock()
+
+	return lo.Filter(self.ContextStack, func(context types.Context, _ int) bool {
+		return context.GetKind() == types.TEMPORARY_POPUP || context.GetKind() == types.PERSISTENT_POPUP
+	})
+}
+
+func (self *ContextMgr) NextInStack(c types.Context) types.Context {
+	self.RLock()
+	defer self.RUnlock()
+
+	for i := range self.ContextStack {
+		if self.ContextStack[i].GetKey() == c.GetKey() {
+			if i == 0 {
+				return nil
+			}
+			return self.ContextStack[i-1]
+		}
+	}
+
+	panic("context not in stack")
 }

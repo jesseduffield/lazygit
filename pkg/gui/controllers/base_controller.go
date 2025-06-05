@@ -19,14 +19,18 @@ func (self *baseController) GetOnClick() func() error {
 	return nil
 }
 
-func (self *baseController) GetOnRenderToMain() func() error {
+func (self *baseController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
 	return nil
 }
 
-func (self *baseController) GetOnFocus() func(types.OnFocusOpts) error {
+func (self *baseController) GetOnRenderToMain() func() {
 	return nil
 }
 
-func (self *baseController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
+func (self *baseController) GetOnFocus() func(types.OnFocusOpts) {
+	return nil
+}
+
+func (self *baseController) GetOnFocusLost() func(types.OnFocusLostOpts) {
 	return nil
 }

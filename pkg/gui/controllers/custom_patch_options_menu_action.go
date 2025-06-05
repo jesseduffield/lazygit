@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type CustomPatchOptionsMenuAction struct {
@@ -44,10 +44,10 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 		},
 	}
 
-	if self.c.Git().Patch.PatchBuilder.CanRebase && self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_NONE {
+	if self.c.Git().Patch.PatchBuilder.CanRebase && self.c.Git().Status.WorkingTreeState().None() {
 		menuItems = append(menuItems, []*types.MenuItem{
 			{
-				Label:   fmt.Sprintf(self.c.Tr.RemovePatchFromOriginalCommit, self.c.Git().Patch.PatchBuilder.To),
+				Label:   fmt.Sprintf(self.c.Tr.RemovePatchFromOriginalCommit, utils.ShortHash(self.c.Git().Patch.PatchBuilder.To)),
 				Tooltip: self.c.Tr.RemovePatchFromOriginalCommitTooltip,
 				OnPress: self.handleDeletePatchFromCommit,
 				Key:     'd',
@@ -64,11 +64,17 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 				OnPress: self.handlePullPatchIntoNewCommit,
 				Key:     'n',
 			},
+			{
+				Label:   self.c.Tr.MovePatchIntoNewCommitBefore,
+				Tooltip: self.c.Tr.MovePatchIntoNewCommitBeforeTooltip,
+				OnPress: self.handlePullPatchIntoNewCommitBefore,
+				Key:     'N',
+			},
 		}...)
 
-		if self.c.CurrentContext().GetKey() == self.c.Contexts().LocalCommits.GetKey() {
+		if self.c.Context().Current().GetKey() == self.c.Contexts().LocalCommits.GetKey() {
 			selectedCommit := self.c.Contexts().LocalCommits.GetSelected()
-			if selectedCommit != nil && self.c.Git().Patch.PatchBuilder.To != selectedCommit.Hash {
+			if selectedCommit != nil && self.c.Git().Patch.PatchBuilder.To != selectedCommit.Hash() {
 
 				var disabledReason *types.DisabledReason
 				if self.c.Contexts().LocalCommits.AreMultipleItemsSelected() {
@@ -81,7 +87,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 					append(
 						[]*types.MenuItem{
 							{
-								Label:          fmt.Sprintf(self.c.Tr.MovePatchToSelectedCommit, selectedCommit.Hash),
+								Label:          fmt.Sprintf(self.c.Tr.MovePatchToSelectedCommit, selectedCommit.Hash()),
 								Tooltip:        self.c.Tr.MovePatchToSelectedCommitTooltip,
 								OnPress:        self.handleMovePatchToSelectedCommit,
 								Key:            'm',
@@ -107,7 +113,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 
 func (self *CustomPatchOptionsMenuAction) getPatchCommitIndex() int {
 	for index, commit := range self.c.Model().Commits {
-		if commit.Hash == self.c.Git().Patch.PatchBuilder.To {
+		if commit.Hash() == self.c.Git().Patch.PatchBuilder.To {
 			return index
 		}
 	}
@@ -115,17 +121,16 @@ func (self *CustomPatchOptionsMenuAction) getPatchCommitIndex() int {
 }
 
 func (self *CustomPatchOptionsMenuAction) validateNormalWorkingTreeState() (bool, error) {
-	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+	if self.c.Git().Status.WorkingTreeState().Any() {
 		return false, errors.New(self.c.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil
 }
 
-func (self *CustomPatchOptionsMenuAction) returnFocusFromPatchExplorerIfNecessary() error {
-	if self.c.CurrentContext().GetKey() == self.c.Contexts().CustomPatchBuilder.GetKey() {
-		return self.c.Helpers().PatchBuilding.Escape()
+func (self *CustomPatchOptionsMenuAction) returnFocusFromPatchExplorerIfNecessary() {
+	if self.c.Context().Current().GetKey() == self.c.Contexts().CustomPatchBuilder.GetKey() {
+		self.c.Helpers().PatchBuilding.Escape()
 	}
-	return nil
 }
 
 func (self *CustomPatchOptionsMenuAction) handleDeletePatchFromCommit() error {
@@ -133,9 +138,7 @@ func (self *CustomPatchOptionsMenuAction) handleDeletePatchFromCommit() error {
 		return err
 	}
 
-	if err := self.returnFocusFromPatchExplorerIfNecessary(); err != nil {
-		return err
-	}
+	self.returnFocusFromPatchExplorerIfNecessary()
 
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		commitIndex := self.getPatchCommitIndex()
@@ -150,9 +153,7 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchToSelectedCommit() erro
 		return err
 	}
 
-	if err := self.returnFocusFromPatchExplorerIfNecessary(); err != nil {
-		return err
-	}
+	self.returnFocusFromPatchExplorerIfNecessary()
 
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		commitIndex := self.getPatchCommitIndex()
@@ -167,9 +168,7 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error
 		return err
 	}
 
-	if err := self.returnFocusFromPatchExplorerIfNecessary(); err != nil {
-		return err
-	}
+	self.returnFocusFromPatchExplorerIfNecessary()
 
 	pull := func(stash bool) error {
 		return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
@@ -181,13 +180,15 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error
 	}
 
 	if self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
-		return self.c.Confirm(types.ConfirmOpts{
+		self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.MustStashTitle,
 			Prompt: self.c.Tr.MustStashWarning,
 			HandleConfirm: func() error {
 				return pull(true)
 			},
 		})
+
+		return nil
 	} else {
 		return pull(false)
 	}
@@ -198,12 +199,10 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 		return err
 	}
 
-	if err := self.returnFocusFromPatchExplorerIfNecessary(); err != nil {
-		return err
-	}
+	self.returnFocusFromPatchExplorerIfNecessary()
 
 	commitIndex := self.getPatchCommitIndex()
-	return self.c.Helpers().Commits.OpenCommitMessagePanel(
+	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
 			// Pass a commit index of one less than the moved-from commit, so that
 			// you can press up arrow once to recall the original commit message:
@@ -214,23 +213,59 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 			PreserveMessage:  false,
 			OnConfirm: func(summary string, description string) error {
 				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
-					_ = self.c.Helpers().Commits.PopCommitMessageContexts()
+					self.c.Helpers().Commits.CloseCommitMessagePanel()
 					self.c.LogAction(self.c.Tr.Actions.MovePatchIntoNewCommit)
 					err := self.c.Git().Patch.PullPatchIntoNewCommit(self.c.Model().Commits, commitIndex, summary, description)
 					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 						return err
 					}
-					return self.c.PushContext(self.c.Contexts().LocalCommits)
+					self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
+					return nil
 				})
 			},
 		},
 	)
+
+	return nil
+}
+
+func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommitBefore() error {
+	if ok, err := self.validateNormalWorkingTreeState(); !ok {
+		return err
+	}
+
+	self.returnFocusFromPatchExplorerIfNecessary()
+
+	commitIndex := self.getPatchCommitIndex()
+	self.c.Helpers().Commits.OpenCommitMessagePanel(
+		&helpers.OpenCommitMessagePanelOpts{
+			// Pass a commit index of one less than the moved-from commit, so that
+			// you can press up arrow once to recall the original commit message:
+			CommitIndex:      commitIndex - 1,
+			InitialMessage:   "",
+			SummaryTitle:     self.c.Tr.CommitSummaryTitle,
+			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
+			PreserveMessage:  false,
+			OnConfirm: func(summary string, description string) error {
+				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+					self.c.Helpers().Commits.CloseCommitMessagePanel()
+					self.c.LogAction(self.c.Tr.Actions.MovePatchIntoNewCommit)
+					err := self.c.Git().Patch.PullPatchIntoNewCommitBefore(self.c.Model().Commits, commitIndex, summary, description)
+					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
+						return err
+					}
+					self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
+					return nil
+				})
+			},
+		},
+	)
+
+	return nil
 }
 
 func (self *CustomPatchOptionsMenuAction) handleApplyPatch(reverse bool) error {
-	if err := self.returnFocusFromPatchExplorerIfNecessary(); err != nil {
-		return err
-	}
+	self.returnFocusFromPatchExplorerIfNecessary()
 
 	action := self.c.Tr.Actions.ApplyPatch
 	if reverse {

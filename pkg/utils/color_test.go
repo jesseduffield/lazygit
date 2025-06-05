@@ -2,6 +2,8 @@ package utils
 
 import (
 	"testing"
+
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
 func TestDecolorise(t *testing.T) {
@@ -188,6 +190,10 @@ func TestDecolorise(t *testing.T) {
 		{
 			input:  "\x1b[38;2;157;205;18mta\x1b[0m",
 			output: "ta",
+		},
+		{
+			input:  "a_" + style.PrintSimpleHyperlink("xyz") + "_b",
+			output: "a_xyz_b",
 		},
 	}
 

@@ -2,7 +2,7 @@ package git_commands
 
 import (
 	ioFs "io/fs"
-	"path"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -18,6 +18,7 @@ type RepoPaths struct {
 	repoPath           string
 	repoGitDirPath     string
 	repoName           string
+	isBareRepo         bool
 }
 
 var gitPathFormatVersion GitVersion = GitVersion{2, 31, 0, ""}
@@ -54,14 +55,19 @@ func (self *RepoPaths) RepoName() string {
 	return self.repoName
 }
 
+func (self *RepoPaths) IsBareRepo() bool {
+	return self.isBareRepo
+}
+
 // Returns the repo paths for a typical repo
 func MockRepoPaths(currentPath string) *RepoPaths {
 	return &RepoPaths{
 		worktreePath:       currentPath,
-		worktreeGitDirPath: path.Join(currentPath, ".git"),
+		worktreeGitDirPath: filepath.Join(currentPath, ".git"),
 		repoPath:           currentPath,
-		repoGitDirPath:     path.Join(currentPath, ".git"),
+		repoGitDirPath:     filepath.Join(currentPath, ".git"),
 		repoName:           "lazygit",
+		isBareRepo:         false,
 	}
 }
 
@@ -69,7 +75,19 @@ func GetRepoPaths(
 	cmd oscommands.ICmdObjBuilder,
 	version *GitVersion,
 ) (*RepoPaths, error) {
-	gitDirOutput, err := callGitRevParse(cmd, version, "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree")
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	return GetRepoPathsForDir(cwd, cmd, version)
+}
+
+func GetRepoPathsForDir(
+	dir string,
+	cmd oscommands.ICmdObjBuilder,
+	version *GitVersion,
+) (*RepoPaths, error) {
+	gitDirOutput, err := callGitRevParseWithDir(cmd, version, dir, "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
 	if err != nil {
 		return nil, err
 	}
@@ -84,21 +102,22 @@ func GetRepoPaths(
 			return nil, err
 		}
 	}
+	isBareRepo := gitDirResults[3] == "true"
 
 	// If we're in a submodule, --show-superproject-working-tree will return
-	// a value, meaning gitDirResults will be length 4. In that case
+	// a value, meaning gitDirResults will be length 5. In that case
 	// return the worktree path as the repoPath. Otherwise we're in a
 	// normal repo or a worktree so return the parent of the git common
 	// dir (repoGitDirPath)
-	isSubmodule := len(gitDirResults) == 4
+	isSubmodule := len(gitDirResults) == 5
 
 	var repoPath string
 	if isSubmodule {
 		repoPath = worktreePath
 	} else {
-		repoPath = path.Dir(repoGitDirPath)
+		repoPath = filepath.Dir(repoGitDirPath)
 	}
-	repoName := path.Base(repoPath)
+	repoName := filepath.Base(repoPath)
 
 	return &RepoPaths{
 		worktreePath:       worktreePath,
@@ -106,15 +125,8 @@ func GetRepoPaths(
 		repoPath:           repoPath,
 		repoGitDirPath:     repoGitDirPath,
 		repoName:           repoName,
+		isBareRepo:         isBareRepo,
 	}, nil
-}
-
-func callGitRevParse(
-	cmd oscommands.ICmdObjBuilder,
-	version *GitVersion,
-	gitRevArgs ...string,
-) (string, error) {
-	return callGitRevParseWithDir(cmd, version, "", gitRevArgs...)
 }
 
 func callGitRevParseWithDir(
@@ -141,7 +153,7 @@ func linkedWortkreePaths(fs afero.Fs, repoGitDirPath string) []string {
 	result := []string{}
 	// For each directory in this path we're going to cat the `gitdir` file and append its contents to our result
 	// That file points us to the `.git` file in the worktree.
-	worktreeGitDirsPath := path.Join(repoGitDirPath, "worktrees")
+	worktreeGitDirsPath := filepath.Join(repoGitDirPath, "worktrees")
 
 	// ensure the directory exists
 	_, err := fs.Stat(worktreeGitDirsPath)
@@ -158,7 +170,7 @@ func linkedWortkreePaths(fs afero.Fs, repoGitDirPath string) []string {
 			return nil
 		}
 
-		gitDirPath := path.Join(currPath, "gitdir")
+		gitDirPath := filepath.Join(currPath, "gitdir")
 		gitDirBytes, err := afero.ReadFile(fs, gitDirPath)
 		if err != nil {
 			// ignoring error
@@ -166,7 +178,7 @@ func linkedWortkreePaths(fs afero.Fs, repoGitDirPath string) []string {
 		}
 		trimmedGitDir := strings.TrimSpace(string(gitDirBytes))
 		// removing the .git part
-		worktreeDir := path.Dir(trimmedGitDir)
+		worktreeDir := filepath.Dir(trimmedGitDir)
 		result = append(result, worktreeDir)
 		return nil
 	})

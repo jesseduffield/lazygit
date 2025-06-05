@@ -18,7 +18,7 @@ func NewSuggestionsController(
 ) *SuggestionsController {
 	return &SuggestionsController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*types.Suggestion](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Suggestions,
 			c.Contexts().Suggestions.GetSelected,
@@ -40,11 +40,8 @@ func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []
 			Handler: func() error { return self.context().State.OnClose() },
 		},
 		{
-			Key: opts.GetKey(opts.Config.Universal.TogglePanel),
-			Handler: func() error {
-				self.c.Views().Suggestions.Subtitle = ""
-				return self.c.ReplaceContext(self.c.Contexts().Confirmation)
-			},
+			Key:     opts.GetKey(opts.Config.Universal.TogglePanel),
+			Handler: self.switchToConfirmation,
 		},
 		{
 			Key: opts.GetKey(opts.Config.Universal.Remove),
@@ -61,7 +58,7 @@ func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []
 						self.c.Contexts().Confirmation.GetView().TextArea.TypeString(selectedItem.Value)
 						self.c.Contexts().Confirmation.GetView().RenderTextArea()
 						self.c.Contexts().Suggestions.RefreshSuggestions()
-						return self.c.ReplaceContext(self.c.Contexts().Confirmation)
+						return self.switchToConfirmation()
 					}
 				}
 				return nil
@@ -72,10 +69,16 @@ func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []
 	return bindings
 }
 
-func (self *SuggestionsController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
-	return func(types.OnFocusLostOpts) error {
+func (self *SuggestionsController) switchToConfirmation() error {
+	self.c.Views().Suggestions.Subtitle = ""
+	self.c.Views().Suggestions.Highlight = false
+	self.c.Context().Replace(self.c.Contexts().Confirmation)
+	return nil
+}
+
+func (self *SuggestionsController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
 		self.c.Helpers().Confirmation.DeactivateConfirmationPrompt()
-		return nil
 	}
 }
 

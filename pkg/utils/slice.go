@@ -179,3 +179,18 @@ func Shift[T any](slice []T) (T, []T) {
 	slice = slice[1:]
 	return value, slice
 }
+
+// Compares two slices for equality
+func EqualSlices[T comparable](slice1 []T, slice2 []T) bool {
+	if len(slice1) != len(slice2) {
+		return false
+	}
+
+	for i := range slice1 {
+		if slice1[i] != slice2[i] {
+			return false
+		}
+	}
+
+	return true
+}

@@ -8,14 +8,14 @@ import (
 // This case is identical to dotfile_bare_repo.go, except
 // that it invokes lazygit with $GIT_DIR set but not
 // $GIT_WORK_TREE. Instead, the repo uses the core.worktree
-// config to identify the main worktre.
+// config to identify the main worktree.
 
 var BareRepoWorktreeConfig = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Open lazygit in the worktree of a vcsh-style bare repo and add a file and commit",
 	ExtraCmdArgs: []string{"--git-dir={{.actualPath}}/.bare"},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.Gui.ShowFileTree = false
+		config.GetUserConfig().Gui.ShowFileTree = false
 	},
 	SetupRepo: func(shell *Shell) {
 		// we're going to have a directory structure like this:

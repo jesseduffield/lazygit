@@ -1,13 +1,14 @@
 package filetree
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
-	"github.com/sirupsen/logrus"
 )
 
 type ICommitFileTreeViewModel interface {
@@ -16,6 +17,8 @@ type ICommitFileTreeViewModel interface {
 
 	GetRef() types.Ref
 	SetRef(types.Ref)
+	GetRefRange() *types.RefRange // can be nil, in which case GetRef should be used
+	SetRefRange(*types.RefRange)  // should be set to nil when selection is not a range
 	GetCanRebase() bool
 	SetCanRebase(bool)
 }
@@ -25,8 +28,13 @@ type CommitFileTreeViewModel struct {
 	types.IListCursor
 	ICommitFileTree
 
-	// this is e.g. the commit for which we're viewing the files
+	// this is e.g. the commit for which we're viewing the files, if there is no
+	// range selection, or if the range selection can't be used for some reason
 	ref types.Ref
+
+	// this is a commit range for which we're viewing the files. Can be nil, in
+	// which case ref is used.
+	refRange *types.RefRange
 
 	// we set this to true when you're viewing the files within the checked-out branch's commits.
 	// If you're viewing the files of some random other branch we can't do any rebase stuff.
@@ -35,13 +43,14 @@ type CommitFileTreeViewModel struct {
 
 var _ ICommitFileTreeViewModel = &CommitFileTreeViewModel{}
 
-func NewCommitFileTreeViewModel(getFiles func() []*models.CommitFile, log *logrus.Entry, showTree bool) *CommitFileTreeViewModel {
-	fileTree := NewCommitFileTree(getFiles, log, showTree)
+func NewCommitFileTreeViewModel(getFiles func() []*models.CommitFile, common *common.Common, showTree bool) *CommitFileTreeViewModel {
+	fileTree := NewCommitFileTree(getFiles, common, showTree)
 	listCursor := traits.NewListCursor(fileTree.Len)
 	return &CommitFileTreeViewModel{
 		ICommitFileTree: fileTree,
 		IListCursor:     listCursor,
 		ref:             nil,
+		refRange:        nil,
 		canRebase:       false,
 	}
 }
@@ -52,6 +61,14 @@ func (self *CommitFileTreeViewModel) GetRef() types.Ref {
 
 func (self *CommitFileTreeViewModel) SetRef(ref types.Ref) {
 	self.ref = ref
+}
+
+func (self *CommitFileTreeViewModel) GetRefRange() *types.RefRange {
+	return self.refRange
+}
+
+func (self *CommitFileTreeViewModel) SetRefRange(refsForRange *types.RefRange) {
+	self.refRange = refsForRange
 }
 
 func (self *CommitFileTreeViewModel) GetCanRebase() bool {
@@ -131,16 +148,46 @@ func (self *CommitFileTreeViewModel) ToggleShowTree() {
 	if selectedNode == nil {
 		return
 	}
-	path := selectedNode.Path
+	path := selectedNode.path
 
 	if self.InTreeMode() {
 		self.ExpandToPath(path)
 	} else if len(selectedNode.Children) > 0 {
-		path = selectedNode.GetLeaves()[0].Path
+		path = selectedNode.GetLeaves()[0].path
 	}
 
 	index, found := self.GetIndexForPath(path)
 	if found {
 		self.SetSelection(index)
+	}
+}
+
+func (self *CommitFileTreeViewModel) CollapseAll() {
+	selectedNode := self.GetSelected()
+
+	self.ICommitFileTree.CollapseAll()
+	if selectedNode == nil {
+		return
+	}
+
+	topLevelPath := strings.Split(selectedNode.path, "/")[0]
+	index, found := self.GetIndexForPath(topLevelPath)
+	if found {
+		self.SetSelectedLineIdx(index)
+	}
+}
+
+func (self *CommitFileTreeViewModel) ExpandAll() {
+	selectedNode := self.GetSelected()
+
+	self.ICommitFileTree.ExpandAll()
+
+	if selectedNode == nil {
+		return
+	}
+
+	index, found := self.GetIndexForPath(selectedNode.path)
+	if found {
+		self.SetSelectedLineIdx(index)
 	}
 }

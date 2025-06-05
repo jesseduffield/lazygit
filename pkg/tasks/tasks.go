@@ -70,6 +70,9 @@ type LinesToRead struct {
 	// do an initial refresh. Only set for the initial read request; -1 for
 	// subsequent requests.
 	InitialRefreshAfter int
+
+	// Function to call after reading the lines is done
+	Then func()
 }
 
 func (m *ViewBufferManager) GetTaskKey() string {
@@ -91,16 +94,28 @@ func NewViewBufferManager(
 		beforeStart:  beforeStart,
 		refreshView:  refreshView,
 		onEndOfInput: onEndOfInput,
-		readLines:    make(chan LinesToRead, 1024),
+		readLines:    nil,
 		onNewKey:     onNewKey,
 		newGocuiTask: newGocuiTask,
 	}
 }
 
 func (self *ViewBufferManager) ReadLines(n int) {
-	go utils.Safe(func() {
-		self.readLines <- LinesToRead{Total: n, InitialRefreshAfter: -1}
-	})
+	if self.readLines != nil {
+		go utils.Safe(func() {
+			self.readLines <- LinesToRead{Total: n, InitialRefreshAfter: -1}
+		})
+	}
+}
+
+func (self *ViewBufferManager) ReadToEnd(then func()) {
+	if self.readLines != nil {
+		go utils.Safe(func() {
+			self.readLines <- LinesToRead{Total: -1, InitialRefreshAfter: -1, Then: then}
+		})
+	} else if then != nil {
+		then()
+	}
 }
 
 func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), prefix string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
@@ -137,29 +152,36 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 		cmd, r := start()
 		timeToStart := time.Since(startTime)
 
-		go utils.Safe(func() {
-			<-opts.Stop
-			// we use the time it took to start the program as a way of checking if things
-			// are running slow at the moment. This is admittedly a crude estimate, but
-			// the point is that we only want to throttle when things are running slow
-			// and the user is flicking through a bunch of items.
-			self.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
-			if err := oscommands.Kill(cmd); err != nil {
-				if !strings.Contains(err.Error(), "process already finished") {
-					self.Log.Errorf("error when running cmd task: %v", err)
-				}
-			}
+		done := make(chan struct{})
 
-			// for pty's we need to call onDone here so that cmd.Wait() doesn't block forever
-			onDone()
+		go utils.Safe(func() {
+			select {
+			case <-done:
+				// The command finished and did not have to be preemptively stopped before the next command.
+				// No need to throttle.
+				self.throttle = false
+			case <-opts.Stop:
+				// we use the time it took to start the program as a way of checking if things
+				// are running slow at the moment. This is admittedly a crude estimate, but
+				// the point is that we only want to throttle when things are running slow
+				// and the user is flicking through a bunch of items.
+				self.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
+
+				// Kill the still-running command.
+				if err := oscommands.Kill(cmd); err != nil {
+					if !strings.Contains(err.Error(), "process already finished") {
+						self.Log.Errorf("error when trying to kill cmd task: %v; Command: %v %v", err, cmd.Path, cmd.Args)
+					}
+				}
+
+				// for pty's we need to call onDone here so that cmd.Wait() doesn't block forever
+				onDone()
+			}
 		})
 
 		loadingMutex := deadlock.Mutex{}
 
-		// not sure if it's the right move to redefine this or not
 		self.readLines = make(chan LinesToRead, 1024)
-
-		done := make(chan struct{})
 
 		scanner := bufio.NewScanner(r)
 		scanner.Split(utils.ScanLinesAndTruncateWhenLongerThanBuffer(bufio.MaxScanTokenSize))
@@ -225,11 +247,17 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				case <-opts.Stop:
 					break outer
 				case linesToRead := <-self.readLines:
-					for i := 0; i < linesToRead.Total; i++ {
+					callThen := func() {
+						if linesToRead.Then != nil {
+							linesToRead.Then()
+						}
+					}
+					for i := 0; linesToRead.Total == -1 || i < linesToRead.Total; i++ {
 						var ok bool
 						var line []byte
 						select {
 						case <-opts.Stop:
+							callThen()
 							break outer
 						case line, ok = <-lineChan:
 							break
@@ -249,6 +277,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 							// if we're here then there's nothing left to scan from the source
 							// so we're at the EOF and can flush the stale content
 							self.onEndOfInput()
+							callThen()
 							break outer
 						}
 						writeToView(append(line, '\n'))
@@ -263,14 +292,19 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 					}
 					refreshViewIfStale()
 					onFirstPageShown()
+					callThen()
 				}
 			}
+
+			self.readLines = nil
 
 			refreshViewIfStale()
 
 			if err := cmd.Wait(); err != nil {
-				// it's fine if we've killed this program ourselves
-				if !strings.Contains(err.Error(), "signal: killed") {
+				select {
+				case <-opts.Stop:
+					// it's fine if we've killed this program ourselves
+				default:
 					self.Log.Errorf("Unexpected error when running cmd task: %v; Failed command: %v %v", err, cmd.Path, cmd.Args)
 				}
 			}
@@ -363,6 +397,8 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		if self.stopCurrentTask != nil {
 			self.stopCurrentTask()
 		}
+
+		self.readLines = nil
 
 		stop := make(chan struct{})
 		notifyStopped := make(chan struct{})

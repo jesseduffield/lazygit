@@ -8,12 +8,7 @@ import (
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,
 // so that we can open the same repo via the 'recent repos' menu
 func (gui *Gui) updateRecentRepoList() error {
-	isBareRepo, err := gui.git.Status.IsBareRepo()
-	if err != nil {
-		return err
-	}
-
-	if isBareRepo {
+	if gui.git.Status.IsBareRepo() {
 		// we could totally do this but it would require storing both the git-dir and the
 		// worktree in our recent repos list, which is a change that would need to be
 		// backwards compatible
@@ -26,8 +21,7 @@ func (gui *Gui) updateRecentRepoList() error {
 	if err != nil {
 		return err
 	}
-	known, recentRepos := newRecentReposList(recentRepos, currentRepo)
-	gui.IsNewRepo = known
+	recentRepos = newRecentReposList(recentRepos, currentRepo)
 	// TODO: migrate this file to use forward slashes on all OSes for consistency
 	// (windows uses backslashes at the moment)
 	gui.c.GetAppState().RecentRepos = recentRepos
@@ -35,8 +29,7 @@ func (gui *Gui) updateRecentRepoList() error {
 }
 
 // newRecentReposList returns a new repo list with a new entry but only when it doesn't exist yet
-func newRecentReposList(recentRepos []string, currentRepo string) (bool, []string) {
-	isNew := true
+func newRecentReposList(recentRepos []string, currentRepo string) []string {
 	newRepos := []string{currentRepo}
 	for _, repo := range recentRepos {
 		if repo != currentRepo {
@@ -44,9 +37,7 @@ func newRecentReposList(recentRepos []string, currentRepo string) (bool, []strin
 				continue
 			}
 			newRepos = append(newRepos, repo)
-		} else {
-			isNew = false
 		}
 	}
-	return isNew, newRepos
+	return newRepos
 }

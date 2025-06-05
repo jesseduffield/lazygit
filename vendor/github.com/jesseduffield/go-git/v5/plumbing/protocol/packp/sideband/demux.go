@@ -114,7 +114,7 @@ func (d *Demuxer) nextPackData() ([]byte, error) {
 
 	size := len(content)
 	if size == 0 {
-		return nil, nil
+		return nil, io.EOF
 	} else if size > d.max {
 		return nil, ErrMaxPackedExceeded
 	}

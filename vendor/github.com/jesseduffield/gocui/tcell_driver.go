@@ -155,6 +155,8 @@ type gocuiEventType uint8
 //	The 'MouseX' and 'MouseY' fields are valid if 'Type' is 'eventMouse'.
 //	The 'Width' and 'Height' fields are valid if 'Type' is 'eventResize'.
 //	The 'Focused' field is valid if 'Type' is 'eventFocus'.
+//	The 'Start' field is valid if 'Type' is 'eventPaste'. It is true for the
+//	  beginning of a paste operation, false for the end.
 //	The 'Err' field is valid if 'Type' is 'eventError'.
 type GocuiEvent struct {
 	Type    gocuiEventType
@@ -167,6 +169,7 @@ type GocuiEvent struct {
 	MouseX  int
 	MouseY  int
 	Focused bool
+	Start   bool
 	N       int
 }
 
@@ -176,7 +179,9 @@ const (
 	eventKey
 	eventResize
 	eventMouse
+	eventMouseMove // only used when no button is down, otherwise it's eventMouse
 	eventFocus
+	eventPaste
 	eventInterrupt
 	eventError
 	eventRaw
@@ -363,6 +368,7 @@ func (g *Gui) pollEvent() GocuiEvent {
 				mouseKey = MouseRight
 			case tcell.ButtonMiddle:
 				mouseKey = MouseMiddle
+			default:
 			}
 		}
 
@@ -374,17 +380,23 @@ func (g *Gui) pollEvent() GocuiEvent {
 					dragState = NOT_DRAGGING
 				case tcell.ButtonSecondary:
 				case tcell.ButtonMiddle:
+				default:
 				}
 				mouseMod = Modifier(lastMouseMod)
 				lastMouseMod = tcell.ModNone
 				lastMouseKey = tcell.ButtonNone
 			}
+		default:
 		}
 
 		if !wheeling {
 			switch dragState {
 			case NOT_DRAGGING:
-				return GocuiEvent{Type: eventNone}
+				return GocuiEvent{
+					Type:   eventMouseMove,
+					MouseX: x,
+					MouseY: y,
+				}
 			// if we haven't released the left mouse button and we've moved the cursor then we're dragging
 			case MAYBE_DRAGGING:
 				if x != lastX || y != lastY {
@@ -408,6 +420,11 @@ func (g *Gui) pollEvent() GocuiEvent {
 		return GocuiEvent{
 			Type:    eventFocus,
 			Focused: tev.Focused,
+		}
+	case *tcell.EventPaste:
+		return GocuiEvent{
+			Type:  eventPaste,
+			Start: tev.Start(),
 		}
 	default:
 		return GocuiEvent{Type: eventNone}

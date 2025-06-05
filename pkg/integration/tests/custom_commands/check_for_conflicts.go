@@ -14,12 +14,12 @@ var CheckForConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 		shared.MergeConflictsSetup(shell)
 	},
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.UserConfig.CustomCommands = []config.CustomCommand{
+		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
 				Key:     "m",
 				Context: "localBranches",
 				Command: "git merge {{ .SelectedLocalBranch.Name | quote }}",
-				After: config.CustomCommandAfterHook{
+				After: &config.CustomCommandAfterHook{
 					CheckForConflicts: true,
 				},
 			},

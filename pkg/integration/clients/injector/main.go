@@ -31,7 +31,7 @@ func main() {
 
 	integrationTest := getIntegrationTest()
 
-	if os.Getenv(components.WAIT_FOR_DEBUGGER_ENV_VAR) != "" {
+	if os.Getenv(components.WAIT_FOR_DEBUGGER_ENV_VAR) != "" && !daemon.InDaemonMode() {
 		println("Waiting for debugger to attach...")
 		for !isDebuggerAttached() {
 			time.Sleep(time.Millisecond * 100)

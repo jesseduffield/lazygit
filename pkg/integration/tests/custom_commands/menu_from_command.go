@@ -19,7 +19,7 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 			NewBranch("feature/foo")
 	},
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.UserConfig.CustomCommands = []config.CustomCommand{
+		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
 				Key:     "a",
 				Context: "localBranches",

@@ -1,4 +1,4 @@
-// Copyright 2020 The TCell Authors
+// Copyright 2024 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -16,18 +16,19 @@ package tcell
 
 // AttrMask represents a mask of text attributes, apart from color.
 // Note that support for attributes may vary widely across terminals.
-type AttrMask int
+type AttrMask uint
 
 // Attributes are not colors, but affect the display of text.  They can
-// be combined.
+// be combined, in some cases, but not others. (E.g. you can have Dim Italic,
+// but only CurlyUnderline cannot be mixed with DottedUnderline.)
 const (
 	AttrBold AttrMask = 1 << iota
 	AttrBlink
 	AttrReverse
-	AttrUnderline
+	AttrUnderline // Deprecated: Use UnderlineStyle
 	AttrDim
 	AttrItalic
 	AttrStrikeThrough
-	AttrInvalid              // Mark the style or attributes invalid
-	AttrNone    AttrMask = 0 // Just normal text.
+	AttrInvalid AttrMask = 1 << 31 // Mark the style or attributes invalid
+	AttrNone    AttrMask = 0       // Just normal text.
 )

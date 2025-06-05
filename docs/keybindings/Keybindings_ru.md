@@ -14,9 +14,11 @@ _Связки клавиш_
 | `` @ `` | Открыть меню журнала команд | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | Отправить изменения | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | Получить и слить изменения | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename. |
+| `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
 | `` } `` | Увеличить размер контекста, отображаемого вокруг изменений в просмотрщике сравнении | Increase the amount of the context shown around changes in the diff view. |
 | `` { `` | Уменьшите размер контекста, отображаемого вокруг изменений в просмотрщике сравнении | Decrease the amount of the context shown around changes in the diff view. |
-| `` : `` | Выполнить пользовательскую команду | Bring up a prompt where you can enter a shell command to execute. Not to be confused with pre-configured custom commands. |
+| `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
 | `` <c-p> `` | Просмотреть пользовательские параметры патча |  |
 | `` m `` | Просмотреть параметры слияния/перебазирования | View options to abort/continue/skip the current merge/rebase. |
 | `` R `` | Обновить | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
@@ -38,8 +40,8 @@ _Связки клавиш_
 |-----|--------|-------------|
 | `` , `` | Предыдущая страница |  |
 | `` . `` | Следующая страница |  |
-| `` < `` | Пролистать наверх |  |
-| `` > `` | Прокрутить вниз |  |
+| `` < (<home>) `` | Пролистать наверх |  |
+| `` > (<end>) `` | Прокрутить вниз |  |
 | `` v `` | Переключить выборку перетаскивания |  |
 | `` <s-down> `` | Range select down |  |
 | `` <s-up> `` | Range select up |  |
@@ -58,6 +60,14 @@ _Связки клавиш_
 | `` o `` | Open in editor |  |
 | `` d `` | Remove | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
 | `` / `` | Filter the current view by text |  |
+
+## Вторичный
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <tab> `` | Переключиться на другую панель (проиндексированные/непроиндексированные изменения) | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
+| `` / `` | Найти |  |
 
 ## Главная панель (Индексирование)
 
@@ -87,6 +97,9 @@ _Связки клавиш_
 |-----|--------|-------------|
 | `` mouse wheel down (fn+up) `` | Прокрутить вниз |  |
 | `` mouse wheel up (fn+down) `` | Прокрутить вверх |  |
+| `` <tab> `` | Переключиться на другую панель (проиндексированные/непроиндексированные изменения) | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
+| `` / `` | Найти |  |
 
 ## Главная панель (Слияние)
 
@@ -128,10 +141,15 @@ _Связки клавиш_
 | `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Открыть коммит в браузере |  |
 | `` n `` | Создать новую ветку с этого коммита |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Просмотреть параметры сброса | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Скопировать отобранные коммит (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Сбросить отобранную (скопированную | cherry-picked) выборку коммитов |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -167,9 +185,14 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Открыть коммит в браузере |  |
 | `` n `` | Создать новую ветку с этого коммита |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Просмотреть параметры сброса | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Скопировать отобранные коммит (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть файлы выбранного элемента |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Найти |  |
@@ -182,6 +205,9 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` i `` | Показать параметры git-flow |  |
 | `` <space> `` | Переключить | Checkout selected item. |
 | `` n `` | Новая ветка |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` o `` | Создать запрос на принятие изменений |  |
 | `` O `` | Создать параметры запроса принятие изменений |  |
 | `` <c-y> `` | Скопировать URL запроса на принятие изменений в буфер обмена |  |
@@ -189,13 +215,15 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` F `` | Принудительное переключение | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |
 | `` r `` | Перебазировать переключённую ветку на эту ветку | Rebase the checked-out branch onto the selected branch. |
-| `` M `` | Слияние с текущей переключённой веткой | Merge selected branch into currently checked out branch. |
+| `` M `` | Слияние с текущей переключённой веткой | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` f `` | Перемотать эту ветку вперёд из её upstream-ветки | Fast-forward selected branch from its upstream. |
 | `` T `` | Создать тег |  |
 | `` s `` | Порядок сортировки |  |
 | `` g `` | Просмотреть параметры сброса |  |
 | `` R `` | Переименовать ветку |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -224,10 +252,15 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Открыть коммит в браузере |  |
 | `` n `` | Создать новую ветку с этого коммита |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Просмотреть параметры сброса | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Скопировать отобранные коммит (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Сбросить отобранную (скопированную | cherry-picked) выборку коммитов |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть файлы выбранного элемента |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Найти |  |
@@ -258,6 +291,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Скопировать название файла в буфер обмена |  |
+| `` y `` | Copy to clipboard |  |
 | `` c `` | Переключить | Переключить файл |
 | `` d `` | Remove | Отменить изменения коммита в этом файле |
 | `` o `` | Открыть файл | Open file in default application. |
@@ -267,6 +301,9 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` a `` | Переключить все файлы, включённые в патч | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` <enter> `` | Введите файл, чтобы добавить выбранные строки в патч (или свернуть каталог переключения) | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
 | `` ` `` | Переключить вид дерева файлов | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | Найти |  |
 
 ## Статус
@@ -277,17 +314,20 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | Редактировать файл конфигурации | Open file in external editor. |
 | `` u `` | Проверить обновления |  |
 | `` <enter> `` | Переключиться на последний репозиторий |  |
-| `` a `` | Показать все логи ветки |  |
+| `` a `` | Show/cycle all branch logs |  |
 
 ## Теги
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <space> `` | Переключить | Checkout the selected tag tag as a detached HEAD. |
+| `` <c-o> `` | Copy tag to clipboard |  |
+| `` <space> `` | Переключить | Checkout the selected tag as a detached HEAD. |
 | `` n `` | Создать тег | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | Отправить тег | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -299,12 +339,14 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-o> `` | Скопировать название ветки в буфер обмена |  |
 | `` <space> `` | Переключить | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | Новая ветка |  |
-| `` M `` | Слияние с текущей переключённой веткой | Merge selected branch into currently checked out branch. |
+| `` M `` | Слияние с текущей переключённой веткой | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` r `` | Перебазировать переключённую ветку на эту ветку | Rebase the checked-out branch onto the selected branch. |
 | `` d `` | Delete | Delete the remote branch from the remote. |
 | `` u `` | Set as upstream | Установить как upstream-ветку переключённую ветку |
 | `` s `` | Порядок сортировки |  |
 | `` g `` | Просмотреть параметры сброса | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -348,6 +390,9 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` M `` | Открыть внешний инструмент слияния (git mergetool) | Run `git mergetool`. |
 | `` f `` | Получить изменения | Fetch changes from remote. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | Найти |  |
 
 ## Хранилище
@@ -359,6 +404,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Удалить припрятанные изменения из хранилища | Remove the stash entry from the stash list. |
 | `` n `` | Новая ветка | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
 | `` r `` | Переименовать хранилище |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть файлы выбранного элемента |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |

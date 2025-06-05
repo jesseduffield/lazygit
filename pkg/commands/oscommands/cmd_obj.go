@@ -11,67 +11,6 @@ import (
 
 // A command object is a general way to represent a command to be run on the
 // command line.
-type ICmdObj interface {
-	GetCmd() *exec.Cmd
-	// outputs string representation of command. Note that if the command was built
-	// using NewFromArgs, the output won't be quite the same as what you would type
-	// into a terminal e.g. 'sh -c git commit' as opposed to 'sh -c "git commit"'
-	ToString() string
-
-	// outputs args vector e.g. ["git", "commit", "-m", "my message"]
-	Args() []string
-
-	AddEnvVars(...string) ICmdObj
-	GetEnvVars() []string
-
-	// sets the working directory
-	SetWd(string) ICmdObj
-
-	// runs the command and returns an error if any
-	Run() error
-	// runs the command and returns the output as a string, and an error if any
-	RunWithOutput() (string, error)
-	// runs the command and returns stdout and stderr as a string, and an error if any
-	RunWithOutputs() (string, string, error)
-	// runs the command and runs a callback function on each line of the output. If the callback returns true for the boolean value, we kill the process and return.
-	RunAndProcessLines(onLine func(line string) (bool, error)) error
-
-	// Be calling DontLog(), we're saying that once we call Run(), we don't want to
-	// log the command in the UI (it'll still be logged in the log file). The general rule
-	// is that if a command doesn't change the git state (e.g. read commands like `git diff`)
-	// then we don't want to log it. If we are changing something (e.g. `git add .`) then
-	// we do. The only exception is if we're running a command in the background periodically
-	// like `git fetch`, which technically does mutate stuff but isn't something we need
-	// to notify the user about.
-	DontLog() ICmdObj
-
-	// This returns false if DontLog() was called
-	ShouldLog() bool
-
-	// when you call this, then call Run(), we'll stream the output to the cmdWriter (i.e. the command log panel)
-	StreamOutput() ICmdObj
-	// returns true if StreamOutput() was called
-	ShouldStreamOutput() bool
-
-	// if you call this before ShouldStreamOutput we'll consider an error with no
-	// stderr content as a non-error. Not yet supported for Run or RunWithOutput (
-	// but adding support is trivial)
-	IgnoreEmptyError() ICmdObj
-	// returns true if IgnoreEmptyError() was called
-	ShouldIgnoreEmptyError() bool
-
-	PromptOnCredentialRequest(task gocui.Task) ICmdObj
-	FailOnCredentialRequest() ICmdObj
-
-	WithMutex(mutex *deadlock.Mutex) ICmdObj
-	Mutex() *deadlock.Mutex
-
-	GetCredentialStrategy() CredentialStrategy
-	GetTask() gocui.Task
-
-	Clone() ICmdObj
-}
-
 type CmdObj struct {
 	cmd *exec.Cmd
 
@@ -82,6 +21,9 @@ type CmdObj struct {
 
 	// see StreamOutput()
 	streamOutput bool
+
+	// see UsePty()
+	usePty bool
 
 	// see IgnoreEmptyError()
 	ignoreEmptyError bool
@@ -109,12 +51,13 @@ const (
 	FAIL
 )
 
-var _ ICmdObj = &CmdObj{}
-
 func (self *CmdObj) GetCmd() *exec.Cmd {
 	return self.cmd
 }
 
+// outputs string representation of command. Note that if the command was built
+// using NewFromArgs, the output won't be quite the same as what you would type
+// into a terminal e.g. 'sh -c git commit' as opposed to 'sh -c "git commit"'
 func (self *CmdObj) ToString() string {
 	// if a given arg contains a space, we need to wrap it in quotes
 	quotedArgs := lo.Map(self.cmd.Args, func(arg string, _ int) string {
@@ -127,11 +70,19 @@ func (self *CmdObj) ToString() string {
 	return strings.Join(quotedArgs, " ")
 }
 
+// outputs args vector e.g. ["git", "commit", "-m", "my message"]
 func (self *CmdObj) Args() []string {
 	return self.cmd.Args
 }
 
-func (self *CmdObj) AddEnvVars(vars ...string) ICmdObj {
+// Set a string to be used as stdin for the command.
+func (self *CmdObj) SetStdin(input string) *CmdObj {
+	self.cmd.Stdin = strings.NewReader(input)
+
+	return self
+}
+
+func (self *CmdObj) AddEnvVars(vars ...string) *CmdObj {
 	self.cmd.Env = append(self.cmd.Env, vars...)
 
 	return self
@@ -141,76 +92,111 @@ func (self *CmdObj) GetEnvVars() []string {
 	return self.cmd.Env
 }
 
-func (self *CmdObj) SetWd(wd string) ICmdObj {
+// sets the working directory
+func (self *CmdObj) SetWd(wd string) *CmdObj {
 	self.cmd.Dir = wd
 
 	return self
 }
 
-func (self *CmdObj) DontLog() ICmdObj {
+// By calling DontLog(), we're saying that once we call Run(), we don't want to
+// log the command in the UI (it'll still be logged in the log file). The general rule
+// is that if a command doesn't change the git state (e.g. read commands like `git diff`)
+// then we don't want to log it. If we are changing something (e.g. `git add .`) then
+// we do. The only exception is if we're running a command in the background periodically
+// like `git fetch`, which technically does mutate stuff but isn't something we need
+// to notify the user about.
+func (self *CmdObj) DontLog() *CmdObj {
 	self.dontLog = true
 	return self
 }
 
+// This returns false if DontLog() was called
 func (self *CmdObj) ShouldLog() bool {
 	return !self.dontLog
 }
 
-func (self *CmdObj) StreamOutput() ICmdObj {
+// when you call this, then call Run(), we'll stream the output to the cmdWriter (i.e. the command log panel)
+func (self *CmdObj) StreamOutput() *CmdObj {
 	self.streamOutput = true
 
 	return self
 }
 
+// returns true if StreamOutput() was called
 func (self *CmdObj) ShouldStreamOutput() bool {
 	return self.streamOutput
 }
 
-func (self *CmdObj) IgnoreEmptyError() ICmdObj {
+// when you call this, then call Run(), we'll use a PTY to run the command. Only
+// has an effect if StreamOutput() was also called. Ignored on Windows.
+func (self *CmdObj) UsePty() *CmdObj {
+	self.usePty = true
+
+	return self
+}
+
+// returns true if UsePty() was called
+func (self *CmdObj) ShouldUsePty() bool {
+	return self.usePty
+}
+
+// if you call this before ShouldStreamOutput we'll consider an error with no
+// stderr content as a non-error. Not yet supported for Run or RunWithOutput (
+// but adding support is trivial)
+func (self *CmdObj) IgnoreEmptyError() *CmdObj {
 	self.ignoreEmptyError = true
 
 	return self
+}
+
+// returns true if IgnoreEmptyError() was called
+func (self *CmdObj) ShouldIgnoreEmptyError() bool {
+	return self.ignoreEmptyError
 }
 
 func (self *CmdObj) Mutex() *deadlock.Mutex {
 	return self.mutex
 }
 
-func (self *CmdObj) WithMutex(mutex *deadlock.Mutex) ICmdObj {
+func (self *CmdObj) WithMutex(mutex *deadlock.Mutex) *CmdObj {
 	self.mutex = mutex
 
 	return self
 }
 
-func (self *CmdObj) ShouldIgnoreEmptyError() bool {
-	return self.ignoreEmptyError
-}
-
+// runs the command and returns an error if any
 func (self *CmdObj) Run() error {
 	return self.runner.Run(self)
 }
 
+// runs the command and returns the output as a string, and an error if any
 func (self *CmdObj) RunWithOutput() (string, error) {
 	return self.runner.RunWithOutput(self)
 }
 
+// runs the command and returns stdout and stderr as a string, and an error if any
 func (self *CmdObj) RunWithOutputs() (string, string, error) {
 	return self.runner.RunWithOutputs(self)
 }
 
+// runs the command and runs a callback function on each line of the output. If the callback
+// returns true for the boolean value, we kill the process and return.
 func (self *CmdObj) RunAndProcessLines(onLine func(line string) (bool, error)) error {
 	return self.runner.RunAndProcessLines(self, onLine)
 }
 
-func (self *CmdObj) PromptOnCredentialRequest(task gocui.Task) ICmdObj {
+func (self *CmdObj) PromptOnCredentialRequest(task gocui.Task) *CmdObj {
 	self.credentialStrategy = PROMPT
+	self.usePty = true
 	self.task = task
 
 	return self
 }
 
-func (self *CmdObj) FailOnCredentialRequest() ICmdObj {
+func (self *CmdObj) FailOnCredentialRequest() *CmdObj {
 	self.credentialStrategy = FAIL
+	self.usePty = true
 
 	return self
 }
@@ -223,7 +209,7 @@ func (self *CmdObj) GetTask() gocui.Task {
 	return self.task
 }
 
-func (self *CmdObj) Clone() ICmdObj {
+func (self *CmdObj) Clone() *CmdObj {
 	clone := &CmdObj{}
 	*clone = *self
 	clone.cmd = cloneCmd(self.cmd)

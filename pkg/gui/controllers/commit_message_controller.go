@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
@@ -47,7 +48,7 @@ func (self *CommitMessageController) GetKeybindings(opts types.KeybindingsOpts) 
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Universal.TogglePanel),
-			Handler: self.switchToCommitDescription,
+			Handler: self.handleTogglePanel,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.CommitMessage.CommitMenu),
@@ -58,10 +59,25 @@ func (self *CommitMessageController) GetKeybindings(opts types.KeybindingsOpts) 
 	return bindings
 }
 
-func (self *CommitMessageController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
-	return func(types.OnFocusLostOpts) error {
-		self.context().RenderCommitLength()
-		return nil
+func (self *CommitMessageController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName: self.Context().GetViewName(),
+			Key:      gocui.MouseLeft,
+			Handler:  self.onClick,
+		},
+	}
+}
+
+func (self *CommitMessageController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(types.OnFocusOpts) {
+		self.c.Views().CommitDescription.Footer = ""
+	}
+}
+
+func (self *CommitMessageController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
+		self.context().RenderSubtitle()
 	}
 }
 
@@ -85,10 +101,34 @@ func (self *CommitMessageController) handleNextCommit() error {
 }
 
 func (self *CommitMessageController) switchToCommitDescription() error {
-	if err := self.c.PushContext(self.c.Contexts().CommitDescription); err != nil {
-		return err
-	}
+	self.c.Context().Replace(self.c.Contexts().CommitDescription)
 	return nil
+}
+
+func (self *CommitMessageController) handleTogglePanel() error {
+	// The default keybinding for this action is "<tab>", which means that we
+	// also get here when pasting multi-line text that contains tabs. In that
+	// case we don't want to toggle the panel, but insert the tab as a character
+	// (somehow, see below).
+	//
+	// Only do this if the TogglePanel command is actually mapped to "<tab>"
+	// (the default). If it's not, we can only hope that it's mapped to some
+	// ctrl key or fn key, which is unlikely to occur in pasted text. And if
+	// they mapped some *other* command to "<tab>", then we're totally out of
+	// luck.
+	if self.c.GocuiGui().IsPasting && self.c.UserConfig().Keybinding.Universal.TogglePanel == "<tab>" {
+		// It is unlikely that a pasted commit message contains a tab in the
+		// subject line, so it shouldn't matter too much how we handle it.
+		// Simply insert 4 spaces instead; all that matters is that we don't
+		// switch to the description panel.
+		view := self.context().GetView()
+		for range 4 {
+			view.Editor.Edit(view, gocui.KeySpace, ' ', 0)
+		}
+		return nil
+	}
+
+	return self.switchToCommitDescription()
 }
 
 func (self *CommitMessageController) handleCommitIndexChange(value int) error {
@@ -118,22 +158,46 @@ func (self *CommitMessageController) setCommitMessageAtIndex(index int) (bool, e
 		}
 		return false, errors.New(self.c.Tr.CommitWithoutMessageErr)
 	}
-	if self.c.UserConfig.Git.Commit.AutoWrapCommitMessage {
-		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig.Git.Commit.AutoWrapWidth)
+	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
+		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
 	}
 	self.c.Helpers().Commits.UpdateCommitPanelView(commitMessage)
 	return true, nil
 }
 
 func (self *CommitMessageController) confirm() error {
+	// The default keybinding for this action is "<enter>", which means that we
+	// also get here when pasting multi-line text that contains newlines. In
+	// that case we don't want to confirm the commit, but switch to the
+	// description panel instead so that the rest of the pasted text goes there.
+	//
+	// Only do this if the SubmitEditorText command is actually mapped to
+	// "<enter>" (the default). If it's not, we can only hope that it's mapped
+	// to some ctrl key or fn key, which is unlikely to occur in pasted text.
+	// And if they mapped some *other* command to "<enter>", then we're totally
+	// out of luck.
+	if self.c.GocuiGui().IsPasting && self.c.UserConfig().Keybinding.Universal.SubmitEditorText == "<enter>" {
+		return self.switchToCommitDescription()
+	}
+
 	return self.c.Helpers().Commits.HandleCommitConfirm()
 }
 
 func (self *CommitMessageController) close() error {
-	return self.c.Helpers().Commits.CloseCommitMessagePanel()
+	self.c.Helpers().Commits.CloseCommitMessagePanel()
+	return nil
 }
 
 func (self *CommitMessageController) openCommitMenu() error {
 	authorSuggestion := self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc()
 	return self.c.Helpers().Commits.OpenCommitMenu(authorSuggestion)
+}
+
+func (self *CommitMessageController) onClick(opts gocui.ViewMouseBindingOpts) error {
+	// Activate the commit message panel when the commit description panel is currently active
+	if self.c.Context().Current().GetKey() == context.COMMIT_DESCRIPTION_CONTEXT_KEY {
+		self.c.Context().Replace(self.c.Contexts().CommitMessage)
+	}
+
+	return nil
 }

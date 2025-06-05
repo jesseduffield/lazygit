@@ -14,9 +14,11 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` @ `` | View command log options | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | Push | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | Pull | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename. |
+| `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
 | `` } `` | Increase diff context size | Increase the amount of the context shown around changes in the diff view. |
 | `` { `` | Decrease diff context size | Decrease the amount of the context shown around changes in the diff view. |
-| `` : `` | Execute custom command | Bring up a prompt where you can enter a shell command to execute. Not to be confused with pre-configured custom commands. |
+| `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
 | `` <c-p> `` | View custom patch options |  |
 | `` m `` | View merge/rebase options | View options to abort/continue/skip the current merge/rebase. |
 | `` R `` | Refresh | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
@@ -38,8 +40,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` , `` | Previous page |  |
 | `` . `` | Next page |  |
-| `` < `` | Scroll to top |  |
-| `` > `` | Scroll to bottom |  |
+| `` < (<home>) `` | Scroll to top |  |
+| `` > (<end>) `` | Scroll to bottom |  |
 | `` v `` | Toggle range select |  |
 | `` <s-down> `` | Range select down |  |
 | `` <s-up> `` | Range select up |  |
@@ -54,6 +56,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Copy path to clipboard |  |
+| `` y `` | Copy to clipboard |  |
 | `` c `` | Checkout | Checkout file. This replaces the file in your working tree with the version from the selected commit. |
 | `` d `` | Remove | Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file. |
 | `` o `` | Open file | Open file in default application. |
@@ -63,6 +66,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` a `` | Toggle all files | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` <enter> `` | Enter file / Toggle directory collapsed | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
 | `` ` `` | Toggle file tree view | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | Search the current view by text |  |
 
 ## Commit summary
@@ -103,9 +109,14 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
 | `` n `` | Create new branch off of commit |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Copy (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Search the current view by text |  |
@@ -145,6 +156,9 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` M `` | Open external merge tool | Run `git mergetool`. |
 | `` f `` | Fetch | Fetch changes from remote. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | Search the current view by text |  |
 
 ## Local branches
@@ -155,6 +169,9 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` i `` | Show git-flow options |  |
 | `` <space> `` | Checkout | Checkout selected item. |
 | `` n `` | New branch |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` o `` | Create pull request |  |
 | `` O `` | View create pull request options |  |
 | `` <c-y> `` | Copy pull request URL to clipboard |  |
@@ -162,13 +179,15 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` F `` | Force checkout | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |
 | `` r `` | Rebase | Rebase the checked-out branch onto the selected branch. |
-| `` M `` | Merge | Merge selected branch into currently checked out branch. |
+| `` M `` | Merge | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` f `` | Fast-forward | Fast-forward selected branch from its upstream. |
 | `` T `` | New tag |  |
 | `` s `` | Sort order |  |
 | `` g `` | Reset |  |
 | `` R `` | Rename branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -195,6 +214,9 @@ If you would instead like to start an interactive rebase from the selected commi
 |-----|--------|-------------|
 | `` mouse wheel down (fn+up) `` | Scroll down |  |
 | `` mouse wheel up (fn+down) `` | Scroll up |  |
+| `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
+| `` / `` | Search the current view by text |  |
 
 ## Main panel (patch building)
 
@@ -250,10 +272,15 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
 | `` n `` | Create new branch off of commit |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Copy (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -265,12 +292,14 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <c-o> `` | Copy branch name to clipboard |  |
 | `` <space> `` | Checkout | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | New branch |  |
-| `` M `` | Merge | Merge selected branch into currently checked out branch. |
+| `` M `` | Merge | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` r `` | Rebase | Rebase the checked-out branch onto the selected branch. |
 | `` d `` | Delete | Delete the remote branch from the remote. |
 | `` u `` | Set as upstream | Set the selected remote branch as the upstream of the checked-out branch. |
 | `` s `` | Sort order |  |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -286,6 +315,14 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` f `` | Fetch | Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches. |
 | `` / `` | Filter the current view by text |  |
 
+## Secondary
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
+| `` / `` | Search the current view by text |  |
+
 ## Stash
 
 | Key | Action | Info |
@@ -295,6 +332,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Drop | Remove the stash entry from the stash list. |
 | `` n `` | New branch | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
 | `` r `` | Rename stash |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -307,7 +345,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` e `` | Edit config file | Open file in external editor. |
 | `` u `` | Check for update |  |
 | `` <enter> `` | Switch to a recent repo |  |
-| `` a `` | Show all branch logs |  |
+| `` a `` | Show/cycle all branch logs |  |
 
 ## Sub-commits
 
@@ -318,10 +356,15 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
 | `` n `` | Create new branch off of commit |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
+
+Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Copy (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Search the current view by text |  |
@@ -344,11 +387,14 @@ If you would instead like to start an interactive rebase from the selected commi
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <space> `` | Checkout | Checkout the selected tag tag as a detached HEAD. |
+| `` <c-o> `` | Copy tag to clipboard |  |
+| `` <space> `` | Checkout | Checkout the selected tag as a detached HEAD. |
 | `` n `` | New tag | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | Push tag | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
+| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |

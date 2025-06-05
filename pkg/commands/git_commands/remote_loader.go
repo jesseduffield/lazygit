@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
-	"golang.org/x/exp/slices"
 )
 
 type RemoteLoader struct {
@@ -67,15 +67,15 @@ func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
 	})
 
 	// now lets sort our remotes by name alphabetically
-	slices.SortFunc(remotes, func(a, b *models.Remote) bool {
+	slices.SortFunc(remotes, func(a, b *models.Remote) int {
 		// we want origin at the top because we'll be most likely to want it
 		if a.Name == "origin" {
-			return true
+			return -1
 		}
 		if b.Name == "origin" {
-			return false
+			return 1
 		}
-		return strings.ToLower(a.Name) < strings.ToLower(b.Name)
+		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name))
 	})
 
 	return remotes, nil
@@ -96,19 +96,23 @@ func (self *RemoteLoader) getRemoteBranchesByRemoteName() (map[string][]*models.
 
 	cmdArgs := NewGitCmd("for-each-ref").
 		Arg(fmt.Sprintf("--sort=%s", sortOrder)).
-		Arg("--format=%(refname:short)").
+		Arg("--format=%(refname)").
 		Arg("refs/remotes").
 		ToArgv()
 
 	err := self.cmd.New(cmdArgs).DontLog().RunAndProcessLines(func(line string) (bool, error) {
 		line = strings.TrimSpace(line)
 
-		split := strings.SplitN(line, "/", 2)
-		if len(split) != 2 {
+		split := strings.SplitN(line, "/", 4)
+		if len(split) != 4 {
 			return false, nil
 		}
-		remoteName := split[0]
-		name := split[1]
+		remoteName := split[2]
+		name := split[3]
+
+		if name == "HEAD" {
+			return false, nil
+		}
 
 		_, ok := remoteBranchesByRemoteName[remoteName]
 		if !ok {

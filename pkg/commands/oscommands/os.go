@@ -35,11 +35,12 @@ type OSCommand struct {
 
 // Platform stores the os state
 type Platform struct {
-	OS              string
-	Shell           string
-	ShellArg        string
-	OpenCommand     string
-	OpenLinkCommand string
+	OS                          string
+	Shell                       string
+	ShellArg                    string
+	PrefixForShellFunctionsFile string
+	OpenCommand                 string
+	OpenLinkCommand             string
 }
 
 // NewOSCommand os command runner
@@ -78,10 +79,10 @@ func FileType(path string) string {
 }
 
 func (c *OSCommand) OpenFile(filename string) error {
-	commandTemplate := c.UserConfig.OS.Open
+	commandTemplate := c.UserConfig().OS.Open
 	if commandTemplate == "" {
 		// Legacy support
-		commandTemplate = c.UserConfig.OS.OpenCommand
+		commandTemplate = c.UserConfig().OS.OpenCommand
 	}
 	if commandTemplate == "" {
 		commandTemplate = config.GetPlatformDefaultConfig().Open
@@ -90,14 +91,14 @@ func (c *OSCommand) OpenFile(filename string) error {
 		"filename": c.Quote(filename),
 	}
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	return c.Cmd.NewShell(command).Run()
+	return c.Cmd.NewShell(command, c.UserConfig().OS.ShellFunctionsFile).Run()
 }
 
 func (c *OSCommand) OpenLink(link string) error {
-	commandTemplate := c.UserConfig.OS.OpenLink
+	commandTemplate := c.UserConfig().OS.OpenLink
 	if commandTemplate == "" {
 		// Legacy support
-		commandTemplate = c.UserConfig.OS.OpenLinkCommand
+		commandTemplate = c.UserConfig().OS.OpenLinkCommand
 	}
 	if commandTemplate == "" {
 		commandTemplate = config.GetPlatformDefaultConfig().OpenLink
@@ -107,7 +108,7 @@ func (c *OSCommand) OpenLink(link string) error {
 	}
 
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	return c.Cmd.NewShell(command).Run()
+	return c.Cmd.NewShell(command, c.UserConfig().OS.ShellFunctionsFile).Run()
 }
 
 // Quote wraps a message in platform-specific quotation marks
@@ -207,13 +208,13 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 }
 
 // PipeCommands runs a heap of commands and pipes their inputs/outputs together like A | B | C
-func (c *OSCommand) PipeCommands(cmdObjs ...ICmdObj) error {
-	cmds := lo.Map(cmdObjs, func(cmdObj ICmdObj, _ int) *exec.Cmd {
+func (c *OSCommand) PipeCommands(cmdObjs ...*CmdObj) error {
+	cmds := lo.Map(cmdObjs, func(cmdObj *CmdObj, _ int) *exec.Cmd {
 		return cmdObj.GetCmd()
 	})
 
 	logCmdStr := strings.Join(
-		lo.Map(cmdObjs, func(cmdObj ICmdObj, _ int) string {
+		lo.Map(cmdObjs, func(cmdObj *CmdObj, _ int) string {
 			return cmdObj.ToString()
 		}),
 		" | ",
@@ -292,11 +293,11 @@ func (c *OSCommand) CopyToClipboard(str string) error {
 		},
 	)
 	c.LogCommand(msg, false)
-	if c.UserConfig.OS.CopyToClipboardCmd != "" {
-		cmdStr := utils.ResolvePlaceholderString(c.UserConfig.OS.CopyToClipboardCmd, map[string]string{
+	if c.UserConfig().OS.CopyToClipboardCmd != "" {
+		cmdStr := utils.ResolvePlaceholderString(c.UserConfig().OS.CopyToClipboardCmd, map[string]string{
 			"text": c.Cmd.Quote(str),
 		})
-		return c.Cmd.NewShell(cmdStr).Run()
+		return c.Cmd.NewShell(cmdStr, c.UserConfig().OS.ShellFunctionsFile).Run()
 	}
 
 	return clipboard.WriteAll(str)
@@ -305,9 +306,9 @@ func (c *OSCommand) CopyToClipboard(str string) error {
 func (c *OSCommand) PasteFromClipboard() (string, error) {
 	var s string
 	var err error
-	if c.UserConfig.OS.CopyToClipboardCmd != "" {
-		cmdStr := c.UserConfig.OS.ReadFromClipboardCmd
-		s, err = c.Cmd.NewShell(cmdStr).RunWithOutput()
+	if c.UserConfig().OS.CopyToClipboardCmd != "" {
+		cmdStr := c.UserConfig().OS.ReadFromClipboardCmd
+		s, err = c.Cmd.NewShell(cmdStr, c.UserConfig().OS.ShellFunctionsFile).RunWithOutput()
 	} else {
 		s, err = clipboard.ReadAll()
 	}
@@ -357,5 +358,5 @@ func (c *OSCommand) UpdateWindowTitle() error {
 		return getWdErr
 	}
 	argString := fmt.Sprint("title ", filepath.Base(path), " - Lazygit")
-	return c.Cmd.NewShell(argString).Run()
+	return c.Cmd.NewShell(argString, c.UserConfig().OS.ShellFunctionsFile).Run()
 }

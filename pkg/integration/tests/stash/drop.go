@@ -28,7 +28,7 @@ var Drop = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Stash drop")).
-					Content(Contains("Are you sure you want to drop this stash entry?")).
+					Content(Contains("Are you sure you want to drop the selected stash entry(ies)?")).
 					Confirm()
 			}).
 			IsEmpty()

@@ -137,17 +137,20 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		}
 
 		self.c.Contexts().LocalCommits.SetSelection(index)
-		return self.c.PushContext(self.c.Contexts().LocalCommits)
+		self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
+		return nil
 	}
 
 	if warnAboutAddedLines {
-		return self.c.Confirm(types.ConfirmOpts{
+		self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.FindBaseCommitForFixup,
 			Prompt: self.c.Tr.HunksWithOnlyAddedLinesWarning,
 			HandleConfirm: func() error {
 				return doIt()
 			},
 		})
+
+		return nil
 	}
 
 	return doIt()
@@ -339,6 +342,6 @@ func (self *FixupHelper) blameAddedLines(commits []*models.Commit, addedLineHunk
 
 func (self *FixupHelper) findCommit(commits []*models.Commit, hash string) (*models.Commit, int, bool) {
 	return lo.FindIndexOf(commits, func(commit *models.Commit) bool {
-		return commit.Hash == hash
+		return commit.Hash() == hash
 	})
 }
