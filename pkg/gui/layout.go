@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"errors"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -121,7 +123,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 
 		_, err := setViewFromDimensions(context)
-		if err != nil && !gocui.IsUnknownView(err) {
+		if err != nil && !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
 	}
@@ -134,7 +136,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	for _, context := range gui.transientContexts() {
 		view, err := gui.g.View(context.GetViewName())
-		if err != nil && !gocui.IsUnknownView(err) {
+		if err != nil && !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
 		view.Visible = gui.helpers.Window.GetViewNameForWindow(context.GetWindowName()) == context.GetViewName()

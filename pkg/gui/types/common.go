@@ -202,6 +202,10 @@ type DisabledReason struct {
 	// error panel instead. This is useful if the text is very long, or if it is
 	// important enough to show it more prominently, or both.
 	ShowErrorInPanel bool
+
+	// If true, the keybinding dispatch mechanism will continue to look for
+	// other handlers for the keypress.
+	AllowFurtherDispatching bool
 }
 
 type MenuWidget int

@@ -55,3 +55,15 @@ type KeybindingGuards struct {
 	OutsideFilterMode Guard
 	NoPopupPanel      Guard
 }
+
+type ErrKeybindingNotHandled struct {
+	DisabledReason *DisabledReason
+}
+
+func (e ErrKeybindingNotHandled) Error() string {
+	return e.DisabledReason.Text
+}
+
+func (e ErrKeybindingNotHandled) Unwrap() error {
+	return gocui.ErrKeybindingNotHandled
+}

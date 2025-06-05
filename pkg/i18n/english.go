@@ -369,6 +369,7 @@ type TranslationSet struct {
 	RewordNotSupported                    string
 	ChangingThisActionIsNotAllowed        string
 	NotAllowedMidCherryPickOrRevert       string
+	PickIsOnlyAllowedDuringRebase         string
 	DroppingMergeRequiresSingleSelection  string
 	CherryPickCopy                        string
 	CherryPickCopyTooltip                 string
@@ -1459,6 +1460,7 @@ func EnglishTranslationSet() *TranslationSet {
 		RewordNotSupported:                   "Rewording commits while interactively rebasing is not currently supported",
 		ChangingThisActionIsNotAllowed:       "Changing this kind of rebase todo entry is not allowed",
 		NotAllowedMidCherryPickOrRevert:      "This action is not allowed while cherry-picking or reverting",
+		PickIsOnlyAllowedDuringRebase:        "This action is only allowed while rebasing",
 		DroppingMergeRequiresSingleSelection: "Dropping a merge commit requires a single selected item",
 		CherryPickCopy:                       "Copy (cherry-pick)",
 		CherryPickCopyTooltip:                "Mark commit as copied. Then, within the local commits view, you can press `{{.paste}}` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `{{.escape}}` to cancel the selection.",
