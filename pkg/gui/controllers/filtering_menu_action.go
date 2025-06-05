@@ -60,6 +60,7 @@ func (self *FilteringMenuAction) Call() error {
 
 	menuItems = append(menuItems, &types.MenuItem{
 		Label: self.c.Tr.FilterPathOption,
+		Key:   'p',
 		OnPress: func() error {
 			self.c.Prompt(types.PromptOpts{
 				FindSuggestionsFunc: self.c.Helpers().Suggestions.GetFilePathSuggestionsFunc(),
@@ -76,6 +77,7 @@ func (self *FilteringMenuAction) Call() error {
 
 	menuItems = append(menuItems, &types.MenuItem{
 		Label: self.c.Tr.FilterAuthorOption,
+		Key:   'a',
 		OnPress: func() error {
 			self.c.Prompt(types.PromptOpts{
 				FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
@@ -90,9 +92,23 @@ func (self *FilteringMenuAction) Call() error {
 		Tooltip: tooltip,
 	})
 
+	if path := self.c.Modes().Filtering.GetPath(); path != "" {
+		menuItems = append(menuItems, &types.MenuItem{
+			Label: "Show full diff", // TODO: i18n (and tooltip?)
+			Key:   'f',
+			OnPress: func() error {
+				self.c.AppState.ShowFullDiffInFilterByPathMode = !self.c.AppState.ShowFullDiffInFilterByPathMode
+				self.c.SaveAppStateAndLogError()
+				return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}})
+			},
+			Widget: types.MakeMenuCheckBox(self.c.AppState.ShowFullDiffInFilterByPathMode),
+		})
+	}
+
 	if self.c.Modes().Filtering.Active() {
 		menuItems = append(menuItems, &types.MenuItem{
 			Label:   self.c.Tr.ExitFilterMode,
+			Key:     's',
 			OnPress: self.c.Helpers().Mode.ClearFiltering,
 		})
 	}
