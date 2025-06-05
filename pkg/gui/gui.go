@@ -523,6 +523,13 @@ func (gui *Gui) checkForChangedConfigsThatDontAutoReload(oldConfig *config.UserC
 // resetState reuses the repo state from our repo state map, if the repo was
 // open before; otherwise it creates a new one.
 func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
+	// Un-highlight the current view if there is one. The reason we do this is
+	// that the repo we are switching to might have a different view focused,
+	// and would then show an inactive highlight for the previous view.
+	if oldCurrentView := gui.g.CurrentView(); oldCurrentView != nil {
+		oldCurrentView.Highlight = false
+	}
+
 	worktreePath := gui.git.RepoPaths.WorktreePath()
 
 	if state := gui.RepoStateMap[Repo(worktreePath)]; state != nil {
