@@ -104,6 +104,38 @@ func (self *Patch) LineNumberOfLine(idx int) int {
 	return hunk.newStart + offset
 }
 
+// Takes a line number in the new file and returns the line index in the patch.
+// This is the opposite of LineNumberOfLine.
+// If the line number is not contained in any of the hunks, it returns the
+// closest position.
+func (self *Patch) PatchLineForLineNumber(lineNumber int) int {
+	if len(self.hunks) == 0 {
+		return len(self.header)
+	}
+
+	for hunkIdx, hunk := range self.hunks {
+		if lineNumber <= hunk.newStart {
+			return self.HunkStartIdx(hunkIdx)
+		}
+
+		if lineNumber < hunk.newStart+hunk.newLength() {
+			lines := hunk.bodyLines
+			offset := lineNumber - hunk.newStart
+			for i, line := range lines {
+				if offset == 0 {
+					return self.HunkStartIdx(hunkIdx) + i + 1
+				}
+
+				if line.Kind == ADDITION || line.Kind == CONTEXT {
+					offset--
+				}
+			}
+		}
+	}
+
+	return self.LineCount() - 1
+}
+
 // Returns hunk index containing the line at the given patch line index
 func (self *Patch) HunkContainingLine(idx int) int {
 	for hunkIdx, hunk := range self.hunks {
