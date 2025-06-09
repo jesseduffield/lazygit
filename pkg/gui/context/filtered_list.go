@@ -16,14 +16,13 @@ type FilteredList[T any] struct {
 	getFilterFields func(T) []string
 	filter          string
 
-	mutex *deadlock.Mutex
+	mutex deadlock.Mutex
 }
 
 func NewFilteredList[T any](getList func() []T, getFilterFields func(T) []string) *FilteredList[T] {
 	return &FilteredList[T]{
 		getList:         getList,
 		getFilterFields: getFilterFields,
-		mutex:           &deadlock.Mutex{},
 	}
 }
 
