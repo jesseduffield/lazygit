@@ -162,7 +162,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	self.os.LogCommand(logTodoChanges(changes), false)
 
 	err := self.rebase.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseHashOrRoot: commits[baseIndex].Hash(),
+		baseHashOrRoot: getBaseHashOrRoot(commits, baseIndex),
 		overrideEditor: true,
 		instruction:    daemon.NewChangeTodoActionsInstruction(changes),
 	}).Run()
