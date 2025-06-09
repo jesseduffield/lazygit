@@ -15,7 +15,7 @@ type PatchExplorerContext struct {
 	viewTrait              *ViewTrait
 	getIncludedLineIndices func() []int
 	c                      *ContextCommon
-	mutex                  *deadlock.Mutex
+	mutex                  deadlock.Mutex
 }
 
 var (
@@ -36,7 +36,6 @@ func NewPatchExplorerContext(
 		state:                  nil,
 		viewTrait:              NewViewTrait(view),
 		c:                      c,
-		mutex:                  &deadlock.Mutex{},
 		getIncludedLineIndices: getIncludedLineIndices,
 		SimpleContext: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 			View:                       view,
@@ -137,7 +136,7 @@ func (self *PatchExplorerContext) NavigateTo(selectedLineIdx int) {
 }
 
 func (self *PatchExplorerContext) GetMutex() *deadlock.Mutex {
-	return self.mutex
+	return &self.mutex
 }
 
 func (self *PatchExplorerContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
