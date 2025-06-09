@@ -12,7 +12,7 @@ type MergeConflictsContext struct {
 	types.Context
 	viewModel *ConflictsViewModel
 	c         *ContextCommon
-	mutex     *deadlock.Mutex
+	mutex     deadlock.Mutex
 }
 
 type ConflictsViewModel struct {
@@ -33,7 +33,6 @@ func NewMergeConflictsContext(
 
 	return &MergeConflictsContext{
 		viewModel: viewModel,
-		mutex:     &deadlock.Mutex{},
 		Context: NewSimpleContext(
 			NewBaseContext(NewBaseContextOpts{
 				Kind:             types.MAIN_CONTEXT,
@@ -57,7 +56,7 @@ func (self *MergeConflictsContext) SetState(state *mergeconflicts.State) {
 }
 
 func (self *MergeConflictsContext) GetMutex() *deadlock.Mutex {
-	return self.mutex
+	return &self.mutex
 }
 
 func (self *MergeConflictsContext) SetUserScrolling(isScrolling bool) {

@@ -15,7 +15,7 @@ type InlineStatusHelper struct {
 
 	windowHelper             *WindowHelper
 	contextsWithInlineStatus map[types.ContextKey]*inlineStatusInfo
-	mutex                    *deadlock.Mutex
+	mutex                    deadlock.Mutex
 }
 
 func NewInlineStatusHelper(c *HelperCommon, windowHelper *WindowHelper) *InlineStatusHelper {
@@ -23,7 +23,6 @@ func NewInlineStatusHelper(c *HelperCommon, windowHelper *WindowHelper) *InlineS
 		c:                        c,
 		windowHelper:             windowHelper,
 		contextsWithInlineStatus: make(map[types.ContextKey]*inlineStatusInfo),
-		mutex:                    &deadlock.Mutex{},
 	}
 }
 
