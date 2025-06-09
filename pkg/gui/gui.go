@@ -681,17 +681,6 @@ func NewGui(
 		// real value after loading the user config:
 		ShowExtrasWindow: true,
 
-		Mutexes: types.Mutexes{
-			RefreshingFilesMutex:    &deadlock.Mutex{},
-			RefreshingBranchesMutex: &deadlock.Mutex{},
-			RefreshingStatusMutex:   &deadlock.Mutex{},
-			LocalCommitsMutex:       &deadlock.Mutex{},
-			SubCommitsMutex:         &deadlock.Mutex{},
-			AuthorsMutex:            &deadlock.Mutex{},
-			SubprocessMutex:         &deadlock.Mutex{},
-			PopupMutex:              &deadlock.Mutex{},
-			PtyMutex:                &deadlock.Mutex{},
-		},
 		InitialDir:       initialDir,
 		afterLayoutFuncs: make(chan func() error, 1000),
 
