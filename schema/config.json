@@ -1502,6 +1502,16 @@
           "type": "boolean",
           "description": "displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)",
           "default": false
+        },
+        "showTags": {
+          "type": "string",
+          "enum": [
+            "always",
+            "never",
+            "when-maximised"
+          ],
+          "description": "Configure this with `Log menu -\u003e Show tags` (\u003cc-l\u003e in the commits window by default).",
+          "default": "always"
         }
       },
       "additionalProperties": false,

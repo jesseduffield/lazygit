@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -55,6 +56,7 @@ func GetCommitListDisplayStrings(
 	startIdx int,
 	endIdx int,
 	showGraph bool,
+	showTags bool,
 	bisectInfo *git_commands.BisectInfo,
 ) [][]string {
 	mutex.Lock()
@@ -203,6 +205,7 @@ func GetCommitListDisplayStrings(
 			parseEmoji,
 			getGraphLine(unfilteredIdx),
 			fullDescription,
+			showTags,
 			bisectStatus,
 			bisectInfo,
 		))
@@ -355,6 +358,7 @@ func displayCommit(
 	parseEmoji bool,
 	graphLine string,
 	fullDescription bool,
+	showTags bool,
 	bisectStatus BisectStatus,
 	bisectInfo *git_commands.BisectInfo,
 ) []string {
@@ -391,12 +395,17 @@ func displayCommit(
 	}
 
 	tagString := ""
-	if fullDescription {
-		if commit.ExtraInfo != "" {
-			tagString = style.FgMagenta.SetBold().Sprint(commit.ExtraInfo) + " "
+	if fullDescription && commit.ExtraInfo != "" {
+		extraInfo := commit.ExtraInfo
+		if !showTags {
+			extraInfo = regexp.MustCompile(`tag: [^,)\s]+,?\s*`).ReplaceAllString(commit.ExtraInfo, "")
+			extraInfo = strings.Replace(extraInfo, "()", "", 1) // if only tags were present in extraInfo
+		}
+		if extraInfo != "" {
+			tagString = style.FgMagenta.SetBold().Sprint(extraInfo) + " "
 		}
 	} else {
-		if len(commit.Tags) > 0 {
+		if showTags && len(commit.Tags) > 0 {
 			tagString = theme.DiffTerminalColor.SetBold().Sprint(strings.Join(commit.Tags, " ")) + " "
 		}
 

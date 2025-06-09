@@ -41,6 +41,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		startIdx                  int
 		endIdx                    int
 		showGraph                 bool
+		showTags                  bool
 		bisectInfo                *git_commands.BisectInfo
 		expected                  string
 		focus                     bool
@@ -51,6 +52,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    1,
 			showGraph:                 false,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -65,6 +67,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    2,
 			showGraph:                 false,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -82,12 +85,50 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    2,
 			showGraph:                 false,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		hash1 tag1 tag2 commit1
 		hash2 commit2
+						`),
+		},
+		{
+			testName: "commit with tags, tags are hidden",
+			commitOpts: []models.NewCommitOpts{
+				{Name: "commit1", Hash: "hash1", Tags: []string{"tag1", "tag2"}},
+				{Name: "commit2", Hash: "hash2"},
+			},
+			startIdx:                  0,
+			endIdx:                    2,
+			showGraph:                 false,
+			showTags:                  false,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		hash1 commit1
+		hash2 commit2
+						`),
+		},
+		{
+			testName: "hidden commit tags with full description",
+			commitOpts: []models.NewCommitOpts{
+				{Name: "commit1", Hash: "hash1", UnixTimestamp: 1577844184, AuthorName: "Jesse Duffield", ExtraInfo: "(tag: v1.0)"},
+				{Name: "commit2", Hash: "hash2", UnixTimestamp: 1576844184, AuthorName: "Jesse Duffield", ExtraInfo: "(tag: v2.0, remote/branch, remote/branch2)"},
+			},
+			fullDescription:           true,
+			startIdx:                  0,
+			endIdx:                    2,
+			showGraph:                 false,
+			showTags:                  false,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+       	hash1 Jesse Duffield    commit1
+		hash2 Jesse Duffield    (remote/branch, remote/branch2) commit2
 						`),
 		},
 		{
@@ -109,6 +150,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    4,
 			showGraph:                 false,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -134,6 +176,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    2,
 			showGraph:                 false,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -157,6 +200,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    2,
 			showGraph:                 false,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -178,6 +222,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    3,
 			showGraph:                 false,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -199,6 +244,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    5,
 			showGraph:                 true,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -222,6 +268,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    5,
 			showGraph:                 true,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -245,6 +292,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  1,
 			endIdx:                    5,
 			showGraph:                 true,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -267,6 +315,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  3,
 			endIdx:                    5,
 			showGraph:                 true,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -287,6 +336,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    2,
 			showGraph:                 true,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -307,6 +357,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  4,
 			endIdx:                    5,
 			showGraph:                 true,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -326,6 +377,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    2,
 			showGraph:                 true,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -349,6 +401,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    8,
 			showGraph:                 true,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -378,6 +431,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  2,
 			endIdx:                    8,
 			showGraph:                 true,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -405,6 +459,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    5,
 			showGraph:                 true,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -431,6 +486,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  4,
 			endIdx:                    8,
 			showGraph:                 true,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -456,6 +512,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    2,
 			showGraph:                 true,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -476,6 +533,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    5,
 			showGraph:                 true,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -497,6 +555,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    3,
 			showGraph:                 true,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -518,6 +577,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			startIdx:                  0,
 			endIdx:                    2,
 			showGraph:                 false,
+			showTags:                  true,
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 5, 3, 4, 0, time.UTC),
@@ -568,6 +628,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 					s.startIdx,
 					s.endIdx,
 					s.showGraph,
+					s.showTags,
 					s.bisectInfo,
 				)
 

@@ -337,6 +337,8 @@ type LogConfig struct {
 	ShowGraph string `yaml:"showGraph" jsonschema:"deprecated,enum=always,enum=never,enum=when-maximised"`
 	// displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
 	ShowWholeGraph bool `yaml:"showWholeGraph"`
+	// Configure this with `Log menu -> Show tags` (<c-l> in the commits window by default).
+	ShowTags string `yaml:"showTags" jsonschema:"enum=always,enum=never,enum=when-maximised"`
 }
 
 type CommitPrefixConfig struct {
@@ -815,6 +817,7 @@ func GetDefaultConfig() *UserConfig {
 				Order:          "topo-order",
 				ShowGraph:      "always",
 				ShowWholeGraph: false,
+				ShowTags:       "always",
 			},
 			SkipHookPrefix:               "WIP",
 			MainBranches:                 []string{"master", "main"},

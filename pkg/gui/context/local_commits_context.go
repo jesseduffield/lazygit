@@ -61,6 +61,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			startIdx,
 			endIdx,
 			shouldShowGraph(c),
+			shouldShowTags(c),
 			c.Model().BisectInfo,
 		)
 	}
@@ -247,11 +248,17 @@ func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {
 }
 
 func shouldShowGraph(c *ContextCommon) bool {
+	return shouldShowBasedOnAppState(c, c.GetAppState().GitLogShowGraph)
+}
+
+func shouldShowTags(c *ContextCommon) bool {
+	return shouldShowBasedOnAppState(c, c.GetAppState().GitLogShowTags)
+}
+
+func shouldShowBasedOnAppState(c *ContextCommon, value string) bool {
 	if c.Modes().Filtering.Active() {
 		return false
 	}
-
-	value := c.GetAppState().GitLogShowGraph
 
 	switch value {
 	case "always":
@@ -262,7 +269,7 @@ func shouldShowGraph(c *ContextCommon) bool {
 		return c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL
 	}
 
-	log.Fatalf("Unknown value for git.log.showGraph: %s. Expected one of: 'always', 'never', 'when-maximised'", value)
+	log.Fatalf("Unknown value: %s. Expected one of: 'always', 'never', 'when-maximised'", value)
 	return false
 }
 
