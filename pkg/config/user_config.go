@@ -74,6 +74,8 @@ type GuiConfig struct {
 	// If true, capture mouse events.
 	// When mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.
 	MouseEvents bool `yaml:"mouseEvents"`
+	// If true, do not show a warning when amending a commit.
+	SkipAmendWarning bool `yaml:"skipAmendWarning"`
 	// If true, do not show a warning when discarding changes in the staging view.
 	SkipDiscardChangeWarning bool `yaml:"skipDiscardChangeWarning"`
 	// If true, do not show warning when applying/popping the stash
@@ -734,6 +736,7 @@ func GetDefaultConfig() *UserConfig {
 			ScrollOffBehavior:        "margin",
 			TabWidth:                 4,
 			MouseEvents:              true,
+			SkipAmendWarning:         false,
 			SkipDiscardChangeWarning: false,
 			SkipStashWarning:         false,
 			SidePanelWidth:           0.3333,

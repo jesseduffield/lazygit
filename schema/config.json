@@ -468,6 +468,11 @@
           "description": "If true, capture mouse events.\nWhen mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.",
           "default": true
         },
+        "skipAmendWarning": {
+          "type": "boolean",
+          "description": "If true, do not show a warning when amending a commit.",
+          "default": false
+        },
         "skipDiscardChangeWarning": {
           "type": "boolean",
           "description": "If true, do not show a warning when discarding changes in the staging view.",
