@@ -54,7 +54,7 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		},
 		{
 			Key:             opts.GetKey(opts.Config.Status.RecentRepos),
-			Handler:         self.c.Helpers().Repos.CreateRecentReposMenu,
+			Handler:         func() error { return self.c.Helpers().Repos.CreateRecentReposMenu(true) },
 			Description:     self.c.Tr.SwitchRepo,
 			DisplayOnScreen: true,
 		},
@@ -114,10 +114,10 @@ func (self *StatusController) onClick(opts gocui.ViewMouseBindingOpts) error {
 			return self.c.Helpers().MergeAndRebase.CreateRebaseOptionsMenu()
 		}
 		if cursorInSubstring(opts.X, upstreamStatus+" "+workingTreeStatus+" ", repoName) {
-			return self.c.Helpers().Repos.CreateRecentReposMenu()
+			return self.c.Helpers().Repos.CreateRecentReposMenu(false)
 		}
 	} else if cursorInSubstring(opts.X, upstreamStatus+" ", repoName) {
-		return self.c.Helpers().Repos.CreateRecentReposMenu()
+		return self.c.Helpers().Repos.CreateRecentReposMenu(false)
 	}
 
 	return nil
