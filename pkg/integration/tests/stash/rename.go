@@ -13,6 +13,8 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupRepo: func(shell *Shell) {
 		shell.
 			EmptyCommit("blah").
+			NewBranch("stash").
+			Checkout("master").
 			CreateFileAndAdd("file-1", "change to stash1").
 			Stash("foo").
 			CreateFileAndAdd("file-2", "change to stash2").
