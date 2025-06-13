@@ -530,6 +530,11 @@
           "description": "If true, wrap lines in the staging view to the width of the view. This\nmakes it much easier to work with diffs that have long lines, e.g.\nparagraphs of markdown text.",
           "default": true
         },
+        "showSelectionInFocusedMainView": {
+          "type": "boolean",
+          "description": "If true, show a selection when the main view is focused.",
+          "default": false
+        },
         "language": {
           "type": "string",
           "enum": [

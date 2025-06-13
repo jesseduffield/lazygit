@@ -446,6 +446,11 @@ func (gui *Gui) onUserConfigLoaded() error {
 
 	gui.g.Mouse = userConfig.Gui.MouseEvents
 
+	if gui.State != nil {
+		gui.Contexts().Normal.SetHighlightOnFocus(userConfig.Gui.ShowSelectionInFocusedMainView)
+		gui.Contexts().NormalSecondary.SetHighlightOnFocus(userConfig.Gui.ShowSelectionInFocusedMainView)
+	}
+
 	// originally we could only hide the command log permanently via the config
 	// but now we do it via state. So we need to still support the config for the
 	// sake of backwards compatibility. We're making use of short circuiting here
