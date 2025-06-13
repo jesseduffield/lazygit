@@ -717,27 +717,19 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 }
 
 func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
+	var handleCommit func() error
+
 	if self.isSelectedHeadCommit() {
-		self.c.Confirm(types.ConfirmOpts{
-			Title:  self.c.Tr.AmendCommitTitle,
-			Prompt: self.c.Tr.AmendCommitPrompt,
-			HandleConfirm: func() error {
-				return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
-					if err := self.c.Helpers().AmendHelper.AmendHead(); err != nil {
-						return err
-					}
-					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
-				})
-			},
-		})
-
-		return nil
-	}
-
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.AmendCommitTitle,
-		Prompt: self.c.Tr.AmendCommitPrompt,
-		HandleConfirm: func() error {
+		handleCommit = func() error {
+			return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
+				if err := self.c.Helpers().AmendHelper.AmendHead(); err != nil {
+					return err
+				}
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			})
+		}
+	} else {
+		handleCommit = func() error {
 			return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 				return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 					self.c.LogAction(self.c.Tr.Actions.AmendCommit)
@@ -745,7 +737,17 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 					return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 				})
 			})
-		},
+		}
+	}
+
+	if self.c.UserConfig().Gui.SkipAmendWarning {
+		return handleCommit()
+	}
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title:         self.c.Tr.AmendCommitTitle,
+		Prompt:        self.c.Tr.AmendCommitPrompt,
+		HandleConfirm: handleCommit,
 	})
 
 	return nil
