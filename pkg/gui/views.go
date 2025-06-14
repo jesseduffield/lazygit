@@ -159,6 +159,8 @@ func (gui *Gui) configureViewProperties() {
 		frameRunes = []rune{'─', '│', '╭', '╮', '╰', '╯'}
 	case "hidden":
 		frameRunes = []rune{' ', ' ', ' ', ' ', ' ', ' '}
+	case "bold":
+		frameRunes = []rune{'━', '┃', '┏', '┓', '┗', '┛'}
 	}
 
 	for _, mapping := range gui.orderedViewNameMappings() {
