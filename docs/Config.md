@@ -248,7 +248,7 @@ gui:
   screenMode: normal
 
   # Window border style.
-  # One of 'rounded' (default) | 'single' | 'double' | 'hidden'
+  # One of 'rounded' (default) | 'single' | 'double' | 'hidden' | 'bold'
   border: rounded
 
   # If true, show a seriously epic explosion animation when nuking the working tree.

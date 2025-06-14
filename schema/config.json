@@ -685,9 +685,10 @@
             "single",
             "double",
             "rounded",
-            "hidden"
+            "hidden",
+            "bold"
           ],
-          "description": "Window border style.\nOne of 'rounded' (default) | 'single' | 'double' | 'hidden'",
+          "description": "Window border style.\nOne of 'rounded' (default) | 'single' | 'double' | 'hidden' | 'bold'",
           "default": "rounded"
         },
         "animateExplosion": {
