@@ -117,6 +117,9 @@ func NewAppConfig(
 	if appState.GitLogShowGraph == "" {
 		appState.GitLogShowGraph = userConfig.Git.Log.ShowGraph
 	}
+	if appState.GitLogShowTags == "" {
+		appState.GitLogShowTags = userConfig.Git.Log.ShowTags
+	}
 
 	appConfig := &AppConfig{
 		name:                  name,
@@ -691,6 +694,9 @@ type AppState struct {
 	// This determines whether the git graph is rendered in the commits panel
 	// One of 'always' | 'never' | 'when-maximised'
 	GitLogShowGraph string
+	// This determines whether the commit tags are rendered in the commits panel
+	// One of 'always' | 'never' | 'when-maximised'
+	GitLogShowTags string
 }
 
 func getDefaultAppState() *AppState {
@@ -705,6 +711,7 @@ func getDefaultAppState() *AppState {
 		RemoteBranchSortOrder:     "alphabetical",
 		GitLogOrder:               "", // should be "topo-order" eventually
 		GitLogShowGraph:           "", // should be "always" eventually
+		GitLogShowTags:            "", // should be "always" eventually
 	}
 }
 
