@@ -187,7 +187,7 @@ func (self *StashController) postStashRefresh() error {
 }
 
 func (self *StashController) handleNewBranchOffStashEntry(stashEntry *models.StashEntry) error {
-	return self.c.Helpers().Refs.NewBranch(stashEntry.RefName(), stashEntry.Description(), "")
+	return self.c.Helpers().Refs.NewBranch(stashEntry.FullRefName(), stashEntry.Description(), "")
 }
 
 func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntry) error {

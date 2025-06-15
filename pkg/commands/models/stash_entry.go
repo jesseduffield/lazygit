@@ -10,7 +10,7 @@ type StashEntry struct {
 }
 
 func (s *StashEntry) FullRefName() string {
-	return s.RefName()
+	return "refs/" + s.RefName()
 }
 
 func (s *StashEntry) RefName() string {

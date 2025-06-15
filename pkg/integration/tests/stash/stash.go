@@ -12,6 +12,8 @@ var Stash = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("initial commit")
+		shell.NewBranch("stash")
+		shell.Checkout("master")
 		shell.CreateFile("file", "content")
 		shell.GitAddAll()
 	},
