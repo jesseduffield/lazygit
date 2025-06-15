@@ -21,7 +21,7 @@ type MainBranches struct {
 	previousMainBranches []string
 
 	cmd   oscommands.ICmdObjBuilder
-	mutex *deadlock.Mutex
+	mutex deadlock.Mutex
 }
 
 func NewMainBranches(
@@ -32,7 +32,6 @@ func NewMainBranches(
 		c:                    cmn,
 		existingMainBranches: nil,
 		cmd:                  cmd,
-		mutex:                &deadlock.Mutex{},
 	}
 }
 
