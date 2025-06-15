@@ -166,8 +166,8 @@ type GuiConfig struct {
 	// One of: 'normal' (default) | 'half' | 'full'
 	ScreenMode string `yaml:"screenMode" jsonschema:"enum=normal,enum=half,enum=full"`
 	// Window border style.
-	// One of 'rounded' (default) | 'single' | 'double' | 'hidden'
-	Border string `yaml:"border" jsonschema:"enum=single,enum=double,enum=rounded,enum=hidden"`
+	// One of 'rounded' (default) | 'single' | 'double' | 'hidden' | 'bold'
+	Border string `yaml:"border" jsonschema:"enum=single,enum=double,enum=rounded,enum=hidden,enum=bold"`
 	// If true, show a seriously epic explosion animation when nuking the working tree.
 	AnimateExplosion bool `yaml:"animateExplosion"`
 	// Whether to stack UI components on top of each other.
