@@ -391,6 +391,7 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (Crede
 		`Username\s*for\s*'.+':`:                 Username,
 		`Enter\s*passphrase\s*for\s*key\s*'.+':`: Passphrase,
 		`Enter\s*PIN\s*for\s*.+\s*key\s*.+:`:     PIN,
+		`Enter\s*PIN\s*for\s*'.+':`:              PIN,
 		`.*2FA Token.*`:                          Token,
 	}
 
