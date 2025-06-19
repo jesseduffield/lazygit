@@ -378,6 +378,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` e `` | Edit | Open file in external editor. |
 | `` o `` | Открыть файл | Open file in default application. |
 | `` i `` | Игнорировать или исключить файл |  |
+| `` I `` | Add extension to .gitignore |  |
 | `` r `` | Обновить файлы |  |
 | `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | Просмотреть параметры хранилища | View stash options (e.g. stash all, stash staged, stash unstaged). |
