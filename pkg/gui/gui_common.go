@@ -100,8 +100,8 @@ func (self *guiCommon) Model() *types.Model {
 	return self.gui.State.Model
 }
 
-func (self *guiCommon) Mutexes() types.Mutexes {
-	return self.gui.Mutexes
+func (self *guiCommon) Mutexes() *types.Mutexes {
+	return &self.gui.Mutexes
 }
 
 func (self *guiCommon) GocuiGui() *gocui.Gui {

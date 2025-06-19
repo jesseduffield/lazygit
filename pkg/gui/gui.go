@@ -118,7 +118,7 @@ type Gui struct {
 	// is being pushed). At the moment the rule is to use an item operation when
 	// we need to talk to the remote.
 	itemOperations      map[string]types.ItemOperation
-	itemOperationsMutex *deadlock.Mutex
+	itemOperationsMutex deadlock.Mutex
 
 	PrevLayout PrevLayout
 
@@ -681,22 +681,10 @@ func NewGui(
 		// real value after loading the user config:
 		ShowExtrasWindow: true,
 
-		Mutexes: types.Mutexes{
-			RefreshingFilesMutex:    &deadlock.Mutex{},
-			RefreshingBranchesMutex: &deadlock.Mutex{},
-			RefreshingStatusMutex:   &deadlock.Mutex{},
-			LocalCommitsMutex:       &deadlock.Mutex{},
-			SubCommitsMutex:         &deadlock.Mutex{},
-			AuthorsMutex:            &deadlock.Mutex{},
-			SubprocessMutex:         &deadlock.Mutex{},
-			PopupMutex:              &deadlock.Mutex{},
-			PtyMutex:                &deadlock.Mutex{},
-		},
 		InitialDir:       initialDir,
 		afterLayoutFuncs: make(chan func() error, 1000),
 
-		itemOperations:      make(map[string]types.ItemOperation),
-		itemOperationsMutex: &deadlock.Mutex{},
+		itemOperations: make(map[string]types.ItemOperation),
 	}
 
 	gui.PopupHandler = popup.NewPopupHandler(
