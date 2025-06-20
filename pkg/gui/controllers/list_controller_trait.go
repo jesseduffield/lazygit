@@ -44,6 +44,21 @@ func (self *ListControllerTrait[T]) require(callbacks ...func() *types.DisabledR
 	}
 }
 
+// Complement to require - returns nil if any of the provided callbacks return nil.
+// If all callbacks return a non-nil DisabledReason, it returns the last one encountered.
+func (self *ListControllerTrait[T]) any(callbacks ...func() *types.DisabledReason) func() *types.DisabledReason {
+	return func() *types.DisabledReason {
+		var disabledReason *types.DisabledReason
+		for _, callback := range callbacks {
+			if disabledReason := callback(); disabledReason == nil {
+				return disabledReason
+			}
+		}
+
+		return disabledReason
+	}
+}
+
 // Convenience function for enforcing that a single item is selected.
 // Also takes callbacks for additional disabled reasons, and passes the selected
 // item into each one.
