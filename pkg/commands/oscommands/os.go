@@ -283,7 +283,7 @@ func PrepareForChildren(cmd *exec.Cmd) {
 }
 
 func (c *OSCommand) CopyToClipboard(str string) error {
-	escaped := strings.Replace(str, "\n", "\\n", -1)
+	escaped := strings.ReplaceAll(str, "\n", "\\n")
 	truncated := utils.TruncateWithEllipsis(escaped, 40)
 
 	msg := utils.ResolvePlaceholderString(

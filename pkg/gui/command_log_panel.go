@@ -48,7 +48,7 @@ func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {
 		textStyle = style.FgMagenta
 	}
 	gui.GuiLog = append(gui.GuiLog, cmdStr)
-	indentedCmdStr := "  " + strings.Replace(cmdStr, "\n", "\n  ", -1)
+	indentedCmdStr := "  " + strings.ReplaceAll(cmdStr, "\n", "\n  ")
 	fmt.Fprint(gui.Views.Extras, "\n"+textStyle.Sprint(indentedCmdStr))
 }
 

@@ -563,7 +563,7 @@ func (self *RefsHelper) CanMoveCommitsToNewBranch() *types.DisabledReason {
 // SanitizedBranchName will remove all spaces in favor of a dash "-" to meet
 // git's branch naming requirement.
 func SanitizedBranchName(input string) string {
-	return strings.Replace(input, " ", "-", -1)
+	return strings.ReplaceAll(input, " ", "-")
 }
 
 // Checks if the given branch name is a remote branch, and returns the name of
