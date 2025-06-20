@@ -586,8 +586,8 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 	return initialContext(contextTree, startArgs)
 }
 
-func (self *Gui) getViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager {
-	manager, ok := self.viewBufferManagerMap[view.Name()]
+func (gui *Gui) getViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager {
+	manager, ok := gui.viewBufferManagerMap[view.Name()]
 	if !ok {
 		return nil
 	}
