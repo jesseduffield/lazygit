@@ -88,13 +88,16 @@ Often, as part of handling a keypress, we'll want to run some code asynchronousl
 
 ## Using UserConfig
 
-The UserConfig struct is loaded from lazygit's global config file (and possibly repo-specific config files). It can be re-loaded while lazygit is running, e.g. when the user edits one of the config files. In this case we should make sure that any new or changed config values take effect immediately. The easiest way to achieve this is what we do in most controllers or helpers: these have a pointer to the `common.Common` struct, which contains the UserConfig, and access it from there. Since the UserConfig instance in `common.Common` is updated whenever we reload the config, the code can be sure that it always uses an up-to-date value, and there's nothing else to do.
+The UserConfig struct is loaded from lazygit's global config file (and possibly repo-specific config files). It can be re-loaded while lazygit is running, e.g. when the user edits one of the config files. In this case we should make sure that any new or changed config values take effect immediately.
+The easiest way to achieve this is what we do in most controllers or helpers: these have a pointer to the `common.Common` struct, which contains the UserConfig, and access it from there. Since the UserConfig instance in `common.Common` is updated whenever we reload the config, the code can be sure that it always uses an up-to-date value, and there's nothing else to do.
 
 If that's not possible for some reason, see if you can add code to `Gui.onUserConfigLoaded` to update things from the new config; there are some examples in that function to use as a guide. If that's too hard to do too, add the config to the list in `Gui.checkForChangedConfigsThatDontAutoReload` so that the user is asked to quit and restart lazygit.
 
 ## Legacy code structure
 
-Before we had controllers and contexts, all the code lived directly in the gui package under a gui God Struct. This was fairly bloated and so we split things out to have a better separation of concerns. Nonetheless, it's a big effort to migrate all the code so we still have some logic in the gui struct that ought to live somewhere else. Likewise, we have some keybindings defined in `pkg/gui/keybindings.go` that ought to live on a controller (all keybindings used to be defined in that one file).
+Before we had controllers and contexts, all the code lived directly in the gui package under a gui God Struct. This was fairly bloated and so we split things out to have a better separation of concerns. Nonetheless, it's a big effort to migrate all the code so we still have some logic in the gui struct that ought to live somewhere else.
+Likewise, we have some keybindings defined in `pkg/gui/keybindings.go` that ought to live on a controller (all keybindings used to be defined in that one file).
 
-The new structure has its own problems: we don't have a clear guide on whether code should live in a controller or helper. The current approach is to put code in a controller until it's needed by another controller, and to then extract it out into a helper. We may be better off just putting code in helpers to start with and leaving controllers super-thin, with the responsibility of just pairing keys with corresponding helper functions. But it's not clear to me if that would be better than the current approach.
+The new structure has its own problems: we don't have a clear guide on whether code should live in a controller or helper. The current approach is to put code in a controller until it's needed by another controller, and to then extract it out into a helper.
+We may be better off just putting code in helpers to start with and leaving controllers super-thin, with the responsibility of just pairing keys with corresponding helper functions. But it's not clear to me if that would be better than the current approach.
 
