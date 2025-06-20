@@ -779,6 +779,7 @@ type TranslationSet struct {
 	LogMenuTitle                             string
 	ToggleShowGitGraphAll                    string
 	ShowGitGraph                             string
+	ShowTags                                 string
 	SortOrder                                string
 	SortAlphabetical                         string
 	SortByDate                               string
@@ -1868,6 +1869,7 @@ func EnglishTranslationSet() *TranslationSet {
 		LogMenuTitle:                             "Commit Log Options",
 		ToggleShowGitGraphAll:                    "Toggle show whole git graph (pass the `--all` flag to `git log`)",
 		ShowGitGraph:                             "Show git graph",
+		ShowTags:                                 "Show tags",
 		SortOrder:                                "Sort order",
 		SortAlphabetical:                         "Alphabetical",
 		SortByDate:                               "Date",

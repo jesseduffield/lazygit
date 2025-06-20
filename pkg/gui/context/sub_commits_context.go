@@ -76,6 +76,7 @@ func NewSubCommitsContext(
 			startIdx,
 			endIdx,
 			shouldShowGraph(c),
+			shouldShowTags(c),
 			git_commands.NewNullBisectInfo(),
 		)
 	}
