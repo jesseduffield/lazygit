@@ -75,8 +75,8 @@ type LinesToRead struct {
 	Then func()
 }
 
-func (m *ViewBufferManager) GetTaskKey() string {
-	return m.taskKey
+func (self *ViewBufferManager) GetTaskKey() string {
+	return self.taskKey
 }
 
 func NewViewBufferManager(
