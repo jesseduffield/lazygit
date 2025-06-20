@@ -89,9 +89,15 @@ func TestProcessOutput(t *testing.T) {
 			expectedToWrite:         "passphrase",
 		},
 		{
-			name:                    "pin prompt",
+			name:                    "security key pin prompt",
 			promptUserForCredential: defaultPromptUserForCredential,
 			output:                  "Enter PIN for key '123':",
+			expectedToWrite:         "pin",
+		},
+		{
+			name:                    "pkcs11 key pin prompt",
+			promptUserForCredential: defaultPromptUserForCredential,
+			output:                  "Enter PIN for '123':",
 			expectedToWrite:         "pin",
 		},
 		{
