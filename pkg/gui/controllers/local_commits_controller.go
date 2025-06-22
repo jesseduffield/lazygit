@@ -1196,10 +1196,10 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 				Label:     self.c.Tr.ShowTags,
 				OpensMenu: true,
 				OnPress: func() error {
-					currentValue := self.c.GetAppState().GitLogShowTags
+					currentValue := self.context().GetShowTags()
 					onPress := func(value string) func() error {
 						return func() error {
-							self.c.GetAppState().GitLogShowTags = value
+							self.context().SetShowTags(value)
 							self.c.SaveAppStateAndLogError()
 							self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
 							self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)

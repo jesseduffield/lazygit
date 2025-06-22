@@ -61,7 +61,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			startIdx,
 			endIdx,
 			shouldShowGraph(c),
-			shouldShowTags(c),
+			shouldDisplayForScreenMode(c, viewModel.showTags),
 			c.Model().BisectInfo,
 		)
 	}
@@ -149,6 +149,9 @@ type LocalCommitsViewModel struct {
 
 	// If this is true we'll use git log --all when fetching the commits.
 	showWholeGitGraph bool
+
+	// If this is true we'll show tags in the commit list.
+	showTags string
 }
 
 func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon) *LocalCommitsViewModel {
@@ -156,6 +159,7 @@ func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon
 		ListViewModel:     NewListViewModel(getModel),
 		limitCommits:      true,
 		showWholeGitGraph: c.UserConfig().Git.Log.ShowWholeGraph,
+		showTags:          c.UserConfig().Git.Log.ShowTags,
 	}
 
 	return self
@@ -239,6 +243,14 @@ func (self *LocalCommitsViewModel) SetShowWholeGitGraph(value bool) {
 	self.showWholeGitGraph = value
 }
 
+func (self *LocalCommitsContext) GetShowTags() string {
+	return self.showTags
+}
+
+func (self *LocalCommitsViewModel) SetShowTags(value string) {
+	self.showTags = value
+}
+
 func (self *LocalCommitsViewModel) GetShowWholeGitGraph() bool {
 	return self.showWholeGitGraph
 }
@@ -248,14 +260,10 @@ func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {
 }
 
 func shouldShowGraph(c *ContextCommon) bool {
-	return shouldShowBasedOnAppState(c, c.GetAppState().GitLogShowGraph)
+	return shouldDisplayForScreenMode(c, c.GetAppState().GitLogShowGraph)
 }
 
-func shouldShowTags(c *ContextCommon) bool {
-	return shouldShowBasedOnAppState(c, c.GetAppState().GitLogShowTags)
-}
-
-func shouldShowBasedOnAppState(c *ContextCommon, value string) bool {
+func shouldDisplayForScreenMode(c *ContextCommon, value string) bool {
 	if c.Modes().Filtering.Active() {
 		return false
 	}
