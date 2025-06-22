@@ -169,9 +169,9 @@ jobs:
         with:
           go-version: 1.24.x
       - name: Lint
-        uses: golangci/golangci-lint-action@v6.5.0
+        uses: golangci/golangci-lint-action@v8
         with:
-          version: v1.64.6
+          version: v2.2.1
       - name: errors
         run: golangci-lint run
         if: ${{ failure() }}
