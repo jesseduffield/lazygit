@@ -71,7 +71,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Sub-commits
 
@@ -103,7 +103,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` <space> `` | Switch | Switch to the selected worktree. |
 | `` o `` | Open in editor |  |
 | `` d `` | Remove | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## コミット
 
@@ -187,7 +187,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` e `` | サブモジュールのURLを更新 |  |
 | `` i `` | Initialize | サブモジュールを初期化 |
 | `` b `` | View bulk submodule options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## ステータス
 
@@ -213,7 +213,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## ファイル
 
@@ -277,7 +277,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## メインパネル (Merging)
 
@@ -348,7 +348,7 @@ Note that this disregards the selection, the new branch is always created either
 |-----|--------|-------------|
 | `` <enter> `` | 実行 |  |
 | `` <esc> `` | 閉じる |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## リモート
 
@@ -359,7 +359,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
 | `` e `` | 編集 | リモートを編集 |
 | `` f `` | Fetch | リモートをfetch |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## リモートブランチ
 
@@ -378,7 +378,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 参照ログ
 
@@ -400,7 +400,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | コミットを閲覧 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 確認パネル
 

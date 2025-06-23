@@ -71,7 +71,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Secondary
 
@@ -93,7 +93,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View selected item's files |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Sub-commits
 
@@ -125,7 +125,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` <space> `` | Switch | Switch to the selected worktree. |
 | `` o `` | Open in editor |  |
 | `` d `` | Remove | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 메뉴
 
@@ -133,7 +133,7 @@ Note that this disregards the selection, the new branch is always created either
 |-----|--------|-------------|
 | `` <enter> `` | 실행 |  |
 | `` <esc> `` | 닫기 |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 메인 패널 (Merging)
 
@@ -227,7 +227,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 상태
 
@@ -251,7 +251,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` e `` | 서브모듈의 URL을 수정 |  |
 | `` i `` | Initialize | 서브모듈 초기화 |
 | `` b `` | View bulk submodule options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 원격
 
@@ -262,7 +262,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
 | `` e `` | Edit | Remote를 수정 |
 | `` f `` | Fetch | 원격을 업데이트 |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 원격 브랜치
 
@@ -281,7 +281,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 커밋
 
@@ -367,7 +367,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## 파일
 

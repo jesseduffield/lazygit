@@ -120,7 +120,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Commit bericht
 
@@ -198,7 +198,7 @@ Note that this disregards the selection, the new branch is always created either
 |-----|--------|-------------|
 | `` <enter> `` | Uitvoeren |  |
 | `` <esc> `` | Sluiten |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Mergen
 
@@ -261,7 +261,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Remote branches
 
@@ -280,7 +280,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Remotes
 
@@ -291,7 +291,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
 | `` e `` | Edit | Wijzig remote |
 | `` f `` | Fetch | Fetch remote |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Secondary
 
@@ -335,7 +335,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk gecommite bestanden |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Status
 
@@ -381,7 +381,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` e `` | Update submodule URL |  |
 | `` i `` | Initialize | Initialiseer submodule |
 | `` b `` | Bekijk bulk submodule opties |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Tags
 
@@ -397,7 +397,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
 
 ## Worktrees
 
@@ -407,4 +407,4 @@ Note that this disregards the selection, the new branch is always created either
 | `` <space> `` | Switch | Switch to the selected worktree. |
 | `` o `` | Open in editor |  |
 | `` d `` | Remove | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filter |  |
