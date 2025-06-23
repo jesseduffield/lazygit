@@ -69,6 +69,7 @@ Veja a documentação:
 | `` e `` | Editar | Abrir arquivo no editor externo. |
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
 | `` i `` | Ignore or exclude file |  |
+| `` I `` | Add extension to .gitignore |  |
 | `` r `` | Atualizar arquivos |  |
 | `` s `` | Stash | Stash todas as alterações. Para outras variações de armazenamento, use a fixação de teclas de armazenamento. |
 | `` S `` | Ver opções de stash | Ver opções de stash (por exemplo, trash all, stash staged, stash unsttued). |

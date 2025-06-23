@@ -111,6 +111,12 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			OpensMenu:         true,
 		},
 		{
+			Key:               opts.GetKey(opts.Config.Files.IgnoreFileExtension),
+			Handler:           self.withItem(self.ignoreExtension),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.IgnoreFileExtension,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Files.RefreshFiles),
 			Handler:     self.refresh,
 			Description: self.c.Tr.RefreshFiles,
@@ -718,6 +724,24 @@ func (self *FilesController) ignore(node *filetree.FileNode) error {
 	return self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.c.Git().WorkingTree.Ignore)
 }
 
+func (self *FilesController) ignoreExtension(node *filetree.FileNode) error {
+	if node.GetPath() == ".gitignore" {
+		return errors.New(self.c.Tr.Actions.IgnoreFileErr)
+	}
+
+	path := node.GetPath()
+	ext := filepath.Ext(path)
+	if ext == "" {
+		return fmt.Errorf("No file extension to ignore")
+	}
+
+	pattern := "*" + ext
+
+	return self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, func(string) error {
+		return self.c.Git().WorkingTree.Ignore(pattern)
+	})
+}
+
 func (self *FilesController) exclude(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
 		return errors.New(self.c.Tr.Actions.ExcludeGitIgnoreErr)
@@ -739,6 +763,16 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 					return nil
 				},
 				Key: 'i',
+			},
+			{
+				LabelColumns: []string{self.c.Tr.IgnoreFileExtension},
+				OnPress: func() error {
+					if err := self.ignoreExtension(node); err != nil {
+						return err
+					}
+					return nil
+				},
+				Key: 'I',
 			},
 			{
 				LabelColumns: []string{self.c.Tr.ExcludeFile},
