@@ -237,13 +237,13 @@ Normally the lazygit formula can be found in the Homebrew core but we suggest yo
 
 Tap:
 
-```
+```sh
 brew install jesseduffield/lazygit/lazygit
 ```
 
 Core:
 
-```
+```sh
 brew install lazygit
 ```
 
@@ -440,29 +440,35 @@ You can install `lazygit` using the `winget` command in the Windows Terminal wit
 winget install -e --id=JesseDuffield.lazygit
 ```
 
-### Manual
+### Install Lazygit From Source
 
-You'll need to [install Go](https://golang.org/doc/install)
+First, [install Go](https://golang.org/doc/install)
 
-```
+```sh
 git clone https://github.com/jesseduffield/lazygit.git
 cd lazygit
 go install
 ```
 
-You can also use `go run main.go` to compile and run in one go (pun definitely intended)
+#### Compile Emphemeral Binary
+
+Alternatively use `go run main.go` to compile and run in one go (pun definitely intended)
 
 ## Usage
 
-Call `lazygit` in your terminal inside a git repository.
+Call `lazygit` in your terminal, while inside a git repository.
 
-```sh
+```shell
 $ lazygit
 ```
 
-If you want, you can
-also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or
-whichever rc file you're using).
+### Add ZSH/Bash Alias
+
+Create a shortcut for lazygit by adding an alias to the shell configuration file.
+
+```sh
+echo "alias lg='lazygit'" >> "$HOME/.$(basename $SHELL)rc"
+```
 
 ### Keybindings
 
@@ -472,7 +478,7 @@ You can check out the list of keybindings [here](/docs/keybindings).
 
 If you change repos in lazygit and want your shell to change directory into that repo on exiting lazygit, add this to your `~/.zshrc` (or other rc file):
 
-```
+```sh
 lg()
 {
     export LAZYGIT_NEW_DIR_FILE=~/.lazygit/newdir
