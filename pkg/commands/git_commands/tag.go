@@ -57,3 +57,20 @@ func (self *TagCommands) Push(task gocui.Task, remoteName string, tagName string
 
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
 }
+
+// Return info about an annotated tag in the format:
+//
+//	Tagger:     tagger name <tagger email>
+//	TaggerDate: tagger date
+//
+//	Tag message
+//
+// Should only be called for annotated tags.
+func (self *TagCommands) ShowAnnotationInfo(tagName string) (string, error) {
+	cmdArgs := NewGitCmd("for-each-ref").
+		Arg("--format=Tagger:     %(taggername) %(taggeremail)%0aTaggerDate: %(taggerdate)%0a%0a%(contents)").
+		Arg("refs/tags/" + tagName).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).RunWithOutput()
+}
