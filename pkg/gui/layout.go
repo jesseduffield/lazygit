@@ -260,7 +260,7 @@ func (gui *Gui) onInitialViewsCreation() error {
 	gui.c.GetAppState().LastVersion = gui.Config.GetVersion()
 	gui.c.SaveAppStateAndLogError()
 
-	if gui.showRecentRepos {
+	if gui.showRecentRepos && gui.c.UserConfig().NotARepository != "skip" {
 		if err := gui.helpers.Repos.CreateRecentReposMenu(); err != nil {
 			return err
 		}
