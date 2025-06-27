@@ -111,10 +111,11 @@ func (self *BranchCommands) CurrentBranchName() (string, error) {
 		ToArgv()
 
 	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
-	if err == nil {
-		return strings.TrimSpace(output), nil
+	if err != nil {
+		return "", err
 	}
-	return "", err
+
+	return strings.TrimSpace(output), nil
 }
 
 // LocalDelete delete branch locally
