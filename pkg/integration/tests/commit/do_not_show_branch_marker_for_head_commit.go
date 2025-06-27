@@ -26,7 +26,7 @@ var DoNotShowBranchMarkerForHeadCommit = NewIntegrationTest(NewIntegrationTestAr
 		// Check that the local commits view does show a branch marker for the head commit
 		t.Views().Commits().
 			Lines(
-				Contains("CI * three"), // don't want the star here
+				Contains("CI three"),
 				Contains("CI two"),
 				Contains("CI branch1 one"),
 			)
