@@ -109,10 +109,11 @@ func (self *ListController) handleLineChangeAux(f func(int), change int) error {
 	// we're not constantly re-rendering the main view.
 	cursorMoved := before != after
 	if cursorMoved {
-		if change == -1 {
+		switch change {
+		case -1:
 			checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig(),
 				self.context.ModelIndexToViewIndex(before), self.context.ModelIndexToViewIndex(after))
-		} else if change == 1 {
+		case 1:
 			checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig(),
 				self.context.ModelIndexToViewIndex(before), self.context.ModelIndexToViewIndex(after))
 		}

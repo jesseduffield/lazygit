@@ -185,9 +185,10 @@ func getFileLine(
 func formatFileStatus(file *models.File, restColor style.TextStyle) string {
 	firstChar := file.ShortStatus[0:1]
 	firstCharCl := style.FgGreen
-	if firstChar == "?" {
+	switch firstChar {
+	case "?":
 		firstCharCl = theme.UnstagedChangesColor
-	} else if firstChar == " " {
+	case " ":
 		firstCharCl = restColor
 	}
 
