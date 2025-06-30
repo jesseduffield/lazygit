@@ -164,7 +164,7 @@ func (P *pointR1) isEqual(Q *pointR1) bool {
 	fp.Mul(r, r, &P.z)
 	fp.Sub(l, l, r)
 	b = b && fp.IsZero(l)
-	return b
+	return b && !fp.IsZero(&P.z) && !fp.IsZero(&Q.z)
 }
 
 func (P *pointR3) neg() {
