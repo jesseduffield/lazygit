@@ -18,7 +18,7 @@ import (
 )
 
 type FilesController struct {
-	baseController // nolint: unused
+	baseController
 	*ListControllerTrait[*filetree.FileNode]
 	c *ControllerCommon
 }

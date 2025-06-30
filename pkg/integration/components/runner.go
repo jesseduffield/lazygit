@@ -48,7 +48,7 @@ func RunTests(args RunTestArgs) error {
 	}
 
 	for _, test := range args.Tests {
-		args.TestWrapper(test, func() error { //nolint: thelper
+		args.TestWrapper(test, func() error {
 			paths := NewPaths(
 				filepath.Join(testDir, test.Name()),
 			)

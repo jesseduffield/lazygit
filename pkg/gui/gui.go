@@ -965,7 +965,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess *oscommands.CmdObj) (bool, 
 	return true, nil
 }
 
-func (gui *Gui) runSubprocess(cmdObj *oscommands.CmdObj) error { //nolint:unparam
+func (gui *Gui) runSubprocess(cmdObj *oscommands.CmdObj) error {
 	gui.LogCommand(cmdObj.ToString(), true)
 
 	subprocess := cmdObj.GetCmd()
