@@ -1,7 +1,7 @@
 package git_commands
 
 import (
-	"regexp"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -26,9 +26,13 @@ func NewTagLoader(
 }
 
 func (self *TagLoader) GetTags() ([]*models.Tag, error) {
-	// get remote branches, sorted  by creation date (descending)
+	// get tags, sorted by creation date (descending)
 	// see: https://git-scm.com/docs/git-tag#Documentation/git-tag.txt---sortltkeygt
-	cmdArgs := NewGitCmd("tag").Arg("--list", "-n", "--sort=-creatordate").ToArgv()
+	cmdArgs := NewGitCmd("for-each-ref").
+		Arg("--sort=-creatordate").
+		Arg("--format=%(refname)%00%(objecttype)%00%(contents:subject)").
+		Arg("refs/tags").
+		ToArgv()
 	tagsOutput, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	if err != nil {
 		return nil, err
@@ -36,20 +40,20 @@ func (self *TagLoader) GetTags() ([]*models.Tag, error) {
 
 	split := utils.SplitLines(tagsOutput)
 
-	lineRegex := regexp.MustCompile(`^([^\s]+)(\s+)?(.*)$`)
-
-	tags := lo.Map(split, func(line string, _ int) *models.Tag {
-		matches := lineRegex.FindStringSubmatch(line)
-		tagName := matches[1]
-		message := ""
-		if len(matches) > 3 {
-			message = matches[3]
+	tags := lo.FilterMap(split, func(line string, _ int) (*models.Tag, bool) {
+		fields := strings.SplitN(line, "\x00", 3)
+		if len(fields) != 3 {
+			return nil, false
 		}
+		tagName := fields[0]
+		objectType := fields[1]
+		message := fields[2]
 
 		return &models.Tag{
-			Name:    tagName,
-			Message: message,
-		}
+			Name:        strings.TrimPrefix(tagName, "refs/tags/"),
+			Message:     message,
+			IsAnnotated: objectType == "tag",
+		}, true
 	})
 
 	return tags, nil

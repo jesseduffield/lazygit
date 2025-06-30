@@ -9,10 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const tagsOutput = `tag1 this is my message
-tag2
-tag3 this is my other message
-`
+const tagsOutput = "refs/tags/tag1\x00tag\x00this is my message\n" +
+	"refs/tags/tag2\x00commit\x00\n" +
+	"refs/tags/tag3\x00tag\x00this is my other message\n"
 
 func TestGetTags(t *testing.T) {
 	type scenario struct {
@@ -26,18 +25,18 @@ func TestGetTags(t *testing.T) {
 		{
 			testName: "should return no tags if there are none",
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"tag", "--list", "-n", "--sort=-creatordate"}, "", nil),
+				ExpectGitArgs([]string{"for-each-ref", "--sort=-creatordate", "--format=%(refname)%00%(objecttype)%00%(contents:subject)", "refs/tags"}, "", nil),
 			expectedTags:  []*models.Tag{},
 			expectedError: nil,
 		},
 		{
 			testName: "should return tags if present",
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"tag", "--list", "-n", "--sort=-creatordate"}, tagsOutput, nil),
+				ExpectGitArgs([]string{"for-each-ref", "--sort=-creatordate", "--format=%(refname)%00%(objecttype)%00%(contents:subject)", "refs/tags"}, tagsOutput, nil),
 			expectedTags: []*models.Tag{
-				{Name: "tag1", Message: "this is my message"},
-				{Name: "tag2", Message: ""},
-				{Name: "tag3", Message: "this is my other message"},
+				{Name: "tag1", Message: "this is my message", IsAnnotated: true},
+				{Name: "tag2", Message: "", IsAnnotated: false},
+				{Name: "tag3", Message: "this is my other message", IsAnnotated: true},
 			},
 			expectedError: nil,
 		},
