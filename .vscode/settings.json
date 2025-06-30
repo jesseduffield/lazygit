@@ -2,4 +2,8 @@
   "gopls": {
     "formatting.gofumpt": true,
   },
+  "go.alternateTools": {
+    "golangci-lint-v2": "${workspaceFolder}/.bin/golangci-lint",
+  },
+  "go.lintTool": "golangci-lint-v2",
 }
