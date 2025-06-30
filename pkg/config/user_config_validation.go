@@ -56,7 +56,7 @@ func validateKeybindingsRecurse(path string, node any) error {
 			}
 		}
 	} else if value.Kind() == reflect.Slice {
-		for i := 0; i < value.Len(); i++ {
+		for i := range value.Len() {
 			if err := validateKeybindingsRecurse(
 				fmt.Sprintf("%s[%d]", path, i), value.Index(i).Interface()); err != nil {
 				return err

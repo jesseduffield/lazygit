@@ -222,7 +222,7 @@ func (c *OSCommand) PipeCommands(cmdObjs ...*CmdObj) error {
 
 	c.LogCommand(logCmdStr, true)
 
-	for i := 0; i < len(cmds)-1; i++ {
+	for i := range len(cmds) - 1 {
 		stdout, err := cmds[i].StdoutPipe()
 		if err != nil {
 			return err

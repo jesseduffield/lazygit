@@ -91,7 +91,7 @@ func (p *PatchBuilder) addFileWhole(info *fileInfo) {
 		// add every line index
 		// TODO: add tests and then use lo.Range to simplify
 		info.includedLineIndices = make([]int, lineCount)
-		for i := 0; i < lineCount; i++ {
+		for i := range lineCount {
 			info.includedLineIndices[i] = i
 		}
 	}

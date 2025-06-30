@@ -79,7 +79,7 @@ func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPt
 	wg := sync.WaitGroup{}
 	wg.Add(maxProcs)
 
-	for i := 0; i < maxProcs; i++ {
+	for i := range maxProcs {
 		go func() {
 			from := i * perProc
 			to := (i + 1) * perProc

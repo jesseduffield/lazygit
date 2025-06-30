@@ -579,7 +579,7 @@ func generateCommits(hashPool *utils.StringPool, count int) []*models.Commit {
 		parentCount := rnd.Intn(2) + 1
 
 		parentHashes := currentCommit.Parents()
-		for j := 0; j < parentCount; j++ {
+		for j := range parentCount {
 			reuseParent := rnd.Intn(6) != 1 && j <= len(pool)-1 && j != 0
 			var newParent *models.Commit
 			if reuseParent {

@@ -257,7 +257,7 @@ func (self *Shell) CreateNCommitsStartingAt(n, startIndex int) *Shell {
 // Only to be used in demos, because the list might change and we don't want
 // tests to break when it does.
 func (self *Shell) CreateNCommitsWithRandomMessages(n int) *Shell {
-	for i := 0; i < n; i++ {
+	for i := range n {
 		file := RandomFiles[i]
 		self.CreateFileAndAdd(
 			file.Name,
@@ -286,7 +286,7 @@ func (self *Shell) CreateRepoHistory() *Shell {
 	totalCommits := 0
 
 	// Generate commits
-	for i := 0; i < numInitialCommits; i++ {
+	for i := range numInitialCommits {
 		author := authors[i%numAuthors]
 		commitMessage := RandomCommitMessages[totalCommits%len(RandomCommitMessages)]
 
@@ -296,7 +296,7 @@ func (self *Shell) CreateRepoHistory() *Shell {
 	}
 
 	// Generate branches and merges
-	for i := 0; i < numBranches; i++ {
+	for i := range numBranches {
 		// We'll have one author creating all the commits in the branch
 		author := authors[i%numAuthors]
 		branchName := RandomBranchNames[i%len(RandomBranchNames)]
@@ -309,7 +309,7 @@ func (self *Shell) CreateRepoHistory() *Shell {
 		self.NewBranchFrom(branchName, fmt.Sprintf("master~%d", commitOffset))
 
 		numCommitsInBranch := rand.Intn(maxCommitsPerBranch) + 1
-		for j := 0; j < numCommitsInBranch; j++ {
+		for range numCommitsInBranch {
 			commitMessage := RandomCommitMessages[totalCommits%len(RandomCommitMessages)]
 
 			self.SetAuthor(author, "")

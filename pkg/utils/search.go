@@ -41,7 +41,7 @@ func FindSubstringsFrom(pattern string, data fuzzy.Source) fuzzy.Matches {
 	result := fuzzy.Matches{}
 
 outer:
-	for i := 0; i < data.Len(); i++ {
+	for i := range data.Len() {
 		s := data.String(i)
 		for _, sub := range substrings {
 			if !CaseAwareContains(s, sub) {

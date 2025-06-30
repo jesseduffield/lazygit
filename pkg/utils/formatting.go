@@ -25,7 +25,7 @@ type ColumnConfig struct {
 func StringWidth(s string) int {
 	// We are intentionally not using a range loop here, because that would
 	// convert the characters to runes, which is unnecessary work in this case.
-	for i := 0; i < len(s); i++ {
+	for i := range len(s) {
 		if s[i] > unicode.MaxASCII {
 			return runewidth.StringWidth(s)
 		}

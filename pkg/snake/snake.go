@@ -129,7 +129,7 @@ func (self *Game) newFoodPos(snakePositions []Position) Position {
 	// arbitrarily setting a limit of attempts to place food
 	attemptLimit := 1000
 
-	for i := 0; i < attemptLimit; i++ {
+	for range attemptLimit {
 		newFoodPos := Position{self.randIntFn(self.width), self.randIntFn(self.height)}
 
 		if !lo.Contains(snakePositions, newFoodPos) {
@@ -183,7 +183,7 @@ func (self *Game) getCells(state State) [][]CellType {
 		cells[pos.y][pos.x] = value
 	}
 
-	for i := 0; i < self.height; i++ {
+	for i := range self.height {
 		cells[i] = make([]CellType, self.width)
 	}
 

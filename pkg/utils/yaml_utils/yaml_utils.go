@@ -139,7 +139,7 @@ func walk(node *yaml.Node, path string, callback func(*yaml.Node, string)) error
 			}
 		}
 	case yaml.SequenceNode:
-		for i := 0; i < len(node.Content); i++ {
+		for i := range len(node.Content) {
 			childPath := fmt.Sprintf("%s[%d]", path, i)
 			err := walk(node.Content[i], childPath, callback)
 			if err != nil {

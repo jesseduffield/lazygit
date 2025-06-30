@@ -53,7 +53,7 @@ func RunTests(args RunTestArgs) error {
 				filepath.Join(testDir, test.Name()),
 			)
 
-			for i := 0; i < args.MaxAttempts; i++ {
+			for i := range args.MaxAttempts {
 				err := runTest(test, args, paths, projectRootDir, gitVersion)
 				if err != nil {
 					if i == args.MaxAttempts-1 {

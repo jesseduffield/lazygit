@@ -5,6 +5,7 @@ linters:
   enable:
     - copyloopvar
     - exhaustive
+    - intrange
     - makezero
     - nakedret
     - nolintlint

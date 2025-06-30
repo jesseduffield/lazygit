@@ -44,7 +44,7 @@ func (self *ViewDriver) Clear() *ViewDriver {
 	// clearing multiple times in case there's multiple lines
 	//  (the clear button only clears a single line at a time)
 	maxAttempts := 100
-	for i := 0; i < maxAttempts+1; i++ {
+	for i := range maxAttempts + 1 {
 		if self.getView().Buffer() == "" {
 			break
 		}
@@ -104,7 +104,7 @@ func (self *ViewDriver) ContainsLines(matchers ...*TextMatcher) *ViewDriver {
 
 		startIdx, endIdx := self.getSelectedRange()
 
-		for i := 0; i < len(lines)-len(matchers)+1; i++ {
+		for i := range len(lines) - len(matchers) + 1 {
 			matches := true
 			for j, matcher := range matchers {
 				checkIsSelected, matcher := matcher.checkIsSelected() // strip the IsSelected matcher out
@@ -375,11 +375,11 @@ func (self *ViewDriver) Focus() *ViewDriver {
 			currentViewName := self.t.gui.CurrentContext().GetViewName()
 			currentViewTabIndex := lo.IndexOf(window.viewNames, currentViewName)
 			if tabIndex > currentViewTabIndex {
-				for i := 0; i < tabIndex-currentViewTabIndex; i++ {
+				for range tabIndex - currentViewTabIndex {
 					self.t.press(self.t.keys.Universal.NextTab)
 				}
 			} else if tabIndex < currentViewTabIndex {
-				for i := 0; i < currentViewTabIndex-tabIndex; i++ {
+				for range currentViewTabIndex - tabIndex {
 					self.t.press(self.t.keys.Universal.PrevTab)
 				}
 			}
@@ -534,7 +534,7 @@ func (self *ViewDriver) NavigateToLine(matcher *TextMatcher) *ViewDriver {
 		keyPress = func() { self.SelectPreviousItem() }
 	}
 
-	for i := 0; i < maxNumKeyPresses; i++ {
+	for range maxNumKeyPresses {
 		keyPress()
 		idx := self.getSelectedLineIdx()
 		// It is important to use view.BufferLines() here and not lines, because it

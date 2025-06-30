@@ -18,7 +18,7 @@ func commonSetup(shell *Shell) {
 	repoStartDaysAgo := 100
 
 	for _, authorInfo := range authors {
-		for i := 0; i < authorInfo.numberOfCommits; i++ {
+		for i := range authorInfo.numberOfCommits {
 			authorEmail := strings.ToLower(strings.ReplaceAll(authorInfo.name, " ", ".")) + "@email.com"
 			commitMessage := fmt.Sprintf("commit %d", i)
 
