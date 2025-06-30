@@ -102,19 +102,18 @@ func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 	}, nil
 }
 
-// CurrentBranchName get name of current branch
+// CurrentBranchName get name of current branch. Returns empty string if HEAD is detached.
 func (self *BranchCommands) CurrentBranchName() (string, error) {
-	cmdArgs := NewGitCmd("rev-parse").
-		Arg("--abbrev-ref").
-		Arg("--verify").
-		Arg("HEAD").
+	cmdArgs := NewGitCmd("branch").
+		Arg("--show-current").
 		ToArgv()
 
 	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
-	if err == nil {
-		return strings.TrimSpace(output), nil
+	if err != nil {
+		return "", err
 	}
-	return "", err
+
+	return strings.TrimSpace(output), nil
 }
 
 // LocalDelete delete branch locally

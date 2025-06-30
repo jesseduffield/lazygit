@@ -118,6 +118,7 @@ var tests = []*components.IntegrationTest{
 	commit.CreateTag,
 	commit.DisableCopyCommitMessageBody,
 	commit.DiscardOldFileChanges,
+	commit.DoNotShowBranchMarkerForHeadCommit,
 	commit.FailHooksThenCommitNoHooks,
 	commit.FindBaseCommitForFixup,
 	commit.FindBaseCommitForFixupDisregardMainBranch,
