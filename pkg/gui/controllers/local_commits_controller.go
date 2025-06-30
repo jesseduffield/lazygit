@@ -343,6 +343,10 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 }
 
 func (self *LocalCommitsController) reword(commit *models.Commit) error {
+	commitIdx := self.context().GetSelectedLineIdx()
+	if self.c.Git().Config.NeedsGpgSubprocessForCommit() && !self.isHeadCommit(commitIdx) {
+		return errors.New(self.c.Tr.DisabledForGPG)
+	}
 	commitMessage, err := self.c.Git().Commit.GetCommitMessage(commit.Hash())
 	if err != nil {
 		return err
@@ -352,7 +356,7 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 	}
 	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
-			CommitIndex:      self.context().GetSelectedLineIdx(),
+			CommitIndex:      commitIdx,
 			InitialMessage:   commitMessage,
 			SummaryTitle:     self.c.Tr.Actions.RewordCommit,
 			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,

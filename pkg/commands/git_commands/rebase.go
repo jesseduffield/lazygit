@@ -35,6 +35,8 @@ func NewRebaseCommands(
 }
 
 func (self *RebaseCommands) RewordCommit(commits []*models.Commit, index int, summary string, description string) error {
+	// This check is currently unreachable (handled in LocalCommitsController.reword),
+	// but kept as a safeguard in case this method is used elsewhere.
 	if self.config.NeedsGpgSubprocessForCommit() {
 		return errors.New(self.Tr.DisabledForGPG)
 	}
