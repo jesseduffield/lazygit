@@ -53,8 +53,17 @@ var ApplyWithModifiedFileNoConflict = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Common().SelectPatchOption(MatchesRegexp(`Apply patch$`))
 
-		t.ExpectPopup().Alert().Title(Equals("Error")).
-			Content(Equals("error: file1: does not match index")).
+		t.ExpectPopup().Confirmation().Title(Equals("Must stage files")).
+			Content(Contains("Applying a patch to the index requires staging the unstaged files that are affected by the patch.")).
 			Confirm()
+
+		t.Views().Files().
+			Focus().
+			Lines(
+				Equals("M  file1").IsSelected(),
+			)
+
+		t.Views().Main().
+			Content(Contains("-1\n+11\n 2\n 3\n+4"))
 	},
 })

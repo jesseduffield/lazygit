@@ -53,8 +53,31 @@ var ApplyWithModifiedFileConflict = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Common().SelectPatchOption(MatchesRegexp(`Apply patch$`))
 
-		t.ExpectPopup().Alert().Title(Equals("Error")).
-			Content(Equals("error: file1: does not match index")).
+		t.ExpectPopup().Confirmation().Title(Equals("Must stage files")).
+			Content(Contains("Applying a patch to the index requires staging the unstaged files that are affected by the patch.")).
 			Confirm()
+
+		t.ExpectPopup().Alert().Title(Equals("Error")).
+			Content(Contains("Applied patch to 'file1' with conflicts.")).
+			Confirm()
+
+		t.Views().Files().
+			Focus().
+			Lines(
+				Equals("UU file1").IsSelected(),
+			).
+			PressEnter()
+
+		t.Views().MergeConflicts().
+			IsFocused().
+			Lines(
+				Equals("<<<<<<< ours"),
+				Equals("111"),
+				Equals("======="),
+				Equals("11"),
+				Equals(">>>>>>> theirs"),
+				Equals("2"),
+				Equals("3"),
+			)
 	},
 })

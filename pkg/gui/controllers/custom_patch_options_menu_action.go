@@ -4,10 +4,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type CustomPatchOptionsMenuAction struct {
@@ -267,16 +270,42 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommitBefore() e
 func (self *CustomPatchOptionsMenuAction) handleApplyPatch(reverse bool) error {
 	self.returnFocusFromPatchExplorerIfNecessary()
 
-	action := self.c.Tr.Actions.ApplyPatch
-	if reverse {
-		action = "Apply patch in reverse"
+	affectedUnstagedFiles := self.getAffectedUnstagedFiles()
+
+	apply := func() error {
+		action := self.c.Tr.Actions.ApplyPatch
+		if reverse {
+			action = "Apply patch in reverse"
+		}
+		self.c.LogAction(action)
+
+		if len(affectedUnstagedFiles) > 0 {
+			if err := self.c.Git().WorkingTree.StageFiles(affectedUnstagedFiles, nil); err != nil {
+				return err
+			}
+		}
+
+		if err := self.c.Git().Patch.ApplyCustomPatch(reverse, true); err != nil {
+			return err
+		}
+
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		return nil
 	}
-	self.c.LogAction(action)
-	if err := self.c.Git().Patch.ApplyCustomPatch(reverse, true); err != nil {
-		return err
+
+	if len(affectedUnstagedFiles) > 0 {
+		self.c.Confirm(types.ConfirmOpts{
+			Title:  self.c.Tr.MustStageFilesAffectedByPatchTitle,
+			Prompt: self.c.Tr.MustStageFilesAffectedByPatchWarning,
+			HandleConfirm: func() error {
+				return apply()
+			},
+		})
+
+		return nil
 	}
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
-	return nil
+
+	return apply()
 }
 
 func (self *CustomPatchOptionsMenuAction) copyPatchToClipboard() error {
@@ -290,4 +319,18 @@ func (self *CustomPatchOptionsMenuAction) copyPatchToClipboard() error {
 	self.c.Toast(self.c.Tr.PatchCopiedToClipboard)
 
 	return nil
+}
+
+// Returns a list of files that have unstaged changes and are contained in the patch.
+func (self *CustomPatchOptionsMenuAction) getAffectedUnstagedFiles() []string {
+	unstagedFiles := set.NewFromSlice(lo.FilterMap(self.c.Model().Files, func(f *models.File, _ int) (string, bool) {
+		if f.GetHasUnstagedChanges() {
+			return f.GetPath(), true
+		}
+		return "", false
+	}))
+
+	return lo.Filter(self.c.Git().Patch.PatchBuilder.AllFilesInPatch(), func(patchFile string, _ int) bool {
+		return unstagedFiles.Includes(patchFile)
+	})
 }
