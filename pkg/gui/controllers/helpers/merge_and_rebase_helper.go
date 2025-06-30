@@ -162,9 +162,8 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 	} else if strings.Contains(result.Error(), "No rebase in progress?") {
 		// assume in this case that we're already done
 		return nil
-	} else {
-		return self.CheckForConflicts(result)
 	}
+	return self.CheckForConflicts(result)
 }
 
 func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {

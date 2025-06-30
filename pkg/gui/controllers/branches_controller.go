@@ -657,15 +657,15 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 			)
 			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 			return err
-		} else {
-			self.c.LogAction(action)
-
-			err := self.c.Git().Sync.FastForward(
-				task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch,
-			)
-			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
-			return err
 		}
+
+		self.c.LogAction(action)
+
+		err := self.c.Git().Sync.FastForward(
+			task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch,
+		)
+		_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+		return err
 	})
 }
 

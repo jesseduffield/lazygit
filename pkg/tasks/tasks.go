@@ -260,7 +260,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 							callThen()
 							break outer
 						case line, ok = <-lineChan:
-							break
+							// process line below
 						}
 
 						loadingMutex.Lock()

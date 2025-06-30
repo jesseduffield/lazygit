@@ -211,9 +211,8 @@ func (p *PatchBuilder) RenderPatchForFile(opts RenderPatchForFileOpts) string {
 
 	if opts.Plain {
 		return patch.FormatPlain()
-	} else {
-		return patch.FormatView(FormatViewOpts{})
 	}
+	return patch.FormatView(FormatViewOpts{})
 }
 
 func (p *PatchBuilder) renderEachFilePatch(plain bool) []string {

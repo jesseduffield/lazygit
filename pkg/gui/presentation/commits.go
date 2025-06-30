@@ -145,9 +145,8 @@ func GetCommitListDisplayStrings(
 			getGraphLine = func(idx int) string {
 				if idx >= graphOffset {
 					return graphLines[idx-graphOffset]
-				} else {
-					return ""
 				}
+				return ""
 			}
 		}
 	} else {
@@ -305,9 +304,8 @@ func getBisectStatus(index int, commitHash string, bisectInfo *git_commands.Bise
 	} else {
 		if bisectBounds != nil && index >= bisectBounds.newIndex && index <= bisectBounds.oldIndex {
 			return BisectStatusCandidate
-		} else {
-			return BisectStatusNone
 		}
+		return BisectStatusNone
 	}
 
 	// should never land here

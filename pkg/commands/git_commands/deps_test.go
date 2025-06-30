@@ -97,7 +97,7 @@ func buildGitCommon(deps commonDeps) *GitCommon {
 
 func buildRepo() *gogit.Repository {
 	// TODO: think of a way to actually mock this out
-	var repo *gogit.Repository = nil
+	var repo *gogit.Repository
 	return repo
 }
 

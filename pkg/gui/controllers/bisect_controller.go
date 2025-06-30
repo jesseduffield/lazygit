@@ -54,9 +54,8 @@ func (self *BisectController) openMenu(commit *models.Commit) error {
 	info := self.c.Git().Bisect.GetInfo()
 	if info.Started() {
 		return self.openMidBisectMenu(info, commit)
-	} else {
-		return self.openStartBisectMenu(info, commit)
 	}
+	return self.openStartBisectMenu(info, commit)
 }
 
 func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, commit *models.Commit) error {
@@ -280,11 +279,11 @@ func (self *BisectController) afterBisectMarkRefresh(selectCurrent bool, waitToR
 
 	if waitToReselect {
 		return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{}, Then: selectFn})
-	} else {
-		_ = selectFn()
-
-		return self.c.Helpers().Bisect.PostBisectCommandRefresh()
 	}
+
+	_ = selectFn()
+
+	return self.c.Helpers().Bisect.PostBisectCommandRefresh()
 }
 
 func (self *BisectController) selectCurrentBisectCommit() {

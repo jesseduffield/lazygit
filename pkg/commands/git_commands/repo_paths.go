@@ -21,7 +21,7 @@ type RepoPaths struct {
 	isBareRepo         bool
 }
 
-var gitPathFormatVersion GitVersion = GitVersion{2, 31, 0, ""}
+var gitPathFormatVersion = GitVersion{2, 31, 0, ""}
 
 // Path to the current worktree. If we're in the main worktree, this will
 // be the same as RepoPath()

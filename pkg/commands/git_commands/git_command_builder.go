@@ -32,9 +32,8 @@ func (self *GitCommandBuilder) ArgIf(condition bool, ifTrue ...string) *GitComma
 func (self *GitCommandBuilder) ArgIfElse(condition bool, ifTrue string, ifFalse string) *GitCommandBuilder {
 	if condition {
 		return self.Arg(ifTrue)
-	} else {
-		return self.Arg(ifFalse)
 	}
+	return self.Arg(ifFalse)
 }
 
 func (self *GitCommandBuilder) Config(value string) *GitCommandBuilder {

@@ -44,9 +44,8 @@ func WithPadding(str string, padding int, alignment Alignment) string {
 	space := strings.Repeat(" ", padding-width)
 	if alignment == AlignLeft {
 		return str + space
-	} else {
-		return space + str
 	}
+	return space + str
 }
 
 // defaults to left-aligning each column. If you want to set the alignment of
@@ -187,9 +186,8 @@ func TruncateWithEllipsis(str string, limit int) string {
 func SafeTruncate(str string, limit int) string {
 	if len(str) > limit {
 		return str[0:limit]
-	} else {
-		return str
 	}
+	return str
 }
 
 const COMMIT_HASH_SHORT_SIZE = 8

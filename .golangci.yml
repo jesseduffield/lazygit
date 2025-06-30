@@ -11,6 +11,7 @@ linters:
     - nakedret
     - nolintlint
     - prealloc
+    - revive
     - thelper
     - tparallel
     - unconvert
@@ -76,6 +77,20 @@ linters:
 
       dot-import-whitelist:
         - github.com/jesseduffield/lazygit/pkg/integration/components
+    revive:
+      severity: warning
+      rules:
+        - name: atomic
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: error-naming
+        - name: var-declaration
+        - name: package-comments
+        - name: range
+        - name: time-naming
+        - name: indent-error-flow
+        - name: errorf
+        - name: superfluous-else
   exclusions:
     generated: lax
     presets:

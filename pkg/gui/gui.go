@@ -611,9 +611,9 @@ func initialScreenMode(startArgs appTypes.StartArgs, config config.AppConfigurer
 		return parseScreenModeArg(startArgs.ScreenMode)
 	} else if startArgs.FilterPath != "" || startArgs.GitArg != appTypes.GitArgNone {
 		return types.SCREEN_HALF
-	} else {
-		return parseScreenModeArg(config.GetUserConfig().Gui.ScreenMode)
 	}
+
+	return parseScreenModeArg(config.GetUserConfig().Gui.ScreenMode)
 }
 
 func parseScreenModeArg(screenModeArg string) types.ScreenMode {

@@ -267,9 +267,8 @@ func (s *State) SelectedViewRange() (int, int) {
 	case RANGE:
 		if s.rangeStartLineIdx > s.selectedLineIdx {
 			return s.selectedLineIdx, s.rangeStartLineIdx
-		} else {
-			return s.rangeStartLineIdx, s.selectedLineIdx
 		}
+		return s.rangeStartLineIdx, s.selectedLineIdx
 	case LINE:
 		return s.selectedLineIdx, s.selectedLineIdx
 	default:

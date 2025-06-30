@@ -86,9 +86,9 @@ func newLogger(cfg config.AppConfigurer) *logrus.Entry {
 			log.Fatal(err)
 		}
 		return logs.NewDevelopmentLogger(logPath)
-	} else {
-		return logs.NewProductionLogger()
 	}
+
+	return logs.NewProductionLogger()
 }
 
 // NewApp bootstrap a new application

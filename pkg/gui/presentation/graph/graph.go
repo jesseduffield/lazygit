@@ -246,9 +246,8 @@ func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *mode
 			for i := pipe.toPos; i > pos; i-- {
 				if takenSpots.Includes(int(i)) || traversedSpots.Includes(int(i)) {
 					break
-				} else {
-					last = i
 				}
+				last = i
 			}
 			newPipes = append(newPipes, Pipe{
 				fromPos:  pipe.toPos,

@@ -184,9 +184,7 @@ func TestGetRepoPaths(t *testing.T) {
 			Expected: nil,
 			Err: func(getRevParseArgs argFn) error {
 				args := strings.Join(getRevParseArgs(), " ")
-				return errors.New(
-					fmt.Sprintf("'git %v --show-toplevel --absolute-git-dir --git-common-dir --is-bare-repository --show-superproject-working-tree' failed: fatal: invalid gitfile format: /path/to/repo/worktree2/.git", args),
-				)
+				return fmt.Errorf("'git %v --show-toplevel --absolute-git-dir --git-common-dir --is-bare-repository --show-superproject-working-tree' failed: fatal: invalid gitfile format: /path/to/repo/worktree2/.git", args)
 			},
 		},
 	}

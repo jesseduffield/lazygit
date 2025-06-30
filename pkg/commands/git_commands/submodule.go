@@ -49,9 +49,8 @@ func (self *SubmoduleCommands) GetConfigs(parentModule *models.SubmoduleConfig) 
 
 		if len(matches) > 0 {
 			return matches[1], true
-		} else {
-			return "", false
 		}
+		return "", false
 	}
 
 	configs := []*models.SubmoduleConfig{}

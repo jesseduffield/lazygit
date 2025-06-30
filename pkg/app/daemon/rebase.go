@@ -21,9 +21,8 @@ type TodoLine struct {
 func (self *TodoLine) ToString() string {
 	if self.Action == "break" {
 		return self.Action + "\n"
-	} else {
-		return self.Action + " " + self.Commit.Hash() + " " + self.Commit.Name + "\n"
 	}
+	return self.Action + " " + self.Commit.Hash() + " " + self.Commit.Name + "\n"
 }
 
 func TodoLinesToString(todoLines []TodoLine) string {

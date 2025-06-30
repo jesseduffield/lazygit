@@ -37,9 +37,9 @@ func (self *GpgHelper) WithGpgHandling(cmdObj *oscommands.CmdObj, configKey git_
 		}
 
 		return err
-	} else {
-		return self.runAndStream(cmdObj, waitingStatus, onSuccess, refreshScope)
 	}
+
+	return self.runAndStream(cmdObj, waitingStatus, onSuccess, refreshScope)
 }
 
 func (self *GpgHelper) runAndStream(cmdObj *oscommands.CmdObj, waitingStatus string, onSuccess func() error, refreshScope []types.RefreshableView) error {

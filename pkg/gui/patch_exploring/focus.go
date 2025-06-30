@@ -25,9 +25,8 @@ func calculateNewOriginWithNeededAndWantedIdx(currentOrigin int, bufferHeight in
 		requiredChange := wantToSeeIdx - bottom
 		allowedChange := needToSeeIdx - origin
 		return origin + min(requiredChange, allowedChange)
-	} else {
-		return origin
 	}
+	return origin
 }
 
 func getNeedAndWantLineIdx(firstLineIdx int, lastLineIdx int, selectedLineIdx int, mode selectMode) (int, int) {
@@ -37,9 +36,8 @@ func getNeedAndWantLineIdx(firstLineIdx int, lastLineIdx int, selectedLineIdx in
 	case RANGE:
 		if selectedLineIdx == firstLineIdx {
 			return firstLineIdx, lastLineIdx
-		} else {
-			return lastLineIdx, firstLineIdx
 		}
+		return lastLineIdx, firstLineIdx
 	case HUNK:
 		return firstLineIdx, lastLineIdx
 	default:

@@ -177,7 +177,7 @@ func getBoxDrawingChars(up, down, left, right bool) (string, string) {
 		return "╶", "─"
 	} else if !up && !down && !left && !right {
 		return " ", " "
-	} else {
-		panic("should not be possible")
 	}
+
+	panic("should not be possible")
 }

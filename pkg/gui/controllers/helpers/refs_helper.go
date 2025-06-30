@@ -56,9 +56,9 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 	withCheckoutStatus := func(f func(gocui.Task) error) error {
 		if found {
 			return self.c.WithInlineStatus(localBranch, types.ItemOperationCheckingOut, context.LOCAL_BRANCHES_CONTEXT_KEY, f)
-		} else {
-			return self.c.WithWaitingStatus(waitingStatus, f)
 		}
+
+		return self.c.WithWaitingStatus(waitingStatus, f)
 	}
 
 	return withCheckoutStatus(func(gocui.Task) error {
