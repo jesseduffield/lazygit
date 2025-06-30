@@ -2,6 +2,7 @@ package gui
 
 import (
 	goContext "context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -872,8 +873,7 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 
 			close(gui.stopChan)
 
-			switch err {
-			case gocui.ErrQuit:
+			if errors.Is(err, gocui.ErrQuit) {
 				if gui.c.State().GetRetainOriginalDir() {
 					if err := gui.helpers.RecordDirectory.RecordDirectory(gui.InitialDir); err != nil {
 						return err
@@ -885,10 +885,9 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 				}
 
 				return nil
-
-			default:
-				return err
 			}
+
+			return err
 		}
 
 		return nil

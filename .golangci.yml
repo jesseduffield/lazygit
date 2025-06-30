@@ -4,6 +4,7 @@ run:
 linters:
   enable:
     - copyloopvar
+    - errorlint
     - exhaustive
     - intrange
     - makezero

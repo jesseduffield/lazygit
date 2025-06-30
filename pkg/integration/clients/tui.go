@@ -214,12 +214,10 @@ func RunTUI(raceDetector bool) {
 
 	err = g.MainLoop()
 	g.Close()
-	switch err {
-	case gocui.ErrQuit:
+	if errors.Is(err, gocui.ErrQuit) {
 		return
-	default:
-		log.Panicln(err)
 	}
+	log.Panicln(err)
 }
 
 type app struct {

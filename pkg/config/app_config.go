@@ -288,7 +288,7 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 	for _, pathToReplace := range pathsToReplace {
 		err, didReplace := yaml_utils.RenameYamlKey(&rootNode, pathToReplace.oldPath, pathToReplace.newName)
 		if err != nil {
-			return nil, false, fmt.Errorf("Couldn't migrate config file at `%s` for key %s: %s", path, strings.Join(pathToReplace.oldPath, "."), err)
+			return nil, false, fmt.Errorf("Couldn't migrate config file at `%s` for key %s: %w", path, strings.Join(pathToReplace.oldPath, "."), err)
 		}
 		if didReplace {
 			changes.Add(fmt.Sprintf("Renamed '%s' to '%s'", strings.Join(pathToReplace.oldPath, "."), pathToReplace.newName))
@@ -297,27 +297,27 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 
 	err = changeNullKeybindingsToDisabled(&rootNode, changes)
 	if err != nil {
-		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
 	}
 
 	err = changeElementToSequence(&rootNode, []string{"git", "commitPrefix"}, changes)
 	if err != nil {
-		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
 	}
 
 	err = changeCommitPrefixesMap(&rootNode, changes)
 	if err != nil {
-		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
 	}
 
 	err = changeCustomCommandStreamAndOutputToOutputEnum(&rootNode, changes)
 	if err != nil {
-		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
 	}
 
 	err = migrateAllBranchesLogCmd(&rootNode, changes)
 	if err != nil {
-		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
 	}
 
 	// Add more migrations here...
