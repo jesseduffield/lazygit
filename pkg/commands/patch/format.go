@@ -72,30 +72,22 @@ func (self *patchPresenter) format() string {
 
 		lineIdx++
 	}
-	appendFormattedLine := func(line string, style style.TextStyle) {
-		formattedLine := self.formatLine(
-			line,
-			style,
-			lineIdx,
-		)
-
-		appendLine(formattedLine)
-	}
 
 	for _, line := range self.patch.header {
-		appendFormattedLine(line, theme.DefaultTextColor.SetBold())
+		// always passing false for 'included' here because header lines are not part of the patch
+		appendLine(self.formatLineAux(line, theme.DefaultTextColor.SetBold(), false))
 	}
 
 	for _, hunk := range self.patch.hunks {
 		appendLine(
-			self.formatLine(
+			self.formatLineAux(
 				hunk.formatHeaderStart(),
 				style.FgCyan,
-				lineIdx,
+				false,
 			) +
 				// we're splitting the line into two parts: the diff header and the context
-				// We explicitly pass 'included' as false here so that we're only tagging the
-				// first half of the line as included if the line is indeed included.
+				// We explicitly pass 'included' as false for both because these are not part
+				// of the actual patch
 				self.formatLineAux(
 					hunk.headerContext,
 					theme.DefaultTextColor,
@@ -104,7 +96,12 @@ func (self *patchPresenter) format() string {
 		)
 
 		for _, line := range hunk.bodyLines {
-			appendFormattedLine(line.Content, self.patchLineStyle(line))
+			style := self.patchLineStyle(line)
+			if line.isChange() {
+				appendLine(self.formatLine(line.Content, style, lineIdx))
+			} else {
+				appendLine(self.formatLineAux(line.Content, style, false))
+			}
 		}
 	}
 
