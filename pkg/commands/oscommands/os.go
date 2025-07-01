@@ -222,7 +222,7 @@ func (c *OSCommand) PipeCommands(cmdObjs ...*CmdObj) error {
 
 	c.LogCommand(logCmdStr, true)
 
-	for i := 0; i < len(cmds)-1; i++ {
+	for i := range len(cmds) - 1 {
 		stdout, err := cmds[i].StdoutPipe()
 		if err != nil {
 			return err
@@ -283,7 +283,7 @@ func PrepareForChildren(cmd *exec.Cmd) {
 }
 
 func (c *OSCommand) CopyToClipboard(str string) error {
-	escaped := strings.Replace(str, "\n", "\\n", -1)
+	escaped := strings.ReplaceAll(str, "\n", "\\n")
 	truncated := utils.TruncateWithEllipsis(escaped, 40)
 
 	msg := utils.ResolvePlaceholderString(

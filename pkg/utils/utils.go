@@ -45,9 +45,8 @@ func ModuloWithWrap(n, max int) int {
 		return n % max
 	} else if n < 0 {
 		return max + n
-	} else {
-		return n
 	}
+	return n
 }
 
 func FindStringSubmatch(str string, regexpStr string) (bool, []string) {

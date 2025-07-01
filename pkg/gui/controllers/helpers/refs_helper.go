@@ -56,9 +56,9 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 	withCheckoutStatus := func(f func(gocui.Task) error) error {
 		if found {
 			return self.c.WithInlineStatus(localBranch, types.ItemOperationCheckingOut, context.LOCAL_BRANCHES_CONTEXT_KEY, f)
-		} else {
-			return self.c.WithWaitingStatus(waitingStatus, f)
 		}
+
+		return self.c.WithWaitingStatus(waitingStatus, f)
 	}
 
 	return withCheckoutStatus(func(gocui.Task) error {
@@ -563,7 +563,7 @@ func (self *RefsHelper) CanMoveCommitsToNewBranch() *types.DisabledReason {
 // SanitizedBranchName will remove all spaces in favor of a dash "-" to meet
 // git's branch naming requirement.
 func SanitizedBranchName(input string) string {
-	return strings.Replace(input, " ", "-", -1)
+	return strings.ReplaceAll(input, " ", "-")
 }
 
 // Checks if the given branch name is a remote branch, and returns the name of

@@ -50,9 +50,8 @@ func (s Selection) bounds(c *mergeConflict) (int, int) {
 	case TOP:
 		if c.hasAncestor() {
 			return c.start, c.ancestor
-		} else {
-			return c.start, c.target
 		}
+		return c.start, c.target
 	case MIDDLE:
 		return c.ancestor, c.target
 	case BOTTOM:
@@ -72,7 +71,6 @@ func (s Selection) selected(c *mergeConflict, idx int) bool {
 func availableSelections(c *mergeConflict) []Selection {
 	if c.hasAncestor() {
 		return []Selection{TOP, MIDDLE, BOTTOM}
-	} else {
-		return []Selection{TOP, BOTTOM}
 	}
+	return []Selection{TOP, BOTTOM}
 }

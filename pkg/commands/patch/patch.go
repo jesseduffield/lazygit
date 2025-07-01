@@ -56,7 +56,7 @@ func (self *Patch) HunkStartIdx(hunkIndex int) int {
 	hunkIndex = lo.Clamp(hunkIndex, 0, len(self.hunks)-1)
 
 	result := len(self.header)
-	for i := 0; i < hunkIndex; i++ {
+	for i := range hunkIndex {
 		result += self.hunks[i].lineCount()
 	}
 	return result

@@ -167,7 +167,7 @@ func (d *BlankLineReader) Read(p []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 
-	d.linesYielded += 1
+	d.linesYielded++
 	p[0] = '\n'
 	return 1, nil
 }

@@ -138,9 +138,8 @@ func (self *FileTreeViewModel) findNewSelectedIdx(prevNodes []*FileNode, currNod
 		}
 		if node.File != nil && node.File.IsRename() {
 			return node.File.Names()
-		} else {
-			return []string{node.path}
 		}
+		return []string{node.path}
 	}
 
 	for _, prevNode := range prevNodes {

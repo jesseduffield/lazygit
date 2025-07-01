@@ -245,7 +245,7 @@ func (self *WorkingTreeHelper) commitPrefixConfigsForRepo() []config.CommitPrefi
 	cfg, ok := self.c.UserConfig().Git.CommitPrefixes[self.c.Git().RepoPaths.RepoName()]
 	if ok {
 		return append(cfg, self.c.UserConfig().Git.CommitPrefix...)
-	} else {
-		return self.c.UserConfig().Git.CommitPrefix
 	}
+
+	return self.c.UserConfig().Git.CommitPrefix
 }

@@ -18,7 +18,7 @@ import (
 )
 
 type FilesController struct {
-	baseController // nolint: unused
+	baseController
 	*ListControllerTrait[*filetree.FileNode]
 	c *ControllerCommon
 }
@@ -901,11 +901,10 @@ func (self *FilesController) setStatusFiltering(filter filetree.FileTreeDisplayF
 	// because the untracked files filter applies when running `git status`.
 	if previousFilter != filter && (previousFilter == filetree.DisplayUntracked || filter == filetree.DisplayUntracked) {
 		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}, Mode: types.ASYNC})
-	} else {
-		self.c.PostRefreshUpdate(self.context())
-
-		return nil
 	}
+
+	self.c.PostRefreshUpdate(self.context())
+	return nil
 }
 
 func (self *FilesController) edit(nodes []*filetree.FileNode) error {

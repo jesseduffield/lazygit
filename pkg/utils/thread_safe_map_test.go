@@ -48,12 +48,12 @@ func TestThreadSafeMapConcurrentReadWrite(t *testing.T) {
 	m := NewThreadSafeMap[int, int]()
 
 	go func() {
-		for i := 0; i < 10000; i++ {
+		for range 10000 {
 			m.Set(0, 0)
 		}
 	}()
 
-	for i := 0; i < 10000; i++ {
+	for range 10000 {
 		m.Get(0)
 	}
 }

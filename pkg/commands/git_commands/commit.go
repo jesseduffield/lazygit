@@ -149,9 +149,8 @@ func (self *CommitCommands) CommitEditorCmdObj() *oscommands.CmdObj {
 func (self *CommitCommands) signoffFlag() string {
 	if self.UserConfig().Git.Commit.SignOff {
 		return "--signoff"
-	} else {
-		return ""
 	}
+	return ""
 }
 
 func (self *CommitCommands) GetCommitMessage(commitHash string) (string, error) {

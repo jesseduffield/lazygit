@@ -28,7 +28,7 @@ func (self *gitCmdObjRunner) Run(cmdObj *oscommands.CmdObj) error {
 func (self *gitCmdObjRunner) RunWithOutput(cmdObj *oscommands.CmdObj) (string, error) {
 	var output string
 	var err error
-	for i := 0; i < RetryCount; i++ {
+	for range RetryCount {
 		newCmdObj := cmdObj.Clone()
 		output, err = self.innerRunner.RunWithOutput(newCmdObj)
 
@@ -47,7 +47,7 @@ func (self *gitCmdObjRunner) RunWithOutput(cmdObj *oscommands.CmdObj) (string, e
 func (self *gitCmdObjRunner) RunWithOutputs(cmdObj *oscommands.CmdObj) (string, string, error) {
 	var stdout, stderr string
 	var err error
-	for i := 0; i < RetryCount; i++ {
+	for range RetryCount {
 		newCmdObj := cmdObj.Clone()
 		stdout, stderr, err = self.innerRunner.RunWithOutputs(newCmdObj)
 

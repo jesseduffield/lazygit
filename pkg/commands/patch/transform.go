@@ -84,9 +84,9 @@ func (self *patchTransformer) transformHeader() []string {
 			result = append(result, line)
 		}
 		return result
-	} else {
-		return self.patch.header
 	}
+
+	return self.patch.header
 }
 
 func (self *patchTransformer) transformHunks() []*Hunk {

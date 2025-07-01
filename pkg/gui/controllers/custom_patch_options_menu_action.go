@@ -189,9 +189,9 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error
 		})
 
 		return nil
-	} else {
-		return pull(false)
 	}
+
+	return pull(false)
 }
 
 func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {

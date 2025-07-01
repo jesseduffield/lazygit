@@ -63,9 +63,8 @@ func commitFilePatchStatus(node *filetree.Node[models.CommitFile], tree *filetre
 		return patchBuilder.GetFileStatus(file.Path, tree.GetRef().RefName()) == patch.UNSELECTED
 	}) {
 		return patch.UNSELECTED
-	} else {
-		return patch.PART
 	}
+	return patch.PART
 }
 
 func renderAux[T any](
@@ -185,9 +184,10 @@ func getFileLine(
 func formatFileStatus(file *models.File, restColor style.TextStyle) string {
 	firstChar := file.ShortStatus[0:1]
 	firstCharCl := style.FgGreen
-	if firstChar == "?" {
+	switch firstChar {
+	case "?":
 		firstCharCl = theme.UnstagedChangesColor
-	} else if firstChar == " " {
+	case " ":
 		firstCharCl = restColor
 	}
 

@@ -385,9 +385,8 @@ func splitMainPanelSideBySide(args WindowArrangementArgs) bool {
 	default:
 		if args.Width < 200 && args.Height > 30 { // 2 80 character width panels + 40 width for side panel
 			return false
-		} else {
-			return true
 		}
+		return true
 	}
 }
 
@@ -431,11 +430,11 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 						Window: window,
 						Weight: 1,
 					}
-				} else {
-					return &boxlayout.Box{
-						Window: window,
-						Size:   0,
-					}
+				}
+
+				return &boxlayout.Box{
+					Window: window,
+					Size:   0,
 				}
 			}
 
@@ -469,33 +468,33 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				accordionBox(&boxlayout.Box{Window: "commits", Weight: 1}),
 				accordionBox(getDefaultStashWindowBox(args)),
 			}
-		} else {
-			squashedHeight := 1
-			if height >= 21 {
-				squashedHeight = 3
-			}
+		}
 
-			squashedSidePanelBox := func(window string) *boxlayout.Box {
-				if window == args.CurrentSideWindow {
-					return &boxlayout.Box{
-						Window: window,
-						Weight: 1,
-					}
-				} else {
-					return &boxlayout.Box{
-						Window: window,
-						Size:   squashedHeight,
-					}
+		squashedHeight := 1
+		if height >= 21 {
+			squashedHeight = 3
+		}
+
+		squashedSidePanelBox := func(window string) *boxlayout.Box {
+			if window == args.CurrentSideWindow {
+				return &boxlayout.Box{
+					Window: window,
+					Weight: 1,
 				}
 			}
 
-			return []*boxlayout.Box{
-				squashedSidePanelBox("status"),
-				squashedSidePanelBox("files"),
-				squashedSidePanelBox("branches"),
-				squashedSidePanelBox("commits"),
-				squashedSidePanelBox("stash"),
+			return &boxlayout.Box{
+				Window: window,
+				Size:   squashedHeight,
 			}
+		}
+
+		return []*boxlayout.Box{
+			squashedSidePanelBox("status"),
+			squashedSidePanelBox("files"),
+			squashedSidePanelBox("branches"),
+			squashedSidePanelBox("commits"),
+			squashedSidePanelBox("stash"),
 		}
 	}
 }

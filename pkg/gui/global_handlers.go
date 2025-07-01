@@ -185,7 +185,7 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboardWithTruncation(maxWi
 		return err
 	}
 
-	truncatedItemId := utils.TruncateWithEllipsis(strings.Replace(itemId, "\n", " ", -1), 50)
+	truncatedItemId := utils.TruncateWithEllipsis(strings.ReplaceAll(itemId, "\n", " "), 50)
 
 	gui.c.Toast(fmt.Sprintf("'%s' %s", truncatedItemId, gui.c.Tr.CopiedToClipboard))
 

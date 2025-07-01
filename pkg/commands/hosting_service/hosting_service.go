@@ -46,9 +46,8 @@ func (self *HostingServiceMgr) GetPullRequestURL(from string, to string) (string
 
 	if to == "" {
 		return gitService.getPullRequestURLIntoDefaultBranch(url.QueryEscape(from)), nil
-	} else {
-		return gitService.getPullRequestURLIntoTargetBranch(url.QueryEscape(from), url.QueryEscape(to)), nil
 	}
+	return gitService.getPullRequestURLIntoTargetBranch(url.QueryEscape(from), url.QueryEscape(to)), nil
 }
 
 func (self *HostingServiceMgr) GetCommitURL(commitHash string) (string, error) {

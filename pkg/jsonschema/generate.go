@@ -114,7 +114,7 @@ func setDefaultVals(rootSchema, schema *jsonschema.Schema, defaults any) {
 		return
 	}
 
-	for i := 0; i < t.NumField(); i++ {
+	for i := range t.NumField() {
 		value := v.Field(i).Interface()
 		parentKey := t.Field(i).Name
 
@@ -152,7 +152,7 @@ func isZeroValue(v any) bool {
 	case reflect.Ptr, reflect.Interface:
 		return rv.IsNil()
 	case reflect.Struct:
-		for i := 0; i < rv.NumField(); i++ {
+		for i := range rv.NumField() {
 			if !isZeroValue(rv.Field(i).Interface()) {
 				return false
 			}

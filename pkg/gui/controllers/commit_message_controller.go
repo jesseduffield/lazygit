@@ -153,7 +153,7 @@ func (self *CommitMessageController) handleCommitIndexChange(value int) error {
 func (self *CommitMessageController) setCommitMessageAtIndex(index int) (bool, error) {
 	commitMessage, err := self.c.Git().Commit.GetCommitMessageFromHistory(index)
 	if err != nil {
-		if err == git_commands.ErrInvalidCommitIndex {
+		if errors.Is(err, git_commands.ErrInvalidCommitIndex) {
 			return false, nil
 		}
 		return false, errors.New(self.c.Tr.CommitWithoutMessageErr)

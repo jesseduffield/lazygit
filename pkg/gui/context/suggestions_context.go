@@ -79,9 +79,8 @@ func (self *SuggestionsContext) RefreshSuggestions() {
 		if findSuggestionsFn != nil {
 			suggestions := findSuggestionsFn(self.c.GetPromptInput())
 			return func() { self.SetSuggestions(suggestions) }
-		} else {
-			return func() {}
 		}
+		return func() {}
 	})
 }
 

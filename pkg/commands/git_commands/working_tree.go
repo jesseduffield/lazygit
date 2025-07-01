@@ -66,9 +66,8 @@ func (self *WorkingTreeCommands) UnstageAll() error {
 func (self *WorkingTreeCommands) UnStageFile(paths []string, tracked bool) error {
 	if tracked {
 		return self.UnstageTrackedFiles(paths)
-	} else {
-		return self.UnstageUntrackedFiles(paths)
 	}
+	return self.UnstageUntrackedFiles(paths)
 }
 
 func (self *WorkingTreeCommands) UnstageTrackedFiles(paths []string) error {

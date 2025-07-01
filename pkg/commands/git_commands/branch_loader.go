@@ -356,9 +356,8 @@ func parseDifference(track string, regexStr string) string {
 	match := re.FindStringSubmatch(track)
 	if len(match) > 1 {
 		return match[1]
-	} else {
-		return "0"
 	}
+	return "0"
 }
 
 // TODO: only look at the new reflog commits, and otherwise store the recencies in

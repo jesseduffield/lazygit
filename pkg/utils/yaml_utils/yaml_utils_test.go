@@ -224,12 +224,10 @@ func TestTransformNode(t *testing.T) {
 			} else if node.ShortTag() == "!!str" {
 				// We have already transformed it,
 				return nil
-			} else {
-				return fmt.Errorf("Node was of bad type")
 			}
-		} else {
-			return fmt.Errorf("Node was not a scalar")
+			return fmt.Errorf("Node was of bad type")
 		}
+		return fmt.Errorf("Node was not a scalar")
 	}
 
 	tests := []struct {

@@ -110,8 +110,8 @@ type FileDiff struct {
 	LinesDeleted int
 }
 
-func (fileLoader *FileLoader) getFileDiffs() (map[string]FileDiff, error) {
-	diffs, err := fileLoader.gitDiffNumStat()
+func (self *FileLoader) getFileDiffs() (map[string]FileDiff, error) {
+	diffs, err := self.gitDiffNumStat()
 	if err != nil {
 		return nil, err
 	}
@@ -157,8 +157,8 @@ type FileStatus struct {
 	PreviousPath string
 }
 
-func (fileLoader *FileLoader) gitDiffNumStat() (string, error) {
-	return fileLoader.cmd.New(
+func (self *FileLoader) gitDiffNumStat() (string, error) {
+	return self.cmd.New(
 		NewGitCmd("diff").
 			Arg("--numstat").
 			Arg("-z").

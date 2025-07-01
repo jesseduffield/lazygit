@@ -75,8 +75,8 @@ type LinesToRead struct {
 	Then func()
 }
 
-func (m *ViewBufferManager) GetTaskKey() string {
-	return m.taskKey
+func (self *ViewBufferManager) GetTaskKey() string {
+	return self.taskKey
 }
 
 func NewViewBufferManager(
@@ -260,7 +260,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 							callThen()
 							break outer
 						case line, ok = <-lineChan:
-							break
+							// process line below
 						}
 
 						loadingMutex.Lock()

@@ -257,11 +257,11 @@ func TestListRenderer_ModelIndexToViewIndex_and_back(t *testing.T) {
 			// Need to render first so that it knows the non-model items
 			self.renderLines(-1, -1)
 
-			for i := 0; i < len(s.modelIndices); i++ {
+			for i := range len(s.modelIndices) {
 				assert.Equal(t, s.expectedViewIndices[i], self.ModelIndexToViewIndex(s.modelIndices[i]))
 			}
 
-			for i := 0; i < len(s.viewIndices); i++ {
+			for i := range len(s.viewIndices) {
 				assert.Equal(t, s.expectedModelIndices[i], self.ViewIndexToModelIndex(s.viewIndices[i]))
 			}
 		})

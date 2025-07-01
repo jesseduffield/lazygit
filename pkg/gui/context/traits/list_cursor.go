@@ -77,9 +77,8 @@ func (self *ListCursor) SetSelectionRangeAndMode(selectedIdx, rangeStartIdx int,
 func (self *ListCursor) GetSelectionRangeAndMode() (int, int, RangeSelectMode) {
 	if self.IsSelectingRange() {
 		return self.selectedIdx, self.rangeStartIdx, self.rangeSelectMode
-	} else {
-		return self.selectedIdx, self.selectedIdx, self.rangeSelectMode
 	}
+	return self.selectedIdx, self.selectedIdx, self.rangeSelectMode
 }
 
 func (self *ListCursor) clampValue(value int) int {

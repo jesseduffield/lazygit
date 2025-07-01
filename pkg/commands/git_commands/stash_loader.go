@@ -53,7 +53,7 @@ outer:
 		if err != nil {
 			return self.getUnfilteredStashEntries()
 		}
-		currentStashEntry = self.stashEntryFromLine(lines[i], idx)
+		currentStashEntry = stashEntryFromLine(lines[i], idx)
 		for i+1 < len(lines) && !isAStash(lines[i+1]) {
 			i++
 			if lines[i] == filterPath {
@@ -70,11 +70,11 @@ func (self *StashLoader) getUnfilteredStashEntries() []*models.StashEntry {
 
 	rawString, _ := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	return lo.Map(utils.SplitNul(rawString), func(line string, index int) *models.StashEntry {
-		return self.stashEntryFromLine(line, index)
+		return stashEntryFromLine(line, index)
 	})
 }
 
-func (c *StashLoader) stashEntryFromLine(line string, index int) *models.StashEntry {
+func stashEntryFromLine(line string, index int) *models.StashEntry {
 	model := &models.StashEntry{
 		Name:  line,
 		Index: index,
