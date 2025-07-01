@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -82,8 +83,10 @@ func (self *StashController) GetOnRenderToMain() func() {
 			if stashEntry == nil {
 				task = types.NewRenderStringTask(self.c.Tr.NoStashEntries)
 			} else {
-				task = types.NewRunPtyTask(
+				prefix := style.FgYellow.Sprintf("%s\n\n", stashEntry.Description())
+				task = types.NewRunPtyTaskWithPrefix(
 					self.c.Git().Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd(),
+					prefix,
 				)
 			}
 
