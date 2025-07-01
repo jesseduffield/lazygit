@@ -300,6 +300,8 @@ var tests = []*components.IntegrationTest{
 	patch_building.Apply,
 	patch_building.ApplyInReverse,
 	patch_building.ApplyInReverseWithConflict,
+	patch_building.ApplyWithModifiedFileConflict,
+	patch_building.ApplyWithModifiedFileNoConflict,
 	patch_building.EditLineInPatchBuildingPanel,
 	patch_building.MoveRangeToIndex,
 	patch_building.MoveToEarlierCommit,
