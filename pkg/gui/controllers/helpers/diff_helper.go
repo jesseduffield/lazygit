@@ -61,9 +61,8 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 			args = append(args, path)
 		}
 		cmdObj := self.c.Git().Diff.DiffCmdObj(args)
-		task := types.NewRunPtyTask(cmdObj.GetCmd())
-		task.Prefix = style.FgYellow.Sprintf("%s %s-%s\n\n", self.c.Tr.ShowingDiffForRange, from.ShortRefName(), to.ShortRefName())
-		return task
+		prefix := style.FgYellow.Sprintf("%s %s-%s\n\n", self.c.Tr.ShowingDiffForRange, from.ShortRefName(), to.ShortRefName())
+		return types.NewRunPtyTaskWithPrefix(cmdObj.GetCmd(), prefix)
 	}
 
 	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.c.Modes().Filtering.GetPath())
@@ -79,12 +78,12 @@ func (self *DiffHelper) ExitDiffMode() error {
 func (self *DiffHelper) RenderDiff() {
 	args := self.DiffArgs()
 	cmdObj := self.c.Git().Diff.DiffCmdObj(args)
-	task := types.NewRunPtyTask(cmdObj.GetCmd())
-	task.Prefix = style.FgMagenta.Sprintf(
+	prefix := style.FgMagenta.Sprintf(
 		"%s %s\n\n",
 		self.c.Tr.ShowingGitDiff,
 		"git diff "+strings.Join(args, " "),
 	)
+	task := types.NewRunPtyTaskWithPrefix(cmdObj.GetCmd(), prefix)
 
 	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
