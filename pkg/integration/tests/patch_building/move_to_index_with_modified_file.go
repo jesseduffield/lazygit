@@ -54,11 +54,6 @@ var MoveToIndexWithModifiedFile = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Secondary().
 			Content(Contains("-1\n+11\n"))
 
-		/* EXPECTED:
 		t.Views().Stash().IsEmpty()
-		ACTUAL: */
-		t.Views().Stash().Lines(
-			Contains("Auto-stashing changes"),
-		)
 	},
 })
