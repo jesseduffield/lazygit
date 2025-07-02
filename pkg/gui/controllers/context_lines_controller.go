@@ -103,13 +103,13 @@ func (self *ContextLinesController) applyChange() error {
 	switch currentContext.GetKey() {
 	// we make an exception for our staging and patch building contexts because they actually need to refresh their state afterwards.
 	case context.PATCH_BUILDING_MAIN_CONTEXT_KEY:
-		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.PATCH_BUILDING}})
+		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.PATCH_BUILDING}})
 	case context.STAGING_MAIN_CONTEXT_KEY, context.STAGING_SECONDARY_CONTEXT_KEY:
-		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STAGING}})
+		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STAGING}})
 	default:
 		currentContext.HandleRenderToMain()
-		return nil
 	}
+	return nil
 }
 
 func (self *ContextLinesController) checkCanChangeContext() error {

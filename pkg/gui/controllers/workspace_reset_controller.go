@@ -39,9 +39,10 @@ func (self *FilesController) createResetMenu() error {
 					self.animateExplosion()
 				}
 
-				return self.c.Refresh(
+				self.c.Refresh(
 					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
 				)
+				return nil
 			},
 			Key:     'x',
 			Tooltip: self.c.Tr.NukeDescription,
@@ -57,9 +58,10 @@ func (self *FilesController) createResetMenu() error {
 					return err
 				}
 
-				return self.c.Refresh(
+				self.c.Refresh(
 					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
 				)
+				return nil
 			},
 			Key: 'u',
 		},
@@ -74,9 +76,10 @@ func (self *FilesController) createResetMenu() error {
 					return err
 				}
 
-				return self.c.Refresh(
+				self.c.Refresh(
 					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
 				)
+				return nil
 			},
 			Key: 'c',
 		},
@@ -98,9 +101,10 @@ func (self *FilesController) createResetMenu() error {
 					return err
 				}
 
-				return self.c.Refresh(
+				self.c.Refresh(
 					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
 				)
+				return nil
 			},
 			Key: 'S',
 		},
@@ -115,9 +119,10 @@ func (self *FilesController) createResetMenu() error {
 					return err
 				}
 
-				return self.c.Refresh(
+				self.c.Refresh(
 					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
 				)
+				return nil
 			},
 			Key: 's',
 		},
@@ -132,9 +137,10 @@ func (self *FilesController) createResetMenu() error {
 					return err
 				}
 
-				return self.c.Refresh(
+				self.c.Refresh(
 					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
 				)
+				return nil
 			},
 			Key: 'm',
 		},
@@ -149,9 +155,10 @@ func (self *FilesController) createResetMenu() error {
 					return err
 				}
 
-				return self.c.Refresh(
+				self.c.Refresh(
 					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
 				)
+				return nil
 			},
 			Key: 'h',
 		},

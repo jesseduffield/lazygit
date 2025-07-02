@@ -32,9 +32,7 @@ func (self *GpgHelper) WithGpgHandling(cmdObj *oscommands.CmdObj, configKey git_
 				return err
 			}
 		}
-		if err := self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope}); err != nil {
-			return err
-		}
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope})
 
 		return err
 	}
@@ -45,7 +43,7 @@ func (self *GpgHelper) WithGpgHandling(cmdObj *oscommands.CmdObj, configKey git_
 func (self *GpgHelper) runAndStream(cmdObj *oscommands.CmdObj, waitingStatus string, onSuccess func() error, refreshScope []types.RefreshableView) error {
 	return self.c.WithWaitingStatus(waitingStatus, func(gocui.Task) error {
 		if err := cmdObj.StreamOutput().Run(); err != nil {
-			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope})
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope})
 			return fmt.Errorf(
 				self.c.Tr.GitCommandFailed, self.c.UserConfig().Keybinding.Universal.ExtrasMenu,
 			)
@@ -57,6 +55,7 @@ func (self *GpgHelper) runAndStream(cmdObj *oscommands.CmdObj, waitingStatus str
 			}
 		}
 
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope})
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope})
+		return nil
 	})
 }

@@ -40,11 +40,9 @@ func (self *PatchBuildingHelper) Reset() error {
 		self.Escape()
 	}
 
-	if err := self.c.Refresh(types.RefreshOptions{
+	self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.COMMIT_FILES},
-	}); err != nil {
-		return err
-	}
+	})
 
 	// refreshing the current context so that the secondary panel is hidden if necessary.
 	self.c.PostRefreshUpdate(self.c.Context().Current())

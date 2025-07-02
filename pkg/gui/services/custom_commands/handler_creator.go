@@ -282,9 +282,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 		}
 		output, err := cmdObj.RunWithOutput()
 
-		if refreshErr := self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
-			self.c.Log.Error(refreshErr)
-		}
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 
 		if err != nil {
 			if customCommand.After != nil && customCommand.After.CheckForConflicts {

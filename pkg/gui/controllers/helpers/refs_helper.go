@@ -46,7 +46,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		// loading a heap of commits is slow so we limit them whenever doing a reset
 		self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
-		_ = self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+		self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
 	}
 
 	localBranch, found := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
@@ -145,12 +145,10 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 					}
 					// Do a sync refresh to make sure the new branch is visible,
 					// so that we see an inline status when checking it out
-					if err := self.c.Refresh(types.RefreshOptions{
+					self.c.Refresh(types.RefreshOptions{
 						Mode:  types.SYNC,
 						Scope: []types.RefreshableView{types.BRANCHES},
-					}); err != nil {
-						return err
-					}
+					})
 					return checkout(localBranchName)
 				},
 			},
@@ -183,9 +181,7 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 	// loading a heap of commits is slow so we limit them whenever doing a reset
 	self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
-	if err := self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS}}); err != nil {
-		return err
-	}
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS}})
 
 	return nil
 }
@@ -331,7 +327,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		}
 	}
 
-	refresh := func() error {
+	refresh := func() {
 		if self.c.Context().Current() != self.c.Contexts().Branches {
 			self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
 		}
@@ -339,7 +335,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		self.c.Contexts().LocalCommits.SetSelection(0)
 		self.c.Contexts().Branches.SetSelection(0)
 
-		return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+		self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
 	}
 
 	self.c.Prompt(types.PromptOpts{
@@ -365,14 +361,10 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 							if err := newBranchFunc(newBranchName, from); err != nil {
 								return err
 							}
-							popErr := self.c.Git().Stash.Pop(0)
+							err := self.c.Git().Stash.Pop(0)
 							// Branch switch successful so re-render the UI even if the pop operation failed (e.g. conflict).
-							refreshError := refresh()
-							if popErr != nil {
-								// An error from pop is the more important one to report to the user
-								return popErr
-							}
-							return refreshError
+							refresh()
+							return err
 						},
 					})
 
@@ -382,7 +374,8 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 				return err
 			}
 
-			return refresh()
+			refresh()
+			return nil
 		},
 	})
 
@@ -498,7 +491,8 @@ func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(currentBran
 	self.c.Contexts().LocalCommits.SetSelection(0)
 	self.c.Contexts().Branches.SetSelection(0)
 
-	return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+	self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+	return nil
 }
 
 func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(currentBranch string, newBranchName string, baseBranchRef string) error {
@@ -536,7 +530,8 @@ func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(currentBranch stri
 	self.c.Contexts().LocalCommits.SetSelection(0)
 	self.c.Contexts().Branches.SetSelection(0)
 
-	return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+	self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+	return nil
 }
 
 func (self *RefsHelper) CanMoveCommitsToNewBranch() *types.DisabledReason {

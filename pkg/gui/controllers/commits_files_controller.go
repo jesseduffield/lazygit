@@ -289,7 +289,8 @@ func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error
 		return err
 	}
 
-	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	return nil
 }
 
 func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileNode) error {

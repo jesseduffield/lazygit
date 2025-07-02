@@ -210,9 +210,7 @@ func (self *WorkingTreeHelper) promptToStageAllAndRetry(retry func() error) erro
 			if err := self.c.Git().WorkingTree.StageAll(); err != nil {
 				return err
 			}
-			if err := self.syncRefresh(); err != nil {
-				return err
-			}
+			self.syncRefresh()
 
 			return retry()
 		},
@@ -222,8 +220,8 @@ func (self *WorkingTreeHelper) promptToStageAllAndRetry(retry func() error) erro
 }
 
 // for when you need to refetch files before continuing an action. Runs synchronously.
-func (self *WorkingTreeHelper) syncRefresh() error {
-	return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
+func (self *WorkingTreeHelper) syncRefresh() {
+	self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
 }
 
 func (self *WorkingTreeHelper) prepareFilesForCommit() error {
@@ -235,7 +233,7 @@ func (self *WorkingTreeHelper) prepareFilesForCommit() error {
 			return err
 		}
 
-		return self.syncRefresh()
+		self.syncRefresh()
 	}
 
 	return nil

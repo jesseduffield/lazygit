@@ -263,15 +263,13 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 			if err := self.c.Git().Branch.UnsetUpstream(selectedBranch.Name); err != nil {
 				return err
 			}
-			if err := self.c.Refresh(types.RefreshOptions{
+			self.c.Refresh(types.RefreshOptions{
 				Mode: types.SYNC,
 				Scope: []types.RefreshableView{
 					types.BRANCHES,
 					types.COMMITS,
 				},
-			}); err != nil {
-				return err
-			}
+			})
 			return nil
 		},
 		Key: 'u',
@@ -289,15 +287,13 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 				if err := self.c.Git().Branch.SetUpstream(upstreamRemote, upstreamBranch, selectedBranch.Name); err != nil {
 					return err
 				}
-				if err := self.c.Refresh(types.RefreshOptions{
+				self.c.Refresh(types.RefreshOptions{
 					Mode: types.SYNC,
 					Scope: []types.RefreshableView{
 						types.BRANCHES,
 						types.COMMITS,
 					},
-				}); err != nil {
-					return err
-				}
+				})
 				return nil
 			})
 		},
@@ -478,7 +474,8 @@ func (self *BranchesController) forceCheckout() error {
 			if err := self.c.Git().Branch.Checkout(branch.Name, git_commands.CheckoutOptions{Force: true}); err != nil {
 				return err
 			}
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			return nil
 		},
 	})
 
@@ -526,7 +523,8 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 	}
 
 	self.context().SetSelection(0)
-	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, KeepBranchSelectionIndex: true})
+	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, KeepBranchSelectionIndex: true})
+	return nil
 }
 
 func (self *BranchesController) localDelete(branches []*models.Branch) error {
@@ -655,7 +653,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 					WorktreePath:    worktreePath,
 				},
 			)
-			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 			return err
 		}
 
@@ -664,7 +662,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 		err := self.c.Git().Sync.FastForward(
 			task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch,
 		)
-		_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 		return err
 	})
 }
@@ -679,7 +677,8 @@ func (self *BranchesController) createSortMenu() error {
 			self.c.GetAppState().LocalBranchSortOrder = sortOrder
 			self.c.SaveAppStateAndLogError()
 			self.c.Contexts().Branches.SetSelection(0)
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+			return nil
 		}
 		return nil
 	},
@@ -702,7 +701,7 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 				}
 
 				// need to find where the branch is now so that we can re-select it. That means we need to refetch the branches synchronously and then find our branch
-				_ = self.c.Refresh(types.RefreshOptions{
+				self.c.Refresh(types.RefreshOptions{
 					Mode:  types.SYNC,
 					Scope: []types.RefreshableView{types.BRANCHES, types.WORKTREES},
 				})

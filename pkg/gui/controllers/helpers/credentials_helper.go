@@ -33,7 +33,8 @@ func (self *CredentialsHelper) PromptUserForCredential(passOrUname oscommands.Cr
 			HandleConfirm: func(input string) error {
 				ch <- input + "\n"
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+				return nil
 			},
 			HandleClose: func() error {
 				ch <- "\n"

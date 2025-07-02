@@ -93,7 +93,8 @@ func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh(refreshInterval in
 	self.gui.waitForIntro.Wait()
 
 	self.goEvery(time.Second*time.Duration(refreshInterval), self.gui.stopChan, func() error {
-		return self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+		self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+		return nil
 	})
 }
 
@@ -125,7 +126,7 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
 	err = self.gui.git.Sync.FetchBackground()
 
-	_ = self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.SYNC})
+	self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.SYNC})
 
 	if err == nil {
 		err = self.gui.helpers.BranchesHelper.AutoForwardBranches()

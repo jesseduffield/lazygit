@@ -49,7 +49,8 @@ func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error 
 			}
 			selectionStart, _ := self.c.Contexts().Branches.GetSelectionRange()
 			self.c.Contexts().Branches.SetSelectedLineIdx(selectionStart)
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+			return nil
 		})
 	}
 
@@ -113,7 +114,8 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranches []*models.RemoteB
 				if err := self.deleteRemoteBranches(remoteBranches, task); err != nil {
 					return err
 				}
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				return nil
 			})
 		},
 	})
@@ -181,7 +183,8 @@ func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branc
 				selectionStart, _ := self.c.Contexts().Branches.GetSelectionRange()
 				self.c.Contexts().Branches.SetSelectedLineIdx(selectionStart)
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				return nil
 			})
 		},
 	})
@@ -295,7 +298,7 @@ func (self *BranchesHelper) AutoForwardBranches() error {
 	self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
 	err := self.c.Git().Branch.UpdateBranchRefs(updateCommands)
 
-	_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Mode: types.SYNC})
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Mode: types.SYNC})
 
 	return err
 }

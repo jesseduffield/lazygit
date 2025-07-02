@@ -72,7 +72,8 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 
 func (self *DiffHelper) ExitDiffMode() error {
 	self.c.Modes().Diffing = diffing.New()
-	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	return nil
 }
 
 func (self *DiffHelper) RenderDiff() {

@@ -198,7 +198,8 @@ func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error 
 					}
 					return err
 				}
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
+				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
+				return nil
 			})
 		},
 	})
@@ -214,7 +215,8 @@ func (self *WorktreeHelper) Detach(worktree *models.Worktree) error {
 		if err != nil {
 			return err
 		}
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
+		return nil
 	})
 }
 

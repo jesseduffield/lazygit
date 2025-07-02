@@ -167,9 +167,9 @@ func (self *ModeHelper) ClearFiltering() error {
 		self.c.State().GetRepoState().SetScreenMode(types.SCREEN_NORMAL)
 	}
 
-	return self.c.Refresh(types.RefreshOptions{
+	self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.COMMITS},
-		Then: func() error {
+		Then: func() {
 			// Find the commit that was last selected in filtering mode, and select it again after refreshing
 			if !self.c.Contexts().LocalCommits.SelectCommitByHash(selectedCommitHash) {
 				// If we couldn't find it (either because no commit was selected
@@ -178,9 +178,9 @@ func (self *ModeHelper) ClearFiltering() error {
 				// before we entered filtering
 				self.c.Contexts().LocalCommits.SelectCommitByHash(self.c.Modes().Filtering.GetSelectedCommitHash())
 			}
-			return nil
 		},
 	})
+	return nil
 }
 
 func (self *ModeHelper) SetSuppressRebasingMode(value bool) {

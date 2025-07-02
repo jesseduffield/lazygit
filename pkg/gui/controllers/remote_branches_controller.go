@@ -150,7 +150,7 @@ func (self *RemoteBranchesController) createSortMenu() error {
 			self.c.GetAppState().RemoteBranchSortOrder = sortOrder
 			self.c.SaveAppStateAndLogError()
 			self.c.Contexts().RemoteBranches.SetSelection(0)
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.REMOTES}})
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.REMOTES}})
 		}
 		return nil
 	},
@@ -181,7 +181,8 @@ func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.Remot
 				return err
 			}
 
-			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+			return nil
 		},
 	})
 

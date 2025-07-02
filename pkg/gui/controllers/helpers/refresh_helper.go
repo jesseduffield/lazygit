@@ -51,7 +51,7 @@ func NewRefreshHelper(
 	}
 }
 
-func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
+func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 	if options.Mode == types.ASYNC && options.Then != nil {
 		panic("RefreshOptions.Then doesn't work with mode ASYNC")
 	}
@@ -74,7 +74,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		)
 	}
 
-	f := func() error {
+	f := func() {
 		var scopeSet *set.Set[types.RefreshableView]
 		if len(options.Scope) == 0 {
 			// not refreshing staging/patch-building unless explicitly requested because we only need
@@ -191,22 +191,19 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		wg.Wait()
 
 		if options.Then != nil {
-			if err := options.Then(); err != nil {
-				return err
-			}
+			options.Then()
 		}
-
-		return nil
 	}
 
 	if options.Mode == types.BLOCK_UI {
 		self.c.OnUIThread(func() error {
-			return f()
+			f()
+			return nil
 		})
-		return nil
+		return
 	}
 
-	return f()
+	f()
 }
 
 func getScopeNames(scopes []types.RefreshableView) []string {
