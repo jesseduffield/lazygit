@@ -313,19 +313,13 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 				// Reset the current patch if there is one.
 				if self.c.Git().Patch.PatchBuilder.Active() {
 					self.c.Git().Patch.PatchBuilder.Reset()
-					if err := self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI}); err != nil {
-						return err
-					}
 				}
 
 				for _, node := range selectedNodes {
-					err := node.ForEachFile(func(file *models.CommitFile) error {
+					_ = node.ForEachFile(func(file *models.CommitFile) error {
 						filePaths = append(filePaths, file.GetPath())
 						return nil
 					})
-					if err != nil {
-						return err
-					}
 				}
 
 				err := self.c.Git().Rebase.DiscardOldFileChanges(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), filePaths)
@@ -336,7 +330,8 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 				if self.context().RangeSelectEnabled() {
 					self.context().GetList().CancelRangeSelect()
 				}
-				return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
+
+				return nil
 			})
 		},
 	})
