@@ -349,13 +349,8 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 			}
 
 			gui.c.Log.Info("Receiving focus - refreshing")
-			refreshErr := gui.helpers.Refresh.Refresh(types.RefreshOptions{Mode: types.ASYNC})
-			if reloadErr != nil {
-				// An error from reloading the config is the more important one
-				// to report to the user
-				return reloadErr
-			}
-			return refreshErr
+			gui.helpers.Refresh.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			return reloadErr
 		}
 
 		return nil
@@ -693,7 +688,7 @@ func NewGui(
 		func(ctx goContext.Context, opts types.CreatePopupPanelOpts) {
 			gui.helpers.Confirmation.CreatePopupPanel(ctx, opts)
 		},
-		func() error { return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}) },
+		func() error { gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}); return nil },
 		func() { gui.State.ContextMgr.Pop() },
 		func() types.Context { return gui.State.ContextMgr.Current() },
 		gui.createMenu,
@@ -932,9 +927,7 @@ func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess *oscommands.CmdOb
 		return err
 	}
 
-	if err := gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
-		return err
-	}
+	gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 
 	return nil
 }
@@ -996,9 +989,7 @@ func (gui *Gui) loadNewRepo() error {
 		return err
 	}
 
-	if err := gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
-		return err
-	}
+	gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 
 	if err := gui.os.UpdateWindowTitle(); err != nil {
 		return err

@@ -275,7 +275,8 @@ func (self *CustomPatchOptionsMenuAction) handleApplyPatch(reverse bool) error {
 	if err := self.c.Git().Patch.ApplyCustomPatch(reverse, true); err != nil {
 		return err
 	}
-	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	return nil
 }
 
 func (self *CustomPatchOptionsMenuAction) copyPatchToClipboard() error {

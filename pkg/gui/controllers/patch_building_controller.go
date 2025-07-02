@@ -116,9 +116,10 @@ func (self *PatchBuildingController) ToggleSelectionAndRefresh() error {
 		return err
 	}
 
-	return self.c.Refresh(types.RefreshOptions{
+	self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.PATCH_BUILDING, types.COMMIT_FILES},
 	})
+	return nil
 }
 
 func (self *PatchBuildingController) toggleSelection() error {

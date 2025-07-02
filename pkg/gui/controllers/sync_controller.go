@@ -229,7 +229,8 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 			}
 			return err
 		}
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		return nil
 	})
 }
 

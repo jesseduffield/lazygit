@@ -29,7 +29,7 @@ type IGuiCommon interface {
 	LogAction(action string)
 	LogCommand(cmdStr string, isCommandLine bool)
 	// we call this when we want to refetch some models and render the result. Internally calls PostRefreshUpdate
-	Refresh(RefreshOptions) error
+	Refresh(RefreshOptions)
 	// we call this when we've changed something in the view model but not the actual model,
 	// e.g. expanding or collapsing a folder in a file view. Calling 'Refresh' in this
 	// case would be overkill, although refresh will internally call 'PostRefreshUpdate'

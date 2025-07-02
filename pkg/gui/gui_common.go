@@ -26,8 +26,8 @@ func (self *guiCommon) LogCommand(cmdStr string, isCommandLine bool) {
 	self.gui.LogCommand(cmdStr, isCommandLine)
 }
 
-func (self *guiCommon) Refresh(opts types.RefreshOptions) error {
-	return self.gui.helpers.Refresh.Refresh(opts)
+func (self *guiCommon) Refresh(opts types.RefreshOptions) {
+	self.gui.helpers.Refresh.Refresh(opts)
 }
 
 func (self *guiCommon) PostRefreshUpdate(context types.Context) {

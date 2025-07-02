@@ -85,11 +85,9 @@ func (self *SwitchToDiffFilesController) enter() error {
 	commitFilesContext.ClearSearchString()
 	commitFilesContext.GetView().TitlePrefix = self.context.GetView().TitlePrefix
 
-	if err := self.c.Refresh(types.RefreshOptions{
+	self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.COMMIT_FILES},
-	}); err != nil {
-		return err
-	}
+	})
 
 	self.c.Context().Push(commitFilesContext, types.OnFocusOpts{})
 	return nil

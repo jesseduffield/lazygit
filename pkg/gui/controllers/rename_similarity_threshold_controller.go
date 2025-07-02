@@ -88,11 +88,11 @@ func (self *RenameSimilarityThresholdController) applyChange() error {
 	switch currentContext.GetKey() {
 	// we make an exception for our files context, because it actually need to refresh its state afterwards.
 	case context.FILES_CONTEXT_KEY:
-		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 	default:
 		currentContext.HandleRenderToMain()
-		return nil
 	}
+	return nil
 }
 
 func (self *RenameSimilarityThresholdController) isShowingRenames() bool {

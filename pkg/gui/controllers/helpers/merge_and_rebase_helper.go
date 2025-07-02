@@ -150,9 +150,8 @@ func isMergeConflictErr(errStr string) bool {
 }
 
 func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result error, refreshOptions types.RefreshOptions) error {
-	if err := self.c.Refresh(refreshOptions); err != nil {
-		return err
-	}
+	self.c.Refresh(refreshOptions)
+
 	if result == nil {
 		return nil
 	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
@@ -234,11 +233,9 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 			// Need to refresh the files to be really sure if this is the case.
 			// We would otherwise be relying on lazygit's auto-refresh on focus,
 			// but this is not supported by all terminals or on all platforms.
-			if err := self.c.Refresh(types.RefreshOptions{
+			self.c.Refresh(types.RefreshOptions{
 				Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES},
-			}); err != nil {
-				return err
-			}
+			})
 
 			root := self.c.Contexts().Files.FileTreeViewModel.GetRoot()
 			if root.GetHasUnstagedChanges() {
@@ -457,7 +454,8 @@ func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranch
 		if err != nil {
 			return err
 		}
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		return nil
 	}
 }
 

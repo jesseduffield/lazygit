@@ -143,7 +143,8 @@ func (self *GlobalController) createCustomPatchOptionsMenu() error {
 }
 
 func (self *GlobalController) refresh() error {
-	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	return nil
 }
 
 func (self *GlobalController) nextScreenMode() error {
