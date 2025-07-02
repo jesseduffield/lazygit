@@ -333,7 +333,8 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 				if self.context().RangeSelectEnabled() {
 					self.context().GetList().CancelRangeSelect()
 				}
-				return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
+
+				return nil
 			})
 		},
 	})
