@@ -313,9 +313,6 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 				// Reset the current patch if there is one.
 				if self.c.Git().Patch.PatchBuilder.Active() {
 					self.c.Git().Patch.PatchBuilder.Reset()
-					if err := self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI}); err != nil {
-						return err
-					}
 				}
 
 				for _, node := range selectedNodes {
