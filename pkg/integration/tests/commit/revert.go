@@ -29,9 +29,10 @@ var Revert = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("Revert \"first commit\"").IsSelected(),
-				Contains("first commit"),
-			)
+				Contains("Revert \"first commit\""),
+				Contains("first commit").IsSelected(),
+			).
+			SelectPreviousItem()
 
 		t.Views().Main().Content(Contains("-myfile content"))
 		t.FileSystem().PathNotPresent("myfile")

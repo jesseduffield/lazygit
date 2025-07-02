@@ -874,13 +874,11 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 			self.c.LogAction(self.c.Tr.Actions.RevertCommit)
 			return self.c.WithWaitingStatusSync(self.c.Tr.RevertingStatus, func() error {
 				result := self.c.Git().Commit.Revert(hashes, isMerge)
-				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(result); err != nil {
+				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.SYNC}); err != nil {
 					return err
 				}
 				self.context().MoveSelection(len(commits))
-				self.c.Refresh(types.RefreshOptions{
-					Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS, types.BRANCHES},
-				})
+				self.context().FocusLine()
 				return nil
 			})
 		},
