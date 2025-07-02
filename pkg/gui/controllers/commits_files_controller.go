@@ -319,13 +319,10 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 				}
 
 				for _, node := range selectedNodes {
-					err := node.ForEachFile(func(file *models.CommitFile) error {
+					_ = node.ForEachFile(func(file *models.CommitFile) error {
 						filePaths = append(filePaths, file.GetPath())
 						return nil
 					})
-					if err != nil {
-						return err
-					}
 				}
 
 				err := self.c.Git().Rebase.DiscardOldFileChanges(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), filePaths)
