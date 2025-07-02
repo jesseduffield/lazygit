@@ -259,7 +259,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 		}
 
 		if stash {
-			if err := self.stash.Apply(0); err != nil {
+			if err := self.stash.Pop(0); err != nil {
 				return err
 			}
 		}

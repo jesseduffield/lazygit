@@ -820,6 +820,8 @@ type TranslationSet struct {
 	MovePatchToSelectedCommit                string
 	MovePatchToSelectedCommitTooltip         string
 	CopyPatchToClipboard                     string
+	MustStageFilesAffectedByPatchTitle       string
+	MustStageFilesAffectedByPatchWarning     string
 	NoMatchesFor                             string
 	MatchesFor                               string
 	SearchKeybindings                        string
@@ -1909,6 +1911,8 @@ func EnglishTranslationSet() *TranslationSet {
 		MovePatchToSelectedCommit:                "Move patch to selected commit (%s)",
 		MovePatchToSelectedCommitTooltip:         "Move the patch out of its original commit and into the selected commit. This is achieved by starting an interactive rebase at the original commit, applying the patch in reverse, then continuing the rebase up to the selected commit, before applying the patch forward and amending the selected commit. The rebase is then continued to completion. If commits between the source and destination commit depend on the patch, you may need to resolve conflicts.",
 		CopyPatchToClipboard:                     "Copy patch to clipboard",
+		MustStageFilesAffectedByPatchTitle:       "Must stage files",
+		MustStageFilesAffectedByPatchWarning:     "Applying a patch to the index requires staging the unstaged files that are affected by the patch. Note that you might get conflicts when applying the patch. Continue?",
 		NoMatchesFor:                             "No matches for '%s' %s",
 		ExitSearchMode:                           "%s: Exit search mode",
 		ExitTextFilterMode:                       "%s: Exit filter mode",

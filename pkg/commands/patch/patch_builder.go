@@ -286,11 +286,5 @@ func (p *PatchBuilder) NewPatchRequired(from string, to string, reverse bool) bo
 }
 
 func (p *PatchBuilder) AllFilesInPatch() []string {
-	files := make([]string, 0, len(p.fileInfoMap))
-
-	for filename := range p.fileInfoMap {
-		files = append(files, filename)
-	}
-
-	return files
+	return lo.Keys(p.fileInfoMap)
 }
