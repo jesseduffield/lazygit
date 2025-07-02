@@ -262,15 +262,14 @@ func (self *FilesController) GetOnRenderToMain() func() {
 				}
 				if node.File.ShortStatus == "DU" || node.File.ShortStatus == "UD" {
 					cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()})
-					task := types.NewRunPtyTask(cmdObj.GetCmd())
-					task.Prefix = message + "\n\n"
+					prefix := message + "\n\n"
 					if node.File.ShortStatus == "DU" {
-						task.Prefix += self.c.Tr.MergeConflictIncomingDiff
+						prefix += self.c.Tr.MergeConflictIncomingDiff
 					} else {
-						task.Prefix += self.c.Tr.MergeConflictCurrentDiff
+						prefix += self.c.Tr.MergeConflictCurrentDiff
 					}
-					task.Prefix += "\n\n"
-					opts.Main.Task = task
+					prefix += "\n\n"
+					opts.Main.Task = types.NewRunPtyTaskWithPrefix(cmdObj.GetCmd(), prefix)
 				} else {
 					opts.Main.Task = types.NewRenderStringTask(message)
 				}

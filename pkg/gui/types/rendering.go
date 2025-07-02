@@ -94,3 +94,7 @@ func (t *RunPtyTask) IsUpdateTask() {}
 func NewRunPtyTask(cmd *exec.Cmd) *RunPtyTask {
 	return &RunPtyTask{Cmd: cmd}
 }
+
+func NewRunPtyTaskWithPrefix(cmd *exec.Cmd, prefix string) *RunPtyTask {
+	return &RunPtyTask{Cmd: cmd, Prefix: prefix}
+}
