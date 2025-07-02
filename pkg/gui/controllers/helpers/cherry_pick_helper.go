@@ -78,7 +78,16 @@ func (self *CherryPickHelper) Paste() error {
 			}),
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.CherryPickingStatus, func(gocui.Task) error {
+				mustStash := IsWorkingTreeDirty(self.c.Model().Files)
+
 				self.c.LogAction(self.c.Tr.Actions.CherryPick)
+
+				if mustStash {
+					if err := self.c.Git().Stash.Push(self.c.Tr.AutoStashForCherryPicking); err != nil {
+						return err
+					}
+				}
+
 				result := self.c.Git().Rebase.CherryPickCommits(self.getData().CherryPickedCommits)
 				err := self.rebaseHelper.CheckMergeOrRebase(result)
 				if err != nil {
@@ -96,7 +105,17 @@ func (self *CherryPickHelper) Paste() error {
 				if !isInCherryPick {
 					self.getData().DidPaste = true
 					self.rerender()
+
+					if mustStash {
+						if err := self.c.Git().Stash.Pop(0); err != nil {
+							return err
+						}
+						self.c.Refresh(types.RefreshOptions{
+							Scope: []types.RefreshableView{types.STASH, types.FILES},
+						})
+					}
 				}
+
 				return nil
 			})
 		},
