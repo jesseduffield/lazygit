@@ -873,12 +873,30 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RevertCommit)
 			return self.c.WithWaitingStatusSync(self.c.Tr.RevertingStatus, func() error {
+				mustStash := helpers.IsWorkingTreeDirty(self.c.Model().Files)
+
+				if mustStash {
+					if err := self.c.Git().Stash.Push(self.c.Tr.AutoStashForReverting); err != nil {
+						return err
+					}
+				}
+
 				result := self.c.Git().Commit.Revert(hashes, isMerge)
 				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.SYNC}); err != nil {
 					return err
 				}
 				self.context().MoveSelection(len(commits))
 				self.context().FocusLine()
+
+				if mustStash {
+					if err := self.c.Git().Stash.Pop(0); err != nil {
+						return err
+					}
+					self.c.Refresh(types.RefreshOptions{
+						Scope: []types.RefreshableView{types.STASH, types.FILES},
+					})
+				}
+
 				return nil
 			})
 		},
