@@ -3,7 +3,6 @@ package helpers
 import (
 	"strconv"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -77,7 +76,7 @@ func (self *CherryPickHelper) Paste() error {
 				"numCommits": strconv.Itoa(len(self.getData().CherryPickedCommits)),
 			}),
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.CherryPickingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusSync(self.c.Tr.CherryPickingStatus, func() error {
 				mustStash := IsWorkingTreeDirty(self.c.Model().Files)
 
 				self.c.LogAction(self.c.Tr.Actions.CherryPick)
