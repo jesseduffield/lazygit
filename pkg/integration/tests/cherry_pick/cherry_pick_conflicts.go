@@ -43,7 +43,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			TopLines(
-				Contains("first change"),
+				Contains("first change").IsSelected(),
 			).
 			Press(keys.Commits.PasteCommits)
 
@@ -76,7 +76,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			TopLines(
-				Contains("second-change-branch unrelated change"),
+				Contains("second-change-branch unrelated change").IsSelected(),
 				Contains("second change"),
 				Contains("first change"),
 			).

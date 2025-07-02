@@ -79,7 +79,7 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("--- Pending rebase todos ---"),
 				Contains("pick CI two"),
 				Contains("--- Commits ---"),
-				Contains("     CI three"),
+				Contains("     CI three").IsSelected(),
 				Contains("     CI one"),
 				Contains("     CI base"),
 			).
@@ -88,7 +88,7 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("CI two"),
-				Contains("CI three"),
+				Contains("CI three").IsSelected(),
 				Contains("CI one"),
 				Contains("CI base"),
 			)

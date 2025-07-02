@@ -73,7 +73,7 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Views().Information().Content(DoesNotContain("commits copied"))
 			}).
 			Lines(
-				Contains("four"),
+				Contains("four").IsSelected(),
 				Contains("three"),
 				Contains("two"),
 				Contains("one"),
@@ -102,7 +102,7 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Views().Information().Content(DoesNotContain("commits copied"))
 			}).
 			Lines(
-				Contains("four"),
+				Contains("four").IsSelected(),
 				Contains("three"),
 				Contains("base"),
 			)
