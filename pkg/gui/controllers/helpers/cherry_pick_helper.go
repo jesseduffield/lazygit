@@ -87,10 +87,21 @@ func (self *CherryPickHelper) Paste() error {
 					}
 				}
 
-				result := self.c.Git().Rebase.CherryPickCommits(self.getData().CherryPickedCommits)
-				err := self.rebaseHelper.CheckMergeOrRebase(result)
+				cherryPickedCommits := self.getData().CherryPickedCommits
+				result := self.c.Git().Rebase.CherryPickCommits(cherryPickedCommits)
+				err := self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.SYNC})
 				if err != nil {
 					return result
+				}
+
+				// Move the selection down by the number of commits we just
+				// cherry-picked, to keep the same commit selected as before.
+				// Don't do this if a rebase todo is selected, because in this
+				// case we are in a rebase and the cherry-picked commits end up
+				// below the selection.
+				if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil && !commit.IsTODO() {
+					self.c.Contexts().LocalCommits.MoveSelection(len(cherryPickedCommits))
+					self.c.Contexts().LocalCommits.FocusLine()
 				}
 
 				// If we're in the cherry-picking state at this point, it must

@@ -63,9 +63,10 @@ var CherryPickMerge = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Views().Information().Content(DoesNotContain("commit copied"))
 			}).
 			Lines(
-				Contains("Merge branch 'second-branch'").IsSelected(),
-				Contains("base"),
-			)
+				Contains("Merge branch 'second-branch'"),
+				Contains("base").IsSelected(),
+			).
+			SelectPreviousItem()
 
 		t.Views().Main().ContainsLines(
 			Contains("Merge branch 'second-branch'"),

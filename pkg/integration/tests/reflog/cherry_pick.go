@@ -43,8 +43,8 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("three").IsSelected(),
-				Contains("one"),
+				Contains("three"),
+				Contains("one").IsSelected(),
 			)
 	},
 })
