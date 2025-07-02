@@ -1265,10 +1265,7 @@ func (self *LocalCommitsController) GetOnFocus() func(types.OnFocusOpts) {
 		context := self.context()
 		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
 			context.SetLimitCommits(false)
-			self.c.OnWorker(func(_ gocui.Task) error {
-				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}})
-				return nil
-			})
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS}})
 		}
 	}
 }
