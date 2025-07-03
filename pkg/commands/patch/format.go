@@ -97,7 +97,7 @@ func (self *patchPresenter) format() string {
 
 		for _, line := range hunk.bodyLines {
 			style := self.patchLineStyle(line)
-			if line.isChange() {
+			if line.IsChange() {
 				appendLine(self.formatLine(line.Content, style, lineIdx))
 			} else {
 				appendLine(self.formatLineAux(line.Content, style, false))
