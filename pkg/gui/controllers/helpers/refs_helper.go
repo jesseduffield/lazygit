@@ -79,7 +79,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 						Prompt: self.c.Tr.AutoStashPrompt,
 						HandleConfirm: func() error {
 							return withCheckoutStatus(func(gocui.Task) error {
-								if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + ref); err != nil {
+								if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForCheckout, ref)); err != nil {
 									return err
 								}
 								if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {
