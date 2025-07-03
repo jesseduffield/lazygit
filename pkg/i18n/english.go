@@ -447,7 +447,6 @@ type TranslationSet struct {
 	IncorrectNotARepository               string
 	AutoStashTitle                        string
 	AutoStashPrompt                       string
-	StashPrefix                           string
 	AutoStashForUndo                      string
 	AutoStashForCheckout                  string
 	AutoStashForNewBranch                 string
@@ -1544,7 +1543,6 @@ func EnglishTranslationSet() *TranslationSet {
 		IncorrectNotARepository:              "The value of 'notARepository' is incorrect. It should be one of 'prompt', 'create', 'skip', or 'quit'.",
 		AutoStashTitle:                       "Autostash?",
 		AutoStashPrompt:                      "You must stash and pop your changes to bring them across. Do this automatically? (enter/esc)",
-		StashPrefix:                          "Auto-stashing changes for ",
 		AutoStashForUndo:                     "Auto-stashing changes for undoing to %s",
 		AutoStashForCheckout:                 "Auto-stashing changes for checking out %s",
 		AutoStashForNewBranch:                "Auto-stashing changes for creating new branch %s",
