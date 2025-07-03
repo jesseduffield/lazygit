@@ -124,14 +124,6 @@ func (p *PatchBuilder) RemoveFile(filename string) error {
 	return nil
 }
 
-func getIndicesForRange(first, last int) []int {
-	indices := []int{}
-	for i := first; i <= last; i++ {
-		indices = append(indices, i)
-	}
-	return indices
-}
-
 func (p *PatchBuilder) getFileInfo(filename string) (*fileInfo, error) {
 	info, ok := p.fileInfoMap[filename]
 	if ok {
@@ -152,24 +144,24 @@ func (p *PatchBuilder) getFileInfo(filename string) (*fileInfo, error) {
 	return info, nil
 }
 
-func (p *PatchBuilder) AddFileLineRange(filename string, firstLineIdx, lastLineIdx int) error {
+func (p *PatchBuilder) AddFileLineRange(filename string, lineIndices []int) error {
 	info, err := p.getFileInfo(filename)
 	if err != nil {
 		return err
 	}
 	info.mode = PART
-	info.includedLineIndices = lo.Union(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
+	info.includedLineIndices = lo.Union(info.includedLineIndices, lineIndices)
 
 	return nil
 }
 
-func (p *PatchBuilder) RemoveFileLineRange(filename string, firstLineIdx, lastLineIdx int) error {
+func (p *PatchBuilder) RemoveFileLineRange(filename string, lineIndices []int) error {
 	info, err := p.getFileInfo(filename)
 	if err != nil {
 		return err
 	}
 	info.mode = PART
-	info.includedLineIndices, _ = lo.Difference(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
+	info.includedLineIndices, _ = lo.Difference(info.includedLineIndices, lineIndices)
 	if len(info.includedLineIndices) == 0 {
 		p.removeFile(info)
 	}

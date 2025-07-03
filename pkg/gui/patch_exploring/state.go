@@ -282,6 +282,20 @@ func (s *State) SelectedPatchRange() (int, int) {
 	return s.patchLineIndices[start], s.patchLineIndices[end]
 }
 
+// Returns the line indices of the selected patch range that are changes (i.e. additions or deletions)
+func (s *State) ChangeLinesInSelectedPatchRange() []int {
+	viewStart, viewEnd := s.SelectedViewRange()
+	patchStart, patchEnd := s.patchLineIndices[viewStart], s.patchLineIndices[viewEnd]
+	lines := s.patch.Lines()
+	indices := []int{}
+	for i := patchStart; i <= patchEnd; i++ {
+		if lines[i].IsChange() {
+			indices = append(indices, i)
+		}
+	}
+	return indices
+}
+
 func (s *State) CurrentLineNumber() int {
 	return s.patch.LineNumberOfLine(s.patchLineIndices[s.selectedLineIdx])
 }
