@@ -451,6 +451,7 @@ type TranslationSet struct {
 	AutoStashForUndo                      string
 	AutoStashForCheckout                  string
 	AutoStashForNewBranch                 string
+	AutoStashForMovingPatchToIndex        string
 	Discard                               string
 	DiscardChangesTitle                   string
 	DiscardFileChangesTooltip             string
@@ -1547,6 +1548,7 @@ func EnglishTranslationSet() *TranslationSet {
 		AutoStashForUndo:                     "Auto-stashing changes for undoing to %s",
 		AutoStashForCheckout:                 "Auto-stashing changes for checking out %s",
 		AutoStashForNewBranch:                "Auto-stashing changes for creating new branch %s",
+		AutoStashForMovingPatchToIndex:       "Auto-stashing changes for moving custom patch to index from %s",
 		Discard:                              "Discard",
 		DiscardFileChangesTooltip:            "View options for discarding changes to the selected file.",
 		DiscardChangesTitle:                  "Discard changes",
