@@ -99,9 +99,7 @@ linters:
       - legacy
       - std-error-handling
     paths:
-      - third_party$
-      - builtin$
-      - examples$
+      - vendor/
 formatters:
   enable:
     - gofumpt
@@ -109,6 +107,4 @@ formatters:
   exclusions:
     generated: lax
     paths:
-      - third_party$
-      - builtin$
-      - examples$
+      - vendor/
