@@ -90,7 +90,7 @@ func (self *UndoController) reflogUndo() error {
 		case COMMIT:
 			self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Undo,
-				Prompt: fmt.Sprintf(self.c.Tr.SoftResetPrompt, action.from),
+				Prompt: fmt.Sprintf(self.c.Tr.SoftResetPrompt, utils.ShortHash(action.from)),
 				HandleConfirm: func() error {
 					self.c.LogAction(self.c.Tr.Actions.Undo)
 					return self.c.WithWaitingStatus(undoingStatus, func(gocui.Task) error {
@@ -103,7 +103,7 @@ func (self *UndoController) reflogUndo() error {
 		case REBASE:
 			self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Undo,
-				Prompt: fmt.Sprintf(self.c.Tr.HardResetAutostashPrompt, action.from),
+				Prompt: fmt.Sprintf(self.c.Tr.HardResetAutostashPrompt, utils.ShortHash(action.from)),
 				HandleConfirm: func() error {
 					self.c.LogAction(self.c.Tr.Actions.Undo)
 					return self.hardResetWithAutoStash(action.from, hardResetOptions{
@@ -157,7 +157,7 @@ func (self *UndoController) reflogRedo() error {
 		case COMMIT, REBASE:
 			self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Redo,
-				Prompt: fmt.Sprintf(self.c.Tr.HardResetAutostashPrompt, action.to),
+				Prompt: fmt.Sprintf(self.c.Tr.HardResetAutostashPrompt, utils.ShortHash(action.to)),
 				HandleConfirm: func() error {
 					self.c.LogAction(self.c.Tr.Actions.Redo)
 					return self.hardResetWithAutoStash(action.to, hardResetOptions{
