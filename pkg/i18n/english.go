@@ -448,6 +448,7 @@ type TranslationSet struct {
 	AutoStashTitle                        string
 	AutoStashPrompt                       string
 	StashPrefix                           string
+	AutoStashForUndo                      string
 	Discard                               string
 	DiscardChangesTitle                   string
 	DiscardFileChangesTooltip             string
@@ -1541,6 +1542,7 @@ func EnglishTranslationSet() *TranslationSet {
 		AutoStashTitle:                       "Autostash?",
 		AutoStashPrompt:                      "You must stash and pop your changes to bring them across. Do this automatically? (enter/esc)",
 		StashPrefix:                          "Auto-stashing changes for ",
+		AutoStashForUndo:                     "Auto-stashing changes for undoing to %s",
 		Discard:                              "Discard",
 		DiscardFileChangesTooltip:            "View options for discarding changes to the selected file.",
 		DiscardChangesTitle:                  "Discard changes",

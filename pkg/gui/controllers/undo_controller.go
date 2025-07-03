@@ -260,7 +260,7 @@ func (self *UndoController) hardResetWithAutoStash(commitHash string, options ha
 	dirtyWorkingTree := self.c.Helpers().WorkingTree.IsWorkingTreeDirty()
 	if dirtyWorkingTree {
 		return self.c.WithWaitingStatus(options.WaitingStatus, func(gocui.Task) error {
-			if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + commitHash); err != nil {
+			if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForUndo, utils.ShortHash(commitHash))); err != nil {
 				return err
 			}
 			if err := reset(); err != nil {
