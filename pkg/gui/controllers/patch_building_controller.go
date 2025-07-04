@@ -170,7 +170,7 @@ func (self *PatchBuildingController) Escape() error {
 	context := self.c.Contexts().CustomPatchBuilder
 	state := context.GetState()
 
-	if state.SelectingRange() || state.SelectingHunk() {
+	if state.SelectingRange() || state.SelectingHunkEnabledByUser() {
 		state.SetLineSelectMode()
 		self.c.PostRefreshUpdate(context)
 		return nil
