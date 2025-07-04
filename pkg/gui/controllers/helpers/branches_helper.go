@@ -82,7 +82,7 @@ func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error 
 	return nil
 }
 
-func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranches []*models.RemoteBranch) error {
+func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranches []*models.RemoteBranch, resetRemoteBranchesSelection bool) error {
 	var title string
 	if len(remoteBranches) == 1 {
 		title = utils.ResolvePlaceholderString(
@@ -115,6 +115,9 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranches []*models.RemoteB
 					return err
 				}
 				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				if resetRemoteBranchesSelection {
+					self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
+				}
 				return nil
 			})
 		},

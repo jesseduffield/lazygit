@@ -133,7 +133,7 @@ func (self *RemoteBranchesController) context() *context.RemoteBranchesContext {
 }
 
 func (self *RemoteBranchesController) delete(selectedBranches []*models.RemoteBranch) error {
-	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(selectedBranches)
+	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(selectedBranches, true)
 }
 
 func (self *RemoteBranchesController) merge(selectedBranch *models.RemoteBranch) error {

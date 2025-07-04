@@ -535,7 +535,7 @@ func (self *BranchesController) remoteDelete(branches []*models.Branch) error {
 	remoteBranches := lo.Map(branches, func(branch *models.Branch, _ int) *models.RemoteBranch {
 		return &models.RemoteBranch{Name: branch.UpstreamBranch, RemoteName: branch.UpstreamRemote}
 	})
-	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(remoteBranches)
+	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(remoteBranches, false)
 }
 
 func (self *BranchesController) localAndRemoteDelete(branches []*models.Branch) error {
