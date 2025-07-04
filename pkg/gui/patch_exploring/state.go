@@ -39,7 +39,7 @@ const (
 	HUNK
 )
 
-func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *State) *State {
+func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *State, useHunkModeByDefault bool) *State {
 	if oldState != nil && diff == oldState.diff && selectedLineIdx == -1 {
 		// if we're here then we can return the old state. If selectedLineIdx was not -1
 		// then that would mean we were trying to click and potentially drag a range, which
@@ -61,6 +61,10 @@ func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *Stat
 	}
 
 	selectMode := LINE
+	if useHunkModeByDefault {
+		selectMode = HUNK
+	}
+
 	// if we have clicked from the outside to focus the main view we'll pass in a non-negative line index so that we can instantly select that line
 	if selectedLineIdx >= 0 {
 		// Clamp to the number of wrapped view lines; index might be out of
@@ -70,9 +74,9 @@ func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *Stat
 		selectMode = RANGE
 		rangeStartLineIdx = selectedLineIdx
 	} else if oldState != nil {
-		// if we previously had a selectMode of RANGE, we want that to now be line again
-		if oldState.selectMode == HUNK {
-			selectMode = HUNK
+		// if we previously had a selectMode of RANGE, we want that to now be line again (or hunk, if that's the default)
+		if oldState.selectMode != RANGE {
+			selectMode = oldState.selectMode
 		}
 		selectedLineIdx = viewLineIndices[patch.GetNextChangeIdx(oldState.patchLineIndices[oldState.selectedLineIdx])]
 	} else {
