@@ -47,8 +47,8 @@ func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error 
 			if err := self.c.Git().Branch.LocalDelete(branchNames, true); err != nil {
 				return err
 			}
-			selectionStart, _ := self.c.Contexts().Branches.GetSelectionRange()
-			self.c.Contexts().Branches.SetSelectedLineIdx(selectionStart)
+
+			self.c.Contexts().Branches.CollapseRangeSelectionToTop()
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 			return nil
 		})
@@ -180,9 +180,7 @@ func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branc
 					return err
 				}
 
-				selectionStart, _ := self.c.Contexts().Branches.GetSelectionRange()
-				self.c.Contexts().Branches.SetSelectedLineIdx(selectionStart)
-
+				self.c.Contexts().Branches.CollapseRangeSelectionToTop()
 				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 				return nil
 			})
