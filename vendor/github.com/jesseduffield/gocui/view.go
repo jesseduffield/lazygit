@@ -326,7 +326,11 @@ func (v *View) IsSearching() bool {
 }
 
 func (v *View) FocusPoint(cx int, cy int) {
-	lineCount := len(v.lines)
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+	lineCount := len(v.viewLines)
 	if cy < 0 || cy > lineCount {
 		return
 	}
@@ -1454,6 +1458,20 @@ func (v *View) Word(x, y int) (string, bool) {
 		nr = nr + x
 	}
 	return str[nl:nr], true
+}
+
+func (v *View) HyperLinkInLine(y int, urlScheme string) (string, bool) {
+	if y < 0 || y >= len(v.viewLines) {
+		return "", false
+	}
+
+	for _, c := range v.lines[v.viewLines[y].linesY] {
+		if strings.HasPrefix(c.hyperlink, urlScheme) {
+			return c.hyperlink, true
+		}
+	}
+
+	return "", false
 }
 
 // indexFunc allows to split lines by words taking into account spaces

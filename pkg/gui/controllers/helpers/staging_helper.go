@@ -1,20 +1,26 @@
 package helpers
 
 import (
+	"regexp"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type StagingHelper struct {
-	c *HelperCommon
+	c            *HelperCommon
+	windowHelper *WindowHelper
 }
 
 func NewStagingHelper(
 	c *HelperCommon,
+	windowHelper *WindowHelper,
 ) *StagingHelper {
 	return &StagingHelper{
-		c: c,
+		c:            c,
+		windowHelper: windowHelper,
 	}
 }
 
@@ -30,12 +36,16 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 	}
 
 	mainSelectedLineIdx := -1
+	mainSelectedRealLineIdx := -1
 	secondarySelectedLineIdx := -1
+	secondarySelectedRealLineIdx := -1
 	if focusOpts.ClickedViewLineIdx > 0 {
 		if secondaryFocused {
 			secondarySelectedLineIdx = focusOpts.ClickedViewLineIdx
+			secondarySelectedRealLineIdx = focusOpts.ClickedViewRealLineIdx
 		} else {
 			mainSelectedLineIdx = focusOpts.ClickedViewLineIdx
+			mainSelectedRealLineIdx = focusOpts.ClickedViewRealLineIdx
 		}
 	}
 
@@ -63,11 +73,11 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 	secondaryContext.GetMutex().Lock()
 
 	mainContext.SetState(
-		patch_exploring.NewState(mainDiff, mainSelectedLineIdx, mainContext.GetView(), mainContext.GetState()),
+		patch_exploring.NewState(mainDiff, mainSelectedLineIdx, mainSelectedRealLineIdx, mainContext.GetView(), mainContext.GetState()),
 	)
 
 	secondaryContext.SetState(
-		patch_exploring.NewState(secondaryDiff, secondarySelectedLineIdx, secondaryContext.GetView(), secondaryContext.GetState()),
+		patch_exploring.NewState(secondaryDiff, secondarySelectedLineIdx, secondarySelectedRealLineIdx, secondaryContext.GetView(), secondaryContext.GetState()),
 	)
 
 	mainState := mainContext.GetState()
@@ -123,4 +133,21 @@ func (self *StagingHelper) secondaryStagingFocused() bool {
 
 func (self *StagingHelper) mainStagingFocused() bool {
 	return self.c.Context().CurrentStatic().GetKey() == self.c.Contexts().Staging.GetKey()
+}
+
+func (self *StagingHelper) GetFileAndLineForClickedDiffLine(windowName string, lineIdx int) (string, int, bool) {
+	v, _ := self.c.GocuiGui().View(self.windowHelper.GetViewNameForWindow(windowName))
+	hyperlink, ok := v.HyperLinkInLine(lineIdx, "lazygit-edit:")
+	if !ok {
+		return "", 0, false
+	}
+
+	re := regexp.MustCompile(`^lazygit-edit://(.+?):(\d+)$`)
+	matches := re.FindStringSubmatch(hyperlink)
+	if matches == nil {
+		return "", 0, false
+	}
+	filepath := matches[1]
+	lineNumber := utils.MustConvertToInt(matches[2])
+	return filepath, lineNumber, true
 }
