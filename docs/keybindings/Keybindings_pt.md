@@ -91,7 +91,7 @@ Veja a documentação:
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Copy branch name to clipboard |  |
-| `` i `` | Show git-flow options |  |
+| `` i `` | Exibir opções do git-flow |  |
 | `` <space> `` | Verificar | Checar item selecionado |
 | `` n `` | Nova branch |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
