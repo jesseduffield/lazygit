@@ -178,6 +178,7 @@ func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) 
 					return err
 				}
 			}
+			self.context().CollapseRangeSelectionToTop()
 			return nil
 		},
 	})

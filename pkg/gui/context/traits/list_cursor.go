@@ -133,8 +133,17 @@ func (self *ListCursor) GetRangeStartIdx() (int, bool) {
 	return 0, false
 }
 
+// Cancel range select mode, but keep the "moving end" of the range selected.
+// Used when pressing 'v' or escape to toggle range select mode, for example.
 func (self *ListCursor) CancelRangeSelect() {
 	self.rangeSelectMode = RangeSelectModeNone
+}
+
+// Cancel range select mode, but keep the top of the range selected. Note that
+// this is different from CancelRangeSelect. Useful after deleting a range of items.
+func (self *ListCursor) CollapseRangeSelectionToTop() {
+	start, _ := self.GetSelectionRange()
+	self.SetSelection(start)
 }
 
 // Returns true if we are in range select mode. Note that we may be in range select
