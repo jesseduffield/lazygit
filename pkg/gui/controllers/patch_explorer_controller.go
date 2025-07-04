@@ -223,13 +223,13 @@ func (self *PatchExplorerController) HandleNextLineRange() error {
 }
 
 func (self *PatchExplorerController) HandlePrevHunk() error {
-	self.context.GetState().CycleHunk(false)
+	self.context.GetState().SelectPreviousHunk()
 
 	return nil
 }
 
 func (self *PatchExplorerController) HandleNextHunk() error {
-	self.context.GetState().CycleHunk(true)
+	self.context.GetState().SelectNextHunk()
 
 	return nil
 }

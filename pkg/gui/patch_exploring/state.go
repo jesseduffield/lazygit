@@ -125,6 +125,11 @@ func (s *State) ToggleSelectHunk() {
 		s.selectMode = LINE
 	} else {
 		s.selectMode = HUNK
+
+		// If we are not currently on a change line, select the next one (or the
+		// previous one if there is no next one):
+		s.selectedLineIdx = s.viewLineIndices[s.patch.GetNextChangeIdx(
+			s.patchLineIndices[s.selectedLineIdx])]
 	}
 }
 
@@ -203,25 +208,49 @@ func (s *State) DragSelectLine(newSelectedLineIdx int) {
 
 func (s *State) CycleSelection(forward bool) {
 	if s.SelectingHunk() {
-		s.CycleHunk(forward)
+		if forward {
+			s.SelectNextHunk()
+		} else {
+			s.SelectPreviousHunk()
+		}
 	} else {
 		s.CycleLine(forward)
 	}
 }
 
-func (s *State) CycleHunk(forward bool) {
-	change := 1
-	if !forward {
-		change = -1
+func (s *State) SelectPreviousHunk() {
+	patchLines := s.patch.Lines()
+	patchLineIdx := s.patchLineIndices[s.selectedLineIdx]
+	nextNonChangeLine := patchLineIdx
+	for nextNonChangeLine >= 0 && patchLines[nextNonChangeLine].IsChange() {
+		nextNonChangeLine--
 	}
-
-	hunkIdx := s.patch.HunkContainingLine(s.patchLineIndices[s.selectedLineIdx])
-	if hunkIdx != -1 {
-		newHunkIdx := hunkIdx + change
-		if newHunkIdx >= 0 && newHunkIdx < s.patch.HunkCount() {
-			start := s.patch.HunkStartIdx(newHunkIdx)
-			s.selectedLineIdx = s.viewLineIndices[s.patch.GetNextChangeIdx(start)]
+	nextChangeLine := nextNonChangeLine
+	for nextChangeLine >= 0 && !patchLines[nextChangeLine].IsChange() {
+		nextChangeLine--
+	}
+	if nextChangeLine >= 0 {
+		// Now we found a previous hunk, but we're on its last line. Skip to the beginning.
+		for nextChangeLine > 0 && patchLines[nextChangeLine-1].IsChange() {
+			nextChangeLine--
 		}
+		s.selectedLineIdx = s.viewLineIndices[nextChangeLine]
+	}
+}
+
+func (s *State) SelectNextHunk() {
+	patchLines := s.patch.Lines()
+	patchLineIdx := s.patchLineIndices[s.selectedLineIdx]
+	nextNonChangeLine := patchLineIdx
+	for nextNonChangeLine < len(patchLines) && patchLines[nextNonChangeLine].IsChange() {
+		nextNonChangeLine++
+	}
+	nextChangeLine := nextNonChangeLine
+	for nextChangeLine < len(patchLines) && !patchLines[nextChangeLine].IsChange() {
+		nextChangeLine++
+	}
+	if nextChangeLine < len(patchLines) {
+		s.selectedLineIdx = s.viewLineIndices[nextChangeLine]
 	}
 }
 
@@ -259,11 +288,34 @@ func (s *State) CurrentHunkBounds() (int, int) {
 	return start, end
 }
 
+func (s *State) selectionRangeForCurrentBlockOfChanges() (int, int) {
+	patchLines := s.patch.Lines()
+	patchLineIdx := s.patchLineIndices[s.selectedLineIdx]
+
+	patchStart := patchLineIdx
+	for patchStart > 0 && patchLines[patchStart-1].IsChange() {
+		patchStart--
+	}
+
+	patchEnd := patchLineIdx
+	for patchEnd < len(patchLines)-1 && patchLines[patchEnd+1].IsChange() {
+		patchEnd++
+	}
+
+	viewStart, viewEnd := s.viewLineIndices[patchStart], s.viewLineIndices[patchEnd]
+
+	// Increase viewEnd in case the last patch line is wrapped to more than one view line.
+	for viewEnd < len(s.patchLineIndices)-1 && s.patchLineIndices[viewEnd] == s.patchLineIndices[viewEnd+1] {
+		viewEnd++
+	}
+
+	return viewStart, viewEnd
+}
+
 func (s *State) SelectedViewRange() (int, int) {
 	switch s.selectMode {
 	case HUNK:
-		start, end := s.CurrentHunkBounds()
-		return s.viewLineIndices[start], s.viewLineIndices[end]
+		return s.selectionRangeForCurrentBlockOfChanges()
 	case RANGE:
 		if s.rangeStartLineIdx > s.selectedLineIdx {
 			return s.selectedLineIdx, s.rangeStartLineIdx

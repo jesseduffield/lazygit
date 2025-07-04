@@ -52,67 +52,40 @@ var DiffContextChange = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Press(keys.Main.ToggleSelectHunk).
 			SelectedLines(
-				Contains(`@@ -1,6 +1,6 @@`),
-				Contains(` 1a`),
-				Contains(` 2a`),
 				Contains(`-3a`),
 				Contains(`+3b`),
-				Contains(` 4a`),
-				Contains(` 5a`),
-				Contains(` 6a`),
 			).
 			Press(keys.Universal.IncreaseContextInDiffView).
 			Tap(func() {
 				t.ExpectToast(Equals("Changed diff context size to 4"))
 			}).
 			SelectedLines(
-				Contains(`@@ -1,7 +1,7 @@`),
-				Contains(` 1a`),
-				Contains(` 2a`),
 				Contains(`-3a`),
 				Contains(`+3b`),
-				Contains(` 4a`),
-				Contains(` 5a`),
-				Contains(` 6a`),
-				Contains(` 7a`),
 			).
 			Press(keys.Universal.DecreaseContextInDiffView).
 			Tap(func() {
 				t.ExpectToast(Equals("Changed diff context size to 3"))
 			}).
 			SelectedLines(
-				Contains(`@@ -1,6 +1,6 @@`),
-				Contains(` 1a`),
-				Contains(` 2a`),
 				Contains(`-3a`),
 				Contains(`+3b`),
-				Contains(` 4a`),
-				Contains(` 5a`),
-				Contains(` 6a`),
 			).
 			Press(keys.Universal.DecreaseContextInDiffView).
 			Tap(func() {
 				t.ExpectToast(Equals("Changed diff context size to 2"))
 			}).
 			SelectedLines(
-				Contains(`@@ -1,5 +1,5 @@`),
-				Contains(` 1a`),
-				Contains(` 2a`),
 				Contains(`-3a`),
 				Contains(`+3b`),
-				Contains(` 4a`),
-				Contains(` 5a`),
 			).
 			Press(keys.Universal.DecreaseContextInDiffView).
 			Tap(func() {
 				t.ExpectToast(Equals("Changed diff context size to 1"))
 			}).
 			SelectedLines(
-				Contains(`@@ -2,3 +2,3 @@`),
-				Contains(` 2a`),
 				Contains(`-3a`),
 				Contains(`+3b`),
-				Contains(` 4a`),
 			).
 			PressPrimaryAction().
 			Press(keys.Universal.TogglePanel)
@@ -121,18 +94,14 @@ var DiffContextChange = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Press(keys.Main.ToggleSelectHunk).
 			SelectedLines(
-				Contains(`@@ -2,3 +2,3 @@`),
-				Contains(` 2a`),
 				Contains(`-3a`),
 				Contains(`+3b`),
-				Contains(` 4a`),
 			).
 			Press(keys.Universal.DecreaseContextInDiffView).
 			Tap(func() {
 				t.ExpectToast(Equals("Changed diff context size to 0"))
 			}).
 			SelectedLines(
-				Contains(`@@ -3,1 +3 @@`),
 				Contains(`-3a`),
 				Contains(`+3b`),
 			).
@@ -141,24 +110,16 @@ var DiffContextChange = NewIntegrationTest(NewIntegrationTestArgs{
 				t.ExpectToast(Equals("Changed diff context size to 1"))
 			}).
 			SelectedLines(
-				Contains(`@@ -2,3 +2,3 @@`),
-				Contains(` 2a`),
 				Contains(`-3a`),
 				Contains(`+3b`),
-				Contains(` 4a`),
 			).
 			Press(keys.Universal.IncreaseContextInDiffView).
 			Tap(func() {
 				t.ExpectToast(Equals("Changed diff context size to 2"))
 			}).
 			SelectedLines(
-				Contains(`@@ -1,5 +1,5 @@`),
-				Contains(` 1a`),
-				Contains(` 2a`),
 				Contains(`-3a`),
 				Contains(`+3b`),
-				Contains(` 4a`),
-				Contains(` 5a`),
 			)
 	},
 })

@@ -55,31 +55,13 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Main.ToggleSelectHunk).
 			SelectedLines(
-				Contains(`@@ -1,6 +1,6 @@`),
 				Contains(`-1a`),
 				Contains(`+aa`),
-				Contains(` 1b`),
-				Contains(`-1c`),
-				Contains(`+cc`),
-				Contains(` 1d`),
-				Contains(` 1e`),
-				Contains(` 1f`),
 			).
 			PressPrimaryAction().
 			SelectedLines(
-				Contains(`@@ -17,9 +17,9 @@`),
-				Contains(` 1q`),
-				Contains(` 1r`),
-				Contains(` 1s`),
-				Contains(`-1t`),
-				Contains(`-1u`),
-				Contains(`-1v`),
-				Contains(`+tt`),
-				Contains(`+uu`),
-				Contains(`+vv`),
-				Contains(` 1w`),
-				Contains(` 1x`),
-				Contains(` 1y`),
+				Contains(`-1c`),
+				Contains(`+cc`),
 			).
 			Tap(func() {
 				t.Views().Information().Content(Contains("Building patch"))
@@ -154,8 +136,7 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 					Contains(`-1a`),
 					Contains(`+aa`),
 					Contains(` 1b`),
-					Contains(`-1c`),
-					Contains(`+cc`),
+					Contains(` 1c`),
 					Contains(` 1d`),
 					Contains(` 1e`),
 					Contains(` 1f`),
