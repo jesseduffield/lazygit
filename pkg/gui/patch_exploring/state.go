@@ -28,6 +28,12 @@ type State struct {
 	viewLineIndices []int
 	// Array of indices of the original patch lines indexed by a wrapped view line index
 	patchLineIndices []int
+
+	// whether the user has switched to hunk mode manually; if hunk mode is on
+	// but this is false, then hunk mode was enabled because the config makes it
+	// on by default.
+	// this makes a difference for whether we want to escape out of hunk mode
+	userEnabledHunkMode bool
 }
 
 // these represent what select mode we're in
@@ -39,7 +45,7 @@ const (
 	HUNK
 )
 
-func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *State) *State {
+func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *State, useHunkModeByDefault bool) *State {
 	if oldState != nil && diff == oldState.diff && selectedLineIdx == -1 {
 		// if we're here then we can return the old state. If selectedLineIdx was not -1
 		// then that would mean we were trying to click and potentially drag a range, which
@@ -61,6 +67,15 @@ func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *Stat
 	}
 
 	selectMode := LINE
+	if useHunkModeByDefault {
+		selectMode = HUNK
+	}
+
+	userEnabledHunkMode := false
+	if oldState != nil {
+		userEnabledHunkMode = oldState.userEnabledHunkMode
+	}
+
 	// if we have clicked from the outside to focus the main view we'll pass in a non-negative line index so that we can instantly select that line
 	if selectedLineIdx >= 0 {
 		// Clamp to the number of wrapped view lines; index might be out of
@@ -70,9 +85,9 @@ func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *Stat
 		selectMode = RANGE
 		rangeStartLineIdx = selectedLineIdx
 	} else if oldState != nil {
-		// if we previously had a selectMode of RANGE, we want that to now be line again
-		if oldState.selectMode == HUNK {
-			selectMode = HUNK
+		// if we previously had a selectMode of RANGE, we want that to now be line again (or hunk, if that's the default)
+		if oldState.selectMode != RANGE {
+			selectMode = oldState.selectMode
 		}
 		selectedLineIdx = viewLineIndices[patch.GetNextChangeIdx(oldState.patchLineIndices[oldState.selectedLineIdx])]
 	} else {
@@ -80,14 +95,15 @@ func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *Stat
 	}
 
 	return &State{
-		patch:             patch,
-		selectedLineIdx:   selectedLineIdx,
-		selectMode:        selectMode,
-		rangeStartLineIdx: rangeStartLineIdx,
-		rangeIsSticky:     false,
-		diff:              diff,
-		viewLineIndices:   viewLineIndices,
-		patchLineIndices:  patchLineIndices,
+		patch:               patch,
+		selectedLineIdx:     selectedLineIdx,
+		selectMode:          selectMode,
+		rangeStartLineIdx:   rangeStartLineIdx,
+		rangeIsSticky:       false,
+		diff:                diff,
+		viewLineIndices:     viewLineIndices,
+		patchLineIndices:    patchLineIndices,
+		userEnabledHunkMode: userEnabledHunkMode,
 	}
 }
 
@@ -125,6 +141,7 @@ func (s *State) ToggleSelectHunk() {
 		s.selectMode = LINE
 	} else {
 		s.selectMode = HUNK
+		s.userEnabledHunkMode = true
 
 		// If we are not currently on a change line, select the next one (or the
 		// previous one if there is no next one):
@@ -153,6 +170,10 @@ func (s *State) SetRangeIsSticky(value bool) {
 
 func (s *State) SelectingHunk() bool {
 	return s.selectMode == HUNK
+}
+
+func (s *State) SelectingHunkEnabledByUser() bool {
+	return s.selectMode == HUNK && s.userEnabledHunkMode
 }
 
 func (s *State) SelectingRange() bool {
@@ -335,7 +356,7 @@ func (s *State) SelectedPatchRange() (int, int) {
 }
 
 // Returns the line indices of the selected patch range that are changes (i.e. additions or deletions)
-func (s *State) ChangeLinesInSelectedPatchRange() []int {
+func (s *State) LineIndicesOfAddedOrDeletedLinesInSelectedPatchRange() []int {
 	viewStart, viewEnd := s.SelectedViewRange()
 	patchStart, patchEnd := s.patchLineIndices[viewStart], s.patchLineIndices[viewEnd]
 	lines := s.patch.Lines()

@@ -62,12 +62,13 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 	mainContext.GetMutex().Lock()
 	secondaryContext.GetMutex().Lock()
 
+	hunkMode := self.c.UserConfig().Gui.UseHunkModeInStagingView
 	mainContext.SetState(
-		patch_exploring.NewState(mainDiff, mainSelectedLineIdx, mainContext.GetView(), mainContext.GetState()),
+		patch_exploring.NewState(mainDiff, mainSelectedLineIdx, mainContext.GetView(), mainContext.GetState(), hunkMode),
 	)
 
 	secondaryContext.SetState(
-		patch_exploring.NewState(secondaryDiff, secondarySelectedLineIdx, secondaryContext.GetView(), secondaryContext.GetState()),
+		patch_exploring.NewState(secondaryDiff, secondarySelectedLineIdx, secondaryContext.GetView(), secondaryContext.GetState(), hunkMode),
 	)
 
 	mainState := mainContext.GetState()

@@ -134,7 +134,7 @@ func (self *PatchBuildingController) toggleSelection() error {
 	state := self.context().GetState()
 
 	// Get added/deleted lines in the selected patch range
-	lineIndicesToToggle := state.ChangeLinesInSelectedPatchRange()
+	lineIndicesToToggle := state.LineIndicesOfAddedOrDeletedLinesInSelectedPatchRange()
 	if len(lineIndicesToToggle) == 0 {
 		// Only context lines or header lines selected, so nothing to do
 		return nil
@@ -170,7 +170,7 @@ func (self *PatchBuildingController) Escape() error {
 	context := self.c.Contexts().CustomPatchBuilder
 	state := context.GetState()
 
-	if state.SelectingRange() || state.SelectingHunk() {
+	if state.SelectingRange() || state.SelectingHunkEnabledByUser() {
 		state.SetLineSelectMode()
 		self.c.PostRefreshUpdate(context)
 		return nil
