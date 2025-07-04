@@ -79,7 +79,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 						Prompt: self.c.Tr.AutoStashPrompt,
 						HandleConfirm: func() error {
 							return withCheckoutStatus(func(gocui.Task) error {
-								if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + ref); err != nil {
+								if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForCheckout, ref)); err != nil {
 									return err
 								}
 								if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {
@@ -355,7 +355,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 						Title:  self.c.Tr.AutoStashTitle,
 						Prompt: self.c.Tr.AutoStashPrompt,
 						HandleConfirm: func() error {
-							if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + newBranchName); err != nil {
+							if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
 								return err
 							}
 							if err := newBranchFunc(newBranchName, from); err != nil {
@@ -389,7 +389,7 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 		return err
 	}
 
-	withNewBranchNamePrompt := func(baseBranchName string, f func(string, string) error) error {
+	withNewBranchNamePrompt := func(baseBranchName string, f func(string) error) error {
 		prompt := utils.ResolvePlaceholderString(
 			self.c.Tr.NewBranchNameBranchOff,
 			map[string]string{
@@ -408,7 +408,7 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 				self.c.LogAction(self.c.Tr.MoveCommitsToNewBranch)
 				newBranchName := SanitizedBranchName(response)
 				return self.c.WithWaitingStatus(self.c.Tr.MovingCommitsToNewBranchStatus, func(gocui.Task) error {
-					return f(currentBranch.Name, newBranchName)
+					return f(newBranchName)
 				})
 			},
 		})
@@ -447,8 +447,8 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 			{
 				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchFromBaseItem, shortBaseBranchName),
 				OnPress: func() error {
-					return withNewBranchNamePrompt(shortBaseBranchName, func(currentBranch string, newBranchName string) error {
-						return self.moveCommitsToNewBranchOffOfMainBranch(currentBranch, newBranchName, baseBranchRef)
+					return withNewBranchNamePrompt(shortBaseBranchName, func(newBranchName string) error {
+						return self.moveCommitsToNewBranchOffOfMainBranch(newBranchName, baseBranchRef)
 					})
 				},
 			},
@@ -462,14 +462,14 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 	})
 }
 
-func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(currentBranch string, newBranchName string) error {
+func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchName string) error {
 	if err := self.c.Git().Branch.NewWithoutCheckout(newBranchName, "HEAD"); err != nil {
 		return err
 	}
 
 	mustStash := IsWorkingTreeDirty(self.c.Model().Files)
 	if mustStash {
-		if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + currentBranch); err != nil {
+		if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
 			return err
 		}
 	}
@@ -495,14 +495,14 @@ func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(currentBran
 	return nil
 }
 
-func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(currentBranch string, newBranchName string, baseBranchRef string) error {
+func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName string, baseBranchRef string) error {
 	commitsToCherryPick := lo.Filter(self.c.Model().Commits, func(commit *models.Commit, _ int) bool {
 		return commit.Status == models.StatusUnpushed
 	})
 
 	mustStash := IsWorkingTreeDirty(self.c.Model().Files)
 	if mustStash {
-		if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + currentBranch); err != nil {
+		if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
 			return err
 		}
 	}

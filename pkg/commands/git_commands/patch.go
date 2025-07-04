@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"fmt"
 	"path/filepath"
 	"time"
 
@@ -218,7 +219,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 
 func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, stash bool) error {
 	if stash {
-		if err := self.stash.Push(self.Tr.StashPrefix + commits[commitIdx].Hash()); err != nil {
+		if err := self.stash.Push(fmt.Sprintf(self.Tr.AutoStashForMovingPatchToIndex, commits[commitIdx].ShortHash())); err != nil {
 			return err
 		}
 	}

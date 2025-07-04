@@ -3,7 +3,6 @@ package helpers
 import (
 	"strconv"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -77,12 +76,32 @@ func (self *CherryPickHelper) Paste() error {
 				"numCommits": strconv.Itoa(len(self.getData().CherryPickedCommits)),
 			}),
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.CherryPickingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusSync(self.c.Tr.CherryPickingStatus, func() error {
+				mustStash := IsWorkingTreeDirty(self.c.Model().Files)
+
 				self.c.LogAction(self.c.Tr.Actions.CherryPick)
-				result := self.c.Git().Rebase.CherryPickCommits(self.getData().CherryPickedCommits)
-				err := self.rebaseHelper.CheckMergeOrRebase(result)
+
+				if mustStash {
+					if err := self.c.Git().Stash.Push(self.c.Tr.AutoStashForCherryPicking); err != nil {
+						return err
+					}
+				}
+
+				cherryPickedCommits := self.getData().CherryPickedCommits
+				result := self.c.Git().Rebase.CherryPickCommits(cherryPickedCommits)
+				err := self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.SYNC})
 				if err != nil {
 					return result
+				}
+
+				// Move the selection down by the number of commits we just
+				// cherry-picked, to keep the same commit selected as before.
+				// Don't do this if a rebase todo is selected, because in this
+				// case we are in a rebase and the cherry-picked commits end up
+				// below the selection.
+				if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil && !commit.IsTODO() {
+					self.c.Contexts().LocalCommits.MoveSelection(len(cherryPickedCommits))
+					self.c.Contexts().LocalCommits.FocusLine()
 				}
 
 				// If we're in the cherry-picking state at this point, it must
@@ -96,7 +115,17 @@ func (self *CherryPickHelper) Paste() error {
 				if !isInCherryPick {
 					self.getData().DidPaste = true
 					self.rerender()
+
+					if mustStash {
+						if err := self.c.Git().Stash.Pop(0); err != nil {
+							return err
+						}
+						self.c.Refresh(types.RefreshOptions{
+							Scope: []types.RefreshableView{types.STASH, types.FILES},
+						})
+					}
 				}
+
 				return nil
 			})
 		},

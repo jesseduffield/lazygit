@@ -72,7 +72,7 @@ var CherryPickRange = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("four"),
 				Contains("three"),
-				Contains("two"),
+				Contains("two").IsSelected(),
 				Contains("one"),
 				Contains("base"),
 			)
