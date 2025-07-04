@@ -282,6 +282,20 @@ func (s *State) SelectedPatchRange() (int, int) {
 	return s.patchLineIndices[start], s.patchLineIndices[end]
 }
 
+// Returns the line indices of the selected patch range that are changes (i.e. additions or deletions)
+func (s *State) ChangeLinesInSelectedPatchRange() []int {
+	viewStart, viewEnd := s.SelectedViewRange()
+	patchStart, patchEnd := s.patchLineIndices[viewStart], s.patchLineIndices[viewEnd]
+	lines := s.patch.Lines()
+	indices := []int{}
+	for i := patchStart; i <= patchEnd; i++ {
+		if lines[i].IsChange() {
+			indices = append(indices, i)
+		}
+	}
+	return indices
+}
+
 func (s *State) CurrentLineNumber() int {
 	return s.patch.LineNumberOfLine(s.patchLineIndices[s.selectedLineIdx])
 }
@@ -323,4 +337,12 @@ func wrapPatchLines(diff string, view *gocui.View) ([]int, []int) {
 	_, viewLineIndices, patchLineIndices := utils.WrapViewLinesToWidth(
 		view.Wrap, view.Editable, strings.TrimSuffix(diff, "\n"), view.InnerWidth(), view.TabWidth)
 	return viewLineIndices, patchLineIndices
+}
+
+func (s *State) SelectNextStageableLineOfSameIncludedState(includedLines []int, included bool) {
+	_, lastLineIdx := s.SelectedPatchRange()
+	patchLineIdx, found := s.patch.GetNextChangeIdxOfSameIncludedState(lastLineIdx+1, includedLines, included)
+	if found {
+		s.SelectLine(s.viewLineIndices[patchLineIdx])
+	}
 }

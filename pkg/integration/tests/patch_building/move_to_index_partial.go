@@ -48,7 +48,6 @@ var MoveToIndexPartial = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains(`+third line2`),
 			).
 			PressPrimaryAction().
-			SelectNextItem().
 			PressPrimaryAction().
 			Tap(func() {
 				t.Views().Information().Content(Contains("Building patch"))

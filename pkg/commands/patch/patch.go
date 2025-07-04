@@ -115,15 +115,22 @@ func (self *Patch) HunkContainingLine(idx int) int {
 	return -1
 }
 
-// Returns the patch line index of the next change (i.e. addition or deletion).
-func (self *Patch) GetNextChangeIdx(idx int) int {
+// Returns the patch line index of the next change (i.e. addition or deletion)
+// that matches the same "included" state, given the includedLines. If you don't
+// care about included states, pass nil for includedLines and false for included.
+func (self *Patch) GetNextChangeIdxOfSameIncludedState(idx int, includedLines []int, included bool) (int, bool) {
 	idx = lo.Clamp(idx, 0, self.LineCount()-1)
 
 	lines := self.Lines()
 
+	isMatch := func(i int, line *PatchLine) bool {
+		sameIncludedState := lo.Contains(includedLines, i) == included
+		return line.IsChange() && sameIncludedState
+	}
+
 	for i, line := range lines[idx:] {
-		if line.isChange() {
-			return i + idx
+		if isMatch(i+idx, line) {
+			return i + idx, true
 		}
 	}
 
@@ -131,13 +138,18 @@ func (self *Patch) GetNextChangeIdx(idx int) int {
 	// return the index of the last change
 	for i := len(lines) - 1; i >= 0; i-- {
 		line := lines[i]
-		if line.isChange() {
-			return i
+		if isMatch(i, line) {
+			return i, true
 		}
 	}
 
-	// should not be possible
-	return 0
+	return 0, false
+}
+
+// Returns the patch line index of the next change (i.e. addition or deletion).
+func (self *Patch) GetNextChangeIdx(idx int) int {
+	result, _ := self.GetNextChangeIdxOfSameIncludedState(idx, nil, false)
+	return result
 }
 
 // Returns the length of the patch in lines
