@@ -12,15 +12,15 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` <pgup> (fn+up/shift+k) `` | 向上滚动主面板 |  |
 | `` <pgdown> (fn+down/shift+j) `` | 向下滚动主面板 |  |
 | `` @ `` | 打开命令日志菜单 | 查看命令日志的选项，例如显示/隐藏命令日志以及聚焦命令日志 |
-| `` P `` | 推送 | 推送当前分支到它的上游。如果上游未配置，你可以在弹窗中配置上游分支。 |
-| `` p `` | 拉取 | 从当前分支的远程分支获取改动。如果上游未配置，你可以在弹窗中配置上游分支。 |
-| `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename. |
-| `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
+| `` P `` | 推送 | 推送当前分支到它的上游。如果上游未配置，您可以在弹窗中配置上游分支。 |
+| `` p `` | 拉取 | 从当前分支的远程分支获取改动。如果上游未配置，您可以在弹窗中配置上游分支。 |
+| `` ) `` | 提高重命名相似度阈值 | 增加删除和添加对被视作重命名的相似度阈值。 |
+| `` ( `` | 降低重命名相似度阈值 | 降低删除和添加对被视作重命名的相似度阈值。 |
 | `` } `` | 扩大差异视图中显示的上下文范围 | 增加diff视图中围绕更改显示的上下文数量 |
 | `` { `` | 缩小差异视图中显示的上下文范围 | 减少diff视图中围绕更改显示的上下文数量 |
-| `` : `` | 执行 Shell 命令 | Bring up a prompt where you can enter a shell command to execute. |
+| `` : `` | 执行 Shell 命令 | 调出可输入shell命令执行的提示符。 |
 | `` <c-p> `` | 查看自定义补丁选项 |  |
-| `` m `` | 查看 合并/变基 选项 | 查看当前合并或变基的中止、继续、跳过选项 |
+| `` m `` | 查看合并/变基选项 | 查看当前合并或变基的中止、继续、跳过选项 |
 | `` R `` | 刷新 | 刷新git状态(即在后台上运行`git status`,`git branch`等命令以更新面板内容) 不会运行`git fetch` |
 | `` + `` | 下一屏模式(正常/半屏/全屏) |  |
 | `` _ `` | 上一屏模式 |  |
@@ -55,19 +55,19 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 将提交的 hash 复制到剪贴板 |  |
+| `` <c-o> `` | 复制提交哈希到剪贴板 |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
-| `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(例如，hash、URL、diff、消息、作者)。 |
+| `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
 | `` n `` | 从提交创建新分支 |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
 
 Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | 查看重置选项 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
-| `` C `` | 复制提交(拣选) | 标记提交为已复制。然后，在本地提交视图中，你可以按 `V` (Cherry-Pick) 将已复制的提交粘贴到已检出的分支中。任何时候都可以按 `<esc>` 来取消选择。 |
+| `` C `` | 复制提交(拣选) | 标记提交为已复制。然后，在本地提交视图中，您可以按 `V` (Cherry-Pick) 将已复制的提交粘贴到已检出的分支中。任何时候都可以按 `<esc>` 来取消选择。 |
 | `` <c-r> `` | 重置已拣选(复制)的提交 |  |
 | `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
-| `` * `` | Select commits of current branch |  |
+| `` * `` | 选择当前分支的提交 |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | 查看工作区选项 |  |
@@ -77,19 +77,19 @@ Note that this disregards the selection, the new branch is always created either
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 将提交的 hash 复制到剪贴板 |  |
+| `` <c-o> `` | 复制提交哈希到剪贴板 |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
-| `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(例如，hash、URL、diff、消息、作者)。 |
+| `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
 | `` n `` | 从提交创建新分支 |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
 
 Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | 查看重置选项 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
-| `` C `` | 复制提交(拣选) | 标记提交为已复制。然后，在本地提交视图中，你可以按 `V` (Cherry-Pick) 将已复制的提交粘贴到已检出的分支中。任何时候都可以按 `<esc>` 来取消选择。 |
+| `` C `` | 复制提交(拣选) | 标记提交为已复制。然后，在本地提交视图中，您可以按 `V` (Cherry-Pick) 将已复制的提交粘贴到已检出的分支中。任何时候都可以按 `<esc>` 来取消选择。 |
 | `` <c-r> `` | 重置已拣选(复制)的提交 |  |
 | `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
-| `` * `` | Select commits of current branch |  |
+| `` * `` | 选择当前分支的提交 |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 查看提交的文件 |  |
 | `` w `` | 查看工作区选项 |  |
@@ -99,7 +99,7 @@ Note that this disregards the selection, the new branch is always created either
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 将子模块名称复制到剪贴板 |  |
+| `` <c-o> `` | 复制子模块名称到剪贴板 |  |
 | `` <enter> `` | 进入 | 输入子模块 |
 | `` d `` | 删除 | 删除选定的子模块及其相应的目录 |
 | `` u `` | 更新 | 更新子模块 |
@@ -123,7 +123,7 @@ Note that this disregards the selection, the new branch is always created either
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 将提交的 hash 复制到剪贴板 |  |
+| `` <c-o> `` | 复制提交哈希到剪贴板 |  |
 | `` <c-r> `` | 重置已拣选(复制)的提交 |  |
 | `` b `` | 查看二分查找选项 |  |
 | `` s `` | 压缩(Squash) | 将已选提交压缩到该提交之下。这些选定的提交的消息会附加到该提交的消息之下。 |
@@ -144,19 +144,19 @@ Note that this disregards the selection, the new branch is always created either
 | `` A `` | 修补(Amend) | 用已暂存的变更来修补提交 |
 | `` a `` | 修补提交属性 | 设置或重置提交的作者，或添加其他作者。 |
 | `` t `` | 撤销(Revert) | 为所选提交创建还原提交，这会反向应用所选提交的更改。 |
-| `` T `` | 标签提交 | 创建一个新标签指向所选提交。你可以在弹窗中输入标签名称和描述(可选)。 |
+| `` T `` | 标签提交 | 创建一个新标签指向所选提交。您可以在弹窗中输入标签名称和描述(可选)。 |
 | `` <c-l> `` | 打开日志菜单 | 查看提交日志的选项，例如更改排序顺序、隐藏 git graph、显示整个 git graph。 |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
-| `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(例如，hash、URL、diff、消息、作者)。 |
+| `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
 | `` n `` | 从提交创建新分支 |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
 
 Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | 查看重置选项 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
-| `` C `` | 复制提交(拣选) | 标记提交为已复制。然后，在本地提交视图中，你可以按 `V` (Cherry-Pick) 将已复制的提交粘贴到已检出的分支中。任何时候都可以按 `<esc>` 来取消选择。 |
+| `` C `` | 复制提交(拣选) | 标记提交为已复制。然后，在本地提交视图中，您可以按 `V` (Cherry-Pick) 将已复制的提交粘贴到已检出的分支中。任何时候都可以按 `<esc>` 来取消选择。 |
 | `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
-| `` * `` | Select commits of current branch |  |
+| `` * `` | 选择当前分支的提交 |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 查看提交的文件 |  |
 | `` w `` | 查看工作区选项 |  |
@@ -173,7 +173,7 @@ Note that this disregards the selection, the new branch is always created either
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 将文件名复制到剪贴板 |  |
+| `` <c-o> `` | 复制路径到剪贴板 |  |
 | `` y `` | 复制到剪贴板 |  |
 | `` c `` | 检出 | 检出文件 |
 | `` d `` | 删除 | 放弃对此文件的提交变更 |
@@ -193,7 +193,7 @@ Note that this disregards the selection, the new branch is always created either
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 将文件名复制到剪贴板 |  |
+| `` <c-o> `` | 复制路径到剪贴板 |  |
 | `` <space> `` | 切换暂存状态 | 为选定的文件切换暂存状态 |
 | `` <c-b> `` | 通过状态过滤文件 |  |
 | `` y `` | 复制到剪贴板 |  |
@@ -226,7 +226,7 @@ Note that this disregards the selection, the new branch is always created either
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 将分支名称复制到剪贴板 |  |
+| `` <c-o> `` | 复制分支名称到剪贴板 |  |
 | `` i `` | 显示 git-flow 选项 |  |
 | `` <space> `` | 检出 | 检出选中的项目 |
 | `` n `` | 新分支 |  |
@@ -235,11 +235,11 @@ Note that this disregards the selection, the new branch is always created either
 Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` o `` | 创建拉取请求 |  |
 | `` O `` | 创建拉取请求选项 |  |
-| `` <c-y> `` | 将拉取请求 URL 复制到剪贴板 |  |
+| `` <c-y> `` | 复制拉取请求 URL 到剪贴板 |  |
 | `` c `` | 按名称检出 | 按名称检出。在输入框中，您可以输入'-' 来切换到最后一个分支。 |
 | `` F `` | 强制检出 | 强制检出所选分支。这将在检出所选分支之前放弃工作目录中的所有本地更改。 |
 | `` d `` | 删除 | 查看本地/远程分支的删除选项 |
-| `` r `` | 将已检出的分支变基到该分支 | 将检出的分支变基到所选的分支上。 |
+| `` r `` | 变基 | 将检出的分支变基到所选的分支上。 |
 | `` M `` | 合并到当前检出的分支 | Merge selected branch into currently checked out branch. |
 | `` f `` | 从上游快进此分支 | 将当前分支直接移动到远程追踪分支的最新提交 |
 | `` T `` | 创建标签 |  |
@@ -261,7 +261,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` <right> `` | 选择下一个区块 |  |
 | `` v `` | 切换拖动选择 |  |
 | `` a `` | 切换选择代码块 | 切换代码块选择模式 |
-| `` <c-o> `` | 将选中文本复制到剪贴板 |  |
+| `` <c-o> `` | 复制选中文本到剪贴板 |  |
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
 | `` e `` | 编辑文件 | 使用外部编辑器打开文件 |
 | `` <space> `` | 添加/移除 行到补丁 |  |
@@ -272,11 +272,11 @@ Note that this disregards the selection, the new branch is always created either
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 将标签复制到剪贴板 |  |
+| `` <c-o> `` | 复制标签到剪贴板 |  |
 | `` <space> `` | 检出 | 检出选择的标签作为分离的HEAD |
-| `` n `` | 创建标签 | 基于当前提交创建一个新标签。你将在弹窗中输入标签名称和描述(可选)。 |
+| `` n `` | 创建标签 | 基于当前提交创建一个新标签。您将在弹窗中输入标签名称和描述(可选)。 |
 | `` d `` | 删除 | 查看本地/远程标签的删除选项 |
-| `` P `` | 推送标签 | 推送选择的标签到远端。你将在弹窗中选择一个远端。 |
+| `` P `` | 推送标签 | 推送选择的标签到远端。您将在弹窗中选择一个远端。 |
 | `` g `` | 重置 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
 | `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` 0 `` | Focus main view |  |
@@ -316,7 +316,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` <right> `` | 选择下一个区块 |  |
 | `` v `` | 切换拖动选择 |  |
 | `` a `` | 切换选择代码块 | 切换代码块选择模式 |
-| `` <c-o> `` | 将选中文本复制到剪贴板 |  |
+| `` <c-o> `` | 复制选中文本到剪贴板 |  |
 | `` <space> `` | 切换暂存状态 | 切换行暂存状态 |
 | `` d `` | 取消变更(git reset) | 当选择未暂存的变更时，使用git reset丢弃该变更。当选择已暂存的变更时，取消暂存该变更 |
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
@@ -348,7 +348,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` e `` | 编辑配置文件 | 使用外部编辑器打开文件 |
 | `` u `` | 检查更新 |  |
 | `` <enter> `` | 切换到最近的仓库 |  |
-| `` a `` | Show/cycle all branch logs |  |
+| `` a `` | 显示/循环所有分支日志 |  |
 
 ## 确认面板
 
@@ -394,11 +394,11 @@ Note that this disregards the selection, the new branch is always created either
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 将分支名称复制到剪贴板 |  |
+| `` <c-o> `` | 复制分支名称到剪贴板 |  |
 | `` <space> `` | 检出 | 基于当前选中的远程分支检出一个新的本地分支，或者将远程分支作分离的HEAD。 |
 | `` n `` | 新分支 |  |
 | `` M `` | 合并到当前检出的分支 | Merge selected branch into currently checked out branch. |
-| `` r `` | 将已检出的分支变基到该分支 | 将检出的分支变基到所选的分支上。 |
+| `` r `` | 变基 | 将检出的分支变基到所选的分支上。 |
 | `` d `` | 删除 | 从远程删除远程分支。 |
 | `` u `` | 设置为上游 | 设置为检出分支的上游 |
 | `` s `` | 排序 |  |
