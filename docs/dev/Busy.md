@@ -25,7 +25,8 @@ First, it's important to distinguish three different types of goroutines:
 
 The point of distinguishing worker goroutines from background goroutines is that when any worker goroutine is running, we consider Lazygit to be 'busy', whereas this is not the case with background goroutines. It would be pointless to have background goroutines be considered 'busy' because then Lazygit would be considered busy for the entire duration of the program!
 
-In gocui, the underlying package we use for managing the UI and events, we keep track of how many busy goroutines there are using the `Task` type. A task represents some work being done by lazygit. The gocui Gui struct holds a map of tasks and allows creating a new task (which adds it to the map), pausing/continuing a task, and marking a task as done (which removes it from the map). Lazygit is considered to be busy so long as there is at least one busy task in the map; otherwise it's considered idle. When Lazygit goes from busy to idle, it notifies the integration test.
+In gocui, the underlying package we use for managing the UI and events, we keep track of how many busy goroutines there are using the `Task` type. A task represents some work being done by lazygit.
+The gocui Gui struct holds a map of tasks and allows creating a new task (which adds it to the map), pausing/continuing a task, and marking a task as done (which removes it from the map). Lazygit is considered to be busy so long as there is at least one busy task in the map; otherwise it's considered idle. When Lazygit goes from busy to idle, it notifies the integration test.
 
 It's important that we play by the rules below to ensure that after the user does anything, all the processing that follows happens in a contiguous block of busy-ness with no gaps.
 
