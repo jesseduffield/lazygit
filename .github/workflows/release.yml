@@ -131,7 +131,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag ${{ env.new_tag }}
+          git tag ${{ env.new_tag }} -a -m "Release ${{ env.new_tag }}"
           git push origin ${{ env.new_tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.LAZYGIT_RELEASE_PAT }}
