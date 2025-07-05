@@ -146,7 +146,7 @@ jobs:
         with:
           distribution: goreleaser
           version: v2
-          args: release --clean
+          args: release --clean --draft
         env:
           GITHUB_TOKEN: ${{secrets.LAZYGIT_RELEASE_PAT}}
 
