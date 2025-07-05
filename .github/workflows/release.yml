@@ -22,6 +22,10 @@ on:
         required: true
         default: false
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   check-and-release:
     runs-on: ubuntu-latest
