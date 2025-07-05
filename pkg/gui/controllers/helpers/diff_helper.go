@@ -57,7 +57,7 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 		from, to := refRange.From, refRange.To
 		args := []string{from.ParentRefName(), to.RefName(), "--stat", "-p"}
 		args = append(args, "--")
-		if path := self.c.Modes().Filtering.GetPath(); path != "" {
+		if path := self.c.Modes().Filtering.GetPath(); path != "" && !self.c.AppState.ShowFullDiffInFilterByPathMode {
 			args = append(args, path)
 		}
 		cmdObj := self.c.Git().Diff.DiffCmdObj(args)
