@@ -30,6 +30,12 @@ jobs:
   check-and-release:
     runs-on: ubuntu-latest
     steps:
+      - name: Check for correct repository
+        if: ${{ github.event_name != 'workflow_dispatch' && github.repository != 'stefanhaller/lazygit' }}
+        run: |
+          echo "Should only run in the stefanhaller/lazygit repository"
+          exit 1
+
       - name: Check for first Saturday of the month
         if: ${{ github.event_name != 'workflow_dispatch' }}
         run: |
@@ -41,6 +47,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
+          repository: jesseduffield/lazygit
+          token: ${{ secrets.LAZYGIT_RELEASE_PAT }}
           fetch-depth: 0
 
       - name: Get Latest Tag
@@ -89,7 +97,7 @@ jobs:
             exit 1
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.LAZYGIT_RELEASE_PAT }}
 
       - name: Calculate next version
         run: |
@@ -126,7 +134,7 @@ jobs:
           git tag ${{ env.new_tag }}
           git push origin ${{ env.new_tag }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.LAZYGIT_RELEASE_PAT }}
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -140,11 +148,11 @@ jobs:
           version: v2
           args: release --clean
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_API_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.LAZYGIT_RELEASE_PAT}}
 
       - name: Bump Homebrew formula
         uses: dawidd6/action-homebrew-bump-formula@v3
         with:
-          token: ${{secrets.GITHUB_API_TOKEN}}
+          token: ${{secrets.LAZYGIT_RELEASE_PAT}}
           formula: lazygit
           tag: ${{env.new_tag}}
