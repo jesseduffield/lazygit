@@ -1,5 +1,5 @@
-# This is an example goreleaser.yaml file with some sane defaults.
-# Make sure to check the documentation at http://goreleaser.com
+version: 2
+
 builds:
   - env:
       - CGO_ENABLED=0
@@ -18,26 +18,28 @@ builds:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.buildSource=binaryRelease
 
 archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: 32-bit
-      amd64: x86_64
+  - name_template: >-
+      {{- .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}32-bit
+      {{- else if eq .Arch "arm" }}armv6
+      {{- else }}{{ .Arch }}{{ end }}
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [ zip ]
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: '{{ .Tag }}-next'
+  version_template: '{{ .Tag }}-next'
 changelog:
   use: github-native
   sort: asc
 brews:
   -
     # Repository to push the tap to.
-    tap:
+    repository:
       owner: jesseduffield
       name: homebrew-lazygit
 
