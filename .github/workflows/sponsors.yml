@@ -27,4 +27,4 @@ jobs:
           labels: "ignore-for-release"
           delete-branch: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SPONSORS_PR_TOKEN }}
