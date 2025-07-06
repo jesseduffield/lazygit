@@ -7,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'jesseduffield/lazygit' }}
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
@@ -16,7 +17,6 @@ jobs:
         with:
           token: ${{ secrets.SPONSORS_TOKEN }}
           file: "README.md"
-        if: ${{ github.repository == 'jesseduffield/lazygit' }}
 
       - name: Create Pull Request 🚀
         uses: peter-evans/create-pull-request@v6
