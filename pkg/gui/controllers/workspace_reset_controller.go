@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -150,15 +151,22 @@ func (self *FilesController) createResetMenu() error {
 				red.Sprint("git reset --hard HEAD"),
 			},
 			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.HardReset)
-				if err := self.c.Git().WorkingTree.ResetHard("HEAD"); err != nil {
-					return err
-				}
+				return self.c.ConfirmIf(helpers.IsWorkingTreeDirty(self.c.Model().Files),
+					types.ConfirmOpts{
+						Title:  self.c.Tr.Actions.HardReset,
+						Prompt: self.c.Tr.ResetHardConfirmation,
+						HandleConfirm: func() error {
+							self.c.LogAction(self.c.Tr.Actions.HardReset)
+							if err := self.c.Git().WorkingTree.ResetHard("HEAD"); err != nil {
+								return err
+							}
 
-				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
-				)
-				return nil
+							self.c.Refresh(
+								types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+							)
+							return nil
+						},
+					})
 			},
 			Key: 'h',
 		},

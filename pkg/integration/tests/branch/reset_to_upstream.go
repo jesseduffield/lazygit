@@ -97,6 +97,11 @@ var ResetToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 					Title(Equals("Reset to origin/hard-branch")).
 					Select(Contains("Hard reset")).
 					Confirm()
+
+				t.ExpectPopup().Confirmation().
+					Title(Equals("Hard reset")).
+					Content(Contains("Are you sure you want to do a hard reset?")).
+					Confirm()
 			})
 		t.Views().Commits().Lines(Contains("hard commit"))
 		t.Views().Files().IsEmpty()

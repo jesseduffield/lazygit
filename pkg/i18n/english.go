@@ -479,6 +479,7 @@ type TranslationSet struct {
 	ResetSoftTooltip                      string
 	ResetMixedTooltip                     string
 	ResetHardTooltip                      string
+	ResetHardConfirmation                 string
 	PressEnterToReturn                    string
 	ViewStashOptions                      string
 	ViewStashOptionsTooltip               string
@@ -1502,6 +1503,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ResetSoftTooltip:                     "Reset HEAD to the chosen commit, and keep the changes between the current and chosen commit as staged changes.",
 		ResetMixedTooltip:                    "Reset HEAD to the chosen commit, and keep the changes between the current and chosen commit as unstaged changes.",
 		ResetHardTooltip:                     "Reset HEAD to the chosen commit, and discard all changes between the current and chosen commit, as well as all current modifications in the working tree.",
+		ResetHardConfirmation:                "Are you sure you want to do a hard reset? This will discard all uncommitted changes (both staged and unstaged), which is not undoable.",
 		ViewResetOptions:                     `Reset`,
 		FileResetOptionsTooltip:              "View reset options for working tree (e.g. nuking the working tree).",
 		FixupTooltip:                         "Meld the selected commit into the commit below it. Similar to squash, but the selected commit's message will be discarded.",
