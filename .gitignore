@@ -3,10 +3,6 @@
 # Logs
 *.log
 
-# Hidden
-.*
-!.codespellrc
-
 # Notes
 *.notes
 
@@ -14,23 +10,13 @@
 test/repos/repo
 coverage.txt
 
+# JetBrains stuff
+.idea/
+
 # Binaries
+.bin/
 lazygit
 lazygit.exe
-
-# Exceptions
-!.gitignore
-!.gitattributes
-!.goreleaser.yml
-!.golangci.yml
-!.circleci/
-!.github/
-!.vscode/
-!.devcontainer/
-
-# these are for our integration tests
-!.git_keep
-!.gitmodules_keep
 
 test/git_server/data
 
