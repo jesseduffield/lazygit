@@ -19,7 +19,7 @@ jobs:
           file: "README.md"
 
       - name: Create Pull Request 🚀
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           commit-message: "README.md: Update Sponsors"
           title: "README.md: Update Sponsors"
