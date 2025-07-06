@@ -64,8 +64,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` R `` | エディタでメッセージ変更 |  |
 | `` d `` | 削除 | 選択したコミットを削除します。これはリベースを通じてブランチからコミットを削除します。コミットが後続のコミットが依存する変更を行っている場合、マージコンフリクトを解決する必要があるかもしれません。 |
 | `` e `` | 編集（対話型リベースを開始） | 選択したコミットを編集します。これを使用して、選択したコミットから対話型リベースを開始します。すでにリベース中の場合、これは選択したコミットを編集用にマークし、リベースを続行すると、リベースは選択したコミットで一時停止して変更を行えるようにします。 |
-| `` i `` | 対話的リベースを開始 | ブランチ上のコミットの対話的リベースを開始します。これには、HEADコミットから最初のマージコミットまたはメインブランチのコミットまでのすべてのコミットが含まれます。
-選択したコミットから対話的リベースを開始したい場合は、代わりに `e` を押してください。 |
+| `` i `` | 対話的リベースを開始 | ブランチ上のコミットの対話的リベースを開始します。これには、HEADコミットから最初のマージコミットまたはメインブランチのコミットまでのすべてのコミットが含まれます。<br>選択したコミットから対話的リベースを開始したい場合は、代わりに `e` を押してください。 |
 | `` p `` | ピック | 選択したコミットをピックするようにマークします（リベース中）。これは、リベースを続行すると、コミットが保持されることを意味します。 |
 | `` F `` | fixupコミットを作成 | 選択したコミットに対する「fixup!」コミットを作成します。fixupコミットは、選択したコミットの修正用コミットです。後で、同じコミットで `S` を押すと、上記のすべてのfixupコミットが適用されます。 |
 | `` S `` | fixupコミットを適用 | すべての「fixup!」コミットを、選択したコミットの上部または現在のブランチ内のすべてをスカッシュします（autosquash）。 |
@@ -82,13 +81,8 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` y `` | コミット属性をクリップボードにコピー | コミット属性をクリップボードにコピーします（例：ハッシュ、URL、差分、メッセージ、作者）。 |
 | `` o `` | ブラウザでコミットを開く |  |
 | `` n `` | コミットから新しいブランチを作成 |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
-
-Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
-| `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：
-- ソフトリセット：変更を保持し、ステージされた状態にします
-- ミックスリセット：変更を保持し、ステージされていない状態にします
-- ハードリセット：すべての変更を破棄します |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` C `` | コピー（チェリーピック） | コミットをコピーとしてマークします。ローカルコミットビューで `V` を押すと、コピーしたコミットをチェックアウトしたブランチにペースト（チェリーピック）できます。いつでも `<esc>` を押して選択をキャンセルできます。 |
 | `` <c-t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` * `` | 現在のブランチのコミットを選択 |  |
@@ -133,13 +127,8 @@ Note that this disregards the selection, the new branch is always created either
 | `` y `` | コミット属性をクリップボードにコピー | コミット属性をクリップボードにコピーします（例：ハッシュ、URL、差分、メッセージ、作者）。 |
 | `` o `` | ブラウザでコミットを開く |  |
 | `` n `` | コミットから新しいブランチを作成 |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
-
-Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
-| `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：
-- ソフトリセット：変更を保持し、ステージされた状態にします
-- ミックスリセット：変更を保持し、ステージされていない状態にします
-- ハードリセット：すべての変更を破棄します |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` C `` | コピー（チェリーピック） | コミットをコピーとしてマークします。ローカルコミットビューで `V` を押すと、コピーしたコミットをチェックアウトしたブランチにペースト（チェリーピック）できます。いつでも `<esc>` を押して選択をキャンセルできます。 |
 | `` <c-r> `` | コピーされた（チェリーピックされた）コミットの選択をリセット |  |
 | `` <c-t> `` | 外部差分ツールを開く（git difftool） |  |
@@ -204,10 +193,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` n `` | 新しいタグを作成 | 現在のコミットから新しいタグを作成します。タグ名とオプションの説明を入力するよう促されます。 |
 | `` d `` | 削除 | ローカル/リモートタグの削除オプションを表示します。 |
 | `` P `` | タグをプッシュ | 選択したタグをリモートにプッシュします。リモートを選択するよう促されます。 |
-| `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：
-- ソフトリセット：変更を保持し、ステージされた状態にします
-- ミックスリセット：変更を保持し、ステージされていない状態にします
-- ハードリセット：すべての変更を破棄します |
+| `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` <c-t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | コミットを表示 |  |
@@ -327,13 +313,8 @@ Note that this disregards the selection, the new branch is always created either
 | `` y `` | コミット属性をクリップボードにコピー | コミット属性をクリップボードにコピーします（例：ハッシュ、URL、差分、メッセージ、作者）。 |
 | `` o `` | ブラウザでコミットを開く |  |
 | `` n `` | コミットから新しいブランチを作成 |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
-
-Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
-| `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：
-- ソフトリセット：変更を保持し、ステージされた状態にします
-- ミックスリセット：変更を保持し、ステージされていない状態にします
-- ハードリセット：すべての変更を破棄します |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` C `` | コピー（チェリーピック） | コミットをコピーとしてマークします。ローカルコミットビューで `V` を押すと、コピーしたコミットをチェックアウトしたブランチにペースト（チェリーピック）できます。いつでも `<esc>` を押して選択をキャンセルできます。 |
 | `` <c-r> `` | コピーされた（チェリーピックされた）コミットの選択をリセット |  |
 | `` <c-t> `` | 外部差分ツールを開く（git difftool） |  |
@@ -366,10 +347,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` d `` | 削除 | リモートからリモートブランチを削除します。 |
 | `` u `` | アップストリームとして設定 | 選択したリモートブランチをチェックアウトされたブランチのアップストリームとして設定します。 |
 | `` s `` | 並び順 |  |
-| `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：
-- ソフトリセット：変更を保持し、ステージされた状態にします
-- ミックスリセット：変更を保持し、ステージされていない状態にします
-- ハードリセット：すべての変更を破棄します |
+| `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` <c-t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | コミットを表示 |  |
@@ -384,9 +362,7 @@ Note that this disregards the selection, the new branch is always created either
 | `` i `` | git-flowオプションを表示 |  |
 | `` <space> `` | チェックアウト（ブランチの切り替え） | 選択した項目をチェックアウトします。 |
 | `` n `` | 新しいブランチ |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.
-
-Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` o `` | プルリクエストを作成 |  |
 | `` O `` | プルリクエスト作成オプションを表示 |  |
 | `` <c-y> `` | プルリクエストURLをクリップボードにコピー |  |
