@@ -1,0 +1,18 @@
+language: go
+
+go:
+  - 1.15.x
+  - master
+
+arch:
+   - amd64
+   - ppc64le
+
+before_install:
+  - go get -t -v ./...
+
+script:
+  - go test -race -coverprofile=coverage.txt -covermode=atomic
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

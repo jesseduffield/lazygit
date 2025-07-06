@@ -1,0 +1,11 @@
+language: go
+go:
+  - 1.2
+before_install:
+- go get github.com/onsi/ginkgo/...
+- go get github.com/onsi/gomega/...
+- go install github.com/onsi/ginkgo/ginkgo
+script: PATH=$PATH:$HOME/gopath/bin ginkgo -r .
+branches:
+  only:
+  - master
