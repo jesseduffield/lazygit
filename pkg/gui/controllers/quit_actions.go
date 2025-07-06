@@ -25,19 +25,14 @@ func (self *QuitActions) quitAux() error {
 		return self.confirmQuitDuringUpdate()
 	}
 
-	if self.c.UserConfig().ConfirmOnQuit {
-		self.c.Confirm(types.ConfirmOpts{
+	return self.c.ConfirmIf(self.c.UserConfig().ConfirmOnQuit,
+		types.ConfirmOpts{
 			Title:  "",
 			Prompt: self.c.Tr.ConfirmQuit,
 			HandleConfirm: func() error {
 				return gocui.ErrQuit
 			},
 		})
-
-		return nil
-	}
-
-	return gocui.ErrQuit
 }
 
 func (self *QuitActions) confirmQuitDuringUpdate() error {

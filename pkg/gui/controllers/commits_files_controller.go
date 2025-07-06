@@ -426,20 +426,18 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 	}
 
 	from, to, reverse := self.currentFromToReverseForPatchBuilding()
-	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse) {
-		self.c.Confirm(types.ConfirmOpts{
-			Title:  self.c.Tr.DiscardPatch,
-			Prompt: self.c.Tr.DiscardPatchConfirm,
-			HandleConfirm: func() error {
+	mustDiscardPatch := self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse)
+	return self.c.ConfirmIf(mustDiscardPatch, types.ConfirmOpts{
+		Title:  self.c.Tr.DiscardPatch,
+		Prompt: self.c.Tr.DiscardPatchConfirm,
+		HandleConfirm: func() error {
+			if mustDiscardPatch {
 				self.c.Git().Patch.PatchBuilder.Reset()
-				return toggle()
-			},
-		})
+			}
 
-		return nil
-	}
-
-	return toggle()
+			return toggle()
+		},
+	})
 }
 
 func (self *CommitFilesController) toggleAllForPatch(_ *filetree.CommitFileNode) error {
@@ -479,32 +477,26 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
 	}
 
-	enterTheFile := func() error {
-		if !self.c.Git().Patch.PatchBuilder.Active() {
-			if err := self.startPatchBuilder(); err != nil {
-				return err
-			}
-		}
-
-		self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
-		return nil
-	}
-
 	from, to, reverse := self.currentFromToReverseForPatchBuilding()
-	if self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse) {
-		self.c.Confirm(types.ConfirmOpts{
-			Title:  self.c.Tr.DiscardPatch,
-			Prompt: self.c.Tr.DiscardPatchConfirm,
-			HandleConfirm: func() error {
+	mustDiscardPatch := self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse)
+	return self.c.ConfirmIf(mustDiscardPatch, types.ConfirmOpts{
+		Title:  self.c.Tr.DiscardPatch,
+		Prompt: self.c.Tr.DiscardPatchConfirm,
+		HandleConfirm: func() error {
+			if mustDiscardPatch {
 				self.c.Git().Patch.PatchBuilder.Reset()
-				return enterTheFile()
-			},
-		})
+			}
 
-		return nil
-	}
+			if !self.c.Git().Patch.PatchBuilder.Active() {
+				if err := self.startPatchBuilder(); err != nil {
+					return err
+				}
+			}
 
-	return enterTheFile()
+			self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
+			return nil
+		},
+	})
 }
 
 func (self *CommitFilesController) handleToggleCommitFileDirCollapsed(node *filetree.CommitFileNode) error {

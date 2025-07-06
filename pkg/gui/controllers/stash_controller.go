@@ -107,32 +107,23 @@ func (self *StashController) context() *context.StashContext {
 }
 
 func (self *StashController) handleStashApply(stashEntry *models.StashEntry) error {
-	apply := func() error {
-		self.c.LogAction(self.c.Tr.Actions.Stash)
-		err := self.c.Git().Stash.Apply(stashEntry.Index)
-		self.postStashRefresh()
-		if err != nil {
-			return err
-		}
-		if self.c.UserConfig().Gui.SwitchToFilesAfterStashApply {
-			self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
-		}
-		return nil
-	}
-
-	if self.c.UserConfig().Gui.SkipStashWarning {
-		return apply()
-	}
-
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.StashApply,
-		Prompt: self.c.Tr.SureApplyStashEntry,
-		HandleConfirm: func() error {
-			return apply()
-		},
-	})
-
-	return nil
+	return self.c.ConfirmIf(!self.c.UserConfig().Gui.SkipStashWarning,
+		types.ConfirmOpts{
+			Title:  self.c.Tr.StashApply,
+			Prompt: self.c.Tr.SureApplyStashEntry,
+			HandleConfirm: func() error {
+				self.c.LogAction(self.c.Tr.Actions.Stash)
+				err := self.c.Git().Stash.Apply(stashEntry.Index)
+				self.postStashRefresh()
+				if err != nil {
+					return err
+				}
+				if self.c.UserConfig().Gui.SwitchToFilesAfterStashApply {
+					self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
+				}
+				return nil
+			},
+		})
 }
 
 func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error {

@@ -173,28 +173,19 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error
 
 	self.returnFocusFromPatchExplorerIfNecessary()
 
-	pull := func(stash bool) error {
-		return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
-			commitIndex := self.getPatchCommitIndex()
-			self.c.LogAction(self.c.Tr.Actions.MovePatchIntoIndex)
-			err := self.c.Git().Patch.MovePatchIntoIndex(self.c.Model().Commits, commitIndex, stash)
-			return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
-		})
-	}
-
-	if self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
-		self.c.Confirm(types.ConfirmOpts{
-			Title:  self.c.Tr.MustStashTitle,
-			Prompt: self.c.Tr.MustStashWarning,
-			HandleConfirm: func() error {
-				return pull(true)
-			},
-		})
-
-		return nil
-	}
-
-	return pull(false)
+	mustStash := self.c.Helpers().WorkingTree.IsWorkingTreeDirty()
+	return self.c.ConfirmIf(mustStash, types.ConfirmOpts{
+		Title:  self.c.Tr.MustStashTitle,
+		Prompt: self.c.Tr.MustStashWarning,
+		HandleConfirm: func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+				commitIndex := self.getPatchCommitIndex()
+				self.c.LogAction(self.c.Tr.Actions.MovePatchIntoIndex)
+				err := self.c.Git().Patch.MovePatchIntoIndex(self.c.Model().Commits, commitIndex, mustStash)
+				return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+			})
+		},
+	})
 }
 
 func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
@@ -272,40 +263,31 @@ func (self *CustomPatchOptionsMenuAction) handleApplyPatch(reverse bool) error {
 
 	affectedUnstagedFiles := self.getAffectedUnstagedFiles()
 
-	apply := func() error {
-		action := self.c.Tr.Actions.ApplyPatch
-		if reverse {
-			action = "Apply patch in reverse"
-		}
-		self.c.LogAction(action)
+	mustStageFiles := len(affectedUnstagedFiles) > 0
+	return self.c.ConfirmIf(mustStageFiles, types.ConfirmOpts{
+		Title:  self.c.Tr.MustStageFilesAffectedByPatchTitle,
+		Prompt: self.c.Tr.MustStageFilesAffectedByPatchWarning,
+		HandleConfirm: func() error {
+			action := self.c.Tr.Actions.ApplyPatch
+			if reverse {
+				action = "Apply patch in reverse"
+			}
+			self.c.LogAction(action)
 
-		if len(affectedUnstagedFiles) > 0 {
-			if err := self.c.Git().WorkingTree.StageFiles(affectedUnstagedFiles, nil); err != nil {
+			if mustStageFiles {
+				if err := self.c.Git().WorkingTree.StageFiles(affectedUnstagedFiles, nil); err != nil {
+					return err
+				}
+			}
+
+			if err := self.c.Git().Patch.ApplyCustomPatch(reverse, true); err != nil {
 				return err
 			}
-		}
 
-		if err := self.c.Git().Patch.ApplyCustomPatch(reverse, true); err != nil {
-			return err
-		}
-
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
-		return nil
-	}
-
-	if len(affectedUnstagedFiles) > 0 {
-		self.c.Confirm(types.ConfirmOpts{
-			Title:  self.c.Tr.MustStageFilesAffectedByPatchTitle,
-			Prompt: self.c.Tr.MustStageFilesAffectedByPatchWarning,
-			HandleConfirm: func() error {
-				return apply()
-			},
-		})
-
-		return nil
-	}
-
-	return apply()
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			return nil
+		},
+	})
 }
 
 func (self *CustomPatchOptionsMenuAction) copyPatchToClipboard() error {

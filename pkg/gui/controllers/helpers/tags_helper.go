@@ -23,43 +23,34 @@ func NewTagsHelper(c *HelperCommon, commitsHelper *CommitsHelper, gpg *GpgHelper
 }
 
 func (self *TagsHelper) OpenCreateTagPrompt(ref string, onCreate func()) error {
-	doCreateTag := func(tagName string, description string, force bool) error {
-		var command *oscommands.CmdObj
-		if description != "" || self.c.Git().Config.GetGpgTagSign() {
-			self.c.LogAction(self.c.Tr.Actions.CreateAnnotatedTag)
-			command = self.c.Git().Tag.CreateAnnotatedObj(tagName, ref, description, force)
-		} else {
-			self.c.LogAction(self.c.Tr.Actions.CreateLightweightTag)
-			command = self.c.Git().Tag.CreateLightweightObj(tagName, ref, force)
-		}
-
-		return self.gpg.WithGpgHandling(command, git_commands.TagGpgSign, self.c.Tr.CreatingTag, func() error {
-			return nil
-		}, []types.RefreshableView{types.COMMITS, types.TAGS})
-	}
-
 	onConfirm := func(tagName string, description string) error {
-		if self.c.Git().Tag.HasTag(tagName) {
-			prompt := utils.ResolvePlaceholderString(
-				self.c.Tr.ForceTagPrompt,
-				map[string]string{
-					"tagName":    tagName,
-					"cancelKey":  self.c.UserConfig().Keybinding.Universal.Return,
-					"confirmKey": self.c.UserConfig().Keybinding.Universal.Confirm,
-				},
-			)
-			self.c.Confirm(types.ConfirmOpts{
-				Title:  self.c.Tr.ForceTag,
-				Prompt: prompt,
-				HandleConfirm: func() error {
-					return doCreateTag(tagName, description, true)
-				},
-			})
+		prompt := utils.ResolvePlaceholderString(
+			self.c.Tr.ForceTagPrompt,
+			map[string]string{
+				"tagName":    tagName,
+				"cancelKey":  self.c.UserConfig().Keybinding.Universal.Return,
+				"confirmKey": self.c.UserConfig().Keybinding.Universal.Confirm,
+			},
+		)
+		force := self.c.Git().Tag.HasTag(tagName)
+		return self.c.ConfirmIf(force, types.ConfirmOpts{
+			Title:  self.c.Tr.ForceTag,
+			Prompt: prompt,
+			HandleConfirm: func() error {
+				var command *oscommands.CmdObj
+				if description != "" || self.c.Git().Config.GetGpgTagSign() {
+					self.c.LogAction(self.c.Tr.Actions.CreateAnnotatedTag)
+					command = self.c.Git().Tag.CreateAnnotatedObj(tagName, ref, description, force)
+				} else {
+					self.c.LogAction(self.c.Tr.Actions.CreateLightweightTag)
+					command = self.c.Git().Tag.CreateLightweightObj(tagName, ref, force)
+				}
 
-			return nil
-		}
-
-		return doCreateTag(tagName, description, false)
+				return self.gpg.WithGpgHandling(command, git_commands.TagGpgSign, self.c.Tr.CreatingTag, func() error {
+					return nil
+				}, []types.RefreshableView{types.COMMITS, types.TAGS})
+			},
+		})
 	}
 
 	self.commitsHelper.OpenCommitMessagePanel(

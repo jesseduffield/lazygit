@@ -201,19 +201,12 @@ func (self *StagingController) DiscardSelection() error {
 			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
 	}
 
-	reset := func() error { return self.applySelectionAndRefresh(true) }
-
-	if !self.staged && !self.c.UserConfig().Gui.SkipDiscardChangeWarning {
-		self.c.Confirm(types.ConfirmOpts{
+	return self.c.ConfirmIf(!self.staged && !self.c.UserConfig().Gui.SkipDiscardChangeWarning,
+		types.ConfirmOpts{
 			Title:         self.c.Tr.DiscardChangeTitle,
 			Prompt:        self.c.Tr.DiscardChangePrompt,
-			HandleConfirm: reset,
+			HandleConfirm: func() error { return self.applySelectionAndRefresh(true) },
 		})
-
-		return nil
-	}
-
-	return reset()
 }
 
 func (self *StagingController) applySelectionAndRefresh(reverse bool) error {
