@@ -233,17 +233,9 @@ For Windows, Mac OS(10.12+) or Linux, you can download a binary release [here](.
 
 ### Homebrew
 
-Normally the lazygit formula can be found in the Homebrew core but we suggest you tap our formula to get the frequently updated one. It works with Linux, too.
+It works with Linux, too.
 
-Tap:
-
-```
-brew install jesseduffield/lazygit/lazygit
-```
-
-Core:
-
-```
+```sh
 brew install lazygit
 ```
 
