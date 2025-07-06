@@ -126,6 +126,8 @@ type IPopupHandler interface {
 	Alert(title string, message string)
 	// Shows a popup asking the user for confirmation.
 	Confirm(opts ConfirmOpts)
+	// Shows a popup asking the user for confirmation if condition is true; otherwise, the HandleConfirm function is called directly.
+	ConfirmIf(condition bool, opts ConfirmOpts) error
 	// Shows a popup prompting the user for input.
 	Prompt(opts PromptOpts)
 	WithWaitingStatus(message string, f func(gocui.Task) error) error
