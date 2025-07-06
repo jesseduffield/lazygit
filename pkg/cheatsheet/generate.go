@@ -221,9 +221,13 @@ func formatBinding(binding *types.Binding) string {
 		action += fmt.Sprintf(" (%s)", binding.Alternative)
 	}
 
+	// Escape newlines in tooltip to prevent breaking markdown tables
+	tooltip := strings.ReplaceAll(binding.Tooltip, "\n\n", " ")
+	tooltip = strings.ReplaceAll(tooltip, "\n", " ")
+
 	// Use backticks for keyboard keys. Two backticks are needed with an inner space
 	//  to escape a key that is itself a backtick.
-	return fmt.Sprintf("| `` %s `` | %s | %s |\n", action, description, binding.Tooltip)
+	return fmt.Sprintf("| `` %s `` | %s | %s |\n", action, description, tooltip)
 }
 
 func italicize(str string) string {
