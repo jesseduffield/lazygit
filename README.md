@@ -567,7 +567,9 @@ Common questions and their answers:
   Lazygit tracks repositories you've opened and shows them when you start lazygit outside a git repo. 
   
   - Recent repos appear in the initial launch screen
-  - They're stored in the state file at `~/.config/lazygit/state.yml`
+  - They're stored in the state file at:
+    - Linux/Mac: `~/.local/state/lazygit/state.yml`
+    - Windows: `%LOCALAPPDATA%\lazygit\state.yml`
   - Repos are sorted by last access time
   - You can clear the list by editing the state file
 </details>
@@ -623,7 +625,18 @@ Common questions and their answers:
   3. **For Windows Terminal:**
      - Usually works out of the box, but try setting `TERM=xterm` if issues persist
   
-  4. **For tmux users:**
+  4. **For PowerShell on Windows:**
+     - Set the TERM environment variable:
+     ```powershell
+     $env:TERM = "xterm"
+     ```
+     - To make it permanent, add to your PowerShell profile:
+     ```powershell
+     # Add to $PROFILE (usually ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1)
+     $env:TERM = "xterm"
+     ```
+  
+  5. **For tmux users:**
      ```sh
      # In your .tmux.conf
      set -g default-terminal "screen-256color"
