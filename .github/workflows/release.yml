@@ -2,9 +2,9 @@ name: Release
 
 on:
   schedule:
-    # Runs at 2:00 AM UTC on every Saturday
+    # Runs at 8:00 AM UTC on every Saturday
     # We'll check below if it's the first Saturday of the month, and fail if not
-    - cron: '0 2 * * 6'
+    - cron: '0 8 * * 6'
   # Allow manual triggering of the workflow
   workflow_dispatch:
     inputs:
@@ -22,10 +22,20 @@ on:
         required: true
         default: false
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   check-and-release:
     runs-on: ubuntu-latest
     steps:
+      - name: Check for correct repository
+        if: ${{ github.event_name != 'workflow_dispatch' && github.repository != 'stefanhaller/lazygit' }}
+        run: |
+          echo "Should only run in the stefanhaller/lazygit repository"
+          exit 1
+
       - name: Check for first Saturday of the month
         if: ${{ github.event_name != 'workflow_dispatch' }}
         run: |
@@ -37,6 +47,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
+          repository: jesseduffield/lazygit
+          token: ${{ secrets.LAZYGIT_RELEASE_PAT }}
           fetch-depth: 0
 
       - name: Get Latest Tag
@@ -85,7 +97,7 @@ jobs:
             exit 1
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.LAZYGIT_RELEASE_PAT }}
 
       - name: Calculate next version
         run: |
@@ -119,10 +131,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag ${{ env.new_tag }}
+          git tag ${{ env.new_tag }} -a -m "Release ${{ env.new_tag }}"
           git push origin ${{ env.new_tag }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.LAZYGIT_RELEASE_PAT }}
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -130,17 +142,17 @@ jobs:
           go-version: 1.24.x
 
       - name: Run goreleaser
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
-          version: v1.17.2
+          version: v2
           args: release --clean
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_API_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.LAZYGIT_RELEASE_PAT}}
 
       - name: Bump Homebrew formula
         uses: dawidd6/action-homebrew-bump-formula@v3
         with:
-          token: ${{secrets.GITHUB_API_TOKEN}}
+          token: ${{secrets.LAZYGIT_RELEASE_PAT}}
           formula: lazygit
           tag: ${{env.new_tag}}
