@@ -31,6 +31,32 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			},
 		},
 		{
+			name: "Gui.ShowDivergenceFromBaseBranch",
+			setup: func(config *UserConfig, value string) {
+				config.Gui.ShowDivergenceFromBaseBranch = value
+			},
+			testCases: []testCase{
+				{value: "none", valid: true},
+				{value: "onlyArrow", valid: true},
+				{value: "arrowAndNumber", valid: true},
+				{value: "", valid: false},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
+			name: "Git.AutoForwardBranches",
+			setup: func(config *UserConfig, value string) {
+				config.Git.AutoForwardBranches = value
+			},
+			testCases: []testCase{
+				{value: "none", valid: true},
+				{value: "onlyMainBranches", valid: true},
+				{value: "allBranches", valid: true},
+				{value: "", valid: false},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
 			name: "Keybindings",
 			setup: func(config *UserConfig, value string) {
 				config.Keybinding.Universal.Quit = value
