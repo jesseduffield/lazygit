@@ -192,7 +192,6 @@ type IPatchExplorerContext interface {
 	GetIncludedLineIndices() []int
 	RenderAndFocus()
 	Render()
-	Focus()
 	GetContentToRender() string
 	NavigateTo(selectedLineIdx int)
 	GetMutex() *deadlock.Mutex
