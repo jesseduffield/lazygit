@@ -140,6 +140,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Key:         opts.GetKey(opts.Config.Branches.SortOrder),
 			Handler:     self.createSortMenu,
 			Description: self.c.Tr.SortOrder,
+			OpensMenu:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.ViewResetOptions),
