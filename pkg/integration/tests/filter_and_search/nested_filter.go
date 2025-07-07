@@ -35,8 +35,8 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains(`branch-bronze`).IsSelected(),
-				Contains(`branch-silver`),
 				Contains(`branch-gold`),
+				Contains(`branch-silver`),
 			).
 			FilterOrSearch("sil").
 			Lines(
@@ -148,8 +148,8 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains(`branch-bronze`),
-				Contains(`branch-silver`).IsSelected(),
 				Contains(`branch-gold`),
+				Contains(`branch-silver`).IsSelected(),
 			)
 	},
 })

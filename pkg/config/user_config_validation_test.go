@@ -57,6 +57,32 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			},
 		},
 		{
+			name: "Git.LocalBranchSortOrder",
+			setup: func(config *UserConfig, value string) {
+				config.Git.LocalBranchSortOrder = value
+			},
+			testCases: []testCase{
+				{value: "date", valid: true},
+				{value: "recency", valid: true},
+				{value: "alphabetical", valid: true},
+				{value: "", valid: false},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
+			name: "Git.RemoteBranchSortOrder",
+			setup: func(config *UserConfig, value string) {
+				config.Git.RemoteBranchSortOrder = value
+			},
+			testCases: []testCase{
+				{value: "date", valid: true},
+				{value: "recency", valid: false},
+				{value: "alphabetical", valid: true},
+				{value: "", valid: false},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
 			name: "Keybindings",
 			setup: func(config *UserConfig, value string) {
 				config.Keybinding.Universal.Quit = value

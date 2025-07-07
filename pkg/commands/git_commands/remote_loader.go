@@ -85,7 +85,7 @@ func (self *RemoteLoader) getRemoteBranchesByRemoteName() (map[string][]*models.
 	remoteBranchesByRemoteName := make(map[string][]*models.RemoteBranch)
 
 	var sortOrder string
-	switch strings.ToLower(self.AppState.RemoteBranchSortOrder) {
+	switch strings.ToLower(self.UserConfig().Git.RemoteBranchSortOrder) {
 	case "alphabetical":
 		sortOrder = "refname"
 	case "date":

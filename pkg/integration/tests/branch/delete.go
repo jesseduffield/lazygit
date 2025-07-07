@@ -9,7 +9,9 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Try all combination of local and remote branch deletions",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.LocalBranchSortOrder = "recency"
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.
 			CloneIntoRemote("origin").

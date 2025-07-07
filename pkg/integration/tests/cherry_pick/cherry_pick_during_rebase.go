@@ -11,6 +11,7 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 		config.GetAppState().GitLogShowGraph = "never"
+		config.GetUserConfig().Git.LocalBranchSortOrder = "recency"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.

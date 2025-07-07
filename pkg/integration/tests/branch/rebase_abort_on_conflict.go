@@ -10,7 +10,9 @@ var RebaseAbortOnConflict = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Rebase onto another branch, abort when there are conflicts.",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.LocalBranchSortOrder = "recency"
+	},
 	SetupRepo: func(shell *Shell) {
 		shared.MergeConflictsSetup(shell)
 	},

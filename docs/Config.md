@@ -399,6 +399,16 @@ git:
     # displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
     showWholeGraph: false
 
+  # How branches are sorted in the local branches view.
+  # One of: 'date' (default) | 'recency' | 'alphabetical'
+  # Can be changed from within Lazygit with the Sort Order menu (`s`) in the branches panel.
+  localBranchSortOrder: date
+
+  # How branches are sorted in the remote branches view.
+  # One of: 'date' (default) | 'alphabetical'
+  # Can be changed from within Lazygit with the Sort Order menu (`s`) in the remote branches panel.
+  remoteBranchSortOrder: date
+
   # When copying commit hashes to the clipboard, truncate them to this
   # length. Set to 40 to disable truncation.
   truncateCopiedCommitHashesTo: 12

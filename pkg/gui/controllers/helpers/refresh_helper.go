@@ -125,7 +125,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 			refresh("commits and commit files", self.refreshCommitsAndCommitFiles)
 
 			includeWorktreesWithBranches = scopeSet.Includes(types.WORKTREES)
-			if self.c.AppState.LocalBranchSortOrder == "recency" {
+			if self.c.UserConfig().Git.LocalBranchSortOrder == "recency" {
 				refresh("reflog and branches", func() { self.refreshReflogAndBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex) })
 			} else {
 				refresh("branches", func() { self.refreshBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex, true) })
@@ -446,7 +446,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 	defer self.c.Mutexes().RefreshingBranchesMutex.Unlock()
 
 	reflogCommits := self.c.Model().FilteredReflogCommits
-	if self.c.Modes().Filtering.Active() && self.c.AppState.LocalBranchSortOrder == "recency" {
+	if self.c.Modes().Filtering.Active() && self.c.UserConfig().Git.LocalBranchSortOrder == "recency" {
 		// in filter mode we filter our reflog commits to just those containing the path
 		// however we need all the reflog entries to populate the recencies of our branches
 		// which allows us to order them correctly. So if we're filtering we'll just

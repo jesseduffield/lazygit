@@ -674,16 +674,15 @@ func (self *BranchesController) createTag(branch *models.Branch) error {
 
 func (self *BranchesController) createSortMenu() error {
 	return self.c.Helpers().Refs.CreateSortOrderMenu([]string{"recency", "alphabetical", "date"}, func(sortOrder string) error {
-		if self.c.GetAppState().LocalBranchSortOrder != sortOrder {
-			self.c.GetAppState().LocalBranchSortOrder = sortOrder
-			self.c.SaveAppStateAndLogError()
+		if self.c.UserConfig().Git.LocalBranchSortOrder != sortOrder {
+			self.c.UserConfig().Git.LocalBranchSortOrder = sortOrder
 			self.c.Contexts().Branches.SetSelection(0)
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 			return nil
 		}
 		return nil
 	},
-		self.c.GetAppState().LocalBranchSortOrder)
+		self.c.UserConfig().Git.LocalBranchSortOrder)
 }
 
 func (self *BranchesController) createResetMenu(selectedBranch *models.Branch) error {

@@ -676,9 +676,7 @@ type AppState struct {
 	// For backwards compatibility we keep the old name in yaml files.
 	ShellCommandsHistory []string `yaml:"customcommandshistory"`
 
-	HideCommandLog        bool
-	LocalBranchSortOrder  string
-	RemoteBranchSortOrder string
+	HideCommandLog bool
 
 	// One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'
 	// 'topo-order' makes it easier to read the git log graph, but commits may not
@@ -692,14 +690,12 @@ type AppState struct {
 
 func getDefaultAppState() *AppState {
 	return &AppState{
-		LastUpdateCheck:       0,
-		RecentRepos:           []string{},
-		StartupPopupVersion:   0,
-		LastVersion:           "",
-		LocalBranchSortOrder:  "recency",
-		RemoteBranchSortOrder: "alphabetical",
-		GitLogOrder:           "", // should be "topo-order" eventually
-		GitLogShowGraph:       "", // should be "always" eventually
+		LastUpdateCheck:     0,
+		RecentRepos:         []string{},
+		StartupPopupVersion: 0,
+		LastVersion:         "",
+		GitLogOrder:         "", // should be "topo-order" eventually
+		GitLogShowGraph:     "", // should be "always" eventually
 	}
 }
 

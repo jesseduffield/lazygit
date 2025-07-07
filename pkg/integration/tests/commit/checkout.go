@@ -42,8 +42,8 @@ var Checkout = NewIntegrationTest(NewIntegrationTestArgs{
 			Confirm()
 		t.Views().Branches().Lines(
 			Contains("* (HEAD detached at"),
-			Contains("branch2"),
 			Contains("branch1"),
+			Contains("branch2"),
 			Contains("master"),
 		)
 
@@ -63,8 +63,8 @@ var Checkout = NewIntegrationTest(NewIntegrationTestArgs{
 			Confirm()
 		t.Views().Branches().Lines(
 			Contains("master"),
-			Contains("branch2"),
 			Contains("branch1"),
+			Contains("branch2"),
 		)
 	},
 })

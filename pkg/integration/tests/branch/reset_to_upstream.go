@@ -9,7 +9,9 @@ var ResetToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Hard reset the current branch to the selected branch upstream",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.LocalBranchSortOrder = "recency"
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.
 			CloneIntoRemote("origin").

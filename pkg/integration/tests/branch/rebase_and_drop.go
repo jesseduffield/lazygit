@@ -10,7 +10,9 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Rebase onto another branch, deal with the conflicts. Also mark a commit to be dropped before continuing.",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.LocalBranchSortOrder = "recency"
+	},
 	SetupRepo: func(shell *Shell) {
 		shared.MergeConflictsSetup(shell)
 		// adding a couple additional commits so that we can drop one

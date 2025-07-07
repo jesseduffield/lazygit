@@ -285,6 +285,14 @@ type GitConfig struct {
 	ParseEmoji bool `yaml:"parseEmoji"`
 	// Config for showing the log in the commits view
 	Log LogConfig `yaml:"log"`
+	// How branches are sorted in the local branches view.
+	// One of: 'date' (default) | 'recency' | 'alphabetical'
+	// Can be changed from within Lazygit with the Sort Order menu (`s`) in the branches panel.
+	LocalBranchSortOrder string `yaml:"localBranchSortOrder" jsonschema:"enum=date,enum=recency,enum=alphabetical"`
+	// How branches are sorted in the remote branches view.
+	// One of: 'date' (default) | 'alphabetical'
+	// Can be changed from within Lazygit with the Sort Order menu (`s`) in the remote branches panel.
+	RemoteBranchSortOrder string `yaml:"remoteBranchSortOrder" jsonschema:"enum=date,enum=alphabetical"`
 	// When copying commit hashes to the clipboard, truncate them to this
 	// length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
@@ -805,6 +813,8 @@ func GetDefaultConfig() *UserConfig {
 				ShowGraph:      "always",
 				ShowWholeGraph: false,
 			},
+			LocalBranchSortOrder:         "date",
+			RemoteBranchSortOrder:        "date",
 			SkipHookPrefix:               "WIP",
 			MainBranches:                 []string{"master", "main"},
 			AutoFetch:                    true,

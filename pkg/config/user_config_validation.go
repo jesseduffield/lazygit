@@ -23,6 +23,14 @@ func (config *UserConfig) Validate() error {
 		[]string{"none", "onlyMainBranches", "allBranches"}); err != nil {
 		return err
 	}
+	if err := validateEnum("git.localBranchSortOrder", config.Git.LocalBranchSortOrder,
+		[]string{"date", "recency", "alphabetical"}); err != nil {
+		return err
+	}
+	if err := validateEnum("git.remoteBranchSortOrder", config.Git.RemoteBranchSortOrder,
+		[]string{"date", "alphabetical"}); err != nil {
+		return err
+	}
 	if err := validateKeybindings(config.Keybinding); err != nil {
 		return err
 	}
