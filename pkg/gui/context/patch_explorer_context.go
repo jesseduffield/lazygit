@@ -94,11 +94,6 @@ func (self *PatchExplorerContext) Render() {
 	self.c.Render()
 }
 
-func (self *PatchExplorerContext) Focus() {
-	self.FocusSelection()
-	self.c.Render()
-}
-
 func (self *PatchExplorerContext) setContent() {
 	self.GetView().SetContent(self.GetContentToRender())
 }
