@@ -30,7 +30,7 @@ func (self *ListContextTrait) FocusLine() {
 
 	// Doing this at the end of the layout function because we need the view to be
 	// resized before we focus the line, otherwise if we're in accordion mode
-	// the view could be squashed and won't how to adjust the cursor/origin.
+	// the view could be squashed and won't know how to adjust the cursor/origin.
 	// Also, refreshing the viewport needs to happen after the view has been resized.
 	self.c.AfterLayout(func() error {
 		oldOrigin, _ := self.GetViewTrait().ViewPortYBounds()
