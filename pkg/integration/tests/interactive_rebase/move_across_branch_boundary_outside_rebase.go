@@ -12,7 +12,7 @@ var MoveAcrossBranchBoundaryOutsideRebase = NewIntegrationTest(NewIntegrationTes
 	GitVersion:   AtLeast("2.38.0"),
 	SetupConfig: func(config *config.AppConfig) {
 		config.GetUserConfig().Git.MainBranches = []string{"master"}
-		config.GetAppState().GitLogShowGraph = "never"
+		config.GetUserConfig().Git.Log.ShowGraph = "never"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.

@@ -346,13 +346,13 @@ type LogConfig struct {
 	// 'topo-order' makes it easier to read the git log graph, but commits may not
 	// appear chronologically. See https://git-scm.com/docs/
 	//
-	// Deprecated: Configure this with `Log menu -> Commit sort order` (<c-l> in the commits window by default).
-	Order string `yaml:"order" jsonschema:"deprecated,enum=date-order,enum=author-date-order,enum=topo-order,enum=default,deprecated"`
+	// Can be changed from within Lazygit with `Log menu -> Commit sort order` (`<c-l>` in the commits window by default).
+	Order string `yaml:"order" jsonschema:"enum=date-order,enum=author-date-order,enum=topo-order,enum=default"`
 	// This determines whether the git graph is rendered in the commits panel
 	// One of 'always' | 'never' | 'when-maximised'
 	//
-	// Deprecated: Configure this with `Log menu -> Show git graph` (<c-l> in the commits window by default).
-	ShowGraph string `yaml:"showGraph" jsonschema:"deprecated,enum=always,enum=never,enum=when-maximised"`
+	// Can be toggled from within lazygit with `Log menu -> Show git graph` (`<c-l>` in the commits window by default).
+	ShowGraph string `yaml:"showGraph" jsonschema:"enum=always,enum=never,enum=when-maximised"`
 	// displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
 	ShowWholeGraph bool `yaml:"showWholeGraph"`
 }

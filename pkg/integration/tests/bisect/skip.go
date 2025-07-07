@@ -14,7 +14,7 @@ var Skip = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateNCommits(10)
 	},
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetAppState().GitLogShowGraph = "never"
+		cfg.GetUserConfig().Git.Log.ShowGraph = "never"
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().

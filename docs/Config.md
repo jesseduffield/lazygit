@@ -396,6 +396,19 @@ git:
 
   # Config for showing the log in the commits view
   log:
+    # One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'
+    # 'topo-order' makes it easier to read the git log graph, but commits may not
+    # appear chronologically. See https://git-scm.com/docs/
+    #
+    # Can be changed from within Lazygit with `Log menu -> Commit sort order` (`<c-l>` in the commits window by default).
+    order: topo-order
+
+    # This determines whether the git graph is rendered in the commits panel
+    # One of 'always' | 'never' | 'when-maximised'
+    #
+    # Can be toggled from within lazygit with `Log menu -> Show git graph` (`<c-l>` in the commits window by default).
+    showGraph: always
+
     # displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
     showWholeGraph: false
 
