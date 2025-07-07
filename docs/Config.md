@@ -366,6 +366,9 @@ git:
   allBranchesLogCmds:
     - git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium
 
+  # If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `<c-w>`.
+  ignoreWhitespaceInDiffView: false
+
   # If true, do not spawn a separate process when using GPG
   overrideGpg: false
 

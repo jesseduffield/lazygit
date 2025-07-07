@@ -359,6 +359,11 @@
             "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"
           ]
         },
+        "ignoreWhitespaceInDiffView": {
+          "type": "boolean",
+          "description": "If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `\u003cc-w\u003e`.",
+          "default": false
+        },
         "overrideGpg": {
           "type": "boolean",
           "description": "If true, do not spawn a separate process when using GPG",

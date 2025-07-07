@@ -320,8 +320,8 @@ func TestCommitShowCmdObj(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.Paging.ExternalDiffCommand = s.extDiffCmd
+			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
 			appState := &config.AppState{}
-			appState.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
 			appState.DiffContextSize = s.contextSize
 			appState.RenameSimilarityThreshold = s.similarityThreshold
 

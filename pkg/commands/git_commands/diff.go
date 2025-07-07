@@ -21,7 +21,7 @@ func NewDiffCommands(gitCommon *GitCommon) *DiffCommands {
 func (self *DiffCommands) DiffCmdObj(diffArgs []string) *oscommands.CmdObj {
 	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
 	useExtDiff := extDiffCmd != ""
-	ignoreWhitespace := self.AppState.IgnoreWhitespaceInDiffView
+	ignoreWhitespace := self.UserConfig().Git.IgnoreWhitespaceInDiffView
 
 	return self.cmd.New(
 		NewGitCmd("diff").
