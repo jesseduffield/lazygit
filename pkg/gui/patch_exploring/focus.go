@@ -22,7 +22,7 @@ func calculateNewOriginWithNeededAndWantedIdx(currentOrigin int, bufferHeight in
 		allowedChange := bottom - needToSeeIdx
 		return origin - min(requiredChange, allowedChange)
 	} else if wantToSeeIdx >= bottom {
-		requiredChange := wantToSeeIdx - bottom
+		requiredChange := wantToSeeIdx + 1 - bottom
 		allowedChange := needToSeeIdx - origin
 		return origin + min(requiredChange, allowedChange)
 	}
