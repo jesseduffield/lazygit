@@ -266,6 +266,10 @@ type GitConfig struct {
 	AllBranchesLogCmds []string `yaml:"allBranchesLogCmds"`
 	// If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `<c-w>`.
 	IgnoreWhitespaceInDiffView bool `yaml:"ignoreWhitespaceInDiffView"`
+	// The number of lines of context to show around each diff hunk. Can be changed from within Lazygit with the `{` and `}` keys.
+	DiffContextSize uint64 `yaml:"diffContextSize"`
+	// The threshold for considering a file to be renamed, in percent. Can be changed from within Lazygit with the `(` and `)` keys.
+	RenameSimilarityThreshold int `yaml:"renameSimilarityThreshold" jsonschema:"minimum=0,maximum=100"`
 	// If true, do not spawn a separate process when using GPG
 	OverrideGpg bool `yaml:"overrideGpg"`
 	// If true, do not allow force pushes
@@ -811,6 +815,8 @@ func GetDefaultConfig() *UserConfig {
 			BranchLogCmd:                 "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
 			AllBranchesLogCmds:           []string{"git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"},
 			IgnoreWhitespaceInDiffView:   false,
+			DiffContextSize:              3,
+			RenameSimilarityThreshold:    50,
 			DisableForcePushing:          false,
 			CommitPrefixes:               map[string][]CommitPrefixConfig(nil),
 			BranchPrefix:                 "",

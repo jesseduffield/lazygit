@@ -198,17 +198,12 @@ func TestFileGetStatusFiles(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			cmd := oscommands.NewDummyCmdObjBuilder(s.runner)
 
-			appState := &config.AppState{}
-			appState.RenameSimilarityThreshold = s.similarityThreshold
-
-			userConfig := &config.UserConfig{
-				Gui: config.GuiConfig{
-					ShowNumstatInFilesView: s.showNumstatInFilesView,
-				},
-			}
+			userConfig := &config.UserConfig{}
+			userConfig.Gui.ShowNumstatInFilesView = s.showNumstatInFilesView
+			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
 
 			loader := &FileLoader{
-				GitCommon:   buildGitCommon(commonDeps{appState: appState, userConfig: userConfig}),
+				GitCommon:   buildGitCommon(commonDeps{appState: &config.AppState{}, userConfig: userConfig}),
 				cmd:         cmd,
 				config:      &FakeFileLoaderConfig{showUntrackedFiles: "yes"},
 				getFileType: func(string) string { return "file" },

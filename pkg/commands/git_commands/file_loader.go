@@ -175,7 +175,7 @@ func (self *FileLoader) gitStatus(opts GitStatusOptions) ([]FileStatus, error) {
 		ArgIfElse(
 			opts.NoRenames,
 			"--no-renames",
-			fmt.Sprintf("--find-renames=%d%%", self.AppState.RenameSimilarityThreshold),
+			fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold),
 		).
 		ToArgv()
 

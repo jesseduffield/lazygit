@@ -187,7 +187,7 @@ func (self *StagingController) TogglePanel() error {
 }
 
 func (self *StagingController) ToggleStaged() error {
-	if self.c.AppState.DiffContextSize == 0 {
+	if self.c.UserConfig().Git.DiffContextSize == 0 {
 		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToStage,
 			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
 	}
@@ -196,7 +196,7 @@ func (self *StagingController) ToggleStaged() error {
 }
 
 func (self *StagingController) DiscardSelection() error {
-	if self.c.AppState.DiffContextSize == 0 {
+	if self.c.UserConfig().Git.DiffContextSize == 0 {
 		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToDiscard,
 			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
 	}

@@ -321,15 +321,14 @@ func TestCommitShowCmdObj(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.Paging.ExternalDiffCommand = s.extDiffCmd
 			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
-			appState := &config.AppState{}
-			appState.DiffContextSize = s.contextSize
-			appState.RenameSimilarityThreshold = s.similarityThreshold
+			userConfig.Git.DiffContextSize = s.contextSize
+			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
 
 			runner := oscommands.NewFakeRunner(t).ExpectGitArgs(s.expected, "", nil)
 			repoPaths := RepoPaths{
 				worktreePath: "/path/to/worktree",
 			}
-			instance := buildCommitCommands(commonDeps{userConfig: userConfig, appState: appState, runner: runner, repoPaths: &repoPaths})
+			instance := buildCommitCommands(commonDeps{userConfig: userConfig, appState: &config.AppState{}, runner: runner, repoPaths: &repoPaths})
 
 			assert.NoError(t, instance.ShowCmdObj("1234567890", s.filterPath).Run())
 			runner.CheckForMissingCalls()

@@ -369,6 +369,12 @@ git:
   # If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `<c-w>`.
   ignoreWhitespaceInDiffView: false
 
+  # The number of lines of context to show around each diff hunk. Can be changed from within Lazygit with the `{` and `}` keys.
+  diffContextSize: 3
+
+  # The threshold for considering a file to be renamed, in percent. Can be changed from within Lazygit with the `(` and `)` keys.
+  renameSimilarityThreshold: 50
+
   # If true, do not spawn a separate process when using GPG
   overrideGpg: false
 

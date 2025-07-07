@@ -364,6 +364,18 @@
           "description": "If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `\u003cc-w\u003e`.",
           "default": false
         },
+        "diffContextSize": {
+          "type": "integer",
+          "description": "The number of lines of context to show around each diff hunk. Can be changed from within Lazygit with the `{` and `}` keys.",
+          "default": 3
+        },
+        "renameSimilarityThreshold": {
+          "type": "integer",
+          "maximum": 100,
+          "minimum": 0,
+          "description": "The threshold for considering a file to be renamed, in percent. Can be changed from within Lazygit with the `(` and `)` keys.",
+          "default": 50
+        },
         "overrideGpg": {
           "type": "boolean",
           "description": "If true, do not spawn a separate process when using GPG",

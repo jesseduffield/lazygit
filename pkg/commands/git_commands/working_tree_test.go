@@ -328,14 +328,13 @@ func TestWorkingTreeDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
-			appState := &config.AppState{}
-			appState.DiffContextSize = s.contextSize
-			appState.RenameSimilarityThreshold = s.similarityThreshold
+			userConfig.Git.DiffContextSize = s.contextSize
+			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
 			repoPaths := RepoPaths{
 				worktreePath: "/path/to/worktree",
 			}
 
-			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig, appState: appState, repoPaths: &repoPaths})
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig, appState: &config.AppState{}, repoPaths: &repoPaths})
 			result := instance.WorktreeFileDiff(s.file, s.plain, s.cached)
 			assert.Equal(t, expectedResult, result)
 			s.runner.CheckForMissingCalls()
@@ -397,13 +396,12 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
-			appState := &config.AppState{}
-			appState.DiffContextSize = s.contextSize
+			userConfig.Git.DiffContextSize = s.contextSize
 			repoPaths := RepoPaths{
 				worktreePath: "/path/to/worktree",
 			}
 
-			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig, appState: appState, repoPaths: &repoPaths})
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig, appState: &config.AppState{}, repoPaths: &repoPaths})
 
 			result, err := instance.ShowFileDiff(s.from, s.to, s.reverse, "test.txt", s.plain)
 			assert.NoError(t, err)

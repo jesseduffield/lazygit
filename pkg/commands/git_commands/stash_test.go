@@ -145,13 +145,12 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
-			appState := &config.AppState{}
-			appState.DiffContextSize = s.contextSize
-			appState.RenameSimilarityThreshold = s.similarityThreshold
+			userConfig.Git.DiffContextSize = s.contextSize
+			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
 			repoPaths := RepoPaths{
 				worktreePath: "/path/to/worktree",
 			}
-			instance := buildStashCommands(commonDeps{userConfig: userConfig, appState: appState, repoPaths: &repoPaths})
+			instance := buildStashCommands(commonDeps{userConfig: userConfig, appState: &config.AppState{}, repoPaths: &repoPaths})
 
 			cmdStr := instance.ShowStashEntryCmdObj(s.index).Args()
 			assert.Equal(t, s.expected, cmdStr)

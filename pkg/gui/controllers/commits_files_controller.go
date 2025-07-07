@@ -378,7 +378,7 @@ func (self *CommitFilesController) openDiffTool(node *filetree.CommitFileNode) e
 }
 
 func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.CommitFileNode) error {
-	if self.c.AppState.DiffContextSize == 0 {
+	if self.c.UserConfig().Git.DiffContextSize == 0 {
 		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextForCustomPatch,
 			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
 	}
@@ -472,7 +472,7 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 		return self.handleToggleCommitFileDirCollapsed(node)
 	}
 
-	if self.c.AppState.DiffContextSize == 0 {
+	if self.c.UserConfig().Git.DiffContextSize == 0 {
 		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextForCustomPatch,
 			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
 	}
