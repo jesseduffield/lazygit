@@ -1180,6 +1180,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 			},
 			{
 				Label:     self.c.Tr.ShowGitGraph,
+				Tooltip:   self.c.Tr.ShowGitGraphTooltip,
 				OpensMenu: true,
 				OnPress: func() error {
 					currentValue := self.c.UserConfig().Git.Log.ShowGraph
@@ -1215,6 +1216,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 			},
 			{
 				Label:     self.c.Tr.SortCommits,
+				Tooltip:   self.c.Tr.SortCommitsTooltip,
 				OpensMenu: true,
 				OnPress: func() error {
 					currentValue := self.c.UserConfig().Git.Log.Order

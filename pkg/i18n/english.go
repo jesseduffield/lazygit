@@ -758,12 +758,14 @@ type TranslationSet struct {
 	LogMenuTitle                             string
 	ToggleShowGitGraphAll                    string
 	ShowGitGraph                             string
+	ShowGitGraphTooltip                      string
 	SortOrder                                string
 	SortAlphabetical                         string
 	SortByDate                               string
 	SortByRecency                            string
 	SortBasedOnReflog                        string
 	SortCommits                              string
+	SortCommitsTooltip                       string
 	CantChangeContextSizeError               string
 	OpenCommitInBrowser                      string
 	ViewBisectOptions                        string
@@ -1803,12 +1805,14 @@ func EnglishTranslationSet() *TranslationSet {
 		LogMenuTitle:                             "Commit Log Options",
 		ToggleShowGitGraphAll:                    "Toggle show whole git graph (pass the `--all` flag to `git log`)",
 		ShowGitGraph:                             "Show git graph",
+		ShowGitGraphTooltip:                      "Show or hide the git graph in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.showGraph'.",
 		SortOrder:                                "Sort order",
 		SortAlphabetical:                         "Alphabetical",
 		SortByDate:                               "Date",
 		SortByRecency:                            "Recency",
 		SortBasedOnReflog:                        "(based on reflog)",
 		SortCommits:                              "Commit sort order",
+		SortCommitsTooltip:                       "Change the sort order of the commits in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.sortOrder'.",
 		CantChangeContextSizeError:               "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
 		OpenCommitInBrowser:                      "Open commit in browser",
 		ViewBisectOptions:                        "View bisect options",
