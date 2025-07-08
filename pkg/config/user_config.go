@@ -602,29 +602,6 @@ type OSConfig struct {
 	// A shell startup file containing shell aliases or shell functions. This will be sourced before running any shell commands, so that shell functions are available in the `:` command prompt or even in custom commands.
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#using-aliases-or-functions-in-shell-commands
 	ShellFunctionsFile string `yaml:"shellFunctionsFile"`
-
-	// --------
-
-	// The following configs are all deprecated and kept for backward
-	// compatibility. They will be removed in the future.
-
-	// EditCommand is the command for editing a file.
-	// Deprecated: use Edit instead. Note that semantics are different:
-	// EditCommand is just the command itself, whereas Edit contains a
-	// "{{filename}}" variable.
-	EditCommand string `yaml:"editCommand,omitempty" jsonschema:"deprecated"`
-
-	// EditCommandTemplate is the command template for editing a file
-	// Deprecated: use EditAtLine instead.
-	EditCommandTemplate string `yaml:"editCommandTemplate,omitempty" jsonschema:"deprecated"`
-
-	// OpenCommand is the command for opening a file
-	// Deprecated: use Open instead.
-	OpenCommand string `yaml:"openCommand,omitempty" jsonschema:"deprecated"`
-
-	// OpenLinkCommand is the command for opening a link
-	// Deprecated: use OpenLink instead.
-	OpenLinkCommand string `yaml:"openLinkCommand,omitempty" jsonschema:"deprecated"`
 }
 
 type CustomCommandAfterHook struct {

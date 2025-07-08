@@ -81,10 +81,6 @@ func FileType(path string) string {
 func (c *OSCommand) OpenFile(filename string) error {
 	commandTemplate := c.UserConfig().OS.Open
 	if commandTemplate == "" {
-		// Legacy support
-		commandTemplate = c.UserConfig().OS.OpenCommand
-	}
-	if commandTemplate == "" {
 		commandTemplate = config.GetPlatformDefaultConfig().Open
 	}
 	templateValues := map[string]string{
@@ -96,10 +92,6 @@ func (c *OSCommand) OpenFile(filename string) error {
 
 func (c *OSCommand) OpenLink(link string) error {
 	commandTemplate := c.UserConfig().OS.OpenLink
-	if commandTemplate == "" {
-		// Legacy support
-		commandTemplate = c.UserConfig().OS.OpenLinkCommand
-	}
 	if commandTemplate == "" {
 		commandTemplate = config.GetPlatformDefaultConfig().OpenLink
 	}
