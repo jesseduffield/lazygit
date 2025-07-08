@@ -79,9 +79,6 @@ func (self *CmdObjBuilder) CloneWithNewRunner(decorate func(ICmdObjRunner) ICmdO
 	}
 }
 
-const CHARS_REQUIRING_QUOTES = "\"\\$` "
-
-// If you update this method, be sure to update CHARS_REQUIRING_QUOTES
 func (self *CmdObjBuilder) Quote(message string) string {
 	var quote string
 	if self.platform.OS == "windows" {
