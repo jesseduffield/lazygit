@@ -1601,22 +1601,6 @@
         "shellFunctionsFile": {
           "type": "string",
           "description": "A shell startup file containing shell aliases or shell functions. This will be sourced before running any shell commands, so that shell functions are available in the `:` command prompt or even in custom commands.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#using-aliases-or-functions-in-shell-commands"
-        },
-        "editCommand": {
-          "type": "string",
-          "description": "EditCommand is the command for editing a file.\nDeprecated: use Edit instead. Note that semantics are different:\nEditCommand is just the command itself, whereas Edit contains a\n\"{{filename}}\" variable."
-        },
-        "editCommandTemplate": {
-          "type": "string",
-          "description": "EditCommandTemplate is the command template for editing a file\nDeprecated: use EditAtLine instead."
-        },
-        "openCommand": {
-          "type": "string",
-          "description": "OpenCommand is the command for opening a file\nDeprecated: use Open instead."
-        },
-        "openLinkCommand": {
-          "type": "string",
-          "description": "OpenLinkCommand is the command for opening a link\nDeprecated: use OpenLink instead."
         }
       },
       "additionalProperties": false,
