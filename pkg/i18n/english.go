@@ -760,10 +760,13 @@ type TranslationSet struct {
 	ShowGitGraph                             string
 	ShowGitGraphTooltip                      string
 	SortOrder                                string
+	SortOrderPromptLocalBranches             string
+	SortOrderPromptRemoteBranches            string
 	SortAlphabetical                         string
 	SortByDate                               string
 	SortByRecency                            string
 	SortBasedOnReflog                        string
+	SortOrderPrompt                          string
 	SortCommits                              string
 	SortCommitsTooltip                       string
 	CantChangeContextSizeError               string
@@ -1807,6 +1810,8 @@ func EnglishTranslationSet() *TranslationSet {
 		ShowGitGraph:                             "Show git graph",
 		ShowGitGraphTooltip:                      "Show or hide the git graph in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.showGraph'.",
 		SortOrder:                                "Sort order",
+		SortOrderPromptLocalBranches:             "The default sort order for local branches can be set in the config file with the key 'git.localBranchSortOrder'.",
+		SortOrderPromptRemoteBranches:            "The default sort order for remote branches can be set in the config file with the key 'git.remoteBranchSortOrder'.",
 		SortAlphabetical:                         "Alphabetical",
 		SortByDate:                               "Date",
 		SortByRecency:                            "Recency",

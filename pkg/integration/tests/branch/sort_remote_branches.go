@@ -41,7 +41,7 @@ var SortRemoteBranches = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Branches.SortOrder)
 
 		t.ExpectPopup().Menu().Title(Equals("Sort order")).
-			Lines(
+			ContainsLines(
 				Contains("a ( ) Alphabetical").IsSelected(),
 				Contains("d (•) Date"),
 				Contains("      Cancel"),

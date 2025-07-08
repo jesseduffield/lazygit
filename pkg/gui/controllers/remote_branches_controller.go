@@ -145,14 +145,17 @@ func (self *RemoteBranchesController) rebase(selectedBranch *models.RemoteBranch
 }
 
 func (self *RemoteBranchesController) createSortMenu() error {
-	return self.c.Helpers().Refs.CreateSortOrderMenu([]string{"alphabetical", "date"}, func(sortOrder string) error {
-		if self.c.UserConfig().Git.RemoteBranchSortOrder != sortOrder {
-			self.c.UserConfig().Git.RemoteBranchSortOrder = sortOrder
-			self.c.Contexts().RemoteBranches.SetSelection(0)
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.REMOTES}})
-		}
-		return nil
-	},
+	return self.c.Helpers().Refs.CreateSortOrderMenu(
+		[]string{"alphabetical", "date"},
+		self.c.Tr.SortOrderPromptRemoteBranches,
+		func(sortOrder string) error {
+			if self.c.UserConfig().Git.RemoteBranchSortOrder != sortOrder {
+				self.c.UserConfig().Git.RemoteBranchSortOrder = sortOrder
+				self.c.Contexts().RemoteBranches.SetSelection(0)
+				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.REMOTES}})
+			}
+			return nil
+		},
 		self.c.UserConfig().Git.RemoteBranchSortOrder)
 }
 
