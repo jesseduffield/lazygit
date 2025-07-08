@@ -83,6 +83,35 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			},
 		},
 		{
+			name: "Git.Log.Order",
+			setup: func(config *UserConfig, value string) {
+				config.Git.Log.Order = value
+			},
+			testCases: []testCase{
+				{value: "date-order", valid: true},
+				{value: "author-date-order", valid: true},
+				{value: "topo-order", valid: true},
+				{value: "default", valid: true},
+
+				{value: "", valid: false},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
+			name: "Git.Log.ShowGraph",
+			setup: func(config *UserConfig, value string) {
+				config.Git.Log.ShowGraph = value
+			},
+			testCases: []testCase{
+				{value: "always", valid: true},
+				{value: "never", valid: true},
+				{value: "when-maximised", valid: true},
+
+				{value: "", valid: false},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
 			name: "Keybindings",
 			setup: func(config *UserConfig, value string) {
 				config.Keybinding.Universal.Quit = value
