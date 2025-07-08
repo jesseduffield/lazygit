@@ -21,7 +21,6 @@ type TranslationSet struct {
 	EasterEgg                             string
 	UnstagedChanges                       string
 	StagedChanges                         string
-	MainTitle                             string
 	StagingTitle                          string
 	MergingTitle                          string
 	SquashMergeUncommittedTitle           string
@@ -55,7 +54,6 @@ type TranslationSet struct {
 	HunksWithOnlyAddedLinesWarning        string
 	StatusTitle                           string
 	GlobalTitle                           string
-	Menu                                  string
 	Execute                               string
 	Stage                                 string
 	StageTooltip                          string
@@ -72,7 +70,6 @@ type TranslationSet struct {
 	Pull                                  string
 	PushTooltip                           string
 	PullTooltip                           string
-	Scroll                                string
 	FileFilter                            string
 	CopyToClipboardMenu                   string
 	CopyFileName                          string
@@ -127,7 +124,6 @@ type TranslationSet struct {
 	DeleteBranchesTitle                   string
 	DeleteLocalBranch                     string
 	DeleteLocalBranches                   string
-	DeleteRemoteBranchOption              string
 	DeleteRemoteBranchPrompt              string
 	DeleteRemoteBranchesPrompt            string
 	DeleteLocalAndRemoteBranchPrompt      string
@@ -175,12 +171,9 @@ type TranslationSet struct {
 	SureFixupThisCommit                   string
 	SureSquashThisCommit                  string
 	Squash                                string
-	SquashMerge                           string
 	PickCommitTooltip                     string
 	Pick                                  string
-	CantPickDisabledReason                string
 	Edit                                  string
-	RevertCommit                          string
 	Revert                                string
 	RevertCommitTooltip                   string
 	Reword                                string
@@ -205,7 +198,6 @@ type TranslationSet struct {
 	SetAuthorPromptTitle                  string
 	AddCoAuthorPromptTitle                string
 	AddCoAuthorTooltip                    string
-	SureResetCommitAuthor                 string
 	RewordCommitEditor                    string
 	NoCommitsThisBranch                   string
 	UpdateRefHere                         string
@@ -293,7 +285,6 @@ type TranslationSet struct {
 	DisabledInFlatView                    string
 	FileEnter                             string
 	FileEnterTooltip                      string
-	FileStagingRequirements               string
 	StageSelectionTooltip                 string
 	DiscardSelection                      string
 	DiscardSelectionTooltip               string
@@ -359,7 +350,6 @@ type TranslationSet struct {
 	FwdCommitsToPush                      string
 	PullRequestNoUpstream                 string
 	ErrorOccurred                         string
-	NoRoom                                string
 	ConflictLabel                         string
 	PendingRebaseTodosSectionHeader       string
 	PendingCherryPicksSectionHeader       string
@@ -373,16 +363,12 @@ type TranslationSet struct {
 	DroppingMergeRequiresSingleSelection  string
 	CherryPickCopy                        string
 	CherryPickCopyTooltip                 string
-	CherryPickCopyRangeTooltip            string
 	PasteCommits                          string
 	SureCherryPick                        string
 	CherryPick                            string
 	CannotCherryPickNonCommit             string
-	CannotCherryPickMergeCommit           string
 	Donate                                string
 	AskQuestion                           string
-	PrevLine                              string
-	NextLine                              string
 	PrevHunk                              string
 	NextHunk                              string
 	PrevConflict                          string
@@ -431,7 +417,6 @@ type TranslationSet struct {
 	CommitFilesDynamicTitle               string
 	RemoteBranchesDynamicTitle            string
 	ViewItemFiles                         string
-	ViewItemFilesTooltip                  string
 	CommitFilesTitle                      string
 	CheckoutCommitFileTooltip             string
 	CanOnlyDiscardFromLocalCommits        string
@@ -508,8 +493,6 @@ type TranslationSet struct {
 	StashOptions                          string
 	NotARepository                        string
 	WorkingDirectoryDoesNotExist          string
-	Jump                                  string
-	ScrollLeftRight                       string
 	ScrollLeft                            string
 	ScrollRight                           string
 	DiscardPatch                          string
@@ -530,7 +513,6 @@ type TranslationSet struct {
 	ExitFocusedMainView                   string
 	EnterUpstream                         string
 	InvalidUpstream                       string
-	ReturnToRemotesList                   string
 	NewRemote                             string
 	NewRemoteName                         string
 	NewRemoteUrl                          string
@@ -564,7 +546,6 @@ type TranslationSet struct {
 	EditRemoteTooltip                     string
 	TagCommit                             string
 	TagCommitTooltip                      string
-	TagMenuTitle                          string
 	TagNameTitle                          string
 	TagMessageTitle                       string
 	LightweightTag                        string
@@ -586,11 +567,8 @@ type TranslationSet struct {
 	ForceTag                              string
 	ForceTagPrompt                        string
 	FetchRemoteTooltip                    string
-	FetchingRemoteStatus                  string
-	CheckoutCommit                        string
 	CheckoutCommitTooltip                 string
 	NoBranchesFoundAtCommitTooltip        string
-	SureCheckoutThisCommit                string
 	GitFlowOptions                        string
 	NotAGitFlowBranch                     string
 	NewBranchNamePrompt                   string
@@ -603,7 +581,6 @@ type TranslationSet struct {
 	PrevScreenMode                        string
 	StartSearch                           string
 	StartFilter                           string
-	Panel                                 string
 	Keybindings                           string
 	KeybindingsLegend                     string
 	KeybindingsMenuSectionLocal           string
@@ -611,7 +588,6 @@ type TranslationSet struct {
 	KeybindingsMenuSectionNavigation      string
 	RenameBranch                          string
 	Upstream                              string
-	UpstreamTooltip                       string
 	BranchUpstreamOptionsTitle            string
 	ViewBranchUpstreamOptions             string
 	ViewBranchUpstreamOptionsTooltip      string
@@ -662,7 +638,6 @@ type TranslationSet struct {
 	CopyCommitHashToClipboard             string
 	CommitHash                            string
 	CommitURL                             string
-	CopyCommitMessageToClipboard          string
 	PasteCommitMessageFromClipboard       string
 	SurePasteCommitMessage                string
 	CommitMessage                         string
@@ -727,7 +702,6 @@ type TranslationSet struct {
 	SuggestionsTitle                         string
 	SuggestionsSubtitle                      string
 	ExtrasTitle                              string
-	PushingTagStatus                         string
 	PullRequestURLCopiedToClipboard          string
 	CommitDiffCopiedToClipboard              string
 	CommitURLCopiedToClipboard               string
@@ -925,11 +899,7 @@ type Bisect struct {
 
 type Log struct {
 	EditRebase               string
-	MoveCommitUp             string
-	MoveCommitDown           string
-	CherryPickCommits        string
 	HandleUndo               string
-	HandleMidRebaseCommand   string
 	RemoveFile               string
 	CopyToClipboard          string
 	Remove                   string
@@ -939,128 +909,122 @@ type Log struct {
 }
 
 type Actions struct {
-	CheckoutCommit                    string
-	CheckoutBranchAtCommit            string
-	CheckoutCommitAsDetachedHead      string
-	CheckoutTag                       string
-	CheckoutBranch                    string
-	CheckoutBranchOrCommit            string
-	ForceCheckoutBranch               string
-	DeleteLocalBranch                 string
-	Merge                             string
-	SquashMerge                       string
-	RebaseBranch                      string
-	RenameBranch                      string
-	CreateBranch                      string
-	FastForwardBranch                 string
-	AutoForwardBranches               string
-	CherryPick                        string
-	CheckoutFile                      string
-	DiscardOldFileChange              string
-	SquashCommitDown                  string
-	FixupCommit                       string
-	RewordCommit                      string
-	DropCommit                        string
-	EditCommit                        string
-	AmendCommit                       string
-	ResetCommitAuthor                 string
-	SetCommitAuthor                   string
-	AddCommitCoAuthor                 string
-	RevertCommit                      string
-	CreateFixupCommit                 string
-	SquashAllAboveFixupCommits        string
-	MoveCommitUp                      string
-	MoveCommitDown                    string
-	CopyCommitMessageToClipboard      string
-	CopyCommitMessageBodyToClipboard  string
-	CopyCommitSubjectToClipboard      string
-	CopyCommitDiffToClipboard         string
-	CopyCommitHashToClipboard         string
-	CopyCommitURLToClipboard          string
-	CopyCommitAuthorToClipboard       string
-	CopyCommitAttributeToClipboard    string
-	CopyCommitTagsToClipboard         string
-	CopyPatchToClipboard              string
-	CustomCommand                     string
-	DiscardAllChangesInDirectory      string
-	DiscardUnstagedChangesInDirectory string
-	DiscardAllChangesInFile           string
-	DiscardAllUnstagedChangesInFile   string
-	StageFile                         string
-	StageResolvedFiles                string
-	UnstageFile                       string
-	UnstageAllFiles                   string
-	StageAllFiles                     string
-	ResolveConflictByKeepingFile      string
-	ResolveConflictByDeletingFile     string
-	NotEnoughContextToStage           string
-	NotEnoughContextToDiscard         string
-	NotEnoughContextForCustomPatch    string
-	IgnoreExcludeFile                 string
-	IgnoreFileErr                     string
-	ExcludeFile                       string
-	ExcludeGitIgnoreErr               string
-	Commit                            string
-	EditFile                          string
-	Push                              string
-	Pull                              string
-	OpenFile                          string
-	StashAllChanges                   string
-	StashAllChangesKeepIndex          string
-	StashStagedChanges                string
-	StashUnstagedChanges              string
-	StashIncludeUntrackedChanges      string
-	GitFlowFinish                     string
-	GitFlowStart                      string
-	CopyToClipboard                   string
-	CopySelectedTextToClipboard       string
-	RemovePatchFromCommit             string
-	MovePatchToSelectedCommit         string
-	MovePatchIntoIndex                string
-	MovePatchIntoNewCommit            string
-	DeleteRemoteBranch                string
-	SetBranchUpstream                 string
-	AddRemote                         string
-	RemoveRemote                      string
-	UpdateRemote                      string
-	ApplyPatch                        string
-	Stash                             string
-	RenameStash                       string
-	RemoveSubmodule                   string
-	ResetSubmodule                    string
-	AddSubmodule                      string
-	UpdateSubmoduleUrl                string
-	InitialiseSubmodule               string
-	BulkInitialiseSubmodules          string
-	BulkUpdateSubmodules              string
-	BulkDeinitialiseSubmodules        string
-	BulkUpdateRecursiveSubmodules     string
-	UpdateSubmodule                   string
-	CreateLightweightTag              string
-	CreateAnnotatedTag                string
-	DeleteLocalTag                    string
-	DeleteRemoteTag                   string
-	PushTag                           string
-	NukeWorkingTree                   string
-	DiscardUnstagedFileChanges        string
-	RemoveUntrackedFiles              string
-	RemoveStagedFiles                 string
-	SoftReset                         string
-	MixedReset                        string
-	HardReset                         string
-	Undo                              string
-	Redo                              string
-	CopyPullRequestURL                string
-	OpenDiffTool                      string
-	OpenMergeTool                     string
-	OpenCommitInBrowser               string
-	OpenPullRequest                   string
-	StartBisect                       string
-	ResetBisect                       string
-	BisectSkip                        string
-	BisectMark                        string
-	RemoveWorktree                    string
-	AddWorktree                       string
+	CheckoutCommit                   string
+	CheckoutBranchAtCommit           string
+	CheckoutCommitAsDetachedHead     string
+	CheckoutTag                      string
+	CheckoutBranch                   string
+	CheckoutBranchOrCommit           string
+	ForceCheckoutBranch              string
+	DeleteLocalBranch                string
+	Merge                            string
+	SquashMerge                      string
+	RebaseBranch                     string
+	RenameBranch                     string
+	CreateBranch                     string
+	FastForwardBranch                string
+	AutoForwardBranches              string
+	CherryPick                       string
+	CheckoutFile                     string
+	SquashCommitDown                 string
+	FixupCommit                      string
+	RewordCommit                     string
+	DropCommit                       string
+	EditCommit                       string
+	AmendCommit                      string
+	ResetCommitAuthor                string
+	SetCommitAuthor                  string
+	AddCommitCoAuthor                string
+	RevertCommit                     string
+	CreateFixupCommit                string
+	SquashAllAboveFixupCommits       string
+	MoveCommitUp                     string
+	MoveCommitDown                   string
+	CopyCommitMessageToClipboard     string
+	CopyCommitMessageBodyToClipboard string
+	CopyCommitSubjectToClipboard     string
+	CopyCommitDiffToClipboard        string
+	CopyCommitHashToClipboard        string
+	CopyCommitURLToClipboard         string
+	CopyCommitAuthorToClipboard      string
+	CopyCommitAttributeToClipboard   string
+	CopyCommitTagsToClipboard        string
+	CopyPatchToClipboard             string
+	CustomCommand                    string
+	DiscardAllChangesInFile          string
+	DiscardAllUnstagedChangesInFile  string
+	StageFile                        string
+	StageResolvedFiles               string
+	UnstageFile                      string
+	UnstageAllFiles                  string
+	StageAllFiles                    string
+	ResolveConflictByKeepingFile     string
+	ResolveConflictByDeletingFile    string
+	NotEnoughContextToStage          string
+	NotEnoughContextToDiscard        string
+	NotEnoughContextForCustomPatch   string
+	IgnoreExcludeFile                string
+	IgnoreFileErr                    string
+	ExcludeFile                      string
+	ExcludeGitIgnoreErr              string
+	Commit                           string
+	Push                             string
+	Pull                             string
+	OpenFile                         string
+	StashAllChanges                  string
+	StashAllChangesKeepIndex         string
+	StashStagedChanges               string
+	StashUnstagedChanges             string
+	StashIncludeUntrackedChanges     string
+	GitFlowFinish                    string
+	GitFlowStart                     string
+	CopyToClipboard                  string
+	CopySelectedTextToClipboard      string
+	RemovePatchFromCommit            string
+	MovePatchToSelectedCommit        string
+	MovePatchIntoIndex               string
+	MovePatchIntoNewCommit           string
+	DeleteRemoteBranch               string
+	SetBranchUpstream                string
+	AddRemote                        string
+	RemoveRemote                     string
+	UpdateRemote                     string
+	ApplyPatch                       string
+	Stash                            string
+	RenameStash                      string
+	RemoveSubmodule                  string
+	ResetSubmodule                   string
+	AddSubmodule                     string
+	UpdateSubmoduleUrl               string
+	InitialiseSubmodule              string
+	BulkInitialiseSubmodules         string
+	BulkUpdateSubmodules             string
+	BulkDeinitialiseSubmodules       string
+	BulkUpdateRecursiveSubmodules    string
+	UpdateSubmodule                  string
+	CreateLightweightTag             string
+	CreateAnnotatedTag               string
+	DeleteLocalTag                   string
+	DeleteRemoteTag                  string
+	PushTag                          string
+	NukeWorkingTree                  string
+	DiscardUnstagedFileChanges       string
+	RemoveUntrackedFiles             string
+	RemoveStagedFiles                string
+	SoftReset                        string
+	MixedReset                       string
+	HardReset                        string
+	Undo                             string
+	Redo                             string
+	CopyPullRequestURL               string
+	OpenMergeTool                    string
+	OpenCommitInBrowser              string
+	OpenPullRequest                  string
+	StartBisect                      string
+	ResetBisect                      string
+	BisectSkip                       string
+	BisectMark                       string
+	AddWorktree                      string
 }
 
 const englishIntroPopupMessage = `
@@ -1114,7 +1078,6 @@ func EnglishTranslationSet() *TranslationSet {
 		EasterEgg:                            "Easter egg",
 		UnstagedChanges:                      "Unstaged changes",
 		StagedChanges:                        "Staged changes",
-		MainTitle:                            "Main",
 		SquashMergeUncommittedTitle:          "Squash merge and leave uncommitted",
 		SquashMergeCommittedTitle:            "Squash merge and commit",
 		StagingTitle:                         "Main panel (staging)",
@@ -1144,7 +1107,6 @@ func EnglishTranslationSet() *TranslationSet {
 		BaseCommitIsNotInCurrentView:         "Base commit is not in current view",
 		HunksWithOnlyAddedLinesWarning:       "There are ranges of only added lines in the diff; be careful to check that these belong in the found base commit.\n\nProceed?",
 		StatusTitle:                          "Status",
-		Menu:                                 "Menu",
 		Execute:                              "Execute",
 		Stage:                                "Stage",
 		StageTooltip:                         "Toggle staged for selected file.",
@@ -1161,7 +1123,6 @@ func EnglishTranslationSet() *TranslationSet {
 		PushTooltip:                          "Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch.",
 		Pull:                                 "Pull",
 		PullTooltip:                          "Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch.",
-		Scroll:                               "Scroll",
 		MergeConflictsTitle:                  "Merge conflicts",
 		MergeConflictDescription_DD:          "Conflict: this file was moved or renamed both in the current and the incoming changes, but to different destinations. I don't know which ones, but they should both show up as conflicts too (marked 'AU' and 'UA', respectively). The most likely resolution is to delete this file, and pick one of the destinations and delete the other.",
 		MergeConflictDescription_AU:          "Conflict: this file is the destination of a move or rename in the current changes, but was moved or renamed to a different destination in the incoming changes. That other destination should also show up as a conflict (marked 'UA'), as well as the file that both were renamed from (marked 'DD').",
@@ -1216,7 +1177,6 @@ func EnglishTranslationSet() *TranslationSet {
 		DeleteBranchesTitle:                  "Delete selected branches?",
 		DeleteLocalBranch:                    "Delete local branch",
 		DeleteLocalBranches:                  "Delete local branches",
-		DeleteRemoteBranchOption:             "Delete remote branch",
 		DeleteRemoteBranchPrompt:             "Are you sure you want to delete the remote branch '{{.selectedBranchName}}' from '{{.upstream}}'?",
 		DeleteRemoteBranchesPrompt:           "Are you sure you want to delete the remote branches of the selected branches from their respective remotes?",
 		DeleteLocalAndRemoteBranchPrompt:     "Are you sure you want to delete both '{{.localBranchName}}' from your machine, and '{{.remoteBranchName}}' from '{{.remoteName}}'?",
@@ -1266,12 +1226,9 @@ func EnglishTranslationSet() *TranslationSet {
 		SureFixupThisCommit:                  "Are you sure you want to 'fixup' the selected commit(s) into the commit below?",
 		SureSquashThisCommit:                 "Are you sure you want to squash the selected commit(s) into the commit below?",
 		Squash:                               "Squash",
-		SquashMerge:                          "Squash Merge",
 		PickCommitTooltip:                    "Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase.",
 		Pick:                                 "Pick",
-		CantPickDisabledReason:               "Cannot pick a commit when not mid-rebase",
 		Edit:                                 "Edit",
-		RevertCommit:                         "Revert commit",
 		Revert:                               "Revert",
 		RevertCommitTooltip:                  "Create a revert commit for the selected commit, which applies the selected commit's changes in reverse.",
 		Reword:                               "Reword",
@@ -1296,7 +1253,6 @@ func EnglishTranslationSet() *TranslationSet {
 		SetAuthorPromptTitle:                 "Set author (must look like 'Name <Email>')",
 		AddCoAuthorPromptTitle:               "Add co-author (must look like 'Name <Email>')",
 		AddCoAuthorTooltip:                   "Add co-author using the Github/Gitlab metadata Co-authored-by.",
-		SureResetCommitAuthor:                "The author field of this commit will be updated to match the configured user. This also renews the author timestamp. Continue?",
 		RewordCommitEditor:                   "Reword with editor",
 		Error:                                "Error",
 		PickHunk:                             "Pick hunk",
@@ -1384,7 +1340,6 @@ func EnglishTranslationSet() *TranslationSet {
 		DisabledInFlatView:                   "Not available in flat view",
 		FileEnter:                            `Stage lines / Collapse directory`,
 		FileEnterTooltip:                     "If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it.",
-		FileStagingRequirements:              `Can only stage individual lines for tracked files`,
 		StageSelectionTooltip:                `Toggle selection staged / unstaged.`,
 		DiscardSelection:                     `Discard`,
 		DiscardSelectionTooltip:              "When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change.",
@@ -1457,7 +1412,6 @@ func EnglishTranslationSet() *TranslationSet {
 		FwdCommitsToPush:                     "Cannot fast-forward a branch with commits to push",
 		PullRequestNoUpstream:                "Cannot open a pull request for a branch with no upstream",
 		ErrorOccurred:                        "An error occurred! Please create an issue at",
-		NoRoom:                               "Not enough room",
 		ConflictLabel:                        "CONFLICT",
 		PendingRebaseTodosSectionHeader:      "Pending rebase todos",
 		PendingCherryPicksSectionHeader:      "Pending cherry-picks",
@@ -1471,16 +1425,12 @@ func EnglishTranslationSet() *TranslationSet {
 		DroppingMergeRequiresSingleSelection: "Dropping a merge commit requires a single selected item",
 		CherryPickCopy:                       "Copy (cherry-pick)",
 		CherryPickCopyTooltip:                "Mark commit as copied. Then, within the local commits view, you can press `{{.paste}}` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `{{.escape}}` to cancel the selection.",
-		CherryPickCopyRangeTooltip:           "Mark commits as copied from the last copied commit to the selected commit.",
 		PasteCommits:                         "Paste (cherry-pick)",
 		SureCherryPick:                       "Are you sure you want to cherry-pick the {{.numCommits}} copied commit(s) onto this branch?",
 		CherryPick:                           "Cherry-pick",
 		CannotCherryPickNonCommit:            "Cannot cherry-pick this kind of todo item",
-		CannotCherryPickMergeCommit:          "Cherry-picking merge commits is not supported",
 		Donate:                               "Donate",
 		AskQuestion:                          "Ask Question",
-		PrevLine:                             "Select previous line",
-		NextLine:                             "Select next line",
 		PrevHunk:                             "Go to previous hunk",
 		NextHunk:                             "Go to next hunk",
 		PrevConflict:                         "Previous conflict",
@@ -1529,7 +1479,6 @@ func EnglishTranslationSet() *TranslationSet {
 		CommitFilesDynamicTitle:              "Diff files (%s)",
 		RemoteBranchesDynamicTitle:           "Remote branches (%s)",
 		ViewItemFiles:                        "View files",
-		ViewItemFilesTooltip:                 "View the files modified by the selected item.",
 		CommitFilesTitle:                     "Commit files",
 		CheckoutCommitFileTooltip:            "Checkout file. This replaces the file in your working tree with the version from the selected commit.",
 		CanOnlyDiscardFromLocalCommits:       "Changes can only be discarded from local commits",
@@ -1607,8 +1556,6 @@ func EnglishTranslationSet() *TranslationSet {
 		StashOptions:                         "Stash options",
 		NotARepository:                       "Error: must be run inside a git repository",
 		WorkingDirectoryDoesNotExist:         "Error: the current working directory does not exist",
-		Jump:                                 "Jump to panel",
-		ScrollLeftRight:                      "Scroll left/right",
 		ScrollLeft:                           "Scroll left",
 		ScrollRight:                          "Scroll right",
 		DiscardPatch:                         "Discard patch",
@@ -1629,7 +1576,6 @@ func EnglishTranslationSet() *TranslationSet {
 		ExitFocusedMainView:                  "Exit back to side panel",
 		EnterUpstream:                        `Enter upstream as '<remote> <branchname>'`,
 		InvalidUpstream:                      "Invalid upstream. Must be in the format '<remote> <branchname>'",
-		ReturnToRemotesList:                  `Return to remotes list`,
 		NewRemote:                            `New remote`,
 		NewRemoteName:                        `New remote name:`,
 		NewRemoteUrl:                         `New remote url:`,
@@ -1663,7 +1609,6 @@ func EnglishTranslationSet() *TranslationSet {
 		EditRemoteTooltip:                    "Edit the selected remote's name or URL.",
 		TagCommit:                            "Tag commit",
 		TagCommitTooltip:                     "Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description.",
-		TagMenuTitle:                         "Create tag",
 		TagNameTitle:                         "Tag name",
 		TagMessageTitle:                      "Tag description",
 		AnnotatedTag:                         "Annotated tag",
@@ -1686,11 +1631,8 @@ func EnglishTranslationSet() *TranslationSet {
 		ForceTag:                       "Force Tag",
 		ForceTagPrompt:                 "The tag '{{.tagName}}' exists already. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to overwrite.",
 		FetchRemoteTooltip:             "Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches.",
-		FetchingRemoteStatus:           "Fetching remote",
-		CheckoutCommit:                 "Checkout commit",
 		CheckoutCommitTooltip:          "Checkout the selected commit as a detached HEAD.",
 		NoBranchesFoundAtCommitTooltip: "No branches found at selected commit.",
-		SureCheckoutThisCommit:         "Are you sure you want to checkout this commit?",
 		GitFlowOptions:                 "Show git-flow options",
 		NotAGitFlowBranch:              "This does not seem to be a git flow branch",
 		NewGitFlowBranchPrompt:         "New {{.branchType}} name:",
@@ -1704,7 +1646,6 @@ func EnglishTranslationSet() *TranslationSet {
 		PrevScreenMode:                   "Prev screen mode",
 		StartSearch:                      "Search the current view by text",
 		StartFilter:                      "Filter the current view by text",
-		Panel:                            "Panel",
 		KeybindingsLegend:                "Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b",
 		RenameBranch:                     "Rename branch",
 		BranchUpstreamOptionsTitle:       "Upstream options",
@@ -1713,7 +1654,6 @@ func EnglishTranslationSet() *TranslationSet {
 		UpstreamNotSetError:              "The selected branch has no upstream (or the upstream is not stored locally)",
 		UpstreamsNotSetError:             "Some of the selected branches have no upstream (or the upstream is not stored locally)",
 		Upstream:                         "Upstream",
-		UpstreamTooltip:                  "View upstream options for selected branch e.g. setting/unsetting the upstream and resetting to the upstream.",
 		NewBranchNamePrompt:              "Enter new branch name for branch",
 		RenameBranchWarning:              "This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?",
 		OpenKeybindingsMenu:              "Open keybindings menu",
@@ -1760,7 +1700,6 @@ func EnglishTranslationSet() *TranslationSet {
 		CopyCommitHashToClipboard:                "Copy commit hash to clipboard",
 		CommitHash:                               "Commit hash",
 		CommitURL:                                "Commit URL",
-		CopyCommitMessageToClipboard:             "Copy commit message to clipboard",
 		PasteCommitMessageFromClipboard:          "Paste commit message from clipboard",
 		SurePasteCommitMessage:                   "Pasting will overwrite the current commit message, continue?",
 		CommitMessage:                            "Commit message (subject and body)",
@@ -1824,7 +1763,6 @@ func EnglishTranslationSet() *TranslationSet {
 		SuggestionsTitle:                         "Suggestions (press %s to focus)",
 		SuggestionsSubtitle:                      "(press %s to delete, %s to edit)",
 		ExtrasTitle:                              "Command log",
-		PushingTagStatus:                         "Pushing tag",
 		PullRequestURLCopiedToClipboard:          "Pull request URL copied to clipboard",
 		CommitDiffCopiedToClipboard:              "Commit diff copied to clipboard",
 		CommitURLCopiedToClipboard:               "Commit URL copied to clipboard",
@@ -2010,7 +1948,6 @@ func EnglishTranslationSet() *TranslationSet {
 			CreateBranch:                     "Create branch",
 			CherryPick:                       "(Cherry-pick) paste commits",
 			CheckoutFile:                     "Checkout file",
-			DiscardOldFileChange:             "Discard old file change",
 			SquashCommitDown:                 "Squash commit down",
 			FixupCommit:                      "Fixup commit",
 			RewordCommit:                     "Reword commit",
@@ -2038,88 +1975,80 @@ func EnglishTranslationSet() *TranslationSet {
 			MoveCommitUp:                     "Move commit up",
 			MoveCommitDown:                   "Move commit down",
 			CustomCommand:                    "Custom command",
-
-			// TODO: remove
-			DiscardAllChangesInDirectory:      "Discard all changes in directory",
-			DiscardUnstagedChangesInDirectory: "Discard unstaged changes in directory",
-
-			DiscardAllChangesInFile:         "Discard all changes in selected file(s)",
-			DiscardAllUnstagedChangesInFile: "Discard all unstaged changes selected file(s)",
-			StageFile:                       "Stage file",
-			StageResolvedFiles:              "Stage files whose merge conflicts were resolved",
-			UnstageFile:                     "Unstage file",
-			UnstageAllFiles:                 "Unstage all files",
-			StageAllFiles:                   "Stage all files",
-			ResolveConflictByKeepingFile:    "Resolve by keeping file",
-			ResolveConflictByDeletingFile:   "Resolve by deleting file",
-			NotEnoughContextToStage:         "Staging or unstaging changes is not possible with a diff context size of 0. Increase the context using '%s'.",
-			NotEnoughContextToDiscard:       "Discarding changes is not possible with a diff context size of 0. Increase the context using '%s'.",
-			NotEnoughContextForCustomPatch:  "Creating custom patches is not possible with a diff context size of 0. Increase the context using '%s'.",
-			IgnoreExcludeFile:               "Ignore or exclude file",
-			IgnoreFileErr:                   "Cannot ignore .gitignore",
-			ExcludeFile:                     "Exclude file",
-			ExcludeGitIgnoreErr:             "Cannot exclude .gitignore",
-			Commit:                          "Commit",
-			EditFile:                        "Edit file",
-			Push:                            "Push",
-			Pull:                            "Pull",
-			OpenFile:                        "Open file",
-			StashAllChanges:                 "Stash all changes",
-			StashAllChangesKeepIndex:        "Stash all changes and keep index",
-			StashStagedChanges:              "Stash staged changes",
-			StashUnstagedChanges:            "Stash unstaged changes",
-			StashIncludeUntrackedChanges:    "Stash all changes including untracked files",
-			GitFlowFinish:                   "git flow finish",
-			GitFlowStart:                    "git flow start",
-			CopyToClipboard:                 "Copy to clipboard",
-			CopySelectedTextToClipboard:     "Copy selected text to clipboard",
-			RemovePatchFromCommit:           "Remove patch from commit",
-			MovePatchToSelectedCommit:       "Move patch to selected commit",
-			MovePatchIntoIndex:              "Move patch into index",
-			MovePatchIntoNewCommit:          "Move patch into new commit",
-			DeleteRemoteBranch:              "Delete remote branch",
-			SetBranchUpstream:               "Set branch upstream",
-			AddRemote:                       "Add remote",
-			RemoveRemote:                    "Remove remote",
-			UpdateRemote:                    "Update remote",
-			ApplyPatch:                      "Apply patch",
-			Stash:                           "Stash",
-			RenameStash:                     "Rename stash",
-			RemoveSubmodule:                 "Remove submodule",
-			ResetSubmodule:                  "Reset submodule",
-			AddSubmodule:                    "Add submodule",
-			UpdateSubmoduleUrl:              "Update submodule URL",
-			InitialiseSubmodule:             "Initialise submodule",
-			BulkInitialiseSubmodules:        "Bulk initialise submodules",
-			BulkUpdateSubmodules:            "Bulk update submodules",
-			BulkDeinitialiseSubmodules:      "Bulk deinitialise submodules",
-			BulkUpdateRecursiveSubmodules:   "Bulk initialise and update submodules recursively",
-			UpdateSubmodule:                 "Update submodule",
-			DeleteLocalTag:                  "Delete local tag",
-			DeleteRemoteTag:                 "Delete remote tag",
-			PushTag:                         "Push tag",
-			NukeWorkingTree:                 "Nuke working tree",
-			DiscardUnstagedFileChanges:      "Discard unstaged file changes",
-			RemoveUntrackedFiles:            "Remove untracked files",
-			RemoveStagedFiles:               "Remove staged files",
-			SoftReset:                       "Soft reset",
-			MixedReset:                      "Mixed reset",
-			HardReset:                       "Hard reset",
-			FastForwardBranch:               "Fast forward branch",
-			AutoForwardBranches:             "Auto-forward branches",
-			Undo:                            "Undo",
-			Redo:                            "Redo",
-			CopyPullRequestURL:              "Copy pull request URL",
-			OpenDiffTool:                    "Open diff tool",
-			OpenMergeTool:                   "Open merge tool",
-			OpenCommitInBrowser:             "Open commit in browser",
-			OpenPullRequest:                 "Open pull request in browser",
-			StartBisect:                     "Start bisect",
-			ResetBisect:                     "Reset bisect",
-			BisectSkip:                      "Bisect skip",
-			BisectMark:                      "Bisect mark",
-			RemoveWorktree:                  "Remove worktree",
-			AddWorktree:                     "Add worktree",
+			DiscardAllChangesInFile:          "Discard all changes in selected file(s)",
+			DiscardAllUnstagedChangesInFile:  "Discard all unstaged changes selected file(s)",
+			StageFile:                        "Stage file",
+			StageResolvedFiles:               "Stage files whose merge conflicts were resolved",
+			UnstageFile:                      "Unstage file",
+			UnstageAllFiles:                  "Unstage all files",
+			StageAllFiles:                    "Stage all files",
+			ResolveConflictByKeepingFile:     "Resolve by keeping file",
+			ResolveConflictByDeletingFile:    "Resolve by deleting file",
+			NotEnoughContextToStage:          "Staging or unstaging changes is not possible with a diff context size of 0. Increase the context using '%s'.",
+			NotEnoughContextToDiscard:        "Discarding changes is not possible with a diff context size of 0. Increase the context using '%s'.",
+			NotEnoughContextForCustomPatch:   "Creating custom patches is not possible with a diff context size of 0. Increase the context using '%s'.",
+			IgnoreExcludeFile:                "Ignore or exclude file",
+			IgnoreFileErr:                    "Cannot ignore .gitignore",
+			ExcludeFile:                      "Exclude file",
+			ExcludeGitIgnoreErr:              "Cannot exclude .gitignore",
+			Commit:                           "Commit",
+			Push:                             "Push",
+			Pull:                             "Pull",
+			OpenFile:                         "Open file",
+			StashAllChanges:                  "Stash all changes",
+			StashAllChangesKeepIndex:         "Stash all changes and keep index",
+			StashStagedChanges:               "Stash staged changes",
+			StashUnstagedChanges:             "Stash unstaged changes",
+			StashIncludeUntrackedChanges:     "Stash all changes including untracked files",
+			GitFlowFinish:                    "git flow finish",
+			GitFlowStart:                     "git flow start",
+			CopyToClipboard:                  "Copy to clipboard",
+			CopySelectedTextToClipboard:      "Copy selected text to clipboard",
+			RemovePatchFromCommit:            "Remove patch from commit",
+			MovePatchToSelectedCommit:        "Move patch to selected commit",
+			MovePatchIntoIndex:               "Move patch into index",
+			MovePatchIntoNewCommit:           "Move patch into new commit",
+			DeleteRemoteBranch:               "Delete remote branch",
+			SetBranchUpstream:                "Set branch upstream",
+			AddRemote:                        "Add remote",
+			RemoveRemote:                     "Remove remote",
+			UpdateRemote:                     "Update remote",
+			ApplyPatch:                       "Apply patch",
+			Stash:                            "Stash",
+			RenameStash:                      "Rename stash",
+			RemoveSubmodule:                  "Remove submodule",
+			ResetSubmodule:                   "Reset submodule",
+			AddSubmodule:                     "Add submodule",
+			UpdateSubmoduleUrl:               "Update submodule URL",
+			InitialiseSubmodule:              "Initialise submodule",
+			BulkInitialiseSubmodules:         "Bulk initialise submodules",
+			BulkUpdateSubmodules:             "Bulk update submodules",
+			BulkDeinitialiseSubmodules:       "Bulk deinitialise submodules",
+			BulkUpdateRecursiveSubmodules:    "Bulk initialise and update submodules recursively",
+			UpdateSubmodule:                  "Update submodule",
+			DeleteLocalTag:                   "Delete local tag",
+			DeleteRemoteTag:                  "Delete remote tag",
+			PushTag:                          "Push tag",
+			NukeWorkingTree:                  "Nuke working tree",
+			DiscardUnstagedFileChanges:       "Discard unstaged file changes",
+			RemoveUntrackedFiles:             "Remove untracked files",
+			RemoveStagedFiles:                "Remove staged files",
+			SoftReset:                        "Soft reset",
+			MixedReset:                       "Mixed reset",
+			HardReset:                        "Hard reset",
+			FastForwardBranch:                "Fast forward branch",
+			AutoForwardBranches:              "Auto-forward branches",
+			Undo:                             "Undo",
+			Redo:                             "Redo",
+			CopyPullRequestURL:               "Copy pull request URL",
+			OpenMergeTool:                    "Open merge tool",
+			OpenCommitInBrowser:              "Open commit in browser",
+			OpenPullRequest:                  "Open pull request in browser",
+			StartBisect:                      "Start bisect",
+			ResetBisect:                      "Reset bisect",
+			BisectSkip:                       "Bisect skip",
+			BisectMark:                       "Bisect mark",
+			AddWorktree:                      "Add worktree",
 		},
 		Bisect: Bisect{
 			Mark:                        "Mark current commit (%s) as %s",
@@ -2140,11 +2069,7 @@ func EnglishTranslationSet() *TranslationSet {
 		},
 		Log: Log{
 			EditRebase:               "Beginning interactive rebase at '{{.ref}}'",
-			MoveCommitUp:             "Moving TODO down: '{{.shortHash}}'",
-			MoveCommitDown:           "Moving TODO down: '{{.shortHash}}'",
-			CherryPickCommits:        "Cherry-picking commits:\n'{{.commitLines}}'",
 			HandleUndo:               "Undoing last conflict resolution",
-			HandleMidRebaseCommand:   "Updating rebase action of commit {{.shortHash}} to '{{.action}}'",
 			RemoveFile:               "Deleting path '{{.path}}'",
 			CopyToClipboard:          "Copying '{{.str}}' to clipboard",
 			Remove:                   "Removing '{{.filename}}'",
