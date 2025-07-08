@@ -256,13 +256,8 @@ func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
 		return nil
 	}
 
-	if currentMessage := self.JoinCommitMessageAndUnwrappedDescription(); currentMessage == "" {
-		self.SetMessageAndDescriptionInView(message)
-		return nil
-	}
-
-	// Confirm before overwriting the commit message
-	self.c.Confirm(types.ConfirmOpts{
+	currentMessage := self.JoinCommitMessageAndUnwrappedDescription()
+	return self.c.ConfirmIf(currentMessage != "", types.ConfirmOpts{
 		Title:  self.c.Tr.PasteCommitMessageFromClipboard,
 		Prompt: self.c.Tr.SurePasteCommitMessage,
 		HandleConfirm: func() error {
@@ -270,6 +265,4 @@ func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
 			return nil
 		},
 	})
-
-	return nil
 }

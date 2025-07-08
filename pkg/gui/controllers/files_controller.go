@@ -794,19 +794,17 @@ func (self *FilesController) handleAmendCommitPress() error {
 				},
 			},
 		})
-	} else if !self.c.UserConfig().Gui.SkipAmendWarning {
-		self.c.Confirm(types.ConfirmOpts{
+	}
+
+	return self.c.ConfirmIf(!self.c.UserConfig().Gui.SkipAmendWarning,
+		types.ConfirmOpts{
 			Title:  self.c.Tr.AmendLastCommitTitle,
 			Prompt: self.c.Tr.SureToAmend,
 			HandleConfirm: func() error {
 				return doAmend()
 			},
-		})
-
-		return nil
-	}
-
-	return doAmend()
+		},
+	)
 }
 
 func (self *FilesController) isResolvingConflicts() bool {

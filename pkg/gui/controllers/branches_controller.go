@@ -724,17 +724,11 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 	// I could do an explicit check here for whether the branch is tracking a remote branch
 	// but if we've selected it we'll already know that via Pullables and Pullables.
 	// Bit of a hack but I'm lazy.
-	if !branch.IsTrackingRemote() {
-		return promptForNewName()
-	}
-
-	self.c.Confirm(types.ConfirmOpts{
+	return self.c.ConfirmIf(branch.IsTrackingRemote(), types.ConfirmOpts{
 		Title:         self.c.Tr.RenameBranch,
 		Prompt:        self.c.Tr.RenameBranchWarning,
 		HandleConfirm: promptForNewName,
 	})
-
-	return nil
 }
 
 func (self *BranchesController) newBranch(selectedBranch *models.Branch) error {

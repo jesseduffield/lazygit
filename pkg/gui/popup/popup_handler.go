@@ -115,6 +115,20 @@ func (self *PopupHandler) Confirm(opts types.ConfirmOpts) {
 	})
 }
 
+func (self *PopupHandler) ConfirmIf(condition bool, opts types.ConfirmOpts) error {
+	if condition {
+		self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
+			Title:         opts.Title,
+			Prompt:        opts.Prompt,
+			HandleConfirm: opts.HandleConfirm,
+			HandleClose:   opts.HandleClose,
+		})
+		return nil
+	}
+
+	return opts.HandleConfirm()
+}
+
 func (self *PopupHandler) Prompt(opts types.PromptOpts) {
 	self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
 		Title:                  opts.Title,

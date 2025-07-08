@@ -248,8 +248,15 @@ func (self *RefsHelper) CreateGitResetMenu(name string, ref string) error {
 				style.FgRed.Sprintf("reset --%s %s", row.strength, name),
 			},
 			OnPress: func() error {
-				self.c.LogAction("Reset")
-				return self.ResetToRef(ref, row.strength, []string{})
+				return self.c.ConfirmIf(row.strength == "hard" && IsWorkingTreeDirty(self.c.Model().Files),
+					types.ConfirmOpts{
+						Title:  self.c.Tr.Actions.HardReset,
+						Prompt: self.c.Tr.ResetHardConfirmation,
+						HandleConfirm: func() error {
+							self.c.LogAction("Reset")
+							return self.ResetToRef(ref, row.strength, []string{})
+						},
+					})
 			},
 			Key:     row.key,
 			Tooltip: row.tooltip,

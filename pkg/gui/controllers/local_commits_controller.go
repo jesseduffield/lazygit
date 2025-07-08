@@ -435,17 +435,12 @@ func (self *LocalCommitsController) doRewordEditor() error {
 }
 
 func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
-	if self.c.UserConfig().Gui.SkipRewordInEditorWarning {
-		return self.doRewordEditor()
-	}
-
-	self.c.Confirm(types.ConfirmOpts{
-		Title:         self.c.Tr.RewordInEditorTitle,
-		Prompt:        self.c.Tr.RewordInEditorPrompt,
-		HandleConfirm: self.doRewordEditor,
-	})
-
-	return nil
+	return self.c.ConfirmIf(!self.c.UserConfig().Gui.SkipRewordInEditorWarning,
+		types.ConfirmOpts{
+			Title:         self.c.Tr.RewordInEditorTitle,
+			Prompt:        self.c.Tr.RewordInEditorPrompt,
+			HandleConfirm: self.doRewordEditor,
+		})
 }
 
 func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
@@ -749,17 +744,12 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		}
 	}
 
-	if self.c.UserConfig().Gui.SkipAmendWarning {
-		return handleCommit()
-	}
-
-	self.c.Confirm(types.ConfirmOpts{
-		Title:         self.c.Tr.AmendCommitTitle,
-		Prompt:        self.c.Tr.AmendCommitPrompt,
-		HandleConfirm: handleCommit,
-	})
-
-	return nil
+	return self.c.ConfirmIf(!self.c.UserConfig().Gui.SkipAmendWarning,
+		types.ConfirmOpts{
+			Title:         self.c.Tr.AmendCommitTitle,
+			Prompt:        self.c.Tr.AmendCommitPrompt,
+			HandleConfirm: handleCommit,
+		})
 }
 
 func (self *LocalCommitsController) canAmendRange(commits []*models.Commit, start, end int) *types.DisabledReason {
