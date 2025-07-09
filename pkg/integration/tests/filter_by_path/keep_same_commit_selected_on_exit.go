@@ -19,9 +19,9 @@ var KeepSameCommitSelectedOnExit = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains(`none of the two`).IsSelected(),
-				Contains(`only filterFile`),
-				Contains(`only otherFile`),
 				Contains(`both files`),
+				Contains(`only otherFile`),
+				Contains(`only filterFile`),
 			).Press(keys.Universal.FilteringMenu).
 			Tap(func() {
 				t.ExpectPopup().Menu().
@@ -36,16 +36,33 @@ var KeepSameCommitSelectedOnExit = NewIntegrationTest(NewIntegrationTestArgs{
 					ConfirmFirstSuggestion()
 			}).
 			Lines(
-				Contains(`only filterFile`).IsSelected(),
-				Contains(`both files`),
+				Contains(`both files`).IsSelected(),
+				Contains(`only filterFile`),
 			).
-			SelectNextItem().
+			Tap(func() {
+				t.Views().Main().
+					ContainsLines(
+						Equals("    both files"),
+						Equals("---"),
+						Equals(" filterFile | 2 +-"),
+						Equals(" 1 file changed, 1 insertion(+), 1 deletion(-)"),
+					)
+			}).
 			PressEscape().
 			Lines(
 				Contains(`none of the two`),
-				Contains(`only filterFile`),
-				Contains(`only otherFile`),
 				Contains(`both files`).IsSelected(),
+				Contains(`only otherFile`),
+				Contains(`only filterFile`),
+			)
+
+		t.Views().Main().
+			ContainsLines(
+				Equals("    both files"),
+				Equals("---"),
+				Equals(" filterFile | 2 +-"),
+				Equals(" otherFile  | 2 +-"),
+				Equals(" 2 files changed, 2 insertions(+), 2 deletions(-)"),
 			)
 	},
 })

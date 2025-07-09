@@ -124,7 +124,7 @@ func (self *FilteringMenuAction) setFiltering() error {
 
 	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}, Then: func() {
 		self.c.Contexts().LocalCommits.SetSelection(0)
-		self.c.Contexts().LocalCommits.FocusLine()
+		self.c.Contexts().LocalCommits.HandleFocus(types.OnFocusOpts{})
 	}})
 
 	return nil
