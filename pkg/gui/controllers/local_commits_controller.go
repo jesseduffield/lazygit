@@ -1215,6 +1215,42 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 				},
 			},
 			{
+				Label:     self.c.Tr.ShowTags,
+				OpensMenu: true,
+				OnPress: func() error {
+					currentValue := self.context().GetShowTags()
+					onPress := func(value string) func() error {
+						return func() error {
+							self.context().SetShowTags(value)
+							self.c.SaveAppStateAndLogError()
+							self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+							self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
+							return nil
+						}
+					}
+					return self.c.Menu(types.CreateMenuOptions{
+						Title: self.c.Tr.LogMenuTitle,
+						Items: []*types.MenuItem{
+							{
+								Label:   "always",
+								OnPress: onPress("always"),
+								Widget:  types.MakeMenuRadioButton(currentValue == "always"),
+							},
+							{
+								Label:   "never",
+								OnPress: onPress("never"),
+								Widget:  types.MakeMenuRadioButton(currentValue == "never"),
+							},
+							{
+								Label:   "when maximised",
+								OnPress: onPress("when-maximised"),
+								Widget:  types.MakeMenuRadioButton(currentValue == "when-maximised"),
+							},
+						},
+					})
+				},
+			},
+			{
 				Label:     self.c.Tr.SortCommits,
 				OpensMenu: true,
 				OnPress: func() error {

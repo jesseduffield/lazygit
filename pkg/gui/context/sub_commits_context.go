@@ -76,6 +76,7 @@ func NewSubCommitsContext(
 			startIdx,
 			endIdx,
 			shouldShowGraph(c),
+			shouldDisplayForScreenMode(c, viewModel.GetShowTags()),
 			git_commands.NewNullBisectInfo(),
 		)
 	}
@@ -147,6 +148,7 @@ type SubCommitsViewModel struct {
 
 	limitCommits    bool
 	showBranchHeads bool
+	showTags        string
 }
 
 func (self *SubCommitsViewModel) SetRef(ref types.Ref) {
@@ -171,6 +173,14 @@ func (self *SubCommitsViewModel) SetShowBranchHeads(value bool) {
 
 func (self *SubCommitsViewModel) GetShowBranchHeads() bool {
 	return self.showBranchHeads
+}
+
+func (self *SubCommitsViewModel) SetShowTags(value string) {
+	self.showTags = value
+}
+
+func (self *SubCommitsViewModel) GetShowTags() string {
+	return self.showTags
 }
 
 func (self *SubCommitsContext) CanRebase() bool {

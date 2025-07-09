@@ -701,6 +701,10 @@ git:
     # displays the whole git graph by default in the commits view (equivalent to passing the --all argument to git log)
     showWholeGraph: false
 
+    # This determines whether tags are displayed in the commits view
+    # One of 'always' | 'never' | 'when-maximised'
+    showTags: always
+
   # When copying commit hashes to the clipboard, truncate them to this
   # length. Set to 40 to disable truncation.
   truncateCopiedCommitHashesTo: 12
