@@ -691,6 +691,8 @@ type AppState struct {
 	// This determines whether the git graph is rendered in the commits panel
 	// One of 'always' | 'never' | 'when-maximised'
 	GitLogShowGraph string
+
+	ShowFullDiffInFilterByPathMode bool
 }
 
 func getDefaultAppState() *AppState {
