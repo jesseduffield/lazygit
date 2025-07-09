@@ -8,7 +8,6 @@ import (
 var NegativeRefspec = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Having a config with a negative refspec",
 	ExtraCmdArgs: []string{},
-	GitVersion:   AtLeast("2.29.0"),
 	SetupRepo: func(shell *Shell) {
 		shell.
 			SetConfig("remote.origin.fetch", "^refs/heads/test").

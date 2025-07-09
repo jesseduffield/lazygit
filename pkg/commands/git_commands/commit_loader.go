@@ -249,8 +249,7 @@ func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line
 }
 
 func (self *CommitLoader) getHydratedRebasingCommits(hashPool *utils.StringPool, addConflictingCommit bool) ([]*models.Commit, error) {
-	todoFileHasShortHashes := self.version.IsOlderThan(2, 25, 2)
-	return self.getHydratedTodoCommits(hashPool, self.getRebasingCommits(hashPool, addConflictingCommit), todoFileHasShortHashes)
+	return self.getHydratedTodoCommits(hashPool, self.getRebasingCommits(hashPool, addConflictingCommit), false)
 }
 
 func (self *CommitLoader) getHydratedSequencerCommits(hashPool *utils.StringPool, workingTreeState models.WorkingTreeState) ([]*models.Commit, error) {
