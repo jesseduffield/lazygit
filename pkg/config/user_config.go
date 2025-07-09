@@ -264,6 +264,12 @@ type GitConfig struct {
 	BranchLogCmd string `yaml:"branchLogCmd"`
 	// Commands used to display git log of all branches in the main window, they will be cycled in order of appearance (array of strings)
 	AllBranchesLogCmds []string `yaml:"allBranchesLogCmds"`
+	// If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `<c-w>`.
+	IgnoreWhitespaceInDiffView bool `yaml:"ignoreWhitespaceInDiffView"`
+	// The number of lines of context to show around each diff hunk. Can be changed from within Lazygit with the `{` and `}` keys.
+	DiffContextSize uint64 `yaml:"diffContextSize"`
+	// The threshold for considering a file to be renamed, in percent. Can be changed from within Lazygit with the `(` and `)` keys.
+	RenameSimilarityThreshold int `yaml:"renameSimilarityThreshold" jsonschema:"minimum=0,maximum=100"`
 	// If true, do not spawn a separate process when using GPG
 	OverrideGpg bool `yaml:"overrideGpg"`
 	// If true, do not allow force pushes
@@ -279,6 +285,14 @@ type GitConfig struct {
 	ParseEmoji bool `yaml:"parseEmoji"`
 	// Config for showing the log in the commits view
 	Log LogConfig `yaml:"log"`
+	// How branches are sorted in the local branches view.
+	// One of: 'date' (default) | 'recency' | 'alphabetical'
+	// Can be changed from within Lazygit with the Sort Order menu (`s`) in the branches panel.
+	LocalBranchSortOrder string `yaml:"localBranchSortOrder" jsonschema:"enum=date,enum=recency,enum=alphabetical"`
+	// How branches are sorted in the remote branches view.
+	// One of: 'date' (default) | 'alphabetical'
+	// Can be changed from within Lazygit with the Sort Order menu (`s`) in the remote branches panel.
+	RemoteBranchSortOrder string `yaml:"remoteBranchSortOrder" jsonschema:"enum=date,enum=alphabetical"`
 	// When copying commit hashes to the clipboard, truncate them to this
 	// length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
@@ -332,13 +346,13 @@ type LogConfig struct {
 	// 'topo-order' makes it easier to read the git log graph, but commits may not
 	// appear chronologically. See https://git-scm.com/docs/
 	//
-	// Deprecated: Configure this with `Log menu -> Commit sort order` (<c-l> in the commits window by default).
-	Order string `yaml:"order" jsonschema:"deprecated,enum=date-order,enum=author-date-order,enum=topo-order,enum=default,deprecated"`
+	// Can be changed from within Lazygit with `Log menu -> Commit sort order` (`<c-l>` in the commits window by default).
+	Order string `yaml:"order" jsonschema:"enum=date-order,enum=author-date-order,enum=topo-order,enum=default"`
 	// This determines whether the git graph is rendered in the commits panel
 	// One of 'always' | 'never' | 'when-maximised'
 	//
-	// Deprecated: Configure this with `Log menu -> Show git graph` (<c-l> in the commits window by default).
-	ShowGraph string `yaml:"showGraph" jsonschema:"deprecated,enum=always,enum=never,enum=when-maximised"`
+	// Can be toggled from within lazygit with `Log menu -> Show git graph` (`<c-l>` in the commits window by default).
+	ShowGraph string `yaml:"showGraph" jsonschema:"enum=always,enum=never,enum=when-maximised"`
 	// displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
 	ShowWholeGraph bool `yaml:"showWholeGraph"`
 }
@@ -799,6 +813,8 @@ func GetDefaultConfig() *UserConfig {
 				ShowGraph:      "always",
 				ShowWholeGraph: false,
 			},
+			LocalBranchSortOrder:         "date",
+			RemoteBranchSortOrder:        "date",
 			SkipHookPrefix:               "WIP",
 			MainBranches:                 []string{"master", "main"},
 			AutoFetch:                    true,
@@ -808,6 +824,9 @@ func GetDefaultConfig() *UserConfig {
 			AutoStageResolvedConflicts:   true,
 			BranchLogCmd:                 "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
 			AllBranchesLogCmds:           []string{"git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"},
+			IgnoreWhitespaceInDiffView:   false,
+			DiffContextSize:              3,
+			RenameSimilarityThreshold:    50,
 			DisableForcePushing:          false,
 			CommitPrefixes:               map[string][]CommitPrefixConfig(nil),
 			BranchPrefix:                 "",

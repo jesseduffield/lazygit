@@ -22,13 +22,13 @@ var SortLocalBranches = NewIntegrationTest(NewIntegrationTestArgs{
 			Checkout("master")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		// sorted by recency by default
+		// sorted by date by default
 		t.Views().Branches().
 			Focus().
 			Lines(
 				Contains("master").IsSelected(),
-				Contains("third"),
 				Contains("second"),
+				Contains("third"),
 				Contains("first"),
 			).
 			SelectNextItem() // to test that the selection jumps back to the top when sorting
@@ -37,21 +37,21 @@ var SortLocalBranches = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Branches.SortOrder)
 
 		t.ExpectPopup().Menu().Title(Equals("Sort order")).
-			Lines(
-				Contains("r (•) Recency").IsSelected(),
+			ContainsLines(
+				Contains("r ( ) Recency").IsSelected(),
 				Contains("a ( ) Alphabetical"),
-				Contains("d ( ) Date"),
+				Contains("d (•) Date"),
 				Contains("      Cancel"),
 			).
-			Select(Contains("-committerdate")).
+			Select(Contains("Recency")).
 			Confirm()
 
 		t.Views().Branches().
 			IsFocused().
 			Lines(
 				Contains("master").IsSelected(),
-				Contains("second"),
 				Contains("third"),
+				Contains("second"),
 				Contains("first"),
 			)
 
@@ -59,10 +59,10 @@ var SortLocalBranches = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Branches.SortOrder)
 
 		t.ExpectPopup().Menu().Title(Equals("Sort order")).
-			Lines(
-				Contains("r ( ) Recency").IsSelected(),
+			ContainsLines(
+				Contains("r (•) Recency").IsSelected(),
 				Contains("a ( ) Alphabetical"),
-				Contains("d (•) Date"),
+				Contains("d ( ) Date"),
 				Contains("      Cancel"),
 			).
 			Select(Contains("refname")).

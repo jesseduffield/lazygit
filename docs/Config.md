@@ -366,6 +366,15 @@ git:
   allBranchesLogCmds:
     - git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium
 
+  # If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `<c-w>`.
+  ignoreWhitespaceInDiffView: false
+
+  # The number of lines of context to show around each diff hunk. Can be changed from within Lazygit with the `{` and `}` keys.
+  diffContextSize: 3
+
+  # The threshold for considering a file to be renamed, in percent. Can be changed from within Lazygit with the `(` and `)` keys.
+  renameSimilarityThreshold: 50
+
   # If true, do not spawn a separate process when using GPG
   overrideGpg: false
 
@@ -387,8 +396,31 @@ git:
 
   # Config for showing the log in the commits view
   log:
+    # One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'
+    # 'topo-order' makes it easier to read the git log graph, but commits may not
+    # appear chronologically. See https://git-scm.com/docs/
+    #
+    # Can be changed from within Lazygit with `Log menu -> Commit sort order` (`<c-l>` in the commits window by default).
+    order: topo-order
+
+    # This determines whether the git graph is rendered in the commits panel
+    # One of 'always' | 'never' | 'when-maximised'
+    #
+    # Can be toggled from within lazygit with `Log menu -> Show git graph` (`<c-l>` in the commits window by default).
+    showGraph: always
+
     # displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
     showWholeGraph: false
+
+  # How branches are sorted in the local branches view.
+  # One of: 'date' (default) | 'recency' | 'alphabetical'
+  # Can be changed from within Lazygit with the Sort Order menu (`s`) in the branches panel.
+  localBranchSortOrder: date
+
+  # How branches are sorted in the remote branches view.
+  # One of: 'date' (default) | 'alphabetical'
+  # Can be changed from within Lazygit with the Sort Order menu (`s`) in the remote branches panel.
+  remoteBranchSortOrder: date
 
   # When copying commit hashes to the clipboard, truncate them to this
   # length. Set to 40 to disable truncation.

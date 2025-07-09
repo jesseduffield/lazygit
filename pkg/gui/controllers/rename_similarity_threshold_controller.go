@@ -59,10 +59,10 @@ func (self *RenameSimilarityThresholdController) Context() types.Context {
 }
 
 func (self *RenameSimilarityThresholdController) Increase() error {
-	old_size := self.c.AppState.RenameSimilarityThreshold
+	old_size := self.c.UserConfig().Git.RenameSimilarityThreshold
 
 	if self.isShowingRenames() && old_size < 100 {
-		self.c.AppState.RenameSimilarityThreshold = min(100, old_size+5)
+		self.c.UserConfig().Git.RenameSimilarityThreshold = min(100, old_size+5)
 		return self.applyChange()
 	}
 
@@ -70,10 +70,10 @@ func (self *RenameSimilarityThresholdController) Increase() error {
 }
 
 func (self *RenameSimilarityThresholdController) Decrease() error {
-	old_size := self.c.AppState.RenameSimilarityThreshold
+	old_size := self.c.UserConfig().Git.RenameSimilarityThreshold
 
 	if self.isShowingRenames() && old_size > 5 {
-		self.c.AppState.RenameSimilarityThreshold = max(5, old_size-5)
+		self.c.UserConfig().Git.RenameSimilarityThreshold = max(5, old_size-5)
 		return self.applyChange()
 	}
 
@@ -81,8 +81,7 @@ func (self *RenameSimilarityThresholdController) Decrease() error {
 }
 
 func (self *RenameSimilarityThresholdController) applyChange() error {
-	self.c.Toast(fmt.Sprintf(self.c.Tr.RenameSimilarityThresholdChanged, self.c.AppState.RenameSimilarityThreshold))
-	self.c.SaveAppStateAndLogError()
+	self.c.Toast(fmt.Sprintf(self.c.Tr.RenameSimilarityThresholdChanged, self.c.UserConfig().Git.RenameSimilarityThreshold))
 
 	currentContext := self.currentSidePanel()
 	switch currentContext.GetKey() {

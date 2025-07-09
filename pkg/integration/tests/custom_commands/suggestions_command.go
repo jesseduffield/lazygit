@@ -43,9 +43,9 @@ var SuggestionsCommand = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains("branch-four").IsSelected(),
+				Contains("branch-one"),
 				Contains("branch-three"),
 				Contains("branch-two"),
-				Contains("branch-one"),
 			).
 			Press("a")
 
@@ -59,8 +59,8 @@ var SuggestionsCommand = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("branch-three"),
 				Contains("branch-four").IsSelected(),
-				Contains("branch-two"),
 				Contains("branch-one"),
+				Contains("branch-two"),
 			)
 	},
 })

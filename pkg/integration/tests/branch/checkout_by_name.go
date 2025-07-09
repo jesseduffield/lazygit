@@ -33,8 +33,8 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				MatchesRegexp(`\*.*new-branch`).IsSelected(),
-				Contains("master"),
 				Contains("@"),
+				Contains("master"),
 			)
 	},
 })

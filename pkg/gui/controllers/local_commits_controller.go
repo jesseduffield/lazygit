@@ -1180,13 +1180,13 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 			},
 			{
 				Label:     self.c.Tr.ShowGitGraph,
+				Tooltip:   self.c.Tr.ShowGitGraphTooltip,
 				OpensMenu: true,
 				OnPress: func() error {
-					currentValue := self.c.GetAppState().GitLogShowGraph
+					currentValue := self.c.UserConfig().Git.Log.ShowGraph
 					onPress := func(value string) func() error {
 						return func() error {
-							self.c.GetAppState().GitLogShowGraph = value
-							self.c.SaveAppStateAndLogError()
+							self.c.UserConfig().Git.Log.ShowGraph = value
 							self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
 							self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
 							return nil
@@ -1216,13 +1216,13 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 			},
 			{
 				Label:     self.c.Tr.SortCommits,
+				Tooltip:   self.c.Tr.SortCommitsTooltip,
 				OpensMenu: true,
 				OnPress: func() error {
-					currentValue := self.c.GetAppState().GitLogOrder
+					currentValue := self.c.UserConfig().Git.Log.Order
 					onPress := func(value string) func() error {
 						return func() error {
-							self.c.GetAppState().GitLogOrder = value
-							self.c.SaveAppStateAndLogError()
+							self.c.UserConfig().Git.Log.Order = value
 							return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
 								self.c.Refresh(
 									types.RefreshOptions{

@@ -186,7 +186,7 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 	return nil
 }
 
-func (self *RefsHelper) CreateSortOrderMenu(sortOptionsOrder []string, onSelected func(sortOrder string) error, currentValue string) error {
+func (self *RefsHelper) CreateSortOrderMenu(sortOptionsOrder []string, menuPrompt string, onSelected func(sortOrder string) error, currentValue string) error {
 	type sortMenuOption struct {
 		key         types.Key
 		label       string
@@ -222,8 +222,9 @@ func (self *RefsHelper) CreateSortOrderMenu(sortOptionsOrder []string, onSelecte
 		}
 	})
 	return self.c.Menu(types.CreateMenuOptions{
-		Title: self.c.Tr.SortOrder,
-		Items: menuItems,
+		Title:  self.c.Tr.SortOrder,
+		Items:  menuItems,
+		Prompt: menuPrompt,
 	})
 }
 

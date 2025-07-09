@@ -144,7 +144,7 @@ func (self *DiffHelper) WithDiffModeCheck(f func()) {
 }
 
 func (self *DiffHelper) IgnoringWhitespaceSubTitle() string {
-	if self.c.GetAppState().IgnoreWhitespaceInDiffView {
+	if self.c.UserConfig().Git.IgnoreWhitespaceInDiffView {
 		return self.c.Tr.IgnoreWhitespaceDiffViewSubTitle
 	}
 

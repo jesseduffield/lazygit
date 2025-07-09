@@ -31,6 +31,87 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			},
 		},
 		{
+			name: "Gui.ShowDivergenceFromBaseBranch",
+			setup: func(config *UserConfig, value string) {
+				config.Gui.ShowDivergenceFromBaseBranch = value
+			},
+			testCases: []testCase{
+				{value: "none", valid: true},
+				{value: "onlyArrow", valid: true},
+				{value: "arrowAndNumber", valid: true},
+				{value: "", valid: false},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
+			name: "Git.AutoForwardBranches",
+			setup: func(config *UserConfig, value string) {
+				config.Git.AutoForwardBranches = value
+			},
+			testCases: []testCase{
+				{value: "none", valid: true},
+				{value: "onlyMainBranches", valid: true},
+				{value: "allBranches", valid: true},
+				{value: "", valid: false},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
+			name: "Git.LocalBranchSortOrder",
+			setup: func(config *UserConfig, value string) {
+				config.Git.LocalBranchSortOrder = value
+			},
+			testCases: []testCase{
+				{value: "date", valid: true},
+				{value: "recency", valid: true},
+				{value: "alphabetical", valid: true},
+				{value: "", valid: false},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
+			name: "Git.RemoteBranchSortOrder",
+			setup: func(config *UserConfig, value string) {
+				config.Git.RemoteBranchSortOrder = value
+			},
+			testCases: []testCase{
+				{value: "date", valid: true},
+				{value: "recency", valid: false},
+				{value: "alphabetical", valid: true},
+				{value: "", valid: false},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
+			name: "Git.Log.Order",
+			setup: func(config *UserConfig, value string) {
+				config.Git.Log.Order = value
+			},
+			testCases: []testCase{
+				{value: "date-order", valid: true},
+				{value: "author-date-order", valid: true},
+				{value: "topo-order", valid: true},
+				{value: "default", valid: true},
+
+				{value: "", valid: false},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
+			name: "Git.Log.ShowGraph",
+			setup: func(config *UserConfig, value string) {
+				config.Git.Log.ShowGraph = value
+			},
+			testCases: []testCase{
+				{value: "always", valid: true},
+				{value: "never", valid: true},
+				{value: "when-maximised", valid: true},
+
+				{value: "", valid: false},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
 			name: "Keybindings",
 			setup: func(config *UserConfig, value string) {
 				config.Keybinding.Universal.Quit = value

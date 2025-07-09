@@ -260,7 +260,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 		colorArg = "never"
 	}
 
-	contextSize := self.AppState.DiffContextSize
+	contextSize := self.UserConfig().Git.DiffContextSize
 	prevPath := node.GetPreviousPath()
 	noIndex := !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached && node.GetIsFile()
 	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
@@ -272,8 +272,8 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 		Arg("--submodule").
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
-		ArgIf(!plain && self.AppState.IgnoreWhitespaceInDiffView, "--ignore-all-space").
-		Arg(fmt.Sprintf("--find-renames=%d%%", self.AppState.RenameSimilarityThreshold)).
+		ArgIf(!plain && self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
 		ArgIf(cached, "--cached").
 		ArgIf(noIndex, "--no-index").
 		Arg("--").
@@ -293,7 +293,7 @@ func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bo
 }
 
 func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileName string, plain bool) *oscommands.CmdObj {
-	contextSize := self.AppState.DiffContextSize
+	contextSize := self.UserConfig().Git.DiffContextSize
 
 	colorArg := self.UserConfig().Git.Paging.ColorArg
 	if plain {
@@ -314,7 +314,7 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 		Arg(from).
 		Arg(to).
 		ArgIf(reverse, "-R").
-		ArgIf(!plain && self.AppState.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		ArgIf(!plain && self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		Arg("--").
 		Arg(fileName).
 		Dir(self.repoPaths.worktreePath).

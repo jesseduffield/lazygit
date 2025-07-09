@@ -12,7 +12,7 @@ var DeleteWhileFiltering = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetAppState().LocalBranchSortOrder = "alphabetic"
+		config.GetUserConfig().Git.LocalBranchSortOrder = "alphabetical"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("one")

@@ -140,6 +140,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Key:         opts.GetKey(opts.Config.Branches.SortOrder),
 			Handler:     self.createSortMenu,
 			Description: self.c.Tr.SortOrder,
+			OpensMenu:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.ViewResetOptions),
@@ -672,17 +673,19 @@ func (self *BranchesController) createTag(branch *models.Branch) error {
 }
 
 func (self *BranchesController) createSortMenu() error {
-	return self.c.Helpers().Refs.CreateSortOrderMenu([]string{"recency", "alphabetical", "date"}, func(sortOrder string) error {
-		if self.c.GetAppState().LocalBranchSortOrder != sortOrder {
-			self.c.GetAppState().LocalBranchSortOrder = sortOrder
-			self.c.SaveAppStateAndLogError()
-			self.c.Contexts().Branches.SetSelection(0)
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+	return self.c.Helpers().Refs.CreateSortOrderMenu(
+		[]string{"recency", "alphabetical", "date"},
+		self.c.Tr.SortOrderPromptLocalBranches,
+		func(sortOrder string) error {
+			if self.c.UserConfig().Git.LocalBranchSortOrder != sortOrder {
+				self.c.UserConfig().Git.LocalBranchSortOrder = sortOrder
+				self.c.Contexts().Branches.SetSelection(0)
+				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+				return nil
+			}
 			return nil
-		}
-		return nil
-	},
-		self.c.GetAppState().LocalBranchSortOrder)
+		},
+		self.c.UserConfig().Git.LocalBranchSortOrder)
 }
 
 func (self *BranchesController) createResetMenu(selectedBranch *models.Branch) error {

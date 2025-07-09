@@ -10,7 +10,9 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Cherry pick commits from the subcommits view, with conflicts",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.LocalBranchSortOrder = "recency"
+	},
 	SetupRepo: func(shell *Shell) {
 		shared.MergeConflictsSetup(shell)
 	},

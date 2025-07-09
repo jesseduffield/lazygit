@@ -9,7 +9,9 @@ var CherryPickMerge = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Cherry pick a merge commit",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.LocalBranchSortOrder = "recency"
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.
 			EmptyCommit("base").

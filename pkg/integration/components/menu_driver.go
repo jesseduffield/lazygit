@@ -50,6 +50,12 @@ func (self *MenuDriver) TopLines(matchers ...*TextMatcher) *MenuDriver {
 	return self
 }
 
+func (self *MenuDriver) ContainsLines(matchers ...*TextMatcher) *MenuDriver {
+	self.getViewDriver().ContainsLines(matchers...)
+
+	return self
+}
+
 func (self *MenuDriver) Filter(text string) *MenuDriver {
 	self.getViewDriver().FilterOrSearch(text)
 

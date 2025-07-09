@@ -71,8 +71,8 @@ func (self *ContextLinesController) Increase() error {
 			return err
 		}
 
-		if self.c.AppState.DiffContextSize < math.MaxUint64 {
-			self.c.AppState.DiffContextSize++
+		if self.c.UserConfig().Git.DiffContextSize < math.MaxUint64 {
+			self.c.UserConfig().Git.DiffContextSize++
 		}
 		return self.applyChange()
 	}
@@ -86,8 +86,8 @@ func (self *ContextLinesController) Decrease() error {
 			return err
 		}
 
-		if self.c.AppState.DiffContextSize > 0 {
-			self.c.AppState.DiffContextSize--
+		if self.c.UserConfig().Git.DiffContextSize > 0 {
+			self.c.UserConfig().Git.DiffContextSize--
 		}
 		return self.applyChange()
 	}
@@ -96,8 +96,7 @@ func (self *ContextLinesController) Decrease() error {
 }
 
 func (self *ContextLinesController) applyChange() error {
-	self.c.Toast(fmt.Sprintf(self.c.Tr.DiffContextSizeChanged, self.c.AppState.DiffContextSize))
-	self.c.SaveAppStateAndLogError()
+	self.c.Toast(fmt.Sprintf(self.c.Tr.DiffContextSizeChanged, self.c.UserConfig().Git.DiffContextSize))
 
 	currentContext := self.currentSidePanel()
 	switch currentContext.GetKey() {

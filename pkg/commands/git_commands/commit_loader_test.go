@@ -9,7 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/stefanhaller/git-todo-parser/todo"
@@ -298,8 +297,7 @@ func TestGetCommits(t *testing.T) {
 	for _, scenario := range scenarios {
 		t.Run(scenario.testName, func(t *testing.T) {
 			common := common.NewDummyCommon()
-			common.AppState = &config.AppState{}
-			common.AppState.GitLogOrder = scenario.logOrder
+			common.UserConfig().Git.Log.Order = scenario.logOrder
 			cmd := oscommands.NewDummyCmdObjBuilder(scenario.runner)
 
 			builder := &CommitLoader{

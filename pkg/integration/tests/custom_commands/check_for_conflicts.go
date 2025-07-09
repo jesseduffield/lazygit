@@ -24,6 +24,8 @@ var CheckForConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 				},
 			},
 		}
+
+		cfg.GetUserConfig().Git.LocalBranchSortOrder = "recency"
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().

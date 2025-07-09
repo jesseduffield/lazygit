@@ -758,12 +758,17 @@ type TranslationSet struct {
 	LogMenuTitle                             string
 	ToggleShowGitGraphAll                    string
 	ShowGitGraph                             string
+	ShowGitGraphTooltip                      string
 	SortOrder                                string
+	SortOrderPromptLocalBranches             string
+	SortOrderPromptRemoteBranches            string
 	SortAlphabetical                         string
 	SortByDate                               string
 	SortByRecency                            string
 	SortBasedOnReflog                        string
+	SortOrderPrompt                          string
 	SortCommits                              string
+	SortCommitsTooltip                       string
 	CantChangeContextSizeError               string
 	OpenCommitInBrowser                      string
 	ViewBisectOptions                        string
@@ -1098,7 +1103,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ToggleStagedAll:                      "Stage all",
 		ToggleStagedAllTooltip:               "Toggle staged/unstaged for all files in working tree.",
 		ToggleTreeView:                       "Toggle file tree view",
-		ToggleTreeViewTooltip:                "Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.",
+		ToggleTreeViewTooltip:                "Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.\n\nThe default can be changed in the config file with the key 'gui.showFileTree'.",
 		OpenDiffTool:                         "Open external diff tool (git difftool)",
 		OpenMergeTool:                        "Open external merge tool",
 		OpenMergeToolTooltip:                 "Run `git mergetool`.",
@@ -1771,17 +1776,17 @@ func EnglishTranslationSet() *TranslationSet {
 		CommandLogHeader:                         "You can hide/focus this panel by pressing '%s'\n",
 		RandomTip:                                "Random tip",
 		ToggleWhitespaceInDiffView:               "Toggle whitespace",
-		ToggleWhitespaceInDiffViewTooltip:        "Toggle whether or not whitespace changes are shown in the diff view.",
+		ToggleWhitespaceInDiffViewTooltip:        "Toggle whether or not whitespace changes are shown in the diff view.\n\nThe default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'.",
 		IgnoreWhitespaceDiffViewSubTitle:         "(ignoring whitespace)",
 		IgnoreWhitespaceNotSupportedHere:         "Ignoring whitespace is not supported in this view",
 		IncreaseContextInDiffView:                "Increase diff context size",
-		IncreaseContextInDiffViewTooltip:         "Increase the amount of the context shown around changes in the diff view.",
+		IncreaseContextInDiffViewTooltip:         "Increase the amount of the context shown around changes in the diff view.\n\nThe default can be changed in the config file with the key 'git.diffContextSize'.",
 		DecreaseContextInDiffView:                "Decrease diff context size",
-		DecreaseContextInDiffViewTooltip:         "Decrease the amount of the context shown around changes in the diff view.",
+		DecreaseContextInDiffViewTooltip:         "Decrease the amount of the context shown around changes in the diff view.\n\nThe default can be changed in the config file with the key 'git.diffContextSize'.",
 		DiffContextSizeChanged:                   "Changed diff context size to %d",
-		IncreaseRenameSimilarityThresholdTooltip: "Increase the similarity threshold for a deletion and addition pair to be treated as a rename.",
+		IncreaseRenameSimilarityThresholdTooltip: "Increase the similarity threshold for a deletion and addition pair to be treated as a rename.\n\nThe default can be changed in the config file with the key 'git.renameSimilarityThreshold'.",
 		IncreaseRenameSimilarityThreshold:        "Increase rename similarity threshold",
-		DecreaseRenameSimilarityThresholdTooltip: "Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.",
+		DecreaseRenameSimilarityThresholdTooltip: "Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.\n\nThe default can be changed in the config file with the key 'git.renameSimilarityThreshold'.",
 		DecreaseRenameSimilarityThreshold:        "Decrease rename similarity threshold",
 		RenameSimilarityThresholdChanged:         "Changed rename similarity threshold to %d%%",
 		CreatePullRequestOptions:                 "View create pull request options",
@@ -1803,12 +1808,16 @@ func EnglishTranslationSet() *TranslationSet {
 		LogMenuTitle:                             "Commit Log Options",
 		ToggleShowGitGraphAll:                    "Toggle show whole git graph (pass the `--all` flag to `git log`)",
 		ShowGitGraph:                             "Show git graph",
+		ShowGitGraphTooltip:                      "Show or hide the git graph in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.showGraph'.",
 		SortOrder:                                "Sort order",
+		SortOrderPromptLocalBranches:             "The default sort order for local branches can be set in the config file with the key 'git.localBranchSortOrder'.",
+		SortOrderPromptRemoteBranches:            "The default sort order for remote branches can be set in the config file with the key 'git.remoteBranchSortOrder'.",
 		SortAlphabetical:                         "Alphabetical",
 		SortByDate:                               "Date",
 		SortByRecency:                            "Recency",
 		SortBasedOnReflog:                        "(based on reflog)",
 		SortCommits:                              "Commit sort order",
+		SortCommitsTooltip:                       "Change the sort order of the commits in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.sortOrder'.",
 		CantChangeContextSizeError:               "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
 		OpenCommitInBrowser:                      "Open commit in browser",
 		ViewBisectOptions:                        "View bisect options",
@@ -2102,6 +2111,11 @@ git:
 
 If, on the other hand, you want this even for feature branches, you can set it to 'allBranches' instead.`,
 			"0.51.0": `- The 'subprocess', 'stream', and 'showOutput' fields of custom commands have been replaced by a single 'output' field. This should be transparent, if you used these in your config file it should have been automatically updated for you. There's one notable change though: the 'stream' field used to mean both that the command's output would be streamed to the command log, and that the command would be run in a pseudo terminal (pty). We converted this to 'output: log', which means that the command's output will be streamed to the command log, but not use a pty, on the assumption that this is what most people wanted. If you do actually want to run a command in a pty, you can change this to 'output: logWithPty' instead.`,
+			"0.54.0": `- The default sort order for local and remote branches has changed: it used to be 'recency' (based on reflog) for local branches, and 'alphabetical' for remote branches. Both of these have been changed to 'date' (which means committerdate). If you do liked the old defaults better, you can revert to them with the following config:
+
+git:
+  localBranchSortOrder: recency
+  remoteBranchSortOrder: alphabetical`,
 		},
 	}
 }

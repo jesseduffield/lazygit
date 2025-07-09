@@ -10,7 +10,8 @@ var DeleteMultiple = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetAppState().LocalBranchSortOrder = "alphabetic"
+		config.GetUserConfig().Git.LocalBranchSortOrder = "alphabetical"
+		config.GetUserConfig().Git.RemoteBranchSortOrder = "alphabetical"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.
