@@ -9,7 +9,6 @@ var MoveToNewCommitBefore = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Move a patch from a commit to a new commit before the original one",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	GitVersion:   AtLeast("2.26.0"),
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateDir("dir")
