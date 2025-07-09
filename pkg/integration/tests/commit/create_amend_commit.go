@@ -41,20 +41,18 @@ var CreateAmendCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 01"),
 			)
 
-		if t.Git().Version().IsAtLeast(2, 32, 0) { // Support for auto-squashing "amend!" commits was added in git 2.32.0
-			t.Views().Commits().
-				Press(keys.Commits.SquashAboveCommits).
-				Tap(func() {
-					t.ExpectPopup().Menu().
-						Title(Equals("Apply fixup commits")).
-						Select(Contains("Above the selected commit")).
-						Confirm()
-				}).
-				Lines(
-					Contains("commit 03"),
-					Contains("commit 02 amended").IsSelected(),
-					Contains("commit 01"),
-				)
-		}
+		t.Views().Commits().
+			Press(keys.Commits.SquashAboveCommits).
+			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("Apply fixup commits")).
+					Select(Contains("Above the selected commit")).
+					Confirm()
+			}).
+			Lines(
+				Contains("commit 03"),
+				Contains("commit 02 amended").IsSelected(),
+				Contains("commit 01"),
+			)
 	},
 })
