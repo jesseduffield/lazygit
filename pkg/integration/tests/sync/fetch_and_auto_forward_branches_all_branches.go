@@ -11,6 +11,7 @@ var FetchAndAutoForwardBranchesAllBranches = NewIntegrationTest(NewIntegrationTe
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 		config.GetUserConfig().Git.AutoForwardBranches = "allBranches"
+		config.GetUserConfig().Git.LocalBranchSortOrder = "alphabetical"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateNCommits(3)

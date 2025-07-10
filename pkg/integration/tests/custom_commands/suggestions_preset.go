@@ -37,6 +37,8 @@ var SuggestionsPreset = NewIntegrationTest(NewIntegrationTestArgs{
 				},
 			},
 		}
+
+		cfg.GetUserConfig().Git.LocalBranchSortOrder = "alphabetical"
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().

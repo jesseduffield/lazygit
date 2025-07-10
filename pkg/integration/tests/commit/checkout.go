@@ -9,7 +9,9 @@ var Checkout = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Checkout a commit as a detached head, or checkout an existing branch at a commit",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.LocalBranchSortOrder = "alphabetical"
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("one")
 		shell.EmptyCommit("two")

@@ -9,7 +9,9 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Filter in the several nested panels and verify the filters are preserved as you escape back to the surface",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.LocalBranchSortOrder = "alphabetical"
+	},
 	SetupRepo: func(shell *Shell) {
 		// need to create some branches, each with their own commits
 		shell.NewBranch("branch-gold")
