@@ -103,7 +103,9 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 				if err != nil {
 					return err
 				}
-				trie.Insert(patricia.Prefix(path), path)
+				if path != "." {
+					trie.Insert(patricia.Prefix(path), path)
+				}
 				return nil
 			})
 
