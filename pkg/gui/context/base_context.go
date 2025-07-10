@@ -136,8 +136,8 @@ func (self *BaseContext) AddMouseKeybindingsFn(fn types.MouseKeybindingsFn) {
 }
 
 func (self *BaseContext) ClearAllBindingsFn() {
-	self.keybindingsFns = []types.KeybindingsFn{}
-	self.mouseKeybindingsFns = []types.MouseKeybindingsFn{}
+	self.keybindingsFns = nil
+	self.mouseKeybindingsFns = nil
 }
 
 func (self *BaseContext) AddOnClickFn(fn func() error) {
