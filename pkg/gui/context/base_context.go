@@ -140,16 +140,25 @@ func (self *BaseContext) ClearAllAttachedControllerFunctions() {
 	self.mouseKeybindingsFns = nil
 	self.onFocusFns = nil
 	self.onFocusLostFns = nil
+	self.onClickFn = nil
+	self.onClickFocusedMainViewFn = nil
+	self.onRenderToMainFn = nil
 }
 
 func (self *BaseContext) AddOnClickFn(fn func() error) {
 	if fn != nil {
+		if self.onClickFn != nil {
+			panic("only one controller is allowed to set an onClickFn")
+		}
 		self.onClickFn = fn
 	}
 }
 
 func (self *BaseContext) AddOnClickFocusedMainViewFn(fn onClickFocusedMainViewFn) {
 	if fn != nil {
+		if self.onClickFocusedMainViewFn != nil {
+			panic("only one controller is allowed to set an onClickFocusedMainViewFn")
+		}
 		self.onClickFocusedMainViewFn = fn
 	}
 }
@@ -164,6 +173,9 @@ func (self *BaseContext) GetOnClickFocusedMainView() onClickFocusedMainViewFn {
 
 func (self *BaseContext) AddOnRenderToMainFn(fn func()) {
 	if fn != nil {
+		if self.onRenderToMainFn != nil {
+			panic("only one controller is allowed to set an onRenderToMainFn")
+		}
 		self.onRenderToMainFn = fn
 	}
 }
