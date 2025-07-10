@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -49,6 +50,22 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 	}
 
 	return bindings
+}
+
+func (self *ConfirmationController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName:    self.c.Contexts().Suggestions.GetViewName(),
+			FocusedView: self.c.Contexts().Confirmation.GetViewName(),
+			Key:         gocui.MouseLeft,
+			Handler: func(gocui.ViewMouseBindingOpts) error {
+				self.switchToSuggestions()
+				// Let it fall through to the ListController's click handler so that
+				// the clicked line gets selected:
+				return gocui.ErrKeybindingNotHandled
+			},
+		},
+	}
 }
 
 func (self *ConfirmationController) GetOnFocusLost() func(types.OnFocusLostOpts) {

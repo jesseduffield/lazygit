@@ -508,11 +508,13 @@ func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
 			!gocui.IsMouseScrollKey(opts.Key) {
 			// we ignore click events on views that aren't popup panels, when a popup panel is focused.
 			// Unless both the current view and the clicked-on view are either commit message or commit
-			// description, because we want to allow switching between those two views by clicking.
-			isCommitMessageView := func(viewName string) bool {
-				return viewName == "commitMessage" || viewName == "commitDescription"
+			// description, or a confirmation and the suggestions view, because we want to allow switching
+			// between those two views by clicking.
+			isCommitMessageOrSuggestionsView := func(viewName string) bool {
+				return viewName == "commitMessage" || viewName == "commitDescription" ||
+					viewName == "confirmation" || viewName == "suggestions"
 			}
-			if !isCommitMessageView(gui.currentViewName()) || !isCommitMessageView(binding.ViewName) {
+			if !isCommitMessageOrSuggestionsView(gui.currentViewName()) || !isCommitMessageOrSuggestionsView(binding.ViewName) {
 				return nil
 			}
 		}
