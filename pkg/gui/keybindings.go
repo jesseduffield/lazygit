@@ -504,15 +504,16 @@ func (gui *Gui) SetKeybinding(binding *types.Binding) error {
 func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
 	baseHandler := binding.Handler
 	newHandler := func(opts gocui.ViewMouseBindingOpts) error {
-		// we ignore click events on views that aren't popup panels, when a popup panel is focused.
-		// Unless both the current view and the clicked-on view are either commit message or commit
-		// description, because we want to allow switching between those two views by clicking.
-		isCommitMessageView := func(viewName string) bool {
-			return viewName == "commitMessage" || viewName == "commitDescription"
-		}
-		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != binding.ViewName &&
-			(!isCommitMessageView(gui.currentViewName()) || !isCommitMessageView(binding.ViewName)) {
-			return nil
+		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != binding.ViewName {
+			// we ignore click events on views that aren't popup panels, when a popup panel is focused.
+			// Unless both the current view and the clicked-on view are either commit message or commit
+			// description, because we want to allow switching between those two views by clicking.
+			isCommitMessageView := func(viewName string) bool {
+				return viewName == "commitMessage" || viewName == "commitDescription"
+			}
+			if !isCommitMessageView(gui.currentViewName()) || !isCommitMessageView(binding.ViewName) {
+				return nil
+			}
 		}
 
 		return baseHandler(opts)
