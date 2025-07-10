@@ -41,15 +41,7 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 			Key: opts.GetKey(opts.Config.Universal.TogglePanel),
 			Handler: func() error {
 				if len(self.c.Contexts().Suggestions.State.Suggestions) > 0 {
-					subtitle := ""
-					if self.c.State().GetRepoState().GetCurrentPopupOpts().HandleDeleteSuggestion != nil {
-						// We assume that whenever things are deletable, they
-						// are also editable, so we show both keybindings
-						subtitle = fmt.Sprintf(self.c.Tr.SuggestionsSubtitle,
-							self.c.UserConfig().Keybinding.Universal.Remove, self.c.UserConfig().Keybinding.Universal.Edit)
-					}
-					self.c.Views().Suggestions.Subtitle = subtitle
-					self.c.Context().Replace(self.c.Contexts().Suggestions)
+					self.switchToSuggestions()
 				}
 				return nil
 			},
@@ -71,4 +63,16 @@ func (self *ConfirmationController) Context() types.Context {
 
 func (self *ConfirmationController) context() *context.ConfirmationContext {
 	return self.c.Contexts().Confirmation
+}
+
+func (self *ConfirmationController) switchToSuggestions() {
+	subtitle := ""
+	if self.c.State().GetRepoState().GetCurrentPopupOpts().HandleDeleteSuggestion != nil {
+		// We assume that whenever things are deletable, they
+		// are also editable, so we show both keybindings
+		subtitle = fmt.Sprintf(self.c.Tr.SuggestionsSubtitle,
+			self.c.UserConfig().Keybinding.Universal.Remove, self.c.UserConfig().Keybinding.Universal.Edit)
+	}
+	self.c.Views().Suggestions.Subtitle = subtitle
+	self.c.Context().Replace(self.c.Contexts().Suggestions)
 }
