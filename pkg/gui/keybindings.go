@@ -504,7 +504,8 @@ func (gui *Gui) SetKeybinding(binding *types.Binding) error {
 func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
 	baseHandler := binding.Handler
 	newHandler := func(opts gocui.ViewMouseBindingOpts) error {
-		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != binding.ViewName {
+		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != binding.ViewName &&
+			!gocui.IsMouseScrollKey(opts.Key) {
 			// we ignore click events on views that aren't popup panels, when a popup panel is focused.
 			// Unless both the current view and the clicked-on view are either commit message or commit
 			// description, because we want to allow switching between those two views by clicking.
