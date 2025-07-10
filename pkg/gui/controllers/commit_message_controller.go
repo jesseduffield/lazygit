@@ -62,9 +62,10 @@ func (self *CommitMessageController) GetKeybindings(opts types.KeybindingsOpts) 
 func (self *CommitMessageController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
 	return []*gocui.ViewMouseBinding{
 		{
-			ViewName: self.Context().GetViewName(),
-			Key:      gocui.MouseLeft,
-			Handler:  self.onClick,
+			ViewName:    self.Context().GetViewName(),
+			FocusedView: self.c.Contexts().CommitDescription.GetViewName(),
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClick,
 		},
 	}
 }
@@ -194,10 +195,6 @@ func (self *CommitMessageController) openCommitMenu() error {
 }
 
 func (self *CommitMessageController) onClick(opts gocui.ViewMouseBindingOpts) error {
-	// Activate the commit message panel when the commit description panel is currently active
-	if self.c.Context().Current().GetKey() == context.COMMIT_DESCRIPTION_CONTEXT_KEY {
-		self.c.Context().Replace(self.c.Contexts().CommitMessage)
-	}
-
+	self.c.Context().Replace(self.c.Contexts().CommitMessage)
 	return nil
 }
