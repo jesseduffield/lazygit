@@ -166,28 +166,16 @@ func (self *BaseContext) AddOnRenderToMainFn(fn func()) {
 	}
 }
 
-func (self *BaseContext) GetOnRenderToMain() func() {
-	return self.onRenderToMainFn
-}
-
 func (self *BaseContext) AddOnFocusFn(fn onFocusFn) {
 	if fn != nil {
 		self.onFocusFn = fn
 	}
 }
 
-func (self *BaseContext) GetOnFocus() onFocusFn {
-	return self.onFocusFn
-}
-
 func (self *BaseContext) AddOnFocusLostFn(fn onFocusLostFn) {
 	if fn != nil {
 		self.onFocusLostFn = fn
 	}
-}
-
-func (self *BaseContext) GetOnFocusLost() onFocusLostFn {
-	return self.onFocusLostFn
 }
 
 func (self *BaseContext) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
