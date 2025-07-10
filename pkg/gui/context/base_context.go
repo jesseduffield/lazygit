@@ -18,8 +18,8 @@ type BaseContext struct {
 	onClickFn                func() error
 	onClickFocusedMainViewFn onClickFocusedMainViewFn
 	onRenderToMainFn         func()
-	onFocusFn                onFocusFn
-	onFocusLostFn            onFocusLostFn
+	onFocusFns               []onFocusFn
+	onFocusLostFns           []onFocusLostFn
 
 	focusable                   bool
 	transient                   bool
@@ -135,9 +135,11 @@ func (self *BaseContext) AddMouseKeybindingsFn(fn types.MouseKeybindingsFn) {
 	self.mouseKeybindingsFns = append(self.mouseKeybindingsFns, fn)
 }
 
-func (self *BaseContext) ClearAllBindingsFn() {
+func (self *BaseContext) ClearAllAttachedControllerFunctions() {
 	self.keybindingsFns = nil
 	self.mouseKeybindingsFns = nil
+	self.onFocusFns = nil
+	self.onFocusLostFns = nil
 }
 
 func (self *BaseContext) AddOnClickFn(fn func() error) {
@@ -168,13 +170,13 @@ func (self *BaseContext) AddOnRenderToMainFn(fn func()) {
 
 func (self *BaseContext) AddOnFocusFn(fn onFocusFn) {
 	if fn != nil {
-		self.onFocusFn = fn
+		self.onFocusFns = append(self.onFocusFns, fn)
 	}
 }
 
 func (self *BaseContext) AddOnFocusLostFn(fn onFocusLostFn) {
 	if fn != nil {
-		self.onFocusLostFn = fn
+		self.onFocusLostFns = append(self.onFocusLostFns, fn)
 	}
 }
 

@@ -88,7 +88,7 @@ type IBaseContext interface {
 
 	AddKeybindingsFn(KeybindingsFn)
 	AddMouseKeybindingsFn(MouseKeybindingsFn)
-	ClearAllBindingsFn()
+	ClearAllAttachedControllerFunctions()
 
 	// This is a bit of a hack at the moment: we currently only set an onclick function so that
 	// our list controller can come along and wrap it in a list-specific click handler.
