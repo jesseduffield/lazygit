@@ -32,14 +32,14 @@ func (self *StashLoader) GetStashEntries(filterPath string) []*models.StashEntry
 		return self.getUnfilteredStashEntries()
 	}
 
-	cmdArgs := NewGitCmd("stash").Arg("list", "-z", "--name-only", "--pretty=%ct|%gs").ToArgv()
+	cmdArgs := NewGitCmd("stash").Arg("list", "--name-only", "--pretty=%ct|%gs").ToArgv()
 	rawString, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	if err != nil {
 		return self.getUnfilteredStashEntries()
 	}
 	stashEntries := []*models.StashEntry{}
 	var currentStashEntry *models.StashEntry
-	lines := utils.SplitNul(rawString)
+	lines := utils.SplitLines(rawString)
 	isAStash := func(line string) bool { return strings.HasPrefix(line, "stash@{") }
 	re := regexp.MustCompile(`stash@\{(\d+)\}`)
 
