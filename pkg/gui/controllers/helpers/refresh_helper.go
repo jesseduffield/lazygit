@@ -449,21 +449,8 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 	self.c.Mutexes().RefreshingBranchesMutex.Lock()
 	defer self.c.Mutexes().RefreshingBranchesMutex.Unlock()
 
-	reflogCommits := self.c.Model().FilteredReflogCommits
-	if self.c.Modes().Filtering.Active() && self.c.UserConfig().Git.LocalBranchSortOrder == "recency" {
-		// in filter mode we filter our reflog commits to just those containing the path
-		// however we need all the reflog entries to populate the recencies of our branches
-		// which allows us to order them correctly. So if we're filtering we'll just
-		// manually load all the reflog commits here
-		var err error
-		reflogCommits, _, err = self.c.Git().Loaders.ReflogCommitLoader.GetReflogCommits(self.c.Model().HashPool, nil, "", "")
-		if err != nil {
-			self.c.Log.Error(err)
-		}
-	}
-
 	branches, err := self.c.Git().Loaders.BranchLoader.Load(
-		reflogCommits,
+		self.c.Model().ReflogCommits,
 		self.c.Model().MainBranches,
 		self.c.Model().Branches,
 		loadBehindCounts,
