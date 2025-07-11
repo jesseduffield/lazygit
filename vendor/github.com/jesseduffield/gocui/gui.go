@@ -21,6 +21,8 @@ import (
 // are used.
 type OutputMode int
 
+const DOUBLE_CLICK_THRESHOLD = 500 * time.Millisecond
+
 var (
 	// ErrAlreadyBlacklisted is returned when the keybinding is already blacklisted.
 	ErrAlreadyBlacklisted = standardErrors.New("keybind already blacklisted")
@@ -95,6 +97,10 @@ type ViewMouseBinding struct {
 type ViewMouseBindingOpts struct {
 	X int // i.e. origin x + cursor x
 	Y int // i.e. origin y + cursor y
+
+	Key Key // which button was clicked (will be one of the Mouse* constants)
+
+	IsDoubleClick bool // true if this is a double click
 }
 
 type GuiMutexes struct {
@@ -116,6 +122,14 @@ type RecordingConfig struct {
 	Leeway int
 }
 
+type clickInfo struct {
+	x        int
+	y        int
+	key      Key
+	viewName string
+	time     time.Time
+}
+
 // Gui represents the whole User Interface, including the views, layouts
 // and keybindings.
 type Gui struct {
@@ -126,6 +140,7 @@ type Gui struct {
 
 	tabClickBindings  []*tabClickBinding
 	viewMouseBindings []*ViewMouseBinding
+	lastClick         *clickInfo
 	gEvents           chan GocuiEvent
 	userEvents        chan userEvent
 	views             []*View
@@ -1385,7 +1400,8 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		}
 
 		if IsMouseKey(ev.Key) {
-			opts := ViewMouseBindingOpts{X: newX, Y: newY}
+			isDoubleClick := g.recordClickInfo(newX, newY, ev.Key, v)
+			opts := ViewMouseBindingOpts{X: newX, Y: newY, Key: ev.Key, IsDoubleClick: isDoubleClick}
 			matched, err := g.execMouseKeybindings(v, ev, opts)
 			if err != nil {
 				return err
@@ -1418,6 +1434,32 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 	return nil
 }
 
+// remember the information for this click, and return true if it was a double click
+func (g *Gui) recordClickInfo(x, y int, key Key, v *View) bool {
+	if IsMouseScrollKey(key) {
+		g.lastClick = nil
+		return false
+	}
+
+	clickInfo := &clickInfo{
+		x:        x,
+		y:        y,
+		key:      key,
+		viewName: v.Name(),
+		time:     time.Now(),
+	}
+
+	isDoubleClick := g.lastClick != nil &&
+		clickInfo.x == g.lastClick.x &&
+		clickInfo.y == g.lastClick.y &&
+		clickInfo.key == g.lastClick.key &&
+		clickInfo.viewName == g.lastClick.viewName &&
+		clickInfo.time.Before(g.lastClick.time.Add(DOUBLE_CLICK_THRESHOLD))
+
+	g.lastClick = clickInfo
+	return isDoubleClick
+}
+
 func (g *Gui) execMouseKeybindings(view *View, ev *GocuiEvent, opts ViewMouseBindingOpts) (bool, error) {
 	isMatch := func(binding *ViewMouseBinding) bool {
 		return binding.ViewName == view.Name() &&
@@ -1428,7 +1470,9 @@ func (g *Gui) execMouseKeybindings(view *View, ev *GocuiEvent, opts ViewMouseBin
 	// first pass looks for ones that match the focused view
 	for _, binding := range g.viewMouseBindings {
 		if isMatch(binding) && binding.FocusedView != "" && binding.FocusedView == g.currentView.Name() {
-			return true, binding.Handler(opts)
+			if err := binding.Handler(opts); !errors.Is(err, ErrKeybindingNotHandled) {
+				return true, err
+			}
 		}
 	}
 

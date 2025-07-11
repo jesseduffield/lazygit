@@ -21,7 +21,7 @@ func (gui *Gui) Helpers() *helpers.Helpers {
 // the lower in the list the keybindings will appear.
 func (gui *Gui) resetHelpersAndControllers() {
 	for _, context := range gui.Contexts().Flatten() {
-		context.ClearAllBindingsFn()
+		context.ClearAllAttachedControllerFunctions()
 	}
 
 	helperCommon := gui.c

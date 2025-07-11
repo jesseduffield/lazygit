@@ -88,7 +88,7 @@ type IBaseContext interface {
 
 	AddKeybindingsFn(KeybindingsFn)
 	AddMouseKeybindingsFn(MouseKeybindingsFn)
-	ClearAllBindingsFn()
+	ClearAllAttachedControllerFunctions()
 
 	// This is a bit of a hack at the moment: we currently only set an onclick function so that
 	// our list controller can come along and wrap it in a list-specific click handler.
@@ -245,14 +245,15 @@ type HasKeybindings interface {
 	GetMouseKeybindings(opts KeybindingsOpts) []*gocui.ViewMouseBinding
 	GetOnClick() func() error
 	GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error
-	GetOnRenderToMain() func()
-	GetOnFocus() func(OnFocusOpts)
-	GetOnFocusLost() func(OnFocusLostOpts)
 }
 
 type IController interface {
 	HasKeybindings
 	Context() Context
+
+	GetOnRenderToMain() func()
+	GetOnFocus() func(OnFocusOpts)
+	GetOnFocusLost() func(OnFocusLostOpts)
 }
 
 type IList interface {
