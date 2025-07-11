@@ -56,7 +56,7 @@ outer:
 		currentStashEntry = stashEntryFromLine(match[2], idx)
 		for i+1 < len(lines) && !isAStash(lines[i+1]) {
 			i++
-			if lines[i] == filterPath {
+			if strings.HasPrefix(lines[i], filterPath) {
 				stashEntries = append(stashEntries, currentStashEntry)
 				continue outer
 			}

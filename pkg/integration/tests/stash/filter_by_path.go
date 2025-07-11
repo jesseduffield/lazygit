@@ -53,11 +53,8 @@ var FilterByPath = NewIntegrationTest(NewIntegrationTestArgs{
 		filterBy("subdir")
 
 		t.Views().Stash().
-			/* EXPECTED:
 			Lines(
 				Contains("subdir/file2"),
 			)
-			ACTUAL: */
-			IsEmpty()
 	},
 })
