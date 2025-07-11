@@ -168,7 +168,7 @@ func (self *ModeHelper) ClearFiltering() error {
 	}
 
 	self.c.Refresh(types.RefreshOptions{
-		Scope: []types.RefreshableView{types.COMMITS},
+		Scope: ScopesToRefreshWhenFilteringModeChanges(),
 		Then: func() {
 			// Find the commit that was last selected in filtering mode, and select it again after refreshing
 			if !self.c.Contexts().LocalCommits.SelectCommitByHash(selectedCommitHash) {
@@ -183,6 +183,17 @@ func (self *ModeHelper) ClearFiltering() error {
 		},
 	})
 	return nil
+}
+
+// Stashes really only need to be refreshed when filtering by path, not by author, but it's too much
+// work to distinguish this, and refreshing stashes is fast, so we don't bother
+func ScopesToRefreshWhenFilteringModeChanges() []types.RefreshableView {
+	return []types.RefreshableView{
+		types.COMMITS,
+		types.SUB_COMMITS,
+		types.REFLOG,
+		types.STASH,
+	}
 }
 
 func (self *ModeHelper) SetSuppressRebasingMode(value bool) {
