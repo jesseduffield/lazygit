@@ -32,7 +32,7 @@ func (self *StashLoader) GetStashEntries(filterPath string) []*models.StashEntry
 		return self.getUnfilteredStashEntries()
 	}
 
-	cmdArgs := NewGitCmd("stash").Arg("list", "--name-only", "--pretty=%ct|%gs").ToArgv()
+	cmdArgs := NewGitCmd("stash").Arg("list", "--name-only", "--pretty=%gd:%ct|%gs").ToArgv()
 	rawString, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	if err != nil {
 		return self.getUnfilteredStashEntries()
@@ -41,19 +41,19 @@ func (self *StashLoader) GetStashEntries(filterPath string) []*models.StashEntry
 	var currentStashEntry *models.StashEntry
 	lines := utils.SplitLines(rawString)
 	isAStash := func(line string) bool { return strings.HasPrefix(line, "stash@{") }
-	re := regexp.MustCompile(`stash@\{(\d+)\}`)
+	re := regexp.MustCompile(`^stash@\{(\d+)\}:(.*)$`)
 
 outer:
 	for i := 0; i < len(lines); i++ {
-		if !isAStash(lines[i]) {
+		match := re.FindStringSubmatch(lines[i])
+		if match == nil {
 			continue
 		}
-		match := re.FindStringSubmatch(lines[i])
 		idx, err := strconv.Atoi(match[1])
 		if err != nil {
 			return self.getUnfilteredStashEntries()
 		}
-		currentStashEntry = stashEntryFromLine(lines[i], idx)
+		currentStashEntry = stashEntryFromLine(match[2], idx)
 		for i+1 < len(lines) && !isAStash(lines[i+1]) {
 			i++
 			if lines[i] == filterPath {

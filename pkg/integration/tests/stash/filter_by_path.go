@@ -44,13 +44,10 @@ var FilterByPath = NewIntegrationTest(NewIntegrationTestArgs{
 		filterBy("file1")
 
 		t.Views().Stash().
-			/* EXPECTED:
 			Lines(
 				Contains("file1 again"),
 				Contains("file1"),
 			)
-			ACTUAL: */
-			IsEmpty()
 
 		t.GlobalPress(keys.Universal.Return)
 		filterBy("subdir")
