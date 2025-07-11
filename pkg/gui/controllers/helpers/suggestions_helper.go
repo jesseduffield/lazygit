@@ -89,8 +89,6 @@ func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*ty
 // self.c.Model().FilesTrie. On the main thread we'll be doing a fuzzy search via
 // self.c.Model().FilesTrie. So if we've looked for a file previously, we'll start with
 // the old trie and eventually it'll be swapped out for the new one.
-// Notably, unlike other suggestion functions we're not showing all the options
-// if nothing has been typed because there'll be too much to display efficiently
 func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*types.Suggestion {
 	_ = self.c.WithWaitingStatus(self.c.Tr.LoadingFileSuggestions, func(gocui.Task) error {
 		trie := patricia.NewTrie()
@@ -105,7 +103,9 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 				if err != nil {
 					return err
 				}
-				trie.Insert(patricia.Prefix(path), path)
+				if path != "." {
+					trie.Insert(patricia.Prefix(path), path)
+				}
 				return nil
 			})
 

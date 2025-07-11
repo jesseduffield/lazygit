@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -67,6 +68,19 @@ func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []
 	}
 
 	return bindings
+}
+
+func (self *SuggestionsController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName:    self.c.Contexts().Confirmation.GetViewName(),
+			FocusedView: self.c.Contexts().Suggestions.GetViewName(),
+			Key:         gocui.MouseLeft,
+			Handler: func(gocui.ViewMouseBindingOpts) error {
+				return self.switchToConfirmation()
+			},
+		},
+	}
 }
 
 func (self *SuggestionsController) switchToConfirmation() error {

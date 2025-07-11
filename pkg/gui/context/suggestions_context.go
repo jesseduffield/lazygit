@@ -88,3 +88,7 @@ func (self *SuggestionsContext) RefreshSuggestions() {
 func (self *SuggestionsContext) RangeSelectEnabled() bool {
 	return false
 }
+
+func (self *SuggestionsContext) GetOnClick() func() error {
+	return self.State.OnConfirm
+}
