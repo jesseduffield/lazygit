@@ -178,7 +178,8 @@ func (self *ModeHelper) ClearFiltering() error {
 				// before we entered filtering
 				self.c.Contexts().LocalCommits.SelectCommitByHash(self.c.Modes().Filtering.GetSelectedCommitHash())
 			}
-			self.c.Contexts().LocalCommits.HandleFocus(types.OnFocusOpts{})
+
+			self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
 		},
 	})
 	return nil
