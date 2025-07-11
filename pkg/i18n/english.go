@@ -782,6 +782,7 @@ type TranslationSet struct {
 	SoftResetPrompt                          string
 	UpstreamGone                             string
 	NukeDescription                          string
+	NukeTreeConfirmation                     string
 	DiscardStagedChangesDescription          string
 	EmptyOutput                              string
 	Patch                                    string
@@ -1832,6 +1833,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CheckoutAutostashPrompt:                  "Are you sure you want to checkout '%s'? An auto-stash will be performed if necessary.",
 		UpstreamGone:                             "(upstream gone)",
 		NukeDescription:                          "If you want to make all the changes in the worktree go away, this is the way to do it. If there are dirty submodule changes this will stash those changes in the submodule(s).",
+		NukeTreeConfirmation:                     "Are you sure you want to nuke the working tree? This will discard all changes in the worktree (staged, unstaged and untracked), which is not undoable.",
 		DiscardStagedChangesDescription:          "This will create a new stash entry containing only staged files and then drop it, so that the working tree is left with only unstaged changes",
 		EmptyOutput:                              "<Empty output>",
 		Patch:                                    "Patch",
