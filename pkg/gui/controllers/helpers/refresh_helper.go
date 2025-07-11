@@ -607,12 +607,13 @@ func (self *RefreshHelper) refreshReflogCommits() error {
 	// pulling state into its own variable in case it gets swapped out for another state
 	// and we get an out of bounds exception
 	model := self.c.Model()
-	var lastReflogCommit *models.Commit
-	if len(model.ReflogCommits) > 0 {
-		lastReflogCommit = model.ReflogCommits[0]
-	}
 
 	refresh := func(stateCommits *[]*models.Commit, filterPath string, filterAuthor string) error {
+		var lastReflogCommit *models.Commit
+		if filterPath == "" && filterAuthor == "" && len(*stateCommits) > 0 {
+			lastReflogCommit = (*stateCommits)[0]
+		}
+
 		commits, onlyObtainedNewReflogCommits, err := self.c.Git().Loaders.ReflogCommitLoader.
 			GetReflogCommits(self.c.Model().HashPool, lastReflogCommit, filterPath, filterAuthor)
 		if err != nil {
