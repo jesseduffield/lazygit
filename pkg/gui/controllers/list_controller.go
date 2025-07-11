@@ -162,7 +162,6 @@ func (self *ListController) HandleRangeSelectUp() error {
 }
 
 func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
-	prevSelectedLineIdx := self.context.GetList().GetSelectedLineIdx()
 	newSelectedLineIdx := self.context.ViewIndexToModelIndex(opts.Y)
 	alreadyFocused := self.isFocused()
 
@@ -176,7 +175,7 @@ func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
 
 	self.context.GetList().SetSelection(newSelectedLineIdx)
 
-	if prevSelectedLineIdx == newSelectedLineIdx && alreadyFocused && self.context.GetOnClick() != nil {
+	if opts.IsDoubleClick && alreadyFocused && self.context.GetOnClick() != nil {
 		return self.context.GetOnClick()()
 	}
 	self.context.HandleFocus(types.OnFocusOpts{})
