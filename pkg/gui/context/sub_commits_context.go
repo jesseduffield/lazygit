@@ -225,7 +225,7 @@ func (self *SubCommitsContext) RefForAdjustingLineNumberInDiff() string {
 }
 
 func (self *SubCommitsContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
-	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), searchStr)
+	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), self.ModelIndexToViewIndex, searchStr)
 }
 
 func (self *SubCommitsContext) IndexForGotoBottom() int {

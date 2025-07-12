@@ -223,7 +223,7 @@ func (self *LocalCommitsContext) RefForAdjustingLineNumberInDiff() string {
 }
 
 func (self *LocalCommitsContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
-	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), searchStr)
+	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), self.ModelIndexToViewIndex, searchStr)
 }
 
 func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {
@@ -266,7 +266,9 @@ func shouldShowGraph(c *ContextCommon) bool {
 	return false
 }
 
-func searchModelCommits(caseSensitive bool, commits []*models.Commit, columnPositions []int, searchStr string) []gocui.SearchPosition {
+func searchModelCommits(caseSensitive bool, commits []*models.Commit, columnPositions []int,
+	modelToViewIndex func(int) int, searchStr string,
+) []gocui.SearchPosition {
 	if columnPositions == nil {
 		// This should never happen. We are being called at a time where our
 		// entire view content is scrolled out of view, so that we didn't draw
@@ -283,7 +285,7 @@ func searchModelCommits(caseSensitive bool, commits []*models.Commit, columnPosi
 		// searching for a commit hash that is longer than the truncated hash
 		// that we render. So we just set the XStart and XEnd values to the
 		// start and end of the commit hash column, which is the second one.
-		result := gocui.SearchPosition{XStart: columnPositions[1], XEnd: columnPositions[2] - 1, Y: idx}
+		result := gocui.SearchPosition{XStart: columnPositions[1], XEnd: columnPositions[2] - 1, Y: modelToViewIndex(idx)}
 		return result, strings.Contains(normalize(commit.Hash()), searchStr) ||
 			strings.Contains(normalize(commit.Name), searchStr) ||
 			strings.Contains(normalize(commit.ExtraInfo), searchStr) // allow searching for tags
