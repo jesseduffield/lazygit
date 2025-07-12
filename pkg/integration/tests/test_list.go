@@ -40,6 +40,7 @@ var tests = []*components.IntegrationTest{
 	bisect.Skip,
 	branch.CheckoutAutostash,
 	branch.CheckoutByName,
+	branch.CheckoutPreviousBranch,
 	branch.CreateTag,
 	branch.Delete,
 	branch.DeleteMultiple,

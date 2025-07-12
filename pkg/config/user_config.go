@@ -497,6 +497,7 @@ type KeybindingBranchesConfig struct {
 	CopyPullRequestURL     string `yaml:"copyPullRequestURL"`
 	CheckoutBranchByName   string `yaml:"checkoutBranchByName"`
 	ForceCheckoutBranch    string `yaml:"forceCheckoutBranch"`
+	CheckoutPreviousBranch string `yaml:"checkoutPreviousBranch"`
 	RebaseBranch           string `yaml:"rebaseBranch"`
 	RenameBranch           string `yaml:"renameBranch"`
 	MergeIntoCurrentBranch string `yaml:"mergeIntoCurrentBranch"`
@@ -957,6 +958,7 @@ func GetDefaultConfig() *UserConfig {
 				ViewPullRequestOptions: "O",
 				CheckoutBranchByName:   "c",
 				ForceCheckoutBranch:    "F",
+				CheckoutPreviousBranch: "-",
 				RebaseBranch:           "r",
 				RenameBranch:           "R",
 				MergeIntoCurrentBranch: "M",

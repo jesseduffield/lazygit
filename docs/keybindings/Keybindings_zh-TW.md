@@ -279,7 +279,8 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` o `` | 建立拉取請求 |  |
 | `` O `` | 建立拉取請求選項 |  |
 | `` <c-y> `` | 複製拉取請求的 URL 到剪貼板 |  |
-| `` c `` | 根據名稱檢出 | Checkout by name. In the input box you can enter '-' to switch to the last branch. |
+| `` c `` | 根據名稱檢出 | Checkout by name. In the input box you can enter '-' to switch to the previous branch. |
+| `` - `` | Checkout previous branch |  |
 | `` F `` | 強制檢出 | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | 刪除 | View delete options for local/remote branch. |
 | `` r `` | 將已檢出的分支變基至此分支 | Rebase the checked-out branch onto the selected branch. |
