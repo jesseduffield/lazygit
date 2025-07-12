@@ -104,6 +104,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` O `` | Bekijk opties voor pull-aanvraag |  |
 | `` <c-y> `` | Kopieer de URL van het pull-verzoek naar het klembord |  |
 | `` c `` | Uitchecken bij naam | Checkout by name. In the input box you can enter '-' to switch to the last branch. |
+| `` - `` | Checkout previous branch |  |
 | `` F `` | Forceer checkout | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |
 | `` r `` | Rebase branch | Rebase the checked-out branch onto the selected branch. |

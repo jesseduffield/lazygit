@@ -97,6 +97,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` O `` | View create pull request options |  |
 | `` <c-y> `` | Copiar URL do pull request para área de transferência |  |
 | `` c `` | Checar por nome | Checar por nome. Na caixa de entrada você pode inserir '-' para trocar para a última branch  |
+| `` - `` | Checkout previous branch |  |
 | `` F `` | Forçar checagem | Forçar checagem da branch selecionada. Isso irá descartar todas as mudanças no seu diretório de trabalho antes cheque a branch selecionada   |
 | `` d `` | Apagar | Ver opções de exclusão para a branch local/remoto. |
 | `` r `` | Refazer | Refazer a branch checada na branch selecionada |

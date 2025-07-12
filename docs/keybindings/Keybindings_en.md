@@ -171,6 +171,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` O `` | View create pull request options |  |
 | `` <c-y> `` | Copy pull request URL to clipboard |  |
 | `` c `` | Checkout by name | Checkout by name. In the input box you can enter '-' to switch to the last branch. |
+| `` - `` | Checkout previous branch |  |
 | `` F `` | Force checkout | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |
 | `` r `` | Rebase | Rebase the checked-out branch onto the selected branch. |

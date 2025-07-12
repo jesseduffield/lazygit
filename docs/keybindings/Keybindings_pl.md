@@ -137,6 +137,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` O `` | Zobacz opcje tworzenia pull requesta |  |
 | `` <c-y> `` | Kopiuj adres URL żądania ściągnięcia do schowka |  |
 | `` c `` | Przełącz według nazwy | Przełącz według nazwy. W polu wprowadzania możesz wpisać '-' aby przełączyć się na ostatnią gałąź. |
+| `` - `` | Checkout previous branch |  |
 | `` F `` | Wymuś przełączenie | Wymuś przełączenie wybranej gałęzi. To spowoduje odrzucenie wszystkich lokalnych zmian w drzewie roboczym przed przełączeniem na wybraną gałąź. |
 | `` d `` | Usuń | Wyświetl opcje usuwania lokalnej/odległej gałęzi. |
 | `` r `` | Przebazuj | Przebazuj przełączoną gałąź na wybraną gałąź. |
