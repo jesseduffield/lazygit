@@ -204,7 +204,7 @@ _Связки клавиш_
 | `` o `` | Создать запрос на принятие изменений |  |
 | `` O `` | Создать параметры запроса принятие изменений |  |
 | `` <c-y> `` | Скопировать URL запроса на принятие изменений в буфер обмена |  |
-| `` c `` | Переключить по названию | Checkout by name. In the input box you can enter '-' to switch to the last branch. |
+| `` c `` | Переключить по названию | Checkout by name. In the input box you can enter '-' to switch to the previous branch. |
 | `` - `` | Checkout previous branch |  |
 | `` F `` | Принудительное переключение | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |
