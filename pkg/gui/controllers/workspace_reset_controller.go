@@ -31,19 +31,26 @@ func (self *FilesController) createResetMenu() error {
 				red.Sprint(nukeStr),
 			},
 			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.NukeWorkingTree)
-				if err := self.c.Git().WorkingTree.ResetAndClean(); err != nil {
-					return err
-				}
+				return self.c.ConfirmIf(helpers.IsWorkingTreeDirty(self.c.Model().Files),
+					types.ConfirmOpts{
+						Title:  self.c.Tr.Actions.NukeWorkingTree,
+						Prompt: self.c.Tr.NukeTreeConfirmation,
+						HandleConfirm: func() error {
+							self.c.LogAction(self.c.Tr.Actions.NukeWorkingTree)
+							if err := self.c.Git().WorkingTree.ResetAndClean(); err != nil {
+								return err
+							}
 
-				if self.c.UserConfig().Gui.AnimateExplosion {
-					self.animateExplosion()
-				}
+							if self.c.UserConfig().Gui.AnimateExplosion {
+								self.animateExplosion()
+							}
 
-				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
-				)
-				return nil
+							self.c.Refresh(
+								types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+							)
+							return nil
+						},
+					})
 			},
 			Key:     'x',
 			Tooltip: self.c.Tr.NukeDescription,
