@@ -62,7 +62,7 @@
 
   // See https://www.kenmuse.com/blog/avoiding-dubious-ownership-in-dev-containers/ for the safe.directory part
   // The defaultBranch part is required for our deprecated integration tests.
-  "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && git config --global init.defaultBranch master && curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ./.bin",
+  "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && git config --global init.defaultBranch master && test -e .bin/golangci-lint || { mkdir -p .bin && ln -s $(go env GOPATH)/bin/golangci-lint .bin/golangci-lint; }",
 
   // Set `remoteUser` to `root` to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
   "remoteUser": "vscode"

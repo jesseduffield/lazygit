@@ -14,8 +14,7 @@ coverage.txt
 .idea/
 
 # Binaries
-.bin/*
-!.bin/.gitkeep
+.bin/
 lazygit
 lazygit.exe
 
