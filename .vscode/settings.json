@@ -23,7 +23,7 @@
     },
   },
   "go.alternateTools": {
-    "golangci-lint-v2": "${workspaceFolder}/.bin/golangci-lint",
+    "golangci-lint-v2": "${workspaceFolder}/scripts/golangci-lint-shim.sh",
   },
   "go.lintTool": "golangci-lint-v2",
 }

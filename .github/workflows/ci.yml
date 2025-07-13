@@ -170,6 +170,7 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@v8
         with:
+          # If you change this, make sure to also update scripts/golangci-lint-shim.sh
           version: v2.2.1
       - name: errors
         run: golangci-lint run
