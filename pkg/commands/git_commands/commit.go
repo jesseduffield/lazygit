@@ -23,7 +23,7 @@ func NewCommitCommands(gitCommon *GitCommon) *CommitCommands {
 // ResetAuthor resets the author of the topmost commit
 func (self *CommitCommands) ResetAuthor() error {
 	cmdArgs := NewGitCmd("commit").
-		Arg("--allow-empty", "--only", "--no-edit", "--amend", "--reset-author").
+		Arg("--allow-empty", "--allow-empty-message", "--only", "--no-edit", "--amend", "--reset-author").
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
@@ -32,7 +32,7 @@ func (self *CommitCommands) ResetAuthor() error {
 // Sets the commit's author to the supplied value. Value is expected to be of the form 'Name <Email>'
 func (self *CommitCommands) SetAuthor(value string) error {
 	cmdArgs := NewGitCmd("commit").
-		Arg("--allow-empty", "--only", "--no-edit", "--amend", "--author="+value).
+		Arg("--allow-empty", "--allow-empty-message", "--only", "--no-edit", "--amend", "--author="+value).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
@@ -247,7 +247,7 @@ func (self *CommitCommands) AmendHead() error {
 
 func (self *CommitCommands) AmendHeadCmdObj() *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("commit").
-		Arg("--amend", "--no-edit", "--allow-empty").
+		Arg("--amend", "--no-edit", "--allow-empty", "--allow-empty-message").
 		ToArgv()
 
 	return self.cmd.New(cmdArgs)
