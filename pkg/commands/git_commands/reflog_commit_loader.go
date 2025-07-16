@@ -25,8 +25,6 @@ func NewReflogCommitLoader(common *common.Common, cmd oscommands.ICmdObjBuilder)
 // GetReflogCommits only returns the new reflog commits since the given lastReflogCommit
 // if none is passed (i.e. it's value is nil) then we get all the reflog commits
 func (self *ReflogCommitLoader) GetReflogCommits(hashPool *utils.StringPool, lastReflogCommit *models.Commit, filterPath string, filterAuthor string) ([]*models.Commit, bool, error) {
-	commits := make([]*models.Commit, 0)
-
 	cmdArgs := NewGitCmd("log").
 		Config("log.showSignature=false").
 		Arg("-g").
@@ -38,10 +36,11 @@ func (self *ReflogCommitLoader) GetReflogCommits(hashPool *utils.StringPool, las
 	cmdObj := self.cmd.New(cmdArgs).DontLog()
 
 	onlyObtainedNewReflogCommits := false
-	err := cmdObj.RunAndProcessLines(func(line string) (bool, error) {
+
+	commits, err := loadCommits(cmdObj, func(line string) (*models.Commit, bool) {
 		commit, ok := self.parseLine(hashPool, line)
 		if !ok {
-			return false, nil
+			return nil, false
 		}
 
 		// note that the unix timestamp here is the timestamp of the COMMIT, not the reflog entry itself,
@@ -51,11 +50,10 @@ func (self *ReflogCommitLoader) GetReflogCommits(hashPool *utils.StringPool, las
 		if lastReflogCommit != nil && self.sameReflogCommit(commit, lastReflogCommit) {
 			onlyObtainedNewReflogCommits = true
 			// after this point we already have these reflogs loaded so we'll simply return the new ones
-			return true, nil
+			return nil, true
 		}
 
-		commits = append(commits, commit)
-		return false, nil
+		return commit, false
 	})
 	if err != nil {
 		return nil, false, err

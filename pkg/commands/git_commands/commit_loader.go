@@ -89,11 +89,13 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 	go utils.Safe(func() {
 		defer wg.Done()
 
-		logErr = self.getLogCmd(opts).RunAndProcessLines(func(line string) (bool, error) {
-			commit := self.extractCommitFromLine(opts.HashPool, line, opts.RefToShowDivergenceFrom != "")
-			commits = append(commits, commit)
-			return false, nil
+		var realCommits []*models.Commit
+		realCommits, logErr = loadCommits(self.getLogCmd(opts), func(line string) (*models.Commit, bool) {
+			return self.extractCommitFromLine(opts.HashPool, line, opts.RefToShowDivergenceFrom != ""), false
 		})
+		if logErr == nil {
+			commits = append(commits, realCommits...)
+		}
 	})
 
 	var ancestor string
