@@ -235,6 +235,10 @@ func (self *Shell) DeleteFileAndAdd(fileName string) *Shell {
 		GitAdd(fileName)
 }
 
+func (self *Shell) RenameFileInGit(oldName string, newName string) *Shell {
+	return self.RunCommand([]string{"git", "mv", oldName, newName})
+}
+
 // creates commits 01, 02, 03, ..., n with a new file in each
 // The reason for padding with zeroes is so that it's easier to do string
 // matches on the commit messages when there are many of them
