@@ -57,8 +57,20 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 		from, to := refRange.From, refRange.To
 		args := []string{from.ParentRefName(), to.RefName(), "--stat", "-p"}
 		args = append(args, "--")
-		if path := self.c.Modes().Filtering.GetPath(); path != "" {
-			args = append(args, path)
+		if filterPath := self.c.Modes().Filtering.GetPath(); filterPath != "" {
+			// If both refs are commits, filter by the union of their paths. This is useful for
+			// example when diffing a range of commits in filter-by-path mode across a rename.
+			fromCommit, ok1 := from.(*models.Commit)
+			toCommit, ok2 := to.(*models.Commit)
+			if ok1 && ok2 {
+				paths := append(self.FilterPathsForCommit(fromCommit), self.FilterPathsForCommit(toCommit)...)
+				args = append(args, lo.Uniq(paths)...)
+			} else {
+				// If either ref is not a commit (which is possible in sticky diff mode, when
+				// diffing against a branch or tag), we just filter by the filter path; that's the
+				// best we can do in this case.
+				args = append(args, filterPath)
+			}
 		}
 		cmdObj := self.c.Git().Diff.DiffCmdObj(args)
 		prefix := style.FgYellow.Sprintf("%s %s-%s\n\n", self.c.Tr.ShowingDiffForRange, from.ShortRefName(), to.ShortRefName())

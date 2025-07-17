@@ -113,7 +113,6 @@ var ShowDiffsForRenamedFile = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.RangeSelectUp)
 
 		t.Views().Main().ContainsLines(
-			/* EXPECTED:
 			Contains("Showing diff for range"),
 			Equals(""),
 			Equals(" oldFile => newFile | 2 +-"),
@@ -131,19 +130,6 @@ var ShowDiffsForRenamedFile = NewIntegrationTest(NewIntegrationTestArgs{
 			Equals("+y"),
 			Equals(" b"),
 			Equals(" c"),
-			ACTUAL: */
-			Equals(" newFile | 3 +++"),
-			Equals(" 1 file changed, 3 insertions(+)"),
-			Equals(""),
-			Equals("diff --git a/newFile b/newFile"),
-			Equals("new file mode 100644"),
-			Contains("index"),
-			Equals("--- /dev/null"),
-			Equals("+++ b/newFile"),
-			Equals("@@ -0,0 +1,3 @@"),
-			Equals("+y"),
-			Equals("+b"),
-			Equals("+c"),
 		)
 	},
 })
