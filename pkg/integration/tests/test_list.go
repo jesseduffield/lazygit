@@ -352,6 +352,7 @@ var tests = []*components.IntegrationTest{
 	stash.CreateBranch,
 	stash.Drop,
 	stash.DropMultiple,
+	stash.FilterByPath,
 	stash.Pop,
 	stash.PreventDiscardingFileChanges,
 	stash.Rename,

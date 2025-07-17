@@ -345,6 +345,10 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 }
 
 func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
+	if self.c.Contexts().SubCommits.GetRef() == nil {
+		return nil
+	}
+
 	self.c.Mutexes().SubCommitsMutex.Lock()
 	defer self.c.Mutexes().SubCommitsMutex.Unlock()
 
