@@ -129,11 +129,9 @@ func NewApp(config config.AppConfigurer, test integrationTypes.IntegrationTest, 
 	}
 
 	// used for testing purposes
-	if os.Getenv("SHOW_RECENT_REPOS") == "true" {
-		showRecentRepos = true
-	}
+	forceRecentRepos := os.Getenv("SHOW_RECENT_REPOS") == "true"
 
-	app.Gui, err = gui.NewGui(common, config, gitVersion, updater, showRecentRepos, dirName, test)
+	app.Gui, err = gui.NewGui(common, config, gitVersion, updater, showRecentRepos, forceRecentRepos, dirName, test)
 	if err != nil {
 		return app, err
 	}
