@@ -107,5 +107,43 @@ var ShowDiffsForRenamedFile = NewIntegrationTest(NewIntegrationTestArgs{
 			Equals(" b"),
 			Equals(" c"),
 		)
+
+		t.Views().Commits().
+			Press(keys.Universal.RangeSelectUp).
+			Press(keys.Universal.RangeSelectUp)
+
+		t.Views().Main().ContainsLines(
+			/* EXPECTED:
+			Contains("Showing diff for range"),
+			Equals(""),
+			Equals(" oldFile => newFile | 2 +-"),
+			Equals(" 1 file changed, 1 insertion(+), 1 deletion(-)"),
+			Equals(""),
+			Equals("diff --git a/oldFile b/newFile"),
+			Equals("similarity index 66%"),
+			Equals("rename from oldFile"),
+			Equals("rename to newFile"),
+			Contains("index"),
+			Equals("--- a/oldFile"),
+			Equals("+++ b/newFile"),
+			Equals("@@ -1,3 +1,3 @@"),
+			Equals("-a"),
+			Equals("+y"),
+			Equals(" b"),
+			Equals(" c"),
+			ACTUAL: */
+			Equals(" newFile | 3 +++"),
+			Equals(" 1 file changed, 3 insertions(+)"),
+			Equals(""),
+			Equals("diff --git a/newFile b/newFile"),
+			Equals("new file mode 100644"),
+			Contains("index"),
+			Equals("--- /dev/null"),
+			Equals("+++ b/newFile"),
+			Equals("@@ -0,0 +1,3 @@"),
+			Equals("+y"),
+			Equals("+b"),
+			Equals("+c"),
+		)
 	},
 })
