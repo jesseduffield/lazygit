@@ -289,10 +289,11 @@ type Model struct {
 	Worktrees    []*models.Worktree
 
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
-	// when in filtering mode we only include the ones that match the given path
+	// When in filtering mode we only include the ones that match the given path
 	FilteredReflogCommits []*models.Commit
-	// ReflogCommits are the ones used by the branches panel to obtain recency values
-	// if we're not in filtering mode, CommitFiles and FilteredReflogCommits will be
+	// ReflogCommits are the ones used by the branches panel to obtain recency values,
+	// and for the undo functionality.
+	// If we're not in filtering mode, CommitFiles and FilteredReflogCommits will be
 	// one and the same
 	ReflogCommits []*models.Commit
 

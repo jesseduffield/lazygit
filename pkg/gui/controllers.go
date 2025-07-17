@@ -90,12 +90,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 		modeHelper,
 	)
 
-	setSubCommits := func(commits []*models.Commit) {
-		gui.Mutexes.SubCommitsMutex.Lock()
-		defer gui.Mutexes.SubCommitsMutex.Unlock()
-
-		gui.State.Model.SubCommits = commits
-	}
 	gui.helpers = &helpers.Helpers{
 		Refs:            refsHelper,
 		Host:            helpers.NewHostHelper(helperCommon),
@@ -135,7 +129,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		),
 		Search:     searchHelper,
 		Worktree:   worktreeHelper,
-		SubCommits: helpers.NewSubCommitsHelper(helperCommon, refreshHelper, setSubCommits),
+		SubCommits: helpers.NewSubCommitsHelper(helperCommon, refreshHelper),
 	}
 
 	gui.CustomCommandsClient = custom_commands.NewClient(

@@ -235,6 +235,7 @@ var tests = []*components.IntegrationTest{
 	filter_by_path.CliArg,
 	filter_by_path.KeepSameCommitSelectedOnExit,
 	filter_by_path.SelectFile,
+	filter_by_path.ShowDiffsForRenamedFile,
 	filter_by_path.TypeFile,
 	interactive_rebase.AdvancedInteractiveRebase,
 	interactive_rebase.AmendCommitWithConflict,
