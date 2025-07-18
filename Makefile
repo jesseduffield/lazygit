@@ -40,7 +40,7 @@ format:
 
 .PHONY: lint
 lint:
-	./scripts/lint.sh
+	./scripts/golangci-lint-shim.sh run
 
 # For more details about integration test, see https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.md.
 .PHONY: integration-test-tui
