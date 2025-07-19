@@ -35,6 +35,7 @@ type Helpers struct {
 	AmendHelper    *AmendHelper
 	FixupHelper    *FixupHelper
 	Commits        *CommitsHelper
+	SuspendResume  *SuspendResumeHelper
 	Snake          *SnakeHelper
 	// lives in context package because our contexts need it to render to main
 	Diff              *DiffHelper

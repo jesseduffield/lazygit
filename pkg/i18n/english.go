@@ -382,6 +382,8 @@ type TranslationSet struct {
 	ScrollUp                              string
 	ScrollUpMainWindow                    string
 	ScrollDownMainWindow                  string
+	SuspendApp                            string
+	CannotSuspendApp                      string
 	AmendCommitTitle                      string
 	AmendCommitPrompt                     string
 	AmendCommitWithConflictsMenuPrompt    string
@@ -1456,6 +1458,8 @@ func EnglishTranslationSet() *TranslationSet {
 		ScrollUp:                             "Scroll up",
 		ScrollUpMainWindow:                   "Scroll up main window",
 		ScrollDownMainWindow:                 "Scroll down main window",
+		SuspendApp:                           "Suspend the application",
+		CannotSuspendApp:                     "Suspending the application is not supported on Windows",
 		AmendCommitTitle:                     "Amend commit",
 		AmendCommitPrompt:                    "Are you sure you want to amend this commit with your staged files?",
 		AmendCommitWithConflictsMenuPrompt:   "WARNING: you are about to amend the last finished commit with your resolved conflicts. This is very unlikely to be what you want at this point. More likely, you simply want to continue the rebase instead.\n\nDo you still want to amend the previous commit?",

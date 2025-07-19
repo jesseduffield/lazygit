@@ -848,6 +848,8 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 
 	gui.BackgroundRoutineMgr.startBackgroundRoutines()
 
+	gui.Helpers().SuspendResume.InstallResumeSignalHandler()
+
 	gui.c.Log.Info("starting main loop")
 
 	// setting here so we can use it in layout.go
