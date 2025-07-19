@@ -425,6 +425,8 @@ func (gui *Gui) suspendApp(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 
+	gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(true)
+
 	p, err := os.FindProcess(os.Getpid())
 	if err != nil {
 		return err
@@ -439,6 +441,7 @@ func (gui *Gui) handleResume(g *gocui.Gui) {
 		for range sigs {
 			g.Resume()
 		}
+		gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(false)
 	}()
 }
 
