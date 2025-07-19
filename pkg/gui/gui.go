@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -421,6 +422,10 @@ func (gui *Gui) getPerRepoConfigFiles() []*config.ConfigFile {
 }
 
 func (gui *Gui) suspendApp(g *gocui.Gui, v *gocui.View) error {
+	if runtime.GOOS == "windows" {
+		return nil
+	}
+
 	if err := g.Suspend(); err != nil {
 		return err
 	}
