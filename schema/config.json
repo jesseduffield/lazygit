@@ -1458,7 +1458,7 @@
         },
         "redo": {
           "type": "string",
-          "default": "\u003cc-z\u003e"
+          "default": "Z"
         },
         "filteringMenu": {
           "type": "string",
