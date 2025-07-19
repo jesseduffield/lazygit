@@ -61,7 +61,7 @@ func (self *OptionsMenuAction) getBindings(context types.Context) ([]*types.Bind
 
 	for _, binding := range bindings {
 		if binding.Description != "" {
-			if binding.ViewName == "" {
+			if binding.ViewName == "" || binding.Tag == "global" {
 				bindingsGlobal = append(bindingsGlobal, binding)
 			} else if binding.ViewName == context.GetViewName() {
 				if binding.Tag == "navigation" {
