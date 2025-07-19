@@ -1,6 +1,7 @@
 package filter_by_path
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
@@ -15,6 +16,28 @@ func commonSetup(shell *Shell) {
 	shell.Commit("both files")
 
 	shell.EmptyCommit("none of the two")
+}
+
+func filterByFilterFile(t *TestDriver, keys config.KeybindingConfig) {
+	t.Views().Commits().
+		Focus().
+		Lines(
+			Contains(`none of the two`).IsSelected(),
+			Contains(`both files`),
+			Contains(`only otherFile`),
+			Contains(`only filterFile`),
+		).
+		Press(keys.Universal.FilteringMenu)
+
+	t.ExpectPopup().Menu().
+		Title(Equals("Filtering")).
+		Select(Contains("Enter path to filter by")).
+		Confirm()
+	t.ExpectPopup().Prompt().
+		Title(Equals("Enter path:")).
+		Type("filterF").
+		SuggestionLines(Equals("filterFile")).
+		ConfirmFirstSuggestion()
 }
 
 func postFilterTest(t *TestDriver) {
