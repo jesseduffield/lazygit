@@ -873,7 +873,7 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 		return err
 	}
 
-	if err := gui.g.SetKeybinding("", gocui.KeyCtrlA, gocui.ModNone, gui.suspendApp); err != nil {
+	if err := gui.g.SetKeybinding("", gocui.KeyCtrlZ, gocui.ModNone, gui.suspendApp); err != nil {
 		return err
 	}
 
