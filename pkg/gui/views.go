@@ -230,6 +230,8 @@ func (gui *Gui) configureViewProperties() {
 		gui.Views.ReflogCommits.TitlePrefix = jumpLabels[3]
 
 		gui.Views.Stash.TitlePrefix = jumpLabels[4]
+
+		gui.Views.Main.TitlePrefix = keyToTitlePrefix(gui.c.UserConfig().Keybinding.Universal.FocusMainView)
 	} else {
 		gui.Views.Status.TitlePrefix = ""
 
@@ -245,6 +247,8 @@ func (gui *Gui) configureViewProperties() {
 		gui.Views.ReflogCommits.TitlePrefix = ""
 
 		gui.Views.Stash.TitlePrefix = ""
+
+		gui.Views.Main.TitlePrefix = ""
 	}
 
 	for _, view := range gui.g.Views() {
