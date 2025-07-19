@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"reflect"
 	"regexp"
 	"sort"
 	"strings"
 	"sync"
+	"syscall"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazycore/pkg/boxlayout"
@@ -418,6 +420,28 @@ func (gui *Gui) getPerRepoConfigFiles() []*config.ConfigFile {
 	return repoConfigFiles
 }
 
+func (gui *Gui) suspendApp(g *gocui.Gui, v *gocui.View) error {
+	if err := g.Suspend(); err != nil {
+		return err
+	}
+
+	p, err := os.FindProcess(os.Getpid())
+	if err != nil {
+		return err
+	}
+	return p.Signal(syscall.SIGTSTP)
+}
+
+func (gui *Gui) handleResume(g *gocui.Gui) {
+	go func() {
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGCONT)
+		for range sigs {
+			g.Resume()
+		}
+	}()
+}
+
 func (gui *Gui) onUserConfigLoaded() error {
 	userConfig := gui.Config.GetUserConfig()
 	gui.Common.SetUserConfig(userConfig)
@@ -819,6 +843,8 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	gui.g = g
 	defer gui.g.Close()
 
+	gui.handleResume(gui.g)
+
 	g.ErrorHandler = gui.PopupHandler.ErrorHandler
 
 	// if the deadlock package wants to report a deadlock, we first need to
@@ -841,6 +867,10 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 
 	// onNewRepo must be called after g.SetManager because SetManager deletes keybindings
 	if err := gui.onNewRepo(startArgs, context.NO_CONTEXT); err != nil {
+		return err
+	}
+
+	if err := gui.g.SetKeybinding("", gocui.KeyCtrlA, gocui.ModNone, gui.suspendApp); err != nil {
 		return err
 	}
 
