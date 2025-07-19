@@ -205,9 +205,15 @@ func (gui *Gui) configureViewProperties() {
 	gui.Views.CommitDescription.TextArea.AutoWrapWidth = gui.c.UserConfig().Git.Commit.AutoWrapWidth
 
 	if gui.c.UserConfig().Gui.ShowPanelJumps {
+		keyToTitlePrefix := func(key string) string {
+			if key == "<disabled>" {
+				return ""
+			}
+			return fmt.Sprintf("[%s]", key)
+		}
 		jumpBindings := gui.c.UserConfig().Keybinding.Universal.JumpToBlock
 		jumpLabels := lo.Map(jumpBindings, func(binding string, _ int) string {
-			return fmt.Sprintf("[%s]", binding)
+			return keyToTitlePrefix(binding)
 		})
 
 		gui.Views.Status.TitlePrefix = jumpLabels[0]
