@@ -84,7 +84,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Commits.RenameCommit),
-			Handler: opts.Guards.OutsideFilterMode(self.withItem(self.reword)),
+			Handler: self.withItem(self.reword),
 			GetDisabledReason: self.require(
 				self.singleItemSelected(self.rewordEnabled),
 			),
@@ -95,7 +95,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Commits.RenameCommitWithEditor),
-			Handler: opts.Guards.OutsideFilterMode(self.withItem(self.rewordEditor)),
+			Handler: self.withItem(self.rewordEditor),
 			GetDisabledReason: self.require(
 				self.singleItemSelected(self.rewordEnabled),
 			),
@@ -103,7 +103,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Universal.Remove),
-			Handler: opts.Guards.OutsideFilterMode(self.withItemsRange(self.drop)),
+			Handler: self.withItemsRange(self.drop),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(
 					self.canDropCommits,
