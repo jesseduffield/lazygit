@@ -32,6 +32,7 @@ func (self *SwitchToFocusedMainViewController) GetKeybindings(opts types.Keybind
 			Key:         opts.GetKey(opts.Config.Universal.FocusMainView),
 			Handler:     self.handleFocusMainView,
 			Description: self.c.Tr.FocusMainView,
+			Tag:         "global",
 		},
 	}
 

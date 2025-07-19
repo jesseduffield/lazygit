@@ -17,6 +17,10 @@ func Label(name string) string {
 }
 
 func LabelFromKey(key types.Key) string {
+	if key == nil {
+		return ""
+	}
+
 	keyInt := 0
 
 	switch key := key.(type) {
