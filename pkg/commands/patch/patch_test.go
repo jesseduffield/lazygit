@@ -115,6 +115,17 @@ index 0000000..4e680cc
 +grape
 `
 
+const deletedFile = `diff --git a/newfile b/newfile
+deleted file mode 100644
+index 4e680cc1f..000000000
+--- a/newfile
++++ /dev/null
+@@ -1,3 +0,0 @@
+-apple
+-orange
+-grape
+`
+
 const addNewlineToPreviouslyEmptyFile = `diff --git a/newfile b/newfile
 index e69de29..c6568ea 100644
 --- a/newfile
@@ -553,6 +564,10 @@ func TestParseAndFormatPlain(t *testing.T) {
 		{
 			testName: "newFile",
 			patchStr: newFile,
+		},
+		{
+			testName: "deletedFile",
+			patchStr: deletedFile,
 		},
 		{
 			testName: "addNewlineToPreviouslyEmptyFile",
