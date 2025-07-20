@@ -186,3 +186,17 @@ func (self *Patch) AdjustLineNumber(lineNumber int) int {
 
 	return adjustedLineNumber
 }
+
+func (self *Patch) IsSingleHunkForWholeFile() bool {
+	if len(self.hunks) != 1 {
+		return false
+	}
+
+	// We consider a patch to be a single hunk for the whole file if it has only additions or
+	// deletions but not both, and no context lines. This not quite correct, because it will also
+	// return true for a block of added or deleted lines if the diff context size is 0, but in this
+	// case you wouldn't be able to stage things anyway, so it doesn't matter.
+	bodyLines := self.hunks[0].bodyLines
+	return nLinesWithKind(bodyLines, []PatchLineKind{DELETION, CONTEXT}) == 0 ||
+		nLinesWithKind(bodyLines, []PatchLineKind{ADDITION, CONTEXT}) == 0
+}
