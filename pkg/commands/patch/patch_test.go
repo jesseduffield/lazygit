@@ -710,3 +710,64 @@ func TestAdjustLineNumber(t *testing.T) {
 		})
 	}
 }
+
+func TestIsSingleHunkForWholeFile(t *testing.T) {
+	scenarios := []struct {
+		testName       string
+		patchStr       string
+		expectedResult bool
+	}{
+		{
+			testName:       "simpleDiff",
+			patchStr:       simpleDiff,
+			expectedResult: false,
+		},
+		{
+			testName:       "addNewlineToEndOfFile",
+			patchStr:       addNewlineToEndOfFile,
+			expectedResult: false,
+		},
+		{
+			testName:       "removeNewlinefromEndOfFile",
+			patchStr:       removeNewlinefromEndOfFile,
+			expectedResult: false,
+		},
+		{
+			testName:       "twoHunks",
+			patchStr:       twoHunks,
+			expectedResult: false,
+		},
+		{
+			testName:       "twoChangesInOneHunk",
+			patchStr:       twoChangesInOneHunk,
+			expectedResult: false,
+		},
+		{
+			testName:       "newFile",
+			patchStr:       newFile,
+			expectedResult: true,
+		},
+		{
+			testName:       "deletedFile",
+			patchStr:       deletedFile,
+			expectedResult: true,
+		},
+		{
+			testName:       "addNewlineToPreviouslyEmptyFile",
+			patchStr:       addNewlineToPreviouslyEmptyFile,
+			expectedResult: true,
+		},
+		{
+			testName:       "exampleHunk",
+			patchStr:       exampleHunk,
+			expectedResult: false,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			patch := Parse(s.patchStr)
+			assert.Equal(t, s.expectedResult, patch.IsSingleHunkForWholeFile())
+		})
+	}
+}
