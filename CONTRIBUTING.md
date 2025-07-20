@@ -118,9 +118,23 @@ Lazygit supports [Nerd Fonts](https://www.nerdfonts.com) to render certain icons
 
 ## Internationalisation
 
-Boy that's a hard word to spell. Anyway, lazygit is translated into several languages within the pkg/i18n package. If you need to render text to the user, you should add a new field to the TranslationSet struct in `pkg/i18n/english.go` and add the actual content within the `EnglishTranslationSet()` method in the same file. Then you can access via `gui.Tr.YourNewText` (or `self.c.Tr.YourNewText`, etc). Although it is appreciated if you translate the text into other languages, it's not expected of you (google translate will likely do a bad job anyway!).
+Boy that's a hard word to spell. Anyway, lazygit is translated into several languages within the pkg/i18n package. 
+
+### For developers adding new text
+
+If you need to render text to the user, you should add a new field to the TranslationSet struct in `pkg/i18n/english.go` and add the actual content within the `EnglishTranslationSet()` method in the same file. Then you can access via `gui.Tr.YourNewText` (or `self.c.Tr.YourNewText`, etc).
 
 Note, we use 'Sentence case' for everything (so no 'Title Case' or 'whatever-it's-called-when-there's-no-capital-letters-case')
+
+### For translators
+
+Lazygit translations are managed through [Crowdin](https://crowdin.com/project/lazygit/). If you'd like to contribute translations:
+
+1. Join the Crowdin project at https://crowdin.com/project/lazygit/
+2. Select your target language and help translate missing strings
+3. The translation files in `pkg/i18n/translations/` are managed by the maintainers - please don't edit them directly
+
+For detailed information about the translation process, including how maintainers sync translations, see `pkg/i18n/translations/README.md`.
 
 ## Debugging
 
