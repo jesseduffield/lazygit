@@ -282,7 +282,8 @@ func (self *FilesController) GetOnRenderToMain() func() {
 			split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
 			mainShowsStaged := !split && node.GetHasStagedChanges()
 
-			cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged)
+			contextSize := self.c.getContextSizeForCurrentContext()
+			cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObjWithContextSize(node, false, mainShowsStaged, contextSize)
 			title := self.c.Tr.UnstagedChanges
 			if mainShowsStaged {
 				title = self.c.Tr.StagedChanges
@@ -297,7 +298,8 @@ func (self *FilesController) GetOnRenderToMain() func() {
 			}
 
 			if split {
-				cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true)
+				contextSize := self.c.getContextSizeForCurrentContext()
+				cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObjWithContextSize(node, false, true, contextSize)
 
 				title := self.c.Tr.StagedChanges
 				if mainShowsStaged {

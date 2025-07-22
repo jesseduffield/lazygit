@@ -254,8 +254,10 @@ func (self *CommitCommands) AmendHeadCmdObj() *oscommands.CmdObj {
 }
 
 func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) *oscommands.CmdObj {
-	contextSize := self.UserConfig().Git.DiffContextSize
+	return self.ShowCmdObjWithContextSize(hash, filterPath, self.UserConfig().Git.DiffContextSize)
+}
 
+func (self *CommitCommands) ShowCmdObjWithContextSize(hash string, filterPath string, contextSize uint64) *oscommands.CmdObj {
 	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
 	cmdArgs := NewGitCmd("show").
 		Config("diff.noprefix=false").

@@ -255,12 +255,14 @@ func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool,
 }
 
 func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) *oscommands.CmdObj {
+	return self.WorktreeFileDiffCmdObjWithContextSize(node, plain, cached, self.UserConfig().Git.DiffContextSize)
+}
+
+func (self *WorkingTreeCommands) WorktreeFileDiffCmdObjWithContextSize(node models.IFile, plain bool, cached bool, contextSize uint64) *oscommands.CmdObj {
 	colorArg := self.UserConfig().Git.Paging.ColorArg
 	if plain {
 		colorArg = "never"
 	}
-
-	contextSize := self.UserConfig().Git.DiffContextSize
 	prevPath := node.GetPreviousPath()
 	noIndex := !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached && node.GetIsFile()
 	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand

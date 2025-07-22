@@ -19,6 +19,10 @@ func NewDiffCommands(gitCommon *GitCommon) *DiffCommands {
 // This is for generating diffs to be shown in the UI (e.g. rendering a range
 // diff to the main view). It uses a custom pager if one is configured.
 func (self *DiffCommands) DiffCmdObj(diffArgs []string) *oscommands.CmdObj {
+	return self.DiffCmdObjWithContextSize(diffArgs, self.UserConfig().Git.DiffContextSize)
+}
+
+func (self *DiffCommands) DiffCmdObjWithContextSize(diffArgs []string, contextSize uint64) *oscommands.CmdObj {
 	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
 	useExtDiff := extDiffCmd != ""
 	ignoreWhitespace := self.UserConfig().Git.IgnoreWhitespaceInDiffView
@@ -31,7 +35,7 @@ func (self *DiffCommands) DiffCmdObj(diffArgs []string) *oscommands.CmdObj {
 			Arg("--submodule").
 			Arg(fmt.Sprintf("--color=%s", self.UserConfig().Git.Paging.ColorArg)).
 			ArgIf(ignoreWhitespace, "--ignore-all-space").
-			Arg(fmt.Sprintf("--unified=%d", self.UserConfig().Git.DiffContextSize)).
+			Arg(fmt.Sprintf("--unified=%d", contextSize)).
 			Arg(diffArgs...).
 			Dir(self.repoPaths.worktreePath).
 			ToArgv(),

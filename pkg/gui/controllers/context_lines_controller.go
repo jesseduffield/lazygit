@@ -71,9 +71,7 @@ func (self *ContextLinesController) Increase() error {
 			return err
 		}
 
-		if self.c.UserConfig().Git.DiffContextSize < math.MaxUint64 {
-			self.c.UserConfig().Git.DiffContextSize++
-		}
+		self.incrementContextSize()
 		return self.applyChange()
 	}
 
@@ -86,17 +84,93 @@ func (self *ContextLinesController) Decrease() error {
 			return err
 		}
 
-		if self.c.UserConfig().Git.DiffContextSize > 0 {
-			self.c.UserConfig().Git.DiffContextSize--
-		}
+		self.decrementContextSize()
 		return self.applyChange()
 	}
 
 	return nil
 }
 
+// incrementContextSize increases the context size for the current context
+func (self *ContextLinesController) incrementContextSize() {
+	adaptiveConfig := &self.c.UserConfig().Git.AdaptiveContext
+	if !adaptiveConfig.Enabled {
+		if self.c.UserConfig().Git.DiffContextSize < math.MaxUint64 {
+			self.c.UserConfig().Git.DiffContextSize++
+		}
+		return
+	}
+
+	currentContext := self.currentSidePanel().GetKey()
+	switch currentContext {
+	case context.FILES_CONTEXT_KEY, context.COMMIT_FILES_CONTEXT_KEY:
+		if adaptiveConfig.Files < math.MaxUint64 {
+			adaptiveConfig.Files++
+		}
+	case context.LOCAL_COMMITS_CONTEXT_KEY, context.SUB_COMMITS_CONTEXT_KEY:
+		if adaptiveConfig.Commits < math.MaxUint64 {
+			adaptiveConfig.Commits++
+		}
+	case context.STASH_CONTEXT_KEY:
+		if adaptiveConfig.Stash < math.MaxUint64 {
+			adaptiveConfig.Stash++
+		}
+	case context.STAGING_MAIN_CONTEXT_KEY, context.STAGING_SECONDARY_CONTEXT_KEY:
+		if adaptiveConfig.Staging < math.MaxUint64 {
+			adaptiveConfig.Staging++
+		}
+	case context.PATCH_BUILDING_MAIN_CONTEXT_KEY, context.PATCH_BUILDING_SECONDARY_CONTEXT_KEY:
+		if adaptiveConfig.PatchBuilding < math.MaxUint64 {
+			adaptiveConfig.PatchBuilding++
+		}
+	default:
+		if self.c.UserConfig().Git.DiffContextSize < math.MaxUint64 {
+			self.c.UserConfig().Git.DiffContextSize++
+		}
+	}
+}
+
+// decrementContextSize decreases the context size for the current context
+func (self *ContextLinesController) decrementContextSize() {
+	adaptiveConfig := &self.c.UserConfig().Git.AdaptiveContext
+	if !adaptiveConfig.Enabled {
+		if self.c.UserConfig().Git.DiffContextSize > 0 {
+			self.c.UserConfig().Git.DiffContextSize--
+		}
+		return
+	}
+
+	currentContext := self.currentSidePanel().GetKey()
+	switch currentContext {
+	case context.FILES_CONTEXT_KEY, context.COMMIT_FILES_CONTEXT_KEY:
+		if adaptiveConfig.Files > 0 {
+			adaptiveConfig.Files--
+		}
+	case context.LOCAL_COMMITS_CONTEXT_KEY, context.SUB_COMMITS_CONTEXT_KEY:
+		if adaptiveConfig.Commits > 0 {
+			adaptiveConfig.Commits--
+		}
+	case context.STASH_CONTEXT_KEY:
+		if adaptiveConfig.Stash > 0 {
+			adaptiveConfig.Stash--
+		}
+	case context.STAGING_MAIN_CONTEXT_KEY, context.STAGING_SECONDARY_CONTEXT_KEY:
+		if adaptiveConfig.Staging > 0 {
+			adaptiveConfig.Staging--
+		}
+	case context.PATCH_BUILDING_MAIN_CONTEXT_KEY, context.PATCH_BUILDING_SECONDARY_CONTEXT_KEY:
+		if adaptiveConfig.PatchBuilding > 0 {
+			adaptiveConfig.PatchBuilding--
+		}
+	default:
+		if self.c.UserConfig().Git.DiffContextSize > 0 {
+			self.c.UserConfig().Git.DiffContextSize--
+		}
+	}
+}
+
 func (self *ContextLinesController) applyChange() error {
-	self.c.Toast(fmt.Sprintf(self.c.Tr.DiffContextSizeChanged, self.c.UserConfig().Git.DiffContextSize))
+	self.c.Toast(fmt.Sprintf(self.c.Tr.DiffContextSizeChanged, self.getContextSizeForCurrentContext()))
 
 	currentContext := self.currentSidePanel()
 	switch currentContext.GetKey() {
@@ -127,13 +201,10 @@ func (self *ContextLinesController) isShowingDiff() bool {
 }
 
 func (self *ContextLinesController) currentSidePanel() types.Context {
-	currentContext := self.c.Context().CurrentStatic()
-	if currentContext.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY ||
-		currentContext.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {
-		if sidePanelContext := self.c.Context().NextInStack(currentContext); sidePanelContext != nil {
-			return sidePanelContext
-		}
-	}
+	return self.c.currentSidePanel()
+}
 
-	return currentContext
+// getContextSizeForCurrentContext returns the appropriate context size based on the current context
+func (self *ContextLinesController) getContextSizeForCurrentContext() uint64 {
+	return self.c.getContextSizeForCurrentContext()
 }
