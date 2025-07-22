@@ -34,6 +34,10 @@ func (self *CommitDescriptionController) GetKeybindings(opts types.KeybindingsOp
 			Handler: self.close,
 		},
 		{
+			Key:     opts.GetKey(opts.Config.Universal.ReturnAlt1),
+			Handler: self.close,
+		},
+		{
 			Key:     opts.GetKey(opts.Config.Universal.ConfirmInEditor),
 			Handler: self.confirm,
 		},
