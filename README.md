@@ -11,7 +11,7 @@
   <b>Available for MacOS and Linux</b>
   <br>
   <div>
-    <sup>Visit warp.dev to learn more.</sup>
+    <sup>Visit warp.dev to learn more.</sup>
   </div>
 </a>
 <br>
@@ -106,6 +106,13 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Custom Pagers](#custom-pagers)
   - [Custom Commands](#custom-commands)
   - [Git flow support](#git-flow-support)
+- [How do I...](#how-do-i)
+  - [How do I edit the config?](#how-do-i-edit-the-config)
+  - [How do I install gitflow?](#how-do-i-install-gitflow)
+  - [How do I see recent repositories?](#how-do-i-see-recent-repositories)
+- [Troubleshooting](#troubleshooting)
+  - [Installation Issues](#installation-issues)
+  - [Terminal Issues](#terminal-issues)
 - [Contributing](#contributing)
   - [Debugging Locally](#debugging-locally)
 - [Donate](#donate)
@@ -501,6 +508,142 @@ See the [docs](docs/Custom_Command_Keybindings.md)
 ### Git flow support
 
 Lazygit supports [Gitflow](https://github.com/nvie/gitflow) if you have it installed. To understand how the Gitflow model works check out Vincent Driessen's original [post](https://nvie.com/posts/a-successful-git-branching-model/) explaining it. To view Gitflow options from within Lazygit, press `i` from within the branches view.
+
+## How do I...
+
+Common questions and their answers:
+
+<details>
+  <summary><strong>How do I edit the config?</strong></summary>
+  
+  There are several ways to edit the lazygit configuration:
+
+  1. **Open config from within lazygit**: Press `o` (or `e` on some systems) to open your config file in your default editor
+  2. **Edit directly**: The config file is located at:
+     - Linux/Mac: `~/.config/lazygit/config.yml`
+     - Windows: `%APPDATA%\lazygit\config.yml`
+  3. **Create if missing**: If the file doesn't exist, create it at the above location
+
+  See the [configuration docs](docs/Config.md) for all available options.
+</details>
+
+<details>
+  <summary><strong>How do I install gitflow?</strong></summary>
+  
+  Gitflow is a popular git branching model. To use gitflow features in lazygit, you need to install it separately:
+
+  **macOS (Homebrew):**
+  ```sh
+  brew install git-flow
+  ```
+
+  **Linux (apt/Ubuntu/Debian):**
+  ```sh
+  sudo apt-get install git-flow
+  ```
+
+  **Linux (yum/RHEL/CentOS):**
+  ```sh
+  sudo yum install gitflow
+  ```
+
+  **Windows:**
+  Download and install from [git-flow releases](https://github.com/nvie/gitflow/wiki/Installation)
+
+  Once installed, you can access gitflow options by pressing `i` in the branches view.
+</details>
+
+<details>
+  <summary><strong>How do I see recent repositories?</strong></summary>
+  
+  Lazygit tracks repositories you've opened and shows them when you start lazygit outside a git repo. 
+  
+  - Recent repos appear in the initial launch screen
+  - They're stored in the state file at:
+    - Linux/Mac: `~/.local/state/lazygit/state.yml`
+    - Windows: `%LOCALAPPDATA%\lazygit\state.yml`
+  - Repos are sorted by last access time
+  - You can clear the list by editing the state file
+</details>
+
+## Troubleshooting
+
+### Installation Issues
+
+<details>
+  <summary><strong>Command not found after installation</strong></summary>
+  
+  If you installed via `go install`, make sure your Go bin directory is in your PATH:
+  
+  **Linux/Mac:**
+  ```sh
+  echo 'export PATH=$PATH:~/go/bin' >> ~/.bashrc
+  source ~/.bashrc
+  ```
+  
+  **Windows:**
+  Add `%USERPROFILE%\go\bin` to your PATH environment variable
+</details>
+
+<details>
+  <summary><strong>Permission denied errors</strong></summary>
+  
+  When using manual installation, ensure the binary has execute permissions:
+  ```sh
+  chmod +x lazygit
+  ```
+</details>
+
+### Terminal Issues
+
+<details>
+  <summary><strong>WARNING: terminal is not fully functional</strong></summary>
+  
+  This warning typically appears in certain terminal environments. Solutions:
+  
+  1. **Set TERM environment variable:**
+     ```sh
+     export TERM=xterm-256color
+     ```
+  
+  2. **For VS Code integrated terminal:**
+     - Add to VS Code settings.json:
+     ```json
+     "terminal.integrated.env.linux": {
+       "TERM": "xterm-256color"
+     }
+     ```
+  
+  3. **For Windows Terminal:**
+     - Usually works out of the box, but try setting `TERM=xterm` if issues persist
+  
+  4. **For PowerShell on Windows:**
+     - Set the TERM environment variable:
+     ```powershell
+     $env:TERM = "xterm"
+     ```
+     - To make it permanent, add to your PowerShell profile:
+     ```powershell
+     # Add to $PROFILE (usually ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1)
+     $env:TERM = "xterm"
+     ```
+  
+  5. **For tmux users:**
+     ```sh
+     # In your .tmux.conf
+     set -g default-terminal "screen-256color"
+     ```
+</details>
+
+<details>
+  <summary><strong>Display issues in VS Code terminal</strong></summary>
+  
+  VS Code's terminal can have rendering issues with TUI applications. Try:
+  
+  1. Use an external terminal instead
+  2. Disable GPU acceleration in VS Code
+  3. Try a different terminal profile (PowerShell, Git Bash, WSL)
+</details>
 
 ## Contributing
 
