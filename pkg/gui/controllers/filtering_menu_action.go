@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -122,7 +123,7 @@ func (self *FilteringMenuAction) setFiltering() error {
 
 	self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
 
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}, Then: func() {
+	self.c.Refresh(types.RefreshOptions{Scope: helpers.ScopesToRefreshWhenFilteringModeChanges(), Then: func() {
 		self.c.Contexts().LocalCommits.SetSelection(0)
 		self.c.Contexts().LocalCommits.HandleFocus(types.OnFocusOpts{})
 	}})
