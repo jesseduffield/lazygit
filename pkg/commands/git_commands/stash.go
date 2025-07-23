@@ -81,13 +81,17 @@ func (self *StashCommands) Hash(index int) (string, error) {
 }
 
 func (self *StashCommands) ShowStashEntryCmdObj(index int) *oscommands.CmdObj {
+	return self.ShowStashEntryCmdObjWithContextSize(index, self.UserConfig().Git.DiffContextSize)
+}
+
+func (self *StashCommands) ShowStashEntryCmdObjWithContextSize(index int, contextSize uint64) *oscommands.CmdObj {
 	// "-u" is the same as "--include-untracked", but the latter fails in older git versions for some reason
 	cmdArgs := NewGitCmd("stash").Arg("show").
 		Arg("-p").
 		Arg("--stat").
 		Arg("-u").
 		Arg(fmt.Sprintf("--color=%s", self.UserConfig().Git.Paging.ColorArg)).
-		Arg(fmt.Sprintf("--unified=%d", self.UserConfig().Git.DiffContextSize)).
+		Arg(fmt.Sprintf("--unified=%d", contextSize)).
 		ArgIf(self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
 		Arg(fmt.Sprintf("refs/stash@{%d}", index)).

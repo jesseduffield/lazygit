@@ -235,6 +235,21 @@ type SpinnerConfig struct {
 	Rate int `yaml:"rate" jsonschema:"minimum=1"`
 }
 
+type AdaptiveContextConfig struct {
+	// Whether to enable adaptive diff context sizes based on the current context
+	Enabled bool `yaml:"enabled"`
+	// Context size when viewing individual files
+	Files uint64 `yaml:"files"`
+	// Context size when viewing commit diffs
+	Commits uint64 `yaml:"commits"`
+	// Context size when viewing stash diffs
+	Stash uint64 `yaml:"stash"`
+	// Context size when in staging mode
+	Staging uint64 `yaml:"staging"`
+	// Context size when building custom patches
+	PatchBuilding uint64 `yaml:"patchBuilding"`
+}
+
 type GitConfig struct {
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
 	Paging PagingConfig `yaml:"paging"`
@@ -268,6 +283,8 @@ type GitConfig struct {
 	IgnoreWhitespaceInDiffView bool `yaml:"ignoreWhitespaceInDiffView"`
 	// The number of lines of context to show around each diff hunk. Can be changed from within Lazygit with the `{` and `}` keys.
 	DiffContextSize uint64 `yaml:"diffContextSize"`
+	// Adaptive diff context sizes based on the current context
+	AdaptiveContext AdaptiveContextConfig `yaml:"adaptiveContext"`
 	// The threshold for considering a file to be renamed, in percent. Can be changed from within Lazygit with the `(` and `)` keys.
 	RenameSimilarityThreshold int `yaml:"renameSimilarityThreshold" jsonschema:"minimum=0,maximum=100"`
 	// If true, do not spawn a separate process when using GPG
@@ -827,6 +844,14 @@ func GetDefaultConfig() *UserConfig {
 			AllBranchesLogCmds:           []string{"git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"},
 			IgnoreWhitespaceInDiffView:   false,
 			DiffContextSize:              3,
+			AdaptiveContext: AdaptiveContextConfig{
+				Enabled:       false,
+				Files:         1000,
+				Commits:       10,
+				Stash:         5,
+				Staging:       20,
+				PatchBuilding: 50,
+			},
 			RenameSimilarityThreshold:    50,
 			DisableForcePushing:          false,
 			CommitPrefixes:               map[string][]CommitPrefixConfig(nil),
