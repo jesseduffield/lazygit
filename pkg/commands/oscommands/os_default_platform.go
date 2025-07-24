@@ -43,6 +43,11 @@ func Kill(cmd *exec.Cmd) error {
 		return nil
 	}
 
+	if cmd.ProcessState != nil {
+		// The process has already exited
+		return nil
+	}
+
 	// Terminate the process gracefully, and hope that it handles the signal properly. We use it
 	// only for git, and we know that git is well-behaved in this regard. If we were to use this for
 	// other commands, we may need to implement a more robust solution, e.g. waiting for a while and
