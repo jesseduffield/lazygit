@@ -157,6 +157,9 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
 		return self.genericMergeCommand(REBASE_OPTION_SKIP)
 	} else if strings.Contains(result.Error(), "The previous cherry-pick is now empty") {
+		if self.c.Git().Status.WorkingTreeState().CherryPicking {
+			return self.genericMergeCommand(REBASE_OPTION_SKIP)
+		}
 		return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
 	} else if strings.Contains(result.Error(), "No rebase in progress?") {
 		// assume in this case that we're already done
