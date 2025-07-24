@@ -13,7 +13,6 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/atotto/clipboard"
-	"github.com/jesseduffield/kill"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -262,11 +261,6 @@ func (c *OSCommand) PipeCommands(cmdObjs ...*CmdObj) error {
 		return errors.New(strings.Join(finalErrors, "\n"))
 	}
 	return nil
-}
-
-// Kill kills a process.
-func Kill(cmd *exec.Cmd) error {
-	return kill.Kill(cmd)
 }
 
 func (c *OSCommand) CopyToClipboard(str string) error {
