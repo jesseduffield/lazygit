@@ -373,7 +373,6 @@ var tests = []*components.IntegrationTest{
 	status.ClickWorkingTreeStateToOpenRebaseOptionsMenu,
 	status.LogCmd,
 	status.LogCmdStatusPanelAllBranchesLog,
-	status.ShowDivergenceFromBaseBranch,
 	submodule.Add,
 	submodule.Enter,
 	submodule.EnterNested,

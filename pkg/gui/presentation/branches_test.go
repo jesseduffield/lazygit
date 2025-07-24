@@ -113,11 +113,11 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			},
 			itemOperation:        types.ItemOperationNone,
 			fullDescription:      false,
-			viewWidth:            100,
+			viewWidth:            20,
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "onlyArrow",
-			expected:             []string{"1m", "branch_name ↓"},
+			expected:             []string{"1m", "branch_name    ↓"},
 		},
 		{
 			branch: &models.Branch{
@@ -130,11 +130,11 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			},
 			itemOperation:        types.ItemOperationNone,
 			fullDescription:      false,
-			viewWidth:            100,
+			viewWidth:            22,
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "arrowAndNumber",
-			expected:             []string{"1m", "branch_name ✓ ↓2"},
+			expected:             []string{"1m", "branch_name ✓   ↓2"},
 		},
 		{
 			branch: &models.Branch{
@@ -147,11 +147,11 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			},
 			itemOperation:        types.ItemOperationNone,
 			fullDescription:      false,
-			viewWidth:            100,
+			viewWidth:            26,
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "arrowAndNumber",
-			expected:             []string{"1m", "branch_name ↓5↑3 ↓2"},
+			expected:             []string{"1m", "branch_name ↓5↑3    ↓2"},
 		},
 		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},
@@ -239,6 +239,23 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
 			expected:             []string{"1m", "branch_… ✓"},
+		},
+		{
+			branch: &models.Branch{
+				Name:             "branch_name",
+				Recency:          "1m",
+				UpstreamRemote:   "origin",
+				AheadForPull:     "3",
+				BehindForPull:    "5",
+				BehindBaseBranch: makeAtomic(4),
+			},
+			itemOperation:        types.ItemOperationNone,
+			fullDescription:      false,
+			viewWidth:            21,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			showDivergenceCfg:    "arrowAndNumber",
+			expected:             []string{"1m", "branch_n… ↓5↑3 ↓4"},
 		},
 		{
 			branch: &models.Branch{

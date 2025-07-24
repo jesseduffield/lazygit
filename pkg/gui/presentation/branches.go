@@ -57,12 +57,13 @@ func getBranchDisplayStrings(
 	checkedOutByWorkTree := git_commands.CheckedOutByOtherWorktree(b, worktrees)
 	showCommitHash := fullDescription || userConfig.Gui.ShowBranchCommitHash
 	branchStatus := BranchStatus(b, itemOperation, tr, now, userConfig)
+	divergence := divergenceStr(b, itemOperation, tr, userConfig)
 	worktreeIcon := lo.Ternary(icons.IsIconEnabled(), icons.LINKED_WORKTREE_ICON, fmt.Sprintf("(%s)", tr.LcWorktree))
 
 	// Recency is always three characters, plus one for the space
 	availableWidth := viewWidth - 4
-	if len(branchStatus) > 0 {
-		availableWidth -= utils.StringWidth(utils.Decolorise(branchStatus)) + 1
+	if len(divergence) > 0 {
+		availableWidth -= utils.StringWidth(divergence) + 1
 	}
 	if icons.IsIconEnabled() {
 		availableWidth -= 2 // one for the icon, one for the space
@@ -72,6 +73,11 @@ func getBranchDisplayStrings(
 	}
 	if checkedOutByWorkTree {
 		availableWidth -= utils.StringWidth(worktreeIcon) + 1
+	}
+	paddingNeededForDivergence := availableWidth
+
+	if len(branchStatus) > 0 {
+		availableWidth -= utils.StringWidth(utils.Decolorise(branchStatus)) + 1
 	}
 
 	displayName := b.Name
@@ -114,6 +120,13 @@ func getBranchDisplayStrings(
 		res = append(res, utils.ShortHash(b.CommitHash))
 	}
 
+	if divergence != "" {
+		paddingNeededForDivergence -= utils.StringWidth(utils.Decolorise(coloredName)) - 1
+		if paddingNeededForDivergence > 0 {
+			coloredName += strings.Repeat(" ", paddingNeededForDivergence)
+			coloredName += style.FgCyan.Sprint(divergence)
+		}
+	}
 	res = append(res, coloredName)
 
 	if fullDescription {
@@ -185,16 +198,23 @@ func BranchStatus(
 		}
 	}
 
-	if userConfig.Gui.ShowDivergenceFromBaseBranch != "none" {
+	return result
+}
+
+func divergenceStr(
+	branch *models.Branch,
+	itemOperation types.ItemOperation,
+	tr *i18n.TranslationSet,
+	userConfig *config.UserConfig,
+) string {
+	result := ""
+	if ItemOperationToString(itemOperation, tr) == "" && userConfig.Gui.ShowDivergenceFromBaseBranch != "none" {
 		behind := branch.BehindBaseBranch.Load()
 		if behind != 0 {
-			if result != "" {
-				result += " "
-			}
 			if userConfig.Gui.ShowDivergenceFromBaseBranch == "arrowAndNumber" {
-				result += style.FgCyan.Sprintf("↓%d", behind)
+				result += fmt.Sprintf("↓%d", behind)
 			} else {
-				result += style.FgCyan.Sprintf("↓")
+				result += "↓"
 			}
 		}
 	}
