@@ -264,14 +264,9 @@ func (c *OSCommand) PipeCommands(cmdObjs ...*CmdObj) error {
 	return nil
 }
 
-// Kill kills a process. If the process has Setpgid == true, then we have anticipated that it might spawn its own child processes, so we've given it a process group ID (PGID) equal to its process id (PID) and given its child processes will inherit the PGID, we can kill that group, rather than killing the process itself.
+// Kill kills a process.
 func Kill(cmd *exec.Cmd) error {
 	return kill.Kill(cmd)
-}
-
-// PrepareForChildren sets Setpgid to true on the cmd, so that when we run it as a subprocess, we can kill its group rather than the process itself. This is because some commands, like `docker-compose logs` spawn multiple children processes, and killing the parent process isn't sufficient for killing those child processes. We set the group id here, and then in subprocess.go we check if the group id is set and if so, we kill the whole group rather than just the one process.
-func PrepareForChildren(cmd *exec.Cmd) {
-	kill.PrepareForChildren(cmd)
 }
 
 func (c *OSCommand) CopyToClipboard(str string) error {
