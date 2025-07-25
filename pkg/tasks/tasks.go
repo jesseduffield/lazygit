@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 	"github.com/sirupsen/logrus"
@@ -167,14 +165,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				// and the user is flicking through a bunch of items.
 				self.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
 
-				// Kill the still-running command.
-				if err := oscommands.Kill(cmd); err != nil {
-					if !strings.Contains(err.Error(), "process already finished") {
-						self.Log.Errorf("error when trying to kill cmd task: %v; Command: %v %v", err, cmd.Path, cmd.Args)
-					}
-				}
-
-				// for pty's we need to call onDone here so that cmd.Wait() doesn't block forever
+				// close the task's stdout pipe (or the pty if we're using one) to make the command terminate
 				onDone()
 			}
 		})
