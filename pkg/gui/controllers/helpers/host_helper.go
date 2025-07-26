@@ -37,7 +37,7 @@ func (self *HostHelper) GetCommitURL(commitHash string) (string, error) {
 // getting this on every request rather than storing it in state in case our remoteURL changes
 // from one invocation to the next.
 func (self *HostHelper) getHostingServiceMgr() (*hosting_service.HostingServiceMgr, error) {
-	remoteUrl, err := self.c.Git().Remote.GetRemoteURL("origin")
+	remoteUrl, err := self.c.Git().Remote.GetRemoteURL()
 	if err != nil {
 		return nil, err
 	}

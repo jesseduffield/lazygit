@@ -1,7 +1,9 @@
 package git_commands
 
 import (
+	"errors"
 	"fmt"
+	"path"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -66,24 +68,54 @@ func (self *RemoteCommands) DeleteRemoteTag(task gocui.Task, remoteName string, 
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
 }
 
-// CheckRemoteBranchExists Returns remote branch
+// CheckRemoteBranchExists returns a boolean indicating whether or not
+// the given branch has an upstream.
 func (self *RemoteCommands) CheckRemoteBranchExists(branchName string) bool {
-	cmdArgs := NewGitCmd("show-ref").
-		Arg("--verify", "--", fmt.Sprintf("refs/remotes/origin/%s", branchName)).
-		ToArgv()
-
-	_, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
-
+	_, err := self.getRemoteRef(branchName)
 	return err == nil
 }
 
 // Resolve what might be a aliased URL into a full URL
 // SEE: `man -P 'less +/--get-url +n' git-ls-remote`
-func (self *RemoteCommands) GetRemoteURL(remoteName string) (string, error) {
+func (self *RemoteCommands) GetRemoteURL() (string, error) {
+	remoteName := self.getRemoteName()
+	if remoteName == "" {
+		return "", errors.New("could not find upstream remote")
+	}
+
 	cmdArgs := NewGitCmd("ls-remote").
 		Arg("--get-url", remoteName).
 		ToArgv()
 
-	url, err := self.cmd.New(cmdArgs).RunWithOutput()
+	url, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	return strings.TrimSpace(url), err
+}
+
+func (self *RemoteCommands) getRemoteRef(branchName string) (string, error) {
+	cmdArgs := NewGitCmd("rev-parse").
+		Arg("--symbolic-full-name", fmt.Sprintf("%s@{upstream}", branchName)).
+		ToArgv()
+
+	remote, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil && branchName == "" {
+		// if we couldn't find an upstream and the caller isn't asking about a specific
+		// branch we'll return the first valid remote we find (if any)
+		cmdArgs := NewGitCmd("rev-parse").
+			Arg("--symbolic-full-name", "--remotes").
+			ToArgv()
+		remote, err = self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+		remote, _, _ = strings.Cut(remote, "\n")
+	}
+
+	return remote, err
+}
+
+func (self *RemoteCommands) getRemoteName() string {
+	ref, err := self.getRemoteRef("")
+	if err != nil {
+		return ""
+	}
+	// refs/remotes/remote-name/branch
+	//              ^^^^^^^^^^^
+	return path.Base(path.Dir(ref))
 }
