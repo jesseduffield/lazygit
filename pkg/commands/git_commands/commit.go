@@ -256,6 +256,14 @@ func (self *CommitCommands) AmendHeadCmdObj() *oscommands.CmdObj {
 func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) *oscommands.CmdObj {
 	contextSize := self.UserConfig().Git.DiffContextSize
 
+	// Handle file renames when filtering by a specific path
+	actualFilterPath := filterPath
+	if filterPath != "" {
+		if detectedPath, err := self.GetFileNameAtRevision(hash, filterPath); err == nil {
+			actualFilterPath = detectedPath
+		}
+	}
+
 	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
 	cmdArgs := NewGitCmd("show").
 		Config("diff.noprefix=false").
@@ -270,7 +278,7 @@ func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) *oscomman
 		Arg(hash).
 		ArgIf(self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
-		ArgIf(filterPath != "", "--", filterPath).
+		ArgIf(actualFilterPath != "", "--", actualFilterPath).
 		Dir(self.repoPaths.worktreePath).
 		ToArgv()
 
@@ -278,10 +286,108 @@ func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) *oscomman
 }
 
 func (self *CommitCommands) ShowFileContentCmdObj(hash string, filePath string) *oscommands.CmdObj {
+	// Get the correct filename for this commit in case of renames
+	actualFilePath, err := self.GetFileNameAtRevision(hash, filePath)
+	if err != nil {
+		// If we can't determine the rename, fall back to the original path
+		actualFilePath = filePath
+	}
+	
 	cmdArgs := NewGitCmd("show").
-		Arg(fmt.Sprintf("%s:%s", hash, filePath)).
+		Arg(fmt.Sprintf("%s:%s", hash, actualFilePath)).
 		ToArgv()
 	return self.cmd.New(cmdArgs).DontLog()
+}
+
+// GetFileNameAtRevision returns the correct filename for a file at a specific commit,
+// accounting for renames in git history
+func (self *CommitCommands) GetFileNameAtRevision(hash string, currentFilePath string) (string, error) {
+	// First, check if the current filename exists at this commit
+	cmdArgs := NewGitCmd("ls-tree").
+		Arg("-r", "--name-only", hash, "--", currentFilePath).
+		ToArgv()
+	
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err == nil && strings.TrimSpace(output) != "" {
+		// File exists with current name at this commit
+		return currentFilePath, nil
+	}
+	
+	// File doesn't exist with current name, check if this commit contains a rename
+	cmdArgs = NewGitCmd("show").
+		Arg("--name-status", "--pretty=format:", hash).
+		ToArgv()
+	
+	output, err = self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil {
+		return currentFilePath, err
+	}
+	
+	// Parse the output to find rename operations
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "R") {
+			// Rename operation found: R100	old_name	new_name
+			parts := strings.Fields(line)
+			if len(parts) >= 3 {
+				oldName := parts[1]
+				newName := parts[2]
+				if newName == currentFilePath {
+					// This commit renamed old_name to our current file
+					// So at this commit, we should use the old name
+					return oldName, nil
+				}
+			}
+		}
+	}
+	
+	// No rename found in this specific commit, try to trace back through history
+	return self.traceFileNameThroughHistory(hash, currentFilePath)
+}
+
+// traceFileNameThroughHistory traces a file's name changes through git history
+func (self *CommitCommands) traceFileNameThroughHistory(hash string, currentFilePath string) (string, error) {
+	// Use git log --follow to trace the file's history back to the target commit
+	cmdArgs := NewGitCmd("log").
+		Arg("--follow", "--name-status", "--pretty=format:%H", hash+"..HEAD", "--", currentFilePath).
+		ToArgv()
+	
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil {
+		return currentFilePath, err
+	}
+	
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	currentName := currentFilePath
+	
+	// Process commits from most recent to oldest
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		
+		// Skip commit hashes
+		if len(line) == 40 || len(line) == 7 {
+			continue
+		}
+		
+		if strings.HasPrefix(line, "R") {
+			// Rename operation: R100	old_name	new_name
+			parts := strings.Fields(line)
+			if len(parts) >= 3 {
+				oldName := parts[1]
+				newName := parts[2]
+				if newName == currentName {
+					// This rename created our current name, so we need the old name
+					currentName = oldName
+				}
+			}
+		}
+	}
+	
+	return currentName, nil
 }
 
 // Revert reverts the selected commits by hash. If isMerge is true, we'll pass -m 1
