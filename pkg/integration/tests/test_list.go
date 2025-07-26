@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/bisect"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/branch"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/cherry_pick"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/cli_file_flag"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/commit"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/config"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/conflicts"
@@ -90,6 +91,8 @@ var tests = []*components.IntegrationTest{
 	cherry_pick.CherryPickDuringRebase,
 	cherry_pick.CherryPickMerge,
 	cherry_pick.CherryPickRange,
+	cli_file_flag.Basic,
+	cli_file_flag.ErrorHandling,
 	commit.AddCoAuthor,
 	commit.AddCoAuthorRange,
 	commit.AddCoAuthorWhileCommitting,
