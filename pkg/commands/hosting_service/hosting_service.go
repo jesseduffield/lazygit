@@ -166,17 +166,17 @@ type Service struct {
 }
 
 func (self *Service) getPullRequestURLIntoDefaultBranch(from string) string {
-	return self.resolveUrl(self.pullRequestURLIntoDefaultBranch, map[string]string{"From": from})
+	return self.resolveURL(self.pullRequestURLIntoDefaultBranch, map[string]string{"From": from})
 }
 
 func (self *Service) getPullRequestURLIntoTargetBranch(from string, to string) string {
-	return self.resolveUrl(self.pullRequestURLIntoTargetBranch, map[string]string{"From": from, "To": to})
+	return self.resolveURL(self.pullRequestURLIntoTargetBranch, map[string]string{"From": from, "To": to})
 }
 
 func (self *Service) getCommitURL(commitHash string) string {
-	return self.resolveUrl(self.commitURL, map[string]string{"CommitHash": commitHash})
+	return self.resolveURL(self.commitURL, map[string]string{"CommitHash": commitHash})
 }
 
-func (self *Service) resolveUrl(templateString string, args map[string]string) string {
+func (self *Service) resolveURL(templateString string, args map[string]string) string {
 	return self.repoURL + utils.ResolvePlaceholderString(templateString, args)
 }
