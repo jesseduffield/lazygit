@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"os"
 	"path/filepath"
 
 	"github.com/samber/lo"
@@ -68,6 +69,37 @@ func (self *FilesHelper) callEditor(cmdStr string, suspend bool) error {
 	}
 
 	return self.c.OS().Cmd.NewShell(cmdStr, self.c.UserConfig().OS.ShellFunctionsFile).Run()
+}
+
+func (self *FilesHelper) EditFileAtRevision(filename string, commitHash string) error {
+	// Get the file content from the specific commit
+	content, err := self.c.Git().Commit.ShowFileContentCmdObj(commitHash, filename).RunWithOutput()
+	if err != nil {
+		return err
+	}
+
+	// Create a temporary file with the same extension for proper syntax highlighting
+	ext := filepath.Ext(filename)
+	basename := filepath.Base(filename)
+	tempFile, err := os.CreateTemp("", basename+"_*"+ext)
+	if err != nil {
+		return err
+	}
+	defer tempFile.Close()
+
+	// Write the historical content to the temp file
+	if _, err := tempFile.WriteString(content); err != nil {
+		os.Remove(tempFile.Name())
+		return err
+	}
+
+	// Get the editor command for the temp file
+	cmdStr, suspend := self.c.Git().File.GetEditCmdStr([]string{tempFile.Name()})
+	
+	// Log the action
+	self.c.LogAction(self.c.Tr.Actions.OpenFileAtRevision)
+
+	return self.callEditor(cmdStr, suspend)
 }
 
 func (self *FilesHelper) OpenFile(filename string) error {

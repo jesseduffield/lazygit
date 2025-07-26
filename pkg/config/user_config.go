@@ -540,6 +540,7 @@ type KeybindingCommitsConfig struct {
 	OpenInBrowser                  string `yaml:"openInBrowser"`
 	ViewBisectOptions              string `yaml:"viewBisectOptions"`
 	StartInteractiveRebase         string `yaml:"startInteractiveRebase"`
+	OpenFileAtRevision             string `yaml:"openFileAtRevision"`
 	SelectCommitsOfCurrentBranch   string `yaml:"selectCommitsOfCurrentBranch"`
 }
 
@@ -555,7 +556,7 @@ type KeybindingStashConfig struct {
 }
 
 type KeybindingCommitFilesConfig struct {
-	CheckoutCommitFile string `yaml:"checkoutCommitFile"`
+	CheckoutCommitFile   string `yaml:"checkoutCommitFile"`
 }
 
 type KeybindingMainConfig struct {
@@ -999,6 +1000,7 @@ func GetDefaultConfig() *UserConfig {
 				OpenInBrowser:                  "o",
 				ViewBisectOptions:              "b",
 				StartInteractiveRebase:         "i",
+				OpenFileAtRevision:             "O",
 				SelectCommitsOfCurrentBranch:   "*",
 			},
 			AmendAttribute: KeybindingAmendAttributeConfig{
@@ -1011,7 +1013,7 @@ func GetDefaultConfig() *UserConfig {
 				RenameStash: "r",
 			},
 			CommitFiles: KeybindingCommitFilesConfig{
-				CheckoutCommitFile: "c",
+				CheckoutCommitFile:   "c",
 			},
 			Main: KeybindingMainConfig{
 				ToggleSelectHunk: "a",
