@@ -198,7 +198,8 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 			Key: 'b',
 		},
 		{
-			Label: self.c.Tr.CommitURL,
+			Label:          self.c.Tr.CommitURL,
+			DisabledReason: self.canCopyCommitURL(commit),
 			OnPress: func() error {
 				return self.copyCommitURLToClipboard(commit)
 			},
@@ -380,6 +381,16 @@ func (self *BasicCommitsController) canCopyCommits(selectedCommits []*models.Com
 		}
 	}
 
+	return nil
+}
+
+func (self *BasicCommitsController) canCopyCommitURL(commit *models.Commit) *types.DisabledReason {
+	_, err := self.c.Helpers().Host.GetCommitURL(commit.Hash())
+	if err != nil {
+		return &types.DisabledReason{
+			Text: self.c.Tr.CommitHasNoURL,
+		}
+	}
 	return nil
 }
 

@@ -42,5 +42,12 @@ func (self *HostHelper) getHostingServiceMgr() (*hosting_service.HostingServiceM
 		return nil, err
 	}
 	configServices := self.c.UserConfig().Services
-	return hosting_service.NewHostingServiceMgr(self.c.Log, self.c.Tr, remoteUrl, configServices), nil
+	hostingServiceMgr := hosting_service.NewHostingServiceMgr(
+		self.c.Log,
+		self.c.Tr,
+		remoteUrl,
+		configServices,
+		self.c.Git().Remote.CommitExistsOnRemote,
+	)
+	return hostingServiceMgr, nil
 }

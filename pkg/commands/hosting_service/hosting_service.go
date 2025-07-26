@@ -26,15 +26,23 @@ type HostingServiceMgr struct {
 
 	// see https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-pull-request-urls
 	configServiceDomains map[string]string
+
+	commitExistsOnRemote func(string) bool
 }
 
 // NewHostingServiceMgr creates new instance of PullRequest
-func NewHostingServiceMgr(log logrus.FieldLogger, tr *i18n.TranslationSet, remoteURL string, configServiceDomains map[string]string) *HostingServiceMgr {
+func NewHostingServiceMgr(
+	log logrus.FieldLogger,
+	tr *i18n.TranslationSet, remoteURL string,
+	configServiceDomains map[string]string,
+	commitExistsOnRemote func(string) bool,
+) *HostingServiceMgr {
 	return &HostingServiceMgr{
 		log:                  log,
 		tr:                   tr,
 		remoteURL:            remoteURL,
 		configServiceDomains: configServiceDomains,
+		commitExistsOnRemote: commitExistsOnRemote,
 	}
 }
 
@@ -56,9 +64,10 @@ func (self *HostingServiceMgr) GetCommitURL(commitHash string) (string, error) {
 		return "", err
 	}
 
-	pullRequestURL := gitService.getCommitURL(commitHash)
-
-	return pullRequestURL, nil
+	if !self.commitExistsOnRemote(commitHash) {
+		return "", errors.New("no remote URL available")
+	}
+	return gitService.getCommitURL(commitHash), nil
 }
 
 func (self *HostingServiceMgr) getService() (*Service, error) {

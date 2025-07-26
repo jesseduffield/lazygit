@@ -91,6 +91,10 @@ func (self *RemoteCommands) GetRemoteURL() (string, error) {
 	return strings.TrimSpace(url), err
 }
 
+func (self *RemoteCommands) CommitExistsOnRemote(commitHash string) bool {
+	return self.findRemoteBranchForCommit(commitHash) != ""
+}
+
 func (self *RemoteCommands) getRemoteRef(branchName string) (string, error) {
 	cmdArgs := NewGitCmd("rev-parse").
 		Arg("--symbolic-full-name", fmt.Sprintf("%s@{upstream}", branchName)).
@@ -118,4 +122,22 @@ func (self *RemoteCommands) getRemoteName() string {
 	// refs/remotes/remote-name/branch
 	//              ^^^^^^^^^^^
 	return path.Base(path.Dir(ref))
+}
+
+func (self *RemoteCommands) findRemoteBranchForCommit(commitHash string) string {
+	cmdArgs := NewGitCmd("branch").
+		Arg("--remotes", "--contains", commitHash).
+		ToArgv()
+
+	remotes, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil {
+		return ""
+	}
+
+	// grab the first returned remote
+	remote, _, _ := strings.Cut(remotes, "\n")
+	if remote != "" {
+		return path.Base(remote)
+	}
+	return ""
 }
