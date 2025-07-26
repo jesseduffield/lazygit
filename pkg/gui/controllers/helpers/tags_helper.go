@@ -38,7 +38,7 @@ func (self *TagsHelper) OpenCreateTagPrompt(ref string, onCreate func()) error {
 			Prompt: prompt,
 			HandleConfirm: func() error {
 				var command *oscommands.CmdObj
-				if description != "" || self.c.Git().Config.GetGpgTagSign() {
+				if description != "" || self.c.Git().Config.GetGpgTagSign() || self.c.UserConfig().Git.Tag.AlwaysAnnotate {
 					self.c.LogAction(self.c.Tr.Actions.CreateAnnotatedTag)
 					command = self.c.Git().Tag.CreateAnnotatedObj(tagName, ref, description, force)
 				} else {

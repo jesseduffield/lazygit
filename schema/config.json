@@ -297,6 +297,10 @@
           "$ref": "#/$defs/MergingConfig",
           "description": "Config relating to merging"
         },
+        "tag": {
+          "$ref": "#/$defs/TagConfig",
+          "description": "Config relating to tagging"
+        },
         "mainBranches": {
           "items": {
             "type": "string"
@@ -1726,6 +1730,18 @@
       "additionalProperties": false,
       "type": "object",
       "description": "Config relating to the spinner."
+    },
+    "TagConfig": {
+      "properties": {
+        "alwaysAnnotate": {
+          "type": "boolean",
+          "description": "If true, always create annotated tags (even if the tag message is empty)",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config relating to tagging"
     },
     "ThemeConfig": {
       "properties": {
