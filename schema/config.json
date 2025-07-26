@@ -1006,6 +1006,10 @@
           "type": "string",
           "default": "i"
         },
+        "openFileAtRevision": {
+          "type": "string",
+          "default": "O"
+        },
         "selectCommitsOfCurrentBranch": {
           "type": "string",
           "default": "*"

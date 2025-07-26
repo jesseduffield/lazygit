@@ -260,6 +260,8 @@ type TranslationSet struct {
 	GitconfigParseErr                     string
 	EditFile                              string
 	EditFileTooltip                       string
+	OpenFileAtRevision                    string
+	OpenFileAtRevisionTooltip             string
 	OpenFile                              string
 	OpenFileTooltip                       string
 	OpenInEditor                          string
@@ -978,6 +980,7 @@ type Actions struct {
 	Push                             string
 	Pull                             string
 	OpenFile                         string
+	OpenFileAtRevision               string
 	StashAllChanges                  string
 	StashAllChangesKeepIndex         string
 	StashStagedChanges               string
@@ -1306,6 +1309,8 @@ func EnglishTranslationSet() *TranslationSet {
 		GitconfigParseErr:                    `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		EditFile:                             `Edit file`,
 		EditFileTooltip:                      "Open file in external editor.",
+		OpenFileAtRevision:                   `Open file at revision`,
+		OpenFileAtRevisionTooltip:            "Open the file content from this commit revision in external editor (opens as temporary file).",
 		OpenFile:                             `Open file`,
 		OpenFileTooltip:                      "Open file in default application.",
 		OpenInEditor:                         "Open in editor",
@@ -1993,6 +1998,7 @@ func EnglishTranslationSet() *TranslationSet {
 			Push:                             "Push",
 			Pull:                             "Pull",
 			OpenFile:                         "Open file",
+			OpenFileAtRevision:               "Open file at revision",
 			StashAllChanges:                  "Stash all changes",
 			StashAllChangesKeepIndex:         "Stash all changes and keep index",
 			StashStagedChanges:               "Stash staged changes",

@@ -253,6 +253,19 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 	}...)
 
+	// Add the open file at revision binding, only available when filtering by path
+	// We need to check if modes are initialized to avoid issues during cheatsheet generation
+	if self.c.Modes() != nil && self.c.Modes().Filtering.GetPath() != "" {
+		bindings = append(bindings, &types.Binding{
+			Key:               opts.GetKey(opts.Config.Commits.OpenFileAtRevision),
+			Handler:           self.withItem(self.openFileAtRevision),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.OpenFileAtRevision,
+			Tooltip:           self.c.Tr.OpenFileAtRevisionTooltip,
+			DisplayOnScreen:   true,
+		})
+	}
+
 	return bindings
 }
 
@@ -1479,6 +1492,17 @@ func isChangeOfRebaseTodoAllowed(oldAction todo.TodoCommand) bool {
 	// updating a merge commit or update ref commit (until we decide what would be sensible
 	// to do in those cases)
 	return lo.Contains(standardActions, oldAction)
+}
+
+func (self *LocalCommitsController) openFileAtRevision(commit *models.Commit) error {
+	// Get the file path that we're filtering by
+	filePath := self.c.Modes().Filtering.GetPath()
+	if filePath == "" {
+		return errors.New("No file path to open - this feature only works when filtering by file")
+	}
+
+	// Open the file at the selected commit revision
+	return self.c.Helpers().Files.EditFileAtRevision(filePath, commit.Hash())
 }
 
 func (self *LocalCommitsController) pickEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {

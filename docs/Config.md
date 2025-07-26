@@ -666,6 +666,7 @@ keybinding:
     openInBrowser: o
     viewBisectOptions: b
     startInteractiveRebase: i
+    openFileAtRevision: O
     selectCommitsOfCurrentBranch: '*'
   amendAttribute:
     resetAuthor: a
