@@ -452,6 +452,32 @@ Call `lazygit` in your terminal inside a git repository.
 $ lazygit
 ```
 
+### Command Line Options
+
+You can also specify which panel to focus on startup, or start with a specific file's history:
+
+```sh
+# Open directly to a specific panel
+lazygit status          # Start in files panel  
+lazygit log             # Start in commits panel
+lazygit branch          # Start in branches panel
+lazygit stash           # Start in stash panel
+
+# Show git history for a specific file
+lazygit --file src/main.go          # Show commit history for src/main.go
+lazygit --file=src/main.go          # Alternative syntax
+
+# Combine with screen modes for better viewing
+lazygit --file src/main.go --screen-mode=full    # Full screen file history
+lazygit log --screen-mode=half                   # Half screen commit log
+
+# Other useful options
+lazygit --help          # Show all available options
+lazygit --version       # Show version info
+```
+
+For a complete list of options, run `lazygit --help`.
+
 If you want, you can
 also add an alias for this with `echo "alias lg='lazygit'" >> ~/.zshrc` (or
 whichever rc file you're using).
