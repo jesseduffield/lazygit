@@ -262,6 +262,7 @@ type TranslationSet struct {
 	EditFileTooltip                       string
 	OpenFileAtRevision                    string
 	OpenFileAtRevisionTooltip             string
+	NotFilteringByPath                    string
 	OpenFile                              string
 	OpenFileTooltip                       string
 	OpenInEditor                          string
@@ -1311,6 +1312,7 @@ func EnglishTranslationSet() *TranslationSet {
 		EditFileTooltip:                      "Open file in external editor.",
 		OpenFileAtRevision:                   `Open file at revision`,
 		OpenFileAtRevisionTooltip:            "Open the file content from this commit revision in external editor (opens as temporary file).",
+		NotFilteringByPath:                   "Not filtering by file path",
 		OpenFile:                             `Open file`,
 		OpenFileTooltip:                      "Open file in default application.",
 		OpenInEditor:                         "Open in editor",
