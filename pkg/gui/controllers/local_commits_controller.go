@@ -251,20 +251,15 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Tooltip:     self.c.Tr.OpenLogMenuTooltip,
 			OpensMenu:   true,
 		},
-	}...)
-
-	// Add the open file at revision binding, only available when filtering by path
-	// We need to check if modes are initialized to avoid issues during cheatsheet generation
-	if self.c.Modes() != nil && self.c.Modes().Filtering.GetPath() != "" {
-		bindings = append(bindings, &types.Binding{
+		{
 			Key:               opts.GetKey(opts.Config.Commits.OpenFileAtRevision),
 			Handler:           self.withItem(self.openFileAtRevision),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			GetDisabledReason: self.getOpenFileAtRevisionDisabledReason,
 			Description:       self.c.Tr.OpenFileAtRevision,
 			Tooltip:           self.c.Tr.OpenFileAtRevisionTooltip,
 			DisplayOnScreen:   true,
-		})
-	}
+		},
+	}...)
 
 	return bindings
 }
@@ -1503,6 +1498,13 @@ func (self *LocalCommitsController) openFileAtRevision(commit *models.Commit) er
 
 	// Open the file at the selected commit revision
 	return self.c.Helpers().Files.EditFileAtRevision(filePath, commit.Hash())
+}
+
+func (self *LocalCommitsController) getOpenFileAtRevisionDisabledReason() *types.DisabledReason {
+	if self.c.Modes() == nil || self.c.Modes().Filtering.GetPath() == "" {
+		return &types.DisabledReason{Text: self.c.Tr.NotFilteringByPath}
+	}
+	return self.require(self.singleItemSelected())()
 }
 
 func (self *LocalCommitsController) pickEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
