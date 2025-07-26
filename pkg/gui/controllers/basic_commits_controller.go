@@ -161,6 +161,13 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 		}
 	}
 
+	var commitTagsDisabled *types.DisabledReason
+	if len(commit.Tags) == 0 {
+		commitTagsDisabled = &types.DisabledReason{
+			Text: self.c.Tr.CommitHasNoTags,
+		}
+	}
+
 	items := []*types.MenuItem{
 		{
 			Label: self.c.Tr.CommitHash,
@@ -191,7 +198,8 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 			Key: 'b',
 		},
 		{
-			Label: self.c.Tr.CommitURL,
+			Label:          self.c.Tr.CommitURL,
+			DisabledReason: self.canCopyCommitURL(commit),
 			OnPress: func() error {
 				return self.copyCommitURLToClipboard(commit)
 			},
@@ -211,21 +219,15 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 			},
 			Key: 'a',
 		},
-	}
-
-	commitTagsItem := types.MenuItem{
-		Label: self.c.Tr.CommitTags,
-		OnPress: func() error {
-			return self.copyCommitTagsToClipboard(commit)
+		{
+			Label:          self.c.Tr.CommitTags,
+			DisabledReason: commitTagsDisabled,
+			OnPress: func() error {
+				return self.copyCommitTagsToClipboard(commit)
+			},
+			Key: 't',
 		},
-		Key: 't',
 	}
-
-	if len(commit.Tags) == 0 {
-		commitTagsItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.CommitHasNoTags}
-	}
-
-	items = append(items, &commitTagsItem)
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Actions.CopyCommitAttributeToClipboard,
@@ -379,6 +381,16 @@ func (self *BasicCommitsController) canCopyCommits(selectedCommits []*models.Com
 		}
 	}
 
+	return nil
+}
+
+func (self *BasicCommitsController) canCopyCommitURL(commit *models.Commit) *types.DisabledReason {
+	_, err := self.c.Helpers().Host.GetCommitURL(commit.Hash())
+	if err != nil {
+		return &types.DisabledReason{
+			Text: self.c.Tr.CommitHasNoURL,
+		}
+	}
 	return nil
 }
 
