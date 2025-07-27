@@ -206,12 +206,12 @@ func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line
 	unixTimestamp := split[1]
 	authorName := split[2]
 	authorEmail := split[3]
-	extraInfo := strings.TrimSpace(split[4])
-	parentHashes := split[5]
+	parentHashes := split[4]
 	divergence := models.DivergenceNone
 	if showDivergence {
-		divergence = lo.Ternary(split[6] == "<", models.DivergenceLeft, models.DivergenceRight)
+		divergence = lo.Ternary(split[5] == "<", models.DivergenceLeft, models.DivergenceRight)
 	}
+	extraInfo := strings.TrimSpace(split[6])
 	message := split[7]
 
 	var tags []string
@@ -614,4 +614,4 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
-const prettyFormat = `--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%D%x00%P%x00%m%x00%s`
+const prettyFormat = `--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s`
