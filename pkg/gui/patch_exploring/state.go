@@ -67,7 +67,7 @@ func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *Stat
 	}
 
 	selectMode := LINE
-	if useHunkModeByDefault {
+	if useHunkModeByDefault && !patch.IsSingleHunkForWholeFile() {
 		selectMode = HUNK
 	}
 

@@ -115,6 +115,17 @@ index 0000000..4e680cc
 +grape
 `
 
+const deletedFile = `diff --git a/newfile b/newfile
+deleted file mode 100644
+index 4e680cc1f..000000000
+--- a/newfile
++++ /dev/null
+@@ -1,3 +0,0 @@
+-apple
+-orange
+-grape
+`
+
 const addNewlineToPreviouslyEmptyFile = `diff --git a/newfile b/newfile
 index e69de29..c6568ea 100644
 --- a/newfile
@@ -555,6 +566,10 @@ func TestParseAndFormatPlain(t *testing.T) {
 			patchStr: newFile,
 		},
 		{
+			testName: "deletedFile",
+			patchStr: deletedFile,
+		},
+		{
 			testName: "addNewlineToPreviouslyEmptyFile",
 			patchStr: addNewlineToPreviouslyEmptyFile,
 		},
@@ -692,6 +707,67 @@ func TestAdjustLineNumber(t *testing.T) {
 				result := patch.AdjustLineNumber(oldLineNumber)
 				assert.Equal(t, s.expectedResults[idx], result)
 			}
+		})
+	}
+}
+
+func TestIsSingleHunkForWholeFile(t *testing.T) {
+	scenarios := []struct {
+		testName       string
+		patchStr       string
+		expectedResult bool
+	}{
+		{
+			testName:       "simpleDiff",
+			patchStr:       simpleDiff,
+			expectedResult: false,
+		},
+		{
+			testName:       "addNewlineToEndOfFile",
+			patchStr:       addNewlineToEndOfFile,
+			expectedResult: false,
+		},
+		{
+			testName:       "removeNewlinefromEndOfFile",
+			patchStr:       removeNewlinefromEndOfFile,
+			expectedResult: false,
+		},
+		{
+			testName:       "twoHunks",
+			patchStr:       twoHunks,
+			expectedResult: false,
+		},
+		{
+			testName:       "twoChangesInOneHunk",
+			patchStr:       twoChangesInOneHunk,
+			expectedResult: false,
+		},
+		{
+			testName:       "newFile",
+			patchStr:       newFile,
+			expectedResult: true,
+		},
+		{
+			testName:       "deletedFile",
+			patchStr:       deletedFile,
+			expectedResult: true,
+		},
+		{
+			testName:       "addNewlineToPreviouslyEmptyFile",
+			patchStr:       addNewlineToPreviouslyEmptyFile,
+			expectedResult: true,
+		},
+		{
+			testName:       "exampleHunk",
+			patchStr:       exampleHunk,
+			expectedResult: false,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			patch := Parse(s.patchStr)
+			assert.Equal(t, s.expectedResult, patch.IsSingleHunkForWholeFile())
 		})
 	}
 }
