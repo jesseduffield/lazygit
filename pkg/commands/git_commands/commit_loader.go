@@ -89,11 +89,13 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 	go utils.Safe(func() {
 		defer wg.Done()
 
-		logErr = self.getLogCmd(opts).RunAndProcessLines(func(line string) (bool, error) {
-			commit := self.extractCommitFromLine(opts.HashPool, line, opts.RefToShowDivergenceFrom != "")
-			commits = append(commits, commit)
-			return false, nil
+		var realCommits []*models.Commit
+		realCommits, logErr = loadCommits(self.getLogCmd(opts), opts.FilterPath, func(line string) (*models.Commit, bool) {
+			return self.extractCommitFromLine(opts.HashPool, line, opts.RefToShowDivergenceFrom != ""), false
 		})
+		if logErr == nil {
+			commits = append(commits, realCommits...)
+		}
 	})
 
 	var ancestor string
@@ -292,7 +294,10 @@ func (self *CommitLoader) getHydratedTodoCommits(hashPool *utils.StringPool, tod
 
 	fullCommits := map[string]*models.Commit{}
 	err := cmdObj.RunAndProcessLines(func(line string) (bool, error) {
-		commit := self.extractCommitFromLine(hashPool, line, false)
+		if line == "" || line[0] != '+' {
+			return false, nil
+		}
+		commit := self.extractCommitFromLine(hashPool, line[1:], false)
 		fullCommits[commit.Hash()] = commit
 		return false, nil
 	})
@@ -599,7 +604,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 		Arg("--abbrev=40").
 		ArgIf(opts.FilterAuthor != "", "--author="+opts.FilterAuthor).
 		ArgIf(opts.Limit, "-300").
-		ArgIf(opts.FilterPath != "", "--follow").
+		ArgIf(opts.FilterPath != "", "--follow", "--name-status").
 		Arg("--no-show-signature").
 		ArgIf(opts.RefToShowDivergenceFrom != "", "--left-right").
 		Arg("--").
@@ -609,4 +614,4 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
-const prettyFormat = `--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%P%x00%m%x00%s`
+const prettyFormat = `--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%D%x00%P%x00%m%x00%s`

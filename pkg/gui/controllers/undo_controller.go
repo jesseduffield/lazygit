@@ -199,7 +199,7 @@ func (self *UndoController) reflogRedo() error {
 // Though we might support this later, hence the use of the CURRENT_REBASE action kind.
 func (self *UndoController) parseReflogForActions(onUserAction func(counter int, action reflogAction) (bool, error)) error {
 	counter := 0
-	reflogCommits := self.c.Model().FilteredReflogCommits
+	reflogCommits := self.c.Model().ReflogCommits
 	rebaseFinishCommitHash := ""
 	var action *reflogAction
 	for reflogCommitIdx, reflogCommit := range reflogCommits {

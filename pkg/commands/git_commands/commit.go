@@ -253,7 +253,7 @@ func (self *CommitCommands) AmendHeadCmdObj() *oscommands.CmdObj {
 	return self.cmd.New(cmdArgs)
 }
 
-func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) *oscommands.CmdObj {
+func (self *CommitCommands) ShowCmdObj(hash string, filterPaths []string) *oscommands.CmdObj {
 	contextSize := self.UserConfig().Git.DiffContextSize
 
 	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
@@ -270,7 +270,8 @@ func (self *CommitCommands) ShowCmdObj(hash string, filterPath string) *oscomman
 		Arg(hash).
 		ArgIf(self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
-		ArgIf(filterPath != "", "--", filterPath).
+		Arg("--").
+		Arg(filterPaths...).
 		Dir(self.repoPaths.worktreePath).
 		ToArgv()
 
