@@ -588,3 +588,205 @@ func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
 		})
 	}
 }
+
+func TestCommitLoader_extractCommitFromLine(t *testing.T) {
+	common := common.NewDummyCommon()
+	hashPool := &utils.StringPool{}
+
+	loader := &CommitLoader{
+		Common: common,
+	}
+
+	scenarios := []struct {
+		testName       string
+		line           string
+		showDivergence bool
+		expectedCommit *models.Commit
+	}{
+		{
+			testName:       "normal commit line with all fields",
+			line:           "0eea75e8c631fba6b58135697835d58ba4c18dbc\x001640826609\x00Jesse Duffield\x00jessedduffield@gmail.com\x00b21997d6b4cbdf84b149\x00>\x00HEAD -> better-tests\x00better typing for rebase mode",
+			showDivergence: false,
+			expectedCommit: models.NewCommit(hashPool, models.NewCommitOpts{
+				Hash:          "0eea75e8c631fba6b58135697835d58ba4c18dbc",
+				Name:          "better typing for rebase mode",
+				Tags:          nil,
+				ExtraInfo:     "(HEAD -> better-tests)",
+				UnixTimestamp: 1640826609,
+				AuthorName:    "Jesse Duffield",
+				AuthorEmail:   "jessedduffield@gmail.com",
+				Parents:       []string{"b21997d6b4cbdf84b149"},
+				Divergence:    models.DivergenceNone,
+			}),
+		},
+		{
+			testName:       "normal commit line with left divergence",
+			line:           "hash123\x001234567890\x00John Doe\x00john@example.com\x00parent1 parent2\x00<\x00origin/main\x00commit message",
+			showDivergence: true,
+			expectedCommit: models.NewCommit(hashPool, models.NewCommitOpts{
+				Hash:          "hash123",
+				Name:          "commit message",
+				Tags:          nil,
+				ExtraInfo:     "(origin/main)",
+				UnixTimestamp: 1234567890,
+				AuthorName:    "John Doe",
+				AuthorEmail:   "john@example.com",
+				Parents:       []string{"parent1", "parent2"},
+				Divergence:    models.DivergenceLeft,
+			}),
+		},
+		{
+			testName:       "commit line with tags in extraInfo",
+			line:           "abc123\x001640000000\x00Jane Smith\x00jane@example.com\x00parenthash\x00>\x00tag: v1.0, tag: release\x00tagged release",
+			showDivergence: true,
+			expectedCommit: models.NewCommit(hashPool, models.NewCommitOpts{
+				Hash:          "abc123",
+				Name:          "tagged release",
+				Tags:          []string{"v1.0", "release"},
+				ExtraInfo:     "(tag: v1.0, tag: release)",
+				UnixTimestamp: 1640000000,
+				AuthorName:    "Jane Smith",
+				AuthorEmail:   "jane@example.com",
+				Parents:       []string{"parenthash"},
+				Divergence:    models.DivergenceRight,
+			}),
+		},
+		{
+			testName:       "commit line with empty extraInfo",
+			line:           "def456\x001640000000\x00Bob Wilson\x00bob@example.com\x00parenthash\x00>\x00\x00simple commit",
+			showDivergence: true,
+			expectedCommit: models.NewCommit(hashPool, models.NewCommitOpts{
+				Hash:          "def456",
+				Name:          "simple commit",
+				Tags:          nil,
+				ExtraInfo:     "",
+				UnixTimestamp: 1640000000,
+				AuthorName:    "Bob Wilson",
+				AuthorEmail:   "bob@example.com",
+				Parents:       []string{"parenthash"},
+				Divergence:    models.DivergenceRight,
+			}),
+		},
+		{
+			testName:       "commit line with no parents (root commit)",
+			line:           "root123\x001640000000\x00Alice Cooper\x00alice@example.com\x00\x00>\x00\x00initial commit",
+			showDivergence: true,
+			expectedCommit: models.NewCommit(hashPool, models.NewCommitOpts{
+				Hash:          "root123",
+				Name:          "initial commit",
+				Tags:          nil,
+				ExtraInfo:     "",
+				UnixTimestamp: 1640000000,
+				AuthorName:    "Alice Cooper",
+				AuthorEmail:   "alice@example.com",
+				Parents:       nil,
+				Divergence:    models.DivergenceRight,
+			}),
+		},
+		{
+			testName:       "malformed line with only 3 fields",
+			line:           "hash\x00timestamp\x00author",
+			showDivergence: false,
+			expectedCommit: nil,
+		},
+		{
+			testName:       "malformed line with only 4 fields",
+			line:           "hash\x00timestamp\x00author\x00email",
+			showDivergence: false,
+			expectedCommit: nil,
+		},
+		{
+			testName:       "malformed line with only 5 fields",
+			line:           "hash\x00timestamp\x00author\x00email\x00parents",
+			showDivergence: false,
+			expectedCommit: nil,
+		},
+		{
+			testName:       "malformed line with only 6 fields",
+			line:           "hash\x00timestamp\x00author\x00email\x00parents\x00<",
+			showDivergence: true,
+			expectedCommit: nil,
+		},
+		{
+			testName:       "minimal valid line with 7 fields (no message)",
+			line:           "hash\x00timestamp\x00author\x00email\x00parents\x00>\x00extraInfo",
+			showDivergence: true,
+			expectedCommit: models.NewCommit(hashPool, models.NewCommitOpts{
+				Hash:          "hash",
+				Name:          "",
+				Tags:          nil,
+				ExtraInfo:     "(extraInfo)",
+				UnixTimestamp: 0,
+				AuthorName:    "author",
+				AuthorEmail:   "email",
+				Parents:       []string{"parents"},
+				Divergence:    models.DivergenceRight,
+			}),
+		},
+		{
+			testName:       "minimal valid line with 7 fields (empty extraInfo)",
+			line:           "hash\x00timestamp\x00author\x00email\x00parents\x00>\x00",
+			showDivergence: true,
+			expectedCommit: models.NewCommit(hashPool, models.NewCommitOpts{
+				Hash:          "hash",
+				Name:          "",
+				Tags:          nil,
+				ExtraInfo:     "",
+				UnixTimestamp: 0,
+				AuthorName:    "author",
+				AuthorEmail:   "email",
+				Parents:       []string{"parents"},
+				Divergence:    models.DivergenceRight,
+			}),
+		},
+		{
+			testName:       "valid line with 8 fields (complete)",
+			line:           "hash\x00timestamp\x00author\x00email\x00parents\x00<\x00extraInfo\x00message",
+			showDivergence: true,
+			expectedCommit: models.NewCommit(hashPool, models.NewCommitOpts{
+				Hash:          "hash",
+				Name:          "message",
+				Tags:          nil,
+				ExtraInfo:     "(extraInfo)",
+				UnixTimestamp: 0,
+				AuthorName:    "author",
+				AuthorEmail:   "email",
+				Parents:       []string{"parents"},
+				Divergence:    models.DivergenceLeft,
+			}),
+		},
+		{
+			testName:       "empty line",
+			line:           "",
+			showDivergence: false,
+			expectedCommit: nil,
+		},
+		{
+			testName:       "line with special characters in commit message",
+			line:           "special123\x001640000000\x00Dev User\x00dev@example.com\x00parenthash\x00>\x00\x00fix: handle \x00 null bytes and 'quotes'",
+			showDivergence: true,
+			expectedCommit: models.NewCommit(hashPool, models.NewCommitOpts{
+				Hash:          "special123",
+				Name:          "fix: handle \x00 null bytes and 'quotes'",
+				Tags:          nil,
+				ExtraInfo:     "",
+				UnixTimestamp: 1640000000,
+				AuthorName:    "Dev User",
+				AuthorEmail:   "dev@example.com",
+				Parents:       []string{"parenthash"},
+				Divergence:    models.DivergenceRight,
+			}),
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.testName, func(t *testing.T) {
+			result := loader.extractCommitFromLine(hashPool, scenario.line, scenario.showDivergence)
+			if scenario.expectedCommit == nil {
+				assert.Nil(t, result)
+			} else {
+				assert.Equal(t, scenario.expectedCommit, result)
+			}
+		})
+	}
+}

@@ -202,6 +202,12 @@ func (self *CommitLoader) MergeRebasingCommits(hashPool *utils.StringPool, commi
 func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line string, showDivergence bool) *models.Commit {
 	split := strings.SplitN(line, "\x00", 8)
 
+	// Ensure we have the minimum required fields (at least 7 for basic functionality)
+	if len(split) < 7 {
+		self.Log.Warnf("Malformed git log line: expected at least 7 fields, got %d. Line: %s", len(split), line)
+		return nil
+	}
+
 	hash := split[0]
 	unixTimestamp := split[1]
 	authorName := split[2]
@@ -212,7 +218,12 @@ func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line
 		divergence = lo.Ternary(split[5] == "<", models.DivergenceLeft, models.DivergenceRight)
 	}
 	extraInfo := strings.TrimSpace(split[6])
-	message := split[7]
+
+	// message (and the \x00 before it) might not be present if extraInfo is extremely long
+	message := ""
+	if len(split) > 7 {
+		message = split[7]
+	}
 
 	var tags []string
 
