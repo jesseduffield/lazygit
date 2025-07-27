@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -61,8 +60,8 @@ func (self *OptionsMenuAction) getBindings(context types.Context) ([]*types.Bind
 	bindings, _ := self.c.GetInitialKeybindingsWithCustomCommands()
 
 	for _, binding := range bindings {
-		if keybindings.LabelFromKey(binding.Key) != "" && binding.Description != "" {
-			if binding.ViewName == "" {
+		if binding.Description != "" {
+			if binding.ViewName == "" || binding.Tag == "global" {
 				bindingsGlobal = append(bindingsGlobal, binding)
 			} else if binding.ViewName == context.GetViewName() {
 				if binding.Tag == "navigation" {

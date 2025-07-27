@@ -260,6 +260,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	}
 
 	for _, context := range []types.Context{
+		gui.State.Contexts.Status,
 		gui.State.Contexts.Files,
 		gui.State.Contexts.Branches,
 		gui.State.Contexts.RemoteBranches,
