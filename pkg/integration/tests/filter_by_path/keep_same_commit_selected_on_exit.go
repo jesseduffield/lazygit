@@ -15,26 +15,10 @@ var KeepSameCommitSelectedOnExit = NewIntegrationTest(NewIntegrationTestArgs{
 		commonSetup(shell)
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Commits().
-			Focus().
-			Lines(
-				Contains(`none of the two`).IsSelected(),
-				Contains(`both files`),
-				Contains(`only otherFile`),
-				Contains(`only filterFile`),
-			).Press(keys.Universal.FilteringMenu).
-			Tap(func() {
-				t.ExpectPopup().Menu().
-					Title(Equals("Filtering")).
-					Select(Contains("Enter path to filter by")).
-					Confirm()
+		filterByFilterFile(t, keys)
 
-				t.ExpectPopup().Prompt().
-					Title(Equals("Enter path:")).
-					Type("filterF").
-					SuggestionLines(Equals("filterFile")).
-					ConfirmFirstSuggestion()
-			}).
+		t.Views().Commits().
+			IsFocused().
 			Lines(
 				Contains(`both files`).IsSelected(),
 				Contains(`only filterFile`),
