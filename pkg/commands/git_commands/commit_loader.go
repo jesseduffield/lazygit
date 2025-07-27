@@ -214,7 +214,7 @@ func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line
 	}
 	message := split[7]
 
-	tags := []string{}
+	var tags []string
 
 	if extraInfo != "" {
 		extraInfoFields := strings.Split(extraInfo, ",")
