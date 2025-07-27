@@ -1,6 +1,8 @@
 package git_commands
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
@@ -73,4 +75,14 @@ func (self *TagCommands) ShowAnnotationInfo(tagName string) (string, error) {
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).RunWithOutput()
+}
+
+func (self *TagCommands) IsTagAnnotated(tagName string) (bool, error) {
+	cmdArgs := NewGitCmd("cat-file").
+		Arg("-t").
+		Arg("refs/tags/" + tagName).
+		ToArgv()
+
+	output, err := self.cmd.New(cmdArgs).RunWithOutput()
+	return strings.TrimSpace(output) == "tag", err
 }

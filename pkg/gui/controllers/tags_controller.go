@@ -117,7 +117,12 @@ func (self *TagsController) GetOnRenderToMain() func() {
 }
 
 func (self *TagsController) getTagInfo(tag *models.Tag) string {
-	if tag.IsAnnotated {
+	tagIsAnnotated, err := self.c.Git().Tag.IsTagAnnotated(tag.Name)
+	if err != nil {
+		self.c.Log.Warnf("Error checking if tag is annotated: %v", err)
+	}
+
+	if tagIsAnnotated {
 		info := fmt.Sprintf("%s: %s", self.c.Tr.AnnotatedTag, style.AttrBold.Sprint(style.FgYellow.Sprint(tag.Name)))
 		output, err := self.c.Git().Tag.ShowAnnotationInfo(tag.Name)
 		if err == nil {
