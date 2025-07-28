@@ -50,7 +50,6 @@ var DiffContextChange = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Staging().
 			IsFocused().
-			Press(keys.Main.ToggleSelectHunk).
 			SelectedLines(
 				Contains(`-3a`),
 				Contains(`+3b`),
@@ -92,7 +91,6 @@ var DiffContextChange = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().StagingSecondary().
 			IsFocused().
-			Press(keys.Main.ToggleSelectHunk).
 			SelectedLines(
 				Contains(`-3a`),
 				Contains(`+3b`),

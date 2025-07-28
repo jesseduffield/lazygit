@@ -9,7 +9,9 @@ var StageHunks = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Stage and unstage various hunks of a file in the staging panel",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file1", "1a\n2a\n3a\n4a\n5a\n6a\n7a\n8a")
 		shell.Commit("one")

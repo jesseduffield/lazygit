@@ -117,7 +117,7 @@ gui:
   wrapLinesInStagingView: true
 
   # If true, hunk selection mode will be enabled by default when entering the staging view.
-  useHunkModeInStagingView: false
+  useHunkModeInStagingView: true
 
   # One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
   language: auto

@@ -31,6 +31,7 @@ var DiscardAllChanges = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Staging().
 			IsFocused().
+			Press(keys.Main.ToggleSelectHunk).
 			SelectedLines(Contains("+three")).
 			// discard the line
 			Press(keys.Universal.Remove).
