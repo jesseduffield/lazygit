@@ -669,12 +669,7 @@ type AppState struct {
 }
 
 func getDefaultAppState() *AppState {
-	return &AppState{
-		LastUpdateCheck:     0,
-		RecentRepos:         []string{},
-		StartupPopupVersion: 0,
-		LastVersion:         "",
-	}
+	return &AppState{}
 }
 
 func LogPath() (string, error) {
