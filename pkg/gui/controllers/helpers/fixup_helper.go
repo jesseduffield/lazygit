@@ -133,7 +133,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		Prompt: self.c.Tr.HunksWithOnlyAddedLinesWarning,
 		HandleConfirm: func() error {
 			if !hasStagedChanges {
-				if err := self.c.Git().WorkingTree.StageAll(); err != nil {
+				if err := self.c.Git().WorkingTree.StageAll(true); err != nil {
 					return err
 				}
 				self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})

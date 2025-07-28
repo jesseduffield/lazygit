@@ -207,7 +207,7 @@ func (self *WorkingTreeHelper) promptToStageAllAndRetry(retry func() error) erro
 		Prompt: self.c.Tr.NoFilesStagedPrompt,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-			if err := self.c.Git().WorkingTree.StageAll(); err != nil {
+			if err := self.c.Git().WorkingTree.StageAll(false); err != nil {
 				return err
 			}
 			self.syncRefresh()
@@ -228,7 +228,7 @@ func (self *WorkingTreeHelper) prepareFilesForCommit() error {
 	noStagedFiles := !self.AnyStagedFiles()
 	if noStagedFiles && self.c.UserConfig().Gui.SkipNoStagedFilesWarning {
 		self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-		err := self.c.Git().WorkingTree.StageAll()
+		err := self.c.Git().WorkingTree.StageAll(false)
 		if err != nil {
 			return err
 		}

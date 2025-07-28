@@ -244,7 +244,7 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 					Prompt: self.c.Tr.UnstagedFilesAfterConflictsResolved,
 					HandleConfirm: func() error {
 						self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-						if err := self.c.Git().WorkingTree.StageAll(); err != nil {
+						if err := self.c.Git().WorkingTree.StageAll(true); err != nil {
 							return err
 						}
 
