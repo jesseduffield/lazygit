@@ -2119,7 +2119,7 @@ keybinding:
 
 gui:
   filterMode: 'fuzzy'
-	  `,
+`,
 			"0.44.0": `- The gui.branchColors config option is deprecated; it will be removed in a future version. Please use gui.branchColorPatterns instead.
 - The automatic coloring of branches starting with "feature/", "bugfix/", or "hotfix/" has been removed; if you want this, it's easy to set up using the new gui.branchColorPatterns option.`,
 			"0.49.0": `- Executing shell commands (with the ':' prompt) no longer uses an interactive shell, which means that if you want to use your shell aliases in this prompt, you need to do a little bit of setup work. See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#using-aliases-or-functions-in-shell-commands for details.`,
