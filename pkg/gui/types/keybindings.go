@@ -43,8 +43,8 @@ type Binding struct {
 	GetDisabledReason func() *DisabledReason
 }
 
-func (Binding *Binding) IsDisabled() bool {
-	return Binding.GetDisabledReason != nil && Binding.GetDisabledReason() != nil
+func (b *Binding) IsDisabled() bool {
+	return b.GetDisabledReason != nil && b.GetDisabledReason() != nil
 }
 
 // A guard is a decorator which checks something before executing a handler
