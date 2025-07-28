@@ -50,14 +50,9 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 			displayStyle = *binding.DisplayStyle
 		}
 
-		description := binding.Description
-		if binding.ShortDescription != "" {
-			description = binding.ShortDescription
-		}
-
 		return bindingInfo{
 			key:         keybindings.LabelFromKey(binding.Key),
-			description: description,
+			description: binding.GetShortDescription(),
 			style:       displayStyle,
 		}
 	})

@@ -47,6 +47,13 @@ func (b *Binding) IsDisabled() bool {
 	return b.GetDisabledReason != nil && b.GetDisabledReason() != nil
 }
 
+func (b *Binding) GetShortDescription() string {
+	if b.ShortDescription != "" {
+		return b.ShortDescription
+	}
+	return b.Description
+}
+
 // A guard is a decorator which checks something before executing a handler
 // and potentially early-exits if some precondition hasn't been met.
 type Guard func(func() error) func() error
