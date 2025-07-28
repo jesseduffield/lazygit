@@ -229,7 +229,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <left> `` | Selecteer de vorige hunk |  |
 | `` <right> `` | Selecteer de volgende hunk |  |
 | `` v `` | Toggle drag selecteer |  |
-| `` a `` | Toggle selecteer hunk | Toggle hunk selection mode. |
+| `` a `` | Toggle selecteer hunk | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | Copy selected text to clipboard |  |
 | `` o `` | Open bestand | Open file in default application. |
 | `` e `` | Verander bestand | Open file in external editor. |
@@ -302,7 +302,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <left> `` | Selecteer de vorige hunk |  |
 | `` <right> `` | Selecteer de volgende hunk |  |
 | `` v `` | Toggle drag selecteer |  |
-| `` a `` | Toggle selecteer hunk | Toggle hunk selection mode. |
+| `` a `` | Toggle selecteer hunk | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | Copy selected text to clipboard |  |
 | `` <space> `` | Toggle staged | Toggle lijnen staged / unstaged |
 | `` d `` | Verwijdert change (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |

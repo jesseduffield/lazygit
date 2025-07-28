@@ -221,7 +221,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <left> `` | Go to previous hunk |  |
 | `` <right> `` | Go to next hunk |  |
 | `` v `` | Toggle range select |  |
-| `` a `` | Select hunk | Toggle hunk selection mode. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | Copy selected text to clipboard |  |
 | `` o `` | Open file | Open file in default application. |
 | `` e `` | Edit file | Open file in external editor. |
@@ -236,7 +236,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <left> `` | Go to previous hunk |  |
 | `` <right> `` | Go to next hunk |  |
 | `` v `` | Toggle range select |  |
-| `` a `` | Select hunk | Toggle hunk selection mode. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | Copy selected text to clipboard |  |
 | `` <space> `` | Stage | Toggle selection staged / unstaged. |
 | `` d `` | Discard | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |

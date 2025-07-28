@@ -289,6 +289,8 @@ type TranslationSet struct {
 	DiscardSelection                      string
 	DiscardSelectionTooltip               string
 	ToggleSelectHunk                      string
+	SelectHunk                            string
+	SelectLineByLine                      string
 	ToggleSelectHunkTooltip               string
 	ToggleSelectionForPatch               string
 	EditHunk                              string
@@ -1336,8 +1338,10 @@ func EnglishTranslationSet() *TranslationSet {
 		DiscardSelection:                     `Discard`,
 		DiscardSelectionTooltip:              "When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change.",
 		ToggleRangeSelect:                    "Toggle range select",
-		ToggleSelectHunk:                     "Select hunk",
-		ToggleSelectHunkTooltip:              "Toggle hunk selection mode.",
+		ToggleSelectHunk:                     "Toggle hunk selection",
+		SelectHunk:                           "Select hunks",
+		SelectLineByLine:                     "Select line-by-line",
+		ToggleSelectHunkTooltip:              "Toggle line-by-line vs. hunk selection mode.",
 		ToggleSelectionForPatch:              `Toggle lines in patch`,
 		EditHunk:                             `Edit hunk`,
 		EditHunkTooltip:                      "Edit selected hunk in external editor.",
