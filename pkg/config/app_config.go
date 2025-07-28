@@ -656,10 +656,11 @@ func (c *AppConfig) SaveGlobalUserConfig() {
 // AppState stores data between runs of the app like when the last update check
 // was performed and which other repos have been checked out
 type AppState struct {
-	LastUpdateCheck     int64
-	RecentRepos         []string
-	StartupPopupVersion int
-	LastVersion         string // this is the last version the user was using, for the purpose of showing release notes
+	LastUpdateCheck        int64
+	RecentRepos            []string
+	StartupPopupVersion    int
+	DidShowHunkStagingHint bool
+	LastVersion            string // this is the last version the user was using, for the purpose of showing release notes
 
 	// these are for shell commands typed in directly, not for custom commands in the lazygit config.
 	// For backwards compatibility we keep the old name in yaml files.

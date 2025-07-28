@@ -554,6 +554,8 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 
 	context := lo.Ternary(opts.ClickedWindowName == "secondary", self.c.Contexts().StagingSecondary, self.c.Contexts().Staging)
 	self.c.Context().Push(context, opts)
+	self.c.Helpers().PatchBuilding.ShowHunkStagingHint()
+
 	return nil
 }
 
