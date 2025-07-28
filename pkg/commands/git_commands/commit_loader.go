@@ -202,19 +202,30 @@ func (self *CommitLoader) MergeRebasingCommits(hashPool *utils.StringPool, commi
 func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line string, showDivergence bool) *models.Commit {
 	split := strings.SplitN(line, "\x00", 8)
 
+	// Ensure we have the minimum required fields (at least 7 for basic functionality)
+	if len(split) < 7 {
+		self.Log.Warnf("Malformed git log line: expected at least 7 fields, got %d. Line: %s", len(split), line)
+		return nil
+	}
+
 	hash := split[0]
 	unixTimestamp := split[1]
 	authorName := split[2]
 	authorEmail := split[3]
-	extraInfo := strings.TrimSpace(split[4])
-	parentHashes := split[5]
+	parentHashes := split[4]
 	divergence := models.DivergenceNone
 	if showDivergence {
-		divergence = lo.Ternary(split[6] == "<", models.DivergenceLeft, models.DivergenceRight)
+		divergence = lo.Ternary(split[5] == "<", models.DivergenceLeft, models.DivergenceRight)
 	}
-	message := split[7]
+	extraInfo := strings.TrimSpace(split[6])
 
-	tags := []string{}
+	// message (and the \x00 before it) might not be present if extraInfo is extremely long
+	message := ""
+	if len(split) > 7 {
+		message = split[7]
+	}
+
+	var tags []string
 
 	if extraInfo != "" {
 		extraInfoFields := strings.Split(extraInfo, ",")
@@ -614,4 +625,4 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
-const prettyFormat = `--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%D%x00%P%x00%m%x00%s`
+const prettyFormat = `--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s`
