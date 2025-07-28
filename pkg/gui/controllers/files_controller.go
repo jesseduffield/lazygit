@@ -634,7 +634,8 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 			return err
 		}
 
-		if err := self.c.Git().WorkingTree.StageAll(); err != nil {
+		onlyTrackedFiles := self.context().GetFilter() == filetree.DisplayTracked
+		if err := self.c.Git().WorkingTree.StageAll(onlyTrackedFiles); err != nil {
 			return err
 		}
 	} else {

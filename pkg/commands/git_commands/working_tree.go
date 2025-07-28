@@ -49,8 +49,10 @@ func (self *WorkingTreeCommands) StageFiles(paths []string, extraArgs []string) 
 }
 
 // StageAll stages all files
-func (self *WorkingTreeCommands) StageAll() error {
-	cmdArgs := NewGitCmd("add").Arg("-A").ToArgv()
+func (self *WorkingTreeCommands) StageAll(onlyTrackedFiles bool) error {
+	cmdArgs := NewGitCmd("add").
+		ArgIfElse(onlyTrackedFiles, "-u", "-A").
+		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
 }

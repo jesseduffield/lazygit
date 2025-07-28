@@ -48,10 +48,7 @@ var StageAllStagesOnlyTrackedFilesInTrackedOnlyFilter = NewIntegrationTest(NewIn
 			Lines(
 				Equals("▼ /").IsSelected(),
 				Equals("  M  file-tracked"), // 'M' is now in the left column, so file is staged
-				/* EXPECTED:
 				Equals("  ?? file-untracked"),
-				ACTUAL: */
-				Equals("  A  file-untracked"),
 			)
 	},
 })
