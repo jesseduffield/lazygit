@@ -140,15 +140,22 @@ func NewApp(config config.AppConfigurer, test integrationTypes.IntegrationTest, 
 	return app, nil
 }
 
+const minGitVersionStr = "2.32.0"
+
+func minGitVersionErrorMessage(tr *i18n.TranslationSet) string {
+	return fmt.Sprintf(tr.MinGitVersionError, minGitVersionStr)
+}
+
 func (app *App) validateGitVersion() (*git_commands.GitVersion, error) {
 	version, err := git_commands.GetGitVersion(app.OSCommand)
 	// if we get an error anywhere here we'll show the same status
-	minVersionError := errors.New(app.Tr.MinGitVersionError)
+	minVersionError := errors.New(minGitVersionErrorMessage(app.Tr))
 	if err != nil {
 		return nil, minVersionError
 	}
 
-	if version.IsOlderThan(2, 32, 0) {
+	minRequiredVersion, _ := git_commands.ParseGitVersion(minGitVersionStr)
+	if version.IsOlderThanVersion(minRequiredVersion) {
 		return nil, minVersionError
 	}
 
