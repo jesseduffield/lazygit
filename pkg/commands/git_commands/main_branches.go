@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"slices"
 	"strings"
 	"sync"
 
@@ -43,7 +44,7 @@ func (self *MainBranches) Get() []string {
 
 	configuredMainBranches := self.c.UserConfig().Git.MainBranches
 
-	if self.existingMainBranches == nil || !utils.EqualSlices(self.previousMainBranches, configuredMainBranches) {
+	if self.existingMainBranches == nil || !slices.Equal(self.previousMainBranches, configuredMainBranches) {
 		self.existingMainBranches = self.determineMainBranches(configuredMainBranches)
 		self.previousMainBranches = configuredMainBranches
 	}
