@@ -127,7 +127,7 @@ func TestProcessOutput(t *testing.T) {
 			writer := &strings.Builder{}
 
 			cmdObj := &CmdObj{task: gocui.NewFakeTask()}
-			runner.processOutput(reader, writer, toChanFn(scenario.promptUserForCredential), cmdObj)
+			runner.processOutput(reader, writer, toChanFn(scenario.promptUserForCredential), func() error { return nil }, cmdObj)
 
 			if writer.String() != scenario.expectedToWrite {
 				t.Errorf("expected to write '%s' but got '%s'", scenario.expectedToWrite, writer.String())

@@ -336,7 +336,7 @@ func (self *cmdObjRunner) runAndDetectCredentialRequest(
 		tr := io.TeeReader(handler.stdoutPipe, cmdWriter)
 
 		go utils.Safe(func() {
-			self.processOutput(tr, handler.stdinPipe, promptUserForCredential, cmdObj)
+			self.processOutput(tr, handler.stdinPipe, promptUserForCredential, handler.close, cmdObj)
 		})
 	})
 }
@@ -345,6 +345,7 @@ func (self *cmdObjRunner) processOutput(
 	reader io.Reader,
 	writer io.Writer,
 	promptUserForCredential func(CredentialType) <-chan string,
+	closeFunc func() error,
 	cmdObj *CmdObj,
 ) {
 	checkForCredentialRequest := self.getCheckForCredentialRequestFunc()
@@ -358,25 +359,26 @@ func (self *cmdObjRunner) processOutput(
 		if ok {
 			responseChan := promptUserForCredential(askFor)
 			if responseChan == nil {
-				// Returning a nil channel means we should kill the process.
-				// Note that we don't break the loop after this, because we
-				// still need to drain the output, otherwise the Wait() call
-				// later might block.
-				if err := Kill(cmdObj.GetCmd()); err != nil {
+				// Returning a nil channel means we should terminate the process.
+				// We achieve this by closing the pty that it's running in. Note that this won't
+				// work for the case where we're not running in a pty (i.e. on Windows), but
+				// in that case we'll never be prompted for credentials, so it's not a concern.
+				if err := closeFunc(); err != nil {
 					self.log.Error(err)
 				}
-			} else {
-				if task != nil {
-					task.Pause()
-				}
-				toInput := <-responseChan
-				if task != nil {
-					task.Continue()
-				}
-				// If the return data is empty we don't write anything to stdin
-				if toInput != "" {
-					_, _ = writer.Write([]byte(toInput))
-				}
+				break
+			}
+
+			if task != nil {
+				task.Pause()
+			}
+			toInput := <-responseChan
+			if task != nil {
+				task.Continue()
+			}
+			// If the return data is empty we don't write anything to stdin
+			if toInput != "" {
+				_, _ = writer.Write([]byte(toInput))
 			}
 		}
 	}
