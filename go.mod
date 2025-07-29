@@ -16,7 +16,6 @@ require (
 	github.com/jesseduffield/generics v0.0.0-20250517122708-b0b4a53a6f5c
 	github.com/jesseduffield/go-git/v5 v5.14.1-0.20250407170251-e1a013310ccd
 	github.com/jesseduffield/gocui v0.3.1-0.20250711082438-4aa4fd0b4d22
-	github.com/jesseduffield/kill v0.0.0-20250101124109-e216ddbe133a
 	github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
 	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0

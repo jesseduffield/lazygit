@@ -230,9 +230,6 @@ github.com/jesseduffield/go-git/v5/utils/trace
 # github.com/jesseduffield/gocui v0.3.1-0.20250711082438-4aa4fd0b4d22
 ## explicit; go 1.12
 github.com/jesseduffield/gocui
-# github.com/jesseduffield/kill v0.0.0-20250101124109-e216ddbe133a
-## explicit; go 1.18
-github.com/jesseduffield/kill
 # github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
 ## explicit; go 1.18
 github.com/jesseduffield/lazycore/pkg/boxlayout
