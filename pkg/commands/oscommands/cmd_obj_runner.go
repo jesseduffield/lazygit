@@ -171,16 +171,17 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj *CmdObj, onLine func(line st
 		line := scanner.Text()
 		stop, err := onLine(line)
 		if err != nil {
+			stdoutPipe.Close()
 			return err
 		}
 		if stop {
-			_ = Kill(cmd)
+			stdoutPipe.Close() // close the pipe so that the called process terminates
 			break
 		}
 	}
 
 	if scanner.Err() != nil {
-		_ = Kill(cmd)
+		stdoutPipe.Close()
 		return scanner.Err()
 	}
 
