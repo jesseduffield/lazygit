@@ -124,7 +124,11 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 		os.Exit(0)
 	}
 
-	tempDir, err := os.MkdirTemp("", "lazygit-*")
+	tmpDirBase := filepath.Join(os.TempDir(), "lazygit")
+	if err := os.MkdirAll(tmpDirBase, 0o700); err != nil {
+		log.Fatal(err.Error())
+	}
+	tempDir, err := os.MkdirTemp(tmpDirBase, "")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
