@@ -25,7 +25,7 @@ var ShowDivergenceFromBaseBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Branches().
 			Focus().
 			Lines(
-				Contains("feature ↓1").IsSelected(),
+				MatchesRegexp(`feature\s+↓1`).IsSelected(),
 				Contains("master"),
 			).
 			Press(keys.Branches.SetUpstream)
