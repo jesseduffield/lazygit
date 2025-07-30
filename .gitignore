@@ -22,7 +22,7 @@ test/git_server/data
 test/_results/**
 
 oryxBuildBinary
-__debug_bin
+__debug_bin*
 
 .worktrees
 demo/output/*
