@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -43,7 +44,7 @@ func TestGetCommits(t *testing.T) {
 			logOrder: "topo-order",
 			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"merge-base", "refs/heads/mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
 			expectedCommitOpts: []models.NewCommitOpts{},
@@ -54,7 +55,7 @@ func TestGetCommits(t *testing.T) {
 			logOrder: "topo-order",
 			opts:     GetCommitsOptions{RefName: "refs/heads/mybranch", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"merge-base", "refs/heads/mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
 				ExpectGitArgs([]string{"log", "refs/heads/mybranch", "--topo-order", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
 			expectedCommitOpts: []models.NewCommitOpts{},
@@ -67,7 +68,7 @@ func TestGetCommits(t *testing.T) {
 			mainBranches: []string{"master", "main", "develop"},
 			runner: oscommands.NewFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed
-				ExpectGitArgs([]string{"merge-base", "refs/heads/mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}", "^refs/remotes/origin/master", "^refs/remotes/origin/main"}, "0eea75e8c631fba6b58135697835d58ba4c18dbc\n", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, commitsOutput, nil).
 				// here it's testing which of the configured main branches have an upstream
@@ -77,8 +78,9 @@ func TestGetCommits(t *testing.T) {
 				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "develop@{u}"}, "", errors.New("error")).                // this one doesn't, so it checks origin instead
 				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/remotes/origin/develop"}, "", errors.New("error")). // doesn't exist there, either, so it checks for a local branch
 				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/develop"}, "", errors.New("error")).          // no local branch either
-				// here it's seeing where our branch diverged from the master branch so that we can mark that commit and parent commits as 'merged'
-				ExpectGitArgs([]string{"merge-base", "HEAD", "refs/remotes/origin/master", "refs/remotes/origin/main"}, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
+				// here it's seeing which of our commits are not on any of the main branches yet
+				ExpectGitArgs([]string{"rev-list", "HEAD", "^refs/remotes/origin/master", "^refs/remotes/origin/main"},
+					"0eea75e8c631fba6b58135697835d58ba4c18dbc\nb21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164\ne94e8fc5b6fab4cb755f29f1bdb3ee5e001df35c\nd8084cd558925eb7c9c38afeed5725c21653ab90\n65f910ebd85283b5cce9bf67d03d3f1a9ea3813a\n", nil),
 
 			expectedCommitOpts: []models.NewCommitOpts{
 				{
@@ -197,13 +199,13 @@ func TestGetCommits(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			testName:     "should not call merge-base for mainBranches if none exist",
+			testName:     "should not call rev-list for mainBranches if none exist",
 			logOrder:     "topo-order",
 			opts:         GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
 			mainBranches: []string{"master", "main"},
 			runner: oscommands.NewFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed
-				ExpectGitArgs([]string{"merge-base", "refs/heads/mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "0eea75e8c631fba6b58135697835d58ba4c18dbc\n", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, singleCommitOutput, nil).
 				// here it's testing which of the configured main branches exist; neither does
@@ -233,13 +235,13 @@ func TestGetCommits(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			testName:     "should call merge-base for all main branches that exist",
+			testName:     "should call rev-list with all main branches that exist",
 			logOrder:     "topo-order",
 			opts:         GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
 			mainBranches: []string{"master", "main", "develop", "1.0-hotfixes"},
 			runner: oscommands.NewFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed
-				ExpectGitArgs([]string{"merge-base", "refs/heads/mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}", "^refs/remotes/origin/master", "^refs/remotes/origin/develop", "^refs/remotes/origin/1.0-hotfixes"}, "0eea75e8c631fba6b58135697835d58ba4c18dbc\n", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, singleCommitOutput, nil).
 				// here it's testing which of the configured main branches exist
@@ -249,8 +251,8 @@ func TestGetCommits(t *testing.T) {
 				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/main"}, "", errors.New("error")).
 				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "develop@{u}"}, "refs/remotes/origin/develop", nil).
 				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "1.0-hotfixes@{u}"}, "refs/remotes/origin/1.0-hotfixes", nil).
-				// here it's seeing where our branch diverged from the master branch so that we can mark that commit and parent commits as 'merged'
-				ExpectGitArgs([]string{"merge-base", "HEAD", "refs/remotes/origin/master", "refs/remotes/origin/develop", "refs/remotes/origin/1.0-hotfixes"}, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
+				// here it's seeing which of our commits are not on any of the main branches yet
+				ExpectGitArgs([]string{"rev-list", "HEAD", "^refs/remotes/origin/master", "^refs/remotes/origin/develop", "^refs/remotes/origin/1.0-hotfixes"}, "0eea75e8c631fba6b58135697835d58ba4c18dbc\n", nil),
 
 			expectedCommitOpts: []models.NewCommitOpts{
 				{
@@ -275,7 +277,7 @@ func TestGetCommits(t *testing.T) {
 			logOrder: "default",
 			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"merge-base", "refs/heads/mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
 			expectedCommitOpts: []models.NewCommitOpts{},
@@ -286,7 +288,7 @@ func TestGetCommits(t *testing.T) {
 			logOrder: "default",
 			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, FilterPath: "src"},
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"merge-base", "refs/heads/mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--follow", "--name-status", "--no-show-signature", "--", "src"}, "", nil),
 
 			expectedCommitOpts: []models.NewCommitOpts{},
@@ -536,11 +538,12 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 	}
 }
 
-func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
+func TestCommitLoader_setCommitStatuses(t *testing.T) {
 	type scenario struct {
 		testName           string
 		commitOpts         []models.NewCommitOpts
-		ancestor           string
+		unmergedCommits    []string
+		unpushedCommits    []string
 		expectedCommitOpts []models.NewCommitOpts
 	}
 
@@ -548,13 +551,13 @@ func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
 		{
 			testName: "basic",
 			commitOpts: []models.NewCommitOpts{
-				{Hash: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
-				{Hash: "67890", Name: "2", Action: models.ActionNone, Status: models.StatusPushed},
-				{Hash: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
+				{Hash: "12345", Name: "1", Action: models.ActionNone},
+				{Hash: "67890", Name: "2", Action: models.ActionNone},
+				{Hash: "abcde", Name: "3", Action: models.ActionNone},
 			},
-			ancestor: "67890",
+			unmergedCommits: []string{"12345"},
 			expectedCommitOpts: []models.NewCommitOpts{
-				{Hash: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
+				{Hash: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusPushed},
 				{Hash: "67890", Name: "2", Action: models.ActionNone, Status: models.StatusMerged},
 				{Hash: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusMerged},
 			},
@@ -562,11 +565,12 @@ func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
 		{
 			testName: "with update-ref",
 			commitOpts: []models.NewCommitOpts{
-				{Hash: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
-				{Hash: "", Name: "", Action: todo.UpdateRef, Status: models.StatusNone},
-				{Hash: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
+				{Hash: "12345", Name: "1", Action: models.ActionNone},
+				{Hash: "", Name: "", Action: todo.UpdateRef},
+				{Hash: "abcde", Name: "3", Action: models.ActionNone},
 			},
-			ancestor: "deadbeef",
+			unmergedCommits: []string{"12345", "abcde"},
+			unpushedCommits: []string{"12345"},
 			expectedCommitOpts: []models.NewCommitOpts{
 				{Hash: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
 				{Hash: "", Name: "", Action: todo.UpdateRef, Status: models.StatusNone},
@@ -581,7 +585,7 @@ func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
 
 			commits := lo.Map(scenario.commitOpts,
 				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
-			setCommitMergedStatuses(scenario.ancestor, commits)
+			setCommitStatuses(set.NewFromSlice(scenario.unpushedCommits), set.NewFromSlice(scenario.unmergedCommits), commits)
 			expectedCommits := lo.Map(scenario.expectedCommitOpts,
 				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
 			assert.Equal(t, expectedCommits, commits)

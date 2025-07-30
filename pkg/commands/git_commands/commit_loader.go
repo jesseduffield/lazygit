@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -98,42 +99,31 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 		}
 	})
 
-	var ancestor string
-	var remoteAncestor string
+	var unmergedCommitHashes *set.Set[string]
+	var remoteUnmergedCommitHashes *set.Set[string]
+	mainBranches := opts.MainBranches.Get()
+
 	go utils.Safe(func() {
 		defer wg.Done()
 
-		ancestor = opts.MainBranches.GetMergeBase(opts.RefName)
-		if opts.RefToShowDivergenceFrom != "" {
-			remoteAncestor = opts.MainBranches.GetMergeBase(opts.RefToShowDivergenceFrom)
+		if len(mainBranches) > 0 {
+			unmergedCommitHashes = self.getReachableHashes(opts.RefName, mainBranches)
+			if opts.RefToShowDivergenceFrom != "" {
+				remoteUnmergedCommitHashes = self.getReachableHashes(opts.RefToShowDivergenceFrom, mainBranches)
+			}
 		}
 	})
 
-	passedFirstPushedCommit := false
-	// I can get this before
-	firstPushedCommit, err := self.getFirstPushedCommit(opts.RefForPushedStatus)
-	if err != nil || firstPushedCommit == "" {
-		// must have no upstream branch so we'll consider everything as pushed
-		passedFirstPushedCommit = true
+	var unpushedCommitHashes *set.Set[string]
+	if opts.RefForPushedStatus != nil {
+		unpushedCommitHashes = self.getReachableHashes(opts.RefForPushedStatus.FullRefName(),
+			append([]string{opts.RefForPushedStatus.RefName() + "@{u}"}, mainBranches...))
 	}
 
 	wg.Wait()
 
 	if logErr != nil {
 		return nil, logErr
-	}
-
-	for _, commit := range commits {
-		if commit.Hash() == firstPushedCommit {
-			passedFirstPushedCommit = true
-		}
-		if !commit.IsTODO() {
-			if passedFirstPushedCommit {
-				commit.Status = models.StatusPushed
-			} else {
-				commit.Status = models.StatusUnpushed
-			}
-		}
 	}
 
 	if len(commits) == 0 {
@@ -153,10 +143,10 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 			localSectionStart = len(commits)
 		}
 
-		setCommitMergedStatuses(remoteAncestor, commits[:localSectionStart])
-		setCommitMergedStatuses(ancestor, commits[localSectionStart:])
+		setCommitStatuses(unpushedCommitHashes, remoteUnmergedCommitHashes, commits[:localSectionStart])
+		setCommitStatuses(unpushedCommitHashes, unmergedCommitHashes, commits[localSectionStart:])
 	} else {
-		setCommitMergedStatuses(ancestor, commits)
+		setCommitStatuses(unpushedCommitHashes, unmergedCommitHashes, commits)
 	}
 
 	return commits, nil
@@ -549,56 +539,40 @@ func (self *CommitLoader) getConflictedSequencerCommit(hashPool *utils.StringPoo
 	})
 }
 
-func setCommitMergedStatuses(ancestor string, commits []*models.Commit) {
-	if ancestor == "" {
-		return
-	}
-
-	passedAncestor := false
+func setCommitStatuses(unpushedCommitHashes *set.Set[string], unmergedCommitHashes *set.Set[string], commits []*models.Commit) {
 	for i, commit := range commits {
-		// some commits aren't really commits and don't have hashes, such as the update-ref todo
-		if commit.Hash() != "" && strings.HasPrefix(ancestor, commit.Hash()) {
-			passedAncestor = true
-		}
-		if commit.Status != models.StatusPushed && commit.Status != models.StatusUnpushed {
+		if commit.IsTODO() {
 			continue
 		}
-		if passedAncestor {
+
+		if unmergedCommitHashes == nil || unmergedCommitHashes.Includes(commit.Hash()) {
+			if unpushedCommitHashes != nil && unpushedCommitHashes.Includes(commit.Hash()) {
+				commits[i].Status = models.StatusUnpushed
+			} else {
+				commits[i].Status = models.StatusPushed
+			}
+		} else {
 			commits[i].Status = models.StatusMerged
 		}
 	}
 }
 
-func ignoringWarnings(commandOutput string) string {
-	trimmedOutput := strings.TrimSpace(commandOutput)
-	split := strings.Split(trimmedOutput, "\n")
-	// need to get last line in case the first line is a warning about how the error is ambiguous.
-	// At some point we should find a way to make it unambiguous
-	lastLine := split[len(split)-1]
-
-	return lastLine
-}
-
-// getFirstPushedCommit returns the first commit hash which has been pushed to the ref's upstream.
-// all commits above this are deemed unpushed and marked as such.
-func (self *CommitLoader) getFirstPushedCommit(ref models.Ref) (string, error) {
-	if ref == nil {
-		return "", nil
-	}
-
-	output, err := self.cmd.New(
-		NewGitCmd("merge-base").
-			Arg(ref.FullRefName()).
-			Arg(ref.RefName() + "@{u}").
+func (self *CommitLoader) getReachableHashes(refName string, notRefNames []string) *set.Set[string] {
+	output, _, err := self.cmd.New(
+		NewGitCmd("rev-list").
+			Arg(refName).
+			Arg(lo.Map(notRefNames, func(name string, _ int) string {
+				return "^" + name
+			})...).
 			ToArgv(),
 	).
 		DontLog().
-		RunWithOutput()
+		RunWithOutputs()
 	if err != nil {
-		return "", err
+		return set.New[string]()
 	}
 
-	return ignoringWarnings(output), nil
+	return set.NewFromSlice(utils.SplitLines(output))
 }
 
 // getLog gets the git log.
