@@ -1,4 +1,4 @@
-package types
+package models
 
 type Ref interface {
 	FullRefName() string
@@ -6,9 +6,4 @@ type Ref interface {
 	ShortRefName() string
 	ParentRefName() string
 	Description() string
-}
-
-type RefRange struct {
-	From Ref
-	To   Ref
 }

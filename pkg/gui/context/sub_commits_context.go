@@ -141,7 +141,7 @@ func NewSubCommitsContext(
 
 type SubCommitsViewModel struct {
 	// name of the ref that the sub-commits are shown for
-	ref                     types.Ref
+	ref                     models.Ref
 	refToShowDivergenceFrom string
 	*ListViewModel[*models.Commit]
 
@@ -149,11 +149,11 @@ type SubCommitsViewModel struct {
 	showBranchHeads bool
 }
 
-func (self *SubCommitsViewModel) SetRef(ref types.Ref) {
+func (self *SubCommitsViewModel) SetRef(ref models.Ref) {
 	self.ref = ref
 }
 
-func (self *SubCommitsViewModel) GetRef() types.Ref {
+func (self *SubCommitsViewModel) GetRef() models.Ref {
 	return self.ref
 }
 
@@ -177,7 +177,7 @@ func (self *SubCommitsContext) CanRebase() bool {
 	return false
 }
 
-func (self *SubCommitsContext) GetSelectedRef() types.Ref {
+func (self *SubCommitsContext) GetSelectedRef() models.Ref {
 	commit := self.GetSelected()
 	if commit == nil {
 		return nil

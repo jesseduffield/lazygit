@@ -63,7 +63,7 @@ func (self *ReflogCommitsContext) CanRebase() bool {
 	return false
 }
 
-func (self *ReflogCommitsContext) GetSelectedRef() types.Ref {
+func (self *ReflogCommitsContext) GetSelectedRef() models.Ref {
 	commit := self.GetSelected()
 	if commit == nil {
 		return nil

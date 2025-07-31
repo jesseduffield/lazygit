@@ -59,7 +59,7 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 	return self
 }
 
-func (self *BranchesContext) GetSelectedRef() types.Ref {
+func (self *BranchesContext) GetSelectedRef() models.Ref {
 	branch := self.GetSelected()
 	if branch == nil {
 		return nil

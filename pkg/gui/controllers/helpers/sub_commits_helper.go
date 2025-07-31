@@ -24,7 +24,7 @@ func NewSubCommitsHelper(
 }
 
 type ViewSubCommitsOpts struct {
-	Ref                     types.Ref
+	Ref                     models.Ref
 	RefToShowDivergenceFrom string
 	TitleRef                string
 	Context                 types.Context

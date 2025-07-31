@@ -96,7 +96,7 @@ func (self *CommitFilesContext) ModelSearchResults(searchStr string, caseSensiti
 	return nil
 }
 
-func (self *CommitFilesContext) ReInit(ref types.Ref, refRange *types.RefRange) {
+func (self *CommitFilesContext) ReInit(ref models.Ref, refRange *types.RefRange) {
 	self.SetRef(ref)
 	self.SetRefRange(refRange)
 	if refRange != nil {
