@@ -39,7 +39,7 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 			FilterAuthor:            self.c.Modes().Filtering.GetAuthor(),
 			IncludeRebaseCommits:    false,
 			RefName:                 opts.Ref.FullRefName(),
-			RefForPushedStatus:      opts.Ref.FullRefName(),
+			RefForPushedStatus:      opts.Ref,
 			RefToShowDivergenceFrom: opts.RefToShowDivergenceFrom,
 			MainBranches:            self.c.Model().MainBranches,
 			HashPool:                self.c.Model().HashPool,

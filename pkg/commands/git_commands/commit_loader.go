@@ -59,8 +59,8 @@ type GetCommitsOptions struct {
 	FilterPath           string
 	FilterAuthor         string
 	IncludeRebaseCommits bool
-	RefName              string // e.g. "HEAD" or "my_branch"
-	RefForPushedStatus   string // the ref to use for determining pushed/unpushed status
+	RefName              string     // e.g. "HEAD" or "my_branch"
+	RefForPushedStatus   models.Ref // the ref to use for determining pushed/unpushed status
 	// determines if we show the whole git graph i.e. pass the '--all' flag
 	All bool
 	// If non-empty, show divergence from this ref (left-right log)
@@ -112,7 +112,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 	passedFirstPushedCommit := false
 	// I can get this before
 	firstPushedCommit, err := self.getFirstPushedCommit(opts.RefForPushedStatus)
-	if err != nil {
+	if err != nil || firstPushedCommit == "" {
 		// must have no upstream branch so we'll consider everything as pushed
 		passedFirstPushedCommit = true
 	}
@@ -581,11 +581,15 @@ func ignoringWarnings(commandOutput string) string {
 
 // getFirstPushedCommit returns the first commit hash which has been pushed to the ref's upstream.
 // all commits above this are deemed unpushed and marked as such.
-func (self *CommitLoader) getFirstPushedCommit(refName string) (string, error) {
+func (self *CommitLoader) getFirstPushedCommit(ref models.Ref) (string, error) {
+	if ref == nil {
+		return "", nil
+	}
+
 	output, err := self.cmd.New(
 		NewGitCmd("merge-base").
-			Arg(refName).
-			Arg(strings.TrimPrefix(refName, "refs/heads/") + "@{u}").
+			Arg(ref.FullRefName()).
+			Arg(ref.RefName() + "@{u}").
 			ToArgv(),
 	).
 		DontLog().
