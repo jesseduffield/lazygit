@@ -447,11 +447,7 @@ func (gui *Gui) suspendApp(g *gocui.Gui, v *gocui.View) error {
 
 	gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(true)
 
-	p, err := os.FindProcess(os.Getpid())
-	if err != nil {
-		return err
-	}
-	return p.Signal(syscall.SIGTSTP)
+	return syscall.Kill(0, syscall.SIGSTOP)
 }
 
 func (gui *Gui) handleResume(g *gocui.Gui) {
