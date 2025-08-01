@@ -14,10 +14,10 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` @ `` | 打开命令日志菜单 | 查看命令日志的选项，例如显示/隐藏命令日志以及聚焦命令日志 |
 | `` P `` | 推送 | 推送当前分支到它的上游。如果上游未配置，您可以在弹窗中配置上游分支。 |
 | `` p `` | 拉取 | 从当前分支的远程分支获取改动。如果上游未配置，您可以在弹窗中配置上游分支。 |
-| `` ) `` | 提高重命名相似度阈值 | 增加删除和添加对被视作重命名的相似度阈值。 |
-| `` ( `` | 降低重命名相似度阈值 | 降低删除和添加对被视作重命名的相似度阈值。 |
-| `` } `` | 扩大差异视图中显示的上下文范围 | 增加diff视图中围绕更改显示的上下文数量 |
-| `` { `` | 缩小差异视图中显示的上下文范围 | 减少diff视图中围绕更改显示的上下文数量 |
+| `` ) `` | 提高重命名相似度阈值 | Increase the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
+| `` ( `` | 降低重命名相似度阈值 | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
+| `` } `` | 扩大差异视图中显示的上下文范围 | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
+| `` { `` | 缩小差异视图中显示的上下文范围 | Decrease the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
 | `` : `` | 执行 Shell 命令 | 调出可输入shell命令执行的提示符。 |
 | `` <c-p> `` | 查看自定义补丁选项 |  |
 | `` m `` | 查看合并/变基选项 | 查看当前合并或变基的中止、继续、跳过选项 |
@@ -30,7 +30,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` <c-e> `` | 打开 diff 菜单 | 查看与比较两个引用相关的选项，例如与选定的 ref 进行比较，输入要比较的 ref，然后反转比较方向。 |
 | `` q `` | 退出 |  |
 | `` <esc> `` | 取消 |  |
-| `` <c-w> `` | 切换是否在差异视图中显示空白字符差异 | 切换是否在diff视图中显示空白更改 |
+| `` <c-w> `` | 切换是否在差异视图中显示空白字符差异 | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | 撤销 | Reflog将用于确定运行哪个git命令来撤消最后一个git命令。这并不包括对工作树的更改，只考虑提交。 |
 | `` <c-z> `` | 重做 | Reflog将用于确定运行哪个git命令来重做上一个git命令。这并不包括对工作树的更改，只考虑提交。 |
 
@@ -176,7 +176,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` <space> `` | 补丁中包含的切换文件 | 切换文件是否包含在自定义补丁中。请参阅 https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches。 |
 | `` a `` | 操作所有文件 | 添加或删除所有提交中的文件到自定义的补丁中。请参阅 https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches。 |
 | `` <enter> `` | 输入文件以将所选行添加到补丁中(或切换目录折叠) | 如果已选择一个文件，则Enter进入该文件，以便您可以向自定义补丁添加/删除单独的行。如果选择了目录，则切换目录。 |
-| `` ` `` | 切换文件树视图 | 在平铺部署与树布局之间切换文件视图。平铺布局在一个列表中展示所有文件路径，树布局则根据目录分组展示。 |
+| `` ` `` | 切换文件树视图 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | 折叠全部文件 | 折叠文件树中的全部目录 |
 | `` = `` | 展开全部文件 | 展开文件树中的全部目录 |
 | `` 0 `` | Focus main view |  |
@@ -206,7 +206,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` d `` | 查看'放弃变更'选项 | 查看选中文件的放弃变更选项 |
 | `` g `` | 查看上游重置选项 |  |
 | `` D `` | 重置 | 查看工作树的重置选项（例如：清除工作树）。 |
-| `` ` `` | 切换文件树视图 | 在平铺部署与树布局之间切换文件视图。平铺布局在一个列表中展示所有文件路径，树布局则根据目录分组展示。 |
+| `` ` `` | 切换文件树视图 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` M `` | 打开外部合并工具(git mergetool) | 执行 `git mergetool`. |
 | `` f `` | 抓取 | 从远程获取变更 |
@@ -252,7 +252,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` <left> `` | 选择上一个区块 |  |
 | `` <right> `` | 选择下一个区块 |  |
 | `` v `` | 切换拖动选择 |  |
-| `` a `` | 切换选择代码块 | 切换代码块选择模式 |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | 复制选中文本到剪贴板 |  |
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
 | `` e `` | 编辑文件 | 使用外部编辑器打开文件 |
@@ -307,7 +307,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` <left> `` | 选择上一个区块 |  |
 | `` <right> `` | 选择下一个区块 |  |
 | `` v `` | 切换拖动选择 |  |
-| `` a `` | 切换选择代码块 | 切换代码块选择模式 |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | 复制选中文本到剪贴板 |  |
 | `` <space> `` | 切换暂存状态 | 切换行暂存状态 |
 | `` d `` | 取消变更(git reset) | 当选择未暂存的变更时，使用git reset丢弃该变更。当选择已暂存的变更时，取消暂存该变更 |

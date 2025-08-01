@@ -75,7 +75,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` d `` | Descartar | Exibir opções para descartar alterações para o arquivo selecionado. |
 | `` g `` | View upstream reset options |  |
 | `` D `` | Restaurar | Opções de redefinição de exibição para árvore de trabalho (por exemplo, nukando a árvore de trabalho). |
-| `` ` `` | Alternar exibição de árvore de arquivo | Alternar a visualização de arquivo entre layout plano e layout de árvore. Layout plano mostra todos os caminhos de arquivo em uma única lista, layout de árvore agrupa arquivos por diretório. |
+| `` ` `` | Alternar exibição de árvore de arquivo | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` M `` | Abrir ferramenta de merge externa | Execute `git mergetool`. |
 | `` f `` | Buscar | Buscar alterações do controle remoto. |
@@ -147,7 +147,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <space> `` | Alternar entre o arquivo incluído no patch | Alternar se o arquivo está incluído no patch personalizado. Veja https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | Alternar todos os arquivos | Adicionar/remover todos os arquivos de commit para atualização personalizada. Consulte https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` <enter> `` | Insira o arquivo / Alternar diretório recolhido | Se um arquivo estiver selecionado, insira o arquivo para que você possa adicionar/remover linhas individuais no patch personalizado. Se um diretório for selecionado, ative o diretório. |
-| `` ` `` | Alternar exibição de árvore de arquivo | Alternar a visualização de arquivo entre layout plano e layout de árvore. Layout plano mostra todos os caminhos de arquivo em uma única lista, layout de árvore agrupa arquivos por diretório. |
+| `` ` `` | Alternar exibição de árvore de arquivo | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
 | `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
 | `` 0 `` | Focus main view |  |
@@ -241,7 +241,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <left> `` | Ir para o local anterior |  |
 | `` <right> `` | Ir para o próximo trecho |  |
 | `` v `` | Toggle range select |  |
-| `` a `` | Selecione o local | Ativa/desativa modo seleção de hunk  |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | Copy selected text to clipboard |  |
 | `` <space> `` | Etapa | Ativar/desativar seleção em staged/unstaged |
 | `` d `` | Descartar | Quando a mudança não desejada for selecionada, descarte a mudança usando `git reset`. Quando a mudança em fase é selecionada, despare a mudança. |
@@ -279,7 +279,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <left> `` | Ir para o local anterior |  |
 | `` <right> `` | Ir para o próximo trecho |  |
 | `` v `` | Toggle range select |  |
-| `` a `` | Selecione o local | Ativa/desativa modo seleção de hunk  |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | Copy selected text to clipboard |  |
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
 | `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
