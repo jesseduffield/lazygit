@@ -14,10 +14,10 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` @ `` | コマンドログオプションを表示 | コマンドログのオプションを表示します（例：コマンドログの表示/非表示、コマンドログへのフォーカスなど）。 |
 | `` P `` | プッシュ | 現在のブランチを対応するアップストリームブランチにプッシュします。アップストリームが設定されていない場合、アップストリームブランチの設定を求められます。 |
 | `` p `` | プル | 現在のブランチのリモートから変更をプルします。アップストリームが設定されていない場合、アップストリームブランチの設定を求められます。 |
-| `` ) `` | リネーム検出の類似度しきい値を上げる | ファイルの削除と追加をリネーム（ファイル名変更）と判断するための類似度しきい値を上げます。値を上げると、より似ているファイルのみがリネームと認識されます。 |
-| `` ( `` | リネーム検出の類似度しきい値を下げる | ファイルの削除と追加をリネーム（ファイル名変更）と判断するための類似度しきい値を下げます。値を下げると、より多くのファイルペアがリネームと認識されます。 |
-| `` } `` | 差分コンテキストサイズを増やす | 差分ビューで変更の周りに表示されるコンテキストの量を増やします。 |
-| `` { `` | 差分コンテキストサイズを減らす | 差分ビューで変更の周りに表示されるコンテキストの量を減らします。 |
+| `` ) `` | リネーム検出の類似度しきい値を上げる | Increase the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
+| `` ( `` | リネーム検出の類似度しきい値を下げる | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
+| `` } `` | 差分コンテキストサイズを増やす | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
+| `` { `` | 差分コンテキストサイズを減らす | Decrease the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
 | `` : `` | シェルコマンドを実行 | 実行するシェルコマンドを入力するプロンプトを表示します。 |
 | `` <c-p> `` | カスタムパッチオプションを表示 |  |
 | `` m `` | マージ/リベースオプションを表示 | 現在のマージ/リベースを中止/継続/スキップするオプションを表示します。 |
@@ -30,7 +30,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` <c-e> `` | 差分オプションを表示 | ２つのrefの差分に関連するオプションを表示します（例：選択したrefとの差分表示、差分を取るrefの入力、差分方向の反転など）。 |
 | `` q `` | 終了 |  |
 | `` <esc> `` | キャンセル |  |
-| `` <c-w> `` | 空白表示の切り替え | 差分ビューで空白の変更を表示するかどうかを切り替えます。 |
+| `` <c-w> `` | 空白表示の切り替え | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | 元に戻す | 最後のgitコマンドを元に戻すために実行するgitコマンドを決定するためにreflogが使用されます。これにはワーキングツリーへの変更は含まれません。コミットのみが考慮されます。 |
 | `` <c-z> `` | やり直す | 最後のgitコマンドをやり直すために実行するgitコマンドを決定するためにreflogが使用されます。これにはワーキングツリーへの変更は含まれません。コミットのみが考慮されます。 |
 
@@ -105,7 +105,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` <space> `` | パッチに含めるファイルを切り替え | ファイルがカスタムパッチに含まれるかどうかを切り替えます。https://github.com/jesseduffield/lazygit#rebase-magic-custom-patchesを参照してください。 |
 | `` a `` | すべてのファイルを切り替え | コミットのすべてのファイルをカスタムパッチに追加/削除します。https://github.com/jesseduffield/lazygit#rebase-magic-custom-patchesを参照してください。 |
 | `` <enter> `` | ファイルに入る / ディレクトリの折りたたみを切り替える | ファイルが選択されている場合、そのファイルに入ってカスタムパッチに個々の行を追加/削除できます。ディレクトリが選択されている場合、ディレクトリを切り替えます。 |
-| `` ` `` | ファイルツリービューを切り替え | ファイルビューをフラットレイアウトとツリーレイアウトの間で切り替えます。フラットレイアウトは全てのファイルパスを単一のリストで表示し、ツリーレイアウトはディレクトリごとにファイルをグループ化します。 |
+| `` ` `` | ファイルツリービューを切り替え | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | すべてのファイルを折りたたむ | ファイルツリー内のすべてのディレクトリを折りたたみます |
 | `` = `` | すべてのファイルを展開 | ファイルツリー内のすべてのディレクトリを展開します |
 | `` 0 `` | Focus main view |  |
@@ -225,7 +225,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` d `` | 破棄 | 選択したファイルの変更を破棄するオプションを表示します。 |
 | `` g `` | アップストリームへのリセットオプションを表示 |  |
 | `` D `` | リセット | 作業ツリーのリセットオプション（例：作業ツリーの完全破棄）を表示します。 |
-| `` ` `` | ファイルツリービューを切り替え | ファイルビューをフラットレイアウトとツリーレイアウトの間で切り替えます。フラットレイアウトは全てのファイルパスを単一のリストで表示し、ツリーレイアウトはディレクトリごとにファイルをグループ化します。 |
+| `` ` `` | ファイルツリービューを切り替え | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` <c-t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` M `` | 外部マージツールを開く | `git mergetool`を実行します。 |
 | `` f `` | フェッチ | リモートから変更をフェッチします。 |
@@ -241,7 +241,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` <left> `` | 前のハンクに移動 |  |
 | `` <right> `` | 次のハンクに移動 |  |
 | `` v `` | 範囲選択を切り替え |  |
-| `` a `` | ハンクを選択 | ハンク選択モードを切り替えます。 |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | 選択したテキストをクリップボードにコピー |  |
 | `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
 | `` d `` | 破棄 | ステージされていない変更が選択されている場合、`git reset`を使用して変更を破棄します。ステージされた変更が選択されている場合、変更をアンステージします。 |
@@ -263,7 +263,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` <left> `` | 前のハンクに移動 |  |
 | `` <right> `` | 次のハンクに移動 |  |
 | `` v `` | 範囲選択を切り替え |  |
-| `` a `` | ハンクを選択 | ハンク選択モードを切り替えます。 |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | 選択したテキストをクリップボードにコピー |  |
 | `` o `` | ファイルを開く | デフォルトのアプリケーションでファイルを開きます。 |
 | `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
