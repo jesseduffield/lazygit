@@ -76,8 +76,6 @@ func Handle(common *common.Common) {
 	if err := instruction.run(common); err != nil {
 		log.Fatal(err)
 	}
-
-	os.Exit(0)
 }
 
 func InDaemonMode() bool {
