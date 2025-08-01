@@ -51,6 +51,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
+	"golang.org/x/sys/unix"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
@@ -421,6 +422,20 @@ func (gui *Gui) getPerRepoConfigFiles() []*config.ConfigFile {
 	return repoConfigFiles
 }
 
+// setForegroundPgrp sets the current process group as the foreground process group
+// for the terminal, allowing the program to read input after resuming from suspension.
+func setForegroundPgrp() error {
+	fd, err := unix.Open("/dev/tty", unix.O_RDWR, 0)
+	if err != nil {
+		return err
+	}
+	defer unix.Close(fd)
+
+	pgid := syscall.Getpgrp()
+
+	return unix.IoctlSetPointerInt(fd, unix.TIOCSPGRP, pgid)
+}
+
 func (gui *Gui) suspendApp(g *gocui.Gui, v *gocui.View) error {
 	if runtime.GOOS == "windows" {
 		return nil
@@ -443,10 +458,15 @@ func (gui *Gui) handleResume(g *gocui.Gui) {
 	go func() {
 		sigs := make(chan os.Signal, 1)
 		signal.Notify(sigs, syscall.SIGCONT)
-		for range sigs {
-			g.Resume()
+
+		for sig := range sigs {
+			switch sig {
+			case syscall.SIGCONT:
+				setForegroundPgrp()
+				g.Resume()
+				gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(false)
+			}
 		}
-		gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(false)
 	}()
 }
 
