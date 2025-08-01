@@ -164,7 +164,7 @@ func (self *LocalCommitsContext) CanRebase() bool {
 	return true
 }
 
-func (self *LocalCommitsContext) GetSelectedRef() types.Ref {
+func (self *LocalCommitsContext) GetSelectedRef() models.Ref {
 	commit := self.GetSelected()
 	if commit == nil {
 		return nil

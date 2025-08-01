@@ -174,7 +174,7 @@ func (self *DiffHelper) IgnoringWhitespaceSubTitle() string {
 	return ""
 }
 
-func (self *DiffHelper) OpenDiffToolForRef(selectedRef types.Ref) error {
+func (self *DiffHelper) OpenDiffToolForRef(selectedRef models.Ref) error {
 	to := selectedRef.RefName()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff("")
 	_, err := self.c.RunSubprocess(self.c.Git().Diff.OpenDiffToolCmdObj(

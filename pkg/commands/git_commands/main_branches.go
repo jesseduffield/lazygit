@@ -69,11 +69,11 @@ func (self *MainBranches) GetMergeBase(refName string) string {
 	// very rarely, users must quit and restart lazygit to fix it; the latter is
 	// also not very common, but can totally happen and is not an error.
 
-	output, _ := self.cmd.New(
+	output, _, _ := self.cmd.New(
 		NewGitCmd("merge-base").Arg(refName).Arg(mainBranches...).
 			ToArgv(),
-	).DontLog().RunWithOutput()
-	return ignoringWarnings(output)
+	).DontLog().RunWithOutputs()
+	return strings.TrimSpace(output)
 }
 
 func (self *MainBranches) determineMainBranches(configuredMainBranches []string) []string {

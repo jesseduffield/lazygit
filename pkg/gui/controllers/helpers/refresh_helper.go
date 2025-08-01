@@ -288,37 +288,37 @@ func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
 	}
 }
 
-func (self *RefreshHelper) determineCheckedOutBranchName() string {
+func (self *RefreshHelper) determineCheckedOutRef() models.Ref {
 	if rebasedBranch := self.c.Git().Status.BranchBeingRebased(); rebasedBranch != "" {
 		// During a rebase we're on a detached head, so cannot determine the
 		// branch name in the usual way. We need to read it from the
 		// ".git/rebase-merge/head-name" file instead.
-		return strings.TrimPrefix(rebasedBranch, "refs/heads/")
+		return &models.Branch{Name: strings.TrimPrefix(rebasedBranch, "refs/heads/")}
 	}
 
 	if bisectInfo := self.c.Git().Bisect.GetInfo(); bisectInfo.Bisecting() && bisectInfo.GetStartHash() != "" {
 		// Likewise, when we're bisecting we're on a detached head as well. In
 		// this case we read the branch name from the ".git/BISECT_START" file.
-		return bisectInfo.GetStartHash()
+		return &models.Branch{Name: bisectInfo.GetStartHash()}
 	}
 
 	// In all other cases, get the branch name by asking git what branch is
 	// checked out. Note that if we're on a detached head (for reasons other
 	// than rebasing or bisecting, i.e. it was explicitly checked out), then
 	// this will return an empty string.
-	if branchName, err := self.c.Git().Branch.CurrentBranchName(); err == nil {
-		return branchName
+	if branchName, err := self.c.Git().Branch.CurrentBranchName(); err == nil && branchName != "" {
+		return &models.Branch{Name: branchName}
 	}
 
 	// Should never get here unless the working copy is corrupt
-	return ""
+	return nil
 }
 
 func (self *RefreshHelper) refreshCommitsWithLimit() error {
 	self.c.Mutexes().LocalCommitsMutex.Lock()
 	defer self.c.Mutexes().LocalCommitsMutex.Unlock()
 
-	checkedOutBranchName := self.determineCheckedOutBranchName()
+	checkedOutRef := self.determineCheckedOutRef()
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
 			Limit:                self.c.Contexts().LocalCommits.GetLimitCommits(),
@@ -326,7 +326,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 			FilterAuthor:         self.c.Modes().Filtering.GetAuthor(),
 			IncludeRebaseCommits: true,
 			RefName:              self.refForLog(),
-			RefForPushedStatus:   checkedOutBranchName,
+			RefForPushedStatus:   checkedOutRef,
 			All:                  self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
 			MainBranches:         self.c.Model().MainBranches,
 			HashPool:             self.c.Model().HashPool,
@@ -338,7 +338,11 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 	self.c.Model().Commits = commits
 	self.RefreshAuthors(commits)
 	self.c.Model().WorkingTreeStateAtLastCommitRefresh = self.c.Git().Status.WorkingTreeState()
-	self.c.Model().CheckedOutBranch = checkedOutBranchName
+	if checkedOutRef != nil {
+		self.c.Model().CheckedOutBranch = checkedOutRef.RefName()
+	} else {
+		self.c.Model().CheckedOutBranch = ""
+	}
 
 	self.refreshView(self.c.Contexts().LocalCommits)
 	return nil
@@ -360,7 +364,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 			IncludeRebaseCommits:    false,
 			RefName:                 self.c.Contexts().SubCommits.GetRef().FullRefName(),
 			RefToShowDivergenceFrom: self.c.Contexts().SubCommits.GetRefToShowDivergenceFrom(),
-			RefForPushedStatus:      self.c.Contexts().SubCommits.GetRef().FullRefName(),
+			RefForPushedStatus:      self.c.Contexts().SubCommits.GetRef(),
 			MainBranches:            self.c.Model().MainBranches,
 			HashPool:                self.c.Model().HashPool,
 		},

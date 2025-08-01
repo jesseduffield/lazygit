@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -9,7 +10,7 @@ var _ types.IController = &SwitchToSubCommitsController{}
 
 type CanSwitchToSubCommits interface {
 	types.IListContext
-	GetSelectedRef() types.Ref
+	GetSelectedRef() models.Ref
 	ShowBranchHeadsInSubCommits() bool
 }
 
@@ -17,7 +18,7 @@ type CanSwitchToSubCommits interface {
 // but an attribute on it i.e. the ref of an item.
 type SwitchToSubCommitsController struct {
 	baseController
-	*ListControllerTrait[types.Ref]
+	*ListControllerTrait[models.Ref]
 	c       *ControllerCommon
 	context CanSwitchToSubCommits
 }
@@ -32,7 +33,7 @@ func NewSwitchToSubCommitsController(
 			c,
 			context,
 			context.GetSelectedRef,
-			func() ([]types.Ref, int, int) {
+			func() ([]models.Ref, int, int) {
 				panic("Not implemented")
 			},
 		),

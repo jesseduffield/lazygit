@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -11,7 +12,7 @@ var _ types.IController = &SwitchToDiffFilesController{}
 type CanSwitchToDiffFiles interface {
 	types.IListContext
 	CanRebase() bool
-	GetSelectedRef() types.Ref
+	GetSelectedRef() models.Ref
 	GetSelectedRefRangeForDiffFiles() *types.RefRange
 }
 

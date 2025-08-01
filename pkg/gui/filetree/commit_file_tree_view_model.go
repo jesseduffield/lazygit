@@ -15,8 +15,8 @@ type ICommitFileTreeViewModel interface {
 	ICommitFileTree
 	types.IListCursor
 
-	GetRef() types.Ref
-	SetRef(types.Ref)
+	GetRef() models.Ref
+	SetRef(models.Ref)
 	GetRefRange() *types.RefRange // can be nil, in which case GetRef should be used
 	SetRefRange(*types.RefRange)  // should be set to nil when selection is not a range
 	GetCanRebase() bool
@@ -30,7 +30,7 @@ type CommitFileTreeViewModel struct {
 
 	// this is e.g. the commit for which we're viewing the files, if there is no
 	// range selection, or if the range selection can't be used for some reason
-	ref types.Ref
+	ref models.Ref
 
 	// this is a commit range for which we're viewing the files. Can be nil, in
 	// which case ref is used.
@@ -55,11 +55,11 @@ func NewCommitFileTreeViewModel(getFiles func() []*models.CommitFile, common *co
 	}
 }
 
-func (self *CommitFileTreeViewModel) GetRef() types.Ref {
+func (self *CommitFileTreeViewModel) GetRef() models.Ref {
 	return self.ref
 }
 
-func (self *CommitFileTreeViewModel) SetRef(ref types.Ref) {
+func (self *CommitFileTreeViewModel) SetRef(ref models.Ref) {
 	self.ref = ref
 }
 

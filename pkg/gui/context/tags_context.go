@@ -52,7 +52,7 @@ func NewTagsContext(
 	}
 }
 
-func (self *TagsContext) GetSelectedRef() types.Ref {
+func (self *TagsContext) GetSelectedRef() models.Ref {
 	tag := self.GetSelected()
 	if tag == nil {
 		return nil
