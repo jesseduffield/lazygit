@@ -58,7 +58,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` <left> `` | 選擇上一段 |  |
 | `` <right> `` | 選擇下一段 |  |
 | `` v `` | 切換拖曳選擇 |  |
-| `` a `` | 切換選擇程式碼塊 | Toggle hunk selection mode. |
+| `` a `` | 切換選擇程式碼塊 | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | 複製所選文本至剪貼簿 |  |
 | `` o `` | 開啟檔案 | 使用預設軟體開啟 |
 | `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
@@ -99,7 +99,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` <left> `` | 選擇上一段 |  |
 | `` <right> `` | 選擇下一段 |  |
 | `` v `` | 切換拖曳選擇 |  |
-| `` a `` | 切換選擇程式碼塊 | Toggle hunk selection mode. |
+| `` a `` | 切換選擇程式碼塊 | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | 複製所選文本至剪貼簿 |  |
 | `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
 | `` d `` | 刪除變更 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |

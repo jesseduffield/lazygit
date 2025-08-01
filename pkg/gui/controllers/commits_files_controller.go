@@ -494,6 +494,8 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 			}
 
 			self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
+			self.c.Helpers().PatchBuilding.ShowHunkStagingHint()
+
 			return nil
 		},
 	})

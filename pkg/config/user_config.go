@@ -739,7 +739,7 @@ func GetDefaultConfig() *UserConfig {
 			MainPanelSplitMode:       "flexible",
 			EnlargedSideViewLocation: "left",
 			WrapLinesInStagingView:   true,
-			UseHunkModeInStagingView: false,
+			UseHunkModeInStagingView: true,
 			Language:                 "auto",
 			TimeFormat:               "02 Jan 06",
 			ShortTimeFormat:          time.Kitchen,

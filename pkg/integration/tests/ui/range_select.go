@@ -31,7 +31,9 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Verify range select works as expected in list views and in patch explorer views",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		// We're testing the commits view as our representative list context,
 		// as well as the staging view, and we're using the exact same code to test

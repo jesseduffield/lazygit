@@ -9,7 +9,9 @@ var StageLines = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Stage and unstage various lines of a file in the staging panel",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file1", "one\ntwo\n")
 		shell.Commit("one")

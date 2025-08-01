@@ -569,7 +569,7 @@
         "useHunkModeInStagingView": {
           "type": "boolean",
           "description": "If true, hunk selection mode will be enabled by default when entering the staging view.",
-          "default": false
+          "default": true
         },
         "language": {
           "type": "string",

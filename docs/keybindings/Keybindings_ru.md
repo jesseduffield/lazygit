@@ -76,7 +76,7 @@ _Связки клавиш_
 | `` <left> `` | Выбрать предыдущую часть |  |
 | `` <right> `` | Выбрать следующую часть |  |
 | `` v `` | Переключить выборку перетаскивания |  |
-| `` a `` | Переключить выборку частей | Toggle hunk selection mode. |
+| `` a `` | Переключить выборку частей | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | Скопировать выделенный текст в буфер обмена |  |
 | `` <space> `` | Переключить индекс | Переключить строку в проиндексированные / непроиндексированные |
 | `` d `` | Отменить изменение (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
@@ -124,7 +124,7 @@ _Связки клавиш_
 | `` <left> `` | Выбрать предыдущую часть |  |
 | `` <right> `` | Выбрать следующую часть |  |
 | `` v `` | Переключить выборку перетаскивания |  |
-| `` a `` | Переключить выборку частей | Toggle hunk selection mode. |
+| `` a `` | Переключить выборку частей | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | Скопировать выделенный текст в буфер обмена |  |
 | `` o `` | Открыть файл | Open file in default application. |
 | `` e `` | Редактировать файл | Open file in external editor. |

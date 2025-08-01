@@ -141,6 +141,9 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 
 	if integrationTest != nil {
 		integrationTest.SetupConfig(appConfig)
+		// Set this to true so that integration tests don't have to explicitly deal with the hunk
+		// staging hint:
+		appConfig.GetAppState().DidShowHunkStagingHint = true
 
 		// Preserve the changes that the test setup just made to the config, so
 		// they don't get lost when we reload the config while running the test

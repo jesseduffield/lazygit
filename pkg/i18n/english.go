@@ -289,7 +289,10 @@ type TranslationSet struct {
 	DiscardSelection                      string
 	DiscardSelectionTooltip               string
 	ToggleSelectHunk                      string
+	SelectHunk                            string
+	SelectLineByLine                      string
 	ToggleSelectHunkTooltip               string
+	HunkStagingHint                       string
 	ToggleSelectionForPatch               string
 	EditHunk                              string
 	EditHunkTooltip                       string
@@ -1057,6 +1060,15 @@ const englishNonReloadableConfigWarning = `The following config settings were ch
 
 {{configs}}`
 
+const englishHunkStagingHint = `Hunk selection mode is now the default for staging. If you want to stage individual lines, press '%s' to switch to line-by-line mode.
+
+If you prefer to use line-by-line mode by default (like in earlier lazygit versions), add
+
+gui:
+  useHunkModeInStagingView: false
+
+to your lazygit config.`
+
 // exporting this so we can use it in tests
 func EnglishTranslationSet() *TranslationSet {
 	return &TranslationSet{
@@ -1336,8 +1348,11 @@ func EnglishTranslationSet() *TranslationSet {
 		DiscardSelection:                     `Discard`,
 		DiscardSelectionTooltip:              "When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change.",
 		ToggleRangeSelect:                    "Toggle range select",
-		ToggleSelectHunk:                     "Select hunk",
-		ToggleSelectHunkTooltip:              "Toggle hunk selection mode.",
+		ToggleSelectHunk:                     "Toggle hunk selection",
+		SelectHunk:                           "Select hunks",
+		SelectLineByLine:                     "Select line-by-line",
+		ToggleSelectHunkTooltip:              "Toggle line-by-line vs. hunk selection mode.",
+		HunkStagingHint:                      englishHunkStagingHint,
 		ToggleSelectionForPatch:              `Toggle lines in patch`,
 		EditHunk:                             `Edit hunk`,
 		EditHunkTooltip:                      "Edit selected hunk in external editor.",
@@ -2104,7 +2119,7 @@ keybinding:
 
 gui:
   filterMode: 'fuzzy'
-	  `,
+`,
 			"0.44.0": `- The gui.branchColors config option is deprecated; it will be removed in a future version. Please use gui.branchColorPatterns instead.
 - The automatic coloring of branches starting with "feature/", "bugfix/", or "hotfix/" has been removed; if you want this, it's easy to set up using the new gui.branchColorPatterns option.`,
 			"0.49.0": `- Executing shell commands (with the ':' prompt) no longer uses an interactive shell, which means that if you want to use your shell aliases in this prompt, you need to do a little bit of setup work. See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#using-aliases-or-functions-in-shell-commands for details.`,
@@ -2119,7 +2134,13 @@ If, on the other hand, you want this even for feature branches, you can set it t
 
 git:
   localBranchSortOrder: recency
-  remoteBranchSortOrder: alphabetical`,
+  remoteBranchSortOrder: alphabetical
+
+- The default selection mode in the staging and custom patch building views has been changed to hunk mode. This is the more useful mode in most cases, as it usually saves a lot of keystrokes. If you want to switch back to the old line mode default, you can do so by adding the following to your config:
+
+gui:
+  useHunkSelectionMode: false
+`,
 		},
 	}
 }

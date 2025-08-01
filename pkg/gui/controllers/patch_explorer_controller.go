@@ -95,9 +95,15 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 			Description: self.c.Tr.ToggleRangeSelect,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Main.ToggleSelectHunk),
-			Handler:         self.withRenderAndFocus(self.HandleToggleSelectHunk),
-			Description:     self.c.Tr.ToggleSelectHunk,
+			Key:         opts.GetKey(opts.Config.Main.ToggleSelectHunk),
+			Handler:     self.withRenderAndFocus(self.HandleToggleSelectHunk),
+			Description: self.c.Tr.ToggleSelectHunk,
+			DescriptionFunc: func() string {
+				if state := self.context.GetState(); state != nil && state.SelectingHunk() {
+					return self.c.Tr.SelectLineByLine
+				}
+				return self.c.Tr.SelectHunk
+			},
 			Tooltip:         self.c.Tr.ToggleSelectHunkTooltip,
 			DisplayOnScreen: true,
 		},

@@ -164,7 +164,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <left> `` | 이전 hunk를 선택 |  |
 | `` <right> `` | 다음 hunk를 선택 |  |
 | `` v `` | 드래그 선택 전환 |  |
-| `` a `` | Toggle select hunk | Toggle hunk selection mode. |
+| `` a `` | Toggle select hunk | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | 선택한 텍스트를 클립보드에 복사 |  |
 | `` o `` | 파일 닫기 | Open file in default application. |
 | `` e `` | 파일 편집 | Open file in external editor. |
@@ -179,7 +179,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <left> `` | 이전 hunk를 선택 |  |
 | `` <right> `` | 다음 hunk를 선택 |  |
 | `` v `` | 드래그 선택 전환 |  |
-| `` a `` | Toggle select hunk | Toggle hunk selection mode. |
+| `` a `` | Toggle select hunk | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | 선택한 텍스트를 클립보드에 복사 |  |
 | `` <space> `` | Staged 전환 | 선택한 행을 staged / unstaged |
 | `` d `` | 변경을 삭제 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |

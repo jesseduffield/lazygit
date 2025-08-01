@@ -25,7 +25,7 @@ func (self *OptionsMenuAction) Call() error {
 				}
 				return &types.MenuItem{
 					OpensMenu: binding.OpensMenu,
-					Label:     binding.Description,
+					Label:     binding.GetDescription(),
 					OnPress: func() error {
 						if binding.Handler == nil {
 							return nil
@@ -60,7 +60,7 @@ func (self *OptionsMenuAction) getBindings(context types.Context) ([]*types.Bind
 	bindings, _ := self.c.GetInitialKeybindingsWithCustomCommands()
 
 	for _, binding := range bindings {
-		if binding.Description != "" {
+		if binding.GetDescription() != "" {
 			if binding.ViewName == "" || binding.Tag == "global" {
 				bindingsGlobal = append(bindingsGlobal, binding)
 			} else if binding.ViewName == context.GetViewName() {
@@ -80,6 +80,6 @@ func (self *OptionsMenuAction) getBindings(context types.Context) ([]*types.Bind
 // handler in the keybinding struct.
 func uniqueBindings(bindings []*types.Binding) []*types.Binding {
 	return lo.UniqBy(bindings, func(binding *types.Binding) string {
-		return binding.Description
+		return binding.GetDescription()
 	})
 }

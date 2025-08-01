@@ -2,8 +2,10 @@ package helpers
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -25,6 +27,19 @@ func (self *PatchBuildingHelper) ValidateNormalWorkingTreeState() (bool, error) 
 		return false, errors.New(self.c.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil
+}
+
+func (self *PatchBuildingHelper) ShowHunkStagingHint() {
+	if !self.c.AppState.DidShowHunkStagingHint && self.c.UserConfig().Gui.UseHunkModeInStagingView {
+		self.c.AppState.DidShowHunkStagingHint = true
+		self.c.SaveAppStateAndLogError()
+
+		message := fmt.Sprintf(self.c.Tr.HunkStagingHint,
+			keybindings.Label(self.c.UserConfig().Keybinding.Main.ToggleSelectHunk))
+		self.c.Confirm(types.ConfirmOpts{
+			Prompt: message,
+		})
+	}
 }
 
 // takes us from the patch building panel back to the commit files panel
