@@ -196,8 +196,6 @@ github.com/jesseduffield/go-git/v5 v5.14.1-0.20250407170251-e1a013310ccd h1:ViKj
 github.com/jesseduffield/go-git/v5 v5.14.1-0.20250407170251-e1a013310ccd/go.mod h1:lRhCiBr6XjQrvcQVa+UYsy/99d3wMXn/a0nSQlhnhlA=
 github.com/jesseduffield/gocui v0.3.1-0.20250711082438-4aa4fd0b4d22 h1:vhMwEsLlMtuKKo9/z3Qcggycgad8oV7+siwOZEnJDOs=
 github.com/jesseduffield/gocui v0.3.1-0.20250711082438-4aa4fd0b4d22/go.mod h1:sLIyZ2J42R6idGdtemZzsiR3xY5EF0KsvYEGh3dQv3s=
-github.com/jesseduffield/kill v0.0.0-20250101124109-e216ddbe133a h1:UDeJ3EBk04bXDLOPvuqM3on8HvyJfISw0+UMqW+0a4g=
-github.com/jesseduffield/kill v0.0.0-20250101124109-e216ddbe133a/go.mod h1:FSWDLKT0NQpntbDd1H3lbz51fhCVlMzy/J0S6nM727Q=
 github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5 h1:CDuQmfOjAtb1Gms6a1p5L2P8RhbLUq5t8aL7PiQd2uY=
 github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5/go.mod h1:qxN4mHOAyeIDLP7IK7defgPClM/z1Kze8VVQiaEjzsQ=
 github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e h1:uw/oo+kg7t/oeMs6sqlAwr85ND/9cpO3up3VxphxY0U=
