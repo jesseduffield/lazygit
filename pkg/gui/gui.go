@@ -6,12 +6,15 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
+	"syscall"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazycore/pkg/boxlayout"
@@ -48,6 +51,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
+	"golang.org/x/sys/unix"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
@@ -416,6 +420,50 @@ func (gui *Gui) getPerRepoConfigFiles() []*config.ConfigFile {
 		dir = filepath.Dir(dir)
 	}
 	return repoConfigFiles
+}
+
+// setForegroundPgrp sets the current process group as the foreground process group
+// for the terminal, allowing the program to read input after resuming from suspension.
+func setForegroundPgrp() error {
+	fd, err := unix.Open("/dev/tty", unix.O_RDWR, 0)
+	if err != nil {
+		return err
+	}
+	defer unix.Close(fd)
+
+	pgid := syscall.Getpgrp()
+
+	return unix.IoctlSetPointerInt(fd, unix.TIOCSPGRP, pgid)
+}
+
+func (gui *Gui) suspendApp(g *gocui.Gui, v *gocui.View) error {
+	if runtime.GOOS == "windows" {
+		return nil
+	}
+
+	if err := g.Suspend(); err != nil {
+		return err
+	}
+
+	gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(true)
+
+	return syscall.Kill(0, syscall.SIGSTOP)
+}
+
+func (gui *Gui) handleResume(g *gocui.Gui) {
+	go func() {
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGCONT)
+
+		for sig := range sigs {
+			switch sig {
+			case syscall.SIGCONT:
+				setForegroundPgrp()
+				g.Resume()
+				gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(false)
+			}
+		}
+	}()
 }
 
 func (gui *Gui) onUserConfigLoaded() error {
@@ -819,6 +867,8 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	gui.g = g
 	defer gui.g.Close()
 
+	gui.handleResume(gui.g)
+
 	g.ErrorHandler = gui.PopupHandler.ErrorHandler
 
 	// if the deadlock package wants to report a deadlock, we first need to
@@ -841,6 +891,10 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 
 	// onNewRepo must be called after g.SetManager because SetManager deletes keybindings
 	if err := gui.onNewRepo(startArgs, context.NO_CONTEXT); err != nil {
+		return err
+	}
+
+	if err := gui.g.SetKeybinding("", gocui.KeyCtrlZ, gocui.ModNone, gui.suspendApp); err != nil {
 		return err
 	}
 

@@ -912,7 +912,7 @@ func GetDefaultConfig() *UserConfig {
 				NextScreenMode:                    "+",
 				PrevScreenMode:                    "_",
 				Undo:                              "z",
-				Redo:                              "<c-z>",
+				Redo:                              "Z",
 				FilteringMenu:                     "<c-s>",
 				DiffingMenu:                       "W",
 				DiffingMenuAlt:                    "<c-e>",
