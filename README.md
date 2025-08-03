@@ -283,14 +283,20 @@ and the git version which builds from the most recent commit.
 Instruction of how to install AUR content can be found here:
 <https://wiki.archlinux.org/index.php/Arch_User_Repository>
 
-### Fedora and RHEL
+### Fedora / Amazon Linux 2023 / CentOS Stream
 
-Packages for Fedora/RHEL and CentOS Stream are available via [Copr](https://copr.fedorainfracloud.org/coprs/atim/lazygit/) (Cool Other Package Repo).
+Packages for Fedora, Amazon Linux 2023 and CentOS Stream are available via
+[Copr](https://copr.fedorainfracloud.org/coprs/dejan/lazygit/) (Cool Other Package Repo).
 
 ```sh
-sudo dnf copr enable atim/lazygit -y
+sudo dnf copr enable dejan/lazygit
 sudo dnf install lazygit
 ```
+
+These packages are built using the RPM spec file located here: https://codeberg.org/dejan/rpm-lazygit
+
+You should be able to build RPMs for Fedora 41 or older, and other Fedora derivatives using the
+SRPM (Source RPM) file that you can grab from the latest COPR build.
 
 ### Solus Linux
 
