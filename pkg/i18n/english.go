@@ -2159,6 +2159,13 @@ git:
 gui:
   useHunkModeInStagingView: false
 `,
+			"0.55.0": `- The 'redo' command, which used to be bound to ctrl-z, is now bound to shift-Z instead. This is because ctrl-z is now used for suspending the application; it is a commonly known keybinding for that in the Linux world. If you want to revert this change, you can do so by adding the following to your config:
+
+keybinding:
+  universal:
+    suspendApp: <disabled>
+	redo: <c-z>
+`,
 		},
 	}
 }
