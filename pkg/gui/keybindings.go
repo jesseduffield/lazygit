@@ -75,7 +75,6 @@ func (gui *Gui) keybindingOpts() types.KeybindingsOpts {
 	}
 }
 
-// renaming receiver to 'self' to aid refactoring. Will probably end up moving all Gui handlers to this pattern eventually.
 func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBinding) {
 	opts := gui.c.KeybindingsOpts()
 
