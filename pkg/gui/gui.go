@@ -899,21 +899,36 @@ func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess *oscommands.CmdOb
 	return nil
 }
 
+func (gui *Gui) suspend() error {
+	if err := gui.g.Suspend(); err != nil {
+		return err
+	}
+
+	gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(true)
+	return nil
+}
+
+func (gui *Gui) resume() error {
+	if err := gui.g.Resume(); err != nil {
+		return err
+	}
+
+	gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(false)
+	return nil
+}
+
 // returns whether command exited without error or not
 func (gui *Gui) runSubprocessWithSuspense(subprocess *oscommands.CmdObj) (bool, error) {
 	gui.Mutexes.SubprocessMutex.Lock()
 	defer gui.Mutexes.SubprocessMutex.Unlock()
 
-	if err := gui.g.Suspend(); err != nil {
+	if err := gui.suspend(); err != nil {
 		return false, err
 	}
 
-	gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(true)
-	defer gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(false)
-
 	cmdErr := gui.runSubprocess(subprocess)
 
-	if err := gui.g.Resume(); err != nil {
+	if err := gui.resume(); err != nil {
 		return false, err
 	}
 
