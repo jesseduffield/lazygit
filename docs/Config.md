@@ -517,6 +517,7 @@ keybinding:
   universal:
     quit: q
     quit-alt1: <c-c>
+    suspendApp: <c-z>
     return: <esc>
     quitWithoutChangingDirectory: Q
     togglePanel: <tab>

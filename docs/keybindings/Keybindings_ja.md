@@ -30,6 +30,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` W `` | 差分オプションを表示 | ２つのrefの差分に関連するオプションを表示します（例：選択したrefとの差分表示、差分を取るrefの入力、差分方向の反転など）。 |
 | `` <c-e> `` | 差分オプションを表示 | ２つのrefの差分に関連するオプションを表示します（例：選択したrefとの差分表示、差分を取るrefの入力、差分方向の反転など）。 |
 | `` q `` | 終了 |  |
+| `` <c-z> `` | Suspend the application |  |
 | `` <c-w> `` | 空白表示の切り替え | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | 元に戻す | 最後のgitコマンドを元に戻すために実行するgitコマンドを決定するためにreflogが使用されます。これにはワーキングツリーへの変更は含まれません。コミットのみが考慮されます。 |
 | `` Z `` | やり直す | 最後のgitコマンドをやり直すために実行するgitコマンドを決定するためにreflogが使用されます。これにはワーキングツリーへの変更は含まれません。コミットのみが考慮されます。 |
