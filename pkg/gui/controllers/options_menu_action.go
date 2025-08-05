@@ -46,10 +46,11 @@ func (self *OptionsMenuAction) Call() error {
 	appendBindings(navigation, &types.MenuSection{Title: self.c.Tr.KeybindingsMenuSectionNavigation, Column: 1})
 
 	return self.c.Menu(types.CreateMenuOptions{
-		Title:           self.c.Tr.Keybindings,
-		Items:           menuItems,
-		HideCancel:      true,
-		ColumnAlignment: []utils.Alignment{utils.AlignRight, utils.AlignLeft},
+		Title:                     self.c.Tr.Keybindings,
+		Items:                     menuItems,
+		HideCancel:                true,
+		ColumnAlignment:           []utils.Alignment{utils.AlignRight, utils.AlignLeft},
+		AllowFilteringKeybindings: true,
 	})
 }
 

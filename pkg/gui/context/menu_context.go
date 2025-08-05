@@ -2,6 +2,7 @@ package context
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -48,11 +49,12 @@ func NewMenuContext(
 }
 
 type MenuViewModel struct {
-	c               *ContextCommon
-	menuItems       []*types.MenuItem
-	prompt          string
-	promptLines     []string
-	columnAlignment []utils.Alignment
+	c                         *ContextCommon
+	menuItems                 []*types.MenuItem
+	prompt                    string
+	promptLines               []string
+	columnAlignment           []utils.Alignment
+	allowFilteringKeybindings bool
 	*FilteredListViewModel[*types.MenuItem]
 }
 
@@ -62,10 +64,28 @@ func NewMenuViewModel(c *ContextCommon) *MenuViewModel {
 		c:         c,
 	}
 
+	filterKeybindings := false
+
 	self.FilteredListViewModel = NewFilteredListViewModel(
 		func() []*types.MenuItem { return self.menuItems },
-		func(item *types.MenuItem) []string { return item.LabelColumns },
+		func(item *types.MenuItem) []string {
+			if filterKeybindings {
+				return []string{keybindings.LabelFromKey(item.Key)}
+			}
+
+			return item.LabelColumns
+		},
 	)
+
+	self.FilteredListViewModel.SetPreprocessFilterFunc(func(filter string) string {
+		if self.allowFilteringKeybindings && strings.HasPrefix(filter, "@") {
+			filterKeybindings = true
+			return filter[1:]
+		}
+
+		filterKeybindings = false
+		return filter
+	})
 
 	return self
 }
@@ -90,6 +110,10 @@ func (self *MenuViewModel) GetPromptLines() []string {
 
 func (self *MenuViewModel) SetPromptLines(promptLines []string) {
 	self.promptLines = promptLines
+}
+
+func (self *MenuViewModel) SetAllowFilteringKeybindings(allow bool) {
+	self.allowFilteringKeybindings = allow
 }
 
 // TODO: move into presentation package
