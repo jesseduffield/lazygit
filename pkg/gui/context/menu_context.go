@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
@@ -237,4 +238,12 @@ func (self *MenuContext) OnMenuPress(selectedItem *types.MenuItem) error {
 // There is currently no need to use range-select in a menu so we're disabling it.
 func (self *MenuContext) RangeSelectEnabled() bool {
 	return false
+}
+
+func (self *MenuContext) FilterPrefix(tr *i18n.TranslationSet) string {
+	if self.allowFilteringKeybindings {
+		return tr.FilterPrefixMenu
+	}
+
+	return self.FilteredListViewModel.FilterPrefix(tr)
 }
