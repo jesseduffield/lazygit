@@ -8,6 +8,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
@@ -124,11 +125,7 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 		os.Exit(0)
 	}
 
-	tmpDirBase := filepath.Join(os.TempDir(), "lazygit")
-	if err := os.MkdirAll(tmpDirBase, 0o700); err != nil {
-		log.Fatal(err.Error())
-	}
-	tempDir, err := os.MkdirTemp(tmpDirBase, "")
+	tempDir, err := os.MkdirTemp(getTempDirBase(), "lazygit-*")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -313,4 +310,20 @@ func getGitVersionInfo() string {
 	stdout, _ := cmd.Output()
 	gitVersion := strings.Trim(strings.TrimPrefix(string(stdout), "git version "), " \r\n")
 	return gitVersion
+}
+
+func getTempDirBase() string {
+	tempDir := os.TempDir()
+
+	user, err := user.Current()
+	if err != nil || user.Uid == "" {
+		return tempDir
+	}
+
+	tmpDirBase := filepath.Join(tempDir, "lazygit-"+user.Uid)
+	if err := os.MkdirAll(tmpDirBase, 0o700); err != nil {
+		return tempDir
+	}
+
+	return tmpDirBase
 }
