@@ -2139,7 +2139,7 @@ git:
 - The default selection mode in the staging and custom patch building views has been changed to hunk mode. This is the more useful mode in most cases, as it usually saves a lot of keystrokes. If you want to switch back to the old line mode default, you can do so by adding the following to your config:
 
 gui:
-  useHunkSelectionMode: false
+  useHunkModeInStagingView: false
 `,
 		},
 	}
