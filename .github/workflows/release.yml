@@ -149,10 +149,3 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{secrets.LAZYGIT_RELEASE_PAT}}
-
-      - name: Bump Homebrew formula
-        uses: dawidd6/action-homebrew-bump-formula@v3
-        with:
-          token: ${{secrets.LAZYGIT_RELEASE_PAT}}
-          formula: lazygit
-          tag: ${{env.new_tag}}
