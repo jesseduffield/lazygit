@@ -261,7 +261,7 @@ func (gui *Gui) onInitialViewsCreation() error {
 	gui.c.SaveAppStateAndLogError()
 
 	if gui.showRecentRepos {
-		if err := gui.helpers.Repos.CreateRecentReposMenu(); err != nil {
+		if err := gui.helpers.Repos.CreateRecentReposMenu(gui.forceRecentRepos); err != nil {
 			return err
 		}
 		gui.showRecentRepos = false
