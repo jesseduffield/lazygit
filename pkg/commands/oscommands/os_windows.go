@@ -3,6 +3,7 @@ package oscommands
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -21,4 +22,9 @@ func (c *OSCommand) UpdateWindowTitle() error {
 	}
 	argString := fmt.Sprint("title ", filepath.Base(path), " - Lazygit")
 	return c.Cmd.NewShell(argString, c.UserConfig().OS.ShellFunctionsFile).Run()
+}
+
+func TerminateProcessGracefully(cmd *exec.Cmd) error {
+	// Signals other than SIGKILL are not supported on Windows
+	return nil
 }
