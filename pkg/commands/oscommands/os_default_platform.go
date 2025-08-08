@@ -34,3 +34,7 @@ func getUserShell() string {
 
 	return "bash"
 }
+
+func (c *OSCommand) UpdateWindowTitle() error {
+	return nil
+}
