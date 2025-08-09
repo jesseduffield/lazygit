@@ -42,6 +42,14 @@ func (self *guiCommon) RunSubprocess(cmdObj *oscommands.CmdObj) (bool, error) {
 	return self.gui.runSubprocessWithSuspense(cmdObj)
 }
 
+func (self *guiCommon) Suspend() error {
+	return self.gui.suspend()
+}
+
+func (self *guiCommon) Resume() error {
+	return self.gui.resume()
+}
+
 func (self *guiCommon) Context() types.IContextMgr {
 	return self.gui.State.ContextMgr
 }

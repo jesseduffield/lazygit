@@ -390,6 +390,7 @@ type KeybindingConfig struct {
 type KeybindingUniversalConfig struct {
 	Quit                              string   `yaml:"quit"`
 	QuitAlt1                          string   `yaml:"quit-alt1"`
+	SuspendApp                        string   `yaml:"suspendApp"`
 	Return                            string   `yaml:"return"`
 	QuitWithoutChangingDirectory      string   `yaml:"quitWithoutChangingDirectory"`
 	TogglePanel                       string   `yaml:"togglePanel"`
@@ -854,6 +855,7 @@ func GetDefaultConfig() *UserConfig {
 			Universal: KeybindingUniversalConfig{
 				Quit:                              "q",
 				QuitAlt1:                          "<c-c>",
+				SuspendApp:                        "<c-z>",
 				Return:                            "<esc>",
 				QuitWithoutChangingDirectory:      "Q",
 				TogglePanel:                       "<tab>",
@@ -912,7 +914,7 @@ func GetDefaultConfig() *UserConfig {
 				NextScreenMode:                    "+",
 				PrevScreenMode:                    "_",
 				Undo:                              "z",
-				Redo:                              "<c-z>",
+				Redo:                              "Z",
 				FilteringMenu:                     "<c-s>",
 				DiffingMenu:                       "W",
 				DiffingMenuAlt:                    "<c-e>",

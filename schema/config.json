@@ -1217,6 +1217,10 @@
           "type": "string",
           "default": "\u003cc-c\u003e"
         },
+        "suspendApp": {
+          "type": "string",
+          "default": "\u003cc-z\u003e"
+        },
         "return": {
           "type": "string",
           "default": "\u003cesc\u003e"
@@ -1458,7 +1462,7 @@
         },
         "redo": {
           "type": "string",
-          "default": "\u003cc-z\u003e"
+          "default": "Z"
         },
         "filteringMenu": {
           "type": "string",

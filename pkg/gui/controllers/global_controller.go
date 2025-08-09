@@ -115,6 +115,20 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Handler:  self.quitWithoutChangingDirectory,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Universal.SuspendApp),
+			Modifier:    gocui.ModNone,
+			Handler:     self.c.Helpers().SuspendResume.SuspendApp,
+			Description: self.c.Tr.SuspendApp,
+			GetDisabledReason: func() *types.DisabledReason {
+				if !self.c.Helpers().SuspendResume.CanSuspendApp() {
+					return &types.DisabledReason{
+						Text: self.c.Tr.CannotSuspendApp,
+					}
+				}
+				return nil
+			},
+		},
+		{
 			Key:             opts.GetKey(opts.Config.Universal.Return),
 			Modifier:        gocui.ModNone,
 			Handler:         self.escape,

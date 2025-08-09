@@ -517,6 +517,7 @@ keybinding:
   universal:
     quit: q
     quit-alt1: <c-c>
+    suspendApp: <c-z>
     return: <esc>
     quitWithoutChangingDirectory: Q
     togglePanel: <tab>
@@ -583,7 +584,7 @@ keybinding:
     nextScreenMode: +
     prevScreenMode: _
     undo: z
-    redo: <c-z>
+    redo: Z
     filteringMenu: <c-s>
     diffingMenu: W
     diffingMenu-alt: <c-e>

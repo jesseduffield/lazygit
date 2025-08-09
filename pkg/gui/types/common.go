@@ -56,6 +56,9 @@ type IGuiCommon interface {
 	RunSubprocess(cmdObj *oscommands.CmdObj) (bool, error)
 	RunSubprocessAndRefresh(*oscommands.CmdObj) error
 
+	Suspend() error
+	Resume() error
+
 	Context() IContextMgr
 	ContextForKey(key ContextKey) Context
 
