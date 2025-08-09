@@ -291,11 +291,15 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 
 			refreshViewIfStale()
 
-			if err := cmd.Wait(); err != nil {
-				select {
-				case <-opts.Stop:
-					// it's fine if we've killed this program ourselves
-				default:
+			select {
+			case <-opts.Stop:
+				// If we stopped the task, don't block waiting for it; this could cause a delay if
+				// the process takes a while until it actually terminates. We still want to call
+				// Wait to reclaim any resources, but do it on a background goroutine, and ignore
+				// any errors.
+				go func() { _ = cmd.Wait() }()
+			default:
+				if err := cmd.Wait(); err != nil {
 					self.Log.Errorf("Unexpected error when running cmd task: %v; Failed command: %v %v", err, cmd.Path, cmd.Args)
 				}
 			}
