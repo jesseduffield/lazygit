@@ -406,20 +406,6 @@ func TestWrapViewLinesToWidth(t *testing.T) {
 			expectedOriginalLinesIndices: []int{0, 1, 2},
 		},
 		{
-			name:     "Avoid blank line at end if not editable",
-			wrap:     true,
-			editable: false,
-			text:     "First\nSecond\nThird\n",
-			width:    10,
-			expectedWrappedLines: []string{
-				"First",
-				"Second",
-				"Third",
-			},
-			expectedWrappedLinesIndices:  []int{0, 1, 2},
-			expectedOriginalLinesIndices: []int{0, 1, 2},
-		},
-		{
 			name:     "Keep blank line at end if editable",
 			wrap:     true,
 			editable: true,

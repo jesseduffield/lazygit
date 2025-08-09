@@ -3,6 +3,7 @@ package helpers
 import (
 	goContext "context"
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -168,7 +169,7 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 		confirmationView.RenderTextArea()
 	} else {
 		self.c.ResetViewOrigin(confirmationView)
-		self.c.SetViewContent(confirmationView, style.AttrBold.Sprint(opts.Prompt))
+		self.c.SetViewContent(confirmationView, style.AttrBold.Sprint(strings.TrimSpace(opts.Prompt)))
 	}
 
 	self.setKeyBindings(cancel, opts)
