@@ -1,3 +1,35 @@
+
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=jesseduffield&project=lazygit&lang=as">অসমীয়া</
+      </div>
+    </div>
+  </details>
+</div>
+
 <div align="center">
 <sup>Special thanks to:</sup>
 <br>
