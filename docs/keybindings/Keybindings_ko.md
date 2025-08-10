@@ -400,4 +400,4 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <enter> `` | 확인 |  |
-| `` <esc> `` | 닫기/취소 |  |
+| `` <esc> `` | 닫기 |  |
