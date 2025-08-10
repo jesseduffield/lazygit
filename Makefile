@@ -34,9 +34,11 @@ test: unit-test integration-test-all
 generate:
 	go generate ./...
 
+# If you execute `gofumpt -l -w .`, it will format all Go files in the current directory, including `test/_results/*` files.
+# We pass only Git-tracked Go files to gofumpt because we don't want to format the test results or get errors from it.
 .PHONY: format
 format:
-	gofumpt -l -w .
+	git ls-files '*.go' ':!vendor' | xargs gofumpt -l -w
 
 .PHONY: lint
 lint:
