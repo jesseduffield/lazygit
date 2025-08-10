@@ -35,7 +35,7 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 		{
 			Key:             opts.GetKey(opts.Config.Universal.Return),
 			Handler:         func() error { return self.context().State.OnClose() },
-			Description:     self.c.Tr.CloseCancel,
+			Description:     self.c.Tr.Close,
 			DisplayOnScreen: true,
 		},
 		{

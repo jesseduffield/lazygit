@@ -161,7 +161,6 @@ type TranslationSet struct {
 	NoBranchesThisRepo                    string
 	CommitWithoutMessageErr               string
 	Close                                 string
-	CloseCancel                           string
 	Confirm                               string
 	Quit                                  string
 	SquashTooltip                         string
@@ -1218,7 +1217,6 @@ func EnglishTranslationSet() *TranslationSet {
 		NoBranchesThisRepo:                   "No branches for this repo",
 		CommitWithoutMessageErr:              "You cannot commit without a commit message",
 		Close:                                "Close",
-		CloseCancel:                          "Close/Cancel",
 		Confirm:                              "Confirm",
 		Quit:                                 "Quit",
 		SquashTooltip:                        "Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it.",
