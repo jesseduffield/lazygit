@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 	"github.com/sirupsen/logrus"
@@ -165,6 +166,17 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				// and the user is flicking through a bunch of items.
 				self.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
 
+				// Kill the still-running command. The only reason to do this is to save CPU usage
+				// when flicking through several very long diffs when diff.algorithm = histogram is
+				// being used, in which case multiple git processes continue to calculate expensive
+				// diffs in the background even though they have been stopped already.
+				//
+				// Unfortunately this will do nothing on Windows, so Windows users will have to live
+				// with the higher CPU usage.
+				if err := oscommands.TerminateProcessGracefully(cmd); err != nil {
+					self.Log.Errorf("error when trying to terminate cmd task: %v; Command: %v %v", err, cmd.Path, cmd.Args)
+				}
+
 				// close the task's stdout pipe (or the pty if we're using one) to make the command terminate
 				onDone()
 			}
@@ -291,11 +303,15 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 
 			refreshViewIfStale()
 
-			if err := cmd.Wait(); err != nil {
-				select {
-				case <-opts.Stop:
-					// it's fine if we've killed this program ourselves
-				default:
+			select {
+			case <-opts.Stop:
+				// If we stopped the task, don't block waiting for it; this could cause a delay if
+				// the process takes a while until it actually terminates. We still want to call
+				// Wait to reclaim any resources, but do it on a background goroutine, and ignore
+				// any errors.
+				go func() { _ = cmd.Wait() }()
+			default:
+				if err := cmd.Wait(); err != nil {
 					self.Log.Errorf("Unexpected error when running cmd task: %v; Failed command: %v %v", err, cmd.Path, cmd.Args)
 				}
 			}

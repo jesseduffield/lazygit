@@ -1,7 +1,6 @@
 package oscommands
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -328,16 +327,4 @@ func GetLazygitPath() string {
 		ex = os.Args[0] // fallback to the first call argument if needed
 	}
 	return `"` + filepath.ToSlash(ex) + `"`
-}
-
-func (c *OSCommand) UpdateWindowTitle() error {
-	if c.Platform.OS != "windows" {
-		return nil
-	}
-	path, getWdErr := os.Getwd()
-	if getWdErr != nil {
-		return getWdErr
-	}
-	argString := fmt.Sprint("title ", filepath.Base(path), " - Lazygit")
-	return c.Cmd.NewShell(argString, c.UserConfig().OS.ShellFunctionsFile).Run()
 }

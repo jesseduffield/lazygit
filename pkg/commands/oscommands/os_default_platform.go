@@ -5,8 +5,10 @@ package oscommands
 
 import (
 	"os"
+	"os/exec"
 	"runtime"
 	"strings"
+	"syscall"
 )
 
 func GetPlatform() *Platform {
@@ -33,4 +35,16 @@ func getUserShell() string {
 	}
 
 	return "bash"
+}
+
+func (c *OSCommand) UpdateWindowTitle() error {
+	return nil
+}
+
+func TerminateProcessGracefully(cmd *exec.Cmd) error {
+	if cmd.Process == nil {
+		return nil
+	}
+
+	return cmd.Process.Signal(syscall.SIGTERM)
 }
