@@ -58,14 +58,9 @@ func (self *QuitActions) Escape() error {
 		}
 	}
 
-	switch ctx := currentContext.(type) {
-	case types.IFilterableContext:
+	// Cancelling searching (as opposed to filtering) is handled by gocui
+	if ctx, ok := currentContext.(types.IFilterableContext); ok {
 		if ctx.IsFiltering() {
-			self.c.Helpers().Search.Cancel()
-			return nil
-		}
-	case types.ISearchableContext:
-		if ctx.IsSearching() {
 			self.c.Helpers().Search.Cancel()
 			return nil
 		}
