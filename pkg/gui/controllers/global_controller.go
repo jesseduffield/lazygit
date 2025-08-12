@@ -59,6 +59,15 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Description: self.c.Tr.PrevScreenMode,
 		},
 		{
+			Key:               opts.GetKey(opts.Config.Universal.Return),
+			Modifier:          gocui.ModNone,
+			Handler:           self.escape,
+			Description:       self.c.Tr.Cancel,
+			DescriptionFunc:   self.escapeDescription,
+			GetDisabledReason: self.escapeEnabled,
+			DisplayOnScreen:   true,
+		},
+		{
 			ViewName:  "",
 			Key:       opts.GetKey(opts.Config.Universal.OptionMenu),
 			Handler:   self.createOptionsMenu,
@@ -113,15 +122,6 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Key:      opts.GetKey(opts.Config.Universal.QuitWithoutChangingDirectory),
 			Modifier: gocui.ModNone,
 			Handler:  self.quitWithoutChangingDirectory,
-		},
-		{
-			Key:               opts.GetKey(opts.Config.Universal.Return),
-			Modifier:          gocui.ModNone,
-			Handler:           self.escape,
-			Description:       self.c.Tr.Cancel,
-			DescriptionFunc:   self.escapeDescription,
-			GetDisabledReason: self.escapeEnabled,
-			DisplayOnScreen:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.ToggleWhitespaceInDiffView),

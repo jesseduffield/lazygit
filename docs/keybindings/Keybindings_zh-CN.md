@@ -24,12 +24,12 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` R `` | 刷新 | 刷新git状态(即在后台上运行`git status`,`git branch`等命令以更新面板内容) 不会运行`git fetch` |
 | `` + `` | 下一屏模式(正常/半屏/全屏) |  |
 | `` _ `` | 上一屏模式 |  |
+| `` <esc> `` | 取消 |  |
 | `` ? `` | 打开菜单 |  |
 | `` <c-s> `` | 查看按路径过滤选项 | 查看用于过滤提交日志的选项，以便仅显示与过滤器匹配的提交。 |
 | `` W `` | 打开 diff 菜单 | 查看与比较两个引用相关的选项，例如与选定的 ref 进行比较，输入要比较的 ref，然后反转比较方向。 |
 | `` <c-e> `` | 打开 diff 菜单 | 查看与比较两个引用相关的选项，例如与选定的 ref 进行比较，输入要比较的 ref，然后反转比较方向。 |
 | `` q `` | 退出 |  |
-| `` <esc> `` | 取消 |  |
 | `` <c-w> `` | 切换是否在差异视图中显示空白字符差异 | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | 撤销 | Reflog将用于确定运行哪个git命令来撤消最后一个git命令。这并不包括对工作树的更改，只考虑提交。 |
 | `` <c-z> `` | 重做 | Reflog将用于确定运行哪个git命令来重做上一个git命令。这并不包括对工作树的更改，只考虑提交。 |

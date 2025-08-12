@@ -24,12 +24,12 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` R `` | 새로고침 | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
 | `` + `` | 다음 스크린 모드 (normal/half/fullscreen) |  |
 | `` _ `` | 이전 스크린 모드 |  |
+| `` <esc> `` | 취소 |  |
 | `` ? `` | 매뉴 열기 |  |
 | `` <c-s> `` | View filter-by-path options | View options for filtering the commit log, so that only commits matching the filter are shown. |
 | `` W `` | Diff 메뉴 열기 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` <c-e> `` | Diff 메뉴 열기 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | 종료 |  |
-| `` <esc> `` | 취소 |  |
 | `` <c-w> `` | 공백문자를 Diff 뷰에서 표시 여부 전환 | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | 되돌리기 (reflog) (실험적) | The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
 | `` <c-z> `` | 다시 실행 (reflog) (실험적) | The reflog will be used to determine what git command to run to redo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
