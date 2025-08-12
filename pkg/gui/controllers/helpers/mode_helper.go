@@ -39,16 +39,16 @@ func NewModeHelper(
 }
 
 type ModeStatus struct {
-	IsActive    func() bool
-	Description func() string
-	Reset       func() error
+	IsActive  func() bool
+	InfoLabel func() string
+	Reset     func() error
 }
 
 func (self *ModeHelper) Statuses() []ModeStatus {
 	return []ModeStatus{
 		{
 			IsActive: self.c.Modes().Diffing.Active,
-			Description: func() string {
+			InfoLabel: func() string {
 				return self.withResetButton(
 					fmt.Sprintf(
 						"%s %s",
@@ -62,14 +62,14 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 		},
 		{
 			IsActive: self.c.Git().Patch.PatchBuilder.Active,
-			Description: func() string {
+			InfoLabel: func() string {
 				return self.withResetButton(self.c.Tr.BuildingPatch, style.FgYellow.SetBold())
 			},
 			Reset: self.patchBuildingHelper.Reset,
 		},
 		{
 			IsActive: self.c.Modes().Filtering.Active,
-			Description: func() string {
+			InfoLabel: func() string {
 				filterContent := lo.Ternary(self.c.Modes().Filtering.GetPath() != "", self.c.Modes().Filtering.GetPath(), self.c.Modes().Filtering.GetAuthor())
 				return self.withResetButton(
 					fmt.Sprintf(
@@ -84,7 +84,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 		},
 		{
 			IsActive: self.c.Modes().MarkedBaseCommit.Active,
-			Description: func() string {
+			InfoLabel: func() string {
 				return self.withResetButton(
 					self.c.Tr.MarkedBaseCommitStatus,
 					style.FgCyan,
@@ -94,7 +94,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 		},
 		{
 			IsActive: self.c.Modes().CherryPicking.Active,
-			Description: func() string {
+			InfoLabel: func() string {
 				copiedCount := len(self.c.Modes().CherryPicking.CherryPickedCommits)
 				text := self.c.Tr.CommitsCopied
 				if copiedCount == 1 {
@@ -116,7 +116,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 			IsActive: func() bool {
 				return !self.suppressRebasingMode && self.c.Git().Status.WorkingTreeState().Any()
 			},
-			Description: func() string {
+			InfoLabel: func() string {
 				workingTreeState := self.c.Git().Status.WorkingTreeState()
 				return self.withResetButton(
 					workingTreeState.Title(self.c.Tr), style.FgYellow,
@@ -128,7 +128,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 			IsActive: func() bool {
 				return self.c.Model().BisectInfo.Started()
 			},
-			Description: func() string {
+			InfoLabel: func() string {
 				return self.withResetButton(self.c.Tr.Bisect.Bisecting, style.FgGreen)
 			},
 			Reset: self.bisectHelper.Reset,
