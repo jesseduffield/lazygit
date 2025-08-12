@@ -601,6 +601,7 @@ type TranslationSet struct {
 	RenameBranchWarning                   string
 	OpenKeybindingsMenu                   string
 	ResetCherryPick                       string
+	ResetCherryPickShort                  string
 	NextTab                               string
 	PrevTab                               string
 	CantUndoWhileRebasing                 string
@@ -634,6 +635,7 @@ type TranslationSet struct {
 	SwapDiff                              string
 	ViewDiffingOptions                    string
 	ViewDiffingOptionsTooltip             string
+	CancelDiffingMode                     string
 	OpenCommandLogMenu                    string
 	OpenCommandLogMenuTooltip             string
 	ShowingGitDiff                        string
@@ -671,6 +673,7 @@ type TranslationSet struct {
 	SubmoduleStashAndReset                string
 	AndResetSubmodules                    string
 	EnterSubmoduleTooltip                 string
+	BackToParentRepo                      string
 	Enter                                 string
 	CopySubmoduleNameToClipboard          string
 	RemoveSubmodule                       string
@@ -699,6 +702,7 @@ type TranslationSet struct {
 	BulkSubmoduleOptions                  string
 	RunningCommand                        string
 	SubCommitsTitle                       string
+	ExitSubview                           string
 	SubmodulesTitle                       string
 	NavigationTitle                       string
 	SuggestionsCheatsheetTitle            string
@@ -861,6 +865,7 @@ type TranslationSet struct {
 	MarkedBaseCommitStatus                   string
 	MarkAsBaseCommit                         string
 	MarkAsBaseCommitTooltip                  string
+	CancelMarkedBaseCommit                   string
 	MarkedCommitMarker                       string
 	FailedToOpenURL                          string
 	InvalidLazygitEditURL                    string
@@ -870,6 +875,7 @@ type TranslationSet struct {
 	QuickStartInteractiveRebaseTooltip       string
 	CannotQuickStartInteractiveRebase        string
 	ToggleRangeSelect                        string
+	DismissRangeSelect                       string
 	RangeSelectUp                            string
 	RangeSelectDown                          string
 	RangeSelectNotSupported                  string
@@ -1349,6 +1355,7 @@ func EnglishTranslationSet() *TranslationSet {
 		DiscardSelection:                     `Discard`,
 		DiscardSelectionTooltip:              "When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change.",
 		ToggleRangeSelect:                    "Toggle range select",
+		DismissRangeSelect:                   "Dismiss range select",
 		ToggleSelectHunk:                     "Toggle hunk selection",
 		SelectHunk:                           "Select hunks",
 		SelectLineByLine:                     "Select line-by-line",
@@ -1667,6 +1674,7 @@ func EnglishTranslationSet() *TranslationSet {
 		RenameBranchWarning:              "This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?",
 		OpenKeybindingsMenu:              "Open keybindings menu",
 		ResetCherryPick:                  "Reset copied (cherry-picked) commits selection",
+		ResetCherryPickShort:             "Reset copied commits",
 		NextTab:                          "Next tab",
 		PrevTab:                          "Previous tab",
 		CantUndoWhileRebasing:            "Can't undo while rebasing",
@@ -1700,6 +1708,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SwapDiff:                         "Reverse diff direction",
 		ViewDiffingOptions:               "View diffing options",
 		ViewDiffingOptionsTooltip:        "View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction.",
+		CancelDiffingMode:                "Cancel diffing mode",
 		// the actual view is the extras view which I intend to give more tabs in future but for now we'll only mention the command log part
 		OpenCommandLogMenu:                       "View command log options",
 		OpenCommandLogMenuTooltip:                "View options for the command log e.g. show/hide the command log and focus the command log.",
@@ -1739,6 +1748,7 @@ func EnglishTranslationSet() *TranslationSet {
 		AndResetSubmodules:                       "And reset submodules",
 		Enter:                                    "Enter",
 		EnterSubmoduleTooltip:                    "Enter submodule. After entering the submodule, you can press `{{.escape}}` to escape back to the parent repo.",
+		BackToParentRepo:                         "Back to parent repo",
 		CopySubmoduleNameToClipboard:             "Copy submodule name to clipboard",
 		RemoveSubmodule:                          "Remove submodule",
 		RemoveSubmodulePrompt:                    "Are you sure you want to remove submodule '%s' and its corresponding directory? This is irreversible.",
@@ -1766,6 +1776,7 @@ func EnglishTranslationSet() *TranslationSet {
 		BulkSubmoduleOptions:                     "Bulk submodule options",
 		RunningCommand:                           "Running command",
 		SubCommitsTitle:                          "Sub-commits",
+		ExitSubview:                              "Exit subview",
 		SubmodulesTitle:                          "Submodules",
 		NavigationTitle:                          "List panel navigation",
 		SuggestionsCheatsheetTitle:               "Suggestions",
@@ -1925,6 +1936,7 @@ func EnglishTranslationSet() *TranslationSet {
 		MarkedBaseCommitStatus:                   "Marked a base commit for rebase",
 		MarkAsBaseCommit:                         "Mark as base commit for rebase",
 		MarkAsBaseCommitTooltip:                  "Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command.",
+		CancelMarkedBaseCommit:                   "Cancel marked base commit",
 		MarkedCommitMarker:                       "↑↑↑ Will rebase from here ↑↑↑",
 		FailedToOpenURL:                          "Failed to open URL %s\n\nError: %v",
 		InvalidLazygitEditURL:                    "Invalid lazygit-edit URL format: %s",

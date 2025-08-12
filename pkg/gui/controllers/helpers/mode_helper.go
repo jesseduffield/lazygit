@@ -39,9 +39,10 @@ func NewModeHelper(
 }
 
 type ModeStatus struct {
-	IsActive  func() bool
-	InfoLabel func() string
-	Reset     func() error
+	IsActive    func() bool
+	InfoLabel   func() string
+	CancelLabel func() string
+	Reset       func() error
 }
 
 func (self *ModeHelper) Statuses() []ModeStatus {
@@ -58,12 +59,18 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 					style.FgMagenta,
 				)
 			},
+			CancelLabel: func() string {
+				return self.c.Tr.CancelDiffingMode
+			},
 			Reset: self.diffHelper.ExitDiffMode,
 		},
 		{
 			IsActive: self.c.Git().Patch.PatchBuilder.Active,
 			InfoLabel: func() string {
 				return self.withResetButton(self.c.Tr.BuildingPatch, style.FgYellow.SetBold())
+			},
+			CancelLabel: func() string {
+				return self.c.Tr.ExitCustomPatchBuilder
 			},
 			Reset: self.patchBuildingHelper.Reset,
 		},
@@ -80,6 +87,9 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 					style.FgRed,
 				)
 			},
+			CancelLabel: func() string {
+				return self.c.Tr.ExitFilterMode
+			},
 			Reset: self.ExitFilterMode,
 		},
 		{
@@ -89,6 +99,9 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 					self.c.Tr.MarkedBaseCommitStatus,
 					style.FgCyan,
 				)
+			},
+			CancelLabel: func() string {
+				return self.c.Tr.CancelMarkedBaseCommit
 			},
 			Reset: self.mergeAndRebaseHelper.ResetMarkedBaseCommit,
 		},
@@ -110,6 +123,9 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 					style.FgCyan,
 				)
 			},
+			CancelLabel: func() string {
+				return self.c.Tr.ResetCherryPickShort
+			},
 			Reset: self.cherryPickHelper.Reset,
 		},
 		{
@@ -122,6 +138,9 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 					workingTreeState.Title(self.c.Tr), style.FgYellow,
 				)
 			},
+			CancelLabel: func() string {
+				return fmt.Sprintf(self.c.Tr.AbortTitle, self.c.Git().Status.WorkingTreeState().CommandName())
+			},
 			Reset: self.mergeAndRebaseHelper.AbortMergeOrRebaseWithConfirm,
 		},
 		{
@@ -130,6 +149,9 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 			},
 			InfoLabel: func() string {
 				return self.withResetButton(self.c.Tr.Bisect.Bisecting, style.FgGreen)
+			},
+			CancelLabel: func() string {
+				return self.c.Tr.Actions.ResetBisect
 			},
 			Reset: self.bisectHelper.Reset,
 		},

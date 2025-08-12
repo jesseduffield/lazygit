@@ -119,6 +119,7 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Modifier:          gocui.ModNone,
 			Handler:           self.escape,
 			Description:       self.c.Tr.Cancel,
+			DescriptionFunc:   self.escapeDescription,
 			GetDisabledReason: self.escapeEnabled,
 			DisplayOnScreen:   true,
 		},
@@ -189,6 +190,10 @@ func (self *GlobalController) quitWithoutChangingDirectory() error {
 
 func (self *GlobalController) escape() error {
 	return (&QuitActions{c: self.c}).Escape()
+}
+
+func (self *GlobalController) escapeDescription() string {
+	return (&QuitActions{c: self.c}).EscapeDescription()
 }
 
 func (self *GlobalController) escapeEnabled() *types.DisabledReason {
