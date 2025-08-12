@@ -128,7 +128,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <enter> `` | 실행 |  |
-| `` <esc> `` | 닫기 |  |
+| `` <esc> `` | 닫기/취소 |  |
 | `` / `` | Filter the current view by text |  |
 
 ## 메인 패널 (Merging)

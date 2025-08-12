@@ -221,7 +221,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <enter> `` | Executar |  |
-| `` <esc> `` | Fechar |  |
+| `` <esc> `` | Fechar/Cancelar |  |
 | `` / `` | Filter the current view by text |  |
 
 ## Painel Principal (Normal)

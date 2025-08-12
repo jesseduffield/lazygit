@@ -159,7 +159,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <enter> `` | Wykonaj |  |
-| `` <esc> `` | Zamknij |  |
+| `` <esc> `` | Zamknij/Anuluj |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
 
 ## Panel główny (normalny)
