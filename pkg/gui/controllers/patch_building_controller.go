@@ -43,9 +43,10 @@ func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) 
 			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Return),
-			Handler:     self.Escape,
-			Description: self.c.Tr.ExitCustomPatchBuilder,
+			Key:             opts.GetKey(opts.Config.Universal.Return),
+			Handler:         self.Escape,
+			Description:     self.c.Tr.ExitCustomPatchBuilder,
+			DisplayOnScreen: true,
 		},
 	}
 }
