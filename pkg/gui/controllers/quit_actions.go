@@ -48,6 +48,8 @@ func (self *QuitActions) confirmQuitDuringUpdate() error {
 }
 
 func (self *QuitActions) Escape() error {
+	// If you make changes to this function, be sure to update EscapeEnabled accordingly.
+
 	currentContext := self.c.Context().Current()
 
 	if listContext, ok := currentContext.(types.IListContext); ok {
@@ -89,4 +91,42 @@ func (self *QuitActions) Escape() error {
 	}
 
 	return nil
+}
+
+func (self *QuitActions) EscapeEnabled() bool {
+	currentContext := self.c.Context().Current()
+
+	if listContext, ok := currentContext.(types.IListContext); ok {
+		if listContext.GetList().IsSelectingRange() {
+			return true
+		}
+	}
+
+	if ctx, ok := currentContext.(types.IFilterableContext); ok {
+		if ctx.IsFiltering() {
+			return true
+		}
+	}
+
+	parentContext := currentContext.GetParentContext()
+	if parentContext != nil {
+		return true
+	}
+
+	for _, mode := range self.c.Helpers().Mode.Statuses() {
+		if mode.IsActive() {
+			return true
+		}
+	}
+
+	repoPathStack := self.c.State().GetRepoPathStack()
+	if !repoPathStack.IsEmpty() {
+		return true
+	}
+
+	if self.c.UserConfig().QuitOnTopLevelReturn {
+		return true
+	}
+
+	return false
 }
