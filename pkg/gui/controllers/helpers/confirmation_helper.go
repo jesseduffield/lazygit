@@ -348,7 +348,7 @@ func (self *ConfirmationHelper) IsPopupPanelFocused() bool {
 
 func (self *ConfirmationHelper) TooltipForMenuItem(menuItem *types.MenuItem) string {
 	tooltip := menuItem.Tooltip
-	if menuItem.DisabledReason != nil {
+	if menuItem.DisabledReason != nil && menuItem.DisabledReason.Text != "" {
 		if tooltip != "" {
 			tooltip += "\n\n"
 		}
