@@ -270,6 +270,14 @@ scoop bucket add extras
 scoop install lazygit
 ```
 
+### gah (Linux and Mac OS)
+
+You can install `lazygit` using [gah](https://github.com/marverix/gah/):
+
+```sh
+gah install lazygit
+```
+
 ### Arch Linux
 
 Packages for Arch Linux are available via pacman and AUR (Arch User Repository).
