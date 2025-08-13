@@ -224,6 +224,22 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on Azure DevOps (legacy vs-ssh.visualstudio.com SSH) with mapping to dev.azure.com",
+			from:      "feature/new",
+			remoteUrl: "git@vs-ssh.visualstudio.com:v3/myorg/myproject/myrepo",
+			configServiceDomains: map[string]string{
+				"vs-ssh.visualstudio.com": "azuredevops:dev.azure.com",
+			},
+			test: func(url string, err error) {
+				/* EXPECTED:
+				assert.NoError(t, err)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew", url)
+				ACTUAL: */
+				assert.Error(t, err)
+				assert.Equal(t, "", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on Bitbucket Server (SSH)",
 			from:      "feature/new",
 			remoteUrl: "ssh://git@mycompany.bitbucket.com/myproject/myrepo.git",
