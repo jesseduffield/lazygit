@@ -231,12 +231,8 @@ func TestGetPullRequestURL(t *testing.T) {
 				"vs-ssh.visualstudio.com": "azuredevops:dev.azure.com",
 			},
 			test: func(url string, err error) {
-				/* EXPECTED:
 				assert.NoError(t, err)
 				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew", url)
-				ACTUAL: */
-				assert.Error(t, err)
-				assert.Equal(t, "", url)
 			},
 		},
 		{
