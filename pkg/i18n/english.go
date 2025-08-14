@@ -382,6 +382,8 @@ type TranslationSet struct {
 	ScrollUp                              string
 	ScrollUpMainWindow                    string
 	ScrollDownMainWindow                  string
+	SuspendApp                            string
+	CannotSuspendApp                      string
 	AmendCommitTitle                      string
 	AmendCommitPrompt                     string
 	AmendCommitWithConflictsMenuPrompt    string
@@ -1456,6 +1458,8 @@ func EnglishTranslationSet() *TranslationSet {
 		ScrollUp:                             "Scroll up",
 		ScrollUpMainWindow:                   "Scroll up main window",
 		ScrollDownMainWindow:                 "Scroll down main window",
+		SuspendApp:                           "Suspend the application",
+		CannotSuspendApp:                     "Suspending the application is not supported on Windows",
 		AmendCommitTitle:                     "Amend commit",
 		AmendCommitPrompt:                    "Are you sure you want to amend this commit with your staged files?",
 		AmendCommitWithConflictsMenuPrompt:   "WARNING: you are about to amend the last finished commit with your resolved conflicts. This is very unlikely to be what you want at this point. More likely, you simply want to continue the rebase instead.\n\nDo you still want to amend the previous commit?",
@@ -2154,6 +2158,13 @@ git:
 
 gui:
   useHunkModeInStagingView: false
+`,
+			"0.55.0": `- The 'redo' command, which used to be bound to ctrl-z, is now bound to shift-Z instead. This is because ctrl-z is now used for suspending the application; it is a commonly known keybinding for that in the Linux world. If you want to revert this change, you can do so by adding the following to your config:
+
+keybinding:
+  universal:
+    suspendApp: <disabled>
+	redo: <c-z>
 `,
 		},
 	}

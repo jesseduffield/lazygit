@@ -30,9 +30,10 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` W `` | 打开 diff 菜单 | 查看与比较两个引用相关的选项，例如与选定的 ref 进行比较，输入要比较的 ref，然后反转比较方向。 |
 | `` <c-e> `` | 打开 diff 菜单 | 查看与比较两个引用相关的选项，例如与选定的 ref 进行比较，输入要比较的 ref，然后反转比较方向。 |
 | `` q `` | 退出 |  |
+| `` <c-z> `` | Suspend the application |  |
 | `` <c-w> `` | 切换是否在差异视图中显示空白字符差异 | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | 撤销 | Reflog将用于确定运行哪个git命令来撤消最后一个git命令。这并不包括对工作树的更改，只考虑提交。 |
-| `` <c-z> `` | 重做 | Reflog将用于确定运行哪个git命令来重做上一个git命令。这并不包括对工作树的更改，只考虑提交。 |
+| `` Z `` | 重做 | Reflog将用于确定运行哪个git命令来重做上一个git命令。这并不包括对工作树的更改，只考虑提交。 |
 
 ## 列表面板导航
 

@@ -30,9 +30,10 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` W `` | 開啟差異比較選單 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` <c-e> `` | 開啟差異比較選單 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | 結束 |  |
+| `` <c-z> `` | Suspend the application |  |
 | `` <c-w> `` | 切換是否在差異檢視中顯示空格變更 | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | 復原 | 將使用 reflog 確任 git 指令以復原。這不包括工作區更改；只考慮提交。 |
-| `` <c-z> `` | 取消復原 | 將使用 reflog 確任 git 指令以重作。這不包括工作區更改；只考慮提交。 |
+| `` Z `` | 取消復原 | 將使用 reflog 確任 git 指令以重作。這不包括工作區更改；只考慮提交。 |
 
 ## 移動
 

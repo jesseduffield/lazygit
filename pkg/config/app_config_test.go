@@ -865,7 +865,7 @@ keybinding:
     nextScreenMode: +
     prevScreenMode: _
     undo: z
-    redo: <c-z>
+    redo: Z
     filteringMenu: <c-s>
     diffingMenu: W
     diffingMenu-alt: <c-e>
