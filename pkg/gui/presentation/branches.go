@@ -71,10 +71,11 @@ func getBranchDisplayStrings(
 	if showCommitHash {
 		availableWidth -= utils.COMMIT_HASH_SHORT_SIZE + 1
 	}
+	paddingNeededForDivergence := availableWidth
+
 	if checkedOutByWorkTree {
 		availableWidth -= utils.StringWidth(worktreeIcon) + 1
 	}
-	paddingNeededForDivergence := availableWidth
 
 	if len(branchStatus) > 0 {
 		availableWidth -= utils.StringWidth(utils.Decolorise(branchStatus)) + 1
