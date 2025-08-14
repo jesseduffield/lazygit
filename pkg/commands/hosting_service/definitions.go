@@ -46,6 +46,7 @@ var azdoServiceDef = ServiceDefinition{
 	pullRequestURLIntoTargetBranch:  "/pullrequestcreate?sourceRef={{.From}}&targetRef={{.To}}",
 	commitURL:                       "/commit/{{.CommitHash}}",
 	regexStrings: []string{
+		`^.+@vs-ssh\.visualstudio\.com[:/](?:v3/)?(?P<org>[^/]+)/(?P<project>[^/]+)/(?P<repo>[^/]+?)(?:\.git)?$`,
 		`^git@ssh.dev.azure.com.*/(?P<org>.*)/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
 		`^https://.*@dev.azure.com/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`,
 		`^https://.*/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`,
