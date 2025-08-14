@@ -79,10 +79,10 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 	repoState := self.c.State().GetRepoState()
 
 	var searchPrefix string
-	if repoState.GetSearchState().SearchType() == types.SearchTypeSearch {
-		searchPrefix = self.c.Tr.SearchPrefix
+	if filterableContext, ok := repoState.GetSearchState().Context.(types.IFilterableContext); ok {
+		searchPrefix = filterableContext.FilterPrefix(self.c.Tr)
 	} else {
-		searchPrefix = self.c.Tr.FilterPrefix
+		searchPrefix = self.c.Tr.SearchPrefix
 	}
 
 	args := WindowArrangementArgs{
