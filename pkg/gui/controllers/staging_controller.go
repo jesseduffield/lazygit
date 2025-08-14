@@ -68,9 +68,11 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			Tooltip:     self.c.Tr.EditFileTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Return),
-			Handler:     self.Escape,
-			Description: self.c.Tr.ReturnToFilesPanel,
+			Key:             opts.GetKey(opts.Config.Universal.Return),
+			Handler:         self.Escape,
+			Description:     self.c.Tr.ReturnToFilesPanel,
+			DescriptionFunc: self.EscapeDescription,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:             opts.GetKey(opts.Config.Universal.TogglePanel),
@@ -176,6 +178,20 @@ func (self *StagingController) Escape() error {
 
 	self.c.Context().Pop()
 	return nil
+}
+
+func (self *StagingController) EscapeDescription() string {
+	if state := self.context.GetState(); state != nil {
+		if state.SelectingRange() {
+			return self.c.Tr.DismissRangeSelect
+		}
+
+		if state.SelectingHunkEnabledByUser() {
+			return self.c.Tr.SelectLineByLine
+		}
+	}
+
+	return self.c.Tr.ReturnToFilesPanel
 }
 
 func (self *StagingController) TogglePanel() error {

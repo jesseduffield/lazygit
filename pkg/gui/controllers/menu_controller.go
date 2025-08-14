@@ -47,7 +47,7 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 		{
 			Key:             opts.GetKey(opts.Config.Universal.Return),
 			Handler:         self.close,
-			Description:     self.c.Tr.Close,
+			Description:     self.c.Tr.CloseCancel,
 			DisplayOnScreen: true,
 		},
 	}

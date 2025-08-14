@@ -59,6 +59,15 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Description: self.c.Tr.PrevScreenMode,
 		},
 		{
+			Key:               opts.GetKey(opts.Config.Universal.Return),
+			Modifier:          gocui.ModNone,
+			Handler:           self.escape,
+			Description:       self.c.Tr.Cancel,
+			DescriptionFunc:   self.escapeDescription,
+			GetDisabledReason: self.escapeEnabled,
+			DisplayOnScreen:   true,
+		},
+		{
 			ViewName:  "",
 			Key:       opts.GetKey(opts.Config.Universal.OptionMenu),
 			Handler:   self.createOptionsMenu,
@@ -113,13 +122,6 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Key:      opts.GetKey(opts.Config.Universal.QuitWithoutChangingDirectory),
 			Modifier: gocui.ModNone,
 			Handler:  self.quitWithoutChangingDirectory,
-		},
-		{
-			Key:             opts.GetKey(opts.Config.Universal.Return),
-			Modifier:        gocui.ModNone,
-			Handler:         self.escape,
-			Description:     self.c.Tr.Cancel,
-			DisplayOnScreen: true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.ToggleWhitespaceInDiffView),
@@ -188,6 +190,20 @@ func (self *GlobalController) quitWithoutChangingDirectory() error {
 
 func (self *GlobalController) escape() error {
 	return (&QuitActions{c: self.c}).Escape()
+}
+
+func (self *GlobalController) escapeDescription() string {
+	return (&QuitActions{c: self.c}).EscapeDescription()
+}
+
+func (self *GlobalController) escapeEnabled() *types.DisabledReason {
+	if (&QuitActions{c: self.c}).EscapeEnabled() {
+		return nil
+	}
+
+	// The empty error text is intentional. We don't want to show an error
+	// toast for this, but only hide it from the options map.
+	return &types.DisabledReason{Text: ""}
 }
 
 func (self *GlobalController) toggleWhitespace() error {

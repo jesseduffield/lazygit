@@ -10,7 +10,7 @@ import (
 
 func (gui *Gui) informationStr() string {
 	if activeMode, ok := gui.helpers.Mode.GetActiveMode(); ok {
-		return activeMode.Description()
+		return activeMode.InfoLabel()
 	}
 
 	if gui.g.Mouse {

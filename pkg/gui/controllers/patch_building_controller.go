@@ -43,9 +43,11 @@ func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) 
 			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Return),
-			Handler:     self.Escape,
-			Description: self.c.Tr.ExitCustomPatchBuilder,
+			Key:             opts.GetKey(opts.Config.Universal.Return),
+			Handler:         self.Escape,
+			Description:     self.c.Tr.ExitCustomPatchBuilder,
+			DescriptionFunc: self.EscapeDescription,
+			DisplayOnScreen: true,
 		},
 	}
 }
@@ -178,4 +180,19 @@ func (self *PatchBuildingController) Escape() error {
 
 	self.c.Helpers().PatchBuilding.Escape()
 	return nil
+}
+
+func (self *PatchBuildingController) EscapeDescription() string {
+	context := self.c.Contexts().CustomPatchBuilder
+	if state := context.GetState(); state != nil {
+		if state.SelectingRange() {
+			return self.c.Tr.DismissRangeSelect
+		}
+
+		if state.SelectingHunkEnabledByUser() {
+			return self.c.Tr.SelectLineByLine
+		}
+	}
+
+	return self.c.Tr.ExitCustomPatchBuilder
 }

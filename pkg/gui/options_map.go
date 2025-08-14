@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
@@ -38,7 +39,14 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 	currentContextBindings := currentContext.GetKeybindings(self.c.KeybindingsOpts())
 	globalBindings := self.c.Contexts().Global.GetKeybindings(self.c.KeybindingsOpts())
 
-	allBindings := append(currentContextBindings, globalBindings...)
+	currentContextKeys := set.NewFromSlice(
+		lo.Map(currentContextBindings, func(binding *types.Binding, _ int) types.Key {
+			return binding.Key
+		}))
+
+	allBindings := append(currentContextBindings, lo.Filter(globalBindings, func(b *types.Binding, _ int) bool {
+		return !currentContextKeys.Includes(b.Key)
+	})...)
 
 	bindingsToDisplay := lo.Filter(allBindings, func(binding *types.Binding, _ int) bool {
 		return binding.DisplayOnScreen && !binding.IsDisabled()
