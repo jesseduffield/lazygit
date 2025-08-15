@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
@@ -20,6 +21,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	}
 
 	maxColumnSize := 1
+	confirmKey := keybindings.GetKey(gui.c.UserConfig().Keybinding.Universal.ConfirmMenu)
 
 	for _, item := range opts.Items {
 		if item.LabelColumns == nil {
@@ -31,6 +33,11 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 		}
 
 		maxColumnSize = max(maxColumnSize, len(item.LabelColumns))
+
+		// Remove all item keybindings that are the same as the confirm binding
+		if item.Key == confirmKey {
+			item.Key = nil
+		}
 	}
 
 	for _, item := range opts.Items {
