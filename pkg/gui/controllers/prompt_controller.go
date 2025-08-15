@@ -27,7 +27,7 @@ func NewPromptController(
 func (self *PromptController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:             opts.GetKey(opts.Config.Universal.Confirm),
+			Key:             gocui.KeyEnter,
 			Handler:         func() error { return self.context().State.OnConfirm() },
 			Description:     self.c.Tr.Confirm,
 			DisplayOnScreen: true,
