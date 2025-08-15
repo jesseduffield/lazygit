@@ -27,7 +27,7 @@ func (self *CommitDescriptionPanelDriver) SwitchToSummary() *CommitMessagePanelD
 }
 
 func (self *CommitDescriptionPanelDriver) AddNewline() *CommitDescriptionPanelDriver {
-	self.t.pressFast(self.t.keys.Universal.Confirm)
+	self.t.pressFast("<enter>")
 	return self
 }
 
