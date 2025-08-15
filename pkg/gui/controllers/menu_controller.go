@@ -38,7 +38,7 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			GetDisabledReason: self.require(self.singleItemSelected()),
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Confirm),
+			Key:               opts.GetKey(opts.Config.Universal.ConfirmMenu),
 			Handler:           self.withItem(self.press),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Execute,

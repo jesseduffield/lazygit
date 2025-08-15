@@ -72,7 +72,7 @@ func (self *PromptDriver) ConfirmFirstSuggestion() {
 	self.t.Views().Suggestions().
 		IsFocused().
 		SelectedLineIdx(0).
-		PressEnter()
+		Press(self.t.keys.Universal.ConfirmSuggestion)
 }
 
 func (self *PromptDriver) ConfirmSuggestion(matcher *TextMatcher) {
@@ -80,7 +80,7 @@ func (self *PromptDriver) ConfirmSuggestion(matcher *TextMatcher) {
 	self.t.Views().Suggestions().
 		IsFocused().
 		NavigateToLine(matcher).
-		PressEnter()
+		Press(self.t.keys.Universal.ConfirmSuggestion)
 }
 
 func (self *PromptDriver) DeleteSuggestion(matcher *TextMatcher) *PromptDriver {

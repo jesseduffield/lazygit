@@ -1366,6 +1366,14 @@
           "type": "string",
           "default": "\u003center\u003e"
         },
+        "confirmMenu": {
+          "type": "string",
+          "default": "\u003center\u003e"
+        },
+        "confirmSuggestion": {
+          "type": "string",
+          "default": "\u003center\u003e"
+        },
         "confirmInEditor": {
           "type": "string",
           "default": "\u003ca-enter\u003e"

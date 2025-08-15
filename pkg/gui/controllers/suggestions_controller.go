@@ -32,7 +32,7 @@ func NewSuggestionsController(
 func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Confirm),
+			Key:               opts.GetKey(opts.Config.Universal.ConfirmSuggestion),
 			Handler:           func() error { return self.context().State.OnConfirm() },
 			GetDisabledReason: self.require(self.singleItemSelected()),
 		},
