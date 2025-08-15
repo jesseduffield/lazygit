@@ -24,8 +24,7 @@
 
           src = ./.;
 
-          # Update this hash when dependencies change
-          vendorHash = "sha256-MkTYNn1OhRfPGYytwaqK9az8t1A2pS4/IbfhW+nCBW4=";
+          vendorHash = null;
 
           # Disable integration tests that require specific environment
           doCheck = false;
