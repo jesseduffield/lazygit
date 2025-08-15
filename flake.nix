@@ -1,54 +1,127 @@
 {
-  description = "lazygit";
+  description = "A simple terminal UI for git commands";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, }:
+  outputs = { self, nixpkgs, flake-utils }:
     let
-      goVersion = 24; # Go 1.24
       supportedSystems =
         [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+
+      gitCommit = self.rev or self.dirtyRev or "dev";
+      version = "2.2.1";
+
     in flake-utils.lib.eachSystem supportedSystems (system:
       let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ self.overlays.default ];
+        pkgs = import nixpkgs { inherit system; };
+
+        lazygit = pkgs.buildGoModule rec {
+          pname = "lazygit";
+          inherit version;
+
+          src = ./.;
+
+          # Update this hash when dependencies change
+          vendorHash = "sha256-MkTYNn1OhRfPGYytwaqK9az8t1A2pS4/IbfhW+nCBW4=";
+
+          # Disable integration tests that require specific environment
+          doCheck = false;
+
+          nativeBuildInputs = with pkgs; [ git makeWrapper ];
+
+          buildInputs = with pkgs; [ git ];
+
+          ldflags = [
+            "-s"
+            "-w"
+            "-X main.commit=${gitCommit}"
+            "-X main.version=${version}"
+            "-X main.buildSource=nix"
+          ];
+
+          postInstall = ''
+            wrapProgram $out/bin/lazygit \
+              --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.git ]}
+          '';
+
+          meta = with pkgs.lib; {
+            description = "A simple terminal UI for git commands";
+            homepage = "https://github.com/jesseduffield/lazygit";
+            license = licenses.mit;
+            maintainers = [ "jesseduffield" ];
+            platforms = platforms.unix;
+            mainProgram = "lazygit";
+          };
         };
+
       in {
-        # Development shell
+        packages = {
+          default = lazygit;
+          inherit lazygit;
+        };
+
+        apps = {
+          default = flake-utils.lib.mkApp {
+            drv = lazygit;
+            name = "lazygit";
+          };
+          lazygit = flake-utils.lib.mkApp {
+            drv = lazygit;
+            name = "lazygit";
+          };
+        };
+
         devShells.default = pkgs.mkShell {
+          name = "lazygit-dev";
+
           buildInputs = with pkgs; [
             # Go toolchain
-            go
+            go_1_24
             gotools
             golangci-lint
 
-            # Git for development and testing
+            # Development tools
             git
-
-            # Build tools
             gnumake
           ];
 
-          # Development environment
           shellHook = ''
-            echo "lazygit development environment"
+            echo "Lazygit development environment"
             echo "Go version: $(go version)"
             echo "Git version: $(git --version)"
-            echo "Make version: $(make --version)"
             echo ""
           '';
 
           # Environment variables for development
           CGO_ENABLED = "0";
         };
-      }) // {
-        # Global overlay
-        overlays.default = final: prev: {
-          go = final."go_1_${toString goVersion}";
+
+        # Formatting check
+        formatter = pkgs.nixpkgs-fmt;
+
+        # Development checks
+        checks = {
+          # Ensure the package builds
+          build = lazygit;
+
+          # Format check
+          format = pkgs.runCommand "check-format" {
+            buildInputs = [ pkgs.nixpkgs-fmt ];
+          } ''
+            nixpkgs-fmt --check ${./.}
+            touch $out
+          '';
         };
+      }) // {
+        # Global overlay for other flakes to use
+        overlays.default = final: prev: {
+          lazygit = self.packages.${final.system}.lazygit;
+        };
+
+        # CI/CD support
+        hydraJobs = self.packages;
       };
 }
