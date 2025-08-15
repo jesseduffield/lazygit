@@ -47,6 +47,13 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 				return nil
 			},
 		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Handler:           self.handleCopyToClipboard,
+			Description:       self.c.Tr.CopyToClipboardMenu,
+			DisplayOnScreen:   true,
+			GetDisabledReason: self.copyToClipboardEnabled,
+		},
 	}
 
 	return bindings
@@ -92,4 +99,24 @@ func (self *ConfirmationController) switchToSuggestions() {
 	}
 	self.c.Views().Suggestions.Subtitle = subtitle
 	self.c.Context().Replace(self.c.Contexts().Suggestions)
+}
+
+func (self *ConfirmationController) handleCopyToClipboard() error {
+	confirmationView := self.c.Views().Confirmation
+	text := confirmationView.Buffer()
+	if err := self.c.OS().CopyToClipboard(text); err != nil {
+		return err
+	}
+
+	self.c.Toast(self.c.Tr.MessageCopiedToClipboard)
+	return nil
+}
+
+func (self *ConfirmationController) copyToClipboardEnabled() *types.DisabledReason {
+	if self.c.Views().Confirmation.Editable {
+		// The empty text is intentional. We don't want to get a toast when invoking this, we only
+		// want to prevent it from showing up in the options bar.
+		return &types.DisabledReason{Text: ""}
+	}
+	return nil
 }

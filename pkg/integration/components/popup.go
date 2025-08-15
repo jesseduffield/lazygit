@@ -36,6 +36,11 @@ func (self *Popup) Alert() *AlertDriver {
 	return &AlertDriver{t: self.t}
 }
 
+func (self *AlertDriver) Tap(f func()) *AlertDriver {
+	self.getViewDriver().Tap(f)
+	return self
+}
+
 func (self *Popup) inAlert() {
 	// basically the same thing as a confirmation popup with the current implementation
 	self.t.assertWithRetries(func() (bool, string) {

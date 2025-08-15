@@ -29,11 +29,6 @@ var CopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectToast(Equals("'branch-a' copied to clipboard"))
 
-		t.Views().Files().
-			Focus()
-
-		t.GlobalPress(keys.Files.RefreshFiles)
-
 		t.FileSystem().FileContent("clipboard", Equals("branch-a"))
 	},
 })
