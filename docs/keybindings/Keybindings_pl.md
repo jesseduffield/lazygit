@@ -217,6 +217,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 |-----|--------|-------------|
 | `` <enter> `` | Potwierdź |  |
 | `` <esc> `` | Zamknij/Anuluj |  |
+| `` <c-o> `` | Kopiuj do schowka |  |
 
 ## Pliki
 
