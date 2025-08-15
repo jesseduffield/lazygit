@@ -388,19 +388,64 @@ sudo zypper ar https://download.opensuse.org/repositories/devel:/languages:/go/$
 sudo zypper ref && sudo zypper in lazygit
 ```
 
-### NixOs
+### NixOS
 
-On NixOs lazygit is packaged with nix and distributed via nixpkgs.
-You can try the lazygit without installing it with:
+#### Using lazygit from nixpkgs
+
+On NixOS, lazygit is packaged with nix and distributed via nixpkgs.
+You can try lazygit without installing it with:
 
 ```sh
 nix-shell -p lazygit
 # or with flakes enabled
 nix run nixpkgs#lazygit
 ```
+Or you can add lazygit to your `configuration.nix` using the `environment.systemPackages` option.
+More details can be found via NixOS search [page](https://search.nixos.org/).
 
-Or you can add lazygit to you `configuration.nix` using the `environment.systemPackages` option.
-More details can be found via NixOs search [page](https://search.nixos.org/).
+#### Using the official lazygit flake
+
+This repository includes a nix flake that provides the latest development version and additional development tools:
+
+**Run lazygit directly from the repository:**
+```sh
+nix run github:jesseduffield/lazygit
+# or from a local clone
+nix run .
+```
+
+**Build lazygit from source:**
+```sh
+nix build github:jesseduffield/lazygit
+# or from a local clone
+nix build .
+```
+
+**Development environment:**
+For contributors, the flake provides a development shell with Go toolchain, development tools, and dependencies:
+```sh
+nix develop github:jesseduffield/lazygit
+# or from a local clone
+nix develop
+```
+
+The development shell includes:
+- Go toolchain
+- git and make
+- Proper environment variables for development
+
+**Using in other flakes:**
+The flake also provides an overlay for easy integration into other flake-based projects:
+```nix
+{
+  inputs.lazygit.url = "github:jesseduffield/lazygit";
+
+  outputs = { self, nixpkgs, lazygit }: {
+    # Use the overlay
+    nixpkgs.overlays = [ lazygit.overlays.default ];
+  };
+}
+```
 
 ### Flox
 
