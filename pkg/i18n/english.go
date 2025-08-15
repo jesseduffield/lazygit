@@ -723,6 +723,7 @@ type TranslationSet struct {
 	CommitHasNoTags                          string
 	CommitHasNoMessageBody                   string
 	PatchCopiedToClipboard                   string
+	MessageCopiedToClipboard                 string
 	CopiedToClipboard                        string
 	ErrCannotEditDirectory                   string
 	ErrCannotCopyContentOfDirectory          string
@@ -1800,6 +1801,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CommitHasNoTags:                          "Commit has no tags",
 		CommitHasNoMessageBody:                   "Commit has no message body",
 		PatchCopiedToClipboard:                   "Patch copied to clipboard",
+		MessageCopiedToClipboard:                 "Message copied to clipboard",
 		CopiedToClipboard:                        "copied to clipboard",
 		ErrCannotEditDirectory:                   "Cannot edit directories: you can only edit individual files",
 		ErrCannotCopyContentOfDirectory:          "Cannot copy content of directories: you can only copy content of individual files",
