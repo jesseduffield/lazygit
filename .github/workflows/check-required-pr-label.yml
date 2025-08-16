@@ -1,11 +1,11 @@
-name: Check Required Labels
+name: Check Required PR Labels
 
 on:
   pull_request:
     types: [opened, labeled, unlabeled]
 
 jobs:
-  check-required-label:
+  check-required-pr-label:
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/master'
     steps:
