@@ -90,6 +90,9 @@ type Gui struct {
 	// recent repo with the recent repos popup showing
 	showRecentRepos bool
 
+	// Used for testing purposes
+	forceRecentRepos bool
+
 	Mutexes types.Mutexes
 
 	// when you enter into a submodule we'll append the superproject's path to this array
@@ -657,6 +660,7 @@ func NewGui(
 	gitVersion *git_commands.GitVersion,
 	updater *updates.Updater,
 	showRecentRepos bool,
+	forceRecentRepos bool,
 	initialDir string,
 	test integrationTypes.IntegrationTest,
 ) (*Gui, error) {
@@ -669,6 +673,7 @@ func NewGui(
 		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
 		viewPtmxMap:          map[string]*os.File{},
 		showRecentRepos:      showRecentRepos,
+		forceRecentRepos:     forceRecentRepos,
 		RepoPathStack:        &utils.StringStack{},
 		RepoStateMap:         map[Repo]*GuiRepoState{},
 		GuiLog:               []string{},
