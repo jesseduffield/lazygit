@@ -888,6 +888,10 @@
           "type": "string",
           "default": "f"
         },
+        "addForkRemote": {
+          "type": "string",
+          "default": "F"
+        },
         "sortOrder": {
           "type": "string",
           "default": "s"
