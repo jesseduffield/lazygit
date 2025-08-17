@@ -38,6 +38,8 @@ type UserConfig struct {
 	PromptToReturnFromSubprocess bool `yaml:"promptToReturnFromSubprocess"`
 	// Keybindings
 	Keybinding KeybindingConfig `yaml:"keybinding"`
+	// AI-powered commit message generation
+	AI AIConfig `yaml:"ai"`
 }
 
 type RefresherConfig struct {
@@ -575,6 +577,23 @@ type KeybindingCommitMessageConfig struct {
 	CommitMenu string `yaml:"commitMenu"`
 }
 
+type AIConfig struct {
+	// If true, AI-powered commit message generation is enabled
+	Enabled bool `yaml:"enabled"`
+	// AI provider to use: "openai", "github", "anthropic", etc.
+	Provider string `yaml:"provider"`
+	// Model name to use: "gpt-4", "copilot", etc.
+	Model string `yaml:"model"`
+	// API key for the AI provider
+	APIKey string `yaml:"apiKey"`
+	// Base URL for custom API endpoints
+	BaseURL string `yaml:"baseUrl"`
+	// Maximum number of tokens to generate
+	MaxTokens int `yaml:"maxTokens"`
+	// Temperature for response randomness (0.0 to 1.0)
+	Temperature float64 `yaml:"temperature"`
+}
+
 // OSConfig contains config on the level of the os
 type OSConfig struct {
 	// Command for editing a file. Should contain "{{filename}}".
@@ -1028,6 +1047,15 @@ func GetDefaultConfig() *UserConfig {
 			CommitMessage: KeybindingCommitMessageConfig{
 				CommitMenu: "<c-o>",
 			},
+		},
+		AI: AIConfig{
+			Enabled:     false,
+			Provider:    "openai",
+			Model:       "gpt-4",
+			APIKey:      "",
+			BaseURL:     "https://api.openai.com/v1",
+			MaxTokens:   150,
+			Temperature: 0.7,
 		},
 	}
 }
