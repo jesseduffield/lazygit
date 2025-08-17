@@ -286,6 +286,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` n `` | Voeg een nieuwe remote toe |  |
 | `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
 | `` e `` | Edit | Wijzig remote |
+| `` F `` | Add fork remote | Quickly add a fork remote by replacing the owner in the origin URL. |
 | `` f `` | Fetch | Fetch remote |
 | `` / `` | Filter the current view by text |  |
 
