@@ -391,6 +391,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` d `` | 删除 | 删除选中的远程。从远程跟踪远程分支的任何本地分支都不会受到影响。 |
 | `` e `` | 编辑 | 编辑远程仓库 |
 | `` f `` | 抓取 | 抓取远程仓库 |
+| `` F `` | Add fork remote | Quickly add a fork remote by replacing the owner in the origin URL and optionally check out a branch from new remote. |
 | `` / `` | 通过文本过滤当前视图 |  |
 
 ## 远程分支
