@@ -92,27 +92,27 @@ func (self *SyncController) push(currentBranch *models.Branch) error {
 		opts := pushOpts{remoteBranchStoredLocally: currentBranch.RemoteBranchStoredLocally()}
 		if currentBranch.IsBehindForPush() {
 			return self.requestToForcePush(currentBranch, opts)
-		} else {
-			return self.pushAux(currentBranch, opts)
 		}
-	} else {
-		if self.c.Git().Config.GetPushToCurrent() {
-			return self.pushAux(currentBranch, pushOpts{setUpstream: true})
-		} else {
-			return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
-				upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
-				if err != nil {
-					return err
-				}
 
-				return self.pushAux(currentBranch, pushOpts{
-					setUpstream:    true,
-					upstreamRemote: upstreamRemote,
-					upstreamBranch: upstreamBranch,
-				})
-			})
-		}
+		return self.pushAux(currentBranch, opts)
 	}
+
+	if self.c.Git().Config.GetPushToCurrent() {
+		return self.pushAux(currentBranch, pushOpts{setUpstream: true})
+	}
+
+	return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
+		upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
+		if err != nil {
+			return err
+		}
+
+		return self.pushAux(currentBranch, pushOpts{
+			setUpstream:    true,
+			upstreamRemote: upstreamRemote,
+			upstreamBranch: upstreamBranch,
+		})
+	})
 }
 
 func (self *SyncController) pull(currentBranch *models.Branch) error {
@@ -200,6 +200,7 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 			git_commands.PushOpts{
 				Force:          opts.force,
 				ForceWithLease: opts.forceWithLease,
+				CurrentBranch:  currentBranch.Name,
 				UpstreamRemote: opts.upstreamRemote,
 				UpstreamBranch: opts.upstreamBranch,
 				SetUpstream:    opts.setUpstream,
@@ -228,7 +229,8 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 			}
 			return err
 		}
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		return nil
 	})
 }
 

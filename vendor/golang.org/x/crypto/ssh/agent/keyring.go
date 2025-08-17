@@ -175,6 +175,15 @@ func (r *keyring) Add(key AddedKey) error {
 		p.expire = &t
 	}
 
+	// If we already have a Signer with the same public key, replace it with the
+	// new one.
+	for idx, k := range r.keys {
+		if bytes.Equal(k.signer.PublicKey().Marshal(), p.signer.PublicKey().Marshal()) {
+			r.keys[idx] = p
+			return nil
+		}
+	}
+
 	r.keys = append(r.keys, p)
 
 	return nil

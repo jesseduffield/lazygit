@@ -31,6 +31,13 @@ In order for a PR to be accepted it needs to pass a list of requirements:
 - If the PR is a new feature, it has to come with a suite of unit tests, that tests the new functionality.
 - In any case, all the PRs have to pass the personal evaluation of at least one of the maintainers of go-git.
 
+### Branches
+
+The `master` branch is currently used for maintaining the `v5` major release only. The accepted changes would
+be dependency bumps, bug fixes and small changes that aren't needed for `v6`. New development should target the
+`v6-exp` branch, and if agreed with at least one go-git maintainer, it can be back ported to `v5` by creating 
+a new PR that targets `master`.
+
 ### Format of the commit message
 
 Every commit message should describe what was changed, under which context and, if applicable, the GitHub issue it relates to:

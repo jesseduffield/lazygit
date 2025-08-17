@@ -190,11 +190,7 @@ branch refs/heads/mybranch-worktree
 			}
 
 			getRevParseArgs := func() []string {
-				args := []string{"rev-parse"}
-				if version.IsAtLeast(2, 31, 0) {
-					args = append(args, "--path-format=absolute")
-				}
-				return args
+				return []string{"rev-parse", "--path-format=absolute"}
 			}
 
 			s.before(runner, fs, getRevParseArgs)

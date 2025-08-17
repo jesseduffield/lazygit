@@ -27,6 +27,15 @@
       "console": "integratedTerminal",
     },
     {
+      "name": "JSON Schema generator",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/pkg/jsonschema/generator.go",
+      "cwd": "${workspaceFolder}/pkg/jsonschema",
+      "console": "integratedTerminal",
+    },
+    {
       "name": "Attach to a running Lazygit",
       "type": "go",
       "request": "attach",

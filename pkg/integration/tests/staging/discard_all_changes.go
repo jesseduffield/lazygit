@@ -22,13 +22,16 @@ var DiscardAllChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("file1").IsSelected(),
-				Contains("file2"),
+				Equals("▼ /").IsSelected(),
+				Equals("   M file1"),
+				Equals("   M file2"),
 			).
+			SelectNextItem().
 			PressEnter()
 
 		t.Views().Staging().
 			IsFocused().
+			Press(keys.Main.ToggleSelectHunk).
 			SelectedLines(Contains("+three")).
 			// discard the line
 			Press(keys.Universal.Remove).
@@ -44,7 +47,7 @@ var DiscardAllChanges = NewIntegrationTest(NewIntegrationTestArgs{
 				// because there are no more changes in file1 we switch to file2
 				t.Views().Files().
 					Lines(
-						Contains("file2").IsSelected(),
+						Equals(" M file2"),
 					)
 			}).
 			// assert we are still in the staging panel, but now looking at the changes of the other file

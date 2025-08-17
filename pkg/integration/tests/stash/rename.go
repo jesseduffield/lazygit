@@ -13,6 +13,8 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupRepo: func(shell *Shell) {
 		shell.
 			EmptyCommit("blah").
+			NewBranch("stash").
+			Checkout("master").
 			CreateFileAndAdd("file-1", "change to stash1").
 			Stash("foo").
 			CreateFileAndAdd("file-2", "change to stash2").
@@ -31,5 +33,7 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 				t.ExpectPopup().Prompt().Title(Equals("Rename stash: stash@{1}")).Type(" baz").Confirm()
 			}).
 			SelectedLine(Contains("On master: foo baz"))
+
+		t.Views().Main().Content(Contains("file-1"))
 	},
 })

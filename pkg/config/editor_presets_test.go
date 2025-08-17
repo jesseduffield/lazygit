@@ -111,15 +111,15 @@ func TestGetEditTemplate(t *testing.T) {
 	}
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			template, suspend := GetEditTemplate(s.osConfig, s.guessDefaultEditor)
+			template, suspend := GetEditTemplate("bash", s.osConfig, s.guessDefaultEditor)
 			assert.Equal(t, s.expectedEditTemplate, template)
 			assert.Equal(t, s.expectedSuspend, suspend)
 
-			template, suspend = GetEditAtLineTemplate(s.osConfig, s.guessDefaultEditor)
+			template, suspend = GetEditAtLineTemplate("bash", s.osConfig, s.guessDefaultEditor)
 			assert.Equal(t, s.expectedEditAtLineTemplate, template)
 			assert.Equal(t, s.expectedSuspend, suspend)
 
-			template = GetEditAtLineAndWaitTemplate(s.osConfig, s.guessDefaultEditor)
+			template = GetEditAtLineAndWaitTemplate("bash", s.osConfig, s.guessDefaultEditor)
 			assert.Equal(t, s.expectedEditAtLineAndWaitTemplate, template)
 		})
 	}

@@ -26,13 +26,15 @@ var DeleteUpdateRefTodo = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit 01")).
 			Press(keys.Universal.Edit).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("CI commit 06"),
 				Contains("pick").Contains("CI commit 05"),
 				Contains("pick").Contains("CI commit 04"),
 				Contains("update-ref").Contains("branch1"),
 				Contains("pick").Contains("CI commit 03"),
 				Contains("pick").Contains("CI commit 02"),
-				Contains("CI ◯ <-- YOU ARE HERE --- commit 01"),
+				Contains("--- Commits ---"),
+				Contains("CI ◯ commit 01"),
 			).
 			NavigateToLine(Contains("update-ref")).
 			Press(keys.Universal.Remove).
@@ -43,12 +45,14 @@ var DeleteUpdateRefTodo = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("CI commit 06"),
 				Contains("pick").Contains("CI commit 05"),
 				Contains("pick").Contains("CI commit 04"),
 				Contains("pick").Contains("CI commit 03").IsSelected(),
 				Contains("pick").Contains("CI commit 02"),
-				Contains("CI ◯ <-- YOU ARE HERE --- commit 01"),
+				Contains("--- Commits ---"),
+				Contains("CI ◯ commit 01"),
 			).
 			NavigateToLine(Contains("commit 02")).
 			Press(keys.Universal.Remove).

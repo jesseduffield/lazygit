@@ -10,7 +10,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -18,17 +17,14 @@ import (
 )
 
 type MergeAndRebaseHelper struct {
-	c          *HelperCommon
-	refsHelper *RefsHelper
+	c *HelperCommon
 }
 
 func NewMergeAndRebaseHelper(
 	c *HelperCommon,
-	refsHelper *RefsHelper,
 ) *MergeAndRebaseHelper {
 	return &MergeAndRebaseHelper{
-		c:          c,
-		refsHelper: refsHelper,
+		c: c,
 	}
 }
 
@@ -51,7 +47,7 @@ func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 		{option: REBASE_OPTION_ABORT, key: 'a'},
 	}
 
-	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+	if self.c.Git().Status.WorkingTreeState().CanSkip() {
 		options = append(options, optionAndKey{
 			option: REBASE_OPTION_SKIP, key: 's',
 		})
@@ -67,25 +63,24 @@ func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 		}
 	})
 
-	var title string
-	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_MERGING {
-		title = self.c.Tr.MergeOptionsTitle
-	} else {
-		title = self.c.Tr.RebaseOptionsTitle
-	}
-
+	title := self.c.Git().Status.WorkingTreeState().OptionsMenuTitle(self.c.Tr)
 	return self.c.Menu(types.CreateMenuOptions{Title: title, Items: menuItems})
+}
+
+func (self *MergeAndRebaseHelper) ContinueRebase() error {
+	return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
 }
 
 func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	status := self.c.Git().Status.WorkingTreeState()
 
-	if status != enums.REBASE_MODE_MERGING && status != enums.REBASE_MODE_REBASING {
+	if status.None() {
 		return errors.New(self.c.Tr.NotMergingOrRebasing)
 	}
 
 	self.c.LogAction(fmt.Sprintf("Merge/Rebase: %s", command))
-	if status == enums.REBASE_MODE_REBASING {
+	effectiveStatus := status.Effective()
+	if effectiveStatus == models.WORKING_TREE_STATE_REBASING {
 		todoFile, err := os.ReadFile(
 			filepath.Join(self.c.Git().RepoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"),
 		)
@@ -99,23 +94,15 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 		}
 	}
 
-	commandType := ""
-	switch status {
-	case enums.REBASE_MODE_MERGING:
-		commandType = "merge"
-	case enums.REBASE_MODE_REBASING:
-		commandType = "rebase"
-	default:
-		// shouldn't be possible to land here
-	}
+	commandType := status.CommandName()
 
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
-	needsSubprocess := (status == enums.REBASE_MODE_MERGING && command != REBASE_OPTION_ABORT && self.c.UserConfig().Git.Merging.ManualCommit) ||
+	needsSubprocess := (effectiveStatus == models.WORKING_TREE_STATE_MERGING && command != REBASE_OPTION_ABORT && self.c.UserConfig().Git.Merging.ManualCommit) ||
 		// but we'll also use a subprocess if we have exec todos; those are likely to be lengthy build
 		// tasks whose output the user will want to see in the terminal
-		(status == enums.REBASE_MODE_REBASING && command != REBASE_OPTION_ABORT && self.hasExecTodos())
+		(effectiveStatus == models.WORKING_TREE_STATE_REBASING && command != REBASE_OPTION_ABORT && self.hasExecTodos())
 
 	if needsSubprocess {
 		// TODO: see if we should be calling more of the code from self.Git.Rebase.GenericMergeOrRebaseAction
@@ -132,7 +119,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 
 func (self *MergeAndRebaseHelper) hasExecTodos() bool {
 	for _, commit := range self.c.Model().Commits {
-		if commit.Status != models.StatusRebasing {
+		if !commit.IsTODO() {
 			break
 		}
 		if commit.Action == todo.Exec {
@@ -148,6 +135,8 @@ var conflictStrings = []string{
 	"fix conflicts",
 	"Resolve all conflicts manually",
 	"Merge conflict in file",
+	"hint: after resolving the conflicts",
+	"CONFLICT (content):",
 }
 
 func isMergeConflictErr(errStr string) bool {
@@ -161,9 +150,8 @@ func isMergeConflictErr(errStr string) bool {
 }
 
 func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result error, refreshOptions types.RefreshOptions) error {
-	if err := self.c.Refresh(refreshOptions); err != nil {
-		return err
-	}
+	self.c.Refresh(refreshOptions)
+
 	if result == nil {
 		return nil
 	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
@@ -173,9 +161,8 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 	} else if strings.Contains(result.Error(), "No rebase in progress?") {
 		// assume in this case that we're already done
 		return nil
-	} else {
-		return self.CheckForConflicts(result)
 	}
+	return self.CheckForConflicts(result)
 }
 
 func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
@@ -195,14 +182,14 @@ func (self *MergeAndRebaseHelper) CheckForConflicts(result error) error {
 }
 
 func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
-	mode := self.workingTreeStateNoun()
+	mode := self.c.Git().Status.WorkingTreeState().CommandName()
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.FoundConflictsTitle,
 		Items: []*types.MenuItem{
 			{
 				Label: self.c.Tr.ViewConflictsMenuItem,
 				OnPress: func() error {
-					self.c.Context().Push(self.c.Contexts().Files)
+					self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
 					return nil
 				},
 			},
@@ -220,7 +207,7 @@ func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
 
 func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 	// prompt user to confirm that they want to abort, then do it
-	mode := self.workingTreeStateNoun()
+	mode := self.c.Git().Status.WorkingTreeState().CommandName()
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  fmt.Sprintf(self.c.Tr.AbortTitle, mode),
 		Prompt: fmt.Sprintf(self.c.Tr.AbortPrompt, mode),
@@ -232,23 +219,11 @@ func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 	return nil
 }
 
-func (self *MergeAndRebaseHelper) workingTreeStateNoun() string {
-	workingTreeState := self.c.Git().Status.WorkingTreeState()
-	switch workingTreeState {
-	case enums.REBASE_MODE_NONE:
-		return ""
-	case enums.REBASE_MODE_MERGING:
-		return "merge"
-	default:
-		return "rebase"
-	}
-}
-
 // PromptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
 func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.Continue,
-		Prompt: self.c.Tr.ConflictsResolved,
+		Prompt: fmt.Sprintf(self.c.Tr.ConflictsResolved, self.c.Git().Status.WorkingTreeState().CommandName()),
 		HandleConfirm: func() error {
 			// By the time we get here, we might have unstaged changes again,
 			// e.g. if the user had to fix build errors after resolving the
@@ -258,11 +233,9 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 			// Need to refresh the files to be really sure if this is the case.
 			// We would otherwise be relying on lazygit's auto-refresh on focus,
 			// but this is not supported by all terminals or on all platforms.
-			if err := self.c.Refresh(types.RefreshOptions{
+			self.c.Refresh(types.RefreshOptions{
 				Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES},
-			}); err != nil {
-				return err
-			}
+			})
 
 			root := self.c.Contexts().Files.FileTreeViewModel.GetRoot()
 			if root.GetHasUnstagedChanges() {
@@ -271,7 +244,7 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 					Prompt: self.c.Tr.UnstagedFilesAfterConflictsResolved,
 					HandleConfirm: func() error {
 						self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-						if err := self.c.Git().WorkingTree.StageAll(); err != nil {
+						if err := self.c.Git().WorkingTree.StageAll(true); err != nil {
 							return err
 						}
 
@@ -290,14 +263,14 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 }
 
 func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
-	checkedOutBranch := self.refsHelper.GetCheckedOutRef()
-	checkedOutBranchName := self.refsHelper.GetCheckedOutRef().Name
+	checkedOutBranch := self.c.Model().Branches[0]
+	checkedOutBranchName := checkedOutBranch.Name
 	var disabledReason, baseBranchDisabledReason *types.DisabledReason
 	if checkedOutBranchName == ref {
 		disabledReason = &types.DisabledReason{Text: self.c.Tr.CantRebaseOntoSelf}
 	}
 
-	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(checkedOutBranch, self.refsHelper.c.Model().MainBranches)
+	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(checkedOutBranch, self.c.Model().MainBranches)
 	if err != nil {
 		return err
 	}
@@ -353,7 +326,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 				if err = self.ResetMarkedBaseCommit(); err != nil {
 					return err
 				}
-				self.c.Context().Push(self.c.Contexts().LocalCommits)
+				self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
 				return nil
 			},
 		},
@@ -403,7 +376,7 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 	if self.c.Git().Branch.IsHeadDetached() {
 		return errors.New("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
 	}
-	checkedOutBranchName := self.refsHelper.GetCheckedOutRef().Name
+	checkedOutBranchName := self.c.Model().Branches[0].Name
 	if checkedOutBranchName == refName {
 		return errors.New(self.c.Tr.CantMergeBranchIntoItself)
 	}
@@ -477,11 +450,12 @@ func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranch
 			"selectedRef":   refName,
 			"currentBranch": checkedOutBranchName,
 		})
-		err = self.c.Git().Commit.CommitCmdObj(message, "").Run()
+		err = self.c.Git().Commit.CommitCmdObj(message, "", false).Run()
 		if err != nil {
 			return err
 		}
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		return nil
 	}
 }
 

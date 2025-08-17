@@ -62,12 +62,13 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 	mainContext.GetMutex().Lock()
 	secondaryContext.GetMutex().Lock()
 
+	hunkMode := self.c.UserConfig().Gui.UseHunkModeInStagingView
 	mainContext.SetState(
-		patch_exploring.NewState(mainDiff, mainSelectedLineIdx, mainContext.GetState(), self.c.Log),
+		patch_exploring.NewState(mainDiff, mainSelectedLineIdx, mainContext.GetView(), mainContext.GetState(), hunkMode),
 	)
 
 	secondaryContext.SetState(
-		patch_exploring.NewState(secondaryDiff, secondarySelectedLineIdx, secondaryContext.GetState(), self.c.Log),
+		patch_exploring.NewState(secondaryDiff, secondarySelectedLineIdx, secondaryContext.GetView(), secondaryContext.GetState(), hunkMode),
 	)
 
 	mainState := mainContext.GetState()
@@ -114,7 +115,7 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 }
 
 func (self *StagingHelper) handleStagingEscape() {
-	self.c.Context().Push(self.c.Contexts().Files)
+	self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
 }
 
 func (self *StagingHelper) secondaryStagingFocused() bool {

@@ -9,7 +9,10 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Try all combination of local and remote branch deletions",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.LocalBranchSortOrder = "recency"
+		config.GetUserConfig().Git.RemoteBranchSortOrder = "alphabetical"
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.
 			CloneIntoRemote("origin").
@@ -150,24 +153,12 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Tap(func() {
-				t.Views().Remotes().
-					Focus().
-					Lines(Contains("origin")).
-					PressEnter()
-
-				t.Views().
-					RemoteBranches().
-					Lines(
-						Equals("branch-five"),
-						Equals("branch-four"),
-						Equals("branch-six"),
-						Equals("branch-two"),
-					).
-					Press(keys.Universal.Return)
-
-				t.Views().
-					Branches().
-					Focus()
+				checkRemoteBranches(t, keys, "origin", []string{
+					"branch-five",
+					"branch-four",
+					"branch-six",
+					"branch-two",
+				})
 			}).
 			Lines(
 				Contains("current-head"),

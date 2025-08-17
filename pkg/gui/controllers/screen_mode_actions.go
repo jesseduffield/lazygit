@@ -12,7 +12,7 @@ type ScreenModeActions struct {
 func (self *ScreenModeActions) Next() error {
 	self.c.State().GetRepoState().SetScreenMode(
 		nextIntInCycle(
-			[]types.WindowMaximisation{types.SCREEN_NORMAL, types.SCREEN_HALF, types.SCREEN_FULL},
+			[]types.ScreenMode{types.SCREEN_NORMAL, types.SCREEN_HALF, types.SCREEN_FULL},
 			self.c.State().GetRepoState().GetScreenMode(),
 		),
 	)
@@ -24,7 +24,7 @@ func (self *ScreenModeActions) Next() error {
 func (self *ScreenModeActions) Prev() error {
 	self.c.State().GetRepoState().SetScreenMode(
 		prevIntInCycle(
-			[]types.WindowMaximisation{types.SCREEN_NORMAL, types.SCREEN_HALF, types.SCREEN_FULL},
+			[]types.ScreenMode{types.SCREEN_NORMAL, types.SCREEN_HALF, types.SCREEN_FULL},
 			self.c.State().GetRepoState().GetScreenMode(),
 		),
 	)
@@ -53,7 +53,7 @@ func (self *ScreenModeActions) rerenderView(view *gocui.View) {
 	context.HandleRender()
 }
 
-func nextIntInCycle(sl []types.WindowMaximisation, current types.WindowMaximisation) types.WindowMaximisation {
+func nextIntInCycle(sl []types.ScreenMode, current types.ScreenMode) types.ScreenMode {
 	for i, val := range sl {
 		if val == current {
 			if i == len(sl)-1 {
@@ -65,7 +65,7 @@ func nextIntInCycle(sl []types.WindowMaximisation, current types.WindowMaximisat
 	return sl[0]
 }
 
-func prevIntInCycle(sl []types.WindowMaximisation, current types.WindowMaximisation) types.WindowMaximisation {
+func prevIntInCycle(sl []types.ScreenMode, current types.ScreenMode) types.ScreenMode {
 	for i, val := range sl {
 		if val == current {
 			if i > 0 {

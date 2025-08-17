@@ -38,10 +38,10 @@ func NewUploadPackRequestFromCapabilities(adv *capability.List) *UploadPackReque
 	}
 }
 
-// IsEmpty a request if empty if Haves are contained in the Wants, or if Wants
-// length is zero
+// IsEmpty returns whether a request is empty - it is empty if Haves are contained
+// in the Wants, or if Wants length is zero, and we don't have any shallows
 func (r *UploadPackRequest) IsEmpty() bool {
-	return isSubset(r.Wants, r.Haves)
+	return isSubset(r.Wants, r.Haves) && len(r.Shallows) == 0
 }
 
 func isSubset(needle []plumbing.Hash, haystack []plumbing.Hash) bool {

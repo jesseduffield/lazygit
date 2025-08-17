@@ -2,7 +2,7 @@
 
 ## The use-case
 
-This topic deserves its own doc because there there are a few touch points for it. We have a use-case for knowing when Lazygit is idle or busy because integration tests follow the following process:
+This topic deserves its own doc because there are a few touch points for it. We have a use-case for knowing when Lazygit is idle or busy because integration tests follow the following process:
 1) press a key
 2) wait until Lazygit is idle
 3) run assertion / press another key

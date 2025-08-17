@@ -1,7 +1,6 @@
 package oscommands
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -13,7 +12,6 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/atotto/clipboard"
-	"github.com/jesseduffield/kill"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -35,13 +33,12 @@ type OSCommand struct {
 
 // Platform stores the os state
 type Platform struct {
-	OS                  string
-	Shell               string
-	InteractiveShell    string
-	ShellArg            string
-	InteractiveShellArg string
-	OpenCommand         string
-	OpenLinkCommand     string
+	OS                          string
+	Shell                       string
+	ShellArg                    string
+	PrefixForShellFunctionsFile string
+	OpenCommand                 string
+	OpenLinkCommand             string
 }
 
 // NewOSCommand os command runner
@@ -82,25 +79,17 @@ func FileType(path string) string {
 func (c *OSCommand) OpenFile(filename string) error {
 	commandTemplate := c.UserConfig().OS.Open
 	if commandTemplate == "" {
-		// Legacy support
-		commandTemplate = c.UserConfig().OS.OpenCommand
-	}
-	if commandTemplate == "" {
 		commandTemplate = config.GetPlatformDefaultConfig().Open
 	}
 	templateValues := map[string]string{
 		"filename": c.Quote(filename),
 	}
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	return c.Cmd.NewShell(command).Run()
+	return c.Cmd.NewShell(command, c.UserConfig().OS.ShellFunctionsFile).Run()
 }
 
 func (c *OSCommand) OpenLink(link string) error {
 	commandTemplate := c.UserConfig().OS.OpenLink
-	if commandTemplate == "" {
-		// Legacy support
-		commandTemplate = c.UserConfig().OS.OpenLinkCommand
-	}
 	if commandTemplate == "" {
 		commandTemplate = config.GetPlatformDefaultConfig().OpenLink
 	}
@@ -109,7 +98,7 @@ func (c *OSCommand) OpenLink(link string) error {
 	}
 
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	return c.Cmd.NewShell(command).Run()
+	return c.Cmd.NewShell(command, c.UserConfig().OS.ShellFunctionsFile).Run()
 }
 
 // Quote wraps a message in platform-specific quotation marks
@@ -209,13 +198,13 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 }
 
 // PipeCommands runs a heap of commands and pipes their inputs/outputs together like A | B | C
-func (c *OSCommand) PipeCommands(cmdObjs ...ICmdObj) error {
-	cmds := lo.Map(cmdObjs, func(cmdObj ICmdObj, _ int) *exec.Cmd {
+func (c *OSCommand) PipeCommands(cmdObjs ...*CmdObj) error {
+	cmds := lo.Map(cmdObjs, func(cmdObj *CmdObj, _ int) *exec.Cmd {
 		return cmdObj.GetCmd()
 	})
 
 	logCmdStr := strings.Join(
-		lo.Map(cmdObjs, func(cmdObj ICmdObj, _ int) string {
+		lo.Map(cmdObjs, func(cmdObj *CmdObj, _ int) string {
 			return cmdObj.ToString()
 		}),
 		" | ",
@@ -223,7 +212,7 @@ func (c *OSCommand) PipeCommands(cmdObjs ...ICmdObj) error {
 
 	c.LogCommand(logCmdStr, true)
 
-	for i := 0; i < len(cmds)-1; i++ {
+	for i := range len(cmds) - 1 {
 		stdout, err := cmds[i].StdoutPipe()
 		if err != nil {
 			return err
@@ -273,18 +262,8 @@ func (c *OSCommand) PipeCommands(cmdObjs ...ICmdObj) error {
 	return nil
 }
 
-// Kill kills a process. If the process has Setpgid == true, then we have anticipated that it might spawn its own child processes, so we've given it a process group ID (PGID) equal to its process id (PID) and given its child processes will inherit the PGID, we can kill that group, rather than killing the process itself.
-func Kill(cmd *exec.Cmd) error {
-	return kill.Kill(cmd)
-}
-
-// PrepareForChildren sets Setpgid to true on the cmd, so that when we run it as a subprocess, we can kill its group rather than the process itself. This is because some commands, like `docker-compose logs` spawn multiple children processes, and killing the parent process isn't sufficient for killing those child processes. We set the group id here, and then in subprocess.go we check if the group id is set and if so, we kill the whole group rather than just the one process.
-func PrepareForChildren(cmd *exec.Cmd) {
-	kill.PrepareForChildren(cmd)
-}
-
 func (c *OSCommand) CopyToClipboard(str string) error {
-	escaped := strings.Replace(str, "\n", "\\n", -1)
+	escaped := strings.ReplaceAll(str, "\n", "\\n")
 	truncated := utils.TruncateWithEllipsis(escaped, 40)
 
 	msg := utils.ResolvePlaceholderString(
@@ -298,7 +277,7 @@ func (c *OSCommand) CopyToClipboard(str string) error {
 		cmdStr := utils.ResolvePlaceholderString(c.UserConfig().OS.CopyToClipboardCmd, map[string]string{
 			"text": c.Cmd.Quote(str),
 		})
-		return c.Cmd.NewShell(cmdStr).Run()
+		return c.Cmd.NewShell(cmdStr, c.UserConfig().OS.ShellFunctionsFile).Run()
 	}
 
 	return clipboard.WriteAll(str)
@@ -309,7 +288,7 @@ func (c *OSCommand) PasteFromClipboard() (string, error) {
 	var err error
 	if c.UserConfig().OS.CopyToClipboardCmd != "" {
 		cmdStr := c.UserConfig().OS.ReadFromClipboardCmd
-		s, err = c.Cmd.NewShell(cmdStr).RunWithOutput()
+		s, err = c.Cmd.NewShell(cmdStr, c.UserConfig().OS.ShellFunctionsFile).RunWithOutput()
 	} else {
 		s, err = clipboard.ReadAll()
 	}
@@ -348,16 +327,4 @@ func GetLazygitPath() string {
 		ex = os.Args[0] // fallback to the first call argument if needed
 	}
 	return `"` + filepath.ToSlash(ex) + `"`
-}
-
-func (c *OSCommand) UpdateWindowTitle() error {
-	if c.Platform.OS != "windows" {
-		return nil
-	}
-	path, getWdErr := os.Getwd()
-	if getWdErr != nil {
-		return getWdErr
-	}
-	argString := fmt.Sprint("title ", filepath.Base(path), " - Lazygit")
-	return c.Cmd.NewShell(argString).Run()
 }

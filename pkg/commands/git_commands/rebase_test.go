@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
@@ -54,16 +55,6 @@ func TestRebaseRebaseBranch(t *testing.T) {
 				assert.NoError(t, err)
 			},
 		},
-		{
-			testName:   "successful rebase (< 2.22.0)",
-			arg:        "master",
-			gitVersion: &GitVersion{2, 21, 9, ""},
-			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"rebase", "--interactive", "--autostash", "--keep-empty", "--no-autosquash", "master"}, "", nil),
-			test: func(err error) {
-				assert.NoError(t, err)
-			},
-		},
 	}
 
 	for _, s := range scenarios {
@@ -78,7 +69,7 @@ func TestRebaseRebaseBranch(t *testing.T) {
 // environment variables that suppress an interactive editor
 func TestRebaseSkipEditorCommand(t *testing.T) {
 	cmdArgs := []string{"git", "blah"}
-	runner := oscommands.NewFakeRunner(t).ExpectFunc("matches editor env var", func(cmdObj oscommands.ICmdObj) bool {
+	runner := oscommands.NewFakeRunner(t).ExpectFunc("matches editor env var", func(cmdObj *oscommands.CmdObj) bool {
 		assert.EqualValues(t, cmdArgs, cmdObj.Args())
 		envVars := cmdObj.GetEnvVars()
 		for _, regexStr := range []string{
@@ -107,7 +98,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 	type scenario struct {
 		testName               string
 		gitConfigMockResponses map[string]string
-		commits                []*models.Commit
+		commitOpts             []models.NewCommitOpts
 		commitIndex            int
 		fileName               []string
 		runner                 *oscommands.FakeCmdObjRunner
@@ -118,7 +109,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 		{
 			testName:               "returns error when index outside of range of commits",
 			gitConfigMockResponses: nil,
-			commits:                []*models.Commit{},
+			commitOpts:             []models.NewCommitOpts{},
 			commitIndex:            0,
 			fileName:               []string{"test999.txt"},
 			runner:                 oscommands.NewFakeRunner(t),
@@ -128,8 +119,8 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 		},
 		{
 			testName:               "returns error when using gpg",
-			gitConfigMockResponses: map[string]string{"commit.gpgsign": "true"},
-			commits:                []*models.Commit{{Name: "commit", Hash: "123456"}},
+			gitConfigMockResponses: map[string]string{"commit.gpgSign": "true"},
+			commitOpts:             []models.NewCommitOpts{{Name: "commit", Hash: "123456"}},
 			commitIndex:            0,
 			fileName:               []string{"test999.txt"},
 			runner:                 oscommands.NewFakeRunner(t),
@@ -140,7 +131,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 		{
 			testName:               "checks out file if it already existed",
 			gitConfigMockResponses: nil,
-			commits: []*models.Commit{
+			commitOpts: []models.NewCommitOpts{
 				{Name: "commit", Hash: "123456"},
 				{Name: "commit2", Hash: "abcdef"},
 			},
@@ -150,7 +141,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 				ExpectGitArgs([]string{"rebase", "--interactive", "--autostash", "--keep-empty", "--no-autosquash", "--rebase-merges", "abcdef"}, "", nil).
 				ExpectGitArgs([]string{"cat-file", "-e", "HEAD^:test999.txt"}, "", nil).
 				ExpectGitArgs([]string{"checkout", "HEAD^", "--", "test999.txt"}, "", nil).
-				ExpectGitArgs([]string{"commit", "--amend", "--no-edit", "--allow-empty"}, "", nil).
+				ExpectGitArgs([]string{"commit", "--amend", "--no-edit", "--allow-empty", "--allow-empty-message"}, "", nil).
 				ExpectGitArgs([]string{"rebase", "--continue"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
@@ -168,7 +159,11 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 				gitConfig:  git_config.NewFakeGitConfig(s.gitConfigMockResponses),
 			})
 
-			s.test(instance.DiscardOldFileChanges(s.commits, s.commitIndex, s.fileName))
+			hashPool := &utils.StringPool{}
+			commits := lo.Map(s.commitOpts,
+				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
+
+			s.test(instance.DiscardOldFileChanges(commits, s.commitIndex, s.fileName))
 			s.runner.CheckForMissingCalls()
 		})
 	}

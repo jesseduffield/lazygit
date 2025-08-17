@@ -9,7 +9,6 @@ var ForcePushTriangular = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Push to a remote, requiring a force push because the branch is behind the remote push branch but not the upstream",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	GitVersion:   AtLeast("2.22.0"),
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.SetConfig("push.default", "current")

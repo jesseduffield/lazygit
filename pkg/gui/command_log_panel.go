@@ -48,7 +48,7 @@ func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {
 		textStyle = style.FgMagenta
 	}
 	gui.GuiLog = append(gui.GuiLog, cmdStr)
-	indentedCmdStr := "  " + strings.Replace(cmdStr, "\n", "\n  ", -1)
+	indentedCmdStr := "  " + strings.ReplaceAll(cmdStr, "\n", "\n  ")
 	fmt.Fprint(gui.Views.Extras, "\n"+textStyle.Sprint(indentedCmdStr))
 }
 
@@ -141,9 +141,9 @@ func (gui *Gui) getRandomTip() string {
 			formattedKey(config.Universal.NextPage),
 		),
 		fmt.Sprintf(
-			"You can jump to the top/bottom of a panel using '%s' and '%s'",
-			formattedKey(config.Universal.GotoTop),
-			formattedKey(config.Universal.GotoBottom),
+			"You can jump to the top/bottom of a panel using '%s (or %s)' and '%s (or %s)'",
+			formattedKey(config.Universal.GotoTop), formattedKey(config.Universal.GotoTopAlt),
+			formattedKey(config.Universal.GotoBottom), formattedKey(config.Universal.GotoBottomAlt),
 		),
 		fmt.Sprintf(
 			"To collapse/expand a directory, press '%s'",
@@ -167,7 +167,7 @@ func (gui *Gui) getRandomTip() string {
 
 		// general advice
 		"`git commit` is really just the programmer equivalent of saving your game. Always do it before embarking on an ambitious change!",
-		"Try to separate commits that refactor code from commits that add new functionality: if they're squashed into the one commit, it can be hard to spot what's new.",
+		"Try to separate commits that refactor code from commits that add new functionality: if they're squashed into one commit, it can be hard to spot what's new.",
 		"If you ever want to experiment, it's easy to create a new branch off your current one and go nuts, then delete it afterwards",
 		"Always read through the diff of your changes before assigning somebody to review your code. Better for you to catch any silly mistakes than your colleagues!",
 		"If something goes wrong, you can always checkout a commit from your reflog to return to an earlier state",

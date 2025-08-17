@@ -319,8 +319,12 @@ const (
 	AUDIT_INTEGRITY_POLICY_RULE                 = 0x70f
 	AUDIT_INTEGRITY_RULE                        = 0x70d
 	AUDIT_INTEGRITY_STATUS                      = 0x70a
+	AUDIT_INTEGRITY_USERSPACE                   = 0x710
 	AUDIT_IPC                                   = 0x517
 	AUDIT_IPC_SET_PERM                          = 0x51f
+	AUDIT_IPE_ACCESS                            = 0x58c
+	AUDIT_IPE_CONFIG_CHANGE                     = 0x58d
+	AUDIT_IPE_POLICY_LOAD                       = 0x58e
 	AUDIT_KERNEL                                = 0x7d0
 	AUDIT_KERNEL_OTHER                          = 0x524
 	AUDIT_KERN_MODULE                           = 0x532
@@ -489,12 +493,14 @@ const (
 	BPF_F_ID                                    = 0x20
 	BPF_F_NETFILTER_IP_DEFRAG                   = 0x1
 	BPF_F_QUERY_EFFECTIVE                       = 0x1
+	BPF_F_REDIRECT_FLAGS                        = 0x19
 	BPF_F_REPLACE                               = 0x4
 	BPF_F_SLEEPABLE                             = 0x10
 	BPF_F_STRICT_ALIGNMENT                      = 0x1
 	BPF_F_TEST_REG_INVARIANTS                   = 0x80
 	BPF_F_TEST_RND_HI32                         = 0x4
 	BPF_F_TEST_RUN_ON_CPU                       = 0x1
+	BPF_F_TEST_SKB_CHECKSUM_COMPLETE            = 0x4
 	BPF_F_TEST_STATE_FREQ                       = 0x8
 	BPF_F_TEST_XDP_LIVE_FRAMES                  = 0x2
 	BPF_F_XDP_DEV_BOUND_ONLY                    = 0x40
@@ -838,9 +844,9 @@ const (
 	DM_UUID_FLAG                                = 0x4000
 	DM_UUID_LEN                                 = 0x81
 	DM_VERSION                                  = 0xc138fd00
-	DM_VERSION_EXTRA                            = "-ioctl (2023-03-01)"
+	DM_VERSION_EXTRA                            = "-ioctl (2025-01-17)"
 	DM_VERSION_MAJOR                            = 0x4
-	DM_VERSION_MINOR                            = 0x30
+	DM_VERSION_MINOR                            = 0x31
 	DM_VERSION_PATCHLEVEL                       = 0x0
 	DT_BLK                                      = 0x6
 	DT_CHR                                      = 0x2
@@ -936,6 +942,8 @@ const (
 	ETHER_FLOW                                  = 0x12
 	ETHTOOL_BUSINFO_LEN                         = 0x20
 	ETHTOOL_EROMVERS_LEN                        = 0x20
+	ETHTOOL_FAMILY_NAME                         = "ethtool"
+	ETHTOOL_FAMILY_VERSION                      = 0x1
 	ETHTOOL_FEC_AUTO                            = 0x2
 	ETHTOOL_FEC_BASER                           = 0x10
 	ETHTOOL_FEC_LLRS                            = 0x20
@@ -1165,6 +1173,7 @@ const (
 	EXTA                                        = 0xe
 	EXTB                                        = 0xf
 	F2FS_SUPER_MAGIC                            = 0xf2f52010
+	FALLOC_FL_ALLOCATE_RANGE                    = 0x0
 	FALLOC_FL_COLLAPSE_RANGE                    = 0x8
 	FALLOC_FL_INSERT_RANGE                      = 0x20
 	FALLOC_FL_KEEP_SIZE                         = 0x1
@@ -1197,6 +1206,9 @@ const (
 	FAN_DENY                                    = 0x2
 	FAN_ENABLE_AUDIT                            = 0x40
 	FAN_EPIDFD                                  = -0x2
+	FAN_ERRNO_BITS                              = 0x8
+	FAN_ERRNO_MASK                              = 0xff
+	FAN_ERRNO_SHIFT                             = 0x18
 	FAN_EVENT_INFO_TYPE_DFID                    = 0x3
 	FAN_EVENT_INFO_TYPE_DFID_NAME               = 0x2
 	FAN_EVENT_INFO_TYPE_ERROR                   = 0x5
@@ -1204,6 +1216,7 @@ const (
 	FAN_EVENT_INFO_TYPE_NEW_DFID_NAME           = 0xc
 	FAN_EVENT_INFO_TYPE_OLD_DFID_NAME           = 0xa
 	FAN_EVENT_INFO_TYPE_PIDFD                   = 0x4
+	FAN_EVENT_INFO_TYPE_RANGE                   = 0x6
 	FAN_EVENT_METADATA_LEN                      = 0x18
 	FAN_EVENT_ON_CHILD                          = 0x8000000
 	FAN_FS_ERROR                                = 0x8000
@@ -1234,11 +1247,13 @@ const (
 	FAN_OPEN_EXEC                               = 0x1000
 	FAN_OPEN_EXEC_PERM                          = 0x40000
 	FAN_OPEN_PERM                               = 0x10000
+	FAN_PRE_ACCESS                              = 0x100000
 	FAN_Q_OVERFLOW                              = 0x4000
 	FAN_RENAME                                  = 0x10000000
 	FAN_REPORT_DFID_NAME                        = 0xc00
 	FAN_REPORT_DFID_NAME_TARGET                 = 0x1e00
 	FAN_REPORT_DIR_FID                          = 0x400
+	FAN_REPORT_FD_ERROR                         = 0x2000
 	FAN_REPORT_FID                              = 0x200
 	FAN_REPORT_NAME                             = 0x800
 	FAN_REPORT_PIDFD                            = 0x80
@@ -1324,8 +1339,10 @@ const (
 	FUSE_SUPER_MAGIC                            = 0x65735546
 	FUTEXFS_SUPER_MAGIC                         = 0xbad1dea
 	F_ADD_SEALS                                 = 0x409
+	F_CREATED_QUERY                             = 0x404
 	F_DUPFD                                     = 0x0
 	F_DUPFD_CLOEXEC                             = 0x406
+	F_DUPFD_QUERY                               = 0x403
 	F_EXLCK                                     = 0x4
 	F_GETFD                                     = 0x1
 	F_GETFL                                     = 0x3
@@ -1545,6 +1562,7 @@ const (
 	IPPROTO_ROUTING                             = 0x2b
 	IPPROTO_RSVP                                = 0x2e
 	IPPROTO_SCTP                                = 0x84
+	IPPROTO_SMC                                 = 0x100
 	IPPROTO_TCP                                 = 0x6
 	IPPROTO_TP                                  = 0x1d
 	IPPROTO_UDP                                 = 0x11
@@ -1617,6 +1635,8 @@ const (
 	IPV6_UNICAST_IF                             = 0x4c
 	IPV6_USER_FLOW                              = 0xe
 	IPV6_V6ONLY                                 = 0x1a
+	IPV6_VERSION                                = 0x60
+	IPV6_VERSION_MASK                           = 0xf0
 	IPV6_XFRM_POLICY                            = 0x23
 	IP_ADD_MEMBERSHIP                           = 0x23
 	IP_ADD_SOURCE_MEMBERSHIP                    = 0x27
@@ -1798,6 +1818,8 @@ const (
 	LANDLOCK_ACCESS_NET_BIND_TCP                = 0x1
 	LANDLOCK_ACCESS_NET_CONNECT_TCP             = 0x2
 	LANDLOCK_CREATE_RULESET_VERSION             = 0x1
+	LANDLOCK_SCOPE_ABSTRACT_UNIX_SOCKET         = 0x1
+	LANDLOCK_SCOPE_SIGNAL                       = 0x2
 	LINUX_REBOOT_CMD_CAD_OFF                    = 0x0
 	LINUX_REBOOT_CMD_CAD_ON                     = 0x89abcdef
 	LINUX_REBOOT_CMD_HALT                       = 0xcdef0123
@@ -1859,6 +1881,7 @@ const (
 	MADV_UNMERGEABLE                            = 0xd
 	MADV_WILLNEED                               = 0x3
 	MADV_WIPEONFORK                             = 0x12
+	MAP_DROPPABLE                               = 0x8
 	MAP_FILE                                    = 0x0
 	MAP_FIXED                                   = 0x10
 	MAP_FIXED_NOREPLACE                         = 0x100000
@@ -1922,6 +1945,8 @@ const (
 	MNT_EXPIRE                                  = 0x4
 	MNT_FORCE                                   = 0x1
 	MNT_ID_REQ_SIZE_VER0                        = 0x18
+	MNT_ID_REQ_SIZE_VER1                        = 0x20
+	MNT_NS_INFO_SIZE_VER0                       = 0x10
 	MODULE_INIT_COMPRESSED_FILE                 = 0x4
 	MODULE_INIT_IGNORE_MODVERSIONS              = 0x1
 	MODULE_INIT_IGNORE_VERMAGIC                 = 0x2
@@ -1957,6 +1982,7 @@ const (
 	MSG_PEEK                                    = 0x2
 	MSG_PROXY                                   = 0x10
 	MSG_RST                                     = 0x1000
+	MSG_SOCK_DEVMEM                             = 0x2000000
 	MSG_SYN                                     = 0x400
 	MSG_TRUNC                                   = 0x20
 	MSG_TRYHARD                                 = 0x4
@@ -2073,6 +2099,7 @@ const (
 	NFC_ATR_REQ_MAXSIZE                         = 0x40
 	NFC_ATR_RES_GB_MAXSIZE                      = 0x2f
 	NFC_ATR_RES_MAXSIZE                         = 0x40
+	NFC_ATS_MAXSIZE                             = 0x14
 	NFC_COMM_ACTIVE                             = 0x0
 	NFC_COMM_PASSIVE                            = 0x1
 	NFC_DEVICE_NAME_MAXSIZE                     = 0x8
@@ -2153,6 +2180,7 @@ const (
 	NFNL_SUBSYS_QUEUE                           = 0x3
 	NFNL_SUBSYS_ULOG                            = 0x4
 	NFS_SUPER_MAGIC                             = 0x6969
+	NFT_BITWISE_BOOL                            = 0x0
 	NFT_CHAIN_FLAGS                             = 0x7
 	NFT_CHAIN_MAXNAMELEN                        = 0x100
 	NFT_CT_MAX                                  = 0x17
@@ -2187,7 +2215,7 @@ const (
 	NFT_REG_SIZE                                = 0x10
 	NFT_REJECT_ICMPX_MAX                        = 0x3
 	NFT_RT_MAX                                  = 0x4
-	NFT_SECMARK_CTX_MAXLEN                      = 0x100
+	NFT_SECMARK_CTX_MAXLEN                      = 0x1000
 	NFT_SET_MAXNAMELEN                          = 0x100
 	NFT_SOCKET_MAX                              = 0x3
 	NFT_TABLE_F_MASK                            = 0x7
@@ -2356,9 +2384,11 @@ const (
 	PERF_MEM_LVLNUM_IO                          = 0xa
 	PERF_MEM_LVLNUM_L1                          = 0x1
 	PERF_MEM_LVLNUM_L2                          = 0x2
+	PERF_MEM_LVLNUM_L2_MHB                      = 0x5
 	PERF_MEM_LVLNUM_L3                          = 0x3
 	PERF_MEM_LVLNUM_L4                          = 0x4
 	PERF_MEM_LVLNUM_LFB                         = 0xc
+	PERF_MEM_LVLNUM_MSC                         = 0x6
 	PERF_MEM_LVLNUM_NA                          = 0xf
 	PERF_MEM_LVLNUM_PMEM                        = 0xe
 	PERF_MEM_LVLNUM_RAM                         = 0xd
@@ -2431,6 +2461,7 @@ const (
 	PRIO_PGRP                                   = 0x1
 	PRIO_PROCESS                                = 0x0
 	PRIO_USER                                   = 0x2
+	PROCFS_IOCTL_MAGIC                          = 'f'
 	PROC_SUPER_MAGIC                            = 0x9fa0
 	PROT_EXEC                                   = 0x4
 	PROT_GROWSDOWN                              = 0x1000000
@@ -2478,6 +2509,7 @@ const (
 	PR_GET_PDEATHSIG                            = 0x2
 	PR_GET_SECCOMP                              = 0x15
 	PR_GET_SECUREBITS                           = 0x1b
+	PR_GET_SHADOW_STACK_STATUS                  = 0x4a
 	PR_GET_SPECULATION_CTRL                     = 0x34
 	PR_GET_TAGGED_ADDR_CTRL                     = 0x38
 	PR_GET_THP_DISABLE                          = 0x2a
@@ -2486,6 +2518,7 @@ const (
 	PR_GET_TIMING                               = 0xd
 	PR_GET_TSC                                  = 0x19
 	PR_GET_UNALIGN                              = 0x5
+	PR_LOCK_SHADOW_STACK_STATUS                 = 0x4c
 	PR_MCE_KILL                                 = 0x21
 	PR_MCE_KILL_CLEAR                           = 0x0
 	PR_MCE_KILL_DEFAULT                         = 0x2
@@ -2512,6 +2545,8 @@ const (
 	PR_PAC_GET_ENABLED_KEYS                     = 0x3d
 	PR_PAC_RESET_KEYS                           = 0x36
 	PR_PAC_SET_ENABLED_KEYS                     = 0x3c
+	PR_PMLEN_MASK                               = 0x7f000000
+	PR_PMLEN_SHIFT                              = 0x18
 	PR_PPC_DEXCR_CTRL_CLEAR                     = 0x4
 	PR_PPC_DEXCR_CTRL_CLEAR_ONEXEC              = 0x10
 	PR_PPC_DEXCR_CTRL_EDITABLE                  = 0x1
@@ -2579,6 +2614,7 @@ const (
 	PR_SET_PTRACER                              = 0x59616d61
 	PR_SET_SECCOMP                              = 0x16
 	PR_SET_SECUREBITS                           = 0x1c
+	PR_SET_SHADOW_STACK_STATUS                  = 0x4b
 	PR_SET_SPECULATION_CTRL                     = 0x35
 	PR_SET_SYSCALL_USER_DISPATCH                = 0x3b
 	PR_SET_TAGGED_ADDR_CTRL                     = 0x37
@@ -2589,6 +2625,9 @@ const (
 	PR_SET_UNALIGN                              = 0x6
 	PR_SET_VMA                                  = 0x53564d41
 	PR_SET_VMA_ANON_NAME                        = 0x0
+	PR_SHADOW_STACK_ENABLE                      = 0x1
+	PR_SHADOW_STACK_PUSH                        = 0x4
+	PR_SHADOW_STACK_WRITE                       = 0x2
 	PR_SME_GET_VL                               = 0x40
 	PR_SME_SET_VL                               = 0x3f
 	PR_SME_SET_VL_ONEXEC                        = 0x40000
@@ -2620,6 +2659,28 @@ const (
 	PR_UNALIGN_NOPRINT                          = 0x1
 	PR_UNALIGN_SIGBUS                           = 0x2
 	PSTOREFS_MAGIC                              = 0x6165676c
+	PTP_CLK_MAGIC                               = '='
+	PTP_ENABLE_FEATURE                          = 0x1
+	PTP_EXTTS_EDGES                             = 0x6
+	PTP_EXTTS_EVENT_VALID                       = 0x1
+	PTP_EXTTS_V1_VALID_FLAGS                    = 0x7
+	PTP_EXTTS_VALID_FLAGS                       = 0x1f
+	PTP_EXT_OFFSET                              = 0x10
+	PTP_FALLING_EDGE                            = 0x4
+	PTP_MAX_SAMPLES                             = 0x19
+	PTP_PEROUT_DUTY_CYCLE                       = 0x2
+	PTP_PEROUT_ONE_SHOT                         = 0x1
+	PTP_PEROUT_PHASE                            = 0x4
+	PTP_PEROUT_V1_VALID_FLAGS                   = 0x0
+	PTP_PEROUT_VALID_FLAGS                      = 0x7
+	PTP_PIN_GETFUNC                             = 0xc0603d06
+	PTP_PIN_GETFUNC2                            = 0xc0603d0f
+	PTP_RISING_EDGE                             = 0x2
+	PTP_STRICT_FLAGS                            = 0x8
+	PTP_SYS_OFFSET_EXTENDED                     = 0xc4c03d09
+	PTP_SYS_OFFSET_EXTENDED2                    = 0xc4c03d12
+	PTP_SYS_OFFSET_PRECISE                      = 0xc0403d08
+	PTP_SYS_OFFSET_PRECISE2                     = 0xc0403d11
 	PTRACE_ATTACH                               = 0x10
 	PTRACE_CONT                                 = 0x7
 	PTRACE_DETACH                               = 0x11
@@ -2734,7 +2795,7 @@ const (
 	RTAX_UNSPEC                                 = 0x0
 	RTAX_WINDOW                                 = 0x3
 	RTA_ALIGNTO                                 = 0x4
-	RTA_MAX                                     = 0x1e
+	RTA_MAX                                     = 0x1f
 	RTCF_DIRECTSRC                              = 0x4000000
 	RTCF_DOREDIRECT                             = 0x1000000
 	RTCF_LOG                                    = 0x2000000
@@ -2811,10 +2872,12 @@ const (
 	RTM_DELACTION                               = 0x31
 	RTM_DELADDR                                 = 0x15
 	RTM_DELADDRLABEL                            = 0x49
+	RTM_DELANYCAST                              = 0x3d
 	RTM_DELCHAIN                                = 0x65
 	RTM_DELLINK                                 = 0x11
 	RTM_DELLINKPROP                             = 0x6d
 	RTM_DELMDB                                  = 0x55
+	RTM_DELMULTICAST                            = 0x39
 	RTM_DELNEIGH                                = 0x1d
 	RTM_DELNETCONF                              = 0x51
 	RTM_DELNEXTHOP                              = 0x69
@@ -2864,11 +2927,13 @@ const (
 	RTM_NEWACTION                               = 0x30
 	RTM_NEWADDR                                 = 0x14
 	RTM_NEWADDRLABEL                            = 0x48
+	RTM_NEWANYCAST                              = 0x3c
 	RTM_NEWCACHEREPORT                          = 0x60
 	RTM_NEWCHAIN                                = 0x64
 	RTM_NEWLINK                                 = 0x10
 	RTM_NEWLINKPROP                             = 0x6c
 	RTM_NEWMDB                                  = 0x54
+	RTM_NEWMULTICAST                            = 0x38
 	RTM_NEWNDUSEROPT                            = 0x44
 	RTM_NEWNEIGH                                = 0x1c
 	RTM_NEWNEIGHTBL                             = 0x40
@@ -2876,7 +2941,6 @@ const (
 	RTM_NEWNEXTHOP                              = 0x68
 	RTM_NEWNEXTHOPBUCKET                        = 0x74
 	RTM_NEWNSID                                 = 0x58
-	RTM_NEWNVLAN                                = 0x70
 	RTM_NEWPREFIX                               = 0x34
 	RTM_NEWQDISC                                = 0x24
 	RTM_NEWROUTE                                = 0x18
@@ -2885,6 +2949,7 @@ const (
 	RTM_NEWTCLASS                               = 0x28
 	RTM_NEWTFILTER                              = 0x2c
 	RTM_NEWTUNNEL                               = 0x78
+	RTM_NEWVLAN                                 = 0x70
 	RTM_NR_FAMILIES                             = 0x1b
 	RTM_NR_MSGTYPES                             = 0x6c
 	RTM_SETDCB                                  = 0x4f
@@ -2933,15 +2998,18 @@ const (
 	RUSAGE_SELF                                 = 0x0
 	RUSAGE_THREAD                               = 0x1
 	RWF_APPEND                                  = 0x10
+	RWF_ATOMIC                                  = 0x40
+	RWF_DONTCACHE                               = 0x80
 	RWF_DSYNC                                   = 0x2
 	RWF_HIPRI                                   = 0x1
 	RWF_NOAPPEND                                = 0x20
 	RWF_NOWAIT                                  = 0x8
-	RWF_SUPPORTED                               = 0x3f
+	RWF_SUPPORTED                               = 0xff
 	RWF_SYNC                                    = 0x4
 	RWF_WRITE_LIFE_NOT_SET                      = 0x0
 	SCHED_BATCH                                 = 0x3
 	SCHED_DEADLINE                              = 0x6
+	SCHED_EXT                                   = 0x7
 	SCHED_FIFO                                  = 0x1
 	SCHED_FLAG_ALL                              = 0x7f
 	SCHED_FLAG_DL_OVERRUN                       = 0x4
@@ -3210,11 +3278,13 @@ const (
 	STATX_ATTR_MOUNT_ROOT                       = 0x2000
 	STATX_ATTR_NODUMP                           = 0x40
 	STATX_ATTR_VERITY                           = 0x100000
+	STATX_ATTR_WRITE_ATOMIC                     = 0x400000
 	STATX_BASIC_STATS                           = 0x7ff
 	STATX_BLOCKS                                = 0x400
 	STATX_BTIME                                 = 0x800
 	STATX_CTIME                                 = 0x80
 	STATX_DIOALIGN                              = 0x2000
+	STATX_DIO_READ_ALIGN                        = 0x20000
 	STATX_GID                                   = 0x10
 	STATX_INO                                   = 0x100
 	STATX_MNT_ID                                = 0x1000
@@ -3226,6 +3296,7 @@ const (
 	STATX_SUBVOL                                = 0x8000
 	STATX_TYPE                                  = 0x1
 	STATX_UID                                   = 0x8
+	STATX_WRITE_ATOMIC                          = 0x10000
 	STATX__RESERVED                             = 0x80000000
 	SYNC_FILE_RANGE_WAIT_AFTER                  = 0x4
 	SYNC_FILE_RANGE_WAIT_BEFORE                 = 0x1
@@ -3265,7 +3336,7 @@ const (
 	TASKSTATS_GENL_NAME                         = "TASKSTATS"
 	TASKSTATS_GENL_VERSION                      = 0x1
 	TASKSTATS_TYPE_MAX                          = 0x6
-	TASKSTATS_VERSION                           = 0xe
+	TASKSTATS_VERSION                           = 0xf
 	TCIFLUSH                                    = 0x0
 	TCIOFF                                      = 0x2
 	TCIOFLUSH                                   = 0x2
@@ -3446,6 +3517,7 @@ const (
 	TP_STATUS_WRONG_FORMAT                      = 0x4
 	TRACEFS_MAGIC                               = 0x74726163
 	TS_COMM_LEN                                 = 0x20
+	UBI_IOCECNFO                                = 0xc01c6f06
 	UDF_SUPER_MAGIC                             = 0x15013346
 	UDP_CORK                                    = 0x1
 	UDP_ENCAP                                   = 0x64
@@ -3624,6 +3696,7 @@ const (
 	XDP_UMEM_PGOFF_COMPLETION_RING              = 0x180000000
 	XDP_UMEM_PGOFF_FILL_RING                    = 0x100000000
 	XDP_UMEM_REG                                = 0x4
+	XDP_UMEM_TX_METADATA_LEN                    = 0x4
 	XDP_UMEM_TX_SW_CSUM                         = 0x2
 	XDP_UMEM_UNALIGNED_CHUNK_FLAG               = 0x1
 	XDP_USE_NEED_WAKEUP                         = 0x8

@@ -23,7 +23,7 @@ var FetchPrune = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.SetBranchUpstream("master", "origin/master")
 		shell.SetBranchUpstream("branch_to_remove", "origin/branch_to_remove")
 
-		// # unbenownst to our test repo we're removing the branch on the remote, so upon
+		// # unbeknownst to our test repo we're removing the branch on the remote, so upon
 		// # fetching with prune: true we expect git to realise the remote branch is gone
 		shell.RemoveRemoteBranch("origin", "branch_to_remove")
 	},

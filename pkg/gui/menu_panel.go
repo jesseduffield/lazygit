@@ -43,6 +43,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 
 	gui.State.Contexts.Menu.SetMenuItems(opts.Items, opts.ColumnAlignment)
 	gui.State.Contexts.Menu.SetPrompt(opts.Prompt)
+	gui.State.Contexts.Menu.SetAllowFilteringKeybindings(opts.AllowFilteringKeybindings)
 	gui.State.Contexts.Menu.SetSelection(0)
 
 	gui.Views.Menu.Title = opts.Title
@@ -60,6 +61,6 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	gui.c.PostRefreshUpdate(gui.State.Contexts.Menu)
 
 	// TODO: ensure that if we're opened a menu from within a menu that it renders correctly
-	gui.c.Context().Push(gui.State.Contexts.Menu)
+	gui.c.Context().Push(gui.State.Contexts.Menu, types.OnFocusOpts{})
 	return nil
 }

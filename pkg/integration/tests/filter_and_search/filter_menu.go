@@ -48,7 +48,7 @@ var FilterMenu = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Keybindings")).
-					LineCount(GreaterThan(1))
+					LineCount(GreaterThan(2))
 			})
 	},
 })

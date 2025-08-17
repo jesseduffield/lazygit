@@ -35,13 +35,13 @@ func (self *SearchHelper) OpenFilterPrompt(context types.IFilterableContext) err
 
 	state.Context = context
 
-	self.searchPrefixView().SetContent(self.c.Tr.FilterPrefix)
+	self.searchPrefixView().SetContent(context.FilterPrefix(self.c.Tr))
 	promptView := self.promptView()
 	promptView.ClearTextArea()
 	self.OnPromptContentChanged("")
 	promptView.RenderTextArea()
 
-	self.c.Context().Push(self.c.Contexts().Search)
+	self.c.Context().Push(self.c.Contexts().Search, types.OnFocusOpts{})
 
 	return self.c.ResetKeybindings()
 }
@@ -58,7 +58,7 @@ func (self *SearchHelper) OpenSearchPrompt(context types.ISearchableContext) err
 	promptView.ClearTextArea()
 	promptView.RenderTextArea()
 
-	self.c.Context().Push(self.c.Contexts().Search)
+	self.c.Context().Push(self.c.Contexts().Search, types.OnFocusOpts{})
 
 	return self.c.ResetKeybindings()
 }
@@ -69,7 +69,7 @@ func (self *SearchHelper) DisplayFilterStatus(context types.IFilterableContext) 
 	state.Context = context
 	searchString := context.GetFilter()
 
-	self.searchPrefixView().SetContent(self.c.Tr.FilterPrefix)
+	self.searchPrefixView().SetContent(context.FilterPrefix(self.c.Tr))
 
 	promptView := self.promptView()
 	keybindingConfig := self.c.UserConfig().Keybinding

@@ -37,15 +37,17 @@ var SuggestionsPreset = NewIntegrationTest(NewIntegrationTestArgs{
 				},
 			},
 		}
+
+		cfg.GetUserConfig().Git.LocalBranchSortOrder = "alphabetical"
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().
 			Focus().
 			Lines(
 				Contains("branch-four").IsSelected(),
+				Contains("branch-one"),
 				Contains("branch-three"),
 				Contains("branch-two"),
-				Contains("branch-one"),
 			).
 			Press("a")
 
@@ -59,8 +61,8 @@ var SuggestionsPreset = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("branch-three"),
 				Contains("branch-four").IsSelected(),
-				Contains("branch-two"),
 				Contains("branch-one"),
+				Contains("branch-two"),
 			)
 	},
 })

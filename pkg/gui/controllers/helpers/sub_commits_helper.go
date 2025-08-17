@@ -11,23 +11,20 @@ type SubCommitsHelper struct {
 	c *HelperCommon
 
 	refreshHelper *RefreshHelper
-	setSubCommits func([]*models.Commit)
 }
 
 func NewSubCommitsHelper(
 	c *HelperCommon,
 	refreshHelper *RefreshHelper,
-	setSubCommits func([]*models.Commit),
 ) *SubCommitsHelper {
 	return &SubCommitsHelper{
 		c:             c,
 		refreshHelper: refreshHelper,
-		setSubCommits: setSubCommits,
 	}
 }
 
 type ViewSubCommitsOpts struct {
-	Ref                     types.Ref
+	Ref                     models.Ref
 	RefToShowDivergenceFrom string
 	TitleRef                string
 	Context                 types.Context
@@ -42,9 +39,10 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 			FilterAuthor:            self.c.Modes().Filtering.GetAuthor(),
 			IncludeRebaseCommits:    false,
 			RefName:                 opts.Ref.FullRefName(),
-			RefForPushedStatus:      opts.Ref.FullRefName(),
+			RefForPushedStatus:      opts.Ref,
 			RefToShowDivergenceFrom: opts.RefToShowDivergenceFrom,
 			MainBranches:            self.c.Model().MainBranches,
+			HashPool:                self.c.Model().HashPool,
 		},
 	)
 	if err != nil {
@@ -69,6 +67,13 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 
 	self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
 
-	self.c.Context().Push(self.c.Contexts().SubCommits)
+	self.c.Context().Push(self.c.Contexts().SubCommits, types.OnFocusOpts{})
 	return nil
+}
+
+func (self *SubCommitsHelper) setSubCommits(commits []*models.Commit) {
+	self.c.Mutexes().SubCommitsMutex.Lock()
+	defer self.c.Mutexes().SubCommitsMutex.Unlock()
+
+	self.c.Model().SubCommits = commits
 }

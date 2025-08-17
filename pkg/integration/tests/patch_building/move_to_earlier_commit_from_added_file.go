@@ -71,7 +71,7 @@ var MoveToEarlierCommitFromAddedFile = NewIntegrationTest(NewIntegrationTestArgs
 			SelectNextItem().
 			PressPrimaryAction() // choose the version with all three lines
 
-		t.Common().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved("rebase")
 
 		t.Views().Commits().
 			Focus().

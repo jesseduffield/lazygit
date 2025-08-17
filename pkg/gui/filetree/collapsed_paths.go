@@ -36,3 +36,8 @@ func (self *CollapsedPaths) ToggleCollapsed(path string) {
 		self.collapsedPaths.Add(path)
 	}
 }
+
+func (self *CollapsedPaths) ExpandAll() {
+	// Could be cleaner if Set had a Clear() method...
+	self.collapsedPaths.RemoveSlice(self.collapsedPaths.ToSlice())
+}

@@ -33,8 +33,8 @@ var bitbucketServiceDef = ServiceDefinition{
 
 var gitLabServiceDef = ServiceDefinition{
 	provider:                        "gitlab",
-	pullRequestURLIntoDefaultBranch: "/-/merge_requests/new?merge_request[source_branch]={{.From}}",
-	pullRequestURLIntoTargetBranch:  "/-/merge_requests/new?merge_request[source_branch]={{.From}}&merge_request[target_branch]={{.To}}",
+	pullRequestURLIntoDefaultBranch: "/-/merge_requests/new?merge_request%5Bsource_branch%5D={{.From}}",
+	pullRequestURLIntoTargetBranch:  "/-/merge_requests/new?merge_request%5Bsource_branch%5D={{.From}}&merge_request%5Btarget_branch%5D={{.To}}",
 	commitURL:                       "/-/commit/{{.CommitHash}}",
 	regexStrings:                    defaultUrlRegexStrings,
 	repoURLTemplate:                 defaultRepoURLTemplate,
@@ -46,8 +46,10 @@ var azdoServiceDef = ServiceDefinition{
 	pullRequestURLIntoTargetBranch:  "/pullrequestcreate?sourceRef={{.From}}&targetRef={{.To}}",
 	commitURL:                       "/commit/{{.CommitHash}}",
 	regexStrings: []string{
+		`^.+@vs-ssh\.visualstudio\.com[:/](?:v3/)?(?P<org>[^/]+)/(?P<project>[^/]+)/(?P<repo>[^/]+?)(?:\.git)?$`,
 		`^git@ssh.dev.azure.com.*/(?P<org>.*)/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
 		`^https://.*@dev.azure.com/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`,
+		`^https://.*/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`,
 	},
 	repoURLTemplate: "https://{{.webDomain}}/{{.org}}/{{.project}}/_git/{{.repo}}",
 }

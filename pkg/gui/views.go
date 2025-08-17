@@ -1,11 +1,14 @@
 package gui
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/samber/lo"
+	"golang.org/x/exp/slices"
 )
 
 type viewNameMapping struct {
@@ -76,7 +79,7 @@ func (gui *Gui) createAllViews() error {
 	var err error
 	for _, mapping := range gui.orderedViewNameMappings() {
 		*mapping.viewPtr, err = gui.prepareView(mapping.name)
-		if err != nil && !gocui.IsUnknownView(err) {
+		if err != nil && !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
 	}
@@ -86,7 +89,6 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.SearchPrefix.BgColor = gocui.ColorDefault
 	gui.Views.SearchPrefix.FgColor = gocui.ColorCyan
 	gui.Views.SearchPrefix.Frame = false
-	gui.c.SetViewContent(gui.Views.SearchPrefix, gui.Tr.SearchPrefix)
 
 	gui.Views.StatusSpacer1.Frame = false
 	gui.Views.StatusSpacer2.Frame = false
@@ -97,49 +99,19 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Search.Frame = false
 	gui.Views.Search.Editor = gocui.EditorFunc(gui.searchEditor)
 
-	gui.Views.Stash.Title = gui.c.Tr.StashTitle
-
-	gui.Views.Commits.Title = gui.c.Tr.CommitsTitle
-
-	gui.Views.CommitFiles.Title = gui.c.Tr.CommitFiles
-
-	gui.Views.Branches.Title = gui.c.Tr.BranchesTitle
-
-	gui.Views.Remotes.Title = gui.c.Tr.RemotesTitle
-
-	gui.Views.Worktrees.Title = gui.c.Tr.WorktreesTitle
-
-	gui.Views.Tags.Title = gui.c.Tr.TagsTitle
-
-	gui.Views.Files.Title = gui.c.Tr.FilesTitle
-
 	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.MergeConflicts} {
-		view.Title = gui.c.Tr.DiffTitle
 		view.Wrap = true
 		view.IgnoreCarriageReturns = true
 		view.UnderlineHyperLinksOnlyOnHover = true
 		view.AutoRenderHyperLinks = true
 	}
 
-	gui.Views.Staging.Title = gui.c.Tr.UnstagedChanges
 	gui.Views.Staging.Wrap = true
-
-	gui.Views.StagingSecondary.Title = gui.c.Tr.StagedChanges
 	gui.Views.StagingSecondary.Wrap = true
-
-	gui.Views.PatchBuilding.Title = gui.Tr.Patch
 	gui.Views.PatchBuilding.Wrap = true
-
-	gui.Views.PatchBuildingSecondary.Title = gui.Tr.CustomPatch
 	gui.Views.PatchBuildingSecondary.Wrap = true
-
-	gui.Views.MergeConflicts.Title = gui.c.Tr.MergeConflictsTitle
 	gui.Views.MergeConflicts.Wrap = false
-
-	gui.Views.Limit.Title = gui.c.Tr.NotEnoughSpace
 	gui.Views.Limit.Wrap = true
-
-	gui.Views.Status.Title = gui.c.Tr.StatusTitle
 
 	gui.Views.AppStatus.BgColor = gocui.ColorDefault
 	gui.Views.AppStatus.FgColor = gocui.ColorCyan
@@ -147,12 +119,10 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.AppStatus.Frame = false
 
 	gui.Views.CommitMessage.Visible = false
-	gui.Views.CommitMessage.Title = gui.c.Tr.CommitSummary
 	gui.Views.CommitMessage.Editable = true
 	gui.Views.CommitMessage.Editor = gocui.EditorFunc(gui.commitMessageEditor)
 
 	gui.Views.CommitDescription.Visible = false
-	gui.Views.CommitDescription.Title = gui.c.Tr.CommitDescriptionTitle
 	gui.Views.CommitDescription.Editable = true
 	gui.Views.CommitDescription.Editor = gocui.EditorFunc(gui.commitDescriptionEditor)
 
@@ -165,17 +135,16 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Menu.Visible = false
 
 	gui.Views.Tooltip.Visible = false
+	gui.Views.Tooltip.AutoRenderHyperLinks = true
 
 	gui.Views.Information.BgColor = gocui.ColorDefault
 	gui.Views.Information.FgColor = gocui.ColorGreen
 	gui.Views.Information.Frame = false
 
-	gui.Views.Extras.Title = gui.c.Tr.CommandLog
 	gui.Views.Extras.Autoscroll = true
 	gui.Views.Extras.Wrap = true
 	gui.Views.Extras.AutoRenderHyperLinks = true
 
-	gui.Views.Snake.Title = gui.c.Tr.SnakeTitle
 	gui.Views.Snake.FgColor = gocui.ColorGreen
 
 	return nil
@@ -190,6 +159,8 @@ func (gui *Gui) configureViewProperties() {
 		frameRunes = []rune{'─', '│', '╭', '╮', '╰', '╯'}
 	case "hidden":
 		frameRunes = []rune{' ', ' ', ' ', ' ', ' ', ' '}
+	case "bold":
+		frameRunes = []rune{'━', '┃', '┏', '┓', '┗', '┛'}
 	}
 
 	for _, mapping := range gui.orderedViewNameMappings() {
@@ -201,8 +172,32 @@ func (gui *Gui) configureViewProperties() {
 		(*mapping.viewPtr).InactiveViewSelBgColor = theme.GocuiInactiveViewSelectedLineBgColor
 	}
 
+	gui.c.SetViewContent(gui.Views.SearchPrefix, gui.c.Tr.SearchPrefix)
+
+	gui.Views.Stash.Title = gui.c.Tr.StashTitle
+	gui.Views.Commits.Title = gui.c.Tr.CommitsTitle
+	gui.Views.CommitFiles.Title = gui.c.Tr.CommitFiles
+	gui.Views.Branches.Title = gui.c.Tr.BranchesTitle
+	gui.Views.Remotes.Title = gui.c.Tr.RemotesTitle
+	gui.Views.Worktrees.Title = gui.c.Tr.WorktreesTitle
+	gui.Views.Tags.Title = gui.c.Tr.TagsTitle
+	gui.Views.Files.Title = gui.c.Tr.FilesTitle
+	gui.Views.PatchBuilding.Title = gui.c.Tr.Patch
+	gui.Views.PatchBuildingSecondary.Title = gui.c.Tr.CustomPatch
+	gui.Views.MergeConflicts.Title = gui.c.Tr.MergeConflictsTitle
+	gui.Views.Limit.Title = gui.c.Tr.NotEnoughSpace
+	gui.Views.Status.Title = gui.c.Tr.StatusTitle
+	gui.Views.Staging.Title = gui.c.Tr.UnstagedChanges
+	gui.Views.StagingSecondary.Title = gui.c.Tr.StagedChanges
+	gui.Views.CommitMessage.Title = gui.c.Tr.CommitSummary
+	gui.Views.CommitDescription.Title = gui.c.Tr.CommitDescriptionTitle
+	gui.Views.Extras.Title = gui.c.Tr.CommandLog
+	gui.Views.Snake.Title = gui.c.Tr.SnakeTitle
+
 	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.MergeConflicts} {
+		view.Title = gui.c.Tr.DiffTitle
 		view.CanScrollPastBottom = gui.c.UserConfig().Gui.ScrollPastBottom
+		view.TabWidth = gui.c.UserConfig().Gui.TabWidth
 	}
 
 	gui.Views.CommitDescription.FgColor = theme.GocuiDefaultTextColor
@@ -210,9 +205,15 @@ func (gui *Gui) configureViewProperties() {
 	gui.Views.CommitDescription.TextArea.AutoWrapWidth = gui.c.UserConfig().Git.Commit.AutoWrapWidth
 
 	if gui.c.UserConfig().Gui.ShowPanelJumps {
+		keyToTitlePrefix := func(key string) string {
+			if key == "<disabled>" {
+				return ""
+			}
+			return fmt.Sprintf("[%s]", key)
+		}
 		jumpBindings := gui.c.UserConfig().Keybinding.Universal.JumpToBlock
 		jumpLabels := lo.Map(jumpBindings, func(binding string, _ int) string {
-			return fmt.Sprintf("[%s]", binding)
+			return keyToTitlePrefix(binding)
 		})
 
 		gui.Views.Status.TitlePrefix = jumpLabels[0]
@@ -229,6 +230,8 @@ func (gui *Gui) configureViewProperties() {
 		gui.Views.ReflogCommits.TitlePrefix = jumpLabels[3]
 
 		gui.Views.Stash.TitlePrefix = jumpLabels[4]
+
+		gui.Views.Main.TitlePrefix = keyToTitlePrefix(gui.c.UserConfig().Keybinding.Universal.FocusMainView)
 	} else {
 		gui.Views.Status.TitlePrefix = ""
 
@@ -244,5 +247,23 @@ func (gui *Gui) configureViewProperties() {
 		gui.Views.ReflogCommits.TitlePrefix = ""
 
 		gui.Views.Stash.TitlePrefix = ""
+
+		gui.Views.Main.TitlePrefix = ""
+	}
+
+	for _, view := range gui.g.Views() {
+		// if the view is in our mapping, we'll set the tabs and the tab index
+		for _, values := range gui.viewTabMap() {
+			index := slices.IndexFunc(values, func(tabContext context.TabView) bool {
+				return tabContext.ViewName == view.Name()
+			})
+
+			if index != -1 {
+				view.Tabs = lo.Map(values, func(tabContext context.TabView, _ int) string {
+					return tabContext.Tab
+				})
+				view.TabIndex = index
+			}
+		}
 	}
 }

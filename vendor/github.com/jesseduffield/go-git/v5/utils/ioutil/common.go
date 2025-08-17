@@ -7,7 +7,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/jbenet/go-context/io"
+	ctxio "github.com/jbenet/go-context/io"
 )
 
 type readPeeker interface {
@@ -55,6 +55,28 @@ func NewReadCloser(r io.Reader, c io.Closer) io.ReadCloser {
 	return &readCloser{Reader: r, closer: c}
 }
 
+type readCloserCloser struct {
+	io.ReadCloser
+	closer func() error
+}
+
+func (r *readCloserCloser) Close() (err error) {
+	defer func() {
+		if err == nil {
+			err = r.closer()
+			return
+		}
+		_ = r.closer()
+	}()
+	return r.ReadCloser.Close()
+}
+
+// NewReadCloserWithCloser creates an `io.ReadCloser` with the given `io.ReaderCloser` and
+// `io.Closer` that ensures that the closer is closed on close
+func NewReadCloserWithCloser(r io.ReadCloser, c func() error) io.ReadCloser {
+	return &readCloserCloser{ReadCloser: r, closer: c}
+}
+
 type writeCloser struct {
 	io.Writer
 	closer io.Closer
@@ -80,6 +102,24 @@ func (writeNopCloser) Close() error { return nil }
 // the provided Writer w.
 func WriteNopCloser(w io.Writer) io.WriteCloser {
 	return writeNopCloser{w}
+}
+
+type readerAtAsReader struct {
+	io.ReaderAt
+	offset int64
+}
+
+func (r *readerAtAsReader) Read(bs []byte) (int, error) {
+	n, err := r.ReaderAt.ReadAt(bs, r.offset)
+	r.offset += int64(n)
+	return n, err
+}
+
+func NewReaderUsingReaderAt(r io.ReaderAt, offset int64) io.Reader {
+	return &readerAtAsReader{
+		ReaderAt: r,
+		offset:   offset,
+	}
 }
 
 // CheckClose calls Close on the given io.Closer. If the given *error points to
@@ -155,7 +195,7 @@ func NewWriterOnError(w io.Writer, notify func(error)) io.Writer {
 }
 
 // NewWriteCloserOnError returns a io.WriteCloser that call the notify function
-//when an unexpected (!io.EOF) error happens, after call Write function.
+// when an unexpected (!io.EOF) error happens, after call Write function.
 func NewWriteCloserOnError(w io.WriteCloser, notify func(error)) io.WriteCloser {
 	return NewWriteCloser(NewWriterOnError(w, notify), w)
 }

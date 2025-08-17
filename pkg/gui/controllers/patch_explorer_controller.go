@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type PatchExplorerControllerFactory struct {
@@ -92,9 +95,15 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 			Description: self.c.Tr.ToggleRangeSelect,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Main.ToggleSelectHunk),
-			Handler:         self.withRenderAndFocus(self.HandleToggleSelectHunk),
-			Description:     self.c.Tr.ToggleSelectHunk,
+			Key:         opts.GetKey(opts.Config.Main.ToggleSelectHunk),
+			Handler:     self.withRenderAndFocus(self.HandleToggleSelectHunk),
+			Description: self.c.Tr.ToggleSelectHunk,
+			DescriptionFunc: func() string {
+				if state := self.context.GetState(); state != nil && state.SelectingHunk() {
+					return self.c.Tr.SelectLineByLine
+				}
+				return self.c.Tr.SelectHunk
+			},
 			Tooltip:         self.c.Tr.ToggleSelectHunkTooltip,
 			DisplayOnScreen: true,
 		},
@@ -121,6 +130,16 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 			Key:         opts.GetKey(opts.Config.Universal.GotoBottom),
 			Description: self.c.Tr.GotoBottom,
 			Handler:     self.withRenderAndFocus(self.HandleGotoBottom),
+		},
+		{
+			Tag:     "navigation",
+			Key:     opts.GetKey(opts.Config.Universal.GotoTopAlt),
+			Handler: self.withRenderAndFocus(self.HandleGotoTop),
+		},
+		{
+			Tag:     "navigation",
+			Key:     opts.GetKey(opts.Config.Universal.GotoBottomAlt),
+			Handler: self.withRenderAndFocus(self.HandleGotoBottom),
 		},
 		{
 			Tag:     "navigation",
@@ -170,9 +189,9 @@ func (self *PatchExplorerController) GetMouseKeybindings(opts types.KeybindingsO
 }
 
 func (self *PatchExplorerController) HandlePrevLine() error {
-	before := self.context.GetState().GetSelectedLineIdx()
+	before := self.context.GetState().GetSelectedViewLineIdx()
 	self.context.GetState().CycleSelection(false)
-	after := self.context.GetState().GetSelectedLineIdx()
+	after := self.context.GetState().GetSelectedViewLineIdx()
 
 	if self.context.GetState().SelectingLine() {
 		checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig(), before, after)
@@ -182,9 +201,9 @@ func (self *PatchExplorerController) HandlePrevLine() error {
 }
 
 func (self *PatchExplorerController) HandleNextLine() error {
-	before := self.context.GetState().GetSelectedLineIdx()
+	before := self.context.GetState().GetSelectedViewLineIdx()
 	self.context.GetState().CycleSelection(true)
-	after := self.context.GetState().GetSelectedLineIdx()
+	after := self.context.GetState().GetSelectedViewLineIdx()
 
 	if self.context.GetState().SelectingLine() {
 		checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig(), before, after)
@@ -210,13 +229,13 @@ func (self *PatchExplorerController) HandleNextLineRange() error {
 }
 
 func (self *PatchExplorerController) HandlePrevHunk() error {
-	self.context.GetState().CycleHunk(false)
+	self.context.GetState().SelectPreviousHunk()
 
 	return nil
 }
 
 func (self *PatchExplorerController) HandleNextHunk() error {
-	self.context.GetState().CycleHunk(true)
+	self.context.GetState().SelectNextHunk()
 
 	return nil
 }
@@ -285,11 +304,47 @@ func (self *PatchExplorerController) CopySelectedToClipboard() error {
 	selected := self.context.GetState().PlainRenderSelected()
 
 	self.c.LogAction(self.c.Tr.Actions.CopySelectedTextToClipboard)
-	if err := self.c.OS().CopyToClipboard(selected); err != nil {
+	if err := self.c.OS().CopyToClipboard(dropDiffPrefix(selected)); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// Removes '+' or '-' from the beginning of each line in the diff string, except
+// when both '+' and '-' lines are present, or diff header lines, in which case
+// the diff is returned unchanged. This is useful for copying parts of diffs to
+// the clipboard in order to paste them into code.
+func dropDiffPrefix(diff string) string {
+	lines := strings.Split(strings.TrimRight(diff, "\n"), "\n")
+
+	const (
+		PLUS int = iota
+		MINUS
+		CONTEXT
+		OTHER
+	)
+
+	linesByType := lo.GroupBy(lines, func(line string) int {
+		switch {
+		case strings.HasPrefix(line, "+"):
+			return PLUS
+		case strings.HasPrefix(line, "-"):
+			return MINUS
+		case strings.HasPrefix(line, " "):
+			return CONTEXT
+		}
+		return OTHER
+	})
+
+	hasLinesOfType := func(lineType int) bool { return len(linesByType[lineType]) > 0 }
+
+	keepPrefix := hasLinesOfType(OTHER) || (hasLinesOfType(PLUS) && hasLinesOfType(MINUS))
+	if keepPrefix {
+		return diff
+	}
+
+	return strings.Join(lo.Map(lines, func(line string, _ int) string { return line[1:] + "\n" }), "")
 }
 
 func (self *PatchExplorerController) isFocused() bool {

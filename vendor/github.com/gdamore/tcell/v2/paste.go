@@ -1,4 +1,4 @@
-// Copyright 2020 The TCell Authors
+// Copyright 2024 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -19,12 +19,14 @@ import (
 )
 
 // EventPaste is used to mark the start and end of a bracketed paste.
-// An event with .Start() true will be sent to mark the start.
-// Then a number of keys will be sent to indicate that the content
-// is pasted in.  At the end, an event with .Start() false will be sent.
+//
+// An event with .Start() true will be sent to mark the start of a bracketed paste,
+// followed by a number of keys (string data) for the content, ending with the
+// an event with .End() true.
 type EventPaste struct {
 	start bool
 	t     time.Time
+	data  []byte
 }
 
 // When returns the time when this EventPaste was created.
@@ -45,4 +47,26 @@ func (ev *EventPaste) End() bool {
 // NewEventPaste returns a new EventPaste.
 func NewEventPaste(start bool) *EventPaste {
 	return &EventPaste{t: time.Now(), start: start}
+}
+
+// NewEventClipboard returns a new NewEventClipboard with a data payload
+func NewEventClipboard(data []byte) *EventClipboard {
+	return &EventClipboard{t: time.Now(), data: data}
+}
+
+// EventClipboard represents data from the clipboard,
+// in response to a GetClipboard request.
+type EventClipboard struct {
+	t    time.Time
+	data []byte
+}
+
+// Data returns the attached binary data.
+func (ev *EventClipboard) Data() []byte {
+	return ev.data
+}
+
+// When returns the time when this event was created.
+func (ev *EventClipboard) When() time.Time {
+	return ev.t
 }

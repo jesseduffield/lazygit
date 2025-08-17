@@ -184,9 +184,7 @@ func TestGetRepoPaths(t *testing.T) {
 			Expected: nil,
 			Err: func(getRevParseArgs argFn) error {
 				args := strings.Join(getRevParseArgs(), " ")
-				return errors.New(
-					fmt.Sprintf("'git %v --show-toplevel --absolute-git-dir --git-common-dir --is-bare-repository --show-superproject-working-tree' failed: fatal: invalid gitfile format: /path/to/repo/worktree2/.git", args),
-				)
+				return fmt.Errorf("'git %v --show-toplevel --absolute-git-dir --git-common-dir --is-bare-repository --show-superproject-working-tree' failed: fatal: invalid gitfile format: /path/to/repo/worktree2/.git", args)
 			},
 		},
 	}
@@ -196,22 +194,13 @@ func TestGetRepoPaths(t *testing.T) {
 			runner := oscommands.NewFakeRunner(t)
 			cmd := oscommands.NewDummyCmdObjBuilder(runner)
 
-			version, err := GetGitVersion(oscommands.NewDummyOSCommand())
-			if err != nil {
-				t.Fatal(err)
-			}
-
 			getRevParseArgs := func() []string {
-				args := []string{"rev-parse"}
-				if version.IsAtLeast(2, 31, 0) {
-					args = append(args, "--path-format=absolute")
-				}
-				return args
+				return []string{"rev-parse", "--path-format=absolute"}
 			}
 			// prepare the filesystem for the scenario
 			s.BeforeFunc(runner, getRevParseArgs)
 
-			repoPaths, err := GetRepoPathsForDir("", cmd, version)
+			repoPaths, err := GetRepoPathsForDir("", cmd)
 
 			// check the error and the paths
 			if s.Err != nil {

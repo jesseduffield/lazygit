@@ -11,12 +11,9 @@ func New[T comparable]() *Set[T] {
 }
 
 func NewFromSlice[T comparable](slice []T) *Set[T] {
-	hashMap := make(map[T]bool)
-	for _, value := range slice {
-		hashMap[value] = true
-	}
-
-	return &Set[T]{hashMap: hashMap}
+	result := &Set[T]{hashMap: make(map[T]bool, len(slice))}
+	result.Add(slice...)
+	return result
 }
 
 func (s *Set[T]) Add(values ...T) {
@@ -37,6 +34,10 @@ func (s *Set[T]) RemoveSlice(slice []T) {
 
 func (s *Set[T]) Includes(value T) bool {
 	return s.hashMap[value]
+}
+
+func (s *Set[T]) Len() int {
+	return len(s.hashMap)
 }
 
 // output slice is not necessarily in the same order that items were added

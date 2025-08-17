@@ -9,7 +9,9 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Filter in the several nested panels and verify the filters are preserved as you escape back to the surface",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.LocalBranchSortOrder = "alphabetical"
+	},
 	SetupRepo: func(shell *Shell) {
 		// need to create some branches, each with their own commits
 		shell.NewBranch("branch-gold")
@@ -35,8 +37,8 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains(`branch-bronze`).IsSelected(),
-				Contains(`branch-silver`),
 				Contains(`branch-gold`),
+				Contains(`branch-silver`),
 			).
 			FilterOrSearch("sil").
 			Lines(
@@ -61,15 +63,17 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains(`apple`).IsSelected(),
-				Contains(`grape`),
-				Contains(`orange`),
+				Equals("▼ /").IsSelected(),
+				Equals("  A apple"),
+				Equals("  A grape"),
+				Equals("  A orange"),
 			).
 			FilterOrSearch("grape").
 			Lines(
-				Contains(`apple`),
-				Contains(`grape`).IsSelected(),
-				Contains(`orange`),
+				Equals("▼ /"),
+				Equals("  A apple"),
+				Equals("  A grape").IsSelected(),
+				Equals("  A orange"),
 			).
 			PressEnter()
 
@@ -87,9 +91,10 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains(`apple`),
-				Contains(`grape`).IsSelected(),
-				Contains(`orange`),
+				Equals("▼ /"),
+				Equals("  A apple"),
+				Equals("  A grape").IsSelected(),
+				Equals("  A orange"),
 			).
 			Tap(func() {
 				t.Views().Search().IsVisible().Content(Contains("matches for 'grape'"))
@@ -100,9 +105,10 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Views().Search().IsInvisible()
 			}).
 			Lines(
-				Contains(`apple`),
-				Contains(`grape`).IsSelected(),
-				Contains(`orange`),
+				Equals("▼ /"),
+				Equals("  A apple"),
+				Equals("  A grape").IsSelected(),
+				Equals("  A orange"),
 			).
 			// escape to sub-commits view
 			PressEscape()
@@ -144,8 +150,8 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains(`branch-bronze`),
-				Contains(`branch-silver`).IsSelected(),
 				Contains(`branch-gold`),
+				Contains(`branch-silver`).IsSelected(),
 			)
 	},
 })

@@ -3,29 +3,25 @@ package controllers
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/tasks"
 )
 
 // given we have no fields here, arguably we shouldn't even need this factory
 // struct, but we're maintaining consistency with the other files.
 type VerticalScrollControllerFactory struct {
-	c                    *ControllerCommon
-	viewBufferManagerMap *map[string]*tasks.ViewBufferManager
+	c *ControllerCommon
 }
 
-func NewVerticalScrollControllerFactory(c *ControllerCommon, viewBufferManagerMap *map[string]*tasks.ViewBufferManager) *VerticalScrollControllerFactory {
+func NewVerticalScrollControllerFactory(c *ControllerCommon) *VerticalScrollControllerFactory {
 	return &VerticalScrollControllerFactory{
-		c:                    c,
-		viewBufferManagerMap: viewBufferManagerMap,
+		c: c,
 	}
 }
 
 func (self *VerticalScrollControllerFactory) Create(context types.Context) types.IController {
 	return &VerticalScrollController{
-		baseController:       baseController{},
-		c:                    self.c,
-		context:              context,
-		viewBufferManagerMap: self.viewBufferManagerMap,
+		baseController: baseController{},
+		c:              self.c,
+		context:        context,
 	}
 }
 
@@ -33,8 +29,7 @@ type VerticalScrollController struct {
 	baseController
 	c *ControllerCommon
 
-	context              types.Context
-	viewBufferManagerMap *map[string]*tasks.ViewBufferManager
+	context types.Context
 }
 
 func (self *VerticalScrollController) Context() types.Context {
@@ -74,7 +69,7 @@ func (self *VerticalScrollController) HandleScrollDown() error {
 	scrollHeight := self.c.UserConfig().Gui.ScrollHeight
 	self.context.GetViewTrait().ScrollDown(scrollHeight)
 
-	if manager, ok := (*self.viewBufferManagerMap)[self.context.GetViewName()]; ok {
+	if manager := self.c.GetViewBufferManagerForView(self.context.GetView()); manager != nil {
 		manager.ReadLines(scrollHeight)
 	}
 

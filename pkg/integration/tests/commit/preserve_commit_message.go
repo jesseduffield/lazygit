@@ -28,6 +28,8 @@ var PreserveCommitMessage = NewIntegrationTest(NewIntegrationTestArgs{
 			Type("second paragraph").
 			Cancel()
 
+		t.FileSystem().PathPresent(".git/LAZYGIT_PENDING_COMMIT")
+
 		t.Views().Files().
 			IsFocused().
 			Press(keys.Files.CommitChanges)
@@ -35,6 +37,22 @@ var PreserveCommitMessage = NewIntegrationTest(NewIntegrationTestArgs{
 		t.ExpectPopup().CommitMessagePanel().
 			Content(Equals("my commit message")).
 			SwitchToDescription().
-			Content(Equals("first paragraph\n\nsecond paragraph"))
+			Content(Equals("first paragraph\n\nsecond paragraph")).
+			Clear().
+			SwitchToSummary().
+			Clear().
+			Cancel()
+
+		t.FileSystem().PathNotPresent(".git/LAZYGIT_PENDING_COMMIT")
+
+		t.Views().Files().
+			IsFocused().
+			Press(keys.Files.CommitChanges)
+
+		t.ExpectPopup().CommitMessagePanel().
+			Type("my new commit message").
+			Confirm()
+
+		t.FileSystem().PathNotPresent(".git/LAZYGIT_PENDING_COMMIT")
 	},
 })

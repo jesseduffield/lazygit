@@ -73,9 +73,11 @@ var QuickStart = NewIntegrationTest(NewIntegrationTestArgs{
 			// Verify quick start picks the last commit on the main branch
 			Press(keys.Commits.StartInteractiveRebase).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("feature-branch two").IsSelected(),
 				Contains("feature-branch one"),
-				Contains("last main commit").Contains("YOU ARE HERE"),
+				Contains("--- Commits ---"),
+				Contains("last main commit"),
 				Contains("initial commit"),
 			).
 			// Try again, verify we fail because we're already rebasing
@@ -104,8 +106,10 @@ var QuickStart = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.StartInteractiveRebase).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("branch-with-merge three").IsSelected(),
-				Contains("Merge branch 'branch-to-merge'").Contains("YOU ARE HERE"),
+				Contains("--- Commits ---"),
+				Contains("Merge branch 'branch-to-merge'"),
 				Contains("branch-to-merge two"),
 				Contains("branch-to-merge one"),
 				Contains("branch-with-merge two"),

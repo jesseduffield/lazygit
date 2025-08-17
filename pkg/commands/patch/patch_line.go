@@ -18,7 +18,7 @@ type PatchLine struct {
 	Content string // something like '+ hello' (note the first character is not removed)
 }
 
-func (self *PatchLine) isChange() bool {
+func (self *PatchLine) IsChange() bool {
 	return self.Kind == ADDITION || self.Kind == DELETION
 }
 

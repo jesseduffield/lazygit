@@ -277,7 +277,7 @@ func (self *MergeConflictsController) pickSelection(selection mergeconflicts.Sel
 	}
 
 	if self.context().GetState().AllConflictsResolved() {
-		return self.onLastConflictResolved()
+		self.onLastConflictResolved()
 	}
 
 	return nil
@@ -314,10 +314,10 @@ func (self *MergeConflictsController) resolveConflict(selection mergeconflicts.S
 	return true, os.WriteFile(state.GetPath(), []byte(content), 0o644)
 }
 
-func (self *MergeConflictsController) onLastConflictResolved() error {
+func (self *MergeConflictsController) onLastConflictResolved() {
 	// as part of refreshing files, we handle the situation where a file has had
 	// its merge conflicts resolved.
-	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 }
 
 func (self *MergeConflictsController) withRenderAndFocus(f func() error) func() error {

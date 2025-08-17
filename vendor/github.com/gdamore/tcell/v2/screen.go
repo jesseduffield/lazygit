@@ -1,4 +1,4 @@
-// Copyright 2023 The TCell Authors
+// Copyright 2024 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -79,8 +79,9 @@ type Screen interface {
 
 	// SetCursorStyle is used to set the cursor style.  If the style
 	// is not supported (or cursor styles are not supported at all),
-	// then this will have no effect.
-	SetCursorStyle(CursorStyle)
+	// then this will have no effect.  Color will be changed if supplied,
+	// and the terminal supports doing so.
+	SetCursorStyle(CursorStyle, ...Color)
 
 	// Size returns the screen size as width, height.  This changes in
 	// response to a call to Clear or Flush.
@@ -265,6 +266,23 @@ type Screen interface {
 	// Tty returns the underlying Tty. If the screen is not a terminal, the
 	// returned bool will be false
 	Tty() (Tty, bool)
+
+	// SetTitle sets a window title on the screen.
+	// Terminals may be configured to ignore this, or unable to.
+	// Tcell may attempt to save and restore the window title on entry and exit, but
+	// the results may vary.  Use of unicode characters may not be supported.
+	SetTitle(string)
+
+	// SetClipboard is used to post arbitrary data to the system clipboard.
+	// This need not be UTF-8 string data.  It's up to the recipient to decode the
+	// data meaningfully.  Terminals may prevent this for security reasons.
+	SetClipboard([]byte)
+
+	// GetClipboard is used to request the clipboard contents.  It may be ignored.
+	// If the terminal is willing, it will be post the clipboard contents using an
+	// EventPaste with the clipboard content as the Data() field.  Terminals may
+	// prevent this for security reasons.
+	GetClipboard()
 }
 
 // NewScreen returns a default Screen suitable for the user's terminal
@@ -312,7 +330,7 @@ type screenImpl interface {
 	SetStyle(style Style)
 	ShowCursor(x int, y int)
 	HideCursor()
-	SetCursorStyle(CursorStyle)
+	SetCursor(CursorStyle, Color)
 	Size() (width, height int)
 	EnableMouse(...MouseFlags)
 	DisableMouse()
@@ -334,7 +352,10 @@ type screenImpl interface {
 	Resume() error
 	Beep() error
 	SetSize(int, int)
+	SetTitle(string)
 	Tty() (Tty, bool)
+	SetClipboard([]byte)
+	GetClipboard()
 
 	// Following methods are not part of the Screen api, but are used for interaction with
 	// the common layer code.
@@ -462,5 +483,13 @@ func (b *baseScreen) PostEvent(ev Event) error {
 		return nil
 	default:
 		return ErrEventQFull
+	}
+}
+
+func (b *baseScreen) SetCursorStyle(cs CursorStyle, ccs ...Color) {
+	if len(ccs) > 0 {
+		b.SetCursor(cs, ccs[0])
+	} else {
+		b.SetCursor(cs, ColorNone)
 	}
 }

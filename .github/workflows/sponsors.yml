@@ -7,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'jesseduffield/lazygit' }}
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
@@ -16,13 +17,13 @@ jobs:
         with:
           token: ${{ secrets.SPONSORS_TOKEN }}
           file: "README.md"
-        if: ${{ github.repository == 'jesseduffield/lazygit' }}
 
       - name: Create Pull Request 🚀
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           commit-message: "README.md: Update Sponsors"
           title: "README.md: Update Sponsors"
           author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
           labels: "ignore-for-release"
           delete-branch: true
+          token: ${{ secrets.SPONSORS_PR_TOKEN }}

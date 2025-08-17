@@ -8,11 +8,9 @@ import (
 	"os/exec"
 	"strconv"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
-	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 // Sometimes lazygit will be invoked in daemon mode from a parent lazygit process.
@@ -34,11 +32,11 @@ const (
 
 	DaemonKindExitImmediately
 	DaemonKindRemoveUpdateRefsForCopiedBranch
-	DaemonKindCherryPick
 	DaemonKindMoveTodosUp
 	DaemonKindMoveTodosDown
 	DaemonKindInsertBreak
 	DaemonKindChangeTodoActions
+	DaemonKindDropMergeCommit
 	DaemonKindMoveFixupCommitDown
 	DaemonKindWriteRebaseTodo
 )
@@ -56,8 +54,8 @@ func getInstruction() Instruction {
 	mapping := map[DaemonKind]func(string) Instruction{
 		DaemonKindExitImmediately:                 deserializeInstruction[*ExitImmediatelyInstruction],
 		DaemonKindRemoveUpdateRefsForCopiedBranch: deserializeInstruction[*RemoveUpdateRefsForCopiedBranchInstruction],
-		DaemonKindCherryPick:                      deserializeInstruction[*CherryPickCommitsInstruction],
 		DaemonKindChangeTodoActions:               deserializeInstruction[*ChangeTodoActionsInstruction],
+		DaemonKindDropMergeCommit:                 deserializeInstruction[*DropMergeCommitInstruction],
 		DaemonKindMoveFixupCommitDown:             deserializeInstruction[*MoveFixupCommitDownInstruction],
 		DaemonKindMoveTodosUp:                     deserializeInstruction[*MoveTodosUpInstruction],
 		DaemonKindMoveTodosDown:                   deserializeInstruction[*MoveTodosDownInstruction],
@@ -78,8 +76,6 @@ func Handle(common *common.Common) {
 	if err := instruction.run(common); err != nil {
 		log.Fatal(err)
 	}
-
-	os.Exit(0)
 }
 
 func InDaemonMode() bool {
@@ -179,39 +175,6 @@ func NewRemoveUpdateRefsForCopiedBranchInstruction() Instruction {
 	return &RemoveUpdateRefsForCopiedBranchInstruction{}
 }
 
-type CherryPickCommitsInstruction struct {
-	Todo string
-}
-
-func NewCherryPickCommitsInstruction(commits []*models.Commit) Instruction {
-	todoLines := lo.Map(commits, func(commit *models.Commit, _ int) TodoLine {
-		return TodoLine{
-			Action: "pick",
-			Commit: commit,
-		}
-	})
-
-	todo := TodoLinesToString(todoLines)
-
-	return &CherryPickCommitsInstruction{
-		Todo: todo,
-	}
-}
-
-func (self *CherryPickCommitsInstruction) Kind() DaemonKind {
-	return DaemonKindCherryPick
-}
-
-func (self *CherryPickCommitsInstruction) SerializedInstructions() string {
-	return serializeInstruction(self)
-}
-
-func (self *CherryPickCommitsInstruction) run(common *common.Common) error {
-	return handleInteractiveRebase(common, func(path string) error {
-		return utils.PrependStrToTodoFile(path, []byte(self.Todo))
-	})
-}
-
 type ChangeTodoActionsInstruction struct {
 	Changes []ChangeTodoAction
 }
@@ -235,12 +198,35 @@ func (self *ChangeTodoActionsInstruction) run(common *common.Common) error {
 		changes := lo.Map(self.Changes, func(c ChangeTodoAction, _ int) utils.TodoChange {
 			return utils.TodoChange{
 				Hash:      c.Hash,
-				OldAction: todo.Pick,
 				NewAction: c.NewAction,
 			}
 		})
 
 		return utils.EditRebaseTodo(path, changes, getCommentChar())
+	})
+}
+
+type DropMergeCommitInstruction struct {
+	Hash string
+}
+
+func NewDropMergeCommitInstruction(hash string) Instruction {
+	return &DropMergeCommitInstruction{
+		Hash: hash,
+	}
+}
+
+func (self *DropMergeCommitInstruction) Kind() DaemonKind {
+	return DaemonKindDropMergeCommit
+}
+
+func (self *DropMergeCommitInstruction) SerializedInstructions() string {
+	return serializeInstruction(self)
+}
+
+func (self *DropMergeCommitInstruction) run(common *common.Common) error {
+	return handleInteractiveRebase(common, func(path string) error {
+		return utils.DropMergeCommit(path, self.Hash, getCommentChar())
 	})
 }
 
@@ -296,13 +282,12 @@ func (self *MoveTodosUpInstruction) SerializedInstructions() string {
 func (self *MoveTodosUpInstruction) run(common *common.Common) error {
 	todosToMove := lo.Map(self.Hashes, func(hash string, _ int) utils.Todo {
 		return utils.Todo{
-			Hash:   hash,
-			Action: todo.Pick,
+			Hash: hash,
 		}
 	})
 
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveTodosUp(path, todosToMove, getCommentChar())
+		return utils.MoveTodosUp(path, todosToMove, false, getCommentChar())
 	})
 }
 
@@ -327,13 +312,12 @@ func (self *MoveTodosDownInstruction) SerializedInstructions() string {
 func (self *MoveTodosDownInstruction) run(common *common.Common) error {
 	todosToMove := lo.Map(self.Hashes, func(hash string, _ int) utils.Todo {
 		return utils.Todo{
-			Hash:   hash,
-			Action: todo.Pick,
+			Hash: hash,
 		}
 	})
 
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveTodosDown(path, todosToMove, getCommentChar())
+		return utils.MoveTodosDown(path, todosToMove, false, getCommentChar())
 	})
 }
 

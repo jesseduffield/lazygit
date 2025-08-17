@@ -119,7 +119,7 @@ func TestObtainBranch(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			branch := obtainBranch(s.input, s.storeCommitDateAsRecency, true)
+			branch := obtainBranch(s.input, s.storeCommitDateAsRecency)
 			assert.EqualValues(t, s.expectedBranch, branch)
 		})
 	}

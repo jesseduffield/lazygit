@@ -60,7 +60,7 @@ var PullMergeConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressPrimaryAction() // choose 'content4'
 
-		t.Common().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved("merge")
 
 		t.Views().Status().Content(Equals("↑2 repo → master"))
 

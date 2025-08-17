@@ -12,10 +12,6 @@ import (
 	"github.com/samber/lo"
 )
 
-type ICommitsHelper interface {
-	UpdateCommitPanelView(message string)
-}
-
 type CommitsHelper struct {
 	c *HelperCommon
 
@@ -25,8 +21,6 @@ type CommitsHelper struct {
 	getUnwrappedCommitDescription func() string
 	setCommitDescription          func(string)
 }
-
-var _ ICommitsHelper = &CommitsHelper{}
 
 func NewCommitsHelper(
 	c *HelperCommon,
@@ -56,7 +50,7 @@ func (self *CommitsHelper) SetMessageAndDescriptionInView(message string) {
 
 	self.setCommitSummary(summary)
 	self.setCommitDescription(description)
-	self.c.Contexts().CommitMessage.RenderCommitLength()
+	self.c.Contexts().CommitMessage.RenderSubtitle()
 }
 
 func (self *CommitsHelper) JoinCommitMessageAndUnwrappedDescription() string {
@@ -113,7 +107,7 @@ func (self *CommitsHelper) UpdateCommitPanelView(message string) {
 	}
 
 	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
-		preservedMessage := self.c.Contexts().CommitMessage.GetPreservedMessage()
+		preservedMessage := self.c.Contexts().CommitMessage.GetPreservedMessageAndLogError()
 		self.SetMessageAndDescriptionInView(preservedMessage)
 		return
 	}
@@ -129,6 +123,14 @@ type OpenCommitMessagePanelOpts struct {
 	OnConfirm        func(summary string, description string) error
 	OnSwitchToEditor func(string) error
 	InitialMessage   string
+
+	// The following two fields are only for the display of the "(hooks
+	// disabled)" display in the commit message panel. They have no effect on
+	// the actual behavior; make sure what you are passing in matches that.
+	// Leave unassigned if the concept of skipping hooks doesn't make sense for
+	// what you are doing, e.g. when creating a tag.
+	ForceSkipHooks  bool
+	SkipHooksPrefix string
 }
 
 func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOpts) {
@@ -143,20 +145,20 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 		opts.SummaryTitle,
 		opts.DescriptionTitle,
 		opts.PreserveMessage,
+		opts.InitialMessage,
 		onConfirm,
 		opts.OnSwitchToEditor,
+		opts.ForceSkipHooks,
+		opts.SkipHooksPrefix,
 	)
 
 	self.UpdateCommitPanelView(opts.InitialMessage)
 
-	self.c.Context().Push(self.c.Contexts().CommitMessage)
+	self.c.Context().Push(self.c.Contexts().CommitMessage, types.OnFocusOpts{})
 }
 
-func (self *CommitsHelper) OnCommitSuccess() {
-	// if we have a preserved message we want to clear it on success
-	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
-		self.c.Contexts().CommitMessage.SetPreservedMessage("")
-	}
+func (self *CommitsHelper) ClearPreservedCommitMessage() {
+	self.c.Contexts().CommitMessage.SetPreservedMessageAndLogError("")
 }
 
 func (self *CommitsHelper) HandleCommitConfirm() error {
@@ -177,8 +179,9 @@ func (self *CommitsHelper) HandleCommitConfirm() error {
 func (self *CommitsHelper) CloseCommitMessagePanel() {
 	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
 		message := self.JoinCommitMessageAndUnwrappedDescription()
-
-		self.c.Contexts().CommitMessage.SetPreservedMessage(message)
+		if message != self.c.Contexts().CommitMessage.GetInitialMessage() {
+			self.c.Contexts().CommitMessage.SetPreservedMessageAndLogError(message)
+		}
 	} else {
 		self.SetMessageAndDescriptionInView("")
 	}
@@ -253,13 +256,8 @@ func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
 		return nil
 	}
 
-	if currentMessage := self.JoinCommitMessageAndUnwrappedDescription(); currentMessage == "" {
-		self.SetMessageAndDescriptionInView(message)
-		return nil
-	}
-
-	// Confirm before overwriting the commit message
-	self.c.Confirm(types.ConfirmOpts{
+	currentMessage := self.JoinCommitMessageAndUnwrappedDescription()
+	return self.c.ConfirmIf(currentMessage != "", types.ConfirmOpts{
 		Title:  self.c.Tr.PasteCommitMessageFromClipboard,
 		Prompt: self.c.Tr.SurePasteCommitMessage,
 		HandleConfirm: func() error {
@@ -267,6 +265,4 @@ func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
 			return nil
 		},
 	})
-
-	return nil
 }

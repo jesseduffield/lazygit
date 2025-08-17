@@ -21,6 +21,8 @@ import (
 // are used.
 type OutputMode int
 
+const DOUBLE_CLICK_THRESHOLD = 500 * time.Millisecond
+
 var (
 	// ErrAlreadyBlacklisted is returned when the keybinding is already blacklisted.
 	ErrAlreadyBlacklisted = standardErrors.New("keybind already blacklisted")
@@ -39,6 +41,9 @@ var (
 
 	// ErrQuit is used to decide if the MainLoop finished successfully.
 	ErrQuit = standardErrors.New("quit")
+
+	// ErrKeybindingNotHandled is returned when a keybinding is not handled, so that the key can be dispatched further
+	ErrKeybindingNotHandled = standardErrors.New("keybinding not handled")
 )
 
 const (
@@ -92,6 +97,10 @@ type ViewMouseBinding struct {
 type ViewMouseBindingOpts struct {
 	X int // i.e. origin x + cursor x
 	Y int // i.e. origin y + cursor y
+
+	Key Key // which button was clicked (will be one of the Mouse* constants)
+
+	IsDoubleClick bool // true if this is a double click
 }
 
 type GuiMutexes struct {
@@ -113,6 +122,14 @@ type RecordingConfig struct {
 	Leeway int
 }
 
+type clickInfo struct {
+	x        int
+	y        int
+	key      Key
+	viewName string
+	time     time.Time
+}
+
 // Gui represents the whole User Interface, including the views, layouts
 // and keybindings.
 type Gui struct {
@@ -123,6 +140,7 @@ type Gui struct {
 
 	tabClickBindings  []*tabClickBinding
 	viewMouseBindings []*ViewMouseBinding
+	lastClick         *clickInfo
 	gEvents           chan GocuiEvent
 	userEvents        chan userEvent
 	views             []*View
@@ -130,7 +148,7 @@ type Gui struct {
 	managers          []Manager
 	keybindings       []*keybinding
 	focusHandler      func(bool) error
-	openHyperlink     func(string) error
+	openHyperlink     func(string, string) error
 	maxX, maxY        int
 	outputMode        OutputMode
 	stop              chan struct{}
@@ -156,6 +174,8 @@ type Gui struct {
 
 	// If Mouse is true then mouse events will be enabled.
 	Mouse bool
+
+	IsPasting bool
 
 	// If InputEsc is true, when ESC sequence is in the buffer and it doesn't
 	// match any known sequence, ESC means KeyEsc.
@@ -335,7 +355,7 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 
 	g.Mutexes.ViewsMutex.Lock()
 
-	v := newView(name, x0, y0, x1, y1, g.outputMode)
+	v := NewView(name, x0, y0, x1, y1, g.outputMode)
 	v.BgColor, v.FgColor = g.BgColor, g.FgColor
 	v.SelBgColor, v.SelFgColor = g.SelBgColor, g.SelFgColor
 	v.Overlaps = overlaps
@@ -627,7 +647,7 @@ func (g *Gui) SetFocusHandler(handler func(bool) error) {
 	g.focusHandler = handler
 }
 
-func (g *Gui) SetOpenHyperlinkFunc(openHyperlinkFunc func(string) error) {
+func (g *Gui) SetOpenHyperlinkFunc(openHyperlinkFunc func(string, string) error) {
 	g.openHyperlink = openHyperlinkFunc
 }
 
@@ -759,6 +779,7 @@ func (g *Gui) MainLoop() error {
 	}()
 
 	Screen.EnableFocus()
+	Screen.EnablePaste()
 
 	previousEnableMouse := false
 	for {
@@ -780,7 +801,7 @@ func (g *Gui) MainLoop() error {
 }
 
 func (g *Gui) handleError(err error) error {
-	if err != nil && !IsQuit(err) && g.ErrorHandler != nil {
+	if err != nil && !standardErrors.Is(err, ErrQuit) && g.ErrorHandler != nil {
 		return g.ErrorHandler(err)
 	}
 
@@ -847,6 +868,9 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 		return nil
 	case eventFocus:
 		return g.onFocus(ev)
+	case eventPaste:
+		g.IsPasting = ev.Start
+		return nil
 	default:
 		return nil
 	}
@@ -912,7 +936,7 @@ func calcScrollbarRune(
 }
 
 func calcRealScrollbarStartEnd(v *View) (bool, int, int) {
-	height := v.InnerHeight() + 1
+	height := v.InnerHeight()
 	fullHeight := v.ViewLinesHeight() - v.scrollMargin()
 
 	if v.CanScrollPastBottom {
@@ -1223,24 +1247,9 @@ func (g *Gui) draw(v *View) error {
 
 	if g.Cursor {
 		if curview := g.currentView; curview != nil {
-			vMaxX, vMaxY := curview.Size()
-			if curview.cx < 0 {
-				curview.cx = 0
-			} else if curview.cx >= vMaxX {
-				curview.cx = vMaxX - 1
-			}
-			if curview.cy < 0 {
-				curview.cy = 0
-			} else if curview.cy >= vMaxY {
-				curview.cy = vMaxY - 1
-			}
-
-			gMaxX, gMaxY := g.Size()
-			cx, cy := curview.x0+curview.cx+1, curview.y0+curview.cy+1
-			// This test probably doesn't need to be here.
-			// tcell is hiding cursor by setting coordinates outside of screen.
-			// Keeping it here for now, as I'm not 100% sure :)
-			if cx >= 0 && cx < gMaxX && cy >= 0 && cy < gMaxY {
+			vMaxX, vMaxY := curview.InnerSize()
+			if curview.cx >= 0 && curview.cx < vMaxX && curview.cy >= 0 && curview.cy < vMaxY {
+				cx, cy := curview.x0+curview.cx+1, curview.y0+curview.cy+1
 				Screen.ShowCursor(cx, cy)
 			} else {
 				Screen.HideCursor()
@@ -1304,6 +1313,20 @@ func (g *Gui) draw(v *View) error {
 func (g *Gui) onKey(ev *GocuiEvent) error {
 	switch ev.Type {
 	case eventKey:
+
+		// When pasting text in Ghostty, it sends us '\r' instead of '\n' for
+		// newlines. I actually don't quite understand why, because from reading
+		// Ghostty's source code (e.g.
+		// https://github.com/ghostty-org/ghostty/commit/010338354a0) it does
+		// this conversion only for non-bracketed paste mode, but I'm seeing it
+		// in bracketed paste mode. Whatever I'm missing here, converting '\r'
+		// back to '\n' fixes pasting multi-line text from Ghostty, and doesn't
+		// seem harmful for other terminal emulators.
+		//
+		// KeyCtrlJ (int value 10) is '\r', and KeyCtrlM (int value 13) is '\n'.
+		if g.IsPasting && ev.Key == KeyCtrlJ {
+			ev.Key = KeyCtrlM
+		}
 
 		err := g.execKeybindings(g.currentView, ev)
 		if err != nil {
@@ -1371,13 +1394,14 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		if ev.Key == MouseLeft && !v.Editable && g.openHyperlink != nil {
 			if newY >= 0 && newY <= len(v.viewLines)-1 && newX >= 0 && newX <= len(v.viewLines[newY].line)-1 {
 				if link := v.viewLines[newY].line[newX].hyperlink; link != "" {
-					return g.openHyperlink(link)
+					return g.openHyperlink(link, v.name)
 				}
 			}
 		}
 
 		if IsMouseKey(ev.Key) {
-			opts := ViewMouseBindingOpts{X: newX, Y: newY}
+			isDoubleClick := g.recordClickInfo(newX, newY, ev.Key, v)
+			opts := ViewMouseBindingOpts{X: newX, Y: newY, Key: ev.Key, IsDoubleClick: isDoubleClick}
 			matched, err := g.execMouseKeybindings(v, ev, opts)
 			if err != nil {
 				return err
@@ -1410,6 +1434,32 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 	return nil
 }
 
+// remember the information for this click, and return true if it was a double click
+func (g *Gui) recordClickInfo(x, y int, key Key, v *View) bool {
+	if IsMouseScrollKey(key) {
+		g.lastClick = nil
+		return false
+	}
+
+	clickInfo := &clickInfo{
+		x:        x,
+		y:        y,
+		key:      key,
+		viewName: v.Name(),
+		time:     time.Now(),
+	}
+
+	isDoubleClick := g.lastClick != nil &&
+		clickInfo.x == g.lastClick.x &&
+		clickInfo.y == g.lastClick.y &&
+		clickInfo.key == g.lastClick.key &&
+		clickInfo.viewName == g.lastClick.viewName &&
+		clickInfo.time.Before(g.lastClick.time.Add(DOUBLE_CLICK_THRESHOLD))
+
+	g.lastClick = clickInfo
+	return isDoubleClick
+}
+
 func (g *Gui) execMouseKeybindings(view *View, ev *GocuiEvent, opts ViewMouseBindingOpts) (bool, error) {
 	isMatch := func(binding *ViewMouseBinding) bool {
 		return binding.ViewName == view.Name() &&
@@ -1420,7 +1470,9 @@ func (g *Gui) execMouseKeybindings(view *View, ev *GocuiEvent, opts ViewMouseBin
 	// first pass looks for ones that match the focused view
 	for _, binding := range g.viewMouseBindings {
 		if isMatch(binding) && binding.FocusedView != "" && binding.FocusedView == g.currentView.Name() {
-			return true, binding.Handler(opts)
+			if err := binding.Handler(opts); !errors.Is(err, ErrKeybindingNotHandled) {
+				return true, err
+			}
 		}
 	}
 
@@ -1469,6 +1521,10 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 	var globalKb *keybinding
 	var matchingParentViewKb *keybinding
 
+	if g.IsPasting && v != nil && !v.Editable {
+		return nil
+	}
+
 	// if we're searching, and we've hit n/N/Esc, we ignore the default keybinding
 	if v != nil && v.IsSearching() && ev.Mod == ModNone {
 		if eventMatchesKey(ev, g.NextSearchMatchKey) {
@@ -1486,6 +1542,8 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 		}
 	}
 
+	var err error
+
 	for _, kb := range g.keybindings {
 		if kb.handler == nil {
 			continue
@@ -1494,7 +1552,13 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 			continue
 		}
 		if g.matchView(v, kb) {
-			return g.execKeybinding(v, kb)
+			err = g.execKeybinding(v, kb)
+			if !errors.Is(err, ErrKeybindingNotHandled) {
+				return err
+			}
+
+			matchingParentViewKb = nil
+			break
 		}
 		if v != nil && g.matchView(v.ParentView, kb) {
 			matchingParentViewKb = kb
@@ -1504,7 +1568,10 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 		}
 	}
 	if matchingParentViewKb != nil {
-		return g.execKeybinding(v.ParentView, matchingParentViewKb)
+		err = g.execKeybinding(v.ParentView, matchingParentViewKb)
+		if !errors.Is(err, ErrKeybindingNotHandled) {
+			return err
+		}
 	}
 
 	if g.currentView != nil && g.currentView.Editable && g.currentView.Editor != nil {
@@ -1515,9 +1582,9 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 	}
 
 	if globalKb != nil {
-		return g.execKeybinding(v, globalKb)
+		err = g.execKeybinding(v, globalKb)
 	}
-	return nil
+	return err
 }
 
 // execKeybinding executes a given keybinding
@@ -1579,16 +1646,6 @@ func (g *Gui) isBlacklisted(k Key) bool {
 		}
 	}
 	return false
-}
-
-// IsUnknownView reports whether the contents of an error is "unknown view".
-func IsUnknownView(err error) bool {
-	return err != nil && err.Error() == ErrUnknownView.Error()
-}
-
-// IsQuit reports whether the contents of an error is "quit".
-func IsQuit(err error) bool {
-	return err != nil && err.Error() == ErrQuit.Error()
 }
 
 func (g *Gui) Suspend() error {

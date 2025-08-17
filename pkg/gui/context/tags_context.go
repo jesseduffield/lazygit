@@ -52,7 +52,7 @@ func NewTagsContext(
 	}
 }
 
-func (self *TagsContext) GetSelectedRef() types.Ref {
+func (self *TagsContext) GetSelectedRef() models.Ref {
 	tag := self.GetSelected()
 	if tag == nil {
 		return nil
@@ -64,6 +64,10 @@ func (self *TagsContext) GetDiffTerminals() []string {
 	itemId := self.GetSelectedItemId()
 
 	return []string{itemId}
+}
+
+func (self *TagsContext) RefForAdjustingLineNumberInDiff() string {
+	return self.GetSelectedItemId()
 }
 
 func (self *TagsContext) ShowBranchHeadsInSubCommits() bool {

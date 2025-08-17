@@ -1,7 +1,6 @@
 package patch
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -54,10 +53,10 @@ func (self *Patch) Lines() []*PatchLine {
 
 // Returns the patch line index of the first line in the given hunk
 func (self *Patch) HunkStartIdx(hunkIndex int) int {
-	hunkIndex = utils.Clamp(hunkIndex, 0, len(self.hunks)-1)
+	hunkIndex = lo.Clamp(hunkIndex, 0, len(self.hunks)-1)
 
 	result := len(self.header)
-	for i := 0; i < hunkIndex; i++ {
+	for i := range hunkIndex {
 		result += self.hunks[i].lineCount()
 	}
 	return result
@@ -65,7 +64,7 @@ func (self *Patch) HunkStartIdx(hunkIndex int) int {
 
 // Returns the patch line index of the last line in the given hunk
 func (self *Patch) HunkEndIdx(hunkIndex int) int {
-	hunkIndex = utils.Clamp(hunkIndex, 0, len(self.hunks)-1)
+	hunkIndex = lo.Clamp(hunkIndex, 0, len(self.hunks)-1)
 
 	return self.HunkStartIdx(hunkIndex) + self.hunks[hunkIndex].lineCount() - 1
 }
@@ -116,15 +115,22 @@ func (self *Patch) HunkContainingLine(idx int) int {
 	return -1
 }
 
-// Returns the patch line index of the next change (i.e. addition or deletion).
-func (self *Patch) GetNextChangeIdx(idx int) int {
-	idx = utils.Clamp(idx, 0, self.LineCount()-1)
+// Returns the patch line index of the next change (i.e. addition or deletion)
+// that matches the same "included" state, given the includedLines. If you don't
+// care about included states, pass nil for includedLines and false for included.
+func (self *Patch) GetNextChangeIdxOfSameIncludedState(idx int, includedLines []int, included bool) (int, bool) {
+	idx = lo.Clamp(idx, 0, self.LineCount()-1)
 
 	lines := self.Lines()
 
+	isMatch := func(i int, line *PatchLine) bool {
+		sameIncludedState := lo.Contains(includedLines, i) == included
+		return line.IsChange() && sameIncludedState
+	}
+
 	for i, line := range lines[idx:] {
-		if line.isChange() {
-			return i + idx
+		if isMatch(i+idx, line) {
+			return i + idx, true
 		}
 	}
 
@@ -132,13 +138,18 @@ func (self *Patch) GetNextChangeIdx(idx int) int {
 	// return the index of the last change
 	for i := len(lines) - 1; i >= 0; i-- {
 		line := lines[i]
-		if line.isChange() {
-			return i
+		if isMatch(i, line) {
+			return i, true
 		}
 	}
 
-	// should not be possible
-	return 0
+	return 0, false
+}
+
+// Returns the patch line index of the next change (i.e. addition or deletion).
+func (self *Patch) GetNextChangeIdx(idx int) int {
+	result, _ := self.GetNextChangeIdxOfSameIncludedState(idx, nil, false)
+	return result
 }
 
 // Returns the length of the patch in lines
@@ -153,4 +164,39 @@ func (self *Patch) LineCount() int {
 // Returns the number of hunks of the patch
 func (self *Patch) HunkCount() int {
 	return len(self.hunks)
+}
+
+// Adjust the given line number (one-based) according to the current patch. The
+// patch is supposed to be a diff of an old file state against the working
+// directory; the line number is a line number in that old file, and the
+// function returns the corresponding line number in the working directory file.
+func (self *Patch) AdjustLineNumber(lineNumber int) int {
+	adjustedLineNumber := lineNumber
+	for _, hunk := range self.hunks {
+		if hunk.oldStart >= lineNumber {
+			break
+		}
+
+		if hunk.oldStart+hunk.oldLength() > lineNumber {
+			return hunk.newStart
+		}
+
+		adjustedLineNumber += hunk.newLength() - hunk.oldLength()
+	}
+
+	return adjustedLineNumber
+}
+
+func (self *Patch) IsSingleHunkForWholeFile() bool {
+	if len(self.hunks) != 1 {
+		return false
+	}
+
+	// We consider a patch to be a single hunk for the whole file if it has only additions or
+	// deletions but not both, and no context lines. This not quite correct, because it will also
+	// return true for a block of added or deleted lines if the diff context size is 0, but in this
+	// case you wouldn't be able to stage things anyway, so it doesn't matter.
+	bodyLines := self.hunks[0].bodyLines
+	return nLinesWithKind(bodyLines, []PatchLineKind{DELETION, CONTEXT}) == 0 ||
+		nLinesWithKind(bodyLines, []PatchLineKind{ADDITION, CONTEXT}) == 0
 }

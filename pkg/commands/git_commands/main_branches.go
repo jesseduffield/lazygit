@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"slices"
 	"strings"
 	"sync"
 
@@ -21,7 +22,7 @@ type MainBranches struct {
 	previousMainBranches []string
 
 	cmd   oscommands.ICmdObjBuilder
-	mutex *deadlock.Mutex
+	mutex deadlock.Mutex
 }
 
 func NewMainBranches(
@@ -32,7 +33,6 @@ func NewMainBranches(
 		c:                    cmn,
 		existingMainBranches: nil,
 		cmd:                  cmd,
-		mutex:                &deadlock.Mutex{},
 	}
 }
 
@@ -44,7 +44,7 @@ func (self *MainBranches) Get() []string {
 
 	configuredMainBranches := self.c.UserConfig().Git.MainBranches
 
-	if self.existingMainBranches == nil || !utils.EqualSlices(self.previousMainBranches, configuredMainBranches) {
+	if self.existingMainBranches == nil || !slices.Equal(self.previousMainBranches, configuredMainBranches) {
 		self.existingMainBranches = self.determineMainBranches(configuredMainBranches)
 		self.previousMainBranches = configuredMainBranches
 	}
@@ -69,11 +69,11 @@ func (self *MainBranches) GetMergeBase(refName string) string {
 	// very rarely, users must quit and restart lazygit to fix it; the latter is
 	// also not very common, but can totally happen and is not an error.
 
-	output, _ := self.cmd.New(
+	output, _, _ := self.cmd.New(
 		NewGitCmd("merge-base").Arg(refName).Arg(mainBranches...).
 			ToArgv(),
-	).DontLog().RunWithOutput()
-	return ignoringWarnings(output)
+	).DontLog().RunWithOutputs()
+	return strings.TrimSpace(output)
 }
 
 func (self *MainBranches) determineMainBranches(configuredMainBranches []string) []string {

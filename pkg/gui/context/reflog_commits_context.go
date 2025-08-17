@@ -63,7 +63,7 @@ func (self *ReflogCommitsContext) CanRebase() bool {
 	return false
 }
 
-func (self *ReflogCommitsContext) GetSelectedRef() types.Ref {
+func (self *ReflogCommitsContext) GetSelectedRef() models.Ref {
 	commit := self.GetSelected()
 	if commit == nil {
 		return nil
@@ -84,6 +84,10 @@ func (self *ReflogCommitsContext) GetDiffTerminals() []string {
 	itemId := self.GetSelectedItemId()
 
 	return []string{itemId}
+}
+
+func (self *ReflogCommitsContext) RefForAdjustingLineNumberInDiff() string {
+	return self.GetSelectedItemId()
 }
 
 func (self *ReflogCommitsContext) ShowBranchHeadsInSubCommits() bool {

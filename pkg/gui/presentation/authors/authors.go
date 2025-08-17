@@ -21,7 +21,7 @@ type authorNameCacheKey struct {
 var (
 	authorInitialCache = make(map[string]string)
 	authorNameCache    = make(map[authorNameCacheKey]string)
-	authorStyleCache   = make(map[string]style.TextStyle)
+	authorStyleCache   = make(map[string]*style.TextStyle)
 )
 
 const authorNameWildcard = "*"
@@ -73,7 +73,7 @@ func AuthorWithLength(authorName string, length int) string {
 	return LongAuthor(authorName, length)
 }
 
-func AuthorStyle(authorName string) style.TextStyle {
+func AuthorStyle(authorName string) *style.TextStyle {
 	if value, ok := authorStyleCache[authorName]; ok {
 		return value
 	}
@@ -85,9 +85,9 @@ func AuthorStyle(authorName string) style.TextStyle {
 
 	value := trueColorStyle(authorName)
 
-	authorStyleCache[authorName] = value
+	authorStyleCache[authorName] = &value
 
-	return value
+	return &value
 }
 
 func trueColorStyle(str string) style.TextStyle {

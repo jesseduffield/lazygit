@@ -33,7 +33,7 @@ const (
 )
 
 type RefreshOptions struct {
-	Then  func() error
+	Then  func()
 	Scope []RefreshableView // e.g. []RefreshableView{COMMITS, BRANCHES}. Leave empty to refresh everything
 	Mode  RefreshMode       // one of SYNC (default), ASYNC, and BLOCK_UI
 

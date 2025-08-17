@@ -20,15 +20,15 @@ type gitCmdObjRunner struct {
 	innerRunner oscommands.ICmdObjRunner
 }
 
-func (self *gitCmdObjRunner) Run(cmdObj oscommands.ICmdObj) error {
+func (self *gitCmdObjRunner) Run(cmdObj *oscommands.CmdObj) error {
 	_, err := self.RunWithOutput(cmdObj)
 	return err
 }
 
-func (self *gitCmdObjRunner) RunWithOutput(cmdObj oscommands.ICmdObj) (string, error) {
+func (self *gitCmdObjRunner) RunWithOutput(cmdObj *oscommands.CmdObj) (string, error) {
 	var output string
 	var err error
-	for i := 0; i < RetryCount; i++ {
+	for range RetryCount {
 		newCmdObj := cmdObj.Clone()
 		output, err = self.innerRunner.RunWithOutput(newCmdObj)
 
@@ -44,10 +44,10 @@ func (self *gitCmdObjRunner) RunWithOutput(cmdObj oscommands.ICmdObj) (string, e
 	return output, err
 }
 
-func (self *gitCmdObjRunner) RunWithOutputs(cmdObj oscommands.ICmdObj) (string, string, error) {
+func (self *gitCmdObjRunner) RunWithOutputs(cmdObj *oscommands.CmdObj) (string, string, error) {
 	var stdout, stderr string
 	var err error
-	for i := 0; i < RetryCount; i++ {
+	for range RetryCount {
 		newCmdObj := cmdObj.Clone()
 		stdout, stderr, err = self.innerRunner.RunWithOutputs(newCmdObj)
 
@@ -64,6 +64,6 @@ func (self *gitCmdObjRunner) RunWithOutputs(cmdObj oscommands.ICmdObj) (string, 
 }
 
 // Retry logic not implemented here, but these commands typically don't need to obtain a lock.
-func (self *gitCmdObjRunner) RunAndProcessLines(cmdObj oscommands.ICmdObj, onLine func(line string) (bool, error)) error {
+func (self *gitCmdObjRunner) RunAndProcessLines(cmdObj *oscommands.CmdObj, onLine func(line string) (bool, error)) error {
 	return self.innerRunner.RunAndProcessLines(cmdObj, onLine)
 }

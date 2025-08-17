@@ -1,13 +1,13 @@
 package context
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -32,16 +32,15 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	)
 
 	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
-		selectedCommitHash := ""
+		var selectedCommitHashPtr *string
 
 		if c.Context().Current().GetKey() == LOCAL_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
 			if selectedCommit != nil {
-				selectedCommitHash = selectedCommit.Hash
+				selectedCommitHashPtr = selectedCommit.HashPtr()
 			}
 		}
 
-		showYouAreHereLabel := c.Model().WorkingTreeStateAtLastCommitRefresh == enums.REBASE_MODE_REBASING
 		hasRebaseUpdateRefsConfig := c.Git().Config.GetRebaseUpdateRefs()
 
 		return presentation.GetCommitListDisplayStrings(
@@ -58,13 +57,57 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			c.UserConfig().Gui.ShortTimeFormat,
 			time.Now(),
 			c.UserConfig().Git.ParseEmoji,
-			selectedCommitHash,
+			selectedCommitHashPtr,
 			startIdx,
 			endIdx,
 			shouldShowGraph(c),
 			c.Model().BisectInfo,
-			showYouAreHereLabel,
 		)
+	}
+
+	getNonModelItems := func() []*NonModelItem {
+		result := []*NonModelItem{}
+		if c.Model().WorkingTreeStateAtLastCommitRefresh.CanShowTodos() {
+			if c.Model().WorkingTreeStateAtLastCommitRefresh.Rebasing {
+				result = append(result, &NonModelItem{
+					Index:   0,
+					Content: fmt.Sprintf("--- %s ---", c.Tr.PendingRebaseTodosSectionHeader),
+				})
+			}
+
+			if c.Model().WorkingTreeStateAtLastCommitRefresh.CherryPicking ||
+				c.Model().WorkingTreeStateAtLastCommitRefresh.Reverting {
+				_, firstCherryPickOrRevertTodo, found := lo.FindIndexOf(
+					c.Model().Commits, func(c *models.Commit) bool {
+						return c.Status == models.StatusCherryPickingOrReverting ||
+							c.Status == models.StatusConflicted
+					})
+				if !found {
+					firstCherryPickOrRevertTodo = 0
+				}
+				label := lo.Ternary(c.Model().WorkingTreeStateAtLastCommitRefresh.CherryPicking,
+					c.Tr.PendingCherryPicksSectionHeader,
+					c.Tr.PendingRevertsSectionHeader)
+				result = append(result, &NonModelItem{
+					Index:   firstCherryPickOrRevertTodo,
+					Content: fmt.Sprintf("--- %s ---", label),
+				})
+			}
+
+			_, firstRealCommit, found := lo.FindIndexOf(
+				c.Model().Commits, func(c *models.Commit) bool {
+					return !c.IsTODO()
+				})
+			if !found {
+				firstRealCommit = 0
+			}
+			result = append(result, &NonModelItem{
+				Index:   firstRealCommit,
+				Content: fmt.Sprintf("--- %s ---", c.Tr.CommitsSectionHeader),
+			})
+		}
+
+		return result
 	}
 
 	ctx := &LocalCommitsContext{
@@ -83,6 +126,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			ListRenderer: ListRenderer{
 				list:              viewModel,
 				getDisplayStrings: getDisplayStrings,
+				getNonModelItems:  getNonModelItems,
 			},
 			c:                       c,
 			refreshViewportOnChange: true,
@@ -120,7 +164,7 @@ func (self *LocalCommitsContext) CanRebase() bool {
 	return true
 }
 
-func (self *LocalCommitsContext) GetSelectedRef() types.Ref {
+func (self *LocalCommitsContext) GetSelectedRef() models.Ref {
 	commit := self.GetSelected()
 	if commit == nil {
 		return nil
@@ -148,7 +192,7 @@ func (self *LocalCommitsContext) GetSelectedCommitHash() string {
 	if commit == nil {
 		return ""
 	}
-	return commit.Hash
+	return commit.Hash()
 }
 
 func (self *LocalCommitsContext) SelectCommitByHash(hash string) bool {
@@ -156,7 +200,7 @@ func (self *LocalCommitsContext) SelectCommitByHash(hash string) bool {
 		return false
 	}
 
-	if _, idx, found := lo.FindIndexOf(self.GetItems(), func(c *models.Commit) bool { return c.Hash == hash }); found {
+	if _, idx, found := lo.FindIndexOf(self.GetItems(), func(c *models.Commit) bool { return c.Hash() == hash }); found {
 		self.SetSelection(idx)
 		return true
 	}
@@ -170,8 +214,16 @@ func (self *LocalCommitsContext) GetDiffTerminals() []string {
 	return []string{itemId}
 }
 
+func (self *LocalCommitsContext) RefForAdjustingLineNumberInDiff() string {
+	commits, _, _ := self.GetSelectedItems()
+	if commits == nil {
+		return ""
+	}
+	return commits[0].Hash()
+}
+
 func (self *LocalCommitsContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
-	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), searchStr)
+	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), self.ModelIndexToViewIndex, searchStr)
 }
 
 func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {
@@ -199,7 +251,7 @@ func shouldShowGraph(c *ContextCommon) bool {
 		return false
 	}
 
-	value := c.GetAppState().GitLogShowGraph
+	value := c.UserConfig().Git.Log.ShowGraph
 
 	switch value {
 	case "always":
@@ -214,7 +266,9 @@ func shouldShowGraph(c *ContextCommon) bool {
 	return false
 }
 
-func searchModelCommits(caseSensitive bool, commits []*models.Commit, columnPositions []int, searchStr string) []gocui.SearchPosition {
+func searchModelCommits(caseSensitive bool, commits []*models.Commit, columnPositions []int,
+	modelToViewIndex func(int) int, searchStr string,
+) []gocui.SearchPosition {
 	if columnPositions == nil {
 		// This should never happen. We are being called at a time where our
 		// entire view content is scrolled out of view, so that we didn't draw
@@ -231,9 +285,26 @@ func searchModelCommits(caseSensitive bool, commits []*models.Commit, columnPosi
 		// searching for a commit hash that is longer than the truncated hash
 		// that we render. So we just set the XStart and XEnd values to the
 		// start and end of the commit hash column, which is the second one.
-		result := gocui.SearchPosition{XStart: columnPositions[1], XEnd: columnPositions[2] - 1, Y: idx}
-		return result, strings.Contains(normalize(commit.Hash), searchStr) ||
+		result := gocui.SearchPosition{XStart: columnPositions[1], XEnd: columnPositions[2] - 1, Y: modelToViewIndex(idx)}
+		return result, strings.Contains(normalize(commit.Hash()), searchStr) ||
 			strings.Contains(normalize(commit.Name), searchStr) ||
 			strings.Contains(normalize(commit.ExtraInfo), searchStr) // allow searching for tags
 	})
+}
+
+func (self *LocalCommitsContext) IndexForGotoBottom() int {
+	commits := self.GetCommits()
+	selectedIdx := self.GetSelectedLineIdx()
+	if selectedIdx >= 0 && selectedIdx < len(commits)-1 {
+		if commits[selectedIdx+1].Status != models.StatusMerged {
+			_, idx, found := lo.FindIndexOf(commits, func(c *models.Commit) bool {
+				return c.Status == models.StatusMerged
+			})
+			if found {
+				return idx - 1
+			}
+		}
+	}
+
+	return self.list.Len() - 1
 }

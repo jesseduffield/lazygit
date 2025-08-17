@@ -1,6 +1,8 @@
 package git_commands
 
 import (
+	"fmt"
+
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -20,12 +22,13 @@ func NewSyncCommands(gitCommon *GitCommon) *SyncCommands {
 type PushOpts struct {
 	Force          bool
 	ForceWithLease bool
+	CurrentBranch  string
 	UpstreamRemote string
 	UpstreamBranch string
 	SetUpstream    bool
 }
 
-func (self *SyncCommands) PushCmdObj(task gocui.Task, opts PushOpts) (oscommands.ICmdObj, error) {
+func (self *SyncCommands) PushCmdObj(task gocui.Task, opts PushOpts) (*oscommands.CmdObj, error) {
 	if opts.UpstreamBranch != "" && opts.UpstreamRemote == "" {
 		return nil, errors.New(self.Tr.MustSpecifyOriginError)
 	}
@@ -35,7 +38,7 @@ func (self *SyncCommands) PushCmdObj(task gocui.Task, opts PushOpts) (oscommands
 		ArgIf(opts.ForceWithLease, "--force-with-lease").
 		ArgIf(opts.SetUpstream, "--set-upstream").
 		ArgIf(opts.UpstreamRemote != "", opts.UpstreamRemote).
-		ArgIf(opts.UpstreamBranch != "", "HEAD:"+opts.UpstreamBranch).
+		ArgIf(opts.UpstreamBranch != "", fmt.Sprintf("refs/heads/%s:%s", opts.CurrentBranch, opts.UpstreamBranch)).
 		ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs).PromptOnCredentialRequest(task)
@@ -56,10 +59,10 @@ func (self *SyncCommands) fetchCommandBuilder(fetchAll bool) *GitCommandBuilder 
 		ArgIf(fetchAll, "--all").
 		// avoid writing to .git/FETCH_HEAD; this allows running a pull
 		// concurrently without getting errors
-		ArgIf(self.version.IsAtLeast(2, 29, 0), "--no-write-fetch-head")
+		Arg("--no-write-fetch-head")
 }
 
-func (self *SyncCommands) FetchCmdObj(task gocui.Task) oscommands.ICmdObj {
+func (self *SyncCommands) FetchCmdObj(task gocui.Task) *oscommands.CmdObj {
 	cmdArgs := self.fetchCommandBuilder(self.UserConfig().Git.FetchAll).ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
@@ -71,7 +74,7 @@ func (self *SyncCommands) Fetch(task gocui.Task) error {
 	return self.FetchCmdObj(task).Run()
 }
 
-func (self *SyncCommands) FetchBackgroundCmdObj() oscommands.ICmdObj {
+func (self *SyncCommands) FetchBackgroundCmdObj() *oscommands.CmdObj {
 	cmdArgs := self.fetchCommandBuilder(self.UserConfig().Git.FetchAll).ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
@@ -88,6 +91,7 @@ type PullOptions struct {
 	BranchName      string
 	FastForwardOnly bool
 	WorktreeGitDir  string
+	WorktreePath    string
 }
 
 func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
@@ -97,6 +101,7 @@ func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
 		ArgIf(opts.RemoteName != "", opts.RemoteName).
 		ArgIf(opts.BranchName != "", "refs/heads/"+opts.BranchName).
 		GitDirIf(opts.WorktreeGitDir != "", opts.WorktreeGitDir).
+		WorktreePathIf(opts.WorktreePath != "", opts.WorktreePath).
 		ToArgv()
 
 	// setting GIT_SEQUENCE_EDITOR to ':' as a way of skipping it, in case the user

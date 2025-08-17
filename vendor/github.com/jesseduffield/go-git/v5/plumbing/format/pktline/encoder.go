@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+
+	"github.com/jesseduffield/go-git/v5/utils/trace"
 )
 
 // An Encoder writes pkt-lines to an output stream.
@@ -43,6 +45,7 @@ func NewEncoder(w io.Writer) *Encoder {
 
 // Flush encodes a flush-pkt to the output stream.
 func (e *Encoder) Flush() error {
+	defer trace.Packet.Print("packet: > 0000")
 	_, err := e.w.Write(FlushPkt)
 	return err
 }
@@ -70,6 +73,7 @@ func (e *Encoder) encodeLine(p []byte) error {
 	}
 
 	n := len(p) + 4
+	defer trace.Packet.Printf("packet: > %04x %s", n, p)
 	if _, err := e.w.Write(asciiHex16(n)); err != nil {
 		return err
 	}

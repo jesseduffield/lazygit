@@ -21,9 +21,9 @@ var FilterUpdatesWhenModelChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains("checked-out-branch").IsSelected(),
-				Contains("other"),
 				Contains("branch-to-delete"),
 				Contains("master"),
+				Contains("other"),
 			).
 			FilterOrSearch("branch").
 			Lines(
@@ -65,9 +65,9 @@ var FilterUpdatesWhenModelChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			PressEscape().
 			Lines(
 				Contains("checked-out-branch").IsSelected(),
-				Contains("other"),
 				Contains("master"),
 				Contains("new-branch"),
+				Contains("other"),
 			)
 	},
 })

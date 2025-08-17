@@ -21,10 +21,11 @@ type Container interface {
 	Size() int
 	Clear()
 	Values() []interface{}
+	String() string
 }
 
 // GetSortedValues returns sorted container's elements with respect to the passed comparator.
-// Does not effect the ordering of elements within the container.
+// Does not affect the ordering of elements within the container.
 func GetSortedValues(container Container, comparator utils.Comparator) []interface{} {
 	values := container.Values()
 	if len(values) < 2 {

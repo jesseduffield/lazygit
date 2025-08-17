@@ -30,9 +30,11 @@ var ApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Views().CommitFiles().
 					IsFocused().
 					Lines(
-						Contains("myfile").IsSelected(),
+						Equals("▼ /").IsSelected(),
+						Contains("myfile"),
 						Contains("myfile2"),
 					).
+					SelectNextItem().
 					PressPrimaryAction()
 
 				t.Views().Information().Content(Contains("Building patch"))

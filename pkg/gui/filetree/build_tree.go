@@ -7,14 +7,14 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
-func BuildTreeFromFiles(files []*models.File) *Node[models.File] {
+func BuildTreeFromFiles(files []*models.File, showRootItem bool) *Node[models.File] {
 	root := &Node[models.File]{}
 
 	childrenMapsByNode := make(map[*Node[models.File]]map[string]*Node[models.File])
 
 	var curr *Node[models.File]
 	for _, file := range files {
-		splitPath := split(file.Name)
+		splitPath := SplitFileTreePath(file.Path, showRootItem)
 		curr = root
 	outer:
 		for i := range splitPath {
@@ -40,8 +40,13 @@ func BuildTreeFromFiles(files []*models.File) *Node[models.File] {
 				continue outer
 			}
 
+			if i == 0 && len(files) == 1 && len(splitPath) == 2 {
+				// skip the root item when there's only one file at top level; we don't need it in that case
+				continue outer
+			}
+
 			newChild := &Node[models.File]{
-				Path: path,
+				path: path,
 				File: setFile,
 			}
 			curr.Children = append(curr.Children, newChild)
@@ -58,19 +63,19 @@ func BuildTreeFromFiles(files []*models.File) *Node[models.File] {
 	return root
 }
 
-func BuildFlatTreeFromCommitFiles(files []*models.CommitFile) *Node[models.CommitFile] {
-	rootAux := BuildTreeFromCommitFiles(files)
+func BuildFlatTreeFromCommitFiles(files []*models.CommitFile, showRootItem bool) *Node[models.CommitFile] {
+	rootAux := BuildTreeFromCommitFiles(files, showRootItem)
 	sortedFiles := rootAux.GetLeaves()
 
 	return &Node[models.CommitFile]{Children: sortedFiles}
 }
 
-func BuildTreeFromCommitFiles(files []*models.CommitFile) *Node[models.CommitFile] {
+func BuildTreeFromCommitFiles(files []*models.CommitFile, showRootItem bool) *Node[models.CommitFile] {
 	root := &Node[models.CommitFile]{}
 
 	var curr *Node[models.CommitFile]
 	for _, file := range files {
-		splitPath := split(file.Name)
+		splitPath := SplitFileTreePath(file.Path, showRootItem)
 		curr = root
 	outer:
 		for i := range splitPath {
@@ -83,14 +88,19 @@ func BuildTreeFromCommitFiles(files []*models.CommitFile) *Node[models.CommitFil
 			path := join(splitPath[:i+1])
 
 			for _, existingChild := range curr.Children {
-				if existingChild.Path == path {
+				if existingChild.path == path {
 					curr = existingChild
 					continue outer
 				}
 			}
 
+			if i == 0 && len(files) == 1 && len(splitPath) == 2 {
+				// skip the root item when there's only one file at top level; we don't need it in that case
+				continue outer
+			}
+
 			newChild := &Node[models.CommitFile]{
-				Path: path,
+				path: path,
 				File: setFile,
 			}
 			curr.Children = append(curr.Children, newChild)
@@ -105,8 +115,8 @@ func BuildTreeFromCommitFiles(files []*models.CommitFile) *Node[models.CommitFil
 	return root
 }
 
-func BuildFlatTreeFromFiles(files []*models.File) *Node[models.File] {
-	rootAux := BuildTreeFromFiles(files)
+func BuildFlatTreeFromFiles(files []*models.File, showRootItem bool) *Node[models.File] {
+	rootAux := BuildTreeFromFiles(files, showRootItem)
 	sortedFiles := rootAux.GetLeaves()
 
 	// from top down we have merge conflict files, then tracked file, then untracked
@@ -149,4 +159,12 @@ func split(str string) []string {
 
 func join(strs []string) string {
 	return strings.Join(strs, "/")
+}
+
+func SplitFileTreePath(path string, showRootItem bool) []string {
+	if showRootItem {
+		return split("./" + path)
+	}
+
+	return split(path)
 }

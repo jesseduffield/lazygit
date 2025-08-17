@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	"strings"
 	"sync"
 	"time"
 
@@ -70,10 +69,13 @@ type LinesToRead struct {
 	// do an initial refresh. Only set for the initial read request; -1 for
 	// subsequent requests.
 	InitialRefreshAfter int
+
+	// Function to call after reading the lines is done
+	Then func()
 }
 
-func (m *ViewBufferManager) GetTaskKey() string {
-	return m.taskKey
+func (self *ViewBufferManager) GetTaskKey() string {
+	return self.taskKey
 }
 
 func NewViewBufferManager(
@@ -91,16 +93,28 @@ func NewViewBufferManager(
 		beforeStart:  beforeStart,
 		refreshView:  refreshView,
 		onEndOfInput: onEndOfInput,
-		readLines:    make(chan LinesToRead, 1024),
+		readLines:    nil,
 		onNewKey:     onNewKey,
 		newGocuiTask: newGocuiTask,
 	}
 }
 
 func (self *ViewBufferManager) ReadLines(n int) {
-	go utils.Safe(func() {
-		self.readLines <- LinesToRead{Total: n, InitialRefreshAfter: -1}
-	})
+	if self.readLines != nil {
+		go utils.Safe(func() {
+			self.readLines <- LinesToRead{Total: n, InitialRefreshAfter: -1}
+		})
+	}
+}
+
+func (self *ViewBufferManager) ReadToEnd(then func()) {
+	if self.readLines != nil {
+		go utils.Safe(func() {
+			self.readLines <- LinesToRead{Total: -1, InitialRefreshAfter: -1, Then: then}
+		})
+	} else if then != nil {
+		then()
+	}
 }
 
 func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), prefix string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
@@ -137,29 +151,40 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 		cmd, r := start()
 		timeToStart := time.Since(startTime)
 
-		go utils.Safe(func() {
-			<-opts.Stop
-			// we use the time it took to start the program as a way of checking if things
-			// are running slow at the moment. This is admittedly a crude estimate, but
-			// the point is that we only want to throttle when things are running slow
-			// and the user is flicking through a bunch of items.
-			self.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
-			if err := oscommands.Kill(cmd); err != nil {
-				if !strings.Contains(err.Error(), "process already finished") {
-					self.Log.Errorf("error when running cmd task: %v", err)
-				}
-			}
+		done := make(chan struct{})
 
-			// for pty's we need to call onDone here so that cmd.Wait() doesn't block forever
-			onDone()
+		go utils.Safe(func() {
+			select {
+			case <-done:
+				// The command finished and did not have to be preemptively stopped before the next command.
+				// No need to throttle.
+				self.throttle = false
+			case <-opts.Stop:
+				// we use the time it took to start the program as a way of checking if things
+				// are running slow at the moment. This is admittedly a crude estimate, but
+				// the point is that we only want to throttle when things are running slow
+				// and the user is flicking through a bunch of items.
+				self.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
+
+				// Kill the still-running command. The only reason to do this is to save CPU usage
+				// when flicking through several very long diffs when diff.algorithm = histogram is
+				// being used, in which case multiple git processes continue to calculate expensive
+				// diffs in the background even though they have been stopped already.
+				//
+				// Unfortunately this will do nothing on Windows, so Windows users will have to live
+				// with the higher CPU usage.
+				if err := oscommands.TerminateProcessGracefully(cmd); err != nil {
+					self.Log.Errorf("error when trying to terminate cmd task: %v; Command: %v %v", err, cmd.Path, cmd.Args)
+				}
+
+				// close the task's stdout pipe (or the pty if we're using one) to make the command terminate
+				onDone()
+			}
 		})
 
 		loadingMutex := deadlock.Mutex{}
 
-		// not sure if it's the right move to redefine this or not
 		self.readLines = make(chan LinesToRead, 1024)
-
-		done := make(chan struct{})
 
 		scanner := bufio.NewScanner(r)
 		scanner.Split(utils.ScanLinesAndTruncateWhenLongerThanBuffer(bufio.MaxScanTokenSize))
@@ -225,14 +250,20 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				case <-opts.Stop:
 					break outer
 				case linesToRead := <-self.readLines:
-					for i := 0; i < linesToRead.Total; i++ {
+					callThen := func() {
+						if linesToRead.Then != nil {
+							linesToRead.Then()
+						}
+					}
+					for i := 0; linesToRead.Total == -1 || i < linesToRead.Total; i++ {
 						var ok bool
 						var line []byte
 						select {
 						case <-opts.Stop:
+							callThen()
 							break outer
 						case line, ok = <-lineChan:
-							break
+							// process line below
 						}
 
 						loadingMutex.Lock()
@@ -249,6 +280,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 							// if we're here then there's nothing left to scan from the source
 							// so we're at the EOF and can flush the stale content
 							self.onEndOfInput()
+							callThen()
 							break outer
 						}
 						writeToView(append(line, '\n'))
@@ -263,14 +295,23 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 					}
 					refreshViewIfStale()
 					onFirstPageShown()
+					callThen()
 				}
 			}
 
+			self.readLines = nil
+
 			refreshViewIfStale()
 
-			if err := cmd.Wait(); err != nil {
-				// it's fine if we've killed this program ourselves
-				if !strings.Contains(err.Error(), "signal: killed") {
+			select {
+			case <-opts.Stop:
+				// If we stopped the task, don't block waiting for it; this could cause a delay if
+				// the process takes a while until it actually terminates. We still want to call
+				// Wait to reclaim any resources, but do it on a background goroutine, and ignore
+				// any errors.
+				go func() { _ = cmd.Wait() }()
+			default:
+				if err := cmd.Wait(); err != nil {
 					self.Log.Errorf("Unexpected error when running cmd task: %v; Failed command: %v %v", err, cmd.Path, cmd.Args)
 				}
 			}
@@ -363,6 +404,8 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		if self.stopCurrentTask != nil {
 			self.stopCurrentTask()
 		}
+
+		self.readLines = nil
 
 		stop := make(chan struct{})
 		notifyStopped := make(chan struct{})

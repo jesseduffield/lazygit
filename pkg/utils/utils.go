@@ -8,10 +8,8 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/config"
 )
 
 // GetProjectRoot returns the path to the root of the project. Only to be used
@@ -25,27 +23,11 @@ func GetProjectRoot() string {
 	return strings.Split(dir, "lazygit")[0] + "lazygit"
 }
 
-// Loader dumps a string to be displayed as a loader
-func Loader(now time.Time, config config.SpinnerConfig) string {
-	milliseconds := now.UnixMilli()
-	index := milliseconds / int64(config.Rate) % int64(len(config.Frames))
-	return config.Frames[index]
-}
-
 func SortRange(x int, y int) (int, int) {
 	if x < y {
 		return x, y
 	}
 	return y, x
-}
-
-func Clamp(x int, min int, max int) int {
-	if x < min {
-		return min
-	} else if x > max {
-		return max
-	}
-	return x
 }
 
 func AsJson(i interface{}) string {
@@ -63,9 +45,8 @@ func ModuloWithWrap(n, max int) int {
 		return n % max
 	} else if n < 0 {
 		return max + n
-	} else {
-		return n
 	}
+	return n
 }
 
 func FindStringSubmatch(str string, regexpStr string) (bool, []string) {

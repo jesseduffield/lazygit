@@ -12,6 +12,8 @@ var CreateBranch = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("initial commit")
+		shell.NewBranch("stash")
+		shell.Checkout("master")
 		shell.CreateFile("myfile", "content")
 		shell.GitAddAll()
 		shell.Stash("stash one")
@@ -39,6 +41,7 @@ var CreateBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("new_branch").IsSelected(),
 				Contains("master"),
+				Contains("stash"),
 			).
 			PressEnter()
 

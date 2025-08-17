@@ -21,8 +21,6 @@ type RepoPaths struct {
 	isBareRepo         bool
 }
 
-var gitPathFormatVersion GitVersion = GitVersion{2, 31, 0, ""}
-
 // Path to the current worktree. If we're in the main worktree, this will
 // be the same as RepoPath()
 func (self *RepoPaths) WorktreePath() string {
@@ -79,15 +77,14 @@ func GetRepoPaths(
 	if err != nil {
 		return nil, err
 	}
-	return GetRepoPathsForDir(cwd, cmd, version)
+	return GetRepoPathsForDir(cwd, cmd)
 }
 
 func GetRepoPathsForDir(
 	dir string,
 	cmd oscommands.ICmdObjBuilder,
-	version *GitVersion,
 ) (*RepoPaths, error) {
-	gitDirOutput, err := callGitRevParseWithDir(cmd, version, dir, "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
+	gitDirOutput, err := callGitRevParseWithDir(cmd, dir, "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
 	if err != nil {
 		return nil, err
 	}
@@ -96,12 +93,6 @@ func GetRepoPathsForDir(
 	worktreePath := gitDirResults[0]
 	worktreeGitDirPath := gitDirResults[1]
 	repoGitDirPath := gitDirResults[2]
-	if version.IsOlderThanVersion(&gitPathFormatVersion) {
-		repoGitDirPath, err = filepath.Abs(repoGitDirPath)
-		if err != nil {
-			return nil, err
-		}
-	}
 	isBareRepo := gitDirResults[3] == "true"
 
 	// If we're in a submodule, --show-superproject-working-tree will return
@@ -131,11 +122,10 @@ func GetRepoPathsForDir(
 
 func callGitRevParseWithDir(
 	cmd oscommands.ICmdObjBuilder,
-	version *GitVersion,
 	dir string,
 	gitRevArgs ...string,
 ) (string, error) {
-	gitRevParse := NewGitCmd("rev-parse").ArgIf(version.IsAtLeastVersion(&gitPathFormatVersion), "--path-format=absolute").Arg(gitRevArgs...)
+	gitRevParse := NewGitCmd("rev-parse").Arg("--path-format=absolute").Arg(gitRevArgs...)
 	if dir != "" {
 		gitRevParse.Dir(dir)
 	}

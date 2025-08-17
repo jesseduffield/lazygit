@@ -28,9 +28,9 @@ var Checkout = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			PressPrimaryAction().
 			Tap(func() {
-				t.ExpectPopup().Confirmation().
-					Title(Contains("Checkout commit")).
-					Content(Contains("Are you sure you want to checkout this commit?")).
+				t.ExpectPopup().Menu().
+					Title(Contains("Checkout branch or commit")).
+					Select(MatchesRegexp("Checkout commit [a-f0-9]+ as detached head")).
 					Confirm()
 			}).
 			TopLines(

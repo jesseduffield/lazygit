@@ -1,7 +1,7 @@
 name: Continuous Integration
 
 env:
-  GO_VERSION: 1.22
+  GO_VERSION: 1.24
 
 on:
   push:
@@ -32,14 +32,14 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.x
+          go-version: 1.24.x
       - name: Test code
         # we're passing -short so that we skip the integration tests, which will be run in parallel below
         run: |
           mkdir -p /tmp/code_coverage
           go test ./... -short -cover -args "-test.gocoverdir=/tmp/code_coverage"
       - name: Upload code coverage artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-unit-${{ matrix.os }}-${{ github.run_id }}
           path: /tmp/code_coverage
@@ -49,11 +49,9 @@ jobs:
       fail-fast: false
       matrix:
         git-version:
-          - 2.20.0 # oldest supported version
-          - 2.22.5
-          - 2.23.0
-          - 2.25.1
-          - 2.30.8
+          - 2.32.0 # oldest supported version
+          - 2.38.2 # first version that supports the rebase.updateRefs config
+          - 2.44.0
           - latest # We rely on github to have the latest version installed on their VMs
     runs-on: ubuntu-latest
     name: "Integration Tests - git ${{matrix.git-version}}"
@@ -89,7 +87,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.x
+          go-version: 1.24.x
       - name: Print git version
         run: git --version
       - name: Test code
@@ -100,7 +98,7 @@ jobs:
           mkdir -p /tmp/code_coverage
           ./scripts/run_integration_tests.sh
       - name: Upload code coverage artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-integration-${{ matrix.git-version }}-${{ github.run_id }}
           path: /tmp/code_coverage
@@ -115,7 +113,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.x
+          go-version: 1.24.x
       - name: Build linux binary
         run: |
           GOOS=linux go build
@@ -142,7 +140,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.x
+          go-version: 1.24.x
       - name: Check Vendor Directory
         # ensure our vendor directory matches up with our go modules
         run: |
@@ -168,11 +166,12 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.x
+          go-version: 1.24.x
       - name: Lint
-        uses: golangci/golangci-lint-action@v6.1.0
+        uses: golangci/golangci-lint-action@v8
         with:
-          version: v1.60
+          # If you change this, make sure to also update scripts/golangci-lint-shim.sh
+          version: v2.2.1
       - name: errors
         run: golangci-lint run
         if: ${{ failure() }}
@@ -197,10 +196,10 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.x
+          go-version: 1.24.x
 
       - name: Download all coverage artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: /tmp/code_coverage
 

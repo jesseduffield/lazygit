@@ -31,6 +31,7 @@ var RememberCommitMessageAfterFail = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
+				Equals("▼ /"),
 				Contains("bad"),
 				Contains("one"),
 			).
@@ -40,6 +41,7 @@ var RememberCommitMessageAfterFail = NewIntegrationTest(NewIntegrationTestArgs{
 
 				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Contains("Git command failed")).Confirm()
 			}).
+			NavigateToLine(Contains("bad")).
 			Press(keys.Universal.Remove). // remove file that triggers pre-commit hook to fail
 			Tap(func() {
 				t.ExpectPopup().Menu().

@@ -12,7 +12,7 @@ var QuickStartKeepSelection = NewIntegrationTest(NewIntegrationTestArgs{
 	GitVersion:   AtLeast("2.38.0"),
 	SetupConfig: func(config *config.AppConfig) {
 		config.GetUserConfig().Git.MainBranches = []string{"master"}
-		config.GetAppState().GitLogShowGraph = "never"
+		config.GetUserConfig().Git.Log.ShowGraph = "never"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.
@@ -39,6 +39,7 @@ var QuickStartKeepSelection = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit 02")).
 			Press(keys.Commits.StartInteractiveRebase).
 			Lines(
+				Contains("--- Pending rebase todos ---"),
 				Contains("pick").Contains("CI commit 07"),
 				Contains("pick").Contains("CI commit 06"),
 				Contains("pick").Contains("CI commit 05"),
@@ -46,7 +47,8 @@ var QuickStartKeepSelection = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("CI commit 04"),
 				Contains("pick").Contains("CI commit 03"),
 				Contains("CI commit 02").IsSelected(),
-				Contains("CI <-- YOU ARE HERE --- commit 01"),
+				Contains("--- Commits ---"),
+				Contains("CI commit 01"),
 			)
 	},
 })

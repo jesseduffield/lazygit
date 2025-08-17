@@ -5,8 +5,6 @@ ARG VARIANT=1-bullseye
 FROM golang:${VARIANT}
 
 RUN go install mvdan.cc/gofumpt@latest
-RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.50.0
-RUN golangci-lint --version
 
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \

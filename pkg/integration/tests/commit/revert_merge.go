@@ -21,14 +21,9 @@ var RevertMerge = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.RevertCommit)
 
-		t.ExpectPopup().Menu().
-			Title(Equals("Select parent commit for merge")).
-			Lines(
-				Contains("first change"),
-				Contains("second-change-branch unrelated change"),
-				Contains("Cancel"),
-			).
-			Select(Contains("first change")).
+		t.ExpectPopup().Confirmation().
+			Title(Equals("Revert commit")).
+			Content(MatchesRegexp(`Are you sure you want to revert \w+?`)).
 			Confirm()
 
 		t.Views().Commits().IsFocused().

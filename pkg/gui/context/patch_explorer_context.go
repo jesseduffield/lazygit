@@ -15,7 +15,7 @@ type PatchExplorerContext struct {
 	viewTrait              *ViewTrait
 	getIncludedLineIndices func() []int
 	c                      *ContextCommon
-	mutex                  *deadlock.Mutex
+	mutex                  deadlock.Mutex
 }
 
 var (
@@ -36,15 +36,15 @@ func NewPatchExplorerContext(
 		state:                  nil,
 		viewTrait:              NewViewTrait(view),
 		c:                      c,
-		mutex:                  &deadlock.Mutex{},
 		getIncludedLineIndices: getIncludedLineIndices,
 		SimpleContext: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-			View:             view,
-			WindowName:       windowName,
-			Key:              key,
-			Kind:             types.MAIN_CONTEXT,
-			Focusable:        true,
-			HighlightOnFocus: true,
+			View:                       view,
+			WindowName:                 windowName,
+			Key:                        key,
+			Kind:                       types.MAIN_CONTEXT,
+			Focusable:                  true,
+			HighlightOnFocus:           true,
+			NeedsRerenderOnWidthChange: types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES,
 		})),
 		SearchTrait: NewSearchTrait(c),
 	}
@@ -57,6 +57,8 @@ func NewPatchExplorerContext(
 			return nil
 		}),
 	)
+
+	ctx.SetHandleRenderFunc(ctx.OnViewWidthChanged)
 
 	return ctx
 }
@@ -92,11 +94,6 @@ func (self *PatchExplorerContext) Render() {
 	self.c.Render()
 }
 
-func (self *PatchExplorerContext) Focus() {
-	self.FocusSelection()
-	self.c.Render()
-}
-
 func (self *PatchExplorerContext) setContent() {
 	self.GetView().SetContent(self.GetContentToRender())
 }
@@ -104,16 +101,15 @@ func (self *PatchExplorerContext) setContent() {
 func (self *PatchExplorerContext) FocusSelection() {
 	view := self.GetView()
 	state := self.GetState()
-	_, viewHeight := view.Size()
-	bufferHeight := viewHeight - 1
+	bufferHeight := view.InnerHeight()
 	_, origin := view.Origin()
-	numLines := view.LinesHeight()
+	numLines := view.ViewLinesHeight()
 
 	newOriginY := state.CalculateOrigin(origin, bufferHeight, numLines)
 
 	view.SetOriginY(newOriginY)
 
-	startIdx, endIdx := state.SelectedRange()
+	startIdx, endIdx := state.SelectedViewRange()
 	// As far as the view is concerned, we are always selecting a range
 	view.SetRangeSelectStart(startIdx)
 	view.SetCursorY(endIdx - newOriginY)
@@ -135,9 +131,17 @@ func (self *PatchExplorerContext) NavigateTo(selectedLineIdx int) {
 }
 
 func (self *PatchExplorerContext) GetMutex() *deadlock.Mutex {
-	return self.mutex
+	return &self.mutex
 }
 
 func (self *PatchExplorerContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
 	return nil
+}
+
+func (self *PatchExplorerContext) OnViewWidthChanged() {
+	if state := self.GetState(); state != nil {
+		state.OnViewWidthChanged(self.GetView())
+		self.setContent()
+		self.RenderAndFocus()
+	}
 }

@@ -1,10 +1,9 @@
 package idxfile
 
 import (
-	"crypto/sha1"
-	"hash"
 	"io"
 
+	"github.com/jesseduffield/go-git/v5/plumbing/hash"
 	"github.com/jesseduffield/go-git/v5/utils/binary"
 )
 
@@ -16,7 +15,7 @@ type Encoder struct {
 
 // NewEncoder returns a new stream encoder that writes to w.
 func NewEncoder(w io.Writer) *Encoder {
-	h := sha1.New()
+	h := hash.New(hash.CryptoType)
 	mw := io.MultiWriter(w, h)
 	return &Encoder{mw, h}
 }
@@ -133,10 +132,10 @@ func (e *Encoder) encodeChecksums(idx *MemoryIndex) (int, error) {
 		return 0, err
 	}
 
-	copy(idx.IdxChecksum[:], e.hash.Sum(nil)[:20])
+	copy(idx.IdxChecksum[:], e.hash.Sum(nil)[:hash.Size])
 	if _, err := e.Write(idx.IdxChecksum[:]); err != nil {
 		return 0, err
 	}
 
-	return 40, nil
+	return hash.HexSize, nil
 }

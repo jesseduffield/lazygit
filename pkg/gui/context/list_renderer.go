@@ -52,7 +52,7 @@ func (self *ListRenderer) ModelIndexToViewIndex(modelIndex int) int {
 }
 
 func (self *ListRenderer) ViewIndexToModelIndex(viewIndex int) int {
-	viewIndex = utils.Clamp(viewIndex, 0, self.list.Len()+self.numNonModelItems)
+	viewIndex = lo.Clamp(viewIndex, 0, self.list.Len()+self.numNonModelItems)
 	if self.modelIndicesByViewIndex != nil {
 		return self.modelIndicesByViewIndex[viewIndex]
 	}
@@ -99,17 +99,19 @@ func (self *ListRenderer) renderLines(startIdx int, endIdx int) string {
 
 func (self *ListRenderer) prepareConversionArrays(nonModelItems []*NonModelItem) {
 	self.numNonModelItems = len(nonModelItems)
-	self.viewIndicesByModelIndex = lo.Range(self.list.Len() + 1)
-	self.modelIndicesByViewIndex = lo.Range(self.list.Len() + 1)
+	viewIndicesByModelIndex := lo.Range(self.list.Len() + 1)
+	modelIndicesByViewIndex := lo.Range(self.list.Len() + 1)
 	offset := 0
 	for _, item := range nonModelItems {
 		for i := item.Index; i <= self.list.Len(); i++ {
-			self.viewIndicesByModelIndex[i]++
+			viewIndicesByModelIndex[i]++
 		}
-		self.modelIndicesByViewIndex = slices.Insert(
-			self.modelIndicesByViewIndex, item.Index+offset, self.modelIndicesByViewIndex[item.Index+offset])
+		modelIndicesByViewIndex = slices.Insert(
+			modelIndicesByViewIndex, item.Index+offset, modelIndicesByViewIndex[item.Index+offset])
 		offset++
 	}
+	self.viewIndicesByModelIndex = viewIndicesByModelIndex
+	self.modelIndicesByViewIndex = modelIndicesByViewIndex
 }
 
 func (self *ListRenderer) insertNonModelItems(

@@ -15,6 +15,8 @@ var CONTEXT_KEYS_SHOWING_RENAMES = []types.ContextKey{
 	context.SUB_COMMITS_CONTEXT_KEY,
 	context.LOCAL_COMMITS_CONTEXT_KEY,
 	context.STASH_CONTEXT_KEY,
+	context.NORMAL_MAIN_CONTEXT_KEY,
+	context.NORMAL_SECONDARY_CONTEXT_KEY,
 }
 
 type RenameSimilarityThresholdController struct {
@@ -57,10 +59,10 @@ func (self *RenameSimilarityThresholdController) Context() types.Context {
 }
 
 func (self *RenameSimilarityThresholdController) Increase() error {
-	old_size := self.c.AppState.RenameSimilarityThreshold
+	old_size := self.c.UserConfig().Git.RenameSimilarityThreshold
 
 	if self.isShowingRenames() && old_size < 100 {
-		self.c.AppState.RenameSimilarityThreshold = min(100, old_size+5)
+		self.c.UserConfig().Git.RenameSimilarityThreshold = min(100, old_size+5)
 		return self.applyChange()
 	}
 
@@ -68,10 +70,10 @@ func (self *RenameSimilarityThresholdController) Increase() error {
 }
 
 func (self *RenameSimilarityThresholdController) Decrease() error {
-	old_size := self.c.AppState.RenameSimilarityThreshold
+	old_size := self.c.UserConfig().Git.RenameSimilarityThreshold
 
 	if self.isShowingRenames() && old_size > 5 {
-		self.c.AppState.RenameSimilarityThreshold = max(5, old_size-5)
+		self.c.UserConfig().Git.RenameSimilarityThreshold = max(5, old_size-5)
 		return self.applyChange()
 	}
 
@@ -79,23 +81,34 @@ func (self *RenameSimilarityThresholdController) Decrease() error {
 }
 
 func (self *RenameSimilarityThresholdController) applyChange() error {
-	self.c.Toast(fmt.Sprintf(self.c.Tr.RenameSimilarityThresholdChanged, self.c.AppState.RenameSimilarityThreshold))
-	self.c.SaveAppStateAndLogError()
+	self.c.Toast(fmt.Sprintf(self.c.Tr.RenameSimilarityThresholdChanged, self.c.UserConfig().Git.RenameSimilarityThreshold))
 
-	currentContext := self.c.Context().CurrentStatic()
+	currentContext := self.currentSidePanel()
 	switch currentContext.GetKey() {
 	// we make an exception for our files context, because it actually need to refresh its state afterwards.
 	case context.FILES_CONTEXT_KEY:
-		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 	default:
 		currentContext.HandleRenderToMain()
-		return nil
 	}
+	return nil
 }
 
 func (self *RenameSimilarityThresholdController) isShowingRenames() bool {
 	return lo.Contains(
 		CONTEXT_KEYS_SHOWING_RENAMES,
-		self.c.Context().CurrentStatic().GetKey(),
+		self.currentSidePanel().GetKey(),
 	)
+}
+
+func (self *RenameSimilarityThresholdController) currentSidePanel() types.Context {
+	currentContext := self.c.Context().CurrentStatic()
+	if currentContext.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY ||
+		currentContext.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {
+		if sidePanelContext := self.c.Context().NextInStack(currentContext); sidePanelContext != nil {
+			return sidePanelContext
+		}
+	}
+
+	return currentContext
 }

@@ -1,4 +1,4 @@
-// Copyright 2021 The TCell Authors
+// Copyright 2024 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -16,6 +16,11 @@
 // +build aix darwin dragonfly freebsd linux netbsd openbsd solaris zos
 
 package tcell
+
+import (
+	// import the stock terminals
+	_ "github.com/gdamore/tcell/v2/terminfo/base"
+)
 
 // initialize is used at application startup, and sets up the initial values
 // including file descriptors used for terminals and saving the initial state

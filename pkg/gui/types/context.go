@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 )
@@ -88,12 +89,15 @@ type IBaseContext interface {
 
 	AddKeybindingsFn(KeybindingsFn)
 	AddMouseKeybindingsFn(MouseKeybindingsFn)
-	ClearAllBindingsFn()
+	ClearAllAttachedControllerFunctions()
 
 	// This is a bit of a hack at the moment: we currently only set an onclick function so that
 	// our list controller can come along and wrap it in a list-specific click handler.
 	// We'll need to think of a better way to do this.
 	AddOnClickFn(func() error)
+	// Likewise for the focused main view: we need this to communicate between a
+	// side panel controller and the focused main view controller.
+	AddOnClickFocusedMainViewFn(func(mainViewName string, clickedLineIdx int) error)
 
 	AddOnRenderToMainFn(func())
 	AddOnFocusFn(func(OnFocusOpts))
@@ -105,6 +109,7 @@ type Context interface {
 
 	HandleFocus(opts OnFocusOpts)
 	HandleFocusLost(opts OnFocusLostOpts)
+	FocusLine()
 	HandleRender()
 	HandleRenderToMain()
 }
@@ -126,6 +131,7 @@ type IFilterableContext interface {
 	ReApplyFilter(bool)
 	IsFiltering() bool
 	IsFilterableContext()
+	FilterPrefix(tr *i18n.TranslationSet) string
 }
 
 type ISearchableContext interface {
@@ -152,6 +158,14 @@ type DiffableContext interface {
 	// which becomes an option when you bring up the diff menu, but when you're just
 	// flicking through branches it will be using the local branch name.
 	GetDiffTerminals() []string
+
+	// Returns the ref that should be used for creating a diff of what's
+	// currently shown in the main view against the working directory, in order
+	// to adjust line numbers in the diff to match the current state of the
+	// shown file. For example, if the main view shows a range diff of commits,
+	// we need to pass the first commit of the range. This is used by
+	// DiffHelper.AdjustLineNumber.
+	RefForAdjustingLineNumberInDiff() string
 }
 
 type IListContext interface {
@@ -165,10 +179,11 @@ type IListContext interface {
 	ViewIndexToModelIndex(int) int
 	ModelIndexToViewIndex(int) int
 
-	FocusLine()
 	IsListContext() // used for type switch
 	RangeSelectEnabled() bool
 	RenderOnlyVisibleLines() bool
+
+	IndexForGotoBottom() int
 }
 
 type IPatchExplorerContext interface {
@@ -179,7 +194,6 @@ type IPatchExplorerContext interface {
 	GetIncludedLineIndices() []int
 	RenderAndFocus()
 	Render()
-	Focus()
 	GetContentToRender() string
 	NavigateTo(selectedLineIdx int)
 	GetMutex() *deadlock.Mutex
@@ -232,14 +246,16 @@ type HasKeybindings interface {
 	GetKeybindings(opts KeybindingsOpts) []*Binding
 	GetMouseKeybindings(opts KeybindingsOpts) []*gocui.ViewMouseBinding
 	GetOnClick() func() error
-	GetOnRenderToMain() func()
-	GetOnFocus() func(OnFocusOpts)
-	GetOnFocusLost() func(OnFocusLostOpts)
+	GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error
 }
 
 type IController interface {
 	HasKeybindings
 	Context() Context
+
+	GetOnRenderToMain() func()
+	GetOnFocus() func(OnFocusOpts)
+	GetOnFocusLost() func(OnFocusLostOpts)
 }
 
 type IList interface {
@@ -278,7 +294,7 @@ type ListItem interface {
 }
 
 type IContextMgr interface {
-	Push(context Context, opts ...OnFocusOpts)
+	Push(context Context, opts OnFocusOpts)
 	Pop()
 	Replace(context Context)
 	Activate(context Context, opts OnFocusOpts)
@@ -286,6 +302,7 @@ type IContextMgr interface {
 	CurrentStatic() Context
 	CurrentSide() Context
 	CurrentPopup() []Context
+	NextInStack(context Context) Context
 	IsCurrent(c Context) bool
 	IsCurrentOrParent(c Context) bool
 	ForEach(func(Context))

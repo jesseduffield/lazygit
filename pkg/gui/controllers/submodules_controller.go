@@ -27,7 +27,7 @@ func NewSubmodulesController(
 ) *SubmodulesController {
 	return &SubmodulesController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.SubmoduleConfig](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Submodules,
 			c.Contexts().Submodules.GetSelected,
@@ -166,7 +166,8 @@ func (self *SubmodulesController) add() error {
 									return err
 								}
 
-								return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+								self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+								return nil
 							})
 						},
 					})
@@ -194,7 +195,8 @@ func (self *SubmodulesController) editURL(submodule *models.SubmoduleConfig) err
 					return err
 				}
 
-				return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+				return nil
 			})
 		},
 	})
@@ -210,7 +212,8 @@ func (self *SubmodulesController) init(submodule *models.SubmoduleConfig) error 
 			return err
 		}
 
-		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+		return nil
 	})
 }
 
@@ -228,7 +231,8 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 							return err
 						}
 
-						return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+						self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+						return nil
 					})
 				},
 				Key: 'i',
@@ -242,10 +246,26 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 							return err
 						}
 
-						return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+						self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+						return nil
 					})
 				},
 				Key: 'u',
+			},
+			{
+				LabelColumns: []string{self.c.Tr.BulkUpdateRecursiveSubmodules, style.FgYellow.Sprint(self.c.Git().Submodule.BulkUpdateRecursivelyCmdObj().ToString())},
+				OnPress: func() error {
+					return self.c.WithWaitingStatus(self.c.Tr.RunningCommand, func(gocui.Task) error {
+						self.c.LogAction(self.c.Tr.Actions.BulkUpdateRecursiveSubmodules)
+						if err := self.c.Git().Submodule.BulkUpdateRecursivelyCmdObj().Run(); err != nil {
+							return err
+						}
+
+						self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+						return nil
+					})
+				},
+				Key: 'r',
 			},
 			{
 				LabelColumns: []string{self.c.Tr.BulkDeinitSubmodules, style.FgRed.Sprint(self.c.Git().Submodule.BulkDeinitCmdObj().ToString())},
@@ -256,7 +276,8 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 							return err
 						}
 
-						return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+						self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+						return nil
 					})
 				},
 				Key: 'd',
@@ -273,7 +294,8 @@ func (self *SubmodulesController) update(submodule *models.SubmoduleConfig) erro
 			return err
 		}
 
-		return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+		return nil
 	})
 }
 
@@ -287,7 +309,8 @@ func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) erro
 				return err
 			}
 
-			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES, types.FILES}})
+			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES, types.FILES}})
+			return nil
 		},
 	})
 
@@ -295,7 +318,7 @@ func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) erro
 }
 
 func (self *SubmodulesController) easterEgg() error {
-	self.c.Context().Push(self.c.Contexts().Snake)
+	self.c.Context().Push(self.c.Contexts().Snake, types.OnFocusOpts{})
 	return nil
 }
 

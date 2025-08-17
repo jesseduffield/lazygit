@@ -25,7 +25,7 @@ func NewWorktreesController(
 ) *WorktreesController {
 	return &WorktreesController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.Worktree](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Worktrees,
 			c.Contexts().Worktrees.GetSelected,

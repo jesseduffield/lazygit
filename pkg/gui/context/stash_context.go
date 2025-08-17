@@ -53,7 +53,7 @@ func (self *StashContext) CanRebase() bool {
 	return false
 }
 
-func (self *StashContext) GetSelectedRef() types.Ref {
+func (self *StashContext) GetSelectedRef() models.Ref {
 	stash := self.GetSelected()
 	if stash == nil {
 		return nil
@@ -70,4 +70,8 @@ func (self *StashContext) GetDiffTerminals() []string {
 	itemId := self.GetSelectedItemId()
 
 	return []string{itemId}
+}
+
+func (self *StashContext) RefForAdjustingLineNumberInDiff() string {
+	return self.GetSelectedItemId()
 }

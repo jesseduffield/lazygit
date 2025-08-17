@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	"github.com/jesseduffield/go-git/v5/plumbing"
 	"github.com/jesseduffield/go-git/v5/plumbing/format/pktline"
@@ -81,7 +80,7 @@ func (req *ReferenceUpdateRequest) Decode(r io.Reader) error {
 	var ok bool
 	rc, ok = r.(io.ReadCloser)
 	if !ok {
-		rc = ioutil.NopCloser(r)
+		rc = io.NopCloser(r)
 	}
 
 	d := &updReqDecoder{r: rc, s: pktline.NewScanner(r)}

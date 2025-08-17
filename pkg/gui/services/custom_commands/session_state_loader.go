@@ -26,8 +26,8 @@ func commitShimFromModelCommit(commit *models.Commit) *Commit {
 	}
 
 	return &Commit{
-		Hash:          commit.Hash,
-		Sha:           commit.Hash,
+		Hash:          commit.Hash(),
+		Sha:           commit.Hash(),
 		Name:          commit.Name,
 		Status:        commit.Status,
 		Action:        commit.Action,
@@ -37,7 +37,7 @@ func commitShimFromModelCommit(commit *models.Commit) *Commit {
 		AuthorEmail:   commit.AuthorEmail,
 		UnixTimestamp: commit.UnixTimestamp,
 		Divergence:    commit.Divergence,
-		Parents:       commit.Parents,
+		Parents:       commit.Parents(),
 	}
 }
 
@@ -47,8 +47,8 @@ func fileShimFromModelFile(file *models.File) *File {
 	}
 
 	return &File{
-		Name:                    file.Name,
-		PreviousName:            file.PreviousName,
+		Name:                    file.Path,
+		PreviousName:            file.PreviousPath,
 		HasStagedChanges:        file.HasStagedChanges,
 		HasUnstagedChanges:      file.HasUnstagedChanges,
 		Tracked:                 file.Tracked,
@@ -141,7 +141,7 @@ func commitFileShimFromModelRemote(commitFile *models.CommitFile) *CommitFile {
 	}
 
 	return &CommitFile{
-		Name:         commitFile.Name,
+		Name:         commitFile.Path,
 		ChangeStatus: commitFile.ChangeStatus,
 	}
 }
@@ -162,12 +162,29 @@ func worktreeShimFromModelRemote(worktree *models.Worktree) *Worktree {
 	}
 }
 
+type CommitRange struct {
+	From string
+	To   string
+}
+
+func makeCommitRange(commits []*models.Commit, _ int, _ int) *CommitRange {
+	if len(commits) == 0 {
+		return nil
+	}
+
+	return &CommitRange{
+		From: commits[len(commits)-1].Hash(),
+		To:   commits[0].Hash(),
+	}
+}
+
 // SessionState captures the current state of the application for use in custom commands
 type SessionState struct {
 	SelectedLocalCommit    *Commit // deprecated, use SelectedCommit
 	SelectedReflogCommit   *Commit // deprecated, use SelectedCommit
 	SelectedSubCommit      *Commit // deprecated, use SelectedCommit
 	SelectedCommit         *Commit
+	SelectedCommitRange    *CommitRange
 	SelectedFile           *File
 	SelectedPath           string
 	SelectedLocalBranch    *Branch
@@ -183,14 +200,20 @@ type SessionState struct {
 
 func (self *SessionStateLoader) call() *SessionState {
 	selectedLocalCommit := commitShimFromModelCommit(self.c.Contexts().LocalCommits.GetSelected())
+	selectedLocalCommitRange := makeCommitRange(self.c.Contexts().LocalCommits.GetSelectedItems())
 	selectedReflogCommit := commitShimFromModelCommit(self.c.Contexts().ReflogCommits.GetSelected())
+	selectedReflogCommitRange := makeCommitRange(self.c.Contexts().ReflogCommits.GetSelectedItems())
 	selectedSubCommit := commitShimFromModelCommit(self.c.Contexts().SubCommits.GetSelected())
+	selectedSubCommitRange := makeCommitRange(self.c.Contexts().SubCommits.GetSelectedItems())
 
 	selectedCommit := selectedLocalCommit
+	selectedCommitRange := selectedLocalCommitRange
 	if self.c.Context().IsCurrentOrParent(self.c.Contexts().ReflogCommits) {
 		selectedCommit = selectedReflogCommit
+		selectedCommitRange = selectedReflogCommitRange
 	} else if self.c.Context().IsCurrentOrParent(self.c.Contexts().SubCommits) {
 		selectedCommit = selectedSubCommit
+		selectedCommitRange = selectedSubCommitRange
 	}
 
 	selectedPath := self.c.Contexts().Files.GetSelectedPath()
@@ -207,6 +230,7 @@ func (self *SessionStateLoader) call() *SessionState {
 		SelectedReflogCommit:   selectedReflogCommit,
 		SelectedSubCommit:      selectedSubCommit,
 		SelectedCommit:         selectedCommit,
+		SelectedCommitRange:    selectedCommitRange,
 		SelectedLocalBranch:    branchShimFromModelBranch(self.c.Contexts().Branches.GetSelected()),
 		SelectedRemoteBranch:   remoteBranchShimFromModelRemoteBranch(self.c.Contexts().RemoteBranches.GetSelected()),
 		SelectedRemote:         remoteShimFromModelRemote(self.c.Contexts().Remotes.GetSelected()),

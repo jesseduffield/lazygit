@@ -148,7 +148,7 @@ func (self *HandlerCreator) generateFindSuggestionsFunc(prompt *config.CustomCom
 
 func (self *HandlerCreator) getCommandSuggestionsFn(command string) (func(string) []*types.Suggestion, error) {
 	lines := []*types.Suggestion{}
-	err := self.c.OS().Cmd.NewShell(command).RunAndProcessLines(func(line string) (bool, error) {
+	err := self.c.OS().Cmd.NewShell(command, self.c.UserConfig().OS.ShellFunctionsFile).RunAndProcessLines(func(line string) (bool, error) {
 		lines = append(lines, &types.Suggestion{Value: line, Label: line})
 		return false, nil
 	})
@@ -246,7 +246,8 @@ func (self *HandlerCreator) getResolveTemplateFn(form map[string]string, promptR
 	}
 
 	funcs := template.FuncMap{
-		"quote": self.c.OS().Quote,
+		"quote":      self.c.OS().Quote,
+		"runCommand": self.c.Git().Custom.TemplateFunctionRunCommand,
 	}
 
 	return func(templateStr string) (string, error) { return utils.ResolveTemplate(templateStr, objects, funcs) }
@@ -259,9 +260,9 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 		return err
 	}
 
-	cmdObj := self.c.OS().Cmd.NewShell(cmdStr)
+	cmdObj := self.c.OS().Cmd.NewShell(cmdStr, self.c.UserConfig().OS.ShellFunctionsFile)
 
-	if customCommand.Subprocess {
+	if customCommand.Output == "terminal" {
 		return self.c.RunSubprocessAndRefresh(cmdObj)
 	}
 
@@ -273,24 +274,25 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 	return self.c.WithWaitingStatus(loadingText, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.CustomCommand)
 
-		if customCommand.Stream {
+		if customCommand.Output == "log" || customCommand.Output == "logWithPty" {
 			cmdObj.StreamOutput()
+		}
+		if customCommand.Output == "logWithPty" {
+			cmdObj.UsePty()
 		}
 		output, err := cmdObj.RunWithOutput()
 
-		if refreshErr := self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
-			self.c.Log.Error(refreshErr)
-		}
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 
 		if err != nil {
-			if customCommand.After.CheckForConflicts {
+			if customCommand.After != nil && customCommand.After.CheckForConflicts {
 				return self.mergeAndRebaseHelper.CheckForConflicts(err)
 			}
 
 			return err
 		}
 
-		if customCommand.ShowOutput {
+		if customCommand.Output == "popup" {
 			if strings.TrimSpace(output) == "" {
 				output = self.c.Tr.EmptyOutput
 			}

@@ -24,22 +24,24 @@
     {
       "label": "Run current file integration test",
       "type": "shell",
-      "command": "go generate pkg/integration/tests/tests.go && go run cmd/integration_test/main.go cli ${relativeFile}",
+      "command": "go run cmd/integration_test/main.go cli ${relativeFile}",
       "problemMatcher": [],
       "group": {
         "kind": "test",
         "isDefault": true
       },
       "presentation": {
+        "clear": true,
         "focus": true
       }
     },
     {
       "label": "Run current file integration test (slow)",
       "type": "shell",
-      "command": "go generate pkg/integration/tests/tests.go && go run cmd/integration_test/main.go cli --slow ${relativeFile}",
+      "command": "go run cmd/integration_test/main.go cli --slow ${relativeFile}",
       "problemMatcher": [],
       "group": {
+        "clear": true,
         "kind": "test",
       },
       "presentation": {
@@ -49,12 +51,13 @@
     {
       "label": "Run current file integration test (sandbox)",
       "type": "shell",
-      "command": "go generate pkg/integration/tests/tests.go && go run cmd/integration_test/main.go cli --sandbox ${relativeFile}",
+      "command": "go run cmd/integration_test/main.go cli --sandbox ${relativeFile}",
       "problemMatcher": [],
       "group": {
         "kind": "test",
       },
       "presentation": {
+        "clear": true,
         "focus": true
       }
     },

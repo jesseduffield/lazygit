@@ -314,129 +314,129 @@ const (
 	Color253
 	Color254
 	Color255
-	ColorAliceBlue
-	ColorAntiqueWhite
-	ColorAquaMarine
-	ColorAzure
-	ColorBeige
-	ColorBisque
-	ColorBlanchedAlmond
-	ColorBlueViolet
-	ColorBrown
-	ColorBurlyWood
-	ColorCadetBlue
-	ColorChartreuse
-	ColorChocolate
-	ColorCoral
-	ColorCornflowerBlue
-	ColorCornsilk
-	ColorCrimson
-	ColorDarkBlue
-	ColorDarkCyan
-	ColorDarkGoldenrod
-	ColorDarkGray
-	ColorDarkGreen
-	ColorDarkKhaki
-	ColorDarkMagenta
-	ColorDarkOliveGreen
-	ColorDarkOrange
-	ColorDarkOrchid
-	ColorDarkRed
-	ColorDarkSalmon
-	ColorDarkSeaGreen
-	ColorDarkSlateBlue
-	ColorDarkSlateGray
-	ColorDarkTurquoise
-	ColorDarkViolet
-	ColorDeepPink
-	ColorDeepSkyBlue
-	ColorDimGray
-	ColorDodgerBlue
-	ColorFireBrick
-	ColorFloralWhite
-	ColorForestGreen
-	ColorGainsboro
-	ColorGhostWhite
-	ColorGold
-	ColorGoldenrod
-	ColorGreenYellow
-	ColorHoneydew
-	ColorHotPink
-	ColorIndianRed
-	ColorIndigo
-	ColorIvory
-	ColorKhaki
-	ColorLavender
-	ColorLavenderBlush
-	ColorLawnGreen
-	ColorLemonChiffon
-	ColorLightBlue
-	ColorLightCoral
-	ColorLightCyan
-	ColorLightGoldenrodYellow
-	ColorLightGray
-	ColorLightGreen
-	ColorLightPink
-	ColorLightSalmon
-	ColorLightSeaGreen
-	ColorLightSkyBlue
-	ColorLightSlateGray
-	ColorLightSteelBlue
-	ColorLightYellow
-	ColorLimeGreen
-	ColorLinen
-	ColorMediumAquamarine
-	ColorMediumBlue
-	ColorMediumOrchid
-	ColorMediumPurple
-	ColorMediumSeaGreen
-	ColorMediumSlateBlue
-	ColorMediumSpringGreen
-	ColorMediumTurquoise
-	ColorMediumVioletRed
-	ColorMidnightBlue
-	ColorMintCream
-	ColorMistyRose
-	ColorMoccasin
-	ColorNavajoWhite
-	ColorOldLace
-	ColorOliveDrab
-	ColorOrange
-	ColorOrangeRed
-	ColorOrchid
-	ColorPaleGoldenrod
-	ColorPaleGreen
-	ColorPaleTurquoise
-	ColorPaleVioletRed
-	ColorPapayaWhip
-	ColorPeachPuff
-	ColorPeru
-	ColorPink
-	ColorPlum
-	ColorPowderBlue
-	ColorRebeccaPurple
-	ColorRosyBrown
-	ColorRoyalBlue
-	ColorSaddleBrown
-	ColorSalmon
-	ColorSandyBrown
-	ColorSeaGreen
-	ColorSeashell
-	ColorSienna
-	ColorSkyblue
-	ColorSlateBlue
-	ColorSlateGray
-	ColorSnow
-	ColorSpringGreen
-	ColorSteelBlue
-	ColorTan
-	ColorThistle
-	ColorTomato
-	ColorTurquoise
-	ColorViolet
-	ColorWheat
-	ColorWhiteSmoke
-	ColorYellowGreen
+	ColorAliceBlue            = ColorIsRGB | ColorValid | 0xF0F8FF
+	ColorAntiqueWhite         = ColorIsRGB | ColorValid | 0xFAEBD7
+	ColorAquaMarine           = ColorIsRGB | ColorValid | 0x7FFFD4
+	ColorAzure                = ColorIsRGB | ColorValid | 0xF0FFFF
+	ColorBeige                = ColorIsRGB | ColorValid | 0xF5F5DC
+	ColorBisque               = ColorIsRGB | ColorValid | 0xFFE4C4
+	ColorBlanchedAlmond       = ColorIsRGB | ColorValid | 0xFFEBCD
+	ColorBlueViolet           = ColorIsRGB | ColorValid | 0x8A2BE2
+	ColorBrown                = ColorIsRGB | ColorValid | 0xA52A2A
+	ColorBurlyWood            = ColorIsRGB | ColorValid | 0xDEB887
+	ColorCadetBlue            = ColorIsRGB | ColorValid | 0x5F9EA0
+	ColorChartreuse           = ColorIsRGB | ColorValid | 0x7FFF00
+	ColorChocolate            = ColorIsRGB | ColorValid | 0xD2691E
+	ColorCoral                = ColorIsRGB | ColorValid | 0xFF7F50
+	ColorCornflowerBlue       = ColorIsRGB | ColorValid | 0x6495ED
+	ColorCornsilk             = ColorIsRGB | ColorValid | 0xFFF8DC
+	ColorCrimson              = ColorIsRGB | ColorValid | 0xDC143C
+	ColorDarkBlue             = ColorIsRGB | ColorValid | 0x00008B
+	ColorDarkCyan             = ColorIsRGB | ColorValid | 0x008B8B
+	ColorDarkGoldenrod        = ColorIsRGB | ColorValid | 0xB8860B
+	ColorDarkGray             = ColorIsRGB | ColorValid | 0xA9A9A9
+	ColorDarkGreen            = ColorIsRGB | ColorValid | 0x006400
+	ColorDarkKhaki            = ColorIsRGB | ColorValid | 0xBDB76B
+	ColorDarkMagenta          = ColorIsRGB | ColorValid | 0x8B008B
+	ColorDarkOliveGreen       = ColorIsRGB | ColorValid | 0x556B2F
+	ColorDarkOrange           = ColorIsRGB | ColorValid | 0xFF8C00
+	ColorDarkOrchid           = ColorIsRGB | ColorValid | 0x9932CC
+	ColorDarkRed              = ColorIsRGB | ColorValid | 0x8B0000
+	ColorDarkSalmon           = ColorIsRGB | ColorValid | 0xE9967A
+	ColorDarkSeaGreen         = ColorIsRGB | ColorValid | 0x8FBC8F
+	ColorDarkSlateBlue        = ColorIsRGB | ColorValid | 0x483D8B
+	ColorDarkSlateGray        = ColorIsRGB | ColorValid | 0x2F4F4F
+	ColorDarkTurquoise        = ColorIsRGB | ColorValid | 0x00CED1
+	ColorDarkViolet           = ColorIsRGB | ColorValid | 0x9400D3
+	ColorDeepPink             = ColorIsRGB | ColorValid | 0xFF1493
+	ColorDeepSkyBlue          = ColorIsRGB | ColorValid | 0x00BFFF
+	ColorDimGray              = ColorIsRGB | ColorValid | 0x696969
+	ColorDodgerBlue           = ColorIsRGB | ColorValid | 0x1E90FF
+	ColorFireBrick            = ColorIsRGB | ColorValid | 0xB22222
+	ColorFloralWhite          = ColorIsRGB | ColorValid | 0xFFFAF0
+	ColorForestGreen          = ColorIsRGB | ColorValid | 0x228B22
+	ColorGainsboro            = ColorIsRGB | ColorValid | 0xDCDCDC
+	ColorGhostWhite           = ColorIsRGB | ColorValid | 0xF8F8FF
+	ColorGold                 = ColorIsRGB | ColorValid | 0xFFD700
+	ColorGoldenrod            = ColorIsRGB | ColorValid | 0xDAA520
+	ColorGreenYellow          = ColorIsRGB | ColorValid | 0xADFF2F
+	ColorHoneydew             = ColorIsRGB | ColorValid | 0xF0FFF0
+	ColorHotPink              = ColorIsRGB | ColorValid | 0xFF69B4
+	ColorIndianRed            = ColorIsRGB | ColorValid | 0xCD5C5C
+	ColorIndigo               = ColorIsRGB | ColorValid | 0x4B0082
+	ColorIvory                = ColorIsRGB | ColorValid | 0xFFFFF0
+	ColorKhaki                = ColorIsRGB | ColorValid | 0xF0E68C
+	ColorLavender             = ColorIsRGB | ColorValid | 0xE6E6FA
+	ColorLavenderBlush        = ColorIsRGB | ColorValid | 0xFFF0F5
+	ColorLawnGreen            = ColorIsRGB | ColorValid | 0x7CFC00
+	ColorLemonChiffon         = ColorIsRGB | ColorValid | 0xFFFACD
+	ColorLightBlue            = ColorIsRGB | ColorValid | 0xADD8E6
+	ColorLightCoral           = ColorIsRGB | ColorValid | 0xF08080
+	ColorLightCyan            = ColorIsRGB | ColorValid | 0xE0FFFF
+	ColorLightGoldenrodYellow = ColorIsRGB | ColorValid | 0xFAFAD2
+	ColorLightGray            = ColorIsRGB | ColorValid | 0xD3D3D3
+	ColorLightGreen           = ColorIsRGB | ColorValid | 0x90EE90
+	ColorLightPink            = ColorIsRGB | ColorValid | 0xFFB6C1
+	ColorLightSalmon          = ColorIsRGB | ColorValid | 0xFFA07A
+	ColorLightSeaGreen        = ColorIsRGB | ColorValid | 0x20B2AA
+	ColorLightSkyBlue         = ColorIsRGB | ColorValid | 0x87CEFA
+	ColorLightSlateGray       = ColorIsRGB | ColorValid | 0x778899
+	ColorLightSteelBlue       = ColorIsRGB | ColorValid | 0xB0C4DE
+	ColorLightYellow          = ColorIsRGB | ColorValid | 0xFFFFE0
+	ColorLimeGreen            = ColorIsRGB | ColorValid | 0x32CD32
+	ColorLinen                = ColorIsRGB | ColorValid | 0xFAF0E6
+	ColorMediumAquamarine     = ColorIsRGB | ColorValid | 0x66CDAA
+	ColorMediumBlue           = ColorIsRGB | ColorValid | 0x0000CD
+	ColorMediumOrchid         = ColorIsRGB | ColorValid | 0xBA55D3
+	ColorMediumPurple         = ColorIsRGB | ColorValid | 0x9370DB
+	ColorMediumSeaGreen       = ColorIsRGB | ColorValid | 0x3CB371
+	ColorMediumSlateBlue      = ColorIsRGB | ColorValid | 0x7B68EE
+	ColorMediumSpringGreen    = ColorIsRGB | ColorValid | 0x00FA9A
+	ColorMediumTurquoise      = ColorIsRGB | ColorValid | 0x48D1CC
+	ColorMediumVioletRed      = ColorIsRGB | ColorValid | 0xC71585
+	ColorMidnightBlue         = ColorIsRGB | ColorValid | 0x191970
+	ColorMintCream            = ColorIsRGB | ColorValid | 0xF5FFFA
+	ColorMistyRose            = ColorIsRGB | ColorValid | 0xFFE4E1
+	ColorMoccasin             = ColorIsRGB | ColorValid | 0xFFE4B5
+	ColorNavajoWhite          = ColorIsRGB | ColorValid | 0xFFDEAD
+	ColorOldLace              = ColorIsRGB | ColorValid | 0xFDF5E6
+	ColorOliveDrab            = ColorIsRGB | ColorValid | 0x6B8E23
+	ColorOrange               = ColorIsRGB | ColorValid | 0xFFA500
+	ColorOrangeRed            = ColorIsRGB | ColorValid | 0xFF4500
+	ColorOrchid               = ColorIsRGB | ColorValid | 0xDA70D6
+	ColorPaleGoldenrod        = ColorIsRGB | ColorValid | 0xEEE8AA
+	ColorPaleGreen            = ColorIsRGB | ColorValid | 0x98FB98
+	ColorPaleTurquoise        = ColorIsRGB | ColorValid | 0xAFEEEE
+	ColorPaleVioletRed        = ColorIsRGB | ColorValid | 0xDB7093
+	ColorPapayaWhip           = ColorIsRGB | ColorValid | 0xFFEFD5
+	ColorPeachPuff            = ColorIsRGB | ColorValid | 0xFFDAB9
+	ColorPeru                 = ColorIsRGB | ColorValid | 0xCD853F
+	ColorPink                 = ColorIsRGB | ColorValid | 0xFFC0CB
+	ColorPlum                 = ColorIsRGB | ColorValid | 0xDDA0DD
+	ColorPowderBlue           = ColorIsRGB | ColorValid | 0xB0E0E6
+	ColorRebeccaPurple        = ColorIsRGB | ColorValid | 0x663399
+	ColorRosyBrown            = ColorIsRGB | ColorValid | 0xBC8F8F
+	ColorRoyalBlue            = ColorIsRGB | ColorValid | 0x4169E1
+	ColorSaddleBrown          = ColorIsRGB | ColorValid | 0x8B4513
+	ColorSalmon               = ColorIsRGB | ColorValid | 0xFA8072
+	ColorSandyBrown           = ColorIsRGB | ColorValid | 0xF4A460
+	ColorSeaGreen             = ColorIsRGB | ColorValid | 0x2E8B57
+	ColorSeashell             = ColorIsRGB | ColorValid | 0xFFF5EE
+	ColorSienna               = ColorIsRGB | ColorValid | 0xA0522D
+	ColorSkyblue              = ColorIsRGB | ColorValid | 0x87CEEB
+	ColorSlateBlue            = ColorIsRGB | ColorValid | 0x6A5ACD
+	ColorSlateGray            = ColorIsRGB | ColorValid | 0x708090
+	ColorSnow                 = ColorIsRGB | ColorValid | 0xFFFAFA
+	ColorSpringGreen          = ColorIsRGB | ColorValid | 0x00FF7F
+	ColorSteelBlue            = ColorIsRGB | ColorValid | 0x4682B4
+	ColorTan                  = ColorIsRGB | ColorValid | 0xD2B48C
+	ColorThistle              = ColorIsRGB | ColorValid | 0xD8BFD8
+	ColorTomato               = ColorIsRGB | ColorValid | 0xFF6347
+	ColorTurquoise            = ColorIsRGB | ColorValid | 0x40E0D0
+	ColorViolet               = ColorIsRGB | ColorValid | 0xEE82EE
+	ColorWheat                = ColorIsRGB | ColorValid | 0xF5DEB3
+	ColorWhiteSmoke           = ColorIsRGB | ColorValid | 0xF5F5F5
+	ColorYellowGreen          = ColorIsRGB | ColorValid | 0x9ACD32
 )
 
 // These are aliases for the color gray, because some of us spell

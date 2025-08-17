@@ -55,7 +55,7 @@ func getCommitFilesFromFilenames(filenames string) []*models.CommitFile {
 	return lo.Map(lo.Chunk(lines, 2), func(chunk []string, _ int) *models.CommitFile {
 		return &models.CommitFile{
 			ChangeStatus: chunk[0],
-			Name:         chunk[1],
+			Path:         chunk[1],
 		}
 	})
 }

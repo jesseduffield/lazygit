@@ -32,9 +32,8 @@ func (self *GitCommandBuilder) ArgIf(condition bool, ifTrue ...string) *GitComma
 func (self *GitCommandBuilder) ArgIfElse(condition bool, ifTrue string, ifFalse string) *GitCommandBuilder {
 	if condition {
 		return self.Arg(ifTrue)
-	} else {
-		return self.Arg(ifFalse)
 	}
+	return self.Arg(ifFalse)
 }
 
 func (self *GitCommandBuilder) Config(value string) *GitCommandBuilder {
@@ -72,6 +71,14 @@ func (self *GitCommandBuilder) DirIf(condition bool, path string) *GitCommandBui
 func (self *GitCommandBuilder) Worktree(path string) *GitCommandBuilder {
 	// worktree arg comes before the command
 	self.args = append([]string{"--work-tree", path}, self.args...)
+
+	return self
+}
+
+func (self *GitCommandBuilder) WorktreePathIf(condition bool, path string) *GitCommandBuilder {
+	if condition {
+		return self.Worktree(path)
+	}
 
 	return self
 }

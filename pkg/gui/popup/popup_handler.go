@@ -2,6 +2,7 @@ package popup
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -80,6 +81,16 @@ func (self *PopupHandler) WithWaitingStatusSync(message string, f func() error) 
 }
 
 func (self *PopupHandler) ErrorHandler(err error) error {
+	var notHandledError *types.ErrKeybindingNotHandled
+	if errors.As(err, &notHandledError) {
+		if !notHandledError.DisabledReason.ShowErrorInPanel {
+			if msg := notHandledError.DisabledReason.Text; len(msg) > 0 {
+				self.ErrorToast(self.Tr.DisabledMenuItemPrefix + msg)
+			}
+			return nil
+		}
+	}
+
 	// Need to set bold here explicitly; otherwise it gets cancelled by the red colouring.
 	coloredMessage := style.FgRed.SetBold().Sprint(strings.TrimSpace(err.Error()))
 	if err := self.onErrorFn(); err != nil {
@@ -102,6 +113,20 @@ func (self *PopupHandler) Confirm(opts types.ConfirmOpts) {
 		HandleConfirm: opts.HandleConfirm,
 		HandleClose:   opts.HandleClose,
 	})
+}
+
+func (self *PopupHandler) ConfirmIf(condition bool, opts types.ConfirmOpts) error {
+	if condition {
+		self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
+			Title:         opts.Title,
+			Prompt:        opts.Prompt,
+			HandleConfirm: opts.HandleConfirm,
+			HandleClose:   opts.HandleClose,
+		})
+		return nil
+	}
+
+	return opts.HandleConfirm()
 }
 
 func (self *PopupHandler) Prompt(opts types.PromptOpts) {
