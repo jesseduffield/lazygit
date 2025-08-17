@@ -25,25 +25,25 @@ func (cb *ContextBuilder) BuildContext(commitType string, existingMessage string
 	// 3. Get branch name
 	// 4. Get recent commits for style reference
 	// 5. Detect project characteristics
-	
+
 	request := &GenerateRequest{
 		CommitType:      commitType,
 		ExistingMessage: existingMessage,
 	}
-	
+
 	// Get staged diff
 	if err := cb.setStagedDiff(request); err != nil {
 		return nil, err
 	}
-	
+
 	// Analyze file changes
 	if err := cb.setFileChanges(request); err != nil {
 		return nil, err
 	}
-	
+
 	// Set git context
 	cb.setGitContext(request)
-	
+
 	return request, nil
 }
 
@@ -62,7 +62,7 @@ func (cb *ContextBuilder) setFileChanges(request *GenerateRequest) error {
 	// 2. Detect programming languages
 	// 3. Count lines added/deleted
 	// 4. Detect binary files
-	
+
 	request.FileChanges = []FileChange{}
 	return nil
 }
@@ -71,10 +71,10 @@ func (cb *ContextBuilder) setFileChanges(request *GenerateRequest) error {
 func (cb *ContextBuilder) setGitContext(request *GenerateRequest) {
 	// TODO: Get current branch name
 	request.BranchName = cb.getBranchName()
-	
+
 	// TODO: Get project name from repository
 	request.ProjectName = cb.getProjectName()
-	
+
 	// TODO: Get recent commits for style analysis
 	request.RecentCommits = cb.getRecentCommits()
 }
@@ -104,36 +104,36 @@ func (cb *ContextBuilder) getRecentCommits() []string {
 // detectLanguage detects the programming language from file extension
 func (cb *ContextBuilder) detectLanguage(filePath string) string {
 	ext := strings.ToLower(filepath.Ext(filePath))
-	
+
 	languageMap := map[string]string{
-		".go":   "Go",
-		".js":   "JavaScript", 
-		".ts":   "TypeScript",
-		".py":   "Python",
-		".java": "Java",
-		".cpp":  "C++",
-		".c":    "C",
-		".rs":   "Rust",
-		".rb":   "Ruby",
-		".php":  "PHP",
-		".cs":   "C#",
-		".swift": "Swift",
-		".kt":   "Kotlin",
-		".scala": "Scala",
-		".sh":   "Shell",
-		".yml":  "YAML",
-		".yaml": "YAML",
-		".json": "JSON",
-		".xml":  "XML",
-		".md":   "Markdown",
-		".sql":  "SQL",
+		".go":         "Go",
+		".js":         "JavaScript",
+		".ts":         "TypeScript",
+		".py":         "Python",
+		".java":       "Java",
+		".cpp":        "C++",
+		".c":          "C",
+		".rs":         "Rust",
+		".rb":         "Ruby",
+		".php":        "PHP",
+		".cs":         "C#",
+		".swift":      "Swift",
+		".kt":         "Kotlin",
+		".scala":      "Scala",
+		".sh":         "Shell",
+		".yml":        "YAML",
+		".yaml":       "YAML",
+		".json":       "JSON",
+		".xml":        "XML",
+		".md":         "Markdown",
+		".sql":        "SQL",
 		".dockerfile": "Docker",
 	}
-	
+
 	if lang, exists := languageMap[ext]; exists {
 		return lang
 	}
-	
+
 	// Check for special files
 	filename := strings.ToLower(filepath.Base(filePath))
 	switch filename {
@@ -157,6 +157,6 @@ func (cb *ContextBuilder) BuildPrompt(request *GenerateRequest) string {
 	// 3. Style guidelines
 	// 4. Examples from recent commits
 	// 5. Specific requirements (conventional commits, etc.)
-	
+
 	return ""
 }

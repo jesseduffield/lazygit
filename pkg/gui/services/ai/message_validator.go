@@ -15,8 +15,8 @@ type MessageValidator struct {
 // NewMessageValidator creates a new message validator with default settings
 func NewMessageValidator() *MessageValidator {
 	return &MessageValidator{
-		maxSubjectLength: 72,  // Standard git convention
-		maxBodyLength:    72,  // Per line in body
+		maxSubjectLength: 72, // Standard git convention
+		maxBodyLength:    72, // Per line in body
 		requireSubject:   true,
 	}
 }
@@ -26,27 +26,27 @@ func (mv *MessageValidator) ValidateMessage(response *GenerateResponse) error {
 	if response == nil {
 		return ErrInvalidResponse
 	}
-	
+
 	// Check if message is empty
 	if strings.TrimSpace(response.Message) == "" {
 		return ErrInvalidResponse
 	}
-	
+
 	// Validate subject line
 	if err := mv.validateSubject(response.Message); err != nil {
 		return err
 	}
-	
+
 	// Validate message length
 	if err := mv.validateLength(response.Message); err != nil {
 		return err
 	}
-	
+
 	// Check for inappropriate content
 	if err := mv.validateContent(response.Message); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -56,43 +56,43 @@ func (mv *MessageValidator) validateSubject(message string) error {
 	if len(lines) == 0 {
 		return ErrInvalidResponse
 	}
-	
+
 	subject := strings.TrimSpace(lines[0])
-	
+
 	// Check if subject is required and present
 	if mv.requireSubject && subject == "" {
 		return ErrInvalidResponse
 	}
-	
+
 	// Check subject length
 	if utf8.RuneCountInString(subject) > mv.maxSubjectLength {
 		return ErrMessageTooLong
 	}
-	
+
 	// TODO: Add more subject validation rules:
 	// - No trailing period
 	// - Capitalized first letter
 	// - Imperative mood check
 	// - Conventional commit format validation
-	
+
 	return nil
 }
 
 // validateLength validates the overall message length
 func (mv *MessageValidator) validateLength(message string) error {
 	lines := strings.Split(message, "\n")
-	
+
 	// Check body line lengths (skip empty lines and subject)
 	for i, line := range lines {
 		if i == 0 || strings.TrimSpace(line) == "" {
 			continue // Skip subject line and empty lines
 		}
-		
+
 		if utf8.RuneCountInString(line) > mv.maxBodyLength {
 			return ErrMessageTooLong
 		}
 	}
-	
+
 	return nil
 }
 
@@ -104,10 +104,10 @@ func (mv *MessageValidator) validateContent(message string) error {
 	// - Personal information (emails, API keys, etc.)
 	// - Nonsensical or irrelevant content
 	// - Obvious AI-generated artifacts
-	
+
 	// Basic checks for now
 	message = strings.ToLower(message)
-	
+
 	// Check for placeholder text that AI might generate
 	prohibitedPhrases := []string{
 		"lorem ipsum",
@@ -117,13 +117,13 @@ func (mv *MessageValidator) validateContent(message string) error {
 		"[your text here]",
 		"replace this",
 	}
-	
+
 	for _, phrase := range prohibitedPhrases {
 		if strings.Contains(message, phrase) {
 			return ErrInappropriateContent
 		}
 	}
-	
+
 	return nil
 }
 
@@ -134,11 +134,11 @@ func (mv *MessageValidator) SanitizeMessage(message string) string {
 	// - Fix capitalization
 	// - Remove trailing periods from subject
 	// - Ensure proper line breaks
-	
+
 	// Basic cleanup for now
 	lines := strings.Split(message, "\n")
 	var cleanLines []string
-	
+
 	for i, line := range lines {
 		line = strings.TrimSpace(line)
 		if i == 0 {
@@ -152,7 +152,7 @@ func (mv *MessageValidator) SanitizeMessage(message string) string {
 			cleanLines = append(cleanLines, line)
 		}
 	}
-	
+
 	return strings.Join(cleanLines, "\n")
 }
 
@@ -161,31 +161,31 @@ func (mv *MessageValidator) IsConventionalCommit(message string) bool {
 	// TODO: Implement conventional commit validation
 	// Check for format: type(scope): description
 	// Common types: feat, fix, docs, style, refactor, test, chore
-	
+
 	lines := strings.Split(message, "\n")
 	if len(lines) == 0 {
 		return false
 	}
-	
+
 	subject := strings.TrimSpace(lines[0])
-	
+
 	// Basic pattern matching for conventional commits
 	conventionalTypes := []string{
-		"feat:", "fix:", "docs:", "style:", "refactor:", 
+		"feat:", "fix:", "docs:", "style:", "refactor:",
 		"test:", "chore:", "perf:", "ci:", "build:",
 		"revert:", "merge:", "release:",
 	}
-	
+
 	for _, ctype := range conventionalTypes {
 		if strings.HasPrefix(strings.ToLower(subject), ctype) {
 			return true
 		}
 	}
-	
+
 	// Check for scoped format: type(scope):
 	if strings.Contains(subject, "(") && strings.Contains(subject, "):") {
 		return true
 	}
-	
+
 	return false
 }

@@ -15,13 +15,13 @@ type Provider interface {
 
 // GenerateRequest contains the context for generating a commit message
 type GenerateRequest struct {
-	StagedDiff    string        `json:"staged_diff"`
-	FileChanges   []FileChange  `json:"file_changes"`
-	BranchName    string        `json:"branch_name"`
-	RecentCommits []string      `json:"recent_commits"`
-	ProjectName   string        `json:"project_name"`
-	CommitType    string        `json:"commit_type"` // "new" or "reword"
-	ExistingMessage string      `json:"existing_message,omitempty"` // For reword operations
+	StagedDiff      string       `json:"staged_diff"`
+	FileChanges     []FileChange `json:"file_changes"`
+	BranchName      string       `json:"branch_name"`
+	RecentCommits   []string     `json:"recent_commits"`
+	ProjectName     string       `json:"project_name"`
+	CommitType      string       `json:"commit_type"`                // "new" or "reword"
+	ExistingMessage string       `json:"existing_message,omitempty"` // For reword operations
 }
 
 // GenerateResponse contains the AI-generated commit message
@@ -35,8 +35,8 @@ type GenerateResponse struct {
 // FileChange represents a change to a file in the commit
 type FileChange struct {
 	Path         string `json:"path"`
-	Status       string `json:"status"`        // "added", "modified", "deleted", "renamed"
-	Language     string `json:"language"`      // Programming language detected
+	Status       string `json:"status"`   // "added", "modified", "deleted", "renamed"
+	Language     string `json:"language"` // Programming language detected
 	LinesAdded   int    `json:"lines_added"`
 	LinesDeleted int    `json:"lines_deleted"`
 	IsBinary     bool   `json:"is_binary"`
@@ -44,21 +44,21 @@ type FileChange struct {
 
 // GitContext contains git repository context for message generation
 type GitContext struct {
-	BranchName      string   `json:"branch_name"`
-	ProjectName     string   `json:"project_name"`
-	RecentCommits   []string `json:"recent_commits"`
-	RepositoryType  string   `json:"repository_type"` // detected from files
-	ConventionalCommits bool `json:"conventional_commits"` // whether to use conventional format
+	BranchName          string   `json:"branch_name"`
+	ProjectName         string   `json:"project_name"`
+	RecentCommits       []string `json:"recent_commits"`
+	RepositoryType      string   `json:"repository_type"`      // detected from files
+	ConventionalCommits bool     `json:"conventional_commits"` // whether to use conventional format
 }
 
 // Common errors
 var (
-	ErrUnsupportedProvider = errors.New("unsupported AI provider")
-	ErrNotConfigured      = errors.New("AI service is not configured")
-	ErrInvalidAPIKey      = errors.New("invalid API key")
-	ErrNetworkError       = errors.New("network error while calling AI service")
-	ErrInvalidResponse    = errors.New("invalid response from AI service")
-	ErrEmptyDiff          = errors.New("no staged changes to generate commit message for")
-	ErrMessageTooLong     = errors.New("generated commit message is too long")
+	ErrUnsupportedProvider  = errors.New("unsupported AI provider")
+	ErrNotConfigured        = errors.New("AI service is not configured")
+	ErrInvalidAPIKey        = errors.New("invalid API key")
+	ErrNetworkError         = errors.New("network error while calling AI service")
+	ErrInvalidResponse      = errors.New("invalid response from AI service")
+	ErrEmptyDiff            = errors.New("no staged changes to generate commit message for")
+	ErrMessageTooLong       = errors.New("generated commit message is too long")
 	ErrInappropriateContent = errors.New("generated message contains inappropriate content")
 )

@@ -10,8 +10,8 @@ import (
 // Client is the entry point for AI-powered commit message generation
 // It follows the same pattern as the custom_commands service
 type Client struct {
-	c               *helpers.HelperCommon
-	contextBuilder  *ContextBuilder
+	c                *helpers.HelperCommon
+	contextBuilder   *ContextBuilder
 	messageValidator *MessageValidator
 }
 
@@ -21,8 +21,8 @@ func NewClient(c *helpers.HelperCommon) *Client {
 	messageValidator := NewMessageValidator()
 
 	return &Client{
-		c:               c,
-		contextBuilder:  contextBuilder,
+		c:                c,
+		contextBuilder:   contextBuilder,
 		messageValidator: messageValidator,
 	}
 }
@@ -67,7 +67,7 @@ func (c *Client) ValidateConfig() error {
 func (c *Client) getProvider() (Provider, error) {
 	// TODO: Initialize and return the appropriate provider based on config
 	config := c.c.UserConfig().AI
-	
+
 	switch config.Provider {
 	case "openai":
 		return providers.NewOpenAIProvider(config), nil
