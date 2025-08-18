@@ -283,7 +283,9 @@ func (self *BranchesHelper) AutoForwardBranches() error {
 	updateCommands := ""
 	// The first branch is the currently checked out branch; skip it
 	for _, branch := range branches[1:] {
-		if branch.RemoteBranchStoredLocally() && (allBranches || lo.Contains(self.c.UserConfig().Git.MainBranches, branch.Name)) {
+		if branch.RemoteBranchStoredLocally() &&
+			!self.checkedOutByOtherWorktree(branch) &&
+			(allBranches || lo.Contains(self.c.UserConfig().Git.MainBranches, branch.Name)) {
 			isStrictlyBehind := branch.IsBehindForPull() && !branch.IsAheadForPull()
 			if isStrictlyBehind {
 				updateCommands += fmt.Sprintf("update %s %s %s\n", branch.FullRefName(), branch.FullUpstreamRefName(), branch.CommitHash)

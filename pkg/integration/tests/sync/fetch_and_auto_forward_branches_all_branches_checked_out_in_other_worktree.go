@@ -51,10 +51,7 @@ var FetchAndAutoForwardBranchesAllBranchesCheckedOutInOtherWorktree = NewIntegra
 				Contains("checked-out").IsSelected(),
 				Contains("diverged ↓2↑1"),
 				Contains("feature ✓"),
-				/* EXPECTED:
 				Contains("master (worktree) ↓1"),
-				ACTUAL: */
-				Contains("master (worktree) ✓"),
 			)
 	},
 })
