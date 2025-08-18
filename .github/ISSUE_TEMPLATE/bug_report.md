@@ -6,10 +6,10 @@ labels: bug
 assignees: ''
 ---
 
-**Describe the bug**
+### Describe the bug
 A clear and concise description of what the bug is.
 
-**To Reproduce**
+### To Reproduce
 Steps to reproduce the behavior:
 
 1. Go to '...'
@@ -17,20 +17,22 @@ Steps to reproduce the behavior:
 3. Scroll down to '....'
 4. See error
 
-**Expected behavior**
+### Expected behavior
 A clear and concise description of what you expected to happen.
 
-**Screenshots**
+### Screenshots
 If applicable, add screenshots to help explain your problem.
 
-**Version info:**
-_Run `lazygit --version` and paste the result here_
-_Run `git --version` and paste the result here_
+### Version info:
 
-**Additional context**
+* _Run `lazygit --version` and paste the result here_
+* _Run `git --version` and paste the result here_
+
+### Additional context
 Add any other context about the problem here.
 
-**Note:** please try updating to the latest version or [manually building](https://github.com/jesseduffield/lazygit/#manual) the latest `master` to see if the issue still occurs.
+> [!NOTE]
+> Please try updating to the latest version or [manually building](https://github.com/jesseduffield/lazygit/#manual) the latest `master` to see if the issue still occurs.
 
 <!--
 If you want to try and debug this issue yourself, you can run `lazygit --debug` in one terminal panel and `lazygit --logs` in another to view the logs.

@@ -1,0 +1,15 @@
+name: Check Required Labels
+
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled]
+
+jobs:
+  check-required-label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mheap/github-action-required-labels@v5
+        with:
+          mode: exactly
+          count: 1
+          labels: "ignore-for-release, feature, enhancement, bug, maintenance, docs, i18n, performance"

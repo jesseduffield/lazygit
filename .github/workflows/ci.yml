@@ -175,15 +175,6 @@ jobs:
       - name: errors
         run: golangci-lint run
         if: ${{ failure() }}
-  check-required-label:
-    runs-on: ubuntu-latest
-    if: github.ref != 'refs/heads/master'
-    steps:
-      - uses: mheap/github-action-required-labels@v5
-        with:
-          mode: exactly
-          count: 1
-          labels: "ignore-for-release, feature, enhancement, bug, maintenance, docs, i18n, performance"
   upload-coverage:
     # List all jobs that produce coverage files
     needs: [unit-tests, integration-tests]
