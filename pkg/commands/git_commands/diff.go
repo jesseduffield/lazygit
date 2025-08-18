@@ -21,13 +21,14 @@ func NewDiffCommands(gitCommon *GitCommon) *DiffCommands {
 func (self *DiffCommands) DiffCmdObj(diffArgs []string) *oscommands.CmdObj {
 	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
 	useExtDiff := extDiffCmd != ""
+	useExtDiffGitConfig := self.UserConfig().Git.Paging.UseExternalDiffGitConfig
 	ignoreWhitespace := self.UserConfig().Git.IgnoreWhitespaceInDiffView
 
 	return self.cmd.New(
 		NewGitCmd("diff").
 			Config("diff.noprefix=false").
 			ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
-			ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
+			ArgIfElse(useExtDiff || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
 			Arg("--submodule").
 			Arg(fmt.Sprintf("--color=%s", self.UserConfig().Git.Paging.ColorArg)).
 			ArgIf(ignoreWhitespace, "--ignore-all-space").

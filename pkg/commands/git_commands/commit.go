@@ -257,10 +257,11 @@ func (self *CommitCommands) ShowCmdObj(hash string, filterPaths []string) *oscom
 	contextSize := self.UserConfig().Git.DiffContextSize
 
 	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
+	useExtDiffGitConfig := self.UserConfig().Git.Paging.UseExternalDiffGitConfig
 	cmdArgs := NewGitCmd("show").
 		Config("diff.noprefix=false").
 		ConfigIf(extDiffCmd != "", "diff.external="+extDiffCmd).
-		ArgIfElse(extDiffCmd != "", "--ext-diff", "--no-ext-diff").
+		ArgIfElse(extDiffCmd != "" || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
 		Arg("--submodule").
 		Arg("--color="+self.UserConfig().Git.Paging.ColorArg).
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).

@@ -104,6 +104,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 		similarityThreshold int
 		ignoreWhitespace    bool
 		extDiffCmd          string
+		useExtDiffGitConfig bool
 		expected            []string
 	}
 
@@ -142,6 +143,15 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			expected:            []string{"git", "-C", "/path/to/worktree", "-c", "diff.external=difft --color=always", "stash", "show", "-p", "--stat", "-u", "--ext-diff", "--color=always", "--unified=3", "--find-renames=50%", "refs/stash@{5}"},
 		},
 		{
+			testName:            "Show diff using git's external diff config",
+			index:               5,
+			contextSize:         3,
+			similarityThreshold: 50,
+			ignoreWhitespace:    false,
+			useExtDiffGitConfig: true,
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--ext-diff", "--color=always", "--unified=3", "--find-renames=50%", "refs/stash@{5}"},
+		},
+		{
 			testName:            "Default case",
 			index:               5,
 			contextSize:         3,
@@ -158,6 +168,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			userConfig.Git.DiffContextSize = s.contextSize
 			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
 			userConfig.Git.Paging.ExternalDiffCommand = s.extDiffCmd
+			userConfig.Git.Paging.UseExternalDiffGitConfig = s.useExtDiffGitConfig
 			repoPaths := RepoPaths{
 				worktreePath: "/path/to/worktree",
 			}

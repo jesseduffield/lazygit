@@ -306,6 +306,9 @@ git:
     # e.g. 'difft --color=always'
     externalDiffCommand: ""
 
+    # If true, Lazygit will use git's `diff.external` config for paging. The advantage over `externalDiffCommand` is that this can be configured per file type in .gitattributes; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
+    useExternalDiffGitConfig: false
+
   # Config relating to committing
   commit:
     # If true, pass '--signoff' flag when committing
