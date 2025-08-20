@@ -74,3 +74,13 @@ git:
   paging:
     externalDiffCommand: difft --color=always --display=inline --syntax-highlight=off
 ```
+
+Instead of setting this command in lazygit's `externalDiffCommand` config, you can also tell lazygit to use the external diff command that is configured in git itself (`diff.external`), by using
+
+```yaml
+git:
+  paging:
+    useExternalDiffGitConfig: true
+```
+
+This can be useful if you also want to use it for diffs on the command line, and it also has the advantage that you can configure it per file type in `.gitattributes`; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.

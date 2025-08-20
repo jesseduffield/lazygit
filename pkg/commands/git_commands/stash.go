@@ -82,6 +82,7 @@ func (self *StashCommands) Hash(index int) (string, error) {
 
 func (self *StashCommands) ShowStashEntryCmdObj(index int) *oscommands.CmdObj {
 	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
+	useExtDiffGitConfig := self.UserConfig().Git.Paging.UseExternalDiffGitConfig
 
 	// "-u" is the same as "--include-untracked", but the latter fails in older git versions for some reason
 	cmdArgs := NewGitCmd("stash").Arg("show").
@@ -89,7 +90,7 @@ func (self *StashCommands) ShowStashEntryCmdObj(index int) *oscommands.CmdObj {
 		Arg("--stat").
 		Arg("-u").
 		ConfigIf(extDiffCmd != "", "diff.external="+extDiffCmd).
-		ArgIfElse(extDiffCmd != "", "--ext-diff", "--no-ext-diff").
+		ArgIfElse(extDiffCmd != "" || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
 		Arg(fmt.Sprintf("--color=%s", self.UserConfig().Git.Paging.ColorArg)).
 		Arg(fmt.Sprintf("--unified=%d", self.UserConfig().Git.DiffContextSize)).
 		ArgIf(self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").

@@ -1675,6 +1675,11 @@
         "externalDiffCommand": {
           "type": "string",
           "description": "e.g. 'difft --color=always'"
+        },
+        "useExternalDiffGitConfig": {
+          "type": "boolean",
+          "description": "If true, Lazygit will use git's `diff.external` config for paging. The advantage over `externalDiffCommand` is that this can be configured per file type in .gitattributes; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.",
+          "default": false
         }
       },
       "additionalProperties": false,
