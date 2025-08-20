@@ -256,6 +256,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 		similarityThreshold int
 		ignoreWhitespace    bool
 		extDiffCmd          string
+		useExtDiffGitConfig bool
 		expected            []string
 	}
 
@@ -314,6 +315,15 @@ func TestCommitShowCmdObj(t *testing.T) {
 			extDiffCmd:          "difft --color=always",
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.external=difft --color=always", "-c", "diff.noprefix=false", "show", "--ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--find-renames=50%", "--"},
 		},
+		{
+			testName:            "Show diff using git's external diff config",
+			filterPaths:         []string{},
+			contextSize:         3,
+			similarityThreshold: 50,
+			ignoreWhitespace:    false,
+			useExtDiffGitConfig: true,
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--find-renames=50%", "--"},
+		},
 	}
 
 	for _, s := range scenarios {
@@ -323,6 +333,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
 			userConfig.Git.DiffContextSize = s.contextSize
 			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
+			userConfig.Git.Paging.UseExternalDiffGitConfig = s.useExtDiffGitConfig
 
 			runner := oscommands.NewFakeRunner(t).ExpectGitArgs(s.expected, "", nil)
 			repoPaths := RepoPaths{

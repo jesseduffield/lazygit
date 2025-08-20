@@ -10,7 +10,6 @@ Support does not extend to Windows users, because we're making use of a package 
 git:
   paging:
     colorArg: always
-    useConfig: false
 ```
 
 the `colorArg` key is for whether you want the `--color=always` arg in your `git diff` command. Some pagers want it set to `always`, others want it set to `never`.
@@ -54,17 +53,6 @@ git:
 
 Be careful with this one, I think the homebrew and pip versions are behind master. I needed to directly download the ydiff script to get the no-pager functionality working.
 
-## Using git config
-
-```yaml
-git:
-  paging:
-    colorArg: always
-    useConfig: true
-```
-
-If you set `useConfig: true`, lazygit will use whatever pager is specified in `$GIT_PAGER`, `$PAGER`, or your *git config*. If the pager ends with something like ` | less` we will strip that part out, because less doesn't play nice with our rendering approach. If the custom pager uses less under the hood, that will also break rendering (hence the `--paging=never` flag for the `delta` pager).
-
 ## Using external diff commands
 
 Some diff tools can't work as a simple pager like the ones above do, because they need access to the entire diff, so just post-processing git's diff is not enough for them. The most notable example is probably [difftastic](https://difftastic.wilfred.me.uk).
@@ -77,7 +65,7 @@ git:
     externalDiffCommand: difft --color=always
 ```
 
-The `colorArg`, `pager`, and `useConfig` options are not used in this case.
+The `colorArg` and `pager` options are not used in this case.
 
 You can add whatever extra arguments you prefer for your difftool; for instance
 
@@ -86,3 +74,13 @@ git:
   paging:
     externalDiffCommand: difft --color=always --display=inline --syntax-highlight=off
 ```
+
+Instead of setting this command in lazygit's `externalDiffCommand` config, you can also tell lazygit to use the external diff command that is configured in git itself (`diff.external`), by using
+
+```yaml
+git:
+  paging:
+    useExternalDiffGitConfig: true
+```
+
+This can be useful if you also want to use it for diffs on the command line, and it also has the advantage that you can configure it per file type in `.gitattributes`; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.

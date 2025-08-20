@@ -43,12 +43,6 @@ func (self *ConfigCommands) ConfiguredPager() string {
 }
 
 func (self *ConfigCommands) GetPager(width int) string {
-	useConfig := self.UserConfig().Git.Paging.UseConfig
-	if useConfig {
-		pager := self.ConfiguredPager()
-		return strings.Split(pager, "| less")[0]
-	}
-
 	templateValues := map[string]string{
 		"columnWidth": strconv.Itoa(width/2 - 6),
 	}
