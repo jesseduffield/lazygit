@@ -383,6 +383,7 @@ var tests = []*components.IntegrationTest{
 	submodule.Reset,
 	submodule.ResetFolder,
 	sync.FetchAndAutoForwardBranchesAllBranches,
+	sync.FetchAndAutoForwardBranchesAllBranchesCheckedOutInOtherWorktree,
 	sync.FetchAndAutoForwardBranchesNone,
 	sync.FetchAndAutoForwardBranchesOnlyMainBranches,
 	sync.FetchPrune,
