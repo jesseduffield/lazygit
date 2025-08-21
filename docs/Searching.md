@@ -19,3 +19,12 @@ You can filter the commits view to only show commits which contain changes to a 
 You can do this in a couple of ways:
 1) Start lazygit with the -f flag e.g. `lazygit -f my/path`
 2) From within lazygit, press `<c-s>` and then enter the path of the file you want to filter by
+
+## Hiding merge commits
+
+You can hide merge commits from the commits view to get a cleaner, linear history.
+
+1) From within lazygit, press `<c-s>` to open the filtering menu
+2) Select "Hide merge commits" to toggle this option on/off
+
+**Note:** When hiding merge commits, the commit graph will be automatically disabled as merge commits are essential for proper graph visualization.

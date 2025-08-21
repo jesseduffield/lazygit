@@ -461,6 +461,8 @@
   "FilterBy": "Filtruj przez",
   "ExitFilterMode": "Zatrzymaj filtrowanie",
   "FilterPathOption": "Wprowadź ścieżkę do filtrowania",
+  "FilterHideMerges": "Ukryj commity merge",
+  "FilterHideMergesTooltip": "Wyklucz commity merge z listy",
   "FilterAuthorOption": "Wprowadź autora do filtrowania",
   "EnterFileName": "Wprowadź ścieżkę:",
   "EnterAuthor": "Wprowadź autora:",
