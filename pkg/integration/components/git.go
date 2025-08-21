@@ -21,6 +21,17 @@ func (self *Git) TagNamesAt(ref string, expectedNames []string) *Git {
 	return self.assert([]string{"git", "tag", "--sort=v:refname", "--points-at", ref}, strings.Join(expectedNames, "\n"))
 }
 
+func (self *Git) TagIsAnnotated(tagName string) *Git {
+	cmdArgs := []string{"git", "cat-file", "-t", tagName}
+	expectedOutput := "tag"
+
+	return self.expect(cmdArgs, func(output string) (bool, string) {
+		isAnnotated := output == expectedOutput
+		failureMessage := fmt.Sprintf("Expected tag '%s' to be an annotated tag (output 'tag'), but got '%s'", tagName, output)
+		return isAnnotated, failureMessage
+	})
+}
+
 func (self *Git) RemoteTagDeleted(ref string, tagName string) *Git {
 	return self.expect([]string{"git", "ls-remote", ref, fmt.Sprintf("refs/tags/%s", tagName)}, func(s string) (bool, string) {
 		return len(s) == 0, fmt.Sprintf("Expected tag %s to have been removed from %s", tagName, ref)
