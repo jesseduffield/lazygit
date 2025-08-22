@@ -119,7 +119,18 @@ type GuiConfig struct {
 	ShortTimeFormat string `yaml:"shortTimeFormat"`
 	// Config relating to colors and styles.
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#color-attributes
-	Theme ThemeConfig `yaml:"theme"`
+
+	// If false, hide the status panel (panel #1)
+	ShowStatusPanel bool `yaml:"showStatusPanel"`
+	// If false, hide the files panel (panel #2)
+	ShowFilesPanel bool `yaml:"showFilesPanel"`
+	// If false, hide the branches/remotes/tags panel (panel #3)
+	ShowBranchesPanel bool `yaml:"showBranchesPanel"`
+	// If false, hide the commits/reflog panel (panel #4)
+	ShowCommitsPanel bool `yaml:"showCommitsPanel"`
+	// If false, hide the stash panel (panel #5)
+	ShowStashPanel bool `yaml:"showStashPanel"`
+	Theme            ThemeConfig `yaml:"theme"`
 	// Config relating to the commit length indicator
 	CommitLength CommitLengthConfig `yaml:"commitLength"`
 	// If true, show the '5 of 20' footer at the bottom of list views
@@ -767,6 +778,11 @@ func GetDefaultConfig() *UserConfig {
 			ShowFileTree:                 true,
 			ShowRootItemInFileTree:       true,
 			ShowNumstatInFilesView:       false,
+			ShowStatusPanel:              true,
+			ShowFilesPanel:               true,
+			ShowBranchesPanel:            true,
+			ShowCommitsPanel:             true,
+			ShowStashPanel:               true,
 			ShowRandomTip:                true,
 			ShowIcons:                    false,
 			NerdFontsVersion:             "",

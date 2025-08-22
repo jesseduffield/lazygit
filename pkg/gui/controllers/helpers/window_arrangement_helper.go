@@ -72,9 +72,19 @@ type WindowArrangementArgs struct {
 	InSearchPrompt bool
 	// One of '' (not searching), 'Search: ', and 'Filter: '
 	SearchPrefix string
+	// Whether status panel is visible (toggleable)
+	ShowStatusPanel bool
+	// Whether files panel is visible (toggleable)
+	ShowFilesPanel bool
+	// Whether branches panel is visible (toggleable)
+	ShowBranchesPanel bool
+	// Whether commits panel is visible (toggleable)
+	ShowCommitsPanel bool
+	// Whether stash panel is visible (toggleable)
+	ShowStashPanel bool
 }
 
-func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
+func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, appStatus string, showStatusPanel bool, showFilesPanel bool, showBranchesPanel bool, showCommitsPanel bool, showStashPanel bool) map[string]boxlayout.Dimensions {
 	width, height := self.c.GocuiGui().Size()
 	repoState := self.c.State().GetRepoState()
 
@@ -101,6 +111,11 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 		IsAnyModeActive:     self.modeHelper.IsAnyModeActive(),
 		InSearchPrompt:      repoState.InSearchPrompt(),
 		SearchPrefix:        searchPrefix,
+		ShowStatusPanel:     showStatusPanel,
+		ShowFilesPanel:      showFilesPanel,
+		ShowBranchesPanel:   showBranchesPanel,
+		ShowCommitsPanel:    showCommitsPanel,
+		ShowStashPanel:      showStashPanel,
 	}
 
 	return GetWindowDimensions(args)
@@ -438,13 +453,28 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				}
 			}
 
-			return []*boxlayout.Box{
-				fullHeightBox("status"),
-				fullHeightBox("files"),
-				fullHeightBox("branches"),
-				fullHeightBox("commits"),
-				fullHeightBox("stash"),
+			boxes := []*boxlayout.Box{}
+			if args.ShowStatusPanel {
+				boxes = append(boxes, fullHeightBox("status"))
 			}
+			if args.ShowFilesPanel {
+				boxes = append(boxes, fullHeightBox("files"))
+			}
+			if args.ShowBranchesPanel {
+				boxes = append(boxes, fullHeightBox("branches"))
+			}
+			if args.ShowCommitsPanel {
+				boxes = append(boxes, fullHeightBox("commits"))
+			}
+			if args.ShowStashPanel {
+				boxes = append(boxes, fullHeightBox("stash"))
+			}
+			
+			// Safety check: ensure at least one panel is visible to prevent layout crashes
+			if len(boxes) == 0 {
+				boxes = append(boxes, fullHeightBox("status"))
+			}
+			return boxes
 		} else if height >= 28 {
 			accordionMode := args.UserConfig.Gui.ExpandFocusedSidePanel
 			accordionBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
@@ -458,16 +488,34 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				return defaultBox
 			}
 
-			return []*boxlayout.Box{
-				{
+			boxes := []*boxlayout.Box{}
+			if args.ShowStatusPanel {
+				boxes = append(boxes, &boxlayout.Box{
 					Window: "status",
 					Size:   3,
-				},
-				accordionBox(&boxlayout.Box{Window: "files", Weight: 1}),
-				accordionBox(&boxlayout.Box{Window: "branches", Weight: 1}),
-				accordionBox(&boxlayout.Box{Window: "commits", Weight: 1}),
-				accordionBox(getDefaultStashWindowBox(args)),
+				})
 			}
+			if args.ShowFilesPanel {
+				boxes = append(boxes, accordionBox(&boxlayout.Box{Window: "files", Weight: 1}))
+			}
+			if args.ShowBranchesPanel {
+				boxes = append(boxes, accordionBox(&boxlayout.Box{Window: "branches", Weight: 1}))
+			}
+			if args.ShowCommitsPanel {
+				boxes = append(boxes, accordionBox(&boxlayout.Box{Window: "commits", Weight: 1}))
+			}
+			if args.ShowStashPanel {
+				boxes = append(boxes, accordionBox(getDefaultStashWindowBox(args)))
+			}
+			
+			// Safety check: ensure at least one panel is visible to prevent layout crashes
+			if len(boxes) == 0 {
+				boxes = append(boxes, &boxlayout.Box{
+					Window: "status",
+					Size:   3,
+				})
+			}
+			return boxes
 		}
 
 		squashedHeight := 1
@@ -489,12 +537,27 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 			}
 		}
 
-		return []*boxlayout.Box{
-			squashedSidePanelBox("status"),
-			squashedSidePanelBox("files"),
-			squashedSidePanelBox("branches"),
-			squashedSidePanelBox("commits"),
-			squashedSidePanelBox("stash"),
+		boxes := []*boxlayout.Box{}
+		if args.ShowStatusPanel {
+			boxes = append(boxes, squashedSidePanelBox("status"))
 		}
+		if args.ShowFilesPanel {
+			boxes = append(boxes, squashedSidePanelBox("files"))
+		}
+		if args.ShowBranchesPanel {
+			boxes = append(boxes, squashedSidePanelBox("branches"))
+		}
+		if args.ShowCommitsPanel {
+			boxes = append(boxes, squashedSidePanelBox("commits"))
+		}
+		if args.ShowStashPanel {
+			boxes = append(boxes, squashedSidePanelBox("stash"))
+		}
+		
+		// Safety check: ensure at least one panel is visible to prevent layout crashes
+		if len(boxes) == 0 {
+			boxes = append(boxes, squashedSidePanelBox("status"))
+		}
+		return boxes
 	}
 }

@@ -34,6 +34,11 @@ func TestGetWindowDimensions(t *testing.T) {
 			IsAnyModeActive:     false,
 			InSearchPrompt:      false,
 			SearchPrefix:        "",
+			ShowStatusPanel:     true,
+			ShowFilesPanel:      true,
+			ShowBranchesPanel:   true,
+			ShowCommitsPanel:    true,
+			ShowStashPanel:      true,
 		}
 	}
 

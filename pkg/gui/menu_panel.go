@@ -54,7 +54,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	gui.Views.Tooltip.Visible = true
 
 	// resetting keybindings so that the menu-specific keybindings are registered
-	if err := gui.resetKeybindings(); err != nil {
+	if err := gui.c.ResetKeybindings(); err != nil {
 		return err
 	}
 

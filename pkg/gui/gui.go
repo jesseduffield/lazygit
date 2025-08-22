@@ -144,7 +144,12 @@ type Gui struct {
 
 	integrationTest integrationTypes.IntegrationTest
 
-	afterLayoutFuncs chan func() error
+	afterLayoutFuncs  chan func() error
+	ShowStatusPanel   bool // In-memory toggles for panel visibility (not persisted)
+	ShowFilesPanel    bool // In-memory toggles for panel visibility (not persisted)
+	ShowBranchesPanel bool // In-memory toggles for panel visibility (not persisted)
+	ShowCommitsPanel  bool // In-memory toggles for panel visibility (not persisted)
+	ShowStashPanel    bool // In-memory toggles for panel visibility (not persisted)
 }
 
 type StateAccessor struct {
@@ -326,7 +331,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 
 	gui.resetHelpersAndControllers()
 
-	if err := gui.resetKeybindings(); err != nil {
+	if err := gui.c.ResetKeybindings(); err != nil {
 		return err
 	}
 
@@ -339,7 +344,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 			if didChange && reloadErr == nil {
 				gui.c.Log.Info("User config changed - reloading")
 				reloadErr = gui.onUserConfigLoaded()
-				if err := gui.resetKeybindings(); err != nil {
+				if err := gui.c.ResetKeybindings(); err != nil {
 					return err
 				}
 
@@ -676,6 +681,13 @@ func NewGui(
 		// initializing this to true for the time being; it will be reset to the
 		// real value after loading the user config:
 		ShowExtrasWindow: true,
+
+		// Initialize panel visibility from config
+		ShowStatusPanel:   config.GetUserConfig().Gui.ShowStatusPanel,
+		ShowFilesPanel:    config.GetUserConfig().Gui.ShowFilesPanel,
+		ShowBranchesPanel: config.GetUserConfig().Gui.ShowBranchesPanel,
+		ShowCommitsPanel:  config.GetUserConfig().Gui.ShowCommitsPanel,
+		ShowStashPanel:    config.GetUserConfig().Gui.ShowStashPanel,
 
 		InitialDir:       initialDir,
 		afterLayoutFuncs: make(chan func() error, 1000),
@@ -1100,7 +1112,7 @@ func (gui *Gui) onWorker(f func(gocui.Task) error) {
 }
 
 func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
-	return gui.helpers.WindowArrangement.GetWindowDimensions(informationStr, appStatus)
+	return gui.helpers.WindowArrangement.GetWindowDimensions(informationStr, appStatus, gui.ShowStatusPanel, gui.ShowFilesPanel, gui.ShowBranchesPanel, gui.ShowCommitsPanel, gui.ShowStashPanel)
 }
 
 func (gui *Gui) afterLayout(f func() error) {
