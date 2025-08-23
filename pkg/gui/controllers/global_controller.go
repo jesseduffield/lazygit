@@ -138,6 +138,11 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			},
 		},
 		{
+			Key:      opts.GetKey(opts.Config.Universal.ReturnAlt1),
+			Modifier: gocui.ModNone,
+			Handler:  self.escape,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Universal.ToggleWhitespaceInDiffView),
 			Handler:     self.toggleWhitespace,
 			Description: self.c.Tr.ToggleWhitespaceInDiffView,

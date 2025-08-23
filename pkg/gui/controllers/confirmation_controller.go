@@ -39,6 +39,10 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 			DisplayOnScreen: true,
 		},
 		{
+			Key:     opts.GetKey(opts.Config.Universal.ReturnAlt1),
+			Handler: func() error { return self.context().State.OnClose() },
+		},
+		{
 			Key: opts.GetKey(opts.Config.Universal.TogglePanel),
 			Handler: func() error {
 				if len(self.c.Contexts().Suggestions.State.Suggestions) > 0 {

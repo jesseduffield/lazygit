@@ -49,6 +49,10 @@ func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) 
 			DescriptionFunc: self.EscapeDescription,
 			DisplayOnScreen: true,
 		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.ReturnAlt1),
+			Handler: self.Escape,
+		},
 	}
 }
 

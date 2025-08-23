@@ -41,6 +41,10 @@ func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []
 			Handler: func() error { return self.context().State.OnClose() },
 		},
 		{
+			Key:     opts.GetKey(opts.Config.Universal.ReturnAlt1),
+			Handler: func() error { return self.context().State.OnClose() },
+		},
+		{
 			Key:     opts.GetKey(opts.Config.Universal.TogglePanel),
 			Handler: self.switchToConfirmation,
 		},

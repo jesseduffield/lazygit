@@ -34,6 +34,11 @@ func (self *SearchPromptController) GetKeybindings(opts types.KeybindingsOpts) [
 			Handler:  self.cancel,
 		},
 		{
+			Key:      opts.GetKey(opts.Config.Universal.ReturnAlt1),
+			Modifier: gocui.ModNone,
+			Handler:  self.cancel,
+		},
+		{
 			Key:      opts.GetKey(opts.Config.Universal.PrevItem),
 			Modifier: gocui.ModNone,
 			Handler:  self.prevHistory,

@@ -123,6 +123,10 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 			Handler:     self.Escape,
 			Description: self.c.Tr.ReturnToFilesPanel,
 		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.ReturnAlt1),
+			Handler: self.Escape,
+		},
 	}
 
 	return bindings

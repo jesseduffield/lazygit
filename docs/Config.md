@@ -519,6 +519,8 @@ keybinding:
     quit-alt1: <c-c>
     suspendApp: <c-z>
     return: <esc>
+    # When set to a printable character, this will work for returning from non-prompt panels
+    return-alt1: null
     quitWithoutChangingDirectory: Q
     togglePanel: <tab>
     prevItem: <up>
