@@ -1,6 +1,6 @@
 module github.com/jesseduffield/lazygit
 
-go 1.24.0
+go 1.25.0
 
 require (
 	dario.cat/mergo v1.0.1
@@ -84,3 +84,5 @@ require (
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
+
+ignore ./test
