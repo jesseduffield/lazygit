@@ -27,15 +27,15 @@ func TestGetStashEntries(t *testing.T) {
 			"No stash entries found",
 			"",
 			oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"stash", "list", "-z", "--pretty=%ct|%gs"}, "", nil),
+				ExpectGitArgs([]string{"stash", "list", "-z", "--pretty=%H|%ct|%gs"}, "", nil),
 			[]*models.StashEntry{},
 		},
 		{
 			"Several stash entries found",
 			"",
 			oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"stash", "list", "-z", "--pretty=%ct|%gs"},
-					fmt.Sprintf("%d|WIP on add-pkg-commands-test: 55c6af2 increase parallel build\x00%d|WIP on master: bb86a3f update github template\x00",
+				ExpectGitArgs([]string{"stash", "list", "-z", "--pretty=%H|%ct|%gs"},
+					fmt.Sprintf("fa1afe1|%d|WIP on add-pkg-commands-test: 55c6af2 increase parallel build\x00deadbeef|%d|WIP on master: bb86a3f update github template\x00",
 						hoursAgo,
 						daysAgo,
 					), nil),
@@ -44,11 +44,13 @@ func TestGetStashEntries(t *testing.T) {
 					Index:   0,
 					Name:    "WIP on add-pkg-commands-test: 55c6af2 increase parallel build",
 					Recency: "3h",
+					Hash:    "fa1afe1",
 				},
 				{
 					Index:   1,
 					Name:    "WIP on master: bb86a3f update github template",
 					Recency: "3d",
+					Hash:    "deadbeef",
 				},
 			},
 		},
