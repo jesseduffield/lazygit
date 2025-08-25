@@ -58,23 +58,13 @@ var DropMultipleInFilteredMode = NewIntegrationTest(NewIntegrationTestArgs{
 					Content(Contains("Are you sure you want to drop the selected stash entry(ies)?")).
 					Confirm()
 			}).
-			/* EXPECTED:
 			IsEmpty()
-			ACTUAL: */
-			Lines(
-				Contains("stash two-a"),
-			)
 
 		t.GlobalPress(keys.Universal.Return) // cancel filtering mode
 		t.Views().Stash().
 			Lines(
-				/* EXPECTED:
 				Contains("stash four"),
 				Contains("stash three"),
-				Contains("stash one"),
-				ACTUAL: */
-				Contains("stash four"),
-				Contains("stash two-a"),
 				Contains("stash one"),
 			)
 	},
