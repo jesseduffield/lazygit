@@ -28,14 +28,14 @@ func NewStashCommands(
 func (self *StashCommands) DropNewest() error {
 	cmdArgs := NewGitCmd("stash").Arg("drop").ToArgv()
 
-	return self.cmd.New(cmdArgs).Run()
+	return self.cmd.New(cmdArgs).StreamOutput().Run()
 }
 
 func (self *StashCommands) Drop(index int) error {
 	cmdArgs := NewGitCmd("stash").Arg("drop", fmt.Sprintf("refs/stash@{%d}", index)).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).Run()
+	return self.cmd.New(cmdArgs).StreamOutput().Run()
 }
 
 func (self *StashCommands) Pop(index int) error {
