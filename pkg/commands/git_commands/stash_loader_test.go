@@ -1,7 +1,9 @@
 package git_commands
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -17,6 +19,9 @@ func TestGetStashEntries(t *testing.T) {
 		expectedStashEntries []*models.StashEntry
 	}
 
+	hoursAgo := time.Now().Unix() - 3*3600 - 1800
+	daysAgo := time.Now().Unix() - 3*3600*24 - 3600*12
+
 	scenarios := []scenario{
 		{
 			"No stash entries found",
@@ -30,17 +35,20 @@ func TestGetStashEntries(t *testing.T) {
 			"",
 			oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"stash", "list", "-z", "--pretty=%ct|%gs"},
-					"WIP on add-pkg-commands-test: 55c6af2 increase parallel build\x00WIP on master: bb86a3f update github template\x00",
-					nil,
-				),
+					fmt.Sprintf("%d|WIP on add-pkg-commands-test: 55c6af2 increase parallel build\x00%d|WIP on master: bb86a3f update github template\x00",
+						hoursAgo,
+						daysAgo,
+					), nil),
 			[]*models.StashEntry{
 				{
-					Index: 0,
-					Name:  "WIP on add-pkg-commands-test: 55c6af2 increase parallel build",
+					Index:   0,
+					Name:    "WIP on add-pkg-commands-test: 55c6af2 increase parallel build",
+					Recency: "3h",
 				},
 				{
-					Index: 1,
-					Name:  "WIP on master: bb86a3f update github template",
+					Index:   1,
+					Name:    "WIP on master: bb86a3f update github template",
+					Recency: "3d",
 				},
 			},
 		},
