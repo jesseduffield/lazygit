@@ -303,11 +303,11 @@ git:
     # ydiff -p cat -s --wrap --width={{columnWidth}}
     pager: ""
 
-    # If true, Lazygit will use whatever pager is specified in `$GIT_PAGER`, `$PAGER`, or your *git config*. If the pager ends with something like ` | less` we will strip that part out, because less doesn't play nice with our rendering approach. If the custom pager uses less under the hood, that will also break rendering (hence the `--paging=never` flag for the `delta` pager).
-    useConfig: false
-
     # e.g. 'difft --color=always'
     externalDiffCommand: ""
+
+    # If true, Lazygit will use git's `diff.external` config for paging. The advantage over `externalDiffCommand` is that this can be configured per file type in .gitattributes; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
+    useExternalDiffGitConfig: false
 
   # Config relating to committing
   commit:

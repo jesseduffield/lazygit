@@ -161,9 +161,8 @@ func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) 
 		Prompt: self.c.Tr.SureDropStashEntry,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.Stash)
-			startIndex := stashEntries[0].Index
-			for range stashEntries {
-				err := self.c.Git().Stash.Drop(startIndex)
+			for i := len(stashEntries) - 1; i >= 0; i-- {
+				err := self.c.Git().Stash.Drop(stashEntries[i].Index)
 				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 				if err != nil {
 					return err
