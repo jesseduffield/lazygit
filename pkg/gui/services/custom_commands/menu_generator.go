@@ -34,7 +34,7 @@ func (self *MenuGenerator) call(commandOutput, filter, valueFormat, labelFormat 
 	}
 
 	menuItems := []*commandMenuItem{}
-	for _, line := range strings.Split(commandOutput, "\n") {
+	for line := range strings.Lines(commandOutput) {
 		if line == "" {
 			continue
 		}
