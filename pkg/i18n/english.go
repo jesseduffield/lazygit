@@ -1013,6 +1013,9 @@ type Actions struct {
 	UpdateRemote                     string
 	ApplyPatch                       string
 	Stash                            string
+	PopStash                         string
+	ApplyStash                       string
+	DropStash                        string
 	RenameStash                      string
 	RemoveSubmodule                  string
 	ResetSubmodule                   string
@@ -2054,6 +2057,9 @@ func EnglishTranslationSet() *TranslationSet {
 			UpdateRemote:                     "Update remote",
 			ApplyPatch:                       "Apply patch",
 			Stash:                            "Stash",
+			PopStash:                         "Pop stash",
+			ApplyStash:                       "Apply stash",
+			DropStash:                        "Drop stash",
 			RenameStash:                      "Rename stash",
 			RemoveSubmodule:                  "Remove submodule",
 			ResetSubmodule:                   "Reset submodule",

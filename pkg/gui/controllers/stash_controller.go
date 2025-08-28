@@ -112,7 +112,7 @@ func (self *StashController) handleStashApply(stashEntry *models.StashEntry) err
 			Title:  self.c.Tr.StashApply,
 			Prompt: self.c.Tr.SureApplyStashEntry,
 			HandleConfirm: func() error {
-				self.c.LogAction(self.c.Tr.Actions.Stash)
+				self.c.LogAction(self.c.Tr.Actions.ApplyStash)
 				err := self.c.Git().Stash.Apply(stashEntry.Index)
 				self.postStashRefresh()
 				if err != nil {
@@ -128,7 +128,8 @@ func (self *StashController) handleStashApply(stashEntry *models.StashEntry) err
 
 func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error {
 	pop := func() error {
-		self.c.LogAction(self.c.Tr.Actions.Stash)
+		self.c.LogAction(self.c.Tr.Actions.PopStash)
+		self.c.LogCommand("Popping stash "+stashEntry.Hash, false)
 		err := self.c.Git().Stash.Pop(stashEntry.Index)
 		self.postStashRefresh()
 		if err != nil {
@@ -160,10 +161,10 @@ func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) 
 		Title:  self.c.Tr.StashDrop,
 		Prompt: self.c.Tr.SureDropStashEntry,
 		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.Stash)
-			startIndex := stashEntries[0].Index
-			for range stashEntries {
-				err := self.c.Git().Stash.Drop(startIndex)
+			self.c.LogAction(self.c.Tr.Actions.DropStash)
+			for i := len(stashEntries) - 1; i >= 0; i-- {
+				self.c.LogCommand("Dropping stash "+stashEntries[i].Hash, false)
+				err := self.c.Git().Stash.Drop(stashEntries[i].Index)
 				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 				if err != nil {
 					return err
