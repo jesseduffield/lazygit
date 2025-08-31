@@ -84,6 +84,7 @@ func NewContextTree(c *ContextCommon) *ContextTree {
 			c,
 		),
 		Confirmation:  NewConfirmationContext(c),
+		Prompt:        NewPromptContext(c),
 		CommitMessage: NewCommitMessageContext(c),
 		CommitDescription: NewSimpleContext(
 			NewBaseContext(NewBaseContextOpts{

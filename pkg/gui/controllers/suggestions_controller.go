@@ -42,7 +42,7 @@ func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Universal.TogglePanel),
-			Handler: self.switchToConfirmation,
+			Handler: self.switchToPrompt,
 		},
 		{
 			Key: opts.GetKey(opts.Config.Universal.Remove),
@@ -55,11 +55,11 @@ func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []
 			Handler: func() error {
 				if self.context().State.AllowEditSuggestion {
 					if selectedItem := self.c.Contexts().Suggestions.GetSelected(); selectedItem != nil {
-						self.c.Contexts().Confirmation.GetView().TextArea.Clear()
-						self.c.Contexts().Confirmation.GetView().TextArea.TypeString(selectedItem.Value)
-						self.c.Contexts().Confirmation.GetView().RenderTextArea()
+						self.c.Contexts().Prompt.GetView().TextArea.Clear()
+						self.c.Contexts().Prompt.GetView().TextArea.TypeString(selectedItem.Value)
+						self.c.Contexts().Prompt.GetView().RenderTextArea()
 						self.c.Contexts().Suggestions.RefreshSuggestions()
-						return self.switchToConfirmation()
+						return self.switchToPrompt()
 					}
 				}
 				return nil
@@ -73,26 +73,26 @@ func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []
 func (self *SuggestionsController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
 	return []*gocui.ViewMouseBinding{
 		{
-			ViewName:    self.c.Contexts().Confirmation.GetViewName(),
+			ViewName:    self.c.Contexts().Prompt.GetViewName(),
 			FocusedView: self.c.Contexts().Suggestions.GetViewName(),
 			Key:         gocui.MouseLeft,
 			Handler: func(gocui.ViewMouseBindingOpts) error {
-				return self.switchToConfirmation()
+				return self.switchToPrompt()
 			},
 		},
 	}
 }
 
-func (self *SuggestionsController) switchToConfirmation() error {
+func (self *SuggestionsController) switchToPrompt() error {
 	self.c.Views().Suggestions.Subtitle = ""
 	self.c.Views().Suggestions.Highlight = false
-	self.c.Context().Replace(self.c.Contexts().Confirmation)
+	self.c.Context().Replace(self.c.Contexts().Prompt)
 	return nil
 }
 
 func (self *SuggestionsController) GetOnFocusLost() func(types.OnFocusLostOpts) {
 	return func(types.OnFocusLostOpts) {
-		self.c.Helpers().Confirmation.DeactivateConfirmationPrompt()
+		self.c.Helpers().Confirmation.DeactivatePrompt()
 	}
 }
 

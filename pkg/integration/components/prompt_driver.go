@@ -6,7 +6,7 @@ type PromptDriver struct {
 }
 
 func (self *PromptDriver) getViewDriver() *ViewDriver {
-	return self.t.Views().Confirmation()
+	return self.t.Views().Prompt()
 }
 
 // asserts that the popup has the expected title

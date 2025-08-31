@@ -25,6 +25,7 @@ type Views struct {
 
 	Options           *gocui.View
 	Confirmation      *gocui.View
+	Prompt            *gocui.View
 	Menu              *gocui.View
 	CommitMessage     *gocui.View
 	CommitDescription *gocui.View
