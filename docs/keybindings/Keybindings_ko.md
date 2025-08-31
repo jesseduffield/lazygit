@@ -52,6 +52,13 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` ] `` | 이전 탭 |  |
 | `` [ `` | 다음 탭 |  |
 
+## Input prompt
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | 확인 |  |
+| `` <esc> `` | 닫기/취소 |  |
+
 ## Reflog
 
 | Key | Action | Info |

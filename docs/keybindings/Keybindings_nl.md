@@ -190,6 +190,13 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` w `` | View worktree options |  |
 | `` / `` | Start met zoeken |  |
 
+## Input prompt
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | Bevestig |  |
+| `` <esc> `` | Sluiten |  |
+
 ## Menu
 
 | Key | Action | Info |
