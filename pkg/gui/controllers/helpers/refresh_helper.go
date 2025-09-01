@@ -4,6 +4,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/gocui"
@@ -531,7 +532,6 @@ func (self *RefreshHelper) refreshFilesAndSubmodules() error {
 
 func (self *RefreshHelper) refreshStateFiles() error {
 	fileTreeViewModel := self.c.Contexts().Files.FileTreeViewModel
-
 	prevConflictFileCount := 0
 	if self.c.UserConfig().Git.AutoStageResolvedConflicts {
 		// If git thinks any of our files have inline merge conflicts, but they actually don't,
@@ -570,9 +570,16 @@ func (self *RefreshHelper) refreshStateFiles() error {
 		})
 
 	conflictFileCount := 0
+	requiredContentWidth := 0
 	for _, file := range files {
 		if file.HasMergeConflicts {
 			conflictFileCount++
+		}
+		if len(file.Names()) > 0 {
+			fileNameLen := utf8.RuneCountInString(file.Names()[0])
+			if fileNameLen > requiredContentWidth {
+				requiredContentWidth = fileNameLen
+			}
 		}
 	}
 
@@ -582,7 +589,6 @@ func (self *RefreshHelper) refreshStateFiles() error {
 
 	fileTreeViewModel.RWMutex.Lock()
 
-	// only taking over the filter if it hasn't already been set by the user.
 	if conflictFileCount > 0 && prevConflictFileCount == 0 {
 		if fileTreeViewModel.GetFilter() == filetree.DisplayAll {
 			fileTreeViewModel.SetStatusFilter(filetree.DisplayConflicted)
@@ -596,6 +602,8 @@ func (self *RefreshHelper) refreshStateFiles() error {
 	self.c.Model().Files = files
 	fileTreeViewModel.SetTree()
 	fileTreeViewModel.RWMutex.Unlock()
+	self.c.Model().SidePanelAutoWidth = requiredContentWidth
+	self.refreshView(self.c.Contexts().Files)
 
 	return nil
 }

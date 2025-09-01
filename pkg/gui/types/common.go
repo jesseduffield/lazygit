@@ -318,6 +318,12 @@ type Model struct {
 	Authors map[string]*models.Author
 
 	HashPool *utils.StringPool
+
+	// SidePanelAutoWidth stores the required width to display the longest file name
+	// in the files panel without truncation. This value is calculated whenever the
+	// file state is refreshed and is used by the layout manager to conditionally
+	// set a fixed size for the side panel.
+	SidePanelAutoWidth int
 }
 
 type Mutexes struct {

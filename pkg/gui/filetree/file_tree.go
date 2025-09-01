@@ -170,7 +170,8 @@ func (self *FileTree) SetTree() {
 	filesForDisplay := self.getFilesForDisplay()
 	showRootItem := self.common.UserConfig().Gui.ShowRootItemInFileTree
 	if self.showTree {
-		self.tree = BuildTreeFromFiles(filesForDisplay, showRootItem)
+		tree := BuildTreeFromFiles(filesForDisplay, showRootItem)
+		self.tree = tree
 	} else {
 		self.tree = BuildFlatTreeFromFiles(filesForDisplay, showRootItem)
 	}
