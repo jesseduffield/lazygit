@@ -8,7 +8,7 @@ Lazygit's vision is to be the most enjoyable UI for git.
 
 There are seven (sometimes contradictory) design principles we follow:
 
-- Dicoverability
+- Discoverability
 - Simplicity
 - Safety
 - Power
