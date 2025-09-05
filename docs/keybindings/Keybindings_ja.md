@@ -82,19 +82,19 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` B `` | リベース用のベースコミットとしてマーク | 次のリベース用のベースコミットを選択します。ブランチにリベースするとき、ベースコミットより上のコミットのみが持ち込まれます。これは `git rebase --onto` コマンドを使用します。 |
 | `` A `` | 修正 | ステージされた変更でコミットを修正します。選択したコミットがHEADコミットの場合、これは `git commit --amend` を実行します。それ以外の場合、コミットはリベースを通じて修正されます。 |
 | `` a `` | コミット属性を修正 | コミット作者の設定/リセットまたは共同作者の設定を行います。 |
-| `` t `` | 元に戻す | 選択したコミットの変更を逆に適用する、リバートコミットを作成します。 |
+| `` t `` | リバート | 選択したコミットの変更を逆に適用する、リバートコミットを作成します。 |
 | `` T `` | コミットにタグを付ける | 選択したコミットを指すタグを新規作成します。タグ名とオプションの説明を入力するよう促されます。 |
 | `` <c-l> `` | ログオプションを表示 | コミットログのオプションを表示します（例：並び順の変更、Gitグラフの非表示、Gitグラフ全体の表示）。 |
 | `` <space> `` | チェックアウト（ブランチの切り替え） | 選択したコミットをデタッチドヘッド（特定のブランチに属さない状態）としてチェックアウトします。 |
 | `` y `` | コミット属性をクリップボードにコピー | コミット属性をクリップボードにコピーします（例：ハッシュ、URL、差分、メッセージ、作者）。 |
 | `` o `` | ブラウザでコミットを開く |  |
 | `` n `` | コミットから新しいブランチを作成 |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` N `` | コミットを新しいブランチに移動 | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` C `` | コピー（チェリーピック） | コミットをコピーとしてマークします。ローカルコミットビューで `V` を押すと、コピーしたコミットをチェックアウトしたブランチにペースト（チェリーピック）できます。いつでも `<esc>` を押して選択をキャンセルできます。 |
 | `` <c-t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` * `` | 現在のブランチのコミットを選択 |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | ファイルを表示 |  |
 | `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
@@ -116,7 +116,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` ` `` | ファイルツリービューを切り替え | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | すべてのファイルを折りたたむ | ファイルツリー内のすべてのディレクトリを折りたたみます |
 | `` = `` | すべてのファイルを展開 | ファイルツリー内のすべてのディレクトリを展開します |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | メインビューにフォーカス |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## コミット概要
@@ -135,13 +135,13 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` y `` | コミット属性をクリップボードにコピー | コミット属性をクリップボードにコピーします（例：ハッシュ、URL、差分、メッセージ、作者）。 |
 | `` o `` | ブラウザでコミットを開く |  |
 | `` n `` | コミットから新しいブランチを作成 |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` N `` | コミットを新しいブランチに移動 | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` C `` | コピー（チェリーピック） | コミットをコピーとしてマークします。ローカルコミットビューで `V` を押すと、コピーしたコミットをチェックアウトしたブランチにペースト（チェリーピック）できます。いつでも `<esc>` を押して選択をキャンセルできます。 |
 | `` <c-r> `` | コピーされた（チェリーピックされた）コミットの選択をリセット |  |
 | `` <c-t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` * `` | 現在のブランチのコミットを選択 |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | ファイルを表示 |  |
 | `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
@@ -169,7 +169,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` d `` | 削除 | スタッシュリストからスタッシュエントリを削除します。 |
 | `` n `` | 新しいブランチ | 選択したスタッシュエントリから新しいブランチを作成します。これは、スタッシュエントリが作成されたコミットをgitがチェックアウトし、そのコミットから新しいブランチを作成した後、スタッシュエントリを追加のコミットとして新しいブランチに適用することで機能します。 |
 | `` r `` | スタッシュの名前を変更 |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | ファイルを表示 |  |
 | `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
@@ -183,14 +183,14 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` u `` | 更新を確認 |  |
 | `` <enter> `` | 最近のリポジトリをチェックアウト |  |
 | `` a `` | ブランチログの表示モードを順に切り替え |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | メインビューにフォーカス |  |
 
 ## セカンダリ
 
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
-| `` <esc> `` | Exit back to side panel |  |
+| `` <esc> `` | サイドパネルに戻る |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## タグ
@@ -204,7 +204,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` P `` | タグをプッシュ | 選択したタグをリモートにプッシュします。リモートを選択するよう促されます。 |
 | `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` <c-t> `` | 外部差分ツールを開く（git difftool） |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | コミットを表示 |  |
 | `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
@@ -239,7 +239,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` f `` | フェッチ | リモートから変更をフェッチします。 |
 | `` - `` | すべてのファイルを折りたたむ | ファイルツリー内のすべてのディレクトリを折りたたみます |
 | `` = `` | すべてのファイルを展開 | ファイルツリー内のすべてのディレクトリを展開します |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | メインビューにフォーカス |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## メインパネル（ステージング）
@@ -249,7 +249,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` <left> `` | 前のハンクに移動 |  |
 | `` <right> `` | 次のハンクに移動 |  |
 | `` v `` | 範囲選択を切り替え |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | 選択したテキストをクリップボードにコピー |  |
 | `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
 | `` d `` | 破棄 | ステージされていない変更が選択されている場合、`git reset`を使用して変更を破棄します。ステージされた変更が選択されている場合、変更をアンステージします。 |
@@ -271,7 +271,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` <left> `` | 前のハンクに移動 |  |
 | `` <right> `` | 次のハンクに移動 |  |
 | `` v `` | 範囲選択を切り替え |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | 選択したテキストをクリップボードにコピー |  |
 | `` o `` | ファイルを開く | デフォルトのアプリケーションでファイルを開きます。 |
 | `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
@@ -302,7 +302,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` mouse wheel down (fn+up) `` | 下にスクロール |  |
 | `` mouse wheel up (fn+down) `` | 上にスクロール |  |
 | `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
-| `` <esc> `` | Exit back to side panel |  |
+| `` <esc> `` | サイドパネルに戻る |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## メニュー
@@ -322,13 +322,13 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` y `` | コミット属性をクリップボードにコピー | コミット属性をクリップボードにコピーします（例：ハッシュ、URL、差分、メッセージ、作者）。 |
 | `` o `` | ブラウザでコミットを開く |  |
 | `` n `` | コミットから新しいブランチを作成 |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` N `` | コミットを新しいブランチに移動 | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` C `` | コピー（チェリーピック） | コミットをコピーとしてマークします。ローカルコミットビューで `V` を押すと、コピーしたコミットをチェックアウトしたブランチにペースト（チェリーピック）できます。いつでも `<esc>` を押して選択をキャンセルできます。 |
 | `` <c-r> `` | コピーされた（チェリーピックされた）コミットの選択をリセット |  |
 | `` <c-t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` * `` | 現在のブランチのコミットを選択 |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | コミットを表示 |  |
 | `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
@@ -358,7 +358,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` s `` | 並び順 |  |
 | `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` <c-t> `` | 外部差分ツールを開く（git difftool） |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | コミットを表示 |  |
 | `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
@@ -371,12 +371,12 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` i `` | git-flowオプションを表示 |  |
 | `` <space> `` | チェックアウト（ブランチの切り替え） | 選択した項目をチェックアウトします。 |
 | `` n `` | 新しいブランチ |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` N `` | コミットを新しいブランチに移動 | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` o `` | プルリクエストを作成 |  |
 | `` O `` | プルリクエスト作成オプションを表示 |  |
 | `` <c-y> `` | プルリクエストURLをクリップボードにコピー |  |
 | `` c `` | 名前でチェックアウト | 名前でチェックアウトします。入力ボックスに「-」を入力すると、最後のブランチをチェックアウトすることができます。 |
-| `` - `` | Checkout previous branch |  |
+| `` - `` | 直前のブランチにチェックアウト |  |
 | `` F `` | 強制チェックアウト | 選択したブランチを強制的にチェックアウトします。これにより、選択したブランチをチェックアウトする前にワーキングディレクトリ内のすべてのローカル変更が破棄されます。 |
 | `` d `` | 削除 | ローカル/リモートブランチの削除オプションを表示します。 |
 | `` r `` | リベース | チェックアウトしたブランチを選択したブランチ上にリベースします。 |
@@ -388,7 +388,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` R `` | ブランチ名を変更 |  |
 | `` u `` | アップストリームオプションを表示 | ブランチのアップストリームに関連するオプションを表示します（例：アップストリームの設定/解除やアップストリームへのリセット）。 |
 | `` <c-t> `` | 外部差分ツールを開く（git difftool） |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | コミットを表示 |  |
 | `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |

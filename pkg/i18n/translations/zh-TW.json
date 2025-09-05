@@ -154,7 +154,6 @@
   "ConfirmQuitDuringUpdate": "正在進行更新，是否結束？",
   "MergeToolTitle": "合併工具",
   "MergeToolPrompt": "是否開啟 'git mergetool'？",
-  "IntroPopupMessage": "\n感謝使用 lazygit！這裡有一些資源可供參考：\n\n 1) 📺lazygit 教學📺：\n      https://youtu.be/CPLdltN7wgE\n\n 2) 📣發佈說明📣：\n      https://github.com/jesseduffield/lazygit/releases\n\n 3) 💖如果你想要貢獻一份心力你可以💖：\n    改進 lazygit 原始碼：https://github.com/jesseduffield/lazygit\n    按右下角的捐款斗內我們\n    或單純添加 lazygit 到你的 star 清單內以增加曝光度都能大力的幫助我們！\n",
   "GitconfigParseErr": "Gogit 無法解析你的 gitconfig 檔案，因為存在未引用的 '\\' 字符，刪除它們應該可以解決這個問題。",
   "EditFile": "編輯檔案",
   "EditFileTooltip": "使用外部編輯器開啟",

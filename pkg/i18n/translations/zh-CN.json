@@ -230,7 +230,6 @@
   "ConfirmQuitDuringUpdate": "当前正在更新中，您确定要退出吗？",
   "MergeToolTitle": "合并工具",
   "MergeToolPrompt": "确定要打开 `git mergetool` 吗?",
-  "IntroPopupMessage": "\n感谢使用 lazygit！您真的太棒了。下面几点您可能会感兴趣：\n\n 1) 观看此视频，快速了解 lazygit 的功能：\n    https://youtu.be/CPLdltN7wgE\n\n 2) 记得看看最新发行说明：\n    https://github.com/jesseduffield/lazygit/releases\n\n 3) 使用 git 说明您是一位程序员！您可以和我们一起让 lazygit 变得更好。\n  考虑为本项目做些贡献吧：\n    https://github.com/jesseduffield/lazygit\n  您也可以直接赞助，并告诉我哪里需要改进，点右下角的捐赠按钮就好了。\n  哪怕只是给仓库点个星星也很棒！\n",
   "NonReloadableConfigWarningTitle": "配置已更改",
   "NonReloadableConfigWarning": "以下配置设置已更改，但更改不会立即生效。请退出并重新启动lazygit以使更改生效：\n\n{{configs}}",
   "GitconfigParseErr": "由于存在未加引号的'\\'字符，因此 Gogit 无法解析您的 gitconfig 文件。删除它们应该可以解决问题。",
