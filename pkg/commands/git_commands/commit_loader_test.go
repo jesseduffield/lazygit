@@ -62,6 +62,39 @@ func TestGetCommits(t *testing.T) {
 			expectedError:      nil,
 		},
 		{
+			testName: "should hide merge commits when HideMerges is true",
+			logOrder: "topo-order",
+			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false, HideMerges: true},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--no-merges", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
+
+			expectedCommitOpts: []models.NewCommitOpts{},
+			expectedError:      nil,
+		},
+		{
+			testName: "should not hide merge commits when HideMerges is false",
+			logOrder: "topo-order",
+			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false, HideMerges: false},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
+
+			expectedCommitOpts: []models.NewCommitOpts{},
+			expectedError:      nil,
+		},
+		{
+			testName: "should hide merge commits when HideMerges is true with other options",
+			logOrder: "date-order",
+			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false, HideMerges: true, All: true},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--date-order", "--oneline", "--all", "--no-merges", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
+
+			expectedCommitOpts: []models.NewCommitOpts{},
+			expectedError:      nil,
+		},
+		{
 			testName:     "should return commits if they are present",
 			logOrder:     "topo-order",
 			opts:         GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
@@ -72,12 +105,12 @@ func TestGetCommits(t *testing.T) {
 				// here it's actually getting all the commits in a formatted form, one per line
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, commitsOutput, nil).
 				// here it's testing which of the configured main branches have an upstream
-				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "master@{u}"}, "refs/remotes/origin/master", nil).       // this one does
-				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "main@{u}"}, "", errors.New("error")).                   // this one doesn't, so it checks origin instead
-				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/remotes/origin/main"}, "", nil).                    // yep, origin/main exists
-				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "develop@{u}"}, "", errors.New("error")).                // this one doesn't, so it checks origin instead
+				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "master@{u}"}, "refs/remotes/origin/master", nil). // this one does
+				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "main@{u}"}, "", errors.New("error")). // this one doesn't, so it checks origin instead
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/remotes/origin/main"}, "", nil). // yep, origin/main exists
+				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "develop@{u}"}, "", errors.New("error")). // this one doesn't, so it checks origin instead
 				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/remotes/origin/develop"}, "", errors.New("error")). // doesn't exist there, either, so it checks for a local branch
-				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/develop"}, "", errors.New("error")).          // no local branch either
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/develop"}, "", errors.New("error")). // no local branch either
 				// here it's seeing which of our commits are not on any of the main branches yet
 				ExpectGitArgs([]string{"rev-list", "HEAD", "^refs/remotes/origin/master", "^refs/remotes/origin/main"},
 					"0eea75e8c631fba6b58135697835d58ba4c18dbc\nb21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164\ne94e8fc5b6fab4cb755f29f1bdb3ee5e001df35c\nd8084cd558925eb7c9c38afeed5725c21653ab90\n65f910ebd85283b5cce9bf67d03d3f1a9ea3813a\n", nil),
