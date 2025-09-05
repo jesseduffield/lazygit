@@ -81,6 +81,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
 - [Tutorials](#tutorials)
 - [Installation](#installation)
   - [Binary Releases](#binary-releases)
+  - [Dev container](#dev-container-feature)
   - [Homebrew](#homebrew)
   - [MacPorts](#macports)
   - [Void Linux](#void-linux)
@@ -230,6 +231,10 @@ _Most of the above packages are maintained by third parties so be sure to vet th
 ### Binary Releases
 
 For Windows, Mac OS(10.12+) or Linux, you can download a binary release [here](../../releases).
+
+### Dev container feature
+
+If you want to use lazygit in e.g. one of your GitHub Codespaces, there is a third-party [dev container feature](https://github.com/GeorgOfenbeck/features/tree/main/src/lazygit-linuxbinary) based on the binary releases mentioned above.
 
 ### Homebrew
 
