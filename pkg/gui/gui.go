@@ -697,7 +697,7 @@ func NewGui(
 			return gui.helpers.AppStatus.WithWaitingStatusSync(message, f)
 		},
 		func(message string, kind types.ToastKind) { gui.helpers.AppStatus.Toast(message, kind) },
-		func() string { return gui.Views.Confirmation.TextArea.GetContent() },
+		func() string { return gui.Views.Prompt.TextArea.GetContent() },
 		func() bool { return gui.c.InDemo() },
 	)
 

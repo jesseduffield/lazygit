@@ -160,6 +160,13 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` 0 `` | Focus main view |  |
 | `` / `` | Search the current view by text |  |
 
+## Input prompt
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | Confirm |  |
+| `` <esc> `` | Close/Cancel |  |
+
 ## Local branches
 
 | Key | Action | Info |

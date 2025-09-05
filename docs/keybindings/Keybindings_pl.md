@@ -125,6 +125,13 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` <esc> `` | Wyjdź z budowniczego niestandardowej łatki |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
+## Input prompt
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | Potwierdź |  |
+| `` <esc> `` | Zamknij/Anuluj |  |
+
 ## Lokalne gałęzie
 
 | Key | Action | Info |

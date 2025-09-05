@@ -24,7 +24,7 @@ func NewSearchPromptController(
 func (self *SearchPromptController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:      opts.GetKey(opts.Config.Universal.Confirm),
+			Key:      gocui.KeyEnter,
 			Modifier: gocui.ModNone,
 			Handler:  self.confirm,
 		},

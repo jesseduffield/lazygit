@@ -52,7 +52,7 @@ func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*t
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Confirm),
+			Key:               opts.GetKey(opts.Config.Universal.GoInto),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 		},

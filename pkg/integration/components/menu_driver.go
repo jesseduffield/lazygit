@@ -21,7 +21,7 @@ func (self *MenuDriver) Title(expected *TextMatcher) *MenuDriver {
 func (self *MenuDriver) Confirm() *MenuDriver {
 	self.checkNecessaryChecksCompleted()
 
-	self.getViewDriver().PressEnter()
+	self.getViewDriver().Press(self.t.keys.Universal.ConfirmMenu)
 
 	return self
 }

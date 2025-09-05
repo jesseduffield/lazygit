@@ -218,6 +218,13 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
 
+## Input prompt
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | Confirmar |  |
+| `` <esc> `` | Fechar/Cancelar |  |
+
 ## Menu
 
 | Key | Action | Info |

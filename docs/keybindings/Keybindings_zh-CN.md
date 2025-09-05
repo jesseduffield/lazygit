@@ -52,6 +52,13 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` ] `` | 下一个标签 |  |
 | `` [ `` | 上一个标签 |  |
 
+## Input prompt
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | 确认 |  |
+| `` <esc> `` | 关闭 |  |
+
 ## Reflog
 
 | Key | Action | Info |

@@ -557,6 +557,8 @@ keybinding:
     select: <space>
     goInto: <enter>
     confirm: <enter>
+    confirmMenu: <enter>
+    confirmSuggestion: <enter>
     confirmInEditor: <a-enter>
     confirmInEditor-alt: <c-s>
     remove: d

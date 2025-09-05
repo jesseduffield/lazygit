@@ -193,6 +193,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	statusController := controllers.NewStatusController(common)
 	commandLogController := controllers.NewCommandLogController(common)
 	confirmationController := controllers.NewConfirmationController(common)
+	promptController := controllers.NewPromptController(common)
 	suggestionsController := controllers.NewSuggestionsController(common)
 	jumpToSideWindowController := controllers.NewJumpToSideWindowController(common, gui.handleNextTab)
 
@@ -397,6 +398,10 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.Confirmation,
 		confirmationController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Prompt,
+		promptController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Suggestions,
