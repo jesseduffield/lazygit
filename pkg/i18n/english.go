@@ -522,6 +522,9 @@ type TranslationSet struct {
 	NewRemote                             string
 	NewRemoteName                         string
 	NewRemoteUrl                          string
+	AddForkRemote                         string
+	AddForkRemoteUsername                 string
+	AddForkRemoteTooltip                  string
 	ViewBranches                          string
 	EditRemoteName                        string
 	EditRemoteUrl                         string
@@ -1606,6 +1609,9 @@ func EnglishTranslationSet() *TranslationSet {
 		NewRemote:                            `New remote`,
 		NewRemoteName:                        `New remote name:`,
 		NewRemoteUrl:                         `New remote url:`,
+		AddForkRemoteUsername:                `Enter the owner of the fork (username or org):`,
+		AddForkRemote:                        `Add fork remote`,
+		AddForkRemoteTooltip:                 `Quickly add a fork remote by replacing the owner in the origin URL.`,
 		ViewBranches:                         "View branches",
 		EditRemoteName:                       `Enter updated remote name for {{.remoteName}}:`,
 		EditRemoteUrl:                        `Enter updated remote url for {{.remoteName}}:`,
