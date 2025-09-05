@@ -321,7 +321,7 @@ github.com/spf13/afero/mem
 # github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 ## explicit
 github.com/spkg/bom
-# github.com/stefanhaller/git-todo-parser v0.0.7-0.20250429125209-dcf39e4641f5
+# github.com/stefanhaller/git-todo-parser v0.0.7-0.20250905083220-c50528f08304
 ## explicit; go 1.13
 github.com/stefanhaller/git-todo-parser/todo
 # github.com/stretchr/testify v1.10.0
