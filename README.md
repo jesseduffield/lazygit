@@ -4,7 +4,7 @@
 <br>
 <a href="https://www.warp.dev/?utm_source=github&utm_medium=referral&utm_campaign=lazygit_20231023">
   <div>
-    <img src="../assets/warp.png" width="330" alt="Warp">
+    <img src="../assets/warp.png" width="400" alt="Warp">
   </div>
   <b>Warp, the intelligent terminal</b>
   <br>
@@ -18,7 +18,7 @@
 <hr>
 <a href="https://tuple.app/lazygit">
   <div>
-    <img src="../assets/tuple.png" width="330" alt="Tuple">
+    <img src="../assets/tuple.png" width="400" alt="Tuple">
   </div>
   <b>Tuple, the premier screen sharing app for developers on macOS and Windows.</b>
 </a>
@@ -27,7 +27,7 @@
 <br>
 <a href="https://www.subble.com">
   <div>
-    <img src="https://subble-marketing-portal-media-storage.s3.amazonaws.com/images/subble-black-name-logo.svg" width="230" alt="Subble">
+    <img src="../assets/subble.webp" width="400" alt="Subble">
   </div>
   <b>I (Jesse) co-founded Subble to save your company time and money by finding unused and over-provisioned SaaS licences. Check it out!</b>
 </a>
