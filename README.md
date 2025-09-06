@@ -18,7 +18,7 @@
 <hr>
 <a href="https://tuple.app/lazygit">
   <div>
-    <img src="../assets/tuple.png" width="330" alt="Warp">
+    <img src="../assets/tuple.png" width="330" alt="Tuple">
   </div>
   <b>Tuple, the premier screen sharing app for developers on macOS and Windows.</b>
 </a>
