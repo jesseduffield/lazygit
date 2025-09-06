@@ -151,6 +151,8 @@ type GuiConfig struct {
 	CommitAuthorShortLength int `yaml:"commitAuthorShortLength"`
 	// Length of author name in expanded commits view. 2 means show initials only.
 	CommitAuthorLongLength int `yaml:"commitAuthorLongLength"`
+	// Automatically adjust side panel width to fit the longest filename (capped at a screen percentage). Defaults to false.
+	SidePanelAutoWidth bool `yaml:"sidePanelAutoWidth"`
 	// Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.
 	CommitHashLength int `yaml:"commitHashLength" jsonschema:"minimum=0"`
 	// If true, show commit hashes alongside branch names in the branches view.
