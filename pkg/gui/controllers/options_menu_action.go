@@ -51,6 +51,7 @@ func (self *OptionsMenuAction) Call() error {
 		HideCancel:                true,
 		ColumnAlignment:           []utils.Alignment{utils.AlignRight, utils.AlignLeft},
 		AllowFilteringKeybindings: true,
+		KeepConfirmKeybindings:    true,
 	})
 }
 
