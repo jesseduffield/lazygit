@@ -140,7 +140,7 @@ func NewApp(config config.AppConfigurer, test integrationTypes.IntegrationTest, 
 	return app, nil
 }
 
-const minGitVersionStr = "2.32.0"
+const minGitVersionStr = "2.30.0"
 
 func minGitVersionErrorMessage(tr *i18n.TranslationSet) string {
 	return fmt.Sprintf(tr.MinGitVersionError, minGitVersionStr)

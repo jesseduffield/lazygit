@@ -49,7 +49,7 @@ jobs:
       fail-fast: false
       matrix:
         git-version:
-          - 2.32.0 # oldest supported version
+          - 2.30.0 # oldest supported version
           - 2.38.2 # first version that supports the rebase.updateRefs config
           - 2.44.0
           - latest # We rely on github to have the latest version installed on their VMs
