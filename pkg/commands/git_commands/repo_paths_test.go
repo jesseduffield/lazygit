@@ -194,13 +194,22 @@ func TestGetRepoPaths(t *testing.T) {
 			runner := oscommands.NewFakeRunner(t)
 			cmd := oscommands.NewDummyCmdObjBuilder(runner)
 
+			version, err := GetGitVersion(oscommands.NewDummyOSCommand())
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			getRevParseArgs := func() []string {
-				return []string{"rev-parse", "--path-format=absolute"}
+				args := []string{"rev-parse"}
+				if version.IsAtLeast(2, 31, 0) {
+					args = append(args, "--path-format=absolute")
+				}
+				return args
 			}
 			// prepare the filesystem for the scenario
 			s.BeforeFunc(runner, getRevParseArgs)
 
-			repoPaths, err := GetRepoPathsForDir("", cmd)
+			repoPaths, err := GetRepoPathsForDir("", cmd, version)
 
 			// check the error and the paths
 			if s.Err != nil {
