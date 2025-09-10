@@ -374,5 +374,7 @@
     "CompleteTitle": "Bisect 완료"
   },
   "Log": {},
-  "BreakingChangesByVersion": {}
+  "BreakingChangesByVersion": {},
+  "GenerateAICommitMessage": "AI 커밋 메시지 생성",
+  "GeneratingAICommitMessageStatus": "커밋 메시지 생성 중"
 }

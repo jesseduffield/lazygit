@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"time"
 
 	"github.com/karimkhaleel/jsonschema"
@@ -36,8 +37,11 @@ type UserConfig struct {
 	NotARepository string `yaml:"notARepository" jsonschema:"enum=prompt,enum=create,enum=skip,enum=quit"`
 	// If true, display a confirmation when subprocess terminates. This allows you to view the output of the subprocess before returning to Lazygit.
 	PromptToReturnFromSubprocess bool `yaml:"promptToReturnFromSubprocess"`
-	// Keybindings
-	Keybinding KeybindingConfig `yaml:"keybinding"`
+    // Keybindings
+    Keybinding KeybindingConfig `yaml:"keybinding"`
+
+    // Configuration for AI-powered features like commit message generation
+    AI AIConfig `yaml:"ai"`
 }
 
 type RefresherConfig struct {
@@ -296,6 +300,72 @@ type GitConfig struct {
 	// When copying commit hashes to the clipboard, truncate them to this
 	// length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
+}
+
+// AIConfig configures AI-powered features. The commit generator uses an
+// OpenAI-compatible API (e.g. OpenAI, OpenRouter, or any self-hosted
+// compatible endpoint).
+type AIConfig struct {
+    // Provider hint. One of: 'openai' | 'openrouter' | 'custom'. Only used to
+    // infer sensible defaults; any OpenAI-compatible baseURL will work.
+    Provider string `yaml:"provider" jsonschema:"enum=openai,enum=openrouter,enum=custom,default=openai"`
+    // Base URL for the API. If empty, defaults to the provider's common URL:
+    // - openai: https://api.openai.com/v1
+    // - openrouter: https://openrouter.ai/api/v1
+    BaseURL string `yaml:"baseURL"`
+    // Model name, e.g. 'gpt-4o-mini' (OpenAI) or an OpenRouter model id.
+    Model string `yaml:"model"`
+    // Environment variable from which to read the API key. If empty, will
+    // default to OPENAI_API_KEY for provider 'openai' and OPENROUTER_API_KEY
+    // for provider 'openrouter'.
+    APIKeyEnv string `yaml:"apiKeyEnv"`
+    // Temperature for sampling (0-2 typical).
+    Temperature float64 `yaml:"temperature"`
+    // Max tokens for the response. Leave 0 to let the server decide.
+    MaxTokens int `yaml:"maxTokens" jsonschema:"minimum=0"`
+    // If true (default), only staged changes are sent to the AI. If false,
+    // both staged and unstaged diffs can be considered by generators that
+    // support it (current implementation uses staged only when true, and
+    // falls back to all tracked changes otherwise).
+    StagedOnly bool `yaml:"stagedOnly"`
+    // Style of commit message to generate. One of: 'conventional' | 'plain'
+    // (default: 'conventional')
+    CommitStyle string `yaml:"commitStyle" jsonschema:"enum=conventional,enum=plain"`
+}
+
+// Validate validates the AI configuration parameters
+func (cfg AIConfig) Validate() error {
+    if cfg.Model == "" {
+        return errors.New("ai.model is required")
+    }
+
+    if cfg.Temperature < 0 || cfg.Temperature > 2 {
+        return errors.New("ai.temperature must be between 0 and 2")
+    }
+
+    if cfg.MaxTokens < 0 {
+        return errors.New("ai.maxTokens must be non-negative")
+    }
+
+    if cfg.MaxTokens > 0 && cfg.MaxTokens < 10 {
+        return errors.New("ai.maxTokens must be at least 10 if specified")
+    }
+
+    validProviders := map[string]bool{
+        "openai": true, "openrouter": true, "custom": true, "": true,
+    }
+    if !validProviders[cfg.Provider] {
+        return errors.New("ai.provider must be one of: openai, openrouter, custom")
+    }
+
+    validStyles := map[string]bool{
+        "conventional": true, "plain": true, "": true,
+    }
+    if !validStyles[cfg.CommitStyle] {
+        return errors.New("ai.commitStyle must be one of: conventional, plain")
+    }
+
+    return nil
 }
 
 type PagerType string
@@ -725,8 +795,8 @@ type IconProperties struct {
 }
 
 func GetDefaultConfig() *UserConfig {
-	return &UserConfig{
-		Gui: GuiConfig{
+    return &UserConfig{
+        Gui: GuiConfig{
 			ScrollHeight:             2,
 			ScrollPastBottom:         true,
 			ScrollOffMargin:          2,
@@ -794,8 +864,8 @@ func GetDefaultConfig() *UserConfig {
 			SwitchToFilesAfterStashPop:   true,
 			SwitchToFilesAfterStashApply: true,
 			SwitchTabsWithPanelJumpKeys:  false,
-		},
-		Git: GitConfig{
+        },
+        Git: GitConfig{
 			Paging: PagingConfig{
 				ColorArg:            "always",
 				Pager:               "",
@@ -834,12 +904,22 @@ func GetDefaultConfig() *UserConfig {
 			CommitPrefixes:               map[string][]CommitPrefixConfig(nil),
 			BranchPrefix:                 "",
 			ParseEmoji:                   false,
-			TruncateCopiedCommitHashesTo: 12,
-		},
-		Refresher: RefresherConfig{
-			RefreshInterval: 10,
-			FetchInterval:   60,
-		},
+            TruncateCopiedCommitHashesTo: 12,
+        },
+        AI: AIConfig{
+            Provider:    "openai",
+            BaseURL:     "",
+            Model:       "",
+            APIKeyEnv:   "",
+            Temperature: 0.2,
+            MaxTokens:   300,
+            StagedOnly:  true,
+            CommitStyle: "conventional",
+        },
+        Refresher: RefresherConfig{
+            RefreshInterval: 10,
+            FetchInterval:   60,
+        },
 		Update: UpdateConfig{
 			Method: "prompt",
 			Days:   14,
