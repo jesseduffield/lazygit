@@ -152,7 +152,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` z `` | 되돌리기 | Undo last merge conflict resolution. |
 | `` e `` | 파일 편집 | Open file in external editor. |
 | `` o `` | 파일 닫기 | Open file in default application. |
-| `` M `` | Git mergetool를 열기 | Run `git mergetool`. |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` <esc> `` | 파일 목록으로 돌아가기 |  |
 
 ## 메인 패널 (Normal)
@@ -396,7 +396,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` D `` | 초기화 | View reset options for working tree (e.g. nuking the working tree). |
 | `` ` `` | 파일 트리뷰로 전환 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
-| `` M `` | Git mergetool를 열기 | Run `git mergetool`. |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` f `` | Fetch | Fetch changes from remote. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |

@@ -235,7 +235,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` D `` | リセット | 作業ツリーのリセットオプション（例：作業ツリーの完全破棄）を表示します。 |
 | `` ` `` | ファイルツリービューを切り替え | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` <c-t> `` | 外部差分ツールを開く（git difftool） |  |
-| `` M `` | 外部マージツールを開く | `git mergetool`を実行します。 |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` f `` | フェッチ | リモートから変更をフェッチします。 |
 | `` - `` | すべてのファイルを折りたたむ | ファイルツリー内のすべてのディレクトリを折りたたみます |
 | `` = `` | すべてのファイルを展開 | ファイルツリー内のすべてのディレクトリを展開します |
@@ -292,7 +292,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` z `` | 元に戻す | 最後のマージコンフリクト解決を元に戻します。 |
 | `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
 | `` o `` | ファイルを開く | デフォルトのアプリケーションでファイルを開きます。 |
-| `` M `` | 外部マージツールを開く | `git mergetool`を実行します。 |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` <esc> `` | ファイルパネルに戻る |  |
 
 ## メインパネル（通常）

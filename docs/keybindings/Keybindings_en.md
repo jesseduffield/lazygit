@@ -153,7 +153,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` D `` | Reset | View reset options for working tree (e.g. nuking the working tree). |
 | `` ` `` | Toggle file tree view | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
-| `` M `` | Open external merge tool | Run `git mergetool`. |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` f `` | Fetch | Fetch changes from remote. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
@@ -210,7 +210,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` z `` | Undo | Undo last merge conflict resolution. |
 | `` e `` | Edit file | Open file in external editor. |
 | `` o `` | Open file | Open file in default application. |
-| `` M `` | Open external merge tool | Run `git mergetool`. |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` <esc> `` | Return to files panel |  |
 
 ## Main panel (normal)

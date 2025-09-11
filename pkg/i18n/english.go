@@ -63,7 +63,6 @@ type TranslationSet struct {
 	ToggleTreeViewTooltip                 string
 	OpenDiffTool                          string
 	OpenMergeTool                         string
-	OpenMergeToolTooltip                  string
 	Refresh                               string
 	RefreshTooltip                        string
 	Push                                  string
@@ -898,6 +897,13 @@ type TranslationSet struct {
 	BreakingChangesTitle                     string
 	BreakingChangesMessage                   string
 	BreakingChangesByVersion                 map[string]string
+	ViewMergeConflictOptions                 string
+	ViewMergeConflictOptionsTooltip          string
+	NoFilesWithMergeConflicts                string
+	MergeConflictOptionsTitle                string
+	UseCurrentChanges                        string
+	UseIncomingChanges                       string
+	UseBothChanges                           string
 }
 
 type Bisect struct {
@@ -1136,7 +1142,6 @@ func EnglishTranslationSet() *TranslationSet {
 		ToggleTreeViewTooltip:                "Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.\n\nThe default can be changed in the config file with the key 'gui.showFileTree'.",
 		OpenDiffTool:                         "Open external diff tool (git difftool)",
 		OpenMergeTool:                        "Open external merge tool",
-		OpenMergeToolTooltip:                 "Run `git mergetool`.",
 		Refresh:                              "Refresh",
 		RefreshTooltip:                       "Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`.",
 		Push:                                 "Push",
@@ -1970,6 +1975,13 @@ func EnglishTranslationSet() *TranslationSet {
 		CustomCommands:                           "Custom commands",
 		NoApplicableCommandsInThisContext:        "(No applicable commands in this context)",
 		SelectCommitsOfCurrentBranch:             "Select commits of current branch",
+		ViewMergeConflictOptions:                 "View merge conflict options",
+		ViewMergeConflictOptionsTooltip:          "View options for resolving merge conflicts.",
+		NoFilesWithMergeConflicts:                "There are no files with merge conflicts.",
+		MergeConflictOptionsTitle:                "Resolve merge conflicts",
+		UseCurrentChanges:                        "Use current changes",
+		UseIncomingChanges:                       "Use incoming changes",
+		UseBothChanges:                           "Use both",
 
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
