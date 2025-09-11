@@ -897,7 +897,7 @@ keybinding:
     toggleStagedAll: a
     viewResetOptions: D
     fetch: f
-    openMergeTool: M
+    openMergeOptions: M
     openStatusFilter: <c-b>
     copyFileInfoToClipboard: "y"
     collapseAll: '-'

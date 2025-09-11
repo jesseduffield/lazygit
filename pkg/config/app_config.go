@@ -272,6 +272,7 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		{[]string{"gui", "skipUnstageLineWarning"}, "skipDiscardChangeWarning"},
 		{[]string{"keybinding", "universal", "executeCustomCommand"}, "executeShellCommand"},
 		{[]string{"gui", "windowSize"}, "screenMode"},
+		{[]string{"keybinding", "files", "openMergeTool"}, "openMergeOptions"},
 	}
 
 	for _, pathToReplace := range pathsToReplace {

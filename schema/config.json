@@ -1115,7 +1115,7 @@
           "type": "string",
           "default": "`"
         },
-        "openMergeTool": {
+        "openMergeOptions": {
           "type": "string",
           "default": "M"
         },
