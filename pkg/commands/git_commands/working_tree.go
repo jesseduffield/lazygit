@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -406,4 +407,27 @@ func (self *WorkingTreeCommands) ResetMixed(ref string) error {
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
+}
+
+func (self *WorkingTreeCommands) ObjectIDAtStage(path string, stage int) (string, error) {
+	cmdArgs := NewGitCmd("rev-parse").
+		Arg(fmt.Sprintf(":%d:%s", stage, path)).
+		ToArgv()
+
+	output, err := self.cmd.New(cmdArgs).RunWithOutput()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(output), nil
+}
+
+func (self *WorkingTreeCommands) MergeFile(strategy string, oursID string, baseID string, theirsID string) (string, error) {
+	cmdArgs := NewGitCmd("merge-file").
+		Arg("--object-id").
+		Arg(strategy).
+		Arg("-p", oursID, baseID, theirsID).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).RunWithOutput()
 }

@@ -898,8 +898,13 @@ type TranslationSet struct {
 	BreakingChangesTitle                     string
 	BreakingChangesMessage                   string
 	BreakingChangesByVersion                 map[string]string
+	ViewMergeConflictOptions                 string
+	ViewMergeConflictOptionsTooltip          string
+	MergeConflictOptionsTitle                string
+	UseHead                                  string
+	UseIncoming                              string
+	UseBoth                                  string
 }
-
 type Bisect struct {
 	MarkStart                   string
 	ResetTitle                  string
@@ -1970,6 +1975,12 @@ func EnglishTranslationSet() *TranslationSet {
 		CustomCommands:                           "Custom commands",
 		NoApplicableCommandsInThisContext:        "(No applicable commands in this context)",
 		SelectCommitsOfCurrentBranch:             "Select commits of current branch",
+		ViewMergeConflictOptions:                 "View merge conflict options",
+		ViewMergeConflictOptionsTooltip:          "View options for resolving merge conflicts.",
+		MergeConflictOptionsTitle:                "Resolve merge conflicts",
+		UseHead:                                  "Use HEAD",
+		UseIncoming:                              "Use Incoming",
+		UseBoth:                                  "Use Both",
 
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
