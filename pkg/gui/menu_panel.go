@@ -35,7 +35,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 		maxColumnSize = max(maxColumnSize, len(item.LabelColumns))
 
 		// Remove all item keybindings that are the same as the confirm binding
-		if item.Key == confirmKey {
+		if item.Key == confirmKey && !opts.KeepConfirmKeybindings {
 			item.Key = nil
 		}
 	}

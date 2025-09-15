@@ -156,6 +156,7 @@ type CreateMenuOptions struct {
 	HideCancel                bool
 	ColumnAlignment           []utils.Alignment
 	AllowFilteringKeybindings bool
+	KeepConfirmKeybindings    bool // if true, the keybindings that match the confirm binding will not be removed from menu items
 }
 
 type CreatePopupPanelOpts struct {
