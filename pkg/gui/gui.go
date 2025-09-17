@@ -450,8 +450,12 @@ func (gui *Gui) onUserConfigLoaded() error {
 	authors.SetCustomAuthors(userConfig.Gui.AuthorColors)
 	if userConfig.Gui.NerdFontsVersion != "" {
 		icons.SetNerdFontsVersion(userConfig.Gui.NerdFontsVersion)
+
+		icons.PatchHardcodedIcons(userConfig.Gui.CustomIcons)
 	} else if userConfig.Gui.ShowIcons {
 		icons.SetNerdFontsVersion("2")
+
+		icons.PatchHardcodedIcons(userConfig.Gui.CustomIcons)
 	}
 
 	if len(userConfig.Gui.BranchColorPatterns) > 0 {

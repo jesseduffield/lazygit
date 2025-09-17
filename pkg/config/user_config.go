@@ -717,6 +717,8 @@ type CustomIconsConfig struct {
 	Filenames map[string]IconProperties `yaml:"filenames"`
 	// Map of file extensions (including the dot) to icon properties (icon and color)
 	Extensions map[string]IconProperties `yaml:"extensions"`
+	VCSIcons   map[string]string         `yaml:"vcsIcons"`
+	FileIcons  map[string]IconProperties `yaml:"fileIcons"`
 }
 
 type IconProperties struct {
