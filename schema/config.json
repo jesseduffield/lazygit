@@ -277,6 +277,20 @@
           },
           "type": "object",
           "description": "Map of file extensions (including the dot) to icon properties (icon and color)"
+        },
+        "vcsIcons": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Map of vcs icons to string (icon only)"
+        },
+        "fileIcons": {
+          "additionalProperties": {
+            "$ref": "#/$defs/IconProperties"
+          },
+          "type": "object",
+          "description": "Map of file icons to string (icon only)"
         }
       },
       "additionalProperties": false,
