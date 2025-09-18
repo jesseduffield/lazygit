@@ -220,3 +220,29 @@ func (self *FileTreeViewModel) ExpandAll() {
 		self.SetSelectedLineIdx(index)
 	}
 }
+
+// func (self *FileTreeViewModel) GetRequiredWidth() int {
+//     maxWidth := 0
+//     // We need a recursive function to walk the tree
+//     var traverse func(node *Node[models.File], depth int)
+//     traverse = func(node *Node[models.File], depth int) {
+//         if node != nil {
+//             // Calculate the width of the indentation string (e.g., "  ├─ ")
+//             indentationWidth := getIndentationWidth(depth) // You'll need to figure out how lazygit calculates this
+//
+//             // Calculate the total width for this line
+//             lineLength := utf8.RuneCountInString(node.GetFile().Name) + indentationWidth
+//             if lineLength > maxWidth {
+//                 maxWidth = lineLength
+//             }
+//
+//             // Recurse for all children
+//             for _, child := range node.Children {
+//                 traverse(child, depth+1)
+//             }
+//         }
+//     }
+//
+//     traverse(self.GetRoot(), 0)
+//     return maxWidth
+// }
