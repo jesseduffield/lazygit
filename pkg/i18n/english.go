@@ -1223,7 +1223,7 @@ func EnglishTranslationSet() *TranslationSet {
 		NewBranchFromStashTooltip:            "Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit.",
 		MoveCommitsToNewBranch:               "Move commits to new branch",
 		MoveCommitsToNewBranchTooltip:        "Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.\n\nNote that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which).",
-		MoveCommitsToNewBranchFromMainPrompt: "This will take all unpushed commits and move them to a new branch (off of {{.baseBranchName}}). It will then hard-reset the current branch its the upstream branch. Do you want to continue?",
+		MoveCommitsToNewBranchFromMainPrompt: "This will take all unpushed commits and move them to a new branch (off of {{.baseBranchName}}). It will then hard-reset the current branch to its upstream branch. Do you want to continue?",
 		MoveCommitsToNewBranchMenuPrompt:     "This will take all unpushed commits and move them to a new branch. This new branch can either be created from the main branch ({{.baseBranchName}}) or stacked on top of the current branch. Which of these would you like to do?",
 		MoveCommitsToNewBranchFromBaseItem:   "New branch from base branch (%s)",
 		MoveCommitsToNewBranchStackedItem:    "New branch stacked on current branch (%s)",
