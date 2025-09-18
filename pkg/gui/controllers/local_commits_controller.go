@@ -18,9 +18,6 @@ import (
 	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
-// after selecting the 200th commit, we'll load in all the rest
-const COMMIT_THRESHOLD = 200
-
 type (
 	PullFilesFn func() error
 )
@@ -1142,8 +1139,8 @@ func (self *LocalCommitsController) createTag(commit *models.Commit) error {
 
 func (self *LocalCommitsController) openSearch() error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
-	if self.context().GetLimitCommits() {
-		self.context().SetLimitCommits(false)
+	if self.context().GetGitLogLimit() != nil {
+		self.context().SetGitLogLimit(nil)
 		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS}})
 	}
 
@@ -1160,7 +1157,9 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 					self.context().SetShowWholeGitGraph(!self.context().GetShowWholeGitGraph())
 
 					if self.context().GetShowWholeGitGraph() {
-						self.context().SetLimitCommits(false)
+						self.context().SetGitLogLimit(nil)
+					} else {
+						self.context().SetGitLogLimit(git_commands.DefaultGitLogLimit())
 					}
 
 					return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
@@ -1262,8 +1261,30 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 func (self *LocalCommitsController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {
 		context := self.context()
-		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
-			context.SetLimitCommits(false)
+		limit := context.GetGitLogLimit()
+
+		if limit == nil {
+			return
+		}
+
+		lineIdx := context.GetSelectedLineIdx()
+		logCommitCount := len(self.c.Model().Commits)
+
+		if self.isRebasing() {
+			rebaseCommitCount := lo.CountBy(self.c.Model().Commits, func(c *models.Commit) bool {
+				return c.IsTODO()
+			})
+
+			if lineIdx < rebaseCommitCount {
+				lineIdx = 0
+			} else {
+				lineIdx -= rebaseCommitCount
+			}
+			logCommitCount -= rebaseCommitCount
+		}
+
+		if limit.CanFetchMoreCommits(lineIdx, logCommitCount) {
+			limit.Increase(logCommitCount)
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS}})
 		}
 	}
