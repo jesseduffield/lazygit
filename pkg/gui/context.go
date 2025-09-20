@@ -196,7 +196,7 @@ func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) {
 
 	v.Visible = true
 
-	self.gui.c.GocuiGui().Cursor = v.Editable
+	self.gui.c.GocuiGui().Cursor = v.Editable && v.Mask == 0
 
 	c.HandleFocus(opts)
 }
