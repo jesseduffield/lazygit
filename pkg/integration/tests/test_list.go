@@ -150,6 +150,7 @@ var tests = []*components.IntegrationTest{
 	config.NegativeRefspec,
 	config.RemoteNamedStar,
 	conflicts.Filter,
+	conflicts.MergeFileTheirs,
 	conflicts.ResolveExternally,
 	conflicts.ResolveMultipleFiles,
 	conflicts.ResolveNoAutoStage,

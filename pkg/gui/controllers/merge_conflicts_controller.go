@@ -112,7 +112,7 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 			Tag:         "navigation",
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Files.OpenMergeTool),
+			Key:             opts.GetKey(opts.Config.Files.OpenMergeOptions),
 			Handler:         self.c.Helpers().WorkingTree.OpenMergeTool,
 			Description:     self.c.Tr.OpenMergeTool,
 			Tooltip:         self.c.Tr.OpenMergeToolTooltip,
