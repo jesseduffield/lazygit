@@ -18,7 +18,7 @@ import (
 
 func makeAtomic(v int32) (result atomic.Int32) {
 	result.Store(v)
-	return //nolint: nakedret
+	return result
 }
 
 func Test_getBranchDisplayStrings(t *testing.T) {
