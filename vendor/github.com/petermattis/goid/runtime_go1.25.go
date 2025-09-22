@@ -1,5 +1,5 @@
-//go:build gc && go1.23 && !go1.25
-// +build gc,go1.23,!go1.25
+//go:build gc && go1.25
+// +build gc,go1.25
 
 package goid
 
@@ -13,7 +13,6 @@ type gobuf struct {
 	pc   uintptr
 	g    uintptr
 	ctxt uintptr
-	ret  uintptr
 	lr   uintptr
 	bp   uintptr
 }

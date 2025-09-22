@@ -278,7 +278,7 @@ github.com/mgutz/str
 github.com/mitchellh/go-ps
 # github.com/onsi/ginkgo v1.10.3
 ## explicit
-# github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7
+# github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe
 ## explicit; go 1.17
 github.com/petermattis/goid
 # github.com/pjbgf/sha1cd v0.3.2
@@ -301,7 +301,7 @@ github.com/samber/lo
 # github.com/sanity-io/litter v1.5.2
 ## explicit; go 1.14
 github.com/sanity-io/litter
-# github.com/sasha-s/go-deadlock v0.3.5
+# github.com/sasha-s/go-deadlock v0.3.6
 ## explicit
 github.com/sasha-s/go-deadlock
 # github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3

@@ -288,7 +288,7 @@ func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *
 		Arg("--").
 		ToArgv()
 
-	stdout, _, err := self.cmd.New(cmdArgs).RunWithOutputs()
+	stdout, _, err := self.cmd.New(cmdArgs).DontLog().RunWithOutputs()
 	if err != nil {
 		return false, err
 	}
