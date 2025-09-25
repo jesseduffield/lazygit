@@ -12,22 +12,40 @@ func TestReplaceForkUsername_SSH_OK(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "github ssh basic",
+			name:     "github ssh scp-like basic",
 			in:       "git@github.com:old/repo.git",
 			forkUser: "new",
 			expected: "git@github.com:new/repo.git",
 		},
 		{
-			name:     "ssh no .git",
+			name:     "ssh scp-like no .git",
 			in:       "git@github.com:old/repo",
 			forkUser: "new",
 			expected: "git@github.com:new/repo",
 		},
 		{
-			name:     "gitlab subgroup ssh",
+			name:     "gitlab subgroup ssh scp-like",
 			in:       "git@gitlab.com:group/sub/repo.git",
 			forkUser: "alice",
 			expected: "git@gitlab.com:alice/repo.git",
+		},
+		{
+			name:     "ssh url style basic",
+			in:       "ssh://git@github.com/old/repo.git",
+			forkUser: "new",
+			expected: "ssh://git@github.com/new/repo.git",
+		},
+		{
+			name:     "ssh url style with port",
+			in:       "ssh://git@github.com:2222/old/repo.git",
+			forkUser: "bob",
+			expected: "ssh://git@github.com:2222/bob/repo.git",
+		},
+		{
+			name:     "ssh url style multi subgroup",
+			in:       "ssh://git@gitlab.com/group/sub/repo.git",
+			forkUser: "alice",
+			expected: "ssh://git@gitlab.com/alice/repo.git",
 		},
 	}
 
@@ -128,7 +146,7 @@ func TestReplaceForkUsername_Errors(t *testing.T) {
 		},
 		{
 			name:     "unsupported scheme",
-			in:       "ssh://git@github.com/old/repo.git", // explicit ssh:// not supported here
+			in:       "ftp://github.com/old/repo.git",
 			forkUser: "x",
 		},
 	}
