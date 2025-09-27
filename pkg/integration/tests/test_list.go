@@ -89,6 +89,7 @@ var tests = []*components.IntegrationTest{
 	cherry_pick.CherryPickConflicts,
 	cherry_pick.CherryPickDuringRebase,
 	cherry_pick.CherryPickEmpty,
+	cherry_pick.CherryPickEmptyCreateCommit,
 	cherry_pick.CherryPickMerge,
 	cherry_pick.CherryPickRange,
 	commit.AddCoAuthor,
