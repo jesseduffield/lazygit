@@ -53,6 +53,7 @@ type Noder interface {
 	// implement NumChildren in O(1) while Children is usually more
 	// complex.
 	NumChildren() (int, error)
+	Skip()	bool
 }
 
 // NoChildren represents the children of a noder without children.

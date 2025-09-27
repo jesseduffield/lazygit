@@ -9,7 +9,9 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Build a custom patch with a specific selection of lines, adding individual lines, as well as a range and hunk, and adding a file directly",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("hunk-file", "1a\n1b\n1c\n1d\n1e\n1f\n1g\n1h\n1i\n1j\n1k\n1l\n1m\n1n\n1o\n1p\n1q\n1r\n1s\n1t\n1u\n1v\n1w\n1x\n1y\n1z\n")
 		shell.Commit("first commit")
@@ -33,10 +35,12 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("direct-file").IsSelected(),
+				Equals("▼ /").IsSelected(),
+				Contains("direct-file"),
 				Contains("hunk-file"),
 				Contains("line-file"),
 			).
+			SelectNextItem().
 			PressPrimaryAction().
 			Tap(func() {
 				t.Views().Information().Content(Contains("Building patch"))
@@ -53,29 +57,13 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Main.ToggleSelectHunk).
 			SelectedLines(
-				Contains(`@@ -1,6 +1,6 @@`),
 				Contains(`-1a`),
 				Contains(`+aa`),
-				Contains(` 1b`),
-				Contains(`-1c`),
-				Contains(`+cc`),
-				Contains(` 1d`),
-				Contains(` 1e`),
-				Contains(` 1f`),
 			).
 			PressPrimaryAction().
-			// unlike in the staging panel, we don't remove lines from the patch building panel
-			// upon 'adding' them. So the same lines will be selected
 			SelectedLines(
-				Contains(`@@ -1,6 +1,6 @@`),
-				Contains(`-1a`),
-				Contains(`+aa`),
-				Contains(` 1b`),
 				Contains(`-1c`),
 				Contains(`+cc`),
-				Contains(` 1d`),
-				Contains(` 1e`),
-				Contains(` 1f`),
 			).
 			Tap(func() {
 				t.Views().Information().Content(Contains("Building patch"))
@@ -104,12 +92,21 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("+2a"),
 			).
 			PressPrimaryAction().
+			SelectedLines(
+				Contains("+2b"),
+			).
 			NavigateToLine(Contains("+2c")).
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("+2e")).
 			PressPrimaryAction().
+			SelectedLines(
+				Contains("+2f"),
+			).
 			NavigateToLine(Contains("+2g")).
 			PressPrimaryAction().
+			SelectedLines(
+				Contains("+2h"),
+			).
 			Tap(func() {
 				t.Views().Information().Content(Contains("Building patch"))
 
@@ -141,8 +138,7 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 					Contains(`-1a`),
 					Contains(`+aa`),
 					Contains(` 1b`),
-					Contains(`-1c`),
-					Contains(`+cc`),
+					Contains(` 1c`),
 					Contains(` 1d`),
 					Contains(` 1e`),
 					Contains(` 1f`),

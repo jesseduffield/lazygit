@@ -14,25 +14,26 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` @ `` | Pokaż opcje dziennika poleceń | Pokaż opcje dla dziennika poleceń, np. pokazywanie/ukrywanie dziennika poleceń i skupienie na dzienniku poleceń. |
 | `` P `` | Wypchnij | Wypchnij bieżącą gałąź do jej gałęzi nadrzędnej. Jeśli nie skonfigurowano gałęzi nadrzędnej, zostaniesz poproszony o skonfigurowanie gałęzi nadrzędnej. |
 | `` p `` | Pociągnij | Pociągnij zmiany z zdalnego dla bieżącej gałęzi. Jeśli nie skonfigurowano gałęzi nadrzędnej, zostaniesz poproszony o skonfigurowanie gałęzi nadrzędnej. |
-| `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename. |
-| `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
-| `` } `` | Zwiększ rozmiar kontekstu w widoku różnic | Zwiększ ilość kontekstu pokazywanego wokół zmian w widoku różnic. |
-| `` { `` | Zmniejsz rozmiar kontekstu w widoku różnic | Zmniejsz ilość kontekstu pokazywanego wokół zmian w widoku różnic. |
+| `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
+| `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
+| `` } `` | Zwiększ rozmiar kontekstu w widoku różnic | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
+| `` { `` | Zmniejsz rozmiar kontekstu w widoku różnic | Decrease the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
 | `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
 | `` <c-p> `` | Wyświetl opcje niestandardowej łatki |  |
 | `` m `` | Pokaż opcje scalania/rebase | Pokaż opcje do przerwania/kontynuowania/pominięcia bieżącego scalania/rebase. |
 | `` R `` | Odśwież | Odśwież stan git (tj. uruchom `git status`, `git branch`, itp. w tle, aby zaktualizować zawartość paneli). To nie uruchamia `git fetch`. |
 | `` + `` | Następny tryb ekranu (normalny/półpełny/pełnoekranowy) |  |
 | `` _ `` | Poprzedni tryb ekranu |  |
+| `` <esc> `` | Anuluj |  |
 | `` ? `` | Otwórz menu przypisań klawiszy |  |
 | `` <c-s> `` | Pokaż opcje filtrowania | Pokaż opcje filtrowania dziennika commitów, tak aby pokazywane były tylko commity pasujące do filtra. |
 | `` W `` | Pokaż opcje różnicowania | Pokaż opcje dotyczące różnicowania dwóch refów, np. różnicowanie względem wybranego refa, wprowadzanie refa do różnicowania i odwracanie kierunku różnic. |
 | `` <c-e> `` | Pokaż opcje różnicowania | Pokaż opcje dotyczące różnicowania dwóch refów, np. różnicowanie względem wybranego refa, wprowadzanie refa do różnicowania i odwracanie kierunku różnic. |
 | `` q `` | Wyjdź |  |
-| `` <esc> `` | Anuluj |  |
-| `` <c-w> `` | Przełącz białe znaki | Przełącz czy zmiany białych znaków są pokazywane w widoku różnic. |
+| `` <c-z> `` | Suspend the application |  |
+| `` <c-w> `` | Przełącz białe znaki | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | Cofnij | Dziennik reflog zostanie użyty do określenia, jakie polecenie git należy uruchomić, aby cofnąć ostatnie polecenie git. Nie obejmuje to zmian w drzewie roboczym; brane są pod uwagę tylko commity. |
-| `` <c-z> `` | Ponów | Dziennik reflog zostanie użyty do określenia, jakie polecenie git należy uruchomić, aby ponowić ostatnie polecenie git. Nie obejmuje to zmian w drzewie roboczym; brane są pod uwagę tylko commity. |
+| `` Z `` | Ponów | Dziennik reflog zostanie użyty do określenia, jakie polecenie git należy uruchomić, aby ponowić ostatnie polecenie git. Nie obejmuje to zmian w drzewie roboczym; brane są pod uwagę tylko commity. |
 
 ## Nawigacja panelu listy
 
@@ -40,8 +41,8 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 |-----|--------|-------------|
 | `` , `` | Poprzednia strona |  |
 | `` . `` | Następna strona |  |
-| `` < `` | Przewiń do góry |  |
-| `` > `` | Przewiń do dołu |  |
+| `` < (<home>) `` | Przewiń do góry |  |
+| `` > (<end>) `` | Przewiń do dołu |  |
 | `` v `` | Przełącz zaznaczenie zakresu |  |
 | `` <s-down> `` | Zaznacz zakres w dół |  |
 | `` <s-up> `` | Zaznacz zakres w górę |  |
@@ -64,8 +65,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` R `` | Przeformułuj za pomocą edytora |  |
 | `` d `` | Usuń | Usuń wybrany commit. To usunie commit z gałęzi za pomocą rebazowania. Jeśli commit wprowadza zmiany, od których zależą późniejsze commity, być może będziesz musiał rozwiązać konflikty scalania. |
 | `` e `` | Edytuj (rozpocznij interaktywne rebazowanie) | Edytuj wybrany commit. Użyj tego, aby rozpocząć interaktywne rebazowanie od wybranego commita. Podczas trwania rebazowania, to oznaczy wybrany commit do edycji, co oznacza, że po kontynuacji rebazowania, rebazowanie zostanie wstrzymane na wybranym commicie, aby umożliwić wprowadzenie zmian. |
-| `` i `` | Rozpocznij interaktywny rebase | Rozpocznij interaktywny rebase dla commitów na twoim branchu. To będzie zawierać wszystkie commity od HEAD do pierwszego commita scalenia lub commita głównego brancha.
-Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita, naciśnij `e`. |
+| `` i `` | Rozpocznij interaktywny rebase | Rozpocznij interaktywny rebase dla commitów na twoim branchu. To będzie zawierać wszystkie commity od HEAD do pierwszego commita scalenia lub commita głównego brancha.<br>Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita, naciśnij `e`. |
 | `` p `` | Wybierz | Oznacz wybrany commit do wybrania (podczas rebazowania). Oznacza to, że commit zostanie zachowany po kontynuacji rebazowania. |
 | `` F `` | Utwórz commit fixup | Utwórz commit 'fixup!' dla wybranego commita. Później możesz nacisnąć `S` na tym samym commicie, aby zastosować wszystkie powyższe commity fixup. |
 | `` S `` | Zastosuj commity fixup | Scal wszystkie commity 'fixup!', albo powyżej wybranego commita, albo wszystkie w bieżącej gałęzi (autosquash). |
@@ -82,11 +82,22 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |
 | `` o `` | Otwórz commit w przeglądarce |  |
 | `` n `` | Utwórz nową gałąź z commita |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
 | `` C `` | Kopiuj (cherry-pick) | Oznacz commit jako skopiowany. Następnie, w widoku lokalnych commitów, możesz nacisnąć `V`, aby wkleić (cherry-pick) skopiowane commity do sprawdzonej gałęzi. W dowolnym momencie możesz nacisnąć `<esc>`, aby anulować zaznaczenie. |
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Wyświetl pliki |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
+| `` / `` | Szukaj w bieżącym widoku po tekście |  |
+
+## Dodatkowy
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
+| `` <esc> `` | Exit back to side panel |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Drzewa pracy
@@ -106,13 +117,20 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` <left> `` | Idź do poprzedniego fragmentu |  |
 | `` <right> `` | Idź do następnego fragmentu |  |
 | `` v `` | Przełącz zaznaczenie zakresu |  |
-| `` a `` | Zaznacz fragment | Przełącz tryb zaznaczania fragmentu. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | Kopiuj zaznaczony tekst do schowka |  |
 | `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
 | `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
 | `` <space> `` | Przełącz linie w łatce |  |
 | `` <esc> `` | Wyjdź z budowniczego niestandardowej łatki |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
+
+## Input prompt
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | Potwierdź |  |
+| `` <esc> `` | Zamknij/Anuluj |  |
 
 ## Lokalne gałęzie
 
@@ -122,10 +140,12 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` i `` | Pokaż opcje git-flow |  |
 | `` <space> `` | Przełącz | Przełącz wybrany element. |
 | `` n `` | Nowa gałąź |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` o `` | Utwórz żądanie ściągnięcia |  |
 | `` O `` | Zobacz opcje tworzenia pull requesta |  |
 | `` <c-y> `` | Kopiuj adres URL żądania ściągnięcia do schowka |  |
 | `` c `` | Przełącz według nazwy | Przełącz według nazwy. W polu wprowadzania możesz wpisać '-' aby przełączyć się na ostatnią gałąź. |
+| `` - `` | Checkout previous branch |  |
 | `` F `` | Wymuś przełączenie | Wymuś przełączenie wybranej gałęzi. To spowoduje odrzucenie wszystkich lokalnych zmian w drzewie roboczym przed przełączeniem na wybraną gałąź. |
 | `` d `` | Usuń | Wyświetl opcje usuwania lokalnej/odległej gałęzi. |
 | `` r `` | Przebazuj | Przebazuj przełączoną gałąź na wybraną gałąź. |
@@ -137,6 +157,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` R `` | Zmień nazwę gałęzi |  |
 | `` u `` | Pokaż opcje upstream | Pokaż opcje dotyczące upstream gałęzi, np. ustawianie/usuwanie upstream i resetowanie do upstream. |
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Pokaż commity |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
@@ -146,7 +167,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <enter> `` | Wykonaj |  |
-| `` <esc> `` | Zamknij |  |
+| `` <esc> `` | Zamknij/Anuluj |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
 
 ## Panel główny (normalny)
@@ -155,6 +176,9 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 |-----|--------|-------------|
 | `` mouse wheel down (fn+up) `` | Przewiń w dół |  |
 | `` mouse wheel up (fn+down) `` | Przewiń w górę |  |
+| `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
+| `` <esc> `` | Exit back to side panel |  |
+| `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Panel główny (scalanie)
 
@@ -179,7 +203,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` <left> `` | Idź do poprzedniego fragmentu |  |
 | `` <right> `` | Idź do następnego fragmentu |  |
 | `` v `` | Przełącz zaznaczenie zakresu |  |
-| `` a `` | Zaznacz fragment | Przełącz tryb zaznaczania fragmentu. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | Kopiuj zaznaczony tekst do schowka |  |
 | `` <space> `` | Zatwierdź | Przełącz zaznaczenie zatwierdzone/niezatwierdzone. |
 | `` d `` | Odrzuć | Gdy zaznaczona jest niezatwierdzona zmiana, odrzuć ją używając `git reset`. Gdy zaznaczona jest zatwierdzona zmiana, cofnij zatwierdzenie. |
@@ -200,6 +224,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 |-----|--------|-------------|
 | `` <enter> `` | Potwierdź |  |
 | `` <esc> `` | Zamknij/Anuluj |  |
+| `` <c-o> `` | Kopiuj do schowka |  |
 
 ## Pliki
 
@@ -225,10 +250,13 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` d `` | Odrzuć | Wyświetl opcje odrzucania zmian w wybranym pliku. |
 | `` g `` | Pokaż opcje resetowania do upstream |  |
 | `` D `` | Reset | Wyświetl opcje resetu dla drzewa roboczego (np. zniszczenie drzewa roboczego). |
-| `` ` `` | Przełącz widok drzewa plików | Przełącz widok plików między płaskim a drzewem. Płaski układ pokazuje wszystkie ścieżki plików na jednej liście, układ drzewa grupuje pliki według katalogów. |
+| `` ` `` | Przełącz widok drzewa plików | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
 | `` M `` | Otwórz zewnętrzne narzędzie scalania | Uruchom `git mergetool`. |
 | `` f `` | Pobierz | Pobierz zmiany ze zdalnego serwera. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Pliki commita
@@ -236,6 +264,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Kopiuj ścieżkę do schowka |  |
+| `` y `` | Kopiuj do schowka |  |
 | `` c `` | Przełącz | Przełącz plik. Zastępuje plik w twoim drzewie roboczym wersją z wybranego commita. |
 | `` d `` | Usuń | Odrzuć zmiany w tym pliku z tego commita. Uruchamia interaktywny rebase w tle, więc możesz otrzymać konflikt scalania, jeśli późniejszy commit również zmienia ten plik. |
 | `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
@@ -244,7 +273,10 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` <space> `` | Przełącz plik włączony w łatkę | Przełącz, czy plik jest włączony w niestandardową łatkę. Zobacz https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | Przełącz wszystkie pliki | Dodaj/usuń wszystkie pliki commita do niestandardowej łatki. Zobacz https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` <enter> `` | Wejdź do pliku / Przełącz zwiń katalog | Jeśli plik jest wybrany, wejdź do pliku, aby móc dodawać/usuwać poszczególne linie do niestandardowej łatki. Jeśli wybrany jest katalog, przełącz katalog. |
-| `` ` `` | Przełącz widok drzewa plików | Przełącz widok plików między płaskim a drzewem. Płaski układ pokazuje wszystkie ścieżki plików na jednej liście, układ drzewa grupuje pliki według katalogów. |
+| `` ` `` | Przełącz widok drzewa plików | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Podsumowanie commita
@@ -263,10 +295,13 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |
 | `` o `` | Otwórz commit w przeglądarce |  |
 | `` n `` | Utwórz nową gałąź z commita |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
 | `` C `` | Kopiuj (cherry-pick) | Oznacz commit jako skopiowany. Następnie, w widoku lokalnych commitów, możesz nacisnąć `V`, aby wkleić (cherry-pick) skopiowane commity do sprawdzonej gałęzi. W dowolnym momencie możesz nacisnąć `<esc>`, aby anulować zaznaczenie. |
 | `` <c-r> `` | Resetuj wybrane (cherry-picked) commity |  |
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Pokaż commity |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
@@ -280,6 +315,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` d `` | Usuń | Usuń wpis schowka z listy schowka. |
 | `` n `` | Nowa gałąź | Utwórz nową gałąź z wybranego wpisu schowka. Działa poprzez przełączenie git na commit, na którym wpis schowka został utworzony, tworzenie nowej gałęzi z tego commita, a następnie zastosowanie wpisu schowka do nowej gałęzi jako dodatkowego commita. |
 | `` r `` | Zmień nazwę schowka |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Wyświetl pliki |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
@@ -292,7 +328,8 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` e `` | Edytuj plik konfiguracyjny | Otwórz plik w zewnętrznym edytorze. |
 | `` u `` | Sprawdź aktualizacje |  |
 | `` <enter> `` | Przełącz na ostatnie repozytorium |  |
-| `` a `` | Pokaż wszystkie gałęzie w logach |  |
+| `` a `` | Show/cycle all branch logs |  |
+| `` 0 `` | Focus main view |  |
 
 ## Sub-commity
 
@@ -303,10 +340,13 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |
 | `` o `` | Otwórz commit w przeglądarce |  |
 | `` n `` | Utwórz nową gałąź z commita |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
 | `` C `` | Kopiuj (cherry-pick) | Oznacz commit jako skopiowany. Następnie, w widoku lokalnych commitów, możesz nacisnąć `V`, aby wkleić (cherry-pick) skopiowane commity do sprawdzonej gałęzi. W dowolnym momencie możesz nacisnąć `<esc>`, aby anulować zaznaczenie. |
 | `` <c-r> `` | Resetuj wybrane (cherry-picked) commity |  |
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Wyświetl pliki |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
@@ -329,12 +369,14 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 
 | Key | Action | Info |
 |-----|--------|-------------|
+| `` <c-o> `` | Copy tag to clipboard |  |
 | `` <space> `` | Przełącz | Przełącz wybrany tag jako odłączoną głowę (detached HEAD). |
 | `` n `` | Nowy tag | Utwórz nowy tag z bieżącego commita. Zostaniesz poproszony o wprowadzenie nazwy tagu i opcjonalnego opisu. |
 | `` d `` | Usuń | Wyświetl opcje usuwania lokalnego/odległego tagu. |
 | `` P `` | Wyślij tag | Wyślij wybrany tag do zdalnego. Zostaniesz poproszony o wybranie zdalnego. |
 | `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Pokaż commity |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
@@ -364,6 +406,7 @@ Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita,
 | `` s `` | Kolejność sortowania |  |
 | `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | Pokaż commity |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |

@@ -4,21 +4,22 @@ import (
 	"bufio"
 	"bytes"
 	"io"
+	"os/exec"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sasha-s/go-deadlock"
 	"github.com/sirupsen/logrus"
 )
 
 type ICmdObjRunner interface {
-	Run(cmdObj ICmdObj) error
-	RunWithOutput(cmdObj ICmdObj) (string, error)
-	RunWithOutputs(cmdObj ICmdObj) (string, string, error)
-	RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error
+	Run(cmdObj *CmdObj) error
+	RunWithOutput(cmdObj *CmdObj) (string, error)
+	RunWithOutputs(cmdObj *CmdObj) (string, string, error)
+	RunAndProcessLines(cmdObj *CmdObj, onLine func(line string) (bool, error)) error
 }
 
 type cmdObjRunner struct {
@@ -28,7 +29,7 @@ type cmdObjRunner struct {
 
 var _ ICmdObjRunner = &cmdObjRunner{}
 
-func (self *cmdObjRunner) Run(cmdObj ICmdObj) error {
+func (self *cmdObjRunner) Run(cmdObj *CmdObj) error {
 	if cmdObj.Mutex() != nil {
 		cmdObj.Mutex().Lock()
 		defer cmdObj.Mutex().Unlock()
@@ -46,7 +47,7 @@ func (self *cmdObjRunner) Run(cmdObj ICmdObj) error {
 	return err
 }
 
-func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
+func (self *cmdObjRunner) RunWithOutput(cmdObj *CmdObj) (string, error) {
 	if cmdObj.Mutex() != nil {
 		cmdObj.Mutex().Lock()
 		defer cmdObj.Mutex().Unlock()
@@ -71,7 +72,7 @@ func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 	return self.RunWithOutputAux(cmdObj)
 }
 
-func (self *cmdObjRunner) RunWithOutputs(cmdObj ICmdObj) (string, string, error) {
+func (self *cmdObjRunner) RunWithOutputs(cmdObj *CmdObj) (string, string, error) {
 	if cmdObj.Mutex() != nil {
 		cmdObj.Mutex().Lock()
 		defer cmdObj.Mutex().Unlock()
@@ -96,7 +97,7 @@ func (self *cmdObjRunner) RunWithOutputs(cmdObj ICmdObj) (string, string, error)
 	return self.RunWithOutputsAux(cmdObj)
 }
 
-func (self *cmdObjRunner) RunWithOutputAux(cmdObj ICmdObj) (string, error) {
+func (self *cmdObjRunner) RunWithOutputAux(cmdObj *CmdObj) (string, error) {
 	self.log.WithField("command", cmdObj.ToString()).Debug("RunCommand")
 
 	if cmdObj.ShouldLog() {
@@ -114,7 +115,7 @@ func (self *cmdObjRunner) RunWithOutputAux(cmdObj ICmdObj) (string, error) {
 	return output, err
 }
 
-func (self *cmdObjRunner) RunWithOutputsAux(cmdObj ICmdObj) (string, string, error) {
+func (self *cmdObjRunner) RunWithOutputsAux(cmdObj *CmdObj) (string, string, error) {
 	self.log.WithField("command", cmdObj.ToString()).Debug("RunCommand")
 
 	if cmdObj.ShouldLog() {
@@ -139,7 +140,7 @@ func (self *cmdObjRunner) RunWithOutputsAux(cmdObj ICmdObj) (string, string, err
 	return stdout, stderr, err
 }
 
-func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
+func (self *cmdObjRunner) RunAndProcessLines(cmdObj *CmdObj, onLine func(line string) (bool, error)) error {
 	if cmdObj.Mutex() != nil {
 		cmdObj.Mutex().Lock()
 		defer cmdObj.Mutex().Unlock()
@@ -170,16 +171,17 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line st
 		line := scanner.Text()
 		stop, err := onLine(line)
 		if err != nil {
+			stdoutPipe.Close()
 			return err
 		}
 		if stop {
-			_ = Kill(cmd)
+			stdoutPipe.Close() // close the pipe so that the called process terminates
 			break
 		}
 	}
 
 	if scanner.Err() != nil {
-		_ = Kill(cmd)
+		stdoutPipe.Close()
 		return scanner.Err()
 	}
 
@@ -190,7 +192,7 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line st
 	return nil
 }
 
-func (self *cmdObjRunner) logCmdObj(cmdObj ICmdObj) {
+func (self *cmdObjRunner) logCmdObj(cmdObj *CmdObj) {
 	self.guiIO.logCommandFn(cmdObj.ToString(), true)
 }
 
@@ -213,7 +215,7 @@ type cmdHandler struct {
 	close      func() error
 }
 
-func (self *cmdObjRunner) runAndStream(cmdObj ICmdObj) error {
+func (self *cmdObjRunner) runAndStream(cmdObj *CmdObj) error {
 	return self.runAndStreamAux(cmdObj, func(handler *cmdHandler, cmdWriter io.Writer) {
 		go func() {
 			_, _ = io.Copy(cmdWriter, handler.stdoutPipe)
@@ -222,7 +224,7 @@ func (self *cmdObjRunner) runAndStream(cmdObj ICmdObj) error {
 }
 
 func (self *cmdObjRunner) runAndStreamAux(
-	cmdObj ICmdObj,
+	cmdObj *CmdObj,
 	onRun func(*cmdHandler, io.Writer),
 ) error {
 	cmdWriter := self.guiIO.newCmdWriterFn()
@@ -236,7 +238,13 @@ func (self *cmdObjRunner) runAndStreamAux(
 	var stderr bytes.Buffer
 	cmd.Stderr = io.MultiWriter(cmdWriter, &stderr)
 
-	handler, err := self.getCmdHandler(cmd)
+	var handler *cmdHandler
+	var err error
+	if cmdObj.ShouldUsePty() {
+		handler, err = self.getCmdHandlerPty(cmd)
+	} else {
+		handler, err = self.getCmdHandlerNonPty(cmd)
+	}
 	if err != nil {
 		return err
 	}
@@ -287,17 +295,13 @@ const (
 	Token
 )
 
-// Whenever we're asked for a password we just enter a newline, which will
-// eventually cause the command to fail.
+// Whenever we're asked for a password we return a nil channel to tell the
+// caller to kill the process.
 var failPromptFn = func(CredentialType) <-chan string {
-	ch := make(chan string)
-	go func() {
-		ch <- "\n"
-	}()
-	return ch
+	return nil
 }
 
-func (self *cmdObjRunner) runWithCredentialHandling(cmdObj ICmdObj) error {
+func (self *cmdObjRunner) runWithCredentialHandling(cmdObj *CmdObj) error {
 	promptFn, err := self.getCredentialPromptFn(cmdObj)
 	if err != nil {
 		return err
@@ -306,7 +310,7 @@ func (self *cmdObjRunner) runWithCredentialHandling(cmdObj ICmdObj) error {
 	return self.runAndDetectCredentialRequest(cmdObj, promptFn)
 }
 
-func (self *cmdObjRunner) getCredentialPromptFn(cmdObj ICmdObj) (func(CredentialType) <-chan string, error) {
+func (self *cmdObjRunner) getCredentialPromptFn(cmdObj *CmdObj) (func(CredentialType) <-chan string, error) {
 	switch cmdObj.GetCredentialStrategy() {
 	case PROMPT:
 		return self.guiIO.promptForCredentialFn, nil
@@ -322,7 +326,7 @@ func (self *cmdObjRunner) getCredentialPromptFn(cmdObj ICmdObj) (func(Credential
 // promptUserForCredential is a function that gets executed when this function detect you need to fill in a password or passphrase
 // The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
 func (self *cmdObjRunner) runAndDetectCredentialRequest(
-	cmdObj ICmdObj,
+	cmdObj *CmdObj,
 	promptUserForCredential func(CredentialType) <-chan string,
 ) error {
 	// setting the output to english so we can parse it for a username/password request
@@ -332,7 +336,7 @@ func (self *cmdObjRunner) runAndDetectCredentialRequest(
 		tr := io.TeeReader(handler.stdoutPipe, cmdWriter)
 
 		go utils.Safe(func() {
-			self.processOutput(tr, handler.stdinPipe, promptUserForCredential, cmdObj.GetTask())
+			self.processOutput(tr, handler.stdinPipe, promptUserForCredential, handler.close, cmdObj)
 		})
 	})
 }
@@ -341,9 +345,11 @@ func (self *cmdObjRunner) processOutput(
 	reader io.Reader,
 	writer io.Writer,
 	promptUserForCredential func(CredentialType) <-chan string,
-	task gocui.Task,
+	closeFunc func() error,
+	cmdObj *CmdObj,
 ) {
 	checkForCredentialRequest := self.getCheckForCredentialRequestFunc()
+	task := cmdObj.GetTask()
 
 	scanner := bufio.NewScanner(reader)
 	scanner.Split(bufio.ScanBytes)
@@ -352,6 +358,17 @@ func (self *cmdObjRunner) processOutput(
 		askFor, ok := checkForCredentialRequest(newBytes)
 		if ok {
 			responseChan := promptUserForCredential(askFor)
+			if responseChan == nil {
+				// Returning a nil channel means we should terminate the process.
+				// We achieve this by closing the pty that it's running in. Note that this won't
+				// work for the case where we're not running in a pty (i.e. on Windows), but
+				// in that case we'll never be prompted for credentials, so it's not a concern.
+				if err := closeFunc(); err != nil {
+					self.log.Error(err)
+				}
+				break
+			}
+
 			if task != nil {
 				task.Pause()
 			}
@@ -377,6 +394,7 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (Crede
 		`Username\s*for\s*'.+':`:                 Username,
 		`Enter\s*passphrase\s*for\s*key\s*'.+':`: Passphrase,
 		`Enter\s*PIN\s*for\s*.+\s*key\s*.+:`:     PIN,
+		`Enter\s*PIN\s*for\s*'.+':`:              PIN,
 		`.*2FA Token.*`:                          Token,
 	}
 
@@ -409,4 +427,39 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (Crede
 		}
 		return 0, false
 	}
+}
+
+type Buffer struct {
+	b bytes.Buffer
+	m deadlock.Mutex
+}
+
+func (b *Buffer) Read(p []byte) (n int, err error) {
+	b.m.Lock()
+	defer b.m.Unlock()
+	return b.b.Read(p)
+}
+
+func (b *Buffer) Write(p []byte) (n int, err error) {
+	b.m.Lock()
+	defer b.m.Unlock()
+	return b.b.Write(p)
+}
+
+func (self *cmdObjRunner) getCmdHandlerNonPty(cmd *exec.Cmd) (*cmdHandler, error) {
+	stdoutReader, stdoutWriter := io.Pipe()
+	cmd.Stdout = stdoutWriter
+
+	buf := &Buffer{}
+	cmd.Stdin = buf
+
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+
+	return &cmdHandler{
+		stdoutPipe: stdoutReader,
+		stdinPipe:  buf,
+		close:      func() error { return nil },
+	}, nil
 }

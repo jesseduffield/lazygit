@@ -42,20 +42,21 @@ func (self *JumpToSideWindowController) GetKeybindings(opts types.KeybindingsOpt
 			// by default the keys are 1, 2, 3, etc
 			Key:      opts.GetKey(opts.Config.Universal.JumpToBlock[index]),
 			Modifier: gocui.ModNone,
-			Handler:  self.goToSideWindow(window),
+			Handler:  opts.Guards.NoPopupPanel(self.goToSideWindow(window)),
 		}
 	})
 }
 
 func (self *JumpToSideWindowController) goToSideWindow(window string) func() error {
 	return func() error {
-		if self.c.Helpers().Window.CurrentWindow() == window {
+		sideWindowAlreadyActive := self.c.Helpers().Window.CurrentWindow() == window
+		if sideWindowAlreadyActive && self.c.UserConfig().Gui.SwitchTabsWithPanelJumpKeys {
 			return self.nextTabFunc()
 		}
 
 		context := self.c.Helpers().Window.GetContextForWindow(window)
 
-		self.c.Context().Push(context)
+		self.c.Context().Push(context, types.OnFocusOpts{})
 		return nil
 	}
 }

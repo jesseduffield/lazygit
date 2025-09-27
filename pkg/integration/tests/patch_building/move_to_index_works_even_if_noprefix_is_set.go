@@ -33,7 +33,7 @@ var MoveToIndexWorksEvenIfNoprefixIsSet = NewIntegrationTest(NewIntegrationTestA
 			).
 			PressPrimaryAction()
 
-		t.Views().PatchBuildingSecondary().Content(Contains("+file1 content"))
+		t.Views().Secondary().Content(Contains("+file1 content"))
 
 		t.Common().SelectPatchOption(Contains("Move patch out into index"))
 

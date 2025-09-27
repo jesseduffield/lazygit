@@ -18,6 +18,11 @@ fi
 
 download_dir="$1"
 
+# The Portuguese translation is named pt-PT, but we want to use pt instead (it
+# is used both for Brasilian and European Portuguese). I couldn't figure out how
+# to change this in Crowdin, so we'll do it here.
+[ -d "$download_dir/pt-PT" ] && mv "$download_dir/pt-PT" "$download_dir/pt"
+
 for d in "$download_dir"/*
 do
     # We need to remove empty strings from the JSON files; those are the ones

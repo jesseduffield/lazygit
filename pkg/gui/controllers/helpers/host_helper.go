@@ -6,11 +6,6 @@ import (
 
 // this helper just wraps our hosting_service package
 
-type IHostHelper interface {
-	GetPullRequestURL(from string, to string) (string, error)
-	GetCommitURL(commitHash string) (string, error)
-}
-
 type HostHelper struct {
 	c *HelperCommon
 }

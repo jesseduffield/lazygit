@@ -12,7 +12,7 @@ var (
 	TAG_ICON                     = "\uf02b"     // 
 	COMMIT_ICON                  = "\U000f0718" // 󰜘
 	MERGE_COMMIT_ICON            = "\U000f062d" // 󰘭
-	DEFAULT_REMOTE_ICON          = "\uf02a2"    // 󰊢
+	DEFAULT_REMOTE_ICON          = "\U000f02a2" // 󰊢
 	STASH_ICON                   = "\uf01c"     // 
 	LINKED_WORKTREE_ICON         = "\U000f0339" // 󰌹
 	MISSING_LINKED_WORKTREE_ICON = "\U000f033a" // 󰌺
@@ -62,7 +62,7 @@ func IconForTag(tag *models.Tag) string {
 }
 
 func IconForCommit(commit *models.Commit) string {
-	if len(commit.Parents) > 1 {
+	if commit.IsMerge() {
 		return MERGE_COMMIT_ICON
 	}
 	return COMMIT_ICON

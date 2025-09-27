@@ -9,7 +9,7 @@ func TestOnceWriter(t *testing.T) {
 	innerWriter := bytes.NewBuffer(nil)
 	counter := 0
 	onceWriter := NewOnceWriter(innerWriter, func() {
-		counter += 1
+		counter++
 	})
 	_, _ = onceWriter.Write([]byte("hello"))
 	_, _ = onceWriter.Write([]byte("hello"))

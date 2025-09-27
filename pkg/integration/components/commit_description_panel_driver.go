@@ -27,13 +27,13 @@ func (self *CommitDescriptionPanelDriver) SwitchToSummary() *CommitMessagePanelD
 }
 
 func (self *CommitDescriptionPanelDriver) AddNewline() *CommitDescriptionPanelDriver {
-	self.t.pressFast(self.t.keys.Universal.Confirm)
+	self.t.pressFast("<enter>")
 	return self
 }
 
 func (self *CommitDescriptionPanelDriver) GoToBeginning() *CommitDescriptionPanelDriver {
 	numLines := len(self.getViewDriver().getView().BufferLines())
-	for i := 0; i < numLines; i++ {
+	for range numLines {
 		self.t.pressFast("<up>")
 	}
 
@@ -49,6 +49,11 @@ func (self *CommitDescriptionPanelDriver) AddCoAuthor(author string) *CommitDesc
 	self.t.ExpectPopup().Prompt().Title(Contains("Add co-author")).
 		Type(author).
 		Confirm()
+	return self
+}
+
+func (self *CommitDescriptionPanelDriver) Clear() *CommitDescriptionPanelDriver {
+	self.getViewDriver().Clear()
 	return self
 }
 

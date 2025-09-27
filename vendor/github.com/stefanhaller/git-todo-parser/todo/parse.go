@@ -110,7 +110,7 @@ func parseLine(line string, commentChar byte) (Todo, error) {
 		}
 		todo.Label = fields[0]
 		fields = fields[1:]
-		if fields[0] == "#" {
+		if len(fields) > 0 && fields[0] == "#" {
 			fields = fields[1:]
 			todo.Msg = strings.Join(fields, " ")
 		}
@@ -150,9 +150,6 @@ func parseLine(line string, commentChar byte) (Todo, error) {
 }
 
 func isCommand(i TodoCommand, s string) bool {
-	if i < 0 || i > Comment {
-		return false
-	}
 	return len(s) > 0 &&
 		(todoCommandInfo[i].cmd == s || todoCommandInfo[i].nickname == s)
 }

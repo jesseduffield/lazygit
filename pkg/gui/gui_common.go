@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/tasks"
 )
 
 // hacking this by including the gui struct for now until we split more things out
@@ -25,20 +26,28 @@ func (self *guiCommon) LogCommand(cmdStr string, isCommandLine bool) {
 	self.gui.LogCommand(cmdStr, isCommandLine)
 }
 
-func (self *guiCommon) Refresh(opts types.RefreshOptions) error {
-	return self.gui.helpers.Refresh.Refresh(opts)
+func (self *guiCommon) Refresh(opts types.RefreshOptions) {
+	self.gui.helpers.Refresh.Refresh(opts)
 }
 
 func (self *guiCommon) PostRefreshUpdate(context types.Context) {
 	self.gui.postRefreshUpdate(context)
 }
 
-func (self *guiCommon) RunSubprocessAndRefresh(cmdObj oscommands.ICmdObj) error {
+func (self *guiCommon) RunSubprocessAndRefresh(cmdObj *oscommands.CmdObj) error {
 	return self.gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 }
 
-func (self *guiCommon) RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error) {
+func (self *guiCommon) RunSubprocess(cmdObj *oscommands.CmdObj) (bool, error) {
 	return self.gui.runSubprocessWithSuspense(cmdObj)
+}
+
+func (self *guiCommon) Suspend() error {
+	return self.gui.suspend()
+}
+
+func (self *guiCommon) Resume() error {
+	return self.gui.resume()
 }
 
 func (self *guiCommon) Context() types.IContextMgr {
@@ -99,8 +108,8 @@ func (self *guiCommon) Model() *types.Model {
 	return self.gui.State.Model
 }
 
-func (self *guiCommon) Mutexes() types.Mutexes {
-	return self.gui.Mutexes
+func (self *guiCommon) Mutexes() *types.Mutexes {
+	return &self.gui.Mutexes
 }
 
 func (self *guiCommon) GocuiGui() *gocui.Gui {
@@ -126,6 +135,10 @@ func (self *guiCommon) MainViewPairs() types.MainViewPairs {
 		PatchBuilding:  self.gui.patchBuildingMainContextPair(),
 		MergeConflicts: self.gui.mergingMainContextPair(),
 	}
+}
+
+func (self *guiCommon) GetViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager {
+	return self.gui.getViewBufferManagerForView(view)
 }
 
 func (self *guiCommon) State() types.IStateAccessor {

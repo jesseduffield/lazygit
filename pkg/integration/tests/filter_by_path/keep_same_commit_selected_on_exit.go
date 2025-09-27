@@ -15,37 +15,38 @@ var KeepSameCommitSelectedOnExit = NewIntegrationTest(NewIntegrationTestArgs{
 		commonSetup(shell)
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Commits().
-			Focus().
-			Lines(
-				Contains(`none of the two`).IsSelected(),
-				Contains(`only filterFile`),
-				Contains(`only otherFile`),
-				Contains(`both files`),
-			).Press(keys.Universal.FilteringMenu).
-			Tap(func() {
-				t.ExpectPopup().Menu().
-					Title(Equals("Filtering")).
-					Select(Contains("Enter path to filter by")).
-					Confirm()
+		filterByFilterFile(t, keys)
 
-				t.ExpectPopup().Prompt().
-					Title(Equals("Enter path:")).
-					Type("filterF").
-					SuggestionLines(Equals("filterFile")).
-					ConfirmFirstSuggestion()
-			}).
+		t.Views().Commits().
+			IsFocused().
 			Lines(
-				Contains(`only filterFile`).IsSelected(),
-				Contains(`both files`),
+				Contains(`both files`).IsSelected(),
+				Contains(`only filterFile`),
 			).
-			SelectNextItem().
+			Tap(func() {
+				t.Views().Main().
+					ContainsLines(
+						Equals("    both files"),
+						Equals("---"),
+						Equals(" filterFile | 2 +-"),
+						Equals(" 1 file changed, 1 insertion(+), 1 deletion(-)"),
+					)
+			}).
 			PressEscape().
 			Lines(
 				Contains(`none of the two`),
-				Contains(`only filterFile`),
-				Contains(`only otherFile`),
 				Contains(`both files`).IsSelected(),
+				Contains(`only otherFile`),
+				Contains(`only filterFile`),
+			)
+
+		t.Views().Main().
+			ContainsLines(
+				Equals("    both files"),
+				Equals("---"),
+				Equals(" filterFile | 2 +-"),
+				Equals(" otherFile  | 2 +-"),
+				Equals(" 2 files changed, 2 insertions(+), 2 deletions(-)"),
 			)
 	},
 })

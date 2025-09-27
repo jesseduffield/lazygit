@@ -27,13 +27,13 @@ var SortRemoteBranches = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressEnter()
 
-		// sorted alphabetically by default
+		// sorted by date by default
 		t.Views().RemoteBranches().
 			IsFocused().
 			Lines(
-				Contains("first").IsSelected(),
-				Contains("second"),
+				Contains("second").IsSelected(),
 				Contains("third"),
+				Contains("first"),
 			).
 			SelectNextItem() // to test that the selection jumps back to the first when sorting
 
@@ -41,20 +41,20 @@ var SortRemoteBranches = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Branches.SortOrder)
 
 		t.ExpectPopup().Menu().Title(Equals("Sort order")).
-			Lines(
-				Contains("a (•) Alphabetical").IsSelected(),
-				Contains("d ( ) Date"),
+			ContainsLines(
+				Contains("a ( ) Alphabetical").IsSelected(),
+				Contains("d (•) Date"),
 				Contains("      Cancel"),
 			).
-			Select(Contains("-committerdate")).
+			Select(Contains("Alphabetical")).
 			Confirm()
 
 		t.Views().RemoteBranches().
 			IsFocused().
 			Lines(
-				Contains("second").IsSelected(),
+				Contains("first").IsSelected(),
+				Contains("second"),
 				Contains("third"),
-				Contains("first"),
 			)
 	},
 })

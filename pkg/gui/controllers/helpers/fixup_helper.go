@@ -128,32 +128,22 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 	// and that's the one we want to select.
 	_, index, _ := self.findCommit(commits, hashGroups[NOT_MERGED][0])
 
-	doIt := func() error {
-		if !hasStagedChanges {
-			if err := self.c.Git().WorkingTree.StageAll(); err != nil {
-				return err
+	return self.c.ConfirmIf(warnAboutAddedLines, types.ConfirmOpts{
+		Title:  self.c.Tr.FindBaseCommitForFixup,
+		Prompt: self.c.Tr.HunksWithOnlyAddedLinesWarning,
+		HandleConfirm: func() error {
+			if !hasStagedChanges {
+				if err := self.c.Git().WorkingTree.StageAll(true); err != nil {
+					return err
+				}
+				self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
 			}
-			_ = self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
-		}
 
-		self.c.Contexts().LocalCommits.SetSelection(index)
-		self.c.Context().Push(self.c.Contexts().LocalCommits)
-		return nil
-	}
-
-	if warnAboutAddedLines {
-		self.c.Confirm(types.ConfirmOpts{
-			Title:  self.c.Tr.FindBaseCommitForFixup,
-			Prompt: self.c.Tr.HunksWithOnlyAddedLinesWarning,
-			HandleConfirm: func() error {
-				return doIt()
-			},
-		})
-
-		return nil
-	}
-
-	return doIt()
+			self.c.Contexts().LocalCommits.SetSelection(index)
+			self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
+			return nil
+		},
+	})
 }
 
 func (self *FixupHelper) getDiff() (string, bool, error) {
@@ -342,6 +332,6 @@ func (self *FixupHelper) blameAddedLines(commits []*models.Commit, addedLineHunk
 
 func (self *FixupHelper) findCommit(commits []*models.Commit, hash string) (*models.Commit, int, bool) {
 	return lo.FindIndexOf(commits, func(commit *models.Commit) bool {
-		return commit.Hash == hash
+		return commit.Hash() == hash
 	})
 }

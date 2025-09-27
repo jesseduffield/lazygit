@@ -403,10 +403,16 @@ func min(a, b int) int {
 	return b
 }
 
+const maxMatrixSize = 10000
+
 func buildSimilarityMatrix(srcs, dsts []*Change, renameScore int) (similarityMatrix, error) {
 	// Allocate for the worst-case scenario where every pair has a score
 	// that we need to consider. We might not need that many.
-	matrix := make(similarityMatrix, 0, len(srcs)*len(dsts))
+	matrixSize := len(srcs) * len(dsts)
+	if matrixSize > maxMatrixSize {
+		matrixSize = maxMatrixSize
+	}
+	matrix := make(similarityMatrix, 0, matrixSize)
 	srcSizes := make([]int64, len(srcs))
 	dstSizes := make([]int64, len(dsts))
 	dstTooLarge := make(map[int]bool)
@@ -735,10 +741,7 @@ func (i *similarityIndex) add(key int, cnt uint64) error {
 			// It's the same key, so increment the counter.
 			var err error
 			i.hashes[j], err = newKeyCountPair(key, v.count()+cnt)
-			if err != nil {
-				return err
-			}
-			return nil
+			return err
 		} else if j+1 >= len(i.hashes) {
 			j = 0
 		} else {

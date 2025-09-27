@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -11,7 +12,7 @@ var _ types.IController = &SwitchToDiffFilesController{}
 type CanSwitchToDiffFiles interface {
 	types.IListContext
 	CanRebase() bool
-	GetSelectedRef() types.Ref
+	GetSelectedRef() models.Ref
 	GetSelectedRefRangeForDiffFiles() *types.RefRange
 }
 
@@ -85,13 +86,11 @@ func (self *SwitchToDiffFilesController) enter() error {
 	commitFilesContext.ClearSearchString()
 	commitFilesContext.GetView().TitlePrefix = self.context.GetView().TitlePrefix
 
-	if err := self.c.Refresh(types.RefreshOptions{
+	self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.COMMIT_FILES},
-	}); err != nil {
-		return err
-	}
+	})
 
-	self.c.Context().Push(commitFilesContext)
+	self.c.Context().Push(commitFilesContext, types.OnFocusOpts{})
 	return nil
 }
 

@@ -112,7 +112,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@gitlab.com:peter/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://gitlab.com/peter/calculator/-/merge_requests/new?merge_request[source_branch]=feature%2Fui", url)
+				assert.Equal(t, "https://gitlab.com/peter/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fui", url)
 			},
 		},
 		{
@@ -121,7 +121,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@gitlab.com:peter/public/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://gitlab.com/peter/public/calculator/-/merge_requests/new?merge_request[source_branch]=feature%2Fui", url)
+				assert.Equal(t, "https://gitlab.com/peter/public/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fui", url)
 			},
 		},
 		{
@@ -130,7 +130,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "https://gitlab.com/peter/public/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://gitlab.com/peter/public/calculator/-/merge_requests/new?merge_request[source_branch]=feature%2Fui", url)
+				assert.Equal(t, "https://gitlab.com/peter/public/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fui", url)
 			},
 		},
 		{
@@ -140,7 +140,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@gitlab.com:peter/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://gitlab.com/peter/calculator/-/merge_requests/new?merge_request[source_branch]=feature%2Fcommit-ui&merge_request[target_branch]=epic%2Fui", url)
+				assert.Equal(t, "https://gitlab.com/peter/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fcommit-ui&merge_request%5Btarget_branch%5D=epic%2Fui", url)
 			},
 		},
 		{
@@ -150,7 +150,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@gitlab.com:peter/public/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://gitlab.com/peter/public/calculator/-/merge_requests/new?merge_request[source_branch]=feature%2Fcommit-ui&merge_request[target_branch]=epic%2Fui", url)
+				assert.Equal(t, "https://gitlab.com/peter/public/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fcommit-ui&merge_request%5Btarget_branch%5D=epic%2Fui", url)
 			},
 		},
 		{
@@ -160,7 +160,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "https://gitlab.com/peter/public/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://gitlab.com/peter/public/calculator/-/merge_requests/new?merge_request[source_branch]=feature%2Fcommit-ui&merge_request[target_branch]=epic%2Fui", url)
+				assert.Equal(t, "https://gitlab.com/peter/public/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fcommit-ui&merge_request%5Btarget_branch%5D=epic%2Fui", url)
 			},
 		},
 		{
@@ -208,6 +208,31 @@ func TestGetPullRequestURL(t *testing.T) {
 			test: func(url string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew&targetRef=dev", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Azure DevOps Server (HTTP)",
+			from:      "feature/new",
+			remoteUrl: "https://mycompany.azuredevops.com/collection/myproject/_git/myrepo",
+			configServiceDomains: map[string]string{
+				// valid configuration for a azure devops server URL
+				"mycompany.azuredevops.com": "azuredevops:mycompany.azuredevops.com",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://mycompany.azuredevops.com/collection/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Azure DevOps (legacy vs-ssh.visualstudio.com SSH) with mapping to dev.azure.com",
+			from:      "feature/new",
+			remoteUrl: "git@vs-ssh.visualstudio.com:v3/myorg/myproject/myrepo",
+			configServiceDomains: map[string]string{
+				"vs-ssh.visualstudio.com": "azuredevops:dev.azure.com",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew", url)
 			},
 		},
 		{
@@ -349,7 +374,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://my.domain.test:1111/johndoe/social_network/-/merge_requests/new?merge_request[source_branch]=feature%2Fprofile-page", url)
+				assert.Equal(t, "https://my.domain.test:1111/johndoe/social_network/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fprofile-page", url)
 			},
 		},
 		{
@@ -397,7 +422,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@gitlab.com:me/public/repo-with-issues.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://gitlab.com/me/public/repo-with-issues/-/merge_requests/new?merge_request[source_branch]=feature%2FsomeIssue%23123&merge_request[target_branch]=master", url)
+				assert.Equal(t, "https://gitlab.com/me/public/repo-with-issues/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2FsomeIssue%23123&merge_request%5Btarget_branch%5D=master", url)
 			},
 		},
 		{
@@ -407,7 +432,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@gitlab.com:me/public/repo-with-issues.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://gitlab.com/me/public/repo-with-issues/-/merge_requests/new?merge_request[source_branch]=yolo&merge_request[target_branch]=archive%2Fnever-ending-feature%23666", url)
+				assert.Equal(t, "https://gitlab.com/me/public/repo-with-issues/-/merge_requests/new?merge_request%5Bsource_branch%5D=yolo&merge_request%5Btarget_branch%5D=archive%2Fnever-ending-feature%23666", url)
 			},
 		},
 	}

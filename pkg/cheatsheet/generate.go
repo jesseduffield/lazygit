@@ -11,9 +11,12 @@
 package cheatsheet
 
 import (
+	"cmp"
 	"fmt"
 	"log"
 	"os"
+	"slices"
+	"strings"
 
 	"github.com/jesseduffield/generics/maps"
 	"github.com/jesseduffield/lazycore/pkg/utils"
@@ -23,7 +26,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/samber/lo"
-	"golang.org/x/exp/slices"
 )
 
 type bindingSection struct {
@@ -114,6 +116,7 @@ func localisedTitle(tr *i18n.TranslationSet, str string) string {
 		"commitDescription": tr.CommitDescriptionTitle,
 		"commits":           tr.CommitsTitle,
 		"confirmation":      tr.ConfirmationTitle,
+		"prompt":            tr.PromptTitle,
 		"information":       tr.InformationTitle,
 		"main":              tr.NormalTitle,
 		"patchBuilding":     tr.PatchBuildingTitle,
@@ -164,11 +167,11 @@ func getBindingSections(bindings []*types.Binding, tr *i18n.TranslationSet) []*b
 		},
 	)
 
-	slices.SortFunc(bindingGroups, func(a, b headerWithBindings) bool {
+	slices.SortFunc(bindingGroups, func(a, b headerWithBindings) int {
 		if a.header.priority != b.header.priority {
-			return a.header.priority > b.header.priority
+			return cmp.Compare(b.header.priority, a.header.priority)
 		}
-		return a.header.title < b.header.title
+		return strings.Compare(a.header.title, b.header.title)
 	})
 
 	return lo.Map(bindingGroups, func(hb headerWithBindings, _ int) *bindingSection {
@@ -219,9 +222,12 @@ func formatBinding(binding *types.Binding) string {
 		action += fmt.Sprintf(" (%s)", binding.Alternative)
 	}
 
+	// Replace newlines with <br> tags for proper markdown table formatting
+	tooltip := strings.ReplaceAll(binding.Tooltip, "\n", "<br>")
+
 	// Use backticks for keyboard keys. Two backticks are needed with an inner space
 	//  to escape a key that is itself a backtick.
-	return fmt.Sprintf("| `` %s `` | %s | %s |\n", action, description, binding.Tooltip)
+	return fmt.Sprintf("| `` %s `` | %s | %s |\n", action, description, tooltip)
 }
 
 func italicize(str string) string {

@@ -22,7 +22,7 @@ func NewRemoteBranchesController(
 ) *RemoteBranchesController {
 	return &RemoteBranchesController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.RemoteBranch](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().RemoteBranches,
 			c.Contexts().RemoteBranches.GetSelected,
@@ -66,8 +66,8 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
-			Handler:           self.withItem(self.delete),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			Handler:           self.withItems(self.delete),
+			GetDisabledReason: self.require(self.itemRangeSelected()),
 			Description:       self.c.Tr.Delete,
 			Tooltip:           self.c.Tr.DeleteRemoteBranchTooltip,
 			DisplayOnScreen:   true,
@@ -132,8 +132,8 @@ func (self *RemoteBranchesController) context() *context.RemoteBranchesContext {
 	return self.c.Contexts().RemoteBranches
 }
 
-func (self *RemoteBranchesController) delete(selectedBranch *models.RemoteBranch) error {
-	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(selectedBranch.RemoteName, selectedBranch.Name)
+func (self *RemoteBranchesController) delete(selectedBranches []*models.RemoteBranch) error {
+	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(selectedBranches, true)
 }
 
 func (self *RemoteBranchesController) merge(selectedBranch *models.RemoteBranch) error {
@@ -145,20 +145,22 @@ func (self *RemoteBranchesController) rebase(selectedBranch *models.RemoteBranch
 }
 
 func (self *RemoteBranchesController) createSortMenu() error {
-	return self.c.Helpers().Refs.CreateSortOrderMenu([]string{"alphabetical", "date"}, func(sortOrder string) error {
-		if self.c.GetAppState().RemoteBranchSortOrder != sortOrder {
-			self.c.GetAppState().RemoteBranchSortOrder = sortOrder
-			self.c.SaveAppStateAndLogError()
-			self.c.Contexts().RemoteBranches.SetSelection(0)
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.REMOTES}})
-		}
-		return nil
-	},
-		self.c.GetAppState().RemoteBranchSortOrder)
+	return self.c.Helpers().Refs.CreateSortOrderMenu(
+		[]string{"alphabetical", "date"},
+		self.c.Tr.SortOrderPromptRemoteBranches,
+		func(sortOrder string) error {
+			if self.c.UserConfig().Git.RemoteBranchSortOrder != sortOrder {
+				self.c.UserConfig().Git.RemoteBranchSortOrder = sortOrder
+				self.c.Contexts().RemoteBranches.SetSelection(0)
+				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.REMOTES}})
+			}
+			return nil
+		},
+		self.c.UserConfig().Git.RemoteBranchSortOrder)
 }
 
 func (self *RemoteBranchesController) createResetMenu(selectedBranch *models.RemoteBranch) error {
-	return self.c.Helpers().Refs.CreateGitResetMenu(selectedBranch.FullName())
+	return self.c.Helpers().Refs.CreateGitResetMenu(selectedBranch.FullName(), selectedBranch.FullRefName())
 }
 
 func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.RemoteBranch) error {
@@ -181,7 +183,8 @@ func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.Remot
 				return err
 			}
 
-			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+			return nil
 		},
 	})
 

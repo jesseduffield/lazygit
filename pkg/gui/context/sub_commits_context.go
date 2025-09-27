@@ -46,11 +46,11 @@ func NewSubCommitsContext(
 			return [][]string{}
 		}
 
-		selectedCommitHash := ""
+		var selectedCommitHashPtr *string
 		if c.Context().Current().GetKey() == SUB_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
 			if selectedCommit != nil {
-				selectedCommitHash = selectedCommit.Hash
+				selectedCommitHashPtr = selectedCommit.HashPtr()
 			}
 		}
 		branches := []*models.Branch{}
@@ -72,12 +72,11 @@ func NewSubCommitsContext(
 			c.UserConfig().Gui.ShortTimeFormat,
 			time.Now(),
 			c.UserConfig().Git.ParseEmoji,
-			selectedCommitHash,
+			selectedCommitHashPtr,
 			startIdx,
 			endIdx,
 			shouldShowGraph(c),
 			git_commands.NewNullBisectInfo(),
-			false,
 		)
 	}
 
@@ -142,7 +141,7 @@ func NewSubCommitsContext(
 
 type SubCommitsViewModel struct {
 	// name of the ref that the sub-commits are shown for
-	ref                     types.Ref
+	ref                     models.Ref
 	refToShowDivergenceFrom string
 	*ListViewModel[*models.Commit]
 
@@ -150,11 +149,11 @@ type SubCommitsViewModel struct {
 	showBranchHeads bool
 }
 
-func (self *SubCommitsViewModel) SetRef(ref types.Ref) {
+func (self *SubCommitsViewModel) SetRef(ref models.Ref) {
 	self.ref = ref
 }
 
-func (self *SubCommitsViewModel) GetRef() types.Ref {
+func (self *SubCommitsViewModel) GetRef() models.Ref {
 	return self.ref
 }
 
@@ -178,7 +177,7 @@ func (self *SubCommitsContext) CanRebase() bool {
 	return false
 }
 
-func (self *SubCommitsContext) GetSelectedRef() types.Ref {
+func (self *SubCommitsContext) GetSelectedRef() models.Ref {
 	commit := self.GetSelected()
 	if commit == nil {
 		return nil
@@ -217,6 +216,31 @@ func (self *SubCommitsContext) GetDiffTerminals() []string {
 	return []string{itemId}
 }
 
+func (self *SubCommitsContext) RefForAdjustingLineNumberInDiff() string {
+	commits, _, _ := self.GetSelectedItems()
+	if commits == nil {
+		return ""
+	}
+	return commits[0].Hash()
+}
+
 func (self *SubCommitsContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
-	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), searchStr)
+	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), self.ModelIndexToViewIndex, searchStr)
+}
+
+func (self *SubCommitsContext) IndexForGotoBottom() int {
+	commits := self.GetCommits()
+	selectedIdx := self.GetSelectedLineIdx()
+	if selectedIdx >= 0 && selectedIdx < len(commits)-1 {
+		if commits[selectedIdx+1].Status != models.StatusMerged {
+			_, idx, found := lo.FindIndexOf(commits, func(c *models.Commit) bool {
+				return c.Status == models.StatusMerged
+			})
+			if found {
+				return idx - 1
+			}
+		}
+	}
+
+	return self.list.Len() - 1
 }

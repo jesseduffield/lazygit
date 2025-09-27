@@ -16,11 +16,11 @@ func newChange(c merkletrie.Change) (*Change, error) {
 
 	var err error
 	if ret.From, err = newChangeEntry(c.From); err != nil {
-		return nil, fmt.Errorf("From field: %s", err)
+		return nil, fmt.Errorf("from field: %s", err)
 	}
 
 	if ret.To, err = newChangeEntry(c.To); err != nil {
-		return nil, fmt.Errorf("To field: %s", err)
+		return nil, fmt.Errorf("to field: %s", err)
 	}
 
 	return ret, nil

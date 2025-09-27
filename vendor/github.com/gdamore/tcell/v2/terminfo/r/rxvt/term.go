@@ -110,6 +110,7 @@ func init() {
 		KeyCtrlHome:  "\x1b[7^",
 		KeyCtrlEnd:   "\x1b[8^",
 		AutoMargin:   true,
+		XTermLike:    true,
 	})
 
 	// rxvt 2.7.9 with xterm 256-colors
@@ -215,6 +216,7 @@ func init() {
 		KeyCtrlHome:  "\x1b[7^",
 		KeyCtrlEnd:   "\x1b[8^",
 		AutoMargin:   true,
+		XTermLike:    true,
 	})
 
 	// rxvt 2.7.9 with xterm 88-colors
@@ -320,6 +322,7 @@ func init() {
 		KeyCtrlHome:  "\x1b[7^",
 		KeyCtrlEnd:   "\x1b[8^",
 		AutoMargin:   true,
+		XTermLike:    true,
 	})
 
 	// rxvt-unicode terminal (X Window System)

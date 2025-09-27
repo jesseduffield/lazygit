@@ -11,7 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	stdioutil "io/ioutil"
+	"regexp"
 	"strings"
 	"time"
 
@@ -29,6 +29,10 @@ const (
 
 var (
 	ErrTimeoutExceeded = errors.New("timeout exceeded")
+	// stdErrSkipPattern is used for skipping lines from a command's stderr output.
+	// Any line matching this pattern will be skipped from further
+	// processing and not be returned to calling code.
+	stdErrSkipPattern = regexp.MustCompile("^remote:( =*){0,1}$")
 )
 
 // Commander creates Command instances. This is the main entry point for
@@ -150,26 +154,37 @@ func (c *client) listenFirstError(r io.Reader) chan string {
 	errLine := make(chan string, 1)
 	go func() {
 		s := bufio.NewScanner(r)
-		if s.Scan() {
-			errLine <- s.Text()
-		} else {
-			close(errLine)
+		for {
+			if s.Scan() {
+				line := s.Text()
+				if !stdErrSkipPattern.MatchString(line) {
+					errLine <- line
+					break
+				}
+			} else {
+				close(errLine)
+				break
+			}
 		}
 
-		_, _ = io.Copy(stdioutil.Discard, r)
+		_, _ = io.Copy(io.Discard, r)
 	}()
 
 	return errLine
 }
 
-// AdvertisedReferences retrieves the advertised references from the server.
 func (s *session) AdvertisedReferences() (*packp.AdvRefs, error) {
+	return s.AdvertisedReferencesContext(context.TODO())
+}
+
+// AdvertisedReferences retrieves the advertised references from the server.
+func (s *session) AdvertisedReferencesContext(ctx context.Context) (*packp.AdvRefs, error) {
 	if s.advRefs != nil {
 		return s.advRefs, nil
 	}
 
 	ar := packp.NewAdvRefs()
-	if err := ar.Decode(s.Stdout); err != nil {
+	if err := ar.Decode(s.StdoutContext(ctx)); err != nil {
 		if err := s.handleAdvRefDecodeError(err); err != nil {
 			return nil, err
 		}
@@ -188,9 +203,22 @@ func (s *session) AdvertisedReferences() (*packp.AdvRefs, error) {
 }
 
 func (s *session) handleAdvRefDecodeError(err error) error {
+	var errLine *pktline.ErrorLine
+	if errors.As(err, &errLine) {
+		if isRepoNotFoundError(errLine.Text) {
+			return transport.ErrRepositoryNotFound
+		}
+
+		return errLine
+	}
+
 	// If repository is not found, we get empty stdout and server writes an
 	// error to stderr.
-	if err == packp.ErrEmptyInput {
+	if errors.Is(err, packp.ErrEmptyInput) {
+		// TODO:(v6): handle this error in a better way.
+		// Instead of checking the stderr output for a specific error message,
+		// define an ExitError and embed the stderr output and exit (if one
+		// exists) in the error struct. Just like exec.ExitError.
 		s.finished = true
 		if err := s.checkNotFoundError(); err != nil {
 			return err
@@ -230,6 +258,12 @@ func (s *session) handleAdvRefDecodeError(err error) error {
 // returned with the packfile content. The reader must be closed after reading.
 func (s *session) UploadPack(ctx context.Context, req *packp.UploadPackRequest) (*packp.UploadPackResponse, error) {
 	if req.IsEmpty() {
+		// XXX: IsEmpty means haves are a subset of wants, in that case we have
+		// everything we asked for. Close the connection and return nil.
+		if err := s.finish(); err != nil {
+			return nil, err
+		}
+		// TODO:(v6) return nil here
 		return nil, transport.ErrEmptyUploadPackRequest
 	}
 
@@ -237,7 +271,7 @@ func (s *session) UploadPack(ctx context.Context, req *packp.UploadPackRequest) 
 		return nil, err
 	}
 
-	if _, err := s.AdvertisedReferences(); err != nil {
+	if _, err := s.AdvertisedReferencesContext(ctx); err != nil {
 		return nil, err
 	}
 
@@ -370,7 +404,7 @@ func (s *session) checkNotFoundError() error {
 	case <-t.C:
 		return ErrTimeoutExceeded
 	case line, ok := <-s.firstErrLine:
-		if !ok {
+		if !ok || len(line) == 0 {
 			return nil
 		}
 
@@ -378,59 +412,43 @@ func (s *session) checkNotFoundError() error {
 			return transport.ErrRepositoryNotFound
 		}
 
+		// TODO:(v6): return server error just as it is without a prefix
 		return fmt.Errorf("unknown error: %s", line)
 	}
 }
 
-var (
-	githubRepoNotFoundErr      = "ERROR: Repository not found."
-	bitbucketRepoNotFoundErr   = "conq: repository does not exist."
+const (
+	githubRepoNotFoundErr      = "Repository not found."
+	bitbucketRepoNotFoundErr   = "repository does not exist."
 	localRepoNotFoundErr       = "does not appear to be a git repository"
-	gitProtocolNotFoundErr     = "ERR \n  Repository not found."
-	gitProtocolNoSuchErr       = "ERR no such repository"
-	gitProtocolAccessDeniedErr = "ERR access denied"
-	gogsAccessDeniedErr        = "Gogs: Repository does not exist or you do not have access"
+	gitProtocolNotFoundErr     = "Repository not found."
+	gitProtocolNoSuchErr       = "no such repository"
+	gitProtocolAccessDeniedErr = "access denied"
+	gogsAccessDeniedErr        = "Repository does not exist or you do not have access"
+	gitlabRepoNotFoundErr      = "The project you were looking for could not be found"
 )
 
 func isRepoNotFoundError(s string) bool {
-	if strings.HasPrefix(s, githubRepoNotFoundErr) {
-		return true
-	}
-
-	if strings.HasPrefix(s, bitbucketRepoNotFoundErr) {
-		return true
-	}
-
-	if strings.HasSuffix(s, localRepoNotFoundErr) {
-		return true
-	}
-
-	if strings.HasPrefix(s, gitProtocolNotFoundErr) {
-		return true
-	}
-
-	if strings.HasPrefix(s, gitProtocolNoSuchErr) {
-		return true
-	}
-
-	if strings.HasPrefix(s, gitProtocolAccessDeniedErr) {
-		return true
-	}
-
-	if strings.HasPrefix(s, gogsAccessDeniedErr) {
-		return true
+	for _, err := range []string{
+		githubRepoNotFoundErr,
+		bitbucketRepoNotFoundErr,
+		localRepoNotFoundErr,
+		gitProtocolNotFoundErr,
+		gitProtocolNoSuchErr,
+		gitProtocolAccessDeniedErr,
+		gogsAccessDeniedErr,
+		gitlabRepoNotFoundErr,
+	} {
+		if strings.Contains(s, err) {
+			return true
+		}
 	}
 
 	return false
 }
 
-var (
-	nak = []byte("NAK")
-	eol = []byte("\n")
-)
-
 // uploadPack implements the git-upload-pack protocol.
-func uploadPack(w io.WriteCloser, r io.Reader, req *packp.UploadPackRequest) error {
+func uploadPack(w io.WriteCloser, _ io.Reader, req *packp.UploadPackRequest) error {
 	// TODO support multi_ack mode
 	// TODO support multi_ack_detailed mode
 	// TODO support acks for common objects

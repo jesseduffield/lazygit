@@ -7,6 +7,7 @@ import (
 
 type SimpleContext struct {
 	*BaseContext
+	handleRenderFunc func()
 }
 
 func NewSimpleContext(baseContext *BaseContext) *SimpleContext {
@@ -36,8 +37,8 @@ func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) {
 		self.GetViewTrait().SetHighlight(true)
 	}
 
-	if self.onFocusFn != nil {
-		self.onFocusFn(opts)
+	for _, fn := range self.onFocusFns {
+		fn(opts)
 	}
 
 	if self.onRenderToMainFn != nil {
@@ -48,12 +49,22 @@ func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) {
 func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) {
 	self.GetViewTrait().SetHighlight(false)
 	self.view.SetOriginX(0)
-	if self.onFocusLostFn != nil {
-		self.onFocusLostFn(opts)
+	for _, fn := range self.onFocusLostFns {
+		fn(opts)
 	}
 }
 
+func (self *SimpleContext) FocusLine() {
+}
+
 func (self *SimpleContext) HandleRender() {
+	if self.handleRenderFunc != nil {
+		self.handleRenderFunc()
+	}
+}
+
+func (self *SimpleContext) SetHandleRenderFunc(f func()) {
+	self.handleRenderFunc = f
 }
 
 func (self *SimpleContext) HandleRenderToMain() {

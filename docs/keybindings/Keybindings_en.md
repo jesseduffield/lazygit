@@ -14,25 +14,26 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` @ `` | View command log options | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | Push | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | Pull | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
-| `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename. |
-| `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename. |
-| `` } `` | Increase diff context size | Increase the amount of the context shown around changes in the diff view. |
-| `` { `` | Decrease diff context size | Decrease the amount of the context shown around changes in the diff view. |
+| `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
+| `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
+| `` } `` | Increase diff context size | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
+| `` { `` | Decrease diff context size | Decrease the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
 | `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
 | `` <c-p> `` | View custom patch options |  |
 | `` m `` | View merge/rebase options | View options to abort/continue/skip the current merge/rebase. |
 | `` R `` | Refresh | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
 | `` + `` | Next screen mode (normal/half/fullscreen) |  |
 | `` _ `` | Prev screen mode |  |
+| `` <esc> `` | Cancel |  |
 | `` ? `` | Open keybindings menu |  |
 | `` <c-s> `` | View filter options | View options for filtering the commit log, so that only commits matching the filter are shown. |
 | `` W `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` <c-e> `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | Quit |  |
-| `` <esc> `` | Cancel |  |
-| `` <c-w> `` | Toggle whitespace | Toggle whether or not whitespace changes are shown in the diff view. |
+| `` <c-z> `` | Suspend the application |  |
+| `` <c-w> `` | Toggle whitespace | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | Undo | The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
-| `` <c-z> `` | Redo | The reflog will be used to determine what git command to run to redo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
+| `` Z `` | Redo | The reflog will be used to determine what git command to run to redo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
 
 ## List panel navigation
 
@@ -40,8 +41,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` , `` | Previous page |  |
 | `` . `` | Next page |  |
-| `` < `` | Scroll to top |  |
-| `` > `` | Scroll to bottom |  |
+| `` < (<home>) `` | Scroll to top |  |
+| `` > (<end>) `` | Scroll to bottom |  |
 | `` v `` | Toggle range select |  |
 | `` <s-down> `` | Range select down |  |
 | `` <s-up> `` | Range select up |  |
@@ -56,6 +57,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Copy path to clipboard |  |
+| `` y `` | Copy to clipboard |  |
 | `` c `` | Checkout | Checkout file. This replaces the file in your working tree with the version from the selected commit. |
 | `` d `` | Remove | Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file. |
 | `` o `` | Open file | Open file in default application. |
@@ -64,7 +66,10 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <space> `` | Toggle file included in patch | Toggle whether the file is included in the custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | Toggle all files | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` <enter> `` | Enter file / Toggle directory collapsed | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
-| `` ` `` | Toggle file tree view | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
+| `` ` `` | Toggle file tree view | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | Search the current view by text |  |
 
 ## Commit summary
@@ -87,8 +92,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` R `` | Reword with editor |  |
 | `` d `` | Drop | Drop the selected commit. This will remove the commit from the branch via a rebase. If the commit makes changes that later commits depend on, you may need to resolve merge conflicts. |
 | `` e `` | Edit (start interactive rebase) | Edit the selected commit. Use this to start an interactive rebase from the selected commit. When already mid-rebase, this will mark the selected commit for editing, which means that upon continuing the rebase, the rebase will pause at the selected commit to allow you to make changes. |
-| `` i `` | Start interactive rebase | Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.
-If you would instead like to start an interactive rebase from the selected commit, press `e`. |
+| `` i `` | Start interactive rebase | Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.<br>If you would instead like to start an interactive rebase from the selected commit, press `e`. |
 | `` p `` | Pick | Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase. |
 | `` F `` | Create fixup commit | Create 'fixup!' commit for the selected commit. Later on, you can press `S` on this same commit to apply all above fixup commits. |
 | `` S `` | Apply fixup commits | Squash all 'fixup!' commits, either above the selected commit, or all in current branch (autosquash). |
@@ -105,9 +109,12 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
 | `` n `` | Create new branch off of commit |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Copy (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Search the current view by text |  |
@@ -118,6 +125,7 @@ If you would instead like to start an interactive rebase from the selected commi
 |-----|--------|-------------|
 | `` <enter> `` | Confirm |  |
 | `` <esc> `` | Close/Cancel |  |
+| `` <c-o> `` | Copy to clipboard |  |
 
 ## Files
 
@@ -143,11 +151,21 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Discard | View options for discarding changes to the selected file. |
 | `` g `` | View upstream reset options |  |
 | `` D `` | Reset | View reset options for working tree (e.g. nuking the working tree). |
-| `` ` `` | Toggle file tree view | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory. |
+| `` ` `` | Toggle file tree view | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` M `` | Open external merge tool | Run `git mergetool`. |
 | `` f `` | Fetch | Fetch changes from remote. |
+| `` - `` | Collapse all files | Collapse all directories in the files tree |
+| `` = `` | Expand all files | Expand all directories in the file tree |
+| `` 0 `` | Focus main view |  |
 | `` / `` | Search the current view by text |  |
+
+## Input prompt
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | Confirm |  |
+| `` <esc> `` | Close/Cancel |  |
 
 ## Local branches
 
@@ -157,10 +175,12 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` i `` | Show git-flow options |  |
 | `` <space> `` | Checkout | Checkout selected item. |
 | `` n `` | New branch |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` o `` | Create pull request |  |
 | `` O `` | View create pull request options |  |
 | `` <c-y> `` | Copy pull request URL to clipboard |  |
-| `` c `` | Checkout by name | Checkout by name. In the input box you can enter '-' to switch to the last branch. |
+| `` c `` | Checkout by name | Checkout by name. In the input box you can enter '-' to switch to the previous branch. |
+| `` - `` | Checkout previous branch |  |
 | `` F `` | Force checkout | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |
 | `` r `` | Rebase | Rebase the checked-out branch onto the selected branch. |
@@ -172,6 +192,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` R `` | Rename branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -198,6 +219,9 @@ If you would instead like to start an interactive rebase from the selected commi
 |-----|--------|-------------|
 | `` mouse wheel down (fn+up) `` | Scroll down |  |
 | `` mouse wheel up (fn+down) `` | Scroll up |  |
+| `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
+| `` / `` | Search the current view by text |  |
 
 ## Main panel (patch building)
 
@@ -206,7 +230,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <left> `` | Go to previous hunk |  |
 | `` <right> `` | Go to next hunk |  |
 | `` v `` | Toggle range select |  |
-| `` a `` | Select hunk | Toggle hunk selection mode. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | Copy selected text to clipboard |  |
 | `` o `` | Open file | Open file in default application. |
 | `` e `` | Edit file | Open file in external editor. |
@@ -221,7 +245,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` <left> `` | Go to previous hunk |  |
 | `` <right> `` | Go to next hunk |  |
 | `` v `` | Toggle range select |  |
-| `` a `` | Select hunk | Toggle hunk selection mode. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <c-o> `` | Copy selected text to clipboard |  |
 | `` <space> `` | Stage | Toggle selection staged / unstaged. |
 | `` d `` | Discard | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
@@ -241,7 +265,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <enter> `` | Execute |  |
-| `` <esc> `` | Close |  |
+| `` <esc> `` | Close/Cancel |  |
 | `` / `` | Filter the current view by text |  |
 
 ## Reflog
@@ -253,10 +277,13 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
 | `` n `` | Create new branch off of commit |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Copy (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -275,6 +302,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` s `` | Sort order |  |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -290,6 +318,14 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` f `` | Fetch | Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches. |
 | `` / `` | Filter the current view by text |  |
 
+## Secondary
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
+| `` <esc> `` | Exit back to side panel |  |
+| `` / `` | Search the current view by text |  |
+
 ## Stash
 
 | Key | Action | Info |
@@ -299,6 +335,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` d `` | Drop | Remove the stash entry from the stash list. |
 | `` n `` | New branch | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
 | `` r `` | Rename stash |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -312,6 +349,7 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` u `` | Check for update |  |
 | `` <enter> `` | Switch to a recent repo |  |
 | `` a `` | Show/cycle all branch logs |  |
+| `` 0 `` | Focus main view |  |
 
 ## Sub-commits
 
@@ -322,10 +360,13 @@ If you would instead like to start an interactive rebase from the selected commi
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
 | `` n `` | Create new branch off of commit |  |
+| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Copy (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Search the current view by text |  |
@@ -348,12 +389,14 @@ If you would instead like to start an interactive rebase from the selected commi
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <space> `` | Checkout | Checkout the selected tag tag as a detached HEAD. |
+| `` <c-o> `` | Copy tag to clipboard |  |
+| `` <space> `` | Checkout | Checkout the selected tag as a detached HEAD. |
 | `` n `` | New tag | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | Push tag | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |

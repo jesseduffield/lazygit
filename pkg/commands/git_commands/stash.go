@@ -32,21 +32,21 @@ func (self *StashCommands) DropNewest() error {
 }
 
 func (self *StashCommands) Drop(index int) error {
-	cmdArgs := NewGitCmd("stash").Arg("drop", fmt.Sprintf("stash@{%d}", index)).
+	cmdArgs := NewGitCmd("stash").Arg("drop", fmt.Sprintf("refs/stash@{%d}", index)).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *StashCommands) Pop(index int) error {
-	cmdArgs := NewGitCmd("stash").Arg("pop", fmt.Sprintf("stash@{%d}", index)).
+	cmdArgs := NewGitCmd("stash").Arg("pop", fmt.Sprintf("refs/stash@{%d}", index)).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *StashCommands) Apply(index int) error {
-	cmdArgs := NewGitCmd("stash").Arg("apply", fmt.Sprintf("stash@{%d}", index)).
+	cmdArgs := NewGitCmd("stash").Arg("apply", fmt.Sprintf("refs/stash@{%d}", index)).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
@@ -80,15 +80,22 @@ func (self *StashCommands) Hash(index int) (string, error) {
 	return strings.Trim(hash, "\r\n"), err
 }
 
-func (self *StashCommands) ShowStashEntryCmdObj(index int) oscommands.ICmdObj {
+func (self *StashCommands) ShowStashEntryCmdObj(index int) *oscommands.CmdObj {
+	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
+	useExtDiffGitConfig := self.UserConfig().Git.Paging.UseExternalDiffGitConfig
+
+	// "-u" is the same as "--include-untracked", but the latter fails in older git versions for some reason
 	cmdArgs := NewGitCmd("stash").Arg("show").
 		Arg("-p").
 		Arg("--stat").
+		Arg("-u").
+		ConfigIf(extDiffCmd != "", "diff.external="+extDiffCmd).
+		ArgIfElse(extDiffCmd != "" || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
 		Arg(fmt.Sprintf("--color=%s", self.UserConfig().Git.Paging.ColorArg)).
-		Arg(fmt.Sprintf("--unified=%d", self.AppState.DiffContextSize)).
-		ArgIf(self.AppState.IgnoreWhitespaceInDiffView, "--ignore-all-space").
-		Arg(fmt.Sprintf("--find-renames=%d%%", self.AppState.RenameSimilarityThreshold)).
-		Arg(fmt.Sprintf("stash@{%d}", index)).
+		Arg(fmt.Sprintf("--unified=%d", self.UserConfig().Git.DiffContextSize)).
+		ArgIf(self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
+		Arg(fmt.Sprintf("refs/stash@{%d}", index)).
 		Dir(self.repoPaths.worktreePath).
 		ToArgv()
 
@@ -150,7 +157,7 @@ func (self *StashCommands) SaveStagedChanges(message string) error {
 	}
 
 	if err := self.cmd.New(
-		NewGitCmd("stash").Arg("apply", "stash@{1}").ToArgv(),
+		NewGitCmd("stash").Arg("apply", "refs/stash@{1}").ToArgv(),
 	).Run(); err != nil {
 		return err
 	}
@@ -163,7 +170,7 @@ func (self *StashCommands) SaveStagedChanges(message string) error {
 	}
 
 	if err := self.cmd.New(
-		NewGitCmd("stash").Arg("drop", "stash@{1}").ToArgv(),
+		NewGitCmd("stash").Arg("drop", "refs/stash@{1}").ToArgv(),
 	).Run(); err != nil {
 		return err
 	}

@@ -10,7 +10,7 @@ import (
 
 func TestStashDrop(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
-		ExpectGitArgs([]string{"stash", "drop", "stash@{1}"}, "Dropped refs/stash@{1} (98e9cca532c37c766107093010c72e26f2c24c04)\n", nil)
+		ExpectGitArgs([]string{"stash", "drop", "refs/stash@{1}"}, "Dropped refs/stash@{1} (98e9cca532c37c766107093010c72e26f2c24c04)\n", nil)
 	instance := buildStashCommands(commonDeps{runner: runner})
 
 	assert.NoError(t, instance.Drop(1))
@@ -19,7 +19,7 @@ func TestStashDrop(t *testing.T) {
 
 func TestStashApply(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
-		ExpectGitArgs([]string{"stash", "apply", "stash@{1}"}, "", nil)
+		ExpectGitArgs([]string{"stash", "apply", "refs/stash@{1}"}, "", nil)
 	instance := buildStashCommands(commonDeps{runner: runner})
 
 	assert.NoError(t, instance.Apply(1))
@@ -28,7 +28,7 @@ func TestStashApply(t *testing.T) {
 
 func TestStashPop(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
-		ExpectGitArgs([]string{"stash", "pop", "stash@{1}"}, "", nil)
+		ExpectGitArgs([]string{"stash", "pop", "refs/stash@{1}"}, "", nil)
 	instance := buildStashCommands(commonDeps{runner: runner})
 
 	assert.NoError(t, instance.Pop(1))
@@ -100,9 +100,11 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 	type scenario struct {
 		testName            string
 		index               int
-		contextSize         int
+		contextSize         uint64
 		similarityThreshold int
 		ignoreWhitespace    bool
+		extDiffCmd          string
+		useExtDiffGitConfig bool
 		expected            []string
 	}
 
@@ -113,7 +115,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "--color=always", "--unified=3", "--find-renames=50%", "stash@{5}"},
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--no-ext-diff", "--color=always", "--unified=3", "--find-renames=50%", "refs/stash@{5}"},
 		},
 		{
 			testName:            "Show diff with custom context size",
@@ -121,7 +123,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         77,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "--color=always", "--unified=77", "--find-renames=50%", "stash@{5}"},
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--no-ext-diff", "--color=always", "--unified=77", "--find-renames=50%", "refs/stash@{5}"},
 		},
 		{
 			testName:            "Show diff with custom similarity threshold",
@@ -129,7 +131,25 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 33,
 			ignoreWhitespace:    false,
-			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "--color=always", "--unified=3", "--find-renames=33%", "stash@{5}"},
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--no-ext-diff", "--color=always", "--unified=3", "--find-renames=33%", "refs/stash@{5}"},
+		},
+		{
+			testName:            "Show diff with external diff command",
+			index:               5,
+			contextSize:         3,
+			similarityThreshold: 50,
+			ignoreWhitespace:    false,
+			extDiffCmd:          "difft --color=always",
+			expected:            []string{"git", "-C", "/path/to/worktree", "-c", "diff.external=difft --color=always", "stash", "show", "-p", "--stat", "-u", "--ext-diff", "--color=always", "--unified=3", "--find-renames=50%", "refs/stash@{5}"},
+		},
+		{
+			testName:            "Show diff using git's external diff config",
+			index:               5,
+			contextSize:         3,
+			similarityThreshold: 50,
+			ignoreWhitespace:    false,
+			useExtDiffGitConfig: true,
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--ext-diff", "--color=always", "--unified=3", "--find-renames=50%", "refs/stash@{5}"},
 		},
 		{
 			testName:            "Default case",
@@ -137,21 +157,22 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    true,
-			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "--color=always", "--unified=3", "--ignore-all-space", "--find-renames=50%", "stash@{5}"},
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--no-ext-diff", "--color=always", "--unified=3", "--ignore-all-space", "--find-renames=50%", "refs/stash@{5}"},
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
-			appState := &config.AppState{}
-			appState.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
-			appState.DiffContextSize = s.contextSize
-			appState.RenameSimilarityThreshold = s.similarityThreshold
+			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
+			userConfig.Git.DiffContextSize = s.contextSize
+			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
+			userConfig.Git.Paging.ExternalDiffCommand = s.extDiffCmd
+			userConfig.Git.Paging.UseExternalDiffGitConfig = s.useExtDiffGitConfig
 			repoPaths := RepoPaths{
 				worktreePath: "/path/to/worktree",
 			}
-			instance := buildStashCommands(commonDeps{userConfig: userConfig, appState: appState, repoPaths: &repoPaths})
+			instance := buildStashCommands(commonDeps{userConfig: userConfig, appState: &config.AppState{}, repoPaths: &repoPaths})
 
 			cmdStr := instance.ShowStashEntryCmdObj(s.index).Args()
 			assert.Equal(t, s.expected, cmdStr)
@@ -177,7 +198,7 @@ func TestStashRename(t *testing.T) {
 			message:          "New message",
 			expectedHashCmd:  []string{"rev-parse", "refs/stash@{3}"},
 			hashResult:       "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd\n",
-			expectedDropCmd:  []string{"stash", "drop", "stash@{3}"},
+			expectedDropCmd:  []string{"stash", "drop", "refs/stash@{3}"},
 			expectedStoreCmd: []string{"stash", "store", "-m", "New message", "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd"},
 		},
 		{
@@ -186,7 +207,7 @@ func TestStashRename(t *testing.T) {
 			message:          "",
 			expectedHashCmd:  []string{"rev-parse", "refs/stash@{4}"},
 			hashResult:       "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd\n",
-			expectedDropCmd:  []string{"stash", "drop", "stash@{4}"},
+			expectedDropCmd:  []string{"stash", "drop", "refs/stash@{4}"},
 			expectedStoreCmd: []string{"stash", "store", "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd"},
 		},
 	}

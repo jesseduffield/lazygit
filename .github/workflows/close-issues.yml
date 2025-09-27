@@ -1,0 +1,39 @@
+name: Close Issues
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+
+jobs:
+  close_issue:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.issue.pull_request == null && startsWith(github.event.comment.body, '/close') }}
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const trustedUsers = ['ChrisMcD1', 'jesseduffield', 'stefanhaller']
+            const commenter = context.payload.comment.user.login
+
+            console.log(`Commenter: ${commenter}`)
+
+            if (!trustedUsers.includes(commenter)) {
+              console.log(`User ${commenter} is not trusted. Ignoring.`)
+              return
+            }
+
+            const issueNumber = context.payload.issue.number
+            const owner = context.repo.owner
+            const repo = context.repo.repo
+
+            await github.rest.issues.update({
+              owner,
+              repo,
+              issue_number: issueNumber,
+              state: 'closed'
+            })
+
+            console.log(`Closed issue #${issueNumber} by request from ${commenter}.`)

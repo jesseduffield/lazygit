@@ -67,7 +67,7 @@ var MoveToIndexFromAddedFileWithConflict = NewIntegrationTest(NewIntegrationTest
 			SelectNextItem().
 			PressPrimaryAction()
 
-		t.Common().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved("rebase")
 
 		t.ExpectPopup().Alert().
 			Title(Equals("Error")).

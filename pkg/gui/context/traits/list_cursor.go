@@ -3,6 +3,7 @@ package traits
 import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type RangeSelectMode int
@@ -76,16 +77,15 @@ func (self *ListCursor) SetSelectionRangeAndMode(selectedIdx, rangeStartIdx int,
 func (self *ListCursor) GetSelectionRangeAndMode() (int, int, RangeSelectMode) {
 	if self.IsSelectingRange() {
 		return self.selectedIdx, self.rangeStartIdx, self.rangeSelectMode
-	} else {
-		return self.selectedIdx, self.selectedIdx, self.rangeSelectMode
 	}
+	return self.selectedIdx, self.selectedIdx, self.rangeSelectMode
 }
 
 func (self *ListCursor) clampValue(value int) int {
 	clampedValue := -1
 	length := self.getLength()
 	if length > 0 {
-		clampedValue = utils.Clamp(value, 0, length-1)
+		clampedValue = lo.Clamp(value, 0, length-1)
 	}
 
 	return clampedValue
@@ -133,8 +133,17 @@ func (self *ListCursor) GetRangeStartIdx() (int, bool) {
 	return 0, false
 }
 
+// Cancel range select mode, but keep the "moving end" of the range selected.
+// Used when pressing 'v' or escape to toggle range select mode, for example.
 func (self *ListCursor) CancelRangeSelect() {
 	self.rangeSelectMode = RangeSelectModeNone
+}
+
+// Cancel range select mode, but keep the top of the range selected. Note that
+// this is different from CancelRangeSelect. Useful after deleting a range of items.
+func (self *ListCursor) CollapseRangeSelectionToTop() {
+	start, _ := self.GetSelectionRange()
+	self.SetSelection(start)
 }
 
 // Returns true if we are in range select mode. Note that we may be in range select

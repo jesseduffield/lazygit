@@ -2,6 +2,7 @@ package git_config
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os/exec"
@@ -39,7 +40,8 @@ func runGitConfigCmd(cmd *exec.Cmd) (string, error) {
 	cmd.Stderr = io.Discard
 
 	err := cmd.Run()
-	if exitError, ok := err.(*exec.ExitError); ok {
+	var exitError *exec.ExitError
+	if errors.As(err, &exitError) {
 		if waitStatus, ok := exitError.Sys().(syscall.WaitStatus); ok {
 			if waitStatus.ExitStatus() == 1 {
 				return "", fmt.Errorf("the key is not found for %s", cmd.Args)

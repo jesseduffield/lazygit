@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -9,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type BranchesHelper struct {
@@ -23,12 +26,16 @@ func NewBranchesHelper(c *HelperCommon, worktreeHelper *WorktreeHelper) *Branche
 	}
 }
 
-func (self *BranchesHelper) ConfirmLocalDelete(branch *models.Branch) error {
-	if self.checkedOutByOtherWorktree(branch) {
-		return self.promptWorktreeBranchDelete(branch)
+func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error {
+	if len(branches) > 1 {
+		if lo.SomeBy(branches, func(branch *models.Branch) bool { return self.checkedOutByOtherWorktree(branch) }) {
+			return errors.New(self.c.Tr.SomeBranchesCheckedOutByWorktreeError)
+		}
+	} else if self.checkedOutByOtherWorktree(branches[0]) {
+		return self.promptWorktreeBranchDelete(branches[0])
 	}
 
-	isMerged, err := self.c.Git().Branch.IsBranchMerged(branch, self.c.Model().MainBranches)
+	allBranchesMerged, err := self.allBranchesMerged(branches)
 	if err != nil {
 		return err
 	}
@@ -36,24 +43,33 @@ func (self *BranchesHelper) ConfirmLocalDelete(branch *models.Branch) error {
 	doDelete := func() error {
 		return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(_ gocui.Task) error {
 			self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
-			if err := self.c.Git().Branch.LocalDelete(branch.Name, true); err != nil {
+			branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
+			if err := self.c.Git().Branch.LocalDelete(branchNames, true); err != nil {
 				return err
 			}
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+
+			self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+			return nil
 		})
 	}
 
-	if isMerged {
+	if allBranchesMerged {
 		return doDelete()
 	}
 
 	title := self.c.Tr.ForceDeleteBranchTitle
-	message := utils.ResolvePlaceholderString(
-		self.c.Tr.ForceDeleteBranchMessage,
-		map[string]string{
-			"selectedBranchName": branch.Name,
-		},
-	)
+	var message string
+	if len(branches) == 1 {
+		message = utils.ResolvePlaceholderString(
+			self.c.Tr.ForceDeleteBranchMessage,
+			map[string]string{
+				"selectedBranchName": branches[0].Name,
+			},
+		)
+	} else {
+		message = self.c.Tr.ForceDeleteBranchesMessage
+	}
 
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  title,
@@ -66,30 +82,43 @@ func (self *BranchesHelper) ConfirmLocalDelete(branch *models.Branch) error {
 	return nil
 }
 
-func (self *BranchesHelper) ConfirmDeleteRemote(remoteName string, branchName string) error {
-	title := utils.ResolvePlaceholderString(
-		self.c.Tr.DeleteBranchTitle,
-		map[string]string{
-			"selectedBranchName": branchName,
-		},
-	)
-	prompt := utils.ResolvePlaceholderString(
-		self.c.Tr.DeleteRemoteBranchPrompt,
-		map[string]string{
-			"selectedBranchName": branchName,
-			"upstream":           remoteName,
-		},
-	)
+func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranches []*models.RemoteBranch, resetRemoteBranchesSelection bool) error {
+	var title string
+	if len(remoteBranches) == 1 {
+		title = utils.ResolvePlaceholderString(
+			self.c.Tr.DeleteBranchTitle,
+			map[string]string{
+				"selectedBranchName": remoteBranches[0].Name,
+			},
+		)
+	} else {
+		title = self.c.Tr.DeleteBranchesTitle
+	}
+	var prompt string
+	if len(remoteBranches) == 1 {
+		prompt = utils.ResolvePlaceholderString(
+			self.c.Tr.DeleteRemoteBranchPrompt,
+			map[string]string{
+				"selectedBranchName": remoteBranches[0].Name,
+				"upstream":           remoteBranches[0].RemoteName,
+			},
+		)
+	} else {
+		prompt = self.c.Tr.DeleteRemoteBranchesPrompt
+	}
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  title,
 		Prompt: prompt,
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
-				self.c.LogAction(self.c.Tr.Actions.DeleteRemoteBranch)
-				if err := self.c.Git().Remote.DeleteRemoteBranch(task, remoteName, branchName); err != nil {
+				if err := self.deleteRemoteBranches(remoteBranches, task); err != nil {
 					return err
 				}
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				if resetRemoteBranchesSelection {
+					self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
+				}
+				return nil
 			})
 		},
 	})
@@ -97,32 +126,41 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteName string, branchName st
 	return nil
 }
 
-func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branch *models.Branch) error {
-	if self.checkedOutByOtherWorktree(branch) {
-		return self.promptWorktreeBranchDelete(branch)
+func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branch) error {
+	if lo.SomeBy(branches, func(branch *models.Branch) bool { return self.checkedOutByOtherWorktree(branch) }) {
+		return errors.New(self.c.Tr.SomeBranchesCheckedOutByWorktreeError)
 	}
 
-	isMerged, err := self.c.Git().Branch.IsBranchMerged(branch, self.c.Model().MainBranches)
+	allBranchesMerged, err := self.allBranchesMerged(branches)
 	if err != nil {
 		return err
 	}
 
-	prompt := utils.ResolvePlaceholderString(
-		self.c.Tr.DeleteLocalAndRemoteBranchPrompt,
-		map[string]string{
-			"localBranchName":  branch.Name,
-			"remoteBranchName": branch.UpstreamBranch,
-			"remoteName":       branch.UpstreamRemote,
-		},
-	)
-
-	if !isMerged {
-		prompt += "\n\n" + utils.ResolvePlaceholderString(
-			self.c.Tr.ForceDeleteBranchMessage,
+	var prompt string
+	if len(branches) == 1 {
+		prompt = utils.ResolvePlaceholderString(
+			self.c.Tr.DeleteLocalAndRemoteBranchPrompt,
 			map[string]string{
-				"selectedBranchName": branch.Name,
+				"localBranchName":  branches[0].Name,
+				"remoteBranchName": branches[0].UpstreamBranch,
+				"remoteName":       branches[0].UpstreamRemote,
 			},
 		)
+	} else {
+		prompt = self.c.Tr.DeleteLocalAndRemoteBranchesPrompt
+	}
+
+	if !allBranchesMerged {
+		if len(branches) == 1 {
+			prompt += "\n\n" + utils.ResolvePlaceholderString(
+				self.c.Tr.ForceDeleteBranchMessage,
+				map[string]string{
+					"selectedBranchName": branches[0].Name,
+				},
+			)
+		} else {
+			prompt += "\n\n" + self.c.Tr.ForceDeleteBranchesMessage
+		}
 	}
 
 	self.c.Confirm(types.ConfirmOpts{
@@ -130,19 +168,24 @@ func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branch *models.Branch) e
 		Prompt: prompt,
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
-				// Delete the remote branch first so that we keep the local one
+				// Delete the remote branches first so that we keep the local ones
 				// in case of failure
-				self.c.LogAction(self.c.Tr.Actions.DeleteRemoteBranch)
-				if err := self.c.Git().Remote.DeleteRemoteBranch(task, branch.UpstreamRemote, branch.Name); err != nil {
+				remoteBranches := lo.Map(branches, func(branch *models.Branch, _ int) *models.RemoteBranch {
+					return &models.RemoteBranch{Name: branch.UpstreamBranch, RemoteName: branch.UpstreamRemote}
+				})
+				if err := self.deleteRemoteBranches(remoteBranches, task); err != nil {
 					return err
 				}
 
 				self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
-				if err := self.c.Git().Branch.LocalDelete(branch.Name, true); err != nil {
+				branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
+				if err := self.c.Git().Branch.LocalDelete(branchNames, true); err != nil {
 					return err
 				}
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				return nil
 			})
 		},
 	})
@@ -197,4 +240,68 @@ func (self *BranchesHelper) promptWorktreeBranchDelete(selectedBranch *models.Br
 			},
 		},
 	})
+}
+
+func (self *BranchesHelper) allBranchesMerged(branches []*models.Branch) (bool, error) {
+	allBranchesMerged := true
+	for _, branch := range branches {
+		isMerged, err := self.c.Git().Branch.IsBranchMerged(branch, self.c.Model().MainBranches)
+		if err != nil {
+			return false, err
+		}
+		if !isMerged {
+			allBranchesMerged = false
+			break
+		}
+	}
+	return allBranchesMerged, nil
+}
+
+func (self *BranchesHelper) deleteRemoteBranches(remoteBranches []*models.RemoteBranch, task gocui.Task) error {
+	remotes := lo.GroupBy(remoteBranches, func(branch *models.RemoteBranch) string { return branch.RemoteName })
+	for remote, branches := range remotes {
+		self.c.LogAction(self.c.Tr.Actions.DeleteRemoteBranch)
+		branchNames := lo.Map(branches, func(branch *models.RemoteBranch, _ int) string { return branch.Name })
+		if err := self.c.Git().Remote.DeleteRemoteBranch(task, remote, branchNames); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (self *BranchesHelper) AutoForwardBranches() error {
+	if self.c.UserConfig().Git.AutoForwardBranches == "none" {
+		return nil
+	}
+
+	branches := self.c.Model().Branches
+	if len(branches) == 0 {
+		return nil
+	}
+
+	allBranches := self.c.UserConfig().Git.AutoForwardBranches == "allBranches"
+	updateCommands := ""
+	// The first branch is the currently checked out branch; skip it
+	for _, branch := range branches[1:] {
+		if branch.RemoteBranchStoredLocally() &&
+			!self.checkedOutByOtherWorktree(branch) &&
+			(allBranches || lo.Contains(self.c.UserConfig().Git.MainBranches, branch.Name)) {
+			isStrictlyBehind := branch.IsBehindForPull() && !branch.IsAheadForPull()
+			if isStrictlyBehind {
+				updateCommands += fmt.Sprintf("update %s %s %s\n", branch.FullRefName(), branch.FullUpstreamRefName(), branch.CommitHash)
+			}
+		}
+	}
+
+	if updateCommands == "" {
+		return nil
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.AutoForwardBranches)
+	self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
+	err := self.c.Git().Branch.UpdateBranchRefs(updateCommands)
+
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Mode: types.SYNC})
+
+	return err
 }

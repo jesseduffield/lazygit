@@ -1,5 +1,7 @@
 package context
 
+import "github.com/jesseduffield/lazygit/pkg/i18n"
+
 type FilteredListViewModel[T HasID] struct {
 	*FilteredList[T]
 	*ListViewModel[T]
@@ -32,4 +34,9 @@ func (self *FilteredListViewModel[T]) ClearFilter() {
 	self.FilteredList.ClearFilter()
 
 	self.SetSelection(unfilteredIndex)
+}
+
+// Default implementation of most filterable contexts. Can be overridden if needed.
+func (self *FilteredListViewModel[T]) FilterPrefix(tr *i18n.TranslationSet) string {
+	return tr.FilterPrefix
 }

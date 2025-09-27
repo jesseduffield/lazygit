@@ -9,7 +9,9 @@ var CherryPickRange = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Cherry pick range of commits from the subcommits view, without conflicts",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.LocalBranchSortOrder = "recency"
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.
 			EmptyCommit("base").
@@ -63,7 +65,7 @@ var CherryPickRange = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Alert().
 					Title(Equals("Cherry-pick")).
-					Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
+					Content(Contains("Are you sure you want to cherry-pick the 2 copied commit(s) onto this branch?")).
 					Confirm()
 			}).
 			Tap(func() {
@@ -72,7 +74,7 @@ var CherryPickRange = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("four"),
 				Contains("three"),
-				Contains("two"),
+				Contains("two").IsSelected(),
 				Contains("one"),
 				Contains("base"),
 			)

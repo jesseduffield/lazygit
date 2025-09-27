@@ -12,6 +12,8 @@ var Drop = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("initial commit")
+		shell.NewBranch("stash")
+		shell.Checkout("master")
 		shell.CreateFile("file", "content")
 		shell.GitAddAll()
 		shell.Stash("stash one")
@@ -28,7 +30,7 @@ var Drop = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Stash drop")).
-					Content(Contains("Are you sure you want to drop this stash entry?")).
+					Content(Contains("Are you sure you want to drop the selected stash entry(ies)?")).
 					Confirm()
 			}).
 			IsEmpty()

@@ -20,7 +20,7 @@ func (gui *Gui) scrollDownView(view *gocui.View) {
 	scrollHeight := gui.c.UserConfig().Gui.ScrollHeight
 	view.ScrollDown(scrollHeight)
 
-	if manager, ok := gui.viewBufferManagerMap[view.Name()]; ok {
+	if manager := gui.getViewBufferManagerForView(view); manager != nil {
 		manager.ReadLines(scrollHeight)
 	}
 }
@@ -90,21 +90,37 @@ func (gui *Gui) scrollDownSecondary() error {
 }
 
 func (gui *Gui) scrollUpConfirmationPanel() error {
-	if gui.Views.Confirmation.Editable {
-		return nil
-	}
-
 	gui.scrollUpView(gui.Views.Confirmation)
 
 	return nil
 }
 
 func (gui *Gui) scrollDownConfirmationPanel() error {
-	if gui.Views.Confirmation.Editable {
-		return nil
-	}
-
 	gui.scrollDownView(gui.Views.Confirmation)
+
+	return nil
+}
+
+func (gui *Gui) pageUpConfirmationPanel() error {
+	gui.Views.Confirmation.ScrollUp(gui.Contexts().Confirmation.GetViewTrait().PageDelta())
+
+	return nil
+}
+
+func (gui *Gui) pageDownConfirmationPanel() error {
+	gui.Views.Confirmation.ScrollDown(gui.Contexts().Confirmation.GetViewTrait().PageDelta())
+
+	return nil
+}
+
+func (gui *Gui) goToConfirmationPanelTop() error {
+	gui.Views.Confirmation.ScrollUp(gui.Views.Confirmation.ViewLinesHeight())
+
+	return nil
+}
+
+func (gui *Gui) goToConfirmationPanelBottom() error {
+	gui.Views.Confirmation.ScrollDown(gui.Views.Confirmation.ViewLinesHeight())
 
 	return nil
 }
@@ -145,7 +161,7 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboardWithTruncation(maxWi
 		return err
 	}
 
-	truncatedItemId := utils.TruncateWithEllipsis(strings.Replace(itemId, "\n", " ", -1), 50)
+	truncatedItemId := utils.TruncateWithEllipsis(strings.ReplaceAll(itemId, "\n", " "), 50)
 
 	gui.c.Toast(fmt.Sprintf("'%s' %s", truncatedItemId, gui.c.Tr.CopiedToClipboard))
 

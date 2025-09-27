@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -61,7 +60,7 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Status.AllBranchesLogGraph),
-			Handler:     func() error { self.showAllBranchLogs(); return nil },
+			Handler:     func() error { self.switchToOrRotateAllBranchesLogs(); return nil },
 			Description: self.c.Tr.AllBranchesLogGraph,
 		},
 	}
@@ -104,24 +103,21 @@ func (self *StatusController) onClick(opts gocui.ViewMouseBindingOpts) error {
 		return nil
 	}
 
-	self.c.Context().Push(self.Context())
+	self.c.Context().Push(self.Context(), types.OnFocusOpts{})
 
 	upstreamStatus := utils.Decolorise(presentation.BranchStatus(currentBranch, types.ItemOperationNone, self.c.Tr, time.Now(), self.c.UserConfig()))
 	repoName := self.c.Git().RepoPaths.RepoName()
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
-	switch workingTreeState {
-	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
-		workingTreeStatus := fmt.Sprintf("(%s)", presentation.FormatWorkingTreeStateLower(self.c.Tr, workingTreeState))
+	if workingTreeState.Any() {
+		workingTreeStatus := fmt.Sprintf("(%s)", workingTreeState.LowerCaseTitle(self.c.Tr))
 		if cursorInSubstring(opts.X, upstreamStatus+" ", workingTreeStatus) {
 			return self.c.Helpers().MergeAndRebase.CreateRebaseOptionsMenu()
 		}
 		if cursorInSubstring(opts.X, upstreamStatus+" "+workingTreeStatus+" ", repoName) {
 			return self.c.Helpers().Repos.CreateRecentReposMenu()
 		}
-	default:
-		if cursorInSubstring(opts.X, upstreamStatus+" ", repoName) {
-			return self.c.Helpers().Repos.CreateRecentReposMenu()
-		}
+	} else if cursorInSubstring(opts.X, upstreamStatus+" ", repoName) {
+		return self.c.Helpers().Repos.CreateRecentReposMenu()
 	}
 
 	return nil
@@ -192,6 +188,18 @@ func (self *StatusController) showAllBranchLogs() {
 			Task:  task,
 		},
 	})
+}
+
+// Switches to the all branches view, or, if already on that view,
+// rotates to the next command in the list, and then renders it.
+func (self *StatusController) switchToOrRotateAllBranchesLogs() {
+	// A bit of a hack to ensure we only rotate to the next branch log command
+	// if we currently are looking at a branch log. Otherwise, we should just show
+	// the current index (if we are coming from the dashboard).
+	if self.c.Views().Main.Title == self.c.Tr.LogTitle {
+		self.c.Git().Branch.RotateAllBranchesLogIdx()
+	}
+	self.showAllBranchLogs()
 }
 
 func (self *StatusController) showDashboard() {

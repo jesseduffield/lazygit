@@ -9,7 +9,6 @@ var MoveToEarlierCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Move a patch from a commit to an earlier commit",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	GitVersion:   AtLeast("2.26.0"),
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateDir("dir")
@@ -66,11 +65,12 @@ var MoveToEarlierCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("dir").IsSelected(),
-				Contains("  M file1"),
-				Contains("  D file2"),
-				Contains("  A file3"),
-				Contains("A unrelated-file"),
+				Equals("▼ /").IsSelected(),
+				Equals("  ▼ dir"),
+				Equals("    M file1"),
+				Equals("    D file2"),
+				Equals("    A file3"),
+				Equals("  A unrelated-file"),
 			).
 			PressEscape()
 

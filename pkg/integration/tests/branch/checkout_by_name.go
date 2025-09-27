@@ -9,7 +9,9 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Try to checkout branch by name. Verify that it also works on the branch with the special name @.",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.LocalBranchSortOrder = "alphabetical"
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.
 			CreateNCommits(3).
@@ -33,8 +35,8 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				MatchesRegexp(`\*.*new-branch`).IsSelected(),
-				Contains("master"),
 				Contains("@"),
+				Contains("master"),
 			)
 	},
 })

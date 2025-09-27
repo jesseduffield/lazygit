@@ -28,6 +28,13 @@ var CrudLightweight = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				MatchesRegexp(`new-tag.*initial commit`).IsSelected(),
 			).
+			Tap(func() {
+				t.Views().Main().ContainsLines(
+					Equals("Lightweight tag: new-tag"),
+					Equals(""),
+					Equals("---"),
+				)
+			}).
 			PressEnter().
 			Tap(func() {
 				// view the commits of the tag

@@ -16,7 +16,7 @@ If you have an issue: report it on the [issue tracker](https://github.com/xanzy/
 
 ## Author
 
-Sander van Harmelen (<sander@xanzy.io>)
+Sander van Harmelen (<sander@vanharmelen.nl>)
 
 ## License
 

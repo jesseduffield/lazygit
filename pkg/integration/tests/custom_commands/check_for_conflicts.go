@@ -19,11 +19,13 @@ var CheckForConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 				Key:     "m",
 				Context: "localBranches",
 				Command: "git merge {{ .SelectedLocalBranch.Name | quote }}",
-				After: config.CustomCommandAfterHook{
+				After: &config.CustomCommandAfterHook{
 					CheckForConflicts: true,
 				},
 			},
 		}
+
+		cfg.GetUserConfig().Git.LocalBranchSortOrder = "recency"
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().

@@ -16,44 +16,44 @@ func NewDiffCommands(gitCommon *GitCommon) *DiffCommands {
 	}
 }
 
-func (self *DiffCommands) DiffCmdObj(diffArgs []string) oscommands.ICmdObj {
+// This is for generating diffs to be shown in the UI (e.g. rendering a range
+// diff to the main view). It uses a custom pager if one is configured.
+func (self *DiffCommands) DiffCmdObj(diffArgs []string) *oscommands.CmdObj {
 	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
 	useExtDiff := extDiffCmd != ""
+	useExtDiffGitConfig := self.UserConfig().Git.Paging.UseExternalDiffGitConfig
+	ignoreWhitespace := self.UserConfig().Git.IgnoreWhitespaceInDiffView
 
 	return self.cmd.New(
 		NewGitCmd("diff").
 			Config("diff.noprefix=false").
 			ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
-			ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
+			ArgIfElse(useExtDiff || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
 			Arg("--submodule").
 			Arg(fmt.Sprintf("--color=%s", self.UserConfig().Git.Paging.ColorArg)).
+			ArgIf(ignoreWhitespace, "--ignore-all-space").
+			Arg(fmt.Sprintf("--unified=%d", self.UserConfig().Git.DiffContextSize)).
 			Arg(diffArgs...).
 			Dir(self.repoPaths.worktreePath).
 			ToArgv(),
 	)
 }
 
-func (self *DiffCommands) internalDiffCmdObj(diffArgs ...string) *GitCommandBuilder {
-	return NewGitCmd("diff").
-		Config("diff.noprefix=false").
-		Arg("--no-ext-diff", "--no-color").
-		Arg(diffArgs...).
-		Dir(self.repoPaths.worktreePath)
-}
-
-func (self *DiffCommands) GetPathDiff(path string, staged bool) (string, error) {
+// This is a basic generic diff command that can be used for any diff operation
+// (e.g. copying a diff to the clipboard). It will not use a custom pager, and
+// does not use user configs such as ignore whitespace.
+// If you want to diff specific refs (one or two), you need to add them yourself
+// in additionalArgs; it is recommended to also pass `--` after that. If you
+// want to restrict the diff to specific paths, pass them in additionalArgs
+// after the `--`.
+func (self *DiffCommands) GetDiff(staged bool, additionalArgs ...string) (string, error) {
 	return self.cmd.New(
-		self.internalDiffCmdObj().
+		NewGitCmd("diff").
+			Config("diff.noprefix=false").
+			Arg("--no-ext-diff", "--no-color").
 			ArgIf(staged, "--staged").
-			Arg(path).
-			ToArgv(),
-	).RunWithOutput()
-}
-
-func (self *DiffCommands) GetAllDiff(staged bool) (string, error) {
-	return self.cmd.New(
-		self.internalDiffCmdObj().
-			ArgIf(staged, "--staged").
+			Dir(self.repoPaths.worktreePath).
+			Arg(additionalArgs...).
 			ToArgv(),
 	).RunWithOutput()
 }
@@ -84,7 +84,7 @@ type DiffToolCmdOptions struct {
 	Staged bool
 }
 
-func (self *DiffCommands) OpenDiffToolCmdObj(opts DiffToolCmdOptions) oscommands.ICmdObj {
+func (self *DiffCommands) OpenDiffToolCmdObj(opts DiffToolCmdOptions) *oscommands.CmdObj {
 	return self.cmd.New(NewGitCmd("difftool").
 		Arg("--no-prompt").
 		ArgIf(opts.IsDirectory, "--dir-diff").
@@ -96,7 +96,7 @@ func (self *DiffCommands) OpenDiffToolCmdObj(opts DiffToolCmdOptions) oscommands
 		ToArgv())
 }
 
-func (self *DiffCommands) DiffIndexCmdObj(diffArgs ...string) oscommands.ICmdObj {
+func (self *DiffCommands) DiffIndexCmdObj(diffArgs ...string) *oscommands.CmdObj {
 	return self.cmd.New(
 		NewGitCmd("diff-index").
 			Config("diff.noprefix=false").

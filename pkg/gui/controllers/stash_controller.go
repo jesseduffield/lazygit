@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -20,7 +21,7 @@ func NewStashController(
 ) *StashController {
 	return &StashController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.StashEntry](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Stash,
 			c.Contexts().Stash.GetSelected,
@@ -50,8 +51,8 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
-			Handler:           self.withItem(self.handleStashDrop),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			Handler:           self.withItems(self.handleStashDrop),
+			GetDisabledReason: self.require(self.itemRangeSelected()),
 			Description:       self.c.Tr.Drop,
 			Tooltip:           self.c.Tr.StashDropTooltip,
 			DisplayOnScreen:   true,
@@ -82,8 +83,10 @@ func (self *StashController) GetOnRenderToMain() func() {
 			if stashEntry == nil {
 				task = types.NewRenderStringTask(self.c.Tr.NoStashEntries)
 			} else {
-				task = types.NewRunPtyTask(
+				prefix := style.FgYellow.Sprintf("%s\n\n", stashEntry.Description())
+				task = types.NewRunPtyTaskWithPrefix(
 					self.c.Git().Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd(),
+					prefix,
 				)
 			}
 
@@ -104,44 +107,36 @@ func (self *StashController) context() *context.StashContext {
 }
 
 func (self *StashController) handleStashApply(stashEntry *models.StashEntry) error {
-	apply := func() error {
-		self.c.LogAction(self.c.Tr.Actions.Stash)
-		err := self.c.Git().Stash.Apply(stashEntry.Index)
-		_ = self.postStashRefresh()
-		if err != nil {
-			return err
-		}
-		if self.c.UserConfig().Gui.SwitchToFilesAfterStashApply {
-			self.c.Context().Push(self.c.Contexts().Files)
-		}
-		return nil
-	}
-
-	if self.c.UserConfig().Gui.SkipStashWarning {
-		return apply()
-	}
-
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.StashApply,
-		Prompt: self.c.Tr.SureApplyStashEntry,
-		HandleConfirm: func() error {
-			return apply()
-		},
-	})
-
-	return nil
+	return self.c.ConfirmIf(!self.c.UserConfig().Gui.SkipStashWarning,
+		types.ConfirmOpts{
+			Title:  self.c.Tr.StashApply,
+			Prompt: self.c.Tr.SureApplyStashEntry,
+			HandleConfirm: func() error {
+				self.c.LogAction(self.c.Tr.Actions.ApplyStash)
+				err := self.c.Git().Stash.Apply(stashEntry.Index)
+				self.postStashRefresh()
+				if err != nil {
+					return err
+				}
+				if self.c.UserConfig().Gui.SwitchToFilesAfterStashApply {
+					self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
+				}
+				return nil
+			},
+		})
 }
 
 func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error {
 	pop := func() error {
-		self.c.LogAction(self.c.Tr.Actions.Stash)
+		self.c.LogAction(self.c.Tr.Actions.PopStash)
+		self.c.LogCommand("Popping stash "+stashEntry.Hash, false)
 		err := self.c.Git().Stash.Pop(stashEntry.Index)
-		_ = self.postStashRefresh()
+		self.postStashRefresh()
 		if err != nil {
 			return err
 		}
 		if self.c.UserConfig().Gui.SwitchToFilesAfterStashPop {
-			self.c.Context().Push(self.c.Contexts().Files)
+			self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
 		}
 		return nil
 	}
@@ -161,17 +156,21 @@ func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error
 	return nil
 }
 
-func (self *StashController) handleStashDrop(stashEntry *models.StashEntry) error {
+func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) error {
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.StashDrop,
 		Prompt: self.c.Tr.SureDropStashEntry,
 		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.Stash)
-			err := self.c.Git().Stash.Drop(stashEntry.Index)
-			_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
-			if err != nil {
-				return err
+			self.c.LogAction(self.c.Tr.Actions.DropStash)
+			for i := len(stashEntries) - 1; i >= 0; i-- {
+				self.c.LogCommand("Dropping stash "+stashEntries[i].Hash, false)
+				err := self.c.Git().Stash.Drop(stashEntries[i].Index)
+				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
+				if err != nil {
+					return err
+				}
 			}
+			self.context().CollapseRangeSelectionToTop()
 			return nil
 		},
 	})
@@ -179,12 +178,12 @@ func (self *StashController) handleStashDrop(stashEntry *models.StashEntry) erro
 	return nil
 }
 
-func (self *StashController) postStashRefresh() error {
-	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
+func (self *StashController) postStashRefresh() {
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
 }
 
 func (self *StashController) handleNewBranchOffStashEntry(stashEntry *models.StashEntry) error {
-	return self.c.Helpers().Refs.NewBranch(stashEntry.RefName(), stashEntry.Description(), "")
+	return self.c.Helpers().Refs.NewBranch(stashEntry.FullRefName(), stashEntry.Description(), "")
 }
 
 func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntry) error {
@@ -201,12 +200,13 @@ func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntr
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.RenameStash)
 			err := self.c.Git().Stash.Rename(stashEntry.Index, response)
-			_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			if err != nil {
+				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 				return err
 			}
 			self.context().SetSelection(0) // Select the renamed stash
 			self.context().FocusLine()
+			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			return nil
 		},
 	})

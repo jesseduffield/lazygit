@@ -26,19 +26,9 @@ import (
 // finding suggestions in this file, so that it's easy to see if a function already
 // exists for fetching a particular model.
 
-type ISuggestionsHelper interface {
-	GetRemoteSuggestionsFunc() func(string) []*types.Suggestion
-	GetBranchNameSuggestionsFunc() func(string) []*types.Suggestion
-	GetFilePathSuggestionsFunc() func(string) []*types.Suggestion
-	GetRemoteBranchesSuggestionsFunc(separator string) func(string) []*types.Suggestion
-	GetRefsSuggestionsFunc() func(string) []*types.Suggestion
-}
-
 type SuggestionsHelper struct {
 	c *HelperCommon
 }
-
-var _ ISuggestionsHelper = &SuggestionsHelper{}
 
 func NewSuggestionsHelper(
 	c *HelperCommon,
@@ -99,8 +89,6 @@ func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*ty
 // self.c.Model().FilesTrie. On the main thread we'll be doing a fuzzy search via
 // self.c.Model().FilesTrie. So if we've looked for a file previously, we'll start with
 // the old trie and eventually it'll be swapped out for the new one.
-// Notably, unlike other suggestion functions we're not showing all the options
-// if nothing has been typed because there'll be too much to display efficiently
 func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*types.Suggestion {
 	_ = self.c.WithWaitingStatus(self.c.Tr.LoadingFileSuggestions, func(gocui.Task) error {
 		trie := patricia.NewTrie()
@@ -115,7 +103,9 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 				if err != nil {
 					return err
 				}
-				trie.Insert(patricia.Prefix(path), path)
+				if path != "." {
+					trie.Insert(patricia.Prefix(path), path)
+				}
 				return nil
 			})
 
@@ -162,8 +152,24 @@ func (self *SuggestionsHelper) getRemoteBranchNames(separator string) []string {
 	})
 }
 
+func (self *SuggestionsHelper) getRemoteBranchNamesForRemote(remoteName string) []string {
+	remote, ok := lo.Find(self.c.Model().Remotes, func(remote *models.Remote) bool {
+		return remote.Name == remoteName
+	})
+	if ok {
+		return lo.Map(remote.Branches, func(branch *models.RemoteBranch, _ int) string {
+			return branch.Name
+		})
+	}
+	return nil
+}
+
 func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string) func(string) []*types.Suggestion {
 	return FilterFunc(self.getRemoteBranchNames(separator), self.c.UserConfig().Gui.UseFuzzySearch())
+}
+
+func (self *SuggestionsHelper) GetRemoteBranchesForRemoteSuggestionsFunc(remoteName string) func(string) []*types.Suggestion {
+	return FilterFunc(self.getRemoteBranchNamesForRemote(remoteName), self.c.UserConfig().Gui.UseFuzzySearch())
 }
 
 func (self *SuggestionsHelper) getTagNames() []string {

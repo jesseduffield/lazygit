@@ -89,7 +89,7 @@ func (s RefSpec) IsNegative() bool {
 	return s[0] == refSpecNegative[0]
 }
 
-// Src return the src side.
+// Src returns the src side.
 func (s RefSpec) Src() string {
 	spec := string(s)
 

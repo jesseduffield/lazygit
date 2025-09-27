@@ -28,7 +28,7 @@ type FakeCmdObjRunner struct {
 type CmdObjMatcher struct {
 	description string
 	// returns true if the matcher matches the command object
-	test func(ICmdObj) bool
+	test func(*CmdObj) bool
 
 	// output of the command
 	output string
@@ -48,12 +48,12 @@ func (self *FakeCmdObjRunner) remainingExpectedCmds() []CmdObjMatcher {
 	})
 }
 
-func (self *FakeCmdObjRunner) Run(cmdObj ICmdObj) error {
+func (self *FakeCmdObjRunner) Run(cmdObj *CmdObj) error {
 	_, err := self.RunWithOutput(cmdObj)
 	return err
 }
 
-func (self *FakeCmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
+func (self *FakeCmdObjRunner) RunWithOutput(cmdObj *CmdObj) (string, error) {
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
 
@@ -78,12 +78,12 @@ func (self *FakeCmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 	return "", nil
 }
 
-func (self *FakeCmdObjRunner) RunWithOutputs(cmdObj ICmdObj) (string, string, error) {
+func (self *FakeCmdObjRunner) RunWithOutputs(cmdObj *CmdObj) (string, string, error) {
 	output, err := self.RunWithOutput(cmdObj)
 	return output, "", err
 }
 
-func (self *FakeCmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
+func (self *FakeCmdObjRunner) RunAndProcessLines(cmdObj *CmdObj, onLine func(line string) (bool, error)) error {
 	output, err := self.RunWithOutput(cmdObj)
 	if err != nil {
 		return err
@@ -105,7 +105,7 @@ func (self *FakeCmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(lin
 	return nil
 }
 
-func (self *FakeCmdObjRunner) ExpectFunc(description string, fn func(cmdObj ICmdObj) bool, output string, err error) *FakeCmdObjRunner {
+func (self *FakeCmdObjRunner) ExpectFunc(description string, fn func(cmdObj *CmdObj) bool, output string, err error) *FakeCmdObjRunner {
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
 
@@ -121,7 +121,7 @@ func (self *FakeCmdObjRunner) ExpectFunc(description string, fn func(cmdObj ICmd
 
 func (self *FakeCmdObjRunner) ExpectArgs(expectedArgs []string, output string, err error) *FakeCmdObjRunner {
 	description := fmt.Sprintf("matches args %s", strings.Join(expectedArgs, " "))
-	self.ExpectFunc(description, func(cmdObj ICmdObj) bool {
+	self.ExpectFunc(description, func(cmdObj *CmdObj) bool {
 		return slices.Equal(expectedArgs, cmdObj.GetCmd().Args)
 	}, output, err)
 
@@ -130,7 +130,7 @@ func (self *FakeCmdObjRunner) ExpectArgs(expectedArgs []string, output string, e
 
 func (self *FakeCmdObjRunner) ExpectGitArgs(expectedArgs []string, output string, err error) *FakeCmdObjRunner {
 	description := fmt.Sprintf("matches git args %s", strings.Join(expectedArgs, " "))
-	self.ExpectFunc(description, func(cmdObj ICmdObj) bool {
+	self.ExpectFunc(description, func(cmdObj *CmdObj) bool {
 		return slices.Equal(expectedArgs, cmdObj.GetCmd().Args[1:])
 	}, output, err)
 

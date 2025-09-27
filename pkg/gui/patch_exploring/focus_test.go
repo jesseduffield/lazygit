@@ -62,7 +62,7 @@ func TestNewOrigin(t *testing.T) {
 			lastLineIdx:     199,
 			selectedLineIdx: 199,
 			selectMode:      LINE,
-			expected:        99,
+			expected:        100,
 		},
 		{
 			name:            "selection within scroll window",

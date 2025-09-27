@@ -17,6 +17,14 @@ want to retrieve.
 port := ssh_config.Get("myhost", "Port")
 ```
 
+Certain directives can occur multiple times for a host (such as `IdentityFile`),
+so you should use the `GetAll` or `GetAllStrict` directive to retrieve those
+instead.
+
+```go
+files := ssh_config.GetAll("myhost", "IdentityFile")
+```
+
 You can also load a config file and read values from it.
 
 ```go
@@ -76,6 +84,9 @@ file format.
 
 ## Donating
 
-Donations free up time to make improvements to the library, and respond to
-bug reports. You can send donations via Paypal's "Send Money" feature to
-kev@inburke.com. Donations are not tax deductible in the USA.
+I don't get paid to maintain this project. Donations free up time to make
+improvements to the library, and respond to bug reports. You can send donations
+via Paypal's "Send Money" feature to kev@inburke.com. Donations are not tax
+deductible in the USA.
+
+You can also reach out about a consulting engagement: https://burke.services

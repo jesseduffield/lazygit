@@ -16,7 +16,7 @@ type errorMapping struct {
 func knownError(tr *i18n.TranslationSet, err error) (string, bool) {
 	errorMessage := err.Error()
 
-	knownErrorMessages := []string{tr.MinGitVersionError}
+	knownErrorMessages := []string{minGitVersionErrorMessage(tr)}
 
 	if lo.Contains(knownErrorMessages, errorMessage) {
 		return errorMessage, true

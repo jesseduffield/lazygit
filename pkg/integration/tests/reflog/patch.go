@@ -48,9 +48,11 @@ var Patch = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("file1").IsSelected(),
+				Equals("▼ /").IsSelected(),
+				Contains("file1"),
 				Contains("file2"),
 			).
+			SelectNextItem().
 			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("Building patch"))

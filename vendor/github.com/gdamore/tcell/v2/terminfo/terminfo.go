@@ -227,13 +227,25 @@ type Terminfo struct {
 	CursorSteadyUnderline   string
 	CursorBlinkingBar       string
 	CursorSteadyBar         string
+	CursorColor             string // nothing uses it yet
+	CursorColorRGB          string // Cs (but not really because Cs uses X11 color string)
+	CursorColorReset        string // Cr
 	EnterUrl                string
 	ExitUrl                 string
 	SetWindowSize           string
+	SetWindowTitle          string // no terminfo extension
 	EnableFocusReporting    string
 	DisableFocusReporting   string
 	DisableAutoMargin       string // smam
 	EnableAutoMargin        string // rmam
+	DoubleUnderline         string // Smulx with param 2
+	CurlyUnderline          string // Smulx with param 3
+	DottedUnderline         string // Smulx with param 4
+	DashedUnderline         string // Smulx with param 5
+	UnderlineColor          string // Setuc1
+	UnderlineColorRGB       string // Setulc
+	UnderlineColorReset     string // ol
+	XTermLike               bool   // (XT) has XTerm extensions
 }
 
 const (

@@ -25,7 +25,7 @@ func NewWorktreesController(
 ) *WorktreesController {
 	return &WorktreesController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.Worktree](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Worktrees,
 			c.Contexts().Worktrees.GetSelected,
@@ -52,7 +52,7 @@ func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*t
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Confirm),
+			Key:               opts.GetKey(opts.Config.Universal.GoInto),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 		},

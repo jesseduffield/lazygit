@@ -55,17 +55,7 @@ func (self *ContextMgr) Replace(c types.Context) {
 	self.Activate(c, types.OnFocusOpts{})
 }
 
-func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) {
-	if len(opts) > 1 {
-		panic("cannot pass multiple opts to Push")
-	}
-
-	singleOpts := types.OnFocusOpts{}
-	if len(opts) > 0 {
-		// using triple dot but you should only ever pass one of these opt structs
-		singleOpts = opts[0]
-	}
-
+func (self *ContextMgr) Push(c types.Context, opts types.OnFocusOpts) {
 	if !c.IsFocusable() {
 		return
 	}
@@ -77,7 +67,7 @@ func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) {
 	}
 
 	if contextToActivate != nil {
-		self.Activate(contextToActivate, singleOpts)
+		self.Activate(contextToActivate, opts)
 	}
 }
 
@@ -206,7 +196,7 @@ func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) {
 
 	v.Visible = true
 
-	self.gui.c.GocuiGui().Cursor = v.Editable
+	self.gui.c.GocuiGui().Cursor = v.Editable && v.Mask == 0
 
 	c.HandleFocus(opts)
 }
@@ -366,4 +356,20 @@ func (self *ContextMgr) CurrentPopup() []types.Context {
 	return lo.Filter(self.ContextStack, func(context types.Context, _ int) bool {
 		return context.GetKind() == types.TEMPORARY_POPUP || context.GetKind() == types.PERSISTENT_POPUP
 	})
+}
+
+func (self *ContextMgr) NextInStack(c types.Context) types.Context {
+	self.RLock()
+	defer self.RUnlock()
+
+	for i := range self.ContextStack {
+		if self.ContextStack[i].GetKey() == c.GetKey() {
+			if i == 0 {
+				return nil
+			}
+			return self.ContextStack[i-1]
+		}
+	}
+
+	panic("context not in stack")
 }

@@ -8,7 +8,7 @@ import (
 
 type IconProperties struct {
 	Icon  string
-	Color uint8
+	Color string
 }
 
 var isIconEnabled = false

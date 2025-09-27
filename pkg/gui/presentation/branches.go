@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -18,7 +19,12 @@ import (
 	"github.com/samber/lo"
 )
 
-var branchPrefixColorCache = make(map[string]style.TextStyle)
+type colorMatcher struct {
+	patterns map[string]*style.TextStyle
+	isRegex  bool // NOTE: this value is needed only until the deprecated branchColors config is removed and only regex color patterns are used
+}
+
+var colorPatterns *colorMatcher
 
 func GetBranchListDisplayStrings(
 	branches []*models.Branch,
@@ -51,12 +57,13 @@ func getBranchDisplayStrings(
 	checkedOutByWorkTree := git_commands.CheckedOutByOtherWorktree(b, worktrees)
 	showCommitHash := fullDescription || userConfig.Gui.ShowBranchCommitHash
 	branchStatus := BranchStatus(b, itemOperation, tr, now, userConfig)
+	divergence := divergenceStr(b, itemOperation, tr, userConfig)
 	worktreeIcon := lo.Ternary(icons.IsIconEnabled(), icons.LINKED_WORKTREE_ICON, fmt.Sprintf("(%s)", tr.LcWorktree))
 
 	// Recency is always three characters, plus one for the space
 	availableWidth := viewWidth - 4
-	if len(branchStatus) > 0 {
-		availableWidth -= utils.StringWidth(utils.Decolorise(branchStatus)) + 1
+	if len(divergence) > 0 {
+		availableWidth -= utils.StringWidth(divergence) + 1
 	}
 	if icons.IsIconEnabled() {
 		availableWidth -= 2 // one for the icon, one for the space
@@ -64,8 +71,14 @@ func getBranchDisplayStrings(
 	if showCommitHash {
 		availableWidth -= utils.COMMIT_HASH_SHORT_SIZE + 1
 	}
+	paddingNeededForDivergence := availableWidth
+
 	if checkedOutByWorkTree {
 		availableWidth -= utils.StringWidth(worktreeIcon) + 1
+	}
+
+	if len(branchStatus) > 0 {
+		availableWidth -= utils.StringWidth(utils.Decolorise(branchStatus)) + 1
 	}
 
 	displayName := b.Name
@@ -108,6 +121,13 @@ func getBranchDisplayStrings(
 		res = append(res, utils.ShortHash(b.CommitHash))
 	}
 
+	if divergence != "" {
+		paddingNeededForDivergence -= utils.StringWidth(utils.Decolorise(coloredName)) - 1
+		if paddingNeededForDivergence > 0 {
+			coloredName += strings.Repeat(" ", paddingNeededForDivergence)
+			coloredName += style.FgCyan.Sprint(divergence)
+		}
+	}
 	res = append(res, coloredName)
 
 	if fullDescription {
@@ -125,22 +145,29 @@ func getBranchDisplayStrings(
 
 // GetBranchTextStyle branch color
 func GetBranchTextStyle(name string) style.TextStyle {
-	branchType := strings.Split(name, "/")[0]
-
-	if value, ok := branchPrefixColorCache[branchType]; ok {
-		return value
+	if style, ok := colorPatterns.match(name); ok {
+		return *style
 	}
 
-	switch branchType {
-	case "feature":
-		return style.FgGreen
-	case "bugfix":
-		return style.FgYellow
-	case "hotfix":
-		return style.FgRed
-	default:
-		return theme.DefaultTextColor
+	return theme.DefaultTextColor
+}
+
+func (m *colorMatcher) match(name string) (*style.TextStyle, bool) {
+	if m.isRegex {
+		for pattern, style := range m.patterns {
+			if matched, _ := regexp.MatchString(pattern, name); matched {
+				return style, true
+			}
+		}
+	} else {
+		// old behavior using the deprecated branchColors behavior matching on branch type
+		branchType := strings.Split(name, "/")[0]
+		if value, ok := m.patterns[branchType]; ok {
+			return value, true
+		}
 	}
+
+	return nil, false
 }
 
 func BranchStatus(
@@ -152,7 +179,7 @@ func BranchStatus(
 ) string {
 	itemOperationStr := ItemOperationToString(itemOperation, tr)
 	if itemOperationStr != "" {
-		return style.FgCyan.Sprintf("%s %s", itemOperationStr, utils.Loader(now, userConfig.Gui.Spinner))
+		return style.FgCyan.Sprintf("%s %s", itemOperationStr, Loader(now, userConfig.Gui.Spinner))
 	}
 
 	result := ""
@@ -172,16 +199,23 @@ func BranchStatus(
 		}
 	}
 
-	if userConfig.Gui.ShowDivergenceFromBaseBranch != "none" {
+	return result
+}
+
+func divergenceStr(
+	branch *models.Branch,
+	itemOperation types.ItemOperation,
+	tr *i18n.TranslationSet,
+	userConfig *config.UserConfig,
+) string {
+	result := ""
+	if ItemOperationToString(itemOperation, tr) == "" && userConfig.Gui.ShowDivergenceFromBaseBranch != "none" {
 		behind := branch.BehindBaseBranch.Load()
 		if behind != 0 {
-			if result != "" {
-				result += " "
-			}
 			if userConfig.Gui.ShowDivergenceFromBaseBranch == "arrowAndNumber" {
-				result += style.FgCyan.Sprintf("↓%d", behind)
+				result += fmt.Sprintf("↓%d", behind)
 			} else {
-				result += style.FgCyan.Sprintf("↓")
+				result += "↓"
 			}
 		}
 	}
@@ -189,6 +223,9 @@ func BranchStatus(
 	return result
 }
 
-func SetCustomBranches(customBranchColors map[string]string) {
-	branchPrefixColorCache = utils.SetCustomColors(customBranchColors)
+func SetCustomBranches(customBranchColors map[string]string, isRegex bool) {
+	colorPatterns = &colorMatcher{
+		patterns: utils.SetCustomColors(customBranchColors),
+		isRegex:  isRegex,
+	}
 }

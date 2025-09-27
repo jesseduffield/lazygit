@@ -5,7 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,7 +46,7 @@ func TestGetTags(t *testing.T) {
 	for _, scenario := range scenarios {
 		t.Run(scenario.testName, func(t *testing.T) {
 			loader := &TagLoader{
-				Common: utils.NewDummyCommon(),
+				Common: common.NewDummyCommon(),
 				cmd:    oscommands.NewDummyCmdObjBuilder(scenario.runner),
 			}
 

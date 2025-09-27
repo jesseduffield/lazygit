@@ -49,9 +49,8 @@ func (self *SubmoduleCommands) GetConfigs(parentModule *models.SubmoduleConfig) 
 
 		if len(matches) > 0 {
 			return matches[1], true
-		} else {
-			return "", false
 		}
+		return "", false
 	}
 
 	configs := []*models.SubmoduleConfig{}
@@ -237,28 +236,35 @@ func (self *SubmoduleCommands) Update(path string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *SubmoduleCommands) BulkInitCmdObj() oscommands.ICmdObj {
+func (self *SubmoduleCommands) BulkInitCmdObj() *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("submodule").Arg("init").
 		ToArgv()
 
 	return self.cmd.New(cmdArgs)
 }
 
-func (self *SubmoduleCommands) BulkUpdateCmdObj() oscommands.ICmdObj {
+func (self *SubmoduleCommands) BulkUpdateCmdObj() *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("submodule").Arg("update").
 		ToArgv()
 
 	return self.cmd.New(cmdArgs)
 }
 
-func (self *SubmoduleCommands) ForceBulkUpdateCmdObj() oscommands.ICmdObj {
+func (self *SubmoduleCommands) ForceBulkUpdateCmdObj() *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("submodule").Arg("update", "--force").
 		ToArgv()
 
 	return self.cmd.New(cmdArgs)
 }
 
-func (self *SubmoduleCommands) BulkDeinitCmdObj() oscommands.ICmdObj {
+func (self *SubmoduleCommands) BulkUpdateRecursivelyCmdObj() *oscommands.CmdObj {
+	cmdArgs := NewGitCmd("submodule").Arg("update", "--init", "--recursive").
+		ToArgv()
+
+	return self.cmd.New(cmdArgs)
+}
+
+func (self *SubmoduleCommands) BulkDeinitCmdObj() *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("submodule").Arg("deinit", "--all", "--force").
 		ToArgv()
 

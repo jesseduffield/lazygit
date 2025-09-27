@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
@@ -20,6 +21,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	}
 
 	maxColumnSize := 1
+	confirmKey := keybindings.GetKey(gui.c.UserConfig().Keybinding.Universal.ConfirmMenu)
 
 	for _, item := range opts.Items {
 		if item.LabelColumns == nil {
@@ -31,6 +33,11 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 		}
 
 		maxColumnSize = max(maxColumnSize, len(item.LabelColumns))
+
+		// Remove all item keybindings that are the same as the confirm binding
+		if item.Key == confirmKey && !opts.KeepConfirmKeybindings {
+			item.Key = nil
+		}
 	}
 
 	for _, item := range opts.Items {
@@ -43,6 +50,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 
 	gui.State.Contexts.Menu.SetMenuItems(opts.Items, opts.ColumnAlignment)
 	gui.State.Contexts.Menu.SetPrompt(opts.Prompt)
+	gui.State.Contexts.Menu.SetAllowFilteringKeybindings(opts.AllowFilteringKeybindings)
 	gui.State.Contexts.Menu.SetSelection(0)
 
 	gui.Views.Menu.Title = opts.Title
@@ -60,6 +68,6 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	gui.c.PostRefreshUpdate(gui.State.Contexts.Menu)
 
 	// TODO: ensure that if we're opened a menu from within a menu that it renders correctly
-	gui.c.Context().Push(gui.State.Contexts.Menu)
+	gui.c.Context().Push(gui.State.Contexts.Menu, types.OnFocusOpts{})
 	return nil
 }

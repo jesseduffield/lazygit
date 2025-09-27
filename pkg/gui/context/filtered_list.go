@@ -12,19 +12,23 @@ import (
 type FilteredList[T any] struct {
 	filteredIndices []int // if nil, we are not filtering
 
-	getList         func() []T
-	getFilterFields func(T) []string
-	filter          string
+	getList          func() []T
+	getFilterFields  func(T) []string
+	preprocessFilter func(string) string
+	filter           string
 
-	mutex *deadlock.Mutex
+	mutex deadlock.Mutex
 }
 
 func NewFilteredList[T any](getList func() []T, getFilterFields func(T) []string) *FilteredList[T] {
 	return &FilteredList[T]{
 		getList:         getList,
 		getFilterFields: getFilterFields,
-		mutex:           &deadlock.Mutex{},
 	}
+}
+
+func (self *FilteredList[T]) SetPreprocessFilterFunc(preprocessFilter func(string) string) {
+	self.preprocessFilter = preprocessFilter
 }
 
 func (self *FilteredList[T]) GetFilter() string {
@@ -80,7 +84,12 @@ func (self *FilteredList[T]) applyFilter(useFuzzySearch bool) {
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
 
-	if self.filter == "" {
+	filter := self.filter
+	if self.preprocessFilter != nil {
+		filter = self.preprocessFilter(filter)
+	}
+
+	if filter == "" {
 		self.filteredIndices = nil
 	} else {
 		source := &fuzzySource[T]{
@@ -88,7 +97,7 @@ func (self *FilteredList[T]) applyFilter(useFuzzySearch bool) {
 			getFilterFields: self.getFilterFields,
 		}
 
-		matches := utils.FindFrom(self.filter, source, useFuzzySearch)
+		matches := utils.FindFrom(filter, source, useFuzzySearch)
 		self.filteredIndices = lo.Map(matches, func(match fuzzy.Match, _ int) int {
 			return match.Index
 		})

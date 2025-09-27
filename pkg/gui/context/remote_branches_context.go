@@ -54,7 +54,7 @@ func NewRemoteBranchesContext(
 	}
 }
 
-func (self *RemoteBranchesContext) GetSelectedRef() types.Ref {
+func (self *RemoteBranchesContext) GetSelectedRef() models.Ref {
 	remoteBranch := self.GetSelected()
 	if remoteBranch == nil {
 		return nil
@@ -62,10 +62,10 @@ func (self *RemoteBranchesContext) GetSelectedRef() types.Ref {
 	return remoteBranch
 }
 
-func (self *RemoteBranchesContext) GetSelectedRefs() ([]types.Ref, int, int) {
+func (self *RemoteBranchesContext) GetSelectedRefs() ([]models.Ref, int, int) {
 	items, startIdx, endIdx := self.GetSelectedItems()
 
-	refs := lo.Map(items, func(item *models.RemoteBranch, _ int) types.Ref {
+	refs := lo.Map(items, func(item *models.RemoteBranch, _ int) models.Ref {
 		return item
 	})
 
@@ -76,6 +76,10 @@ func (self *RemoteBranchesContext) GetDiffTerminals() []string {
 	itemId := self.GetSelectedItemId()
 
 	return []string{itemId}
+}
+
+func (self *RemoteBranchesContext) RefForAdjustingLineNumberInDiff() string {
+	return self.GetSelectedItemId()
 }
 
 func (self *RemoteBranchesContext) ShowBranchHeadsInSubCommits() bool {

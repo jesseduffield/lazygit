@@ -8,6 +8,9 @@ import (
 
 func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch rune, mod gocui.Modifier, allowMultiline bool) bool {
 	switch {
+	case (key == gocui.KeyBackspace || key == gocui.KeyBackspace2) && (mod&gocui.ModAlt) != 0,
+		key == gocui.KeyCtrlW:
+		textArea.BackSpaceWord()
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
 		textArea.BackSpaceChar()
 	case key == gocui.KeyCtrlD || key == gocui.KeyDelete:
@@ -42,8 +45,6 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 		textArea.GoToStartOfLine()
 	case key == gocui.KeyCtrlE || key == gocui.KeyEnd:
 		textArea.GoToEndOfLine()
-	case key == gocui.KeyCtrlW:
-		textArea.BackSpaceWord()
 	case key == gocui.KeyCtrlY:
 		textArea.Yank()
 
@@ -61,14 +62,13 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
 	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, false)
 	v.RenderTextArea()
-	gui.c.Contexts().CommitMessage.RenderCommitLength()
+	gui.c.Contexts().CommitMessage.RenderSubtitle()
 	return matched
 }
 
 func (gui *Gui) commitDescriptionEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
 	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, true)
 	v.RenderTextArea()
-	gui.c.Contexts().CommitMessage.RenderCommitLength()
 	return matched
 }
 

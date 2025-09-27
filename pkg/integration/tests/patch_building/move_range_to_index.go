@@ -31,18 +31,20 @@ var MoveRangeToIndex = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("M file1").IsSelected(),
-				Contains("A file2"),
-				Contains("A file3"),
+				Equals("▼ /").IsSelected(),
+				Equals("  M file1"),
+				Equals("  A file2"),
+				Equals("  A file3"),
 			).
+			SelectNextItem().
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("file2")).
 			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("Building patch"))
 
-		t.Views().PatchBuildingSecondary().Content(Contains("second line"))
-		t.Views().PatchBuildingSecondary().Content(Contains("file two content"))
+		t.Views().Secondary().Content(Contains("second line"))
+		t.Views().Secondary().Content(Contains("file two content"))
 
 		t.Common().SelectPatchOption(MatchesRegexp(`Move patch out into index$`))
 
@@ -55,8 +57,9 @@ var MoveRangeToIndex = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			Focus().
 			Lines(
-				Contains("file1").IsSelected(),
-				Contains("file2"),
+				Equals("▼ /").IsSelected(),
+				Equals("  M  file1"),
+				Equals("  A  file2"),
 			)
 
 		t.Views().Main().

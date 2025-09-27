@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -18,7 +17,7 @@ func FormatStatus(
 	currentBranch *models.Branch,
 	itemOperation types.ItemOperation,
 	linkedWorktreeName string,
-	workingTreeState enums.RebaseMode,
+	workingTreeState models.WorkingTreeState,
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
 ) string {
@@ -31,8 +30,8 @@ func FormatStatus(
 		}
 	}
 
-	if workingTreeState != enums.REBASE_MODE_NONE {
-		status += style.FgYellow.Sprintf("(%s) ", FormatWorkingTreeStateLower(tr, workingTreeState))
+	if workingTreeState.Any() {
+		status += style.FgYellow.Sprintf("(%s) ", workingTreeState.LowerCaseTitle(tr))
 	}
 
 	name := GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)

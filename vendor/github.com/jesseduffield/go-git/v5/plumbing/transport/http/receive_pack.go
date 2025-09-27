@@ -19,13 +19,17 @@ type rpSession struct {
 	*session
 }
 
-func newReceivePackSession(c *http.Client, ep *transport.Endpoint, auth transport.AuthMethod) (transport.ReceivePackSession, error) {
+func newReceivePackSession(c *client, ep *transport.Endpoint, auth transport.AuthMethod) (transport.ReceivePackSession, error) {
 	s, err := newSession(c, ep, auth)
 	return &rpSession{s}, err
 }
 
 func (s *rpSession) AdvertisedReferences() (*packp.AdvRefs, error) {
-	return advertisedReferences(s.session, transport.ReceivePackServiceName)
+	return advertisedReferences(context.TODO(), s.session, transport.ReceivePackServiceName)
+}
+
+func (s *rpSession) AdvertisedReferencesContext(ctx context.Context) (*packp.AdvRefs, error) {
+	return advertisedReferences(ctx, s.session, transport.ReceivePackServiceName)
 }
 
 func (s *rpSession) ReceivePack(ctx context.Context, req *packp.ReferenceUpdateRequest) (
@@ -98,7 +102,6 @@ func (s *rpSession) doRequest(
 	}
 
 	if err := NewErr(res); err != nil {
-		_ = res.Body.Close()
 		return nil, err
 	}
 

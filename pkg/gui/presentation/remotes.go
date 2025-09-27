@@ -10,7 +10,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -49,7 +48,7 @@ func getRemoteDisplayStrings(
 	descriptionStr := style.FgBlue.Sprintf("%d branches", branchCount)
 	itemOperationStr := ItemOperationToString(itemOperation, tr)
 	if itemOperationStr != "" {
-		descriptionStr += " " + style.FgCyan.Sprint(itemOperationStr+" "+utils.Loader(time.Now(), userConfig.Gui.Spinner))
+		descriptionStr += " " + style.FgCyan.Sprint(itemOperationStr+" "+Loader(time.Now(), userConfig.Gui.Spinner))
 	}
 	res = append(res, textStyle.Sprint(r.Name), descriptionStr)
 	return res

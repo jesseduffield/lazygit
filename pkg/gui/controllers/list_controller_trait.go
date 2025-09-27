@@ -87,7 +87,7 @@ func (self *ListControllerTrait[T]) itemRangeSelected(callbacks ...func([]T, int
 	}
 }
 
-func (self *ListControllerTrait[T]) itemsSelected(callbacks ...func([]T) *types.DisabledReason) func() *types.DisabledReason { //nolint:unused
+func (self *ListControllerTrait[T]) itemsSelected(callbacks ...func([]T) *types.DisabledReason) func() *types.DisabledReason {
 	return func() *types.DisabledReason {
 		items, _, _ := self.getSelectedItems()
 		if len(items) == 0 {

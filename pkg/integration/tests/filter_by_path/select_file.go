@@ -19,22 +19,25 @@ var SelectFile = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains(`none of the two`).IsSelected(),
-				Contains(`only filterFile`),
-				Contains(`only otherFile`),
 				Contains(`both files`),
+				Contains(`only otherFile`),
+				Contains(`only filterFile`),
 			).
-			NavigateToLine(Contains(`only filterFile`)).
+			NavigateToLine(Contains(`both files`)).
 			PressEnter()
 
-		// when you click into the commit itself, you see all files from that commit
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains(`filterFile`).IsSelected(),
+				Equals(`▼ /`).IsSelected(),
+				Equals(`  M filterFile`),
+				Equals(`  M otherFile`),
 			).
+			SelectNextItem().
 			Press(keys.Universal.FilteringMenu)
 
-		t.ExpectPopup().Menu().Title(Equals("Filtering")).Select(Contains("Filter by 'filterFile'")).Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Filtering")).
+			Select(Contains("Filter by 'filterFile'")).Confirm()
 
 		postFilterTest(t)
 	},

@@ -79,13 +79,16 @@ func (self *SuggestionsContext) RefreshSuggestions() {
 		if findSuggestionsFn != nil {
 			suggestions := findSuggestionsFn(self.c.GetPromptInput())
 			return func() { self.SetSuggestions(suggestions) }
-		} else {
-			return func() {}
 		}
+		return func() {}
 	})
 }
 
 // There is currently no need to use range-select in the suggestions view so we're disabling it.
 func (self *SuggestionsContext) RangeSelectEnabled() bool {
 	return false
+}
+
+func (self *SuggestionsContext) GetOnClick() func() error {
+	return self.State.OnConfirm
 }

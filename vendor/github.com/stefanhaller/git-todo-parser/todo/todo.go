@@ -1,6 +1,6 @@
 package todo
 
-type TodoCommand int
+type TodoCommand uint8
 
 const (
 	Pick TodoCommand = iota + 1

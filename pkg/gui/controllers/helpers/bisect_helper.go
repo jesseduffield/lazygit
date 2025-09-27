@@ -22,13 +22,14 @@ func (self *BisectHelper) Reset() error {
 				return err
 			}
 
-			return self.PostBisectCommandRefresh()
+			self.PostBisectCommandRefresh()
+			return nil
 		},
 	})
 
 	return nil
 }
 
-func (self *BisectHelper) PostBisectCommandRefresh() error {
-	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{}})
+func (self *BisectHelper) PostBisectCommandRefresh() {
+	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{}})
 }

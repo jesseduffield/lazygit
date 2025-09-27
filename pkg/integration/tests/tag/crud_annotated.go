@@ -32,6 +32,18 @@ var CrudAnnotated = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				MatchesRegexp(`new-tag.*message`).IsSelected(),
 			).
+			Tap(func() {
+				t.Views().Main().ContainsLines(
+					Equals("Annotated tag: new-tag"),
+					Equals(""),
+					Contains("Tagger:"),
+					Contains("TaggerDate:"),
+					Equals(""),
+					Equals("message"),
+					Equals(""),
+					Equals("---"),
+				)
+			}).
 			Press(keys.Universal.Push).
 			Tap(func() {
 				t.ExpectPopup().Prompt().

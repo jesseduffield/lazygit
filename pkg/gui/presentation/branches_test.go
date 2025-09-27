@@ -8,9 +8,9 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/xo/terminfo"
@@ -113,11 +113,11 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			},
 			itemOperation:        types.ItemOperationNone,
 			fullDescription:      false,
-			viewWidth:            100,
+			viewWidth:            20,
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "onlyArrow",
-			expected:             []string{"1m", "branch_name ↓"},
+			expected:             []string{"1m", "branch_name    ↓"},
 		},
 		{
 			branch: &models.Branch{
@@ -130,11 +130,11 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			},
 			itemOperation:        types.ItemOperationNone,
 			fullDescription:      false,
-			viewWidth:            100,
+			viewWidth:            22,
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "arrowAndNumber",
-			expected:             []string{"1m", "branch_name ✓ ↓2"},
+			expected:             []string{"1m", "branch_name ✓   ↓2"},
 		},
 		{
 			branch: &models.Branch{
@@ -147,11 +147,11 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			},
 			itemOperation:        types.ItemOperationNone,
 			fullDescription:      false,
-			viewWidth:            100,
+			viewWidth:            26,
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "arrowAndNumber",
-			expected:             []string{"1m", "branch_name ↓5↑3 ↓2"},
+			expected:             []string{"1m", "branch_name ↓5↑3    ↓2"},
 		},
 		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},
@@ -242,6 +242,23 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 		},
 		{
 			branch: &models.Branch{
+				Name:             "branch_name",
+				Recency:          "1m",
+				UpstreamRemote:   "origin",
+				AheadForPull:     "3",
+				BehindForPull:    "5",
+				BehindBaseBranch: makeAtomic(4),
+			},
+			itemOperation:        types.ItemOperationNone,
+			fullDescription:      false,
+			viewWidth:            21,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			showDivergenceCfg:    "arrowAndNumber",
+			expected:             []string{"1m", "branch_n… ↓5↑3 ↓4"},
+		},
+		{
+			branch: &models.Branch{
 				Name:           "branch_name",
 				Recency:        "1m",
 				UpstreamRemote: "origin",
@@ -320,7 +337,8 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
 	defer color.ForceSetColorLevel(oldColorLevel)
 
-	c := utils.NewDummyCommon()
+	c := common.NewDummyCommon()
+	SetCustomBranches(c.UserConfig().Gui.BranchColorPatterns, true)
 
 	for i, s := range scenarios {
 		icons.SetNerdFontsVersion(lo.Ternary(s.useIcons, "3", ""))

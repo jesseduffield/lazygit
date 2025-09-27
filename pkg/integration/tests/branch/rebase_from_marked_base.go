@@ -9,7 +9,9 @@ var RebaseFromMarkedBase = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Rebase onto another branch from a marked base commit",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.LocalBranchSortOrder = "recency"
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.
 			NewBranch("base-branch").

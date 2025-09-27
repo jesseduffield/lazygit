@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -42,7 +40,8 @@ func NewModeHelper(
 
 type ModeStatus struct {
 	IsActive    func() bool
-	Description func() string
+	InfoLabel   func() string
+	CancelLabel func() string
 	Reset       func() error
 }
 
@@ -50,7 +49,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 	return []ModeStatus{
 		{
 			IsActive: self.c.Modes().Diffing.Active,
-			Description: func() string {
+			InfoLabel: func() string {
 				return self.withResetButton(
 					fmt.Sprintf(
 						"%s %s",
@@ -60,18 +59,24 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 					style.FgMagenta,
 				)
 			},
+			CancelLabel: func() string {
+				return self.c.Tr.CancelDiffingMode
+			},
 			Reset: self.diffHelper.ExitDiffMode,
 		},
 		{
 			IsActive: self.c.Git().Patch.PatchBuilder.Active,
-			Description: func() string {
+			InfoLabel: func() string {
 				return self.withResetButton(self.c.Tr.BuildingPatch, style.FgYellow.SetBold())
+			},
+			CancelLabel: func() string {
+				return self.c.Tr.ExitCustomPatchBuilder
 			},
 			Reset: self.patchBuildingHelper.Reset,
 		},
 		{
 			IsActive: self.c.Modes().Filtering.Active,
-			Description: func() string {
+			InfoLabel: func() string {
 				filterContent := lo.Ternary(self.c.Modes().Filtering.GetPath() != "", self.c.Modes().Filtering.GetPath(), self.c.Modes().Filtering.GetAuthor())
 				return self.withResetButton(
 					fmt.Sprintf(
@@ -82,21 +87,27 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 					style.FgRed,
 				)
 			},
+			CancelLabel: func() string {
+				return self.c.Tr.ExitFilterMode
+			},
 			Reset: self.ExitFilterMode,
 		},
 		{
 			IsActive: self.c.Modes().MarkedBaseCommit.Active,
-			Description: func() string {
+			InfoLabel: func() string {
 				return self.withResetButton(
 					self.c.Tr.MarkedBaseCommitStatus,
 					style.FgCyan,
 				)
 			},
+			CancelLabel: func() string {
+				return self.c.Tr.CancelMarkedBaseCommit
+			},
 			Reset: self.mergeAndRebaseHelper.ResetMarkedBaseCommit,
 		},
 		{
 			IsActive: self.c.Modes().CherryPicking.Active,
-			Description: func() string {
+			InfoLabel: func() string {
 				copiedCount := len(self.c.Modes().CherryPicking.CherryPickedCommits)
 				text := self.c.Tr.CommitsCopied
 				if copiedCount == 1 {
@@ -112,17 +123,23 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 					style.FgCyan,
 				)
 			},
+			CancelLabel: func() string {
+				return self.c.Tr.ResetCherryPickShort
+			},
 			Reset: self.cherryPickHelper.Reset,
 		},
 		{
 			IsActive: func() bool {
-				return !self.suppressRebasingMode && self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE
+				return !self.suppressRebasingMode && self.c.Git().Status.WorkingTreeState().Any()
 			},
-			Description: func() string {
+			InfoLabel: func() string {
 				workingTreeState := self.c.Git().Status.WorkingTreeState()
 				return self.withResetButton(
-					presentation.FormatWorkingTreeStateTitle(self.c.Tr, workingTreeState), style.FgYellow,
+					workingTreeState.Title(self.c.Tr), style.FgYellow,
 				)
+			},
+			CancelLabel: func() string {
+				return fmt.Sprintf(self.c.Tr.AbortTitle, self.c.Git().Status.WorkingTreeState().CommandName())
 			},
 			Reset: self.mergeAndRebaseHelper.AbortMergeOrRebaseWithConfirm,
 		},
@@ -130,8 +147,11 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 			IsActive: func() bool {
 				return self.c.Model().BisectInfo.Started()
 			},
-			Description: func() string {
+			InfoLabel: func() string {
 				return self.withResetButton(self.c.Tr.Bisect.Bisecting, style.FgGreen)
+			},
+			CancelLabel: func() string {
+				return self.c.Tr.Actions.ResetBisect
 			},
 			Reset: self.bisectHelper.Reset,
 		},
@@ -169,9 +189,9 @@ func (self *ModeHelper) ClearFiltering() error {
 		self.c.State().GetRepoState().SetScreenMode(types.SCREEN_NORMAL)
 	}
 
-	return self.c.Refresh(types.RefreshOptions{
-		Scope: []types.RefreshableView{types.COMMITS},
-		Then: func() error {
+	self.c.Refresh(types.RefreshOptions{
+		Scope: ScopesToRefreshWhenFilteringModeChanges(),
+		Then: func() {
 			// Find the commit that was last selected in filtering mode, and select it again after refreshing
 			if !self.c.Contexts().LocalCommits.SelectCommitByHash(selectedCommitHash) {
 				// If we couldn't find it (either because no commit was selected
@@ -180,9 +200,22 @@ func (self *ModeHelper) ClearFiltering() error {
 				// before we entered filtering
 				self.c.Contexts().LocalCommits.SelectCommitByHash(self.c.Modes().Filtering.GetSelectedCommitHash())
 			}
-			return nil
+
+			self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
 		},
 	})
+	return nil
+}
+
+// Stashes really only need to be refreshed when filtering by path, not by author, but it's too much
+// work to distinguish this, and refreshing stashes is fast, so we don't bother
+func ScopesToRefreshWhenFilteringModeChanges() []types.RefreshableView {
+	return []types.RefreshableView{
+		types.COMMITS,
+		types.SUB_COMMITS,
+		types.REFLOG,
+		types.STASH,
+	}
 }
 
 func (self *ModeHelper) SetSuppressRebasingMode(value bool) {

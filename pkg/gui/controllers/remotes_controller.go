@@ -28,7 +28,7 @@ func NewRemotesController(
 ) *RemotesController {
 	return &RemotesController{
 		baseController: baseController{},
-		ListControllerTrait: NewListControllerTrait[*models.Remote](
+		ListControllerTrait: NewListControllerTrait(
 			c,
 			c.Contexts().Remotes,
 			c.Contexts().Remotes.GetSelected,
@@ -129,7 +129,7 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 
 	self.c.PostRefreshUpdate(remoteBranchesContext)
 
-	self.c.Context().Push(remoteBranchesContext)
+	self.c.Context().Push(remoteBranchesContext, types.OnFocusOpts{})
 	return nil
 }
 
@@ -148,12 +148,10 @@ func (self *RemotesController) add() error {
 					// Do a sync refresh of the remotes so that we can select
 					// the new one. Loading remotes is not expensive, so we can
 					// afford it.
-					if err := self.c.Refresh(types.RefreshOptions{
+					self.c.Refresh(types.RefreshOptions{
 						Scope: []types.RefreshableView{types.REMOTES},
 						Mode:  types.SYNC,
-					}); err != nil {
-						return err
-					}
+					})
 
 					// Select the new remote
 					for idx, remote := range self.c.Model().Remotes {
@@ -185,7 +183,8 @@ func (self *RemotesController) remove(remote *models.Remote) error {
 				return err
 			}
 
-			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+			return nil
 		},
 	})
 
@@ -232,7 +231,8 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 					if err := self.c.Git().Remote.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
 						return err
 					}
-					return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+					self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+					return nil
 				},
 			})
 
@@ -250,9 +250,10 @@ func (self *RemotesController) fetch(remote *models.Remote) error {
 			return err
 		}
 
-		return self.c.Refresh(types.RefreshOptions{
+		self.c.Refresh(types.RefreshOptions{
 			Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
 			Mode:  types.ASYNC,
 		})
+		return nil
 	})
 }

@@ -20,11 +20,15 @@
 | `<pgup>`      | Pgup           |
 | `<pgdown>`    | Pgdn           |
 | `<up>`        | ArrowUp        |
+| `<s-up>`      | ShiftArrowUp   |
 | `<down>`      | ArrowDown      |
+| `<s-down>`    | ShiftArrowDown |
 | `<left>`      | ArrowLeft      |
 | `<right>`     | ArrowRight     |
 | `<tab>`       | Tab            |
+| `<backtab>`   | Backtab        |
 | `<enter>`     | Enter          |
+| `<a-enter>`   | AltEnter       |
 | `<esc>`       | Esc            |
 | `<backspace>` | Backspace      |
 | `<c-space>`   | CtrlSpace      |

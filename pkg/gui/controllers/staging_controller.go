@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -66,9 +68,11 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			Tooltip:     self.c.Tr.EditFileTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Return),
-			Handler:     self.Escape,
-			Description: self.c.Tr.ReturnToFilesPanel,
+			Key:             opts.GetKey(opts.Config.Universal.Return),
+			Handler:         self.Escape,
+			Description:     self.c.Tr.ReturnToFilesPanel,
+			DescriptionFunc: self.EscapeDescription,
+			DisplayOnScreen: true,
 		},
 		{
 			Key:             opts.GetKey(opts.Config.Universal.TogglePanel),
@@ -118,8 +122,9 @@ func (self *StagingController) GetMouseKeybindings(opts types.KeybindingsOpts) [
 
 func (self *StagingController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(opts types.OnFocusOpts) {
-		self.c.Views().Staging.Wrap = false
-		self.c.Views().StagingSecondary.Wrap = false
+		wrap := self.c.UserConfig().Gui.WrapLinesInStagingView
+		self.c.Views().Staging.Wrap = wrap
+		self.c.Views().StagingSecondary.Wrap = wrap
 
 		self.c.Helpers().Staging.RefreshStagingPanel(opts)
 	}
@@ -160,11 +165,12 @@ func (self *StagingController) EditFile() error {
 	}
 
 	lineNumber := self.context.GetState().CurrentLineNumber()
+	lineNumber = self.c.Helpers().Diff.AdjustLineNumber(path, lineNumber, self.context.GetViewName())
 	return self.c.Helpers().Files.EditFileAtLine(path, lineNumber)
 }
 
 func (self *StagingController) Escape() error {
-	if self.context.GetState().SelectingRange() || self.context.GetState().SelectingHunk() {
+	if self.context.GetState().SelectingRange() || self.context.GetState().SelectingHunkEnabledByUser() {
 		self.context.GetState().SetLineSelectMode()
 		self.c.PostRefreshUpdate(self.context)
 		return nil
@@ -174,32 +180,49 @@ func (self *StagingController) Escape() error {
 	return nil
 }
 
+func (self *StagingController) EscapeDescription() string {
+	if state := self.context.GetState(); state != nil {
+		if state.SelectingRange() {
+			return self.c.Tr.DismissRangeSelect
+		}
+
+		if state.SelectingHunkEnabledByUser() {
+			return self.c.Tr.SelectLineByLine
+		}
+	}
+
+	return self.c.Tr.ReturnToFilesPanel
+}
+
 func (self *StagingController) TogglePanel() error {
 	if self.otherContext.GetState() != nil {
-		self.c.Context().Push(self.otherContext)
+		self.c.Context().Push(self.otherContext, types.OnFocusOpts{})
 	}
 
 	return nil
 }
 
 func (self *StagingController) ToggleStaged() error {
+	if self.c.UserConfig().Git.DiffContextSize == 0 {
+		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToStage,
+			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
+	}
+
 	return self.applySelectionAndRefresh(self.staged)
 }
 
 func (self *StagingController) DiscardSelection() error {
-	reset := func() error { return self.applySelectionAndRefresh(true) }
-
-	if !self.staged && !self.c.UserConfig().Gui.SkipDiscardChangeWarning {
-		self.c.Confirm(types.ConfirmOpts{
-			Title:         self.c.Tr.DiscardChangeTitle,
-			Prompt:        self.c.Tr.DiscardChangePrompt,
-			HandleConfirm: reset,
-		})
-
-		return nil
+	if self.c.UserConfig().Git.DiffContextSize == 0 {
+		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToDiscard,
+			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
 	}
 
-	return reset()
+	return self.c.ConfirmIf(!self.staged && !self.c.UserConfig().Gui.SkipDiscardChangeWarning,
+		types.ConfirmOpts{
+			Title:         self.c.Tr.DiscardChangeTitle,
+			Prompt:        self.c.Tr.DiscardChangePrompt,
+			HandleConfirm: func() error { return self.applySelectionAndRefresh(true) },
+		})
 }
 
 func (self *StagingController) applySelectionAndRefresh(reverse bool) error {
@@ -207,7 +230,8 @@ func (self *StagingController) applySelectionAndRefresh(reverse bool) error {
 		return err
 	}
 
-	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
+	return nil
 }
 
 func (self *StagingController) applySelection(reverse bool) error {
@@ -220,7 +244,7 @@ func (self *StagingController) applySelection(reverse bool) error {
 		return nil
 	}
 
-	firstLineIdx, lastLineIdx := state.SelectedRange()
+	firstLineIdx, lastLineIdx := state.SelectedPatchRange()
 	patchToApply := patch.
 		Parse(state.GetDiff()).
 		Transform(patch.TransformOpts{
@@ -249,7 +273,7 @@ func (self *StagingController) applySelection(reverse bool) error {
 	}
 
 	if state.SelectingRange() {
-		firstLine, _ := state.SelectedRange()
+		firstLine, _ := state.SelectedViewRange()
 		state.SelectLine(firstLine)
 	}
 
@@ -261,7 +285,8 @@ func (self *StagingController) EditHunkAndRefresh() error {
 		return err
 	}
 
-	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
+	return nil
 }
 
 func (self *StagingController) editHunk() error {
@@ -290,7 +315,7 @@ func (self *StagingController) editHunk() error {
 	}
 
 	lineOffset := 3
-	lineIdxInHunk := state.GetSelectedLineIdx() - hunkStartIdx
+	lineIdxInHunk := state.GetSelectedPatchLineIdx() - hunkStartIdx
 	if err := self.c.Helpers().Files.EditFileAtLineAndWait(patchFilepath, lineIdxInHunk+lineOffset); err != nil {
 		return err
 	}

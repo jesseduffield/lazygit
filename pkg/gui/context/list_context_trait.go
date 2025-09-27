@@ -26,9 +26,11 @@ type ListContextTrait struct {
 func (self *ListContextTrait) IsListContext() {}
 
 func (self *ListContextTrait) FocusLine() {
+	self.Context.FocusLine()
+
 	// Doing this at the end of the layout function because we need the view to be
 	// resized before we focus the line, otherwise if we're in accordion mode
-	// the view could be squashed and won't how to adjust the cursor/origin.
+	// the view could be squashed and won't know how to adjust the cursor/origin.
 	// Also, refreshing the viewport needs to happen after the view has been resized.
 	self.c.AfterLayout(func() error {
 		oldOrigin, _ := self.GetViewTrait().ViewPortYBounds()
@@ -131,7 +133,7 @@ func (self *ListContextTrait) IsItemVisible(item types.HasUrn) bool {
 	return false
 }
 
-// By default, list contexts supporta range select
+// By default, list contexts supports range select
 func (self *ListContextTrait) RangeSelectEnabled() bool {
 	return true
 }
@@ -146,4 +148,8 @@ func (self *ListContextTrait) TotalContentHeight() int {
 		result += len(self.getNonModelItems())
 	}
 	return result
+}
+
+func (self *ListContextTrait) IndexForGotoBottom() int {
+	return self.list.Len() - 1
 }

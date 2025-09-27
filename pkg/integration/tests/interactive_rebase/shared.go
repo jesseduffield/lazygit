@@ -4,13 +4,15 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-func handleConflictsFromSwap(t *TestDriver) {
+func handleConflictsFromSwap(t *TestDriver, expectedCommand string) {
 	t.Common().AcknowledgeConflicts()
 
 	t.Views().Commits().
 		Lines(
+			Contains("--- Pending rebase todos ---"),
 			Contains("pick").Contains("commit two"),
-			Contains("conflict").Contains("<-- YOU ARE HERE --- commit three"),
+			Contains(expectedCommand).Contains("<-- CONFLICT --- commit three"),
+			Contains("--- Commits ---"),
 			Contains("commit one"),
 		)
 
@@ -33,7 +35,7 @@ func handleConflictsFromSwap(t *TestDriver) {
 		SelectNextItem().
 		PressPrimaryAction() // pick "three"
 
-	t.Common().ContinueOnConflictsResolved()
+	t.Common().ContinueOnConflictsResolved("rebase")
 
 	t.Common().AcknowledgeConflicts()
 
@@ -56,7 +58,7 @@ func handleConflictsFromSwap(t *TestDriver) {
 		SelectNextItem().
 		PressPrimaryAction() // pick "two"
 
-	t.Common().ContinueOnConflictsResolved()
+	t.Common().ContinueOnConflictsResolved("rebase")
 
 	t.Views().Commits().
 		Focus().

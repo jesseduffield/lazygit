@@ -40,6 +40,15 @@ func (self *BranchCommands) NewWithoutTracking(name string, base string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// NewWithoutCheckout creates a new branch without checking it out
+func (self *BranchCommands) NewWithoutCheckout(name string, base string) error {
+	cmdArgs := NewGitCmd("branch").
+		Arg(name, base).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
 // CreateWithUpstream creates a new branch with a given upstream, but without
 // checking it out
 func (self *BranchCommands) CreateWithUpstream(name string, upstream string) error {
@@ -93,26 +102,25 @@ func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 	}, nil
 }
 
-// CurrentBranchName get name of current branch
+// CurrentBranchName get name of current branch. Returns empty string if HEAD is detached.
 func (self *BranchCommands) CurrentBranchName() (string, error) {
-	cmdArgs := NewGitCmd("rev-parse").
-		Arg("--abbrev-ref").
-		Arg("--verify").
-		Arg("HEAD").
+	cmdArgs := NewGitCmd("branch").
+		Arg("--show-current").
 		ToArgv()
 
 	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
-	if err == nil {
-		return strings.TrimSpace(output), nil
+	if err != nil {
+		return "", err
 	}
-	return "", err
+
+	return strings.TrimSpace(output), nil
 }
 
 // LocalDelete delete branch locally
-func (self *BranchCommands) LocalDelete(branch string, force bool) error {
+func (self *BranchCommands) LocalDelete(branches []string, force bool) error {
 	cmdArgs := NewGitCmd("branch").
 		ArgIfElse(force, "-D", "-d").
-		Arg(branch).
+		Arg(branches...).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
@@ -145,7 +153,7 @@ func (self *BranchCommands) GetGraph(branchName string) (string, error) {
 	return self.GetGraphCmdObj(branchName).DontLog().RunWithOutput()
 }
 
-func (self *BranchCommands) GetGraphCmdObj(branchName string) oscommands.ICmdObj {
+func (self *BranchCommands) GetGraphCmdObj(branchName string) *oscommands.CmdObj {
 	branchLogCmdTemplate := self.UserConfig().Git.BranchLogCmd
 	templateValues := map[string]string{
 		"branchName": self.cmd.Quote(branchName),
@@ -246,20 +254,22 @@ func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *BranchCommands) AllBranchesLogCmdObj() oscommands.ICmdObj {
-	// Only choose between non-empty, non-identical commands
-	candidates := lo.Uniq(lo.WithoutEmpty(append([]string{
-		self.UserConfig().Git.AllBranchesLogCmd,
-	},
-		self.UserConfig().Git.AllBranchesLogCmds...,
-	)))
+// Only choose between non-empty, non-identical commands
+func (self *BranchCommands) allBranchesLogCandidates() []string {
+	return lo.Uniq(lo.WithoutEmpty(self.UserConfig().Git.AllBranchesLogCmds))
+}
 
-	n := len(candidates)
+func (self *BranchCommands) AllBranchesLogCmdObj() *oscommands.CmdObj {
+	candidates := self.allBranchesLogCandidates()
 
 	i := self.allBranchesLogCmdIndex
-	self.allBranchesLogCmdIndex = uint8((int(i) + 1) % n)
-
 	return self.cmd.New(str.ToArgv(candidates[i])).DontLog()
+}
+
+func (self *BranchCommands) RotateAllBranchesLogIdx() {
+	n := len(self.allBranchesLogCandidates())
+	i := self.allBranchesLogCmdIndex
+	self.allBranchesLogCmdIndex = uint8((int(i) + 1) % n)
 }
 
 func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *MainBranches) (bool, error) {
@@ -275,12 +285,21 @@ func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *
 		Arg(lo.Map(branchesToCheckAgainst, func(branch string, _ int) string {
 			return fmt.Sprintf("^%s", branch)
 		})...).
+		Arg("--").
 		ToArgv()
 
-	stdout, _, err := self.cmd.New(cmdArgs).RunWithOutputs()
+	stdout, _, err := self.cmd.New(cmdArgs).DontLog().RunWithOutputs()
 	if err != nil {
 		return false, err
 	}
 
 	return stdout == "", nil
+}
+
+func (self *BranchCommands) UpdateBranchRefs(updateCommands string) error {
+	cmdArgs := NewGitCmd("update-ref").
+		Arg("--stdin").
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).SetStdin(updateCommands).Run()
 }
