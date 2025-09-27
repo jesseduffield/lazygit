@@ -157,12 +157,38 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
 		return self.genericMergeCommand(REBASE_OPTION_SKIP)
 	} else if strings.Contains(result.Error(), "The previous cherry-pick is now empty") {
-		return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
+		return self.handleEmptyCherryPick()
 	} else if strings.Contains(result.Error(), "No rebase in progress?") {
 		// assume in this case that we're already done
 		return nil
 	}
 	return self.CheckForConflicts(result)
+}
+
+func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title:  self.c.Tr.CherryPickEmptyTitle,
+		Prompt: self.c.Tr.CherryPickEmptyPrompt,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.CherryPickEmptySkip,
+				Key:   's',
+				OnPress: func() error {
+					return self.genericMergeCommand(REBASE_OPTION_SKIP)
+				},
+			},
+			{
+				Label: self.c.Tr.CherryPickEmptyCreateEmptyCommit,
+				Key:   'e',
+				OnPress: func() error {
+					if err := self.c.Git().Rebase.CommitAllowEmpty(); err != nil {
+						return err
+					}
+					return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
+				},
+			},
+		},
+	})
 }
 
 func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {

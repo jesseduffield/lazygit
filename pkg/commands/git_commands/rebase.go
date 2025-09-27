@@ -512,6 +512,12 @@ func (self *RebaseCommands) runSkipEditorCommand(cmdObj *oscommands.CmdObj) erro
 		Run()
 }
 
+func (self *RebaseCommands) CommitAllowEmpty() error {
+	cmdArgs := NewGitCmd("commit").Arg("--allow-empty").ToArgv()
+
+	return self.runSkipEditorCommand(self.cmd.New(cmdArgs))
+}
+
 // DiscardOldFileChanges discards changes to a file from an old commit
 func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, commitIndex int, filePaths []string) error {
 	if err := self.BeginInteractiveRebaseForCommit(commits, commitIndex, false); err != nil {

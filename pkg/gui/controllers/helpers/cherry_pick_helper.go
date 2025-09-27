@@ -91,7 +91,7 @@ func (self *CherryPickHelper) Paste() error {
 				result := self.c.Git().Rebase.CherryPickCommits(cherryPickedCommits)
 				err := self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.SYNC})
 				if err != nil {
-					return result
+					return err
 				}
 
 				// Move the selection down by the number of commits we just
