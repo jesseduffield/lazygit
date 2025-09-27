@@ -184,6 +184,9 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 					if err := self.c.Git().Rebase.CommitAllowEmpty(); err != nil {
 						return err
 					}
+					if !self.c.Git().Status.WorkingTreeState().CherryPicking {
+						return nil
+					}
 					return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
 				},
 			},
