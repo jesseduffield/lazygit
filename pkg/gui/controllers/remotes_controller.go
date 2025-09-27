@@ -228,8 +228,28 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 				InitialContent: url,
 				HandleConfirm: func(updatedRemoteUrl string) error {
 					self.c.LogAction(self.c.Tr.Actions.UpdateRemote)
+					oldRemoteName := remote.Name
 					if err := self.c.Git().Remote.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
 						return err
+					}
+					if oldRemoteName != updatedRemoteName {
+						self.c.Confirm(types.ConfirmOpts{
+							Title: self.c.Tr.UpdateBranchesTrackingTitle,
+							Prompt: utils.ResolvePlaceholderString(self.c.Tr.UpdateBranchesTrackingPrompt, map[string]string{
+								"oldRemoteName": oldRemoteName,
+								"newRemoteName": updatedRemoteName,
+							}),
+							HandleConfirm: func() error {
+								branchesToRename := self.c.Git().Loaders.BranchLoader.GetRemoteBranchesByRemoteName(oldRemoteName)
+								for _, branch := range branchesToRename {
+									err := self.c.Git().Branch.SetUpstream(updatedRemoteName, branch.UpstreamBranch, branch.Name)
+									if err != nil {
+										return err
+									}
+								}
+								return nil
+							},
+						})
 					}
 					self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 					return nil

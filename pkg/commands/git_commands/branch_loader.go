@@ -386,3 +386,11 @@ func (self *BranchLoader) obtainReflogBranches(reflogCommits []*models.Commit) [
 	}
 	return reflogBranches
 }
+
+func (self *BranchLoader) GetRemoteBranchesByRemoteName(remoteName string) []*models.Branch {
+	branches := self.obtainBranches()
+
+	return lo.Filter(branches, func(branch *models.Branch, _ int) bool {
+		return branch.UpstreamRemote == remoteName
+	})
+}

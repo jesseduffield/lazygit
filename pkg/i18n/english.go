@@ -82,6 +82,8 @@ type TranslationSet struct {
 	NoContentToCopyError                  string
 	FileNameCopiedToast                   string
 	FilePathCopiedToast                   string
+	UpdateBranchesTrackingTitle           string
+	UpdateBranchesTrackingPrompt          string
 	FileDiffCopiedToast                   string
 	AllFilesDiffCopiedToast               string
 	FileContentCopiedToast                string
@@ -1197,6 +1199,8 @@ func EnglishTranslationSet() *TranslationSet {
 		DeleteBranchesTitle:                  "Delete selected branches?",
 		DeleteLocalBranch:                    "Delete local branch",
 		DeleteLocalBranches:                  "Delete local branches",
+		UpdateBranchesTrackingTitle:          "Update tracking branches?",
+		UpdateBranchesTrackingPrompt:         "Update branches tracking '{{.oldRemoteName}}' to track '{{.newRemoteName}}' instead?",
 		DeleteRemoteBranchPrompt:             "Are you sure you want to delete the remote branch '{{.selectedBranchName}}' from '{{.upstream}}'?",
 		DeleteRemoteBranchesPrompt:           "Are you sure you want to delete the remote branches of the selected branches from their respective remotes?",
 		DeleteLocalAndRemoteBranchPrompt:     "Are you sure you want to delete both '{{.localBranchName}}' from your machine, and '{{.remoteBranchName}}' from '{{.remoteName}}'?",
