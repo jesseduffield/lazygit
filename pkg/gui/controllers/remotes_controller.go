@@ -142,7 +142,7 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 	return nil
 }
 
-func (self *RemotesController) addRemoteHelper(remoteName string, remoteUrl string) error {
+func (self *RemotesController) addRemoteHelper(remoteName string, remoteUrl string, branchToCheckout string) error {
 	self.c.LogAction(self.c.Tr.Actions.AddRemote)
 	if err := self.c.Git().Remote.AddRemote(remoteName, remoteUrl); err != nil {
 		return err
@@ -165,7 +165,7 @@ func (self *RemotesController) addRemoteHelper(remoteName string, remoteUrl stri
 	}
 
 	// Fetch the new remote
-	return self.fetch(self.c.Contexts().Remotes.GetSelected())
+	return self.fetchAndCheckout(self.c.Contexts().Remotes.GetSelected(), branchToCheckout)
 }
 
 func (self *RemotesController) add() error {
@@ -175,7 +175,7 @@ func (self *RemotesController) add() error {
 			self.c.Prompt(types.PromptOpts{
 				Title: self.c.Tr.NewRemoteUrl,
 				HandleConfirm: func(remoteUrl string) error {
-					return self.addRemoteHelper(remoteName, remoteUrl)
+					return self.addRemoteHelper(remoteName, remoteUrl, "")
 				},
 			})
 
@@ -223,6 +223,14 @@ func (self *RemotesController) addFork(baseRemote *models.Remote) error {
 	self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.AddForkRemoteUsername,
 		HandleConfirm: func(forkUsername string) error {
+			branchToCheckout := ""
+
+			parts := strings.SplitN(forkUsername, ":", 2)
+			if len(parts) == 2 {
+				forkUsername = parts[0]
+				branchToCheckout = parts[1]
+			}
+
 			self.c.Prompt(types.PromptOpts{
 				Title:          self.c.Tr.NewRemoteName,
 				InitialContent: forkUsername,
@@ -236,7 +244,7 @@ func (self *RemotesController) addFork(baseRemote *models.Remote) error {
 						return err
 					}
 
-					return self.addRemoteHelper(remoteName, remoteUrl)
+					return self.addRemoteHelper(remoteName, remoteUrl, branchToCheckout)
 				},
 			})
 
@@ -318,16 +326,22 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 }
 
 func (self *RemotesController) fetch(remote *models.Remote) error {
+	return self.fetchAndCheckout(remote, "")
+}
+
+func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchName string) error {
 	return self.c.WithInlineStatus(remote, types.ItemOperationFetching, context.REMOTES_CONTEXT_KEY, func(task gocui.Task) error {
 		err := self.c.Git().Sync.FetchRemote(task, remote.Name)
 		if err != nil {
 			return err
 		}
-
+		if branchName != "" {
+			err = self.c.Git().Branch.New(branchName, remote.Name+"/"+branchName)
+		}
 		self.c.Refresh(types.RefreshOptions{
 			Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
 			Mode:  types.ASYNC,
 		})
-		return nil
+		return err
 	})
 }
