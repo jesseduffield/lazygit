@@ -737,6 +737,7 @@ type TranslationSet struct {
 	CommandLogHeader                         string
 	RandomTip                                string
 	ToggleWhitespaceInDiffView               string
+	ToggleWordDiffInDiffView                 string
 	ToggleWhitespaceInDiffViewTooltip        string
 	IgnoreWhitespaceDiffViewSubTitle         string
 	IgnoreWhitespaceNotSupportedHere         string
@@ -1819,6 +1820,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CommandLogHeader:                         "You can hide/focus this panel by pressing '%s'\n",
 		RandomTip:                                "Random tip",
 		ToggleWhitespaceInDiffView:               "Toggle whitespace",
+		ToggleWordDiffInDiffView:                 "Toggle word diff",
 		ToggleWhitespaceInDiffViewTooltip:        "Toggle whether or not whitespace changes are shown in the diff view.\n\nThe default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'.",
 		IgnoreWhitespaceDiffViewSubTitle:         "(ignoring whitespace)",
 		IgnoreWhitespaceNotSupportedHere:         "Ignoring whitespace is not supported in this view",
