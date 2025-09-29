@@ -18,6 +18,8 @@ import (
 
 type MergeAndRebaseHelper struct {
 	c *HelperCommon
+
+	cherryPickHelper *CherryPickHelper
 }
 
 func NewMergeAndRebaseHelper(
@@ -26,6 +28,10 @@ func NewMergeAndRebaseHelper(
 	return &MergeAndRebaseHelper{
 		c: c,
 	}
+}
+
+func (self *MergeAndRebaseHelper) SetCherryPickHelper(helper *CherryPickHelper) {
+	self.cherryPickHelper = helper
 }
 
 type RebaseOption string
@@ -180,7 +186,15 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 				Label: self.c.Tr.CherryPickEmptySkip,
 				Key:   's',
 				OnPress: func() error {
-					return self.genericMergeCommand(REBASE_OPTION_SKIP)
+					if err := self.genericMergeCommand(REBASE_OPTION_SKIP); err != nil {
+						return err
+					}
+					if self.cherryPickHelper != nil {
+						if err := self.cherryPickHelper.runPostPasteCleanup(); err != nil {
+							return err
+						}
+					}
+					return nil
 				},
 			},
 			{
@@ -194,7 +208,15 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 							return err
 						}
 					}
-					return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
+					if err := self.genericMergeCommand(REBASE_OPTION_CONTINUE); err != nil {
+						return err
+					}
+					if self.cherryPickHelper != nil {
+						if err := self.cherryPickHelper.runPostPasteCleanup(); err != nil {
+							return err
+						}
+					}
+					return nil
 				},
 			},
 		},

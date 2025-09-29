@@ -14,6 +14,8 @@ type CherryPickHelper struct {
 	c *HelperCommon
 
 	rebaseHelper *MergeAndRebaseHelper
+
+	postPasteCleanup func() error
 }
 
 // I'm using the analogy of copy+paste in the terminology here because it's intuitively what's going on,
@@ -23,10 +25,14 @@ func NewCherryPickHelper(
 	c *HelperCommon,
 	rebaseHelper *MergeAndRebaseHelper,
 ) *CherryPickHelper {
-	return &CherryPickHelper{
+	helper := &CherryPickHelper{
 		c:            c,
 		rebaseHelper: rebaseHelper,
 	}
+
+	rebaseHelper.SetCherryPickHelper(helper)
+
+	return helper
 }
 
 func (self *CherryPickHelper) getData() *cherrypicking.CherryPicking {
@@ -87,6 +93,22 @@ func (self *CherryPickHelper) Paste() error {
 					}
 				}
 
+				self.setPostPasteCleanup(func() error {
+					self.getData().DidPaste = true
+					self.rerender()
+
+					if mustStash {
+						if err := self.c.Git().Stash.Pop(0); err != nil {
+							return err
+						}
+						self.c.Refresh(types.RefreshOptions{
+							Scope: []types.RefreshableView{types.STASH, types.FILES},
+						})
+					}
+
+					return nil
+				})
+
 				cherryPickedCommits := self.getData().CherryPickedCommits
 				result := self.c.Git().Rebase.CherryPickCommits(cherryPickedCommits)
 				err := self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.SYNC})
@@ -113,16 +135,8 @@ func (self *CherryPickHelper) Paste() error {
 					return result
 				}
 				if !isInCherryPick {
-					self.getData().DidPaste = true
-					self.rerender()
-
-					if mustStash {
-						if err := self.c.Git().Stash.Pop(0); err != nil {
-							return err
-						}
-						self.c.Refresh(types.RefreshOptions{
-							Scope: []types.RefreshableView{types.STASH, types.FILES},
-						})
+					if err := self.runPostPasteCleanup(); err != nil {
+						return err
 					}
 				}
 
@@ -141,6 +155,7 @@ func (self *CherryPickHelper) CanPaste() bool {
 func (self *CherryPickHelper) Reset() error {
 	self.getData().ContextKey = ""
 	self.getData().CherryPickedCommits = nil
+	self.postPasteCleanup = nil
 
 	self.rerender()
 	return nil
@@ -167,4 +182,19 @@ func (self *CherryPickHelper) rerender() {
 	} {
 		self.c.PostRefreshUpdate(context)
 	}
+}
+
+func (self *CherryPickHelper) setPostPasteCleanup(cleanup func() error) {
+	self.postPasteCleanup = cleanup
+}
+
+func (self *CherryPickHelper) runPostPasteCleanup() error {
+	if self.postPasteCleanup == nil {
+		return nil
+	}
+
+	cleanup := self.postPasteCleanup
+	self.postPasteCleanup = nil
+
+	return cleanup()
 }

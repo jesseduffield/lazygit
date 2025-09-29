@@ -56,6 +56,10 @@ type Helpers struct {
 }
 
 func NewStubHelpers() *Helpers {
+	rebaseHelper := &MergeAndRebaseHelper{}
+	cherryPickHelper := &CherryPickHelper{rebaseHelper: rebaseHelper}
+	rebaseHelper.SetCherryPickHelper(cherryPickHelper)
+
 	return &Helpers{
 		Refs:              &RefsHelper{},
 		Bisect:            &BisectHelper{},
@@ -63,9 +67,9 @@ func NewStubHelpers() *Helpers {
 		Files:             &FilesHelper{},
 		WorkingTree:       &WorkingTreeHelper{},
 		Tags:              &TagsHelper{},
-		MergeAndRebase:    &MergeAndRebaseHelper{},
+		MergeAndRebase:    rebaseHelper,
 		MergeConflicts:    &MergeConflictsHelper{},
-		CherryPick:        &CherryPickHelper{},
+		CherryPick:        cherryPickHelper,
 		Host:              &HostHelper{},
 		PatchBuilding:     &PatchBuildingHelper{},
 		Staging:           &StagingHelper{},
