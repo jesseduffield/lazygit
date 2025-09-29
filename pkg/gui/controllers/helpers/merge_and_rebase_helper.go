@@ -156,7 +156,9 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 		return nil
 	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
 		return self.genericMergeCommand(REBASE_OPTION_SKIP)
-	} else if strings.Contains(result.Error(), "The previous cherry-pick is now empty") {
+	} else if strings.Contains(result.Error(), "The previous cherry-pick is now empty") ||
+		strings.Contains(result.Error(), "git cherry-pick --skip") ||
+		strings.Contains(result.Error(), "git commit --allow-empty") {
 		effectiveState := self.c.Git().Status.WorkingTreeState().Effective()
 		if effectiveState == models.WORKING_TREE_STATE_CHERRY_PICKING {
 			return self.handleEmptyCherryPick()
