@@ -1028,7 +1028,7 @@ func (self *FilesController) createStashMenu() error {
 }
 
 func (self *FilesController) openMergeConflictMenu(nodes []*filetree.FileNode) error {
-	normalizedNodes := normalisedSelectedNodes(nodes)
+	normalizedNodes := flattenSelectedNodesToFiles(nodes)
 
 	fileNodesWithConflicts := lo.Filter(normalizedNodes, func(node *filetree.FileNode, _ int) bool {
 		return node.File != nil && node.File.HasInlineMergeConflicts
@@ -1042,7 +1042,7 @@ func (self *FilesController) openMergeConflictMenu(nodes []*filetree.FileNode) e
 }
 
 func (self *FilesController) canOpenMergeConflictMenu(nodes []*filetree.FileNode) *types.DisabledReason {
-	normalizedNodes := normalisedSelectedNodes(nodes)
+	normalizedNodes := flattenSelectedNodesToFiles(nodes)
 
 	hasFileNodesWithConflicts := lo.SomeBy(normalizedNodes, func(node *filetree.FileNode) bool {
 		return node.File != nil && node.File.HasInlineMergeConflicts
@@ -1265,6 +1265,38 @@ func isDescendentOfSelectedNodes(node *filetree.FileNode, selectedNodes []*filet
 		}
 	}
 	return false
+}
+
+// BFS algorithm for expanding directories into their children,
+// and for collecting the unique file nodes
+func flattenSelectedNodesToFiles(selectedNodes []*filetree.FileNode) []*filetree.FileNode {
+	queue := append(make([]*filetree.FileNode, 0, len(selectedNodes)), selectedNodes...)
+	visited := make(map[string]bool)
+	var files []*filetree.FileNode
+
+	for len(queue) > 0 {
+		// pop node from queue
+		node := queue[0]
+		queue = queue[1:]
+
+		nodeID := node.ID()
+		if visited[nodeID] {
+			continue
+		}
+		visited[nodeID] = true
+
+		if node.File != nil {
+			// unique file node -> collect it
+			files = append(files, node)
+			continue
+		}
+
+		// directory node -> enqueue children
+		for _, ch := range node.Children {
+			queue = append(queue, &filetree.FileNode{Node: ch})
+		}
+	}
+	return files
 }
 
 func someNodesHaveUnstagedChanges(nodes []*filetree.FileNode) bool {
