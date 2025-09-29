@@ -168,11 +168,7 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 		return self.genericMergeCommand(REBASE_OPTION_SKIP)
 	}
 
-	if isMergeConflictErr(errStr) {
-		return self.PromptForConflictHandling()
-	}
-
-	if lo.SomeBy([]string{
+	isEmptyCommitErr := lo.SomeBy([]string{
 		"The previous cherry-pick is now empty",
 		"git cherry-pick --skip",
 		"git commit --allow-empty",
@@ -180,7 +176,9 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 		"git revert --skip",
 	}, func(str string) bool {
 		return strings.Contains(errStr, str)
-	}) {
+	})
+
+	if isEmptyCommitErr {
 		effectiveState := self.c.Git().Status.WorkingTreeState().Effective()
 		switch effectiveState {
 		case models.WORKING_TREE_STATE_CHERRY_PICKING:
@@ -190,6 +188,10 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 		default:
 			return self.genericMergeCommand(REBASE_OPTION_SKIP)
 		}
+	}
+
+	if isMergeConflictErr(errStr) {
+		return self.PromptForConflictHandling()
 	} else if strings.Contains(errStr, "No rebase in progress?") {
 		// assume in this case that we're already done
 		return nil
