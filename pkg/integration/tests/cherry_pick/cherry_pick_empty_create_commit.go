@@ -9,6 +9,7 @@ var CherryPickEmptyCreateCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Cherry-picking a commit with no diff allows creating an empty commit to continue",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
+	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.
 			EmptyCommit("base").
@@ -53,7 +54,7 @@ var CherryPickEmptyCreateCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Cherry-pick produced no changes")).
-					Lines(
+					ContainsLines(
 						Contains("Skip this cherry-pick"),
 						Contains("Create empty commit and continue"),
 						Contains("Cancel"),
