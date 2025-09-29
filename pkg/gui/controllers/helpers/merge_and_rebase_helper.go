@@ -160,16 +160,26 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 
 	if result == nil {
 		return nil
-	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
+	}
+
+	errStr := result.Error()
+
+	if strings.Contains(errStr, "No changes - did you forget to use") {
 		return self.genericMergeCommand(REBASE_OPTION_SKIP)
-	} else if lo.SomeBy([]string{
+	}
+
+	if isMergeConflictErr(errStr) {
+		return self.PromptForConflictHandling()
+	}
+
+	if lo.SomeBy([]string{
 		"The previous cherry-pick is now empty",
 		"git cherry-pick --skip",
 		"git commit --allow-empty",
 		"git rebase --skip",
 		"git revert --skip",
 	}, func(str string) bool {
-		return strings.Contains(result.Error(), str)
+		return strings.Contains(errStr, str)
 	}) {
 		effectiveState := self.c.Git().Status.WorkingTreeState().Effective()
 		switch effectiveState {
@@ -180,7 +190,7 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 		default:
 			return self.genericMergeCommand(REBASE_OPTION_SKIP)
 		}
-	} else if strings.Contains(result.Error(), "No rebase in progress?") {
+	} else if strings.Contains(errStr, "No rebase in progress?") {
 		// assume in this case that we're already done
 		return nil
 	}
