@@ -162,14 +162,24 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 		return nil
 	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
 		return self.genericMergeCommand(REBASE_OPTION_SKIP)
-	} else if strings.Contains(result.Error(), "The previous cherry-pick is now empty") ||
-		strings.Contains(result.Error(), "git cherry-pick --skip") ||
-		strings.Contains(result.Error(), "git commit --allow-empty") {
+	} else if lo.SomeBy([]string{
+		"The previous cherry-pick is now empty",
+		"git cherry-pick --skip",
+		"git commit --allow-empty",
+		"git rebase --skip",
+		"git revert --skip",
+	}, func(str string) bool {
+		return strings.Contains(result.Error(), str)
+	}) {
 		effectiveState := self.c.Git().Status.WorkingTreeState().Effective()
-		if effectiveState == models.WORKING_TREE_STATE_CHERRY_PICKING {
+		switch effectiveState {
+		case models.WORKING_TREE_STATE_CHERRY_PICKING:
 			return self.handleEmptyCherryPick()
+		case models.WORKING_TREE_STATE_REBASING, models.WORKING_TREE_STATE_REVERTING:
+			return self.handleEmptyRebaseOrRevert()
+		default:
+			return self.genericMergeCommand(REBASE_OPTION_SKIP)
 		}
-		return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
 	} else if strings.Contains(result.Error(), "No rebase in progress?") {
 		// assume in this case that we're already done
 		return nil
@@ -231,6 +241,40 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 					}
 
 					return nil
+				},
+			},
+		},
+	})
+}
+
+func (self *MergeAndRebaseHelper) handleEmptyRebaseOrRevert() error {
+	commandName := self.c.Git().Status.WorkingTreeState().CommandName()
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title:  self.c.Tr.EmptyCommitTitle,
+		Prompt: self.c.Tr.EmptyCommitPrompt,
+		Items: []*types.MenuItem{
+			{
+				Label: fmt.Sprintf(self.c.Tr.EmptyCommitSkip, commandName),
+				Key:   's',
+				OnPress: func() error {
+					return self.genericMergeCommand(REBASE_OPTION_SKIP)
+				},
+			},
+			{
+				Label: self.c.Tr.EmptyCommitCreateEmptyCommit,
+				Key:   'e',
+				OnPress: func() error {
+					if err := self.c.Git().Rebase.CommitAllowEmpty(); err != nil {
+						errStr := err.Error()
+						if strings.Contains(errStr, "no rebase in progress") || strings.Contains(errStr, "no cherry-pick or revert in progress") {
+							self.c.Log.Warn(err)
+						} else {
+							return err
+						}
+					}
+
+					return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
 				},
 			},
 		},
