@@ -274,7 +274,13 @@ func (self *MergeAndRebaseHelper) handleEmptyRebaseOrRevert() error {
 						}
 					}
 
-					return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
+					workingTreeState := self.c.Git().Status.WorkingTreeState().Effective()
+					if workingTreeState == models.WORKING_TREE_STATE_REBASING {
+						return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
+					}
+
+					self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+					return nil
 				},
 			},
 		},

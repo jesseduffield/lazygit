@@ -49,7 +49,7 @@ var RevertEmptyCommitResolution = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("Skip this revert step"),
 				Contains("Create empty commit and continue"),
 			).
-			Select(Contains("Skip this revert step")).
+			Select(Contains("Create empty commit and continue")).
 			Confirm()
 
 		t.Views().Commits().
@@ -60,6 +60,7 @@ var RevertEmptyCommitResolution = NewIntegrationTest(NewIntegrationTestArgs{
 			)
 
 		t.Views().Commits().Content(DoesNotContain("Pending reverts"))
-		t.Views().Options().Content(DoesNotContain("View revert options"))
+		t.Views().Options().Content(DoesNotContain("View revert options")).
+			Content(DoesNotContain("You are currently neither rebasing nor merging"))
 	},
 })
