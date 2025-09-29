@@ -182,10 +182,11 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 				Key:   'e',
 				OnPress: func() error {
 					if err := self.c.Git().Rebase.CommitAllowEmpty(); err != nil {
-						return err
-					}
-					if !self.c.Git().Status.WorkingTreeState().CherryPicking {
-						return nil
+						if strings.Contains(err.Error(), "no cherry-pick or revert in progress") {
+							self.c.Log.Warn(err)
+						} else {
+							return err
+						}
 					}
 					return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
 				},

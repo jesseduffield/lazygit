@@ -478,7 +478,8 @@ func (self *RebaseCommands) AbortRebase() error {
 func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, command string) error {
 	err := self.runSkipEditorCommand(self.GenericMergeOrRebaseActionCmdObj(commandType, command))
 	if err != nil {
-		if !strings.Contains(err.Error(), "no rebase in progress") {
+		errStr := err.Error()
+		if !strings.Contains(errStr, "no rebase in progress") && !strings.Contains(errStr, "no cherry-pick or revert in progress") {
 			return err
 		}
 		self.Log.Warn(err)
