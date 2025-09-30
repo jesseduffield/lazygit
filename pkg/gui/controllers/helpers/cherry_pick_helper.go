@@ -15,7 +15,8 @@ type CherryPickHelper struct {
 
 	rebaseHelper *MergeAndRebaseHelper
 
-	postPasteCleanup func() error
+	postPasteCleanup            func(markDidPaste bool) error
+	postPasteShouldMarkDidPaste bool
 
 	postPasteSelection *postPasteSelection
 }
@@ -104,8 +105,10 @@ func (self *CherryPickHelper) Paste() error {
 				cherryPickedCommits := self.getData().CherryPickedCommits
 				self.preparePostPasteSelection(cherryPickedCommits)
 
-				self.setPostPasteCleanup(func() error {
-					self.getData().DidPaste = true
+				self.setPostPasteCleanup(func(markDidPaste bool) error {
+					if markDidPaste {
+						self.getData().DidPaste = true
+					}
 					self.rerender()
 
 					if mustStash {
@@ -137,7 +140,7 @@ func (self *CherryPickHelper) Paste() error {
 					return result
 				}
 				if !isInCherryPick {
-					if err := self.runPostPasteCleanup(); err != nil {
+					if err := self.runPostPasteCleanup(true); err != nil {
 						return err
 					}
 				}
@@ -158,6 +161,7 @@ func (self *CherryPickHelper) Reset() error {
 	self.getData().ContextKey = ""
 	self.getData().CherryPickedCommits = nil
 	self.postPasteCleanup = nil
+	self.postPasteShouldMarkDidPaste = false
 	self.postPasteSelection = nil
 
 	self.rerender()
@@ -234,11 +238,12 @@ func (self *CherryPickHelper) ShouldRestorePostPasteSelection() bool {
 	return self.postPasteSelection != nil && self.postPasteSelection.shouldReselect
 }
 
-func (self *CherryPickHelper) setPostPasteCleanup(cleanup func() error) {
+func (self *CherryPickHelper) setPostPasteCleanup(cleanup func(markDidPaste bool) error) {
 	self.postPasteCleanup = cleanup
+	self.postPasteShouldMarkDidPaste = true
 }
 
-func (self *CherryPickHelper) runPostPasteCleanup() error {
+func (self *CherryPickHelper) runPostPasteCleanup(markDidPaste bool) error {
 	if self.postPasteCleanup == nil {
 		return nil
 	}
@@ -246,8 +251,17 @@ func (self *CherryPickHelper) runPostPasteCleanup() error {
 	cleanup := self.postPasteCleanup
 	self.postPasteCleanup = nil
 	defer func() {
+		self.postPasteShouldMarkDidPaste = false
 		self.postPasteSelection = nil
 	}()
 
-	return cleanup()
+	return cleanup(markDidPaste && self.postPasteShouldMarkDidPaste)
+}
+
+func (self *CherryPickHelper) setPostPasteShouldMarkDidPaste(mark bool) {
+	if self.postPasteCleanup == nil {
+		return
+	}
+
+	self.postPasteShouldMarkDidPaste = mark
 }

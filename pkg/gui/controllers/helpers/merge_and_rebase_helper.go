@@ -215,6 +215,7 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 				OnPress: func() error {
 					if self.cherryPickHelper != nil {
 						self.cherryPickHelper.DisablePostPasteReselect()
+						self.cherryPickHelper.setPostPasteShouldMarkDidPaste(false)
 					}
 					if err := self.genericMergeCommand(REBASE_OPTION_SKIP); err != nil {
 						return err
@@ -273,7 +274,7 @@ func (self *MergeAndRebaseHelper) completeCherryPickAfterEmptyResolution(preserv
 		return nil
 	}
 
-	if err := self.cherryPickHelper.runPostPasteCleanup(); err != nil {
+	if err := self.cherryPickHelper.runPostPasteCleanup(preservePostPasteReselect); err != nil {
 		return err
 	}
 
@@ -307,7 +308,7 @@ func (self *MergeAndRebaseHelper) finalizeCherryPickIfDone() error {
 		self.cherryPickHelper.DisablePostPasteReselect()
 	}
 
-	if err := self.cherryPickHelper.runPostPasteCleanup(); err != nil {
+	if err := self.cherryPickHelper.runPostPasteCleanup(true); err != nil {
 		return err
 	}
 

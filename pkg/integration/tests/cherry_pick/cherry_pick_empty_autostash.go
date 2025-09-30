@@ -77,7 +77,7 @@ var CherryPickEmptyAutoStash = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Views().Files().Lines(
 					Contains("shared.txt"),
 				)
-				t.Views().Information().Content(DoesNotContain("commit copied"))
+				t.Views().Information().Content(Contains("commit copied"))
 			}).
 			Lines(
 				Contains("add shared file on master").IsSelected(),
