@@ -164,14 +164,6 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 
 	errStr := result.Error()
 
-	if strings.Contains(errStr, "No changes - did you forget to use") {
-		return self.genericMergeCommand(REBASE_OPTION_SKIP)
-	}
-
-	if isMergeConflictErr(errStr) {
-		return self.PromptForConflictHandling()
-	}
-
 	isEmptyCommitErr := lo.SomeBy([]string{
 		"The previous cherry-pick is now empty",
 		"git cherry-pick --skip",
@@ -192,6 +184,14 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 		default:
 			return self.genericMergeCommand(REBASE_OPTION_SKIP)
 		}
+	}
+
+	if strings.Contains(errStr, "No changes - did you forget to use") {
+		return self.genericMergeCommand(REBASE_OPTION_SKIP)
+	}
+
+	if isMergeConflictErr(errStr) {
+		return self.PromptForConflictHandling()
 	}
 
 	if strings.Contains(errStr, "No rebase in progress?") {
@@ -240,7 +240,15 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 						}
 					}
 					if err := self.genericMergeCommand(REBASE_OPTION_CONTINUE); err != nil {
-						return err
+						if err.Error() != self.c.Tr.NotMergingOrRebasing {
+							return err
+						}
+
+						if err := self.CheckMergeOrRebase(
+							self.c.Git().Rebase.GenericMergeOrRebaseAction("cherry-pick", REBASE_OPTION_CONTINUE),
+						); err != nil {
+							return err
+						}
 					}
 
 					isInCherryPick, err := self.c.Git().Status.IsInCherryPick()

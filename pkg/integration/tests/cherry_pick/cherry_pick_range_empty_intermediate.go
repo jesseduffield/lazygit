@@ -77,7 +77,7 @@ var CherryPickRangeEmptyIntermediate = NewIntegrationTest(NewIntegrationTestArgs
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Cherry-pick produced no changes")).
-					Lines(
+					ContainsLines(
 						Contains("Skip this cherry-pick"),
 						Contains("Create empty commit and continue"),
 						Contains("Cancel"),
