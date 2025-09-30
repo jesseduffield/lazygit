@@ -79,6 +79,17 @@ func (self *TextMatcher) Equals(target string) *TextMatcher {
 	return self
 }
 
+func (self *TextMatcher) EqualsOneOf(targets ...string) *TextMatcher {
+	self.appendRule(matcherRule[string]{
+		name: fmt.Sprintf("equals one of '%s'", strings.Join(targets, "', '")),
+		testFn: func(value string) (bool, string) {
+			return lo.Contains(targets, value), fmt.Sprintf("Expected '%s' to equal one of '%s'", value, strings.Join(targets, "', '"))
+		},
+	})
+
+	return self
+}
+
 const IS_SELECTED_RULE_NAME = "is selected"
 
 // special rule that is only to be used in the TopLines and Lines methods, as a way of
@@ -131,4 +142,8 @@ func MatchesRegexp(target string) *TextMatcher {
 
 func Equals(target string) *TextMatcher {
 	return AnyString().Equals(target)
+}
+
+func EqualsOneOf(targets ...string) *TextMatcher {
+	return AnyString().EqualsOneOf(targets...)
 }

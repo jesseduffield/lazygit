@@ -42,20 +42,23 @@ var RevertEmptyCommitResolution = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().Focus()
 		t.Common().ContinueRebase()
+		t.Common().ContinueOnConflictsResolved("revert")
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Commit produced no changes")).
-			Lines(
+			ContainsLines(
 				Contains("Skip this revert step"),
 				Contains("Create empty commit and continue"),
+				Contains("Cancel"),
 			).
 			Select(Contains("Create empty commit and continue")).
 			Confirm()
 
 		t.Views().Commits().
 			Lines(
-				Contains("CI ◯ add second line").IsSelected(),
-				Contains("CI ◯ add first line"),
+				Contains("CI ◯ Revert \"add first line\""),
+				Contains("CI ◯ add second line"),
+				Contains("CI ◯ add first line").IsSelected(),
 				Contains("CI ◯ add empty file"),
 			)
 
