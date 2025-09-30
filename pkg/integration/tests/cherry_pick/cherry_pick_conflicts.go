@@ -73,6 +73,16 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Common().ContinueOnConflictsResolved("cherry-pick")
 
+		t.ExpectPopup().Menu().
+			Title(Equals("Cherry-pick produced no changes")).
+			ContainsLines(
+				Contains("Skip this cherry-pick"),
+				Contains("Create empty commit and continue"),
+				Contains("Cancel"),
+			).
+			Select(Contains("Skip this cherry-pick")).
+			Confirm()
+
 		t.Views().Files().IsEmpty()
 
 		t.Views().Commits().
