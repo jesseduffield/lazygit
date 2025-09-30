@@ -65,6 +65,7 @@ var CherryPickEmpty = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.Shell().RunCommandExpectError([]string{"git", "rev-parse", "CHERRY_PICK_HEAD"})
 			}).
+			IsFocused().
 			Lines(
 				Contains("add shared file on master").IsSelected(),
 				Contains("base"),

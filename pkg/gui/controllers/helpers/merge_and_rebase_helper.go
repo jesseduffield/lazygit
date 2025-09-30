@@ -243,21 +243,21 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 						}
 					}
 
-					return self.completeCherryPickAfterEmptyResolution(false)
+					return self.completeCherryPickAfterEmptyResolution(true)
 				},
 			},
 		},
 	})
 }
 
-func (self *MergeAndRebaseHelper) completeCherryPickAfterEmptyResolution(disableReselect bool) error {
+func (self *MergeAndRebaseHelper) completeCherryPickAfterEmptyResolution(preservePostPasteReselect bool) error {
 	isInCherryPick, err := self.c.Git().Status.IsInCherryPick()
 	if err != nil {
 		return err
 	}
 
 	if self.cherryPickHelper != nil && !isInCherryPick {
-		if disableReselect {
+		if !preservePostPasteReselect {
 			self.cherryPickHelper.DisablePostPasteReselect()
 		}
 
