@@ -251,15 +251,14 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 }
 
 func (self *MergeAndRebaseHelper) completeCherryPickAfterEmptyResolution(disableReselect bool) error {
+	_ = disableReselect
 	isInCherryPick, err := self.c.Git().Status.IsInCherryPick()
 	if err != nil {
 		return err
 	}
 
 	if self.cherryPickHelper != nil && !isInCherryPick {
-		if disableReselect && !self.cherryPickHelper.ShouldRestorePostPasteSelection() {
-			self.cherryPickHelper.DisablePostPasteReselect()
-		}
+		self.cherryPickHelper.DisablePostPasteReselect()
 
 		if err := self.cherryPickHelper.runPostPasteCleanup(); err != nil {
 			return err
