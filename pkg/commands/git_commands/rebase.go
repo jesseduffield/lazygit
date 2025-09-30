@@ -556,7 +556,7 @@ func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
 	hasMergeCommit := lo.SomeBy(commits, func(c *models.Commit) bool { return c.IsMerge() })
 	cmdArgs := NewGitCmd("cherry-pick").
 		Arg("--allow-empty").
-		ArgIf(self.version.IsAtLeast(2, 45, 0), "--empty=keep", "--keep-redundant-commits").
+		ArgIfElse(self.version.IsAtLeast(2, 45, 0), "--empty=stop", "--keep-redundant-commits").
 		ArgIf(hasMergeCommit, "-m1").
 		Arg(lo.Reverse(lo.Map(commits, func(c *models.Commit, _ int) string { return c.Hash() }))...).
 		ToArgv()
