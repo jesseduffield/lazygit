@@ -52,6 +52,9 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 					).
 					Select(Contains("Create empty commit and continue")).
 					Confirm()
+
+				t.Views().Commits().
+					SelectedLine(Contains("one"))
 			}).
 			Tap(func() {
 				t.Shell().RunCommandExpectError([]string{"git", "rev-parse", "CHERRY_PICK_HEAD"})

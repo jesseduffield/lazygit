@@ -93,6 +93,9 @@ func (self *CherryPickHelper) Paste() error {
 					}
 				}
 
+				selectionDelta := 0
+				shouldMoveSelection := false
+
 				self.setPostPasteCleanup(func() error {
 					self.getData().DidPaste = true
 					self.rerender()
@@ -104,6 +107,13 @@ func (self *CherryPickHelper) Paste() error {
 						self.c.Refresh(types.RefreshOptions{
 							Scope: []types.RefreshableView{types.STASH, types.FILES},
 						})
+					}
+
+					if shouldMoveSelection {
+						if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil && !commit.IsTODO() {
+							self.c.Contexts().LocalCommits.MoveSelection(selectionDelta)
+							self.c.Contexts().LocalCommits.FocusLine()
+						}
 					}
 
 					return nil
@@ -122,8 +132,8 @@ func (self *CherryPickHelper) Paste() error {
 				// case we are in a rebase and the cherry-picked commits end up
 				// below the selection.
 				if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil && !commit.IsTODO() {
-					self.c.Contexts().LocalCommits.MoveSelection(len(cherryPickedCommits))
-					self.c.Contexts().LocalCommits.FocusLine()
+					selectionDelta = len(cherryPickedCommits)
+					shouldMoveSelection = true
 				}
 
 				// If we're in the cherry-picking state at this point, it must
