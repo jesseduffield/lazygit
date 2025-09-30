@@ -558,7 +558,6 @@ func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
 	supportsKeepRedundantCommits := self.version.IsAtLeast(1, 7, 11)
 
 	cmdArgs := NewGitCmd("cherry-pick").
-		Arg("--allow-empty").
 		ArgIf(isAtLeast245, "--empty=stop").
 		ArgIf(supportsKeepRedundantCommits, "--keep-redundant-commits").
 		ArgIf(hasMergeCommit, "-m1").
