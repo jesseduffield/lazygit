@@ -230,6 +230,10 @@ func (self *CherryPickHelper) DisablePostPasteReselect() {
 	self.postPasteSelection.shouldReselect = false
 }
 
+func (self *CherryPickHelper) ShouldRestorePostPasteSelection() bool {
+	return self.postPasteSelection != nil && self.postPasteSelection.shouldReselect
+}
+
 func (self *CherryPickHelper) setPostPasteCleanup(cleanup func() error) {
 	self.postPasteCleanup = cleanup
 }

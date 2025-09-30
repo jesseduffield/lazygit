@@ -216,7 +216,8 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 					if err := self.genericMergeCommand(REBASE_OPTION_SKIP); err != nil {
 						return err
 					}
-					return nil
+
+					return self.completeCherryPickAfterEmptyResolution(true)
 				},
 			},
 			{
@@ -242,11 +243,30 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 						}
 					}
 
-					return nil
+					return self.completeCherryPickAfterEmptyResolution(false)
 				},
 			},
 		},
 	})
+}
+
+func (self *MergeAndRebaseHelper) completeCherryPickAfterEmptyResolution(disableReselect bool) error {
+	isInCherryPick, err := self.c.Git().Status.IsInCherryPick()
+	if err != nil {
+		return err
+	}
+
+	if self.cherryPickHelper != nil && !isInCherryPick {
+		if disableReselect && !self.cherryPickHelper.ShouldRestorePostPasteSelection() {
+			self.cherryPickHelper.DisablePostPasteReselect()
+		}
+
+		if err := self.cherryPickHelper.runPostPasteCleanup(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (self *MergeAndRebaseHelper) finalizeCherryPickIfDone() error {
