@@ -96,11 +96,15 @@ var CherryPickEmptyFollowedByConflict = NewIntegrationTest(NewIntegrationTestArg
 
 		t.Views().MergeConflicts().
 			IsFocused().
-			LineCount(EqualsInt(2)).
+			LineCount(EqualsInt(5)).
 			Lines(
+				Contains("<<<<<<< HEAD"),
 				Contains("target version"),
+				Contains("======="),
 				Contains("source version"),
+				Contains(">>>>>>>"),
 			).
+			SelectNextItem().
 			SelectNextItem().
 			PressPrimaryAction()
 
@@ -112,8 +116,8 @@ var CherryPickEmptyFollowedByConflict = NewIntegrationTest(NewIntegrationTestArg
 			Focus().
 			TopLines(
 				Contains("add conflict on source").IsSelected(),
-				Contains("match target shared"),
 				Contains("update conflict on target"),
+				Contains("update shared on target"),
 			).
 			SelectedLine(Contains("add conflict on source"))
 

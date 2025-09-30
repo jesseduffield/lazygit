@@ -213,11 +213,16 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 				Label: self.c.Tr.CherryPickEmptySkip,
 				Key:   's',
 				OnPress: func() error {
+					if self.cherryPickHelper != nil {
+						self.cherryPickHelper.DisablePostPasteReselect()
+					}
 					if err := self.genericMergeCommand(REBASE_OPTION_SKIP); err != nil {
 						return err
 					}
 
-					return self.completeCherryPickAfterEmptyResolution(true)
+					// Skipping an empty cherry-pick shouldn't re-enable post-paste reselection
+					// because no commit was applied.
+					return self.completeCherryPickAfterEmptyResolution(false)
 				},
 			},
 			{
@@ -256,14 +261,20 @@ func (self *MergeAndRebaseHelper) completeCherryPickAfterEmptyResolution(preserv
 		return err
 	}
 
-	if self.cherryPickHelper != nil && !isInCherryPick {
-		if !preservePostPasteReselect {
-			self.cherryPickHelper.DisablePostPasteReselect()
-		}
+	if self.cherryPickHelper == nil {
+		return nil
+	}
 
-		if err := self.cherryPickHelper.runPostPasteCleanup(); err != nil {
-			return err
-		}
+	if !preservePostPasteReselect {
+		self.cherryPickHelper.DisablePostPasteReselect()
+	}
+
+	if isInCherryPick {
+		return nil
+	}
+
+	if err := self.cherryPickHelper.runPostPasteCleanup(); err != nil {
+		return err
 	}
 
 	return nil
