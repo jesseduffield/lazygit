@@ -66,8 +66,8 @@ var CherryPickEmptyCreateCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Shell().RunCommandExpectError([]string{"git", "rev-parse", "CHERRY_PICK_HEAD"})
 			}).
 			Lines(
-				Contains("add shared file on source").IsSelected(),
-				Contains("add shared file on master"),
+				Contains("add shared file on source"),
+				Contains("add shared file on master").IsSelected(),
 				Contains("base"),
 			)
 	},

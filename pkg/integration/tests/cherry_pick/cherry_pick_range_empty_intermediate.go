@@ -89,10 +89,10 @@ var CherryPickRangeEmptyIntermediate = NewIntegrationTest(NewIntegrationTestArgs
 				t.Shell().RunCommandExpectError([]string{"git", "rev-parse", "CHERRY_PICK_HEAD"})
 			}).
 			Lines(
-				Contains("add unique2 on source").IsSelected(),
+				Contains("add unique2 on source"),
 				Contains("match target change"),
 				Contains("add unique1 on source"),
-				Contains("update shared file on target"),
+				Contains("update shared file on target").IsSelected(),
 				Contains("add shared file on master"),
 			)
 	},

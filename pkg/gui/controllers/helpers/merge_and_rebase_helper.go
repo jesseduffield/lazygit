@@ -292,7 +292,10 @@ func (self *MergeAndRebaseHelper) finalizeCherryPickIfDone() error {
 		return nil
 	}
 
-	self.cherryPickHelper.DisablePostPasteReselect()
+	if !self.cherryPickHelper.ShouldRestorePostPasteSelection() {
+		self.cherryPickHelper.DisablePostPasteReselect()
+	}
+
 	if err := self.cherryPickHelper.runPostPasteCleanup(); err != nil {
 		return err
 	}
