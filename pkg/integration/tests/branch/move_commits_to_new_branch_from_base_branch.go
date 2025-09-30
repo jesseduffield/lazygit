@@ -45,6 +45,11 @@ var MoveCommitsToNewBranchFromBaseBranch = NewIntegrationTest(NewIntegrationTest
 			Type("new branch").
 			Confirm()
 
+		t.ExpectPopup().Menu().
+			Title(Equals("Cherry-pick produced no changes")).
+			Select(Contains("Create empty commit and continue")).
+			Confirm()
+
 		t.Views().Branches().
 			Lines(
 				Contains("new-branch").DoesNotContain("↑").IsSelected(),
