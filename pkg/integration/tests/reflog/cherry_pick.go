@@ -42,6 +42,20 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 					Content(Contains("Are you sure you want to cherry-pick the 1 copied commit(s) onto this branch?")).
 					Confirm()
 			}).
+			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("Cherry-pick produced no changes")).
+					ContainsLines(
+						Contains("Skip this cherry-pick"),
+						Contains("Create empty commit and continue"),
+						Contains("Cancel"),
+					).
+					Select(Contains("Create empty commit and continue")).
+					Confirm()
+			}).
+			Tap(func() {
+				t.Shell().RunCommandExpectError([]string{"git", "rev-parse", "CHERRY_PICK_HEAD"})
+			}).
 			Lines(
 				Contains("three"),
 				Contains("one").IsSelected(),

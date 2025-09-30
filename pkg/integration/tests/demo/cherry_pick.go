@@ -1,6 +1,10 @@
 package demo
 
 import (
+	"os"
+	"os/exec"
+	"time"
+
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
@@ -29,6 +33,34 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 			Checkout("hotfix/fix-bug")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		wd, err := os.Getwd()
+		if err != nil {
+			t.Fail("Could not determine working directory: " + err.Error())
+			return
+		}
+
+		cherryPickInProgress := func() bool {
+			cmd := exec.Command("git", "rev-parse", "CHERRY_PICK_HEAD")
+			cmd.Dir = wd
+
+			return cmd.Run() == nil
+		}
+
+		waitForCherryPickInProgress := func(timeout time.Duration) bool {
+			deadline := time.Now().Add(timeout)
+			for {
+				if cherryPickInProgress() {
+					return true
+				}
+
+				if time.Now().After(deadline) {
+					return false
+				}
+
+				t.Wait(100)
+			}
+		}
+
 		t.SetCaptionPrefix("Cherry pick commits from another branch")
 		t.Wait(1000)
 
@@ -73,6 +105,32 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 					Title(Equals("Cherry-pick")).
 					Content(Contains("Are you sure you want to cherry-pick the 2 copied commit(s) onto this branch?")).
 					Confirm()
+			}).
+			Tap(func() {
+				if !waitForCherryPickInProgress(time.Second) {
+					return
+				}
+
+				for {
+					t.ExpectPopup().Menu().
+						Title(Equals("Cherry-pick produced no changes")).
+						ContainsLines(
+							Contains("Skip this cherry-pick"),
+							Contains("Create empty commit and continue"),
+							Contains("Cancel"),
+						).
+						Select(Contains("Create empty commit and continue")).
+						Confirm()
+
+					t.Wait(100)
+
+					if !waitForCherryPickInProgress(time.Second) {
+						break
+					}
+				}
+			}).
+			Tap(func() {
+				t.Shell().RunCommandExpectError([]string{"git", "rev-parse", "CHERRY_PICK_HEAD"})
 			}).
 			TopLines(
 				Contains("Add Webpack for asset bundling"),
