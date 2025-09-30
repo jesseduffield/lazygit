@@ -120,6 +120,11 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	if err := self.CheckMergeOrRebase(result); err != nil {
 		return err
 	}
+
+	if err := self.finalizeCherryPickIfDone(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -211,19 +216,6 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 					if err := self.genericMergeCommand(REBASE_OPTION_SKIP); err != nil {
 						return err
 					}
-
-					isInCherryPick, err := self.c.Git().Status.IsInCherryPick()
-					if err != nil {
-						return err
-					}
-
-					if self.cherryPickHelper != nil && !isInCherryPick {
-						self.cherryPickHelper.DisablePostPasteReselect()
-						if err := self.cherryPickHelper.runPostPasteCleanup(); err != nil {
-							return err
-						}
-					}
-
 					return nil
 				},
 			},
@@ -250,23 +242,42 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 						}
 					}
 
-					isInCherryPick, err := self.c.Git().Status.IsInCherryPick()
-					if err != nil {
-						return err
-					}
-
-					if self.cherryPickHelper != nil && !isInCherryPick {
-						self.cherryPickHelper.DisablePostPasteReselect()
-						if err := self.cherryPickHelper.runPostPasteCleanup(); err != nil {
-							return err
-						}
-					}
-
 					return nil
 				},
 			},
 		},
 	})
+}
+
+func (self *MergeAndRebaseHelper) finalizeCherryPickIfDone() error {
+	if self.cherryPickHelper == nil {
+		return nil
+	}
+
+	hasTodos, err := self.c.Git().Status.HasPendingSequencerTodos()
+	if err != nil {
+		return err
+	}
+
+	if hasTodos {
+		return nil
+	}
+
+	isInCherryPick, err := self.c.Git().Status.IsInCherryPick()
+	if err != nil {
+		return err
+	}
+
+	if isInCherryPick {
+		return nil
+	}
+
+	self.cherryPickHelper.DisablePostPasteReselect()
+	if err := self.cherryPickHelper.runPostPasteCleanup(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (self *MergeAndRebaseHelper) handleEmptyRebaseOrRevert() error {

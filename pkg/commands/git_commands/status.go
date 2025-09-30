@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"bufio"
 	"os"
 	"path/filepath"
 	"strings"
@@ -80,6 +81,32 @@ func (self *StatusCommands) IsInCherryPick() (bool, error) {
 
 func (self *StatusCommands) IsInRevert() (bool, error) {
 	return self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "REVERT_HEAD"))
+}
+
+func (self *StatusCommands) HasPendingSequencerTodos() (bool, error) {
+	bytesContent, err := os.ReadFile(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "sequencer", "todo"))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	scanner := bufio.NewScanner(strings.NewReader(string(bytesContent)))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		return true, nil
+	}
+
+	if err := scanner.Err(); err != nil {
+		return false, err
+	}
+
+	return false, nil
 }
 
 // Full ref (e.g. "refs/heads/mybranch") of the branch that is currently

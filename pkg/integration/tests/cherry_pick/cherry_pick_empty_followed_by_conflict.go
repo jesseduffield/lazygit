@@ -96,6 +96,7 @@ var CherryPickEmptyFollowedByConflict = NewIntegrationTest(NewIntegrationTestArg
 
 		t.Views().MergeConflicts().
 			IsFocused().
+			LineCount(EqualsInt(2)).
 			Lines(
 				Contains("target version"),
 				Contains("source version"),
@@ -113,7 +114,8 @@ var CherryPickEmptyFollowedByConflict = NewIntegrationTest(NewIntegrationTestArg
 				Contains("add conflict on source").IsSelected(),
 				Contains("match target shared"),
 				Contains("update conflict on target"),
-			)
+			).
+			SelectedLine(Contains("add conflict on source"))
 
 		t.Views().Information().Content(DoesNotContain("commit copied"))
 
