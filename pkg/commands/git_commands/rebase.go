@@ -554,9 +554,13 @@ func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, comm
 // CherryPickCommits begins an interactive rebase with the given hashes being cherry picked onto HEAD
 func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
 	hasMergeCommit := lo.SomeBy(commits, func(c *models.Commit) bool { return c.IsMerge() })
+	isAtLeast245 := self.version.IsAtLeast(2, 45, 0)
+	supportsKeepRedundantCommits := self.version.IsAtLeast(1, 7, 11)
+
 	cmdArgs := NewGitCmd("cherry-pick").
 		Arg("--allow-empty").
-		ArgIfElse(self.version.IsAtLeast(2, 45, 0), "--empty=stop", "--keep-redundant-commits").
+		ArgIf(isAtLeast245, "--empty=stop").
+		ArgIf(supportsKeepRedundantCommits, "--keep-redundant-commits").
 		ArgIf(hasMergeCommit, "-m1").
 		Arg(lo.Reverse(lo.Map(commits, func(c *models.Commit, _ int) string { return c.Hash() }))...).
 		ToArgv()
