@@ -93,8 +93,14 @@ func (self *CherryPickHelper) Paste() error {
 					}
 				}
 
+				cherryPickedCommits := self.getData().CherryPickedCommits
+
 				selectionDelta := 0
 				shouldMoveSelection := false
+				if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil && !commit.IsTODO() {
+					selectionDelta = len(cherryPickedCommits)
+					shouldMoveSelection = true
+				}
 
 				self.setPostPasteCleanup(func() error {
 					self.getData().DidPaste = true
@@ -110,7 +116,7 @@ func (self *CherryPickHelper) Paste() error {
 					}
 
 					if shouldMoveSelection {
-						if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil && !commit.IsTODO() {
+						if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil {
 							self.c.Contexts().LocalCommits.MoveSelection(selectionDelta)
 							self.c.Contexts().LocalCommits.FocusLine()
 						}
@@ -119,21 +125,10 @@ func (self *CherryPickHelper) Paste() error {
 					return nil
 				})
 
-				cherryPickedCommits := self.getData().CherryPickedCommits
 				result := self.c.Git().Rebase.CherryPickCommits(cherryPickedCommits)
 				err := self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.SYNC})
 				if err != nil {
 					return err
-				}
-
-				// Move the selection down by the number of commits we just
-				// cherry-picked, to keep the same commit selected as before.
-				// Don't do this if a rebase todo is selected, because in this
-				// case we are in a rebase and the cherry-picked commits end up
-				// below the selection.
-				if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil && !commit.IsTODO() {
-					selectionDelta = len(cherryPickedCommits)
-					shouldMoveSelection = true
 				}
 
 				// If we're in the cherry-picking state at this point, it must
