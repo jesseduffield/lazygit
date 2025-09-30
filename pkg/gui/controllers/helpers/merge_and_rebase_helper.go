@@ -218,6 +218,7 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 					}
 
 					if self.cherryPickHelper != nil && !isInCherryPick {
+						self.cherryPickHelper.DisablePostPasteReselect()
 						if err := self.cherryPickHelper.runPostPasteCleanup(); err != nil {
 							return err
 						}
@@ -255,6 +256,7 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 					}
 
 					if self.cherryPickHelper != nil && !isInCherryPick {
+						self.cherryPickHelper.DisablePostPasteReselect()
 						if err := self.cherryPickHelper.runPostPasteCleanup(); err != nil {
 							return err
 						}

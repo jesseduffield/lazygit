@@ -16,6 +16,14 @@ type CherryPickHelper struct {
 	rebaseHelper *MergeAndRebaseHelper
 
 	postPasteCleanup func() error
+
+	postPasteSelection *postPasteSelection
+}
+
+type postPasteSelection struct {
+	hash           string
+	idx            int
+	shouldReselect bool
 }
 
 // I'm using the analogy of copy+paste in the terminology here because it's intuitively what's going on,
@@ -94,13 +102,7 @@ func (self *CherryPickHelper) Paste() error {
 				}
 
 				cherryPickedCommits := self.getData().CherryPickedCommits
-
-				selectionDelta := 0
-				shouldMoveSelection := false
-				if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil && !commit.IsTODO() {
-					selectionDelta = len(cherryPickedCommits)
-					shouldMoveSelection = true
-				}
+				self.preparePostPasteSelection(cherryPickedCommits)
 
 				self.setPostPasteCleanup(func() error {
 					self.getData().DidPaste = true
@@ -115,12 +117,7 @@ func (self *CherryPickHelper) Paste() error {
 						})
 					}
 
-					if shouldMoveSelection {
-						if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil {
-							self.c.Contexts().LocalCommits.MoveSelection(selectionDelta)
-							self.c.Contexts().LocalCommits.FocusLine()
-						}
-					}
+					self.restorePostPasteSelection()
 
 					return nil
 				})
@@ -161,6 +158,7 @@ func (self *CherryPickHelper) Reset() error {
 	self.getData().ContextKey = ""
 	self.getData().CherryPickedCommits = nil
 	self.postPasteCleanup = nil
+	self.postPasteSelection = nil
 
 	self.rerender()
 	return nil
@@ -189,6 +187,49 @@ func (self *CherryPickHelper) rerender() {
 	}
 }
 
+func (self *CherryPickHelper) preparePostPasteSelection(commits []*models.Commit) {
+	selectedCommit := self.c.Contexts().LocalCommits.GetSelected()
+	selectedIdx := self.c.Contexts().LocalCommits.GetSelectedLineIdx()
+
+	self.postPasteSelection = nil
+
+	if selectedCommit == nil {
+		return
+	}
+
+	self.postPasteSelection = &postPasteSelection{
+		hash:           selectedCommit.Hash(),
+		idx:            selectedIdx,
+		shouldReselect: !selectedCommit.IsTODO() && len(commits) > 0,
+	}
+}
+
+func (self *CherryPickHelper) restorePostPasteSelection() {
+	if self.postPasteSelection == nil || !self.postPasteSelection.shouldReselect {
+		return
+	}
+
+	localCommits := self.c.Contexts().LocalCommits
+
+	if self.postPasteSelection.hash != "" && localCommits.SelectCommitByHash(self.postPasteSelection.hash) {
+		localCommits.FocusLine()
+		return
+	}
+
+	if self.postPasteSelection.idx >= 0 {
+		localCommits.SetSelectedLineIdx(self.postPasteSelection.idx)
+		localCommits.FocusLine()
+	}
+}
+
+func (self *CherryPickHelper) DisablePostPasteReselect() {
+	if self.postPasteSelection == nil {
+		return
+	}
+
+	self.postPasteSelection.shouldReselect = false
+}
+
 func (self *CherryPickHelper) setPostPasteCleanup(cleanup func() error) {
 	self.postPasteCleanup = cleanup
 }
@@ -200,6 +241,9 @@ func (self *CherryPickHelper) runPostPasteCleanup() error {
 
 	cleanup := self.postPasteCleanup
 	self.postPasteCleanup = nil
+	defer func() {
+		self.postPasteSelection = nil
+	}()
 
 	return cleanup()
 }

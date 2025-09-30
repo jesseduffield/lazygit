@@ -60,6 +60,7 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("one"),
 				Contains("base"),
 			).
+			SelectNextItem().
 			Press(keys.Commits.PasteCommits).
 			Tap(func() {
 				// cherry-picked commits will be deleted after confirmation
@@ -77,8 +78,8 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("four"),
 				Contains("three"),
-				Contains("two").IsSelected(),
-				Contains("one"),
+				Contains("two"),
+				Contains("one").IsSelected(),
 				Contains("base"),
 			)
 
