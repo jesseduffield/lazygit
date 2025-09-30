@@ -74,6 +74,17 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("Cherry-pick produced no changes")).
+					ContainsLines(
+						Contains("Skip this cherry-pick"),
+						Contains("Create empty commit and continue"),
+						Contains("Cancel"),
+					).
+					Select(Contains("Create empty commit and continue")).
+					Confirm()
+			}).
+			Tap(func() {
 				t.Views().Information().Content(DoesNotContain("commit copied"))
 			}).
 			Lines(
