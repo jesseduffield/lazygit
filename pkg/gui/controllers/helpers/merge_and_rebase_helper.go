@@ -121,6 +121,10 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 		return err
 	}
 
+	if self.cherryPickHelper != nil {
+		self.cherryPickHelper.markPasteProducedCommitsIfHeadChanged()
+	}
+
 	if err := self.finalizeCherryPickIfDone(); err != nil {
 		return err
 	}
@@ -215,7 +219,7 @@ func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
 				OnPress: func() error {
 					if self.cherryPickHelper != nil {
 						self.cherryPickHelper.DisablePostPasteReselect()
-						self.cherryPickHelper.setPostPasteShouldMarkDidPaste(false)
+						self.cherryPickHelper.DeferPostPasteCleanup()
 					}
 					if err := self.genericMergeCommand(REBASE_OPTION_SKIP); err != nil {
 						return err
@@ -266,6 +270,8 @@ func (self *MergeAndRebaseHelper) completeCherryPickAfterEmptyResolution(preserv
 		return nil
 	}
 
+	defer self.cherryPickHelper.ClearDeferredPostPasteCleanup()
+
 	if !preservePostPasteReselect {
 		self.cherryPickHelper.DisablePostPasteReselect()
 	}
@@ -274,7 +280,13 @@ func (self *MergeAndRebaseHelper) completeCherryPickAfterEmptyResolution(preserv
 		return nil
 	}
 
-	if err := self.cherryPickHelper.runPostPasteCleanup(preservePostPasteReselect); err != nil {
+	self.cherryPickHelper.markPasteProducedCommitsIfHeadChanged()
+
+	if !self.cherryPickHelper.PasteProducedCommits() {
+		self.cherryPickHelper.setPostPasteShouldMarkDidPaste(false)
+	}
+
+	if err := self.cherryPickHelper.runPostPasteCleanup(true); err != nil {
 		return err
 	}
 
@@ -283,6 +295,10 @@ func (self *MergeAndRebaseHelper) completeCherryPickAfterEmptyResolution(preserv
 
 func (self *MergeAndRebaseHelper) finalizeCherryPickIfDone() error {
 	if self.cherryPickHelper == nil {
+		return nil
+	}
+
+	if self.cherryPickHelper.ShouldDeferPostPasteCleanup() {
 		return nil
 	}
 
@@ -303,6 +319,8 @@ func (self *MergeAndRebaseHelper) finalizeCherryPickIfDone() error {
 	if isInCherryPick {
 		return nil
 	}
+
+	self.cherryPickHelper.markPasteProducedCommitsIfHeadChanged()
 
 	if !self.cherryPickHelper.ShouldRestorePostPasteSelection() {
 		self.cherryPickHelper.DisablePostPasteReselect()

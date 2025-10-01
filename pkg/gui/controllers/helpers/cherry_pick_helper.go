@@ -2,7 +2,9 @@ package helpers
 
 import (
 	"strconv"
+	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -19,6 +21,11 @@ type CherryPickHelper struct {
 	postPasteShouldMarkDidPaste bool
 
 	postPasteSelection *postPasteSelection
+
+	prePasteHeadHash     string
+	pasteProducedCommits bool
+
+	deferPostPasteCleanup bool
 }
 
 type postPasteSelection struct {
@@ -104,6 +111,7 @@ func (self *CherryPickHelper) Paste() error {
 
 				cherryPickedCommits := self.getData().CherryPickedCommits
 				self.preparePostPasteSelection(cherryPickedCommits)
+				self.capturePrePasteHeadHash()
 
 				self.setPostPasteCleanup(func(markDidPaste bool) error {
 					if markDidPaste {
@@ -130,6 +138,8 @@ func (self *CherryPickHelper) Paste() error {
 				if err != nil {
 					return err
 				}
+
+				self.markPasteProducedCommitsIfHeadChanged()
 
 				// If we're in the cherry-picking state at this point, it must
 				// be because there were conflicts. Don't clear the copied
@@ -163,6 +173,9 @@ func (self *CherryPickHelper) Reset() error {
 	self.postPasteCleanup = nil
 	self.postPasteShouldMarkDidPaste = false
 	self.postPasteSelection = nil
+	self.prePasteHeadHash = ""
+	self.pasteProducedCommits = false
+	self.deferPostPasteCleanup = false
 
 	self.rerender()
 	return nil
@@ -253,6 +266,9 @@ func (self *CherryPickHelper) runPostPasteCleanup(markDidPaste bool) error {
 	defer func() {
 		self.postPasteShouldMarkDidPaste = false
 		self.postPasteSelection = nil
+		self.prePasteHeadHash = ""
+		self.pasteProducedCommits = false
+		self.deferPostPasteCleanup = false
 	}()
 
 	return cleanup(markDidPaste && self.postPasteShouldMarkDidPaste)
@@ -264,4 +280,81 @@ func (self *CherryPickHelper) setPostPasteShouldMarkDidPaste(mark bool) {
 	}
 
 	self.postPasteShouldMarkDidPaste = mark
+}
+
+func (self *CherryPickHelper) capturePrePasteHeadHash() {
+	headHash, err := self.getHeadHash()
+	if err != nil {
+		self.prePasteHeadHash = ""
+		return
+	}
+
+	self.prePasteHeadHash = headHash
+	self.pasteProducedCommits = false
+}
+
+func (self *CherryPickHelper) PasteProducedCommits() bool {
+	if self.pasteProducedCommits {
+		return true
+	}
+
+	if self.prePasteHeadHash == "" {
+		return true
+	}
+
+	headHash, err := self.getHeadHash()
+	if err != nil {
+		return true
+	}
+
+	if headHash != self.prePasteHeadHash {
+		self.pasteProducedCommits = true
+		return true
+	}
+
+	return false
+}
+
+func (self *CherryPickHelper) DeferPostPasteCleanup() {
+	self.deferPostPasteCleanup = true
+}
+
+func (self *CherryPickHelper) ClearDeferredPostPasteCleanup() {
+	self.deferPostPasteCleanup = false
+}
+
+func (self *CherryPickHelper) ShouldDeferPostPasteCleanup() bool {
+	return self.deferPostPasteCleanup
+}
+
+func (self *CherryPickHelper) markPasteProducedCommitsIfHeadChanged() {
+	if self.pasteProducedCommits {
+		return
+	}
+
+	if self.prePasteHeadHash == "" {
+		self.pasteProducedCommits = true
+		return
+	}
+
+	headHash, err := self.getHeadHash()
+	if err != nil {
+		self.pasteProducedCommits = true
+		return
+	}
+
+	if headHash != self.prePasteHeadHash {
+		self.pasteProducedCommits = true
+	}
+}
+
+func (self *CherryPickHelper) getHeadHash() (string, error) {
+	output, err := self.c.OS().Cmd.New(
+		git_commands.NewGitCmd("rev-parse").Arg("HEAD").ToArgv(),
+	).DontLog().RunWithOutput()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(output), nil
 }

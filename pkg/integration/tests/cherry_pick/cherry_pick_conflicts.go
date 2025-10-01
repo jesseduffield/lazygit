@@ -100,7 +100,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 					Content(Contains("-First Change")).
 					Content(Contains("+Second Change"))
 
-				t.Views().Information().Content(Contains("2 commits copied"))
+				t.Views().Information().Content(DoesNotContain("commits copied"))
 			}).
 			PressEscape().
 			Tap(func() {
