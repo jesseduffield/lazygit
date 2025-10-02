@@ -328,6 +328,8 @@ const (
 	AUDIT_KERNEL                                = 0x7d0
 	AUDIT_KERNEL_OTHER                          = 0x524
 	AUDIT_KERN_MODULE                           = 0x532
+	AUDIT_LANDLOCK_ACCESS                       = 0x58f
+	AUDIT_LANDLOCK_DOMAIN                       = 0x590
 	AUDIT_LAST_FEATURE                          = 0x1
 	AUDIT_LAST_KERN_ANOM_MSG                    = 0x707
 	AUDIT_LAST_USER_MSG                         = 0x4af
@@ -492,6 +494,7 @@ const (
 	BPF_F_BEFORE                                = 0x8
 	BPF_F_ID                                    = 0x20
 	BPF_F_NETFILTER_IP_DEFRAG                   = 0x1
+	BPF_F_PREORDER                              = 0x40
 	BPF_F_QUERY_EFFECTIVE                       = 0x1
 	BPF_F_REDIRECT_FLAGS                        = 0x19
 	BPF_F_REPLACE                               = 0x4
@@ -528,6 +531,7 @@ const (
 	BPF_LDX                                     = 0x1
 	BPF_LEN                                     = 0x80
 	BPF_LL_OFF                                  = -0x200000
+	BPF_LOAD_ACQ                                = 0x100
 	BPF_LSH                                     = 0x60
 	BPF_MAJOR_VERSION                           = 0x1
 	BPF_MAXINSNS                                = 0x1000
@@ -555,6 +559,7 @@ const (
 	BPF_RET                                     = 0x6
 	BPF_RSH                                     = 0x70
 	BPF_ST                                      = 0x2
+	BPF_STORE_REL                               = 0x110
 	BPF_STX                                     = 0x3
 	BPF_SUB                                     = 0x10
 	BPF_TAG_SIZE                                = 0x8
@@ -844,9 +849,9 @@ const (
 	DM_UUID_FLAG                                = 0x4000
 	DM_UUID_LEN                                 = 0x81
 	DM_VERSION                                  = 0xc138fd00
-	DM_VERSION_EXTRA                            = "-ioctl (2025-01-17)"
+	DM_VERSION_EXTRA                            = "-ioctl (2025-04-28)"
 	DM_VERSION_MAJOR                            = 0x4
-	DM_VERSION_MINOR                            = 0x31
+	DM_VERSION_MINOR                            = 0x32
 	DM_VERSION_PATCHLEVEL                       = 0x0
 	DT_BLK                                      = 0x6
 	DT_CHR                                      = 0x2
@@ -937,9 +942,6 @@ const (
 	EPOLL_CTL_MOD                               = 0x3
 	EPOLL_IOC_TYPE                              = 0x8a
 	EROFS_SUPER_MAGIC_V1                        = 0xe0f5e1e2
-	ESP_V4_FLOW                                 = 0xa
-	ESP_V6_FLOW                                 = 0xc
-	ETHER_FLOW                                  = 0x12
 	ETHTOOL_BUSINFO_LEN                         = 0x20
 	ETHTOOL_EROMVERS_LEN                        = 0x20
 	ETHTOOL_FAMILY_NAME                         = "ethtool"
@@ -1213,6 +1215,7 @@ const (
 	FAN_EVENT_INFO_TYPE_DFID_NAME               = 0x2
 	FAN_EVENT_INFO_TYPE_ERROR                   = 0x5
 	FAN_EVENT_INFO_TYPE_FID                     = 0x1
+	FAN_EVENT_INFO_TYPE_MNT                     = 0x7
 	FAN_EVENT_INFO_TYPE_NEW_DFID_NAME           = 0xc
 	FAN_EVENT_INFO_TYPE_OLD_DFID_NAME           = 0xa
 	FAN_EVENT_INFO_TYPE_PIDFD                   = 0x4
@@ -1231,9 +1234,12 @@ const (
 	FAN_MARK_IGNORED_SURV_MODIFY                = 0x40
 	FAN_MARK_IGNORE_SURV                        = 0x440
 	FAN_MARK_INODE                              = 0x0
+	FAN_MARK_MNTNS                              = 0x110
 	FAN_MARK_MOUNT                              = 0x10
 	FAN_MARK_ONLYDIR                            = 0x8
 	FAN_MARK_REMOVE                             = 0x2
+	FAN_MNT_ATTACH                              = 0x1000000
+	FAN_MNT_DETACH                              = 0x2000000
 	FAN_MODIFY                                  = 0x2
 	FAN_MOVE                                    = 0xc0
 	FAN_MOVED_FROM                              = 0x40
@@ -1255,6 +1261,7 @@ const (
 	FAN_REPORT_DIR_FID                          = 0x400
 	FAN_REPORT_FD_ERROR                         = 0x2000
 	FAN_REPORT_FID                              = 0x200
+	FAN_REPORT_MNT                              = 0x4000
 	FAN_REPORT_NAME                             = 0x800
 	FAN_REPORT_PIDFD                            = 0x80
 	FAN_REPORT_TARGET_FID                       = 0x1000
@@ -1274,6 +1281,7 @@ const (
 	FIB_RULE_PERMANENT                          = 0x1
 	FIB_RULE_UNRESOLVED                         = 0x4
 	FIDEDUPERANGE                               = 0xc0189436
+	FSCRYPT_ADD_KEY_FLAG_HW_WRAPPED             = 0x1
 	FSCRYPT_KEY_DESCRIPTOR_SIZE                 = 0x8
 	FSCRYPT_KEY_DESC_PREFIX                     = "fscrypt:"
 	FSCRYPT_KEY_DESC_PREFIX_SIZE                = 0x8
@@ -1582,7 +1590,6 @@ const (
 	IPV6_DONTFRAG                               = 0x3e
 	IPV6_DROP_MEMBERSHIP                        = 0x15
 	IPV6_DSTOPTS                                = 0x3b
-	IPV6_FLOW                                   = 0x11
 	IPV6_FREEBIND                               = 0x4e
 	IPV6_HDRINCL                                = 0x24
 	IPV6_HOPLIMIT                               = 0x34
@@ -1633,7 +1640,6 @@ const (
 	IPV6_TRANSPARENT                            = 0x4b
 	IPV6_UNICAST_HOPS                           = 0x10
 	IPV6_UNICAST_IF                             = 0x4c
-	IPV6_USER_FLOW                              = 0xe
 	IPV6_V6ONLY                                 = 0x1a
 	IPV6_VERSION                                = 0x60
 	IPV6_VERSION_MASK                           = 0xf0
@@ -1695,7 +1701,6 @@ const (
 	IP_TTL                                      = 0x2
 	IP_UNBLOCK_SOURCE                           = 0x25
 	IP_UNICAST_IF                               = 0x32
-	IP_USER_FLOW                                = 0xd
 	IP_XFRM_POLICY                              = 0x11
 	ISOFS_SUPER_MAGIC                           = 0x9660
 	ISTRIP                                      = 0x20
@@ -1817,7 +1822,11 @@ const (
 	LANDLOCK_ACCESS_FS_WRITE_FILE               = 0x2
 	LANDLOCK_ACCESS_NET_BIND_TCP                = 0x1
 	LANDLOCK_ACCESS_NET_CONNECT_TCP             = 0x2
+	LANDLOCK_CREATE_RULESET_ERRATA              = 0x2
 	LANDLOCK_CREATE_RULESET_VERSION             = 0x1
+	LANDLOCK_RESTRICT_SELF_LOG_NEW_EXEC_ON      = 0x2
+	LANDLOCK_RESTRICT_SELF_LOG_SAME_EXEC_OFF    = 0x1
+	LANDLOCK_RESTRICT_SELF_LOG_SUBDOMAINS_OFF   = 0x4
 	LANDLOCK_SCOPE_ABSTRACT_UNIX_SOCKET         = 0x1
 	LANDLOCK_SCOPE_SIGNAL                       = 0x2
 	LINUX_REBOOT_CMD_CAD_OFF                    = 0x0
@@ -2493,6 +2502,10 @@ const (
 	PR_FP_EXC_UND                               = 0x40000
 	PR_FP_MODE_FR                               = 0x1
 	PR_FP_MODE_FRE                              = 0x2
+	PR_FUTEX_HASH                               = 0x4e
+	PR_FUTEX_HASH_GET_IMMUTABLE                 = 0x3
+	PR_FUTEX_HASH_GET_SLOTS                     = 0x2
+	PR_FUTEX_HASH_SET_SLOTS                     = 0x1
 	PR_GET_AUXV                                 = 0x41555856
 	PR_GET_CHILD_SUBREAPER                      = 0x25
 	PR_GET_DUMPABLE                             = 0x3
@@ -2652,6 +2665,10 @@ const (
 	PR_TAGGED_ADDR_ENABLE                       = 0x1
 	PR_TASK_PERF_EVENTS_DISABLE                 = 0x1f
 	PR_TASK_PERF_EVENTS_ENABLE                  = 0x20
+	PR_TIMER_CREATE_RESTORE_IDS                 = 0x4d
+	PR_TIMER_CREATE_RESTORE_IDS_GET             = 0x2
+	PR_TIMER_CREATE_RESTORE_IDS_OFF             = 0x0
+	PR_TIMER_CREATE_RESTORE_IDS_ON              = 0x1
 	PR_TIMING_STATISTICAL                       = 0x0
 	PR_TIMING_TIMESTAMP                         = 0x1
 	PR_TSC_ENABLE                               = 0x1
@@ -2732,6 +2749,7 @@ const (
 	PTRACE_SETREGSET                            = 0x4205
 	PTRACE_SETSIGINFO                           = 0x4203
 	PTRACE_SETSIGMASK                           = 0x420b
+	PTRACE_SET_SYSCALL_INFO                     = 0x4212
 	PTRACE_SET_SYSCALL_USER_DISPATCH_CONFIG     = 0x4210
 	PTRACE_SINGLESTEP                           = 0x9
 	PTRACE_SYSCALL                              = 0x18
@@ -2982,6 +3000,7 @@ const (
 	RTPROT_NTK                                  = 0xf
 	RTPROT_OPENR                                = 0x63
 	RTPROT_OSPF                                 = 0xbc
+	RTPROT_OVN                                  = 0x54
 	RTPROT_RA                                   = 0x9
 	RTPROT_REDIRECT                             = 0x1
 	RTPROT_RIP                                  = 0xbd
@@ -3336,7 +3355,7 @@ const (
 	TASKSTATS_GENL_NAME                         = "TASKSTATS"
 	TASKSTATS_GENL_VERSION                      = 0x1
 	TASKSTATS_TYPE_MAX                          = 0x6
-	TASKSTATS_VERSION                           = 0xf
+	TASKSTATS_VERSION                           = 0x10
 	TCIFLUSH                                    = 0x0
 	TCIOFF                                      = 0x2
 	TCIOFLUSH                                   = 0x2
@@ -3406,8 +3425,6 @@ const (
 	TCP_TX_DELAY                                = 0x25
 	TCP_ULP                                     = 0x1f
 	TCP_USER_TIMEOUT                            = 0x12
-	TCP_V4_FLOW                                 = 0x1
-	TCP_V6_FLOW                                 = 0x5
 	TCP_WINDOW_CLAMP                            = 0xa
 	TCP_ZEROCOPY_RECEIVE                        = 0x23
 	TFD_TIMER_ABSTIME                           = 0x1
@@ -3530,8 +3547,6 @@ const (
 	UDP_NO_CHECK6_RX                            = 0x66
 	UDP_NO_CHECK6_TX                            = 0x65
 	UDP_SEGMENT                                 = 0x67
-	UDP_V4_FLOW                                 = 0x2
-	UDP_V6_FLOW                                 = 0x6
 	UMOUNT_NOFOLLOW                             = 0x8
 	USBDEVICE_SUPER_MAGIC                       = 0x9fa2
 	UTIME_NOW                                   = 0x3fffffff
@@ -3574,7 +3589,7 @@ const (
 	WDIOS_TEMPPANIC                             = 0x4
 	WDIOS_UNKNOWN                               = -0x1
 	WEXITED                                     = 0x4
-	WGALLOWEDIP_A_MAX                           = 0x3
+	WGALLOWEDIP_A_MAX                           = 0x4
 	WGDEVICE_A_MAX                              = 0x8
 	WGPEER_A_MAX                                = 0xa
 	WG_CMD_MAX                                  = 0x1
@@ -3688,6 +3703,7 @@ const (
 	XDP_SHARED_UMEM                             = 0x1
 	XDP_STATISTICS                              = 0x7
 	XDP_TXMD_FLAGS_CHECKSUM                     = 0x2
+	XDP_TXMD_FLAGS_LAUNCH_TIME                  = 0x4
 	XDP_TXMD_FLAGS_TIMESTAMP                    = 0x1
 	XDP_TX_METADATA                             = 0x2
 	XDP_TX_RING                                 = 0x3

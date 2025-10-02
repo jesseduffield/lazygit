@@ -898,7 +898,7 @@ func (t *tScreen) drawCell(x, y int) int {
 		}
 
 		// URL string can be long, so don't send it unless we really need to
-		if t.enterUrl != "" && t.curstyle != style {
+		if t.enterUrl != "" && t.curstyle.url != style.url {
 			if style.url != "" {
 				t.TPuts(ti.TParm(t.enterUrl, style.url, style.urlId))
 			} else {
@@ -1339,6 +1339,10 @@ func (t *tScreen) buildMouseEvent(x, y, btn int) *EventMouse {
 		button = WheelUp
 	case 0x41:
 		button = WheelDown
+	case 0x42:
+		button = WheelLeft
+	case 0x43:
+		button = WheelRight
 	}
 
 	if btn&0x4 != 0 {

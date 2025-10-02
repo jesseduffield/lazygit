@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rivo/uniseg"
+	"github.com/clipperhouse/uax29/v2/graphemes"
 )
 
 //go:generate go run script/generate.go
@@ -62,6 +62,9 @@ func inTables(r rune, ts ...table) bool {
 
 func inTable(r rune, t table) bool {
 	if r < t[0].first {
+		return false
+	}
+	if r > t[len(t)-1].last {
 		return false
 	}
 
@@ -175,10 +178,10 @@ func (c *Condition) CreateLUT() {
 
 // StringWidth return width as you can see
 func (c *Condition) StringWidth(s string) (width int) {
-	g := uniseg.NewGraphemes(s)
+	g := graphemes.FromString(s)
 	for g.Next() {
 		var chWidth int
-		for _, r := range g.Runes() {
+		for _, r := range g.Value() {
 			chWidth = c.RuneWidth(r)
 			if chWidth > 0 {
 				break // Our best guess at this point is to use the width of the first non-zero-width rune.
@@ -197,17 +200,17 @@ func (c *Condition) Truncate(s string, w int, tail string) string {
 	w -= c.StringWidth(tail)
 	var width int
 	pos := len(s)
-	g := uniseg.NewGraphemes(s)
+	g := graphemes.FromString(s)
 	for g.Next() {
 		var chWidth int
-		for _, r := range g.Runes() {
+		for _, r := range g.Value() {
 			chWidth = c.RuneWidth(r)
 			if chWidth > 0 {
 				break // See StringWidth() for details.
 			}
 		}
 		if width+chWidth > w {
-			pos, _ = g.Positions()
+			pos = g.Start()
 			break
 		}
 		width += chWidth
@@ -224,10 +227,10 @@ func (c *Condition) TruncateLeft(s string, w int, prefix string) string {
 	var width int
 	pos := len(s)
 
-	g := uniseg.NewGraphemes(s)
+	g := graphemes.FromString(s)
 	for g.Next() {
 		var chWidth int
-		for _, r := range g.Runes() {
+		for _, r := range g.Value() {
 			chWidth = c.RuneWidth(r)
 			if chWidth > 0 {
 				break // See StringWidth() for details.
@@ -236,10 +239,10 @@ func (c *Condition) TruncateLeft(s string, w int, prefix string) string {
 
 		if width+chWidth > w {
 			if width < w {
-				_, pos = g.Positions()
+				pos = g.End()
 				prefix += strings.Repeat(" ", width+chWidth-w)
 			} else {
-				pos, _ = g.Positions()
+				pos = g.Start()
 			}
 
 			break

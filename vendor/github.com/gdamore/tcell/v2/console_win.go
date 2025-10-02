@@ -655,25 +655,28 @@ var vkKeys = map[uint16]Key{
 func getu32(v []byte) uint32 {
 	return uint32(v[0]) + (uint32(v[1]) << 8) + (uint32(v[2]) << 16) + (uint32(v[3]) << 24)
 }
+
 func geti32(v []byte) int32 {
 	return int32(getu32(v))
 }
+
 func getu16(v []byte) uint16 {
 	return uint16(v[0]) + (uint16(v[1]) << 8)
 }
+
 func geti16(v []byte) int16 {
 	return int16(getu16(v))
 }
 
 // Convert windows dwControlKeyState to modifier mask
-func mod2mask(cks uint32) ModMask {
+func mod2mask(cks uint32, filter_ctrl_alt bool) ModMask {
 	mm := ModNone
 	// Left or right control
 	ctrl := (cks & (0x0008 | 0x0004)) != 0
 	// Left or right alt
 	alt := (cks & (0x0002 | 0x0001)) != 0
 	// Filter out ctrl+alt (it means AltGr)
-	if !(ctrl && alt) {
+	if !filter_ctrl_alt || !(ctrl && alt) {
 		if ctrl {
 			mm |= ModCtrl
 		}
@@ -788,10 +791,10 @@ func (s *cScreen) getConsoleInput() error {
 				// synthesized key code
 				for krec.repeat > 0 {
 					// convert shift+tab to backtab
-					if mod2mask(krec.mod) == ModShift && krec.ch == vkTab {
+					if mod2mask(krec.mod, false) == ModShift && krec.ch == vkTab {
 						s.postEvent(NewEventKey(KeyBacktab, 0, ModNone))
 					} else {
-						s.postEvent(NewEventKey(KeyRune, rune(krec.ch), mod2mask(krec.mod)))
+						s.postEvent(NewEventKey(KeyRune, rune(krec.ch), mod2mask(krec.mod, true)))
 					}
 					krec.repeat--
 				}
@@ -803,7 +806,7 @@ func (s *cScreen) getConsoleInput() error {
 				return nil
 			}
 			for krec.repeat > 0 {
-				s.postEvent(NewEventKey(key, rune(krec.ch), mod2mask(krec.mod)))
+				s.postEvent(NewEventKey(key, rune(krec.ch), mod2mask(krec.mod, false)))
 				krec.repeat--
 			}
 
@@ -816,7 +819,7 @@ func (s *cScreen) getConsoleInput() error {
 			mrec.flags = getu32(rec.data[12:])
 			btns := mrec2btns(mrec.btns, mrec.flags)
 			// we ignore double click, events are delivered normally
-			s.postEvent(NewEventMouse(int(mrec.x), int(mrec.y), btns, mod2mask(mrec.mod)))
+			s.postEvent(NewEventMouse(int(mrec.x), int(mrec.y), btns, mod2mask(mrec.mod, false)))
 
 		case resizeEvent:
 			var rrec resizeRecord
@@ -938,7 +941,7 @@ func (s *cScreen) mapStyle(style Style) uint16 {
 	return attr
 }
 
-func (s *cScreen) sendVtStyle(style Style) {
+func (s *cScreen) makeVtStyle(style Style) string {
 	esc := &strings.Builder{}
 
 	fg, bg, attrs := style.fg, style.bg, style.attrs
@@ -998,30 +1001,40 @@ func (s *cScreen) sendVtStyle(style Style) {
 		esc.WriteString(vtExitUrl)
 	}
 
-	s.emitVtString(esc.String())
+	return esc.String()
 }
 
-func (s *cScreen) writeString(x, y int, style Style, ch []uint16) {
+func (s *cScreen) sendVtStyle(style Style) {
+	s.emitVtString(s.makeVtStyle(style))
+}
+
+func (s *cScreen) writeString(x, y int, style Style, vtBuf, ch []uint16) {
 	// we assume the caller has hidden the cursor
 	if len(ch) == 0 {
 		return
 	}
-	s.setCursorPos(x, y, s.vten)
 
 	if s.vten {
-		s.sendVtStyle(style)
+		vtBuf = append(vtBuf, utf16.Encode([]rune(fmt.Sprintf(vtCursorPos, y+1, x+1)))...)
+		styleStr := s.makeVtStyle(style)
+		vtBuf = append(vtBuf, utf16.Encode([]rune(styleStr))...)
+		vtBuf = append(vtBuf, ch...)
+		_ = syscall.WriteConsole(s.out, &vtBuf[0], uint32(len(vtBuf)), nil, nil)
+		vtBuf = vtBuf[:0]
 	} else {
+		s.setCursorPos(x, y, s.vten)
 		_, _, _ = procSetConsoleTextAttribute.Call(
 			uintptr(s.out),
 			uintptr(s.mapStyle(style)))
+		_ = syscall.WriteConsole(s.out, &ch[0], uint32(len(ch)), nil, nil)
 	}
-	_ = syscall.WriteConsole(s.out, &ch[0], uint32(len(ch)), nil, nil)
 }
 
 func (s *cScreen) draw() {
 	// allocate a scratch line bit enough for no combining chars.
 	// if you have combining characters, you may pay for extra allocations.
 	buf := make([]uint16, 0, s.w)
+	var vtBuf []uint16
 	wcs := buf[:]
 	lstyle := styleInvalid
 
@@ -1040,7 +1053,7 @@ func (s *cScreen) draw() {
 				// write out any data queued thus far
 				// because we are going to skip over some
 				// cells, or because we need to change styles
-				s.writeString(lx, ly, lstyle, wcs)
+				s.writeString(lx, ly, lstyle, vtBuf, wcs)
 				wcs = buf[0:0]
 				lstyle = StyleDefault
 				if !dirty {
@@ -1067,7 +1080,7 @@ func (s *cScreen) draw() {
 			}
 			x += width - 1
 		}
-		s.writeString(lx, ly, lstyle, wcs)
+		s.writeString(lx, ly, lstyle, vtBuf, wcs)
 		wcs = buf[0:0]
 		lstyle = styleInvalid
 	}
