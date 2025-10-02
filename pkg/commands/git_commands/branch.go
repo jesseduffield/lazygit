@@ -116,6 +116,22 @@ func (self *BranchCommands) CurrentBranchName() (string, error) {
 	return strings.TrimSpace(output), nil
 }
 
+// Gets the full ref name of the previously checked out branch. Can return an empty string (but no
+// error) e.g. when the previously checked out thing was a detached head.
+func (self *BranchCommands) PreviousRef() (string, error) {
+	cmdArgs := NewGitCmd("rev-parse").
+		Arg("--symbolic-full-name").
+		Arg("@{-1}").
+		ToArgv()
+
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(output), nil
+}
+
 // LocalDelete delete branch locally
 func (self *BranchCommands) LocalDelete(branches []string, force bool) error {
 	cmdArgs := NewGitCmd("branch").
