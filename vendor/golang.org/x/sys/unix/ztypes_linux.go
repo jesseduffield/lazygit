@@ -115,7 +115,9 @@ type Statx_t struct {
 	Atomic_write_unit_max     uint32
 	Atomic_write_segments_max uint32
 	Dio_read_offset_align     uint32
-	_                         [9]uint64
+	Atomic_write_unit_max_opt uint32
+	_                         [1]uint32
+	_                         [8]uint64
 }
 
 type Fsid struct {
@@ -199,7 +201,8 @@ type FscryptAddKeyArg struct {
 	Key_spec FscryptKeySpecifier
 	Raw_size uint32
 	Key_id   uint32
-	_        [8]uint32
+	Flags    uint32
+	_        [7]uint32
 }
 
 type FscryptRemoveKeyArg struct {
@@ -629,6 +632,8 @@ const (
 	IFA_FLAGS          = 0x8
 	IFA_RT_PRIORITY    = 0x9
 	IFA_TARGET_NETNSID = 0xa
+	IFAL_LABEL         = 0x2
+	IFAL_ADDRESS       = 0x1
 	RT_SCOPE_UNIVERSE  = 0x0
 	RT_SCOPE_SITE      = 0xc8
 	RT_SCOPE_LINK      = 0xfd
@@ -686,6 +691,7 @@ const (
 	SizeofRtAttr       = 0x4
 	SizeofIfInfomsg    = 0x10
 	SizeofIfAddrmsg    = 0x8
+	SizeofIfAddrlblmsg = 0xc
 	SizeofIfaCacheinfo = 0x10
 	SizeofRtMsg        = 0xc
 	SizeofRtNexthop    = 0x8
@@ -735,6 +741,15 @@ type IfAddrmsg struct {
 	Flags     uint8
 	Scope     uint8
 	Index     uint32
+}
+
+type IfAddrlblmsg struct {
+	Family    uint8
+	_         uint8
+	Prefixlen uint8
+	Flags     uint8
+	Index     uint32
+	Seq       uint32
 }
 
 type IfaCacheinfo struct {
@@ -2317,6 +2332,11 @@ const (
 	NFT_CT_AVGPKT                     = 0x10
 	NFT_CT_ZONE                       = 0x11
 	NFT_CT_EVENTMASK                  = 0x12
+	NFT_CT_SRC_IP                     = 0x13
+	NFT_CT_DST_IP                     = 0x14
+	NFT_CT_SRC_IP6                    = 0x15
+	NFT_CT_DST_IP6                    = 0x16
+	NFT_CT_ID                         = 0x17
 	NFTA_CT_UNSPEC                    = 0x0
 	NFTA_CT_DREG                      = 0x1
 	NFTA_CT_KEY                       = 0x2
@@ -2597,8 +2617,8 @@ const (
 	SOF_TIMESTAMPING_BIND_PHC     = 0x8000
 	SOF_TIMESTAMPING_OPT_ID_TCP   = 0x10000
 
-	SOF_TIMESTAMPING_LAST = 0x20000
-	SOF_TIMESTAMPING_MASK = 0x3ffff
+	SOF_TIMESTAMPING_LAST = 0x40000
+	SOF_TIMESTAMPING_MASK = 0x7ffff
 
 	SCM_TSTAMP_SND   = 0x0
 	SCM_TSTAMP_SCHED = 0x1
@@ -3044,6 +3064,23 @@ const (
 )
 
 const (
+	TCA_UNSPEC            = 0x0
+	TCA_KIND              = 0x1
+	TCA_OPTIONS           = 0x2
+	TCA_STATS             = 0x3
+	TCA_XSTATS            = 0x4
+	TCA_RATE              = 0x5
+	TCA_FCNT              = 0x6
+	TCA_STATS2            = 0x7
+	TCA_STAB              = 0x8
+	TCA_PAD               = 0x9
+	TCA_DUMP_INVISIBLE    = 0xa
+	TCA_CHAIN             = 0xb
+	TCA_HW_OFFLOAD        = 0xc
+	TCA_INGRESS_BLOCK     = 0xd
+	TCA_EGRESS_BLOCK      = 0xe
+	TCA_DUMP_FLAGS        = 0xf
+	TCA_EXT_WARN_MSG      = 0x10
 	RTNLGRP_NONE          = 0x0
 	RTNLGRP_LINK          = 0x1
 	RTNLGRP_NOTIFY        = 0x2
@@ -3078,6 +3115,18 @@ const (
 	RTNLGRP_IPV6_MROUTE_R = 0x1f
 	RTNLGRP_NEXTHOP       = 0x20
 	RTNLGRP_BRVLAN        = 0x21
+	RTNLGRP_MCTP_IFADDR   = 0x22
+	RTNLGRP_TUNNEL        = 0x23
+	RTNLGRP_STATS         = 0x24
+	RTNLGRP_IPV4_MCADDR   = 0x25
+	RTNLGRP_IPV6_MCADDR   = 0x26
+	RTNLGRP_IPV6_ACADDR   = 0x27
+	TCA_ROOT_UNSPEC       = 0x0
+	TCA_ROOT_TAB          = 0x1
+	TCA_ROOT_FLAGS        = 0x2
+	TCA_ROOT_COUNT        = 0x3
+	TCA_ROOT_TIME_DELTA   = 0x4
+	TCA_ROOT_EXT_WARN_MSG = 0x5
 )
 
 type CapUserHeader struct {
@@ -4044,7 +4093,7 @@ const (
 	ETHTOOL_A_TSINFO_PHC_INDEX                = 0x5
 	ETHTOOL_A_TSINFO_STATS                    = 0x6
 	ETHTOOL_A_TSINFO_HWTSTAMP_PROVIDER        = 0x7
-	ETHTOOL_A_TSINFO_MAX                      = 0x7
+	ETHTOOL_A_TSINFO_MAX                      = 0x9
 	ETHTOOL_A_CABLE_TEST_UNSPEC               = 0x0
 	ETHTOOL_A_CABLE_TEST_HEADER               = 0x1
 	ETHTOOL_A_CABLE_TEST_MAX                  = 0x1
@@ -4128,6 +4177,19 @@ const (
 	ETHTOOL_A_TUNNEL_INFO_HEADER              = 0x1
 	ETHTOOL_A_TUNNEL_INFO_UDP_PORTS           = 0x2
 	ETHTOOL_A_TUNNEL_INFO_MAX                 = 0x2
+)
+
+const (
+	TCP_V4_FLOW    = 0x1
+	UDP_V4_FLOW    = 0x2
+	TCP_V6_FLOW    = 0x5
+	UDP_V6_FLOW    = 0x6
+	ESP_V4_FLOW    = 0xa
+	ESP_V6_FLOW    = 0xc
+	IP_USER_FLOW   = 0xd
+	IPV6_USER_FLOW = 0xe
+	IPV6_FLOW      = 0x11
+	ETHER_FLOW     = 0x12
 )
 
 const SPEED_UNKNOWN = -0x1
@@ -4780,7 +4842,7 @@ const (
 	NL80211_ATTR_MAC_HINT                                   = 0xc8
 	NL80211_ATTR_MAC_MASK                                   = 0xd7
 	NL80211_ATTR_MAX_AP_ASSOC_STA                           = 0xca
-	NL80211_ATTR_MAX                                        = 0x150
+	NL80211_ATTR_MAX                                        = 0x151
 	NL80211_ATTR_MAX_CRIT_PROT_DURATION                     = 0xb4
 	NL80211_ATTR_MAX_CSA_COUNTERS                           = 0xce
 	NL80211_ATTR_MAX_HW_TIMESTAMP_PEERS                     = 0x143
@@ -5414,7 +5476,7 @@ const (
 	NL80211_FREQUENCY_ATTR_GO_CONCURRENT                    = 0xf
 	NL80211_FREQUENCY_ATTR_INDOOR_ONLY                      = 0xe
 	NL80211_FREQUENCY_ATTR_IR_CONCURRENT                    = 0xf
-	NL80211_FREQUENCY_ATTR_MAX                              = 0x21
+	NL80211_FREQUENCY_ATTR_MAX                              = 0x22
 	NL80211_FREQUENCY_ATTR_MAX_TX_POWER                     = 0x6
 	NL80211_FREQUENCY_ATTR_NO_10MHZ                         = 0x11
 	NL80211_FREQUENCY_ATTR_NO_160MHZ                        = 0xc
@@ -5530,7 +5592,7 @@ const (
 	NL80211_MAX_SUPP_SELECTORS                              = 0x80
 	NL80211_MBSSID_CONFIG_ATTR_EMA                          = 0x5
 	NL80211_MBSSID_CONFIG_ATTR_INDEX                        = 0x3
-	NL80211_MBSSID_CONFIG_ATTR_MAX                          = 0x5
+	NL80211_MBSSID_CONFIG_ATTR_MAX                          = 0x6
 	NL80211_MBSSID_CONFIG_ATTR_MAX_EMA_PROFILE_PERIODICITY  = 0x2
 	NL80211_MBSSID_CONFIG_ATTR_MAX_INTERFACES               = 0x1
 	NL80211_MBSSID_CONFIG_ATTR_TX_IFINDEX                   = 0x4

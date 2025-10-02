@@ -68,6 +68,7 @@ const (
 	CS8                              = 0x300
 	CSIZE                            = 0x300
 	CSTOPB                           = 0x400
+	DM_MPATH_PROBE_PATHS             = 0x2000fd12
 	ECCGETLAYOUT                     = 0x41484d11
 	ECCGETSTATS                      = 0x40104d12
 	ECHOCTL                          = 0x40
@@ -414,6 +415,7 @@ const (
 	SO_OOBINLINE                     = 0xa
 	SO_PASSCRED                      = 0x14
 	SO_PASSPIDFD                     = 0x4c
+	SO_PASSRIGHTS                    = 0x53
 	SO_PASSSEC                       = 0x22
 	SO_PEEK_OFF                      = 0x2a
 	SO_PEERCRED                      = 0x15
