@@ -163,6 +163,15 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 	})
 }
 
+func (self *RefsHelper) CheckoutPreviousRef() error {
+	previousRef, err := self.c.Git().Branch.PreviousRef()
+	if err == nil && strings.HasPrefix(previousRef, "refs/heads/") {
+		return self.CheckoutRef(strings.TrimPrefix(previousRef, "refs/heads/"), types.CheckoutRefOptions{})
+	}
+
+	return self.CheckoutRef("-", types.CheckoutRefOptions{})
+}
+
 func (self *RefsHelper) GetCheckedOutRef() *models.Branch {
 	if len(self.c.Model().Branches) == 0 {
 		return nil

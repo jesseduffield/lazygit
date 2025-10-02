@@ -490,7 +490,7 @@ func (self *BranchesController) forceCheckout() error {
 
 func (self *BranchesController) checkoutPreviousBranch() error {
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
-	return self.c.Helpers().Refs.CheckoutRef("-", types.CheckoutRefOptions{})
+	return self.c.Helpers().Refs.CheckoutPreviousRef()
 }
 
 func (self *BranchesController) checkoutByName() error {
