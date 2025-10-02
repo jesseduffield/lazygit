@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -71,6 +72,14 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			DisplayOnScreen:   true,
 		},
 		{
+			Key:               opts.GetKey(opts.Config.Branches.AddForkRemote),
+			Handler:           self.withItem(self.addFork),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.AddForkRemote,
+			Tooltip:           self.c.Tr.AddForkRemoteTooltip,
+			DisplayOnScreen:   true,
+		},
+		{
 			Key:               opts.GetKey(opts.Config.Branches.FetchRemote),
 			Handler:           self.withItem(self.fetch),
 			GetDisabledReason: self.require(self.singleItemSelected()),
@@ -133,6 +142,32 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 	return nil
 }
 
+func (self *RemotesController) addRemoteHelper(remoteName string, remoteUrl string, branchToCheckout string) error {
+	self.c.LogAction(self.c.Tr.Actions.AddRemote)
+	if err := self.c.Git().Remote.AddRemote(remoteName, remoteUrl); err != nil {
+		return err
+	}
+
+	// Do a sync refresh of the remotes so that we can select
+	// the new one. Loading remotes is not expensive, so we can
+	// afford it.
+	self.c.Refresh(types.RefreshOptions{
+		Scope: []types.RefreshableView{types.REMOTES},
+		Mode:  types.SYNC,
+	})
+
+	// Select the new remote
+	for idx, remote := range self.c.Model().Remotes {
+		if remote.Name == remoteName {
+			self.c.Contexts().Remotes.SetSelection(idx)
+			break
+		}
+	}
+
+	// Fetch the new remote
+	return self.fetchAndCheckout(self.c.Contexts().Remotes.GetSelected(), branchToCheckout)
+}
+
 func (self *RemotesController) add() error {
 	self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.NewRemoteName,
@@ -140,29 +175,76 @@ func (self *RemotesController) add() error {
 			self.c.Prompt(types.PromptOpts{
 				Title: self.c.Tr.NewRemoteUrl,
 				HandleConfirm: func(remoteUrl string) error {
-					self.c.LogAction(self.c.Tr.Actions.AddRemote)
-					if err := self.c.Git().Remote.AddRemote(remoteName, remoteUrl); err != nil {
+					return self.addRemoteHelper(remoteName, remoteUrl, "")
+				},
+			})
+
+			return nil
+		},
+	})
+
+	return nil
+}
+
+var (
+	// 1. SCP-like SSH: git@host:owner[/subgroups]/repo(.git)
+	sshScpRegex = regexp.MustCompile(`^(git@[^:]+:)([^/]+(?:/[^/]+)*)/([^/]+?)(\.git)?$`)
+
+	// 2. SSH URL style: ssh://user@host[:port]/owner[/subgroups]/repo(.git)
+	sshUrlRegex = regexp.MustCompile(`^(ssh://[^/]+/)([^/]+(?:/[^/]+)*)/([^/]+?)(\.git)?$`)
+
+	// 3. HTTPS: https://host/owner[/subgroups]/repo(.git)
+	httpRegex = regexp.MustCompile(`^(https?://[^/]+/)([^/]+(?:/[^/]+)*)/([^/]+?)(\.git)?$`)
+)
+
+// replaceForkUsername rewrites a Git remote URL to use the given fork username,
+// keeping the repo name and host intact. Supports SCP-like SSH, SSH URL style, and HTTPS.
+func replaceForkUsername(remoteUrl, forkUsername string) (string, error) {
+	if forkUsername == "" {
+		return "", fmt.Errorf("fork username cannot be empty")
+	}
+	if remoteUrl == "" {
+		return "", fmt.Errorf("remote URL cannot be empty")
+	}
+
+	switch {
+	case sshScpRegex.MatchString(remoteUrl):
+		return sshScpRegex.ReplaceAllString(remoteUrl, "${1}"+forkUsername+"/$3$4"), nil
+	case sshUrlRegex.MatchString(remoteUrl):
+		return sshUrlRegex.ReplaceAllString(remoteUrl, "${1}"+forkUsername+"/$3$4"), nil
+	case httpRegex.MatchString(remoteUrl):
+		return httpRegex.ReplaceAllString(remoteUrl, "${1}"+forkUsername+"/$3$4"), nil
+	default:
+		return "", fmt.Errorf("unsupported or invalid remote URL: %s", remoteUrl)
+	}
+}
+
+func (self *RemotesController) addFork(baseRemote *models.Remote) error {
+	self.c.Prompt(types.PromptOpts{
+		Title: self.c.Tr.AddForkRemoteUsername,
+		HandleConfirm: func(forkUsername string) error {
+			branchToCheckout := ""
+
+			parts := strings.SplitN(forkUsername, ":", 2)
+			if len(parts) == 2 {
+				forkUsername = parts[0]
+				branchToCheckout = parts[1]
+			}
+
+			self.c.Prompt(types.PromptOpts{
+				Title:          self.c.Tr.NewRemoteName,
+				InitialContent: forkUsername,
+				HandleConfirm: func(remoteName string) error {
+					if len(baseRemote.Urls) == 0 {
+						return fmt.Errorf("base remote must have url")
+					}
+					baseUrl := baseRemote.Urls[0]
+					remoteUrl, err := replaceForkUsername(baseUrl, forkUsername)
+					if err != nil {
 						return err
 					}
 
-					// Do a sync refresh of the remotes so that we can select
-					// the new one. Loading remotes is not expensive, so we can
-					// afford it.
-					self.c.Refresh(types.RefreshOptions{
-						Scope: []types.RefreshableView{types.REMOTES},
-						Mode:  types.SYNC,
-					})
-
-					// Select the new remote
-					for idx, remote := range self.c.Model().Remotes {
-						if remote.Name == remoteName {
-							self.c.Contexts().Remotes.SetSelection(idx)
-							break
-						}
-					}
-
-					// Fetch the new remote
-					return self.fetch(self.c.Contexts().Remotes.GetSelected())
+					return self.addRemoteHelper(remoteName, remoteUrl, branchToCheckout)
 				},
 			})
 
@@ -244,16 +326,22 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 }
 
 func (self *RemotesController) fetch(remote *models.Remote) error {
+	return self.fetchAndCheckout(remote, "")
+}
+
+func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchName string) error {
 	return self.c.WithInlineStatus(remote, types.ItemOperationFetching, context.REMOTES_CONTEXT_KEY, func(task gocui.Task) error {
 		err := self.c.Git().Sync.FetchRemote(task, remote.Name)
 		if err != nil {
 			return err
 		}
-
+		if branchName != "" {
+			err = self.c.Git().Branch.New(branchName, remote.Name+"/"+branchName)
+		}
 		self.c.Refresh(types.RefreshOptions{
 			Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
 			Mode:  types.ASYNC,
 		})
-		return nil
+		return err
 	})
 }

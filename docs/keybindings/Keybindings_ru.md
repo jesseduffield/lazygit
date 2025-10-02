@@ -361,6 +361,7 @@ _Связки клавиш_
 | `` n `` | Добавить новую удалённую ветку |  |
 | `` d `` | Remove | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
 | `` e `` | Edit | Редактировать удалённый репозитории |
+| `` F `` | Add fork remote | Quickly add a fork remote by replacing the owner in the origin URL and optionally check out a branch from new remote. |
 | `` f `` | Получить изменения | Получение изменения из удалённого репозитория |
 | `` / `` | Filter the current view by text |  |
 
