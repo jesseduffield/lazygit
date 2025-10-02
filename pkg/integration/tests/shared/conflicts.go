@@ -157,3 +157,20 @@ var CreateMergeConflictFileMultiple = func(shell *Shell) {
 
 	shell.RunCommandExpectError([]string{"git", "merge", "--no-edit", "second-change-branch"})
 }
+
+var CreateMergeConflictFileForMergeFileTests = func(shell *Shell, originalFileContent string, currentChangeFileContent string, incomingChangeFileContent string) {
+	shell.
+		NewBranch("original-branch").
+		EmptyCommit("one").
+		CreateFileAndAdd("file", originalFileContent).
+		Commit("original").
+		NewBranch("current-change-branch").
+		UpdateFileAndAdd("file", currentChangeFileContent).
+		Commit("first change").
+		Checkout("original-branch").
+		NewBranch("incoming-change-branch").
+		UpdateFileAndAdd("file", incomingChangeFileContent).
+		Commit("second change").
+		Checkout("current-change-branch").
+		RunCommandExpectError([]string{"git", "merge", "--no-edit", "incoming-change-branch"})
+}

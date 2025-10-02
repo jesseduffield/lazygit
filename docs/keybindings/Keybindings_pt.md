@@ -78,7 +78,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` D `` | Restaurar | Opções de redefinição de exibição para árvore de trabalho (por exemplo, nukando a árvore de trabalho). |
 | `` ` `` | Alternar exibição de árvore de arquivo | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
-| `` M `` | Abrir ferramenta de merge externa | Execute `git mergetool`. |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` f `` | Buscar | Buscar alterações do controle remoto. |
 | `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
 | `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
@@ -278,7 +278,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` z `` | Desfazer | Desfazer resolução de conflitos de última mesclagem. |
 | `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
-| `` M `` | Abrir ferramenta de merge externa | Execute `git mergetool`. |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` <esc> `` | Retornar ao painel de arquivos |  |
 
 ## Painel principal (patch build)

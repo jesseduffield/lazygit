@@ -3,21 +3,24 @@ package helpers
 import (
 	"errors"
 	"fmt"
+	"os"
 	"regexp"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
 
 type WorkingTreeHelper struct {
-	c             *HelperCommon
-	refHelper     *RefsHelper
-	commitsHelper *CommitsHelper
-	gpgHelper     *GpgHelper
+	c                    *HelperCommon
+	refHelper            *RefsHelper
+	commitsHelper        *CommitsHelper
+	gpgHelper            *GpgHelper
+	mergeAndRebaseHelper *MergeAndRebaseHelper
 }
 
 func NewWorkingTreeHelper(
@@ -25,12 +28,14 @@ func NewWorkingTreeHelper(
 	refHelper *RefsHelper,
 	commitsHelper *CommitsHelper,
 	gpgHelper *GpgHelper,
+	mergeAndRebaseHelper *MergeAndRebaseHelper,
 ) *WorkingTreeHelper {
 	return &WorkingTreeHelper{
-		c:             c,
-		refHelper:     refHelper,
-		commitsHelper: commitsHelper,
-		gpgHelper:     gpgHelper,
+		c:                    c,
+		refHelper:            refHelper,
+		commitsHelper:        commitsHelper,
+		gpgHelper:            gpgHelper,
+		mergeAndRebaseHelper: mergeAndRebaseHelper,
 	}
 }
 
@@ -246,4 +251,82 @@ func (self *WorkingTreeHelper) commitPrefixConfigsForRepo() []config.CommitPrefi
 	}
 
 	return self.c.UserConfig().Git.CommitPrefix
+}
+
+func (self *WorkingTreeHelper) CreateMergeConflictMenu(selectedFilepaths []string) error {
+	onMergeStrategySelected := func(strategy string) error {
+		for _, filepath := range selectedFilepaths {
+			baseID, err := self.c.Git().WorkingTree.ObjectIDAtStage(filepath, 1)
+			if err != nil {
+				return err
+			}
+
+			oursID, err := self.c.Git().WorkingTree.ObjectIDAtStage(filepath, 2)
+			if err != nil {
+				return err
+			}
+
+			theirsID, err := self.c.Git().WorkingTree.ObjectIDAtStage(filepath, 3)
+			if err != nil {
+				return err
+			}
+
+			output, err := self.c.Git().WorkingTree.MergeFile(strategy, oursID, baseID, theirsID)
+			if err != nil {
+				return err
+			}
+
+			if err = os.WriteFile(filepath, []byte(output), 0o644); err != nil {
+				return err
+			}
+		}
+
+		err := self.c.Git().WorkingTree.StageFiles(selectedFilepaths, nil)
+		return self.mergeAndRebaseHelper.CheckMergeOrRebase(err)
+	}
+
+	cmdColor := style.FgBlue
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.MergeConflictOptionsTitle,
+		Items: []*types.MenuItem{
+			{
+				LabelColumns: []string{
+					self.c.Tr.UseCurrentChanges,
+					cmdColor.Sprint("git merge-file --ours"),
+				},
+				OnPress: func() error {
+					return onMergeStrategySelected("--ours")
+				},
+				Key: 'c',
+			},
+			{
+				LabelColumns: []string{
+					self.c.Tr.UseIncomingChanges,
+					cmdColor.Sprint("git merge-file --theirs"),
+				},
+				OnPress: func() error {
+					return onMergeStrategySelected("--theirs")
+				},
+				Key: 'i',
+			},
+			{
+				LabelColumns: []string{
+					self.c.Tr.UseBothChanges,
+					cmdColor.Sprint("git merge-file --union"),
+				},
+				OnPress: func() error {
+					return onMergeStrategySelected("--union")
+				},
+				Key: 'b',
+			},
+			{
+				LabelColumns: []string{
+					self.c.Tr.OpenMergeTool,
+					cmdColor.Sprint("git mergetool"),
+				},
+				OnPress: self.OpenMergeTool,
+				Key:     'm',
+			},
+		},
+	})
 }
