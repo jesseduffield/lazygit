@@ -2,7 +2,9 @@ package helpers
 
 import (
 	"strconv"
+	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -14,6 +16,22 @@ type CherryPickHelper struct {
 	c *HelperCommon
 
 	rebaseHelper *MergeAndRebaseHelper
+
+	postPasteCleanup            func(markDidPaste bool) error
+	postPasteShouldMarkDidPaste bool
+
+	postPasteSelection *postPasteSelection
+
+	prePasteHeadHash     string
+	pasteProducedCommits bool
+
+	deferPostPasteCleanup bool
+}
+
+type postPasteSelection struct {
+	hash           string
+	idx            int
+	shouldReselect bool
 }
 
 // I'm using the analogy of copy+paste in the terminology here because it's intuitively what's going on,
@@ -23,10 +41,14 @@ func NewCherryPickHelper(
 	c *HelperCommon,
 	rebaseHelper *MergeAndRebaseHelper,
 ) *CherryPickHelper {
-	return &CherryPickHelper{
+	helper := &CherryPickHelper{
 		c:            c,
 		rebaseHelper: rebaseHelper,
 	}
+
+	rebaseHelper.SetCherryPickHelper(helper)
+
+	return helper
 }
 
 func (self *CherryPickHelper) getData() *cherrypicking.CherryPicking {
@@ -88,21 +110,36 @@ func (self *CherryPickHelper) Paste() error {
 				}
 
 				cherryPickedCommits := self.getData().CherryPickedCommits
+				self.preparePostPasteSelection(cherryPickedCommits)
+				self.capturePrePasteHeadHash()
+
+				self.setPostPasteCleanup(func(markDidPaste bool) error {
+					if markDidPaste {
+						self.getData().DidPaste = true
+					}
+					self.rerender()
+
+					if mustStash {
+						if err := self.c.Git().Stash.Pop(0); err != nil {
+							return err
+						}
+						self.c.Refresh(types.RefreshOptions{
+							Scope: []types.RefreshableView{types.STASH, types.FILES},
+						})
+					}
+
+					self.restorePostPasteSelection()
+
+					return nil
+				})
+
 				result := self.c.Git().Rebase.CherryPickCommits(cherryPickedCommits)
 				err := self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.SYNC})
 				if err != nil {
-					return result
+					return err
 				}
 
-				// Move the selection down by the number of commits we just
-				// cherry-picked, to keep the same commit selected as before.
-				// Don't do this if a rebase todo is selected, because in this
-				// case we are in a rebase and the cherry-picked commits end up
-				// below the selection.
-				if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil && !commit.IsTODO() {
-					self.c.Contexts().LocalCommits.MoveSelection(len(cherryPickedCommits))
-					self.c.Contexts().LocalCommits.FocusLine()
-				}
+				self.markPasteProducedCommitsIfHeadChanged()
 
 				// If we're in the cherry-picking state at this point, it must
 				// be because there were conflicts. Don't clear the copied
@@ -113,16 +150,8 @@ func (self *CherryPickHelper) Paste() error {
 					return result
 				}
 				if !isInCherryPick {
-					self.getData().DidPaste = true
-					self.rerender()
-
-					if mustStash {
-						if err := self.c.Git().Stash.Pop(0); err != nil {
-							return err
-						}
-						self.c.Refresh(types.RefreshOptions{
-							Scope: []types.RefreshableView{types.STASH, types.FILES},
-						})
+					if err := self.runPostPasteCleanup(true); err != nil {
+						return err
 					}
 				}
 
@@ -141,6 +170,12 @@ func (self *CherryPickHelper) CanPaste() bool {
 func (self *CherryPickHelper) Reset() error {
 	self.getData().ContextKey = ""
 	self.getData().CherryPickedCommits = nil
+	self.postPasteCleanup = nil
+	self.postPasteShouldMarkDidPaste = false
+	self.postPasteSelection = nil
+	self.prePasteHeadHash = ""
+	self.pasteProducedCommits = false
+	self.deferPostPasteCleanup = false
 
 	self.rerender()
 	return nil
@@ -167,4 +202,159 @@ func (self *CherryPickHelper) rerender() {
 	} {
 		self.c.PostRefreshUpdate(context)
 	}
+}
+
+func (self *CherryPickHelper) preparePostPasteSelection(commits []*models.Commit) {
+	selectedCommit := self.c.Contexts().LocalCommits.GetSelected()
+	selectedIdx := self.c.Contexts().LocalCommits.GetSelectedLineIdx()
+
+	self.postPasteSelection = nil
+
+	if selectedCommit == nil {
+		return
+	}
+
+	self.postPasteSelection = &postPasteSelection{
+		hash:           selectedCommit.Hash(),
+		idx:            selectedIdx,
+		shouldReselect: !selectedCommit.IsTODO() && len(commits) > 0,
+	}
+}
+
+func (self *CherryPickHelper) restorePostPasteSelection() {
+	if self.postPasteSelection == nil || !self.postPasteSelection.shouldReselect {
+		return
+	}
+
+	localCommits := self.c.Contexts().LocalCommits
+
+	if self.postPasteSelection.hash != "" && localCommits.SelectCommitByHash(self.postPasteSelection.hash) {
+		localCommits.FocusLine()
+		return
+	}
+
+	if self.postPasteSelection.idx >= 0 {
+		localCommits.SetSelectedLineIdx(self.postPasteSelection.idx)
+		localCommits.FocusLine()
+	}
+}
+
+func (self *CherryPickHelper) DisablePostPasteReselect() {
+	if self.postPasteSelection == nil {
+		return
+	}
+
+	self.postPasteSelection.shouldReselect = false
+}
+
+func (self *CherryPickHelper) ShouldRestorePostPasteSelection() bool {
+	return self.postPasteSelection != nil && self.postPasteSelection.shouldReselect
+}
+
+func (self *CherryPickHelper) setPostPasteCleanup(cleanup func(markDidPaste bool) error) {
+	self.postPasteCleanup = cleanup
+	self.postPasteShouldMarkDidPaste = true
+}
+
+func (self *CherryPickHelper) runPostPasteCleanup(markDidPaste bool) error {
+	if self.postPasteCleanup == nil {
+		return nil
+	}
+
+	cleanup := self.postPasteCleanup
+	self.postPasteCleanup = nil
+	defer func() {
+		self.postPasteShouldMarkDidPaste = false
+		self.postPasteSelection = nil
+		self.prePasteHeadHash = ""
+		self.pasteProducedCommits = false
+		self.deferPostPasteCleanup = false
+	}()
+
+	return cleanup(markDidPaste && self.postPasteShouldMarkDidPaste)
+}
+
+func (self *CherryPickHelper) setPostPasteShouldMarkDidPaste(mark bool) {
+	if self.postPasteCleanup == nil {
+		return
+	}
+
+	self.postPasteShouldMarkDidPaste = mark
+}
+
+func (self *CherryPickHelper) capturePrePasteHeadHash() {
+	headHash, err := self.getHeadHash()
+	if err != nil {
+		self.prePasteHeadHash = ""
+		return
+	}
+
+	self.prePasteHeadHash = headHash
+	self.pasteProducedCommits = false
+}
+
+func (self *CherryPickHelper) PasteProducedCommits() bool {
+	if self.pasteProducedCommits {
+		return true
+	}
+
+	if self.prePasteHeadHash == "" {
+		return true
+	}
+
+	headHash, err := self.getHeadHash()
+	if err != nil {
+		return true
+	}
+
+	if headHash != self.prePasteHeadHash {
+		self.pasteProducedCommits = true
+		return true
+	}
+
+	return false
+}
+
+func (self *CherryPickHelper) DeferPostPasteCleanup() {
+	self.deferPostPasteCleanup = true
+}
+
+func (self *CherryPickHelper) ClearDeferredPostPasteCleanup() {
+	self.deferPostPasteCleanup = false
+}
+
+func (self *CherryPickHelper) ShouldDeferPostPasteCleanup() bool {
+	return self.deferPostPasteCleanup
+}
+
+func (self *CherryPickHelper) markPasteProducedCommitsIfHeadChanged() {
+	if self.pasteProducedCommits {
+		return
+	}
+
+	if self.prePasteHeadHash == "" {
+		self.pasteProducedCommits = true
+		return
+	}
+
+	headHash, err := self.getHeadHash()
+	if err != nil {
+		self.pasteProducedCommits = true
+		return
+	}
+
+	if headHash != self.prePasteHeadHash {
+		self.pasteProducedCommits = true
+	}
+}
+
+func (self *CherryPickHelper) getHeadHash() (string, error) {
+	output, err := self.c.OS().Cmd.New(
+		git_commands.NewGitCmd("rev-parse").Arg("HEAD").ToArgv(),
+	).DontLog().RunWithOutput()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(output), nil
 }

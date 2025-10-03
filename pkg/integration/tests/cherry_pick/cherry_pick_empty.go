@@ -1,31 +1,39 @@
-package reflog
+package cherry_pick
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Cherry pick a reflog commit",
+var CherryPickEmpty = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Cherry-picking a commit with no diff offers skip/create options",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
-		shell.EmptyCommit("one")
-		shell.EmptyCommit("two")
-		shell.EmptyCommit("three")
-		shell.HardReset("HEAD^^")
+		shell.
+			EmptyCommit("base").
+			NewBranch("source").
+			CreateFileAndAdd("shared.txt", "content\n").Commit("add shared file on source").
+			Checkout("master").
+			CreateFileAndAdd("shared.txt", "content\n").Commit("add shared file on master")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().ReflogCommits().
+		t.Views().Branches().
 			Focus().
 			Lines(
-				Contains("reset: moving to HEAD^^").IsSelected(),
-				Contains("commit: three"),
-				Contains("commit: two"),
-				Contains("commit (initial): one"),
+				Contains("master"),
+				Contains("source"),
 			).
 			SelectNextItem().
+			PressEnter()
+
+		t.Views().SubCommits().
+			IsFocused().
+			Lines(
+				Contains("add shared file on source").IsSelected(),
+				Contains("base"),
+			).
 			Press(keys.Commits.CherryPickCopy)
 
 		t.Views().Information().Content(Contains("1 commit copied"))
@@ -33,7 +41,8 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("one").IsSelected(),
+				Contains("add shared file on master").IsSelected(),
+				Contains("base"),
 			).
 			Press(keys.Commits.PasteCommits).
 			Tap(func() {
@@ -50,18 +59,16 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 						Contains("Create empty commit and continue"),
 						Contains("Cancel"),
 					).
-					Select(Contains("Create empty commit and continue")).
+					Select(Contains("Skip this cherry-pick")).
 					Confirm()
-
-				t.Views().Commits().
-					SelectedLine(Contains("one"))
 			}).
 			Tap(func() {
 				t.Shell().RunCommandExpectError([]string{"git", "rev-parse", "CHERRY_PICK_HEAD"})
 			}).
+			IsFocused().
 			Lines(
-				Contains("three"),
-				Contains("one").IsSelected(),
+				Contains("add shared file on master").IsSelected(),
+				Contains("base"),
 			)
 	},
 })

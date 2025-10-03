@@ -478,7 +478,8 @@ func (self *RebaseCommands) AbortRebase() error {
 func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, command string) error {
 	err := self.runSkipEditorCommand(self.GenericMergeOrRebaseActionCmdObj(commandType, command))
 	if err != nil {
-		if !strings.Contains(err.Error(), "no rebase in progress") {
+		errStr := err.Error()
+		if !strings.Contains(errStr, "no rebase in progress") && !strings.Contains(errStr, "no cherry-pick or revert in progress") {
 			return err
 		}
 		self.Log.Warn(err)
@@ -510,6 +511,12 @@ func (self *RebaseCommands) runSkipEditorCommand(cmdObj *oscommands.CmdObj) erro
 		).
 		AddEnvVars(daemon.ToEnvVars(instruction)...).
 		Run()
+}
+
+func (self *RebaseCommands) CommitAllowEmpty() error {
+	cmdArgs := NewGitCmd("commit").Arg("--allow-empty").ToArgv()
+
+	return self.runSkipEditorCommand(self.cmd.New(cmdArgs))
 }
 
 // DiscardOldFileChanges discards changes to a file from an old commit
@@ -547,9 +554,10 @@ func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, comm
 // CherryPickCommits begins an interactive rebase with the given hashes being cherry picked onto HEAD
 func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
 	hasMergeCommit := lo.SomeBy(commits, func(c *models.Commit) bool { return c.IsMerge() })
+	isAtLeast245 := self.version.IsAtLeast(2, 45, 0)
+
 	cmdArgs := NewGitCmd("cherry-pick").
-		Arg("--allow-empty").
-		ArgIf(self.version.IsAtLeast(2, 45, 0), "--empty=keep", "--keep-redundant-commits").
+		ArgIf(isAtLeast245, "--empty=stop").
 		ArgIf(hasMergeCommit, "-m1").
 		Arg(lo.Reverse(lo.Map(commits, func(c *models.Commit, _ int) string { return c.Hash() }))...).
 		ToArgv()

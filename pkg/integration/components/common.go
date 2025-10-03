@@ -11,7 +11,7 @@ func (self *Common) ContinueMerge() {
 	self.t.GlobalPress(self.t.keys.Universal.CreateRebaseOptionsMenu)
 
 	self.t.ExpectPopup().Menu().
-		Title(Equals("Rebase options")).
+		Title(EqualsOneOf("Rebase options", "Revert options")).
 		Select(Contains("continue")).
 		Confirm()
 }

@@ -146,7 +146,8 @@ This demo also uses shift+down to select a range of commits to move and fixup.
 
 ### Cherry-pick
 
-Press `shift+c` on a commit to copy it and press `shift+v` to paste (cherry-pick) it.
+Press `shift+c` on a commit to copy it and press `shift+v` to paste (cherry-pick) it. If a cherry-picked commit no longer
+changes the working tree, lazygit now prompts you to either skip it or create an empty commit so you can decide how to proceed.
 
 ![cherry_pick](../assets/demo/cherry_pick-compressed.gif)
 
