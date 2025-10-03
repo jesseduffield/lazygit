@@ -87,7 +87,7 @@
   "MergeConflictPressEnterToResolve": "Pressione %s para resolver.",
   "MergeConflictKeepFile": "Manter arquivo",
   "MergeConflictDeleteFile": "Excluir arquivo",
-  "Checkout": "Verificar",
+  "Checkout": "Trocar(Checkout)",
   "CheckoutTooltip": "Checar item selecionado",
   "CantCheckoutBranchWhilePulling": "Você não pode hecar outra branch enquanto puxa a branch atual",
   "TagCheckoutTooltip": "Checar a tag selecionada como um HEAD, desanexado",
