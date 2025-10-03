@@ -60,6 +60,31 @@ To run lazygit from within the integrated terminal just go `go run main.go`
 
 This allows you to contribute to Lazygit without needing to install anything on your local machine. The Codespace has all the necessary tools and extensions pre-installed.
 
+## Using Nix for development
+
+If you use Nix, you can leverage the included flake to set up a complete development environment with all necessary dependencies:
+
+```sh
+nix develop
+```
+
+This will drop you into a development shell that includes:
+* Latest Go toolchain
+* golangci-lint for code linting
+* git and make
+
+You can also build and run lazygit using nix:
+
+```sh
+# Build lazygit
+nix build
+
+# Run lazygit directly
+nix run
+```
+
+The nix flake supports multiple architectures (x86_64-linux, aarch64-linux, x86_64-darwin, aarch64-darwin) and provides a consistent development environment across different systems.
+
 ## Code of conduct
 
 Please note by participating in this project, you agree to abide by the [code of conduct].
