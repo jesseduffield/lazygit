@@ -1,15 +1,17 @@
 package helpers
 
 import (
-	"errors"
-	"path/filepath"
-	"strings"
-	"time"
+    "context"
+    "errors"
+    "path/filepath"
+    "strings"
+    "time"
 
-	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/samber/lo"
+    "github.com/jesseduffield/gocui"
+    "github.com/jesseduffield/lazygit/pkg/ai"
+    "github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+    "github.com/jesseduffield/lazygit/pkg/gui/types"
+    "github.com/samber/lo"
 )
 
 type CommitsHelper struct {
@@ -202,34 +204,104 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 		}
 	}
 
-	menuItems := []*types.MenuItem{
-		{
-			Label: self.c.Tr.OpenInEditor,
-			OnPress: func() error {
-				return self.SwitchToEditor()
-			},
-			Key:            'e',
-			DisabledReason: disabledReasonForOpenInEditor,
-		},
-		{
-			Label: self.c.Tr.AddCoAuthor,
-			OnPress: func() error {
-				return self.addCoAuthor(suggestionFunc)
-			},
-			Key: 'c',
-		},
-		{
-			Label: self.c.Tr.PasteCommitMessageFromClipboard,
-			OnPress: func() error {
-				return self.pasteCommitMessageFromClipboard()
-			},
-			Key: 'p',
-		},
-	}
-	return self.c.Menu(types.CreateMenuOptions{
-		Title: self.c.Tr.CommitMenuTitle,
-		Items: menuItems,
-	})
+    menuItems := []*types.MenuItem{
+        {
+            Label: self.c.Tr.OpenInEditor,
+            OnPress: func() error {
+                return self.SwitchToEditor()
+            },
+            Key:            'e',
+            DisabledReason: disabledReasonForOpenInEditor,
+        },
+        {
+            Label: self.c.Tr.GenerateAICommitMessage,
+            OnPress: func() error {
+                return self.generateCommitMessageWithAI()
+            },
+            Key: 'g',
+        },
+        {
+            Label: self.c.Tr.AddCoAuthor,
+            OnPress: func() error {
+                return self.addCoAuthor(suggestionFunc)
+            },
+            Key: 'c',
+        },
+        {
+            Label: self.c.Tr.PasteCommitMessageFromClipboard,
+            OnPress: func() error {
+                return self.pasteCommitMessageFromClipboard()
+            },
+            Key: 'p',
+        },
+    }
+    return self.c.Menu(types.CreateMenuOptions{
+        Title: self.c.Tr.CommitMenuTitle,
+        Items: menuItems,
+    })
+}
+
+func (self *CommitsHelper) generateCommitMessageWithAI() error {
+    // Gather diff of staged files (plain, cached)
+    var diffs []string
+    for _, f := range self.c.Model().Files {
+        if f.HasStagedChanges {
+            d := self.c.Git().WorkingTree.WorktreeFileDiff(f, true, true)
+            if strings.TrimSpace(d) != "" {
+                diffs = append(diffs, d)
+            }
+        }
+    }
+    if len(diffs) == 0 {
+        // Fallback: if nothing staged, try all tracked files diffs (plain, not cached)
+        for _, f := range self.c.Model().Files {
+            if f.Tracked || f.Added {
+                d := self.c.Git().WorkingTree.WorktreeFileDiff(f, true, false)
+                if strings.TrimSpace(d) != "" {
+                    diffs = append(diffs, d)
+                }
+            }
+        }
+    }
+    if len(diffs) == 0 {
+        return errors.New(self.c.Tr.NoFilesStagedTitle)
+    }
+
+    diff := strings.Join(diffs, "\n\n")
+
+    // Validate diff size to prevent sending excessively large diffs
+    const maxDiffSize = 50000 // ~50KB limit
+    if len(diff) > maxDiffSize {
+        return errors.New("diff too large for AI processing (limit: 50KB)")
+    }
+
+    // Build client from config
+    cl, err := ai.NewClientFromConfig(self.c.UserConfig().AI)
+    if err != nil {
+        self.c.Alert(self.c.Tr.Error, err.Error())
+        return err
+    }
+
+    waitText := self.c.Tr.GeneratingAICommitMessageStatus
+    if waitText == "" {
+        waitText = "Generating commit message"
+    }
+    return self.c.WithWaitingStatus(waitText, func(gocui.Task) error {
+        ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+        defer cancel()
+        subject, body, err := cl.GenerateCommitMessage(ctx, diff, self.c.UserConfig().AI.CommitStyle, self.c.UserConfig().Git.Commit.AutoWrapWidth)
+        if err != nil {
+            return err
+        }
+
+        // Update UI fields on UI thread
+        return self.c.OnUIThread(func() error {
+            self.setCommitSummary(subject)
+            self.setCommitDescription(body)
+            self.c.Contexts().CommitMessage.RenderSubtitle()
+            return nil
+        })
+    })
 }
 
 func (self *CommitsHelper) addCoAuthor(suggestionFunc func(string) []*types.Suggestion) error {

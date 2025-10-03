@@ -268,5 +268,7 @@
   "Actions": {},
   "Bisect": {},
   "Log": {},
-  "BreakingChangesByVersion": {}
+  "BreakingChangesByVersion": {},
+  "GenerateAICommitMessage": "Genereer AI commit bericht",
+  "GeneratingAICommitMessageStatus": "Commit bericht genereren"
 }
