@@ -573,7 +573,7 @@ func (self *FilesController) handleNonInlineConflict(file *models.File) error {
 		OnPress: func() error {
 			return handle(self.c.Git().WorkingTree.StageFile, self.c.Tr.Actions.ResolveConflictByKeepingFile)
 		},
-		Key: 'k',
+		Key: 'p',
 	}
 	deleteItem := &types.MenuItem{
 		Label: self.c.Tr.MergeConflictDeleteFile,
