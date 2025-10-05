@@ -28,3 +28,4 @@ __debug_bin*
 demo/output/*
 
 coverage.out
+cmd/copilot/main
