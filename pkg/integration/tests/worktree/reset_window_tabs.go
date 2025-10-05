@@ -24,7 +24,7 @@ var ResetWindowTabs = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("commit 2")
 		shell.EmptyCommit("commit 3")
 		shell.AddWorktree("mybranch", "../linked-worktree", "newbranch")
-		shell.AddFileInWorktree("../linked-worktree")
+		shell.AddFileInWorktreeOrSubmodule("../linked-worktree", "file", "content")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		// focus the remotes tab i.e. the second tab in the branches window

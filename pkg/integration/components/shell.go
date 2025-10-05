@@ -428,11 +428,11 @@ func (self *Shell) AddWorktreeCheckout(base string, path string) *Shell {
 	})
 }
 
-func (self *Shell) AddFileInWorktree(worktreePath string) *Shell {
-	self.CreateFile(filepath.Join(worktreePath, "content"), "content")
+func (self *Shell) AddFileInWorktreeOrSubmodule(worktreePath string, filePath string, content string) *Shell {
+	self.CreateFile(filepath.Join(worktreePath, filePath), content)
 
 	self.RunCommand([]string{
-		"git", "-C", worktreePath, "add", "content",
+		"git", "-C", worktreePath, "add", filePath,
 	})
 
 	return self
