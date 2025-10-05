@@ -1,6 +1,6 @@
 version: "2"
 run:
-  go: "1.24"
+  go: "1.25"
 linters:
   enable:
     - copyloopvar
