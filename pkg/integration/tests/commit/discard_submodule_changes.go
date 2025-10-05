@@ -49,9 +49,6 @@ var DiscardSubmoduleChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			Confirm()
 
 		t.Shell().RunCommand([]string{"git", "submodule", "update"})
-		/* EXPECTED:
 		t.FileSystem().FileContent("submodule/file", Equals("content"))
-		ACTUAL: */
-		t.FileSystem().PathNotPresent("submodule/file")
 	},
 })
