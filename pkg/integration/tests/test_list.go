@@ -242,6 +242,8 @@ var tests = []*components.IntegrationTest{
 	filter_by_path.KeepSameCommitSelectedOnExit,
 	filter_by_path.RewordCommitInFilteringMode,
 	filter_by_path.SelectFile,
+	filter_by_path.SelectFilteredFileWhenEnteringCommit,
+	filter_by_path.SelectFilteredFileWhenEnteringCommitNoRootItem,
 	filter_by_path.ShowDiffsForRenamedFile,
 	filter_by_path.TypeFile,
 	interactive_rebase.AdvancedInteractiveRebase,

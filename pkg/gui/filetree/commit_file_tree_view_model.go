@@ -191,3 +191,15 @@ func (self *CommitFileTreeViewModel) ExpandAll() {
 		self.SetSelectedLineIdx(index)
 	}
 }
+
+// Try to select the given path if present. If it doesn't exist, or one of the parent directories is
+// collapsed, do nothing.
+// Note that filepath is an actual file path, not an internal tree path as with e.g.
+// ToggleCollapsed. It must be a relative path (relative to the repo root), and it must contain
+// forward slashes rather than backslashes even on Windows.
+func (self *CommitFileTreeViewModel) SelectPath(filepath string, showRootItem bool) {
+	index, found := self.GetIndexForPath(InternalTreePathForFilePath(filepath, showRootItem))
+	if found {
+		self.SetSelection(index)
+	}
+}

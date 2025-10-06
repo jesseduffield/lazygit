@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"path/filepath"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -89,6 +91,15 @@ func (self *SwitchToDiffFilesController) enter() error {
 	self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.COMMIT_FILES},
 	})
+
+	if filterPath := self.c.Modes().Filtering.GetPath(); filterPath != "" {
+		path, err := filepath.Rel(self.c.Git().RepoPaths.RepoPath(), filterPath)
+		if err != nil {
+			path = filterPath
+		}
+		commitFilesContext.CommitFileTreeViewModel.SelectPath(
+			filepath.ToSlash(path), self.c.UserConfig().Gui.ShowRootItemInFileTree)
+	}
 
 	self.c.Context().Push(commitFilesContext, types.OnFocusOpts{})
 	return nil
