@@ -2,7 +2,7 @@
 
 Lazygit supports custom pagers, [configured](/docs/Config.md) in the config.yml file (which can be opened by pressing `e` in the Status panel).
 
-Support does not extend to Windows users, because we're making use of a package which doesn't have Windows support.
+Support does not extend to Windows users, because we're making use of a package which doesn't have Windows support. However, see [below](#emulating-custom-pagers-on-windows) for a workaround.
 
 ## Default:
 
@@ -84,3 +84,30 @@ git:
 ```
 
 This can be useful if you also want to use it for diffs on the command line, and it also has the advantage that you can configure it per file type in `.gitattributes`; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
+
+## Emulating custom pagers on Windows
+
+There is a trick to emulate custom pagers on Windows using a Powershell script configured as an external diff command. It's not perfect, but certainly better than nothing. To do this, save the following script as `lazygit-pager.ps1` at a convenient place on your disk:
+
+```pwsh
+#!/usr/bin/env pwsh
+
+$old = $args[1].Replace('\', '/')
+$new = $args[4].Replace('\', '/')
+$path = $args[0]
+git diff --no-index --no-ext-diff $old $new
+  | %{ $_.Replace($old, $path).Replace($new, $path) }
+  | delta --width=$env:LAZYGIT_COLUMNS
+```
+
+Use the pager of your choice with the arguments you like in the last line of the script. Personally I wouldn't want to use lazygit anymore without delta's `--hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"` args, see [above](#delta).
+
+In your lazygit config, use
+
+```yml
+git:
+  paging:
+    externalDiffCommand: "C:/wherever/lazygit-pager.ps1"
+```
+
+The main limitation of this approach compared to a "real" pager is that renames are not displayed correctly; they are shown as if they were modifications of the old file. (This affects only the hunk headers; the diff itself is always correct.)
