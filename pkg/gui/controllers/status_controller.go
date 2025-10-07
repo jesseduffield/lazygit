@@ -196,7 +196,7 @@ func (self *StatusController) switchToOrRotateAllBranchesLogs() {
 	// A bit of a hack to ensure we only rotate to the next branch log command
 	// if we currently are looking at a branch log. Otherwise, we should just show
 	// the current index (if we are coming from the dashboard).
-	if self.c.Views().Main.Title == self.c.Tr.LogTitle {
+	if self.c.Views().Main.Title != self.c.Tr.StatusTitle {
 		self.c.Git().Branch.RotateAllBranchesLogIdx()
 	}
 	self.showAllBranchLogs()
