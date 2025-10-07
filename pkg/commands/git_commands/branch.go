@@ -292,6 +292,12 @@ func (self *BranchCommands) RotateAllBranchesLogIdx() {
 	self.allBranchesLogCmdIndex = (i + 1) % n
 }
 
+func (self *BranchCommands) GetAllBranchesLogIdxAndCount() (int, int) {
+	n := len(self.allBranchesLogCandidates())
+	i := self.allBranchesLogCmdIndex
+	return i, n
+}
+
 func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *MainBranches) (bool, error) {
 	branchesToCheckAgainst := []string{"HEAD"}
 	if branch.RemoteBranchStoredLocally() {

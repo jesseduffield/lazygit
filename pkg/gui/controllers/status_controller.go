@@ -181,10 +181,14 @@ func (self *StatusController) showAllBranchLogs() {
 	cmdObj := self.c.Git().Branch.AllBranchesLogCmdObj()
 	task := types.NewRunPtyTask(cmdObj.GetCmd())
 
+	title := self.c.Tr.LogTitle
+	if i, n := self.c.Git().Branch.GetAllBranchesLogIdxAndCount(); n > 1 {
+		title = fmt.Sprintf(self.c.Tr.LogXOfYTitle, i+1, n)
+	}
 	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
-			Title: self.c.Tr.LogTitle,
+			Title: title,
 			Task:  task,
 		},
 	})

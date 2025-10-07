@@ -30,6 +30,7 @@ type TranslationSet struct {
 	RegularMergeTooltip                   string
 	NormalTitle                           string
 	LogTitle                              string
+	LogXOfYTitle                          string
 	CommitSummary                         string
 	CredentialsUsername                   string
 	CredentialsPassword                   string
@@ -1110,6 +1111,7 @@ func EnglishTranslationSet() *TranslationSet {
 		MergingTitle:                         "Main panel (merging)",
 		NormalTitle:                          "Main panel (normal)",
 		LogTitle:                             "Log",
+		LogXOfYTitle:                         "Log (%d of %d)",
 		CommitSummary:                        "Commit summary",
 		CredentialsUsername:                  "Username",
 		CredentialsPassword:                  "Password",
