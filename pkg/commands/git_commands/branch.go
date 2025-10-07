@@ -278,6 +278,10 @@ func (self *BranchCommands) allBranchesLogCandidates() []string {
 func (self *BranchCommands) AllBranchesLogCmdObj() *oscommands.CmdObj {
 	candidates := self.allBranchesLogCandidates()
 
+	if self.allBranchesLogCmdIndex >= len(candidates) {
+		self.allBranchesLogCmdIndex = 0
+	}
+
 	i := self.allBranchesLogCmdIndex
 	return self.cmd.New(str.ToArgv(candidates[i])).DontLog()
 }
