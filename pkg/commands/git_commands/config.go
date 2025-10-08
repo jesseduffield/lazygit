@@ -1,9 +1,7 @@
 package git_commands
 
 import (
-	"os"
 	"strconv"
-	"strings"
 
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/go-git/v5/config"
@@ -29,17 +27,6 @@ func NewConfigCommands(
 		gitConfig: gitConfig,
 		repo:      repo,
 	}
-}
-
-func (self *ConfigCommands) ConfiguredPager() string {
-	if os.Getenv("GIT_PAGER") != "" {
-		return os.Getenv("GIT_PAGER")
-	}
-	if os.Getenv("PAGER") != "" {
-		return os.Getenv("PAGER")
-	}
-	output := self.gitConfig.Get("core.pager")
-	return strings.Split(output, "\n")[0]
 }
 
 func (self *ConfigCommands) GetPager(width int) string {
