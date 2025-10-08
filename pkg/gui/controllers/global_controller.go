@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -57,6 +59,13 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Key:         opts.GetKey(opts.Config.Universal.PrevScreenMode),
 			Handler:     opts.Guards.NoPopupPanel(self.prevScreenMode),
 			Description: self.c.Tr.PrevScreenMode,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.CyclePagers),
+			Handler:           opts.Guards.NoPopupPanel(self.cyclePagers),
+			GetDisabledReason: self.canCyclePagers,
+			Description:       self.c.Tr.CyclePagers,
+			Tooltip:           self.c.Tr.CyclePagersTooltip,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Return),
@@ -169,6 +178,27 @@ func (self *GlobalController) nextScreenMode() error {
 
 func (self *GlobalController) prevScreenMode() error {
 	return (&ScreenModeActions{c: self.c}).Prev()
+}
+
+func (self *GlobalController) cyclePagers() error {
+	self.c.State().GetPagerConfig().CyclePagers()
+	if self.c.Context().CurrentSide().GetKey() == self.c.Context().Current().GetKey() {
+		self.c.Context().CurrentSide().HandleFocus(types.OnFocusOpts{})
+	}
+
+	current, total := self.c.State().GetPagerConfig().CurrentPagerIndex()
+	self.c.Toast(fmt.Sprintf("Selected pager %d of %d", current+1, total))
+	return nil
+}
+
+func (self *GlobalController) canCyclePagers() *types.DisabledReason {
+	_, total := self.c.State().GetPagerConfig().CurrentPagerIndex()
+	if total <= 1 {
+		return &types.DisabledReason{
+			Text: self.c.Tr.CyclePagersDisabledReason,
+		}
+	}
+	return nil
 }
 
 func (self *GlobalController) createOptionsMenu() error {
