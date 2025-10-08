@@ -319,26 +319,30 @@ gui:
 
 # Config relating to git
 git:
+  # Array of pagers. Each entry has the following format:
+  #
+  #   # Value of the --color arg in the git diff command. Some pagers want
+  #   # this to be set to 'always' and some want it set to 'never'
+  #   colorArg: "always"
+  #
+  #   # e.g.
+  #   # diff-so-fancy
+  #   # delta --dark --paging=never
+  #   # ydiff -p cat -s --wrap --width={{columnWidth}}
+  #   pager: ""
+  #
+  #   # e.g. 'difft --color=always'
+  #   externalDiffCommand: ""
+  #
+  #   # If true, Lazygit will use git's `diff.external` config for paging.
+  #   # The advantage over `externalDiffCommand` is that this can be
+  #   # configured per file type in .gitattributes; see
+  #   # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
+  #   useExternalDiffGitConfig: false
+  #
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
-  paging:
-    # Value of the --color arg in the git diff command. Some pagers want this to be
-    # set to 'always' and some want it set to 'never'
-    colorArg: always
-
-    # e.g.
-    # diff-so-fancy
-    # delta --dark --paging=never
-    # ydiff -p cat -s --wrap --width={{columnWidth}}
-    pager: ""
-
-    # e.g. 'difft --color=always'
-    externalDiffCommand: ""
-
-    # If true, Lazygit will use git's `diff.external` config for paging. The
-    # advantage over `externalDiffCommand` is that this can be configured per file
-    # type in .gitattributes; see
-    # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
-    useExternalDiffGitConfig: false
+  # for more information.
+  pagers: []
 
   # Config relating to committing
   commit:
@@ -638,6 +642,7 @@ keybinding:
     prevTab: '['
     nextScreenMode: +
     prevScreenMode: _
+    cyclePagers: '|'
     undo: z
     redo: Z
     filteringMenu: <c-s>
