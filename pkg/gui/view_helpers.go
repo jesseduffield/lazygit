@@ -157,6 +157,11 @@ func (gui *Gui) postRefreshUpdate(c types.Context) {
 					sidePanelContext.HandleRenderToMain()
 				}
 			}
+		} else if c.GetKey() == gui.State.ContextMgr.CurrentStatic().GetKey() {
+			// If our view is not the current one, but it is the current static context, then this
+			// can only mean that a popup is showing. In that case we want to refresh the main view
+			// behind the popup.
+			c.HandleRenderToMain()
 		}
 	}
 }
