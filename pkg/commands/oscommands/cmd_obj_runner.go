@@ -330,7 +330,7 @@ func (self *cmdObjRunner) runAndDetectCredentialRequest(
 	promptUserForCredential func(CredentialType) <-chan string,
 ) error {
 	// setting the output to english so we can parse it for a username/password request
-	cmdObj.AddEnvVars("LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8")
+	cmdObj.AddEnvVars("LANG=C", "LC_ALL=C", "LC_MESSAGES=C")
 
 	return self.runAndStreamAux(cmdObj, func(handler *cmdHandler, cmdWriter io.Writer) {
 		tr := io.TeeReader(handler.stdoutPipe, cmdWriter)
