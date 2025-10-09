@@ -162,9 +162,13 @@ func join(strs []string) string {
 }
 
 func SplitFileTreePath(path string, showRootItem bool) []string {
+	return split(InternalTreePathForFilePath(path, showRootItem))
+}
+
+func InternalTreePathForFilePath(path string, showRootItem bool) string {
 	if showRootItem {
-		return split("./" + path)
+		return "./" + path
 	}
 
-	return split(path)
+	return path
 }
