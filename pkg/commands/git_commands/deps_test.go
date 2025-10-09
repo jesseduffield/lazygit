@@ -61,6 +61,10 @@ func buildGitCommon(deps commonDeps) *GitCommon {
 		gitCommon.Common.SetUserConfig(config.GetDefaultConfig())
 	}
 
+	gitCommon.pagerConfig = config.NewPagerConfig(func() *config.UserConfig {
+		return gitCommon.Common.UserConfig()
+	})
+
 	gitCommon.version = deps.gitVersion
 	if gitCommon.version == nil {
 		gitCommon.version = &GitVersion{2, 0, 0, ""}
