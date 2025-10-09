@@ -244,8 +244,8 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 
 	cmdObj.AddEnvVars(
 		"DEBUG="+debug,
-		"LANG=en_US.UTF-8",   // Force using EN as language
-		"LC_ALL=en_US.UTF-8", // Force using EN as language
+		"LANG=C",   // Force using English language
+		"LC_ALL=C", // Force using English language
 		"GIT_SEQUENCE_EDITOR="+gitSequenceEditor,
 	)
 
@@ -277,8 +277,8 @@ func (self *RebaseCommands) GitRebaseEditTodo(todosFileContent []byte) error {
 
 	cmdObj.AddEnvVars(
 		"DEBUG="+debug,
-		"LANG=en_US.UTF-8",   // Force using EN as language
-		"LC_ALL=en_US.UTF-8", // Force using EN as language
+		"LANG=C",   // Force using English language
+		"LC_ALL=C", // Force using English language
 		"GIT_EDITOR="+ex,
 		"GIT_SEQUENCE_EDITOR="+ex,
 	)
