@@ -178,10 +178,13 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description:       self.c.Tr.OpenDiffTool,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
-			Handler:     self.c.Helpers().WorkingTree.OpenMergeTool,
-			Description: self.c.Tr.OpenMergeTool,
-			Tooltip:     self.c.Tr.OpenMergeToolTooltip,
+			Key:               opts.GetKey(opts.Config.Files.OpenMergeOptions),
+			Handler:           self.withItems(self.openMergeConflictMenu),
+			Description:       self.c.Tr.ViewMergeConflictOptions,
+			Tooltip:           self.c.Tr.ViewMergeConflictOptionsTooltip,
+			GetDisabledReason: self.require(self.itemsSelected(self.canOpenMergeConflictMenu)),
+			OpensMenu:         true,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.Fetch),
@@ -1024,6 +1027,34 @@ func (self *FilesController) createStashMenu() error {
 	})
 }
 
+func (self *FilesController) openMergeConflictMenu(nodes []*filetree.FileNode) error {
+	normalizedNodes := flattenSelectedNodesToFiles(nodes)
+
+	fileNodesWithConflicts := lo.Filter(normalizedNodes, func(node *filetree.FileNode, _ int) bool {
+		return node.File != nil && node.File.HasInlineMergeConflicts
+	})
+
+	filepaths := lo.Map(fileNodesWithConflicts, func(node *filetree.FileNode, _ int) string {
+		return node.GetPath()
+	})
+
+	return self.c.Helpers().WorkingTree.CreateMergeConflictMenu(filepaths)
+}
+
+func (self *FilesController) canOpenMergeConflictMenu(nodes []*filetree.FileNode) *types.DisabledReason {
+	normalizedNodes := flattenSelectedNodesToFiles(nodes)
+
+	hasFileNodesWithConflicts := lo.SomeBy(normalizedNodes, func(node *filetree.FileNode) bool {
+		return node.File != nil && node.File.HasInlineMergeConflicts
+	})
+
+	if !hasFileNodesWithConflicts {
+		return &types.DisabledReason{Text: self.c.Tr.NoFilesWithMergeConflicts}
+	}
+
+	return nil
+}
+
 func (self *FilesController) openCopyMenu() error {
 	node := self.context().GetSelected()
 
@@ -1235,6 +1266,38 @@ func isDescendentOfSelectedNodes(node *filetree.FileNode, selectedNodes []*filet
 		}
 	}
 	return false
+}
+
+// BFS algorithm for expanding directories into their children,
+// and for collecting the unique file nodes
+func flattenSelectedNodesToFiles(selectedNodes []*filetree.FileNode) []*filetree.FileNode {
+	queue := append(make([]*filetree.FileNode, 0, len(selectedNodes)), selectedNodes...)
+	visited := set.New[string]()
+	var files []*filetree.FileNode
+
+	for len(queue) > 0 {
+		// pop node from queue
+		node := queue[0]
+		queue = queue[1:]
+
+		nodeID := node.ID()
+		if visited.Includes(nodeID) {
+			continue
+		}
+		visited.Add(nodeID)
+
+		if node.File != nil {
+			// unique file node -> collect it
+			files = append(files, node)
+			continue
+		}
+
+		// directory node -> enqueue children
+		for _, ch := range node.Children {
+			queue = append(queue, &filetree.FileNode{Node: ch})
+		}
+	}
+	return files
 }
 
 func someNodesHaveUnstagedChanges(nodes []*filetree.FileNode) bool {

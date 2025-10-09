@@ -193,7 +193,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` z `` | Cofnij | Cofnij ostatnie rozwiązanie konfliktu scalania. |
 | `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
 | `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
-| `` M `` | Otwórz zewnętrzne narzędzie scalania | Uruchom `git mergetool`. |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` <esc> `` | Wróć do panelu plików |  |
 
 ## Panel główny (zatwierdzanie)
@@ -252,7 +252,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` D `` | Reset | Wyświetl opcje resetu dla drzewa roboczego (np. zniszczenie drzewa roboczego). |
 | `` ` `` | Przełącz widok drzewa plików | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
-| `` M `` | Otwórz zewnętrzne narzędzie scalania | Uruchom `git mergetool`. |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` f `` | Pobierz | Pobierz zmiany ze zdalnego serwera. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |

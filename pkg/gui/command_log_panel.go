@@ -124,8 +124,8 @@ func (gui *Gui) getRandomTip() string {
 			formattedKey(config.Universal.Remove),
 		),
 		fmt.Sprintf(
-			"If you need to pull out the big guns to resolve merge conflicts, you can press '%s' in the files panel to open 'git mergetool'",
-			formattedKey(config.Files.OpenMergeTool),
+			"If you need to pull out the big guns to resolve merge conflicts, you can press '%s' in the files panel to open merge options",
+			formattedKey(config.Files.OpenMergeOptions),
 		),
 		fmt.Sprintf(
 			"To revert a commit, press '%s' on that commit",

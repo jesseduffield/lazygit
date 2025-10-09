@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -406,4 +407,47 @@ func (self *WorkingTreeCommands) ResetMixed(ref string) error {
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
+}
+
+func (self *WorkingTreeCommands) ShowFileAtStage(path string, stage int) (string, error) {
+	cmdArgs := NewGitCmd("show").
+		Arg(fmt.Sprintf(":%d:%s", stage, path)).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).RunWithOutput()
+}
+
+func (self *WorkingTreeCommands) ObjectIDAtStage(path string, stage int) (string, error) {
+	cmdArgs := NewGitCmd("rev-parse").
+		Arg(fmt.Sprintf(":%d:%s", stage, path)).
+		ToArgv()
+
+	output, err := self.cmd.New(cmdArgs).RunWithOutput()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(output), nil
+}
+
+func (self *WorkingTreeCommands) MergeFileForFiles(strategy string, oursFilepath string, baseFilepath string, theirsFilepath string) (string, error) {
+	cmdArgs := NewGitCmd("merge-file").
+		Arg(strategy).
+		Arg("--stdout").
+		Arg(oursFilepath, baseFilepath, theirsFilepath).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).RunWithOutput()
+}
+
+// OIDs mode (Git 2.43+)
+func (self *WorkingTreeCommands) MergeFileForObjectIDs(strategy string, oursID string, baseID string, theirsID string) (string, error) {
+	cmdArgs := NewGitCmd("merge-file").
+		Arg(strategy).
+		Arg("--stdout").
+		Arg("--object-id").
+		Arg(oursID, baseID, theirsID).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).RunWithOutput()
 }
