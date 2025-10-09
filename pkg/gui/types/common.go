@@ -356,6 +356,7 @@ type HasUrn interface {
 type IStateAccessor interface {
 	GetRepoPathStack() *utils.StringStack
 	GetRepoState() IRepoStateAccessor
+	GetPagerConfig() *config.PagerConfig
 	// tells us whether we're currently updating lazygit
 	GetUpdating() bool
 	SetUpdating(bool)
