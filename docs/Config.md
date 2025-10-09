@@ -332,6 +332,11 @@ git:
     # The commit message to use for a squash merge commit. Can contain "{{selectedRef}}" and "{{currentBranch}}" placeholders.
     squashMergeMessage: Squash merge {{selectedRef}} into {{currentBranch}}
 
+  # Config relating to tagging
+  tag:
+    # If true, always create annotated tags (even if the tag message is empty)
+    alwaysAnnotate: false
+
   # list of branches that are considered 'main' branches, used when displaying commits
   mainBranches:
     - master

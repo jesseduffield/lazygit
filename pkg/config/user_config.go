@@ -242,6 +242,8 @@ type GitConfig struct {
 	Commit CommitConfig `yaml:"commit"`
 	// Config relating to merging
 	Merging MergingConfig `yaml:"merging"`
+	// Config relating to tagging
+	Tag TagConfig `yaml:"tag"`
 	// list of branches that are considered 'main' branches, used when displaying commits
 	MainBranches []string `yaml:"mainBranches" jsonschema:"uniqueItems=true"`
 	// Prefix to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks will be skipped when the commit message starts with 'WIP'
@@ -339,6 +341,11 @@ type MergingConfig struct {
 	Args string `yaml:"args" jsonschema:"example=--no-ff"`
 	// The commit message to use for a squash merge commit. Can contain "{{selectedRef}}" and "{{currentBranch}}" placeholders.
 	SquashMergeMessage string `yaml:"squashMergeMessage"`
+}
+
+type TagConfig struct {
+	// If true, always create annotated tags (even if the tag message is empty)
+	AlwaysAnnotate bool `yaml:"alwaysAnnotate"`
 }
 
 type LogConfig struct {
@@ -810,6 +817,9 @@ func GetDefaultConfig() *UserConfig {
 				ManualCommit:       false,
 				Args:               "",
 				SquashMergeMessage: "Squash merge {{selectedRef}} into {{currentBranch}}",
+			},
+			Tag: TagConfig{
+				AlwaysAnnotate: false,
 			},
 			Log: LogConfig{
 				Order:          "topo-order",

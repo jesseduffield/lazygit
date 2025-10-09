@@ -418,6 +418,7 @@ var tests = []*components.IntegrationTest{
 	tag.Checkout,
 	tag.CheckoutWhenBranchWithSameNameExists,
 	tag.CopyToClipboard,
+	tag.CreateAnnotatedWithConfig,
 	tag.CreateWhileCommitting,
 	tag.CrudAnnotated,
 	tag.CrudLightweight,
