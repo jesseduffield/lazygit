@@ -76,14 +76,36 @@ func prepareMarshalledConfig(buffer bytes.Buffer) []byte {
 	return config
 }
 
+func wrapLine(line string, maxLineLength int) []string {
+	result := []string{}
+	startOfLine := 0
+	lastSpaceIdx := -1
+	for i, r := range line {
+		// Don't break on "See https://..." lines
+		if r == ' ' && line[startOfLine:i] != "See" {
+			lastSpaceIdx = i + 1
+		} else if i-startOfLine >= maxLineLength && lastSpaceIdx != -1 {
+			result = append(result, line[startOfLine:lastSpaceIdx-1])
+			startOfLine = lastSpaceIdx
+			lastSpaceIdx = -1
+		}
+	}
+	result = append(result, line[startOfLine:])
+	return result
+}
+
 func setComment(yamlNode *yaml.Node, description string) {
+	lines := strings.Split(description, "\n")
+	wrappedLines := lo.Flatten(lo.Map(lines,
+		func(line string, _ int) []string { return wrapLine(line, 78) }))
+
 	// Workaround for the way yaml formats the HeadComment if it contains
 	// blank lines: it renders these without a leading "#", but we want a
 	// leading "#" even on blank lines. However, yaml respects it if the
 	// HeadComment already contains a leading "#", so we prefix all lines
 	// (including blank ones) with "#".
 	yamlNode.HeadComment = strings.Join(
-		lo.Map(strings.Split(description, "\n"), func(s string, _ int) string {
+		lo.Map(wrappedLines, func(s string, _ int) string {
 			if s == "" {
 				return "#" // avoid trailing space on blank lines
 			}
