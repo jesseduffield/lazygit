@@ -13,7 +13,7 @@ import (
 
 type BranchCommands struct {
 	*GitCommon
-	allBranchesLogCmdIndex uint8 // keeps track of current all branches log command
+	allBranchesLogCmdIndex int // keeps track of current all branches log command
 }
 
 func NewBranchCommands(gitCommon *GitCommon) *BranchCommands {
@@ -278,6 +278,10 @@ func (self *BranchCommands) allBranchesLogCandidates() []string {
 func (self *BranchCommands) AllBranchesLogCmdObj() *oscommands.CmdObj {
 	candidates := self.allBranchesLogCandidates()
 
+	if self.allBranchesLogCmdIndex >= len(candidates) {
+		self.allBranchesLogCmdIndex = 0
+	}
+
 	i := self.allBranchesLogCmdIndex
 	return self.cmd.New(str.ToArgv(candidates[i])).DontLog()
 }
@@ -285,7 +289,13 @@ func (self *BranchCommands) AllBranchesLogCmdObj() *oscommands.CmdObj {
 func (self *BranchCommands) RotateAllBranchesLogIdx() {
 	n := len(self.allBranchesLogCandidates())
 	i := self.allBranchesLogCmdIndex
-	self.allBranchesLogCmdIndex = uint8((int(i) + 1) % n)
+	self.allBranchesLogCmdIndex = (i + 1) % n
+}
+
+func (self *BranchCommands) GetAllBranchesLogIdxAndCount() (int, int) {
+	n := len(self.allBranchesLogCandidates())
+	i := self.allBranchesLogCmdIndex
+	return i, n
 }
 
 func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *MainBranches) (bool, error) {

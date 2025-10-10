@@ -181,10 +181,14 @@ func (self *StatusController) showAllBranchLogs() {
 	cmdObj := self.c.Git().Branch.AllBranchesLogCmdObj()
 	task := types.NewRunPtyTask(cmdObj.GetCmd())
 
+	title := self.c.Tr.LogTitle
+	if i, n := self.c.Git().Branch.GetAllBranchesLogIdxAndCount(); n > 1 {
+		title = fmt.Sprintf(self.c.Tr.LogXOfYTitle, i+1, n)
+	}
 	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
-			Title: self.c.Tr.LogTitle,
+			Title: title,
 			Task:  task,
 		},
 	})
@@ -196,7 +200,7 @@ func (self *StatusController) switchToOrRotateAllBranchesLogs() {
 	// A bit of a hack to ensure we only rotate to the next branch log command
 	// if we currently are looking at a branch log. Otherwise, we should just show
 	// the current index (if we are coming from the dashboard).
-	if self.c.Views().Main.Title == self.c.Tr.LogTitle {
+	if self.c.Views().Main.Title != self.c.Tr.StatusTitle {
 		self.c.Git().Branch.RotateAllBranchesLogIdx()
 	}
 	self.showAllBranchLogs()
