@@ -170,6 +170,10 @@ func (self *Shell) Commit(message string) *Shell {
 	return self.RunCommand([]string{"git", "commit", "-m", message})
 }
 
+func (self *Shell) CommitInWorktreeOrSubmodule(worktreePath string, message string) *Shell {
+	return self.RunCommand([]string{"git", "-C", worktreePath, "commit", "-m", message})
+}
+
 func (self *Shell) EmptyCommit(message string) *Shell {
 	return self.RunCommand([]string{"git", "commit", "--allow-empty", "-m", message})
 }
@@ -428,11 +432,21 @@ func (self *Shell) AddWorktreeCheckout(base string, path string) *Shell {
 	})
 }
 
-func (self *Shell) AddFileInWorktree(worktreePath string) *Shell {
-	self.CreateFile(filepath.Join(worktreePath, "content"), "content")
+func (self *Shell) AddFileInWorktreeOrSubmodule(worktreePath string, filePath string, content string) *Shell {
+	self.CreateFile(filepath.Join(worktreePath, filePath), content)
 
 	self.RunCommand([]string{
-		"git", "-C", worktreePath, "add", "content",
+		"git", "-C", worktreePath, "add", filePath,
+	})
+
+	return self
+}
+
+func (self *Shell) UpdateFileInWorktreeOrSubmodule(worktreePath string, filePath string, content string) *Shell {
+	self.UpdateFile(filepath.Join(worktreePath, filePath), content)
+
+	self.RunCommand([]string{
+		"git", "-C", worktreePath, "add", filePath,
 	})
 
 	return self

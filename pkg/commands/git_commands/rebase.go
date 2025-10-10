@@ -521,10 +521,17 @@ func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, comm
 	}
 
 	for _, filePath := range filePaths {
-		// check if file exists in previous commit (this command returns an error if the file doesn't exist)
-		cmdArgs := NewGitCmd("cat-file").Arg("-e", "HEAD^:"+filePath).ToArgv()
-
-		if err := self.cmd.New(cmdArgs).Run(); err != nil {
+		doesFileExistInPreviousCommit := false
+		if commitIndex < len(commits)-1 {
+			// check if file exists in previous commit (this command returns an empty string if the file doesn't exist)
+			cmdArgs := NewGitCmd("ls-tree").Arg("--name-only", "HEAD^", "--", filePath).ToArgv()
+			output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+			if err != nil {
+				return err
+			}
+			doesFileExistInPreviousCommit = strings.TrimRight(output, "\n") == filePath
+		}
+		if !doesFileExistInPreviousCommit {
 			if err := self.os.Remove(filePath); err != nil {
 				return err
 			}
