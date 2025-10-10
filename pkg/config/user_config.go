@@ -106,7 +106,7 @@ type GuiConfig struct {
 	WrapLinesInStagingView bool `yaml:"wrapLinesInStagingView"`
 	// If true, hunk selection mode will be enabled by default when entering the staging view.
 	UseHunkModeInStagingView bool `yaml:"useHunkModeInStagingView"`
-	// One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
+	// One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru' | 'pt'
 	Language string `yaml:"language" jsonschema:"enum=auto,enum=en,enum=zh-TW,enum=zh-CN,enum=pl,enum=nl,enum=ja,enum=ko,enum=ru"`
 	// Format used when displaying time e.g. commit time.
 	// Uses Go's time format syntax: https://pkg.go.dev/time#Time.Format

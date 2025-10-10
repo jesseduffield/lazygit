@@ -116,7 +116,7 @@ gui:
   # If true, hunk selection mode will be enabled by default when entering the staging view.
   useHunkModeInStagingView: true
 
-  # One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
+  # One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru' | 'pt'
   language: auto
 
   # Format used when displaying time e.g. commit time.
