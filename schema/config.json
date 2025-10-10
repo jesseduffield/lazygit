@@ -341,7 +341,7 @@
         },
         "autoStageResolvedConflicts": {
           "type": "boolean",
-          "description": "If true, lazygit will automatically stage files that used to have merge\nconflicts but no longer do; and it will also ask you if you want to\ncontinue a merge or rebase if you've resolved all conflicts. If false, it\nwon't do either of these things.",
+          "description": "If true, lazygit will automatically stage files that used to have merge conflicts but no longer do; and it will also ask you if you want to continue a merge or rebase if you've resolved all conflicts. If false, it won't do either of these things.",
           "default": true
         },
         "branchLogCmd": {
@@ -437,7 +437,7 @@
         },
         "truncateCopiedCommitHashesTo": {
           "type": "integer",
-          "description": "When copying commit hashes to the clipboard, truncate them to this\nlength. Set to 40 to disable truncation.",
+          "description": "When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.",
           "default": 12
         }
       },
@@ -543,7 +543,7 @@
         },
         "expandedSidePanelWeight": {
           "type": "integer",
-          "description": "The weight of the expanded side panel, relative to the other panels. 2 means\ntwice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.",
+          "description": "The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.",
           "default": 2
         },
         "mainPanelSplitMode": {
@@ -563,7 +563,7 @@
         },
         "wrapLinesInStagingView": {
           "type": "boolean",
-          "description": "If true, wrap lines in the staging view to the width of the view. This\nmakes it much easier to work with diffs that have long lines, e.g.\nparagraphs of markdown text.",
+          "description": "If true, wrap lines in the staging view to the width of the view. This makes it much easier to work with diffs that have long lines, e.g. paragraphs of markdown text.",
           "default": true
         },
         "useHunkModeInStagingView": {
@@ -1548,7 +1548,7 @@
             "topo-order",
             "default"
           ],
-          "description": "One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'\n'topo-order' makes it easier to read the git log graph, but commits may not\nappear chronologically. See https://git-scm.com/docs/\n\nCan be changed from within Lazygit with `Log menu -\u003e Commit sort order` (`\u003cc-l\u003e` in the commits window by default).",
+          "description": "One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'\n'topo-order' makes it easier to read the git log graph, but commits may not appear chronologically. See https://git-scm.com/docs/\n\nCan be changed from within Lazygit with `Log menu -\u003e Commit sort order` (`\u003cc-l\u003e` in the commits window by default).",
           "default": "topo-order"
         },
         "showGraph": {
@@ -1603,11 +1603,11 @@
         },
         "editAtLine": {
           "type": "string",
-          "description": "Command for editing a file at a given line number. Should contain\n\"{{filename}}\", and may optionally contain \"{{line}}\"."
+          "description": "Command for editing a file at a given line number. Should contain \"{{filename}}\", and may optionally contain \"{{line}}\"."
         },
         "editAtLineAndWait": {
           "type": "string",
-          "description": "Same as EditAtLine, except that the command needs to wait until the\nwindow is closed."
+          "description": "Same as EditAtLine, except that the command needs to wait until the window is closed."
         },
         "editInTerminal": {
           "type": "boolean",
@@ -1619,7 +1619,7 @@
         },
         "editPreset": {
           "type": "string",
-          "description": "A built-in preset that sets all of the above settings. Supported presets\nare defined in the getPreset function in editor_presets.go.",
+          "description": "A built-in preset that sets all of the above settings. Supported presets are defined in the getPreset function in editor_presets.go.",
           "examples": [
             "vim",
             "nvim",
@@ -1636,7 +1636,7 @@
         },
         "open": {
           "type": "string",
-          "description": "Command for opening a file, as if the file is double-clicked. Should\ncontain \"{{filename}}\", but doesn't support \"{{line}}\"."
+          "description": "Command for opening a file, as if the file is double-clicked. Should contain \"{{filename}}\", but doesn't support \"{{line}}\"."
         },
         "openLink": {
           "type": "string",

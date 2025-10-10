@@ -89,8 +89,7 @@ type GuiConfig struct {
 	SidePanelWidth float64 `yaml:"sidePanelWidth" jsonschema:"maximum=1,minimum=0"`
 	// If true, increase the height of the focused side window; creating an accordion effect.
 	ExpandFocusedSidePanel bool `yaml:"expandFocusedSidePanel"`
-	// The weight of the expanded side panel, relative to the other panels. 2 means
-	// twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.
+	// The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.
 	ExpandedSidePanelWeight int `yaml:"expandedSidePanelWeight"`
 	// Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.
 	// Options are:
@@ -103,9 +102,7 @@ type GuiConfig struct {
 	// - 'left': split the window horizontally (side panel on the left, main view on the right)
 	// - 'top': split the window vertically (side panel on top, main view below)
 	EnlargedSideViewLocation string `yaml:"enlargedSideViewLocation"`
-	// If true, wrap lines in the staging view to the width of the view. This
-	// makes it much easier to work with diffs that have long lines, e.g.
-	// paragraphs of markdown text.
+	// If true, wrap lines in the staging view to the width of the view. This makes it much easier to work with diffs that have long lines, e.g. paragraphs of markdown text.
 	WrapLinesInStagingView bool `yaml:"wrapLinesInStagingView"`
 	// If true, hunk selection mode will be enabled by default when entering the staging view.
 	UseHunkModeInStagingView bool `yaml:"useHunkModeInStagingView"`
@@ -255,10 +252,7 @@ type GitConfig struct {
 	AutoForwardBranches string `yaml:"autoForwardBranches" jsonschema:"enum=none,enum=onlyMainBranches,enum=allBranches"`
 	// If true, pass the --all arg to git fetch
 	FetchAll bool `yaml:"fetchAll"`
-	// If true, lazygit will automatically stage files that used to have merge
-	// conflicts but no longer do; and it will also ask you if you want to
-	// continue a merge or rebase if you've resolved all conflicts. If false, it
-	// won't do either of these things.
+	// If true, lazygit will automatically stage files that used to have merge conflicts but no longer do; and it will also ask you if you want to continue a merge or rebase if you've resolved all conflicts. If false, it won't do either of these things.
 	AutoStageResolvedConflicts bool `yaml:"autoStageResolvedConflicts"`
 	// Command used when displaying the current branch git log in the main window
 	BranchLogCmd string `yaml:"branchLogCmd"`
@@ -293,8 +287,7 @@ type GitConfig struct {
 	// One of: 'date' (default) | 'alphabetical'
 	// Can be changed from within Lazygit with the Sort Order menu (`s`) in the remote branches panel.
 	RemoteBranchSortOrder string `yaml:"remoteBranchSortOrder" jsonschema:"enum=date,enum=alphabetical"`
-	// When copying commit hashes to the clipboard, truncate them to this
-	// length. Set to 40 to disable truncation.
+	// When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
 }
 
@@ -343,8 +336,7 @@ type MergingConfig struct {
 
 type LogConfig struct {
 	// One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'
-	// 'topo-order' makes it easier to read the git log graph, but commits may not
-	// appear chronologically. See https://git-scm.com/docs/
+	// 'topo-order' makes it easier to read the git log graph, but commits may not appear chronologically. See https://git-scm.com/docs/
 	//
 	// Can be changed from within Lazygit with `Log menu -> Commit sort order` (`<c-l>` in the commits window by default).
 	Order string `yaml:"order" jsonschema:"enum=date-order,enum=author-date-order,enum=topo-order,enum=default"`
@@ -582,12 +574,10 @@ type OSConfig struct {
 	// Command for editing a file. Should contain "{{filename}}".
 	Edit string `yaml:"edit,omitempty"`
 
-	// Command for editing a file at a given line number. Should contain
-	// "{{filename}}", and may optionally contain "{{line}}".
+	// Command for editing a file at a given line number. Should contain "{{filename}}", and may optionally contain "{{line}}".
 	EditAtLine string `yaml:"editAtLine,omitempty"`
 
-	// Same as EditAtLine, except that the command needs to wait until the
-	// window is closed.
+	// Same as EditAtLine, except that the command needs to wait until the window is closed.
 	EditAtLineAndWait string `yaml:"editAtLineAndWait,omitempty"`
 
 	// Whether lazygit suspends until an edit process returns
@@ -598,12 +588,10 @@ type OSConfig struct {
 	// For opening a directory in an editor
 	OpenDirInEditor string `yaml:"openDirInEditor,omitempty"`
 
-	// A built-in preset that sets all of the above settings. Supported presets
-	// are defined in the getPreset function in editor_presets.go.
+	// A built-in preset that sets all of the above settings. Supported presets are defined in the getPreset function in editor_presets.go.
 	EditPreset string `yaml:"editPreset,omitempty" jsonschema:"example=vim,example=nvim,example=emacs,example=nano,example=vscode,example=sublime,example=kakoune,example=helix,example=xcode,example=zed,example=acme"`
 
-	// Command for opening a file, as if the file is double-clicked. Should
-	// contain "{{filename}}", but doesn't support "{{line}}".
+	// Command for opening a file, as if the file is double-clicked. Should contain "{{filename}}", but doesn't support "{{line}}".
 	Open string `yaml:"open,omitempty"`
 
 	// Command for opening a link. Should contain "{{link}}".
