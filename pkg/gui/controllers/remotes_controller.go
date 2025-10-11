@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -142,9 +143,11 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 	return nil
 }
 
-func (self *RemotesController) addRemoteHelper(remoteName string, remoteUrl string, branchToCheckout string) error {
+// add remote and refresh the remotes list
+func (self *RemotesController) addRemote(remoteName string, remoteUrl string) error {
 	self.c.LogAction(self.c.Tr.Actions.AddRemote)
-	if err := self.c.Git().Remote.AddRemote(remoteName, remoteUrl); err != nil {
+	err := self.c.Git().Remote.AddRemote(remoteName, remoteUrl)
+	if err != nil {
 		return err
 	}
 
@@ -155,8 +158,11 @@ func (self *RemotesController) addRemoteHelper(remoteName string, remoteUrl stri
 		Scope: []types.RefreshableView{types.REMOTES},
 		Mode:  types.SYNC,
 	})
+	return nil
+}
 
-	// Select the new remote
+func (self *RemotesController) selectRemoteAndCheckout(remoteName string, remoteUrl string, branchToCheckout string) error {
+	// Select the remote
 	for idx, remote := range self.c.Model().Remotes {
 		if remote.Name == remoteName {
 			self.c.Contexts().Remotes.SetSelection(idx)
@@ -164,8 +170,30 @@ func (self *RemotesController) addRemoteHelper(remoteName string, remoteUrl stri
 		}
 	}
 
-	// Fetch the new remote
+	// Fetch the remote
 	return self.fetchAndCheckout(self.c.Contexts().Remotes.GetSelected(), branchToCheckout)
+}
+
+// add remote, then refresh and select it, and then fetch it and checkout the given branch if applicable
+func (self *RemotesController) addRemoteHelper(remoteName string, remoteUrl string, branchToCheckout string) error {
+	self.addRemote(remoteName, remoteUrl)
+
+	return self.selectRemoteAndCheckout(remoteName, remoteUrl, branchToCheckout)
+}
+
+// the same as addRemoteHelper but we don't error if the remote with the already exists (the remote has to contain the given URL though)
+func (self *RemotesController) addForkHelper(remoteName string, remoteUrl string, branchToCheckout string) error {
+	for idx, remote := range self.c.Model().Remotes {
+		if remote.Name == remoteName {
+			hasUrl := slices.Contains(remote.Urls, remoteUrl)
+			if !hasUrl {
+				return fmt.Errorf("a remote named '%s' already exists with a different URL", remoteName)
+			}
+			self.c.Contexts().Remotes.SetSelection(idx)
+			return self.fetchAndCheckout(remote, branchToCheckout)
+		}
+	}
+	return self.addRemoteHelper(remoteName, remoteUrl, branchToCheckout)
 }
 
 func (self *RemotesController) add() error {
@@ -236,7 +264,7 @@ func (self *RemotesController) addFork(baseRemote *models.Remote) error {
 				return err
 			}
 
-			return self.addRemoteHelper(forkUsername, remoteUrl, branchToCheckout)
+			return self.addForkHelper(forkUsername, remoteUrl, branchToCheckout)
 		},
 	})
 
