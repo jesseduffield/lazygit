@@ -143,8 +143,8 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 	return nil
 }
 
-// add remote and refresh the remotes list
-func (self *RemotesController) addRemote(remoteName string, remoteUrl string) error {
+// Adds a new remote and refreshes the list of remotes.
+func (self *RemotesController) addRemoteAndRefresh(remoteName string, remoteUrl string) error {
 	self.c.LogAction(self.c.Tr.Actions.AddRemote)
 	err := self.c.Git().Remote.AddRemote(remoteName, remoteUrl)
 	if err != nil {
@@ -161,6 +161,7 @@ func (self *RemotesController) addRemote(remoteName string, remoteUrl string) er
 	return nil
 }
 
+// Selects the given remote in the UI, fetches it, and checks out the specified branch if profided.
 func (self *RemotesController) selectRemoteAndCheckout(remoteName string, remoteUrl string, branchToCheckout string) error {
 	// Select the remote
 	for idx, remote := range self.c.Model().Remotes {
@@ -174,15 +175,17 @@ func (self *RemotesController) selectRemoteAndCheckout(remoteName string, remote
 	return self.fetchAndCheckout(self.c.Contexts().Remotes.GetSelected(), branchToCheckout)
 }
 
-// add remote, then refresh and select it, and then fetch it and checkout the given branch if applicable
-func (self *RemotesController) addRemoteHelper(remoteName string, remoteUrl string, branchToCheckout string) error {
-	self.addRemote(remoteName, remoteUrl)
+// Adds a new remote, refreshes and selects it, then fetches and checks out the specified branch if provided.
+func (self *RemotesController) addAndCheckoutRemote(remoteName string, remoteUrl string, branchToCheckout string) error {
+	self.addRemoteAndRefresh(remoteName, remoteUrl)
 
 	return self.selectRemoteAndCheckout(remoteName, remoteUrl, branchToCheckout)
 }
 
-// the same as addRemoteHelper but we don't error if the remote with the already exists (the remote has to contain the given URL though)
-func (self *RemotesController) addForkHelper(remoteName string, remoteUrl string, branchToCheckout string) error {
+// Ensures the fork remote exists (matching the given URL).
+// If it exists and matches, it’s selected and fetched; otherwise, it’s created and then fetched and checked out.
+// If it does exist but with a different URL, an error is returned.
+func (self *RemotesController) ensureForkRemoteAndCheckout(remoteName string, remoteUrl string, branchToCheckout string) error {
 	for idx, remote := range self.c.Model().Remotes {
 		if remote.Name == remoteName {
 			hasTheSameUrl := slices.Contains(remote.Urls, remoteUrl)
@@ -198,7 +201,7 @@ func (self *RemotesController) addForkHelper(remoteName string, remoteUrl string
 			return self.fetchAndCheckout(remote, branchToCheckout)
 		}
 	}
-	return self.addRemoteHelper(remoteName, remoteUrl, branchToCheckout)
+	return self.addAndCheckoutRemote(remoteName, remoteUrl, branchToCheckout)
 }
 
 func (self *RemotesController) add() error {
@@ -208,7 +211,7 @@ func (self *RemotesController) add() error {
 			self.c.Prompt(types.PromptOpts{
 				Title: self.c.Tr.NewRemoteUrl,
 				HandleConfirm: func(remoteUrl string) error {
-					return self.addRemoteHelper(remoteName, remoteUrl, "")
+					return self.addAndCheckoutRemote(remoteName, remoteUrl, "")
 				},
 			})
 
@@ -230,7 +233,7 @@ var (
 	httpRegex = regexp.MustCompile(`^(https?://[^/]+/)([^/]+(?:/[^/]+)*)/([^/]+?)(\.git)?$`)
 )
 
-// replaceForkUsername rewrites a Git remote URL to use the given fork username,
+// Rewrites a Git remote URL to use the given fork username,
 // keeping the repo name and host intact. Supports SCP-like SSH, SSH URL style, and HTTPS.
 func replaceForkUsername(remoteUrl, forkUsername string) (string, error) {
 	if forkUsername == "" {
@@ -269,7 +272,7 @@ func (self *RemotesController) addFork(baseRemote *models.Remote) error {
 				return err
 			}
 
-			return self.addForkHelper(forkUsername, remoteUrl, branchToCheckout)
+			return self.ensureForkRemoteAndCheckout(forkUsername, remoteUrl, branchToCheckout)
 		},
 	})
 
