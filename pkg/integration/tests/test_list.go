@@ -86,6 +86,7 @@ var tests = []*components.IntegrationTest{
 	branch.Suggestions,
 	branch.UnsetUpstream,
 	cherry_pick.CherryPick,
+	cherry_pick.CherryPickCommitThatBecomesEmpty,
 	cherry_pick.CherryPickConflicts,
 	cherry_pick.CherryPickDuringRebase,
 	cherry_pick.CherryPickMerge,
