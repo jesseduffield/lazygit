@@ -24,6 +24,7 @@ _Связки клавиш_
 | `` R `` | Обновить | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
 | `` + `` | Следующий режим экрана (нормальный/полуэкранный/полноэкранный) |  |
 | `` _ `` | Предыдущий режим экрана |  |
+| `` | `` | Cycle pagers | Choose the next pager in the list of configured pagers |
 | `` <esc> `` | Отменить |  |
 | `` ? `` | Открыть меню |  |
 | `` <c-s> `` | Просмотреть параметры фильтрации по пути | View options for filtering the commit log, so that only commits matching the filter are shown. |
