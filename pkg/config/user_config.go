@@ -31,9 +31,10 @@ type UserConfig struct {
 	// What to do when opening Lazygit outside of a git repo.
 	// - 'prompt': (default) ask whether to initialize a new repo or open in the most recent repo
 	// - 'create': initialize a new repo
-	// - 'skip': open most recent repo
+	// - 'recent': open most recent repo
+	// - 'skip': open most recent repo and skip the modal
 	// - 'quit': exit Lazygit
-	NotARepository string `yaml:"notARepository" jsonschema:"enum=prompt,enum=create,enum=skip,enum=quit"`
+	NotARepository string `yaml:"notARepository" jsonschema:"enum=prompt,enum=create,enum=recent,enum=skip,enum=quit"`
 	// If true, display a confirmation when subprocess terminates. This allows you to view the output of the subprocess before returning to Lazygit.
 	PromptToReturnFromSubprocess bool `yaml:"promptToReturnFromSubprocess"`
 	// Keybindings

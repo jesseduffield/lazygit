@@ -216,6 +216,8 @@ func (app *App) setupRepo(
 			}
 		case "create":
 			shouldInitRepo = true
+		case "recent":
+			shouldInitRepo = false
 		case "skip":
 			shouldInitRepo = false
 		case "quit":
