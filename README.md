@@ -4,7 +4,7 @@
 <br>
 <a href="https://www.warp.dev/?utm_source=github&utm_medium=referral&utm_campaign=lazygit_20231023">
   <div>
-    <img src="../assets/warp.png" width="400" alt="Warp">
+    <img src="https://github.com/warpdotdev/brand-assets/blob/main/Github/Sponsor/Warp-Github-LG-02.png?raw=true" width="400" alt="Warp">
   </div>
   <b>Warp, the intelligent terminal</b>
   <br>
