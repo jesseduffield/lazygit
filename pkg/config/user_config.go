@@ -503,6 +503,7 @@ type KeybindingBranchesConfig struct {
 	PushTag                string `yaml:"pushTag"`
 	SetUpstream            string `yaml:"setUpstream"`
 	FetchRemote            string `yaml:"fetchRemote"`
+	AddForkRemote          string `yaml:"AddForkRemote"`
 	SortOrder              string `yaml:"sortOrder"`
 }
 
@@ -962,6 +963,7 @@ func GetDefaultConfig() *UserConfig {
 				PushTag:                "P",
 				SetUpstream:            "u",
 				FetchRemote:            "f",
+				AddForkRemote:          "F",
 				SortOrder:              "s",
 			},
 			Worktrees: KeybindingWorktreesConfig{
