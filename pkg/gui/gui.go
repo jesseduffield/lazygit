@@ -758,6 +758,9 @@ func (gui *Gui) initGocui(headless bool, test integrationTypes.IntegrationTest) 
 		Height:           height,
 	})
 	if err != nil {
+		if err.Error() == "exit status 1" {
+			err = errors.New("$TERM Not Found")
+		}
 		return nil, err
 	}
 
