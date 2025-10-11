@@ -192,6 +192,43 @@ func TestFileGetStatusFiles(t *testing.T) {
 				},
 			},
 		},
+		{
+			testName:            "Copied files",
+			similarityThreshold: 50,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
+					"C  copy1.txt\x00original.txt\x00CM copy2.txt\x00original.txt",
+					nil,
+				),
+			expectedFiles: []*models.File{
+				{
+					Path:                    "copy1.txt",
+					PreviousPath:            "original.txt",
+					HasStagedChanges:        true,
+					HasUnstagedChanges:      false,
+					Tracked:                 true,
+					Added:                   false,
+					Deleted:                 false,
+					HasMergeConflicts:       false,
+					HasInlineMergeConflicts: false,
+					DisplayString:           "C  original.txt -> copy1.txt",
+					ShortStatus:             "C ",
+				},
+				{
+					Path:                    "copy2.txt",
+					PreviousPath:            "original.txt",
+					HasStagedChanges:        true,
+					HasUnstagedChanges:      true,
+					Tracked:                 true,
+					Added:                   false,
+					Deleted:                 false,
+					HasMergeConflicts:       false,
+					HasInlineMergeConflicts: false,
+					DisplayString:           "CM original.txt -> copy2.txt",
+					ShortStatus:             "CM",
+				},
+			},
+		},
 	}
 
 	for _, s := range scenarios {
