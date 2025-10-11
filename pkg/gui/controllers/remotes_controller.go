@@ -185,9 +185,14 @@ func (self *RemotesController) addRemoteHelper(remoteName string, remoteUrl stri
 func (self *RemotesController) addForkHelper(remoteName string, remoteUrl string, branchToCheckout string) error {
 	for idx, remote := range self.c.Model().Remotes {
 		if remote.Name == remoteName {
-			hasUrl := slices.Contains(remote.Urls, remoteUrl)
-			if !hasUrl {
-				return fmt.Errorf("a remote named '%s' already exists with a different URL", remoteName)
+			hasTheSameUrl := slices.Contains(remote.Urls, remoteUrl)
+			if !hasTheSameUrl {
+				return fmt.Errorf("%s", utils.ResolvePlaceholderString(
+					self.c.Tr.IncompatibleForkAlreadyExistsError,
+					map[string]string{
+						"remoteName": remoteName,
+					},
+				))
 			}
 			self.c.Contexts().Remotes.SetSelection(idx)
 			return self.fetchAndCheckout(remote, branchToCheckout)
