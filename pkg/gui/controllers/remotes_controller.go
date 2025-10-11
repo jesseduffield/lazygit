@@ -230,25 +230,13 @@ func (self *RemotesController) addFork(baseRemote *models.Remote) error {
 				forkUsername = parts[0]
 				branchToCheckout = parts[1]
 			}
+			baseUrl := baseRemote.Urls[0]
+			remoteUrl, err := replaceForkUsername(baseUrl, forkUsername)
+			if err != nil {
+				return err
+			}
 
-			self.c.Prompt(types.PromptOpts{
-				Title:          self.c.Tr.NewRemoteName,
-				InitialContent: forkUsername,
-				HandleConfirm: func(remoteName string) error {
-					if len(baseRemote.Urls) == 0 {
-						return fmt.Errorf("base remote must have url")
-					}
-					baseUrl := baseRemote.Urls[0]
-					remoteUrl, err := replaceForkUsername(baseUrl, forkUsername)
-					if err != nil {
-						return err
-					}
-
-					return self.addRemoteHelper(remoteName, remoteUrl, branchToCheckout)
-				},
-			})
-
-			return nil
+			return self.addRemoteHelper(forkUsername, remoteUrl, branchToCheckout)
 		},
 	})
 
