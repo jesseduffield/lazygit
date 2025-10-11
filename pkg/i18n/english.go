@@ -922,7 +922,11 @@ type Bisect struct {
 	CompleteTitle               string
 	CompletePrompt              string
 	CompletePromptIndeterminate string
-	Bisecting                   string
+    Bisecting                   string
+
+    // AI commits
+    GenerateAICommitMessage         string
+    GeneratingAICommitMessageStatus string
 }
 
 type Log struct {
@@ -2107,8 +2111,8 @@ func EnglishTranslationSet() *TranslationSet {
 			BisectMark:                       "Bisect mark",
 			AddWorktree:                      "Add worktree",
 		},
-		Bisect: Bisect{
-			Mark:                        "Mark current commit (%s) as %s",
+        Bisect: Bisect{
+            Mark:                        "Mark current commit (%s) as %s",
 			MarkStart:                   "Mark %s as %s (start bisect)",
 			SkipCurrent:                 "Skip current commit (%s)",
 			SkipSelected:                "Skip selected commit (%s)",
@@ -2122,9 +2126,12 @@ func EnglishTranslationSet() *TranslationSet {
 			CompleteTitle:               "Bisect complete",
 			CompletePrompt:              "Bisect complete! The following commit introduced the change:\n\n%s\n\nDo you want to reset 'git bisect' now?",
 			CompletePromptIndeterminate: "Bisect complete! Some commits were skipped, so any of the following commits may have introduced the change:\n\n%s\n\nDo you want to reset 'git bisect' now?",
-			Bisecting:                   "Bisecting",
-		},
-		Log: Log{
+            Bisecting:                   "Bisecting",
+        },
+        // AI commits
+        GenerateAICommitMessage:        "Generate AI commit message",
+        GeneratingAICommitMessageStatus: "Generating commit message",
+        Log: Log{
 			EditRebase:               "Beginning interactive rebase at '{{.ref}}'",
 			HandleUndo:               "Undoing last conflict resolution",
 			RemoveFile:               "Deleting path '{{.path}}'",

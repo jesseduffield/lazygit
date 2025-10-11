@@ -954,5 +954,7 @@
     "0.41.0": "- 当您按“g”调出 git 重置菜单时，“mixed”选项现在是第一个也是默认选项，而不是“soft”。这是因为“mixed”是最常用的选项。\n- 提交消息面板现在默认自动硬换行（即，当您到达页边距时，它会添加换行符）。您可以像这样调整配置：\n\ngit:\n  commit:\n    autoWrapCommitMessage: true\n    autoWrapWidth: 72\n\n- “v”键已在暂存视图中用于启动范围选择，但现在您可以使用它在任何视图中启动范围选择。不幸的是，这与粘贴提交（cherry-pick）的“v”键绑定冲突，因此现在粘贴提交是通过“shift+V”完成的，为了一致性，复制提交现在是通过“shift+C”而不是“c”。请注意，“v”键绑定只是启动范围选择的一种方法：您可以使用 shift+向上/向下箭头。因此，如果您想配置cherry-pick键绑定以获得旧行为，请在配置中设置以下内容：\n\nkeybinding:\n  universal:\n      toggleRangeSelect: <something other than v>\n    commits:\n      cherryPickCopy: 'c'\n      pasteCommits: 'v'\n\n- 使用“shift-S”压缩修复现在会弹出一个菜单，默认选项是压缩分支中的所有修复提交。仅压缩所选提交之上的修复提交的原始行为仍然可以作为该菜单中的第二个选项使用。\n- Push/pull/fetch 加载状态现在显示在分支上，而不是在弹出窗口中。这允许您例如并行获取多个分支并查看每个分支的状态。\n- 提交视图中的 git 日志图现在始终默认显示（以前仅在视图最大化时显示）。如果您发现这太冗余了，您可以通过 ctrl+L -> 'Show git graph' -> 'when maximized' 将其改回来\n- 在远程分支上按空格用于显示输入新本地分支名称的提示，以从远程分支检出。现在它只是直接检查远程分支，让您在同名的新本地分支或分离的头之间进行选择。旧的行为仍然可以通过“n”键绑定使用。\n- 默认情况下，过滤（例如按“/”时）不太模糊；它现在只匹配子字符串。多个子字符串可以通过用空格分隔来匹配。如果您想恢复到旧的行为，请在配置中设置以下内容：\n\ngui:\n  filterMode: 'fuzzy'\n\t  ",
     "0.44.0": "- gui.branchColors 配置选项已弃用；其将在未来的版本中被移除。请使用 gui.branchColorPatterns 代替。\n- 以 \"feature/\"，\"bugfix/\" 和 \"hotfix/\" 开头的分支自动上色已移除；如果您想要保留该功能，可以通过设置新的 gui.branchColorPatterns 选项来启用。",
     "0.49.0": "- 执行shell命令（带':'提示符）不再使用交互式shell。如需在提示符中使用shell别名，需进行额外配置。详见：https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#using-aliases-or-functions-in-shell-commands"
-  }
+  },
+  "GenerateAICommitMessage": "生成AI提交消息",
+  "GeneratingAICommitMessageStatus": "正在生成提交消息"
 }
