@@ -369,6 +369,14 @@ type TranslationSet struct {
 	PasteCommits                          string
 	SureCherryPick                        string
 	CherryPick                            string
+	CherryPickEmptyTitle                  string
+	CherryPickEmptyPrompt                 string
+	CherryPickEmptySkip                   string
+	CherryPickEmptyCreateEmptyCommit      string
+	EmptyCommitTitle                      string
+	EmptyCommitPrompt                     string
+	EmptyCommitSkip                       string
+	EmptyCommitCreateEmptyCommit          string
 	CannotCherryPickNonCommit             string
 	Donate                                string
 	AskQuestion                           string
@@ -1459,6 +1467,14 @@ func EnglishTranslationSet() *TranslationSet {
 		PasteCommits:                         "Paste (cherry-pick)",
 		SureCherryPick:                       "Are you sure you want to cherry-pick the {{.numCommits}} copied commit(s) onto this branch?",
 		CherryPick:                           "Cherry-pick",
+		CherryPickEmptyTitle:                 "Cherry-pick produced no changes",
+		CherryPickEmptyPrompt:                "The commit can be skipped or kept as an empty commit.",
+		CherryPickEmptySkip:                  "Skip this cherry-pick",
+		CherryPickEmptyCreateEmptyCommit:     "Create empty commit and continue",
+		EmptyCommitTitle:                     "Commit produced no changes",
+		EmptyCommitPrompt:                    "The commit can be skipped or kept as an empty commit.",
+		EmptyCommitSkip:                      "Skip this %s step",
+		EmptyCommitCreateEmptyCommit:         "Create empty commit and continue",
 		CannotCherryPickNonCommit:            "Cannot cherry-pick this kind of todo item",
 		Donate:                               "Donate",
 		AskQuestion:                          "Ask Question",

@@ -18,6 +18,8 @@ import (
 
 type MergeAndRebaseHelper struct {
 	c *HelperCommon
+
+	cherryPickHelper *CherryPickHelper
 }
 
 func NewMergeAndRebaseHelper(
@@ -26,6 +28,10 @@ func NewMergeAndRebaseHelper(
 	return &MergeAndRebaseHelper{
 		c: c,
 	}
+}
+
+func (self *MergeAndRebaseHelper) SetCherryPickHelper(helper *CherryPickHelper) {
+	self.cherryPickHelper = helper
 }
 
 type RebaseOption string
@@ -114,6 +120,15 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	if err := self.CheckMergeOrRebase(result); err != nil {
 		return err
 	}
+
+	if self.cherryPickHelper != nil {
+		self.cherryPickHelper.markPasteProducedCommitsIfHeadChanged()
+	}
+
+	if err := self.finalizeCherryPickIfDone(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -154,15 +169,208 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 
 	if result == nil {
 		return nil
-	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
+	}
+
+	errStr := result.Error()
+
+	if isMergeConflictErr(errStr) {
+		return self.PromptForConflictHandling()
+	}
+
+	isEmptyCommitErr := lo.SomeBy([]string{
+		"The previous cherry-pick is now empty",
+		"git commit --allow-empty",
+		"git revert --skip",
+	}, func(str string) bool {
+		return strings.Contains(errStr, str)
+	})
+
+	if isEmptyCommitErr {
+		effectiveState := self.c.Git().Status.WorkingTreeState().Effective()
+		switch effectiveState {
+		case models.WORKING_TREE_STATE_CHERRY_PICKING:
+			return self.handleEmptyCherryPick()
+		case models.WORKING_TREE_STATE_REBASING, models.WORKING_TREE_STATE_REVERTING:
+			return self.handleEmptyRebaseOrRevert()
+		default:
+			return self.genericMergeCommand(REBASE_OPTION_SKIP)
+		}
+	}
+
+	if strings.Contains(errStr, "No changes - did you forget to use") {
 		return self.genericMergeCommand(REBASE_OPTION_SKIP)
-	} else if strings.Contains(result.Error(), "The previous cherry-pick is now empty") {
-		return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
-	} else if strings.Contains(result.Error(), "No rebase in progress?") {
+	}
+
+	if strings.Contains(errStr, "No rebase in progress?") {
 		// assume in this case that we're already done
 		return nil
 	}
 	return self.CheckForConflicts(result)
+}
+
+func (self *MergeAndRebaseHelper) handleEmptyCherryPick() error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title:  self.c.Tr.CherryPickEmptyTitle,
+		Prompt: self.c.Tr.CherryPickEmptyPrompt,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.CherryPickEmptySkip,
+				Key:   's',
+				OnPress: func() error {
+					if self.cherryPickHelper != nil {
+						self.cherryPickHelper.DisablePostPasteReselect()
+						self.cherryPickHelper.DeferPostPasteCleanup()
+					}
+					if err := self.genericMergeCommand(REBASE_OPTION_SKIP); err != nil {
+						return err
+					}
+
+					// Skipping an empty cherry-pick shouldn't re-enable post-paste reselection
+					// because no commit was applied.
+					return self.completeCherryPickAfterEmptyResolution(false)
+				},
+			},
+			{
+				Label: self.c.Tr.CherryPickEmptyCreateEmptyCommit,
+				Key:   'e',
+				OnPress: func() error {
+					if err := self.c.Git().Rebase.CommitAllowEmpty(); err != nil {
+						if strings.Contains(err.Error(), "no cherry-pick or revert in progress") {
+							self.c.Log.Warn(err)
+						} else {
+							return err
+						}
+					}
+					if err := self.genericMergeCommand(REBASE_OPTION_CONTINUE); err != nil {
+						if err.Error() != self.c.Tr.NotMergingOrRebasing {
+							return err
+						}
+
+						if err := self.CheckMergeOrRebase(
+							self.c.Git().Rebase.GenericMergeOrRebaseAction("cherry-pick", REBASE_OPTION_CONTINUE),
+						); err != nil {
+							return err
+						}
+					}
+
+					return self.completeCherryPickAfterEmptyResolution(true)
+				},
+			},
+		},
+	})
+}
+
+func (self *MergeAndRebaseHelper) completeCherryPickAfterEmptyResolution(preservePostPasteReselect bool) error {
+	isInCherryPick, err := self.c.Git().Status.IsInCherryPick()
+	if err != nil {
+		return err
+	}
+
+	if self.cherryPickHelper == nil {
+		return nil
+	}
+
+	defer self.cherryPickHelper.ClearDeferredPostPasteCleanup()
+
+	if !preservePostPasteReselect {
+		self.cherryPickHelper.DisablePostPasteReselect()
+	}
+
+	if isInCherryPick {
+		return nil
+	}
+
+	self.cherryPickHelper.markPasteProducedCommitsIfHeadChanged()
+
+	if !self.cherryPickHelper.PasteProducedCommits() {
+		self.cherryPickHelper.setPostPasteShouldMarkDidPaste(false)
+	}
+
+	if err := self.cherryPickHelper.runPostPasteCleanup(true); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (self *MergeAndRebaseHelper) finalizeCherryPickIfDone() error {
+	if self.cherryPickHelper == nil {
+		return nil
+	}
+
+	if self.cherryPickHelper.ShouldDeferPostPasteCleanup() {
+		return nil
+	}
+
+	hasTodos, err := self.c.Git().Status.HasPendingSequencerTodos()
+	if err != nil {
+		return err
+	}
+
+	if hasTodos {
+		return nil
+	}
+
+	isInCherryPick, err := self.c.Git().Status.IsInCherryPick()
+	if err != nil {
+		return err
+	}
+
+	if isInCherryPick {
+		return nil
+	}
+
+	self.cherryPickHelper.markPasteProducedCommitsIfHeadChanged()
+
+	if !self.cherryPickHelper.ShouldRestorePostPasteSelection() {
+		self.cherryPickHelper.DisablePostPasteReselect()
+	}
+
+	if err := self.cherryPickHelper.runPostPasteCleanup(true); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (self *MergeAndRebaseHelper) handleEmptyRebaseOrRevert() error {
+	commandName := self.c.Git().Status.WorkingTreeState().CommandName()
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title:  self.c.Tr.EmptyCommitTitle,
+		Prompt: self.c.Tr.EmptyCommitPrompt,
+		Items: []*types.MenuItem{
+			{
+				Label: fmt.Sprintf(self.c.Tr.EmptyCommitSkip, commandName),
+				Key:   's',
+				OnPress: func() error {
+					return self.genericMergeCommand(REBASE_OPTION_SKIP)
+				},
+			},
+			{
+				Label: self.c.Tr.EmptyCommitCreateEmptyCommit,
+				Key:   'e',
+				OnPress: func() error {
+					if err := self.c.Git().Rebase.CommitAllowEmpty(); err != nil {
+						errStr := err.Error()
+						if strings.Contains(errStr, "no rebase in progress") || strings.Contains(errStr, "no cherry-pick or revert in progress") {
+							self.c.Log.Warn(err)
+						} else {
+							return err
+						}
+					}
+
+					workingTreeState := self.c.Git().Status.WorkingTreeState().Effective()
+					if workingTreeState == models.WORKING_TREE_STATE_REBASING {
+						return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
+					}
+
+					self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+					return nil
+				},
+			},
+		},
+	})
 }
 
 func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {

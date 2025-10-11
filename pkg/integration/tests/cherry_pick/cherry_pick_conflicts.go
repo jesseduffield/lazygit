@@ -73,16 +73,25 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Common().ContinueOnConflictsResolved("cherry-pick")
 
+		t.ExpectPopup().Menu().
+			Title(Equals("Cherry-pick produced no changes")).
+			ContainsLines(
+				Contains("Skip this cherry-pick"),
+				Contains("Create empty commit and continue"),
+				Contains("Cancel"),
+			).
+			Select(Contains("Skip this cherry-pick")).
+			Confirm()
+
 		t.Views().Files().IsEmpty()
 
 		t.Views().Commits().
 			Focus().
 			TopLines(
-				Contains("second-change-branch unrelated change").IsSelected(),
-				Contains("second change"),
+				Contains("second change").IsSelected(),
 				Contains("first change"),
 			).
-			SelectNextItem().
+			Content(DoesNotContain("second-change-branch unrelated change")).
 			Tap(func() {
 				// because we picked 'Second change' when resolving the conflict,
 				// we now see this commit as having replaced First Change with Second Change,
@@ -91,7 +100,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 					Content(Contains("-First Change")).
 					Content(Contains("+Second Change"))
 
-				t.Views().Information().Content(Contains("2 commits copied"))
+				t.Views().Information().Content(DoesNotContain("commits copied"))
 			}).
 			PressEscape().
 			Tap(func() {

@@ -60,6 +60,7 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("one"),
 				Contains("base"),
 			).
+			SelectNextItem().
 			Press(keys.Commits.PasteCommits).
 			Tap(func() {
 				// cherry-picked commits will be deleted after confirmation
@@ -72,13 +73,35 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("Cherry-pick produced no changes")).
+					ContainsLines(
+						Contains("Skip this cherry-pick"),
+						Contains("Create empty commit and continue"),
+						Contains("Cancel"),
+					).
+					Select(Contains("Create empty commit and continue")).
+					Confirm()
+			}).
+			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("Cherry-pick produced no changes")).
+					ContainsLines(
+						Contains("Skip this cherry-pick"),
+						Contains("Create empty commit and continue"),
+						Contains("Cancel"),
+					).
+					Select(Contains("Create empty commit and continue")).
+					Confirm()
+			}).
+			Tap(func() {
 				t.Views().Information().Content(DoesNotContain("commits copied"))
 			}).
 			Lines(
 				Contains("four"),
 				Contains("three"),
-				Contains("two").IsSelected(),
-				Contains("one"),
+				Contains("two"),
+				Contains("one").IsSelected(),
 				Contains("base"),
 			)
 
@@ -98,6 +121,28 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 				t.ExpectPopup().Alert().
 					Title(Equals("Cherry-pick")).
 					Content(Contains("Are you sure you want to cherry-pick the 2 copied commit(s) onto this branch?")).
+					Confirm()
+			}).
+			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("Cherry-pick produced no changes")).
+					ContainsLines(
+						Contains("Skip this cherry-pick"),
+						Contains("Create empty commit and continue"),
+						Contains("Cancel"),
+					).
+					Select(Contains("Create empty commit and continue")).
+					Confirm()
+			}).
+			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("Cherry-pick produced no changes")).
+					ContainsLines(
+						Contains("Skip this cherry-pick"),
+						Contains("Create empty commit and continue"),
+						Contains("Cancel"),
+					).
+					Select(Contains("Create empty commit and continue")).
 					Confirm()
 			}).
 			Tap(func() {

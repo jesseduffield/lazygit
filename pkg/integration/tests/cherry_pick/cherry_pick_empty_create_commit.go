@@ -5,34 +5,25 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Cherry pick commits from the subcommits view during a rebase",
+var CherryPickEmptyCreateCommit = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Cherry-picking a commit with no diff allows creating an empty commit to continue",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Git.Log.ShowGraph = "never"
-		config.GetUserConfig().Git.LocalBranchSortOrder = "recency"
-	},
+	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.
 			EmptyCommit("base").
-			NewBranch("first-branch").
-			NewBranch("second-branch").
-			Checkout("first-branch").
-			EmptyCommit("one").
-			EmptyCommit("two").
-			Checkout("second-branch").
-			EmptyCommit("three").
-			EmptyCommit("four").
-			Checkout("first-branch")
+			NewBranch("source").
+			CreateFileAndAdd("shared.txt", "content\n").Commit("add shared file on source").
+			Checkout("master").
+			CreateFileAndAdd("shared.txt", "content\n").Commit("add shared file on master")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().
 			Focus().
 			Lines(
-				Contains("first-branch"),
-				Contains("second-branch"),
 				Contains("master"),
+				Contains("source"),
 			).
 			SelectNextItem().
 			PressEnter()
@@ -40,12 +31,9 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().SubCommits().
 			IsFocused().
 			Lines(
-				Contains("four").IsSelected(),
-				Contains("three"),
+				Contains("add shared file on source").IsSelected(),
 				Contains("base"),
 			).
-			// copy commit 'three'
-			SelectNextItem().
 			Press(keys.Commits.CherryPickCopy)
 
 		t.Views().Information().Content(Contains("1 commit copied"))
@@ -53,18 +41,8 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI two").IsSelected(),
-				Contains("CI one"),
-				Contains("CI base"),
-			).
-			SelectNextItem().
-			Press(keys.Universal.Edit).
-			Lines(
-				Contains("--- Pending rebase todos ---"),
-				Contains("pick CI two"),
-				Contains("--- Commits ---"),
-				Contains("     CI one").IsSelected(),
-				Contains("     CI base"),
+				Contains("add shared file on master").IsSelected(),
+				Contains("base"),
 			).
 			Press(keys.Commits.PasteCommits).
 			Tap(func() {
@@ -85,14 +63,12 @@ var CherryPickDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Tap(func() {
-				t.Views().Information().Content(DoesNotContain("commit copied"))
+				t.Shell().RunCommandExpectError([]string{"git", "rev-parse", "CHERRY_PICK_HEAD"})
 			}).
-			Focus().
 			Lines(
-				Contains("CI two"),
-				Contains("CI three"),
-				Contains("CI one").IsSelected(),
-				Contains("CI base"),
+				Contains("add shared file on source"),
+				Contains("add shared file on master").IsSelected(),
+				Contains("base"),
 			)
 	},
 })

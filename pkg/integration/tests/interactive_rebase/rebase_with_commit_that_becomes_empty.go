@@ -35,6 +35,16 @@ var RebaseWithCommitThatBecomesEmpty = NewIntegrationTest(NewIntegrationTestArgs
 			Select(Contains("Simple rebase")).
 			Confirm()
 
+		t.ExpectPopup().Menu().
+			Title(Equals("Commit produced no changes")).
+			ContainsLines(
+				Contains("Skip this rebase step"),
+				Contains("Create empty commit and continue"),
+				Contains("Cancel"),
+			).
+			Select(Contains("Skip this rebase step")).
+			Confirm()
+
 		t.Views().Commits().
 			Lines(
 				Contains("master change 2"),
