@@ -72,6 +72,8 @@ type WindowArrangementArgs struct {
 	InSearchPrompt bool
 	// One of '' (not searching), 'Search: ', and 'Filter: '
 	SearchPrefix string
+	// Proportional width of the side panel, as a float between 0.1 and 0.9. Defaults to 0.33.
+	SidePanelAutoWidth int
 }
 
 func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
@@ -101,6 +103,7 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 		IsAnyModeActive:     self.modeHelper.IsAnyModeActive(),
 		InSearchPrompt:      repoState.InSearchPrompt(),
 		SearchPrefix:        searchPrefix,
+		SidePanelAutoWidth:  self.c.Model().SidePanelAutoWidth,
 	}
 
 	return GetWindowDimensions(args)
@@ -138,6 +141,17 @@ func GetWindowDimensions(args WindowArrangementArgs) map[string]boxlayout.Dimens
 		infoSectionSize = 1
 	}
 
+	sidePanelBox := &boxlayout.Box{
+		Direction:           boxlayout.ROW,
+		ConditionalChildren: sidePanelChildren(args),
+	}
+
+	if args.UserConfig.Gui.SidePanelAutoWidth && args.SidePanelAutoWidth > 0 {
+		sidePanelBox.Size = min(args.Width/2, args.SidePanelAutoWidth)
+	} else {
+		sidePanelBox.Weight = sideSectionWeight
+	}
+
 	root := &boxlayout.Box{
 		Direction: boxlayout.ROW,
 		Children: []*boxlayout.Box{
@@ -145,11 +159,7 @@ func GetWindowDimensions(args WindowArrangementArgs) map[string]boxlayout.Dimens
 				Direction: sidePanelsDirection,
 				Weight:    1,
 				Children: []*boxlayout.Box{
-					{
-						Direction:           boxlayout.ROW,
-						Weight:              sideSectionWeight,
-						ConditionalChildren: sidePanelChildren(args),
-					},
+					sidePanelBox,
 					{
 						Direction: boxlayout.ROW,
 						Weight:    mainSectionWeight,

@@ -75,6 +75,12 @@ gui:
   # requiring you to hold the option key when on macOS.
   mouseEvents: true
 
+  # Automatically adjust the width of the side panel to fit the longest visible filename. 
+  # The width is capped at a half of the total screen width to prevent the panel from becoming excessively large. 
+  # This is useful for projects with deeply nested file structures. 
+  sidePanelAutoWidth: false
+
+
   # If true, do not show a warning when amending a commit.
   skipAmendWarning: false
 
