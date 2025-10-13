@@ -46,7 +46,7 @@ func (self *CmdObjBuilder) NewWithEnviron(args []string, env []string) *CmdObj {
 
 func (self *CmdObjBuilder) NewShell(commandStr string, shellFunctionsFile string) *CmdObj {
 	if len(shellFunctionsFile) > 0 {
-		commandStr = fmt.Sprintf("%ssource %s\n%s", self.platform.PrefixForShellFunctionsFile, shellFunctionsFile, commandStr)
+		commandStr = fmt.Sprintf("%ssource %s\n%s", self.platform.PrefixForShellFunctionsFile, self.Quote(shellFunctionsFile), commandStr)
 	}
 	quotedCommand := self.quotedCommandString(commandStr)
 	cmdArgs := str.ToArgv(fmt.Sprintf("%s %s %s", self.platform.Shell, self.platform.ShellArg, quotedCommand))
