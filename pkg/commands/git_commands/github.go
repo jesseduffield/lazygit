@@ -423,12 +423,19 @@ func (self *GitHubCommands) GetBaseRepoOwnerAndName() (string, string, error) {
 		return "", "", fmt.Errorf("No remotes found")
 	}
 
-	firstRemote := remotes[0]
-	if len(firstRemote.Config().URLs) == 0 {
+	originRemote, ok := lo.Find(remotes, func(remote *gogit.Remote) bool {
+		return remote.Config().Name == "origin"
+	})
+
+	if !ok {
+		return "", "", fmt.Errorf("Origin remote not found")
+	}
+
+	if len(originRemote.Config().URLs) == 0 {
 		return "", "", fmt.Errorf("No URLs found for remote")
 	}
 
-	url := firstRemote.Config().URLs[0]
+	url := originRemote.Config().URLs[0]
 
 	repoInfo := getRepoInfoFromURL(url)
 
