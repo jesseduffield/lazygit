@@ -34,25 +34,13 @@ var ForceRemoveWorktreeWithSubmodules = NewIntegrationTest(NewIntegrationTestArg
 					Content(Equals("Are you sure you want to remove worktree 'linked-worktree'?")).
 					Confirm()
 
-				/* EXPECTED:
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Remove worktree")).
 					Content(Equals("'linked-worktree' contains modified or untracked files, or submodules (or all of these). Are you sure you want to remove it?")).
 					Confirm()
-				ACTUAL: */
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Equals("fatal: working trees containing submodules cannot be moved or removed")).
-					Confirm()
 			}).
-			/* EXPECTED:
 			Lines(
 				Contains("repo (main)").IsSelected(),
-			)
-			ACTUAL: */
-			Lines(
-				Contains("repo (main)"),
-				Contains("linked-worktree").IsSelected(),
 			)
 	},
 })
