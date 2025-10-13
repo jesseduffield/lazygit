@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"slices"
@@ -179,7 +180,7 @@ func (self *RemotesController) ensureForkRemoteAndCheckout(remoteName string, re
 		if remote.Name == remoteName {
 			hasTheSameUrl := slices.Contains(remote.Urls, remoteUrl)
 			if !hasTheSameUrl {
-				return fmt.Errorf("%s", utils.ResolvePlaceholderString(
+				return errors.New(utils.ResolvePlaceholderString(
 					self.c.Tr.IncompatibleForkAlreadyExistsError,
 					map[string]string{
 						"remoteName": remoteName,
@@ -226,10 +227,10 @@ var (
 // keeping the repo name and host intact. Supports SCP-like SSH, SSH URL style, and HTTPS.
 func replaceForkUsername(remoteUrl, forkUsername string) (string, error) {
 	if forkUsername == "" {
-		return "", fmt.Errorf("fork username cannot be empty")
+		return "", errors.New("fork username cannot be empty")
 	}
 	if remoteUrl == "" {
-		return "", fmt.Errorf("remote URL cannot be empty")
+		return "", errors.New("remote URL cannot be empty")
 	}
 
 	switch {
