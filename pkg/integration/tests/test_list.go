@@ -455,6 +455,7 @@ var tests = []*components.IntegrationTest{
 	worktree.FastForwardWorktreeBranch,
 	worktree.FastForwardWorktreeBranchShouldNotPolluteCurrentWorktree,
 	worktree.ForceRemoveWorktree,
+	worktree.ForceRemoveWorktreeWithSubmodules,
 	worktree.RemoveWorktreeFromBranch,
 	worktree.ResetWindowTabs,
 	worktree.SymlinkIntoRepoSubdir,
