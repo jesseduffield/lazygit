@@ -143,8 +143,8 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 	return nil
 }
 
-// Adds a new remote and refreshes the list of remotes.
-func (self *RemotesController) addRemoteAndRefresh(remoteName string, remoteUrl string) error {
+// Adds a new remote, refreshes and selects it, then fetches and checks out the specified branch if provided.
+func (self *RemotesController) addAndCheckoutRemote(remoteName string, remoteUrl string, branchToCheckout string) error {
 	self.c.LogAction(self.c.Tr.Actions.AddRemote)
 	err := self.c.Git().Remote.AddRemote(remoteName, remoteUrl)
 	if err != nil {
@@ -158,11 +158,7 @@ func (self *RemotesController) addRemoteAndRefresh(remoteName string, remoteUrl 
 		Scope: []types.RefreshableView{types.REMOTES},
 		Mode:  types.SYNC,
 	})
-	return nil
-}
 
-// Selects the given remote in the UI, fetches it, and checks out the specified branch if profided.
-func (self *RemotesController) selectRemoteAndCheckout(remoteName string, remoteUrl string, branchToCheckout string) error {
 	// Select the remote
 	for idx, remote := range self.c.Model().Remotes {
 		if remote.Name == remoteName {
@@ -173,13 +169,6 @@ func (self *RemotesController) selectRemoteAndCheckout(remoteName string, remote
 
 	// Fetch the remote
 	return self.fetchAndCheckout(self.c.Contexts().Remotes.GetSelected(), branchToCheckout)
-}
-
-// Adds a new remote, refreshes and selects it, then fetches and checks out the specified branch if provided.
-func (self *RemotesController) addAndCheckoutRemote(remoteName string, remoteUrl string, branchToCheckout string) error {
-	self.addRemoteAndRefresh(remoteName, remoteUrl)
-
-	return self.selectRemoteAndCheckout(remoteName, remoteUrl, branchToCheckout)
 }
 
 // Ensures the fork remote exists (matching the given URL).
