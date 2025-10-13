@@ -212,16 +212,11 @@ func (self *RemotesController) add() error {
 	return nil
 }
 
-var (
-	// 1. SCP-like SSH: git@host:owner[/subgroups]/repo(.git)
-	sshScpRegex = regexp.MustCompile(`^(git@[^:]+:)([^/]+(?:/[^/]+)*)/([^/]+?)(\.git)?$`)
-
-	// 2. SSH URL style: ssh://user@host[:port]/owner[/subgroups]/repo(.git)
-	sshUrlRegex = regexp.MustCompile(`^(ssh://[^/]+/)([^/]+(?:/[^/]+)*)/([^/]+?)(\.git)?$`)
-
-	// 3. HTTPS: https://host/owner[/subgroups]/repo(.git)
-	httpRegex = regexp.MustCompile(`^(https?://[^/]+/)([^/]+(?:/[^/]+)*)/([^/]+?)(\.git)?$`)
-)
+// Regex to match and capture parts of a Git remote URL. Supports the following formats:
+// 1. SCP-like SSH: git@host:owner[/subgroups]/repo(.git)
+// 2. SSH URL style: ssh://user@host[:port]/owner[/subgroups]/repo(.git)
+// 3. HTTPS: https://host/owner[/subgroups]/repo(.git)
+var urlRegex = regexp.MustCompile(`^(git@[^:]+:|ssh://[^/]+/|https?://[^/]+/)([^/]+(?:/[^/]+)*)/([^/]+?)(\.git)?$`)
 
 // Rewrites a Git remote URL to use the given fork username,
 // keeping the repo name and host intact. Supports SCP-like SSH, SSH URL style, and HTTPS.
@@ -233,16 +228,11 @@ func replaceForkUsername(remoteUrl, forkUsername string) (string, error) {
 		return "", errors.New("remote URL cannot be empty")
 	}
 
-	switch {
-	case sshScpRegex.MatchString(remoteUrl):
-		return sshScpRegex.ReplaceAllString(remoteUrl, "${1}"+forkUsername+"/$3$4"), nil
-	case sshUrlRegex.MatchString(remoteUrl):
-		return sshUrlRegex.ReplaceAllString(remoteUrl, "${1}"+forkUsername+"/$3$4"), nil
-	case httpRegex.MatchString(remoteUrl):
-		return httpRegex.ReplaceAllString(remoteUrl, "${1}"+forkUsername+"/$3$4"), nil
-	default:
-		return "", fmt.Errorf("unsupported or invalid remote URL: %s", remoteUrl)
+	if urlRegex.MatchString(remoteUrl) {
+		return urlRegex.ReplaceAllString(remoteUrl, "${1}"+forkUsername+"/$3$4"), nil
 	}
+
+	return "", fmt.Errorf("unsupported or invalid remote URL: %s", remoteUrl)
 }
 
 func (self *RemotesController) addFork(baseRemote *models.Remote) error {
