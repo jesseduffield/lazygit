@@ -426,7 +426,7 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 func (self *MergeAndRebaseHelper) RegularMerge(refName string) func() error {
 	return func() error {
 		self.c.LogAction(self.c.Tr.Actions.Merge)
-		err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{})
+		err := self.c.Git().Branch.Merge(refName, git_commands.MERGE_VARIANT_REGULAR)
 		return self.CheckMergeOrRebase(err)
 	}
 }
@@ -434,7 +434,7 @@ func (self *MergeAndRebaseHelper) RegularMerge(refName string) func() error {
 func (self *MergeAndRebaseHelper) SquashMergeUncommitted(refName string) func() error {
 	return func() error {
 		self.c.LogAction(self.c.Tr.Actions.SquashMerge)
-		err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{Squash: true})
+		err := self.c.Git().Branch.Merge(refName, git_commands.MERGE_VARIANT_SQUASH)
 		return self.CheckMergeOrRebase(err)
 	}
 }
@@ -442,7 +442,7 @@ func (self *MergeAndRebaseHelper) SquashMergeUncommitted(refName string) func() 
 func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranchName string) func() error {
 	return func() error {
 		self.c.LogAction(self.c.Tr.Actions.SquashMerge)
-		err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{Squash: true})
+		err := self.c.Git().Branch.Merge(refName, git_commands.MERGE_VARIANT_SQUASH)
 		if err = self.CheckMergeOrRebase(err); err != nil {
 			return err
 		}
