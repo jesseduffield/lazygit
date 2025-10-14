@@ -36,7 +36,7 @@ var ForceRemoveWorktree = NewIntegrationTest(NewIntegrationTestArgs{
 
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Remove worktree")).
-					Content(Equals("'linked-worktree' contains modified or untracked files (to be honest, it could contain both). Are you sure you want to remove it?")).
+					Content(Equals("'linked-worktree' contains modified or untracked files, or submodules (or all of these). Are you sure you want to remove it?")).
 					Confirm()
 			}).
 			Lines(

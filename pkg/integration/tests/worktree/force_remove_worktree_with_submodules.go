@@ -5,8 +5,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var RemoveWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Remove a worktree from the branches view",
+var ForceRemoveWorktreeWithSubmodules = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Force remove a worktree that contains submodules",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -14,33 +14,21 @@ var RemoveWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.NewBranch("mybranch")
 		shell.CreateFileAndAdd("README.md", "hello world")
 		shell.Commit("initial commit")
-		shell.EmptyCommit("commit 2")
-		shell.EmptyCommit("commit 3")
+		shell.CloneIntoSubmodule("submodule", "submodule")
+		shell.Commit("Add submodule")
 		shell.AddWorktree("mybranch", "../linked-worktree", "newbranch")
-		shell.AddFileInWorktreeOrSubmodule("../linked-worktree", "file", "content")
+		shell.RunCommand([]string{"git", "-C", "../linked-worktree", "submodule", "update", "--init"})
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Branches().
+		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("mybranch").IsSelected(),
-				Contains("newbranch (worktree)"),
+				Contains("repo (main)").IsSelected(),
+				Contains("linked-worktree"),
 			).
-			NavigateToLine(Contains("newbranch")).
+			NavigateToLine(Contains("linked-worktree")).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectPopup().
-					Menu().
-					Title(Equals("Delete branch 'newbranch'?")).
-					Select(Contains("Delete local branch")).
-					Confirm()
-			}).
-			Tap(func() {
-				t.ExpectPopup().Menu().
-					Title(Equals("Branch newbranch is checked out by worktree linked-worktree")).
-					Select(Equals("Remove worktree")).
-					Confirm()
-
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Remove worktree")).
 					Content(Equals("Are you sure you want to remove worktree 'linked-worktree'?")).
@@ -51,13 +39,6 @@ var RemoveWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 					Content(Equals("'linked-worktree' contains modified or untracked files, or submodules (or all of these). Are you sure you want to remove it?")).
 					Confirm()
 			}).
-			Lines(
-				Contains("mybranch"),
-				Contains("newbranch").DoesNotContain("(worktree)").IsSelected(),
-			)
-
-		t.Views().Worktrees().
-			Focus().
 			Lines(
 				Contains("repo (main)").IsSelected(),
 			)

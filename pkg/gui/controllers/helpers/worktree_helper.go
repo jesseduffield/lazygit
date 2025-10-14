@@ -189,7 +189,8 @@ func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error 
 				self.c.LogAction(self.c.Tr.RemoveWorktree)
 				if err := self.c.Git().Worktree.Delete(worktree.Path, force); err != nil {
 					errMessage := err.Error()
-					if !strings.Contains(errMessage, "--force") {
+					if !strings.Contains(errMessage, "--force") &&
+						!strings.Contains(errMessage, "fatal: working trees containing submodules cannot be moved or removed") {
 						return err
 					}
 
