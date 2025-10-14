@@ -91,6 +91,10 @@ gui:
   # If true, do not show a warning when rewording a commit via an external editor
   skipRewordInEditorWarning: false
 
+  # If true, switch to a different worktree without confirmation when checking out
+  # a branch that is checked out in that worktree
+  skipSwitchWorktreeOnCheckoutWarning: false
+
   # Fraction of the total screen width to use for the left side section. You may
   # want to pick a small number (e.g. 0.2) if you're using a narrow screen, so
   # that you can see more of the main section.

@@ -420,15 +420,13 @@ func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktr
 		"worktreeName": worktree.Name,
 	})
 
-	self.c.Confirm(types.ConfirmOpts{
+	return self.c.ConfirmIf(!self.c.UserConfig().Gui.SkipSwitchWorktreeOnCheckoutWarning, types.ConfirmOpts{
 		Title:  self.c.Tr.SwitchToWorktree,
 		Prompt: prompt,
 		HandleConfirm: func() error {
 			return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
 		},
 	})
-
-	return nil
 }
 
 func (self *BranchesController) handleCreatePullRequest(selectedBranch *models.Branch) error {

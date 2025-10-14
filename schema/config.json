@@ -532,6 +532,11 @@
           "description": "If true, do not show a warning when rewording a commit via an external editor",
           "default": false
         },
+        "skipSwitchWorktreeOnCheckoutWarning": {
+          "type": "boolean",
+          "description": "If true, switch to a different worktree without confirmation when checking out a branch that is checked out in that worktree",
+          "default": false
+        },
         "sidePanelWidth": {
           "type": "number",
           "maximum": 1,
