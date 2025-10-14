@@ -255,8 +255,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 		contextSize         uint64
 		similarityThreshold int
 		ignoreWhitespace    bool
-		extDiffCmd          string
-		useExtDiffGitConfig bool
+		pagerConfig         *config.PagingConfig
 		expected            []string
 	}
 
@@ -267,7 +266,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			extDiffCmd:          "",
+			pagerConfig:         nil,
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--find-renames=50%", "--"},
 		},
 		{
@@ -276,7 +275,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			extDiffCmd:          "",
+			pagerConfig:         nil,
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--find-renames=50%", "--", "file.txt"},
 		},
 		{
@@ -285,7 +284,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         77,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			extDiffCmd:          "",
+			pagerConfig:         nil,
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=77", "--stat", "--decorate", "-p", "1234567890", "--find-renames=50%", "--"},
 		},
 		{
@@ -294,7 +293,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 33,
 			ignoreWhitespace:    false,
-			extDiffCmd:          "",
+			pagerConfig:         nil,
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--find-renames=33%", "--"},
 		},
 		{
@@ -303,7 +302,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         77,
 			similarityThreshold: 50,
 			ignoreWhitespace:    true,
-			extDiffCmd:          "",
+			pagerConfig:         nil,
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=77", "--stat", "--decorate", "-p", "1234567890", "--ignore-all-space", "--find-renames=50%", "--"},
 		},
 		{
@@ -312,7 +311,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			extDiffCmd:          "difft --color=always",
+			pagerConfig:         &config.PagingConfig{ExternalDiffCommand: "difft --color=always"},
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.external=difft --color=always", "-c", "diff.noprefix=false", "show", "--ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--find-renames=50%", "--"},
 		},
 		{
@@ -321,7 +320,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			useExtDiffGitConfig: true,
+			pagerConfig:         &config.PagingConfig{UseExternalDiffGitConfig: true},
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--find-renames=50%", "--"},
 		},
 	}
@@ -329,11 +328,12 @@ func TestCommitShowCmdObj(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
-			userConfig.Git.Paging.ExternalDiffCommand = s.extDiffCmd
+			if s.pagerConfig != nil {
+				userConfig.Git.Pagers = []config.PagingConfig{*s.pagerConfig}
+			}
 			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
 			userConfig.Git.DiffContextSize = s.contextSize
 			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
-			userConfig.Git.Paging.UseExternalDiffGitConfig = s.useExtDiffGitConfig
 
 			runner := oscommands.NewFakeRunner(t).ExpectGitArgs(s.expected, "", nil)
 			repoPaths := RepoPaths{

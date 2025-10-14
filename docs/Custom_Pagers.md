@@ -4,23 +4,27 @@ Lazygit supports custom pagers, [configured](/docs/Config.md) in the config.yml 
 
 Support does not extend to Windows users, because we're making use of a package which doesn't have Windows support. However, see [below](#emulating-custom-pagers-on-windows) for a workaround.
 
-## Default:
+Multiple pagers are supported; you can cycle through them with the `|` key. This can be useful if you usually prefer a particular pager, but want to use a different one for certain kinds of diffs.
+
+Pagers are configured with the `pagers` array in the git section; here's an example for a multi-pager setup:
 
 ```yaml
 git:
-  paging:
-    colorArg: always
+  pagers:
+    - pager: delta --dark --paging=never
+    - pager: ydiff -p cat -s --wrap --width={{columnWidth}}
+      colorArg: never
+    - externalDiffCommand: difft --color=always
 ```
 
-the `colorArg` key is for whether you want the `--color=always` arg in your `git diff` command. Some pagers want it set to `always`, others want it set to `never`.
+The `colorArg` key is for whether you want the `--color=always` arg in your `git diff` command. Some pagers want it set to `always`, others want it set to `never`. The default is `always`, since that's what most pagers need.
 
 ## Delta:
 
 ```yaml
 git:
-  paging:
-    colorArg: always
-    pager: delta --dark --paging=never
+  pagers:
+    - pager: delta --dark --paging=never
 ```
 
 ![](https://i.imgur.com/QJpQkF3.png)
@@ -31,9 +35,8 @@ A cool feature of delta is --hyperlinks, which renders clickable links for the l
 
 ```yaml
 git:
-  paging:
-    colorArg: always
-    pager: diff-so-fancy
+  pagers:
+    - pager: diff-so-fancy
 ```
 
 ![](https://i.imgur.com/rjH1TpT.png)
@@ -44,9 +47,9 @@ git:
 gui:
   sidePanelWidth: 0.2 # gives you more space to show things side-by-side
 git:
-  paging:
-    colorArg: never
-    pager: ydiff -p cat -s --wrap --width={{columnWidth}}
+  pagers:
+    - colorArg: never
+      pager: ydiff -p cat -s --wrap --width={{columnWidth}}
 ```
 
 ![](https://i.imgur.com/vaa8z0H.png)
@@ -61,8 +64,8 @@ These can be used in lazygit by using the `externalDiffCommand` config; in the c
 
 ```yaml
 git:
-  paging:
-    externalDiffCommand: difft --color=always
+  pagers:
+    - externalDiffCommand: difft --color=always
 ```
 
 The `colorArg` and `pager` options are not used in this case.
@@ -71,16 +74,16 @@ You can add whatever extra arguments you prefer for your difftool; for instance
 
 ```yaml
 git:
-  paging:
-    externalDiffCommand: difft --color=always --display=inline --syntax-highlight=off
+  pagers:
+    - externalDiffCommand: difft --color=always --display=inline --syntax-highlight=off
 ```
 
 Instead of setting this command in lazygit's `externalDiffCommand` config, you can also tell lazygit to use the external diff command that is configured in git itself (`diff.external`), by using
 
 ```yaml
 git:
-  paging:
-    useExternalDiffGitConfig: true
+  pagers:
+    - useExternalDiffGitConfig: true
 ```
 
 This can be useful if you also want to use it for diffs on the command line, and it also has the advantage that you can configure it per file type in `.gitattributes`; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
@@ -106,8 +109,8 @@ In your lazygit config, use
 
 ```yml
 git:
-  paging:
-    externalDiffCommand: "C:/wherever/lazygit-pager.ps1"
+  pagers:
+    - externalDiffCommand: "C:/wherever/lazygit-pager.ps1"
 ```
 
 The main limitation of this approach compared to a "real" pager is that renames are not displayed correctly; they are shown as if they were modifications of the old file. (This affects only the hunk headers; the diff itself is always correct.)

@@ -69,6 +69,8 @@ type Gui struct {
 	// this is the state of the GUI for the current repo
 	State *GuiRepoState
 
+	pagerConfig *config.PagerConfig
+
 	CustomCommandsClient *custom_commands.Client
 
 	// this is a mapping of repos to gui states, so that we can restore the original
@@ -167,6 +169,10 @@ func (self *StateAccessor) SetUpdating(value bool) {
 
 func (self *StateAccessor) GetRepoState() types.IRepoStateAccessor {
 	return self.gui.State
+}
+
+func (self *StateAccessor) GetPagerConfig() *config.PagerConfig {
+	return self.gui.pagerConfig
 }
 
 func (self *StateAccessor) GetIsRefreshingFiles() bool {
@@ -307,6 +313,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		gui.gitVersion,
 		gui.os,
 		git_config.NewStdCachedGitConfig(gui.Log),
+		gui.pagerConfig,
 	)
 	if err != nil {
 		return err
@@ -653,7 +660,7 @@ func (gui *Gui) Contexts() *context.ContextTree {
 // NewGui builds a new gui handler
 func NewGui(
 	cmn *common.Common,
-	config config.AppConfigurer,
+	configurer config.AppConfigurer,
 	gitVersion *git_commands.GitVersion,
 	updater *updates.Updater,
 	showRecentRepos bool,
@@ -663,7 +670,7 @@ func NewGui(
 	gui := &Gui{
 		Common:               cmn,
 		gitVersion:           gitVersion,
-		Config:               config,
+		Config:               configurer,
 		Updater:              updater,
 		statusManager:        status.NewStatusManager(),
 		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
@@ -713,7 +720,7 @@ func NewGui(
 		credentialsHelper.PromptUserForCredential,
 	)
 
-	osCommand := oscommands.NewOSCommand(cmn, config, oscommands.GetPlatform(), guiIO)
+	osCommand := oscommands.NewOSCommand(cmn, configurer, oscommands.GetPlatform(), guiIO)
 
 	gui.os = osCommand
 
@@ -723,6 +730,8 @@ func NewGui(
 
 	gui.BackgroundRoutineMgr = &BackgroundRoutineMgr{gui: gui}
 	gui.stateAccessor = &StateAccessor{gui: gui}
+
+	gui.pagerConfig = config.NewPagerConfig(func() *config.UserConfig { return gui.UserConfig() })
 
 	return gui, nil
 }

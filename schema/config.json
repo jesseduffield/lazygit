@@ -285,9 +285,12 @@
     },
     "GitConfig": {
       "properties": {
-        "paging": {
-          "$ref": "#/$defs/PagingConfig",
-          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md"
+        "pagers": {
+          "items": {
+            "$ref": "#/$defs/PagingConfig"
+          },
+          "type": "array",
+          "description": "Array of pagers. Each entry has the following format:\n\n  # Value of the --color arg in the git diff command. Some pagers want\n  # this to be set to 'always' and some want it set to 'never'\n  colorArg: \"always\"\n\n  # e.g.\n  # diff-so-fancy\n  # delta --dark --paging=never\n  # ydiff -p cat -s --wrap --width={{columnWidth}}\n  pager: \"\"\n\n  # e.g. 'difft --color=always'\n  externalDiffCommand: \"\"\n\n  # If true, Lazygit will use git's `diff.external` config for paging.\n  # The advantage over `externalDiffCommand` is that this can be\n  # configured per file type in .gitattributes; see\n  # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.\n  useExternalDiffGitConfig: false\n\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md for more information."
         },
         "commit": {
           "$ref": "#/$defs/CommitConfig",
@@ -1464,6 +1467,10 @@
           "type": "string",
           "default": "_"
         },
+        "cyclePagers": {
+          "type": "string",
+          "default": "|"
+        },
         "undo": {
           "type": "string",
           "default": "z"
@@ -1667,13 +1674,11 @@
             "always",
             "never"
           ],
-          "description": "Value of the --color arg in the git diff command. Some pagers want this to be set to 'always' and some want it set to 'never'",
-          "default": "always"
+          "description": "Value of the --color arg in the git diff command. Some pagers want this to be set to 'always' and some want it set to 'never'"
         },
         "pager": {
           "type": "string",
           "description": "e.g.\ndiff-so-fancy\ndelta --dark --paging=never\nydiff -p cat -s --wrap --width={{columnWidth}}",
-          "default": "",
           "examples": [
             "delta --dark --paging=never",
             "diff-so-fancy",
@@ -1686,13 +1691,11 @@
         },
         "useExternalDiffGitConfig": {
           "type": "boolean",
-          "description": "If true, Lazygit will use git's `diff.external` config for paging. The advantage over `externalDiffCommand` is that this can be configured per file type in .gitattributes; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.",
-          "default": false
+          "description": "If true, Lazygit will use git's `diff.external` config for paging. The advantage over `externalDiffCommand` is that this can be configured per file type in .gitattributes; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver."
         }
       },
       "additionalProperties": false,
-      "type": "object",
-      "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md"
+      "type": "object"
     },
     "RefresherConfig": {
       "properties": {
