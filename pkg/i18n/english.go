@@ -264,8 +264,11 @@ type TranslationSet struct {
 	FocusMainView                         string
 	Merge                                 string
 	MergeBranchTooltip                    string
-	RegularMerge                          string
-	RegularMergeTooltip                   string
+	RegularMergeFastForward               string
+	RegularMergeFastForwardTooltip        string
+	CannotFastForwardMerge                string
+	RegularMergeNonFastForward            string
+	RegularMergeNonFastForwardTooltip     string
 	SquashMergeUncommitted                string
 	SquashMergeUncommittedTooltip         string
 	SquashMergeCommitted                  string
@@ -1351,8 +1354,11 @@ func EnglishTranslationSet() *TranslationSet {
 		FocusMainView:                        "Focus main view",
 		Merge:                                `Merge`,
 		MergeBranchTooltip:                   "View options for merging the selected item into the current branch (regular merge, squash merge)",
-		RegularMerge:                         "Regular merge",
-		RegularMergeTooltip:                  "Merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'.",
+		RegularMergeFastForward:              "Regular merge (fast-forward)",
+		RegularMergeFastForwardTooltip:       "Fast-forward '{{.checkedOutBranch}}' to '{{.selectedBranch}}' without creating a merge commit.",
+		CannotFastForwardMerge:               "Cannot fast-forward '{{.checkedOutBranch}}' to '{{.selectedBranch}}'",
+		RegularMergeNonFastForward:           "Regular merge (with merge commit)",
+		RegularMergeNonFastForwardTooltip:    "Merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}', creating a merge commit.",
 		SquashMergeUncommitted:               "Squash merge and leave uncommitted",
 		SquashMergeUncommittedTooltip:        "Squash merge '{{.selectedBranch}}' into the working tree.",
 		SquashMergeCommitted:                 "Squash merge and commit",

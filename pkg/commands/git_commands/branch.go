@@ -285,6 +285,16 @@ func (self *BranchCommands) Merge(branchName string, variant MergeVariant) error
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// Returns whether refName can be fast-forward merged into the current branch
+func (self *BranchCommands) CanDoFastForwardMerge(refName string) bool {
+	cmdArgs := NewGitCmd("merge-base").
+		Arg("--is-ancestor").
+		Arg("HEAD", refName).
+		ToArgv()
+	err := self.cmd.New(cmdArgs).DontLog().Run()
+	return err == nil
+}
+
 // Only choose between non-empty, non-identical commands
 func (self *BranchCommands) allBranchesLogCandidates() []string {
 	return lo.Uniq(lo.WithoutEmpty(self.UserConfig().Git.AllBranchesLogCmds))
