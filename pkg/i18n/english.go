@@ -266,10 +266,10 @@ type TranslationSet struct {
 	MergeBranchTooltip                    string
 	RegularMerge                          string
 	RegularMergeTooltip                   string
-	SquashMergeUncommittedTitle           string
 	SquashMergeUncommitted                string
-	SquashMergeCommittedTitle             string
+	SquashMergeUncommittedTooltip         string
 	SquashMergeCommitted                  string
+	SquashMergeCommittedTooltip           string
 	ConfirmQuit                           string
 	SwitchRepo                            string
 	AllBranchesLogGraph                   string
@@ -1353,10 +1353,10 @@ func EnglishTranslationSet() *TranslationSet {
 		MergeBranchTooltip:                   "View options for merging the selected item into the current branch (regular merge, squash merge)",
 		RegularMerge:                         "Regular merge",
 		RegularMergeTooltip:                  "Merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'.",
-		SquashMergeUncommittedTitle:          "Squash merge and leave uncommitted",
-		SquashMergeUncommitted:               "Squash merge '{{.selectedBranch}}' into the working tree.",
-		SquashMergeCommittedTitle:            "Squash merge and commit",
-		SquashMergeCommitted:                 "Squash merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}' as a single commit.",
+		SquashMergeUncommitted:               "Squash merge and leave uncommitted",
+		SquashMergeUncommittedTooltip:        "Squash merge '{{.selectedBranch}}' into the working tree.",
+		SquashMergeCommitted:                 "Squash merge and commit",
+		SquashMergeCommittedTooltip:          "Squash merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}' as a single commit.",
 		ConfirmQuit:                          `Are you sure you want to quit?`,
 		SwitchRepo:                           `Switch to a recent repo`,
 		AllBranchesLogGraph:                  `Show/cycle all branch logs`,

@@ -397,22 +397,22 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 				),
 			},
 			{
-				Label:   self.c.Tr.SquashMergeUncommittedTitle,
+				Label:   self.c.Tr.SquashMergeUncommitted,
 				OnPress: self.SquashMergeUncommitted(refName),
 				Key:     's',
 				Tooltip: utils.ResolvePlaceholderString(
-					self.c.Tr.SquashMergeUncommitted,
+					self.c.Tr.SquashMergeUncommittedTooltip,
 					map[string]string{
 						"selectedBranch": refName,
 					},
 				),
 			},
 			{
-				Label:   self.c.Tr.SquashMergeCommittedTitle,
+				Label:   self.c.Tr.SquashMergeCommitted,
 				OnPress: self.SquashMergeCommitted(refName, checkedOutBranchName),
 				Key:     'S',
 				Tooltip: utils.ResolvePlaceholderString(
-					self.c.Tr.SquashMergeCommitted,
+					self.c.Tr.SquashMergeCommittedTooltip,
 					map[string]string{
 						"checkedOutBranch": checkedOutBranchName,
 						"selectedBranch":   refName,
