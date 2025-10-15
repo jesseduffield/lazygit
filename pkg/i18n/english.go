@@ -23,11 +23,6 @@ type TranslationSet struct {
 	StagedChanges                         string
 	StagingTitle                          string
 	MergingTitle                          string
-	SquashMergeUncommittedTitle           string
-	SquashMergeCommittedTitle             string
-	SquashMergeUncommitted                string
-	SquashMergeCommitted                  string
-	RegularMergeTooltip                   string
 	NormalTitle                           string
 	LogTitle                              string
 	LogXOfYTitle                          string
@@ -268,8 +263,13 @@ type TranslationSet struct {
 	RefreshFiles                          string
 	FocusMainView                         string
 	Merge                                 string
-	RegularMerge                          string
 	MergeBranchTooltip                    string
+	RegularMerge                          string
+	RegularMergeTooltip                   string
+	SquashMergeUncommittedTitle           string
+	SquashMergeUncommitted                string
+	SquashMergeCommittedTitle             string
+	SquashMergeCommitted                  string
 	ConfirmQuit                           string
 	SwitchRepo                            string
 	AllBranchesLogGraph                   string
@@ -1108,8 +1108,6 @@ func EnglishTranslationSet() *TranslationSet {
 		EasterEgg:                            "Easter egg",
 		UnstagedChanges:                      "Unstaged changes",
 		StagedChanges:                        "Staged changes",
-		SquashMergeUncommittedTitle:          "Squash merge and leave uncommitted",
-		SquashMergeCommittedTitle:            "Squash merge and commit",
 		StagingTitle:                         "Main panel (staging)",
 		MergingTitle:                         "Main panel (merging)",
 		NormalTitle:                          "Main panel (normal)",
@@ -1352,8 +1350,13 @@ func EnglishTranslationSet() *TranslationSet {
 		RefreshFiles:                         `Refresh files`,
 		FocusMainView:                        "Focus main view",
 		Merge:                                `Merge`,
-		RegularMerge:                         "Regular merge",
 		MergeBranchTooltip:                   "View options for merging the selected item into the current branch (regular merge, squash merge)",
+		RegularMerge:                         "Regular merge",
+		RegularMergeTooltip:                  "Merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'.",
+		SquashMergeUncommittedTitle:          "Squash merge and leave uncommitted",
+		SquashMergeUncommitted:               "Squash merge '{{.selectedBranch}}' into the working tree.",
+		SquashMergeCommittedTitle:            "Squash merge and commit",
+		SquashMergeCommitted:                 "Squash merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}' as a single commit.",
 		ConfirmQuit:                          `Are you sure you want to quit?`,
 		SwitchRepo:                           `Switch to a recent repo`,
 		AllBranchesLogGraph:                  `Show/cycle all branch logs`,
@@ -1438,9 +1441,6 @@ func EnglishTranslationSet() *TranslationSet {
 		InteractiveRebaseTooltip:             "Begin an interactive rebase with a break at the start, so you can update the TODO commits before continuing.",
 		RebaseOntoBaseBranchTooltip:          "Rebase the checked out branch onto its base branch (i.e. the closest main branch).",
 		MustSelectTodoCommits:                "When rebasing, this action only works on a selection of TODO commits.",
-		SquashMergeUncommitted:               "Squash merge '{{.selectedBranch}}' into the working tree.",
-		SquashMergeCommitted:                 "Squash merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}' as a single commit.",
-		RegularMergeTooltip:                  "Merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'.",
 		FwdNoUpstream:                        "Cannot fast-forward a branch with no upstream",
 		FwdNoLocalUpstream:                   "Cannot fast-forward a branch whose remote is not registered locally",
 		FwdCommitsToPush:                     "Cannot fast-forward a branch with commits to push",
