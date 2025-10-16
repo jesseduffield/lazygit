@@ -127,7 +127,7 @@ func getBranchDisplayStrings(
 	pr, hasPr := prs[b.Name]
 	if hasPr {
 		if icons.IsIconEnabled() {
-			res = append(res, prColor(pr.State).Sprint(icons.IconForBranch(b)))
+			res = append(res, prColor(pr.State).Sprint(icons.IconForRemoteUrl(pr.Url)))
 		} else {
 			res = append(res, prColor(pr.State).Sprint("⬤"))
 		}
