@@ -103,7 +103,7 @@ var ModeSpecificKeybindingSuggestions = NewIntegrationTest(NewIntegrationTestArg
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Merge")).
-					Select(Contains("Regular merge")).
+					Select(Contains("Regular merge (with merge commit)")).
 					Confirm()
 
 				t.Common().AcknowledgeConflicts()

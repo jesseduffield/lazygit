@@ -97,6 +97,10 @@ func (self *ConfigCommands) GetRebaseUpdateRefs() bool {
 	return self.gitConfig.GetBool("rebase.updateRefs")
 }
 
+func (self *ConfigCommands) GetMergeFF() string {
+	return self.gitConfig.Get("merge.ff")
+}
+
 func (self *ConfigCommands) DropConfigCache() {
 	self.gitConfig.DropCache()
 }
