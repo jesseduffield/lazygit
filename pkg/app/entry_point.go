@@ -125,8 +125,13 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 		os.Exit(0)
 	}
 
-	tempDir, err := os.MkdirTemp(getTempDirBase(), "lazygit-*")
+	tempDirBase := getTempDirBase()
+	tempDir, err := os.MkdirTemp(tempDirBase, "lazygit-*")
 	if err != nil {
+		if os.IsPermission(err) {
+			log.Fatalf("Your temp directory (%s) is not writeable. Try if rebooting your machine fixes this.", tempDirBase)
+		}
+
 		log.Fatal(err.Error())
 	}
 	defer os.RemoveAll(tempDir)
