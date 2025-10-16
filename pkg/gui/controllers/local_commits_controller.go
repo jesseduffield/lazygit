@@ -856,7 +856,7 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RevertCommit)
 			return self.c.WithWaitingStatusSync(self.c.Tr.RevertingStatus, func() error {
-				mustStash := helpers.IsWorkingTreeDirty(self.c.Model().Files)
+				mustStash := helpers.IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
 
 				if mustStash {
 					if err := self.c.Git().Stash.Push(self.c.Tr.AutoStashForReverting); err != nil {

@@ -258,7 +258,7 @@ func (self *RefsHelper) CreateGitResetMenu(name string, ref string) error {
 				style.FgRed.Sprintf("reset --%s %s", row.strength, name),
 			},
 			OnPress: func() error {
-				return self.c.ConfirmIf(row.strength == "hard" && IsWorkingTreeDirty(self.c.Model().Files),
+				return self.c.ConfirmIf(row.strength == "hard" && IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules),
 					types.ConfirmOpts{
 						Title:  self.c.Tr.Actions.HardReset,
 						Prompt: self.c.Tr.ResetHardConfirmation,
@@ -484,7 +484,7 @@ func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchNa
 		return err
 	}
 
-	mustStash := IsWorkingTreeDirty(self.c.Model().Files)
+	mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
 	if mustStash {
 		if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
 			return err
@@ -517,7 +517,7 @@ func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName stri
 		return commit.Status == models.StatusUnpushed
 	})
 
-	mustStash := IsWorkingTreeDirty(self.c.Model().Files)
+	mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
 	if mustStash {
 		if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
 			return err

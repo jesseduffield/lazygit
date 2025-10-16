@@ -77,7 +77,7 @@ func (self *CherryPickHelper) Paste() error {
 			}),
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatusSync(self.c.Tr.CherryPickingStatus, func() error {
-				mustStash := IsWorkingTreeDirty(self.c.Model().Files)
+				mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
 
 				self.c.LogAction(self.c.Tr.Actions.CherryPick)
 
