@@ -522,6 +522,10 @@ type TranslationSet struct {
 	NewRemote                             string
 	NewRemoteName                         string
 	NewRemoteUrl                          string
+	AddForkRemote                         string
+	AddForkRemoteUsername                 string
+	AddForkRemoteTooltip                  string
+	IncompatibleForkAlreadyExistsError    string
 	ViewBranches                          string
 	EditRemoteName                        string
 	EditRemoteUrl                         string
@@ -1616,6 +1620,10 @@ func EnglishTranslationSet() *TranslationSet {
 		NewRemote:                            `New remote`,
 		NewRemoteName:                        `New remote name:`,
 		NewRemoteUrl:                         `New remote url:`,
+		AddForkRemoteUsername:                `Fork owner (username/org). Use username:branch to check out a branch`,
+		AddForkRemote:                        `Add fork remote`,
+		AddForkRemoteTooltip:                 `Quickly add a fork remote by replacing the owner in the origin URL and optionally check out a branch from new remote.`,
+		IncompatibleForkAlreadyExistsError:   `Remote {{.remoteName}} already exists and has different URL`,
 		ViewBranches:                         "View branches",
 		EditRemoteName:                       `Enter updated remote name for {{.remoteName}}:`,
 		EditRemoteUrl:                        `Enter updated remote url for {{.remoteName}}:`,
