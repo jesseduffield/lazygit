@@ -16,9 +16,10 @@ import (
 	"github.com/xo/terminfo"
 )
 
-func makeAtomic(v int32) (result atomic.Int32) {
+func makeAtomic(v int32) *atomic.Int32 {
+	var result atomic.Int32
 	result.Store(v)
-	return //nolint: nakedret
+	return &result
 }
 
 func Test_getBranchDisplayStrings(t *testing.T) {
@@ -109,7 +110,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			branch: &models.Branch{
 				Name:             "branch_name",
 				Recency:          "1m",
-				BehindBaseBranch: makeAtomic(2),
+				BehindBaseBranch: *makeAtomic(2),
 			},
 			itemOperation:        types.ItemOperationNone,
 			fullDescription:      false,
@@ -126,7 +127,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 				UpstreamRemote:   "origin",
 				AheadForPull:     "0",
 				BehindForPull:    "0",
-				BehindBaseBranch: makeAtomic(2),
+				BehindBaseBranch: *makeAtomic(2),
 			},
 			itemOperation:        types.ItemOperationNone,
 			fullDescription:      false,
@@ -143,7 +144,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 				UpstreamRemote:   "origin",
 				AheadForPull:     "3",
 				BehindForPull:    "5",
-				BehindBaseBranch: makeAtomic(2),
+				BehindBaseBranch: *makeAtomic(2),
 			},
 			itemOperation:        types.ItemOperationNone,
 			fullDescription:      false,
@@ -247,7 +248,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 				UpstreamRemote:   "origin",
 				AheadForPull:     "3",
 				BehindForPull:    "5",
-				BehindBaseBranch: makeAtomic(4),
+				BehindBaseBranch: *makeAtomic(4),
 			},
 			itemOperation:        types.ItemOperationNone,
 			fullDescription:      false,
