@@ -100,7 +100,7 @@ func (self *FilesController) createResetMenu() error {
 			Tooltip: self.c.Tr.DiscardStagedChangesDescription,
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RemoveStagedFiles)
-				if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
+				if !self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules() {
 					return errors.New(self.c.Tr.NoTrackedStagedFilesStash)
 				}
 				if err := self.c.Git().Stash.SaveStagedChanges("[lazygit] tmp stash"); err != nil {
@@ -159,7 +159,7 @@ func (self *FilesController) createResetMenu() error {
 				red.Sprint("git reset --hard HEAD"),
 			},
 			OnPress: func() error {
-				return self.c.ConfirmIf(helpers.IsWorkingTreeDirty(self.c.Model().Files),
+				return self.c.ConfirmIf(helpers.IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules),
 					types.ConfirmOpts{
 						Title:  self.c.Tr.Actions.HardReset,
 						Prompt: self.c.Tr.ResetHardConfirmation,

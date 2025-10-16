@@ -47,6 +47,14 @@ func AnyStagedFiles(files []*models.File) bool {
 	return lo.SomeBy(files, func(f *models.File) bool { return f.HasStagedChanges })
 }
 
+func (self *WorkingTreeHelper) AnyStagedFilesExceptSubmodules() bool {
+	return AnyStagedFilesExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
+}
+
+func AnyStagedFilesExceptSubmodules(files []*models.File, submoduleConfigs []*models.SubmoduleConfig) bool {
+	return lo.SomeBy(files, func(f *models.File) bool { return f.HasStagedChanges && !f.IsSubmodule(submoduleConfigs) })
+}
+
 func (self *WorkingTreeHelper) AnyTrackedFiles() bool {
 	return AnyTrackedFiles(self.c.Model().Files)
 }
@@ -55,12 +63,20 @@ func AnyTrackedFiles(files []*models.File) bool {
 	return lo.SomeBy(files, func(f *models.File) bool { return f.Tracked })
 }
 
-func (self *WorkingTreeHelper) IsWorkingTreeDirty() bool {
-	return IsWorkingTreeDirty(self.c.Model().Files)
+func (self *WorkingTreeHelper) AnyTrackedFilesExceptSubmodules() bool {
+	return AnyTrackedFilesExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
 }
 
-func IsWorkingTreeDirty(files []*models.File) bool {
-	return AnyStagedFiles(files) || AnyTrackedFiles(files)
+func AnyTrackedFilesExceptSubmodules(files []*models.File, submoduleConfigs []*models.SubmoduleConfig) bool {
+	return lo.SomeBy(files, func(f *models.File) bool { return f.Tracked && !f.IsSubmodule(submoduleConfigs) })
+}
+
+func (self *WorkingTreeHelper) IsWorkingTreeDirtyExceptSubmodules() bool {
+	return IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
+}
+
+func IsWorkingTreeDirtyExceptSubmodules(files []*models.File, submoduleConfigs []*models.SubmoduleConfig) bool {
+	return AnyStagedFilesExceptSubmodules(files, submoduleConfigs) || AnyTrackedFilesExceptSubmodules(files, submoduleConfigs)
 }
 
 func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfig) *models.File {

@@ -973,7 +973,7 @@ func (self *FilesController) createStashMenu() error {
 			{
 				Label: self.c.Tr.StashAllChanges,
 				OnPress: func() error {
-					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules() {
 						return errors.New(self.c.Tr.NoFilesToStash)
 					}
 					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashAllChanges)
@@ -983,7 +983,7 @@ func (self *FilesController) createStashMenu() error {
 			{
 				Label: self.c.Tr.StashAllChangesKeepIndex,
 				OnPress: func() error {
-					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules() {
 						return errors.New(self.c.Tr.NoFilesToStash)
 					}
 					// if there are no staged files it behaves the same as Stash.Save
@@ -1002,7 +1002,7 @@ func (self *FilesController) createStashMenu() error {
 				Label: self.c.Tr.StashStagedChanges,
 				OnPress: func() error {
 					// there must be something in staging otherwise the current implementation mucks the stash up
-					if !self.c.Helpers().WorkingTree.AnyStagedFiles() {
+					if !self.c.Helpers().WorkingTree.AnyStagedFilesExceptSubmodules() {
 						return errors.New(self.c.Tr.NoTrackedStagedFilesStash)
 					}
 					return self.handleStashSave(self.c.Git().Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
@@ -1012,10 +1012,10 @@ func (self *FilesController) createStashMenu() error {
 			{
 				Label: self.c.Tr.StashUnstagedChanges,
 				OnPress: func() error {
-					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules() {
 						return errors.New(self.c.Tr.NoFilesToStash)
 					}
-					if self.c.Helpers().WorkingTree.AnyStagedFiles() {
+					if self.c.Helpers().WorkingTree.AnyStagedFilesExceptSubmodules() {
 						return self.handleStashSave(self.c.Git().Stash.StashUnstagedChanges, self.c.Tr.Actions.StashUnstagedChanges)
 					}
 					// ordinary stash
