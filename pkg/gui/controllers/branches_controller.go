@@ -3,12 +3,14 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -192,7 +194,23 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 			} else {
 				cmdObj := self.c.Git().Branch.GetGraphCmdObj(branch.FullRefName())
 
-				task = types.NewRunPtyTask(cmdObj.GetCmd())
+				ptyTask := types.NewRunPtyTask(cmdObj.GetCmd())
+				task = ptyTask
+
+				// Shouldn't we hold on to the map for longer instead of generating it every time?
+				// It is also generated every time we render the branches list.
+				prs := git_commands.GenerateGithubPullRequestMap(
+					self.c.Model().PullRequests,
+					self.c.Model().Branches,
+					self.c.Model().Remotes,
+				)
+
+				if pr, ok := prs[branch.Name]; ok {
+					ptyTask.Prefix = fmt.Sprintf("%s %s (%s)\n\n",
+						coloredPrNumber(pr),
+						style.FgYellow.Sprint(style.PrintHyperlink(pr.Title, pr.Url)),
+						pr.State)
+				}
 			}
 
 			self.c.RenderToMainViews(types.RefreshMainOpts{
@@ -203,6 +221,23 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 				},
 			})
 		})
+	}
+}
+
+func coloredPrNumber(pr *models.GithubPullRequest) string {
+	return prColor(pr.State).Sprint("#" + strconv.Itoa(pr.Number))
+}
+
+func prColor(state string) style.TextStyle {
+	switch state {
+	case "OPEN":
+		return style.FgGreen
+	case "CLOSED":
+		return style.FgRed
+	case "MERGED":
+		return style.FgMagenta
+	default:
+		return style.FgDefault
 	}
 }
 
