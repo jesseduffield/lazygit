@@ -515,6 +515,7 @@ type TranslationSet struct {
 	EmptyPatchError                       string
 	EnterCommitFile                       string
 	EnterCommitFileTooltip                string
+	EnterStaging                          string
 	ExitCustomPatchBuilder                string
 	ExitFocusedMainView                   string
 	EnterUpstream                         string
@@ -1609,6 +1610,7 @@ func EnglishTranslationSet() *TranslationSet {
 		EmptyPatchError:                      "Patch is still empty. Add some files or lines to your patch first.",
 		EnterCommitFile:                      "Enter file / Toggle directory collapsed",
 		EnterCommitFileTooltip:               "If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory.",
+		EnterStaging:                         "Enter staging/patch building",
 		ExitCustomPatchBuilder:               `Exit custom patch builder`,
 		ExitFocusedMainView:                  "Exit back to side panel",
 		EnterUpstream:                        `Enter upstream as '<remote> <branchname>'`,
