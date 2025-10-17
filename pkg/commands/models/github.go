@@ -4,6 +4,7 @@ package models
 type GithubPullRequest struct {
 	HeadRefName         string                `json:"headRefName"`
 	Number              int                   `json:"number"`
+	Title               string                `json:"title"`
 	State               string                `json:"state"` // "MERGED", "OPEN", "CLOSED"
 	Url                 string                `json:"url"`
 	HeadRepositoryOwner GithubRepositoryOwner `json:"headRepositoryOwner"`

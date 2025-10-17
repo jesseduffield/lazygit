@@ -211,6 +211,7 @@ func (self *GitHubCommands) FetchRecentPRsAux(repoOwner string, repoName string,
 			pr := &models.GithubPullRequest{
 				HeadRefName: node.HeadRefName,
 				Number:      node.Number,
+				Title:       node.Title,
 				State:       node.State,
 				Url:         node.Url,
 				HeadRepositoryOwner: models.GithubRepositoryOwner{
