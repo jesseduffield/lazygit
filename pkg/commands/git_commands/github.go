@@ -69,6 +69,7 @@ type PullRequestNode struct {
 	Url                 string                `json:"url"`
 	HeadRepositoryOwner GithubRepositoryOwner `json:"headRepositoryOwner"`
 	State               string                `json:"state"`
+	IsDraft             bool                  `json:"isDraft"`
 }
 
 type GithubRepositoryOwner struct {
@@ -90,6 +91,7 @@ func fetchPullRequestsQuery(branches []string, owner string, repo string) string
           state
           number
           url
+		  isDraft
           headRepositoryOwner {
             login
           }
@@ -212,7 +214,7 @@ func (self *GitHubCommands) FetchRecentPRsAux(repoOwner string, repoName string,
 				HeadRefName: node.HeadRefName,
 				Number:      node.Number,
 				Title:       node.Title,
-				State:       node.State,
+				State:       lo.Ternary(node.IsDraft && node.State != "CLOSED", "DRAFT", node.State),
 				Url:         node.Url,
 				HeadRepositoryOwner: models.GithubRepositoryOwner{
 					Login: node.HeadRepositoryOwner.Login,
