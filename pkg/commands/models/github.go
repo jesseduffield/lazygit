@@ -5,7 +5,7 @@ type GithubPullRequest struct {
 	HeadRefName         string                `json:"headRefName"`
 	Number              int                   `json:"number"`
 	Title               string                `json:"title"`
-	State               string                `json:"state"` // "MERGED", "OPEN", "CLOSED"
+	State               string                `json:"state"` // "MERGED", "OPEN", "CLOSED", "DRAFT"
 	Url                 string                `json:"url"`
 	HeadRepositoryOwner GithubRepositoryOwner `json:"headRepositoryOwner"`
 }
