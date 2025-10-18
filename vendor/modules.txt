@@ -48,6 +48,15 @@ github.com/bahlo/generic-list-go
 # github.com/buger/jsonparser v1.1.1
 ## explicit; go 1.13
 github.com/buger/jsonparser
+# github.com/cli/go-gh/v2 v2.9.0
+## explicit; go 1.21
+github.com/cli/go-gh/v2/internal/set
+github.com/cli/go-gh/v2/internal/yamlmap
+github.com/cli/go-gh/v2/pkg/auth
+github.com/cli/go-gh/v2/pkg/config
+# github.com/cli/safeexec v1.0.0
+## explicit; go 1.15
+github.com/cli/safeexec
 # github.com/clipperhouse/uax29/v2 v2.2.0
 ## explicit; go 1.18
 github.com/clipperhouse/uax29/v2/graphemes
@@ -265,11 +274,11 @@ github.com/lucasb-eyer/go-colorful
 ## explicit; go 1.12
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jwriter
-# github.com/mattn/go-colorable v0.1.11
-## explicit; go 1.13
+# github.com/mattn/go-colorable v0.1.13
+## explicit; go 1.15
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.14
-## explicit; go 1.12
+# github.com/mattn/go-isatty v0.0.20
+## explicit; go 1.15
 github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.19
 ## explicit; go 1.20
