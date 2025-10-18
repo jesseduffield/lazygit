@@ -4,12 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -206,10 +208,13 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 				)
 
 				if pr, ok := prs[branch.Name]; ok {
-					ptyTask.Prefix = fmt.Sprintf("%s %s (%s)\n\n",
+					ptyTask.Prefix = fmt.Sprintf("%s %s %s  %s\n",
+						icons.IconForRemoteUrl(pr.Url),
 						coloredPrNumber(pr),
-						style.FgYellow.Sprint(style.PrintHyperlink(pr.Title, pr.Url)),
-						pr.State)
+						style.PrintHyperlink(pr.Title, pr.Url),
+						coloredStateText(pr.State))
+					ptyTask.Prefix += strings.Repeat("─", self.c.Contexts().Normal.GetView().InnerWidth()) + "\n"
+
 				}
 			}
 
@@ -224,6 +229,26 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 	}
 }
 
+func stateText(state string) string {
+	// TODO: add icons only if nerd fonts are used
+	switch state {
+	case "OPEN":
+		return " Open"
+	case "CLOSED":
+		return " Closed"
+	case "MERGED":
+		return " Merged"
+	case "DRAFT":
+		return " Draft"
+	default:
+		return ""
+	}
+}
+
+func coloredStateText(state string) string {
+	return prColor(state).Sprint(stateText(state))
+}
+
 func coloredPrNumber(pr *models.GithubPullRequest) string {
 	return prColor(pr.State).Sprint("#" + strconv.Itoa(pr.Number))
 }
@@ -236,6 +261,8 @@ func prColor(state string) style.TextStyle {
 		return style.FgRed
 	case "MERGED":
 		return style.FgMagenta
+	case "DRAFT":
+		return style.FgBlackLighter
 	default:
 		return style.FgDefault
 	}

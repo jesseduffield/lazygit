@@ -269,6 +269,8 @@ func prColor(state string) style.TextStyle {
 		return style.FgRed
 	case "MERGED":
 		return style.FgMagenta
+	case "DRAFT":
+		return style.FgBlackLighter
 	default:
 		return style.FgDefault
 	}
