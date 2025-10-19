@@ -175,40 +175,40 @@ jobs:
       - name: errors
         run: golangci-lint run
         if: ${{ failure() }}
-  upload-coverage:
-    # List all jobs that produce coverage files
-    needs: [unit-tests, integration-tests]
-    if: github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.25.x
-
-      - name: Download all coverage artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: /tmp/code_coverage
-
-      - name: Combine coverage files
-        run: |
-          # Find all directories in /tmp/code_coverage and create a comma-separated list
-          COVERAGE_DIRS=$(find /tmp/code_coverage -mindepth 1 -maxdepth 1 -type d -printf '/tmp/code_coverage/%f,' | sed 's/,$//')
-          echo "Coverage directories: $COVERAGE_DIRS"
-          # Run the combine command with the generated list
-          go tool covdata textfmt -i=$COVERAGE_DIRS -o coverage.out
-          echo "Combined coverage:"
-          go tool cover -func coverage.out | tail -1 | awk '{print $3}'
-
-      - name: Upload to Codacy
-        run: |
-          CODACY_PROJECT_TOKEN=${{ secrets.CODACY_PROJECT_TOKEN }} \
-            bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
-            --force-coverage-parser go -r coverage.out
+  # upload-coverage:
+  #   # List all jobs that produce coverage files
+  #   needs: [unit-tests, integration-tests]
+  #   if: github.event.pull_request.head.repo.full_name == github.repository
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Setup Go
+  #       uses: actions/setup-go@v5
+  #       with:
+  #         go-version: 1.25.x
+  #
+  #     - name: Download all coverage artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         path: /tmp/code_coverage
+  #
+  #     - name: Combine coverage files
+  #       run: |
+  #         # Find all directories in /tmp/code_coverage and create a comma-separated list
+  #         COVERAGE_DIRS=$(find /tmp/code_coverage -mindepth 1 -maxdepth 1 -type d -printf '/tmp/code_coverage/%f,' | sed 's/,$//')
+  #         echo "Coverage directories: $COVERAGE_DIRS"
+  #         # Run the combine command with the generated list
+  #         go tool covdata textfmt -i=$COVERAGE_DIRS -o coverage.out
+  #         echo "Combined coverage:"
+  #         go tool cover -func coverage.out | tail -1 | awk '{print $3}'
+  #
+  #     - name: Upload to Codacy
+  #       run: |
+  #         CODACY_PROJECT_TOKEN=${{ secrets.CODACY_PROJECT_TOKEN }} \
+  #           bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
+  #           --force-coverage-parser go -r coverage.out
 
   check-for-fixups:
     runs-on: ubuntu-latest
