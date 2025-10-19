@@ -250,24 +250,49 @@ func (self *BranchCommands) Rename(oldName string, newName string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-type MergeOpts struct {
-	FastForwardOnly bool
-	Squash          bool
-}
+type MergeVariant int
 
-func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
-	if opts.Squash && opts.FastForwardOnly {
-		panic("Squash and FastForwardOnly can't both be true")
-	}
+const (
+	MERGE_VARIANT_REGULAR MergeVariant = iota
+	MERGE_VARIANT_FAST_FORWARD
+	MERGE_VARIANT_NON_FAST_FORWARD
+	MERGE_VARIANT_SQUASH
+)
+
+func (self *BranchCommands) Merge(branchName string, variant MergeVariant) error {
+	extraArgs := func() []string {
+		switch variant {
+		case MERGE_VARIANT_REGULAR:
+			return []string{}
+		case MERGE_VARIANT_FAST_FORWARD:
+			return []string{"--ff"}
+		case MERGE_VARIANT_NON_FAST_FORWARD:
+			return []string{"--no-ff"}
+		case MERGE_VARIANT_SQUASH:
+			return []string{"--squash", "--ff"}
+		}
+
+		panic("shouldn't get here")
+	}()
+
 	cmdArgs := NewGitCmd("merge").
 		Arg("--no-edit").
 		Arg(strings.Fields(self.UserConfig().Git.Merging.Args)...).
-		ArgIf(opts.FastForwardOnly, "--ff-only").
-		ArgIf(opts.Squash, "--squash", "--ff").
+		Arg(extraArgs...).
 		Arg(branchName).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
+}
+
+// Returns whether refName can be fast-forward merged into the current branch
+func (self *BranchCommands) CanDoFastForwardMerge(refName string) bool {
+	cmdArgs := NewGitCmd("merge-base").
+		Arg("--is-ancestor").
+		Arg("HEAD", refName).
+		ToArgv()
+	err := self.cmd.New(cmdArgs).DontLog().Run()
+	return err == nil
 }
 
 // Only choose between non-empty, non-identical commands

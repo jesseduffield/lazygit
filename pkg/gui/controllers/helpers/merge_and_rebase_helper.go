@@ -381,38 +381,103 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 		return errors.New(self.c.Tr.CantMergeBranchIntoItself)
 	}
 
+	wantFastForward, wantNonFastForward := self.fastForwardMergeUserPreference()
+	canFastForward := self.c.Git().Branch.CanDoFastForwardMerge(refName)
+
+	var firstRegularMergeItem *types.MenuItem
+	var secondRegularMergeItem *types.MenuItem
+	var fastForwardMergeItem *types.MenuItem
+
+	if !wantNonFastForward && (wantFastForward || canFastForward) {
+		firstRegularMergeItem = &types.MenuItem{
+			Label:   self.c.Tr.RegularMergeFastForward,
+			OnPress: self.RegularMerge(refName, git_commands.MERGE_VARIANT_REGULAR),
+			Key:     'm',
+			Tooltip: utils.ResolvePlaceholderString(
+				self.c.Tr.RegularMergeFastForwardTooltip,
+				map[string]string{
+					"checkedOutBranch": checkedOutBranchName,
+					"selectedBranch":   refName,
+				},
+			),
+		}
+		fastForwardMergeItem = firstRegularMergeItem
+
+		secondRegularMergeItem = &types.MenuItem{
+			Label:   self.c.Tr.RegularMergeNonFastForward,
+			OnPress: self.RegularMerge(refName, git_commands.MERGE_VARIANT_NON_FAST_FORWARD),
+			Key:     'n',
+			Tooltip: utils.ResolvePlaceholderString(
+				self.c.Tr.RegularMergeNonFastForwardTooltip,
+				map[string]string{
+					"checkedOutBranch": checkedOutBranchName,
+					"selectedBranch":   refName,
+				},
+			),
+		}
+	} else {
+		firstRegularMergeItem = &types.MenuItem{
+			Label:   self.c.Tr.RegularMergeNonFastForward,
+			OnPress: self.RegularMerge(refName, git_commands.MERGE_VARIANT_REGULAR),
+			Key:     'm',
+			Tooltip: utils.ResolvePlaceholderString(
+				self.c.Tr.RegularMergeNonFastForwardTooltip,
+				map[string]string{
+					"checkedOutBranch": checkedOutBranchName,
+					"selectedBranch":   refName,
+				},
+			),
+		}
+
+		secondRegularMergeItem = &types.MenuItem{
+			Label:   self.c.Tr.RegularMergeFastForward,
+			OnPress: self.RegularMerge(refName, git_commands.MERGE_VARIANT_FAST_FORWARD),
+			Key:     'f',
+			Tooltip: utils.ResolvePlaceholderString(
+				self.c.Tr.RegularMergeFastForwardTooltip,
+				map[string]string{
+					"checkedOutBranch": checkedOutBranchName,
+					"selectedBranch":   refName,
+				},
+			),
+		}
+		fastForwardMergeItem = secondRegularMergeItem
+	}
+
+	if !canFastForward {
+		fastForwardMergeItem.DisabledReason = &types.DisabledReason{
+			Text: utils.ResolvePlaceholderString(
+				self.c.Tr.CannotFastForwardMerge,
+				map[string]string{
+					"checkedOutBranch": checkedOutBranchName,
+					"selectedBranch":   refName,
+				},
+			),
+		}
+	}
+
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Merge,
 		Items: []*types.MenuItem{
+			firstRegularMergeItem,
+			secondRegularMergeItem,
 			{
-				Label:   self.c.Tr.RegularMerge,
-				OnPress: self.RegularMerge(refName),
-				Key:     'm',
-				Tooltip: utils.ResolvePlaceholderString(
-					self.c.Tr.RegularMergeTooltip,
-					map[string]string{
-						"checkedOutBranch": checkedOutBranchName,
-						"selectedBranch":   refName,
-					},
-				),
-			},
-			{
-				Label:   self.c.Tr.SquashMergeUncommittedTitle,
+				Label:   self.c.Tr.SquashMergeUncommitted,
 				OnPress: self.SquashMergeUncommitted(refName),
 				Key:     's',
 				Tooltip: utils.ResolvePlaceholderString(
-					self.c.Tr.SquashMergeUncommitted,
+					self.c.Tr.SquashMergeUncommittedTooltip,
 					map[string]string{
 						"selectedBranch": refName,
 					},
 				),
 			},
 			{
-				Label:   self.c.Tr.SquashMergeCommittedTitle,
+				Label:   self.c.Tr.SquashMergeCommitted,
 				OnPress: self.SquashMergeCommitted(refName, checkedOutBranchName),
 				Key:     'S',
 				Tooltip: utils.ResolvePlaceholderString(
-					self.c.Tr.SquashMergeCommitted,
+					self.c.Tr.SquashMergeCommittedTooltip,
 					map[string]string{
 						"checkedOutBranch": checkedOutBranchName,
 						"selectedBranch":   refName,
@@ -423,10 +488,10 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 	})
 }
 
-func (self *MergeAndRebaseHelper) RegularMerge(refName string) func() error {
+func (self *MergeAndRebaseHelper) RegularMerge(refName string, variant git_commands.MergeVariant) func() error {
 	return func() error {
 		self.c.LogAction(self.c.Tr.Actions.Merge)
-		err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{})
+		err := self.c.Git().Branch.Merge(refName, variant)
 		return self.CheckMergeOrRebase(err)
 	}
 }
@@ -434,7 +499,7 @@ func (self *MergeAndRebaseHelper) RegularMerge(refName string) func() error {
 func (self *MergeAndRebaseHelper) SquashMergeUncommitted(refName string) func() error {
 	return func() error {
 		self.c.LogAction(self.c.Tr.Actions.SquashMerge)
-		err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{Squash: true})
+		err := self.c.Git().Branch.Merge(refName, git_commands.MERGE_VARIANT_SQUASH)
 		return self.CheckMergeOrRebase(err)
 	}
 }
@@ -442,7 +507,7 @@ func (self *MergeAndRebaseHelper) SquashMergeUncommitted(refName string) func() 
 func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranchName string) func() error {
 	return func() error {
 		self.c.LogAction(self.c.Tr.Actions.SquashMerge)
-		err := self.c.Git().Branch.Merge(refName, git_commands.MergeOpts{Squash: true})
+		err := self.c.Git().Branch.Merge(refName, git_commands.MERGE_VARIANT_SQUASH)
 		if err = self.CheckMergeOrRebase(err); err != nil {
 			return err
 		}
@@ -457,6 +522,31 @@ func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranch
 		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 		return nil
 	}
+}
+
+// Returns wantsFastForward, wantsNonFastForward. These will never both be true, but they can both be false.
+func (self *MergeAndRebaseHelper) fastForwardMergeUserPreference() (bool, bool) {
+	// Check user config first, because it takes precedence over git config
+	mergingArgs := self.c.UserConfig().Git.Merging.Args
+	if strings.Contains(mergingArgs, "--ff") { // also covers "--ff-only"
+		return true, false
+	}
+
+	if strings.Contains(mergingArgs, "--no-ff") {
+		return false, true
+	}
+
+	// Then check git config
+	mergeFfConfig := self.c.Git().Config.GetMergeFF()
+	if mergeFfConfig == "true" || mergeFfConfig == "only" {
+		return true, false
+	}
+
+	if mergeFfConfig == "false" {
+		return false, true
+	}
+
+	return false, false
 }
 
 func (self *MergeAndRebaseHelper) ResetMarkedBaseCommit() error {
