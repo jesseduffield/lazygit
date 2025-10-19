@@ -2,7 +2,7 @@ name: Check Required Labels
 
 on:
   pull_request:
-    types: [opened, labeled, unlabeled]
+    types: [opened, labeled, unlabeled, synchronize]
 
 jobs:
   check-required-label:
