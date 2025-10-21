@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+	"os"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -30,6 +32,14 @@ func knownError(tr *i18n.TranslationSet, err error) (string, bool) {
 		{
 			originalError: "getwd: no such file or directory",
 			newError:      tr.WorkingDirectoryDoesNotExist,
+		},
+		{
+			originalError: "terminal entry not found: term not set",
+			newError:      tr.TermNotSet,
+		},
+		{
+			originalError: "$TERM Not Found",
+			newError:      fmt.Sprintf(tr.TermNotFound, os.Getenv("TERM")),
 		},
 	}
 
