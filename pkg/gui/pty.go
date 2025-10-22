@@ -47,9 +47,10 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	width := view.InnerWidth()
 	pager := gui.stateAccessor.GetPagerConfig().GetPagerCommand(width)
 	externalDiffCommand := gui.stateAccessor.GetPagerConfig().GetExternalDiffCommand()
+	useExtDiffGitConfig := gui.stateAccessor.GetPagerConfig().GetUseExternalDiffGitConfig()
 
-	if pager == "" && externalDiffCommand == "" {
-		// if we're not using a custom pager we don't need to use a pty
+	if pager == "" && externalDiffCommand == "" && !useExtDiffGitConfig {
+		// If we're not using a custom pager nor external diff command, then we don't need to use a pty
 		return gui.newCmdTask(view, cmd, prefix)
 	}
 
