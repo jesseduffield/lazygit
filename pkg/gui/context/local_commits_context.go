@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -144,7 +145,7 @@ type LocalCommitsViewModel struct {
 
 	// If this is true we limit the amount of commits we load, for the sake of keeping things fast.
 	// If the user attempts to scroll past the end of the list, we will load more commits.
-	limitCommits bool
+	gitLogLimit *git_commands.GitLogLimit
 
 	// If this is true we'll use git log --all when fetching the commits.
 	showWholeGitGraph bool
@@ -153,7 +154,7 @@ type LocalCommitsViewModel struct {
 func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon) *LocalCommitsViewModel {
 	self := &LocalCommitsViewModel{
 		ListViewModel:     NewListViewModel(getModel),
-		limitCommits:      true,
+		gitLogLimit:       git_commands.DefaultGitLogLimit(),
 		showWholeGitGraph: c.UserConfig().Git.Log.ShowWholeGraph,
 	}
 
@@ -226,12 +227,12 @@ func (self *LocalCommitsContext) ModelSearchResults(searchStr string, caseSensit
 	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), self.ModelIndexToViewIndex, searchStr)
 }
 
-func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {
-	self.limitCommits = value
+func (self *LocalCommitsViewModel) SetGitLogLimit(limit *git_commands.GitLogLimit) {
+	self.gitLogLimit = limit
 }
 
-func (self *LocalCommitsViewModel) GetLimitCommits() bool {
-	return self.limitCommits
+func (self *LocalCommitsViewModel) GetGitLogLimit() *git_commands.GitLogLimit {
+	return self.gitLogLimit
 }
 
 func (self *LocalCommitsViewModel) SetShowWholeGitGraph(value bool) {
