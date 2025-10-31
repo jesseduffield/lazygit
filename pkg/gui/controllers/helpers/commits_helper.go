@@ -8,6 +8,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -227,6 +228,39 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 		Title: self.c.Tr.CommitMenuTitle,
 		Items: menuItems,
 	})
+}
+
+func (self *CommitsHelper) GetParentCommit(selectedCommits []*models.Commit, endIdx int, depth int) (*models.Commit, int) {
+	commits := self.c.Model().Commits
+
+	currentCommit := selectedCommits[len(selectedCommits)-1]
+	parentIndex := endIdx
+	var parentCommit *models.Commit
+
+	for d := 0; d < depth; d++ {
+		selectedParents := currentCommit.Parents()
+		if len(selectedParents) == 0 {
+			self.c.Log.Warn("Selected commit has no parents, the nearest commit is used")
+			return commits[parentIndex], parentIndex + 1
+		}
+		parentHash := selectedParents[0]
+		found := false
+		for i, commit := range commits {
+			if commit.Hash() == parentHash {
+				parentIndex = i
+				parentCommit = commits[parentIndex]
+				currentCommit = parentCommit
+				found = true
+				break
+			}
+		}
+		if !found {
+			self.c.Log.Warnf("Parent commit %s not found in visible commit list, the nearest commit is used ", parentHash)
+			return commits[parentIndex], parentIndex + 1
+		}
+	}
+
+	return parentCommit, parentIndex
 }
 
 func (self *CommitsHelper) addCoAuthor(suggestionFunc func(string) []*types.Suggestion) error {

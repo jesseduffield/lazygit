@@ -330,7 +330,10 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 					})
 				}
 
-				err := self.c.Git().Rebase.DiscardOldFileChanges(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), filePaths)
+				selectedCommits, _, endIdx := self.c.Contexts().LocalCommits.GetSelectedItems()
+				_, parentIdx := self.c.Helpers().Commits.GetParentCommit(selectedCommits, endIdx, 1)
+
+				err := self.c.Git().Rebase.DiscardOldFileChanges(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), parentIdx, filePaths)
 				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 					return err
 				}

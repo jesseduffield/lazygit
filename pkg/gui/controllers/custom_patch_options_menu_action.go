@@ -145,8 +145,10 @@ func (self *CustomPatchOptionsMenuAction) handleDeletePatchFromCommit() error {
 
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		commitIndex := self.getPatchCommitIndex()
+		selectedCommits, _, endIdx := self.c.Contexts().LocalCommits.GetSelectedItems()
+		_, parentIdx := self.c.Helpers().Commits.GetParentCommit(selectedCommits, endIdx, 1)
 		self.c.LogAction(self.c.Tr.Actions.RemovePatchFromCommit)
-		err := self.c.Git().Patch.DeletePatchesFromCommit(self.c.Model().Commits, commitIndex)
+		err := self.c.Git().Patch.DeletePatchesFromCommit(self.c.Model().Commits, commitIndex, parentIdx)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 	})
 }
@@ -160,8 +162,10 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchToSelectedCommit() erro
 
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		commitIndex := self.getPatchCommitIndex()
+		selectedCommits, _, endIdx := self.c.Contexts().LocalCommits.GetSelectedItems()
+		_, parentIdx := self.c.Helpers().Commits.GetParentCommit(selectedCommits, endIdx, 1)
 		self.c.LogAction(self.c.Tr.Actions.MovePatchToSelectedCommit)
-		err := self.c.Git().Patch.MovePatchToSelectedCommit(self.c.Model().Commits, commitIndex, self.c.Contexts().LocalCommits.GetSelectedLineIdx())
+		err := self.c.Git().Patch.MovePatchToSelectedCommit(self.c.Model().Commits, commitIndex, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), parentIdx)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 	})
 }
@@ -180,8 +184,10 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 				commitIndex := self.getPatchCommitIndex()
+				selectedCommits, _, endIdx := self.c.Contexts().LocalCommits.GetSelectedItems()
+				_, parentIdx := self.c.Helpers().Commits.GetParentCommit(selectedCommits, endIdx, 1)
 				self.c.LogAction(self.c.Tr.Actions.MovePatchIntoIndex)
-				err := self.c.Git().Patch.MovePatchIntoIndex(self.c.Model().Commits, commitIndex, mustStash)
+				err := self.c.Git().Patch.MovePatchIntoIndex(self.c.Model().Commits, commitIndex, parentIdx, mustStash)
 				return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 			})
 		},
@@ -196,6 +202,8 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 	self.returnFocusFromPatchExplorerIfNecessary()
 
 	commitIndex := self.getPatchCommitIndex()
+	selectedCommits, _, endIdx := self.c.Contexts().LocalCommits.GetSelectedItems()
+	_, parentIdx := self.c.Helpers().Commits.GetParentCommit(selectedCommits, endIdx, 1)
 	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
 			// Pass a commit index of one less than the moved-from commit, so that
@@ -209,7 +217,7 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 					self.c.Helpers().Commits.CloseCommitMessagePanel()
 					self.c.LogAction(self.c.Tr.Actions.MovePatchIntoNewCommit)
-					err := self.c.Git().Patch.PullPatchIntoNewCommit(self.c.Model().Commits, commitIndex, summary, description)
+					err := self.c.Git().Patch.PullPatchIntoNewCommit(self.c.Model().Commits, commitIndex, parentIdx, summary, description)
 					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 						return err
 					}
@@ -231,6 +239,8 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommitBefore() e
 	self.returnFocusFromPatchExplorerIfNecessary()
 
 	commitIndex := self.getPatchCommitIndex()
+	selectedCommits, _, endIdx := self.c.Contexts().LocalCommits.GetSelectedItems()
+	_, parentIdx := self.c.Helpers().Commits.GetParentCommit(selectedCommits, endIdx, 2)
 	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
 			// Pass a commit index of one less than the moved-from commit, so that
@@ -244,7 +254,7 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommitBefore() e
 				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 					self.c.Helpers().Commits.CloseCommitMessagePanel()
 					self.c.LogAction(self.c.Tr.Actions.MovePatchIntoNewCommit)
-					err := self.c.Git().Patch.PullPatchIntoNewCommitBefore(self.c.Model().Commits, commitIndex, summary, description)
+					err := self.c.Git().Patch.PullPatchIntoNewCommitBefore(self.c.Model().Commits, commitIndex, parentIdx, summary, description)
 					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 						return err
 					}
