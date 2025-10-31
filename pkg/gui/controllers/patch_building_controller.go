@@ -226,8 +226,10 @@ func (self *PatchBuildingController) discardSelectionFromCommit() error {
 
 	return self.c.WithWaitingStatusSync(self.c.Tr.RebasingStatus, func() error {
 		commitIndex := self.getPatchCommitIndex()
+		selectedCommits, _, endIdx := self.c.Contexts().LocalCommits.GetSelectedItems()
+		_, parentIdx := self.c.Helpers().Commits.GetParentCommit(selectedCommits, endIdx, 1)
 		self.c.LogAction(self.c.Tr.Actions.RemovePatchFromCommit)
-		err := self.c.Git().Patch.DeletePatchesFromCommit(self.c.Model().Commits, commitIndex)
+		err := self.c.Git().Patch.DeletePatchesFromCommit(self.c.Model().Commits, commitIndex, parentIdx)
 		self.c.Helpers().PatchBuilding.Escape()
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err, types.RefreshOptions{Mode: types.SYNC})
