@@ -197,7 +197,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <esc> `` | 파일 목록으로 돌아가기 |  |
 | `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
 | `` E `` | Edit hunk | Edit selected hunk in external editor. |
-| `` c `` | 커밋 변경내용 | Commit staged changes. |
+| `` c `` | 커밋 변경내용 | 스테이징된 변경 사항 커밋. |
 | `` w `` | Commit changes without pre-commit hook |  |
 | `` C `` | Git 편집기를 사용하여 변경 내용을 커밋합니다. |  |
 | `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
@@ -379,7 +379,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <space> `` | Staged 전환 | Toggle staged for selected file. |
 | `` <c-b> `` | 파일을 필터하기 (Staged/unstaged) |  |
 | `` y `` | 클립보드에 복사 |  |
-| `` c `` | 커밋 변경내용 | Commit staged changes. |
+| `` c `` | 커밋 변경내용 | 스테이징된 변경 사항 커밋. |
 | `` w `` | Commit changes without pre-commit hook |  |
 | `` A `` | 마지맛 커밋 수정 |  |
 | `` C `` | Git 편집기를 사용하여 변경 내용을 커밋합니다. |  |
