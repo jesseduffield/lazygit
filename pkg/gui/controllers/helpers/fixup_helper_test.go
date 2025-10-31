@@ -79,6 +79,26 @@ index 9ce8efb33..fb5e469e7 100644
 			},
 		},
 		{
+			name: "hunk with dashed lines",
+			diff: `
+diff --git a/file1.txt b/file1.txt
+index 9ce8efb33..fb5e469e7 100644
+--- a/file1.txt
++++ b/file1.txt
+@@ -3,1 +3,1 @@
+--- xxx
++-- yyy
+`,
+			expectedDeletedLineHunks: []*hunk{
+				{
+					filename:     "file1.txt",
+					startLineIdx: 3,
+					numLines:     1,
+				},
+			},
+			expectedAddedLineHunks: []*hunk{},
+		},
+		{
 			name: "several hunks in different files",
 			diff: `
 diff --git a/file1.txt b/file1.txt

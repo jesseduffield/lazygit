@@ -194,7 +194,7 @@ func parseDiff(diff string) ([]*hunk, []*hunk) {
 		if strings.HasPrefix(line, "diff --git") {
 			finishHunk()
 			currentHunk = nil
-		} else if strings.HasPrefix(line, "--- ") {
+		} else if currentHunk == nil && strings.HasPrefix(line, "--- ") {
 			// For some reason, the line ends with a tab character if the file
 			// name contains spaces
 			filename = strings.TrimRight(line[6:], "\t")
