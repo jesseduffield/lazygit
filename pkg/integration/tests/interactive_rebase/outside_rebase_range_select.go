@@ -49,7 +49,7 @@ var OutsideRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Squash")).
-					Content(Contains("Are you sure you want to squash the selected commit(s) into the commit below?")).
+					Content(Contains("Are you sure you want to squash the selected commit(s) into the parent commit below?")).
 					Confirm()
 			}).
 			TopLines(
@@ -79,7 +79,7 @@ var OutsideRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Fixup")).
-					Content(Contains("Are you sure you want to 'fixup' the selected commit(s) into the commit below?")).
+					Content(Contains("Are you sure you want to 'fixup' the selected commit(s) into the parent commit below?")).
 					Confirm()
 			}).
 			TopLines(
