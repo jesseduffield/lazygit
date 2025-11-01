@@ -24,7 +24,7 @@ _Связки клавиш_
 | `` R `` | Обновить | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
 | `` + `` | Следующий режим экрана (нормальный/полуэкранный/полноэкранный) |  |
 | `` _ `` | Предыдущий режим экрана |  |
-| `` | `` | Cycle pagers | Choose the next pager in the list of configured pagers |
+| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
 | `` <esc> `` | Отменить |  |
 | `` ? `` | Открыть меню |  |
 | `` <c-s> `` | Просмотреть параметры фильтрации по пути | View options for filtering the commit log, so that only commits matching the filter are shown. |
@@ -153,7 +153,7 @@ _Связки клавиш_
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Просмотреть параметры сброса | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Скопировать отобранные коммит (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
-| `` <c-r> `` | Сбросить отобранную (скопированную | cherry-picked) выборку коммитов |  |
+| `` <c-r> `` | Сбросить отобранную (скопированную \| cherry-picked) выборку коммитов |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
@@ -166,7 +166,7 @@ _Связки клавиш_
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <c-o> `` | Скопировать hash коммита в буфер обмена |  |
-| `` <c-r> `` | Сбросить отобранную (скопированную | cherry-picked) выборку коммитов |  |
+| `` <c-r> `` | Сбросить отобранную (скопированную \| cherry-picked) выборку коммитов |  |
 | `` b `` | Просмотреть параметры бинарного поиска |  |
 | `` s `` | Объединить коммиты (Squash) | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
 | `` f `` | Объединить несколько коммитов в один отбросив сообщение коммита (Fixup)  | Meld the selected commit into the commit below it. Similar to squash, but the selected commit's message will be discarded. |
@@ -259,7 +259,7 @@ _Связки клавиш_
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Просмотреть параметры сброса | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Скопировать отобранные коммит (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
-| `` <c-r> `` | Сбросить отобранную (скопированную | cherry-picked) выборку коммитов |  |
+| `` <c-r> `` | Сбросить отобранную (скопированную \| cherry-picked) выборку коммитов |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |

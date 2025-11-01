@@ -225,6 +225,11 @@ func formatBinding(binding *types.Binding) string {
 	// Replace newlines with <br> tags for proper markdown table formatting
 	tooltip := strings.ReplaceAll(binding.Tooltip, "\n", "<br>")
 
+	// Escape pipe characters to avoid breaking the table format
+	action = strings.ReplaceAll(action, `|`, `\|`)
+	description = strings.ReplaceAll(description, `|`, `\|`)
+	tooltip = strings.ReplaceAll(tooltip, `|`, `\|`)
+
 	// Use backticks for keyboard keys. Two backticks are needed with an inner space
 	//  to escape a key that is itself a backtick.
 	return fmt.Sprintf("| `` %s `` | %s | %s |\n", action, description, tooltip)

@@ -24,7 +24,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` R `` | 새로고침 | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
 | `` + `` | 다음 스크린 모드 (normal/half/fullscreen) |  |
 | `` _ `` | 이전 스크린 모드 |  |
-| `` | `` | Cycle pagers | Choose the next pager in the list of configured pagers |
+| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
 | `` <esc> `` | 취소 |  |
 | `` ? `` | 매뉴 열기 |  |
 | `` <c-s> `` | View filter-by-path options | View options for filtering the commit log, so that only commits matching the filter are shown. |

@@ -24,7 +24,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` R `` | Atualizar | Atualize o estado do git (ou seja, execute `git status`, `git branch`, etc em segundo plano para atualizar o conteúdo de painéis). Isso não executa `git fetch`. |
 | `` + `` | Next screen mode (normal/half/fullscreen) |  |
 | `` _ `` | Prev screen mode |  |
-| `` | `` | Cycle pagers | Choose the next pager in the list of configured pagers |
+| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
 | `` <esc> `` | Cancelar |  |
 | `` ? `` | Open keybindings menu |  |
 | `` <c-s> `` | View filter options | View options for filtering the commit log, so that only commits matching the filter are shown. |

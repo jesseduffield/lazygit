@@ -24,7 +24,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` R `` | Odśwież | Odśwież stan git (tj. uruchom `git status`, `git branch`, itp. w tle, aby zaktualizować zawartość paneli). To nie uruchamia `git fetch`. |
 | `` + `` | Następny tryb ekranu (normalny/półpełny/pełnoekranowy) |  |
 | `` _ `` | Poprzedni tryb ekranu |  |
-| `` | `` | Cycle pagers | Choose the next pager in the list of configured pagers |
+| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
 | `` <esc> `` | Anuluj |  |
 | `` ? `` | Otwórz menu przypisań klawiszy |  |
 | `` <c-s> `` | Pokaż opcje filtrowania | Pokaż opcje filtrowania dziennika commitów, tak aby pokazywane były tylko commity pasujące do filtra. |

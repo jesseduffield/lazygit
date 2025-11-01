@@ -24,7 +24,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` R `` | Verversen | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
 | `` + `` | Volgende scherm modus (normaal/half/groot) |  |
 | `` _ `` | Vorige scherm modus |  |
-| `` | `` | Cycle pagers | Choose the next pager in the list of configured pagers |
+| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
 | `` <esc> `` | Annuleren |  |
 | `` ? `` | Open menu |  |
 | `` <c-s> `` | Bekijk scoping opties | View options for filtering the commit log, so that only commits matching the filter are shown. |

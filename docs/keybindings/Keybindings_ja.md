@@ -24,7 +24,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` R `` | 更新 | Gitの状態を更新します（`git status`、`git branch`などをバックグラウンドで実行してパネルの内容を更新します）。これは`git fetch`を実行しません。 |
 | `` + `` | 次の画面モード（通常/半分/全画面） |  |
 | `` _ `` | 前の画面モード |  |
-| `` | `` | Cycle pagers | Choose the next pager in the list of configured pagers |
+| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
 | `` <esc> `` | キャンセル |  |
 | `` ? `` | キーバインディングメニューを開く |  |
 | `` <c-s> `` | フィルターオプションを表示 | コミットログのフィルタリングオプションを表示し、フィルタに一致するコミットのみを表示します。 |

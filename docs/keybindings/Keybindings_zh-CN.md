@@ -24,7 +24,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` R `` | 刷新 | 刷新git状态(即在后台上运行`git status`,`git branch`等命令以更新面板内容) 不会运行`git fetch` |
 | `` + `` | 下一屏模式(正常/半屏/全屏) |  |
 | `` _ `` | 上一屏模式 |  |
-| `` | `` | Cycle pagers | Choose the next pager in the list of configured pagers |
+| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
 | `` <esc> `` | 取消 |  |
 | `` ? `` | 打开菜单 |  |
 | `` <c-s> `` | 查看按路径过滤选项 | 查看用于过滤提交日志的选项，以便仅显示与过滤器匹配的提交。 |
