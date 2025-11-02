@@ -483,6 +483,8 @@ func getHashColor(
 	diffed := commit.Hash() != "" && commit.Hash() == diffName
 	hashColor := theme.DefaultTextColor
 	switch commit.Status {
+	case models.StatusNone:
+		hashColor = style.FgMagenta // or style.FgCyan
 	case models.StatusUnpushed:
 		hashColor = style.FgRed
 	case models.StatusPushed:
@@ -493,7 +495,6 @@ func getHashColor(
 		hashColor = style.FgBlue
 	case models.StatusReflog:
 		hashColor = style.FgBlue
-	default:
 	}
 
 	if diffed {

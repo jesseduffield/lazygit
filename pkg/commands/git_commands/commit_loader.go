@@ -546,7 +546,9 @@ func setCommitStatuses(unpushedCommitHashes *set.Set[string], unmergedCommitHash
 		}
 
 		if unmergedCommitHashes == nil || unmergedCommitHashes.Includes(commit.Hash()) {
-			if unpushedCommitHashes != nil && unpushedCommitHashes.Includes(commit.Hash()) {
+			if unpushedCommitHashes == nil {
+				commits[i].Status = models.StatusNone
+			} else if unpushedCommitHashes.Includes(commit.Hash()) {
 				commits[i].Status = models.StatusUnpushed
 			} else {
 				commits[i].Status = models.StatusPushed
@@ -569,7 +571,7 @@ func (self *CommitLoader) getReachableHashes(refName string, notRefNames []strin
 		DontLog().
 		RunWithOutputs()
 	if err != nil {
-		return set.New[string]()
+		return nil
 	}
 
 	return set.NewFromSlice(utils.SplitLines(output))
