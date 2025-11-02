@@ -1,0 +1,1999 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jesseduffield/lazygit/pkg/config/user-config",
+  "$ref": "#/$defs/UserConfig",
+  "$defs": {
+    "CommitConfig": {
+      "properties": {
+        "signOff": {
+          "type": "boolean",
+          "description": "If true, pass '--signoff' flag when committing",
+          "default": false
+        },
+        "autoWrapCommitMessage": {
+          "type": "boolean",
+          "description": "Automatic WYSIWYG wrapping of the commit message as you type",
+          "default": true
+        },
+        "autoWrapWidth": {
+          "type": "integer",
+          "description": "If autoWrapCommitMessage is true, the width to wrap to",
+          "default": 72
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config relating to committing"
+    },
+    "CommitLengthConfig": {
+      "properties": {
+        "show": {
+          "type": "boolean",
+          "description": "If true, show an indicator of commit message length",
+          "default": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config relating to the commit length indicator"
+    },
+    "CommitPrefixConfig": {
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "description": "pattern to match on. E.g. for 'feature/AB-123' to match on the AB-123 use \"^\\\\w+\\\\/(\\\\w+-\\\\w+).*\"",
+          "examples": [
+            "^\\w+\\/(\\w+-\\w+).*"
+          ]
+        },
+        "replace": {
+          "type": "string",
+          "description": "Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use \"[$1] \"",
+          "examples": [
+            "[$1]"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "CustomCommand": {
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "The key to trigger the command. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md"
+        },
+        "commandMenu": {
+          "items": {
+            "$ref": "#/$defs/CustomCommand"
+          },
+          "type": "array",
+          "description": "Instead of defining a single custom command, create a menu of custom commands. Useful for grouping related commands together under a single keybinding, and for keeping them out of the global keybindings menu.\nWhen using this, all other fields except Key and Description are ignored and must be empty."
+        },
+        "context": {
+          "type": "string",
+          "description": "The context in which to listen for the key. Valid values are: status, files, worktrees, localBranches, remotes, remoteBranches, tags, commits, reflogCommits, subCommits, commitFiles, stash, and global. Multiple contexts separated by comma are allowed; most useful for \"commits, subCommits\" or \"files, commitFiles\".",
+          "examples": [
+            "status",
+            "files",
+            "worktrees",
+            "localBranches",
+            "remotes",
+            "remoteBranches",
+            "tags",
+            "commits",
+            "reflogCommits",
+            "subCommits",
+            "commitFiles",
+            "stash",
+            "global"
+          ]
+        },
+        "command": {
+          "type": "string",
+          "description": "The command to run (using Go template syntax for placeholder values)",
+          "examples": [
+            "git fetch {{.Form.Remote}} {{.Form.Branch}} \u0026\u0026 git checkout FETCH_HEAD"
+          ]
+        },
+        "prompts": {
+          "items": {
+            "$ref": "#/$defs/CustomCommandPrompt"
+          },
+          "type": "array",
+          "description": "A list of prompts that will request user input before running the final command"
+        },
+        "loadingText": {
+          "type": "string",
+          "description": "Text to display while waiting for command to finish",
+          "examples": [
+            "Loading..."
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "Label for the custom command when displayed in the keybindings menu"
+        },
+        "output": {
+          "type": "string",
+          "enum": [
+            "none",
+            "terminal",
+            "log",
+            "logWithPty",
+            "popup"
+          ],
+          "description": "Where the output of the command should go. 'none' discards it, 'terminal' suspends lazygit and runs the command in the terminal (useful for commands that require user input), 'log' streams it to the command log, 'logWithPty' is like 'log' but runs the command in a pseudo terminal (can be useful for commands that produce colored output when the output is a terminal), and 'popup' shows it in a popup."
+        },
+        "outputTitle": {
+          "type": "string",
+          "description": "The title to display in the popup panel if output is set to 'popup'. If left unset, the command will be used as the title."
+        },
+        "after": {
+          "$ref": "#/$defs/CustomCommandAfterHook",
+          "description": "Actions to take after the command has completed"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "CustomCommandAfterHook": {
+      "properties": {
+        "checkForConflicts": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "CustomCommandMenuOption": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The first part of the label"
+        },
+        "description": {
+          "type": "string",
+          "description": "The second part of the label"
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The value that will be used in the command",
+          "examples": [
+            "feature"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "CustomCommandPrompt": {
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "One of: 'input' | 'menu' | 'confirm' | 'menuFromCommand'"
+        },
+        "key": {
+          "type": "string",
+          "description": "Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title to display in the popup panel"
+        },
+        "initialValue": {
+          "type": "string",
+          "description": "The initial value to appear in the text box.\nOnly for input prompts."
+        },
+        "suggestions": {
+          "$ref": "#/$defs/CustomCommandSuggestions",
+          "description": "Shows suggestions as the input is entered\nOnly for input prompts."
+        },
+        "body": {
+          "type": "string",
+          "description": "The message of the confirmation prompt.\nOnly for confirm prompts.",
+          "examples": [
+            "Are you sure you want to push to the remote?"
+          ]
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/CustomCommandMenuOption"
+          },
+          "type": "array",
+          "description": "Menu options.\nOnly for menu prompts."
+        },
+        "command": {
+          "type": "string",
+          "description": "The command to run to generate menu options\nOnly for menuFromCommand prompts.",
+          "examples": [
+            "git fetch {{.Form.Remote}} {{.Form.Branch}} \u0026\u0026 git checkout FETCH_HEAD"
+          ]
+        },
+        "filter": {
+          "type": "string",
+          "description": "The regexp to run specifying groups which are going to be kept from the command's output.\nOnly for menuFromCommand prompts.",
+          "examples": [
+            ".*{{.SelectedRemote.Name }}/(?P\u003cbranch\u003e.*)"
+          ]
+        },
+        "valueFormat": {
+          "type": "string",
+          "description": "How to format matched groups from the filter to construct a menu item's value.\nOnly for menuFromCommand prompts.",
+          "examples": [
+            "{{ .branch }}"
+          ]
+        },
+        "labelFormat": {
+          "type": "string",
+          "description": "Like valueFormat but for the labels. If `labelFormat` is not specified, `valueFormat` is shown instead.\nOnly for menuFromCommand prompts.",
+          "examples": [
+            "{{ .branch | green }}"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "CustomCommandSuggestions": {
+      "properties": {
+        "preset": {
+          "type": "string",
+          "enum": [
+            "authors",
+            "branches",
+            "files",
+            "refs",
+            "remotes",
+            "remoteBranches",
+            "tags"
+          ],
+          "description": "Uses built-in logic to obtain the suggestions. One of 'authors' | 'branches' | 'files' | 'refs' | 'remotes' | 'remoteBranches' | 'tags'"
+        },
+        "command": {
+          "type": "string",
+          "description": "Command to run such that each line in the output becomes a suggestion. Mutually exclusive with 'preset' field.",
+          "examples": [
+            "git fetch {{.Form.Remote}} {{.Form.Branch}} \u0026\u0026 git checkout FETCH_HEAD"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "CustomIconsConfig": {
+      "properties": {
+        "filenames": {
+          "additionalProperties": {
+            "$ref": "#/$defs/IconProperties"
+          },
+          "type": "object",
+          "description": "Map of filenames to icon properties (icon and color)"
+        },
+        "extensions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/IconProperties"
+          },
+          "type": "object",
+          "description": "Map of file extensions (including the dot) to icon properties (icon and color)"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Custom icons for filenames and file extensions\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color"
+    },
+    "GitConfig": {
+      "properties": {
+        "pagers": {
+          "items": {
+            "$ref": "#/$defs/PagingConfig"
+          },
+          "type": "array",
+          "description": "Array of pagers. Each entry has the following format:\n\n  # Value of the --color arg in the git diff command. Some pagers want\n  # this to be set to 'always' and some want it set to 'never'\n  colorArg: \"always\"\n\n  # e.g.\n  # diff-so-fancy\n  # delta --dark --paging=never\n  # ydiff -p cat -s --wrap --width={{columnWidth}}\n  pager: \"\"\n\n  # e.g. 'difft --color=always'\n  externalDiffCommand: \"\"\n\n  # If true, Lazygit will use git's `diff.external` config for paging.\n  # The advantage over `externalDiffCommand` is that this can be\n  # configured per file type in .gitattributes; see\n  # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.\n  useExternalDiffGitConfig: false\n\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md for more information."
+        },
+        "commit": {
+          "$ref": "#/$defs/CommitConfig",
+          "description": "Config relating to committing"
+        },
+        "merging": {
+          "$ref": "#/$defs/MergingConfig",
+          "description": "Config relating to merging"
+        },
+        "mainBranches": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "description": "list of branches that are considered 'main' branches, used when displaying commits",
+          "default": [
+            "master",
+            "main"
+          ]
+        },
+        "skipHookPrefix": {
+          "type": "string",
+          "description": "Prefix to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks will be skipped when the commit message starts with 'WIP'",
+          "default": "WIP"
+        },
+        "autoFetch": {
+          "type": "boolean",
+          "description": "If true, periodically fetch from remote",
+          "default": true
+        },
+        "autoRefresh": {
+          "type": "boolean",
+          "description": "If true, periodically refresh files and submodules",
+          "default": true
+        },
+        "autoForwardBranches": {
+          "type": "string",
+          "enum": [
+            "none",
+            "onlyMainBranches",
+            "allBranches"
+          ],
+          "description": "If not \"none\", lazygit will automatically fast-forward local branches to match their upstream after fetching. Applies to branches that are not the currently checked out branch, and only to those that are strictly behind their upstream (as opposed to diverged).\nPossible values: 'none' | 'onlyMainBranches' | 'allBranches'",
+          "default": "onlyMainBranches"
+        },
+        "fetchAll": {
+          "type": "boolean",
+          "description": "If true, pass the --all arg to git fetch",
+          "default": true
+        },
+        "autoStageResolvedConflicts": {
+          "type": "boolean",
+          "description": "If true, lazygit will automatically stage files that used to have merge conflicts but no longer do; and it will also ask you if you want to continue a merge or rebase if you've resolved all conflicts. If false, it won't do either of these things.",
+          "default": true
+        },
+        "branchLogCmd": {
+          "type": "string",
+          "description": "Command used when displaying the current branch git log in the main window",
+          "default": "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --"
+        },
+        "allBranchesLogCmds": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Commands used to display git log of all branches in the main window, they will be cycled in order of appearance (array of strings)",
+          "default": [
+            "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"
+          ]
+        },
+        "ignoreWhitespaceInDiffView": {
+          "type": "boolean",
+          "description": "If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `\u003cc-w\u003e`.",
+          "default": false
+        },
+        "diffContextSize": {
+          "type": "integer",
+          "description": "The number of lines of context to show around each diff hunk. Can be changed from within Lazygit with the `{` and `}` keys.",
+          "default": 3
+        },
+        "renameSimilarityThreshold": {
+          "type": "integer",
+          "maximum": 100,
+          "minimum": 0,
+          "description": "The threshold for considering a file to be renamed, in percent. Can be changed from within Lazygit with the `(` and `)` keys.",
+          "default": 50
+        },
+        "overrideGpg": {
+          "type": "boolean",
+          "description": "If true, do not spawn a separate process when using GPG",
+          "default": false
+        },
+        "disableForcePushing": {
+          "type": "boolean",
+          "description": "If true, do not allow force pushes",
+          "default": false
+        },
+        "commitPrefix": {
+          "items": {
+            "$ref": "#/$defs/CommitPrefixConfig"
+          },
+          "type": "array",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix"
+        },
+        "commitPrefixes": {
+          "additionalProperties": {
+            "items": {
+              "$ref": "#/$defs/CommitPrefixConfig"
+            },
+            "type": "array"
+          },
+          "type": "object",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix"
+        },
+        "branchPrefix": {
+          "type": "string",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix"
+        },
+        "parseEmoji": {
+          "type": "boolean",
+          "description": "If true, parse emoji strings in commit messages e.g. render :rocket: as 🚀\n(This should really be under 'gui', not 'git')",
+          "default": false
+        },
+        "log": {
+          "$ref": "#/$defs/LogConfig",
+          "description": "Config for showing the log in the commits view"
+        },
+        "localBranchSortOrder": {
+          "type": "string",
+          "enum": [
+            "date",
+            "recency",
+            "alphabetical"
+          ],
+          "description": "How branches are sorted in the local branches view.\nOne of: 'date' (default) | 'recency' | 'alphabetical'\nCan be changed from within Lazygit with the Sort Order menu (`s`) in the branches panel.",
+          "default": "date"
+        },
+        "remoteBranchSortOrder": {
+          "type": "string",
+          "enum": [
+            "date",
+            "alphabetical"
+          ],
+          "description": "How branches are sorted in the remote branches view.\nOne of: 'date' (default) | 'alphabetical'\nCan be changed from within Lazygit with the Sort Order menu (`s`) in the remote branches panel.",
+          "default": "date"
+        },
+        "truncateCopiedCommitHashesTo": {
+          "type": "integer",
+          "description": "When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.",
+          "default": 12
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config relating to git"
+    },
+    "GuiConfig": {
+      "properties": {
+        "authorColors": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color"
+        },
+        "branchColors": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color\nDeprecated: use branchColorPatterns instead"
+        },
+        "branchColorPatterns": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color"
+        },
+        "customIcons": {
+          "$ref": "#/$defs/CustomIconsConfig",
+          "description": "Custom icons for filenames and file extensions\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color"
+        },
+        "scrollHeight": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The number of lines you scroll by when scrolling the main window",
+          "default": 2
+        },
+        "scrollPastBottom": {
+          "type": "boolean",
+          "description": "If true, allow scrolling past the bottom of the content in the main window",
+          "default": true
+        },
+        "scrollOffMargin": {
+          "type": "integer",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#scroll-off-margin",
+          "default": 2
+        },
+        "scrollOffBehavior": {
+          "type": "string",
+          "description": "One of: 'margin' (default) | 'jump'",
+          "default": "margin"
+        },
+        "tabWidth": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The number of spaces per tab; used for everything that's shown in the main view, but probably mostly relevant for diffs.\nNote that when using a pager, the pager has its own tab width setting, so you need to pass it separately in the pager command.",
+          "default": 4
+        },
+        "mouseEvents": {
+          "type": "boolean",
+          "description": "If true, capture mouse events.\nWhen mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.",
+          "default": true
+        },
+        "skipAmendWarning": {
+          "type": "boolean",
+          "description": "If true, do not show a warning when amending a commit.",
+          "default": false
+        },
+        "skipDiscardChangeWarning": {
+          "type": "boolean",
+          "description": "If true, do not show a warning when discarding changes in the staging view.",
+          "default": false
+        },
+        "skipStashWarning": {
+          "type": "boolean",
+          "description": "If true, do not show warning when applying/popping the stash",
+          "default": false
+        },
+        "skipNoStagedFilesWarning": {
+          "type": "boolean",
+          "description": "If true, do not show a warning when attempting to commit without any staged files; instead stage all unstaged files.",
+          "default": false
+        },
+        "skipRewordInEditorWarning": {
+          "type": "boolean",
+          "description": "If true, do not show a warning when rewording a commit via an external editor",
+          "default": false
+        },
+        "skipSwitchWorktreeOnCheckoutWarning": {
+          "type": "boolean",
+          "description": "If true, switch to a different worktree without confirmation when checking out a branch that is checked out in that worktree",
+          "default": false
+        },
+        "sidePanelWidth": {
+          "type": "number",
+          "maximum": 1,
+          "minimum": 0,
+          "description": "Fraction of the total screen width to use for the left side section. You may want to pick a small number (e.g. 0.2) if you're using a narrow screen, so that you can see more of the main section.\nNumber from 0 to 1.0.",
+          "default": 0.3333
+        },
+        "expandFocusedSidePanel": {
+          "type": "boolean",
+          "description": "If true, increase the height of the focused side window; creating an accordion effect.",
+          "default": false
+        },
+        "expandedSidePanelWeight": {
+          "type": "integer",
+          "description": "The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.",
+          "default": 2
+        },
+        "mainPanelSplitMode": {
+          "type": "string",
+          "enum": [
+            "horizontal",
+            "flexible",
+            "vertical"
+          ],
+          "description": "Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.\nOptions are:\n- 'horizontal': split the window horizontally\n- 'vertical': split the window vertically\n- 'flexible': (default) split the window horizontally if the window is wide enough, otherwise split vertically",
+          "default": "flexible"
+        },
+        "enlargedSideViewLocation": {
+          "type": "string",
+          "description": "How the window is split when in half screen mode (i.e. after hitting '+' once).\nPossible values:\n- 'left': split the window horizontally (side panel on the left, main view on the right)\n- 'top': split the window vertically (side panel on top, main view below)",
+          "default": "left"
+        },
+        "wrapLinesInStagingView": {
+          "type": "boolean",
+          "description": "If true, wrap lines in the staging view to the width of the view. This makes it much easier to work with diffs that have long lines, e.g. paragraphs of markdown text.",
+          "default": true
+        },
+        "useHunkModeInStagingView": {
+          "type": "boolean",
+          "description": "If true, hunk selection mode will be enabled by default when entering the staging view.",
+          "default": true
+        },
+        "language": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "en",
+            "zh-TW",
+            "zh-CN",
+            "pl",
+            "nl",
+            "ja",
+            "ko",
+            "ru"
+          ],
+          "description": "One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru' | 'pt'",
+          "default": "auto"
+        },
+        "timeFormat": {
+          "type": "string",
+          "description": "Format used when displaying time e.g. commit time.\nUses Go's time format syntax: https://pkg.go.dev/time#Time.Format",
+          "default": "02 Jan 06"
+        },
+        "shortTimeFormat": {
+          "type": "string",
+          "description": "Format used when displaying time if the time is less than 24 hours ago.\nUses Go's time format syntax: https://pkg.go.dev/time#Time.Format",
+          "default": "3:04PM"
+        },
+        "theme": {
+          "$ref": "#/$defs/ThemeConfig",
+          "description": "Config relating to colors and styles.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#color-attributes"
+        },
+        "commitLength": {
+          "$ref": "#/$defs/CommitLengthConfig",
+          "description": "Config relating to the commit length indicator"
+        },
+        "showListFooter": {
+          "type": "boolean",
+          "description": "If true, show the '5 of 20' footer at the bottom of list views",
+          "default": true
+        },
+        "showFileTree": {
+          "type": "boolean",
+          "description": "If true, display the files in the file views as a tree. If false, display the files as a flat list.\nThis can be toggled from within Lazygit with the '`' key, but that will not change the default.",
+          "default": true
+        },
+        "showRootItemInFileTree": {
+          "type": "boolean",
+          "description": "If true, add a \"/\" root item in the file tree representing the root of the repository. It is only added when necessary, i.e. when there is more than one item at top level.",
+          "default": true
+        },
+        "showNumstatInFilesView": {
+          "type": "boolean",
+          "description": "If true, show the number of lines changed per file in the Files view",
+          "default": false
+        },
+        "showRandomTip": {
+          "type": "boolean",
+          "description": "If true, show a random tip in the command log when Lazygit starts",
+          "default": true
+        },
+        "showCommandLog": {
+          "type": "boolean",
+          "description": "If true, show the command log",
+          "default": true
+        },
+        "showBottomLine": {
+          "type": "boolean",
+          "description": "If true, show the bottom line that contains keybinding info and useful buttons. If false, this line will be hidden except to display a loader for an in-progress action.",
+          "default": true
+        },
+        "showPanelJumps": {
+          "type": "boolean",
+          "description": "If true, show jump-to-window keybindings in window titles.",
+          "default": true
+        },
+        "showIcons": {
+          "type": "boolean",
+          "description": "Deprecated: use nerdFontsVersion instead",
+          "default": false
+        },
+        "nerdFontsVersion": {
+          "type": "string",
+          "enum": [
+            "2",
+            "3",
+            ""
+          ],
+          "description": "Nerd fonts version to use.\nOne of: '2' | '3' | empty string (default)\nIf empty, do not show icons."
+        },
+        "showFileIcons": {
+          "type": "boolean",
+          "description": "If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.",
+          "default": true
+        },
+        "commitAuthorShortLength": {
+          "type": "integer",
+          "description": "Length of author name in (non-expanded) commits view. 2 means show initials only.",
+          "default": 2
+        },
+        "commitAuthorLongLength": {
+          "type": "integer",
+          "description": "Length of author name in expanded commits view. 2 means show initials only.",
+          "default": 17
+        },
+        "commitHashLength": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.",
+          "default": 8
+        },
+        "showBranchCommitHash": {
+          "type": "boolean",
+          "description": "If true, show commit hashes alongside branch names in the branches view.",
+          "default": false
+        },
+        "showDivergenceFromBaseBranch": {
+          "type": "string",
+          "enum": [
+            "none",
+            "onlyArrow",
+            "arrowAndNumber"
+          ],
+          "description": "Whether to show the divergence from the base branch in the branches view.\nOne of: 'none' | 'onlyArrow'  | 'arrowAndNumber'",
+          "default": "none"
+        },
+        "commandLogSize": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Height of the command log view",
+          "default": 8
+        },
+        "splitDiff": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "always"
+          ],
+          "description": "Whether to split the main window when viewing file changes.\nOne of: 'auto' | 'always'\nIf 'auto', only split the main window when a file has both staged and unstaged changes",
+          "default": "auto"
+        },
+        "screenMode": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "half",
+            "full"
+          ],
+          "description": "Default size for focused window. Can be changed from within Lazygit with '+' and '_' (but this won't change the default).\nOne of: 'normal' (default) | 'half' | 'full'",
+          "default": "normal"
+        },
+        "border": {
+          "type": "string",
+          "enum": [
+            "single",
+            "double",
+            "rounded",
+            "hidden",
+            "bold"
+          ],
+          "description": "Window border style.\nOne of 'rounded' (default) | 'single' | 'double' | 'hidden' | 'bold'",
+          "default": "rounded"
+        },
+        "animateExplosion": {
+          "type": "boolean",
+          "description": "If true, show a seriously epic explosion animation when nuking the working tree.",
+          "default": true
+        },
+        "portraitMode": {
+          "type": "string",
+          "description": "Whether to stack UI components on top of each other.\nOne of 'auto' (default) | 'always' | 'never'",
+          "default": "auto"
+        },
+        "filterMode": {
+          "type": "string",
+          "enum": [
+            "substring",
+            "fuzzy"
+          ],
+          "description": "How things are filtered when typing '/'.\nOne of 'substring' (default) | 'fuzzy'",
+          "default": "substring"
+        },
+        "spinner": {
+          "$ref": "#/$defs/SpinnerConfig",
+          "description": "Config relating to the spinner."
+        },
+        "statusPanelView": {
+          "type": "string",
+          "enum": [
+            "dashboard",
+            "allBranchesLog"
+          ],
+          "description": "Status panel view.\nOne of 'dashboard' (default) | 'allBranchesLog'",
+          "default": "dashboard"
+        },
+        "switchToFilesAfterStashPop": {
+          "type": "boolean",
+          "description": "If true, jump to the Files panel after popping a stash",
+          "default": true
+        },
+        "switchToFilesAfterStashApply": {
+          "type": "boolean",
+          "description": "If true, jump to the Files panel after applying a stash",
+          "default": true
+        },
+        "switchTabsWithPanelJumpKeys": {
+          "type": "boolean",
+          "description": "If true, when using the panel jump keys (default 1 through 5) and target panel is already active, go to next tab instead",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config relating to the Lazygit UI"
+    },
+    "IconProperties": {
+      "properties": {
+        "icon": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "KeybindingAmendAttributeConfig": {
+      "properties": {
+        "resetAuthor": {
+          "type": "string",
+          "default": "a"
+        },
+        "setAuthor": {
+          "type": "string",
+          "default": "A"
+        },
+        "addCoAuthor": {
+          "type": "string",
+          "default": "c"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "KeybindingBranchesConfig": {
+      "properties": {
+        "createPullRequest": {
+          "type": "string",
+          "default": "o"
+        },
+        "viewPullRequestOptions": {
+          "type": "string",
+          "default": "O"
+        },
+        "copyPullRequestURL": {
+          "type": "string",
+          "default": "\u003cc-y\u003e"
+        },
+        "checkoutBranchByName": {
+          "type": "string",
+          "default": "c"
+        },
+        "forceCheckoutBranch": {
+          "type": "string",
+          "default": "F"
+        },
+        "checkoutPreviousBranch": {
+          "type": "string",
+          "default": "-"
+        },
+        "rebaseBranch": {
+          "type": "string",
+          "default": "r"
+        },
+        "renameBranch": {
+          "type": "string",
+          "default": "R"
+        },
+        "mergeIntoCurrentBranch": {
+          "type": "string",
+          "default": "M"
+        },
+        "moveCommitsToNewBranch": {
+          "type": "string",
+          "default": "N"
+        },
+        "viewGitFlowOptions": {
+          "type": "string",
+          "default": "i"
+        },
+        "fastForward": {
+          "type": "string",
+          "default": "f"
+        },
+        "createTag": {
+          "type": "string",
+          "default": "T"
+        },
+        "pushTag": {
+          "type": "string",
+          "default": "P"
+        },
+        "setUpstream": {
+          "type": "string",
+          "default": "u"
+        },
+        "fetchRemote": {
+          "type": "string",
+          "default": "f"
+        },
+        "sortOrder": {
+          "type": "string",
+          "default": "s"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "KeybindingCommitFilesConfig": {
+      "properties": {
+        "checkoutCommitFile": {
+          "type": "string",
+          "default": "c"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "KeybindingCommitMessageConfig": {
+      "properties": {
+        "commitMenu": {
+          "type": "string",
+          "default": "\u003cc-o\u003e"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "KeybindingCommitsConfig": {
+      "properties": {
+        "squashDown": {
+          "type": "string",
+          "default": "s"
+        },
+        "renameCommit": {
+          "type": "string",
+          "default": "r"
+        },
+        "renameCommitWithEditor": {
+          "type": "string",
+          "default": "R"
+        },
+        "viewResetOptions": {
+          "type": "string",
+          "default": "g"
+        },
+        "markCommitAsFixup": {
+          "type": "string",
+          "default": "f"
+        },
+        "createFixupCommit": {
+          "type": "string",
+          "default": "F"
+        },
+        "squashAboveCommits": {
+          "type": "string",
+          "default": "S"
+        },
+        "moveDownCommit": {
+          "type": "string",
+          "default": "\u003cc-j\u003e"
+        },
+        "moveUpCommit": {
+          "type": "string",
+          "default": "\u003cc-k\u003e"
+        },
+        "amendToCommit": {
+          "type": "string",
+          "default": "A"
+        },
+        "resetCommitAuthor": {
+          "type": "string",
+          "default": "a"
+        },
+        "pickCommit": {
+          "type": "string",
+          "default": "p"
+        },
+        "revertCommit": {
+          "type": "string",
+          "default": "t"
+        },
+        "cherryPickCopy": {
+          "type": "string",
+          "default": "C"
+        },
+        "pasteCommits": {
+          "type": "string",
+          "default": "V"
+        },
+        "markCommitAsBaseForRebase": {
+          "type": "string",
+          "default": "B"
+        },
+        "tagCommit": {
+          "type": "string",
+          "default": "T"
+        },
+        "checkoutCommit": {
+          "type": "string",
+          "default": "\u003cspace\u003e"
+        },
+        "resetCherryPick": {
+          "type": "string",
+          "default": "\u003cc-R\u003e"
+        },
+        "copyCommitAttributeToClipboard": {
+          "type": "string",
+          "default": "y"
+        },
+        "openLogMenu": {
+          "type": "string",
+          "default": "\u003cc-l\u003e"
+        },
+        "openInBrowser": {
+          "type": "string",
+          "default": "o"
+        },
+        "viewBisectOptions": {
+          "type": "string",
+          "default": "b"
+        },
+        "startInteractiveRebase": {
+          "type": "string",
+          "default": "i"
+        },
+        "selectCommitsOfCurrentBranch": {
+          "type": "string",
+          "default": "*"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "KeybindingConfig": {
+      "properties": {
+        "universal": {
+          "$ref": "#/$defs/KeybindingUniversalConfig"
+        },
+        "status": {
+          "$ref": "#/$defs/KeybindingStatusConfig"
+        },
+        "files": {
+          "$ref": "#/$defs/KeybindingFilesConfig"
+        },
+        "branches": {
+          "$ref": "#/$defs/KeybindingBranchesConfig"
+        },
+        "worktrees": {
+          "$ref": "#/$defs/KeybindingWorktreesConfig"
+        },
+        "commits": {
+          "$ref": "#/$defs/KeybindingCommitsConfig"
+        },
+        "amendAttribute": {
+          "$ref": "#/$defs/KeybindingAmendAttributeConfig"
+        },
+        "stash": {
+          "$ref": "#/$defs/KeybindingStashConfig"
+        },
+        "commitFiles": {
+          "$ref": "#/$defs/KeybindingCommitFilesConfig"
+        },
+        "main": {
+          "$ref": "#/$defs/KeybindingMainConfig"
+        },
+        "submodules": {
+          "$ref": "#/$defs/KeybindingSubmodulesConfig"
+        },
+        "commitMessage": {
+          "$ref": "#/$defs/KeybindingCommitMessageConfig"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Keybindings"
+    },
+    "KeybindingFilesConfig": {
+      "properties": {
+        "commitChanges": {
+          "type": "string",
+          "default": "c"
+        },
+        "commitChangesWithoutHook": {
+          "type": "string",
+          "default": "w"
+        },
+        "amendLastCommit": {
+          "type": "string",
+          "default": "A"
+        },
+        "commitChangesWithEditor": {
+          "type": "string",
+          "default": "C"
+        },
+        "findBaseCommitForFixup": {
+          "type": "string",
+          "default": "\u003cc-f\u003e"
+        },
+        "confirmDiscard": {
+          "type": "string",
+          "default": "x"
+        },
+        "ignoreFile": {
+          "type": "string",
+          "default": "i"
+        },
+        "refreshFiles": {
+          "type": "string",
+          "default": "r"
+        },
+        "stashAllChanges": {
+          "type": "string",
+          "default": "s"
+        },
+        "viewStashOptions": {
+          "type": "string",
+          "default": "S"
+        },
+        "toggleStagedAll": {
+          "type": "string",
+          "default": "a"
+        },
+        "viewResetOptions": {
+          "type": "string",
+          "default": "D"
+        },
+        "fetch": {
+          "type": "string",
+          "default": "f"
+        },
+        "toggleTreeView": {
+          "type": "string",
+          "default": "`"
+        },
+        "openMergeOptions": {
+          "type": "string",
+          "default": "M"
+        },
+        "openStatusFilter": {
+          "type": "string",
+          "default": "\u003cc-b\u003e"
+        },
+        "copyFileInfoToClipboard": {
+          "type": "string",
+          "default": "y"
+        },
+        "collapseAll": {
+          "type": "string",
+          "default": "-"
+        },
+        "expandAll": {
+          "type": "string",
+          "default": "="
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "KeybindingMainConfig": {
+      "properties": {
+        "toggleSelectHunk": {
+          "type": "string",
+          "default": "a"
+        },
+        "pickBothHunks": {
+          "type": "string",
+          "default": "b"
+        },
+        "editSelectHunk": {
+          "type": "string",
+          "default": "E"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "KeybindingStashConfig": {
+      "properties": {
+        "popStash": {
+          "type": "string",
+          "default": "g"
+        },
+        "renameStash": {
+          "type": "string",
+          "default": "r"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "KeybindingStatusConfig": {
+      "properties": {
+        "checkForUpdate": {
+          "type": "string",
+          "default": "u"
+        },
+        "recentRepos": {
+          "type": "string",
+          "default": "\u003center\u003e"
+        },
+        "allBranchesLogGraph": {
+          "type": "string",
+          "default": "a"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "KeybindingSubmodulesConfig": {
+      "properties": {
+        "init": {
+          "type": "string",
+          "default": "i"
+        },
+        "update": {
+          "type": "string",
+          "default": "u"
+        },
+        "bulkMenu": {
+          "type": "string",
+          "default": "b"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "KeybindingUniversalConfig": {
+      "properties": {
+        "quit": {
+          "type": "string",
+          "default": "q"
+        },
+        "quit-alt1": {
+          "type": "string",
+          "default": "\u003cc-c\u003e"
+        },
+        "suspendApp": {
+          "type": "string",
+          "default": "\u003cc-z\u003e"
+        },
+        "return": {
+          "type": "string",
+          "default": "\u003cesc\u003e"
+        },
+        "quitWithoutChangingDirectory": {
+          "type": "string",
+          "default": "Q"
+        },
+        "togglePanel": {
+          "type": "string",
+          "default": "\u003ctab\u003e"
+        },
+        "prevItem": {
+          "type": "string",
+          "default": "\u003cup\u003e"
+        },
+        "nextItem": {
+          "type": "string",
+          "default": "\u003cdown\u003e"
+        },
+        "prevItem-alt": {
+          "type": "string",
+          "default": "k"
+        },
+        "nextItem-alt": {
+          "type": "string",
+          "default": "j"
+        },
+        "prevPage": {
+          "type": "string",
+          "default": ","
+        },
+        "nextPage": {
+          "type": "string",
+          "default": "."
+        },
+        "scrollLeft": {
+          "type": "string",
+          "default": "H"
+        },
+        "scrollRight": {
+          "type": "string",
+          "default": "L"
+        },
+        "gotoTop": {
+          "type": "string",
+          "default": "\u003c"
+        },
+        "gotoBottom": {
+          "type": "string",
+          "default": "\u003e"
+        },
+        "gotoTop-alt": {
+          "type": "string",
+          "default": "\u003chome\u003e"
+        },
+        "gotoBottom-alt": {
+          "type": "string",
+          "default": "\u003cend\u003e"
+        },
+        "toggleRangeSelect": {
+          "type": "string",
+          "default": "v"
+        },
+        "rangeSelectDown": {
+          "type": "string",
+          "default": "\u003cs-down\u003e"
+        },
+        "rangeSelectUp": {
+          "type": "string",
+          "default": "\u003cs-up\u003e"
+        },
+        "prevBlock": {
+          "type": "string",
+          "default": "\u003cleft\u003e"
+        },
+        "nextBlock": {
+          "type": "string",
+          "default": "\u003cright\u003e"
+        },
+        "prevBlock-alt": {
+          "type": "string",
+          "default": "h"
+        },
+        "nextBlock-alt": {
+          "type": "string",
+          "default": "l"
+        },
+        "nextBlock-alt2": {
+          "type": "string",
+          "default": "\u003ctab\u003e"
+        },
+        "prevBlock-alt2": {
+          "type": "string",
+          "default": "\u003cbacktab\u003e"
+        },
+        "jumpToBlock": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "default": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ]
+        },
+        "focusMainView": {
+          "type": "string",
+          "default": "0"
+        },
+        "nextMatch": {
+          "type": "string",
+          "default": "n"
+        },
+        "prevMatch": {
+          "type": "string",
+          "default": "N"
+        },
+        "startSearch": {
+          "type": "string",
+          "default": "/"
+        },
+        "optionMenu": {
+          "type": "string",
+          "default": "\u003cdisabled\u003e"
+        },
+        "optionMenu-alt1": {
+          "type": "string",
+          "default": "?"
+        },
+        "select": {
+          "type": "string",
+          "default": "\u003cspace\u003e"
+        },
+        "goInto": {
+          "type": "string",
+          "default": "\u003center\u003e"
+        },
+        "confirm": {
+          "type": "string",
+          "default": "\u003center\u003e"
+        },
+        "confirmMenu": {
+          "type": "string",
+          "default": "\u003center\u003e"
+        },
+        "confirmSuggestion": {
+          "type": "string",
+          "default": "\u003center\u003e"
+        },
+        "confirmInEditor": {
+          "type": "string",
+          "default": "\u003ca-enter\u003e"
+        },
+        "confirmInEditor-alt": {
+          "type": "string",
+          "default": "\u003cc-s\u003e"
+        },
+        "remove": {
+          "type": "string",
+          "default": "d"
+        },
+        "new": {
+          "type": "string",
+          "default": "n"
+        },
+        "edit": {
+          "type": "string",
+          "default": "e"
+        },
+        "openFile": {
+          "type": "string",
+          "default": "o"
+        },
+        "scrollUpMain": {
+          "type": "string",
+          "default": "\u003cpgup\u003e"
+        },
+        "scrollDownMain": {
+          "type": "string",
+          "default": "\u003cpgdown\u003e"
+        },
+        "scrollUpMain-alt1": {
+          "type": "string",
+          "default": "K"
+        },
+        "scrollDownMain-alt1": {
+          "type": "string",
+          "default": "J"
+        },
+        "scrollUpMain-alt2": {
+          "type": "string",
+          "default": "\u003cc-u\u003e"
+        },
+        "scrollDownMain-alt2": {
+          "type": "string",
+          "default": "\u003cc-d\u003e"
+        },
+        "executeShellCommand": {
+          "type": "string",
+          "default": ":"
+        },
+        "createRebaseOptionsMenu": {
+          "type": "string",
+          "default": "m"
+        },
+        "pushFiles": {
+          "type": "string",
+          "description": "'Files' appended for legacy reasons",
+          "default": "P"
+        },
+        "pullFiles": {
+          "type": "string",
+          "description": "'Files' appended for legacy reasons",
+          "default": "p"
+        },
+        "refresh": {
+          "type": "string",
+          "default": "R"
+        },
+        "createPatchOptionsMenu": {
+          "type": "string",
+          "default": "\u003cc-p\u003e"
+        },
+        "nextTab": {
+          "type": "string",
+          "default": "]"
+        },
+        "prevTab": {
+          "type": "string",
+          "default": "["
+        },
+        "nextScreenMode": {
+          "type": "string",
+          "default": "+"
+        },
+        "prevScreenMode": {
+          "type": "string",
+          "default": "_"
+        },
+        "cyclePagers": {
+          "type": "string",
+          "default": "|"
+        },
+        "undo": {
+          "type": "string",
+          "default": "z"
+        },
+        "redo": {
+          "type": "string",
+          "default": "Z"
+        },
+        "filteringMenu": {
+          "type": "string",
+          "default": "\u003cc-s\u003e"
+        },
+        "diffingMenu": {
+          "type": "string",
+          "default": "W"
+        },
+        "diffingMenu-alt": {
+          "type": "string",
+          "default": "\u003cc-e\u003e"
+        },
+        "copyToClipboard": {
+          "type": "string",
+          "default": "\u003cc-o\u003e"
+        },
+        "openRecentRepos": {
+          "type": "string",
+          "default": "\u003cc-r\u003e"
+        },
+        "submitEditorText": {
+          "type": "string",
+          "default": "\u003center\u003e"
+        },
+        "extrasMenu": {
+          "type": "string",
+          "default": "@"
+        },
+        "toggleWhitespaceInDiffView": {
+          "type": "string",
+          "default": "\u003cc-w\u003e"
+        },
+        "increaseContextInDiffView": {
+          "type": "string",
+          "default": "}"
+        },
+        "decreaseContextInDiffView": {
+          "type": "string",
+          "default": "{"
+        },
+        "increaseRenameSimilarityThreshold": {
+          "type": "string",
+          "default": ")"
+        },
+        "decreaseRenameSimilarityThreshold": {
+          "type": "string",
+          "default": "("
+        },
+        "openDiffTool": {
+          "type": "string",
+          "default": "\u003cc-t\u003e"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "KeybindingWorktreesConfig": {
+      "properties": {
+        "viewWorktreeOptions": {
+          "type": "string",
+          "default": "w"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "LogConfig": {
+      "properties": {
+        "order": {
+          "type": "string",
+          "enum": [
+            "date-order",
+            "author-date-order",
+            "topo-order",
+            "default"
+          ],
+          "description": "One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'\n'topo-order' makes it easier to read the git log graph, but commits may not appear chronologically. See https://git-scm.com/docs/\n\nCan be changed from within Lazygit with `Log menu -\u003e Commit sort order` (`\u003cc-l\u003e` in the commits window by default).",
+          "default": "topo-order"
+        },
+        "showGraph": {
+          "type": "string",
+          "enum": [
+            "always",
+            "never",
+            "when-maximised"
+          ],
+          "description": "This determines whether the git graph is rendered in the commits panel\nOne of 'always' | 'never' | 'when-maximised'\n\nCan be toggled from within lazygit with `Log menu -\u003e Show git graph` (`\u003cc-l\u003e` in the commits window by default).",
+          "default": "always"
+        },
+        "showWholeGraph": {
+          "type": "boolean",
+          "description": "displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config for showing the log in the commits view"
+    },
+    "MergingConfig": {
+      "properties": {
+        "manualCommit": {
+          "type": "boolean",
+          "description": "If true, run merges in a subprocess so that if a commit message is required, Lazygit will not hang\nOnly applicable to unix users.",
+          "default": false
+        },
+        "args": {
+          "type": "string",
+          "description": "Extra args passed to `git merge`, e.g. --no-ff",
+          "examples": [
+            "--no-ff"
+          ]
+        },
+        "squashMergeMessage": {
+          "type": "string",
+          "description": "The commit message to use for a squash merge commit. Can contain \"{{selectedRef}}\" and \"{{currentBranch}}\" placeholders.",
+          "default": "Squash merge {{selectedRef}} into {{currentBranch}}"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config relating to merging"
+    },
+    "OSConfig": {
+      "properties": {
+        "edit": {
+          "type": "string",
+          "description": "Command for editing a file. Should contain \"{{filename}}\"."
+        },
+        "editAtLine": {
+          "type": "string",
+          "description": "Command for editing a file at a given line number. Should contain \"{{filename}}\", and may optionally contain \"{{line}}\"."
+        },
+        "editAtLineAndWait": {
+          "type": "string",
+          "description": "Same as EditAtLine, except that the command needs to wait until the window is closed."
+        },
+        "editInTerminal": {
+          "type": "boolean",
+          "description": "Whether lazygit suspends until an edit process returns"
+        },
+        "openDirInEditor": {
+          "type": "string",
+          "description": "For opening a directory in an editor"
+        },
+        "editPreset": {
+          "type": "string",
+          "description": "A built-in preset that sets all of the above settings. Supported presets are defined in the getPreset function in editor_presets.go.",
+          "examples": [
+            "vim",
+            "nvim",
+            "emacs",
+            "nano",
+            "vscode",
+            "sublime",
+            "kakoune",
+            "helix",
+            "xcode",
+            "zed",
+            "acme"
+          ]
+        },
+        "open": {
+          "type": "string",
+          "description": "Command for opening a file, as if the file is double-clicked. Should contain \"{{filename}}\", but doesn't support \"{{line}}\"."
+        },
+        "openLink": {
+          "type": "string",
+          "description": "Command for opening a link. Should contain \"{{link}}\"."
+        },
+        "copyToClipboardCmd": {
+          "type": "string",
+          "description": "CopyToClipboardCmd is the command for copying to clipboard.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard"
+        },
+        "readFromClipboardCmd": {
+          "type": "string",
+          "description": "ReadFromClipboardCmd is the command for reading the clipboard.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-command-for-copying-to-and-pasting-from-clipboard"
+        },
+        "shellFunctionsFile": {
+          "type": "string",
+          "description": "A shell startup file containing shell aliases or shell functions. This will be sourced before running any shell commands, so that shell functions are available in the `:` command prompt or even in custom commands.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#using-aliases-or-functions-in-shell-commands"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config relating to things outside of Lazygit like how files are opened, copying to clipboard, etc"
+    },
+    "PagingConfig": {
+      "properties": {
+        "colorArg": {
+          "type": "string",
+          "enum": [
+            "always",
+            "never"
+          ],
+          "description": "Value of the --color arg in the git diff command. Some pagers want this to be set to 'always' and some want it set to 'never'"
+        },
+        "pager": {
+          "type": "string",
+          "description": "e.g.\ndiff-so-fancy\ndelta --dark --paging=never\nydiff -p cat -s --wrap --width={{columnWidth}}",
+          "examples": [
+            "delta --dark --paging=never",
+            "diff-so-fancy",
+            "ydiff -p cat -s --wrap --width={{columnWidth}}"
+          ]
+        },
+        "externalDiffCommand": {
+          "type": "string",
+          "description": "e.g. 'difft --color=always'"
+        },
+        "useExternalDiffGitConfig": {
+          "type": "boolean",
+          "description": "If true, Lazygit will use git's `diff.external` config for paging. The advantage over `externalDiffCommand` is that this can be configured per file type in .gitattributes; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RefresherConfig": {
+      "properties": {
+        "refreshInterval": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "File/submodule refresh interval in seconds.\nAuto-refresh can be disabled via option 'git.autoRefresh'.",
+          "default": 10
+        },
+        "fetchInterval": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Re-fetch interval in seconds.\nAuto-fetch can be disabled via option 'git.autoFetch'.",
+          "default": 60
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Background refreshes"
+    },
+    "SpinnerConfig": {
+      "properties": {
+        "frames": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "The frames of the spinner animation.",
+          "default": [
+            "|",
+            "/",
+            "-",
+            "\\"
+          ]
+        },
+        "rate": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The \"speed\" of the spinner in milliseconds.",
+          "default": 50
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config relating to the spinner."
+    },
+    "ThemeConfig": {
+      "properties": {
+        "activeBorderColor": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Border color of focused window",
+          "default": [
+            "green",
+            "bold"
+          ]
+        },
+        "inactiveBorderColor": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Border color of non-focused windows",
+          "default": [
+            "default"
+          ]
+        },
+        "searchingActiveBorderColor": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Border color of focused window when searching in that window",
+          "default": [
+            "cyan",
+            "bold"
+          ]
+        },
+        "optionsTextColor": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Color of keybindings help text in the bottom line",
+          "default": [
+            "blue"
+          ]
+        },
+        "selectedLineBgColor": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Background color of selected line.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line",
+          "default": [
+            "blue"
+          ]
+        },
+        "inactiveViewSelectedLineBgColor": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Background color of selected line when view doesn't have focus.",
+          "default": [
+            "bold"
+          ]
+        },
+        "cherryPickedCommitFgColor": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Foreground color of copied commit",
+          "default": [
+            "blue"
+          ]
+        },
+        "cherryPickedCommitBgColor": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Background color of copied commit",
+          "default": [
+            "cyan"
+          ]
+        },
+        "markedBaseCommitFgColor": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Foreground color of marked base commit (for rebase)",
+          "default": [
+            "blue"
+          ]
+        },
+        "markedBaseCommitBgColor": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Background color of marked base commit (for rebase)",
+          "default": [
+            "yellow"
+          ]
+        },
+        "unstagedChangesColor": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Color for file with unstaged changes",
+          "default": [
+            "red"
+          ]
+        },
+        "defaultFgColor": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Default text color",
+          "default": [
+            "default"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config relating to colors and styles.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#color-attributes"
+    },
+    "UpdateConfig": {
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "prompt",
+            "background",
+            "never"
+          ],
+          "description": "One of: 'prompt' (default) | 'background' | 'never'",
+          "default": "prompt"
+        },
+        "days": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Period in days between update checks",
+          "default": 14
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Periodic update checks"
+    },
+    "UserConfig": {
+      "properties": {
+        "gui": {
+          "$ref": "#/$defs/GuiConfig",
+          "description": "Config relating to the Lazygit UI"
+        },
+        "git": {
+          "$ref": "#/$defs/GitConfig",
+          "description": "Config relating to git"
+        },
+        "update": {
+          "$ref": "#/$defs/UpdateConfig",
+          "description": "Periodic update checks"
+        },
+        "refresher": {
+          "$ref": "#/$defs/RefresherConfig",
+          "description": "Background refreshes"
+        },
+        "confirmOnQuit": {
+          "type": "boolean",
+          "description": "If true, show a confirmation popup before quitting Lazygit",
+          "default": false
+        },
+        "quitOnTopLevelReturn": {
+          "type": "boolean",
+          "description": "If true, exit Lazygit when the user presses escape in a context where there is nothing to cancel/close",
+          "default": false
+        },
+        "os": {
+          "$ref": "#/$defs/OSConfig",
+          "description": "Config relating to things outside of Lazygit like how files are opened, copying to clipboard, etc"
+        },
+        "disableStartupPopups": {
+          "type": "boolean",
+          "description": "If true, don't display introductory popups upon opening Lazygit.",
+          "default": false
+        },
+        "customCommands": {
+          "items": {
+            "$ref": "#/$defs/CustomCommand"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "description": "User-configured commands that can be invoked from within Lazygit\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md"
+        },
+        "services": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-pull-request-urls"
+        },
+        "notARepository": {
+          "type": "string",
+          "enum": [
+            "prompt",
+            "create",
+            "skip",
+            "quit"
+          ],
+          "description": "What to do when opening Lazygit outside of a git repo.\n- 'prompt': (default) ask whether to initialize a new repo or open in the most recent repo\n- 'create': initialize a new repo\n- 'skip': open most recent repo\n- 'quit': exit Lazygit",
+          "default": "prompt"
+        },
+        "promptToReturnFromSubprocess": {
+          "type": "boolean",
+          "description": "If true, display a confirmation when subprocess terminates. This allows you to view the output of the subprocess before returning to Lazygit.",
+          "default": true
+        },
+        "keybinding": {
+          "$ref": "#/$defs/KeybindingConfig",
+          "description": "Keybindings"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    }
+  }
+}
