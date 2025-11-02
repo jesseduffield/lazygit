@@ -1023,7 +1023,7 @@ Supported versions are "2" and "3". The deprecated config `showIcons` sets the v
 
 ## Keybindings
 
-For all possible keybinding options, check [Custom_Keybindings.md](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md)
+For all possible keybinding options, check [Custom_Keybindings.md](keybindings/Custom_Keybindings.md)
 
 You can disable certain key bindings by specifying `<disabled>`.
 
