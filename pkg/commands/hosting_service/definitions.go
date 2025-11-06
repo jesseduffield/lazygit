@@ -4,7 +4,7 @@ package hosting_service
 // at regoio.herokuapp.com
 var defaultUrlRegexStrings = []string{
 	`^(?:https?|ssh)://[^/]+/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
-	`^.*?@.*:(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
+	`^.*?@.*:/*(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 }
 var defaultRepoURLTemplate = "https://{{.webDomain}}/{{.owner}}/{{.repo}}"
 
@@ -26,7 +26,7 @@ var bitbucketServiceDef = ServiceDefinition{
 	commitURL:                       "/commits/{{.CommitHash}}",
 	regexStrings: []string{
 		`^(?:https?|ssh)://.*/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
-		`^.*@.*:(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
+		`^.*@.*:/*(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 	},
 	repoURLTemplate: defaultRepoURLTemplate,
 }
