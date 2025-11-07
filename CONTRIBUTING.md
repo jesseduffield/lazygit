@@ -17,11 +17,12 @@ See [here](./VISION.md) for a set of design principles that we want to consider 
 ## Codebase guide
 
 [This doc](./docs/dev/Codebase_Guide.md) explains:
-* what the different packages in the codebase are for
-* where important files live
-* important concepts in the code
-* how the event loop works
-* other useful information
+
+- what the different packages in the codebase are for
+- where important files live
+- important concepts in the code
+- how the event loop works
+- other useful information
 
 ## All code changes happen through Pull Requests
 
@@ -45,8 +46,9 @@ If you want to spare yourself the hassle of setting up your dev environment your
 ![image](https://user-images.githubusercontent.com/8456633/201500508-0d55f99f-5035-4a6f-a0f8-eaea5c003e5d.png)
 
 This requires that:
-* you have docker installed
-* you have the dev containers extension installed in VSCode
+
+- you have docker installed
+- you have the dev containers extension installed in VSCode
 
 See [here](https://code.visualstudio.com/docs/devcontainers/containers) for more info about dev containers.
 
@@ -69,9 +71,10 @@ nix develop
 ```
 
 This will drop you into a development shell that includes:
-* Latest Go toolchain
-* golangci-lint for code linting
-* git and make
+
+- Latest Go toolchain
+- golangci-lint for code linting
+- git and make
 
 You can also build and run lazygit using nix:
 
@@ -143,7 +146,7 @@ Lazygit supports [Nerd Fonts](https://www.nerdfonts.com) to render certain icons
 
 ## Internationalisation
 
-Boy that's a hard word to spell. Anyway, lazygit is translated into several languages within the pkg/i18n package. 
+Boy that's a hard word to spell. Anyway, lazygit is translated into several languages within the pkg/i18n package.
 
 ### For developers adding new text
 
