@@ -17,11 +17,12 @@ See [here](./VISION.md) for a set of design principles that we want to consider 
 ## Codebase guide
 
 [This doc](./docs/dev/Codebase_Guide.md) explains:
-* what the different packages in the codebase are for
-* where important files live
-* important concepts in the code
-* how the event loop works
-* other useful information
+
+- what the different packages in the codebase are for
+- where important files live
+- important concepts in the code
+- how the event loop works
+- other useful information
 
 ## All code changes happen through Pull Requests
 
@@ -38,6 +39,16 @@ Please do not raise pull request from your fork's master branch: make a feature 
 
 If you've never written Go in your life, then join the club! Lazygit was the maintainer's first Go program, and most contributors have never used Go before. Go is widely considered an easy-to-learn language, so if you're looking for an open source project to gain dev experience, you've come to the right place.
 
+## Commit history
+
+We value a clean and useful commit history, so please take some time to organize your commits so that they make sense. Don't assume that they will be squashed on merge anyway; we don't do that here.
+
+In particular:
+
+- Refactorings and behavior changes should be in separate commits. There are very few exceptions where this is not possible, but in my experience they are very rare.
+- Strive for minimal commits; every change that is independent from other changes should be in a commit of its own (with a good commit message that explains why the change is made).
+- When you need to iterate over your implementation during review (e.g. because you discovered a bug, or a maintainer requested changes), don't just pile new commits on top. Use fixup commits to make your changes transparent while still maintaining a good commit history. If you don't know what that means, [here's a brief introduction](docs/Fixup_Commits.md).
+
 ## Running in a VSCode dev container
 
 If you want to spare yourself the hassle of setting up your dev environment yourself (i.e. installing Go, extensions, and extra tools), you can run the Lazygit code in a VSCode dev container like so:
@@ -45,8 +56,9 @@ If you want to spare yourself the hassle of setting up your dev environment your
 ![image](https://user-images.githubusercontent.com/8456633/201500508-0d55f99f-5035-4a6f-a0f8-eaea5c003e5d.png)
 
 This requires that:
-* you have docker installed
-* you have the dev containers extension installed in VSCode
+
+- you have docker installed
+- you have the dev containers extension installed in VSCode
 
 See [here](https://code.visualstudio.com/docs/devcontainers/containers) for more info about dev containers.
 
@@ -69,9 +81,10 @@ nix develop
 ```
 
 This will drop you into a development shell that includes:
-* Latest Go toolchain
-* golangci-lint for code linting
-* git and make
+
+- Latest Go toolchain
+- golangci-lint for code linting
+- git and make
 
 You can also build and run lazygit using nix:
 
@@ -143,7 +156,7 @@ Lazygit supports [Nerd Fonts](https://www.nerdfonts.com) to render certain icons
 
 ## Internationalisation
 
-Boy that's a hard word to spell. Anyway, lazygit is translated into several languages within the pkg/i18n package. 
+Boy that's a hard word to spell. Anyway, lazygit is translated into several languages within the pkg/i18n package.
 
 ### For developers adding new text
 
