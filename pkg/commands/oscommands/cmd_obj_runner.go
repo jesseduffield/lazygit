@@ -293,6 +293,7 @@ const (
 	Passphrase
 	PIN
 	Token
+	UnknownHostVerification
 )
 
 // Whenever we're asked for a password we return a nil channel to tell the
@@ -396,6 +397,7 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (Crede
 		`Enter\s*PIN\s*for\s*.+\s*key\s*.+:`:     PIN,
 		`Enter\s*PIN\s*for\s*'.+':`:              PIN,
 		`.*2FA Token.*`:                          Token,
+		`(?i)Are\s+you\s+sure\s+you\s+want\s+to\s+continue\s+connecting\s*\(yes/no(?:/[^)]*)?\)\s*\?`: UnknownHostVerification,
 	}
 
 	compiledPrompts := map[*regexp.Regexp]CredentialType{}

@@ -41,6 +41,8 @@ func TestProcessOutput(t *testing.T) {
 			return "pin"
 		case Token:
 			return "token"
+		case UnknownHostVerification:
+			return "yes"
 		default:
 			panic("unexpected credential type")
 		}
@@ -117,6 +119,15 @@ func TestProcessOutput(t *testing.T) {
 			promptUserForCredential: func(ct CredentialType) string { return "" },
 			output:                  "Password:\n",
 			expectedToWrite:         "",
+		},
+		{
+			name:                    "host verification prompt",
+			promptUserForCredential: defaultPromptUserForCredential,
+			output: "The authenticity of host 'github.com (140.82.113.3)' can't be established.\n" +
+				"ED25519 key fingerprint is SHA256:abc.\n" +
+				"This key is not known by any other names\n" +
+				"Are you sure you want to continue connecting (yes/no/[fingerprint])? ",
+			expectedToWrite: "yes",
 		},
 	}
 
