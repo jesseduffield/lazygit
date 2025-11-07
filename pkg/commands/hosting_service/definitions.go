@@ -1,10 +1,10 @@
 package hosting_service
 
 // if you want to make a custom regex for a given service feel free to test it out
-// at regoio.herokuapp.com
+// at https://regex101.com using the flavor Golang
 var defaultUrlRegexStrings = []string{
 	`^(?:https?|ssh)://[^/]+/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
-	`^.*?@.*:(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
+	`^.*?@.*:/*(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 }
 var defaultRepoURLTemplate = "https://{{.webDomain}}/{{.owner}}/{{.repo}}"
 
@@ -26,7 +26,7 @@ var bitbucketServiceDef = ServiceDefinition{
 	commitURL:                       "/commits/{{.CommitHash}}",
 	regexStrings: []string{
 		`^(?:https?|ssh)://.*/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
-		`^.*@.*:(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
+		`^.*@.*:/*(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 	},
 	repoURLTemplate: defaultRepoURLTemplate,
 }

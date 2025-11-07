@@ -30,6 +30,15 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on bitbucket with extra slash removed",
+			from:      "feature/profile-page",
+			remoteUrl: "git@bitbucket.org:/johndoe/social_network.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page&t=1", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on bitbucket with http remote url",
 			from:      "feature/events",
 			remoteUrl: "https://my_username@bitbucket.org/johndoe/social_network.git",
@@ -42,6 +51,15 @@ func TestGetPullRequestURL(t *testing.T) {
 			testName:  "Opens a link to new pull request on github",
 			from:      "feature/sum-operation",
 			remoteUrl: "git@github.com:peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://github.com/peter/calculator/compare/feature%2Fsum-operation?expand=1", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on github with extra slash removed",
+			from:      "feature/sum-operation",
+			remoteUrl: "git@github.com:/peter/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://github.com/peter/calculator/compare/feature%2Fsum-operation?expand=1", url)
@@ -116,9 +134,27 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on gitlab with extra slash removed",
+			from:      "feature/ui",
+			remoteUrl: "git@gitlab.com:/peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/peter/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fui", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on gitlab in nested groups",
 			from:      "feature/ui",
 			remoteUrl: "git@gitlab.com:peter/public/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/peter/public/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fui", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on gitlab in nested groups and extra slash removed",
+			from:      "feature/ui",
+			remoteUrl: "git@gitlab.com:/peter/public/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://gitlab.com/peter/public/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fui", url)
@@ -182,6 +218,15 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on Azure DevOps (SSH) with extra slash removed",
+			from:      "feature/new",
+			remoteUrl: "git@ssh.dev.azure.com:/v3/myorg/myproject/myrepo",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on Azure DevOps (SSH) with specific target",
 			from:      "feature/new",
 			to:        "dev",
@@ -239,6 +284,19 @@ func TestGetPullRequestURL(t *testing.T) {
 			testName:  "Opens a link to new pull request on Bitbucket Server (SSH)",
 			from:      "feature/new",
 			remoteUrl: "ssh://git@mycompany.bitbucket.com/myproject/myrepo.git",
+			configServiceDomains: map[string]string{
+				// valid configuration for a bitbucket server URL
+				"mycompany.bitbucket.com": "bitbucketServer:mycompany.bitbucket.com",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://mycompany.bitbucket.com/projects/myproject/repos/myrepo/pull-requests?create&sourceBranch=feature%2Fnew", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Bitbucket Server (SSH) with extra slash removed",
+			from:      "feature/new",
+			remoteUrl: "ssh://git@mycompany.bitbucket.com:/myproject/myrepo.git",
 			configServiceDomains: map[string]string{
 				// valid configuration for a bitbucket server URL
 				"mycompany.bitbucket.com": "bitbucketServer:mycompany.bitbucket.com",
@@ -355,6 +413,20 @@ func TestGetPullRequestURL(t *testing.T) {
 			testName:  "Does not log error when config service domains are valid",
 			from:      "feature/profile-page",
 			remoteUrl: "git@bitbucket.org:johndoe/social_network.git",
+			configServiceDomains: map[string]string{
+				// valid configuration for a custom service URL
+				"git.work.com": "gitlab:code.work.com",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page&t=1", url)
+			},
+			expectedLoggedErrors: nil,
+		},
+		{
+			testName:  "Does not log error when config service domains are valid with extra slash",
+			from:      "feature/profile-page",
+			remoteUrl: "git@bitbucket.org:/johndoe/social_network.git",
 			configServiceDomains: map[string]string{
 				// valid configuration for a custom service URL
 				"git.work.com": "gitlab:code.work.com",
