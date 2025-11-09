@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# test pre-push hook for exercising the SSH unknown host verification prompt in lazygit
+#
+# to enable, use:
+# chmod +x .git/hooks/pre-push
+#
+# this will hang if you're using git from the command line, so only enable this
+# when you are testing lazygit's verification popup
+
+exec < /dev/tty
+
+FLAG_FILE=".git/test-known-host"
+
+if [ ! -f "$FLAG_FILE" ]; then
+  echo "The authenticity of host 'fake.example.com (ED25519)' can't be established."
+  echo "ED25519 key fingerprint is SHA256:FAKEFINGERPRINT."
+  printf "Are you sure you want to continue connecting (yes/no/[fingerprint])? "
+  read response
+
+  if [ "$response" = "yes" ] || [ "$response" = "SHA256:FAKEFINGERPRINT" ]; then
+    echo "Warning: Permanently added 'fake.example.com' (ED25519) to the list of known hosts."
+    touch "$FLAG_FILE"
+    echo "success"
+    exit 0
+  fi
+
+  >&2 echo "Host key verification failed"
+  exit 1
+fi
+
+echo "success"
+exit 0

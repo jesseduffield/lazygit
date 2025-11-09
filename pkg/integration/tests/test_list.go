@@ -419,6 +419,7 @@ var tests = []*components.IntegrationTest{
 	sync.PushNoFollowTags,
 	sync.PushTag,
 	sync.PushWithCredentialPrompt,
+	sync.PushWithUnknownHostPrompt,
 	sync.RenameBranchAndPull,
 	tag.Checkout,
 	tag.CheckoutWhenBranchWithSameNameExists,
