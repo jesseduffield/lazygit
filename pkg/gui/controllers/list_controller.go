@@ -101,10 +101,6 @@ func (self *ListController) handleLineChangeAux(f func(int), change int) error {
 	rangeAfter := list.IsSelectingRange()
 	after := list.GetSelectedLineIdx()
 
-	if err := self.pushContextIfNotFocused(); err != nil {
-		return err
-	}
-
 	// doing this check so that if we're holding the up key at the start of the list
 	// we're not constantly re-rendering the main view.
 	cursorMoved := before != after
