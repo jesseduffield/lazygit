@@ -299,6 +299,7 @@ SelectedCommit
 SelectedCommitRange
 SelectedFile
 SelectedPath
+SelectedSubmodule
 SelectedLocalBranch
 SelectedRemoteBranch
 SelectedRemote
