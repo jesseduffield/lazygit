@@ -233,7 +233,6 @@ type GuiRepoState struct {
 	Modes *types.Modes
 
 	SplitMainPanel bool
-	LimitCommits   bool
 
 	SearchState  *types.SearchState
 	StartupStage types.StartupStage // Allows us to not load everything at once
