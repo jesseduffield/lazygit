@@ -70,6 +70,15 @@ jobs:
             exit 1
           fi
 
+      - name: Check that docs and schema are up to date
+        run: |
+          if diff -r -q docs docs-master > /dev/null && diff -r -q schema schema-master > /dev/null; then
+            echo "Docs and schema are up to date."
+          else
+            echo "Docs or schema are out of date. Please run 'scripts/update_docs_for_release.sh' and make a PR."
+            exit 1
+          fi
+
       - name: Check for Blocking Issues/PRs
         if: ${{ !inputs.ignore_blocks }}
         id: check_blocks

@@ -1,7 +1,7 @@
 //go:generate go run generator.go
 
 // This "script" generates files called Keybindings_{{.LANG}}.md
-// in the docs/keybindings directory.
+// in the docs-master/keybindings directory.
 //
 // The content of these generated files is a keybindings cheatsheet.
 //
@@ -49,7 +49,7 @@ func CommandToRun() string {
 }
 
 func GetKeybindingsDir() string {
-	return utils.GetLazyRootDirectory() + "/docs/keybindings"
+	return utils.GetLazyRootDirectory() + "/docs-master/keybindings"
 }
 
 func generateAtDir(cheatsheetDir string) {

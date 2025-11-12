@@ -163,7 +163,7 @@ func (n *Node) MarshalYAML() (interface{}, error) {
 }
 
 func writeToConfigDocs(config []byte) error {
-	configPath := utils.GetLazyRootDirectory() + "/docs/Config.md"
+	configPath := utils.GetLazyRootDirectory() + "/docs-master/Config.md"
 	markdown, err := os.ReadFile(configPath)
 	if err != nil {
 		return fmt.Errorf("Error reading Config.md file %w", err)
