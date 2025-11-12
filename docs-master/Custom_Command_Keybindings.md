@@ -74,6 +74,7 @@ The permitted contexts are:
 | status         | The 'Status' tab                                                                                         |
 | files          | The 'Files' tab                                                                                          |
 | worktrees      | The 'Worktrees' tab                                                                                      |
+| submodules     | The 'Submodules' tab                                                                                     |
 | localBranches  | The 'Local Branches' tab                                                                                 |
 | remotes        | The 'Remotes' tab                                                                                        |
 | remoteBranches | The context you get when pressing enter on a remote in the remotes tab                                   |
@@ -298,6 +299,7 @@ SelectedCommit
 SelectedCommitRange
 SelectedFile
 SelectedPath
+SelectedSubmodule
 SelectedLocalBranch
 SelectedRemoteBranch
 SelectedRemote

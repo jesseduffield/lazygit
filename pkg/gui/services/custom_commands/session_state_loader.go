@@ -62,6 +62,18 @@ func fileShimFromModelFile(file *models.File) *File {
 	}
 }
 
+func submoduleShimFromModelSubmodule(submodule *models.SubmoduleConfig) *Submodule {
+	if submodule == nil {
+		return nil
+	}
+
+	return &Submodule{
+		Name: submodule.Name,
+		Path: submodule.Path,
+		Url:  submodule.Url,
+	}
+}
+
 func branchShimFromModelBranch(branch *models.Branch) *Branch {
 	if branch == nil {
 		return nil
@@ -186,6 +198,7 @@ type SessionState struct {
 	SelectedCommit         *Commit
 	SelectedCommitRange    *CommitRange
 	SelectedFile           *File
+	SelectedSubmodule      *Submodule
 	SelectedPath           string
 	SelectedLocalBranch    *Branch
 	SelectedRemoteBranch   *RemoteBranch
@@ -225,6 +238,7 @@ func (self *SessionStateLoader) call() *SessionState {
 
 	return &SessionState{
 		SelectedFile:           fileShimFromModelFile(self.c.Contexts().Files.GetSelectedFile()),
+		SelectedSubmodule:      submoduleShimFromModelSubmodule(self.c.Contexts().Submodules.GetSelected()),
 		SelectedPath:           selectedPath,
 		SelectedLocalCommit:    selectedLocalCommit,
 		SelectedReflogCommit:   selectedReflogCommit,
