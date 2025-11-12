@@ -227,7 +227,7 @@ func TestRenderCommitGraph(t *testing.T) {
 			lines := RenderCommitGraph(commits, hashPool.Add("blah"), getStyle)
 
 			trimmedExpectedOutput := ""
-			for _, line := range strings.Split(strings.TrimPrefix(test.expectedOutput, "\n"), "\n") {
+			for line := range strings.SplitSeq(strings.TrimPrefix(test.expectedOutput, "\n"), "\n") {
 				trimmedExpectedOutput += strings.TrimSpace(line) + "\n"
 			}
 

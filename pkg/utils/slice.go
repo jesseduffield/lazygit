@@ -51,10 +51,8 @@ func PrevIntInCycle(sl []int, current int) int {
 
 func StringArraysOverlap(strArrA []string, strArrB []string) bool {
 	for _, first := range strArrA {
-		for _, second := range strArrB {
-			if first == second {
-				return true
-			}
+		if slices.Contains(strArrB, first) {
+			return true
 		}
 	}
 

@@ -225,8 +225,8 @@ func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) ([]string, 
 			if err != nil {
 				return err
 			}
-			blameLines := strings.Split(strings.TrimSuffix(blameOutput, "\n"), "\n")
-			for _, line := range blameLines {
+			blameLines := strings.SplitSeq(strings.TrimSuffix(blameOutput, "\n"), "\n")
+			for line := range blameLines {
 				hashChan <- strings.Split(line, " ")[0]
 			}
 			return nil
