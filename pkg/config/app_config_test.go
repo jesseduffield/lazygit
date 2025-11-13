@@ -745,7 +745,7 @@ os:
   # Whether lazygit suspends until an edit process returns
   editInTerminal: false
 
-  # For opening a directory in an editor
+  # For opening a directory in an editor. Should contain "{{dir}}".
   openDirInEditor: ""
 
   # A built-in preset that sets all of the above settings. Supported presets

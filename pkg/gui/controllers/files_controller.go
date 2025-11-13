@@ -90,8 +90,8 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Edit),
-			Handler:           self.withItems(self.edit),
-			GetDisabledReason: self.require(self.itemsSelected(self.canEditFiles)),
+			Handler:           self.withItems(self.editOrOpenDir),
+			GetDisabledReason: self.any(self.singleItemSelected(), self.itemsSelected(self.canEditFiles)),
 			Description:       self.c.Tr.Edit,
 			Tooltip:           self.c.Tr.EditFileTooltip,
 			DisplayOnScreen:   true,
@@ -915,6 +915,14 @@ func (self *FilesController) edit(nodes []*filetree.FileNode) error {
 		func(node *filetree.FileNode, _ int) (string, bool) {
 			return node.GetPath(), node.IsFile()
 		}))
+}
+
+func (self *FilesController) editOrOpenDir(nodes []*filetree.FileNode) error {
+	if len(nodes) == 1 && !nodes[0].IsFile() {
+		return self.c.Helpers().Files.OpenDirInEditor(nodes[0].GetPath())
+	} else {
+		return self.edit(nodes)
+	}
 }
 
 func (self *FilesController) canEditFiles(nodes []*filetree.FileNode) *types.DisabledReason {

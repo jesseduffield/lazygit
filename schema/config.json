@@ -1627,7 +1627,7 @@
         },
         "openDirInEditor": {
           "type": "string",
-          "description": "For opening a directory in an editor"
+          "description": "For opening a directory in an editor. Should contain \"{{dir}}\"."
         },
         "editPreset": {
           "type": "string",
