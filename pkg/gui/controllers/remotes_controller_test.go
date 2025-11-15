@@ -148,9 +148,7 @@ func TestReplaceForkUsername_Errors(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			_, err := replaceForkUsername(c.in, c.forkUser)
-			if err == nil {
-				t.Fatalf("expected error but got nil")
-			}
+			assert.EqualError(t, err, "unsupported or invalid remote URL: "+c.in)
 		})
 	}
 }
