@@ -44,7 +44,12 @@ func (self *ConfirmationHelper) wrappedConfirmationFunction(cancel goContext.Can
 	}
 }
 
-func (self *ConfirmationHelper) wrappedPromptConfirmationFunction(cancel goContext.CancelFunc, function func(string) error, getResponse func() string) func() error {
+func (self *ConfirmationHelper) wrappedPromptConfirmationFunction(
+	cancel goContext.CancelFunc,
+	function func(string) error,
+	getResponse func() string,
+	allowEmptyInput bool,
+) func() error {
 	return func() error {
 		if self.c.GocuiGui().IsPasting {
 			// The user is pasting multi-line text into a prompt; we don't want to handle the
@@ -54,8 +59,15 @@ func (self *ConfirmationHelper) wrappedPromptConfirmationFunction(cancel goConte
 			return nil
 		}
 
+		response := getResponse()
+
+		if response == "" && !allowEmptyInput {
+			self.c.ErrorToast(self.c.Tr.PromptInputCannotBeEmptyToast)
+			return nil
+		}
+
 		return self.closeAndCallConfirmationFunction(cancel, func() error {
-			return function(getResponse())
+			return function(response)
 		})
 	}
 }
@@ -235,12 +247,14 @@ func (self *ConfirmationHelper) setConfirmationKeyBindings(cancel goContext.Canc
 
 func (self *ConfirmationHelper) setPromptKeyBindings(cancel goContext.CancelFunc, opts types.CreatePopupPanelOpts) {
 	onConfirm := self.wrappedPromptConfirmationFunction(cancel, opts.HandleConfirmPrompt,
-		func() string { return self.c.Views().Prompt.TextArea.GetContent() })
+		func() string { return self.c.Views().Prompt.TextArea.GetContent() },
+		opts.AllowEmptyInput)
 
 	onSuggestionConfirm := self.wrappedPromptConfirmationFunction(
 		cancel,
 		opts.HandleConfirmPrompt,
 		self.getSelectedSuggestionValue,
+		opts.AllowEmptyInput,
 	)
 
 	onClose := self.wrappedConfirmationFunction(cancel, opts.HandleClose)

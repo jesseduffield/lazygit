@@ -209,6 +209,7 @@ func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntr
 			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			return nil
 		},
+		AllowEmptyInput: true,
 	})
 
 	return nil

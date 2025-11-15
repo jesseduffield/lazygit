@@ -130,6 +130,7 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 
 						return f()
 					},
+					AllowEmptyInput: true,
 				})
 
 				return nil
@@ -147,6 +148,7 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 
 					return f()
 				},
+				AllowEmptyInput: false,
 			})
 
 			return nil

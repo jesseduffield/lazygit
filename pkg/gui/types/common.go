@@ -172,6 +172,7 @@ type CreatePopupPanelOpts struct {
 	FindSuggestionsFunc func(string) []*Suggestion
 	Mask                bool
 	AllowEditSuggestion bool
+	AllowEmptyInput     bool
 }
 
 type ConfirmOpts struct {
@@ -190,6 +191,7 @@ type PromptOpts struct {
 	FindSuggestionsFunc func(string) []*Suggestion
 	HandleConfirm       func(string) error
 	AllowEditSuggestion bool
+	AllowEmptyInput     bool
 	// CAPTURE THIS
 	HandleClose            func() error
 	HandleDeleteSuggestion func(int) error

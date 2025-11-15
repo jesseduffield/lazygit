@@ -618,6 +618,7 @@ type TranslationSet struct {
 	MustStashTitle                        string
 	ConfirmationTitle                     string
 	PromptTitle                           string
+	PromptInputCannotBeEmptyToast         string
 	PrevPage                              string
 	NextPage                              string
 	GotoTop                               string
@@ -1713,6 +1714,7 @@ func EnglishTranslationSet() *TranslationSet {
 		MustStashTitle:                   "Must stash",
 		ConfirmationTitle:                "Confirmation panel",
 		PromptTitle:                      "Input prompt",
+		PromptInputCannotBeEmptyToast:    "Empty input is not allowed",
 		PrevPage:                         "Previous page",
 		NextPage:                         "Next page",
 		GotoTop:                          "Scroll to top",
