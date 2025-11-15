@@ -109,11 +109,6 @@ func TestReplaceForkUsername_Errors(t *testing.T) {
 		forkUser string
 	}{
 		{
-			name:     "empty fork user",
-			in:       "git@github.com:old/repo.git",
-			forkUser: "",
-		},
-		{
 			name:     "https host only",
 			in:       "https://github.com",
 			forkUser: "x",
@@ -141,6 +136,11 @@ func TestReplaceForkUsername_Errors(t *testing.T) {
 		{
 			name:     "unsupported scheme",
 			in:       "ftp://github.com/old/repo.git",
+			forkUser: "x",
+		},
+		{
+			name:     "empty url",
+			in:       "",
 			forkUser: "x",
 		},
 	}

@@ -221,13 +221,6 @@ var urlRegex = regexp.MustCompile(`^(git@[^:]+:|ssh://[^/]+/|https?://[^/]+/)([^
 // Rewrites a Git remote URL to use the given fork username,
 // keeping the repo name and host intact. Supports SCP-like SSH, SSH URL style, and HTTPS.
 func replaceForkUsername(originUrl, forkUsername string) (string, error) {
-	if forkUsername == "" {
-		return "", errors.New("fork username cannot be empty")
-	}
-	if originUrl == "" {
-		return "", errors.New("remote URL cannot be empty")
-	}
-
 	if urlRegex.MatchString(originUrl) {
 		return urlRegex.ReplaceAllString(originUrl, "${1}"+forkUsername+"/$3$4"), nil
 	}
