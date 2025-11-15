@@ -85,6 +85,14 @@ func (self *CommitMessageContext) GetPreservedMessagePath() string {
 	return filepath.Join(self.c.Git().RepoPaths.WorktreeGitDirPath(), PreservedCommitMessageFileName)
 }
 
+func (self *CommitMessageContext) GetCommitTemplatePath() (string, error) {
+	filename := self.c.Git().Config.GetCommitTemplatePath()
+	if filename == "" {
+		return "", nil
+	}
+	return filepath.Abs(filename)
+}
+
 func (self *CommitMessageContext) GetPreserveMessage() bool {
 	return self.viewModel.preserveMessage
 }
@@ -100,12 +108,37 @@ func (self *CommitMessageContext) getPreservedMessage() (string, error) {
 	return string(buf), nil
 }
 
+func (self *CommitMessageContext) getCommitTemplate() (string, error) {
+	path, err := self.GetCommitTemplatePath()
+	if err != nil || path == "" {
+		return "", nil
+	}
+	buf, err := afero.ReadFile(self.c.Fs, path)
+
+	if os.IsNotExist(err) {
+		self.c.Log.Errorf("Commit template %s file was not found. Please check Git config", path)
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return string(buf), nil
+}
+
 func (self *CommitMessageContext) GetPreservedMessageAndLogError() string {
 	msg, err := self.getPreservedMessage()
 	if err != nil {
 		self.c.Log.Errorf("error when retrieving persisted commit message: %v", err)
 	}
 	return msg
+}
+
+func (self *CommitMessageContext) GetCommitTemplateAndLogError() string {
+	template, err := self.getCommitTemplate()
+	if err != nil {
+		self.c.Log.Errorf("error when retrieving commit message template: %v", err)
+	}
+	return template
 }
 
 func (self *CommitMessageContext) setPreservedMessage(message string) error {
