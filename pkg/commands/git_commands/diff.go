@@ -55,7 +55,7 @@ func (self *DiffCommands) GetDiff(staged bool, additionalArgs ...string) (string
 			Dir(self.repoPaths.worktreePath).
 			Arg(additionalArgs...).
 			ToArgv(),
-	).RunWithOutput()
+	).DontLog().RunWithOutput()
 }
 
 type DiffToolCmdOptions struct {
