@@ -100,7 +100,12 @@ func TestSyncPush(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildSyncCommands(commonDeps{})
 			task := gocui.NewFakeTask()
-			s.test(instance.PushCmdObj(task, s.opts))
+			cmdObj, err := instance.PushCmdObj(task, s.opts)
+			if err == nil {
+				assert.True(t, cmdObj.ShouldLog())
+				assert.Equal(t, cmdObj.GetCredentialStrategy(), oscommands.PROMPT)
+			}
+			s.test(cmdObj, err)
 		})
 	}
 }
