@@ -491,3 +491,28 @@ func TestAddCoAuthorToDescription(t *testing.T) {
 		})
 	}
 }
+
+func TestWordDiffConfiguration(t *testing.T) {
+	userConfig := config.GetDefaultConfig()
+	userConfig.Git.UseWordDiffInDiffView = true
+
+	repoPaths := RepoPaths{
+		worktreePath: "/path/to/worktree",
+	}
+
+	runner := oscommands.NewFakeRunner(t).
+		ExpectGitArgs([]string{
+			"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show",
+			"--no-ext-diff", "--submodule", "--color=always", "--unified=3",
+			"--stat", "--decorate", "-p", "abc123", "--word-diff",
+			"--find-renames=50%", "--",
+		}, "", nil)
+
+	instance := buildCommitCommands(commonDeps{runner: runner, userConfig: userConfig, repoPaths: &repoPaths})
+
+	cmdObj := instance.ShowCmdObj("abc123", []string{})
+	err := cmdObj.Run()
+
+	assert.NoError(t, err)
+	runner.CheckForMissingCalls()
+}
