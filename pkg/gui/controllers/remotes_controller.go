@@ -216,13 +216,19 @@ func (self *RemotesController) add() error {
 // 1. SCP-like SSH: git@host:owner[/subgroups]/repo(.git)
 // 2. SSH URL style: ssh://user@host[:port]/owner[/subgroups]/repo(.git)
 // 3. HTTPS: https://host/owner[/subgroups]/repo(.git)
-var urlRegex = regexp.MustCompile(`^(git@[^:]+:|ssh://[^/]+/|https?://[^/]+/)([^/]+(?:/[^/]+)*)/([^/]+?)(\.git)?$`)
+// 4. Only for integration tests: ../repo_name
+var (
+	urlRegex                = regexp.MustCompile(`^(git@[^:]+:|ssh://[^/]+/|https?://[^/]+/)([^/]+(?:/[^/]+)*)/([^/]+?)(\.git)?$`)
+	integrationTestUrlRegex = regexp.MustCompile(`^\.\./.+$`)
+)
 
 // Rewrites a Git remote URL to use the given fork username,
 // keeping the repo name and host intact. Supports SCP-like SSH, SSH URL style, and HTTPS.
-func replaceForkUsername(originUrl, forkUsername string) (string, error) {
+func replaceForkUsername(originUrl, forkUsername string, isIntegrationTest bool) (string, error) {
 	if urlRegex.MatchString(originUrl) {
 		return urlRegex.ReplaceAllString(originUrl, "${1}"+forkUsername+"/$3$4"), nil
+	} else if isIntegrationTest && integrationTestUrlRegex.MatchString(originUrl) {
+		return "../" + forkUsername, nil
 	}
 
 	return "", fmt.Errorf("unsupported or invalid remote URL: %s", originUrl)
@@ -261,7 +267,7 @@ func (self *RemotesController) addFork() error {
 				branchToCheckout = parts[1]
 			}
 			originUrl := origin.Urls[0]
-			remoteUrl, err := replaceForkUsername(originUrl, forkUsername)
+			remoteUrl, err := replaceForkUsername(originUrl, forkUsername, self.c.RunningIntegrationTest())
 			if err != nil {
 				return err
 			}

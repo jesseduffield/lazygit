@@ -53,7 +53,7 @@ func TestReplaceForkUsername_SSH_OK(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			got, err := replaceForkUsername(c.in, c.forkUser)
+			got, err := replaceForkUsername(c.in, c.forkUser, false)
 			assert.NoError(t, err)
 			assert.Equal(t, c.expected, got)
 		})
@@ -95,11 +95,17 @@ func TestReplaceForkUsername_HTTPS_OK(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			got, err := replaceForkUsername(c.in, c.forkUser)
+			got, err := replaceForkUsername(c.in, c.forkUser, false)
 			assert.NoError(t, err)
 			assert.Equal(t, c.expected, got)
 		})
 	}
+}
+
+func TestReplaceForkUsername_IntegrationTest_OK(t *testing.T) {
+	got, err := replaceForkUsername("../origin", "bob", true)
+	assert.NoError(t, err)
+	assert.Equal(t, "../bob", got)
 }
 
 func TestReplaceForkUsername_Errors(t *testing.T) {
@@ -143,11 +149,16 @@ func TestReplaceForkUsername_Errors(t *testing.T) {
 			in:       "",
 			forkUser: "x",
 		},
+		{
+			name:     "integration test URL outside of integration test",
+			in:       "../origin",
+			forkUser: "x",
+		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			_, err := replaceForkUsername(c.in, c.forkUser)
+			_, err := replaceForkUsername(c.in, c.forkUser, false)
 			assert.EqualError(t, err, "unsupported or invalid remote URL: "+c.in)
 		})
 	}

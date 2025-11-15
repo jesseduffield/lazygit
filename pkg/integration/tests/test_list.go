@@ -21,6 +21,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/patch_building"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/reflog"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/remote"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/shell_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/staging"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
@@ -351,6 +352,7 @@ var tests = []*components.IntegrationTest{
 	reflog.DoNotShowBranchMarkersInReflogSubcommits,
 	reflog.Patch,
 	reflog.Reset,
+	remote.AddForkRemote,
 	shell_commands.BasicShellCommand,
 	shell_commands.ComplexShellCommand,
 	shell_commands.DeleteFromHistory,
