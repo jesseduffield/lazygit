@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -38,7 +37,7 @@ func (self *DiffingMenuAction) Call() error {
 					Title:               self.c.Tr.EnterRefName,
 					FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRefsSuggestionsFunc(),
 					HandleConfirm: func(response string) error {
-						self.c.Modes().Diffing.Ref = strings.TrimSpace(response)
+						self.c.Modes().Diffing.Ref = response
 						self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 						return nil
 					},
