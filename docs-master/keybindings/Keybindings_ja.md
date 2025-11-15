@@ -343,6 +343,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` d `` | 削除 | 選択したリモートを削除します。そのリモートからのリモートブランチを追跡しているローカルブランチは影響を受けません。 |
 | `` e `` | 編集 | 選択したリモートの名前またはURLを編集します。 |
 | `` f `` | フェッチ | リモートリポジトリから更新をフェッチします。これにより、ローカルブランチにマージせずに新しいコミットとブランチを取得します。 |
+| `` F `` | Add fork remote | Quickly add a fork remote by replacing the owner in the origin URL and optionally check out a branch from new remote. |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
 
 ## リモートブランチ
