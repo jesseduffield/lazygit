@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestReplaceForkUsername_SSH_OK(t *testing.T) {
@@ -52,12 +54,8 @@ func TestReplaceForkUsername_SSH_OK(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			got, err := replaceForkUsername(c.in, c.forkUser)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-			if got != c.expected {
-				t.Fatalf("expected %q, got %q", c.expected, got)
-			}
+			assert.NoError(t, err)
+			assert.Equal(t, c.expected, got)
 		})
 	}
 }
@@ -98,12 +96,8 @@ func TestReplaceForkUsername_HTTPS_OK(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			got, err := replaceForkUsername(c.in, c.forkUser)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-			if got != c.expected {
-				t.Fatalf("expected %q, got %q", c.expected, got)
-			}
+			assert.NoError(t, err)
+			assert.Equal(t, c.expected, got)
 		})
 	}
 }
