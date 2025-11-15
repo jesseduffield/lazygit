@@ -104,6 +104,7 @@ func TestSyncPush(t *testing.T) {
 			if err == nil {
 				assert.True(t, cmdObj.ShouldLog())
 				assert.Equal(t, cmdObj.GetCredentialStrategy(), oscommands.PROMPT)
+				assert.False(t, cmdObj.ShouldSuppressOutputUnlessError())
 			}
 			s.test(cmdObj, err)
 		})
@@ -124,6 +125,7 @@ func TestSyncFetch(t *testing.T) {
 			test: func(cmdObj *oscommands.CmdObj) {
 				assert.True(t, cmdObj.ShouldLog())
 				assert.Equal(t, cmdObj.GetCredentialStrategy(), oscommands.PROMPT)
+				assert.False(t, cmdObj.ShouldSuppressOutputUnlessError())
 				assert.Equal(t, cmdObj.Args(), []string{"git", "fetch", "--no-write-fetch-head"})
 			},
 		},
@@ -133,6 +135,7 @@ func TestSyncFetch(t *testing.T) {
 			test: func(cmdObj *oscommands.CmdObj) {
 				assert.True(t, cmdObj.ShouldLog())
 				assert.Equal(t, cmdObj.GetCredentialStrategy(), oscommands.PROMPT)
+				assert.False(t, cmdObj.ShouldSuppressOutputUnlessError())
 				assert.Equal(t, cmdObj.Args(), []string{"git", "fetch", "--all", "--no-write-fetch-head"})
 			},
 		},
@@ -162,6 +165,7 @@ func TestSyncFetchBackground(t *testing.T) {
 			test: func(cmdObj *oscommands.CmdObj) {
 				assert.False(t, cmdObj.ShouldLog())
 				assert.Equal(t, cmdObj.GetCredentialStrategy(), oscommands.FAIL)
+				assert.True(t, cmdObj.ShouldSuppressOutputUnlessError())
 				assert.Equal(t, cmdObj.Args(), []string{"git", "fetch", "--no-write-fetch-head"})
 			},
 		},
@@ -171,6 +175,7 @@ func TestSyncFetchBackground(t *testing.T) {
 			test: func(cmdObj *oscommands.CmdObj) {
 				assert.False(t, cmdObj.ShouldLog())
 				assert.Equal(t, cmdObj.GetCredentialStrategy(), oscommands.FAIL)
+				assert.True(t, cmdObj.ShouldSuppressOutputUnlessError())
 				assert.Equal(t, cmdObj.Args(), []string{"git", "fetch", "--all", "--no-write-fetch-head"})
 			},
 		},
