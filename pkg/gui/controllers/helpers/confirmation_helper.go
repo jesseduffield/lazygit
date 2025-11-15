@@ -24,34 +24,40 @@ func NewConfirmationHelper(c *HelperCommon) *ConfirmationHelper {
 // This file is for the rendering of confirmation panels along with setting and handling associated
 // keybindings.
 
+func (self *ConfirmationHelper) closeAndCallConfirmationFunction(cancel goContext.CancelFunc, function func() error) error {
+	if self.c.GocuiGui().IsPasting {
+		// The user is pasting multi-line text into a prompt; we don't want to handle the
+		// line feeds as "confirm" keybindings. Simply ignoring them is the best we can do; this
+		// will cause the entire pasted text to appear as a single line in the prompt. Hopefully
+		// the user knows that ctrl-u allows them to delete it again...
+		return nil
+	}
+
+	cancel()
+
+	self.c.Context().Pop()
+
+	if function != nil {
+		if err := function(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (self *ConfirmationHelper) wrappedConfirmationFunction(cancel goContext.CancelFunc, function func() error) func() error {
 	return func() error {
-		if self.c.GocuiGui().IsPasting {
-			// The user is pasting multi-line text into a prompt; we don't want to handle the
-			// line feeds as "confirm" keybindings. Simply ignoring them is the best we can do; this
-			// will cause the entire pasted text to appear as a single line in the prompt. Hopefully
-			// the user knows that ctrl-u allows them to delete it again...
-			return nil
-		}
-
-		cancel()
-
-		self.c.Context().Pop()
-
-		if function != nil {
-			if err := function(); err != nil {
-				return err
-			}
-		}
-
-		return nil
+		return self.closeAndCallConfirmationFunction(cancel, function)
 	}
 }
 
 func (self *ConfirmationHelper) wrappedPromptConfirmationFunction(cancel goContext.CancelFunc, function func(string) error, getResponse func() string) func() error {
-	return self.wrappedConfirmationFunction(cancel, func() error {
-		return function(getResponse())
-	})
+	return func() error {
+		return self.closeAndCallConfirmationFunction(cancel, func() error {
+			return function(getResponse())
+		})
+	}
 }
 
 func (self *ConfirmationHelper) DeactivateConfirmation() {
