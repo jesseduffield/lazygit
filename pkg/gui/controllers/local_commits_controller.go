@@ -1116,8 +1116,8 @@ func isFixupCommit(subject string) (string, bool) {
 	prefixes := []string{"fixup! ", "squash! ", "amend! "}
 	trimPrefix := func(s string) (string, bool) {
 		for _, prefix := range prefixes {
-			if strings.HasPrefix(s, prefix) {
-				return strings.TrimPrefix(s, prefix), true
+			if trimmedSubject, ok := strings.CutPrefix(s, prefix); ok {
+				return trimmedSubject, true
 			}
 		}
 		return s, false

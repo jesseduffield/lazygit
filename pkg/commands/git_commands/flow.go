@@ -32,7 +32,7 @@ func (self *FlowCommands) FinishCmdObj(branchName string) (*oscommands.CmdObj, e
 	suffix := strings.Replace(branchName, prefix, "", 1)
 
 	branchType := ""
-	for _, line := range strings.Split(strings.TrimSpace(prefixes), "\n") {
+	for line := range strings.SplitSeq(strings.TrimSpace(prefixes), "\n") {
 		if strings.HasPrefix(line, "gitflow.prefix.") && strings.HasSuffix(line, prefix) {
 
 			regex := regexp.MustCompile("gitflow.prefix.([^ ]*) .*")

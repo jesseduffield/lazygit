@@ -5,7 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
-type Key interface{} // FIXME: find out how to get `gocui.Key | rune`
+type Key any // FIXME: find out how to get `gocui.Key | rune`
 
 // Binding - a keybinding mapping a key and modifier to a handler. The keypress
 // is only handled if the given view has focus, or handled globally if the view

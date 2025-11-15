@@ -29,13 +29,10 @@ func (gui *Gui) linesToReadFromCmdTask(v *gocui.View) tasks.LinesToRead {
 	// scrollbar go to its minimum height, so that the scrollbar thumb doesn't
 	// change size as you scroll down.
 	minScrollbarHeight := 1
-	linesToReadForAccurateScrollbar := height*(height-1)/minScrollbarHeight + oy
-
-	// However, cap it at some arbitrary max limit, so that we don't get
-	// performance problems for huge monitors or tiny font sizes
-	if linesToReadForAccurateScrollbar > 5000 {
-		linesToReadForAccurateScrollbar = 5000
-	}
+	linesToReadForAccurateScrollbar := min(
+		// However, cap it at some arbitrary max limit, so that we don't get
+		// performance problems for huge monitors or tiny font sizes
+		height*(height-1)/minScrollbarHeight+oy, 5000)
 
 	return tasks.LinesToRead{
 		Total:               linesToReadForAccurateScrollbar,

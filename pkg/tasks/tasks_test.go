@@ -117,12 +117,10 @@ func TestNewCmdTask(t *testing.T) {
 
 	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{20, -1, nil}, onDone)
 	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
+	wg.Go(func() {
 		time.Sleep(100 * time.Millisecond)
 		close(stop)
-		wg.Done()
-	}()
+	})
 	_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: func() { task.Done() }})
 
 	wg.Wait()
@@ -252,12 +250,10 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 
 		fn := manager.NewCmdTask(start, "", s.linesToRead, func() {})
 		wg := sync.WaitGroup{}
-		wg.Add(1)
-		go func() {
+		wg.Go(func() {
 			time.Sleep(100 * time.Millisecond)
 			close(stop)
-			wg.Done()
-		}()
+		})
 		_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: func() { task.Done() }})
 
 		wg.Wait()
