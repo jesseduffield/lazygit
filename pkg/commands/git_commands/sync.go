@@ -79,6 +79,7 @@ func (self *SyncCommands) FetchBackgroundCmdObj() *oscommands.CmdObj {
 
 	cmdObj := self.cmd.New(cmdArgs)
 	cmdObj.DontLog().FailOnCredentialRequest()
+	cmdObj.SuppressOutputUnlessError()
 	return cmdObj
 }
 
