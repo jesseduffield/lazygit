@@ -36,8 +36,8 @@ type TextStyle struct {
 }
 
 type Sprinter interface {
-	Sprint(a ...interface{}) string
-	Sprintf(format string, a ...interface{}) string
+	Sprint(a ...any) string
+	Sprintf(format string, a ...any) string
 }
 
 func New() TextStyle {
@@ -46,11 +46,11 @@ func New() TextStyle {
 	return s
 }
 
-func (b TextStyle) Sprint(a ...interface{}) string {
+func (b TextStyle) Sprint(a ...any) string {
 	return b.Style.Sprint(a...)
 }
 
-func (b TextStyle) Sprintf(format string, a ...interface{}) string {
+func (b TextStyle) Sprintf(format string, a ...any) string {
 	return b.Style.Sprintf(format, a...)
 }
 

@@ -109,11 +109,7 @@ func (self *ConfirmationHelper) getPopupPanelWidth() int {
 	panelWidth := 4 * width / 7
 	minWidth := 80
 	if panelWidth < minWidth {
-		if width-2 < minWidth {
-			panelWidth = width - 2
-		} else {
-			panelWidth = minWidth
-		}
+		panelWidth = min(width-2, minWidth)
 	}
 
 	return panelWidth

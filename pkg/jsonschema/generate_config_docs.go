@@ -114,7 +114,7 @@ func setComment(yamlNode *yaml.Node, description string) {
 		"\n")
 }
 
-func (n *Node) MarshalYAML() (interface{}, error) {
+func (n *Node) MarshalYAML() (any, error) {
 	node := yaml.Node{
 		Kind: yaml.MappingNode,
 	}

@@ -30,7 +30,7 @@ func SortRange(x int, y int) (int, int) {
 	return y, x
 }
 
-func AsJson(i interface{}) string {
+func AsJson(i any) string {
 	bytes, _ := json.MarshalIndent(i, "", "    ")
 	return string(bytes)
 }

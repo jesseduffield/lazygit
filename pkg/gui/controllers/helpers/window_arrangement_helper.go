@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	mapsPkg "maps"
 	"math"
 	"strings"
 
@@ -194,9 +195,7 @@ func mainPanelChildren(args WindowArrangementArgs) []*boxlayout.Box {
 func MergeMaps[K comparable, V any](maps ...map[K]V) map[K]V {
 	result := map[K]V{}
 	for _, currMap := range maps {
-		for key, value := range currMap {
-			result[key] = value
-		}
+		mapsPkg.Copy(result, currMap)
 	}
 
 	return result
