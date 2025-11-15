@@ -130,23 +130,21 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 
 						return f()
 					},
+					AllowEmptyInput: true,
 				})
 
 				return nil
 			}
 
-			// prompt for the new branch name where a blank means we just check out the branch
+			// prompt for the new branch name
 			self.c.Prompt(types.PromptOpts{
 				Title: self.c.Tr.NewBranchName,
 				HandleConfirm: func(branchName string) error {
-					if branchName == "" {
-						return errors.New(self.c.Tr.BranchNameCannotBeBlank)
-					}
-
 					opts.Branch = branchName
 
 					return f()
 				},
+				AllowEmptyInput: false,
 			})
 
 			return nil

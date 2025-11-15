@@ -24,7 +24,33 @@ func NewConfirmationHelper(c *HelperCommon) *ConfirmationHelper {
 // This file is for the rendering of confirmation panels along with setting and handling associated
 // keybindings.
 
+func (self *ConfirmationHelper) closeAndCallConfirmationFunction(cancel goContext.CancelFunc, function func() error) error {
+	cancel()
+
+	self.c.Context().Pop()
+
+	if function != nil {
+		if err := function(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (self *ConfirmationHelper) wrappedConfirmationFunction(cancel goContext.CancelFunc, function func() error) func() error {
+	return func() error {
+		return self.closeAndCallConfirmationFunction(cancel, function)
+	}
+}
+
+func (self *ConfirmationHelper) wrappedPromptConfirmationFunction(
+	cancel goContext.CancelFunc,
+	function func(string) error,
+	getResponse func() string,
+	allowEmptyInput bool,
+	preserveWhitespace bool,
+) func() error {
 	return func() error {
 		if self.c.GocuiGui().IsPasting {
 			// The user is pasting multi-line text into a prompt; we don't want to handle the
@@ -34,24 +60,20 @@ func (self *ConfirmationHelper) wrappedConfirmationFunction(cancel goContext.Can
 			return nil
 		}
 
-		cancel()
-
-		self.c.Context().Pop()
-
-		if function != nil {
-			if err := function(); err != nil {
-				return err
-			}
+		response := getResponse()
+		if !preserveWhitespace {
+			response = strings.TrimSpace(response)
 		}
 
-		return nil
-	}
-}
+		if response == "" && !allowEmptyInput {
+			self.c.ErrorToast(self.c.Tr.PromptInputCannotBeEmptyToast)
+			return nil
+		}
 
-func (self *ConfirmationHelper) wrappedPromptConfirmationFunction(cancel goContext.CancelFunc, function func(string) error, getResponse func() string) func() error {
-	return self.wrappedConfirmationFunction(cancel, func() error {
-		return function(getResponse())
-	})
+		return self.closeAndCallConfirmationFunction(cancel, func() error {
+			return function(response)
+		})
+	}
 }
 
 func (self *ConfirmationHelper) DeactivateConfirmation() {
@@ -229,12 +251,15 @@ func (self *ConfirmationHelper) setConfirmationKeyBindings(cancel goContext.Canc
 
 func (self *ConfirmationHelper) setPromptKeyBindings(cancel goContext.CancelFunc, opts types.CreatePopupPanelOpts) {
 	onConfirm := self.wrappedPromptConfirmationFunction(cancel, opts.HandleConfirmPrompt,
-		func() string { return self.c.Views().Prompt.TextArea.GetContent() })
+		func() string { return self.c.Views().Prompt.TextArea.GetContent() },
+		opts.AllowEmptyInput, opts.PreserveWhitespace)
 
 	onSuggestionConfirm := self.wrappedPromptConfirmationFunction(
 		cancel,
 		opts.HandleConfirmPrompt,
 		self.getSelectedSuggestionValue,
+		opts.AllowEmptyInput,
+		opts.PreserveWhitespace,
 	)
 
 	onClose := self.wrappedConfirmationFunction(cancel, opts.HandleClose)

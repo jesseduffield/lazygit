@@ -41,6 +41,7 @@ func (self *CredentialsHelper) PromptUserForCredential(passOrUname oscommands.Cr
 
 				return nil
 			},
+			AllowEmptyInput: true,
 		})
 
 		return nil

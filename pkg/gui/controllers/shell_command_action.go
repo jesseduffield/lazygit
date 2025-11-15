@@ -19,6 +19,7 @@ func (self *ShellCommandAction) Call() error {
 		Title:               self.c.Tr.ShellCommand,
 		FindSuggestionsFunc: self.GetShellCommandsHistorySuggestionsFunc(),
 		AllowEditSuggestion: true,
+		PreserveWhitespace:  true,
 		HandleConfirm: func(command string) error {
 			if self.shouldSaveCommand(command) {
 				self.c.GetAppState().ShellCommandsHistory = utils.Limit(
