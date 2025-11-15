@@ -862,7 +862,6 @@ type TranslationSet struct {
 	NewWorktreePath                          string
 	NewWorktreeBase                          string
 	RemoveWorktreeTooltip                    string
-	BranchNameCannotBeBlank                  string
 	NewBranchName                            string
 	NewBranchNameLeaveBlank                  string
 	ViewWorktreeOptions                      string
@@ -1956,7 +1955,6 @@ func EnglishTranslationSet() *TranslationSet {
 		NewWorktreePath:                          "New worktree path",
 		NewWorktreeBase:                          "New worktree base ref",
 		RemoveWorktreeTooltip:                    "Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory.",
-		BranchNameCannotBeBlank:                  "Branch name cannot be blank",
 		NewBranchName:                            "New branch name",
 		NewBranchNameLeaveBlank:                  "New branch name (leave blank to checkout {{.default}})",
 		ViewWorktreeOptions:                      "View worktree options",

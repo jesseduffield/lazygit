@@ -140,10 +140,6 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 			self.c.Prompt(types.PromptOpts{
 				Title: self.c.Tr.NewBranchName,
 				HandleConfirm: func(branchName string) error {
-					if branchName == "" {
-						return errors.New(self.c.Tr.BranchNameCannotBeBlank)
-					}
-
 					opts.Branch = branchName
 
 					return f()
