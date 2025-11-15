@@ -125,7 +125,8 @@ func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrap
 		HandleConfirm: func(str string) error {
 			return wrappedF(str)
 		},
-		AllowEmptyInput: true,
+		AllowEmptyInput:    true,
+		PreserveWhitespace: true,
 	})
 
 	return nil

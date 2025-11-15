@@ -49,6 +49,7 @@ func (self *ConfirmationHelper) wrappedPromptConfirmationFunction(
 	function func(string) error,
 	getResponse func() string,
 	allowEmptyInput bool,
+	preserveWhitespace bool,
 ) func() error {
 	return func() error {
 		if self.c.GocuiGui().IsPasting {
@@ -60,6 +61,9 @@ func (self *ConfirmationHelper) wrappedPromptConfirmationFunction(
 		}
 
 		response := getResponse()
+		if !preserveWhitespace {
+			response = strings.TrimSpace(response)
+		}
 
 		if response == "" && !allowEmptyInput {
 			self.c.ErrorToast(self.c.Tr.PromptInputCannotBeEmptyToast)
@@ -248,13 +252,14 @@ func (self *ConfirmationHelper) setConfirmationKeyBindings(cancel goContext.Canc
 func (self *ConfirmationHelper) setPromptKeyBindings(cancel goContext.CancelFunc, opts types.CreatePopupPanelOpts) {
 	onConfirm := self.wrappedPromptConfirmationFunction(cancel, opts.HandleConfirmPrompt,
 		func() string { return self.c.Views().Prompt.TextArea.GetContent() },
-		opts.AllowEmptyInput)
+		opts.AllowEmptyInput, opts.PreserveWhitespace)
 
 	onSuggestionConfirm := self.wrappedPromptConfirmationFunction(
 		cancel,
 		opts.HandleConfirmPrompt,
 		self.getSelectedSuggestionValue,
 		opts.AllowEmptyInput,
+		opts.PreserveWhitespace,
 	)
 
 	onClose := self.wrappedConfirmationFunction(cancel, opts.HandleClose)
