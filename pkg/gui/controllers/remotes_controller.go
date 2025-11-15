@@ -360,13 +360,19 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 		if err != nil {
 			return err
 		}
-		if branchName != "" {
-			err = self.c.Git().Branch.New(branchName, remote.Name+"/"+branchName)
-		}
-		self.c.Refresh(types.RefreshOptions{
+		refreshOptions := types.RefreshOptions{
 			Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
 			Mode:  types.ASYNC,
-		})
+		}
+		if branchName != "" {
+			err = self.c.Git().Branch.New(branchName, remote.Name+"/"+branchName)
+			if err == nil {
+				self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
+				self.c.Contexts().Branches.SetSelection(0)
+				refreshOptions.KeepBranchSelectionIndex = true
+			}
+		}
+		self.c.Refresh(refreshOptions)
 		return err
 	})
 }
