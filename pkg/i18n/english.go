@@ -1026,6 +1026,7 @@ type Actions struct {
 	DeleteRemoteBranch               string
 	SetBranchUpstream                string
 	AddRemote                        string
+	AddForkRemote                    string
 	RemoveRemote                     string
 	UpdateRemote                     string
 	ApplyPatch                       string
@@ -2087,6 +2088,7 @@ func EnglishTranslationSet() *TranslationSet {
 			DeleteRemoteBranch:               "Delete remote branch",
 			SetBranchUpstream:                "Set branch upstream",
 			AddRemote:                        "Add remote",
+			AddForkRemote:                    "Add fork remote",
 			RemoveRemote:                     "Remove remote",
 			UpdateRemote:                     "Update remote",
 			ApplyPatch:                       "Apply patch",

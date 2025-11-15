@@ -146,7 +146,6 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 
 // Adds a new remote, refreshes and selects it, then fetches and checks out the specified branch if provided.
 func (self *RemotesController) addAndCheckoutRemote(remoteName string, remoteUrl string, branchToCheckout string) error {
-	self.c.LogAction(self.c.Tr.Actions.AddRemote)
 	err := self.c.Git().Remote.AddRemote(remoteName, remoteUrl)
 	if err != nil {
 		return err
@@ -201,6 +200,7 @@ func (self *RemotesController) add() error {
 			self.c.Prompt(types.PromptOpts{
 				Title: self.c.Tr.NewRemoteUrl,
 				HandleConfirm: func(remoteUrl string) error {
+					self.c.LogAction(self.c.Tr.Actions.AddRemote)
 					return self.addAndCheckoutRemote(remoteName, remoteUrl, "")
 				},
 			})
@@ -272,6 +272,7 @@ func (self *RemotesController) addFork() error {
 				return err
 			}
 
+			self.c.LogAction(self.c.Tr.Actions.AddForkRemote)
 			return self.ensureForkRemoteAndCheckout(forkUsername, remoteUrl, branchToCheckout)
 		},
 	})
