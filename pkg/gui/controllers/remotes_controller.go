@@ -74,19 +74,19 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.AddForkRemote),
-			Handler:           self.addFork,
-			GetDisabledReason: self.hasOriginRemote(),
-			Description:       self.c.Tr.AddForkRemote,
-			Tooltip:           self.c.Tr.AddForkRemoteTooltip,
-			DisplayOnScreen:   true,
-		},
-		{
 			Key:               opts.GetKey(opts.Config.Branches.FetchRemote),
 			Handler:           self.withItem(self.fetch),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Fetch,
 			Tooltip:           self.c.Tr.FetchRemoteTooltip,
+			DisplayOnScreen:   true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Branches.AddForkRemote),
+			Handler:           self.addFork,
+			GetDisabledReason: self.hasOriginRemote(),
+			Description:       self.c.Tr.AddForkRemote,
+			Tooltip:           self.c.Tr.AddForkRemoteTooltip,
 			DisplayOnScreen:   true,
 		},
 	}
