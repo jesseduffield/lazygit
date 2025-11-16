@@ -525,6 +525,11 @@ type TranslationSet struct {
 	NewRemote                             string
 	NewRemoteName                         string
 	NewRemoteUrl                          string
+	AddForkRemote                         string
+	AddForkRemoteUsername                 string
+	AddForkRemoteTooltip                  string
+	IncompatibleForkAlreadyExistsError    string
+	NoOriginRemote                        string
 	ViewBranches                          string
 	EditRemoteName                        string
 	EditRemoteUrl                         string
@@ -1021,6 +1026,7 @@ type Actions struct {
 	DeleteRemoteBranch               string
 	SetBranchUpstream                string
 	AddRemote                        string
+	AddForkRemote                    string
 	RemoveRemote                     string
 	UpdateRemote                     string
 	ApplyPatch                       string
@@ -1622,6 +1628,11 @@ func EnglishTranslationSet() *TranslationSet {
 		NewRemote:                            `New remote`,
 		NewRemoteName:                        `New remote name:`,
 		NewRemoteUrl:                         `New remote url:`,
+		AddForkRemoteUsername:                `Fork owner (username/org). Use username:branch to check out a branch`,
+		AddForkRemote:                        `Add fork remote`,
+		AddForkRemoteTooltip:                 `Quickly add a fork remote by replacing the owner in the origin URL and optionally check out a branch from new remote.`,
+		IncompatibleForkAlreadyExistsError:   `Remote {{.remoteName}} already exists and has different URL`,
+		NoOriginRemote:                       "Action needs 'origin' remote",
 		ViewBranches:                         "View branches",
 		EditRemoteName:                       `Enter updated remote name for {{.remoteName}}:`,
 		EditRemoteUrl:                        `Enter updated remote url for {{.remoteName}}:`,
@@ -2077,6 +2088,7 @@ func EnglishTranslationSet() *TranslationSet {
 			DeleteRemoteBranch:               "Delete remote branch",
 			SetBranchUpstream:                "Set branch upstream",
 			AddRemote:                        "Add remote",
+			AddForkRemote:                    "Add fork remote",
 			RemoveRemote:                     "Remove remote",
 			UpdateRemote:                     "Update remote",
 			ApplyPatch:                       "Apply patch",
