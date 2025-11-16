@@ -102,11 +102,13 @@ var UndoCheckoutAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 
 				t.Views().Branches().
+					IsFocused().
 					Lines(
 						Contains("master").IsSelected(),
 						Contains("other_branch"),
 					)
 			}).
+			Focus().
 			Lines(
 				Contains("three").IsSelected(),
 				Contains("two"),
@@ -135,11 +137,13 @@ var UndoCheckoutAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 
 				t.Views().Branches().
+					IsFocused().
 					Lines(
 						Contains("other_branch").IsSelected(),
 						Contains("master"),
 					)
 			}).
+			Focus().
 			Press(keys.Universal.Redo).
 			Tap(confirmRedoDrop).
 			Lines(
