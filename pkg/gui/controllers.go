@@ -26,7 +26,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	helperCommon := gui.c
 	recordDirectoryHelper := helpers.NewRecordDirectoryHelper(helperCommon)
-	reposHelper := helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo)
+	reposHelper := helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onSwitchToNewRepo)
 	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon)
 	refsHelper := helpers.NewRefsHelper(helperCommon, rebaseHelper)
 	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon)

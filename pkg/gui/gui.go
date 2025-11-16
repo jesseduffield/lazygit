@@ -305,6 +305,14 @@ func (self *GuiRepoState) GetSplitMainPanel() bool {
 	return self.SplitMainPanel
 }
 
+func (gui *Gui) onSwitchToNewRepo(startArgs appTypes.StartArgs, contextKey types.ContextKey) error {
+	err := gui.onNewRepo(startArgs, contextKey)
+	if err == nil && gui.UserConfig().Git.AutoFetch && gui.UserConfig().Refresher.FetchInterval > 0 {
+		gui.BackgroundRoutineMgr.triggerImmediateFetch()
+	}
+	return err
+}
+
 func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.ContextKey) error {
 	var err error
 	gui.git, err = commands.NewGitCommand(

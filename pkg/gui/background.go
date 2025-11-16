@@ -17,6 +17,9 @@ type BackgroundRoutineMgr struct {
 	// we typically want to pause some things that are running like background
 	// file refreshes
 	pauseBackgroundRefreshes bool
+
+	// a channel to trigger an immediate background fetch; we use this when switching repos
+	triggerFetch chan struct{}
 }
 
 func (self *BackgroundRoutineMgr) PauseBackgroundRefreshes(pause bool) {
@@ -86,7 +89,7 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	_ = fetch()
 
 	userConfig := self.gui.UserConfig()
-	self.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), self.gui.stopChan, fetch)
+	self.triggerFetch = self.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), self.gui.stopChan, fetch)
 }
 
 func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh(refreshInterval int) {
@@ -98,29 +101,40 @@ func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh(refreshInterval in
 	})
 }
 
-func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan struct{}, function func() error) {
+// returns a channel that can be used to trigger the callback immediately
+func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan struct{}, function func() error) chan struct{} {
 	done := make(chan struct{})
+	retrigger := make(chan struct{})
 	go utils.Safe(func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
+		doit := func() {
+			if self.pauseBackgroundRefreshes {
+				return
+			}
+			self.gui.c.OnWorker(func(gocui.Task) error {
+				_ = function()
+				done <- struct{}{}
+				return nil
+			})
+			// waiting so that we don't bunch up refreshes if the refresh takes longer than the
+			// interval, or if a retrigger comes in while we're still processing a timer-based one
+			// (or vice versa)
+			<-done
+		}
 		for {
 			select {
 			case <-ticker.C:
-				if self.pauseBackgroundRefreshes {
-					continue
-				}
-				self.gui.c.OnWorker(func(gocui.Task) error {
-					_ = function()
-					done <- struct{}{}
-					return nil
-				})
-				// waiting so that we don't bunch up refreshes if the refresh takes longer than the interval
-				<-done
+				doit()
+			case <-retrigger:
+				ticker.Reset(interval)
+				doit()
 			case <-stop:
 				return
 			}
 		}
 	})
+	return retrigger
 }
 
 func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
@@ -133,4 +147,10 @@ func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
 	}
 
 	return err
+}
+
+func (self *BackgroundRoutineMgr) triggerImmediateFetch() {
+	if self.triggerFetch != nil {
+		self.triggerFetch <- struct{}{}
+	}
 }
