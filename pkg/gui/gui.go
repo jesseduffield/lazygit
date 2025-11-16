@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazycore/pkg/boxlayout"
@@ -233,7 +234,6 @@ type GuiRepoState struct {
 	Modes *types.Modes
 
 	SplitMainPanel bool
-	LimitCommits   bool
 
 	SearchState  *types.SearchState
 	StartupStage types.StartupStage // Allows us to not load everything at once
@@ -254,6 +254,8 @@ type GuiRepoState struct {
 	ScreenMode types.ScreenMode
 
 	CurrentPopupOpts *types.CreatePopupPanelOpts
+
+	LastBackgroundFetchTime time.Time
 }
 
 var _ types.IRepoStateAccessor = new(GuiRepoState)
@@ -304,6 +306,16 @@ func (self *GuiRepoState) SetSplitMainPanel(value bool) {
 
 func (self *GuiRepoState) GetSplitMainPanel() bool {
 	return self.SplitMainPanel
+}
+
+func (gui *Gui) onSwitchToNewRepo(startArgs appTypes.StartArgs, contextKey types.ContextKey) error {
+	err := gui.onNewRepo(startArgs, contextKey)
+	if err == nil && gui.UserConfig().Git.AutoFetch && gui.UserConfig().Refresher.FetchInterval > 0 {
+		if time.Since(gui.State.LastBackgroundFetchTime) > gui.UserConfig().Refresher.FetchIntervalDuration() {
+			gui.BackgroundRoutineMgr.triggerImmediateFetch()
+		}
+	}
+	return err
 }
 
 func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.ContextKey) error {

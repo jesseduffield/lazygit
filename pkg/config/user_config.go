@@ -49,6 +49,14 @@ type RefresherConfig struct {
 	FetchInterval int `yaml:"fetchInterval" jsonschema:"minimum=0"`
 }
 
+func (c *RefresherConfig) RefreshIntervalDuration() time.Duration {
+	return time.Second * time.Duration(c.RefreshInterval)
+}
+
+func (c *RefresherConfig) FetchIntervalDuration() time.Duration {
+	return time.Second * time.Duration(c.FetchInterval)
+}
+
 type GuiConfig struct {
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
 	AuthorColors map[string]string `yaml:"authorColors"`
