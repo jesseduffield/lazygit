@@ -43,7 +43,7 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 	if userConfig.Git.AutoRefresh {
 		refreshInterval := userConfig.Refresher.RefreshInterval
 		if refreshInterval > 0 {
-			go utils.Safe(func() { self.startBackgroundFilesRefresh(refreshInterval) })
+			go utils.Safe(self.startBackgroundFilesRefresh)
 		} else {
 			self.gui.c.Log.Errorf(
 				"Value of config option 'refresher.refreshInterval' (%d) is invalid, disabling auto-refresh",
@@ -92,10 +92,11 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	self.triggerFetch = self.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), self.gui.stopChan, fetch)
 }
 
-func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh(refreshInterval int) {
+func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh() {
 	self.gui.waitForIntro.Wait()
 
-	self.goEvery(time.Second*time.Duration(refreshInterval), self.gui.stopChan, func() error {
+	userConfig := self.gui.UserConfig()
+	self.goEvery(time.Second*time.Duration(userConfig.Refresher.RefreshInterval), self.gui.stopChan, func() error {
 		self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 		return nil
 	})
