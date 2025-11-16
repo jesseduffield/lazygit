@@ -89,14 +89,14 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	_ = fetch()
 
 	userConfig := self.gui.UserConfig()
-	self.triggerFetch = self.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), self.gui.stopChan, fetch)
+	self.triggerFetch = self.goEvery(userConfig.Refresher.FetchIntervalDuration(), self.gui.stopChan, fetch)
 }
 
 func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh() {
 	self.gui.waitForIntro.Wait()
 
 	userConfig := self.gui.UserConfig()
-	self.goEvery(time.Second*time.Duration(userConfig.Refresher.RefreshInterval), self.gui.stopChan, func() error {
+	self.goEvery(userConfig.Refresher.RefreshIntervalDuration(), self.gui.stopChan, func() error {
 		self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 		return nil
 	})
