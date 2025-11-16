@@ -79,6 +79,16 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	self.gui.waitForIntro.Wait()
 
 	fetch := func() error {
+		// Do this on the UI thread so that we don't have to deal with synchronization around the
+		// access of the repo state.
+		self.gui.onUIThread(func() error {
+			// There's a race here, where we might be recording the time stamp for a different repo
+			// than where the fetch actually ran. It's not very likely though, and not harmful if it
+			// does happen; guarding against it would be more effort than it's worth.
+			self.gui.State.LastBackgroundFetchTime = time.Now()
+			return nil
+		})
+
 		return self.gui.helpers.AppStatus.WithWaitingStatusImpl(self.gui.Tr.FetchingStatus, func(gocui.Task) error {
 			return self.backgroundFetch()
 		}, nil)
