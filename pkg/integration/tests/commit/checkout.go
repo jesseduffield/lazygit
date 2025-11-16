@@ -43,14 +43,16 @@ var Checkout = NewIntegrationTest(NewIntegrationTestArgs{
 			Select(MatchesRegexp("Checkout commit [a-f0-9]+ as detached head")).
 			Confirm()
 		t.Views().Branches().
+			IsFocused().
 			Lines(
-				Contains("* (HEAD detached at"),
+				Contains("* (HEAD detached at").IsSelected(),
 				Contains("branch1"),
 				Contains("branch2"),
 				Contains("master"),
 			)
 
 		t.Views().Commits().
+			Focus().
 			NavigateToLine(Contains("two")).
 			PressPrimaryAction()
 
@@ -65,8 +67,9 @@ var Checkout = NewIntegrationTest(NewIntegrationTestArgs{
 			Select(Contains("Checkout branch 'master'")).
 			Confirm()
 		t.Views().Branches().
+			IsFocused().
 			Lines(
-				Contains("master"),
+				Contains("master").IsSelected(),
 				Contains("branch1"),
 				Contains("branch2"),
 			)

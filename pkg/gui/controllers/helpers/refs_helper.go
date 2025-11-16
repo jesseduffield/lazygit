@@ -61,6 +61,10 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		return self.c.WithWaitingStatus(waitingStatus, f)
 	}
 
+	// Switch to the branches context _before_ starting to check out the branch, so that we see the
+	// inline status. This is a no-op if the branches panel is already focused.
+	self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
+
 	return withCheckoutStatus(func(gocui.Task) error {
 		if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {
 			// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
@@ -109,11 +113,6 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 // Shows a prompt to choose between creating a new branch or checking out a detached head
 func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchName string) error {
 	checkout := func(branchName string) error {
-		// Switch to the branches context _before_ starting to check out the
-		// branch, so that we see the inline status
-		if self.c.Context().Current() != self.c.Contexts().Branches {
-			self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
-		}
 		return self.CheckoutRef(branchName, types.CheckoutRefOptions{})
 	}
 
