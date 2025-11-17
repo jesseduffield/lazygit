@@ -620,7 +620,7 @@ type OSConfig struct {
 	// [dev] We're naming this `editInTerminal` for backwards compatibility
 	SuspendOnEdit *bool `yaml:"editInTerminal,omitempty"`
 
-	// For opening a directory in an editor
+	// For opening a directory in an editor. Should contain "{{dir}}".
 	OpenDirInEditor string `yaml:"openDirInEditor,omitempty"`
 
 	// A built-in preset that sets all of the above settings. Supported presets are defined in the getPreset function in editor_presets.go.
