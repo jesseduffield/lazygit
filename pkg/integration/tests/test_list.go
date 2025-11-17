@@ -441,6 +441,7 @@ var tests = []*components.IntegrationTest{
 	ui.ModeSpecificKeybindingSuggestions,
 	ui.OpenLinkFailure,
 	ui.RangeSelect,
+	ui.SidePanelWidth1,
 	ui.SwitchTabFromMenu,
 	ui.SwitchTabWithPanelJumpKeys,
 	undo.UndoCheckoutAndDrop,
