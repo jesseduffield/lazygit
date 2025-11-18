@@ -930,7 +930,7 @@ Returns:
 `offset` - Offset from provided data structure where key value ends. Used mostly internally, for example for `ArrayEach` helper.
 `err` - If key not found or any other parsing issue it should return error. If key not found it also sets `dataType` to `NotExist`
 
-Accept multiple keys to specify path to JSON value (in case of quering nested structures).
+Accept multiple keys to specify path to JSON value (in case of querying nested structures).
 If no keys provided it will try to extract closest JSON value (simple ones or object/array), useful for reading streams or arrays, see `ArrayEach` implementation.
 */
 func Get(data []byte, keys ...string) (value []byte, dataType ValueType, offset int, err error) {
