@@ -430,8 +430,9 @@ func (c *client) List() ([]*Key, error) {
 		return keys, nil
 	case *failureAgentMsg:
 		return nil, errors.New("agent: failed to list keys")
+	default:
+		return nil, fmt.Errorf("agent: failed to list keys, unexpected message type %T", msg)
 	}
-	panic("unreachable")
 }
 
 // Sign has the agent sign the data using a protocol 2 key as defined
@@ -462,8 +463,9 @@ func (c *client) SignWithFlags(key ssh.PublicKey, data []byte, flags SignatureFl
 		return &sig, nil
 	case *failureAgentMsg:
 		return nil, errors.New("agent: failed to sign challenge")
+	default:
+		return nil, fmt.Errorf("agent: failed to sign challenge, unexpected message type %T", msg)
 	}
-	panic("unreachable")
 }
 
 // unmarshal parses an agent message in packet, returning the parsed
@@ -555,7 +557,7 @@ func (c *client) insertKey(s interface{}, comment string, constraints []byte) er
 		})
 	case *dsa.PrivateKey:
 		req = ssh.Marshal(dsaKeyMsg{
-			Type:        ssh.KeyAlgoDSA,
+			Type:        ssh.InsecureKeyAlgoDSA,
 			P:           k.P,
 			Q:           k.Q,
 			G:           k.G,
@@ -803,16 +805,16 @@ var _ ssh.AlgorithmSigner = &agentKeyringSigner{}
 //
 // This map must be kept in sync with the one in certs.go.
 var certKeyAlgoNames = map[string]string{
-	ssh.CertAlgoRSAv01:        ssh.KeyAlgoRSA,
-	ssh.CertAlgoRSASHA256v01:  ssh.KeyAlgoRSASHA256,
-	ssh.CertAlgoRSASHA512v01:  ssh.KeyAlgoRSASHA512,
-	ssh.CertAlgoDSAv01:        ssh.KeyAlgoDSA,
-	ssh.CertAlgoECDSA256v01:   ssh.KeyAlgoECDSA256,
-	ssh.CertAlgoECDSA384v01:   ssh.KeyAlgoECDSA384,
-	ssh.CertAlgoECDSA521v01:   ssh.KeyAlgoECDSA521,
-	ssh.CertAlgoSKECDSA256v01: ssh.KeyAlgoSKECDSA256,
-	ssh.CertAlgoED25519v01:    ssh.KeyAlgoED25519,
-	ssh.CertAlgoSKED25519v01:  ssh.KeyAlgoSKED25519,
+	ssh.CertAlgoRSAv01:         ssh.KeyAlgoRSA,
+	ssh.CertAlgoRSASHA256v01:   ssh.KeyAlgoRSASHA256,
+	ssh.CertAlgoRSASHA512v01:   ssh.KeyAlgoRSASHA512,
+	ssh.InsecureCertAlgoDSAv01: ssh.InsecureKeyAlgoDSA,
+	ssh.CertAlgoECDSA256v01:    ssh.KeyAlgoECDSA256,
+	ssh.CertAlgoECDSA384v01:    ssh.KeyAlgoECDSA384,
+	ssh.CertAlgoECDSA521v01:    ssh.KeyAlgoECDSA521,
+	ssh.CertAlgoSKECDSA256v01:  ssh.KeyAlgoSKECDSA256,
+	ssh.CertAlgoED25519v01:     ssh.KeyAlgoED25519,
+	ssh.CertAlgoSKED25519v01:   ssh.KeyAlgoSKED25519,
 }
 
 // underlyingAlgo returns the signature algorithm associated with algo (which is

@@ -12,6 +12,8 @@ import (
 
 // XOF defines the interface to hash functions that
 // support arbitrary-length output.
+//
+// New callers should prefer the standard library [hash.XOF].
 type XOF interface {
 	// Write absorbs more data into the hash's state. It panics if called
 	// after Read.
@@ -47,6 +49,8 @@ const maxOutputLength = (1 << 32) * 64
 //
 // A non-nil key turns the hash into a MAC. The key must between
 // zero and 32 bytes long.
+//
+// The result can be safely interface-upgraded to [hash.XOF].
 func NewXOF(size uint32, key []byte) (XOF, error) {
 	if len(key) > Size {
 		return nil, errKeySize
@@ -91,6 +95,10 @@ func (x *xof) Write(p []byte) (n int, err error) {
 func (x *xof) Clone() XOF {
 	clone := *x
 	return &clone
+}
+
+func (x *xof) BlockSize() int {
+	return x.d.BlockSize()
 }
 
 func (x *xof) Reset() {

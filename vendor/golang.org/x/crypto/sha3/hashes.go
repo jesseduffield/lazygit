@@ -2,127 +2,94 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Package sha3 implements the SHA-3 hash algorithms and the SHAKE extendable
+// output functions defined in FIPS 202.
+//
+// Most of this package is a wrapper around the crypto/sha3 package in the
+// standard library. The only exception is the legacy Keccak hash functions.
 package sha3
 
-// This file provides functions for creating instances of the SHA-3
-// and SHAKE hash functions, as well as utility functions for hashing
-// bytes.
-
 import (
-	"crypto"
+	"crypto/sha3"
 	"hash"
 )
 
 // New224 creates a new SHA3-224 hash.
 // Its generic security strength is 224 bits against preimage attacks,
 // and 112 bits against collision attacks.
+//
+// It is a wrapper for the [sha3.New224] function in the standard library.
+//
+//go:fix inline
 func New224() hash.Hash {
-	return new224()
+	return sha3.New224()
 }
 
 // New256 creates a new SHA3-256 hash.
 // Its generic security strength is 256 bits against preimage attacks,
 // and 128 bits against collision attacks.
+//
+// It is a wrapper for the [sha3.New256] function in the standard library.
+//
+//go:fix inline
 func New256() hash.Hash {
-	return new256()
+	return sha3.New256()
 }
 
 // New384 creates a new SHA3-384 hash.
 // Its generic security strength is 384 bits against preimage attacks,
 // and 192 bits against collision attacks.
+//
+// It is a wrapper for the [sha3.New384] function in the standard library.
+//
+//go:fix inline
 func New384() hash.Hash {
-	return new384()
+	return sha3.New384()
 }
 
 // New512 creates a new SHA3-512 hash.
 // Its generic security strength is 512 bits against preimage attacks,
 // and 256 bits against collision attacks.
+//
+// It is a wrapper for the [sha3.New512] function in the standard library.
+//
+//go:fix inline
 func New512() hash.Hash {
-	return new512()
-}
-
-func init() {
-	crypto.RegisterHash(crypto.SHA3_224, New224)
-	crypto.RegisterHash(crypto.SHA3_256, New256)
-	crypto.RegisterHash(crypto.SHA3_384, New384)
-	crypto.RegisterHash(crypto.SHA3_512, New512)
-}
-
-const (
-	dsbyteSHA3   = 0b00000110
-	dsbyteKeccak = 0b00000001
-	dsbyteShake  = 0b00011111
-	dsbyteCShake = 0b00000100
-
-	// rateK[c] is the rate in bytes for Keccak[c] where c is the capacity in
-	// bits. Given the sponge size is 1600 bits, the rate is 1600 - c bits.
-	rateK256  = (1600 - 256) / 8
-	rateK448  = (1600 - 448) / 8
-	rateK512  = (1600 - 512) / 8
-	rateK768  = (1600 - 768) / 8
-	rateK1024 = (1600 - 1024) / 8
-)
-
-func new224Generic() *state {
-	return &state{rate: rateK448, outputLen: 28, dsbyte: dsbyteSHA3}
-}
-
-func new256Generic() *state {
-	return &state{rate: rateK512, outputLen: 32, dsbyte: dsbyteSHA3}
-}
-
-func new384Generic() *state {
-	return &state{rate: rateK768, outputLen: 48, dsbyte: dsbyteSHA3}
-}
-
-func new512Generic() *state {
-	return &state{rate: rateK1024, outputLen: 64, dsbyte: dsbyteSHA3}
-}
-
-// NewLegacyKeccak256 creates a new Keccak-256 hash.
-//
-// Only use this function if you require compatibility with an existing cryptosystem
-// that uses non-standard padding. All other users should use New256 instead.
-func NewLegacyKeccak256() hash.Hash {
-	return &state{rate: rateK512, outputLen: 32, dsbyte: dsbyteKeccak}
-}
-
-// NewLegacyKeccak512 creates a new Keccak-512 hash.
-//
-// Only use this function if you require compatibility with an existing cryptosystem
-// that uses non-standard padding. All other users should use New512 instead.
-func NewLegacyKeccak512() hash.Hash {
-	return &state{rate: rateK1024, outputLen: 64, dsbyte: dsbyteKeccak}
+	return sha3.New512()
 }
 
 // Sum224 returns the SHA3-224 digest of the data.
-func Sum224(data []byte) (digest [28]byte) {
-	h := New224()
-	h.Write(data)
-	h.Sum(digest[:0])
-	return
+//
+// It is a wrapper for the [sha3.Sum224] function in the standard library.
+//
+//go:fix inline
+func Sum224(data []byte) [28]byte {
+	return sha3.Sum224(data)
 }
 
 // Sum256 returns the SHA3-256 digest of the data.
-func Sum256(data []byte) (digest [32]byte) {
-	h := New256()
-	h.Write(data)
-	h.Sum(digest[:0])
-	return
+//
+// It is a wrapper for the [sha3.Sum256] function in the standard library.
+//
+//go:fix inline
+func Sum256(data []byte) [32]byte {
+	return sha3.Sum256(data)
 }
 
 // Sum384 returns the SHA3-384 digest of the data.
-func Sum384(data []byte) (digest [48]byte) {
-	h := New384()
-	h.Write(data)
-	h.Sum(digest[:0])
-	return
+//
+// It is a wrapper for the [sha3.Sum384] function in the standard library.
+//
+//go:fix inline
+func Sum384(data []byte) [48]byte {
+	return sha3.Sum384(data)
 }
 
 // Sum512 returns the SHA3-512 digest of the data.
-func Sum512(data []byte) (digest [64]byte) {
-	h := New512()
-	h.Write(data)
-	h.Sum(digest[:0])
-	return
+//
+// It is a wrapper for the [sha3.Sum512] function in the standard library.
+//
+//go:fix inline
+func Sum512(data []byte) [64]byte {
+	return sha3.Sum512(data)
 }
