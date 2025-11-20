@@ -117,8 +117,6 @@ github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200222043503-6f7a984d4dc4/go.mod h1:tQ2
 github.com/go-logfmt/logfmt v0.4.0/go.mod h1:3RMwSq7FuexP4Kalkev3ejPJsZTpXXBr9+V4qmtdjCk=
 github.com/go-logfmt/logfmt v0.5.0 h1:TrB8swr/68K7m9CcGut2g3UOihhbcbiMAYiuTXdEih4=
 github.com/go-logfmt/logfmt v0.5.0/go.mod h1:wCYkCAKZfumFQihp8CzCvQ3paCTfi41vtzG1KdI/P7A=
-github.com/gobwas/glob v0.2.3 h1:A4xDbljILXROh+kObIiy5kIaPYD8e96x1tgBhUI5J+Y=
-github.com/gobwas/glob v0.2.3/go.mod h1:d3Ez4x06l9bZtSvzIay5+Yzi0fmZzPgnTbPcKjJAkT8=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
 github.com/golang/groupcache v0.0.0-20191227052852-215e87163ea7/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
@@ -200,8 +198,6 @@ github.com/jesseduffield/gocui v0.3.1-0.20251002151855-67e0e55ff42a h1:z3NQvFXAW
 github.com/jesseduffield/gocui v0.3.1-0.20251002151855-67e0e55ff42a/go.mod h1:sLIyZ2J42R6idGdtemZzsiR3xY5EF0KsvYEGh3dQv3s=
 github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5 h1:CDuQmfOjAtb1Gms6a1p5L2P8RhbLUq5t8aL7PiQd2uY=
 github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5/go.mod h1:qxN4mHOAyeIDLP7IK7defgPClM/z1Kze8VVQiaEjzsQ=
-github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e h1:uw/oo+kg7t/oeMs6sqlAwr85ND/9cpO3up3VxphxY0U=
-github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e/go.mod h1:u60qdFGXRd36jyEXxetz0vQceQIxzI13lIo3EFUDf4I=
 github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=
 github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024/go.mod h1:6v2b51hI/fHJwM22ozAgKL4VKDeJcHhJFhtBdhmNjmU=
 github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/XSXhF0NWZEnDohbsk=

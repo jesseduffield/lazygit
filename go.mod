@@ -20,7 +20,6 @@ require (
 	github.com/jesseduffield/go-git/v5 v5.14.1-0.20250407170251-e1a013310ccd
 	github.com/jesseduffield/gocui v0.3.1-0.20251002151855-67e0e55ff42a
 	github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
-	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/karimkhaleel/jsonschema v0.0.0-20231001195015-d933f0d94ea3
 	github.com/kyokomi/emoji/v2 v2.2.8
@@ -60,7 +59,6 @@ require (
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.6.2 // indirect
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
-	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/invopop/jsonschema v0.10.0 // indirect
