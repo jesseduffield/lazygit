@@ -4,14 +4,45 @@
 
 package sha3
 
+// This implementation is only used for NewLegacyKeccak256 and
+// NewLegacyKeccak512, which are not implemented by crypto/sha3.
+// All other functions in this package are wrappers around crypto/sha3.
+
 import (
 	"crypto/subtle"
 	"encoding/binary"
 	"errors"
+	"hash"
 	"unsafe"
 
 	"golang.org/x/sys/cpu"
 )
+
+const (
+	dsbyteKeccak = 0b00000001
+
+	// rateK[c] is the rate in bytes for Keccak[c] where c is the capacity in
+	// bits. Given the sponge size is 1600 bits, the rate is 1600 - c bits.
+	rateK256  = (1600 - 256) / 8
+	rateK512  = (1600 - 512) / 8
+	rateK1024 = (1600 - 1024) / 8
+)
+
+// NewLegacyKeccak256 creates a new Keccak-256 hash.
+//
+// Only use this function if you require compatibility with an existing cryptosystem
+// that uses non-standard padding. All other users should use New256 instead.
+func NewLegacyKeccak256() hash.Hash {
+	return &state{rate: rateK512, outputLen: 32, dsbyte: dsbyteKeccak}
+}
+
+// NewLegacyKeccak512 creates a new Keccak-512 hash.
+//
+// Only use this function if you require compatibility with an existing cryptosystem
+// that uses non-standard padding. All other users should use New512 instead.
+func NewLegacyKeccak512() hash.Hash {
+	return &state{rate: rateK1024, outputLen: 64, dsbyte: dsbyteKeccak}
+}
 
 // spongeDirection indicates the direction bytes are flowing through the sponge.
 type spongeDirection int
@@ -173,12 +204,9 @@ func (d *state) Sum(in []byte) []byte {
 }
 
 const (
-	magicSHA3   = "sha\x08"
-	magicShake  = "sha\x09"
-	magicCShake = "sha\x0a"
 	magicKeccak = "sha\x0b"
 	// magic || rate || main state || n || sponge direction
-	marshaledSize = len(magicSHA3) + 1 + 200 + 1 + 1
+	marshaledSize = len(magicKeccak) + 1 + 200 + 1 + 1
 )
 
 func (d *state) MarshalBinary() ([]byte, error) {
@@ -187,12 +215,6 @@ func (d *state) MarshalBinary() ([]byte, error) {
 
 func (d *state) AppendBinary(b []byte) ([]byte, error) {
 	switch d.dsbyte {
-	case dsbyteSHA3:
-		b = append(b, magicSHA3...)
-	case dsbyteShake:
-		b = append(b, magicShake...)
-	case dsbyteCShake:
-		b = append(b, magicCShake...)
 	case dsbyteKeccak:
 		b = append(b, magicKeccak...)
 	default:
@@ -210,12 +232,9 @@ func (d *state) UnmarshalBinary(b []byte) error {
 		return errors.New("sha3: invalid hash state")
 	}
 
-	magic := string(b[:len(magicSHA3)])
-	b = b[len(magicSHA3):]
+	magic := string(b[:len(magicKeccak)])
+	b = b[len(magicKeccak):]
 	switch {
-	case magic == magicSHA3 && d.dsbyte == dsbyteSHA3:
-	case magic == magicShake && d.dsbyte == dsbyteShake:
-	case magic == magicCShake && d.dsbyte == dsbyteCShake:
 	case magic == magicKeccak && d.dsbyte == dsbyteKeccak:
 	default:
 		return errors.New("sha3: invalid hash state identifier")

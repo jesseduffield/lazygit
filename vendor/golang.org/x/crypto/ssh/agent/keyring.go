@@ -112,7 +112,7 @@ func (r *keyring) Unlock(passphrase []byte) error {
 }
 
 // expireKeysLocked removes expired keys from the keyring. If a key was added
-// with a lifetimesecs contraint and seconds >= lifetimesecs seconds have
+// with a lifetimesecs constraint and seconds >= lifetimesecs seconds have
 // elapsed, it is removed. The caller *must* be holding the keyring mutex.
 func (r *keyring) expireKeysLocked() {
 	for _, k := range r.keys {
