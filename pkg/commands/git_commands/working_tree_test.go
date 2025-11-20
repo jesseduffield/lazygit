@@ -563,3 +563,32 @@ func TestWorkingTreeResetHard(t *testing.T) {
 		})
 	}
 }
+
+func TestWorkingTreeCommands_AllRepoFiles(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		runner   *oscommands.FakeCmdObjRunner
+		expected []string
+	}{
+		{
+			name: "no files",
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"ls-files", "-z"}, "", nil),
+			expected: []string{},
+		},
+		{
+			name: "two files",
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"ls-files", "-z"}, "dir/file1.txt\x00dir2/file2.go\x00", nil),
+			expected: []string{"dir/file1.txt", "dir2/file2.go"},
+		},
+	}
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
+			result, err := instance.AllRepoFiles()
+			assert.NoError(t, err)
+			assert.Equal(t, s.expected, result)
+		})
+	}
+}
