@@ -2,15 +2,14 @@ package helpers
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/jesseduffield/minimal/gitignore"
 	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
@@ -92,22 +91,28 @@ func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*ty
 func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*types.Suggestion {
 	_ = self.c.WithWaitingStatus(self.c.Tr.LoadingFileSuggestions, func(gocui.Task) error {
 		trie := patricia.NewTrie()
-		// load every non-gitignored file in the repo
-		ignore, err := gitignore.FromGit()
+
+		// load every file in the repo
+		files, err := self.c.Git().WorkingTree.AllRepoFiles()
 		if err != nil {
 			return err
 		}
 
-		err = ignore.Walk(".",
-			func(path string, info os.FileInfo, err error) error {
-				if err != nil {
-					return err
+		seen := set.New[string]()
+		for _, file := range files {
+			// For every file we also want to add its parent directories, but only once.
+			for i := range len(file) {
+				if file[i] == '/' {
+					dir := file[:i]
+					if !seen.Includes(dir) {
+						trie.Insert(patricia.Prefix(dir), dir)
+						seen.Add(dir)
+					}
 				}
-				if path != "." {
-					trie.Insert(patricia.Prefix(path), path)
-				}
-				return nil
-			})
+			}
+
+			trie.Insert(patricia.Prefix(file), file)
+		}
 
 		// cache the trie for future use
 		self.c.Model().FilesTrie = trie

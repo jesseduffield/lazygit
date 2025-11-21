@@ -451,3 +451,19 @@ func (self *WorkingTreeCommands) MergeFileForObjectIDs(strategy string, oursID s
 
 	return self.cmd.New(cmdArgs).RunWithOutput()
 }
+
+// Returns all tracked files in the repo (not in the working tree). The returned entries are
+// relative paths to the repo root, using '/' as the path separator on all platforms.
+// Does not really belong in WorkingTreeCommands, but it's close enough, and we don't seem to have a
+// better place for it right now.
+func (self *WorkingTreeCommands) AllRepoFiles() ([]string, error) {
+	cmdArgs := NewGitCmd("ls-files").Arg("-z").ToArgv()
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil {
+		return nil, err
+	}
+	if output == "" {
+		return []string{}, nil
+	}
+	return strings.Split(strings.TrimRight(output, "\x00"), "\x00"), nil
+}

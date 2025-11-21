@@ -152,16 +152,6 @@ github.com/go-git/go-billy/v5/util
 # github.com/go-logfmt/logfmt v0.5.0
 ## explicit; go 1.13
 github.com/go-logfmt/logfmt
-# github.com/gobwas/glob v0.2.3
-## explicit
-github.com/gobwas/glob
-github.com/gobwas/glob/compiler
-github.com/gobwas/glob/match
-github.com/gobwas/glob/syntax
-github.com/gobwas/glob/syntax/ast
-github.com/gobwas/glob/syntax/lexer
-github.com/gobwas/glob/util/runes
-github.com/gobwas/glob/util/strings
 # github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8
 ## explicit; go 1.20
 github.com/golang/groupcache/lru
@@ -238,9 +228,6 @@ github.com/jesseduffield/gocui
 ## explicit; go 1.18
 github.com/jesseduffield/lazycore/pkg/boxlayout
 github.com/jesseduffield/lazycore/pkg/utils
-# github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
-## explicit; go 1.15
-github.com/jesseduffield/minimal/gitignore
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 ## explicit
 github.com/kardianos/osext
