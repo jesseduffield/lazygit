@@ -112,7 +112,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	if needsSubprocess {
 		// TODO: see if we should be calling more of the code from self.Git.Rebase.GenericMergeOrRebaseAction
 		return self.c.RunSubprocessAndRefresh(
-			self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command),
+			self.c.Git().Rebase.AddSkipEditorEnvVars(self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command)),
 		)
 	}
 	result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
