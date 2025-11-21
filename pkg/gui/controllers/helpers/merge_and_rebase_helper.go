@@ -95,11 +95,16 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	}
 
 	commandType := status.CommandName()
+	hasPreCommitHook, err := self.hasPreCommitHook()
+	if err != nil {
+		return err
+	}
 
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
 	needsSubprocess := (effectiveStatus == models.WORKING_TREE_STATE_MERGING && command != REBASE_OPTION_ABORT && self.c.UserConfig().Git.Merging.ManualCommit) ||
+		hasPreCommitHook ||
 		// but we'll also use a subprocess if we have exec todos; those are likely to be lengthy build
 		// tasks whose output the user will want to see in the terminal
 		(effectiveStatus == models.WORKING_TREE_STATE_REBASING && command != REBASE_OPTION_ABORT && self.hasExecTodos())
@@ -107,7 +112,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	if needsSubprocess {
 		// TODO: see if we should be calling more of the code from self.Git.Rebase.GenericMergeOrRebaseAction
 		return self.c.RunSubprocessAndRefresh(
-			self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command),
+			self.c.Git().Rebase.AddSkipEditorEnvVars(self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command)),
 		)
 	}
 	result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
@@ -115,6 +120,16 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 		return err
 	}
 	return nil
+}
+
+func (self *MergeAndRebaseHelper) hasPreCommitHook() (bool, error) {
+	if _, err := os.Stat(filepath.Join(self.c.Git().Config.GetHooksPath(), "pre-commit")); err == nil {
+		return true, nil
+	} else if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	} else {
+		return false, err
+	}
 }
 
 func (self *MergeAndRebaseHelper) hasExecTodos() bool {
