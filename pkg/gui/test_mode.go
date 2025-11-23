@@ -61,5 +61,5 @@ func (gui *Gui) handleTestMode() {
 }
 
 func Headless() bool {
-	return os.Getenv("HEADLESS") != ""
+	return os.Getenv("LAZYGIT_HEADLESS") != ""
 }
