@@ -66,22 +66,22 @@ func (p *PatchBuilder) Start(from, to string, reverse bool, canRebase bool) {
 }
 
 func (p *PatchBuilder) PatchToApply(reverse bool, turnAddedFilesIntoDiffAgainstEmptyFile bool) string {
-	patch := ""
+	var patch strings.Builder
 
 	for filename, info := range p.fileInfoMap {
 		if info.mode == UNSELECTED {
 			continue
 		}
 
-		patch += p.RenderPatchForFile(RenderPatchForFileOpts{
+		patch.WriteString(p.RenderPatchForFile(RenderPatchForFileOpts{
 			Filename:                               filename,
 			Plain:                                  true,
 			Reverse:                                reverse,
 			TurnAddedFilesIntoDiffAgainstEmptyFile: turnAddedFilesIntoDiffAgainstEmptyFile,
-		})
+		}))
 	}
 
-	return patch
+	return patch.String()
 }
 
 func (p *PatchBuilder) addFileWhole(info *fileInfo) {
