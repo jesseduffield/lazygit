@@ -37,8 +37,8 @@ var FindBaseCommitForFixup = NewIntegrationTest(NewIntegrationTestArgs{
 			Title(Equals("Error")).
 			Content(
 				MatchesRegexp("Multiple base commits found.*\n\n" +
-					".*2nd commit\n" +
-					".*3rd commit"),
+					".*3rd commit\n" +
+					".*2nd commit"),
 			).
 			Confirm()
 
