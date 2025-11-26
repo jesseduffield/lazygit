@@ -217,20 +217,6 @@ func (self *CommitCommands) GetCommitMessagesFirstLine(hashes []string) (string,
 	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 }
 
-// Example output:
-//
-//	cd50c79ae Preserve the commit message correctly even if the description has blank lines
-//	3ebba5f32 Add test demonstrating a bug with preserving the commit message
-//	9a423c388 Remove unused function
-func (self *CommitCommands) GetHashesAndCommitMessagesFirstLine(hashes []string) (string, error) {
-	cmdArgs := NewGitCmd("show").
-		Arg("--no-patch", "--pretty=format:%h %s").
-		Arg(hashes...).
-		ToArgv()
-
-	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
-}
-
 func (self *CommitCommands) GetCommitsOneline(hashes []string) (string, error) {
 	cmdArgs := NewGitCmd("show").
 		Arg("--no-patch", "--oneline").
