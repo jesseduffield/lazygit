@@ -36,9 +36,9 @@ var FindBaseCommitForFixup = NewIntegrationTest(NewIntegrationTestArgs{
 		t.ExpectPopup().Alert().
 			Title(Equals("Error")).
 			Content(
-				Contains("Multiple base commits found").
-					Contains("2nd commit").
-					Contains("3rd commit"),
+				MatchesRegexp("Multiple base commits found.*\n\n" +
+					".*2nd commit\n" +
+					".*3rd commit"),
 			).
 			Confirm()
 
