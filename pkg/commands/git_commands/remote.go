@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/samber/lo"
 )
 
 type RemoteCommands struct {
@@ -52,7 +53,7 @@ func (self *RemoteCommands) UpdateRemoteUrl(remoteName string, updatedUrl string
 func (self *RemoteCommands) DeleteRemoteBranch(task gocui.Task, remoteName string, branchNames []string) error {
 	cmdArgs := NewGitCmd("push").
 		Arg(remoteName, "--delete").
-		Arg(branchNames...).
+		Arg(lo.Map(branchNames, func(b string, _ int) string { return "refs/heads/" + b })...).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()

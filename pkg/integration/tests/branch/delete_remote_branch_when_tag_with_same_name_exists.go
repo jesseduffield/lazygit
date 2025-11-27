@@ -40,15 +40,9 @@ var DeleteRemoteBranchWhenTagWithSameNameExists = NewIntegrationTest(NewIntegrat
 			Content(Equals("Are you sure you want to delete the remote branch 'xyz' from 'origin'?")).
 			Confirm()
 
-		/* EXPECTED:
 		t.Views().RemoteBranches().
 			Lines(
 				Contains("master").IsSelected(),
 			)
-		ACTUAL: */
-		t.ExpectPopup().Alert().
-			Title(Equals("Error")).
-			Content(Contains("error: dst refspec xyz matches more than one")).
-			Confirm()
 	},
 })
