@@ -61,7 +61,7 @@ func (self *RemoteCommands) DeleteRemoteBranch(task gocui.Task, remoteName strin
 
 func (self *RemoteCommands) DeleteRemoteTag(task gocui.Task, remoteName string, tagName string) error {
 	cmdArgs := NewGitCmd("push").
-		Arg(remoteName, "--delete", tagName).
+		Arg(remoteName, "--delete", "refs/tags/"+tagName).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()

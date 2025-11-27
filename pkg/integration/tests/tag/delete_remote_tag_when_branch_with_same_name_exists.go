@@ -45,14 +45,8 @@ var DeleteRemoteTagWhenBranchWithSameNameExists = NewIntegrationTest(NewIntegrat
 			Content(Equals("Are you sure you want to delete the remote tag 'xyz' from 'origin'?")).
 			Confirm()
 
-		/* EXPECTED:
 		t.ExpectToast(Equals("Remote tag deleted"))
 
 		t.Shell().AssertRemoteTagNotFound("origin", "xyz")
-		ACTUAL: */
-		t.ExpectPopup().Alert().
-			Title(Equals("Error")).
-			Content(Contains("error: dst refspec xyz matches more than one")).
-			Confirm()
 	},
 })
