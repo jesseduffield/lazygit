@@ -272,6 +272,7 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		{[]string{"gui", "skipUnstageLineWarning"}, "skipDiscardChangeWarning"},
 		{[]string{"keybinding", "universal", "executeCustomCommand"}, "executeShellCommand"},
 		{[]string{"gui", "windowSize"}, "screenMode"},
+		{[]string{"keybinding", "files", "openMergeTool"}, "openMergeOptions"},
 	}
 
 	for _, pathToReplace := range pathsToReplace {
@@ -305,6 +306,11 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 	}
 
 	err = migrateAllBranchesLogCmd(&rootNode, changes)
+	if err != nil {
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
+	}
+
+	err = migratePagers(&rootNode, changes)
 	if err != nil {
 		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
 	}
@@ -463,6 +469,37 @@ func migrateAllBranchesLogCmd(rootNode *yaml.Node, changes *ChangesSet) error {
 		// Clear out the existing allBranchesLogCmd, now that we have migrated it into the list
 		_, _ = yaml_utils.RemoveKey(gitNode, "allBranchesLogCmd")
 		changes.Add("Removed obsolete git.allBranchesLogCmd")
+
+		return nil
+	})
+}
+
+func migratePagers(rootNode *yaml.Node, changes *ChangesSet) error {
+	return yaml_utils.TransformNode(rootNode, []string{"git"}, func(gitNode *yaml.Node) error {
+		pagingKeyNode, pagingValueNode := yaml_utils.LookupKey(gitNode, "paging")
+		if pagingKeyNode == nil || pagingValueNode.Kind != yaml.MappingNode {
+			// If there's no "paging" section (or it's not an object), there's nothing to do
+			return nil
+		}
+
+		pagersKeyNode, _ := yaml_utils.LookupKey(gitNode, "pagers")
+		if pagersKeyNode != nil {
+			// Conversely, if there *is* already a "pagers" array, we also have nothing to do.
+			// This covers the case where the user keeps both the "paging" section and the "pagers"
+			// array for the sake of easier testing of old versions.
+			return nil
+		}
+
+		pagingKeyNode.Value = "pagers"
+		pagingContentCopy := pagingValueNode.Content
+		pagingValueNode.Kind = yaml.SequenceNode
+		pagingValueNode.Tag = "!!seq"
+		pagingValueNode.Content = []*yaml.Node{{
+			Kind:    yaml.MappingNode,
+			Content: pagingContentCopy,
+		}}
+
+		changes.Add("Moved git.paging object to git.pagers array")
 
 		return nil
 	})

@@ -103,8 +103,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 		contextSize         uint64
 		similarityThreshold int
 		ignoreWhitespace    bool
-		extDiffCmd          string
-		useExtDiffGitConfig bool
+		pagerConfig         *config.PagingConfig
 		expected            []string
 	}
 
@@ -139,7 +138,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			extDiffCmd:          "difft --color=always",
+			pagerConfig:         &config.PagingConfig{ExternalDiffCommand: "difft --color=always"},
 			expected:            []string{"git", "-C", "/path/to/worktree", "-c", "diff.external=difft --color=always", "stash", "show", "-p", "--stat", "-u", "--ext-diff", "--color=always", "--unified=3", "--find-renames=50%", "refs/stash@{5}"},
 		},
 		{
@@ -148,7 +147,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			useExtDiffGitConfig: true,
+			pagerConfig:         &config.PagingConfig{UseExternalDiffGitConfig: true},
 			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--ext-diff", "--color=always", "--unified=3", "--find-renames=50%", "refs/stash@{5}"},
 		},
 		{
@@ -167,8 +166,9 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
 			userConfig.Git.DiffContextSize = s.contextSize
 			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
-			userConfig.Git.Paging.ExternalDiffCommand = s.extDiffCmd
-			userConfig.Git.Paging.UseExternalDiffGitConfig = s.useExtDiffGitConfig
+			if s.pagerConfig != nil {
+				userConfig.Git.Pagers = []config.PagingConfig{*s.pagerConfig}
+			}
 			repoPaths := RepoPaths{
 				worktreePath: "/path/to/worktree",
 			}

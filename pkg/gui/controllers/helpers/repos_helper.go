@@ -59,9 +59,9 @@ func (self *ReposHelper) getCurrentBranch(path string) string {
 			content := strings.TrimSpace(string(headFile))
 			refsPrefix := "ref: refs/heads/"
 			var branchDisplay string
-			if strings.HasPrefix(content, refsPrefix) {
+			if bareName, ok := strings.CutPrefix(content, refsPrefix); ok {
 				// is a branch
-				branchDisplay = strings.TrimPrefix(content, refsPrefix)
+				branchDisplay = bareName
 			} else {
 				// detached HEAD state, displaying short hash
 				branchDisplay = utils.ShortHash(content)

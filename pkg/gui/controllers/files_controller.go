@@ -178,10 +178,13 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description:       self.c.Tr.OpenDiffTool,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
-			Handler:     self.c.Helpers().WorkingTree.OpenMergeTool,
-			Description: self.c.Tr.OpenMergeTool,
-			Tooltip:     self.c.Tr.OpenMergeToolTooltip,
+			Key:               opts.GetKey(opts.Config.Files.OpenMergeOptions),
+			Handler:           self.withItems(self.openMergeConflictMenu),
+			Description:       self.c.Tr.ViewMergeConflictOptions,
+			Tooltip:           self.c.Tr.ViewMergeConflictOptionsTooltip,
+			GetDisabledReason: self.require(self.itemsSelected(self.canOpenMergeConflictMenu)),
+			OpensMenu:         true,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.Fetch),
@@ -573,7 +576,7 @@ func (self *FilesController) handleNonInlineConflict(file *models.File) error {
 		OnPress: func() error {
 			return handle(self.c.Git().WorkingTree.StageFile, self.c.Tr.Actions.ResolveConflictByKeepingFile)
 		},
-		Key: 'k',
+		Key: 'p',
 	}
 	deleteItem := &types.MenuItem{
 		Label: self.c.Tr.MergeConflictDeleteFile,
@@ -970,7 +973,7 @@ func (self *FilesController) createStashMenu() error {
 			{
 				Label: self.c.Tr.StashAllChanges,
 				OnPress: func() error {
-					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules() {
 						return errors.New(self.c.Tr.NoFilesToStash)
 					}
 					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashAllChanges)
@@ -980,7 +983,7 @@ func (self *FilesController) createStashMenu() error {
 			{
 				Label: self.c.Tr.StashAllChangesKeepIndex,
 				OnPress: func() error {
-					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules() {
 						return errors.New(self.c.Tr.NoFilesToStash)
 					}
 					// if there are no staged files it behaves the same as Stash.Save
@@ -999,7 +1002,7 @@ func (self *FilesController) createStashMenu() error {
 				Label: self.c.Tr.StashStagedChanges,
 				OnPress: func() error {
 					// there must be something in staging otherwise the current implementation mucks the stash up
-					if !self.c.Helpers().WorkingTree.AnyStagedFiles() {
+					if !self.c.Helpers().WorkingTree.AnyStagedFilesExceptSubmodules() {
 						return errors.New(self.c.Tr.NoTrackedStagedFilesStash)
 					}
 					return self.handleStashSave(self.c.Git().Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
@@ -1009,10 +1012,10 @@ func (self *FilesController) createStashMenu() error {
 			{
 				Label: self.c.Tr.StashUnstagedChanges,
 				OnPress: func() error {
-					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules() {
 						return errors.New(self.c.Tr.NoFilesToStash)
 					}
-					if self.c.Helpers().WorkingTree.AnyStagedFiles() {
+					if self.c.Helpers().WorkingTree.AnyStagedFilesExceptSubmodules() {
 						return self.handleStashSave(self.c.Git().Stash.StashUnstagedChanges, self.c.Tr.Actions.StashUnstagedChanges)
 					}
 					// ordinary stash
@@ -1022,6 +1025,34 @@ func (self *FilesController) createStashMenu() error {
 			},
 		},
 	})
+}
+
+func (self *FilesController) openMergeConflictMenu(nodes []*filetree.FileNode) error {
+	normalizedNodes := flattenSelectedNodesToFiles(nodes)
+
+	fileNodesWithConflicts := lo.Filter(normalizedNodes, func(node *filetree.FileNode, _ int) bool {
+		return node.File != nil && node.File.HasInlineMergeConflicts
+	})
+
+	filepaths := lo.Map(fileNodesWithConflicts, func(node *filetree.FileNode, _ int) string {
+		return node.GetPath()
+	})
+
+	return self.c.Helpers().WorkingTree.CreateMergeConflictMenu(filepaths)
+}
+
+func (self *FilesController) canOpenMergeConflictMenu(nodes []*filetree.FileNode) *types.DisabledReason {
+	normalizedNodes := flattenSelectedNodesToFiles(nodes)
+
+	hasFileNodesWithConflicts := lo.SomeBy(normalizedNodes, func(node *filetree.FileNode) bool {
+		return node.File != nil && node.File.HasInlineMergeConflicts
+	})
+
+	if !hasFileNodesWithConflicts {
+		return &types.DisabledReason{Text: self.c.Tr.NoFilesWithMergeConflicts}
+	}
+
+	return nil
 }
 
 func (self *FilesController) openCopyMenu() error {
@@ -1180,6 +1211,7 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
 			return nil
 		},
+		AllowEmptyInput: true,
 	})
 
 	return nil
@@ -1221,19 +1253,52 @@ func normalisedSelectedNodes(selectedNodes []*filetree.FileNode) []*filetree.Fil
 }
 
 func isDescendentOfSelectedNodes(node *filetree.FileNode, selectedNodes []*filetree.FileNode) bool {
+	nodePath := node.GetInternalPath()
+
 	for _, selectedNode := range selectedNodes {
 		if selectedNode.IsFile() {
 			continue
 		}
 
-		selectedNodePath := selectedNode.GetPath()
-		nodePath := node.GetPath()
+		selectedNodePath := selectedNode.GetInternalPath()
 
 		if strings.HasPrefix(nodePath, selectedNodePath+"/") {
 			return true
 		}
 	}
 	return false
+}
+
+// BFS algorithm for expanding directories into their children,
+// and for collecting the unique file nodes
+func flattenSelectedNodesToFiles(selectedNodes []*filetree.FileNode) []*filetree.FileNode {
+	queue := append(make([]*filetree.FileNode, 0, len(selectedNodes)), selectedNodes...)
+	visited := set.New[string]()
+	var files []*filetree.FileNode
+
+	for len(queue) > 0 {
+		// pop node from queue
+		node := queue[0]
+		queue = queue[1:]
+
+		nodeID := node.ID()
+		if visited.Includes(nodeID) {
+			continue
+		}
+		visited.Add(nodeID)
+
+		if node.File != nil {
+			// unique file node -> collect it
+			files = append(files, node)
+			continue
+		}
+
+		// directory node -> enqueue children
+		for _, ch := range node.Children {
+			queue = append(queue, &filetree.FileNode{Node: ch})
+		}
+	}
+	return files
 }
 
 func someNodesHaveUnstagedChanges(nodes []*filetree.FileNode) bool {

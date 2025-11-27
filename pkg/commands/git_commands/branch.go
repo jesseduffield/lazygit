@@ -13,7 +13,7 @@ import (
 
 type BranchCommands struct {
 	*GitCommon
-	allBranchesLogCmdIndex uint8 // keeps track of current all branches log command
+	allBranchesLogCmdIndex int // keeps track of current all branches log command
 }
 
 func NewBranchCommands(gitCommon *GitCommon) *BranchCommands {
@@ -106,6 +106,22 @@ func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 func (self *BranchCommands) CurrentBranchName() (string, error) {
 	cmdArgs := NewGitCmd("branch").
 		Arg("--show-current").
+		ToArgv()
+
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(output), nil
+}
+
+// Gets the full ref name of the previously checked out branch. Can return an empty string (but no
+// error) e.g. when the previously checked out thing was a detached head.
+func (self *BranchCommands) PreviousRef() (string, error) {
+	cmdArgs := NewGitCmd("rev-parse").
+		Arg("--symbolic-full-name").
+		Arg("@{-1}").
 		ToArgv()
 
 	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
@@ -234,24 +250,49 @@ func (self *BranchCommands) Rename(oldName string, newName string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-type MergeOpts struct {
-	FastForwardOnly bool
-	Squash          bool
-}
+type MergeVariant int
 
-func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
-	if opts.Squash && opts.FastForwardOnly {
-		panic("Squash and FastForwardOnly can't both be true")
-	}
+const (
+	MERGE_VARIANT_REGULAR MergeVariant = iota
+	MERGE_VARIANT_FAST_FORWARD
+	MERGE_VARIANT_NON_FAST_FORWARD
+	MERGE_VARIANT_SQUASH
+)
+
+func (self *BranchCommands) Merge(branchName string, variant MergeVariant) error {
+	extraArgs := func() []string {
+		switch variant {
+		case MERGE_VARIANT_REGULAR:
+			return []string{}
+		case MERGE_VARIANT_FAST_FORWARD:
+			return []string{"--ff"}
+		case MERGE_VARIANT_NON_FAST_FORWARD:
+			return []string{"--no-ff"}
+		case MERGE_VARIANT_SQUASH:
+			return []string{"--squash", "--ff"}
+		}
+
+		panic("shouldn't get here")
+	}()
+
 	cmdArgs := NewGitCmd("merge").
 		Arg("--no-edit").
 		Arg(strings.Fields(self.UserConfig().Git.Merging.Args)...).
-		ArgIf(opts.FastForwardOnly, "--ff-only").
-		ArgIf(opts.Squash, "--squash", "--ff").
+		Arg(extraArgs...).
 		Arg(branchName).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
+}
+
+// Returns whether refName can be fast-forward merged into the current branch
+func (self *BranchCommands) CanDoFastForwardMerge(refName string) bool {
+	cmdArgs := NewGitCmd("merge-base").
+		Arg("--is-ancestor").
+		Arg("HEAD", refName).
+		ToArgv()
+	err := self.cmd.New(cmdArgs).DontLog().Run()
+	return err == nil
 }
 
 // Only choose between non-empty, non-identical commands
@@ -262,6 +303,10 @@ func (self *BranchCommands) allBranchesLogCandidates() []string {
 func (self *BranchCommands) AllBranchesLogCmdObj() *oscommands.CmdObj {
 	candidates := self.allBranchesLogCandidates()
 
+	if self.allBranchesLogCmdIndex >= len(candidates) {
+		self.allBranchesLogCmdIndex = 0
+	}
+
 	i := self.allBranchesLogCmdIndex
 	return self.cmd.New(str.ToArgv(candidates[i])).DontLog()
 }
@@ -269,7 +314,13 @@ func (self *BranchCommands) AllBranchesLogCmdObj() *oscommands.CmdObj {
 func (self *BranchCommands) RotateAllBranchesLogIdx() {
 	n := len(self.allBranchesLogCandidates())
 	i := self.allBranchesLogCmdIndex
-	self.allBranchesLogCmdIndex = uint8((int(i) + 1) % n)
+	self.allBranchesLogCmdIndex = (i + 1) % n
+}
+
+func (self *BranchCommands) GetAllBranchesLogIdxAndCount() (int, int) {
+	n := len(self.allBranchesLogCandidates())
+	i := self.allBranchesLogCmdIndex
+	return i, n
 }
 
 func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *MainBranches) (bool, error) {

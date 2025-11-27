@@ -194,7 +194,7 @@ func parseDiff(diff string) ([]*hunk, []*hunk) {
 		if strings.HasPrefix(line, "diff --git") {
 			finishHunk()
 			currentHunk = nil
-		} else if strings.HasPrefix(line, "--- ") {
+		} else if currentHunk == nil && strings.HasPrefix(line, "--- ") {
 			// For some reason, the line ends with a tab character if the file
 			// name contains spaces
 			filename = strings.TrimRight(line[6:], "\t")
@@ -225,8 +225,8 @@ func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) ([]string, 
 			if err != nil {
 				return err
 			}
-			blameLines := strings.Split(strings.TrimSuffix(blameOutput, "\n"), "\n")
-			for _, line := range blameLines {
+			blameLines := strings.SplitSeq(strings.TrimSuffix(blameOutput, "\n"), "\n")
+			for line := range blameLines {
 				hashChan <- strings.Split(line, " ")[0]
 			}
 			return nil

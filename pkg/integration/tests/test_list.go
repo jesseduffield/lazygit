@@ -21,6 +21,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/patch_building"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/reflog"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/remote"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/shell_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/staging"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
@@ -48,6 +49,8 @@ var tests = []*components.IntegrationTest{
 	branch.DeleteRemoteBranchWithDifferentName,
 	branch.DeleteWhileFiltering,
 	branch.DetachedHead,
+	branch.MergeFastForward,
+	branch.MergeNonFastForward,
 	branch.MoveCommitsToNewBranchFromBaseBranch,
 	branch.MoveCommitsToNewBranchFromMainBranch,
 	branch.MoveCommitsToNewBranchKeepStacked,
@@ -86,7 +89,9 @@ var tests = []*components.IntegrationTest{
 	branch.Suggestions,
 	branch.UnsetUpstream,
 	cherry_pick.CherryPick,
+	cherry_pick.CherryPickCommitThatBecomesEmpty,
 	cherry_pick.CherryPickConflicts,
+	cherry_pick.CherryPickConflictsEmptyCommitAfterResolving,
 	cherry_pick.CherryPickDuringRebase,
 	cherry_pick.CherryPickMerge,
 	cherry_pick.CherryPickRange,
@@ -119,6 +124,7 @@ var tests = []*components.IntegrationTest{
 	commit.CreateTag,
 	commit.DisableCopyCommitMessageBody,
 	commit.DiscardOldFileChanges,
+	commit.DiscardSubmoduleChanges,
 	commit.DoNotShowBranchMarkerForHeadCommit,
 	commit.FailHooksThenCommitNoHooks,
 	commit.FindBaseCommitForFixup,
@@ -150,6 +156,9 @@ var tests = []*components.IntegrationTest{
 	config.NegativeRefspec,
 	config.RemoteNamedStar,
 	conflicts.Filter,
+	conflicts.MergeFileBoth,
+	conflicts.MergeFileCurrent,
+	conflicts.MergeFileIncoming,
 	conflicts.ResolveExternally,
 	conflicts.ResolveMultipleFiles,
 	conflicts.ResolveNoAutoStage,
@@ -170,6 +179,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.SelectedCommit,
 	custom_commands.SelectedCommitRange,
 	custom_commands.SelectedPath,
+	custom_commands.SelectedSubmodule,
 	custom_commands.ShowOutputInPanel,
 	custom_commands.SuggestionsCommand,
 	custom_commands.SuggestionsPreset,
@@ -239,6 +249,8 @@ var tests = []*components.IntegrationTest{
 	filter_by_path.KeepSameCommitSelectedOnExit,
 	filter_by_path.RewordCommitInFilteringMode,
 	filter_by_path.SelectFile,
+	filter_by_path.SelectFilteredFileWhenEnteringCommit,
+	filter_by_path.SelectFilteredFileWhenEnteringCommitNoRootItem,
 	filter_by_path.ShowDiffsForRenamedFile,
 	filter_by_path.TypeFile,
 	interactive_rebase.AdvancedInteractiveRebase,
@@ -340,6 +352,7 @@ var tests = []*components.IntegrationTest{
 	reflog.DoNotShowBranchMarkersInReflogSubcommits,
 	reflog.Patch,
 	reflog.Reset,
+	remote.AddForkRemote,
 	shell_commands.BasicShellCommand,
 	shell_commands.ComplexShellCommand,
 	shell_commands.DeleteFromHistory,
@@ -449,6 +462,7 @@ var tests = []*components.IntegrationTest{
 	worktree.FastForwardWorktreeBranch,
 	worktree.FastForwardWorktreeBranchShouldNotPolluteCurrentWorktree,
 	worktree.ForceRemoveWorktree,
+	worktree.ForceRemoveWorktreeWithSubmodules,
 	worktree.RemoveWorktreeFromBranch,
 	worktree.ResetWindowTabs,
 	worktree.SymlinkIntoRepoSubdir,

@@ -101,10 +101,6 @@ func (self *ListController) handleLineChangeAux(f func(int), change int) error {
 	rangeAfter := list.IsSelectingRange()
 	after := list.GetSelectedLineIdx()
 
-	if err := self.pushContextIfNotFocused(); err != nil {
-		return err
-	}
-
 	// doing this check so that if we're holding the up key at the start of the list
 	// we're not constantly re-rendering the main view.
 	cursorMoved := before != after
@@ -127,11 +123,59 @@ func (self *ListController) handleLineChangeAux(f func(int), change int) error {
 }
 
 func (self *ListController) HandlePrevPage() error {
-	return self.handleLineChange(-self.context.GetViewTrait().PageDelta())
+	return self.handlePageChange(-self.context.GetViewTrait().PageDelta())
 }
 
 func (self *ListController) HandleNextPage() error {
-	return self.handleLineChange(self.context.GetViewTrait().PageDelta())
+	return self.handlePageChange(self.context.GetViewTrait().PageDelta())
+}
+
+func (self *ListController) handlePageChange(delta int) error {
+	list := self.context.GetList()
+	view := self.context.GetViewTrait()
+
+	before := list.GetSelectedLineIdx()
+
+	viewPortStart, viewPortHeight := view.ViewPortYBounds()
+	beforeViewIdx := self.context.ModelIndexToViewIndex(before)
+	afterViewIdx := beforeViewIdx + delta
+	newModelIndex := self.context.ViewIndexToModelIndex(afterViewIdx)
+
+	if delta < 0 {
+		// Previous page: keep selection at top of viewport
+		indexAtTopOfPage := self.context.ViewIndexToModelIndex(viewPortStart)
+		if before != indexAtTopOfPage {
+			// If the selection isn't already at the top of the page, move it there without scrolling
+			list.MoveSelectedLine(indexAtTopOfPage - before)
+		} else {
+			// Otherwise, move the selection by one page and scroll
+			list.MoveSelectedLine(newModelIndex - before)
+
+			linesToScroll := afterViewIdx - viewPortStart
+			if linesToScroll < 0 {
+				view.ScrollUp(-linesToScroll)
+			}
+		}
+	} else {
+		// Next page: keep selection at bottom of viewport
+		indexAtBottomOfPage := self.context.ViewIndexToModelIndex(viewPortStart + viewPortHeight - 1)
+		if before != indexAtBottomOfPage {
+			// If the selection isn't already at the bottom of the page, move it there without scrolling
+			list.MoveSelectedLine(indexAtBottomOfPage - before)
+		} else {
+			// Otherwise, move the selection by one page and scroll
+			list.MoveSelectedLine(newModelIndex - before)
+
+			linesToScroll := afterViewIdx - (viewPortStart + viewPortHeight - 1)
+			if linesToScroll > 0 {
+				view.ScrollDown(linesToScroll)
+			}
+		}
+	}
+
+	self.context.HandleFocus(types.OnFocusOpts{})
+
+	return nil
 }
 
 func (self *ListController) HandleGotoTop() error {

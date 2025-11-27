@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -66,7 +65,7 @@ func (self *FilteringMenuAction) Call() error {
 				FindSuggestionsFunc: self.c.Helpers().Suggestions.GetFilePathSuggestionsFunc(),
 				Title:               self.c.Tr.EnterFileName,
 				HandleConfirm: func(response string) error {
-					return self.setFilteringPath(strings.TrimSpace(response))
+					return self.setFilteringPath(response)
 				},
 			})
 
@@ -82,7 +81,7 @@ func (self *FilteringMenuAction) Call() error {
 				FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 				Title:               self.c.Tr.EnterAuthor,
 				HandleConfirm: func(response string) error {
-					return self.setFilteringAuthor(strings.TrimSpace(response))
+					return self.setFilteringAuthor(response)
 				},
 			})
 

@@ -420,15 +420,13 @@ func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktr
 		"worktreeName": worktree.Name,
 	})
 
-	self.c.Confirm(types.ConfirmOpts{
+	return self.c.ConfirmIf(!self.c.UserConfig().Gui.SkipSwitchWorktreeOnCheckoutWarning, types.ConfirmOpts{
 		Title:  self.c.Tr.SwitchToWorktree,
 		Prompt: prompt,
 		HandleConfirm: func() error {
 			return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
 		},
 	})
-
-	return nil
 }
 
 func (self *BranchesController) handleCreatePullRequest(selectedBranch *models.Branch) error {
@@ -490,7 +488,7 @@ func (self *BranchesController) forceCheckout() error {
 
 func (self *BranchesController) checkoutPreviousBranch() error {
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
-	return self.c.Helpers().Refs.CheckoutRef("-", types.CheckoutRefOptions{})
+	return self.c.Helpers().Refs.CheckoutPreviousRef()
 }
 
 func (self *BranchesController) checkoutByName() error {

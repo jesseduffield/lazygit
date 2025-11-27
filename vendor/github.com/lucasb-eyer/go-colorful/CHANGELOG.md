@@ -6,8 +6,32 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 The format of this file is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 but only releases after v1.0.3 properly adhere to it.
 
+## [Unreleased]
+
+## [1.3.0] - 2025-09-08
+### Added
+- `BlendLinearRgb` (#50)
+- `DistanceRiemersma` (#52)
+- Introduce a function for sorting colors (#57)
+- YAML marshal/unmarshal support (#63)
+- Add support for OkLab and OkLch (#66)
+- Functions that use randomness now support specifying a custom source (#73)
+- Functions BlendOkLab and BlendOkLch (#70)
+
+## Changed
+- `Hex()` parsing is much faster (#78)
+
+### Fixed
+- Fix bug when doing HSV/HCL blending between a gray color and non-gray color (#60)
+- Docs for HSV/HSL were updated to note that hue 360 is not allowed (#71)
+
+### Deprecated
+- `DistanceLinearRGB` is deprecated for the name `DistanceLinearRgb` which is more in-line with the rest of the library
+
 
 ## [1.2.0] - 2021-01-27
+This is the same as the v1.1.0 tag.
+
 ### Added
 - HSLuv and HPLuv color spaces (#41, #51)
 - CIE LCh(uv) color space, called `LuvLCh` in code (#51)

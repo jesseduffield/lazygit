@@ -146,6 +146,7 @@ const (
 	keyCtrlD     = 4
 	keyCtrlU     = 21
 	keyEnter     = '\r'
+	keyLF        = '\n'
 	keyEscape    = 27
 	keyBackspace = 127
 	keyUnknown   = 0xd800 /* UTF-16 surrogate area */ + iota
@@ -412,7 +413,7 @@ func (t *Terminal) eraseNPreviousChars(n int) {
 	}
 }
 
-// countToLeftWord returns then number of characters from the cursor to the
+// countToLeftWord returns the number of characters from the cursor to the
 // start of the previous word.
 func (t *Terminal) countToLeftWord() int {
 	if t.pos == 0 {
@@ -437,7 +438,7 @@ func (t *Terminal) countToLeftWord() int {
 	return t.pos - pos
 }
 
-// countToRightWord returns then number of characters from the cursor to the
+// countToRightWord returns the number of characters from the cursor to the
 // start of the next word.
 func (t *Terminal) countToRightWord() int {
 	pos := t.pos
@@ -477,7 +478,7 @@ func visualLength(runes []rune) int {
 	return length
 }
 
-// histroryAt unlocks the terminal and relocks it while calling History.At.
+// historyAt unlocks the terminal and relocks it while calling History.At.
 func (t *Terminal) historyAt(idx int) (string, bool) {
 	t.lock.Unlock()     // Unlock to avoid deadlock if History methods use the output writer.
 	defer t.lock.Lock() // panic in At (or Len) protection.
@@ -497,7 +498,7 @@ func (t *Terminal) historyAdd(entry string) {
 // handleKey processes the given key and, optionally, returns a line of text
 // that the user has entered.
 func (t *Terminal) handleKey(key rune) (line string, ok bool) {
-	if t.pasteActive && key != keyEnter {
+	if t.pasteActive && key != keyEnter && key != keyLF {
 		t.addKeyToLine(key)
 		return
 	}
@@ -567,7 +568,7 @@ func (t *Terminal) handleKey(key rune) (line string, ok bool) {
 				t.setLine(runes, len(runes))
 			}
 		}
-	case keyEnter:
+	case keyEnter, keyLF:
 		t.moveCursorToPos(len(t.line))
 		t.queue([]rune("\r\n"))
 		line = string(t.line)
@@ -811,6 +812,10 @@ func (t *Terminal) readLine() (line string, err error) {
 			}
 			if !t.pasteActive {
 				lineIsPasted = false
+			}
+			// If we have CR, consume LF if present (CRLF sequence) to avoid returning an extra empty line.
+			if key == keyEnter && len(rest) > 0 && rest[0] == keyLF {
+				rest = rest[1:]
 			}
 			line, lineOk = t.handleKey(key)
 		}

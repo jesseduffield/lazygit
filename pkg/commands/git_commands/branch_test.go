@@ -122,14 +122,14 @@ func TestBranchMerge(t *testing.T) {
 	scenarios := []struct {
 		testName   string
 		userConfig *config.UserConfig
-		opts       MergeOpts
+		variant    MergeVariant
 		branchName string
 		expected   []string
 	}{
 		{
 			testName:   "basic",
 			userConfig: &config.UserConfig{},
-			opts:       MergeOpts{},
+			variant:    MERGE_VARIANT_REGULAR,
 			branchName: "mybranch",
 			expected:   []string{"merge", "--no-edit", "mybranch"},
 		},
@@ -142,7 +142,7 @@ func TestBranchMerge(t *testing.T) {
 					},
 				},
 			},
-			opts:       MergeOpts{},
+			variant:    MERGE_VARIANT_REGULAR,
 			branchName: "mybranch",
 			expected:   []string{"merge", "--no-edit", "--merging-args", "mybranch"},
 		},
@@ -155,16 +155,30 @@ func TestBranchMerge(t *testing.T) {
 					},
 				},
 			},
-			opts:       MergeOpts{},
+			variant:    MERGE_VARIANT_REGULAR,
 			branchName: "mybranch",
 			expected:   []string{"merge", "--no-edit", "--arg1", "--arg2", "mybranch"},
 		},
 		{
-			testName:   "fast forward only",
+			testName:   "fast-forward merge",
 			userConfig: &config.UserConfig{},
-			opts:       MergeOpts{FastForwardOnly: true},
+			variant:    MERGE_VARIANT_FAST_FORWARD,
 			branchName: "mybranch",
-			expected:   []string{"merge", "--no-edit", "--ff-only", "mybranch"},
+			expected:   []string{"merge", "--no-edit", "--ff", "mybranch"},
+		},
+		{
+			testName:   "non-fast-forward merge",
+			userConfig: &config.UserConfig{},
+			variant:    MERGE_VARIANT_NON_FAST_FORWARD,
+			branchName: "mybranch",
+			expected:   []string{"merge", "--no-edit", "--no-ff", "mybranch"},
+		},
+		{
+			testName:   "squash merge",
+			userConfig: &config.UserConfig{},
+			variant:    MERGE_VARIANT_SQUASH,
+			branchName: "mybranch",
+			expected:   []string{"merge", "--no-edit", "--squash", "--ff", "mybranch"},
 		},
 	}
 
@@ -174,7 +188,7 @@ func TestBranchMerge(t *testing.T) {
 				ExpectGitArgs(s.expected, "", nil)
 			instance := buildBranchCommands(commonDeps{runner: runner, userConfig: s.userConfig})
 
-			assert.NoError(t, instance.Merge(s.branchName, s.opts))
+			assert.NoError(t, instance.Merge(s.branchName, s.variant))
 			runner.CheckForMissingCalls()
 		})
 	}

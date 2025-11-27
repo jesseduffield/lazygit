@@ -1,4 +1,4 @@
-// Copyright 2024 The TCell Authors
+// Copyright 2025 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -145,7 +145,7 @@ func (t *wScreen) drawCell(x, y int) int {
 
 	s := ""
 	if len(combc) > 0 {
-		b := make([]rune, 0, 1 + len(combc))
+		b := make([]rune, 0, 1+len(combc))
 		b = append(b, mainc)
 		b = append(b, combc...)
 		s = string(b)
@@ -275,6 +275,12 @@ func (t *wScreen) DisableFocus() {
 	t.Lock()
 	js.Global().Set("onFocus", js.FuncOf(t.unset))
 	t.Unlock()
+}
+
+func (s *wScreen) GetClipboard() {
+}
+
+func (s *wScreen) SetClipboard(_ []byte) {
 }
 
 func (t *wScreen) Size() (int, int) {

@@ -244,8 +244,9 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 
 	cmdObj.AddEnvVars(
 		"DEBUG="+debug,
-		"LANG=en_US.UTF-8",   // Force using EN as language
-		"LC_ALL=en_US.UTF-8", // Force using EN as language
+		"LANG=C",        // Force using English language
+		"LC_ALL=C",      // Force using English language
+		"LC_MESSAGES=C", // Force using English language
 		"GIT_SEQUENCE_EDITOR="+gitSequenceEditor,
 	)
 
@@ -277,8 +278,9 @@ func (self *RebaseCommands) GitRebaseEditTodo(todosFileContent []byte) error {
 
 	cmdObj.AddEnvVars(
 		"DEBUG="+debug,
-		"LANG=en_US.UTF-8",   // Force using EN as language
-		"LC_ALL=en_US.UTF-8", // Force using EN as language
+		"LANG=C",        // Force using English language
+		"LC_ALL=C",      // Force using English language
+		"LC_MESSAGES=C", // Force using English language
 		"GIT_EDITOR="+ex,
 		"GIT_SEQUENCE_EDITOR="+ex,
 	)
@@ -519,10 +521,17 @@ func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, comm
 	}
 
 	for _, filePath := range filePaths {
-		// check if file exists in previous commit (this command returns an error if the file doesn't exist)
-		cmdArgs := NewGitCmd("cat-file").Arg("-e", "HEAD^:"+filePath).ToArgv()
-
-		if err := self.cmd.New(cmdArgs).Run(); err != nil {
+		doesFileExistInPreviousCommit := false
+		if commitIndex < len(commits)-1 {
+			// check if file exists in previous commit (this command returns an empty string if the file doesn't exist)
+			cmdArgs := NewGitCmd("ls-tree").Arg("--name-only", "HEAD^", "--", filePath).ToArgv()
+			output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+			if err != nil {
+				return err
+			}
+			doesFileExistInPreviousCommit = strings.TrimRight(output, "\n") == filePath
+		}
+		if !doesFileExistInPreviousCommit {
 			if err := self.os.Remove(filePath); err != nil {
 				return err
 			}

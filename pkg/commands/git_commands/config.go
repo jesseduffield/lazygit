@@ -1,15 +1,10 @@
 package git_commands
 
 import (
-	"os"
-	"strconv"
-	"strings"
-
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/go-git/v5/config"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type ConfigCommands struct {
@@ -29,26 +24,6 @@ func NewConfigCommands(
 		gitConfig: gitConfig,
 		repo:      repo,
 	}
-}
-
-func (self *ConfigCommands) ConfiguredPager() string {
-	if os.Getenv("GIT_PAGER") != "" {
-		return os.Getenv("GIT_PAGER")
-	}
-	if os.Getenv("PAGER") != "" {
-		return os.Getenv("PAGER")
-	}
-	output := self.gitConfig.Get("core.pager")
-	return strings.Split(output, "\n")[0]
-}
-
-func (self *ConfigCommands) GetPager(width int) string {
-	templateValues := map[string]string{
-		"columnWidth": strconv.Itoa(width/2 - 6),
-	}
-
-	pagerTemplate := string(self.UserConfig().Git.Paging.Pager)
-	return utils.ResolvePlaceholderString(pagerTemplate, templateValues)
 }
 
 type GpgConfigKey string
@@ -120,6 +95,10 @@ func (self *ConfigCommands) GetCoreCommentChar() byte {
 
 func (self *ConfigCommands) GetRebaseUpdateRefs() bool {
 	return self.gitConfig.GetBool("rebase.updateRefs")
+}
+
+func (self *ConfigCommands) GetMergeFF() string {
+	return self.gitConfig.Get("merge.ff")
 }
 
 func (self *ConfigCommands) DropConfigCache() {

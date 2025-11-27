@@ -49,6 +49,14 @@ type RefresherConfig struct {
 	FetchInterval int `yaml:"fetchInterval" jsonschema:"minimum=0"`
 }
 
+func (c *RefresherConfig) RefreshIntervalDuration() time.Duration {
+	return time.Second * time.Duration(c.RefreshInterval)
+}
+
+func (c *RefresherConfig) FetchIntervalDuration() time.Duration {
+	return time.Second * time.Duration(c.FetchInterval)
+}
+
 type GuiConfig struct {
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
 	AuthorColors map[string]string `yaml:"authorColors"`
@@ -84,13 +92,14 @@ type GuiConfig struct {
 	SkipNoStagedFilesWarning bool `yaml:"skipNoStagedFilesWarning"`
 	// If true, do not show a warning when rewording a commit via an external editor
 	SkipRewordInEditorWarning bool `yaml:"skipRewordInEditorWarning"`
+	// If true, switch to a different worktree without confirmation when checking out a branch that is checked out in that worktree
+	SkipSwitchWorktreeOnCheckoutWarning bool `yaml:"skipSwitchWorktreeOnCheckoutWarning"`
 	// Fraction of the total screen width to use for the left side section. You may want to pick a small number (e.g. 0.2) if you're using a narrow screen, so that you can see more of the main section.
 	// Number from 0 to 1.0.
 	SidePanelWidth float64 `yaml:"sidePanelWidth" jsonschema:"maximum=1,minimum=0"`
 	// If true, increase the height of the focused side window; creating an accordion effect.
 	ExpandFocusedSidePanel bool `yaml:"expandFocusedSidePanel"`
-	// The weight of the expanded side panel, relative to the other panels. 2 means
-	// twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.
+	// The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.
 	ExpandedSidePanelWeight int `yaml:"expandedSidePanelWeight"`
 	// Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.
 	// Options are:
@@ -103,13 +112,11 @@ type GuiConfig struct {
 	// - 'left': split the window horizontally (side panel on the left, main view on the right)
 	// - 'top': split the window vertically (side panel on top, main view below)
 	EnlargedSideViewLocation string `yaml:"enlargedSideViewLocation"`
-	// If true, wrap lines in the staging view to the width of the view. This
-	// makes it much easier to work with diffs that have long lines, e.g.
-	// paragraphs of markdown text.
+	// If true, wrap lines in the staging view to the width of the view. This makes it much easier to work with diffs that have long lines, e.g. paragraphs of markdown text.
 	WrapLinesInStagingView bool `yaml:"wrapLinesInStagingView"`
 	// If true, hunk selection mode will be enabled by default when entering the staging view.
 	UseHunkModeInStagingView bool `yaml:"useHunkModeInStagingView"`
-	// One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
+	// One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru' | 'pt'
 	Language string `yaml:"language" jsonschema:"enum=auto,enum=en,enum=zh-TW,enum=zh-CN,enum=pl,enum=nl,enum=ja,enum=ko,enum=ru"`
 	// Format used when displaying time e.g. commit time.
 	// Uses Go's time format syntax: https://pkg.go.dev/time#Time.Format
@@ -236,8 +243,30 @@ type SpinnerConfig struct {
 }
 
 type GitConfig struct {
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
-	Paging PagingConfig `yaml:"paging"`
+	// Array of pagers. Each entry has the following format:
+	// [dev] The following documentation is duplicated from the PagingConfig struct below.
+	//
+	//   # Value of the --color arg in the git diff command. Some pagers want
+	//   # this to be set to 'always' and some want it set to 'never'
+	//   colorArg: "always"
+	//
+	//   # e.g.
+	//   # diff-so-fancy
+	//   # delta --dark --paging=never
+	//   # ydiff -p cat -s --wrap --width={{columnWidth}}
+	//   pager: ""
+	//
+	//   # e.g. 'difft --color=always'
+	//   externalDiffCommand: ""
+	//
+	//   # If true, Lazygit will use git's `diff.external` config for paging.
+	//   # The advantage over `externalDiffCommand` is that this can be
+	//   # configured per file type in .gitattributes; see
+	//   # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
+	//   useExternalDiffGitConfig: false
+	//
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md for more information.
+	Pagers []PagingConfig `yaml:"pagers"`
 	// Config relating to committing
 	Commit CommitConfig `yaml:"commit"`
 	// Config relating to merging
@@ -255,10 +284,7 @@ type GitConfig struct {
 	AutoForwardBranches string `yaml:"autoForwardBranches" jsonschema:"enum=none,enum=onlyMainBranches,enum=allBranches"`
 	// If true, pass the --all arg to git fetch
 	FetchAll bool `yaml:"fetchAll"`
-	// If true, lazygit will automatically stage files that used to have merge
-	// conflicts but no longer do; and it will also ask you if you want to
-	// continue a merge or rebase if you've resolved all conflicts. If false, it
-	// won't do either of these things.
+	// If true, lazygit will automatically stage files that used to have merge conflicts but no longer do; and it will also ask you if you want to continue a merge or rebase if you've resolved all conflicts. If false, it won't do either of these things.
 	AutoStageResolvedConflicts bool `yaml:"autoStageResolvedConflicts"`
 	// Command used when displaying the current branch git log in the main window
 	BranchLogCmd string `yaml:"branchLogCmd"`
@@ -293,8 +319,7 @@ type GitConfig struct {
 	// One of: 'date' (default) | 'alphabetical'
 	// Can be changed from within Lazygit with the Sort Order menu (`s`) in the remote branches panel.
 	RemoteBranchSortOrder string `yaml:"remoteBranchSortOrder" jsonschema:"enum=date,enum=alphabetical"`
-	// When copying commit hashes to the clipboard, truncate them to this
-	// length. Set to 40 to disable truncation.
+	// When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
 }
 
@@ -308,6 +333,7 @@ func (PagerType) JSONSchemaExtend(schema *jsonschema.Schema) {
 	}
 }
 
+// [dev] This documentation is duplicated in the GitConfig struct. If you make changes here, make them there too.
 type PagingConfig struct {
 	// Value of the --color arg in the git diff command. Some pagers want this to be set to 'always' and some want it set to 'never'
 	ColorArg string `yaml:"colorArg" jsonschema:"enum=always,enum=never"`
@@ -343,8 +369,7 @@ type MergingConfig struct {
 
 type LogConfig struct {
 	// One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'
-	// 'topo-order' makes it easier to read the git log graph, but commits may not
-	// appear chronologically. See https://git-scm.com/docs/
+	// 'topo-order' makes it easier to read the git log graph, but commits may not appear chronologically. See https://git-scm.com/docs/
 	//
 	// Can be changed from within Lazygit with `Log menu -> Commit sort order` (`<c-l>` in the commits window by default).
 	Order string `yaml:"order" jsonschema:"enum=date-order,enum=author-date-order,enum=topo-order,enum=default"`
@@ -449,6 +474,7 @@ type KeybindingUniversalConfig struct {
 	PrevTab                           string   `yaml:"prevTab"`
 	NextScreenMode                    string   `yaml:"nextScreenMode"`
 	PrevScreenMode                    string   `yaml:"prevScreenMode"`
+	CyclePagers                       string   `yaml:"cyclePagers"`
 	Undo                              string   `yaml:"undo"`
 	Redo                              string   `yaml:"redo"`
 	FilteringMenu                     string   `yaml:"filteringMenu"`
@@ -487,7 +513,7 @@ type KeybindingFilesConfig struct {
 	ViewResetOptions         string `yaml:"viewResetOptions"`
 	Fetch                    string `yaml:"fetch"`
 	ToggleTreeView           string `yaml:"toggleTreeView"`
-	OpenMergeTool            string `yaml:"openMergeTool"`
+	OpenMergeOptions         string `yaml:"openMergeOptions"`
 	OpenStatusFilter         string `yaml:"openStatusFilter"`
 	CopyFileInfoToClipboard  string `yaml:"copyFileInfoToClipboard"`
 	CollapseAll              string `yaml:"collapseAll"`
@@ -511,6 +537,7 @@ type KeybindingBranchesConfig struct {
 	PushTag                string `yaml:"pushTag"`
 	SetUpstream            string `yaml:"setUpstream"`
 	FetchRemote            string `yaml:"fetchRemote"`
+	AddForkRemote          string `yaml:"addForkRemote"`
 	SortOrder              string `yaml:"sortOrder"`
 }
 
@@ -582,12 +609,10 @@ type OSConfig struct {
 	// Command for editing a file. Should contain "{{filename}}".
 	Edit string `yaml:"edit,omitempty"`
 
-	// Command for editing a file at a given line number. Should contain
-	// "{{filename}}", and may optionally contain "{{line}}".
+	// Command for editing a file at a given line number. Should contain "{{filename}}", and may optionally contain "{{line}}".
 	EditAtLine string `yaml:"editAtLine,omitempty"`
 
-	// Same as EditAtLine, except that the command needs to wait until the
-	// window is closed.
+	// Same as EditAtLine, except that the command needs to wait until the window is closed.
 	EditAtLineAndWait string `yaml:"editAtLineAndWait,omitempty"`
 
 	// Whether lazygit suspends until an edit process returns
@@ -598,12 +623,10 @@ type OSConfig struct {
 	// For opening a directory in an editor
 	OpenDirInEditor string `yaml:"openDirInEditor,omitempty"`
 
-	// A built-in preset that sets all of the above settings. Supported presets
-	// are defined in the getPreset function in editor_presets.go.
+	// A built-in preset that sets all of the above settings. Supported presets are defined in the getPreset function in editor_presets.go.
 	EditPreset string `yaml:"editPreset,omitempty" jsonschema:"example=vim,example=nvim,example=emacs,example=nano,example=vscode,example=sublime,example=kakoune,example=helix,example=xcode,example=zed,example=acme"`
 
-	// Command for opening a file, as if the file is double-clicked. Should
-	// contain "{{filename}}", but doesn't support "{{line}}".
+	// Command for opening a file, as if the file is double-clicked. Should contain "{{filename}}", but doesn't support "{{line}}".
 	Open string `yaml:"open,omitempty"`
 
 	// Command for opening a link. Should contain "{{link}}".
@@ -760,32 +783,33 @@ func GetDefaultConfig() *UserConfig {
 				UnstagedChangesColor:            []string{"red"},
 				DefaultFgColor:                  []string{"default"},
 			},
-			CommitLength:                 CommitLengthConfig{Show: true},
-			SkipNoStagedFilesWarning:     false,
-			ShowListFooter:               true,
-			ShowCommandLog:               true,
-			ShowBottomLine:               true,
-			ShowPanelJumps:               true,
-			ShowFileTree:                 true,
-			ShowRootItemInFileTree:       true,
-			ShowNumstatInFilesView:       false,
-			ShowRandomTip:                true,
-			ShowIcons:                    false,
-			NerdFontsVersion:             "",
-			ShowFileIcons:                true,
-			CommitAuthorShortLength:      2,
-			CommitAuthorLongLength:       17,
-			CommitHashLength:             8,
-			ShowBranchCommitHash:         false,
-			ShowDivergenceFromBaseBranch: "none",
-			CommandLogSize:               8,
-			SplitDiff:                    "auto",
-			SkipRewordInEditorWarning:    false,
-			ScreenMode:                   "normal",
-			Border:                       "rounded",
-			AnimateExplosion:             true,
-			PortraitMode:                 "auto",
-			FilterMode:                   "substring",
+			CommitLength:                        CommitLengthConfig{Show: true},
+			SkipNoStagedFilesWarning:            false,
+			ShowListFooter:                      true,
+			ShowCommandLog:                      true,
+			ShowBottomLine:                      true,
+			ShowPanelJumps:                      true,
+			ShowFileTree:                        true,
+			ShowRootItemInFileTree:              true,
+			ShowNumstatInFilesView:              false,
+			ShowRandomTip:                       true,
+			ShowIcons:                           false,
+			NerdFontsVersion:                    "",
+			ShowFileIcons:                       true,
+			CommitAuthorShortLength:             2,
+			CommitAuthorLongLength:              17,
+			CommitHashLength:                    8,
+			ShowBranchCommitHash:                false,
+			ShowDivergenceFromBaseBranch:        "none",
+			CommandLogSize:                      8,
+			SplitDiff:                           "auto",
+			SkipRewordInEditorWarning:           false,
+			SkipSwitchWorktreeOnCheckoutWarning: false,
+			ScreenMode:                          "normal",
+			Border:                              "rounded",
+			AnimateExplosion:                    true,
+			PortraitMode:                        "auto",
+			FilterMode:                          "substring",
 			Spinner: SpinnerConfig{
 				Frames: []string{"|", "/", "-", "\\"},
 				Rate:   50,
@@ -796,11 +820,6 @@ func GetDefaultConfig() *UserConfig {
 			SwitchTabsWithPanelJumpKeys:  false,
 		},
 		Git: GitConfig{
-			Paging: PagingConfig{
-				ColorArg:            "always",
-				Pager:               "",
-				ExternalDiffCommand: "",
-			},
 			Commit: CommitConfig{
 				SignOff:               false,
 				AutoWrapCommitMessage: true,
@@ -916,6 +935,7 @@ func GetDefaultConfig() *UserConfig {
 				PrevTab:                           "[",
 				NextScreenMode:                    "+",
 				PrevScreenMode:                    "_",
+				CyclePagers:                       "|",
 				Undo:                              "z",
 				Redo:                              "Z",
 				FilteringMenu:                     "<c-s>",
@@ -950,7 +970,7 @@ func GetDefaultConfig() *UserConfig {
 				ViewResetOptions:         "D",
 				Fetch:                    "f",
 				ToggleTreeView:           "`",
-				OpenMergeTool:            "M",
+				OpenMergeOptions:         "M",
 				OpenStatusFilter:         "<c-b>",
 				ConfirmDiscard:           "x",
 				CopyFileInfoToClipboard:  "y",
@@ -974,6 +994,7 @@ func GetDefaultConfig() *UserConfig {
 				PushTag:                "P",
 				SetUpstream:            "u",
 				FetchRemote:            "f",
+				AddForkRemote:          "F",
 				SortOrder:              "s",
 			},
 			Worktrees: KeybindingWorktreesConfig{

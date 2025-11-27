@@ -155,7 +155,6 @@ func (self *TagsController) checkout(tag *models.Tag) error {
 	if err := self.c.Helpers().Refs.CheckoutRef(tag.FullRefName(), types.CheckoutRefOptions{}); err != nil {
 		return err
 	}
-	self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
 	return nil
 }
 

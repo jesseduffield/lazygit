@@ -173,7 +173,7 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error
 
 	self.returnFocusFromPatchExplorerIfNecessary()
 
-	mustStash := self.c.Helpers().WorkingTree.IsWorkingTreeDirty()
+	mustStash := self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules()
 	return self.c.ConfirmIf(mustStash, types.ConfirmOpts{
 		Title:  self.c.Tr.MustStashTitle,
 		Prompt: self.c.Tr.MustStashWarning,

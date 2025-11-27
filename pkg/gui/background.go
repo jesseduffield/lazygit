@@ -17,6 +17,9 @@ type BackgroundRoutineMgr struct {
 	// we typically want to pause some things that are running like background
 	// file refreshes
 	pauseBackgroundRefreshes bool
+
+	// a channel to trigger an immediate background fetch; we use this when switching repos
+	triggerFetch chan struct{}
 }
 
 func (self *BackgroundRoutineMgr) PauseBackgroundRefreshes(pause bool) {
@@ -40,7 +43,7 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 	if userConfig.Git.AutoRefresh {
 		refreshInterval := userConfig.Refresher.RefreshInterval
 		if refreshInterval > 0 {
-			go utils.Safe(func() { self.startBackgroundFilesRefresh(refreshInterval) })
+			go utils.Safe(self.startBackgroundFilesRefresh)
 		} else {
 			self.gui.c.Log.Errorf(
 				"Value of config option 'refresher.refreshInterval' (%d) is invalid, disabling auto-refresh",
@@ -76,6 +79,16 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	self.gui.waitForIntro.Wait()
 
 	fetch := func() error {
+		// Do this on the UI thread so that we don't have to deal with synchronization around the
+		// access of the repo state.
+		self.gui.onUIThread(func() error {
+			// There's a race here, where we might be recording the time stamp for a different repo
+			// than where the fetch actually ran. It's not very likely though, and not harmful if it
+			// does happen; guarding against it would be more effort than it's worth.
+			self.gui.State.LastBackgroundFetchTime = time.Now()
+			return nil
+		})
+
 		return self.gui.helpers.AppStatus.WithWaitingStatusImpl(self.gui.Tr.FetchingStatus, func(gocui.Task) error {
 			return self.backgroundFetch()
 		}, nil)
@@ -86,41 +99,53 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	_ = fetch()
 
 	userConfig := self.gui.UserConfig()
-	self.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), self.gui.stopChan, fetch)
+	self.triggerFetch = self.goEvery(userConfig.Refresher.FetchIntervalDuration(), self.gui.stopChan, fetch)
 }
 
-func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh(refreshInterval int) {
+func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh() {
 	self.gui.waitForIntro.Wait()
 
-	self.goEvery(time.Second*time.Duration(refreshInterval), self.gui.stopChan, func() error {
+	userConfig := self.gui.UserConfig()
+	self.goEvery(userConfig.Refresher.RefreshIntervalDuration(), self.gui.stopChan, func() error {
 		self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 		return nil
 	})
 }
 
-func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan struct{}, function func() error) {
+// returns a channel that can be used to trigger the callback immediately
+func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan struct{}, function func() error) chan struct{} {
 	done := make(chan struct{})
+	retrigger := make(chan struct{})
 	go utils.Safe(func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
+		doit := func() {
+			if self.pauseBackgroundRefreshes {
+				return
+			}
+			self.gui.c.OnWorker(func(gocui.Task) error {
+				_ = function()
+				done <- struct{}{}
+				return nil
+			})
+			// waiting so that we don't bunch up refreshes if the refresh takes longer than the
+			// interval, or if a retrigger comes in while we're still processing a timer-based one
+			// (or vice versa)
+			<-done
+		}
 		for {
 			select {
 			case <-ticker.C:
-				if self.pauseBackgroundRefreshes {
-					continue
-				}
-				self.gui.c.OnWorker(func(gocui.Task) error {
-					_ = function()
-					done <- struct{}{}
-					return nil
-				})
-				// waiting so that we don't bunch up refreshes if the refresh takes longer than the interval
-				<-done
+				doit()
+			case <-retrigger:
+				ticker.Reset(interval)
+				doit()
 			case <-stop:
 				return
 			}
 		}
 	})
+	return retrigger
 }
 
 func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
@@ -133,4 +158,10 @@ func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
 	}
 
 	return err
+}
+
+func (self *BackgroundRoutineMgr) triggerImmediateFetch() {
+	if self.triggerFetch != nil {
+		self.triggerFetch <- struct{}{}
+	}
 }

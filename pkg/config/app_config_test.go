@@ -897,7 +897,7 @@ keybinding:
     toggleStagedAll: a
     viewResetOptions: D
     fetch: f
-    openMergeTool: M
+    openMergeOptions: M
     openStatusFilter: <c-b>
     copyFileInfoToClipboard: "y"
     collapseAll: '-'
@@ -1073,6 +1073,101 @@ func TestAllBranchesLogCmdMigrations(t *testing.T) {
 `,
 			expectedDidChange: true,
 			expectedChanges:   []string{"Removed obsolete git.allBranchesLogCmd"},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			changes := NewChangesSet()
+			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input), changes)
+			assert.NoError(t, err)
+			assert.Equal(t, s.expectedDidChange, didChange)
+			if didChange {
+				assert.Equal(t, s.expected, string(actual))
+			}
+			assert.Equal(t, s.expectedChanges, changes.ToSliceFromOldest())
+		})
+	}
+}
+
+func TestPagerMigration(t *testing.T) {
+	scenarios := []struct {
+		name              string
+		input             string
+		expected          string
+		expectedDidChange bool
+		expectedChanges   []string
+	}{
+		{
+			name:              "Incomplete Configuration Passes uneventfully",
+			input:             "git:",
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+		{
+			name: "No paging section",
+			input: `git:
+  autoFetch: true
+`,
+			expected: `git:
+  autoFetch: true
+`,
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+		{
+			name: "Both paging and pagers exist",
+			input: `git:
+  paging:
+    pager: delta --dark --paging=never
+  pagers:
+    - diff: diff-so-fancy
+`,
+			expected: `git:
+  paging:
+    pager: delta --dark --paging=never
+  pagers:
+    - diff: diff-so-fancy
+`,
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+		{
+			name: "paging is not an object",
+			input: `git:
+  paging: 5
+`,
+			expected: `git:
+  paging: 5
+`,
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+		{
+			name: "paging is moved to pagers array (keeping the order)",
+			input: `git:
+  paging:
+    pager: delta --dark --paging=never
+  autoFetch: true
+`,
+			expected: `git:
+  pagers:
+    - pager: delta --dark --paging=never
+  autoFetch: true
+`,
+			expectedDidChange: true,
+			expectedChanges:   []string{"Moved git.paging object to git.pagers array"},
+		},
+		{
+			name: "paging is moved to pagers array even if empty",
+			input: `git:
+  paging: {}
+`,
+			expected: `git:
+  pagers: [{}]
+`,
+			expectedDidChange: true,
+			expectedChanges:   []string{"Moved git.paging object to git.pagers array"},
 		},
 	}
 

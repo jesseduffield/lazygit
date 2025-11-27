@@ -257,7 +257,7 @@ func (self *UndoController) hardResetWithAutoStash(commitHash string, options ha
 	}
 
 	// if we have any modified tracked files we need to auto-stash
-	dirtyWorkingTree := self.c.Helpers().WorkingTree.IsWorkingTreeDirty()
+	dirtyWorkingTree := self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules()
 	if dirtyWorkingTree {
 		return self.c.WithWaitingStatus(options.WaitingStatus, func(gocui.Task) error {
 			if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForUndo, utils.ShortHash(commitHash))); err != nil {

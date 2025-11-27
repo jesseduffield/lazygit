@@ -19,21 +19,20 @@ import (
 func TestGetWindowDimensions(t *testing.T) {
 	getDefaultArgs := func() WindowArrangementArgs {
 		return WindowArrangementArgs{
-			Width:               75,
-			Height:              30,
-			UserConfig:          config.GetDefaultConfig(),
-			CurrentWindow:       "files",
-			CurrentSideWindow:   "files",
-			CurrentStaticWindow: "files",
-			SplitMainPanel:      false,
-			ScreenMode:          types.SCREEN_NORMAL,
-			AppStatus:           "",
-			InformationStr:      "information",
-			ShowExtrasWindow:    false,
-			InDemo:              false,
-			IsAnyModeActive:     false,
-			InSearchPrompt:      false,
-			SearchPrefix:        "",
+			Width:             75,
+			Height:            30,
+			UserConfig:        config.GetDefaultConfig(),
+			CurrentWindow:     "files",
+			CurrentSideWindow: "files",
+			SplitMainPanel:    false,
+			ScreenMode:        types.SCREEN_NORMAL,
+			AppStatus:         "",
+			InformationStr:    "information",
+			ShowExtrasWindow:  false,
+			InDemo:            false,
+			IsAnyModeActive:   false,
+			InSearchPrompt:    false,
+			SearchPrefix:      "",
 		}
 	}
 

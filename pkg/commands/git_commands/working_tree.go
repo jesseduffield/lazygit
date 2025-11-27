@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -257,7 +258,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool,
 }
 
 func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) *oscommands.CmdObj {
-	colorArg := self.UserConfig().Git.Paging.ColorArg
+	colorArg := self.pagerConfig.GetColorArg()
 	if plain {
 		colorArg = "never"
 	}
@@ -265,9 +266,9 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	contextSize := self.UserConfig().Git.DiffContextSize
 	prevPath := node.GetPreviousPath()
 	noIndex := !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached && node.GetIsFile()
-	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
+	extDiffCmd := self.pagerConfig.GetExternalDiffCommand()
 	useExtDiff := extDiffCmd != "" && !plain
-	useExtDiffGitConfig := self.UserConfig().Git.Paging.UseExternalDiffGitConfig && !plain
+	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain
 
 	cmdArgs := NewGitCmd("diff").
 		ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
@@ -298,14 +299,14 @@ func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bo
 func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileName string, plain bool) *oscommands.CmdObj {
 	contextSize := self.UserConfig().Git.DiffContextSize
 
-	colorArg := self.UserConfig().Git.Paging.ColorArg
+	colorArg := self.pagerConfig.GetColorArg()
 	if plain {
 		colorArg = "never"
 	}
 
-	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
+	extDiffCmd := self.pagerConfig.GetExternalDiffCommand()
 	useExtDiff := extDiffCmd != "" && !plain
-	useExtDiffGitConfig := self.UserConfig().Git.Paging.UseExternalDiffGitConfig && !plain
+	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain
 
 	cmdArgs := NewGitCmd("diff").
 		Config("diff.noprefix=false").
@@ -406,4 +407,63 @@ func (self *WorkingTreeCommands) ResetMixed(ref string) error {
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
+}
+
+func (self *WorkingTreeCommands) ShowFileAtStage(path string, stage int) (string, error) {
+	cmdArgs := NewGitCmd("show").
+		Arg(fmt.Sprintf(":%d:%s", stage, path)).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).RunWithOutput()
+}
+
+func (self *WorkingTreeCommands) ObjectIDAtStage(path string, stage int) (string, error) {
+	cmdArgs := NewGitCmd("rev-parse").
+		Arg(fmt.Sprintf(":%d:%s", stage, path)).
+		ToArgv()
+
+	output, err := self.cmd.New(cmdArgs).RunWithOutput()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(output), nil
+}
+
+func (self *WorkingTreeCommands) MergeFileForFiles(strategy string, oursFilepath string, baseFilepath string, theirsFilepath string) (string, error) {
+	cmdArgs := NewGitCmd("merge-file").
+		Arg(strategy).
+		Arg("--stdout").
+		Arg(oursFilepath, baseFilepath, theirsFilepath).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).RunWithOutput()
+}
+
+// OIDs mode (Git 2.43+)
+func (self *WorkingTreeCommands) MergeFileForObjectIDs(strategy string, oursID string, baseID string, theirsID string) (string, error) {
+	cmdArgs := NewGitCmd("merge-file").
+		Arg(strategy).
+		Arg("--stdout").
+		Arg("--object-id").
+		Arg(oursID, baseID, theirsID).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).RunWithOutput()
+}
+
+// Returns all tracked files in the repo (not in the working tree). The returned entries are
+// relative paths to the repo root, using '/' as the path separator on all platforms.
+// Does not really belong in WorkingTreeCommands, but it's close enough, and we don't seem to have a
+// better place for it right now.
+func (self *WorkingTreeCommands) AllRepoFiles() ([]string, error) {
+	cmdArgs := NewGitCmd("ls-files").Arg("-z").ToArgv()
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil {
+		return nil, err
+	}
+	if output == "" {
+		return []string{}, nil
+	}
+	return strings.Split(strings.TrimRight(output, "\x00"), "\x00"), nil
 }

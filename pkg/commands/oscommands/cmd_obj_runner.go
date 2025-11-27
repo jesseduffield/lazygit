@@ -227,7 +227,13 @@ func (self *cmdObjRunner) runAndStreamAux(
 	cmdObj *CmdObj,
 	onRun func(*cmdHandler, io.Writer),
 ) error {
-	cmdWriter := self.guiIO.newCmdWriterFn()
+	var cmdWriter io.Writer
+	var combinedOutput bytes.Buffer
+	if cmdObj.ShouldSuppressOutputUnlessError() {
+		cmdWriter = &combinedOutput
+	} else {
+		cmdWriter = self.guiIO.newCmdWriterFn()
+	}
 
 	if cmdObj.ShouldLog() {
 		self.logCmdObj(cmdObj)
@@ -267,6 +273,10 @@ func (self *cmdObjRunner) runAndStreamAux(
 	self.log.Infof("%s (%s)", cmdObj.ToString(), time.Since(t))
 
 	if err != nil {
+		if cmdObj.suppressOutputUnlessError {
+			_, _ = self.guiIO.newCmdWriterFn().Write(combinedOutput.Bytes())
+		}
+
 		errStr := stderr.String()
 		if errStr != "" {
 			return errors.New(errStr)
@@ -330,7 +340,7 @@ func (self *cmdObjRunner) runAndDetectCredentialRequest(
 	promptUserForCredential func(CredentialType) <-chan string,
 ) error {
 	// setting the output to english so we can parse it for a username/password request
-	cmdObj.AddEnvVars("LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8")
+	cmdObj.AddEnvVars("LANG=C", "LC_ALL=C", "LC_MESSAGES=C")
 
 	return self.runAndStreamAux(cmdObj, func(handler *cmdHandler, cmdWriter io.Writer) {
 		tr := io.TeeReader(handler.stdoutPipe, cmdWriter)

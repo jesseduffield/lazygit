@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	mapsPkg "maps"
 	"math"
 	"strings"
 
@@ -43,10 +44,9 @@ type WindowArrangementArgs struct {
 	Height int
 	// User config
 	UserConfig *config.UserConfig
-	// Name of the currently focused window
+	// Name of the currently focused window. (It's actually the current static window, meaning
+	// popups are ignored)
 	CurrentWindow string
-	// Name of the current static window (meaning popups are ignored)
-	CurrentStaticWindow string
 	// Name of the current side window (i.e. the current window in the left
 	// section of the UI)
 	CurrentSideWindow string
@@ -86,21 +86,20 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 	}
 
 	args := WindowArrangementArgs{
-		Width:               width,
-		Height:              height,
-		UserConfig:          self.c.UserConfig(),
-		CurrentWindow:       self.windowHelper.CurrentWindow(),
-		CurrentSideWindow:   self.c.Context().CurrentSide().GetWindowName(),
-		CurrentStaticWindow: self.c.Context().CurrentStatic().GetWindowName(),
-		SplitMainPanel:      repoState.GetSplitMainPanel(),
-		ScreenMode:          repoState.GetScreenMode(),
-		AppStatus:           appStatus,
-		InformationStr:      informationStr,
-		ShowExtrasWindow:    self.c.State().GetShowExtrasWindow(),
-		InDemo:              self.c.InDemo(),
-		IsAnyModeActive:     self.modeHelper.IsAnyModeActive(),
-		InSearchPrompt:      repoState.InSearchPrompt(),
-		SearchPrefix:        searchPrefix,
+		Width:             width,
+		Height:            height,
+		UserConfig:        self.c.UserConfig(),
+		CurrentWindow:     self.c.Context().CurrentStatic().GetWindowName(),
+		CurrentSideWindow: self.c.Context().CurrentSide().GetWindowName(),
+		SplitMainPanel:    repoState.GetSplitMainPanel(),
+		ScreenMode:        repoState.GetScreenMode(),
+		AppStatus:         appStatus,
+		InformationStr:    informationStr,
+		ShowExtrasWindow:  self.c.State().GetShowExtrasWindow(),
+		InDemo:            self.c.InDemo(),
+		IsAnyModeActive:   self.modeHelper.IsAnyModeActive(),
+		InSearchPrompt:    repoState.InSearchPrompt(),
+		SearchPrefix:      searchPrefix,
 	}
 
 	return GetWindowDimensions(args)
@@ -196,9 +195,7 @@ func mainPanelChildren(args WindowArrangementArgs) []*boxlayout.Box {
 func MergeMaps[K comparable, V any](maps ...map[K]V) map[K]V {
 	result := map[K]V{}
 	for _, currMap := range maps {
-		for key, value := range currMap {
-			result[key] = value
-		}
+		mapsPkg.Copy(result, currMap)
 	}
 
 	return result
@@ -393,7 +390,7 @@ func splitMainPanelSideBySide(args WindowArrangementArgs) bool {
 func getExtrasWindowSize(args WindowArrangementArgs) int {
 	var baseSize int
 	// The 'extras' window contains the command log context
-	if args.CurrentStaticWindow == "extras" {
+	if args.CurrentWindow == "extras" {
 		baseSize = 1000 // my way of saying 'fill the available space'
 	} else if args.Height < 40 {
 		baseSize = 1

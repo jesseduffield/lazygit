@@ -139,6 +139,8 @@ func (self *PopupHandler) Prompt(opts types.PromptOpts) {
 		HandleDeleteSuggestion: opts.HandleDeleteSuggestion,
 		FindSuggestionsFunc:    opts.FindSuggestionsFunc,
 		AllowEditSuggestion:    opts.AllowEditSuggestion,
+		AllowEmptyInput:        opts.AllowEmptyInput,
+		PreserveWhitespace:     opts.PreserveWhitespace,
 		Mask:                   opts.Mask,
 	})
 }

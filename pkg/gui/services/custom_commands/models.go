@@ -43,6 +43,12 @@ type File struct {
 	IsWorktree              bool
 }
 
+type Submodule struct {
+	Name string
+	Path string
+	Url  string
+}
+
 type Branch struct {
 	Name           string
 	DisplayName    string

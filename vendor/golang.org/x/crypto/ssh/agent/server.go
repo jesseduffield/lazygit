@@ -203,6 +203,9 @@ func parseConstraints(constraints []byte) (lifetimeSecs uint32, confirmBeforeUse
 	for len(constraints) != 0 {
 		switch constraints[0] {
 		case agentConstrainLifetime:
+			if len(constraints) < 5 {
+				return 0, false, nil, io.ErrUnexpectedEOF
+			}
 			lifetimeSecs = binary.BigEndian.Uint32(constraints[1:5])
 			constraints = constraints[5:]
 		case agentConstrainConfirm:
@@ -506,7 +509,7 @@ func (s *server) insertIdentity(req []byte) error {
 	switch record.Type {
 	case ssh.KeyAlgoRSA:
 		addedKey, err = parseRSAKey(req)
-	case ssh.KeyAlgoDSA:
+	case ssh.InsecureKeyAlgoDSA:
 		addedKey, err = parseDSAKey(req)
 	case ssh.KeyAlgoECDSA256, ssh.KeyAlgoECDSA384, ssh.KeyAlgoECDSA521:
 		addedKey, err = parseECDSAKey(req)
@@ -514,7 +517,7 @@ func (s *server) insertIdentity(req []byte) error {
 		addedKey, err = parseEd25519Key(req)
 	case ssh.CertAlgoRSAv01:
 		addedKey, err = parseRSACert(req)
-	case ssh.CertAlgoDSAv01:
+	case ssh.InsecureCertAlgoDSAv01:
 		addedKey, err = parseDSACert(req)
 	case ssh.CertAlgoECDSA256v01, ssh.CertAlgoECDSA384v01, ssh.CertAlgoECDSA521v01:
 		addedKey, err = parseECDSACert(req)

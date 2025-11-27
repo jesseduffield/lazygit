@@ -24,6 +24,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` R `` | 重新整理 | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
 | `` + `` | 下一個螢幕模式（常規/半螢幕/全螢幕） |  |
 | `` _ `` | 上一個螢幕模式 |  |
+| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
 | `` <esc> `` | 取消 |  |
 | `` ? `` | 開啟選單 |  |
 | `` <c-s> `` | 檢視篩選路徑選項 | View options for filtering the commit log, so that only commits matching the filter are shown. |
@@ -97,7 +98,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` z `` | 復原 | Undo last merge conflict resolution. |
 | `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
 | `` o `` | 開啟檔案 | 使用預設軟體開啟 |
-| `` M `` | 開啟外部合併工具 | 執行 `git mergetool`。 |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` <esc> `` | 返回檔案面板 |  |
 
 ## 主面板（預存）
@@ -347,7 +348,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` D `` | 重設 | View reset options for working tree (e.g. nuking the working tree). |
 | `` ` `` | 顯示檔案樹狀視圖 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` <c-t> `` | 開啟外部差異工具 (git difftool) |  |
-| `` M `` | 開啟外部合併工具 | 執行 `git mergetool`。 |
+| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` f `` | 擷取 | 同步遠端異動 |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |

@@ -218,8 +218,8 @@ func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line
 	var tags []string
 
 	if extraInfo != "" {
-		extraInfoFields := strings.Split(extraInfo, ",")
-		for _, extraInfoField := range extraInfoFields {
+		extraInfoFields := strings.SplitSeq(extraInfo, ",")
+		for extraInfoField := range extraInfoFields {
 			extraInfoField = strings.TrimSpace(extraInfoField)
 			re := regexp.MustCompile(`tag: (.+)`)
 			tagMatch := re.FindStringSubmatch(extraInfoField)

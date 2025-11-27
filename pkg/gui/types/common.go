@@ -172,6 +172,8 @@ type CreatePopupPanelOpts struct {
 	FindSuggestionsFunc func(string) []*Suggestion
 	Mask                bool
 	AllowEditSuggestion bool
+	AllowEmptyInput     bool
+	PreserveWhitespace  bool
 }
 
 type ConfirmOpts struct {
@@ -190,6 +192,8 @@ type PromptOpts struct {
 	FindSuggestionsFunc func(string) []*Suggestion
 	HandleConfirm       func(string) error
 	AllowEditSuggestion bool
+	AllowEmptyInput     bool
+	PreserveWhitespace  bool
 	// CAPTURE THIS
 	HandleClose            func() error
 	HandleDeleteSuggestion func(int) error
@@ -356,6 +360,7 @@ type HasUrn interface {
 type IStateAccessor interface {
 	GetRepoPathStack() *utils.StringStack
 	GetRepoState() IRepoStateAccessor
+	GetPagerConfig() *config.PagerConfig
 	// tells us whether we're currently updating lazygit
 	GetUpdating() bool
 	SetUpdating(bool)

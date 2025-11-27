@@ -1,0 +1,43 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/mattn/go-runewidth
+cpu: Apple M2
+                                   │   old.txt    │              new.txt               │
+                                   │    sec/op    │   sec/op     vs base               │
+String1WidthAll/regular-8            108.92m ± 0%   35.09m ± 3%  -67.78% (p=0.002 n=6)
+String1WidthAll/lut-8                 93.97m ± 0%   18.70m ± 0%  -80.10% (p=0.002 n=6)
+String1Width768/regular-8             60.62µ ± 1%   11.54µ ± 0%  -80.97% (p=0.002 n=6)
+String1Width768/lut-8                 60.66µ ± 1%   11.43µ ± 0%  -81.16% (p=0.002 n=6)
+String1WidthAllEastAsian/regular-8   115.13m ± 1%   40.79m ± 8%  -64.57% (p=0.002 n=6)
+String1WidthAllEastAsian/lut-8        93.65m ± 0%   18.70m ± 2%  -80.03% (p=0.002 n=6)
+String1Width768EastAsian/regular-8    75.32µ ± 0%   23.49µ ± 0%  -68.82% (p=0.002 n=6)
+String1Width768EastAsian/lut-8        60.76µ ± 0%   11.50µ ± 0%  -81.07% (p=0.002 n=6)
+geomean                               2.562m        604.5µ       -76.41%
+
+                                   │   old.txt    │                 new.txt                 │
+                                   │     B/op     │    B/op      vs base                    │
+String1WidthAll/regular-8            106.3Mi ± 0%    0.0Mi ± 0%  -100.00% (p=0.002 n=6)
+String1WidthAll/lut-8                106.3Mi ± 0%    0.0Mi ± 0%  -100.00% (p=0.002 n=6)
+String1Width768/regular-8            75.00Ki ± 0%   0.00Ki ± 0%  -100.00% (p=0.002 n=6)
+String1Width768/lut-8                75.00Ki ± 0%   0.00Ki ± 0%  -100.00% (p=0.002 n=6)
+String1WidthAllEastAsian/regular-8   106.3Mi ± 0%    0.0Mi ± 0%  -100.00% (p=0.002 n=6)
+String1WidthAllEastAsian/lut-8       106.3Mi ± 0%    0.0Mi ± 0%  -100.00% (p=0.002 n=6)
+String1Width768EastAsian/regular-8   75.00Ki ± 0%   0.00Ki ± 0%  -100.00% (p=0.002 n=6)
+String1Width768EastAsian/lut-8       75.00Ki ± 0%   0.00Ki ± 0%  -100.00% (p=0.002 n=6)
+geomean                              2.790Mi                     ?                      ¹ ²
+¹ summaries must be >0 to compute geomean
+² ratios must be >0 to compute geomean
+
+                                   │   old.txt   │                 new.txt                 │
+                                   │  allocs/op  │  allocs/op   vs base                    │
+String1WidthAll/regular-8            3.342M ± 0%   0.000M ± 0%  -100.00% (p=0.002 n=6)
+String1WidthAll/lut-8                3.342M ± 0%   0.000M ± 0%  -100.00% (p=0.002 n=6)
+String1Width768/regular-8            2.304k ± 0%   0.000k ± 0%  -100.00% (p=0.002 n=6)
+String1Width768/lut-8                2.304k ± 0%   0.000k ± 0%  -100.00% (p=0.002 n=6)
+String1WidthAllEastAsian/regular-8   3.342M ± 0%   0.000M ± 0%  -100.00% (p=0.002 n=6)
+String1WidthAllEastAsian/lut-8       3.342M ± 0%   0.000M ± 0%  -100.00% (p=0.002 n=6)
+String1Width768EastAsian/regular-8   2.304k ± 0%   0.000k ± 0%  -100.00% (p=0.002 n=6)
+String1Width768EastAsian/lut-8       2.304k ± 0%   0.000k ± 0%  -100.00% (p=0.002 n=6)
+geomean                              87.75k                     ?                      ¹ ²
+¹ summaries must be >0 to compute geomean
+² ratios must be >0 to compute geomean

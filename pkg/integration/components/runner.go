@@ -15,7 +15,7 @@ import (
 
 type RunTestArgs struct {
 	Tests           []*IntegrationTest
-	Logf            func(format string, formatArgs ...interface{})
+	Logf            func(format string, formatArgs ...any)
 	RunCmd          func(cmd *exec.Cmd) (int, error)
 	TestWrapper     func(test *IntegrationTest, f func() error)
 	Sandbox         bool

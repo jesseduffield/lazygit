@@ -61,6 +61,10 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		return self.c.WithWaitingStatus(waitingStatus, f)
 	}
 
+	// Switch to the branches context _before_ starting to check out the branch, so that we see the
+	// inline status. This is a no-op if the branches panel is already focused.
+	self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
+
 	return withCheckoutStatus(func(gocui.Task) error {
 		if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {
 			// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
@@ -109,11 +113,6 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 // Shows a prompt to choose between creating a new branch or checking out a detached head
 func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchName string) error {
 	checkout := func(branchName string) error {
-		// Switch to the branches context _before_ starting to check out the
-		// branch, so that we see the inline status
-		if self.c.Context().Current() != self.c.Contexts().Branches {
-			self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
-		}
 		return self.CheckoutRef(branchName, types.CheckoutRefOptions{})
 	}
 
@@ -161,6 +160,15 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 			},
 		},
 	})
+}
+
+func (self *RefsHelper) CheckoutPreviousRef() error {
+	previousRef, err := self.c.Git().Branch.PreviousRef()
+	if err == nil && strings.HasPrefix(previousRef, "refs/heads/") {
+		return self.CheckoutRef(strings.TrimPrefix(previousRef, "refs/heads/"), types.CheckoutRefOptions{})
+	}
+
+	return self.CheckoutRef("-", types.CheckoutRefOptions{})
 }
 
 func (self *RefsHelper) GetCheckedOutRef() *models.Branch {
@@ -249,7 +257,7 @@ func (self *RefsHelper) CreateGitResetMenu(name string, ref string) error {
 				style.FgRed.Sprintf("reset --%s %s", row.strength, name),
 			},
 			OnPress: func() error {
-				return self.c.ConfirmIf(row.strength == "hard" && IsWorkingTreeDirty(self.c.Model().Files),
+				return self.c.ConfirmIf(row.strength == "hard" && IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules),
 					types.ConfirmOpts{
 						Title:  self.c.Tr.Actions.HardReset,
 						Prompt: self.c.Tr.ResetHardConfirmation,
@@ -475,7 +483,7 @@ func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchNa
 		return err
 	}
 
-	mustStash := IsWorkingTreeDirty(self.c.Model().Files)
+	mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
 	if mustStash {
 		if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
 			return err
@@ -508,7 +516,7 @@ func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName stri
 		return commit.Status == models.StatusUnpushed
 	})
 
-	mustStash := IsWorkingTreeDirty(self.c.Model().Files)
+	mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
 	if mustStash {
 		if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
 			return err

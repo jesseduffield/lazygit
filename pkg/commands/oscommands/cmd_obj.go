@@ -22,6 +22,9 @@ type CmdObj struct {
 	// see StreamOutput()
 	streamOutput bool
 
+	// see SuppressOutputUnlessError()
+	suppressOutputUnlessError bool
+
 	// see UsePty()
 	usePty bool
 
@@ -121,6 +124,18 @@ func (self *CmdObj) StreamOutput() *CmdObj {
 	self.streamOutput = true
 
 	return self
+}
+
+// when you call this, the streamed output will be suppressed unless there is an error
+func (self *CmdObj) SuppressOutputUnlessError() *CmdObj {
+	self.suppressOutputUnlessError = true
+
+	return self
+}
+
+// returns true if SuppressOutputUnlessError() was called
+func (self *CmdObj) ShouldSuppressOutputUnlessError() bool {
+	return self.suppressOutputUnlessError
 }
 
 // returns true if StreamOutput() was called
