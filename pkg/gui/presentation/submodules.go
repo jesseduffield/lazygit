@@ -1,6 +1,8 @@
 package presentation
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/samber/lo"
@@ -15,12 +17,12 @@ func GetSubmoduleListDisplayStrings(submodules []*models.SubmoduleConfig) [][]st
 func getSubmoduleDisplayStrings(s *models.SubmoduleConfig) []string {
 	name := s.Name
 	if s.ParentModule != nil {
-		indentation := ""
+		var indentation strings.Builder
 		for p := s.ParentModule; p != nil; p = p.ParentModule {
-			indentation += "  "
+			indentation.WriteString("  ")
 		}
 
-		name = indentation + "- " + s.Name
+		name = indentation.String() + "- " + s.Name
 	}
 
 	return []string{theme.DefaultTextColor.Sprint(name)}
