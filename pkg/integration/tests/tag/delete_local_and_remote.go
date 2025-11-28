@@ -67,7 +67,6 @@ var DeleteLocalAndRemote = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			IsEmpty().
-			Press(keys.Universal.New).
 			Tap(func() {
 				t.Shell().AssertRemoteTagNotFound("origin", "new-tag")
 			})
