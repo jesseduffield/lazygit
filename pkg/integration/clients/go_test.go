@@ -65,7 +65,7 @@ func TestIntegration(t *testing.T) {
 func runCmdHeadless(cmd *exec.Cmd) (int, error) {
 	cmd.Env = append(
 		cmd.Env,
-		"HEADLESS=true",
+		"LAZYGIT_HEADLESS=true",
 		"TERM=xterm",
 	)
 
