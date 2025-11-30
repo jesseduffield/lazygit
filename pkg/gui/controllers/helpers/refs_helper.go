@@ -355,8 +355,9 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 	}
 
 	self.c.Prompt(types.PromptOpts{
-		Title:          message,
-		InitialContent: suggestedBranchName,
+		Title:                   message,
+		InitialContent:          suggestedBranchName,
+		ReplaceSpacesWithDashes: true,
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.CreateBranch)
 			newBranchName := SanitizedBranchName(response)
@@ -418,8 +419,9 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 		}
 
 		self.c.Prompt(types.PromptOpts{
-			Title:          prompt,
-			InitialContent: suggestedBranchName,
+			Title:                   prompt,
+			InitialContent:          suggestedBranchName,
+			ReplaceSpacesWithDashes: true,
 			HandleConfirm: func(response string) error {
 				self.c.LogAction(self.c.Tr.MoveCommitsToNewBranch)
 				newBranchName := SanitizedBranchName(response)
