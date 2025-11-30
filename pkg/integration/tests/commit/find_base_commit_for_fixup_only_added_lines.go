@@ -39,9 +39,11 @@ var FindBaseCommitForFixupOnlyAddedLines = NewIntegrationTest(NewIntegrationTest
 		t.ExpectPopup().Alert().
 			Title(Equals("Error")).
 			Content(
-				Contains("Multiple base commits found").
-					Contains("3rd commit").
-					Contains("4th commit"),
+				MatchesRegexp(
+					"Multiple base commits found.*\n\n" +
+						".*4th commit\n" +
+						".*3rd commit",
+				),
 			).
 			Confirm()
 
