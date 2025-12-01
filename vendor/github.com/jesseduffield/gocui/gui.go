@@ -8,13 +8,14 @@ import (
 	"context"
 	standardErrors "errors"
 	"runtime"
+	"slices"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-errors/errors"
-	"github.com/mattn/go-runewidth"
+	"github.com/rivo/uniseg"
 )
 
 // OutputMode represents an output mode, which determines how colors
@@ -189,9 +190,9 @@ type Gui struct {
 
 	OnSearchEscape func() error
 	// these keys must either be of type Key of rune
-	SearchEscapeKey    interface{}
-	NextSearchMatchKey interface{}
-	PrevSearchMatchKey interface{}
+	SearchEscapeKey    any
+	NextSearchMatchKey any
+	PrevSearchMatchKey any
 
 	ErrorHandler func(error) error
 
@@ -300,23 +301,14 @@ func (g *Gui) Size() (x, y int) {
 // SetRune writes a rune at the given point, relative to the top-left
 // corner of the terminal. It checks if the position is valid and applies
 // the given colors.
+// Should only be used if you know that the given rune is not part of a grapheme cluster.
 func (g *Gui) SetRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 	if x < 0 || y < 0 || x >= g.maxX || y >= g.maxY {
 		// swallowing error because it's not that big of a deal
 		return nil
 	}
-	tcellSetCell(x, y, ch, fgColor, bgColor, g.outputMode)
+	tcellSetCell(x, y, string(ch), fgColor, bgColor, g.outputMode)
 	return nil
-}
-
-// Rune returns the rune contained in the cell at the given position.
-// It checks if the position is valid.
-func (g *Gui) Rune(x, y int) (rune, error) {
-	if x < 0 || y < 0 || x >= g.maxX || y >= g.maxY {
-		return ' ', errors.New("invalid point")
-	}
-	c, _, _, _ := Screen.GetContent(x, y)
-	return c, nil
 }
 
 // SetView creates a new view with its top-left corner at (x0, y0)
@@ -554,7 +546,7 @@ func (g *Gui) CurrentView() *View {
 // It behaves differently on different platforms. Somewhere it doesn't register Alt key press,
 // on others it might report Ctrl as Alt. It's not consistent and therefore it's not recommended
 // to use with mouse keys.
-func (g *Gui) SetKeybinding(viewname string, key interface{}, mod Modifier, handler func(*Gui, *View) error) error {
+func (g *Gui) SetKeybinding(viewname string, key any, mod Modifier, handler func(*Gui, *View) error) error {
 	var kb *keybinding
 
 	k, ch, err := getKey(key)
@@ -572,7 +564,7 @@ func (g *Gui) SetKeybinding(viewname string, key interface{}, mod Modifier, hand
 }
 
 // DeleteKeybinding deletes a keybinding.
-func (g *Gui) DeleteKeybinding(viewname string, key interface{}, mod Modifier) error {
+func (g *Gui) DeleteKeybinding(viewname string, key any, mod Modifier) error {
 	k, ch, err := getKey(key)
 	if err != nil {
 		return err
@@ -623,10 +615,8 @@ func (g *Gui) SetViewClickBinding(binding *ViewMouseBinding) error {
 
 // BlackListKeybinding adds a keybinding to the blacklist
 func (g *Gui) BlacklistKeybinding(k Key) error {
-	for _, j := range g.blacklist {
-		if j == k {
-			return ErrAlreadyBlacklisted
-		}
+	if slices.Contains(g.blacklist, k) {
+		return ErrAlreadyBlacklisted
 	}
 	g.blacklist = append(g.blacklist, k)
 	return nil
@@ -653,7 +643,7 @@ func (g *Gui) SetOpenHyperlinkFunc(openHyperlinkFunc func(string, string) error)
 
 // getKey takes an empty interface with a key and returns the corresponding
 // typed Key or rune.
-func getKey(key interface{}) (Key, rune, error) {
+func getKey(key any) (Key, rune, error) {
 	switch t := key.(type) {
 	case nil: // Ignore keybinding if `nil`
 		return 0, 0, nil
@@ -1103,7 +1093,7 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 		if err := g.SetRune(x, v.y0, ch, fgColor, bgColor); err != nil {
 			return err
 		}
-		x += runewidth.RuneWidth(ch)
+		x += uniseg.StringWidth(string(ch))
 	}
 	for i, ch := range str {
 		if x < 0 {
@@ -1128,7 +1118,7 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 		if err := g.SetRune(x, v.y0, ch, currentFgColor, currentBgColor); err != nil {
 			return err
 		}
-		x += runewidth.RuneWidth(ch)
+		x += uniseg.StringWidth(string(ch))
 	}
 	return nil
 }
@@ -1139,7 +1129,7 @@ func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) error {
 		return nil
 	}
 
-	start := v.x1 - 5 - runewidth.StringWidth(v.Subtitle)
+	start := v.x1 - 5 - uniseg.StringWidth(v.Subtitle)
 	if start < v.x0 {
 		return nil
 	}
@@ -1151,7 +1141,7 @@ func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) error {
 		if err := g.SetRune(x, v.y0, ch, fgColor, bgColor); err != nil {
 			return err
 		}
-		x += runewidth.RuneWidth(ch)
+		x += uniseg.StringWidth(string(ch))
 	}
 	return nil
 }
@@ -1168,7 +1158,7 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 		return nil
 	}
 
-	start := v.x1 - 1 - runewidth.StringWidth(message)
+	start := v.x1 - 1 - uniseg.StringWidth(message)
 	if start < v.x0 {
 		return nil
 	}
@@ -1180,7 +1170,7 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 		if err := g.SetRune(x, v.y1, ch, fgColor, bgColor); err != nil {
 			return err
 		}
-		x += runewidth.RuneWidth(ch)
+		x += uniseg.StringWidth(string(ch))
 	}
 	return nil
 }
@@ -1369,13 +1359,13 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 				newCy = newY - v.oy
 			}
 
-			lastCharForLine := len(v.lines[newY])
-			for lastCharForLine > 0 && v.lines[newY][lastCharForLine-1].chr == 0 {
-				lastCharForLine--
+			visibleLineWidth := 0
+			for _, c := range v.lines[newY] {
+				visibleLineWidth += c.width
 			}
-			if lastCharForLine < newX {
-				newX = lastCharForLine
-				newCx = lastCharForLine - v.ox
+			if visibleLineWidth < newX {
+				newX = visibleLineWidth
+				newCx = visibleLineWidth - v.ox
 			}
 		}
 		if !IsMouseScrollKey(ev.Key) {
@@ -1485,7 +1475,7 @@ func (g *Gui) execMouseKeybindings(view *View, ev *GocuiEvent, opts ViewMouseBin
 	return false, nil
 }
 
-func IsMouseKey(key interface{}) bool {
+func IsMouseKey(key any) bool {
 	switch key {
 	case
 		MouseLeft,
@@ -1502,7 +1492,7 @@ func IsMouseKey(key interface{}) bool {
 	}
 }
 
-func IsMouseScrollKey(key interface{}) bool {
+func IsMouseScrollKey(key any) bool {
 	switch key {
 	case
 		MouseWheelUp,
@@ -1640,12 +1630,7 @@ func (g *Gui) StartTicking(ctx context.Context) {
 
 // isBlacklisted reports whether the key is blacklisted
 func (g *Gui) isBlacklisted(k Key) bool {
-	for _, j := range g.blacklist {
-		if j == k {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(g.blacklist, k)
 }
 
 func (g *Gui) Suspend() error {
@@ -1699,13 +1684,13 @@ func (g *Gui) Snapshot() string {
 
 	builder := &strings.Builder{}
 
-	for y := 0; y < height; y++ {
+	for y := range height {
 		for x := 0; x < width; x++ {
-			char, _, _, charWidth := g.screen.GetContent(x, y)
+			char, _, charWidth := g.screen.Get(x, y)
 			if charWidth == 0 {
 				continue
 			}
-			builder.WriteRune(char)
+			builder.WriteString(char)
 			if charWidth > 1 {
 				x += charWidth - 1
 			}

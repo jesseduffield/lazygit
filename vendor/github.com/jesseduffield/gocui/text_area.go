@@ -2,9 +2,10 @@ package gocui
 
 import (
 	"regexp"
+	"slices"
 	"strings"
 
-	"github.com/mattn/go-runewidth"
+	"github.com/rivo/uniseg"
 )
 
 const (
@@ -12,55 +13,114 @@ const (
 	WORD_SEPARATORS = "*?_+-.[]~=/&;!#$%^(){}<>"
 )
 
-type CursorMapping struct {
-	Orig    int
-	Wrapped int
+type TextAreaCell struct {
+	char         string // string because it could be a multi-rune grapheme cluster
+	width        int
+	x, y         int // cell coordinates
+	contentIndex int // byte index into the original content
+}
+
+// returns the cursor x,y position after this cell
+func (c *TextAreaCell) nextCursorXY() (int, int) {
+	if c.char == "\n" {
+		return 0, c.y + 1
+	}
+	return c.x + c.width, c.y
 }
 
 type TextArea struct {
-	content        []rune
-	wrappedContent []rune
-	cursorMapping  []CursorMapping
-	cursor         int
-	overwrite      bool
-	clipboard      string
-	AutoWrap       bool
-	AutoWrapWidth  int
+	content       string
+	cells         []TextAreaCell
+	cursor        int // position in content, as an index into the byte array
+	overwrite     bool
+	clipboard     string
+	AutoWrap      bool
+	AutoWrapWidth int
 }
 
-func AutoWrapContent(content []rune, autoWrapWidth int) ([]rune, []CursorMapping) {
-	estimatedNumberOfSoftLineBreaks := len(content) / autoWrapWidth
-	cursorMapping := make([]CursorMapping, 0, estimatedNumberOfSoftLineBreaks)
-	wrappedContent := make([]rune, 0, len(content)+estimatedNumberOfSoftLineBreaks)
+func stringToTextAreaCells(str string) []TextAreaCell {
+	result := make([]TextAreaCell, 0, len(str))
+
+	contentIndex := 0
+	state := -1
+	for len(str) > 0 {
+		var c string
+		var w int
+		c, str, w, state = uniseg.FirstGraphemeClusterInString(str, state)
+		// only set char, width, and contentIndex; x and y will be set later
+		result = append(result, TextAreaCell{char: c, width: w, contentIndex: contentIndex})
+		contentIndex += len(c)
+	}
+	return result
+}
+
+// Returns the indices in content where soft line breaks occur due to auto-wrapping to the given width.
+func AutoWrapContent(content string, autoWrapWidth int) []int {
+	_, softLineBreakIndices := contentToCells(content, autoWrapWidth)
+	return softLineBreakIndices
+}
+
+func contentToCells(content string, autoWrapWidth int) ([]TextAreaCell, []int) {
+	estimatedNumberOfSoftLineBreaks := 0
+	if autoWrapWidth > 0 {
+		estimatedNumberOfSoftLineBreaks = len(content) / autoWrapWidth
+	}
+	softLineBreakIndices := make([]int, 0, estimatedNumberOfSoftLineBreaks)
+	result := make([]TextAreaCell, 0, len(content)+estimatedNumberOfSoftLineBreaks)
 	startOfLine := 0
+	currentLineWidth := 0
 	indexOfLastWhitespace := -1
 	var footNoteMatcher footNoteMatcher
 
-	for currentPos, r := range content {
-		if r == '\n' {
-			wrappedContent = append(wrappedContent, content[startOfLine:currentPos+1]...)
+	cells := stringToTextAreaCells(content)
+	y := 0
+
+	appendCellsSinceLineStart := func(to int) {
+		x := 0
+		for i := startOfLine; i < to; i++ {
+			cells[i].x = x
+			cells[i].y = y
+			x += cells[i].width
+		}
+
+		result = append(result, cells[startOfLine:to]...)
+	}
+
+	for currentPos, c := range cells {
+		if c.char == "\n" {
+			appendCellsSinceLineStart(currentPos + 1)
+			y++
 			startOfLine = currentPos + 1
 			indexOfLastWhitespace = -1
+			currentLineWidth = 0
 			footNoteMatcher.reset()
 		} else {
-			if r == ' ' && !footNoteMatcher.isFootNote() {
+			currentLineWidth += c.width
+			if c.char == " " && !footNoteMatcher.isFootNote() {
 				indexOfLastWhitespace = currentPos + 1
-			} else if currentPos-startOfLine >= autoWrapWidth && indexOfLastWhitespace >= 0 {
+			} else if autoWrapWidth > 0 && currentLineWidth > autoWrapWidth && indexOfLastWhitespace >= 0 {
 				wrapAt := indexOfLastWhitespace
-				wrappedContent = append(wrappedContent, content[startOfLine:wrapAt]...)
-				wrappedContent = append(wrappedContent, '\n')
-				cursorMapping = append(cursorMapping, CursorMapping{wrapAt, len(wrappedContent)})
+				appendCellsSinceLineStart(wrapAt)
+				contentIndex := cells[wrapAt].contentIndex
+				y++
+				result = append(result, TextAreaCell{char: "\n", width: 1, contentIndex: contentIndex, x: 0, y: y})
+				softLineBreakIndices = append(softLineBreakIndices, contentIndex)
 				startOfLine = wrapAt
 				indexOfLastWhitespace = -1
+				currentLineWidth = 0
+				for _, c1 := range cells[startOfLine : currentPos+1] {
+					currentLineWidth += c1.width
+				}
 				footNoteMatcher.reset()
 			}
-			footNoteMatcher.addRune(r)
+
+			footNoteMatcher.addCharacter(c.char)
 		}
 	}
 
-	wrappedContent = append(wrappedContent, content[startOfLine:]...)
+	appendCellsSinceLineStart(len(cells))
 
-	return wrappedContent, cursorMapping
+	return result, softLineBreakIndices
 }
 
 var footNoteRe = regexp.MustCompile(`^\[\d+\]:\s*$`)
@@ -70,20 +130,20 @@ type footNoteMatcher struct {
 	didFailToMatch bool
 }
 
-func (self *footNoteMatcher) addRune(r rune) {
+func (self *footNoteMatcher) addCharacter(chr string) {
 	if self.didFailToMatch {
 		// don't bother tracking the rune if we know it can't possibly match any more
 		return
 	}
 
-	if self.lineStr.Len() == 0 && r != '[' {
+	if self.lineStr.Len() == 0 && chr != "[" {
 		// fail early if the first rune of a line isn't a '['; this is mainly to avoid a (possibly
 		// expensive) regex match
 		self.didFailToMatch = true
 		return
 	}
 
-	self.lineStr.WriteRune(r)
+	self.lineStr.WriteString(chr)
 }
 
 func (self *footNoteMatcher) isFootNote() bool {
@@ -107,26 +167,29 @@ func (self *footNoteMatcher) reset() {
 	self.didFailToMatch = false
 }
 
-func (self *TextArea) autoWrapContent() {
-	if self.AutoWrap {
-		self.wrappedContent, self.cursorMapping = AutoWrapContent(self.content, self.AutoWrapWidth)
-	} else {
-		self.wrappedContent, self.cursorMapping = self.content, []CursorMapping{}
+func (self *TextArea) updateCells() {
+	width := self.AutoWrapWidth
+	if !self.AutoWrap {
+		width = -1
 	}
+
+	self.cells, _ = contentToCells(self.content, width)
 }
 
-func (self *TextArea) TypeRune(r rune) {
+func (self *TextArea) typeCharacter(ch string) {
+	widthToDelete := 0
 	if self.overwrite && !self.atEnd() {
-		self.content[self.cursor] = r
-	} else {
-		self.content = append(
-			self.content[:self.cursor],
-			append([]rune{r}, self.content[self.cursor:]...)...,
-		)
+		s, _, _, _ := uniseg.FirstGraphemeClusterInString(self.content[self.cursor:], -1)
+		widthToDelete = len(s)
 	}
-	self.autoWrapContent()
 
-	self.cursor++
+	self.content = self.content[:self.cursor] + ch + self.content[self.cursor+widthToDelete:]
+	self.cursor += len(ch)
+}
+
+func (self *TextArea) TypeCharacter(ch string) {
+	self.typeCharacter(ch)
+	self.updateCells()
 }
 
 func (self *TextArea) BackSpaceChar() {
@@ -134,9 +197,14 @@ func (self *TextArea) BackSpaceChar() {
 		return
 	}
 
-	self.content = append(self.content[:self.cursor-1], self.content[self.cursor:]...)
-	self.autoWrapContent()
-	self.cursor--
+	cellCursor := self.contentCursorToCellCursor(self.cursor)
+	widthToDelete := len(self.cells[cellCursor-1].char)
+
+	oldCursor := self.cursor
+	self.cursor -= widthToDelete
+	self.content = self.content[:self.cursor] + self.content[oldCursor:]
+
+	self.updateCells()
 }
 
 func (self *TextArea) DeleteChar() {
@@ -144,8 +212,10 @@ func (self *TextArea) DeleteChar() {
 		return
 	}
 
-	self.content = append(self.content[:self.cursor], self.content[self.cursor+1:]...)
-	self.autoWrapContent()
+	s, _, _, _ := uniseg.FirstGraphemeClusterInString(self.content[self.cursor:], -1)
+	widthToDelete := len(s)
+	self.content = self.content[:self.cursor] + self.content[self.cursor+widthToDelete:]
+	self.updateCells()
 }
 
 func (self *TextArea) MoveCursorLeft() {
@@ -153,7 +223,8 @@ func (self *TextArea) MoveCursorLeft() {
 		return
 	}
 
-	self.cursor--
+	cellCursor := self.contentCursorToCellCursor(self.cursor)
+	self.cursor -= len(self.cells[cellCursor-1].char)
 }
 
 func (self *TextArea) MoveCursorRight() {
@@ -161,31 +232,38 @@ func (self *TextArea) MoveCursorRight() {
 		return
 	}
 
-	self.cursor++
+	s, _, _, _ := uniseg.FirstGraphemeClusterInString(self.content[self.cursor:], -1)
+	self.cursor += len(s)
 }
 
-func (self *TextArea) MoveLeftWord() {
+func (self *TextArea) newCursorForMoveLeftWord() int {
 	if self.cursor == 0 {
-		return
+		return 0
 	}
 	if self.atLineStart() {
-		self.cursor--
-		return
+		return self.cursor - 1
 	}
 
-	for !self.atLineStart() && strings.ContainsRune(WHITESPACES, self.content[self.cursor-1]) {
-		self.cursor--
+	cellCursor := self.contentCursorToCellCursor(self.cursor)
+	for cellCursor > 0 && (self.isSoftLineBreak(cellCursor-1) || strings.Contains(WHITESPACES, self.cells[cellCursor-1].char)) {
+		cellCursor--
 	}
 	separators := false
-	for !self.atLineStart() && strings.ContainsRune(WORD_SEPARATORS, self.content[self.cursor-1]) {
-		self.cursor--
+	for cellCursor > 0 && strings.Contains(WORD_SEPARATORS, self.cells[cellCursor-1].char) {
+		cellCursor--
 		separators = true
 	}
 	if !separators {
-		for !self.atLineStart() && !strings.ContainsRune(WHITESPACES+WORD_SEPARATORS, self.content[self.cursor-1]) {
-			self.cursor--
+		for cellCursor > 0 && self.cells[cellCursor-1].char != "\n" && !strings.Contains(WHITESPACES+WORD_SEPARATORS, self.cells[cellCursor-1].char) {
+			cellCursor--
 		}
 	}
+
+	return self.cellCursorToContentCursor(cellCursor)
+}
+
+func (self *TextArea) MoveLeftWord() {
+	self.cursor = self.newCursorForMoveLeftWord()
 }
 
 func (self *TextArea) MoveRightWord() {
@@ -197,19 +275,22 @@ func (self *TextArea) MoveRightWord() {
 		return
 	}
 
-	for !self.atLineEnd() && strings.ContainsRune(WHITESPACES, self.content[self.cursor]) {
-		self.cursor++
+	cellCursor := self.contentCursorToCellCursor(self.cursor)
+	for cellCursor < len(self.cells) && (self.isSoftLineBreak(cellCursor) || strings.Contains(WHITESPACES, self.cells[cellCursor].char)) {
+		cellCursor++
 	}
 	separators := false
-	for !self.atLineEnd() && strings.ContainsRune(WORD_SEPARATORS, self.content[self.cursor]) {
-		self.cursor++
+	for cellCursor < len(self.cells) && strings.Contains(WORD_SEPARATORS, self.cells[cellCursor].char) {
+		cellCursor++
 		separators = true
 	}
 	if !separators {
-		for !self.atLineEnd() && !strings.ContainsRune(WHITESPACES+WORD_SEPARATORS, self.content[self.cursor]) {
-			self.cursor++
+		for cellCursor < len(self.cells) && self.cells[cellCursor].char != "\n" && !strings.Contains(WHITESPACES+WORD_SEPARATORS, self.cells[cellCursor].char) {
+			cellCursor++
 		}
 	}
+
+	self.cursor = self.cellCursorToContentCursor(cellCursor)
 }
 
 func (self *TextArea) MoveCursorUp() {
@@ -223,11 +304,15 @@ func (self *TextArea) MoveCursorDown() {
 }
 
 func (self *TextArea) GetContent() string {
-	return string(self.wrappedContent)
+	var b strings.Builder
+	for _, c := range self.cells {
+		b.WriteString(c.char)
+	}
+	return b.String()
 }
 
 func (self *TextArea) GetUnwrappedContent() string {
-	return string(self.content)
+	return self.content
 }
 
 func (self *TextArea) ToggleOverwrite() {
@@ -246,9 +331,9 @@ func (self *TextArea) DeleteToStartOfLine() {
 			return
 		}
 
-		self.content = append(self.content[:self.cursor-1], self.content[self.cursor:]...)
+		self.content = self.content[:self.cursor-1] + self.content[self.cursor:]
 		self.cursor--
-		self.autoWrapContent()
+		self.updateCells()
 		return
 	}
 
@@ -263,9 +348,9 @@ func (self *TextArea) DeleteToStartOfLine() {
 	// otherwise, you delete everything up to the start of the current line, without
 	// deleting the newline character
 	newlineIndex := self.closestNewlineOnLeft()
-	self.clipboard = string(self.content[newlineIndex+1 : self.cursor])
-	self.content = append(self.content[:newlineIndex+1], self.content[self.cursor:]...)
-	self.autoWrapContent()
+	self.clipboard = self.content[newlineIndex+1 : self.cursor]
+	self.content = self.content[:newlineIndex+1] + self.content[self.cursor:]
+	self.updateCells()
 	self.cursor = newlineIndex + 1
 }
 
@@ -276,8 +361,8 @@ func (self *TextArea) DeleteToEndOfLine() {
 
 	// if we're at the end of the line, delete just the newline character
 	if self.atLineEnd() {
-		self.content = append(self.content[:self.cursor], self.content[self.cursor+1:]...)
-		self.autoWrapContent()
+		self.content = self.content[:self.cursor] + self.content[self.cursor+1:]
+		self.updateCells()
 		return
 	}
 
@@ -290,9 +375,9 @@ func (self *TextArea) DeleteToEndOfLine() {
 	}
 
 	lineEndIndex := self.closestNewlineOnRight()
-	self.clipboard = string(self.content[self.cursor:lineEndIndex])
-	self.content = append(self.content[:self.cursor], self.content[lineEndIndex:]...)
-	self.autoWrapContent()
+	self.clipboard = self.content[self.cursor:lineEndIndex]
+	self.content = self.content[:self.cursor] + self.content[lineEndIndex:]
+	self.updateCells()
 }
 
 func (self *TextArea) GoToStartOfLine() {
@@ -300,28 +385,30 @@ func (self *TextArea) GoToStartOfLine() {
 		return
 	}
 
-	// otherwise, you delete everything up to the start of the current line, without
-	// deleting the newline character
 	newlineIndex := self.closestNewlineOnLeft()
 	self.cursor = newlineIndex + 1
 }
 
 func (self *TextArea) closestNewlineOnLeft() int {
-	wrappedCursor := self.origCursorToWrappedCursor(self.cursor)
+	cellCursor := self.contentCursorToCellCursor(self.cursor)
 
-	newlineIndex := -1
+	newlineCellIndex := -1
 
-	for i, r := range self.wrappedContent[0:wrappedCursor] {
-		if r == '\n' {
-			newlineIndex = i
+	for i, c := range self.cells[0:cellCursor] {
+		if c.char == "\n" {
+			newlineCellIndex = i
 		}
 	}
 
-	unwrappedNewlineIndex := self.wrappedCursorToOrigCursor(newlineIndex)
-	if unwrappedNewlineIndex >= 0 && self.content[unwrappedNewlineIndex] != '\n' {
-		unwrappedNewlineIndex--
+	if newlineCellIndex == -1 {
+		return -1
 	}
-	return unwrappedNewlineIndex
+
+	newlineContentIndex := self.cells[newlineCellIndex].contentIndex
+	if self.content[newlineContentIndex] != '\n' {
+		newlineContentIndex--
+	}
+	return newlineContentIndex
 }
 
 func (self *TextArea) GoToEndOfLine() {
@@ -335,11 +422,11 @@ func (self *TextArea) GoToEndOfLine() {
 }
 
 func (self *TextArea) closestNewlineOnRight() int {
-	wrappedCursor := self.origCursorToWrappedCursor(self.cursor)
+	cellCursor := self.contentCursorToCellCursor(self.cursor)
 
-	for i, r := range self.wrappedContent[wrappedCursor:] {
-		if r == '\n' {
-			return self.wrappedCursorToOrigCursor(wrappedCursor + i)
+	for i, c := range self.cells[cellCursor:] {
+		if c.char == "\n" {
+			return self.cellCursorToContentCursor(cellCursor + i)
 		}
 	}
 
@@ -361,10 +448,15 @@ func (self *TextArea) atLineStart() bool {
 		(len(self.content) > self.cursor-1 && self.content[self.cursor-1] == '\n')
 }
 
+func (self *TextArea) isSoftLineBreak(cellCursor int) bool {
+	cell := self.cells[cellCursor]
+	return cell.char == "\n" && self.content[cell.contentIndex] != '\n'
+}
+
 func (self *TextArea) atSoftLineStart() bool {
-	wrappedCursor := self.origCursorToWrappedCursor(self.cursor)
-	return wrappedCursor == 0 ||
-		(len(self.wrappedContent) > wrappedCursor-1 && self.wrappedContent[wrappedCursor-1] == '\n')
+	cellCursor := self.contentCursorToCellCursor(self.cursor)
+	return cellCursor == 0 ||
+		(len(self.cells) > cellCursor-1 && self.cells[cellCursor-1].char == "\n")
 }
 
 func (self *TextArea) atLineEnd() bool {
@@ -373,91 +465,61 @@ func (self *TextArea) atLineEnd() bool {
 }
 
 func (self *TextArea) atSoftLineEnd() bool {
-	wrappedCursor := self.origCursorToWrappedCursor(self.cursor)
-	return wrappedCursor == len(self.wrappedContent) ||
-		(len(self.wrappedContent) > wrappedCursor+1 && self.wrappedContent[wrappedCursor+1] == '\n')
+	cellCursor := self.contentCursorToCellCursor(self.cursor)
+	return cellCursor == len(self.cells) ||
+		(len(self.cells) > cellCursor+1 && self.cells[cellCursor+1].char == "\n")
 }
 
 func (self *TextArea) BackSpaceWord() {
-	if self.cursor == 0 {
-		return
-	}
-	if self.atLineStart() {
-		self.BackSpaceChar()
+	newCursor := self.newCursorForMoveLeftWord()
+	if newCursor == self.cursor {
 		return
 	}
 
-	right := self.cursor
-	for !self.atLineStart() && strings.ContainsRune(WHITESPACES, self.content[self.cursor-1]) {
-		self.cursor--
+	clipboard := self.content[newCursor:self.cursor]
+	if clipboard != "\n" {
+		self.clipboard = clipboard
 	}
-	separators := false
-	for !self.atLineStart() && strings.ContainsRune(WORD_SEPARATORS, self.content[self.cursor-1]) {
-		self.cursor--
-		separators = true
-	}
-	if !separators {
-		for !self.atLineStart() && !strings.ContainsRune(WHITESPACES+WORD_SEPARATORS, self.content[self.cursor-1]) {
-			self.cursor--
-		}
-	}
-
-	self.clipboard = string(self.content[self.cursor:right])
-	self.content = append(self.content[:self.cursor], self.content[right:]...)
-	self.autoWrapContent()
+	self.content = self.content[:newCursor] + self.content[self.cursor:]
+	self.cursor = newCursor
+	self.updateCells()
 }
 
 func (self *TextArea) Yank() {
 	self.TypeString(self.clipboard)
 }
 
-func origCursorToWrappedCursor(origCursor int, cursorMapping []CursorMapping) int {
-	prevMapping := CursorMapping{0, 0}
-	for _, mapping := range cursorMapping {
-		if origCursor < mapping.Orig {
-			break
-		}
-		prevMapping = mapping
+func (self *TextArea) contentCursorToCellCursor(origCursor int) int {
+	idx, _ := slices.BinarySearchFunc(self.cells, origCursor, func(cell TextAreaCell, cursor int) int {
+		return cell.contentIndex - cursor
+	})
+	for idx < len(self.cells)-1 && self.cells[idx+1].contentIndex == origCursor {
+		idx++
+	}
+	return idx
+}
+
+func (self *TextArea) cellCursorToContentCursor(cellCursor int) int {
+	if cellCursor >= len(self.cells) {
+		return len(self.content)
 	}
 
-	return origCursor + prevMapping.Wrapped - prevMapping.Orig
-}
-
-func (self *TextArea) origCursorToWrappedCursor(origCursor int) int {
-	return origCursorToWrappedCursor(origCursor, self.cursorMapping)
-}
-
-func wrappedCursorToOrigCursor(wrappedCursor int, cursorMapping []CursorMapping) int {
-	prevMapping := CursorMapping{0, 0}
-	for _, mapping := range cursorMapping {
-		if wrappedCursor < mapping.Wrapped {
-			break
-		}
-		prevMapping = mapping
-	}
-
-	return wrappedCursor + prevMapping.Orig - prevMapping.Wrapped
-}
-
-func (self *TextArea) wrappedCursorToOrigCursor(wrappedCursor int) int {
-	return wrappedCursorToOrigCursor(wrappedCursor, self.cursorMapping)
+	return self.cells[cellCursor].contentIndex
 }
 
 func (self *TextArea) GetCursorXY() (int, int) {
-	cursorX := 0
-	cursorY := 0
-	wrappedCursor := self.origCursorToWrappedCursor(self.cursor)
-	for _, r := range self.wrappedContent[0:wrappedCursor] {
-		if r == '\n' {
-			cursorY++
-			cursorX = 0
-		} else {
-			chWidth := runewidth.RuneWidth(r)
-			cursorX += chWidth
-		}
+	if len(self.cells) == 0 {
+		return 0, 0
 	}
-
-	return cursorX, cursorY
+	cellCursor := self.contentCursorToCellCursor(self.cursor)
+	if cellCursor >= len(self.cells) {
+		return self.cells[len(self.cells)-1].nextCursorXY()
+	}
+	if cellCursor > 0 && self.cells[cellCursor].char == "\n" {
+		return self.cells[cellCursor-1].nextCursorXY()
+	}
+	cell := self.cells[cellCursor]
+	return cell.x, cell.y
 }
 
 // takes an x,y position and maps it to a 1D cursor position
@@ -470,25 +532,24 @@ func (self *TextArea) SetCursor2D(x int, y int) {
 	}
 
 	newCursor := 0
-	for _, r := range self.wrappedContent {
+	for _, c := range self.cells {
 		if x <= 0 && y == 0 {
-			self.cursor = self.wrappedCursorToOrigCursor(newCursor)
-			if self.wrappedContent[newCursor] == '\n' {
+			self.cursor = self.cellCursorToContentCursor(newCursor)
+			if self.cells[newCursor].char == "\n" {
 				self.moveLeftFromSoftLineBreak()
 			}
 			return
 		}
 
-		if r == '\n' {
+		if c.char == "\n" {
 			if y == 0 {
-				self.cursor = self.wrappedCursorToOrigCursor(newCursor)
+				self.cursor = self.cellCursorToContentCursor(newCursor)
 				self.moveLeftFromSoftLineBreak()
 				return
 			}
 			y--
 		} else if y == 0 {
-			chWidth := runewidth.RuneWidth(r)
-			x -= chWidth
+			x -= c.width
 		}
 
 		newCursor++
@@ -500,17 +561,22 @@ func (self *TextArea) SetCursor2D(x int, y int) {
 		return
 	}
 
-	self.cursor = self.wrappedCursorToOrigCursor(newCursor)
+	self.cursor = self.cellCursorToContentCursor(newCursor)
 }
 
 func (self *TextArea) Clear() {
-	self.content = []rune{}
-	self.wrappedContent = []rune{}
+	self.content = ""
+	self.cells = nil
 	self.cursor = 0
 }
 
 func (self *TextArea) TypeString(str string) {
-	for _, r := range str {
-		self.TypeRune(r)
+	state := -1
+	for str != "" {
+		var chr string
+		chr, str, _, state = uniseg.FirstGraphemeClusterInString(str, state)
+		self.typeCharacter(chr)
 	}
+
+	self.updateCells()
 }

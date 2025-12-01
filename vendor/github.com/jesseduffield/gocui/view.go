@@ -5,7 +5,6 @@
 package gocui
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"strings"
@@ -14,7 +13,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/mattn/go-runewidth"
+	"github.com/rivo/uniseg"
 )
 
 // Constants for overlapping edges
@@ -160,7 +159,7 @@ type View struct {
 
 	// If Mask is true, the View will display the mask instead of the real
 	// content
-	Mask rune
+	Mask string
 
 	// Overlaps describes which edges are overlapping with another view's edges
 	Overlaps byte
@@ -397,20 +396,25 @@ type viewLine struct {
 }
 
 type cell struct {
-	chr              rune
+	chr              string // a grapheme cluster
+	width            int    // number of terminal cells occupied by chr (always 1 or 2)
 	bgColor, fgColor Attribute
 	hyperlink        string
 }
 
 type lineType []cell
 
+func characterEquals(chr []byte, b byte) bool {
+	return len(chr) == 1 && chr[0] == b
+}
+
 // String returns a string from a given cell slice.
 func (l lineType) String() string {
-	str := ""
+	var str strings.Builder
 	for _, c := range l {
-		str += string(c.chr)
+		str.WriteString(c.chr)
 	}
-	return str
+	return str.String()
 }
 
 // NewView returns a new View object.
@@ -492,16 +496,16 @@ func (v *View) Name() string {
 	return v.name
 }
 
-// setRune sets a rune at the given point relative to the view. It applies the
-// specified colors, taking into account if the cell must be highlighted. Also,
-// it checks if the position is valid.
-func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) {
+// setCharacter sets a character (grapheme cluster) at the given point relative to the view. It applies
+// the specified colors, taking into account if the cell must be highlighted. Also, it checks if the
+// position is valid.
+func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute) {
 	maxX, maxY := v.Size()
 	if x < 0 || x >= maxX || y < 0 || y >= maxY {
 		return
 	}
 
-	if v.Mask != 0 {
+	if v.Mask != "" {
 		fgColor = v.FgColor
 		bgColor = v.BgColor
 		ch = v.Mask
@@ -542,26 +546,12 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) {
 		fgColor |= AttrUnderline
 	}
 
-	// Don't display NUL characters
-	if ch == 0 {
-		ch = ' '
+	// Don't display empty characters
+	if ch == "" {
+		ch = " "
 	}
 
 	tcellSetCell(v.x0+x+1, v.y0+y+1, ch, fgColor, bgColor, v.outMode)
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }
 
 // SetCursor sets the cursor position of the view at the given point,
@@ -711,25 +701,26 @@ func (v *View) makeWriteable(x, y int) {
 	}
 }
 
-// writeCells copies []cell to specified location (x, y)
+// writeCells copies []cell to (v.wx, v.wy), and advances v.wx accordingly.
 // !!! caller MUST ensure that specified location (x, y) is writeable by calling makeWriteable
-func (v *View) writeCells(x, y int, cells []cell) {
+func (v *View) writeCells(cells []cell) {
 	var newLen int
 	// use maximum len available
-	line := v.lines[y][:cap(v.lines[y])]
-	maxCopy := len(line) - x
+	line := v.lines[v.wy][:cap(v.lines[v.wy])]
+	maxCopy := len(line) - v.wx
 	if maxCopy < len(cells) {
-		copy(line[x:], cells[:maxCopy])
+		copy(line[v.wx:], cells[:maxCopy])
 		line = append(line, cells[maxCopy:]...)
 		newLen = len(line)
 	} else { // maxCopy >= len(cells)
-		copy(line[x:], cells)
-		newLen = x + len(cells)
-		if newLen < len(v.lines[y]) {
-			newLen = len(v.lines[y])
+		copy(line[v.wx:], cells)
+		newLen = v.wx + len(cells)
+		if newLen < len(v.lines[v.wy]) {
+			newLen = len(v.lines[v.wy])
 		}
 	}
-	v.lines[y] = line[:newLen]
+	v.lines[v.wy] = line[:newLen]
+	v.wx += len(cells)
 }
 
 // Write appends a byte slice into the view's internal buffer. Because
@@ -740,20 +731,12 @@ func (v *View) Write(p []byte) (n int, err error) {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	v.writeRunes(bytes.Runes(p))
+	v.write(p)
 
 	return len(p), nil
 }
 
-func (v *View) WriteRunes(p []rune) {
-	v.writeMutex.Lock()
-	defer v.writeMutex.Unlock()
-
-	v.writeRunes(p)
-}
-
-// writeRunes copies slice of runes into internal lines buffer.
-func (v *View) writeRunes(p []rune) {
+func (v *View) write(p []byte) {
 	v.tainted = true
 	v.clearHover()
 
@@ -763,8 +746,9 @@ func (v *View) writeRunes(p []rune) {
 	finishLine := func() {
 		v.autoRenderHyperlinksInCurrentLine()
 		if v.wx >= len(v.lines[v.wy]) {
-			v.writeCells(v.wx, v.wy, []cell{{
-				chr:     0,
+			v.writeCells([]cell{{
+				chr:     "",
+				width:   0,
 				fgColor: 0,
 				bgColor: 0,
 			}})
@@ -790,25 +774,29 @@ func (v *View) writeRunes(p []rune) {
 		until--
 	}
 
-	for _, r := range p[:until] {
-		switch r {
-		case '\n':
+	state := -1
+	var chr []byte
+	var width int
+	remaining := p[:until]
+
+	for len(remaining) > 0 {
+		chr, remaining, width, state = uniseg.FirstGraphemeCluster(remaining, state)
+
+		switch {
+		case characterEquals(chr, '\n'):
 			finishLine()
 			advanceToNextLine()
-		case '\r':
+		case characterEquals(chr, '\r'):
 			finishLine()
 			v.wx = 0
 		default:
-			truncateLine, cells := v.parseInput(r, v.wx, v.wy)
+			truncateLine, cells := v.parseInput(chr, width, v.wx, v.wy)
 			if cells == nil {
 				continue
 			}
-			v.writeCells(v.wx, v.wy, cells)
+			v.writeCells(cells)
 			if truncateLine {
-				length := v.wx + len(cells)
-				v.lines[v.wy] = v.lines[v.wy][:length]
-			} else {
-				v.wx += len(cells)
+				v.lines[v.wy] = v.lines[v.wy][:v.wx]
 			}
 		}
 	}
@@ -825,20 +813,22 @@ func (v *View) writeRunes(p []rune) {
 // exported functions use the mutex. Non-exported functions are for internal use
 // and a calling function should use a mutex
 func (v *View) WriteString(s string) {
-	v.WriteRunes([]rune(s))
+	_, _ = v.Write([]byte(s))
 }
 
 func (v *View) writeString(s string) {
-	v.writeRunes([]rune(s))
+	v.write([]byte(s))
 }
 
-func findSubstring(line []cell, substringToFind []rune) int {
-	for i := 0; i < len(line)-len(substringToFind); i++ {
-		for j := 0; j < len(substringToFind); j++ {
-			if line[i+j].chr != substringToFind[j] {
+var linkStartChars = []string{"h", "t", "t", "p", "s", ":", "/", "/"}
+
+func findLinkStart(line []cell) int {
+	for i := 0; i < len(line)-len(linkStartChars); i++ {
+		for j := range linkStartChars {
+			if line[i+j].chr != string(linkStartChars[j]) {
 				break
 			}
-			if j == len(substringToFind)-1 {
+			if j == len(linkStartChars)-1 {
 				return i
 			}
 		}
@@ -846,42 +836,43 @@ func findSubstring(line []cell, substringToFind []rune) int {
 	return -1
 }
 
+// We need a heuristic to find the end of a hyperlink. Searching for the
+// first character that is not a valid URI character is not quite good
+// enough, because in markdown it's common to have a hyperlink followed by a
+// ')', so we want to stop there. Hopefully URLs containing ')' are uncommon
+// enough that this is not a problem.
+var lineEndCharacters map[string]bool = map[string]bool{
+	"":   true,
+	" ":  true,
+	"\n": true,
+	">":  true,
+	"\"": true,
+	")":  true,
+}
+
 func (v *View) autoRenderHyperlinksInCurrentLine() {
 	if !v.AutoRenderHyperLinks {
 		return
 	}
 
-	// We need a heuristic to find the end of a hyperlink. Searching for the
-	// first character that is not a valid URI character is not quite good
-	// enough, because in markdown it's common to have a hyperlink followed by a
-	// ')', so we want to stop there. Hopefully URLs containing ')' are uncommon
-	// enough that this is not a problem.
-	lineEndCharacters := map[rune]bool{
-		'\000': true,
-		' ':    true,
-		'\n':   true,
-		'>':    true,
-		'"':    true,
-		')':    true,
-	}
 	line := v.lines[v.wy]
 	start := 0
 	for {
-		linkStart := findSubstring(line[start:], []rune("https://"))
+		linkStart := findLinkStart(line[start:])
 		if linkStart == -1 {
 			break
 		}
 		linkStart += start
-		link := ""
+		var link strings.Builder
 		linkEnd := linkStart
 		for ; linkEnd < len(line); linkEnd++ {
 			if _, ok := lineEndCharacters[line[linkEnd].chr]; ok {
 				break
 			}
-			link += string(line[linkEnd].chr)
+			link.WriteString(string(line[linkEnd].chr))
 		}
 		for i := linkStart; i < linkEnd; i++ {
-			v.lines[v.wy][i].hyperlink = link
+			v.lines[v.wy][i].hyperlink = link.String()
 		}
 		start = linkEnd
 	}
@@ -890,17 +881,18 @@ func (v *View) autoRenderHyperlinksInCurrentLine() {
 // parseInput parses char by char the input written to the View. It returns nil
 // while processing ESC sequences. Otherwise, it returns a cell slice that
 // contains the processed data.
-func (v *View) parseInput(ch rune, x int, _ int) (bool, []cell) {
+func (v *View) parseInput(ch []byte, width int, x int, _ int) (bool, []cell) {
 	cells := []cell{}
 	truncateLine := false
 
 	isEscape, err := v.ei.parseOne(ch)
 	if err != nil {
-		for _, r := range v.ei.runes() {
+		for _, chr := range v.ei.characters() {
 			c := cell{
 				fgColor: v.FgColor,
 				bgColor: v.BgColor,
-				chr:     r,
+				chr:     chr,
+				width:   uniseg.StringWidth(chr),
 			}
 			cells = append(cells, c)
 		}
@@ -912,28 +904,31 @@ func (v *View) parseInput(ch rune, x int, _ int) (bool, []cell) {
 			v.ei.instructionRead()
 			cx := 0
 			for _, cell := range v.lines[v.wy][0:v.wx] {
-				cx += runewidth.RuneWidth(cell.chr)
+				cx += cell.width
 			}
 			repeatCount = v.InnerWidth() - cx
-			ch = ' '
+			ch = []byte{' '}
+			width = 1
 			truncateLine = true
 		} else if isEscape {
 			// do not output anything
 			return truncateLine, nil
-		} else if ch == '\t' {
+		} else if characterEquals(ch, '\t') {
 			// fill tab-sized space
 			tabWidth := v.TabWidth
 			if tabWidth < 1 {
 				tabWidth = 4
 			}
-			ch = ' '
+			ch = []byte{' '}
+			width = 1
 			repeatCount = tabWidth - (x % tabWidth)
 		}
 		c := cell{
 			fgColor:   v.ei.curFgColor,
 			bgColor:   v.ei.curBgColor,
-			hyperlink: v.ei.hyperlink,
-			chr:       ch,
+			hyperlink: v.ei.hyperlink.String(),
+			chr:       string(ch),
+			width:     width,
 		}
 		for i := 0; i < repeatCount; i++ {
 			cells = append(cells, c)
@@ -961,8 +956,9 @@ func (v *View) Read(p []byte) (n int, err error) {
 	}
 	for v.ry < len(v.lines) {
 		for v.rx < len(v.lines[v.ry]) {
-			count := utf8.EncodeRune(buffer, v.lines[v.ry][v.rx].chr)
-			copy(p[offset:], buffer[:count])
+			s := v.lines[v.ry][v.rx].chr
+			count := len(s)
+			copy(p[offset:], s)
 			v.rx++
 			newOffset := offset + count
 			if newOffset >= len(p) {
@@ -1063,43 +1059,54 @@ func containsUpcaseChar(str string) bool {
 	return false
 }
 
+func stringToGraphemes(s string) []string {
+	var graphemes []string
+	state := -1
+	for s != "" {
+		var chr string
+		chr, s, _, state = uniseg.FirstGraphemeClusterInString(s, state)
+		graphemes = append(graphemes, chr)
+	}
+	return graphemes
+}
+
 func (v *View) updateSearchPositions() {
 	if v.searcher.searchString != "" {
-		var normalizeRune func(r rune) rune
+		var normalizeRune func(s string) string
 		var normalizedSearchStr string
 		// if we have any uppercase characters we'll do a case-sensitive search
 		if containsUpcaseChar(v.searcher.searchString) {
-			normalizeRune = func(r rune) rune { return r }
+			normalizeRune = func(s string) string { return s }
 			normalizedSearchStr = v.searcher.searchString
 		} else {
-			normalizeRune = unicode.ToLower
+			normalizeRune = strings.ToLower
 			normalizedSearchStr = strings.ToLower(v.searcher.searchString)
 		}
+
+		searchStrGraphemes := stringToGraphemes(normalizedSearchStr)
 
 		v.searcher.searchPositions = []SearchPosition{}
 
 		searchPositionsForLine := func(line []cell, y int) []SearchPosition {
 			var result []SearchPosition
-			searchStringWidth := runewidth.StringWidth(v.searcher.searchString)
+			searchStringWidth := uniseg.StringWidth(v.searcher.searchString)
 			x := 0
-			for startIdx, c := range line {
+			for startIdx, cell := range line {
 				found := true
-				offset := 0
-				for _, c := range normalizedSearchStr {
-					if len(line)-1 < startIdx+offset {
+				for i, c := range searchStrGraphemes {
+					if len(line)-1 < startIdx+i {
 						found = false
 						break
 					}
-					if normalizeRune(line[startIdx+offset].chr) != c {
+					if normalizeRune(line[startIdx+i].chr) != c {
 						found = false
 						break
 					}
-					offset += 1
 				}
 				if found {
 					result = append(result, SearchPosition{XStart: x, XEnd: x + searchStringWidth, Y: y})
 				}
-				x += runewidth.RuneWidth(c.chr)
+				x += cell.width
 			}
 			return result
 		}
@@ -1185,7 +1192,7 @@ func (v *View) draw() {
 		start = len(v.viewLines) - 1
 	}
 
-	emptyCell := cell{chr: ' ', fgColor: ColorDefault, bgColor: ColorDefault}
+	emptyCell := cell{chr: " ", width: 1, fgColor: ColorDefault, bgColor: ColorDefault}
 	var prevFgColor Attribute
 
 	for y, vline := range v.viewLines[start:] {
@@ -1207,7 +1214,7 @@ func (v *View) draw() {
 
 			if x < 0 {
 				if cellIdx < len(vline.line) {
-					x += runewidth.RuneWidth(vline.line[cellIdx].chr)
+					x += uniseg.StringWidth(vline.line[cellIdx].chr)
 					cellIdx++
 					continue
 				} else {
@@ -1241,11 +1248,9 @@ func (v *View) draw() {
 				fgColor |= AttrUnderline
 			}
 
-			v.setRune(x, y, c.chr, fgColor, bgColor)
+			v.setCharacter(x, y, c.chr, fgColor, bgColor)
 
-			// Not sure why the previous code was here but it caused problems
-			// when typing wide characters in an editor
-			x += runewidth.RuneWidth(c.chr)
+			x += c.width
 			cellIdx++
 		}
 	}
@@ -1345,9 +1350,9 @@ func (v *View) realPosition(vx, vy int) (x, y int, ok bool) {
 // clearRunes erases all the cells in the view.
 func (v *View) clearRunes() {
 	maxX, maxY := v.InnerSize()
-	for x := 0; x < maxX; x++ {
-		for y := 0; y < maxY; y++ {
-			tcellSetCell(v.x0+x+1, v.y0+y+1, ' ', v.FgColor, v.BgColor, v.outMode)
+	for x := range maxX {
+		for y := range maxY {
+			tcellSetCell(v.x0+x+1, v.y0+y+1, " ", v.FgColor, v.BgColor, v.outMode)
 		}
 	}
 }
@@ -1500,7 +1505,7 @@ func lineWrap(line []cell, columns int) [][]cell {
 	lines := make([][]cell, 0, 1)
 	for i := range line {
 		currChr := line[i].chr
-		rw := runewidth.RuneWidth(currChr)
+		rw := uniseg.StringWidth(currChr)
 		n += rw
 		// if currChr == 'g' {
 		// 	panic(n)
@@ -1508,21 +1513,21 @@ func lineWrap(line []cell, columns int) [][]cell {
 		if n > columns {
 			// This code is convoluted but we've got comprehensive tests so feel free to do whatever you want
 			// to the code to simplify it so long as our tests still pass.
-			if currChr == ' ' {
+			if currChr == " " {
 				// if the line ends in a space, we'll omit it. This means there'll be no
 				// way to distinguish between a clean break and a mid-word break, but
 				// I think it's worth it.
 				lines = append(lines, line[offset:i])
 				offset = i + 1
 				n = 0
-			} else if currChr == '-' {
+			} else if currChr == "-" {
 				// if the last character is hyphen and the width of line is equal to the columns
 				lines = append(lines, line[offset:i])
 				offset = i
 				n = rw
 			} else if lastWhitespaceIndex != -1 {
 				// if there is a space in the line and the line is not breaking at a space/hyphen
-				if line[lastWhitespaceIndex].chr == '-' {
+				if line[lastWhitespaceIndex].chr == "-" {
 					// if break occurs at hyphen, we'll retain the hyphen
 					lines = append(lines, line[offset:lastWhitespaceIndex+1])
 				} else {
@@ -1533,7 +1538,7 @@ func lineWrap(line []cell, columns int) [][]cell {
 				offset = lastWhitespaceIndex + 1
 				n = 0
 				for _, c := range line[offset : i+1] {
-					n += runewidth.RuneWidth(c.chr)
+					n += c.width
 				}
 			} else {
 				// in this case we're breaking mid-word
@@ -1542,7 +1547,7 @@ func lineWrap(line []cell, columns int) [][]cell {
 				n = rw
 			}
 			lastWhitespaceIndex = -1
-		} else if line[i].chr == ' ' || line[i].chr == '-' {
+		} else if line[i].chr == " " || line[i].chr == "-" {
 			lastWhitespaceIndex = i
 		}
 	}
@@ -1581,11 +1586,11 @@ func (v *View) GetClickedTabIndex(x int) int {
 		return -1
 	}
 	for i, tab := range v.Tabs {
-		charX += runewidth.StringWidth(tab)
+		charX += uniseg.StringWidth(tab)
 		if x <= charX {
 			return i
 		}
-		charX += runewidth.StringWidth(" - ")
+		charX += uniseg.StringWidth(" - ")
 		if x <= charX {
 			return -1
 		}
@@ -1848,7 +1853,7 @@ func containsColoredTextInLine(fgColorStr string, text string, line []cell) bool
 	fgColor := tcell.GetColor(fgColorStr)
 
 	currentMatch := ""
-	for i := 0; i < len(line); i++ {
+	for i := range line {
 		cell := line[i]
 
 		// stripping attributes by converting to and from hex

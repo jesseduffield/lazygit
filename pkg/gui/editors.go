@@ -29,12 +29,12 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 		textArea.MoveCursorRight()
 	case key == gocui.KeyEnter:
 		if allowMultiline {
-			textArea.TypeRune('\n')
+			textArea.TypeCharacter("\n")
 		} else {
 			return false
 		}
 	case key == gocui.KeySpace:
-		textArea.TypeRune(' ')
+		textArea.TypeCharacter(" ")
 	case key == gocui.KeyInsert:
 		textArea.ToggleOverwrite()
 	case key == gocui.KeyCtrlU:
@@ -49,7 +49,7 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 		textArea.Yank()
 
 	case unicode.IsPrint(ch):
-		textArea.TypeRune(ch)
+		textArea.TypeCharacter(string(ch))
 	default:
 		return false
 	}

@@ -1,8 +1,11 @@
 package graphemes
 
-import "github.com/clipperhouse/uax29/v2/internal/iterators"
+import (
+	"github.com/clipperhouse/stringish"
+	"github.com/clipperhouse/uax29/v2/internal/iterators"
+)
 
-type Iterator[T iterators.Stringish] struct {
+type Iterator[T stringish.Interface] struct {
 	*iterators.Iterator[T]
 }
 

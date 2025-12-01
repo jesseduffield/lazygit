@@ -16,8 +16,6 @@ It was inspired by _termbox_, but includes many additional improvements.
 [![Go Report Card](https://goreportcard.com/badge/github.com/gdamore/tcell/v2)](https://goreportcard.com/report/github.com/gdamore/tcell/v2)
 [![Latest Release](https://img.shields.io/github/v/release/gdamore/tcell.svg?logo=github&label=)](https://github.com/gdamore/tcell/releases)
 
-Please see [here](UKRAINE.md) for an important message for the people of Russia.
-
 NOTE: This is version 2 of _Tcell_. There are breaking changes relative to version 1.
 Version 1.x remains available using the import `github.com/gdamore/tcell`.
 
@@ -31,15 +29,6 @@ A number of example are posted up on our [Gallery](https://github.com/gdamore/tc
 
 Let us know if you want to add your masterpiece to the list!
 
-## Pure Go Terminfo Database
-
-_Tcell_ includes a full parser and expander for terminfo capability strings,
-so that it can avoid hard coding escape strings for formatting. It also favors
-portability, and includes support for all POSIX systems.
-
-The database is also flexible & extensible, and can be modified by either running
-a program to build the entire database, or an entry for just a single terminal.
-
 ## More Portable
 
 _Tcell_ is portable to a wide variety of systems, and is pure Go, without
@@ -50,14 +39,6 @@ Following the Go support policy, _Tcell_ officially only supports the current ("
 and the version immediately prior ("oldstable").  This policy is necessary to make sure that we can
 update dependencies to pick up security fixes and new features, and it allows us to adopt changes
 (such as library and language features) that are only supported in newer versions of Go.
-
-## No Async IO
-
-_Tcell_ is able to operate without requiring `SIGIO` signals (unlike _termbox_),
-or asynchronous I/O, and can instead use standard Go file objects and Go routines.
-This means it should be safe, especially for
-use with programs that use exec, or otherwise need to manipulate the tty streams.
-This model is also much closer to idiomatic Go, leading to fewer surprises.
 
 ## Rich Unicode & non-Unicode support
 
@@ -76,15 +57,6 @@ drawing certain characters.
 
 _Tcell_ also has richer support for a larger number of special keys that some
 terminals can send.
-
-## Better Color Handling
-
-_Tcell_ will respect your terminal's color space as specified within your terminfo entries.
-For example attempts to emit color sequences on VT100 terminals
-won't result in unintended consequences.
-
-_Tcell_ maps 16 colors down to 8, for terminals that need it.
-(The upper 8 colors are just brighter versions of the lower 8.)
 
 ## Better Mouse Support
 
@@ -109,12 +81,15 @@ If you're lazy, and want them all anyway, see the `encoding` sub-directory.
 
 ## Wide & Combining Characters
 
-The `SetContent()` API takes a primary rune, and an optional list of combining runes.
-If any of the runes is a wide (East Asian) rune occupying two cells,
-then the library will skip output from the following cell. Care must be
-taken in the application to avoid explicitly attempting to set content in the
-next cell, otherwise the results are undefined. (Normally the wide character
-is displayed, and the other character is not; do not depend on that behavior.)
+The `Put()` API takes a string, which should be legal UTF-8, and displays
+the first grapheme (which may composed of multiple runes). It returns the
+actual width displayed, which can be used to advance the column positiion
+for the next display grapheme.  Alternatively, `PutStr()` or `PutStrStyled()`
+can be used to display a single line of text (which will be clipped at the
+edge of the screen).
+
+If a second character is displayed immediately in the cell adjacent to a
+wide character (offset by one instead of by two), then the results are undefined.
 
 ## Colors
 
@@ -129,11 +104,7 @@ a ticket.
 
 _Tcell_ _supports 24-bit color!_ (That is, if your terminal can support it.)
 
-NOTE: Technically the approach of using 24-bit RGB values for color is more
-accurately described as "direct color", but most people use the term "true color".
-We follow the (inaccurate) common convention.
-
-There are a few ways you can enable (or disable) true color.
+There are a few ways you can enable (or disable) 24-bit color.
 
 - For many terminals, we can detect it automatically if your terminal
   includes the `RGB` or `Tc` capabilities (or rather it did when the database
@@ -151,8 +122,8 @@ There are a few ways you can enable (or disable) true color.
 - You can disable 24-bit color by setting `TCELL_TRUECOLOR=disable` in your
   environment.
 
-When using TrueColor, programs will display the colors that the programmer
-intended, overriding any "`themes`" you may have set in your terminal
+When using 24-bit color, programs will display the colors that the programmer
+intended, overriding any "`themes`" the user may have set in their terminal
 emulator. (For some cases, accurate color fidelity is more important
 than respecting themes. For other cases, such as typical text apps that
 only use a few colors, its more desirable to respect the themes that
@@ -163,38 +134,10 @@ the user has established.)
 Reasonable attempts have been made to minimize sending data to terminals,
 avoiding repeated sequences or drawing the same cell on refresh updates.
 
-## Terminfo
-
-(Not relevant for Windows users.)
-
-The Terminfo implementation operates with a built-in database.
-This should satisfy most users. However, it can also (on systems
-with ncurses installed), dynamically parse the output from `infocmp`
-for terminals it does not already know about.
-
-See the `terminfo/` directory for more information about generating
-new entries for the built-in database.
-
-_Tcell_ requires that the terminal support the `cup` mode of cursor addressing.
-Ancient terminals without the ability to position the cursor directly
-are not supported.
-This is unlikely to be a problem; such terminals have not been mass-produced
-since the early 1970s.
-
 ## Mouse Support
 
-Mouse support is detected via the `kmous` terminfo variable, however,
-enablement/disablement and decoding mouse events is done using hard coded
-sequences based on the XTerm X11 model. All popular
-terminals with mouse tracking support this model. (Full terminfo support
-is not possible as terminfo sequences are not defined.)
-
-On Windows, the mouse works normally.
-
-Mouse wheel buttons on various terminals are known to work, but the support
-in terminal emulators, as well as support for various buttons and
-live mouse tracking, varies widely.
-Modern _xterm_, macOS _Terminal_, and _iTerm_ all work well.
+Mouse tracking, buttons, and even wheel mice works fine on most terminal
+emulators, as well as Windows.
 
 ## Bracketed Paste
 

@@ -1,4 +1,4 @@
-// Copyright 2024 The TCell Authors
+// Copyright 2025 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -22,11 +22,12 @@ import (
 	"encoding/base64"
 	"errors"
 	"io"
+	"maps"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 	"unicode/utf8"
 
 	"golang.org/x/term"
@@ -62,6 +63,8 @@ func LookupTerminfo(name string) (ti *terminfo.Terminfo, e error) {
 	return
 }
 
+var defaultTerm string
+
 // NewTerminfoScreenFromTtyTerminfo returns a Screen using a custom Tty
 // implementation  and custom terminfo specification.
 // If the passed in tty is nil, then a reasonable default (typically /dev/tty)
@@ -70,17 +73,19 @@ func LookupTerminfo(name string) (ti *terminfo.Terminfo, e error) {
 // If passed terminfo is nil, then TERM environment variable is queried for
 // terminal specification.
 func NewTerminfoScreenFromTtyTerminfo(tty Tty, ti *terminfo.Terminfo) (s Screen, e error) {
+	term := defaultTerm
+	if term == "" {
+		term = os.Getenv("TERM")
+	}
 	if ti == nil {
-		ti, e = LookupTerminfo(os.Getenv("TERM"))
+		ti, e = LookupTerminfo(term)
 		if e != nil {
-			return
+			return nil, e
 		}
 	}
 
 	t := &tScreen{ti: ti, tty: tty}
 
-	t.keyexist = make(map[Key]bool)
-	t.keycodes = make(map[string]*tKeyCode)
 	if len(ti.Mouse) > 0 {
 		t.mouse = []byte(ti.Mouse)
 	}
@@ -88,9 +93,7 @@ func NewTerminfoScreenFromTtyTerminfo(tty Tty, ti *terminfo.Terminfo) (s Screen,
 	t.buildAcsMap()
 	t.resizeQ = make(chan bool, 1)
 	t.fallback = make(map[rune]string)
-	for k, v := range RuneFallbacks {
-		t.fallback[k] = v
-	}
+	maps.Copy(t.fallback, RuneFallbacks)
 
 	return &baseScreen{screenImpl: t}, nil
 }
@@ -111,72 +114,74 @@ type tKeyCode struct {
 
 // tScreen represents a screen backed by a terminfo implementation.
 type tScreen struct {
-	ti           *terminfo.Terminfo
-	tty          Tty
-	h            int
-	w            int
-	fini         bool
-	cells        CellBuffer
-	buffering    bool // true if we are collecting writes to buf instead of sending directly to out
-	buf          bytes.Buffer
-	curstyle     Style
-	style        Style
-	resizeQ      chan bool
-	quit         chan struct{}
-	keyexist     map[Key]bool
-	keycodes     map[string]*tKeyCode
-	keychan      chan []byte
-	keytimer     *time.Timer
-	keyexpire    time.Time
-	cx           int
-	cy           int
-	mouse        []byte
-	clear        bool
-	cursorx      int
-	cursory      int
-	acs          map[rune]string
-	charset      string
-	encoder      transform.Transformer
-	decoder      transform.Transformer
-	fallback     map[rune]string
-	colors       map[Color]Color
-	palette      []Color
-	truecolor    bool
-	escaped      bool
-	buttondn     bool
-	finiOnce     sync.Once
-	enablePaste  string
-	disablePaste string
-	enterUrl     string
-	exitUrl      string
-	setWinSize   string
-	enableFocus  string
-	disableFocus string
-	doubleUnder  string
-	curlyUnder   string
-	dottedUnder  string
-	dashedUnder  string
-	underColor   string
-	underRGB     string
-	underFg      string
-	cursorStyles map[CursorStyle]string
-	cursorStyle  CursorStyle
-	cursorColor  Color
-	cursorRGB    string
-	cursorFg     string
-	saved        *term.State
-	stopQ        chan struct{}
-	eventQ       chan Event
-	running      bool
-	wg           sync.WaitGroup
-	mouseFlags   MouseFlags
-	pasteEnabled bool
-	focusEnabled bool
-	setTitle     string
-	saveTitle    string
-	restoreTitle string
-	title        string
-	setClipboard string
+	ti             *terminfo.Terminfo
+	tty            Tty
+	h              int
+	w              int
+	fini           bool
+	cells          CellBuffer
+	buffering      bool // true if we are collecting writes to buf instead of sending directly to out
+	buf            bytes.Buffer
+	curstyle       Style
+	style          Style
+	resizeQ        chan bool
+	quit           chan struct{}
+	keychan        chan []byte
+	cx             int
+	cy             int
+	mouse          []byte
+	clear          bool
+	cursorx        int
+	cursory        int
+	acs            map[rune]string
+	charset        string
+	encoder        transform.Transformer
+	decoder        transform.Transformer
+	fallback       map[rune]string
+	colors         map[Color]Color
+	palette        []Color
+	truecolor      bool
+	escaped        bool
+	buttondn       bool
+	finiOnce       sync.Once
+	enablePaste    string
+	disablePaste   string
+	enterUrl       string
+	exitUrl        string
+	setWinSize     string
+	enableFocus    string
+	disableFocus   string
+	doubleUnder    string
+	curlyUnder     string
+	dottedUnder    string
+	dashedUnder    string
+	underColor     string
+	underRGB       string
+	underFg        string // reset underline color to foreground
+	cursorStyles   map[CursorStyle]string
+	cursorStyle    CursorStyle
+	cursorColor    Color
+	cursorRGB      string
+	cursorFg       string
+	saved          *term.State
+	stopQ          chan struct{}
+	eventQ         chan Event
+	running        bool
+	wg             sync.WaitGroup
+	mouseFlags     MouseFlags
+	pasteEnabled   bool
+	focusEnabled   bool
+	setTitle       string
+	saveTitle      string
+	restoreTitle   string
+	title          string
+	setClipboard   string
+	startSyncOut   string
+	endSyncOut     string
+	enableCsiU     string
+	disableCsiU    string
+	disableEmojiWA bool // if true don't try to workaround emoji bugs
+	input          InputProcessor
 
 	sync.Mutex
 }
@@ -187,8 +192,6 @@ func (t *tScreen) Init() error {
 	}
 
 	t.keychan = make(chan []byte, 10)
-	t.keytimer = time.NewTimer(time.Millisecond * 50)
-	t.charset = "UTF-8"
 
 	t.charset = getCharset()
 	if enc := GetEncoding(t.charset); enc != nil {
@@ -216,20 +219,19 @@ func (t *tScreen) Init() error {
 	if os.Getenv("TCELL_TRUECOLOR") == "disable" {
 		t.truecolor = false
 	}
-	nColors := t.nColors()
-	if nColors > 256 {
-		nColors = 256 // clip to reasonable limits
-	}
+	// clip to reasonable limits
+	nColors := min(t.nColors(), 256)
 	t.colors = make(map[Color]Color, nColors)
 	t.palette = make([]Color, nColors)
-	for i := 0; i < nColors; i++ {
+	for i := range nColors {
 		t.palette[i] = Color(i) | ColorValid
 		// identity map for our builtin colors
 		t.colors[Color(i)|ColorValid] = Color(i) | ColorValid
 	}
 
 	t.quit = make(chan struct{})
-	t.eventQ = make(chan Event, 10)
+	t.eventQ = make(chan Event, 256)
+	t.input = NewInputProcessor(t.eventQ)
 
 	t.Lock()
 	t.cx = -1
@@ -248,161 +250,25 @@ func (t *tScreen) Init() error {
 	return nil
 }
 
-func (t *tScreen) prepareKeyMod(key Key, mod ModMask, val string) {
-	if val != "" {
-		// Do not override codes that already exist
-		if _, exist := t.keycodes[val]; !exist {
-			t.keyexist[key] = true
-			t.keycodes[val] = &tKeyCode{key: key, mod: mod}
-		}
-	}
-}
-
-func (t *tScreen) prepareKeyModReplace(key Key, replace Key, mod ModMask, val string) {
-	if val != "" {
-		// Do not override codes that already exist
-		if old, exist := t.keycodes[val]; !exist || old.key == replace {
-			t.keyexist[key] = true
-			t.keycodes[val] = &tKeyCode{key: key, mod: mod}
-		}
-	}
-}
-
-func (t *tScreen) prepareKeyModXTerm(key Key, val string) {
-
-	if strings.HasPrefix(val, "\x1b[") && strings.HasSuffix(val, "~") {
-
-		// Drop the trailing ~
-		val = val[:len(val)-1]
-
-		// These suffixes are calculated assuming Xterm style modifier suffixes.
-		// Please see https://invisible-island.net/xterm/ctlseqs/ctlseqs.pdf for
-		// more information (specifically "PC-Style Function Keys").
-		t.prepareKeyModReplace(key, key+12, ModShift, val+";2~")
-		t.prepareKeyModReplace(key, key+48, ModAlt, val+";3~")
-		t.prepareKeyModReplace(key, key+60, ModAlt|ModShift, val+";4~")
-		t.prepareKeyModReplace(key, key+24, ModCtrl, val+";5~")
-		t.prepareKeyModReplace(key, key+36, ModCtrl|ModShift, val+";6~")
-		t.prepareKeyMod(key, ModAlt|ModCtrl, val+";7~")
-		t.prepareKeyMod(key, ModShift|ModAlt|ModCtrl, val+";8~")
-		t.prepareKeyMod(key, ModMeta, val+";9~")
-		t.prepareKeyMod(key, ModMeta|ModShift, val+";10~")
-		t.prepareKeyMod(key, ModMeta|ModAlt, val+";11~")
-		t.prepareKeyMod(key, ModMeta|ModAlt|ModShift, val+";12~")
-		t.prepareKeyMod(key, ModMeta|ModCtrl, val+";13~")
-		t.prepareKeyMod(key, ModMeta|ModCtrl|ModShift, val+";14~")
-		t.prepareKeyMod(key, ModMeta|ModCtrl|ModAlt, val+";15~")
-		t.prepareKeyMod(key, ModMeta|ModCtrl|ModAlt|ModShift, val+";16~")
-	} else if strings.HasPrefix(val, "\x1bO") && len(val) == 3 {
-		val = val[2:]
-		t.prepareKeyModReplace(key, key+12, ModShift, "\x1b[1;2"+val)
-		t.prepareKeyModReplace(key, key+48, ModAlt, "\x1b[1;3"+val)
-		t.prepareKeyModReplace(key, key+24, ModCtrl, "\x1b[1;5"+val)
-		t.prepareKeyModReplace(key, key+36, ModCtrl|ModShift, "\x1b[1;6"+val)
-		t.prepareKeyModReplace(key, key+60, ModAlt|ModShift, "\x1b[1;4"+val)
-		t.prepareKeyMod(key, ModAlt|ModCtrl, "\x1b[1;7"+val)
-		t.prepareKeyMod(key, ModShift|ModAlt|ModCtrl, "\x1b[1;8"+val)
-		t.prepareKeyMod(key, ModMeta, "\x1b[1;9"+val)
-		t.prepareKeyMod(key, ModMeta|ModShift, "\x1b[1;10"+val)
-		t.prepareKeyMod(key, ModMeta|ModAlt, "\x1b[1;11"+val)
-		t.prepareKeyMod(key, ModMeta|ModAlt|ModShift, "\x1b[1;12"+val)
-		t.prepareKeyMod(key, ModMeta|ModCtrl, "\x1b[1;13"+val)
-		t.prepareKeyMod(key, ModMeta|ModCtrl|ModShift, "\x1b[1;14"+val)
-		t.prepareKeyMod(key, ModMeta|ModCtrl|ModAlt, "\x1b[1;15"+val)
-		t.prepareKeyMod(key, ModMeta|ModCtrl|ModAlt|ModShift, "\x1b[1;16"+val)
-	}
-}
-
-func (t *tScreen) prepareXtermModifiers() {
-	if t.ti.Modifiers != terminfo.ModifiersXTerm {
-		return
-	}
-	t.prepareKeyModXTerm(KeyRight, t.ti.KeyRight)
-	t.prepareKeyModXTerm(KeyLeft, t.ti.KeyLeft)
-	t.prepareKeyModXTerm(KeyUp, t.ti.KeyUp)
-	t.prepareKeyModXTerm(KeyDown, t.ti.KeyDown)
-	t.prepareKeyModXTerm(KeyInsert, t.ti.KeyInsert)
-	t.prepareKeyModXTerm(KeyDelete, t.ti.KeyDelete)
-	t.prepareKeyModXTerm(KeyPgUp, t.ti.KeyPgUp)
-	t.prepareKeyModXTerm(KeyPgDn, t.ti.KeyPgDn)
-	t.prepareKeyModXTerm(KeyHome, t.ti.KeyHome)
-	t.prepareKeyModXTerm(KeyEnd, t.ti.KeyEnd)
-	t.prepareKeyModXTerm(KeyF1, t.ti.KeyF1)
-	t.prepareKeyModXTerm(KeyF2, t.ti.KeyF2)
-	t.prepareKeyModXTerm(KeyF3, t.ti.KeyF3)
-	t.prepareKeyModXTerm(KeyF4, t.ti.KeyF4)
-	t.prepareKeyModXTerm(KeyF5, t.ti.KeyF5)
-	t.prepareKeyModXTerm(KeyF6, t.ti.KeyF6)
-	t.prepareKeyModXTerm(KeyF7, t.ti.KeyF7)
-	t.prepareKeyModXTerm(KeyF8, t.ti.KeyF8)
-	t.prepareKeyModXTerm(KeyF9, t.ti.KeyF9)
-	t.prepareKeyModXTerm(KeyF10, t.ti.KeyF10)
-	t.prepareKeyModXTerm(KeyF11, t.ti.KeyF11)
-	t.prepareKeyModXTerm(KeyF12, t.ti.KeyF12)
-}
-
 func (t *tScreen) prepareBracketedPaste() {
 	// Another workaround for lack of reporting in terminfo.
 	// We assume if the terminal has a mouse entry, that it
 	// offers bracketed paste.  But we allow specific overrides
 	// via our terminal database.
-	if t.ti.EnablePaste != "" {
-		t.enablePaste = t.ti.EnablePaste
-		t.disablePaste = t.ti.DisablePaste
-		t.prepareKey(keyPasteStart, t.ti.PasteStart)
-		t.prepareKey(keyPasteEnd, t.ti.PasteEnd)
-	} else if t.ti.Mouse != "" || t.ti.XTermLike {
+	if t.ti.Mouse != "" || t.ti.XTermLike {
 		t.enablePaste = "\x1b[?2004h"
 		t.disablePaste = "\x1b[?2004l"
-		t.prepareKey(keyPasteStart, "\x1b[200~")
-		t.prepareKey(keyPasteEnd, "\x1b[201~")
 	}
 }
 
 func (t *tScreen) prepareUnderlines() {
-	if t.ti.DoubleUnderline != "" {
-		t.doubleUnder = t.ti.DoubleUnderline
-	} else if t.ti.XTermLike {
+	if t.ti.XTermLike {
 		t.doubleUnder = "\x1b[4:2m"
-	}
-	if t.ti.CurlyUnderline != "" {
-		t.curlyUnder = t.ti.CurlyUnderline
-	} else if t.ti.XTermLike {
 		t.curlyUnder = "\x1b[4:3m"
-	}
-	if t.ti.DottedUnderline != "" {
-		t.dottedUnder = t.ti.DottedUnderline
-	} else if t.ti.XTermLike {
 		t.dottedUnder = "\x1b[4:4m"
-	}
-	if t.ti.DashedUnderline != "" {
-		t.dashedUnder = t.ti.DashedUnderline
-	} else if t.ti.XTermLike {
 		t.dashedUnder = "\x1b[4:5m"
-	}
-
-	// Underline colors.  We're not going to rely upon terminfo for this
-	// Essentially all terminals that support the curly underlines are
-	// expected to also support coloring them too - which reflects actual
-	// practice since these were introduced at about the same time.
-	if t.ti.UnderlineColor != "" {
-		t.underColor = t.ti.UnderlineColor
-	} else if t.curlyUnder != "" {
 		t.underColor = "\x1b[58:5:%p1%dm"
-	}
-	if t.ti.UnderlineColorRGB != "" {
-		// An interesting wart here is that in order to facilitate
-		// using just a single parameter, the Setulc parameter takes
-		// the 24-bit color as an integer rather than separate bytes.
-		// This matches the "new" style direct color approach that
-		// ncurses took, even though everyone else went another way.
-		t.underRGB = t.ti.UnderlineColorRGB
-	} else if t.underColor != "" {
 		t.underRGB = "\x1b[58:2::%p1%d:%p2%d:%p3%dm"
-	}
-	if t.ti.UnderlineColorReset != "" {
-		t.underFg = t.ti.UnderlineColorReset
-	} else if t.curlyUnder != "" {
 		t.underFg = "\x1b[59m"
 	}
 }
@@ -417,34 +283,21 @@ func (t *tScreen) prepareExtendedOSC() {
 	// the most common OSC (operating system commands).  Generally
 	// terminals that don't understand these will ignore them.
 	// Again, we condition this based on mouse capabilities.
-	if t.ti.EnterUrl != "" {
-		t.enterUrl = t.ti.EnterUrl
-		t.exitUrl = t.ti.ExitUrl
-	} else if t.ti.Mouse != "" || t.ti.XTermLike {
+	if t.ti.Mouse != "" || t.ti.XTermLike {
 		t.enterUrl = "\x1b]8;%p2%s;%p1%s\x1b\\"
 		t.exitUrl = "\x1b]8;;\x1b\\"
 	}
 
-	if t.ti.SetWindowSize != "" {
-		t.setWinSize = t.ti.SetWindowSize
-	} else if t.ti.Mouse != "" || t.ti.XTermLike {
+	if t.ti.Mouse != "" || t.ti.XTermLike {
 		t.setWinSize = "\x1b[8;%p1%p2%d;%dt"
 	}
 
-	if t.ti.EnableFocusReporting != "" {
-		t.enableFocus = t.ti.EnableFocusReporting
-	} else if t.ti.Mouse != "" || t.ti.XTermLike {
+	if t.ti.Mouse != "" || t.ti.XTermLike {
 		t.enableFocus = "\x1b[?1004h"
-	}
-	if t.ti.DisableFocusReporting != "" {
-		t.disableFocus = t.ti.DisableFocusReporting
-	} else if t.ti.Mouse != "" || t.ti.XTermLike {
 		t.disableFocus = "\x1b[?1004l"
 	}
 
-	if t.ti.SetWindowTitle != "" {
-		t.setTitle = t.ti.SetWindowTitle
-	} else if t.ti.XTermLike {
+	if t.ti.XTermLike {
 		t.saveTitle = "\x1b[22;2t"
 		t.restoreTitle = "\x1b[23;2t"
 		// this also tries to request that UTF-8 is allowed in the title
@@ -457,24 +310,33 @@ func (t *tScreen) prepareExtendedOSC() {
 		// sent string, when we support that.
 		t.setClipboard = "\x1b]52;c;%p1%s\x1b\\"
 	}
+
+	if t.startSyncOut == "" && t.ti.XTermLike {
+		// this is in theory a queryable private mode, but we just assume it will be ok
+		// The terminals we have been able to test it all either just swallow it, or
+		// handle it.
+		t.startSyncOut = "\x1b[?2026h"
+		t.endSyncOut = "\x1b[?2026l"
+	}
+
+	if t.enableCsiU == "" && t.ti.XTermLike {
+		if runtime.GOOS == "windows" && os.Getenv("TERM") == "" {
+			// on Windows, if we don't have a TERM, use only win32-input-mode
+			t.enableCsiU = "\x1b[?9001h"
+			t.disableCsiU = "\x1b[?9001l"
+		} else {
+			// three advanced keyboard protocols:
+			// - xterm modifyOtherKeys (uses CSI 27 ~ )
+			// - kitty csi-u (uses CSI u)
+			// - win32-input-mode (uses CSI _)
+			t.enableCsiU = "\x1b[>4;2m" + "\x1b[>1u" + "\x1b[?9001h"
+			t.disableCsiU = "\x1b[?9001l" + "\x1b[<u" + "\x1b[>4;0m"
+		}
+	}
 }
 
 func (t *tScreen) prepareCursorStyles() {
-	// Another workaround for lack of reporting in terminfo.
-	// We assume if the terminal has a mouse entry, that it
-	// offers bracketed paste.  But we allow specific overrides
-	// via our terminal database.
-	if t.ti.CursorDefault != "" {
-		t.cursorStyles = map[CursorStyle]string{
-			CursorStyleDefault:           t.ti.CursorDefault,
-			CursorStyleBlinkingBlock:     t.ti.CursorBlinkingBlock,
-			CursorStyleSteadyBlock:       t.ti.CursorSteadyBlock,
-			CursorStyleBlinkingUnderline: t.ti.CursorBlinkingUnderline,
-			CursorStyleSteadyUnderline:   t.ti.CursorSteadyUnderline,
-			CursorStyleBlinkingBar:       t.ti.CursorBlinkingBar,
-			CursorStyleSteadyBar:         t.ti.CursorSteadyBar,
-		}
-	} else if t.ti.Mouse != "" || t.ti.XTermLike {
+	if t.ti.Mouse != "" || t.ti.XTermLike {
 		t.cursorStyles = map[CursorStyle]string{
 			CursorStyleDefault:           "\x1b[0 q",
 			CursorStyleBlinkingBlock:     "\x1b[1 q",
@@ -484,25 +346,11 @@ func (t *tScreen) prepareCursorStyles() {
 			CursorStyleBlinkingBar:       "\x1b[5 q",
 			CursorStyleSteadyBar:         "\x1b[6 q",
 		}
+		if t.cursorRGB == "" {
+			t.cursorRGB = "\x1b]12;#%p1%02x%p2%02x%p3%02x\007"
+			t.cursorFg = "\x1b]112\007"
+		}
 	}
-	if t.ti.CursorColorRGB != "" {
-		// if it was X11 style with just a single %p1%s, then convert
-		t.cursorRGB = t.ti.CursorColorRGB
-	}
-	if t.ti.CursorColorReset != "" {
-		t.cursorFg = t.ti.CursorColorReset
-	}
-	if t.cursorRGB == "" {
-		t.cursorRGB = "\x1b]12;%p1%s\007"
-		t.cursorFg = "\x1b]112\007"
-	}
-
-	// convert XTERM style color names to RGB color code.  We have no way to do palette colors
-	t.cursorRGB = strings.Replace(t.cursorRGB, "%p1%s", "#%p1%02x%p2%02x%p3%02x", 1)
-}
-
-func (t *tScreen) prepareKey(key Key, val string) {
-	t.prepareKeyMod(key, ModNone, val)
 }
 
 func (t *tScreen) prepareKeys() {
@@ -512,167 +360,10 @@ func (t *tScreen) prepareKeys() {
 		t.ti.XTermLike = true
 		ti.XTermLike = true
 	}
-	t.prepareKey(KeyBackspace, ti.KeyBackspace)
-	t.prepareKey(KeyF1, ti.KeyF1)
-	t.prepareKey(KeyF2, ti.KeyF2)
-	t.prepareKey(KeyF3, ti.KeyF3)
-	t.prepareKey(KeyF4, ti.KeyF4)
-	t.prepareKey(KeyF5, ti.KeyF5)
-	t.prepareKey(KeyF6, ti.KeyF6)
-	t.prepareKey(KeyF7, ti.KeyF7)
-	t.prepareKey(KeyF8, ti.KeyF8)
-	t.prepareKey(KeyF9, ti.KeyF9)
-	t.prepareKey(KeyF10, ti.KeyF10)
-	t.prepareKey(KeyF11, ti.KeyF11)
-	t.prepareKey(KeyF12, ti.KeyF12)
-	t.prepareKey(KeyF13, ti.KeyF13)
-	t.prepareKey(KeyF14, ti.KeyF14)
-	t.prepareKey(KeyF15, ti.KeyF15)
-	t.prepareKey(KeyF16, ti.KeyF16)
-	t.prepareKey(KeyF17, ti.KeyF17)
-	t.prepareKey(KeyF18, ti.KeyF18)
-	t.prepareKey(KeyF19, ti.KeyF19)
-	t.prepareKey(KeyF20, ti.KeyF20)
-	t.prepareKey(KeyF21, ti.KeyF21)
-	t.prepareKey(KeyF22, ti.KeyF22)
-	t.prepareKey(KeyF23, ti.KeyF23)
-	t.prepareKey(KeyF24, ti.KeyF24)
-	t.prepareKey(KeyF25, ti.KeyF25)
-	t.prepareKey(KeyF26, ti.KeyF26)
-	t.prepareKey(KeyF27, ti.KeyF27)
-	t.prepareKey(KeyF28, ti.KeyF28)
-	t.prepareKey(KeyF29, ti.KeyF29)
-	t.prepareKey(KeyF30, ti.KeyF30)
-	t.prepareKey(KeyF31, ti.KeyF31)
-	t.prepareKey(KeyF32, ti.KeyF32)
-	t.prepareKey(KeyF33, ti.KeyF33)
-	t.prepareKey(KeyF34, ti.KeyF34)
-	t.prepareKey(KeyF35, ti.KeyF35)
-	t.prepareKey(KeyF36, ti.KeyF36)
-	t.prepareKey(KeyF37, ti.KeyF37)
-	t.prepareKey(KeyF38, ti.KeyF38)
-	t.prepareKey(KeyF39, ti.KeyF39)
-	t.prepareKey(KeyF40, ti.KeyF40)
-	t.prepareKey(KeyF41, ti.KeyF41)
-	t.prepareKey(KeyF42, ti.KeyF42)
-	t.prepareKey(KeyF43, ti.KeyF43)
-	t.prepareKey(KeyF44, ti.KeyF44)
-	t.prepareKey(KeyF45, ti.KeyF45)
-	t.prepareKey(KeyF46, ti.KeyF46)
-	t.prepareKey(KeyF47, ti.KeyF47)
-	t.prepareKey(KeyF48, ti.KeyF48)
-	t.prepareKey(KeyF49, ti.KeyF49)
-	t.prepareKey(KeyF50, ti.KeyF50)
-	t.prepareKey(KeyF51, ti.KeyF51)
-	t.prepareKey(KeyF52, ti.KeyF52)
-	t.prepareKey(KeyF53, ti.KeyF53)
-	t.prepareKey(KeyF54, ti.KeyF54)
-	t.prepareKey(KeyF55, ti.KeyF55)
-	t.prepareKey(KeyF56, ti.KeyF56)
-	t.prepareKey(KeyF57, ti.KeyF57)
-	t.prepareKey(KeyF58, ti.KeyF58)
-	t.prepareKey(KeyF59, ti.KeyF59)
-	t.prepareKey(KeyF60, ti.KeyF60)
-	t.prepareKey(KeyF61, ti.KeyF61)
-	t.prepareKey(KeyF62, ti.KeyF62)
-	t.prepareKey(KeyF63, ti.KeyF63)
-	t.prepareKey(KeyF64, ti.KeyF64)
-	t.prepareKey(KeyInsert, ti.KeyInsert)
-	t.prepareKey(KeyDelete, ti.KeyDelete)
-	t.prepareKey(KeyHome, ti.KeyHome)
-	t.prepareKey(KeyEnd, ti.KeyEnd)
-	t.prepareKey(KeyUp, ti.KeyUp)
-	t.prepareKey(KeyDown, ti.KeyDown)
-	t.prepareKey(KeyLeft, ti.KeyLeft)
-	t.prepareKey(KeyRight, ti.KeyRight)
-	t.prepareKey(KeyPgUp, ti.KeyPgUp)
-	t.prepareKey(KeyPgDn, ti.KeyPgDn)
-	t.prepareKey(KeyHelp, ti.KeyHelp)
-	t.prepareKey(KeyPrint, ti.KeyPrint)
-	t.prepareKey(KeyCancel, ti.KeyCancel)
-	t.prepareKey(KeyExit, ti.KeyExit)
-	t.prepareKey(KeyBacktab, ti.KeyBacktab)
-
-	t.prepareKeyMod(KeyRight, ModShift, ti.KeyShfRight)
-	t.prepareKeyMod(KeyLeft, ModShift, ti.KeyShfLeft)
-	t.prepareKeyMod(KeyUp, ModShift, ti.KeyShfUp)
-	t.prepareKeyMod(KeyDown, ModShift, ti.KeyShfDown)
-	t.prepareKeyMod(KeyHome, ModShift, ti.KeyShfHome)
-	t.prepareKeyMod(KeyEnd, ModShift, ti.KeyShfEnd)
-	t.prepareKeyMod(KeyPgUp, ModShift, ti.KeyShfPgUp)
-	t.prepareKeyMod(KeyPgDn, ModShift, ti.KeyShfPgDn)
-
-	t.prepareKeyMod(KeyRight, ModCtrl, ti.KeyCtrlRight)
-	t.prepareKeyMod(KeyLeft, ModCtrl, ti.KeyCtrlLeft)
-	t.prepareKeyMod(KeyUp, ModCtrl, ti.KeyCtrlUp)
-	t.prepareKeyMod(KeyDown, ModCtrl, ti.KeyCtrlDown)
-	t.prepareKeyMod(KeyHome, ModCtrl, ti.KeyCtrlHome)
-	t.prepareKeyMod(KeyEnd, ModCtrl, ti.KeyCtrlEnd)
-
-	// Sadly, xterm handling of keycodes is somewhat erratic.  In
-	// particular, different codes are sent depending on application
-	// mode is in use or not, and the entries for many of these are
-	// simply absent from terminfo on many systems.  So we insert
-	// a number of escape sequences if they are not already used, in
-	// order to have the widest correct usage.  Note that prepareKey
-	// will not inject codes if the escape sequence is already known.
-	// We also only do this for terminals that have the application
-	// mode present.
-
-	// Cursor mode
-	if ti.EnterKeypad != "" {
-		t.prepareKey(KeyUp, "\x1b[A")
-		t.prepareKey(KeyDown, "\x1b[B")
-		t.prepareKey(KeyRight, "\x1b[C")
-		t.prepareKey(KeyLeft, "\x1b[D")
-		t.prepareKey(KeyEnd, "\x1b[F")
-		t.prepareKey(KeyHome, "\x1b[H")
-		t.prepareKey(KeyDelete, "\x1b[3~")
-		t.prepareKey(KeyHome, "\x1b[1~")
-		t.prepareKey(KeyEnd, "\x1b[4~")
-		t.prepareKey(KeyPgUp, "\x1b[5~")
-		t.prepareKey(KeyPgDn, "\x1b[6~")
-
-		// Application mode
-		t.prepareKey(KeyUp, "\x1bOA")
-		t.prepareKey(KeyDown, "\x1bOB")
-		t.prepareKey(KeyRight, "\x1bOC")
-		t.prepareKey(KeyLeft, "\x1bOD")
-		t.prepareKey(KeyHome, "\x1bOH")
-	}
-
-	t.prepareKey(keyPasteStart, ti.PasteStart)
-	t.prepareKey(keyPasteEnd, ti.PasteEnd)
-	t.prepareXtermModifiers()
 	t.prepareBracketedPaste()
 	t.prepareCursorStyles()
 	t.prepareUnderlines()
 	t.prepareExtendedOSC()
-
-outer:
-	// Add key mappings for control keys.
-	for i := 0; i < ' '; i++ {
-		// Do not insert direct key codes for ambiguous keys.
-		// For example, ESC is used for lots of other keys, so
-		// when parsing this we don't want to fast path handling
-		// of it, but instead wait a bit before parsing it as in
-		// isolation.
-		for esc := range t.keycodes {
-			if []byte(esc)[0] == byte(i) {
-				continue outer
-			}
-		}
-
-		t.keyexist[Key(i)] = true
-
-		mod := ModCtrl
-		switch Key(i) {
-		case KeyBS, KeyTAB, KeyESC, KeyCR:
-			// directly type-able- no control sequence
-			mod = ModNone
-		}
-		t.keycodes[string(rune(i))] = &tKeyCode{key: Key(i), mod: mod}
-	}
 }
 
 func (t *tScreen) Fini() {
@@ -692,20 +383,20 @@ func (t *tScreen) SetStyle(style Style) {
 	t.Unlock()
 }
 
-func (t *tScreen) encodeRune(r rune, buf []byte) []byte {
+func (t *tScreen) encodeStr(s string) []byte {
 
-	nb := make([]byte, 6)
-	ob := make([]byte, 6)
-	num := utf8.EncodeRune(ob, r)
-	ob = ob[:num]
+	var dstBuf [128]byte
+	var buf []byte
+	nb := dstBuf[:]
 	dst := 0
 	var err error
 	if enc := t.encoder; enc != nil {
 		enc.Reset()
-		dst, _, err = enc.Transform(nb, ob, true)
+		dst, _, err = enc.Transform(nb, []byte(s), true)
 	}
 	if err != nil || dst == 0 || nb[0] == '\x1a' {
 		// Combining characters are elided
+		r, _ := utf8.DecodeRuneInString(s)
 		if len(buf) == 0 {
 			if acs, ok := t.acs[r]; ok {
 				buf = append(buf, []byte(acs)...)
@@ -724,7 +415,7 @@ func (t *tScreen) encodeRune(r rune, buf []byte) []byte {
 
 func (t *tScreen) sendFgBg(fg Color, bg Color, attr AttrMask) AttrMask {
 	ti := t.ti
-	if ti.Colors == 0 {
+	if t.Colors() == 0 {
 		// foreground vs background, we calculate luminance
 		// and possibly do a reverse video
 		if !fg.Valid() {
@@ -807,7 +498,7 @@ func (t *tScreen) drawCell(x, y int) int {
 
 	ti := t.ti
 
-	mainc, combc, style, width := t.cells.GetContent(x, y)
+	str, style, width := t.cells.Get(x, y)
 	if !t.cells.Dirty(x, y) {
 		return width
 	}
@@ -917,16 +608,9 @@ func (t *tScreen) drawCell(x, y int) int {
 		width = 1
 	}
 
-	var str string
-
-	buf := make([]byte, 0, 6)
-
-	buf = t.encodeRune(mainc, buf)
-	for _, r := range combc {
-		buf = t.encodeRune(r, buf)
-	}
-
+	buf := t.encodeStr(str)
 	str = string(buf)
+
 	if width > 1 && str == "?" {
 		// No FullWidth character support
 		str = "? "
@@ -1032,6 +716,14 @@ func (t *tScreen) clearScreen() {
 	t.clear = false
 }
 
+func (t *tScreen) startBuffering() {
+	t.TPuts(t.startSyncOut)
+}
+
+func (t *tScreen) endBuffering() {
+	t.TPuts(t.endSyncOut)
+}
+
 func (t *tScreen) hideCursor() {
 	// does not update cursor position
 	if t.ti.HideCursor != "" {
@@ -1053,8 +745,10 @@ func (t *tScreen) draw() {
 
 	t.buf.Reset()
 	t.buffering = true
+	t.startBuffering()
 	defer func() {
 		t.buffering = false
+		t.endBuffering()
 	}()
 
 	// hide the cursor while we move stuff around
@@ -1206,14 +900,13 @@ func (t *tScreen) resize() {
 	t.cells.Invalidate()
 	t.h = ws.Height
 	t.w = ws.Width
-	ev := &EventResize{t: time.Now(), ws: ws}
-	select {
-	case t.eventQ <- ev:
-	default:
-	}
+	t.input.SetSize(ws.Width, ws.Height)
 }
 
 func (t *tScreen) Colors() int {
+	if os.Getenv("NO_COLOR") != "" {
+		return 0
+	}
 	// this doesn't change, no need for lock
 	if t.truecolor {
 		return 1 << 24
@@ -1225,6 +918,9 @@ func (t *tScreen) Colors() int {
 // This is distinct from Colors(), as it will generally
 // always be a small number. (<= 256)
 func (t *tScreen) nColors() int {
+	if os.Getenv("NO_COLOR") != "" {
+		return 0
+	}
 	return t.ti.Colors
 }
 
@@ -1292,527 +988,16 @@ func (t *tScreen) buildAcsMap() {
 	}
 }
 
-func (t *tScreen) clip(x, y int) (int, int) {
-	w, h := t.cells.Size()
-	if x < 0 {
-		x = 0
-	}
-	if y < 0 {
-		y = 0
-	}
-	if x > w-1 {
-		x = w - 1
-	}
-	if y > h-1 {
-		y = h - 1
-	}
-	return x, y
-}
-
-// buildMouseEvent returns an event based on the supplied coordinates and button
-// state. Note that the screen's mouse button state is updated based on the
-// input to this function (i.e. it mutates the receiver).
-func (t *tScreen) buildMouseEvent(x, y, btn int) *EventMouse {
-
-	// XTerm mouse events only report at most one button at a time,
-	// which may include a wheel button.  Wheel motion events are
-	// reported as single impulses, while other button events are reported
-	// as separate press & release events.
-
-	button := ButtonNone
-	mod := ModNone
-
-	// Mouse wheel has bit 6 set, no release events.  It should be noted
-	// that wheel events are sometimes misdelivered as mouse button events
-	// during a click-drag, so we debounce these, considering them to be
-	// button press events unless we see an intervening release event.
-	switch btn & 0x43 {
-	case 0:
-		button = Button1
-	case 1:
-		button = Button3 // Note we prefer to treat right as button 2
-	case 2:
-		button = Button2 // And the middle button as button 3
-	case 3:
-		button = ButtonNone
-	case 0x40:
-		button = WheelUp
-	case 0x41:
-		button = WheelDown
-	case 0x42:
-		button = WheelLeft
-	case 0x43:
-		button = WheelRight
-	}
-
-	if btn&0x4 != 0 {
-		mod |= ModShift
-	}
-	if btn&0x8 != 0 {
-		mod |= ModAlt
-	}
-	if btn&0x10 != 0 {
-		mod |= ModCtrl
-	}
-
-	// Some terminals will report mouse coordinates outside the
-	// screen, especially with click-drag events.  Clip the coordinates
-	// to the screen in that case.
-	x, y = t.clip(x, y)
-
-	return NewEventMouse(x, y, button, mod)
-}
-
-// parseSgrMouse attempts to locate an SGR mouse record at the start of the
-// buffer.  It returns true, true if it found one, and the associated bytes
-// be removed from the buffer.  It returns true, false if the buffer might
-// contain such an event, but more bytes are necessary (partial match), and
-// false, false if the content is definitely *not* an SGR mouse record.
-func (t *tScreen) parseSgrMouse(buf *bytes.Buffer, evs *[]Event) (bool, bool) {
-
-	b := buf.Bytes()
-
-	var x, y, btn, state int
-	dig := false
-	neg := false
-	motion := false
-	scroll := false
-	i := 0
-	val := 0
-
-	for i = range b {
-		switch b[i] {
-		case '\x1b':
-			if state != 0 {
-				return false, false
-			}
-			state = 1
-
-		case '\x9b':
-			if state != 0 {
-				return false, false
-			}
-			state = 2
-
-		case '[':
-			if state != 1 {
-				return false, false
-			}
-			state = 2
-
-		case '<':
-			if state != 2 {
-				return false, false
-			}
-			val = 0
-			dig = false
-			neg = false
-			state = 3
-
-		case '-':
-			if state != 3 && state != 4 && state != 5 {
-				return false, false
-			}
-			if dig || neg {
-				return false, false
-			}
-			neg = true // stay in state
-
-		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			if state != 3 && state != 4 && state != 5 {
-				return false, false
-			}
-			val *= 10
-			val += int(b[i] - '0')
-			dig = true // stay in state
-
-		case ';':
-			if neg {
-				val = -val
-			}
-			switch state {
-			case 3:
-				btn, val = val, 0
-				neg, dig, state = false, false, 4
-			case 4:
-				x, val = val-1, 0
-				neg, dig, state = false, false, 5
-			default:
-				return false, false
-			}
-
-		case 'm', 'M':
-			if state != 5 {
-				return false, false
-			}
-			if neg {
-				val = -val
-			}
-			y = val - 1
-
-			motion = (btn & 32) != 0
-			scroll = (btn & 0x42) == 0x40
-			btn &^= 32
-			if b[i] == 'm' {
-				// mouse release, clear all buttons
-				btn |= 3
-				btn &^= 0x40
-				t.buttondn = false
-			} else if motion {
-				/*
-				 * Some broken terminals appear to send
-				 * mouse button one motion events, instead of
-				 * encoding 35 (no buttons) into these events.
-				 * We resolve these by looking for a non-motion
-				 * event first.
-				 */
-				if !t.buttondn {
-					btn |= 3
-					btn &^= 0x40
-				}
-			} else if !scroll {
-				t.buttondn = true
-			}
-			// consume the event bytes
-			for i >= 0 {
-				_, _ = buf.ReadByte()
-				i--
-			}
-			*evs = append(*evs, t.buildMouseEvent(x, y, btn))
-			return true, true
-		}
-	}
-
-	// incomplete & inconclusive at this point
-	return true, false
-}
-
-func (t *tScreen) parseFocus(buf *bytes.Buffer, evs *[]Event) (bool, bool) {
-	state := 0
-	b := buf.Bytes()
-	for i := range b {
-		switch state {
-		case 0:
-			if b[i] != '\x1b' {
-				return false, false
-			}
-			state = 1
-		case 1:
-			if b[i] != '[' {
-				return false, false
-			}
-			state = 2
-		case 2:
-			if b[i] != 'I' && b[i] != 'O' {
-				return false, false
-			}
-			*evs = append(*evs, NewEventFocus(b[i] == 'I'))
-			_, _ = buf.ReadByte()
-			_, _ = buf.ReadByte()
-			_, _ = buf.ReadByte()
-			return true, true
-		}
-	}
-	return true, false
-}
-
-func (t *tScreen) parseClipboard(buf *bytes.Buffer, evs *[]Event) (bool, bool) {
-	b := buf.Bytes()
-	state := 0
-	prefix := []byte("\x1b]52;c;")
-
-	if len(prefix) >= len(b) {
-		if bytes.HasPrefix(prefix, b) {
-			// inconclusive so far
-			return true, false
-		}
-		// definitely not a match
-		return false, false
-	}
-	b = b[len(prefix):]
-
-	for _, c := range b {
-		// valid base64 digits
-		if state == 0 {
-			if (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || (c == '+') || (c == '/') || (c == '=') {
-				continue
-			}
-			if c == '\x1b' {
-				state = 1
-				continue
-			}
-			if c == '\a' {
-				// matched with BEL instead of ST
-				b = b[:len(b)-1] // drop the trailing BEL
-				decoded := make([]byte, base64.StdEncoding.DecodedLen(len(b)))
-				if num, err := base64.StdEncoding.Decode(decoded, b); err == nil {
-					*evs = append(*evs, NewEventClipboard(decoded[:num]))
-				}
-				_, _ = buf.ReadBytes('\a')
-				return true, true
-			}
-			return false, false
-		}
-		if state == 1 {
-			if c == '\\' {
-				b = b[:len(b)-2] // drop the trailing ST (\x1b\\)
-				// now decode the data
-				decoded := make([]byte, base64.StdEncoding.DecodedLen(len(b)))
-				if num, err := base64.StdEncoding.Decode(decoded, b); err == nil {
-					*evs = append(*evs, NewEventClipboard(decoded[:num]))
-				}
-				_, _ = buf.ReadBytes('\\')
-				return true, true
-			}
-			return false, false
-		}
-	}
-	// not enough data yet (not terminated)
-	return true, false
-}
-
-// parseXtermMouse is like parseSgrMouse, but it parses a legacy
-// X11 mouse record.
-func (t *tScreen) parseXtermMouse(buf *bytes.Buffer, evs *[]Event) (bool, bool) {
-
-	b := buf.Bytes()
-
-	state := 0
-	btn := 0
-	x := 0
-	y := 0
-
-	for i := range b {
-		switch state {
-		case 0:
-			switch b[i] {
-			case '\x1b':
-				state = 1
-			case '\x9b':
-				state = 2
-			default:
-				return false, false
-			}
-		case 1:
-			if b[i] != '[' {
-				return false, false
-			}
-			state = 2
-		case 2:
-			if b[i] != 'M' {
-				return false, false
-			}
-			state++
-		case 3:
-			btn = int(b[i])
-			state++
-		case 4:
-			x = int(b[i]) - 32 - 1
-			state++
-		case 5:
-			y = int(b[i]) - 32 - 1
-			for i >= 0 {
-				_, _ = buf.ReadByte()
-				i--
-			}
-			*evs = append(*evs, t.buildMouseEvent(x, y, btn))
-			return true, true
-		}
-	}
-	return true, false
-}
-
-func (t *tScreen) parseFunctionKey(buf *bytes.Buffer, evs *[]Event) (bool, bool) {
-	b := buf.Bytes()
-	partial := false
-	for e, k := range t.keycodes {
-		esc := []byte(e)
-		if (len(esc) == 1) && (esc[0] == '\x1b') {
-			continue
-		}
-		if bytes.HasPrefix(b, esc) {
-			// matched
-			var r rune
-			if len(esc) == 1 {
-				r = rune(b[0])
-			}
-			mod := k.mod
-			if t.escaped {
-				mod |= ModAlt
-				t.escaped = false
-			}
-			switch k.key {
-			case keyPasteStart:
-				*evs = append(*evs, NewEventPaste(true))
-			case keyPasteEnd:
-				*evs = append(*evs, NewEventPaste(false))
-			default:
-				*evs = append(*evs, NewEventKey(k.key, r, mod))
-			}
-			for i := 0; i < len(esc); i++ {
-				_, _ = buf.ReadByte()
-			}
-			return true, true
-		}
-		if bytes.HasPrefix(esc, b) {
-			partial = true
-		}
-	}
-	return partial, false
-}
-
-func (t *tScreen) parseRune(buf *bytes.Buffer, evs *[]Event) (bool, bool) {
-	b := buf.Bytes()
-	if b[0] >= ' ' && b[0] <= 0x7F {
-		// printable ASCII easy to deal with -- no encodings
-		mod := ModNone
-		if t.escaped {
-			mod = ModAlt
-			t.escaped = false
-		}
-		*evs = append(*evs, NewEventKey(KeyRune, rune(b[0]), mod))
-		_, _ = buf.ReadByte()
-		return true, true
-	}
-
-	if b[0] < 0x80 {
-		// Low numbered values are control keys, not runes.
-		return false, false
-	}
-
-	utf := make([]byte, 12)
-	for l := 1; l <= len(b); l++ {
-		t.decoder.Reset()
-		nOut, nIn, e := t.decoder.Transform(utf, b[:l], true)
+func (t *tScreen) scanInput(buf *bytes.Buffer) {
+	for buf.Len() > 0 {
+		utf := make([]byte, min(8, max(buf.Len()*2, 128)))
+		nOut, nIn, e := t.decoder.Transform(utf, buf.Bytes(), true)
+		_ = buf.Next(nIn)
+		t.input.ScanUTF8(utf[:nOut])
 		if e == transform.ErrShortSrc {
-			continue
-		}
-		if nOut != 0 {
-			r, _ := utf8.DecodeRune(utf[:nOut])
-			if r != utf8.RuneError {
-				mod := ModNone
-				if t.escaped {
-					mod = ModAlt
-					t.escaped = false
-				}
-				*evs = append(*evs, NewEventKey(KeyRune, r, mod))
-			}
-			for nIn > 0 {
-				_, _ = buf.ReadByte()
-				nIn--
-			}
-			return true, true
-		}
-	}
-	// Looks like potential escape
-	return true, false
-}
-
-func (t *tScreen) scanInput(buf *bytes.Buffer, expire bool) {
-	evs := t.collectEventsFromInput(buf, expire)
-
-	for _, ev := range evs {
-		select {
-		case t.eventQ <- ev:
-		case <-t.quit:
 			return
 		}
 	}
-}
-
-// Return an array of Events extracted from the supplied buffer. This is done
-// while holding the screen's lock - the events can then be queued for
-// application processing with the lock released.
-func (t *tScreen) collectEventsFromInput(buf *bytes.Buffer, expire bool) []Event {
-
-	res := make([]Event, 0, 20)
-
-	t.Lock()
-	defer t.Unlock()
-
-	for {
-		b := buf.Bytes()
-		if len(b) == 0 {
-			buf.Reset()
-			return res
-		}
-
-		partials := 0
-
-		if part, comp := t.parseRune(buf, &res); comp {
-			continue
-		} else if part {
-			partials++
-		}
-
-		if part, comp := t.parseFunctionKey(buf, &res); comp {
-			continue
-		} else if part {
-			partials++
-		}
-
-		if part, comp := t.parseFocus(buf, &res); comp {
-			continue
-		} else if part {
-			partials++
-		}
-
-		// Only parse mouse records if this term claims to have
-		// mouse support
-
-		if t.ti.Mouse != "" {
-			if part, comp := t.parseXtermMouse(buf, &res); comp {
-				continue
-			} else if part {
-				partials++
-			}
-
-			if part, comp := t.parseSgrMouse(buf, &res); comp {
-				continue
-			} else if part {
-				partials++
-			}
-		}
-
-		if t.setClipboard != "" {
-			if part, comp := t.parseClipboard(buf, &res); comp {
-				continue
-			} else if part {
-				partials++
-			}
-		}
-
-		if partials == 0 || expire {
-			if b[0] == '\x1b' {
-				if len(b) == 1 {
-					res = append(res, NewEventKey(KeyEsc, 0, ModNone))
-					t.escaped = false
-				} else {
-					t.escaped = true
-				}
-				_, _ = buf.ReadByte()
-				continue
-			}
-			// Nothing was going to match, or we timed-out
-			// waiting for more data -- just deliver the characters
-			// to the app & let them sort it out.  Possibly we
-			// should only do this for control characters like ESC.
-			by, _ := buf.ReadByte()
-			mod := ModNone
-			if t.escaped {
-				t.escaped = false
-				mod = ModAlt
-			}
-			res = append(res, NewEventKey(KeyRune, rune(by), mod))
-			continue
-		}
-
-		// well we have some partial data, wait until we get
-		// some more
-		break
-	}
-
-	return res
 }
 
 func (t *tScreen) mainLoop(stopQ chan struct{}) {
@@ -1833,39 +1018,9 @@ func (t *tScreen) mainLoop(stopQ chan struct{}) {
 			t.draw()
 			t.Unlock()
 			continue
-		case <-t.keytimer.C:
-			// If the timer fired, and the current time
-			// is after the expiration of the escape sequence,
-			// then we assume the escape sequence reached its
-			// conclusion, and process the chunk independently.
-			// This lets us detect conflicts such as a lone ESC.
-			if buf.Len() > 0 {
-				if time.Now().After(t.keyexpire) {
-					t.scanInput(buf, true)
-				}
-			}
-			if buf.Len() > 0 {
-				if !t.keytimer.Stop() {
-					select {
-					case <-t.keytimer.C:
-					default:
-					}
-				}
-				t.keytimer.Reset(time.Millisecond * 50)
-			}
 		case chunk := <-t.keychan:
 			buf.Write(chunk)
-			t.keyexpire = time.Now().Add(time.Millisecond * 50)
-			t.scanInput(buf, false)
-			if !t.keytimer.Stop() {
-				select {
-				case <-t.keytimer.C:
-				default:
-				}
-			}
-			if buf.Len() > 0 {
-				t.keytimer.Reset(time.Millisecond * 50)
-			}
+			t.scanInput(buf)
 		}
 	}
 }
@@ -1934,11 +1089,9 @@ func (t *tScreen) CanDisplay(r rune, checkFallbacks bool) bool {
 
 	if enc := t.encoder; enc != nil {
 		nb := make([]byte, 6)
-		ob := make([]byte, 6)
-		num := utf8.EncodeRune(ob, r)
 
 		enc.Reset()
-		dst, _, err := enc.Transform(nb, ob[:num], true)
+		dst, _, err := enc.Transform(nb, []byte(string(r)), true)
 		if dst != 0 && err == nil && nb[0] != '\x1A' {
 			return true
 		}
@@ -1961,11 +1114,9 @@ func (t *tScreen) HasMouse() bool {
 	return len(t.mouse) != 0
 }
 
-func (t *tScreen) HasKey(k Key) bool {
-	if k == KeyRune {
-		return true
-	}
-	return t.keyexist[k]
+func (t *tScreen) HasKey(_ Key) bool {
+	// We always return true
+	return true
 }
 
 func (t *tScreen) SetSize(w, h int) {
@@ -2023,7 +1174,6 @@ func (t *tScreen) engage() error {
 	if t.focusEnabled {
 		t.enableFocusReporting()
 	}
-
 	ti := t.ti
 	if os.Getenv("TCELL_ALTSCREEN") != "disable" {
 		// Technically this may not be right, but every terminal we know about
@@ -2032,9 +1182,7 @@ func (t *tScreen) engage() error {
 		// (In theory there could be terminals that don't support X,Y cursor
 		// positions without a setup command, but we don't support them.)
 		t.TPuts(ti.EnterCA)
-		if t.saveTitle != "" {
-			t.TPuts(t.saveTitle)
-		}
+		t.TPuts(t.saveTitle)
 	}
 	t.TPuts(ti.EnterKeypad)
 	t.TPuts(ti.HideCursor)
@@ -2044,6 +1192,7 @@ func (t *tScreen) engage() error {
 	if t.title != "" && t.setTitle != "" {
 		t.TPuts(t.ti.TParm(t.setTitle, t.title))
 	}
+	t.TPuts(t.enableCsiU)
 
 	t.wg.Add(2)
 	go t.inputLoop(stopQ)
@@ -2062,6 +1211,7 @@ func (t *tScreen) disengage() {
 		t.Unlock()
 		return
 	}
+
 	t.running = false
 	stopQ := t.stopQ
 	close(stopQ)
@@ -2086,6 +1236,7 @@ func (t *tScreen) disengage() {
 	t.TPuts(ti.AttrOff)
 	t.TPuts(ti.ExitKeypad)
 	t.TPuts(ti.EnableAutoMargin)
+	t.TPuts(t.disableCsiU)
 	if os.Getenv("TCELL_ALTSCREEN") != "disable" {
 		if t.restoreTitle != "" {
 			t.TPuts(t.restoreTitle)

@@ -3,7 +3,7 @@ package graphemes
 import (
 	"bufio"
 
-	"github.com/clipperhouse/uax29/v2/internal/iterators"
+	"github.com/clipperhouse/stringish"
 )
 
 // is determines if lookup intersects propert(ies)
@@ -18,7 +18,7 @@ const _Ignore = _Extend
 // See https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries.
 var SplitFunc bufio.SplitFunc = splitFunc[[]byte]
 
-func splitFunc[T iterators.Stringish](data T, atEOF bool) (advance int, token T, err error) {
+func splitFunc[T stringish.Interface](data T, atEOF bool) (advance int, token T, err error) {
 	var empty T
 	if len(data) == 0 {
 		return 0, empty, nil

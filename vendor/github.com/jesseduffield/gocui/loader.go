@@ -11,7 +11,7 @@ func (v *View) loaderLines() [][]cell {
 		} else {
 			duplicate[i] = make([]cell, len(v.lines[i])+2)
 			copy(duplicate[i], v.lines[i])
-			duplicate[i][len(duplicate[i])-2] = cell{chr: ' '}
+			duplicate[i][len(duplicate[i])-2] = cell{chr: " "}
 			duplicate[i][len(duplicate[i])-1] = Loader()
 		}
 	}
@@ -21,13 +21,11 @@ func (v *View) loaderLines() [][]cell {
 
 // Loader can show a loading animation
 func Loader() cell {
-	characters := "|/-\\"
+	frames := []string{"|", "/", "-", "\\"}
 	now := time.Now()
 	nanos := now.UnixNano()
-	index := nanos / 50000000 % int64(len(characters))
-	str := characters[index : index+1]
-	chr := []rune(str)[0]
+	index := nanos / 50000000 % int64(len(frames))
 	return cell{
-		chr: chr,
+		chr: frames[index],
 	}
 }

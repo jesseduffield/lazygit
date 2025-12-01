@@ -18,5 +18,5 @@
 package tcell
 
 func getCharset() string {
-	return "UTF-16"
+	return "UTF-8"
 }
