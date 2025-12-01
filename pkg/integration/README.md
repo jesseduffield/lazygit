@@ -96,9 +96,4 @@ If you're testing different pieces of functionality, it's better to test them in
 
 ## Testing against old git versions
 
-Our CI tests against multiple git versions. If your test fails on an old version, then to troubleshoot you'll need to install the failing git version. One option is to use [rtx](https://github.com/jdxcode/rtx) (see installation steps in the readme) with the git plugin like so:
-```sh
-rtx plugin add git
-rtx install git 2.20.0
-rtx local git 2.20.0
-```
+Our CI tests against multiple git versions. If your test fails on an old version, then to troubleshoot you'll need to install the failing git version.
