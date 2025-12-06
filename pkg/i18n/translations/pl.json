@@ -645,7 +645,6 @@
   "NewWorktreePath": "Nowa ścieżka drzewa pracy",
   "NewWorktreeBase": "Nowa bazowa ref drzewa pracy",
   "RemoveWorktreeTooltip": "Usuń wybrane drzewo pracy. To usunie zarówno katalog drzewa pracy, jak i metadane o drzewie pracy w katalogu .git.",
-  "BranchNameCannotBeBlank": "Nazwa brancha nie może być pusta",
   "NewBranchName": "Nowa nazwa brancha",
   "NewBranchNameLeaveBlank": "Nowa nazwa brancha (pozostaw puste, aby przełączyć {{.default}})",
   "ViewWorktreeOptions": "Zobacz opcje drzewa pracy",
