@@ -4,7 +4,7 @@ package hosting_service
 // at https://regex101.com using the flavor Golang
 var defaultUrlRegexStrings = []string{
 	`^(?:https?|ssh)://[^/]+/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
-	`^.*?@.*:/*(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
+	`^(.*?@)?.*:/*(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 }
 var defaultRepoURLTemplate = "https://{{.webDomain}}/{{.owner}}/{{.repo}}"
 

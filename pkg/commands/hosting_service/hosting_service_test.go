@@ -57,6 +57,16 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:             "Opens a link to new pull request on github custom SSH config alias and a corresponding service config",
+			from:                 "feature/sum-operation",
+			remoteUrl:            "github:peter/calculator.git",
+			configServiceDomains: map[string]string{"github": "github:github.com"},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://github.com/peter/calculator/compare/feature%2Fsum-operation?expand=1", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on github with extra slash removed",
 			from:      "feature/sum-operation",
 			remoteUrl: "git@github.com:/peter/calculator.git",
@@ -128,6 +138,16 @@ func TestGetPullRequestURL(t *testing.T) {
 			testName:  "Opens a link to new pull request on gitlab",
 			from:      "feature/ui",
 			remoteUrl: "git@gitlab.com:peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/peter/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fui", url)
+			},
+		},
+		{
+			testName:             "Opens a link to new pull request on gitlab with custom SSH config alias and a corresponding service config",
+			from:                 "feature/ui",
+			remoteUrl:            "gitlab:peter/calculator.git",
+			configServiceDomains: map[string]string{"gitlab": "gitlab:gitlab.com"},
 			test: func(url string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://gitlab.com/peter/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fui", url)
