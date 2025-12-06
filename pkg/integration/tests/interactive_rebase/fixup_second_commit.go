@@ -29,7 +29,7 @@ var FixupSecondCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Fixup")).
-					Content(Equals("Are you sure you want to 'fixup' the selected commit(s) into the commit below?")).
+					Content(Equals("Are you sure you want to 'fixup' the selected commit(s) into the parent commit below?")).
 					Confirm()
 			}).
 			Lines(
