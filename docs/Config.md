@@ -703,6 +703,7 @@ keybinding:
     pushTag: P
     setUpstream: u
     fetchRemote: f
+    addForkRemote: F
     sortOrder: s
   worktrees:
     viewWorktreeOptions: w
