@@ -2,7 +2,6 @@ package git_commands
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -116,64 +115,124 @@ func (self *WorkingTreeCommands) BeforeAndAfterFileForRename(file *models.File) 
 	return beforeFile, afterFile, nil
 }
 
-// DiscardAllFileChanges directly
-func (self *WorkingTreeCommands) DiscardAllFileChanges(file *models.File) error {
-	if file.IsRename() {
-		beforeFile, afterFile, err := self.BeforeAndAfterFileForRename(file)
-		if err != nil {
-			return err
+// DiscardAllFilesChanges discards changes for multiple files in batch
+func (self *WorkingTreeCommands) DiscardAllFilesChanges(files []*models.File) error {
+	// Group files by their discard strategy
+	var (
+		aaStatusFiles      []*models.File
+		duStatusFiles      []*models.File
+		filesToReset       []*models.File
+		addedFilesToRemove []*models.File
+		filesToCheckout    []*models.File
+	)
+
+	// Helper function to categorize a file into the appropriate group
+	categorizeFile := func(file *models.File) {
+		if file.ShortStatus == "AA" {
+			aaStatusFiles = append(aaStatusFiles, file)
+			return
 		}
 
-		if err := self.DiscardAllFileChanges(beforeFile); err != nil {
-			return err
+		if file.ShortStatus == "DU" {
+			duStatusFiles = append(duStatusFiles, file)
+			return
 		}
 
-		if err := self.DiscardAllFileChanges(afterFile); err != nil {
-			return err
+		// Track which files need to be reset first
+		needsReset := file.HasStagedChanges || file.HasMergeConflicts
+		if needsReset {
+			filesToReset = append(filesToReset, file)
 		}
 
-		return nil
+		if file.ShortStatus == "DD" || file.ShortStatus == "AU" {
+		} else if file.Added {
+			addedFilesToRemove = append(addedFilesToRemove, file)
+		} else {
+			filesToCheckout = append(filesToCheckout, file)
+		}
 	}
 
-	if file.ShortStatus == "AA" {
+	for _, file := range files {
+		if file.IsRename() {
+			// Get the before and after files for the rename and add them to the appropriate groups
+			beforeFile, afterFile, err := self.BeforeAndAfterFileForRename(file)
+			if err != nil {
+				return err
+			}
+			categorizeFile(beforeFile)
+			categorizeFile(afterFile)
+			continue
+		}
+
+		categorizeFile(file)
+	}
+
+	// Batch reset files that need resetting
+	if len(filesToReset) > 0 {
+		paths := make([]string, len(filesToReset))
+		for i, file := range filesToReset {
+			paths[i] = file.Path
+		}
 		if err := self.cmd.New(
-			NewGitCmd("checkout").Arg("--ours", "--", file.Path).ToArgv(),
+			NewGitCmd("reset").Arg("--").Arg(paths...).ToArgv(),
 		).Run(); err != nil {
 			return err
 		}
+	}
 
-		if err := self.cmd.New(
-			NewGitCmd("add").Arg("--", file.Path).ToArgv(),
-		).Run(); err != nil {
-			return err
+	// Batch remove DU status files
+	if len(duStatusFiles) > 0 {
+		paths := make([]string, len(duStatusFiles))
+		for i, file := range duStatusFiles {
+			paths[i] = file.Path
 		}
-		return nil
-	}
-
-	if file.ShortStatus == "DU" {
-		return self.cmd.New(
-			NewGitCmd("rm").Arg("--", file.Path).ToArgv(),
-		).Run()
-	}
-
-	// if the file isn't tracked, we assume you want to delete it
-	if file.HasStagedChanges || file.HasMergeConflicts {
 		if err := self.cmd.New(
-			NewGitCmd("reset").Arg("--", file.Path).ToArgv(),
+			NewGitCmd("rm").Arg("--").Arg(paths...).ToArgv(),
 		).Run(); err != nil {
 			return err
 		}
 	}
 
-	if file.ShortStatus == "DD" || file.ShortStatus == "AU" {
-		return nil
+	// Batch checkout --ours for AA status files
+	if len(aaStatusFiles) > 0 {
+		paths := make([]string, len(aaStatusFiles))
+		for i, file := range aaStatusFiles {
+			paths[i] = file.Path
+		}
+		if err := self.cmd.New(
+			NewGitCmd("checkout").Arg("--ours", "--").Arg(paths...).ToArgv(),
+		).Run(); err != nil {
+			return err
+		}
+		// Stage them after checkout
+		if err := self.cmd.New(
+			NewGitCmd("add").Arg("--").Arg(paths...).ToArgv(),
+		).Run(); err != nil {
+			return err
+		}
 	}
 
-	if file.Added {
-		return self.os.RemoveFile(file.Path)
+	// Remove added files from filesystem
+	for _, file := range addedFilesToRemove {
+		if err := self.os.RemoveFile(file.Path); err != nil {
+			return err
+		}
 	}
 
-	return self.DiscardUnstagedFileChanges(file)
+	// Batch checkout other files
+	if len(filesToCheckout) > 0 {
+		paths := make([]string, len(filesToCheckout))
+		for i, file := range filesToCheckout {
+			paths[i] = file.Path
+		}
+		if err := self.cmd.New(
+			NewGitCmd("checkout").Arg("--").Arg(paths...).ToArgv(),
+		).Run(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 type IFileNode interface {
@@ -184,53 +243,43 @@ type IFileNode interface {
 	GetFile() *models.File
 }
 
-func (self *WorkingTreeCommands) DiscardAllDirChanges(node IFileNode) error {
-	// this could be more efficient but we would need to handle all the edge cases
-	return node.ForEachFile(self.DiscardAllFileChanges)
-}
+// DiscardUnstagedFilesChanges discards unstaged changes for multiple files in batch
+func (self *WorkingTreeCommands) DiscardUnstagedFilesChanges(files []*models.File) error {
+	var (
+		addedFilesToRemove     []*models.File
+		trackedFilesToCheckout []*models.File
+	)
 
-func (self *WorkingTreeCommands) DiscardUnstagedDirChanges(node IFileNode) error {
-	file := node.GetFile()
-	if file == nil {
-		if err := self.RemoveUntrackedDirFiles(node); err != nil {
+	for _, file := range files {
+		// Only remove files that are added but not staged
+		if file.Added && !file.HasStagedChanges {
+			addedFilesToRemove = append(addedFilesToRemove, file)
+		} else {
+			// Checkout tracked files to discard unstaged changes
+			trackedFilesToCheckout = append(trackedFilesToCheckout, file)
+		}
+	}
+
+	// Remove added files from filesystem
+	for _, file := range addedFilesToRemove {
+		if err := self.os.RemoveFile(file.Path); err != nil {
 			return err
 		}
+	}
 
-		cmdArgs := NewGitCmd("checkout").Arg("--", node.GetPath()).ToArgv()
+	// Batch checkout tracked files
+	if len(trackedFilesToCheckout) > 0 {
+		paths := make([]string, len(trackedFilesToCheckout))
+		for i, file := range trackedFilesToCheckout {
+			paths[i] = file.Path
+		}
+		cmdArgs := NewGitCmd("checkout").Arg("--").Arg(paths...).ToArgv()
 		if err := self.cmd.New(cmdArgs).Run(); err != nil {
 			return err
 		}
-	} else {
-		if file.Added && !file.HasStagedChanges {
-			return self.os.RemoveFile(file.Path)
-		}
-
-		if err := self.DiscardUnstagedFileChanges(file); err != nil {
-			return err
-		}
 	}
 
 	return nil
-}
-
-func (self *WorkingTreeCommands) RemoveUntrackedDirFiles(node IFileNode) error {
-	untrackedFilePaths := node.GetFilePathsMatching(
-		func(file *models.File) bool { return !file.GetIsTracked() },
-	)
-
-	for _, path := range untrackedFilePaths {
-		err := os.Remove(path)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (self *WorkingTreeCommands) DiscardUnstagedFileChanges(file *models.File) error {
-	cmdArgs := NewGitCmd("checkout").Arg("--", file.Path).ToArgv()
-	return self.cmd.New(cmdArgs).Run()
 }
 
 // Escapes special characters in a filename for gitignore and exclude files
