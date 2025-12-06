@@ -575,7 +575,7 @@ func (self *CommitLoader) getReachableHashes(refName string, notRefNames []strin
 	return set.NewFromSlice(utils.SplitLines(output))
 }
 
-// getLog gets the git log.
+// getLogCmd gets the git log.
 func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 	gitLogOrder := self.UserConfig().Git.Log.Order
 
