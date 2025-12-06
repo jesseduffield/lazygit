@@ -545,7 +545,6 @@
   "MainWorktree": "（主要）",
   "NewWorktreePath": "工作目錄路徑",
   "NewWorktreeBase": "工作目錄來源",
-  "BranchNameCannotBeBlank": "分支名稱不能為空",
   "NewBranchName": "分支名稱",
   "NewBranchNameLeaveBlank": "分支名稱（留空將檢出 {{.default}}）",
   "ViewWorktreeOptions": "檢視工作目錄選項",
