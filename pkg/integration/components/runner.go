@@ -246,7 +246,11 @@ func getLazygitCommand(
 	cmdObj.AddEnvVars(fmt.Sprintf("GORACE=log_path=%s", raceDetectorLogsPath()))
 	if test.ExtraEnvVars() != nil {
 		for key, value := range test.ExtraEnvVars() {
-			cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", key, value))
+			resolvedValue := utils.ResolvePlaceholderString(value, map[string]string{
+				"actualPath":     paths.Actual(),
+				"actualRepoPath": paths.ActualRepo(),
+			})
+			cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", key, resolvedValue))
 		}
 	}
 
