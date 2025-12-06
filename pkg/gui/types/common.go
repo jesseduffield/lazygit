@@ -169,11 +169,12 @@ type CreatePopupPanelOpts struct {
 	HandleClose            func() error
 	HandleDeleteSuggestion func(int) error
 
-	FindSuggestionsFunc func(string) []*Suggestion
-	Mask                bool
-	AllowEditSuggestion bool
-	AllowEmptyInput     bool
-	PreserveWhitespace  bool
+	FindSuggestionsFunc     func(string) []*Suggestion
+	Mask                    bool
+	AllowEditSuggestion     bool
+	AllowEmptyInput         bool
+	PreserveWhitespace      bool
+	ReplaceSpacesWithDashes bool
 }
 
 type ConfirmOpts struct {
@@ -195,9 +196,10 @@ type PromptOpts struct {
 	AllowEmptyInput     bool
 	PreserveWhitespace  bool
 	// CAPTURE THIS
-	HandleClose            func() error
-	HandleDeleteSuggestion func(int) error
-	Mask                   bool
+	HandleClose             func() error
+	HandleDeleteSuggestion  func(int) error
+	Mask                    bool
+	ReplaceSpacesWithDashes bool
 }
 
 type MenuSection struct {

@@ -131,17 +131,18 @@ func (self *PopupHandler) ConfirmIf(condition bool, opts types.ConfirmOpts) erro
 
 func (self *PopupHandler) Prompt(opts types.PromptOpts) {
 	self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
-		Title:                  opts.Title,
-		Prompt:                 opts.InitialContent,
-		Editable:               true,
-		HandleConfirmPrompt:    opts.HandleConfirm,
-		HandleClose:            opts.HandleClose,
-		HandleDeleteSuggestion: opts.HandleDeleteSuggestion,
-		FindSuggestionsFunc:    opts.FindSuggestionsFunc,
-		AllowEditSuggestion:    opts.AllowEditSuggestion,
-		AllowEmptyInput:        opts.AllowEmptyInput,
-		PreserveWhitespace:     opts.PreserveWhitespace,
-		Mask:                   opts.Mask,
+		Title:                   opts.Title,
+		Prompt:                  opts.InitialContent,
+		Editable:                true,
+		HandleConfirmPrompt:     opts.HandleConfirm,
+		HandleClose:             opts.HandleClose,
+		HandleDeleteSuggestion:  opts.HandleDeleteSuggestion,
+		FindSuggestionsFunc:     opts.FindSuggestionsFunc,
+		AllowEditSuggestion:     opts.AllowEditSuggestion,
+		AllowEmptyInput:         opts.AllowEmptyInput,
+		PreserveWhitespace:      opts.PreserveWhitespace,
+		Mask:                    opts.Mask,
+		ReplaceSpacesWithDashes: opts.ReplaceSpacesWithDashes,
 	})
 }
 
