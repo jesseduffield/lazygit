@@ -247,8 +247,6 @@ type TranslationSet struct {
 	UpdateFailedErr                       string
 	ConfirmQuitDuringUpdateTitle          string
 	ConfirmQuitDuringUpdate               string
-	MergeToolTitle                        string
-	MergeToolPrompt                       string
 	IntroPopupMessage                     string
 	NonReloadableConfigWarningTitle       string
 	NonReloadableConfigWarning            string
@@ -1343,8 +1341,6 @@ func EnglishTranslationSet() *TranslationSet {
 		UpdateFailedErr:                      "Update failed: {{.errMessage}}",
 		ConfirmQuitDuringUpdateTitle:         "Currently updating",
 		ConfirmQuitDuringUpdate:              "An update is in progress. Are you sure you want to quit?",
-		MergeToolTitle:                       "Merge tool",
-		MergeToolPrompt:                      "Are you sure you want to open `git mergetool`?",
 		IntroPopupMessage:                    englishIntroPopupMessage,
 		NonReloadableConfigWarningTitle:      "Config changed",
 		NonReloadableConfigWarning:           englishNonReloadableConfigWarning,
