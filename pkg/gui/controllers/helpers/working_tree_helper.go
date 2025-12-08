@@ -90,18 +90,10 @@ func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfi
 }
 
 func (self *WorkingTreeHelper) OpenMergeTool() error {
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.MergeToolTitle,
-		Prompt: self.c.Tr.MergeToolPrompt,
-		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.OpenMergeTool)
-			return self.c.RunSubprocessAndRefresh(
-				self.c.Git().WorkingTree.OpenMergeToolCmdObj(),
-			)
-		},
-	})
-
-	return nil
+	self.c.LogAction(self.c.Tr.Actions.OpenMergeTool)
+	return self.c.RunSubprocessAndRefresh(
+		self.c.Git().WorkingTree.OpenMergeToolCmdObj(),
+	)
 }
 
 func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage string, forceSkipHooks bool) error {
