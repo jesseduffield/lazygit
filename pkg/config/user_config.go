@@ -380,6 +380,15 @@ type LogConfig struct {
 	ShowGraph string `yaml:"showGraph" jsonschema:"enum=always,enum=never,enum=when-maximised"`
 	// displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
 	ShowWholeGraph bool `yaml:"showWholeGraph"`
+
+	// Custom format for the commit list side panel.
+	// Supports placeholders like:
+	//   %h  short hash   %s  subject
+	//   %an author name  %as short author
+	//   %g  graph line   %d  decorations (tags/branches/markers)
+	//   %a  action       %cd date
+	// Default: "%h %a %as %g %d %s".
+	CustomPaneLogFormat string `yaml:"customPaneLogFormat"`
 }
 
 type CommitPrefixConfig struct {
@@ -831,9 +840,10 @@ func GetDefaultConfig() *UserConfig {
 				SquashMergeMessage: "Squash merge {{selectedRef}} into {{currentBranch}}",
 			},
 			Log: LogConfig{
-				Order:          "topo-order",
-				ShowGraph:      "always",
-				ShowWholeGraph: false,
+				Order:               "topo-order",
+				ShowGraph:           "always",
+				ShowWholeGraph:      false,
+				CustomPaneLogFormat: "%h %a %as %g %d %s",
 			},
 			LocalBranchSortOrder:         "date",
 			RemoteBranchSortOrder:        "date",
