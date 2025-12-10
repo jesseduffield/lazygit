@@ -101,6 +101,10 @@ func (self *ConfigCommands) GetMergeFF() string {
 	return self.gitConfig.Get("merge.ff")
 }
 
+func (self *ConfigCommands) GetCoreExcludesFile() string {
+	return self.gitConfig.Get("core.excludesFile")
+}
+
 func (self *ConfigCommands) DropConfigCache() {
 	self.gitConfig.DropCache()
 }

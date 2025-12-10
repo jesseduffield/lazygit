@@ -258,6 +258,7 @@ type TranslationSet struct {
 	OpenInEditor                          string
 	IgnoreFile                            string
 	ExcludeFile                           string
+	GlobalExcludesFile                    string
 	RefreshFiles                          string
 	FocusMainView                         string
 	Merge                                 string
@@ -1351,6 +1352,7 @@ func EnglishTranslationSet() *TranslationSet {
 		OpenInEditor:                         "Open in editor",
 		IgnoreFile:                           `Add to .gitignore`,
 		ExcludeFile:                          `Add to .git/info/exclude`,
+		GlobalExcludesFile:                   `Add to {{.path}}`,
 		RefreshFiles:                         `Refresh files`,
 		FocusMainView:                        "Focus main view",
 		Merge:                                `Merge`,

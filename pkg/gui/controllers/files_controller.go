@@ -739,6 +739,14 @@ func (self *FilesController) exclude(node *filetree.FileNode) error {
 	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Git().WorkingTree.Exclude)
 }
 
+func (self *FilesController) excludeGlobal(node *filetree.FileNode) error {
+	if node.GetPath() == ".gitignore" {
+		return errors.New(self.c.Tr.Actions.ExcludeGitIgnoreErr)
+	}
+
+	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Git().WorkingTree.ExcludeGlobal)
+}
+
 func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error {
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Actions.IgnoreExcludeFile,
@@ -756,6 +764,16 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 					return self.exclude(node)
 				},
 				Key: 'e',
+			},
+			{
+				LabelColumns: []string{utils.ResolvePlaceholderString(self.c.Tr.GlobalExcludesFile, map[string]string{"path": self.c.Git().WorkingTree.GetGlobalExcludesPath()})},
+				OnPress: func() error {
+					if err := self.excludeGlobal(node); err != nil {
+						return err
+					}
+					return nil
+				},
+				Key: 'g',
 			},
 		},
 	})
