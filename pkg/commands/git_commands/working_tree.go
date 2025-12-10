@@ -250,6 +250,36 @@ func (self *WorkingTreeCommands) Exclude(filename string) error {
 	return self.os.AppendLineToFile(excludeFile, escapeFilename(filename))
 }
 
+// ExcludeGlobal adds a file to the user's global excludes file.
+// Uses core.excludesFile if configured, otherwise falls back to the
+// default location: $XDG_CONFIG_HOME/git/ignore or ~/.config/git/ignore
+func (self *WorkingTreeCommands) ExcludeGlobal(filename string) error {
+	excludeFile := self.GetGlobalExcludesPath()
+	if strings.HasPrefix(excludeFile, "~/") {
+		// Expand tilde to home directory
+		if home, err := os.UserHomeDir(); err == nil {
+			excludeFile = filepath.Join(home, excludeFile[2:])
+		}
+	}
+	// Ensure the parent directory exists
+	if err := os.MkdirAll(filepath.Dir(excludeFile), 0o755); err != nil {
+		return err
+	}
+	return self.os.AppendLineToFile(excludeFile, escapeFilename(filename))
+}
+
+// GetGlobalExcludesPath returns the path to the global excludes file that will be used.
+// Uses core.excludesFile if configured, otherwise returns the default XDG location.
+func (self *WorkingTreeCommands) GetGlobalExcludesPath() string {
+	if excludeFile := self.config.GetCoreExcludesFile(); excludeFile != "" {
+		return excludeFile
+	}
+	if xdgConfigHome := os.Getenv("XDG_CONFIG_HOME"); xdgConfigHome != "" {
+		return filepath.Join(xdgConfigHome, "git", "ignore")
+	}
+	return "~/.config/git/ignore"
+}
+
 // WorktreeFileDiff returns the diff of a file
 func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
 	// for now we assume an error means the file was deleted
