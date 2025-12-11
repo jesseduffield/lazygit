@@ -2212,7 +2212,7 @@ keybinding:
     suspendApp: <disabled>
     redo: <c-z>
 
-- The 'git.paging.useConfig' option has been removed. If you were relying on it to configure your pager, you'll have to explicitly set the pager again using the git.paging.pager' option.
+- The 'git.paging.useConfig' option has been removed. If you were relying on it to configure your pager, you'll have to explicitly set the pager again using the 'git.paging.pager' option.
 `,
 		},
 	}
