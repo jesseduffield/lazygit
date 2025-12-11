@@ -230,3 +230,7 @@ func (self *BaseContext) Title() string {
 func (self *BaseContext) TotalContentHeight() int {
 	return self.view.ViewLinesHeight()
 }
+
+func (self *BaseContext) SetHighlightOnFocus(value bool) {
+	self.highlightOnFocus = value
+}
