@@ -28,6 +28,8 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 		return presentation.GetBranchListDisplayStrings(
 			viewModel.GetItems(),
 			c.State().GetItemOperation,
+			c.Model().PullRequests,
+			c.Model().Remotes,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().Diffing.Ref,
 			c.Views().Branches.InnerWidth()+c.Views().Branches.OriginX(),
