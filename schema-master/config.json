@@ -1581,6 +1581,11 @@
           "type": "boolean",
           "description": "displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)",
           "default": false
+        },
+        "customPaneLogFormat": {
+          "type": "string",
+          "description": "Custom format for the commit list side panel.\nSupports placeholders like:\n  %h  short hash   %s  subject\n  %an author name  %as short author\n  %g  graph line   %d  decorations (tags/branches/markers)\n  %a  action       %cd date\nDefault: \"%h %a %as %g %d %s\".",
+          "default": "%h %a %as %g %d %s"
         }
       },
       "additionalProperties": false,
