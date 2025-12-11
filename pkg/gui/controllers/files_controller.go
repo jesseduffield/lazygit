@@ -1391,10 +1391,20 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 				defer self.context().CancelRangeSelect()
 			}
 
+			// Collect all files from the selected nodes
+			var files []*models.File
 			for _, node := range selectedNodes {
-				if err := self.c.Git().WorkingTree.DiscardAllDirChanges(node); err != nil {
+				if err := node.ForEachFile(func(file *models.File) error {
+					files = append(files, file)
+					return nil
+				}); err != nil {
 					return err
 				}
+			}
+
+			// TODO: Send all nodes to delete untracked directories
+			if err := self.c.Git().WorkingTree.DiscardAllFilesChanges(files); err != nil {
+				return err
 			}
 
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
@@ -1418,10 +1428,20 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 				defer self.context().CancelRangeSelect()
 			}
 
+			// Collect all files from the selected nodes
+			var files []*models.File
 			for _, node := range selectedNodes {
-				if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
+				if err := node.ForEachFile(func(file *models.File) error {
+					files = append(files, file)
+					return nil
+				}); err != nil {
 					return err
 				}
+			}
+
+			// TODO: Send all nodes to delete untracked directories
+			if err := self.c.Git().WorkingTree.DiscardUnstagedFilesChanges(files); err != nil {
+				return err
 			}
 
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
