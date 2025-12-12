@@ -50,6 +50,7 @@ type Commit struct {
 	AuthorName    string // something like 'Jesse Duffield'
 	AuthorEmail   string // something like 'jessedduffield@gmail.com'
 	UnixTimestamp int64
+	CommitterDate int64
 
 	// Hashes of parent commits (will be multiple if it's a merge commit)
 	parents []*string
@@ -73,6 +74,7 @@ type NewCommitOpts struct {
 	AuthorName    string
 	AuthorEmail   string
 	UnixTimestamp int64
+	CommitterDate int64
 	Divergence    Divergence
 	Parents       []string
 }
@@ -88,6 +90,7 @@ func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
 		AuthorName:    opts.AuthorName,
 		AuthorEmail:   opts.AuthorEmail,
 		UnixTimestamp: opts.UnixTimestamp,
+		CommitterDate: opts.CommitterDate,
 		Divergence:    opts.Divergence,
 		parents:       lo.Map(opts.Parents, func(s string, _ int) *string { return hashPool.Add(s) }),
 	}
