@@ -44,7 +44,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		self.c.Contexts().ReflogCommits.SetSelection(0)
 		self.c.Contexts().LocalCommits.SetSelection(0)
 		// loading a heap of commits is slow so we limit them whenever doing a reset
-		self.c.Contexts().LocalCommits.SetLimitCommits(true)
+		self.c.Contexts().LocalCommits.SetGitLogLimit(git_commands.DefaultGitLogLimit())
 
 		self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
 	}
@@ -187,7 +187,7 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 	self.c.Contexts().LocalCommits.SetSelection(0)
 	self.c.Contexts().ReflogCommits.SetSelection(0)
 	// loading a heap of commits is slow so we limit them whenever doing a reset
-	self.c.Contexts().LocalCommits.SetLimitCommits(true)
+	self.c.Contexts().LocalCommits.SetGitLogLimit(git_commands.DefaultGitLogLimit())
 
 	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS}})
 
