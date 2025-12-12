@@ -277,6 +277,7 @@ func (self *BranchCommands) Merge(branchName string, variant MergeVariant) error
 
 	cmdArgs := NewGitCmd("merge").
 		Arg("--no-edit").
+		ArgIf(self.UserConfig().Git.Commit.SignOff, "--signoff").
 		Arg(strings.Fields(self.UserConfig().Git.Merging.Args)...).
 		Arg(extraArgs...).
 		Arg(branchName).
