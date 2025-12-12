@@ -599,6 +599,10 @@ gui:
   # If true, when using the panel jump keys (default 1 through 5) and target panel is already active, go to next tab instead
   switchTabsWithPanelJumpKeys: false
 
+  # Commit list date source.
+  # One of 'author' (default) | 'committer'
+  commitDateSource: author
+
 # Config relating to git
 git:
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md

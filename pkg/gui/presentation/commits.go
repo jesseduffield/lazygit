@@ -378,8 +378,16 @@ func displayCommit(
 
 	descriptionString := ""
 	if fullDescription {
+		timestamp := commit.UnixTimestamp
+		switch common.UserConfig().Gui.CommitDateSource {
+		case "committer":
+			timestamp = commit.CommitterDate
+		case "author":
+			timestamp = commit.UnixTimestamp
+		default:
+		}
 		descriptionString = style.FgBlue.Sprint(
-			utils.UnixToDateSmart(now, commit.CommitterDate, timeFormat, shortTimeFormat),
+			utils.UnixToDateSmart(now, timestamp, timeFormat, shortTimeFormat),
 		)
 	}
 

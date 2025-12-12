@@ -790,6 +790,15 @@
           "type": "boolean",
           "description": "If true, when using the panel jump keys (default 1 through 5) and target panel is already active, go to next tab instead",
           "default": false
+        },
+        "commitDateSource": {
+          "type": "string",
+          "enum": [
+            "author",
+            "committer"
+          ],
+          "description": "Commit list date source.\nOne of 'author' (default) | 'committer'",
+          "default": "author"
         }
       },
       "additionalProperties": false,
