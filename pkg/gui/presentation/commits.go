@@ -379,7 +379,7 @@ func displayCommit(
 	descriptionString := ""
 	if fullDescription {
 		descriptionString = style.FgBlue.Sprint(
-			utils.UnixToDateSmart(now, commit.UnixTimestamp, timeFormat, shortTimeFormat),
+			utils.UnixToDateSmart(now, commit.CommitterDate, timeFormat, shortTimeFormat),
 		)
 	}
 
