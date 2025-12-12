@@ -73,6 +73,15 @@ func (gui *Gui) commitDescriptionEditor(v *gocui.View, key gocui.Key, ch rune, m
 }
 
 func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
+	// Replace spaces with dashes if the option is enabled
+	if key == gocui.KeySpace {
+		if opts := gui.State.GetCurrentPopupOpts(); opts != nil && opts.ReplaceSpacesWithDashes {
+			v.TextArea.TypeRune('-')
+			v.RenderTextArea()
+			return true
+		}
+	}
+
 	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, false)
 
 	v.RenderTextArea()

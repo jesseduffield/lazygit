@@ -703,8 +703,9 @@ func (self *BranchesController) createResetMenu(selectedBranch *models.Branch) e
 func (self *BranchesController) rename(branch *models.Branch) error {
 	promptForNewName := func() error {
 		self.c.Prompt(types.PromptOpts{
-			Title:          self.c.Tr.NewBranchNamePrompt + " " + branch.Name + ":",
-			InitialContent: branch.Name,
+			Title:                   self.c.Tr.NewBranchNamePrompt + " " + branch.Name + ":",
+			InitialContent:          branch.Name,
+			ReplaceSpacesWithDashes: true,
 			HandleConfirm: func(newBranchName string) error {
 				self.c.LogAction(self.c.Tr.Actions.RenameBranch)
 				if err := self.c.Git().Branch.Rename(branch.Name, helpers.SanitizedBranchName(newBranchName)); err != nil {
