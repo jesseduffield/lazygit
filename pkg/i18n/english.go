@@ -1002,7 +1002,6 @@ type Actions struct {
 	NotEnoughContextForCustomPatch   string
 	IgnoreExcludeFile                string
 	IgnoreFileErr                    string
-	ExcludeFile                      string
 	ExcludeGitIgnoreErr              string
 	Commit                           string
 	Push                             string
@@ -2062,7 +2061,6 @@ func EnglishTranslationSet() *TranslationSet {
 			NotEnoughContextForCustomPatch:   "Creating custom patches is not possible with a diff context size of 0. Increase the context using '%s'.",
 			IgnoreExcludeFile:                "Ignore or exclude file",
 			IgnoreFileErr:                    "Cannot ignore .gitignore",
-			ExcludeFile:                      "Exclude file",
 			ExcludeGitIgnoreErr:              "Cannot exclude .gitignore",
 			Commit:                           "Commit",
 			Push:                             "Push",
