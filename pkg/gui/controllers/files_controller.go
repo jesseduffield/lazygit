@@ -709,26 +709,26 @@ func (self *FilesController) ignoreOrExcludeUntracked(node *filetree.FileNode, t
 	return nil
 }
 
-func (self *FilesController) ignoreOrExcludeFile(node *filetree.FileNode, trText string, trPrompt string, trAction string, f func(string) error) error {
+func (self *FilesController) ignoreOrExcludeFile(node *filetree.FileNode, trText string, trPrompt string, f func(string) error) error {
 	if node.GetIsTracked() {
 		self.c.Confirm(types.ConfirmOpts{
 			Title:  trText,
 			Prompt: trPrompt,
 			HandleConfirm: func() error {
-				return self.ignoreOrExcludeTracked(node, trAction, f)
+				return self.ignoreOrExcludeTracked(node, self.c.Tr.Actions.IgnoreExcludeFile, f)
 			},
 		})
 
 		return nil
 	}
-	return self.ignoreOrExcludeUntracked(node, trAction, f)
+	return self.ignoreOrExcludeUntracked(node, self.c.Tr.Actions.IgnoreExcludeFile, f)
 }
 
 func (self *FilesController) ignore(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
 		return errors.New(self.c.Tr.Actions.IgnoreFileErr)
 	}
-	return self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.c.Git().WorkingTree.Ignore)
+	return self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Git().WorkingTree.Ignore)
 }
 
 func (self *FilesController) exclude(node *filetree.FileNode) error {
@@ -736,7 +736,7 @@ func (self *FilesController) exclude(node *filetree.FileNode) error {
 		return errors.New(self.c.Tr.Actions.ExcludeGitIgnoreErr)
 	}
 
-	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.c.Git().WorkingTree.Exclude)
+	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Git().WorkingTree.Exclude)
 }
 
 func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error {
