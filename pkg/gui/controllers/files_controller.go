@@ -746,20 +746,14 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 			{
 				LabelColumns: []string{self.c.Tr.IgnoreFile},
 				OnPress: func() error {
-					if err := self.ignore(node); err != nil {
-						return err
-					}
-					return nil
+					return self.ignore(node)
 				},
 				Key: 'i',
 			},
 			{
 				LabelColumns: []string{self.c.Tr.ExcludeFile},
 				OnPress: func() error {
-					if err := self.exclude(node); err != nil {
-						return err
-					}
-					return nil
+					return self.exclude(node)
 				},
 				Key: 'e',
 			},
