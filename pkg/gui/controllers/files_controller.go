@@ -741,7 +741,7 @@ func (self *FilesController) exclude(node *filetree.FileNode) error {
 
 func (self *FilesController) excludeGlobal(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
-		return errors.New(self.c.Tr.Actions.ExcludeGitIgnoreErr)
+		return errors.New(self.c.Tr.Actions.IgnoreFileErr)
 	}
 
 	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Git().WorkingTree.ExcludeGlobal)
