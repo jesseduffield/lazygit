@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -752,21 +753,24 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 		Title: self.c.Tr.Actions.IgnoreExcludeFile,
 		Items: []*types.MenuItem{
 			{
-				LabelColumns: []string{self.c.Tr.IgnoreFile},
+				LabelColumns: []string{self.c.Tr.IgnoreFile, style.FgMagenta.Sprint(self.c.Tr.IgnoreFileHelpText)},
 				OnPress: func() error {
 					return self.ignore(node)
 				},
 				Key: 'i',
 			},
 			{
-				LabelColumns: []string{self.c.Tr.ExcludeFile},
+				LabelColumns: []string{self.c.Tr.ExcludeFile, style.FgMagenta.Sprint(self.c.Tr.ExcludeFileHelpText)},
 				OnPress: func() error {
 					return self.exclude(node)
 				},
 				Key: 'e',
 			},
 			{
-				LabelColumns: []string{fmt.Sprintf(self.c.Tr.GlobalExcludesFile, self.c.Git().WorkingTree.GetGlobalExcludesPath())},
+				LabelColumns: []string{
+					fmt.Sprintf(self.c.Tr.GlobalExcludesFile, self.c.Git().WorkingTree.GetGlobalExcludesPath()),
+					style.FgMagenta.Sprint(self.c.Tr.GlobalExcludesFileHelpText),
+				},
 				OnPress: func() error {
 					return self.excludeGlobal(node)
 				},
