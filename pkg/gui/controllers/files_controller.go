@@ -766,12 +766,9 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 				Key: 'e',
 			},
 			{
-				LabelColumns: []string{utils.ResolvePlaceholderString(self.c.Tr.GlobalExcludesFile, map[string]string{"path": self.c.Git().WorkingTree.GetGlobalExcludesPath()})},
+				LabelColumns: []string{fmt.Sprintf(self.c.Tr.GlobalExcludesFile, self.c.Git().WorkingTree.GetGlobalExcludesPath())},
 				OnPress: func() error {
-					if err := self.excludeGlobal(node); err != nil {
-						return err
-					}
-					return nil
+					return self.excludeGlobal(node)
 				},
 				Key: 'g',
 			},
