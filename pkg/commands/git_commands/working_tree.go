@@ -257,9 +257,11 @@ func (self *WorkingTreeCommands) ExcludeGlobal(filename string) error {
 	excludeFile := self.GetGlobalExcludesPath()
 	if strings.HasPrefix(excludeFile, "~/") {
 		// Expand tilde to home directory
-		if home, err := os.UserHomeDir(); err == nil {
-			excludeFile = filepath.Join(home, excludeFile[2:])
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return err
 		}
+		excludeFile = filepath.Join(home, excludeFile[2:])
 	}
 	// Ensure the parent directory exists
 	if err := os.MkdirAll(filepath.Dir(excludeFile), 0o755); err != nil {
