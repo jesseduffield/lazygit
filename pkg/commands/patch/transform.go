@@ -126,12 +126,50 @@ func (self *patchTransformer) transformHunkLines(hunk *Hunk, firstLineIdx int) [
 	skippedNewlineMessageIndex := -1
 	newLines := []*PatchLine{}
 
-	for i, line := range hunk.bodyLines {
+	for i := 0; i < len(hunk.bodyLines); i++ {
+		line := hunk.bodyLines[i]
 		lineIdx := i + firstLineIdx + 1 // plus one for header line
 		if line.Content == "" {
 			break
 		}
 		isLineSelected := lo.Contains(self.opts.IncludedLineIndices, lineIdx)
+
+		// Check for change block (multiple consecutive deletions)
+		if line.Kind == DELETION {
+			deletionCount := 0
+			for j := i; j < len(hunk.bodyLines) && hunk.bodyLines[j].Kind == DELETION; j++ {
+				deletionCount++
+			}
+			if deletionCount > 1 {
+				selectedDeletions := []*PatchLine{}
+				pendingContext := []*PatchLine{}
+				for j := 0; j < deletionCount; j++ {
+					delLine := hunk.bodyLines[i+j]
+					delLineIdx := i + j + firstLineIdx + 1
+					if lo.Contains(self.opts.IncludedLineIndices, delLineIdx) {
+						selectedDeletions = append(selectedDeletions, delLine)
+					} else if (delLine.Kind == DELETION && !self.opts.Reverse) || (delLine.Kind == ADDITION && self.opts.Reverse) {
+						pendingContext = append(pendingContext, &PatchLine{Kind: CONTEXT, Content: " " + delLine.Content[1:]})
+					}
+				}
+				newLines = append(newLines, selectedDeletions...)
+
+				// Process additions in the block
+				addIdx := i + deletionCount
+				for addIdx < len(hunk.bodyLines) && hunk.bodyLines[addIdx].Kind == ADDITION {
+					addLineIdx := addIdx + firstLineIdx + 1
+					if lo.Contains(self.opts.IncludedLineIndices, addLineIdx) {
+						newLines = append(newLines, hunk.bodyLines[addIdx])
+					} else {
+						skippedNewlineMessageIndex = addLineIdx + 1
+					}
+					addIdx++
+				}
+				newLines = append(newLines, pendingContext...)
+				i = addIdx - 1
+				continue
+			}
+		}
 
 		if isLineSelected || (line.Kind == NEWLINE_MESSAGE && skippedNewlineMessageIndex != lineIdx) || line.Kind == CONTEXT {
 			newLines = append(newLines, line)

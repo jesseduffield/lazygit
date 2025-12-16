@@ -711,6 +711,59 @@ func TestAdjustLineNumber(t *testing.T) {
 	}
 }
 
+func TestTransformNonContiguousSelection(t *testing.T) {
+	const changeBlockDiff = `diff --git a/test.c b/test.c
+index 1234567..abcdefg 100644
+--- a/test.c
++++ b/test.c
+@@ -1,6 +1,6 @@
+ int main() {
+-	// init something
+-	int i = 0;
++	// init variables
++	int x = 0;
+ 
+ 	return 0;
+}
+`
+
+	scenarios := []struct {
+		testName        string
+		selectedIndices []int
+		expected        string
+	}{
+		{
+			testName:        "non-contiguous selection keeps change pairs together",
+			selectedIndices: []int{6, 8},
+			expected: `--- a/test.c
++++ b/test.c
+@@ -1,6 +1,6 @@
+ int main() {
+-	// init something
++	// init variables
+ 	int i = 0;
+ 
+ 	return 0;
+}
+`,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			result := Parse(changeBlockDiff).
+				Transform(TransformOpts{
+					Reverse:             false,
+					FileNameOverride:    "test.c",
+					IncludedLineIndices: s.selectedIndices,
+				}).
+				FormatPlain()
+
+			assert.Equal(t, s.expected, result)
+		})
+	}
+}
+
 func TestIsSingleHunkForWholeFile(t *testing.T) {
 	scenarios := []struct {
 		testName       string
