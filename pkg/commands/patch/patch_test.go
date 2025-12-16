@@ -730,11 +730,13 @@ index 1234567..abcdefg 100644
 	scenarios := []struct {
 		testName        string
 		selectedIndices []int
+		reverse         bool
 		expected        string
 	}{
 		{
 			testName:        "non-contiguous selection keeps change pairs together",
 			selectedIndices: []int{6, 8},
+			reverse:         false,
 			expected: `--- a/test.c
 +++ b/test.c
 @@ -1,6 +1,6 @@
@@ -747,13 +749,94 @@ index 1234567..abcdefg 100644
 }
 `,
 		},
+		{
+			testName:        "select only deletions without additions",
+			selectedIndices: []int{6, 7},
+			reverse:         false,
+			expected: `--- a/test.c
++++ b/test.c
+@@ -1,6 +1,4 @@
+ int main() {
+-	// init something
+-	int i = 0;
+ 
+ 	return 0;
+}
+`,
+		},
+		{
+			testName:        "select only additions without deletions",
+			selectedIndices: []int{8, 9},
+			reverse:         false,
+			expected: `--- a/test.c
++++ b/test.c
+@@ -1,6 +1,8 @@
+ int main() {
+ 	// init something
+ 	int i = 0;
++	// init variables
++	int x = 0;
+ 
+ 	return 0;
+}
+`,
+		},
+		{
+			testName:        "select all lines in change block",
+			selectedIndices: []int{6, 7, 8, 9},
+			reverse:         false,
+			expected: `--- a/test.c
++++ b/test.c
+@@ -1,6 +1,6 @@
+ int main() {
+-	// init something
+-	int i = 0;
++	// init variables
++	int x = 0;
+ 
+ 	return 0;
+}
+`,
+		},
+		{
+			testName:        "select second deletion and second addition",
+			selectedIndices: []int{7, 9},
+			reverse:         false,
+			expected: `--- a/test.c
++++ b/test.c
+@@ -1,6 +1,6 @@
+ int main() {
+ 	// init something
+-	int i = 0;
++	int x = 0;
+ 
+ 	return 0;
+}
+`,
+		},
+		{
+			testName:        "reverse mode - non-contiguous selection",
+			selectedIndices: []int{6, 8},
+			reverse:         true,
+			expected: `--- a/test.c
++++ b/test.c
+@@ -1,6 +1,6 @@
+ int main() {
+-	// init something
++	// init variables
+ 	int x = 0;
+ 
+ 	return 0;
+}
+`,
+		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			result := Parse(changeBlockDiff).
 				Transform(TransformOpts{
-					Reverse:             false,
+					Reverse:             s.reverse,
 					FileNameOverride:    "test.c",
 					IncludedLineIndices: s.selectedIndices,
 				}).
