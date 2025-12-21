@@ -733,6 +733,8 @@ type CustomCommandMenuOption struct {
 	Description string `yaml:"description"`
 	// The value that will be used in the command
 	Value string `yaml:"value" jsonschema:"example=feature,minLength=1"`
+	// Keybinding to invoke this menu option without needing to navigate to it
+	Key string `yaml:"key"`
 }
 
 type CustomIconsConfig struct {

@@ -108,6 +108,7 @@ func (self *Resolver) resolveMenuOption(option *config.CustomCommandMenuOption, 
 		Name:        name,
 		Description: description,
 		Value:       value,
+		Key:         option.Key,
 	}, nil
 }
 
