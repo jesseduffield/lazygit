@@ -56,6 +56,7 @@ type MenuViewModel struct {
 	promptLines               []string
 	columnAlignment           []utils.Alignment
 	allowFilteringKeybindings bool
+	keybindingsTakePrecedence bool
 	*FilteredListViewModel[*types.MenuItem]
 }
 
@@ -115,6 +116,10 @@ func (self *MenuViewModel) SetPromptLines(promptLines []string) {
 
 func (self *MenuViewModel) SetAllowFilteringKeybindings(allow bool) {
 	self.allowFilteringKeybindings = allow
+}
+
+func (self *MenuViewModel) SetKeybindingsTakePrecedence(value bool) {
+	self.keybindingsTakePrecedence = value
 }
 
 // TODO: move into presentation package
@@ -205,10 +210,19 @@ func (self *MenuContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Bin
 		}
 	})
 
-	// appending because that means the menu item bindings have lower precedence.
-	// So if a basic binding is to escape from the menu, we want that to still be
-	// what happens when you press escape. This matters when we're showing the menu
-	// for all keybindings of say the files context.
+	if self.keybindingsTakePrecedence {
+		// This is used for all normal menus except the keybindings menu. In this case we want the
+		// bindings of the menu items to have higher precedence than the builtin bindings; this
+		// allows assigning a keybinding to a menu item that overrides a non-essential binding such
+		// as 'j', 'k', 'H', 'L', etc. This is safe to do because the essential bindings such as
+		// confirm and return have already been removed from the menu items in this case.
+		return append(menuItemBindings, basicBindings...)
+	}
+
+	// For the keybindings menu we didn't remove the essential bindings from the menu items, because
+	// it is important to see all bindings (as a cheat sheet for what the keys are when the menu is
+	// not open). Therefore we want the essential bindings to have higher precedence than the menu
+	// item bindings.
 	return append(basicBindings, menuItemBindings...)
 }
 

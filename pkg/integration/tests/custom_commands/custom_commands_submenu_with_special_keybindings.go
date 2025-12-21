@@ -60,25 +60,14 @@ var CustomCommandsSubmenuWithSpecialKeybindings = NewIntegrationTest(NewIntegrat
 						Contains("  echo down"),
 					)
 				t.GlobalPress("j")
-				/* EXPECTED:
 				t.ExpectPopup().Alert().Title(Equals("echo j")).Content(Equals("j")).Confirm()
-				ACTUAL: */
-				// The menu stays open; 'j' didn't trigger the command; instead, it selected the
-				// next item, which we can confirm by pressing enter:
-				t.GlobalPress(keys.Universal.ConfirmMenu)
-				t.ExpectPopup().Alert().Title(Equals("echo H")).Content(Equals("H")).Confirm()
 			}).
 			Press("x").
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("My Custom Commands"))
 				t.GlobalPress("H")
-				/* EXPECTED:
 				t.ExpectPopup().Alert().Title(Equals("echo H")).Content(Equals("H")).Confirm()
-				ACTUAL: */
-				// The menu stays open:
-				t.ExpectPopup().Menu().
-					Title(Equals("My Custom Commands"))
 			})
 	},
 })
