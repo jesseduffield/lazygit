@@ -150,13 +150,13 @@ const (
 )
 
 type CreateMenuOptions struct {
-	Title                     string
-	Prompt                    string // a message that will be displayed above the menu options
-	Items                     []*MenuItem
-	HideCancel                bool
-	ColumnAlignment           []utils.Alignment
-	AllowFilteringKeybindings bool
-	KeepConfirmKeybindings    bool // if true, the keybindings that match the confirm binding will not be removed from menu items
+	Title                      string
+	Prompt                     string // a message that will be displayed above the menu options
+	Items                      []*MenuItem
+	HideCancel                 bool
+	ColumnAlignment            []utils.Alignment
+	AllowFilteringKeybindings  bool
+	KeepConflictingKeybindings bool // if true, the keybindings that match essential bindings such as confirm or return will not be removed from menu items
 }
 
 type CreatePopupPanelOpts struct {

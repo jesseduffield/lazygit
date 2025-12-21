@@ -42,7 +42,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 		maxColumnSize = max(maxColumnSize, len(item.LabelColumns))
 
 		// Remove all item keybindings that are the same as one of the essential bindings
-		if !opts.KeepConfirmKeybindings && lo.Contains(essentialKeys, item.Key) {
+		if !opts.KeepConflictingKeybindings && lo.Contains(essentialKeys, item.Key) {
 			item.Key = nil
 		}
 	}
