@@ -6,6 +6,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/samber/lo"
 )
 
 // note: items option is mutated by this function
@@ -21,7 +22,13 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	}
 
 	maxColumnSize := 1
-	confirmKey := keybindings.GetKey(gui.c.UserConfig().Keybinding.Universal.ConfirmMenu)
+
+	essentialKeys := []types.Key{
+		keybindings.GetKey(gui.c.UserConfig().Keybinding.Universal.ConfirmMenu),
+		keybindings.GetKey(gui.c.UserConfig().Keybinding.Universal.Return),
+		keybindings.GetKey(gui.c.UserConfig().Keybinding.Universal.PrevItem),
+		keybindings.GetKey(gui.c.UserConfig().Keybinding.Universal.NextItem),
+	}
 
 	for _, item := range opts.Items {
 		if item.LabelColumns == nil {
@@ -34,8 +41,8 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 
 		maxColumnSize = max(maxColumnSize, len(item.LabelColumns))
 
-		// Remove all item keybindings that are the same as the confirm binding
-		if item.Key == confirmKey && !opts.KeepConfirmKeybindings {
+		// Remove all item keybindings that are the same as one of the essential bindings
+		if !opts.KeepConfirmKeybindings && lo.Contains(essentialKeys, item.Key) {
 			item.Key = nil
 		}
 	}
