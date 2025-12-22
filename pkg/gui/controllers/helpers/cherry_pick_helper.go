@@ -101,7 +101,7 @@ func (self *CherryPickHelper) Paste() error {
 				// below the selection.
 				if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil && !commit.IsTODO() {
 					self.c.Contexts().LocalCommits.MoveSelection(len(cherryPickedCommits))
-					self.c.Contexts().LocalCommits.FocusLine()
+					self.c.Contexts().LocalCommits.FocusLine(true)
 				}
 
 				// If we're in the cherry-picking state at this point, it must

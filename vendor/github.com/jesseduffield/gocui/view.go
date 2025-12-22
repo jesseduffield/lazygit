@@ -262,7 +262,7 @@ func (v *View) SelectSearchResult(index int) error {
 
 	y := v.searcher.searchPositions[index].Y
 
-	v.FocusPoint(v.ox, y)
+	v.FocusPoint(v.ox, y, true)
 	if v.searcher.onSelectItem != nil {
 		return v.searcher.onSelectItem(y, index, itemCount)
 	}
@@ -325,14 +325,17 @@ func (v *View) IsSearching() bool {
 	return v.searcher.searchString != ""
 }
 
-func (v *View) FocusPoint(cx int, cy int) {
+func (v *View) FocusPoint(cx int, cy int, scrollIntoView bool) {
 	lineCount := len(v.lines)
 	if cy < 0 || cy > lineCount {
 		return
 	}
-	height := v.InnerHeight()
 
-	v.oy = calculateNewOrigin(cy, v.oy, lineCount, height)
+	if scrollIntoView {
+		height := v.InnerHeight()
+		v.oy = calculateNewOrigin(cy, v.oy, lineCount, height)
+	}
+
 	v.cx = cx
 	v.cy = cy - v.oy
 }

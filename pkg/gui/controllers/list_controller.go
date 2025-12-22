@@ -116,7 +116,7 @@ func (self *ListController) handleLineChangeAux(f func(int), change int) error {
 	}
 
 	if cursorMoved || rangeBefore != rangeAfter {
-		self.context.HandleFocus(types.OnFocusOpts{})
+		self.context.HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 	}
 
 	return nil
@@ -173,6 +173,8 @@ func (self *ListController) handlePageChange(delta int) error {
 		}
 	}
 
+	// Since we are maintaining the scroll position ourselves above, there's no point in passing
+	// ScrollSelectionIntoView=true here.
 	self.context.HandleFocus(types.OnFocusOpts{})
 
 	return nil

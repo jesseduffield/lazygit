@@ -205,7 +205,7 @@ func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntr
 				return err
 			}
 			self.context().SetSelection(0) // Select the renamed stash
-			self.context().FocusLine()
+			self.context().FocusLine(true)
 			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			return nil
 		},

@@ -54,7 +54,7 @@ func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) {
 	}
 }
 
-func (self *SimpleContext) FocusLine() {
+func (self *SimpleContext) FocusLine(scrollIntoView bool) {
 }
 
 func (self *SimpleContext) HandleRender() {

@@ -35,6 +35,9 @@ func (self *RefsHelper) SelectFirstBranchAndFirstCommit() {
 	self.c.Contexts().Branches.SetSelection(0)
 	self.c.Contexts().ReflogCommits.SetSelection(0)
 	self.c.Contexts().LocalCommits.SetSelection(0)
+	self.c.Contexts().Branches.GetView().SetOriginY(0)
+	self.c.Contexts().ReflogCommits.GetView().SetOriginY(0)
+	self.c.Contexts().LocalCommits.GetView().SetOriginY(0)
 }
 
 func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions) error {

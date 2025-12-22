@@ -109,7 +109,7 @@ type Context interface {
 
 	HandleFocus(opts OnFocusOpts)
 	HandleFocusLost(opts OnFocusLostOpts)
-	FocusLine()
+	FocusLine(scrollIntoView bool)
 	HandleRender()
 	HandleRenderToMain()
 }
@@ -201,7 +201,7 @@ type IPatchExplorerContext interface {
 }
 
 type IViewTrait interface {
-	FocusPoint(yIdx int)
+	FocusPoint(yIdx int, scrollIntoView bool)
 	SetRangeSelectStart(yIdx int)
 	CancelRangeSelect()
 	SetViewPortContent(content string)
@@ -221,8 +221,9 @@ type IViewTrait interface {
 }
 
 type OnFocusOpts struct {
-	ClickedWindowName  string
-	ClickedViewLineIdx int
+	ClickedWindowName       string
+	ClickedViewLineIdx      int
+	ScrollSelectionIntoView bool
 }
 
 type OnFocusLostOpts struct {
