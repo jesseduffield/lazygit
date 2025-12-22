@@ -447,6 +447,7 @@ type KeybindingUniversalConfig struct {
 	StartSearch                       string   `yaml:"startSearch"`
 	OptionMenu                        string   `yaml:"optionMenu"`
 	OptionMenuAlt1                    string   `yaml:"optionMenu-alt1"`
+	GitConfig                         string   `yaml:"gitConfig"`
 	Select                            string   `yaml:"select"`
 	GoInto                            string   `yaml:"goInto"`
 	Confirm                           string   `yaml:"confirm"`
@@ -909,6 +910,7 @@ func GetDefaultConfig() *UserConfig {
 				StartSearch:                       "/",
 				OptionMenu:                        "<disabled>",
 				OptionMenuAlt1:                    "?",
+				GitConfig:                         ";",
 				Select:                            "<space>",
 				GoInto:                            "<enter>",
 				Confirm:                           "<enter>",

@@ -11,6 +11,9 @@ import (
 
 // note: items option is mutated by this function
 func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
+	if opts.Title != gui.c.Tr.GitConfigTitle {
+		gui.State.Contexts.Menu.SetExtraKeybindings(nil)
+	}
 	if !opts.HideCancel {
 		// this is mutative but I'm okay with that for now
 		opts.Items = append(opts.Items, &types.MenuItem{

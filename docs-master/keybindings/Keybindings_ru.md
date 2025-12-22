@@ -18,6 +18,7 @@ _Связки клавиш_
 | `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` } `` | Увеличить размер контекста, отображаемого вокруг изменений в просмотрщике сравнении | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
 | `` { `` | Уменьшите размер контекста, отображаемого вокруг изменений в просмотрщике сравнении | Decrease the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
+| `` ; `` | Git config |  |
 | `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
 | `` <c-p> `` | Просмотреть пользовательские параметры патча |  |
 | `` m `` | Просмотреть параметры слияния/перебазирования | View options to abort/continue/skip the current merge/rebase. |

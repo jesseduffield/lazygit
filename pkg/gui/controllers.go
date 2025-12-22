@@ -89,6 +89,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		func() *status.StatusManager { return gui.statusManager },
 		modeHelper,
 	)
+	gitConfigHelper := helpers.NewGitConfigHelper(helperCommon)
 
 	gui.helpers = &helpers.Helpers{
 		Refs:            refsHelper,
@@ -115,6 +116,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		Repos:           reposHelper,
 		RecordDirectory: recordDirectoryHelper,
 		Update:          helpers.NewUpdateHelper(helperCommon, gui.Updater),
+		GitConfig:       gitConfigHelper,
 		Window:          windowHelper,
 		View:            viewHelper,
 		Refresh:         refreshHelper,

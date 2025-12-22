@@ -615,6 +615,7 @@ keybinding:
     startSearch: /
     optionMenu: <disabled>
     optionMenu-alt1: '?'
+    gitConfig: ;
     select: <space>
     goInto: <enter>
     confirm: <enter>

@@ -228,6 +228,22 @@ type TranslationSet struct {
 	RenameStashPrompt                     string
 	OpenConfig                            string
 	EditConfig                            string
+	GitConfigTitle                        string
+	GitConfigKeyColumn                    string
+	GitConfigLocalColumn                  string
+	GitConfigGlobalColumn                 string
+	GitConfigSystemColumn                 string
+	GitConfigValueColumn                  string
+	GitConfigSetLocal                     string
+	GitConfigSetGlobal                    string
+	GitConfigUnsetLocal                   string
+	GitConfigUnsetGlobal                  string
+	GitConfigSetPromptTitle               string
+	GitConfigUpdatedToast                 string
+	GitConfigNotSet                       string
+	GitConfigScopeLocal                   string
+	GitConfigScopeGlobal                  string
+	GitConfigConfigSectionWithScope       string
 	ForcePush                             string
 	ForcePushPrompt                       string
 	ForcePushDisabled                     string
@@ -1322,6 +1338,22 @@ func EnglishTranslationSet() *TranslationSet {
 		RenameStashPrompt:                    "Rename stash: {{.stashName}}",
 		OpenConfig:                           "Open config file",
 		EditConfig:                           "Edit config file",
+		GitConfigTitle:                       "Git config",
+		GitConfigKeyColumn:                   "Key",
+		GitConfigLocalColumn:                 "Local",
+		GitConfigGlobalColumn:                "Global",
+		GitConfigSystemColumn:                "System",
+		GitConfigValueColumn:                 "Value ({{.scope}})",
+		GitConfigSetLocal:                    "Set local value",
+		GitConfigSetGlobal:                   "Set global value",
+		GitConfigUnsetLocal:                  "Unset local value",
+		GitConfigUnsetGlobal:                 "Unset global value",
+		GitConfigSetPromptTitle:              "Set {{.scope}} {{.key}}",
+		GitConfigUpdatedToast:                "Updated {{.scope}} {{.key}}",
+		GitConfigNotSet:                      "not set",
+		GitConfigScopeLocal:                  "local",
+		GitConfigScopeGlobal:                 "global",
+		GitConfigConfigSectionWithScope:      "Config {{.scope}}",
 		ForcePush:                            "Force push",
 		ForcePushPrompt:                      "Your branch has diverged from the remote branch. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to force push.",
 		ForcePushDisabled:                    "Your branch has diverged from the remote branch and you've disabled force pushing",
