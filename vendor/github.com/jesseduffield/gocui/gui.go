@@ -1391,7 +1391,7 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			}
 		}
 
-		if ev.Key == MouseLeft && !v.Editable && g.openHyperlink != nil {
+		if ev.Key == MouseLeft && (ev.Mod&ModMotion) == 0 && !v.Editable && g.openHyperlink != nil {
 			if newY >= 0 && newY <= len(v.viewLines)-1 && newX >= 0 && newX <= len(v.viewLines[newY].line)-1 {
 				if link := v.viewLines[newY].line[newX].hyperlink; link != "" {
 					return g.openHyperlink(link, v.name)
