@@ -177,6 +177,31 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			},
 		},
 		{
+			name: "Custom command keybinding in prompt menu",
+			setup: func(config *UserConfig, value string) {
+				config.CustomCommands = []CustomCommand{
+					{
+						Key:         "X",
+						Description: "My Custom Commands",
+						Prompts: []CustomCommandPrompt{
+							{
+								Options: []CustomCommandMenuOption{
+									{Key: value},
+								},
+							},
+						},
+					},
+				}
+			},
+			testCases: []testCase{
+				{value: "", valid: true},
+				{value: "<disabled>", valid: true},
+				{value: "q", valid: true},
+				{value: "<c-c>", valid: true},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
 			name: "Custom command output",
 			setup: func(config *UserConfig, value string) {
 				config.CustomCommands = []CustomCommand{

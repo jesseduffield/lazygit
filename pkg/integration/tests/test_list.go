@@ -175,6 +175,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.GlobalContext,
 	custom_commands.MenuFromCommand,
 	custom_commands.MenuFromCommandsOutput,
+	custom_commands.MenuPromptWithKeys,
 	custom_commands.MultipleContexts,
 	custom_commands.MultiplePrompts,
 	custom_commands.RunCommand,

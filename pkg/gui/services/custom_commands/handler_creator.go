@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -203,6 +204,7 @@ func (self *HandlerCreator) menuPrompt(prompt *config.CustomCommandPrompt, wrapp
 			OnPress: func() error {
 				return wrappedF(option.Value)
 			},
+			Key: keybindings.GetKey(option.Key),
 		}
 	})
 
