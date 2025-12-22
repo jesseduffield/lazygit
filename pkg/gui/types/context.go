@@ -182,6 +182,7 @@ type IListContext interface {
 	IsListContext() // used for type switch
 	RangeSelectEnabled() bool
 	RenderOnlyVisibleLines() bool
+	SetNeedRerenderVisibleLines()
 
 	IndexForGotoBottom() int
 }
