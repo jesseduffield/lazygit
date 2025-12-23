@@ -102,10 +102,9 @@ func (self *ListContextTrait) HandleRender() {
 		if self.getNonModelItems != nil {
 			totalLength += len(self.getNonModelItems())
 		}
-		self.GetViewTrait().SetContentLineCount(totalLength)
 		startIdx, length := self.GetViewTrait().ViewPortYBounds()
 		content := self.renderLines(startIdx, startIdx+length)
-		self.GetViewTrait().SetViewPortContentAndClearEverythingElse(content)
+		self.GetViewTrait().SetViewPortContentAndClearEverythingElse(totalLength, content)
 	} else {
 		content := self.renderLines(-1, -1)
 		self.GetViewTrait().SetContent(content)

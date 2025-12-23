@@ -1728,9 +1728,11 @@ func (v *View) OverwriteLines(y int, content string) {
 }
 
 // only call this function if you don't care where v.wx and v.wy end up
-func (v *View) OverwriteLinesAndClearEverythingElse(y int, content string) {
+func (v *View) OverwriteLinesAndClearEverythingElse(lineCount int, y int, content string) {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
+
+	v.setContentLineCount(lineCount)
 
 	v.overwriteLines(y, content)
 
@@ -1743,7 +1745,7 @@ func (v *View) OverwriteLinesAndClearEverythingElse(y int, content string) {
 	}
 }
 
-func (v *View) SetContentLineCount(lineCount int) {
+func (v *View) setContentLineCount(lineCount int) {
 	if lineCount > 0 {
 		v.makeWriteable(0, lineCount-1)
 	}
