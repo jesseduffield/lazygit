@@ -126,12 +126,77 @@ func (self *patchTransformer) transformHunkLines(hunk *Hunk, firstLineIdx int) [
 	skippedNewlineMessageIndex := -1
 	newLines := []*PatchLine{}
 
-	for i, line := range hunk.bodyLines {
+	for i := 0; i < len(hunk.bodyLines); i++ {
+		line := hunk.bodyLines[i]
 		lineIdx := i + firstLineIdx + 1 // plus one for header line
 		if line.Content == "" {
 			break
 		}
 		isLineSelected := lo.Contains(self.opts.IncludedLineIndices, lineIdx)
+
+		// Handle change block (multiple consecutive deletions followed by additions)
+		if line.Kind == DELETION {
+			deletionCount := 0
+			for j := i; j < len(hunk.bodyLines) && hunk.bodyLines[j].Kind == DELETION; j++ {
+				deletionCount++
+			}
+			if deletionCount > 1 {
+				selectedDeletions := []*PatchLine{}
+				leadingContext := []*PatchLine{}
+				trailingContext := []*PatchLine{}
+				foundFirstSelectedDeletion := false
+
+				for j := 0; j < deletionCount; j++ {
+					delLine := hunk.bodyLines[i+j]
+					delLineIdx := i + j + firstLineIdx + 1
+					if lo.Contains(self.opts.IncludedLineIndices, delLineIdx) {
+						foundFirstSelectedDeletion = true
+						selectedDeletions = append(selectedDeletions, delLine)
+					} else if !self.opts.Reverse {
+						ctx := &PatchLine{Kind: CONTEXT, Content: " " + delLine.Content[1:]}
+						if foundFirstSelectedDeletion {
+							trailingContext = append(trailingContext, ctx)
+						} else {
+							leadingContext = append(leadingContext, ctx)
+						}
+					}
+				}
+
+				// Process additions in the block
+				selectedAdditions := []*PatchLine{}
+				trailingAdditionContext := []*PatchLine{}
+				foundFirstSelectedAddition := false
+				addIdx := i + deletionCount
+				for addIdx < len(hunk.bodyLines) && hunk.bodyLines[addIdx].Kind == ADDITION {
+					addLine := hunk.bodyLines[addIdx]
+					addLineIdx := addIdx + firstLineIdx + 1
+					if lo.Contains(self.opts.IncludedLineIndices, addLineIdx) {
+						foundFirstSelectedAddition = true
+						selectedAdditions = append(selectedAdditions, addLine)
+					} else if self.opts.Reverse {
+						ctx := &PatchLine{Kind: CONTEXT, Content: " " + addLine.Content[1:]}
+						if foundFirstSelectedAddition {
+							trailingAdditionContext = append(trailingAdditionContext, ctx)
+						}
+						// In reverse mode, unselected additions before any selected addition are dropped.
+						// Unselected additions after a selected addition become context.
+					} else {
+						skippedNewlineMessageIndex = addLineIdx + 1
+					}
+					addIdx++
+				}
+
+				// Output order: leading context, deletions, additions, trailing context, trailing addition context
+				newLines = append(newLines, leadingContext...)
+				newLines = append(newLines, selectedDeletions...)
+				newLines = append(newLines, selectedAdditions...)
+				newLines = append(newLines, trailingContext...)
+				newLines = append(newLines, trailingAdditionContext...)
+
+				i = addIdx - 1
+				continue
+			}
+		}
 
 		if isLineSelected || (line.Kind == NEWLINE_MESSAGE && skippedNewlineMessageIndex != lineIdx) || line.Kind == CONTEXT {
 			newLines = append(newLines, line)
