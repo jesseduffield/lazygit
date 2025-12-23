@@ -152,7 +152,7 @@ func (self *ConfirmationHelper) preparePromptPanel(
 ) {
 	self.c.Views().Prompt.Title = opts.Title
 	self.c.Views().Prompt.FgColor = theme.GocuiDefaultTextColor
-	self.c.Views().Prompt.Mask = runeForMask(opts.Mask)
+	self.c.Views().Prompt.Mask = characterForMask(opts.Mask)
 	self.c.Views().Prompt.SetOrigin(0, 0)
 
 	textArea := self.c.Views().Prompt.TextArea
@@ -173,11 +173,11 @@ func (self *ConfirmationHelper) preparePromptPanel(
 	}
 }
 
-func runeForMask(mask bool) rune {
+func characterForMask(mask bool) string {
 	if mask {
-		return '*'
+		return "*"
 	}
-	return 0
+	return ""
 }
 
 func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts types.CreatePopupPanelOpts) {

@@ -48,10 +48,6 @@ github.com/bahlo/generic-list-go
 # github.com/buger/jsonparser v1.1.1
 ## explicit; go 1.13
 github.com/buger/jsonparser
-# github.com/clipperhouse/uax29/v2 v2.2.0
-## explicit; go 1.18
-github.com/clipperhouse/uax29/v2/graphemes
-github.com/clipperhouse/uax29/v2/internal/iterators
 # github.com/cloudflare/circl v1.6.1
 ## explicit; go 1.22.0
 github.com/cloudflare/circl/dh/x25519
@@ -92,14 +88,13 @@ github.com/fatih/color
 # github.com/gdamore/encoding v1.0.1
 ## explicit; go 1.9
 github.com/gdamore/encoding
-# github.com/gdamore/tcell/v2 v2.9.0
-## explicit; go 1.23.0
+# github.com/gdamore/tcell/v2 v2.13.5
+## explicit; go 1.24.0
 github.com/gdamore/tcell/v2
 github.com/gdamore/tcell/v2/terminfo
 github.com/gdamore/tcell/v2/terminfo/a/aixterm
 github.com/gdamore/tcell/v2/terminfo/a/alacritty
 github.com/gdamore/tcell/v2/terminfo/a/ansi
-github.com/gdamore/tcell/v2/terminfo/b/beterm
 github.com/gdamore/tcell/v2/terminfo/base
 github.com/gdamore/tcell/v2/terminfo/c/cygwin
 github.com/gdamore/tcell/v2/terminfo/d/dtterm
@@ -108,7 +103,6 @@ github.com/gdamore/tcell/v2/terminfo/e/emacs
 github.com/gdamore/tcell/v2/terminfo/extended
 github.com/gdamore/tcell/v2/terminfo/f/foot
 github.com/gdamore/tcell/v2/terminfo/g/gnome
-github.com/gdamore/tcell/v2/terminfo/h/hpterm
 github.com/gdamore/tcell/v2/terminfo/k/konsole
 github.com/gdamore/tcell/v2/terminfo/k/kterm
 github.com/gdamore/tcell/v2/terminfo/l/linux
@@ -124,10 +118,6 @@ github.com/gdamore/tcell/v2/terminfo/v/vt220
 github.com/gdamore/tcell/v2/terminfo/v/vt320
 github.com/gdamore/tcell/v2/terminfo/v/vt400
 github.com/gdamore/tcell/v2/terminfo/v/vt420
-github.com/gdamore/tcell/v2/terminfo/v/vt52
-github.com/gdamore/tcell/v2/terminfo/w/wy50
-github.com/gdamore/tcell/v2/terminfo/w/wy60
-github.com/gdamore/tcell/v2/terminfo/w/wy99_ansi
 github.com/gdamore/tcell/v2/terminfo/x/xfce
 github.com/gdamore/tcell/v2/terminfo/x/xterm
 github.com/gdamore/tcell/v2/terminfo/x/xterm_ghostty
@@ -221,8 +211,8 @@ github.com/jesseduffield/go-git/v5/utils/merkletrie/internal/frame
 github.com/jesseduffield/go-git/v5/utils/merkletrie/noder
 github.com/jesseduffield/go-git/v5/utils/sync
 github.com/jesseduffield/go-git/v5/utils/trace
-# github.com/jesseduffield/gocui v0.3.1-0.20251223144240-29fe12e8d53f
-## explicit; go 1.12
+# github.com/jesseduffield/gocui v0.3.1-0.20251223154739-d4b2428354c3
+## explicit; go 1.25
 github.com/jesseduffield/gocui
 # github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
 ## explicit; go 1.18
@@ -258,9 +248,6 @@ github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.14
 ## explicit; go 1.12
 github.com/mattn/go-isatty
-# github.com/mattn/go-runewidth v0.0.19
-## explicit; go 1.20
-github.com/mattn/go-runewidth
 # github.com/mgutz/str v1.2.0
 ## explicit
 github.com/mgutz/str
@@ -280,6 +267,9 @@ github.com/pjbgf/sha1cd/ubc
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
+# github.com/rivo/uniseg v0.4.7
+## explicit; go 1.18
+github.com/rivo/uniseg
 # github.com/sahilm/fuzzy v0.1.0
 ## explicit
 github.com/sahilm/fuzzy
@@ -352,20 +342,20 @@ golang.org/x/exp/slices
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sync v0.18.0
+# golang.org/x/sync v0.19.0
 ## explicit; go 1.24.0
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.38.0
+# golang.org/x/sys v0.39.0
 ## explicit; go 1.24.0
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.37.0
+# golang.org/x/term v0.38.0
 ## explicit; go 1.24.0
 golang.org/x/term
-# golang.org/x/text v0.31.0
+# golang.org/x/text v0.32.0
 ## explicit; go 1.24.0
 golang.org/x/text/encoding
 golang.org/x/text/encoding/internal/identifier

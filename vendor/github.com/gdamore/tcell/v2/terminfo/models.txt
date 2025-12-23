@@ -1,7 +1,6 @@
 aixterm
 alacritty
 ansi
-beterm
 cygwin
 dtterm
 eterm,eterm-color|emacs
@@ -15,7 +14,6 @@ rxvt,rxvt-256color,rxvt-88color,rxvt-unicode,rxvt-unicode-256color
 screen,screen-256color
 st,st-256color|simpleterm
 tmux,tmux-256color
-vt52
 vt100
 vt102
 vt220

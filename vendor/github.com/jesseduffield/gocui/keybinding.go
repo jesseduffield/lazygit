@@ -28,7 +28,7 @@ type keybinding struct {
 
 // Parse takes the input string and extracts the keybinding.
 // Returns a Key / rune, a Modifier and an error.
-func Parse(input string) (interface{}, Modifier, error) {
+func Parse(input string) (any, Modifier, error) {
 	if len(input) == 1 {
 		_, r, err := getKey(rune(input[0]))
 		if err != nil {
@@ -40,8 +40,8 @@ func Parse(input string) (interface{}, Modifier, error) {
 	var modifier Modifier
 	cleaned := make([]string, 0)
 
-	tokens := strings.Split(input, "+")
-	for _, t := range tokens {
+	tokens := strings.SplitSeq(input, "+")
+	for t := range tokens {
 		normalized := strings.Title(strings.ToLower(t))
 		if t == "Alt" {
 			modifier = ModAlt
@@ -59,8 +59,8 @@ func Parse(input string) (interface{}, Modifier, error) {
 }
 
 // ParseAll takes an array of strings and returns a map of all keybindings.
-func ParseAll(input []string) (map[interface{}]Modifier, error) {
-	ret := make(map[interface{}]Modifier)
+func ParseAll(input []string) (map[any]Modifier, error) {
+	ret := make(map[any]Modifier)
 	for _, i := range input {
 		k, m, err := Parse(i)
 		if err != nil {
@@ -73,7 +73,7 @@ func ParseAll(input []string) (map[interface{}]Modifier, error) {
 
 // MustParse takes the input string and returns a Key / rune and a Modifier.
 // It will panic if any error occured.
-func MustParse(input string) (interface{}, Modifier) {
+func MustParse(input string) (any, Modifier) {
 	k, m, err := Parse(input)
 	if err != nil {
 		panic(err)
@@ -83,7 +83,7 @@ func MustParse(input string) (interface{}, Modifier) {
 
 // MustParseAll takes an array of strings and returns a map of all keybindings.
 // It will panic if any error occured.
-func MustParseAll(input []string) map[interface{}]Modifier {
+func MustParseAll(input []string) map[any]Modifier {
 	result, err := ParseAll(input)
 	if err != nil {
 		panic(err)
@@ -103,7 +103,7 @@ func newKeybinding(viewname string, key Key, ch rune, mod Modifier, handler func
 	return kb
 }
 
-func eventMatchesKey(ev *GocuiEvent, key interface{}) bool {
+func eventMatchesKey(ev *GocuiEvent, key any) bool {
 	// assuming ModNone for now
 	if ev.Mod != ModNone {
 		return false

@@ -1,4 +1,4 @@
-// Copyright 2024 The TCell Authors
+// Copyright 2025 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -41,125 +41,35 @@ var (
 // in Go, but when we write out JSON, we use the same names as terminfo.
 // The name, aliases and smous, rmous fields do not come from terminfo directly.
 type Terminfo struct {
-	Name         string
-	Aliases      []string
-	Columns      int    // cols
-	Lines        int    // lines
-	Colors       int    // colors
-	Bell         string // bell
-	Clear        string // clear
-	EnterCA      string // smcup
-	ExitCA       string // rmcup
-	ShowCursor   string // cnorm
-	HideCursor   string // civis
-	AttrOff      string // sgr0
-	Underline    string // smul
-	Bold         string // bold
-	Blink        string // blink
-	Reverse      string // rev
-	Dim          string // dim
-	Italic       string // sitm
-	EnterKeypad  string // smkx
-	ExitKeypad   string // rmkx
-	SetFg        string // setaf
-	SetBg        string // setab
-	ResetFgBg    string // op
-	SetCursor    string // cup
-	CursorBack1  string // cub1
-	CursorUp1    string // cuu1
-	PadChar      string // pad
-	KeyBackspace string // kbs
-	KeyF1        string // kf1
-	KeyF2        string // kf2
-	KeyF3        string // kf3
-	KeyF4        string // kf4
-	KeyF5        string // kf5
-	KeyF6        string // kf6
-	KeyF7        string // kf7
-	KeyF8        string // kf8
-	KeyF9        string // kf9
-	KeyF10       string // kf10
-	KeyF11       string // kf11
-	KeyF12       string // kf12
-	KeyF13       string // kf13
-	KeyF14       string // kf14
-	KeyF15       string // kf15
-	KeyF16       string // kf16
-	KeyF17       string // kf17
-	KeyF18       string // kf18
-	KeyF19       string // kf19
-	KeyF20       string // kf20
-	KeyF21       string // kf21
-	KeyF22       string // kf22
-	KeyF23       string // kf23
-	KeyF24       string // kf24
-	KeyF25       string // kf25
-	KeyF26       string // kf26
-	KeyF27       string // kf27
-	KeyF28       string // kf28
-	KeyF29       string // kf29
-	KeyF30       string // kf30
-	KeyF31       string // kf31
-	KeyF32       string // kf32
-	KeyF33       string // kf33
-	KeyF34       string // kf34
-	KeyF35       string // kf35
-	KeyF36       string // kf36
-	KeyF37       string // kf37
-	KeyF38       string // kf38
-	KeyF39       string // kf39
-	KeyF40       string // kf40
-	KeyF41       string // kf41
-	KeyF42       string // kf42
-	KeyF43       string // kf43
-	KeyF44       string // kf44
-	KeyF45       string // kf45
-	KeyF46       string // kf46
-	KeyF47       string // kf47
-	KeyF48       string // kf48
-	KeyF49       string // kf49
-	KeyF50       string // kf50
-	KeyF51       string // kf51
-	KeyF52       string // kf52
-	KeyF53       string // kf53
-	KeyF54       string // kf54
-	KeyF55       string // kf55
-	KeyF56       string // kf56
-	KeyF57       string // kf57
-	KeyF58       string // kf58
-	KeyF59       string // kf59
-	KeyF60       string // kf60
-	KeyF61       string // kf61
-	KeyF62       string // kf62
-	KeyF63       string // kf63
-	KeyF64       string // kf64
-	KeyInsert    string // kich1
-	KeyDelete    string // kdch1
-	KeyHome      string // khome
-	KeyEnd       string // kend
-	KeyHelp      string // khlp
-	KeyPgUp      string // kpp
-	KeyPgDn      string // knp
-	KeyUp        string // kcuu1
-	KeyDown      string // kcud1
-	KeyLeft      string // kcub1
-	KeyRight     string // kcuf1
-	KeyBacktab   string // kcbt
-	KeyExit      string // kext
-	KeyClear     string // kclr
-	KeyPrint     string // kprt
-	KeyCancel    string // kcan
-	Mouse        string // kmous
-	AltChars     string // acsc
-	EnterAcs     string // smacs
-	ExitAcs      string // rmacs
-	EnableAcs    string // enacs
-	KeyShfRight  string // kRIT
-	KeyShfLeft   string // kLFT
-	KeyShfHome   string // kHOM
-	KeyShfEnd    string // kEND
-	KeyShfInsert string // kIC
-	KeyShfDelete string // kDC
+	Name        string
+	Aliases     []string
+	Columns     int    // cols
+	Lines       int    // lines
+	Colors      int    // colors
+	Clear       string // clear
+	EnterCA     string // smcup
+	ExitCA      string // rmcup
+	ShowCursor  string // cnorm
+	HideCursor  string // civis
+	AttrOff     string // sgr0
+	Underline   string // smul
+	Bold        string // bold
+	Blink       string // blink
+	Reverse     string // rev
+	Dim         string // dim
+	Italic      string // sitm
+	EnterKeypad string // smkx
+	ExitKeypad  string // rmkx
+	SetFg       string // setaf
+	SetBg       string // setab
+	ResetFgBg   string // op
+	SetCursor   string // cup
+	PadChar     string // pad
+	Mouse       string // kmous
+	AltChars    string // acsc
+	EnterAcs    string // smacs
+	ExitAcs     string // rmacs
+	EnableAcs   string // enacs
 
 	// These are non-standard extensions to terminfo.  This includes
 	// true color support, and some additional keys.  Its kind of bizarre
@@ -167,95 +77,22 @@ type Terminfo struct {
 	// Terminal support for these are going to vary amongst XTerm
 	// emulations, so don't depend too much on them in your application.
 
-	StrikeThrough           string // smxx
-	SetFgBg                 string // setfgbg
-	SetFgBgRGB              string // setfgbgrgb
-	SetFgRGB                string // setfrgb
-	SetBgRGB                string // setbrgb
-	KeyShfUp                string // shift-up
-	KeyShfDown              string // shift-down
-	KeyShfPgUp              string // shift-kpp
-	KeyShfPgDn              string // shift-knp
-	KeyCtrlUp               string // ctrl-up
-	KeyCtrlDown             string // ctrl-left
-	KeyCtrlRight            string // ctrl-right
-	KeyCtrlLeft             string // ctrl-left
-	KeyMetaUp               string // meta-up
-	KeyMetaDown             string // meta-left
-	KeyMetaRight            string // meta-right
-	KeyMetaLeft             string // meta-left
-	KeyAltUp                string // alt-up
-	KeyAltDown              string // alt-left
-	KeyAltRight             string // alt-right
-	KeyAltLeft              string // alt-left
-	KeyCtrlHome             string
-	KeyCtrlEnd              string
-	KeyMetaHome             string
-	KeyMetaEnd              string
-	KeyAltHome              string
-	KeyAltEnd               string
-	KeyAltShfUp             string
-	KeyAltShfDown           string
-	KeyAltShfLeft           string
-	KeyAltShfRight          string
-	KeyMetaShfUp            string
-	KeyMetaShfDown          string
-	KeyMetaShfLeft          string
-	KeyMetaShfRight         string
-	KeyCtrlShfUp            string
-	KeyCtrlShfDown          string
-	KeyCtrlShfLeft          string
-	KeyCtrlShfRight         string
-	KeyCtrlShfHome          string
-	KeyCtrlShfEnd           string
-	KeyAltShfHome           string
-	KeyAltShfEnd            string
-	KeyMetaShfHome          string
-	KeyMetaShfEnd           string
-	EnablePaste             string // bracketed paste mode
-	DisablePaste            string
-	PasteStart              string
-	PasteEnd                string
-	Modifiers               int
-	InsertChar              string // string to insert a character (ich1)
-	AutoMargin              bool   // true if writing to last cell in line advances
-	TrueColor               bool   // true if the terminal supports direct color
-	CursorDefault           string
-	CursorBlinkingBlock     string
-	CursorSteadyBlock       string
-	CursorBlinkingUnderline string
-	CursorSteadyUnderline   string
-	CursorBlinkingBar       string
-	CursorSteadyBar         string
-	CursorColor             string // nothing uses it yet
-	CursorColorRGB          string // Cs (but not really because Cs uses X11 color string)
-	CursorColorReset        string // Cr
-	EnterUrl                string
-	ExitUrl                 string
-	SetWindowSize           string
-	SetWindowTitle          string // no terminfo extension
-	EnableFocusReporting    string
-	DisableFocusReporting   string
-	DisableAutoMargin       string // smam
-	EnableAutoMargin        string // rmam
-	DoubleUnderline         string // Smulx with param 2
-	CurlyUnderline          string // Smulx with param 3
-	DottedUnderline         string // Smulx with param 4
-	DashedUnderline         string // Smulx with param 5
-	UnderlineColor          string // Setuc1
-	UnderlineColorRGB       string // Setulc
-	UnderlineColorReset     string // ol
-	XTermLike               bool   // (XT) has XTerm extensions
+	StrikeThrough     string // smxx
+	SetFgBg           string // setfgbg
+	SetFgBgRGB        string // setfgbgrgb
+	SetFgRGB          string // setfrgb
+	SetBgRGB          string // setbrgb
+	InsertChar        string // string to insert a character (ich1)
+	AutoMargin        bool   // true if writing to last cell in line advances
+	TrueColor         bool   // true if the terminal supports direct color
+	DisableAutoMargin string // smam
+	EnableAutoMargin  string // rmam
+	XTermLike         bool   // (XT) has XTerm extensions
 }
 
-const (
-	ModifiersNone  = 0
-	ModifiersXTerm = 1
-)
+type stack []any
 
-type stack []interface{}
-
-func (st stack) Push(v interface{}) stack {
+func (st stack) Push(v any) stack {
 	if b, ok := v.(bool); ok {
 		if b {
 			return append(st, 1)
@@ -337,12 +174,12 @@ func (pb *paramsBuffer) PutString(s string) {
 // TParm takes a terminfo parameterized string, such as setaf or cup, and
 // evaluates the string, and returns the result with the parameter
 // applied.
-func (t *Terminfo) TParm(s string, p ...interface{}) string {
+func (t *Terminfo) TParm(s string, p ...any) string {
 	var stk stack
 	var a string
 	var ai, bi int
 	var dvars [26]string
-	var params [9]interface{}
+	var params [9]any
 	var pb = &paramsBuffer{}
 
 	pb.Start(s)
@@ -682,6 +519,7 @@ var (
 // AddTerminfo can be called to register a new Terminfo entry.
 func AddTerminfo(t *Terminfo) {
 	dblock.Lock()
+
 	terminfos[t.Name] = t
 	for _, x := range t.Aliases {
 		terminfos[x] = t
@@ -777,5 +615,14 @@ func LookupTerminfo(name string) (*Terminfo, error) {
 		t.SetFgBg = "\x1b[%?%p1%{8}%<%t3%p1%d%e%p1%{16}%<%t9%p1%{8}%-%d%e38;5;%p1%d%;;%?%p2%{8}%<%t4%p2%d%e%p2%{16}%<%t10%p2%{8}%-%d%e48;5;%p2%d%;m"
 		t.ResetFgBg = "\x1b[39;49m"
 	}
+
 	return t, nil
+}
+
+func TerminfoNames() []string {
+	res := make([]string, 0, len(terminfos))
+	for m := range terminfos {
+		res = append(res, m)
+	}
+	return res
 }
