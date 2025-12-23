@@ -257,7 +257,11 @@ type TranslationSet struct {
 	OpenFileTooltip                       string
 	OpenInEditor                          string
 	IgnoreFile                            string
+	IgnoreFileHelpText                    string
 	ExcludeFile                           string
+	ExcludeFileHelpText                   string
+	GlobalExcludesFile                    string
+	GlobalExcludesFileHelpText            string
 	RefreshFiles                          string
 	FocusMainView                         string
 	Merge                                 string
@@ -1002,7 +1006,6 @@ type Actions struct {
 	NotEnoughContextForCustomPatch   string
 	IgnoreExcludeFile                string
 	IgnoreFileErr                    string
-	ExcludeFile                      string
 	ExcludeGitIgnoreErr              string
 	Commit                           string
 	Push                             string
@@ -1351,7 +1354,11 @@ func EnglishTranslationSet() *TranslationSet {
 		OpenFileTooltip:                      "Open file in default application.",
 		OpenInEditor:                         "Open in editor",
 		IgnoreFile:                           `Add to .gitignore`,
+		IgnoreFileHelpText:                   "shared (versioned), this repo",
 		ExcludeFile:                          `Add to .git/info/exclude`,
+		ExcludeFileHelpText:                  "private (unversioned), this repo",
+		GlobalExcludesFile:                   `Add to %s`,
+		GlobalExcludesFileHelpText:           "private (unversioned), all repos",
 		RefreshFiles:                         `Refresh files`,
 		FocusMainView:                        "Focus main view",
 		Merge:                                `Merge`,
@@ -2062,7 +2069,6 @@ func EnglishTranslationSet() *TranslationSet {
 			NotEnoughContextForCustomPatch:   "Creating custom patches is not possible with a diff context size of 0. Increase the context using '%s'.",
 			IgnoreExcludeFile:                "Ignore or exclude file",
 			IgnoreFileErr:                    "Cannot ignore .gitignore",
-			ExcludeFile:                      "Exclude file",
 			ExcludeGitIgnoreErr:              "Cannot exclude .gitignore",
 			Commit:                           "Commit",
 			Push:                             "Push",
