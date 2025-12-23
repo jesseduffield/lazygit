@@ -531,7 +531,7 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 		return err
 	}
 
-	self.context().SetSelection(0)
+	self.c.Helpers().Refs.SelectFirstBranchAndFirstCommit()
 	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, KeepBranchSelectionIndex: true})
 	return nil
 }

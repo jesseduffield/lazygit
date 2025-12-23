@@ -368,7 +368,7 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 			err = self.c.Git().Branch.New(branchName, remote.Name+"/"+branchName)
 			if err == nil {
 				self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
-				self.c.Contexts().Branches.SetSelection(0)
+				self.c.Helpers().Refs.SelectFirstBranchAndFirstCommit()
 				refreshOptions.KeepBranchSelectionIndex = true
 			}
 		}
