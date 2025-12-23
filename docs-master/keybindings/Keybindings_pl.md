@@ -18,6 +18,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` } `` | Zwiększ rozmiar kontekstu w widoku różnic | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
 | `` { `` | Zmniejsz rozmiar kontekstu w widoku różnic | Decrease the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
+| `` ; `` | Git config |  |
 | `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
 | `` <c-p> `` | Wyświetl opcje niestandardowej łatki |  |
 | `` m `` | Pokaż opcje scalania/rebase | Pokaż opcje do przerwania/kontynuowania/pominięcia bieżącego scalania/rebase. |

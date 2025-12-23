@@ -1370,6 +1370,10 @@
           "type": "string",
           "default": "?"
         },
+        "gitConfig": {
+          "type": "string",
+          "default": ";"
+        },
         "select": {
           "type": "string",
           "default": "\u003cspace\u003e"

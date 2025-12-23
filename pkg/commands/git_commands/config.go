@@ -1,9 +1,12 @@
 package git_commands
 
 import (
+	"strings"
+
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/go-git/v5/config"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
@@ -12,17 +15,20 @@ type ConfigCommands struct {
 
 	gitConfig git_config.IGitConfig
 	repo      *gogit.Repository
+	cmd       oscommands.ICmdObjBuilder
 }
 
 func NewConfigCommands(
 	common *common.Common,
 	gitConfig git_config.IGitConfig,
 	repo *gogit.Repository,
+	cmd oscommands.ICmdObjBuilder,
 ) *ConfigCommands {
 	return &ConfigCommands{
 		Common:    common,
 		gitConfig: gitConfig,
 		repo:      repo,
+		cmd:       cmd,
 	}
 }
 
@@ -99,6 +105,72 @@ func (self *ConfigCommands) GetRebaseUpdateRefs() bool {
 
 func (self *ConfigCommands) GetMergeFF() string {
 	return self.gitConfig.Get("merge.ff")
+}
+
+func (self *ConfigCommands) ListLocalConfig() map[string]string {
+	return self.listConfig("--local")
+}
+
+func (self *ConfigCommands) ListGlobalConfig() map[string]string {
+	return self.listConfig("--global")
+}
+
+func (self *ConfigCommands) ListSystemConfig() map[string]string {
+	return self.listConfig("--system")
+}
+
+func (self *ConfigCommands) GetLocalConfigValue(key string) string {
+	return self.gitConfig.GetGeneral("--local --get " + key)
+}
+
+func (self *ConfigCommands) GetGlobalConfigValue(key string) string {
+	return self.gitConfig.GetGeneral("--global --get " + key)
+}
+
+func (self *ConfigCommands) SetLocalConfigValue(key string, value string) error {
+	return self.cmd.New(NewGitCmd("config").Arg("--local", key, value).ToArgv()).Run()
+}
+
+func (self *ConfigCommands) SetGlobalConfigValue(key string, value string) error {
+	return self.cmd.New(NewGitCmd("config").Arg("--global", key, value).ToArgv()).Run()
+}
+
+func (self *ConfigCommands) UnsetLocalConfigValue(key string) error {
+	return self.cmd.New(NewGitCmd("config").Arg("--local", "--unset", key).ToArgv()).Run()
+}
+
+func (self *ConfigCommands) UnsetGlobalConfigValue(key string) error {
+	return self.cmd.New(NewGitCmd("config").Arg("--global", "--unset", key).ToArgv()).Run()
+}
+
+func (self *ConfigCommands) listConfig(scope string) map[string]string {
+	cmdObj := self.cmd.New(NewGitCmd("config").Arg(scope, "--list", "--null").ToArgv()).DontLog()
+	stdout, _, err := cmdObj.RunWithOutputs()
+	if err != nil {
+		self.Log.Debugf("Error getting git config list for scope %s: %v", scope, err)
+		return map[string]string{}
+	}
+
+	return parseGitConfigList(stdout)
+}
+
+func parseGitConfigList(output string) map[string]string {
+	result := make(map[string]string)
+	entries := strings.Split(output, "\x00")
+	for _, entry := range entries {
+		if entry == "" {
+			continue
+		}
+		if parts := strings.SplitN(entry, "\n", 2); len(parts) == 2 {
+			result[parts[0]] = parts[1]
+			continue
+		}
+
+		if parts := strings.SplitN(entry, "=", 2); len(parts) == 2 {
+			result[parts[0]] = parts[1]
+		}
+	}
+	return result
 }
 
 func (self *ConfigCommands) DropConfigCache() {

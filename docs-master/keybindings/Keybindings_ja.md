@@ -18,6 +18,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` ( `` | リネーム検出の類似度しきい値を下げる | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` } `` | 差分コンテキストサイズを増やす | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
 | `` { `` | 差分コンテキストサイズを減らす | Decrease the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
+| `` ; `` | Git config |  |
 | `` : `` | シェルコマンドを実行 | 実行するシェルコマンドを入力するプロンプトを表示します。 |
 | `` <c-p> `` | カスタムパッチオプションを表示 |  |
 | `` m `` | マージ/リベースオプションを表示 | 現在のマージ/リベースを中止/継続/スキップするオプションを表示します。 |

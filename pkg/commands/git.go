@@ -110,7 +110,7 @@ func NewGitCommandAux(
 	// and allows for better namespacing when compared to having every method living
 	// on the one struct.
 	// common ones are: cmn, osCommand, dotGitDir, configCommands
-	configCommands := git_commands.NewConfigCommands(cmn, gitConfig, repo)
+	configCommands := git_commands.NewConfigCommands(cmn, gitConfig, repo, cmd)
 
 	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, repoPaths, repo, configCommands, pagerConfig)
 

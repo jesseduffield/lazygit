@@ -18,6 +18,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` ( `` | 降低重命名相似度阈值 | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` } `` | 扩大差异视图中显示的上下文范围 | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
 | `` { `` | 缩小差异视图中显示的上下文范围 | Decrease the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
+| `` ; `` | Git config |  |
 | `` : `` | 执行 Shell 命令 | 调出可输入shell命令执行的提示符。 |
 | `` <c-p> `` | 查看自定义补丁选项 |  |
 | `` m `` | 查看合并/变基选项 | 查看当前合并或变基的中止、继续、跳过选项 |

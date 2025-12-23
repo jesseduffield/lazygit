@@ -24,6 +24,14 @@ func NewGlobalController(
 func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
+			Key:             opts.GetKey(opts.Config.Universal.GitConfig),
+			Handler:         opts.Guards.NoPopupPanel(self.c.Helpers().GitConfig.OpenMenu),
+			Description:     self.c.Tr.GitConfigTitle,
+			DisplayOnScreen: true,
+			OpensMenu:       true,
+			GetDisabledReason: self.gitConfigDisabledReason,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Universal.ExecuteShellCommand),
 			Handler:     self.shellCommand,
 			Description: self.c.Tr.ExecuteShellCommand,
@@ -211,6 +219,14 @@ func (self *GlobalController) optionsMenuDisabledReason() *types.DisabledReason 
 	if ctx.GetKind() == types.PERSISTENT_POPUP || ctx.GetKind() == types.TEMPORARY_POPUP {
 		// The empty error text is intentional. We don't want to show an error
 		// toast for this, but only hide it from the options map.
+		return &types.DisabledReason{Text: ""}
+	}
+	return nil
+}
+
+func (self *GlobalController) gitConfigDisabledReason() *types.DisabledReason {
+	ctx := self.c.Context().Current()
+	if ctx.GetKind() == types.PERSISTENT_POPUP || ctx.GetKind() == types.TEMPORARY_POPUP {
 		return &types.DisabledReason{Text: ""}
 	}
 	return nil
