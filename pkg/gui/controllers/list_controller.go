@@ -116,7 +116,12 @@ func (self *ListController) handleLineChangeAux(f func(int), change int) error {
 	}
 
 	if cursorMoved || rangeBefore != rangeAfter {
-		self.context.HandleFocus(types.OnFocusOpts{})
+		self.context.HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
+	} else {
+		// If the selection did not change (because, for example, we are at the top of the list and
+		// press up), we still want to ensure that the selection is visible. This is useful after
+		// scrolling the selection out of view with the mouse.
+		self.context.FocusLine(true)
 	}
 
 	return nil
@@ -173,6 +178,8 @@ func (self *ListController) handlePageChange(delta int) error {
 		}
 	}
 
+	// Since we are maintaining the scroll position ourselves above, there's no point in passing
+	// ScrollSelectionIntoView=true here.
 	self.context.HandleFocus(types.OnFocusOpts{})
 
 	return nil

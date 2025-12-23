@@ -869,7 +869,7 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 					return err
 				}
 				self.context().MoveSelection(len(commits))
-				self.context().HandleFocus(types.OnFocusOpts{})
+				self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
 				if mustStash {
 					if err := self.c.Git().Stash.Pop(0); err != nil {

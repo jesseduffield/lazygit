@@ -17,8 +17,8 @@ func NewViewTrait(view *gocui.View) *ViewTrait {
 	return &ViewTrait{view: view}
 }
 
-func (self *ViewTrait) FocusPoint(yIdx int) {
-	self.view.FocusPoint(self.view.OriginX(), yIdx)
+func (self *ViewTrait) FocusPoint(yIdx int, scrollIntoView bool) {
+	self.view.FocusPoint(self.view.OriginX(), yIdx, scrollIntoView)
 }
 
 func (self *ViewTrait) SetRangeSelectStart(yIdx int) {

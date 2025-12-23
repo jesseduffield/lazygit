@@ -51,7 +51,7 @@ func RunTUI(raceDetector bool) {
 		if err != nil {
 			return err
 		}
-		listView.FocusPoint(0, app.itemIdx)
+		listView.FocusPoint(0, app.itemIdx, true)
 		return nil
 	}); err != nil {
 		log.Panicln(err)
@@ -66,7 +66,7 @@ func RunTUI(raceDetector bool) {
 		if err != nil {
 			return err
 		}
-		listView.FocusPoint(0, app.itemIdx)
+		listView.FocusPoint(0, app.itemIdx, true)
 		return nil
 	}); err != nil {
 		log.Panicln(err)

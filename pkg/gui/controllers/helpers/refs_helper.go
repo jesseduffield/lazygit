@@ -31,6 +31,15 @@ func NewRefsHelper(
 	}
 }
 
+func (self *RefsHelper) SelectFirstBranchAndFirstCommit() {
+	self.c.Contexts().Branches.SetSelection(0)
+	self.c.Contexts().ReflogCommits.SetSelection(0)
+	self.c.Contexts().LocalCommits.SetSelection(0)
+	self.c.Contexts().Branches.GetView().SetOriginY(0)
+	self.c.Contexts().ReflogCommits.GetView().SetOriginY(0)
+	self.c.Contexts().LocalCommits.GetView().SetOriginY(0)
+}
+
 func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions) error {
 	waitingStatus := options.WaitingStatus
 	if waitingStatus == "" {
@@ -40,9 +49,8 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 	cmdOptions := git_commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
 	refresh := func() {
-		self.c.Contexts().Branches.SetSelection(0)
-		self.c.Contexts().ReflogCommits.SetSelection(0)
-		self.c.Contexts().LocalCommits.SetSelection(0)
+		self.SelectFirstBranchAndFirstCommit()
+
 		// loading a heap of commits is slow so we limit them whenever doing a reset
 		self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
@@ -348,8 +356,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 			self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
 		}
 
-		self.c.Contexts().LocalCommits.SetSelection(0)
-		self.c.Contexts().Branches.SetSelection(0)
+		self.SelectFirstBranchAndFirstCommit()
 
 		self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
 	}
@@ -504,8 +511,7 @@ func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchNa
 		}
 	}
 
-	self.c.Contexts().LocalCommits.SetSelection(0)
-	self.c.Contexts().Branches.SetSelection(0)
+	self.SelectFirstBranchAndFirstCommit()
 
 	self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
 	return nil
@@ -543,8 +549,7 @@ func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName stri
 		}
 	}
 
-	self.c.Contexts().LocalCommits.SetSelection(0)
-	self.c.Contexts().Branches.SetSelection(0)
+	self.SelectFirstBranchAndFirstCommit()
 
 	self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
 	return nil

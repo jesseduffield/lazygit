@@ -25,8 +25,8 @@ type ListContextTrait struct {
 
 func (self *ListContextTrait) IsListContext() {}
 
-func (self *ListContextTrait) FocusLine() {
-	self.Context.FocusLine()
+func (self *ListContextTrait) FocusLine(scrollIntoView bool) {
+	self.Context.FocusLine(scrollIntoView)
 
 	// Doing this at the end of the layout function because we need the view to be
 	// resized before we focus the line, otherwise if we're in accordion mode
@@ -36,7 +36,7 @@ func (self *ListContextTrait) FocusLine() {
 		oldOrigin, _ := self.GetViewTrait().ViewPortYBounds()
 
 		self.GetViewTrait().FocusPoint(
-			self.ModelIndexToViewIndex(self.list.GetSelectedLineIdx()))
+			self.ModelIndexToViewIndex(self.list.GetSelectedLineIdx()), scrollIntoView)
 
 		selectRangeIndex, isSelectingRange := self.list.GetRangeStartIdx()
 		if isSelectingRange {
@@ -75,7 +75,7 @@ func formatListFooter(selectedLineIdx int, length int) string {
 }
 
 func (self *ListContextTrait) HandleFocus(opts types.OnFocusOpts) {
-	self.FocusLine()
+	self.FocusLine(opts.ScrollSelectionIntoView)
 
 	self.GetViewTrait().SetHighlight(self.list.Len() > 0)
 
