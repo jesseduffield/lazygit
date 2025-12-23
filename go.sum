@@ -194,8 +194,8 @@ github.com/jesseduffield/generics v0.0.0-20250517122708-b0b4a53a6f5c h1:tC2Paiis
 github.com/jesseduffield/generics v0.0.0-20250517122708-b0b4a53a6f5c/go.mod h1:F2fEBk0ddf6ixrBrJjY7phfQ3hL9rXG0uSjvwYe50bE=
 github.com/jesseduffield/go-git/v5 v5.14.1-0.20250407170251-e1a013310ccd h1:ViKj6qth8FgcIWizn9KiACWwPemWSymx62OPN0tHT+Q=
 github.com/jesseduffield/go-git/v5 v5.14.1-0.20250407170251-e1a013310ccd/go.mod h1:lRhCiBr6XjQrvcQVa+UYsy/99d3wMXn/a0nSQlhnhlA=
-github.com/jesseduffield/gocui v0.3.1-0.20251223143206-950739ccd44a h1:XRsyqrSljes4TlaPczQViIAA4xqdnB0fKEEpZdqWWTA=
-github.com/jesseduffield/gocui v0.3.1-0.20251223143206-950739ccd44a/go.mod h1:sLIyZ2J42R6idGdtemZzsiR3xY5EF0KsvYEGh3dQv3s=
+github.com/jesseduffield/gocui v0.3.1-0.20251223144240-29fe12e8d53f h1:5ArylWehV98WTxJM7AcSa53YNskEFpHHv+VePONQn58=
+github.com/jesseduffield/gocui v0.3.1-0.20251223144240-29fe12e8d53f/go.mod h1:sLIyZ2J42R6idGdtemZzsiR3xY5EF0KsvYEGh3dQv3s=
 github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5 h1:CDuQmfOjAtb1Gms6a1p5L2P8RhbLUq5t8aL7PiQd2uY=
 github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5/go.mod h1:qxN4mHOAyeIDLP7IK7defgPClM/z1Kze8VVQiaEjzsQ=
 github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=

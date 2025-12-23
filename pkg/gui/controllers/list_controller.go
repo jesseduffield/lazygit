@@ -178,6 +178,13 @@ func (self *ListController) handlePageChange(delta int) error {
 		}
 	}
 
+	// Since we already scrolled the view above, the normal mechanism that
+	// ListContextTrait.FocusLine uses for deciding whether rerendering is needed won't work. It is
+	// based on checking whether the origin was changed by the call to FocusPoint in that function,
+	// but since we scrolled the view directly above, the origin has already been updated. So we
+	// must tell it explicitly to rerender.
+	self.context.SetNeedRerenderVisibleLines()
+
 	// Since we are maintaining the scroll position ourselves above, there's no point in passing
 	// ScrollSelectionIntoView=true here.
 	self.context.HandleFocus(types.OnFocusOpts{})

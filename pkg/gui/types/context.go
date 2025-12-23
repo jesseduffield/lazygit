@@ -182,6 +182,7 @@ type IListContext interface {
 	IsListContext() // used for type switch
 	RangeSelectEnabled() bool
 	RenderOnlyVisibleLines() bool
+	SetNeedRerenderVisibleLines()
 
 	IndexForGotoBottom() int
 }
@@ -205,8 +206,7 @@ type IViewTrait interface {
 	SetRangeSelectStart(yIdx int)
 	CancelRangeSelect()
 	SetViewPortContent(content string)
-	SetViewPortContentAndClearEverythingElse(content string)
-	SetContentLineCount(lineCount int)
+	SetViewPortContentAndClearEverythingElse(lineCount int, content string)
 	SetContent(content string)
 	SetFooter(value string)
 	SetOriginX(value int)
