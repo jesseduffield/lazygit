@@ -2,6 +2,7 @@ package gui
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -257,6 +258,8 @@ func (gui *Gui) onInitialViewsCreation() error {
 		}
 	}
 
+	gui.checkForDeltaNavigateWarning()
+
 	gui.c.GetAppState().LastVersion = gui.Config.GetVersion()
 	gui.c.SaveAppStateAndLogError()
 
@@ -272,6 +275,21 @@ func (gui *Gui) onInitialViewsCreation() error {
 	gui.waitForIntro.Done()
 
 	return nil
+}
+
+func (gui *Gui) checkForDeltaNavigateWarning() {
+	userConfig := gui.c.UserConfig()
+	for _, pagerConfig := range userConfig.Git.Pagers {
+		pagerCmd := string(pagerConfig.Pager)
+		if strings.Contains(pagerCmd, "delta") && strings.Contains(pagerCmd, "--navigate") {
+			gui.c.Log.Warn("Configuration warning: 'delta --navigate' detected. This flag is not supported in lazygit as it requires interactive input that lazygit cannot forward to the pager subprocess.")
+			gui.c.OnUIThread(func() error {
+				gui.c.Alert(gui.c.Tr.DeltaNavigateWarningTitle, gui.c.Tr.DeltaNavigateWarning)
+				return nil
+			})
+			return
+		}
+	}
 }
 
 func (gui *Gui) transientContexts() []types.Context {
