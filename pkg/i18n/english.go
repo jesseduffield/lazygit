@@ -250,6 +250,8 @@ type TranslationSet struct {
 	IntroPopupMessage                     string
 	NonReloadableConfigWarningTitle       string
 	NonReloadableConfigWarning            string
+	DeltaNavigateWarningTitle             string
+	DeltaNavigateWarning                  string
 	GitconfigParseErr                     string
 	EditFile                              string
 	EditFileTooltip                       string
@@ -1344,6 +1346,8 @@ func EnglishTranslationSet() *TranslationSet {
 		IntroPopupMessage:                    englishIntroPopupMessage,
 		NonReloadableConfigWarningTitle:      "Config changed",
 		NonReloadableConfigWarning:           englishNonReloadableConfigWarning,
+		DeltaNavigateWarningTitle:            "Delta --navigate Not Supported",
+		DeltaNavigateWarning:                 "You have 'delta --navigate' configured as your pager.\n\nThe --navigate flag requires interactive keyboard input (n/N keys) that lazygit cannot forward to the subprocess.\n\nPlease remove '--navigate' from your pager configuration.",
 		GitconfigParseErr:                    `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		EditFile:                             `Edit file`,
 		EditFileTooltip:                      "Open file in external editor.",
