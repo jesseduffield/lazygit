@@ -35,9 +35,8 @@
 
 <hr>
 </div>
-
 <p align="center">
-  <img width="536" src="https://user-images.githubusercontent.com/8456633/174470852-339b5011-5800-4bb9-a628-ff230aa8cd4e.png">
+  <img height="320" src="https://github.com/user-attachments/assets/a86e0eb1-c34d-410d-b606-9d2a75ae3160">
 </p>
 
 <div align="center">
