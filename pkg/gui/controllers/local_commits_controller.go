@@ -244,6 +244,12 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Tooltip:     self.c.Tr.OpenLogMenuTooltip,
 			OpensMenu:   true,
 		},
+		{
+			Key:         'z',
+			Handler:     self.toggleFirstParentOnly,
+			Description: self.c.Tr.ToggleFirstParentOnly,
+			Tooltip:     self.c.Tr.ToggleFirstParentOnlyTooltip,
+		},
 	}
 
 	return bindings
@@ -1484,4 +1490,10 @@ func (self *LocalCommitsController) pickEnabled(selectedCommits []*models.Commit
 	}
 
 	return self.midRebaseCommandEnabled(selectedCommits, startIdx, endIdx)
+}
+
+func (self *LocalCommitsController) toggleFirstParentOnly() error {
+	self.context().SetShowFirstParentOnly(!self.context().GetShowFirstParentOnly())
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}})
+	return nil
 }

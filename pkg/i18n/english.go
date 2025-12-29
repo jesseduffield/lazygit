@@ -778,6 +778,8 @@ type TranslationSet struct {
 	OpenLogMenu                              string
 	OpenLogMenuTooltip                       string
 	LogMenuTitle                             string
+	ToggleFirstParentOnly                    string
+	ToggleFirstParentOnlyTooltip             string
 	ToggleShowGitGraphAll                    string
 	ShowGitGraph                             string
 	ShowGitGraphTooltip                      string
@@ -1876,6 +1878,8 @@ func EnglishTranslationSet() *TranslationSet {
 		OpenLogMenu:                              "View log options",
 		OpenLogMenuTooltip:                       "View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph.",
 		LogMenuTitle:                             "Commit Log Options",
+		ToggleFirstParentOnly:                    "Toggle first-parent only (flat view)",
+		ToggleFirstParentOnlyTooltip:             "Show only first-parent commits, hiding all commits from merged branches. This gives a flat view of the main branch history.",
 		ToggleShowGitGraphAll:                    "Toggle show whole git graph (pass the `--all` flag to `git log`)",
 		ShowGitGraph:                             "Show git graph",
 		ShowGitGraphTooltip:                      "Show or hide the git graph in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.showGraph'.",

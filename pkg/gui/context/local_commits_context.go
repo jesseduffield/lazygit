@@ -148,6 +148,9 @@ type LocalCommitsViewModel struct {
 
 	// If this is true we'll use git log --all when fetching the commits.
 	showWholeGitGraph bool
+
+	// If this is true we'll use git log --first-parent for a flat view.
+	showFirstParentOnly bool
 }
 
 func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon) *LocalCommitsViewModel {
@@ -240,6 +243,14 @@ func (self *LocalCommitsViewModel) SetShowWholeGitGraph(value bool) {
 
 func (self *LocalCommitsViewModel) GetShowWholeGitGraph() bool {
 	return self.showWholeGitGraph
+}
+
+func (self *LocalCommitsViewModel) SetShowFirstParentOnly(value bool) {
+	self.showFirstParentOnly = value
+}
+
+func (self *LocalCommitsViewModel) GetShowFirstParentOnly() bool {
+	return self.showFirstParentOnly
 }
 
 func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {

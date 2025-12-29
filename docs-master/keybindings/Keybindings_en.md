@@ -106,6 +106,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` t `` | Revert | Create a revert commit for the selected commit, which applies the selected commit's changes in reverse. |
 | `` T `` | Tag commit | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
 | `` <c-l> `` | View log options | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
+| `` z `` | Toggle first-parent only (flat view) | Show only first-parent commits, hiding all commits from merged branches. This gives a flat view of the main branch history. |
 | `` <space> `` | Checkout | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
