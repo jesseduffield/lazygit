@@ -28,7 +28,7 @@ func SimpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
 	case (key == KeyBackspace || key == KeyBackspace2) && (mod&ModAlt) != 0,
 		key == KeyCtrlW:
 		v.TextArea.BackSpaceWord()
-	case key == KeyBackspace || key == KeyBackspace2:
+	case key == KeyBackspace || key == KeyBackspace2 || key == KeyCtrlH:
 		v.TextArea.BackSpaceChar()
 	case key == KeyCtrlD || key == KeyDelete:
 		v.TextArea.DeleteChar()
@@ -38,11 +38,11 @@ func SimpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
 		v.TextArea.MoveCursorUp()
 	case (key == KeyArrowLeft || ch == 'b') && (mod&ModAlt) != 0:
 		v.TextArea.MoveLeftWord()
-	case key == KeyArrowLeft:
+	case key == KeyArrowLeft || key == KeyCtrlB:
 		v.TextArea.MoveCursorLeft()
 	case (key == KeyArrowRight || ch == 'f') && (mod&ModAlt) != 0:
 		v.TextArea.MoveRightWord()
-	case key == KeyArrowRight:
+	case key == KeyArrowRight || key == KeyCtrlF:
 		v.TextArea.MoveCursorRight()
 	case key == KeyEnter:
 		v.TextArea.TypeCharacter("\n")
