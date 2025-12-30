@@ -106,6 +106,7 @@ var tests = []*components.IntegrationTest{
 	commit.AutoWrapMessage,
 	commit.Checkout,
 	commit.CheckoutFileFromCommit,
+	commit.CheckoutFileFromCommitWithLocalChanges,
 	commit.CheckoutFileFromRangeSelectionOfCommits,
 	commit.Commit,
 	commit.CommitMultiline,

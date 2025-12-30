@@ -283,14 +283,25 @@ func (self *CommitFilesController) openCopyMenu() error {
 }
 
 func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error {
-	self.c.LogAction(self.c.Tr.Actions.CheckoutFile)
-	_, to := self.context().GetFromAndToForDiff()
-	if err := self.c.Git().WorkingTree.CheckoutFile(to, node.GetPath()); err != nil {
-		return err
-	}
+	// Check if the file has uncommitted local changes
+	hasLocalChanges := lo.SomeBy(self.c.Model().Files, func(file *models.File) bool {
+		return file.GetPath() == node.GetPath() && (file.HasStagedChanges || file.HasUnstagedChanges)
+	})
 
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
-	return nil
+	return self.c.ConfirmIf(hasLocalChanges, types.ConfirmOpts{
+		Title:  self.c.Tr.CheckoutFileFromCommitTitle,
+		Prompt: self.c.Tr.CheckoutFileFromCommitPrompt,
+		HandleConfirm: func() error {
+			self.c.LogAction(self.c.Tr.Actions.CheckoutFile)
+			_, to := self.context().GetFromAndToForDiff()
+			if err := self.c.Git().WorkingTree.CheckoutFile(to, node.GetPath()); err != nil {
+				return err
+			}
+
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			return nil
+		},
+	})
 }
 
 func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileNode) error {
