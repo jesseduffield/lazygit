@@ -1896,6 +1896,14 @@ func (v *View) onMouseMove(x int, y int) {
 }
 
 func (v *View) findHyperlinkAt(x, y int) *SearchPosition {
+	// Bounds check to prevent index out of range panic
+	if y < 0 || y >= len(v.viewLines) {
+		return nil
+	}
+	if x < 0 || x >= len(v.viewLines[y].line) {
+		return nil
+	}
+
 	linkStr := v.viewLines[y].line[x].hyperlink
 	if linkStr == "" {
 		return nil
