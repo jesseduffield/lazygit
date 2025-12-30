@@ -612,6 +612,8 @@ keybinding:
     focusMainView: "0"
     nextMatch: "n"
     prevMatch: "N"
+    nextMatchFromCursor: ""
+    prevMatchFromCursor: ""
     startSearch: /
     optionMenu: <disabled>
     optionMenu-alt1: '?'

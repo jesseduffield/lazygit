@@ -444,6 +444,8 @@ type KeybindingUniversalConfig struct {
 	FocusMainView                     string   `yaml:"focusMainView"`
 	NextMatch                         string   `yaml:"nextMatch"`
 	PrevMatch                         string   `yaml:"prevMatch"`
+	NextSearchMatchFromCursor         string   `yaml:"nextMatchFromCursor"`
+	PrevSearchMatchFromCursor         string   `yaml:"prevMatchFromCursor"`
 	StartSearch                       string   `yaml:"startSearch"`
 	OptionMenu                        string   `yaml:"optionMenu"`
 	OptionMenuAlt1                    string   `yaml:"optionMenu-alt1"`

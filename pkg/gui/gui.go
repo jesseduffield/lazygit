@@ -456,6 +456,8 @@ func (gui *Gui) onUserConfigLoaded() error {
 	gui.g.SearchEscapeKey = keybindings.GetKey(userConfig.Keybinding.Universal.Return)
 	gui.g.NextSearchMatchKey = keybindings.GetKey(userConfig.Keybinding.Universal.NextMatch)
 	gui.g.PrevSearchMatchKey = keybindings.GetKey(userConfig.Keybinding.Universal.PrevMatch)
+	gui.g.NextSearchMatchFromCursorKey = keybindings.GetKey(userConfig.Keybinding.Universal.NextSearchMatchFromCursor)
+	gui.g.PrevSearchMatchFromCursorKey = keybindings.GetKey(userConfig.Keybinding.Universal.PrevSearchMatchFromCursor)
 
 	gui.g.ShowListFooter = userConfig.Gui.ShowListFooter
 

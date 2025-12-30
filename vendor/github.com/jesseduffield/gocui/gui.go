@@ -190,9 +190,11 @@ type Gui struct {
 
 	OnSearchEscape func() error
 	// these keys must either be of type Key of rune
-	SearchEscapeKey    any
-	NextSearchMatchKey any
-	PrevSearchMatchKey any
+	SearchEscapeKey              any
+	NextSearchMatchKey           any
+	PrevSearchMatchKey           any
+	NextSearchMatchFromCursorKey any
+	PrevSearchMatchFromCursorKey any
 
 	ErrorHandler func(error) error
 
@@ -269,6 +271,8 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	g.SearchEscapeKey = KeyEsc
 	g.NextSearchMatchKey = 'n'
 	g.PrevSearchMatchKey = 'N'
+	g.NextSearchMatchFromCursorKey = ""
+	g.PrevSearchMatchFromCursorKey = ""
 
 	g.playRecording = opts.PlayRecording
 
@@ -1521,6 +1525,10 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 			return v.gotoNextMatch()
 		} else if eventMatchesKey(ev, g.PrevSearchMatchKey) {
 			return v.gotoPreviousMatch()
+		} else if eventMatchesKey(ev, g.NextSearchMatchFromCursorKey) {
+			return v.gotoNextMatchFromCursor()
+		} else if eventMatchesKey(ev, g.PrevSearchMatchFromCursorKey) {
+			return v.gotoPreviousMatchFromCursor()
 		} else if eventMatchesKey(ev, g.SearchEscapeKey) {
 			v.searcher.clearSearch()
 			if g.OnSearchEscape != nil {

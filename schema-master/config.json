@@ -1358,6 +1358,14 @@
           "type": "string",
           "default": "N"
         },
+        "nextMatchFromCursor": {
+          "type": "string",
+          "default": "n"
+        },
+        "prevMatchFromCursor": {
+          "type": "string",
+          "default": "p"
+        },
         "startSearch": {
           "type": "string",
           "default": "/"

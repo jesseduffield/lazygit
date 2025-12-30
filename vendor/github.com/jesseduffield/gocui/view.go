@@ -250,6 +250,60 @@ func (v *View) gotoPreviousMatch() error {
 	return v.SelectSearchResult(v.searcher.currentSearchIndex)
 }
 
+// gotoNextMatchFromCursor finds the next match after the current cursor position
+func (v *View) gotoNextMatchFromCursor() error {
+	if len(v.searcher.searchPositions) == 0 {
+		return nil
+	}
+
+	// Get current line position
+	currentLine := v.SelectedLineIdx()
+
+	// Find the next match after the current line
+	nextIndex := -1
+	for i, pos := range v.searcher.searchPositions {
+		if pos.Y > currentLine {
+			nextIndex = i
+			break
+		}
+	}
+
+	// If no match found after current line, wrap around to first match
+	if nextIndex == -1 {
+		nextIndex = 0
+	}
+
+	v.searcher.currentSearchIndex = nextIndex
+	return v.SelectSearchResult(v.searcher.currentSearchIndex)
+}
+
+// gotoPreviousMatchFromCursor finds the previous match before the current cursor position
+func (v *View) gotoPreviousMatchFromCursor() error {
+	if len(v.searcher.searchPositions) == 0 {
+		return nil
+	}
+
+	// Get current line position
+	currentLine := v.SelectedLineIdx()
+
+	// Find the previous match before the current line (search backwards)
+	prevIndex := -1
+	for i := len(v.searcher.searchPositions) - 1; i >= 0; i-- {
+		if v.searcher.searchPositions[i].Y < currentLine {
+			prevIndex = i
+			break
+		}
+	}
+
+	// If no match found before current line, wrap around to last match
+	if prevIndex == -1 {
+		prevIndex = len(v.searcher.searchPositions) - 1
+	}
+
+	v.searcher.currentSearchIndex = prevIndex
+	return v.SelectSearchResult(v.searcher.currentSearchIndex)
+}
+
 func (v *View) SelectSearchResult(index int) error {
 	itemCount := len(v.searcher.searchPositions)
 	if itemCount == 0 {
