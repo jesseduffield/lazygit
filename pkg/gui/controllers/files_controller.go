@@ -152,7 +152,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
+			Key:         opts.GetKey(opts.Config.Files.ViewResetToUpstreamOptions),
 			Handler:     self.createResetToUpstreamMenu,
 			Description: self.c.Tr.ViewResetToUpstreamOptions,
 			OpensMenu:   true,
