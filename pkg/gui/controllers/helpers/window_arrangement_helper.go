@@ -435,6 +435,19 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				}
 			}
 
+			// In half-screen mode, when commits is focused, show both commits
+			// and commitFiles in a split layout
+			if args.ScreenMode == types.SCREEN_HALF && args.CurrentSideWindow == "commits" {
+				return []*boxlayout.Box{
+					{Window: "status", Size: 0},
+					{Window: "files", Size: 0},
+					{Window: "branches", Size: 0},
+					{Window: "commits", Weight: 1},
+					{Window: "commitFiles", Weight: 1},
+					{Window: "stash", Size: 0},
+				}
+			}
+
 			return []*boxlayout.Box{
 				fullHeightBox("status"),
 				fullHeightBox("files"),

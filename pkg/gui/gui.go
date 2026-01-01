@@ -617,6 +617,9 @@ func initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSaf
 		result.Set(context.GetWindowName(), context.GetViewName())
 	}
 
+	// Add direct mapping for commitFiles window used in half-screen split layout
+	result.Set("commitFiles", "commitFiles")
+
 	return result
 }
 
