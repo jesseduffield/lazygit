@@ -89,13 +89,27 @@ func (self *BisectCommands) GetInfoForGitDir(gitDir string) *BisectInfo {
 		info.statusMap[hash] = status
 	}
 
-	currentContent, err := os.ReadFile(filepath.Join(gitDir, "BISECT_EXPECTED_REV"))
+	// Only set current when BISECT_EXPECTED_REV exists, which indicates that git has
+	// started the narrowing process (both good and bad commits have been marked).
+	// We use HEAD instead of BISECT_EXPECTED_REV because we want to show where HEAD
+	// actually is, not where git bisect expects you to be. This way, if the user manually
+	// checks out a different commit during bisect, the UI will correctly show that commit
+	// as "current" instead of the bisect-expected commit.
+	bisectExpectedRevPath := filepath.Join(gitDir, "BISECT_EXPECTED_REV")
+	exists, err = self.os.FileExists(bisectExpectedRevPath)
 	if err != nil {
 		self.Log.Infof("error getting git bisect info: %s", err.Error())
 		return info
 	}
-	currentHash := strings.TrimSpace(string(currentContent))
-	info.current = currentHash
+	if exists {
+		cmdArgs := NewGitCmd("rev-parse").Arg("HEAD").ToArgv()
+		output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+		if err != nil {
+			self.Log.Infof("error getting git bisect info: %s", err.Error())
+			return info
+		}
+		info.current = strings.TrimSpace(output)
+	}
 
 	return info
 }
