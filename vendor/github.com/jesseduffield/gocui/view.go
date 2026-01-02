@@ -7,6 +7,7 @@ package gocui
 import (
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"sync"
 	"unicode"
@@ -250,58 +251,65 @@ func (v *View) gotoPreviousMatch() error {
 	return v.SelectSearchResult(v.searcher.currentSearchIndex)
 }
 
-// gotoNextMatchFromCursor finds the next match after the current cursor position
 func (v *View) gotoNextMatchFromCursor() error {
 	if len(v.searcher.searchPositions) == 0 {
 		return nil
 	}
 
-	// Get current line position
+	positions := v.searcher.searchPositions
+	currentIdx := v.searcher.currentSearchIndex
 	currentLine := v.SelectedLineIdx()
 
-	// Find the next match after the current line
-	nextIndex := -1
-	for i, pos := range v.searcher.searchPositions {
-		if pos.Y > currentLine {
-			nextIndex = i
-			break
+	// If current match is on same line, check next position
+	if currentIdx >= 0 && currentIdx < len(positions) && positions[currentIdx].Y == currentLine {
+		if currentIdx+1 < len(positions) && positions[currentIdx+1].Y == currentLine {
+			v.searcher.currentSearchIndex = currentIdx + 1
+			return v.SelectSearchResult(currentIdx + 1)
 		}
 	}
 
-	// If no match found after current line, wrap around to first match
-	if nextIndex == -1 {
+	// Find first match after current line
+	nextIndex := sort.Search(len(positions), func(i int) bool {
+		return positions[i].Y > currentLine
+	})
+
+	if nextIndex >= len(positions) {
 		nextIndex = 0
 	}
 
 	v.searcher.currentSearchIndex = nextIndex
-	return v.SelectSearchResult(v.searcher.currentSearchIndex)
+	return v.SelectSearchResult(nextIndex)
 }
 
-// gotoPreviousMatchFromCursor finds the previous match before the current cursor position
 func (v *View) gotoPreviousMatchFromCursor() error {
 	if len(v.searcher.searchPositions) == 0 {
 		return nil
 	}
 
-	// Get current line position
+	positions := v.searcher.searchPositions
+	currentIdx := v.searcher.currentSearchIndex
 	currentLine := v.SelectedLineIdx()
 
-	// Find the previous match before the current line (search backwards)
-	prevIndex := -1
-	for i := len(v.searcher.searchPositions) - 1; i >= 0; i-- {
-		if v.searcher.searchPositions[i].Y < currentLine {
-			prevIndex = i
-			break
+	// If current match is on same line, check previous position
+	if currentIdx >= 0 && currentIdx < len(positions) && positions[currentIdx].Y == currentLine {
+		if currentIdx-1 >= 0 && positions[currentIdx-1].Y == currentLine {
+			v.searcher.currentSearchIndex = currentIdx - 1
+			return v.SelectSearchResult(currentIdx - 1)
 		}
 	}
 
-	// If no match found before current line, wrap around to last match
-	if prevIndex == -1 {
-		prevIndex = len(v.searcher.searchPositions) - 1
+	// Find first match on or after current line, then go back one
+	idx := sort.Search(len(positions), func(i int) bool {
+		return positions[i].Y >= currentLine
+	})
+
+	prevIndex := idx - 1
+	if prevIndex < 0 {
+		prevIndex = len(positions) - 1
 	}
 
 	v.searcher.currentSearchIndex = prevIndex
-	return v.SelectSearchResult(v.searcher.currentSearchIndex)
+	return v.SelectSearchResult(prevIndex)
 }
 
 func (v *View) SelectSearchResult(index int) error {
