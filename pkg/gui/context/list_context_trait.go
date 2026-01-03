@@ -24,12 +24,20 @@ type ListContextTrait struct {
 	// If renderOnlyVisibleLines is true, needRerenderVisibleLines indicates whether we need to
 	// rerender the visible lines e.g. because the scroll position changed
 	needRerenderVisibleLines bool
+
+	// true if we're inside the OnSearchSelect call; in that case we don't want to update the search
+	// result index.
+	inOnSearchSelect bool
 }
 
 func (self *ListContextTrait) IsListContext() {}
 
 func (self *ListContextTrait) FocusLine(scrollIntoView bool) {
 	self.Context.FocusLine(scrollIntoView)
+
+	// Need to capture this in a local variable because by the time the AfterLayout function runs,
+	// the field will have been reset to false already
+	inOnSearchSelect := self.inOnSearchSelect
 
 	// Doing this at the end of the layout function because we need the view to be
 	// resized before we focus the line, otherwise if we're in accordion mode
@@ -40,6 +48,9 @@ func (self *ListContextTrait) FocusLine(scrollIntoView bool) {
 
 		self.GetViewTrait().FocusPoint(
 			self.ModelIndexToViewIndex(self.list.GetSelectedLineIdx()), scrollIntoView)
+		if !inOnSearchSelect {
+			self.GetView().SetNearestSearchPosition()
+		}
 
 		selectRangeIndex, isSelectingRange := self.list.GetRangeStartIdx()
 		if isSelectingRange {
@@ -119,7 +130,9 @@ func (self *ListContextTrait) HandleRender() {
 
 func (self *ListContextTrait) OnSearchSelect(selectedLineIdx int) {
 	self.GetList().SetSelection(self.ViewIndexToModelIndex(selectedLineIdx))
+	self.inOnSearchSelect = true
 	self.HandleFocus(types.OnFocusOpts{})
+	self.inOnSearchSelect = false
 }
 
 func (self *ListContextTrait) IsItemVisible(item types.HasUrn) bool {
