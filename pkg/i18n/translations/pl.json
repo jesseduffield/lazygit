@@ -178,8 +178,6 @@
   "UpdateFailedErr": "Aktualizacja nie powiodła się: {{.errMessage}}",
   "ConfirmQuitDuringUpdateTitle": "Aktualizacja w toku",
   "ConfirmQuitDuringUpdate": "Aktualizacja jest w toku. Czy na pewno chcesz wyjść?",
-  "MergeToolTitle": "Narzędzie scalania",
-  "MergeToolPrompt": "Czy na pewno chcesz otworzyć `git mergetool`?",
   "GitconfigParseErr": "Gogit nie mógł przetworzyć pliku gitconfig z powodu obecności niezacytowanych znaków '\\'. Usunięcie ich powinno rozwiązać problem.",
   "EditFile": "Edytuj plik",
   "EditFileTooltip": "Otwórz plik w zewnętrznym edytorze.",

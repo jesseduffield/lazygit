@@ -227,8 +227,6 @@
   "UpdateFailedErr": "更新に失敗しました: {{.errMessage}}",
   "ConfirmQuitDuringUpdateTitle": "現在更新中です",
   "ConfirmQuitDuringUpdate": "更新が進行中です。本当に終了してよろしいですか？",
-  "MergeToolTitle": "マージツール",
-  "MergeToolPrompt": "`git mergetool`を開いてもよろしいですか？",
   "NonReloadableConfigWarningTitle": "設定が変更されました",
   "NonReloadableConfigWarning": "以下の設定が変更されましたが、変更はすぐには反映されません。変更を反映するには、lazygitを終了して再起動してください：\n\n{{configs}}",
   "GitconfigParseErr": "引用符で囲まれていない'\\'文字が存在するため、Gogitがgitconfigファイルの解析に失敗しました。これらを削除することで問題が解決するはずです。",
