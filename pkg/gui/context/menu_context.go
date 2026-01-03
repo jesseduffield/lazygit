@@ -17,6 +17,7 @@ type MenuContext struct {
 
 	*MenuViewModel
 	*ListContextTrait
+	extraKeybindings []*types.Binding
 }
 
 var _ types.IListContext = (*MenuContext)(nil)
@@ -216,14 +217,14 @@ func (self *MenuContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Bin
 		// allows assigning a keybinding to a menu item that overrides a non-essential binding such
 		// as 'j', 'k', 'H', 'L', etc. This is safe to do because the essential bindings such as
 		// confirm and return have already been removed from the menu items in this case.
-		return append(menuItemBindings, basicBindings...)
+		return append(append(menuItemBindings, self.extraKeybindings...), basicBindings...)
 	}
 
 	// For the keybindings menu we didn't remove the essential bindings from the menu items, because
 	// it is important to see all bindings (as a cheat sheet for what the keys are when the menu is
 	// not open). Therefore we want the essential bindings to have higher precedence than the menu
 	// item bindings.
-	return append(basicBindings, menuItemBindings...)
+	return append(append(basicBindings, menuItemBindings...), self.extraKeybindings...)
 }
 
 func (self *MenuContext) OnMenuPress(selectedItem *types.MenuItem) error {
@@ -260,4 +261,8 @@ func (self *MenuContext) FilterPrefix(tr *i18n.TranslationSet) string {
 	}
 
 	return self.FilteredListViewModel.FilterPrefix(tr)
+}
+
+func (self *MenuContext) SetExtraKeybindings(bindings []*types.Binding) {
+	self.extraKeybindings = bindings
 }

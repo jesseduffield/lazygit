@@ -42,6 +42,7 @@ type Helpers struct {
 	Repos             *ReposHelper
 	RecordDirectory   *RecordDirectoryHelper
 	Update            *UpdateHelper
+	GitConfig         *GitConfigHelper
 	Window            *WindowHelper
 	View              *ViewHelper
 	Refresh           *RefreshHelper
@@ -79,6 +80,7 @@ func NewStubHelpers() *Helpers {
 		Repos:             &ReposHelper{},
 		RecordDirectory:   &RecordDirectoryHelper{},
 		Update:            &UpdateHelper{},
+		GitConfig:         &GitConfigHelper{},
 		Window:            &WindowHelper{},
 		View:              &ViewHelper{},
 		Refresh:           &RefreshHelper{},
