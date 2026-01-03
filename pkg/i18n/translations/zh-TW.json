@@ -149,8 +149,6 @@
   "UpdateFailedErr": "更新失敗：{{.errMessage}}",
   "ConfirmQuitDuringUpdateTitle": "正在更新中",
   "ConfirmQuitDuringUpdate": "正在進行更新，是否結束？",
-  "MergeToolTitle": "合併工具",
-  "MergeToolPrompt": "是否開啟 'git mergetool'？",
   "GitconfigParseErr": "Gogit 無法解析你的 gitconfig 檔案，因為存在未引用的 '\\' 字符，刪除它們應該可以解決這個問題。",
   "EditFile": "編輯檔案",
   "EditFileTooltip": "使用外部編輯器開啟",

@@ -122,8 +122,6 @@
   "UpdateFailedErr": "업데이트 실패: {{.errMessage}}",
   "ConfirmQuitDuringUpdateTitle": "현재 업데이트 중입니다.",
   "ConfirmQuitDuringUpdate": "현재 업데이트를 진행 중입니다.종료하시겠습니까?",
-  "MergeToolTitle": "병합 도구",
-  "MergeToolPrompt": "정말로 `git mergetool`을 여시겠습니까?",
   "GitconfigParseErr": "따옴표로 묶이지 않은 '\\' 문자가 있어서 Gogit이 gitconfig 파일을 분석하지 못했습니다. 이를 제거하면 문제가 해결됩니다.",
   "EditFile": "파일 편집",
   "OpenFile": "파일 닫기",

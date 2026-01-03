@@ -122,8 +122,6 @@
   "UpdateFailedErr": "Не удалось обновить: {{.errMessage}}",
   "ConfirmQuitDuringUpdateTitle": "Идёт Обновление",
   "ConfirmQuitDuringUpdate": "Выполняется обновление. Вы уверены, что хотите выйти?",
-  "MergeToolTitle": "Инструмент слияния",
-  "MergeToolPrompt": "Вы уверены, что хотите открыть `git mergetool`?",
   "GitconfigParseErr": "Gogit не удалось проанализировать ваш файл gitconfig из-за наличия символов «\\» без кавычек. Их удаление должно решить проблему.",
   "EditFile": "Редактировать файл",
   "OpenFile": "Открыть файл",

@@ -219,8 +219,6 @@
   "UpdateFailedErr": "Falha na atualização: {{.errMessage}}",
   "ConfirmQuitDuringUpdateTitle": "Atualmente atualizando",
   "ConfirmQuitDuringUpdate": "Uma atualização está em andamento. Tem certeza que deseja sair?",
-  "MergeToolTitle": "Ferramenta de mesclagem",
-  "MergeToolPrompt": "Tem certeza de que deseja abrir o  `git mergetool`?",
   "NonReloadableConfigWarningTitle": "Configuração alterada",
   "NonReloadableConfigWarning": "As seguintes configurações foram alteradas, mas a mudança não tem efeito imediatamente. Encerre e reinicie o lazygit para que as mudanças tenham efeito:\n\n{{configs}}",
   "GitconfigParseErr": "Gogit falhou ao analisar seu arquivo gitconfig devido à presença de caracteres '\\' não citados. Removendo-os deve corrigir o problema.",
