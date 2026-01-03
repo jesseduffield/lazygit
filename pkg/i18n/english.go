@@ -425,6 +425,7 @@ type TranslationSet struct {
 	ViewItemFiles                         string
 	CommitFilesTitle                      string
 	CheckoutCommitFileTooltip             string
+	CannotCheckoutWithModifiedFilesErr    string
 	CanOnlyDiscardFromLocalCommits        string
 	Remove                                string
 	DiscardOldFileChangeTooltip           string
@@ -1525,6 +1526,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ViewItemFiles:                        "View files",
 		CommitFilesTitle:                     "Commit files",
 		CheckoutCommitFileTooltip:            "Checkout file. This replaces the file in your working tree with the version from the selected commit.",
+		CannotCheckoutWithModifiedFilesErr:   "You have local modifications for the file(s) you are trying to check out. You need to stash or discard these first.",
 		CanOnlyDiscardFromLocalCommits:       "Changes can only be discarded from local commits",
 		Remove:                               "Remove",
 		DiscardOldFileChangeTooltip:          "Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file.",

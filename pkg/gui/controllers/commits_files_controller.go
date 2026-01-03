@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -283,6 +284,12 @@ func (self *CommitFilesController) openCopyMenu() error {
 }
 
 func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error {
+	hasModifiedFiles := helpers.AnyTrackedFilesInPathExceptSubmodules(node.GetPath(),
+		self.c.Model().Files, self.c.Model().Submodules)
+	if hasModifiedFiles {
+		return errors.New(self.c.Tr.CannotCheckoutWithModifiedFilesErr)
+	}
+
 	self.c.LogAction(self.c.Tr.Actions.CheckoutFile)
 	_, to := self.context().GetFromAndToForDiff()
 	if err := self.c.Git().WorkingTree.CheckoutFile(to, node.GetPath()); err != nil {

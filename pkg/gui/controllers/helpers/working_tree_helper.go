@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -69,6 +70,23 @@ func (self *WorkingTreeHelper) AnyTrackedFilesExceptSubmodules() bool {
 
 func AnyTrackedFilesExceptSubmodules(files []*models.File, submoduleConfigs []*models.SubmoduleConfig) bool {
 	return lo.SomeBy(files, func(f *models.File) bool { return f.Tracked && !f.IsSubmodule(submoduleConfigs) })
+}
+
+func isContainedInPath(candidate string, path string) bool {
+	return (
+	// If the path is the repo root (appears as "/" in the UI), then all candidates are contained in it
+	path == "." ||
+		// Exact match; will only be true for files
+		candidate == path ||
+		// Match for files within a directory. We need to match the trailing slash to avoid
+		// matching files with longer names.
+		strings.HasPrefix(candidate, path+"/"))
+}
+
+func AnyTrackedFilesInPathExceptSubmodules(path string, files []*models.File, submoduleConfigs []*models.SubmoduleConfig) bool {
+	return lo.SomeBy(files, func(f *models.File) bool {
+		return f.Tracked && isContainedInPath(f.GetPath(), path) && !f.IsSubmodule(submoduleConfigs)
+	})
 }
 
 func (self *WorkingTreeHelper) IsWorkingTreeDirtyExceptSubmodules() bool {
