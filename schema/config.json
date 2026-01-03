@@ -163,6 +163,10 @@
           "examples": [
             "feature"
           ]
+        },
+        "key": {
+          "type": "string",
+          "description": "Keybinding to invoke this menu option without needing to navigate to it"
         }
       },
       "additionalProperties": false,
