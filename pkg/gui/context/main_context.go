@@ -31,7 +31,8 @@ func NewMainContext(
 		SearchTrait: NewSearchTrait(c),
 	}
 
-	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(func(int) error { return nil }))
+	ctx.GetView().SetRenderSearchStatus(ctx.SearchTrait.RenderSearchStatus)
+	ctx.GetView().SetOnSelectItem(func(int) {})
 
 	return ctx
 }

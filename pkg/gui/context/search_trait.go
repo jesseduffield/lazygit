@@ -36,20 +36,6 @@ func (self *SearchTrait) ClearSearchString() {
 // used for type switch
 func (self *SearchTrait) IsSearchableContext() {}
 
-func (self *SearchTrait) onSelectItemWrapper(innerFunc func(int) error) func(int, int, int) error {
-	return func(selectedLineIdx int, index int, total int) error {
-		self.RenderSearchStatus(index, total)
-
-		if total != 0 {
-			if err := innerFunc(selectedLineIdx); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}
-}
-
 func (self *SearchTrait) RenderSearchStatus(index int, total int) {
 	keybindingConfig := self.c.UserConfig().Keybinding
 
