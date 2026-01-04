@@ -330,6 +330,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 			All:                  self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
 			MainBranches:         self.c.Model().MainBranches,
 			HashPool:             self.c.Model().HashPool,
+			HideMerges:           self.c.Modes().Filtering.GetHideMerges(),
 		},
 	)
 	if err != nil {
@@ -367,6 +368,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 			RefForPushedStatus:      self.c.Contexts().SubCommits.GetRef(),
 			MainBranches:            self.c.Model().MainBranches,
 			HashPool:                self.c.Model().HashPool,
+			HideMerges:              self.c.Modes().Filtering.GetHideMerges(),
 		},
 	)
 	if err != nil {
