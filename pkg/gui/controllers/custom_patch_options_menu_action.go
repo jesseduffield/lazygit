@@ -3,6 +3,8 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/gocui"
@@ -104,6 +106,12 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 	}
 
 	menuItems = append(menuItems, []*types.MenuItem{
+		{
+			Label:   self.c.Tr.SavePatch,
+			Tooltip: self.c.Tr.SavePatchTooltip,
+			OnPress: self.handleSavePatchToFile,
+			Key:     's',
+		},
 		{
 			Label:   self.c.Tr.CopyPatchToClipboard,
 			OnPress: func() error { return self.copyPatchToClipboard() },
@@ -288,6 +296,31 @@ func (self *CustomPatchOptionsMenuAction) handleApplyPatch(reverse bool) error {
 			return nil
 		},
 	})
+}
+
+func (self *CustomPatchOptionsMenuAction) handleSavePatchToFile() error {
+	patch := self.c.Git().Patch.PatchBuilder.RenderAggregatedPatch(true)
+
+	self.c.Prompt(types.PromptOpts{
+		Title: self.c.Tr.SavePatchTitle,
+		HandleConfirm: func(path string) error {
+			path = strings.TrimSpace(path)
+			if !filepath.IsAbs(path) {
+				path = filepath.Join(self.c.Git().RepoPaths.WorktreePath(), path)
+			}
+			path = filepath.Clean(path)
+
+			self.c.LogAction(self.c.Tr.Actions.SavePatchToFile)
+			if err := self.c.OS().CreateFileWithContent(path, patch); err != nil {
+				return err
+			}
+
+			self.c.Toast(fmt.Sprintf(self.c.Tr.PatchSavedToFile, path))
+			return nil
+		},
+	})
+
+	return nil
 }
 
 func (self *CustomPatchOptionsMenuAction) copyPatchToClipboard() error {
