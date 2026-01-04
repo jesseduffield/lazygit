@@ -18,6 +18,8 @@ type CommitFilesContext struct {
 	*ListContextTrait
 	*DynamicTitleBuilder
 	*SearchTrait
+
+	c *ContextCommon
 }
 
 var (
@@ -49,6 +51,7 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 		CommitFileTreeViewModel: viewModel,
 		DynamicTitleBuilder:     NewDynamicTitleBuilder(c.Tr.CommitFilesDynamicTitle),
 		SearchTrait:             NewSearchTrait(c),
+		c:                       c,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(
 				NewBaseContext(NewBaseContextOpts{
