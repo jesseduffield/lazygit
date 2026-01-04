@@ -217,15 +217,32 @@ type searcher struct {
 	searchPositions    []SearchPosition
 	modelSearchResults []SearchPosition
 	currentSearchIndex int
-	onSelectItem       func(int, int, int) error
+	onSelectItem       func(int)
+	renderSearchStatus func(int, int)
 }
 
-func (v *View) SetOnSelectItem(onSelectItem func(int, int, int) error) {
+func (v *View) SetRenderSearchStatus(renderSearchStatus func(int, int)) {
+	v.searcher.renderSearchStatus = renderSearchStatus
+}
+
+func (v *View) SetOnSelectItem(onSelectItem func(int)) {
 	v.searcher.onSelectItem = onSelectItem
+}
+
+func (v *View) renderSearchStatus(index int, itemCount int) {
+	if v.searcher.renderSearchStatus != nil {
+		v.searcher.renderSearchStatus(index, itemCount)
+	}
 }
 
 func (v *View) gotoNextMatch() error {
 	if len(v.searcher.searchPositions) == 0 {
+		return nil
+	}
+	if v.Highlight && v.oy+v.cy < v.searcher.searchPositions[v.searcher.currentSearchIndex].Y {
+		// If the selection is before the current match, just jump to the current match and return.
+		// This can only happen if the user has moved the cursor to before the first match.
+		v.SelectSearchResult(v.searcher.currentSearchIndex)
 		return nil
 	}
 	if v.searcher.currentSearchIndex >= len(v.searcher.searchPositions)-1 {
@@ -233,11 +250,18 @@ func (v *View) gotoNextMatch() error {
 	} else {
 		v.searcher.currentSearchIndex++
 	}
-	return v.SelectSearchResult(v.searcher.currentSearchIndex)
+	v.SelectSearchResult(v.searcher.currentSearchIndex)
+	return nil
 }
 
 func (v *View) gotoPreviousMatch() error {
 	if len(v.searcher.searchPositions) == 0 {
+		return nil
+	}
+	if v.Highlight && v.oy+v.cy > v.searcher.searchPositions[v.searcher.currentSearchIndex].Y {
+		// If the selection is after the current match, just jump to the current match and return.
+		// This happens if the user has moved the cursor down from the current match.
+		v.SelectSearchResult(v.searcher.currentSearchIndex)
 		return nil
 	}
 	if v.searcher.currentSearchIndex == 0 {
@@ -247,13 +271,14 @@ func (v *View) gotoPreviousMatch() error {
 	} else {
 		v.searcher.currentSearchIndex--
 	}
-	return v.SelectSearchResult(v.searcher.currentSearchIndex)
+	v.SelectSearchResult(v.searcher.currentSearchIndex)
+	return nil
 }
 
-func (v *View) SelectSearchResult(index int) error {
+func (v *View) SelectSearchResult(index int) {
 	itemCount := len(v.searcher.searchPositions)
 	if itemCount == 0 {
-		return nil
+		return
 	}
 	if index > itemCount-1 {
 		index = itemCount - 1
@@ -262,10 +287,10 @@ func (v *View) SelectSearchResult(index int) error {
 	y := v.searcher.searchPositions[index].Y
 
 	v.FocusPoint(v.ox, y, true)
+	v.renderSearchStatus(index, itemCount)
 	if v.searcher.onSelectItem != nil {
-		return v.searcher.onSelectItem(y, index, itemCount)
+		v.searcher.onSelectItem(y)
 	}
-	return nil
 }
 
 // Returns <current match index>, <total matches>
@@ -294,26 +319,29 @@ func (v *View) UpdateSearchResults(str string, modelSearchResults []SearchPositi
 	if len(v.searcher.searchPositions) > 0 {
 		// get the first result past the current cursor
 		currentIndex := 0
-		adjustedY := v.oy + v.cy
-		adjustedX := v.ox + v.cx
-		for i, pos := range v.searcher.searchPositions {
-			if pos.Y > adjustedY || (pos.Y == adjustedY && pos.XStart > adjustedX) {
-				currentIndex = i
-				break
+		if v.Highlight {
+			// ...but only if we're showing the highlighted line
+			adjustedY := v.oy + v.cy
+			adjustedX := v.ox + v.cx
+			for i, pos := range v.searcher.searchPositions {
+				if pos.Y > adjustedY || (pos.Y == adjustedY && pos.XStart > adjustedX) {
+					currentIndex = i
+					break
+				}
 			}
 		}
 		v.searcher.currentSearchIndex = currentIndex
 	}
 }
 
-func (v *View) Search(str string, modelSearchResults []SearchPosition) error {
+func (v *View) Search(str string, modelSearchResults []SearchPosition) {
 	v.UpdateSearchResults(str, modelSearchResults)
 
 	if len(v.searcher.searchPositions) > 0 {
-		return v.SelectSearchResult(v.searcher.currentSearchIndex)
+		v.SelectSearchResult(v.searcher.currentSearchIndex)
+	} else {
+		v.renderSearchStatus(0, 0)
 	}
-
-	return v.searcher.onSelectItem(-1, -1, 0)
 }
 
 func (v *View) ClearSearch() {
@@ -324,8 +352,37 @@ func (v *View) IsSearching() bool {
 	return v.searcher.searchString != ""
 }
 
+func (v *View) nearestSearchPosition() int {
+	currentLineIndex := v.cy + v.oy
+	lastSearchPos := 0
+	for i, pos := range v.searcher.searchPositions {
+		if pos.Y == currentLineIndex {
+			return i
+		}
+		if pos.Y > currentLineIndex {
+			break
+		}
+		lastSearchPos = i
+	}
+	return lastSearchPos
+}
+
+func (v *View) SetNearestSearchPosition() {
+	if len(v.searcher.searchPositions) > 0 {
+		newPos := v.nearestSearchPosition()
+		if newPos != v.searcher.currentSearchIndex {
+			v.searcher.currentSearchIndex = newPos
+			v.renderSearchStatus(newPos, len(v.searcher.searchPositions))
+		}
+	}
+}
+
 func (v *View) FocusPoint(cx int, cy int, scrollIntoView bool) {
-	lineCount := len(v.lines)
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+	lineCount := len(v.viewLines)
 	if cy < 0 || cy > lineCount {
 		return
 	}
@@ -1757,6 +1814,52 @@ func (v *View) setContentLineCount(lineCount int) {
 	v.lines = v.lines[:lineCount]
 }
 
+// If the current search result is no longer visible after a scroll up, select the last search
+// result that is visible in the view, if any, or the first one that is below the view if none is
+// visible.
+func (v *View) selectVisibleSearchResultAfterScrollUp() {
+	if !v.Highlight && len(v.searcher.searchPositions) != 0 {
+		windowBottom := v.oy + v.InnerHeight()
+		if v.searcher.searchPositions[v.searcher.currentSearchIndex].Y >= windowBottom {
+			newSearchIndex := v.searcher.currentSearchIndex
+			for newSearchIndex > 0 &&
+				v.searcher.searchPositions[newSearchIndex-1].Y >= v.oy {
+				newSearchIndex--
+				if v.searcher.searchPositions[newSearchIndex].Y < windowBottom {
+					break
+				}
+			}
+			if v.searcher.currentSearchIndex != newSearchIndex {
+				v.searcher.currentSearchIndex = newSearchIndex
+				v.renderSearchStatus(newSearchIndex, len(v.searcher.searchPositions))
+			}
+		}
+	}
+}
+
+// If the current search result is no longer visible after a scroll down, select the first search
+// result that is visible in the view, if any, or the last one that is above the view if none is
+// visible.
+func (v *View) selectVisibleSearchResultAfterScrollDown() {
+	if !v.Highlight && len(v.searcher.searchPositions) != 0 {
+		if v.searcher.searchPositions[v.searcher.currentSearchIndex].Y < v.oy {
+			newSearchIndex := v.searcher.currentSearchIndex
+			windowBottom := v.oy + v.InnerHeight()
+			for newSearchIndex+1 < len(v.searcher.searchPositions) &&
+				v.searcher.searchPositions[newSearchIndex+1].Y < windowBottom {
+				newSearchIndex++
+				if v.searcher.searchPositions[newSearchIndex].Y >= v.oy {
+					break
+				}
+			}
+			if v.searcher.currentSearchIndex != newSearchIndex {
+				v.searcher.currentSearchIndex = newSearchIndex
+				v.renderSearchStatus(newSearchIndex, len(v.searcher.searchPositions))
+			}
+		}
+	}
+}
+
 func (v *View) ScrollUp(amount int) {
 	if amount > v.oy {
 		amount = v.oy
@@ -1767,6 +1870,7 @@ func (v *View) ScrollUp(amount int) {
 		v.cy += amount
 
 		v.clearHover()
+		v.selectVisibleSearchResultAfterScrollUp()
 	}
 }
 
@@ -1778,6 +1882,7 @@ func (v *View) ScrollDown(amount int) {
 		v.cy -= adjustedAmount
 
 		v.clearHover()
+		v.selectVisibleSearchResultAfterScrollDown()
 	}
 }
 

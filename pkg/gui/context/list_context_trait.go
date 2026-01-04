@@ -117,10 +117,9 @@ func (self *ListContextTrait) HandleRender() {
 	self.setFooter()
 }
 
-func (self *ListContextTrait) OnSearchSelect(selectedLineIdx int) error {
+func (self *ListContextTrait) OnSearchSelect(selectedLineIdx int) {
 	self.GetList().SetSelection(self.ViewIndexToModelIndex(selectedLineIdx))
 	self.HandleFocus(types.OnFocusOpts{})
-	return nil
 }
 
 func (self *ListContextTrait) IsItemVisible(item types.HasUrn) bool {

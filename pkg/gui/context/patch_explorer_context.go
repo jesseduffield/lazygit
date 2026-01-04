@@ -49,14 +49,12 @@ func NewPatchExplorerContext(
 		SearchTrait: NewSearchTrait(c),
 	}
 
-	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(
-		func(selectedLineIdx int) error {
-			ctx.GetMutex().Lock()
-			defer ctx.GetMutex().Unlock()
-			ctx.NavigateTo(selectedLineIdx)
-			return nil
-		}),
-	)
+	ctx.GetView().SetRenderSearchStatus(ctx.SearchTrait.RenderSearchStatus)
+	ctx.GetView().SetOnSelectItem(func(selectedLineIdx int) {
+		ctx.GetMutex().Lock()
+		defer ctx.GetMutex().Unlock()
+		ctx.NavigateTo(selectedLineIdx)
+	})
 
 	ctx.SetHandleRenderFunc(ctx.OnViewWidthChanged)
 

@@ -134,7 +134,8 @@ func NewSubCommitsContext(
 		},
 	}
 
-	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(ctx.OnSearchSelect))
+	ctx.GetView().SetRenderSearchStatus(ctx.SearchTrait.RenderSearchStatus)
+	ctx.GetView().SetOnSelectItem(ctx.OnSearchSelect)
 
 	return ctx
 }

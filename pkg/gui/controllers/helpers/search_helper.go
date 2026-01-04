@@ -108,18 +108,13 @@ func (self *SearchHelper) Confirm() error {
 		return self.CancelPrompt()
 	}
 
-	var err error
 	switch state.SearchType() {
 	case types.SearchTypeFilter:
 		self.ConfirmFilter()
 	case types.SearchTypeSearch:
-		err = self.ConfirmSearch()
+		self.ConfirmSearch()
 	case types.SearchTypeNone:
 		self.c.Context().Pop()
-	}
-
-	if err != nil {
-		return err
 	}
 
 	return self.c.ResetKeybindings()
@@ -144,13 +139,13 @@ func (self *SearchHelper) ConfirmFilter() {
 	self.c.Context().Pop()
 }
 
-func (self *SearchHelper) ConfirmSearch() error {
+func (self *SearchHelper) ConfirmSearch() {
 	state := self.searchState()
 
 	context, ok := state.Context.(types.ISearchableContext)
 	if !ok {
 		self.c.Log.Warnf("Context %s is searchable", state.Context.GetKey())
-		return nil
+		return
 	}
 
 	searchString := self.promptContent()
@@ -161,7 +156,7 @@ func (self *SearchHelper) ConfirmSearch() error {
 
 	self.c.Context().Pop()
 
-	return context.GetView().Search(searchString, modelSearchResults(context))
+	context.GetView().Search(searchString, modelSearchResults(context))
 }
 
 func modelSearchResults(context types.ISearchableContext) []gocui.SearchPosition {
