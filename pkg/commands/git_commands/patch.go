@@ -347,6 +347,7 @@ func (self *PatchCommands) diffHeadAgainstCommit(commit *models.Commit) (string,
 	cmdArgs := NewGitCmd("diff").
 		Config("diff.noprefix=false").
 		Arg("--no-ext-diff").
+		ArgIf(self.UserConfig().Git.UseWordDiffInDiffView, "--word-diff").
 		Arg("HEAD.." + commit.Hash()).
 		ToArgv()
 
