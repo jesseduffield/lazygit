@@ -711,6 +711,142 @@ func TestAdjustLineNumber(t *testing.T) {
 	}
 }
 
+func TestTransformNonContiguousSelection(t *testing.T) {
+	const changeBlockDiff = `diff --git a/test.c b/test.c
+index 1234567..abcdefg 100644
+--- a/test.c
++++ b/test.c
+@@ -1,6 +1,6 @@
+ int main() {
+-	// init something
+-	int i = 0;
++	// init variables
++	int x = 0;
+ 
+ 	return 0;
+}
+`
+
+	scenarios := []struct {
+		testName        string
+		selectedIndices []int
+		reverse         bool
+		expected        string
+	}{
+		{
+			testName:        "non-contiguous selection keeps change pairs together",
+			selectedIndices: []int{6, 8},
+			reverse:         false,
+			expected: `--- a/test.c
++++ b/test.c
+@@ -1,6 +1,6 @@
+ int main() {
+-	// init something
++	// init variables
+ 	int i = 0;
+ 
+ 	return 0;
+}
+`,
+		},
+		{
+			testName:        "select only deletions without additions",
+			selectedIndices: []int{6, 7},
+			reverse:         false,
+			expected: `--- a/test.c
++++ b/test.c
+@@ -1,6 +1,4 @@
+ int main() {
+-	// init something
+-	int i = 0;
+ 
+ 	return 0;
+}
+`,
+		},
+		{
+			testName:        "select only additions without deletions",
+			selectedIndices: []int{8, 9},
+			reverse:         false,
+			expected: `--- a/test.c
++++ b/test.c
+@@ -1,6 +1,8 @@
+ int main() {
+ 	// init something
+ 	int i = 0;
++	// init variables
++	int x = 0;
+ 
+ 	return 0;
+}
+`,
+		},
+		{
+			testName:        "select all lines in change block",
+			selectedIndices: []int{6, 7, 8, 9},
+			reverse:         false,
+			expected: `--- a/test.c
++++ b/test.c
+@@ -1,6 +1,6 @@
+ int main() {
+-	// init something
+-	int i = 0;
++	// init variables
++	int x = 0;
+ 
+ 	return 0;
+}
+`,
+		},
+		{
+			testName:        "select second deletion and second addition",
+			selectedIndices: []int{7, 9},
+			reverse:         false,
+			expected: `--- a/test.c
++++ b/test.c
+@@ -1,6 +1,6 @@
+ int main() {
+ 	// init something
+-	int i = 0;
++	int x = 0;
+ 
+ 	return 0;
+}
+`,
+		},
+		{
+			testName:        "reverse mode - non-contiguous selection",
+			selectedIndices: []int{6, 8},
+			reverse:         true,
+			expected: `--- a/test.c
++++ b/test.c
+@@ -1,6 +1,6 @@
+ int main() {
+-	// init something
++	// init variables
+ 	int x = 0;
+ 
+ 	return 0;
+}
+`,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			result := Parse(changeBlockDiff).
+				Transform(TransformOpts{
+					Reverse:             s.reverse,
+					FileNameOverride:    "test.c",
+					IncludedLineIndices: s.selectedIndices,
+				}).
+				FormatPlain()
+
+			assert.Equal(t, s.expected, result)
+		})
+	}
+}
+
 func TestIsSingleHunkForWholeFile(t *testing.T) {
 	scenarios := []struct {
 		testName       string
