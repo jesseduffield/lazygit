@@ -44,6 +44,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		bisectInfo                *git_commands.BisectInfo
 		expected                  string
 		focus                     bool
+		setupConfig               func(c *common.Common)
 	}{
 		{
 			testName:                  "no commits",
@@ -71,6 +72,26 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			expected: formatExpected(`
 		hash1 commit1
 		hash2 commit2
+						`),
+		},
+		{
+			testName: "some commits formatted with email",
+			commitOpts: []models.NewCommitOpts{
+				{Name: "commit1", Hash: "hash1", AuthorEmail: "email1@test.com"},
+				{Name: "commit2", Hash: "hash2", AuthorEmail: "email2@test.com"},
+			},
+			startIdx:                  0,
+			endIdx:                    2,
+			showGraph:                 false,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			setupConfig: func(c *common.Common) {
+				c.UserConfig().Git.Log.CustomPaneLogFormat = "%ae %s"
+			},
+			expected: formatExpected(`
+		email1@test.com commit1
+		email2@test.com commit2
 						`),
 		},
 		{
@@ -208,6 +229,32 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		hash3 ◯─╯ commit3
 		hash4 ◯ commit4
 		hash5 ◯ commit5
+						`),
+		},
+		{
+			testName: "showing graph with custom formatting",
+			commitOpts: []models.NewCommitOpts{
+				{Name: "commit1", Hash: "hash1", Parents: []string{"hash2", "hash3"}},
+				{Name: "commit2", Hash: "hash2", Parents: []string{"hash3"}},
+				{Name: "commit3", Hash: "hash3", Parents: []string{"hash4"}},
+				{Name: "commit4", Hash: "hash4", Parents: []string{"hash5"}},
+				{Name: "commit5", Hash: "hash5", Parents: []string{"hash7"}},
+			},
+			startIdx:                  0,
+			endIdx:                    5,
+			showGraph:                 true,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			setupConfig: func(c *common.Common) {
+				c.UserConfig().Git.Log.CustomPaneLogFormat = "%h %g"
+			},
+			expected: formatExpected(`
+		hash1 ⏣─╮
+		hash2 ◯ │
+		hash3 ◯─╯
+		hash4 ◯
+		hash5 ◯
 						`),
 		},
 		{
@@ -540,15 +587,19 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		}
 	}
 
-	common := common.NewDummyCommon()
-
 	for _, s := range scenarios {
 		if !focusing || s.focus {
 			t.Run(s.testName, func(t *testing.T) {
+				common := common.NewDummyCommon()
+
 				hashPool := &utils.StringPool{}
 
 				commits := lo.Map(s.commitOpts,
 					func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
+
+				if s.setupConfig != nil {
+					s.setupConfig(common)
+				}
 
 				result := GetCommitListDisplayStrings(
 					common,

@@ -434,6 +434,32 @@ func displayCommit(
 	}
 	author := authors.AuthorWithLength(commit.AuthorName, authorLength)
 
+	// if custom config
+	if common.UserConfig().Git.Log.CustomPaneLogFormat != "%h %a %as %g %d %s" {
+		lastCol := customPaneLogFormat(
+			common.UserConfig().Git.Log.CustomPaneLogFormat,
+			commit,
+			hashString,
+			author,
+			now,
+			timeFormat,
+			shortTimeFormat,
+			parseEmoji,
+			graphLine,
+			mark,
+			tagString,
+			actionString,
+		)
+
+		cols := []string{
+			divergenceString,
+			bisectString,
+			lastCol,
+		}
+
+		return cols
+	}
+
 	cols := make([]string, 0, 7)
 	cols = append(
 		cols,
@@ -447,6 +473,58 @@ func displayCommit(
 	)
 
 	return cols
+}
+
+func customPaneLogFormat(
+	format string,
+	commit *models.Commit,
+	shortHashColored string,
+	authorShort string,
+	now time.Time,
+	timeFormat string,
+	shortTimeFormat string,
+	parseEmoji bool,
+	graphLine string,
+	mark string,
+	tagString string,
+	actionString string,
+) string {
+	out := format
+
+	out = strings.ReplaceAll(out, "%h", shortHashColored)
+	out = strings.ReplaceAll(out, "%H", commit.Hash())
+
+	out = strings.ReplaceAll(out, "%an", commit.AuthorName)
+	out = strings.ReplaceAll(out, "%ae", commit.AuthorEmail)
+	out = strings.ReplaceAll(out, "%as", authorShort)
+
+	dateStr := utils.UnixToDateSmart(
+		now,
+		commit.UnixTimestamp,
+		timeFormat,
+		shortTimeFormat,
+	)
+	out = strings.ReplaceAll(out, "%cd", style.FgBlue.Sprint(dateStr))
+
+	out = strings.ReplaceAll(out, "%g", graphLine)
+
+	out = strings.ReplaceAll(out, "%d", mark+tagString)
+
+	out = strings.ReplaceAll(out, "%a", actionString)
+
+	subject := commit.Name
+	if commit.Action == todo.UpdateRef {
+		subject = strings.TrimPrefix(subject, "refs/heads/")
+	}
+	if parseEmoji {
+		subject = emoji.Sprint(subject)
+	}
+	subject = theme.DefaultTextColor.Sprint(subject)
+	out = strings.ReplaceAll(out, "%s", subject)
+
+	out = strings.Join(strings.Fields(out), " ")
+
+	return out
 }
 
 func getBisectStatusColor(status BisectStatus) style.TextStyle {
