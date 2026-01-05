@@ -238,8 +238,23 @@ func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
 	sidePanelWidthRatio := args.UserConfig.Gui.SidePanelWidth
 	// Using 120 so that the default of 0.3333 will remain consistent with previous behavior
 	const maxColumnCount = 120
-	mainSectionWeight := int(math.Round(maxColumnCount * (1 - sidePanelWidthRatio)))
-	sideSectionWeight := int(math.Round(maxColumnCount * sidePanelWidthRatio))
+
+	var mainSectionWeight, sideSectionWeight int
+
+	if args.UserConfig.Gui.DynamicSidePanelWidth && args.ScreenMode == types.SCREEN_NORMAL {
+		if args.CurrentWindow != "main" && args.CurrentWindow != "secondary" {
+			// Side panel focused: make left section larger
+			sideSectionWeight = int(math.Round(maxColumnCount * args.UserConfig.Gui.SidePanelFocusedRatio))
+			mainSectionWeight = int(math.Round(maxColumnCount * (1 - args.UserConfig.Gui.SidePanelFocusedRatio)))
+		} else {
+			// Main panel focused: make right section larger
+			sideSectionWeight = int(math.Round(maxColumnCount * (1 - args.UserConfig.Gui.MainPanelFocusedRatio)))
+			mainSectionWeight = int(math.Round(maxColumnCount * args.UserConfig.Gui.MainPanelFocusedRatio))
+		}
+	} else {
+		mainSectionWeight = int(math.Round(maxColumnCount * (1 - sidePanelWidthRatio)))
+		sideSectionWeight = int(math.Round(maxColumnCount * sidePanelWidthRatio))
+	}
 
 	if splitMainPanelSideBySide(args) {
 		mainSectionWeight = sideSectionWeight * 5 // need to shrink side panel to make way for main panels if side-by-side

@@ -441,6 +441,7 @@ var tests = []*components.IntegrationTest{
 	tag.ResetToDuplicateNamedBranch,
 	ui.Accordion,
 	ui.DisableSwitchTabWithPanelJumpKeys,
+	ui.DynamicSidePanelWidth,
 	ui.EmptyMenu,
 	ui.KeybindingSuggestionsWhenSwitchingRepos,
 	ui.ModeSpecificKeybindingSuggestions,

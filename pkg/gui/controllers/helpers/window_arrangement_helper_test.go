@@ -283,6 +283,174 @@ func TestGetWindowDimensions(t *testing.T) {
 			`,
 		},
 		{
+			name: "dynamic side panel width, side panel focused",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.DynamicSidePanelWidth = true
+				args.CurrentWindow = "files"
+			},
+			expected: `
+			╭status─────────────────────────────────────╮╭main────────────────────────╮
+			│                                           ││                            │
+			╰───────────────────────────────────────────╯│                            │
+			╭files──────────────────────────────────────╮│                            │
+			│                                           ││                            │
+			│                                           ││                            │
+			│                                           ││                            │
+			│                                           ││                            │
+			│                                           ││                            │
+			│                                           ││                            │
+			╰───────────────────────────────────────────╯│                            │
+			╭branches───────────────────────────────────╮│                            │
+			│                                           ││                            │
+			│                                           ││                            │
+			│                                           ││                            │
+			│                                           ││                            │
+			│                                           ││                            │
+			│                                           ││                            │
+			╰───────────────────────────────────────────╯│                            │
+			╭commits────────────────────────────────────╮│                            │
+			│                                           ││                            │
+			│                                           ││                            │
+			│                                           ││                            │
+			│                                           ││                            │
+			│                                           ││                            │
+			╰───────────────────────────────────────────╯│                            │
+			╭stash──────────────────────────────────────╮│                            │
+			│                                           ││                            │
+			╰───────────────────────────────────────────╯╰────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "dynamic side panel width, main panel focused",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.DynamicSidePanelWidth = true
+				args.CurrentWindow = "main"
+			},
+			expected: `
+			╭status────╮╭main─────────────────────────────────────────────────────────╮
+			│          ││                                                             │
+			╰──────────╯│                                                             │
+			╭files─────╮│                                                             │
+			│          ││                                                             │
+			│          ││                                                             │
+			│          ││                                                             │
+			│          ││                                                             │
+			│          ││                                                             │
+			│          ││                                                             │
+			╰──────────╯│                                                             │
+			╭branches──╮│                                                             │
+			│          ││                                                             │
+			│          ││                                                             │
+			│          ││                                                             │
+			│          ││                                                             │
+			│          ││                                                             │
+			│          ││                                                             │
+			╰──────────╯│                                                             │
+			╭commits───╮│                                                             │
+			│          ││                                                             │
+			│          ││                                                             │
+			│          ││                                                             │
+			│          ││                                                             │
+			│          ││                                                             │
+			╰──────────╯│                                                             │
+			╭stash─────╮│                                                             │
+			│          ││                                                             │
+			╰──────────╯╰─────────────────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "dynamic side panel width, custom main panel ratio 0.9",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.DynamicSidePanelWidth = true
+				args.UserConfig.Gui.MainPanelFocusedRatio = 0.9
+				args.CurrentWindow = "main"
+			},
+			expected: `
+			╭status╮╭main─────────────────────────────────────────────────────────────╮
+			│      ││                                                                 │
+			╰──────╯│                                                                 │
+			╭files─╮│                                                                 │
+			│      ││                                                                 │
+			│      ││                                                                 │
+			│      ││                                                                 │
+			│      ││                                                                 │
+			│      ││                                                                 │
+			│      ││                                                                 │
+			╰──────╯│                                                                 │
+			╭A─────╮│                                                                 │
+			│      ││                                                                 │
+			│      ││                                                                 │
+			│      ││                                                                 │
+			│      ││                                                                 │
+			│      ││                                                                 │
+			│      ││                                                                 │
+			╰──────╯│                                                                 │
+			╭B─────╮│                                                                 │
+			│      ││                                                                 │
+			│      ││                                                                 │
+			│      ││                                                                 │
+			│      ││                                                                 │
+			│      ││                                                                 │
+			╰──────╯│                                                                 │
+			╭stash─╮│                                                                 │
+			│      ││                                                                 │
+			╰──────╯╰─────────────────────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>C<D────────>
+			A: branches
+			B: commits
+			C: statusSpacer1
+			D: information
+			`,
+		},
+		{
+			name: "dynamic side panel width, custom side panel ratio 0.7",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.DynamicSidePanelWidth = true
+				args.UserConfig.Gui.SidePanelFocusedRatio = 0.7
+				args.CurrentWindow = "files"
+			},
+			expected: `
+			╭status────────────────────────────────────────────╮╭main─────────────────╮
+			│                                                  ││                     │
+			╰──────────────────────────────────────────────────╯│                     │
+			╭files─────────────────────────────────────────────╮│                     │
+			│                                                  ││                     │
+			│                                                  ││                     │
+			│                                                  ││                     │
+			│                                                  ││                     │
+			│                                                  ││                     │
+			│                                                  ││                     │
+			╰──────────────────────────────────────────────────╯│                     │
+			╭branches──────────────────────────────────────────╮│                     │
+			│                                                  ││                     │
+			│                                                  ││                     │
+			│                                                  ││                     │
+			│                                                  ││                     │
+			│                                                  ││                     │
+			│                                                  ││                     │
+			╰──────────────────────────────────────────────────╯│                     │
+			╭commits───────────────────────────────────────────╮│                     │
+			│                                                  ││                     │
+			│                                                  ││                     │
+			│                                                  ││                     │
+			│                                                  ││                     │
+			│                                                  ││                     │
+			╰──────────────────────────────────────────────────╯│                     │
+			╭stash─────────────────────────────────────────────╮│                     │
+			│                                                  ││                     │
+			╰──────────────────────────────────────────────────╯╰─────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
 			name: "half screen mode, enlargedSideViewLocation left",
 			mutateArgs: func(args *WindowArrangementArgs) {
 				args.Height = 20 // smaller height because we don't more here

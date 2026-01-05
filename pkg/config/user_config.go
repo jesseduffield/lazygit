@@ -101,6 +101,15 @@ type GuiConfig struct {
 	ExpandFocusedSidePanel bool `yaml:"expandFocusedSidePanel"`
 	// The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.
 	ExpandedSidePanelWeight int `yaml:"expandedSidePanelWeight"`
+	// If true, automatically resize the left and right sections based on which panel has focus.
+	// When a side panel (files, branches, commits, etc.) has focus, the left section becomes larger.
+	// When the main panel has focus, the right section becomes larger. Only applies in normal screen mode.
+	// Use sidePanelFocusedRatio and mainPanelFocusedRatio to configure the exact ratios.
+	DynamicSidePanelWidth bool `yaml:"dynamicSidePanelWidth"`
+	// Ratio for the side panel width when a side panel has focus (only applies when dynamicSidePanelWidth is true). Number from 0 to 1.0. Default is 0.618.
+	SidePanelFocusedRatio float64 `yaml:"sidePanelFocusedRatio" jsonschema:"maximum=1,minimum=0"`
+	// Ratio for the main panel width when the main panel has focus (only applies when dynamicSidePanelWidth is true). Number from 0 to 1.0. Default is 0.85.
+	MainPanelFocusedRatio float64 `yaml:"mainPanelFocusedRatio" jsonschema:"maximum=1,minimum=0"`
 	// Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.
 	// Options are:
 	// - 'horizontal': split the window horizontally
@@ -764,6 +773,9 @@ func GetDefaultConfig() *UserConfig {
 			SidePanelWidth:           0.3333,
 			ExpandFocusedSidePanel:   false,
 			ExpandedSidePanelWeight:  2,
+			DynamicSidePanelWidth:    false,
+			SidePanelFocusedRatio:    0.618,
+			MainPanelFocusedRatio:    0.85,
 			MainPanelSplitMode:       "flexible",
 			EnlargedSideViewLocation: "left",
 			WrapLinesInStagingView:   true,
