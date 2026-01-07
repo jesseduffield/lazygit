@@ -263,6 +263,25 @@ func (wrapper TcellResizeEventWrapper) toTcellEvent() tcell.Event {
 	return tcell.NewEventResize(wrapper.Width, wrapper.Height)
 }
 
+var CSIu_keypad_mappings = map[rune]rune{
+	57399: '0',
+	57400: '1',
+	57401: '2',
+	57402: '3',
+	57403: '4',
+	57404: '5',
+	57405: '6',
+	57406: '7',
+	57407: '8',
+	57408: '9',
+	57409: '.',
+	57410: '/',
+	57411: '*',
+	57412: '-',
+	57413: '+',
+	57415: '=',
+}
+
 // pollEvent get tcell.Event and transform it into gocuiEvent
 func (g *Gui) pollEvent() GocuiEvent {
 	var tev tcell.Event
@@ -295,6 +314,11 @@ func (g *Gui) pollEvent() GocuiEvent {
 				// special handling for spacebar
 				k = 32 // tcell keys ends at 31 or starts at 256
 				ch = rune(0)
+			} else if ch == 57414 { // the CSI-u value for KP_ENTER
+				k = tcell.KeyCR
+				ch = rune(0)
+			} else if str, ok := CSIu_keypad_mappings[ch]; ok {
+				ch = str
 			}
 		}
 		mod := tev.Modifiers()
