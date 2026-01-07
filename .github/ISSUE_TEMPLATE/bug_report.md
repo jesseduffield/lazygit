@@ -26,7 +26,6 @@ If applicable, add screenshots to help explain your problem.
 ### Version info:
 
 * _Run `lazygit --version` and paste the result here_
-* _Run `git --version` and paste the result here_
 
 ### Additional context
 Add any other context about the problem here.
