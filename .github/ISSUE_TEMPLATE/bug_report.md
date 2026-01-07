@@ -27,6 +27,9 @@ If applicable, add screenshots to help explain your problem.
 
 * _Run `lazygit --version` and paste the result here_
 
+### Terminal info:
+What terminal are you using, and which version? For some types of bugs this information can be relevant.
+
 ### Additional context
 Add any other context about the problem here.
 
