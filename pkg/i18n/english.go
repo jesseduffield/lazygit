@@ -683,6 +683,7 @@ type TranslationSet struct {
 	BuildingPatch                         string
 	ViewCommits                           string
 	MinGitVersionError                    string
+	GitNotInstalledError                  string
 	RunningCustomCommandStatus            string
 	SubmoduleStashAndReset                string
 	AndResetSubmodules                    string
@@ -1784,6 +1785,7 @@ func EnglishTranslationSet() *TranslationSet {
 		BuildingPatch:                            "Building patch",
 		ViewCommits:                              "View commits",
 		MinGitVersionError:                       "Git version must be at least %s. Please upgrade your git version.",
+		GitNotInstalledError:                     "Git is not installed. Please install git to use lazygit.",
 		RunningCustomCommandStatus:               "Running custom command",
 		SubmoduleStashAndReset:                   "Stash uncommitted submodule changes and update",
 		AndResetSubmodules:                       "And reset submodules",

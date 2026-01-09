@@ -146,14 +146,40 @@ func minGitVersionErrorMessage(tr *i18n.TranslationSet) string {
 	return fmt.Sprintf(tr.MinGitVersionError, minGitVersionStr)
 }
 
-func (app *App) validateGitVersion() (*git_commands.GitVersion, error) {
-	version, err := git_commands.GetGitVersion(app.OSCommand)
-	// if we get an error anywhere here we'll show the same status
-	minVersionError := errors.New(minGitVersionErrorMessage(app.Tr))
-	if err != nil {
-		return nil, minVersionError
+func isGitNotInstalledError(err error) bool {
+	if err == nil {
+		return false
 	}
 
+	errStr := strings.ToLower(err.Error())
+
+	// Unix/Linux/macOS patterns
+	notFoundPatterns := []string{
+		"executable file not found",
+		"command not found",
+		"no such file or directory",
+	}
+
+	for _, pattern := range notFoundPatterns {
+		if strings.Contains(errStr, pattern) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (app *App) validateGitVersion() (*git_commands.GitVersion, error) {
+	version, err := git_commands.GetGitVersion(app.OSCommand)
+	if err != nil {
+		// Show appropriate message based on error type
+		if isGitNotInstalledError(err) {
+			return nil, errors.New(app.Tr.GitNotInstalledError)
+		}
+		return nil, errors.New(minGitVersionErrorMessage(app.Tr))
+	}
+
+	minVersionError := errors.New(minGitVersionErrorMessage(app.Tr))
 	minRequiredVersion, _ := git_commands.ParseGitVersion(minGitVersionStr)
 	if version.IsOlderThanVersion(minRequiredVersion) {
 		return nil, minVersionError
