@@ -353,7 +353,7 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 			InitialMessage:   commitMessage,
 			SummaryTitle:     self.c.Tr.Actions.RewordCommit,
 			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
-			PreserveMessage:  false,
+			PreserveMessage:  true,
 			OnConfirm:        self.handleReword,
 			OnSwitchToEditor: self.switchFromCommitMessagePanelToEditor,
 		},
