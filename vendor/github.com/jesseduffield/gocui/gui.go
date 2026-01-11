@@ -1313,9 +1313,9 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		// back to '\n' fixes pasting multi-line text from Ghostty, and doesn't
 		// seem harmful for other terminal emulators.
 		//
-		// KeyCtrlJ (int value 10) is '\r', and KeyCtrlM (int value 13) is '\n'.
+		// KeyCtrlJ (int value 10) is '\r'.
 		if g.IsPasting && ev.Key == KeyCtrlJ {
-			ev.Key = KeyCtrlM
+			ev.Key = KeyEnter
 		}
 
 		err := g.execKeybindings(g.currentView, ev)
