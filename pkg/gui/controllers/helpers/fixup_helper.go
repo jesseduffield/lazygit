@@ -104,12 +104,33 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 	}
 
 	if len(hashGroups[NOT_MERGED]) == 0 {
-		// If all the commits are merged, show the "already on main branch"
-		// error. It isn't worth doing a detailed report of which commits we
-		// found.
-		return errors.New(self.c.Tr.BaseCommitIsAlreadyOnMainBranch)
-	}
+		// The commit is already merged, but we attempt to show it anyway.
+		if len(hashGroups[MERGED]) > 1 {
+			// We found multiple merged commits. List them in error message
+			subjects := self.getHashesAndSubjects(commits, hashGroups[NOT_MERGED])
+			message := self.c.Tr.MultipleBaseCommitsFoundMerged
+			return fmt.Errorf("%s\n\n%s", message, subjects)
+		} else if len(hashGroups[MERGED]) == 0 {
+			// This can not happen, as the commit has to be either in
+			// CANNOT_TELL, NOT_MERGED or MERGED state and we already established,
+			// that it is not in CANNOT_TELL or NOT_MERGED
+			return errors.New(self.c.Tr.BaseCommitIsNotInCurrentView)
+		}
 
+		// At this point we know that the MERGED bucket has exactly one commit,
+		// and that's the one we want to select.
+		_, index, found := self.findCommit(commits, hashGroups[MERGED][0])
+		if !found {
+			// However the commit is not in view, so we cannot select it.
+			return errors.New(self.c.Tr.BaseCommitIsNotInCurrentView)
+		}
+		// We found the commit, so we show it with a warning message, that it is already merged.
+		return self.c.ConfirmIf(true, types.ConfirmOpts{
+			Title:         self.c.Tr.FindBaseCommitForFixup,
+			Prompt:        self.c.Tr.BaseCommitIsAlreadyOnMainBranch,
+			HandleConfirm: self.getHandlerToStageAndSelectIndex(hasStagedChanges, index),
+		})
+	}
 	if len(hashGroups[NOT_MERGED]) > 1 {
 		// If there are multiple commits that could be the base commit, list
 		// them in the error message. But only the candidates from the current
