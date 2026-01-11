@@ -84,6 +84,7 @@ type inputProcessor struct {
 	evch      chan<- Event
 	rows      int // used for clipping mouse coordinates
 	cols      int // used for clipping mouse coordinates
+	surrogate rune
 	nested    *inputProcessor
 }
 
@@ -135,8 +136,9 @@ type csiParamMode struct {
 }
 
 type keyMap struct {
-	Key Key
-	Mod ModMask
+	Key  Key
+	Mod  ModMask
+	Rune rune
 }
 
 var csiAllKeys = map[csiParamMode]keyMap{
@@ -275,41 +277,70 @@ var csiAllKeys = map[csiParamMode]keyMap{
 }
 
 // keys reported using Kitty csi-u protocol
-var csiUKeys = map[int]Key{
-	27:    KeyESC,
-	9:     KeyTAB,
-	13:    KeyEnter,
-	127:   KeyBS,
-	57358: KeyCapsLock,
-	57359: KeyScrollLock,
-	57360: KeyNumLock,
-	57361: KeyPrint,
-	57362: KeyPause,
-	57363: KeyMenu,
-	57376: KeyF13,
-	57377: KeyF14,
-	57378: KeyF15,
-	57379: KeyF16,
-	57380: KeyF17,
-	57381: KeyF18,
-	57382: KeyF19,
-	57383: KeyF20,
-	57384: KeyF21,
-	57385: KeyF22,
-	57386: KeyF23,
-	57387: KeyF24,
-	57388: KeyF25,
-	57389: KeyF26,
-	57390: KeyF27,
-	57391: KeyF28,
-	57392: KeyF29,
-	57393: KeyF30,
-	57394: KeyF31,
-	57395: KeyF32,
-	57396: KeyF33,
-	57397: KeyF34,
-	57398: KeyF35,
-	// TODO: KP keys
+var csiUKeys = map[int]keyMap{
+	27:    {Key: KeyESC},
+	9:     {Key: KeyTAB},
+	13:    {Key: KeyEnter},
+	127:   {Key: KeyBS},
+	57358: {Key: KeyCapsLock},
+	57359: {Key: KeyScrollLock},
+	57360: {Key: KeyNumLock},
+	57361: {Key: KeyPrint},
+	57362: {Key: KeyPause},
+	57363: {Key: KeyMenu},
+	57376: {Key: KeyF13},
+	57377: {Key: KeyF14},
+	57378: {Key: KeyF15},
+	57379: {Key: KeyF16},
+	57380: {Key: KeyF17},
+	57381: {Key: KeyF18},
+	57382: {Key: KeyF19},
+	57383: {Key: KeyF20},
+	57384: {Key: KeyF21},
+	57385: {Key: KeyF22},
+	57386: {Key: KeyF23},
+	57387: {Key: KeyF24},
+	57388: {Key: KeyF25},
+	57389: {Key: KeyF26},
+	57390: {Key: KeyF27},
+	57391: {Key: KeyF28},
+	57392: {Key: KeyF29},
+	57393: {Key: KeyF30},
+	57394: {Key: KeyF31},
+	57395: {Key: KeyF32},
+	57396: {Key: KeyF33},
+	57397: {Key: KeyF34},
+	57398: {Key: KeyF35},
+	57399: {Key: KeyRune, Rune: '0'}, // KP 0
+	57400: {Key: KeyRune, Rune: '1'}, // KP 1
+	57401: {Key: KeyRune, Rune: '2'}, // KP 2
+	57402: {Key: KeyRune, Rune: '3'}, // KP 3
+	57403: {Key: KeyRune, Rune: '4'}, // KP 4
+	57404: {Key: KeyRune, Rune: '5'}, // KP 5
+	57405: {Key: KeyRune, Rune: '6'}, // KP 6
+	57406: {Key: KeyRune, Rune: '7'}, // KP 7
+	57407: {Key: KeyRune, Rune: '8'}, // KP 8
+	57408: {Key: KeyRune, Rune: '9'}, // KP 9
+	57409: {Key: KeyRune, Rune: '.'}, // KP_DECIMAL
+	57410: {Key: KeyRune, Rune: '/'}, // KP_DIVIDE
+	57411: {Key: KeyRune, Rune: '*'}, // KP_MULTIPLY
+	57412: {Key: KeyRune, Rune: '-'}, // KP_SUBTRACT
+	57413: {Key: KeyRune, Rune: '+'}, // KP_ADD
+	57414: {Key: KeyEnter},           // KP_ENTER
+	57415: {Key: KeyRune, Rune: '='}, // KP_EQUAL
+	57416: {Key: KeyClear},           // KP_SEPARATOR
+	57417: {Key: KeyLeft},            // KP_LEFT
+	57418: {Key: KeyRight},           // KP_RIGHT
+	57419: {Key: KeyUp},              // KP_UP
+	57420: {Key: KeyDown},            // KP_DOWN
+	57421: {Key: KeyPgUp},            // KP_PG_UP
+	57422: {Key: KeyPgDn},            // KP_PG_DN
+	57423: {Key: KeyHome},            // KP_HOME
+	57424: {Key: KeyEnd},             // KP_END
+	57425: {Key: KeyInsert},          // KP_INSERT
+	57426: {Key: KeyDelete},          // KP_DELETE
+	// 57427: {Key: KeyBegin},          // KP_BEGIN
+
 	// TODO: Media keys
 }
 
@@ -318,8 +349,8 @@ var winKeys = map[int]Key{
 	0x03: KeyCancel,    // vkCancel
 	0x08: KeyBackspace, // vkBackspace
 	0x09: KeyTab,       // vkTab
+	0x0c: KeyClear,     // vClear
 	0x0d: KeyEnter,     // vkReturn
-	0x12: KeyClear,     // vClear
 	0x13: KeyPause,     // vkPause
 	0x1b: KeyEscape,    // vkEscape
 	0x21: KeyPgUp,      // vkPrior
@@ -701,10 +732,21 @@ func (ip *inputProcessor) handleWinKey(P []int) {
 	} else if chr < ' ' && P[0] >= 0x41 && P[0] <= 0x5a {
 		key = Key(P[0])
 		chr = 0
-	} else if key == 0x11 || key == 0x13 || key == 0x14 {
+
+	} else if chr >= 0xD800 && chr <= 0xDBFF {
+		// high surrogate pair
+		ip.surrogate = chr
+		return
+	} else if chr >= 0xDC00 && chr <= 0xDFFF {
+		// low surrogate pair
+		chr = utf16.DecodeRune(ip.surrogate, chr)
+	} else if P[0] == 0x10 || P[0] == 0x11 || P[0] == 0x12 || P[0] == 0x14 {
 		// lone modifiers
+		ip.surrogate = 0
 		return
 	}
+
+	ip.surrogate = 0
 
 	// Modifiers
 	if P[4]&0x010 != 0 {
@@ -791,8 +833,8 @@ func (ip *inputProcessor) handleCsi(mode rune, params []byte, intermediate []byt
 			key := KeyRune
 			chr := rune(0)
 			if k1, ok := csiUKeys[P0]; ok {
-				key = k1
-				chr = 0
+				key = k1.Key
+				chr = k1.Rune
 			} else {
 				chr = rune(P0)
 			}
