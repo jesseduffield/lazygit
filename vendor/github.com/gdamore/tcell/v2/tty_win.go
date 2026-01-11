@@ -1,4 +1,4 @@
-// Copyright 2025 The TCell Authors
+// Copyright 2026 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -72,6 +72,7 @@ type winTty struct {
 	oomode     uint32   // original output mode
 	oscreen    consoleInfo
 	wg         sync.WaitGroup
+	surrogate  rune
 	sync.Mutex
 }
 
@@ -126,7 +127,7 @@ func (w *winTty) Drain() error {
 
 func (w *winTty) getConsoleInput() error {
 	// cancelFlag comes first as WaitForMultipleObjects returns the lowest index
-	// in the event that both events are signalled.
+	// in the event that both events are signaled.
 	waitObjects := []syscall.Handle{w.cancelFlag, w.in}
 
 	// As arrays are contiguous in memory, a pointer to the first object is the
@@ -158,19 +159,30 @@ func (w *winTty) getConsoleInput() error {
 		if rv == 0 {
 			return er
 		}
+	loop:
 		for i := range nrec {
 			ir := rec[i]
 			switch ir.typ {
 			case keyEvent:
-				chr := ir.data[10] // we only see ASCII, key down events in VT mode
-
-				// because we use win32-input-mode, we will only
-				// see US-ASCII characters - (Q: will they be
-				// 16-bit values with possible surrogate pairs?)
-				select {
-				case w.buf <- chr:
-				case <-w.stopQ:
-					break
+				// we normally only expect to see ascii, but paste data may come in as UTF-16.
+				wc := rune(binary.LittleEndian.Uint16(ir.data[10:]))
+				if wc >= 0xD800 && wc <= 0xDBFF {
+					// if it was a high surrogate, which happens for pasted UTF-16,
+					// then save it until we get the low and can decode it.
+					w.surrogate = wc
+					continue
+				} else if wc >= 0xDC00 && wc <= 0xDFFF {
+					wc = utf16.DecodeRune(w.surrogate, wc)
+				}
+				w.surrogate = 0
+				for _, chr := range []byte(string(wc)) {
+					// We normally expect only to see ASCII (win32-input-mode),
+					// but apparently pasted data can arrive in UTF-16 here.
+					select {
+					case w.buf <- chr:
+					case <-w.stopQ:
+						break loop
+					}
 				}
 
 			case resizeEvent:
