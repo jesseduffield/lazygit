@@ -34,6 +34,9 @@ type BisectInfo struct {
 
 	// the hash of the commit that's under test
 	current string
+
+	// the actual HEAD hash (may differ from current if user manually checked out a different commit)
+	head string
 }
 
 type BisectStatus int
@@ -61,6 +64,10 @@ func (self *BisectInfo) GetNewHash() string {
 
 func (self *BisectInfo) GetCurrentHash() string {
 	return self.current
+}
+
+func (self *BisectInfo) GetHeadHash() string {
+	return self.head
 }
 
 func (self *BisectInfo) GetStartHash() string {
