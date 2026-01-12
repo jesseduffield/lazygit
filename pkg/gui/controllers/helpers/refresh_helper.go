@@ -328,6 +328,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 			RefName:              self.refForLog(),
 			RefForPushedStatus:   checkedOutRef,
 			All:                  self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
+			FirstParentOnly:      self.c.Contexts().LocalCommits.GetShowFirstParentOnly(),
 			MainBranches:         self.c.Model().MainBranches,
 			HashPool:             self.c.Model().HashPool,
 		},
