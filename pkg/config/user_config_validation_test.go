@@ -289,3 +289,64 @@ func TestUserConfigValidate_enums(t *testing.T) {
 		})
 	}
 }
+
+func TestUserConfigValidate_floatRanges(t *testing.T) {
+	type testCase struct {
+		value float64
+		valid bool
+	}
+
+	scenarios := []struct {
+		name      string
+		setup     func(config *UserConfig, value float64)
+		testCases []testCase
+	}{
+		{
+			name: "Gui.SidePanelFocusedRatio",
+			setup: func(config *UserConfig, value float64) {
+				config.Gui.SidePanelFocusedRatio = value
+			},
+			testCases: []testCase{
+				{value: 0.0, valid: true},
+				{value: 0.5, valid: true},
+				{value: 0.618, valid: true},
+				{value: 1.0, valid: true},
+				{value: -0.1, valid: false},
+				{value: 1.1, valid: false},
+				{value: 1.5, valid: false},
+			},
+		},
+		{
+			name: "Gui.MainPanelFocusedRatio",
+			setup: func(config *UserConfig, value float64) {
+				config.Gui.MainPanelFocusedRatio = value
+			},
+			testCases: []testCase{
+				{value: 0.0, valid: true},
+				{value: 0.5, valid: true},
+				{value: 0.75, valid: true},
+				{value: 0.85, valid: true},
+				{value: 1.0, valid: true},
+				{value: -0.1, valid: false},
+				{value: 1.1, valid: false},
+				{value: 2.0, valid: false},
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			for _, testCase := range s.testCases {
+				config := GetDefaultConfig()
+				s.setup(config, testCase.value)
+				err := config.Validate()
+
+				if testCase.valid {
+					assert.NoError(t, err)
+				} else {
+					assert.Error(t, err)
+				}
+			}
+		})
+	}
+}

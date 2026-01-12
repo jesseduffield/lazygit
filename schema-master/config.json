@@ -558,6 +558,25 @@
           "description": "The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.",
           "default": 2
         },
+        "dynamicSidePanelWidth": {
+          "type": "boolean",
+          "description": "If true, automatically resize the left and right sections based on which panel has focus.\nWhen a side panel (files, branches, commits, etc.) has focus, the left section becomes larger.\nWhen the main panel has focus, the right section becomes larger. Only applies in normal screen mode.\nUse sidePanelFocusedRatio and mainPanelFocusedRatio to configure the exact ratios.",
+          "default": false
+        },
+        "sidePanelFocusedRatio": {
+          "type": "number",
+          "maximum": 1,
+          "minimum": 0,
+          "description": "Ratio for the side panel width when a side panel has focus (only applies when dynamicSidePanelWidth is true). Number from 0 to 1.0. Default is 0.618.",
+          "default": 0.618
+        },
+        "mainPanelFocusedRatio": {
+          "type": "number",
+          "maximum": 1,
+          "minimum": 0,
+          "description": "Ratio for the main panel width when the main panel has focus (only applies when dynamicSidePanelWidth is true). Number from 0 to 1.0. Default is 0.85.",
+          "default": 0.85
+        },
         "mainPanelSplitMode": {
           "type": "string",
           "enum": [
