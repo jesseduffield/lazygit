@@ -127,12 +127,10 @@ func (self *ConfirmationHelper) getPopupPanelDimensionsAux(panelWidth int, panel
 
 func (self *ConfirmationHelper) getPopupPanelWidth() int {
 	width, _ := self.c.GocuiGui().Size()
-	// we want a minimum width up to a point, then we do it based on ratio.
-	panelWidth := 4 * width / 7
-	minWidth := 80
-	if panelWidth < minWidth {
-		panelWidth = min(width-2, minWidth)
-	}
+	// we want a width based on commit auto-wrap plus some padding, then we cap it to terminal size when it's smaller than the desired width.
+	commitAutoWrapWidth := self.c.UserConfig().Git.Commit.AutoWrapWidth
+	desiredPanelWidth := commitAutoWrapWidth + 25
+	panelWidth := min(width-2, desiredPanelWidth)
 
 	return panelWidth
 }
