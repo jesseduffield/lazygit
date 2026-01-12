@@ -44,7 +44,11 @@ func (self *PatchBuildingHelper) ShowHunkStagingHint() {
 
 // takes us from the patch building panel back to the commit files panel
 func (self *PatchBuildingHelper) Escape() {
-	self.c.Context().Pop()
+	if parentCtx := self.c.Contexts().CustomPatchBuilder.GetParentContext(); parentCtx != nil {
+		self.c.Context().Push(parentCtx, types.OnFocusOpts{})
+	} else {
+		self.c.Context().Pop()
+	}
 }
 
 // kills the custom patch and returns us back to the commit files panel if needed
@@ -66,8 +70,10 @@ func (self *PatchBuildingHelper) Reset() error {
 
 func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpts) {
 	selectedLineIdx := -1
+	selectedRealLineIdx := -1
 	if opts.ClickedWindowName == "main" {
 		selectedLineIdx = opts.ClickedViewLineIdx
+		selectedRealLineIdx = opts.ClickedViewRealLineIdx
 	}
 
 	if !self.c.Git().Patch.PatchBuilder.Active() {
@@ -99,7 +105,7 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 
 	oldState := context.GetState()
 
-	state := patch_exploring.NewState(diff, selectedLineIdx, context.GetView(), oldState, self.c.UserConfig().Gui.UseHunkModeInStagingView)
+	state := patch_exploring.NewState(diff, selectedLineIdx, selectedRealLineIdx, context.GetView(), oldState, self.c.UserConfig().Gui.UseHunkModeInStagingView)
 	context.SetState(state)
 	if state == nil {
 		self.Escape()
