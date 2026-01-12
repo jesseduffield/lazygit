@@ -111,14 +111,30 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 	}
 
 	if len(hashGroups[NOT_MERGED]) > 1 {
-		// If there are multiple commits that could be the base commit, list
-		// them in the error message. But only the candidates from the current
-		// branch, not including any that are already merged.
+		// If there are multiple commits that could be the base commit, check
+		// if there is only a single one that isn't a fixup commit itself.
+		// List the commits in the error message. But only the candidates from
+		// the current branch, not including any that are already merged.
+
+		unmerged_commits := self.getCommitsFromHashes(commits, hashGroups[NOT_MERGED])
+		non_fixup_commits := lo.Filter(unmerged_commits, func(c *models.Commit, index int) bool {
+			return !strings.HasPrefix(c.Name, "fixup! ") && !strings.HasPrefix(c.Name, "squash! ") && !strings.HasPrefix(c.Name, "amend! ")
+		})
 		subjects := self.getHashesAndSubjects(commits, hashGroups[NOT_MERGED])
-		message := lo.Ternary(hasStagedChanges,
-			self.c.Tr.MultipleBaseCommitsFoundStaged,
-			self.c.Tr.MultipleBaseCommitsFoundUnstaged)
-		return fmt.Errorf("%s\n\n%s", message, subjects)
+		if len(non_fixup_commits) > 1 || len(non_fixup_commits) == 0 {
+			message := lo.Ternary(hasStagedChanges,
+				self.c.Tr.MultipleBaseCommitsFoundStaged,
+				self.c.Tr.MultipleBaseCommitsFoundUnstaged)
+			return fmt.Errorf("%s\n\n%s", message, subjects)
+		}
+		// There is only a single non fixup commit found. Present it with a Confirmation dialog.
+		_, index, _ := self.findCommit(commits, non_fixup_commits[0].Hash())
+
+		return self.c.ConfirmIf(true, types.ConfirmOpts{
+			Title:         self.c.Tr.FindBaseCommitForFixup,
+			Prompt:        fmt.Sprintf("%s\n\n%s", self.c.Tr.MultipleBaseCommitsOnlyOneNonFixup, subjects),
+			HandleConfirm: self.getHandlerToStageAndSelectIndex(hasStagedChanges, index),
+		})
 	}
 
 	// At this point we know that the NOT_MERGED bucket has exactly one commit,
@@ -146,6 +162,17 @@ func (self *FixupHelper) getHandlerToStageAndSelectIndex(hasStagedChanges bool, 
 		self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
 		return nil
 	}
+}
+
+func (self *FixupHelper) getCommitsFromHashes(commits []*models.Commit, hashes []string) []*models.Commit {
+	commitsSet := set.NewFromSlice(hashes)
+	found_commits := make([]*models.Commit, 0, len(hashes))
+	for _, c := range commits {
+		if commitsSet.Includes(c.Hash()) {
+			found_commits = append(found_commits, c)
+		}
+	}
+	return found_commits
 }
 
 func (self *FixupHelper) getHashesAndSubjects(commits []*models.Commit, hashes []string) string {

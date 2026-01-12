@@ -131,6 +131,7 @@ var tests = []*components.IntegrationTest{
 	commit.FailHooksThenCommitNoHooks,
 	commit.FindBaseCommitForFixup,
 	commit.FindBaseCommitForFixupDisregardMainBranch,
+	commit.FindBaseCommitForFixupIgnoreFixupCommits,
 	commit.FindBaseCommitForFixupOnlyAddedLines,
 	commit.FindBaseCommitForFixupWarningForAddedLines,
 	commit.Highlight,

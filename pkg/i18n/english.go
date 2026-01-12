@@ -45,6 +45,7 @@ type TranslationSet struct {
 	NoBaseCommitsFound                    string
 	MultipleBaseCommitsFoundStaged        string
 	MultipleBaseCommitsFoundUnstaged      string
+	MultipleBaseCommitsOnlyOneNonFixup    string
 	BaseCommitIsAlreadyOnMainBranch       string
 	BaseCommitIsNotInCurrentView          string
 	HunksWithOnlyAddedLinesWarning        string
@@ -1140,6 +1141,7 @@ func EnglishTranslationSet() *TranslationSet {
 		NoBaseCommitsFound:                   "No base commits found",
 		MultipleBaseCommitsFoundStaged:       "Multiple base commits found. (Try staging fewer changes at once)",
 		MultipleBaseCommitsFoundUnstaged:     "Multiple base commits found. (Try staging some of the changes)",
+		MultipleBaseCommitsOnlyOneNonFixup:   "Multiple base commits found, however all but one of them were fixup commits",
 		BaseCommitIsAlreadyOnMainBranch:      "The base commit for this change is already on the main branch",
 		BaseCommitIsNotInCurrentView:         "Base commit is not in current view",
 		HunksWithOnlyAddedLinesWarning:       "There are ranges of only added lines in the diff; be careful to check that these belong in the found base commit.\n\nProceed?",
