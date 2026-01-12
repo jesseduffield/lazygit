@@ -126,22 +126,26 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 	_, index, _ := self.findCommit(commits, hashGroups[NOT_MERGED][0])
 
 	return self.c.ConfirmIf(warnAboutAddedLines, types.ConfirmOpts{
-		Title:  self.c.Tr.FindBaseCommitForFixup,
-		Prompt: self.c.Tr.HunksWithOnlyAddedLinesWarning,
-		HandleConfirm: func() error {
-			if !hasStagedChanges {
-				if err := self.c.Git().WorkingTree.StageAll(true); err != nil {
-					return err
-				}
-				self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
-			}
-
-			self.c.Contexts().LocalCommits.SetSelection(index)
-			self.c.Contexts().LocalCommits.FocusLine(true)
-			self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
-			return nil
-		},
+		Title:         self.c.Tr.FindBaseCommitForFixup,
+		Prompt:        self.c.Tr.HunksWithOnlyAddedLinesWarning,
+		HandleConfirm: self.getHandlerToStageAndSelectIndex(hasStagedChanges, index),
 	})
+}
+
+func (self *FixupHelper) getHandlerToStageAndSelectIndex(hasStagedChanges bool, index int) func() error {
+	return func() error {
+		if !hasStagedChanges {
+			if err := self.c.Git().WorkingTree.StageAll(true); err != nil {
+				return err
+			}
+			self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
+		}
+
+		self.c.Contexts().LocalCommits.SetSelection(index)
+		self.c.Contexts().LocalCommits.FocusLine(true)
+		self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
+		return nil
+	}
 }
 
 func (self *FixupHelper) getHashesAndSubjects(commits []*models.Commit, hashes []string) string {
