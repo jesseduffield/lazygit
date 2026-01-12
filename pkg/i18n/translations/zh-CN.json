@@ -423,7 +423,7 @@
   "BareRepo": "您已经尝试在空仓库中打开Lazygit，但是Lazygit还不支持空仓库。打开最近的仓库吗？(y / n) ",
   "InitialBranch": "分支名称? (git的默认值为空): ",
   "NoRecentRepositories": "必须在git存储库中打开lazygit。没有有效的最近存储库。即将退出...",
-  "IncorrectNotARepository": "'notARepository'的值不正确。它应该是“prompt”，“create”，“skip”或“quit”中的一个。",
+  "IncorrectNotARepository": "'notARepository'的值不正确。它应该是“prompt”，“create”，“recent”，“skip”或“quit”中的一个。",
   "AutoStashTitle": "自动存储？",
   "AutoStashPrompt": "您必须隐藏并弹出变更以使变更生效。自动执行？(enter/esc)",
   "AutoStashForUndo": "正在自动储藏更改以便撤销到 %s",
