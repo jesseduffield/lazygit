@@ -12,7 +12,7 @@ require (
 	github.com/aybabtme/humanlog v0.4.1
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 	github.com/creack/pty v1.1.11
-	github.com/gdamore/tcell/v2 v2.13.7-0.20260111024317-4739cfe77a24
+	github.com/gdamore/tcell/v2 v2.13.7
 	github.com/go-errors/errors v1.5.1
 	github.com/gookit/color v1.4.2
 	github.com/integrii/flaggy v1.4.0

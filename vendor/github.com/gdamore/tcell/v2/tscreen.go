@@ -622,6 +622,14 @@ func (t *tScreen) drawCell(x, y int) int {
 		width = 1
 		str = " "
 	}
+	if width > 1 {
+		// Clobber over any content in the next cell.
+		// This fixes a problem with some terminals where overwriting two
+		// adjacent single cells with a wide rune would leave an image
+		// of the second cell.  This is a workaround for buggy terminals.
+		t.writeString("  \b\b")
+	}
+
 	t.writeString(str)
 	t.cx += width
 	t.cells.SetDirty(x, y, false)
