@@ -128,9 +128,20 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 			return fmt.Errorf("%s\n\n%s", message, subjects)
 		}
 		// There is only a single non fixup commit found. Present it with a Confirmation dialog.
-		_, index, _ := self.findCommit(commits, non_fixup_commits[0].Hash())
+		found_commit := non_fixup_commits[0]
+		all_fixup_for_found_commit := lo.EveryBy(unmerged_commits, func(c *models.Commit) bool {
+			if c == found_commit {
+				return true
+			}
+			fixup_subject := c.Name
+			fixup_subject = strings.TrimPrefix(fixup_subject, "fixup! ")
+			fixup_subject = strings.TrimPrefix(fixup_subject, "squash! ")
+			fixup_subject = strings.TrimPrefix(fixup_subject, "amend! ")
+			return strings.HasPrefix(found_commit.Name, fixup_subject)
+		})
+		_, index, _ := self.findCommit(commits, found_commit.Hash())
 
-		return self.c.ConfirmIf(true, types.ConfirmOpts{
+		return self.c.ConfirmIf(!all_fixup_for_found_commit, types.ConfirmOpts{
 			Title:         self.c.Tr.FindBaseCommitForFixup,
 			Prompt:        fmt.Sprintf("%s\n\n%s", self.c.Tr.MultipleBaseCommitsOnlyOneNonFixup, subjects),
 			HandleConfirm: self.getHandlerToStageAndSelectIndex(hasStagedChanges, index),

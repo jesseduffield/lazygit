@@ -132,6 +132,7 @@ var tests = []*components.IntegrationTest{
 	commit.FindBaseCommitForFixup,
 	commit.FindBaseCommitForFixupDisregardMainBranch,
 	commit.FindBaseCommitForFixupIgnoreFixupCommits,
+	commit.FindBaseCommitForFixupIgnoreFixupCommitsWarnForOther,
 	commit.FindBaseCommitForFixupOnlyAddedLines,
 	commit.FindBaseCommitForFixupWarningForAddedLines,
 	commit.Highlight,

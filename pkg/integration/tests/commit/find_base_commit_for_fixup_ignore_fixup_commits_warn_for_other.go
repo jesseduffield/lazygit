@@ -5,7 +5,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var FindBaseCommitForFixupIgnoreFixupCommits = NewIntegrationTest(NewIntegrationTestArgs{
+var FindBaseCommitForFixupIgnoreFixupCommitsWarnForOther = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Finds the base commit to create a fixup for, disregarding changes to a commit that is already on master",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
@@ -20,13 +20,13 @@ var FindBaseCommitForFixupIgnoreFixupCommits = NewIntegrationTest(NewIntegration
 			Commit("3rd commit").
 			EmptyCommit("4th commit").
 			UpdateFileAndAdd("file", "file1 1st fixup content line 1\nfile1 changed content line 2\n").
-			Commit("fixup! 3rd commit").
+			Commit("fixup! some other commit").
 			UpdateFile("file", "file1 2nd fixup content line 1\nfile1 2nd fixup content line 2\n")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Lines(
-				Contains("fixup! 3rd commit").IsSelected(),
+				Contains("fixup! some other commit").IsSelected(),
 				Contains("4th commit"),
 				Contains("3rd commit"),
 				Contains("2nd commit"),
@@ -36,10 +36,19 @@ var FindBaseCommitForFixupIgnoreFixupCommits = NewIntegrationTest(NewIntegration
 		t.Views().Files().
 			Focus().
 			Press(keys.Files.FindBaseCommitForFixup)
+		t.ExpectPopup().
+			Confirmation().
+			Title(Equals("Find base commit for fixup")).
+			Content(
+				Contains("all but one of them were fixup commits").
+					Contains("3rd commit").
+					Contains("fixup! some other commit"),
+			).
+			Confirm()
 		t.Views().Commits().
 			IsFocused().
 			Lines(
-				Contains("fixup! 3rd commit"),
+				Contains("fixup! some other commit"),
 				Contains("4th commit"),
 				Contains("3rd commit").IsSelected(),
 				Contains("2nd commit"),
