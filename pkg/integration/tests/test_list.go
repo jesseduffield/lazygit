@@ -221,6 +221,7 @@ var tests = []*components.IntegrationTest{
 	file.DiscardVariousChanges,
 	file.DiscardVariousChangesRangeSelect,
 	file.Gitignore,
+	file.GitignoreLocal,
 	file.GitignoreSpecialCharacters,
 	file.RememberCommitMessageAfterFail,
 	file.RenameSimilarityThresholdChange,
