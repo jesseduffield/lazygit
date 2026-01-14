@@ -186,17 +186,12 @@ func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error 
 			return self.c.WithWaitingStatus(self.c.Tr.RemovingWorktree, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.RemoveWorktree)
 				if err := self.c.Git().Worktree.Delete(worktree.Path, force); err != nil {
-					errMessage := err.Error()
-					if !strings.Contains(errMessage, "--force") &&
-						!strings.Contains(errMessage, "fatal: working trees containing submodules cannot be moved or removed") {
-						return err
-					}
-
-					if !force {
+					if !force && self.removeShouldRetryWithForce(err) {
 						return self.Remove(worktree, true)
 					}
 					return err
 				}
+
 				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
 				return nil
 			})
@@ -204,6 +199,12 @@ func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error 
 	})
 
 	return nil
+}
+
+func (self *WorktreeHelper) removeShouldRetryWithForce(err error) bool {
+	errMessage := err.Error()
+	return strings.Contains(errMessage, "--force") ||
+		strings.Contains(errMessage, "fatal: working trees containing submodules cannot be moved or removed")
 }
 
 func (self *WorktreeHelper) Detach(worktree *models.Worktree) error {

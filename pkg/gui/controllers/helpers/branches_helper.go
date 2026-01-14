@@ -238,8 +238,57 @@ func (self *BranchesHelper) promptWorktreeBranchDelete(selectedBranch *models.Br
 					return self.worktreeHelper.Remove(worktree, false)
 				},
 			},
+			{
+				Label: self.c.Tr.RemoveWorktreeAndBranch,
+				OnPress: func() error {
+					return self.removeWorktreeAndBranch(selectedBranch, worktree, false)
+				},
+			},
 		},
 	})
+}
+
+func (self *BranchesHelper) removeWorktreeAndBranch(branch *models.Branch, worktree *models.Worktree, force bool) error {
+	title := self.c.Tr.RemoveWorktreeAndBranchTitle
+	var templateStr string
+	if force {
+		templateStr = self.c.Tr.ForceRemoveWorktreePrompt
+	} else {
+		templateStr = self.c.Tr.RemoveWorktreeAndBranchPrompt
+	}
+	message := utils.ResolvePlaceholderString(
+		templateStr,
+		map[string]string{
+			"worktreeName": worktree.Name,
+			"branchName":   branch.Name,
+		},
+	)
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title:  title,
+		Prompt: message,
+		HandleConfirm: func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.RemovingWorktree, func(gocui.Task) error {
+				self.c.LogAction(self.c.Tr.RemoveWorktreeAndBranch)
+				if err := self.c.Git().Worktree.Delete(worktree.Path, force); err != nil {
+					if !force && self.worktreeHelper.removeShouldRetryWithForce(err) {
+						return self.removeWorktreeAndBranch(branch, worktree, true)
+					}
+					return err
+				}
+
+				if err := self.c.Git().Branch.LocalDelete([]string{branch.Name}, true); err != nil {
+					return err
+				}
+
+				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
+				return nil
+			})
+		},
+	})
+
+	self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+	return nil
 }
 
 func (self *BranchesHelper) allBranchesMerged(branches []*models.Branch) (bool, error) {
