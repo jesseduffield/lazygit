@@ -103,6 +103,9 @@ These fields are applicable to all prompts.
 | title             | The title to display in the popup panel                                                        | no         |
 | key | Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command | yes |
 
+> [!TIP]
+> Fetching `key` via `.PromptResponses` is not encouraged, see https://github.com/jesseduffield/lazygit/issues/2103
+
 ### Input
 
 | _field_           | _description_                                                                                  | _required_ |
