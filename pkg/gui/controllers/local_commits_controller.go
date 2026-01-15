@@ -1096,7 +1096,7 @@ func countSquashableCommitsAbove(commits []*models.Commit, selectedIdx int, reba
 	// For each commit _above_ the selection, ...
 	for i, commit := range commits[0:selectedIdx] {
 		// ... see if it is a fixup commit, and get the base subject it applies to
-		if baseSubject, isFixup := isFixupCommit(commit.Name); isFixup {
+		if baseSubject, isFixup := helpers.IsFixupCommit(commit.Name); isFixup {
 			// Then, for each commit after the fixup, up to and including the
 			// rebase start commit, see if we find the base commit
 			for _, baseCommit := range commits[i+1 : rebaseStartIdx+1] {
@@ -1107,33 +1107,6 @@ func countSquashableCommitsAbove(commits []*models.Commit, selectedIdx int, reba
 		}
 	}
 	return result
-}
-
-// Check whether the given subject line is the subject of a fixup commit, and
-// returns (trimmedSubject, true) if so (where trimmedSubject is the subject
-// with all fixup prefixes removed), or (subject, false) if not.
-func isFixupCommit(subject string) (string, bool) {
-	prefixes := []string{"fixup! ", "squash! ", "amend! "}
-	trimPrefix := func(s string) (string, bool) {
-		for _, prefix := range prefixes {
-			if trimmedSubject, ok := strings.CutPrefix(s, prefix); ok {
-				return trimmedSubject, true
-			}
-		}
-		return s, false
-	}
-
-	if subject, wasTrimmed := trimPrefix(subject); wasTrimmed {
-		for {
-			// handle repeated prefixes like "fixup! amend! fixup! Subject"
-			if subject, wasTrimmed = trimPrefix(subject); !wasTrimmed {
-				break
-			}
-		}
-		return subject, true
-	}
-
-	return subject, false
 }
 
 func (self *LocalCommitsController) createTag(commit *models.Commit) error {

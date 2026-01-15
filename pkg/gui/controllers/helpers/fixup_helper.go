@@ -350,3 +350,30 @@ func (self *FixupHelper) findCommit(commits []*models.Commit, hash string) (*mod
 		return commit.Hash() == hash
 	})
 }
+
+// Check whether the given subject line is the subject of a fixup commit, and
+// returns (trimmedSubject, true) if so (where trimmedSubject is the subject
+// with all fixup prefixes removed), or (subject, false) if not.
+func IsFixupCommit(subject string) (string, bool) {
+	prefixes := []string{"fixup! ", "squash! ", "amend! "}
+	trimPrefix := func(s string) (string, bool) {
+		for _, prefix := range prefixes {
+			if trimmedSubject, ok := strings.CutPrefix(s, prefix); ok {
+				return trimmedSubject, true
+			}
+		}
+		return s, false
+	}
+
+	if subject, wasTrimmed := trimPrefix(subject); wasTrimmed {
+		for {
+			// handle repeated prefixes like "fixup! amend! fixup! Subject"
+			if subject, wasTrimmed = trimPrefix(subject); !wasTrimmed {
+				break
+			}
+		}
+		return subject, true
+	}
+
+	return subject, false
+}

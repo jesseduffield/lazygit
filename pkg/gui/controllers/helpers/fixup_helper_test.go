@@ -155,3 +155,49 @@ index 9ce8efb33..0632e41b0 100644
 		})
 	}
 }
+
+func TestFixupHelper_IsFixupCommit(t *testing.T) {
+	scenarios := []struct {
+		subject                string
+		expectedTrimmedSubject string
+		expectedIsFixup        bool
+	}{
+		{
+			subject:                "Bla",
+			expectedTrimmedSubject: "Bla",
+			expectedIsFixup:        false,
+		},
+		{
+			subject:                "fixup Bla",
+			expectedTrimmedSubject: "fixup Bla",
+			expectedIsFixup:        false,
+		},
+		{
+			subject:                "fixup! Bla",
+			expectedTrimmedSubject: "Bla",
+			expectedIsFixup:        true,
+		},
+		{
+			subject:                "fixup! fixup! Bla",
+			expectedTrimmedSubject: "Bla",
+			expectedIsFixup:        true,
+		},
+		{
+			subject:                "amend! squash! Bla",
+			expectedTrimmedSubject: "Bla",
+			expectedIsFixup:        true,
+		},
+		{
+			subject:                "fixup!",
+			expectedTrimmedSubject: "fixup!",
+			expectedIsFixup:        false,
+		},
+	}
+	for _, s := range scenarios {
+		t.Run(s.subject, func(t *testing.T) {
+			trimmedSubject, isFixupCommit := IsFixupCommit(s.subject)
+			assert.Equal(t, s.expectedTrimmedSubject, trimmedSubject)
+			assert.Equal(t, s.expectedIsFixup, isFixupCommit)
+		})
+	}
+}
