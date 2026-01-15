@@ -3,6 +3,9 @@ package helpers
 import (
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -198,6 +201,141 @@ func TestFixupHelper_IsFixupCommit(t *testing.T) {
 			trimmedSubject, isFixupCommit := IsFixupCommit(s.subject)
 			assert.Equal(t, s.expectedTrimmedSubject, trimmedSubject)
 			assert.Equal(t, s.expectedIsFixup, isFixupCommit)
+		})
+	}
+}
+
+func TestFixupHelper_removeFixupCommits(t *testing.T) {
+	hashPool := &utils.StringPool{}
+
+	type commitDesc struct {
+		Hash string
+		Name string
+	}
+
+	scenarios := []struct {
+		name           string
+		commits        []commitDesc
+		expectedResult []commitDesc
+	}{
+		{
+			name:           "empty list",
+			commits:        []commitDesc{},
+			expectedResult: []commitDesc{},
+		},
+		{
+			name: "single commit",
+			commits: []commitDesc{
+				{"abc123", "Some feature"},
+			},
+			expectedResult: []commitDesc{
+				{"abc123", "Some feature"},
+			},
+		},
+		{
+			name: "two unrelated commits",
+			commits: []commitDesc{
+				{"abc123", "First feature"},
+				{"def456", "Second feature"},
+			},
+			expectedResult: []commitDesc{
+				{"abc123", "First feature"},
+				{"def456", "Second feature"},
+			},
+		},
+		{
+			name: "fixup commit for last commit",
+			commits: []commitDesc{
+				{"abc123", "fixup! Some feature"},
+				{"def456", "Some feature"},
+			},
+			expectedResult: []commitDesc{
+				{"def456", "Some feature"},
+			},
+		},
+		{
+			name: "amend and squash commits for last commit",
+			commits: []commitDesc{
+				{"abc123", "squash! Some feature"},
+				{"def456", "amend! Some feature"},
+				{"ghi789", "Some feature"},
+			},
+			expectedResult: []commitDesc{
+				{"ghi789", "Some feature"},
+			},
+		},
+		{
+			name: "fixup commit for different commit",
+			commits: []commitDesc{
+				{"abc123", "fixup! Other feature"},
+				{"def456", "Some feature"},
+			},
+			expectedResult: []commitDesc{
+				{"abc123", "fixup! Other feature"},
+				{"def456", "Some feature"},
+			},
+		},
+		{
+			name: "last commit is a fixup itself",
+			commits: []commitDesc{
+				{"abc123", "fixup! Some feature"},
+				{"def456", "fixup! Some feature"},
+			},
+			expectedResult: []commitDesc{
+				{"abc123", "fixup! Some feature"},
+				{"def456", "fixup! Some feature"},
+			},
+		},
+		{
+			name: "nested fixup commit",
+			commits: []commitDesc{
+				{"abc123", "fixup! fixup! Some feature"},
+				{"def456", "amend! squash! fixup! Some feature"},
+				{"ghi789", "Some feature"},
+			},
+			expectedResult: []commitDesc{
+				{"ghi789", "Some feature"},
+			},
+		},
+		{
+			name: "fixup commits mixed with unrelated commits",
+			commits: []commitDesc{
+				{Hash: "abc123", Name: "fixup! Base commit"},
+				{Hash: "def456", Name: "Unrelated commit"},
+				{Hash: "ghi789", Name: "fixup! Base commit"},
+				{Hash: "jkl012", Name: "Base commit"},
+			},
+			expectedResult: []commitDesc{
+				{Hash: "def456", Name: "Unrelated commit"},
+				{Hash: "jkl012", Name: "Base commit"},
+			},
+		},
+		{
+			name: "only fixup commits for last commit removed, others preserved",
+			commits: []commitDesc{
+				{Hash: "abc123", Name: "fixup! First feature"},
+				{Hash: "def456", Name: "fixup! Second feature"},
+				{Hash: "ghi789", Name: "Second feature"},
+				{Hash: "jkl012", Name: "First feature"},
+			},
+			expectedResult: []commitDesc{
+				{Hash: "def456", Name: "fixup! Second feature"},
+				{Hash: "ghi789", Name: "Second feature"},
+				{Hash: "jkl012", Name: "First feature"},
+			},
+		},
+	}
+
+	makeCommitFromDesc := func(desc commitDesc, _ int) *models.Commit {
+		return models.NewCommit(hashPool, models.NewCommitOpts{Hash: desc.Hash, Name: desc.Name})
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			commits := lo.Map(s.commits, makeCommitFromDesc)
+			result := removeFixupCommits(commits)
+			expectedCommits := lo.Map(s.expectedResult, makeCommitFromDesc)
+			assert.Equal(t, expectedCommits, result)
 		})
 	}
 }

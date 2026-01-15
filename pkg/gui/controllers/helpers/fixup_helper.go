@@ -110,20 +110,24 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return errors.New(self.c.Tr.BaseCommitIsAlreadyOnMainBranch)
 	}
 
-	if len(hashGroups[NOT_MERGED]) > 1 {
-		// If there are multiple commits that could be the base commit, list
+	foundCommits := getCommitsForHashes(commits, hashGroups[NOT_MERGED])
+	// If there are multiple commits that could be the base commit, remove all
+	// those that are fixups for the last one.
+	foundCommits = removeFixupCommits(foundCommits)
+
+	if len(foundCommits) > 1 {
+		// If there are still multiple commits that could be the base commit, list
 		// them in the error message. But only the candidates from the current
 		// branch, not including any that are already merged.
-		subjects := getHashesAndSubjects(commits, hashGroups[NOT_MERGED])
+		subjects := getHashesAndSubjects(foundCommits)
 		message := lo.Ternary(hasStagedChanges,
 			self.c.Tr.MultipleBaseCommitsFoundStaged,
 			self.c.Tr.MultipleBaseCommitsFoundUnstaged)
 		return fmt.Errorf("%s\n\n%s", message, subjects)
 	}
 
-	// At this point we know that the NOT_MERGED bucket has exactly one commit,
-	// and that's the one we want to select.
-	_, index, _ := self.findCommit(commits, hashGroups[NOT_MERGED][0])
+	// Now we know that foundCommits has exactly one commit, so find its index
+	_, index, _ := self.findCommit(commits, foundCommits[0].Hash())
 
 	return self.c.ConfirmIf(warnAboutAddedLines, types.ConfirmOpts{
 		Title:  self.c.Tr.FindBaseCommitForFixup,
@@ -161,11 +165,33 @@ func getCommitsForHashes(commits []*models.Commit, hashes []string) []*models.Co
 	return result
 }
 
-func getHashesAndSubjects(commits []*models.Commit, hashes []string) string {
-	subjects := lo.Map(getCommitsForHashes(commits, hashes), func(c *models.Commit, _ int) string {
+func getHashesAndSubjects(commits []*models.Commit) string {
+	subjects := lo.Map(commits, func(c *models.Commit, _ int) string {
 		return fmt.Sprintf("%s %s", c.ShortRefName(), c.Name)
 	})
 	return strings.Join(subjects, "\n")
+}
+
+func removeFixupCommits(commits []*models.Commit) []*models.Commit {
+	if len(commits) <= 1 {
+		return commits
+	}
+
+	// If the last found commit is itself a fixup, don't eliminate anything.
+	baseSubject, lastIsFixup := IsFixupCommit(commits[len(commits)-1].Name)
+	if lastIsFixup {
+		return commits
+	}
+
+	// need to go backwards because we are mutating the slice as we go
+	for i := len(commits) - 2; i >= 0; i-- {
+		subject, isFixup := IsFixupCommit(commits[i].Name)
+		if isFixup && subject == baseSubject {
+			commits = utils.Remove(commits, i)
+		}
+	}
+
+	return commits
 }
 
 func (self *FixupHelper) getDiff() (string, bool, error) {

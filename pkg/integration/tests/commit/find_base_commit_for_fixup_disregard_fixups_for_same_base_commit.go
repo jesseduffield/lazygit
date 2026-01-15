@@ -34,13 +34,13 @@ var FindBaseCommitForFixupDisregardFixupsForSameBaseCommit = NewIntegrationTest(
 			Focus().
 			Press(keys.Files.FindBaseCommitForFixup)
 
-		t.ExpectPopup().Alert().
-			Title(Equals("Error")).
-			Content(
-				MatchesRegexp("Multiple base commits found.*\n\n" +
-					".*fixup! 2nd commit\n" +
-					".*2nd commit"),
-			).
-			Confirm()
+		t.Views().Commits().
+			IsFocused().
+			Lines(
+				Contains("3rd commit"),
+				Contains("fixup! 2nd commit"),
+				Contains("2nd commit").IsSelected(),
+				Contains("1st commit"),
+			)
 	},
 })
