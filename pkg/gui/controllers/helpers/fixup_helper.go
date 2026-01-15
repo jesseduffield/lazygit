@@ -144,20 +144,27 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 	})
 }
 
-func getHashesAndSubjects(commits []*models.Commit, hashes []string) string {
+func getCommitsForHashes(commits []*models.Commit, hashes []string) []*models.Commit {
 	// This is called only for the NOT_MERGED commits, and we know that all of them are contained in
 	// the commits slice.
 	commitsSet := set.NewFromSlice(hashes)
-	subjects := make([]string, 0, len(hashes))
+	result := make([]*models.Commit, 0, len(hashes))
 	for _, c := range commits {
 		if commitsSet.Includes(c.Hash()) {
-			subjects = append(subjects, fmt.Sprintf("%s %s", c.ShortRefName(), c.Name))
+			result = append(result, c)
 			commitsSet.Remove(c.Hash())
 			if commitsSet.Len() == 0 {
 				break
 			}
 		}
 	}
+	return result
+}
+
+func getHashesAndSubjects(commits []*models.Commit, hashes []string) string {
+	subjects := lo.Map(getCommitsForHashes(commits, hashes), func(c *models.Commit, _ int) string {
+		return fmt.Sprintf("%s %s", c.ShortRefName(), c.Name)
+	})
 	return strings.Join(subjects, "\n")
 }
 
