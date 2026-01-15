@@ -114,7 +114,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		// If there are multiple commits that could be the base commit, list
 		// them in the error message. But only the candidates from the current
 		// branch, not including any that are already merged.
-		subjects := self.getHashesAndSubjects(commits, hashGroups[NOT_MERGED])
+		subjects := getHashesAndSubjects(commits, hashGroups[NOT_MERGED])
 		message := lo.Ternary(hasStagedChanges,
 			self.c.Tr.MultipleBaseCommitsFoundStaged,
 			self.c.Tr.MultipleBaseCommitsFoundUnstaged)
@@ -144,7 +144,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 	})
 }
 
-func (self *FixupHelper) getHashesAndSubjects(commits []*models.Commit, hashes []string) string {
+func getHashesAndSubjects(commits []*models.Commit, hashes []string) string {
 	// This is called only for the NOT_MERGED commits, and we know that all of them are contained in
 	// the commits slice.
 	commitsSet := set.NewFromSlice(hashes)
