@@ -167,11 +167,21 @@ func (self *DiffHelper) WithDiffModeCheck(f func()) {
 }
 
 func (self *DiffHelper) IgnoringWhitespaceSubTitle() string {
-	if self.c.UserConfig().Git.IgnoreWhitespaceInDiffView {
-		return self.c.Tr.IgnoreWhitespaceDiffViewSubTitle
+	ignoreWhitespace := self.c.UserConfig().Git.IgnoreWhitespaceInDiffView
+	colorWords := self.c.UserConfig().Git.ColorWordsInDiffView
+
+	var subtitle string
+	if ignoreWhitespace {
+		subtitle = self.c.Tr.IgnoreWhitespaceDiffViewSubTitle
+	}
+	if colorWords {
+		if subtitle != "" {
+			subtitle += " | "
+		}
+		subtitle += self.c.Tr.ColorWordsDiffViewSubTitle
 	}
 
-	return ""
+	return subtitle
 }
 
 func (self *DiffHelper) OpenDiffToolForRef(selectedRef models.Ref) error {
