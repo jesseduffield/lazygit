@@ -276,6 +276,8 @@ type TranslationSet struct {
 	AllBranchesLogGraph                   string
 	UnsupportedGitService                 string
 	CopyPullRequestURL                    string
+	CopyBranchURL                         string
+	BranchURLCopiedToClipboard            string
 	NoBranchOnRemote                      string
 	Fetch                                 string
 	FetchTooltip                          string
@@ -1059,6 +1061,7 @@ type Actions struct {
 	Undo                             string
 	Redo                             string
 	CopyPullRequestURL               string
+	CopyBranchURL                    string
 	OpenMergeTool                    string
 	OpenCommitInBrowser              string
 	OpenPullRequest                  string
@@ -1372,6 +1375,8 @@ func EnglishTranslationSet() *TranslationSet {
 		UnsupportedGitService:                `Unsupported git service`,
 		CreatePullRequest:                    `Create pull request`,
 		CopyPullRequestURL:                   `Copy pull request URL to clipboard`,
+		CopyBranchURL:                        `Copy branch URL to clipboard`,
+		BranchURLCopiedToClipboard:           "Branch URL copied to clipboard",
 		NoBranchOnRemote:                     `This branch doesn't exist on remote. You need to push it to remote first.`,
 		Fetch:                                `Fetch`,
 		FetchTooltip:                         "Fetch changes from remote.",
@@ -2120,6 +2125,7 @@ func EnglishTranslationSet() *TranslationSet {
 			Undo:                             "Undo",
 			Redo:                             "Redo",
 			CopyPullRequestURL:               "Copy pull request URL",
+			CopyBranchURL:                    "Copy branch URL",
 			OpenMergeTool:                    "Open merge tool",
 			OpenCommitInBrowser:              "Open commit in browser",
 			OpenPullRequest:                  "Open pull request in browser",
