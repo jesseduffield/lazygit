@@ -403,7 +403,7 @@ func getExtrasWindowSize(args WindowArrangementArgs) int {
 }
 
 // The stash window by default only contains one line so that it's not hogging
-// too much space, but if you access it it should take up some space. This is
+// too much space, but if you access it, it should take up some space. This is
 // the default behaviour when accordion mode is NOT in effect. If it is in effect
 // then when it's accessed it will have weight 2, not 1.
 func getDefaultStashWindowBox(args WindowArrangementArgs) *boxlayout.Box {
