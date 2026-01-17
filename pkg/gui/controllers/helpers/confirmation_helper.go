@@ -403,7 +403,7 @@ func (self *ConfirmationHelper) resizePromptPanel(parentPopupContext types.Conte
 }
 
 func (self *ConfirmationHelper) ResizeCommitMessagePanels(parentPopupContext types.Context) {
-	panelWidth := self.getPopupPanelWidth()
+	panelWidth := min(self.getPopupPanelWidth(), self.c.UserConfig().Git.Commit.AutoWrapWidth+2)
 	content := self.c.Views().CommitDescription.TextArea.GetContent()
 	summaryViewHeight := 3
 	panelHeight := getMessageHeight(false, true, content, panelWidth, self.c.Views().CommitDescription.TabWidth)
