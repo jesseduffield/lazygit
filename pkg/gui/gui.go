@@ -800,6 +800,10 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 				Tab:      gui.c.Tr.TagsTitle,
 				ViewName: "tags",
 			},
+			{
+				Tab:      "Stacks",
+				ViewName: "spiceStacks",
+			},
 		},
 		"commits": {
 			{

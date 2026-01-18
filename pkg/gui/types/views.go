@@ -10,6 +10,7 @@ type Views struct {
 	Remotes        *gocui.View
 	Worktrees      *gocui.View
 	Tags           *gocui.View
+	SpiceStacks    *gocui.View
 	RemoteBranches *gocui.View
 	ReflogCommits  *gocui.View
 	Commits        *gocui.View
