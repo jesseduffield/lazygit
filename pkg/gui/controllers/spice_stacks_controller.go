@@ -34,6 +34,26 @@ func NewSpiceStacksController(
 func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
+			Tag:     "navigation",
+			Key:     opts.GetKey(opts.Config.Universal.PrevItemAlt),
+			Handler: self.HandlePrevLine,
+		},
+		{
+			Tag:     "navigation",
+			Key:     opts.GetKey(opts.Config.Universal.PrevItem),
+			Handler: self.HandlePrevLine,
+		},
+		{
+			Tag:     "navigation",
+			Key:     opts.GetKey(opts.Config.Universal.NextItemAlt),
+			Handler: self.HandleNextLine,
+		},
+		{
+			Tag:     "navigation",
+			Key:     opts.GetKey(opts.Config.Universal.NextItem),
+			Handler: self.HandleNextLine,
+		},
+		{
 			Key:               opts.GetKey(opts.Config.Universal.Select),
 			Handler:           self.withItem(self.checkout),
 			GetDisabledReason: self.require(self.singleItemSelected()),
