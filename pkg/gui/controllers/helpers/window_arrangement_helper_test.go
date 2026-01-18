@@ -347,6 +347,40 @@ func TestGetWindowDimensions(t *testing.T) {
 			`,
 		},
 		{
+			name: "half screen mode, commits focused with commitFiles split",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.Height = 20
+				args.ScreenMode = types.SCREEN_HALF
+				args.CurrentWindow = "commits"
+				args.CurrentSideWindow = "commits"
+				args.UserConfig.Gui.EnlargedSideViewLocation = "left"
+			},
+			expected: `
+			╭commits─────────────────────────────╮╭main───────────────────────────────╮
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			╰────────────────────────────────────╯│                                   │
+			╭commitFiles─────────────────────────╮│                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			│                                    ││                                   │
+			╰────────────────────────────────────╯╰───────────────────────────────────╯
+			<stashns──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
 			name: "search mode",
 			mutateArgs: func(args *WindowArrangementArgs) {
 				args.InSearchPrompt = true
