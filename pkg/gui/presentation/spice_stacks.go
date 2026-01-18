@@ -60,7 +60,7 @@ func buildTreePrefix(item *models.SpiceStackItem, idx int, items []*models.Spice
 
 	var parts []string
 
-	// Vertical lines for ancestor levels
+	// Build vertical lines showing connection to parent below
 	for d := 1; d < item.Depth; d++ {
 		if continuing[d] {
 			parts = append(parts, "│  ")
@@ -69,14 +69,10 @@ func buildTreePrefix(item *models.SpiceStackItem, idx int, items []*models.Spice
 		}
 	}
 
-	// Connector for current level
-	if item.IsLast {
-		parts = append(parts, "└─ ")
-		continuing[item.Depth] = false
-	} else {
-		parts = append(parts, "├─ ")
-		continuing[item.Depth] = true
-	}
+	// In a top-down stack view, items point down to their parent
+	// All items use ┌─ to show connection to parent below
+	parts = append(parts, "┌─ ")
+	continuing[item.Depth] = true
 
 	return strings.Join(parts, "")
 }
