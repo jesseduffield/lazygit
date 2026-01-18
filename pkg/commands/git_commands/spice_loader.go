@@ -155,5 +155,22 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 		dfs(leaf, 0, i == len(leaves)-1)
 	}
 
+	// Invert depths so base (closest to master) is leftmost
+	// and depth increases as we go up the stack
+	maxDepth := 0
+	for _, item := range result {
+		if !item.IsCommit && item.Depth > maxDepth {
+			maxDepth = item.Depth
+		}
+	}
+	for _, item := range result {
+		if !item.IsCommit {
+			item.Depth = maxDepth - item.Depth
+		} else {
+			// Commits should align with their parent branch
+			item.Depth = maxDepth - (item.Depth - 1)
+		}
+	}
+
 	return result
 }
