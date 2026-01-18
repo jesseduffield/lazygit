@@ -36,6 +36,17 @@ func NewMainBranches(
 	}
 }
 
+// Invalidate clears cached main branch refs so the next Get()/GetMergeBase()
+// will re-determine which configured main branches actually exist in the repo.
+// Useful when branches are deleted externally (or by another lazygit instance).
+func (self *MainBranches) Invalidate() {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	self.existingMainBranches = nil
+	self.previousMainBranches = nil
+}
+
 // Get the list of main branches that exist in the repository. This is a list of
 // full ref names.
 func (self *MainBranches) Get() []string {
@@ -69,10 +80,30 @@ func (self *MainBranches) GetMergeBase(refName string) string {
 	// very rarely, users must quit and restart lazygit to fix it; the latter is
 	// also not very common, but can totally happen and is not an error.
 
-	output, _, _ := self.cmd.New(
+	output, _, err := self.cmd.New(
 		NewGitCmd("merge-base").Arg(refName).Arg(mainBranches...).
 			ToArgv(),
 	).DontLog().RunWithOutputs()
+
+	// If merge-base fails, it might be because a cached main branch ref no longer
+	// exists (e.g. deleted externally). In that case, invalidate and retry once.
+	if err != nil {
+		self.Invalidate()
+		mainBranches = self.Get()
+		if len(mainBranches) == 0 {
+			return ""
+		}
+
+		output, _, err = self.cmd.New(
+			NewGitCmd("merge-base").Arg(refName).Arg(mainBranches...).
+				ToArgv(),
+		).DontLog().RunWithOutputs()
+
+		if err != nil {
+			return ""
+		}
+	}
+
 	return strings.TrimSpace(output)
 }
 
