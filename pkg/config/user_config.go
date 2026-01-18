@@ -311,6 +311,8 @@ type GitConfig struct {
 	ParseEmoji bool `yaml:"parseEmoji"`
 	// Config for showing the log in the commits view
 	Log LogConfig `yaml:"log"`
+	// Config for git-spice integration
+	Spice SpiceConfig `yaml:"spice"`
 	// How branches are sorted in the local branches view.
 	// One of: 'date' (default) | 'recency' | 'alphabetical'
 	// Can be changed from within Lazygit with the Sort Order menu (`s`) in the branches panel.
@@ -380,6 +382,13 @@ type LogConfig struct {
 	ShowGraph string `yaml:"showGraph" jsonschema:"enum=always,enum=never,enum=when-maximised"`
 	// displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
 	ShowWholeGraph bool `yaml:"showWholeGraph"`
+}
+
+type SpiceConfig struct {
+	// LogFormat for displaying git-spice stacks: 'short' | 'long'
+	// 'short' shows basic branch hierarchy
+	// 'long' shows additional PR info, sync status, and commits
+	LogFormat string `yaml:"logFormat" jsonschema:"enum=short,enum=long"`
 }
 
 type CommitPrefixConfig struct {
@@ -836,6 +845,9 @@ func GetDefaultConfig() *UserConfig {
 				Order:          "topo-order",
 				ShowGraph:      "always",
 				ShowWholeGraph: false,
+			},
+			Spice: SpiceConfig{
+				LogFormat: "short",
 			},
 			LocalBranchSortOrder:         "date",
 			RemoteBranchSortOrder:        "date",

@@ -41,9 +41,12 @@ func (self *SpiceCommands) IsInitialized() bool {
 	return result
 }
 
-// GetStackBranches runs gs log long --json -a and returns the raw output for parsing
-func (self *SpiceCommands) GetStackBranches() (string, error) {
-	cmdArgs := []string{"gs", "log", "long", "--json", "-a"}
+// GetStackBranches runs gs log [format] --json -a and returns the raw output for parsing
+func (self *SpiceCommands) GetStackBranches(format string) (string, error) {
+	if format != "short" && format != "long" {
+		format = "short" // Fallback if invalid
+	}
+	cmdArgs := []string{"gs", "log", format, "--json", "-a"}
 	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 }
 

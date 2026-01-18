@@ -119,6 +119,12 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			Description:       "Move branch up in stack",
 			DisplayOnScreen:   true,
 		},
+		{
+			Key:         opts.GetKey("l"),
+			Handler:     self.toggleLogFormat,
+			Description: self.c.Tr.ToggleSpiceLogFormat,
+			Tooltip:     self.c.Tr.ToggleSpiceLogFormatTooltip,
+		},
 	}
 
 	return bindings
@@ -131,10 +137,88 @@ func (self *SpiceStacksController) GetOnFocus() func(types.OnFocusOpts) {
 			self.hasRefreshed = true
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
 		}
+
+		// Ensure we start on a branch, not a commit
+		self.ensureValidSelection()
+	}
+}
+
+// HandleNextLine moves to the next branch, skipping commits
+func (self *SpiceStacksController) HandleNextLine() error {
+	return self.handleLineChange(1)
+}
+
+// HandlePrevLine moves to the previous branch, skipping commits
+func (self *SpiceStacksController) HandlePrevLine() error {
+	return self.handleLineChange(-1)
+}
+
+// handleLineChange navigates to the next/prev branch, skipping commits
+func (self *SpiceStacksController) handleLineChange(delta int) error {
+	items := self.c.Model().SpiceStackItems
+	if len(items) == 0 {
+		return nil
+	}
+
+	currentIdx := self.context().GetSelectedLineIdx()
+	newIdx := currentIdx + delta
+
+	// Find the next non-commit item in the given direction
+	for newIdx >= 0 && newIdx < len(items) {
+		if !items[newIdx].IsCommit {
+			self.context().SetSelection(newIdx)
+			self.context().HandleFocus(types.OnFocusOpts{})
+			return nil
+		}
+		newIdx += delta
+	}
+
+	// No valid item found - stay at current position
+	return nil
+}
+
+// ensureValidSelection makes sure we're not selecting a commit
+func (self *SpiceStacksController) ensureValidSelection() {
+	items := self.c.Model().SpiceStackItems
+	if len(items) == 0 {
+		return
+	}
+
+	currentIdx := self.context().GetSelectedLineIdx()
+	if currentIdx < 0 || currentIdx >= len(items) {
+		// Find first branch
+		for i, item := range items {
+			if !item.IsCommit {
+				self.context().SetSelection(i)
+				return
+			}
+		}
+		return
+	}
+
+	// If current selection is a commit, move to nearest branch
+	if items[currentIdx].IsCommit {
+		// Try moving forward first
+		for i := currentIdx + 1; i < len(items); i++ {
+			if !items[i].IsCommit {
+				self.context().SetSelection(i)
+				return
+			}
+		}
+		// Try moving backward
+		for i := currentIdx - 1; i >= 0; i-- {
+			if !items[i].IsCommit {
+				self.context().SetSelection(i)
+				return
+			}
+		}
 	}
 }
 
 func (self *SpiceStacksController) checkout(item *models.SpiceStackItem) error {
+	if item.IsCommit {
+		return nil // Commits are not interactive
+	}
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
 	if err := self.c.Git().Branch.Checkout(item.Name, git_commands.CheckoutOptions{Force: false}); err != nil {
 		return err
@@ -145,6 +229,9 @@ func (self *SpiceStacksController) checkout(item *models.SpiceStackItem) error {
 }
 
 func (self *SpiceStacksController) restack(item *models.SpiceStackItem) error {
+	if item.IsCommit {
+		return nil // Commits are not interactive
+	}
 	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
 		err := self.c.Git().Spice.Restack(item.Name)
 		if err != nil {
@@ -169,6 +256,9 @@ func (self *SpiceStacksController) restackAll() error {
 }
 
 func (self *SpiceStacksController) submit(item *models.SpiceStackItem) error {
+	if item.IsCommit {
+		return nil // Commits are not interactive
+	}
 	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
 		err := self.c.Git().Spice.Submit(item.Name)
 		if err != nil {
@@ -244,6 +334,9 @@ func (self *SpiceStacksController) newBranch() error {
 }
 
 func (self *SpiceStacksController) delete(item *models.SpiceStackItem) error {
+	if item.IsCommit {
+		return nil // Commits are not interactive
+	}
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  "Delete branch",
 		Prompt: "Are you sure you want to delete this branch from the stack?",
@@ -260,6 +353,9 @@ func (self *SpiceStacksController) delete(item *models.SpiceStackItem) error {
 }
 
 func (self *SpiceStacksController) moveBranchUp(item *models.SpiceStackItem) error {
+	if item.IsCommit {
+		return nil // Commits are not interactive
+	}
 	if err := self.c.Git().Spice.MoveBranchUp(item.Name); err != nil {
 		return err
 	}
@@ -269,11 +365,31 @@ func (self *SpiceStacksController) moveBranchUp(item *models.SpiceStackItem) err
 }
 
 func (self *SpiceStacksController) moveBranchDown(item *models.SpiceStackItem) error {
+	if item.IsCommit {
+		return nil // Commits are not interactive
+	}
 	if err := self.c.Git().Spice.MoveBranchDown(item.Name); err != nil {
 		return err
 	}
 	self.hasRefreshed = false
 	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
+	return nil
+}
+
+func (self *SpiceStacksController) toggleLogFormat() error {
+	currentFormat := self.c.UserConfig().Git.Spice.LogFormat
+
+	if currentFormat == "long" {
+		self.c.UserConfig().Git.Spice.LogFormat = "short"
+	} else {
+		self.c.UserConfig().Git.Spice.LogFormat = "long"
+	}
+
+	// Refresh the spice stacks view
+	self.c.Refresh(types.RefreshOptions{
+		Mode:  types.ASYNC,
+		Scope: []types.RefreshableView{types.SPICE_STACKS},
+	})
 	return nil
 }
 

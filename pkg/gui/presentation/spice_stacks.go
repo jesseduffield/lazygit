@@ -26,6 +26,15 @@ func GetSpiceStackDisplayStrings(
 	continuing := make(map[int]bool) // tracks which depth levels have more siblings
 
 	return lo.Map(items, func(item *models.SpiceStackItem, idx int) []string {
+		// Check if this is a commit item
+		if item.IsCommit {
+			prefix := buildCommitPrefix(item, idx, items, continuing)
+			commitText := style.FgCyan.Sprint(item.CommitSha) + " " +
+				style.FgDefault.Sprint(item.CommitSubject)
+			return []string{prefix + commitText, "", ""}
+		}
+
+		// Regular branch item
 		prefix := buildTreePrefix(item, idx, items, continuing)
 		name := formatBranchName(item, diffName)
 		status := formatStatus(item)
@@ -68,6 +77,24 @@ func buildTreePrefix(item *models.SpiceStackItem, idx int, items []*models.Spice
 		parts = append(parts, "├─ ")
 		continuing[item.Depth] = true
 	}
+
+	return strings.Join(parts, "")
+}
+
+func buildCommitPrefix(item *models.SpiceStackItem, idx int, items []*models.SpiceStackItem, continuing map[int]bool) string {
+	var parts []string
+
+	// Vertical lines for ancestor levels (branch level)
+	for d := 1; d < item.Depth; d++ {
+		if continuing[d] {
+			parts = append(parts, "│  ")
+		} else {
+			parts = append(parts, "   ")
+		}
+	}
+
+	// Commit connector (always use simple marker)
+	parts = append(parts, "  • ")
 
 	return strings.Join(parts, "")
 }

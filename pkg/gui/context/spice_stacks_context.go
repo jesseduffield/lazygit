@@ -18,7 +18,10 @@ var (
 
 func NewSpiceStacksContext(c *ContextCommon) *SpiceStacksContext {
 	viewModel := NewFilteredListViewModel(
-		func() []*models.SpiceStackItem { return c.Model().SpiceStackItems },
+		func() []*models.SpiceStackItem {
+			// Return ALL items (including commits) so indices match the display
+			return c.Model().SpiceStackItems
+		},
 		func(item *models.SpiceStackItem) []string {
 			return []string{item.Name}
 		},
@@ -26,7 +29,7 @@ func NewSpiceStacksContext(c *ContextCommon) *SpiceStacksContext {
 
 	getDisplayStrings := func(_ int, _ int) [][]string {
 		return presentation.GetSpiceStackDisplayStrings(
-			viewModel.GetItems(),
+			c.Model().SpiceStackItems,
 			c.State().GetItemOperation,
 			c.Modes().Diffing.Ref,
 			c.Tr,

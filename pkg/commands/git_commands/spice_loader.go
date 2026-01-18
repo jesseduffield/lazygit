@@ -30,7 +30,8 @@ func (self *SpiceStackLoader) Load() ([]*models.SpiceStackItem, error) {
 		return nil, nil
 	}
 
-	output, err := self.spiceCommands.GetStackBranches()
+	format := self.UserConfig().Git.Spice.LogFormat
+	output, err := self.spiceCommands.GetStackBranches(format)
 	if err != nil {
 		self.Log.Errorf("Failed to get stack branches: %v", err)
 		return nil, err
@@ -132,6 +133,25 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 		}
 
 		result = append(result, item)
+
+		// Add commits if in long format and commits exist
+		if self.UserConfig().Git.Spice.LogFormat == "long" && len(branch.Commits) > 0 {
+			for i, commit := range branch.Commits {
+				commitItem := &models.SpiceStackItem{
+					Name:          name, // Keep branch name for context
+					Depth:         depth + 1,
+					IsLast:        i == len(branch.Commits)-1 && len(children[name]) == 0,
+					IsCommit:      true,
+					CommitSha:     commit.Sha,
+					CommitSubject: commit.Subject,
+				}
+				// Use short SHA (7 chars) if longer
+				if len(commitItem.CommitSha) > 7 {
+					commitItem.CommitSha = commitItem.CommitSha[:7]
+				}
+				result = append(result, commitItem)
+			}
+		}
 
 		childNames := children[name]
 		for i, childName := range childNames {

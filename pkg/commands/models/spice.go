@@ -2,17 +2,20 @@ package models
 
 // SpiceStackItem is the display model for a branch in the stack tree
 type SpiceStackItem struct {
-	Name         string
-	Current      bool
-	Depth        int    // indentation level in tree
-	IsLast       bool   // last sibling at this depth (for tree drawing)
-	NeedsRestack bool
-	PRNumber     string // e.g. "#123"
-	PRURL        string
-	PRStatus     string // "open", "closed", "merged"
-	Ahead        int
-	Behind       int
-	NeedsPush    bool
+	Name          string
+	Current       bool
+	Depth         int    // indentation level in tree
+	IsLast        bool   // last sibling at this depth (for tree drawing)
+	NeedsRestack  bool
+	PRNumber      string // e.g. "#123"
+	PRURL         string
+	PRStatus      string // "open", "closed", "merged"
+	Ahead         int
+	Behind        int
+	NeedsPush     bool
+	IsCommit      bool   // marks commit items vs branch items
+	CommitSha     string // for commit items
+	CommitSubject string // for commit items
 }
 
 func (s *SpiceStackItem) ID() string {
@@ -45,12 +48,18 @@ func (s *SpiceStackItem) Description() string {
 
 // SpiceBranchJSON matches gs log long --json output
 type SpiceBranchJSON struct {
-	Name    string         `json:"name"`
-	Current bool           `json:"current,omitempty"`
-	Down    *SpiceDownJSON `json:"down,omitempty"`
-	Ups     []SpiceUpJSON  `json:"ups,omitempty"`
-	Change  *SpiceChange   `json:"change,omitempty"`
-	Push    *SpicePush     `json:"push,omitempty"`
+	Name    string             `json:"name"`
+	Current bool               `json:"current,omitempty"`
+	Down    *SpiceDownJSON     `json:"down,omitempty"`
+	Ups     []SpiceUpJSON      `json:"ups,omitempty"`
+	Change  *SpiceChange       `json:"change,omitempty"`
+	Push    *SpicePush         `json:"push,omitempty"`
+	Commits []SpiceCommitJSON  `json:"commits,omitempty"`
+}
+
+type SpiceCommitJSON struct {
+	Sha     string `json:"sha"`
+	Subject string `json:"subject"`
 }
 
 type SpiceDownJSON struct {

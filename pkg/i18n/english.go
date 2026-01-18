@@ -780,6 +780,8 @@ type TranslationSet struct {
 	OpenLogMenuTooltip                       string
 	LogMenuTitle                             string
 	ToggleShowGitGraphAll                    string
+	ToggleSpiceLogFormat                     string
+	ToggleSpiceLogFormatTooltip              string
 	ShowGitGraph                             string
 	ShowGitGraphTooltip                      string
 	SortOrder                                string
@@ -1879,6 +1881,8 @@ func EnglishTranslationSet() *TranslationSet {
 		OpenLogMenuTooltip:                       "View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph.",
 		LogMenuTitle:                             "Commit Log Options",
 		ToggleShowGitGraphAll:                    "Toggle show whole git graph (pass the `--all` flag to `git log`)",
+		ToggleSpiceLogFormat:                     "Toggle log format",
+		ToggleSpiceLogFormatTooltip:              "Toggle between short and long format. Short shows basic hierarchy, long shows PR info and sync status.",
 		ShowGitGraph:                             "Show git graph",
 		ShowGitGraphTooltip:                      "Show or hide the git graph in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.showGraph'.",
 		SortOrder:                                "Sort order",
