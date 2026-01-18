@@ -42,53 +42,81 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.New),
+			Handler:           self.newBranch,
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       "New branch",
+			DisplayOnScreen:   true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Handler:           self.withItem(self.delete),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       "Delete branch",
+			DisplayOnScreen:   true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Branches.RebaseBranch),
 			Handler:           self.withItem(self.restack),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       "Restack",
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:             opts.GetKey("<c-r>"),
+			Key:             opts.GetKey("R"),
 			Handler:         self.restackAll,
 			Description:     "Restack all",
 			DisplayOnScreen: true,
 		},
 		{
-			Key:               opts.GetKey("S"),
+			Key:               opts.GetKey(opts.Config.Branches.CreatePullRequest),
 			Handler:           self.withItem(self.submit),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       "Submit PR",
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:             opts.GetKey("<c-s>"),
+			Key:             opts.GetKey("O"),
 			Handler:         self.submitAll,
 			Description:     "Submit all",
 			DisplayOnScreen: true,
 		},
 		{
-			Key:             opts.GetKey("u"),
+			Key:             opts.GetKey("<c-u>"),
 			Handler:         self.navigateUp,
 			Description:     "Up stack",
 			DisplayOnScreen: true,
 		},
 		{
-			Key:             opts.GetKey("d"),
+			Key:             opts.GetKey("<c-d>"),
 			Handler:         self.navigateDown,
 			Description:     "Down stack",
 			DisplayOnScreen: true,
 		},
 		{
-			Key:             opts.GetKey("U"),
+			Key:             opts.GetKey("<c-U>"),
 			Handler:         self.navigateTop,
 			Description:     "Top of stack",
 			DisplayOnScreen: true,
 		},
 		{
-			Key:             opts.GetKey("D"),
+			Key:             opts.GetKey("<c-D>"),
 			Handler:         self.navigateBottom,
 			Description:     "Bottom of stack",
 			DisplayOnScreen: true,
+		},
+		{
+			Key:               opts.GetKey("<c-j>"),
+			Handler:           self.withItem(self.moveBranchDown),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       "Move branch down in stack",
+			DisplayOnScreen:   true,
+		},
+		{
+			Key:               opts.GetKey("<c-k>"),
+			Handler:           self.withItem(self.moveBranchUp),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       "Move branch up in stack",
+			DisplayOnScreen:   true,
 		},
 	}
 
@@ -180,6 +208,51 @@ func (self *SpiceStacksController) navigateTop() error {
 
 func (self *SpiceStacksController) navigateBottom() error {
 	if err := self.c.Git().Spice.NavigateBottom(); err != nil {
+		return err
+	}
+	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	return nil
+}
+
+func (self *SpiceStacksController) newBranch() error {
+	self.c.Prompt(types.PromptOpts{
+		Title: "Branch name:",
+		HandleConfirm: func(branchName string) error {
+			if err := self.c.Git().Spice.CreateBranch(branchName); err != nil {
+				return err
+			}
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			return nil
+		},
+	})
+	return nil
+}
+
+func (self *SpiceStacksController) delete(item *models.SpiceStackItem) error {
+	self.c.Confirm(types.ConfirmOpts{
+		Title:  "Delete branch",
+		Prompt: "Are you sure you want to delete this branch from the stack?",
+		HandleConfirm: func() error {
+			if err := self.c.Git().Spice.DeleteBranch(item.Name); err != nil {
+				return err
+			}
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			return nil
+		},
+	})
+	return nil
+}
+
+func (self *SpiceStacksController) moveBranchUp(item *models.SpiceStackItem) error {
+	if err := self.c.Git().Spice.MoveBranchUp(item.Name); err != nil {
+		return err
+	}
+	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	return nil
+}
+
+func (self *SpiceStacksController) moveBranchDown(item *models.SpiceStackItem) error {
+	if err := self.c.Git().Spice.MoveBranchDown(item.Name); err != nil {
 		return err
 	}
 	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})

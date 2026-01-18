@@ -88,7 +88,17 @@ func (self *SpiceCommands) NavigateBottom() error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-// Track/untrack branches
+// Branch management
+func (self *SpiceCommands) CreateBranch(branchName string) error {
+	cmdArgs := []string{"gs", "branch", "create", branchName}
+	return self.cmd.New(cmdArgs).Run()
+}
+
+func (self *SpiceCommands) DeleteBranch(branchName string) error {
+	cmdArgs := []string{"gs", "branch", "delete", branchName}
+	return self.cmd.New(cmdArgs).Run()
+}
+
 func (self *SpiceCommands) TrackBranch(branchName string) error {
 	cmdArgs := []string{"gs", "branch", "track", branchName}
 	return self.cmd.New(cmdArgs).Run()
@@ -96,5 +106,16 @@ func (self *SpiceCommands) TrackBranch(branchName string) error {
 
 func (self *SpiceCommands) UntrackBranch(branchName string) error {
 	cmdArgs := []string{"gs", "branch", "untrack", branchName}
+	return self.cmd.New(cmdArgs).Run()
+}
+
+// Move branches in stack
+func (self *SpiceCommands) MoveBranchUp(branchName string) error {
+	cmdArgs := []string{"gs", "branch", "up", "--branch", branchName}
+	return self.cmd.New(cmdArgs).Run()
+}
+
+func (self *SpiceCommands) MoveBranchDown(branchName string) error {
+	cmdArgs := []string{"gs", "branch", "down", "--branch", branchName}
 	return self.cmd.New(cmdArgs).Run()
 }
