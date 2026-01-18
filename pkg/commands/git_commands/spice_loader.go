@@ -84,25 +84,15 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 		branchByName[b.Name] = b
 	}
 
-	// Build children map: parent -> []children
-	children := make(map[string][]string)
+	// Find leaves: branches with no Ups (top of stack)
+	var leaves []string
 	for _, b := range branches {
-		if b.Down != nil {
-			children[b.Down.Name] = append(children[b.Down.Name], b.Name)
+		if len(b.Ups) == 0 {
+			leaves = append(leaves, b.Name)
 		}
 	}
 
-	// Find roots: branches with no Down, or Down pointing to untracked branch (trunk)
-	var roots []string
-	for _, b := range branches {
-		if b.Down == nil {
-			roots = append(roots, b.Name)
-		} else if _, exists := branchByName[b.Down.Name]; !exists {
-			roots = append(roots, b.Name)
-		}
-	}
-
-	// DFS to build flat list with proper depths
+	// DFS to build flat list with proper depths, starting from leaves (top) going down
 	var result []*models.SpiceStackItem
 	var dfs func(name string, depth int, isLast bool)
 	dfs = func(name string, depth int, isLast bool) {
@@ -140,7 +130,7 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 				commitItem := &models.SpiceStackItem{
 					Name:          name, // Keep branch name for context
 					Depth:         depth + 1,
-					IsLast:        i == len(branch.Commits)-1 && len(children[name]) == 0,
+					IsLast:        i == len(branch.Commits)-1 && branch.Down == nil,
 					IsCommit:      true,
 					CommitSha:     commit.Sha,
 					CommitSubject: commit.Subject,
@@ -153,14 +143,16 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 			}
 		}
 
-		childNames := children[name]
-		for i, childName := range childNames {
-			dfs(childName, depth+1, i == len(childNames)-1)
+		// Traverse down (to parent/base)
+		if branch.Down != nil {
+			if downBranch, exists := branchByName[branch.Down.Name]; exists {
+				dfs(downBranch.Name, depth+1, true)
+			}
 		}
 	}
 
-	for i, root := range roots {
-		dfs(root, 0, i == len(roots)-1)
+	for i, leaf := range leaves {
+		dfs(leaf, 0, i == len(leaves)-1)
 	}
 
 	return result
