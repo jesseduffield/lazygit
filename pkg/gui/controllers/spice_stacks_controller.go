@@ -11,8 +11,7 @@ import (
 type SpiceStacksController struct {
 	baseController
 	*ListControllerTrait[*models.SpiceStackItem]
-	c           *ControllerCommon
-	hasRefreshed bool // Track if we've refreshed the data
+	c *ControllerCommon
 }
 
 var _ types.IController = &SpiceStacksController{}
@@ -132,12 +131,6 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 
 func (self *SpiceStacksController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {
-		// Only refresh once when first focusing the tab
-		if !self.hasRefreshed {
-			self.hasRefreshed = true
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
-		}
-
 		// Ensure we start on a branch, not a commit
 		self.ensureValidSelection()
 	}
