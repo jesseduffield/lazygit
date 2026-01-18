@@ -323,6 +323,16 @@ func (self *BranchCommands) GetAllBranchesLogIdxAndCount() (int, int) {
 	return i, n
 }
 
+func isBadRevisionErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	msg := err.Error()
+	return strings.Contains(msg, "fatal: bad revision") ||
+		strings.Contains(msg, "unknown revision or path not in the working tree")
+}
+
 func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *MainBranches) (bool, error) {
 	branchesToCheckAgainst := []string{"HEAD"}
 	if branch.RemoteBranchStoredLocally() {
@@ -341,6 +351,34 @@ func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *
 
 	stdout, _, err := self.cmd.New(cmdArgs).DontLog().RunWithOutputs()
 	if err != nil {
+		// If a cached main branch ref was deleted, we may be checking against a stale ref.
+		// Invalidate cache and retry once.
+		if mainBranches != nil && isBadRevisionErr(err) {
+			mainBranches.Invalidate()
+
+			branchesToCheckAgainst = []string{"HEAD"}
+			if branch.RemoteBranchStoredLocally() {
+				branchesToCheckAgainst = append(branchesToCheckAgainst, fmt.Sprintf("%s@{upstream}", branch.Name))
+			}
+			branchesToCheckAgainst = append(branchesToCheckAgainst, mainBranches.Get()...)
+
+			cmdArgs = NewGitCmd("rev-list").
+				Arg("--max-count=1").
+				Arg(branch.Name).
+				Arg(lo.Map(branchesToCheckAgainst, func(branch string, _ int) string {
+					return fmt.Sprintf("^%s", branch)
+				})...).
+				Arg("--").
+				ToArgv()
+
+			stdout, _, err = self.cmd.New(cmdArgs).DontLog().RunWithOutputs()
+			if err != nil {
+				return false, err
+			}
+
+			return stdout == "", nil
+		}
+
 		return false, err
 	}
 
