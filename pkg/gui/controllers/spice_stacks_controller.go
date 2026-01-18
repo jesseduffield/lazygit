@@ -10,7 +10,8 @@ import (
 type SpiceStacksController struct {
 	baseController
 	*ListControllerTrait[*models.SpiceStackItem]
-	c *ControllerCommon
+	c           *ControllerCommon
+	hasRefreshed bool // Track if we've refreshed the data
 }
 
 var _ types.IController = &SpiceStacksController{}
@@ -94,6 +95,16 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 	return bindings
 }
 
+func (self *SpiceStacksController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(types.OnFocusOpts) {
+		// Only refresh once when first focusing the tab
+		if !self.hasRefreshed {
+			self.hasRefreshed = true
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
+		}
+	}
+}
+
 func (self *SpiceStacksController) checkout(item *models.SpiceStackItem) error {
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
 	return self.c.Helpers().Refs.CheckoutRef(item.Name, types.CheckoutRefOptions{})
@@ -105,7 +116,8 @@ func (self *SpiceStacksController) restack(item *models.SpiceStackItem) error {
 		if err != nil {
 			return err
 		}
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		return nil
 	})
 }
 
@@ -115,7 +127,8 @@ func (self *SpiceStacksController) restackAll() error {
 		if err != nil {
 			return err
 		}
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		return nil
 	})
 }
 
@@ -125,7 +138,8 @@ func (self *SpiceStacksController) submit(item *models.SpiceStackItem) error {
 		if err != nil {
 			return err
 		}
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		return nil
 	})
 }
 
@@ -135,7 +149,8 @@ func (self *SpiceStacksController) submitAll() error {
 		if err != nil {
 			return err
 		}
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		return nil
 	})
 }
 
@@ -143,28 +158,32 @@ func (self *SpiceStacksController) navigateUp() error {
 	if err := self.c.Git().Spice.NavigateUp(); err != nil {
 		return err
 	}
-	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	return nil
 }
 
 func (self *SpiceStacksController) navigateDown() error {
 	if err := self.c.Git().Spice.NavigateDown(); err != nil {
 		return err
 	}
-	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	return nil
 }
 
 func (self *SpiceStacksController) navigateTop() error {
 	if err := self.c.Git().Spice.NavigateTop(); err != nil {
 		return err
 	}
-	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	return nil
 }
 
 func (self *SpiceStacksController) navigateBottom() error {
 	if err := self.c.Git().Spice.NavigateBottom(); err != nil {
 		return err
 	}
-	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	return nil
 }
 
 func (self *SpiceStacksController) context() *context.SpiceStacksContext {

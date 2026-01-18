@@ -2,17 +2,17 @@ package git_commands
 
 import (
 	"os/exec"
-
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
 type SpiceCommands struct {
 	*GitCommon
+	initializedCache *bool // Cache for IsInitialized check
 }
 
 func NewSpiceCommands(gitCommon *GitCommon) *SpiceCommands {
 	return &SpiceCommands{
-		GitCommon: gitCommon,
+		GitCommon:        gitCommon,
+		initializedCache: nil,
 	}
 }
 
@@ -23,12 +23,22 @@ func (self *SpiceCommands) IsAvailable() bool {
 }
 
 // IsInitialized checks if repo has been initialized with git-spice
+// Result is cached to avoid repeated command execution
 func (self *SpiceCommands) IsInitialized() bool {
+	if self.initializedCache != nil {
+		return *self.initializedCache
+	}
+
 	if !self.IsAvailable() {
+		result := false
+		self.initializedCache = &result
 		return false
 	}
-	cmdArgs := []string{"gs", "repo", "status"}
-	return self.cmd.New(cmdArgs).Run() == nil
+	// Try running a simple log command - will succeed if initialized, fail otherwise
+	cmdArgs := []string{"gs", "log", "short"}
+	result := self.cmd.New(cmdArgs).DontLog().Run() == nil
+	self.initializedCache = &result
+	return result
 }
 
 // GetStackBranches runs gs log long --json -a and returns the raw output for parsing

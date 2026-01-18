@@ -1,7 +1,6 @@
 package presentation
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"

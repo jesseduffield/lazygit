@@ -32,15 +32,24 @@ func (self *SpiceStackLoader) Load() ([]*models.SpiceStackItem, error) {
 
 	output, err := self.spiceCommands.GetStackBranches()
 	if err != nil {
+		self.Log.Errorf("Failed to get stack branches: %v", err)
 		return nil, err
 	}
+
+	self.Log.Infof("git-spice output: %s", output)
 
 	branches, err := self.parseBranches(output)
 	if err != nil {
+		self.Log.Errorf("Failed to parse branches: %v", err)
 		return nil, err
 	}
 
-	return self.buildTree(branches), nil
+	self.Log.Infof("Parsed %d branches", len(branches))
+
+	result := self.buildTree(branches)
+	self.Log.Infof("Built tree with %d items", len(result))
+
+	return result, nil
 }
 
 // parseBranches parses the newline-delimited JSON from gs log
