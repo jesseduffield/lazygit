@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -709,26 +710,26 @@ func (self *FilesController) ignoreOrExcludeUntracked(node *filetree.FileNode, t
 	return nil
 }
 
-func (self *FilesController) ignoreOrExcludeFile(node *filetree.FileNode, trText string, trPrompt string, trAction string, f func(string) error) error {
+func (self *FilesController) ignoreOrExcludeFile(node *filetree.FileNode, trText string, trPrompt string, f func(string) error) error {
 	if node.GetIsTracked() {
 		self.c.Confirm(types.ConfirmOpts{
 			Title:  trText,
 			Prompt: trPrompt,
 			HandleConfirm: func() error {
-				return self.ignoreOrExcludeTracked(node, trAction, f)
+				return self.ignoreOrExcludeTracked(node, self.c.Tr.Actions.IgnoreExcludeFile, f)
 			},
 		})
 
 		return nil
 	}
-	return self.ignoreOrExcludeUntracked(node, trAction, f)
+	return self.ignoreOrExcludeUntracked(node, self.c.Tr.Actions.IgnoreExcludeFile, f)
 }
 
 func (self *FilesController) ignore(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
 		return errors.New(self.c.Tr.Actions.IgnoreFileErr)
 	}
-	return self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.c.Git().WorkingTree.Ignore)
+	return self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Git().WorkingTree.Ignore)
 }
 
 func (self *FilesController) exclude(node *filetree.FileNode) error {
@@ -736,7 +737,15 @@ func (self *FilesController) exclude(node *filetree.FileNode) error {
 		return errors.New(self.c.Tr.Actions.ExcludeGitIgnoreErr)
 	}
 
-	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.c.Git().WorkingTree.Exclude)
+	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Git().WorkingTree.Exclude)
+}
+
+func (self *FilesController) excludeGlobal(node *filetree.FileNode) error {
+	if node.GetPath() == ".gitignore" {
+		return errors.New(self.c.Tr.Actions.IgnoreFileErr)
+	}
+
+	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Git().WorkingTree.ExcludeGlobal)
 }
 
 func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error {
@@ -744,24 +753,28 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 		Title: self.c.Tr.Actions.IgnoreExcludeFile,
 		Items: []*types.MenuItem{
 			{
-				LabelColumns: []string{self.c.Tr.IgnoreFile},
+				LabelColumns: []string{self.c.Tr.IgnoreFile, style.FgMagenta.Sprint(self.c.Tr.IgnoreFileHelpText)},
 				OnPress: func() error {
-					if err := self.ignore(node); err != nil {
-						return err
-					}
-					return nil
+					return self.ignore(node)
 				},
 				Key: 'i',
 			},
 			{
-				LabelColumns: []string{self.c.Tr.ExcludeFile},
+				LabelColumns: []string{self.c.Tr.ExcludeFile, style.FgMagenta.Sprint(self.c.Tr.ExcludeFileHelpText)},
 				OnPress: func() error {
-					if err := self.exclude(node); err != nil {
-						return err
-					}
-					return nil
+					return self.exclude(node)
 				},
 				Key: 'e',
+			},
+			{
+				LabelColumns: []string{
+					fmt.Sprintf(self.c.Tr.GlobalExcludesFile, self.c.Git().WorkingTree.GetGlobalExcludesPath()),
+					style.FgMagenta.Sprint(self.c.Tr.GlobalExcludesFileHelpText),
+				},
+				OnPress: func() error {
+					return self.excludeGlobal(node)
+				},
+				Key: 'g',
 			},
 		},
 	})
