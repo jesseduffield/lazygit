@@ -89,9 +89,6 @@ func buildCommitPrefix(item *models.SpiceStackItem, idx int, items []*models.Spi
 		}
 	}
 
-	// Commit connector (always use simple marker)
-	parts = append(parts, "  • ")
-
 	return strings.Join(parts, "")
 }
 
