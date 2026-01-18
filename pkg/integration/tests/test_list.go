@@ -174,6 +174,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.CustomCommandsSubmenuWithSpecialKeybindings,
 	custom_commands.FormPrompts,
 	custom_commands.GlobalContext,
+	custom_commands.Keybindings,
 	custom_commands.MenuFromCommand,
 	custom_commands.MenuFromCommandsOutput,
 	custom_commands.MenuPromptWithKeys,

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -75,7 +76,13 @@ func (self *OptionsMenuAction) getBindings(context types.Context) ([]*types.Bind
 		}
 	}
 
-	return uniqueBindings(bindingsPanel), uniqueBindings(bindingsGlobal), uniqueBindings(bindingsNavigation)
+	bindingsGlobal = uniqueBindings(bindingsGlobal)
+	deduplicateKey(bindingsGlobal)
+	bindingsPanel = uniqueBindings(bindingsPanel)
+	deduplicateKey(bindingsPanel)
+	bindingsNavigation = uniqueBindings(bindingsNavigation)
+	deduplicateKey(bindingsNavigation)
+	return bindingsPanel, bindingsGlobal, bindingsNavigation
 }
 
 // We shouldn't really need to do this. We should define alternative keys for the same
@@ -84,4 +91,14 @@ func uniqueBindings(bindings []*types.Binding) []*types.Binding {
 	return lo.UniqBy(bindings, func(binding *types.Binding) string {
 		return binding.GetDescription()
 	})
+}
+
+func deduplicateKey(bindings []*types.Binding) {
+	seen := set.New[types.Key]()
+	for _, binding := range bindings {
+		if seen.Includes(binding.Key) {
+			binding.Key = nil
+		}
+		seen.Add(binding.Key)
+	}
 }
