@@ -321,7 +321,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 	checkedOutRef := self.determineCheckedOutRef()
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                self.c.Contexts().LocalCommits.GetLimitCommits(),
+			LogLimit:             self.c.Contexts().LocalCommits.GetGitLogLimit(),
 			FilterPath:           self.c.Modes().Filtering.GetPath(),
 			FilterAuthor:         self.c.Modes().Filtering.GetAuthor(),
 			IncludeRebaseCommits: true,
@@ -358,7 +358,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                   self.c.Contexts().SubCommits.GetLimitCommits(),
+			LogLimit:                self.c.Contexts().SubCommits.GetGitLogLimit(),
 			FilterPath:              self.c.Modes().Filtering.GetPath(),
 			FilterAuthor:            self.c.Modes().Filtering.GetAuthor(),
 			IncludeRebaseCommits:    false,
