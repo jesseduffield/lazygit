@@ -82,12 +82,12 @@ func buildCommitPrefix(item *models.SpiceStackItem, idx int, items []*models.Spi
 
 	// Vertical lines for ancestor levels (branch level)
 	for d := 1; d < item.Depth; d++ {
-		if continuing[d] {
-			parts = append(parts, "│  ")
-		} else {
+		if !continuing[d] {
 			parts = append(parts, "   ")
 		}
 	}
+
+	parts = append(parts, "│  ")
 
 	return strings.Join(parts, "")
 }
