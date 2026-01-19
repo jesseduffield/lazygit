@@ -84,28 +84,46 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 		branchByName[b.Name] = b
 	}
 
-	// Find leaves: branches with no Ups (top of stack)
-	var leaves []string
+	// Find roots: branches whose Down is nil or points outside tracked branches
+	var roots []string
 	for _, b := range branches {
-		if len(b.Ups) == 0 {
-			leaves = append(leaves, b.Name)
+		if b.Down == nil || branchByName[b.Down.Name] == nil {
+			roots = append(roots, b.Name)
 		}
 	}
 
-	// DFS to build flat list with proper depths, starting from leaves (top) going down
+	// Track visited nodes to prevent duplicates
+	visited := make(map[string]bool)
+
+	// DFS to build flat list with proper depths, starting from roots going up
+	// Using fliptree algorithm: children are added before parents
 	var result []*models.SpiceStackItem
-	var dfs func(name string, depth int, isLast bool)
-	dfs = func(name string, depth int, isLast bool) {
+	var dfs func(name string, depth int, siblingIndex int, isLast bool)
+	dfs = func(name string, depth int, siblingIndex int, isLast bool) {
+		if visited[name] {
+			return
+		}
+		visited[name] = true
+
 		branch, exists := branchByName[name]
 		if !exists {
 			return
 		}
 
+		// FLIPTREE: Traverse children FIRST (before adding parent)
+		for i, up := range branch.Ups {
+			if upBranch, exists := branchByName[up.Name]; exists {
+				dfs(upBranch.Name, depth+1, i, i == len(branch.Ups)-1)
+			}
+		}
+
+		// Add the parent node AFTER children have been added
 		item := &models.SpiceStackItem{
-			Name:    name,
-			Depth:   depth,
-			IsLast:  isLast,
-			Current: branch.Current,
+			Name:         name,
+			Depth:        depth,
+			IsLast:       isLast,
+			SiblingIndex: siblingIndex,
+			Current:      branch.Current,
 		}
 
 		if branch.Down != nil {
@@ -124,13 +142,12 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 
 		result = append(result, item)
 
-		// Add commits if in long format and commits exist
+		// Add commits if in long format and commits exist (AFTER the branch)
 		if self.UserConfig().Git.Spice.LogFormat == "long" && len(branch.Commits) > 0 {
-			for i, commit := range branch.Commits {
+			for _, commit := range branch.Commits {
 				commitItem := &models.SpiceStackItem{
 					Name:          name, // Keep branch name for context
 					Depth:         depth + 1,
-					IsLast:        i == len(branch.Commits)-1 && branch.Down == nil,
 					IsCommit:      true,
 					CommitSha:     commit.Sha,
 					CommitSubject: commit.Subject,
@@ -142,35 +159,12 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 				result = append(result, commitItem)
 			}
 		}
-
-		// Traverse down (to parent/base)
-		if branch.Down != nil {
-			if downBranch, exists := branchByName[branch.Down.Name]; exists {
-				dfs(downBranch.Name, depth+1, true)
-			}
-		}
 	}
 
-	for i, leaf := range leaves {
-		dfs(leaf, 0, i == len(leaves)-1)
+	for i, root := range roots {
+		dfs(root, 0, i, i == len(roots)-1)
 	}
 
-	// Invert depths so base (closest to master) is leftmost
-	// and depth increases as we go up the stack
-	maxDepth := 0
-	for _, item := range result {
-		if !item.IsCommit && item.Depth > maxDepth {
-			maxDepth = item.Depth
-		}
-	}
-	for _, item := range result {
-		if !item.IsCommit {
-			item.Depth = maxDepth - item.Depth
-		} else {
-			// Commits should align with their parent branch
-			item.Depth = maxDepth - (item.Depth - 1)
-		}
-	}
-
+	// No need to reverse - fliptree naturally produces children-before-parents order
 	return result
 }

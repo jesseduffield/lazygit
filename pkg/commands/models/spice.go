@@ -6,6 +6,7 @@ type SpiceStackItem struct {
 	Current       bool
 	Depth         int    // indentation level in tree
 	IsLast        bool   // last sibling at this depth (for tree drawing)
+	SiblingIndex  int    // position among siblings (0 = topmost)
 	NeedsRestack  bool
 	PRNumber      string // e.g. "#123"
 	PRURL         string

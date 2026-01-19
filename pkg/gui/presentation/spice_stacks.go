@@ -46,48 +46,109 @@ func GetSpiceStackDisplayStrings(
 
 func buildTreePrefix(item *models.SpiceStackItem, idx int, items []*models.SpiceStackItem, continuing map[int]bool) string {
 	if item.Depth == 0 {
-		// Check if more roots exist after this one
-		hasMoreRoots := false
-		for i := idx + 1; i < len(items); i++ {
-			if items[i].Depth == 0 {
-				hasMoreRoots = true
-				break
-			}
-		}
-		continuing[0] = hasMoreRoots
-		return ""
+		return "" // trunk has no prefix
 	}
 
 	var parts []string
 
-	// Build vertical lines showing connection to parent below
+	// Build vertical pipes for ancestor levels (git-spice fliptree approach)
+	// Draw a pipe at depth d if the ancestor at that depth has siblingIndex > 0
+	// In our reversed list (leaves first), ancestors come AFTER the current item
 	for d := 1; d < item.Depth; d++ {
-		if continuing[d] {
-			parts = append(parts, "│  ")
+		ancestor := findAncestorAtDepthAfter(idx, d, items)
+		if ancestor != nil && ancestor.SiblingIndex > 0 {
+			parts = append(parts, "│ ")
 		} else {
-			parts = append(parts, "   ")
+			parts = append(parts, "  ")
 		}
 	}
 
-	// In a top-down stack view, items point down to their parent
-	// All items use ┌─ to show connection to parent below
-	parts = append(parts, "┌─ ")
-	continuing[item.Depth] = true
+	// Joint for this node (lighter weight box-drawing characters)
+	var joint string
+	if item.SiblingIndex > 0 {
+		// Not the first sibling, use middle branch connector
+		joint = "├─"
+	} else {
+		// First sibling, use topmost branch connector
+		joint = "┌─"
+	}
 
+	// Add horizontal-up if this node has children (items at depth+1 appear before this)
+	hasChildren := hasItemsAtDepthBefore(idx, item.Depth+1, items)
+	if hasChildren {
+		joint += "┴"
+	}
+
+	// Add branch indicator: ● for current branch, ◯ for others
+	var indicator string
+	if item.Current {
+		indicator = "●"
+	} else {
+		indicator = "◯"
+	}
+
+	// Always add one space after the indicator for consistent spacing before branch name
+	parts = append(parts, joint+indicator+" ")
 	return strings.Join(parts, "")
+}
+
+// findAncestorAtDepthAfter finds the ancestor at the given depth
+// In our reversed list (leaves first), ancestors come AFTER the current index
+func findAncestorAtDepthAfter(idx int, depth int, items []*models.SpiceStackItem) *models.SpiceStackItem {
+	for i := idx + 1; i < len(items); i++ {
+		if items[i].Depth == depth {
+			return items[i]
+		}
+		if items[i].Depth < depth {
+			// Reached shallower depth, stop searching
+			break
+		}
+	}
+	return nil
+}
+
+// hasItemsAtDepthBefore checks if there are items at the given depth before this index
+func hasItemsAtDepthBefore(idx int, depth int, items []*models.SpiceStackItem) bool {
+	for i := 0; i < idx; i++ {
+		if items[i].Depth == depth {
+			return true
+		}
+	}
+	return false
 }
 
 func buildCommitPrefix(item *models.SpiceStackItem, idx int, items []*models.SpiceStackItem, continuing map[int]bool) string {
 	var parts []string
 
-	// Vertical lines for ancestor levels (branch level)
-	for d := 1; d < item.Depth; d++ {
-		if !continuing[d] {
-			parts = append(parts, "   ")
+	// Find the parent branch (most recent non-commit item before this commit)
+	var parentBranch *models.SpiceStackItem
+	for i := idx - 1; i >= 0; i-- {
+		if !items[i].IsCommit {
+			parentBranch = items[i]
+			break
 		}
 	}
 
-	parts = append(parts, "│  ")
+	if parentBranch == nil {
+		// Shouldn't happen, but handle gracefully
+		return ""
+	}
+
+	// For depths 1 to parentBranch.Depth-1: check ancestors like the branch would
+	for d := 1; d < parentBranch.Depth; d++ {
+		ancestor := findAncestorAtDepthAfter(idx, d, items)
+		if ancestor != nil && ancestor.SiblingIndex > 0 {
+			parts = append(parts, "│ ")
+		} else {
+			parts = append(parts, "  ")
+		}
+	}
+
+	// At the parent branch's depth: always draw a pipe
+	parts = append(parts, "│ ")
+
+	// Add spacing to align with commit content (adjust based on typical joint width)
+	parts = append(parts, "  ")
 
 	return strings.Join(parts, "")
 }
