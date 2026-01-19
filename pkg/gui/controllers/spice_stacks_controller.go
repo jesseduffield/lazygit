@@ -11,7 +11,8 @@ import (
 type SpiceStacksController struct {
 	baseController
 	*ListControllerTrait[*models.SpiceStackItem]
-	c *ControllerCommon
+	c            *ControllerCommon
+	hasRefreshed bool // Track if we've refreshed the data
 }
 
 var _ types.IController = &SpiceStacksController{}
