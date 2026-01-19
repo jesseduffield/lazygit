@@ -442,7 +442,7 @@ func (self *RefreshHelper) refreshTags() error {
 }
 
 func (self *RefreshHelper) refreshSpiceStacks() {
-	if self.c.Git().Spice == nil || !self.c.Git().Spice.IsAvailable() {
+	if !self.c.UserConfig().Git.Spice.Enabled || self.c.Git().Spice == nil || !self.c.Git().Spice.IsAvailable() {
 		self.c.Model().SpiceStackItems = nil
 		self.refreshView(self.c.Contexts().SpiceStacks)
 		return

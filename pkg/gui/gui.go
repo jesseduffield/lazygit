@@ -801,10 +801,10 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 		},
 	}
 
-	// Only add Stacks tab if git-spice binary is available
-	if gui.git.Spice != nil && gui.git.Spice.IsAvailable() {
+	// Only add Stacks tab if git-spice is enabled and available
+	if gui.isSpiceEnabled() {
 		branchTabs = append(branchTabs, context.TabView{
-			Tab:      "Stacks",
+			Tab:      gui.c.Tr.SpiceStacksTitle,
 			ViewName: "spiceStacks",
 		})
 	}

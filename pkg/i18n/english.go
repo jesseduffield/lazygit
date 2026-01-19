@@ -782,6 +782,14 @@ type TranslationSet struct {
 	ToggleShowGitGraphAll                    string
 	ToggleSpiceLogFormat                     string
 	ToggleSpiceLogFormatTooltip              string
+	SpiceStacksTitle                         string
+	SpiceRestackingStatus                    string
+	SpiceSubmittingStatus                    string
+	SpiceNewBranch                           string
+	SpiceDeleteBranch                        string
+	SpiceBranchNamePrompt                    string
+	SpiceDeleteConfirmTitle                  string
+	SpiceDeleteConfirmPrompt                 string
 	ShowGitGraph                             string
 	ShowGitGraphTooltip                      string
 	SortOrder                                string
@@ -1883,6 +1891,14 @@ func EnglishTranslationSet() *TranslationSet {
 		ToggleShowGitGraphAll:                    "Toggle show whole git graph (pass the `--all` flag to `git log`)",
 		ToggleSpiceLogFormat:                     "Toggle log format",
 		ToggleSpiceLogFormatTooltip:              "Toggle between short and long format. Short shows basic hierarchy, long shows PR info and sync status.",
+		SpiceStacksTitle:                         "Stacks",
+		SpiceRestackingStatus:                    "Restacking",
+		SpiceSubmittingStatus:                    "Submitting",
+		SpiceNewBranch:                           "New branch",
+		SpiceDeleteBranch:                        "Delete branch",
+		SpiceBranchNamePrompt:                    "Branch name:",
+		SpiceDeleteConfirmTitle:                  "Delete branch",
+		SpiceDeleteConfirmPrompt:                 "Are you sure you want to delete this branch from the stack?",
 		ShowGitGraph:                             "Show git graph",
 		ShowGitGraphTooltip:                      "Show or hide the git graph in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.showGraph'.",
 		SortOrder:                                "Sort order",

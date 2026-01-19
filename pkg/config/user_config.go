@@ -385,6 +385,8 @@ type LogConfig struct {
 }
 
 type SpiceConfig struct {
+	// If true, enable git-spice integration when the gs binary is available
+	Enabled bool `yaml:"enabled"`
 	// LogFormat for displaying git-spice stacks: 'short' | 'long'
 	// 'short' shows basic branch hierarchy
 	// 'long' shows additional PR info, sync status, and commits
@@ -847,6 +849,7 @@ func GetDefaultConfig() *UserConfig {
 				ShowWholeGraph: false,
 			},
 			Spice: SpiceConfig{
+				Enabled:   true,
 				LogFormat: "short",
 			},
 			LocalBranchSortOrder:         "date",

@@ -11,8 +11,7 @@ import (
 type SpiceStacksController struct {
 	baseController
 	*ListControllerTrait[*models.SpiceStackItem]
-	c            *ControllerCommon
-	hasRefreshed bool // Track if we've refreshed the data
+	c *ControllerCommon
 }
 
 var _ types.IController = &SpiceStacksController{}
@@ -65,14 +64,14 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			Key:               opts.GetKey(opts.Config.Universal.New),
 			Handler:           self.newBranch,
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       "New branch",
+			Description:       self.c.Tr.SpiceNewBranch,
 			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.delete),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       "Delete branch",
+			Description:       self.c.Tr.SpiceDeleteBranch,
 			DisplayOnScreen:   true,
 		},
 		{
@@ -237,7 +236,6 @@ func (self *SpiceStacksController) checkout(item *models.SpiceStackItem) error {
 	if err := self.c.Git().Branch.Checkout(item.Name, git_commands.CheckoutOptions{Force: false}); err != nil {
 		return err
 	}
-	self.hasRefreshed = false // Reset so data refreshes on next focus
 	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
 	return nil
 }
@@ -246,24 +244,22 @@ func (self *SpiceStacksController) restack(item *models.SpiceStackItem) error {
 	if item.IsCommit {
 		return nil // Commits are not interactive
 	}
-	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
+	return self.c.WithWaitingStatus(self.c.Tr.SpiceRestackingStatus, func(task gocui.Task) error {
 		err := self.c.Git().Spice.Restack(item.Name)
 		if err != nil {
 			return err
 		}
-		self.hasRefreshed = false
 		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
 		return nil
 	})
 }
 
 func (self *SpiceStacksController) restackAll() error {
-	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
+	return self.c.WithWaitingStatus(self.c.Tr.SpiceRestackingStatus, func(task gocui.Task) error {
 		err := self.c.Git().Spice.Restack("")
 		if err != nil {
 			return err
 		}
-		self.hasRefreshed = false
 		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
 		return nil
 	})
@@ -273,24 +269,22 @@ func (self *SpiceStacksController) submit(item *models.SpiceStackItem) error {
 	if item.IsCommit {
 		return nil // Commits are not interactive
 	}
-	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
+	return self.c.WithWaitingStatus(self.c.Tr.SpiceSubmittingStatus, func(task gocui.Task) error {
 		err := self.c.Git().Spice.Submit(item.Name)
 		if err != nil {
 			return err
 		}
-		self.hasRefreshed = false
 		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
 		return nil
 	})
 }
 
 func (self *SpiceStacksController) submitAll() error {
-	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
+	return self.c.WithWaitingStatus(self.c.Tr.SpiceSubmittingStatus, func(task gocui.Task) error {
 		err := self.c.Git().Spice.Submit("")
 		if err != nil {
 			return err
 		}
-		self.hasRefreshed = false
 		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
 		return nil
 	})
@@ -300,7 +294,6 @@ func (self *SpiceStacksController) navigateUp() error {
 	if err := self.c.Git().Spice.NavigateUp(); err != nil {
 		return err
 	}
-	self.hasRefreshed = false
 	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
 	return nil
 }
@@ -309,7 +302,6 @@ func (self *SpiceStacksController) navigateDown() error {
 	if err := self.c.Git().Spice.NavigateDown(); err != nil {
 		return err
 	}
-	self.hasRefreshed = false
 	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
 	return nil
 }
@@ -318,7 +310,6 @@ func (self *SpiceStacksController) navigateTop() error {
 	if err := self.c.Git().Spice.NavigateTop(); err != nil {
 		return err
 	}
-	self.hasRefreshed = false
 	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
 	return nil
 }
@@ -327,19 +318,17 @@ func (self *SpiceStacksController) navigateBottom() error {
 	if err := self.c.Git().Spice.NavigateBottom(); err != nil {
 		return err
 	}
-	self.hasRefreshed = false
 	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
 	return nil
 }
 
 func (self *SpiceStacksController) newBranch() error {
 	self.c.Prompt(types.PromptOpts{
-		Title: "Branch name:",
+		Title: self.c.Tr.SpiceBranchNamePrompt,
 		HandleConfirm: func(branchName string) error {
 			if err := self.c.Git().Spice.CreateBranch(branchName); err != nil {
 				return err
 			}
-			self.hasRefreshed = false
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
 			return nil
 		},
@@ -352,13 +341,12 @@ func (self *SpiceStacksController) delete(item *models.SpiceStackItem) error {
 		return nil // Commits are not interactive
 	}
 	self.c.Confirm(types.ConfirmOpts{
-		Title:  "Delete branch",
-		Prompt: "Are you sure you want to delete this branch from the stack?",
+		Title:  self.c.Tr.SpiceDeleteConfirmTitle,
+		Prompt: self.c.Tr.SpiceDeleteConfirmPrompt,
 		HandleConfirm: func() error {
 			if err := self.c.Git().Spice.DeleteBranch(item.Name); err != nil {
 				return err
 			}
-			self.hasRefreshed = false
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.SPICE_STACKS}})
 			return nil
 		},
@@ -373,7 +361,6 @@ func (self *SpiceStacksController) moveBranchUp(item *models.SpiceStackItem) err
 	if err := self.c.Git().Spice.MoveBranchUp(item.Name); err != nil {
 		return err
 	}
-	self.hasRefreshed = false
 	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
 	return nil
 }
@@ -385,7 +372,6 @@ func (self *SpiceStacksController) moveBranchDown(item *models.SpiceStackItem) e
 	if err := self.c.Git().Spice.MoveBranchDown(item.Name); err != nil {
 		return err
 	}
-	self.hasRefreshed = false
 	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
 	return nil
 }
