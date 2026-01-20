@@ -124,7 +124,7 @@ func TestBuildTreePrefixNestedSiblings(t *testing.T) {
 	// D is child of C2; C2 and C1 are siblings (children of B); B is child of A
 	//     │ ┌─ D (child of C2, ancestor C2 has siblingIndex 1)
 	//   ├─┴ C2 (siblingIndex 1, has D above)
-	//   ┌─┴ C1 (siblingIndex 0, has D above at depth 4)
+	//   ┌─ C1 (siblingIndex 0, no children - D is child of C2)
 	// ┌─┴ B (has C1/C2 above)
 	// ┌─┴ A (has B above)
 	// main
@@ -144,8 +144,8 @@ func TestBuildTreePrefixNestedSiblings(t *testing.T) {
 		expected string
 	}{
 		{0, "    │ ┌─◯ "},  // D
-		{1, "    ├─┴◯ "},   // C2: siblingIndex 1
-		{2, "    ┌─┴◯ "},   // C1: siblingIndex 0
+		{1, "    ├─┴◯ "},   // C2: siblingIndex 1, has D above
+		{2, "    ┌─◯ "},    // C1: siblingIndex 0, no children (D is child of C2)
 		{3, "  ┌─┴◯ "},     // B
 		{4, "┌─┴◯ "},       // A
 		{5, ""},            // main: no prefix
