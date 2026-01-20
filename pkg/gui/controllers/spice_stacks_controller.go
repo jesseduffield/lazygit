@@ -171,6 +171,21 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			Description: self.c.Tr.ToggleSpiceLogFormat,
 			Tooltip:     self.c.Tr.ToggleSpiceLogFormatTooltip,
 		},
+
+		// === CREATE COMMANDS ===
+		{
+			Key:               opts.GetKey("n"),
+			Handler:           self.withItem(self.newBranchOnSelected),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.SpiceCreateBranch,
+			DisplayOnScreen:   true,
+		},
+		{
+			Key:             opts.GetKey("N"),
+			Handler:         self.newCommit,
+			Description:     self.c.Tr.SpiceCreateCommit,
+			DisplayOnScreen: true,
+		},
 	}
 
 	return bindings
@@ -691,7 +706,7 @@ func (self *SpiceStacksController) newBranch() error {
 	self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.SpiceBranchNamePrompt,
 		HandleConfirm: func(branchName string) error {
-			if err := self.c.Git().Spice.CreateBranch(branchName); err != nil {
+			if err := self.c.Git().Spice.CreateBranch(branchName, ""); err != nil {
 				return err
 			}
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
@@ -729,6 +744,47 @@ func (self *SpiceStacksController) moveBranchDown(item *models.SpiceStackItem) e
 		return err
 	}
 	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
+	return nil
+}
+
+// getBranchNameFromItem returns the branch name for an item.
+// For branch items, it returns the branch name directly.
+// For commit items, it finds the parent branch by searching upward.
+func (self *SpiceStacksController) getBranchNameFromItem(item *models.SpiceStackItem) string {
+	if !item.IsCommit {
+		return item.Name
+	}
+	// Find parent branch for commit items
+	items := self.context().GetItems()
+	idx := self.context().GetSelectedLineIdx()
+	for i := idx - 1; i >= 0; i-- {
+		if !items[i].IsCommit {
+			return items[i].Name
+		}
+	}
+	return ""
+}
+
+func (self *SpiceStacksController) newBranchOnSelected(item *models.SpiceStackItem) error {
+	targetBranch := self.getBranchNameFromItem(item)
+	self.c.Prompt(types.PromptOpts{
+		Title: self.c.Tr.SpiceBranchNamePrompt,
+		HandleConfirm: func(branchName string) error {
+			if err := self.c.Git().Spice.CreateBranch(branchName, targetBranch); err != nil {
+				return err
+			}
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
+			return nil
+		},
+	})
+	return nil
+}
+
+func (self *SpiceStacksController) newCommit() error {
+	if err := self.c.Git().Spice.CreateCommit(); err != nil {
+		return err
+	}
+	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
 	return nil
 }
 

@@ -794,6 +794,8 @@ type TranslationSet struct {
 	SpiceCommitOnly                          string
 	SpiceCommitFixup                         string
 	SpiceFixupStatus                         string
+	SpiceCreateBranch                        string
+	SpiceCreateCommit                        string
 	ShowGitGraph                             string
 	ShowGitGraphTooltip                      string
 	SortOrder                                string
@@ -1907,6 +1909,8 @@ func EnglishTranslationSet() *TranslationSet {
 		SpiceCommitOnly:                          "This command only applies to commits",
 		SpiceCommitFixup:                         "Fixup commit",
 		SpiceFixupStatus:                         "Creating fixup...",
+		SpiceCreateBranch:                        "Create branch (on selected)",
+		SpiceCreateCommit:                        "Create commit",
 		ShowGitGraph:                             "Show git graph",
 		ShowGitGraphTooltip:                      "Show or hide the git graph in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.showGraph'.",
 		SortOrder:                                "Sort order",

@@ -105,8 +105,18 @@ func (self *SpiceCommands) NavigateBottom() error {
 }
 
 // Branch management
-func (self *SpiceCommands) CreateBranch(branchName string) error {
-	cmdArgs := []string{"gs", "branch", "create", branchName}
+func (self *SpiceCommands) CreateBranch(branchName string, targetBranch string) error {
+	cmdArgs := []string{"gs", "branch", "create"}
+	if targetBranch != "" {
+		cmdArgs = append(cmdArgs, "--target", targetBranch)
+	}
+	cmdArgs = append(cmdArgs, branchName)
+	return self.cmd.New(cmdArgs).Run()
+}
+
+// CreateCommit creates a new commit on the current branch using gs commit create
+func (self *SpiceCommands) CreateCommit() error {
+	cmdArgs := []string{"gs", "commit", "create"}
 	return self.cmd.New(cmdArgs).Run()
 }
 
