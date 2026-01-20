@@ -38,6 +38,13 @@ func NewSpiceStacksController(
 
 func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
+		// === NAVIGATION ===
+		{
+			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Handler:           self.withItem(self.enter),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.ViewCommits,
+		},
 		// === COMMIT COMMANDS (front = display at bottom) ===
 		{
 			Key:               opts.GetKey(opts.Config.Commits.SquashDown),
@@ -202,6 +209,60 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 
 func (self *SpiceStacksController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {}
+}
+
+// === NAVIGATION HANDLERS ===
+
+func (self *SpiceStacksController) enter(item *models.SpiceStackItem) error {
+	if item.IsCommit {
+		return self.viewCommitFiles(item)
+	}
+	return self.viewBranchCommits(item)
+}
+
+func (self *SpiceStacksController) viewBranchCommits(item *models.SpiceStackItem) error {
+	branch := self.findBranchByName(item.Name)
+	if branch == nil {
+		return errors.New("Branch not found")
+	}
+
+	return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
+		Ref:             branch,
+		TitleRef:        branch.RefName(),
+		Context:         self.context(),
+		ShowBranchHeads: false,
+	})
+}
+
+func (self *SpiceStacksController) findBranchByName(name string) *models.Branch {
+	for _, branch := range self.c.Model().Branches {
+		if branch.Name == name {
+			return branch
+		}
+	}
+	return nil
+}
+
+func (self *SpiceStacksController) viewCommitFiles(item *models.SpiceStackItem) error {
+	commit, _ := self.findCommitByHash(item.CommitSha)
+	if commit == nil {
+		return errors.New("Commit not found in commits list")
+	}
+
+	commitFilesContext := self.c.Contexts().CommitFiles
+	commitFilesContext.ReInit(commit, nil)
+	commitFilesContext.SetSelection(0)
+	commitFilesContext.SetCanRebase(false)
+	commitFilesContext.SetParentContext(self.context())
+	commitFilesContext.SetWindowName(self.context().GetWindowName())
+	commitFilesContext.ClearSearchString()
+
+	self.c.Refresh(types.RefreshOptions{
+		Scope: []types.RefreshableView{types.COMMIT_FILES},
+	})
+
+	self.c.Context().Push(commitFilesContext, types.OnFocusOpts{})
+	return nil
 }
 
 // === COMMIT COMMAND HANDLERS ===
