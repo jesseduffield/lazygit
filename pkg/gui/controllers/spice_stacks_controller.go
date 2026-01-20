@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -101,6 +102,13 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
 			Description:       self.c.Tr.CherryPickCopy,
 			DisplayOnScreen:   true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Commits.CopyCommitAttributeToClipboard),
+			Handler:           self.withItem(self.copyCommitAttribute),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
+			Description:       self.c.Tr.CopyCommitAttributeToClipboard,
+			OpensMenu:         true,
 		},
 
 		// === BRANCH COMMANDS ===
@@ -459,6 +467,136 @@ func (self *SpiceStacksController) commitCopy(item *models.SpiceStackItem) error
 		cherryPicking.Add(commit, self.c.Model().Commits)
 	}
 
+	return nil
+}
+
+func (self *SpiceStacksController) copyCommitAttribute(item *models.SpiceStackItem) error {
+	commit, _ := self.findCommitByHash(item.CommitSha)
+	if commit == nil {
+		return errors.New("Commit not found in commits list")
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.Actions.CopyCommitAttributeToClipboard,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.CommitHash,
+				OnPress: func() error {
+					return self.copyCommitHashToClipboard(commit)
+				},
+			},
+			{
+				Label: self.c.Tr.CommitSubject,
+				Key:   's',
+				OnPress: func() error {
+					return self.copyCommitSubjectToClipboard(commit)
+				},
+			},
+			{
+				Label: self.c.Tr.CommitMessage,
+				Key:   'm',
+				OnPress: func() error {
+					return self.copyCommitMessageToClipboard(commit)
+				},
+			},
+			{
+				Label: self.c.Tr.CommitURL,
+				Key:   'u',
+				OnPress: func() error {
+					return self.copyCommitURLToClipboard(commit)
+				},
+			},
+			{
+				Label: self.c.Tr.CommitDiff,
+				Key:   'd',
+				OnPress: func() error {
+					return self.copyCommitDiffToClipboard(commit)
+				},
+			},
+			{
+				Label: self.c.Tr.CommitAuthor,
+				Key:   'a',
+				OnPress: func() error {
+					return self.copyAuthorToClipboard(commit)
+				},
+			},
+		},
+	})
+}
+
+func (self *SpiceStacksController) copyCommitHashToClipboard(commit *models.Commit) error {
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitHashToClipboard)
+	if err := self.c.OS().CopyToClipboard(commit.Hash()); err != nil {
+		return err
+	}
+	self.c.Toast(fmt.Sprintf("'%s' %s", commit.Hash(), self.c.Tr.CopiedToClipboard))
+	return nil
+}
+
+func (self *SpiceStacksController) copyCommitSubjectToClipboard(commit *models.Commit) error {
+	message, err := self.c.Git().Commit.GetCommitMessage(commit.Hash())
+	if err != nil {
+		return err
+	}
+	subject, _ := self.c.Helpers().Commits.SplitCommitMessageAndDescription(message)
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitSubjectToClipboard)
+	if err := self.c.OS().CopyToClipboard(subject); err != nil {
+		return err
+	}
+	self.c.Toast(fmt.Sprintf("'%s' %s", subject, self.c.Tr.CopiedToClipboard))
+	return nil
+}
+
+func (self *SpiceStacksController) copyCommitMessageToClipboard(commit *models.Commit) error {
+	message, err := self.c.Git().Commit.GetCommitMessage(commit.Hash())
+	if err != nil {
+		return err
+	}
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitMessageToClipboard)
+	if err := self.c.OS().CopyToClipboard(message); err != nil {
+		return err
+	}
+	self.c.Toast(self.c.Tr.CommitMessageCopiedToClipboard)
+	return nil
+}
+
+func (self *SpiceStacksController) copyCommitURLToClipboard(commit *models.Commit) error {
+	url, err := self.c.Helpers().Host.GetCommitURL(commit.Hash())
+	if err != nil {
+		return err
+	}
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitURLToClipboard)
+	if err := self.c.OS().CopyToClipboard(url); err != nil {
+		return err
+	}
+	self.c.Toast(self.c.Tr.CommitURLCopiedToClipboard)
+	return nil
+}
+
+func (self *SpiceStacksController) copyCommitDiffToClipboard(commit *models.Commit) error {
+	diff, err := self.c.Git().Commit.GetCommitDiff(commit.Hash())
+	if err != nil {
+		return err
+	}
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitDiffToClipboard)
+	if err := self.c.OS().CopyToClipboard(diff); err != nil {
+		return err
+	}
+	self.c.Toast(self.c.Tr.CommitDiffCopiedToClipboard)
+	return nil
+}
+
+func (self *SpiceStacksController) copyAuthorToClipboard(commit *models.Commit) error {
+	author, err := self.c.Git().Commit.GetCommitAuthor(commit.Hash())
+	if err != nil {
+		return err
+	}
+	authorStr := fmt.Sprintf("%s <%s>", author.Name, author.Email)
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitAuthorToClipboard)
+	if err := self.c.OS().CopyToClipboard(authorStr); err != nil {
+		return err
+	}
+	self.c.Toast(fmt.Sprintf("'%s' %s", authorStr, self.c.Tr.CopiedToClipboard))
 	return nil
 }
 
