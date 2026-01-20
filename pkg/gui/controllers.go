@@ -450,10 +450,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 	// this must come last so that we've got our click handlers defined against the context
 	listControllerFactory := controllers.NewListControllerFactory(common)
 	for _, context := range gui.c.Context().AllList() {
-		// Skip contexts that have custom navigation (SpiceStacks has custom HandlePrevLine/HandleNextLine)
-		if context == gui.State.Contexts.SpiceStacks {
-			continue
-		}
 		controllers.AttachControllers(context, listControllerFactory.Create(context))
 	}
 }

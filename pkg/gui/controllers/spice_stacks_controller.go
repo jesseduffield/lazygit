@@ -34,29 +34,9 @@ func NewSpiceStacksController(
 func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.PrevItemAlt),
-			Handler: self.HandlePrevLine,
-		},
-		{
-			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.PrevItem),
-			Handler: self.HandlePrevLine,
-		},
-		{
-			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.NextItemAlt),
-			Handler: self.HandleNextLine,
-		},
-		{
-			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.NextItem),
-			Handler: self.HandleNextLine,
-		},
-		{
 			Key:               opts.GetKey(opts.Config.Universal.Select),
 			Handler:           self.withItem(self.checkout),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.branchSelected()),
 			Description:       self.c.Tr.Checkout,
 			DisplayOnScreen:   true,
 		},
@@ -70,14 +50,14 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.delete),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.branchSelected()),
 			Description:       self.c.Tr.SpiceDeleteBranch,
 			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.RebaseBranch),
 			Handler:           self.withItem(self.restack),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.branchSelected()),
 			Description:       "Restack",
 			DisplayOnScreen:   true,
 		},
@@ -90,7 +70,7 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 		{
 			Key:               opts.GetKey(opts.Config.Branches.CreatePullRequest),
 			Handler:           self.withItem(self.submit),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.branchSelected()),
 			Description:       "Submit PR",
 			DisplayOnScreen:   true,
 		},
@@ -127,14 +107,14 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 		{
 			Key:               opts.GetKey("<c-j>"),
 			Handler:           self.withItem(self.moveBranchDown),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.branchSelected()),
 			Description:       "Move branch down in stack",
 			DisplayOnScreen:   true,
 		},
 		{
 			Key:               opts.GetKey("<c-k>"),
 			Handler:           self.withItem(self.moveBranchUp),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.branchSelected()),
 			Description:       "Move branch up in stack",
 			DisplayOnScreen:   true,
 		},
@@ -144,94 +124,23 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			Description: self.c.Tr.ToggleSpiceLogFormat,
 			Tooltip:     self.c.Tr.ToggleSpiceLogFormatTooltip,
 		},
+		{
+			Key:               opts.GetKey(opts.Config.Commits.CreateFixupCommit),
+			Handler:           self.withItem(self.commitFixup),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
+			Description:       self.c.Tr.SpiceCommitFixup,
+			DisplayOnScreen:   true,
+		},
 	}
 
 	return bindings
 }
 
 func (self *SpiceStacksController) GetOnFocus() func(types.OnFocusOpts) {
-	return func(types.OnFocusOpts) {
-		// Ensure we start on a branch, not a commit
-		self.ensureValidSelection()
-	}
-}
-
-// HandleNextLine moves to the next branch, skipping commits
-func (self *SpiceStacksController) HandleNextLine() error {
-	return self.handleLineChange(1)
-}
-
-// HandlePrevLine moves to the previous branch, skipping commits
-func (self *SpiceStacksController) HandlePrevLine() error {
-	return self.handleLineChange(-1)
-}
-
-// handleLineChange navigates to the next/prev branch, skipping commits
-func (self *SpiceStacksController) handleLineChange(delta int) error {
-	items := self.c.Model().SpiceStackItems
-	if len(items) == 0 {
-		return nil
-	}
-
-	currentIdx := self.context().GetSelectedLineIdx()
-	newIdx := currentIdx + delta
-
-	// Find the next non-commit item in the given direction
-	for newIdx >= 0 && newIdx < len(items) {
-		if !items[newIdx].IsCommit {
-			self.context().SetSelection(newIdx)
-			self.context().HandleFocus(types.OnFocusOpts{})
-			return nil
-		}
-		newIdx += delta
-	}
-
-	// No valid item found - stay at current position
-	return nil
-}
-
-// ensureValidSelection makes sure we're not selecting a commit
-func (self *SpiceStacksController) ensureValidSelection() {
-	items := self.c.Model().SpiceStackItems
-	if len(items) == 0 {
-		return
-	}
-
-	currentIdx := self.context().GetSelectedLineIdx()
-	if currentIdx < 0 || currentIdx >= len(items) {
-		// Find first branch
-		for i, item := range items {
-			if !item.IsCommit {
-				self.context().SetSelection(i)
-				return
-			}
-		}
-		return
-	}
-
-	// If current selection is a commit, move to nearest branch
-	if items[currentIdx].IsCommit {
-		// Try moving forward first
-		for i := currentIdx + 1; i < len(items); i++ {
-			if !items[i].IsCommit {
-				self.context().SetSelection(i)
-				return
-			}
-		}
-		// Try moving backward
-		for i := currentIdx - 1; i >= 0; i-- {
-			if !items[i].IsCommit {
-				self.context().SetSelection(i)
-				return
-			}
-		}
-	}
+	return func(types.OnFocusOpts) {}
 }
 
 func (self *SpiceStacksController) checkout(item *models.SpiceStackItem) error {
-	if item.IsCommit {
-		return nil // Commits are not interactive
-	}
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
 	if err := self.c.Git().Branch.Checkout(item.Name, git_commands.CheckoutOptions{Force: false}); err != nil {
 		return err
@@ -241,9 +150,6 @@ func (self *SpiceStacksController) checkout(item *models.SpiceStackItem) error {
 }
 
 func (self *SpiceStacksController) restack(item *models.SpiceStackItem) error {
-	if item.IsCommit {
-		return nil // Commits are not interactive
-	}
 	return self.c.WithWaitingStatus(self.c.Tr.SpiceRestackingStatus, func(task gocui.Task) error {
 		err := self.c.Git().Spice.Restack(item.Name)
 		if err != nil {
@@ -266,9 +172,6 @@ func (self *SpiceStacksController) restackAll() error {
 }
 
 func (self *SpiceStacksController) submit(item *models.SpiceStackItem) error {
-	if item.IsCommit {
-		return nil // Commits are not interactive
-	}
 	return self.c.WithWaitingStatus(self.c.Tr.SpiceSubmittingStatus, func(task gocui.Task) error {
 		err := self.c.Git().Spice.Submit(item.Name)
 		if err != nil {
@@ -337,9 +240,6 @@ func (self *SpiceStacksController) newBranch() error {
 }
 
 func (self *SpiceStacksController) delete(item *models.SpiceStackItem) error {
-	if item.IsCommit {
-		return nil // Commits are not interactive
-	}
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.SpiceDeleteConfirmTitle,
 		Prompt: self.c.Tr.SpiceDeleteConfirmPrompt,
@@ -355,9 +255,6 @@ func (self *SpiceStacksController) delete(item *models.SpiceStackItem) error {
 }
 
 func (self *SpiceStacksController) moveBranchUp(item *models.SpiceStackItem) error {
-	if item.IsCommit {
-		return nil // Commits are not interactive
-	}
 	if err := self.c.Git().Spice.MoveBranchUp(item.Name); err != nil {
 		return err
 	}
@@ -366,14 +263,24 @@ func (self *SpiceStacksController) moveBranchUp(item *models.SpiceStackItem) err
 }
 
 func (self *SpiceStacksController) moveBranchDown(item *models.SpiceStackItem) error {
-	if item.IsCommit {
-		return nil // Commits are not interactive
-	}
 	if err := self.c.Git().Spice.MoveBranchDown(item.Name); err != nil {
 		return err
 	}
 	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
 	return nil
+}
+
+func (self *SpiceStacksController) commitFixup(item *models.SpiceStackItem) error {
+	return self.c.WithWaitingStatus(self.c.Tr.SpiceFixupStatus, func(task gocui.Task) error {
+		if err := self.c.Git().Spice.CommitFixup(item.CommitSha); err != nil {
+			return err
+		}
+		self.c.Refresh(types.RefreshOptions{
+			Mode:  types.ASYNC,
+			Scope: []types.RefreshableView{types.SPICE_STACKS, types.COMMITS, types.FILES},
+		})
+		return nil
+	})
 }
 
 func (self *SpiceStacksController) toggleLogFormat() error {
@@ -411,6 +318,26 @@ func (self *SpiceStacksController) singleItemSelected() func() *types.DisabledRe
 	return func() *types.DisabledReason {
 		if self.context().GetSelected() == nil {
 			return &types.DisabledReason{Text: "No item selected"}
+		}
+		return nil
+	}
+}
+
+func (self *SpiceStacksController) branchSelected() func() *types.DisabledReason {
+	return func() *types.DisabledReason {
+		item := self.context().GetSelected()
+		if item == nil || item.IsCommit {
+			return &types.DisabledReason{Text: self.c.Tr.SpiceBranchOnly}
+		}
+		return nil
+	}
+}
+
+func (self *SpiceStacksController) commitSelected() func() *types.DisabledReason {
+	return func() *types.DisabledReason {
+		item := self.context().GetSelected()
+		if item == nil || !item.IsCommit {
+			return &types.DisabledReason{Text: self.c.Tr.SpiceCommitOnly}
 		}
 		return nil
 	}

@@ -790,6 +790,10 @@ type TranslationSet struct {
 	SpiceBranchNamePrompt                    string
 	SpiceDeleteConfirmTitle                  string
 	SpiceDeleteConfirmPrompt                 string
+	SpiceBranchOnly                          string
+	SpiceCommitOnly                          string
+	SpiceCommitFixup                         string
+	SpiceFixupStatus                         string
 	ShowGitGraph                             string
 	ShowGitGraphTooltip                      string
 	SortOrder                                string
@@ -1899,6 +1903,10 @@ func EnglishTranslationSet() *TranslationSet {
 		SpiceBranchNamePrompt:                    "Branch name:",
 		SpiceDeleteConfirmTitle:                  "Delete branch",
 		SpiceDeleteConfirmPrompt:                 "Are you sure you want to delete this branch from the stack?",
+		SpiceBranchOnly:                          "This command only applies to branches",
+		SpiceCommitOnly:                          "This command only applies to commits",
+		SpiceCommitFixup:                         "Fixup commit",
+		SpiceFixupStatus:                         "Creating fixup...",
 		ShowGitGraph:                             "Show git graph",
 		ShowGitGraphTooltip:                      "Show or hide the git graph in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.showGraph'.",
 		SortOrder:                                "Sort order",

@@ -122,3 +122,9 @@ func (self *SpiceCommands) MoveBranchDown(branchName string) error {
 	cmdArgs := []string{"gs", "branch", "down", "--branch", branchName}
 	return self.cmd.New(cmdArgs).Run()
 }
+
+// CommitFixup applies staged changes to a specific commit and restacks
+func (self *SpiceCommands) CommitFixup(commitSha string) error {
+	cmdArgs := []string{"gs", "commit", "fixup", commitSha}
+	return self.cmd.New(cmdArgs).Run()
+}
