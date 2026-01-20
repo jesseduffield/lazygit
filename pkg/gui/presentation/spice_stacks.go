@@ -107,10 +107,11 @@ func findAncestorAtDepthAfter(idx int, depth int, items []*models.SpiceStackItem
 	return nil
 }
 
-// hasItemsAtDepthBefore checks if there are items at the given depth before this index
+// hasItemsAtDepthBefore checks if there are branch items at the given depth before this index
 func hasItemsAtDepthBefore(idx int, depth int, items []*models.SpiceStackItem) bool {
 	for i := 0; i < idx; i++ {
-		if items[i].Depth == depth {
+		// Only count branches, not commits
+		if !items[i].IsCommit && items[i].Depth == depth {
 			return true
 		}
 	}

@@ -158,6 +158,28 @@ func TestBuildTreePrefixNestedSiblings(t *testing.T) {
 	}
 }
 
+func TestBuildTreePrefixSiblingWithCommits(t *testing.T) {
+	// Sibling branches where the first has commits should not cause
+	// the second sibling to show ┴ (has-children indicator)
+	// This tests the fix for commits being incorrectly counted as children
+	items := []*models.SpiceStackItem{
+		{Name: "sibling1", Depth: 2, SiblingIndex: 0, IsCommit: false},
+		{Name: "sibling1", Depth: 3, IsCommit: true, CommitSha: "abc1234", CommitSubject: "Commit on sibling1"},
+		{Name: "sibling2", Depth: 2, SiblingIndex: 1, IsCommit: false}, // Should NOT have ┴
+		{Name: "parent", Depth: 1, SiblingIndex: 0, IsCommit: false},
+		{Name: "main", Depth: 0, SiblingIndex: 0, IsCommit: false},
+	}
+
+	continuing := make(map[int]bool)
+	result := buildTreePrefix(items[2], 2, items, continuing)
+	result = stripAnsi(result)
+
+	// sibling2 should have ├─◯ (not ├─┴◯) since it has no children
+	// The ┴ should only appear when there are actual child branches, not commits
+	assert.NotContains(t, result, "┴", "Sibling branch should not show ┴ when only commits (not branches) are before it")
+	assert.Equal(t, "  ├─◯ ", result, "sibling2 should have correct prefix without ┴")
+}
+
 // stripAnsi removes ANSI escape codes from a string
 func stripAnsi(str string) string {
 	// Simple implementation - just remove common ANSI codes
