@@ -60,13 +60,26 @@ func (self *SpiceCommands) Restack(branchName string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// SubmitOpts contains options for the Submit command
+type SubmitOpts struct {
+	NoPublish  bool
+	UpdateOnly bool
+}
+
 // Submit submits PR for branch or stack
-func (self *SpiceCommands) Submit(branchName string) error {
+func (self *SpiceCommands) Submit(branchName string, opts SubmitOpts) error {
+	var cmdArgs []string
 	if branchName == "" {
-		cmdArgs := []string{"gs", "stack", "submit"}
-		return self.cmd.New(cmdArgs).Run()
+		cmdArgs = []string{"gs", "stack", "submit"}
+	} else {
+		cmdArgs = []string{"gs", "branch", "submit", "--branch", branchName}
 	}
-	cmdArgs := []string{"gs", "branch", "submit", "--branch", branchName}
+	if opts.NoPublish {
+		cmdArgs = append(cmdArgs, "--no-publish")
+	}
+	if opts.UpdateOnly {
+		cmdArgs = append(cmdArgs, "--update-only")
+	}
 	return self.cmd.New(cmdArgs).Run()
 }
 

@@ -495,9 +495,9 @@ func (self *SpiceStacksController) restackAll() error {
 	})
 }
 
-func (self *SpiceStacksController) submit(item *models.SpiceStackItem) error {
+func (self *SpiceStacksController) submit(item *models.SpiceStackItem, opts git_commands.SubmitOpts) error {
 	return self.c.WithWaitingStatus(self.c.Tr.SpiceSubmittingStatus, func(task gocui.Task) error {
-		err := self.c.Git().Spice.Submit(item.Name)
+		err := self.c.Git().Spice.Submit(item.Name, opts)
 		if err != nil {
 			return err
 		}
@@ -506,9 +506,9 @@ func (self *SpiceStacksController) submit(item *models.SpiceStackItem) error {
 	})
 }
 
-func (self *SpiceStacksController) submitAll() error {
+func (self *SpiceStacksController) submitAll(opts git_commands.SubmitOpts) error {
 	return self.c.WithWaitingStatus(self.c.Tr.SpiceSubmittingStatus, func(task gocui.Task) error {
-		err := self.c.Git().Spice.Submit("")
+		err := self.c.Git().Spice.Submit("", opts)
 		if err != nil {
 			return err
 		}
@@ -661,15 +661,28 @@ func (self *SpiceStacksController) openStackOperationsMenu() error {
 			OnPress: func() error { return self.restackAll() },
 		},
 		{
-			Label:   "Submit branch",
-			Key:     's',
-			OnPress: func() error { return self.submit(item) },
+			Label:          "Submit branch",
+			Key:            's',
+			OnPress:        func() error { return self.submit(item, git_commands.SubmitOpts{}) },
+			DisabledReason: self.branchSelectedReason(item),
+		},
+		{
+			Label:          "Submit branch (options)",
+			Key:            'o',
+			OnPress:        func() error { return self.openSubmitBranchMenu(item) },
+			OpensMenu:      true,
 			DisabledReason: self.branchSelectedReason(item),
 		},
 		{
 			Label:   "Submit all",
 			Key:     'S',
-			OnPress: func() error { return self.submitAll() },
+			OnPress: func() error { return self.submitAll(git_commands.SubmitOpts{}) },
+		},
+		{
+			Label:     "Submit all (options)",
+			Key:       'O',
+			OnPress:   func() error { return self.openSubmitAllMenu() },
+			OpensMenu: true,
 		},
 		{
 			Label:   "Create branch",
@@ -720,6 +733,60 @@ func (self *SpiceStacksController) openNavigationMenu() error {
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: "Stack Navigation",
+		Items: menuItems,
+	})
+}
+
+func (self *SpiceStacksController) openSubmitBranchMenu(item *models.SpiceStackItem) error {
+	menuItems := []*types.MenuItem{
+		{
+			Label:   "No publish",
+			Key:     'n',
+			Tooltip: "Create/update PR without publishing (keeps as draft)",
+			OnPress: func() error { return self.submit(item, git_commands.SubmitOpts{NoPublish: true}) },
+		},
+		{
+			Label:   "Update only",
+			Key:     'u',
+			Tooltip: "Only update existing PRs, don't create new ones",
+			OnPress: func() error { return self.submit(item, git_commands.SubmitOpts{UpdateOnly: true}) },
+		},
+		{
+			Label:   "Submit (default)",
+			Key:     's',
+			OnPress: func() error { return self.submit(item, git_commands.SubmitOpts{}) },
+		},
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: "Submit Branch Options",
+		Items: menuItems,
+	})
+}
+
+func (self *SpiceStacksController) openSubmitAllMenu() error {
+	menuItems := []*types.MenuItem{
+		{
+			Label:   "No publish",
+			Key:     'n',
+			Tooltip: "Create/update PRs without publishing (keeps as draft)",
+			OnPress: func() error { return self.submitAll(git_commands.SubmitOpts{NoPublish: true}) },
+		},
+		{
+			Label:   "Update only",
+			Key:     'u',
+			Tooltip: "Only update existing PRs, don't create new ones",
+			OnPress: func() error { return self.submitAll(git_commands.SubmitOpts{UpdateOnly: true}) },
+		},
+		{
+			Label:   "Submit all (default)",
+			Key:     's',
+			OnPress: func() error { return self.submitAll(git_commands.SubmitOpts{}) },
+		},
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: "Submit All Options",
 		Items: menuItems,
 	})
 }
