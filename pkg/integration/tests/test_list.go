@@ -104,6 +104,7 @@ var tests = []*components.IntegrationTest{
 	commit.AmendWhenThereAreConflictsAndCancel,
 	commit.AmendWhenThereAreConflictsAndContinue,
 	commit.AutoWrapMessage,
+	commit.AutoWrapMessageFootnotesAndTrailers,
 	commit.Checkout,
 	commit.CheckoutFileFromCommit,
 	commit.CheckoutFileFromRangeSelectionOfCommits,

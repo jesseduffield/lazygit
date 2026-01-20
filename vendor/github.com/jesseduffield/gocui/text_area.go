@@ -1,6 +1,7 @@
 package gocui
 
 import (
+	"bytes"
 	"regexp"
 	"slices"
 	"strings"
@@ -70,7 +71,7 @@ func contentToCells(content string, autoWrapWidth int) ([]TextAreaCell, []int) {
 	startOfLine := 0
 	currentLineWidth := 0
 	indexOfLastWhitespace := -1
-	var footNoteMatcher footNoteMatcher
+	var noWrapLineMatcher noWrapLineMatcher
 
 	cells := stringToTextAreaCells(content)
 	y := 0
@@ -93,10 +94,10 @@ func contentToCells(content string, autoWrapWidth int) ([]TextAreaCell, []int) {
 			startOfLine = currentPos + 1
 			indexOfLastWhitespace = -1
 			currentLineWidth = 0
-			footNoteMatcher.reset()
+			noWrapLineMatcher.reset()
 		} else {
 			currentLineWidth += c.width
-			if c.char == " " && !footNoteMatcher.isFootNote() {
+			if c.char == " " && !noWrapLineMatcher.isNoWrapLine() {
 				indexOfLastWhitespace = currentPos + 1
 			} else if autoWrapWidth > 0 && currentLineWidth > autoWrapWidth && indexOfLastWhitespace >= 0 {
 				wrapAt := indexOfLastWhitespace
@@ -111,10 +112,10 @@ func contentToCells(content string, autoWrapWidth int) ([]TextAreaCell, []int) {
 				for _, c1 := range cells[startOfLine : currentPos+1] {
 					currentLineWidth += c1.width
 				}
-				footNoteMatcher.reset()
+				noWrapLineMatcher.reset()
 			}
 
-			footNoteMatcher.addCharacter(c.char)
+			noWrapLineMatcher.addCharacter(c.char)
 		}
 	}
 
@@ -125,45 +126,58 @@ func contentToCells(content string, autoWrapWidth int) ([]TextAreaCell, []int) {
 
 var footNoteRe = regexp.MustCompile(`^\[\d+\]:\s*$`)
 
-type footNoteMatcher struct {
-	lineStr        strings.Builder
+type noWrapLineMatcher struct {
+	buf            [64]byte
+	bufLen         int
+	matched        bool
 	didFailToMatch bool
 }
 
-func (self *footNoteMatcher) addCharacter(chr string) {
-	if self.didFailToMatch {
+func (self *noWrapLineMatcher) addCharacter(chr string) {
+	if self.didFailToMatch || self.matched || len(chr) == 0 {
 		// don't bother tracking the rune if we know it can't possibly match any more
+		// or if we've already matched
 		return
 	}
 
-	if self.lineStr.Len() == 0 && chr != "[" {
-		// fail early if the first rune of a line isn't a '['; this is mainly to avoid a (possibly
-		// expensive) regex match
+	b := chr[0]
+
+	if self.bufLen == 0 && b != '[' && b != 'C' && b != 'S' {
+		// fail early if we can
 		self.didFailToMatch = true
 		return
 	}
 
-	self.lineStr.WriteString(chr)
+	if self.bufLen < len(self.buf) {
+		self.buf[self.bufLen] = b
+		self.bufLen++
+	}
 }
 
-func (self *footNoteMatcher) isFootNote() bool {
+func (self *noWrapLineMatcher) isNoWrapLine() bool {
+	if self.matched {
+		return true
+	}
 	if self.didFailToMatch {
 		return false
 	}
 
-	if footNoteRe.MatchString(self.lineStr.String()) {
-		// it's a footnote, so treat spaces as non-breaking. It's important not to reset the matcher
-		// here, because there could be multiple spaces after a footnote.
-		return true
+	if self.bufLen > 0 {
+		b := self.buf[:self.bufLen]
+		if footNoteRe.Match(b) ||
+			bytes.HasPrefix(b, []byte("Co-authored-by:")) ||
+			bytes.HasPrefix(b, []byte("Signed-off-by:")) {
+			self.matched = true
+			return true
+		}
 	}
 
-	// no need to check again for this line
-	self.didFailToMatch = true
 	return false
 }
 
-func (self *footNoteMatcher) reset() {
-	self.lineStr.Reset()
+func (self *noWrapLineMatcher) reset() {
+	self.bufLen = 0
+	self.matched = false
 	self.didFailToMatch = false
 }
 
