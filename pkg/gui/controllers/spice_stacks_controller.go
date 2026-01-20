@@ -45,7 +45,7 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.ViewCommits,
 		},
-		// === COMMIT COMMANDS (front = display at bottom) ===
+		// === COMMIT COMMANDS (only enabled when commit selected) ===
 		{
 			Key:               opts.GetKey(opts.Config.Commits.SquashDown),
 			Handler:           self.withItem(self.commitSquash),
@@ -111,86 +111,26 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			Description:       self.c.Tr.Checkout,
 			DisplayOnScreen:   true,
 		},
+
+		// === MENUS ===
 		{
-			Key:               opts.GetKey(opts.Config.Universal.New),
-			Handler:           self.newBranch,
-			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.SpiceNewBranch,
-			DisplayOnScreen:   true,
-		},
-		{
-			Key:               opts.GetKey(opts.Config.Universal.Remove),
-			Handler:           self.withItem(self.delete),
-			GetDisabledReason: self.require(self.singleItemSelected(), self.branchSelected()),
-			Description:       self.c.Tr.SpiceDeleteBranch,
-			DisplayOnScreen:   true,
-		},
-		{
-			Key:               opts.GetKey(opts.Config.Branches.RebaseBranch),
-			Handler:           self.withItem(self.restack),
-			GetDisabledReason: self.require(self.singleItemSelected(), self.branchSelected()),
-			Description:       "Restack",
-			DisplayOnScreen:   true,
-		},
-		{
-			Key:             opts.GetKey("R"),
-			Handler:         self.restackAll,
-			Description:     "Restack all",
+			Key:             opts.GetKey("S"),
+			Handler:         self.openStackOperationsMenu,
+			Description:     "Stack operations",
+			OpensMenu:       true,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.CreatePullRequest),
-			Handler:           self.withItem(self.submit),
-			GetDisabledReason: self.require(self.singleItemSelected(), self.branchSelected()),
-			Description:       "Submit PR",
-			DisplayOnScreen:   true,
-		},
-		{
-			Key:             opts.GetKey("O"),
-			Handler:         self.submitAll,
-			Description:     "Submit all",
+			Key:             opts.GetKey("G"),
+			Handler:         self.openNavigationMenu,
+			Description:     "Stack navigation",
+			OpensMenu:       true,
 			DisplayOnScreen: true,
 		},
+
+		// === VIEW OPTIONS ===
 		{
-			Key:             opts.GetKey("<c-u>"),
-			Handler:         self.navigateUp,
-			Description:     "Up stack",
-			DisplayOnScreen: true,
-		},
-		{
-			Key:             opts.GetKey("<c-d>"),
-			Handler:         self.navigateDown,
-			Description:     "Down stack",
-			DisplayOnScreen: true,
-		},
-		{
-			Key:             opts.GetKey("<c-U>"),
-			Handler:         self.navigateTop,
-			Description:     "Top of stack",
-			DisplayOnScreen: true,
-		},
-		{
-			Key:             opts.GetKey("<c-D>"),
-			Handler:         self.navigateBottom,
-			Description:     "Bottom of stack",
-			DisplayOnScreen: true,
-		},
-		{
-			Key:               opts.GetKey("<c-j>"),
-			Handler:           self.withItem(self.moveBranchDown),
-			GetDisabledReason: self.require(self.singleItemSelected(), self.branchSelected()),
-			Description:       "Move branch down in stack",
-			DisplayOnScreen:   true,
-		},
-		{
-			Key:               opts.GetKey("<c-k>"),
-			Handler:           self.withItem(self.moveBranchUp),
-			GetDisabledReason: self.require(self.singleItemSelected(), self.branchSelected()),
-			Description:       "Move branch up in stack",
-			DisplayOnScreen:   true,
-		},
-		{
-			Key:         opts.GetKey("l"),
+			Key:         opts.GetKey("~"),
 			Handler:     self.toggleLogFormat,
 			Description: self.c.Tr.ToggleSpiceLogFormat,
 			Tooltip:     self.c.Tr.ToggleSpiceLogFormatTooltip,
@@ -623,6 +563,106 @@ func (self *SpiceStacksController) moveBranchDown(item *models.SpiceStackItem) e
 		return err
 	}
 	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
+	return nil
+}
+
+// === MENU HANDLERS ===
+
+func (self *SpiceStacksController) openStackOperationsMenu() error {
+	item := self.context().GetSelected()
+
+	menuItems := []*types.MenuItem{
+		{
+			Label:   "Restack branch",
+			Key:     'r',
+			OnPress: func() error { return self.restack(item) },
+			DisabledReason: self.branchSelectedReason(item),
+		},
+		{
+			Label:   "Restack all",
+			Key:     'R',
+			OnPress: func() error { return self.restackAll() },
+		},
+		{
+			Label:   "Submit branch",
+			Key:     's',
+			OnPress: func() error { return self.submit(item) },
+			DisabledReason: self.branchSelectedReason(item),
+		},
+		{
+			Label:   "Submit all",
+			Key:     'S',
+			OnPress: func() error { return self.submitAll() },
+		},
+		{
+			Label:   "Create branch",
+			Key:     'c',
+			OnPress: func() error { return self.newBranch() },
+		},
+		{
+			Label:   "Delete branch",
+			Key:     'd',
+			OnPress: func() error { return self.delete(item) },
+			DisabledReason: self.branchSelectedReason(item),
+		},
+		{
+			Label:   "Move branch up in stack",
+			Key:     'u',
+			OnPress: func() error { return self.moveBranchUp(item) },
+			DisabledReason: self.branchSelectedReason(item),
+		},
+		{
+			Label:   "Move branch down in stack",
+			Key:     'j',
+			OnPress: func() error { return self.moveBranchDown(item) },
+			DisabledReason: self.branchSelectedReason(item),
+		},
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: "Stack Operations",
+		Items: menuItems,
+	})
+}
+
+func (self *SpiceStacksController) openNavigationMenu() error {
+	menuItems := []*types.MenuItem{
+		{
+			Label:   "Up",
+			Key:     'u',
+			Tooltip: "Navigate up one branch in the stack (gs up)",
+			OnPress: func() error { return self.navigateUp() },
+		},
+		{
+			Label:   "Down",
+			Key:     'd',
+			Tooltip: "Navigate down one branch in the stack (gs down)",
+			OnPress: func() error { return self.navigateDown() },
+		},
+		{
+			Label:   "Top",
+			Key:     't',
+			Tooltip: "Navigate to the top of the stack (gs top)",
+			OnPress: func() error { return self.navigateTop() },
+		},
+		{
+			Label:   "Bottom",
+			Key:     'b',
+			Tooltip: "Navigate to the bottom of the stack (gs bottom)",
+			OnPress: func() error { return self.navigateBottom() },
+		},
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: "Stack Navigation",
+		Items: menuItems,
+	})
+}
+
+func (self *SpiceStacksController) branchSelectedReason(item *models.SpiceStackItem) *types.DisabledReason {
+	if item == nil || item.IsCommit {
+		return &types.DisabledReason{Text: self.c.Tr.SpiceBranchOnly}
+	}
 	return nil
 }
 
