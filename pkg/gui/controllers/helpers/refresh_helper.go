@@ -91,6 +91,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 				types.STATUS,
 				types.BISECT_INFO,
 				types.STAGING,
+				types.SPICE_STACKS,
 			})
 		} else {
 			scopeSet = set.NewFromSlice(options.Scope)
