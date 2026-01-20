@@ -89,13 +89,6 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Select),
-			Handler:           self.withItem(self.commitCheckout),
-			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
-			Description:       self.c.Tr.Checkout,
-			DisplayOnScreen:   true,
-		},
-		{
 			Key:               opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:           self.withItem(self.commitReset),
 			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
@@ -113,8 +106,8 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 		// === BRANCH COMMANDS ===
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Select),
-			Handler:           self.withItem(self.checkout),
-			GetDisabledReason: self.require(self.singleItemSelected(), self.branchSelected()),
+			Handler:           self.withItem(self.press),
+			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Checkout,
 			DisplayOnScreen:   true,
 		},
@@ -218,6 +211,13 @@ func (self *SpiceStacksController) enter(item *models.SpiceStackItem) error {
 		return self.viewCommitFiles(item)
 	}
 	return self.viewBranchCommits(item)
+}
+
+func (self *SpiceStacksController) press(item *models.SpiceStackItem) error {
+	if item.IsCommit {
+		return self.commitCheckout(item)
+	}
+	return self.checkout(item)
 }
 
 func (self *SpiceStacksController) viewBranchCommits(item *models.SpiceStackItem) error {
