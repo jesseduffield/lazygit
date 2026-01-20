@@ -112,6 +112,20 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			DisplayOnScreen:   true,
 		},
 
+		// === MOVE UP/DOWN (context-sensitive) ===
+		{
+			Key:               opts.GetKey(opts.Config.Commits.MoveDownCommit),
+			Handler:           self.withItem(self.moveDown),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.MoveDownCommit,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Commits.MoveUpCommit),
+			Handler:           self.withItem(self.moveUp),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.MoveUpCommit,
+		},
+
 		// === MENUS ===
 		{
 			Key:             opts.GetKey("S"),
@@ -130,7 +144,7 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 
 		// === VIEW OPTIONS ===
 		{
-			Key:         opts.GetKey("~"),
+			Key:         opts.GetKey("V"),
 			Handler:     self.toggleLogFormat,
 			Description: self.c.Tr.ToggleSpiceLogFormat,
 			Tooltip:     self.c.Tr.ToggleSpiceLogFormatTooltip,
@@ -566,6 +580,55 @@ func (self *SpiceStacksController) moveBranchDown(item *models.SpiceStackItem) e
 	return nil
 }
 
+func (self *SpiceStacksController) commitMoveDown(item *models.SpiceStackItem) error {
+	_, commitIdx := self.findCommitByHash(item.CommitSha)
+	if commitIdx == -1 {
+		return errors.New("Commit not found")
+	}
+
+	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
+		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
+		err := self.c.Git().Rebase.MoveCommitsDown(self.c.Model().Commits, commitIdx, commitIdx)
+		if err == nil {
+			self.context().MoveSelection(1)
+		}
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{Mode: types.SYNC})
+	})
+}
+
+func (self *SpiceStacksController) commitMoveUp(item *models.SpiceStackItem) error {
+	_, commitIdx := self.findCommitByHash(item.CommitSha)
+	if commitIdx == -1 {
+		return errors.New("Commit not found")
+	}
+
+	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
+		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
+		err := self.c.Git().Rebase.MoveCommitsUp(self.c.Model().Commits, commitIdx, commitIdx)
+		if err == nil {
+			self.context().MoveSelection(-1)
+		}
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{Mode: types.SYNC})
+	})
+}
+
+// Unified move handlers that dispatch based on selection type
+func (self *SpiceStacksController) moveDown(item *models.SpiceStackItem) error {
+	if item.IsCommit {
+		return self.commitMoveDown(item)
+	}
+	return self.moveBranchDown(item)
+}
+
+func (self *SpiceStacksController) moveUp(item *models.SpiceStackItem) error {
+	if item.IsCommit {
+		return self.commitMoveUp(item)
+	}
+	return self.moveBranchUp(item)
+}
+
 // === MENU HANDLERS ===
 
 func (self *SpiceStacksController) openStackOperationsMenu() error {
@@ -603,18 +666,6 @@ func (self *SpiceStacksController) openStackOperationsMenu() error {
 			Label:   "Delete branch",
 			Key:     'd',
 			OnPress: func() error { return self.delete(item) },
-			DisabledReason: self.branchSelectedReason(item),
-		},
-		{
-			Label:   "Move branch up in stack",
-			Key:     'u',
-			OnPress: func() error { return self.moveBranchUp(item) },
-			DisabledReason: self.branchSelectedReason(item),
-		},
-		{
-			Label:   "Move branch down in stack",
-			Key:     'j',
-			OnPress: func() error { return self.moveBranchDown(item) },
 			DisabledReason: self.branchSelectedReason(item),
 		},
 	}
