@@ -117,13 +117,27 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			Key:               opts.GetKey(opts.Config.Commits.MoveDownCommit),
 			Handler:           self.withItem(self.moveDown),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.MoveDownCommit,
+			Description:       self.c.Tr.MoveDownCommit, // fallback for cheatsheet
+			DescriptionFunc: func() string {
+				item := self.context().GetSelected()
+				if item != nil && !item.IsCommit {
+					return "Move branch down in stack"
+				}
+				return self.c.Tr.MoveDownCommit
+			},
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.MoveUpCommit),
 			Handler:           self.withItem(self.moveUp),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.MoveUpCommit,
+			Description:       self.c.Tr.MoveUpCommit, // fallback for cheatsheet
+			DescriptionFunc: func() string {
+				item := self.context().GetSelected()
+				if item != nil && !item.IsCommit {
+					return "Move branch up in stack"
+				}
+				return self.c.Tr.MoveUpCommit
+			},
 		},
 
 		// === MENUS ===
