@@ -204,6 +204,40 @@ func (self *SpiceStacksController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {}
 }
 
+func (self *SpiceStacksController) GetOnRenderToMain() func() {
+	return func() {
+		self.c.Helpers().Diff.WithDiffModeCheck(func() {
+			var task types.UpdateTask
+			var title string
+			item := self.context().GetSelected()
+
+			if item == nil {
+				task = types.NewRenderStringTask("No stacks")
+				title = self.c.Tr.SpiceStacksTitle
+			} else if item.IsCommit {
+				// Show commit diff/patch
+				cmdObj := self.c.Git().Commit.ShowCmdObj(item.CommitSha, nil)
+				task = types.NewRunPtyTask(cmdObj.GetCmd())
+				title = "Patch"
+			} else {
+				// Show branch commit log
+				cmdObj := self.c.Git().Branch.GetGraphCmdObj(item.FullRefName())
+				task = types.NewRunPtyTask(cmdObj.GetCmd())
+				title = self.c.Tr.LogTitle
+			}
+
+			self.c.RenderToMainViews(types.RefreshMainOpts{
+				Pair: self.c.MainViewPairs().Normal,
+				Main: &types.ViewUpdateOpts{
+					Title:    title,
+					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+					Task:     task,
+				},
+			})
+		})
+	}
+}
+
 // === NAVIGATION HANDLERS ===
 
 func (self *SpiceStacksController) enter(item *models.SpiceStackItem) error {
