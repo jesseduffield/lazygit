@@ -1,11 +1,16 @@
 package controllers
 
 import (
+	"errors"
+	"strings"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 type SpiceStacksController struct {
@@ -33,6 +38,72 @@ func NewSpiceStacksController(
 
 func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
+		// === COMMIT COMMANDS (front = display at bottom) ===
+		{
+			Key:               opts.GetKey(opts.Config.Commits.SquashDown),
+			Handler:           self.withItem(self.commitSquash),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
+			Description:       self.c.Tr.Squash,
+			DisplayOnScreen:   true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Commits.MarkCommitAsFixup),
+			Handler:           self.withItem(self.commitMarkFixup),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
+			Description:       self.c.Tr.Fixup,
+			DisplayOnScreen:   true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Commits.RenameCommit),
+			Handler:           self.withItem(self.commitReword),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
+			Description:       self.c.Tr.Reword,
+			DisplayOnScreen:   true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Handler:           self.withItem(self.commitDrop),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
+			Description:       self.c.Tr.Drop,
+			DisplayOnScreen:   true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Handler:           self.withItem(self.commitEdit),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
+			Description:       self.c.Tr.Edit,
+			DisplayOnScreen:   true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Commits.AmendToCommit),
+			Handler:           self.withItem(self.commitAmend),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
+			Description:       self.c.Tr.Amend,
+			DisplayOnScreen:   true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Handler:           self.withItem(self.commitCheckout),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
+			Description:       self.c.Tr.Checkout,
+			DisplayOnScreen:   true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Commits.ViewResetOptions),
+			Handler:           self.withItem(self.commitReset),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
+			Description:       self.c.Tr.ViewResetOptions,
+			DisplayOnScreen:   true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Commits.CherryPickCopy),
+			Handler:           self.withItem(self.commitCopy),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
+			Description:       self.c.Tr.CherryPickCopy,
+			DisplayOnScreen:   true,
+		},
+
+		// === BRANCH COMMANDS ===
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Select),
 			Handler:           self.withItem(self.checkout),
@@ -124,13 +195,6 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			Description: self.c.Tr.ToggleSpiceLogFormat,
 			Tooltip:     self.c.Tr.ToggleSpiceLogFormatTooltip,
 		},
-		{
-			Key:               opts.GetKey(opts.Config.Commits.CreateFixupCommit),
-			Handler:           self.withItem(self.commitFixup),
-			GetDisabledReason: self.require(self.singleItemSelected(), self.commitSelected()),
-			Description:       self.c.Tr.SpiceCommitFixup,
-			DisplayOnScreen:   true,
-		},
 	}
 
 	return bindings
@@ -139,6 +203,203 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 func (self *SpiceStacksController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {}
 }
+
+// === COMMIT COMMAND HANDLERS ===
+
+// findCommitByHash searches for a commit in the model's commits list by SHA
+// Uses prefix matching since SpiceStackItem stores short (7-char) hashes
+func (self *SpiceStacksController) findCommitByHash(sha string) (*models.Commit, int) {
+	for idx, commit := range self.c.Model().Commits {
+		if strings.HasPrefix(commit.Hash(), sha) {
+			return commit, idx
+		}
+	}
+	return nil, -1
+}
+
+func (self *SpiceStacksController) commitSquash(item *models.SpiceStackItem) error {
+	commit, commitIdx := self.findCommitByHash(item.CommitSha)
+	if commit == nil {
+		return errors.New("Commit not found in commits list")
+	}
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.Squash,
+		Prompt: self.c.Tr.SureSquashThisCommit,
+		HandleConfirm: func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
+				self.c.LogAction(self.c.Tr.Actions.SquashCommitDown)
+				err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, commitIdx, commitIdx, todo.Squash)
+				return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+			})
+		},
+	})
+	return nil
+}
+
+func (self *SpiceStacksController) commitMarkFixup(item *models.SpiceStackItem) error {
+	commit, commitIdx := self.findCommitByHash(item.CommitSha)
+	if commit == nil {
+		return errors.New("Commit not found in commits list")
+	}
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.Fixup,
+		Prompt: self.c.Tr.SureFixupThisCommit,
+		HandleConfirm: func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
+				self.c.LogAction(self.c.Tr.Actions.FixupCommit)
+				err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, commitIdx, commitIdx, todo.Fixup)
+				return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+			})
+		},
+	})
+	return nil
+}
+
+func (self *SpiceStacksController) commitReword(item *models.SpiceStackItem) error {
+	commit, commitIdx := self.findCommitByHash(item.CommitSha)
+	if commit == nil {
+		return errors.New("Commit not found in commits list")
+	}
+
+	commitMessage, err := self.c.Git().Commit.GetCommitMessage(commit.Hash())
+	if err != nil {
+		return err
+	}
+
+	self.c.Helpers().Commits.OpenCommitMessagePanel(
+		&helpers.OpenCommitMessagePanelOpts{
+			CommitIndex:      commitIdx,
+			InitialMessage:   commitMessage,
+			SummaryTitle:     self.c.Tr.Actions.RewordCommit,
+			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
+			PreserveMessage:  false,
+			OnConfirm:        self.handleReword,
+		},
+	)
+	return nil
+}
+
+func (self *SpiceStacksController) handleReword(summary string, description string) error {
+	item := self.context().GetSelected()
+	if item == nil {
+		return nil
+	}
+
+	_, commitIdx := self.findCommitByHash(item.CommitSha)
+	if commitIdx == -1 {
+		return errors.New("Commit not found")
+	}
+
+	// Check if this is the head commit
+	if commitIdx == 0 {
+		return self.c.Helpers().GPG.WithGpgHandling(
+			self.c.Git().Commit.RewordLastCommit(summary, description),
+			git_commands.CommitGpgSign,
+			self.c.Tr.RewordingStatus, nil, nil)
+	}
+
+	return self.c.WithWaitingStatus(self.c.Tr.RewordingStatus, func(gocui.Task) error {
+		err := self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, commitIdx, summary, description)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+	})
+}
+
+func (self *SpiceStacksController) commitDrop(item *models.SpiceStackItem) error {
+	_, commitIdx := self.findCommitByHash(item.CommitSha)
+	if commitIdx == -1 {
+		return errors.New("Commit not found in commits list")
+	}
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.DropCommitTitle,
+		Prompt: self.c.Tr.DropCommitPrompt,
+		HandleConfirm: func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.DroppingStatus, func(gocui.Task) error {
+				self.c.LogAction(self.c.Tr.Actions.DropCommit)
+				err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, commitIdx, commitIdx, todo.Drop)
+				return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+			})
+		},
+	})
+	return nil
+}
+
+func (self *SpiceStacksController) commitEdit(item *models.SpiceStackItem) error {
+	_, commitIdx := self.findCommitByHash(item.CommitSha)
+	if commitIdx == -1 {
+		return errors.New("Commit not found in commits list")
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.EditCommit)
+	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, commitIdx, commitIdx, todo.Edit)
+	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+}
+
+func (self *SpiceStacksController) commitAmend(item *models.SpiceStackItem) error {
+	_, commitIdx := self.findCommitByHash(item.CommitSha)
+	if commitIdx == -1 {
+		return errors.New("Commit not found in commits list")
+	}
+
+	// If it's the head commit, use the amend helper
+	if commitIdx == 0 {
+		return self.c.Helpers().AmendHelper.AmendHead()
+	}
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.AmendCommitTitle,
+		Prompt: self.c.Tr.AmendCommitPrompt,
+		HandleConfirm: func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+				self.c.LogAction(self.c.Tr.Actions.AmendCommit)
+				err := self.c.Git().Rebase.AmendTo(self.c.Model().Commits, commitIdx)
+				return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+			})
+		},
+	})
+	return nil
+}
+
+func (self *SpiceStacksController) commitCheckout(item *models.SpiceStackItem) error {
+	commit, _ := self.findCommitByHash(item.CommitSha)
+	if commit == nil {
+		return errors.New("Commit not found in commits list")
+	}
+
+	return self.c.Helpers().Refs.CreateCheckoutMenu(commit)
+}
+
+func (self *SpiceStacksController) commitReset(item *models.SpiceStackItem) error {
+	return self.c.Helpers().Refs.CreateGitResetMenu(item.CommitSha, item.CommitSha)
+}
+
+func (self *SpiceStacksController) commitCopy(item *models.SpiceStackItem) error {
+	commit, _ := self.findCommitByHash(item.CommitSha)
+	if commit == nil {
+		return errors.New("Commit not found in commits list")
+	}
+
+	// Directly manipulate cherry-pick data since CopyRange uses context selection
+	// which doesn't apply to SpiceStacks context
+	cherryPicking := self.c.Modes().CherryPicking
+	if cherryPicking.ContextKey != string(self.c.Contexts().SpiceStacks.GetKey()) {
+		cherryPicking.ContextKey = string(self.c.Contexts().SpiceStacks.GetKey())
+		cherryPicking.CherryPickedCommits = nil
+	}
+
+	// Toggle: if already copied, remove it; otherwise add it
+	if cherryPicking.SelectedHashSet().Includes(commit.Hash()) {
+		cherryPicking.Remove(commit, self.c.Model().Commits)
+	} else {
+		cherryPicking.Add(commit, self.c.Model().Commits)
+	}
+
+	return nil
+}
+
+// === BRANCH COMMAND HANDLERS ===
 
 func (self *SpiceStacksController) checkout(item *models.SpiceStackItem) error {
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
@@ -270,19 +531,6 @@ func (self *SpiceStacksController) moveBranchDown(item *models.SpiceStackItem) e
 	return nil
 }
 
-func (self *SpiceStacksController) commitFixup(item *models.SpiceStackItem) error {
-	return self.c.WithWaitingStatus(self.c.Tr.SpiceFixupStatus, func(task gocui.Task) error {
-		if err := self.c.Git().Spice.CommitFixup(item.CommitSha); err != nil {
-			return err
-		}
-		self.c.Refresh(types.RefreshOptions{
-			Mode:  types.ASYNC,
-			Scope: []types.RefreshableView{types.SPICE_STACKS, types.COMMITS, types.FILES},
-		})
-		return nil
-	})
-}
-
 func (self *SpiceStacksController) toggleLogFormat() error {
 	currentFormat := self.c.UserConfig().Git.Spice.LogFormat
 
@@ -299,6 +547,8 @@ func (self *SpiceStacksController) toggleLogFormat() error {
 	})
 	return nil
 }
+
+// === HELPER METHODS ===
 
 func (self *SpiceStacksController) context() *context.SpiceStacksContext {
 	return self.c.Contexts().SpiceStacks
