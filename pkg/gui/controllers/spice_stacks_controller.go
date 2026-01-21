@@ -129,7 +129,7 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			DescriptionFunc: func() string {
 				item := self.context().GetSelected()
 				if item != nil && !item.IsCommit {
-					return "Move branch down in stack"
+					return self.c.Tr.SpiceMoveBranchDown
 				}
 				return self.c.Tr.MoveDownCommit
 			},
@@ -142,7 +142,7 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			DescriptionFunc: func() string {
 				item := self.context().GetSelected()
 				if item != nil && !item.IsCommit {
-					return "Move branch up in stack"
+					return self.c.Tr.SpiceMoveBranchUp
 				}
 				return self.c.Tr.MoveUpCommit
 			},
@@ -150,14 +150,14 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 		{
 			Key:             opts.GetKey("S"),
 			Handler:         self.openStackOperationsMenu,
-			Description:     "Stack operations",
+			Description:     self.c.Tr.SpiceStackOperations,
 			OpensMenu:       true,
 			DisplayOnScreen: true,
 		},
 		{
 			Key:             opts.GetKey("G"),
 			Handler:         self.openNavigationMenu,
-			Description:     "Stack navigation",
+			Description:     self.c.Tr.SpiceStackNavigation,
 			OpensMenu:       true,
 			DisplayOnScreen: true,
 		},
@@ -202,14 +202,14 @@ func (self *SpiceStacksController) GetOnRenderToMain() func() {
 				if self.c.Git().Spice != nil && self.c.Git().Spice.IsAvailable() && !self.c.Git().Spice.IsInitialized() {
 					task = types.NewRenderStringTask(self.c.Tr.SpiceNotInitialized)
 				} else {
-					task = types.NewRenderStringTask("No stacks")
+					task = types.NewRenderStringTask(self.c.Tr.SpiceNoStacks)
 				}
 				title = self.c.Tr.SpiceStacksTitle
 			} else if item.IsCommit {
 				// Show commit diff/patch
 				cmdObj := self.c.Git().Commit.ShowCmdObj(item.CommitSha, nil)
 				task = types.NewRunPtyTask(cmdObj.GetCmd())
-				title = "Patch"
+				title = self.c.Tr.SpicePatch
 			} else {
 				// Show branch commit log
 				cmdObj := self.c.Git().Branch.GetGraphCmdObj(item.FullRefName())
@@ -290,7 +290,7 @@ func (self *SpiceStacksController) press(item *models.SpiceStackItem) error {
 func (self *SpiceStacksController) viewBranchCommits(item *models.SpiceStackItem) error {
 	branch := self.findBranchByName(item.Name)
 	if branch == nil {
-		return errors.New("Branch not found")
+		return errors.New(self.c.Tr.SpiceBranchNotFound)
 	}
 
 	return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
@@ -313,7 +313,7 @@ func (self *SpiceStacksController) findBranchByName(name string) *models.Branch 
 func (self *SpiceStacksController) viewCommitFiles(item *models.SpiceStackItem) error {
 	commit, _ := self.findCommitByHash(item.CommitSha)
 	if commit == nil {
-		return errors.New("Commit not found in commits list")
+		return errors.New(self.c.Tr.SpiceCommitNotFound)
 	}
 
 	commitFilesContext := self.c.Contexts().CommitFiles
@@ -346,7 +346,7 @@ func (self *SpiceStacksController) findCommitByHash(sha string) (*models.Commit,
 func (self *SpiceStacksController) commitSquash(item *models.SpiceStackItem) error {
 	commit, commitIdx := self.findCommitByHash(item.CommitSha)
 	if commit == nil {
-		return errors.New("Commit not found in commits list")
+		return errors.New(self.c.Tr.SpiceCommitNotFound)
 	}
 
 	self.c.Confirm(types.ConfirmOpts{
@@ -366,7 +366,7 @@ func (self *SpiceStacksController) commitSquash(item *models.SpiceStackItem) err
 func (self *SpiceStacksController) commitMarkFixup(item *models.SpiceStackItem) error {
 	commit, commitIdx := self.findCommitByHash(item.CommitSha)
 	if commit == nil {
-		return errors.New("Commit not found in commits list")
+		return errors.New(self.c.Tr.SpiceCommitNotFound)
 	}
 
 	self.c.Confirm(types.ConfirmOpts{
@@ -386,7 +386,7 @@ func (self *SpiceStacksController) commitMarkFixup(item *models.SpiceStackItem) 
 func (self *SpiceStacksController) commitReword(item *models.SpiceStackItem) error {
 	commit, commitIdx := self.findCommitByHash(item.CommitSha)
 	if commit == nil {
-		return errors.New("Commit not found in commits list")
+		return errors.New(self.c.Tr.SpiceCommitNotFound)
 	}
 
 	commitMessage, err := self.c.Git().Commit.GetCommitMessage(commit.Hash())
@@ -415,7 +415,7 @@ func (self *SpiceStacksController) handleReword(summary string, description stri
 
 	_, commitIdx := self.findCommitByHash(item.CommitSha)
 	if commitIdx == -1 {
-		return errors.New("Commit not found")
+		return errors.New(self.c.Tr.SpiceCommitNotFound)
 	}
 
 	// Check if this is the head commit
@@ -435,7 +435,7 @@ func (self *SpiceStacksController) handleReword(summary string, description stri
 func (self *SpiceStacksController) commitDrop(item *models.SpiceStackItem) error {
 	_, commitIdx := self.findCommitByHash(item.CommitSha)
 	if commitIdx == -1 {
-		return errors.New("Commit not found in commits list")
+		return errors.New(self.c.Tr.SpiceCommitNotFound)
 	}
 
 	self.c.Confirm(types.ConfirmOpts{
@@ -455,7 +455,7 @@ func (self *SpiceStacksController) commitDrop(item *models.SpiceStackItem) error
 func (self *SpiceStacksController) commitEdit(item *models.SpiceStackItem) error {
 	_, commitIdx := self.findCommitByHash(item.CommitSha)
 	if commitIdx == -1 {
-		return errors.New("Commit not found in commits list")
+		return errors.New(self.c.Tr.SpiceCommitNotFound)
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.EditCommit)
@@ -466,7 +466,7 @@ func (self *SpiceStacksController) commitEdit(item *models.SpiceStackItem) error
 func (self *SpiceStacksController) commitAmend(item *models.SpiceStackItem) error {
 	_, commitIdx := self.findCommitByHash(item.CommitSha)
 	if commitIdx == -1 {
-		return errors.New("Commit not found in commits list")
+		return errors.New(self.c.Tr.SpiceCommitNotFound)
 	}
 
 	// If it's the head commit, use the amend helper
@@ -491,7 +491,7 @@ func (self *SpiceStacksController) commitAmend(item *models.SpiceStackItem) erro
 func (self *SpiceStacksController) commitCheckout(item *models.SpiceStackItem) error {
 	commit, _ := self.findCommitByHash(item.CommitSha)
 	if commit == nil {
-		return errors.New("Commit not found in commits list")
+		return errors.New(self.c.Tr.SpiceCommitNotFound)
 	}
 
 	return self.c.Helpers().Refs.CreateCheckoutMenu(commit)
@@ -504,7 +504,7 @@ func (self *SpiceStacksController) commitReset(item *models.SpiceStackItem) erro
 func (self *SpiceStacksController) commitCopy(item *models.SpiceStackItem) error {
 	commit, _ := self.findCommitByHash(item.CommitSha)
 	if commit == nil {
-		return errors.New("Commit not found in commits list")
+		return errors.New(self.c.Tr.SpiceCommitNotFound)
 	}
 
 	// Directly manipulate cherry-pick data since CopyRange uses context selection
@@ -528,7 +528,7 @@ func (self *SpiceStacksController) commitCopy(item *models.SpiceStackItem) error
 func (self *SpiceStacksController) copyCommitAttribute(item *models.SpiceStackItem) error {
 	commit, _ := self.findCommitByHash(item.CommitSha)
 	if commit == nil {
-		return errors.New("Commit not found in commits list")
+		return errors.New(self.c.Tr.SpiceCommitNotFound)
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
@@ -829,7 +829,7 @@ func (self *SpiceStacksController) newCommit() error {
 func (self *SpiceStacksController) commitMoveDown(item *models.SpiceStackItem) error {
 	_, commitIdx := self.findCommitByHash(item.CommitSha)
 	if commitIdx == -1 {
-		return errors.New("Commit not found")
+		return errors.New(self.c.Tr.SpiceCommitNotFound)
 	}
 
 	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
@@ -846,7 +846,7 @@ func (self *SpiceStacksController) commitMoveDown(item *models.SpiceStackItem) e
 func (self *SpiceStacksController) commitMoveUp(item *models.SpiceStackItem) error {
 	_, commitIdx := self.findCommitByHash(item.CommitSha)
 	if commitIdx == -1 {
-		return errors.New("Commit not found")
+		return errors.New(self.c.Tr.SpiceCommitNotFound)
 	}
 
 	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
@@ -880,55 +880,55 @@ func (self *SpiceStacksController) openStackOperationsMenu() error {
 
 	menuItems := []*types.MenuItem{
 		{
-			Label:   "Restack branch",
-			Key:     'r',
-			OnPress: func() error { return self.restack(item) },
+			Label:          self.c.Tr.SpiceRestackBranch,
+			Key:            'r',
+			OnPress:        func() error { return self.restack(item) },
 			DisabledReason: self.branchSelectedReason(item),
 		},
 		{
-			Label:   "Restack all",
+			Label:   self.c.Tr.SpiceRestackAll,
 			Key:     'R',
 			OnPress: func() error { return self.restackAll() },
 		},
 		{
-			Label:          "Submit branch",
+			Label:          self.c.Tr.SpiceSubmitBranch,
 			Key:            's',
 			OnPress:        func() error { return self.submit(item, git_commands.SubmitOpts{}) },
 			DisabledReason: self.branchSelectedReason(item),
 		},
 		{
-			Label:          "Submit branch (options)",
+			Label:          self.c.Tr.SpiceSubmitBranchOptions,
 			Key:            'o',
 			OnPress:        func() error { return self.openSubmitBranchMenu(item) },
 			OpensMenu:      true,
 			DisabledReason: self.branchSelectedReason(item),
 		},
 		{
-			Label:   "Submit all",
+			Label:   self.c.Tr.SpiceSubmitAll,
 			Key:     'S',
 			OnPress: func() error { return self.submitAll(git_commands.SubmitOpts{}) },
 		},
 		{
-			Label:     "Submit all (options)",
+			Label:     self.c.Tr.SpiceSubmitAllOptions,
 			Key:       'O',
 			OnPress:   func() error { return self.openSubmitAllMenu() },
 			OpensMenu: true,
 		},
 		{
-			Label:   "Create branch",
+			Label:   self.c.Tr.SpiceNewBranch,
 			Key:     'c',
 			OnPress: func() error { return self.newBranch() },
 		},
 		{
-			Label:   "Delete branch",
-			Key:     'd',
-			OnPress: func() error { return self.delete(item) },
+			Label:          self.c.Tr.SpiceDeleteBranch,
+			Key:            'd',
+			OnPress:        func() error { return self.delete(item) },
 			DisabledReason: self.branchSelectedReason(item),
 		},
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
-		Title: "Stack Operations",
+		Title: self.c.Tr.SpiceStackOperationsMenuTitle,
 		Items: menuItems,
 	})
 }
@@ -936,33 +936,33 @@ func (self *SpiceStacksController) openStackOperationsMenu() error {
 func (self *SpiceStacksController) openNavigationMenu() error {
 	menuItems := []*types.MenuItem{
 		{
-			Label:   "Up",
+			Label:   self.c.Tr.SpiceNavigateUp,
 			Key:     'u',
-			Tooltip: "Navigate up one branch in the stack (gs up)",
+			Tooltip: self.c.Tr.SpiceNavigateUpTooltip,
 			OnPress: func() error { return self.navigateUp() },
 		},
 		{
-			Label:   "Down",
+			Label:   self.c.Tr.SpiceNavigateDown,
 			Key:     'd',
-			Tooltip: "Navigate down one branch in the stack (gs down)",
+			Tooltip: self.c.Tr.SpiceNavigateDownTooltip,
 			OnPress: func() error { return self.navigateDown() },
 		},
 		{
-			Label:   "Top",
+			Label:   self.c.Tr.SpiceNavigateTop,
 			Key:     't',
-			Tooltip: "Navigate to the top of the stack (gs top)",
+			Tooltip: self.c.Tr.SpiceNavigateTopTooltip,
 			OnPress: func() error { return self.navigateTop() },
 		},
 		{
-			Label:   "Bottom",
+			Label:   self.c.Tr.SpiceNavigateBottom,
 			Key:     'b',
-			Tooltip: "Navigate to the bottom of the stack (gs bottom)",
+			Tooltip: self.c.Tr.SpiceNavigateBottomTooltip,
 			OnPress: func() error { return self.navigateBottom() },
 		},
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
-		Title: "Stack Navigation",
+		Title: self.c.Tr.SpiceStackNavigationMenuTitle,
 		Items: menuItems,
 	})
 }
@@ -970,26 +970,26 @@ func (self *SpiceStacksController) openNavigationMenu() error {
 func (self *SpiceStacksController) openSubmitBranchMenu(item *models.SpiceStackItem) error {
 	menuItems := []*types.MenuItem{
 		{
-			Label:   "No publish",
+			Label:   self.c.Tr.SpiceNoPublish,
 			Key:     'n',
-			Tooltip: "Create/update PR without publishing (keeps as draft)",
+			Tooltip: self.c.Tr.SpiceNoPublishTooltip,
 			OnPress: func() error { return self.submit(item, git_commands.SubmitOpts{NoPublish: true}) },
 		},
 		{
-			Label:   "Update only",
+			Label:   self.c.Tr.SpiceUpdateOnly,
 			Key:     'u',
-			Tooltip: "Only update existing PRs, don't create new ones",
+			Tooltip: self.c.Tr.SpiceUpdateOnlyTooltip,
 			OnPress: func() error { return self.submit(item, git_commands.SubmitOpts{UpdateOnly: true}) },
 		},
 		{
-			Label:   "Submit (default)",
+			Label:   self.c.Tr.SpiceSubmitDefault,
 			Key:     's',
 			OnPress: func() error { return self.submit(item, git_commands.SubmitOpts{}) },
 		},
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
-		Title: "Submit Branch Options",
+		Title: self.c.Tr.SpiceSubmitBranchOptionsMenuTitle,
 		Items: menuItems,
 	})
 }
@@ -997,26 +997,26 @@ func (self *SpiceStacksController) openSubmitBranchMenu(item *models.SpiceStackI
 func (self *SpiceStacksController) openSubmitAllMenu() error {
 	menuItems := []*types.MenuItem{
 		{
-			Label:   "No publish",
+			Label:   self.c.Tr.SpiceNoPublish,
 			Key:     'n',
-			Tooltip: "Create/update PRs without publishing (keeps as draft)",
+			Tooltip: self.c.Tr.SpiceNoPublishTooltip,
 			OnPress: func() error { return self.submitAll(git_commands.SubmitOpts{NoPublish: true}) },
 		},
 		{
-			Label:   "Update only",
+			Label:   self.c.Tr.SpiceUpdateOnly,
 			Key:     'u',
-			Tooltip: "Only update existing PRs, don't create new ones",
+			Tooltip: self.c.Tr.SpiceUpdateOnlyTooltip,
 			OnPress: func() error { return self.submitAll(git_commands.SubmitOpts{UpdateOnly: true}) },
 		},
 		{
-			Label:   "Submit all (default)",
+			Label:   self.c.Tr.SpiceSubmitAllDefault,
 			Key:     's',
 			OnPress: func() error { return self.submitAll(git_commands.SubmitOpts{}) },
 		},
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
-		Title: "Submit All Options",
+		Title: self.c.Tr.SpiceSubmitAllOptionsMenuTitle,
 		Items: menuItems,
 	})
 }
@@ -1030,24 +1030,24 @@ func (self *SpiceStacksController) branchSelectedReason(item *models.SpiceStackI
 
 func (self *SpiceStacksController) openLogFormatMenu() error {
 	return self.c.Menu(types.CreateMenuOptions{
-		Title: "Log Format",
+		Title: self.c.Tr.SpiceLogFormatMenuTitle,
 		Items: []*types.MenuItem{
 			{
-				Label: "Short",
+				Label: self.c.Tr.SpiceLogFormatShort,
 				Key:   's',
 				OnPress: func() error {
 					return self.setLogFormat("short")
 				},
 			},
 			{
-				Label: "Long",
+				Label: self.c.Tr.SpiceLogFormatLong,
 				Key:   'l',
 				OnPress: func() error {
 					return self.setLogFormat("long")
 				},
 			},
 			{
-				Label: "Default (from config)",
+				Label: self.c.Tr.SpiceLogFormatDefault,
 				Key:   'd',
 				OnPress: func() error {
 					return self.setLogFormat("") // empty = use config default
@@ -1084,7 +1084,7 @@ func (self *SpiceStacksController) withItem(f func(item *models.SpiceStackItem) 
 func (self *SpiceStacksController) singleItemSelected() func() *types.DisabledReason {
 	return func() *types.DisabledReason {
 		if self.context().GetSelected() == nil {
-			return &types.DisabledReason{Text: "No item selected"}
+			return &types.DisabledReason{Text: self.c.Tr.SpiceNoItemSelected}
 		}
 		return nil
 	}

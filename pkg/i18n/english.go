@@ -798,6 +798,43 @@ type TranslationSet struct {
 	SpiceSelectTrunkBranch                   string
 	SpiceInitializingStatus                  string
 	SpiceInitialize                          string
+	SpiceNoStacks                            string
+	SpicePatch                               string
+	SpiceBranchNotFound                      string
+	SpiceCommitNotFound                      string
+	SpiceNoItemSelected                      string
+	SpiceMoveBranchDown                      string
+	SpiceMoveBranchUp                        string
+	SpiceStackOperations                     string
+	SpiceStackNavigation                     string
+	SpiceStackOperationsMenuTitle            string
+	SpiceStackNavigationMenuTitle            string
+	SpiceRestackBranch                       string
+	SpiceRestackAll                          string
+	SpiceSubmitBranch                        string
+	SpiceSubmitBranchOptions                 string
+	SpiceSubmitAll                           string
+	SpiceSubmitAllOptions                    string
+	SpiceNavigateUp                          string
+	SpiceNavigateUpTooltip                   string
+	SpiceNavigateDown                        string
+	SpiceNavigateDownTooltip                 string
+	SpiceNavigateTop                         string
+	SpiceNavigateTopTooltip                  string
+	SpiceNavigateBottom                      string
+	SpiceNavigateBottomTooltip               string
+	SpiceSubmitBranchOptionsMenuTitle        string
+	SpiceSubmitAllOptionsMenuTitle           string
+	SpiceNoPublish                           string
+	SpiceNoPublishTooltip                    string
+	SpiceUpdateOnly                          string
+	SpiceUpdateOnlyTooltip                   string
+	SpiceSubmitDefault                       string
+	SpiceSubmitAllDefault                    string
+	SpiceLogFormatMenuTitle                  string
+	SpiceLogFormatShort                      string
+	SpiceLogFormatLong                       string
+	SpiceLogFormatDefault                    string
 	ShowGitGraph                             string
 	ShowGitGraphTooltip                      string
 	SortOrder                                string
@@ -1915,6 +1952,43 @@ func EnglishTranslationSet() *TranslationSet {
 		SpiceSelectTrunkBranch:                   "Select trunk branch:",
 		SpiceInitializingStatus:                  "Initializing git-spice...",
 		SpiceInitialize:                          "Initialize git-spice",
+		SpiceNoStacks:                            "No stacks",
+		SpicePatch:                               "Patch",
+		SpiceBranchNotFound:                      "Branch not found",
+		SpiceCommitNotFound:                      "Commit not found in commits list",
+		SpiceNoItemSelected:                      "No item selected",
+		SpiceMoveBranchDown:                      "Move branch down in stack",
+		SpiceMoveBranchUp:                        "Move branch up in stack",
+		SpiceStackOperations:                     "Stack operations",
+		SpiceStackNavigation:                     "Stack navigation",
+		SpiceStackOperationsMenuTitle:            "Stack Operations",
+		SpiceStackNavigationMenuTitle:            "Stack Navigation",
+		SpiceRestackBranch:                       "Restack branch",
+		SpiceRestackAll:                          "Restack all",
+		SpiceSubmitBranch:                        "Submit branch",
+		SpiceSubmitBranchOptions:                 "Submit branch (options)",
+		SpiceSubmitAll:                           "Submit all",
+		SpiceSubmitAllOptions:                    "Submit all (options)",
+		SpiceNavigateUp:                          "Up",
+		SpiceNavigateUpTooltip:                   "Navigate up one branch in the stack (gs up)",
+		SpiceNavigateDown:                        "Down",
+		SpiceNavigateDownTooltip:                 "Navigate down one branch in the stack (gs down)",
+		SpiceNavigateTop:                         "Top",
+		SpiceNavigateTopTooltip:                  "Navigate to the top of the stack (gs top)",
+		SpiceNavigateBottom:                      "Bottom",
+		SpiceNavigateBottomTooltip:               "Navigate to the bottom of the stack (gs bottom)",
+		SpiceSubmitBranchOptionsMenuTitle:        "Submit Branch Options",
+		SpiceSubmitAllOptionsMenuTitle:           "Submit All Options",
+		SpiceNoPublish:                           "No publish",
+		SpiceNoPublishTooltip:                    "Create/update PR without publishing (keeps as draft)",
+		SpiceUpdateOnly:                          "Update only",
+		SpiceUpdateOnlyTooltip:                   "Only update existing PRs, don't create new ones",
+		SpiceSubmitDefault:                       "Submit (default)",
+		SpiceSubmitAllDefault:                    "Submit all (default)",
+		SpiceLogFormatMenuTitle:                  "Log Format",
+		SpiceLogFormatShort:                      "Short",
+		SpiceLogFormatLong:                       "Long",
+		SpiceLogFormatDefault:                    "Default (from config)",
 		ShowGitGraph:                             "Show git graph",
 		ShowGitGraphTooltip:                      "Show or hide the git graph in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.showGraph'.",
 		SortOrder:                                "Sort order",
