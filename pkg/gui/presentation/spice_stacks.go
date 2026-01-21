@@ -31,7 +31,7 @@ func GetSpiceStackDisplayStrings(
 			prefix := buildCommitPrefix(item, idx, items, continuing)
 			commitText := style.FgCyan.Sprint(item.CommitSha) + " " +
 				style.FgDefault.Sprint(item.CommitSubject)
-			return []string{prefix + commitText, "", ""}
+			return []string{prefix + commitText, ""}
 		}
 
 		// Regular branch item
@@ -40,7 +40,13 @@ func GetSpiceStackDisplayStrings(
 		status := formatStatus(item)
 		pr := formatPR(item)
 
-		return []string{prefix + name, status, pr}
+		// Combine name and status in same column (1 space between)
+		nameAndStatus := prefix + name
+		if status != "" {
+			nameAndStatus += " " + status
+		}
+
+		return []string{nameAndStatus, pr}
 	})
 }
 
