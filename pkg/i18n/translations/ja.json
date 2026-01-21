@@ -576,6 +576,8 @@
   "FilterBy": "フィルター条件",
   "ExitFilterMode": "フィルタリングを停止",
   "FilterPathOption": "フィルタリングするパスを入力",
+  "FilterHideMerges": "マージコミットを非表示",
+  "FilterHideMergesTooltip": "リストからマージコミットを除外",
   "FilterAuthorOption": "フィルタリングする作者を入力",
   "EnterFileName": "パスを入力：",
   "EnterAuthor": "作者を入力：",
