@@ -1087,16 +1087,6 @@ func (self *SpiceStacksController) setLogFormat(format string) error {
 	return nil
 }
 
-func (self *SpiceStacksController) getEffectiveLogFormat() string {
-	if format := self.c.GetAppState().Spice.LogFormat; format != "" {
-		return format
-	}
-	if format := self.c.UserConfig().Git.Spice.LogFormat; format != "" {
-		return format
-	}
-	return "short" // ultimate default
-}
-
 // === HELPER METHODS ===
 
 func (self *SpiceStacksController) context() *context.SpiceStacksContext {
@@ -1117,16 +1107,6 @@ func (self *SpiceStacksController) singleItemSelected() func() *types.DisabledRe
 	return func() *types.DisabledReason {
 		if self.context().GetSelected() == nil {
 			return &types.DisabledReason{Text: "No item selected"}
-		}
-		return nil
-	}
-}
-
-func (self *SpiceStacksController) branchSelected() func() *types.DisabledReason {
-	return func() *types.DisabledReason {
-		item := self.context().GetSelected()
-		if item == nil || item.IsCommit {
-			return &types.DisabledReason{Text: self.c.Tr.SpiceBranchOnly}
 		}
 		return nil
 	}
