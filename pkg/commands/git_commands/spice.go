@@ -44,7 +44,7 @@ func (self *SpiceCommands) GetStackBranches(format string) (string, error) {
 	if format != "short" && format != "long" {
 		format = "short" // Fallback if invalid
 	}
-	cmdArgs := []string{"gs", "log", format, "--json", "-a"}
+	cmdArgs := []string{"gs", "log", format, "--json", "-a", "-S"}
 	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 }
 
