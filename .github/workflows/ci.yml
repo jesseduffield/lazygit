@@ -28,9 +28,9 @@ jobs:
       GOFLAGS: -mod=vendor
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: 1.25.x
       - name: Test code
@@ -39,7 +39,7 @@ jobs:
           mkdir -p /tmp/code_coverage
           go test ./... -short -cover -args "-test.gocoverdir=/tmp/code_coverage"
       - name: Upload code coverage artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-unit-${{ matrix.os }}-${{ github.run_id }}
           path: /tmp/code_coverage
@@ -59,7 +59,7 @@ jobs:
       GOFLAGS: -mod=vendor
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Restore Git cache
         if: matrix.git-version != 'latest'
         id: cache-git-restore
@@ -85,7 +85,7 @@ jobs:
           path: ~/git-${{matrix.git-version}}
           key: ${{runner.os}}-git-${{matrix.git-version}}
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: 1.25.x
       - name: Print git version
@@ -98,7 +98,7 @@ jobs:
           mkdir -p /tmp/code_coverage
           ./scripts/run_integration_tests.sh
       - name: Upload code coverage artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-integration-${{ matrix.git-version }}-${{ github.run_id }}
           path: /tmp/code_coverage
@@ -109,9 +109,9 @@ jobs:
       GOARCH: amd64
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: 1.25.x
       - name: Build linux binary
@@ -136,9 +136,9 @@ jobs:
       GOARCH: amd64
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: 1.25.x
       - name: Check Vendor Directory
@@ -162,13 +162,13 @@ jobs:
       GOFLAGS: -mod=vendor
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: 1.25.x
       - name: Lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
           # If you change this, make sure to also update scripts/golangci-lint-shim.sh
           version: v2.4.0
@@ -182,15 +182,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: 1.25.x
 
       - name: Download all coverage artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: /tmp/code_coverage
 
@@ -219,7 +219,7 @@ jobs:
         run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} ))" >> "${GITHUB_ENV}"
 
       - name: "Checkout PR branch and all PR commits"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}

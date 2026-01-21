@@ -45,7 +45,7 @@ jobs:
           fi
 
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: jesseduffield/lazygit
           token: ${{ secrets.LAZYGIT_RELEASE_PAT }}
@@ -146,7 +146,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.LAZYGIT_RELEASE_PAT }}
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: 1.25.x
 
