@@ -4,12 +4,10 @@ package models
 type SpiceStackItem struct {
 	Name          string
 	Current       bool
-	Depth         int    // indentation level in tree
-	IsLast        bool   // last sibling at this depth (for tree drawing)
-	SiblingIndex  int    // position among siblings (0 = topmost)
+	Depth         int // indentation level in tree
+	SiblingIndex  int // position among siblings (0 = topmost)
 	NeedsRestack  bool
 	PRNumber      string // e.g. "#123"
-	PRURL         string
 	PRStatus      string // "open", "closed", "merged"
 	Ahead         int
 	Behind        int

@@ -109,8 +109,8 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 	// DFS to build flat list with proper depths, starting from roots going up
 	// Using fliptree algorithm: children are added before parents
 	var result []*models.SpiceStackItem
-	var dfs func(name string, depth int, siblingIndex int, isLast bool)
-	dfs = func(name string, depth int, siblingIndex int, isLast bool) {
+	var dfs func(name string, depth int, siblingIndex int)
+	dfs = func(name string, depth int, siblingIndex int) {
 		if visited[name] {
 			return
 		}
@@ -124,7 +124,7 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 		// FLIPTREE: Traverse children FIRST (before adding parent)
 		for i, up := range branch.Ups {
 			if upBranch, exists := branchByName[up.Name]; exists {
-				dfs(upBranch.Name, depth+1, i, i == len(branch.Ups)-1)
+				dfs(upBranch.Name, depth+1, i)
 			}
 		}
 
@@ -132,7 +132,6 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 		item := &models.SpiceStackItem{
 			Name:         name,
 			Depth:        depth,
-			IsLast:       isLast,
 			SiblingIndex: siblingIndex,
 			Current:      branch.Current,
 		}
@@ -142,7 +141,6 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 		}
 		if branch.Change != nil {
 			item.PRNumber = branch.Change.ID
-			item.PRURL = branch.Change.URL
 			item.PRStatus = branch.Change.Status
 		}
 		if branch.Push != nil {
@@ -173,7 +171,7 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 	}
 
 	for i, root := range roots {
-		dfs(root, 0, i, i == len(roots)-1)
+		dfs(root, 0, i)
 	}
 
 	// No need to reverse - fliptree naturally produces children-before-parents order
