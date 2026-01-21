@@ -23,19 +23,17 @@ func GetSpiceStackDisplayStrings(
 		return [][]string{}
 	}
 
-	continuing := make(map[int]bool) // tracks which depth levels have more siblings
-
 	return lo.Map(items, func(item *models.SpiceStackItem, idx int) []string {
 		// Check if this is a commit item
 		if item.IsCommit {
-			prefix := buildCommitPrefix(item, idx, items, continuing)
+			prefix := buildCommitPrefix(item, idx, items)
 			commitText := style.FgCyan.Sprint(item.CommitSha) + " " +
 				style.FgDefault.Sprint(item.CommitSubject)
 			return []string{prefix + commitText, ""}
 		}
 
 		// Regular branch item
-		prefix := buildTreePrefix(item, idx, items, continuing)
+		prefix := buildTreePrefix(item, idx, items)
 		name := formatBranchName(item, diffName)
 		status := formatStatus(item)
 		pr := formatPR(item)
@@ -50,7 +48,7 @@ func GetSpiceStackDisplayStrings(
 	})
 }
 
-func buildTreePrefix(item *models.SpiceStackItem, idx int, items []*models.SpiceStackItem, continuing map[int]bool) string {
+func buildTreePrefix(item *models.SpiceStackItem, idx int, items []*models.SpiceStackItem) string {
 	if item.Depth == 0 {
 		return "" // trunk has no prefix
 	}
@@ -135,7 +133,7 @@ func hasItemsAtDepthBefore(idx int, depth int, items []*models.SpiceStackItem) b
 	return false
 }
 
-func buildCommitPrefix(item *models.SpiceStackItem, idx int, items []*models.SpiceStackItem, continuing map[int]bool) string {
+func buildCommitPrefix(item *models.SpiceStackItem, idx int, items []*models.SpiceStackItem) string {
 	var parts []string
 
 	// Find the parent branch (most recent non-commit item before this commit)
