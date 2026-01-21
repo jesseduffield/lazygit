@@ -81,6 +81,8 @@ func buildTreePrefix(item *models.SpiceStackItem, idx int, items []*models.Spice
 	hasChildren := hasItemsAtDepthBefore(idx, item.Depth+1, items)
 	if hasChildren {
 		joint += "┴"
+	} else {
+		joint += "─"
 	}
 
 	// Add branch indicator: ● for current branch, ◯ for others
@@ -138,11 +140,9 @@ func buildCommitPrefix(_ *models.SpiceStackItem, idx int, items []*models.SpiceS
 
 	// Find the parent branch (most recent non-commit item before this commit)
 	var parentBranch *models.SpiceStackItem
-	var parentIdx int
 	for i := idx - 1; i >= 0; i-- {
 		if !items[i].IsCommit {
 			parentBranch = items[i]
-			parentIdx = i
 			break
 		}
 	}
@@ -151,9 +151,6 @@ func buildCommitPrefix(_ *models.SpiceStackItem, idx int, items []*models.SpiceS
 		// Shouldn't happen, but handle gracefully
 		return ""
 	}
-
-	// Check if parent branch has children (which adds ┴ to its prefix)
-	parentHasChildren := hasItemsAtDepthBefore(parentIdx, parentBranch.Depth+1, items)
 
 	// For depths 1 to parentBranch.Depth-1: check ancestors like the branch would
 	for d := 1; d < parentBranch.Depth; d++ {
@@ -168,13 +165,8 @@ func buildCommitPrefix(_ *models.SpiceStackItem, idx int, items []*models.SpiceS
 	// At the parent branch's depth: always draw a pipe
 	parts = append(parts, "│ ")
 
-	// Add spacing to align with branch name
-	// Add extra space if parent has children (to account for ┴ in branch prefix)
-	if parentHasChildren {
-		parts = append(parts, "   ")
-	} else {
-		parts = append(parts, "  ")
-	}
+	// Add spacing to align with branch name (all branch joints are now 3 chars wide)
+	parts = append(parts, "   ")
 
 	return strings.Join(parts, "")
 }

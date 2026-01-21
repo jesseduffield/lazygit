@@ -36,14 +36,14 @@ func TestBuildTreePrefix(t *testing.T) {
 		idx      int
 		expected string
 	}{
-		{0, "        ┌─◯ "},   // spice-stacks-alt-long-nav
-		{1, "        │ ┌─◯ "}, // spice-stack-refactor
-		{2, "        ├─┴◯ "},  // spice-stacks-nav-bug
-		{3, "      ┌─┴● "},    // spice-stacks-rendering (current)
-		{4, "    ┌─┴◯ "},      // spice-stacks-sort-order
-		{5, "  ┌─┴◯ "},        // spice-stacks-long-desc
-		{6, "┌─┴◯ "},          // claude/add-spice-stacks-tab-xljBG
-		{7, ""},               // master: no prefix
+		{0, "        ┌──◯ "},   // spice-stacks-alt-long-nav
+		{1, "        │ ┌──◯ "}, // spice-stack-refactor
+		{2, "        ├─┴◯ "},   // spice-stacks-nav-bug
+		{3, "      ┌─┴● "},     // spice-stacks-rendering (current)
+		{4, "    ┌─┴◯ "},       // spice-stacks-sort-order
+		{5, "  ┌─┴◯ "},         // spice-stacks-long-desc
+		{6, "┌─┴◯ "},           // claude/add-spice-stacks-tab-xljBG
+		{7, ""},                // master: no prefix
 	}
 
 	for _, tt := range tests {
@@ -67,10 +67,10 @@ func TestBuildTreePrefixSimpleLinear(t *testing.T) {
 		idx      int
 		expected string
 	}{
-		{0, "    ┌─◯ "}, // C
-		{1, "  ┌─┴◯ "},  // B
-		{2, "┌─┴◯ "},    // A
-		{3, ""},         // main: no prefix
+		{0, "    ┌──◯ "}, // C
+		{1, "  ┌─┴◯ "},   // B
+		{2, "┌─┴◯ "},     // A
+		{3, ""},          // main: no prefix
 	}
 
 	for _, tt := range tests {
@@ -99,11 +99,11 @@ func TestBuildTreePrefixMultipleSiblings(t *testing.T) {
 		idx      int
 		expected string
 	}{
-		{0, "    ├─◯ "}, // C2: siblingIndex 1
-		{1, "    ┌─◯ "}, // C1: siblingIndex 0
-		{2, "  ┌─┴◯ "},  // B
-		{3, "┌─┴◯ "},    // A
-		{4, ""},         // main: no prefix
+		{0, "    ├──◯ "}, // C2: siblingIndex 1
+		{1, "    ┌──◯ "}, // C1: siblingIndex 0
+		{2, "  ┌─┴◯ "},   // B
+		{3, "┌─┴◯ "},     // A
+		{4, ""},          // main: no prefix
 	}
 
 	for _, tt := range tests {
@@ -135,12 +135,12 @@ func TestBuildTreePrefixNestedSiblings(t *testing.T) {
 		idx      int
 		expected string
 	}{
-		{0, "    │ ┌─◯ "}, // D
-		{1, "    ├─┴◯ "},  // C2: siblingIndex 1, has D above
-		{2, "    ┌─◯ "},   // C1: siblingIndex 0, no children (D is child of C2)
-		{3, "  ┌─┴◯ "},    // B
-		{4, "┌─┴◯ "},      // A
-		{5, ""},           // main: no prefix
+		{0, "    │ ┌──◯ "}, // D
+		{1, "    ├─┴◯ "},   // C2: siblingIndex 1, has D above
+		{2, "    ┌──◯ "},   // C1: siblingIndex 0, no children (D is child of C2)
+		{3, "  ┌─┴◯ "},     // B
+		{4, "┌─┴◯ "},       // A
+		{5, ""},            // main: no prefix
 	}
 
 	for _, tt := range tests {
@@ -165,10 +165,10 @@ func TestBuildTreePrefixSiblingWithCommits(t *testing.T) {
 	result := buildTreePrefix(items[2], 2, items)
 	result = stripAnsi(result)
 
-	// sibling2 should have ├─◯ (not ├─┴◯) since it has no children
+	// sibling2 should have ├──◯ (not ├─┴◯) since it has no children
 	// The ┴ should only appear when there are actual child branches, not commits
 	assert.NotContains(t, result, "┴", "Sibling branch should not show ┴ when only commits (not branches) are before it")
-	assert.Equal(t, "  ├─◯ ", result, "sibling2 should have correct prefix without ┴")
+	assert.Equal(t, "  ├──◯ ", result, "sibling2 should have correct prefix without ┴")
 }
 
 // stripAnsi removes ANSI escape codes from a string
