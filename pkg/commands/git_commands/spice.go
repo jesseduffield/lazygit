@@ -134,11 +134,11 @@ func (self *SpiceCommands) Init(trunk string) error {
 }
 
 func (self *SpiceCommands) Sync(restack bool) error {
-	cmdArgs := NewGitCmd("gs").Arg("repo", "sync")
+	cmdArgs := []string{"gs", "repo", "sync"}
 	if restack {
-		cmdArgs = cmdArgs.Arg("--restack")
+		cmdArgs = append(cmdArgs, "--restack")
 	}
-	return self.cmd.New(cmdArgs.ToArgv()).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *SpiceCommands) ClearInitializedCache() {
