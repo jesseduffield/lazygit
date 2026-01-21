@@ -125,16 +125,6 @@ func (self *SpiceCommands) DeleteBranch(branchName string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *SpiceCommands) TrackBranch(branchName string) error {
-	cmdArgs := []string{"gs", "branch", "track", branchName}
-	return self.cmd.New(cmdArgs).Run()
-}
-
-func (self *SpiceCommands) UntrackBranch(branchName string) error {
-	cmdArgs := []string{"gs", "branch", "untrack", branchName}
-	return self.cmd.New(cmdArgs).Run()
-}
-
 // Move branches in stack
 func (self *SpiceCommands) MoveBranchUp(branchName string) error {
 	cmdArgs := []string{"gs", "branch", "up", "--branch", branchName}
@@ -143,12 +133,6 @@ func (self *SpiceCommands) MoveBranchUp(branchName string) error {
 
 func (self *SpiceCommands) MoveBranchDown(branchName string) error {
 	cmdArgs := []string{"gs", "branch", "down", "--branch", branchName}
-	return self.cmd.New(cmdArgs).Run()
-}
-
-// CommitFixup applies staged changes to a specific commit and restacks
-func (self *SpiceCommands) CommitFixup(commitSha string) error {
-	cmdArgs := []string{"gs", "commit", "fixup", commitSha}
 	return self.cmd.New(cmdArgs).Run()
 }
 
