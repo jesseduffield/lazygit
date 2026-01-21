@@ -26,15 +26,23 @@ type HostingServiceMgr struct {
 
 	// see https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-pull-request-urls
 	configServiceDomains map[string]string
+
+	commitExistsOnRemote func(string) bool
 }
 
 // NewHostingServiceMgr creates new instance of PullRequest
-func NewHostingServiceMgr(log logrus.FieldLogger, tr *i18n.TranslationSet, remoteURL string, configServiceDomains map[string]string) *HostingServiceMgr {
+func NewHostingServiceMgr(
+	log logrus.FieldLogger,
+	tr *i18n.TranslationSet, remoteURL string,
+	configServiceDomains map[string]string,
+	commitExistsOnRemote func(string) bool,
+) *HostingServiceMgr {
 	return &HostingServiceMgr{
 		log:                  log,
 		tr:                   tr,
 		remoteURL:            remoteURL,
 		configServiceDomains: configServiceDomains,
+		commitExistsOnRemote: commitExistsOnRemote,
 	}
 }
 
@@ -56,9 +64,10 @@ func (self *HostingServiceMgr) GetCommitURL(commitHash string) (string, error) {
 		return "", err
 	}
 
-	pullRequestURL := gitService.getCommitURL(commitHash)
-
-	return pullRequestURL, nil
+	if !self.commitExistsOnRemote(commitHash) {
+		return "", errors.New("no remote URL available")
+	}
+	return gitService.getCommitURL(commitHash), nil
 }
 
 func (self *HostingServiceMgr) getService() (*Service, error) {
@@ -166,17 +175,17 @@ type Service struct {
 }
 
 func (self *Service) getPullRequestURLIntoDefaultBranch(from string) string {
-	return self.resolveUrl(self.pullRequestURLIntoDefaultBranch, map[string]string{"From": from})
+	return self.resolveURL(self.pullRequestURLIntoDefaultBranch, map[string]string{"From": from})
 }
 
 func (self *Service) getPullRequestURLIntoTargetBranch(from string, to string) string {
-	return self.resolveUrl(self.pullRequestURLIntoTargetBranch, map[string]string{"From": from, "To": to})
+	return self.resolveURL(self.pullRequestURLIntoTargetBranch, map[string]string{"From": from, "To": to})
 }
 
 func (self *Service) getCommitURL(commitHash string) string {
-	return self.resolveUrl(self.commitURL, map[string]string{"CommitHash": commitHash})
+	return self.resolveURL(self.commitURL, map[string]string{"CommitHash": commitHash})
 }
 
-func (self *Service) resolveUrl(templateString string, args map[string]string) string {
+func (self *Service) resolveURL(templateString string, args map[string]string) string {
 	return self.repoURL + utils.ResolvePlaceholderString(templateString, args)
 }

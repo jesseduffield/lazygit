@@ -571,7 +571,7 @@ func TestGetPullRequestURL(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			tr := i18n.EnglishTranslationSet()
 			log := &fakes.FakeFieldLogger{}
-			hostingServiceMgr := NewHostingServiceMgr(log, tr, s.remoteUrl, s.configServiceDomains)
+			hostingServiceMgr := NewHostingServiceMgr(log, tr, s.remoteUrl, s.configServiceDomains, nil)
 			s.test(hostingServiceMgr.GetPullRequestURL(s.from, s.to))
 			log.AssertErrors(t, s.expectedLoggedErrors)
 		})
