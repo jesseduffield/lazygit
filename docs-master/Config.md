@@ -465,6 +465,16 @@ git:
     # passing the `--all` argument to `git log`)
     showWholeGraph: false
 
+  # Config for git-spice integration
+  spice:
+    # If true, enable git-spice integration when the gs binary is available
+    enabled: true
+
+    # LogFormat for displaying git-spice stacks: 'short' | 'long'
+    # 'short' shows basic branch hierarchy
+    # 'long' shows additional PR info, sync status, and commits
+    logFormat: short
+
   # How branches are sorted in the local branches view.
   # One of: 'date' (default) | 'recency' | 'alphabetical'
   # Can be changed from within Lazygit with the Sort Order menu (`s`) in the

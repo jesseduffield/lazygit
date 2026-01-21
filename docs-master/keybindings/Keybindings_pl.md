@@ -321,6 +321,32 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
 
+## Stacks
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | Pokaż commity |  |
+| `` s `` | Scal |  |
+| `` f `` | Poprawka |  |
+| `` r `` | Przeformułuj |  |
+| `` d `` | Usuń |  |
+| `` e `` | Edytuj |  |
+| `` A `` | Popraw |  |
+| `` g `` | Reset |  |
+| `` C `` | Kopiuj (cherry-pick) |  |
+| `` y `` | Kopiuj atrybut commita do schowka |  |
+| `` <space> `` | Przełącz |  |
+| `` <c-j> `` | Przesuń commit w dół |  |
+| `` <c-k> `` | Przesuń commit w górę |  |
+| `` S `` | Stack operations |  |
+| `` G `` | Stack navigation |  |
+| `` V `` | Toggle log format | Toggle between short and long format. Short shows basic hierarchy, long shows PR info and sync status. |
+| `` n `` | Create branch (on selected) |  |
+| `` N `` | Create commit |  |
+| `` 0 `` | Focus main view |  |
+| `` w `` | Zobacz opcje drzewa pracy |  |
+| `` / `` | Filtruj bieżący widok po tekście |  |
+
 ## Status
 
 | Key | Action | Info |

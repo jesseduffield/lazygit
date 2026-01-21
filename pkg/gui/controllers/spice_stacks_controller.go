@@ -484,7 +484,7 @@ func (self *SpiceStacksController) commitEdit(item *models.SpiceStackItem) error
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.EditCommit)
-	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, commitIdx, commitIdx, todo.Edit)
+	err = self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, commitIdx, commitIdx, todo.Edit)
 	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 }
 

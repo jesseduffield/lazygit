@@ -306,6 +306,32 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <esc> `` | Exit back to side panel |  |
 | `` / `` | Start met zoeken |  |
 
+## Stacks
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | Bekijk commits |  |
+| `` s `` | Squash |  |
+| `` f `` | Fixup |  |
+| `` r `` | Hernoem commit |  |
+| `` d `` | Laten vallen |  |
+| `` e `` | Edit |  |
+| `` A `` | Amend |  |
+| `` g `` | Bekijk reset opties |  |
+| `` C `` | Kopieer commit (cherry-pick) |  |
+| `` y `` | Copy commit attribute to clipboard |  |
+| `` <space> `` | Uitchecken |  |
+| `` <c-j> `` | Verplaats commit 1 naar beneden |  |
+| `` <c-k> `` | Verplaats commit 1 naar boven |  |
+| `` S `` | Stack operations |  |
+| `` G `` | Stack navigation |  |
+| `` V `` | Toggle log format | Toggle between short and long format. Short shows basic hierarchy, long shows PR info and sync status. |
+| `` n `` | Create branch (on selected) |  |
+| `` N `` | Create commit |  |
+| `` 0 `` | Focus main view |  |
+| `` w `` | View worktree options |  |
+| `` / `` | Filter the current view by text |  |
+
 ## Staging
 
 | Key | Action | Info |
