@@ -939,6 +939,34 @@ func (self *SpiceStacksController) openStackOperationsMenu() error {
 			OpensMenu: true,
 		},
 		{
+			Label:   self.c.Tr.SpiceRepoSync,
+			Key:     'y',
+			Tooltip: self.c.Tr.SpiceRepoSyncTooltip,
+			OnPress: func() error {
+				return self.c.WithWaitingStatus(self.c.Tr.SpiceRepoSync, func(gocui.Task) error {
+					if err := self.c.Git().Spice.Sync(false); err != nil {
+						return err
+					}
+					self.refreshAllViews()
+					return nil
+				})
+			},
+		},
+		{
+			Label:   self.c.Tr.SpiceRepoSyncRestack,
+			Key:     'Y',
+			Tooltip: self.c.Tr.SpiceRepoSyncTooltip,
+			OnPress: func() error {
+				return self.c.WithWaitingStatus(self.c.Tr.SpiceRepoSyncRestack, func(gocui.Task) error {
+					if err := self.c.Git().Spice.Sync(true); err != nil {
+						return err
+					}
+					self.refreshAllViews()
+					return nil
+				})
+			},
+		},
+		{
 			Label:   self.c.Tr.SpiceNewBranch,
 			Key:     'c',
 			OnPress: func() error { return self.newBranch() },

@@ -133,6 +133,14 @@ func (self *SpiceCommands) Init(trunk string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+func (self *SpiceCommands) Sync(restack bool) error {
+	cmdArgs := NewGitCmd("gs").Arg("repo", "sync")
+	if restack {
+		cmdArgs = cmdArgs.Arg("--restack")
+	}
+	return self.cmd.New(cmdArgs.ToArgv()).Run()
+}
+
 func (self *SpiceCommands) ClearInitializedCache() {
 	self.initializedCache = nil
 }

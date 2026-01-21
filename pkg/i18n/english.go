@@ -815,6 +815,9 @@ type TranslationSet struct {
 	SpiceSubmitBranchOptions                 string
 	SpiceSubmitAll                           string
 	SpiceSubmitAllOptions                    string
+	SpiceRepoSync                            string
+	SpiceRepoSyncRestack                     string
+	SpiceRepoSyncTooltip                     string
 	SpiceNavigateUp                          string
 	SpiceNavigateUpTooltip                   string
 	SpiceNavigateDown                        string
@@ -1969,6 +1972,9 @@ func EnglishTranslationSet() *TranslationSet {
 		SpiceSubmitBranchOptions:                 "Submit branch (options)",
 		SpiceSubmitAll:                           "Submit all",
 		SpiceSubmitAllOptions:                    "Submit all (options)",
+		SpiceRepoSync:                            "Sync repo",
+		SpiceRepoSyncRestack:                     "Sync repo (with restack)",
+		SpiceRepoSyncTooltip:                     "Pull latest changes and delete branches with merged PRs",
 		SpiceNavigateUp:                          "Up",
 		SpiceNavigateUpTooltip:                   "Navigate up one branch in the stack (gs up)",
 		SpiceNavigateDown:                        "Down",
