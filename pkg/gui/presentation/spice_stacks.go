@@ -133,7 +133,7 @@ func hasItemsAtDepthBefore(idx int, depth int, items []*models.SpiceStackItem) b
 	return false
 }
 
-func buildCommitPrefix(item *models.SpiceStackItem, idx int, items []*models.SpiceStackItem) string {
+func buildCommitPrefix(_ *models.SpiceStackItem, idx int, items []*models.SpiceStackItem) string {
 	var parts []string
 
 	// Find the parent branch (most recent non-commit item before this commit)

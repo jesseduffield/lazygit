@@ -32,8 +32,6 @@ func TestBuildTreePrefix(t *testing.T) {
 		{Name: "master", Depth: 0, SiblingIndex: 0},
 	}
 
-	continuing := make(map[int]bool)
-
 	tests := []struct {
 		idx      int
 		expected string
@@ -49,7 +47,7 @@ func TestBuildTreePrefix(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := buildTreePrefix(items[tt.idx], tt.idx, items, continuing)
+		result := buildTreePrefix(items[tt.idx], tt.idx, items)
 		// Remove any ANSI color codes if present
 		result = stripAnsi(result)
 		assert.Equal(t, tt.expected, result, "Item %d (%s) tree prefix mismatch", tt.idx, items[tt.idx].Name)
@@ -65,20 +63,18 @@ func TestBuildTreePrefixSimpleLinear(t *testing.T) {
 		{Name: "main", Depth: 0, SiblingIndex: 0},
 	}
 
-	continuing := make(map[int]bool)
-
 	tests := []struct {
 		idx      int
 		expected string
 	}{
-		{0, "    ┌─◯ "},   // C
-		{1, "  ┌─┴◯ "},    // B
-		{2, "┌─┴◯ "},      // A
-		{3, ""},           // main: no prefix
+		{0, "    ┌─◯ "}, // C
+		{1, "  ┌─┴◯ "},  // B
+		{2, "┌─┴◯ "},    // A
+		{3, ""},         // main: no prefix
 	}
 
 	for _, tt := range tests {
-		result := buildTreePrefix(items[tt.idx], tt.idx, items, continuing)
+		result := buildTreePrefix(items[tt.idx], tt.idx, items)
 		result = stripAnsi(result)
 		assert.Equal(t, tt.expected, result, "Item %d (%s) tree prefix mismatch", tt.idx, items[tt.idx].Name)
 	}
@@ -99,21 +95,19 @@ func TestBuildTreePrefixMultipleSiblings(t *testing.T) {
 		{Name: "main", Depth: 0, SiblingIndex: 0},
 	}
 
-	continuing := make(map[int]bool)
-
 	tests := []struct {
 		idx      int
 		expected string
 	}{
-		{0, "    ├─◯ "},   // C2: siblingIndex 1
-		{1, "    ┌─◯ "},   // C1: siblingIndex 0
-		{2, "  ┌─┴◯ "},    // B
-		{3, "┌─┴◯ "},      // A
-		{4, ""},           // main: no prefix
+		{0, "    ├─◯ "}, // C2: siblingIndex 1
+		{1, "    ┌─◯ "}, // C1: siblingIndex 0
+		{2, "  ┌─┴◯ "},  // B
+		{3, "┌─┴◯ "},    // A
+		{4, ""},         // main: no prefix
 	}
 
 	for _, tt := range tests {
-		result := buildTreePrefix(items[tt.idx], tt.idx, items, continuing)
+		result := buildTreePrefix(items[tt.idx], tt.idx, items)
 		result = stripAnsi(result)
 		assert.Equal(t, tt.expected, result, "Item %d (%s) tree prefix mismatch", tt.idx, items[tt.idx].Name)
 	}
@@ -137,22 +131,20 @@ func TestBuildTreePrefixNestedSiblings(t *testing.T) {
 		{Name: "main", Depth: 0, SiblingIndex: 0},
 	}
 
-	continuing := make(map[int]bool)
-
 	tests := []struct {
 		idx      int
 		expected string
 	}{
-		{0, "    │ ┌─◯ "},  // D
-		{1, "    ├─┴◯ "},   // C2: siblingIndex 1, has D above
-		{2, "    ┌─◯ "},    // C1: siblingIndex 0, no children (D is child of C2)
-		{3, "  ┌─┴◯ "},     // B
-		{4, "┌─┴◯ "},       // A
-		{5, ""},            // main: no prefix
+		{0, "    │ ┌─◯ "}, // D
+		{1, "    ├─┴◯ "},  // C2: siblingIndex 1, has D above
+		{2, "    ┌─◯ "},   // C1: siblingIndex 0, no children (D is child of C2)
+		{3, "  ┌─┴◯ "},    // B
+		{4, "┌─┴◯ "},      // A
+		{5, ""},           // main: no prefix
 	}
 
 	for _, tt := range tests {
-		result := buildTreePrefix(items[tt.idx], tt.idx, items, continuing)
+		result := buildTreePrefix(items[tt.idx], tt.idx, items)
 		result = stripAnsi(result)
 		assert.Equal(t, tt.expected, result, "Item %d (%s) tree prefix mismatch", tt.idx, items[tt.idx].Name)
 	}
@@ -170,8 +162,7 @@ func TestBuildTreePrefixSiblingWithCommits(t *testing.T) {
 		{Name: "main", Depth: 0, SiblingIndex: 0, IsCommit: false},
 	}
 
-	continuing := make(map[int]bool)
-	result := buildTreePrefix(items[2], 2, items, continuing)
+	result := buildTreePrefix(items[2], 2, items)
 	result = stripAnsi(result)
 
 	// sibling2 should have ├─◯ (not ├─┴◯) since it has no children

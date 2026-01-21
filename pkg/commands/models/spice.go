@@ -46,13 +46,13 @@ func (s *SpiceStackItem) Description() string {
 
 // SpiceBranchJSON matches gs log long --json output
 type SpiceBranchJSON struct {
-	Name    string             `json:"name"`
-	Current bool               `json:"current,omitempty"`
-	Down    *SpiceDownJSON     `json:"down,omitempty"`
-	Ups     []SpiceUpJSON      `json:"ups,omitempty"`
-	Change  *SpiceChange       `json:"change,omitempty"`
-	Push    *SpicePush         `json:"push,omitempty"`
-	Commits []SpiceCommitJSON  `json:"commits,omitempty"`
+	Name    string            `json:"name"`
+	Current bool              `json:"current,omitempty"`
+	Down    *SpiceDownJSON    `json:"down,omitempty"`
+	Ups     []SpiceUpJSON     `json:"ups,omitempty"`
+	Change  *SpiceChange      `json:"change,omitempty"`
+	Push    *SpicePush        `json:"push,omitempty"`
+	Commits []SpiceCommitJSON `json:"commits,omitempty"`
 }
 
 type SpiceCommitJSON struct {
