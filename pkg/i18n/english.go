@@ -796,6 +796,10 @@ type TranslationSet struct {
 	SpiceFixupStatus                         string
 	SpiceCreateBranch                        string
 	SpiceCreateCommit                        string
+	SpiceNotInitialized                      string
+	SpiceSelectTrunkBranch                   string
+	SpiceInitializingStatus                  string
+	SpiceInitialize                          string
 	ShowGitGraph                             string
 	ShowGitGraphTooltip                      string
 	SortOrder                                string
@@ -1911,6 +1915,10 @@ func EnglishTranslationSet() *TranslationSet {
 		SpiceFixupStatus:                         "Creating fixup...",
 		SpiceCreateBranch:                        "Create branch (on selected)",
 		SpiceCreateCommit:                        "Create commit",
+		SpiceNotInitialized:                      "git-spice is not initialized for this repository.\n\nPress <enter> to initialize and select a trunk branch.",
+		SpiceSelectTrunkBranch:                   "Select trunk branch:",
+		SpiceInitializingStatus:                  "Initializing git-spice...",
+		SpiceInitialize:                          "Initialize git-spice",
 		ShowGitGraph:                             "Show git graph",
 		ShowGitGraphTooltip:                      "Show or hide the git graph in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.showGraph'.",
 		SortOrder:                                "Sort order",

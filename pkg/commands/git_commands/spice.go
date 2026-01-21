@@ -151,3 +151,15 @@ func (self *SpiceCommands) CommitFixup(commitSha string) error {
 	cmdArgs := []string{"gs", "commit", "fixup", commitSha}
 	return self.cmd.New(cmdArgs).Run()
 }
+
+// Init initializes git-spice for the repository with the specified trunk branch
+func (self *SpiceCommands) Init(trunk string) error {
+	cmdArgs := []string{"gs", "repo", "init", "--trunk", trunk}
+	return self.cmd.New(cmdArgs).Run()
+}
+
+// ClearInitializedCache invalidates the cached initialization state
+// Call this after Init() to force re-checking on next IsInitialized() call
+func (self *SpiceCommands) ClearInitializedCache() {
+	self.initializedCache = nil
+}

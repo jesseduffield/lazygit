@@ -41,10 +41,16 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 	bindings := []*types.Binding{
 		// === NAVIGATION ===
 		{
-			Key:               opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:           self.withItem(self.enter),
-			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.ViewCommits,
+			Key:         opts.GetKey(opts.Config.Universal.GoInto),
+			Handler:     self.handleEnter,
+			Description: self.c.Tr.ViewCommits,
+			DescriptionFunc: func() string {
+				item := self.context().GetSelected()
+				if item == nil && self.c.Git().Spice != nil && self.c.Git().Spice.IsAvailable() && !self.c.Git().Spice.IsInitialized() {
+					return self.c.Tr.SpiceInitialize
+				}
+				return self.c.Tr.ViewCommits
+			},
 		},
 		// === COMMIT COMMANDS (only enabled when commit selected) ===
 		{
@@ -203,7 +209,12 @@ func (self *SpiceStacksController) GetOnRenderToMain() func() {
 			item := self.context().GetSelected()
 
 			if item == nil {
-				task = types.NewRenderStringTask("No stacks")
+				// Check if git-spice needs initialization
+				if self.c.Git().Spice != nil && self.c.Git().Spice.IsAvailable() && !self.c.Git().Spice.IsInitialized() {
+					task = types.NewRenderStringTask(self.c.Tr.SpiceNotInitialized)
+				} else {
+					task = types.NewRenderStringTask("No stacks")
+				}
 				title = self.c.Tr.SpiceStacksTitle
 			} else if item.IsCommit {
 				// Show commit diff/patch
@@ -236,6 +247,50 @@ func (self *SpiceStacksController) enter(item *models.SpiceStackItem) error {
 		return self.viewCommitFiles(item)
 	}
 	return self.viewBranchCommits(item)
+}
+
+func (self *SpiceStacksController) handleEnter() error {
+	item := self.context().GetSelected()
+	if item != nil {
+		return self.enter(item)
+	}
+
+	// No item selected - check if we should offer initialization
+	if self.c.Git().Spice != nil && self.c.Git().Spice.IsAvailable() && !self.c.Git().Spice.IsInitialized() {
+		return self.initializeSpice()
+	}
+
+	return nil
+}
+
+func (self *SpiceStacksController) initializeSpice() error {
+	self.c.Prompt(types.PromptOpts{
+		Title:               self.c.Tr.SpiceSelectTrunkBranch,
+		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetBranchNameSuggestionsFunc(),
+		HandleConfirm: func(trunkBranch string) error {
+			return self.runInitialization(trunkBranch)
+		},
+	})
+	return nil
+}
+
+func (self *SpiceStacksController) runInitialization(trunk string) error {
+	return self.c.WithWaitingStatus(self.c.Tr.SpiceInitializingStatus, func(gocui.Task) error {
+		if err := self.c.Git().Spice.Init(trunk); err != nil {
+			return err
+		}
+
+		// Clear the cache so IsInitialized() re-checks
+		self.c.Git().Spice.ClearInitializedCache()
+
+		// Refresh all relevant views
+		self.c.Refresh(types.RefreshOptions{
+			Mode:  types.ASYNC,
+			Scope: []types.RefreshableView{types.SPICE_STACKS, types.BRANCHES},
+		})
+
+		return nil
+	})
 }
 
 func (self *SpiceStacksController) press(item *models.SpiceStackItem) error {
