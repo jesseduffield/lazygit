@@ -11,7 +11,6 @@ type SpiceStackItem struct {
 	PRStatus      string // "open", "closed", "merged"
 	Ahead         int
 	Behind        int
-	NeedsPush     bool
 	IsCommit      bool   // marks commit items vs branch items
 	CommitSha     string // for commit items
 	CommitSubject string // for commit items

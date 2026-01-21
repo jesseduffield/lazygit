@@ -146,7 +146,6 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 		if branch.Push != nil {
 			item.Ahead = branch.Push.Ahead
 			item.Behind = branch.Push.Behind
-			item.NeedsPush = branch.Push.NeedsPush
 		}
 
 		result = append(result, item)

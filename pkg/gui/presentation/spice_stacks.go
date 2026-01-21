@@ -200,8 +200,8 @@ func formatStatus(item *models.SpiceStackItem) string {
 	if item.NeedsRestack {
 		parts = append(parts, style.FgYellow.Sprint("⟳ restack"))
 	}
-	if item.NeedsPush {
-		parts = append(parts, style.FgCyan.Sprint("↑ push"))
+	if item.Ahead > 0 {
+		parts = append(parts, style.FgCyan.Sprintf("↑%d", item.Ahead))
 	}
 	if item.Behind > 0 {
 		parts = append(parts, style.FgRed.Sprintf("↓%d", item.Behind))
