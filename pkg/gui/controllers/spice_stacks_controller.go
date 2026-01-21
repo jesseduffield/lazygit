@@ -332,8 +332,8 @@ func (self *SpiceStacksController) viewCommitFiles(item *models.SpiceStackItem) 
 	return nil
 }
 
-// findCommitByHash searches for a commit in the model's commits list by SHA
-// Uses prefix matching since SpiceStackItem stores short (7-char) hashes
+// findCommitByHash searches for a commit in the model's commits list by SHA.
+// Uses prefix matching since SpiceStackItem stores short (7-char) hashes.
 func (self *SpiceStacksController) findCommitByHash(sha string) (*models.Commit, int) {
 	for idx, commit := range self.c.Model().Commits {
 		if strings.HasPrefix(commit.Hash(), sha) {
@@ -343,10 +343,35 @@ func (self *SpiceStacksController) findCommitByHash(sha string) (*models.Commit,
 	return nil, -1
 }
 
-func (self *SpiceStacksController) commitSquash(item *models.SpiceStackItem) error {
-	commit, commitIdx := self.findCommitByHash(item.CommitSha)
+// findCommitOrError is a helper that returns an error if the commit is not found.
+func (self *SpiceStacksController) findCommitOrError(sha string) (*models.Commit, int, error) {
+	commit, idx := self.findCommitByHash(sha)
 	if commit == nil {
-		return errors.New(self.c.Tr.SpiceCommitNotFound)
+		return nil, -1, errors.New(self.c.Tr.SpiceCommitNotFound)
+	}
+	return commit, idx, nil
+}
+
+// refreshSpiceStacksOnly refreshes only the stacks view.
+func (self *SpiceStacksController) refreshSpiceStacksOnly() {
+	self.c.Refresh(types.RefreshOptions{
+		Mode:  types.ASYNC,
+		Scope: []types.RefreshableView{types.SPICE_STACKS},
+	})
+}
+
+// refreshAllViews refreshes branches, commits, files, and stacks views.
+func (self *SpiceStacksController) refreshAllViews() {
+	self.c.Refresh(types.RefreshOptions{
+		Mode:  types.ASYNC,
+		Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS},
+	})
+}
+
+func (self *SpiceStacksController) commitSquash(item *models.SpiceStackItem) error {
+	_, commitIdx, err := self.findCommitOrError(item.CommitSha)
+	if err != nil {
+		return err
 	}
 
 	self.c.Confirm(types.ConfirmOpts{
@@ -364,9 +389,9 @@ func (self *SpiceStacksController) commitSquash(item *models.SpiceStackItem) err
 }
 
 func (self *SpiceStacksController) commitMarkFixup(item *models.SpiceStackItem) error {
-	commit, commitIdx := self.findCommitByHash(item.CommitSha)
-	if commit == nil {
-		return errors.New(self.c.Tr.SpiceCommitNotFound)
+	_, commitIdx, err := self.findCommitOrError(item.CommitSha)
+	if err != nil {
+		return err
 	}
 
 	self.c.Confirm(types.ConfirmOpts{
@@ -384,9 +409,9 @@ func (self *SpiceStacksController) commitMarkFixup(item *models.SpiceStackItem) 
 }
 
 func (self *SpiceStacksController) commitReword(item *models.SpiceStackItem) error {
-	commit, commitIdx := self.findCommitByHash(item.CommitSha)
-	if commit == nil {
-		return errors.New(self.c.Tr.SpiceCommitNotFound)
+	commit, commitIdx, err := self.findCommitOrError(item.CommitSha)
+	if err != nil {
+		return err
 	}
 
 	commitMessage, err := self.c.Git().Commit.GetCommitMessage(commit.Hash())
@@ -413,9 +438,9 @@ func (self *SpiceStacksController) handleReword(summary string, description stri
 		return nil
 	}
 
-	_, commitIdx := self.findCommitByHash(item.CommitSha)
-	if commitIdx == -1 {
-		return errors.New(self.c.Tr.SpiceCommitNotFound)
+	_, commitIdx, err := self.findCommitOrError(item.CommitSha)
+	if err != nil {
+		return err
 	}
 
 	// Check if this is the head commit
@@ -433,9 +458,9 @@ func (self *SpiceStacksController) handleReword(summary string, description stri
 }
 
 func (self *SpiceStacksController) commitDrop(item *models.SpiceStackItem) error {
-	_, commitIdx := self.findCommitByHash(item.CommitSha)
-	if commitIdx == -1 {
-		return errors.New(self.c.Tr.SpiceCommitNotFound)
+	_, commitIdx, err := self.findCommitOrError(item.CommitSha)
+	if err != nil {
+		return err
 	}
 
 	self.c.Confirm(types.ConfirmOpts{
@@ -453,9 +478,9 @@ func (self *SpiceStacksController) commitDrop(item *models.SpiceStackItem) error
 }
 
 func (self *SpiceStacksController) commitEdit(item *models.SpiceStackItem) error {
-	_, commitIdx := self.findCommitByHash(item.CommitSha)
-	if commitIdx == -1 {
-		return errors.New(self.c.Tr.SpiceCommitNotFound)
+	_, commitIdx, err := self.findCommitOrError(item.CommitSha)
+	if err != nil {
+		return err
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.EditCommit)
@@ -464,9 +489,9 @@ func (self *SpiceStacksController) commitEdit(item *models.SpiceStackItem) error
 }
 
 func (self *SpiceStacksController) commitAmend(item *models.SpiceStackItem) error {
-	_, commitIdx := self.findCommitByHash(item.CommitSha)
-	if commitIdx == -1 {
-		return errors.New(self.c.Tr.SpiceCommitNotFound)
+	_, commitIdx, err := self.findCommitOrError(item.CommitSha)
+	if err != nil {
+		return err
 	}
 
 	// If it's the head commit, use the amend helper
@@ -489,9 +514,9 @@ func (self *SpiceStacksController) commitAmend(item *models.SpiceStackItem) erro
 }
 
 func (self *SpiceStacksController) commitCheckout(item *models.SpiceStackItem) error {
-	commit, _ := self.findCommitByHash(item.CommitSha)
-	if commit == nil {
-		return errors.New(self.c.Tr.SpiceCommitNotFound)
+	commit, _, err := self.findCommitOrError(item.CommitSha)
+	if err != nil {
+		return err
 	}
 
 	return self.c.Helpers().Refs.CreateCheckoutMenu(commit)
@@ -502,9 +527,9 @@ func (self *SpiceStacksController) commitReset(item *models.SpiceStackItem) erro
 }
 
 func (self *SpiceStacksController) commitCopy(item *models.SpiceStackItem) error {
-	commit, _ := self.findCommitByHash(item.CommitSha)
-	if commit == nil {
-		return errors.New(self.c.Tr.SpiceCommitNotFound)
+	commit, _, err := self.findCommitOrError(item.CommitSha)
+	if err != nil {
+		return err
 	}
 
 	// Directly manipulate cherry-pick data since CopyRange uses context selection
@@ -526,9 +551,9 @@ func (self *SpiceStacksController) commitCopy(item *models.SpiceStackItem) error
 }
 
 func (self *SpiceStacksController) copyCommitAttribute(item *models.SpiceStackItem) error {
-	commit, _ := self.findCommitByHash(item.CommitSha)
-	if commit == nil {
-		return errors.New(self.c.Tr.SpiceCommitNotFound)
+	commit, _, err := self.findCommitOrError(item.CommitSha)
+	if err != nil {
+		return err
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
@@ -660,50 +685,46 @@ func (self *SpiceStacksController) checkout(item *models.SpiceStackItem) error {
 	if err := self.c.Git().Branch.Checkout(item.Name, git_commands.CheckoutOptions{Force: false}); err != nil {
 		return err
 	}
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
+	self.refreshAllViews()
 	return nil
 }
 
 func (self *SpiceStacksController) restack(item *models.SpiceStackItem) error {
 	return self.c.WithWaitingStatus(self.c.Tr.SpiceRestackingStatus, func(task gocui.Task) error {
-		err := self.c.Git().Spice.Restack(item.Name)
-		if err != nil {
+		if err := self.c.Git().Spice.Restack(item.Name); err != nil {
 			return err
 		}
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
+		self.refreshSpiceStacksOnly()
 		return nil
 	})
 }
 
 func (self *SpiceStacksController) restackAll() error {
 	return self.c.WithWaitingStatus(self.c.Tr.SpiceRestackingStatus, func(task gocui.Task) error {
-		err := self.c.Git().Spice.Restack("")
-		if err != nil {
+		if err := self.c.Git().Spice.Restack(""); err != nil {
 			return err
 		}
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
+		self.refreshSpiceStacksOnly()
 		return nil
 	})
 }
 
 func (self *SpiceStacksController) submit(item *models.SpiceStackItem, opts git_commands.SubmitOpts) error {
 	return self.c.WithWaitingStatus(self.c.Tr.SpiceSubmittingStatus, func(task gocui.Task) error {
-		err := self.c.Git().Spice.Submit(item.Name, opts)
-		if err != nil {
+		if err := self.c.Git().Spice.Submit(item.Name, opts); err != nil {
 			return err
 		}
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
+		self.refreshSpiceStacksOnly()
 		return nil
 	})
 }
 
 func (self *SpiceStacksController) submitAll(opts git_commands.SubmitOpts) error {
 	return self.c.WithWaitingStatus(self.c.Tr.SpiceSubmittingStatus, func(task gocui.Task) error {
-		err := self.c.Git().Spice.Submit("", opts)
-		if err != nil {
+		if err := self.c.Git().Spice.Submit("", opts); err != nil {
 			return err
 		}
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
+		self.refreshSpiceStacksOnly()
 		return nil
 	})
 }
@@ -712,7 +733,7 @@ func (self *SpiceStacksController) navigateUp() error {
 	if err := self.c.Git().Spice.NavigateUp(); err != nil {
 		return err
 	}
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
+	self.refreshAllViews()
 	return nil
 }
 
@@ -720,7 +741,7 @@ func (self *SpiceStacksController) navigateDown() error {
 	if err := self.c.Git().Spice.NavigateDown(); err != nil {
 		return err
 	}
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
+	self.refreshAllViews()
 	return nil
 }
 
@@ -728,7 +749,7 @@ func (self *SpiceStacksController) navigateTop() error {
 	if err := self.c.Git().Spice.NavigateTop(); err != nil {
 		return err
 	}
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
+	self.refreshAllViews()
 	return nil
 }
 
@@ -736,7 +757,7 @@ func (self *SpiceStacksController) navigateBottom() error {
 	if err := self.c.Git().Spice.NavigateBottom(); err != nil {
 		return err
 	}
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
+	self.refreshAllViews()
 	return nil
 }
 
@@ -747,7 +768,7 @@ func (self *SpiceStacksController) newBranch() error {
 			if err := self.c.Git().Spice.CreateBranch(branchName, ""); err != nil {
 				return err
 			}
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
+			self.refreshAllViews()
 			return nil
 		},
 	})
@@ -762,7 +783,10 @@ func (self *SpiceStacksController) delete(item *models.SpiceStackItem) error {
 			if err := self.c.Git().Spice.DeleteBranch(item.Name); err != nil {
 				return err
 			}
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.SPICE_STACKS}})
+			self.c.Refresh(types.RefreshOptions{
+				Mode:  types.ASYNC,
+				Scope: []types.RefreshableView{types.BRANCHES, types.SPICE_STACKS},
+			})
 			return nil
 		},
 	})
@@ -773,7 +797,7 @@ func (self *SpiceStacksController) moveBranchUp(item *models.SpiceStackItem) err
 	if err := self.c.Git().Spice.MoveBranchUp(item.Name); err != nil {
 		return err
 	}
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
+	self.refreshSpiceStacksOnly()
 	return nil
 }
 
@@ -781,7 +805,7 @@ func (self *SpiceStacksController) moveBranchDown(item *models.SpiceStackItem) e
 	if err := self.c.Git().Spice.MoveBranchDown(item.Name); err != nil {
 		return err
 	}
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SPICE_STACKS}})
+	self.refreshSpiceStacksOnly()
 	return nil
 }
 
@@ -811,7 +835,7 @@ func (self *SpiceStacksController) newBranchOnSelected(item *models.SpiceStackIt
 			if err := self.c.Git().Spice.CreateBranch(branchName, targetBranch); err != nil {
 				return err
 			}
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
+			self.refreshAllViews()
 			return nil
 		},
 	})
@@ -822,14 +846,14 @@ func (self *SpiceStacksController) newCommit() error {
 	if err := self.c.Git().Spice.CreateCommit(); err != nil {
 		return err
 	}
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.FILES, types.SPICE_STACKS}})
+	self.refreshAllViews()
 	return nil
 }
 
 func (self *SpiceStacksController) commitMoveDown(item *models.SpiceStackItem) error {
-	_, commitIdx := self.findCommitByHash(item.CommitSha)
-	if commitIdx == -1 {
-		return errors.New(self.c.Tr.SpiceCommitNotFound)
+	_, commitIdx, err := self.findCommitOrError(item.CommitSha)
+	if err != nil {
+		return err
 	}
 
 	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
@@ -844,9 +868,9 @@ func (self *SpiceStacksController) commitMoveDown(item *models.SpiceStackItem) e
 }
 
 func (self *SpiceStacksController) commitMoveUp(item *models.SpiceStackItem) error {
-	_, commitIdx := self.findCommitByHash(item.CommitSha)
-	if commitIdx == -1 {
-		return errors.New(self.c.Tr.SpiceCommitNotFound)
+	_, commitIdx, err := self.findCommitOrError(item.CommitSha)
+	if err != nil {
+		return err
 	}
 
 	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
@@ -1060,10 +1084,7 @@ func (self *SpiceStacksController) openLogFormatMenu() error {
 func (self *SpiceStacksController) setLogFormat(format string) error {
 	self.c.GetAppState().Spice.LogFormat = format
 	self.c.SaveAppStateAndLogError()
-	self.c.Refresh(types.RefreshOptions{
-		Mode:  types.ASYNC,
-		Scope: []types.RefreshableView{types.SPICE_STACKS},
-	})
+	self.refreshSpiceStacksOnly()
 	return nil
 }
 
