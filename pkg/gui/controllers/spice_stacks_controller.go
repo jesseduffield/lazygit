@@ -173,9 +173,10 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 		// === VIEW OPTIONS ===
 		{
 			Key:         opts.GetKey("V"),
-			Handler:     self.toggleLogFormat,
+			Handler:     self.openLogFormatMenu,
 			Description: self.c.Tr.ToggleSpiceLogFormat,
 			Tooltip:     self.c.Tr.ToggleSpiceLogFormatTooltip,
+			OpensMenu:   true,
 		},
 
 		// === CREATE COMMANDS ===
@@ -1047,21 +1048,53 @@ func (self *SpiceStacksController) branchSelectedReason(item *models.SpiceStackI
 	return nil
 }
 
-func (self *SpiceStacksController) toggleLogFormat() error {
-	currentFormat := self.c.UserConfig().Git.Spice.LogFormat
+func (self *SpiceStacksController) openLogFormatMenu() error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: "Log Format",
+		Items: []*types.MenuItem{
+			{
+				Label: "Short",
+				Key:   's',
+				OnPress: func() error {
+					return self.setLogFormat("short")
+				},
+			},
+			{
+				Label: "Long",
+				Key:   'l',
+				OnPress: func() error {
+					return self.setLogFormat("long")
+				},
+			},
+			{
+				Label: "Default (from config)",
+				Key:   'd',
+				OnPress: func() error {
+					return self.setLogFormat("") // empty = use config default
+				},
+			},
+		},
+	})
+}
 
-	if currentFormat == "long" {
-		self.c.UserConfig().Git.Spice.LogFormat = "short"
-	} else {
-		self.c.UserConfig().Git.Spice.LogFormat = "long"
-	}
-
-	// Refresh the spice stacks view
+func (self *SpiceStacksController) setLogFormat(format string) error {
+	self.c.GetAppState().Spice.LogFormat = format
+	self.c.SaveAppStateAndLogError()
 	self.c.Refresh(types.RefreshOptions{
 		Mode:  types.ASYNC,
 		Scope: []types.RefreshableView{types.SPICE_STACKS},
 	})
 	return nil
+}
+
+func (self *SpiceStacksController) getEffectiveLogFormat() string {
+	if format := self.c.GetAppState().Spice.LogFormat; format != "" {
+		return format
+	}
+	if format := self.c.UserConfig().Git.Spice.LogFormat; format != "" {
+		return format
+	}
+	return "short" // ultimate default
 }
 
 // === HELPER METHODS ===

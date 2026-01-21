@@ -30,7 +30,7 @@ func (self *SpiceStackLoader) Load() ([]*models.SpiceStackItem, error) {
 		return nil, nil
 	}
 
-	format := self.UserConfig().Git.Spice.LogFormat
+	format := self.getEffectiveLogFormat()
 	output, err := self.spiceCommands.GetStackBranches(format)
 	if err != nil {
 		self.Log.Errorf("Failed to get stack branches: %v", err)
@@ -51,6 +51,17 @@ func (self *SpiceStackLoader) Load() ([]*models.SpiceStackItem, error) {
 	self.Log.Infof("Built tree with %d items", len(result))
 
 	return result, nil
+}
+
+// getEffectiveLogFormat returns the log format, checking AppState first, then UserConfig
+func (self *SpiceStackLoader) getEffectiveLogFormat() string {
+	if format := self.AppState.Spice.LogFormat; format != "" {
+		return format
+	}
+	if format := self.UserConfig().Git.Spice.LogFormat; format != "" {
+		return format
+	}
+	return "short"
 }
 
 // parseBranches parses the newline-delimited JSON from gs log
@@ -143,7 +154,7 @@ func (self *SpiceStackLoader) buildTree(branches []*models.SpiceBranchJSON) []*m
 		result = append(result, item)
 
 		// Add commits if in long format and commits exist (AFTER the branch)
-		if self.UserConfig().Git.Spice.LogFormat == "long" && len(branch.Commits) > 0 {
+		if self.getEffectiveLogFormat() == "long" && len(branch.Commits) > 0 {
 			for _, commit := range branch.Commits {
 				commitItem := &models.SpiceStackItem{
 					Name:          name, // Keep branch name for context
