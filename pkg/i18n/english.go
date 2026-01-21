@@ -792,8 +792,6 @@ type TranslationSet struct {
 	SpiceDeleteConfirmPrompt                 string
 	SpiceBranchOnly                          string
 	SpiceCommitOnly                          string
-	SpiceCommitFixup                         string
-	SpiceFixupStatus                         string
 	SpiceCreateBranch                        string
 	SpiceCreateCommit                        string
 	SpiceNotInitialized                      string
@@ -1911,8 +1909,6 @@ func EnglishTranslationSet() *TranslationSet {
 		SpiceDeleteConfirmPrompt:                 "Are you sure you want to delete this branch from the stack?",
 		SpiceBranchOnly:                          "This command only applies to branches",
 		SpiceCommitOnly:                          "This command only applies to commits",
-		SpiceCommitFixup:                         "Fixup commit",
-		SpiceFixupStatus:                         "Creating fixup...",
 		SpiceCreateBranch:                        "Create branch (on selected)",
 		SpiceCreateCommit:                        "Create commit",
 		SpiceNotInitialized:                      "git-spice is not initialized for this repository.\n\nPress <enter> to initialize and select a trunk branch.",
