@@ -79,7 +79,6 @@ func (self *SpiceStacksContext) ShowBranchHeadsInSubCommits() bool {
 	return true
 }
 
-// setFooter displays branch count instead of total items
 func (self *SpiceStacksContext) setFooter() {
 	items := self.GetItems()
 	if len(items) == 0 {
@@ -105,23 +104,16 @@ func (self *SpiceStacksContext) setFooter() {
 	self.GetViewTrait().SetFooter(footer)
 }
 
-// HandleRender overrides the base implementation to use custom footer
 func (self *SpiceStacksContext) HandleRender() {
-	// Call the base implementation which does all the rendering
 	self.ListContextTrait.HandleRender()
-	// But then override with our custom footer
 	self.setFooter()
 }
 
-// FocusLine overrides the base implementation to use custom footer
 func (self *SpiceStacksContext) FocusLine(scrollIntoView bool) {
-	// Call the base implementation
 	self.ListContextTrait.FocusLine(scrollIntoView)
-	// But then override with our custom footer
 	self.setFooter()
 }
 
-// HandleFocus overrides the base implementation to ensure our custom FocusLine is called
 func (self *SpiceStacksContext) HandleFocus(opts types.OnFocusOpts) {
 	self.FocusLine(opts.ScrollSelectionIntoView)
 

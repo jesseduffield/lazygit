@@ -16,7 +16,6 @@ func NewSpiceCommands(gitCommon *GitCommon) *SpiceCommands {
 	}
 }
 
-// IsAvailable checks if gs binary exists in PATH
 func (self *SpiceCommands) IsAvailable() bool {
 	_, err := exec.LookPath("gs")
 	return err == nil
@@ -41,7 +40,6 @@ func (self *SpiceCommands) IsInitialized() bool {
 	return result
 }
 
-// GetStackBranches runs gs log [format] --json -a and returns the raw output for parsing
 func (self *SpiceCommands) GetStackBranches(format string) (string, error) {
 	if format != "short" && format != "long" {
 		format = "short" // Fallback if invalid
@@ -50,7 +48,6 @@ func (self *SpiceCommands) GetStackBranches(format string) (string, error) {
 	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 }
 
-// Restack restacks a branch or entire stack
 func (self *SpiceCommands) Restack(branchName string) error {
 	if branchName == "" {
 		cmdArgs := []string{"gs", "stack", "restack"}
@@ -66,7 +63,6 @@ type SubmitOpts struct {
 	UpdateOnly bool
 }
 
-// Submit submits PR for branch or stack
 func (self *SpiceCommands) Submit(branchName string, opts SubmitOpts) error {
 	var cmdArgs []string
 	if branchName == "" {
@@ -83,7 +79,6 @@ func (self *SpiceCommands) Submit(branchName string, opts SubmitOpts) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-// Navigation commands
 func (self *SpiceCommands) NavigateUp() error {
 	cmdArgs := []string{"gs", "up"}
 	return self.cmd.New(cmdArgs).Run()
@@ -104,7 +99,6 @@ func (self *SpiceCommands) NavigateBottom() error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-// Branch management
 func (self *SpiceCommands) CreateBranch(branchName string, targetBranch string) error {
 	cmdArgs := []string{"gs", "branch", "create"}
 	if targetBranch != "" {
@@ -114,7 +108,6 @@ func (self *SpiceCommands) CreateBranch(branchName string, targetBranch string) 
 	return self.cmd.New(cmdArgs).Run()
 }
 
-// CreateCommit creates a new commit on the current branch using gs commit create
 func (self *SpiceCommands) CreateCommit() error {
 	cmdArgs := []string{"gs", "commit", "create"}
 	return self.cmd.New(cmdArgs).Run()
@@ -125,7 +118,6 @@ func (self *SpiceCommands) DeleteBranch(branchName string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-// Move branches in stack
 func (self *SpiceCommands) MoveBranchUp(branchName string) error {
 	cmdArgs := []string{"gs", "branch", "up", "--branch", branchName}
 	return self.cmd.New(cmdArgs).Run()
@@ -136,14 +128,11 @@ func (self *SpiceCommands) MoveBranchDown(branchName string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-// Init initializes git-spice for the repository with the specified trunk branch
 func (self *SpiceCommands) Init(trunk string) error {
 	cmdArgs := []string{"gs", "repo", "init", "--trunk", trunk}
 	return self.cmd.New(cmdArgs).Run()
 }
 
-// ClearInitializedCache invalidates the cached initialization state
-// Call this after Init() to force re-checking on next IsInitialized() call
 func (self *SpiceCommands) ClearInitializedCache() {
 	self.initializedCache = nil
 }

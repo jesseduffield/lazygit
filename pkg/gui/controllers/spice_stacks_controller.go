@@ -39,7 +39,6 @@ func NewSpiceStacksController(
 
 func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
-		// === NAVIGATION ===
 		{
 			Key:         opts.GetKey(opts.Config.Universal.GoInto),
 			Handler:     self.handleEnter,
@@ -52,7 +51,6 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 				return self.c.Tr.ViewCommits
 			},
 		},
-		// === COMMIT COMMANDS (only enabled when commit selected) ===
 		{
 			Key:               opts.GetKey(opts.Config.Commits.SquashDown),
 			Handler:           self.withItem(self.commitSquash),
@@ -116,8 +114,6 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			Description:       self.c.Tr.CopyCommitAttributeToClipboard,
 			OpensMenu:         true,
 		},
-
-		// === BRANCH COMMANDS ===
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Select),
 			Handler:           self.withItem(self.press),
@@ -125,8 +121,6 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			Description:       self.c.Tr.Checkout,
 			DisplayOnScreen:   true,
 		},
-
-		// === MOVE UP/DOWN (context-sensitive) ===
 		{
 			Key:               opts.GetKey(opts.Config.Commits.MoveDownCommit),
 			Handler:           self.withItem(self.moveDown),
@@ -153,8 +147,6 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 				return self.c.Tr.MoveUpCommit
 			},
 		},
-
-		// === MENUS ===
 		{
 			Key:             opts.GetKey("S"),
 			Handler:         self.openStackOperationsMenu,
@@ -169,8 +161,6 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			OpensMenu:       true,
 			DisplayOnScreen: true,
 		},
-
-		// === VIEW OPTIONS ===
 		{
 			Key:         opts.GetKey("V"),
 			Handler:     self.openLogFormatMenu,
@@ -178,8 +168,6 @@ func (self *SpiceStacksController) GetKeybindings(opts types.KeybindingsOpts) []
 			Tooltip:     self.c.Tr.ToggleSpiceLogFormatTooltip,
 			OpensMenu:   true,
 		},
-
-		// === CREATE COMMANDS ===
 		{
 			Key:               opts.GetKey("n"),
 			Handler:           self.withItem(self.newBranchOnSelected),
@@ -240,8 +228,6 @@ func (self *SpiceStacksController) GetOnRenderToMain() func() {
 		})
 	}
 }
-
-// === NAVIGATION HANDLERS ===
 
 func (self *SpiceStacksController) enter(item *models.SpiceStackItem) error {
 	if item.IsCommit {
@@ -345,8 +331,6 @@ func (self *SpiceStacksController) viewCommitFiles(item *models.SpiceStackItem) 
 	self.c.Context().Push(commitFilesContext, types.OnFocusOpts{})
 	return nil
 }
-
-// === COMMIT COMMAND HANDLERS ===
 
 // findCommitByHash searches for a commit in the model's commits list by SHA
 // Uses prefix matching since SpiceStackItem stores short (7-char) hashes
@@ -671,8 +655,6 @@ func (self *SpiceStacksController) copyAuthorToClipboard(commit *models.Commit) 
 	return nil
 }
 
-// === BRANCH COMMAND HANDLERS ===
-
 func (self *SpiceStacksController) checkout(item *models.SpiceStackItem) error {
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
 	if err := self.c.Git().Branch.Checkout(item.Name, git_commands.CheckoutOptions{Force: false}); err != nil {
@@ -893,8 +875,6 @@ func (self *SpiceStacksController) moveUp(item *models.SpiceStackItem) error {
 	return self.moveBranchUp(item)
 }
 
-// === MENU HANDLERS ===
-
 func (self *SpiceStacksController) openStackOperationsMenu() error {
 	item := self.context().GetSelected()
 
@@ -1086,8 +1066,6 @@ func (self *SpiceStacksController) setLogFormat(format string) error {
 	})
 	return nil
 }
-
-// === HELPER METHODS ===
 
 func (self *SpiceStacksController) context() *context.SpiceStacksContext {
 	return self.c.Contexts().SpiceStacks
