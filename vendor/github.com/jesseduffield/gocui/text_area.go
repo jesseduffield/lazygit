@@ -71,6 +71,7 @@ func contentToCells(content string, autoWrapWidth int) ([]TextAreaCell, []int) {
 	currentLineWidth := 0
 	indexOfLastWhitespace := -1
 	var footNoteMatcher footNoteMatcher
+	var trailerMatcher trailerMatcher
 
 	cells := stringToTextAreaCells(content)
 	y := 0
@@ -94,9 +95,10 @@ func contentToCells(content string, autoWrapWidth int) ([]TextAreaCell, []int) {
 			indexOfLastWhitespace = -1
 			currentLineWidth = 0
 			footNoteMatcher.reset()
+			trailerMatcher.reset()
 		} else {
 			currentLineWidth += c.width
-			if c.char == " " && !footNoteMatcher.isFootNote() {
+			if c.char == " " && !footNoteMatcher.isFootNote() && !trailerMatcher.isTrailer() {
 				indexOfLastWhitespace = currentPos + 1
 			} else if autoWrapWidth > 0 && currentLineWidth > autoWrapWidth && indexOfLastWhitespace >= 0 {
 				wrapAt := indexOfLastWhitespace
@@ -112,9 +114,11 @@ func contentToCells(content string, autoWrapWidth int) ([]TextAreaCell, []int) {
 					currentLineWidth += c1.width
 				}
 				footNoteMatcher.reset()
+				trailerMatcher.reset()
 			}
 
 			footNoteMatcher.addCharacter(c.char)
+			trailerMatcher.addCharacter(c.char)
 		}
 	}
 
@@ -165,6 +169,76 @@ func (self *footNoteMatcher) isFootNote() bool {
 func (self *footNoteMatcher) reset() {
 	self.lineStr.Reset()
 	self.didFailToMatch = false
+}
+
+var supportedTrailers = []string{
+	"Signed-off-by:",
+	"Co-authored-by:",
+}
+
+type trailerMatcher struct {
+	lineStr        strings.Builder
+	didFailToMatch bool
+	didMatch       bool
+}
+
+func (self *trailerMatcher) addCharacter(chr string) {
+	if self.didFailToMatch || self.didMatch {
+		return
+	}
+
+	if len(chr) != 1 {
+		// Trailers are all ASCII, so if we get a non-ASCII UTF-8 character (or even a multi-rune
+		// grapheme cluster), we can fail early.
+		self.didFailToMatch = true
+		return
+	}
+
+	if self.lineStr.Len() == 0 {
+		// If this is the first character, see if it could possibly match any supported trailer; if
+		// not, we can fail early and stop tracking further characters for this line.
+		if !anyOf(supportedTrailers, func(trailer string) bool { return trailer[0] == chr[0] }) {
+			self.didFailToMatch = true
+			return
+		}
+	}
+
+	self.lineStr.WriteString(chr)
+}
+
+func (self *trailerMatcher) isTrailer() bool {
+	if self.didFailToMatch {
+		return false
+	}
+
+	if self.didMatch {
+		return true
+	}
+
+	line := self.lineStr.String()
+	if anyOf(supportedTrailers, func(trailer string) bool { return line == trailer }) {
+		self.didMatch = true
+		return true
+	}
+
+	self.didFailToMatch = true
+	return false
+}
+
+func (self *trailerMatcher) reset() {
+	self.lineStr.Reset()
+	self.didFailToMatch = false
+	self.didMatch = false
+}
+
+func anyOf(strings []string, predicate func(s string) bool) bool {
+	for _, s := range strings {
+		if predicate(s) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (self *TextArea) updateCells() {
