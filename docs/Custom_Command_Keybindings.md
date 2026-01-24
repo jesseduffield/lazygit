@@ -339,6 +339,14 @@ SelectedWorktree
 CheckedOutBranch
 ```
 
+The following string values are also available:
+
+| Placeholder | Description |
+|-------------|-------------|
+| `RepoName` | Name of the repository (basename of the repo folder) |
+| `RepoPath` | Full path to the repository root |
+| `WorktreePath` | Full path to the current worktree (same as `RepoPath` in the main worktree) |
+
 (For legacy reasons, `SelectedLocalCommit`, `SelectedReflogCommit`, and `SelectedSubCommit` are also available, but they are deprecated.)
 
 

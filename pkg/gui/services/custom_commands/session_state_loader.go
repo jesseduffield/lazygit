@@ -209,6 +209,9 @@ type SessionState struct {
 	SelectedCommitFilePath string
 	SelectedWorktree       *Worktree
 	CheckedOutBranch       *Branch
+	RepoName               string
+	RepoPath               string
+	WorktreePath           string
 }
 
 func (self *SessionStateLoader) call() *SessionState {
@@ -254,5 +257,8 @@ func (self *SessionStateLoader) call() *SessionState {
 		SelectedCommitFilePath: selectedCommitFilePath,
 		SelectedWorktree:       worktreeShimFromModelRemote(self.c.Contexts().Worktrees.GetSelected()),
 		CheckedOutBranch:       branchShimFromModelBranch(self.refsHelper.GetCheckedOutRef()),
+		RepoName:               self.c.Git().RepoPaths.RepoName(),
+		RepoPath:               self.c.Git().RepoPaths.RepoPath(),
+		WorktreePath:           self.c.Git().RepoPaths.WorktreePath(),
 	}
 }
