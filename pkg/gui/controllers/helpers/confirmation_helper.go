@@ -125,10 +125,10 @@ func (self *ConfirmationHelper) getPopupPanelDimensionsAux(panelWidth int, panel
 		height/2 + panelHeight/2
 }
 
-func (self *ConfirmationHelper) getPopupPanelWidth() int {
+func (self *ConfirmationHelper) getPopupPanelWidth(maxWidth int) int {
 	width, _ := self.c.GocuiGui().Size()
-	// we want a minimum width up to a point, then we do it based on ratio.
-	panelWidth := 4 * width / 7
+	// we want a minimum width up to a point, then we do it based on ratio, but only up to the given max width
+	panelWidth := min(4*width/7, maxWidth)
 	minWidth := 80
 	if panelWidth < minWidth {
 		panelWidth = min(width-2, minWidth)
@@ -328,7 +328,7 @@ func (self *ConfirmationHelper) resizeMenu(parentPopupContext types.Context) {
 	// resize the window
 	itemCount := self.c.Contexts().Menu.UnfilteredLen()
 	offset := 3
-	panelWidth := self.getPopupPanelWidth()
+	panelWidth := self.getPopupPanelWidth(90)
 	contentWidth := panelWidth - 2 // minus 2 for the frame
 	promptLinesCount := self.layoutMenuPrompt(contentWidth)
 	x0, y0, x1, y1 := self.getPopupPanelDimensionsForContentHeight(panelWidth, itemCount+offset+promptLinesCount, parentPopupContext)
@@ -375,7 +375,7 @@ func (self *ConfirmationHelper) layoutMenuPrompt(contentWidth int) int {
 }
 
 func (self *ConfirmationHelper) resizeConfirmationPanel(parentPopupContext types.Context) {
-	panelWidth := self.getPopupPanelWidth()
+	panelWidth := self.getPopupPanelWidth(80)
 	contentWidth := panelWidth - 2 // minus 2 for the frame
 	confirmationView := self.c.Views().Confirmation
 	prompt := confirmationView.Buffer()
@@ -389,7 +389,7 @@ func (self *ConfirmationHelper) resizePromptPanel(parentPopupContext types.Conte
 	if self.c.Views().Suggestions.Visible {
 		suggestionsViewHeight = 11
 	}
-	panelWidth := self.getPopupPanelWidth()
+	panelWidth := self.getPopupPanelWidth(80)
 	contentWidth := panelWidth - 2 // minus 2 for the frame
 	promptView := self.c.Views().Prompt
 	prompt := promptView.TextArea.GetContent()
@@ -403,7 +403,13 @@ func (self *ConfirmationHelper) resizePromptPanel(parentPopupContext types.Conte
 }
 
 func (self *ConfirmationHelper) ResizeCommitMessagePanels(parentPopupContext types.Context) {
-	panelWidth := self.getPopupPanelWidth()
+	maxWidth := 100
+	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
+		// Adding some extra space to make it very obvious that we're wrapping the commit message
+		// for real, not just soft-wrapping for display at the window width.
+		maxWidth = self.c.UserConfig().Git.Commit.AutoWrapWidth + 25
+	}
+	panelWidth := self.getPopupPanelWidth(maxWidth)
 	content := self.c.Views().CommitDescription.TextArea.GetContent()
 	summaryViewHeight := 3
 	panelHeight := getMessageHeight(false, true, content, panelWidth, self.c.Views().CommitDescription.TabWidth)
