@@ -126,6 +126,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` b `` | 查看二分查找选项 |  |
 | `` s `` | 压缩(Squash) | 将已选提交压缩到该提交之下。这些选定的提交的消息会附加到该提交的消息之下。 |
 | `` f `` | 修正 （fixup） | 将选定的提交合并到其下面的提交中。与压缩类似，但所选提交的消息将被丢弃。 |
+| `` c `` | Set fixup message | Set the message option for the fixup commit. The -C option means to use this commit's message instead of the target commit's message. |
 | `` r `` | 改写提交 | 重写所选提交的消息。 |
 | `` R `` | 使用编辑器重命名提交 |  |
 | `` d `` | 删除提交 | 删除选中的提交。这将通过变基从分支中删除该提交，如果该提交修改的内容依赖于后续的提交，则需要解决合并冲突。 |

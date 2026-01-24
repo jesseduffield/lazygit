@@ -170,6 +170,7 @@ _Связки клавиш_
 | `` b `` | Просмотреть параметры бинарного поиска |  |
 | `` s `` | Объединить коммиты (Squash) | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
 | `` f `` | Объединить несколько коммитов в один отбросив сообщение коммита (Fixup)  | Meld the selected commit into the commit below it. Similar to squash, but the selected commit's message will be discarded. |
+| `` c `` | Set fixup message | Set the message option for the fixup commit. The -C option means to use this commit's message instead of the target commit's message. |
 | `` r `` | Перефразировать коммит | Reword the selected commit's message. |
 | `` R `` | Переписать коммит с помощью редактора |  |
 | `` d `` | Удалить коммит | Drop the selected commit. This will remove the commit from the branch via a rebase. If the commit makes changes that later commits depend on, you may need to resolve merge conflicts. |

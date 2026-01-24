@@ -164,7 +164,12 @@ type TranslationSet struct {
 	CannotSquashOrFixupMergeCommit        string
 	Fixup                                 string
 	FixupTooltip                          string
-	SureFixupThisCommit                   string
+	FixupKeepMessage                      string
+	FixupKeepMessageTooltip               string
+	SetFixupMessage                       string
+	SetFixupMessageTooltip                string
+	FixupDiscardMessage                   string
+	FixupDiscardMessageTooltip            string
 	SureSquashThisCommit                  string
 	Squash                                string
 	PickCommitTooltip                     string
@@ -316,6 +321,8 @@ type TranslationSet struct {
 	ViewRevertOptions                     string
 	NotMergingOrRebasing                  string
 	AlreadyRebasing                       string
+	NotMidRebase                          string
+	MustSelectFixupCommit                 string
 	RecentRepos                           string
 	MergeOptionsTitle                     string
 	RebaseOptionsTitle                    string
@@ -965,6 +972,7 @@ type Actions struct {
 	CheckoutFile                     string
 	SquashCommitDown                 string
 	FixupCommit                      string
+	FixupCommitKeepMessage           string
 	RewordCommit                     string
 	DropCommit                       string
 	EditCommit                       string
@@ -1259,7 +1267,12 @@ func EnglishTranslationSet() *TranslationSet {
 		CannotSquashOrFixupFirstCommit:       "There's no commit below to squash into",
 		CannotSquashOrFixupMergeCommit:       "Cannot squash or fixup a merge commit",
 		Fixup:                                "Fixup",
-		SureFixupThisCommit:                  "Are you sure you want to 'fixup' the selected commit(s) into the commit below?",
+		FixupKeepMessage:                     "Fixup and use this commit's message",
+		FixupKeepMessageTooltip:              "Squash the selected commit into the commit below, using this commit's message, discarding the message of the commit below.",
+		SetFixupMessage:                      "Set fixup message",
+		SetFixupMessageTooltip:               "Set the message option for the fixup commit. The -C option means to use this commit's message instead of the target commit's message.",
+		FixupDiscardMessage:                  "Fixup and discard this commit's message",
+		FixupDiscardMessageTooltip:           "Squash the selected commit into the commit below, discarding this commit's message.",
 		SureSquashThisCommit:                 "Are you sure you want to squash the selected commit(s) into the commit below?",
 		Squash:                               "Squash",
 		PickCommitTooltip:                    "Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase.",
@@ -1411,6 +1424,8 @@ func EnglishTranslationSet() *TranslationSet {
 		ViewRevertOptions:                    "View revert options",
 		NotMergingOrRebasing:                 "You are currently neither rebasing nor merging",
 		AlreadyRebasing:                      "Can't perform this action during a rebase",
+		NotMidRebase:                         "This action only works during an interactive rebase",
+		MustSelectFixupCommit:                "This action only works on fixup commits",
 		RecentRepos:                          "Recent repositories",
 		MergeOptionsTitle:                    "Merge options",
 		RebaseOptionsTitle:                   "Rebase options",
@@ -2023,6 +2038,7 @@ func EnglishTranslationSet() *TranslationSet {
 			CheckoutFile:                     "Checkout file",
 			SquashCommitDown:                 "Squash commit down",
 			FixupCommit:                      "Fixup commit",
+			FixupCommitKeepMessage:           "Fixup commit (keep message)",
 			RewordCommit:                     "Reword commit",
 			DropCommit:                       "Drop commit",
 			EditCommit:                       "Edit commit",
