@@ -10,7 +10,7 @@ jobs:
     if: ${{ github.repository == 'jesseduffield/lazygit' }}
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Generate Sponsors 💖
         uses: JamesIves/github-sponsors-readme-action@v1.2.2
@@ -19,7 +19,7 @@ jobs:
           file: "README.md"
 
       - name: Create Pull Request 🚀
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "README.md: Update Sponsors"
           title: "README.md: Update Sponsors"
