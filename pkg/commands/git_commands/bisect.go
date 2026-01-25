@@ -154,7 +154,7 @@ func (self *BisectCommands) IsDone() (bool, []string, error) {
 	candidates := []string{}
 
 	cmdArgs := NewGitCmd("rev-list").Arg(newHash).ToArgv()
-	err := self.cmd.New(cmdArgs).RunAndProcessLines(func(line string) (bool, error) {
+	err := self.cmd.New(cmdArgs).DontLog().RunAndProcessLines(func(line string) (bool, error) {
 		hash := strings.TrimSpace(line)
 
 		if status, ok := info.statusMap[hash]; ok {
