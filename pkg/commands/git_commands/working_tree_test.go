@@ -70,7 +70,7 @@ func TestWorkingTreeUnstageFile(t *testing.T) {
 // these tests don't cover everything, in part because we already have an integration
 // test which does cover everything. I don't want to unnecessarily assert on the 'how'
 // when the 'what' is what matters
-func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
+func TestWorkingTreeDiscardAllFilesChanges(t *testing.T) {
 	type scenario struct {
 		testName      string
 		file          *models.File
@@ -190,7 +190,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, removeFile: s.removeFile})
-			err := instance.DiscardAllFileChanges(s.file)
+			err := instance.DiscardAllFilesChanges([]*models.File{s.file})
 
 			if s.expectedError == "" {
 				assert.Nil(t, err)
@@ -476,7 +476,7 @@ func TestWorkingTreeDiscardUnstagedFileChanges(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
-			s.test(instance.DiscardUnstagedFileChanges(s.file))
+			s.test(instance.DiscardUnstagedFilesChanges([]*models.File{s.file}))
 			s.runner.CheckForMissingCalls()
 		})
 	}
