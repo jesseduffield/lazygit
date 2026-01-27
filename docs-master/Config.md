@@ -465,6 +465,15 @@ git:
     # passing the `--all` argument to `git log`)
     showWholeGraph: false
 
+    # Custom format for the commit list side panel.
+    # Supports placeholders like:
+    #   %h  short hash   %s  subject
+    #   %an author name  %as short author
+    #   %g  graph line   %d  decorations (tags/branches/markers)
+    #   %a  action       %cd date
+    # Default: "%h %a %as %g %d %s".
+    customPaneLogFormat: '%h %a %as %g %d %s'
+
   # How branches are sorted in the local branches view.
   # One of: 'date' (default) | 'recency' | 'alphabetical'
   # Can be changed from within Lazygit with the Sort Order menu (`s`) in the
