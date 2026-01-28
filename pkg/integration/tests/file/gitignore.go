@@ -15,6 +15,10 @@ var Gitignore = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFile(".gitignore", "")
 		shell.CreateFile("toExclude", "")
 		shell.CreateFile("toIgnore", "")
+		shell.CreateFile("toIgnoreGlobally", "")
+
+		// using a relative path here in order to not pollute the home dir of the user running the tests
+		shell.SetConfig("core.excludesFile", "../my-global-git-ignore")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().
@@ -24,6 +28,7 @@ var Gitignore = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("  ?? .gitignore"),
 				Equals("  ?? toExclude"),
 				Equals("  ?? toIgnore"),
+				Equals("  ?? toIgnoreGlobally"),
 			).
 			SelectNextItem().
 			Press(keys.Files.IgnoreFile).
@@ -43,6 +48,15 @@ var Gitignore = NewIntegrationTest(NewIntegrationTestArgs{
 				t.FileSystem().FileContent(".gitignore", Equals(""))
 				t.FileSystem().FileContent(".git/info/exclude", DoesNotContain(".gitignore"))
 			}).
+			Press(keys.Files.IgnoreFile).
+			// ensure we can't globally ignore the .gitignore file
+			Tap(func() {
+				t.ExpectPopup().Menu().Title(Equals("Ignore or exclude file")).Select(Contains("Add to ../my-global-git-ignore")).Confirm()
+
+				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Equals("Cannot ignore .gitignore")).Confirm()
+
+				t.FileSystem().PathNotPresent("../my-global-git-ignore")
+			}).
 			SelectNextItem().
 			Press(keys.Files.IgnoreFile).
 			// exclude a file
@@ -52,7 +66,12 @@ var Gitignore = NewIntegrationTest(NewIntegrationTestArgs{
 				t.FileSystem().FileContent(".gitignore", Equals(""))
 				t.FileSystem().FileContent(".git/info/exclude", Contains("toExclude"))
 			}).
-			SelectNextItem().
+			Lines(
+				Equals("▼ /"),
+				Equals("  ?? .gitignore"),
+				Equals("  ?? toIgnore").IsSelected(),
+				Equals("  ?? toIgnoreGlobally"),
+			).
 			Press(keys.Files.IgnoreFile).
 			// ignore a file
 			Tap(func() {
@@ -60,6 +79,23 @@ var Gitignore = NewIntegrationTest(NewIntegrationTestArgs{
 
 				t.FileSystem().FileContent(".gitignore", Equals("toIgnore\n"))
 				t.FileSystem().FileContent(".git/info/exclude", Contains("toExclude"))
-			})
+			}).
+			Lines(
+				Equals("▼ /"),
+				Equals("  ?? .gitignore"),
+				Equals("  ?? toIgnoreGlobally").IsSelected(),
+			).
+			Press(keys.Files.IgnoreFile).
+			// ignore a file
+			Tap(func() {
+				t.ExpectPopup().Menu().Title(Equals("Ignore or exclude file")).Select(Contains("Add to ../my-global-git-ignore")).Confirm()
+
+				t.FileSystem().FileContent(".gitignore", Equals("toIgnore\n"))
+				t.FileSystem().FileContent(".git/info/exclude", Contains("toExclude"))
+				t.FileSystem().FileContent("../my-global-git-ignore", Contains("toIgnoreGlobally"))
+			}).
+			Lines(
+				Equals("?? .gitignore"),
+			)
 	},
 })
