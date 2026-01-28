@@ -233,10 +233,10 @@ func (self *WorkingTreeCommands) DiscardUnstagedFileChanges(file *models.File) e
 	return self.cmd.New(cmdArgs).Run()
 }
 
-// Escapes special characters in a filename for gitignore and exclude files
+// Escapes special characters in a filename for gitignore and exclude files, and prepends `/`
 func escapeFilename(filename string) string {
 	re := regexp.MustCompile(`^[!#]|[\[\]*]`)
-	return re.ReplaceAllString(filename, `\${0}`)
+	return "/" + re.ReplaceAllString(filename, `\${0}`)
 }
 
 // Ignore adds a file to the gitignore for the repo
