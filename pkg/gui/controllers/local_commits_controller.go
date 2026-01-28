@@ -738,6 +738,7 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 			return err
 		}
 		self.context().MoveSelection(1)
+		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
 		self.c.Refresh(types.RefreshOptions{
 			Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
@@ -750,6 +751,7 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 		err := self.c.Git().Rebase.MoveCommitsDown(self.c.Model().Commits, startIdx, endIdx)
 		if err == nil {
 			self.context().MoveSelection(1)
+			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 		}
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err, types.RefreshOptions{Mode: types.SYNC})
@@ -762,6 +764,7 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 			return err
 		}
 		self.context().MoveSelection(-1)
+		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
 		self.c.Refresh(types.RefreshOptions{
 			Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
@@ -774,6 +777,7 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 		err := self.c.Git().Rebase.MoveCommitsUp(self.c.Model().Commits, startIdx, endIdx)
 		if err == nil {
 			self.context().MoveSelection(-1)
+			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 		}
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err, types.RefreshOptions{Mode: types.SYNC})
