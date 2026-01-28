@@ -88,7 +88,7 @@ github.com/fatih/color
 # github.com/gdamore/encoding v1.0.1
 ## explicit; go 1.9
 github.com/gdamore/encoding
-# github.com/gdamore/tcell/v2 v2.13.7
+# github.com/gdamore/tcell/v2 v2.13.8
 ## explicit; go 1.24.0
 github.com/gdamore/tcell/v2
 github.com/gdamore/tcell/v2/terminfo
@@ -211,7 +211,7 @@ github.com/jesseduffield/go-git/v5/utils/merkletrie/internal/frame
 github.com/jesseduffield/go-git/v5/utils/merkletrie/noder
 github.com/jesseduffield/go-git/v5/utils/sync
 github.com/jesseduffield/go-git/v5/utils/trace
-# github.com/jesseduffield/gocui v0.3.1-0.20260125102045-dd3e33362e7b
+# github.com/jesseduffield/gocui v0.3.1-0.20260128194906-9d8c3cdfac18
 ## explicit; go 1.25
 github.com/jesseduffield/gocui
 # github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
