@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -129,14 +128,6 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Handler:           self.selectCommitsOfCurrentBranch,
 			GetDisabledReason: self.require(self.canSelectCommitsOfCurrentBranch),
 			Description:       self.c.Tr.SelectCommitsOfCurrentBranch,
-		},
-		// Putting this at the bottom of the list so that it has the lowest priority,
-		// meaning that if the user has configured another keybinding to the same key
-		// then that will take precedence.
-		{
-			// Hardcoding this key because it's not configurable
-			Key:     opts.GetKey("c"),
-			Handler: self.handleOldCherryPickKey,
 		},
 	}
 
@@ -380,16 +371,6 @@ func (self *BasicCommitsController) canCopyCommits(selectedCommits []*models.Com
 	}
 
 	return nil
-}
-
-func (self *BasicCommitsController) handleOldCherryPickKey() error {
-	msg := utils.ResolvePlaceholderString(self.c.Tr.OldCherryPickKeyWarning,
-		map[string]string{
-			"copy":  keybindings.Label(self.c.UserConfig().Keybinding.Commits.CherryPickCopy),
-			"paste": keybindings.Label(self.c.UserConfig().Keybinding.Commits.PasteCommits),
-		})
-
-	return errors.New(msg)
 }
 
 func (self *BasicCommitsController) openDiffTool(commit *models.Commit) error {
