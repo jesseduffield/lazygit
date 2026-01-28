@@ -184,6 +184,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` b `` | 查看二分選項 |  |
 | `` s `` | 壓縮 (Squash) | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
 | `` f `` | 修復 (Fixup) | Meld the selected commit into the commit below it. Similar to squash, but the selected commit's message will be discarded. |
+| `` c `` | Set fixup message | Set the message option for the fixup commit. The -C option means to use this commit's message instead of the target commit's message. |
 | `` r `` | 改寫提交 | 改寫選中的提交訊息 |
 | `` R `` | 使用編輯器改寫提交 |  |
 | `` d `` | 刪除提交 | Drop the selected commit. This will remove the commit from the branch via a rebase. If the commit makes changes that later commits depend on, you may need to resolve merge conflicts. |

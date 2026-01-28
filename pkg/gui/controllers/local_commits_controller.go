@@ -83,6 +83,15 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			DisplayOnScreen: true,
 		},
 		{
+			Key:     opts.GetKey(opts.Config.Commits.SetFixupMessage),
+			Handler: self.withItem(self.setFixupMessage),
+			GetDisabledReason: self.require(
+				self.singleItemSelected(self.canSetFixupMessage),
+			),
+			Description: self.c.Tr.SetFixupMessage,
+			Tooltip:     self.c.Tr.SetFixupMessageTooltip,
+		},
+		{
 			Key:     opts.GetKey(opts.Config.Commits.RenameCommit),
 			Handler: self.withItem(self.reword),
 			GetDisabledReason: self.require(
@@ -321,18 +330,69 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 		return self.updateTodos(todo.Fixup, selectedCommits)
 	}
 
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.Fixup,
-		Prompt: self.c.Tr.SureFixupThisCommit,
-		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
-				self.c.LogAction(self.c.Tr.Actions.FixupCommit)
-				return self.interactiveRebase(todo.Fixup, startIdx, endIdx)
-			})
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.Fixup,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.Fixup,
+				Key:   'f',
+				OnPress: func() error {
+					return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
+						self.c.LogAction(self.c.Tr.Actions.FixupCommit)
+						return self.interactiveRebase(todo.Fixup, startIdx, endIdx)
+					})
+				},
+				Tooltip: self.c.Tr.FixupTooltip,
+			},
+			{
+				Label: self.c.Tr.FixupKeepMessage,
+				Key:   'c',
+				OnPress: func() error {
+					return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
+						self.c.LogAction(self.c.Tr.Actions.FixupCommitKeepMessage)
+						return self.interactiveRebaseWithFlag(todo.Fixup, startIdx, endIdx, "-C")
+					})
+				},
+				Tooltip: self.c.Tr.FixupKeepMessageTooltip,
+			},
 		},
 	})
+}
+
+func (self *LocalCommitsController) canSetFixupMessage(commit *models.Commit) *types.DisabledReason {
+	if !self.isRebasing() {
+		return &types.DisabledReason{Text: self.c.Tr.NotMidRebase}
+	}
+
+	if commit.Action != todo.Fixup {
+		return &types.DisabledReason{Text: self.c.Tr.MustSelectFixupCommit}
+	}
 
 	return nil
+}
+
+func (self *LocalCommitsController) setFixupMessage(commit *models.Commit) error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.SetFixupMessage,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.FixupDiscardMessage,
+				Key:   'f',
+				OnPress: func() error {
+					return self.updateTodosWithFlag(todo.Fixup, []*models.Commit{commit}, "")
+				},
+				Tooltip: self.c.Tr.FixupDiscardMessageTooltip,
+			},
+			{
+				Label: self.c.Tr.FixupKeepMessage,
+				Key:   'c',
+				OnPress: func() error {
+					return self.updateTodosWithFlag(todo.Fixup, []*models.Commit{commit}, "-C")
+				},
+				Tooltip: self.c.Tr.FixupKeepMessageTooltip,
+			},
+		},
+	})
 }
 
 func (self *LocalCommitsController) reword(commit *models.Commit) error {
@@ -505,7 +565,7 @@ func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, start
 	commits := self.c.Model().Commits
 	if !commits[endIdx].IsMerge() {
 		selectionRangeAndMode := self.getSelectionRangeAndMode()
-		err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit)
+		err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit, "")
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
 			types.RefreshOptions{
@@ -611,13 +671,17 @@ func (self *LocalCommitsController) pick(selectedCommits []*models.Commit) error
 }
 
 func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand, startIdx int, endIdx int) error {
+	return self.interactiveRebaseWithFlag(action, startIdx, endIdx, "")
+}
+
+func (self *LocalCommitsController) interactiveRebaseWithFlag(action todo.TodoCommand, startIdx int, endIdx int, flag string) error {
 	// When performing an action that will remove the selected commits, we need to select the
 	// next commit down (which will end up at the start index after the action is performed)
 	if action == todo.Drop || action == todo.Fixup || action == todo.Squash {
 		self.context().SetSelection(startIdx)
 	}
 
-	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, startIdx, endIdx, action)
+	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, startIdx, endIdx, action, flag)
 
 	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 }
@@ -626,7 +690,11 @@ func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand, s
 // commit meaning you are trying to edit the todo file rather than actually
 // begin a rebase. It then updates the todo file with that action
 func (self *LocalCommitsController) updateTodos(action todo.TodoCommand, selectedCommits []*models.Commit) error {
-	if err := self.c.Git().Rebase.EditRebaseTodo(selectedCommits, action); err != nil {
+	return self.updateTodosWithFlag(action, selectedCommits, "")
+}
+
+func (self *LocalCommitsController) updateTodosWithFlag(action todo.TodoCommand, selectedCommits []*models.Commit, flag string) error {
+	if err := self.c.Git().Rebase.EditRebaseTodo(selectedCommits, action, flag); err != nil {
 		return err
 	}
 

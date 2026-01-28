@@ -713,6 +713,7 @@ keybinding:
     renameCommitWithEditor: R
     viewResetOptions: g
     markCommitAsFixup: f
+    setFixupMessage: c
     createFixupCommit: F
     squashAboveCommits: S
     moveDownCommit: <c-j>

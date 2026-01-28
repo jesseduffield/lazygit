@@ -279,6 +279,8 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.EditRangeSelectOutsideRebase,
 	interactive_rebase.EditTheConflCommit,
 	interactive_rebase.FixupFirstCommit,
+	interactive_rebase.FixupKeepMessage,
+	interactive_rebase.FixupKeepMessageRebase,
 	interactive_rebase.FixupSecondCommit,
 	interactive_rebase.InteractiveRebaseOfCopiedBranch,
 	interactive_rebase.InteractiveRebaseWithConflictForEditCommand,
