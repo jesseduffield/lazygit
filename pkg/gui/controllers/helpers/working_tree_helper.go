@@ -192,28 +192,54 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 	message := self.c.Contexts().CommitMessage.GetPreservedMessageAndLogError()
 
 	if message == "" {
-		commitPrefixConfigs := self.commitPrefixConfigsForRepo()
-		for _, commitPrefixConfig := range commitPrefixConfigs {
-			prefixPattern := commitPrefixConfig.Pattern
-			if prefixPattern == "" {
-				continue
-			}
-			prefixReplace := commitPrefixConfig.Replace
-			branchName := self.refHelper.GetCheckedOutRef().Name
-			rgx, err := regexp.Compile(prefixPattern)
-			if err != nil {
-				return fmt.Errorf("%s: %s", self.c.Tr.CommitPrefixPatternError, err.Error())
-			}
-
-			if rgx.MatchString(branchName) {
-				prefix := rgx.ReplaceAllString(branchName, prefixReplace)
-				message = prefix
-				break
-			}
+		commitPrefix, err := self.buildCommitPrefixMessage()
+		if err != nil {
+			return err
 		}
+		message = commitPrefix
 	}
 
 	return self.HandleCommitPressWithMessage(message, false)
+}
+
+func (self *WorkingTreeHelper) buildCommitPrefixMessage() (string, error) {
+	// Prioritise user config commit prefixes
+	commitPrefixConfigs := self.commitPrefixConfigsForRepo()
+	for _, commitPrefixConfig := range commitPrefixConfigs {
+		prefixPattern := commitPrefixConfig.Pattern
+		if prefixPattern == "" {
+			continue
+		}
+		prefixReplace := commitPrefixConfig.Replace
+		branchName := self.refHelper.GetCheckedOutRef().Name
+		rgx, err := regexp.Compile(prefixPattern)
+		if err != nil {
+			return "", fmt.Errorf("%s: %s", self.c.Tr.CommitPrefixPatternError, err.Error())
+		}
+
+		if rgx.MatchString(branchName) {
+			return rgx.ReplaceAllString(branchName, prefixReplace), nil
+		}
+	}
+
+	// No result from user config commit prefixes
+	// Run prepare-commit-msg hook
+	tmpFile, err := os.CreateTemp(self.c.Git().RepoPaths.RepoGitDirPath(), git_commands.TmpCommitEditMsg)
+	if err != nil {
+		return "", err
+	}
+	defer os.Remove(tmpFile.Name())
+	defer tmpFile.Close()
+
+	err = self.c.Git().ClientHooks.RunClientHook(git_commands.HookPrepareCommitMsg, tmpFile.Name())
+	if err != nil {
+		return "", err
+	}
+	data, err := os.ReadFile(tmpFile.Name())
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }
 
 func (self *WorkingTreeHelper) WithEnsureCommittableFiles(handler func() error) error {
