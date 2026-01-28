@@ -855,12 +855,16 @@ type TranslationSet struct {
 	Switching                                string
 	RemoveWorktree                           string
 	RemoveWorktreeTitle                      string
+	RemoveWorktreeAndBranch                  string
+	RemoveWorktreeAndBranchTitle             string
 	DetachWorktree                           string
 	DetachingWorktree                        string
 	WorktreesTitle                           string
 	WorktreeTitle                            string
 	RemoveWorktreePrompt                     string
+	RemoveWorktreeAndBranchPrompt            string
 	ForceRemoveWorktreePrompt                string
+	ForceRemoveWorktreeAndBranchPrompt       string
 	RemovingWorktree                         string
 	AddingWorktree                           string
 	CantDeleteCurrentWorktree                string
@@ -1962,8 +1966,12 @@ func EnglishTranslationSet() *TranslationSet {
 		Switching:                                "Switching",
 		RemoveWorktree:                           "Remove worktree",
 		RemoveWorktreeTitle:                      "Remove worktree",
+		RemoveWorktreeAndBranch:                  "Remove worktree and its branch",
+		RemoveWorktreeAndBranchTitle:             "Remove worktree and branch",
 		RemoveWorktreePrompt:                     "Are you sure you want to remove worktree '{{.worktreeName}}'?",
+		RemoveWorktreeAndBranchPrompt:            "Are you sure you want to remove worktree '{{.worktreeName}}' and its branch '{{.branchName}}'?",
 		ForceRemoveWorktreePrompt:                "'{{.worktreeName}}' contains modified or untracked files, or submodules (or all of these). Are you sure you want to remove it?",
+		ForceRemoveWorktreeAndBranchPrompt:       "'{{.worktreeName}}' contains modified or untracked files, or submodules (or all of these). Are you sure you want to remove the worktree and its branch?",
 		RemovingWorktree:                         "Deleting worktree",
 		DetachWorktree:                           "Detach worktree",
 		DetachingWorktree:                        "Detaching worktree",
