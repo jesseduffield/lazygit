@@ -239,8 +239,18 @@ func escapeFilename(filename string) string {
 	return re.ReplaceAllString(filename, `\${0}`)
 }
 
-// Ignore adds a file to the gitignore for the repo
+// Ignore adds a file to the gitignore for the repo.
+// If a .gitignore exists in the same directory as the file, it will be used
+// with just the basename. Otherwise, the root .gitignore is used with the full path.
 func (self *WorkingTreeCommands) Ignore(filename string) error {
+	dir := filepath.Dir(filename)
+	if dir != "." {
+		localGitignore := filepath.Join(dir, ".gitignore")
+		if _, err := os.Stat(localGitignore); err == nil {
+			return self.os.AppendLineToFile(localGitignore, escapeFilename(filepath.Base(filename)))
+		}
+	}
+
 	return self.os.AppendLineToFile(".gitignore", escapeFilename(filename))
 }
 
