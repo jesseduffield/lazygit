@@ -505,7 +505,7 @@ func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, start
 	commits := self.c.Model().Commits
 	if !commits[endIdx].IsMerge() {
 		selectionRangeAndMode := self.getSelectionRangeAndMode()
-		err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit)
+		err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit, "")
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
 			types.RefreshOptions{
@@ -611,13 +611,17 @@ func (self *LocalCommitsController) pick(selectedCommits []*models.Commit) error
 }
 
 func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand, startIdx int, endIdx int) error {
+	return self.interactiveRebaseWithFlag(action, startIdx, endIdx, "")
+}
+
+func (self *LocalCommitsController) interactiveRebaseWithFlag(action todo.TodoCommand, startIdx int, endIdx int, flag string) error {
 	// When performing an action that will remove the selected commits, we need to select the
 	// next commit down (which will end up at the start index after the action is performed)
 	if action == todo.Drop || action == todo.Fixup || action == todo.Squash {
 		self.context().SetSelection(startIdx)
 	}
 
-	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, startIdx, endIdx, action)
+	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, startIdx, endIdx, action, flag)
 
 	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 }
@@ -626,7 +630,11 @@ func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand, s
 // commit meaning you are trying to edit the todo file rather than actually
 // begin a rebase. It then updates the todo file with that action
 func (self *LocalCommitsController) updateTodos(action todo.TodoCommand, selectedCommits []*models.Commit) error {
-	if err := self.c.Git().Rebase.EditRebaseTodo(selectedCommits, action); err != nil {
+	return self.updateTodosWithFlag(action, selectedCommits, "")
+}
+
+func (self *LocalCommitsController) updateTodosWithFlag(action todo.TodoCommand, selectedCommits []*models.Commit, flag string) error {
+	if err := self.c.Git().Rebase.EditRebaseTodo(selectedCommits, action, flag); err != nil {
 		return err
 	}
 
