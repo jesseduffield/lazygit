@@ -110,6 +110,24 @@ gui:
   # is true.
   expandedSidePanelWeight: 2
 
+  # If true, automatically resize the left and right sections based on which panel
+  # has focus.
+  # When a side panel (files, branches, commits, etc.) has focus, the left section
+  # becomes larger.
+  # When the main panel has focus, the right section becomes larger. Only applies
+  # in normal screen mode.
+  # Use sidePanelFocusedRatio and mainPanelFocusedRatio to configure the exact
+  # ratios.
+  dynamicSidePanelWidth: false
+
+  # Ratio for the side panel width when a side panel has focus (only applies when
+  # dynamicSidePanelWidth is true). Number from 0 to 1.0. Default is 0.618.
+  sidePanelFocusedRatio: 0.618
+
+  # Ratio for the main panel width when the main panel has focus (only applies
+  # when dynamicSidePanelWidth is true). Number from 0 to 1.0. Default is 0.85.
+  mainPanelFocusedRatio: 0.85
+
   # Sometimes the main window is split in two (e.g. when the selected file has
   # both staged and unstaged changes). This setting controls how the two sections
   # are split.
