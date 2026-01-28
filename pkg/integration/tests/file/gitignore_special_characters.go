@@ -61,6 +61,6 @@ var GitignoreSpecialCharacters = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("  ?? abc_def"),
 			)
 
-		t.FileSystem().FileContent(".gitignore", Equals("\\#file\nfile#abc\n\\!file\nfile!abc\nabc\\*def\nfile\\[x\\]\n"))
+		t.FileSystem().FileContent(".gitignore", Equals("/\\#file\n/file#abc\n/\\!file\n/file!abc\n/abc\\*def\n/file\\[x\\]\n"))
 	},
 })
