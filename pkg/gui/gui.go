@@ -786,21 +786,31 @@ func (gui *Gui) initGocui(headless bool, test integrationTypes.IntegrationTest) 
 }
 
 func (gui *Gui) viewTabMap() map[string][]context.TabView {
-	result := map[string][]context.TabView{
-		"branches": {
-			{
-				Tab:      gui.c.Tr.LocalBranchesTitle,
-				ViewName: "localBranches",
-			},
-			{
-				Tab:      gui.c.Tr.RemotesTitle,
-				ViewName: "remotes",
-			},
-			{
-				Tab:      gui.c.Tr.TagsTitle,
-				ViewName: "tags",
-			},
+	branchTabs := []context.TabView{
+		{
+			Tab:      gui.c.Tr.LocalBranchesTitle,
+			ViewName: "localBranches",
 		},
+		{
+			Tab:      gui.c.Tr.RemotesTitle,
+			ViewName: "remotes",
+		},
+		{
+			Tab:      gui.c.Tr.TagsTitle,
+			ViewName: "tags",
+		},
+	}
+
+	// Only add Stacks tab if git-spice is enabled and available
+	if gui.isSpiceEnabled() {
+		branchTabs = append(branchTabs, context.TabView{
+			Tab:      gui.c.Tr.SpiceStacksTitle,
+			ViewName: "spiceStacks",
+		})
+	}
+
+	result := map[string][]context.TabView{
+		"branches": branchTabs,
 		"commits": {
 			{
 				Tab:      gui.c.Tr.CommitsTitle,
