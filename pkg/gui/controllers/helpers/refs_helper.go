@@ -366,7 +366,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		InitialContent: suggestedBranchName,
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.CreateBranch)
-			newBranchName := SanitizedBranchName(response)
+			newBranchName := self.SanitizedBranchNameWithConfig(response)
 			newBranchFunc := self.c.Git().Branch.New
 			if newBranchName != suggestedBranchName {
 				newBranchFunc = self.c.Git().Branch.NewWithoutTracking
@@ -429,7 +429,7 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 			InitialContent: suggestedBranchName,
 			HandleConfirm: func(response string) error {
 				self.c.LogAction(self.c.Tr.MoveCommitsToNewBranch)
-				newBranchName := SanitizedBranchName(response)
+				newBranchName := self.SanitizedBranchNameWithConfig(response)
 				return self.c.WithWaitingStatus(self.c.Tr.MovingCommitsToNewBranchStatus, func(gocui.Task) error {
 					return f(newBranchName)
 				})
@@ -576,10 +576,20 @@ func (self *RefsHelper) CanMoveCommitsToNewBranch() *types.DisabledReason {
 	return nil
 }
 
-// SanitizedBranchName will remove all spaces in favor of a dash "-" to meet
-// git's branch naming requirement.
-func SanitizedBranchName(input string) string {
-	return strings.ReplaceAll(input, " ", "-")
+// SanitizedBranchName will remove all spaces in favor of the specified replacement
+// character to meet git's branch naming requirement.
+func SanitizedBranchName(input string, replacement string) string {
+	return strings.ReplaceAll(input, " ", replacement)
+}
+
+// SanitizedBranchNameWithConfig returns a sanitized branch name using the
+// user's configured whitespace replacement character.
+func (self *RefsHelper) SanitizedBranchNameWithConfig(input string) string {
+	replacement := self.c.UserConfig().Git.BranchWhitespaceReplacement
+	if replacement == "" {
+		replacement = "-"
+	}
+	return SanitizedBranchName(input, replacement)
 }
 
 // Checks if the given branch name is a remote branch, and returns the name of

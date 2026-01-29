@@ -306,6 +306,10 @@ type GitConfig struct {
 	CommitPrefixes map[string][]CommitPrefixConfig `yaml:"commitPrefixes"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix
 	BranchPrefix string `yaml:"branchPrefix"`
+	// Specifies the character used to replace whitespace in branch names when creating new branches.
+	// By default, spaces are replaced with dashes ("-").
+	// Some teams use underscores ("_") or other characters.
+	BranchWhitespaceReplacement string `yaml:"branchWhitespaceReplacement"`
 	// If true, parse emoji strings in commit messages e.g. render :rocket: as 🚀
 	// (This should really be under 'gui', not 'git')
 	ParseEmoji bool `yaml:"parseEmoji"`
@@ -855,6 +859,7 @@ func GetDefaultConfig() *UserConfig {
 			DisableForcePushing:          false,
 			CommitPrefixes:               map[string][]CommitPrefixConfig(nil),
 			BranchPrefix:                 "",
+			BranchWhitespaceReplacement:  "-",
 			ParseEmoji:                   false,
 			TruncateCopiedCommitHashesTo: 12,
 		},
