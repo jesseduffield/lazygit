@@ -577,3 +577,69 @@ func TestGetPullRequestURL(t *testing.T) {
 		})
 	}
 }
+
+func TestGetBranchURL(t *testing.T) {
+	type scenario struct {
+		testName   string
+		branchName string
+		remoteUrl  string
+		test       func(url string, err error)
+	}
+
+	scenarios := []scenario{
+		{
+			testName:   "Returns branch URL for GitHub",
+			branchName: "feature/add-tests",
+			remoteUrl:  "git@github.com:peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://github.com/peter/calculator/tree/feature/add-tests", url)
+			},
+		},
+		{
+			testName:   "Returns branch URL for GitLab",
+			branchName: "feature/new-feature",
+			remoteUrl:  "git@gitlab.com:me/public/repo.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/me/public/repo/-/tree/feature/new-feature", url)
+			},
+		},
+		{
+			testName:   "Returns branch URL for Bitbucket",
+			branchName: "feature/profile-page",
+			remoteUrl:  "git@bitbucket.org:johndoe/social_network.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/src/feature/profile-page", url)
+			},
+		},
+		{
+			testName:   "Returns branch URL for Gitea",
+			branchName: "develop",
+			remoteUrl:  "git@try.gitea.io:user/repo.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://try.gitea.io/user/repo/src/branch/develop", url)
+			},
+		},
+		{
+			testName:   "Returns branch URL for Codeberg",
+			branchName: "main",
+			remoteUrl:  "git@codeberg.org:user/repo.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://codeberg.org/user/repo/src/branch/main", url)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			tr := i18n.EnglishTranslationSet()
+			log := &fakes.FakeFieldLogger{}
+			hostingServiceMgr := NewHostingServiceMgr(log, tr, s.remoteUrl, nil)
+			s.test(hostingServiceMgr.GetBranchURL(s.branchName))
+		})
+	}
+}
