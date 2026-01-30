@@ -46,7 +46,7 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Refresh),
-			Handler:     opts.Guards.NoPopupPanel(self.refresh),
+			Handler:     self.refreshAllowPopupAutoClose,
 			Description: self.c.Tr.Refresh,
 			Tooltip:     self.c.Tr.RefreshTooltip,
 		},
@@ -170,6 +170,22 @@ func (self *GlobalController) createCustomPatchOptionsMenu() error {
 func (self *GlobalController) refresh() error {
 	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 	return nil
+}
+
+func (self *GlobalController) refreshAllowPopupAutoClose() error {
+	if self.c.Helpers().Confirmation.IsPopupPanelFocused() && !self.canRefreshWithPopup() {
+		return nil
+	}
+
+	return self.refresh()
+}
+
+func (self *GlobalController) canRefreshWithPopup() bool {
+	self.c.Mutexes().PopupMutex.Lock()
+	defer self.c.Mutexes().PopupMutex.Unlock()
+
+	popupOpts := self.c.State().GetRepoState().GetCurrentPopupOpts()
+	return popupOpts != nil && popupOpts.AutoCloseCondition != types.PopupAutoCloseNone
 }
 
 func (self *GlobalController) nextScreenMode() error {

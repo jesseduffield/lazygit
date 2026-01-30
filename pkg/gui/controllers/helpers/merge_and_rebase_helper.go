@@ -222,8 +222,9 @@ func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 // PromptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
 func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.Continue,
-		Prompt: fmt.Sprintf(self.c.Tr.ConflictsResolved, self.c.Git().Status.WorkingTreeState().CommandName()),
+		Title:              self.c.Tr.Continue,
+		Prompt:             fmt.Sprintf(self.c.Tr.ConflictsResolved, self.c.Git().Status.WorkingTreeState().CommandName()),
+		AutoCloseCondition: types.PopupAutoCloseWorkingTreeStateNone,
 		HandleConfirm: func() error {
 			// By the time we get here, we might have unstaged changes again,
 			// e.g. if the user had to fix build errors after resolving the
@@ -240,8 +241,9 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 			root := self.c.Contexts().Files.FileTreeViewModel.GetRoot()
 			if root.GetHasUnstagedChanges() {
 				self.c.Confirm(types.ConfirmOpts{
-					Title:  self.c.Tr.Continue,
-					Prompt: self.c.Tr.UnstagedFilesAfterConflictsResolved,
+					Title:              self.c.Tr.Continue,
+					Prompt:             self.c.Tr.UnstagedFilesAfterConflictsResolved,
+					AutoCloseCondition: types.PopupAutoCloseWorkingTreeStateNone,
 					HandleConfirm: func() error {
 						self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
 						if err := self.c.Git().WorkingTree.StageAll(true); err != nil {
