@@ -78,6 +78,22 @@ func (self *ListContextTrait) refreshViewport() {
 	startIdx, length := self.GetViewTrait().ViewPortYBounds()
 	content := self.renderLines(startIdx, startIdx+length)
 	self.GetViewTrait().SetViewPortContent(content)
+	self.applyMarkedHighlights()
+}
+
+// applyMarkedHighlights applies highlighting to all marked lines in the view
+func (self *ListContextTrait) applyMarkedHighlights() {
+	markedIndices := self.list.GetMarkedIndices()
+	startIdx, length := self.GetViewTrait().ViewPortYBounds()
+	endIdx := startIdx + length
+
+	for _, modelIdx := range markedIndices {
+		viewIdx := self.ModelIndexToViewIndex(modelIdx)
+		// Only highlight if the line is visible in the viewport
+		if viewIdx >= startIdx && viewIdx < endIdx {
+			self.GetViewTrait().SetLineHighlight(viewIdx, true)
+		}
+	}
 }
 
 func (self *ListContextTrait) setFooter() {
@@ -124,6 +140,7 @@ func (self *ListContextTrait) HandleRender() {
 		content := self.renderLines(-1, -1)
 		self.GetViewTrait().SetContent(content)
 	}
+	self.applyMarkedHighlights()
 	self.c.Render()
 	self.setFooter()
 }
