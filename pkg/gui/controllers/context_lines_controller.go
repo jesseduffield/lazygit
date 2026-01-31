@@ -26,6 +26,12 @@ var CONTEXT_KEYS_SHOWING_DIFFS = []types.ContextKey{
 	context.NORMAL_SECONDARY_CONTEXT_KEY,
 }
 
+var CONTEXT_KEYS_SHOWING_DIFFS_IN_DIFFING_MODE = []types.ContextKey{
+	context.LOCAL_BRANCHES_CONTEXT_KEY,
+	context.REMOTE_BRANCHES_CONTEXT_KEY,
+	context.TAGS_CONTEXT_KEY,
+}
+
 type ContextLinesController struct {
 	baseController
 	c *ControllerCommon
@@ -120,10 +126,14 @@ func (self *ContextLinesController) checkCanChangeContext() error {
 }
 
 func (self *ContextLinesController) isShowingDiff() bool {
+	currentKey := self.currentSidePanel().GetKey()
 	return lo.Contains(
 		CONTEXT_KEYS_SHOWING_DIFFS,
-		self.currentSidePanel().GetKey(),
-	)
+		currentKey,
+	) || (self.c.Modes().Diffing.Active() && lo.Contains(
+		CONTEXT_KEYS_SHOWING_DIFFS_IN_DIFFING_MODE,
+		currentKey,
+	))
 }
 
 func (self *ContextLinesController) currentSidePanel() types.Context {
