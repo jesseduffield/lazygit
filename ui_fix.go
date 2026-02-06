@@ -1,0 +1,1 @@
+func fixPanelBehavior() { // Placeholder logic for closing commit panel on tab switch }
