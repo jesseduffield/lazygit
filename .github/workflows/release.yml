@@ -1,10 +1,11 @@
 name: Release
 
 on:
-  schedule:
-    # Runs at 8:00 AM UTC on every Saturday
-    # We'll check below if it's the first Saturday of the month, and fail if not
-    - cron: '0 8 * * 6'
+  # schedule:
+  #   # Runs at 8:00 AM UTC on every Saturday
+  #   # We'll check below if it's the first Saturday of the month, and fail if not
+  #   - cron: '0 8 * * 6'
+
   # Allow manual triggering of the workflow
   workflow_dispatch:
     inputs:
