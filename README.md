@@ -615,3 +615,4 @@ If you find that lazygit doesn't quite satisfy your requirements, these may be a
 
 - [GitUI](https://github.com/Extrawurst/gitui)
 - [tig](https://github.com/jonas/tig)
+- [GitArbor TUI](https://github.com/cadamsdev/gitarbor-tui)
