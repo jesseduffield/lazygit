@@ -138,6 +138,7 @@ _Связки клавиш_
 | `` o `` | Открыть файл | Open file in default application. |
 | `` e `` | Редактировать файл | Open file in external editor. |
 | `` <space> `` | Добавить/удалить строку(и) для патча |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | Выйти из сборщика пользовательских патчей |  |
 | `` / `` | Найти |  |
 
@@ -296,7 +297,7 @@ _Связки клавиш_
 | `` <c-o> `` | Скопировать название файла в буфер обмена |  |
 | `` y `` | Copy to clipboard |  |
 | `` c `` | Переключить | Переключить файл |
-| `` d `` | Remove | Отменить изменения коммита в этом файле |
+| `` d `` | Просмотреть параметры «отмены изменении» | Отменить изменения коммита в этом файле |
 | `` o `` | Открыть файл | Open file in default application. |
 | `` e `` | Edit | Open file in external editor. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
