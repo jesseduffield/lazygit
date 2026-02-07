@@ -321,7 +321,7 @@ type GitConfig struct {
 	RemoteBranchSortOrder string `yaml:"remoteBranchSortOrder" jsonschema:"enum=date,enum=alphabetical"`
 	// When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
-	// If true and if if `gh` is installed and on version >=2, we will use `gh` to display pull requests against branches.
+	// If true and if `gh` is installed and on version >=2, we will use `gh` to display pull requests against branches.
 	EnableGithubCli bool `yaml:"enableGithubCli"`
 }
 

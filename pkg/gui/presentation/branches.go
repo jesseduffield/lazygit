@@ -128,13 +128,13 @@ func getBranchDisplayStrings(
 		if icons.IsIconEnabled() {
 			res = append(res, prColor(pr.State).Sprint(icons.IconForRemoteUrl(pr.Url)))
 		} else {
-			res = append(res, prColor(pr.State).Sprint("⬤"))
+			res = append(res, prColor(pr.State).Sprint("●"))
 		}
 	} else {
 		if icons.IsIconEnabled() {
 			res = append(res, style.FgDefault.Sprint(icons.IconForBranch(b)))
 		} else {
-			res = append(res, style.FgDefault.Sprint("⬤"))
+			res = append(res, style.FgDefault.Sprint("●"))
 		}
 	}
 
@@ -251,14 +251,6 @@ func SetCustomBranches(customBranchColors map[string]string, isRegex bool) {
 		isRegex:  isRegex,
 	}
 }
-
-// func coloredPrNumber(pr *models.GithubPullRequest, hasPr bool) string {
-// 	if hasPr {
-// 		return prColor(pr.State).Sprint("#" + strconv.Itoa(pr.Number))
-// 	}
-
-// 	return ("")
-// }
 
 func prColor(state string) style.TextStyle {
 	switch state {

@@ -33,7 +33,7 @@ var bitbucketServiceDef = ServiceDefinition{
 		`^(?:https?|ssh)://.*/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 		`^.*@.*:/*(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 	},
-	repoURLTemplate: defaultRepoURLTemplate,
+	repoURLTemplate:  defaultRepoURLTemplate,
 	repoNameTemplate: defaultRepoNameTemplate,
 }
 

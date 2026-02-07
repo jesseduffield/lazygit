@@ -13,6 +13,7 @@ import (
 
 	"github.com/cli/go-gh/v2/pkg/auth"
 	gogit "github.com/jesseduffield/go-git/v5"
+	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/samber/lo"
 	"golang.org/x/sync/errgroup"
@@ -77,13 +78,14 @@ type GithubRepositoryOwner struct {
 }
 
 func fetchPullRequestsQuery(branches []string, owner string, repo string) string {
-	var queries []string
+	queries := make([]string, 0, len(branches))
 	for i, branch := range branches {
 		// We're making a sub-query per branch, and arbitrarily labelling each subquery
 		// as a1, a2, etc.
 		fieldName := fmt.Sprintf("a%d", i+1)
-		// TODO: scope down by remote too if we can (right now if you search for master, you can get multiple results back, and all from forks)
-		queries = append(queries, fmt.Sprintf(`%s: pullRequests(first: 1, headRefName: "%s") {
+		// We fetch a few PRs per branch name because multiple forks may have PRs
+		// with the same head ref name. The mapping logic filters by owner later.
+		queries = append(queries, fmt.Sprintf(`%s: pullRequests(first: 5, headRefName: "%s") {
       edges {
         node {
           title
@@ -145,7 +147,7 @@ func (self *GitHubCommands) FetchRecentPRs(branches []string) ([]*models.GithubP
 
 	// Close the results channel when all goroutines are done
 	go func() {
-		g.Wait()
+		_ = g.Wait()
 		close(results)
 	}()
 
@@ -191,7 +193,7 @@ func (self *GitHubCommands) FetchRecentPRsAux(repoOwner string, repoName string,
 
 	if resp.StatusCode != http.StatusOK {
 		bodyStr := new(bytes.Buffer)
-		bodyStr.ReadFrom(resp.Body)
+		_, _ = bodyStr.ReadFrom(resp.Body)
 		return nil, fmt.Errorf("GraphQL query failed with status: %s. Body: %s", resp.Status, bodyStr.String())
 	}
 
@@ -241,10 +243,6 @@ func GenerateGithubPullRequestMap(
 
 	remotesToOwnersMap := getRemotesToOwnersMap(remotes)
 
-	if len(remotesToOwnersMap) == 0 {
-		return res
-	}
-
 	// A PR can be identified by two things: the owner e.g. 'jesseduffield' and the
 	// branch name e.g. 'feature/my-feature'. The owner might be different
 	// to the owner of the repo if the PR is from a fork of that repo.
@@ -264,11 +262,15 @@ func GenerateGithubPullRequestMap(
 			continue
 		}
 
-		// TODO: support branches whose UpstreamRemote contains a full git
-		// URL rather than just a remote name.
 		owner, foundRemoteOwner := remotesToOwnersMap[branch.UpstreamRemote]
 		if !foundRemoteOwner {
-			continue
+			// UpstreamRemote may be a full URL rather than a remote name;
+			// try parsing the owner directly from it.
+			repoInfo, err := hosting_service.GetRepoInfoFromURL(branch.UpstreamRemote)
+			if err != nil {
+				continue
+			}
+			owner = repoInfo.Owner
 		}
 
 		pr, hasPr := prByKey[prKey{owner: owner, branchName: branch.UpstreamBranch}]
@@ -290,44 +292,14 @@ func getRemotesToOwnersMap(remotes []*models.Remote) map[string]string {
 			continue
 		}
 
-		if !strings.Contains(remote.Urls[0], ":") {
+		repoInfo, err := hosting_service.GetRepoInfoFromURL(remote.Urls[0])
+		if err != nil {
 			continue
 		}
 
-		res[remote.Name] = getRepoInfoFromURL(remote.Urls[0]).Owner
+		res[remote.Name] = repoInfo.Owner
 	}
 	return res
-}
-
-type RepoInformation struct {
-	Owner      string
-	Repository string
-}
-
-// TODO: move this into hosting_service.go
-func getRepoInfoFromURL(url string) RepoInformation {
-	isHTTP := strings.HasPrefix(url, "http")
-
-	if isHTTP {
-		splits := strings.Split(url, "/")
-		owner := strings.Join(splits[3:len(splits)-1], "/")
-		repo := strings.TrimSuffix(splits[len(splits)-1], ".git")
-
-		return RepoInformation{
-			Owner:      owner,
-			Repository: repo,
-		}
-	}
-
-	tmpSplit := strings.Split(url, ":")
-	splits := strings.Split(tmpSplit[1], "/")
-	owner := strings.Join(splits[0:len(splits)-1], "/")
-	repo := strings.TrimSuffix(splits[len(splits)-1], ".git")
-
-	return RepoInformation{
-		Owner:      owner,
-		Repository: repo,
-	}
 }
 
 // return <installed>, <valid version>
@@ -440,7 +412,10 @@ func (self *GitHubCommands) GetBaseRepoOwnerAndName() (string, string, error) {
 
 	url := originRemote.Config().URLs[0]
 
-	repoInfo := getRepoInfoFromURL(url)
+	repoInfo, err := hosting_service.GetRepoInfoFromURL(url)
+	if err != nil {
+		return "", "", err
+	}
 
 	return repoInfo.Owner, repoInfo.Repository, nil
 }

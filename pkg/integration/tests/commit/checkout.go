@@ -45,7 +45,7 @@ var Checkout = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Branches().
 			IsFocused().
 			Lines(
-				Contains("* (HEAD detached at").IsSelected(),
+				MatchesRegexp(`\*.*\(HEAD detached at`).IsSelected(),
 				Contains("branch1"),
 				Contains("branch2"),
 				Contains("master"),

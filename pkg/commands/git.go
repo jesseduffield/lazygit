@@ -18,27 +18,27 @@ import (
 
 // GitCommand is our main git interface
 type GitCommand struct {
-	Blame       *git_commands.BlameCommands
-	Branch      *git_commands.BranchCommands
-	Commit      *git_commands.CommitCommands
-	Config      *git_commands.ConfigCommands
-	Custom      *git_commands.CustomCommands
-	Diff        *git_commands.DiffCommands
-	File        *git_commands.FileCommands
-	Flow        *git_commands.FlowCommands
-	Patch       *git_commands.PatchCommands
-	Rebase      *git_commands.RebaseCommands
-	Remote      *git_commands.RemoteCommands
-	Stash       *git_commands.StashCommands
-	Status      *git_commands.StatusCommands
-	Submodule   *git_commands.SubmoduleCommands
-	Sync        *git_commands.SyncCommands
-	Tag         *git_commands.TagCommands
-	WorkingTree *git_commands.WorkingTreeCommands
-	Bisect      *git_commands.BisectCommands
-	Worktree    *git_commands.WorktreeCommands
-	Version     *git_commands.GitVersion
-	RepoPaths   *git_commands.RepoPaths
+	Blame          *git_commands.BlameCommands
+	Branch         *git_commands.BranchCommands
+	Commit         *git_commands.CommitCommands
+	Config         *git_commands.ConfigCommands
+	Custom         *git_commands.CustomCommands
+	Diff           *git_commands.DiffCommands
+	File           *git_commands.FileCommands
+	Flow           *git_commands.FlowCommands
+	Patch          *git_commands.PatchCommands
+	Rebase         *git_commands.RebaseCommands
+	Remote         *git_commands.RemoteCommands
+	Stash          *git_commands.StashCommands
+	Status         *git_commands.StatusCommands
+	Submodule      *git_commands.SubmoduleCommands
+	Sync           *git_commands.SyncCommands
+	Tag            *git_commands.TagCommands
+	WorkingTree    *git_commands.WorkingTreeCommands
+	Bisect         *git_commands.BisectCommands
+	Worktree       *git_commands.WorktreeCommands
+	Version        *git_commands.GitVersion
+	RepoPaths      *git_commands.RepoPaths
 	GitHub         *git_commands.GitHubCommands
 	HostingService *git_commands.HostingService
 
@@ -152,26 +152,26 @@ func NewGitCommandAux(
 	tagLoader := git_commands.NewTagLoader(cmn, cmd)
 
 	return &GitCommand{
-		Blame:       blameCommands,
-		Branch:      branchCommands,
-		Commit:      commitCommands,
-		Config:      configCommands,
-		Custom:      customCommands,
-		Diff:        diffCommands,
-		File:        fileCommands,
-		Flow:        flowCommands,
-		Patch:       patchCommands,
-		Rebase:      rebaseCommands,
-		Remote:      remoteCommands,
-		Stash:       stashCommands,
-		Status:      statusCommands,
-		Submodule:   submoduleCommands,
-		Sync:        syncCommands,
-		Tag:         tagCommands,
-		Bisect:      bisectCommands,
-		WorkingTree: workingTreeCommands,
-		Worktree:    worktreeCommands,
-		Version:     version,
+		Blame:          blameCommands,
+		Branch:         branchCommands,
+		Commit:         commitCommands,
+		Config:         configCommands,
+		Custom:         customCommands,
+		Diff:           diffCommands,
+		File:           fileCommands,
+		Flow:           flowCommands,
+		Patch:          patchCommands,
+		Rebase:         rebaseCommands,
+		Remote:         remoteCommands,
+		Stash:          stashCommands,
+		Status:         statusCommands,
+		Submodule:      submoduleCommands,
+		Sync:           syncCommands,
+		Tag:            tagCommands,
+		Bisect:         bisectCommands,
+		WorkingTree:    workingTreeCommands,
+		Worktree:       worktreeCommands,
+		Version:        version,
 		GitHub:         gitHubCommands,
 		HostingService: hostingServiceCommands,
 		Loaders: Loaders{
