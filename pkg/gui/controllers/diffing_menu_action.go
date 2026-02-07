@@ -48,6 +48,17 @@ func (self *DiffingMenuAction) Call() error {
 		},
 	}...)
 
+	menuItems = append(menuItems, []*types.MenuItem{
+		{
+			Label: self.c.Tr.ToggleWordDiffInDiffView,
+			OnPress: func() error {
+				self.c.UserConfig().Git.UseWordDiffInDiffView = !self.c.UserConfig().Git.UseWordDiffInDiffView
+				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+				return nil
+			},
+		},
+	}...)
+
 	if self.c.Modes().Diffing.Active() {
 		menuItems = append(menuItems, []*types.MenuItem{
 			{

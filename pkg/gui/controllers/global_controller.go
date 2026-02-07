@@ -254,6 +254,10 @@ func (self *GlobalController) toggleWhitespace() error {
 	return (&ToggleWhitespaceAction{c: self.c}).Call()
 }
 
+func (self *GlobalController) toggleWordDiff() error {
+	return (&ToggleWordDiffAction{c: self.c}).Call()
+}
+
 func (self *GlobalController) canShowRebaseOptions() *types.DisabledReason {
 	if self.c.Model().WorkingTreeStateAtLastCommitRefresh.None() {
 		return &types.DisabledReason{
