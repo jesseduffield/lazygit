@@ -32,6 +32,7 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		{viewPtr: &gui.Views.Worktrees, name: "worktrees"},
 		{viewPtr: &gui.Views.Files, name: "files"},
 		{viewPtr: &gui.Views.Tags, name: "tags"},
+		{viewPtr: &gui.Views.SpiceStacks, name: "spiceStacks"},
 		{viewPtr: &gui.Views.Remotes, name: "remotes"},
 		{viewPtr: &gui.Views.Branches, name: "localBranches"},
 		{viewPtr: &gui.Views.RemoteBranches, name: "remoteBranches"},
@@ -186,6 +187,7 @@ func (gui *Gui) configureViewProperties() {
 	gui.Views.Remotes.Title = gui.c.Tr.RemotesTitle
 	gui.Views.Worktrees.Title = gui.c.Tr.WorktreesTitle
 	gui.Views.Tags.Title = gui.c.Tr.TagsTitle
+	gui.Views.SpiceStacks.Title = "Stacks"
 	gui.Views.Files.Title = gui.c.Tr.FilesTitle
 	gui.Views.PatchBuilding.Title = gui.c.Tr.Patch
 	gui.Views.PatchBuildingSecondary.Title = gui.c.Tr.CustomPatch
@@ -230,6 +232,7 @@ func (gui *Gui) configureViewProperties() {
 		gui.Views.Branches.TitlePrefix = jumpLabels[2]
 		gui.Views.Remotes.TitlePrefix = jumpLabels[2]
 		gui.Views.Tags.TitlePrefix = jumpLabels[2]
+		gui.Views.SpiceStacks.TitlePrefix = jumpLabels[2]
 
 		gui.Views.Commits.TitlePrefix = jumpLabels[3]
 		gui.Views.ReflogCommits.TitlePrefix = jumpLabels[3]
@@ -247,6 +250,7 @@ func (gui *Gui) configureViewProperties() {
 		gui.Views.Branches.TitlePrefix = ""
 		gui.Views.Remotes.TitlePrefix = ""
 		gui.Views.Tags.TitlePrefix = ""
+		gui.Views.SpiceStacks.TitlePrefix = ""
 
 		gui.Views.Commits.TitlePrefix = ""
 		gui.Views.ReflogCommits.TitlePrefix = ""

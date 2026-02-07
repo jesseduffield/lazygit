@@ -60,6 +60,32 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` <enter> `` | 確認 |  |
 | `` <esc> `` | 閉じる/キャンセル |  |
 
+## Stacks
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | コミットを表示 |  |
+| `` s `` | スカッシュ |  |
+| `` f `` | フィックスアップ |  |
+| `` r `` | メッセージ変更 |  |
+| `` d `` | 削除 |  |
+| `` e `` | 編集 |  |
+| `` A `` | 修正 |  |
+| `` g `` | リセット |  |
+| `` C `` | コピー（チェリーピック） |  |
+| `` y `` | コミット属性をクリップボードにコピー |  |
+| `` <space> `` | チェックアウト（ブランチの切り替え） |  |
+| `` <c-j> `` | コミットを1つ下に移動 |  |
+| `` <c-k> `` | コミットを1つ上に移動 |  |
+| `` S `` | Stack operations |  |
+| `` G `` | Stack navigation |  |
+| `` V `` | Toggle log format | Toggle between short and long format. Short shows basic hierarchy, long shows PR info and sync status. |
+| `` n `` | Create branch (on selected) |  |
+| `` N `` | Create commit |  |
+| `` 0 `` | メインビューにフォーカス |  |
+| `` w `` | ワークツリーオプションを表示 |  |
+| `` / `` | 現在のビューをテキストでフィルタリング |  |
+
 ## コミット
 
 | Key | Action | Info |
