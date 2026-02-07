@@ -3,7 +3,6 @@ package context
 import (
 	"fmt"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -17,13 +16,12 @@ type CommitFilesContext struct {
 	*filetree.CommitFileTreeViewModel
 	*ListContextTrait
 	*DynamicTitleBuilder
-	*SearchTrait
 }
 
 var (
 	_ types.IListContext       = (*CommitFilesContext)(nil)
 	_ types.DiffableContext    = (*CommitFilesContext)(nil)
-	_ types.ISearchableContext = (*CommitFilesContext)(nil)
+	_ types.IFilterableContext = (*CommitFilesContext)(nil)
 )
 
 func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
@@ -48,7 +46,6 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 	ctx := &CommitFilesContext{
 		CommitFileTreeViewModel: viewModel,
 		DynamicTitleBuilder:     NewDynamicTitleBuilder(c.Tr.CommitFilesDynamicTitle),
-		SearchTrait:             NewSearchTrait(c),
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(
 				NewBaseContext(NewBaseContextOpts{
@@ -67,9 +64,6 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 			c: c,
 		},
 	}
-
-	ctx.GetView().SetRenderSearchStatus(ctx.SearchTrait.RenderSearchStatus)
-	ctx.GetView().SetOnSelectItem(ctx.OnSearchSelect)
 
 	return ctx
 }
@@ -91,10 +85,6 @@ func (self *CommitFilesContext) GetFromAndToForDiff() (string, string) {
 	}
 	ref := self.GetRef()
 	return ref.ParentRefName(), ref.RefName()
-}
-
-func (self *CommitFilesContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
-	return nil
 }
 
 func (self *CommitFilesContext) ReInit(ref models.Ref, refRange *types.RefRange) {
