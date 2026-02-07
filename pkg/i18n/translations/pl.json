@@ -100,7 +100,6 @@
   "CannotSquashOrFixupFirstCommit": "Nie ma commita poniżej do scalenia",
   "Fixup": "Poprawka",
   "FixupTooltip": "Włącz wybrany commit do commita poniżej. Podobnie do fixup, ale wiadomość wybranego commita zostanie odrzucona.",
-  "SureFixupThisCommit": "Czy na pewno chcesz 'poprawić' wybrane commit(y) do commita poniżej?",
   "SureSquashThisCommit": "Czy na pewno chcesz scalić wybrane commit(y) do commita poniżej?",
   "Squash": "Scal",
   "PickCommitTooltip": "Oznacz wybrany commit do wybrania (podczas rebazowania). Oznacza to, że commit zostanie zachowany po kontynuacji rebazowania.",
@@ -668,7 +667,6 @@
   "NoItemSelected": "Nie wybrano elementu",
   "SelectedItemIsNotABranch": "Wybrany element nie jest branch'em",
   "SelectedItemDoesNotHaveFiles": "Wybrany element nie ma plików do wyświetlenia",
-  "OldCherryPickKeyWarning": "Klawisz 'c' nie jest już domyślnym klawiszem do kopiowania commitów do cherry pick. Proszę użyj `{{.copy}}` zamiast tego (i `{{.paste}}` aby wkleić). Powodem tej zmiany jest to, że klawisz 'v' do wybierania zakresu linii podczas stagingu jest teraz używany również do wybierania zakresu linii w każdym widoku listy, co oznacza, że musieliśmy znaleźć nowy klawisz do wklejania commitów, i jeśli zamierzamy teraz używać `{{.paste}}` do wklejania commitów, możemy równie dobrze użyć `{{.copy}}` do ich kopiowania. Jeśli chcesz skonfigurować klawisze, aby uzyskać stare zachowanie, ustaw następujące w swojej konfiguracji:\n\nkeybinding:\n  universal:\n    toggleRangeSelect: <coś innego niż v>\n  commits:\n    cherryPickCopy: 'c'\n    pasteCommits: 'v'",
   "Actions": {
     "CheckoutCommit": "Przełącz commit",
     "CheckoutTag": "Przełącz tag",

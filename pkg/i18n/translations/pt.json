@@ -137,7 +137,6 @@
   "CannotSquashOrFixupMergeCommit": "Não é possível squash ou corrigir um commit de merge",
   "Fixup": "Fixup",
   "FixupTooltip": "Faça o commit selecionado no commit abaixo dele. Semelhante para o squash, mas a mensagem do commit selecionado será descartada.",
-  "SureFixupThisCommit": "Tem certeza que deseja 'corrigir' o(s) commit(s) selecionado(s) no commit abaixo?",
   "SureSquashThisCommit": "Tem certeza que deseja esmagar o(s) commit(s) selecionado(s) no commit abaixo?",
   "Squash": "Squash",
   "PickCommitTooltip": "Marque o commit selecionado para ser escolhido (quando meados da base). Isso significa que o commit será mantido ao continuar o rebase.",

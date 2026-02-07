@@ -83,7 +83,6 @@
   "Quit": "結束",
   "CannotSquashOrFixupFirstCommit": "沒有可以壓縮的提交",
   "Fixup": "修復 (Fixup)",
-  "SureFixupThisCommit": "是否對此提交進行 '修復' ？ 其將被合併於以下之提交中",
   "SureSquashThisCommit": "是否要把這個提交壓縮到下面的提交中？",
   "Squash": "壓縮 (Squash)",
   "PickCommitTooltip": "挑選提交 (於變基過程中)",

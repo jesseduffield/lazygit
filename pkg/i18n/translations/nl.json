@@ -49,7 +49,6 @@
   "Close": "Sluiten",
   "CloseCancel": "Sluiten",
   "Confirm": "Bevestig",
-  "SureFixupThisCommit": "Weet je zeker dat je fixup wil uitvoeren op deze commit? De commit hieronder zol worden squashed in deze",
   "SureSquashThisCommit": "Weet je zeker dat je deze commit wil samenvoegen met de commit hieronder?",
   "PickCommitTooltip": "Kies commit (wanneer midden in rebase)",
   "Reword": "Hernoem commit",
