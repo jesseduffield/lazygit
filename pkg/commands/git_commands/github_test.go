@@ -289,6 +289,59 @@ func TestGenerateGithubPullRequestMap(t *testing.T) {
 			},
 		},
 		{
+			name: "uses first PR when branch name is reused (API returns newest first)",
+			prs: []*models.GithubPullRequest{
+				// API returns newest first (CREATED_AT DESC)
+				{
+					HeadRefName:         "update-sponsors",
+					Number:              50,
+					Title:               "Newest PR",
+					State:               "CLOSED",
+					Url:                 "https://github.com/jesseduffield/lazygit/pull/50",
+					HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "jesseduffield"},
+				},
+				{
+					HeadRefName:         "update-sponsors",
+					Number:              30,
+					Title:               "Middle PR",
+					State:               "OPEN",
+					Url:                 "https://github.com/jesseduffield/lazygit/pull/30",
+					HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "jesseduffield"},
+				},
+				{
+					HeadRefName:         "update-sponsors",
+					Number:              10,
+					Title:               "Oldest PR",
+					State:               "CLOSED",
+					Url:                 "https://github.com/jesseduffield/lazygit/pull/10",
+					HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "jesseduffield"},
+				},
+			},
+			branches: []*models.Branch{
+				{
+					Name:           "update-sponsors",
+					UpstreamRemote: "origin",
+					UpstreamBranch: "update-sponsors",
+				},
+			},
+			remotes: []*models.Remote{
+				{
+					Name: "origin",
+					Urls: []string{"git@github.com:jesseduffield/lazygit.git"},
+				},
+			},
+			expected: map[string]*models.GithubPullRequest{
+				"update-sponsors": {
+					HeadRefName:         "update-sponsors",
+					Number:              50,
+					Title:               "Newest PR",
+					State:               "CLOSED",
+					Url:                 "https://github.com/jesseduffield/lazygit/pull/50",
+					HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "jesseduffield"},
+				},
+			},
+		},
+		{
 			name: "matches with HTTPS remote URL",
 			prs: []*models.GithubPullRequest{
 				{

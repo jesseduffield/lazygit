@@ -85,7 +85,7 @@ func fetchPullRequestsQuery(branches []string, owner string, repo string) string
 		fieldName := fmt.Sprintf("a%d", i+1)
 		// We fetch a few PRs per branch name because multiple forks may have PRs
 		// with the same head ref name. The mapping logic filters by owner later.
-		queries = append(queries, fmt.Sprintf(`%s: pullRequests(first: 5, headRefName: "%s") {
+		queries = append(queries, fmt.Sprintf(`%s: pullRequests(first: 5, headRefName: "%s", orderBy: {field: CREATED_AT, direction: DESC}) {
       edges {
         node {
           title
@@ -254,7 +254,12 @@ func GenerateGithubPullRequestMap(
 	prByKey := map[prKey]models.GithubPullRequest{}
 
 	for _, pr := range prs {
-		prByKey[prKey{owner: pr.UserName(), branchName: pr.BranchName()}] = *pr
+		key := prKey{owner: pr.UserName(), branchName: pr.BranchName()}
+		// PRs are returned newest-first from the API, so the first one we
+		// see for each key is the most recent and therefore the most relevant.
+		if _, exists := prByKey[key]; !exists {
+			prByKey[key] = *pr
+		}
 	}
 
 	for _, branch := range branches {
