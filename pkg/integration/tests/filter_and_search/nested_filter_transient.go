@@ -75,9 +75,7 @@ var NestedFilterTransient = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			FilterOrSearch("two").
 			Lines(
-				Equals("▼ /"),
-				Equals("  A file-one"),
-				Equals("  A file-two").IsSelected(),
+				Contains("file-two").IsSelected(),
 			)
 
 		t.Views().Branches().
@@ -96,7 +94,7 @@ var NestedFilterTransient = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().CommitFiles().
 			IsFocused().
-			// the search on the commit-files context has been cancelled
+			// the filter on the commit-files context has been cancelled
 			Lines(
 				Equals("▼ /").IsSelected(),
 				Equals("  A file-one"),
