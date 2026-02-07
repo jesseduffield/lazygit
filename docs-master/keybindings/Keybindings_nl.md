@@ -245,6 +245,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` o `` | Open bestand | Open file in default application. |
 | `` e `` | Verander bestand | Open file in external editor. |
 | `` <space> `` | Voeg toe/verwijder lijn(en) in patch |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | Sluit lijn-bij-lijn modus |  |
 | `` / `` | Start met zoeken |  |
 

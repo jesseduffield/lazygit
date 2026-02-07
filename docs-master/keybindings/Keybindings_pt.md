@@ -295,6 +295,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
 | `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
 | `` <space> `` | Alternar linhas no caminho |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | Sair do construtor de patch personalizado |  |
 | `` / `` | Search the current view by text |  |
 

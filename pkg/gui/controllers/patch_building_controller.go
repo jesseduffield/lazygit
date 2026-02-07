@@ -1,7 +1,10 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -41,6 +44,14 @@ func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) 
 			Handler:         self.ToggleSelectionAndRefresh,
 			Description:     self.c.Tr.ToggleSelectionForPatch,
 			DisplayOnScreen: true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Handler:           self.DiscardSelection,
+			GetDisabledReason: self.getDisabledReasonForDiscard,
+			Description:       self.c.Tr.RemoveSelectionFromPatch,
+			Tooltip:           self.c.Tr.RemoveSelectionFromPatchTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:             opts.GetKey(opts.Config.Universal.Return),
@@ -166,6 +177,83 @@ func (self *PatchBuildingController) toggleSelection() error {
 	state.SelectNextStageableLineOfSameIncludedState(self.context().GetIncludedLineIndices(), firstSelectedChangeLineIsStaged)
 
 	return nil
+}
+
+func (self *PatchBuildingController) getDisabledReasonForDiscard() *types.DisabledReason {
+	if !self.c.Git().Patch.PatchBuilder.CanRebase {
+		return &types.DisabledReason{Text: self.c.Tr.CanOnlyRemoveLinesFromLocalCommits}
+	}
+	if !self.c.Git().Patch.PatchBuilder.IsEmpty() {
+		return &types.DisabledReason{Text: self.c.Tr.MustClearPatchBeforeRemovingLines}
+	}
+	return nil
+}
+
+func (self *PatchBuildingController) DiscardSelection() error {
+	if self.c.UserConfig().Git.DiffContextSize == 0 {
+		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToRemoveLines,
+			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
+	}
+
+	if ok, err := self.c.Helpers().PatchBuilding.ValidateNormalWorkingTreeState(); !ok {
+		return err
+	}
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.RemoveLinesFromCommitTitle,
+		Prompt: self.c.Tr.RemoveLinesFromCommitPrompt,
+		HandleConfirm: func() error {
+			return self.removeSelectionFromCommit()
+		},
+	})
+
+	return nil
+}
+
+func (self *PatchBuildingController) addSelectionToPatch() error {
+	self.context().GetMutex().Lock()
+	defer self.context().GetMutex().Unlock()
+
+	filename := self.c.Contexts().CommitFiles.GetSelectedPath()
+	if filename == "" {
+		return nil
+	}
+
+	state := self.context().GetState()
+	lineIndicesToToggle := state.LineIndicesOfAddedOrDeletedLinesInSelectedPatchRange()
+	if len(lineIndicesToToggle) == 0 {
+		return nil
+	}
+
+	return self.c.Git().Patch.PatchBuilder.AddFileLineRange(filename, lineIndicesToToggle)
+}
+
+func (self *PatchBuildingController) removeSelectionFromCommit() error {
+	if err := self.addSelectionToPatch(); err != nil {
+		return err
+	}
+
+	if self.c.Git().Patch.PatchBuilder.IsEmpty() {
+		return nil
+	}
+
+	self.c.Helpers().PatchBuilding.Escape()
+
+	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+		commitIndex := self.getPatchCommitIndex()
+		self.c.LogAction(self.c.Tr.Actions.RemovePatchFromCommit)
+		err := self.c.Git().Patch.DeletePatchesFromCommit(self.c.Model().Commits, commitIndex)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+	})
+}
+
+func (self *PatchBuildingController) getPatchCommitIndex() int {
+	for index, commit := range self.c.Model().Commits {
+		if commit.Hash() == self.c.Git().Patch.PatchBuilder.To {
+			return index
+		}
+	}
+	return -1
 }
 
 func (self *PatchBuildingController) Escape() error {

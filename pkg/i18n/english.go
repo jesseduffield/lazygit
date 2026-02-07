@@ -300,6 +300,8 @@ type TranslationSet struct {
 	ToggleSelectHunkTooltip               string
 	HunkStagingHint                       string
 	ToggleSelectionForPatch               string
+	RemoveSelectionFromPatch              string
+	RemoveSelectionFromPatchTooltip       string
 	EditHunk                              string
 	EditHunkTooltip                       string
 	ToggleStagingView                     string
@@ -434,6 +436,8 @@ type TranslationSet struct {
 	CheckoutCommitFileTooltip             string
 	CannotCheckoutWithModifiedFilesErr    string
 	CanOnlyDiscardFromLocalCommits        string
+	CanOnlyRemoveLinesFromLocalCommits    string
+	MustClearPatchBeforeRemovingLines     string
 	Remove                                string
 	DiscardOldFileChangeTooltip           string
 	DiscardFileChangesTitle               string
@@ -688,6 +692,8 @@ type TranslationSet struct {
 	BranchUnknown                         string
 	DiscardChangeTitle                    string
 	DiscardChangePrompt                   string
+	RemoveLinesFromCommitTitle            string
+	RemoveLinesFromCommitPrompt           string
 	CreateNewBranchFromCommit             string
 	BuildingPatch                         string
 	ViewCommits                           string
@@ -1011,6 +1017,7 @@ type Actions struct {
 	ResolveConflictByDeletingFile    string
 	NotEnoughContextToStage          string
 	NotEnoughContextToDiscard        string
+	NotEnoughContextToRemoveLines    string
 	NotEnoughContextForCustomPatch   string
 	IgnoreExcludeFile                string
 	IgnoreFileErr                    string
@@ -1409,6 +1416,8 @@ func EnglishTranslationSet() *TranslationSet {
 		ToggleSelectHunkTooltip:              "Toggle line-by-line vs. hunk selection mode.",
 		HunkStagingHint:                      englishHunkStagingHint,
 		ToggleSelectionForPatch:              `Toggle lines in patch`,
+		RemoveSelectionFromPatch:             `Remove lines from commit`,
+		RemoveSelectionFromPatchTooltip:      "Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines.",
 		EditHunk:                             `Edit hunk`,
 		EditHunkTooltip:                      "Edit selected hunk in external editor.",
 		ToggleStagingView:                    "Switch view",
@@ -1546,6 +1555,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CheckoutCommitFileTooltip:            "Checkout file. This replaces the file in your working tree with the version from the selected commit.",
 		CannotCheckoutWithModifiedFilesErr:   "You have local modifications for the file(s) you are trying to check out. You need to stash or discard these first.",
 		CanOnlyDiscardFromLocalCommits:       "Changes can only be discarded from local commits",
+		CanOnlyRemoveLinesFromLocalCommits:   "Lines can only be removed from local commits",
+		MustClearPatchBeforeRemovingLines:    "Clear the current custom patch first before removing lines from the commit",
 		Remove:                               "Remove",
 		DiscardOldFileChangeTooltip:          "Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file.",
 		DiscardFileChangesTitle:              "Discard file changes",
@@ -1800,6 +1811,8 @@ func EnglishTranslationSet() *TranslationSet {
 		BranchUnknown:                            "Branch unknown",
 		DiscardChangeTitle:                       "Discard change",
 		DiscardChangePrompt:                      "Are you sure you want to discard this change (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipDiscardChangeWarning' to true",
+		RemoveLinesFromCommitTitle:               "Remove lines from commit",
+		RemoveLinesFromCommitPrompt:              "Are you sure you want to remove the selected lines from this commit?",
 		CreateNewBranchFromCommit:                "Create new branch off of commit",
 		BuildingPatch:                            "Building patch",
 		ViewCommits:                              "View commits",
@@ -2083,6 +2096,7 @@ func EnglishTranslationSet() *TranslationSet {
 			ResolveConflictByDeletingFile:    "Resolve by deleting file",
 			NotEnoughContextToStage:          "Staging or unstaging changes is not possible with a diff context size of 0. Increase the context using '%s'.",
 			NotEnoughContextToDiscard:        "Discarding changes is not possible with a diff context size of 0. Increase the context using '%s'.",
+			NotEnoughContextToRemoveLines:    "Removing lines from a commit is not possible with a diff context size of 0. Increase the context using '%s'.",
 			NotEnoughContextForCustomPatch:   "Creating custom patches is not possible with a diff context size of 0. Increase the context using '%s'.",
 			IgnoreExcludeFile:                "Ignore or exclude file",
 			IgnoreFileErr:                    "Cannot ignore .gitignore",

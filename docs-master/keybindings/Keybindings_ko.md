@@ -178,6 +178,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` o `` | 파일 닫기 | Open file in default application. |
 | `` e `` | 파일 편집 | Open file in external editor. |
 | `` <space> `` | Line(s)을 패치에 추가/삭제 |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | Exit custom patch builder |  |
 | `` / `` | 검색 시작 |  |
 
