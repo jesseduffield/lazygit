@@ -825,48 +825,57 @@ func (self *RefreshHelper) promptForBaseGithubRepo() (bool, error) {
 		return false, err
 	}
 
-	switch len(self.c.Model().Remotes) {
-	case 0:
-		return false, nil
-	case 1:
-		remote := self.c.Model().Remotes[0]
-
-		if len(remote.Urls) == 0 {
-			return false, nil
-		}
-
-		repoName, err := self.c.Git().HostingService.GetRepoNameFromRemoteURL(remote.Urls[0])
-		if err != nil {
-			self.c.Log.Error(err)
-			return false, nil
-		}
-
-		_, err = self.c.Git().GitHub.SetBaseRepo(repoName)
-		if err != nil {
-			self.c.Log.Error(err)
-		}
-
-		return true, nil
-	default:
-		self.c.Prompt(types.PromptOpts{
-			Title:               self.c.Tr.SelectRemoteRepository,
-			InitialContent:      "",
-			FindSuggestionsFunc: self.suggestionsHelper.GetRemoteRepoSuggestionsFunc(),
-			HandleConfirm: func(repository string) error {
-				return self.c.WithWaitingStatus(self.c.Tr.LcSelectingRemote, func(gocui.Task) error {
-					// `repository` is something like 'jesseduffield/lazygit'
-					_, err := self.c.Git().GitHub.SetBaseRepo(repository)
-					if err != nil {
-						return err
-					}
-
-					return self.refreshGithubPullRequests()
-				})
-			},
-		})
-
+	remotes := self.c.Model().Remotes
+	if len(remotes) == 0 {
 		return false, nil
 	}
+
+	// If there's only one remote, or if 'origin' exists, use it automatically
+	remote, hasOrigin := lo.Find(remotes, func(r *models.Remote) bool {
+		return r.Name == "origin"
+	})
+	if !hasOrigin {
+		if len(remotes) == 1 {
+			remote = remotes[0]
+		} else {
+			// Multiple remotes with no 'origin': prompt the user
+			self.c.Prompt(types.PromptOpts{
+				Title:               self.c.Tr.SelectRemoteRepository,
+				InitialContent:      "",
+				FindSuggestionsFunc: self.suggestionsHelper.GetRemoteRepoSuggestionsFunc(),
+				HandleConfirm: func(repository string) error {
+					return self.c.WithWaitingStatus(self.c.Tr.LcSelectingRemote, func(gocui.Task) error {
+						// `repository` is something like 'jesseduffield/lazygit'
+						_, err := self.c.Git().GitHub.SetBaseRepo(repository)
+						if err != nil {
+							return err
+						}
+
+						return self.refreshGithubPullRequests()
+					})
+				},
+			})
+
+			return false, nil
+		}
+	}
+
+	if len(remote.Urls) == 0 {
+		return false, nil
+	}
+
+	repoName, err := self.c.Git().HostingService.GetRepoNameFromRemoteURL(remote.Urls[0])
+	if err != nil {
+		self.c.Log.Error(err)
+		return false, nil
+	}
+
+	_, err = self.c.Git().GitHub.SetBaseRepo(repoName)
+	if err != nil {
+		self.c.Log.Error(err)
+	}
+
+	return true, nil
 }
 
 func (self *RefreshHelper) determineGithubCliState() types.GitHubCliState {
