@@ -208,8 +208,9 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 				)
 
 				if pr, ok := prs[branch.Name]; ok {
-					ptyTask.Prefix = style.PrintHyperlink(fmt.Sprintf("%s  %s  %s  %s\n",
-						icons.IconForRemoteUrl(pr.Url),
+					icon := lo.Ternary(icons.IsIconEnabled(), icons.IconForRemoteUrl(pr.Url)+"  ", "")
+					ptyTask.Prefix = style.PrintHyperlink(fmt.Sprintf("%s%s  %s  %s\n",
+						icon,
 						coloredStateText(pr.State),
 						pr.Title,
 						style.FgCyan.Sprintf("#%d", pr.Number)),
@@ -230,26 +231,44 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 }
 
 func stateText(state string) string {
-	// TODO: add icons only if nerd fonts are used
+	if icons.IsIconEnabled() {
+		switch state {
+		case "OPEN":
+			return " Open"
+		case "CLOSED":
+			return " Closed"
+		case "MERGED":
+			return " Merged"
+		case "DRAFT":
+			return " Draft"
+		default:
+			return ""
+		}
+	}
+
 	switch state {
 	case "OPEN":
-		return " Open"
+		return "Open"
 	case "CLOSED":
-		return " Closed"
+		return "Closed"
 	case "MERGED":
-		return " Merged"
+		return "Merged"
 	case "DRAFT":
-		return " Draft"
+		return "Draft"
 	default:
 		return ""
 	}
 }
 
 func coloredStateText(state string) string {
-	return fmt.Sprintf("%s%s%s",
-		withPrFgColor(state, ""),
-		withPrBgColor(state, style.FgWhite.Sprint(stateText(state))),
-		withPrFgColor(state, ""))
+	if icons.IsIconEnabled() {
+		return fmt.Sprintf("%s%s%s",
+			withPrFgColor(state, ""),
+			withPrBgColor(state, style.FgWhite.Sprint(stateText(state))),
+			withPrFgColor(state, ""))
+	}
+
+	return withPrFgColor(state, stateText(state))
 }
 
 func withPrFgColor(state string, text string) string {

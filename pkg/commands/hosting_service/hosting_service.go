@@ -162,7 +162,7 @@ type ServiceDefinition struct {
 	regexStrings                    []string
 
 	// can expect 'webdomain' to be passed in. Otherwise, you get to pick what we match in the regex
-	repoURLTemplate string
+	repoURLTemplate  string
 	repoNameTemplate string
 }
 
@@ -195,6 +195,29 @@ func (self ServiceDefinition) parseRemoteUrl(url string) (map[string]string, err
 	}
 
 	return nil, errors.New("Failed to parse repo information from url")
+}
+
+// RepoInformation holds the owner and repository name parsed from a remote URL.
+type RepoInformation struct {
+	Owner      string
+	Repository string
+}
+
+// GetRepoInfoFromURL parses a remote URL (SSH or HTTPS) and extracts the
+// owner and repository name using the default URL regex patterns.
+func GetRepoInfoFromURL(url string) (RepoInformation, error) {
+	for _, regexStr := range defaultUrlRegexStrings {
+		re := regexp.MustCompile(regexStr)
+		matches := utils.FindNamedMatches(re, url)
+		if matches != nil {
+			return RepoInformation{
+				Owner:      matches["owner"],
+				Repository: matches["repo"],
+			}, nil
+		}
+	}
+
+	return RepoInformation{}, errors.New("Failed to parse repo information from url")
 }
 
 type Service struct {
