@@ -1,6 +1,9 @@
 package traits
 
 import (
+	"slices"
+
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -24,6 +27,8 @@ type ListCursor struct {
 	rangeSelectMode RangeSelectMode
 	// value is ignored when rangeSelectMode is RangeSelectModeNone
 	rangeStartIdx int
+	// markedIndices stores individually marked/selected indices for non-contiguous selection
+	markedIndices *set.Set[int]
 	// Get the length of the list. We use this to clamp the selection so that
 	// the selected index is always valid
 	getLength func() int
@@ -34,6 +39,7 @@ func NewListCursor(getLength func() int) *ListCursor {
 		selectedIdx:     0,
 		rangeStartIdx:   0,
 		rangeSelectMode: RangeSelectModeNone,
+		markedIndices:   set.New[int](),
 		getLength:       getLength,
 	}
 }
@@ -183,4 +189,43 @@ func (self *ListCursor) ExpandNonStickyRange(change int) {
 	self.rangeSelectMode = RangeSelectModeNonSticky
 
 	self.SetSelectedLineIdx(self.selectedIdx + change)
+}
+
+// ToggleMark toggles the marked state of the given index
+func (self *ListCursor) ToggleMark(idx int) {
+	if idx < 0 || idx >= self.getLength() {
+		return
+	}
+	if self.markedIndices.Includes(idx) {
+		self.markedIndices.Remove(idx)
+	} else {
+		self.markedIndices.Add(idx)
+	}
+}
+
+// IsMarked returns true if the given index is marked
+func (self *ListCursor) IsMarked(idx int) bool {
+	return self.markedIndices.Includes(idx)
+}
+
+// GetMarkedIndices returns all marked indices in ascending order
+func (self *ListCursor) GetMarkedIndices() []int {
+	indices := self.markedIndices.ToSlice()
+	// Filter out any indices that are now out of bounds
+	length := self.getLength()
+	indices = lo.Filter(indices, func(idx int, _ int) bool {
+		return idx >= 0 && idx < length
+	})
+	slices.Sort(indices)
+	return indices
+}
+
+// ClearMarks removes all marks
+func (self *ListCursor) ClearMarks() {
+	self.markedIndices = set.New[int]()
+}
+
+// HasMarks returns true if there are any marked indices
+func (self *ListCursor) HasMarks() bool {
+	return self.markedIndices.Len() > 0
 }

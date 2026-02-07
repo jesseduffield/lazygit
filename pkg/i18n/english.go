@@ -374,6 +374,7 @@ type TranslationSet struct {
 	DroppingMergeRequiresSingleSelection  string
 	CherryPickCopy                        string
 	CherryPickCopyTooltip                 string
+	ToggleMarkCommit                      string
 	PasteCommits                          string
 	SureCherryPick                        string
 	CherryPick                            string
@@ -1482,6 +1483,7 @@ func EnglishTranslationSet() *TranslationSet {
 		DroppingMergeRequiresSingleSelection: "Dropping a merge commit requires a single selected item",
 		CherryPickCopy:                       "Copy (cherry-pick)",
 		CherryPickCopyTooltip:                "Mark commit as copied. Then, within the local commits view, you can press `{{.paste}}` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `{{.escape}}` to cancel the selection.",
+		ToggleMarkCommit:                     "Toggle mark for selection",
 		PasteCommits:                         "Paste (cherry-pick)",
 		SureCherryPick:                       "Are you sure you want to cherry-pick the {{.numCommits}} copied commit(s) onto this branch?",
 		CherryPick:                           "Cherry-pick",

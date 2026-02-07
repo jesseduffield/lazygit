@@ -98,3 +98,9 @@ func (self *ViewTrait) PageDelta() int {
 func (self *ViewTrait) SelectedLineIdx() int {
 	return self.view.SelectedLineIdx()
 }
+
+// SetLineHighlight sets or clears the highlight on a specific line.
+// This is used for non-contiguous selection (marking individual items).
+func (self *ViewTrait) SetLineHighlight(y int, on bool) {
+	self.view.SetHighlight(y, on)
+}

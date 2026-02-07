@@ -190,6 +190,21 @@ func makeCommitRange(commits []*models.Commit, _ int, _ int) *CommitRange {
 	}
 }
 
+// getMarkedCommits returns all marked commits from the given context
+func getMarkedCommits(allCommits []*models.Commit, markedIndices []int) []*Commit {
+	if len(markedIndices) == 0 {
+		return nil
+	}
+
+	result := make([]*Commit, 0, len(markedIndices))
+	for _, idx := range markedIndices {
+		if idx >= 0 && idx < len(allCommits) {
+			result = append(result, commitShimFromModelCommit(allCommits[idx]))
+		}
+	}
+	return result
+}
+
 // SessionState captures the current state of the application for use in custom commands
 type SessionState struct {
 	SelectedLocalCommit    *Commit // deprecated, use SelectedCommit
@@ -197,6 +212,7 @@ type SessionState struct {
 	SelectedSubCommit      *Commit // deprecated, use SelectedCommit
 	SelectedCommit         *Commit
 	SelectedCommitRange    *CommitRange
+	SelectedCommits        []*Commit // All marked/selected commits (non-contiguous selection)
 	SelectedFile           *File
 	SelectedSubmodule      *Submodule
 	SelectedPath           string
@@ -221,12 +237,27 @@ func (self *SessionStateLoader) call() *SessionState {
 
 	selectedCommit := selectedLocalCommit
 	selectedCommitRange := selectedLocalCommitRange
+	var selectedCommits []*Commit
 	if self.c.Context().IsCurrentOrParent(self.c.Contexts().ReflogCommits) {
 		selectedCommit = selectedReflogCommit
 		selectedCommitRange = selectedReflogCommitRange
+		selectedCommits = getMarkedCommits(
+			self.c.Contexts().ReflogCommits.GetCommits(),
+			self.c.Contexts().ReflogCommits.GetMarkedIndices(),
+		)
 	} else if self.c.Context().IsCurrentOrParent(self.c.Contexts().SubCommits) {
 		selectedCommit = selectedSubCommit
 		selectedCommitRange = selectedSubCommitRange
+		selectedCommits = getMarkedCommits(
+			self.c.Contexts().SubCommits.GetCommits(),
+			self.c.Contexts().SubCommits.GetMarkedIndices(),
+		)
+	} else {
+		// Default to LocalCommits
+		selectedCommits = getMarkedCommits(
+			self.c.Contexts().LocalCommits.GetCommits(),
+			self.c.Contexts().LocalCommits.GetMarkedIndices(),
+		)
 	}
 
 	selectedPath := self.c.Contexts().Files.GetSelectedPath()
@@ -245,6 +276,7 @@ func (self *SessionStateLoader) call() *SessionState {
 		SelectedSubCommit:      selectedSubCommit,
 		SelectedCommit:         selectedCommit,
 		SelectedCommitRange:    selectedCommitRange,
+		SelectedCommits:        selectedCommits,
 		SelectedLocalBranch:    branchShimFromModelBranch(self.c.Contexts().Branches.GetSelected()),
 		SelectedRemoteBranch:   remoteBranchShimFromModelRemoteBranch(self.c.Contexts().RemoteBranches.GetSelected()),
 		SelectedRemote:         remoteShimFromModelRemote(self.c.Contexts().Remotes.GetSelected()),

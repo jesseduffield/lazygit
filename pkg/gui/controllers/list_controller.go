@@ -241,12 +241,46 @@ func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
 		return nil
 	}
 
+	// Clear any marked items when doing a normal click
+	self.context.GetList().ClearMarks()
+
 	self.context.GetList().SetSelection(newSelectedLineIdx)
 
 	if opts.IsDoubleClick && alreadyFocused && self.context.GetOnClick() != nil {
 		return self.context.GetOnClick()()
 	}
 	self.context.HandleFocus(types.OnFocusOpts{})
+	return nil
+}
+
+// HandleMarkClick handles Alt+Click or Ctrl+Click to toggle marking of individual items
+func (self *ListController) HandleMarkClick(opts gocui.ViewMouseBindingOpts) error {
+	clickedLineIdx := self.context.ViewIndexToModelIndex(opts.Y)
+
+	if err := self.pushContextIfNotFocused(); err != nil {
+		return err
+	}
+
+	if clickedLineIdx > self.context.GetList().Len()-1 {
+		return nil
+	}
+
+	list := self.context.GetList()
+
+	// If this is the first mark (no marks yet), also mark the currently selected item
+	// This allows starting a multi-selection from the current selection
+	if !list.HasMarks() {
+		currentIdx := list.GetSelectedLineIdx()
+		if currentIdx != clickedLineIdx && currentIdx >= 0 && currentIdx < list.Len() {
+			list.ToggleMark(currentIdx)
+		}
+	}
+
+	// Toggle the mark on the clicked item
+	list.ToggleMark(clickedLineIdx)
+
+	// Trigger a re-render to show the updated marks
+	self.context.HandleRender()
 	return nil
 }
 
@@ -302,6 +336,12 @@ func (self *ListController) GetMouseKeybindings(opts types.KeybindingsOpts) []*g
 			ViewName: self.context.GetViewName(),
 			Key:      gocui.MouseLeft,
 			Handler:  func(opts gocui.ViewMouseBindingOpts) error { return self.HandleClick(opts) },
+		},
+		{
+			ViewName: self.context.GetViewName(),
+			Key:      gocui.MouseLeft,
+			Modifier: gocui.ModAlt,
+			Handler:  func(opts gocui.ViewMouseBindingOpts) error { return self.HandleMarkClick(opts) },
 		},
 		{
 			ViewName: self.context.GetViewName(),
