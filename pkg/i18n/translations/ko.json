@@ -77,7 +77,6 @@
   "CloseCancel": "닫기/취소",
   "Confirm": "확인",
   "Quit": "종료",
-  "SureFixupThisCommit": "Are you sure you want to 'fixup' this commit? It will be merged into the commit below",
   "SureSquashThisCommit": "Are you sure you want to squash this commit into the commit below?",
   "Squash": "스쿼시",
   "PickCommitTooltip": "Pick commit (when mid-rebase)",
