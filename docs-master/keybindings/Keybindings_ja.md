@@ -278,6 +278,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` o `` | ファイルを開く | デフォルトのアプリケーションでファイルを開きます。 |
 | `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
 | `` <space> `` | パッチ内の行を切り替え |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | カスタムパッチビルダーを終了 |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
 

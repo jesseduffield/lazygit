@@ -72,6 +72,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` o `` | 開啟檔案 | 使用預設軟體開啟 |
 | `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
 | `` <space> `` | 向 (或從) 補丁中添加/刪除行 |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | 退出自訂補丁建立器 |  |
 | `` / `` | 搜尋 |  |
 

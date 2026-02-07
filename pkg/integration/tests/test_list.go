@@ -348,6 +348,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.MoveToNewCommitInLastCommitOfStackedBranch,
 	patch_building.MoveToNewCommitPartialHunk,
 	patch_building.RemoveFromCommit,
+	patch_building.RemoveLinesFromCommit,
 	patch_building.RemovePartsOfAddedFile,
 	patch_building.ResetWithEscape,
 	patch_building.SelectAllFiles,

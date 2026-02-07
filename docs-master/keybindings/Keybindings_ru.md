@@ -138,6 +138,7 @@ _Связки клавиш_
 | `` o `` | Открыть файл | Open file in default application. |
 | `` e `` | Редактировать файл | Open file in external editor. |
 | `` <space> `` | Добавить/удалить строку(и) для патча |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | Выйти из сборщика пользовательских патчей |  |
 | `` / `` | Найти |  |
 
