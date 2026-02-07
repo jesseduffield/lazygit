@@ -83,7 +83,9 @@ func (self *QuitActions) Escape() error {
 
 	repoPathStack := self.c.State().GetRepoPathStack()
 	if !repoPathStack.IsEmpty() {
-		return self.c.Helpers().Repos.DispatchSwitchToRepo(repoPathStack.Pop(), context.NO_CONTEXT)
+		// Preserve the current screen mode when exiting submodule
+		currentScreenMode := self.c.State().GetRepoState().GetScreenMode()
+		return self.c.Helpers().Repos.DispatchSwitchToRepoWithScreenMode(repoPathStack.Pop(), context.NO_CONTEXT, currentScreenMode)
 	}
 
 	if self.c.UserConfig().QuitOnTopLevelReturn {
