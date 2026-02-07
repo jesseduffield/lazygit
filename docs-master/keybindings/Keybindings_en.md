@@ -237,6 +237,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` o `` | Open file | Open file in default application. |
 | `` e `` | Edit file | Open file in external editor. |
 | `` <space> `` | Toggle lines in patch |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | Exit custom patch builder |  |
 | `` / `` | Search the current view by text |  |
 
