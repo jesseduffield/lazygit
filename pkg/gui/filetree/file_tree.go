@@ -46,7 +46,7 @@ type IFileTree interface {
 	GetFile(path string) *models.File
 	GetAllItems() []*FileNode
 	GetAllFiles() []*models.File
-	GetFilter() FileTreeDisplayFilter
+	GetStatusFilter() FileTreeDisplayFilter
 	GetRoot() *FileNode
 }
 
@@ -210,6 +210,6 @@ func (self *FileTree) CollapsedPaths() *CollapsedPaths {
 	return self.collapsedPaths
 }
 
-func (self *FileTree) GetFilter() FileTreeDisplayFilter {
+func (self *FileTree) GetStatusFilter() FileTreeDisplayFilter {
 	return self.filter
 }
