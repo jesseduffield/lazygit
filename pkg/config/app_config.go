@@ -704,10 +704,27 @@ type AppState struct {
 	ShellCommandsHistory []string `yaml:"customcommandshistory"`
 
 	HideCommandLog bool
+
+	// Cache of GitHub pull requests per repo path, so that PR info can be
+	// shown instantly on startup before the async refresh completes.
+	GithubPullRequests map[string][]CachedPullRequest `yaml:"githubPullRequests"`
+}
+
+// CachedPullRequest stores the essential fields of a GitHub pull request
+// for persisting in the app state cache.
+type CachedPullRequest struct {
+	HeadRefName         string `yaml:"headRefName"`
+	Number              int    `yaml:"number"`
+	Title               string `yaml:"title"`
+	State               string `yaml:"state"`
+	Url                 string `yaml:"url"`
+	HeadRepositoryOwner string `yaml:"headRepositoryOwner"`
 }
 
 func getDefaultAppState() *AppState {
-	return &AppState{}
+	return &AppState{
+		GithubPullRequests: make(map[string][]CachedPullRequest),
+	}
 }
 
 func LogPath() (string, error) {

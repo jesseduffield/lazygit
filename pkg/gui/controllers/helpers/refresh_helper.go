@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
@@ -780,6 +781,9 @@ func (self *RefreshHelper) refreshGithubPullRequests() error {
 		return nil
 	}
 
+	// Load cached PRs for instant display while we fetch fresh data
+	self.loadCachedPullRequests()
+
 	switch self.c.State().GetGitHubCliState() {
 	case types.UNKNOWN:
 		state := self.determineGithubCliState()
@@ -889,7 +893,53 @@ func (self *RefreshHelper) setGithubPullRequests() error {
 	}
 
 	self.c.Model().PullRequests = prs
+	self.savePullRequestsToCache(prs)
 
 	self.c.PostRefreshUpdate(self.c.Contexts().Branches)
 	return nil
+}
+
+func (self *RefreshHelper) loadCachedPullRequests() {
+	repoPath := self.c.Git().RepoPaths.RepoPath()
+	cachedPRs := self.c.GetAppState().GithubPullRequests[repoPath]
+	if len(cachedPRs) == 0 {
+		return
+	}
+
+	prs := lo.Map(cachedPRs, func(cached config.CachedPullRequest, _ int) *models.GithubPullRequest {
+		return &models.GithubPullRequest{
+			HeadRefName: cached.HeadRefName,
+			Number:      cached.Number,
+			Title:       cached.Title,
+			State:       cached.State,
+			Url:         cached.Url,
+			HeadRepositoryOwner: models.GithubRepositoryOwner{
+				Login: cached.HeadRepositoryOwner,
+			},
+		}
+	})
+
+	self.c.Model().PullRequests = prs
+	self.c.PostRefreshUpdate(self.c.Contexts().Branches)
+}
+
+func (self *RefreshHelper) savePullRequestsToCache(prs []*models.GithubPullRequest) {
+	repoPath := self.c.Git().RepoPaths.RepoPath()
+	cached := lo.Map(prs, func(pr *models.GithubPullRequest, _ int) config.CachedPullRequest {
+		return config.CachedPullRequest{
+			HeadRefName:         pr.HeadRefName,
+			Number:              pr.Number,
+			Title:               pr.Title,
+			State:               pr.State,
+			Url:                 pr.Url,
+			HeadRepositoryOwner: pr.HeadRepositoryOwner.Login,
+		}
+	})
+
+	appState := self.c.GetAppState()
+	if appState.GithubPullRequests == nil {
+		appState.GithubPullRequests = make(map[string][]config.CachedPullRequest)
+	}
+	appState.GithubPullRequests[repoPath] = cached
+	self.c.SaveAppStateAndLogError()
 }
