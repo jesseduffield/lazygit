@@ -69,6 +69,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` b `` | bisectオプションを表示 |  |
 | `` s `` | スカッシュ | 選択したコミットをその下のコミットにスカッシュします。スカッシュとは複数のコミットを1つにまとめる操作です。選択したコミットのメッセージが下のコミットに追加されます。 |
 | `` f `` | フィックスアップ | 選択したコミットをその下のコミットにマージします。フィックスアップはスカッシュと似ていますが、選択したコミットのメッセージは破棄され、下のコミットのメッセージのみが保持されます。 |
+| `` c `` | Set fixup message | Set the message option for the fixup commit. The -C option means to use this commit's message instead of the target commit's message. |
 | `` r `` | メッセージ変更 | 選択したコミットのメッセージを変更します。 |
 | `` R `` | エディタでメッセージ変更 |  |
 | `` d `` | 削除 | 選択したコミットを削除します。これはリベースを通じてブランチからコミットを削除します。コミットが後続のコミットが依存する変更を行っている場合、マージコンフリクトを解決する必要があるかもしれません。 |
@@ -114,7 +115,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` <space> `` | パッチに含めるファイルを切り替え | ファイルがカスタムパッチに含まれるかどうかを切り替えます。https://github.com/jesseduffield/lazygit#rebase-magic-custom-patchesを参照してください。 |
 | `` a `` | すべてのファイルを切り替え | コミットのすべてのファイルをカスタムパッチに追加/削除します。https://github.com/jesseduffield/lazygit#rebase-magic-custom-patchesを参照してください。 |
 | `` <enter> `` | ファイルに入る / ディレクトリの折りたたみを切り替える | ファイルが選択されている場合、そのファイルに入ってカスタムパッチに個々の行を追加/削除できます。ディレクトリが選択されている場合、ディレクトリを切り替えます。 |
-| `` ` `` | ファイルツリービューを切り替え | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
+| `` ` `` | ファイルツリービューを切り替え | ファイル表示をフラット表示とツリー表示で切り替えます。フラット表示はすべてのファイルパスを一覧で表示し、ツリー表示はディレクトリごとにファイルをグループ化します。<br><br>デフォルトは設定ファイル内の 'gui.showFileTree' キーで変更できます。 |
 | `` - `` | すべてのファイルを折りたたむ | ファイルツリー内のすべてのディレクトリを折りたたみます |
 | `` = `` | すべてのファイルを展開 | ファイルツリー内のすべてのディレクトリを展開します |
 | `` 0 `` | メインビューにフォーカス |  |
@@ -234,7 +235,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` d `` | 破棄 | 選択したファイルの変更を破棄するオプションを表示します。 |
 | `` g `` | アップストリームへのリセットオプションを表示 |  |
 | `` D `` | リセット | 作業ツリーのリセットオプション（例：作業ツリーの完全破棄）を表示します。 |
-| `` ` `` | ファイルツリービューを切り替え | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
+| `` ` `` | ファイルツリービューを切り替え | ファイル表示をフラット表示とツリー表示で切り替えます。フラット表示はすべてのファイルパスを一覧で表示し、ツリー表示はディレクトリごとにファイルをグループ化します。<br><br>デフォルトは設定ファイル内の 'gui.showFileTree' キーで変更できます。 |
 | `` <c-t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` f `` | フェッチ | リモートから変更をフェッチします。 |
