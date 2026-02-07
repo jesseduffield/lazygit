@@ -66,6 +66,11 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 			types.STATUS,
 			types.BISECT_INFO,
 			types.STAGING,
+		}, Then: func() {
+			// Fetch PRs in the background after checkout; the new branch may
+			// have a PR that we haven't fetched yet. We do this in Then so
+			// that branches are loaded first (PRs are matched against branches).
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.PULL_REQUESTS}})
 		}})
 	}
 
