@@ -34,14 +34,14 @@ var FetchWhenSortedByDate = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Branches().
 			Lines(
-				Contains("* branch1").IsSelected(),
+				MatchesRegexp(`\*.*branch1`).IsSelected(),
 				Contains("branch2"),
 				Contains("master ↓1"),
 			).
 			NavigateToLine(Contains("master")).
 			Press(keys.Branches.FetchRemote).
 			Lines(
-				Contains("* branch1"),
+				MatchesRegexp(`\*.*branch1`),
 				Contains("master").IsSelected(),
 				Contains("branch2"),
 			)

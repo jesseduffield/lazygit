@@ -61,6 +61,18 @@ func (self *HostingServiceMgr) GetCommitURL(commitHash string) (string, error) {
 	return pullRequestURL, nil
 }
 
+// e.g. 'jesseduffield/lazygit'
+func (self *HostingServiceMgr) GetRepoName() (string, error) {
+	gitService, err := self.getService()
+	if err != nil {
+		return "", err
+	}
+
+	repoName := gitService.repoName
+
+	return repoName, nil
+}
+
 func (self *HostingServiceMgr) getService() (*Service, error) {
 	serviceDomain, err := self.getServiceDomain(self.remoteURL)
 	if err != nil {
@@ -72,8 +84,14 @@ func (self *HostingServiceMgr) getService() (*Service, error) {
 		return nil, err
 	}
 
+	repoName, err := serviceDomain.serviceDefinition.getRepoNameFromRemoteURL(self.remoteURL)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Service{
 		repoURL:           repoURL,
+		repoName:          repoName,
 		ServiceDefinition: serviceDomain.serviceDefinition,
 	}, nil
 }
@@ -144,24 +162,68 @@ type ServiceDefinition struct {
 	regexStrings                    []string
 
 	// can expect 'webdomain' to be passed in. Otherwise, you get to pick what we match in the regex
-	repoURLTemplate string
+	repoURLTemplate  string
+	repoNameTemplate string
 }
 
 func (self ServiceDefinition) getRepoURLFromRemoteURL(url string, webDomain string) (string, error) {
+	matches, err := self.parseRemoteUrl(url)
+	if err != nil {
+		return "", err
+	}
+
+	matches["webDomain"] = webDomain
+	return utils.ResolvePlaceholderString(self.repoURLTemplate, matches), nil
+}
+
+func (self ServiceDefinition) getRepoNameFromRemoteURL(url string) (string, error) {
+	matches, err := self.parseRemoteUrl(url)
+	if err != nil {
+		return "", err
+	}
+
+	return utils.ResolvePlaceholderString(self.repoNameTemplate, matches), nil
+}
+
+func (self ServiceDefinition) parseRemoteUrl(url string) (map[string]string, error) {
 	for _, regexStr := range self.regexStrings {
 		re := regexp.MustCompile(regexStr)
-		input := utils.FindNamedMatches(re, url)
-		if input != nil {
-			input["webDomain"] = webDomain
-			return utils.ResolvePlaceholderString(self.repoURLTemplate, input), nil
+		matches := utils.FindNamedMatches(re, url)
+		if matches != nil {
+			return matches, nil
 		}
 	}
 
-	return "", errors.New("Failed to parse repo information from url")
+	return nil, errors.New("Failed to parse repo information from url")
+}
+
+// RepoInformation holds the owner and repository name parsed from a remote URL.
+type RepoInformation struct {
+	Owner      string
+	Repository string
+}
+
+// GetRepoInfoFromURL parses a remote URL (SSH or HTTPS) and extracts the
+// owner and repository name using the default URL regex patterns.
+func GetRepoInfoFromURL(url string) (RepoInformation, error) {
+	for _, regexStr := range defaultUrlRegexStrings {
+		re := regexp.MustCompile(regexStr)
+		matches := utils.FindNamedMatches(re, url)
+		if matches != nil {
+			return RepoInformation{
+				Owner:      matches["owner"],
+				Repository: matches["repo"],
+			}, nil
+		}
+	}
+
+	return RepoInformation{}, errors.New("Failed to parse repo information from url")
 }
 
 type Service struct {
 	repoURL string
+	// e.g. 'jesseduffield/lazygit'
+	repoName string
 	ServiceDefinition
 }
 

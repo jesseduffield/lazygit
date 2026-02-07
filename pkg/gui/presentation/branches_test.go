@@ -42,7 +42,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "branch_name"},
+			expected:             []string{"1m", "●", "branch_name"},
 		},
 		{
 			branch:               &models.Branch{Name: "🍉_special_char", Recency: "1m"},
@@ -52,7 +52,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "🍉_special_char"},
+			expected:             []string{"1m", "●", "🍉_special_char"},
 		},
 		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},
@@ -62,7 +62,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: true,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "branch_name (worktree)"},
+			expected:             []string{"1m", "●", "branch_name (worktree)"},
 		},
 		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},
@@ -88,7 +88,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "branch_name ✓"},
+			expected:             []string{"1m", "●", "branch_name ✓"},
 		},
 		{
 			branch: &models.Branch{
@@ -104,7 +104,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: true,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "branch_name (worktree) ↓5↑3"},
+			expected:             []string{"1m", "●", "branch_name (worktree) ↓5↑3"},
 		},
 		{
 			branch: &models.Branch{
@@ -118,7 +118,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "onlyArrow",
-			expected:             []string{"1m", "branch_name    ↓"},
+			expected:             []string{"1m", "●", "branch_name    ↓"},
 		},
 		{
 			branch: &models.Branch{
@@ -135,7 +135,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "arrowAndNumber",
-			expected:             []string{"1m", "branch_name ✓   ↓2"},
+			expected:             []string{"1m", "●", "branch_name ✓   ↓2"},
 		},
 		{
 			branch: &models.Branch{
@@ -152,7 +152,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "arrowAndNumber",
-			expected:             []string{"1m", "branch_name ↓5↑3    ↓2"},
+			expected:             []string{"1m", "●", "branch_name ↓5↑3    ↓2"},
 		},
 		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},
@@ -162,7 +162,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "branch_name Pushing |"},
+			expected:             []string{"1m", "●", "branch_name Pushing |"},
 		},
 		{
 			branch: &models.Branch{
@@ -181,7 +181,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "12345678", "branch_name ✓", "origin branch_name", "commit title"},
+			expected:             []string{"1m", "●", "branch_name ✓", "12345678", "origin branch_name", "commit title"},
 		},
 
 		// Now tests for how we truncate the branch name when there's not enough room:
@@ -193,7 +193,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "branch_na…"},
+			expected:             []string{"1m", "●", "branch_na…"},
 		},
 		{
 			branch:               &models.Branch{Name: "🍉_special_char", Recency: "1m"},
@@ -203,7 +203,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "🍉_special_ch…"},
+			expected:             []string{"1m", "●", "🍉_special_ch…"},
 		},
 		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},
@@ -213,7 +213,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: true,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "bra… (worktree)"},
+			expected:             []string{"1m", "●", "bra… (worktree)"},
 		},
 		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},
@@ -239,7 +239,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "branch_… ✓"},
+			expected:             []string{"1m", "●", "branch_… ✓"},
 		},
 		{
 			branch: &models.Branch{
@@ -256,7 +256,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "arrowAndNumber",
-			expected:             []string{"1m", "branch_n… ↓5↑3 ↓4"},
+			expected:             []string{"1m", "●", "branch_n… ↓5↑3 ↓4"},
 		},
 		{
 			branch: &models.Branch{
@@ -272,7 +272,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: true,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "branch_na… (worktree) ↓5↑3"},
+			expected:             []string{"1m", "●", "branch_na… (worktree) ↓5↑3"},
 		},
 		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},
@@ -282,7 +282,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "branc… Pushing |"},
+			expected:             []string{"1m", "●", "branc… Pushing |"},
 		},
 		{
 			branch:               &models.Branch{Name: "abc", Recency: "1m"},
@@ -292,7 +292,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "abc Pushing |"},
+			expected:             []string{"1m", "●", "abc Pushing |"},
 		},
 		{
 			branch:               &models.Branch{Name: "ab", Recency: "1m"},
@@ -302,7 +302,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "ab Pushing |"},
+			expected:             []string{"1m", "●", "ab Pushing |"},
 		},
 		{
 			branch:               &models.Branch{Name: "a", Recency: "1m"},
@@ -312,7 +312,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "a Pushing |"},
+			expected:             []string{"1m", "●", "a Pushing |"},
 		},
 		{
 			branch: &models.Branch{
@@ -331,7 +331,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "12345678", "bran… ✓", "origin branch_name", "commit title"},
+			expected:             []string{"1m", "●", "bran… ✓", "12345678", "origin branch_name", "commit title"},
 		},
 	}
 
@@ -351,7 +351,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 		}
 
 		t.Run(fmt.Sprintf("getBranchDisplayStrings_%d", i), func(t *testing.T) {
-			strings := getBranchDisplayStrings(s.branch, s.itemOperation, s.fullDescription, false, s.viewWidth, c.Tr, c.UserConfig(), worktrees, time.Time{})
+			strings := getBranchDisplayStrings(s.branch, s.itemOperation, s.fullDescription, false, s.viewWidth, c.Tr, c.UserConfig(), worktrees, time.Time{}, map[string]*models.GithubPullRequest{})
 			assert.Equal(t, s.expected, strings)
 		})
 	}

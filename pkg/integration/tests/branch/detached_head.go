@@ -31,7 +31,7 @@ var DetachedHead = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Branches().
 			Lines(
-				MatchesRegexp(`\* new-branch`).IsSelected(),
+				MatchesRegexp(`\*.*new-branch`).IsSelected(),
 				MatchesRegexp(`master`),
 			)
 

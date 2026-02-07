@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
@@ -27,6 +29,7 @@ type RefreshHelper struct {
 	mergeConflictsHelper *MergeConflictsHelper
 	worktreeHelper       *WorktreeHelper
 	searchHelper         *SearchHelper
+	suggestionsHelper    *SuggestionsHelper
 }
 
 func NewRefreshHelper(
@@ -38,6 +41,7 @@ func NewRefreshHelper(
 	mergeConflictsHelper *MergeConflictsHelper,
 	worktreeHelper *WorktreeHelper,
 	searchHelper *SearchHelper,
+	suggestionsHelper *SuggestionsHelper,
 ) *RefreshHelper {
 	return &RefreshHelper{
 		c:                    c,
@@ -48,6 +52,7 @@ func NewRefreshHelper(
 		mergeConflictsHelper: mergeConflictsHelper,
 		worktreeHelper:       worktreeHelper,
 		searchHelper:         searchHelper,
+		suggestionsHelper:    suggestionsHelper,
 	}
 }
 
@@ -91,6 +96,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 				types.STATUS,
 				types.BISECT_INFO,
 				types.STAGING,
+				types.PULL_REQUESTS,
 			})
 		} else {
 			scopeSet = set.NewFromSlice(options.Scope)
@@ -115,6 +121,10 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 					self.c.Log.Infof("refreshed %s in %s", name, time.Since(t))
 				})
 			}
+		}
+
+		if scopeSet.Includes(types.PULL_REQUESTS) {
+			refresh("pull requests", func() { _ = self.refreshGithubPullRequests() })
 		}
 
 		includeWorktreesWithBranches := false
@@ -756,4 +766,189 @@ func (self *RefreshHelper) refreshView(context types.Context) {
 		self.searchHelper.ReApplySearch(context)
 		return nil
 	})
+}
+
+func (self *RefreshHelper) refreshGithubPullRequests() error {
+	self.c.Mutexes().RefreshingPullRequestsMutex.Lock()
+	defer self.c.Mutexes().RefreshingPullRequestsMutex.Unlock()
+
+	if !self.c.UserConfig().Git.EnableGithubCli {
+		return nil
+	}
+
+	if !self.c.Git().GitHub.InGithubRepo() {
+		self.c.Model().PullRequests = []*models.GithubPullRequest{}
+		return nil
+	}
+
+	// Load cached PRs for instant display while we fetch fresh data
+	self.loadCachedPullRequests()
+
+	switch self.c.State().GetGitHubCliState() {
+	case types.UNKNOWN:
+		state := self.determineGithubCliState()
+		self.c.State().SetGitHubCliState(state)
+		if state != types.VALID {
+			if state == types.INVALID_VERSION {
+				// todo: i18n
+				self.c.LogAction("gh version is too old (must be version 2 or greater), so pull requests will not be shown against branches.")
+			}
+			return nil
+		}
+	case types.VALID:
+		// continue on
+	default:
+		return nil
+	}
+
+	if err := self.c.Git().GitHub.BaseRepo(); err != nil {
+		ok, err := self.promptForBaseGithubRepo()
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			return nil
+		}
+	}
+
+	if err := self.setGithubPullRequests(); err != nil {
+		self.c.LogAction(fmt.Sprintf("Error fetching pull requests from GitHub: %s", err.Error()))
+	}
+
+	return nil
+}
+
+func (self *RefreshHelper) promptForBaseGithubRepo() (bool, error) {
+	err := self.refreshRemotes()
+	if err != nil {
+		return false, err
+	}
+
+	remotes := self.c.Model().Remotes
+	if len(remotes) == 0 {
+		return false, nil
+	}
+
+	// If there's only one remote, or if 'origin' exists, use it automatically
+	remote, hasOrigin := lo.Find(remotes, func(r *models.Remote) bool {
+		return r.Name == "origin"
+	})
+	if !hasOrigin {
+		if len(remotes) == 1 {
+			remote = remotes[0]
+		} else {
+			// Multiple remotes with no 'origin': prompt the user
+			self.c.Prompt(types.PromptOpts{
+				Title:               self.c.Tr.SelectRemoteRepository,
+				InitialContent:      "",
+				FindSuggestionsFunc: self.suggestionsHelper.GetRemoteRepoSuggestionsFunc(),
+				HandleConfirm: func(repository string) error {
+					return self.c.WithWaitingStatus(self.c.Tr.LcSelectingRemote, func(gocui.Task) error {
+						// `repository` is something like 'jesseduffield/lazygit'
+						_, err := self.c.Git().GitHub.SetBaseRepo(repository)
+						if err != nil {
+							return err
+						}
+
+						return self.refreshGithubPullRequests()
+					})
+				},
+			})
+
+			return false, nil
+		}
+	}
+
+	if len(remote.Urls) == 0 {
+		return false, nil
+	}
+
+	repoName, err := self.c.Git().HostingService.GetRepoNameFromRemoteURL(remote.Urls[0])
+	if err != nil {
+		self.c.Log.Error(err)
+		return false, nil
+	}
+
+	_, err = self.c.Git().GitHub.SetBaseRepo(repoName)
+	if err != nil {
+		self.c.Log.Error(err)
+	}
+
+	return true, nil
+}
+
+func (self *RefreshHelper) determineGithubCliState() types.GitHubCliState {
+	installed, validVersion := self.c.Git().GitHub.DetermineGitHubCliState()
+	if validVersion {
+		return types.VALID
+	} else if installed {
+		return types.INVALID_VERSION
+	}
+	return types.NOT_INSTALLED
+}
+
+func (self *RefreshHelper) setGithubPullRequests() error {
+	branches := lo.Filter(self.c.Model().Branches, func(branch *models.Branch, _ int) bool {
+		return branch.IsTrackingRemote()
+	})
+	branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string {
+		return branch.UpstreamBranch
+	})
+
+	prs, err := self.c.Git().GitHub.FetchRecentPRs(branchNames)
+	if err != nil {
+		return err
+	}
+
+	self.c.Model().PullRequests = prs
+	self.savePullRequestsToCache(prs)
+
+	self.c.PostRefreshUpdate(self.c.Contexts().Branches)
+	return nil
+}
+
+func (self *RefreshHelper) loadCachedPullRequests() {
+	repoPath := self.c.Git().RepoPaths.RepoPath()
+	cachedPRs := self.c.GetAppState().GithubPullRequests[repoPath]
+	if len(cachedPRs) == 0 {
+		return
+	}
+
+	prs := lo.Map(cachedPRs, func(cached config.CachedPullRequest, _ int) *models.GithubPullRequest {
+		return &models.GithubPullRequest{
+			HeadRefName: cached.HeadRefName,
+			Number:      cached.Number,
+			Title:       cached.Title,
+			State:       cached.State,
+			Url:         cached.Url,
+			HeadRepositoryOwner: models.GithubRepositoryOwner{
+				Login: cached.HeadRepositoryOwner,
+			},
+		}
+	})
+
+	self.c.Model().PullRequests = prs
+	self.c.PostRefreshUpdate(self.c.Contexts().Branches)
+}
+
+func (self *RefreshHelper) savePullRequestsToCache(prs []*models.GithubPullRequest) {
+	repoPath := self.c.Git().RepoPaths.RepoPath()
+	cached := lo.Map(prs, func(pr *models.GithubPullRequest, _ int) config.CachedPullRequest {
+		return config.CachedPullRequest{
+			HeadRefName:         pr.HeadRefName,
+			Number:              pr.Number,
+			Title:               pr.Title,
+			State:               pr.State,
+			Url:                 pr.Url,
+			HeadRepositoryOwner: pr.HeadRepositoryOwner.Login,
+		}
+	})
+
+	appState := self.c.GetAppState()
+	if appState.GithubPullRequests == nil {
+		appState.GithubPullRequests = make(map[string][]config.CachedPullRequest)
+	}
+	appState.GithubPullRequests[repoPath] = cached
+	self.c.SaveAppStateAndLogError()
 }

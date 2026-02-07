@@ -20,7 +20,7 @@ var CreateTag = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Branches().
 			Focus().
 			Lines(
-				MatchesRegexp(`\*\s*new-branch`).IsSelected(),
+				MatchesRegexp(`\*.*new-branch`).IsSelected(),
 				MatchesRegexp(`master`),
 			).
 			SelectNextItem().
