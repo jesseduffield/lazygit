@@ -152,7 +152,8 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		from, to := self.context().GetFromAndToForDiff()
 		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
+		paths := self.pathsForDiff(node)
+		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false)
 		task := types.NewRunPtyTask(cmdObj.GetCmd())
 
 		self.c.RenderToMainViews(types.RefreshMainOpts{
@@ -171,7 +172,7 @@ func (self *CommitFilesController) copyDiffToClipboard(path string, toastMessage
 	from, to := self.context().GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, path, true)
+	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, []string{path}, true)
 	diff, err := cmdObj.RunWithOutput()
 	if err != nil {
 		return err
@@ -400,15 +401,12 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 
 			selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
 
-			// Collect all files to operate on. For directory nodes, this
-			// includes all files under the directory, not just the ones
-			// visible after filtering.
-			filesToProcess := self.collectFilesForNodes(selectedNodes)
-
 			// Find if any file in the selection is unselected or partially added
-			adding := lo.SomeBy(filesToProcess, func(file *models.CommitFile) bool {
-				fileStatus := self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Path, self.context().GetRef().RefName())
-				return fileStatus == patch.PART || fileStatus == patch.UNSELECTED
+			adding := lo.SomeBy(selectedNodes, func(node *filetree.CommitFileNode) bool {
+				return node.SomeFile(func(file *models.CommitFile) bool {
+					fileStatus := self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Path, self.context().GetRef().RefName())
+					return fileStatus == patch.PART || fileStatus == patch.UNSELECTED
+				})
 			})
 
 			patchOperationFunction := self.c.Git().Patch.PatchBuilder.RemoveFile
@@ -417,8 +415,11 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 				patchOperationFunction = self.c.Git().Patch.PatchBuilder.AddFileWhole
 			}
 
-			for _, file := range filesToProcess {
-				if err := patchOperationFunction(file.Path); err != nil {
+			for _, node := range selectedNodes {
+				err := node.ForEachFile(func(file *models.CommitFile) error {
+					return patchOperationFunction(file.Path)
+				})
+				if err != nil {
 					return err
 				}
 			}
@@ -550,6 +551,21 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 	}
 }
 
+// pathsForDiff returns the file paths to use for a diff command. When a text
+// filter is active and the node is a directory, only the visible (filtered)
+// file paths are returned so the diff reflects what the user sees.
+func (self *CommitFilesController) pathsForDiff(node *filetree.CommitFileNode) []string {
+	if !node.IsFile() && self.context().IsFiltering() {
+		var paths []string
+		node.ForEachFile(func(file *models.CommitFile) error {
+			paths = append(paths, file.Path)
+			return nil
+		})
+		return paths
+	}
+	return []string{node.GetPath()}
+}
+
 // NOTE: these functions are identical to those in files_controller.go (except for types) and
 // could also be cleaned up with some generics
 func normalisedSelectedCommitFileNodes(selectedNodes []*filetree.CommitFileNode) []*filetree.CommitFileNode {
@@ -568,30 +584,6 @@ func isDescendentOfSelectedCommitFileNodes(node *filetree.CommitFileNode, select
 		}
 	}
 	return false
-}
-
-// collectFilesForNodes returns all commit files that should be operated on
-// for the given nodes. For directory nodes, this includes all files under
-// the directory from the full unfiltered list, so that toggling a directory
-// for a patch always affects all files regardless of any active text filter.
-func (self *CommitFilesController) collectFilesForNodes(nodes []*filetree.CommitFileNode) []*models.CommitFile {
-	allCommitFiles := self.context().GetAllFiles()
-	result := []*models.CommitFile{}
-
-	for _, node := range nodes {
-		if node.IsFile() {
-			result = append(result, node.File)
-		} else {
-			dirPath := node.GetPath()
-			for _, file := range allCommitFiles {
-				if dirPath == "" || strings.HasPrefix(file.Path, dirPath+"/") {
-					result = append(result, file)
-				}
-			}
-		}
-	}
-
-	return result
 }
 
 func (self *CommitFilesController) isInTreeMode() *types.DisabledReason {

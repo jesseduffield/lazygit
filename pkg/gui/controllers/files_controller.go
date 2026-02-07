@@ -294,7 +294,8 @@ func (self *FilesController) GetOnRenderToMain() func() {
 			split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
 			mainShowsStaged := !split && node.GetHasStagedChanges()
 
-			cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged)
+			pathOverrides := self.pathOverridesForDiff(node)
+			cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, pathOverrides)
 			title := self.c.Tr.UnstagedChanges
 			if mainShowsStaged {
 				title = self.c.Tr.StagedChanges
@@ -309,7 +310,7 @@ func (self *FilesController) GetOnRenderToMain() func() {
 			}
 
 			if split {
-				cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true)
+				cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, pathOverrides)
 
 				title := self.c.Tr.StagedChanges
 				if mainShowsStaged {
@@ -434,7 +435,19 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 		}
 	}
 
+	// When filtering, expand directory nodes to individual visible file paths
+	// so that only filtered files are staged/unstaged.
 	toPaths := func(nodes []*filetree.FileNode) []string {
+		if self.context().IsFiltering() {
+			var paths []string
+			for _, node := range nodes {
+				node.ForEachFile(func(file *models.File) error {
+					paths = append(paths, file.Path)
+					return nil
+				})
+			}
+			return paths
+		}
 		return lo.Map(nodes, func(node *filetree.FileNode, _ int) string {
 			return node.GetPath()
 		})
@@ -469,22 +482,29 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 			return err
 		}
 
-		// need to partition the paths into tracked and untracked (where we assume directories are tracked). Then we'll run the commands separately.
-		trackedNodes, untrackedNodes := utils.Partition(selectedNodes, func(node *filetree.FileNode) bool {
-			// We treat all directories as tracked. I'm not actually sure why we do this but
-			// it's been the existing behaviour for a while and nobody has complained
-			return !node.IsFile() || node.GetIsTracked()
-		})
-
-		if len(untrackedNodes) > 0 {
-			if err := self.c.Git().WorkingTree.UnstageUntrackedFiles(toPaths(untrackedNodes)); err != nil {
+		if self.context().IsFiltering() {
+			// When filtering, only unstage visible files
+			if err := self.unstageFilteredFiles(selectedNodes); err != nil {
 				return err
 			}
-		}
+		} else {
+			// need to partition the paths into tracked and untracked (where we assume directories are tracked). Then we'll run the commands separately.
+			trackedNodes, untrackedNodes := utils.Partition(selectedNodes, func(node *filetree.FileNode) bool {
+				// We treat all directories as tracked. I'm not actually sure why we do this but
+				// it's been the existing behaviour for a while and nobody has complained
+				return !node.IsFile() || node.GetIsTracked()
+			})
 
-		if len(trackedNodes) > 0 {
-			if err := self.c.Git().WorkingTree.UnstageTrackedFiles(toPaths(trackedNodes)); err != nil {
-				return err
+			if len(untrackedNodes) > 0 {
+				if err := self.c.Git().WorkingTree.UnstageUntrackedFiles(toPaths(untrackedNodes)); err != nil {
+					return err
+				}
+			}
+
+			if len(trackedNodes) > 0 {
+				if err := self.c.Git().WorkingTree.UnstageTrackedFiles(toPaths(trackedNodes)); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -500,6 +520,48 @@ func (self *FilesController) press(nodes []*filetree.FileNode) error {
 	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}, Mode: types.ASYNC})
 
 	self.context().HandleFocus(types.OnFocusOpts{})
+	return nil
+}
+
+// pathOverridesForDiff returns file paths to override the node's path in diff
+// commands when a text filter is active and the node is a directory. This
+// ensures the diff only shows filtered/visible files.
+func (self *FilesController) pathOverridesForDiff(node *filetree.FileNode) []string {
+	if !node.IsFile() && self.context().IsFiltering() {
+		var paths []string
+		node.ForEachFile(func(file *models.File) error {
+			paths = append(paths, file.Path)
+			return nil
+		})
+		return paths
+	}
+	return nil
+}
+
+// unstageFilteredFiles unstages only the visible (filtered) files from the
+// given nodes, correctly partitioning by tracked/untracked.
+func (self *FilesController) unstageFilteredFiles(nodes []*filetree.FileNode) error {
+	var trackedPaths, untrackedPaths []string
+	for _, node := range nodes {
+		node.ForEachFile(func(file *models.File) error {
+			if file.Tracked || file.HasStagedChanges {
+				trackedPaths = append(trackedPaths, file.Path)
+			} else {
+				untrackedPaths = append(untrackedPaths, file.Path)
+			}
+			return nil
+		})
+	}
+	if len(untrackedPaths) > 0 {
+		if err := self.c.Git().WorkingTree.UnstageUntrackedFiles(untrackedPaths); err != nil {
+			return err
+		}
+	}
+	if len(trackedPaths) > 0 {
+		if err := self.c.Git().WorkingTree.UnstageTrackedFiles(trackedPaths); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -648,9 +710,21 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 			return err
 		}
 
-		onlyTrackedFiles := self.context().GetStatusFilter() == filetree.DisplayTracked
-		if err := self.c.Git().WorkingTree.StageAll(onlyTrackedFiles); err != nil {
-			return err
+		if self.context().IsFiltering() {
+			// When filtering, only stage visible files
+			var paths []string
+			root.ForEachFile(func(file *models.File) error {
+				paths = append(paths, file.Path)
+				return nil
+			})
+			if err := self.c.Git().WorkingTree.StageFiles(paths, nil); err != nil {
+				return err
+			}
+		} else {
+			onlyTrackedFiles := self.context().GetStatusFilter() == filetree.DisplayTracked
+			if err := self.c.Git().WorkingTree.StageAll(onlyTrackedFiles); err != nil {
+				return err
+			}
 		}
 	} else {
 		self.c.LogAction(self.c.Tr.Actions.UnstageAllFiles)
@@ -659,8 +733,15 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 			return err
 		}
 
-		if err := self.c.Git().WorkingTree.UnstageAll(); err != nil {
-			return err
+		if self.context().IsFiltering() {
+			// When filtering, only unstage visible files
+			if err := self.unstageFilteredFiles([]*filetree.FileNode{root}); err != nil {
+				return err
+			}
+		} else {
+			if err := self.c.Git().WorkingTree.UnstageAll(); err != nil {
+				return err
+			}
 		}
 	}
 

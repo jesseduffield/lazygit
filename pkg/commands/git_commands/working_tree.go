@@ -253,11 +253,14 @@ func (self *WorkingTreeCommands) Exclude(filename string) error {
 // WorktreeFileDiff returns the diff of a file
 func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
 	// for now we assume an error means the file was deleted
-	s, _ := self.WorktreeFileDiffCmdObj(file, plain, cached).RunWithOutput()
+	s, _ := self.WorktreeFileDiffCmdObj(file, plain, cached, nil).RunWithOutput()
 	return s
 }
 
-func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) *oscommands.CmdObj {
+// WorktreeFileDiffCmdObj returns a command object for diffing a file or directory
+// in the working tree. When pathOverrides is non-empty, those paths are used instead of
+// the node's path (used to diff only filtered/visible files within a directory).
+func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool, pathOverrides []string) *oscommands.CmdObj {
 	colorArg := self.pagerConfig.GetColorArg()
 	if plain {
 		colorArg = "never"
@@ -269,6 +272,11 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	extDiffCmd := self.pagerConfig.GetExternalDiffCommand()
 	useExtDiff := extDiffCmd != "" && !plain
 	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain
+
+	paths := pathOverrides
+	if len(paths) == 0 {
+		paths = []string{node.GetPath()}
+	}
 
 	cmdArgs := NewGitCmd("diff").
 		ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
@@ -282,7 +290,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 		ArgIf(noIndex, "--no-index").
 		Arg("--").
 		ArgIf(noIndex, "/dev/null").
-		Arg(node.GetPath()).
+		Arg(paths...).
 		ArgIf(prevPath != "", prevPath).
 		Dir(self.repoPaths.worktreePath).
 		ToArgv()
@@ -293,10 +301,10 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
 // but when we're in diff mode it could be any 'from' to any 'to'. The reverse flag is also here thanks to diff mode.
 func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error) {
-	return self.ShowFileDiffCmdObj(from, to, reverse, fileName, plain).RunWithOutput()
+	return self.ShowFileDiffCmdObj(from, to, reverse, []string{fileName}, plain).RunWithOutput()
 }
 
-func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileName string, plain bool) *oscommands.CmdObj {
+func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool) *oscommands.CmdObj {
 	contextSize := self.UserConfig().Git.DiffContextSize
 
 	colorArg := self.pagerConfig.GetColorArg()
@@ -321,7 +329,7 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 		ArgIf(reverse, "-R").
 		ArgIf(!plain && self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		Arg("--").
-		Arg(fileName).
+		Arg(fileNames...).
 		Dir(self.repoPaths.worktreePath).
 		ToArgv()
 
