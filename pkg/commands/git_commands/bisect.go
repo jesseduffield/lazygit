@@ -39,6 +39,12 @@ func (self *BisectCommands) GetInfoForGitDir(gitDir string) *BisectInfo {
 		return info
 	}
 
+	// Get actual HEAD hash to detect when user manually checked out a different commit
+	headHash, err := self.cmd.New(NewGitCmd("rev-parse").Arg("HEAD").ToArgv()).DontLog().RunWithOutput()
+	if err == nil {
+		info.head = strings.TrimSpace(headHash)
+	}
+
 	startContent, err := os.ReadFile(bisectStartPath)
 	if err != nil {
 		self.Log.Infof("error getting git bisect info: %s", err.Error())
