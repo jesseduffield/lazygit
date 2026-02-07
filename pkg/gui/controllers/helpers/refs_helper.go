@@ -54,7 +54,19 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		// loading a heap of commits is slow so we limit them whenever doing a reset
 		self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
-		self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+		self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true, Scope: []types.RefreshableView{
+			types.COMMITS,
+			types.BRANCHES,
+			types.FILES,
+			types.STASH,
+			types.REFLOG,
+			types.TAGS,
+			types.REMOTES,
+			types.WORKTREES,
+			types.STATUS,
+			types.BISECT_INFO,
+			types.STAGING,
+		}})
 	}
 
 	localBranch, found := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
