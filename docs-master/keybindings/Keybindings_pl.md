@@ -260,7 +260,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
-| `` / `` | Szukaj w bieżącym widoku po tekście |  |
+| `` / `` | Filtruj bieżący widok po tekście |  |
 
 ## Pliki commita
 
@@ -280,7 +280,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
-| `` / `` | Szukaj w bieżącym widoku po tekście |  |
+| `` / `` | Filtruj bieżący widok po tekście |  |
 
 ## Podsumowanie commita
 

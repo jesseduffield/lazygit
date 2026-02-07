@@ -80,12 +80,12 @@ func (self *SwitchToDiffFilesController) enter() error {
 		}
 	}
 
+	commitFilesContext.ClearFilter()
 	commitFilesContext.ReInit(ref, refsRange)
 	commitFilesContext.SetSelection(0)
 	commitFilesContext.SetCanRebase(canRebase)
 	commitFilesContext.SetParentContext(self.context)
 	commitFilesContext.SetWindowName(self.context.GetWindowName())
-	commitFilesContext.ClearSearchString()
 	commitFilesContext.GetView().TitlePrefix = self.context.GetView().TitlePrefix
 
 	self.c.Refresh(types.RefreshOptions{

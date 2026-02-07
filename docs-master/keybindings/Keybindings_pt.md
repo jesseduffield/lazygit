@@ -84,7 +84,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
 | `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
 | `` 0 `` | Focus main view |  |
-| `` / `` | Search the current view by text |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Branches locais
 
@@ -153,7 +153,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
 | `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
 | `` 0 `` | Focus main view |  |
-| `` / `` | Search the current view by text |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Commits
 

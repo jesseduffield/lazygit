@@ -400,12 +400,15 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 
 			selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
 
+			// Collect all files to operate on. For directory nodes, this
+			// includes all files under the directory, not just the ones
+			// visible after filtering.
+			filesToProcess := self.collectFilesForNodes(selectedNodes)
+
 			// Find if any file in the selection is unselected or partially added
-			adding := lo.SomeBy(selectedNodes, func(node *filetree.CommitFileNode) bool {
-				return node.SomeFile(func(file *models.CommitFile) bool {
-					fileStatus := self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Path, self.context().GetRef().RefName())
-					return fileStatus == patch.PART || fileStatus == patch.UNSELECTED
-				})
+			adding := lo.SomeBy(filesToProcess, func(file *models.CommitFile) bool {
+				fileStatus := self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Path, self.context().GetRef().RefName())
+				return fileStatus == patch.PART || fileStatus == patch.UNSELECTED
 			})
 
 			patchOperationFunction := self.c.Git().Patch.PatchBuilder.RemoveFile
@@ -414,11 +417,8 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 				patchOperationFunction = self.c.Git().Patch.PatchBuilder.AddFileWhole
 			}
 
-			for _, node := range selectedNodes {
-				err := node.ForEachFile(func(file *models.CommitFile) error {
-					return patchOperationFunction(file.Path)
-				})
-				if err != nil {
+			for _, file := range filesToProcess {
+				if err := patchOperationFunction(file.Path); err != nil {
 					return err
 				}
 			}
@@ -568,6 +568,30 @@ func isDescendentOfSelectedCommitFileNodes(node *filetree.CommitFileNode, select
 		}
 	}
 	return false
+}
+
+// collectFilesForNodes returns all commit files that should be operated on
+// for the given nodes. For directory nodes, this includes all files under
+// the directory from the full unfiltered list, so that toggling a directory
+// for a patch always affects all files regardless of any active text filter.
+func (self *CommitFilesController) collectFilesForNodes(nodes []*filetree.CommitFileNode) []*models.CommitFile {
+	allCommitFiles := self.context().GetAllFiles()
+	result := []*models.CommitFile{}
+
+	for _, node := range nodes {
+		if node.IsFile() {
+			result = append(result, node.File)
+		} else {
+			dirPath := node.GetPath()
+			for _, file := range allCommitFiles {
+				if dirPath == "" || strings.HasPrefix(file.Path, dirPath+"/") {
+					result = append(result, file)
+				}
+			}
+		}
+	}
+
+	return result
 }
 
 func (self *CommitFilesController) isInTreeMode() *types.DisabledReason {

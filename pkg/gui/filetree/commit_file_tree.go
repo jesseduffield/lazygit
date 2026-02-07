@@ -15,6 +15,8 @@ type ICommitFileTree interface {
 	GetAllItems() []*CommitFileNode
 	GetAllFiles() []*models.CommitFile
 	GetRoot() *CommitFileNode
+	SetTextFilter(filter string, useFuzzySearch bool)
+	GetTextFilter() string
 }
 
 type CommitFileTree struct {
@@ -23,6 +25,8 @@ type CommitFileTree struct {
 	showTree       bool
 	common         *common.Common
 	collapsedPaths *CollapsedPaths
+	textFilter     string
+	useFuzzySearch bool
 }
 
 func (self *CommitFileTree) CollapseAll() {
@@ -93,13 +97,32 @@ func (self *CommitFileTree) GetAllFiles() []*models.CommitFile {
 	return self.getFiles()
 }
 
+func (self *CommitFileTree) getFilesForDisplay() []*models.CommitFile {
+	files := self.getFiles()
+	if self.textFilter != "" {
+		files = filterCommitFilesByText(files, self.textFilter, self.useFuzzySearch)
+	}
+	return files
+}
+
 func (self *CommitFileTree) SetTree() {
+	filesForDisplay := self.getFilesForDisplay()
 	showRootItem := self.common.UserConfig().Gui.ShowRootItemInFileTree
 	if self.showTree {
-		self.tree = BuildTreeFromCommitFiles(self.getFiles(), showRootItem)
+		self.tree = BuildTreeFromCommitFiles(filesForDisplay, showRootItem)
 	} else {
-		self.tree = BuildFlatTreeFromCommitFiles(self.getFiles(), showRootItem)
+		self.tree = BuildFlatTreeFromCommitFiles(filesForDisplay, showRootItem)
 	}
+}
+
+func (self *CommitFileTree) SetTextFilter(filter string, useFuzzySearch bool) {
+	self.textFilter = filter
+	self.useFuzzySearch = useFuzzySearch
+	self.SetTree()
+}
+
+func (self *CommitFileTree) GetTextFilter() string {
+	return self.textFilter
 }
 
 func (self *CommitFileTree) IsCollapsed(path string) bool {

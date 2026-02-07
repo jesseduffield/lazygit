@@ -33,6 +33,8 @@ func NewSearchHelper(
 func (self *SearchHelper) OpenFilterPrompt(context types.IFilterableContext) error {
 	state := self.searchState()
 
+	state.PrevSearchIndex = -1
+
 	state.Context = context
 
 	self.searchPrefixView().SetContent(context.FilterPrefix(self.c.Tr))
@@ -238,7 +240,7 @@ func (self *SearchHelper) ReApplyFilter(context types.Context) {
 	filterableContext, ok := context.(types.IFilterableContext)
 	if ok {
 		state := self.searchState()
-		if context == state.Context {
+		if context == state.Context && self.c.Context().Current().GetKey() == self.c.Contexts().Search.GetKey() {
 			filterableContext.SetSelection(0)
 			filterableContext.GetView().SetOriginY(0)
 		}

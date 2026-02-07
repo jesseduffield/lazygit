@@ -308,7 +308,7 @@ _Связки клавиш_
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
-| `` / `` | Найти |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Статус
 
@@ -399,7 +399,7 @@ _Связки клавиш_
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
-| `` / `` | Найти |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Хранилище
 
