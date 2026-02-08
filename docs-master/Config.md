@@ -321,6 +321,10 @@ gui:
   # is already active, go to next tab instead
   switchTabsWithPanelJumpKeys: false
 
+  # Commit list date source.
+  # One of 'author' (default) | 'committer'
+  commitDateSource: author
+
 # Config relating to git
 git:
   # Array of pagers. Each entry has the following format:
