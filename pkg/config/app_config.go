@@ -596,13 +596,34 @@ func findConfigFile(filename string) (exists bool, path string) {
 		return true, legacyConfigPath
 	}
 
+	// if on macOs, default to looking in ~/.config/lazygit first since that's
+	// the most common location for CLI apps to store configuration when
+	// `XDG_CONFIG_HOME` is not set. The `xdg` package uses `~/Library/Application\ Support`
+	// as the default directory for macOS, so we have to handle this case manually.
+	if overrideXdgConfigHome && os.Getenv("XDG_CONFIG_HOME") == "" {
+		homeConfigFilePath, err := findHomeConfigFile(filename)
+		if err == nil {
+			return true, homeConfigFilePath
+		}
+	}
+
 	// look for lazygit/filename in XDG_CONFIG_HOME and XDG_CONFIG_DIRS
 	configFilepath, err := xdg.SearchConfigFile(filepath.Join("lazygit", filename))
 	if err == nil {
 		return true, configFilepath
 	}
 
-	return false, filepath.Join(xdg.ConfigHome, "lazygit", filename)
+	configHome := xdg.ConfigHome
+	// If we're on macOS and XDG_CONFIG_HOME is not set, we use
+	// ~/.config/lazygit instead of the default `~/Library/Application\ Support`
+	// directory the `xdg` package uses.
+	if overrideXdgConfigHome && os.Getenv("XDG_CONFIG_HOME") == "" {
+		if homeDir, err := os.UserHomeDir(); err == nil {
+			return false, filepath.Join(homeDir, ".config", "lazygit", filename)
+		}
+	}
+
+	return false, filepath.Join(configHome, "lazygit", filename)
 }
 
 var ConfigFilename = "config.yml"
@@ -716,4 +737,18 @@ func LogPath() (string, error) {
 	}
 
 	return stateFilePath("development.log")
+}
+
+func findHomeConfigFile(filename string) (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	path := filepath.Join(home, ".config", "lazygit", filename)
+	if _, err = os.Stat(path); err != nil {
+		return "", err
+	}
+
+	return path, nil
 }
