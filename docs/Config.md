@@ -1012,6 +1012,7 @@ Note that there is no support for regular expressions.
 
 ![border example](../../assets/colored-border-example.png)
 
+You can find preset themes on [this repository](https://github.com/catppuccin/lazygit) by Catppuccin (this is unofficial: be sure to check the source!).
 ## Display Nerd Fonts Icons
 
 If you are using [Nerd Fonts](https://www.nerdfonts.com), you can display icons.
