@@ -69,6 +69,7 @@ var tests = []*components.IntegrationTest{
 	branch.RebaseAndDrop,
 	branch.RebaseCancelOnConflict,
 	branch.RebaseConflictsFixBuildErrors,
+	branch.RebaseConflictsResolvedExternally,
 	branch.RebaseCopiedBranch,
 	branch.RebaseDoesNotAutosquash,
 	branch.RebaseFromMarkedBase,
