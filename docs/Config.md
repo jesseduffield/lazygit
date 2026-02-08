@@ -52,7 +52,7 @@ gui:
     # Map of file extensions (including the dot) to icon properties (icon and color)
     extensions: {}
 
-  # The number of lines you scroll by when scrolling the main window
+  # The number of lines you scroll by when scrolling the main window. When using a number between 0 and 1, scrools that percentag of a whole page.
   scrollHeight: 2
 
   # If true, allow scrolling past the bottom of the content in the main window

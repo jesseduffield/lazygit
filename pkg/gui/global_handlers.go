@@ -13,11 +13,11 @@ import (
 const HORIZONTAL_SCROLL_FACTOR = 3
 
 func (gui *Gui) scrollUpView(view *gocui.View) {
-	view.ScrollUp(gui.c.UserConfig().Gui.ScrollHeight)
+	view.ScrollUp(utils.ScrollHeight(view.Height(), gui.c.UserConfig().Gui.ScrollHeight))
 }
 
 func (gui *Gui) scrollDownView(view *gocui.View) {
-	scrollHeight := gui.c.UserConfig().Gui.ScrollHeight
+	scrollHeight := utils.ScrollHeight(view.Height(), gui.c.UserConfig().Gui.ScrollHeight)
 	view.ScrollDown(scrollHeight)
 
 	if manager := gui.getViewBufferManagerForView(view); manager != nil {

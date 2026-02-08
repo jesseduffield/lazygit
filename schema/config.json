@@ -480,9 +480,9 @@
           "description": "Custom icons for filenames and file extensions\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color"
         },
         "scrollHeight": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "The number of lines you scroll by when scrolling the main window",
+          "type": "number",
+          "minimum": 0.01,
+          "description": "The number of lines you scroll by when scrolling the main window. When using a number between 0 and 1, scrools that percentag of a whole page.",
           "default": 2
         },
         "scrollPastBottom": {

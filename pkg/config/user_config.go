@@ -68,8 +68,8 @@ type GuiConfig struct {
 	// Custom icons for filenames and file extensions
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color
 	CustomIcons CustomIconsConfig `yaml:"customIcons"`
-	// The number of lines you scroll by when scrolling the main window
-	ScrollHeight int `yaml:"scrollHeight" jsonschema:"minimum=1"`
+	// The number of lines you scroll by when scrolling the main window. When using a number between 0 and 1, scrools that percentag of a whole page.
+	ScrollHeight float64 `yaml:"scrollHeight" jsonschema:"minimum=0.01"`
 	// If true, allow scrolling past the bottom of the content in the main window
 	ScrollPastBottom bool `yaml:"scrollPastBottom"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#scroll-off-margin
