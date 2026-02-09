@@ -684,7 +684,7 @@ func (c *CustomCommand) GetDescription() string {
 }
 
 type CustomCommandPrompt struct {
-	// One of: 'input' | 'menu' | 'confirm' | 'menuFromCommand'
+	// One of: 'input' | 'menu' | 'confirm' | 'menuFromCommand' | 'executeCommand'
 	Type string `yaml:"type"`
 	// Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command
 	Key string `yaml:"key"`
@@ -707,7 +707,8 @@ type CustomCommandPrompt struct {
 	Options []CustomCommandMenuOption `yaml:"options"`
 
 	// The command to run to generate menu options
-	// Only for menuFromCommand prompts.
+	// or run by executeCommand
+	// Only for menuFromCommand prompts and executeCommand prompts.
 	Command string `yaml:"command" jsonschema:"example=git fetch {{.Form.Remote}} {{.Form.Branch}} && git checkout FETCH_HEAD"`
 	// The regexp to run specifying groups which are going to be kept from the command's output.
 	// Only for menuFromCommand prompts.
