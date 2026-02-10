@@ -98,7 +98,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [gah (Linux and Mac OS)](#gah-linux-and-mac-os)
   - [Arch Linux](#arch-linux)
   - [Fedora / Amazon Linux 2023 / CentOS Stream](#fedora--amazon-linux-2023--centos-stream)
-    - [Fedora / RHEL Derivatives (Terra)](fedora--rhel-derivatives)
+    - [Fedora / RHEL Derivatives (Terra)](#fedora--rhel-derivatives-terra)
   - [Solus Linux](#solus-linux)
   - [Debian and Ubuntu](#debian-and-ubuntu)
   - [Funtoo Linux](#funtoo-linux)
