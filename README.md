@@ -334,6 +334,8 @@ sudo dnf install --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/t
 sudo dnf install lazygit
 ```
 
+(Install guide for Atomic/EL can be found on their [README](https://github.com/terrapkg/packages/pull/9747))
+
 Terra also has `lazygit-doc`, which contains the contents of the [docs](https://github.com/jesseduffield/lazygit/tree/master/docs) folder.
 
 ### Solus Linux
