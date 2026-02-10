@@ -98,6 +98,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [gah (Linux and Mac OS)](#gah-linux-and-mac-os)
   - [Arch Linux](#arch-linux)
   - [Fedora / Amazon Linux 2023 / CentOS Stream](#fedora--amazon-linux-2023--centos-stream)
+    - [Fedora / RHEL Derivatives (Terra)](#fedora--rhel-derivatives-terra)
   - [Solus Linux](#solus-linux)
   - [Debian and Ubuntu](#debian-and-ubuntu)
   - [Funtoo Linux](#funtoo-linux)
@@ -323,6 +324,19 @@ These packages are built using the RPM spec file located here: https://codeberg.
 
 You should be able to build RPMs for Fedora 41 or older, and other Fedora derivatives using the
 SRPM (Source RPM) file that you can grab from the latest COPR build.
+
+#### Fedora / RHEL Derivatives (Terra)
+
+Packages for Fedora and RHEL derivatives are also available from the [Terra Repository](https://terra.fyralabs.com/).
+
+```sh
+sudo dnf install --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' terra-release
+sudo dnf install lazygit
+```
+
+(Install guide for Atomic/EL can be found on their [README](https://github.com/terrapkg/packages/pull/9747))
+
+Terra also has `lazygit-doc`, which contains the contents of the [docs](https://github.com/jesseduffield/lazygit/tree/master/docs) folder.
 
 ### Solus Linux
 
