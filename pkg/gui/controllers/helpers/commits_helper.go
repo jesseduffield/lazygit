@@ -105,7 +105,15 @@ func (self *CommitsHelper) UpdateCommitPanelView(message string) {
 
 	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
 		preservedMessage := self.c.Contexts().CommitMessage.GetPreservedMessageAndLogError()
-		self.SetMessageAndDescriptionInView(preservedMessage)
+		if preservedMessage != "" {
+		    self.SetMessageAndDescriptionInView(preservedMessage)
+		    return
+		}
+	}
+
+	commitTemplate := self.c.Contexts().CommitMessage.GetCommitTemplateAndLogError()
+	if commitTemplate != "" {
+		self.SetMessageAndDescriptionInView(commitTemplate)
 		return
 	}
 
