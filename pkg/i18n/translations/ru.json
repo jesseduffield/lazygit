@@ -328,6 +328,8 @@
   "FilterBy": "Фильтровать по",
   "ExitFilterMode": "Прекратить фильтрацию по пути",
   "FilterPathOption": "Введите путь для фильтрации",
+  "FilterHideMerges": "Скрыть merge коммиты",
+  "FilterHideMergesTooltip": "Исключить merge коммиты из списка",
   "EnterFileName": "Введите путь:",
   "FilteringMenuTitle": "Фильтрация",
   "MustExitFilterModeTitle": "Команда недоступна",

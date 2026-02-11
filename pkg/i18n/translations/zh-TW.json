@@ -383,6 +383,8 @@
   "FilterBy": "篩選路徑",
   "ExitFilterMode": "停止按路徑篩選",
   "FilterPathOption": "輸入要依路徑篩選的路徑",
+  "FilterHideMerges": "隱藏合併提交",
+  "FilterHideMergesTooltip": "從列表中排除合併提交",
   "EnterFileName": "輸入路徑：",
   "FilteringMenuTitle": "篩選",
   "MustExitFilterModeTitle": "命令不可用",

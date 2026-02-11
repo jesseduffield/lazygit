@@ -230,6 +230,8 @@
   "FilterBy": "Filter bij",
   "ExitFilterMode": "Stop met filteren bij pad",
   "FilterPathOption": "Vulin pad om op te filteren",
+  "FilterHideMerges": "Verberg merge commits",
+  "FilterHideMergesTooltip": "Sluit merge commits uit van de lijst",
   "EnterFileName": "Vulin path:",
   "FilteringMenuTitle": "Filteren",
   "MustExitFilterModeTitle": "Command niet beschikbaar",

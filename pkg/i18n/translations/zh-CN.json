@@ -621,6 +621,8 @@
   "FilterBy": "过滤",
   "ExitFilterMode": "停止按路径过滤",
   "FilterPathOption": "输入要过滤的路径",
+  "FilterHideMerges": "隐藏合并提交",
+  "FilterHideMergesTooltip": "从列表中排除合并提交",
   "FilterAuthorOption": "输入作者进行过滤",
   "EnterFileName": "输入路径：",
   "EnterAuthor": "输入作者：",

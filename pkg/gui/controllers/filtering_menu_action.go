@@ -90,6 +90,25 @@ func (self *FilteringMenuAction) Call() error {
 		Tooltip: tooltip,
 	})
 
+	menuItems = append(menuItems, &types.MenuItem{
+		Label:   self.c.Tr.FilterHideMerges,
+		Tooltip: self.c.Tr.FilterHideMergesTooltip,
+		Widget:  types.MakeMenuCheckBox(self.c.Modes().Filtering.GetHideMerges()),
+		OnPress: func() error {
+			currentValue := self.c.Modes().Filtering.GetHideMerges()
+			self.c.Modes().Filtering.SetHideMerges(!currentValue)
+
+			self.c.Refresh(types.RefreshOptions{
+				Scope: helpers.ScopesToRefreshWhenFilteringModeChanges(),
+				Then: func() {
+					self.c.Contexts().LocalCommits.SetSelection(0)
+					self.c.Contexts().LocalCommits.HandleFocus(types.OnFocusOpts{})
+				},
+			})
+			return nil
+		},
+	})
+
 	if self.c.Modes().Filtering.Active() {
 		menuItems = append(menuItems, &types.MenuItem{
 			Label:   self.c.Tr.ExitFilterMode,

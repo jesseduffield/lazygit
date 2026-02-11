@@ -235,6 +235,8 @@
   "GotoBottom": "맨 아래로 스크롤 ",
   "ResetInParentheses": "(reset)",
   "OpenFilteringMenu": "View filter-by-path options",
+  "FilterHideMerges": "병합 커밋 숨기기",
+  "FilterHideMergesTooltip": "목록에서 병합 커밋 제외",
   "ExitFilterMode": "Stop filtering by path",
   "MustExitFilterModePrompt": "Command not available in filtered mode. Exit filtered mode?",
   "EnterRefName": "Ref 입력:",
