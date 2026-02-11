@@ -90,7 +90,7 @@ func (self *CommitCommands) CommitCmdObj(summary string, description string, for
 	skipHookPrefix := self.UserConfig().Git.SkipHookPrefix
 	cmdArgs := NewGitCmd("commit").
 		ArgIf(forceSkipHooks || (skipHookPrefix != "" && strings.HasPrefix(summary, skipHookPrefix)), "--no-verify").
-		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
+		ArgIf(self.UserConfig().Git.Commit.SignOff, "--signoff").
 		Arg(messageArgs...).
 		ToArgv()
 
@@ -111,7 +111,7 @@ func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile s
 		ArgIf(forceSkipHooks, "--no-verify").
 		Arg("--edit").
 		Arg("--file="+tmpMessageFile).
-		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
+		ArgIf(self.UserConfig().Git.Commit.SignOff, "--signoff").
 		ToArgv())
 }
 
@@ -140,17 +140,10 @@ func (self *CommitCommands) commitMessageArgs(summary string, description string
 // runs git commit without the -m argument meaning it will invoke the user's editor
 func (self *CommitCommands) CommitEditorCmdObj() *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("commit").
-		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
+		ArgIf(self.UserConfig().Git.Commit.SignOff, "--signoff").
 		ToArgv()
 
 	return self.cmd.New(cmdArgs)
-}
-
-func (self *CommitCommands) signoffFlag() string {
-	if self.UserConfig().Git.Commit.SignOff {
-		return "--signoff"
-	}
-	return ""
 }
 
 func (self *CommitCommands) GetCommitMessage(commitHash string) (string, error) {
@@ -279,6 +272,7 @@ func (self *CommitCommands) ShowFileContentCmdObj(hash string, filePath string) 
 func (self *CommitCommands) Revert(hashes []string, isMerge bool) error {
 	cmdArgs := NewGitCmd("revert").
 		ArgIf(isMerge, "-m", "1").
+		ArgIf(self.UserConfig().Git.Commit.SignOff, "--signoff").
 		Arg(hashes...).
 		ToArgv()
 
