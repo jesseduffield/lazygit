@@ -321,6 +321,7 @@ var tests = []*components.IntegrationTest{
 	misc.CopyConfirmationMessageToClipboard,
 	misc.CopyToClipboard,
 	misc.DisabledKeybindings,
+	misc.GitWarning,
 	misc.InitialOpen,
 	misc.RecentReposOnLaunch,
 	patch_building.Apply,
