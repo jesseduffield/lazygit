@@ -34,8 +34,8 @@ func NewSubCommitsContext(
 		ListViewModel: NewListViewModel(
 			func() []*models.Commit { return c.Model().SubCommits },
 		),
-		ref:          nil,
-		limitCommits: true,
+		ref:         nil,
+		gitLogLimit: git_commands.DefaultGitLogLimit(),
 	}
 
 	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
@@ -146,7 +146,7 @@ type SubCommitsViewModel struct {
 	refToShowDivergenceFrom string
 	*ListViewModel[*models.Commit]
 
-	limitCommits    bool
+	gitLogLimit     *git_commands.GitLogLimit
 	showBranchHeads bool
 }
 
@@ -203,12 +203,12 @@ func (self *SubCommitsContext) GetCommits() []*models.Commit {
 	return self.getModel()
 }
 
-func (self *SubCommitsContext) SetLimitCommits(value bool) {
-	self.limitCommits = value
+func (self *SubCommitsContext) SetGitLogLimit(limit *git_commands.GitLogLimit) {
+	self.gitLogLimit = limit
 }
 
-func (self *SubCommitsContext) GetLimitCommits() bool {
-	return self.limitCommits
+func (self *SubCommitsContext) GetGitLogLimit() *git_commands.GitLogLimit {
+	return self.gitLogLimit
 }
 
 func (self *SubCommitsContext) GetDiffTerminals() []string {
