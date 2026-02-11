@@ -54,8 +54,9 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	gpgHelper := helpers.NewGpgHelper(helperCommon)
 	viewHelper := helpers.NewViewHelper(helperCommon, gui.State.Contexts)
+	windowHelper := helpers.NewWindowHelper(helperCommon, viewHelper)
 	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon)
-	stagingHelper := helpers.NewStagingHelper(helperCommon)
+	stagingHelper := helpers.NewStagingHelper(helperCommon, windowHelper)
 	mergeConflictsHelper := helpers.NewMergeConflictsHelper(helperCommon)
 	searchHelper := helpers.NewSearchHelper(helperCommon)
 
@@ -75,7 +76,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 		rebaseHelper,
 	)
 	bisectHelper := helpers.NewBisectHelper(helperCommon)
-	windowHelper := helpers.NewWindowHelper(helperCommon, viewHelper)
 	modeHelper := helpers.NewModeHelper(
 		helperCommon,
 		diffHelper,
@@ -110,6 +110,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		FixupHelper:     helpers.NewFixupHelper(helperCommon),
 		Commits:         commitsHelper,
 		SuspendResume:   helpers.NewSuspendResumeHelper(helperCommon),
+		CommitFiles:     helpers.NewCommitFilesHelper(helperCommon, patchBuildingHelper),
 		Snake:           helpers.NewSnakeHelper(helperCommon),
 		Diff:            diffHelper,
 		Repos:           reposHelper,

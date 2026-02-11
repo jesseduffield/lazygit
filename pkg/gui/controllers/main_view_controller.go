@@ -30,6 +30,13 @@ func NewMainViewController(
 }
 
 func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+	var goIntoDescription string
+	// We only want to show the "enter" menu item if the user config is true;
+	// leaving the description empty causes it to be hidden
+	if self.c.UserConfig().Gui.ShowSelectionInFocusedMainView {
+		goIntoDescription = self.c.Tr.EnterStaging
+	}
+
 	return []*types.Binding{
 		{
 			Key:             opts.GetKey(opts.Config.Universal.TogglePanel),
@@ -43,6 +50,11 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Handler:         self.escape,
 			Description:     self.c.Tr.ExitFocusedMainView,
 			DisplayOnScreen: true,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.GoInto),
+			Handler:     self.enter,
+			Description: goIntoDescription,
 		},
 		{
 			// overriding this because we want to read all of the task's output before we start searching
@@ -75,6 +87,14 @@ func (self *MainViewController) Context() types.Context {
 	return self.context
 }
 
+func (self *MainViewController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(opts types.OnFocusOpts) {
+		if opts.ClickedWindowName != "" {
+			self.context.GetView().FocusPoint(0, opts.ClickedViewLineIdx, false)
+		}
+	}
+}
+
 func (self *MainViewController) togglePanel() error {
 	if self.otherContext.GetView().Visible {
 		self.c.Context().Push(self.otherContext, types.OnFocusOpts{})
@@ -88,7 +108,20 @@ func (self *MainViewController) escape() error {
 	return nil
 }
 
+func (self *MainViewController) enter() error {
+	parentCtx := self.context.GetParentContext()
+	if parentCtx.GetOnClickFocusedMainView() != nil {
+		return parentCtx.GetOnClickFocusedMainView()(
+			self.context.GetViewName(), self.context.GetView().SelectedLineIdx())
+	}
+	return nil
+}
+
 func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouseBindingOpts) error {
+	if self.context.GetView().Highlight && !opts.IsDoubleClick {
+		return nil
+	}
+
 	sidePanelContext := self.c.Context().NextInStack(self.context)
 	if sidePanelContext != nil && sidePanelContext.GetOnClickFocusedMainView() != nil {
 		return sidePanelContext.GetOnClickFocusedMainView()(self.context.GetViewName(), opts.Y)
