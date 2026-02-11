@@ -834,6 +834,10 @@ type TranslationSet struct {
 	MovePatchIntoNewCommitBeforeTooltip      string
 	MovePatchToSelectedCommit                string
 	MovePatchToSelectedCommitTooltip         string
+	SavePatch                                string
+	SavePatchTooltip                         string
+	SavePatchTitle                           string
+	PatchSavedToFile                         string
 	CopyPatchToClipboard                     string
 	MustStageFilesAffectedByPatchTitle       string
 	MustStageFilesAffectedByPatchWarning     string
@@ -995,6 +999,7 @@ type Actions struct {
 	CopyCommitAttributeToClipboard   string
 	CopyCommitTagsToClipboard        string
 	CopyPatchToClipboard             string
+	SavePatchToFile                  string
 	CustomCommand                    string
 	DiscardAllChangesInFile          string
 	DiscardAllUnstagedChangesInFile  string
@@ -1939,6 +1944,10 @@ func EnglishTranslationSet() *TranslationSet {
 		MovePatchIntoNewCommitBeforeTooltip:      "Move the patch out of its commit and into a new commit before the original commit. This works best when the custom patch contains only entire hunks or even entire files; if it contains partial hunks, you are likely to get conflicts.",
 		MovePatchToSelectedCommit:                "Move patch to selected commit (%s)",
 		MovePatchToSelectedCommitTooltip:         "Move the patch out of its original commit and into the selected commit. This is achieved by starting an interactive rebase at the original commit, applying the patch in reverse, then continuing the rebase up to the selected commit, before applying the patch forward and amending the selected commit. The rebase is then continued to completion. If commits between the source and destination commit depend on the patch, you may need to resolve conflicts.",
+		SavePatch:                                "Save patch to file",
+		SavePatchTooltip:                         "Write the current patch to a file. Relative paths are resolved from the repository root.",
+		SavePatchTitle:                           "Save patch to file",
+		PatchSavedToFile:                         "Patch saved to %s",
 		CopyPatchToClipboard:                     "Copy patch to clipboard",
 		MustStageFilesAffectedByPatchTitle:       "Must stage files",
 		MustStageFilesAffectedByPatchWarning:     "Applying a patch to the index requires staging the unstaged files that are affected by the patch. Note that you might get conflicts when applying the patch. Continue?",
@@ -2061,6 +2070,7 @@ func EnglishTranslationSet() *TranslationSet {
 			CopyCommitAuthorToClipboard:      "Copy commit author to clipboard",
 			CopyCommitAttributeToClipboard:   "Copy to clipboard",
 			CopyPatchToClipboard:             "Copy patch to clipboard",
+			SavePatchToFile:                  "Save patch to file",
 			MoveCommitUp:                     "Move commit up",
 			MoveCommitDown:                   "Move commit down",
 			CustomCommand:                    "Custom command",
