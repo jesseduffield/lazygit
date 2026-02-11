@@ -499,25 +499,26 @@ type KeybindingStatusConfig struct {
 }
 
 type KeybindingFilesConfig struct {
-	CommitChanges            string `yaml:"commitChanges"`
-	CommitChangesWithoutHook string `yaml:"commitChangesWithoutHook"`
-	AmendLastCommit          string `yaml:"amendLastCommit"`
-	CommitChangesWithEditor  string `yaml:"commitChangesWithEditor"`
-	FindBaseCommitForFixup   string `yaml:"findBaseCommitForFixup"`
-	ConfirmDiscard           string `yaml:"confirmDiscard"`
-	IgnoreFile               string `yaml:"ignoreFile"`
-	RefreshFiles             string `yaml:"refreshFiles"`
-	StashAllChanges          string `yaml:"stashAllChanges"`
-	ViewStashOptions         string `yaml:"viewStashOptions"`
-	ToggleStagedAll          string `yaml:"toggleStagedAll"`
-	ViewResetOptions         string `yaml:"viewResetOptions"`
-	Fetch                    string `yaml:"fetch"`
-	ToggleTreeView           string `yaml:"toggleTreeView"`
-	OpenMergeOptions         string `yaml:"openMergeOptions"`
-	OpenStatusFilter         string `yaml:"openStatusFilter"`
-	CopyFileInfoToClipboard  string `yaml:"copyFileInfoToClipboard"`
-	CollapseAll              string `yaml:"collapseAll"`
-	ExpandAll                string `yaml:"expandAll"`
+	CommitChanges              string `yaml:"commitChanges"`
+	CommitChangesWithoutHook   string `yaml:"commitChangesWithoutHook"`
+	AmendLastCommit            string `yaml:"amendLastCommit"`
+	CommitChangesWithEditor    string `yaml:"commitChangesWithEditor"`
+	FindBaseCommitForFixup     string `yaml:"findBaseCommitForFixup"`
+	ConfirmDiscard             string `yaml:"confirmDiscard"`
+	IgnoreFile                 string `yaml:"ignoreFile"`
+	RefreshFiles               string `yaml:"refreshFiles"`
+	StashAllChanges            string `yaml:"stashAllChanges"`
+	ViewStashOptions           string `yaml:"viewStashOptions"`
+	ToggleStagedAll            string `yaml:"toggleStagedAll"`
+	ViewResetOptions           string `yaml:"viewResetOptions"`
+	ViewResetToUpstreamOptions string `yaml:"viewResetToUpstreamOptions"`
+	Fetch                      string `yaml:"fetch"`
+	ToggleTreeView             string `yaml:"toggleTreeView"`
+	OpenMergeOptions           string `yaml:"openMergeOptions"`
+	OpenStatusFilter           string `yaml:"openStatusFilter"`
+	CopyFileInfoToClipboard    string `yaml:"copyFileInfoToClipboard"`
+	CollapseAll                string `yaml:"collapseAll"`
+	ExpandAll                  string `yaml:"expandAll"`
 }
 
 type KeybindingBranchesConfig struct {
@@ -960,25 +961,26 @@ func GetDefaultConfig() *UserConfig {
 				AllBranchesLogGraph: "a",
 			},
 			Files: KeybindingFilesConfig{
-				CommitChanges:            "c",
-				CommitChangesWithoutHook: "w",
-				AmendLastCommit:          "A",
-				CommitChangesWithEditor:  "C",
-				FindBaseCommitForFixup:   "<c-f>",
-				IgnoreFile:               "i",
-				RefreshFiles:             "r",
-				StashAllChanges:          "s",
-				ViewStashOptions:         "S",
-				ToggleStagedAll:          "a",
-				ViewResetOptions:         "D",
-				Fetch:                    "f",
-				ToggleTreeView:           "`",
-				OpenMergeOptions:         "M",
-				OpenStatusFilter:         "<c-b>",
-				ConfirmDiscard:           "x",
-				CopyFileInfoToClipboard:  "y",
-				CollapseAll:              "-",
-				ExpandAll:                "=",
+				CommitChanges:              "c",
+				CommitChangesWithoutHook:   "w",
+				AmendLastCommit:            "A",
+				CommitChangesWithEditor:    "C",
+				FindBaseCommitForFixup:     "<c-f>",
+				IgnoreFile:                 "i",
+				RefreshFiles:               "r",
+				StashAllChanges:            "s",
+				ViewStashOptions:           "S",
+				ToggleStagedAll:            "a",
+				ViewResetOptions:           "D",
+				ViewResetToUpstreamOptions: "U",
+				Fetch:                      "f",
+				ToggleTreeView:             "`",
+				OpenMergeOptions:           "M",
+				OpenStatusFilter:           "<c-b>",
+				ConfirmDiscard:             "x",
+				CopyFileInfoToClipboard:    "y",
+				CollapseAll:                "-",
+				ExpandAll:                  "=",
 			},
 			Branches: KeybindingBranchesConfig{
 				CopyPullRequestURL:     "<c-y>",
