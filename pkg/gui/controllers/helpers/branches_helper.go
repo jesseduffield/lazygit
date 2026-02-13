@@ -3,6 +3,7 @@ package helpers
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -44,9 +45,12 @@ func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error 
 		return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(_ gocui.Task) error {
 			self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
 			branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
-			if err := self.c.Git().Branch.LocalDelete(branchNames, true); err != nil {
+			force := true
+			output, err := self.c.Git().Branch.LocalDelete(branchNames, force)
+			if err != nil {
 				return err
 			}
+			self.logBranchDeleteCommand(branchNames, force, output)
 
 			self.c.Contexts().Branches.CollapseRangeSelectionToTop()
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
@@ -179,9 +183,12 @@ func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branc
 
 				self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
 				branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
-				if err := self.c.Git().Branch.LocalDelete(branchNames, true); err != nil {
+				force := true
+				output, err := self.c.Git().Branch.LocalDelete(branchNames, force)
+				if err != nil {
 					return err
 				}
+				self.logBranchDeleteCommand(branchNames, force, output)
 
 				self.c.Contexts().Branches.CollapseRangeSelectionToTop()
 				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
@@ -191,6 +198,35 @@ func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branc
 	})
 
 	return nil
+}
+
+var branchDeletedLinePattern = regexp.MustCompile(`Deleted branch (.+) \(was (.+)\)\.`)
+
+func (self *BranchesHelper) logBranchDeleteCommand(branchNames []string, force bool, output string) {
+	// Parse git output to extract hashes: each line is "Deleted branch <name> (was <hash>)."
+	hashByBranch := map[string]string{}
+	for _, line := range strings.Split(output, "\n") {
+		if m := branchDeletedLinePattern.FindStringSubmatch(line); m != nil {
+			hashByBranch[m[1]] = m[2]
+		}
+	}
+
+	flag := "-d"
+	if force {
+		flag = "-D"
+	}
+
+	cmd := "git branch " + flag + " " + strings.Join(branchNames, " ")
+
+	hashes := lo.FilterMap(branchNames, func(name string, _ int) (string, bool) {
+		hash, ok := hashByBranch[name]
+		return hash, ok
+	})
+	if len(hashes) > 0 {
+		cmd += " (was " + strings.Join(hashes, ", ") + ")"
+	}
+
+	self.c.LogCommand(cmd, true)
 }
 
 func ShortBranchName(fullBranchName string) string {
