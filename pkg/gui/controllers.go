@@ -90,6 +90,8 @@ func (gui *Gui) resetHelpersAndControllers() {
 		modeHelper,
 	)
 
+	aiHelper := helpers.NewAIHelper(helperCommon, gui.aiManager, gui)
+
 	gui.helpers = &helpers.Helpers{
 		Refs:            refsHelper,
 		Host:            helpers.NewHostHelper(helperCommon),
@@ -131,6 +133,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		Search:     searchHelper,
 		Worktree:   worktreeHelper,
 		SubCommits: helpers.NewSubCommitsHelper(helperCommon, refreshHelper),
+		AI:         aiHelper,
 	}
 
 	gui.CustomCommandsClient = custom_commands.NewClient(

@@ -3,6 +3,39 @@
   "$id": "https://github.com/jesseduffield/lazygit/pkg/config/user-config",
   "$ref": "#/$defs/UserConfig",
   "$defs": {
+    "AIConfig": {
+      "properties": {
+        "provider": {
+          "type": "string",
+          "description": "AI provider to use for commit message generation (ollama, openai, gemini, claude)"
+        },
+        "model": {
+          "type": "string",
+          "description": "Model name to use (e.g., qwen2.5-coder:14b for Ollama, gpt-4 for OpenAI)"
+        },
+        "baseUrl": {
+          "type": "string",
+          "description": "Base URL for the AI provider (mainly for Ollama, e.g., http://localhost:11434)"
+        },
+        "apiKey": {
+          "type": "string",
+          "description": "API key for cloud providers (OpenAI, Gemini, Claude)"
+        },
+        "generateDescription": {
+          "type": "boolean",
+          "description": "Generate detailed commit description in addition to the message",
+          "default": false
+        },
+        "useConventionalCommits": {
+          "type": "boolean",
+          "description": "Use conventional commit format (e.g., feat:, fix:, docs:)",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AI-powered features like commit message generation"
+    },
     "CommitConfig": {
       "properties": {
         "signOff": {
@@ -919,6 +952,10 @@
         "commitMenu": {
           "type": "string",
           "default": "\u003cc-o\u003e"
+        },
+        "aiGenerateMessage": {
+          "type": "string",
+          "default": "\u003cc-g\u003e"
         }
       },
       "additionalProperties": false,
@@ -2002,6 +2039,10 @@
         "keybinding": {
           "$ref": "#/$defs/KeybindingConfig",
           "description": "Keybindings"
+        },
+        "ai": {
+          "$ref": "#/$defs/AIConfig",
+          "description": "AI-powered features like commit message generation"
         }
       },
       "additionalProperties": false,

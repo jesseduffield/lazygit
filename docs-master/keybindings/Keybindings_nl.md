@@ -130,6 +130,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` <enter> `` | Bevestig |  |
 | `` <esc> `` | Sluiten |  |
+| `` <c-g> `` | AI generate commit message |  |
 
 ## Commit bestanden
 

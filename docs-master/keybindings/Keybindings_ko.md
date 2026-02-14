@@ -356,6 +356,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` <enter> `` | 확인 |  |
 | `` <esc> `` | 닫기 |  |
+| `` <c-g> `` | AI generate commit message |  |
 
 ## 태그
 

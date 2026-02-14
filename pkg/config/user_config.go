@@ -38,6 +38,8 @@ type UserConfig struct {
 	PromptToReturnFromSubprocess bool `yaml:"promptToReturnFromSubprocess"`
 	// Keybindings
 	Keybinding KeybindingConfig `yaml:"keybinding"`
+	// AI-powered features like commit message generation
+	AI *AIConfig `yaml:"ai,omitempty"`
 }
 
 type RefresherConfig struct {
@@ -602,7 +604,8 @@ type KeybindingSubmodulesConfig struct {
 }
 
 type KeybindingCommitMessageConfig struct {
-	CommitMenu string `yaml:"commitMenu"`
+	CommitMenu        string `yaml:"commitMenu"`
+	AIGenerateMessage string `yaml:"aiGenerateMessage"`
 }
 
 // OSConfig contains config on the level of the os
@@ -644,6 +647,21 @@ type OSConfig struct {
 	// A shell startup file containing shell aliases or shell functions. This will be sourced before running any shell commands, so that shell functions are available in the `:` command prompt or even in custom commands.
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#using-aliases-or-functions-in-shell-commands
 	ShellFunctionsFile string `yaml:"shellFunctionsFile"`
+}
+
+type AIConfig struct {
+	// AI provider to use for commit message generation (ollama, openai, gemini, claude)
+	Provider string `yaml:"provider"`
+	// Model name to use (e.g., qwen2.5-coder:14b for Ollama, gpt-4 for OpenAI)
+	Model string `yaml:"model"`
+	// Base URL for the AI provider (mainly for Ollama, e.g., http://localhost:11434)
+	BaseURL string `yaml:"baseUrl,omitempty"`
+	// API key for cloud providers (OpenAI, Gemini, Claude)
+	APIKey string `yaml:"apiKey,omitempty"`
+	// Generate detailed commit description in addition to the message
+	GenerateDescription bool `yaml:"generateDescription"`
+	// Use conventional commit format (e.g., feat:, fix:, docs:)
+	UseConventionalCommits bool `yaml:"useConventionalCommits"`
 }
 
 type CustomCommandAfterHook struct {
@@ -866,9 +884,17 @@ func GetDefaultConfig() *UserConfig {
 			Method: "prompt",
 			Days:   14,
 		},
-		ConfirmOnQuit:                false,
-		QuitOnTopLevelReturn:         false,
-		OS:                           OSConfig{},
+		ConfirmOnQuit:        false,
+		QuitOnTopLevelReturn: false,
+		OS:                   OSConfig{},
+		AI: &AIConfig{
+			Provider:               "",
+			Model:                  "",
+			BaseURL:                "",
+			APIKey:                 "",
+			GenerateDescription:    false,
+			UseConventionalCommits: false,
+		},
 		DisableStartupPopups:         false,
 		CustomCommands:               []CustomCommand(nil),
 		Services:                     map[string]string(nil),
@@ -1054,7 +1080,8 @@ func GetDefaultConfig() *UserConfig {
 				BulkMenu: "b",
 			},
 			CommitMessage: KeybindingCommitMessageConfig{
-				CommitMenu: "<c-o>",
+				CommitMenu:        "<c-o>",
+				AIGenerateMessage: "<c-g>",
 			},
 		},
 	}
