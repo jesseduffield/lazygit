@@ -40,6 +40,14 @@ type TranslationSet struct {
 	SureToAmend                           string
 	NoCommitToAmend                       string
 	CommitChangesWithEditor               string
+	AIGenerateCommitMessage               string
+	AIGeneratingCommitMessage             string
+	AIGenerateCommitMessageAction         string
+	AINotConfigured                       string
+	AIGenerationFailed                    string
+	AIProviderNotSupported                string
+	AINoStagedChanges                     string
+	AICommitMessageHint                   string
 	FindBaseCommitForFixup                string
 	FindBaseCommitForFixupTooltip         string
 	NoBaseCommitsFound                    string
@@ -1142,6 +1150,14 @@ func EnglishTranslationSet() *TranslationSet {
 		SureToAmend:                          "Are you sure you want to amend last commit? Afterwards, you can change the commit message from the commits panel.",
 		NoCommitToAmend:                      "There's no commit to amend.",
 		CommitChangesWithEditor:              "Commit changes using git editor",
+		AIGenerateCommitMessage:              "AI generate commit message",
+		AIGeneratingCommitMessage:            "AI is generating commit message...",
+		AIGenerateCommitMessageAction:        "AI Generate Commit Message",
+		AINotConfigured:                      "AI is not configured. Add 'ai' section to your lazygit config",
+		AIGenerationFailed:                   "AI generation failed",
+		AIProviderNotSupported:               "AI provider '{{.provider}}' is not supported. Currently supported providers: ollama",
+		AINoStagedChanges:                    "No staged changes found",
+		AICommitMessageHint:                  "Press {{.binding}} to generate with AI",
 		FindBaseCommitForFixup:               "Find base commit for fixup",
 		FindBaseCommitForFixupTooltip:        "Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md>",
 		NoBaseCommitsFound:                   "No base commits found",

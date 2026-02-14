@@ -53,6 +53,7 @@ type Helpers struct {
 	Search            *SearchHelper
 	Worktree          *WorktreeHelper
 	SubCommits        *SubCommitsHelper
+	AI                *AIHelper
 }
 
 func NewStubHelpers() *Helpers {

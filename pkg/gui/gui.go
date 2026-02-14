@@ -18,6 +18,7 @@ import (
 	"github.com/jesseduffield/lazycore/pkg/boxlayout"
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/ai"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -66,6 +67,7 @@ type Gui struct {
 	gitVersion *git_commands.GitVersion
 	git        *commands.GitCommand
 	os         *oscommands.OSCommand
+	aiManager  *ai.AIManager
 
 	// this is the state of the GUI for the current repo
 	State *GuiRepoState
@@ -330,6 +332,8 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 	if err != nil {
 		return err
 	}
+
+	gui.aiManager = ai.NewAIManager(gui.git, gui.Config.(*config.AppConfig))
 
 	err = gui.Config.ReloadUserConfigForRepo(gui.getPerRepoConfigFiles())
 	if err != nil {

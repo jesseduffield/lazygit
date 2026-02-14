@@ -164,6 +164,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 |-----|--------|-------------|
 | `` <enter> `` | 确认 |  |
 | `` <esc> `` | 关闭 |  |
+| `` <c-g> `` | AI generate commit message |  |
 
 ## 提交文件
 

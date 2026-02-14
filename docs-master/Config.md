@@ -753,6 +753,28 @@ keybinding:
     bulkMenu: b
   commitMessage:
     commitMenu: <c-o>
+    aiGenerateMessage: <c-g>
+
+# AI-powered features like commit message generation
+ai:
+  # AI provider to use for commit message generation (ollama, openai, gemini,
+  # claude)
+  provider: ""
+
+  # Model name to use (e.g., qwen2.5-coder:14b for Ollama, gpt-4 for OpenAI)
+  model: ""
+
+  # Base URL for the AI provider (mainly for Ollama, e.g., http://localhost:11434)
+  baseUrl: ""
+
+  # API key for cloud providers (OpenAI, Gemini, Claude)
+  apiKey: ""
+
+  # Generate detailed commit description in addition to the message
+  generateDescription: false
+
+  # Use conventional commit format (e.g., feat:, fix:, docs:)
+  useConventionalCommits: false
 ```
 <!-- END CONFIG YAML -->
 

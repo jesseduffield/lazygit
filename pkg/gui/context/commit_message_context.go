@@ -181,9 +181,23 @@ func (self *CommitMessageContext) RenderSubtitle() {
 	if self.viewModel.forceSkipHooks || (skipHookPrefix != "" && strings.HasPrefix(subject, skipHookPrefix)) {
 		subtitle = self.c.Tr.CommitHooksDisabledSubTitle
 	}
+
+	// Add AI hint if AI is configured
+	if self.c.UserConfig().AI != nil {
+		if subtitle != "" {
+			subtitle += " ─ "
+		}
+		subtitle += utils.ResolvePlaceholderString(
+			self.c.Tr.AICommitMessageHint,
+			map[string]string{
+				"binding": keybindings.Label(self.c.UserConfig().Keybinding.CommitMessage.AIGenerateMessage),
+			},
+		)
+	}
+
 	if self.c.UserConfig().Gui.CommitLength.Show {
 		if subtitle != "" {
-			subtitle += "─"
+			subtitle += " ─"
 		}
 		subtitle += getBufferLength(subject)
 	}
