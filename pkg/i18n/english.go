@@ -508,6 +508,8 @@ type TranslationSet struct {
 	StashOptions                          string
 	NotARepository                        string
 	WorkingDirectoryDoesNotExist          string
+	TermNotSet                            string
+	TermNotFound                          string
 	ScrollLeft                            string
 	ScrollRight                           string
 	DiscardPatch                          string
@@ -1617,6 +1619,8 @@ func EnglishTranslationSet() *TranslationSet {
 		StashOptions:                         "Stash options",
 		NotARepository:                       "Error: must be run inside a git repository",
 		WorkingDirectoryDoesNotExist:         "Error: the current working directory does not exist",
+		TermNotSet:                           "Error: TERM environment variable not set.",
+		TermNotFound:                         "Error: could not find terminal info for $TERM '%s'. Please check your TERM variable is set correctly.",
 		ScrollLeft:                           "Scroll left",
 		ScrollRight:                          "Scroll right",
 		DiscardPatch:                         "Discard patch",
