@@ -1988,10 +1988,11 @@
           "enum": [
             "prompt",
             "create",
+            "recent",
             "skip",
             "quit"
           ],
-          "description": "What to do when opening Lazygit outside of a git repo.\n- 'prompt': (default) ask whether to initialize a new repo or open in the most recent repo\n- 'create': initialize a new repo\n- 'skip': open most recent repo\n- 'quit': exit Lazygit",
+          "description": "What to do when opening Lazygit outside of a git repo.\n- 'prompt': (default) ask whether to initialize a new repo or open in the most recent repo\n- 'create': initialize a new repo\n- 'recent': open most recent repo\n- 'skip': open most recent repo and skip the modal\n- 'quit': exit Lazygit",
           "default": "prompt"
         },
         "promptToReturnFromSubprocess": {

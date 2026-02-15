@@ -262,7 +262,7 @@
   "BareRepo": "你嘗試在裸版本庫中開啟 Lazygit，但 Lazygit 尚未支援裸版本庫。是否開啟最新版本庫？ (y/n) ",
   "InitialBranch": "分支名稱？（留空使用 git 的預設值）：",
   "NoRecentRepositories": "必須在 git 版本庫中開啟 lazygit。沒有有效的最近版本庫。退出。",
-  "IncorrectNotARepository": "無效 `notARepository` 輸入。輸入應為「prompt」、「create」、「skip」、或「quit」。",
+  "IncorrectNotARepository": "無效 `notARepository` 輸入。輸入應為「prompt」、「create」、「recent」、「skip」、或「quit」。",
   "AutoStashTitle": "是否自動收藏？",
   "AutoStashPrompt": "必須收藏並拾起變更才得以繼續操作。是否自動執行？（Enter/Esc）",
   "Discard": "捨棄",

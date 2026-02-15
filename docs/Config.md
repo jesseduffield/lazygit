@@ -565,7 +565,8 @@ services: {}
 # - 'prompt': (default) ask whether to initialize a new repo or open in the most
 # recent repo
 # - 'create': initialize a new repo
-# - 'skip': open most recent repo
+# - 'recent': open most recent repo
+# - 'skip': open most recent repo and skip the modal
 # - 'quit': exit Lazygit
 notARepository: prompt
 
@@ -1179,6 +1180,11 @@ notARepository: 'prompt'
 ```yaml
 # to skip and initialize a new repo
 notARepository: 'create'
+```
+
+```yaml
+# to select from recent repositories
+notARepository: 'recent'
 ```
 
 ```yaml

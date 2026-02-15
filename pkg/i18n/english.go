@@ -1551,7 +1551,7 @@ func EnglishTranslationSet() *TranslationSet {
 		BareRepo:                             "You've attempted to open Lazygit in a bare repo but Lazygit does not yet support bare repos. Open most recent repo? (y/n) ",
 		InitialBranch:                        "Branch name? (leave empty for git's default): ",
 		NoRecentRepositories:                 "Must open lazygit in a git repository. No valid recent repositories. Exiting.",
-		IncorrectNotARepository:              "The value of 'notARepository' is incorrect. It should be one of 'prompt', 'create', 'skip', or 'quit'.",
+		IncorrectNotARepository:              "The value of 'notARepository' is incorrect. It should be one of 'prompt', 'create', 'recent', 'skip', or 'quit'.",
 		AutoStashTitle:                       "Autostash?",
 		AutoStashPrompt:                      "You must stash and pop your changes to bring them across. Do this automatically? (enter/esc)",
 		AutoStashForUndo:                     "Auto-stashing changes for undoing to %s",

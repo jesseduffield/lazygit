@@ -371,7 +371,7 @@
   "BareRepo": "Você tentou abrir Lazygit em um repositório puro, mas Lazygit ainda não suporta repositórios vazios. Abrir os repositórios mais recentes? (y/n) ",
   "InitialBranch": "Nome da branch? (deixe vazio para o padrão do git): ",
   "NoRecentRepositories": "É necessário abrir lazygit em um repositório git. Nenhum repositório recente válido. Saindo do sistema.",
-  "IncorrectNotARepository": "O valor de 'notARepository' está incorreto. Deve ser um dos 'prompt', 'create', 'sk', ou 'quit'.",
+  "IncorrectNotARepository": "O valor de 'notARepository' está incorreto. Deve ser um dos 'prompt', 'create', 'recent', 'skip', ou 'quit'.",
   "AutoStashTitle": "Autoarmazenar?",
   "AutoStashPrompt": "Você deve esconder e mostrar suas alterações para que elas passem. Quer fazer isso automaticamente? (enter/esc)",
   "Discard": "Descartar",

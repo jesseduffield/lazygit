@@ -303,7 +303,7 @@
   "BareRepo": "Próbujesz otworzyć Lazygit w gołym repozytorium, ale Lazygit jeszcze nie obsługuje gołych repozytoriów. Otworzyć najnowsze repozytorium? (t/n) ",
   "InitialBranch": "Nazwa gałęzi? (pozostaw puste dla domyślnej gita): ",
   "NoRecentRepositories": "Musisz otworzyć lazygit w repozytorium git. Brak ważnych ostatnich repozytoriów. Wyjście.",
-  "IncorrectNotARepository": "Wartość 'notARepository' jest nieprawidłowa. Powinna być jedną z 'prompt', 'create', 'skip', lub 'quit'.",
+  "IncorrectNotARepository": "Wartość 'notARepository' jest nieprawidłowa. Powinna być jedną z 'prompt', 'create', 'recent', 'skip', lub 'quit'.",
   "AutoStashPrompt": "Musisz schować i wyciągnąć swoje zmiany, aby je przenieść. Zrobić to automatycznie? (enter/esc)",
   "Discard": "Odrzuć",
   "DiscardChangesTitle": "Odrzuć zmiany",
