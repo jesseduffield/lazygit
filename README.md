@@ -132,9 +132,9 @@ Lazygit is not my fulltime job but it is a hefty part time job so if you want to
 
 ## Features
 
-### Stage individual lines
+### Stage hunks
 
-Press space on the selected line to stage it, or press `v` to start selecting a range of lines. You can also press `a` to select the entirety of the current hunk.
+Press space on the current hunk to stage it. Alternatively, you can press `a` to begin staging individual lines, or press `v` to select a range of lines for staging.
 
 ![stage_lines](../assets/demo/stage_lines-compressed.gif)
 
