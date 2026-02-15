@@ -94,12 +94,16 @@ func (self *ReposHelper) getCurrentBranch(path string) string {
 	return self.c.Tr.BranchUnknown
 }
 
-func (self *ReposHelper) CreateRecentReposMenu() error {
-	// we'll show an empty panel if there are no recent repos
+func (self *ReposHelper) CreateRecentReposMenu(force bool) error {
 	recentRepoPaths := []string{}
 	if len(self.c.GetAppState().RecentRepos) > 0 {
 		// we skip the first one because we're currently in it
 		recentRepoPaths = self.c.GetAppState().RecentRepos[1:]
+	}
+
+	// we'll skip the panel if there are no recent repos, and we are not forcing this via a test
+	if len(recentRepoPaths) == 0 && !force {
+		return nil
 	}
 
 	currentBranches := sync.Map{}
