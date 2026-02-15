@@ -4,6 +4,7 @@ import (
 	ioFs "io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/go-errors/errors"
@@ -86,6 +87,13 @@ func GetRepoPathsForDir(
 ) (*RepoPaths, error) {
 	gitDirOutput, err := callGitRevParseWithDir(cmd, dir, "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
 	if err != nil {
+		if strings.Contains(err.Error(), "must be run in a work tree") {
+			repoPaths, bareErr := handleBareRepoSetup(dir, cmd)
+			if bareErr == nil {
+				return repoPaths, nil
+			}
+		}
+
 		return nil, err
 	}
 
@@ -174,4 +182,197 @@ func linkedWortkreePaths(fs afero.Fs, repoGitDirPath string) []string {
 	})
 
 	return result
+}
+
+func handleBareRepoSetup(dir string, cmd oscommands.ICmdObjBuilder) (*RepoPaths, error) {
+	if strings.Contains(dir, "..") || strings.Contains(dir, "~") {
+		return nil, errors.New("invalid directory path: potential path traversal detected")
+	}
+
+	commonPatterns := []string{".bare", "bare.git", ".git"}
+
+	for _, pattern := range commonPatterns {
+		bareDir := filepath.Join(dir, pattern)
+
+		if isBareRepo(bareDir, cmd) {
+			return handleBareRepoWithWorktrees(dir, bareDir, cmd)
+		}
+	}
+
+	bareDir, err := findBareRepoInDir(dir, cmd)
+	if err == nil && bareDir != "" {
+		return handleBareRepoWithWorktrees(dir, bareDir, cmd)
+	}
+
+	return nil, errors.New("no bare repo setup detected")
+}
+
+func findBareRepoInDir(dir string, cmd oscommands.ICmdObjBuilder) (string, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return "", err
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		candidateDir := filepath.Join(dir, entry.Name())
+		if isBareRepo(candidateDir, cmd) {
+			return candidateDir, nil
+		}
+	}
+
+	return "", errors.New("no bare repository found in directory")
+}
+
+func isBareRepo(gitDir string, cmd oscommands.ICmdObjBuilder) bool {
+	gitCmd := cmd.New(NewGitCmd("rev-parse").Arg("--is-bare-repository").Dir(gitDir).ToArgv()).DontLog()
+	output, err := gitCmd.RunWithOutput()
+	return err == nil && strings.TrimSpace(output) == "true"
+}
+
+func handleBareRepoWithWorktrees(parentDir, bareDir string, cmd oscommands.ICmdObjBuilder) (*RepoPaths, error) {
+	gitCmd := cmd.New(NewGitCmd("worktree").Arg("list").Arg("--porcelain").Dir(bareDir).ToArgv()).DontLog()
+	output, err := gitCmd.RunWithOutput()
+	if err != nil {
+		return nil, errors.Errorf("failed to list worktrees: %v", err)
+	}
+
+	worktrees := parseWorktreeList(output)
+	if len(worktrees) == 0 {
+		return nil, errors.New("no worktrees found for bare repository")
+	}
+
+	selectedWorktree := selectBestWorktree(worktrees, parentDir, bareDir, cmd)
+
+	if !strings.HasPrefix(selectedWorktree.Path, parentDir) {
+		return nil, errors.Errorf("worktree path %s is not under parent directory %s", selectedWorktree.Path, parentDir)
+	}
+
+	return GetRepoPathsForDir(selectedWorktree.Path, cmd)
+}
+
+type WorktreeInfo struct {
+	Path   string
+	Head   string
+	Branch string
+}
+
+func parseWorktreeList(output string) []WorktreeInfo {
+	var worktrees []WorktreeInfo
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+
+	var current WorktreeInfo
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			if current.Path != "" {
+				worktrees = append(worktrees, current)
+				current = WorktreeInfo{}
+			}
+			continue
+		}
+
+		if strings.HasPrefix(line, "worktree ") {
+			current.Path = strings.TrimPrefix(line, "worktree ")
+		} else if strings.HasPrefix(line, "HEAD ") {
+			current.Head = strings.TrimPrefix(line, "HEAD ")
+		} else if strings.HasPrefix(line, "branch ") {
+			current.Branch = strings.TrimPrefix(line, "branch ")
+		}
+	}
+
+	if current.Path != "" {
+		worktrees = append(worktrees, current)
+	}
+
+	return worktrees
+}
+
+func GetDefaultBranch(gitDir string, cmd oscommands.ICmdObjBuilder) string {
+	// Try to get the default branch from the remote HEAD
+	gitCmd := cmd.New(NewGitCmd("symbolic-ref").
+		Arg("refs/remotes/origin/HEAD", "--short").
+		Dir(gitDir).ToArgv()).DontLog()
+	output, err := gitCmd.RunWithOutput()
+	if err == nil {
+		branchName := strings.TrimSpace(output)
+		if strings.HasPrefix(branchName, "origin/") {
+			return strings.TrimPrefix(branchName, "origin/")
+		}
+
+		return branchName
+	}
+
+	// Try to get the default branch from git config
+	gitCmd = cmd.New(NewGitCmd("config").
+		Arg("init.defaultBranch").
+		Dir(gitDir).ToArgv()).DontLog()
+	output, err = gitCmd.RunWithOutput()
+	if err == nil {
+		branchName := strings.TrimSpace(output)
+		if branchName != "" {
+			return branchName
+		}
+	}
+
+	return "main"
+}
+
+func selectBestWorktree(worktrees []WorktreeInfo, parentDir string, bareDir string, cmd oscommands.ICmdObjBuilder) WorktreeInfo {
+	if len(worktrees) == 1 {
+		return worktrees[0]
+	}
+
+	var candidates []WorktreeInfo
+
+	for _, wt := range worktrees {
+		if strings.HasPrefix(wt.Path, parentDir) {
+			candidates = append(candidates, wt)
+		}
+	}
+
+	if len(candidates) == 0 {
+		return worktrees[0]
+	}
+
+	defaultBranch := GetDefaultBranch(bareDir, cmd)
+
+	for _, wt := range candidates {
+		branch := strings.TrimPrefix(wt.Branch, "refs/heads/")
+		if branch == defaultBranch {
+			return wt
+		}
+	}
+
+	// Fall back to checking for "main" or "master" if default branch not found
+	for _, wt := range candidates {
+		branch := strings.TrimPrefix(wt.Branch, "refs/heads/")
+		if branch == "main" || branch == "master" {
+			return wt
+		}
+	}
+
+	for _, wt := range candidates {
+		dirName := filepath.Base(wt.Path)
+		if dirName == defaultBranch {
+			return wt
+		}
+	}
+
+	// Fall back to checking for "main" or "master" directory names
+	for _, wt := range candidates {
+		dirName := filepath.Base(wt.Path)
+		if dirName == "main" || dirName == "master" {
+			return wt
+		}
+	}
+
+	sort.Slice(candidates, func(i, j int) bool {
+		return filepath.Base(candidates[i].Path) < filepath.Base(candidates[j].Path)
+	})
+
+	return candidates[0]
 }
