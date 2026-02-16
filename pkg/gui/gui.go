@@ -480,6 +480,8 @@ func (gui *Gui) onUserConfigLoaded() error {
 		presentation.SetCustomBranches(userConfig.Gui.BranchColors, false)
 	}
 
+	gui.updateTerminalTitle()
+
 	return nil
 }
 
@@ -996,11 +998,33 @@ func (gui *Gui) loadNewRepo() error {
 
 	gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 
-	if err := gui.os.UpdateWindowTitle(); err != nil {
-		return err
-	}
+	gui.updateTerminalTitle()
 
 	return nil
+}
+
+func (gui *Gui) updateTerminalTitle() {
+	titleFormat := gui.c.UserConfig().Gui.TerminalTitle
+	if titleFormat == "" {
+		return
+	}
+
+	// gui.git may not be set yet during initial startup
+	if gui.git == nil || gui.git.RepoPaths == nil {
+		return
+	}
+
+	repoName := gui.git.RepoPaths.RepoName()
+	title := utils.ResolvePlaceholderString(titleFormat, map[string]string{
+		"repoName": repoName,
+	})
+
+	if gocui.Screen != nil {
+		gocui.Screen.SetTitle(title)
+	}
+
+	// Platform-specific fallback (for Windows legacy console)
+	_ = gui.os.SetWindowTitle(title)
 }
 
 func (gui *Gui) showIntroPopupMessage() {
