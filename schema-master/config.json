@@ -790,6 +790,11 @@
           "type": "boolean",
           "description": "If true, when using the panel jump keys (default 1 through 5) and target panel is already active, go to next tab instead",
           "default": false
+        },
+        "terminalTitle": {
+          "type": "string",
+          "description": "Format string for the terminal window title. Supports placeholders:\n- {{repoName}}: Name of the current repository\nSet to empty string to disable terminal title updates.",
+          "default": "lazygit::{{repoName}}"
         }
       },
       "additionalProperties": false,
