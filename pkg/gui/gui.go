@@ -1024,7 +1024,9 @@ func (gui *Gui) updateTerminalTitle() {
 	}
 
 	// Platform-specific fallback (for Windows legacy console)
-	_ = gui.os.SetWindowTitle(title)
+	if err := gui.os.SetWindowTitle(title); err != nil {
+		gui.c.Log.Debugf("Failed to set window title: %v", err)
+	}
 }
 
 func (gui *Gui) showIntroPopupMessage() {
