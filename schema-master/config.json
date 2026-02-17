@@ -452,7 +452,7 @@
             "type": "string"
           },
           "type": "array",
-          "description": "Additional arguments to append when finishing a git flow branch. E.g. [\"--keepremote\", \"--squash\"]"
+          "description": "Additional arguments to append when finishing a git flow branch. E.g. [\"--no-ff\", \"--squash\"]"
         }
       },
       "additionalProperties": false,
