@@ -446,6 +446,13 @@
           "type": "integer",
           "description": "When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.",
           "default": 12
+        },
+        "gitFlowFinishArgs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Additional arguments to append when finishing a git flow branch. E.g. [\"--keepremote\", \"--squash\"]"
         }
       },
       "additionalProperties": false,

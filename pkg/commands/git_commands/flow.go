@@ -49,7 +49,8 @@ func (self *FlowCommands) FinishCmdObj(branchName string) (*oscommands.CmdObj, e
 		return nil, errors.New(self.Tr.NotAGitFlowBranch)
 	}
 
-	cmdArgs := NewGitCmd("flow").Arg(branchType, "finish", suffix).ToArgv()
+	finishArgs := self.config.GetGitFlowFinishArgs()
+	cmdArgs := NewGitCmd("flow").Arg(branchType, "finish", suffix).Arg(finishArgs...).ToArgv()
 
 	return self.cmd.New(cmdArgs), nil
 }
