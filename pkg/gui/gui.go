@@ -1019,6 +1019,14 @@ func (gui *Gui) updateTerminalTitle() {
 		"repoName": repoName,
 	})
 
+	// Sanitize title by removing control characters that could break terminal behavior
+	title = strings.Map(func(r rune) rune {
+		if r < 32 || r == 127 {
+			return -1 // Remove control characters
+		}
+		return r
+	}, title)
+
 	if gocui.Screen != nil {
 		gocui.Screen.SetTitle(title)
 	}
