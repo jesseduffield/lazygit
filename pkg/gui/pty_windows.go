@@ -8,6 +8,7 @@ import (
 )
 
 func (gui *Gui) onResize() error {
+	gui.refreshMainContentOnResize()
 	return nil
 }
 
