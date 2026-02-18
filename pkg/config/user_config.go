@@ -321,6 +321,15 @@ type GitConfig struct {
 	RemoteBranchSortOrder string `yaml:"remoteBranchSortOrder" jsonschema:"enum=date,enum=alphabetical"`
 	// When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
+	// Config for external commit message generation (e.g. AI)
+	CommitMessageGenerator CommitMessageGeneratorConfig `yaml:"commitMessageGenerator"`
+}
+
+type CommitMessageGeneratorConfig struct {
+	// Shell command to generate a commit message from staged changes.
+	// The command should call `git diff --cached` itself and output a
+	// commit message (first line = title, rest after blank line = body).
+	Command string `yaml:"command"`
 }
 
 type PagerType string
