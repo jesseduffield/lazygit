@@ -481,6 +481,13 @@ git:
   # to 40 to disable truncation.
   truncateCopiedCommitHashesTo: 12
 
+  # Config for external commit message generation (e.g. AI)
+  commitMessageGenerator:
+    # Shell command to generate a commit message from staged changes.
+    # The command should call `git diff --cached` itself and output a
+    # commit message (first line = title, rest after blank line = body).
+    command: ""
+
 # Periodic update checks
 update:
   # One of: 'prompt' (default) | 'background' | 'never'

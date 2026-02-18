@@ -253,7 +253,7 @@ func (self *CommitsHelper) addCoAuthor(suggestionFunc func(string) []*types.Sugg
 
 func (self *CommitsHelper) generateCommitMessageAsync(command string) {
 	origSubtitle := self.c.Views().CommitDescription.Subtitle
-	self.c.Views().CommitDescription.Subtitle = "Generating commit message..."
+	self.c.Views().CommitDescription.Subtitle = self.c.Tr.GeneratingCommitMessage
 
 	// Snapshot current content so we can detect user edits
 	origSummary := self.getCommitSummary()
