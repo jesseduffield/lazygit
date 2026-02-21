@@ -210,31 +210,13 @@ func (self *PatchBuildingController) discardSelection() error {
 	return nil
 }
 
-func (self *PatchBuildingController) addSelectionToPatch() error {
-	self.context().GetMutex().Lock()
-	defer self.context().GetMutex().Unlock()
-
-	filename := self.c.Contexts().CommitFiles.GetSelectedPath()
-	if filename == "" {
-		return nil
-	}
-
-	state := self.context().GetState()
-	lineIndicesToToggle := state.LineIndicesOfAddedOrDeletedLinesInSelectedPatchRange()
-	if len(lineIndicesToToggle) == 0 {
-		return nil
-	}
-
-	return self.c.Git().Patch.PatchBuilder.AddFileLineRange(filename, lineIndicesToToggle)
-}
-
 func (self *PatchBuildingController) discardSelectionFromCommit() error {
 	// Reset the current patch if there is one.
 	if !self.c.Git().Patch.PatchBuilder.IsEmpty() {
 		self.c.Git().Patch.PatchBuilder.Reset()
 	}
 
-	if err := self.addSelectionToPatch(); err != nil {
+	if err := self.toggleSelection(); err != nil {
 		return err
 	}
 
