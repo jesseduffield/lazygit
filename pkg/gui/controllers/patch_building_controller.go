@@ -195,9 +195,13 @@ func (self *PatchBuildingController) getDisabledReasonForDiscard() *types.Disabl
 }
 
 func (self *PatchBuildingController) discardSelection() error {
+	prompt := lo.Ternary(self.c.Git().Patch.PatchBuilder.IsEmpty(),
+		self.c.Tr.DiscardLinesFromCommitPrompt,
+		self.c.Tr.DiscardLinesFromCommitPromptWithReset)
+
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DiscardLinesFromCommitTitle,
-		Prompt: self.c.Tr.DiscardLinesFromCommitPrompt,
+		Prompt: prompt,
 		HandleConfirm: func() error {
 			return self.discardSelectionFromCommit()
 		},
