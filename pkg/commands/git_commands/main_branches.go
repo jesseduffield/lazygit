@@ -87,6 +87,31 @@ func (self *MainBranches) determineMainBranches(configuredMainBranches []string)
 		go utils.Safe(func() {
 			defer wg.Done()
 
+			// Check for glob patterns first
+			if strings.ContainsAny(branchName, "*?[") {
+				branchPattern := branchName
+				var refs []string
+
+				// Check local branches
+				if output, err := self.cmd.New(
+					NewGitCmd("for-each-ref").Arg("--format=%(refname)", "refs/heads/"+branchPattern).ToArgv(),
+				).DontLog().RunWithOutput(); err == nil {
+					refs = append(refs, strings.Fields(strings.TrimSpace(output))...)
+				}
+
+				// Check remote branches on 'origin'
+				if output, err := self.cmd.New(
+					NewGitCmd("for-each-ref").Arg("--format=%(refname)", "refs/remotes/origin/"+branchPattern).ToArgv(),
+				).DontLog().RunWithOutput(); err == nil {
+					refs = append(refs, strings.Fields(strings.TrimSpace(output))...)
+				}
+
+				matchedBranches[i] = lo.Filter(refs, func(ref string, _ int) bool {
+					return ref != ""
+				})
+				return
+			}
+
 			// Try to determine upstream of local main branch
 			if ref, err := self.cmd.New(
 				NewGitCmd("rev-parse").Arg("--symbolic-full-name", branchName+"@{u}").ToArgv(),
