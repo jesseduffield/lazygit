@@ -557,7 +557,7 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 func (self *CommitFilesController) pathsForDiff(node *filetree.CommitFileNode) []string {
 	if !node.IsFile() && self.context().IsFiltering() {
 		var paths []string
-		node.ForEachFile(func(file *models.CommitFile) error {
+		_ = node.ForEachFile(func(file *models.CommitFile) error {
 			paths = append(paths, file.Path)
 			return nil
 		})

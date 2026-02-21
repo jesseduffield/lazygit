@@ -441,7 +441,7 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 		if self.context().IsFiltering() {
 			var paths []string
 			for _, node := range nodes {
-				node.ForEachFile(func(file *models.File) error {
+				_ = node.ForEachFile(func(file *models.File) error {
 					paths = append(paths, file.Path)
 					return nil
 				})
@@ -529,7 +529,7 @@ func (self *FilesController) press(nodes []*filetree.FileNode) error {
 func (self *FilesController) pathOverridesForDiff(node *filetree.FileNode) []string {
 	if !node.IsFile() && self.context().IsFiltering() {
 		var paths []string
-		node.ForEachFile(func(file *models.File) error {
+		_ = node.ForEachFile(func(file *models.File) error {
 			paths = append(paths, file.Path)
 			return nil
 		})
@@ -543,7 +543,7 @@ func (self *FilesController) pathOverridesForDiff(node *filetree.FileNode) []str
 func (self *FilesController) unstageFilteredFiles(nodes []*filetree.FileNode) error {
 	var trackedPaths, untrackedPaths []string
 	for _, node := range nodes {
-		node.ForEachFile(func(file *models.File) error {
+		_ = node.ForEachFile(func(file *models.File) error {
 			if file.Tracked || file.HasStagedChanges {
 				trackedPaths = append(trackedPaths, file.Path)
 			} else {
@@ -713,7 +713,7 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 		if self.context().IsFiltering() {
 			// When filtering, only stage visible files
 			var paths []string
-			root.ForEachFile(func(file *models.File) error {
+			_ = root.ForEachFile(func(file *models.File) error {
 				paths = append(paths, file.Path)
 				return nil
 			})
