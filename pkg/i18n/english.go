@@ -438,6 +438,7 @@ type TranslationSet struct {
 	DiscardOldFileChangeTooltip           string
 	DiscardFileChangesTitle               string
 	DiscardFileChangesPrompt              string
+	DiscardFileChangesPromptResetPatch    string
 	DisabledForGPG                        string
 	CreateRepo                            string
 	BareRepo                              string
@@ -1545,7 +1546,8 @@ func EnglishTranslationSet() *TranslationSet {
 		Remove:                               "Remove",
 		DiscardOldFileChangeTooltip:          "Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file.",
 		DiscardFileChangesTitle:              "Discard file changes",
-		DiscardFileChangesPrompt:             "Are you sure you want to discard changes to the selected file(s) from this commit?\n\nThis action will start a rebase, reverting these file changes. Be aware that if subsequent commits depend on these changes, you may need to resolve conflicts.\nNote: This will also reset any active custom patches.",
+		DiscardFileChangesPrompt:             "Are you sure you want to discard changes to the selected file(s) from this commit?\n\nThis action will start a rebase, reverting these file changes. Be aware that if subsequent commits depend on these changes, you may need to resolve conflicts.",
+		DiscardFileChangesPromptResetPatch:   "Are you sure you want to discard changes to the selected file(s) from this commit?\n\nThis action will start a rebase, reverting these file changes. Be aware that if subsequent commits depend on these changes, you may need to resolve conflicts.\n\nNote: This will reset the active custom patch!",
 		DisabledForGPG:                       "Feature not available for users using GPG.\n\nIf you are using a passphrase agent (e.g. gpg-agent) so that you don't have to type your passphrase when signing, you can enable this feature by adding\n\ngit:\n  overrideGpg: true\n\nto your lazygit config file.",
 		CreateRepo:                           "Not in a git repository. Create a new git repository? (y/N): ",
 		BareRepo:                             "You've attempted to open Lazygit in a bare repo but Lazygit does not yet support bare repos. Open most recent repo? (y/n) ",

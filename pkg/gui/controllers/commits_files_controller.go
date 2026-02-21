@@ -310,9 +310,13 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 		return err
 	}
 
+	prompt := lo.Ternary(self.c.Git().Patch.PatchBuilder.Active(),
+		self.c.Tr.DiscardFileChangesPromptResetPatch,
+		self.c.Tr.DiscardFileChangesPrompt)
+
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DiscardFileChangesTitle,
-		Prompt: self.c.Tr.DiscardFileChangesPrompt,
+		Prompt: prompt,
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 				var filePaths []string
