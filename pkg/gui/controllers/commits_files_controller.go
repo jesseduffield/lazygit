@@ -351,6 +351,13 @@ func (self *CommitFilesController) canDiscardFileChanges(nodes []*filetree.Commi
 		}
 	}
 
+	if self.c.Contexts().LocalCommits.AreMultipleItemsSelected() {
+		return &types.DisabledReason{
+			Text:             self.c.Tr.CannotDiscardFromMultipleCommits,
+			ShowErrorInPanel: true,
+		}
+	}
+
 	if self.c.Git().Status.WorkingTreeState().Any() {
 		return &types.DisabledReason{
 			Text:             self.c.Tr.CantPatchWhileRebasingError,
