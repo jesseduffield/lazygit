@@ -20,18 +20,18 @@ var FilterFilesStageAll = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			Focus().
 			Lines(
-				Contains("dir1").IsSelected(),
-				Contains("apple-grape"),
-				Contains("apple-orange"),
-				Contains("grape-orange"),
+				Equals("▼ dir1").IsSelected(),
+				Equals("  ?? apple-grape"),
+				Equals("  ?? apple-orange"),
+				Equals("  ?? grape-orange"),
 			).
 			// Filter to show only "apple" files
 			FilterOrSearch("apple").
 			Lines(
 				// first item is always selected after filtering
-				Contains("dir1").IsSelected(),
-				Contains("apple-grape"),
-				Contains("apple-orange"),
+				Equals("▼ dir1").IsSelected(),
+				Equals("  ?? apple-grape"),
+				Equals("  ?? apple-orange"),
 			).
 			// Stage all visible files
 			Press(keys.Files.ToggleStagedAll).
@@ -41,10 +41,10 @@ var FilterFilesStageAll = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Contains("dir1").IsSelected(),
-				Contains("A  apple-grape"),
-				Contains("A  apple-orange"),
-				Contains("?? grape-orange"),
+				Equals("▼ dir1").IsSelected(),
+				Equals("  A  apple-grape"),
+				Equals("  A  apple-orange"),
+				Equals("  ?? grape-orange"),
 			)
 	},
 })

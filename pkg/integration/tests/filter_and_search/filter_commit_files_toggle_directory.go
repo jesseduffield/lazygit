@@ -28,25 +28,25 @@ var FilterCommitFilesToggleDirectory = NewIntegrationTest(NewIntegrationTestArgs
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("dir1").IsSelected(),
-				Contains("apple-grape"),
-				Contains("apple-orange"),
-				Contains("grape-orange"),
+				Equals("▼ dir1").IsSelected(),
+				Equals("  A apple-grape"),
+				Equals("  A apple-orange"),
+				Equals("  A grape-orange"),
 			).
 			// Filter to show only "apple" files (staying in tree view)
 			FilterOrSearch("apple").
 			Lines(
 				// first item is always selected after filtering
-				Contains("dir1").IsSelected(),
-				Contains("apple-grape"),
-				Contains("apple-orange"),
+				Equals("▼ dir1").IsSelected(),
+				Equals("  A apple-grape"),
+				Equals("  A apple-orange"),
 			).
 			// dir1 is already selected; toggle for patch
 			PressPrimaryAction().
 			Lines(
-				Contains("dir1").IsSelected(),
-				Contains("● apple-grape"),
-				Contains("● apple-orange"),
+				Equals("▼ dir1").IsSelected(),
+				Equals("  ● apple-grape"),
+				Equals("  ● apple-orange"),
 			)
 
 		t.Views().Information().Content(Contains("Building patch"))
