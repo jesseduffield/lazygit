@@ -181,7 +181,7 @@ func (self *PatchBuildingController) toggleSelection() error {
 
 func (self *PatchBuildingController) getDisabledReasonForDiscard() *types.DisabledReason {
 	if !self.c.Git().Patch.PatchBuilder.CanRebase {
-		return &types.DisabledReason{Text: self.c.Tr.CanOnlyRemoveLinesFromLocalCommits}
+		return &types.DisabledReason{Text: self.c.Tr.CanOnlyRemoveLinesFromLocalCommits, ShowErrorInPanel: true}
 	}
 	if !self.c.Git().Patch.PatchBuilder.IsEmpty() {
 		return &types.DisabledReason{Text: self.c.Tr.MustClearPatchBeforeRemovingLines}
