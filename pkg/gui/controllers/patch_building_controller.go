@@ -47,7 +47,7 @@ func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) 
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
-			Handler:           self.DiscardSelection,
+			Handler:           self.discardSelection,
 			GetDisabledReason: self.getDisabledReasonForDiscard,
 			Description:       self.c.Tr.RemoveSelectionFromPatch,
 			Tooltip:           self.c.Tr.RemoveSelectionFromPatchTooltip,
@@ -197,7 +197,7 @@ func (self *PatchBuildingController) getDisabledReasonForDiscard() *types.Disabl
 	return nil
 }
 
-func (self *PatchBuildingController) DiscardSelection() error {
+func (self *PatchBuildingController) discardSelection() error {
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DiscardLinesFromCommitTitle,
 		Prompt: self.c.Tr.DiscardLinesFromCommitPrompt,
