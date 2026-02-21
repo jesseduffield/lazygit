@@ -691,8 +691,8 @@ type TranslationSet struct {
 	BranchUnknown                         string
 	DiscardChangeTitle                    string
 	DiscardChangePrompt                   string
-	RemoveLinesFromCommitTitle            string
-	RemoveLinesFromCommitPrompt           string
+	DiscardLinesFromCommitTitle           string
+	DiscardLinesFromCommitPrompt          string
 	CreateNewBranchFromCommit             string
 	BuildingPatch                         string
 	ViewCommits                           string
@@ -1807,8 +1807,8 @@ func EnglishTranslationSet() *TranslationSet {
 		BranchUnknown:                            "Branch unknown",
 		DiscardChangeTitle:                       "Discard change",
 		DiscardChangePrompt:                      "Are you sure you want to discard this change (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipDiscardChangeWarning' to true",
-		RemoveLinesFromCommitTitle:               "Remove lines from commit",
-		RemoveLinesFromCommitPrompt:              "Are you sure you want to remove the selected lines from this commit?",
+		DiscardLinesFromCommitTitle:              "Discard lines from commit",
+		DiscardLinesFromCommitPrompt:             "Are you sure you want to discard the selected lines from this commit?",
 		CreateNewBranchFromCommit:                "Create new branch off of commit",
 		BuildingPatch:                            "Building patch",
 		ViewCommits:                              "View commits",

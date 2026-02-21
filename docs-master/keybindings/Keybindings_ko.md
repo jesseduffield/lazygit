@@ -338,7 +338,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-o> `` | 파일명을 클립보드에 복사 |  |
 | `` y `` | 클립보드에 복사 |  |
 | `` c `` | 체크아웃 | Checkout file |
-| `` d `` | Remove | Discard this commit's changes to this file |
+| `` d `` | View 'discard changes' options | Discard this commit's changes to this file |
 | `` o `` | 파일 닫기 | Open file in default application. |
 | `` e `` | Edit | Open file in external editor. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |

@@ -138,7 +138,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-o> `` | Kopieer de bestandsnaam naar het klembord |  |
 | `` y `` | Copy to clipboard |  |
 | `` c `` | Uitchecken | Bestand uitchecken |
-| `` d `` | Remove | Uitsluit deze commit zijn veranderingen aan dit bestand |
+| `` d `` | Bekijk 'veranderingen ongedaan maken' opties | Uitsluit deze commit zijn veranderingen aan dit bestand |
 | `` o `` | Open bestand | Open file in default application. |
 | `` e `` | Edit | Open file in external editor. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |

@@ -5,8 +5,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var RemoveLinesFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Remove specific lines from a commit using the 'd' shortcut in the patch building view",
+var DiscardLinesFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Discard specific lines from a commit using the 'd' shortcut in the patch building view",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -42,8 +42,8 @@ var RemoveLinesFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.Remove)
 
 		t.ExpectPopup().Confirmation().
-			Title(Equals("Remove lines from commit")).
-			Content(Equals("Are you sure you want to remove the selected lines from this commit?")).
+			Title(Equals("Discard lines from commit")).
+			Content(Equals("Are you sure you want to discard the selected lines from this commit?")).
 			Confirm()
 
 		// After the rebase, we should be back at the commit files view

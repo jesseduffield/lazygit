@@ -199,10 +199,10 @@ func (self *PatchBuildingController) getDisabledReasonForDiscard() *types.Disabl
 
 func (self *PatchBuildingController) DiscardSelection() error {
 	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.RemoveLinesFromCommitTitle,
-		Prompt: self.c.Tr.RemoveLinesFromCommitPrompt,
+		Title:  self.c.Tr.DiscardLinesFromCommitTitle,
+		Prompt: self.c.Tr.DiscardLinesFromCommitPrompt,
 		HandleConfirm: func() error {
-			return self.removeSelectionFromCommit()
+			return self.discardSelectionFromCommit()
 		},
 	})
 
@@ -227,7 +227,7 @@ func (self *PatchBuildingController) addSelectionToPatch() error {
 	return self.c.Git().Patch.PatchBuilder.AddFileLineRange(filename, lineIndicesToToggle)
 }
 
-func (self *PatchBuildingController) removeSelectionFromCommit() error {
+func (self *PatchBuildingController) discardSelectionFromCommit() error {
 	if err := self.addSelectionToPatch(); err != nil {
 		return err
 	}

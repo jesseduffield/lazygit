@@ -231,7 +231,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` <c-o> `` | 複製檔案名稱到剪貼簿 |  |
 | `` y `` | 複製到剪貼簿 |  |
 | `` c `` | 檢出 | 檢出檔案 |
-| `` d `` | Remove | Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file. |
+| `` d `` | 捨棄 | Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file. |
 | `` o `` | 開啟檔案 | 使用預設軟體開啟 |
 | `` e `` | 編輯 | 使用外部編輯器開啟 |
 | `` <c-t> `` | 開啟外部差異工具 (git difftool) |  |

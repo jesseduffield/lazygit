@@ -269,7 +269,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` <c-o> `` | Kopiuj ścieżkę do schowka |  |
 | `` y `` | Kopiuj do schowka |  |
 | `` c `` | Przełącz | Przełącz plik. Zastępuje plik w twoim drzewie roboczym wersją z wybranego commita. |
-| `` d `` | Usuń | Odrzuć zmiany w tym pliku z tego commita. Uruchamia interaktywny rebase w tle, więc możesz otrzymać konflikt scalania, jeśli późniejszy commit również zmienia ten plik. |
+| `` d `` | Odrzuć | Odrzuć zmiany w tym pliku z tego commita. Uruchamia interaktywny rebase w tle, więc możesz otrzymać konflikt scalania, jeśli późniejszy commit również zmienia ten plik. |
 | `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
 | `` e `` | Edytuj | Otwórz plik w zewnętrznym edytorze. |
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
