@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
@@ -20,13 +19,6 @@ func NewPatchBuildingHelper(
 	return &PatchBuildingHelper{
 		c: c,
 	}
-}
-
-func (self *PatchBuildingHelper) ValidateNormalWorkingTreeState() (bool, error) {
-	if self.c.Git().Status.WorkingTreeState().Any() {
-		return false, errors.New(self.c.Tr.CantPatchWhileRebasingError)
-	}
-	return true, nil
 }
 
 func (self *PatchBuildingHelper) ShowHunkStagingHint() {
