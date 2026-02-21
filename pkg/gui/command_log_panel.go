@@ -59,6 +59,12 @@ func (gui *Gui) printCommandLogHeader() {
 	)
 	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(introStr))
 
+	if gui.git.Sync.GitCommon.IsSvnRepo() {
+		fmt.Fprintln(gui.Views.Extras, "Is a Git-SVN repository: Pull=rebase | Push=dcommit")
+	} else {
+		fmt.Fprintln(gui.Views.Extras, "Is a Git repository")
+	}
+
 	if gui.c.UserConfig().Gui.ShowRandomTip {
 		fmt.Fprintf(
 			gui.Views.Extras,

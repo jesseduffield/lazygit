@@ -29,6 +29,11 @@ type PushOpts struct {
 }
 
 func (self *SyncCommands) PushCmdObj(task gocui.Task, opts PushOpts) (*oscommands.CmdObj, error) {
+	if self.IsGitSvnRepo {
+		cmdArgs := NewGitCmd("svn").Arg("dcommit").ToArgv()
+		return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task), nil
+	}
+
 	if opts.UpstreamBranch != "" && opts.UpstreamRemote == "" {
 		return nil, errors.New(self.Tr.MustSpecifyOriginError)
 	}
@@ -63,6 +68,11 @@ func (self *SyncCommands) fetchCommandBuilder(fetchAll bool) *GitCommandBuilder 
 }
 
 func (self *SyncCommands) FetchCmdObj(task gocui.Task) *oscommands.CmdObj {
+	if self.IsGitSvnRepo {
+		cmdArgs := NewGitCmd("svn").Arg("fetch").ToArgv()
+		return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task)
+	}
+
 	cmdArgs := self.fetchCommandBuilder(self.UserConfig().Git.FetchAll).ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
@@ -96,6 +106,11 @@ type PullOptions struct {
 }
 
 func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
+	if self.IsGitSvnRepo {
+		cmdArgs := NewGitCmd("svn").Arg("rebase").ToArgv()
+		return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
+	}
+
 	cmdArgs := NewGitCmd("pull").
 		Arg("--no-edit").
 		ArgIf(opts.FastForwardOnly, "--ff-only").

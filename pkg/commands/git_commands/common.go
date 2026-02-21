@@ -1,6 +1,8 @@
 package git_commands
 
 import (
+	"os"
+	"path/filepath"
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -16,6 +18,27 @@ type GitCommon struct {
 	repo        *gogit.Repository
 	config      *ConfigCommands
 	pagerConfig *config.PagerConfig
+	IsGitSvnRepo bool
+}
+
+func (self *GitCommon) detectGitSvnRepo() {
+	if self.Common != nil && !self.Common.UserConfig().Git.EnableGitSvnCompat {
+		self.IsGitSvnRepo = false
+		return
+	}
+
+	if self.repoPaths == nil {
+		self.IsGitSvnRepo = false
+		return
+	}
+
+	svnDir := filepath.Join(self.repoPaths.RepoGitDirPath(), "svn")
+	if info, err := os.Stat(svnDir); err == nil && info.IsDir() {
+		self.IsGitSvnRepo = true
+		self.Common.Log.Info("Detected Git-SVN repository (found .git/svn)")
+	} else {
+		self.IsGitSvnRepo = false
+	}
 }
 
 func NewGitCommon(
@@ -28,7 +51,7 @@ func NewGitCommon(
 	config *ConfigCommands,
 	pagerConfig *config.PagerConfig,
 ) *GitCommon {
-	return &GitCommon{
+	gitCommon := &GitCommon{
 		Common:      cmn,
 		version:     version,
 		cmd:         cmd,
@@ -38,4 +61,10 @@ func NewGitCommon(
 		config:      config,
 		pagerConfig: pagerConfig,
 	}
+	gitCommon.detectGitSvnRepo()
+	return gitCommon
+}
+
+func (self *GitCommon) IsSvnRepo() bool {
+	return self.IsGitSvnRepo
 }

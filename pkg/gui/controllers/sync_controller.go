@@ -175,6 +175,12 @@ func (self *SyncController) pullWithLock(task gocui.Task, opts PullFilesOptions)
 		},
 	)
 
+	if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+		if err != nil {
+			return fmt.Errorf("Git-SVN rebase failed: %w", err)
+		}
+	}
+
 	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 }
 
@@ -195,6 +201,12 @@ type pushOpts struct {
 func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts) error {
 	return self.c.WithInlineStatus(currentBranch, types.ItemOperationPushing, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.Push)
+
+		if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+			opts.force = false
+			opts.forceWithLease = false
+		}
+
 		err := self.c.Git().Sync.Push(
 			task,
 			git_commands.PushOpts{
@@ -206,6 +218,10 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 				SetUpstream:    opts.setUpstream,
 			})
 		if err != nil {
+			if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+				return fmt.Errorf("Git-SVN dcommit failed: %w", err)
+			}
+
 			if !opts.force && !opts.forceWithLease && strings.Contains(err.Error(), "Updates were rejected") {
 				if opts.remoteBranchStoredLocally {
 					return errors.New(self.c.Tr.UpdatesRejected)
