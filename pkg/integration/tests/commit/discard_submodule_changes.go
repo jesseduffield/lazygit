@@ -45,7 +45,7 @@ var DiscardSubmoduleChanges = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Discard file changes")).
-			Content(Contains("Are you sure you want to remove changes to the selected file(s) from this commit?")).
+			Content(Contains("Are you sure you want to discard changes to the selected file(s) from this commit?")).
 			Confirm()
 
 		t.Shell().RunCommand([]string{"git", "submodule", "update"})

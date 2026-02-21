@@ -63,7 +63,7 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
 			Handler:           self.withItems(self.discard),
 			GetDisabledReason: self.require(self.itemsSelected()),
-			Description:       self.c.Tr.Remove,
+			Description:       self.c.Tr.Discard,
 			Tooltip:           self.c.Tr.DiscardOldFileChangeTooltip,
 			DisplayOnScreen:   true,
 		},
