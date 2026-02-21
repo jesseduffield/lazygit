@@ -437,7 +437,6 @@ type TranslationSet struct {
 	CannotCheckoutWithModifiedFilesErr    string
 	CanOnlyDiscardFromLocalCommits        string
 	CannotDiscardFromMultipleCommits      string
-	MustClearPatchBeforeRemovingLines     string
 	Remove                                string
 	DiscardOldFileChangeTooltip           string
 	DiscardFileChangesTitle               string
@@ -1553,7 +1552,6 @@ func EnglishTranslationSet() *TranslationSet {
 		CannotCheckoutWithModifiedFilesErr:   "You have local modifications for the file(s) you are trying to check out. You need to stash or discard these first.",
 		CanOnlyDiscardFromLocalCommits:       "Changes can only be discarded from local commits",
 		CannotDiscardFromMultipleCommits:     "Changes cannot be discarded from a multiselection of commits",
-		MustClearPatchBeforeRemovingLines:    "Clear the current custom patch first before removing lines from the commit",
 		Remove:                               "Remove",
 		DiscardOldFileChangeTooltip:          "Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file.",
 		DiscardFileChangesTitle:              "Discard file changes",

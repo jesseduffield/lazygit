@@ -183,9 +183,6 @@ func (self *PatchBuildingController) getDisabledReasonForDiscard() *types.Disabl
 	if !self.c.Git().Patch.PatchBuilder.CanRebase {
 		return &types.DisabledReason{Text: self.c.Tr.CanOnlyDiscardFromLocalCommits, ShowErrorInPanel: true}
 	}
-	if !self.c.Git().Patch.PatchBuilder.IsEmpty() {
-		return &types.DisabledReason{Text: self.c.Tr.MustClearPatchBeforeRemovingLines}
-	}
 	if self.c.Git().Status.WorkingTreeState().Any() {
 		return &types.DisabledReason{Text: self.c.Tr.CantPatchWhileRebasingError, ShowErrorInPanel: true}
 	}
@@ -228,6 +225,11 @@ func (self *PatchBuildingController) addSelectionToPatch() error {
 }
 
 func (self *PatchBuildingController) discardSelectionFromCommit() error {
+	// Reset the current patch if there is one.
+	if !self.c.Git().Patch.PatchBuilder.IsEmpty() {
+		self.c.Git().Patch.PatchBuilder.Reset()
+	}
+
 	if err := self.addSelectionToPatch(); err != nil {
 		return err
 	}
