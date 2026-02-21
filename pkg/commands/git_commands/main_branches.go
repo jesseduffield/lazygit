@@ -77,10 +77,10 @@ func (self *MainBranches) GetMergeBase(refName string) string {
 }
 
 func (self *MainBranches) determineMainBranches(configuredMainBranches []string) []string {
-	var existingBranches []string
+	var matchedBranches [][]string
 	var wg sync.WaitGroup
 
-	existingBranches = make([]string, len(configuredMainBranches))
+	matchedBranches = make([][]string, len(configuredMainBranches))
 
 	for i, branchName := range configuredMainBranches {
 		wg.Add(1)
@@ -91,7 +91,7 @@ func (self *MainBranches) determineMainBranches(configuredMainBranches []string)
 			if ref, err := self.cmd.New(
 				NewGitCmd("rev-parse").Arg("--symbolic-full-name", branchName+"@{u}").ToArgv(),
 			).DontLog().RunWithOutput(); err == nil {
-				existingBranches[i] = strings.TrimSpace(ref)
+				matchedBranches[i] = []string{strings.TrimSpace(ref)}
 				return
 			}
 
@@ -101,7 +101,7 @@ func (self *MainBranches) determineMainBranches(configuredMainBranches []string)
 			if err := self.cmd.New(
 				NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
 			).DontLog().Run(); err == nil {
-				existingBranches[i] = ref
+				matchedBranches[i] = []string{ref}
 				return
 			}
 
@@ -112,16 +112,15 @@ func (self *MainBranches) determineMainBranches(configuredMainBranches []string)
 			if err := self.cmd.New(
 				NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
 			).DontLog().Run(); err == nil {
-				existingBranches[i] = ref
+				matchedBranches[i] = []string{ref}
+				return
 			}
 		})
 	}
 
 	wg.Wait()
 
-	existingBranches = lo.Filter(existingBranches, func(branch string, _ int) bool {
-		return branch != ""
-	})
+	existingBranches := lo.Flatten(matchedBranches)
 
 	return existingBranches
 }
