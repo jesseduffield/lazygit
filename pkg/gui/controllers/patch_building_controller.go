@@ -189,15 +189,15 @@ func (self *PatchBuildingController) getDisabledReasonForDiscard() *types.Disabl
 	if self.c.Git().Status.WorkingTreeState().Any() {
 		return &types.DisabledReason{Text: self.c.Tr.CantPatchWhileRebasingError, ShowErrorInPanel: true}
 	}
+	if self.c.UserConfig().Git.DiffContextSize == 0 {
+		text := fmt.Sprintf(self.c.Tr.Actions.NotEnoughContextToRemoveLines,
+			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
+		return &types.DisabledReason{Text: text, ShowErrorInPanel: true}
+	}
 	return nil
 }
 
 func (self *PatchBuildingController) DiscardSelection() error {
-	if self.c.UserConfig().Git.DiffContextSize == 0 {
-		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToRemoveLines,
-			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
-	}
-
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.RemoveLinesFromCommitTitle,
 		Prompt: self.c.Tr.RemoveLinesFromCommitPrompt,
