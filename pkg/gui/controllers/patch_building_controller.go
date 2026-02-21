@@ -186,6 +186,9 @@ func (self *PatchBuildingController) getDisabledReasonForDiscard() *types.Disabl
 	if !self.c.Git().Patch.PatchBuilder.IsEmpty() {
 		return &types.DisabledReason{Text: self.c.Tr.MustClearPatchBeforeRemovingLines}
 	}
+	if self.c.Git().Status.WorkingTreeState().Any() {
+		return &types.DisabledReason{Text: self.c.Tr.CantPatchWhileRebasingError, ShowErrorInPanel: true}
+	}
 	return nil
 }
 
@@ -193,10 +196,6 @@ func (self *PatchBuildingController) DiscardSelection() error {
 	if self.c.UserConfig().Git.DiffContextSize == 0 {
 		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToRemoveLines,
 			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
-	}
-
-	if ok, err := self.c.Helpers().PatchBuilding.ValidateNormalWorkingTreeState(); !ok {
-		return err
 	}
 
 	self.c.Confirm(types.ConfirmOpts{
