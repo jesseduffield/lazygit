@@ -142,7 +142,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-o> `` | Copy path to clipboard |  |
 | `` y `` | Copy to clipboard |  |
 | `` c `` | Verificar | Arquivo de check-out. Isso substitui o arquivo em sua árvore de trabalho com a versão do commit selecionado. |
-| `` d `` | Remover | Descartar as alterações desse commit para este arquivo. Isso executa uma rebase interativa em segundo plano, então você pode ter um conflito de merge se um commit posterior também alterar este arquivo. |
+| `` d `` | Descartar | Descartar as alterações desse commit para este arquivo. Isso executa uma rebase interativa em segundo plano, então você pode ter um conflito de merge se um commit posterior também alterar este arquivo. |
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
 | `` e `` | Editar | Abrir arquivo no editor externo. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
@@ -295,6 +295,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
 | `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
 | `` <space> `` | Alternar linhas no caminho |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | Sair do construtor de patch personalizado |  |
 | `` / `` | Search the current view by text |  |
 

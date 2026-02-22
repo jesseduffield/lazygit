@@ -138,7 +138,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-o> `` | Kopieer de bestandsnaam naar het klembord |  |
 | `` y `` | Copy to clipboard |  |
 | `` c `` | Uitchecken | Bestand uitchecken |
-| `` d `` | Remove | Uitsluit deze commit zijn veranderingen aan dit bestand |
+| `` d `` | Bekijk 'veranderingen ongedaan maken' opties | Uitsluit deze commit zijn veranderingen aan dit bestand |
 | `` o `` | Open bestand | Open file in default application. |
 | `` e `` | Edit | Open file in external editor. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
@@ -245,6 +245,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` o `` | Open bestand | Open file in default application. |
 | `` e `` | Verander bestand | Open file in external editor. |
 | `` <space> `` | Voeg toe/verwijder lijn(en) in patch |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | Sluit lijn-bij-lijn modus |  |
 | `` / `` | Start met zoeken |  |
 

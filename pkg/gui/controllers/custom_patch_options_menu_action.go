@@ -123,13 +123,6 @@ func (self *CustomPatchOptionsMenuAction) getPatchCommitIndex() int {
 	return -1
 }
 
-func (self *CustomPatchOptionsMenuAction) validateNormalWorkingTreeState() (bool, error) {
-	if self.c.Git().Status.WorkingTreeState().Any() {
-		return false, errors.New(self.c.Tr.CantPatchWhileRebasingError)
-	}
-	return true, nil
-}
-
 func (self *CustomPatchOptionsMenuAction) returnFocusFromPatchExplorerIfNecessary() {
 	if self.c.Context().Current().GetKey() == self.c.Contexts().CustomPatchBuilder.GetKey() {
 		self.c.Helpers().PatchBuilding.Escape()
@@ -137,10 +130,6 @@ func (self *CustomPatchOptionsMenuAction) returnFocusFromPatchExplorerIfNecessar
 }
 
 func (self *CustomPatchOptionsMenuAction) handleDeletePatchFromCommit() error {
-	if ok, err := self.validateNormalWorkingTreeState(); !ok {
-		return err
-	}
-
 	self.returnFocusFromPatchExplorerIfNecessary()
 
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
@@ -152,10 +141,6 @@ func (self *CustomPatchOptionsMenuAction) handleDeletePatchFromCommit() error {
 }
 
 func (self *CustomPatchOptionsMenuAction) handleMovePatchToSelectedCommit() error {
-	if ok, err := self.validateNormalWorkingTreeState(); !ok {
-		return err
-	}
-
 	self.returnFocusFromPatchExplorerIfNecessary()
 
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
@@ -167,10 +152,6 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchToSelectedCommit() erro
 }
 
 func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error {
-	if ok, err := self.validateNormalWorkingTreeState(); !ok {
-		return err
-	}
-
 	self.returnFocusFromPatchExplorerIfNecessary()
 
 	mustStash := self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules()
@@ -189,10 +170,6 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error
 }
 
 func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
-	if ok, err := self.validateNormalWorkingTreeState(); !ok {
-		return err
-	}
-
 	self.returnFocusFromPatchExplorerIfNecessary()
 
 	commitIndex := self.getPatchCommitIndex()
@@ -224,10 +201,6 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 }
 
 func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommitBefore() error {
-	if ok, err := self.validateNormalWorkingTreeState(); !ok {
-		return err
-	}
-
 	self.returnFocusFromPatchExplorerIfNecessary()
 
 	commitIndex := self.getPatchCommitIndex()

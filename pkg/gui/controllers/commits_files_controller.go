@@ -62,8 +62,8 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
 			Handler:           self.withItems(self.discard),
-			GetDisabledReason: self.require(self.itemsSelected()),
-			Description:       self.c.Tr.Remove,
+			GetDisabledReason: self.require(self.itemsSelected(self.canDiscardFileChanges)),
+			Description:       self.c.Tr.Discard,
 			Tooltip:           self.c.Tr.DiscardOldFileChangeTooltip,
 			DisplayOnScreen:   true,
 		},
@@ -301,18 +301,13 @@ func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error
 }
 
 func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileNode) error {
-	parentContext := self.c.Context().Current().GetParentContext()
-	if parentContext == nil || parentContext.GetKey() != context.LOCAL_COMMITS_CONTEXT_KEY {
-		return errors.New(self.c.Tr.CanOnlyDiscardFromLocalCommits)
-	}
-
-	if ok, err := self.c.Helpers().PatchBuilding.ValidateNormalWorkingTreeState(); !ok {
-		return err
-	}
+	prompt := lo.Ternary(self.c.Git().Patch.PatchBuilder.Active(),
+		self.c.Tr.DiscardFileChangesPromptResetPatch,
+		self.c.Tr.DiscardFileChangesPrompt)
 
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DiscardFileChangesTitle,
-		Prompt: self.c.Tr.DiscardFileChangesPrompt,
+		Prompt: prompt,
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 				var filePaths []string
@@ -343,6 +338,32 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 			})
 		},
 	})
+
+	return nil
+}
+
+func (self *CommitFilesController) canDiscardFileChanges(nodes []*filetree.CommitFileNode) *types.DisabledReason {
+	parentContext := self.c.Context().Current().GetParentContext()
+	if parentContext == nil || parentContext.GetKey() != context.LOCAL_COMMITS_CONTEXT_KEY {
+		return &types.DisabledReason{
+			Text:             self.c.Tr.CanOnlyDiscardFromLocalCommits,
+			ShowErrorInPanel: true,
+		}
+	}
+
+	if self.c.Contexts().LocalCommits.AreMultipleItemsSelected() {
+		return &types.DisabledReason{
+			Text:             self.c.Tr.CannotDiscardFromMultipleCommits,
+			ShowErrorInPanel: true,
+		}
+	}
+
+	if self.c.Git().Status.WorkingTreeState().Any() {
+		return &types.DisabledReason{
+			Text:             self.c.Tr.CantPatchWhileRebasingError,
+			ShowErrorInPanel: true,
+		}
+	}
 
 	return nil
 }

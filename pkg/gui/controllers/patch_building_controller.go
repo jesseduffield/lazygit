@@ -1,7 +1,10 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -41,6 +44,14 @@ func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) 
 			Handler:         self.ToggleSelectionAndRefresh,
 			Description:     self.c.Tr.ToggleSelectionForPatch,
 			DisplayOnScreen: true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Handler:           self.discardSelection,
+			GetDisabledReason: self.getDisabledReasonForDiscard,
+			Description:       self.c.Tr.RemoveSelectionFromPatch,
+			Tooltip:           self.c.Tr.RemoveSelectionFromPatchTooltip,
+			DisplayOnScreen:   true,
 		},
 		{
 			Key:             opts.GetKey(opts.Config.Universal.Return),
@@ -166,6 +177,70 @@ func (self *PatchBuildingController) toggleSelection() error {
 	state.SelectNextStageableLineOfSameIncludedState(self.context().GetIncludedLineIndices(), firstSelectedChangeLineIsStaged)
 
 	return nil
+}
+
+func (self *PatchBuildingController) getDisabledReasonForDiscard() *types.DisabledReason {
+	if !self.c.Git().Patch.PatchBuilder.CanRebase {
+		return &types.DisabledReason{Text: self.c.Tr.CanOnlyDiscardFromLocalCommits, ShowErrorInPanel: true}
+	}
+	if self.c.Git().Status.WorkingTreeState().Any() {
+		return &types.DisabledReason{Text: self.c.Tr.CantPatchWhileRebasingError, ShowErrorInPanel: true}
+	}
+	if self.c.UserConfig().Git.DiffContextSize == 0 {
+		text := fmt.Sprintf(self.c.Tr.Actions.NotEnoughContextToRemoveLines,
+			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
+		return &types.DisabledReason{Text: text, ShowErrorInPanel: true}
+	}
+	return nil
+}
+
+func (self *PatchBuildingController) discardSelection() error {
+	prompt := lo.Ternary(self.c.Git().Patch.PatchBuilder.IsEmpty(),
+		self.c.Tr.DiscardLinesFromCommitPrompt,
+		self.c.Tr.DiscardLinesFromCommitPromptWithReset)
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.DiscardLinesFromCommitTitle,
+		Prompt: prompt,
+		HandleConfirm: func() error {
+			return self.discardSelectionFromCommit()
+		},
+	})
+
+	return nil
+}
+
+func (self *PatchBuildingController) discardSelectionFromCommit() error {
+	// Reset the current patch if there is one.
+	if !self.c.Git().Patch.PatchBuilder.IsEmpty() {
+		self.c.Git().Patch.PatchBuilder.Reset()
+	}
+
+	if err := self.toggleSelection(); err != nil {
+		return err
+	}
+
+	if self.c.Git().Patch.PatchBuilder.IsEmpty() {
+		return nil
+	}
+
+	self.c.Helpers().PatchBuilding.Escape()
+
+	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+		commitIndex := self.getPatchCommitIndex()
+		self.c.LogAction(self.c.Tr.Actions.RemovePatchFromCommit)
+		err := self.c.Git().Patch.DeletePatchesFromCommit(self.c.Model().Commits, commitIndex)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+	})
+}
+
+func (self *PatchBuildingController) getPatchCommitIndex() int {
+	for index, commit := range self.c.Model().Commits {
+		if commit.Hash() == self.c.Git().Patch.PatchBuilder.To {
+			return index
+		}
+	}
+	return -1
 }
 
 func (self *PatchBuildingController) Escape() error {
