@@ -152,7 +152,8 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		from, to := self.context().GetFromAndToForDiff()
 		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
+		paths := self.pathsForDiff(node)
+		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false)
 		task := types.NewRunPtyTask(cmdObj.GetCmd())
 
 		self.c.RenderToMainViews(types.RefreshMainOpts{
@@ -171,7 +172,7 @@ func (self *CommitFilesController) copyDiffToClipboard(path string, toastMessage
 	from, to := self.context().GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, path, true)
+	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, []string{path}, true)
 	diff, err := cmdObj.RunWithOutput()
 	if err != nil {
 		return err
@@ -548,6 +549,21 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 		}
 		return nil
 	}
+}
+
+// pathsForDiff returns the file paths to use for a diff command. When a text
+// filter is active and the node is a directory, only the visible (filtered)
+// file paths are returned so the diff reflects what the user sees.
+func (self *CommitFilesController) pathsForDiff(node *filetree.CommitFileNode) []string {
+	if !node.IsFile() && self.context().IsFiltering() {
+		var paths []string
+		_ = node.ForEachFile(func(file *models.CommitFile) error {
+			paths = append(paths, file.Path)
+			return nil
+		})
+		return paths
+	}
+	return []string{node.GetPath()}
 }
 
 // NOTE: these functions are identical to those in files_controller.go (except for types) and
