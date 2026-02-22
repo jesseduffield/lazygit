@@ -23,6 +23,7 @@ func (self *DiffCommands) DiffCmdObj(diffArgs []string) *oscommands.CmdObj {
 	useExtDiff := extDiffCmd != ""
 	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig()
 	ignoreWhitespace := self.UserConfig().Git.IgnoreWhitespaceInDiffView
+	colorWords := self.UserConfig().Git.ColorWordsInDiffView
 
 	return self.cmd.New(
 		NewGitCmd("diff").
@@ -32,6 +33,7 @@ func (self *DiffCommands) DiffCmdObj(diffArgs []string) *oscommands.CmdObj {
 			Arg("--submodule").
 			Arg(fmt.Sprintf("--color=%s", self.pagerConfig.GetColorArg())).
 			ArgIf(ignoreWhitespace, "--ignore-all-space").
+			ArgIf(colorWords, "--color-words").
 			Arg(fmt.Sprintf("--unified=%d", self.UserConfig().Git.DiffContextSize)).
 			Arg(diffArgs...).
 			Dir(self.repoPaths.worktreePath).
