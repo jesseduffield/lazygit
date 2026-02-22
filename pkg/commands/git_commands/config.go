@@ -78,7 +78,16 @@ func (self *ConfigCommands) Branches() (map[string]*config.Branch, error) {
 		return nil, err
 	}
 
-	return conf.Branches, nil
+	// Filter out branches with empty names to handle edge cases where
+	// .git/config has [branch ""] sections
+	filteredBranches := make(map[string]*config.Branch)
+	for name, branch := range conf.Branches {
+		if name != "" {
+			filteredBranches[name] = branch
+		}
+	}
+
+	return filteredBranches, nil
 }
 
 func (self *ConfigCommands) GetGitFlowPrefixes() string {
