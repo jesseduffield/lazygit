@@ -499,29 +499,7 @@ func (gui *Gui) SetKeybinding(binding *types.Binding) error {
 	return gui.g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, gui.wrappedHandler(handler))
 }
 
-// warning: mutates the binding
 func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
-	baseHandler := binding.Handler
-	newHandler := func(opts gocui.ViewMouseBindingOpts) error {
-		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != binding.ViewName &&
-			!gocui.IsMouseScrollKey(opts.Key) {
-			// we ignore click events on views that aren't popup panels, when a popup panel is focused.
-			// Unless both the current view and the clicked-on view are either commit message or commit
-			// description, or a prompt and the suggestions view, because we want to allow switching
-			// between those two views by clicking.
-			isCommitMessageOrSuggestionsView := func(viewName string) bool {
-				return viewName == "commitMessage" || viewName == "commitDescription" ||
-					viewName == "prompt" || viewName == "suggestions"
-			}
-			if !isCommitMessageOrSuggestionsView(gui.currentViewName()) || !isCommitMessageOrSuggestionsView(binding.ViewName) {
-				return nil
-			}
-		}
-
-		return baseHandler(opts)
-	}
-	binding.Handler = newHandler
-
 	return gui.g.SetViewClickBinding(binding)
 }
 
