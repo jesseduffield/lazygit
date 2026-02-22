@@ -196,6 +196,8 @@ type Gui struct {
 
 	ErrorHandler func(error) error
 
+	ShouldHandleMouseEvent func(view *View, key Key) bool
+
 	screen         tcell.Screen
 	suspendedMutex sync.Mutex
 	suspended      bool
@@ -1328,6 +1330,13 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		v, err := g.VisibleViewByPosition(mx, my)
 		if err != nil {
 			break
+		}
+		if g.ShouldHandleMouseEvent != nil {
+			if !g.ShouldHandleMouseEvent(v, ev.Key) {
+				// Give clients a chance to reject clicks, for example clicks in inactive views
+				// when a modal panel is open.
+				break
+			}
 		}
 		if v.Frame && my == v.y0 {
 			if len(v.Tabs) > 0 {
