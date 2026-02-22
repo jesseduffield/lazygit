@@ -109,6 +109,39 @@ M  file1
 			),
 			collapsedPaths: []string{"dir1"},
 		},
+		{
+			name: "deleted symlink replaced with directory containing files",
+			files: []*models.File{
+				{Path: "dir/link", ShortStatus: "D ", HasStagedChanges: true},
+				{Path: "dir/link/file1", ShortStatus: "A ", HasStagedChanges: true},
+				{Path: "dir/link/file2", ShortStatus: "A ", HasStagedChanges: true},
+			},
+			showRootItem: false,
+			expected: toStringSlice(
+				`
+▼ dir
+  D  ▼ link
+    A  file1
+    A  file2
+`,
+			),
+		},
+		{
+			name: "deleted symlink replaced with directory - collapsed",
+			files: []*models.File{
+				{Path: "dir/link", ShortStatus: "D ", HasStagedChanges: true},
+				{Path: "dir/link/file1", ShortStatus: "A ", HasStagedChanges: true},
+				{Path: "dir/link/file2", ShortStatus: "A ", HasStagedChanges: true},
+			},
+			showRootItem:   false,
+			collapsedPaths: []string{"dir/link"},
+			expected: toStringSlice(
+				`
+▼ dir
+  D  ▶ link
+`,
+			),
+		},
 	}
 
 	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
@@ -199,6 +232,39 @@ M file1
 `,
 			),
 			collapsedPaths: []string{"dir1"},
+		},
+		{
+			name: "deleted symlink replaced with directory containing files",
+			files: []*models.CommitFile{
+				{Path: "dir/link", ChangeStatus: "D"},
+				{Path: "dir/link/file1", ChangeStatus: "A"},
+				{Path: "dir/link/file2", ChangeStatus: "A"},
+			},
+			showRootItem: false,
+			expected: toStringSlice(
+				`
+▼ dir
+  D ▼ link
+    A file1
+    A file2
+`,
+			),
+		},
+		{
+			name: "deleted symlink replaced with directory - collapsed",
+			files: []*models.CommitFile{
+				{Path: "dir/link", ChangeStatus: "D"},
+				{Path: "dir/link/file1", ChangeStatus: "A"},
+				{Path: "dir/link/file2", ChangeStatus: "A"},
+			},
+			showRootItem:   false,
+			collapsedPaths: []string{"dir/link"},
+			expected: toStringSlice(
+				`
+▼ dir
+  D ▶ link
+`,
+			),
 		},
 	}
 
