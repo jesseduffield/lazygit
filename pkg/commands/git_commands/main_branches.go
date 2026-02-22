@@ -77,21 +77,46 @@ func (self *MainBranches) GetMergeBase(refName string) string {
 }
 
 func (self *MainBranches) determineMainBranches(configuredMainBranches []string) []string {
-	var existingBranches []string
+	var matchedBranches [][]string
 	var wg sync.WaitGroup
 
-	existingBranches = make([]string, len(configuredMainBranches))
+	matchedBranches = make([][]string, len(configuredMainBranches))
 
 	for i, branchName := range configuredMainBranches {
 		wg.Add(1)
 		go utils.Safe(func() {
 			defer wg.Done()
 
+			// Check for glob patterns first
+			if strings.ContainsAny(branchName, "*?[") {
+				branchPattern := branchName
+				var refs []string
+
+				// Check local branches
+				if output, err := self.cmd.New(
+					NewGitCmd("for-each-ref").Arg("--format=%(refname)", "refs/heads/"+branchPattern).ToArgv(),
+				).DontLog().RunWithOutput(); err == nil {
+					refs = append(refs, strings.Fields(strings.TrimSpace(output))...)
+				}
+
+				// Check remote branches on 'origin'
+				if output, err := self.cmd.New(
+					NewGitCmd("for-each-ref").Arg("--format=%(refname)", "refs/remotes/origin/"+branchPattern).ToArgv(),
+				).DontLog().RunWithOutput(); err == nil {
+					refs = append(refs, strings.Fields(strings.TrimSpace(output))...)
+				}
+
+				matchedBranches[i] = lo.Filter(refs, func(ref string, _ int) bool {
+					return ref != ""
+				})
+				return
+			}
+
 			// Try to determine upstream of local main branch
 			if ref, err := self.cmd.New(
 				NewGitCmd("rev-parse").Arg("--symbolic-full-name", branchName+"@{u}").ToArgv(),
 			).DontLog().RunWithOutput(); err == nil {
-				existingBranches[i] = strings.TrimSpace(ref)
+				matchedBranches[i] = []string{strings.TrimSpace(ref)}
 				return
 			}
 
@@ -101,7 +126,7 @@ func (self *MainBranches) determineMainBranches(configuredMainBranches []string)
 			if err := self.cmd.New(
 				NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
 			).DontLog().Run(); err == nil {
-				existingBranches[i] = ref
+				matchedBranches[i] = []string{ref}
 				return
 			}
 
@@ -112,16 +137,15 @@ func (self *MainBranches) determineMainBranches(configuredMainBranches []string)
 			if err := self.cmd.New(
 				NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
 			).DontLog().Run(); err == nil {
-				existingBranches[i] = ref
+				matchedBranches[i] = []string{ref}
+				return
 			}
 		})
 	}
 
 	wg.Wait()
 
-	existingBranches = lo.Filter(existingBranches, func(branch string, _ int) bool {
-		return branch != ""
-	})
+	existingBranches := lo.Flatten(matchedBranches)
 
 	return existingBranches
 }
