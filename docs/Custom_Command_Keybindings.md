@@ -369,7 +369,7 @@ initialValue: "username/{{ runCommand "date +\"%Y/%-m\"" }}/"
 
 ## Keybinding collisions
 
-If your custom keybinding collides with an inbuilt keybinding that is defined for the same context, only the custom keybinding will be executed. This also applies to the global context. However, one caveat is that if you have a custom keybinding defined on the global context for some key, and there is an in-built keybinding defined for the same key and for a specific context (say the 'files' context), then the in-built keybinding will take precedence. See how to change in-built keybindings [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#keybindings)
+If your custom keybinding collides with a built-in keybinding in the same context, only the custom keybinding will run, and only that keybinding will have its key appear in the keybindings menu (press `?`); the built-in command's key will be hidden. This also applies to the global context. The exception is when you define a custom keybinding in the global context for a key that also has a built-in binding in a specific context (say the 'files' context): the built-in keybinding will take precedence in that specific context, and both bindings will have their keys displayed. See how to change built-in keybindings [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#keybindings)
 
 ## Menus of custom commands
 
