@@ -604,6 +604,8 @@ type TranslationSet struct {
 	CyclePagersDisabledReason             string
 	StartSearch                           string
 	StartFilter                           string
+	SelectRemoteRepository                string
+	LcSelectingRemote                     string
 	Keybindings                           string
 	KeybindingsLegend                     string
 	KeybindingsMenuSectionLocal           string
@@ -697,6 +699,8 @@ type TranslationSet struct {
 	BackToParentRepo                      string
 	Enter                                 string
 	CopySubmoduleNameToClipboard          string
+	MinGhVersionError                     string
+	FailedToObtainGhVersionError          string
 	RemoveSubmodule                       string
 	RemoveSubmoduleTooltip                string
 	RemoveSubmodulePrompt                 string
@@ -1715,6 +1719,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CyclePagersDisabledReason:        "No other pagers configured",
 		StartSearch:                      "Search the current view by text",
 		StartFilter:                      "Filter the current view by text",
+		SelectRemoteRepository:           "Select base repository for pull requests",
+		LcSelectingRemote:                "Selecting remote",
 		KeybindingsLegend:                "Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b",
 		RenameBranch:                     "Rename branch",
 		BranchUpstreamOptionsTitle:       "Upstream options",
@@ -1805,6 +1811,8 @@ func EnglishTranslationSet() *TranslationSet {
 		EnterSubmoduleTooltip:                    "Enter submodule. After entering the submodule, you can press `{{.escape}}` to escape back to the parent repo.",
 		BackToParentRepo:                         "Back to parent repo",
 		CopySubmoduleNameToClipboard:             "Copy submodule name to clipboard",
+		MinGhVersionError:                        "GH version must be at least 2.0. Please upgrade your gh version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
+		FailedToObtainGhVersionError:             "Failed to obtain gh version. Output from running 'gh --version' was: %s",
 		RemoveSubmodule:                          "Remove submodule",
 		RemoveSubmodulePrompt:                    "Are you sure you want to remove submodule '%s' and its corresponding directory? This is irreversible.",
 		RemoveSubmoduleTooltip:                   "Remove the selected submodule and its corresponding directory.",

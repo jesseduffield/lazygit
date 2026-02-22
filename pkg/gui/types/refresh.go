@@ -22,6 +22,7 @@ const (
 	COMMIT_FILES
 	// not actually a view. Will refactor this later
 	BISECT_INFO
+	PULL_REQUESTS
 )
 
 type RefreshMode int
