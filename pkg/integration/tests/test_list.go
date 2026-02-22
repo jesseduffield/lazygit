@@ -118,6 +118,7 @@ var tests = []*components.IntegrationTest{
 	commit.CommitWithGlobalPrefix,
 	commit.CommitWithNonMatchingBranchName,
 	commit.CommitWithPrefix,
+	commit.CommitWithPrepareMsgHook,
 	commit.CopyAuthorToClipboard,
 	commit.CopyMessageBodyToClipboard,
 	commit.CopyTagToClipboard,
