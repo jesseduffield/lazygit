@@ -91,6 +91,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 				types.STATUS,
 				types.BISECT_INFO,
 				types.STAGING,
+				types.SPICE_STACKS,
 			})
 		} else {
 			scopeSet = set.NewFromSlice(options.Scope)
@@ -163,6 +164,10 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 			refresh("tags", func() { _ = self.refreshTags() })
 		}
 
+		if scopeSet.Includes(types.SPICE_STACKS) {
+			refresh("spice stacks", self.refreshSpiceStacks)
+		}
+
 		if scopeSet.Includes(types.REMOTES) {
 			refresh("remotes", func() { _ = self.refreshRemotes() })
 		}
@@ -216,6 +221,7 @@ func getScopeNames(scopes []types.RefreshableView) []string {
 		types.STASH:           "stash",
 		types.REFLOG:          "reflog",
 		types.TAGS:            "tags",
+		types.SPICE_STACKS:    "spiceStacks",
 		types.REMOTES:         "remotes",
 		types.WORKTREES:       "worktrees",
 		types.STATUS:          "status",
@@ -434,6 +440,23 @@ func (self *RefreshHelper) refreshTags() error {
 
 	self.refreshView(self.c.Contexts().Tags)
 	return nil
+}
+
+func (self *RefreshHelper) refreshSpiceStacks() {
+	if !self.c.UserConfig().Git.Spice.Enabled || self.c.Git().Spice == nil || !self.c.Git().Spice.IsAvailable() {
+		self.c.Model().SpiceStackItems = nil
+		self.refreshView(self.c.Contexts().SpiceStacks)
+		return
+	}
+
+	items, err := self.c.Git().Loaders.SpiceStackLoader.Load()
+	if err != nil {
+		self.c.Log.Warnf("Failed to load spice stacks: %v", err)
+		return
+	}
+
+	self.c.Model().SpiceStackItems = items
+	self.refreshView(self.c.Contexts().SpiceStacks)
 }
 
 func (self *RefreshHelper) refreshStateSubmoduleConfigs() error {

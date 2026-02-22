@@ -37,6 +37,7 @@ type GitCommand struct {
 	WorkingTree *git_commands.WorkingTreeCommands
 	Bisect      *git_commands.BisectCommands
 	Worktree    *git_commands.WorktreeCommands
+	Spice       *git_commands.SpiceCommands
 	Version     *git_commands.GitVersion
 	RepoPaths   *git_commands.RepoPaths
 
@@ -52,6 +53,7 @@ type Loaders struct {
 	RemoteLoader       *git_commands.RemoteLoader
 	StashLoader        *git_commands.StashLoader
 	TagLoader          *git_commands.TagLoader
+	SpiceStackLoader   *git_commands.SpiceStackLoader
 	Worktrees          *git_commands.WorktreeLoader
 }
 
@@ -137,6 +139,7 @@ func NewGitCommandAux(
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)
 	worktreeCommands := git_commands.NewWorktreeCommands(gitCommon)
 	blameCommands := git_commands.NewBlameCommands(gitCommon)
+	spiceCommands := git_commands.NewSpiceCommands(gitCommon)
 
 	branchLoader := git_commands.NewBranchLoader(cmn, gitCommon, cmd, branchCommands.CurrentBranchInfo, configCommands)
 	commitFileLoader := git_commands.NewCommitFileLoader(cmn, cmd)
@@ -146,6 +149,7 @@ func NewGitCommandAux(
 	worktreeLoader := git_commands.NewWorktreeLoader(gitCommon)
 	stashLoader := git_commands.NewStashLoader(cmn, cmd)
 	tagLoader := git_commands.NewTagLoader(cmn, cmd)
+	spiceStackLoader := git_commands.NewSpiceStackLoader(cmn, spiceCommands)
 
 	return &GitCommand{
 		Blame:       blameCommands,
@@ -167,6 +171,7 @@ func NewGitCommandAux(
 		Bisect:      bisectCommands,
 		WorkingTree: workingTreeCommands,
 		Worktree:    worktreeCommands,
+		Spice:       spiceCommands,
 		Version:     version,
 		Loaders: Loaders{
 			BranchLoader:       branchLoader,
@@ -178,6 +183,7 @@ func NewGitCommandAux(
 			Worktrees:          worktreeLoader,
 			StashLoader:        stashLoader,
 			TagLoader:          tagLoader,
+			SpiceStackLoader:   spiceStackLoader,
 		},
 		RepoPaths: repoPaths,
 	}

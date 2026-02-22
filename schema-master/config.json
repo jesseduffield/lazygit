@@ -423,6 +423,10 @@
           "$ref": "#/$defs/LogConfig",
           "description": "Config for showing the log in the commits view"
         },
+        "spice": {
+          "$ref": "#/$defs/SpiceConfig",
+          "description": "Config for git-spice integration"
+        },
         "localBranchSortOrder": {
           "type": "string",
           "enum": [
@@ -1732,6 +1736,27 @@
       "additionalProperties": false,
       "type": "object",
       "description": "Background refreshes"
+    },
+    "SpiceConfig": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "If true, enable git-spice integration when the gs binary is available",
+          "default": true
+        },
+        "logFormat": {
+          "type": "string",
+          "enum": [
+            "short",
+            "long"
+          ],
+          "description": "LogFormat for displaying git-spice stacks: 'short' | 'long'\n'short' shows basic branch hierarchy\n'long' shows additional PR info, sync status, and commits",
+          "default": "short"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config for git-spice integration"
     },
     "SpinnerConfig": {
       "properties": {

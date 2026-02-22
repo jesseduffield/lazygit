@@ -23,6 +23,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/reflog"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/remote"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/shell_commands"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/spice"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/staging"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/status"
@@ -366,6 +367,13 @@ var tests = []*components.IntegrationTest{
 	shell_commands.EditHistory,
 	shell_commands.History,
 	shell_commands.OmitFromHistory,
+	spice.BasicDisplay,
+	spice.CheckoutBranch,
+	spice.CreateBranch,
+	spice.DeleteBranch,
+	spice.LogFormatToggle,
+	spice.NavigationMenu,
+	spice.StackOperationsMenu,
 	staging.DiffChangeScreenMode,
 	staging.DiffContextChange,
 	staging.DiscardAllChanges,

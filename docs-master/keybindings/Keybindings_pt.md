@@ -338,6 +338,32 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <esc> `` | Exit back to side panel |  |
 | `` / `` | Search the current view by text |  |
 
+## Stacks
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | View commits |  |
+| `` s `` | Squash |  |
+| `` f `` | Fixup |  |
+| `` r `` | Reword |  |
+| `` d `` | Descartar |  |
+| `` e `` | Editar |  |
+| `` A `` | Modificar |  |
+| `` g `` | Restaurar |  |
+| `` C `` | Copiar (cherry-pick) |  |
+| `` y `` | Copy commit attribute to clipboard |  |
+| `` <space> `` | Verificar |  |
+| `` <c-j> `` | Mover commit um para baixo |  |
+| `` <c-k> `` | Mover o commit um para cima |  |
+| `` S `` | Stack operations |  |
+| `` G `` | Stack navigation |  |
+| `` V `` | Toggle log format | Toggle between short and long format. Short shows basic hierarchy, long shows PR info and sync status. |
+| `` n `` | Create branch (on selected) |  |
+| `` N `` | Create commit |  |
+| `` 0 `` | Focus main view |  |
+| `` w `` | View worktree options |  |
+| `` / `` | Filter the current view by text |  |
+
 ## Stash
 
 | Key | Action | Info |

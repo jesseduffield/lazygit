@@ -787,6 +787,64 @@ type TranslationSet struct {
 	OpenLogMenuTooltip                       string
 	LogMenuTitle                             string
 	ToggleShowGitGraphAll                    string
+	ToggleSpiceLogFormat                     string
+	ToggleSpiceLogFormatTooltip              string
+	SpiceStacksTitle                         string
+	SpiceRestackingStatus                    string
+	SpiceSubmittingStatus                    string
+	SpiceNewBranch                           string
+	SpiceDeleteBranch                        string
+	SpiceBranchNamePrompt                    string
+	SpiceDeleteConfirmTitle                  string
+	SpiceDeleteConfirmPrompt                 string
+	SpiceBranchOnly                          string
+	SpiceCommitOnly                          string
+	SpiceCreateBranch                        string
+	SpiceCreateCommit                        string
+	SpiceNotInitialized                      string
+	SpiceSelectTrunkBranch                   string
+	SpiceInitializingStatus                  string
+	SpiceInitialize                          string
+	SpiceNoStacks                            string
+	SpicePatch                               string
+	SpiceBranchNotFound                      string
+	SpiceCommitNotFound                      string
+	SpiceNoItemSelected                      string
+	SpiceMoveBranchDown                      string
+	SpiceMoveBranchUp                        string
+	SpiceStackOperations                     string
+	SpiceStackNavigation                     string
+	SpiceStackOperationsMenuTitle            string
+	SpiceStackNavigationMenuTitle            string
+	SpiceRestackBranch                       string
+	SpiceRestackAll                          string
+	SpiceSubmitBranch                        string
+	SpiceSubmitBranchOptions                 string
+	SpiceSubmitAll                           string
+	SpiceSubmitAllOptions                    string
+	SpiceRepoSync                            string
+	SpiceRepoSyncRestack                     string
+	SpiceRepoSyncTooltip                     string
+	SpiceNavigateUp                          string
+	SpiceNavigateUpTooltip                   string
+	SpiceNavigateDown                        string
+	SpiceNavigateDownTooltip                 string
+	SpiceNavigateTop                         string
+	SpiceNavigateTopTooltip                  string
+	SpiceNavigateBottom                      string
+	SpiceNavigateBottomTooltip               string
+	SpiceSubmitBranchOptionsMenuTitle        string
+	SpiceSubmitAllOptionsMenuTitle           string
+	SpiceNoPublish                           string
+	SpiceNoPublishTooltip                    string
+	SpiceUpdateOnly                          string
+	SpiceUpdateOnlyTooltip                   string
+	SpiceSubmitDefault                       string
+	SpiceSubmitAllDefault                    string
+	SpiceLogFormatMenuTitle                  string
+	SpiceLogFormatShort                      string
+	SpiceLogFormatLong                       string
+	SpiceLogFormatDefault                    string
 	ShowGitGraph                             string
 	ShowGitGraphTooltip                      string
 	SortOrder                                string
@@ -1893,6 +1951,64 @@ func EnglishTranslationSet() *TranslationSet {
 		OpenLogMenuTooltip:                       "View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph.",
 		LogMenuTitle:                             "Commit Log Options",
 		ToggleShowGitGraphAll:                    "Toggle show whole git graph (pass the `--all` flag to `git log`)",
+		ToggleSpiceLogFormat:                     "Toggle log format",
+		ToggleSpiceLogFormatTooltip:              "Toggle between short and long format. Short shows basic hierarchy, long shows PR info and sync status.",
+		SpiceStacksTitle:                         "Stacks",
+		SpiceRestackingStatus:                    "Restacking",
+		SpiceSubmittingStatus:                    "Submitting",
+		SpiceNewBranch:                           "New branch",
+		SpiceDeleteBranch:                        "Delete branch",
+		SpiceBranchNamePrompt:                    "Branch name:",
+		SpiceDeleteConfirmTitle:                  "Delete branch",
+		SpiceDeleteConfirmPrompt:                 "Are you sure you want to delete this branch from the stack?",
+		SpiceBranchOnly:                          "This command only applies to branches",
+		SpiceCommitOnly:                          "This command only applies to commits",
+		SpiceCreateBranch:                        "Create branch (on selected)",
+		SpiceCreateCommit:                        "Create commit",
+		SpiceNotInitialized:                      "git-spice is not initialized for this repository.\n\nPress <enter> to initialize and select a trunk branch.",
+		SpiceSelectTrunkBranch:                   "Select trunk branch:",
+		SpiceInitializingStatus:                  "Initializing git-spice...",
+		SpiceInitialize:                          "Initialize git-spice",
+		SpiceNoStacks:                            "No stacks",
+		SpicePatch:                               "Patch",
+		SpiceBranchNotFound:                      "Branch not found",
+		SpiceCommitNotFound:                      "Commit not found in commits list",
+		SpiceNoItemSelected:                      "No item selected",
+		SpiceMoveBranchDown:                      "Move branch down in stack",
+		SpiceMoveBranchUp:                        "Move branch up in stack",
+		SpiceStackOperations:                     "Stack operations",
+		SpiceStackNavigation:                     "Stack navigation",
+		SpiceStackOperationsMenuTitle:            "Stack Operations",
+		SpiceStackNavigationMenuTitle:            "Stack Navigation",
+		SpiceRestackBranch:                       "Restack branch",
+		SpiceRestackAll:                          "Restack all",
+		SpiceSubmitBranch:                        "Submit branch",
+		SpiceSubmitBranchOptions:                 "Submit branch (options)",
+		SpiceSubmitAll:                           "Submit all",
+		SpiceSubmitAllOptions:                    "Submit all (options)",
+		SpiceRepoSync:                            "Sync repo",
+		SpiceRepoSyncRestack:                     "Sync repo (with restack)",
+		SpiceRepoSyncTooltip:                     "Pull latest changes and delete branches with merged PRs",
+		SpiceNavigateUp:                          "Up",
+		SpiceNavigateUpTooltip:                   "Navigate up one branch in the stack (gs up)",
+		SpiceNavigateDown:                        "Down",
+		SpiceNavigateDownTooltip:                 "Navigate down one branch in the stack (gs down)",
+		SpiceNavigateTop:                         "Top",
+		SpiceNavigateTopTooltip:                  "Navigate to the top of the stack (gs top)",
+		SpiceNavigateBottom:                      "Bottom",
+		SpiceNavigateBottomTooltip:               "Navigate to the bottom of the stack (gs bottom)",
+		SpiceSubmitBranchOptionsMenuTitle:        "Submit Branch Options",
+		SpiceSubmitAllOptionsMenuTitle:           "Submit All Options",
+		SpiceNoPublish:                           "No publish",
+		SpiceNoPublishTooltip:                    "Create/update PR without publishing (keeps as draft)",
+		SpiceUpdateOnly:                          "Update only",
+		SpiceUpdateOnlyTooltip:                   "Only update existing PRs, don't create new ones",
+		SpiceSubmitDefault:                       "Submit (default)",
+		SpiceSubmitAllDefault:                    "Submit all (default)",
+		SpiceLogFormatMenuTitle:                  "Log Format",
+		SpiceLogFormatShort:                      "Short",
+		SpiceLogFormatLong:                       "Long",
+		SpiceLogFormatDefault:                    "Default (from config)",
 		ShowGitGraph:                             "Show git graph",
 		ShowGitGraphTooltip:                      "Show or hide the git graph in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.showGraph'.",
 		SortOrder:                                "Sort order",
