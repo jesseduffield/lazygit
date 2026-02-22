@@ -187,6 +187,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` C `` | Kopieer commit (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` z `` | Toggle mark for selection |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk gecommite bestanden |  |
 | `` w `` | View worktree options |  |
@@ -263,6 +264,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-r> `` | Reset cherry-picked (gekopieerde) commits selectie |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` z `` | Toggle mark for selection |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` w `` | View worktree options |  |
@@ -369,6 +371,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-r> `` | Reset cherry-picked (gekopieerde) commits selectie |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` z `` | Toggle mark for selection |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk gecommite bestanden |  |
 | `` w `` | View worktree options |  |

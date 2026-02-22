@@ -156,6 +156,7 @@ _Связки клавиш_
 | `` <c-r> `` | Сбросить отобранную (скопированную \| cherry-picked) выборку коммитов |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` z `` | Toggle mark for selection |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
@@ -197,6 +198,7 @@ _Связки клавиш_
 | `` C `` | Скопировать отобранные коммит (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` z `` | Toggle mark for selection |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть файлы выбранного элемента |  |
 | `` w `` | View worktree options |  |
@@ -263,6 +265,7 @@ _Связки клавиш_
 | `` <c-r> `` | Сбросить отобранную (скопированную \| cherry-picked) выборку коммитов |  |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` z `` | Toggle mark for selection |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть файлы выбранного элемента |  |
 | `` w `` | View worktree options |  |

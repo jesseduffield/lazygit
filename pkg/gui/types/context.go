@@ -218,6 +218,7 @@ type IViewTrait interface {
 	PageDelta() int
 	SelectedLineIdx() int
 	SetHighlight(bool)
+	SetLineHighlight(y int, on bool)
 }
 
 type OnFocusOpts struct {
@@ -278,6 +279,12 @@ type IListCursor interface {
 	AreMultipleItemsSelected() bool
 	ToggleStickyRange()
 	ExpandNonStickyRange(int)
+	// Marking methods for non-contiguous selection
+	ToggleMark(idx int)
+	IsMarked(idx int) bool
+	GetMarkedIndices() []int
+	ClearMarks()
+	HasMarks() bool
 }
 
 type IListPanelState interface {

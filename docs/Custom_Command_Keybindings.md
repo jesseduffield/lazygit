@@ -326,6 +326,7 @@ Your commands can contain placeholder strings using Go's [template syntax](https
 ```
 SelectedCommit
 SelectedCommitRange
+SelectedCommits
 SelectedFile
 SelectedPath
 SelectedSubmodule
@@ -344,10 +345,30 @@ CheckedOutBranch
 
 To see what fields are available on e.g. the `SelectedFile`, see [here](https://github.com/jesseduffield/lazygit/blob/master/pkg/gui/services/custom_commands/models.go) (all the modelling lives in the same file).
 
-We don't support accessing all elements of a range selection yet. We might add this in the future, but as a special case you can access the range of selected commits by using `SelectedCommitRange`, which has two properties `.To` and `.From` which are the hashes of the bottom and top selected commits, respectively. This is useful for passing them to a git command that operates on a range of commits. For example, to create patches for all selected commits, you might use
+### SelectedCommitRange
+
+You can access the range of selected commits by using `SelectedCommitRange`, which has two properties `.To` and `.From` which are the hashes of the bottom and top selected commits, respectively. This is useful for passing them to a git command that operates on a range of commits. For example, to create patches for all selected commits, you might use
 ```yml
   command: "git format-patch {{.SelectedCommitRange.From}}^..{{.SelectedCommitRange.To}}"
 ```
+
+### SelectedCommits
+
+You can select individual commits non-contiguously by:
+- Pressing `z` to toggle mark on the currently selected commit
+- Using `Option+Click` (Alt+Click) on commits to mark/unmark them
+
+The selected commits are available in `SelectedCommits` as an array. You can iterate over them using Go's template `range`:
+
+```yml
+customCommands:
+  - key: 'X'
+    context: 'commits'
+    command: "git show {{ range .SelectedCommits }}{{ .Hash }} {{ end }}"
+    description: 'Show all selected commits'
+```
+
+Each commit in the array has the same fields as `SelectedCommit` (Hash, Name, Status, etc.).
 
 We support the following functions:
 

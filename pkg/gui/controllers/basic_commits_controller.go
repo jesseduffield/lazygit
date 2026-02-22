@@ -129,6 +129,12 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			GetDisabledReason: self.require(self.canSelectCommitsOfCurrentBranch),
 			Description:       self.c.Tr.SelectCommitsOfCurrentBranch,
 		},
+		{
+			Key:               'z',
+			Handler:           self.toggleMark,
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.ToggleMarkCommit,
+		},
 	}
 
 	return bindings
@@ -357,6 +363,13 @@ func (self *BasicCommitsController) createResetMenu(commit *models.Commit) error
 
 func (self *BasicCommitsController) checkout(commit *models.Commit) error {
 	return self.c.Helpers().Refs.CreateCheckoutMenu(commit)
+}
+
+func (self *BasicCommitsController) toggleMark() error {
+	selectedIdx := self.context.GetSelectedLineIdx()
+	self.context.GetList().ToggleMark(selectedIdx)
+	self.context.HandleRender()
+	return nil
 }
 
 func (self *BasicCommitsController) copyRange(*models.Commit) error {
