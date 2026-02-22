@@ -119,7 +119,7 @@ func (self *ConfirmationHelper) getPopupPanelDimensionsAux(contentWidth int, con
 		x0, y0, _, _ := parentPopupContext.GetView().Dimensions()
 		x0 += 2
 		y0 += 1
-		return x0, y0, x0 + panelWidth, y0 + panelHeight + 1
+		return x0, y0, x0 + panelWidth, y0 + panelHeight - 1
 	}
 	return width/2 - panelWidth/2,
 		height/2 - panelHeight/2 - panelHeight%2,
