@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/go-errors/errors"
@@ -969,13 +971,113 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 		}
 	}
 
+	var baseWithinRebase *models.Commit
+	var baseGlobal *models.Commit
+	if baseName, ok := helpers.IsFixupCommit(commit.Name); ok {
+		commits := self.c.Model().Commits
+		currentIdx := slices.Index(commits, commit)
+		commits = commits[currentIdx:]
+
+		_, rebaseStartIdx, err := self.findCommitForSquashFixupsInCurrentBranch()
+		if err != nil {
+			rebaseStartIdx = -1
+		}
+
+		if rebaseStartIdx >= 0 {
+			baseWithinRebase = helpers.FindFixupBaseCommit(baseName, commits[:rebaseStartIdx+1])
+		}
+
+		// Use a more strict criteria for finding a base commit candidate when searching
+		// all of the commits when searching all of the commits.
+		//
+		// Search newest -> oldest where the subject is an exact match only
+		baseWithinRebase = helpers.FindFixupBaseCommit(baseName, commits)
+		for _, c := range commits {
+			subject, _, _ := strings.Cut(c.Name, "\n")
+			if subject == baseName {
+				baseGlobal = c
+			}
+		}
+	}
+
+	withMaybeBase := func(f func(commit *models.Commit) error) func() error {
+		if baseWithinRebase == nil && baseGlobal == nil {
+			return func() error { return f(commit) }
+		}
+
+		// We are trying to fixup a fixup/amend/reword commit. Likely the user just
+		// wants to apply the action to the base commit.
+
+		var withinSummary string
+		withinDisabled := &types.DisabledReason{
+			Text:             self.c.Tr.NoBaseCommitsFound,
+			ShowErrorInPanel: true,
+		}
+		if baseWithinRebase != nil {
+			s, _, _ := strings.Cut(baseWithinRebase.Name, "\n")
+			withinSummary = fmt.Sprintf("%s %s",
+				style.FgYellow.Sprint(baseWithinRebase.ShortRefName()),
+				utils.TruncateWithEllipsis(s, 80),
+			)
+			withinDisabled = nil
+		}
+
+		var globalSummary string
+		globalDisabled := &types.DisabledReason{
+			Text:             self.c.Tr.NoBaseCommitsFound,
+			ShowErrorInPanel: true,
+		}
+		if baseGlobal != nil {
+			s, _, _ := strings.Cut(baseGlobal.Name, "\n")
+			globalSummary = fmt.Sprintf("%s %s",
+				style.FgYellow.Sprint(baseGlobal.ShortRefName()),
+				utils.TruncateWithEllipsis(s, 80),
+			)
+			globalDisabled = nil
+		}
+
+		summary, _, _ := strings.Cut(commit.Name, "\n")
+		summary = fmt.Sprintf("%s %s",
+			style.FgYellow.Sprint(commit.ShortRefName()),
+			utils.TruncateWithEllipsis(summary, 80),
+		)
+
+		return func() error {
+			return self.c.Menu(types.CreateMenuOptions{
+				Title: self.c.Tr.FixupMenu_SelectCommit,
+				Items: []*types.MenuItem{
+					{
+						Label:          self.c.Tr.FixupMenu_SelectBase,
+						Key:            'b',
+						OnPress:        func() error { return f(baseWithinRebase) },
+						Tooltip:        withinSummary,
+						DisabledReason: withinDisabled,
+					},
+					{
+						Label:          self.c.Tr.FixupMenu_SelectGlobalBase,
+						Key:            'g',
+						OnPress:        func() error { return f(baseGlobal) },
+						Tooltip:        globalSummary,
+						DisabledReason: globalDisabled,
+					},
+					{
+						Label:   self.c.Tr.FixUpMenu_SelectSelected,
+						Key:     's',
+						OnPress: func() error { return f(commit) },
+						Tooltip: summary,
+					},
+				},
+			})
+		}
+	}
+
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.CreateFixupCommit,
 		Items: []*types.MenuItem{
 			{
 				Label: self.c.Tr.FixupMenu_Fixup,
 				Key:   'f',
-				OnPress: func() error {
+				OnPress: withMaybeBase(func(commit *models.Commit) error {
 					return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 						self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
 						return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
@@ -992,18 +1094,18 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 							return nil
 						})
 					})
-				},
+				}),
 				DisabledReason: disabledReasonWhenFilesAreNeeded,
 				Tooltip:        self.c.Tr.FixupMenu_FixupTooltip,
 			},
 			{
 				Label: self.c.Tr.FixupMenu_AmendWithChanges,
 				Key:   'a',
-				OnPress: func() error {
+				OnPress: withMaybeBase(func(commit *models.Commit) error {
 					return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 						return self.createAmendCommit(commit, true)
 					})
-				},
+				}),
 				DisabledReason: disabledReasonWhenFilesAreNeeded,
 				Tooltip:        self.c.Tr.FixupMenu_AmendWithChangesTooltip,
 			},
@@ -1171,10 +1273,8 @@ func countSquashableCommitsAbove(commits []*models.Commit, selectedIdx int, reba
 		if baseSubject, isFixup := helpers.IsFixupCommit(commit.Name); isFixup {
 			// Then, for each commit after the fixup, up to and including the
 			// rebase start commit, see if we find the base commit
-			for _, baseCommit := range commits[i+1 : rebaseStartIdx+1] {
-				if strings.HasPrefix(baseCommit.Name, baseSubject) {
-					result++
-				}
+			if helpers.FindFixupBaseCommit(baseSubject, commits[i+1:rebaseStartIdx+1]) != nil {
+				result++
 			}
 		}
 	}

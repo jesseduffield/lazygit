@@ -205,6 +205,100 @@ func TestFixupHelper_IsFixupCommit(t *testing.T) {
 	}
 }
 
+func TestFixupHelper_FindFixupBaseCommit(t *testing.T) {
+	hashPool := &utils.StringPool{}
+
+	type commitDesc struct {
+		Hash string
+		Name string
+	}
+
+	scenarios := []struct {
+		subject    string
+		commits    []commitDesc
+		targetHash string
+	}{
+		{
+			subject: "fixup! Simple feature",
+			commits: []commitDesc{
+				{Hash: "abc123", Name: "Simple feature"},
+			},
+			targetHash: "abc123",
+		},
+		{
+			subject: "fixup! abc123",
+			commits: []commitDesc{
+				{Hash: "abc123", Name: "Something else"},
+			},
+			targetHash: "abc123",
+		},
+		{
+			subject: "fixup! Partial match",
+			commits: []commitDesc{
+				{Hash: "def456", Name: "Partial match for this commit"},
+			},
+			targetHash: "def456",
+		},
+		{
+			subject: "fixup! Multiple matches",
+			commits: []commitDesc{
+				{Hash: "111111", Name: "Multiple matches"},
+				{Hash: "222222", Name: "Multiple matches"},
+			},
+			targetHash: "222222",
+		},
+		{
+			subject: "fixup! Multiline",
+			commits: []commitDesc{
+				{Hash: "ghi789", Name: "Multiline\n\nDetailed description here"},
+			},
+			targetHash: "ghi789",
+		},
+		{
+			subject: "fixup! No match",
+			commits: []commitDesc{
+				{Hash: "jkl012", Name: "Unrelated work"},
+			},
+			targetHash: "",
+		},
+		{
+			subject: "fixup! 7777",
+			commits: []commitDesc{
+				{Hash: "77778888", Name: "Match by partial hash"},
+			},
+			targetHash: "77778888",
+		},
+		{
+			subject: "fixup! Feature A",
+			commits: []commitDesc{
+				{Hash: "abc123", Name: "Feature A"},
+				{Hash: "def456", Name: "Unrelated"},
+				{Hash: "ghi789", Name: "Feature A"},
+			},
+			targetHash: "ghi789",
+		},
+	}
+
+	makeCommitFromDesc := func(desc commitDesc, _ int) *models.Commit {
+		return models.NewCommit(hashPool, models.NewCommitOpts{Hash: desc.Hash, Name: desc.Name})
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.subject, func(t *testing.T) {
+			trimmedSubject, isFixupCommit := IsFixupCommit(s.subject)
+			assert.Equal(t, true, isFixupCommit)
+
+			commits := lo.Map(s.commits, makeCommitFromDesc)
+			found := FindFixupBaseCommit(trimmedSubject, commits)
+			if found == nil {
+				assert.Equal(t, s.targetHash, "")
+			} else {
+				assert.Equal(t, s.targetHash, found.Hash())
+			}
+		})
+	}
+}
+
 func TestFixupHelper_removeFixupCommits(t *testing.T) {
 	hashPool := &utils.StringPool{}
 

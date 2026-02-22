@@ -479,6 +479,10 @@ type TranslationSet struct {
 	FixupMenu_AmendWithChangesTooltip     string
 	FixupMenu_AmendWithoutChanges         string
 	FixupMenu_AmendWithoutChangesTooltip  string
+	FixupMenu_SelectCommit                string
+	FixupMenu_SelectBase                  string
+	FixupMenu_SelectGlobalBase            string
+	FixUpMenu_SelectSelected              string
 	SquashAboveCommitsTooltip             string
 	SquashCommitsAboveSelectedTooltip     string
 	SquashCommitsInCurrentBranchTooltip   string
@@ -1592,6 +1596,10 @@ func EnglishTranslationSet() *TranslationSet {
 		FixupMenu_AmendWithChangesTooltip:    "Lets you fixup another commit and also change its commit message.",
 		FixupMenu_AmendWithoutChanges:        "amend! commit without changes (pure reword)",
 		FixupMenu_AmendWithoutChangesTooltip: "Lets you change the commit message of another commit without changing its content.",
+		FixupMenu_SelectCommit:               "Select base commit",
+		FixupMenu_SelectBase:                 "base commit",
+		FixupMenu_SelectGlobalBase:           "base commit (searching all commits)",
+		FixUpMenu_SelectSelected:             "selected commit",
 		SquashAboveCommits:                   "Apply fixup commits",
 		SquashAboveCommitsTooltip:            `Squash all 'fixup!' commits, either above the selected commit, or all in current branch (autosquash).`,
 		SquashCommitsAboveSelectedTooltip:    `Squash all 'fixup!' commits above the selected commit (autosquash).`,
