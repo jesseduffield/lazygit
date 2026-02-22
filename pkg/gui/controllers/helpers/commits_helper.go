@@ -8,6 +8,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -152,6 +153,12 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 	self.UpdateCommitPanelView(opts.InitialMessage)
 
 	self.c.Context().Push(self.c.Contexts().CommitMessage, types.OnFocusOpts{})
+
+	// Async AI commit message generation
+	generatorCmd := self.c.UserConfig().Git.CommitMessageGenerator.Command
+	if generatorCmd != "" && opts.CommitIndex == context.NoCommitIndex {
+		self.generateCommitMessageAsync(generatorCmd)
+	}
 }
 
 func (self *CommitsHelper) ClearPreservedCommitMessage() {
@@ -242,6 +249,35 @@ func (self *CommitsHelper) addCoAuthor(suggestionFunc func(string) []*types.Sugg
 	})
 
 	return nil
+}
+
+func (self *CommitsHelper) generateCommitMessageAsync(command string) {
+	origSubtitle := self.c.Views().CommitDescription.Subtitle
+	self.c.Views().CommitDescription.Subtitle = self.c.Tr.GeneratingCommitMessage
+
+	// Snapshot current content so we can detect user edits
+	origSummary := self.getCommitSummary()
+	origDescription := self.getCommitDescription()
+
+	self.c.OnWorker(func(_ gocui.Task) error {
+		output, err := self.c.OS().Cmd.NewShell(
+			command,
+			self.c.UserConfig().OS.ShellFunctionsFile,
+		).RunWithOutput()
+
+		self.c.OnUIThread(func() error {
+			self.c.Views().CommitDescription.Subtitle = origSubtitle
+
+			// Only fill if the user hasn't modified the fields since we started
+			if err == nil && strings.TrimSpace(output) != "" &&
+				self.getCommitSummary() == origSummary && self.getCommitDescription() == origDescription {
+				self.SetMessageAndDescriptionInView(strings.TrimSpace(output))
+			}
+			return nil
+		})
+
+		return nil
+	})
 }
 
 func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
