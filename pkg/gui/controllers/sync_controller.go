@@ -87,6 +87,10 @@ func (self *SyncController) branchCheckedOut(f func(*models.Branch) error) func(
 }
 
 func (self *SyncController) push(currentBranch *models.Branch) error {
+	if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+		return self.pushAux(currentBranch, pushOpts{setUpstream: false})
+	}
+
 	// if we are behind our upstream branch we'll ask if the user wants to force push
 	if currentBranch.IsTrackingRemote() {
 		opts := pushOpts{remoteBranchStoredLocally: currentBranch.RemoteBranchStoredLocally()}
@@ -119,14 +123,16 @@ func (self *SyncController) pull(currentBranch *models.Branch) error {
 	action := self.c.Tr.Actions.Pull
 
 	// if we have no upstream branch we need to set that first
-	if !currentBranch.IsTrackingRemote() {
-		return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
-			if err := self.setCurrentBranchUpstream(upstream); err != nil {
-				return err
-			}
+	if !self.c.Git().Sync.GitCommon.IsSvnRepo() {
+		if !currentBranch.IsTrackingRemote() {
+			return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
+				if err := self.setCurrentBranchUpstream(upstream); err != nil {
+					return err
+				}
 
-			return self.PullAux(currentBranch, PullFilesOptions{Action: action})
-		})
+				return self.PullAux(currentBranch, PullFilesOptions{Action: action})
+			})
+		}
 	}
 
 	return self.PullAux(currentBranch, PullFilesOptions{Action: action})
