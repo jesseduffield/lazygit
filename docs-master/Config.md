@@ -321,6 +321,11 @@ gui:
   # is already active, go to next tab instead
   switchTabsWithPanelJumpKeys: false
 
+  # Format string for the terminal window title. Supports placeholders:
+  # - {{repoName}}: Name of the current repository
+  # Set to empty string to disable terminal title updates.
+  terminalTitle: lazygit::{{repoName}}
+
 # Config relating to git
 git:
   # Array of pagers. Each entry has the following format:

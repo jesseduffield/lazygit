@@ -1,10 +1,8 @@
 package oscommands
 
 import (
-	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
+	"strings"
 )
 
 func GetPlatform() *Platform {
@@ -15,13 +13,19 @@ func GetPlatform() *Platform {
 	}
 }
 
-func (c *OSCommand) UpdateWindowTitle() error {
-	path, getWdErr := os.Getwd()
-	if getWdErr != nil {
-		return getWdErr
-	}
-	argString := fmt.Sprint("title ", filepath.Base(path), " - Lazygit")
-	return c.Cmd.NewShell(argString, c.UserConfig().OS.ShellFunctionsFile).Run()
+// SetWindowTitle sets the terminal window title using Windows cmd.exe's title command.
+// This is a fallback for the legacy Windows Console which doesn't support ANSI escape sequences.
+func (c *OSCommand) SetWindowTitle(title string) error {
+	// Escape special cmd.exe characters to prevent command injection
+	escaped := strings.NewReplacer(
+		"^", "^^",
+		"&", "^&",
+		"|", "^|",
+		"<", "^<",
+		">", "^>",
+		"%", "^%",
+	).Replace(title)
+	return c.Cmd.NewShell("title "+escaped, c.UserConfig().OS.ShellFunctionsFile).Run()
 }
 
 func TerminateProcessGracefully(cmd *exec.Cmd) error {

@@ -36,7 +36,9 @@ func getUserShell() string {
 	return "bash"
 }
 
-func (c *OSCommand) UpdateWindowTitle() error {
+// SetWindowTitle is a no-op on non-Windows platforms.
+// Terminal title is set via ANSI escape sequences through gocui.Screen.SetTitle().
+func (c *OSCommand) SetWindowTitle(title string) error {
 	return nil
 }
 
