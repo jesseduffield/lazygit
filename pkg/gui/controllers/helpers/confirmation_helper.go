@@ -102,11 +102,13 @@ func getMessageHeight(wrap bool, editable bool, message string, width int, tabWi
 	return len(wrappedLines)
 }
 
-func (self *ConfirmationHelper) getPopupPanelDimensionsForContentHeight(panelWidth, contentHeight int, parentPopupContext types.Context) (int, int, int, int) {
-	return self.getPopupPanelDimensionsAux(panelWidth, contentHeight, parentPopupContext)
+func (self *ConfirmationHelper) getPopupPanelDimensionsForContentHeight(contentWidth, contentHeight int, parentPopupContext types.Context) (int, int, int, int) {
+	return self.getPopupPanelDimensionsAux(contentWidth, contentHeight, parentPopupContext)
 }
 
-func (self *ConfirmationHelper) getPopupPanelDimensionsAux(panelWidth int, panelHeight int, parentPopupContext types.Context) (int, int, int, int) {
+func (self *ConfirmationHelper) getPopupPanelDimensionsAux(contentWidth int, contentHeight int, parentPopupContext types.Context) (int, int, int, int) {
+	panelWidth := contentWidth + 2 // plus 2 for the frame
+	panelHeight := contentHeight + 2
 	width, height := self.c.GocuiGui().Size()
 	if panelHeight > height*3/4 {
 		panelHeight = height * 3 / 4
@@ -117,14 +119,19 @@ func (self *ConfirmationHelper) getPopupPanelDimensionsAux(panelWidth int, panel
 		x0, y0, _, _ := parentPopupContext.GetView().Dimensions()
 		x0 += 2
 		y0 += 1
-		return x0, y0, x0 + panelWidth, y0 + panelHeight + 1
+		return x0, y0, x0 + panelWidth, y0 + panelHeight - 1
 	}
 	return width/2 - panelWidth/2,
-		height/2 - panelHeight/2 - panelHeight%2 - 1,
-		width/2 + panelWidth/2,
-		height/2 + panelHeight/2
+		height/2 - panelHeight/2 - panelHeight%2,
+		// Currently, X1/Y1 of a gocui view is one less than you would expect based on its
+		// width/height, so we need to subtract 1 here. See
+		// https://github.com/jesseduffield/lazygit/commit/f6f2a52dee8bba3ebd7e3b34b4b7c7d3e3795f3e
+		width/2 + panelWidth/2 - 1,
+		height/2 + panelHeight/2 - 1
 }
 
+// Returns the outer width of the view, including its frame. To decide how to wrap text, subtract 2.
+// Also, note that X1-X0 of the view is one less than this.
 func (self *ConfirmationHelper) getPopupPanelWidth(maxWidth int) int {
 	width, _ := self.c.GocuiGui().Size()
 	// we want a minimum width up to a point, then we do it based on ratio, but only up to the given max width
@@ -331,7 +338,7 @@ func (self *ConfirmationHelper) resizeMenu(parentPopupContext types.Context) {
 	panelWidth := self.getPopupPanelWidth(90)
 	contentWidth := panelWidth - 2 // minus 2 for the frame
 	promptLinesCount := self.layoutMenuPrompt(contentWidth)
-	x0, y0, x1, y1 := self.getPopupPanelDimensionsForContentHeight(panelWidth, itemCount+offset+promptLinesCount, parentPopupContext)
+	x0, y0, x1, y1 := self.getPopupPanelDimensionsForContentHeight(contentWidth, itemCount+offset+promptLinesCount, parentPopupContext)
 	menuBottom := y1 - offset
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().Menu.Name(), x0, y0, x1, menuBottom, 0)
 
@@ -379,8 +386,8 @@ func (self *ConfirmationHelper) resizeConfirmationPanel(parentPopupContext types
 	contentWidth := panelWidth - 2 // minus 2 for the frame
 	confirmationView := self.c.Views().Confirmation
 	prompt := confirmationView.Buffer()
-	panelHeight := getMessageHeight(true, false, prompt, contentWidth, confirmationView.TabWidth)
-	x0, y0, x1, y1 := self.getPopupPanelDimensionsAux(panelWidth, panelHeight, parentPopupContext)
+	contentHeight := getMessageHeight(true, false, prompt, contentWidth, confirmationView.TabWidth)
+	x0, y0, x1, y1 := self.getPopupPanelDimensionsAux(contentWidth, contentHeight, parentPopupContext)
 	_, _ = self.c.GocuiGui().SetView(confirmationView.Name(), x0, y0, x1, y1, 0)
 }
 
@@ -393,8 +400,8 @@ func (self *ConfirmationHelper) resizePromptPanel(parentPopupContext types.Conte
 	contentWidth := panelWidth - 2 // minus 2 for the frame
 	promptView := self.c.Views().Prompt
 	prompt := promptView.TextArea.GetContent()
-	panelHeight := getMessageHeight(false, true, prompt, contentWidth, promptView.TabWidth) + suggestionsViewHeight
-	x0, y0, x1, y1 := self.getPopupPanelDimensionsAux(panelWidth, panelHeight, parentPopupContext)
+	contentHeight := getMessageHeight(false, true, prompt, contentWidth, promptView.TabWidth) + suggestionsViewHeight
+	x0, y0, x1, y1 := self.getPopupPanelDimensionsAux(contentWidth, contentHeight, parentPopupContext)
 	promptViewBottom := y1 - suggestionsViewHeight
 	_, _ = self.c.GocuiGui().SetView(promptView.Name(), x0, y0, x1, promptViewBottom, 0)
 
@@ -410,14 +417,17 @@ func (self *ConfirmationHelper) ResizeCommitMessagePanels(parentPopupContext typ
 		maxWidth = self.c.UserConfig().Git.Commit.AutoWrapWidth + 25
 	}
 	panelWidth := self.getPopupPanelWidth(maxWidth)
+	contentWidth := panelWidth - 2 // minus 2 for the frame
 	content := self.c.Views().CommitDescription.TextArea.GetContent()
 	summaryViewHeight := 3
-	panelHeight := getMessageHeight(false, true, content, panelWidth, self.c.Views().CommitDescription.TabWidth)
+	// The width we pass to getMessageHeight is irrelevant because we don't wrap the text to the
+	// view width. If we did, we'd have to subtract 2 for the view frame.
+	contentHeight := getMessageHeight(false, true, content, contentWidth, self.c.Views().CommitDescription.TabWidth)
 	minHeight := 7
-	if panelHeight < minHeight {
-		panelHeight = minHeight
+	if contentHeight < minHeight {
+		contentHeight = minHeight
 	}
-	x0, y0, x1, y1 := self.getPopupPanelDimensionsAux(panelWidth, panelHeight, parentPopupContext)
+	x0, y0, x1, y1 := self.getPopupPanelDimensionsAux(contentWidth, contentHeight, parentPopupContext)
 
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().CommitMessage.Name(), x0, y0, x1, y0+summaryViewHeight-1, 0)
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().CommitDescription.Name(), x0, y0+summaryViewHeight, x1, y1+summaryViewHeight, 0)
