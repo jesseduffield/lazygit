@@ -130,6 +130,8 @@ func (self *ConfirmationHelper) getPopupPanelDimensionsAux(contentWidth int, con
 		height/2 + panelHeight/2 - 1
 }
 
+// Returns the outer width of the view, including its frame. To decide how to wrap text, subtract 2.
+// Also, note that X1-X0 of the view is one less than this.
 func (self *ConfirmationHelper) getPopupPanelWidth(maxWidth int) int {
 	width, _ := self.c.GocuiGui().Size()
 	// we want a minimum width up to a point, then we do it based on ratio, but only up to the given max width
@@ -418,6 +420,8 @@ func (self *ConfirmationHelper) ResizeCommitMessagePanels(parentPopupContext typ
 	contentWidth := panelWidth - 2 // minus 2 for the frame
 	content := self.c.Views().CommitDescription.TextArea.GetContent()
 	summaryViewHeight := 3
+	// The width we pass to getMessageHeight is irrelevant because we don't wrap the text to the
+	// view width. If we did, we'd have to subtract 2 for the view frame.
 	contentHeight := getMessageHeight(false, true, content, contentWidth, self.c.Views().CommitDescription.TabWidth)
 	minHeight := 7
 	if contentHeight < minHeight {
