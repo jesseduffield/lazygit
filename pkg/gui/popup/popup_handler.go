@@ -108,21 +108,17 @@ func (self *PopupHandler) Alert(title string, message string) {
 
 func (self *PopupHandler) Confirm(opts types.ConfirmOpts) {
 	self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
-		Title:         opts.Title,
-		Prompt:        opts.Prompt,
-		HandleConfirm: opts.HandleConfirm,
-		HandleClose:   opts.HandleClose,
+		Title:              opts.Title,
+		Prompt:             opts.Prompt,
+		HandleConfirm:      opts.HandleConfirm,
+		HandleClose:        opts.HandleClose,
+		AutoCloseCondition: opts.AutoCloseCondition,
 	})
 }
 
 func (self *PopupHandler) ConfirmIf(condition bool, opts types.ConfirmOpts) error {
 	if condition {
-		self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
-			Title:         opts.Title,
-			Prompt:        opts.Prompt,
-			HandleConfirm: opts.HandleConfirm,
-			HandleClose:   opts.HandleClose,
-		})
+		self.Confirm(opts)
 		return nil
 	}
 
