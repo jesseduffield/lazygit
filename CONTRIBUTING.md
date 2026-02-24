@@ -110,6 +110,18 @@ In short, when you submit code changes, your submissions are understood to be
 under the same [MIT License](http://choosealicense.com/licenses/mit/) that
 covers the project. Feel free to contact the maintainers if that's a concern.
 
+## Stale pull requests
+
+We really appreciate contributions, but sometimes PRs go quiet for a long time. To keep the PR queue manageable, we may mark old/inactive PRs as stale and eventually close them.
+
+If your PR gets marked stale, the usual way to get it moving again is to:
+
+- rebase onto `master` (and fix conflicts if needed)
+- make sure checks are passing
+- address any review feedback
+
+If a PR is closed due to inactivity, feel free to comment to ask for it to be reopened, or open a new PR referencing the old one.
+
 ## Report bugs using Github's [issues](https://github.com/jesseduffield/lazygit/issues)
 
 We use GitHub issues to track public bugs. Report a bug by [opening a new
