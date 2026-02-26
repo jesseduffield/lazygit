@@ -221,6 +221,7 @@ var tests = []*components.IntegrationTest{
 	file.DiscardUnstagedRangeSelect,
 	file.DiscardVariousChanges,
 	file.DiscardVariousChangesRangeSelect,
+	file.ExcludeWithoutInfoDir,
 	file.Gitignore,
 	file.GitignoreSpecialCharacters,
 	file.RememberCommitMessageAfterFail,
