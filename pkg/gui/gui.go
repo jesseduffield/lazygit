@@ -453,7 +453,7 @@ func (gui *Gui) onUserConfigLoaded() error {
 	gui.setColorScheme()
 	gui.configureViewProperties()
 
-	if gui.State.Contexts != nil {
+	if gui.State != nil && gui.State.Contexts != nil {
 		if userConfig.Gui.WorktreesInSeparateGroup {
 			gui.State.Contexts.Worktrees.SetWindowName("worktrees")
 		} else {
