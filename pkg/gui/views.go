@@ -217,24 +217,49 @@ func (gui *Gui) configureViewProperties() {
 			return fmt.Sprintf("[%s]", key)
 		}
 		jumpBindings := gui.c.UserConfig().Keybinding.Universal.JumpToBlock
+		sideWindows := gui.sideWindows()
+
+		// Auto-extend jump bindings if there are more windows than bindings
+		for len(jumpBindings) < len(sideWindows) {
+			jumpBindings = append(jumpBindings, fmt.Sprintf("%d", len(jumpBindings)+1))
+		}
+
 		jumpLabels := lo.Map(jumpBindings, func(binding string, _ int) string {
 			return keyToTitlePrefix(binding)
 		})
 
-		gui.Views.Status.TitlePrefix = jumpLabels[0]
+		// Build a map from window name to its jump label
+		windowLabel := func(window string) string {
+			for i, w := range sideWindows {
+				if w == window {
+					return jumpLabels[i]
+				}
+			}
+			return ""
+		}
 
-		gui.Views.Files.TitlePrefix = jumpLabels[1]
-		gui.Views.Worktrees.TitlePrefix = jumpLabels[1]
-		gui.Views.Submodules.TitlePrefix = jumpLabels[1]
+		gui.Views.Status.TitlePrefix = windowLabel("status")
 
-		gui.Views.Branches.TitlePrefix = jumpLabels[2]
-		gui.Views.Remotes.TitlePrefix = jumpLabels[2]
-		gui.Views.Tags.TitlePrefix = jumpLabels[2]
+		filesLabel := windowLabel("files")
+		gui.Views.Files.TitlePrefix = filesLabel
+		gui.Views.Submodules.TitlePrefix = filesLabel
 
-		gui.Views.Commits.TitlePrefix = jumpLabels[3]
-		gui.Views.ReflogCommits.TitlePrefix = jumpLabels[3]
+		if gui.c.UserConfig().Gui.WorktreesInSeparateGroup {
+			gui.Views.Worktrees.TitlePrefix = windowLabel("worktrees")
+		} else {
+			gui.Views.Worktrees.TitlePrefix = filesLabel
+		}
 
-		gui.Views.Stash.TitlePrefix = jumpLabels[4]
+		branchesLabel := windowLabel("branches")
+		gui.Views.Branches.TitlePrefix = branchesLabel
+		gui.Views.Remotes.TitlePrefix = branchesLabel
+		gui.Views.Tags.TitlePrefix = branchesLabel
+
+		commitsLabel := windowLabel("commits")
+		gui.Views.Commits.TitlePrefix = commitsLabel
+		gui.Views.ReflogCommits.TitlePrefix = commitsLabel
+
+		gui.Views.Stash.TitlePrefix = windowLabel("stash")
 
 		gui.Views.Main.TitlePrefix = keyToTitlePrefix(gui.c.UserConfig().Keybinding.Universal.FocusMainView)
 	} else {
@@ -271,4 +296,19 @@ func (gui *Gui) configureViewProperties() {
 			}
 		}
 	}
+}
+
+// sideWindows returns the list of side windows based on config.
+// This duplicates the logic from WindowHelper.SideWindows() so it can be used
+// before helpers are initialized.
+func (gui *Gui) sideWindows() []string {
+	windows := []string{}
+	if !gui.c.UserConfig().Gui.HideStatusPanel {
+		windows = append(windows, "status")
+	}
+	if gui.c.UserConfig().Gui.WorktreesInSeparateGroup {
+		windows = append(windows, "worktrees")
+	}
+	windows = append(windows, "files", "branches", "commits", "stash")
+	return windows
 }
