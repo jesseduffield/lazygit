@@ -135,5 +135,13 @@ func (self *WindowHelper) WindowForView(viewName string) string {
 }
 
 func (self *WindowHelper) SideWindows() []string {
-	return []string{"status", "files", "branches", "commits", "stash"}
+	windows := []string{}
+	if !self.c.UserConfig().Gui.HideStatusPanel {
+		windows = append(windows, "status")
+	}
+	if self.c.UserConfig().Gui.WorktreesInSeparateGroup {
+		windows = append(windows, "worktrees")
+	}
+	windows = append(windows, "files", "branches", "commits", "stash")
+	return windows
 }
