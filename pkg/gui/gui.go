@@ -472,6 +472,14 @@ func (gui *Gui) onUserConfigLoaded() error {
 	gui.setColorScheme()
 	gui.configureViewProperties()
 
+	if gui.State.Contexts != nil {
+		if userConfig.Gui.WorktreesInSeparateGroup {
+			gui.State.Contexts.Worktrees.SetWindowName("worktrees")
+		} else {
+			gui.State.Contexts.Worktrees.SetWindowName("files")
+		}
+	}
+
 	gui.g.SearchEscapeKeys = config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.Return)
 	gui.g.NextSearchMatchKeys = config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.NextMatch)
 	gui.g.PrevSearchMatchKeys = config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.PrevMatch)
