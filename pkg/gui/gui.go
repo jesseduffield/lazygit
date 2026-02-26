@@ -811,20 +811,25 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 				ViewName: "reflogCommits",
 			},
 		},
-		"files": {
-			{
-				Tab:      gui.c.Tr.FilesTitle,
-				ViewName: "files",
-			},
-			context.TabView{
-				Tab:      gui.c.Tr.WorktreesTitle,
-				ViewName: "worktrees",
-			},
-			{
+		"files": func() []context.TabView {
+			tabs := []context.TabView{
+				{
+					Tab:      gui.c.Tr.FilesTitle,
+					ViewName: "files",
+				},
+			}
+			if !gui.c.UserConfig().Gui.WorktreesInSeparateGroup {
+				tabs = append(tabs, context.TabView{
+					Tab:      gui.c.Tr.WorktreesTitle,
+					ViewName: "worktrees",
+				})
+			}
+			tabs = append(tabs, context.TabView{
 				Tab:      gui.c.Tr.SubmodulesTitle,
 				ViewName: "submodules",
-			},
-		},
+			})
+			return tabs
+		}(),
 	}
 
 	return result
