@@ -14,6 +14,7 @@ git:
     - pager: delta --dark --paging=never
     - pager: ydiff -p cat -s --wrap --width={{columnWidth}}
       colorArg: never
+    - pager: cat
     - externalDiffCommand: difft --color=always
 ```
 
