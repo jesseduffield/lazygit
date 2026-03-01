@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/samber/lo"
 )
 
@@ -19,6 +20,7 @@ type WorkingTreeContext struct {
 var (
 	_ types.IListContext       = (*WorkingTreeContext)(nil)
 	_ types.ISearchableContext = (*WorkingTreeContext)(nil)
+	_ types.IFilterableContext = (*WorkingTreeContext)(nil)
 )
 
 func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
@@ -64,4 +66,10 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 
 func (self *WorkingTreeContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
 	return nil
+}
+
+func (self *WorkingTreeContext) IsFilterableContext() {}
+
+func (self *WorkingTreeContext) FilterPrefix(tr *i18n.TranslationSet) string {
+	return tr.FilterPrefix
 }

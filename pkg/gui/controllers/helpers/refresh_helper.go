@@ -1,9 +1,13 @@
 package helpers
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/gocui"
@@ -582,19 +586,23 @@ func (self *RefreshHelper) refreshStateFiles() error {
 
 	fileTreeViewModel.RWMutex.Lock()
 
+	if self.c.UserConfig().Gui.FilterFilesByCwd {
+		defaultFilter := self.defaultFilesPathFilterFromCwd()
+		fileTreeViewModel.EnsurePathFilterInitialized(defaultFilter, self.c.UserConfig().Gui.UseFuzzySearch())
+	}
+
 	// only taking over the filter if it hasn't already been set by the user.
 	if conflictFileCount > 0 && prevConflictFileCount == 0 {
-		if fileTreeViewModel.GetFilter() == filetree.DisplayAll {
+		if fileTreeViewModel.GetStatusFilter() == filetree.DisplayAll {
 			fileTreeViewModel.SetStatusFilter(filetree.DisplayConflicted)
-			self.c.Contexts().Files.GetView().Subtitle = self.c.Tr.FilterLabelConflictingFiles
 		}
-	} else if conflictFileCount == 0 && fileTreeViewModel.GetFilter() == filetree.DisplayConflicted {
+	} else if conflictFileCount == 0 && fileTreeViewModel.GetStatusFilter() == filetree.DisplayConflicted {
 		fileTreeViewModel.SetStatusFilter(filetree.DisplayAll)
-		self.c.Contexts().Files.GetView().Subtitle = ""
 	}
 
 	self.c.Model().Files = files
 	fileTreeViewModel.SetTree()
+	self.c.Contexts().Files.GetView().Subtitle = filesSubtitle(fileTreeViewModel.GetStatusFilter(), fileTreeViewModel.GetFilter(), self.c.Tr)
 	fileTreeViewModel.RWMutex.Unlock()
 
 	return nil
@@ -756,4 +764,75 @@ func (self *RefreshHelper) refreshView(context types.Context) {
 		self.searchHelper.ReApplySearch(context)
 		return nil
 	})
+}
+
+func (self *RefreshHelper) defaultFilesPathFilterFromCwd() string {
+	repoPath := self.c.Git().RepoPaths.RepoPath()
+	cwd := os.Getenv("PWD")
+	if cwd == "" {
+		wd, err := os.Getwd()
+		if err != nil {
+			return ""
+		}
+		cwd = wd
+	}
+
+	mkRel := func(from, to string) (string, bool) {
+		rel, err := filepath.Rel(from, to)
+		if err != nil || rel == "." || strings.HasPrefix(rel, "..") {
+			return "", false
+		}
+		return filepath.ToSlash(rel), true
+	}
+
+	if rel, ok := mkRel(repoPath, cwd); ok {
+		return rel
+	}
+
+	if absCwd, err := filepath.Abs(cwd); err == nil && absCwd != cwd {
+		if rel, ok := mkRel(repoPath, absCwd); ok {
+			return rel
+		}
+	}
+
+	// fallback for cases where cwd/repoPath differ only by symlink resolution
+	realRepoPath, repoErr := filepath.EvalSymlinks(repoPath)
+	realCwd, cwdErr := filepath.EvalSymlinks(cwd)
+	if repoErr == nil && cwdErr == nil {
+		if rel, ok := mkRel(realRepoPath, realCwd); ok {
+			return rel
+		}
+	}
+
+	return ""
+}
+
+func filesSubtitle(statusFilter filetree.FileTreeDisplayFilter, pathFilter string, tr *i18n.TranslationSet) string {
+	statusLabel := ""
+	switch statusFilter {
+	case filetree.DisplayStaged:
+		statusLabel = tr.FilterLabelStagedFiles
+	case filetree.DisplayUnstaged:
+		statusLabel = tr.FilterLabelUnstagedFiles
+	case filetree.DisplayTracked:
+		statusLabel = tr.FilterLabelTrackedFiles
+	case filetree.DisplayUntracked:
+		statusLabel = tr.FilterLabelUntrackedFiles
+	case filetree.DisplayConflicted:
+		statusLabel = tr.FilterLabelConflictingFiles
+	}
+
+	pathLabel := ""
+	if pathFilter != "" {
+		pathLabel = "(path filter active)"
+	}
+
+	if statusLabel == "" {
+		return pathLabel
+	}
+	if pathLabel == "" {
+		return statusLabel
+	}
+
+	return statusLabel + " " + pathLabel
 }

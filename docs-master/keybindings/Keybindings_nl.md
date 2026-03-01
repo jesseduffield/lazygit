@@ -60,6 +60,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-o> `` | Kopieer de bestandsnaam naar het klembord |  |
 | `` <space> `` | Toggle staged | Toggle staged for selected file. |
 | `` <c-b> `` | Filter files by status |  |
+| `` <c-g> `` | Filter the current view by text |  |
 | `` y `` | Copy to clipboard |  |
 | `` c `` | Commit veranderingen | Commit staged changes. |
 | `` w `` | Commit veranderingen zonder pre-commit hook |  |

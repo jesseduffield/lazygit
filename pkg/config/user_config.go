@@ -196,6 +196,8 @@ type GuiConfig struct {
 	SwitchToFilesAfterStashApply bool `yaml:"switchToFilesAfterStashApply"`
 	// If true, when using the panel jump keys (default 1 through 5) and target panel is already active, go to next tab instead
 	SwitchTabsWithPanelJumpKeys bool `yaml:"switchTabsWithPanelJumpKeys"`
+	// If true, initialize the Files panel path filter using the current working directory relative to repo root.
+	FilterFilesByCwd bool `yaml:"filterFilesByCwd"`
 }
 
 func (c *GuiConfig) UseFuzzySearch() bool {
@@ -515,6 +517,7 @@ type KeybindingFilesConfig struct {
 	ToggleTreeView           string `yaml:"toggleTreeView"`
 	OpenMergeOptions         string `yaml:"openMergeOptions"`
 	OpenStatusFilter         string `yaml:"openStatusFilter"`
+	OpenPathFilter           string `yaml:"openPathFilter"`
 	CopyFileInfoToClipboard  string `yaml:"copyFileInfoToClipboard"`
 	CollapseAll              string `yaml:"collapseAll"`
 	ExpandAll                string `yaml:"expandAll"`
@@ -821,6 +824,7 @@ func GetDefaultConfig() *UserConfig {
 			SwitchToFilesAfterStashPop:   true,
 			SwitchToFilesAfterStashApply: true,
 			SwitchTabsWithPanelJumpKeys:  false,
+			FilterFilesByCwd:             false,
 		},
 		Git: GitConfig{
 			Commit: CommitConfig{
@@ -975,6 +979,7 @@ func GetDefaultConfig() *UserConfig {
 				ToggleTreeView:           "`",
 				OpenMergeOptions:         "M",
 				OpenStatusFilter:         "<c-b>",
+				OpenPathFilter:           "<c-g>",
 				ConfirmDiscard:           "x",
 				CopyFileInfoToClipboard:  "y",
 				CollapseAll:              "-",

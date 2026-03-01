@@ -166,6 +166,26 @@ func (self *FileTreeViewModel) SetStatusFilter(filter FileTreeDisplayFilter) {
 	self.IListCursor.SetSelection(0)
 }
 
+func (self *FileTreeViewModel) SetFilter(filter string, useFuzzySearch bool) {
+	self.IFileTree.SetPathFilter(filter, useFuzzySearch)
+}
+
+func (self *FileTreeViewModel) GetFilter() string {
+	return self.IFileTree.GetPathFilter()
+}
+
+func (self *FileTreeViewModel) ClearFilter() {
+	self.SetFilter("", false)
+}
+
+func (self *FileTreeViewModel) ReApplyFilter(useFuzzySearch bool) {
+	self.IFileTree.ReApplyPathFilter(useFuzzySearch)
+}
+
+func (self *FileTreeViewModel) IsFiltering() bool {
+	return self.GetFilter() != ""
+}
+
 // If we're going from flat to tree we want to select the same file.
 // If we're going from tree to flat and we have a file selected we want to select that.
 // If instead we've selected a directory we need to select the first file in that directory.

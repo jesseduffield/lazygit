@@ -380,6 +380,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-o> `` | 파일명을 클립보드에 복사 |  |
 | `` <space> `` | Staged 전환 | Toggle staged for selected file. |
 | `` <c-b> `` | 파일을 필터하기 (Staged/unstaged) |  |
+| `` <c-g> `` | Filter the current view by text |  |
 | `` y `` | 클립보드에 복사 |  |
 | `` c `` | 커밋 변경내용 | 스테이징된 변경 사항 커밋. |
 | `` w `` | Commit changes without pre-commit hook |  |

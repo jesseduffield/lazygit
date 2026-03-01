@@ -290,8 +290,11 @@ func (self *ContextMgr) IsCurrentOrParent(c types.Context) bool {
 func (self *ContextMgr) AllFilterable() []types.IFilterableContext {
 	var result []types.IFilterableContext
 
-	for _, context := range self.allContexts.Flatten() {
-		if ctx, ok := context.(types.IFilterableContext); ok {
+	for _, currentContext := range self.allContexts.Flatten() {
+		if currentContext.GetKey() == context.FILES_CONTEXT_KEY {
+			continue
+		}
+		if ctx, ok := currentContext.(types.IFilterableContext); ok {
 			result = append(result, ctx)
 		}
 	}

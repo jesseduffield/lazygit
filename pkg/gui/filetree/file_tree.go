@@ -2,10 +2,13 @@ package filetree
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 )
 
@@ -41,22 +44,29 @@ type IFileTree interface {
 
 	FilterFiles(test func(*models.File) bool) []*models.File
 	SetStatusFilter(filter FileTreeDisplayFilter)
+	SetPathFilter(filter string, useFuzzySearch bool)
+	ReApplyPathFilter(useFuzzySearch bool)
+	EnsurePathFilterInitialized(defaultFilter string, useFuzzySearch bool)
 	ForceShowUntracked() bool
 	Get(index int) *FileNode
 	GetFile(path string) *models.File
 	GetAllItems() []*FileNode
 	GetAllFiles() []*models.File
-	GetFilter() FileTreeDisplayFilter
+	GetStatusFilter() FileTreeDisplayFilter
+	GetPathFilter() string
 	GetRoot() *FileNode
 }
 
 type FileTree struct {
-	getFiles       func() []*models.File
-	tree           *Node[models.File]
-	showTree       bool
-	common         *common.Common
-	filter         FileTreeDisplayFilter
-	collapsedPaths *CollapsedPaths
+	getFiles              func() []*models.File
+	tree                  *Node[models.File]
+	showTree              bool
+	common                *common.Common
+	statusFilter          FileTreeDisplayFilter
+	pathFilter            string
+	useFuzzyPathFilter    bool
+	pathFilterInitialized bool
+	collapsedPaths        *CollapsedPaths
 }
 
 var _ IFileTree = &FileTree{}
@@ -66,7 +76,7 @@ func NewFileTree(getFiles func() []*models.File, common *common.Common, showTree
 		getFiles:       getFiles,
 		common:         common,
 		showTree:       showTree,
-		filter:         DisplayAll,
+		statusFilter:   DisplayAll,
 		collapsedPaths: NewCollapsedPaths(),
 	}
 }
@@ -80,28 +90,32 @@ func (self *FileTree) ExpandToPath(path string) {
 }
 
 func (self *FileTree) getFilesForDisplay() []*models.File {
-	switch self.filter {
+	var files []*models.File
+
+	switch self.statusFilter {
 	case DisplayAll:
-		return self.getFiles()
+		files = self.getFiles()
 	case DisplayStaged:
-		return self.FilterFiles(func(file *models.File) bool { return file.HasStagedChanges })
+		files = self.FilterFiles(func(file *models.File) bool { return file.HasStagedChanges })
 	case DisplayUnstaged:
-		return self.FilterFiles(func(file *models.File) bool { return file.HasUnstagedChanges })
+		files = self.FilterFiles(func(file *models.File) bool { return file.HasUnstagedChanges })
 	case DisplayTracked:
 		// untracked but staged files are technically not tracked by git
 		// but including such files in the filtered mode helps see what files are getting committed
-		return self.FilterFiles(func(file *models.File) bool { return file.Tracked || file.HasStagedChanges })
+		files = self.FilterFiles(func(file *models.File) bool { return file.Tracked || file.HasStagedChanges })
 	case DisplayUntracked:
-		return self.FilterFiles(func(file *models.File) bool { return !(file.Tracked || file.HasStagedChanges) })
+		files = self.FilterFiles(func(file *models.File) bool { return !(file.Tracked || file.HasStagedChanges) })
 	case DisplayConflicted:
-		return self.FilterFiles(func(file *models.File) bool { return file.HasMergeConflicts })
+		files = self.FilterFiles(func(file *models.File) bool { return file.HasMergeConflicts })
 	default:
-		panic(fmt.Sprintf("Unexpected files display filter: %d", self.filter))
+		panic(fmt.Sprintf("Unexpected files display filter: %d", self.statusFilter))
 	}
+
+	return self.pathFilteredFiles(files)
 }
 
 func (self *FileTree) ForceShowUntracked() bool {
-	return self.filter == DisplayUntracked
+	return self.statusFilter == DisplayUntracked
 }
 
 func (self *FileTree) FilterFiles(test func(*models.File) bool) []*models.File {
@@ -109,7 +123,33 @@ func (self *FileTree) FilterFiles(test func(*models.File) bool) []*models.File {
 }
 
 func (self *FileTree) SetStatusFilter(filter FileTreeDisplayFilter) {
-	self.filter = filter
+	self.statusFilter = filter
+	self.SetTree()
+}
+
+func (self *FileTree) SetPathFilter(filter string, useFuzzySearch bool) {
+	self.pathFilter = filter
+	self.useFuzzyPathFilter = useFuzzySearch
+	self.SetTree()
+}
+
+func (self *FileTree) ReApplyPathFilter(useFuzzySearch bool) {
+	self.useFuzzyPathFilter = useFuzzySearch
+	self.SetTree()
+}
+
+func (self *FileTree) EnsurePathFilterInitialized(defaultFilter string, useFuzzySearch bool) {
+	if self.pathFilterInitialized {
+		return
+	}
+
+	self.pathFilterInitialized = true
+	if defaultFilter == "" {
+		return
+	}
+
+	self.pathFilter = defaultFilter
+	self.useFuzzyPathFilter = useFuzzySearch
 	self.SetTree()
 }
 
@@ -210,6 +250,39 @@ func (self *FileTree) CollapsedPaths() *CollapsedPaths {
 	return self.collapsedPaths
 }
 
-func (self *FileTree) GetFilter() FileTreeDisplayFilter {
-	return self.filter
+type fileFuzzySource struct {
+	files []*models.File
+}
+
+func (self *fileFuzzySource) String(i int) string {
+	fields := []string{self.files[i].Path}
+	if self.files[i].PreviousPath != "" {
+		fields = append(fields, self.files[i].PreviousPath)
+	}
+	return strings.Join(fields, " ")
+}
+
+func (self *fileFuzzySource) Len() int {
+	return len(self.files)
+}
+
+func (self *FileTree) pathFilteredFiles(files []*models.File) []*models.File {
+	if self.pathFilter == "" {
+		return files
+	}
+
+	source := &fileFuzzySource{files: files}
+	matches := utils.FindFrom(self.pathFilter, source, self.useFuzzyPathFilter)
+	indices := lo.Map(matches, func(match fuzzy.Match, _ int) int {
+		return match.Index
+	})
+	return utils.ValuesAtIndices(files, indices)
+}
+
+func (self *FileTree) GetStatusFilter() FileTreeDisplayFilter {
+	return self.statusFilter
+}
+
+func (self *FileTree) GetPathFilter() string {
+	return self.pathFilter
 }

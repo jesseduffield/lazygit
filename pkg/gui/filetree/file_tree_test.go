@@ -85,7 +85,7 @@ func TestFilterAction(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			mngr := &FileTree{getFiles: func() []*models.File { return s.files }, filter: s.filter}
+			mngr := &FileTree{getFiles: func() []*models.File { return s.files }, statusFilter: s.filter}
 			result := mngr.getFilesForDisplay()
 			assert.EqualValues(t, s.expected, result)
 		})

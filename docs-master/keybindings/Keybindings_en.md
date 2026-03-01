@@ -136,6 +136,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-o> `` | Copy path to clipboard |  |
 | `` <space> `` | Stage | Toggle staged for selected file. |
 | `` <c-b> `` | Filter files by status |  |
+| `` <c-g> `` | Filter the current view by text |  |
 | `` y `` | Copy to clipboard |  |
 | `` c `` | Commit | Commit staged changes. |
 | `` w `` | Commit changes without pre-commit hook |  |
