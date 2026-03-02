@@ -60,6 +60,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-o> `` | Copy path to clipboard |  |
 | `` <space> `` | Etapa | Alternar para staging para o arquivo selecionado. |
 | `` <c-b> `` | Filtrar arquivos por status |  |
+| `` <c-g> `` | Filter the current view by text |  |
 | `` y `` | Copy to clipboard |  |
 | `` c `` | Commit | Submeter mudanças em staging |
 | `` w `` | Fazer commit de alterações sem pré-commit |  |

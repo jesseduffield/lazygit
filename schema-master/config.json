@@ -790,6 +790,11 @@
           "type": "boolean",
           "description": "If true, when using the panel jump keys (default 1 through 5) and target panel is already active, go to next tab instead",
           "default": false
+        },
+        "filterFilesByCwd": {
+          "type": "boolean",
+          "description": "If true, initialize the Files panel path filter using the current working directory relative to repo root.",
+          "default": false
         }
       },
       "additionalProperties": false,
@@ -1142,6 +1147,10 @@
         "openStatusFilter": {
           "type": "string",
           "default": "\u003cc-b\u003e"
+        },
+        "openPathFilter": {
+          "type": "string",
+          "default": "\u003cc-g\u003e"
         },
         "copyFileInfoToClipboard": {
           "type": "string",

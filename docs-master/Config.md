@@ -321,6 +321,10 @@ gui:
   # is already active, go to next tab instead
   switchTabsWithPanelJumpKeys: false
 
+  # If true, initialize the Files panel path filter using the current working
+  # directory relative to repo root.
+  filterFilesByCwd: false
+
 # Config relating to git
 git:
   # Array of pagers. Each entry has the following format:
@@ -683,6 +687,7 @@ keybinding:
     toggleTreeView: '`'
     openMergeOptions: M
     openStatusFilter: <c-b>
+    openPathFilter: <c-g>
     copyFileInfoToClipboard: "y"
     collapseAll: '-'
     expandAll: =

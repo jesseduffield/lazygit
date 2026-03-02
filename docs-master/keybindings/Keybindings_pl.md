@@ -235,6 +235,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` <c-o> `` | Kopiuj ścieżkę do schowka |  |
 | `` <space> `` | Zatwierdź | Przełącz zatwierdzenie dla wybranego pliku. |
 | `` <c-b> `` | Filtruj pliki według statusu |  |
+| `` <c-g> `` | Filtruj bieżący widok po tekście |  |
 | `` y `` | Kopiuj do schowka |  |
 | `` c `` | Commit | Zatwierdź zmiany zatwierdzone. |
 | `` w `` | Zatwierdź zmiany bez hooka pre-commit |  |

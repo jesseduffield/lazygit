@@ -55,6 +55,11 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.FileFilter,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Files.OpenPathFilter),
+			Handler:     self.openPathFilterPrompt,
+			Description: self.c.Tr.StartFilter,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Files.CopyFileInfoToClipboard),
 			Handler:     self.openCopyMenu,
 			Description: self.c.Tr.CopyToClipboardMenu,
@@ -449,7 +454,7 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 	if len(unstagedSelectedNodes) > 0 {
 		var extraArgs []string
 
-		if self.context().GetFilter() == filetree.DisplayTracked {
+		if self.context().GetStatusFilter() == filetree.DisplayTracked {
 			extraArgs = []string{"-u"}
 		}
 
@@ -648,7 +653,7 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 			return err
 		}
 
-		onlyTrackedFiles := self.context().GetFilter() == filetree.DisplayTracked
+		onlyTrackedFiles := self.context().GetStatusFilter() == filetree.DisplayTracked
 		if err := self.c.Git().WorkingTree.StageAll(onlyTrackedFiles); err != nil {
 			return err
 		}
@@ -836,51 +841,71 @@ func (self *FilesController) isResolvingConflicts() bool {
 }
 
 func (self *FilesController) handleStatusFilterPressed() error {
-	currentFilter := self.context().GetFilter()
+	currentFilter := self.context().GetStatusFilter()
+	menuItems := []*types.MenuItem{
+		{
+			Label: self.c.Tr.FilterStagedFiles,
+			OnPress: func() error {
+				return self.setStatusFiltering(filetree.DisplayStaged)
+			},
+			Key:    's',
+			Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayStaged),
+		},
+		{
+			Label: self.c.Tr.FilterUnstagedFiles,
+			OnPress: func() error {
+				return self.setStatusFiltering(filetree.DisplayUnstaged)
+			},
+			Key:    'u',
+			Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayUnstaged),
+		},
+		{
+			Label: self.c.Tr.FilterTrackedFiles,
+			OnPress: func() error {
+				return self.setStatusFiltering(filetree.DisplayTracked)
+			},
+			Key:    't',
+			Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayTracked),
+		},
+		{
+			Label: self.c.Tr.FilterUntrackedFiles,
+			OnPress: func() error {
+				return self.setStatusFiltering(filetree.DisplayUntracked)
+			},
+			Key:    'T',
+			Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayUntracked),
+		},
+		{
+			Label: self.c.Tr.NoFilter,
+			OnPress: func() error {
+				return self.setStatusFiltering(filetree.DisplayAll)
+			},
+			Key:    'r',
+			Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayAll),
+		},
+		{
+			Label:   self.c.Tr.FilterPathOption,
+			OnPress: self.openPathFilterPrompt,
+			Key:     'p',
+		},
+	}
+
+	if self.context().GetFilter() != "" {
+		menuItems = append(menuItems, &types.MenuItem{
+			Label: self.c.Tr.ExitFilterMode,
+			OnPress: func() error {
+				self.context().ClearFilter()
+				self.updateFilesSubtitle()
+				self.c.PostRefreshUpdate(self.context())
+				return nil
+			},
+			Key: 'P',
+		})
+	}
+
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.FilteringMenuTitle,
-		Items: []*types.MenuItem{
-			{
-				Label: self.c.Tr.FilterStagedFiles,
-				OnPress: func() error {
-					return self.setStatusFiltering(filetree.DisplayStaged)
-				},
-				Key:    's',
-				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayStaged),
-			},
-			{
-				Label: self.c.Tr.FilterUnstagedFiles,
-				OnPress: func() error {
-					return self.setStatusFiltering(filetree.DisplayUnstaged)
-				},
-				Key:    'u',
-				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayUnstaged),
-			},
-			{
-				Label: self.c.Tr.FilterTrackedFiles,
-				OnPress: func() error {
-					return self.setStatusFiltering(filetree.DisplayTracked)
-				},
-				Key:    't',
-				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayTracked),
-			},
-			{
-				Label: self.c.Tr.FilterUntrackedFiles,
-				OnPress: func() error {
-					return self.setStatusFiltering(filetree.DisplayUntracked)
-				},
-				Key:    'T',
-				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayUntracked),
-			},
-			{
-				Label: self.c.Tr.NoFilter,
-				OnPress: func() error {
-					return self.setStatusFiltering(filetree.DisplayAll)
-				},
-				Key:    'r',
-				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayAll),
-			},
-		},
+		Items: menuItems,
 	})
 }
 
@@ -904,10 +929,10 @@ func (self *FilesController) filteringLabel(filter filetree.FileTreeDisplayFilte
 }
 
 func (self *FilesController) setStatusFiltering(filter filetree.FileTreeDisplayFilter) error {
-	previousFilter := self.context().GetFilter()
+	previousFilter := self.context().GetStatusFilter()
 
 	self.context().FileTreeViewModel.SetStatusFilter(filter)
-	self.c.Contexts().Files.GetView().Subtitle = self.filteringLabel(filter)
+	self.updateFilesSubtitle()
 
 	// Whenever we switch between untracked and other filters, we need to refresh the files view
 	// because the untracked files filter applies when running `git status`.
@@ -917,6 +942,40 @@ func (self *FilesController) setStatusFiltering(filter filetree.FileTreeDisplayF
 		self.c.PostRefreshUpdate(self.context())
 	}
 	return nil
+}
+
+func (self *FilesController) openPathFilterPrompt() error {
+	self.c.Prompt(types.PromptOpts{
+		Title:          self.c.Tr.FilterPathOption,
+		InitialContent: self.context().GetFilter(),
+		HandleConfirm: func(response string) error {
+			self.context().SetFilter(response, self.c.UserConfig().Gui.UseFuzzySearch())
+			self.updateFilesSubtitle()
+			self.c.PostRefreshUpdate(self.context())
+			return nil
+		},
+	})
+
+	return nil
+}
+
+func (self *FilesController) updateFilesSubtitle() {
+	statusLabel := self.filteringLabel(self.context().GetStatusFilter())
+	pathLabel := ""
+	if self.context().GetFilter() != "" {
+		pathLabel = "(path filter active)"
+	}
+
+	if statusLabel == "" {
+		self.c.Contexts().Files.GetView().Subtitle = pathLabel
+		return
+	}
+	if pathLabel == "" {
+		self.c.Contexts().Files.GetView().Subtitle = statusLabel
+		return
+	}
+
+	self.c.Contexts().Files.GetView().Subtitle = fmt.Sprintf("%s %s", statusLabel, pathLabel)
 }
 
 func (self *FilesController) edit(nodes []*filetree.FileNode) error {
