@@ -84,7 +84,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy commit hash to clipboard |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` b `` | View bisect options |  |
 | `` s `` | Squash | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
@@ -274,7 +274,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy commit hash to clipboard |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Checkout | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
@@ -358,7 +358,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy commit hash to clipboard |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Checkout | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
