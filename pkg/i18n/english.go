@@ -1770,7 +1770,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ShowingGitDiff:                           "Showing output for:",
 		ShowingDiffForRange:                      "Showing diff for range",
 		CommitDiff:                               "Commit diff",
-		CopyCommitHashToClipboard:                "Copy commit hash to clipboard",
+		CopyCommitHashToClipboard:                "Copy abbreviated commit hash to clipboard",
 		CommitHash:                               "Commit hash",
 		CommitURL:                                "Commit URL",
 		PasteCommitMessageFromClipboard:          "Paste commit message from clipboard",
