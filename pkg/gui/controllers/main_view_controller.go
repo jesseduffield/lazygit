@@ -45,6 +45,12 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			DisplayOnScreen: true,
 		},
 		{
+			Key:             opts.GetKey(opts.Config.Universal.ReturnAlt),
+			Handler:         self.escape,
+			Description:     self.c.Tr.ExitFocusedMainView,
+			DisplayOnScreen: true,
+		},
+		{
 			// overriding this because we want to read all of the task's output before we start searching
 			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
 			Handler:     self.openSearch,

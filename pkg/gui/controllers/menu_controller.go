@@ -50,6 +50,12 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Description:     self.c.Tr.CloseCancel,
 			DisplayOnScreen: true,
 		},
+		{
+			Key:             opts.GetKey(opts.Config.Universal.ReturnAlt),
+			Handler:         self.close,
+			Description:     self.c.Tr.CloseCancel,
+			DisplayOnScreen: true,
+		},
 	}
 
 	return bindings

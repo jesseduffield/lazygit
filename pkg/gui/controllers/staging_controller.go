@@ -75,6 +75,13 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			DisplayOnScreen: true,
 		},
 		{
+			Key:             opts.GetKey(opts.Config.Universal.ReturnAlt),
+			Handler:         self.Escape,
+			Description:     self.c.Tr.ReturnToFilesPanel,
+			DescriptionFunc: self.EscapeDescription,
+			DisplayOnScreen: true,
+		},
+		{
 			Key:             opts.GetKey(opts.Config.Universal.TogglePanel),
 			Handler:         self.TogglePanel,
 			Description:     self.c.Tr.ToggleStagingView,
