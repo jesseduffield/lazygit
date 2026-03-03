@@ -45,6 +45,12 @@ func (config *UserConfig) Validate() error {
 	if err := validateCustomCommands(config.CustomCommands); err != nil {
 		return err
 	}
+	if err := validateFloatRange("gui.sidePanelFocusedRatio", config.Gui.SidePanelFocusedRatio, 0, 1); err != nil {
+		return err
+	}
+	if err := validateFloatRange("gui.mainPanelFocusedRatio", config.Gui.MainPanelFocusedRatio, 0, 1); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -54,6 +60,13 @@ func validateEnum(name string, value string, allowedValues []string) error {
 	}
 	allowedValuesStr := strings.Join(allowedValues, ", ")
 	return fmt.Errorf("Unexpected value '%s' for '%s'. Allowed values: %s", value, name, allowedValuesStr)
+}
+
+func validateFloatRange(name string, value float64, min float64, max float64) error {
+	if value < min || value > max {
+		return fmt.Errorf("Value for '%s' must be between %g and %g (got %g)", name, min, max, value)
+	}
+	return nil
 }
 
 func validateKeybindingsRecurse(path string, node any) error {
