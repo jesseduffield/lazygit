@@ -31,7 +31,7 @@ var AssociateBranchRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains("mybranch").IsSelected(),
-				Contains("newbranch (worktree)"),
+				Contains("newbranch (worktree linked-worktree)"),
 			)
 
 		// start a rebase on the main worktree
@@ -57,7 +57,7 @@ var AssociateBranchRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("newbranch").IsSelected(),
-				Contains("mybranch (worktree)"),
+				Contains("mybranch (worktree repo)"),
 			)
 
 		// start a rebase on the linked worktree
@@ -83,7 +83,7 @@ var AssociateBranchRebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("(no branch").IsSelected(),
 				Contains("mybranch"),
 				// even though the linked worktree is rebasing, we still associate it with the branch
-				Contains("newbranch (worktree)"),
+				Contains("newbranch (worktree linked-worktree)"),
 			)
 	},
 })

@@ -37,7 +37,7 @@ var AddFromBranchDetached = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Lines(
 				Contains("(no branch)").IsSelected(),
-				Contains("mybranch (worktree)"),
+				Contains("mybranch (worktree repo)"),
 			)
 
 		t.Views().Status().
