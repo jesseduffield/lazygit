@@ -24,7 +24,7 @@ var WorktreeInRepo = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("repo (main)"),
+				Contains("(main worktree)"),
 			).
 			Press(keys.Universal.New).
 			Tap(func() {
@@ -50,13 +50,13 @@ var WorktreeInRepo = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("linked-worktree").IsSelected(),
-				Contains("repo (main)"),
+				Contains("(main worktree)"),
 			).
 			// switch back to main worktree
-			NavigateToLine(Contains("repo (main)")).
+			NavigateToLine(Contains("(main worktree)")).
 			Press(keys.Universal.Select).
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 				Contains("linked-worktree"),
 			)
 
@@ -78,7 +78,7 @@ var WorktreeInRepo = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 				Contains("linked-worktree (missing)"),
 			)
 	},
