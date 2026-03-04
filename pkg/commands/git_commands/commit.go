@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/go-errors/errors"
@@ -85,11 +86,16 @@ func (self *CommitCommands) ResetToCommit(hash string, strength string, envVars 
 		Run()
 }
 
+func (self *CommitCommands) hasSkipHookPrefix(subject string) bool {
+	return slices.ContainsFunc(self.UserConfig().Git.SkipHookPrefixes, func(prefix string) bool {
+		return strings.HasPrefix(subject, prefix)
+	})
+}
+
 func (self *CommitCommands) CommitCmdObj(summary string, description string, forceSkipHooks bool) *oscommands.CmdObj {
 	messageArgs := self.commitMessageArgs(summary, description)
-	skipHookPrefix := self.UserConfig().Git.SkipHookPrefix
 	cmdArgs := NewGitCmd("commit").
-		ArgIf(forceSkipHooks || (skipHookPrefix != "" && strings.HasPrefix(summary, skipHookPrefix)), "--no-verify").
+		ArgIf(forceSkipHooks || self.hasSkipHookPrefix(summary), "--no-verify").
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
 		Arg(messageArgs...).
 		ToArgv()
@@ -287,7 +293,10 @@ func (self *CommitCommands) Revert(hashes []string, isMerge bool) error {
 
 // CreateFixupCommit creates a commit that fixes up a previous commit
 func (self *CommitCommands) CreateFixupCommit(hash string) error {
-	cmdArgs := NewGitCmd("commit").Arg("--fixup=" + hash).ToArgv()
+	cmdArgs := NewGitCmd("commit").
+		ArgIf(self.hasSkipHookPrefix("fixup! "), "--no-verify").
+		Arg("--fixup=" + hash).
+		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
 }
@@ -299,6 +308,7 @@ func (self *CommitCommands) CreateAmendCommit(originalSubject, newSubject, newDe
 		description += "\n\n" + newDescription
 	}
 	cmdArgs := NewGitCmd("commit").
+		ArgIf(self.hasSkipHookPrefix("amend! "), "--no-verify").
 		Arg("-m", "amend! "+originalSubject).
 		Arg("-m", description).
 		ArgIf(!includeFileChanges, "--only", "--allow-empty").

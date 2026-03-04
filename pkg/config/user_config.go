@@ -273,8 +273,8 @@ type GitConfig struct {
 	Merging MergingConfig `yaml:"merging"`
 	// list of branches that are considered 'main' branches, used when displaying commits
 	MainBranches []string `yaml:"mainBranches" jsonschema:"uniqueItems=true"`
-	// Prefix to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks will be skipped when the commit message starts with 'WIP'
-	SkipHookPrefix string `yaml:"skipHookPrefix"`
+	// Prefixes to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks will be skipped when the commit message starts with 'WIP'
+	SkipHookPrefixes []string `yaml:"skipHookPrefixes" jsonschema:"uniqueItems=true"`
 	// If true, periodically fetch from remote
 	AutoFetch bool `yaml:"autoFetch"`
 	// If true, periodically refresh files and submodules
@@ -840,7 +840,7 @@ func GetDefaultConfig() *UserConfig {
 			},
 			LocalBranchSortOrder:         "date",
 			RemoteBranchSortOrder:        "date",
-			SkipHookPrefix:               "WIP",
+			SkipHookPrefixes:             []string{"WIP"},
 			MainBranches:                 []string{"master", "main"},
 			AutoFetch:                    true,
 			AutoRefresh:                  true,

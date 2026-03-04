@@ -645,8 +645,9 @@ git:
     - master
     - main
 
-  # Prefix to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks will be skipped when the commit message starts with 'WIP'
-  skipHookPrefix: WIP
+  # Prefixes to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks will be skipped when the commit message starts with 'WIP'
+  skipHookPrefixes:
+    - WIP
 
   # If true, periodically fetch from remote
   autoFetch: true
@@ -1168,6 +1169,84 @@ func TestPagerMigration(t *testing.T) {
 `,
 			expectedDidChange: true,
 			expectedChanges:   []string{"Moved git.paging object to git.pagers array"},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			changes := NewChangesSet()
+			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input), changes)
+			assert.NoError(t, err)
+			assert.Equal(t, s.expectedDidChange, didChange)
+			if didChange {
+				assert.Equal(t, s.expected, string(actual))
+			}
+			assert.Equal(t, s.expectedChanges, changes.ToSliceFromOldest())
+		})
+	}
+}
+
+func TestSkipHookPrefixMigration(t *testing.T) {
+	scenarios := []struct {
+		name              string
+		input             string
+		expected          string
+		expectedDidChange bool
+		expectedChanges   []string
+	}{
+		{
+			name:              "Empty String",
+			input:             "",
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+		{
+			name: "Old skipHookPrefix migrated to skipHookPrefixes",
+			input: `git:
+  skipHookPrefix: WIP
+`,
+			expected: `git:
+  skipHookPrefixes:
+    - WIP
+`,
+			expectedDidChange: true,
+			expectedChanges: []string{
+				"Created git.skipHookPrefixes array containing value of git.skipHookPrefix",
+				"Removed obsolete git.skipHookPrefix",
+			},
+		},
+		{
+			name: "New skipHookPrefixes already present, old removed",
+			input: `git:
+  skipHookPrefix: WIP
+  skipHookPrefixes:
+    - WIP
+    - fixup!
+`,
+			expected: `git:
+  skipHookPrefixes:
+    - WIP
+    - fixup!
+`,
+			expectedDidChange: true,
+			expectedChanges: []string{
+				"Removed obsolete git.skipHookPrefix",
+			},
+		},
+		{
+			name: "Only new skipHookPrefixes, no migration needed",
+			input: `git:
+  skipHookPrefixes:
+    - WIP
+`,
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+		{
+			name:              "Neither present",
+			input:             "git:",
+			expectedDidChange: false,
+			expectedChanges:   []string{},
 		},
 	}
 

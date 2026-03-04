@@ -315,6 +315,11 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
 	}
 
+	err = migrateSkipHookPrefix(&rootNode, changes)
+	if err != nil {
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
+	}
+
 	// Add more migrations here...
 
 	if reflect.DeepEqual(rootNode, originalCopy) {
@@ -500,6 +505,34 @@ func migratePagers(rootNode *yaml.Node, changes *ChangesSet) error {
 		}}
 
 		changes.Add("Moved git.paging object to git.pagers array")
+
+		return nil
+	})
+}
+
+func migrateSkipHookPrefix(rootNode *yaml.Node, changes *ChangesSet) error {
+	return yaml_utils.TransformNode(rootNode, []string{"git"}, func(gitNode *yaml.Node) error {
+		keyNode, valueNode := yaml_utils.LookupKey(gitNode, "skipHookPrefix")
+		if keyNode == nil {
+			return nil
+		}
+
+		_, existingValueNode := yaml_utils.LookupKey(gitNode, "skipHookPrefixes")
+		if existingValueNode == nil && valueNode.Kind == yaml.ScalarNode && valueNode.Value != "" {
+			newKeyNode := &yaml.Node{Kind: yaml.ScalarNode, Value: "skipHookPrefixes", Tag: "!!str"}
+			newValueNode := &yaml.Node{
+				Kind: yaml.SequenceNode,
+				Tag:  "!!seq",
+				Content: []*yaml.Node{
+					{Kind: yaml.ScalarNode, Value: valueNode.Value, Tag: "!!str"},
+				},
+			}
+			gitNode.Content = append(gitNode.Content, newKeyNode, newValueNode)
+			changes.Add("Created git.skipHookPrefixes array containing value of git.skipHookPrefix")
+		}
+
+		_, _ = yaml_utils.RemoveKey(gitNode, "skipHookPrefix")
+		changes.Add("Removed obsolete git.skipHookPrefix")
 
 		return nil
 	})

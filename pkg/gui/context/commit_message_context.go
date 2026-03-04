@@ -3,6 +3,7 @@ package context
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -43,8 +44,8 @@ type CommitMessageViewModel struct {
 	onSwitchToEditor func(string) error
 
 	// the following two fields are used for the display of the "hooks disabled" subtitle
-	forceSkipHooks  bool
-	skipHooksPrefix string
+	forceSkipHooks    bool
+	skipHooksPrefixes []string
 
 	// The message typed in before cycling through history
 	// We store this separately to 'preservedMessage' because 'preservedMessage'
@@ -153,7 +154,7 @@ func (self *CommitMessageContext) SetPanelState(
 	onConfirm func(string, string) error,
 	onSwitchToEditor func(string) error,
 	forceSkipHooks bool,
-	skipHooksPrefix string,
+	skipHooksPrefixes []string,
 ) {
 	self.viewModel.selectedindex = index
 	self.viewModel.preserveMessage = preserveMessage
@@ -161,7 +162,7 @@ func (self *CommitMessageContext) SetPanelState(
 	self.viewModel.onConfirm = onConfirm
 	self.viewModel.onSwitchToEditor = onSwitchToEditor
 	self.viewModel.forceSkipHooks = forceSkipHooks
-	self.viewModel.skipHooksPrefix = skipHooksPrefix
+	self.viewModel.skipHooksPrefixes = skipHooksPrefixes
 	self.GetView().Title = summaryTitle
 	self.c.Views().CommitDescription.Title = descriptionTitle
 
@@ -175,10 +176,12 @@ func (self *CommitMessageContext) SetPanelState(
 }
 
 func (self *CommitMessageContext) RenderSubtitle() {
-	skipHookPrefix := self.viewModel.skipHooksPrefix
 	subject := self.c.Views().CommitMessage.TextArea.GetContent()
 	var subtitle string
-	if self.viewModel.forceSkipHooks || (skipHookPrefix != "" && strings.HasPrefix(subject, skipHookPrefix)) {
+	hooksSkipped := self.viewModel.forceSkipHooks || slices.ContainsFunc(self.viewModel.skipHooksPrefixes, func(prefix string) bool {
+		return strings.HasPrefix(subject, prefix)
+	})
+	if hooksSkipped {
 		subtitle = self.c.Tr.CommitHooksDisabledSubTitle
 	}
 	if self.c.UserConfig().Gui.CommitLength.Show {
