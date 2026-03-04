@@ -126,8 +126,8 @@ type OpenCommitMessagePanelOpts struct {
 	// the actual behavior; make sure what you are passing in matches that.
 	// Leave unassigned if the concept of skipping hooks doesn't make sense for
 	// what you are doing, e.g. when creating a tag.
-	ForceSkipHooks  bool
-	SkipHooksPrefix string
+	ForceSkipHooks    bool
+	SkipHooksPrefixes []string
 }
 
 func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOpts) {
@@ -146,7 +146,7 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 		onConfirm,
 		opts.OnSwitchToEditor,
 		opts.ForceSkipHooks,
-		opts.SkipHooksPrefix,
+		opts.SkipHooksPrefixes,
 	)
 
 	self.UpdateCommitPanelView(opts.InitialMessage)

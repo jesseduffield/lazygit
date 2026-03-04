@@ -323,10 +323,16 @@
             "main"
           ]
         },
-        "skipHookPrefix": {
-          "type": "string",
-          "description": "Prefix to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks will be skipped when the commit message starts with 'WIP'",
-          "default": "WIP"
+        "skipHookPrefixes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "description": "Prefixes to use when skipping hooks. E.g. if set to ['WIP'], then pre-commit hooks will be skipped when the commit message starts with 'WIP'. The first entry in the array will be used for the \"Commit changes without pre-commit hook\" command.",
+          "default": [
+            "WIP"
+          ]
         },
         "autoFetch": {
           "type": "boolean",
