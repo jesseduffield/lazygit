@@ -48,6 +48,13 @@ func (self *WorktreeCommands) Delete(worktreePath string, force bool) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+func (self *WorktreeCommands) IsWorktreeClean(worktreePath string) bool {
+	cmdArgs := NewGitCmd("status").Arg("--porcelain").Dir(worktreePath).ToArgv()
+
+	output, err := self.cmd.New(cmdArgs).RunWithOutput()
+	return err == nil && output == ""
+}
+
 func (self *WorktreeCommands) Detach(worktreePath string) error {
 	cmdArgs := NewGitCmd("checkout").Arg("--detach").GitDir(filepath.Join(worktreePath, ".git")).ToArgv()
 
