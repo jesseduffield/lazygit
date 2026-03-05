@@ -9,4 +9,8 @@ type CheckoutRefOptions struct {
 	// (e.g. checking out a remote branch), but it not needed when checking out an existing local
 	// branch or a detached head (e.g. a tag).
 	RefreshPullRequests bool
+
+	// If set, this function is called right before the checkout command.
+	// Used e.g. to detach a worktree before checking out the branch.
+	PreCheckoutCommand func() error
 }
