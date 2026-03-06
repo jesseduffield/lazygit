@@ -431,6 +431,9 @@ git:
   # If true, do not allow force pushes
   disableForcePushing: false
 
+  # If true, pass --no-verify to git push, skipping pre-push hooks
+  skipHookOnPush: false
+
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix
   commitPrefix: []
 

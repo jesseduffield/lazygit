@@ -200,6 +200,7 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 			git_commands.PushOpts{
 				Force:          opts.force,
 				ForceWithLease: opts.forceWithLease,
+				NoVerify:       self.c.UserConfig().Git.SkipHookOnPush,
 				CurrentBranch:  currentBranch.Name,
 				UpstreamRemote: opts.upstreamRemote,
 				UpstreamBranch: opts.upstreamBranch,
