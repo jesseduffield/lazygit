@@ -238,6 +238,7 @@ var tests = []*components.IntegrationTest{
 	filter_and_search.FilterMenuByKeybinding,
 	filter_and_search.FilterMenuCancelFilterWithEscape,
 	filter_and_search.FilterMenuWithNoKeybindings,
+	filter_and_search.FilterPreservesSelectionOnModelChange,
 	filter_and_search.FilterRemoteBranches,
 	filter_and_search.FilterRemotes,
 	filter_and_search.FilterSearchHistory,

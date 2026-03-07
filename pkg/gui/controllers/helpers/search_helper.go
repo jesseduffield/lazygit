@@ -240,7 +240,7 @@ func (self *SearchHelper) ReApplyFilter(context types.Context) {
 	filterableContext, ok := context.(types.IFilterableContext)
 	if ok {
 		state := self.searchState()
-		if context == state.Context {
+		if context == state.Context && self.c.Context().Current().GetKey() == self.c.Contexts().Search.GetKey() {
 			filterableContext.SetSelection(0)
 			filterableContext.GetView().SetOriginY(0)
 		}
