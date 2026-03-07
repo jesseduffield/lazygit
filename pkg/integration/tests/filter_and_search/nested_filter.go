@@ -70,10 +70,7 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			FilterOrSearch("grape").
 			Lines(
-				Equals("▼ /"),
-				Equals("  A apple"),
-				Equals("  A grape").IsSelected(),
-				Equals("  A orange"),
+				Equals("A grape").IsSelected(),
 			).
 			PressEnter()
 
@@ -91,15 +88,12 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Equals("▼ /"),
-				Equals("  A apple"),
-				Equals("  A grape").IsSelected(),
-				Equals("  A orange"),
+				Equals("A grape").IsSelected(),
 			).
 			Tap(func() {
 				t.Views().Search().IsVisible().Content(Contains("matches for 'grape'"))
 			}).
-			// cancel search
+			// cancel filter
 			PressEscape().
 			Tap(func() {
 				t.Views().Search().IsInvisible()

@@ -584,11 +584,11 @@ func (self *RefreshHelper) refreshStateFiles() error {
 
 	// only taking over the filter if it hasn't already been set by the user.
 	if conflictFileCount > 0 && prevConflictFileCount == 0 {
-		if fileTreeViewModel.GetFilter() == filetree.DisplayAll {
+		if fileTreeViewModel.GetStatusFilter() == filetree.DisplayAll {
 			fileTreeViewModel.SetStatusFilter(filetree.DisplayConflicted)
 			self.c.Contexts().Files.GetView().Subtitle = self.c.Tr.FilterLabelConflictingFiles
 		}
-	} else if conflictFileCount == 0 && fileTreeViewModel.GetFilter() == filetree.DisplayConflicted {
+	} else if conflictFileCount == 0 && fileTreeViewModel.GetStatusFilter() == filetree.DisplayConflicted {
 		fileTreeViewModel.SetStatusFilter(filetree.DisplayAll)
 		self.c.Contexts().Files.GetView().Subtitle = ""
 	}
