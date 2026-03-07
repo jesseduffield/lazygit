@@ -33,6 +33,8 @@ func NewSearchHelper(
 func (self *SearchHelper) OpenFilterPrompt(context types.IFilterableContext) error {
 	state := self.searchState()
 
+	state.PrevSearchIndex = -1
+
 	state.Context = context
 
 	self.searchPrefixView().SetContent(context.FilterPrefix(self.c.Tr))
