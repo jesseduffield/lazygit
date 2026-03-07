@@ -844,7 +844,7 @@ func (self *RefreshHelper) promptForBaseGithubRepo() (bool, error) {
 				InitialContent:      "",
 				FindSuggestionsFunc: self.suggestionsHelper.GetRemoteRepoSuggestionsFunc(),
 				HandleConfirm: func(repository string) error {
-					return self.c.WithWaitingStatus(self.c.Tr.LcSelectingRemote, func(gocui.Task) error {
+					return self.c.WithWaitingStatus(self.c.Tr.SelectingRemote, func(gocui.Task) error {
 						// `repository` is something like 'jesseduffield/lazygit'
 						_, err := self.c.Git().GitHub.SetBaseRepo(repository)
 						if err != nil {
