@@ -121,12 +121,14 @@ func (self *GitHubCommands) FetchRecentPRs(branches []string) ([]*models.GithubP
 	t := time.Now()
 
 	var g errgroup.Group
-	results := make(chan []*models.GithubPullRequest)
 
 	// We want at most 5 concurrent requests, but no less than 10 branches per request
 	concurrency := 5
 	minBranchesPerRequest := 10
 	branchesPerRequest := max(len(branches)/concurrency, minBranchesPerRequest)
+	numChunks := (len(branches) + branchesPerRequest - 1) / branchesPerRequest
+	results := make(chan []*models.GithubPullRequest, numChunks)
+
 	for i := 0; i < len(branches); i += branchesPerRequest {
 		end := i + branchesPerRequest
 		if end > len(branches) {
@@ -145,20 +147,17 @@ func (self *GitHubCommands) FetchRecentPRs(branches []string) ([]*models.GithubP
 		})
 	}
 
-	// Close the results channel when all goroutines are done
-	go func() {
-		_ = g.Wait()
-		close(results)
-	}()
+	// Wait for all goroutines, then close the channel so the range loop exits
+	err = g.Wait()
+	close(results)
+	if err != nil {
+		return nil, err
+	}
 
 	// Collect results from all goroutines
 	var allPRs []*models.GithubPullRequest
 	for prs := range results {
 		allPRs = append(allPRs, prs...)
-	}
-
-	if err := g.Wait(); err != nil {
-		return nil, err
 	}
 
 	self.Log.Warnf("Fetched PRs in %s", time.Since(t))
