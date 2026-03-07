@@ -224,13 +224,13 @@ func (self *PatchBuildingController) discardSelectionFromCommit() error {
 		return nil
 	}
 
-	self.c.Helpers().PatchBuilding.Escape()
-
-	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusSync(self.c.Tr.RebasingStatus, func() error {
 		commitIndex := self.getPatchCommitIndex()
 		self.c.LogAction(self.c.Tr.Actions.RemovePatchFromCommit)
 		err := self.c.Git().Patch.DeletePatchesFromCommit(self.c.Model().Commits, commitIndex)
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+		self.c.Helpers().PatchBuilding.Escape()
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{Mode: types.SYNC})
 	})
 }
 
