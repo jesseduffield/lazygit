@@ -1,6 +1,5 @@
 package models
 
-// TODO: see if I need to store the head repo name in case it differs from the base repo
 type GithubPullRequest struct {
 	HeadRefName         string                `json:"headRefName"`
 	Number              int                   `json:"number"`

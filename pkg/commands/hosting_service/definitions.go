@@ -58,8 +58,7 @@ var azdoServiceDef = ServiceDefinition{
 		`^https://.*@dev.azure.com/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`,
 		`^https://.*/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`,
 	},
-	repoURLTemplate: "https://{{.webDomain}}/{{.org}}/{{.project}}/_git/{{.repo}}",
-	// TODO: verify this is actually correct
+	repoURLTemplate:  "https://{{.webDomain}}/{{.org}}/{{.project}}/_git/{{.repo}}",
 	repoNameTemplate: "{{.org}}/{{.project}}/{{.repo}}",
 }
 
@@ -72,8 +71,7 @@ var bitbucketServerServiceDef = ServiceDefinition{
 		`^ssh://git@.*/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
 		`^https://.*/scm/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
 	},
-	repoURLTemplate: "https://{{.webDomain}}/projects/{{.project}}/repos/{{.repo}}",
-	// TODO: verify this is actually correct
+	repoURLTemplate:  "https://{{.webDomain}}/projects/{{.project}}/repos/{{.repo}}",
 	repoNameTemplate: "{{.project}}/{{.repo}}",
 }
 

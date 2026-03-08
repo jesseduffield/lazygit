@@ -199,8 +199,6 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 				ptyTask := types.NewRunPtyTask(cmdObj.GetCmd())
 				task = ptyTask
 
-				// Shouldn't we hold on to the map for longer instead of generating it every time?
-				// It is also generated every time we render the branches list.
 				prs := git_commands.GenerateGithubPullRequestMap(
 					self.c.Model().PullRequests,
 					self.c.Model().Branches,
