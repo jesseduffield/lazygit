@@ -279,6 +279,7 @@ type TranslationSet struct {
 	ConfirmQuit                           string
 	SwitchRepo                            string
 	AllBranchesLogGraph                   string
+	AllBranchesLogGraphReverse            string
 	UnsupportedGitService                 string
 	CopyPullRequestURL                    string
 	NoBranchOnRemote                      string
@@ -1389,6 +1390,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ConfirmQuit:                          `Are you sure you want to quit?`,
 		SwitchRepo:                           `Switch to a recent repo`,
 		AllBranchesLogGraph:                  `Show/cycle all branch logs`,
+		AllBranchesLogGraphReverse:           `Show/cycle all branch logs (reverse)`,
 		UnsupportedGitService:                `Unsupported git service`,
 		CreatePullRequest:                    `Create pull request`,
 		CopyPullRequestURL:                   `Copy pull request URL to clipboard`,

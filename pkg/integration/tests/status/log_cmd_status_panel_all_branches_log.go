@@ -10,7 +10,11 @@ var LogCmdStatusPanelAllBranchesLog = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Git.AllBranchesLogCmds = []string{`echo "view1"`, `echo "view2"`}
+		config.GetUserConfig().Git.AllBranchesLogCmds = []string{
+			`echo "view1"`,
+			`echo "view2"`,
+			`echo "view3"`,
+		}
 		config.GetUserConfig().Gui.StatusPanelView = "allBranchesLog"
 	},
 	SetupRepo: func(shell *Shell) {},
@@ -25,14 +29,30 @@ var LogCmdStatusPanelAllBranchesLog = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Status().
 			Focus()
 
-		t.Views().Main().Content(Contains("view1").DoesNotContain("view2"))
+		t.Views().Main().Content(Contains("view1"))
 
 		t.Views().Status().
 			Press(keys.Status.AllBranchesLogGraph)
-		t.Views().Main().Content(Contains("view2").DoesNotContain("view1"))
+		t.Views().Main().Content(Contains("view2"))
 
 		t.Views().Status().
 			Press(keys.Status.AllBranchesLogGraph)
-		t.Views().Main().Content(Contains("view1").DoesNotContain("view2"))
+		t.Views().Main().Content(Contains("view3"))
+
+		t.Views().Status().
+			Press(keys.Status.AllBranchesLogGraph)
+		t.Views().Main().Content(Contains("view1"))
+
+		t.Views().Status().
+			Press(keys.Status.AllBranchesLogGraphReverse)
+		t.Views().Main().Content(Contains("view3"))
+
+		t.Views().Status().
+			Press(keys.Status.AllBranchesLogGraphReverse)
+		t.Views().Main().Content(Contains("view2"))
+
+		t.Views().Status().
+			Press(keys.Status.AllBranchesLogGraphReverse)
+		t.Views().Main().Content(Contains("view1"))
 	},
 })
