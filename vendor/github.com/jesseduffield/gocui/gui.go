@@ -196,6 +196,8 @@ type Gui struct {
 
 	ErrorHandler func(error) error
 
+	ShouldHandleMouseEvent func(view *View, key Key) bool
+
 	screen         tcell.Screen
 	suspendedMutex sync.Mutex
 	suspended      bool
@@ -1329,19 +1331,6 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		if err != nil {
 			break
 		}
-		if v.Frame && my == v.y0 {
-			if len(v.Tabs) > 0 {
-				tabIndex := v.GetClickedTabIndex(mx - v.x0)
-
-				if tabIndex >= 0 {
-					for _, binding := range g.tabClickBindings {
-						if binding.viewName == v.Name() {
-							return binding.handler(tabIndex)
-						}
-					}
-				}
-			}
-		}
 
 		// newCx and newCy are relative to the view port, i.e. to the visible area of the view
 		newCx := mx - v.x0 - 1
@@ -1368,6 +1357,23 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 				newCx = visibleLineWidth - v.ox
 			}
 		}
+
+		if ev.Key == MouseLeft && (ev.Mod&ModMotion) == 0 && !v.Editable && g.openHyperlink != nil {
+			if newY >= 0 && newY <= len(v.viewLines)-1 && newX >= 0 && newX <= len(v.viewLines[newY].line)-1 {
+				if link := v.viewLines[newY].line[newX].hyperlink; link != "" {
+					return g.openHyperlink(link, v.name)
+				}
+			}
+		}
+
+		if g.ShouldHandleMouseEvent != nil {
+			if !g.ShouldHandleMouseEvent(v, ev.Key) {
+				// Give clients a chance to reject clicks, for example clicks in inactive views
+				// when a modal panel is open.
+				break
+			}
+		}
+
 		if !IsMouseScrollKey(ev.Key) {
 			v.SetCursor(newCx, newCy)
 			if v.Editable {
@@ -1381,10 +1387,16 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			}
 		}
 
-		if ev.Key == MouseLeft && (ev.Mod&ModMotion) == 0 && !v.Editable && g.openHyperlink != nil {
-			if newY >= 0 && newY <= len(v.viewLines)-1 && newX >= 0 && newX <= len(v.viewLines[newY].line)-1 {
-				if link := v.viewLines[newY].line[newX].hyperlink; link != "" {
-					return g.openHyperlink(link, v.name)
+		if v.Frame && my == v.y0 {
+			if len(v.Tabs) > 0 {
+				tabIndex := v.GetClickedTabIndex(mx - v.x0)
+
+				if tabIndex >= 0 {
+					for _, binding := range g.tabClickBindings {
+						if binding.viewName == v.Name() {
+							return binding.handler(tabIndex)
+						}
+					}
 				}
 			}
 		}
