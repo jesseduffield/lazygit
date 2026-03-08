@@ -247,6 +247,9 @@ func (self *WorkingTreeCommands) Ignore(filename string) error {
 // Exclude adds a file to the .git/info/exclude for the repo
 func (self *WorkingTreeCommands) Exclude(filename string) error {
 	excludeFile := filepath.Join(self.repoPaths.repoGitDirPath, "info", "exclude")
+	if err := os.MkdirAll(filepath.Dir(excludeFile), 0o755); err != nil {
+		return err
+	}
 	return self.os.AppendLineToFile(excludeFile, escapeFilename(filename))
 }
 
