@@ -14,14 +14,14 @@ import "unsafe"
 type storageBuf [maxRate / 8]uint64
 
 func (b *storageBuf) asBytes() *[maxRate]byte {
-	return (*[maxRate]byte)(unsafe.Pointer(b))
+	return (*[maxRate]byte)(unsafe.Pointer(b)) //nolint:gosec
 }
 
 // xorInuses unaligned reads and writes to update d.a to contain d.a
 // XOR buf.
 func xorIn(d *State, buf []byte) {
 	n := len(buf)
-	bw := (*[maxRate / 8]uint64)(unsafe.Pointer(&buf[0]))[: n/8 : n/8]
+	bw := (*[maxRate / 8]uint64)(unsafe.Pointer(&buf[0]))[: n/8 : n/8] //nolint:gosec
 	if n >= 72 {
 		d.a[0] ^= bw[0]
 		d.a[1] ^= bw[1]
@@ -56,6 +56,6 @@ func xorIn(d *State, buf []byte) {
 }
 
 func copyOut(d *State, buf []byte) {
-	ab := (*[maxRate]uint8)(unsafe.Pointer(&d.a[0]))
+	ab := (*[maxRate]uint8)(unsafe.Pointer(&d.a[0])) //nolint:gosec
 	copy(buf, ab[:])
 }
