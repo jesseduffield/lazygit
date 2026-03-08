@@ -1988,7 +1988,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CantDeleteMainWorktree:                   "You cannot remove the main worktree!",
 		NoWorktreesThisRepo:                      "No worktrees",
 		MissingWorktree:                          "(missing)",
-		MainWorktree:                             "(main)",
+		MainWorktree:                             "(main worktree)",
 		NewWorktree:                              "New worktree",
 		NewWorktreePath:                          "New worktree path",
 		NewWorktreeBase:                          "New worktree base ref",

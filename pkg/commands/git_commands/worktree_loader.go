@@ -67,6 +67,8 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 				// we can parallelize the calls to git rev-parse
 				GitDir: "",
 			}
+		} else if strings.HasPrefix(splitLine, "HEAD ") {
+			current.Head = strings.SplitN(splitLine, " ", 2)[1]
 		} else if strings.HasPrefix(splitLine, "branch ") {
 			branch := strings.SplitN(splitLine, " ", 2)[1]
 			current.Branch = strings.TrimPrefix(branch, "refs/heads/")

@@ -29,7 +29,7 @@ var Crud = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("repo (main)"),
+				Contains("(main worktree)"),
 			).
 			Press(keys.Universal.New).
 			Tap(func() {
@@ -55,7 +55,7 @@ var Crud = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("linked-worktree").IsSelected(),
-				Contains("repo (main)"),
+				Contains("(main worktree)"),
 			).
 			// confirm we're still in the same view
 			IsFocused()
@@ -82,7 +82,7 @@ var Crud = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			// confirm we cannot remove the main worktree
-			NavigateToLine(Contains("repo (main)")).
+			NavigateToLine(Contains("(main worktree)")).
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.ExpectPopup().Alert().
@@ -93,7 +93,7 @@ var Crud = NewIntegrationTest(NewIntegrationTestArgs{
 			// switch back to main worktree
 			Press(keys.Universal.Select).
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 				Contains("linked-worktree"),
 			)
 
@@ -114,7 +114,7 @@ var Crud = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 			)
 	},
 })
