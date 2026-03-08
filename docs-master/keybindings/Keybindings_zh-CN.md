@@ -345,6 +345,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` u `` | 检查更新 |  |
 | `` <enter> `` | 切换到最近的仓库 |  |
 | `` a `` | 显示/循环所有分支日志 |  |
+| `` A `` | Show/cycle all branch logs (reverse) |  |
 | `` 0 `` | 聚焦主视图 |  |
 
 ## 确认面板

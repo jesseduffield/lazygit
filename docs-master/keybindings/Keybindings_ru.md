@@ -319,6 +319,7 @@ _Связки клавиш_
 | `` u `` | Проверить обновления |  |
 | `` <enter> `` | Переключиться на последний репозиторий |  |
 | `` a `` | Show/cycle all branch logs |  |
+| `` A `` | Show/cycle all branch logs (reverse) |  |
 | `` 0 `` | Focus main view |  |
 
 ## Теги

@@ -362,6 +362,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` u `` | Verificar atualização |  |
 | `` <enter> `` | Mudar para um repositório recente |  |
 | `` a `` | Mostrar/ciclo todos os logs de filiais |  |
+| `` A `` | Show/cycle all branch logs (reverse) |  |
 | `` 0 `` | Focus main view |  |
 
 ## Sub-commits
