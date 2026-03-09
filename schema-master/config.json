@@ -37,6 +37,17 @@
       "type": "object",
       "description": "Config relating to the commit length indicator"
     },
+    "CommitMessageGeneratorConfig": {
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "Shell command to generate a commit message from staged changes.\nThe command should call `git diff --cached` itself and output a\ncommit message (first line = title, rest after blank line = body)."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config for external commit message generation (e.g. AI)"
+    },
     "CommitPrefixConfig": {
       "properties": {
         "pattern": {
@@ -446,6 +457,10 @@
           "type": "integer",
           "description": "When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.",
           "default": 12
+        },
+        "commitMessageGenerator": {
+          "$ref": "#/$defs/CommitMessageGeneratorConfig",
+          "description": "Config for external commit message generation (e.g. AI)"
         }
       },
       "additionalProperties": false,
