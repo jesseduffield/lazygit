@@ -146,7 +146,7 @@ _Связки клавиш_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Скопировать hash коммита в буфер обмена |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Переключить | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Открыть коммит в браузере |  |
@@ -166,7 +166,7 @@ _Связки клавиш_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Скопировать hash коммита в буфер обмена |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <c-r> `` | Сбросить отобранную (скопированную \| cherry-picked) выборку коммитов |  |
 | `` b `` | Просмотреть параметры бинарного поиска |  |
 | `` s `` | Объединить коммиты (Squash) | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
@@ -253,7 +253,7 @@ _Связки клавиш_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Скопировать hash коммита в буфер обмена |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Переключить | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Открыть коммит в браузере |  |
