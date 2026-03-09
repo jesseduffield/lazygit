@@ -136,7 +136,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 複製提交 hash 到剪貼簿 |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | 檢出 | Checkout the selected commit as a detached HEAD. |
 | `` y `` | 複製提交屬性 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 在瀏覽器中開啟提交 |  |
@@ -180,7 +180,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 複製提交 hash 到剪貼簿 |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <c-r> `` | 重設選定的揀選 (複製) 提交 |  |
 | `` b `` | 查看二分選項 |  |
 | `` s `` | 壓縮 (Squash) | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
@@ -262,7 +262,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 複製提交 hash 到剪貼簿 |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | 檢出 | Checkout the selected commit as a detached HEAD. |
 | `` y `` | 複製提交屬性 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 在瀏覽器中開啟提交 |  |
