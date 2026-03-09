@@ -413,6 +413,10 @@ git:
   allBranchesLogCmds:
     - git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium
 
+  # Ref globs to exclude when displaying git log of all branches in the main
+  # window, e.g. refs/jj/*
+  allBranchesLogExcludeRefs: []
+
   # If true, git diffs are rendered with the `--ignore-all-space` flag, which
   # ignores whitespace changes. Can be toggled from within Lazygit with `<c-w>`.
   ignoreWhitespaceInDiffView: false

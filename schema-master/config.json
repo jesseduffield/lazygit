@@ -366,6 +366,14 @@
             "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"
           ]
         },
+        "allBranchesLogExcludeRefs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "description": "Ref globs to exclude when displaying git log of all branches in the main window, e.g. refs/jj/*"
+        },
         "ignoreWhitespaceInDiffView": {
           "type": "boolean",
           "description": "If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `\u003cc-w\u003e`.",

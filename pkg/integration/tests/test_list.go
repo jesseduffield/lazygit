@@ -402,6 +402,7 @@ var tests = []*components.IntegrationTest{
 	status.ClickToFocus,
 	status.ClickWorkingTreeStateToOpenRebaseOptionsMenu,
 	status.LogCmd,
+	status.LogCmdExcludeRefs,
 	status.LogCmdStatusPanelAllBranchesLog,
 	submodule.Add,
 	submodule.Enter,

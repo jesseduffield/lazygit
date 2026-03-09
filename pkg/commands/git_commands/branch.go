@@ -308,7 +308,36 @@ func (self *BranchCommands) AllBranchesLogCmdObj() *oscommands.CmdObj {
 	}
 
 	i := self.allBranchesLogCmdIndex
-	return self.cmd.New(str.ToArgv(candidates[i])).DontLog()
+	cmdArgs := applyAllBranchesLogExcludeRefs(str.ToArgv(candidates[i]), self.UserConfig().Git.AllBranchesLogExcludeRefs)
+	return self.cmd.New(cmdArgs).DontLog()
+}
+
+func applyAllBranchesLogExcludeRefs(cmdArgs []string, excludeRefs []string) []string {
+	cleanExcludeRefs := lo.Uniq(lo.WithoutEmpty(excludeRefs))
+	if len(cleanExcludeRefs) == 0 {
+		return cmdArgs
+	}
+
+	rewritten := make([]string, 0, len(cmdArgs)+len(cleanExcludeRefs))
+	for _, arg := range cmdArgs {
+		if isAllBranchesLogRefSelector(arg) {
+			for _, excludeRef := range cleanExcludeRefs {
+				rewritten = append(rewritten, "--exclude="+excludeRef)
+			}
+		}
+
+		rewritten = append(rewritten, arg)
+	}
+
+	return rewritten
+}
+
+func isAllBranchesLogRefSelector(arg string) bool {
+	return arg == "--all" ||
+		arg == "--branches" || strings.HasPrefix(arg, "--branches=") ||
+		arg == "--tags" || strings.HasPrefix(arg, "--tags=") ||
+		arg == "--remotes" || strings.HasPrefix(arg, "--remotes=") ||
+		arg == "--glob" || strings.HasPrefix(arg, "--glob=")
 }
 
 func (self *BranchCommands) RotateAllBranchesLogIdx() {

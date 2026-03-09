@@ -290,6 +290,8 @@ type GitConfig struct {
 	BranchLogCmd string `yaml:"branchLogCmd"`
 	// Commands used to display git log of all branches in the main window, they will be cycled in order of appearance (array of strings)
 	AllBranchesLogCmds []string `yaml:"allBranchesLogCmds"`
+	// Ref globs to exclude when displaying git log of all branches in the main window, e.g. refs/jj/*
+	AllBranchesLogExcludeRefs []string `yaml:"allBranchesLogExcludeRefs" jsonschema:"uniqueItems=true"`
 	// If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `<c-w>`.
 	IgnoreWhitespaceInDiffView bool `yaml:"ignoreWhitespaceInDiffView"`
 	// The number of lines of context to show around each diff hunk. Can be changed from within Lazygit with the `{` and `}` keys.
@@ -850,6 +852,7 @@ func GetDefaultConfig() *UserConfig {
 			AutoStageResolvedConflicts:   true,
 			BranchLogCmd:                 "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
 			AllBranchesLogCmds:           []string{"git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"},
+			AllBranchesLogExcludeRefs:    []string{},
 			IgnoreWhitespaceInDiffView:   false,
 			DiffContextSize:              3,
 			RenameSimilarityThreshold:    50,
