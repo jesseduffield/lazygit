@@ -23,7 +23,7 @@ var DetachWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains("mybranch").IsSelected(),
-				Contains("newbranch (worktree)"),
+				Contains("newbranch (worktree linked-worktree)"),
 			).
 			NavigateToLine(Contains("newbranch")).
 			Press(keys.Universal.Remove).
