@@ -64,7 +64,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 커밋 해시를 클립보드에 복사 |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | 체크아웃 | Checkout the selected commit as a detached HEAD. |
 | `` y `` | 커밋 attribute 복사 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 브라우저에서 커밋 열기 |  |
@@ -106,7 +106,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 커밋 해시를 클립보드에 복사 |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | 체크아웃 | Checkout the selected commit as a detached HEAD. |
 | `` y `` | 커밋 attribute 복사 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 브라우저에서 커밋 열기 |  |
@@ -178,6 +178,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` o `` | 파일 닫기 | Open file in default application. |
 | `` e `` | 파일 편집 | Open file in external editor. |
 | `` <space> `` | Line(s)을 패치에 추가/삭제 |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | Exit custom patch builder |  |
 | `` / `` | 검색 시작 |  |
 
@@ -242,6 +243,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` u `` | 업데이트 확인 |  |
 | `` <enter> `` | 최근에 사용한 저장소로 전환 |  |
 | `` a `` | Show/cycle all branch logs |  |
+| `` A `` | Show/cycle all branch logs (reverse) |  |
 | `` 0 `` | Focus main view |  |
 
 ## 서브모듈
@@ -293,7 +295,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 커밋 해시를 클립보드에 복사 |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <c-r> `` | Reset cherry-picked (copied) commits selection |  |
 | `` b `` | Bisect 옵션 보기 |  |
 | `` s `` | 스쿼시 | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
@@ -337,7 +339,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-o> `` | 파일명을 클립보드에 복사 |  |
 | `` y `` | 클립보드에 복사 |  |
 | `` c `` | 체크아웃 | Checkout file |
-| `` d `` | Remove | Discard this commit's changes to this file |
+| `` d `` | View 'discard changes' options | Discard this commit's changes to this file |
 | `` o `` | 파일 닫기 | Open file in default application. |
 | `` e `` | Edit | Open file in external editor. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
@@ -348,7 +350,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
-| `` / `` | 검색 시작 |  |
+| `` / `` | Filter the current view by text |  |
 
 ## 커밋메시지
 
@@ -404,7 +406,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
-| `` / `` | 검색 시작 |  |
+| `` / `` | Filter the current view by text |  |
 
 ## 확인 패널
 

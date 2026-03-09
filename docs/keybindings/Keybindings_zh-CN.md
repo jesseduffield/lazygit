@@ -57,7 +57,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 复制提交哈希到剪贴板 |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
 | `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
@@ -101,7 +101,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 复制提交哈希到剪贴板 |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
 | `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
@@ -121,7 +121,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 复制提交哈希到剪贴板 |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <c-r> `` | 重置已拣选(复制)的提交 |  |
 | `` b `` | 查看二分查找选项 |  |
 | `` s `` | 压缩(Squash) | 将已选提交压缩到该提交之下。这些选定的提交的消息会附加到该提交的消息之下。 |
@@ -172,7 +172,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` <c-o> `` | 复制路径到剪贴板 |  |
 | `` y `` | 复制到剪贴板 |  |
 | `` c `` | 检出 | 检出文件 |
-| `` d `` | 删除 | 放弃对此文件的提交变更 |
+| `` d `` | 查看'放弃变更'选项 | 放弃对此文件的提交变更 |
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
 | `` e `` | 编辑(Edit) | 使用外部编辑器打开文件 |
 | `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
@@ -183,7 +183,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` - `` | 折叠全部文件 | 折叠文件树中的全部目录 |
 | `` = `` | 展开全部文件 | 展开文件树中的全部目录 |
 | `` 0 `` | 聚焦主视图 |  |
-| `` / `` | 开始搜索 |  |
+| `` / `` | 通过文本过滤当前视图 |  |
 
 ## 文件
 
@@ -216,7 +216,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` - `` | 折叠全部文件 | 折叠文件树中的全部目录 |
 | `` = `` | 展开全部文件 | 展开文件树中的全部目录 |
 | `` 0 `` | 聚焦主视图 |  |
-| `` / `` | 开始搜索 |  |
+| `` / `` | 通过文本过滤当前视图 |  |
 
 ## 本地分支
 
@@ -260,6 +260,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
 | `` e `` | 编辑文件 | 使用外部编辑器打开文件 |
 | `` <space> `` | 添加/移除 行到补丁 |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | 退出逐行模式 |  |
 | `` / `` | 开始搜索 |  |
 
@@ -344,6 +345,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` u `` | 检查更新 |  |
 | `` <enter> `` | 切换到最近的仓库 |  |
 | `` a `` | 显示/循环所有分支日志 |  |
+| `` A `` | Show/cycle all branch logs (reverse) |  |
 | `` 0 `` | 聚焦主视图 |  |
 
 ## 确认面板

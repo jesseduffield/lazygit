@@ -84,7 +84,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
-| `` / `` | Start met zoeken |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Bevestigingspaneel
 
@@ -138,7 +138,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-o> `` | Kopieer de bestandsnaam naar het klembord |  |
 | `` y `` | Copy to clipboard |  |
 | `` c `` | Uitchecken | Bestand uitchecken |
-| `` d `` | Remove | Uitsluit deze commit zijn veranderingen aan dit bestand |
+| `` d `` | Bekijk 'veranderingen ongedaan maken' opties | Uitsluit deze commit zijn veranderingen aan dit bestand |
 | `` o `` | Open bestand | Open file in default application. |
 | `` e `` | Edit | Open file in external editor. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
@@ -149,13 +149,13 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
-| `` / `` | Start met zoeken |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Commits
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Kopieer commit hash naar klembord |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <c-r> `` | Reset cherry-picked (gekopieerde) commits selectie |  |
 | `` b `` | View bisect options |  |
 | `` s `` | Squash | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
@@ -245,6 +245,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` o `` | Open bestand | Open file in default application. |
 | `` e `` | Verander bestand | Open file in external editor. |
 | `` <space> `` | Voeg toe/verwijder lijn(en) in patch |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | Sluit lijn-bij-lijn modus |  |
 | `` / `` | Start met zoeken |  |
 
@@ -252,7 +253,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Kopieer commit hash naar klembord |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Uitchecken | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
@@ -352,13 +353,14 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` u `` | Check voor updates |  |
 | `` <enter> `` | Wissel naar een recente repo |  |
 | `` a `` | Show/cycle all branch logs |  |
+| `` A `` | Show/cycle all branch logs (reverse) |  |
 | `` 0 `` | Focus main view |  |
 
 ## Sub-commits
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Kopieer commit hash naar klembord |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Uitchecken | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
