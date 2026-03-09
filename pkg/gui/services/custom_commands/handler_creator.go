@@ -104,13 +104,30 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 					}
 					return self.confirmPrompt(resolvedPrompt, g)
 				}
+			case "executeCommand":
+				f = func() error {
+					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
+					if err != nil {
+						return err
+					}
+					return self.executeCommand(resolvedPrompt, wrappedF)
+				}
 			default:
-				return errors.New("custom command prompt must have a type of 'input', 'menu', 'menuFromCommand', or 'confirm'")
+				return errors.New("custom command prompt must have a type of 'input', 'menu', 'menuFromCommand', 'executeCommand' or 'confirm'")
 			}
 		}
 
 		return f()
 	}
+}
+
+func (self *HandlerCreator) executeCommand(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
+	output, err := self.c.OS().Cmd.NewShell(prompt.Command).RunWithOutput()
+	if err != nil {
+		return err
+	}
+
+	return wrappedF(output)
 }
 
 func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
