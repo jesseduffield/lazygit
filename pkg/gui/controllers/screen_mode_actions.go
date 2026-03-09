@@ -41,6 +41,11 @@ func (self *ScreenModeActions) rerenderViewsWithScreenModeDependentContent() {
 			self.rerenderView(context.GetView())
 		}
 	}
+
+	// Rerender the main view; for views that display a diff this is necessary in case a custom
+	// pager depends on the width of the view. For other views it isn't needed, but we don't bother
+	// making a distinction here, as rerendering the main view unnecessarily is not a big deal.
+	self.c.Context().CurrentSide().HandleRenderToMain()
 }
 
 func (self *ScreenModeActions) rerenderView(view *gocui.View) {

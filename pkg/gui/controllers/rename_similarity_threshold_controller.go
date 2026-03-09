@@ -71,7 +71,7 @@ func (self *RenameSimilarityThresholdController) Decrease() error {
 func (self *RenameSimilarityThresholdController) applyChange() error {
 	self.c.Toast(fmt.Sprintf(self.c.Tr.RenameSimilarityThresholdChanged, self.c.UserConfig().Git.RenameSimilarityThreshold))
 
-	currentContext := self.currentSidePanel()
+	currentContext := self.c.Context().CurrentSide()
 	switch currentContext.GetKey() {
 	// we make an exception for our files context, because it actually need to refresh its state afterwards.
 	case context.FILES_CONTEXT_KEY:
@@ -80,16 +80,4 @@ func (self *RenameSimilarityThresholdController) applyChange() error {
 		currentContext.HandleRenderToMain()
 	}
 	return nil
-}
-
-func (self *RenameSimilarityThresholdController) currentSidePanel() types.Context {
-	currentContext := self.c.Context().CurrentStatic()
-	if currentContext.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY ||
-		currentContext.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {
-		if sidePanelContext := self.c.Context().NextInStack(currentContext); sidePanelContext != nil {
-			return sidePanelContext
-		}
-	}
-
-	return currentContext
 }
