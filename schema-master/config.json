@@ -393,6 +393,11 @@
           "description": "If true, do not allow force pushes",
           "default": false
         },
+        "skipHookOnPush": {
+          "type": "boolean",
+          "description": "If true, pass --no-verify to git push, skipping pre-push hooks",
+          "default": false
+        },
         "commitPrefix": {
           "items": {
             "$ref": "#/$defs/CommitPrefixConfig"

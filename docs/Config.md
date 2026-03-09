@@ -383,6 +383,9 @@ git:
   # will be skipped when the commit message starts with 'WIP'
   skipHookPrefix: WIP
 
+  # If true, pass --no-verify when pushing, skipping pre-push hooks
+  skipHookOnPush: false
+
   # If true, periodically fetch from remote
   autoFetch: true
 
