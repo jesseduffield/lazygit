@@ -1,0 +1,24 @@
+package models
+
+type GithubPullRequest struct {
+	HeadRefName         string                `json:"headRefName"`
+	Number              int                   `json:"number"`
+	Title               string                `json:"title"`
+	State               string                `json:"state"` // "MERGED", "OPEN", "CLOSED", "DRAFT"
+	Url                 string                `json:"url"`
+	HeadRepositoryOwner GithubRepositoryOwner `json:"headRepositoryOwner"`
+}
+
+func (pr *GithubPullRequest) UserName() string {
+	// e.g. 'jesseduffield'
+	return pr.HeadRepositoryOwner.Login
+}
+
+func (pr *GithubPullRequest) BranchName() string {
+	// e.g. 'feature/my-feature'
+	return pr.HeadRefName
+}
+
+type GithubRepositoryOwner struct {
+	Login string `json:"login"`
+}
