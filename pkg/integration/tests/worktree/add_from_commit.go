@@ -50,7 +50,7 @@ var AddFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Lines(
 				Contains("newbranch").IsSelected(),
-				Contains("mybranch (worktree)"),
+				Contains("mybranch (worktree repo)"),
 			)
 	},
 })
