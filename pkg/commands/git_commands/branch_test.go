@@ -66,7 +66,7 @@ func TestBranchDeleteBranch(t *testing.T) {
 		branchNames []string
 		force       bool
 		runner      *oscommands.FakeCmdObjRunner
-		test        func(error)
+		test        func(string, error)
 	}
 
 	scenarios := []scenario{
@@ -75,7 +75,7 @@ func TestBranchDeleteBranch(t *testing.T) {
 			[]string{"test"},
 			false,
 			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"branch", "-d", "test"}, "", nil),
-			func(err error) {
+			func(_ string, err error) {
 				assert.NoError(t, err)
 			},
 		},
@@ -84,7 +84,7 @@ func TestBranchDeleteBranch(t *testing.T) {
 			[]string{"test1", "test2", "test3"},
 			false,
 			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"branch", "-d", "test1", "test2", "test3"}, "", nil),
-			func(err error) {
+			func(_ string, err error) {
 				assert.NoError(t, err)
 			},
 		},
@@ -93,7 +93,7 @@ func TestBranchDeleteBranch(t *testing.T) {
 			[]string{"test"},
 			true,
 			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"branch", "-D", "test"}, "", nil),
-			func(err error) {
+			func(_ string, err error) {
 				assert.NoError(t, err)
 			},
 		},
@@ -102,7 +102,7 @@ func TestBranchDeleteBranch(t *testing.T) {
 			[]string{"test1", "test2", "test3"},
 			true,
 			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"branch", "-D", "test1", "test2", "test3"}, "", nil),
-			func(err error) {
+			func(_ string, err error) {
 				assert.NoError(t, err)
 			},
 		},

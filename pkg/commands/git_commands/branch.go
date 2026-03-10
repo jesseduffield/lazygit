@@ -133,13 +133,14 @@ func (self *BranchCommands) PreviousRef() (string, error) {
 }
 
 // LocalDelete delete branch locally
-func (self *BranchCommands) LocalDelete(branches []string, force bool) error {
+func (self *BranchCommands) LocalDelete(branches []string, force bool) (string, error) {
 	cmdArgs := NewGitCmd("branch").
 		ArgIfElse(force, "-D", "-d").
 		Arg(branches...).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).Run()
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	return output, err
 }
 
 // Checkout checks out a branch (or commit), with --force if you set the force arg to true
