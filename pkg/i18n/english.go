@@ -860,6 +860,7 @@ type TranslationSet struct {
 	BranchCheckedOutByWorktree               string
 	SomeBranchesCheckedOutByWorktreeError    string
 	DetachWorktreeTooltip                    string
+	DetachWorktreeHasUncommittedChanges      string
 	Switching                                string
 	RemoveWorktree                           string
 	RemoveWorktreeTitle                      string
@@ -1976,6 +1977,7 @@ func EnglishTranslationSet() *TranslationSet {
 		BranchCheckedOutByWorktree:               "Branch {{.branchName}} is checked out by worktree {{.worktreeName}}",
 		SomeBranchesCheckedOutByWorktreeError:    "Some of the selected branches are checked out by other worktrees. Select them one by one to delete them.",
 		DetachWorktreeTooltip:                    "This will run `git checkout --detach` on the worktree so that it stops hogging the branch, but the worktree's working tree will be left alone.",
+		DetachWorktreeHasUncommittedChanges:      "Worktree has uncommitted changes that would be lost",
 		Switching:                                "Switching",
 		RemoveWorktree:                           "Remove worktree",
 		RemoveWorktreeTitle:                      "Remove worktree",

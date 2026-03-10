@@ -392,7 +392,7 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 
 	worktreeForRef, ok := self.worktreeForBranch(selectedBranch)
 	if ok && !worktreeForRef.IsCurrent {
-		return self.promptToCheckoutWorktree(worktreeForRef)
+		return self.promptToCheckoutWorktree(worktreeForRef, selectedBranch.Name)
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
@@ -415,16 +415,39 @@ func (self *BranchesController) worktreeForBranch(branch *models.Branch) (*model
 	return git_commands.WorktreeForBranch(branch, self.c.Model().Worktrees)
 }
 
-func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktree) error {
-	prompt := utils.ResolvePlaceholderString(self.c.Tr.AlreadyCheckedOutByWorktree, map[string]string{
+func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktree, branchName string) error {
+	title := utils.ResolvePlaceholderString(self.c.Tr.BranchCheckedOutByWorktree, map[string]string{
 		"worktreeName": worktree.Name,
+		"branchName":   branchName,
 	})
 
-	return self.c.ConfirmIf(!self.c.UserConfig().Gui.SkipSwitchWorktreeOnCheckoutWarning, types.ConfirmOpts{
-		Title:  self.c.Tr.SwitchToWorktree,
-		Prompt: prompt,
-		HandleConfirm: func() error {
-			return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
+	var detachDisabledReason *types.DisabledReason
+	if !worktree.IsPathMissing && !self.c.Git().Worktree.IsWorktreeClean(worktree.Path) {
+		detachDisabledReason = &types.DisabledReason{Text: self.c.Tr.DetachWorktreeHasUncommittedChanges}
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: title,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.SwitchToWorktree,
+				OnPress: func() error {
+					return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
+				},
+			},
+			{
+				Label:          self.c.Tr.DetachWorktree,
+				Tooltip:        self.c.Tr.DetachWorktreeTooltip,
+				DisabledReason: detachDisabledReason,
+				OnPress: func() error {
+					return self.c.Helpers().Refs.CheckoutRef(branchName, types.CheckoutRefOptions{
+						PreCheckoutCommand: func() error {
+							self.c.LogAction(self.c.Tr.DetachingWorktree)
+							return self.c.Git().Worktree.Detach(worktree.Path)
+						},
+					})
+				},
+			},
 		},
 	})
 }

@@ -47,9 +47,9 @@ var AddFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("mybranch")).
 			Press(keys.Universal.Select).
 			Tap(func() {
-				t.ExpectPopup().Confirmation().
-					Title(Equals("Switch to worktree")).
-					Content(Equals("This branch is checked out by worktree repo. Do you want to switch to that worktree?")).
+				t.ExpectPopup().Menu().
+					Title(Equals("Branch mybranch is checked out by worktree repo")).
+					Select(Equals("Switch to worktree")).
 					Confirm()
 			}).
 			Lines(
