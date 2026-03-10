@@ -123,6 +123,7 @@ var tests = []*components.IntegrationTest{
 	commit.CopyTagToClipboard,
 	commit.CreateAmendCommit,
 	commit.CreateFixupCommitInBranchStack,
+	commit.CreateFixupCommitOnFixupCommit,
 	commit.CreateTag,
 	commit.DisableCopyCommitMessageBody,
 	commit.DiscardOldFileChanges,
