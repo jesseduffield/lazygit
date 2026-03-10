@@ -366,7 +366,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		InitialContent: suggestedBranchName,
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.CreateBranch)
-			newBranchName := SanitizedBranchName(response)
+			newBranchName := SanitizedBranchName(response, self.c.UserConfig().Git.BranchWhitespaceChar)
 			newBranchFunc := self.c.Git().Branch.New
 			if newBranchName != suggestedBranchName {
 				newBranchFunc = self.c.Git().Branch.NewWithoutTracking
@@ -429,7 +429,7 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 			InitialContent: suggestedBranchName,
 			HandleConfirm: func(response string) error {
 				self.c.LogAction(self.c.Tr.MoveCommitsToNewBranch)
-				newBranchName := SanitizedBranchName(response)
+				newBranchName := SanitizedBranchName(response, self.c.UserConfig().Git.BranchWhitespaceChar)
 				return self.c.WithWaitingStatus(self.c.Tr.MovingCommitsToNewBranchStatus, func(gocui.Task) error {
 					return f(newBranchName)
 				})
@@ -576,10 +576,13 @@ func (self *RefsHelper) CanMoveCommitsToNewBranch() *types.DisabledReason {
 	return nil
 }
 
-// SanitizedBranchName will remove all spaces in favor of a dash "-" to meet
-// git's branch naming requirement.
-func SanitizedBranchName(input string) string {
-	return strings.ReplaceAll(input, " ", "-")
+// SanitizedBranchName will replace all spaces with the configured replacement
+// string to meet git's branch naming requirement.
+func SanitizedBranchName(input, whitespaceReplacement string) string {
+	if whitespaceReplacement == "" {
+		whitespaceReplacement = "-"
+	}
+	return strings.ReplaceAll(input, " ", whitespaceReplacement)
 }
 
 // Checks if the given branch name is a remote branch, and returns the name of
