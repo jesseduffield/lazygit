@@ -379,9 +379,10 @@ git:
     - master
     - main
 
-  # Prefix to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks
-  # will be skipped when the commit message starts with 'WIP'
-  skipHookPrefix: WIP
+  # Prefixes to use when skipping hooks. E.g. if set to 'WIP', then pre-commit
+  # hooks will be skipped when the commit message starts with 'WIP'
+  skipHookPrefixes:
+    - WIP
 
   # If true, periodically fetch from remote
   autoFetch: true

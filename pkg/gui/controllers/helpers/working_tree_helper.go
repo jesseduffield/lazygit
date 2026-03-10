@@ -129,8 +129,8 @@ func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage strin
 				OnSwitchToEditor: func(filepath string) error {
 					return self.switchFromCommitMessagePanelToEditor(filepath, forceSkipHooks)
 				},
-				ForceSkipHooks:  forceSkipHooks,
-				SkipHooksPrefix: self.c.UserConfig().Git.SkipHookPrefix,
+				ForceSkipHooks:    forceSkipHooks,
+				SkipHooksPrefixes: self.c.UserConfig().Git.SkipHookPrefixes,
 			},
 		)
 
@@ -182,8 +182,11 @@ func (self *WorkingTreeHelper) HandleWIPCommitPress() error {
 	var initialMessage string
 	preservedMessage := self.c.Contexts().CommitMessage.GetPreservedMessageAndLogError()
 	if preservedMessage == "" {
-		// Use the skipHook prefix only if we don't have a preserved message
-		initialMessage = self.c.UserConfig().Git.SkipHookPrefix
+		// Use the first skipHook prefix only if we don't have a preserved message
+		prefixes := self.c.UserConfig().Git.SkipHookPrefixes
+		if len(prefixes) > 0 {
+			initialMessage = prefixes[0]
+		}
 	}
 	return self.HandleCommitPressWithMessage(initialMessage, true)
 }
