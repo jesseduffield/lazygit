@@ -92,3 +92,17 @@ func (e ErrKeybindingNotHandled) Error() string {
 func (e ErrKeybindingNotHandled) Unwrap() error {
 	return gocui.ErrKeybindingNotHandled
 }
+
+// ErrFatal is an error that should cause the program to exit immediately,
+// bypassing the popup error handler.
+type ErrFatal struct {
+	Err error
+}
+
+func (e ErrFatal) Error() string {
+	return e.Err.Error()
+}
+
+func (e ErrFatal) Unwrap() error {
+	return e.Err
+}

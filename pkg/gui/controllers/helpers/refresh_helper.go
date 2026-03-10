@@ -471,7 +471,10 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 			})
 		})
 	if err != nil {
-		self.c.Log.Error(err)
+		self.c.OnUIThread(func() error {
+			return types.ErrFatal{Err: err}
+		})
+		return
 	}
 
 	prevSelectedBranch := self.c.Contexts().Branches.GetSelected()
