@@ -289,6 +289,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
 		ArgIf(!plain && self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		ArgIf(!plain && self.UserConfig().Git.ColorWordsInDiffView, "--color-words").
 		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
 		ArgIf(cached, "--cached").
 		ArgIf(noIndex, "--no-index").
@@ -332,6 +333,7 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 		Arg(to).
 		ArgIf(reverse, "-R").
 		ArgIf(!plain && self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		ArgIf(!plain && self.UserConfig().Git.ColorWordsInDiffView, "--color-words").
 		Arg("--").
 		Arg(fileNames...).
 		Dir(self.repoPaths.worktreePath).
