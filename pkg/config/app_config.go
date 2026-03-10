@@ -690,6 +690,12 @@ func (c *AppConfig) SaveGlobalUserConfig() {
 	}
 }
 
+// SpiceAppState stores runtime state for git-spice integration
+type SpiceAppState struct {
+	// LogFormat override: empty string means use UserConfig default
+	LogFormat string `yaml:"logFormat,omitempty"`
+}
+
 // AppState stores data between runs of the app like when the last update check
 // was performed and which other repos have been checked out
 type AppState struct {
@@ -704,6 +710,9 @@ type AppState struct {
 	ShellCommandsHistory []string `yaml:"customcommandshistory"`
 
 	HideCommandLog bool
+
+	// Spice settings (runtime overrides)
+	Spice SpiceAppState `yaml:"spice,omitempty"`
 }
 
 func getDefaultAppState() *AppState {
