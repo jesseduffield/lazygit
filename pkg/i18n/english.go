@@ -1161,7 +1161,7 @@ func EnglishTranslationSet() *TranslationSet {
 		HunksWithOnlyAddedLinesWarning:       "There are ranges of only added lines in the diff; be careful to check that these belong in the found base commit.\n\nProceed?",
 		StatusTitle:                          "Status",
 		Execute:                              "Execute",
-		Stage:                                "Stage",
+		Stage:                                "Stage/Unstage",
 		StageTooltip:                         "Toggle staged for selected file.",
 		ToggleStagedAll:                      "Stage all",
 		ToggleStagedAllTooltip:               "Toggle staged/unstaged for all files in working tree.",
