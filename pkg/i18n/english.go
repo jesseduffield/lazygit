@@ -1282,7 +1282,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SetFixupMessageTooltip:               "Set the message option for the fixup commit. The -C option means to use this commit's message instead of the target commit's message.",
 		FixupDiscardMessage:                  "Fixup and discard this commit's message",
 		FixupDiscardMessageTooltip:           "Squash the selected commit into the commit below, discarding this commit's message.",
-		SureSquashThisCommit:                 "Are you sure you want to squash the selected commit(s) into the commit below?",
+		SureSquashThisCommit:                 "Are you sure you want to squash the selected commit(s) into the parent commit below?",
 		Squash:                               "Squash",
 		PickCommitTooltip:                    "Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase.",
 		Pick:                                 "Pick",
