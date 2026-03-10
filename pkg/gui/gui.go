@@ -453,6 +453,14 @@ func (gui *Gui) onUserConfigLoaded() error {
 	gui.setColorScheme()
 	gui.configureViewProperties()
 
+	if gui.State != nil && gui.State.Contexts != nil {
+		if userConfig.Gui.WorktreesInSeparateGroup {
+			gui.State.Contexts.Worktrees.SetWindowName("worktrees")
+		} else {
+			gui.State.Contexts.Worktrees.SetWindowName("files")
+		}
+	}
+
 	gui.g.SearchEscapeKey = keybindings.GetKey(userConfig.Keybinding.Universal.Return)
 	gui.g.NextSearchMatchKey = keybindings.GetKey(userConfig.Keybinding.Universal.NextMatch)
 	gui.g.PrevSearchMatchKey = keybindings.GetKey(userConfig.Keybinding.Universal.PrevMatch)
@@ -811,20 +819,25 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 				ViewName: "reflogCommits",
 			},
 		},
-		"files": {
-			{
-				Tab:      gui.c.Tr.FilesTitle,
-				ViewName: "files",
-			},
-			context.TabView{
-				Tab:      gui.c.Tr.WorktreesTitle,
-				ViewName: "worktrees",
-			},
-			{
+		"files": func() []context.TabView {
+			tabs := []context.TabView{
+				{
+					Tab:      gui.c.Tr.FilesTitle,
+					ViewName: "files",
+				},
+			}
+			if !gui.c.UserConfig().Gui.WorktreesInSeparateGroup {
+				tabs = append(tabs, context.TabView{
+					Tab:      gui.c.Tr.WorktreesTitle,
+					ViewName: "worktrees",
+				})
+			}
+			tabs = append(tabs, context.TabView{
 				Tab:      gui.c.Tr.SubmodulesTitle,
 				ViewName: "submodules",
-			},
-		},
+			})
+			return tabs
+		}(),
 	}
 
 	return result

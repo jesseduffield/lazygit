@@ -95,6 +95,13 @@ gui:
   # a branch that is checked out in that worktree
   skipSwitchWorktreeOnCheckoutWarning: false
 
+  # If true, show worktrees as its own side panel group instead of a tab in the
+  # files group
+  worktreesInSeparateGroup: false
+
+  # If true, hide the status panel from the side panel
+  hideStatusPanel: false
+
   # Fraction of the total screen width to use for the left side section. You may
   # want to pick a small number (e.g. 0.2) if you're using a narrow screen, so
   # that you can see more of the main section.

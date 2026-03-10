@@ -541,6 +541,16 @@
           "description": "If true, switch to a different worktree without confirmation when checking out a branch that is checked out in that worktree",
           "default": false
         },
+        "worktreesInSeparateGroup": {
+          "type": "boolean",
+          "description": "If true, show worktrees as its own side panel group instead of a tab in the files group",
+          "default": false
+        },
+        "hideStatusPanel": {
+          "type": "boolean",
+          "description": "If true, hide the status panel from the side panel",
+          "default": false
+        },
         "sidePanelWidth": {
           "type": "number",
           "maximum": 1,
