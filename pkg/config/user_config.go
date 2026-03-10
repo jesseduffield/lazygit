@@ -321,6 +321,8 @@ type GitConfig struct {
 	RemoteBranchSortOrder string `yaml:"remoteBranchSortOrder" jsonschema:"enum=date,enum=alphabetical"`
 	// When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
+	// Additional arguments to append when finishing a git flow branch. E.g. ["--no-ff", "--squash"]
+	GitFlowFinishArgs []string `yaml:"gitFlowFinishArgs"`
 }
 
 type PagerType string

@@ -85,6 +85,10 @@ func (self *ConfigCommands) GetGitFlowPrefixes() string {
 	return self.gitConfig.GetGeneral("--local --get-regexp gitflow.prefix")
 }
 
+func (self *ConfigCommands) GetGitFlowFinishArgs() []string {
+	return self.UserConfig().Git.GitFlowFinishArgs
+}
+
 func (self *ConfigCommands) GetCoreCommentChar() byte {
 	if commentCharStr := self.gitConfig.Get("core.commentChar"); len(commentCharStr) == 1 {
 		return commentCharStr[0]

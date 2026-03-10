@@ -481,6 +481,10 @@ git:
   # to 40 to disable truncation.
   truncateCopiedCommitHashesTo: 12
 
+  # Additional arguments to append when finishing a git flow branch. E.g.
+  # ["--no-ff", "--squash"]
+  gitFlowFinishArgs: []
+
 # Periodic update checks
 update:
   # One of: 'prompt' (default) | 'background' | 'never'
