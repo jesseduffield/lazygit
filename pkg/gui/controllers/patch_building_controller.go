@@ -60,6 +60,13 @@ func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) 
 			DescriptionFunc: self.EscapeDescription,
 			DisplayOnScreen: true,
 		},
+		{
+			Key:             opts.GetKey(opts.Config.Universal.ReturnAlt),
+			Handler:         self.Escape,
+			Description:     self.c.Tr.ExitCustomPatchBuilder,
+			DescriptionFunc: self.EscapeDescription,
+			DisplayOnScreen: true,
+		},
 	}
 }
 

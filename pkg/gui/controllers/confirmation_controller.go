@@ -36,6 +36,12 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 			DisplayOnScreen: true,
 		},
 		{
+			Key:             opts.GetKey(opts.Config.Universal.ReturnAlt),
+			Handler:         func() error { return self.context().State.OnClose() },
+			Description:     self.c.Tr.CloseCancel,
+			DisplayOnScreen: true,
+		},
+		{
 			Key:             opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:         self.handleCopyToClipboard,
 			Description:     self.c.Tr.CopyToClipboardMenu,
