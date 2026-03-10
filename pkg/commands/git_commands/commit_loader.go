@@ -587,9 +587,9 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 	}
 
 	cmdArgs := NewGitCmd("log").
+		ArgIf(opts.All, "--all").
 		Arg(refSpec).
 		ArgIf(gitLogOrder != "default", "--"+gitLogOrder).
-		ArgIf(opts.All, "--all").
 		Arg("--oneline").
 		Arg(prettyFormat).
 		Arg("--abbrev=40").
