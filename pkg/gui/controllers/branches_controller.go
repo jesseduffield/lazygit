@@ -707,7 +707,7 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 			InitialContent: branch.Name,
 			HandleConfirm: func(newBranchName string) error {
 				self.c.LogAction(self.c.Tr.Actions.RenameBranch)
-				if err := self.c.Git().Branch.Rename(branch.Name, helpers.SanitizedBranchName(newBranchName)); err != nil {
+				if err := self.c.Git().Branch.Rename(branch.Name, self.c.Helpers().Refs.SanitizedBranchNameWithConfig(newBranchName)); err != nil {
 					return err
 				}
 
