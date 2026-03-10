@@ -28,6 +28,10 @@ func knownError(tr *i18n.TranslationSet, err error) (string, bool) {
 			newError:      tr.NotARepository,
 		},
 		{
+			originalError: "fatal: Unable to read current working directory",
+			newError:      tr.WorkingDirectoryDoesNotExist,
+		},
+		{
 			originalError: "getwd: no such file or directory",
 			newError:      tr.WorkingDirectoryDoesNotExist,
 		},

@@ -72,7 +72,10 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 	onWorker func(func() error),
 	renderFunc func(),
 ) ([]*models.Branch, error) {
-	branches := self.obtainBranches()
+	branches, err := self.obtainBranches()
+	if err != nil {
+		return nil, err
+	}
 
 	if self.UserConfig().Git.LocalBranchSortOrder == "recency" {
 		reflogBranches := self.obtainReflogBranches(reflogCommits)
@@ -232,10 +235,10 @@ func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *Mai
 	return split[0], nil
 }
 
-func (self *BranchLoader) obtainBranches() []*models.Branch {
+func (self *BranchLoader) obtainBranches() ([]*models.Branch, error) {
 	output, err := self.getRawBranches()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	trimmedOutput := strings.TrimSpace(output)
@@ -256,7 +259,7 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 
 		storeCommitDateAsRecency := self.UserConfig().Git.LocalBranchSortOrder != "recency"
 		return obtainBranch(split, storeCommitDateAsRecency), true
-	})
+	}), nil
 }
 
 func (self *BranchLoader) getRawBranches() (string, error) {

@@ -81,6 +81,11 @@ func (self *PopupHandler) WithWaitingStatusSync(message string, f func() error) 
 }
 
 func (self *PopupHandler) ErrorHandler(err error) error {
+	var fatalError types.ErrFatal
+	if errors.As(err, &fatalError) {
+		return err
+	}
+
 	var notHandledError *types.ErrKeybindingNotHandled
 	if errors.As(err, &notHandledError) {
 		if !notHandledError.DisabledReason.ShowErrorInPanel {
