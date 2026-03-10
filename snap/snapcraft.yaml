@@ -1,0 +1,33 @@
+name: lazygit
+title: Lazygit
+base: core24
+adopt-info: lazygit
+summary: simple terminal UI for git commands
+description: A simple terminal UI for git commands, written in Go with the gocui library.
+version: '0.42.0'
+license: MIT
+grade: stable
+confinement: classic
+compression: lzo
+contact: 
+  - https://discord.gg/ehwFt2t4wt
+  - https://twitter.com/DuffieldJesse
+donation: https://github.com/sponsors/jesseduffield
+issues: https://github.com/jesseduffield/lazygit/issues
+source-code: https://github.com/jesseduffield/lazygit
+website: https://github.com/jesseduffield/lazygit
+
+parts:
+  lazygit:
+    plugin: go
+    source: https://github.com/jesseduffield/lazygit.git
+    source-tag: 'v$SNAPCRAFT_PROJECT_VERSION'
+    source-depth: 1
+    build-snaps:
+      - go
+    build-attributes:
+      - enable-patchelf
+
+apps:
+  lazygit:
+    command: bin/lazygit
