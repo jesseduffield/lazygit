@@ -576,8 +576,11 @@ func (self *RefreshHelper) refreshStateFiles() error {
 		}
 	}
 
-	if self.c.Git().Status.WorkingTreeState().Any() && conflictFileCount == 0 && prevConflictFileCount > 0 {
+	workingTreeState := self.c.Git().Status.WorkingTreeState()
+	if workingTreeState.Any() && conflictFileCount == 0 && prevConflictFileCount > 0 {
 		self.c.OnUIThread(func() error { return self.mergeAndRebaseHelper.PromptToContinueRebase() })
+	} else if !workingTreeState.Any() {
+		self.dismissStaleConflictsResolvedPrompt()
 	}
 
 	fileTreeViewModel.RWMutex.Lock()
@@ -598,6 +601,69 @@ func (self *RefreshHelper) refreshStateFiles() error {
 	fileTreeViewModel.RWMutex.Unlock()
 
 	return nil
+}
+
+func (self *RefreshHelper) dismissStaleConflictsResolvedPrompt() {
+	self.c.Mutexes().PopupMutex.Lock()
+	currentPopupOpts := self.c.State().GetRepoState().GetCurrentPopupOpts()
+	self.c.Mutexes().PopupMutex.Unlock()
+
+	if currentPopupOpts == nil || currentPopupOpts.Editable {
+		return
+	}
+
+	if !matchesPromptTemplate(currentPopupOpts.Prompt, self.c.Tr.ConflictsResolved) {
+		return
+	}
+
+	self.c.OnUIThread(func() error {
+		if self.c.Context().Current().GetKey() == context.CONFIRMATION_CONTEXT_KEY {
+			self.c.Context().Pop()
+		}
+		return nil
+	})
+}
+
+func matchesPromptTemplate(prompt string, template string) bool {
+	if template == "" {
+		return false
+	}
+
+	parts := strings.Split(template, "%s")
+	if len(parts) == 1 {
+		return prompt == template
+	}
+
+	firstPart := parts[0]
+	if firstPart != "" && !strings.HasPrefix(prompt, firstPart) {
+		return false
+	}
+
+	lastPart := parts[len(parts)-1]
+	if lastPart != "" && !strings.HasSuffix(prompt, lastPart) {
+		return false
+	}
+
+	start := len(firstPart)
+	end := len(prompt) - len(lastPart)
+	if end < start {
+		return false
+	}
+
+	for _, part := range parts[1 : len(parts)-1] {
+		if part == "" {
+			continue
+		}
+
+		idx := strings.Index(prompt[start:end], part)
+		if idx < 0 {
+			return false
+		}
+
+		start += idx + len(part)
+	}
+
+	return true
 }
 
 // the reflogs panel is the only panel where we cache data, in that we only
