@@ -34,11 +34,16 @@ func (self *StatusCommands) IsBareRepo() bool {
 }
 
 func (self *StatusCommands) IsInRebase() (bool, error) {
-	exists, err := self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge"))
-	if err == nil && exists {
-		return true, nil
+	for _, file := range []string{"rebase-merge/head-name", "rebase-apply/head-name", "REBASE_HEAD"} {
+		exists, err := self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), file))
+		if err != nil {
+			return false, err
+		}
+		if exists {
+			return true, nil
+		}
 	}
-	return self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-apply"))
+	return false, nil
 }
 
 // IsInMergeState states whether we are still mid-merge
