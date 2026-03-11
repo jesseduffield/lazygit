@@ -101,23 +101,29 @@ func (self *FilteringMenuAction) Call() error {
 }
 
 func (self *FilteringMenuAction) setFilteringPath(path string) error {
-	self.c.Modes().Filtering.Reset()
+	wasFiltering := self.c.Modes().Filtering.Active()
+	self.c.Modes().Filtering.SetAuthor("")
 	self.c.Modes().Filtering.SetPath(path)
-	return self.setFiltering()
+	return self.setFiltering(wasFiltering)
 }
 
 func (self *FilteringMenuAction) setFilteringAuthor(author string) error {
-	self.c.Modes().Filtering.Reset()
+	wasFiltering := self.c.Modes().Filtering.Active()
+	self.c.Modes().Filtering.SetPath("")
 	self.c.Modes().Filtering.SetAuthor(author)
-	return self.setFiltering()
+	return self.setFiltering(wasFiltering)
 }
 
-func (self *FilteringMenuAction) setFiltering() error {
+func (self *FilteringMenuAction) setFiltering(wasFiltering bool) error {
 	self.c.Modes().Filtering.SetSelectedCommitHash(self.c.Contexts().LocalCommits.GetSelectedCommitHash())
 
 	repoState := self.c.State().GetRepoState()
-	if repoState.GetScreenMode() == types.SCREEN_NORMAL {
-		repoState.SetScreenMode(types.SCREEN_HALF)
+	if !wasFiltering {
+		screenModeChanged := repoState.GetScreenMode() == types.SCREEN_NORMAL
+		self.c.Modes().Filtering.SetScreenModeChanged(screenModeChanged)
+		if screenModeChanged {
+			repoState.SetScreenMode(types.SCREEN_HALF)
+		}
 	}
 
 	self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
