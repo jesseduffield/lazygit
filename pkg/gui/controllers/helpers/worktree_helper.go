@@ -165,6 +165,21 @@ func (self *WorktreeHelper) Switch(worktree *models.Worktree, contextKey types.C
 }
 
 func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error {
+	return self.removeWorktree(worktree, force, nil)
+}
+
+func (self *WorktreeHelper) RemoveAndDeleteBranch(worktree *models.Worktree, branch *models.Branch, force bool) error {
+	return self.removeWorktree(worktree, force, func() error {
+		self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
+		if err := self.c.Git().Branch.LocalDelete([]string{branch.Name}, true); err != nil {
+			return err
+		}
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+		return nil
+	})
+}
+
+func (self *WorktreeHelper) removeWorktree(worktree *models.Worktree, force bool, afterRemove func() error) error {
 	title := self.c.Tr.RemoveWorktreeTitle
 	var templateStr string
 	if force {
@@ -193,9 +208,14 @@ func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error 
 					}
 
 					if !force {
-						return self.Remove(worktree, true)
+						return self.removeWorktree(worktree, true, afterRemove)
 					}
 					return err
+				}
+				if afterRemove != nil {
+					if err := afterRemove(); err != nil {
+						return err
+					}
 				}
 				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
 				return nil

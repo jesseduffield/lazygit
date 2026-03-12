@@ -560,6 +560,24 @@ func (self *BranchesController) delete(branches []*models.Branch) error {
 		return branch.IsTrackingRemote() && !branch.UpstreamGone
 	})
 
+	menuItems := []*types.MenuItem{}
+
+	// If a single branch is checked out by another worktree, offer to remove
+	// the worktree as the first (default) option in the delete menu.
+	if len(branches) == 1 {
+		worktree, ok := git_commands.WorktreeForBranch(branches[0], self.c.Model().Worktrees)
+		if ok && !worktree.IsCurrent {
+			branch := branches[0]
+			menuItems = append(menuItems, &types.MenuItem{
+				Label: self.c.Tr.RemoveWorktreeAndBranch,
+				Key:   'w',
+				OnPress: func() error {
+					return self.c.Helpers().Worktree.RemoveAndDeleteBranch(worktree, branch, false)
+				},
+			})
+		}
+	}
+
 	localDeleteItem := &types.MenuItem{
 		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteLocalBranches, self.c.Tr.DeleteLocalBranch),
 		Key:   'c',
@@ -599,6 +617,8 @@ func (self *BranchesController) delete(branches []*models.Branch) error {
 		}
 	}
 
+	menuItems = append(menuItems, localDeleteItem, remoteDeleteItem, deleteBothItem)
+
 	var menuTitle string
 	if len(branches) == 1 {
 		menuTitle = utils.ResolvePlaceholderString(
@@ -613,7 +633,7 @@ func (self *BranchesController) delete(branches []*models.Branch) error {
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: menuTitle,
-		Items: []*types.MenuItem{localDeleteItem, remoteDeleteItem, deleteBothItem},
+		Items: menuItems,
 	})
 }
 
