@@ -862,6 +862,7 @@ type TranslationSet struct {
 	DetachWorktreeTooltip                    string
 	Switching                                string
 	RemoveWorktree                           string
+	RemoveWorktreeAndBranch                  string
 	RemoveWorktreeTitle                      string
 	DetachWorktree                           string
 	DetachingWorktree                        string
@@ -1978,6 +1979,7 @@ func EnglishTranslationSet() *TranslationSet {
 		DetachWorktreeTooltip:                    "This will run `git checkout --detach` on the worktree so that it stops hogging the branch, but the worktree's working tree will be left alone.",
 		Switching:                                "Switching",
 		RemoveWorktree:                           "Remove worktree",
+		RemoveWorktreeAndBranch:                  "Remove worktree and delete local branch",
 		RemoveWorktreeTitle:                      "Remove worktree",
 		RemoveWorktreePrompt:                     "Are you sure you want to remove worktree '{{.worktreeName}}'?",
 		ForceRemoveWorktreePrompt:                "'{{.worktreeName}}' contains modified or untracked files, or submodules (or all of these). Are you sure you want to remove it?",
