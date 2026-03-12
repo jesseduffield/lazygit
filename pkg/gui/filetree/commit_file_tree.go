@@ -151,6 +151,10 @@ func (self *CommitFileTree) GetFile(path string) *models.CommitFile {
 	return nil
 }
 
+func (self *CommitFileTree) GetVisualDepth(index int) int {
+	return self.tree.GetVisualDepthAtIndex(index+1, self.collapsedPaths) // +1 to skip root
+}
+
 func (self *CommitFileTree) InTreeMode() bool {
 	return self.showTree
 }
