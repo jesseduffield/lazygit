@@ -142,6 +142,44 @@ func (self *CommitFilesController) context() *context.CommitFilesContext {
 	return self.c.Contexts().CommitFiles
 }
 
+func (self *CommitFilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName:    self.context().GetViewName(),
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickArrow,
+			FocusedView: self.context().GetViewName(),
+		},
+	}
+}
+
+func (self *CommitFilesController) onClickArrow(opts gocui.ViewMouseBindingOpts) error {
+	clickedIdx := self.context().ViewIndexToModelIndex(opts.Y)
+	if clickedIdx < 0 || clickedIdx > self.context().CommitFileTreeViewModel.Len()-1 {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	node := self.context().CommitFileTreeViewModel.Get(clickedIdx)
+	if node == nil || node.File != nil {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	// The arrow is at column visualDepth*2 (after indentation of 2 spaces per level).
+	// Only treat clicks on the arrow and the trailing space as arrow clicks.
+	visualDepth := self.context().CommitFileTreeViewModel.GetVisualDepth(clickedIdx)
+	arrowStartCol := visualDepth * 2
+	arrowEndCol := arrowStartCol + 1
+	if opts.X < arrowStartCol || opts.X > arrowEndCol {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	self.context().GetList().SetSelection(clickedIdx)
+	self.context().CommitFileTreeViewModel.ToggleCollapsed(node.GetInternalPath())
+	self.c.PostRefreshUpdate(self.context())
+
+	return nil
+}
+
 func (self *CommitFilesController) GetOnRenderToMain() func() {
 	return func() {
 		node := self.context().GetSelected()

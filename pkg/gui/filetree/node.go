@@ -202,29 +202,43 @@ func (self *Node[T]) GetNodeAtIndex(index int, collapsedPaths *CollapsedPaths) *
 		return nil
 	}
 
-	node, _ := self.getNodeAtIndexAux(index, collapsedPaths)
+	node, _, _ := self.getNodeAtIndexAux(index, collapsedPaths, -1)
 
 	return node
 }
 
-func (self *Node[T]) getNodeAtIndexAux(index int, collapsedPaths *CollapsedPaths) (*Node[T], int) {
+// GetVisualDepthAtIndex returns the visual depth (indentation level) of the
+// node at the given flat index. Visual depth differs from tree depth because
+// compressed nodes (e.g. "a/b/") count as a single visual level.
+// Returns -1 if the index is out of range.
+func (self *Node[T]) GetVisualDepthAtIndex(index int, collapsedPaths *CollapsedPaths) int {
+	if self == nil {
+		return -1
+	}
+
+	_, _, depth := self.getNodeAtIndexAux(index, collapsedPaths, -1)
+
+	return depth
+}
+
+func (self *Node[T]) getNodeAtIndexAux(index int, collapsedPaths *CollapsedPaths, visualDepth int) (*Node[T], int, int) {
 	offset := 1
 
 	if index == 0 {
-		return self, offset
+		return self, offset, visualDepth
 	}
 
 	if !collapsedPaths.IsCollapsed(self.path) {
 		for _, child := range self.Children {
-			foundNode, offsetChange := child.getNodeAtIndexAux(index-offset, collapsedPaths)
+			foundNode, offsetChange, depth := child.getNodeAtIndexAux(index-offset, collapsedPaths, visualDepth+1)
 			offset += offsetChange
 			if foundNode != nil {
-				return foundNode, offset
+				return foundNode, offset, depth
 			}
 		}
 	}
 
-	return nil, offset
+	return nil, offset, -1
 }
 
 func (self *Node[T]) GetIndexForPath(path string, collapsedPaths *CollapsedPaths) (int, bool) {

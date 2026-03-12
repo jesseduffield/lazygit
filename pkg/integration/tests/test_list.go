@@ -210,6 +210,7 @@ var tests = []*components.IntegrationTest{
 	diff.DiffNonStickyRange,
 	diff.IgnoreWhitespace,
 	diff.RenameSimilarityThresholdChange,
+	file.ClickArrowToCollapse,
 	file.CollapseExpand,
 	file.CopyMenu,
 	file.DirWithUntrackedFile,
