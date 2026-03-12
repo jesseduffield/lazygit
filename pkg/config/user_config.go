@@ -719,6 +719,9 @@ type CustomCommandPrompt struct {
 	// Like valueFormat but for the labels. If `labelFormat` is not specified, `valueFormat` is shown instead.
 	// Only for menuFromCommand prompts.
 	LabelFormat string `yaml:"labelFormat" jsonschema:"example={{ .branch | green }}"`
+
+	// A Go template expression evaluated against the current form state. If it resolves to empty string or 'false', the prompt is skipped.
+	Condition string `yaml:"condition"`
 }
 
 type CustomCommandSuggestions struct {

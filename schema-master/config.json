@@ -235,6 +235,10 @@
           "examples": [
             "{{ .branch | green }}"
           ]
+        },
+        "condition": {
+          "type": "string",
+          "description": "A Go template expression evaluated against the current form state. If it resolves to empty string or 'false', the prompt is skipped."
         }
       },
       "additionalProperties": false,
