@@ -57,6 +57,13 @@ func (self *RepoPaths) IsBareRepo() bool {
 	return self.isBareRepo
 }
 
+// InLinkedWorktree returns true if the current working directory is a linked
+// worktree (as opposed to the main worktree). When true, RepoPath() points to
+// the main worktree that can be used as a fallback.
+func (self *RepoPaths) InLinkedWorktree() bool {
+	return self.worktreePath != self.repoPath
+}
+
 // Returns the repo paths for a typical repo
 func MockRepoPaths(currentPath string) *RepoPaths {
 	return &RepoPaths{
