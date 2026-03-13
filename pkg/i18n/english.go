@@ -761,6 +761,7 @@ type TranslationSet struct {
 	ErrStageDirWithInlineMergeConflicts      string
 	ErrRepositoryMovedOrDeleted              string
 	ErrWorktreeMovedOrRemoved                string
+	WorktreeDeletedSwitchingToMain           string
 	CommandLog                               string
 	ToggleShowCommandLog                     string
 	FocusCommandLog                          string
@@ -1886,6 +1887,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ErrRepositoryMovedOrDeleted:              "Cannot find repo. It might have been moved or deleted ¯\\_(ツ)_/¯",
 		CommandLog:                               "Command log",
 		ErrWorktreeMovedOrRemoved:                "Cannot find worktree. It might have been moved or removed ¯\\_(ツ)_/¯",
+		WorktreeDeletedSwitchingToMain:           "Worktree deleted externally. Switched to main worktree.",
 		ToggleShowCommandLog:                     "Toggle show/hide command log",
 		FocusCommandLog:                          "Focus command log",
 		CommandLogHeader:                         "You can hide/focus this panel by pressing '%s'\n",

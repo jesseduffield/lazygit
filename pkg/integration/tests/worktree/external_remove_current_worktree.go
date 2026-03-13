@@ -30,6 +30,8 @@ var ExternalRemoveCurrentWorktree = NewIntegrationTest(NewIntegrationTestArgs{
 		// Trigger a refresh so lazygit detects the deleted CWD
 		t.GlobalPress(keys.Universal.Refresh)
 
+		t.ExpectToast(Contains("Worktree deleted externally"))
+
 		// Lazygit should auto-switch to the main worktree
 		t.Views().Status().
 			Lines(
