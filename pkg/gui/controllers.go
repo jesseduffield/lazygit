@@ -68,6 +68,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		mergeConflictsHelper,
 		worktreeHelper,
 		searchHelper,
+		reposHelper,
 	)
 	diffHelper := helpers.NewDiffHelper(helperCommon)
 	cherryPickHelper := helpers.NewCherryPickHelper(
