@@ -377,7 +377,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 
 	gui.g.SetOpenHyperlinkFunc(func(url string, viewname string) error {
 		if strings.HasPrefix(url, "lazygit-edit:") {
-			re := regexp.MustCompile(`^lazygit-edit://(.+?)(?::(\d+))?$`)
+			re := regexp.MustCompile(`^lazygit-edit://(.+?)(?::(\d*))?$`)
 			matches := re.FindStringSubmatch(url)
 			if matches == nil {
 				return fmt.Errorf(gui.Tr.InvalidLazygitEditURL, url)
@@ -841,6 +841,25 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	defer gui.g.Close()
 
 	g.ErrorHandler = gui.PopupHandler.ErrorHandler
+
+	gui.g.ShouldHandleMouseEvent = func(view *gocui.View, key gocui.Key) bool {
+		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != view.Name() &&
+			!gocui.IsMouseScrollKey(key) {
+			// we ignore click events on views that aren't popup panels, when a popup panel is focused.
+			// Unless both the current view and the clicked-on view are either commit message or commit
+			// description, or a prompt and the suggestions view, because we want to allow switching
+			// between those two views by clicking.
+			isCommitMessageOrSuggestionsView := func(viewName string) bool {
+				return viewName == "commitMessage" || viewName == "commitDescription" ||
+					viewName == "prompt" || viewName == "suggestions"
+			}
+			if !isCommitMessageOrSuggestionsView(gui.currentViewName()) || !isCommitMessageOrSuggestionsView(view.Name()) {
+				return false
+			}
+		}
+
+		return true
+	}
 
 	// if the deadlock package wants to report a deadlock, we first need to
 	// close the gui so that we can actually read what it prints.

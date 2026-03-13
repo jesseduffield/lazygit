@@ -57,7 +57,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Kopiuj hash commita do schowka |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <c-r> `` | Resetuj wybrane (cherry-picked) commity |  |
 | `` b `` | Zobacz opcje bisect |  |
 | `` s `` | Scal | Scal wybrany commit z commitami poniżej. Wiadomość wybranego commita zostanie dołączona do commita poniżej. |
@@ -124,6 +124,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
 | `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
 | `` <space> `` | Przełącz linie w łatce |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | Wyjdź z budowniczego niestandardowej łatki |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
@@ -259,7 +260,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
-| `` / `` | Szukaj w bieżącym widoku po tekście |  |
+| `` / `` | Filtruj bieżący widok po tekście |  |
 
 ## Pliki commita
 
@@ -268,7 +269,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` <c-o> `` | Kopiuj ścieżkę do schowka |  |
 | `` y `` | Kopiuj do schowka |  |
 | `` c `` | Przełącz | Przełącz plik. Zastępuje plik w twoim drzewie roboczym wersją z wybranego commita. |
-| `` d `` | Usuń | Odrzuć zmiany w tym pliku z tego commita. Uruchamia interaktywny rebase w tle, więc możesz otrzymać konflikt scalania, jeśli późniejszy commit również zmienia ten plik. |
+| `` d `` | Odrzuć | Odrzuć zmiany w tym pliku z tego commita. Uruchamia interaktywny rebase w tle, więc możesz otrzymać konflikt scalania, jeśli późniejszy commit również zmienia ten plik. |
 | `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
 | `` e `` | Edytuj | Otwórz plik w zewnętrznym edytorze. |
 | `` <c-t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
@@ -279,7 +280,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
-| `` / `` | Szukaj w bieżącym widoku po tekście |  |
+| `` / `` | Filtruj bieżący widok po tekście |  |
 
 ## Podsumowanie commita
 
@@ -292,7 +293,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Kopiuj hash commita do schowka |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Przełącz | Przełącz wybrany commit jako odłączoną HEAD. |
 | `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |
 | `` o `` | Otwórz commit w przeglądarce |  |
@@ -331,13 +332,14 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` u `` | Sprawdź aktualizacje |  |
 | `` <enter> `` | Przełącz na ostatnie repozytorium |  |
 | `` a `` | Show/cycle all branch logs |  |
+| `` A `` | Show/cycle all branch logs (reverse) |  |
 | `` 0 `` | Focus main view |  |
 
 ## Sub-commity
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Kopiuj hash commita do schowka |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Przełącz | Przełącz wybrany commit jako odłączoną HEAD. |
 | `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |
 | `` o `` | Otwórz commit w przeglądarce |  |

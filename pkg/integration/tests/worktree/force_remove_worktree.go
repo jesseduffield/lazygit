@@ -23,7 +23,7 @@ var ForceRemoveWorktree = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 				Contains("linked-worktree"),
 			).
 			NavigateToLine(Contains("linked-worktree")).
@@ -40,7 +40,7 @@ var ForceRemoveWorktree = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 			)
 	},
 })

@@ -317,6 +317,12 @@ func (self *BranchCommands) RotateAllBranchesLogIdx() {
 	self.allBranchesLogCmdIndex = (i + 1) % n
 }
 
+func (self *BranchCommands) RotateAllBranchesLogIdxBackward() {
+	n := len(self.allBranchesLogCandidates())
+	i := self.allBranchesLogCmdIndex
+	self.allBranchesLogCmdIndex = (i - 1 + n) % n
+}
+
 func (self *BranchCommands) GetAllBranchesLogIdxAndCount() (int, int) {
 	n := len(self.allBranchesLogCandidates())
 	i := self.allBranchesLogCmdIndex
