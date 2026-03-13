@@ -55,8 +55,29 @@ func NewCommitLoader(
 	}
 }
 
+const (
+	GIT_LOG_FETCH_COUNT     = 400
+	GIT_LOG_FETCH_THRESHOLD = GIT_LOG_FETCH_COUNT / 4
+)
+
+type GitLogLimit struct {
+	Limit int
+}
+
+func DefaultGitLogLimit() *GitLogLimit {
+	return &GitLogLimit{Limit: GIT_LOG_FETCH_COUNT}
+}
+
+func (self *GitLogLimit) CanFetchMoreCommits(lineIdx, logCommitCount int) bool {
+	return lineIdx >= logCommitCount-GIT_LOG_FETCH_THRESHOLD && logCommitCount >= self.Limit
+}
+
+func (self *GitLogLimit) Increase(realCommitCount int) {
+	self.Limit = realCommitCount + GIT_LOG_FETCH_COUNT
+}
+
 type GetCommitsOptions struct {
-	Limit                bool
+	LogLimit             *GitLogLimit
 	FilterPath           string
 	FilterAuthor         string
 	IncludeRebaseCommits bool
@@ -586,6 +607,11 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 		refSpec += "..." + opts.RefToShowDivergenceFrom
 	}
 
+	var limitArg string
+	if opts.LogLimit != nil {
+		limitArg = fmt.Sprintf("--max-count=%d", opts.LogLimit.Limit)
+	}
+
 	cmdArgs := NewGitCmd("log").
 		Arg(refSpec).
 		ArgIf(gitLogOrder != "default", "--"+gitLogOrder).
@@ -594,7 +620,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 		Arg(prettyFormat).
 		Arg("--abbrev=40").
 		ArgIf(opts.FilterAuthor != "", "--author="+opts.FilterAuthor).
-		ArgIf(opts.Limit, "-300").
+		ArgIf(limitArg != "", limitArg).
 		ArgIf(opts.FilterPath != "", "--follow", "--name-status").
 		Arg("--no-show-signature").
 		ArgIf(opts.RefToShowDivergenceFrom != "", "--left-right").
