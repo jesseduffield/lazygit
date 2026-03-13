@@ -280,6 +280,8 @@ const (
 	BisectStatusCandidate
 	// also adding this
 	BisectStatusCurrent
+	// BisectStatusHead is shown when user manually checks out a different commit during bisect
+	BisectStatusHead
 )
 
 func getBisectStatus(index int, commitHash string, bisectInfo *git_commands.BisectInfo, bisectBounds *bisectBounds) BisectStatus {
@@ -289,6 +291,13 @@ func getBisectStatus(index int, commitHash string, bisectInfo *git_commands.Bise
 
 	if bisectInfo.GetCurrentHash() == commitHash {
 		return BisectStatusCurrent
+	}
+
+	// Check if this is the HEAD commit when it differs from the bisect expected commit
+	// This helps users see where they are when they manually checkout during bisect
+	headHash := bisectInfo.GetHeadHash()
+	if headHash != "" && headHash == commitHash && headHash != bisectInfo.GetCurrentHash() {
+		return BisectStatusHead
 	}
 
 	status, ok := bisectInfo.Status(commitHash)
@@ -325,8 +334,9 @@ func getBisectStatusText(bisectStatus BisectStatus, bisectInfo *git_commands.Bis
 	case BisectStatusOld:
 		return style.Sprintf("<-- " + bisectInfo.OldTerm())
 	case BisectStatusCurrent:
-		// TODO: i18n
 		return style.Sprintf("<-- current")
+	case BisectStatusHead:
+		return style.Sprintf("<-- YOU ARE HERE")
 	case BisectStatusSkipped:
 		return style.Sprintf("<-- skipped")
 	case BisectStatusCandidate:
@@ -466,6 +476,8 @@ func getBisectStatusColor(status BisectStatus) style.TextStyle {
 		return style.FgYellow
 	case BisectStatusCurrent:
 		return style.FgMagenta
+	case BisectStatusHead:
+		return style.FgCyan
 	case BisectStatusCandidate:
 		return style.FgBlue
 	}
