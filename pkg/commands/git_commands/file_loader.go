@@ -203,9 +203,11 @@ func (self *FileLoader) gitStatus(opts GitStatusOptions) ([]FileStatus, error) {
 
 		if strings.HasPrefix(status.Change, "R") || strings.HasPrefix(status.Change, "C") {
 			// if a line starts with 'R' (rename) or 'C' (copy) then the next line is the original file.
-			status.PreviousPath = splitLines[i+1]
-			status.StatusString = fmt.Sprintf("%s %s -> %s", status.Change, status.PreviousPath, status.Path)
-			i++
+			if i+1 < len(splitLines) {
+				status.PreviousPath = splitLines[i+1]
+				status.StatusString = fmt.Sprintf("%s %s -> %s", status.Change, status.PreviousPath, status.Path)
+				i++
+			}
 		}
 
 		response = append(response, status)
