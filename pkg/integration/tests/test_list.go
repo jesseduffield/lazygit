@@ -474,6 +474,7 @@ var tests = []*components.IntegrationTest{
 	worktree.DotfileBareRepo,
 	worktree.DoubleNestedLinkedSubmodule,
 	worktree.ExcludeFileInWorktree,
+	worktree.ExternalRemoveCurrentWorktree,
 	worktree.FastForwardWorktreeBranch,
 	worktree.FastForwardWorktreeBranchShouldNotPolluteCurrentWorktree,
 	worktree.ForceRemoveWorktree,

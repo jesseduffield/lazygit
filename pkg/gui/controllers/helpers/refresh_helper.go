@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -27,6 +28,8 @@ type RefreshHelper struct {
 	mergeConflictsHelper *MergeConflictsHelper
 	worktreeHelper       *WorktreeHelper
 	searchHelper         *SearchHelper
+	reposHelper          *ReposHelper
+	switchingToMainOnce  sync.Once
 }
 
 func NewRefreshHelper(
@@ -38,6 +41,7 @@ func NewRefreshHelper(
 	mergeConflictsHelper *MergeConflictsHelper,
 	worktreeHelper *WorktreeHelper,
 	searchHelper *SearchHelper,
+	reposHelper *ReposHelper,
 ) *RefreshHelper {
 	return &RefreshHelper{
 		c:                    c,
@@ -48,12 +52,48 @@ func NewRefreshHelper(
 		mergeConflictsHelper: mergeConflictsHelper,
 		worktreeHelper:       worktreeHelper,
 		searchHelper:         searchHelper,
+		reposHelper:          reposHelper,
 	}
 }
 
 func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 	if options.Mode == types.ASYNC && options.Then != nil {
 		panic("RefreshOptions.Then doesn't work with mode ASYNC")
+	}
+
+	// If the working directory has been deleted (e.g. a worktree removed
+	// externally), every git command will fail. Detect this early.
+	// Two platform-specific behaviors:
+	//   Linux:  os.Getwd() fails (returns ENOENT)
+	//   macOS:  os.Getwd() succeeds (inode kept alive) but os.Stat(cwd) fails
+	cwdDeleted := false
+	if cwd, err := os.Getwd(); err != nil {
+		cwdDeleted = true
+	} else if _, statErr := os.Stat(cwd); os.IsNotExist(statErr) {
+		cwdDeleted = true
+	}
+	if cwdDeleted {
+		repoPaths := self.c.Git().RepoPaths
+		if repoPaths.InLinkedWorktree() {
+			self.switchingToMainOnce.Do(func() {
+				mainPath := repoPaths.RepoPath()
+				self.c.Log.Warnf("Working directory removed, switching to main worktree at %s", mainPath)
+				// Restore the CWD first so DispatchSwitchToRepo can
+				// call os.Getwd() without failing.
+				if err := os.Chdir(mainPath); err != nil {
+					panic("fatal: working directory removed and cannot switch to main worktree: " + err.Error())
+				}
+				self.c.OnUIThread(func() error {
+					if err := self.reposHelper.DispatchSwitchToRepo(mainPath, context.WORKTREES_CONTEXT_KEY); err != nil {
+						return err
+					}
+					self.c.ErrorToast(self.c.Tr.WorktreeDeletedSwitchingToMain)
+					return nil
+				})
+			})
+			return
+		}
+		panic("fatal: working directory has been removed")
 	}
 
 	t := time.Now()
