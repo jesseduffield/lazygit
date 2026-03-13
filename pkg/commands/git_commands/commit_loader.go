@@ -190,29 +190,30 @@ func (self *CommitLoader) MergeRebasingCommits(hashPool *utils.StringPool, commi
 // example input:
 // 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
 func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line string, showDivergence bool) *models.Commit {
-	split := strings.SplitN(line, "\x00", 8)
+	split := strings.SplitN(line, "\x00", 9)
 
-	// Ensure we have the minimum required fields (at least 7 for basic functionality)
-	if len(split) < 7 {
-		self.Log.Warnf("Malformed git log line: expected at least 7 fields, got %d. Line: %s", len(split), line)
+	// Ensure we have the minimum required fields (at least 8 for basic functionality)
+	if len(split) < 8 {
+		self.Log.Warnf("Malformed git log line: expected at least 8 fields, got %d. Line: %s", len(split), line)
 		return nil
 	}
 
 	hash := split[0]
 	unixTimestamp := split[1]
-	authorName := split[2]
-	authorEmail := split[3]
-	parentHashes := split[4]
+	committerTimestamp := split[2]
+	authorName := split[3]
+	authorEmail := split[4]
+	parentHashes := split[5]
 	divergence := models.DivergenceNone
 	if showDivergence {
-		divergence = lo.Ternary(split[5] == "<", models.DivergenceLeft, models.DivergenceRight)
+		divergence = lo.Ternary(split[6] == "<", models.DivergenceLeft, models.DivergenceRight)
 	}
-	extraInfo := strings.TrimSpace(split[6])
+	extraInfo := strings.TrimSpace(split[7])
 
 	// message (and the \x00 before it) might not be present if extraInfo is extremely long
 	message := ""
-	if len(split) > 7 {
-		message = split[7]
+	if len(split) > 8 {
+		message = split[8]
 	}
 
 	var tags []string
@@ -232,6 +233,7 @@ func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line
 	}
 
 	unitTimestampInt, _ := strconv.Atoi(unixTimestamp)
+	committerTimestampInt, _ := strconv.Atoi(committerTimestamp)
 
 	parents := []string{}
 	if len(parentHashes) > 0 {
@@ -244,6 +246,7 @@ func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line
 		Tags:          tags,
 		ExtraInfo:     extraInfo,
 		UnixTimestamp: int64(unitTimestampInt),
+		CommitterDate: int64(committerTimestampInt),
 		AuthorName:    authorName,
 		AuthorEmail:   authorEmail,
 		Parents:       parents,
@@ -605,4 +608,4 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
-const prettyFormat = `--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s`
+const prettyFormat = `--pretty=format:+%H%x00%at%x00%ct%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s`
