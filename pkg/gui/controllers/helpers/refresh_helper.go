@@ -84,7 +84,11 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 					panic("fatal: working directory removed and cannot switch to main worktree: " + err.Error())
 				}
 				self.c.OnUIThread(func() error {
-					return self.reposHelper.DispatchSwitchToRepo(mainPath, context.WORKTREES_CONTEXT_KEY)
+					if err := self.reposHelper.DispatchSwitchToRepo(mainPath, context.WORKTREES_CONTEXT_KEY); err != nil {
+						return err
+					}
+					self.c.ErrorToast(self.c.Tr.WorktreeDeletedSwitchingToMain)
+					return nil
 				})
 			})
 			return
