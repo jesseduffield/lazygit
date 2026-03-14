@@ -321,6 +321,8 @@ type GitConfig struct {
 	RemoteBranchSortOrder string `yaml:"remoteBranchSortOrder" jsonschema:"enum=date,enum=alphabetical"`
 	// When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
+	// Extra arguments to pass to `git flow <type> finish <name>`, e.g. ["--keepremote"]
+	GitFlowFinishArgs []string `yaml:"gitFlowFinishArgs"`
 }
 
 type PagerType string
@@ -858,6 +860,7 @@ func GetDefaultConfig() *UserConfig {
 			BranchPrefix:                 "",
 			ParseEmoji:                   false,
 			TruncateCopiedCommitHashesTo: 12,
+			GitFlowFinishArgs:           []string{},
 		},
 		Refresher: RefresherConfig{
 			RefreshInterval: 10,

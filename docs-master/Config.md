@@ -481,6 +481,10 @@ git:
   # to 40 to disable truncation.
   truncateCopiedCommitHashesTo: 12
 
+  # Extra arguments to pass to `git flow <type> finish <name>`, e.g.
+  # ["--keepremote"]
+  gitFlowFinishArgs: []
+
 # Periodic update checks
 update:
   # One of: 'prompt' (default) | 'background' | 'never'
