@@ -62,6 +62,10 @@ type Commit struct {
 	Action     todo.TodoCommand
 	ActionFlag string     // e.g. "-C" for fixup -C
 	Divergence Divergence // set to DivergenceNone unless we are showing the divergence view
+
+	// GPG signature status: "G" good, "B" bad, "U" unknown validity,
+	// "X" expired, "Y" expired key, "R" revoked, "E" missing key, "N" none
+	GpgStatus string
 }
 
 type NewCommitOpts struct {
@@ -77,6 +81,7 @@ type NewCommitOpts struct {
 	UnixTimestamp int64
 	Divergence    Divergence
 	Parents       []string
+	GpgStatus     string
 }
 
 func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
@@ -93,6 +98,7 @@ func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
 		UnixTimestamp: opts.UnixTimestamp,
 		Divergence:    opts.Divergence,
 		parents:       lo.Map(opts.Parents, func(s string, _ int) *string { return hashPool.Add(s) }),
+		GpgStatus:     opts.GpgStatus,
 	}
 }
 

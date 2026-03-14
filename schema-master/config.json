@@ -697,6 +697,11 @@
           "description": "If true, show commit hashes alongside branch names in the branches view.",
           "default": false
         },
+        "showGpgSigningStatus": {
+          "type": "boolean",
+          "description": "If true, show GPG signature verification status for each commit in the commits view. This can slow down commit loading as it requires GPG verification.",
+          "default": false
+        },
         "showDivergenceFromBaseBranch": {
           "type": "string",
           "enum": [

@@ -162,6 +162,8 @@ type GuiConfig struct {
 	CommitHashLength int `yaml:"commitHashLength" jsonschema:"minimum=0"`
 	// If true, show commit hashes alongside branch names in the branches view.
 	ShowBranchCommitHash bool `yaml:"showBranchCommitHash"`
+	// If true, show GPG signature verification status for each commit in the commits view. This can slow down commit loading as it requires GPG verification.
+	ShowGpgSigningStatus bool `yaml:"showGpgSigningStatus"`
 	// Whether to show the divergence from the base branch in the branches view.
 	// One of: 'none' | 'onlyArrow'  | 'arrowAndNumber'
 	ShowDivergenceFromBaseBranch string `yaml:"showDivergenceFromBaseBranch" jsonschema:"enum=none,enum=onlyArrow,enum=arrowAndNumber"`
@@ -804,6 +806,7 @@ func GetDefaultConfig() *UserConfig {
 			CommitAuthorLongLength:              17,
 			CommitHashLength:                    8,
 			ShowBranchCommitHash:                false,
+			ShowGpgSigningStatus:                false,
 			ShowDivergenceFromBaseBranch:        "none",
 			CommandLogSize:                      8,
 			SplitDiff:                           "auto",
