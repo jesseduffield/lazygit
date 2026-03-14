@@ -261,6 +261,11 @@ gui:
   # If true, show commit hashes alongside branch names in the branches view.
   showBranchCommitHash: false
 
+  # If true, show GPG signature verification status for each commit in the
+  # commits view. This can slow down commit loading as it requires GPG
+  # verification.
+  showGpgSigningStatus: false
+
   # Whether to show the divergence from the base branch in the branches view.
   # One of: 'none' | 'onlyArrow'  | 'arrowAndNumber'
   showDivergenceFromBaseBranch: none

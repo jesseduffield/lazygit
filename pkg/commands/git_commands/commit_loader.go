@@ -190,11 +190,16 @@ func (self *CommitLoader) MergeRebasingCommits(hashPool *utils.StringPool, commi
 // example input:
 // 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
 func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line string, showDivergence bool) *models.Commit {
-	split := strings.SplitN(line, "\x00", 8)
+	showGpg := self.UserConfig().Gui.ShowGpgSigningStatus
+	numFields := 8
+	if showGpg {
+		numFields = 9
+	}
+	split := strings.SplitN(line, "\x00", numFields)
 
-	// Ensure we have the minimum required fields (at least 7 for basic functionality)
-	if len(split) < 7 {
-		self.Log.Warnf("Malformed git log line: expected at least 7 fields, got %d. Line: %s", len(split), line)
+	minFields := 7
+	if len(split) < minFields {
+		self.Log.Warnf("Malformed git log line: expected at least %d fields, got %d. Line: %s", minFields, len(split), line)
 		return nil
 	}
 
@@ -209,10 +214,18 @@ func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line
 	}
 	extraInfo := strings.TrimSpace(split[6])
 
-	// message (and the \x00 before it) might not be present if extraInfo is extremely long
+	gpgStatus := ""
+	messageIdx := 7
+	if showGpg {
+		if len(split) > 7 {
+			gpgStatus = split[7]
+		}
+		messageIdx = 8
+	}
+
 	message := ""
-	if len(split) > 7 {
-		message = split[7]
+	if len(split) > messageIdx {
+		message = split[messageIdx]
 	}
 
 	var tags []string
@@ -248,6 +261,7 @@ func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line
 		AuthorEmail:   authorEmail,
 		Parents:       parents,
 		Divergence:    divergence,
+		GpgStatus:     gpgStatus,
 	})
 }
 
@@ -586,12 +600,18 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 		refSpec += "..." + opts.RefToShowDivergenceFrom
 	}
 
+	showGpg := self.UserConfig().Gui.ShowGpgSigningStatus
+	format := prettyFormat
+	if showGpg {
+		format = prettyFormatWithGpg
+	}
+
 	cmdArgs := NewGitCmd("log").
 		Arg(refSpec).
 		ArgIf(gitLogOrder != "default", "--"+gitLogOrder).
 		ArgIf(opts.All, "--all").
 		Arg("--oneline").
-		Arg(prettyFormat).
+		Arg(format).
 		Arg("--abbrev=40").
 		ArgIf(opts.FilterAuthor != "", "--author="+opts.FilterAuthor).
 		ArgIf(opts.Limit, "-300").
@@ -606,3 +626,4 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 }
 
 const prettyFormat = `--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s`
+const prettyFormatWithGpg = `--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%G?%x00%s`
