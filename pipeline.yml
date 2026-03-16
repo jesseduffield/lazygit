@@ -28,4 +28,4 @@ integrations:
 
 triggers:
   pull_requests: true
-  branches: [main]
+  branches: [main, master]
