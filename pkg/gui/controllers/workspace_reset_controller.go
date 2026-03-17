@@ -36,19 +36,21 @@ func (self *FilesController) createResetMenu() error {
 						Title:  self.c.Tr.Actions.NukeWorkingTree,
 						Prompt: self.c.Tr.NukeTreeConfirmation,
 						HandleConfirm: func() error {
-							self.c.LogAction(self.c.Tr.Actions.NukeWorkingTree)
-							if err := self.c.Git().WorkingTree.ResetAndClean(); err != nil {
-								return err
-							}
+							return self.c.WithWaitingStatus(self.c.Tr.DiscardAllChangesToAllFiles, func(gocui.Task) error {
+								self.c.LogAction(self.c.Tr.Actions.NukeWorkingTree)
+								if err := self.c.Git().WorkingTree.ResetAndClean(); err != nil {
+									return err
+								}
 
-							if self.c.UserConfig().Gui.AnimateExplosion {
-								self.animateExplosion()
-							}
+								if self.c.UserConfig().Gui.AnimateExplosion {
+									self.animateExplosion()
+								}
 
-							self.c.Refresh(
-								types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
-							)
-							return nil
+								self.c.Refresh(
+									types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+								)
+								return nil
+							})
 						},
 					})
 				return nil
@@ -62,15 +64,17 @@ func (self *FilesController) createResetMenu() error {
 				red.Sprint("git checkout -- ."),
 			},
 			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.DiscardUnstagedFileChanges)
-				if err := self.c.Git().WorkingTree.DiscardAnyUnstagedFileChanges(); err != nil {
-					return err
-				}
+				return self.c.WithWaitingStatus(self.c.Tr.DiscardAnyUnstagedChanges, func(gocui.Task) error {
+					self.c.LogAction(self.c.Tr.Actions.DiscardUnstagedFileChanges)
+					if err := self.c.Git().WorkingTree.DiscardAnyUnstagedFileChanges(); err != nil {
+						return err
+					}
 
-				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
-				)
-				return nil
+					self.c.Refresh(
+						types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					)
+					return nil
+				})
 			},
 			Key: 'u',
 		},
@@ -80,15 +84,17 @@ func (self *FilesController) createResetMenu() error {
 				red.Sprint("git clean -fd"),
 			},
 			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.RemoveUntrackedFiles)
-				if err := self.c.Git().WorkingTree.RemoveUntrackedFiles(); err != nil {
-					return err
-				}
+				return self.c.WithWaitingStatus(self.c.Tr.DiscardUntrackedFiles, func(gocui.Task) error {
+					self.c.LogAction(self.c.Tr.Actions.RemoveUntrackedFiles)
+					if err := self.c.Git().WorkingTree.RemoveUntrackedFiles(); err != nil {
+						return err
+					}
 
-				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
-				)
-				return nil
+					self.c.Refresh(
+						types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					)
+					return nil
+				})
 			},
 			Key: 'c',
 		},
@@ -99,21 +105,23 @@ func (self *FilesController) createResetMenu() error {
 			},
 			Tooltip: self.c.Tr.DiscardStagedChangesDescription,
 			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.RemoveStagedFiles)
-				if !self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules() {
-					return errors.New(self.c.Tr.NoTrackedStagedFilesStash)
-				}
-				if err := self.c.Git().Stash.SaveStagedChanges("[lazygit] tmp stash"); err != nil {
-					return err
-				}
-				if err := self.c.Git().Stash.DropNewest(); err != nil {
-					return err
-				}
+				return self.c.WithWaitingStatus(self.c.Tr.DiscardStagedChanges, func(gocui.Task) error {
+					self.c.LogAction(self.c.Tr.Actions.RemoveStagedFiles)
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules() {
+						return errors.New(self.c.Tr.NoTrackedStagedFilesStash)
+					}
+					if err := self.c.Git().Stash.SaveStagedChanges("[lazygit] tmp stash"); err != nil {
+						return err
+					}
+					if err := self.c.Git().Stash.DropNewest(); err != nil {
+						return err
+					}
 
-				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
-				)
-				return nil
+					self.c.Refresh(
+						types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					)
+					return nil
+				})
 			},
 			Key: 'S',
 		},
@@ -123,15 +131,17 @@ func (self *FilesController) createResetMenu() error {
 				red.Sprint("git reset --soft HEAD"),
 			},
 			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.SoftReset)
-				if err := self.c.Git().WorkingTree.ResetSoft("HEAD"); err != nil {
-					return err
-				}
+				return self.c.WithWaitingStatus(self.c.Tr.SoftReset, func(gocui.Task) error {
+					self.c.LogAction(self.c.Tr.Actions.SoftReset)
+					if err := self.c.Git().WorkingTree.ResetSoft("HEAD"); err != nil {
+						return err
+					}
 
-				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
-				)
-				return nil
+					self.c.Refresh(
+						types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					)
+					return nil
+				})
 			},
 			Key: 's',
 		},
@@ -141,15 +151,17 @@ func (self *FilesController) createResetMenu() error {
 				red.Sprint("git reset --mixed HEAD"),
 			},
 			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.MixedReset)
-				if err := self.c.Git().WorkingTree.ResetMixed("HEAD"); err != nil {
-					return err
-				}
+				return self.c.WithWaitingStatus(self.c.Tr.Actions.MixedReset, func(gocui.Task) error {
+					self.c.LogAction(self.c.Tr.Actions.MixedReset)
+					if err := self.c.Git().WorkingTree.ResetMixed("HEAD"); err != nil {
+						return err
+					}
 
-				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
-				)
-				return nil
+					self.c.Refresh(
+						types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					)
+					return nil
+				})
 			},
 			Key: 'm',
 		},
@@ -164,15 +176,17 @@ func (self *FilesController) createResetMenu() error {
 						Title:  self.c.Tr.Actions.HardReset,
 						Prompt: self.c.Tr.ResetHardConfirmation,
 						HandleConfirm: func() error {
-							self.c.LogAction(self.c.Tr.Actions.HardReset)
-							if err := self.c.Git().WorkingTree.ResetHard("HEAD"); err != nil {
-								return err
-							}
+							return self.c.WithWaitingStatus(self.c.Tr.HardReset, func(gocui.Task) error {
+								self.c.LogAction(self.c.Tr.Actions.HardReset)
+								if err := self.c.Git().WorkingTree.ResetHard("HEAD"); err != nil {
+									return err
+								}
 
-							self.c.Refresh(
-								types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
-							)
-							return nil
+								self.c.Refresh(
+									types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+								)
+								return nil
+							})
 						},
 					})
 			},
