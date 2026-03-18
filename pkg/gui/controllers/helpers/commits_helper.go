@@ -1,9 +1,14 @@
 package helpers
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/jesseduffield/gocui"
@@ -20,6 +25,13 @@ type CommitsHelper struct {
 	getCommitDescription          func() string
 	getUnwrappedCommitDescription func() string
 	setCommitDescription          func(string)
+
+	// set to 1 while AI commit message generation is in progress
+	generating atomic.Int32
+}
+
+func (self *CommitsHelper) IsGenerating() bool {
+	return self.generating.Load() == 1
 }
 
 func NewCommitsHelper(
@@ -199,6 +211,15 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 		}
 	}
 
+	aiConfig := self.c.UserConfig().Git.Commit.AI
+	aiConfigured := aiConfig.CLI.Command != "" || aiConfig.API.Endpoint != ""
+	var disabledReasonForAI *types.DisabledReason
+	if !aiConfigured {
+		disabledReasonForAI = &types.DisabledReason{
+			Text: self.c.Tr.NoAIConfigured,
+		}
+	}
+
 	menuItems := []*types.MenuItem{
 		{
 			Label: self.c.Tr.OpenInEditor,
@@ -221,6 +242,14 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 				return self.pasteCommitMessageFromClipboard()
 			},
 			Key: 'p',
+		},
+		{
+			Label: self.c.Tr.GenerateCommitMessageWithAI,
+			OnPress: func() error {
+				return self.generateCommitMessageWithAI()
+			},
+			Key:            'a',
+			DisabledReason: disabledReasonForAI,
 		},
 	}
 	return self.c.Menu(types.CreateMenuOptions{
@@ -262,4 +291,147 @@ func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
 			return nil
 		},
 	})
+}
+
+func (self *CommitsHelper) generateCommitMessageWithAI() error {
+	self.generating.Store(1)
+	self.c.Views().CommitMessage.Editable = false
+	self.c.Views().CommitDescription.Editable = false
+	originalTitle := self.c.Views().CommitMessage.Title
+	self.c.Views().CommitMessage.Title = self.c.Tr.GeneratingCommitMessageStatus
+
+	restore := func() {
+		self.c.OnUIThread(func() error {
+			self.generating.Store(0)
+			self.c.Views().CommitMessage.Editable = true
+			self.c.Views().CommitDescription.Editable = true
+			self.c.Views().CommitMessage.Title = originalTitle
+			return nil
+		})
+	}
+
+	return self.c.WithWaitingStatus(self.c.Tr.GeneratingCommitMessageStatus, func(_ gocui.Task) error {
+		defer restore()
+
+		diff, err := self.c.Git().Diff.GetDiff(true)
+		if err != nil {
+			return err
+		}
+		if strings.TrimSpace(diff) == "" {
+			self.c.OnUIThread(func() error {
+				self.c.ErrorToast(self.c.Tr.NoStagedChangesForAI)
+				return nil
+			})
+			return nil
+		}
+
+		cfg := self.c.UserConfig().Git.Commit.AI
+		var message string
+		if cfg.CLI.Command != "" {
+			message, err = self.generateViaAICLI(cfg.CLI.Command, diff)
+		} else {
+			message, err = generateViaAIAPI(cfg.API.Endpoint, cfg.API.Model, cfg.API.APIKey, cfg.API.SystemPrompt, diff)
+		}
+		if err != nil {
+			return err
+		}
+
+		message = parseAIOutput(message)
+		if message == "" {
+			return errors.New("AI returned an empty commit message")
+		}
+
+		self.c.OnUIThread(func() error {
+			self.SetMessageAndDescriptionInView(message)
+			return nil
+		})
+		return nil
+	})
+}
+
+func (self *CommitsHelper) generateViaAICLI(command string, diff string) (string, error) {
+	return self.c.OS().Cmd.NewShell(command, "").SetStdin(diff).DontLog().RunWithOutput()
+}
+
+type aiAPIRequest struct {
+	Model    string       `json:"model"`
+	Messages []aiMessage  `json:"messages"`
+}
+
+type aiMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type aiAPIResponse struct {
+	Choices []struct {
+		Message struct {
+			Content string `json:"content"`
+		} `json:"message"`
+	} `json:"choices"`
+}
+
+func generateViaAIAPI(endpoint, model, apiKey, systemPrompt, diff string) (string, error) {
+	if systemPrompt == "" {
+		systemPrompt = "Generate a conventional commit message for the following diff. Output only the commit message (subject and optional body), with no additional explanation or markdown fences."
+	}
+
+	reqBody := aiAPIRequest{
+		Model: model,
+		Messages: []aiMessage{
+			{Role: "system", Content: systemPrompt},
+			{Role: "user", Content: diff},
+		},
+	}
+	bodyBytes, err := json.Marshal(reqBody)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequest("POST", strings.TrimRight(endpoint, "/")+"/chat/completions", bytes.NewReader(bodyBytes))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		return "", fmt.Errorf("AI API returned status %d", resp.StatusCode)
+	}
+
+	var result aiAPIResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+	if len(result.Choices) == 0 {
+		return "", errors.New("AI API returned no choices")
+	}
+	return result.Choices[0].Message.Content, nil
+}
+
+// parseAIOutput strips markdown code fences and any preamble before them.
+// Handles tools like opencode that emit lines like "> build • glm-5" before the fence.
+func parseAIOutput(s string) string {
+	s = strings.TrimSpace(s)
+	if start := strings.Index(s, "```"); start >= 0 {
+		// skip past the opening fence line (e.g. "```" or "```text")
+		rest := s[start:]
+		if idx := strings.Index(rest, "\n"); idx >= 0 {
+			rest = rest[idx+1:]
+		}
+		// drop the closing fence
+		if idx := strings.LastIndex(rest, "```"); idx >= 0 {
+			rest = rest[:idx]
+		}
+		s = strings.TrimSpace(rest)
+	}
+	return s
 }

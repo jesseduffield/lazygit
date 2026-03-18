@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
@@ -82,6 +83,8 @@ func NewAppConfig(
 		return nil, err
 	}
 
+	loadDotEnv(filepath.Join(configDir, ".env"))
+
 	var configFiles []*ConfigFile
 	customConfigFiles := os.Getenv("LG_CONFIG_FILE")
 	if customConfigFiles != "" {
@@ -133,6 +136,45 @@ func ConfigDir() string {
 func findOrCreateConfigDir() (string, error) {
 	folder := ConfigDir()
 	return folder, os.MkdirAll(folder, 0o755)
+}
+
+var envInterpolatePattern = regexp.MustCompile(`\{env:([^}]+)\}`)
+
+// envInterpolate replaces {env:KEY} placeholders in config content with the
+// corresponding environment variable values.
+func envInterpolate(content []byte) []byte {
+	return envInterpolatePattern.ReplaceAllFunc(content, func(match []byte) []byte {
+		key := string(match[5 : len(match)-1]) // strip "{env:" and "}"
+		return []byte(os.Getenv(key))
+	})
+}
+
+// loadDotEnv reads a .env file and sets any key=value pairs as environment
+// variables, skipping keys that are already set. Lines starting with '#' and
+// blank lines are ignored. Quoted values have their quotes stripped.
+func loadDotEnv(path string) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return // file is optional
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		key, value, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		key = strings.TrimSpace(key)
+		value = strings.TrimSpace(value)
+		if len(value) >= 2 && (value[0] == '"' || value[0] == '\'') && value[len(value)-1] == value[0] {
+			value = value[1 : len(value)-1]
+		}
+		if os.Getenv(key) == "" {
+			_ = os.Setenv(key, value)
+		}
+	}
 }
 
 func loadUserConfigWithDefaults(configFiles []*ConfigFile, isGuiInitialized bool) (*UserConfig, error) {
@@ -191,6 +233,7 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig, isGuiInitialize
 
 		existingCustomCommands := base.CustomCommands
 
+		content = envInterpolate(content)
 		if err := yaml.Unmarshal(content, base); err != nil {
 			return nil, fmt.Errorf("The config at `%s` couldn't be parsed, please inspect it before opening up an issue.\n%w", path, err)
 		}

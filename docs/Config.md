@@ -16,6 +16,8 @@ If you want to change the config directory:
 
 - MacOS: `export XDG_CONFIG_HOME="$HOME/.config"`
 
+You can place a `.env` file in the same directory as your `config.yml` to define secrets (e.g. API keys) outside of version control. Reference them anywhere in your config using the `{env:VARIABLE_NAME}` syntax — for example, `apiKey: "{env:OPENAI_API_KEY}"`. Variables already set in your shell take precedence over values in `.env`.
+
 In addition to the global config file you can create repo-specific config files in `<repo>/.git/lazygit.yml`. Settings in these files override settings in the global config file. In addition, files called `.lazygit.yml` in any of the parent directories of a repo will also be loaded; this can be useful if you have settings that you want to apply to a group of repositories.
 
 JSON schema is available for `config.yml` so that IntelliSense in Visual Studio Code (completion and error checking) is automatically enabled when the [YAML Red Hat][yaml] extension is installed. However, note that automatic schema detection only works if your config file is in one of the standard paths mentioned above. If you override the path to the file, you can still make IntelliSense work by adding
@@ -358,6 +360,26 @@ git:
 
     # If autoWrapCommitMessage is true, the width to wrap to
     autoWrapWidth: 72
+
+    # Config for AI-generated commit messages (accessible via the commit menu with <c-o> then 'a')
+    # Use either the 'cli' or 'api' approach, not both.
+    ai:
+      # Use a local CLI tool (e.g. claude, opencode, llm) to generate commit messages.
+      # The staged diff is piped to stdin; the generated message is read from stdout.
+      # Markdown code fences in the output are stripped automatically.
+      # Example: 'claude -p "Generate a conventional commit message:"'
+      cli:
+        command: 'claude -p "Generated a conventional commit message for this diff"'
+
+      # Use an OpenAI-compatible HTTP API to generate commit messages.
+      # Use {env:MY_VAR} to read the API key from an environment variable or
+      # from the .env file next to config.yml (see above).
+      api:
+        endpoint: "https://api.openai.com/v1/chat/completions"
+        model: "gpt-4o-mini"
+        apiKey: "{env:OPENAI_API_KEY}"
+        # Optional system prompt. A sensible default is used when left empty.
+        systemPrompt: ""
 
   # Config relating to merging
   merging:

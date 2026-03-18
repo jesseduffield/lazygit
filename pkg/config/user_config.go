@@ -355,6 +355,32 @@ type CommitConfig struct {
 	AutoWrapCommitMessage bool `yaml:"autoWrapCommitMessage"`
 	// If autoWrapCommitMessage is true, the width to wrap to
 	AutoWrapWidth int `yaml:"autoWrapWidth"`
+	// AI commit message generation config
+	AI AIConfig `yaml:"ai"`
+}
+
+type AIConfig struct {
+	// CLI-based generation: runs a command with the staged diff piped to stdin.
+	// Example: "claude -p 'Generate a conventional commit message for this diff:'"
+	CLI AICliConfig `yaml:"cli"`
+	// OpenAI-compatible API generation
+	API AIAPIConfig `yaml:"api"`
+}
+
+type AICliConfig struct {
+	// The shell command to run. The staged diff is piped to stdin.
+	Command string `yaml:"command"`
+}
+
+type AIAPIConfig struct {
+	// OpenAI-compatible base URL, e.g. "https://api.openai.com/v1"
+	Endpoint string `yaml:"endpoint"`
+	// Model name, e.g. "gpt-4o" or "llama3"
+	Model string `yaml:"model"`
+	// API key value. Use {env:MY_API_KEY} to read from an environment variable.
+	APIKey string `yaml:"apiKey"`
+	// System prompt. Defaults to a conventional commit prompt if omitted.
+	SystemPrompt string `yaml:"systemPrompt"`
 }
 
 type MergingConfig struct {
