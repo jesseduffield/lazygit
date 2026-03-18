@@ -3,6 +3,55 @@
   "$id": "https://github.com/jesseduffield/lazygit/pkg/config/user-config",
   "$ref": "#/$defs/UserConfig",
   "$defs": {
+    "AIAPIConfig": {
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "description": "OpenAI-compatible base URL, e.g. \"https://api.openai.com/v1\""
+        },
+        "model": {
+          "type": "string",
+          "description": "Model name, e.g. \"gpt-4o\" or \"llama3\""
+        },
+        "apiKey": {
+          "type": "string",
+          "description": "API key value. Use {env:MY_API_KEY} to read from an environment variable."
+        },
+        "systemPrompt": {
+          "type": "string",
+          "description": "System prompt. Defaults to a conventional commit prompt if omitted."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "OpenAI-compatible API generation"
+    },
+    "AICliConfig": {
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "The shell command to run. The staged diff is piped to stdin."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "CLI-based generation: runs a command with the staged diff piped to stdin.\nExample: \"claude -p 'Generate a conventional commit message for this diff:'\""
+    },
+    "AIConfig": {
+      "properties": {
+        "cli": {
+          "$ref": "#/$defs/AICliConfig",
+          "description": "CLI-based generation: runs a command with the staged diff piped to stdin.\nExample: \"claude -p 'Generate a conventional commit message for this diff:'\""
+        },
+        "api": {
+          "$ref": "#/$defs/AIAPIConfig",
+          "description": "OpenAI-compatible API generation"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AI commit message generation config"
+    },
     "CommitConfig": {
       "properties": {
         "signOff": {
@@ -19,6 +68,10 @@
           "type": "integer",
           "description": "If autoWrapCommitMessage is true, the width to wrap to",
           "default": 72
+        },
+        "ai": {
+          "$ref": "#/$defs/AIConfig",
+          "description": "AI commit message generation config"
         }
       },
       "additionalProperties": false,

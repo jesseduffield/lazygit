@@ -354,8 +354,8 @@ func (self *CommitsHelper) generateViaAICLI(command string, diff string) (string
 }
 
 type aiAPIRequest struct {
-	Model    string       `json:"model"`
-	Messages []aiMessage  `json:"messages"`
+	Model    string      `json:"model"`
+	Messages []aiMessage `json:"messages"`
 }
 
 type aiMessage struct {

@@ -6,6 +6,50 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestParseAIOutput(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "plain text unchanged",
+			input:    "feat: add login button",
+			expected: "feat: add login button",
+		},
+		{
+			name:     "strips surrounding whitespace",
+			input:    "  feat: add login button  ",
+			expected: "feat: add login button",
+		},
+		{
+			name:     "strips plain code fence",
+			input:    "```\nfeat: add login button\n```",
+			expected: "feat: add login button",
+		},
+		{
+			name:     "strips fenced block with language tag",
+			input:    "```text\nfeat: add login button\n```",
+			expected: "feat: add login button",
+		},
+		{
+			name:     "strips fenced block with surrounding text",
+			input:    "Here is your commit:\n```\nfeat: add login button\n```\nDone.",
+			expected: "feat: add login button",
+		},
+		{
+			name:     "multiline commit message in fence",
+			input:    "```\nfeat: add login button\n\nCloses #123\n```",
+			expected: "feat: add login button\n\nCloses #123",
+		},
+	}
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.expected, parseAIOutput(s.input))
+		})
+	}
+}
+
 func TestTryRemoveHardLineBreaks(t *testing.T) {
 	scenarios := []struct {
 		name           string

@@ -359,6 +359,28 @@ git:
     # If autoWrapCommitMessage is true, the width to wrap to
     autoWrapWidth: 72
 
+    # AI commit message generation config
+    ai:
+      # CLI-based generation: runs a command with the staged diff piped to stdin.
+      # Example: "claude -p 'Generate a conventional commit message for this diff:'"
+      cli:
+        # The shell command to run. The staged diff is piped to stdin.
+        command: ""
+
+      # OpenAI-compatible API generation
+      api:
+        # OpenAI-compatible base URL, e.g. "https://api.openai.com/v1"
+        endpoint: ""
+
+        # Model name, e.g. "gpt-4o" or "llama3"
+        model: ""
+
+        # API key value. Use {env:MY_API_KEY} to read from an environment variable.
+        apiKey: ""
+
+        # System prompt. Defaults to a conventional commit prompt if omitted.
+        systemPrompt: ""
+
   # Config relating to merging
   merging:
     # If true, run merges in a subprocess so that if a commit message is required,

@@ -6,6 +6,44 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestEnvInterpolate(t *testing.T) {
+	t.Setenv("MY_KEY", "hello")
+	t.Setenv("ANOTHER", "world")
+
+	scenarios := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "no placeholders unchanged",
+			input:    "apiKey: hardcoded",
+			expected: "apiKey: hardcoded",
+		},
+		{
+			name:     "single placeholder replaced",
+			input:    "apiKey: {env:MY_KEY}",
+			expected: "apiKey: hello",
+		},
+		{
+			name:     "multiple placeholders replaced",
+			input:    "{env:MY_KEY} and {env:ANOTHER}",
+			expected: "hello and world",
+		},
+		{
+			name:     "unset variable replaced with empty string",
+			input:    "apiKey: {env:UNSET_VAR_XYZ}",
+			expected: "apiKey: ",
+		},
+	}
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			result := envInterpolate([]byte(s.input))
+			assert.Equal(t, s.expected, string(result))
+		})
+	}
+}
+
 func TestMigrationOfRenamedKeys(t *testing.T) {
 	scenarios := []struct {
 		name              string
