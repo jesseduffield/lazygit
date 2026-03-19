@@ -167,6 +167,10 @@ func (self *CommitMessageController) setCommitMessageAtIndex(index int) (bool, e
 }
 
 func (self *CommitMessageController) confirm() error {
+	if self.c.Helpers().Commits.IsGenerating() {
+		return nil
+	}
+
 	// The default keybinding for this action is "<enter>", which means that we
 	// also get here when pasting multi-line text that contains newlines. In
 	// that case we don't want to confirm the commit, but switch to the
@@ -185,6 +189,10 @@ func (self *CommitMessageController) confirm() error {
 }
 
 func (self *CommitMessageController) close() error {
+	if self.c.Helpers().Commits.IsGenerating() {
+		return nil
+	}
+
 	self.c.Helpers().Commits.CloseCommitMessagePanel()
 	return nil
 }

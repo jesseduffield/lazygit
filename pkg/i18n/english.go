@@ -672,6 +672,10 @@ type TranslationSet struct {
 	CommitURL                             string
 	PasteCommitMessageFromClipboard       string
 	SurePasteCommitMessage                string
+	GenerateCommitMessageWithAI           string
+	GeneratingCommitMessageStatus         string
+	NoStagedChangesForAI                  string
+	NoAICommandConfigured                 string
 	CommitMessage                         string
 	CommitMessageBody                     string
 	CommitSubject                         string
@@ -1789,6 +1793,10 @@ func EnglishTranslationSet() *TranslationSet {
 		CommitURL:                                "Commit URL",
 		PasteCommitMessageFromClipboard:          "Paste commit message from clipboard",
 		SurePasteCommitMessage:                   "Pasting will overwrite the current commit message, continue?",
+		GenerateCommitMessageWithAI:              "Generate commit message with AI",
+		GeneratingCommitMessageStatus:            "Generating commit message...",
+		NoStagedChangesForAI:                     "No staged changes to generate a commit message from",
+		NoAICommandConfigured:                    "No AI command configured. Set git.commit.aiGenerateCommand in your config",
 		CommitMessage:                            "Commit message (subject and body)",
 		CommitMessageBody:                        "Commit message body",
 		CommitSubject:                            "Commit subject",
