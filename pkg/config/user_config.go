@@ -357,9 +357,9 @@ type CommitConfig struct {
 	AutoWrapWidth int `yaml:"autoWrapWidth"`
 	// Shell command that generates a commit message from a diff piped to stdin.
 	// The command's stdout is used as the commit message (markdown fences are stripped automatically).
-	// Accessible via the commit menu (<c-o> then 'a').
+	// Accessible via the commit menu (<c-o> then 'g').
 	// Example: "claude -p 'Generate a conventional commit message for this diff:'"
-	AIGenerateCommand string `yaml:"aiGenerateCommand"`
+	GenerateCommand string `yaml:"generateCommand"`
 }
 
 type MergingConfig struct {

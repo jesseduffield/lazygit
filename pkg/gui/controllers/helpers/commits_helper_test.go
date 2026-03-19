@@ -45,7 +45,7 @@ func TestParseAIOutput(t *testing.T) {
 	}
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			assert.Equal(t, s.expected, parseAIOutput(s.input))
+			assert.Equal(t, s.expected, parseGenerateOutput(s.input))
 		})
 	}
 }

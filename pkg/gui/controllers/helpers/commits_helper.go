@@ -22,7 +22,7 @@ type CommitsHelper struct {
 	getUnwrappedCommitDescription func() string
 	setCommitDescription          func(string)
 
-	// set to 1 while AI commit message generation is in progress
+	// set to 1 while commit message generation is in progress
 	generating atomic.Int32
 }
 
@@ -207,10 +207,10 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 		}
 	}
 
-	var disabledReasonForAI *types.DisabledReason
-	if self.c.UserConfig().Git.Commit.AIGenerateCommand == "" {
-		disabledReasonForAI = &types.DisabledReason{
-			Text: self.c.Tr.NoAICommandConfigured,
+	var disabledReasonForGenerate *types.DisabledReason
+	if self.c.UserConfig().Git.Commit.GenerateCommand == "" {
+		disabledReasonForGenerate = &types.DisabledReason{
+			Text: self.c.Tr.NoGenerateCommandConfigured,
 		}
 	}
 
@@ -238,12 +238,12 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 			Key: 'p',
 		},
 		{
-			Label: self.c.Tr.GenerateCommitMessageWithAI,
+			Label: self.c.Tr.GenerateCommitMessage,
 			OnPress: func() error {
-				return self.generateCommitMessageWithAI()
+				return self.generateCommitMessage()
 			},
-			Key:            'a',
-			DisabledReason: disabledReasonForAI,
+			Key:            'g',
+			DisabledReason: disabledReasonForGenerate,
 		},
 	}
 	return self.c.Menu(types.CreateMenuOptions{
@@ -287,7 +287,7 @@ func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
 	})
 }
 
-func (self *CommitsHelper) generateCommitMessageWithAI() error {
+func (self *CommitsHelper) generateCommitMessage() error {
 	self.generating.Store(1)
 	self.c.Views().CommitMessage.Editable = false
 	self.c.Views().CommitDescription.Editable = false
@@ -313,21 +313,21 @@ func (self *CommitsHelper) generateCommitMessageWithAI() error {
 		}
 		if strings.TrimSpace(diff) == "" {
 			self.c.OnUIThread(func() error {
-				self.c.ErrorToast(self.c.Tr.NoStagedChangesForAI)
+				self.c.ErrorToast(self.c.Tr.NoStagedChangesForGenerate)
 				return nil
 			})
 			return nil
 		}
 
-		command := self.c.UserConfig().Git.Commit.AIGenerateCommand
+		command := self.c.UserConfig().Git.Commit.GenerateCommand
 		message, err := self.c.OS().Cmd.NewShell(command, "").SetStdin(diff).DontLog().RunWithOutput()
 		if err != nil {
 			return err
 		}
 
-		message = parseAIOutput(message)
+		message = parseGenerateOutput(message)
 		if message == "" {
-			return errors.New("AI returned an empty commit message")
+			return errors.New("generate command returned an empty commit message")
 		}
 
 		self.c.OnUIThread(func() error {
@@ -338,8 +338,8 @@ func (self *CommitsHelper) generateCommitMessageWithAI() error {
 	})
 }
 
-// parseAIOutput strips markdown code fences and any preamble before them.
-func parseAIOutput(s string) string {
+// parseGenerateOutput strips markdown code fences and any preamble before them.
+func parseGenerateOutput(s string) string {
 	s = strings.TrimSpace(s)
 	if start := strings.Index(s, "```"); start >= 0 {
 		rest := s[start:]
