@@ -287,6 +287,7 @@ type TranslationSet struct {
 	CopyPullRequestURL                    string
 	OpenPullRequestInBrowser              string
 	NoPullRequestForBranch                string
+	CopyBranchURL                         string
 	NoBranchOnRemote                      string
 	Fetch                                 string
 	FetchTooltip                          string
@@ -752,6 +753,7 @@ type TranslationSet struct {
 	SuggestionsSubtitle                      string
 	ExtrasTitle                              string
 	PullRequestURLCopiedToClipboard          string
+	BranchURLCopiedToClipboard               string
 	CommitDiffCopiedToClipboard              string
 	CommitURLCopiedToClipboard               string
 	CommitMessageCopiedToClipboard           string
@@ -1111,6 +1113,7 @@ type Actions struct {
 	Undo                             string
 	Redo                             string
 	CopyPullRequestURL               string
+	CopyBranchURL                    string
 	OpenMergeTool                    string
 	OpenCommitInBrowser              string
 	OpenPullRequest                  string
@@ -1435,6 +1438,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CopyPullRequestURL:                   `Copy pull request URL to clipboard`,
 		OpenPullRequestInBrowser:             `Open pull request in browser`,
 		NoPullRequestForBranch:               `No pull request found for this branch`,
+		CopyBranchURL:                        `Copy branch URL to clipboard`,
 		NoBranchOnRemote:                     `This branch doesn't exist on remote. You need to push it to remote first.`,
 		Fetch:                                `Fetch`,
 		FetchTooltip:                         "Fetch changes from remote.",
@@ -1904,6 +1908,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SuggestionsSubtitle:                      "(press %s to delete, %s to edit)",
 		ExtrasTitle:                              "Command log",
 		PullRequestURLCopiedToClipboard:          "Pull request URL copied to clipboard",
+		BranchURLCopiedToClipboard:               "Branch URL copied to clipboard",
 		CommitDiffCopiedToClipboard:              "Commit diff copied to clipboard",
 		CommitURLCopiedToClipboard:               "Commit URL copied to clipboard",
 		CommitMessageCopiedToClipboard:           "Commit message copied to clipboard",
@@ -2220,6 +2225,7 @@ func EnglishTranslationSet() *TranslationSet {
 			Undo:                             "Undo",
 			Redo:                             "Redo",
 			CopyPullRequestURL:               "Copy pull request URL",
+			CopyBranchURL:                    "Copy branch URL",
 			OpenMergeTool:                    "Open merge tool",
 			OpenCommitInBrowser:              "Open commit in browser",
 			OpenPullRequest:                  "Open pull request in browser",
