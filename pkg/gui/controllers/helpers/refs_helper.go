@@ -18,16 +18,19 @@ import (
 type RefsHelper struct {
 	c *HelperCommon
 
-	rebaseHelper *MergeAndRebaseHelper
+	rebaseHelper      *MergeAndRebaseHelper
+	suggestionsHelper *SuggestionsHelper
 }
 
 func NewRefsHelper(
 	c *HelperCommon,
 	rebaseHelper *MergeAndRebaseHelper,
+	suggestionsHelper *SuggestionsHelper,
 ) *RefsHelper {
 	return &RefsHelper{
-		c:            c,
-		rebaseHelper: rebaseHelper,
+		c:                 c,
+		rebaseHelper:      rebaseHelper,
+		suggestionsHelper: suggestionsHelper,
 	}
 }
 
@@ -290,6 +293,24 @@ func (self *RefsHelper) CreateGitResetMenu(name string, ref string) error {
 			Key:     row.key,
 			Tooltip: row.tooltip,
 		}
+	})
+
+	menuItems = append(menuItems, &types.MenuItem{
+		LabelColumns: []string{
+			self.c.Tr.ResetToCustomRef,
+			style.FgRed.Sprint("reset --? <ref>"),
+		},
+		OnPress: func() error {
+			self.c.Prompt(types.PromptOpts{
+				Title:               self.c.Tr.EnterRefToResetTo,
+				FindSuggestionsFunc: self.suggestionsHelper.GetRefsSuggestionsFunc(),
+				HandleConfirm: func(response string) error {
+					return self.CreateGitResetMenu(response, response)
+				},
+			})
+			return nil
+		},
+		Key: 'c',
 	})
 
 	return self.c.Menu(types.CreateMenuOptions{
