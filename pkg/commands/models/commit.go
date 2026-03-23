@@ -8,7 +8,8 @@ import (
 	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
-// Special commit hash for empty tree object
+// EmptyTreeCommitHash is the SHA-1 empty tree OID, used when a root commit has no
+// repo-specific empty tree (e.g. tests or synthetic commits).
 const EmptyTreeCommitHash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
 type CommitStatus uint8
@@ -44,6 +45,7 @@ const (
 // Commit : A git commit
 type Commit struct {
 	hash          *string
+	emptyParent   *string
 	Name          string
 	Tags          []string
 	ExtraInfo     string // something like 'HEAD -> master, tag: v0.15.2'
@@ -77,11 +79,18 @@ type NewCommitOpts struct {
 	UnixTimestamp int64
 	Divergence    Divergence
 	Parents       []string
+	// EmptyTreeParent is the repo empty tree OID for root commits (from the string pool).
+	EmptyTreeParent *string
 }
 
 func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
+	var emptyParent *string
+	if len(opts.Parents) == 0 && opts.EmptyTreeParent != nil {
+		emptyParent = opts.EmptyTreeParent
+	}
 	return &Commit{
 		hash:          hashPool.Add(opts.Hash),
+		emptyParent:   emptyParent,
 		Name:          opts.Name,
 		Status:        opts.Status,
 		Action:        opts.Action,
@@ -122,9 +131,17 @@ func (c *Commit) ShortRefName() string {
 
 func (c *Commit) ParentRefName() string {
 	if c.IsFirstCommit() {
+		if c.emptyParent != nil {
+			return *c.emptyParent
+		}
 		return EmptyTreeCommitHash
 	}
 	return c.RefName() + "^"
+}
+
+// EmptyTreeParentPtr returns the synthetic parent hash pointer for graph rendering of root commits.
+func (c *Commit) EmptyTreeParentPtr() *string {
+	return c.emptyParent
 }
 
 func (c *Commit) Parents() []string {

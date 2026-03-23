@@ -142,7 +142,11 @@ func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *mode
 
 	var toHash *string
 	if commit.IsFirstCommit() {
-		toHash = &EmptyTreeCommitHash
+		if ptr := commit.EmptyTreeParentPtr(); ptr != nil {
+			toHash = ptr
+		} else {
+			toHash = &EmptyTreeCommitHash
+		}
 	} else {
 		toHash = commit.ParentPtrs()[0]
 	}

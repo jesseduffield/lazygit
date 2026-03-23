@@ -14,6 +14,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func reflogFakeRunner(t *testing.T) *oscommands.FakeCmdObjRunner {
+	return oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"hash-object", "-t", "tree", "--stdin"}, models.EmptyTreeCommitHash, nil)
+}
+
 var reflogOutput = strings.ReplaceAll(`+c3c4b66b64c97ffeecde|1643150483|checkout: moving from A to B|51baa8c1
 +c3c4b66b64c97ffeecde|1643150483|checkout: moving from B to A|51baa8c1
 +c3c4b66b64c97ffeecde|1643150483|checkout: moving from A to B|51baa8c1
@@ -38,7 +42,7 @@ func TestGetReflogCommits(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName: "no reflog entries",
-			runner: oscommands.NewFakeRunner(t).
+			runner: reflogFakeRunner(t).
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--format=+%H%x00%ct%x00%gs%x00%P"}, "", nil),
 
 			lastReflogCommit:        nil,
@@ -48,7 +52,7 @@ func TestGetReflogCommits(t *testing.T) {
 		},
 		{
 			testName: "some reflog entries",
-			runner: oscommands.NewFakeRunner(t).
+			runner: reflogFakeRunner(t).
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--format=+%H%x00%ct%x00%gs%x00%P"}, reflogOutput, nil),
 
 			lastReflogCommit: nil,
@@ -94,7 +98,7 @@ func TestGetReflogCommits(t *testing.T) {
 		},
 		{
 			testName: "some reflog entries where last commit is given",
-			runner: oscommands.NewFakeRunner(t).
+			runner: reflogFakeRunner(t).
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--format=+%H%x00%ct%x00%gs%x00%P"}, reflogOutput, nil),
 
 			lastReflogCommit: models.NewCommit(hashPool, models.NewCommitOpts{
@@ -118,7 +122,7 @@ func TestGetReflogCommits(t *testing.T) {
 		},
 		{
 			testName: "when passing filterPath",
-			runner: oscommands.NewFakeRunner(t).
+			runner: reflogFakeRunner(t).
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--format=+%H%x00%ct%x00%gs%x00%P", "--follow", "--name-status", "--", "path"}, reflogOutput, nil),
 
 			lastReflogCommit: models.NewCommit(hashPool, models.NewCommitOpts{
@@ -143,7 +147,7 @@ func TestGetReflogCommits(t *testing.T) {
 		},
 		{
 			testName: "when passing filterAuthor",
-			runner: oscommands.NewFakeRunner(t).
+			runner: reflogFakeRunner(t).
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--format=+%H%x00%ct%x00%gs%x00%P", "--author=John Doe <john@doe.com>"}, reflogOutput, nil),
 
 			lastReflogCommit: models.NewCommit(hashPool, models.NewCommitOpts{
@@ -168,7 +172,7 @@ func TestGetReflogCommits(t *testing.T) {
 		},
 		{
 			testName: "when command returns error",
-			runner: oscommands.NewFakeRunner(t).
+			runner: reflogFakeRunner(t).
 				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--format=+%H%x00%ct%x00%gs%x00%P"}, "", errors.New("haha")),
 
 			lastReflogCommit:        nil,
