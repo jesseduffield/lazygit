@@ -281,7 +281,11 @@ func NewEventKey(k Key, ch rune, mod ModMask) *EventKey {
 	// Windows reports ModShift for shifted keys.  This is inconsistent
 	// with UNIX, lets harmonize this.
 	if k == KeyRune && mod == ModShift && ch != 0 {
-		mod = ModNone
+		// Shift+NumpadSubtract still produces '-'; clearing ModShift made it
+		// indistinguishable from the main-keyboard minus key (lazygit#5253).
+		if ch != '-' {
+			mod = ModNone
+		}
 	}
 
 	if k >= KeyCtrlA && k <= KeyCtrlZ {

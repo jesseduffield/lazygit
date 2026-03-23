@@ -311,11 +311,14 @@ func (g *Gui) pollEvent() GocuiEvent {
 			mod = 0
 			ch = rune(0)
 			k = tcell.KeyF63
-		} else if mod == tcell.ModCtrl || mod == tcell.ModShift {
-			// remove Ctrl or Shift if specified
-			// - shift - will be translated to the final code of rune
-			// - ctrl  - is translated in the key
+		} else if mod == tcell.ModCtrl {
 			mod = 0
+		} else if mod == tcell.ModShift {
+			// Shift+NumpadSubtract is '-' with ModShift; keep it so it does not
+			// match plain '-' bindings (lazygit#5253).
+			if !(k == 0 && ch == '-') {
+				mod = 0
+			}
 		} else if mod == tcell.ModAlt && k == tcell.KeyEnter {
 			// for the sake of convenience I'm having a KeyAltEnter key. I will likely
 			// regret this laziness in the future. We're arbitrarily mapping that to tcell's
