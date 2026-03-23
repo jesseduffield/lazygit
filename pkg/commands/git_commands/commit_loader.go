@@ -74,6 +74,12 @@ type GetCommitsOptions struct {
 func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, error) {
 	commits := []*models.Commit{}
 
+	emptyTreeHash, err := GetEmptyTreeOID(self.cmd)
+	if err != nil {
+		return nil, err
+	}
+	emptyTreePtr := opts.HashPool.Add(emptyTreeHash)
+
 	if opts.IncludeRebaseCommits && opts.FilterPath == "" {
 		var err error
 		commits, err = self.MergeRebasingCommits(opts.HashPool, commits)
@@ -92,7 +98,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 
 		var realCommits []*models.Commit
 		realCommits, logErr = loadCommits(self.getLogCmd(opts), opts.FilterPath, func(line string) (*models.Commit, bool) {
-			return self.extractCommitFromLine(opts.HashPool, line, opts.RefToShowDivergenceFrom != ""), false
+			return self.extractCommitFromLine(opts.HashPool, line, opts.RefToShowDivergenceFrom != "", emptyTreePtr), false
 		})
 		if logErr == nil {
 			commits = append(commits, realCommits...)
@@ -189,7 +195,7 @@ func (self *CommitLoader) MergeRebasingCommits(hashPool *utils.StringPool, commi
 // then puts them into a commit object
 // example input:
 // 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
-func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line string, showDivergence bool) *models.Commit {
+func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line string, showDivergence bool, emptyTreeParent *string) *models.Commit {
 	split := strings.SplitN(line, "\x00", 8)
 
 	// Ensure we have the minimum required fields (at least 7 for basic functionality)
@@ -238,7 +244,7 @@ func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line
 		parents = strings.Split(parentHashes, " ")
 	}
 
-	return models.NewCommit(hashPool, models.NewCommitOpts{
+	commitOpts := models.NewCommitOpts{
 		Hash:          hash,
 		Name:          message,
 		Tags:          tags,
@@ -248,7 +254,11 @@ func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line
 		AuthorEmail:   authorEmail,
 		Parents:       parents,
 		Divergence:    divergence,
-	})
+	}
+	if len(parents) == 0 {
+		commitOpts.EmptyTreeParent = emptyTreeParent
+	}
+	return models.NewCommit(hashPool, commitOpts)
 }
 
 func (self *CommitLoader) getHydratedRebasingCommits(hashPool *utils.StringPool, addConflictingCommit bool) ([]*models.Commit, error) {
@@ -279,6 +289,12 @@ func (self *CommitLoader) getHydratedTodoCommits(hashPool *utils.StringPool, tod
 		return nil, nil
 	}
 
+	emptyTreeHash, err := GetEmptyTreeOID(self.cmd)
+	if err != nil {
+		return nil, err
+	}
+	emptyTreePtr := hashPool.Add(emptyTreeHash)
+
 	commitHashes := lo.FilterMap(todoCommits, func(commit *models.Commit, _ int) (string, bool) {
 		return commit.Hash(), commit.Hash() != ""
 	})
@@ -294,11 +310,11 @@ func (self *CommitLoader) getHydratedTodoCommits(hashPool *utils.StringPool, tod
 	).DontLog()
 
 	fullCommits := map[string]*models.Commit{}
-	err := cmdObj.RunAndProcessLines(func(line string) (bool, error) {
+	err = cmdObj.RunAndProcessLines(func(line string) (bool, error) {
 		if line == "" || line[0] != '+' {
 			return false, nil
 		}
-		commit := self.extractCommitFromLine(hashPool, line[1:], false)
+		commit := self.extractCommitFromLine(hashPool, line[1:], false, emptyTreePtr)
 		fullCommits[commit.Hash()] = commit
 		return false, nil
 	})

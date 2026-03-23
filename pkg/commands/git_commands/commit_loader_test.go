@@ -16,6 +16,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func commitLoaderFakeRunner(t *testing.T) *oscommands.FakeCmdObjRunner {
+	return oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"hash-object", "-t", "tree", "--stdin"}, models.EmptyTreeCommitHash, nil)
+}
+
 var commitsOutput = strings.ReplaceAll(`+0eea75e8c631fba6b58135697835d58ba4c18dbc|1640826609|Jesse Duffield|jessedduffield@gmail.com|b21997d6b4cbdf84b149|>|HEAD -> better-tests|better typing for rebase mode
 +b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164|1640824515|Jesse Duffield|jessedduffield@gmail.com|e94e8fc5b6fab4cb755f|>|origin/better-tests|fix logging
 +e94e8fc5b6fab4cb755f29f1bdb3ee5e001df35c|1640823749|Jesse Duffield|jessedduffield@gmail.com|d8084cd558925eb7c9c3|>|tag: 123, tag: 456|refactor
@@ -43,7 +47,7 @@ func TestGetCommits(t *testing.T) {
 			testName: "should return no commits if there are none",
 			logOrder: "topo-order",
 			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
-			runner: oscommands.NewFakeRunner(t).
+			runner: commitLoaderFakeRunner(t).
 				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
@@ -54,7 +58,7 @@ func TestGetCommits(t *testing.T) {
 			testName: "should use proper upstream name for branch",
 			logOrder: "topo-order",
 			opts:     GetCommitsOptions{RefName: "refs/heads/mybranch", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
-			runner: oscommands.NewFakeRunner(t).
+			runner: commitLoaderFakeRunner(t).
 				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
 				ExpectGitArgs([]string{"log", "refs/heads/mybranch", "--topo-order", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
@@ -66,7 +70,7 @@ func TestGetCommits(t *testing.T) {
 			logOrder:     "topo-order",
 			opts:         GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
 			mainBranches: []string{"master", "main", "develop"},
-			runner: oscommands.NewFakeRunner(t).
+			runner: commitLoaderFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed
 				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}", "^refs/remotes/origin/master", "^refs/remotes/origin/main"}, "0eea75e8c631fba6b58135697835d58ba4c18dbc\n", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
@@ -203,7 +207,7 @@ func TestGetCommits(t *testing.T) {
 			logOrder:     "topo-order",
 			opts:         GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
 			mainBranches: []string{"master", "main"},
-			runner: oscommands.NewFakeRunner(t).
+			runner: commitLoaderFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed
 				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "0eea75e8c631fba6b58135697835d58ba4c18dbc\n", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
@@ -239,7 +243,7 @@ func TestGetCommits(t *testing.T) {
 			logOrder:     "topo-order",
 			opts:         GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
 			mainBranches: []string{"master", "main", "develop", "1.0-hotfixes"},
-			runner: oscommands.NewFakeRunner(t).
+			runner: commitLoaderFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed
 				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}", "^refs/remotes/origin/master", "^refs/remotes/origin/develop", "^refs/remotes/origin/1.0-hotfixes"}, "0eea75e8c631fba6b58135697835d58ba4c18dbc\n", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
@@ -276,7 +280,7 @@ func TestGetCommits(t *testing.T) {
 			testName: "should not specify order if `log.order` is `default`",
 			logOrder: "default",
 			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
-			runner: oscommands.NewFakeRunner(t).
+			runner: commitLoaderFakeRunner(t).
 				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
@@ -287,7 +291,7 @@ func TestGetCommits(t *testing.T) {
 			testName: "should set filter path",
 			logOrder: "default",
 			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, FilterPath: "src"},
-			runner: oscommands.NewFakeRunner(t).
+			runner: commitLoaderFakeRunner(t).
 				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--follow", "--name-status", "--no-show-signature", "--", "src"}, "", nil),
 
@@ -596,6 +600,7 @@ func TestCommitLoader_setCommitStatuses(t *testing.T) {
 func TestCommitLoader_extractCommitFromLine(t *testing.T) {
 	common := common.NewDummyCommon()
 	hashPool := &utils.StringPool{}
+	emptyTreePtr := hashPool.Add(models.EmptyTreeCommitHash)
 
 	loader := &CommitLoader{
 		Common: common,
@@ -676,15 +681,16 @@ func TestCommitLoader_extractCommitFromLine(t *testing.T) {
 			line:           "root123\x001640000000\x00Alice Cooper\x00alice@example.com\x00\x00>\x00\x00initial commit",
 			showDivergence: true,
 			expectedCommit: models.NewCommit(hashPool, models.NewCommitOpts{
-				Hash:          "root123",
-				Name:          "initial commit",
-				Tags:          nil,
-				ExtraInfo:     "",
-				UnixTimestamp: 1640000000,
-				AuthorName:    "Alice Cooper",
-				AuthorEmail:   "alice@example.com",
-				Parents:       nil,
-				Divergence:    models.DivergenceRight,
+				Hash:            "root123",
+				Name:            "initial commit",
+				Tags:            nil,
+				ExtraInfo:       "",
+				UnixTimestamp:   1640000000,
+				AuthorName:      "Alice Cooper",
+				AuthorEmail:     "alice@example.com",
+				Parents:         nil,
+				Divergence:      models.DivergenceRight,
+				EmptyTreeParent: emptyTreePtr,
 			}),
 		},
 		{
@@ -785,7 +791,7 @@ func TestCommitLoader_extractCommitFromLine(t *testing.T) {
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.testName, func(t *testing.T) {
-			result := loader.extractCommitFromLine(hashPool, scenario.line, scenario.showDivergence)
+			result := loader.extractCommitFromLine(hashPool, scenario.line, scenario.showDivergence, emptyTreePtr)
 			if scenario.expectedCommit == nil {
 				assert.Nil(t, result)
 			} else {

@@ -25,6 +25,12 @@ func NewReflogCommitLoader(common *common.Common, cmd oscommands.ICmdObjBuilder)
 // GetReflogCommits only returns the new reflog commits since the given lastReflogCommit
 // if none is passed (i.e. it's value is nil) then we get all the reflog commits
 func (self *ReflogCommitLoader) GetReflogCommits(hashPool *utils.StringPool, lastReflogCommit *models.Commit, filterPath string, filterAuthor string) ([]*models.Commit, bool, error) {
+	emptyTreeHash, err := GetEmptyTreeOID(self.cmd)
+	if err != nil {
+		return nil, false, err
+	}
+	emptyTreePtr := hashPool.Add(emptyTreeHash)
+
 	cmdArgs := NewGitCmd("log").
 		Config("log.showSignature=false").
 		Arg("-g").
@@ -38,7 +44,7 @@ func (self *ReflogCommitLoader) GetReflogCommits(hashPool *utils.StringPool, las
 	onlyObtainedNewReflogCommits := false
 
 	commits, err := loadCommits(cmdObj, filterPath, func(line string) (*models.Commit, bool) {
-		commit, ok := self.parseLine(hashPool, line)
+		commit, ok := self.parseLine(hashPool, line, emptyTreePtr)
 		if !ok {
 			return nil, false
 		}
@@ -66,7 +72,7 @@ func (self *ReflogCommitLoader) sameReflogCommit(a *models.Commit, b *models.Com
 	return a.Hash() == b.Hash() && a.UnixTimestamp == b.UnixTimestamp && a.Name == b.Name
 }
 
-func (self *ReflogCommitLoader) parseLine(hashPool *utils.StringPool, line string) (*models.Commit, bool) {
+func (self *ReflogCommitLoader) parseLine(hashPool *utils.StringPool, line string, emptyTreeParent *string) (*models.Commit, bool) {
 	fields := strings.SplitN(line, "\x00", 4)
 	if len(fields) <= 3 {
 		return nil, false
@@ -80,11 +86,15 @@ func (self *ReflogCommitLoader) parseLine(hashPool *utils.StringPool, line strin
 		parents = strings.Split(parentHashes, " ")
 	}
 
-	return models.NewCommit(hashPool, models.NewCommitOpts{
+	opts := models.NewCommitOpts{
 		Hash:          fields[0],
 		Name:          fields[2],
 		UnixTimestamp: int64(unixTimestamp),
 		Status:        models.StatusReflog,
 		Parents:       parents,
-	}), true
+	}
+	if len(parents) == 0 {
+		opts.EmptyTreeParent = emptyTreeParent
+	}
+	return models.NewCommit(hashPool, opts), true
 }
