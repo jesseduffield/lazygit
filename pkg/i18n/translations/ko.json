@@ -218,6 +218,8 @@
   "NewBranchNamePrompt": "새로운 브랜치 이름 입력",
   "NextScreenMode": "다음 스크린 모드 (normal/half/fullscreen)",
   "PrevScreenMode": "이전 스크린 모드",
+  "NextPortraitMode": "다음 포트레이트 모드 (auto/always/never)",
+  "PrevPortraitMode": "이전 포트레이트 모드",
   "StartSearch": "검색 시작",
   "Keybindings": "키 바인딩",
   "RenameBranch": "브랜치 이름 변경",

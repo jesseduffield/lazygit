@@ -205,6 +205,8 @@
   "ViewResetToUpstreamOptions": "Bekijk upstream reset opties",
   "NextScreenMode": "Volgende scherm modus (normaal/half/groot)",
   "PrevScreenMode": "Vorige scherm modus",
+  "NextPortraitMode": "Volgende portretmodus (auto/altijd/nooit)",
+  "PrevPortraitMode": "Vorige portretmodus",
   "StartSearch": "Start met zoeken",
   "Keybindings": "Sneltoetsen",
   "RenameBranch": "Hernoem branch",

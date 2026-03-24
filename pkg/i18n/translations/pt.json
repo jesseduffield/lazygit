@@ -478,6 +478,8 @@
   "CreatingTag": "Criando etiqueta",
   "ForceTag": "Forçar Etiqueta",
   "GitFlowOptions": "Exibir opções do git-flow",
+  "NextPortraitMode": "Próximo modo retrato (auto/sempre/nunca)",
+  "PrevPortraitMode": "Modo retrato anterior",
   "Actions": {},
   "Bisect": {},
   "Log": {},

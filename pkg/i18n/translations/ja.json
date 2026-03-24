@@ -540,6 +540,8 @@
   "ViewResetToUpstreamOptions": "アップストリームへのリセットオプションを表示",
   "NextScreenMode": "次の画面モード（通常/半分/全画面）",
   "PrevScreenMode": "前の画面モード",
+  "NextPortraitMode": "次のポートレートモード（自動/常時/無効）",
+  "PrevPortraitMode": "前のポートレートモード",
   "StartSearch": "現在のビューをテキストで検索",
   "StartFilter": "現在のビューをテキストでフィルタリング",
   "Keybindings": "キーバインディング",

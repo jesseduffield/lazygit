@@ -578,6 +578,8 @@
   "ViewResetToUpstreamOptions": "查看上游重置选项",
   "NextScreenMode": "下一屏模式(正常/半屏/全屏)",
   "PrevScreenMode": "上一屏模式",
+  "NextPortraitMode": "下一竖屏模式（自动/始终/从不）",
+  "PrevPortraitMode": "上一竖屏模式",
   "CyclePagers": "切换分页器",
   "CyclePagersTooltip": "从已配置的分页器列表中选择下一个分页器",
   "CyclePagersDisabledReason": "未配置其他分页器",

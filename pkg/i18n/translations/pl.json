@@ -422,6 +422,8 @@
   "ViewResetToUpstreamOptions": "Pokaż opcje resetowania do upstream",
   "NextScreenMode": "Następny tryb ekranu (normalny/półpełny/pełnoekranowy)",
   "PrevScreenMode": "Poprzedni tryb ekranu",
+  "NextPortraitMode": "Następny tryb portretowy (auto/zawsze/nigdy)",
+  "PrevPortraitMode": "Poprzedni tryb portretowy",
   "StartSearch": "Szukaj w bieżącym widoku po tekście",
   "StartFilter": "Filtruj bieżący widok po tekście",
   "Keybindings": "Skróty klawiszowe",

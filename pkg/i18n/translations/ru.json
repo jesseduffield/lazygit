@@ -303,6 +303,8 @@
   "ViewResetToUpstreamOptions": "Просмотреть параметры сброса upstream-ветки",
   "NextScreenMode": "Следующий режим экрана (нормальный/полуэкранный/полноэкранный)",
   "PrevScreenMode": "Предыдущий режим экрана",
+  "NextPortraitMode": "Следующий портретный режим (авто/всегда/никогда)",
+  "PrevPortraitMode": "Предыдущий портретный режим",
   "StartSearch": "Найти",
   "Keybindings": "Связки клавиш",
   "KeybindingsLegend": "Связки клавиш",

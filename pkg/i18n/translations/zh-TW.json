@@ -349,6 +349,8 @@
   "ViewResetToUpstreamOptions": "檢視遠端重設選項",
   "NextScreenMode": "下一個螢幕模式（常規/半螢幕/全螢幕）",
   "PrevScreenMode": "上一個螢幕模式",
+  "NextPortraitMode": "下一個直向模式（自動/總是/從不）",
+  "PrevPortraitMode": "上一個直向模式",
   "StartSearch": "搜尋",
   "StartFilter": "搜尋",
   "Keybindings": "鍵盤快捷鍵",
