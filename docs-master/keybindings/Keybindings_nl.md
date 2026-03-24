@@ -107,6 +107,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` O `` | Bekijk opties voor pull-aanvraag |  |
 | `` G `` | Open pull request in browser |  |
 | `` <ctrl+y> `` | Kopieer de URL van het pull-verzoek naar het klembord |  |
+| `` y `` | Copy branch URL to clipboard |  |
 | `` c `` | Uitchecken bij naam | Checkout by name. In the input box you can enter '-' to switch to the previous branch. |
 | `` - `` | Vorige branch uitchecken |  |
 | `` F `` | Forceer checkout | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
