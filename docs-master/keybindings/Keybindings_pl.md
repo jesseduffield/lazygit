@@ -166,6 +166,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` O `` | Zobacz opcje tworzenia pull requesta |  |
 | `` G `` | Otwórz żądanie ściągnięcia w przeglądarce |  |
 | `` <ctrl+y> `` | Kopiuj adres URL żądania ściągnięcia do schowka |  |
+| `` y `` | Copy branch URL to clipboard |  |
 | `` c `` | Przełącz według nazwy | Przełącz według nazwy. W polu wprowadzania możesz wpisać '-' aby przełączyć się na ostatnią gałąź. |
 | `` - `` | Przełącz na poprzednią gałąź |  |
 | `` F `` | Wymuś przełączenie | Wymuś przełączenie wybranej gałęzi. To spowoduje odrzucenie wszystkich lokalnych zmian w drzewie roboczym przed przełączeniem na wybraną gałąź. |
