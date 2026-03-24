@@ -474,6 +474,8 @@ type KeybindingUniversalConfig struct {
 	PrevTab                           string   `yaml:"prevTab"`
 	NextScreenMode                    string   `yaml:"nextScreenMode"`
 	PrevScreenMode                    string   `yaml:"prevScreenMode"`
+	NextPortraitMode                  string   `yaml:"nextPortraitMode"`
+	PrevPortraitMode                  string   `yaml:"prevPortraitMode"`
 	CyclePagers                       string   `yaml:"cyclePagers"`
 	Undo                              string   `yaml:"undo"`
 	Redo                              string   `yaml:"redo"`
@@ -939,6 +941,8 @@ func GetDefaultConfig() *UserConfig {
 				PrevTab:                           "[",
 				NextScreenMode:                    "+",
 				PrevScreenMode:                    "_",
+				NextPortraitMode:                  "<disabled>",
+				PrevPortraitMode:                  "<disabled>",
 				CyclePagers:                       "|",
 				Undo:                              "z",
 				Redo:                              "Z",

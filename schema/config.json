@@ -1488,6 +1488,14 @@
           "type": "string",
           "default": "_"
         },
+        "nextPortraitMode": {
+          "type": "string",
+          "default": "\u003cdisabled\u003e"
+        },
+        "prevPortraitMode": {
+          "type": "string",
+          "default": "\u003cdisabled\u003e"
+        },
         "cyclePagers": {
           "type": "string",
           "default": "|"

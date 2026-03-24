@@ -646,6 +646,8 @@ keybinding:
     prevTab: '['
     nextScreenMode: +
     prevScreenMode: _
+    nextPortraitMode: <disabled>
+    prevPortraitMode: <disabled>
     cyclePagers: '|'
     undo: z
     redo: Z

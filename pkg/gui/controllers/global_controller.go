@@ -61,6 +61,16 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Description: self.c.Tr.PrevScreenMode,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Universal.NextPortraitMode),
+			Handler:     opts.Guards.NoPopupPanel(self.nextPortraitMode),
+			Description: self.c.Tr.NextPortraitMode,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.PrevPortraitMode),
+			Handler:     opts.Guards.NoPopupPanel(self.prevPortraitMode),
+			Description: self.c.Tr.PrevPortraitMode,
+		},
+		{
 			Key:               opts.GetKey(opts.Config.Universal.CyclePagers),
 			Handler:           opts.Guards.NoPopupPanel(self.cyclePagers),
 			GetDisabledReason: self.canCyclePagers,
@@ -178,6 +188,14 @@ func (self *GlobalController) nextScreenMode() error {
 
 func (self *GlobalController) prevScreenMode() error {
 	return (&ScreenModeActions{c: self.c}).Prev()
+}
+
+func (self *GlobalController) nextPortraitMode() error {
+	return (&PortraitModeActions{c: self.c}).Next()
+}
+
+func (self *GlobalController) prevPortraitMode() error {
+	return (&PortraitModeActions{c: self.c}).Prev()
 }
 
 func (self *GlobalController) cyclePagers() error {
