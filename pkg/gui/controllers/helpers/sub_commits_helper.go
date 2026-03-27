@@ -66,6 +66,7 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 	subCommitsContext.GetView().TitlePrefix = opts.Context.GetView().TitlePrefix
 
 	self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
+	subCommitsContext.FocusLine(true)
 
 	self.c.Context().Push(self.c.Contexts().SubCommits, types.OnFocusOpts{})
 	return nil
