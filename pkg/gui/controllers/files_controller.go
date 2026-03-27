@@ -1539,7 +1539,7 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 		),
 	}
 
-	if !someNodesHaveUnstagedChanges(selectedNodes) {
+	if !someNodesHaveStagedChanges(selectedNodes) || !someNodesHaveUnstagedChanges(selectedNodes) {
 		discardUnstagedChangesItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.DiscardUnstagedDisabled}
 	}
 

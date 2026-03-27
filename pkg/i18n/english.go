@@ -1323,7 +1323,7 @@ func EnglishTranslationSet() *TranslationSet {
 		UndoMergeResolveTooltip:              "Undo last merge conflict resolution.",
 		DiscardAllTooltip:                    "Discard both staged and unstaged changes in '{{.path}}'.",
 		DiscardUnstagedTooltip:               "Discard unstaged changes in '{{.path}}'.",
-		DiscardUnstagedDisabled:              "The selected items don't have any unstaged changes.",
+		DiscardUnstagedDisabled:              "The selected items don't have both staged and unstaged changes.",
 		Pop:                                  "Pop",
 		StashPopTooltip:                      "Apply the stash entry to your working directory and remove the stash entry.",
 		Drop:                                 "Drop",
