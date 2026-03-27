@@ -212,7 +212,8 @@ type TranslationSet struct {
 	UndoMergeResolveTooltip               string
 	DiscardAllTooltip                     string
 	DiscardUnstagedTooltip                string
-	DiscardUnstagedDisabled               string
+	DiscardUnstagedDisabledNoStaged       string
+	DiscardUnstagedDisabledNoUnstaged     string
 	Pop                                   string
 	StashPopTooltip                       string
 	Drop                                  string
@@ -1322,8 +1323,9 @@ func EnglishTranslationSet() *TranslationSet {
 		RedoTooltip:                          "The reflog will be used to determine what git command to run to redo the last git command. This does not include changes to the working tree; only commits are taken into consideration.",
 		UndoMergeResolveTooltip:              "Undo last merge conflict resolution.",
 		DiscardAllTooltip:                    "Discard both staged and unstaged changes in '{{.path}}'.",
-		DiscardUnstagedTooltip:               "Discard unstaged changes in '{{.path}}'.",
-		DiscardUnstagedDisabled:              "The selected items don't have both staged and unstaged changes.",
+		DiscardUnstagedTooltip:               "Discard only unstaged changes in '{{.path}}', keeping any staged changes.",
+		DiscardUnstagedDisabledNoStaged:      "No staged changes to keep.",
+		DiscardUnstagedDisabledNoUnstaged:    "No unstaged changes.",
 		Pop:                                  "Pop",
 		StashPopTooltip:                      "Apply the stash entry to your working directory and remove the stash entry.",
 		Drop:                                 "Drop",
