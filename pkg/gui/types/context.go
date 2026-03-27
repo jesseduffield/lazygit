@@ -128,10 +128,10 @@ type IFilterableContext interface {
 	IListPanelState
 	ISearchHistoryContext
 
-	SetFilter(string, bool)
+	SetFilter(filter string, useFuzzySearch bool, filterMode string, regexpPrefix string)
 	GetFilter() string
 	ClearFilter()
-	ReApplyFilter(bool)
+	ReApplyFilter(useFuzzySearch bool, filterMode string, regexpPrefix string)
 	IsFiltering() bool
 	IsFilterableContext()
 	FilterPrefix(tr *i18n.TranslationSet) string

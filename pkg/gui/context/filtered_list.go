@@ -16,6 +16,8 @@ type FilteredList[T any] struct {
 	getFilterFields  func(T) []string
 	preprocessFilter func(string) string
 	filter           string
+	lastFilterMode   string // last non-empty gui.filterMode passed to SetFilter; default substring when empty
+	lastRegexpPrefix string // last gui.regexpFilterPrefix (OrDefault) passed to SetFilter
 
 	mutex deadlock.Mutex
 }
@@ -35,18 +37,46 @@ func (self *FilteredList[T]) GetFilter() string {
 	return self.filter
 }
 
-func (self *FilteredList[T]) SetFilter(filter string, useFuzzySearch bool) {
+func (self *FilteredList[T]) SetFilter(filter string, useFuzzySearch bool, filterMode string, regexpPrefix string) {
 	self.filter = filter
+	if filterMode != "" {
+		self.lastFilterMode = filterMode
+	}
+	if regexpPrefix != "" {
+		self.lastRegexpPrefix = regexpPrefix
+	}
 
-	self.applyFilter(useFuzzySearch)
+	self.applyFilter(useFuzzySearch, filterMode, regexpPrefix)
 }
 
 func (self *FilteredList[T]) ClearFilter() {
-	self.SetFilter("", false)
+	mode := self.lastFilterMode
+	if mode == "" {
+		mode = "substring"
+	}
+	prefix := self.lastRegexpPrefix
+	if prefix == "" {
+		prefix = "re:"
+	}
+	self.SetFilter("", false, mode, prefix)
 }
 
-func (self *FilteredList[T]) ReApplyFilter(useFuzzySearch bool) {
-	self.applyFilter(useFuzzySearch)
+func (self *FilteredList[T]) ReApplyFilter(useFuzzySearch bool, filterMode string, regexpPrefix string) {
+	mode := filterMode
+	if mode == "" {
+		mode = self.lastFilterMode
+	}
+	if mode == "" {
+		mode = "substring"
+	}
+	prefix := regexpPrefix
+	if prefix == "" {
+		prefix = self.lastRegexpPrefix
+	}
+	if prefix == "" {
+		prefix = "re:"
+	}
+	self.applyFilter(useFuzzySearch, mode, prefix)
 }
 
 func (self *FilteredList[T]) IsFiltering() bool {
@@ -80,16 +110,16 @@ func (self *fuzzySource[T]) Len() int {
 	return len(self.list)
 }
 
-func (self *FilteredList[T]) applyFilter(useFuzzySearch bool) {
+func (self *FilteredList[T]) applyFilter(useFuzzySearch bool, filterMode string, regexpPrefix string) {
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
 
-	filter := self.filter
+	processed := self.filter
 	if self.preprocessFilter != nil {
-		filter = self.preprocessFilter(filter)
+		processed = self.preprocessFilter(self.filter)
 	}
 
-	if filter == "" {
+	if processed == "" {
 		self.filteredIndices = nil
 	} else {
 		source := &fuzzySource[T]{
@@ -97,7 +127,12 @@ func (self *FilteredList[T]) applyFilter(useFuzzySearch bool) {
 			getFilterFields: self.getFilterFields,
 		}
 
-		matches := utils.FindFrom(filter, source, useFuzzySearch)
+		prefix := regexpPrefix
+		if prefix == "" {
+			prefix = "re:"
+		}
+		pattern, useRegexp := utils.ViewFilterPattern(filterMode, processed, prefix)
+		matches := utils.FindFrom(pattern, source, useFuzzySearch, useRegexp)
 		self.filteredIndices = lo.Map(matches, func(match fuzzy.Match, _ int) int {
 			return match.Index
 		})

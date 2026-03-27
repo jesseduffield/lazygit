@@ -4,6 +4,15 @@
 
 Depending on the currently focused view, hitting '/' will bring up a filter or search prompt. When filtering, the contents of the view will be filtered down to only those lines which match the query string. When searching, the contents of the view are not filtered, but matching lines are highlighted and you can iterate through matches with `n`/`N`.
 
+### Regular expression filters
+
+You can filter with a [Go regular expression](https://go.dev/s/re2syntax) in two ways:
+
+- Set `gui.filterMode` to `regexp` in your config so every filter string is treated as a regexp.
+- Or keep `substring` / `fuzzy` and prefix a single filter with `gui.regexpFilterPrefix` (default `re:`, for example `re:^main` to match branch names that start with `main`). You can change the prefix in config if `re:` collides with how you name branches or paths.
+
+If the pattern has no uppercase letters, matching is case-insensitive (the same rule as plain substring filters). Invalid regexps match nothing. In regexp mode, `.` and other metacharacters are active, so file paths like `foo.go` need `foo\.go` to match a literal dot. Unlike substring mode, regexp mode uses one pattern for the whole line (whitespace inside the pattern is not split into multiple AND terms).
+
 We intend to support filtering for the files view soon, but at the moment it uses searching. We intend to continue using search for the commits view because you typically care about the commits that come before/after a matching commit.
 
 If you would like both filtering and searching to be enabled on a given view, please raise an issue for this.

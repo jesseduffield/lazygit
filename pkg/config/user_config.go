@@ -1,6 +1,7 @@
 package config
 
 import (
+	"strings"
 	"time"
 
 	"github.com/karimkhaleel/jsonschema"
@@ -183,8 +184,14 @@ type GuiConfig struct {
 	// One of 'auto' (default) | 'always' | 'never'
 	PortraitMode string `yaml:"portraitMode"`
 	// How things are filtered when typing '/'.
-	// One of 'substring' (default) | 'fuzzy'
-	FilterMode string `yaml:"filterMode" jsonschema:"enum=substring,enum=fuzzy"`
+	// One of 'substring' (default) | 'fuzzy' | 'regexp'
+	// In substring or fuzzy mode, prefix the filter with regexpFilterPrefix (default 're:') to use a Go regular
+	// expression for that filter only.
+	// In regexp mode, '.' and other metacharacters are regexp syntax (escape '.' to match a literal dot in paths).
+	FilterMode string `yaml:"filterMode" jsonschema:"enum=substring,enum=fuzzy,enum=regexp"`
+	// When filterMode is substring or fuzzy, if the filter starts with this string, the rest is treated as a
+	// Go regexp. Default is 're:'. Leave empty in config to use the default.
+	RegexpFilterPrefix string `yaml:"regexpFilterPrefix"`
 	// Config relating to the spinner.
 	Spinner SpinnerConfig `yaml:"spinner"`
 	// Status panel view.
@@ -200,6 +207,17 @@ type GuiConfig struct {
 
 func (c *GuiConfig) UseFuzzySearch() bool {
 	return c.FilterMode == "fuzzy"
+}
+
+// DefaultRegexpFilterPrefix is used when regexpFilterPrefix is unset or whitespace-only in config.
+const DefaultRegexpFilterPrefix = "re:"
+
+// RegexpFilterPrefixOrDefault returns the configured one-off regexp filter prefix, or DefaultRegexpFilterPrefix.
+func (c *GuiConfig) RegexpFilterPrefixOrDefault() string {
+	if strings.TrimSpace(c.RegexpFilterPrefix) == "" {
+		return DefaultRegexpFilterPrefix
+	}
+	return c.RegexpFilterPrefix
 }
 
 type ThemeConfig struct {
@@ -814,6 +832,7 @@ func GetDefaultConfig() *UserConfig {
 			AnimateExplosion:                    true,
 			PortraitMode:                        "auto",
 			FilterMode:                          "substring",
+			RegexpFilterPrefix:                  DefaultRegexpFilterPrefix,
 			Spinner: SpinnerConfig{
 				Frames: []string{"|", "/", "-", "\\"},
 				Rate:   50,

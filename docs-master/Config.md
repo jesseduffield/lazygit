@@ -292,8 +292,18 @@ gui:
   portraitMode: auto
 
   # How things are filtered when typing '/'.
-  # One of 'substring' (default) | 'fuzzy'
+  # One of 'substring' (default) | 'fuzzy' | 'regexp'
+  # In substring or fuzzy mode, prefix the filter with regexpFilterPrefix (default
+  # 're:') to use a Go regular
+  # expression for that filter only.
+  # In regexp mode, '.' and other metacharacters are regexp syntax (escape '.' to
+  # match a literal dot in paths).
   filterMode: substring
+
+  # When filterMode is substring or fuzzy, if the filter starts with this string,
+  # the rest is treated as a
+  # Go regexp. Default is 're:'. Leave empty in config to use the default.
+  regexpFilterPrefix: 're:'
 
   # Config relating to the spinner.
   spinner:

@@ -19,9 +19,10 @@ func (s *filePathSource) Len() int {
 	return len(s.files)
 }
 
-func filterFilesByText(files []*models.File, filter string, useFuzzySearch bool) []*models.File {
+func filterFilesByText(files []*models.File, filter string, useFuzzySearch bool, filterMode string, regexpPrefix string) []*models.File {
 	source := &filePathSource{files: files}
-	matches := utils.FindFrom(filter, source, useFuzzySearch)
+	pattern, useRegexp := utils.ViewFilterPattern(filterMode, filter, regexpPrefix)
+	matches := utils.FindFrom(pattern, source, useFuzzySearch, useRegexp)
 	return lo.Map(matches, func(match fuzzy.Match, _ int) *models.File {
 		return files[match.Index]
 	})
@@ -39,9 +40,10 @@ func (s *commitFilePathSource) Len() int {
 	return len(s.files)
 }
 
-func filterCommitFilesByText(files []*models.CommitFile, filter string, useFuzzySearch bool) []*models.CommitFile {
+func filterCommitFilesByText(files []*models.CommitFile, filter string, useFuzzySearch bool, filterMode string, regexpPrefix string) []*models.CommitFile {
 	source := &commitFilePathSource{files: files}
-	matches := utils.FindFrom(filter, source, useFuzzySearch)
+	pattern, useRegexp := utils.ViewFilterPattern(filterMode, filter, regexpPrefix)
+	matches := utils.FindFrom(pattern, source, useFuzzySearch, useRegexp)
 	return lo.Map(matches, func(match fuzzy.Match, _ int) *models.CommitFile {
 		return files[match.Index]
 	})

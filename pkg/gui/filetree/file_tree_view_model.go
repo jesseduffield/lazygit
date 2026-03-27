@@ -226,8 +226,8 @@ func (self *FileTreeViewModel) ExpandAll() {
 
 // IFilterableContext methods
 
-func (self *FileTreeViewModel) SetFilter(filter string, useFuzzySearch bool) {
-	self.IFileTree.SetTextFilter(filter, useFuzzySearch)
+func (self *FileTreeViewModel) SetFilter(filter string, useFuzzySearch bool, filterMode string, regexpPrefix string) {
+	self.IFileTree.SetTextFilter(filter, useFuzzySearch, filterMode, regexpPrefix)
 }
 
 func (self *FileTreeViewModel) GetFilter() string {
@@ -241,7 +241,15 @@ func (self *FileTreeViewModel) ClearFilter() {
 		selectedPath = selectedNode.GetInternalPath()
 	}
 
-	self.IFileTree.SetTextFilter("", false)
+	mode := self.IFileTree.TextFilterMode()
+	if mode == "" {
+		mode = "substring"
+	}
+	prefix := self.IFileTree.TextRegexpFilterPrefix()
+	if prefix == "" {
+		prefix = "re:"
+	}
+	self.IFileTree.SetTextFilter("", false, mode, prefix)
 
 	if selectedPath != "" {
 		self.ExpandToPath(selectedPath)
@@ -253,8 +261,22 @@ func (self *FileTreeViewModel) ClearFilter() {
 	self.ClampSelection()
 }
 
-func (self *FileTreeViewModel) ReApplyFilter(useFuzzySearch bool) {
-	self.IFileTree.SetTextFilter(self.IFileTree.GetTextFilter(), useFuzzySearch)
+func (self *FileTreeViewModel) ReApplyFilter(useFuzzySearch bool, filterMode string, regexpPrefix string) {
+	mode := filterMode
+	if mode == "" {
+		mode = self.IFileTree.TextFilterMode()
+	}
+	if mode == "" {
+		mode = "substring"
+	}
+	prefix := regexpPrefix
+	if prefix == "" {
+		prefix = self.IFileTree.TextRegexpFilterPrefix()
+	}
+	if prefix == "" {
+		prefix = "re:"
+	}
+	self.IFileTree.SetTextFilter(self.IFileTree.GetTextFilter(), useFuzzySearch, mode, prefix)
 }
 
 func (self *FileTreeViewModel) IsFiltering() bool {

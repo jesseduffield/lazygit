@@ -289,3 +289,14 @@ func TestUserConfigValidate_enums(t *testing.T) {
 		})
 	}
 }
+
+func TestRegexpFilterPrefixOrDefault(t *testing.T) {
+	c := GuiConfig{}
+	assert.Equal(t, DefaultRegexpFilterPrefix, c.RegexpFilterPrefixOrDefault())
+
+	c.RegexpFilterPrefix = "   "
+	assert.Equal(t, DefaultRegexpFilterPrefix, c.RegexpFilterPrefixOrDefault())
+
+	c.RegexpFilterPrefix = "rx:"
+	assert.Equal(t, "rx:", c.RegexpFilterPrefixOrDefault())
+}

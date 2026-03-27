@@ -211,8 +211,8 @@ func (self *CommitFileTreeViewModel) SelectPath(filepath string, showRootItem bo
 
 // IFilterableContext methods
 
-func (self *CommitFileTreeViewModel) SetFilter(filter string, useFuzzySearch bool) {
-	self.ICommitFileTree.SetTextFilter(filter, useFuzzySearch)
+func (self *CommitFileTreeViewModel) SetFilter(filter string, useFuzzySearch bool, filterMode string, regexpPrefix string) {
+	self.ICommitFileTree.SetTextFilter(filter, useFuzzySearch, filterMode, regexpPrefix)
 }
 
 func (self *CommitFileTreeViewModel) GetFilter() string {
@@ -226,7 +226,15 @@ func (self *CommitFileTreeViewModel) ClearFilter() {
 		selectedPath = selectedNode.GetInternalPath()
 	}
 
-	self.ICommitFileTree.SetTextFilter("", false)
+	mode := self.ICommitFileTree.TextFilterMode()
+	if mode == "" {
+		mode = "substring"
+	}
+	prefix := self.ICommitFileTree.TextRegexpFilterPrefix()
+	if prefix == "" {
+		prefix = "re:"
+	}
+	self.ICommitFileTree.SetTextFilter("", false, mode, prefix)
 
 	if selectedPath != "" {
 		self.ExpandToPath(selectedPath)
@@ -238,8 +246,22 @@ func (self *CommitFileTreeViewModel) ClearFilter() {
 	self.ClampSelection()
 }
 
-func (self *CommitFileTreeViewModel) ReApplyFilter(useFuzzySearch bool) {
-	self.ICommitFileTree.SetTextFilter(self.ICommitFileTree.GetTextFilter(), useFuzzySearch)
+func (self *CommitFileTreeViewModel) ReApplyFilter(useFuzzySearch bool, filterMode string, regexpPrefix string) {
+	mode := filterMode
+	if mode == "" {
+		mode = self.ICommitFileTree.TextFilterMode()
+	}
+	if mode == "" {
+		mode = "substring"
+	}
+	prefix := regexpPrefix
+	if prefix == "" {
+		prefix = self.ICommitFileTree.TextRegexpFilterPrefix()
+	}
+	if prefix == "" {
+		prefix = "re:"
+	}
+	self.ICommitFileTree.SetTextFilter(self.ICommitFileTree.GetTextFilter(), useFuzzySearch, mode, prefix)
 }
 
 func (self *CommitFileTreeViewModel) IsFiltering() bool {
