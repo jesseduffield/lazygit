@@ -131,11 +131,11 @@ func callGitRevParseWithDir(
 	}
 
 	gitCmd := cmd.New(gitRevParse.ToArgv()).DontLog()
-	res, err := gitCmd.RunWithOutput()
+	stdout, _, err := gitCmd.RunWithOutputs()
 	if err != nil {
 		return "", errors.Errorf("'%s' failed: %v", gitCmd.ToString(), err)
 	}
-	return strings.TrimSpace(res), nil
+	return strings.TrimSpace(stdout), nil
 }
 
 // Returns the paths of linked worktrees
