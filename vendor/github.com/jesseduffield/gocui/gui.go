@@ -139,21 +139,23 @@ type Gui struct {
 	ReplayedEvents replayedEvents
 	playRecording  bool
 
-	tabClickBindings  []*tabClickBinding
-	viewMouseBindings []*ViewMouseBinding
-	lastClick         *clickInfo
-	gEvents           chan GocuiEvent
-	userEvents        chan userEvent
-	views             []*View
-	currentView       *View
-	managers          []Manager
-	keybindings       []*keybinding
-	focusHandler      func(bool) error
-	openHyperlink     func(string, string) error
-	maxX, maxY        int
-	outputMode        OutputMode
-	stop              chan struct{}
-	blacklist         []Key
+	tabClickBindings         []*tabClickBinding
+	viewMouseBindings        []*ViewMouseBinding
+	lastClick                *clickInfo
+	gEvents                  chan GocuiEvent
+	userEvents               chan userEvent
+	views                    []*View
+	currentView              *View
+	managers                 []Manager
+	keybindings              []*keybinding
+	focusHandler             func(bool) error
+	openHyperlink            func(string, string) error
+	onSelectSearchResultFunc func(*View, int)
+	renderSearchStatusFunc   func(*View, int, int)
+	maxX, maxY               int
+	outputMode               OutputMode
+	stop                     chan struct{}
+	blacklist                []Key
 
 	// BgColor and FgColor allow to configure the background and foreground
 	// colors of the GUI.
@@ -195,6 +197,8 @@ type Gui struct {
 	PrevSearchMatchKey any
 
 	ErrorHandler func(error) error
+
+	ShouldHandleMouseEvent func(view *View, key Key) bool
 
 	screen         tcell.Screen
 	suspendedMutex sync.Mutex
@@ -353,9 +357,24 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 	v.Overlaps = overlaps
 	g.views = append(g.views, v)
 
+	v.setOnSelectResult(g.onSelectSearchItem)
+	v.setRenderSearchStatus(g.renderSearchStatus)
+
 	g.Mutexes.ViewsMutex.Unlock()
 
 	return v, errors.Wrap(ErrUnknownView, 0)
+}
+
+func (g *Gui) onSelectSearchItem(v *View, selectedLineIdx int) {
+	if g.onSelectSearchResultFunc != nil {
+		g.onSelectSearchResultFunc(v, selectedLineIdx)
+	}
+}
+
+func (g *Gui) renderSearchStatus(v *View, selected int, total int) {
+	if g.renderSearchStatusFunc != nil {
+		g.renderSearchStatusFunc(v, selected, total)
+	}
 }
 
 // SetViewBeneath sets a view stacked beneath another view
@@ -639,6 +658,14 @@ func (g *Gui) SetFocusHandler(handler func(bool) error) {
 
 func (g *Gui) SetOpenHyperlinkFunc(openHyperlinkFunc func(string, string) error) {
 	g.openHyperlink = openHyperlinkFunc
+}
+
+func (g *Gui) SetOnSelectSearchResultFunc(onSelectSearchResultFunc func(*View, int)) {
+	g.onSelectSearchResultFunc = onSelectSearchResultFunc
+}
+
+func (g *Gui) SetRenderSearchStatusFunc(renderSearchStatusFunc func(*View, int, int)) {
+	g.renderSearchStatusFunc = renderSearchStatusFunc
 }
 
 // getKey takes an empty interface with a key and returns the corresponding
@@ -1329,19 +1356,6 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		if err != nil {
 			break
 		}
-		if v.Frame && my == v.y0 {
-			if len(v.Tabs) > 0 {
-				tabIndex := v.GetClickedTabIndex(mx - v.x0)
-
-				if tabIndex >= 0 {
-					for _, binding := range g.tabClickBindings {
-						if binding.viewName == v.Name() {
-							return binding.handler(tabIndex)
-						}
-					}
-				}
-			}
-		}
 
 		// newCx and newCy are relative to the view port, i.e. to the visible area of the view
 		newCx := mx - v.x0 - 1
@@ -1368,6 +1382,23 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 				newCx = visibleLineWidth - v.ox
 			}
 		}
+
+		if ev.Key == MouseLeft && (ev.Mod&ModMotion) == 0 && !v.Editable && g.openHyperlink != nil {
+			if newY >= 0 && newY <= len(v.viewLines)-1 && newX >= 0 && newX <= len(v.viewLines[newY].line)-1 {
+				if link := v.viewLines[newY].line[newX].hyperlink; link != "" {
+					return g.openHyperlink(link, v.name)
+				}
+			}
+		}
+
+		if g.ShouldHandleMouseEvent != nil {
+			if !g.ShouldHandleMouseEvent(v, ev.Key) {
+				// Give clients a chance to reject clicks, for example clicks in inactive views
+				// when a modal panel is open.
+				break
+			}
+		}
+
 		if !IsMouseScrollKey(ev.Key) {
 			v.SetCursor(newCx, newCy)
 			if v.Editable {
@@ -1381,10 +1412,16 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			}
 		}
 
-		if ev.Key == MouseLeft && (ev.Mod&ModMotion) == 0 && !v.Editable && g.openHyperlink != nil {
-			if newY >= 0 && newY <= len(v.viewLines)-1 && newX >= 0 && newX <= len(v.viewLines[newY].line)-1 {
-				if link := v.viewLines[newY].line[newX].hyperlink; link != "" {
-					return g.openHyperlink(link, v.name)
+		if v.Frame && my == v.y0 {
+			if len(v.Tabs) > 0 {
+				tabIndex := v.GetClickedTabIndex(mx - v.x0)
+
+				if tabIndex >= 0 {
+					for _, binding := range g.tabClickBindings {
+						if binding.viewName == v.Name() {
+							return binding.handler(tabIndex)
+						}
+					}
 				}
 			}
 		}

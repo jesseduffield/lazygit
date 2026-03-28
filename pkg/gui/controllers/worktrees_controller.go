@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type WorktreesController struct {
@@ -95,7 +96,11 @@ func (self *WorktreesController) GetOnRenderToMain() func() {
 			var builder strings.Builder
 			w := tabwriter.NewWriter(&builder, 0, 0, 2, ' ', 0)
 			_, _ = fmt.Fprintf(w, "%s:\t%s%s\n", self.c.Tr.Name, style.FgGreen.Sprint(worktree.Name), main)
-			_, _ = fmt.Fprintf(w, "%s:\t%s\n", self.c.Tr.Branch, style.FgYellow.Sprint(worktree.Branch))
+			branch := style.FgYellow.Sprint(worktree.Branch)
+			if worktree.Branch == "" && worktree.Head != "" {
+				branch = style.FgYellow.Sprintf("HEAD detached at %s", utils.ShortHash(worktree.Head))
+			}
+			_, _ = fmt.Fprintf(w, "%s:\t%s\n", self.c.Tr.Branch, branch)
 			_, _ = fmt.Fprintf(w, "%s:\t%s%s\n", self.c.Tr.Path, style.FgCyan.Sprint(worktree.Path), missing)
 			_ = w.Flush()
 
@@ -128,7 +133,7 @@ func (self *WorktreesController) remove(worktree *models.Worktree) error {
 	return self.c.Helpers().Worktree.Remove(worktree, false)
 }
 
-func (self *WorktreesController) GetOnClick() func() error {
+func (self *WorktreesController) GetOnDoubleClick() func() error {
 	return self.withItemGraceful(self.enter)
 }
 

@@ -31,12 +31,12 @@ func NewMainContext(
 		SearchTrait: NewSearchTrait(c),
 	}
 
-	ctx.GetView().SetRenderSearchStatus(ctx.SearchTrait.RenderSearchStatus)
-	ctx.GetView().SetOnSelectItem(func(int) {})
-
 	return ctx
 }
 
 func (self *MainContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
 	return nil
+}
+
+func (self *MainContext) OnSearchSelect(int) {
 }

@@ -52,7 +52,7 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 	}
 
 	if self.gui.Config.GetDebug() {
-		self.goEvery(time.Second*time.Duration(10), self.gui.stopChan, func() error {
+		self.goEvery(time.Second*time.Duration(10), self.gui.stopChan, func(_ bool) error {
 			formatBytes := func(b uint64) string {
 				const unit = 1000
 				if b < unit {
@@ -78,7 +78,7 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	self.gui.waitForIntro.Wait()
 
-	fetch := func() error {
+	fetch := func(firstTimeOrRetriggered bool) error {
 		// Do this on the UI thread so that we don't have to deal with synchronization around the
 		// access of the repo state.
 		self.gui.onUIThread(func() error {
@@ -89,14 +89,18 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 			return nil
 		})
 
-		return self.gui.helpers.AppStatus.WithWaitingStatusImpl(self.gui.Tr.FetchingStatus, func(gocui.Task) error {
-			return self.backgroundFetch()
-		}, nil)
+		if self.gui.UserConfig().Gui.ShowBottomLine || firstTimeOrRetriggered {
+			return self.gui.helpers.AppStatus.WithWaitingStatusImpl(self.gui.Tr.FetchingStatus, func(gocui.Task) error {
+				return self.backgroundFetch()
+			}, nil)
+		}
+
+		return self.backgroundFetch()
 	}
 
 	// We want an immediate fetch at startup, and since goEvery starts by
 	// waiting for the interval, we need to trigger one manually first
-	_ = fetch()
+	_ = fetch(true)
 
 	userConfig := self.gui.UserConfig()
 	self.triggerFetch = self.goEvery(userConfig.Refresher.FetchIntervalDuration(), self.gui.stopChan, fetch)
@@ -106,25 +110,25 @@ func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh() {
 	self.gui.waitForIntro.Wait()
 
 	userConfig := self.gui.UserConfig()
-	self.goEvery(userConfig.Refresher.RefreshIntervalDuration(), self.gui.stopChan, func() error {
+	self.goEvery(userConfig.Refresher.RefreshIntervalDuration(), self.gui.stopChan, func(_ bool) error {
 		self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 		return nil
 	})
 }
 
 // returns a channel that can be used to trigger the callback immediately
-func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan struct{}, function func() error) chan struct{} {
+func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan struct{}, function func(bool) error) chan struct{} {
 	done := make(chan struct{})
 	retrigger := make(chan struct{})
 	go utils.Safe(func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
-		doit := func() {
+		doit := func(retriggered bool) {
 			if self.pauseBackgroundRefreshes {
 				return
 			}
 			self.gui.c.OnWorker(func(gocui.Task) error {
-				_ = function()
+				_ = function(retriggered)
 				done <- struct{}{}
 				return nil
 			})
@@ -136,10 +140,10 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 		for {
 			select {
 			case <-ticker.C:
-				doit()
+				doit(false)
 			case <-retrigger:
 				ticker.Reset(interval)
-				doit()
+				doit(true)
 			case <-stop:
 				return
 			}

@@ -57,7 +57,6 @@ func getBranchDisplayStrings(
 	showCommitHash := fullDescription || userConfig.Gui.ShowBranchCommitHash
 	branchStatus := BranchStatus(b, itemOperation, tr, now, userConfig)
 	divergence := divergenceStr(b, itemOperation, tr, userConfig)
-	worktreeIcon := lo.Ternary(icons.IsIconEnabled(), icons.LINKED_WORKTREE_ICON, fmt.Sprintf("(%s)", tr.LcWorktree))
 
 	// Recency is always three characters, plus one for the space
 	availableWidth := viewWidth - 4
@@ -72,17 +71,42 @@ func getBranchDisplayStrings(
 	}
 	paddingNeededForDivergence := availableWidth
 
-	if checkedOutByWorkTree {
-		availableWidth -= utils.StringWidth(worktreeIcon) + 1
+	displayName := b.Name
+	if b.DisplayName != "" {
+		displayName = b.DisplayName
 	}
 
 	if len(branchStatus) > 0 {
 		availableWidth -= utils.StringWidth(utils.Decolorise(branchStatus)) + 1
 	}
 
-	displayName := b.Name
-	if b.DisplayName != "" {
-		displayName = b.DisplayName
+	worktreeIcon := ""
+	if checkedOutByWorkTree {
+		if wt, ok := git_commands.WorktreeForBranch(b, worktrees); ok && wt.Name != b.Name {
+			if icons.IsIconEnabled() {
+				worktreeIcon = fmt.Sprintf("(%s %s)", icons.LINKED_WORKTREE_ICON, wt.Name)
+			} else {
+				worktreeIcon = fmt.Sprintf("(%s %s)", tr.LcWorktree, wt.Name)
+			}
+
+			// If the worktree name doesn't fit in the available width, omit it
+			remaining := availableWidth - utils.StringWidth(worktreeIcon) - 1
+			if remaining < utils.StringWidth(displayName) {
+				if icons.IsIconEnabled() {
+					worktreeIcon = icons.LINKED_WORKTREE_ICON
+				} else {
+					worktreeIcon = fmt.Sprintf("(%s)", tr.LcWorktree)
+				}
+			}
+		} else {
+			if icons.IsIconEnabled() {
+				worktreeIcon = icons.LINKED_WORKTREE_ICON
+			} else {
+				worktreeIcon = fmt.Sprintf("(%s)", tr.LcWorktree)
+			}
+		}
+
+		availableWidth -= utils.StringWidth(worktreeIcon) + 1
 	}
 
 	nameTextStyle := GetBranchTextStyle(b.Name)
@@ -121,7 +145,13 @@ func getBranchDisplayStrings(
 	}
 
 	if divergence != "" {
-		paddingNeededForDivergence -= utils.StringWidth(utils.Decolorise(coloredName)) - 1
+		if fullDescription {
+			// don't right-align the divergence in half or full screen mode, since other fields
+			// follow in that case and we don't know the width of our column
+			paddingNeededForDivergence = 1
+		} else {
+			paddingNeededForDivergence -= utils.StringWidth(utils.Decolorise(coloredName)) - 1
+		}
 		if paddingNeededForDivergence > 0 {
 			coloredName += strings.Repeat(" ", paddingNeededForDivergence)
 			coloredName += style.FgCyan.Sprint(divergence)

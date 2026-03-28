@@ -62,7 +62,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: true,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "branch_name (worktree)"},
+			expected:             []string{"1m", "branch_name (worktree other-worktree)"},
 		},
 		{
 			branch:               &models.Branch{Name: "branch_name", Recency: "1m"},
@@ -72,7 +72,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             true,
 			checkedOutByWorktree: true,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "󰘬", "branch_name 󰌹"},
+			expected:             []string{"1m", "󰘬", "branch_name (󰌹 other-worktree)"},
 		},
 		{
 			branch: &models.Branch{
@@ -104,7 +104,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: true,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "branch_name (worktree) ↓5↑3"},
+			expected:             []string{"1m", "branch_name (worktree other-worktree) ↓5↑3"},
 		},
 		{
 			branch: &models.Branch{
@@ -347,7 +347,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 
 		worktrees := []*models.Worktree{}
 		if s.checkedOutByWorktree {
-			worktrees = append(worktrees, &models.Worktree{Branch: s.branch.Name})
+			worktrees = append(worktrees, &models.Worktree{Branch: s.branch.Name, Name: "other-worktree"})
 		}
 
 		t.Run(fmt.Sprintf("getBranchDisplayStrings_%d", i), func(t *testing.T) {

@@ -60,7 +60,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-o> `` | Copy path to clipboard |  |
 | `` y `` | Copy to clipboard |  |
 | `` c `` | Checkout | Checkout file. This replaces the file in your working tree with the version from the selected commit. |
-| `` d `` | Remove | Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file. |
+| `` d `` | Discard | Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file. |
 | `` o `` | Open file | Open file in default application. |
 | `` e `` | Edit | Open file in external editor. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
@@ -71,7 +71,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
-| `` / `` | Search the current view by text |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Commit summary
 
@@ -84,7 +84,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy commit hash to clipboard |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` b `` | View bisect options |  |
 | `` s `` | Squash | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
@@ -160,7 +160,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
-| `` / `` | Search the current view by text |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Input prompt
 
@@ -237,6 +237,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` o `` | Open file | Open file in default application. |
 | `` e `` | Edit file | Open file in external editor. |
 | `` <space> `` | Toggle lines in patch |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | Exit custom patch builder |  |
 | `` / `` | Search the current view by text |  |
 
@@ -274,7 +275,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy commit hash to clipboard |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Checkout | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
@@ -352,13 +353,14 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` u `` | Check for update |  |
 | `` <enter> `` | Switch to a recent repo |  |
 | `` a `` | Show/cycle all branch logs |  |
+| `` A `` | Show/cycle all branch logs (reverse) |  |
 | `` 0 `` | Focus main view |  |
 
 ## Sub-commits
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy commit hash to clipboard |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Checkout | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |

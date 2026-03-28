@@ -28,13 +28,13 @@ var CustomCommand = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("repo (main)"),
+				Contains("(main worktree)"),
 				Contains("linked-worktree"),
 			).
 			NavigateToLine(Contains("linked-worktree")).
 			Press("d").
 			Lines(
-				Contains("repo (main)"),
+				Contains("(main worktree)"),
 			)
 	},
 })

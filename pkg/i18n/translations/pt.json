@@ -367,7 +367,6 @@
   "Remove": "Remover",
   "DiscardOldFileChangeTooltip": "Descartar as alterações desse commit para este arquivo. Isso executa uma rebase interativa em segundo plano, então você pode ter um conflito de merge se um commit posterior também alterar este arquivo.",
   "DiscardFileChangesTitle": "Descartar alterações de arquivo",
-  "DiscardFileChangesPrompt": "Você tem certeza de que deseja remover as alterações do(s) arquivo(s) selecionado(s) deste commit?",
   "BareRepo": "Você tentou abrir Lazygit em um repositório puro, mas Lazygit ainda não suporta repositórios vazios. Abrir os repositórios mais recentes? (y/n) ",
   "InitialBranch": "Nome da branch? (deixe vazio para o padrão do git): ",
   "NoRecentRepositories": "É necessário abrir lazygit em um repositório git. Nenhum repositório recente válido. Saindo do sistema.",

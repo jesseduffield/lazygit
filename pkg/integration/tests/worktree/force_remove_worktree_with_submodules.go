@@ -23,7 +23,7 @@ var ForceRemoveWorktreeWithSubmodules = NewIntegrationTest(NewIntegrationTestArg
 		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 				Contains("linked-worktree"),
 			).
 			NavigateToLine(Contains("linked-worktree")).
@@ -40,7 +40,7 @@ var ForceRemoveWorktreeWithSubmodules = NewIntegrationTest(NewIntegrationTestArg
 					Confirm()
 			}).
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 			)
 	},
 })

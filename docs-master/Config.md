@@ -666,6 +666,7 @@ keybinding:
     checkForUpdate: u
     recentRepos: <enter>
     allBranchesLogGraph: a
+    allBranchesLogGraphReverse: A
   files:
     commitChanges: c
     commitChangesWithoutHook: w

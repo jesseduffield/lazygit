@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/go-errors/errors"
-	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -75,8 +74,7 @@ func buildGitCommon(deps commonDeps) *GitCommon {
 		gitConfig = git_config.NewFakeGitConfig(nil)
 	}
 
-	gitCommon.repo = buildRepo()
-	gitCommon.config = NewConfigCommands(gitCommon.Common, gitConfig, gitCommon.repo)
+	gitCommon.config = NewConfigCommands(gitCommon.Common, gitConfig)
 
 	getenv := deps.getenv
 	if getenv == nil {
@@ -97,12 +95,6 @@ func buildGitCommon(deps commonDeps) *GitCommon {
 	})
 
 	return gitCommon
-}
-
-func buildRepo() *gogit.Repository {
-	// TODO: think of a way to actually mock this out
-	var repo *gogit.Repository
-	return repo
 }
 
 func buildFileLoader(gitCommon *GitCommon) *FileLoader {
