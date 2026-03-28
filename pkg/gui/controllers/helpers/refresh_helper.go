@@ -576,7 +576,8 @@ func (self *RefreshHelper) refreshStateFiles() error {
 		}
 	}
 
-	if self.c.Git().Status.WorkingTreeState().Any() && conflictFileCount == 0 && prevConflictFileCount > 0 {
+	workingTreeState := self.c.Git().Status.WorkingTreeState()
+	if workingTreeState.Any() && conflictFileCount == 0 && prevConflictFileCount > 0 {
 		self.c.OnUIThread(func() error { return self.mergeAndRebaseHelper.PromptToContinueRebase() })
 	}
 
@@ -598,6 +599,37 @@ func (self *RefreshHelper) refreshStateFiles() error {
 	fileTreeViewModel.RWMutex.Unlock()
 
 	return nil
+}
+
+func (self *RefreshHelper) autoClosePopupIfNeeded(workingTreeState models.WorkingTreeState) {
+	if !workingTreeState.None() {
+		return
+	}
+
+	if !self.shouldAutoClosePopup(types.PopupAutoCloseWorkingTreeStateNone) {
+		return
+	}
+
+	self.c.OnUIThread(func() error {
+		if !self.shouldAutoClosePopup(types.PopupAutoCloseWorkingTreeStateNone) {
+			return nil
+		}
+		if self.c.Context().IsCurrent(self.c.Contexts().Confirmation) {
+			return self.c.Contexts().Confirmation.State.OnClose()
+		}
+		if self.c.Context().IsCurrent(self.c.Contexts().Prompt) {
+			return self.c.Contexts().Prompt.State.OnClose()
+		}
+		return nil
+	})
+}
+
+func (self *RefreshHelper) shouldAutoClosePopup(condition types.PopupAutoCloseCondition) bool {
+	self.c.Mutexes().PopupMutex.Lock()
+	defer self.c.Mutexes().PopupMutex.Unlock()
+
+	popupOpts := self.c.State().GetRepoState().GetCurrentPopupOpts()
+	return popupOpts != nil && popupOpts.AutoCloseCondition == condition
 }
 
 // the reflogs panel is the only panel where we cache data, in that we only
@@ -712,6 +744,7 @@ func (self *RefreshHelper) refreshStatus() {
 	}
 
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
+	self.autoClosePopupIfNeeded(workingTreeState)
 	linkedWorktreeName := self.worktreeHelper.GetLinkedWorktreeName()
 
 	repoName := self.c.Git().RepoPaths.RepoName()

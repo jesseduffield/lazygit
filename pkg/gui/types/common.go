@@ -149,6 +149,13 @@ const (
 	ToastKindError
 )
 
+type PopupAutoCloseCondition int
+
+const (
+	PopupAutoCloseNone PopupAutoCloseCondition = iota
+	PopupAutoCloseWorkingTreeStateNone
+)
+
 type CreateMenuOptions struct {
 	Title                      string
 	Prompt                     string // a message that will be displayed above the menu options
@@ -168,6 +175,7 @@ type CreatePopupPanelOpts struct {
 	HandleConfirmPrompt    func(string) error
 	HandleClose            func() error
 	HandleDeleteSuggestion func(int) error
+	AutoCloseCondition     PopupAutoCloseCondition
 
 	FindSuggestionsFunc func(string) []*Suggestion
 	Mask                bool
@@ -184,6 +192,7 @@ type ConfirmOpts struct {
 	FindSuggestionsFunc func(string) []*Suggestion
 	Editable            bool
 	Mask                bool
+	AutoCloseCondition  PopupAutoCloseCondition
 }
 
 type PromptOpts struct {
