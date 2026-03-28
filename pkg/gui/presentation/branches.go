@@ -145,7 +145,13 @@ func getBranchDisplayStrings(
 	}
 
 	if divergence != "" {
-		paddingNeededForDivergence -= utils.StringWidth(utils.Decolorise(coloredName)) - 1
+		if fullDescription {
+			// don't right-align the divergence in half or full screen mode, since other fields
+			// follow in that case and we don't know the width of our column
+			paddingNeededForDivergence = 1
+		} else {
+			paddingNeededForDivergence -= utils.StringWidth(utils.Decolorise(coloredName)) - 1
+		}
 		if paddingNeededForDivergence > 0 {
 			coloredName += strings.Repeat(" ", paddingNeededForDivergence)
 			coloredName += style.FgCyan.Sprint(divergence)

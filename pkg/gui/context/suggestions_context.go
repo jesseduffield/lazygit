@@ -89,6 +89,6 @@ func (self *SuggestionsContext) RangeSelectEnabled() bool {
 	return false
 }
 
-func (self *SuggestionsContext) GetOnClick() func() error {
+func (self *SuggestionsContext) GetOnDoubleClick() func() error {
 	return self.State.OnConfirm
 }

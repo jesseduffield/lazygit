@@ -55,7 +55,7 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 	return bindings
 }
 
-func (self *MenuController) GetOnClick() func() error {
+func (self *MenuController) GetOnDoubleClick() func() error {
 	return self.withItemGraceful(self.press)
 }
 

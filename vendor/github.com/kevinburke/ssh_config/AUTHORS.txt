@@ -1,9 +1,0 @@
-Carlos A Becker <caarlos0@gmail.com>
-Dustin Spicuzza <dustin@virtualroadside.com>
-Eugene Terentev <eugene@terentev.net>
-Kevin Burke <kevin@burke.dev>
-Mark Nevill <nev@improbable.io>
-Scott Lessans <slessans@gmail.com>
-Sergey Lukjanov <me@slukjanov.name>
-Wayne Ashley Berry <wayneashleyberry@gmail.com>
-santosh653 <70637961+santosh653@users.noreply.github.com>
