@@ -133,9 +133,20 @@ Lazygit is not my fulltime job but it is a hefty part time job so if you want to
 
 ## Features
 
+> **Note:** For the best experience with animated demonstrations, view this README on [GitHub](https://github.com/jesseduffield/lazygit#features). The feature descriptions below include detailed step-by-step instructions that work offline.
+
 ### Stage individual lines
 
 Press space on the selected line to stage it, or press `v` to start selecting a range of lines. You can also press `a` to select the entirety of the current hunk.
+
+**How it works:**
+1. Navigate to the "Files" panel (main panel shows unstaged changes)
+2. Press `<enter>` on a file to view its diff
+3. Use arrow keys to navigate to specific lines
+4. Press `<space>` to stage/unstage the selected line
+5. Press `v` to enter visual mode and select a range of lines with arrow keys
+6. Press `<space>` on a selected range to stage all lines in that range
+7. Press `a` to stage the entire current hunk
 
 ![stage_lines](../assets/demo/stage_lines-compressed.gif)
 
@@ -145,7 +156,21 @@ Press `i` to start an interactive rebase. Then squash (`s`), fixup (`f`), drop (
 
 You can also perform any these actions as a once-off (e.g. pressing `s` on a commit to squash it) without explicitly starting a rebase.
 
-This demo also uses shift+down to select a range of commits to move and fixup.
+**How it works:**
+1. Navigate to the "Commits" panel
+2. Press `i` to start an interactive rebase (this shows a list of commits from HEAD to the merge base)
+3. Navigate to a commit and press:
+   - `s` to squash it (combine with the previous commit, keeping both commit messages)
+   - `f` to fixup it (combine with the previous commit, discarding this commit's message)
+   - `d` to drop it (remove the commit entirely)
+   - `e` to edit it (stop at this commit during rebase)
+   - `ctrl+k` to move it up (swap with the commit above)
+   - `ctrl+j` to move it down (swap with the commit below)
+4. Use `shift+down` or `shift+up` to select a range of commits
+5. Press `m` to open the rebase options menu
+6. Select "continue" to apply the rebase
+
+**Quick actions:** You can also press `s` or `f` directly on any commit to squash/fixup without starting an explicit rebase.
 
 ![interactive_rebase](../assets/demo/interactive_rebase-compressed.gif)
 
@@ -153,11 +178,31 @@ This demo also uses shift+down to select a range of commits to move and fixup.
 
 Press `shift+c` on a commit to copy it and press `shift+v` to paste (cherry-pick) it.
 
+**How it works:**
+1. Navigate to the "Commits" panel in the branch containing the commit you want
+2. Navigate to the specific commit you want to cherry-pick
+3. Press `shift+c` to copy (mark) the commit
+4. Switch to the target branch (using the branches panel or checkout)
+5. Press `shift+v` to paste (cherry-pick) the copied commit onto the current branch
+6. Resolve any conflicts if necessary
+7. Multiple commits can be copied and pasted in sequence
+
 ![cherry_pick](../assets/demo/cherry_pick-compressed.gif)
 
 ### Bisect
 
 Press `b` in the commits view to mark a commit as good/bad in order to begin a git bisect.
+
+**How it works:**
+1. Navigate to the "Commits" panel
+2. Find a commit where a bug was introduced (you know the current commit is "bad")
+3. Find an older commit where the bug didn't exist (you know this commit is "good")
+4. Press `b` on a commit to mark it:
+   - Select "mark as bad" for commits that have the bug
+   - Select "mark as good" for commits that don't have the bug
+5. Git will automatically narrow down the range by checking commits in between
+6. Continue marking commits as good/bad until git identifies the problematic commit
+7. Press `b` and select "reset bisect" to end the bisect session
 
 ![bisect](../assets/demo/bisect-compressed.gif)
 
@@ -165,11 +210,33 @@ Press `b` in the commits view to mark a commit as good/bad in order to begin a g
 
 For when you really want to just get rid of anything that shows up when you run `git status` (and yes that includes dirty submodules) [kidpix style](https://www.youtube.com/watch?v=N4E2B_k2Bss), press `shift+d` to bring up the reset options menu and then select the 'nuke' option.
 
+**How it works:**
+1. Press `shift+d` in the Files panel to open the reset options menu
+2. Select "Nuke working tree" to completely clean the working directory
+3. This will:
+   - Discard all unstaged changes
+   - Remove untracked files
+   - Reset dirty submodules
+   - Essentially restore the working tree to match the HEAD commit
+4. Use with caution - this is destructive and cannot be easily undone
+
 ![Nuke working tree](../assets/demo/nuke_working_tree-compressed.gif)
 
 ### Amend an old commit
 
 Pressing `shift+a` on any commit will amend that commit with the currently staged changes (running an interactive rebase in the background).
+
+**How it works:**
+1. Stage the changes you want to add to an old commit (use the Files panel)
+2. Navigate to the "Commits" panel
+3. Find the commit you want to amend
+4. Press `shift+a` on that commit
+5. Lazygit will automatically:
+   - Start an interactive rebase
+   - Stop at the selected commit
+   - Amend it with your staged changes
+   - Continue the rebase
+6. The commit is updated without affecting subsequent commits' messages
 
 ![amend_old_commit](../assets/demo/amend_old_commit-compressed.gif)
 
@@ -177,17 +244,54 @@ Pressing `shift+a` on any commit will amend that commit with the currently stage
 
 You can filter a view with `/`. Here we filter down our branches view and then hit `enter` to view its commits.
 
+**How it works:**
+1. In any panel (Files, Branches, Commits, etc.), press `/` to open the filter input
+2. Type your search text (e.g., branch name, commit message, file name)
+3. The list will be filtered to show only matching items
+4. Press `<enter>` to select a filtered item and view its details
+5. Press `<escape>` to clear the filter and show all items
+6. Filters work across all panels: branches, commits, files, remotes, tags, etc.
+
 ![filter](../assets/demo/filter-compressed.gif)
 
 ### Invoke a custom command
 
 Lazygit has a very flexible [custom command system](docs/Custom_Command_Keybindings.md). In this example a custom command is defined which emulates the built-in branch checkout action.
 
+**How it works:**
+1. Custom commands are defined in your lazygit config file
+2. They can be triggered with custom keybindings
+3. Commands can operate on selected items (branches, commits, files)
+4. In this demo, a custom command performs a branch checkout:
+   - Navigate to the Branches panel
+   - Select a branch
+   - Press the custom command keybinding
+   - Lazygit executes the defined git command
+5. Custom commands support prompts, menu selections, and shell commands
+
 ![custom_command](../assets/demo/custom_command-compressed.gif)
 
 ### Worktrees
 
 You can create worktrees to have multiple branches going at once without the need for stashing or creating WIP commits when switching between them. Press `w` in the branches view to create a worktree from the selected branch and switch to it.
+
+**How it works:**
+1. Navigate to the "Branches" panel
+2. Select the branch you want to create a worktree for
+3. Press `w` to open the worktree options menu
+4. Select "Create worktree from branch"
+5. Enter the path where the worktree should be created
+6. Lazygit will:
+   - Create a new worktree directory
+   - Checkout the selected branch into that worktree
+   - Optionally switch to that worktree
+7. You can work in multiple worktrees simultaneously without stashing
+
+**Benefits:**
+- Work on multiple branches simultaneously
+- No need to stash changes when switching contexts
+- Each worktree has its own working directory
+- Share the same .git directory (saves space)
 
 ![worktree_create_from_branches](../assets/demo/worktree_create_from_branches-compressed.gif)
 
@@ -199,11 +303,42 @@ In this example we have a redundant comment that we want to remove from an old c
 
 Learn more in the [Rebase magic Youtube tutorial](https://youtu.be/4XaToVut_hs).
 
+**How it works (removing a line from an old commit):**
+1. Navigate to the "Commits" panel
+2. Press `<enter>` on the commit containing the line you want to modify
+3. Press `<enter>` on the specific file to view its contents
+4. Navigate to the line(s) you want to remove or change
+5. Press `<space>` to add those lines to a "custom patch" (a temporary holding area)
+6. Press `ctrl+p` to open the custom patch options menu
+7. Select "Remove patch from commit" - this removes those lines from that commit
+8. Lazygit performs an interactive rebase in the background to rewrite history
+
+**Other custom patch options:**
+- Apply patch in reverse (revert the changes)
+- Create a new commit from the patch
+- Copy patch to clipboard
+- Pull patch into index (stage the changes)
+
 ![custom_patch](../assets/demo/custom_patch-compressed.gif)
 
 ### Rebase from marked base commit
 
 Say you're on a feature branch that was itself branched off of the develop branch, and you've decided you'd rather be branching off the master branch. You need a way to rebase only the commits from your feature branch. In this demo we check to see which was the last commit on the develop branch, then press `shift+b` to mark that commit as our base commit, then press `r` on the master branch to rebase onto it, only bringing across the commits from our feature branch. Then we push our changes with `shift+p`.
+
+**How it works:**
+1. Navigate to the "Commits" panel on your feature branch
+2. Find the commit that represents the base of your feature branch (e.g., the last commit from develop before you started your feature)
+3. Press `shift+b` on that commit to mark it as the "base commit"
+4. Navigate to the "Branches" panel (or Remotes panel)
+5. Select the branch you want to rebase onto (e.g., master)
+6. Press `r` to rebase onto that branch
+7. Lazygit will only rebase the commits after your marked base commit
+8. Press `shift+p` to push the rebased commits
+
+**Use cases:**
+- Rebase feature branch onto a different upstream branch
+- Move commits to a clean base
+- Avoid rebasing commits from other branches
 
 ![rebase_onto](../assets/demo/rebase_onto-compressed.gif)
 
@@ -214,17 +349,69 @@ Undo uses the reflog which is specific to commits and branches so we can't undo 
 
 [More info](/docs/Undoing.md)
 
+**How it works:**
+1. Press `z` to undo the last action (undo goes back through the reflog)
+2. Press `ctrl+z` to redo (undo an undo)
+3. Works for most git operations:
+   - Commits
+   - Branch operations (create, delete, checkout)
+   - Rebase operations
+   - Cherry-pick operations
+   - Reset operations
+4. Undo history is stored in the git reflog
+5. Note: Cannot undo working tree changes (unstaged files) or stash operations
+
+**When to use:**
+- Accidentally deleted a branch
+- Made a wrong commit
+- Rebase went wrong
+- Cherry-pick in the wrong place
+
 ![undo](../assets/demo/undo-compressed.gif)
 
 ### Commit graph
 
 When viewing the commit graph in an enlarged window (use `+` and `_` to cycle screen modes), the commit graph is shown. Colours correspond to the commit authors, and as you navigate down the graph, the parent commits of the selected commit are highlighted.
 
+**How it works:**
+1. Press `+` to enlarge the main panel (cycles through screen modes)
+2. The commits view shows a visual graph of commit history
+3. Each commit is represented as a node in the graph
+4. Different colors represent different authors
+5. Lines show the parent-child relationships between commits
+6. As you navigate through commits, parent commits are highlighted
+7. Press `_` to reduce the panel size
+
+**Visual features:**
+- Branch lines show merge points
+- Author colors help track who wrote what
+- Navigate complex history visually
+- See where branches diverge and merge
+
 ![commit_graph](../assets/demo/commit_graph-compressed.gif)
 
 ### Compare two commits
 
 If you press `shift+w` on a commit (or branch/ref) a menu will open that allows you to mark that commit so that any other commit you select will be diffed against it. Once you've selected the second commit, you'll see the diff in the main view and if you press `<enter>` you'll see the files of the diff. You can press `shift+w` to view the diff menu again to see options like reversing the diff direction or exiting diff mode. You can also exit diff mode by pressing `<escape>`.
+
+**How it works:**
+1. Navigate to the "Commits" panel
+2. Press `shift+w` on a commit to mark it as the "base" for comparison
+3. Select "Mark as base for comparison" from the menu
+4. Navigate to another commit
+5. The main view now shows the diff between the two commits
+6. Press `<enter>` to see the specific file changes in the diff
+7. Press `shift+w` again to see options:
+   - Reverse the diff direction (swap base and comparison)
+   - Exit diff mode
+   - Copy diff to clipboard
+8. Press `<escape>` to exit diff mode
+
+**Use cases:**
+- Compare two branches
+- See what changed between two versions
+- Review changes before a merge
+- Find where a bug was introduced
 
 ![diff_commits](../assets/demo/diff_commits-compressed.gif)
 
