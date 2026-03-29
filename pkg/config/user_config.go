@@ -649,6 +649,8 @@ type OSConfig struct {
 
 type CustomCommandAfterHook struct {
 	CheckForConflicts bool `yaml:"checkForConflicts"`
+	// If true, quit lazygit after the command completes successfully
+	Quit bool `yaml:"quit"`
 }
 
 type CustomCommand struct {

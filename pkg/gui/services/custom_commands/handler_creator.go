@@ -311,6 +311,11 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 			self.c.Alert(title, output)
 		}
 
+		// Quit after successful command execution if configured
+		if customCommand.After != nil && customCommand.After.Quit {
+			return gocui.ErrQuit
+		}
+
 		return nil
 	})
 }
