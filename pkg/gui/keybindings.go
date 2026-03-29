@@ -431,6 +431,20 @@ func (gui *Gui) GetInitialKeybindingsWithCustomCommands() ([]*types.Binding, []*
 	}
 
 	bindings, mouseBindings := gui.GetInitialKeybindings()
+
+	// If disableAllDefaults is true, filter out all keyboard bindings but keep mouse bindings
+	// This allows users to have a blank slate for keyboard shortcuts while still having
+	// mouse interaction for scrolling and clicking
+	if gui.c.UserConfig().Keybinding.DisableAllDefaults {
+		mouseOnlyBindings := []*types.Binding{}
+		for _, binding := range bindings {
+			if gocui.IsMouseKey(binding.Key) {
+				mouseOnlyBindings = append(mouseOnlyBindings, binding)
+			}
+		}
+		bindings = mouseOnlyBindings
+	}
+
 	customBindings, err := gui.CustomCommandsClient.GetCustomCommandKeybindings()
 	if err != nil {
 		log.Fatal(err)

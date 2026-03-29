@@ -267,7 +267,16 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 	cmdObj := self.c.OS().Cmd.NewShell(cmdStr, self.c.UserConfig().OS.ShellFunctionsFile)
 
 	if customCommand.Output == "terminal" {
-		return self.c.RunSubprocessAndRefresh(cmdObj)
+		err := self.c.RunSubprocessAndRefresh(cmdObj)
+		if err != nil {
+			return err
+		}
+
+		// Quit after running custom command in terminal if configured
+		if customCommand.After != nil && customCommand.After.Quit {
+			return gocui.ErrQuit
+		}
+		return nil
 	}
 
 	loadingText := customCommand.LoadingText
@@ -309,6 +318,11 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 				}
 			}
 			self.c.Alert(title, output)
+		}
+
+		// Quit after running custom command if configured
+		if customCommand.After != nil && customCommand.After.Quit {
+			return gocui.ErrQuit
 		}
 
 		return nil

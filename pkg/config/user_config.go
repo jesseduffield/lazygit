@@ -397,18 +397,20 @@ type UpdateConfig struct {
 }
 
 type KeybindingConfig struct {
-	Universal      KeybindingUniversalConfig      `yaml:"universal"`
-	Status         KeybindingStatusConfig         `yaml:"status"`
-	Files          KeybindingFilesConfig          `yaml:"files"`
-	Branches       KeybindingBranchesConfig       `yaml:"branches"`
-	Worktrees      KeybindingWorktreesConfig      `yaml:"worktrees"`
-	Commits        KeybindingCommitsConfig        `yaml:"commits"`
-	AmendAttribute KeybindingAmendAttributeConfig `yaml:"amendAttribute"`
-	Stash          KeybindingStashConfig          `yaml:"stash"`
-	CommitFiles    KeybindingCommitFilesConfig    `yaml:"commitFiles"`
-	Main           KeybindingMainConfig           `yaml:"main"`
-	Submodules     KeybindingSubmodulesConfig     `yaml:"submodules"`
-	CommitMessage  KeybindingCommitMessageConfig  `yaml:"commitMessage"`
+	// If true, disable all default keybindings. This allows users to start with a clean slate and only add the keybindings they want.
+	DisableAllDefaults bool `yaml:"disableAllDefaults"`
+	Universal          KeybindingUniversalConfig      `yaml:"universal"`
+	Status             KeybindingStatusConfig         `yaml:"status"`
+	Files              KeybindingFilesConfig          `yaml:"files"`
+	Branches           KeybindingBranchesConfig       `yaml:"branches"`
+	Worktrees          KeybindingWorktreesConfig      `yaml:"worktrees"`
+	Commits            KeybindingCommitsConfig        `yaml:"commits"`
+	AmendAttribute     KeybindingAmendAttributeConfig `yaml:"amendAttribute"`
+	Stash              KeybindingStashConfig          `yaml:"stash"`
+	CommitFiles        KeybindingCommitFilesConfig    `yaml:"commitFiles"`
+	Main               KeybindingMainConfig           `yaml:"main"`
+	Submodules         KeybindingSubmodulesConfig     `yaml:"submodules"`
+	CommitMessage      KeybindingCommitMessageConfig  `yaml:"commitMessage"`
 }
 
 // damn looks like we have some inconsistencies here with -alt and -alt1
@@ -648,7 +650,10 @@ type OSConfig struct {
 }
 
 type CustomCommandAfterHook struct {
+	// If true, check for conflicts after the command completes
 	CheckForConflicts bool `yaml:"checkForConflicts"`
+	// If true, quit lazygit after the command completes
+	Quit bool `yaml:"quit"`
 }
 
 type CustomCommand struct {

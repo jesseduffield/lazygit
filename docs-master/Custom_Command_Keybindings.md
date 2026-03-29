@@ -15,6 +15,12 @@ customCommands:
     context: 'global'
     command: "git commit"
     output: terminal
+  - key: 'Q'
+    context: 'files'
+    command: "git add -A && git commit -m 'quick commit'"
+    after:
+      quit: true
+    description: 'Stage all files and commit, then quit lazygit'
   - key: 'n'
     context: 'localBranches'
     prompts:
@@ -64,6 +70,7 @@ Here are the options for the `after` key:
 | _field_ | _description_ | required |
 |-----------------|----------------------|-|
 | checkForConflicts | true/false. If true, check for merge conflicts | no |
+| quit | true/false. If true, quit lazygit after the command completes | no |
 
 ## Contexts
 
