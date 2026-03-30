@@ -63,11 +63,52 @@ func (self *Node[T]) GetInternalPath() string {
 	return self.path
 }
 
-func (self *Node[T]) Sort() {
-	self.SortChildren()
+func (self *Node[T]) Sort(cmp func(a, b *Node[T]) int) {
+	self.SortChildren(cmp)
 
 	for _, child := range self.Children {
-		child.Sort()
+		child.Sort(cmp)
+	}
+}
+
+// NodeSortComparator returns a comparator function for sorting tree nodes
+// based on the given sort order and case sensitivity.
+// sortOrder must be one of: "mixed", "filesFirst", "foldersFirst".
+func NodeSortComparator[T any](sortOrder string, caseSensitive bool) func(a, b *Node[T]) int {
+	strCmp := strings.Compare
+	if !caseSensitive {
+		strCmp = func(a, b string) int {
+			return strings.Compare(strings.ToLower(a), strings.ToLower(b))
+		}
+	}
+
+	// dirVsFileOrder is the return value when a is a directory and b is a file.
+	// -1 means directories come first, 1 means files come first.
+	dirVsFileOrder := 0
+	switch sortOrder {
+	case "foldersFirst":
+		dirVsFileOrder = -1
+	case "filesFirst":
+		dirVsFileOrder = 1
+	}
+
+	if dirVsFileOrder != 0 {
+		return func(a, b *Node[T]) int {
+			aIsDir := !a.IsFile()
+			bIsDir := !b.IsFile()
+			if aIsDir != bIsDir {
+				if aIsDir {
+					return dirVsFileOrder
+				}
+				return -dirVsFileOrder
+			}
+			return strCmp(a.path, b.path)
+		}
+	}
+
+	// "mixed": sort by path only
+	return func(a, b *Node[T]) int {
+		return strCmp(a.path, b.path)
 	}
 }
 
@@ -87,23 +128,14 @@ func (self *Node[T]) ForEachFile(cb func(*T) error) error {
 	return nil
 }
 
-func (self *Node[T]) SortChildren() {
+func (self *Node[T]) SortChildren(cmp func(a, b *Node[T]) int) {
 	if self.IsFile() {
 		return
 	}
 
 	children := slices.Clone(self.Children)
 
-	slices.SortFunc(children, func(a, b *Node[T]) int {
-		if !a.IsFile() && b.IsFile() {
-			return -1
-		}
-		if a.IsFile() && !b.IsFile() {
-			return 1
-		}
-
-		return strings.Compare(a.path, b.path)
-	})
+	slices.SortFunc(children, cmp)
 
 	// TODO: think about making this in-place
 	self.Children = children
@@ -202,29 +234,43 @@ func (self *Node[T]) GetNodeAtIndex(index int, collapsedPaths *CollapsedPaths) *
 		return nil
 	}
 
-	node, _ := self.getNodeAtIndexAux(index, collapsedPaths)
+	node, _, _ := self.getNodeAtIndexAux(index, collapsedPaths, -1)
 
 	return node
 }
 
-func (self *Node[T]) getNodeAtIndexAux(index int, collapsedPaths *CollapsedPaths) (*Node[T], int) {
+// GetVisualDepthAtIndex returns the visual depth (indentation level) of the
+// node at the given flat index. Visual depth differs from tree depth because
+// compressed nodes (e.g. "a/b/") count as a single visual level.
+// Returns -1 if the index is out of range.
+func (self *Node[T]) GetVisualDepthAtIndex(index int, collapsedPaths *CollapsedPaths) int {
+	if self == nil {
+		return -1
+	}
+
+	_, _, depth := self.getNodeAtIndexAux(index, collapsedPaths, -1)
+
+	return depth
+}
+
+func (self *Node[T]) getNodeAtIndexAux(index int, collapsedPaths *CollapsedPaths, visualDepth int) (*Node[T], int, int) {
 	offset := 1
 
 	if index == 0 {
-		return self, offset
+		return self, offset, visualDepth
 	}
 
 	if !collapsedPaths.IsCollapsed(self.path) {
 		for _, child := range self.Children {
-			foundNode, offsetChange := child.getNodeAtIndexAux(index-offset, collapsedPaths)
+			foundNode, offsetChange, depth := child.getNodeAtIndexAux(index-offset, collapsedPaths, visualDepth+1)
 			offset += offsetChange
 			if foundNode != nil {
-				return foundNode, offset
+				return foundNode, offset, depth
 			}
 		}
 	}
 
-	return nil, offset
+	return nil, offset, -1
 }
 
 func (self *Node[T]) GetIndexForPath(path string, collapsedPaths *CollapsedPaths) (int, bool) {
@@ -310,12 +356,8 @@ func (self *Node[T]) GetPathsMatching(predicate func(*Node[T]) bool) []string {
 }
 
 func (self *Node[T]) GetFilePathsMatching(predicate func(*T) bool) []string {
-	matchingFileNodes := lo.Filter(self.GetLeaves(), func(node *Node[T], _ int) bool {
-		return predicate(node.File)
-	})
-
-	return lo.Map(matchingFileNodes, func(node *Node[T], _ int) string {
-		return node.GetPath()
+	return lo.FilterMap(self.GetLeaves(), func(node *Node[T], _ int) (string, bool) {
+		return node.GetPath(), predicate(node.File)
 	})
 }
 

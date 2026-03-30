@@ -139,21 +139,23 @@ type Gui struct {
 	ReplayedEvents replayedEvents
 	playRecording  bool
 
-	tabClickBindings  []*tabClickBinding
-	viewMouseBindings []*ViewMouseBinding
-	lastClick         *clickInfo
-	gEvents           chan GocuiEvent
-	userEvents        chan userEvent
-	views             []*View
-	currentView       *View
-	managers          []Manager
-	keybindings       []*keybinding
-	focusHandler      func(bool) error
-	openHyperlink     func(string, string) error
-	maxX, maxY        int
-	outputMode        OutputMode
-	stop              chan struct{}
-	blacklist         []Key
+	tabClickBindings         []*tabClickBinding
+	viewMouseBindings        []*ViewMouseBinding
+	lastClick                *clickInfo
+	gEvents                  chan GocuiEvent
+	userEvents               chan userEvent
+	views                    []*View
+	currentView              *View
+	managers                 []Manager
+	keybindings              []*keybinding
+	focusHandler             func(bool) error
+	openHyperlink            func(string, string) error
+	onSelectSearchResultFunc func(*View, int)
+	renderSearchStatusFunc   func(*View, int, int)
+	maxX, maxY               int
+	outputMode               OutputMode
+	stop                     chan struct{}
+	blacklist                []Key
 
 	// BgColor and FgColor allow to configure the background and foreground
 	// colors of the GUI.
@@ -355,9 +357,24 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 	v.Overlaps = overlaps
 	g.views = append(g.views, v)
 
+	v.setOnSelectResult(g.onSelectSearchItem)
+	v.setRenderSearchStatus(g.renderSearchStatus)
+
 	g.Mutexes.ViewsMutex.Unlock()
 
 	return v, errors.Wrap(ErrUnknownView, 0)
+}
+
+func (g *Gui) onSelectSearchItem(v *View, selectedLineIdx int) {
+	if g.onSelectSearchResultFunc != nil {
+		g.onSelectSearchResultFunc(v, selectedLineIdx)
+	}
+}
+
+func (g *Gui) renderSearchStatus(v *View, selected int, total int) {
+	if g.renderSearchStatusFunc != nil {
+		g.renderSearchStatusFunc(v, selected, total)
+	}
 }
 
 // SetViewBeneath sets a view stacked beneath another view
@@ -641,6 +658,14 @@ func (g *Gui) SetFocusHandler(handler func(bool) error) {
 
 func (g *Gui) SetOpenHyperlinkFunc(openHyperlinkFunc func(string, string) error) {
 	g.openHyperlink = openHyperlinkFunc
+}
+
+func (g *Gui) SetOnSelectSearchResultFunc(onSelectSearchResultFunc func(*View, int)) {
+	g.onSelectSearchResultFunc = onSelectSearchResultFunc
+}
+
+func (g *Gui) SetRenderSearchStatusFunc(renderSearchStatusFunc func(*View, int, int)) {
+	g.renderSearchStatusFunc = renderSearchStatusFunc
 }
 
 // getKey takes an empty interface with a key and returns the corresponding

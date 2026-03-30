@@ -2,6 +2,8 @@ package git_commands
 
 import (
 	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
 // convenience struct for building git commands. Especially useful when
@@ -105,4 +107,31 @@ func (self *GitCommandBuilder) ToArgv() []string {
 
 func (self *GitCommandBuilder) ToString() string {
 	return strings.Join(self.ToArgv(), " ")
+}
+
+// runGitCmdOnPaths runs `git <subcommand> -- <paths...>`, splitting into
+// multiple calls if needed to stay under the OS command-line length limit.
+// Windows CreateProcess has a ~32 KB limit; we use 30 KB as a safe threshold.
+func runGitCmdOnPaths(subcommand string, paths []string, cmd oscommands.ICmdObjBuilder) error {
+	const maxArgBytes = 30_000
+
+	start := 0
+	for start < len(paths) {
+		end := start
+		total := 0
+		for end < len(paths) {
+			total += len(paths[end]) + 1 // +1 for the separating space
+			if total > maxArgBytes && end > start {
+				break
+			}
+			end++
+		}
+		if err := cmd.New(NewGitCmd(subcommand).Arg("--").
+			Arg(paths[start:end]...).
+			ToArgv()).Run(); err != nil {
+			return err
+		}
+		start = end
+	}
+	return nil
 }

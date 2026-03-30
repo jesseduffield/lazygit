@@ -142,6 +142,30 @@ func (self *CommitFilesController) context() *context.CommitFilesContext {
 	return self.c.Contexts().CommitFiles
 }
 
+func (self *CommitFilesController) GetOnClick() func(opts gocui.ViewMouseBindingOpts) error {
+	return func(opts gocui.ViewMouseBindingOpts) error {
+		clickedIdx := self.context().GetSelectedLineIdx()
+		node := self.context().CommitFileTreeViewModel.Get(clickedIdx)
+		if node == nil || node.File != nil {
+			return nil
+		}
+
+		// The arrow is at column visualDepth*2 (after indentation of 2 spaces per level).
+		// Only treat clicks on the arrow and the trailing space as arrow clicks.
+		visualDepth := self.context().CommitFileTreeViewModel.GetVisualDepth(clickedIdx)
+		arrowStartCol := visualDepth * 2
+		arrowEndCol := arrowStartCol + 1
+		if opts.X < arrowStartCol || opts.X > arrowEndCol {
+			return nil
+		}
+
+		self.context().CommitFileTreeViewModel.ToggleCollapsed(node.GetInternalPath())
+		self.c.PostRefreshUpdate(self.context())
+
+		return nil
+	}
+}
+
 func (self *CommitFilesController) GetOnRenderToMain() func() {
 	return func() {
 		node := self.context().GetSelected()

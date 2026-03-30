@@ -136,6 +136,11 @@ type GuiConfig struct {
 	ShowFileTree bool `yaml:"showFileTree"`
 	// If true, add a "/" root item in the file tree representing the root of the repository. It is only added when necessary, i.e. when there is more than one item at top level.
 	ShowRootItemInFileTree bool `yaml:"showRootItemInFileTree"`
+	// How to sort files and directories in the file tree.
+	// One of: 'mixed' (default) | 'filesFirst' | 'foldersFirst'
+	FileTreeSortOrder string `yaml:"fileTreeSortOrder" jsonschema:"enum=mixed,enum=filesFirst,enum=foldersFirst"`
+	// If true (default), sort the file tree case-sensitively.
+	FileTreeSortCaseSensitive bool `yaml:"fileTreeSortCaseSensitive"`
 	// If true, show the number of lines changed per file in the Files view
 	ShowNumstatInFilesView bool `yaml:"showNumstatInFilesView"`
 	// If true, show a random tip in the command log when Lazygit starts
@@ -795,6 +800,8 @@ func GetDefaultConfig() *UserConfig {
 			ShowPanelJumps:                      true,
 			ShowFileTree:                        true,
 			ShowRootItemInFileTree:              true,
+			FileTreeSortOrder:                   "mixed",
+			FileTreeSortCaseSensitive:           true,
 			ShowNumstatInFilesView:              false,
 			ShowRandomTip:                       true,
 			ShowIcons:                           false,

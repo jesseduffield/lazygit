@@ -953,6 +953,7 @@ type Log struct {
 	EditRebase               string
 	HandleUndo               string
 	RemoveFile               string
+	RemoveEmptyDir           string
 	CopyToClipboard          string
 	Remove                   string
 	CreateFileWithContent    string
@@ -2182,6 +2183,7 @@ func EnglishTranslationSet() *TranslationSet {
 			EditRebase:               "Beginning interactive rebase at '{{.ref}}'",
 			HandleUndo:               "Undoing last conflict resolution",
 			RemoveFile:               "Deleting path '{{.path}}'",
+			RemoveEmptyDir:           "Deleting empty directory '{{.path}}'",
 			CopyToClipboard:          "Copying '{{.str}}' to clipboard",
 			Remove:                   "Removing '{{.filename}}'",
 			CreateFileWithContent:    "Creating file '{{.path}}'",

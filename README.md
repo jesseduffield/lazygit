@@ -209,7 +209,7 @@ Say you're on a feature branch that was itself branched off of the develop branc
 
 ### Undo
 
-You can undo the last action by pressing `z` and redo with `ctrl+z`. Here we drop a couple of commits and then undo the actions.
+You can undo the last action by pressing `z` and redo with `shift+z`. Here we drop a couple of commits and then undo the actions.
 Undo uses the reflog which is specific to commits and branches so we can't undo changes to the working tree or stash.
 
 [More info](/docs/Undoing.md)
@@ -356,7 +356,8 @@ For **Debian 12 "Bookworm", Ubuntu 25.04 "Plucky Puffin"** and earlier:
 
 ```sh
 LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | \grep -Po '"tag_name": *"v\K[^"]*')
-curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+LAZYGIT_ARCH=$(uname -m | sed -e 's/aarch64/arm64/')
+curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_${LAZYGIT_ARCH}.tar.gz"
 tar xf lazygit.tar.gz lazygit
 sudo install lazygit -D -t /usr/local/bin/
 ```

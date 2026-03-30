@@ -229,6 +229,30 @@ func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*
 	}
 }
 
+func (self *FilesController) GetOnClick() func(opts gocui.ViewMouseBindingOpts) error {
+	return func(opts gocui.ViewMouseBindingOpts) error {
+		clickedIdx := self.context().GetSelectedLineIdx()
+		node := self.context().FileTreeViewModel.Get(clickedIdx)
+		if node == nil || node.File != nil {
+			return nil
+		}
+
+		// The arrow is at column visualDepth*2 (after indentation of 2 spaces per level).
+		// Only treat clicks on the arrow and the trailing space as arrow clicks.
+		visualDepth := self.context().FileTreeViewModel.GetVisualDepth(clickedIdx)
+		arrowStartCol := visualDepth * 2
+		arrowEndCol := arrowStartCol + 1
+		if opts.X < arrowStartCol || opts.X > arrowEndCol {
+			return nil
+		}
+
+		self.context().FileTreeViewModel.ToggleCollapsed(node.GetInternalPath())
+		self.c.PostRefreshUpdate(self.context())
+
+		return nil
+	}
+}
+
 func (self *FilesController) GetOnRenderToMain() func() {
 	return func() {
 		self.c.Helpers().Diff.WithDiffModeCheck(func() {
@@ -329,7 +353,7 @@ func (self *FilesController) GetOnRenderToMain() func() {
 	}
 }
 
-func (self *FilesController) GetOnClick() func() error {
+func (self *FilesController) GetOnDoubleClick() func() error {
 	return self.withItemGraceful(func(node *filetree.FileNode) error {
 		return self.press([]*filetree.FileNode{node})
 	})
@@ -1472,10 +1496,9 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 				defer self.context().CancelRangeSelect()
 			}
 
-			for _, node := range selectedNodes {
-				if err := self.c.Git().WorkingTree.DiscardAllDirChanges(node); err != nil {
-					return err
-				}
+			nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
+			if err := self.c.Git().WorkingTree.DiscardAllDirChanges(nodes); err != nil {
+				return err
 			}
 
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
@@ -1499,10 +1522,9 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 				defer self.context().CancelRangeSelect()
 			}
 
-			for _, node := range selectedNodes {
-				if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
-					return err
-				}
+			nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
+			if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(nodes); err != nil {
+				return err
 			}
 
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})

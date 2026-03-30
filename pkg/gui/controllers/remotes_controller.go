@@ -120,7 +120,7 @@ func (self *RemotesController) GetOnRenderToMain() func() {
 	}
 }
 
-func (self *RemotesController) GetOnClick() func() error {
+func (self *RemotesController) GetOnDoubleClick() func() error {
 	return self.withItemGraceful(self.enter)
 }
 
