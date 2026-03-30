@@ -37,6 +37,7 @@ func NewContextTree(c *ContextCommon) *ContextTree {
 		SubCommits:      NewSubCommitsContext(c),
 		Branches:        NewBranchesContext(c),
 		Tags:            NewTagsContext(c),
+		SpiceStacks:     NewSpiceStacksContext(c),
 		Stash:           NewStashContext(c),
 		Suggestions:     NewSuggestionsContext(c),
 		Normal:          NewMainContext(c.Views().Main, "main", NORMAL_MAIN_CONTEXT_KEY, c),

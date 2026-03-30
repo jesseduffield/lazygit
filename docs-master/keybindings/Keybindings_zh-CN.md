@@ -53,6 +53,32 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` ] `` | 下一个标签 |  |
 | `` [ `` | 上一个标签 |  |
 
+## Stacks
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | 查看提交 |  |
+| `` s `` | 压缩(Squash) |  |
+| `` f `` | 修正 （fixup） |  |
+| `` r `` | 改写提交 |  |
+| `` d `` | 删除 |  |
+| `` e `` | 编辑(Edit) |  |
+| `` A `` | 修补(Amend) |  |
+| `` g `` | 查看重置选项 |  |
+| `` C `` | 复制提交(拣选) |  |
+| `` y `` | 复制提交属性到剪贴板 |  |
+| `` <space> `` | 检出 |  |
+| `` <c-j> `` | 下移提交 |  |
+| `` <c-k> `` | 上移提交 |  |
+| `` S `` | Stack operations |  |
+| `` G `` | Stack navigation |  |
+| `` V `` | Toggle log format | Toggle between short and long format. Short shows basic hierarchy, long shows PR info and sync status. |
+| `` n `` | Create branch (on selected) |  |
+| `` N `` | Create commit |  |
+| `` 0 `` | 聚焦主视图 |  |
+| `` w `` | 查看工作区选项 |  |
+| `` / `` | 通过文本过滤当前视图 |  |
+
 ## 子提交
 
 | Key | Action | Info |

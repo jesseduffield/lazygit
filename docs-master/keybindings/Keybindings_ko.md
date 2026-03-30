@@ -88,6 +88,32 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <esc> `` | Exit back to side panel |  |
 | `` / `` | 검색 시작 |  |
 
+## Stacks
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | 커밋 보기 |  |
+| `` s `` | 스쿼시 |  |
+| `` f `` | Fixup |  |
+| `` r `` | 커밋메시지 변경 |  |
+| `` d `` | Drop |  |
+| `` e `` | Edit |  |
+| `` A `` | Amend |  |
+| `` g `` | View reset options |  |
+| `` C `` | 커밋을 복사 (cherry-pick) |  |
+| `` y `` | 커밋 attribute 복사 |  |
+| `` <space> `` | 체크아웃 |  |
+| `` <c-j> `` | 커밋을 1개 아래로 이동 |  |
+| `` <c-k> `` | 커밋을 1개 위로 이동 |  |
+| `` S `` | Stack operations |  |
+| `` G `` | Stack navigation |  |
+| `` V `` | Toggle log format | Toggle between short and long format. Short shows basic hierarchy, long shows PR info and sync status. |
+| `` n `` | Create branch (on selected) |  |
+| `` N `` | Create commit |  |
+| `` 0 `` | Focus main view |  |
+| `` w `` | View worktree options |  |
+| `` / `` | Filter the current view by text |  |
+
 ## Stash
 
 | Key | Action | Info |

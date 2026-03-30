@@ -161,6 +161,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	menuController := controllers.NewMenuController(common)
 	localCommitsController := controllers.NewLocalCommitsController(common, syncController.HandlePull)
 	tagsController := controllers.NewTagsController(common)
+	spiceStacksController := controllers.NewSpiceStacksController(common)
 	filesController := controllers.NewFilesController(
 		common,
 	)
@@ -209,7 +210,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		controllers.AttachControllers(context, searchControllerFactory.Create(context))
 	}
 
-	for _, context := range []controllers.CanViewWorktreeOptions{
+	worktreeContexts := []controllers.CanViewWorktreeOptions{
 		gui.State.Contexts.LocalCommits,
 		gui.State.Contexts.ReflogCommits,
 		gui.State.Contexts.SubCommits,
@@ -217,12 +218,17 @@ func (gui *Gui) resetHelpersAndControllers() {
 		gui.State.Contexts.Branches,
 		gui.State.Contexts.RemoteBranches,
 		gui.State.Contexts.Tags,
-	} {
+	}
+	if gui.State.Contexts.SpiceStacks != nil {
+		worktreeContexts = append(worktreeContexts, gui.State.Contexts.SpiceStacks)
+	}
+
+	for _, context := range worktreeContexts {
 		controllers.AttachControllers(context, controllers.NewWorktreeOptionsController(common, context))
 	}
 
 	// allow for navigating between side window contexts
-	for _, context := range []types.Context{
+	sideWindowContexts := []types.Context{
 		gui.State.Contexts.Status,
 		gui.State.Contexts.Remotes,
 		gui.State.Contexts.Worktrees,
@@ -236,7 +242,12 @@ func (gui *Gui) resetHelpersAndControllers() {
 		gui.State.Contexts.CommitFiles,
 		gui.State.Contexts.SubCommits,
 		gui.State.Contexts.Stash,
-	} {
+	}
+	if gui.State.Contexts.SpiceStacks != nil {
+		sideWindowContexts = append(sideWindowContexts, gui.State.Contexts.SpiceStacks)
+	}
+
+	for _, context := range sideWindowContexts {
 		controllers.AttachControllers(context, sideWindowControllerFactory.Create(context))
 	}
 
@@ -261,7 +272,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		))
 	}
 
-	for _, context := range []types.Context{
+	focusedMainViewContexts := []types.Context{
 		gui.State.Contexts.Status,
 		gui.State.Contexts.Files,
 		gui.State.Contexts.Branches,
@@ -272,7 +283,12 @@ func (gui *Gui) resetHelpersAndControllers() {
 		gui.State.Contexts.SubCommits,
 		gui.State.Contexts.CommitFiles,
 		gui.State.Contexts.Stash,
-	} {
+	}
+	if gui.State.Contexts.SpiceStacks != nil {
+		focusedMainViewContexts = append(focusedMainViewContexts, gui.State.Contexts.SpiceStacks)
+	}
+
+	for _, context := range focusedMainViewContexts {
 		controllers.AttachControllers(context, controllers.NewSwitchToFocusedMainViewController(
 			common, context,
 		))
@@ -340,6 +356,12 @@ func (gui *Gui) resetHelpersAndControllers() {
 	controllers.AttachControllers(gui.State.Contexts.Tags,
 		tagsController,
 	)
+
+	if gui.State.Contexts.SpiceStacks != nil {
+		controllers.AttachControllers(gui.State.Contexts.SpiceStacks,
+			spiceStacksController,
+		)
+	}
 
 	controllers.AttachControllers(gui.State.Contexts.Submodules,
 		submodulesController,

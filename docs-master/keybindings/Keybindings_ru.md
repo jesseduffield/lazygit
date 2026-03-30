@@ -60,6 +60,32 @@ _Связки клавиш_
 | `` <enter> `` | Подтвердить |  |
 | `` <esc> `` | Закрыть/отменить |  |
 
+## Stacks
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | Просмотреть коммиты |  |
+| `` s `` | Объединить коммиты (Squash) |  |
+| `` f `` | Объединить несколько коммитов в один отбросив сообщение коммита (Fixup)  |  |
+| `` r `` | Перефразировать коммит |  |
+| `` d `` | Удалить припрятанные изменения из хранилища |  |
+| `` e `` | Edit |  |
+| `` A `` | Amend |  |
+| `` g `` | Просмотреть параметры сброса |  |
+| `` C `` | Скопировать отобранные коммит (cherry-pick) |  |
+| `` y `` | Скопировать атрибут коммита |  |
+| `` <space> `` | Переключить |  |
+| `` <c-j> `` | Переместить коммит вниз на один |  |
+| `` <c-k> `` | Переместить коммит вверх на один |  |
+| `` S `` | Stack operations |  |
+| `` G `` | Stack navigation |  |
+| `` V `` | Toggle log format | Toggle between short and long format. Short shows basic hierarchy, long shows PR info and sync status. |
+| `` n `` | Create branch (on selected) |  |
+| `` N `` | Create commit |  |
+| `` 0 `` | Focus main view |  |
+| `` w `` | View worktree options |  |
+| `` / `` | Filter the current view by text |  |
+
 ## Worktrees
 
 | Key | Action | Info |

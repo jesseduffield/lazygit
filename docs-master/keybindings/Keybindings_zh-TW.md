@@ -60,6 +60,32 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` <enter> `` | 確認 |  |
 | `` <esc> `` | 關閉/取消 |  |
 
+## Stacks
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | 檢視提交 |  |
+| `` s `` | 壓縮 (Squash) |  |
+| `` f `` | 修復 (Fixup) |  |
+| `` r `` | 改寫提交 |  |
+| `` d `` | 捨棄 |  |
+| `` e `` | 編輯 |  |
+| `` A `` | 修改 |  |
+| `` g `` | 檢視重設選項 |  |
+| `` C `` | 複製提交 (揀選) |  |
+| `` y `` | 複製提交屬性 |  |
+| `` <space> `` | 檢出 |  |
+| `` <c-j> `` | 向下移動提交 |  |
+| `` <c-k> `` | 向上移動提交 |  |
+| `` S `` | Stack operations |  |
+| `` G `` | Stack navigation |  |
+| `` V `` | Toggle log format | Toggle between short and long format. Short shows basic hierarchy, long shows PR info and sync status. |
+| `` n `` | Create branch (on selected) |  |
+| `` N `` | Create commit |  |
+| `` 0 `` | Focus main view |  |
+| `` w `` | 檢視工作目錄選項 |  |
+| `` / `` | 搜尋 |  |
+
 ## 主面板 (補丁生成)
 
 | Key | Action | Info |

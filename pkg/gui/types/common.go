@@ -310,6 +310,7 @@ type Model struct {
 	WorkingTreeStateAtLastCommitRefresh models.WorkingTreeState
 	RemoteBranches                      []*models.RemoteBranch
 	Tags                                []*models.Tag
+	SpiceStackItems                     []*models.SpiceStackItem
 
 	// Name of the currently checked out branch. This will be set even when
 	// we're on a detached head because we're rebasing or bisecting.
