@@ -52,6 +52,12 @@ gui:
     # Map of file extensions (including the dot) to icon properties (icon and color)
     extensions: {}
 
+    # Map of vcs icons to string (icon only)
+    vcsIcons: {}
+
+    # Map of file icons to string (icon only)
+    fileIcons: {}
+
   # The number of lines you scroll by when scrolling the main window
   scrollHeight: 2
 
