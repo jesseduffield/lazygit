@@ -840,6 +840,10 @@
           "type": "string",
           "default": "\u003cc-y\u003e"
         },
+        "copyBranchURL": {
+          "type": "string",
+          "default": ""
+        },
         "checkoutBranchByName": {
           "type": "string",
           "default": "c"

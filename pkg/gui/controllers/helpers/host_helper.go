@@ -26,6 +26,14 @@ func (self *HostHelper) GetPullRequestURL(from string, to string) (string, error
 	return mgr.GetPullRequestURL(from, to)
 }
 
+func (self *HostHelper) GetBranchURL(branchName string) (string, error) {
+	mgr, err := self.getHostingServiceMgr()
+	if err != nil {
+		return "", err
+	}
+	return mgr.GetBranchURL(branchName)
+}
+
 func (self *HostHelper) GetCommitURL(commitHash string) (string, error) {
 	mgr, err := self.getHostingServiceMgr()
 	if err != nil {

@@ -906,6 +906,7 @@ keybinding:
     createPullRequest: o
     viewPullRequestOptions: O
     copyPullRequestURL: <c-y>
+    copyBranchURL: ""
     checkoutBranchByName: c
     forceCheckoutBranch: F
     rebaseBranch: r
