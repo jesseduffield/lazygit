@@ -55,7 +55,7 @@ func (self *SwitchToSubCommitsController) GetKeybindings(opts types.KeybindingsO
 	return bindings
 }
 
-func (self *SwitchToSubCommitsController) GetOnClick() func() error {
+func (self *SwitchToSubCommitsController) GetOnDoubleClick() func() error {
 	return self.viewCommits
 }
 

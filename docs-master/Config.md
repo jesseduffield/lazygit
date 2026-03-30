@@ -222,6 +222,13 @@ gui:
   # item at top level.
   showRootItemInFileTree: true
 
+  # How to sort files and directories in the file tree.
+  # One of: 'mixed' (default) | 'filesFirst' | 'foldersFirst'
+  fileTreeSortOrder: mixed
+
+  # If true (default), sort the file tree case-sensitively.
+  fileTreeSortCaseSensitive: true
+
   # If true, show the number of lines changed per file in the Files view
   showNumstatInFilesView: false
 

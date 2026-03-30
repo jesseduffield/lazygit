@@ -31,7 +31,7 @@ welcome your pull requests:
 
 1. Fork the repo and create your branch from `master`.
 2. If you've added code that should be tested, add tests.
-3. If you've added code that need documentation, update the documentation.
+3. If you've added code that needs documentation, update the documentation.
 4. Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
 5. Issue that pull request!
 

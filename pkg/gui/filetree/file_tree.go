@@ -34,6 +34,7 @@ type ITree[T any] interface {
 	CollapsedPaths() *CollapsedPaths
 	CollapseAll()
 	ExpandAll()
+	GetVisualDepth(index int) int
 }
 
 type IFileTree interface {
@@ -179,11 +180,13 @@ func (self *FileTree) GetAllFiles() []*models.File {
 
 func (self *FileTree) SetTree() {
 	filesForDisplay := self.getFilesForDisplay()
-	showRootItem := self.common.UserConfig().Gui.ShowRootItemInFileTree
+	guiConfig := self.common.UserConfig().Gui
+	showRootItem := guiConfig.ShowRootItemInFileTree
+	cmp := NodeSortComparator[models.File](guiConfig.FileTreeSortOrder, guiConfig.FileTreeSortCaseSensitive)
 	if self.showTree {
-		self.tree = BuildTreeFromFiles(filesForDisplay, showRootItem)
+		self.tree = BuildTreeFromFiles(filesForDisplay, showRootItem, cmp)
 	} else {
-		self.tree = BuildFlatTreeFromFiles(filesForDisplay, showRootItem)
+		self.tree = BuildFlatTreeFromFiles(filesForDisplay, showRootItem, cmp)
 	}
 }
 
@@ -219,6 +222,10 @@ func (self *FileTree) GetRoot() *FileNode {
 
 func (self *FileTree) CollapsedPaths() *CollapsedPaths {
 	return self.collapsedPaths
+}
+
+func (self *FileTree) GetVisualDepth(index int) int {
+	return self.tree.GetVisualDepthAtIndex(index+1, self.collapsedPaths) // +1 to skip root
 }
 
 func (self *FileTree) GetStatusFilter() FileTreeDisplayFilter {

@@ -133,7 +133,7 @@ func (self *WorktreesController) remove(worktree *models.Worktree) error {
 	return self.c.Helpers().Worktree.Remove(worktree, false)
 }
 
-func (self *WorktreesController) GetOnClick() func() error {
+func (self *WorktreesController) GetOnDoubleClick() func() error {
 	return self.withItemGraceful(self.enter)
 }
 

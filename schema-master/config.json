@@ -632,6 +632,21 @@
           "description": "If true, add a \"/\" root item in the file tree representing the root of the repository. It is only added when necessary, i.e. when there is more than one item at top level.",
           "default": true
         },
+        "fileTreeSortOrder": {
+          "type": "string",
+          "enum": [
+            "mixed",
+            "filesFirst",
+            "foldersFirst"
+          ],
+          "description": "How to sort files and directories in the file tree.\nOne of: 'mixed' (default) | 'filesFirst' | 'foldersFirst'",
+          "default": "mixed"
+        },
+        "fileTreeSortCaseSensitive": {
+          "type": "boolean",
+          "description": "If true (default), sort the file tree case-sensitively.",
+          "default": true
+        },
         "showNumstatInFilesView": {
           "type": "boolean",
           "description": "If true, show the number of lines changed per file in the Files view",

@@ -102,7 +102,7 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 	}
 }
 
-func (self *SubmodulesController) GetOnClick() func() error {
+func (self *SubmodulesController) GetOnDoubleClick() func() error {
 	return self.withItemGraceful(self.enter)
 }
 
