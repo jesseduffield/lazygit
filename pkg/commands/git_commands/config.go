@@ -93,7 +93,8 @@ func (self *ConfigCommands) Branches(cmd oscommands.ICmdObjBuilder) map[string]*
 		}
 		// key is like "branch.<name>.remote" or "branch.<name>.merge"
 		lastDot := strings.LastIndex(key, ".")
-		if lastDot < 0 {
+		// ignore key like branch.autosetuprebase
+		if lastDot < len("branch.") {
 			continue
 		}
 		configKey := key[lastDot+1:]
