@@ -577,3 +577,147 @@ func TestGetPullRequestURL(t *testing.T) {
 		})
 	}
 }
+
+func TestGetBranchURL(t *testing.T) {
+	type scenario struct {
+		testName             string
+		branchName           string
+		remoteUrl            string
+		configServiceDomains map[string]string
+		test                 func(url string, err error)
+	}
+
+	scenarios := []scenario{
+		{
+			testName:   "GitHub SSH",
+			branchName: "feature/my-branch",
+			remoteUrl:  "git@github.com:peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://github.com/peter/calculator/tree/feature/my-branch", url)
+			},
+		},
+		{
+			testName:   "GitHub HTTPS",
+			branchName: "feature/my-branch",
+			remoteUrl:  "https://github.com/peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://github.com/peter/calculator/tree/feature/my-branch", url)
+			},
+		},
+		{
+			testName:   "GitLab SSH",
+			branchName: "feature/my-branch",
+			remoteUrl:  "git@gitlab.com:peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/peter/calculator/-/tree/feature/my-branch", url)
+			},
+		},
+		{
+			testName:   "GitLab HTTPS",
+			branchName: "feature/my-branch",
+			remoteUrl:  "https://gitlab.com/peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/peter/calculator/-/tree/feature/my-branch", url)
+			},
+		},
+		{
+			testName:   "Bitbucket SSH",
+			branchName: "feature/my-branch",
+			remoteUrl:  "git@bitbucket.org:johndoe/social_network.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/src/feature/my-branch", url)
+			},
+		},
+		{
+			testName:   "Bitbucket HTTPS",
+			branchName: "feature/my-branch",
+			remoteUrl:  "https://my_username@bitbucket.org/johndoe/social_network.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/src/feature/my-branch", url)
+			},
+		},
+		{
+			testName:   "Azure DevOps SSH",
+			branchName: "feature/my-branch",
+			remoteUrl:  "git@ssh.dev.azure.com:v3/myorg/myproject/myrepo",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo?version=GBfeature/my-branch", url)
+			},
+		},
+		{
+			testName:   "Azure DevOps HTTPS",
+			branchName: "feature/my-branch",
+			remoteUrl:  "https://myorg@dev.azure.com/myorg/myproject/_git/myrepo",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo?version=GBfeature/my-branch", url)
+			},
+		},
+		{
+			testName:   "Bitbucket Server SSH",
+			branchName: "feature/my-branch",
+			remoteUrl:  "ssh://git@mycompany.bitbucket.com/myproject/myrepo.git",
+			configServiceDomains: map[string]string{
+				"mycompany.bitbucket.com": "bitbucketServer:mycompany.bitbucket.com",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://mycompany.bitbucket.com/projects/myproject/repos/myrepo/browse?at=feature/my-branch", url)
+			},
+		},
+		{
+			testName:   "Gitea SSH",
+			branchName: "feature/my-branch",
+			remoteUrl:  "ssh://git@mycompany.gitea.io/myproject/myrepo.git",
+			configServiceDomains: map[string]string{
+				"mycompany.gitea.io": "gitea:mycompany.gitea.io",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://mycompany.gitea.io/myproject/myrepo/src/branch/feature/my-branch", url)
+			},
+		},
+		{
+			testName:   "Codeberg SSH",
+			branchName: "feature/my-branch",
+			remoteUrl:  "git@codeberg.org:johndoe/myrepo.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://codeberg.org/johndoe/myrepo/src/branch/feature/my-branch", url)
+			},
+		},
+		{
+			testName:   "Codeberg HTTPS",
+			branchName: "feature/my-branch",
+			remoteUrl:  "https://codeberg.org/johndoe/myrepo.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://codeberg.org/johndoe/myrepo/src/branch/feature/my-branch", url)
+			},
+		},
+		{
+			testName:   "Unsupported service",
+			branchName: "feature/my-branch",
+			remoteUrl:  "git@something.com:peter/calculator.git",
+			test: func(url string, err error) {
+				assert.EqualError(t, err, "Unsupported git service")
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			tr := i18n.EnglishTranslationSet()
+			log := &fakes.FakeFieldLogger{}
+			hostingServiceMgr := NewHostingServiceMgr(log, tr, s.remoteUrl, s.configServiceDomains)
+			s.test(hostingServiceMgr.GetBranchURL(s.branchName))
+		})
+	}
+}
