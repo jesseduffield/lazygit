@@ -77,6 +77,12 @@ func GetRepoPaths(
 	if err != nil {
 		return nil, err
 	}
+
+	cwd, err = filepath.EvalSymlinks(cwd)
+	if err != nil {
+		return nil, err
+	}
+
 	return GetRepoPathsForDir(cwd, cmd)
 }
 
