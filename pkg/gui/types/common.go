@@ -200,6 +200,10 @@ type PromptOpts struct {
 	Mask                   bool
 }
 
+type ExecuteCommandOpts struct {
+	Command string
+}
+
 type MenuSection struct {
 	Title  string
 	Column int // The column that this section title should be aligned with
