@@ -825,6 +825,9 @@ type TranslationSet struct {
 	NukeDescription                          string
 	NukeTreeConfirmation                     string
 	DiscardStagedChangesDescription          string
+	DiscardAnyUnstagedChangesConfirmation     string
+	DiscardUntrackedFilesConfirmation         string
+	DiscardStagedChangesConfirmation          string
 	EmptyOutput                              string
 	Patch                                    string
 	CustomPatch                              string
@@ -1944,6 +1947,9 @@ func EnglishTranslationSet() *TranslationSet {
 		NukeDescription:                          "If you want to make all the changes in the worktree go away, this is the way to do it. If there are dirty submodule changes this will stash those changes in the submodule(s).",
 		NukeTreeConfirmation:                     "Are you sure you want to nuke the working tree? This will discard all changes in the worktree (staged, unstaged and untracked), which is not undoable.",
 		DiscardStagedChangesDescription:          "This will create a new stash entry containing only staged files and then drop it, so that the working tree is left with only unstaged changes",
+		DiscardAnyUnstagedChangesConfirmation:     "Are you sure you want to discard all unstaged changes? This is not undoable.",
+		DiscardUntrackedFilesConfirmation:         "Are you sure you want to discard all untracked files? This is not undoable.",
+		DiscardStagedChangesConfirmation:           "Are you sure you want to discard all staged changes? This is not undoable.",
 		EmptyOutput:                              "<Empty output>",
 		Patch:                                    "Patch",
 		CustomPatch:                              "Custom patch",

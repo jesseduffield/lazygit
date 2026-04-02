@@ -62,14 +62,21 @@ func (self *FilesController) createResetMenu() error {
 				red.Sprint("git checkout -- ."),
 			},
 			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.DiscardUnstagedFileChanges)
-				if err := self.c.Git().WorkingTree.DiscardAnyUnstagedFileChanges(); err != nil {
-					return err
-				}
+				self.c.Confirm(types.ConfirmOpts{
+					Title:  self.c.Tr.DiscardAnyUnstagedChanges,
+					Prompt: self.c.Tr.DiscardAnyUnstagedChangesConfirmation,
+					HandleConfirm: func() error {
+						self.c.LogAction(self.c.Tr.Actions.DiscardUnstagedFileChanges)
+						if err := self.c.Git().WorkingTree.DiscardAnyUnstagedFileChanges(); err != nil {
+							return err
+						}
 
-				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
-				)
+						self.c.Refresh(
+							types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+						)
+						return nil
+					},
+				})
 				return nil
 			},
 			Key: 'u',
@@ -80,14 +87,21 @@ func (self *FilesController) createResetMenu() error {
 				red.Sprint("git clean -fd"),
 			},
 			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.RemoveUntrackedFiles)
-				if err := self.c.Git().WorkingTree.RemoveUntrackedFiles(); err != nil {
-					return err
-				}
+				self.c.Confirm(types.ConfirmOpts{
+					Title:  self.c.Tr.DiscardUntrackedFiles,
+					Prompt: self.c.Tr.DiscardUntrackedFilesConfirmation,
+					HandleConfirm: func() error {
+						self.c.LogAction(self.c.Tr.Actions.RemoveUntrackedFiles)
+						if err := self.c.Git().WorkingTree.RemoveUntrackedFiles(); err != nil {
+							return err
+						}
 
-				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
-				)
+						self.c.Refresh(
+							types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+						)
+						return nil
+					},
+				})
 				return nil
 			},
 			Key: 'c',
@@ -99,20 +113,27 @@ func (self *FilesController) createResetMenu() error {
 			},
 			Tooltip: self.c.Tr.DiscardStagedChangesDescription,
 			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.RemoveStagedFiles)
 				if !self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules() {
 					return errors.New(self.c.Tr.NoTrackedStagedFilesStash)
 				}
-				if err := self.c.Git().Stash.SaveStagedChanges("[lazygit] tmp stash"); err != nil {
-					return err
-				}
-				if err := self.c.Git().Stash.DropNewest(); err != nil {
-					return err
-				}
+				self.c.Confirm(types.ConfirmOpts{
+					Title:  self.c.Tr.DiscardStagedChanges,
+					Prompt: self.c.Tr.DiscardStagedChangesConfirmation,
+					HandleConfirm: func() error {
+						self.c.LogAction(self.c.Tr.Actions.RemoveStagedFiles)
+						if err := self.c.Git().Stash.SaveStagedChanges("[lazygit] tmp stash"); err != nil {
+							return err
+						}
+						if err := self.c.Git().Stash.DropNewest(); err != nil {
+							return err
+						}
 
-				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
-				)
+						self.c.Refresh(
+							types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+						)
+						return nil
+					},
+				})
 				return nil
 			},
 			Key: 'S',

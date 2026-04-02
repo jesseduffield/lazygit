@@ -41,6 +41,11 @@ var DiscardStagedChanges = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Menu().Title(Equals("")).Select(Contains("Discard staged changes")).Confirm()
 
+		t.ExpectPopup().Confirmation().
+			Title(Equals("Discard staged changes")).
+			Content(Equals("Are you sure you want to discard all staged changes? This is not undoable.")).
+			Confirm()
+
 		// staged file has been removed
 		t.Views().Files().
 			Lines(
