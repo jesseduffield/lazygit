@@ -233,8 +233,20 @@ type ThemeConfig struct {
 	MarkedBaseCommitFgColor []string `yaml:"markedBaseCommitFgColor"`
 	// Background color of marked base commit (for rebase)
 	MarkedBaseCommitBgColor []string `yaml:"markedBaseCommitBgColor"`
-	// Color for file with unstaged changes
+	// Color for file with unstaged changes (used as fallback when per-status colors are not set)
 	UnstagedChangesColor []string `yaml:"unstagedChangesColor" jsonschema:"minItems=1,uniqueItems=true"`
+	// Color for modified files. Defaults to unstagedChangesColor if empty.
+	ModifiedColor []string `yaml:"modifiedColor"`
+	// Color for deleted files. Defaults to unstagedChangesColor if empty.
+	DeletedColor []string `yaml:"deletedColor"`
+	// Color for untracked (new) files. Defaults to unstagedChangesColor if empty.
+	UntrackedColor []string `yaml:"untrackedColor"`
+	// Color for added (staged new) files. Defaults to green if empty.
+	AddedColor []string `yaml:"addedColor"`
+	// Color for renamed files. Defaults to unstagedChangesColor if empty.
+	RenamedColor []string `yaml:"renamedColor"`
+	// Color for copied files. Defaults to cyan if empty.
+	CopiedColor []string `yaml:"copiedColor"`
 	// Default text color
 	DefaultFgColor []string `yaml:"defaultFgColor" jsonschema:"minItems=1,uniqueItems=true"`
 }
@@ -796,6 +808,12 @@ func GetDefaultConfig() *UserConfig {
 				MarkedBaseCommitBgColor:         []string{"yellow"},
 				MarkedBaseCommitFgColor:         []string{"blue"},
 				UnstagedChangesColor:            []string{"red"},
+				ModifiedColor:                   []string{},
+				DeletedColor:                    []string{},
+				UntrackedColor:                  []string{},
+				AddedColor:                      []string{},
+				RenamedColor:                    []string{},
+				CopiedColor:                     []string{},
 				DefaultFgColor:                  []string{"default"},
 			},
 			CommitLength:                        CommitLengthConfig{Show: true},
