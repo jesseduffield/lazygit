@@ -598,7 +598,7 @@ func findConfigFile(filenames []string) (exists bool, path string) {
 		}
 	}
 
-	// look for lazygit/<filename> in XDG_CONFIG_HOME and XDG_CONFIG_DIRS
+	// look for lazygit/filename in XDG_CONFIG_HOME and XDG_CONFIG_DIRS
 	for _, filename := range filenames {
 		configFilepath, err := xdg.SearchConfigFile(filepath.Join("lazygit", filename))
 		if err == nil {
