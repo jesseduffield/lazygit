@@ -626,9 +626,9 @@ var ConfigFilenames = []string{"config.yml", "config.yaml"}
 // stateFilePath looks for a possibly existing state file.
 // if none exist, the default path is returned and all parent directories are created.
 func stateFilePath(filename string) (string, error) {
-	exists, legacyStateFile := findConfigFile([]string{filename})
-	if exists {
-		return legacyStateFile, nil
+	_, path := findFirstConfigFile([]string{filename}, xdg.ConfigHome+"/lazygit")
+	if _, err := os.Stat(path); err == nil {
+		return path, nil
 	}
 
 	// looks for XDG_STATE_HOME/lazygit/filename
