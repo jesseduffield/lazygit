@@ -77,6 +77,12 @@ func GetRepoPaths(
 	if err != nil {
 		return nil, err
 	}
+	// Resolve symlinks so that git rev-parse can find the repository root
+	// even when the current directory is a symlink to a directory inside a repo.
+	// See: https://github.com/jesseduffield/lazygit/issues/3015
+	if resolved, err := filepath.EvalSymlinks(cwd); err == nil {
+		cwd = resolved
+	}
 	return GetRepoPathsForDir(cwd, cmd)
 }
 
