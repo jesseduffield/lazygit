@@ -590,7 +590,7 @@ func findConfigFile(filenames []string) (exists bool, path string) {
 		return findFirstConfigFile(filenames, envConfigDir)
 	}
 
-	// look for jesseduffield/lazygit/<filename> in XDG_CONFIG_HOME and XDG_CONFIG_DIRS
+	// look for jesseduffield/lazygit/filename in XDG_CONFIG_HOME and XDG_CONFIG_DIRS
 	for _, filename := range filenames {
 		legacyConfigPath, err := xdg.SearchConfigFile(filepath.Join("jesseduffield", "lazygit", filename))
 		if err == nil {
