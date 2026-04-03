@@ -169,7 +169,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 		if scopeSet.Includes(types.FILES) || scopeSet.Includes(types.SUBMODULES) {
 			fileWg.Add(1)
 			refresh("files", func() {
-				_ = self.refreshFilesAndSubmodules()
+				_ = self.refreshFilesAndSubmodules(options.KeepUntrackedFiles)
 				fileWg.Done()
 			})
 		}
@@ -539,7 +539,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 	self.refreshStatus()
 }
 
-func (self *RefreshHelper) refreshFilesAndSubmodules() error {
+func (self *RefreshHelper) refreshFilesAndSubmodules(keepUntrackedFiles bool) error {
 	self.c.Mutexes().RefreshingFilesMutex.Lock()
 	self.c.State().SetIsRefreshingFiles(true)
 	defer func() {
@@ -551,7 +551,7 @@ func (self *RefreshHelper) refreshFilesAndSubmodules() error {
 		return err
 	}
 
-	if err := self.refreshStateFiles(); err != nil {
+	if err := self.refreshStateFiles(keepUntrackedFiles); err != nil {
 		return err
 	}
 
@@ -564,7 +564,7 @@ func (self *RefreshHelper) refreshFilesAndSubmodules() error {
 	return nil
 }
 
-func (self *RefreshHelper) refreshStateFiles() error {
+func (self *RefreshHelper) refreshStateFiles(keepUntrackedFiles bool) error {
 	fileTreeViewModel := self.c.Contexts().Files.FileTreeViewModel
 
 	prevConflictFileCount := 0
@@ -599,10 +599,27 @@ func (self *RefreshHelper) refreshStateFiles() error {
 		}
 	}
 
+	// When keepUntrackedFiles is true, we skip enumerating untracked files
+	// in git status (avoiding a costly directory walk in large repos) and
+	// preserve the untracked files from the previous model state instead.
+	var previousUntrackedFiles []*models.File
+	if keepUntrackedFiles {
+		for _, file := range self.c.Model().Files {
+			if !file.Tracked {
+				previousUntrackedFiles = append(previousUntrackedFiles, file)
+			}
+		}
+	}
+
 	files := self.c.Git().Loaders.FileLoader.
 		GetStatusFiles(git_commands.GetStatusFileOptions{
-			ForceShowUntracked: self.c.Contexts().Files.ForceShowUntracked(),
+			ForceShowUntracked: !keepUntrackedFiles && self.c.Contexts().Files.ForceShowUntracked(),
+			NoUntracked:        keepUntrackedFiles,
 		})
+
+	if keepUntrackedFiles {
+		files = append(files, previousUntrackedFiles...)
+	}
 
 	conflictFileCount := 0
 	for _, file := range files {

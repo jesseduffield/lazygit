@@ -226,11 +226,19 @@ func (self *StagingController) DiscardSelection() error {
 }
 
 func (self *StagingController) applySelectionAndRefresh(reverse bool) error {
+	// Check if the file is tracked before applying, so we can optimize the
+	// refresh by skipping untracked file enumeration in large repos.
+	file := self.c.Contexts().Files.FileTreeViewModel.GetSelectedFile()
+	isTracked := file != nil && file.Tracked
+
 	if err := self.applySelection(reverse); err != nil {
 		return err
 	}
 
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
+	self.c.Refresh(types.RefreshOptions{
+		Scope:              []types.RefreshableView{types.FILES, types.STAGING},
+		KeepUntrackedFiles: isTracked,
+	})
 	return nil
 }
 
@@ -281,11 +289,17 @@ func (self *StagingController) applySelection(reverse bool) error {
 }
 
 func (self *StagingController) EditHunkAndRefresh() error {
+	file := self.c.Contexts().Files.FileTreeViewModel.GetSelectedFile()
+	isTracked := file != nil && file.Tracked
+
 	if err := self.editHunk(); err != nil {
 		return err
 	}
 
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
+	self.c.Refresh(types.RefreshOptions{
+		Scope:              []types.RefreshableView{types.FILES, types.STAGING},
+		KeepUntrackedFiles: isTracked,
+	})
 	return nil
 }
 

@@ -36,16 +36,25 @@ type GetStatusFileOptions struct {
 	// This is useful for users with bare repos for dotfiles who default to hiding untracked files,
 	// but want to occasionally see them to `git add` a new file.
 	ForceShowUntracked bool
+	// If true, pass --untracked-files=no to skip enumerating untracked files.
+	// This is a performance optimization for refreshes that only affect tracked
+	// files, avoiding a costly directory walk in large repos.
+	NoUntracked bool
 }
 
 func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
-	// check if config wants us ignoring untracked files
-	untrackedFilesSetting := self.config.GetShowUntrackedFiles()
+	var untrackedFilesArg string
+	if opts.NoUntracked {
+		untrackedFilesArg = "--untracked-files=no"
+	} else {
+		// check if config wants us ignoring untracked files
+		untrackedFilesSetting := self.config.GetShowUntrackedFiles()
 
-	if opts.ForceShowUntracked || untrackedFilesSetting == "" {
-		untrackedFilesSetting = "all"
+		if opts.ForceShowUntracked || untrackedFilesSetting == "" {
+			untrackedFilesSetting = "all"
+		}
+		untrackedFilesArg = fmt.Sprintf("--untracked-files=%s", untrackedFilesSetting)
 	}
-	untrackedFilesArg := fmt.Sprintf("--untracked-files=%s", untrackedFilesSetting)
 
 	statuses, err := self.gitStatus(GitStatusOptions{NoRenames: opts.NoRenames, UntrackedFilesArg: untrackedFilesArg})
 	if err != nil {
