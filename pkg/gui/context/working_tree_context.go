@@ -1,6 +1,8 @@
 package context
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -50,6 +52,14 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 				getDisplayStrings: getDisplayStrings,
 			},
 			c: c,
+			footerExtra: func() string {
+				fileCount := len(viewModel.GetAllFiles())
+				label := "changes"
+				if fileCount == 1 {
+					label = "change"
+				}
+				return fmt.Sprintf("%d %s", fileCount, label)
+			},
 		},
 	}
 
