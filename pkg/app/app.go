@@ -163,7 +163,12 @@ func (app *App) validateGitVersion() (*git_commands.GitVersion, error) {
 }
 
 func isDirectoryAGitRepository(dir string) (bool, error) {
-	info, err := os.Stat(filepath.Join(dir, ".git"))
+	// Resolve symlinks so that we correctly detect git repos accessed via symlinked paths
+	resolvedDir, err := filepath.EvalSymlinks(dir)
+	if err != nil {
+		return false, err
+	}
+	info, err := os.Stat(filepath.Join(resolvedDir, ".git"))
 	return info != nil, err
 }
 
