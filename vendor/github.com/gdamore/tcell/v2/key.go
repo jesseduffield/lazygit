@@ -1,4 +1,4 @@
-// Copyright 2016 The TCell Authors
+// Copyright 2025 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -171,6 +171,11 @@ var KeyNames = map[Key]string{
 	KeyF62:            "F62",
 	KeyF63:            "F63",
 	KeyF64:            "F64",
+	KeyMenu:           "Menu",
+	KeyCapsLock:       "CapsLock",
+	KeyScrollLock:     "ScrollLock",
+	KeyNumLock:        "NumLock",
+	KeyCtrlSpace:      "Ctrl-Space",
 	KeyCtrlA:          "Ctrl-A",
 	KeyCtrlB:          "Ctrl-B",
 	KeyCtrlC:          "Ctrl-C",
@@ -178,9 +183,12 @@ var KeyNames = map[Key]string{
 	KeyCtrlE:          "Ctrl-E",
 	KeyCtrlF:          "Ctrl-F",
 	KeyCtrlG:          "Ctrl-G",
+	KeyCtrlH:          "Ctrl-H",
+	KeyCtrlI:          "Ctrl-I",
 	KeyCtrlJ:          "Ctrl-J",
 	KeyCtrlK:          "Ctrl-K",
 	KeyCtrlL:          "Ctrl-L",
+	KeyCtrlM:          "Ctrl-M",
 	KeyCtrlN:          "Ctrl-N",
 	KeyCtrlO:          "Ctrl-O",
 	KeyCtrlP:          "Ctrl-P",
@@ -194,11 +202,11 @@ var KeyNames = map[Key]string{
 	KeyCtrlX:          "Ctrl-X",
 	KeyCtrlY:          "Ctrl-Y",
 	KeyCtrlZ:          "Ctrl-Z",
-	KeyCtrlSpace:      "Ctrl-Space",
-	KeyCtrlUnderscore: "Ctrl-_",
+	KeyCtrlLeftSq:     "Ctrl-[",
 	KeyCtrlRightSq:    "Ctrl-]",
 	KeyCtrlBackslash:  "Ctrl-\\",
 	KeyCtrlCarat:      "Ctrl-^",
+	KeyCtrlUnderscore: "Ctrl-_",
 }
 
 // Name returns a printable value or the key stroke.  This can be used
@@ -217,6 +225,9 @@ func (ev *EventKey) Name() string {
 	}
 	if ev.mod&ModCtrl != 0 {
 		m = append(m, "Ctrl")
+	}
+	if ev.mod&ModHyper != 0 {
+		m = append(m, "Hyper")
 	}
 
 	ok := false
@@ -246,15 +257,52 @@ func NewEventKey(k Key, ch rune, mod ModMask) *EventKey {
 		// control characters and the DEL.
 		k = Key(ch)
 		if mod == ModNone && ch < ' ' {
-			switch Key(ch) {
+			switch k {
 			case KeyBackspace, KeyTab, KeyEsc, KeyEnter:
 				// these keys are directly typeable without CTRL
 			default:
 				// most likely entered with a CTRL keypress
 				mod = ModCtrl
 			}
+			ch = ch + '\x60'
 		}
 	}
+	if k == KeyRune && ch >= 'A' && ch <= 'Z' && mod == ModCtrl {
+		// We don't do Ctrl-[ or backslash or those specially.
+		k = KeyCtrlA + Key(ch-'A')
+	}
+
+	// Might be lower case
+	if k == KeyRune && ch >= 'a' && ch <= 'z' && mod == ModCtrl {
+		// We don't do Ctrl-[ or backslash or those specially.
+		k = KeyCtrlA + Key(ch-'a')
+	}
+
+	// Windows reports ModShift for shifted keys.  This is inconsistent
+	// with UNIX, lets harmonize this.
+	if k == KeyRune && mod == ModShift && ch != 0 {
+		mod = ModNone
+	}
+
+	if k >= KeyCtrlA && k <= KeyCtrlZ {
+		if mod&ModShift != 0 {
+			ch = rune((k - KeyCtrlA) + 'A')
+		} else {
+			ch = rune((k - KeyCtrlA) + 'a')
+		}
+	}
+
+	// Backspace2 is just another name for backspace.
+	if k == KeyBackspace2 {
+		k = KeyBackspace
+	}
+
+	// Shift-Tab should be Backtab.
+	if k == KeyTab && (mod&ModShift) != 0 {
+		k = KeyBacktab
+		mod &^= ModShift
+	}
+
 	return &EventKey{t: time.Now(), key: k, ch: ch, mod: mod}
 }
 
@@ -272,6 +320,7 @@ const (
 	ModCtrl
 	ModAlt
 	ModMeta
+	ModHyper
 	ModNone ModMask = 0
 )
 
@@ -373,6 +422,10 @@ const (
 	KeyF62
 	KeyF63
 	KeyF64
+	KeyMenu
+	KeyCapsLock
+	KeyScrollLock
+	KeyNumLock
 )
 
 const (
@@ -381,10 +434,12 @@ const (
 	keyPasteEnd
 )
 
-// These are the control keys.  Note that they overlap with other keys,
-// perhaps.  For example, KeyCtrlH is the same as KeyBackspace.
+// These are the control keys, they will also be reported with the
+// rune (lower case) and control modifier.  If the shift key
+// or other modifiers are present then these will *NOT* be reported,
+// but reported instead as KeyRune.
 const (
-	KeyCtrlSpace Key = iota
+	KeyCtrlSpace Key = iota + 64
 	KeyCtrlA
 	KeyCtrlB
 	KeyCtrlC
@@ -461,10 +516,12 @@ const (
 
 // These keys are aliases for other names.
 const (
-	KeyBackspace  = KeyBS
-	KeyTab        = KeyTAB
-	KeyEsc        = KeyESC
-	KeyEscape     = KeyESC
-	KeyEnter      = KeyCR
+	KeyBackspace = KeyBS
+	KeyTab       = KeyTAB
+	KeyEsc       = KeyESC
+	KeyEscape    = KeyESC
+	KeyEnter     = KeyCR
+
+	// NB: This key will be translated to KeyBackspace
 	KeyBackspace2 = KeyDEL
 )

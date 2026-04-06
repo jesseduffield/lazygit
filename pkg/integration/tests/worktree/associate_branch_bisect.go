@@ -30,7 +30,7 @@ var AssociateBranchBisect = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains("mybranch").IsSelected(),
-				Contains("newbranch (worktree)"),
+				Contains("newbranch (worktree linked-worktree)"),
 			)
 
 		// start a bisect on the main worktree
@@ -70,7 +70,7 @@ var AssociateBranchBisect = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("newbranch").IsSelected(),
-				Contains("mybranch (worktree)"),
+				Contains("mybranch (worktree repo)"),
 			)
 
 		// switch back to main worktree

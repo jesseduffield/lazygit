@@ -16,6 +16,10 @@ type PatchExplorerContext struct {
 	getIncludedLineIndices func() []int
 	c                      *ContextCommon
 	mutex                  deadlock.Mutex
+
+	// true if we're inside the OnSelectItem callback; in that case we don't want to update the
+	// search result index.
+	inOnSelectItemCallback bool
 }
 
 var (
@@ -48,15 +52,6 @@ func NewPatchExplorerContext(
 		})),
 		SearchTrait: NewSearchTrait(c),
 	}
-
-	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(
-		func(selectedLineIdx int) error {
-			ctx.GetMutex().Lock()
-			defer ctx.GetMutex().Unlock()
-			ctx.NavigateTo(selectedLineIdx)
-			return nil
-		}),
-	)
 
 	ctx.SetHandleRenderFunc(ctx.OnViewWidthChanged)
 
@@ -113,6 +108,10 @@ func (self *PatchExplorerContext) FocusSelection() {
 	// As far as the view is concerned, we are always selecting a range
 	view.SetRangeSelectStart(startIdx)
 	view.SetCursorY(endIdx - newOriginY)
+
+	if !self.inOnSelectItemCallback {
+		view.SetNearestSearchPosition()
+	}
 }
 
 func (self *PatchExplorerContext) GetContentToRender() string {
@@ -136,6 +135,14 @@ func (self *PatchExplorerContext) GetMutex() *deadlock.Mutex {
 
 func (self *PatchExplorerContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
 	return nil
+}
+
+func (self *PatchExplorerContext) OnSearchSelect(selectedLineIdx int) {
+	self.GetMutex().Lock()
+	defer self.GetMutex().Unlock()
+	self.inOnSelectItemCallback = true
+	self.NavigateTo(selectedLineIdx)
+	self.inOnSelectItemCallback = false
 }
 
 func (self *PatchExplorerContext) OnViewWidthChanged() {

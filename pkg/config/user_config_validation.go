@@ -19,6 +19,10 @@ func (config *UserConfig) Validate() error {
 		[]string{"none", "onlyArrow", "arrowAndNumber"}); err != nil {
 		return err
 	}
+	if err := validateEnum("gui.fileTreeSortOrder", config.Gui.FileTreeSortOrder,
+		[]string{"mixed", "filesFirst", "foldersFirst"}); err != nil {
+		return err
+	}
 	if err := validateEnum("git.autoForwardBranches", config.Git.AutoForwardBranches,
 		[]string{"none", "onlyMainBranches", "allBranches"}); err != nil {
 		return err
@@ -136,11 +140,28 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 				return err
 			}
 		} else {
+			for _, prompt := range customCommand.Prompts {
+				if err := validateCustomCommandPrompt(prompt); err != nil {
+					return err
+				}
+			}
+
 			if err := validateEnum("customCommand.output", customCommand.Output,
 				[]string{"", "none", "terminal", "log", "logWithPty", "popup"}); err != nil {
 				return err
 			}
 		}
 	}
+	return nil
+}
+
+func validateCustomCommandPrompt(prompt CustomCommandPrompt) error {
+	for _, option := range prompt.Options {
+		if !isValidKeybindingKey(option.Key) {
+			return fmt.Errorf("Unrecognized key '%s' for custom command prompt option. For permitted values see %s",
+				option.Key, constants.Links.Docs.CustomKeybindings)
+		}
+	}
+
 	return nil
 }

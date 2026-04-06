@@ -24,6 +24,7 @@ package dynamic
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -126,7 +127,7 @@ func (tc *termcap) setupterm(name string) error {
 	tc.nums = make(map[string]int)
 
 	if err := cmd.Run(); err != nil {
-		return err
+		return fmt.Errorf("couldn't open terminfo ($TERM) file for %s: %w", name, err)
 	}
 
 	// Now parse the output.
@@ -144,9 +145,7 @@ func (tc *termcap) setupterm(name string) error {
 		lines = lines[:len(lines)-1]
 	}
 	header := lines[0]
-	if strings.HasSuffix(header, ",") {
-		header = header[:len(header)-1]
-	}
+	header = strings.TrimSuffix(header, ",")
 	names := strings.Split(header, "|")
 	tc.name = names[0]
 	names = names[1:]
@@ -193,7 +192,6 @@ func LoadTerminfo(name string) (*terminfo.Terminfo, string, error) {
 	t.Colors = tc.getnum("colors")
 	t.Columns = tc.getnum("cols")
 	t.Lines = tc.getnum("lines")
-	t.Bell = tc.getstr("bel")
 	t.Clear = tc.getstr("clear")
 	t.EnterCA = tc.getstr("smcup")
 	t.ExitCA = tc.getstr("rmcup")
@@ -211,166 +209,11 @@ func LoadTerminfo(name string) (*terminfo.Terminfo, string, error) {
 	t.SetFg = tc.getstr("setaf")
 	t.SetBg = tc.getstr("setab")
 	t.SetCursor = tc.getstr("cup")
-	t.CursorBack1 = tc.getstr("cub1")
-	t.CursorUp1 = tc.getstr("cuu1")
-	t.KeyF1 = tc.getstr("kf1")
-	t.KeyF2 = tc.getstr("kf2")
-	t.KeyF3 = tc.getstr("kf3")
-	t.KeyF4 = tc.getstr("kf4")
-	t.KeyF5 = tc.getstr("kf5")
-	t.KeyF6 = tc.getstr("kf6")
-	t.KeyF7 = tc.getstr("kf7")
-	t.KeyF8 = tc.getstr("kf8")
-	t.KeyF9 = tc.getstr("kf9")
-	t.KeyF10 = tc.getstr("kf10")
-	t.KeyF11 = tc.getstr("kf11")
-	t.KeyF12 = tc.getstr("kf12")
-	t.KeyF13 = tc.getstr("kf13")
-	t.KeyF14 = tc.getstr("kf14")
-	t.KeyF15 = tc.getstr("kf15")
-	t.KeyF16 = tc.getstr("kf16")
-	t.KeyF17 = tc.getstr("kf17")
-	t.KeyF18 = tc.getstr("kf18")
-	t.KeyF19 = tc.getstr("kf19")
-	t.KeyF20 = tc.getstr("kf20")
-	t.KeyF21 = tc.getstr("kf21")
-	t.KeyF22 = tc.getstr("kf22")
-	t.KeyF23 = tc.getstr("kf23")
-	t.KeyF24 = tc.getstr("kf24")
-	t.KeyF25 = tc.getstr("kf25")
-	t.KeyF26 = tc.getstr("kf26")
-	t.KeyF27 = tc.getstr("kf27")
-	t.KeyF28 = tc.getstr("kf28")
-	t.KeyF29 = tc.getstr("kf29")
-	t.KeyF30 = tc.getstr("kf30")
-	t.KeyF31 = tc.getstr("kf31")
-	t.KeyF32 = tc.getstr("kf32")
-	t.KeyF33 = tc.getstr("kf33")
-	t.KeyF34 = tc.getstr("kf34")
-	t.KeyF35 = tc.getstr("kf35")
-	t.KeyF36 = tc.getstr("kf36")
-	t.KeyF37 = tc.getstr("kf37")
-	t.KeyF38 = tc.getstr("kf38")
-	t.KeyF39 = tc.getstr("kf39")
-	t.KeyF40 = tc.getstr("kf40")
-	t.KeyF41 = tc.getstr("kf41")
-	t.KeyF42 = tc.getstr("kf42")
-	t.KeyF43 = tc.getstr("kf43")
-	t.KeyF44 = tc.getstr("kf44")
-	t.KeyF45 = tc.getstr("kf45")
-	t.KeyF46 = tc.getstr("kf46")
-	t.KeyF47 = tc.getstr("kf47")
-	t.KeyF48 = tc.getstr("kf48")
-	t.KeyF49 = tc.getstr("kf49")
-	t.KeyF50 = tc.getstr("kf50")
-	t.KeyF51 = tc.getstr("kf51")
-	t.KeyF52 = tc.getstr("kf52")
-	t.KeyF53 = tc.getstr("kf53")
-	t.KeyF54 = tc.getstr("kf54")
-	t.KeyF55 = tc.getstr("kf55")
-	t.KeyF56 = tc.getstr("kf56")
-	t.KeyF57 = tc.getstr("kf57")
-	t.KeyF58 = tc.getstr("kf58")
-	t.KeyF59 = tc.getstr("kf59")
-	t.KeyF60 = tc.getstr("kf60")
-	t.KeyF61 = tc.getstr("kf61")
-	t.KeyF62 = tc.getstr("kf62")
-	t.KeyF63 = tc.getstr("kf63")
-	t.KeyF64 = tc.getstr("kf64")
-	t.KeyInsert = tc.getstr("kich1")
-	t.KeyDelete = tc.getstr("kdch1")
-	t.KeyBackspace = tc.getstr("kbs")
-	t.KeyHome = tc.getstr("khome")
-	t.KeyEnd = tc.getstr("kend")
-	t.KeyUp = tc.getstr("kcuu1")
-	t.KeyDown = tc.getstr("kcud1")
-	t.KeyRight = tc.getstr("kcuf1")
-	t.KeyLeft = tc.getstr("kcub1")
-	t.KeyPgDn = tc.getstr("knp")
-	t.KeyPgUp = tc.getstr("kpp")
-	t.KeyBacktab = tc.getstr("kcbt")
-	t.KeyExit = tc.getstr("kext")
-	t.KeyCancel = tc.getstr("kcan")
-	t.KeyPrint = tc.getstr("kprt")
-	t.KeyHelp = tc.getstr("khlp")
-	t.KeyClear = tc.getstr("kclr")
 	t.AltChars = tc.getstr("acsc")
 	t.EnterAcs = tc.getstr("smacs")
 	t.ExitAcs = tc.getstr("rmacs")
 	t.EnableAcs = tc.getstr("enacs")
 	t.Mouse = tc.getstr("kmous")
-	t.KeyShfRight = tc.getstr("kRIT")
-	t.KeyShfLeft = tc.getstr("kLFT")
-	t.KeyShfHome = tc.getstr("kHOM")
-	t.KeyShfEnd = tc.getstr("kEND")
-
-	// Terminfo lacks descriptions for a bunch of modified keys,
-	// but modern XTerm and emulators often have them.  Let's add them,
-	// if the shifted right and left arrows are defined.
-	if t.KeyShfRight == "\x1b[1;2C" && t.KeyShfLeft == "\x1b[1;2D" {
-		t.Modifiers = terminfo.ModifiersXTerm
-
-		t.KeyShfUp = "\x1b[1;2A"
-		t.KeyShfDown = "\x1b[1;2B"
-		t.KeyMetaUp = "\x1b[1;9A"
-		t.KeyMetaDown = "\x1b[1;9B"
-		t.KeyMetaRight = "\x1b[1;9C"
-		t.KeyMetaLeft = "\x1b[1;9D"
-		t.KeyAltUp = "\x1b[1;3A"
-		t.KeyAltDown = "\x1b[1;3B"
-		t.KeyAltRight = "\x1b[1;3C"
-		t.KeyAltLeft = "\x1b[1;3D"
-		t.KeyCtrlUp = "\x1b[1;5A"
-		t.KeyCtrlDown = "\x1b[1;5B"
-		t.KeyCtrlRight = "\x1b[1;5C"
-		t.KeyCtrlLeft = "\x1b[1;5D"
-		t.KeyAltShfUp = "\x1b[1;4A"
-		t.KeyAltShfDown = "\x1b[1;4B"
-		t.KeyAltShfRight = "\x1b[1;4C"
-		t.KeyAltShfLeft = "\x1b[1;4D"
-
-		t.KeyMetaShfUp = "\x1b[1;10A"
-		t.KeyMetaShfDown = "\x1b[1;10B"
-		t.KeyMetaShfRight = "\x1b[1;10C"
-		t.KeyMetaShfLeft = "\x1b[1;10D"
-
-		t.KeyCtrlShfUp = "\x1b[1;6A"
-		t.KeyCtrlShfDown = "\x1b[1;6B"
-		t.KeyCtrlShfRight = "\x1b[1;6C"
-		t.KeyCtrlShfLeft = "\x1b[1;6D"
-
-		t.KeyShfPgUp = "\x1b[5;2~"
-		t.KeyShfPgDn = "\x1b[6;2~"
-	}
-	// And also for Home and End
-	if t.KeyShfHome == "\x1b[1;2H" && t.KeyShfEnd == "\x1b[1;2F" {
-		t.KeyCtrlHome = "\x1b[1;5H"
-		t.KeyCtrlEnd = "\x1b[1;5F"
-		t.KeyAltHome = "\x1b[1;9H"
-		t.KeyAltEnd = "\x1b[1;9F"
-		t.KeyCtrlShfHome = "\x1b[1;6H"
-		t.KeyCtrlShfEnd = "\x1b[1;6F"
-		t.KeyAltShfHome = "\x1b[1;4H"
-		t.KeyAltShfEnd = "\x1b[1;4F"
-		t.KeyMetaShfHome = "\x1b[1;10H"
-		t.KeyMetaShfEnd = "\x1b[1;10F"
-	}
-
-	// And the same thing for rxvt and workalikes (Eterm, aterm, etc.)
-	// It seems that urxvt at least send escaped as ALT prefix for these,
-	// although some places seem to indicate a separate ALT key sesquence.
-	if t.KeyShfRight == "\x1b[c" && t.KeyShfLeft == "\x1b[d" {
-		t.KeyShfUp = "\x1b[a"
-		t.KeyShfDown = "\x1b[b"
-		t.KeyCtrlUp = "\x1b[Oa"
-		t.KeyCtrlDown = "\x1b[Ob"
-		t.KeyCtrlRight = "\x1b[Oc"
-		t.KeyCtrlLeft = "\x1b[Od"
-	}
-	if t.KeyShfHome == "\x1b[7$" && t.KeyShfEnd == "\x1b[8$" {
-		t.KeyCtrlHome = "\x1b[7^"
-		t.KeyCtrlEnd = "\x1b[8^"
-	}
 
 	// Technically the RGB flag that is provided for xterm-direct is not
 	// quite right.  The problem is that the -direct flag that was introduced

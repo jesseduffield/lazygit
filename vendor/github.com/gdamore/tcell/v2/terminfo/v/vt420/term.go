@@ -1,4 +1,7 @@
-// Generated automatically.  DO NOT HAND-EDIT.
+// This file was originally generated automatically,
+// but it is edited to correct for errors in the VT420
+// terminfo data.  Additionally we have added extended
+// information for the extended F-keys.
 
 package vt420
 
@@ -11,7 +14,6 @@ func init() {
 		Name:              "vt420",
 		Columns:           80,
 		Lines:             24,
-		Bell:              "\a",
 		Clear:             "\x1b[H\x1b[2J$<50>",
 		ShowCursor:        "\x1b[?25h",
 		HideCursor:        "\x1b[?25l",
@@ -30,27 +32,6 @@ func init() {
 		EnableAutoMargin:  "\x1b[?7h",
 		DisableAutoMargin: "\x1b[?7l",
 		SetCursor:         "\x1b[%i%p1%d;%p2%dH$<10>",
-		CursorBack1:       "\b",
-		CursorUp1:         "\x1b[A",
-		KeyUp:             "\x1b[A",
-		KeyDown:           "\x1b[B",
-		KeyRight:          "\x1b[C",
-		KeyLeft:           "\x1b[D",
-		KeyInsert:         "\x1b[2~",
-		KeyDelete:         "\x1b[3~",
-		KeyBackspace:      "\b",
-		KeyPgUp:           "\x1b[5~",
-		KeyPgDn:           "\x1b[6~",
-		KeyF1:             "\x1bOP",
-		KeyF2:             "\x1bOQ",
-		KeyF3:             "\x1bOR",
-		KeyF4:             "\x1bOS",
-		KeyF5:             "\x1b[17~",
-		KeyF6:             "\x1b[18~",
-		KeyF7:             "\x1b[19~",
-		KeyF8:             "\x1b[20~",
-		KeyF9:             "\x1b[21~",
-		KeyF10:            "\x1b[29~",
 		AutoMargin:        true,
 	})
 }

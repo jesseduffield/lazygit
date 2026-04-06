@@ -356,11 +356,18 @@ outer:
 		}
 
 		if b[0] < 0x80 {
-			mod := ModNone
 			// No encodings start with low numbered values
-			if Key(b[0]) >= KeyCtrlA && Key(b[0]) <= KeyCtrlZ {
-				mod = ModCtrl
+			if b[0] > 0 && b[0] < ' ' { // control keys
+				switch Key(b[0]) {
+				case KeyESC, KeyEnter, KeyTAB:
+					s.postEvent(NewEventKey(Key(b[0]), 0, 0))
+					continue;
+				default:
+					s.postEvent(NewEventKey(Key(b[0]), rune(b[0])+'\x60', ModCtrl))
+					continue
+				}
 			}
+			mod := ModNone
 			ev := NewEventKey(Key(b[0]), 0, mod)
 			s.postEvent(ev)
 			b = b[1:]

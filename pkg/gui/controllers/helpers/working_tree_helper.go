@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -71,12 +72,35 @@ func AnyTrackedFilesExceptSubmodules(files []*models.File, submoduleConfigs []*m
 	return lo.SomeBy(files, func(f *models.File) bool { return f.Tracked && !f.IsSubmodule(submoduleConfigs) })
 }
 
+func isContainedInPath(candidate string, path string) bool {
+	return (
+	// If the path is the repo root (appears as "/" in the UI), then all candidates are contained in it
+	path == "." ||
+		// Exact match; will only be true for files
+		candidate == path ||
+		// Match for files within a directory. We need to match the trailing slash to avoid
+		// matching files with longer names.
+		strings.HasPrefix(candidate, path+"/"))
+}
+
+func AnyTrackedFilesInPathExceptSubmodules(path string, files []*models.File, submoduleConfigs []*models.SubmoduleConfig) bool {
+	return lo.SomeBy(files, func(f *models.File) bool {
+		return f.Tracked && isContainedInPath(f.GetPath(), path) && !f.IsSubmodule(submoduleConfigs)
+	})
+}
+
 func (self *WorkingTreeHelper) IsWorkingTreeDirtyExceptSubmodules() bool {
 	return IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
 }
 
 func IsWorkingTreeDirtyExceptSubmodules(files []*models.File, submoduleConfigs []*models.SubmoduleConfig) bool {
 	return AnyStagedFilesExceptSubmodules(files, submoduleConfigs) || AnyTrackedFilesExceptSubmodules(files, submoduleConfigs)
+}
+
+func GetUnstagedFilesExceptSubmodules(files []*models.File, submoduleConfigs []*models.SubmoduleConfig) []string {
+	return lo.FilterMap(files, func(f *models.File, _ int) (string, bool) {
+		return f.Path, f.HasUnstagedChanges && f.Tracked && !f.IsSubmodule(submoduleConfigs)
+	})
 }
 
 func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfig) *models.File {
@@ -90,18 +114,10 @@ func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfi
 }
 
 func (self *WorkingTreeHelper) OpenMergeTool() error {
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.MergeToolTitle,
-		Prompt: self.c.Tr.MergeToolPrompt,
-		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.OpenMergeTool)
-			return self.c.RunSubprocessAndRefresh(
-				self.c.Git().WorkingTree.OpenMergeToolCmdObj(),
-			)
-		},
-	})
-
-	return nil
+	self.c.LogAction(self.c.Tr.Actions.OpenMergeTool)
+	return self.c.RunSubprocessAndRefresh(
+		self.c.Git().WorkingTree.OpenMergeToolCmdObj(),
+	)
 }
 
 func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage string, forceSkipHooks bool) error {

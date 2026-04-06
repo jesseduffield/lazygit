@@ -4,10 +4,6 @@
 
 package gocui
 
-import (
-	"unicode"
-)
-
 // Editor interface must be satisfied by gocui editors.
 type Editor interface {
 	Edit(v *View, key Key, ch rune, mod Modifier) bool
@@ -29,7 +25,10 @@ var DefaultEditor Editor = EditorFunc(SimpleEditor)
 // SimpleEditor is used as the default gocui editor.
 func SimpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
 	switch {
-	case key == KeyBackspace || key == KeyBackspace2:
+	case (key == KeyBackspace || key == KeyBackspace2) && (mod&ModAlt) != 0,
+		key == KeyCtrlW:
+		v.TextArea.BackSpaceWord()
+	case key == KeyBackspace || key == KeyBackspace2 || key == KeyCtrlH:
 		v.TextArea.BackSpaceChar()
 	case key == KeyCtrlD || key == KeyDelete:
 		v.TextArea.DeleteChar()
@@ -37,18 +36,18 @@ func SimpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
 		v.TextArea.MoveCursorDown()
 	case key == KeyArrowUp:
 		v.TextArea.MoveCursorUp()
-	case key == KeyArrowLeft && (mod&ModAlt) != 0:
+	case (key == KeyArrowLeft || ch == 'b') && (mod&ModAlt) != 0:
 		v.TextArea.MoveLeftWord()
-	case key == KeyArrowLeft:
+	case key == KeyArrowLeft || key == KeyCtrlB:
 		v.TextArea.MoveCursorLeft()
-	case key == KeyArrowRight && (mod&ModAlt) != 0:
+	case (key == KeyArrowRight || ch == 'f') && (mod&ModAlt) != 0:
 		v.TextArea.MoveRightWord()
-	case key == KeyArrowRight:
+	case key == KeyArrowRight || key == KeyCtrlF:
 		v.TextArea.MoveCursorRight()
 	case key == KeyEnter:
-		v.TextArea.TypeRune('\n')
+		v.TextArea.TypeCharacter("\n")
 	case key == KeySpace:
-		v.TextArea.TypeRune(' ')
+		v.TextArea.TypeCharacter(" ")
 	case key == KeyInsert:
 		v.TextArea.ToggleOverwrite()
 	case key == KeyCtrlU:
@@ -63,8 +62,8 @@ func SimpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
 		v.TextArea.BackSpaceWord()
 	case key == KeyCtrlY:
 		v.TextArea.Yank()
-	case unicode.IsPrint(ch):
-		v.TextArea.TypeRune(ch)
+	case ch != 0:
+		v.TextArea.TypeCharacter(string(ch))
 	default:
 		return false
 	}

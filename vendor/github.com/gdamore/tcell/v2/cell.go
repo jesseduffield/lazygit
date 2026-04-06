@@ -1,4 +1,4 @@
-// Copyright 2024 The TCell Authors
+// Copyright 2025 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -15,21 +15,28 @@
 package tcell
 
 import (
-	"os"
-	"reflect"
-
-	runewidth "github.com/mattn/go-runewidth"
+	"github.com/rivo/uniseg"
 )
 
 type cell struct {
-	currMain  rune
-	currComb  []rune
+	currStr   string
+	lastStr   string
 	currStyle Style
-	lastMain  rune
 	lastStyle Style
-	lastComb  []rune
 	width     int
 	lock      bool
+}
+
+func (c *cell) setDirty(dirty bool) {
+	if dirty {
+		c.lastStr = ""
+	} else {
+		if c.currStr == "" {
+			c.currStr = " "
+		}
+		c.lastStr = c.currStr
+		c.lastStyle = c.currStyle
+	}
 }
 
 // CellBuffer represents a two-dimensional array of character cells.
@@ -48,28 +55,47 @@ type CellBuffer struct {
 // and style) for a cell at a given location.  If the background or
 // foreground of the style is set to ColorNone, then the respective
 // color is left un changed.
-func (cb *CellBuffer) SetContent(x int, y int,
-	mainc rune, combc []rune, style Style,
-) {
+//
+// Deprecated: Use Put instead, which this is implemented in terms of.
+func (cb *CellBuffer) SetContent(x int, y int, mainc rune, combc []rune, style Style) {
+	cb.Put(x, y, string(append([]rune{mainc}, combc...)), style)
+}
+
+// Put a single styled grapheme using the given string and style
+// at the same location.  Note that only the first grapheme in the string
+// will bre displayed, using only the 1 or 2 (depending on width) cells
+// located at x, y. It returns the rest of the string, and the width used.
+func (cb *CellBuffer) Put(x int, y int, str string, style Style) (string, int) {
+	var width int = 0
 	if x >= 0 && y >= 0 && x < cb.w && y < cb.h {
+		var cl string
 		c := &cb.cells[(y*cb.w)+x]
+		state := -1
+		for width == 0 && str != "" {
+			var g string
+			g, str, width, state = uniseg.FirstGraphemeClusterInString(str, state)
+			cl += g
+			if g == "" {
+				break
+			}
+		}
 
 		// Wide characters: we want to mark the "wide" cells
 		// dirty as well as the base cell, to make sure we consider
 		// both cells as dirty together.  We only need to do this
 		// if we're changing content
-		if (c.width > 0) && (mainc != c.currMain || len(combc) != len(c.currComb) || (len(combc) > 0 && !reflect.DeepEqual(combc, c.currComb))) {
-			for i := 0; i < c.width; i++ {
+		if width > 0 && cl != c.currStr {
+			// Prevent unnecessary boundchecks for first cell, since we already
+			// received that one.
+			c.setDirty(true)
+			for i := 1; i < width; i++ {
 				cb.SetDirty(x+i, y, true)
 			}
 		}
 
-		c.currComb = append([]rune{}, combc...)
+		c.currStr = cl
+		c.width = width
 
-		if c.currMain != mainc {
-			c.width = runewidth.RuneWidth(mainc)
-		}
-		c.currMain = mainc
 		if style.fg == ColorNone {
 			style.fg = c.currStyle.fg
 		}
@@ -78,23 +104,45 @@ func (cb *CellBuffer) SetContent(x int, y int,
 		}
 		c.currStyle = style
 	}
+	return str, width
+}
+
+// Get the contents of a character cell (or two adjacent cells), including the
+// the style and the display width in cells.  (The width can be either 1, normally,
+// or 2 for East Asian full-width characters.  If the width is 0, then the cell is
+// is empty.)
+func (cb *CellBuffer) Get(x, y int) (string, Style, int) {
+	var style Style
+	var width int
+	var str string
+	if x >= 0 && y >= 0 && x < cb.w && y < cb.h {
+		c := &cb.cells[(y*cb.w)+x]
+		str, style = c.currStr, c.currStyle
+		if width = c.width; width == 0 || str == "" {
+			width = 1
+			str = " "
+		}
+	}
+	return str, style, width
 }
 
 // GetContent returns the contents of a character cell, including the
 // primary rune, any combining character runes (which will usually be
 // nil), the style, and the display width in cells.  (The width can be
 // either 1, normally, or 2 for East Asian full-width characters.)
+//
+// Deprecated: Use Get, which this implemented in terms of.
 func (cb *CellBuffer) GetContent(x, y int) (rune, []rune, Style, int) {
-	var mainc rune
-	var combc []rune
 	var style Style
 	var width int
-	if x >= 0 && y >= 0 && x < cb.w && y < cb.h {
-		c := &cb.cells[(y*cb.w)+x]
-		mainc, combc, style = c.currMain, c.currComb, c.currStyle
-		if width = c.width; width == 0 || mainc < ' ' {
-			width = 1
-			mainc = ' '
+	var mainc rune
+	var combc []rune
+	str, style, width := cb.Get(x, y)
+	for i, r := range str {
+		if i == 0 {
+			mainc = r
+		} else {
+			combc = append(combc, r)
 		}
 	}
 	return mainc, combc, style, width
@@ -108,7 +156,7 @@ func (cb *CellBuffer) Size() (int, int) {
 // Invalidate marks all characters within the buffer as dirty.
 func (cb *CellBuffer) Invalidate() {
 	for i := range cb.cells {
-		cb.cells[i].lastMain = rune(0)
+		cb.cells[i].lastStr = ""
 	}
 }
 
@@ -121,22 +169,11 @@ func (cb *CellBuffer) Dirty(x, y int) bool {
 		if c.lock {
 			return false
 		}
-		if c.lastMain == rune(0) {
-			return true
-		}
-		if c.lastMain != c.currMain {
-			return true
-		}
 		if c.lastStyle != c.currStyle {
 			return true
 		}
-		if len(c.lastComb) != len(c.currComb) {
+		if c.lastStr != c.currStr {
 			return true
-		}
-		for i := range c.lastComb {
-			if c.lastComb[i] != c.currComb[i] {
-				return true
-			}
 		}
 	}
 	return false
@@ -148,16 +185,7 @@ func (cb *CellBuffer) Dirty(x, y int) bool {
 func (cb *CellBuffer) SetDirty(x, y int, dirty bool) {
 	if x >= 0 && y >= 0 && x < cb.w && y < cb.h {
 		c := &cb.cells[(y*cb.w)+x]
-		if dirty {
-			c.lastMain = rune(0)
-		} else {
-			if c.currMain == rune(0) {
-				c.currMain = ' '
-			}
-			c.lastMain = c.currMain
-			c.lastComb = c.currComb
-			c.lastStyle = c.currStyle
-		}
+		c.setDirty(dirty)
 	}
 }
 
@@ -203,11 +231,10 @@ func (cb *CellBuffer) Resize(w, h int) {
 		for x := 0; x < w && x < cb.w; x++ {
 			oc := &cb.cells[(y*cb.w)+x]
 			nc := &newc[(y*w)+x]
-			nc.currMain = oc.currMain
-			nc.currComb = oc.currComb
+			nc.currStr = oc.currStr
 			nc.currStyle = oc.currStyle
 			nc.width = oc.width
-			nc.lastMain = rune(0)
+			nc.lastStr = ""
 		}
 	}
 	cb.cells = newc
@@ -223,8 +250,7 @@ func (cb *CellBuffer) Resize(w, h int) {
 func (cb *CellBuffer) Fill(r rune, style Style) {
 	for i := range cb.cells {
 		c := &cb.cells[i]
-		c.currMain = r
-		c.currComb = nil
+		c.currStr = string(r)
 		cs := style
 		if cs.fg == ColorNone {
 			cs.fg = c.currStyle.fg
@@ -234,16 +260,5 @@ func (cb *CellBuffer) Fill(r rune, style Style) {
 		}
 		c.currStyle = cs
 		c.width = 1
-	}
-}
-
-var runeConfig *runewidth.Condition
-
-func init() {
-	// The defaults for the runewidth package are poorly chosen for terminal
-	// applications.  We however will honor the setting in the environment if
-	// it is set.
-	if os.Getenv("RUNEWIDTH_EASTASIAN") == "" {
-		runewidth.DefaultCondition.EastAsianWidth = false
 	}
 }

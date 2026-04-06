@@ -14,25 +14,25 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` @ `` | 打开命令日志菜单 | 查看命令日志的选项，例如显示/隐藏命令日志以及聚焦命令日志 |
 | `` P `` | 推送 | 推送当前分支到它的上游。如果上游未配置，您可以在弹窗中配置上游分支。 |
 | `` p `` | 拉取 | 从当前分支的远程分支获取改动。如果上游未配置，您可以在弹窗中配置上游分支。 |
-| `` ) `` | 提高重命名相似度阈值 | Increase the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
-| `` ( `` | 降低重命名相似度阈值 | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
-| `` } `` | 扩大差异视图中显示的上下文范围 | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
-| `` { `` | 缩小差异视图中显示的上下文范围 | Decrease the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
+| `` ) `` | 提高重命名相似度阈值 | 提高将删除和添加对视为重命名所需的相似度阈值。<br><br>默认值可在配置文件中通过键 'git.renameSimilarityThreshold' 更改。 |
+| `` ( `` | 降低重命名相似度阈值 | 降低将删除和添加对视为重命名所需的相似度阈值。<br><br>默认值可在配置文件中通过键 'git.renameSimilarityThreshold' 更改。 |
+| `` } `` | 扩大差异视图中显示的上下文范围 | 增加差异视图中变更周围显示的上下文量。<br><br>默认值可在配置文件中通过键 'git.diffContextSize' 更改。 |
+| `` { `` | 缩小差异视图中显示的上下文范围 | 减少差异视图中变更周围显示的上下文量。<br><br>默认值可在配置文件中通过键 'git.diffContextSize' 更改。 |
 | `` : `` | 执行 Shell 命令 | 调出可输入shell命令执行的提示符。 |
 | `` <c-p> `` | 查看自定义补丁选项 |  |
 | `` m `` | 查看合并/变基选项 | 查看当前合并或变基的中止、继续、跳过选项 |
-| `` R `` | 刷新 | 刷新git状态(即在后台上运行`git status`,`git branch`等命令以更新面板内容) 不会运行`git fetch` |
+| `` R `` | 刷新 | 刷新Git状态（即在后台运行`git status`、`git branch`等命令以更新面板内容）。此操作不会执行`git fetch`。 |
 | `` + `` | 下一屏模式(正常/半屏/全屏) |  |
 | `` _ `` | 上一屏模式 |  |
-| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
+| `` \| `` | 切换分页器 | 从已配置的分页器列表中选择下一个分页器 |
 | `` <esc> `` | 取消 |  |
 | `` ? `` | 打开菜单 |  |
 | `` <c-s> `` | 查看按路径过滤选项 | 查看用于过滤提交日志的选项，以便仅显示与过滤器匹配的提交。 |
 | `` W `` | 打开 diff 菜单 | 查看与比较两个引用相关的选项，例如与选定的 ref 进行比较，输入要比较的 ref，然后反转比较方向。 |
 | `` <c-e> `` | 打开 diff 菜单 | 查看与比较两个引用相关的选项，例如与选定的 ref 进行比较，输入要比较的 ref，然后反转比较方向。 |
 | `` q `` | 退出 |  |
-| `` <c-z> `` | Suspend the application |  |
-| `` <c-w> `` | 切换是否在差异视图中显示空白字符差异 | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
+| `` <c-z> `` | 挂起应用程序 |  |
+| `` <c-w> `` | 切换是否在差异视图中显示空白字符差异 | 切换是否在差异视图中显示空白字符更改。<br><br>默认值可在配置文件中通过键 'git.ignoreWhitespaceInDiffView' 更改。 |
 | `` z `` | 撤销 | Reflog将用于确定运行哪个git命令来撤消最后一个git命令。这并不包括对工作树的更改，只考虑提交。 |
 | `` Z `` | 重做 | Reflog将用于确定运行哪个git命令来重做上一个git命令。这并不包括对工作树的更改，只考虑提交。 |
 
@@ -53,49 +53,22 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` ] `` | 下一个标签 |  |
 | `` [ `` | 上一个标签 |  |
 
-## Input prompt
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <enter> `` | 确认 |  |
-| `` <esc> `` | 关闭 |  |
-
-## Reflog
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <c-o> `` | 复制提交哈希到剪贴板 |  |
-| `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
-| `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
-| `` o `` | 在浏览器中打开提交 |  |
-| `` n `` | 从提交创建新分支 |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
-| `` g `` | 查看重置选项 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
-| `` C `` | 复制提交(拣选) | 标记提交为已复制。然后，在本地提交视图中，您可以按 `V` (Cherry-Pick) 将已复制的提交粘贴到已检出的分支中。任何时候都可以按 `<esc>` 来取消选择。 |
-| `` <c-r> `` | 重置已拣选(复制)的提交 |  |
-| `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
-| `` * `` | 选择当前分支的提交 |  |
-| `` 0 `` | Focus main view |  |
-| `` <enter> `` | 查看提交 |  |
-| `` w `` | 查看工作区选项 |  |
-| `` / `` | 通过文本过滤当前视图 |  |
-
 ## 子提交
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 复制提交哈希到剪贴板 |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
 | `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
 | `` n `` | 从提交创建新分支 |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` N `` | 移动提交至新分支 | 创建一个新分支，并将当前分支未推送的提交移动到该分支。如果您打算开始新工作但忘记先创建新分支，这会很有用。<br><br>请注意，此操作忽略选择，新分支总是从主分支创建或堆叠在当前分支之上（您可以选择哪种方式）。 |
 | `` g `` | 查看重置选项 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
 | `` C `` | 复制提交(拣选) | 标记提交为已复制。然后，在本地提交视图中，您可以按 `V` (Cherry-Pick) 将已复制的提交粘贴到已检出的分支中。任何时候都可以按 `<esc>` 来取消选择。 |
 | `` <c-r> `` | 重置已拣选(复制)的提交 |  |
 | `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` * `` | 选择当前分支的提交 |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交的文件 |  |
 | `` w `` | 查看工作区选项 |  |
 | `` / `` | 开始搜索 |  |
@@ -124,15 +97,36 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` d `` | 删除 | 删除选定的工作树。这将删除工作树的目录以及 .git 目录中有关工作树的元数据。 |
 | `` / `` | 通过文本过滤当前视图 |  |
 
+## 引用日志
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
+| `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
+| `` o `` | 在浏览器中打开提交 |  |
+| `` n `` | 从提交创建新分支 |  |
+| `` N `` | 移动提交至新分支 | 创建一个新分支，并将当前分支未推送的提交移动到该分支。如果您打算开始新工作但忘记先创建新分支，这会很有用。<br><br>请注意，此操作忽略选择，新分支总是从主分支创建或堆叠在当前分支之上（您可以选择哪种方式）。 |
+| `` g `` | 查看重置选项 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
+| `` C `` | 复制提交(拣选) | 标记提交为已复制。然后，在本地提交视图中，您可以按 `V` (Cherry-Pick) 将已复制的提交粘贴到已检出的分支中。任何时候都可以按 `<esc>` 来取消选择。 |
+| `` <c-r> `` | 重置已拣选(复制)的提交 |  |
+| `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
+| `` * `` | 选择当前分支的提交 |  |
+| `` 0 `` | 聚焦主视图 |  |
+| `` <enter> `` | 查看提交 |  |
+| `` w `` | 查看工作区选项 |  |
+| `` / `` | 通过文本过滤当前视图 |  |
+
 ## 提交
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 复制提交哈希到剪贴板 |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <c-r> `` | 重置已拣选(复制)的提交 |  |
 | `` b `` | 查看二分查找选项 |  |
 | `` s `` | 压缩(Squash) | 将已选提交压缩到该提交之下。这些选定的提交的消息会附加到该提交的消息之下。 |
 | `` f `` | 修正 （fixup） | 将选定的提交合并到其下面的提交中。与压缩类似，但所选提交的消息将被丢弃。 |
+| `` c `` | Set fixup message | Set the message option for the fixup commit. The -C option means to use this commit's message instead of the target commit's message. |
 | `` r `` | 改写提交 | 重写所选提交的消息。 |
 | `` R `` | 使用编辑器重命名提交 |  |
 | `` d `` | 删除提交 | 删除选中的提交。这将通过变基从分支中删除该提交，如果该提交修改的内容依赖于后续的提交，则需要解决合并冲突。 |
@@ -150,16 +144,17 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` t `` | 撤销(Revert) | 为所选提交创建还原提交，这会反向应用所选提交的更改。 |
 | `` T `` | 标签提交 | 创建一个新标签指向所选提交。您可以在弹窗中输入标签名称和描述(可选)。 |
 | `` <c-l> `` | 打开日志菜单 | 查看提交日志的选项，例如更改排序顺序、隐藏 git graph、显示整个 git graph。 |
+| `` G `` | Open pull request in browser |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
 | `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
 | `` n `` | 从提交创建新分支 |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` N `` | 移动提交至新分支 | 创建一个新分支，并将当前分支未推送的提交移动到该分支。如果您打算开始新工作但忘记先创建新分支，这会很有用。<br><br>请注意，此操作忽略选择，新分支总是从主分支创建或堆叠在当前分支之上（您可以选择哪种方式）。 |
 | `` g `` | 查看重置选项 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
 | `` C `` | 复制提交(拣选) | 标记提交为已复制。然后，在本地提交视图中，您可以按 `V` (Cherry-Pick) 将已复制的提交粘贴到已检出的分支中。任何时候都可以按 `<esc>` 来取消选择。 |
 | `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` * `` | 选择当前分支的提交 |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交的文件 |  |
 | `` w `` | 查看工作区选项 |  |
 | `` / `` | 开始搜索 |  |
@@ -178,18 +173,18 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` <c-o> `` | 复制路径到剪贴板 |  |
 | `` y `` | 复制到剪贴板 |  |
 | `` c `` | 检出 | 检出文件 |
-| `` d `` | 删除 | 放弃对此文件的提交变更 |
+| `` d `` | 查看'放弃变更'选项 | 放弃对此文件的提交变更 |
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
-| `` e `` | 编辑 | 使用外部编辑器打开文件 |
+| `` e `` | 编辑(Edit) | 使用外部编辑器打开文件 |
 | `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` <space> `` | 补丁中包含的切换文件 | 切换文件是否包含在自定义补丁中。请参阅 https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches。 |
 | `` a `` | 操作所有文件 | 添加或删除所有提交中的文件到自定义的补丁中。请参阅 https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches。 |
 | `` <enter> `` | 输入文件以将所选行添加到补丁中(或切换目录折叠) | 如果已选择一个文件，则Enter进入该文件，以便您可以向自定义补丁添加/删除单独的行。如果选择了目录，则切换目录。 |
-| `` ` `` | 切换文件树视图 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
+| `` ` `` | 切换文件树视图 | 在平面布局和树布局之间切换文件视图。平面布局在单个列表中显示所有文件路径，树布局按目录分组文件。<br><br>可以在配置文件中使用 'gui.showFileTree' 键更改默认设置。 |
 | `` - `` | 折叠全部文件 | 折叠文件树中的全部目录 |
 | `` = `` | 展开全部文件 | 展开文件树中的全部目录 |
-| `` 0 `` | Focus main view |  |
-| `` / `` | 开始搜索 |  |
+| `` 0 `` | 聚焦主视图 |  |
+| `` / `` | 通过文本过滤当前视图 |  |
 
 ## 文件
 
@@ -204,7 +199,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` A `` | 修补最后一次提交 |  |
 | `` C `` | 使用 Git 编辑器提交变更 |  |
 | `` <c-f> `` | 找到用于修复的基准提交 | 找到您当前变更所基于的提交，以便于修正/改进该提交。这样做可以省去您逐一查看分支提交来确定应该修正/改进哪个提交的麻烦。请参阅文档: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
-| `` e `` | 编辑 | 使用外部编辑器打开文件 |
+| `` e `` | 编辑(Edit) | 使用外部编辑器打开文件 |
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
 | `` i `` | 忽略文件 |  |
 | `` r `` | 刷新文件 |  |
@@ -215,14 +210,14 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` d `` | 查看'放弃变更'选项 | 查看选中文件的放弃变更选项 |
 | `` g `` | 查看上游重置选项 |  |
 | `` D `` | 重置 | 查看工作树的重置选项（例如：清除工作树）。 |
-| `` ` `` | 切换文件树视图 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
+| `` ` `` | 切换文件树视图 | 在平面布局和树布局之间切换文件视图。平面布局在单个列表中显示所有文件路径，树布局按目录分组文件。<br><br>可以在配置文件中使用 'gui.showFileTree' 键更改默认设置。 |
 | `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
-| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
+| `` M `` | 查看合并冲突选项 | 查看用于解决合并冲突的选项。 |
 | `` f `` | 抓取 | 从远程获取变更 |
 | `` - `` | 折叠全部文件 | 折叠文件树中的全部目录 |
 | `` = `` | 展开全部文件 | 展开文件树中的全部目录 |
-| `` 0 `` | Focus main view |  |
-| `` / `` | 开始搜索 |  |
+| `` 0 `` | 聚焦主视图 |  |
+| `` / `` | 通过文本过滤当前视图 |  |
 
 ## 本地分支
 
@@ -232,16 +227,17 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` i `` | 显示 git-flow 选项 |  |
 | `` <space> `` | 检出 | 检出选中的项目 |
 | `` n `` | 新分支 |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` N `` | 移动提交至新分支 | 创建一个新分支，并将当前分支未推送的提交移动到该分支。如果您打算开始新工作但忘记先创建新分支，这会很有用。<br><br>请注意，此操作忽略选择，新分支总是从主分支创建或堆叠在当前分支之上（您可以选择哪种方式）。 |
 | `` o `` | 创建拉取请求 |  |
 | `` O `` | 创建拉取请求选项 |  |
+| `` G `` | Open pull request in browser |  |
 | `` <c-y> `` | 复制拉取请求 URL 到剪贴板 |  |
 | `` c `` | 按名称检出 | 按名称检出。在输入框中，您可以输入'-' 来切换到最后一个分支。 |
-| `` - `` | Checkout previous branch |  |
+| `` - `` | 签出上一个分支 |  |
 | `` F `` | 强制检出 | 强制检出所选分支。这将在检出所选分支之前放弃工作目录中的所有本地更改。 |
 | `` d `` | 删除 | 查看本地/远程分支的删除选项 |
 | `` r `` | 变基 | 将检出的分支变基到所选的分支上。 |
-| `` M `` | 合并到当前检出的分支 | Merge selected branch into currently checked out branch. |
+| `` M `` | 合并到当前检出的分支 | 查看将选中项合并到当前分支的选项(正常合并，压缩合并) |
 | `` f `` | 从上游快进此分支 | 将当前分支直接移动到远程追踪分支的最新提交 |
 | `` T `` | 创建标签 |  |
 | `` s `` | 排序 |  |
@@ -249,7 +245,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` R `` | 重命名分支 |  |
 | `` u `` | 查看上游选项 | 查看与分支上游相关的选项，例如设置/取消设置上游和重置为上游。 |
 | `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | 查看工作区选项 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
@@ -261,11 +257,12 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` <left> `` | 选择上一个区块 |  |
 | `` <right> `` | 选择下一个区块 |  |
 | `` v `` | 切换拖动选择 |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` <c-o> `` | 复制选中文本到剪贴板 |  |
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
 | `` e `` | 编辑文件 | 使用外部编辑器打开文件 |
 | `` <space> `` | 添加/移除 行到补丁 |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | 退出逐行模式 |  |
 | `` / `` | 开始搜索 |  |
 
@@ -280,7 +277,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` P `` | 推送标签 | 推送选择的标签到远端。您将在弹窗中选择一个远端。 |
 | `` g `` | 重置 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
 | `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | 查看工作区选项 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
@@ -290,7 +287,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <tab> `` | 切换到其他面板 | 切换到其他视图（已暂存/未暂存的变更） |
-| `` <esc> `` | Exit back to side panel |  |
+| `` <esc> `` | 退出回到侧边面板 |  |
 | `` / `` | 开始搜索 |  |
 
 ## 正在合并
@@ -306,7 +303,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` z `` | 撤销 | 撤消上次合并冲突解决 |
 | `` e `` | 编辑文件 | 使用外部编辑器打开文件 |
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
-| `` M `` | View merge conflict options | View options for resolving merge conflicts. |
+| `` M `` | 查看合并冲突选项 | 查看用于解决合并冲突的选项。 |
 | `` <esc> `` | 返回文件面板 |  |
 
 ## 正在暂存
@@ -316,7 +313,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` <left> `` | 选择上一个区块 |  |
 | `` <right> `` | 选择下一个区块 |  |
 | `` v `` | 切换拖动选择 |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` <c-o> `` | 复制选中文本到剪贴板 |  |
 | `` <space> `` | 切换暂存状态 | 切换行暂存状态 |
 | `` d `` | 取消变更(git reset) | 当选择未暂存的变更时，使用git reset丢弃该变更。当选择已暂存的变更时，取消暂存该变更 |
@@ -338,7 +335,7 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` mouse wheel down (fn+up) `` | 向下滚动 |  |
 | `` mouse wheel up (fn+down) `` | 向上滚动 |  |
 | `` <tab> `` | 切换到其他面板 | 切换到其他视图（已暂存/未暂存的变更） |
-| `` <esc> `` | Exit back to side panel |  |
+| `` <esc> `` | 退出回到侧边面板 |  |
 | `` / `` | 开始搜索 |  |
 
 ## 状态
@@ -350,7 +347,8 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` u `` | 检查更新 |  |
 | `` <enter> `` | 切换到最近的仓库 |  |
 | `` a `` | 显示/循环所有分支日志 |  |
-| `` 0 `` | Focus main view |  |
+| `` A `` | Show/cycle all branch logs (reverse) |  |
+| `` 0 `` | 聚焦主视图 |  |
 
 ## 确认面板
 
@@ -377,10 +375,17 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` d `` | 删除 | 从贮藏列表中删除该贮藏项 |
 | `` n `` | 新分支 | 从选定的贮藏项创建一个新分支。这是通过 git 检查创建贮藏项的提交，从该提交创建一个新分支，然后将贮藏项作为附加提交应用到新分支来实现的。 |
 | `` r `` | 重命名贮藏 |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交的文件 |  |
 | `` w `` | 查看工作区选项 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
+
+## 输入提示
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | 确认 |  |
+| `` <esc> `` | 关闭 |  |
 
 ## 远程
 
@@ -389,8 +394,9 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` <enter> `` | 查看分支 |  |
 | `` n `` | 添加新的远程仓库 |  |
 | `` d `` | 删除 | 删除选中的远程。从远程跟踪远程分支的任何本地分支都不会受到影响。 |
-| `` e `` | 编辑 | 编辑远程仓库 |
+| `` e `` | 编辑(Edit) | 编辑远程仓库 |
 | `` f `` | 抓取 | 抓取远程仓库 |
+| `` F `` | 添加复刻远程仓库 | 通过替换 origin URL 中的所有者来快速添加复刻远程仓库，并可选择从新远程仓库检出分支。 |
 | `` / `` | 通过文本过滤当前视图 |  |
 
 ## 远程分支
@@ -400,14 +406,14 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` <c-o> `` | 复制分支名称到剪贴板 |  |
 | `` <space> `` | 检出 | 基于当前选中的远程分支检出一个新的本地分支，或者将远程分支作分离的HEAD。 |
 | `` n `` | 新分支 |  |
-| `` M `` | 合并到当前检出的分支 | Merge selected branch into currently checked out branch. |
+| `` M `` | 合并到当前检出的分支 | 查看将选中项合并到当前分支的选项(正常合并，压缩合并) |
 | `` r `` | 变基 | 将检出的分支变基到所选的分支上。 |
 | `` d `` | 删除 | 从远程删除远程分支。 |
 | `` u `` | 设置为上游 | 设置为检出分支的上游 |
 | `` s `` | 排序 |  |
 | `` g `` | 查看重置选项 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
 | `` <c-t> `` | 使用外部差异比较工具(git difftool) |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | 查看工作区选项 |  |
 | `` / `` | 通过文本过滤当前视图 |  |

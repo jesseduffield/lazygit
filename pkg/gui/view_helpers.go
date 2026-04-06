@@ -140,7 +140,7 @@ func (gui *Gui) postRefreshUpdate(c types.Context) {
 		// non-focused views to ensure that an inactive selection is painted
 		// correctly, and that integration tests see the up to date selection
 		// state.
-		c.FocusLine()
+		c.FocusLine(false)
 
 		currentCtx := gui.State.ContextMgr.Current()
 		if currentCtx.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY || currentCtx.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {

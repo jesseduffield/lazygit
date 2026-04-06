@@ -74,6 +74,7 @@ The permitted contexts are:
 | status         | The 'Status' tab                                                                                         |
 | files          | The 'Files' tab                                                                                          |
 | worktrees      | The 'Worktrees' tab                                                                                      |
+| submodules     | The 'Submodules' tab                                                                                     |
 | localBranches  | The 'Local Branches' tab                                                                                 |
 | remotes        | The 'Remotes' tab                                                                                        |
 | remoteBranches | The context you get when pressing enter on a remote in the remotes tab                                   |
@@ -101,6 +102,7 @@ These fields are applicable to all prompts.
 | type              | One of 'input', 'confirm', 'menu', 'menuFromCommand'                                                           | yes        |
 | title             | The title to display in the popup panel                                                        | no         |
 | key | Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command | yes |
+| condition         | A Go template expression; if it resolves to empty string or `false`, the prompt is skipped. See [Conditional prompts](#conditional-prompts) | no |
 
 ### Input
 
@@ -191,6 +193,7 @@ The permitted option fields are:
 | name | The first part of the label | no |
 | description | The second part of the label | no |
 | value | the value that will be used in the command | yes |
+| key | Keybinding to invoke this menu option without needing to navigate to it. Can be a single letter or one of the values from [here](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md) | no |
 
 If an option has no name the value will be displayed to the user in place of the name, so you're allowed to only include the value like so:
 
@@ -231,6 +234,34 @@ customCommands:
             name: 'release branch'
             description: 'branch for a release'
 ```
+
+Here's an example of supplying keybindings for menu options:
+
+```yml
+customCommands:
+  - key: 'a'
+    command: 'echo {{.Form.BranchType | quote}}'
+    context: 'commits'
+    prompts:
+      - type: 'menu'
+        title: 'What kind of branch is it?'
+        key: 'BranchType'
+        options:
+          - value: 'feature'
+            name: 'feature branch'
+            description: 'branch based off develop'
+            key: 'f'
+          - value: 'hotfix'
+            name: 'hotfix branch'
+            description: 'branch based off main for fast bug fixes'
+            key: 'h'
+          - value: 'release'
+            name: 'release branch'
+            description: 'branch for a release'
+            key: 'r'
+```
+
+In this example, pressing 'f', 'h', or 'r' will directly select the corresponding option without needing to navigate to it first.
 
 ### Menu-from-command
 
@@ -289,6 +320,41 @@ Here's an example using a command but not specifying anything else: so each line
         command: 'ls'
 ```
 
+### Conditional prompts
+
+Here's an example of a conditional prompt:
+
+```yml
+customCommands:
+  - key: 'a'
+    context: 'localBranches'
+    prompts:
+      - type: 'menu'
+        title: 'How do you want to create the branch?'
+        key: 'Method'
+        options:
+          - value: 'simple'
+            name: 'Simple'
+            description: 'just a branch name'
+          - value: 'prefix'
+            name: 'With prefix'
+            description: 'with a category prefix'
+      - type: 'menu'
+        title: 'Branch prefix'
+        key: 'Prefix'
+        condition: '{{ eq .Form.Method "prefix" }}'
+        options:
+          - value: 'feature/'
+          - value: 'hotfix/'
+          - value: 'release/'
+      - type: 'input'
+        title: 'Branch name'
+        key: 'Name'
+    command: "git checkout -b '{{.Form.Prefix}}{{.Form.Name}}'"
+```
+
+In this example the 'Branch prefix' menu only appears if the user chose 'With prefix'. Otherwise it is skipped and `.Form.Prefix` defaults to empty string.
+
 ## Placeholder values
 
 Your commands can contain placeholder strings using Go's [template syntax](https://jan.newmarch.name/golang/template/chapter-template.html). The template syntax is pretty powerful, letting you do things like conditionals if you want, but for the most part you'll simply want to be accessing the fields on the following objects:
@@ -298,6 +364,7 @@ SelectedCommit
 SelectedCommitRange
 SelectedFile
 SelectedPath
+SelectedSubmodule
 SelectedLocalBranch
 SelectedRemoteBranch
 SelectedRemote

@@ -325,6 +325,7 @@ func (self *CommitLoader) getHydratedTodoCommits(hashPool *utils.StringPool, tod
 			hydratedCommits = append(hydratedCommits, rebasingCommit)
 		} else if commit := findFullCommit(rebasingCommit.Hash()); commit != nil {
 			commit.Action = rebasingCommit.Action
+			commit.ActionFlag = rebasingCommit.ActionFlag
 			commit.Status = rebasingCommit.Status
 			hydratedCommits = append(hydratedCommits, commit)
 		}
@@ -371,10 +372,11 @@ func (self *CommitLoader) getRebasingCommits(hashPool *utils.StringPool, addConf
 			continue
 		}
 		commits = utils.Prepend(commits, models.NewCommit(hashPool, models.NewCommitOpts{
-			Hash:   t.Commit,
-			Name:   t.Msg,
-			Status: models.StatusRebasing,
-			Action: t.Command,
+			Hash:       t.Commit,
+			Name:       t.Msg,
+			Status:     models.StatusRebasing,
+			Action:     t.Command,
+			ActionFlag: t.Flag,
 		}))
 	}
 
@@ -575,7 +577,7 @@ func (self *CommitLoader) getReachableHashes(refName string, notRefNames []strin
 	return set.NewFromSlice(utils.SplitLines(output))
 }
 
-// getLog gets the git log.
+// getLogCmd gets the git log.
 func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 	gitLogOrder := self.UserConfig().Git.Log.Order
 

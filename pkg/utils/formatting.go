@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/mattn/go-runewidth"
+	"github.com/rivo/uniseg"
 	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
 )
@@ -27,7 +27,7 @@ func StringWidth(s string) int {
 	// convert the characters to runes, which is unnecessary work in this case.
 	for i := range len(s) {
 		if s[i] > unicode.MaxASCII {
-			return runewidth.StringWidth(s)
+			return uniseg.StringWidth(s)
 		}
 	}
 
@@ -177,10 +177,26 @@ func MaxFn[T any](items []T, fn func(T) int) int {
 
 // TruncateWithEllipsis returns a string, truncated to a certain length, with an ellipsis
 func TruncateWithEllipsis(str string, limit int) string {
-	if StringWidth(str) > limit && limit <= 2 {
+	if StringWidth(str) <= limit {
+		return str
+	}
+	if limit <= 2 {
 		return strings.Repeat(".", limit)
 	}
-	return runewidth.Truncate(str, limit, "…")
+
+	state := -1
+	var grapheme string
+	var width int
+	truncatedStr := ""
+
+	for str != "" {
+		grapheme, str, width, state = uniseg.FirstGraphemeClusterInString(str, state)
+		if uniseg.StringWidth(truncatedStr)+width > limit-1 {
+			break
+		}
+		truncatedStr += grapheme
+	}
+	return truncatedStr + "…"
 }
 
 func SafeTruncate(str string, limit int) string {

@@ -34,14 +34,14 @@ var ResetWindowTabs = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 				Contains("linked-worktree"),
 			).
 			NavigateToLine(Contains("linked-worktree")).
 			Press(keys.Universal.Select).
 			Lines(
 				Contains("linked-worktree").IsSelected(),
-				Contains("repo (main)"),
+				Contains("(main worktree)"),
 			).
 			// navigate back to the branches window
 			Press(keys.Universal.NextBlock)

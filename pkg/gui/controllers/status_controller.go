@@ -63,6 +63,11 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Handler:     func() error { self.switchToOrRotateAllBranchesLogs(); return nil },
 			Description: self.c.Tr.AllBranchesLogGraph,
 		},
+		{
+			Key:         opts.GetKey(opts.Config.Status.AllBranchesLogGraphReverse),
+			Handler:     func() error { self.switchToOrRotateAllBranchesLogsBackward(); return nil },
+			Description: self.c.Tr.AllBranchesLogGraphReverse,
+		},
 	}
 
 	return bindings
@@ -202,6 +207,18 @@ func (self *StatusController) switchToOrRotateAllBranchesLogs() {
 	// the current index (if we are coming from the dashboard).
 	if self.c.Views().Main.Title != self.c.Tr.StatusTitle {
 		self.c.Git().Branch.RotateAllBranchesLogIdx()
+	}
+	self.showAllBranchLogs()
+}
+
+// Switches to the all branches view, or, if already on that view,
+// rotates to the previous command in the list, and then renders it.
+func (self *StatusController) switchToOrRotateAllBranchesLogsBackward() {
+	// A bit of a hack to ensure we only rotate to the previous branch log command
+	// if we currently are looking at a branch log. Otherwise, we should just show
+	// the current index (if we are coming from the dashboard).
+	if self.c.Views().Main.Title != self.c.Tr.StatusTitle {
+		self.c.Git().Branch.RotateAllBranchesLogIdxBackward()
 	}
 	self.showAllBranchLogs()
 }

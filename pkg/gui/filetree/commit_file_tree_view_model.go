@@ -8,6 +8,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -39,6 +41,8 @@ type CommitFileTreeViewModel struct {
 	// we set this to true when you're viewing the files within the checked-out branch's commits.
 	// If you're viewing the files of some random other branch we can't do any rebase stuff.
 	canRebase bool
+
+	searchHistory *utils.HistoryBuffer[string]
 }
 
 var _ ICommitFileTreeViewModel = &CommitFileTreeViewModel{}
@@ -52,6 +56,7 @@ func NewCommitFileTreeViewModel(getFiles func() []*models.CommitFile, common *co
 		ref:             nil,
 		refRange:        nil,
 		canRebase:       false,
+		searchHistory:   utils.NewHistoryBuffer[string](1000),
 	}
 }
 
@@ -202,4 +207,52 @@ func (self *CommitFileTreeViewModel) SelectPath(filepath string, showRootItem bo
 	if found {
 		self.SetSelection(index)
 	}
+}
+
+// IFilterableContext methods
+
+func (self *CommitFileTreeViewModel) SetFilter(filter string, useFuzzySearch bool) {
+	self.ICommitFileTree.SetTextFilter(filter, useFuzzySearch)
+}
+
+func (self *CommitFileTreeViewModel) GetFilter() string {
+	return self.ICommitFileTree.GetTextFilter()
+}
+
+func (self *CommitFileTreeViewModel) ClearFilter() {
+	selectedNode := self.GetSelected()
+	var selectedPath string
+	if selectedNode != nil {
+		selectedPath = selectedNode.GetInternalPath()
+	}
+
+	self.ICommitFileTree.SetTextFilter("", false)
+
+	if selectedPath != "" {
+		self.ExpandToPath(selectedPath)
+		if idx, found := self.GetIndexForPath(selectedPath); found {
+			self.SetSelection(idx)
+			return
+		}
+	}
+	self.ClampSelection()
+}
+
+func (self *CommitFileTreeViewModel) ReApplyFilter(useFuzzySearch bool) {
+	self.ICommitFileTree.SetTextFilter(self.ICommitFileTree.GetTextFilter(), useFuzzySearch)
+}
+
+func (self *CommitFileTreeViewModel) IsFiltering() bool {
+	return self.ICommitFileTree.GetTextFilter() != ""
+}
+
+// used for type switch
+func (self *CommitFileTreeViewModel) IsFilterableContext() {}
+
+func (self *CommitFileTreeViewModel) FilterPrefix(tr *i18n.TranslationSet) string {
+	return tr.FilterPrefix
+}
+
+func (self *CommitFileTreeViewModel) GetSearchHistory() *utils.HistoryBuffer[string] {
+	return self.searchHistory
 }

@@ -26,9 +26,14 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 		},
 	)
 
-	getDisplayStrings := func(_ int, _ int) [][]string {
+	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
+		commits := viewModel.GetItems()
+		if startIdx >= len(commits) {
+			return nil
+		}
+
 		return presentation.GetReflogCommitListDisplayStrings(
-			viewModel.GetItems(),
+			commits[startIdx:endIdx],
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,
@@ -43,18 +48,20 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:                       c.Views().ReflogCommits,
-				WindowName:                 "commits",
-				Key:                        REFLOG_COMMITS_CONTEXT_KEY,
-				Kind:                       types.SIDE_CONTEXT,
-				Focusable:                  true,
-				NeedsRerenderOnWidthChange: types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_SCREEN_MODE_CHANGES,
+				View:                        c.Views().ReflogCommits,
+				WindowName:                  "commits",
+				Key:                         REFLOG_COMMITS_CONTEXT_KEY,
+				Kind:                        types.SIDE_CONTEXT,
+				Focusable:                   true,
+				NeedsRerenderOnWidthChange:  types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_SCREEN_MODE_CHANGES,
+				NeedsRerenderOnHeightChange: true,
 			})),
 			ListRenderer: ListRenderer{
 				list:              viewModel,
 				getDisplayStrings: getDisplayStrings,
 			},
-			c: c,
+			c:                      c,
+			renderOnlyVisibleLines: true,
 		},
 	}
 }

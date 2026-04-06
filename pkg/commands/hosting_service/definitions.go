@@ -4,9 +4,13 @@ package hosting_service
 // at https://regex101.com using the flavor Golang
 var defaultUrlRegexStrings = []string{
 	`^(?:https?|ssh)://[^/]+/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
-	`^.*?@.*:/*(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
+	`^(.*?@)?.*:/*(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 }
-var defaultRepoURLTemplate = "https://{{.webDomain}}/{{.owner}}/{{.repo}}"
+
+var (
+	defaultRepoURLTemplate  = "https://{{.webDomain}}/{{.owner}}/{{.repo}}"
+	defaultRepoNameTemplate = "{{.owner}}/{{.repo}}"
+)
 
 // we've got less type safety using go templates but this lends itself better to
 // users adding custom service definitions in their config
@@ -17,6 +21,7 @@ var githubServiceDef = ServiceDefinition{
 	commitURL:                       "/commit/{{.CommitHash}}",
 	regexStrings:                    defaultUrlRegexStrings,
 	repoURLTemplate:                 defaultRepoURLTemplate,
+	repoNameTemplate:                defaultRepoNameTemplate,
 }
 
 var bitbucketServiceDef = ServiceDefinition{
@@ -28,7 +33,8 @@ var bitbucketServiceDef = ServiceDefinition{
 		`^(?:https?|ssh)://.*/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 		`^.*@.*:/*(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 	},
-	repoURLTemplate: defaultRepoURLTemplate,
+	repoURLTemplate:  defaultRepoURLTemplate,
+	repoNameTemplate: defaultRepoNameTemplate,
 }
 
 var gitLabServiceDef = ServiceDefinition{
@@ -38,6 +44,7 @@ var gitLabServiceDef = ServiceDefinition{
 	commitURL:                       "/-/commit/{{.CommitHash}}",
 	regexStrings:                    defaultUrlRegexStrings,
 	repoURLTemplate:                 defaultRepoURLTemplate,
+	repoNameTemplate:                defaultRepoNameTemplate,
 }
 
 var azdoServiceDef = ServiceDefinition{
@@ -51,7 +58,8 @@ var azdoServiceDef = ServiceDefinition{
 		`^https://.*@dev.azure.com/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`,
 		`^https://.*/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`,
 	},
-	repoURLTemplate: "https://{{.webDomain}}/{{.org}}/{{.project}}/_git/{{.repo}}",
+	repoURLTemplate:  "https://{{.webDomain}}/{{.org}}/{{.project}}/_git/{{.repo}}",
+	repoNameTemplate: "{{.org}}/{{.project}}/{{.repo}}",
 }
 
 var bitbucketServerServiceDef = ServiceDefinition{
@@ -63,11 +71,21 @@ var bitbucketServerServiceDef = ServiceDefinition{
 		`^ssh://git@.*/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
 		`^https://.*/scm/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
 	},
-	repoURLTemplate: "https://{{.webDomain}}/projects/{{.project}}/repos/{{.repo}}",
+	repoURLTemplate:  "https://{{.webDomain}}/projects/{{.project}}/repos/{{.repo}}",
+	repoNameTemplate: "{{.project}}/{{.repo}}",
 }
 
 var giteaServiceDef = ServiceDefinition{
 	provider:                        "gitea",
+	pullRequestURLIntoDefaultBranch: "/compare/{{.From}}",
+	pullRequestURLIntoTargetBranch:  "/compare/{{.To}}...{{.From}}",
+	commitURL:                       "/commit/{{.CommitHash}}",
+	regexStrings:                    defaultUrlRegexStrings,
+	repoURLTemplate:                 defaultRepoURLTemplate,
+}
+
+var codebergServiceDef = ServiceDefinition{
+	provider:                        "codeberg",
 	pullRequestURLIntoDefaultBranch: "/compare/{{.From}}",
 	pullRequestURLIntoTargetBranch:  "/compare/{{.To}}...{{.From}}",
 	commitURL:                       "/commit/{{.CommitHash}}",
@@ -82,6 +100,7 @@ var serviceDefinitions = []ServiceDefinition{
 	azdoServiceDef,
 	bitbucketServerServiceDef,
 	giteaServiceDef,
+	codebergServiceDef,
 }
 
 var defaultServiceDomains = []ServiceDomain{
@@ -109,5 +128,10 @@ var defaultServiceDomains = []ServiceDomain{
 		serviceDefinition: giteaServiceDef,
 		gitDomain:         "try.gitea.io",
 		webDomain:         "try.gitea.io",
+	},
+	{
+		serviceDefinition: codebergServiceDef,
+		gitDomain:         "codeberg.org",
+		webDomain:         "codeberg.org",
 	},
 }

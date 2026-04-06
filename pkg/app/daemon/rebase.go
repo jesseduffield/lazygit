@@ -14,6 +14,7 @@ import (
 type ChangeTodoAction struct {
 	Hash      string
 	NewAction todo.TodoCommand
+	Flag      string
 }
 
 func handleInteractiveRebase(common *common.Common, f func(path string) error) error {

@@ -11,6 +11,10 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
+		// Creating a branch avoids that searching for 't' will unexpectedly match the first commit
+		// (since it finds it in the extra info line, which is "HEAD -> master")
+		shell.NewBranch("branch")
+
 		shell.EmptyCommit("one")
 		shell.EmptyCommit("two")
 		shell.EmptyCommit("three")
@@ -103,6 +107,54 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("three"),
 				Contains("two"),
 				Contains("one").IsSelected(),
+			).
+			NavigateToLine(Contains("three")).
+			Tap(func() {
+				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (1 of 3)"))
+			}).
+			Press("N").
+			Tap(func() {
+				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (1 of 3)"))
+			}).
+			Lines(
+				Contains("four").IsSelected(),
+				Contains("three"),
+				Contains("two"),
+				Contains("one"),
+			).
+			Press(keys.Universal.StartSearch).
+			Tap(func() {
+				t.ExpectSearch().
+					Type("t").
+					Confirm()
+
+				t.Views().Search().IsVisible().Content(Contains("matches for 't' (1 of 2)"))
+			}).
+			Lines(
+				Contains("four"),
+				Contains("three").IsSelected(),
+				Contains("two"),
+				Contains("one"),
+			).
+			SelectPreviousItem().
+			Tap(func() {
+				t.Views().Search().IsVisible().Content(Contains("matches for 't' (1 of 2)"))
+			}).
+			Lines(
+				Contains("four").IsSelected(),
+				Contains("three"),
+				Contains("two"),
+				Contains("one"),
+			).
+			Press("n").
+			Tap(func() {
+				t.Views().Search().IsVisible().Content(Contains("matches for 't' (1 of 2)"))
+			}).
+			Lines(
+				Contains("four"),
+				Contains("three").IsSelected(),
+				Contains("two"),
+				Contains("one"),
 			)
 	},
 })

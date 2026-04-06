@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/go-git/v5/config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -30,7 +29,7 @@ import (
 // can just pull them out of here and put them there and then call them from in here
 
 type BranchLoaderConfigCommands interface {
-	Branches() (map[string]*config.Branch, error)
+	Branches(cmd oscommands.ICmdObjBuilder) map[string]*BranchConfig
 }
 
 type BranchInfo struct {
@@ -119,16 +118,13 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 		branches = utils.Prepend(branches, &models.Branch{Name: info.RefName, DisplayName: info.DisplayName, Head: true, DetachedHead: info.DetachedHead, Recency: "  *"})
 	}
 
-	configBranches, err := self.config.Branches()
-	if err != nil {
-		return nil, err
-	}
+	configBranches := self.config.Branches(self.cmd)
 
 	for _, branch := range branches {
 		match := configBranches[branch.Name]
 		if match != nil {
 			branch.UpstreamRemote = match.Remote
-			branch.UpstreamBranch = match.Merge.Short()
+			branch.UpstreamBranch = match.Merge
 		}
 
 		// If the branch already existed, take over its BehindBaseBranch value

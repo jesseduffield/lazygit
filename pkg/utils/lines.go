@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/mattn/go-runewidth"
+	"github.com/rivo/uniseg"
 )
 
 // SplitLines takes a multiline string and splits it on newlines
@@ -151,7 +151,7 @@ func WrapViewLinesToWidth(wrap bool, editable bool, text string, width int, tabW
 		offset := 0
 		lastWhitespaceIndex := -1
 		for i, currChr := range line {
-			rw := runewidth.RuneWidth(currChr)
+			rw := uniseg.StringWidth(string(currChr))
 			n += rw
 
 			if n > width {
@@ -170,7 +170,7 @@ func WrapViewLinesToWidth(wrap bool, editable bool, text string, width int, tabW
 						appendWrappedLine(line[offset:lastWhitespaceIndex])
 					}
 					offset = lastWhitespaceIndex + 1
-					n = runewidth.StringWidth(line[offset : i+1])
+					n = uniseg.StringWidth(line[offset : i+1])
 				} else {
 					appendWrappedLine(line[offset:i])
 					offset = i

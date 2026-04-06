@@ -85,6 +85,6 @@ func (self *RemoteCommands) GetRemoteURL(remoteName string) (string, error) {
 		Arg("--get-url", remoteName).
 		ToArgv()
 
-	url, err := self.cmd.New(cmdArgs).RunWithOutput()
+	url, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	return strings.TrimSpace(url), err
 }

@@ -116,7 +116,8 @@ func shouldUsePortraitMode(args WindowArrangementArgs) bool {
 	case "always":
 		return true
 	default: // "auto" or any garbage values in PortraitMode value
-		return args.Width <= 84 && args.Height > 45
+		return args.Width <= args.UserConfig.Gui.PortraitModeAutoMaxWidth &&
+			args.Height >= args.UserConfig.Gui.PortraitModeAutoMinHeight
 	}
 }
 

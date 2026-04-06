@@ -77,9 +77,8 @@ var OutsideRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.MarkCommitAsFixup).
 			Tap(func() {
-				t.ExpectPopup().Confirmation().
+				t.ExpectPopup().Menu().
 					Title(Equals("Fixup")).
-					Content(Contains("Are you sure you want to 'fixup' the selected commit(s) into the commit below?")).
 					Confirm()
 			}).
 			TopLines(

@@ -76,9 +76,19 @@ The following types of matches apply a bonus:
 
 Penalties are applied for every character in the search string that wasn't matched and all leading
 characters upto the first match.
+
+Results are sorted by best match.
 */
 func Find(pattern string, data []string) Matches {
 	return FindFrom(pattern, stringSource(data))
+}
+
+/*
+FindNoSort is an alternative Find implementation that does not sort
+the results in the end.
+*/
+func FindNoSort(pattern string, data []string) Matches {
+	return FindFromNoSort(pattern, stringSource(data))
 }
 
 /*
@@ -86,6 +96,16 @@ FindFrom is an alternative implementation of Find using a Source
 instead of a list of strings.
 */
 func FindFrom(pattern string, data Source) Matches {
+	matches := FindFromNoSort(pattern, data)
+	sort.Stable(matches)
+	return matches
+}
+
+/*
+FindFromNoSort is an alternative FindFrom implementation that does
+not sort results in the end.
+*/
+func FindFromNoSort(pattern string, data Source) Matches {
 	if len(pattern) == 0 {
 		return nil
 	}
@@ -181,7 +201,6 @@ func FindFrom(pattern string, data Source) Matches {
 			matchedIndexes = match.MatchedIndexes[:0] // Recycle match index slice
 		}
 	}
-	sort.Stable(matches)
 	return matches
 }
 

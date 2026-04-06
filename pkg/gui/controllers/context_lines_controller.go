@@ -7,24 +7,9 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/samber/lo"
 )
 
 // This controller lets you change the context size for diffs. The 'context' in 'context size' refers to the conventional meaning of the word 'context' in a diff, as opposed to lazygit's own idea of a 'context'.
-
-var CONTEXT_KEYS_SHOWING_DIFFS = []types.ContextKey{
-	context.FILES_CONTEXT_KEY,
-	context.COMMIT_FILES_CONTEXT_KEY,
-	context.STASH_CONTEXT_KEY,
-	context.LOCAL_COMMITS_CONTEXT_KEY,
-	context.SUB_COMMITS_CONTEXT_KEY,
-	context.STAGING_MAIN_CONTEXT_KEY,
-	context.STAGING_SECONDARY_CONTEXT_KEY,
-	context.PATCH_BUILDING_MAIN_CONTEXT_KEY,
-	context.PATCH_BUILDING_SECONDARY_CONTEXT_KEY,
-	context.NORMAL_MAIN_CONTEXT_KEY,
-	context.NORMAL_SECONDARY_CONTEXT_KEY,
-}
 
 type ContextLinesController struct {
 	baseController
@@ -66,39 +51,31 @@ func (self *ContextLinesController) Context() types.Context {
 }
 
 func (self *ContextLinesController) Increase() error {
-	if self.isShowingDiff() {
-		if err := self.checkCanChangeContext(); err != nil {
-			return err
-		}
-
-		if self.c.UserConfig().Git.DiffContextSize < math.MaxUint64 {
-			self.c.UserConfig().Git.DiffContextSize++
-		}
-		return self.applyChange()
+	if err := self.checkCanChangeContext(); err != nil {
+		return err
 	}
 
-	return nil
+	if self.c.UserConfig().Git.DiffContextSize < math.MaxUint64 {
+		self.c.UserConfig().Git.DiffContextSize++
+	}
+	return self.applyChange()
 }
 
 func (self *ContextLinesController) Decrease() error {
-	if self.isShowingDiff() {
-		if err := self.checkCanChangeContext(); err != nil {
-			return err
-		}
-
-		if self.c.UserConfig().Git.DiffContextSize > 0 {
-			self.c.UserConfig().Git.DiffContextSize--
-		}
-		return self.applyChange()
+	if err := self.checkCanChangeContext(); err != nil {
+		return err
 	}
 
-	return nil
+	if self.c.UserConfig().Git.DiffContextSize > 0 {
+		self.c.UserConfig().Git.DiffContextSize--
+	}
+	return self.applyChange()
 }
 
 func (self *ContextLinesController) applyChange() error {
 	self.c.Toast(fmt.Sprintf(self.c.Tr.DiffContextSizeChanged, self.c.UserConfig().Git.DiffContextSize))
 
-	currentContext := self.currentSidePanel()
+	currentContext := self.c.Context().CurrentSide()
 	switch currentContext.GetKey() {
 	// we make an exception for our staging and patch building contexts because they actually need to refresh their state afterwards.
 	case context.PATCH_BUILDING_MAIN_CONTEXT_KEY:
@@ -117,23 +94,4 @@ func (self *ContextLinesController) checkCanChangeContext() error {
 	}
 
 	return nil
-}
-
-func (self *ContextLinesController) isShowingDiff() bool {
-	return lo.Contains(
-		CONTEXT_KEYS_SHOWING_DIFFS,
-		self.currentSidePanel().GetKey(),
-	)
-}
-
-func (self *ContextLinesController) currentSidePanel() types.Context {
-	currentContext := self.c.Context().CurrentStatic()
-	if currentContext.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY ||
-		currentContext.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {
-		if sidePanelContext := self.c.Context().NextInStack(currentContext); sidePanelContext != nil {
-			return sidePanelContext
-		}
-	}
-
-	return currentContext
 }
