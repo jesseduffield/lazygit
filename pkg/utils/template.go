@@ -31,3 +31,15 @@ func ResolvePlaceholderString(str string, arguments map[string]string) string {
 	}
 	return strings.NewReplacer(oldnews...).Replace(str)
 }
+
+// SanitizeTerminalTitle removes control characters from a string intended
+// for use as a terminal title. Control characters (ASCII 0-31 and 127) could
+// break terminal behavior or be used for escape sequence injection.
+func SanitizeTerminalTitle(title string) string {
+	return strings.Map(func(r rune) rune {
+		if r < 32 || r == 127 {
+			return -1 // Remove control characters
+		}
+		return r
+	}, title)
+}
