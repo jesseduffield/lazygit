@@ -792,7 +792,7 @@
     "Remove": "Usuwanie '{{.filename}}'",
     "CreateFileWithContent": "Tworzenie pliku '{{.path}}'",
     "AppendingLineToFile": "Dodawanie '{{.line}}' do pliku '{{.filename}}'",
-    "EditRebaseFromBaseCommit": "Rozpoczynanie interaktywnego rebazowania od '{{.baseCommit}}' na '{{.targetBranchName}}"
+    "EditRebaseFromBaseCommit": "Rozpoczynanie interaktywnego rebazowania od '{{.baseCommit}}' na '{{.targetBranchName}}'"
   },
   "BreakingChangesTitle": "Zmiany przełomowe",
   "BreakingChangesMessage": "Aktualizujesz do nowej wersji lazygit, która zawiera zmiany przełomowe. Proszę przejrzeć poniższe notatki i zaktualizować swoją konfigurację, jeśli jest to konieczne.\nAby uzyskać więcej informacji, zobacz pełne notatki do wydania na <https://github.com/jesseduffield/lazygit/releases>.",

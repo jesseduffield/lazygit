@@ -189,6 +189,7 @@ _Связки клавиш_
 | `` t `` | Revert | Create a revert commit for the selected commit, which applies the selected commit's changes in reverse. |
 | `` T `` | Пометить коммит тегом | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
 | `` <c-l> `` | Открыть меню журнала | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
+| `` G `` | Open pull request in browser |  |
 | `` <space> `` | Переключить | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Открыть коммит в браузере |  |
@@ -214,6 +215,7 @@ _Связки клавиш_
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` o `` | Создать запрос на принятие изменений |  |
 | `` O `` | Создать параметры запроса принятие изменений |  |
+| `` G `` | Open pull request in browser |  |
 | `` <c-y> `` | Скопировать URL запроса на принятие изменений в буфер обмена |  |
 | `` c `` | Переключить по названию | Checkout by name. In the input box you can enter '-' to switch to the previous branch. |
 | `` - `` | Checkout previous branch |  |
