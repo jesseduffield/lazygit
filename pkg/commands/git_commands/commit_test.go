@@ -179,17 +179,19 @@ func TestCommitCommitEditorCmdObj(t *testing.T) {
 
 func TestCommitCreateFixupCommit(t *testing.T) {
 	type scenario struct {
-		testName   string
-		hash       string
-		userConfig *config.UserConfig
-		runner     *oscommands.FakeCmdObjRunner
-		test       func(error)
+		testName        string
+		hash            string
+		originalSubject string
+		userConfig      *config.UserConfig
+		runner          *oscommands.FakeCmdObjRunner
+		test            func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			testName: "valid case",
-			hash:     "12345",
+			testName:        "valid case",
+			hash:            "12345",
+			originalSubject: "some commit",
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"commit", "--fixup=12345"}, "", nil),
 			test: func(err error) {
@@ -197,10 +199,11 @@ func TestCommitCreateFixupCommit(t *testing.T) {
 			},
 		},
 		{
-			testName: "with matching skipHookPrefixes",
-			hash:     "12345",
+			testName:        "with matching skipHookPrefixes for original subject",
+			hash:            "12345",
+			originalSubject: "WIP do stuff",
 			userConfig: &config.UserConfig{
-				Git: config.GitConfig{SkipHookPrefixes: []string{"fixup!"}},
+				Git: config.GitConfig{SkipHookPrefixes: []string{"fixup! WIP"}},
 			},
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"commit", "--no-verify", "--fixup=12345"}, "", nil),
@@ -209,8 +212,9 @@ func TestCommitCreateFixupCommit(t *testing.T) {
 			},
 		},
 		{
-			testName: "with non-matching skipHookPrefixes",
-			hash:     "12345",
+			testName:        "with non-matching skipHookPrefixes",
+			hash:            "12345",
+			originalSubject: "some commit",
 			userConfig: &config.UserConfig{
 				Git: config.GitConfig{SkipHookPrefixes: []string{"WIP"}},
 			},
@@ -221,10 +225,11 @@ func TestCommitCreateFixupCommit(t *testing.T) {
 			},
 		},
 		{
-			testName: "with multiple prefixes including fixup!",
-			hash:     "12345",
+			testName:        "with multiple prefixes including fixup! WIP",
+			hash:            "12345",
+			originalSubject: "WIP my feature",
 			userConfig: &config.UserConfig{
-				Git: config.GitConfig{SkipHookPrefixes: []string{"WIP", "fixup!"}},
+				Git: config.GitConfig{SkipHookPrefixes: []string{"WIP", "fixup! WIP"}},
 			},
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"commit", "--no-verify", "--fixup=12345"}, "", nil),
@@ -237,7 +242,7 @@ func TestCommitCreateFixupCommit(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildCommitCommands(commonDeps{runner: s.runner, userConfig: s.userConfig})
-			s.test(instance.CreateFixupCommit(s.hash))
+			s.test(instance.CreateFixupCommit(s.hash, s.originalSubject))
 			s.runner.CheckForMissingCalls()
 		})
 	}
@@ -283,16 +288,16 @@ func TestCommitCreateAmendCommit(t *testing.T) {
 				ExpectGitArgs([]string{"commit", "-m", "amend! original subject", "-m", "new subject", "--only", "--allow-empty"}, "", nil),
 		},
 		{
-			testName:           "with matching skipHookPrefixes",
+			testName:           "with matching skipHookPrefixes on new subject",
 			originalSubject:    "original subject",
-			newSubject:         "new subject",
+			newSubject:         "WIP new subject",
 			newDescription:     "",
 			includeFileChanges: true,
 			userConfig: &config.UserConfig{
-				Git: config.GitConfig{SkipHookPrefixes: []string{"amend!"}},
+				Git: config.GitConfig{SkipHookPrefixes: []string{"WIP"}},
 			},
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"commit", "--no-verify", "-m", "amend! original subject", "-m", "new subject"}, "", nil),
+				ExpectGitArgs([]string{"commit", "--no-verify", "-m", "amend! original subject", "-m", "WIP new subject"}, "", nil),
 		},
 		{
 			testName:           "with non-matching skipHookPrefixes",
@@ -307,16 +312,16 @@ func TestCommitCreateAmendCommit(t *testing.T) {
 				ExpectGitArgs([]string{"commit", "-m", "amend! original subject", "-m", "new subject"}, "", nil),
 		},
 		{
-			testName:           "with multiple prefixes including amend!",
-			originalSubject:    "original subject",
-			newSubject:         "new subject",
+			testName:           "renaming WIP commit to non-WIP runs hooks",
+			originalSubject:    "WIP my feature",
+			newSubject:         "Implement my feature",
 			newDescription:     "",
 			includeFileChanges: true,
 			userConfig: &config.UserConfig{
-				Git: config.GitConfig{SkipHookPrefixes: []string{"WIP", "amend!"}},
+				Git: config.GitConfig{SkipHookPrefixes: []string{"WIP"}},
 			},
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"commit", "--no-verify", "-m", "amend! original subject", "-m", "new subject"}, "", nil),
+				ExpectGitArgs([]string{"commit", "-m", "amend! WIP my feature", "-m", "Implement my feature"}, "", nil),
 		},
 	}
 

@@ -292,9 +292,9 @@ func (self *CommitCommands) Revert(hashes []string, isMerge bool) error {
 }
 
 // CreateFixupCommit creates a commit that fixes up a previous commit
-func (self *CommitCommands) CreateFixupCommit(hash string) error {
+func (self *CommitCommands) CreateFixupCommit(hash string, originalSubject string) error {
 	cmdArgs := NewGitCmd("commit").
-		ArgIf(self.hasSkipHookPrefix("fixup! "), "--no-verify").
+		ArgIf(self.hasSkipHookPrefix("fixup! "+originalSubject), "--no-verify").
 		Arg("--fixup=" + hash).
 		ToArgv()
 
@@ -308,7 +308,7 @@ func (self *CommitCommands) CreateAmendCommit(originalSubject, newSubject, newDe
 		description += "\n\n" + newDescription
 	}
 	cmdArgs := NewGitCmd("commit").
-		ArgIf(self.hasSkipHookPrefix("amend! "), "--no-verify").
+		ArgIf(self.hasSkipHookPrefix(newSubject), "--no-verify").
 		Arg("-m", "amend! "+originalSubject).
 		Arg("-m", description).
 		ArgIf(!includeFileChanges, "--only", "--allow-empty").
