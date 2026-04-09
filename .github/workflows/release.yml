@@ -65,8 +65,10 @@ jobs:
           echo "latest_tag=$latest_tag" >> $GITHUB_ENV
 
       - name: Check for changes since last release
+        env:
+          LATEST_TAG: ${{ env.latest_tag }}
         run: |
-          if [ -z "$(git diff --name-only ${{ env.latest_tag }})" ]; then
+          if [ -z "$(git diff --name-only "$LATEST_TAG")" ]; then
             echo "No changes detected since last release"
             exit 1
           fi
@@ -110,12 +112,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.LAZYGIT_RELEASE_PAT }}
 
       - name: Calculate next version
+        env:
+          LATEST_TAG: ${{ env.latest_tag }}
+          EVENT_NAME: ${{ github.event_name }}
+          VERSION_BUMP: ${{ inputs.version_bump }}
         run: |
-          echo "Latest tag: ${{ env.latest_tag }}"
-          IFS='.' read -r major minor patch <<< "${{ env.latest_tag }}"
+          echo "Latest tag: $LATEST_TAG"
+          IFS='.' read -r major minor patch <<< "$LATEST_TAG"
 
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            if [[ "${{ inputs.version_bump }}" == "patch" ]]; then
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            if [[ "$VERSION_BUMP" == "patch" ]]; then
               patch=$((patch + 1))
             else
               minor=$((minor + 1))
@@ -138,13 +144,14 @@ jobs:
           echo "new_tag=$new_tag" >> $GITHUB_ENV
 
       - name: Create and Push Tag
+        env:
+          NEW_TAG: ${{ env.new_tag }}
+          GITHUB_TOKEN: ${{ secrets.LAZYGIT_RELEASE_PAT }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag ${{ env.new_tag }} -a -m "Release ${{ env.new_tag }}"
-          git push origin ${{ env.new_tag }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.LAZYGIT_RELEASE_PAT }}
+          git tag "$NEW_TAG" -a -m "Release $NEW_TAG"
+          git push origin "$NEW_TAG"
 
       - name: Setup Go
         uses: actions/setup-go@v6
