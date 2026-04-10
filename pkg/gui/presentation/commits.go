@@ -439,7 +439,19 @@ func displayCommit(
 	}
 	author := authors.AuthorWithLength(commit.AuthorName, authorLength)
 
-	cols := make([]string, 0, 7)
+	signatureIndicator := ""
+	if common.UserConfig().Gui.ShowCommitSignature {
+		switch commit.SignatureStatus {
+		case models.GitSignatureStatusUnknown:
+			// Leave blank (e.g. synthetic commits like TODO entries)
+		case models.GitSignatureStatusNone:
+			signatureIndicator = style.FgRed.SetBold().Sprint(lo.Ternary(icons.IsIconEnabled(), icons.UNSIGNED_COMMIT_ICON, "U"))
+		default:
+			signatureIndicator = style.FgGreen.SetBold().Sprint(lo.Ternary(icons.IsIconEnabled(), icons.SIGNED_COMMIT_ICON, "S"))
+		}
+	}
+
+	cols := make([]string, 0, 8)
 	cols = append(
 		cols,
 		divergenceString,
@@ -448,6 +460,7 @@ func displayCommit(
 		descriptionString,
 		actionString,
 		author,
+		signatureIndicator,
 		graphLine+mark+tagString+theme.DefaultTextColor.Sprint(name),
 	)
 
