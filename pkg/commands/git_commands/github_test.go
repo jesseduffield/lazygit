@@ -318,6 +318,42 @@ func TestGenerateGithubPullRequestMap(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "matches when remote URL owner casing differs from API",
+			prs: []*models.GithubPullRequest{
+				{
+					HeadRefName:         "feature/feature-flags",
+					Number:              42,
+					Title:               "Add feature flags",
+					State:               "OPEN",
+					Url:                 "https://github.com/NTUT-NPC/tattoo/pull/42",
+					HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "NTUT-NPC"},
+				},
+			},
+			branches: []*models.Branch{
+				{
+					Name:           "feature/feature-flags",
+					UpstreamRemote: "origin",
+					UpstreamBranch: "feature/feature-flags",
+				},
+			},
+			remotes: []*models.Remote{
+				{
+					Name: "origin",
+					Urls: []string{"https://github.com/ntut-npc/tattoo.git"},
+				},
+			},
+			expected: map[string]*models.GithubPullRequest{
+				"feature/feature-flags": {
+					HeadRefName:         "feature/feature-flags",
+					Number:              42,
+					Title:               "Add feature flags",
+					State:               "OPEN",
+					Url:                 "https://github.com/NTUT-NPC/tattoo/pull/42",
+					HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "NTUT-NPC"},
+				},
+			},
+		},
 	}
 
 	for _, c := range cases {

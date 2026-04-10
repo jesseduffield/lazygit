@@ -283,7 +283,7 @@ func GenerateGithubPullRequestMap(
 	prByKey := map[prKey]models.GithubPullRequest{}
 
 	for _, pr := range prs {
-		key := prKey{owner: pr.UserName(), branchName: pr.BranchName()}
+		key := prKey{owner: strings.ToLower(pr.UserName()), branchName: pr.BranchName()}
 		// PRs are returned newest-first from the API, so the first one we
 		// see for each key is the most recent and therefore the most relevant.
 		if _, exists := prByKey[key]; !exists {
@@ -307,7 +307,7 @@ func GenerateGithubPullRequestMap(
 			owner = repoInfo.Owner
 		}
 
-		pr, hasPr := prByKey[prKey{owner: owner, branchName: branch.UpstreamBranch}]
+		pr, hasPr := prByKey[prKey{owner: strings.ToLower(owner), branchName: branch.UpstreamBranch}]
 
 		if !hasPr {
 			continue
