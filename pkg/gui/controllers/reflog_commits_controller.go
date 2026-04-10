@@ -54,7 +54,13 @@ func (self *ReflogCommitsController) GetOnRenderToMain() func() {
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title: "Reflog Entry",
-					Task:  task,
+					SubTitle: func() string {
+						if self.c.UserConfig().Gui.ShowCommitSignature {
+							return self.c.Helpers().Diff.CommitSignatureSubTitle(commit)
+						}
+						return ""
+					}(),
+					Task: task,
 				},
 			})
 		})

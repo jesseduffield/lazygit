@@ -714,6 +714,11 @@
           "description": "Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.",
           "default": 8
         },
+        "showCommitSignature": {
+          "type": "boolean",
+          "description": "If true, show commit signature indicators in the commits list and patch subtitle.",
+          "default": false
+        },
         "showBranchCommitHash": {
           "type": "boolean",
           "description": "If true, show commit hashes alongside branch names in the branches view.",

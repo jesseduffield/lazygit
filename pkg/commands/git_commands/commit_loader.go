@@ -190,11 +190,12 @@ func (self *CommitLoader) MergeRebasingCommits(hashPool *utils.StringPool, commi
 // example input:
 // 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
 func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line string, showDivergence bool) *models.Commit {
-	split := strings.SplitN(line, "\x00", 8)
+	split := strings.SplitN(line, "\x00", 9)
 
-	// Ensure we have the minimum required fields (at least 7 for basic functionality)
-	if len(split) < 7 {
-		self.Log.Warnf("Malformed git log line: expected at least 7 fields, got %d. Line: %s", len(split), line)
+	// Ensure we have the minimum required fields (at least 8 for basic functionality)
+	// 0: hash, 1: unix timestamp, 2: author name, 3: author email, 4: parents, 5: left-right marker, 6: decorations, 7: signature status
+	if len(split) < 8 {
+		self.Log.Warnf("Malformed git log line: expected at least 8 fields, got %d. Line: %s", len(split), line)
 		return nil
 	}
 
@@ -208,11 +209,12 @@ func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line
 		divergence = lo.Ternary(split[5] == "<", models.DivergenceLeft, models.DivergenceRight)
 	}
 	extraInfo := strings.TrimSpace(split[6])
+	signatureStatus := split[7]
 
 	// message (and the \x00 before it) might not be present if extraInfo is extremely long
 	message := ""
-	if len(split) > 7 {
-		message = split[7]
+	if len(split) > 8 {
+		message = split[8]
 	}
 
 	var tags []string
@@ -246,8 +248,14 @@ func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line
 		UnixTimestamp: int64(unitTimestampInt),
 		AuthorName:    authorName,
 		AuthorEmail:   authorEmail,
-		Parents:       parents,
-		Divergence:    divergence,
+		SignatureStatus: func() models.GitSignatureStatus {
+			if signatureStatus == "" {
+				return models.GitSignatureStatusUnknown
+			}
+			return models.GitSignatureStatus(signatureStatus[0])
+		}(),
+		Parents:    parents,
+		Divergence: divergence,
 	})
 }
 
@@ -285,8 +293,13 @@ func (self *CommitLoader) getHydratedTodoCommits(hashPool *utils.StringPool, tod
 
 	// note that we're not filtering these as we do non-rebasing commits just because
 	// I suspect that will cause some damage
+	sshAllowedSignersFileUnset := false
+	if self.GitCommon != nil && self.GitCommon.config != nil && self.GitCommon.config.gitConfig != nil {
+		sshAllowedSignersFileUnset = self.GitCommon.config.gitConfig.Get("gpg.ssh.allowedSignersFile") == ""
+	}
 	cmdObj := self.cmd.New(
 		NewGitCmd("show").
+			ConfigIf(sshAllowedSignersFileUnset, "gpg.ssh.allowedSignersFile="+os.DevNull).
 			Config("log.showSignature=false").
 			Arg("--no-patch", "--oneline", "--abbrev=20", prettyFormat).
 			Arg(commitHashes...).
@@ -586,7 +599,16 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 		refSpec += "..." + opts.RefToShowDivergenceFrom
 	}
 
+	// `--pretty=%G?` triggers signature verification. For SSH-signed commits, git
+	// errors if `gpg.ssh.allowedSignersFile` isn't configured, so we point it at
+	// the platform null device when the user hasn't set it.
+	sshAllowedSignersFileUnset := false
+	if self.GitCommon != nil && self.GitCommon.config != nil && self.GitCommon.config.gitConfig != nil {
+		sshAllowedSignersFileUnset = self.GitCommon.config.gitConfig.Get("gpg.ssh.allowedSignersFile") == ""
+	}
+
 	cmdArgs := NewGitCmd("log").
+		ConfigIf(sshAllowedSignersFileUnset, "gpg.ssh.allowedSignersFile="+os.DevNull).
 		Arg(refSpec).
 		ArgIf(gitLogOrder != "default", "--"+gitLogOrder).
 		ArgIf(opts.All, "--all").
@@ -605,4 +627,4 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
-const prettyFormat = `--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s`
+const prettyFormat = `--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%G?%x00%s`

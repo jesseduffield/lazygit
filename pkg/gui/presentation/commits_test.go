@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/stefanhaller/git-todo-parser/todo"
@@ -71,6 +72,25 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			expected: formatExpected(`
 		hash1 commit1
 		hash2 commit2
+						`),
+		},
+		{
+			testName: "show signature indicator for commits",
+			commitOpts: []models.NewCommitOpts{
+				{Name: "commit1", Hash: "hash1", AuthorName: "Jesse Duffield", SignatureStatus: models.GitSignatureStatusGood},
+				{Name: "commit2", Hash: "hash2", AuthorName: "Jesse Duffield", SignatureStatus: models.GitSignatureStatusBad},
+				{Name: "commit3", Hash: "hash3", AuthorName: "Jesse Duffield", SignatureStatus: models.GitSignatureStatusNone},
+			},
+			startIdx:                  0,
+			endIdx:                    3,
+			showGraph:                 false,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		hash1 JD S commit1
+		hash2 JD S commit2
+		hash3 JD U commit3
 						`),
 		},
 		{
@@ -540,15 +560,18 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		}
 	}
 
-	common := common.NewDummyCommon()
-
 	for _, s := range scenarios {
 		if !focusing || s.focus {
 			t.Run(s.testName, func(t *testing.T) {
+				common := common.NewDummyCommon()
 				hashPool := &utils.StringPool{}
 
 				commits := lo.Map(s.commitOpts,
 					func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
+
+				if s.testName == "show signature indicator for commits" {
+					common.UserConfig().Gui.ShowCommitSignature = true
+				}
 
 				result := GetCommitListDisplayStrings(
 					common,
@@ -579,4 +602,59 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestGetCommitListDisplayStrings_ShowSignatureIconsForCommits(t *testing.T) {
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
+	defer color.ForceSetColorLevel(oldColorLevel)
+
+	icons.SetNerdFontsVersion("3")
+	defer icons.SetNerdFontsVersion("")
+
+	common := common.NewDummyCommon()
+	common.UserConfig().Gui.ShowCommitSignature = true
+	hashPool := &utils.StringPool{}
+	commits := []*models.Commit{
+		models.NewCommit(hashPool, models.NewCommitOpts{
+			Name:            "commit1",
+			Hash:            "hash1",
+			AuthorName:      "Jesse Duffield",
+			SignatureStatus: models.GitSignatureStatusGood,
+		}),
+		models.NewCommit(hashPool, models.NewCommitOpts{
+			Name:            "commit2",
+			Hash:            "hash2",
+			AuthorName:      "Jesse Duffield",
+			SignatureStatus: models.GitSignatureStatusNone,
+		}),
+	}
+
+	result := GetCommitListDisplayStrings(
+		common,
+		commits,
+		nil,
+		"",
+		false,
+		false,
+		set.New[string](),
+		"",
+		"",
+		"",
+		"",
+		time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+		false,
+		nil,
+		0,
+		2,
+		false,
+		git_commands.NewNullBisectInfo(),
+	)
+
+	renderedLines, _ := utils.RenderDisplayStrings(result, nil)
+	renderedResult := strings.Join(renderedLines, "\n")
+
+	assert.Equal(t, formatExpected(`
+		`+icons.COMMIT_ICON+` hash1 JD `+icons.SIGNED_COMMIT_ICON+` commit1
+		`+icons.COMMIT_ICON+` hash2 JD `+icons.UNSIGNED_COMMIT_ICON+` commit2
+	`), renderedResult)
 }
