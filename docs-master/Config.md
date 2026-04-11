@@ -498,9 +498,11 @@ git:
   # to 40 to disable truncation.
   truncateCopiedCommitHashesTo: 12
 
-  # List of branches for which GitHub pull request integration is disabled.
-  # PRs will not be shown for these branches in the branches view.
-  pullRequestExcludeBranches: []
+  # Config for GitHub integration
+  github:
+    # List of branches for which GitHub pull request integration is disabled.
+    # PRs will not be shown for these branches in the branches view.
+    pullRequestExcludeBranches: []
 
 # Periodic update checks
 update:

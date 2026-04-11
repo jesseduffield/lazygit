@@ -903,7 +903,7 @@ func (self *RefreshHelper) rebuildPullRequestsMap() {
 		self.c.Model().Branches,
 		self.c.Model().Remotes,
 	)
-	for _, branchName := range self.c.UserConfig().Git.PullRequestExcludeBranches {
+	for _, branchName := range self.c.UserConfig().Git.GitHub.PullRequestExcludeBranches {
 		delete(self.c.Model().PullRequestsMap, branchName)
 	}
 }
@@ -913,7 +913,7 @@ func (self *RefreshHelper) setGithubPullRequests(authToken string, baseRemote *m
 		return nil
 	}
 
-	excludedBranches := self.c.UserConfig().Git.PullRequestExcludeBranches
+	excludedBranches := self.c.UserConfig().Git.GitHub.PullRequestExcludeBranches
 	branches := lo.Filter(self.c.Model().Branches, func(branch *models.Branch, _ int) bool {
 		return branch.IsTrackingRemote() && !lo.Contains(excludedBranches, branch.Name)
 	})
