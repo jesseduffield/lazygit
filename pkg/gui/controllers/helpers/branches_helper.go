@@ -43,6 +43,7 @@ func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error 
 	doDelete := func() error {
 		return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(_ gocui.Task) error {
 			self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
+			self.logBranchHashes(branches)
 			branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
 			if err := self.c.Git().Branch.LocalDelete(branchNames, true); err != nil {
 				return err
@@ -178,6 +179,7 @@ func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branc
 				}
 
 				self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
+				self.logBranchHashes(branches)
 				branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
 				if err := self.c.Git().Branch.LocalDelete(branchNames, true); err != nil {
 					return err
@@ -255,6 +257,20 @@ func (self *BranchesHelper) allBranchesMerged(branches []*models.Branch) (bool, 
 		}
 	}
 	return allBranchesMerged, nil
+}
+
+func (self *BranchesHelper) logBranchHashes(branches []*models.Branch) {
+	for _, branch := range branches {
+		msg := utils.ResolvePlaceholderString(
+			self.c.Tr.Log.DeletingBranch,
+			map[string]string{
+				"branchName": branch.Name,
+				"hash":       branch.CommitHash,
+			},
+		)
+
+		self.c.LogCommand(msg, false)
+	}
 }
 
 func (self *BranchesHelper) deleteRemoteBranches(remoteBranches []*models.RemoteBranch, task gocui.Task) error {

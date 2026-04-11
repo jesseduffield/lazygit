@@ -318,6 +318,40 @@ func TestGenerateGithubPullRequestMap(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "matches when owner casing differs",
+			prs: []*models.GithubPullRequest{
+				{
+					HeadRefName:         "fix-case-insensitive",
+					Number:              42,
+					Title:               "Fix case insensitive",
+					State:               "OPEN",
+					HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "Jesseduffield"}, // Uppercase J
+				},
+			},
+			branches: []*models.Branch{
+				{
+					Name:           "fix-case-insensitive",
+					UpstreamRemote: "origin",
+					UpstreamBranch: "fix-case-insensitive",
+				},
+			},
+			remotes: []*models.Remote{
+				{
+					Name: "origin",
+					Urls: []string{"git@github.com:jesseduffield/lazygit.git"}, // Lowercase j
+				},
+			},
+			expected: map[string]*models.GithubPullRequest{
+				"fix-case-insensitive": {
+					HeadRefName:         "fix-case-insensitive",
+					Number:              42,
+					Title:               "Fix case insensitive",
+					State:               "OPEN",
+					HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "Jesseduffield"},
+				},
+			},
+		},
 	}
 
 	for _, c := range cases {
