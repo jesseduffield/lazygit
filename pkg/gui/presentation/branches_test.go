@@ -31,6 +31,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 		useIcons             bool
 		checkedOutByWorktree bool
 		showDivergenceCfg    string
+		prs                  map[string]*models.GithubPullRequest
 		expected             []string
 	}{
 		// First some tests for when the view is wide enough so that everything fits:
@@ -333,6 +334,45 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			showDivergenceCfg:    "none",
 			expected:             []string{"1m", "", "12345678", "bran… ✓", "origin branch_name", "commit title"},
 		},
+		// PR integration tests:
+		{
+			branch:               &models.Branch{Name: "feature-branch", Recency: "1m"},
+			itemOperation:        types.ItemOperationNone,
+			fullDescription:      false,
+			viewWidth:            100,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			showDivergenceCfg:    "none",
+			prs: map[string]*models.GithubPullRequest{
+				"feature-branch": {
+					HeadRefName: "feature-branch",
+					Number:      42,
+					Title:       "Add feature",
+					State:       "OPEN",
+					Url:         "https://github.com/jesseduffield/lazygit/pull/42",
+				},
+			},
+			expected: []string{"1m", "●", "feature-branch"},
+		},
+		{
+			branch:               &models.Branch{Name: "main", Recency: "1m"},
+			itemOperation:        types.ItemOperationNone,
+			fullDescription:      false,
+			viewWidth:            100,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			showDivergenceCfg:    "none",
+			prs: map[string]*models.GithubPullRequest{
+				"feature-branch": {
+					HeadRefName: "feature-branch",
+					Number:      42,
+					Title:       "Add feature",
+					State:       "OPEN",
+					Url:         "https://github.com/jesseduffield/lazygit/pull/42",
+				},
+			},
+			expected: []string{"1m", "", "main"},
+		},
 	}
 
 	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
@@ -350,8 +390,13 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			worktrees = append(worktrees, &models.Worktree{Branch: s.branch.Name, Name: "other-worktree"})
 		}
 
+		prs := s.prs
+		if prs == nil {
+			prs = map[string]*models.GithubPullRequest{}
+		}
+
 		t.Run(fmt.Sprintf("getBranchDisplayStrings_%d", i), func(t *testing.T) {
-			strings := getBranchDisplayStrings(s.branch, s.itemOperation, s.fullDescription, false, s.viewWidth, c.Tr, c.UserConfig(), worktrees, time.Time{}, map[string]*models.GithubPullRequest{})
+			strings := getBranchDisplayStrings(s.branch, s.itemOperation, s.fullDescription, false, s.viewWidth, c.Tr, c.UserConfig(), worktrees, time.Time{}, prs)
 			assert.Equal(t, s.expected, strings)
 		})
 	}

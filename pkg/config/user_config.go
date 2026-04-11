@@ -330,6 +330,9 @@ type GitConfig struct {
 	RemoteBranchSortOrder string `yaml:"remoteBranchSortOrder" jsonschema:"enum=date,enum=alphabetical"`
 	// When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
+	// List of branches for which GitHub pull request integration is disabled.
+	// PRs will not be shown for these branches in the branches view.
+	PullRequestExcludeBranches []string `yaml:"pullRequestExcludeBranches" jsonschema:"uniqueItems=true"`
 }
 
 type PagerType string

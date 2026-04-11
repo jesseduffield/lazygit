@@ -453,6 +453,14 @@
           "type": "integer",
           "description": "When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.",
           "default": 12
+        },
+        "pullRequestExcludeBranches": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "description": "List of branches for which GitHub pull request integration is disabled.\nPRs will not be shown for these branches in the branches view."
         }
       },
       "additionalProperties": false,
