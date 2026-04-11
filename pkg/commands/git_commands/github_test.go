@@ -361,3 +361,57 @@ func TestGenerateGithubPullRequestMap(t *testing.T) {
 		})
 	}
 }
+
+func TestExcludeBranchesFromPullRequestMap(t *testing.T) {
+	pr1 := &models.GithubPullRequest{
+		HeadRefName:         "feature",
+		Number:              1,
+		HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "jesseduffield"},
+	}
+	pr2 := &models.GithubPullRequest{
+		HeadRefName:         "main",
+		Number:              2,
+		HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "jesseduffield"},
+	}
+
+	cases := []struct {
+		name     string
+		prMap    map[string]*models.GithubPullRequest
+		exclude  []string
+		expected map[string]*models.GithubPullRequest
+	}{
+		{
+			name:     "no exclusions",
+			prMap:    map[string]*models.GithubPullRequest{"feature": pr1, "main": pr2},
+			exclude:  []string{},
+			expected: map[string]*models.GithubPullRequest{"feature": pr1, "main": pr2},
+		},
+		{
+			name:     "exclude one branch",
+			prMap:    map[string]*models.GithubPullRequest{"feature": pr1, "main": pr2},
+			exclude:  []string{"main"},
+			expected: map[string]*models.GithubPullRequest{"feature": pr1},
+		},
+		{
+			name:     "exclude all branches",
+			prMap:    map[string]*models.GithubPullRequest{"feature": pr1, "main": pr2},
+			exclude:  []string{"feature", "main"},
+			expected: map[string]*models.GithubPullRequest{},
+		},
+		{
+			name:     "exclude non-existent branch is no-op",
+			prMap:    map[string]*models.GithubPullRequest{"feature": pr1},
+			exclude:  []string{"no-such-branch"},
+			expected: map[string]*models.GithubPullRequest{"feature": pr1},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			for _, branchName := range c.exclude {
+				delete(c.prMap, branchName)
+			}
+			assert.Equal(t, c.expected, c.prMap)
+		})
+	}
+}
