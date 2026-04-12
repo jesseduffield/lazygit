@@ -39,7 +39,7 @@ jobs:
           mkdir -p /tmp/code_coverage
           go test ./... -short -cover -args "-test.gocoverdir=/tmp/code_coverage"
       - name: Upload code coverage artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-unit-${{ matrix.os }}-${{ github.run_id }}
           path: /tmp/code_coverage
@@ -63,7 +63,7 @@ jobs:
       - name: Restore Git cache
         if: matrix.git-version != 'latest'
         id: cache-git-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ~/git-${{matrix.git-version}}
           key: ${{runner.os}}-git-${{matrix.git-version}}
@@ -80,7 +80,7 @@ jobs:
         run: sudo make -C "$HOME/git-${{matrix.git-version}}" -j install
       - name: Save Git cache
         if: steps.cache-git-restore.outputs.cache-hit != 'true' && matrix.git-version != 'latest'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ~/git-${{matrix.git-version}}
           key: ${{runner.os}}-git-${{matrix.git-version}}
@@ -98,7 +98,7 @@ jobs:
           mkdir -p /tmp/code_coverage
           ./scripts/run_integration_tests.sh
       - name: Upload code coverage artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-integration-${{ matrix.git-version }}-${{ github.run_id }}
           path: /tmp/code_coverage
@@ -168,7 +168,7 @@ jobs:
         with:
           go-version: 1.25.x
       - name: Lint
-        uses: golangci/golangci-lint-action@v9
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9
         with:
           # If you change this, make sure to also update scripts/golangci-lint-shim.sh
           version: v2.4.0
@@ -190,7 +190,7 @@ jobs:
           go-version: 1.25.x
 
       - name: Download all coverage artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: /tmp/code_coverage
 
@@ -206,10 +206,12 @@ jobs:
 
       - name: Upload to Codacy
         run: |
-          CODACY_PROJECT_TOKEN=${{ secrets.CODACY_PROJECT_TOKEN }} \
+          CODACY_PROJECT_TOKEN="${CODACY_PROJECT_TOKEN}" \
             bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
             --force-coverage-parser go -r coverage.out
 
+        env:
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   check-for-fixups:
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/master'

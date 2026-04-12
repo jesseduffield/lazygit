@@ -3,12 +3,16 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"strings"
 
+	"github.com/gookit/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -76,6 +80,12 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.CreatePullRequestOptions,
 			OpensMenu:         true,
+		},
+		{
+			Key:               opts.GetKey(opts.Config.Branches.OpenPullRequestInBrowser),
+			Handler:           self.withItem(self.openPRInBrowser),
+			GetDisabledReason: self.require(self.singleItemSelected(self.branchHasPR)),
+			Description:       self.c.Tr.OpenPullRequestInBrowser,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Branches.CopyPullRequestURL),
@@ -192,7 +202,19 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 			} else {
 				cmdObj := self.c.Git().Branch.GetGraphCmdObj(branch.FullRefName())
 
-				task = types.NewRunPtyTask(cmdObj.GetCmd())
+				ptyTask := types.NewRunPtyTask(cmdObj.GetCmd())
+				task = ptyTask
+
+				if pr, ok := self.c.Model().PullRequestsMap[branch.Name]; ok {
+					icon := lo.Ternary(icons.IsIconEnabled(), icons.IconForRemoteUrl(pr.Url)+"  ", "")
+					ptyTask.Prefix = style.PrintHyperlink(fmt.Sprintf("%s%s  %s  %s\n",
+						icon,
+						coloredStateText(pr.State),
+						pr.Title,
+						style.FgCyan.Sprintf("#%d", pr.Number)),
+						pr.Url)
+					ptyTask.Prefix += strings.Repeat("─", self.c.Contexts().Normal.GetView().InnerWidth()) + "\n"
+				}
 			}
 
 			self.c.RenderToMainViews(types.RefreshMainOpts{
@@ -203,6 +225,67 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 				},
 			})
 		})
+	}
+}
+
+func stateText(state string) string {
+	var icon, label string
+	switch state {
+	case "OPEN":
+		icon, label = " ", "Open"
+	case "CLOSED":
+		icon, label = " ", "Closed"
+	case "MERGED":
+		icon, label = " ", "Merged"
+	case "DRAFT":
+		icon, label = " ", "Draft"
+	default:
+		return ""
+	}
+	if icons.IsIconEnabled() {
+		return icon + label
+	}
+	return label
+}
+
+func coloredStateText(state string) string {
+	if icons.IsIconEnabled() {
+		return fmt.Sprintf("%s%s%s",
+			withPrFgColor(state, ""),
+			withPrBgColor(state, style.FgWhite.Sprint(stateText(state))),
+			withPrFgColor(state, ""))
+	}
+
+	return withPrFgColor(state, stateText(state))
+}
+
+func withPrFgColor(state string, text string) string {
+	switch state {
+	case "OPEN":
+		return style.FgGreen.Sprint(text)
+	case "CLOSED":
+		return style.FgRed.Sprint(text)
+	case "MERGED":
+		return style.FgMagenta.Sprint(text)
+	case "DRAFT":
+		return color.RGB(0x66, 0x66, 0x66, false).Sprint(text)
+	default:
+		return style.FgDefault.Sprint(text)
+	}
+}
+
+func withPrBgColor(state string, text string) string {
+	switch state {
+	case "OPEN":
+		return style.BgGreen.Sprint(text)
+	case "CLOSED":
+		return style.BgRed.Sprint(text)
+	case "MERGED":
+		return style.BgMagenta.Sprint(text)
+	case "DRAFT":
+		return color.RGB(0x66, 0x66, 0x66, true).Sprint(text)
+	default:
+		return style.BgDefault.Sprint(text)
 	}
 }
 
@@ -442,16 +525,23 @@ func (self *BranchesController) handleCreatePullRequestMenu(selectedBranch *mode
 	return self.createPullRequestMenu(selectedBranch, checkedOutBranch)
 }
 
-func (self *BranchesController) copyPullRequestURL() error {
+func (self *BranchesController) getPullRequestURL() (string, error) {
 	branch := self.context().GetSelected()
+	if pr, ok := self.c.Model().PullRequestsMap[branch.Name]; ok {
+		return pr.Url, nil
+	}
 
 	branchExistsOnRemote := self.c.Git().Remote.CheckRemoteBranchExists(branch.Name)
 
 	if !branchExistsOnRemote {
-		return errors.New(self.c.Tr.NoBranchOnRemote)
+		return "", errors.New(self.c.Tr.NoBranchOnRemote)
 	}
 
-	url, err := self.c.Helpers().Host.GetPullRequestURL(branch.Name, "")
+	return self.c.Helpers().Host.GetPullRequestURL(branch.Name, "")
+}
+
+func (self *BranchesController) copyPullRequestURL() error {
+	url, err := self.getPullRequestURL()
 	if err != nil {
 		return err
 	}
@@ -851,6 +941,27 @@ func (self *BranchesController) branchIsReal(branch *models.Branch) *types.Disab
 	}
 
 	return nil
+}
+
+func (self *BranchesController) branchHasPR(branch *models.Branch) *types.DisabledReason {
+	if _, ok := self.c.Model().PullRequestsMap[branch.Name]; !ok {
+		return &types.DisabledReason{Text: self.c.Tr.NoPullRequestForBranch, ShowErrorInPanel: true}
+	}
+
+	return nil
+}
+
+func (self *BranchesController) openPRInBrowser(branch *models.Branch) error {
+	pr, ok := self.c.Model().PullRequestsMap[branch.Name]
+	if !ok {
+		// Should be guarded against by the DisabledReason check, but be defensive in case
+		// PullRequestsMap was updated concurrently by a background refresh
+		return errors.New(self.c.Tr.NoPullRequestForBranch)
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.OpenPullRequest)
+
+	return self.c.OS().OpenLink(pr.Url)
 }
 
 func (self *BranchesController) branchesAreReal(selectedBranches []*models.Branch, startIdx int, endIdx int) *types.DisabledReason {

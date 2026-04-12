@@ -54,7 +54,19 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		// loading a heap of commits is slow so we limit them whenever doing a reset
 		self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
-		self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+		scope := []types.RefreshableView{
+			types.COMMITS,
+			types.BRANCHES,
+			types.FILES,
+			types.REFLOG,
+			types.WORKTREES,
+			types.BISECT_INFO,
+			types.STAGING,
+		}
+		if options.RefreshPullRequests {
+			scope = append(scope, types.PULL_REQUESTS)
+		}
+		self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, Scope: scope, KeepBranchSelectionIndex: true})
 	}
 
 	localBranch, found := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
@@ -120,8 +132,8 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 
 // Shows a prompt to choose between creating a new branch or checking out a detached head
 func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchName string) error {
-	checkout := func(branchName string) error {
-		return self.CheckoutRef(branchName, types.CheckoutRefOptions{})
+	checkout := func(branchName string, refreshPullRequests bool) error {
+		return self.CheckoutRef(branchName, types.CheckoutRefOptions{RefreshPullRequests: refreshPullRequests})
 	}
 
 	// If a branch with this name already exists locally, just check it out. We
@@ -130,7 +142,7 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 	if lo.ContainsBy(self.c.Model().Branches, func(branch *models.Branch) bool {
 		return branch.Name == localBranchName
 	}) {
-		return checkout(localBranchName)
+		return checkout(localBranchName, false)
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
@@ -156,14 +168,14 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 						Mode:  types.SYNC,
 						Scope: []types.RefreshableView{types.BRANCHES},
 					})
-					return checkout(localBranchName)
+					return checkout(localBranchName, true)
 				},
 			},
 			{
 				Label:   self.c.Tr.CheckoutTypeDetachedHead,
 				Tooltip: self.c.Tr.CheckoutTypeDetachedHeadTooltip,
 				OnPress: func() error {
-					return checkout(fullBranchName)
+					return checkout(fullBranchName, false)
 				},
 			},
 		},

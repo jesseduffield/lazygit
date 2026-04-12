@@ -8,6 +8,12 @@ but only releases after v1.0.3 properly adhere to it.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-03-28
+### Added
+- Constructors, decomposers, and blend functions for the CSS Color Level 4 wide-gamut RGB color spaces `DisplayP3`, `A98Rgb`, `ProPhotoRgb`, and `Rec2020` (#81)
+- `XyzD50`, `Color.XyzD50`, `D50ToD65`, and `D65ToD50` for working with D50-based color spaces (#81)
+- `HexColor` now implements `fmt.Stringer`
+
 ## [1.3.0] - 2025-09-08
 ### Added
 - `BlendLinearRgb` (#50)
@@ -19,7 +25,7 @@ but only releases after v1.0.3 properly adhere to it.
 - Functions BlendOkLab and BlendOkLch (#70)
 
 ## Changed
-- `Hex()` parsing is much faster (#78)
+- `Hex()` parsing is much faster (#78). However, it doesn't tolerate hex codes with alpha anymore (previously ignoring the alpha was unintentional).
 
 ### Fixed
 - Fix bug when doing HSV/HCL blending between a gray color and non-gray color (#60)

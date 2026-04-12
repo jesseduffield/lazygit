@@ -203,6 +203,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` t `` | 還原 | Create a revert commit for the selected commit, which applies the selected commit's changes in reverse. |
 | `` T `` | 打標籤到提交 | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
 | `` <c-l> `` | 開啟記錄選單 | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
+| `` G `` | Open pull request in browser |  |
 | `` <space> `` | 檢出 | Checkout the selected commit as a detached HEAD. |
 | `` y `` | 複製提交屬性 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 在瀏覽器中開啟提交 |  |
@@ -289,6 +290,7 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` o `` | 建立拉取請求 |  |
 | `` O `` | 建立拉取請求選項 |  |
+| `` G `` | Open pull request in browser |  |
 | `` <c-y> `` | 複製拉取請求的 URL 到剪貼板 |  |
 | `` c `` | 根據名稱檢出 | Checkout by name. In the input box you can enter '-' to switch to the previous branch. |
 | `` - `` | Checkout previous branch |  |

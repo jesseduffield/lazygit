@@ -54,7 +54,7 @@ func (self *SwitchToDiffFilesController) Context() types.Context {
 	return self.context
 }
 
-func (self *SwitchToDiffFilesController) GetOnClick() func() error {
+func (self *SwitchToDiffFilesController) GetOnDoubleClick() func() error {
 	return func() error {
 		if self.canEnter() == nil {
 			return self.enter()

@@ -28,6 +28,7 @@ var colorPatterns *colorMatcher
 func GetBranchListDisplayStrings(
 	branches []*models.Branch,
 	getItemOperation func(item types.HasUrn) types.ItemOperation,
+	prs map[string]*models.GithubPullRequest,
 	fullDescription bool,
 	diffName string,
 	viewWidth int,
@@ -37,7 +38,7 @@ func GetBranchListDisplayStrings(
 ) [][]string {
 	return lo.Map(branches, func(branch *models.Branch, _ int) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, viewWidth, tr, userConfig, worktrees, time.Now())
+		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, viewWidth, tr, userConfig, worktrees, time.Now(), prs)
 	})
 }
 
@@ -52,6 +53,7 @@ func getBranchDisplayStrings(
 	userConfig *config.UserConfig,
 	worktrees []*models.Worktree,
 	now time.Time,
+	prs map[string]*models.GithubPullRequest,
 ) []string {
 	checkedOutByWorkTree := git_commands.CheckedOutByOtherWorktree(b, worktrees)
 	showCommitHash := fullDescription || userConfig.Gui.ShowBranchCommitHash
@@ -63,11 +65,12 @@ func getBranchDisplayStrings(
 	if len(divergence) > 0 {
 		availableWidth -= utils.StringWidth(divergence) + 1
 	}
-	if icons.IsIconEnabled() {
-		availableWidth -= 2 // one for the icon, one for the space
-	}
 	if showCommitHash {
 		availableWidth -= utils.COMMIT_HASH_SHORT_SIZE + 1
+	}
+	if len(prs) > 0 {
+		// if we have PRs then we assume that at least one branch in the list has one
+		availableWidth -= 2
 	}
 	paddingNeededForDivergence := availableWidth
 
@@ -136,16 +139,31 @@ func getBranchDisplayStrings(
 	res := make([]string, 0, 6)
 	res = append(res, recencyColor.Sprint(b.Recency))
 
-	if icons.IsIconEnabled() {
-		res = append(res, nameTextStyle.Sprint(icons.IconForBranch(b)))
+	var coloredPrIcon string
+	pr, hasPr := prs[b.Name]
+	if hasPr {
+		var prIcon string
+		if icons.IsIconEnabled() {
+			prIcon = icons.IconForRemoteUrl(pr.Url)
+		} else {
+			prIcon = "●"
+		}
+		coloredPrIcon = prColor(pr.State).Sprint(prIcon)
 	}
+	res = append(res, coloredPrIcon)
 
 	if showCommitHash {
 		res = append(res, utils.ShortHash(b.CommitHash))
 	}
 
 	if divergence != "" {
-		paddingNeededForDivergence -= utils.StringWidth(utils.Decolorise(coloredName)) - 1
+		if fullDescription {
+			// don't right-align the divergence in half or full screen mode, since other fields
+			// follow in that case and we don't know the width of our column
+			paddingNeededForDivergence = 1
+		} else {
+			paddingNeededForDivergence -= utils.StringWidth(utils.Decolorise(coloredName)) - 1
+		}
 		if paddingNeededForDivergence > 0 {
 			coloredName += strings.Repeat(" ", paddingNeededForDivergence)
 			coloredName += style.FgCyan.Sprint(divergence)
@@ -250,5 +268,20 @@ func SetCustomBranches(customBranchColors map[string]string, isRegex bool) {
 	colorPatterns = &colorMatcher{
 		patterns: utils.SetCustomColors(customBranchColors),
 		isRegex:  isRegex,
+	}
+}
+
+func prColor(state string) style.TextStyle {
+	switch state {
+	case "OPEN":
+		return style.FgGreen
+	case "CLOSED":
+		return style.FgRed
+	case "MERGED":
+		return style.FgMagenta
+	case "DRAFT":
+		return style.FgBlackLighter
+	default:
+		return style.FgDefault
 	}
 }

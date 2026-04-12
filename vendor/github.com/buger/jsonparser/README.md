@@ -90,10 +90,6 @@ jsonparser.EachKey(data, func(idx int, value []byte, vt jsonparser.ValueType, er
 // For more information see docs below
 ```
 
-## Need to speedup your app?
-
-I'm available for consulting and can help you push your app performance to the limits. Ping me at: leonsbox@gmail.com.
-
 ## Reference
 
 Library API is really simple. You just need the `Get` method to perform any operation. The rest is just helpers around it.

@@ -282,6 +282,8 @@ type TranslationSet struct {
 	AllBranchesLogGraphReverse            string
 	UnsupportedGitService                 string
 	CopyPullRequestURL                    string
+	OpenPullRequestInBrowser              string
+	NoPullRequestForBranch                string
 	NoBranchOnRemote                      string
 	Fetch                                 string
 	FetchTooltip                          string
@@ -609,6 +611,8 @@ type TranslationSet struct {
 	CyclePagersDisabledReason             string
 	StartSearch                           string
 	StartFilter                           string
+	SelectRemoteRepository                string
+	FetchingPullRequests                  string
 	Keybindings                           string
 	KeybindingsLegend                     string
 	KeybindingsMenuSectionLocal           string
@@ -953,11 +957,15 @@ type Log struct {
 	EditRebase               string
 	HandleUndo               string
 	RemoveFile               string
+	RemoveEmptyDir           string
 	CopyToClipboard          string
 	Remove                   string
 	CreateFileWithContent    string
 	AppendingLineToFile      string
 	EditRebaseFromBaseCommit string
+	DroppingStash            string
+	PoppingStash             string
+	DeletingBranch           string
 }
 
 type Actions struct {
@@ -1394,6 +1402,8 @@ func EnglishTranslationSet() *TranslationSet {
 		UnsupportedGitService:                `Unsupported git service`,
 		CreatePullRequest:                    `Create pull request`,
 		CopyPullRequestURL:                   `Copy pull request URL to clipboard`,
+		OpenPullRequestInBrowser:             `Open pull request in browser`,
+		NoPullRequestForBranch:               `No pull request found for this branch`,
 		NoBranchOnRemote:                     `This branch doesn't exist on remote. You need to push it to remote first.`,
 		Fetch:                                `Fetch`,
 		FetchTooltip:                         "Fetch changes from remote.",
@@ -1729,6 +1739,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CyclePagersDisabledReason:        "No other pagers configured",
 		StartSearch:                      "Search the current view by text",
 		StartFilter:                      "Filter the current view by text",
+		SelectRemoteRepository:           "Select base repository for pull requests",
+		FetchingPullRequests:             "Fetching pull requests",
 		KeybindingsLegend:                "Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b",
 		RenameBranch:                     "Rename branch",
 		BranchUpstreamOptionsTitle:       "Upstream options",
@@ -2182,11 +2194,15 @@ func EnglishTranslationSet() *TranslationSet {
 			EditRebase:               "Beginning interactive rebase at '{{.ref}}'",
 			HandleUndo:               "Undoing last conflict resolution",
 			RemoveFile:               "Deleting path '{{.path}}'",
+			RemoveEmptyDir:           "Deleting empty directory '{{.path}}'",
 			CopyToClipboard:          "Copying '{{.str}}' to clipboard",
 			Remove:                   "Removing '{{.filename}}'",
 			CreateFileWithContent:    "Creating file '{{.path}}'",
 			AppendingLineToFile:      "Appending '{{.line}}' to file '{{.filename}}'",
-			EditRebaseFromBaseCommit: "Beginning interactive rebase from '{{.baseCommit}}' onto '{{.targetBranchName}}",
+			EditRebaseFromBaseCommit: "Beginning interactive rebase from '{{.baseCommit}}' onto '{{.targetBranchName}}'",
+			DroppingStash:            "Dropping stash %s",
+			PoppingStash:             "Popping stash %s",
+			DeletingBranch:           "Deleting branch '{{.branchName}}' (was {{.hash}})",
 		},
 		BreakingChangesTitle: "Breaking Changes",
 		BreakingChangesMessage: `You are updating to a new version of lazygit which contains breaking changes. Please review the notes below and update your configuration if necessary.

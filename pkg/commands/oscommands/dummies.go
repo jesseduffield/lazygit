@@ -18,6 +18,8 @@ type OSCommandDeps struct {
 	Platform     *Platform
 	GetenvFn     func(string) string
 	RemoveFileFn func(string) error
+	IsDirEmptyFn func(string) (bool, error)
+	RemoveDirFn  func(string) error
 	Cmd          *CmdObjBuilder
 	TempDir      string
 }
@@ -38,6 +40,8 @@ func NewDummyOSCommandWithDeps(deps OSCommandDeps) *OSCommand {
 		Platform:     platform,
 		getenvFn:     deps.GetenvFn,
 		removeFileFn: deps.RemoveFileFn,
+		isDirEmptyFn: deps.IsDirEmptyFn,
+		removeDirFn:  deps.RemoveDirFn,
 		guiIO:        NewNullGuiIO(utils.NewDummyLog()),
 		tempDir:      deps.TempDir,
 	}
