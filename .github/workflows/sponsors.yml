@@ -13,13 +13,13 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Generate Sponsors 💖
-        uses: JamesIves/github-sponsors-readme-action@v1.2.2
+        uses: JamesIves/github-sponsors-readme-action@2fd9142e765f755780202122261dc85e78459405 # v1.6.0
         with:
           token: ${{ secrets.SPONSORS_TOKEN }}
           file: "README.md"
 
       - name: Create Pull Request 🚀
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8
         with:
           commit-message: "README.md: Update Sponsors"
           title: "README.md: Update Sponsors"

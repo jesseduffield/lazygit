@@ -31,7 +31,7 @@ welcome your pull requests:
 
 1. Fork the repo and create your branch from `master`.
 2. If you've added code that should be tested, add tests.
-3. If you've added code that need documentation, update the documentation.
+3. If you've added code that needs documentation, update the documentation.
 4. Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
 5. Issue that pull request!
 
@@ -48,6 +48,12 @@ In particular:
 - Refactorings and behavior changes should be in separate commits. There are very few exceptions where this is not possible, but in my experience they are very rare.
 - Strive for minimal commits; every change that is independent from other changes should be in a commit of its own (with a good commit message that explains why the change is made).
 - When you need to iterate over your implementation during review (e.g. because you discovered a bug, or a maintainer requested changes), don't just pile new commits on top. Use fixup commits to make your changes transparent while still maintaining a good commit history. If you don't know what that means, [here's a brief introduction](docs/Fixup_Commits.md).
+
+## A note about AI
+
+It has become common recently to throw an issue at a coding agent and submit whatever comes out of it as a PR. This is not appreciated here, and I will close PRs where I can tell this was the case, or where I even suspect it was the case.
+
+Some of these PRs may actually be good and useful, but many are not, and it's not a good use of my time as a maintainer to look at generated PRs to decide. This is the job of the PR's contributor, and if you don't speak enough go or can't be bothered to get familiar enough with lazygit's codebase to tell, then don't contribute the PR.
 
 ## Running in a VSCode dev container
 

@@ -87,6 +87,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` t `` | リバート | 選択したコミットの変更を逆に適用する、リバートコミットを作成します。 |
 | `` T `` | コミットにタグを付ける | 選択したコミットを指すタグを新規作成します。タグ名とオプションの説明を入力するよう促されます。 |
 | `` <c-l> `` | ログオプションを表示 | コミットログのオプションを表示します（例：並び順の変更、Gitグラフの非表示、Gitグラフ全体の表示）。 |
+| `` G `` | Open pull request in browser |  |
 | `` <space> `` | チェックアウト（ブランチの切り替え） | 選択したコミットをデタッチドヘッド（特定のブランチに属さない状態）としてチェックアウトします。 |
 | `` y `` | コミット属性をクリップボードにコピー | コミット属性をクリップボードにコピーします（例：ハッシュ、URL、差分、メッセージ、作者）。 |
 | `` o `` | ブラウザでコミットを開く |  |
@@ -379,6 +380,7 @@ _凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味
 | `` N `` | コミットを新しいブランチに移動 | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` o `` | プルリクエストを作成 |  |
 | `` O `` | プルリクエスト作成オプションを表示 |  |
+| `` G `` | Open pull request in browser |  |
 | `` <c-y> `` | プルリクエストURLをクリップボードにコピー |  |
 | `` c `` | 名前でチェックアウト | 名前でチェックアウトします。入力ボックスに「-」を入力すると、最後のブランチをチェックアウトすることができます。 |
 | `` - `` | 直前のブランチにチェックアウト |  |

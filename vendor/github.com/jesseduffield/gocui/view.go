@@ -214,21 +214,21 @@ type searcher struct {
 	searchPositions    []SearchPosition
 	modelSearchResults []SearchPosition
 	currentSearchIndex int
-	onSelectItem       func(int)
-	renderSearchStatus func(int, int)
+	onSelectItem       func(*View, int)
+	renderSearchStatus func(*View, int, int)
 }
 
-func (v *View) SetRenderSearchStatus(renderSearchStatus func(int, int)) {
+func (v *View) setRenderSearchStatus(renderSearchStatus func(*View, int, int)) {
 	v.searcher.renderSearchStatus = renderSearchStatus
 }
 
-func (v *View) SetOnSelectItem(onSelectItem func(int)) {
+func (v *View) setOnSelectResult(onSelectItem func(*View, int)) {
 	v.searcher.onSelectItem = onSelectItem
 }
 
 func (v *View) renderSearchStatus(index int, itemCount int) {
 	if v.searcher.renderSearchStatus != nil {
-		v.searcher.renderSearchStatus(index, itemCount)
+		v.searcher.renderSearchStatus(v, index, itemCount)
 	}
 }
 
@@ -286,7 +286,7 @@ func (v *View) SelectSearchResult(index int) {
 	v.FocusPoint(v.ox, y, true)
 	v.renderSearchStatus(index, itemCount)
 	if v.searcher.onSelectItem != nil {
-		v.searcher.onSelectItem(y)
+		v.searcher.onSelectItem(v, y)
 	}
 }
 

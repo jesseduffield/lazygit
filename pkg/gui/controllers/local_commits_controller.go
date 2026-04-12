@@ -253,9 +253,36 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Tooltip:     self.c.Tr.OpenLogMenuTooltip,
 			OpensMenu:   true,
 		},
+		{
+			Key:               opts.GetKey(opts.Config.Commits.OpenPullRequestInBrowser),
+			Handler:           self.openPRInBrowser,
+			GetDisabledReason: self.checkedOutBranchHasPR,
+			Description:       self.c.Tr.OpenPullRequestInBrowser,
+		},
 	}
 
 	return bindings
+}
+
+func (self *LocalCommitsController) checkedOutBranchHasPR() *types.DisabledReason {
+	branch := self.c.Model().CheckedOutBranch
+	if _, ok := self.c.Model().PullRequestsMap[branch]; !ok {
+		return &types.DisabledReason{Text: self.c.Tr.NoPullRequestForBranch, ShowErrorInPanel: true}
+	}
+	return nil
+}
+
+func (self *LocalCommitsController) openPRInBrowser() error {
+	pr, ok := self.c.Model().PullRequestsMap[self.c.Model().CheckedOutBranch]
+	if !ok {
+		// Should be guarded against by the DisabledReason check, but be defensive in case
+		// PullRequestsMap was updated concurrently by a background refresh
+		return errors.New(self.c.Tr.NoPullRequestForBranch)
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.OpenPullRequest)
+
+	return self.c.OS().OpenLink(pr.Url)
 }
 
 func (self *LocalCommitsController) GetOnRenderToMain() func() {

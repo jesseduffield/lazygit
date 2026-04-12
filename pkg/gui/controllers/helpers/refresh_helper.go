@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -9,10 +10,12 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -27,6 +30,12 @@ type RefreshHelper struct {
 	mergeConflictsHelper *MergeConflictsHelper
 	worktreeHelper       *WorktreeHelper
 	searchHelper         *SearchHelper
+
+	// Tracks repos for which the user has dismissed the "select base GitHub remote"
+	// prompt, to avoid re-prompting on every subsequent refresh within the same session.
+	// Keyed by repo path so that switching to a different repo while lazygit is running
+	// still triggers the prompt there.
+	githubBaseRemotePromptDismissed map[string]bool
 }
 
 func NewRefreshHelper(
@@ -91,6 +100,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 				types.STATUS,
 				types.BISECT_INFO,
 				types.STAGING,
+				types.PULL_REQUESTS,
 			})
 		} else {
 			scopeSet = set.NewFromSlice(options.Scope)
@@ -117,6 +127,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 			}
 		}
 
+		branchesAndRemotesWg := sync.WaitGroup{}
 		includeWorktreesWithBranches := false
 		if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) || scopeSet.Includes(types.REFLOG) || scopeSet.Includes(types.BISECT_INFO) {
 			// whenever we change commits, we should update branches because the upstream/downstream
@@ -126,9 +137,17 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 
 			includeWorktreesWithBranches = scopeSet.Includes(types.WORKTREES)
 			if self.c.UserConfig().Git.LocalBranchSortOrder == "recency" {
-				refresh("reflog and branches", func() { self.refreshReflogAndBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex) })
+				branchesAndRemotesWg.Add(1)
+				refresh("reflog and branches", func() {
+					self.refreshReflogAndBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex)
+					branchesAndRemotesWg.Done()
+				})
 			} else {
-				refresh("branches", func() { self.refreshBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex, true) })
+				branchesAndRemotesWg.Add(1)
+				refresh("branches", func() {
+					self.refreshBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex, true)
+					branchesAndRemotesWg.Done()
+				})
 				refresh("reflog", func() { _ = self.refreshReflogCommits() })
 			}
 		} else if scopeSet.Includes(types.REBASE_COMMITS) {
@@ -164,7 +183,18 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 		}
 
 		if scopeSet.Includes(types.REMOTES) {
-			refresh("remotes", func() { _ = self.refreshRemotes() })
+			branchesAndRemotesWg.Add(1)
+			refresh("remotes", func() {
+				_ = self.refreshRemotes()
+				branchesAndRemotesWg.Done()
+			})
+		}
+
+		if scopeSet.Includes(types.PULL_REQUESTS) {
+			refresh("pull requests", func() {
+				branchesAndRemotesWg.Wait()
+				self.refreshGithubPullRequests()
+			})
 		}
 
 		if scopeSet.Includes(types.WORKTREES) && !includeWorktreesWithBranches {
@@ -209,6 +239,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 func getScopeNames(scopes []types.RefreshableView) []string {
 	scopeNameMap := map[types.RefreshableView]string{
 		types.COMMITS:         "commits",
+		types.REBASE_COMMITS:  "rebaseCommits",
 		types.BRANCHES:        "branches",
 		types.FILES:           "files",
 		types.SUBMODULES:      "submodules",
@@ -221,7 +252,10 @@ func getScopeNames(scopes []types.RefreshableView) []string {
 		types.STATUS:          "status",
 		types.BISECT_INFO:     "bisect",
 		types.STAGING:         "staging",
+		types.PATCH_BUILDING:  "patchBuilding",
 		types.MERGE_CONFLICTS: "mergeConflicts",
+		types.COMMIT_FILES:    "commitFiles",
+		types.PULL_REQUESTS:   "pullRequests",
 	}
 
 	return lo.Map(scopes, func(scope types.RefreshableView, _ int) string {
@@ -477,6 +511,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 	prevSelectedBranch := self.c.Contexts().Branches.GetSelected()
 
 	self.c.Model().Branches = branches
+	self.rebuildPullRequestsMap()
 
 	if refreshWorktrees {
 		self.loadWorktrees()
@@ -658,6 +693,13 @@ func (self *RefreshHelper) refreshRemotes() error {
 
 	self.c.Model().Remotes = remotes
 
+	hadPrs := len(self.c.Model().PullRequestsMap) != 0
+	self.rebuildPullRequestsMap()
+	if !hadPrs && len(self.c.Model().PullRequestsMap) != 0 {
+		// if we didn't have PRs in the map before but now we do, we need to redraw the branches view
+		self.refreshView(self.c.Contexts().Branches)
+	}
+
 	// we need to ensure our selected remote branches aren't now outdated
 	if prevSelectedRemote != nil && self.c.Model().RemoteBranches != nil {
 		// find remote now
@@ -756,4 +798,155 @@ func (self *RefreshHelper) refreshView(context types.Context) {
 		self.searchHelper.ReApplySearch(context)
 		return nil
 	})
+}
+
+func (self *RefreshHelper) refreshGithubPullRequests() {
+	self.c.Mutexes().RefreshingPullRequestsMutex.Lock()
+	defer self.c.Mutexes().RefreshingPullRequestsMutex.Unlock()
+
+	if !self.c.Git().GitHub.InGithubRepo(self.c.Model().Remotes) {
+		self.c.Model().PullRequests = nil
+		self.c.Model().PullRequestsMap = nil
+		return
+	}
+
+	authToken := self.c.Git().GitHub.GetAuthToken()
+	if authToken == "" {
+		self.c.Model().PullRequests = nil
+		self.c.Model().PullRequestsMap = nil
+		return
+	}
+
+	baseRemote := self.getGithubBaseRemote()
+	if baseRemote == nil {
+		if !self.githubBaseRemotePromptDismissed[self.c.Git().RepoPaths.RepoPath()] {
+			self.promptForBaseGithubRepo(authToken)
+		}
+		return
+	}
+
+	if err := self.setGithubPullRequests(authToken, baseRemote); err != nil {
+		self.c.LogAction(fmt.Sprintf("Error fetching pull requests from GitHub: %s", err.Error()))
+	}
+}
+
+func (self *RefreshHelper) getGithubBaseRemote() *models.Remote {
+	remotes := self.c.Model().Remotes
+
+	findRemoteByName := func(name string) *models.Remote {
+		remote, _ := lo.Find(remotes, func(remote *models.Remote) bool {
+			return remote.Name == name
+		})
+		return remote
+	}
+
+	if configuredRemote := self.c.Git().GitHub.ConfiguredBaseRemoteName(); configuredRemote != "" {
+		return findRemoteByName(configuredRemote)
+	}
+
+	if len(remotes) == 1 {
+		return remotes[0]
+	}
+
+	for _, remoteName := range []string{"upstream", "origin"} {
+		if remote := findRemoteByName(remoteName); remote != nil {
+			return remote
+		}
+	}
+
+	return nil
+}
+
+func (self *RefreshHelper) promptForBaseGithubRepo(authToken string) {
+	menuItems := lo.FilterMap(self.c.Model().Remotes, func(remote *models.Remote, _ int) (*types.MenuItem, bool) {
+		if len(remote.Urls) == 0 {
+			return nil, false
+		}
+		repoName, err := self.c.Git().HostingService.GetRepoNameFromRemoteURL(remote.Urls[0])
+		if err != nil {
+			return nil, false
+		}
+
+		return &types.MenuItem{
+			LabelColumns: []string{remote.Name, style.FgCyan.Sprint(repoName)},
+			OnPress: func() error {
+				return self.c.WithWaitingStatus(self.c.Tr.FetchingPullRequests, func(gocui.Task) error {
+					if err := self.c.Git().GitHub.SetConfiguredBaseRemoteName(remote.Name); err != nil {
+						self.c.Log.Error(err)
+					}
+
+					if err := self.setGithubPullRequests(authToken, remote); err != nil {
+						self.c.LogAction(fmt.Sprintf("Error fetching pull requests from GitHub: %s", err.Error()))
+					}
+					return nil
+				})
+			},
+		}, true
+	})
+
+	_ = self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.SelectRemoteRepository,
+		Items: menuItems,
+		OnCancel: func() error {
+			if self.githubBaseRemotePromptDismissed == nil {
+				self.githubBaseRemotePromptDismissed = make(map[string]bool)
+			}
+			self.githubBaseRemotePromptDismissed[self.c.Git().RepoPaths.RepoPath()] = true
+			return nil
+		},
+	})
+}
+
+func (self *RefreshHelper) rebuildPullRequestsMap() {
+	self.c.Model().PullRequestsMap = git_commands.GenerateGithubPullRequestMap(
+		self.c.Model().PullRequests,
+		self.c.Model().Branches,
+		self.c.Model().Remotes,
+	)
+}
+
+func (self *RefreshHelper) setGithubPullRequests(authToken string, baseRemote *models.Remote) error {
+	if len(self.c.Model().Branches) == 0 {
+		return nil
+	}
+
+	branches := lo.Filter(self.c.Model().Branches, func(branch *models.Branch, _ int) bool {
+		return branch.IsTrackingRemote()
+	})
+	branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string {
+		return branch.UpstreamBranch
+	})
+
+	prs, err := self.c.Git().GitHub.FetchRecentPRs(branchNames, baseRemote, authToken)
+	if err != nil {
+		return err
+	}
+
+	self.c.Model().PullRequests = prs
+	self.savePullRequestsToCache(prs)
+	self.rebuildPullRequestsMap()
+
+	self.c.PostRefreshUpdate(self.c.Contexts().Branches)
+	return nil
+}
+
+func (self *RefreshHelper) savePullRequestsToCache(prs []*models.GithubPullRequest) {
+	repoPath := self.c.Git().RepoPaths.RepoPath()
+	cached := lo.Map(prs, func(pr *models.GithubPullRequest, _ int) config.CachedPullRequest {
+		return config.CachedPullRequest{
+			HeadRefName:         pr.HeadRefName,
+			Number:              pr.Number,
+			Title:               pr.Title,
+			State:               pr.State,
+			Url:                 pr.Url,
+			HeadRepositoryOwner: pr.HeadRepositoryOwner.Login,
+		}
+	})
+
+	appState := self.c.GetAppState()
+	if appState.GithubPullRequests == nil {
+		appState.GithubPullRequests = make(map[string][]config.CachedPullRequest)
+	}
+	appState.GithubPullRequests[repoPath] = cached
+	self.c.SaveAppStateAndLogError()
 }

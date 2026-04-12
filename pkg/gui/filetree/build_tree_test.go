@@ -237,7 +237,7 @@ func TestBuildTreeFromFiles(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			result := BuildTreeFromFiles(s.files, s.showRootItem)
+			result := BuildTreeFromFiles(s.files, s.showRootItem, NodeSortComparator[models.File]("mixed", false))
 			assert.EqualValues(t, s.expected, result)
 		})
 	}
@@ -454,7 +454,7 @@ func TestBuildFlatTreeFromFiles(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			result := BuildFlatTreeFromFiles(s.files, s.showRootItem)
+			result := BuildFlatTreeFromFiles(s.files, s.showRootItem, NodeSortComparator[models.File]("mixed", false))
 			assert.EqualValues(t, s.expected, result)
 		})
 	}
@@ -650,7 +650,7 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			result := BuildTreeFromCommitFiles(s.files, s.showRootItem)
+			result := BuildTreeFromCommitFiles(s.files, s.showRootItem, NodeSortComparator[models.CommitFile]("mixed", false))
 			assert.EqualValues(t, s.expected, result)
 		})
 	}
@@ -781,7 +781,7 @@ func TestBuildFlatTreeFromCommitFiles(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			result := BuildFlatTreeFromCommitFiles(s.files, s.showRootItem)
+			result := BuildFlatTreeFromCommitFiles(s.files, s.showRootItem, NodeSortComparator[models.CommitFile]("mixed", false))
 			assert.EqualValues(t, s.expected, result)
 		})
 	}

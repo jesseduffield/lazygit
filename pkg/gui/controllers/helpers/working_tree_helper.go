@@ -97,6 +97,12 @@ func IsWorkingTreeDirtyExceptSubmodules(files []*models.File, submoduleConfigs [
 	return AnyStagedFilesExceptSubmodules(files, submoduleConfigs) || AnyTrackedFilesExceptSubmodules(files, submoduleConfigs)
 }
 
+func GetUnstagedFilesExceptSubmodules(files []*models.File, submoduleConfigs []*models.SubmoduleConfig) []string {
+	return lo.FilterMap(files, func(f *models.File, _ int) (string, bool) {
+		return f.Path, f.HasUnstagedChanges && f.Tracked && !f.IsSubmodule(submoduleConfigs)
+	})
+}
+
 func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfig) *models.File {
 	for _, file := range self.c.Model().Files {
 		if file.IsSubmodule([]*models.SubmoduleConfig{submodule}) {

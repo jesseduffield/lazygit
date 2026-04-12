@@ -80,6 +80,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` t `` | Cofnij | Utwórz commit cofający dla wybranego commita, który stosuje zmiany wybranego commita w odwrotnej kolejności. |
 | `` T `` | Otaguj commit | Utwórz nowy tag wskazujący na wybrany commit. Zostaniesz poproszony o wprowadzenie nazwy tagu i opcjonalnego opisu. |
 | `` <c-l> `` | Zobacz opcje logów | Zobacz opcje dla logów commitów, np. zmiana kolejności sortowania, ukrywanie grafu gita, pokazywanie całego grafu gita. |
+| `` G `` | Open pull request in browser |  |
 | `` <space> `` | Przełącz | Przełącz wybrany commit jako odłączoną HEAD. |
 | `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |
 | `` o `` | Otwórz commit w przeglądarce |  |
@@ -146,6 +147,7 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` o `` | Utwórz żądanie ściągnięcia |  |
 | `` O `` | Zobacz opcje tworzenia pull requesta |  |
+| `` G `` | Open pull request in browser |  |
 | `` <c-y> `` | Kopiuj adres URL żądania ściągnięcia do schowka |  |
 | `` c `` | Przełącz według nazwy | Przełącz według nazwy. W polu wprowadzania możesz wpisać '-' aby przełączyć się na ostatnią gałąź. |
 | `` - `` | Checkout previous branch |  |

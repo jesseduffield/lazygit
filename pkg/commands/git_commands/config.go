@@ -1,28 +1,32 @@
 package git_commands
 
 import (
-	gogit "github.com/jesseduffield/go-git/v5"
-	"github.com/jesseduffield/go-git/v5/config"
+	"strings"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 )
+
+// BranchConfig holds the tracking configuration for a branch.
+type BranchConfig struct {
+	Remote string
+	Merge  string // short ref name of upstream branch
+}
 
 type ConfigCommands struct {
 	*common.Common
 
 	gitConfig git_config.IGitConfig
-	repo      *gogit.Repository
 }
 
 func NewConfigCommands(
 	common *common.Common,
 	gitConfig git_config.IGitConfig,
-	repo *gogit.Repository,
 ) *ConfigCommands {
 	return &ConfigCommands{
 		Common:    common,
 		gitConfig: gitConfig,
-		repo:      repo,
 	}
 }
 
@@ -72,13 +76,40 @@ func (self *ConfigCommands) GetPushToCurrent() bool {
 }
 
 // returns the repo's branches as specified in the git config
-func (self *ConfigCommands) Branches() (map[string]*config.Branch, error) {
-	conf, err := self.repo.Config()
+func (self *ConfigCommands) Branches(cmd oscommands.ICmdObjBuilder) map[string]*BranchConfig {
+	cmdArgs := NewGitCmd("config").
+		Arg("--local", "--get-regexp", `^branch\.`).ToArgv()
+	output, err := cmd.New(cmdArgs).DontLog().RunWithOutput()
 	if err != nil {
-		return nil, err
+		// exit code 1 means no matching keys (no branches with config)
+		return nil
 	}
 
-	return conf.Branches, nil
+	result := make(map[string]*BranchConfig)
+	for _, line := range strings.Split(output, "\n") {
+		key, value, found := strings.Cut(strings.TrimSpace(line), " ")
+		if !found {
+			continue
+		}
+		// key is like "branch.<name>.remote" or "branch.<name>.merge"
+		lastDot := strings.LastIndex(key, ".")
+		// ignore key like branch.autosetuprebase
+		if lastDot < len("branch.") {
+			continue
+		}
+		configKey := key[lastDot+1:]
+		branchName := key[len("branch."):lastDot]
+		if _, ok := result[branchName]; !ok {
+			result[branchName] = &BranchConfig{}
+		}
+		switch configKey {
+		case "remote":
+			result[branchName].Remote = value
+		case "merge":
+			result[branchName].Merge = strings.TrimPrefix(value, "refs/heads/")
+		}
+	}
+	return result
 }
 
 func (self *ConfigCommands) GetGitFlowPrefixes() string {

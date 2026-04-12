@@ -285,7 +285,7 @@ func TestGetWindowDimensions(t *testing.T) {
 		{
 			name: "half screen mode, enlargedSideViewLocation left",
 			mutateArgs: func(args *WindowArrangementArgs) {
-				args.Height = 20 // smaller height because we don't more here
+				args.Height = 20 // smaller height because we don't need more here
 				args.ScreenMode = types.SCREEN_HALF
 				args.UserConfig.Gui.EnlargedSideViewLocation = "left"
 			},
@@ -317,7 +317,7 @@ func TestGetWindowDimensions(t *testing.T) {
 		{
 			name: "half screen mode, enlargedSideViewLocation top",
 			mutateArgs: func(args *WindowArrangementArgs) {
-				args.Height = 20 // smaller height because we don't more here
+				args.Height = 20 // smaller height because we don't need more here
 				args.ScreenMode = types.SCREEN_HALF
 				args.UserConfig.Gui.EnlargedSideViewLocation = "top"
 			},
@@ -342,6 +342,105 @@ func TestGetWindowDimensions(t *testing.T) {
 			│                                                                         │
 			╰─────────────────────────────────────────────────────────────────────────╯
 			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "portrait auto mode, enabled",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.Width = 50
+				args.Height = 20
+				args.UserConfig.Gui.PortraitModeAutoMaxWidth = 50
+				args.UserConfig.Gui.PortraitModeAutoMinHeight = 20
+			},
+			expected: `
+			<status──────────────────────────────────────────>
+			╭files───────────────────────────────────────────╮
+			│                                                │
+			╰────────────────────────────────────────────────╯
+			<branches────────────────────────────────────────>
+			<commits─────────────────────────────────────────>
+			<stash───────────────────────────────────────────>
+			╭main────────────────────────────────────────────╮
+			│                                                │
+			│                                                │
+			│                                                │
+			│                                                │
+			│                                                │
+			│                                                │
+			│                                                │
+			│                                                │
+			│                                                │
+			│                                                │
+			╰────────────────────────────────────────────────╯
+			<options─────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "portrait auto mode, disabled because width is too large",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.Width = 50
+				args.Height = 20
+				args.UserConfig.Gui.PortraitModeAutoMaxWidth = 49
+				args.UserConfig.Gui.PortraitModeAutoMinHeight = 20
+			},
+			expected: `
+			<status─────────>╭main───────────────────────────╮
+			╭files──────────╮│                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			╰───────────────╯│                               │
+			<branches───────>│                               │
+			<commits────────>│                               │
+			<stash──────────>╰───────────────────────────────╯
+			<options─────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "portrait auto mode, disabled because height is too small",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.Width = 50
+				args.Height = 20
+				args.UserConfig.Gui.PortraitModeAutoMaxWidth = 50
+				args.UserConfig.Gui.PortraitModeAutoMinHeight = 21
+			},
+			expected: `
+			<status─────────>╭main───────────────────────────╮
+			╭files──────────╮│                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			╰───────────────╯│                               │
+			<branches───────>│                               │
+			<commits────────>│                               │
+			<stash──────────>╰───────────────────────────────╯
+			<options─────────────────────────────>A<B────────>
 			A: statusSpacer1
 			B: information
 			`,
