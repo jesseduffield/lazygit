@@ -248,6 +248,69 @@ func TestBranchGetAllBranchGraph(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestBranchGetAllBranchGraphWithExcludeRefs(t *testing.T) {
+	runner := oscommands.NewFakeRunner(t).ExpectGitArgs([]string{
+		"log", "--graph", "--exclude=refs/jj/*", "--all", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium",
+	}, "", nil)
+	instance := buildBranchCommands(commonDeps{
+		runner: runner,
+		userConfig: &config.UserConfig{
+			Git: config.GitConfig{
+				AllBranchesLogCmds:        []string{"git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"},
+				AllBranchesLogExcludeRefs: []string{"refs/jj/*"},
+			},
+		},
+	})
+	err := instance.AllBranchesLogCmdObj().Run()
+	assert.NoError(t, err)
+}
+
+func TestApplyAllBranchesLogExcludeRefs(t *testing.T) {
+	tests := []struct {
+		name        string
+		cmdArgs     []string
+		excludeRefs []string
+		expected    []string
+	}{
+		{
+			name:        "no exclude refs",
+			cmdArgs:     []string{"git", "log", "--all", "--oneline"},
+			excludeRefs: nil,
+			expected:    []string{"git", "log", "--all", "--oneline"},
+		},
+		{
+			name:        "inject before all",
+			cmdArgs:     []string{"git", "log", "--graph", "--all", "--oneline"},
+			excludeRefs: []string{"refs/jj/*"},
+			expected:    []string{"git", "log", "--graph", "--exclude=refs/jj/*", "--all", "--oneline"},
+		},
+		{
+			name:        "inject before multiple ref selectors",
+			cmdArgs:     []string{"git", "log", "--branches", "--tags=v*", "--oneline"},
+			excludeRefs: []string{"refs/jj/*", "refs/cache/*"},
+			expected:    []string{"git", "log", "--exclude=refs/jj/*", "--exclude=refs/cache/*", "--branches", "--exclude=refs/jj/*", "--exclude=refs/cache/*", "--tags=v*", "--oneline"},
+		},
+		{
+			name:        "leave commands without selectors unchanged",
+			cmdArgs:     []string{"echo", "view1"},
+			excludeRefs: []string{"refs/jj/*"},
+			expected:    []string{"echo", "view1"},
+		},
+		{
+			name:        "dedupe and ignore empty exclude refs",
+			cmdArgs:     []string{"git", "log", "--all"},
+			excludeRefs: []string{"refs/jj/*", "", "refs/jj/*"},
+			expected:    []string{"git", "log", "--exclude=refs/jj/*", "--all"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assert.Equal(t, test.expected, applyAllBranchesLogExcludeRefs(test.cmdArgs, test.excludeRefs))
+		})
+	}
+}
+
 func TestBranchCurrentBranchInfo(t *testing.T) {
 	type scenario struct {
 		testName string
