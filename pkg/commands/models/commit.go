@@ -12,6 +12,15 @@ import (
 const EmptyTreeCommitHash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 const EmptyTreeCommitHashSHA256 = "6ef19b41225c5369f1c104d45d8d85efa9b057b53b14b4b9b939dd74decc5321"
 
+// EmptyTreeHashForFormat returns the empty tree hash for the given object
+// format ("sha1" or "sha256"). Falls back to SHA-1 for unknown formats.
+func EmptyTreeHashForFormat(objectFormat string) string {
+	if objectFormat == "sha256" {
+		return EmptyTreeCommitHashSHA256
+	}
+	return EmptyTreeCommitHash
+}
+
 type CommitStatus uint8
 
 const (
@@ -129,9 +138,11 @@ func (c *Commit) ParentRefName() string {
 }
 
 // emptyTreeHash returns the empty tree object hash matching this repo's
-// object format. SHA-256 repos produce 64-char hashes; SHA-1 repos 40-char.
+// object format. This is only called when IsFirstCommit() is true, so the
+// commit comes from git log with a full-length hash (40 for SHA-1, 64 for
+// SHA-256).
 func (c *Commit) emptyTreeHash() string {
-	if len(c.Hash()) > 40 {
+	if len(c.Hash()) == len(EmptyTreeCommitHashSHA256) {
 		return EmptyTreeCommitHashSHA256
 	}
 	return EmptyTreeCommitHash
