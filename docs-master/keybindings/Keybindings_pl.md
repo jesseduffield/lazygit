@@ -14,6 +14,14 @@ _Legenda: `<c-b>` oznacza ctrl+b, `<a-b>` oznacza alt+b, `B` oznacza shift+b_
 | `` @ `` | Pokaż opcje dziennika poleceń | Pokaż opcje dla dziennika poleceń, np. pokazywanie/ukrywanie dziennika poleceń i skupienie na dzienniku poleceń. |
 | `` P `` | Wypchnij | Wypchnij bieżącą gałąź do jej gałęzi nadrzędnej. Jeśli nie skonfigurowano gałęzi nadrzędnej, zostaniesz poproszony o skonfigurowanie gałęzi nadrzędnej. |
 | `` p `` | Pociągnij | Pociągnij zmiany z zdalnego dla bieżącej gałęzi. Jeśli nie skonfigurowano gałęzi nadrzędnej, zostaniesz poproszony o skonfigurowanie gałęzi nadrzędnej. |
+| `` <a-2> `` | Collapse/expand side panel | Toggle collapsing the side panel to a minimal size. The collapsed state is persisted across restarts. |
+| `` <a-3> `` | Collapse/expand side panel | Toggle collapsing the side panel to a minimal size. The collapsed state is persisted across restarts. |
+| `` <a-4> `` | Collapse/expand side panel | Toggle collapsing the side panel to a minimal size. The collapsed state is persisted across restarts. |
+| `` 1 `` | Jump to side panel |  |
+| `` 2 `` | Jump to side panel |  |
+| `` 3 `` | Jump to side panel |  |
+| `` 4 `` | Jump to side panel |  |
+| `` 5 `` | Jump to side panel |  |
 | `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` } `` | Zwiększ rozmiar kontekstu w widoku różnic | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |

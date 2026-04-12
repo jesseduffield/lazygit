@@ -6,6 +6,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
+	"golang.org/x/exp/slices"
 )
 
 type JumpToSideWindowController struct {
@@ -38,7 +39,8 @@ func (self *JumpToSideWindowController) GetKeybindings(opts types.KeybindingsOpt
 
 	return lo.Map(windows, func(window string, index int) *types.Binding {
 		return &types.Binding{
-			ViewName: "",
+			ViewName:    "",
+			Description: self.c.Tr.JumpToSidePanel,
 			// by default the keys are 1, 2, 3, etc
 			Key:      opts.GetKey(opts.Config.Universal.JumpToBlock[index]),
 			Modifier: gocui.ModNone,
@@ -49,13 +51,23 @@ func (self *JumpToSideWindowController) GetKeybindings(opts types.KeybindingsOpt
 
 func (self *JumpToSideWindowController) goToSideWindow(window string) func() error {
 	return func() error {
+		appState := self.c.GetAppState()
+		isCollapsed := slices.Contains(appState.CollapsedSideWindows, window)
+
+		if isCollapsed {
+			// Uncollapse and navigate to the window
+			appState.CollapsedSideWindows = lo.Filter(appState.CollapsedSideWindows, func(w string, _ int) bool {
+				return w != window
+			})
+			self.c.SaveAppStateAndLogError()
+		}
+
 		sideWindowAlreadyActive := self.c.Helpers().Window.CurrentWindow() == window
 		if sideWindowAlreadyActive && self.c.UserConfig().Gui.SwitchTabsWithPanelJumpKeys {
 			return self.nextTabFunc()
 		}
 
 		context := self.c.Helpers().Window.GetContextForWindow(window)
-
 		self.c.Context().Push(context, types.OnFocusOpts{})
 		return nil
 	}

@@ -462,6 +462,8 @@ var tests = []*components.IntegrationTest{
 	tag.Reset,
 	tag.ResetToDuplicateNamedBranch,
 	ui.Accordion,
+	ui.CollapseSidePanel,
+	ui.CollapseSidePanelSticky,
 	ui.DisableSwitchTabWithPanelJumpKeys,
 	ui.EmptyMenu,
 	ui.KeybindingSuggestionsWhenSwitchingRepos,

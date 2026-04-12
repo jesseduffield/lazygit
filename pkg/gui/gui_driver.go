@@ -29,6 +29,13 @@ var _ integrationTypes.GuiDriver = &GuiDriver{}
 func (self *GuiDriver) PressKey(keyStr string) {
 	self.CheckAllToastsAcknowledged()
 
+	mod := tcell.ModNone
+	// Support alt-modified keys like "<a-1>", "<a-2>", etc.
+	if strings.HasPrefix(keyStr, "<a-") && strings.HasSuffix(keyStr, ">") {
+		mod = tcell.ModAlt
+		keyStr = keyStr[3 : len(keyStr)-1]
+	}
+
 	key := keybindings.GetKey(keyStr)
 
 	var r rune
@@ -42,7 +49,7 @@ func (self *GuiDriver) PressKey(keyStr string) {
 	}
 
 	self.gui.g.ReplayedEvents.Keys <- gocui.NewTcellKeyEventWrapper(
-		tcell.NewEventKey(tcellKey, r, tcell.ModNone),
+		tcell.NewEventKey(tcellKey, r, mod),
 		0,
 	)
 

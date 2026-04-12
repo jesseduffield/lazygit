@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
 )
 
@@ -72,6 +73,8 @@ type WindowArrangementArgs struct {
 	InSearchPrompt bool
 	// One of '' (not searching), 'Search: ', and 'Filter: '
 	SearchPrefix string
+	// Side windows that the user has manually collapsed
+	CollapsedSideWindows []string
 }
 
 func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
@@ -86,20 +89,21 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 	}
 
 	args := WindowArrangementArgs{
-		Width:             width,
-		Height:            height,
-		UserConfig:        self.c.UserConfig(),
-		CurrentWindow:     self.c.Context().CurrentStatic().GetWindowName(),
-		CurrentSideWindow: self.c.Context().CurrentSide().GetWindowName(),
-		SplitMainPanel:    repoState.GetSplitMainPanel(),
-		ScreenMode:        repoState.GetScreenMode(),
-		AppStatus:         appStatus,
-		InformationStr:    informationStr,
-		ShowExtrasWindow:  self.c.State().GetShowExtrasWindow(),
-		InDemo:            self.c.InDemo(),
-		IsAnyModeActive:   self.modeHelper.IsAnyModeActive(),
-		InSearchPrompt:    repoState.InSearchPrompt(),
-		SearchPrefix:      searchPrefix,
+		Width:                width,
+		Height:               height,
+		UserConfig:           self.c.UserConfig(),
+		CurrentWindow:        self.c.Context().CurrentStatic().GetWindowName(),
+		CurrentSideWindow:    self.c.Context().CurrentSide().GetWindowName(),
+		SplitMainPanel:       repoState.GetSplitMainPanel(),
+		ScreenMode:           repoState.GetScreenMode(),
+		AppStatus:            appStatus,
+		InformationStr:       informationStr,
+		ShowExtrasWindow:     self.c.State().GetShowExtrasWindow(),
+		InDemo:               self.c.InDemo(),
+		IsAnyModeActive:      self.modeHelper.IsAnyModeActive(),
+		InSearchPrompt:       repoState.InSearchPrompt(),
+		SearchPrefix:         searchPrefix,
+		CollapsedSideWindows: self.c.GetAppState().CollapsedSideWindows,
 	}
 
 	return GetWindowDimensions(args)
@@ -420,6 +424,10 @@ func getDefaultStashWindowBox(args WindowArrangementArgs) *boxlayout.Box {
 }
 
 func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) []*boxlayout.Box {
+	isCollapsed := func(window string) bool {
+		return slices.Contains(args.CollapsedSideWindows, window)
+	}
+
 	return func(width int, height int) []*boxlayout.Box {
 		if args.ScreenMode == types.SCREEN_FULL || args.ScreenMode == types.SCREEN_HALF {
 			fullHeightBox := func(window string) *boxlayout.Box {
@@ -446,6 +454,9 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 		} else if height >= 28 {
 			accordionMode := args.UserConfig.Gui.ExpandFocusedSidePanel
 			accordionBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
+				if isCollapsed(defaultBox.Window) {
+					return &boxlayout.Box{Window: defaultBox.Window, Size: 3}
+				}
 				if accordionMode && defaultBox.Window == args.CurrentSideWindow {
 					return &boxlayout.Box{
 						Window: defaultBox.Window,
@@ -456,7 +467,7 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				return defaultBox
 			}
 
-			return []*boxlayout.Box{
+			boxes := []*boxlayout.Box{
 				{
 					Window: "status",
 					Size:   3,
@@ -466,6 +477,13 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				accordionBox(&boxlayout.Box{Window: "commits", Weight: 1}),
 				accordionBox(getDefaultStashWindowBox(args)),
 			}
+			// If all panels ended up with a fixed size (e.g. all collapsible
+			// panels are collapsed), give stash a weight so the remaining
+			// space is allocated and boxlayout doesn't panic.
+			if !lo.SomeBy(boxes, func(b *boxlayout.Box) bool { return b.Weight > 0 }) {
+				boxes[4] = &boxlayout.Box{Window: "stash", Weight: 1}
+			}
+			return boxes
 		}
 
 		squashedHeight := 1
@@ -474,6 +492,9 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 		}
 
 		squashedSidePanelBox := func(window string) *boxlayout.Box {
+			if isCollapsed(window) {
+				return &boxlayout.Box{Window: window, Size: 3}
+			}
 			if window == args.CurrentSideWindow {
 				return &boxlayout.Box{
 					Window: window,
@@ -487,12 +508,16 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 			}
 		}
 
-		return []*boxlayout.Box{
+		boxes := []*boxlayout.Box{
 			squashedSidePanelBox("status"),
 			squashedSidePanelBox("files"),
 			squashedSidePanelBox("branches"),
 			squashedSidePanelBox("commits"),
 			squashedSidePanelBox("stash"),
 		}
+		if !lo.SomeBy(boxes, func(b *boxlayout.Box) bool { return b.Weight > 0 }) {
+			boxes[4] = &boxlayout.Box{Window: "stash", Weight: 1}
+		}
+		return boxes
 	}
 }

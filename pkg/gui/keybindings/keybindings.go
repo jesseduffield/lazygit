@@ -17,6 +17,10 @@ func Label(name string) string {
 }
 
 func LabelFromKey(key types.Key) string {
+	return LabelFromKeyAndMod(key, gocui.ModNone)
+}
+
+func LabelFromKeyAndMod(key types.Key, mod gocui.Modifier) string {
 	if key == nil {
 		return ""
 	}
@@ -29,12 +33,19 @@ func LabelFromKey(key types.Key) string {
 	case gocui.Key:
 		value, ok := config.LabelByKey[key]
 		if ok {
+			if mod == gocui.ModAlt {
+				return fmt.Sprintf("<a-%s>", strings.TrimSuffix(strings.TrimPrefix(value, "<"), ">"))
+			}
 			return value
 		}
 		keyInt = int(key)
 	}
 
-	return fmt.Sprintf("%c", keyInt)
+	label := fmt.Sprintf("%c", keyInt)
+	if mod == gocui.ModAlt {
+		return fmt.Sprintf("<a-%s>", label)
+	}
+	return label
 }
 
 func GetKey(key string) types.Key {

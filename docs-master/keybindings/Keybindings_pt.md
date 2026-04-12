@@ -14,6 +14,14 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` @ `` | View command log options | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | Empurre (Push) | Faça push do branch atual para o seu branch upstream. Se nenhum upstream estiver configurado, você será solicitado a configurar um branch a montante. |
 | `` p `` | Puxar (Pull) | Puxe alterações do controle remoto para o ramo atual. Se nenhum upstream estiver configurado, será solicitado configurar um ramo a montante. |
+| `` <a-2> `` | Collapse/expand side panel | Toggle collapsing the side panel to a minimal size. The collapsed state is persisted across restarts. |
+| `` <a-3> `` | Collapse/expand side panel | Toggle collapsing the side panel to a minimal size. The collapsed state is persisted across restarts. |
+| `` <a-4> `` | Collapse/expand side panel | Toggle collapsing the side panel to a minimal size. The collapsed state is persisted across restarts. |
+| `` 1 `` | Jump to side panel |  |
+| `` 2 `` | Jump to side panel |  |
+| `` 3 `` | Jump to side panel |  |
+| `` 4 `` | Jump to side panel |  |
+| `` 5 `` | Jump to side panel |  |
 | `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` } `` | Increase diff context size | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |

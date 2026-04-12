@@ -196,6 +196,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	promptController := controllers.NewPromptController(common)
 	suggestionsController := controllers.NewSuggestionsController(common)
 	jumpToSideWindowController := controllers.NewJumpToSideWindowController(common, gui.handleNextTab)
+	collapseSideWindowController := controllers.NewCollapseSideWindowController(common)
 
 	sideWindowControllerFactory := controllers.NewSideWindowControllerFactory(common)
 
@@ -418,6 +419,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		contextLinesController,
 		renameSimilarityThresholdController,
 		jumpToSideWindowController,
+		collapseSideWindowController,
 		syncController,
 	)
 

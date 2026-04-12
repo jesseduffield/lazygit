@@ -59,7 +59,7 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 		}
 
 		return bindingInfo{
-			key:         keybindings.LabelFromKey(binding.Key),
+			key:         keybindings.LabelFromKeyAndMod(binding.Key, binding.Modifier),
 			description: binding.GetShortDescription(),
 			style:       displayStyle,
 		}
