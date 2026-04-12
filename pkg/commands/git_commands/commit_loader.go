@@ -91,8 +91,9 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 		defer wg.Done()
 
 		var realCommits []*models.Commit
+		showGpg := self.UserConfig().Gui.ShowGpgSigningStatus
 		realCommits, logErr = loadCommits(self.getLogCmd(opts), opts.FilterPath, func(line string) (*models.Commit, bool) {
-			return self.extractCommitFromLine(opts.HashPool, line, opts.RefToShowDivergenceFrom != ""), false
+			return self.extractCommitFromLine(opts.HashPool, line, opts.RefToShowDivergenceFrom != "", showGpg), false
 		})
 		if logErr == nil {
 			commits = append(commits, realCommits...)
@@ -189,8 +190,7 @@ func (self *CommitLoader) MergeRebasingCommits(hashPool *utils.StringPool, commi
 // then puts them into a commit object
 // example input:
 // 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
-func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line string, showDivergence bool) *models.Commit {
-	showGpg := self.UserConfig().Gui.ShowGpgSigningStatus
+func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line string, showDivergence bool, showGpg bool) *models.Commit {
 	numFields := 8
 	if showGpg {
 		numFields = 9
@@ -299,10 +299,16 @@ func (self *CommitLoader) getHydratedTodoCommits(hashPool *utils.StringPool, tod
 
 	// note that we're not filtering these as we do non-rebasing commits just because
 	// I suspect that will cause some damage
+	showGpg := self.UserConfig().Gui.ShowGpgSigningStatus
+	format := prettyFormat
+	if showGpg {
+		format = prettyFormatWithGpg
+	}
+
 	cmdObj := self.cmd.New(
 		NewGitCmd("show").
 			Config("log.showSignature=false").
-			Arg("--no-patch", "--oneline", "--abbrev=20", prettyFormat).
+			Arg("--no-patch", "--oneline", "--abbrev=20", format).
 			Arg(commitHashes...).
 			ToArgv(),
 	).DontLog()
@@ -312,7 +318,10 @@ func (self *CommitLoader) getHydratedTodoCommits(hashPool *utils.StringPool, tod
 		if line == "" || line[0] != '+' {
 			return false, nil
 		}
-		commit := self.extractCommitFromLine(hashPool, line[1:], false)
+		commit := self.extractCommitFromLine(hashPool, line[1:], false, showGpg)
+		if commit == nil {
+			return false, nil
+		}
 		fullCommits[commit.Hash()] = commit
 		return false, nil
 	})
