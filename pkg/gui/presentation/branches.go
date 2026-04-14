@@ -141,7 +141,7 @@ func getBranchDisplayStrings(
 
 	var coloredPrIcon string
 	pr, hasPr := prs[b.Name]
-	if hasPr {
+	if hasPr && ShouldShowPrForBranch(pr, b.Name, userConfig) {
 		var prIcon string
 		if icons.IsIconEnabled() {
 			prIcon = icons.IconForRemoteUrl(pr.Url)
@@ -284,4 +284,14 @@ func prColor(state string) style.TextStyle {
 	default:
 		return style.FgDefault
 	}
+}
+
+func ShouldShowPrForBranch(pr *models.GithubPullRequest, branchName string, userConfig *config.UserConfig) bool {
+	if !lo.Contains(userConfig.Git.MainBranches, branchName) {
+		return true
+	}
+
+	// For main branches we only want to show the PR if it's open (or draft), on the assumption that a
+	// closed PR for a main branch is always a mistake.
+	return pr.State != "CLOSED" && pr.State != "MERGED"
 }
