@@ -61,7 +61,7 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 	return bindings
 }
 
-func (self *MenuController) GetOnClick() func() error {
+func (self *MenuController) GetOnDoubleClick() func() error {
 	return self.withItemGraceful(self.press)
 }
 
@@ -84,8 +84,7 @@ func (self *MenuController) close() error {
 		return nil
 	}
 
-	self.c.Context().Pop()
-	return nil
+	return self.context().OnMenuPress(nil)
 }
 
 func (self *MenuController) context() *context.MenuContext {

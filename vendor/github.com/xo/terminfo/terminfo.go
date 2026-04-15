@@ -1,6 +1,8 @@
 // Package terminfo implements reading terminfo files in pure go.
 package terminfo
 
+//go:generate go run gen.go
+
 import (
 	"io"
 	"io/ioutil"
@@ -20,34 +22,24 @@ func (err Error) Error() string {
 const (
 	// ErrInvalidFileSize is the invalid file size error.
 	ErrInvalidFileSize Error = "invalid file size"
-
 	// ErrUnexpectedFileEnd is the unexpected file end error.
 	ErrUnexpectedFileEnd Error = "unexpected file end"
-
 	// ErrInvalidStringTable is the invalid string table error.
 	ErrInvalidStringTable Error = "invalid string table"
-
 	// ErrInvalidMagic is the invalid magic error.
 	ErrInvalidMagic Error = "invalid magic"
-
 	// ErrInvalidHeader is the invalid header error.
 	ErrInvalidHeader Error = "invalid header"
-
 	// ErrInvalidNames is the invalid names error.
 	ErrInvalidNames Error = "invalid names"
-
 	// ErrInvalidExtendedHeader is the invalid extended header error.
 	ErrInvalidExtendedHeader Error = "invalid extended header"
-
 	// ErrEmptyTermName is the empty term name error.
 	ErrEmptyTermName Error = "empty term name"
-
 	// ErrDatabaseDirectoryNotFound is the database directory not found error.
 	ErrDatabaseDirectoryNotFound Error = "database directory not found"
-
 	// ErrFileNotFound is the file not found error.
 	ErrFileNotFound Error = "file not found"
-
 	// ErrInvalidTermProgramVersion is the invalid TERM_PROGRAM_VERSION error.
 	ErrInvalidTermProgramVersion Error = "invalid TERM_PROGRAM_VERSION"
 )
@@ -56,43 +48,30 @@ const (
 type Terminfo struct {
 	// File is the original source file.
 	File string
-
 	// Names are the provided cap names.
 	Names []string
-
 	// Bools are the bool capabilities.
 	Bools map[int]bool
-
 	// BoolsM are the missing bool capabilities.
 	BoolsM map[int]bool
-
 	// Nums are the num capabilities.
 	Nums map[int]int
-
 	// NumsM are the missing num capabilities.
 	NumsM map[int]bool
-
 	// Strings are the string capabilities.
 	Strings map[int][]byte
-
 	// StringsM are the missing string capabilities.
 	StringsM map[int]bool
-
 	// ExtBools are the extended bool capabilities.
 	ExtBools map[int]bool
-
 	// ExtBoolsNames is the map of extended bool capabilities to their index.
 	ExtBoolNames map[int][]byte
-
 	// ExtNums are the extended num capabilities.
 	ExtNums map[int]int
-
 	// ExtNumsNames is the map of extended num capabilities to their index.
 	ExtNumNames map[int][]byte
-
 	// ExtStrings are the extended string capabilities.
 	ExtStrings map[int][]byte
-
 	// ExtStringsNames is the map of extended string capabilities to their index.
 	ExtStringNames map[int][]byte
 }
@@ -100,75 +79,63 @@ type Terminfo struct {
 // Decode decodes the terminfo data contained in buf.
 func Decode(buf []byte) (*Terminfo, error) {
 	var err error
-
 	// check max file length
 	if len(buf) >= maxFileLength {
 		return nil, ErrInvalidFileSize
 	}
-
 	d := &decoder{
 		buf: buf,
-		len: len(buf),
+		n:   len(buf),
 	}
-
 	// read header
 	h, err := d.readInts(6, 16)
 	if err != nil {
 		return nil, err
 	}
-
 	var numWidth int
-
 	// check magic
-	if h[fieldMagic] == magic {
+	switch {
+	case h[fieldMagic] == magic:
 		numWidth = 16
-	} else if h[fieldMagic] == magicExtended {
+	case h[fieldMagic] == magicExtended:
 		numWidth = 32
-	} else {
+	default:
 		return nil, ErrInvalidMagic
 	}
-
 	// check header
 	if hasInvalidCaps(h) {
 		return nil, ErrInvalidHeader
 	}
-
 	// check remaining length
-	if d.len-d.pos < capLength(h) {
+	if d.n-d.pos < capLength(h) {
 		return nil, ErrUnexpectedFileEnd
 	}
-
 	// read names
 	names, err := d.readBytes(h[fieldNameSize])
 	if err != nil {
 		return nil, err
 	}
-
 	// check name is terminated properly
 	i := findNull(names, 0)
 	if i == -1 {
 		return nil, ErrInvalidNames
 	}
 	names = names[:i]
-
 	// read bool caps
 	bools, boolsM, err := d.readBools(h[fieldBoolCount])
 	if err != nil {
 		return nil, err
 	}
-
 	// read num caps
 	nums, numsM, err := d.readNums(h[fieldNumCount], numWidth)
 	if err != nil {
 		return nil, err
 	}
-
 	// read string caps
 	strs, strsM, err := d.readStrings(h[fieldStringCount], h[fieldTableSize])
 	if err != nil {
 		return nil, err
 	}
-
 	ti := &Terminfo{
 		Names:    strings.Split(string(names), "|"),
 		Bools:    bools,
@@ -178,57 +145,47 @@ func Decode(buf []byte) (*Terminfo, error) {
 		Strings:  strs,
 		StringsM: strsM,
 	}
-
 	// at the end of file, so no extended caps
-	if d.pos >= d.len {
+	if d.pos >= d.n {
 		return ti, nil
 	}
-
 	// decode extended header
 	eh, err := d.readInts(5, 16)
 	if err != nil {
 		return nil, err
 	}
-
 	// check extended offset field
 	if hasInvalidExtOffset(eh) {
 		return nil, ErrInvalidExtendedHeader
 	}
-
 	// check extended cap lengths
-	if d.len-d.pos != extCapLength(eh, numWidth) {
+	if d.n-d.pos != extCapLength(eh, numWidth) {
 		return nil, ErrInvalidExtendedHeader
 	}
-
 	// read extended bool caps
 	ti.ExtBools, _, err = d.readBools(eh[fieldExtBoolCount])
 	if err != nil {
 		return nil, err
 	}
-
 	// read extended num caps
 	ti.ExtNums, _, err = d.readNums(eh[fieldExtNumCount], numWidth)
 	if err != nil {
 		return nil, err
 	}
-
 	// read extended string data table indexes
 	extIndexes, err := d.readInts(eh[fieldExtOffsetCount], 16)
 	if err != nil {
 		return nil, err
 	}
-
 	// read string data table
 	extData, err := d.readBytes(eh[fieldExtTableSize])
 	if err != nil {
 		return nil, err
 	}
-
 	// precautionary check that exactly at end of file
-	if d.pos != d.len {
+	if d.pos != d.n {
 		return nil, ErrUnexpectedFileEnd
 	}
-
 	var last int
 	// read extended string caps
 	ti.ExtStrings, last, err = readStrings(extIndexes, extData, eh[fieldExtStringCount])
@@ -236,28 +193,24 @@ func Decode(buf []byte) (*Terminfo, error) {
 		return nil, err
 	}
 	extIndexes, extData = extIndexes[eh[fieldExtStringCount]:], extData[last:]
-
 	// read extended bool names
 	ti.ExtBoolNames, _, err = readStrings(extIndexes, extData, eh[fieldExtBoolCount])
 	if err != nil {
 		return nil, err
 	}
 	extIndexes = extIndexes[eh[fieldExtBoolCount]:]
-
 	// read extended num names
 	ti.ExtNumNames, _, err = readStrings(extIndexes, extData, eh[fieldExtNumCount])
 	if err != nil {
 		return nil, err
 	}
 	extIndexes = extIndexes[eh[fieldExtNumCount]:]
-
 	// read extended string names
 	ti.ExtStringNames, _, err = readStrings(extIndexes, extData, eh[fieldExtStringCount])
 	if err != nil {
 		return nil, err
 	}
-	//extIndexes = extIndexes[eh[fieldExtStringCount]:]
-
+	// extIndexes = extIndexes[eh[fieldExtStringCount]:]
 	return ti, nil
 }
 
@@ -279,23 +232,19 @@ func Open(dir, name string) (*Terminfo, error) {
 	if buf == nil {
 		return nil, ErrFileNotFound
 	}
-
 	// decode
 	ti, err := Decode(buf)
 	if err != nil {
 		return nil, err
 	}
-
 	// save original file name
 	ti.File = filename
-
 	// add to cache
 	termCache.Lock()
 	for _, n := range ti.Names {
 		termCache.db[n] = ti
 	}
 	termCache.Unlock()
-
 	return ti, nil
 }
 
@@ -441,7 +390,6 @@ func (ti *Terminfo) Fprintf(w io.Writer, i int, v ...interface{}) {
 // them for this terminal.
 func (ti *Terminfo) Colorf(fg, bg int, str string) string {
 	maxColors := int(ti.Nums[MaxColors])
-
 	// map bright colors to lower versions if the color table only holds 8.
 	if maxColors == 8 {
 		if fg > 7 && fg < 16 {
@@ -451,7 +399,6 @@ func (ti *Terminfo) Colorf(fg, bg int, str string) string {
 			bg -= 8
 		}
 	}
-
 	var s string
 	if maxColors > fg && fg >= 0 {
 		s += ti.Printf(SetAForeground, fg)
@@ -480,20 +427,17 @@ func (ti *Terminfo) Goto(row, col int) string {
 			// most strings don't need padding, which is good news!
 			return io.WriteString(w, s)
 		}
-
 		end := strings.Index(s, ">")
 		if end == -1 {
 			// unterminated... just emit bytes unadulterated.
 			return io.WriteString(w, "$<"+s)
 		}
-
 		var c int
 		c, err = io.WriteString(w, s[:start])
 		if err != nil {
 			return n + c, err
 		}
 		n += c
-
 		s = s[start+2:]
 		val := s[:end]
 		s = s[end+1:]
@@ -518,13 +462,11 @@ func (ti *Terminfo) Goto(row, col int) string {
 				break
 			}
 		}
-
 		z, pad := ((baud/8)/unit)*ms, ti.Strings[PadChar]
 		b := make([]byte, len(pad)*z)
 		for bp := copy(b, pad); bp < len(b); bp *= 2 {
 			copy(b[bp:], b[:bp])
 		}
-
 		if (!ti.Bools[XonXoff] && baud > int(ti.Nums[PaddingBaudRate])) || mandatory {
 			c, err = w.Write(b)
 			if err != nil {
@@ -533,6 +475,5 @@ func (ti *Terminfo) Goto(row, col int) string {
 			n += c
 		}
 	}
-
 	return n, nil
 }*/

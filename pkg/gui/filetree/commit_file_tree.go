@@ -15,6 +15,8 @@ type ICommitFileTree interface {
 	GetAllItems() []*CommitFileNode
 	GetAllFiles() []*models.CommitFile
 	GetRoot() *CommitFileNode
+	SetTextFilter(filter string, useFuzzySearch bool)
+	GetTextFilter() string
 }
 
 type CommitFileTree struct {
@@ -23,6 +25,8 @@ type CommitFileTree struct {
 	showTree       bool
 	common         *common.Common
 	collapsedPaths *CollapsedPaths
+	textFilter     string
+	useFuzzySearch bool
 }
 
 func (self *CommitFileTree) CollapseAll() {
@@ -93,13 +97,34 @@ func (self *CommitFileTree) GetAllFiles() []*models.CommitFile {
 	return self.getFiles()
 }
 
-func (self *CommitFileTree) SetTree() {
-	showRootItem := self.common.UserConfig().Gui.ShowRootItemInFileTree
-	if self.showTree {
-		self.tree = BuildTreeFromCommitFiles(self.getFiles(), showRootItem)
-	} else {
-		self.tree = BuildFlatTreeFromCommitFiles(self.getFiles(), showRootItem)
+func (self *CommitFileTree) getFilesForDisplay() []*models.CommitFile {
+	files := self.getFiles()
+	if self.textFilter != "" {
+		files = filterCommitFilesByText(files, self.textFilter, self.useFuzzySearch)
 	}
+	return files
+}
+
+func (self *CommitFileTree) SetTree() {
+	filesForDisplay := self.getFilesForDisplay()
+	guiConfig := self.common.UserConfig().Gui
+	showRootItem := guiConfig.ShowRootItemInFileTree
+	cmp := NodeSortComparator[models.CommitFile](guiConfig.FileTreeSortOrder, guiConfig.FileTreeSortCaseSensitive)
+	if self.showTree {
+		self.tree = BuildTreeFromCommitFiles(filesForDisplay, showRootItem, cmp)
+	} else {
+		self.tree = BuildFlatTreeFromCommitFiles(filesForDisplay, showRootItem, cmp)
+	}
+}
+
+func (self *CommitFileTree) SetTextFilter(filter string, useFuzzySearch bool) {
+	self.textFilter = filter
+	self.useFuzzySearch = useFuzzySearch
+	self.SetTree()
+}
+
+func (self *CommitFileTree) GetTextFilter() string {
+	return self.textFilter
 }
 
 func (self *CommitFileTree) IsCollapsed(path string) bool {
@@ -126,6 +151,10 @@ func (self *CommitFileTree) GetFile(path string) *models.CommitFile {
 	}
 
 	return nil
+}
+
+func (self *CommitFileTree) GetVisualDepth(index int) int {
+	return self.tree.GetVisualDepthAtIndex(index+1, self.collapsedPaths) // +1 to skip root
 }
 
 func (self *CommitFileTree) InTreeMode() bool {

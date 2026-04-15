@@ -102,7 +102,7 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 	}
 }
 
-func (self *SubmodulesController) GetOnClick() func() error {
+func (self *SubmodulesController) GetOnDoubleClick() func() error {
 	return self.withItemGraceful(self.enter)
 }
 
@@ -125,7 +125,7 @@ func (self *SubmodulesController) GetOnRenderToMain() func() {
 				if file == nil {
 					task = types.NewRenderStringTask(prefix)
 				} else {
-					cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(file, false, !file.HasUnstagedChanges && file.HasStagedChanges)
+					cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(file, false, !file.HasUnstagedChanges && file.HasStagedChanges, nil)
 					task = types.NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), prefix)
 				}
 			}

@@ -398,6 +398,24 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		return nil
 	})
 
+	gui.g.SetOnSelectSearchResultFunc(func(v *gocui.View, selectedLineIdx int) {
+		ctx, ok := gui.helpers.View.ContextForView(v.Name())
+		if ok {
+			if searchableContext, ok := ctx.(types.ISearchableContext); ok {
+				searchableContext.OnSearchSelect(selectedLineIdx)
+			}
+		}
+	})
+
+	gui.g.SetRenderSearchStatusFunc(func(v *gocui.View, index int, total int) {
+		ctx, ok := gui.helpers.View.ContextForView(v.Name())
+		if ok {
+			if searchableContext, ok := ctx.(types.ISearchableContext); ok {
+				searchableContext.RenderSearchStatus(index, total)
+			}
+		}
+	})
+
 	// if a context key has been given, push that instead, and set its index to 0
 	if contextKey != context.NO_CONTEXT {
 		contextToPush = gui.c.ContextForKey(contextKey)
@@ -471,6 +489,8 @@ func (gui *Gui) onUserConfigLoaded() error {
 		icons.SetNerdFontsVersion(userConfig.Gui.NerdFontsVersion)
 	} else if userConfig.Gui.ShowIcons {
 		icons.SetNerdFontsVersion("2")
+	} else {
+		icons.SetNerdFontsVersion("")
 	}
 
 	if len(userConfig.Gui.BranchColorPatterns) > 0 {
@@ -581,6 +601,8 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 			Authors:               map[string]*models.Author{},
 			MainBranches:          git_commands.NewMainBranches(gui.c.Common, gui.os.Cmd),
 			HashPool:              &utils.StringPool{},
+			PullRequests:          gui.loadCachedPullRequests(),
+			PullRequestsMap:       make(map[string]*models.GithubPullRequest),
 		},
 		Modes: &types.Modes{
 			Filtering:        filtering.New(startArgs.FilterPath, ""),
@@ -599,6 +621,24 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 	gui.RepoStateMap[Repo(worktreePath)] = gui.State
 
 	return initialContext(contextTree, startArgs)
+}
+
+func (gui *Gui) loadCachedPullRequests() []*models.GithubPullRequest {
+	repoPath := gui.git.RepoPaths.RepoPath()
+	cachedPRs := gui.c.GetAppState().GithubPullRequests[repoPath]
+
+	return lo.Map(cachedPRs, func(cached config.CachedPullRequest, _ int) *models.GithubPullRequest {
+		return &models.GithubPullRequest{
+			HeadRefName: cached.HeadRefName,
+			Number:      cached.Number,
+			Title:       cached.Title,
+			State:       cached.State,
+			Url:         cached.Url,
+			HeadRepositoryOwner: models.GithubRepositoryOwner{
+				Login: cached.HeadRepositoryOwner,
+			},
+		}
+	})
 }
 
 func (gui *Gui) getViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager {
@@ -841,6 +881,25 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	defer gui.g.Close()
 
 	g.ErrorHandler = gui.PopupHandler.ErrorHandler
+
+	gui.g.ShouldHandleMouseEvent = func(view *gocui.View, key gocui.Key) bool {
+		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != view.Name() &&
+			!gocui.IsMouseScrollKey(key) {
+			// we ignore click events on views that aren't popup panels, when a popup panel is focused.
+			// Unless both the current view and the clicked-on view are either commit message or commit
+			// description, or a prompt and the suggestions view, because we want to allow switching
+			// between those two views by clicking.
+			isCommitMessageOrSuggestionsView := func(viewName string) bool {
+				return viewName == "commitMessage" || viewName == "commitDescription" ||
+					viewName == "prompt" || viewName == "suggestions"
+			}
+			if !isCommitMessageOrSuggestionsView(gui.currentViewName()) || !isCommitMessageOrSuggestionsView(view.Name()) {
+				return false
+			}
+		}
+
+		return true
+	}
 
 	// if the deadlock package wants to report a deadlock, we first need to
 	// close the gui so that we can actually read what it prints.

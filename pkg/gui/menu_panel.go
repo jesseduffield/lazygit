@@ -16,6 +16,9 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 		opts.Items = append(opts.Items, &types.MenuItem{
 			LabelColumns: []string{gui.c.Tr.Cancel},
 			OnPress: func() error {
+				if opts.OnCancel != nil {
+					return opts.OnCancel()
+				}
 				return nil
 			},
 		})
@@ -59,6 +62,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	gui.State.Contexts.Menu.SetPrompt(opts.Prompt)
 	gui.State.Contexts.Menu.SetAllowFilteringKeybindings(opts.AllowFilteringKeybindings)
 	gui.State.Contexts.Menu.SetKeybindingsTakePrecedence(!opts.KeepConflictingKeybindings)
+	gui.State.Contexts.Menu.SetOnCancel(opts.OnCancel)
 	gui.State.Contexts.Menu.SetSelection(0)
 
 	gui.Views.Menu.SetOriginY(0)

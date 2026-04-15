@@ -38,7 +38,7 @@ var FetchAndAutoForwardBranchesAllBranchesCheckedOutInOtherWorktree = NewIntegra
 				Contains("checked-out").IsSelected(),
 				Contains("diverged ↓2↑1"),
 				Contains("feature ↓2").DoesNotContain("↑"),
-				Contains("master (worktree) ↓1").DoesNotContain("↑"),
+				Contains("master (worktree linked-worktree) ↓1").DoesNotContain("↑"),
 			)
 
 		t.Views().Files().
@@ -51,7 +51,7 @@ var FetchAndAutoForwardBranchesAllBranchesCheckedOutInOtherWorktree = NewIntegra
 				Contains("checked-out").IsSelected(),
 				Contains("diverged ↓2↑1"),
 				Contains("feature ✓"),
-				Contains("master (worktree) ↓1"),
+				Contains("master (worktree linked-worktree) ↓1"),
 			)
 	},
 })

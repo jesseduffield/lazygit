@@ -237,14 +237,14 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 				Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES},
 			})
 
-			root := self.c.Contexts().Files.FileTreeViewModel.GetRoot()
-			if root.GetHasUnstagedChanges() {
+			unstagedFiles := GetUnstagedFilesExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
+			if len(unstagedFiles) > 0 {
 				self.c.Confirm(types.ConfirmOpts{
 					Title:  self.c.Tr.Continue,
 					Prompt: self.c.Tr.UnstagedFilesAfterConflictsResolved,
 					HandleConfirm: func() error {
 						self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-						if err := self.c.Git().WorkingTree.StageAll(true); err != nil {
+						if err := self.c.Git().WorkingTree.StageFiles(unstagedFiles, []string{}); err != nil {
 							return err
 						}
 

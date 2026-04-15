@@ -25,6 +25,8 @@ type OSCommand struct {
 	guiIO    *guiIO
 
 	removeFileFn func(string) error
+	isDirEmptyFn func(string) (bool, error)
+	removeDirFn  func(string) error
 
 	Cmd *CmdObjBuilder
 
@@ -48,6 +50,8 @@ func NewOSCommand(common *common.Common, config config.AppConfigurer, platform *
 		Platform:     platform,
 		getenvFn:     os.Getenv,
 		removeFileFn: os.RemoveAll,
+		isDirEmptyFn: isDirEmpty,
+		removeDirFn:  os.Remove,
 		guiIO:        guiIO,
 		tempDir:      config.GetTempDir(),
 	}
@@ -310,6 +314,35 @@ func (c *OSCommand) RemoveFile(path string) error {
 	c.LogCommand(msg, false)
 
 	return c.removeFileFn(path)
+}
+
+func (c *OSCommand) IsDirEmpty(path string) (bool, error) {
+	return c.isDirEmptyFn(path)
+}
+
+func (c *OSCommand) RemoveDir(path string) error {
+	msg := utils.ResolvePlaceholderString(
+		c.Tr.Log.RemoveEmptyDir,
+		map[string]string{
+			"path": path,
+		},
+	)
+	c.LogCommand(msg, false)
+
+	return c.removeDirFn(path)
+}
+
+func isDirEmpty(path string) (bool, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return false, err
+	}
+	_, err = f.Readdirnames(1)
+	_ = f.Close()
+	if errors.Is(err, io.EOF) {
+		return true, nil
+	}
+	return false, err
 }
 
 func (c *OSCommand) Getenv(key string) string {

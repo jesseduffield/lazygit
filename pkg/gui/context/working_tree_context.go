@@ -1,7 +1,6 @@
 package context
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -13,12 +12,11 @@ import (
 type WorkingTreeContext struct {
 	*filetree.FileTreeViewModel
 	*ListContextTrait
-	*SearchTrait
 }
 
 var (
 	_ types.IListContext       = (*WorkingTreeContext)(nil)
-	_ types.ISearchableContext = (*WorkingTreeContext)(nil)
+	_ types.IFilterableContext = (*WorkingTreeContext)(nil)
 )
 
 func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
@@ -38,7 +36,6 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 	}
 
 	ctx := &WorkingTreeContext{
-		SearchTrait:       NewSearchTrait(c),
 		FileTreeViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
@@ -56,12 +53,5 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 		},
 	}
 
-	ctx.GetView().SetRenderSearchStatus(ctx.SearchTrait.RenderSearchStatus)
-	ctx.GetView().SetOnSelectItem(ctx.OnSearchSelect)
-
 	return ctx
-}
-
-func (self *WorkingTreeContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
-	return nil
 }

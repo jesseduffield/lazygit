@@ -136,6 +136,11 @@ type GuiConfig struct {
 	ShowFileTree bool `yaml:"showFileTree"`
 	// If true, add a "/" root item in the file tree representing the root of the repository. It is only added when necessary, i.e. when there is more than one item at top level.
 	ShowRootItemInFileTree bool `yaml:"showRootItemInFileTree"`
+	// How to sort files and directories in the file tree.
+	// One of: 'mixed' (default) | 'filesFirst' | 'foldersFirst'
+	FileTreeSortOrder string `yaml:"fileTreeSortOrder" jsonschema:"enum=mixed,enum=filesFirst,enum=foldersFirst"`
+	// If true (default), sort the file tree case-sensitively.
+	FileTreeSortCaseSensitive bool `yaml:"fileTreeSortCaseSensitive"`
 	// If true, show the number of lines changed per file in the Files view
 	ShowNumstatInFilesView bool `yaml:"showNumstatInFilesView"`
 	// If true, show a random tip in the command log when Lazygit starts
@@ -182,6 +187,10 @@ type GuiConfig struct {
 	// Whether to stack UI components on top of each other.
 	// One of 'auto' (default) | 'always' | 'never'
 	PortraitMode string `yaml:"portraitMode"`
+	// In 'auto' mode, portrait mode will be used if the window width is less than or equal to portraitModeAutoMaxWidth and the window height is greater than or equal to portraitModeAutoMinHeight. Unused when portraitMode is not 'auto'.
+	PortraitModeAutoMaxWidth int `yaml:"portraitModeAutoMaxWidth"`
+	// In 'auto' mode, portrait mode will be used if the window width is less than or equal to portraitModeAutoMaxWidth and the window height is greater than or equal to portraitModeAutoMinHeight. Unused when portraitMode is not 'auto'.
+	PortraitModeAutoMinHeight int `yaml:"portraitModeAutoMinHeight"`
 	// How things are filtered when typing '/'.
 	// One of 'substring' (default) | 'fuzzy'
 	FilterMode string `yaml:"filterMode" jsonschema:"enum=substring,enum=fuzzy"`
@@ -494,9 +503,10 @@ type KeybindingUniversalConfig struct {
 }
 
 type KeybindingStatusConfig struct {
-	CheckForUpdate      string `yaml:"checkForUpdate"`
-	RecentRepos         string `yaml:"recentRepos"`
-	AllBranchesLogGraph string `yaml:"allBranchesLogGraph"`
+	CheckForUpdate             string `yaml:"checkForUpdate"`
+	RecentRepos                string `yaml:"recentRepos"`
+	AllBranchesLogGraph        string `yaml:"allBranchesLogGraph"`
+	AllBranchesLogGraphReverse string `yaml:"allBranchesLogGraphReverse"`
 }
 
 type KeybindingFilesConfig struct {
@@ -522,24 +532,25 @@ type KeybindingFilesConfig struct {
 }
 
 type KeybindingBranchesConfig struct {
-	CreatePullRequest      string `yaml:"createPullRequest"`
-	ViewPullRequestOptions string `yaml:"viewPullRequestOptions"`
-	CopyPullRequestURL     string `yaml:"copyPullRequestURL"`
-	CheckoutBranchByName   string `yaml:"checkoutBranchByName"`
-	ForceCheckoutBranch    string `yaml:"forceCheckoutBranch"`
-	CheckoutPreviousBranch string `yaml:"checkoutPreviousBranch"`
-	RebaseBranch           string `yaml:"rebaseBranch"`
-	RenameBranch           string `yaml:"renameBranch"`
-	MergeIntoCurrentBranch string `yaml:"mergeIntoCurrentBranch"`
-	MoveCommitsToNewBranch string `yaml:"moveCommitsToNewBranch"`
-	ViewGitFlowOptions     string `yaml:"viewGitFlowOptions"`
-	FastForward            string `yaml:"fastForward"`
-	CreateTag              string `yaml:"createTag"`
-	PushTag                string `yaml:"pushTag"`
-	SetUpstream            string `yaml:"setUpstream"`
-	FetchRemote            string `yaml:"fetchRemote"`
-	AddForkRemote          string `yaml:"addForkRemote"`
-	SortOrder              string `yaml:"sortOrder"`
+	CreatePullRequest        string `yaml:"createPullRequest"`
+	ViewPullRequestOptions   string `yaml:"viewPullRequestOptions"`
+	OpenPullRequestInBrowser string `yaml:"openPullRequestInBrowser"`
+	CopyPullRequestURL       string `yaml:"copyPullRequestURL"`
+	CheckoutBranchByName     string `yaml:"checkoutBranchByName"`
+	ForceCheckoutBranch      string `yaml:"forceCheckoutBranch"`
+	CheckoutPreviousBranch   string `yaml:"checkoutPreviousBranch"`
+	RebaseBranch             string `yaml:"rebaseBranch"`
+	RenameBranch             string `yaml:"renameBranch"`
+	MergeIntoCurrentBranch   string `yaml:"mergeIntoCurrentBranch"`
+	MoveCommitsToNewBranch   string `yaml:"moveCommitsToNewBranch"`
+	ViewGitFlowOptions       string `yaml:"viewGitFlowOptions"`
+	FastForward              string `yaml:"fastForward"`
+	CreateTag                string `yaml:"createTag"`
+	PushTag                  string `yaml:"pushTag"`
+	SetUpstream              string `yaml:"setUpstream"`
+	FetchRemote              string `yaml:"fetchRemote"`
+	AddForkRemote            string `yaml:"addForkRemote"`
+	SortOrder                string `yaml:"sortOrder"`
 }
 
 type KeybindingWorktreesConfig struct {
@@ -570,6 +581,7 @@ type KeybindingCommitsConfig struct {
 	CopyCommitAttributeToClipboard string `yaml:"copyCommitAttributeToClipboard"`
 	OpenLogMenu                    string `yaml:"openLogMenu"`
 	OpenInBrowser                  string `yaml:"openInBrowser"`
+	OpenPullRequestInBrowser       string `yaml:"openPullRequestInBrowser"`
 	ViewBisectOptions              string `yaml:"viewBisectOptions"`
 	StartInteractiveRebase         string `yaml:"startInteractiveRebase"`
 	SelectCommitsOfCurrentBranch   string `yaml:"selectCommitsOfCurrentBranch"`
@@ -719,6 +731,9 @@ type CustomCommandPrompt struct {
 	// Like valueFormat but for the labels. If `labelFormat` is not specified, `valueFormat` is shown instead.
 	// Only for menuFromCommand prompts.
 	LabelFormat string `yaml:"labelFormat" jsonschema:"example={{ .branch | green }}"`
+
+	// A Go template expression evaluated against the current form state. If it resolves to empty string or 'false', the prompt is skipped.
+	Condition string `yaml:"condition" jsonschema:"example={{ eq .Form.Choice \"yes\" }}"`
 }
 
 type CustomCommandSuggestions struct {
@@ -795,6 +810,8 @@ func GetDefaultConfig() *UserConfig {
 			ShowPanelJumps:                      true,
 			ShowFileTree:                        true,
 			ShowRootItemInFileTree:              true,
+			FileTreeSortOrder:                   "mixed",
+			FileTreeSortCaseSensitive:           true,
 			ShowNumstatInFilesView:              false,
 			ShowRandomTip:                       true,
 			ShowIcons:                           false,
@@ -813,6 +830,8 @@ func GetDefaultConfig() *UserConfig {
 			Border:                              "rounded",
 			AnimateExplosion:                    true,
 			PortraitMode:                        "auto",
+			PortraitModeAutoMaxWidth:            84,
+			PortraitModeAutoMinHeight:           46,
 			FilterMode:                          "substring",
 			Spinner: SpinnerConfig{
 				Frames: []string{"|", "/", "-", "\\"},
@@ -957,9 +976,10 @@ func GetDefaultConfig() *UserConfig {
 				OpenDiffTool:                      "<c-t>",
 			},
 			Status: KeybindingStatusConfig{
-				CheckForUpdate:      "u",
-				RecentRepos:         "<enter>",
-				AllBranchesLogGraph: "a",
+				CheckForUpdate:             "u",
+				RecentRepos:                "<enter>",
+				AllBranchesLogGraph:        "a",
+				AllBranchesLogGraphReverse: "A",
 			},
 			Files: KeybindingFilesConfig{
 				CommitChanges:            "c",
@@ -983,24 +1003,25 @@ func GetDefaultConfig() *UserConfig {
 				ExpandAll:                "=",
 			},
 			Branches: KeybindingBranchesConfig{
-				CopyPullRequestURL:     "<c-y>",
-				CreatePullRequest:      "o",
-				ViewPullRequestOptions: "O",
-				CheckoutBranchByName:   "c",
-				ForceCheckoutBranch:    "F",
-				CheckoutPreviousBranch: "-",
-				RebaseBranch:           "r",
-				RenameBranch:           "R",
-				MergeIntoCurrentBranch: "M",
-				MoveCommitsToNewBranch: "N",
-				ViewGitFlowOptions:     "i",
-				FastForward:            "f",
-				CreateTag:              "T",
-				PushTag:                "P",
-				SetUpstream:            "u",
-				FetchRemote:            "f",
-				AddForkRemote:          "F",
-				SortOrder:              "s",
+				CopyPullRequestURL:       "<c-y>",
+				CreatePullRequest:        "o",
+				ViewPullRequestOptions:   "O",
+				OpenPullRequestInBrowser: "G",
+				CheckoutBranchByName:     "c",
+				ForceCheckoutBranch:      "F",
+				CheckoutPreviousBranch:   "-",
+				RebaseBranch:             "r",
+				RenameBranch:             "R",
+				MergeIntoCurrentBranch:   "M",
+				MoveCommitsToNewBranch:   "N",
+				ViewGitFlowOptions:       "i",
+				FastForward:              "f",
+				CreateTag:                "T",
+				PushTag:                  "P",
+				SetUpstream:              "u",
+				FetchRemote:              "f",
+				AddForkRemote:            "F",
+				SortOrder:                "s",
 			},
 			Worktrees: KeybindingWorktreesConfig{
 				ViewWorktreeOptions: "w",
@@ -1029,6 +1050,7 @@ func GetDefaultConfig() *UserConfig {
 				CopyCommitAttributeToClipboard: "y",
 				OpenLogMenu:                    "<c-l>",
 				OpenInBrowser:                  "o",
+				OpenPullRequestInBrowser:       "G",
 				ViewBisectOptions:              "b",
 				StartInteractiveRebase:         "i",
 				SelectCommitsOfCurrentBranch:   "*",

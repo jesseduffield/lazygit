@@ -102,6 +102,7 @@ These fields are applicable to all prompts.
 | type              | One of 'input', 'confirm', 'menu', 'menuFromCommand'                                                           | yes        |
 | title             | The title to display in the popup panel                                                        | no         |
 | key | Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command | yes |
+| condition         | A Go template expression; if it resolves to empty string or `false`, the prompt is skipped. See [Conditional prompts](#conditional-prompts) | no |
 
 ### Input
 
@@ -318,6 +319,41 @@ Here's an example using a command but not specifying anything else: so each line
         key: 'File'
         command: 'ls'
 ```
+
+### Conditional prompts
+
+Here's an example of a conditional prompt:
+
+```yml
+customCommands:
+  - key: 'a'
+    context: 'localBranches'
+    prompts:
+      - type: 'menu'
+        title: 'How do you want to create the branch?'
+        key: 'Method'
+        options:
+          - value: 'simple'
+            name: 'Simple'
+            description: 'just a branch name'
+          - value: 'prefix'
+            name: 'With prefix'
+            description: 'with a category prefix'
+      - type: 'menu'
+        title: 'Branch prefix'
+        key: 'Prefix'
+        condition: '{{ eq .Form.Method "prefix" }}'
+        options:
+          - value: 'feature/'
+          - value: 'hotfix/'
+          - value: 'release/'
+      - type: 'input'
+        title: 'Branch name'
+        key: 'Name'
+    command: "git checkout -b '{{.Form.Prefix}}{{.Form.Name}}'"
+```
+
+In this example the 'Branch prefix' menu only appears if the user chose 'With prefix'. Otherwise it is skipped and `.Form.Prefix` defaults to empty string.
 
 ## Placeholder values
 

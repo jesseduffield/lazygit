@@ -20,8 +20,9 @@ const (
 	PATCH_BUILDING
 	MERGE_CONFLICTS
 	COMMIT_FILES
-	// not actually a view. Will refactor this later
+	// not actually views. Will refactor this later
 	BISECT_INFO
+	PULL_REQUESTS
 )
 
 type RefreshMode int

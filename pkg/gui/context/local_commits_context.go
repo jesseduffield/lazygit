@@ -134,9 +134,6 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 		},
 	}
 
-	ctx.GetView().SetRenderSearchStatus(ctx.SearchTrait.RenderSearchStatus)
-	ctx.GetView().SetOnSelectItem(ctx.OnSearchSelect)
-
 	return ctx
 }
 
