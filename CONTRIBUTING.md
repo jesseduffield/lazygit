@@ -1,10 +1,24 @@
 # Contributing
 
-♥ We love pull requests from everyone !
+This project does not accept pull requests.
 
-When contributing to this repository, please first discuss the change you wish
-to make via issue, email, or any other method with the owners of this repository
-before making a change.
+In todays world of agentic coding I have decided that it no longer makes sense for me to look at incoming pull requests. As far as I can tell, the vast majority of these is AI-generated these days, which in itself is not necessarily a bad thing; however, there's no way for me to tell whether the person posting the PR actually understands anything about the code that is being contributed or not, and I don't feel like spending time and energy on finding out whether they do.
+
+Now you might ask why this even matters; coding agents are capable of producing amazingly high-quality code, so why is it important that the person opening the PR understands it, as long as the code works and tests are green? It does actually matter very much to me. AI generated code needs to be carefully reviewed and iterated on, and it is the contributor's job to do that, not mine. And I have no idea to what extent the contributor has done this, or whether they are even capable of it.
+
+Every PR needs work and iterations until it is mergeable, whether manually coded or AI generated (even very good ones do), and if I don't know whether the person posting the PR will act on my review feedback themselves or just pass it on to their coding agent (which I guess is the much more likely case today), then it doesn't make sense for me to work with them.
+
+For this reason I will close incoming pull requests by default from now on, without comment. Sorry if this sounds hostile, but honestly I don't feel I have much of a choice if I want maintaining this project to still be enjoyable for me.
+
+With that said, if you are indeed serious about contributing a high-quality PR to lazygit, and you are familiar with go, and you have learned enough about lazygit's code base to tell whether your changes are good, then do raise an issue and explain what you are planning to do, and somehow make it plausible that your PR will be worth my time reviewing it. In such a case I might make an exception from the default rule.
+
+In the future I might also consider adopting a vouch system similar to [Ghostty's](https://github.com/ghostty-org/ghostty/blob/main/CONTRIBUTING.md#first-time-contributors), but right now I feel the effort needed to set this up and maintain is not justified given the rather low number of high-quality contributions I have seen in recent times.
+
+Even though we no longer accept pull requests, I find it important to emphasize that Lazygit is still a community project, and non-PR contributions are still very welcome. Do file issues for bug reports or feature requests, and help shape the future of lazygit by actively participating in discussing UX designs. Also, the localization system very much depends on everybody's help with translating texts (see https://crowdin.com/project/lazygit).
+
+---
+
+The remainder of this document is the old version from a time when contributing pull requests was still encouraged. Keeping it here in case I reconsider my policy in the future.
 
 ## PR walkthrough
 

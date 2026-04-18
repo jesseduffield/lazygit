@@ -848,10 +848,10 @@ func (self *RefreshHelper) getGithubBaseRemote() *models.Remote {
 		return remotes[0]
 	}
 
-	for _, remoteName := range []string{"upstream", "origin"} {
-		if remote := findRemoteByName(remoteName); remote != nil {
-			return remote
-		}
+	// Not sure if "upstream" is really a common convention for the name of the remote that PRs are
+	// made against, but if it exists it's pretty likely to be the one we want.
+	if remote := findRemoteByName("upstream"); remote != nil {
+		return remote
 	}
 
 	return nil

@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -205,7 +206,8 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 				ptyTask := types.NewRunPtyTask(cmdObj.GetCmd())
 				task = ptyTask
 
-				if pr, ok := self.c.Model().PullRequestsMap[branch.Name]; ok {
+				pr, ok := self.c.Model().PullRequestsMap[branch.Name]
+				if ok && presentation.ShouldShowPrForBranch(pr, branch.Name, self.c.UserConfig()) {
 					icon := lo.Ternary(icons.IsIconEnabled(), icons.IconForRemoteUrl(pr.Url)+"  ", "")
 					ptyTask.Prefix = style.PrintHyperlink(fmt.Sprintf("%s%s  %s  %s\n",
 						icon,
