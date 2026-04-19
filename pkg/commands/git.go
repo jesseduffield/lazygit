@@ -39,6 +39,7 @@ type GitCommand struct {
 	RepoPaths      *git_commands.RepoPaths
 	GitHub         *git_commands.GitHubCommands
 	HostingService *git_commands.HostingService
+  ClientHooks    *git_commands.ClientHookCommands
 
 	Loaders Loaders
 }
@@ -135,6 +136,7 @@ func NewGitCommandAux(
 	worktreeLoader := git_commands.NewWorktreeLoader(gitCommon)
 	stashLoader := git_commands.NewStashLoader(cmn, cmd)
 	tagLoader := git_commands.NewTagLoader(cmn, cmd)
+	clientHookCommands := git_commands.NewClientHookCommands(gitCommon)
 
 	return &GitCommand{
 		Blame:          blameCommands,
@@ -170,7 +172,8 @@ func NewGitCommandAux(
 			StashLoader:        stashLoader,
 			TagLoader:          tagLoader,
 		},
-		RepoPaths: repoPaths,
+		RepoPaths:   repoPaths,
+		ClientHooks: clientHookCommands,
 	}
 }
 
