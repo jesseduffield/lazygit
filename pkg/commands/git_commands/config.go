@@ -135,3 +135,7 @@ func (self *ConfigCommands) GetMergeFF() string {
 func (self *ConfigCommands) DropConfigCache() {
 	self.gitConfig.DropCache()
 }
+
+func (self *ConfigCommands) GetCommitTemplatePath() string {
+	return self.gitConfig.Get("commit.template")
+}
