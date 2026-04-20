@@ -13,6 +13,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/mgutz/str"
 	"github.com/samber/lo"
 )
 
@@ -241,28 +242,81 @@ func (self *HandlerCreator) menuPrompt(prompt *config.CustomCommandPrompt, wrapp
 }
 
 func (self *HandlerCreator) menuPromptFromCommand(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
-	// Run and save output
-	message, err := self.c.Git().Custom.RunWithOutput(prompt.Command)
-	if err != nil {
-		return err
+	// Open the menu immediately with a placeholder, then stream items in as the
+	// command produces output line by line. Lets the user see progress and start
+	// reading suggestions before the command finishes.
+	menuCtx := self.c.Contexts().Menu
+
+	loadingItem := &types.MenuItem{
+		LabelColumns: []string{style.FgCyan.Sprint(self.c.Tr.RunningCustomCommandStatus + "...")},
+		OnPress:      func() error { return nil },
+	}
+	cancelItem := &types.MenuItem{
+		LabelColumns: []string{self.c.Tr.Cancel},
+		OnPress:      func() error { return nil },
 	}
 
-	// Need to make a menu out of what the cmd has displayed
-	candidates, err := self.menuGenerator.call(message, prompt.Filter, prompt.ValueFormat, prompt.LabelFormat)
-	if err != nil {
-		return err
-	}
-
-	menuItems := lo.Map(candidates, func(candidate *commandMenuItem, _ int) *types.MenuItem {
-		return &types.MenuItem{
-			LabelColumns: []string{candidate.label},
-			OnPress: func() error {
-				return wrappedF(candidate.value)
-			},
+	buildItems := func(candidates []*commandMenuItem, stillRunning bool) []*types.MenuItem {
+		items := lo.Map(candidates, func(candidate *commandMenuItem, _ int) *types.MenuItem {
+			value := candidate.value
+			return &types.MenuItem{
+				LabelColumns: []string{candidate.label},
+				OnPress: func() error {
+					return wrappedF(value)
+				},
+			}
+		})
+		if stillRunning {
+			items = append(items, loadingItem)
 		}
+		items = append(items, cancelItem)
+		return items
+	}
+
+	if err := self.c.Menu(types.CreateMenuOptions{
+		Title:      prompt.Title,
+		Items:      buildItems(nil, true),
+		HideCancel: true,
+	}); err != nil {
+		return err
+	}
+
+	self.c.OnWorker(func(_ gocui.Task) error {
+		var output strings.Builder
+		var candidates []*commandMenuItem
+
+		cmdObj := self.c.OS().Cmd.New(str.ToArgv(prompt.Command))
+		runErr := cmdObj.RunAndProcessLines(func(line string) (bool, error) {
+			output.WriteString(line)
+			output.WriteByte('\n')
+
+			newCandidates, genErr := self.menuGenerator.call(output.String(), prompt.Filter, prompt.ValueFormat, prompt.LabelFormat)
+			if genErr != nil || len(newCandidates) <= len(candidates) {
+				return false, nil
+			}
+			firstRealItem := len(candidates) == 0
+			candidates = newCandidates
+
+			self.c.OnUIThread(func() error {
+				menuCtx.SetMenuItems(buildItems(candidates, true), nil)
+				if firstRealItem {
+					menuCtx.SetSelection(0)
+				}
+				self.c.PostRefreshUpdate(menuCtx)
+				return nil
+			})
+			return false, nil
+		})
+
+		self.c.OnUIThread(func() error {
+			menuCtx.SetMenuItems(buildItems(candidates, false), nil)
+			self.c.PostRefreshUpdate(menuCtx)
+			return nil
+		})
+		return runErr
 	})
 
-	return self.c.Menu(types.CreateMenuOptions{Title: prompt.Title, Items: menuItems})
+	return nil
 }
 
 type CustomCommandObjects struct {
