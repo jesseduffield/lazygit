@@ -248,7 +248,11 @@ func (self *CommitFilesController) openCopyMenu() error {
 	copyAbsolutePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyAbsoluteFilePath,
 		OnPress: func() error {
-			if err := self.c.OS().CopyToClipboard(filepath.Join(self.c.Git().RepoPaths.RepoPath(), node.GetPath())); err != nil {
+			absPath, err := filepath.Abs(node.GetPath())
+			if err != nil {
+				return err
+			}
+			if err := self.c.OS().CopyToClipboard(absPath); err != nil {
 				return err
 			}
 			self.c.Toast(self.c.Tr.FilePathCopiedToast)

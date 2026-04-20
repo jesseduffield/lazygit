@@ -21,7 +21,13 @@ var CopyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(config *config.AppConfig) {
 		config.GetUserConfig().OS.CopyToClipboardCmd = "printf '%s' {{text}} > clipboard"
 	},
-	SetupRepo: func(shell *Shell) {},
+	SetupRepo: func(shell *Shell) {
+		// Run the test in a linked worktree so that we catch bugs where we
+		// use the main repo's path instead of the current worktree's path.
+		shell.EmptyCommit("initial commit")
+		shell.AddWorktree("HEAD", "../linked-worktree", "mybranch")
+		shell.Chdir("../linked-worktree")
+	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		// Disabled item
 		t.Views().Files().
@@ -130,9 +136,9 @@ var CopyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 
 				t.ExpectToast(Equals("File path copied to clipboard"))
 
-				repoDir, _ := os.Getwd()
+				worktreeDir, _ := os.Getwd()
 				// On windows the following path would have backslashes, but we don't run integration tests on windows yet.
-				expectClipboard(t, Equals(repoDir+"/dir/1-unstaged_file"))
+				expectClipboard(t, Equals(worktreeDir+"/dir/1-unstaged_file"))
 			})
 
 		// Selected path diff on a single (unstaged) file
