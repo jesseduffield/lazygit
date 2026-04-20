@@ -229,7 +229,7 @@
   "BareRepo": "Вы пытались открыть Lazygit в пустом репозитории, но Lazygit ещё не поддерживает пустые репозитории. Открыть последний репозиторий? (y/n)",
   "InitialBranch": "Название ветки? (оставьте пустым для git по умолчанию):",
   "NoRecentRepositories": "Необходимо открыть lazygit в git репозитории. Нет валидных последних репозиториев. Выход.",
-  "IncorrectNotARepository": "Неверное значение 'notARepository'. Это должно быть одним из 'prompt', 'create', 'skip', или 'quit'.",
+  "IncorrectNotARepository": "Неверное значение 'notARepository'. Это должно быть одним из 'prompt', 'create', 'recent', 'skip', или 'quit'.",
   "AutoStashTitle": "Автосохранить изменения?",
   "AutoStashPrompt": "Чтобы перенести изменения, их нужно сохранить и вынуть. Сделать это автоматически? (enter/esc)",
   "Discard": "Просмотреть параметры «отмены изменении»",
