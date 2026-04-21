@@ -61,5 +61,10 @@ func NewTestEnvironment(rootDir string) []string {
 	// versions >= 2.32.0
 	env = append(env, fmt.Sprintf("%s=%s", GIT_CONFIG_GLOBAL_ENV_VAR, globalGitConfigPath(rootDir)))
 
+	// Disable gh telemetry. It was enabled by default in gh 2.91.0, and
+	// this would cause gh config files to be left in the working tree
+	// (e.g. `test/.local/state/gh/device-id`).
+	env = append(env, "GH_TELEMETRY=disabled")
+
 	return env
 }

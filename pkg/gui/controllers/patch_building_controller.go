@@ -3,8 +3,7 @@ package controllers
 import (
 	"fmt"
 
-	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -188,7 +187,7 @@ func (self *PatchBuildingController) getDisabledReasonForDiscard() *types.Disabl
 	}
 	if self.c.UserConfig().Git.DiffContextSize == 0 {
 		text := fmt.Sprintf(self.c.Tr.Actions.NotEnoughContextToRemoveLines,
-			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
+			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
 		return &types.DisabledReason{Text: text, ShowErrorInPanel: true}
 	}
 	return nil

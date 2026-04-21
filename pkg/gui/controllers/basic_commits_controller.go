@@ -6,8 +6,8 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -106,8 +106,8 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description:       self.c.Tr.CherryPickCopy,
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.CherryPickCopyTooltip,
 				map[string]string{
-					"paste":  keybindings.Label(opts.Config.Commits.PasteCommits),
-					"escape": keybindings.Label(opts.Config.Universal.Return),
+					"paste":  opts.Config.Commits.PasteCommits,
+					"escape": opts.Config.Universal.Return,
 				},
 			),
 			DisplayOnScreen: true,
@@ -164,14 +164,14 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 			OnPress: func() error {
 				return self.copyCommitSubjectToClipboard(commit)
 			},
-			Key: 's',
+			Key: gocui.NewKeyRune('s'),
 		},
 		{
 			Label: self.c.Tr.CommitMessage,
 			OnPress: func() error {
 				return self.copyCommitMessageToClipboard(commit)
 			},
-			Key: 'm',
+			Key: gocui.NewKeyRune('m'),
 		},
 		{
 			Label:          self.c.Tr.CommitMessageBody,
@@ -179,28 +179,28 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 			OnPress: func() error {
 				return self.copyCommitMessageBodyToClipboard(commitMessageBody)
 			},
-			Key: 'b',
+			Key: gocui.NewKeyRune('b'),
 		},
 		{
 			Label: self.c.Tr.CommitURL,
 			OnPress: func() error {
 				return self.copyCommitURLToClipboard(commit)
 			},
-			Key: 'u',
+			Key: gocui.NewKeyRune('u'),
 		},
 		{
 			Label: self.c.Tr.CommitDiff,
 			OnPress: func() error {
 				return self.copyCommitDiffToClipboard(commit)
 			},
-			Key: 'd',
+			Key: gocui.NewKeyRune('d'),
 		},
 		{
 			Label: self.c.Tr.CommitAuthor,
 			OnPress: func() error {
 				return self.copyAuthorToClipboard(commit)
 			},
-			Key: 'a',
+			Key: gocui.NewKeyRune('a'),
 		},
 	}
 
@@ -209,7 +209,7 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 		OnPress: func() error {
 			return self.copyCommitTagsToClipboard(commit)
 		},
-		Key: 't',
+		Key: gocui.NewKeyRune('t'),
 	}
 
 	if len(commit.Tags) == 0 {

@@ -104,6 +104,8 @@ func TestNewTranslationSetFromConfig(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
 			log := newDummyLog()
+			t.Setenv("LC_ALL", "")
+			t.Setenv("LC_MESSAGES", "")
 			t.Setenv("LANG", s.envLanguage)
 			actualTranslationSet, err := NewTranslationSetFromConfig(log, s.configLanguage)
 			if s.expectedErr {

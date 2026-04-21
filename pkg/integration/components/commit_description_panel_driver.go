@@ -37,7 +37,7 @@ func (self *CommitDescriptionPanelDriver) GoToBeginning() *CommitDescriptionPane
 		self.t.pressFast("<up>")
 	}
 
-	self.t.pressFast("<c-a>")
+	self.t.pressFast("<ctrl+a>")
 	return self
 }
 

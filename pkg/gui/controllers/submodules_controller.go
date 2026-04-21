@@ -5,10 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -45,7 +44,7 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Enter,
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.EnterSubmoduleTooltip,
-				map[string]string{"escape": keybindings.Label(opts.Config.Universal.Return)}),
+				map[string]string{"escape": opts.Config.Universal.Return}),
 			DisplayOnScreen: true,
 		},
 		{
@@ -95,7 +94,6 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			OpensMenu:   true,
 		},
 		{
-			Key:         nil,
 			Handler:     self.easterEgg,
 			Description: self.c.Tr.EasterEgg,
 		},
@@ -235,7 +233,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return nil
 					})
 				},
-				Key: 'i',
+				Key: gocui.NewKeyRune('i'),
 			},
 			{
 				LabelColumns: []string{self.c.Tr.BulkUpdateSubmodules, style.FgYellow.Sprint(self.c.Git().Submodule.BulkUpdateCmdObj().ToString())},
@@ -250,7 +248,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return nil
 					})
 				},
-				Key: 'u',
+				Key: gocui.NewKeyRune('u'),
 			},
 			{
 				LabelColumns: []string{self.c.Tr.BulkUpdateRecursiveSubmodules, style.FgYellow.Sprint(self.c.Git().Submodule.BulkUpdateRecursivelyCmdObj().ToString())},
@@ -265,7 +263,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return nil
 					})
 				},
-				Key: 'r',
+				Key: gocui.NewKeyRune('r'),
 			},
 			{
 				LabelColumns: []string{self.c.Tr.BulkDeinitSubmodules, style.FgRed.Sprint(self.c.Git().Submodule.BulkDeinitCmdObj().ToString())},
@@ -280,7 +278,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return nil
 					})
 				},
-				Key: 'd',
+				Key: gocui.NewKeyRune('d'),
 			},
 		},
 	})

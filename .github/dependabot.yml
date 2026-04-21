@@ -15,4 +15,4 @@ updates:
     labels:
       - "maintenance"
       - "dependencies"
-      - "github-actions"
+      - "github_actions"

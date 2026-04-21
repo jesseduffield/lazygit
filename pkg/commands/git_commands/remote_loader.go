@@ -69,7 +69,7 @@ func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
 
 func (self *RemoteLoader) getRemotesFromConfig() []*models.Remote {
 	cmdArgs := NewGitCmd("config").
-		Arg("--local", "--get-regexp", `^remote\.[^.]+\.url$`).ToArgv()
+		Arg("--local", "--get-regexp", `^remote\.[^.]+\.(url|pushurl)$`).ToArgv()
 	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	if err != nil {
 		// exit code 1 means no matching keys (no remotes configured)
@@ -83,12 +83,29 @@ func (self *RemoteLoader) getRemotesFromConfig() []*models.Remote {
 		if !found {
 			continue
 		}
-		// key is "remote.<name>.url"; strip prefix and suffix to get the name
-		remoteName := strings.TrimSuffix(strings.TrimPrefix(key, "remote."), ".url")
+		// key is "remote.<name>.url" or "remote.<name>.pushurl";
+		// strip prefix and suffix to get the name
+		rest, ok := strings.CutPrefix(key, "remote.")
+		if !ok {
+			continue
+		}
+		var remoteName string
+		var isPushUrl bool
+		if name, ok := strings.CutSuffix(rest, ".pushurl"); ok {
+			remoteName, isPushUrl = name, true
+		} else if name, ok := strings.CutSuffix(rest, ".url"); ok {
+			remoteName, isPushUrl = name, false
+		} else {
+			continue
+		}
 		if _, ok := remotesByName[remoteName]; !ok {
 			remotesByName[remoteName] = &models.Remote{Name: remoteName}
 		}
-		remotesByName[remoteName].Urls = append(remotesByName[remoteName].Urls, url)
+		if isPushUrl {
+			remotesByName[remoteName].PushUrls = append(remotesByName[remoteName].PushUrls, url)
+		} else {
+			remotesByName[remoteName].Urls = append(remotesByName[remoteName].Urls, url)
+		}
 	}
 
 	return slices.Collect(maps.Values(remotesByName))

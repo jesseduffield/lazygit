@@ -4,13 +4,12 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -142,7 +141,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			GetDisabledReason: self.require(self.notMidRebase(self.c.Tr.AlreadyRebasing), self.canFindCommitForQuickStart),
 			Description:       self.c.Tr.QuickStartInteractiveRebase,
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.QuickStartInteractiveRebaseTooltip, map[string]string{
-				"editKey": keybindings.Label(editCommitKey),
+				"editKey": editCommitKey,
 			}),
 		},
 		{
@@ -162,7 +161,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Tooltip: utils.ResolvePlaceholderString(
 				self.c.Tr.CreateFixupCommitTooltip,
 				map[string]string{
-					"squashAbove": keybindings.Label(opts.Config.Commits.SquashAboveCommits),
+					"squashAbove": opts.Config.Commits.SquashAboveCommits,
 				},
 			),
 		},
@@ -362,7 +361,7 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 		Items: []*types.MenuItem{
 			{
 				Label: self.c.Tr.Fixup,
-				Key:   'f',
+				Key:   gocui.NewKeyRune('f'),
 				OnPress: func() error {
 					return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.FixupCommit)
@@ -373,7 +372,7 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 			},
 			{
 				Label: self.c.Tr.FixupKeepMessage,
-				Key:   'c',
+				Key:   gocui.NewKeyRune('c'),
 				OnPress: func() error {
 					return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.FixupCommitKeepMessage)
@@ -404,7 +403,7 @@ func (self *LocalCommitsController) setFixupMessage(commit *models.Commit) error
 		Items: []*types.MenuItem{
 			{
 				Label: self.c.Tr.FixupDiscardMessage,
-				Key:   'f',
+				Key:   gocui.NewKeyRune('f'),
 				OnPress: func() error {
 					return self.updateTodosWithFlag(todo.Fixup, []*models.Commit{commit}, "")
 				},
@@ -412,7 +411,7 @@ func (self *LocalCommitsController) setFixupMessage(commit *models.Commit) error
 			},
 			{
 				Label: self.c.Tr.FixupKeepMessage,
-				Key:   'c',
+				Key:   gocui.NewKeyRune('c'),
 				OnPress: func() error {
 					return self.updateTodosWithFlag(todo.Fixup, []*models.Commit{commit}, "-C")
 				},
@@ -680,7 +679,7 @@ func (self *LocalCommitsController) findCommitForQuickStartInteractiveRebase() (
 
 	if !ok || index == 0 {
 		errorMsg := utils.ResolvePlaceholderString(self.c.Tr.CannotQuickStartInteractiveRebase, map[string]string{
-			"editKey": keybindings.Label(self.c.UserConfig().Keybinding.Universal.Edit),
+			"editKey": self.c.UserConfig().Keybinding.Universal.Edit,
 		})
 
 		return nil, errors.New(errorMsg)
@@ -1001,7 +1000,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 		Items: []*types.MenuItem{
 			{
 				Label: self.c.Tr.FixupMenu_Fixup,
-				Key:   'f',
+				Key:   gocui.NewKeyRune('f'),
 				OnPress: func() error {
 					return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 						self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
@@ -1025,7 +1024,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 			},
 			{
 				Label: self.c.Tr.FixupMenu_AmendWithChanges,
-				Key:   'a',
+				Key:   gocui.NewKeyRune('a'),
 				OnPress: func() error {
 					return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 						return self.createAmendCommit(commit, true)
@@ -1036,7 +1035,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 			},
 			{
 				Label:   self.c.Tr.FixupMenu_AmendWithoutChanges,
-				Key:     'r',
+				Key:     gocui.NewKeyRune('r'),
 				OnPress: func() error { return self.createAmendCommit(commit, false) },
 				Tooltip: self.c.Tr.FixupMenu_AmendWithoutChangesTooltip,
 			},
@@ -1135,14 +1134,14 @@ func (self *LocalCommitsController) squashFixupCommits() error {
 				Label:          self.c.Tr.SquashCommitsInCurrentBranch,
 				OnPress:        self.squashAllFixupsInCurrentBranch,
 				DisabledReason: self.canFindCommitForSquashFixupsInCurrentBranch(),
-				Key:            'b',
+				Key:            gocui.NewKeyRune('b'),
 				Tooltip:        self.c.Tr.SquashCommitsInCurrentBranchTooltip,
 			},
 			{
 				Label:          self.c.Tr.SquashCommitsAboveSelectedCommit,
 				OnPress:        self.withItem(self.squashAllFixupsAboveSelectedCommit),
 				DisabledReason: self.singleItemSelected()(),
-				Key:            'a',
+				Key:            gocui.NewKeyRune('a'),
 				Tooltip:        self.c.Tr.SquashCommitsAboveSelectedTooltip,
 			},
 		},
