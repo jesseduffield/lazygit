@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/afero"
 
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
+	"github.com/jesseduffield/lazygit/pkg/commands/direnv"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -171,6 +172,17 @@ func openRecentRepo(app *App) bool {
 	for _, repoDir := range app.Config.GetAppState().RecentRepos {
 		if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
 			if err := os.Chdir(repoDir); err == nil {
+				// We're still in setup, before the gui exists, so we can't show the approval popup
+				// that DispatchSwitchTo offers for blocked .envrc files; just log and move on.
+				// Also, the logs only go to the debug log, not the Command Log, because that's not
+				// available yet, either.
+				result := direnv.Load(app.OSCommand.Cmd)
+				if result.Message != "" {
+					app.Log.WithField("message", result.Message).Info("direnv")
+				}
+				if result.Err != nil {
+					app.Log.WithError(result.Err).Warn("direnv load failed")
+				}
 				return true
 			}
 		}
@@ -239,12 +251,8 @@ func (app *App) setupRepo(
 		}
 
 		// check if we have a recent repo we can open
-		for _, repoDir := range app.Config.GetAppState().RecentRepos {
-			if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
-				if err := os.Chdir(repoDir); err == nil {
-					return true, nil
-				}
-			}
+		if openRecentRepo(app) {
+			return true, nil
 		}
 
 		fmt.Fprintln(os.Stderr, app.Tr.NoRecentRepositories)
@@ -262,7 +270,7 @@ func (app *App) setupRepo(
 			os.Exit(0)
 		}
 
-		if didOpenRepo := openRecentRepo(app); didOpenRepo {
+		if openRecentRepo(app) {
 			return true, nil
 		}
 

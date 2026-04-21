@@ -1,6 +1,6 @@
 # Undo/Redo in lazygit
 
-You can undo the last action by pressing 'z' and redo with `ctrl+z`. Here we drop a couple of commits and then undo the actions.
+You can undo the last action by pressing 'z' and redo with 'Z' (shift+z). Here we drop a couple of commits and then undo the actions.
 Undo uses the reflog which is specific to commits and branches so we can't undo changes to the working tree or stash.
 
 ![undo](../../assets/demo/undo-compressed.gif)

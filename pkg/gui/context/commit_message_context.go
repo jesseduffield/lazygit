@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -130,7 +129,7 @@ func (self *CommitMessageContext) SetPreservedMessageAndLogError(message string)
 }
 
 func (self *CommitMessageContext) GetInitialMessage() string {
-	return strings.TrimSpace(self.viewModel.initialMessage)
+	return self.viewModel.initialMessage
 }
 
 func (self *CommitMessageContext) GetHistoryMessage() string {
@@ -168,8 +167,8 @@ func (self *CommitMessageContext) SetPanelState(
 
 	self.c.Views().CommitDescription.Subtitle = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionSubTitle,
 		map[string]string{
-			"togglePanelKeyBinding": keybindings.Label(self.c.UserConfig().Keybinding.Universal.TogglePanel),
-			"commitMenuKeybinding":  keybindings.Label(self.c.UserConfig().Keybinding.CommitMessage.CommitMenu),
+			"togglePanelKeyBinding": self.c.UserConfig().Keybinding.Universal.TogglePanel.String(),
+			"commitMenuKeybinding":  self.c.UserConfig().Keybinding.CommitMessage.CommitMenu.String(),
 		})
 
 	self.c.Views().CommitDescription.Visible = true

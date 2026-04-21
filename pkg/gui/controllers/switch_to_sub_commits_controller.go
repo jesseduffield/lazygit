@@ -47,7 +47,7 @@ func (self *SwitchToSubCommitsController) GetKeybindings(opts types.KeybindingsO
 		{
 			Handler:           self.viewCommits,
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Keys:              opts.GetKeys(opts.Config.Universal.GoInto),
 			Description:       self.c.Tr.ViewCommits,
 		},
 	}

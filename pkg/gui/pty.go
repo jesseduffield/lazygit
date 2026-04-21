@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/creack/pty"
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )

@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -36,5 +36,9 @@ func (self *baseController) GetOnFocus() func(types.OnFocusOpts) {
 }
 
 func (self *baseController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return nil
+}
+
+func (self *baseController) GetOnQuit() func() {
 	return nil
 }

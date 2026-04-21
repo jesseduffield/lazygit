@@ -7,6 +7,7 @@ package fuzzy
 
 import (
 	"sort"
+	"strings"
 	"unicode"
 	"unicode/utf8"
 )
@@ -39,7 +40,7 @@ type Matches []Match
 
 func (a Matches) Len() int           { return len(a) }
 func (a Matches) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a Matches) Less(i, j int) bool { return a[i].Score >= a[j].Score }
+func (a Matches) Less(i, j int) bool { return a[i].Score > a[j].Score }
 
 // Source represents an abstract source of a list of strings. Source must be iterable type such as a slice.
 // The source will be iterated over till Len() with String(i) being called for each element where i is the
@@ -114,7 +115,15 @@ func FindFromNoSort(pattern string, data Source) Matches {
 	var matchedIndexes []int
 	for i := 0; i < data.Len(); i++ {
 		var match Match
-		match.Str = data.String(i)
+		matchStr := data.String(i)
+		match.Str = matchStr
+		// Limit matching to the first NUL rune, if any. We could maybe replace it
+		// with whitespace, but this way doesn't allocate so much, and the presence
+		// of NULs is most often an error by the library user.
+		cleanMatchStr := matchStr
+		if nullI := strings.IndexRune(matchStr, 0); nullI > -1 {
+			cleanMatchStr = cleanMatchStr[:nullI]
+		}
 		match.Index = i
 		if matchedIndexes != nil {
 			match.MatchedIndexes = matchedIndexes
@@ -128,10 +137,10 @@ func FindFromNoSort(pattern string, data Source) Matches {
 		currAdjacentMatchBonus := 0
 		var last rune
 		var lastIndex int
-		nextc, nextSize := utf8.DecodeRuneInString(data.String(i))
+		nextc, nextSize := utf8.DecodeRuneInString(cleanMatchStr)
 		var candidate rune
 		var candidateSize int
-		for j := 0; j < len(data.String(i)); j += candidateSize {
+		for j := 0; j < len(cleanMatchStr); j += candidateSize {
 			candidate, candidateSize = nextc, nextSize
 			if equalFold(candidate, runes[patternIndex]) {
 				score = 0
@@ -161,11 +170,11 @@ func FindFromNoSort(pattern string, data Source) Matches {
 			if patternIndex < len(runes)-1 {
 				nextp = runes[patternIndex+1]
 			}
-			if j+candidateSize < len(data.String(i)) {
-				if data.String(i)[j+candidateSize] < utf8.RuneSelf { // Fast path for ASCII
-					nextc, nextSize = rune(data.String(i)[j+candidateSize]), 1
+			if j+candidateSize < len(cleanMatchStr) {
+				if cleanMatchStr[j+candidateSize] < utf8.RuneSelf { // Fast path for ASCII
+					nextc, nextSize = rune(cleanMatchStr[j+candidateSize]), 1
 				} else {
-					nextc, nextSize = utf8.DecodeRuneInString(data.String(i)[j+candidateSize:])
+					nextc, nextSize = utf8.DecodeRuneInString(cleanMatchStr[j+candidateSize:])
 				}
 			} else {
 				nextc, nextSize = 0, 0
@@ -192,7 +201,7 @@ func FindFromNoSort(pattern string, data Source) Matches {
 			last = candidate
 		}
 		// apply penalty for each unmatched character
-		penalty := len(match.MatchedIndexes) - len(data.String(i))
+		penalty := len(match.MatchedIndexes) - len(cleanMatchStr)
 		match.Score += penalty
 		if len(match.MatchedIndexes) == len(runes) {
 			matches = append(matches, match)

@@ -49,7 +49,8 @@ func NormalizeShortCode(shortCode string) string {
 // regular expression that matches :flag-[countrycode]:
 var flagRegexp = regexp.MustCompile(":flag-([a-z]{2}):")
 
-func emojize(x string) string {
+// Emojize Converts the string passed as an argument to a emoji. For unsupported emoji, the string passed as an argument is returned as is.
+func Emojize(x string) string {
 	str, ok := emojiCode()[x]
 	if ok {
 		return str + ReplacePadding
@@ -65,17 +66,17 @@ func regionalIndicator(i byte) string {
 	return string('\U0001F1E6' + rune(i) - 'a')
 }
 
-func replaseEmoji(input *bytes.Buffer) string {
+func replaceEmoji(input *bytes.Buffer) string {
 	emoji := bytes.NewBufferString(":")
 	for {
 		i, _, err := input.ReadRune()
 		if err != nil {
-			// not replase
+			// not replace
 			return emoji.String()
 		}
 
 		if i == ':' && emoji.Len() == 1 {
-			return emoji.String() + replaseEmoji(input)
+			return emoji.String() + replaceEmoji(input)
 		}
 
 		emoji.WriteRune(i)
@@ -83,7 +84,7 @@ func replaseEmoji(input *bytes.Buffer) string {
 		case unicode.IsSpace(i):
 			return emoji.String()
 		case i == ':':
-			return emojize(emoji.String())
+			return Emojize(emoji.String())
 		}
 	}
 }
@@ -105,7 +106,7 @@ func compile(x string) string {
 		default:
 			output.WriteRune(i)
 		case ':':
-			output.WriteString(replaseEmoji(input))
+			output.WriteString(replaceEmoji(input))
 		}
 	}
 	return output.String()

@@ -36,7 +36,7 @@ func NewStashController(
 func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Keys:              opts.GetKeys(opts.Config.Universal.Select),
 			Handler:           self.withItem(self.handleStashApply),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Apply,
@@ -44,7 +44,7 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Stash.PopStash),
+			Keys:              opts.GetKeys(opts.Config.Stash.PopStash),
 			Handler:           self.withItem(self.handleStashPop),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Pop,
@@ -52,7 +52,7 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.withItems(self.handleStashDrop),
 			GetDisabledReason: self.require(self.itemRangeSelected()),
 			Description:       self.c.Tr.Drop,
@@ -60,14 +60,14 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.New),
+			Keys:              opts.GetKeys(opts.Config.Universal.New),
 			Handler:           self.withItem(self.handleNewBranchOffStashEntry),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.NewBranch,
 			Tooltip:           self.c.Tr.NewBranchFromStashTooltip,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Stash.RenameStash),
+			Keys:              opts.GetKeys(opts.Config.Stash.RenameStash),
 			Handler:           self.withItem(self.handleRenameStashEntry),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.RenameStash,

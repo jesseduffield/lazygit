@@ -35,7 +35,7 @@ func NewRemoteBranchesController(
 func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Keys:              opts.GetKeys(opts.Config.Universal.Select),
 			Handler:           self.withItem(self.checkoutBranch),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Checkout,
@@ -43,13 +43,13 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.New),
+			Keys:              opts.GetKeys(opts.Config.Universal.New),
 			Handler:           self.withItem(self.newLocalBranch),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.NewBranch,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
+			Keys:              opts.GetKeys(opts.Config.Branches.MergeIntoCurrentBranch),
 			Handler:           opts.Guards.OutsideFilterMode(self.withItem(self.merge)),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Merge,
@@ -57,7 +57,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.RebaseBranch),
+			Keys:              opts.GetKeys(opts.Config.Branches.RebaseBranch),
 			Handler:           opts.Guards.OutsideFilterMode(self.withItem(self.rebase)),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.RebaseBranch,
@@ -65,7 +65,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.withItems(self.delete),
 			GetDisabledReason: self.require(self.itemRangeSelected()),
 			Description:       self.c.Tr.Delete,
@@ -73,7 +73,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.SetUpstream),
+			Keys:              opts.GetKeys(opts.Config.Branches.SetUpstream),
 			Handler:           self.withItem(self.setAsUpstream),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.SetAsUpstream,
@@ -81,13 +81,13 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Branches.SortOrder),
+			Keys:        opts.GetKeys(opts.Config.Branches.SortOrder),
 			Handler:     self.createSortMenu,
 			Description: self.c.Tr.SortOrder,
 			OpensMenu:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Commits.ViewResetOptions),
+			Keys:              opts.GetKeys(opts.Config.Commits.ViewResetOptions),
 			Handler:           self.withItem(self.createResetMenu),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.ViewResetOptions,
@@ -95,7 +95,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			OpensMenu:         true,
 		},
 		{
-			Key: opts.GetKey(opts.Config.Universal.OpenDiffTool),
+			Keys: opts.GetKeys(opts.Config.Universal.OpenDiffTool),
 			Handler: self.withItem(func(selectedBranch *models.RemoteBranch) error {
 				return self.c.Helpers().Diff.OpenDiffToolForRef(selectedBranch)
 			}),

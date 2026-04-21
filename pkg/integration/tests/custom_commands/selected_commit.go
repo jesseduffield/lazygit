@@ -15,7 +15,7 @@ var SelectedCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "X",
+				Key:     config.Keybinding{"X"},
 				Context: "global",
 				Command: "printf '%s' '{{ .SelectedCommit.Name }}' > file.txt",
 			},
@@ -34,34 +34,34 @@ var SelectedCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit 03"))
 
 		// SubCommits
-		t.GlobalPress("X")
+		t.GlobalPress(config.Keybinding{"X"})
 		t.FileSystem().FileContent("file.txt", Equals("commit 03"))
 
 		t.Views().SubCommits().PressEnter()
-		t.GlobalPress("X")
+		t.GlobalPress(config.Keybinding{"X"})
 		t.FileSystem().FileContent("file.txt", Equals("commit 03"))
 
 		// ReflogCommits
 		t.Views().ReflogCommits().Focus()
-		t.GlobalPress("X")
+		t.GlobalPress(config.Keybinding{"X"})
 		t.FileSystem().FileContent("file.txt", Equals("commit: commit 02"))
 
 		t.Views().ReflogCommits().PressEnter()
-		t.GlobalPress("X")
+		t.GlobalPress(config.Keybinding{"X"})
 		t.FileSystem().FileContent("file.txt", Equals("commit: commit 02"))
 
 		// LocalCommits
 		t.Views().Commits().Focus()
-		t.GlobalPress("X")
+		t.GlobalPress(config.Keybinding{"X"})
 		t.FileSystem().FileContent("file.txt", Equals("commit 01"))
 
 		t.Views().Commits().PressEnter()
-		t.GlobalPress("X")
+		t.GlobalPress(config.Keybinding{"X"})
 		t.FileSystem().FileContent("file.txt", Equals("commit 01"))
 
 		// None of these
 		t.Views().Files().Focus()
-		t.GlobalPress("X")
+		t.GlobalPress(config.Keybinding{"X"})
 		t.FileSystem().FileContent("file.txt", Equals("commit 01"))
 	},
 })

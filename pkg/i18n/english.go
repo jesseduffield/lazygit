@@ -337,7 +337,6 @@ type TranslationSet struct {
 	CommitDescriptionTitle                string
 	CommitDescriptionSubTitle             string
 	CommitDescriptionFooter               string
-	CommitDescriptionFooterTwoBindings    string
 	CommitHooksDisabledSubTitle           string
 	LocalBranchesTitle                    string
 	SearchTitle                           string
@@ -608,16 +607,21 @@ type TranslationSet struct {
 	PrevScreenMode                        string
 	CyclePagers                           string
 	CyclePagersTooltip                    string
+	CyclePagersReverse                    string
+	CyclePagersReverseTooltip             string
 	CyclePagersDisabledReason             string
+	SelectedPager                         string
+	DefaultPagerName                      string
+	ExternalDiffPagerName                 string
 	StartSearch                           string
 	StartFilter                           string
 	SelectRemoteRepository                string
 	FetchingPullRequests                  string
 	Keybindings                           string
-	KeybindingsLegend                     string
 	KeybindingsMenuSectionLocal           string
 	KeybindingsMenuSectionGlobal          string
 	KeybindingsMenuSectionNavigation      string
+	KeybindingsTooltip                    string
 	RenameBranch                          string
 	Upstream                              string
 	BranchUpstreamOptionsTitle            string
@@ -892,6 +896,8 @@ type TranslationSet struct {
 	CreateWorktreeFromDetached               string
 	LcWorktree                               string
 	ChangingDirectoryTo                      string
+	DirenvApprovalTitle                      string
+	DirenvApprovalPrompt                     string
 	Name                                     string
 	Branch                                   string
 	Path                                     string
@@ -916,6 +922,7 @@ type TranslationSet struct {
 	SelectedItemIsNotABranch                 string
 	SelectedItemDoesNotHaveFiles             string
 	MultiSelectNotSupportedForSubmodules     string
+	NothingToStageForSubmodule               string
 	CommandDoesNotSupportOpeningInEditor     string
 	CustomCommands                           string
 	NoApplicableCommandsInThisContext        string
@@ -1457,7 +1464,6 @@ func EnglishTranslationSet() *TranslationSet {
 		CommitDescriptionTitle:               "Commit description",
 		CommitDescriptionSubTitle:            "Press {{.togglePanelKeyBinding}} to toggle focus, {{.commitMenuKeybinding}} to open menu",
 		CommitDescriptionFooter:              "Press {{.confirmInEditorKeybinding}} to submit",
-		CommitDescriptionFooterTwoBindings:   "Press {{.confirmInEditorKeybinding1}} or {{.confirmInEditorKeybinding2}} to submit",
 		CommitHooksDisabledSubTitle:          "(hooks disabled)",
 		LocalBranchesTitle:                   "Local branches",
 		SearchTitle:                          "Search",
@@ -1478,6 +1484,7 @@ func EnglishTranslationSet() *TranslationSet {
 		KeybindingsMenuSectionLocal:          "Local",
 		KeybindingsMenuSectionGlobal:         "Global",
 		KeybindingsMenuSectionNavigation:     "Navigation",
+		KeybindingsTooltip:                   "Keybindings: ",
 		RebasingTitle:                        "Rebase '{{.checkedOutBranch}}'",
 		RebasingFromBaseCommitTitle:          "Rebase '{{.checkedOutBranch}}' from marked base",
 		SimpleRebase:                         "Simple rebase onto '{{.ref}}'",
@@ -1735,13 +1742,17 @@ func EnglishTranslationSet() *TranslationSet {
 		NextScreenMode:                   "Next screen mode (normal/half/fullscreen)",
 		PrevScreenMode:                   "Prev screen mode",
 		CyclePagers:                      "Cycle pagers",
-		CyclePagersTooltip:               "Choose the next pager in the list of configured pagers",
+		CyclePagersTooltip:               "Choose the next pager in the list of configured pagers.",
+		CyclePagersReverse:               "Cycle pagers (reverse)",
+		CyclePagersReverseTooltip:        "Choose the previous pager in the list of configured pagers.",
 		CyclePagersDisabledReason:        "No other pagers configured",
+		SelectedPager:                    "Pager: {{.name}} ({{.current}} of {{.total}})",
+		DefaultPagerName:                 "(default)",
+		ExternalDiffPagerName:            "(external diff)",
 		StartSearch:                      "Search the current view by text",
 		StartFilter:                      "Filter the current view by text",
 		SelectRemoteRepository:           "Select base repository for pull requests",
 		FetchingPullRequests:             "Fetching pull requests",
-		KeybindingsLegend:                "Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b",
 		RenameBranch:                     "Rename branch",
 		BranchUpstreamOptionsTitle:       "Upstream options",
 		ViewBranchUpstreamOptions:        "View upstream options",
@@ -2014,6 +2025,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CreateWorktreeFromDetached:               "Create worktree from {{.ref}} (detached)",
 		LcWorktree:                               "worktree",
 		ChangingDirectoryTo:                      "Changing directory to {{.path}}",
+		DirenvApprovalTitle:                      "Approve .envrc?",
+		DirenvApprovalPrompt:                     "Press {{.confirmKey}} to run 'direnv allow' and load the environment.\nPress {{.cancelKey}} to skip.\n\n{{.content}}",
 		Name:                                     "Name",
 		Branch:                                   "Branch",
 		Path:                                     "Path",
@@ -2036,6 +2049,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SelectedItemIsNotABranch:                 "Selected item is not a branch",
 		SelectedItemDoesNotHaveFiles:             "Selected item does not have files to view",
 		MultiSelectNotSupportedForSubmodules:     "Multiselection not supported for submodules",
+		NothingToStageForSubmodule:               "Nothing to stage: the parent repo can only stage a new submodule commit, not the uncommitted changes inside a submodule. Commit inside the submodule first.",
 		CommandDoesNotSupportOpeningInEditor:     "This command doesn't support switching to the editor",
 		CustomCommands:                           "Custom commands",
 		NoApplicableCommandsInThisContext:        "(No applicable commands in this context)",
@@ -2260,9 +2274,15 @@ gui:
 keybinding:
   universal:
     suspendApp: <disabled>
-    redo: <c-z>
+    redo: <ctrl+z>
 
 - The 'git.paging.useConfig' option has been removed. If you were relying on it to configure your pager, you'll have to explicitly set the pager again using the 'git.paging.pager' option.
+`,
+			"0.62.0": `- The default keybinding for submitting a commit from the commit description editor has changed from alt-enter to command-enter on Mac, or ctrl-enter on Linux and Windows; these are the same bindings that are used in many multi-line edit field situations, e.g. in GitHub comments. Unfortunately these are not supported by all terminals; see https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md#terminal-compatibility for more on that. If you want to revert this change, you can do so by adding the following to your config:
+
+keybinding:
+  universal:
+    confirmInEditor: [<alt+enter>, <ctrl+s>]
 `,
 		},
 	}

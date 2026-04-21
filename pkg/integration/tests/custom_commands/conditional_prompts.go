@@ -15,7 +15,7 @@ var ConditionalPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "a",
+				Key:     config.Keybinding{"a"},
 				Context: "files",
 				Command: `echo "{{.Form.Choice}}{{if .Form.Detail}} {{.Form.Detail}}{{end}}" > result.txt`,
 				Prompts: []config.CustomCommandPrompt{
@@ -28,13 +28,13 @@ var ConditionalPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 								Name:        "first",
 								Description: "First option",
 								Value:       "FIRST",
-								Key:         "1",
+								Key:         config.Keybinding{"1"},
 							},
 							{
 								Name:        "second",
 								Description: "Second option",
 								Value:       "SECOND",
-								Key:         "H",
+								Key:         config.Keybinding{"H"},
 							},
 						},
 					},
@@ -52,12 +52,12 @@ var ConditionalPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 		// Test 1: Select "first" via key — conditional prompt should be skipped
 		t.Views().Files().
 			IsFocused().
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Choose an option"))
 
-		t.Views().Menu().Press("1")
+		t.Views().Menu().Press(config.Keybinding{"1"})
 
 		// Detail prompt should be skipped, file should be created directly
 		t.Views().Files().
@@ -75,12 +75,12 @@ var ConditionalPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsEmpty().
 			IsFocused().
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Choose an option"))
 
-		t.Views().Menu().Press("H")
+		t.Views().Menu().Press(config.Keybinding{"H"})
 
 		// Detail prompt should appear because Choice == "SECOND"
 		t.ExpectPopup().Prompt().Title(Equals("Enter detail for second option")).Type("extra").Confirm()

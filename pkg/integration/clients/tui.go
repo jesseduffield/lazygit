@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazycore/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
@@ -43,7 +43,7 @@ func RunTUI(raceDetector bool) {
 
 	g.SetManagerFunc(app.layout)
 
-	if err := g.SetKeybinding("list", gocui.KeyArrowUp, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	g.SetKeybinding("list", gocui.NewKeyName(gocui.KeyArrowUp), func(*gocui.Gui, *gocui.View) error {
 		if app.itemIdx > 0 {
 			app.itemIdx--
 		}
@@ -53,11 +53,9 @@ func RunTUI(raceDetector bool) {
 		}
 		listView.FocusPoint(0, app.itemIdx, true)
 		return nil
-	}); err != nil {
-		log.Panicln(err)
-	}
+	})
 
-	if err := g.SetKeybinding("list", gocui.KeyArrowDown, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	g.SetKeybinding("list", gocui.NewKeyName(gocui.KeyArrowDown), func(*gocui.Gui, *gocui.View) error {
 		if app.itemIdx < len(app.filteredTests)-1 {
 			app.itemIdx++
 		}
@@ -68,19 +66,13 @@ func RunTUI(raceDetector bool) {
 		}
 		listView.FocusPoint(0, app.itemIdx, true)
 		return nil
-	}); err != nil {
-		log.Panicln(err)
-	}
+	})
 
-	if err := g.SetKeybinding("list", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
-		log.Panicln(err)
-	}
+	g.SetKeybinding("list", gocui.NewKeyStrMod("c", gocui.ModCtrl), quit)
 
-	if err := g.SetKeybinding("list", 'q', gocui.ModNone, quit); err != nil {
-		log.Panicln(err)
-	}
+	g.SetKeybinding("list", gocui.NewKeyRune('q'), quit)
 
-	if err := g.SetKeybinding("list", 's', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	g.SetKeybinding("list", gocui.NewKeyRune('s'), func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -89,11 +81,9 @@ func RunTUI(raceDetector bool) {
 		suspendAndRunTest(currentTest, true, false, raceDetector, 0)
 
 		return nil
-	}); err != nil {
-		log.Panicln(err)
-	}
+	})
 
-	if err := g.SetKeybinding("list", gocui.KeyEnter, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	g.SetKeybinding("list", gocui.NewKeyName(gocui.KeyEnter), func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -102,11 +92,9 @@ func RunTUI(raceDetector bool) {
 		suspendAndRunTest(currentTest, false, false, raceDetector, 0)
 
 		return nil
-	}); err != nil {
-		log.Panicln(err)
-	}
+	})
 
-	if err := g.SetKeybinding("list", 't', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	g.SetKeybinding("list", gocui.NewKeyRune('t'), func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -115,11 +103,9 @@ func RunTUI(raceDetector bool) {
 		suspendAndRunTest(currentTest, false, false, raceDetector, SLOW_INPUT_DELAY)
 
 		return nil
-	}); err != nil {
-		log.Panicln(err)
-	}
+	})
 
-	if err := g.SetKeybinding("list", 'd', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	g.SetKeybinding("list", gocui.NewKeyRune('d'), func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -128,11 +114,9 @@ func RunTUI(raceDetector bool) {
 		suspendAndRunTest(currentTest, false, true, raceDetector, 0)
 
 		return nil
-	}); err != nil {
-		log.Panicln(err)
-	}
+	})
 
-	if err := g.SetKeybinding("list", 'o', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	g.SetKeybinding("list", gocui.NewKeyRune('o'), func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -144,11 +128,9 @@ func RunTUI(raceDetector bool) {
 		}
 
 		return nil
-	}); err != nil {
-		log.Panicln(err)
-	}
+	})
 
-	if err := g.SetKeybinding("list", 'O', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	g.SetKeybinding("list", gocui.NewKeyRune('O'), func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -160,11 +142,9 @@ func RunTUI(raceDetector bool) {
 		}
 
 		return nil
-	}); err != nil {
-		log.Panicln(err)
-	}
+	})
 
-	if err := g.SetKeybinding("list", '/', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	g.SetKeybinding("list", gocui.NewKeyRune('/'), func(*gocui.Gui, *gocui.View) error {
 		app.filtering = true
 		if _, err := g.SetCurrentView("editor"); err != nil {
 			return err
@@ -176,12 +156,10 @@ func RunTUI(raceDetector bool) {
 		editorView.Clear()
 
 		return nil
-	}); err != nil {
-		log.Panicln(err)
-	}
+	})
 
 	// not using the editor yet, but will use it to help filter the list
-	if err := g.SetKeybinding("editor", gocui.KeyEsc, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	g.SetKeybinding("editor", gocui.NewKeyName(gocui.KeyEsc), func(*gocui.Gui, *gocui.View) error {
 		app.filtering = false
 		if _, err := g.SetCurrentView("list"); err != nil {
 			return err
@@ -194,11 +172,9 @@ func RunTUI(raceDetector bool) {
 		app.editorView.Reset()
 
 		return nil
-	}); err != nil {
-		log.Panicln(err)
-	}
+	})
 
-	if err := g.SetKeybinding("editor", gocui.KeyEnter, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	g.SetKeybinding("editor", gocui.NewKeyName(gocui.KeyEnter), func(*gocui.Gui, *gocui.View) error {
 		app.filtering = false
 
 		if _, err := g.SetCurrentView("list"); err != nil {
@@ -208,9 +184,7 @@ func RunTUI(raceDetector bool) {
 		app.renderTests()
 
 		return nil
-	}); err != nil {
-		log.Panicln(err)
-	}
+	})
 
 	err = g.MainLoop()
 	g.Close()
@@ -273,9 +247,9 @@ func (self *app) renderTests() {
 	}
 }
 
-func (self *app) wrapEditor(f func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool) func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
-	return func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
-		matched := f(v, key, ch, mod)
+func (self *app) wrapEditor(f func(v *gocui.View, key gocui.Key) bool) func(v *gocui.View, key gocui.Key) bool {
+	return func(v *gocui.View, key gocui.Key) bool {
+		matched := f(v, key)
 		if matched {
 			self.filterWithString(v.TextArea.GetContent())
 		}

@@ -1,6 +1,10 @@
 package controllers
 
 import (
+	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -23,6 +27,14 @@ func (self *OptionsMenuAction) Call() error {
 				if binding.GetDisabledReason != nil {
 					disabledReason = binding.GetDisabledReason()
 				}
+				tooltip := binding.Tooltip
+				if len(binding.Keys) > 1 {
+					if tooltip != "" {
+						tooltip += "\n\n"
+					}
+					keyLabels := lo.Map(binding.Keys, func(k gocui.Key, _ int) string { return config.LabelForKey(k) })
+					tooltip += self.c.Tr.KeybindingsTooltip + strings.Join(keyLabels, ", ")
+				}
 				return &types.MenuItem{
 					OpensMenu: binding.OpensMenu,
 					Label:     binding.GetDescription(),
@@ -33,8 +45,8 @@ func (self *OptionsMenuAction) Call() error {
 
 						return self.c.IGuiCommon.CallKeybindingHandler(binding)
 					},
-					Key:            binding.Key,
-					Tooltip:        binding.Tooltip,
+					Keys:           binding.Keys,
+					Tooltip:        tooltip,
 					DisabledReason: disabledReason,
 					Section:        section,
 				}

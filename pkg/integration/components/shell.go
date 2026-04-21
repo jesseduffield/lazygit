@@ -77,7 +77,7 @@ func (self *Shell) RunShellCommand(cmdStr string) *Shell {
 	}
 
 	cmd := exec.Command(shell, shellArg, cmdStr)
-	cmd.Env = os.Environ()
+	cmd.Env = self.env
 	cmd.Dir = self.dir
 
 	output, err := cmd.CombinedOutput()

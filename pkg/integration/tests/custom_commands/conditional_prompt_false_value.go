@@ -15,7 +15,7 @@ var ConditionalPromptFalseValue = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "a",
+				Key:     config.Keybinding{"a"},
 				Context: "files",
 				Command: `echo "{{.Form.Word}} {{.Form.Extra}}" > result.txt`,
 				Prompts: []config.CustomCommandPrompt{
@@ -37,7 +37,7 @@ var ConditionalPromptFalseValue = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().
 			IsFocused().
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Prompt().Title(Equals("Enter a word")).Type("false").Confirm()
 

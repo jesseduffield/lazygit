@@ -7,8 +7,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -45,20 +45,20 @@ func NewRemotesController(
 func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Keys:              opts.GetKeys(opts.Config.Universal.GoInto),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.ViewBranches,
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.New),
+			Keys:            opts.GetKeys(opts.Config.Universal.New),
 			Handler:         self.add,
 			Description:     self.c.Tr.NewRemote,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.remove),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Remove,
@@ -66,7 +66,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Keys:              opts.GetKeys(opts.Config.Universal.Edit),
 			Handler:           self.withItem(self.edit),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Edit,
@@ -74,7 +74,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.FetchRemote),
+			Keys:              opts.GetKeys(opts.Config.Branches.FetchRemote),
 			Handler:           self.withItem(self.fetch),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Fetch,
@@ -82,7 +82,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.AddForkRemote),
+			Keys:              opts.GetKeys(opts.Config.Branches.AddForkRemote),
 			Handler:           self.addFork,
 			GetDisabledReason: self.hasOriginRemote(),
 			Description:       self.c.Tr.AddForkRemote,
@@ -106,7 +106,11 @@ func (self *RemotesController) GetOnRenderToMain() func() {
 			if remote == nil {
 				task = types.NewRenderStringTask("No remotes")
 			} else {
-				task = types.NewRenderStringTask(fmt.Sprintf("%s\nUrls:\n%s", style.FgGreen.Sprint(remote.Name), strings.Join(remote.Urls, "\n")))
+				content := fmt.Sprintf("%s\nUrls:\n%s", style.FgGreen.Sprint(remote.Name), strings.Join(remote.Urls, "\n"))
+				if len(remote.PushUrls) > 0 {
+					content += fmt.Sprintf("\nPush Urls:\n%s", strings.Join(remote.PushUrls, "\n"))
+				}
+				task = types.NewRenderStringTask(content)
 			}
 
 			self.c.RenderToMainViews(types.RefreshMainOpts{

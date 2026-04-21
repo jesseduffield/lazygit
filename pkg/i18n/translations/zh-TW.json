@@ -352,7 +352,6 @@
   "StartSearch": "搜尋",
   "StartFilter": "搜尋",
   "Keybindings": "鍵盤快捷鍵",
-  "KeybindingsLegend": "說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B",
   "KeybindingsMenuSectionLocal": "本地",
   "KeybindingsMenuSectionGlobal": "全域",
   "RenameBranch": "重新命名分支",

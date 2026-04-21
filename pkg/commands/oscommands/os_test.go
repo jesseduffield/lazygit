@@ -91,7 +91,11 @@ func TestOSCommandFileType(t *testing.T) {
 		{
 			"testFile",
 			func() {
-				if _, err := os.Create("testFile"); err != nil {
+				f, err := os.Create("testFile")
+				if err != nil {
+					panic(err)
+				}
+				if err := f.Close(); err != nil {
 					panic(err)
 				}
 			},
@@ -102,7 +106,11 @@ func TestOSCommandFileType(t *testing.T) {
 		{
 			"file with spaces",
 			func() {
-				if _, err := os.Create("file with spaces"); err != nil {
+				f, err := os.Create("file with spaces")
+				if err != nil {
+					panic(err)
+				}
+				if err := f.Close(); err != nil {
 					panic(err)
 				}
 			},
@@ -133,7 +141,7 @@ func TestOSCommandFileType(t *testing.T) {
 	for _, s := range scenarios {
 		s.setup()
 		s.test(FileType(s.path))
-		_ = os.RemoveAll(s.path)
+		assert.NoError(t, os.RemoveAll(s.path))
 	}
 }
 

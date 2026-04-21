@@ -392,6 +392,10 @@ func (self *cmdObjRunner) processOutput(
 			}
 		}
 	}
+
+	if err := scanner.Err(); err != nil {
+		self.log.Error(err)
+	}
 }
 
 // having a function that returns a function because we need to maintain some state inbetween calls hence the closure

@@ -40,6 +40,14 @@ func (self *CherryPickHelper) CopyRange(commitsList []*models.Commit, context ty
 		return err
 	}
 
+	// After a paste the buffer is hidden but not cleared, so the user
+	// thinks they're starting fresh. Clear it before adding so the new
+	// copy replaces the old one.
+	if self.getData().DidPaste {
+		self.getData().CherryPickedCommits = nil
+		self.getData().DidPaste = false
+	}
+
 	commitSet := self.getData().SelectedHashSet()
 
 	allCommitsCopied := lo.EveryBy(commitsList[startIdx:endIdx+1], func(commit *models.Commit) bool {
@@ -58,8 +66,6 @@ func (self *CherryPickHelper) CopyRange(commitsList []*models.Commit, context ty
 			self.getData().Add(commit, commitsList)
 		}
 	}
-
-	self.getData().DidPaste = false
 
 	self.rerender()
 	return nil

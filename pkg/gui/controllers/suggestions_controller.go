@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -32,26 +32,26 @@ func NewSuggestionsController(
 func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Universal.ConfirmSuggestion),
+			Keys:              opts.GetKeys(opts.Config.Universal.ConfirmSuggestion),
 			Handler:           func() error { return self.context().State.OnConfirm() },
 			GetDisabledReason: self.require(self.singleItemSelected()),
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.Return),
+			Keys:    opts.GetKeys(opts.Config.Universal.Return),
 			Handler: func() error { return self.context().State.OnClose() },
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.TogglePanel),
+			Keys:    opts.GetKeys(opts.Config.Universal.TogglePanel),
 			Handler: self.switchToPrompt,
 		},
 		{
-			Key: opts.GetKey(opts.Config.Universal.Remove),
+			Keys: opts.GetKeys(opts.Config.Universal.Remove),
 			Handler: func() error {
 				return self.context().State.OnDeleteSuggestion()
 			},
 		},
 		{
-			Key: opts.GetKey(opts.Config.Universal.Edit),
+			Keys: opts.GetKeys(opts.Config.Universal.Edit),
 			Handler: func() error {
 				if self.context().State.AllowEditSuggestion {
 					if selectedItem := self.c.Contexts().Suggestions.GetSelected(); selectedItem != nil {

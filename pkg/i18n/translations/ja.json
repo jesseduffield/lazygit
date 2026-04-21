@@ -543,7 +543,6 @@
   "StartSearch": "現在のビューをテキストで検索",
   "StartFilter": "現在のビューをテキストでフィルタリング",
   "Keybindings": "キーバインディング",
-  "KeybindingsLegend": "凡例：`＜c-b＞` はctrl+b、`＜a-b＞` はalt+b、`B` はshift+bを意味します",
   "KeybindingsMenuSectionLocal": "ローカル",
   "KeybindingsMenuSectionGlobal": "グローバル",
   "KeybindingsMenuSectionNavigation": "ナビゲーション",

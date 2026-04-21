@@ -76,6 +76,7 @@ type RemoteBranch struct {
 type Remote struct {
 	Name     string
 	Urls     []string
+	PushUrls []string
 	Branches []*RemoteBranch
 }
 

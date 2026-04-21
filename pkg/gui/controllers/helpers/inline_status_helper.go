@@ -3,7 +3,7 @@ package helpers
 import (
 	"time"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -149,7 +149,7 @@ func (self *InlineStatusHelper) stop(opts InlineStatusOpts) {
 }
 
 func (self *InlineStatusHelper) renderContext(contextKey types.ContextKey) {
-	self.c.OnUIThread(func() error {
+	self.c.OnUIThreadContentOnly(func() error {
 		self.c.ContextForKey(contextKey).HandleRender()
 		return nil
 	})

@@ -18,14 +18,14 @@ var DropMergeCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI ⏣─╮ Merge branch 'second-change-branch' into first-change-branch").IsSelected(),
-				Contains("CI │ ◯ * second-change-branch unrelated change"),
-				Contains("CI │ ◯ second change"),
-				Contains("CI ◯ │ first change"),
-				Contains("CI ◯─╯ * original"),
-				Contains("CI ◯ three"),
-				Contains("CI ◯ two"),
-				Contains("CI ◯ one"),
+				Contains("CI ◎─╮ Merge branch 'second-change-branch' into first-change-branch").IsSelected(),
+				Contains("CI │ ○ * second-change-branch unrelated change"),
+				Contains("CI │ ○ second change"),
+				Contains("CI ○ │ first change"),
+				Contains("CI ○─╯ * original"),
+				Contains("CI ○ three"),
+				Contains("CI ○ two"),
+				Contains("CI ○ one"),
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
@@ -35,11 +35,11 @@ var DropMergeCommit = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("CI ◯ first change").IsSelected(),
-				Contains("CI ◯ * original"),
-				Contains("CI ◯ three"),
-				Contains("CI ◯ two"),
-				Contains("CI ◯ one"),
+				Contains("CI ○ first change").IsSelected(),
+				Contains("CI ○ * original"),
+				Contains("CI ○ three"),
+				Contains("CI ○ two"),
+				Contains("CI ○ one"),
 			)
 	},
 })

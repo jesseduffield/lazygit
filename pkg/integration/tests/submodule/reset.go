@@ -12,7 +12,7 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "e",
+				Key:     config.Keybinding{"e"},
 				Context: "files",
 				Command: "git commit --allow-empty -m \"empty commit\" && echo \"my_file content\" > my_file",
 			},
@@ -46,7 +46,7 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 		assertInSubmodule()
 
 		t.Views().Files().IsFocused().
-			Press("e").
+			Press(config.Keybinding{"e"}).
 			Tap(func() {
 				t.Views().Commits().Content(Contains("empty commit"))
 				t.Views().Files().Content(Contains("my_file"))

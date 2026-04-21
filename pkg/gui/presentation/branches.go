@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -148,7 +149,7 @@ func getBranchDisplayStrings(
 		} else {
 			prIcon = "●"
 		}
-		coloredPrIcon = prColor(pr.State).Sprint(prIcon)
+		coloredPrIcon = WithPrColor(pr.State, prIcon, false)
 	}
 	res = append(res, coloredPrIcon)
 
@@ -271,18 +272,18 @@ func SetCustomBranches(customBranchColors map[string]string, isRegex bool) {
 	}
 }
 
-func prColor(state string) style.TextStyle {
+func WithPrColor(state string, text string, isBg bool) string {
 	switch state {
 	case "OPEN":
-		return style.FgGreen
+		return color.RGB(0x43, 0x84, 0x40, isBg).Sprint(text)
 	case "CLOSED":
-		return style.FgRed
+		return color.RGB(0xC9, 0x45, 0x3C, isBg).Sprint(text)
 	case "MERGED":
-		return style.FgMagenta
+		return color.RGB(0x82, 0x59, 0xDD, isBg).Sprint(text)
 	case "DRAFT":
-		return style.FgBlackLighter
+		return color.RGB(0x67, 0x6C, 0x75, isBg).Sprint(text)
 	default:
-		return style.FgDefault
+		return lo.Ternary(isBg, style.BgDefault, style.FgDefault).Sprint(text)
 	}
 }
 

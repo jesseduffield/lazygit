@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -42,69 +41,69 @@ func NewStagingController(
 func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:             opts.GetKey(opts.Config.Universal.Select),
+			Keys:            opts.GetKeys(opts.Config.Universal.Select),
 			Handler:         self.ToggleStaged,
 			Description:     self.c.Tr.Stage,
 			Tooltip:         self.c.Tr.StageSelectionTooltip,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.Remove),
+			Keys:            opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:         self.DiscardSelection,
 			Description:     self.c.Tr.DiscardSelection,
 			Tooltip:         self.c.Tr.DiscardSelectionTooltip,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
+			Keys:        opts.GetKeys(opts.Config.Universal.OpenFile),
 			Handler:     self.OpenFile,
 			Description: self.c.Tr.OpenFile,
 			Tooltip:     self.c.Tr.OpenFileTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
+			Keys:        opts.GetKeys(opts.Config.Universal.Edit),
 			Handler:     self.EditFile,
 			Description: self.c.Tr.EditFile,
 			Tooltip:     self.c.Tr.EditFileTooltip,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.Return),
+			Keys:            opts.GetKeys(opts.Config.Universal.Return),
 			Handler:         self.Escape,
 			Description:     self.c.Tr.ReturnToFilesPanel,
 			DescriptionFunc: self.EscapeDescription,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.TogglePanel),
+			Keys:            opts.GetKeys(opts.Config.Universal.TogglePanel),
 			Handler:         self.TogglePanel,
 			Description:     self.c.Tr.ToggleStagingView,
 			Tooltip:         self.c.Tr.ToggleStagingViewTooltip,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Main.EditSelectHunk),
+			Keys:        opts.GetKeys(opts.Config.Main.EditSelectHunk),
 			Handler:     self.EditHunkAndRefresh,
 			Description: self.c.Tr.EditHunk,
 			Tooltip:     self.c.Tr.EditHunkTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
+			Keys:        opts.GetKeys(opts.Config.Files.CommitChanges),
 			Handler:     self.c.Helpers().WorkingTree.HandleCommitPress,
 			Description: self.c.Tr.Commit,
 			Tooltip:     self.c.Tr.CommitTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
+			Keys:        opts.GetKeys(opts.Config.Files.CommitChangesWithoutHook),
 			Handler:     self.c.Helpers().WorkingTree.HandleWIPCommitPress,
 			Description: self.c.Tr.CommitChangesWithoutHook,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithEditor),
+			Keys:        opts.GetKeys(opts.Config.Files.CommitChangesWithEditor),
 			Handler:     self.c.Helpers().WorkingTree.HandleCommitEditorPress,
 			Description: self.c.Tr.CommitChangesWithEditor,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.FindBaseCommitForFixup),
+			Keys:        opts.GetKeys(opts.Config.Files.FindBaseCommitForFixup),
 			Handler:     self.c.Helpers().FixupHelper.HandleFindBaseCommitForFixupPress,
 			Description: self.c.Tr.FindBaseCommitForFixup,
 			Tooltip:     self.c.Tr.FindBaseCommitForFixupTooltip,
@@ -205,7 +204,7 @@ func (self *StagingController) TogglePanel() error {
 func (self *StagingController) ToggleStaged() error {
 	if self.c.UserConfig().Git.DiffContextSize == 0 {
 		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToStage,
-			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
+			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
 	}
 
 	return self.applySelectionAndRefresh(self.staged)
@@ -214,7 +213,7 @@ func (self *StagingController) ToggleStaged() error {
 func (self *StagingController) DiscardSelection() error {
 	if self.c.UserConfig().Git.DiffContextSize == 0 {
 		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToDiscard,
-			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
+			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
 	}
 
 	return self.c.ConfirmIf(!self.staged && !self.c.UserConfig().Gui.SkipDiscardChangeWarning,

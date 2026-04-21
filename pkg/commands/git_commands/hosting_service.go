@@ -21,8 +21,8 @@ func (self *HostingService) GetCommitURL(commitSha string) (string, error) {
 	return self.getHostingServiceMgr(self.config.GetRemoteURL()).GetCommitURL(commitSha)
 }
 
-func (self *HostingService) GetRepoNameFromRemoteURL(remoteURL string) (string, error) {
-	return self.getHostingServiceMgr(remoteURL).GetRepoName()
+func (self *HostingService) GetServiceInfo(remoteURL string) (hosting_service.ServiceInfo, error) {
+	return self.getHostingServiceMgr(remoteURL).GetServiceInfo()
 }
 
 // getting this on every request rather than storing it in state in case our remoteURL changes

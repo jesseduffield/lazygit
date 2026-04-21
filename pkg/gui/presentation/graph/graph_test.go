@@ -41,20 +41,20 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Hash: "D", Parents: []string{"G"}},
 			},
 			expectedOutput: `
-			1 ◯
-			2 ◯
-			3 ◯
-			4 ⏣─╮
-			7 │ ◯
-			5 ◯─╯
-			8 ◯
-			9 ⏣─╮
-			B │ ◯
-			D │ ◯
-			A ◯ │
-			E ◯ │
-			F ◯ │
-			D ◯─╯`,
+			1 ○
+			2 ○
+			3 ○
+			4 ◎─╮
+			7 │ ○
+			5 ○─╯
+			8 ○
+			9 ◎─╮
+			B │ ○
+			D │ ○
+			A ○ │
+			E ○ │
+			F ○ │
+			D ○─╯`,
 		},
 		{
 			name: "with a path that has room to move to the left",
@@ -67,12 +67,12 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Hash: "6", Parents: []string{"7"}},
 			},
 			expectedOutput: `
-			1 ◯
-			2 ⏣─╮
-			4 │ ⏣─╮
-			3 ◯─╯ │
-			5 ◯───╯
-			6 ◯`,
+			1 ○
+			2 ◎─╮
+			4 │ ◎─╮
+			3 ○─╯ │
+			5 ○───╯
+			6 ○`,
 		},
 		{
 			name: "with a new commit",
@@ -86,13 +86,13 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Hash: "6", Parents: []string{"7"}},
 			},
 			expectedOutput: `
-			1 ◯
-			2 ⏣─╮
-			4 │ ⏣─╮
-			Z │ │ │ ◯
-			3 ◯─╯ │ │
-			5 ◯───╯ │
-			6 ◯ ╭───╯`,
+			1 ○
+			2 ◎─╮
+			4 │ ◎─╮
+			Z │ │ │ ○
+			3 ○─╯ │ │
+			5 ○───╯ │
+			6 ○ ╭───╯`,
 		},
 		{
 			name: "with a path that has room to move to the left and continues",
@@ -105,12 +105,12 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Hash: "7", Parents: []string{"11"}},
 			},
 			expectedOutput: `
-			1 ◯
-			2 ⏣─╮
-			3 ⏣─│─╮
-			5 ⏣─│─│─╮
-			4 │ ◯─╯ │
-			7 ◯─╯ ╭─╯`,
+			1 ○
+			2 ◎─╮
+			3 ◎─│─╮
+			5 ◎─│─│─╮
+			4 │ ○─╯ │
+			7 ○─╯ ╭─╯`,
 		},
 		{
 			name: "with a path that has room to move to the left and continues",
@@ -124,13 +124,13 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Hash: "B", Parents: []string{"C"}},
 			},
 			expectedOutput: `
-			1 ◯
-			2 ⏣─╮
-			3 ⏣─│─╮
-			5 ⏣─│─│─╮
-			7 ⏣─│─│─│─╮
-			4 ◯─┴─╯ │ │
-			B ◯ ╭───╯ │`,
+			1 ○
+			2 ◎─╮
+			3 ◎─│─╮
+			5 ◎─│─│─╮
+			7 ◎─│─│─│─╮
+			4 ○─┴─╯ │ │
+			B ○ ╭───╯ │`,
 		},
 		{
 			name: "with a path that has room to move to the left and continues",
@@ -142,11 +142,11 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Hash: "6", Parents: []string{"8"}},
 			},
 			expectedOutput: `
-			1 ⏣─╮
-			3 │ ◯
-			2 ⏣─│
-			4 ⏣─│─╮
-			6 ◯ │ │`,
+			1 ◎─╮
+			3 │ ○
+			2 ◎─│
+			4 ◎─│─╮
+			6 ○ │ │`,
 		},
 		{
 			name: "new merge path fills gap before continuing path on right",
@@ -158,11 +158,11 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Hash: "B", Parents: []string{"C"}},
 			},
 			expectedOutput: `
-			1 ⏣─┬─┬─╮
-			4 │ │ ◯ │
-			2 ◯─│─╯ │
-			A ⏣─│─╮ │
-			B │ │ ◯ │`,
+			1 ◎─┬─┬─╮
+			4 │ │ ○ │
+			2 ○─│─╯ │
+			A ◎─│─╮ │
+			B │ │ ○ │`,
 		},
 		{
 			name: "with a path that has room to move to the left and continues",
@@ -177,14 +177,14 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Hash: "C", Parents: []string{"D"}},
 			},
 			expectedOutput: `
-			1 ◯
-			2 ⏣─╮
-			3 ⏣─│─╮
-			5 ⏣─│─│─╮
-			7 ⏣─│─│─│─╮
-			4 ◯─┴─╯ │ │
-			B ◯ ╭───╯ │
-			C ◯ │ ╭───╯`,
+			1 ○
+			2 ◎─╮
+			3 ◎─│─╮
+			5 ◎─│─│─╮
+			7 ◎─│─│─│─╮
+			4 ○─┴─╯ │ │
+			B ○ ╭───╯ │
+			C ○ │ ╭───╯`,
 		},
 		{
 			name: "with a path that has room to move to the left and continues",
@@ -201,16 +201,16 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Hash: "D", Parents: []string{"F"}},
 			},
 			expectedOutput: `
-			1 ◯
-			2 ⏣─╮
-			3 ⏣─│─╮
-			5 ⏣─│─│─╮
-			7 ⏣─│─│─│─╮
-			8 ⏣─│─│─│─│─╮
-			4 ◯─┴─╯ │ │ │
-			B ◯ ╭───╯ │ │
-			C ◯ │ ╭───╯ │
-			D ◯ │ │ ╭───╯`,
+			1 ○
+			2 ◎─╮
+			3 ◎─│─╮
+			5 ◎─│─│─╮
+			7 ◎─│─│─│─╮
+			8 ◎─│─│─│─│─╮
+			4 ○─┴─╯ │ │ │
+			B ○ ╭───╯ │ │
+			C ○ │ ╭───╯ │
+			D ○ │ │ ╭───╯`,
 		},
 	}
 
@@ -274,7 +274,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromHash: pool("b"), toHash: pool("c"), kind: STARTS, style: &green},
 			},
 			prevCommit:     models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a"}),
-			expectedStr:    "◯",
+			expectedStr:    "○",
 			expectedStyles: []style.TextStyle{green},
 		},
 		{
@@ -284,7 +284,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromHash: pool("selected"), toHash: pool("c"), kind: STARTS, style: &green},
 			},
 			prevCommit:     models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a"}),
-			expectedStr:    "◯",
+			expectedStr:    "○",
 			expectedStyles: []style.TextStyle{highlightStyle},
 		},
 		{
@@ -296,7 +296,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 1, fromHash: pool("selected"), toHash: pool("e"), kind: STARTS, style: &green},
 			},
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a"}),
-			expectedStr: "⏣─╮",
+			expectedStr: "◎─╮",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, highlightStyle, highlightStyle,
 			},
@@ -310,7 +310,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 1, fromHash: pool("b"), toHash: pool("e"), kind: STARTS, style: &green},
 			},
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a"}),
-			expectedStr: "⏣─│",
+			expectedStr: "◎─│",
 			expectedStyles: []style.TextStyle{
 				green, green, magenta,
 			},
@@ -325,7 +325,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 2, fromHash: pool("a2"), toHash: pool("c3"), kind: STARTS, style: &yellow},
 			},
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
-			expectedStr: "⏣─│─┬─╯",
+			expectedStr: "◎─│─┬─╯",
 			expectedStyles: []style.TextStyle{
 				yellow, yellow, magenta, yellow, yellow, green, green,
 			},
@@ -340,7 +340,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 2, fromHash: pool("selected"), toHash: pool("c3"), kind: STARTS, style: &yellow},
 			},
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
-			expectedStr: "⏣───╮ ╯",
+			expectedStr: "◎───╮ ╯",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, highlightStyle, highlightStyle, highlightStyle, highlightStyle, nothing, green,
 			},
@@ -354,7 +354,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 2, toPos: 0, fromHash: pool("c1"), toHash: pool("a2"), kind: TERMINATES, style: &green},
 			},
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
-			expectedStr: "◯─┴─╯",
+			expectedStr: "○─┴─╯",
 			expectedStyles: []style.TextStyle{
 				yellow, magenta, magenta, green, green,
 			},
@@ -369,7 +369,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 2, toPos: 2, fromHash: pool("c1"), toHash: pool("c3"), kind: CONTINUES, style: &green},
 			},
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
-			expectedStr: "⏣─│─│─╮",
+			expectedStr: "◎─│─│─╮",
 			expectedStyles: []style.TextStyle{
 				yellow, yellow, magenta, yellow, green, yellow, yellow,
 			},
@@ -384,7 +384,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 2, toPos: 0, fromHash: pool("c1"), toHash: pool("a2"), kind: TERMINATES, style: &magenta},
 			},
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
-			expectedStr: "⏣─│─╯",
+			expectedStr: "◎─│─╯",
 			expectedStyles: []style.TextStyle{
 				yellow, yellow, green, magenta, magenta,
 			},
@@ -399,7 +399,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 3, toPos: 0, fromHash: pool("d1"), toHash: pool("a2"), kind: TERMINATES, style: &magenta},
 			},
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
-			expectedStr: "⏣─┬─│─╯",
+			expectedStr: "◎─┬─│─╯",
 			expectedStyles: []style.TextStyle{
 				yellow, yellow, yellow, magenta, green, magenta, magenta,
 			},
@@ -411,7 +411,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromHash: pool("a2"), toHash: pool("a3"), kind: STARTS, style: &yellow},
 			},
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "selected"}),
-			expectedStr: "◯",
+			expectedStr: "○",
 			expectedStyles: []style.TextStyle{
 				yellow,
 			},
@@ -423,7 +423,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 1, toPos: 1, fromHash: pool("selected"), toHash: pool("b3"), kind: CONTINUES, style: &red},
 			},
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "selected"}),
-			expectedStr: "◯ │",
+			expectedStr: "○ │",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, nothing, highlightStyle,
 			},
@@ -436,7 +436,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 2, toPos: 2, fromHash: pool("selected"), toHash: pool("b3"), kind: CONTINUES, style: &red},
 			},
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "selected"}),
-			expectedStr: "◯ │ │",
+			expectedStr: "○ │ │",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, nothing, green, nothing, highlightStyle,
 			},
@@ -450,7 +450,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 1, toPos: 0, fromHash: pool("selected"), toHash: pool("a2"), kind: TERMINATES, style: &yellow},
 			},
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "selected"}),
-			expectedStr: "⏣─╯",
+			expectedStr: "◎─╯",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, highlightStyle, highlightStyle,
 			},

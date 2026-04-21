@@ -12,5 +12,6 @@ func AttachControllers(context types.Context, controllers ...types.IController) 
 		context.AddOnRenderToMainFn(controller.GetOnRenderToMain())
 		context.AddOnFocusFn(controller.GetOnFocus())
 		context.AddOnFocusLostFn(controller.GetOnFocusLost())
+		context.AddOnQuitFn(controller.GetOnQuit())
 	}
 }

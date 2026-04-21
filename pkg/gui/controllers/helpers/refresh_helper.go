@@ -1,16 +1,16 @@
 package helpers
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
@@ -532,9 +532,12 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 
 	// Need to re-render the commits view because the visualization of local
 	// branch heads might have changed
-	self.c.Mutexes().LocalCommitsMutex.Lock()
-	self.c.Contexts().LocalCommits.HandleRender()
-	self.c.Mutexes().LocalCommitsMutex.Unlock()
+	self.c.OnUIThread(func() error {
+		self.c.Mutexes().LocalCommitsMutex.Lock()
+		self.c.Contexts().LocalCommits.HandleRender()
+		self.c.Mutexes().LocalCommitsMutex.Unlock()
+		return nil
+	})
 
 	self.refreshStatus()
 }
@@ -721,9 +724,9 @@ func (self *RefreshHelper) loadWorktrees() {
 	if err != nil {
 		self.c.Log.Error(err)
 		self.c.Model().Worktrees = []*models.Worktree{}
+	} else {
+		self.c.Model().Worktrees = worktrees
 	}
-
-	self.c.Model().Worktrees = worktrees
 }
 
 func (self *RefreshHelper) refreshWorktrees() {
@@ -780,22 +783,27 @@ func (self *RefreshHelper) refForLog() string {
 }
 
 func (self *RefreshHelper) refreshView(context types.Context) {
-	// Re-applying the filter must be done before re-rendering the view, so that
-	// the filtered list model is up to date for rendering.
-	self.searchHelper.ReApplyFilter(context)
+	// refreshView is called from the worker goroutine that drives async
+	// refreshes, so bounce to the UI thread before mutating view content.
+	self.c.OnUIThread(func() error {
+		// Re-applying the filter must be done before re-rendering the view, so that
+		// the filtered list model is up to date for rendering.
+		self.searchHelper.ReApplyFilter(context)
 
-	self.c.PostRefreshUpdate(context)
+		self.c.PostRefreshUpdate(context)
 
-	self.c.AfterLayout(func() error {
-		// Re-applying the search must be done after re-rendering the view though,
-		// so that the "x of y" status is shown correctly.
-		//
-		// Also, it must be done after layout, because otherwise FocusPoint
-		// hasn't been called yet (see ListContextTrait.FocusLine), which means
-		// that the scroll position might be such that the entire visible
-		// content is outside the viewport. And this would cause problems in
-		// searchModelCommits.
-		self.searchHelper.ReApplySearch(context)
+		self.c.AfterLayout(func() error {
+			// Re-applying the search must be done after re-rendering the view though,
+			// so that the "x of y" status is shown correctly.
+			//
+			// Also, it must be done after layout, because otherwise FocusPoint
+			// hasn't been called yet (see ListContextTrait.FocusLine), which means
+			// that the scroll position might be such that the entire visible
+			// content is outside the viewport. And this would cause problems in
+			// searchModelCommits.
+			self.searchHelper.ReApplySearch(context)
+			return nil
+		})
 		return nil
 	})
 }
@@ -804,84 +812,110 @@ func (self *RefreshHelper) refreshGithubPullRequests() {
 	self.c.Mutexes().RefreshingPullRequestsMutex.Lock()
 	defer self.c.Mutexes().RefreshingPullRequestsMutex.Unlock()
 
-	if !self.c.Git().GitHub.InGithubRepo(self.c.Model().Remotes) {
+	githubRemotes := getAuthenticatedGithubRemotes(self.getGithubRemotes(), self.c.Git().GitHub.GetAuthToken)
+	if len(githubRemotes) == 0 {
 		self.c.Model().PullRequests = nil
 		self.c.Model().PullRequestsMap = nil
 		return
 	}
 
-	authToken := self.c.Git().GitHub.GetAuthToken()
-	if authToken == "" {
+	baseInfo := getGithubBaseRemote(githubRemotes, self.c.Git().GitHub.ConfiguredBaseRemoteName())
+	if baseInfo == nil {
 		self.c.Model().PullRequests = nil
 		self.c.Model().PullRequestsMap = nil
-		return
-	}
 
-	baseRemote := self.getGithubBaseRemote()
-	if baseRemote == nil {
 		if !self.githubBaseRemotePromptDismissed[self.c.Git().RepoPaths.RepoPath()] {
-			self.promptForBaseGithubRepo(authToken)
+			self.promptForBaseGithubRepo(githubRemotes)
 		}
 		return
 	}
 
-	if err := self.setGithubPullRequests(authToken, baseRemote); err != nil {
-		self.c.LogAction(fmt.Sprintf("Error fetching pull requests from GitHub: %s", err.Error()))
-	}
+	self.setGithubPullRequests(baseInfo)
 }
 
-func (self *RefreshHelper) getGithubBaseRemote() *models.Remote {
-	remotes := self.c.Model().Remotes
+type githubRemoteInfo struct {
+	remote      *models.Remote
+	serviceInfo hosting_service.ServiceInfo
+	authToken   string
+}
 
-	findRemoteByName := func(name string) *models.Remote {
-		remote, _ := lo.Find(remotes, func(remote *models.Remote) bool {
-			return remote.Name == name
+func (self *RefreshHelper) getGithubRemotes() []githubRemoteInfo {
+	return lo.FilterMap(self.c.Model().Remotes, func(remote *models.Remote, _ int) (githubRemoteInfo, bool) {
+		if len(remote.Urls) == 0 {
+			return githubRemoteInfo{}, false
+		}
+		serviceInfo, err := self.c.Git().HostingService.GetServiceInfo(remote.Urls[0])
+		if err != nil || serviceInfo.Provider != "github" {
+			return githubRemoteInfo{}, false
+		}
+		return githubRemoteInfo{remote: remote, serviceInfo: serviceInfo}, true
+	})
+}
+
+// getAuthenticatedGithubRemotes drops remotes for which no auth token is
+// available and attaches the resolved token to the rest. Token lookups are
+// cached by host so that multiple remotes pointing at the same instance
+// (e.g. origin + a fork on github.com) only trigger one lookup.
+func getAuthenticatedGithubRemotes(githubRemotes []githubRemoteInfo, getAuthToken func(host string) string) []githubRemoteInfo {
+	tokensByHost := map[string]string{}
+	return lo.FilterMap(githubRemotes, func(info githubRemoteInfo, _ int) (githubRemoteInfo, bool) {
+		host := info.serviceInfo.WebDomain
+		token, cached := tokensByHost[host]
+		if !cached {
+			token = getAuthToken(host)
+			tokensByHost[host] = token
+		}
+		if token == "" {
+			return githubRemoteInfo{}, false
+		}
+		info.authToken = token
+		return info, true
+	})
+}
+
+func getGithubBaseRemote(githubRemotes []githubRemoteInfo, configuredRemoteName string) *githubRemoteInfo {
+	findRemoteByName := func(name string) *githubRemoteInfo {
+		info, ok := lo.Find(githubRemotes, func(info githubRemoteInfo) bool {
+			return info.remote.Name == name
 		})
-		return remote
+		if !ok {
+			return nil
+		}
+		return &info
 	}
 
-	if configuredRemote := self.c.Git().GitHub.ConfiguredBaseRemoteName(); configuredRemote != "" {
-		return findRemoteByName(configuredRemote)
+	if configuredRemoteName != "" {
+		return findRemoteByName(configuredRemoteName)
 	}
 
-	if len(remotes) == 1 {
-		return remotes[0]
+	if len(githubRemotes) == 1 {
+		return &githubRemotes[0]
 	}
 
 	// Not sure if "upstream" is really a common convention for the name of the remote that PRs are
 	// made against, but if it exists it's pretty likely to be the one we want.
-	if remote := findRemoteByName("upstream"); remote != nil {
-		return remote
+	if info := findRemoteByName("upstream"); info != nil {
+		return info
 	}
 
 	return nil
 }
 
-func (self *RefreshHelper) promptForBaseGithubRepo(authToken string) {
-	menuItems := lo.FilterMap(self.c.Model().Remotes, func(remote *models.Remote, _ int) (*types.MenuItem, bool) {
-		if len(remote.Urls) == 0 {
-			return nil, false
-		}
-		repoName, err := self.c.Git().HostingService.GetRepoNameFromRemoteURL(remote.Urls[0])
-		if err != nil {
-			return nil, false
-		}
-
+func (self *RefreshHelper) promptForBaseGithubRepo(githubRemotes []githubRemoteInfo) {
+	menuItems := lo.Map(githubRemotes, func(info githubRemoteInfo, _ int) *types.MenuItem {
 		return &types.MenuItem{
-			LabelColumns: []string{remote.Name, style.FgCyan.Sprint(repoName)},
+			LabelColumns: []string{info.remote.Name, style.FgCyan.Sprint(info.serviceInfo.RepoName)},
 			OnPress: func() error {
 				return self.c.WithWaitingStatus(self.c.Tr.FetchingPullRequests, func(gocui.Task) error {
-					if err := self.c.Git().GitHub.SetConfiguredBaseRemoteName(remote.Name); err != nil {
+					if err := self.c.Git().GitHub.SetConfiguredBaseRemoteName(info.remote.Name); err != nil {
 						self.c.Log.Error(err)
 					}
 
-					if err := self.setGithubPullRequests(authToken, remote); err != nil {
-						self.c.LogAction(fmt.Sprintf("Error fetching pull requests from GitHub: %s", err.Error()))
-					}
+					self.setGithubPullRequests(&info)
 					return nil
 				})
 			},
-		}, true
+		}
 	})
 
 	_ = self.c.Menu(types.CreateMenuOptions{
@@ -905,9 +939,9 @@ func (self *RefreshHelper) rebuildPullRequestsMap() {
 	)
 }
 
-func (self *RefreshHelper) setGithubPullRequests(authToken string, baseRemote *models.Remote) error {
+func (self *RefreshHelper) setGithubPullRequests(baseInfo *githubRemoteInfo) {
 	if len(self.c.Model().Branches) == 0 {
-		return nil
+		return
 	}
 
 	branches := lo.Filter(self.c.Model().Branches, func(branch *models.Branch, _ int) bool {
@@ -917,17 +951,20 @@ func (self *RefreshHelper) setGithubPullRequests(authToken string, baseRemote *m
 		return branch.UpstreamBranch
 	})
 
-	prs, err := self.c.Git().GitHub.FetchRecentPRs(branchNames, baseRemote, authToken)
+	prs, err := self.c.Git().GitHub.FetchRecentPRs(branchNames, &baseInfo.serviceInfo, baseInfo.authToken)
 	if err != nil {
-		return err
+		self.c.Log.Error("error fetching pull requests from GitHub: " + err.Error())
+		return
 	}
 
 	self.c.Model().PullRequests = prs
 	self.savePullRequestsToCache(prs)
 	self.rebuildPullRequestsMap()
 
-	self.c.PostRefreshUpdate(self.c.Contexts().Branches)
-	return nil
+	self.c.OnUIThread(func() error {
+		self.c.PostRefreshUpdate(self.c.Contexts().Branches)
+		return nil
+	})
 }
 
 func (self *RefreshHelper) savePullRequestsToCache(prs []*models.GithubPullRequest) {

@@ -57,6 +57,25 @@ func TestGetRepoInfoFromURL(t *testing.T) {
 	}
 }
 
+func TestGraphQLEndpoint(t *testing.T) {
+	cases := []struct {
+		host     string
+		expected string
+	}{
+		{"github.com", "https://api.github.com/graphql"},
+		{"www.github.com", "https://api.github.com/graphql"},
+		{"GITHUB.com", "https://api.github.com/graphql"},
+		{"ghe.example.com", "https://ghe.example.com/api/graphql"},
+		{"ghe.example.com:8443", "https://ghe.example.com:8443/api/graphql"},
+	}
+
+	for _, c := range cases {
+		t.Run(c.host, func(t *testing.T) {
+			assert.Equal(t, c.expected, graphQLEndpoint(c.host))
+		})
+	}
+}
+
 func TestGenerateGithubPullRequestMap(t *testing.T) {
 	cases := []struct {
 		name     string
