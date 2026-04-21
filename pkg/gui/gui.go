@@ -82,10 +82,10 @@ type Gui struct {
 	statusManager        *status.StatusManager
 	waitForIntro         sync.WaitGroup
 	viewBufferManagerMap map[string]*tasks.ViewBufferManager
-	// holds a mapping of view names to ptmx's. This is for rendering command outputs
-	// from within a pty. The point of keeping track of them is so that if we re-size
-	// the window, we can tell the pty it needs to resize accordingly.
-	viewPtmxMap map[string]*os.File
+	// holds a mapping of view names to the master side of a pseudo-terminal
+	// running a command for that view. Kept so that on a window resize we can
+	// tell each pty to resize accordingly.
+	viewPtmxMap map[string]pty
 	stopChan    chan struct{}
 
 	// when lazygit is opened outside a git directory we want to open to the most
@@ -734,7 +734,7 @@ func NewGui(
 		Updater:              updater,
 		statusManager:        status.NewStatusManager(),
 		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
-		viewPtmxMap:          map[string]*os.File{},
+		viewPtmxMap:          map[string]pty{},
 		showRecentRepos:      showRecentRepos,
 		RepoPathStack:        &utils.StringStack{},
 		RepoStateMap:         map[Repo]*GuiRepoState{},
