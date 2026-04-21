@@ -11,8 +11,8 @@ import (
 )
 
 func tailLogsForPlatform(logFilePath string, opts *humanlog.HandlerOptions) {
-	var lastModified int64 = 0
-	var lastOffset int64 = 0
+	var lastModified int64
+	var lastOffset int64
 	for {
 		stat, err := os.Stat(logFilePath)
 		if err != nil {
@@ -55,6 +55,9 @@ func tailFrom(lastOffset int64, logFilePath string, opts *humanlog.HandlerOption
 		lines = append(lines, fileScanner.Text())
 	}
 	file.Close()
+	if err := fileScanner.Err(); err != nil {
+		return err
+	}
 	lineCount := len(lines)
 	lastTen := lines
 	if lineCount > 10 {

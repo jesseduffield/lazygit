@@ -15,7 +15,7 @@ var BasicCommand = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "a",
+				Key:     config.Keybinding{"a"},
 				Context: "files",
 				Command: "touch myfile",
 			},
@@ -25,7 +25,7 @@ var BasicCommand = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsEmpty().
 			IsFocused().
-			Press("a").
+			Press(config.Keybinding{"a"}).
 			Lines(
 				Contains("myfile"),
 			)

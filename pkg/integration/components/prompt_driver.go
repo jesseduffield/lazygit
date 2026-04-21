@@ -68,7 +68,7 @@ func (self *PromptDriver) SuggestionTopLines(matchers ...*TextMatcher) *PromptDr
 }
 
 func (self *PromptDriver) ConfirmFirstSuggestion() {
-	self.t.press(self.t.keys.Universal.TogglePanel)
+	self.t.press(self.t.keys.Universal.TogglePanel[0])
 	self.t.Views().Suggestions().
 		IsFocused().
 		SelectedLineIdx(0).
@@ -76,7 +76,7 @@ func (self *PromptDriver) ConfirmFirstSuggestion() {
 }
 
 func (self *PromptDriver) ConfirmSuggestion(matcher *TextMatcher) {
-	self.t.press(self.t.keys.Universal.TogglePanel)
+	self.t.press(self.t.keys.Universal.TogglePanel[0])
 	self.t.Views().Suggestions().
 		IsFocused().
 		NavigateToLine(matcher).
@@ -84,19 +84,19 @@ func (self *PromptDriver) ConfirmSuggestion(matcher *TextMatcher) {
 }
 
 func (self *PromptDriver) DeleteSuggestion(matcher *TextMatcher) *PromptDriver {
-	self.t.press(self.t.keys.Universal.TogglePanel)
+	self.t.press(self.t.keys.Universal.TogglePanel[0])
 	self.t.Views().Suggestions().
 		IsFocused().
 		NavigateToLine(matcher)
-	self.t.press(self.t.keys.Universal.Remove)
+	self.t.press(self.t.keys.Universal.Remove[0])
 	return self
 }
 
 func (self *PromptDriver) EditSuggestion(matcher *TextMatcher) *PromptDriver {
-	self.t.press(self.t.keys.Universal.TogglePanel)
+	self.t.press(self.t.keys.Universal.TogglePanel[0])
 	self.t.Views().Suggestions().
 		IsFocused().
 		NavigateToLine(matcher)
-	self.t.press(self.t.keys.Universal.Edit)
+	self.t.press(self.t.keys.Universal.Edit[0])
 	return self
 }

@@ -5,10 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -40,21 +39,21 @@ func NewSubmodulesController(
 func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Keys:              opts.GetKeys(opts.Config.Universal.GoInto),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Enter,
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.EnterSubmoduleTooltip,
-				map[string]string{"escape": keybindings.Label(opts.Config.Universal.Return)}),
+				map[string]string{"escape": opts.Config.Universal.Return.String()}),
 			DisplayOnScreen: true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Keys:              opts.GetKeys(opts.Config.Universal.Select),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.remove),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Remove,
@@ -62,7 +61,7 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Submodules.Update),
+			Keys:              opts.GetKeys(opts.Config.Submodules.Update),
 			Handler:           self.withItem(self.update),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Update,
@@ -70,32 +69,31 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.New),
+			Keys:            opts.GetKeys(opts.Config.Universal.New),
 			Handler:         self.add,
 			Description:     self.c.Tr.NewSubmodule,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Keys:              opts.GetKeys(opts.Config.Universal.Edit),
 			Handler:           self.withItem(self.editURL),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.EditSubmoduleUrl,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Submodules.Init),
+			Keys:              opts.GetKeys(opts.Config.Submodules.Init),
 			Handler:           self.withItem(self.init),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Initialize,
 			Tooltip:           self.c.Tr.InitSubmoduleTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Submodules.BulkMenu),
+			Keys:        opts.GetKeys(opts.Config.Submodules.BulkMenu),
 			Handler:     self.openBulkActionsMenu,
 			Description: self.c.Tr.ViewBulkSubmoduleOptions,
 			OpensMenu:   true,
 		},
 		{
-			Key:         nil,
 			Handler:     self.easterEgg,
 			Description: self.c.Tr.EasterEgg,
 		},
@@ -235,7 +233,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return nil
 					})
 				},
-				Key: 'i',
+				Keys: menuKey('i'),
 			},
 			{
 				LabelColumns: []string{self.c.Tr.BulkUpdateSubmodules, style.FgYellow.Sprint(self.c.Git().Submodule.BulkUpdateCmdObj().ToString())},
@@ -250,7 +248,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return nil
 					})
 				},
-				Key: 'u',
+				Keys: menuKey('u'),
 			},
 			{
 				LabelColumns: []string{self.c.Tr.BulkUpdateRecursiveSubmodules, style.FgYellow.Sprint(self.c.Git().Submodule.BulkUpdateRecursivelyCmdObj().ToString())},
@@ -265,7 +263,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return nil
 					})
 				},
-				Key: 'r',
+				Keys: menuKey('r'),
 			},
 			{
 				LabelColumns: []string{self.c.Tr.BulkDeinitSubmodules, style.FgRed.Sprint(self.c.Git().Submodule.BulkDeinitCmdObj().ToString())},
@@ -280,7 +278,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return nil
 					})
 				},
-				Key: 'd',
+				Keys: menuKey('d'),
 			},
 		},
 	})

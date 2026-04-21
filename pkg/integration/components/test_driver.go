@@ -52,8 +52,8 @@ func (self *TestDriver) click(x, y int) {
 // Should only be used in specific cases where you're doing something weird!
 // E.g. invoking a global keybinding from within a popup.
 // You probably shouldn't use this function, and should instead go through a view like t.Views().Commit().Focus().Press(...)
-func (self *TestDriver) GlobalPress(keyStr string) {
-	self.press(keyStr)
+func (self *TestDriver) GlobalPress(key config.Keybinding) {
+	self.press(key[0])
 }
 
 func (self *TestDriver) typeContent(content string) {
