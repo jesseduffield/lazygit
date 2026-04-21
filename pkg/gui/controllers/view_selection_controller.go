@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -36,16 +36,12 @@ func (self *ViewSelectionController) Context() types.Context {
 
 func (self *ViewSelectionController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevItem), Handler: self.handlePrevLine},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevItemAlt), Handler: self.handlePrevLine},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextItem), Handler: self.handleNextLine},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextItemAlt), Handler: self.handleNextLine},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevPage), Handler: self.handlePrevPage, Description: self.c.Tr.PrevPage},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextPage), Handler: self.handleNextPage, Description: self.c.Tr.NextPage},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoTop), Handler: self.handleGotoTop, Description: self.c.Tr.GotoTop, Alternative: "<home>"},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoBottom), Handler: self.handleGotoBottom, Description: self.c.Tr.GotoBottom, Alternative: "<end>"},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoTopAlt), Handler: self.handleGotoTop},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoBottomAlt), Handler: self.handleGotoBottom},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.PrevItem), Handler: self.handlePrevLine},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.NextItem), Handler: self.handleNextLine},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.PrevPage), Handler: self.handlePrevPage, Description: self.c.Tr.PrevPage},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.NextPage), Handler: self.handleNextPage, Description: self.c.Tr.NextPage},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoTop), Handler: self.handleGotoTop, Description: self.c.Tr.GotoTop},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoBottom), Handler: self.handleGotoBottom, Description: self.c.Tr.GotoBottom},
 	}
 }
 

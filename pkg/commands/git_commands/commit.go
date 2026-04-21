@@ -62,6 +62,7 @@ func AddCoAuthorToMessage(message string, author string) string {
 }
 
 func AddCoAuthorToDescription(description string, author string) string {
+	description = strings.TrimRight(description, "\n")
 	if description != "" {
 		lines := strings.Split(description, "\n")
 		if strings.HasPrefix(lines[len(lines)-1], "Co-authored-by:") {

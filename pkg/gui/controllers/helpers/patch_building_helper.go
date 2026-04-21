@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -26,8 +25,7 @@ func (self *PatchBuildingHelper) ShowHunkStagingHint() {
 		self.c.AppState.DidShowHunkStagingHint = true
 		self.c.SaveAppStateAndLogError()
 
-		message := fmt.Sprintf(self.c.Tr.HunkStagingHint,
-			keybindings.Label(self.c.UserConfig().Keybinding.Main.ToggleSelectHunk))
+		message := fmt.Sprintf(self.c.Tr.HunkStagingHint, self.c.UserConfig().Keybinding.Main.ToggleSelectHunk)
 		self.c.Confirm(types.ConfirmOpts{
 			Prompt: message,
 		})

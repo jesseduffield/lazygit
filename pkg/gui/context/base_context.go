@@ -1,7 +1,7 @@
 package context
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -21,6 +21,7 @@ type BaseContext struct {
 	onRenderToMainFn         func()
 	onFocusFns               []onFocusFn
 	onFocusLostFns           []onFocusLostFn
+	onQuitFns                []func()
 
 	focusable                   bool
 	transient                   bool
@@ -141,6 +142,7 @@ func (self *BaseContext) ClearAllAttachedControllerFunctions() {
 	self.mouseKeybindingsFns = nil
 	self.onFocusFns = nil
 	self.onFocusLostFns = nil
+	self.onQuitFns = nil
 	self.onDoubleClickFn = nil
 	self.onClickFn = nil
 	self.onClickFocusedMainViewFn = nil
@@ -204,6 +206,12 @@ func (self *BaseContext) AddOnFocusFn(fn onFocusFn) {
 func (self *BaseContext) AddOnFocusLostFn(fn onFocusLostFn) {
 	if fn != nil {
 		self.onFocusLostFns = append(self.onFocusLostFns, fn)
+	}
+}
+
+func (self *BaseContext) AddOnQuitFn(fn func()) {
+	if fn != nil {
+		self.onQuitFns = append(self.onQuitFns, fn)
 	}
 }
 

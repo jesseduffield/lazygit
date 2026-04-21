@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -8,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/constants"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 func (config *UserConfig) Validate() error {
@@ -43,11 +46,54 @@ func (config *UserConfig) Validate() error {
 		[]string{"always", "never", "when-maximised"}); err != nil {
 		return err
 	}
+	if err := validatePagers(config.Git.Pagers); err != nil {
+		return err
+	}
 	if err := validateKeybindings(config.Keybinding); err != nil {
 		return err
 	}
 	if err := validateCustomCommands(config.CustomCommands); err != nil {
 		return err
+	}
+	if err := validateSpinner(config.Gui.Spinner); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateSpinner(spinner SpinnerConfig) error {
+	if len(spinner.Frames) == 0 {
+		return errors.New("gui.spinner.frames must not be empty.")
+	}
+	firstWidth := utils.StringWidth(spinner.Frames[0])
+	if lo.SomeBy(spinner.Frames, func(frame string) bool {
+		return utils.StringWidth(frame) != firstWidth
+	}) {
+		return errors.New("All gui.spinner.frames entries must have the same width.")
+	}
+	return nil
+}
+
+// validatePagers rejects pager entries that combine more than one diff
+// mechanism. A pager (GIT_PAGER) formats the diff that git produces, whereas
+// externalDiffCommand and useExternalDiffGitConfig change how git produces the
+// diff in the first place; piping one through the other almost always yields
+// garbled output, so we treat the three as mutually exclusive.
+func validatePagers(pagers []PagingConfig) error {
+	for i, pager := range pagers {
+		count := 0
+		if pager.Pager != "" {
+			count++
+		}
+		if pager.ExternalDiffCommand != "" {
+			count++
+		}
+		if pager.UseExternalDiffGitConfig {
+			count++
+		}
+		if count > 1 {
+			return fmt.Errorf("git.pagers[%d]: at most one of 'pager', 'externalDiffCommand', and 'useExternalDiffGitConfig' may be set; they are mutually exclusive", i)
+		}
 	}
 	return nil
 }
@@ -107,10 +153,12 @@ func validateKeybindings(keybindingConfig KeybindingConfig) error {
 	return nil
 }
 
-func validateCustomCommandKey(key string) error {
-	if !isValidKeybindingKey(key) {
-		return fmt.Errorf("Unrecognized key '%s' for custom command. For permitted values see %s",
-			key, constants.Links.Docs.CustomKeybindings)
+func validateCustomCommandKey(key Keybinding) error {
+	for _, k := range key {
+		if !isValidKeybindingKey(k) {
+			return fmt.Errorf("Unrecognized key '%s' for custom command. For permitted values see %s",
+				k, constants.Links.Docs.CustomKeybindings)
+		}
 	}
 	return nil
 }
@@ -131,7 +179,7 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 				customCommand.After != nil {
 				commandRef := ""
 				if len(customCommand.Key) > 0 {
-					commandRef = fmt.Sprintf(" with key '%s'", customCommand.Key)
+					commandRef = fmt.Sprintf(" with key '%s'", customCommand.Key.String())
 				}
 				return fmt.Errorf("Error with custom command%s: it is not allowed to use both commandMenu and any of the other fields except key and description.", commandRef)
 			}
@@ -157,9 +205,11 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 
 func validateCustomCommandPrompt(prompt CustomCommandPrompt) error {
 	for _, option := range prompt.Options {
-		if !isValidKeybindingKey(option.Key) {
-			return fmt.Errorf("Unrecognized key '%s' for custom command prompt option. For permitted values see %s",
-				option.Key, constants.Links.Docs.CustomKeybindings)
+		for _, k := range option.Key {
+			if !isValidKeybindingKey(k) {
+				return fmt.Errorf("Unrecognized key '%s' for custom command prompt option. For permitted values see %s",
+					k, constants.Links.Docs.CustomKeybindings)
+			}
 		}
 	}
 

@@ -3,7 +3,8 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/samber/lo"
@@ -26,11 +27,15 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 
 	maxColumnSize := 1
 
-	essentialKeys := []types.Key{
-		keybindings.GetKey(gui.c.UserConfig().Keybinding.Universal.ConfirmMenu),
-		keybindings.GetKey(gui.c.UserConfig().Keybinding.Universal.Return),
-		keybindings.GetKey(gui.c.UserConfig().Keybinding.Universal.PrevItem),
-		keybindings.GetKey(gui.c.UserConfig().Keybinding.Universal.NextItem),
+	// Only the primary key of each navigation binding is reserved as
+	// essential; alternates (e.g. the historical j/k that lived under
+	// `*Alt` fields) stay available to be reused by menu items, which
+	// take precedence over the inherited list bindings.
+	essentialKeys := []gocui.Key{
+		config.GetValidatedKeyBindingKeys(gui.c.UserConfig().Keybinding.Universal.ConfirmMenu)[0],
+		config.GetValidatedKeyBindingKeys(gui.c.UserConfig().Keybinding.Universal.Return)[0],
+		config.GetValidatedKeyBindingKeys(gui.c.UserConfig().Keybinding.Universal.PrevItem)[0],
+		config.GetValidatedKeyBindingKeys(gui.c.UserConfig().Keybinding.Universal.NextItem)[0],
 	}
 
 	for _, item := range opts.Items {
@@ -45,8 +50,10 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 		maxColumnSize = max(maxColumnSize, len(item.LabelColumns))
 
 		// Remove all item keybindings that are the same as one of the essential bindings
-		if !opts.KeepConflictingKeybindings && lo.Contains(essentialKeys, item.Key) {
-			item.Key = nil
+		if !opts.KeepConflictingKeybindings {
+			item.Keys = lo.Filter(item.Keys, func(k gocui.Key, _ int) bool {
+				return !lo.Contains(essentialKeys, k)
+			})
 		}
 	}
 

@@ -1,7 +1,7 @@
 package context
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -51,6 +51,12 @@ func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) {
 	self.view.SetOriginX(0)
 	for _, fn := range self.onFocusLostFns {
 		fn(opts)
+	}
+}
+
+func (self *SimpleContext) HandleQuit() {
+	for _, fn := range self.onQuitFns {
+		fn()
 	}
 }
 

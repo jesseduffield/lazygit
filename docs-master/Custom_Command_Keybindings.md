@@ -50,7 +50,7 @@ Custom command keybindings will appear alongside inbuilt keybindings when you vi
 For a given custom command, here are the allowed fields:
 | _field_ | _description_ | required |
 |-----------------|----------------------|-|
-| key | The key to trigger the command. Use a single letter or one of the values from [here](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md). Custom commands without a key specified can be triggered by selecting them from the keybindings (`?`) menu | no |
+| key | The key to trigger the command. Use a single key or list of keys, as described in [Custom_Keybindings.md](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md). Custom commands without a key specified can be triggered by selecting them from the keybindings (`?`) menu | no |
 | command | The command to run (using Go template syntax for placeholder values) | yes |
 | context | The context in which to listen for the key (see [below](#contexts)) | yes |
 | prompts | A list of prompts that will request user input before running the final command | no |
@@ -193,7 +193,7 @@ The permitted option fields are:
 | name | The first part of the label | no |
 | description | The second part of the label | no |
 | value | the value that will be used in the command | yes |
-| key | Keybinding to invoke this menu option without needing to navigate to it. Can be a single letter or one of the values from [here](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md) | no |
+| key | Keybinding to invoke this menu option without needing to navigate to it. Use a single key or list of keys, as described in [Custom_Keybindings.md](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md) | no |
 
 If an option has no name the value will be displayed to the user in place of the name, so you're allowed to only include the value like so:
 

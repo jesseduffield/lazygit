@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type CommitDescriptionController struct {
@@ -26,23 +26,19 @@ func NewCommitDescriptionController(
 func (self *CommitDescriptionController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:     opts.GetKey(opts.Config.Universal.TogglePanel),
+			Keys:    opts.GetKeys(opts.Config.Universal.TogglePanel),
 			Handler: self.handleTogglePanel,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.Return),
+			Keys:    opts.GetKeys(opts.Config.Universal.Return),
 			Handler: self.close,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.ConfirmInEditor),
+			Keys:    opts.GetKeys(opts.Config.Universal.ConfirmInEditor),
 			Handler: self.confirm,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.ConfirmInEditorAlt),
-			Handler: self.confirm,
-		},
-		{
-			Key:     opts.GetKey(opts.Config.CommitMessage.CommitMenu),
+			Keys:    opts.GetKeys(opts.Config.CommitMessage.CommitMenu),
 			Handler: self.openCommitMenu,
 		},
 	}
@@ -68,26 +64,20 @@ func (self *CommitDescriptionController) GetMouseKeybindings(opts types.Keybindi
 func (self *CommitDescriptionController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {
 		footer := ""
-		if self.c.UserConfig().Keybinding.Universal.ConfirmInEditor != "<disabled>" || self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt != "<disabled>" {
-			if self.c.UserConfig().Keybinding.Universal.ConfirmInEditor == "<disabled>" {
-				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooter,
-					map[string]string{
-						"confirmInEditorKeybinding": keybindings.Label(self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt),
-					})
-			} else if self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt == "<disabled>" {
-				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooter,
-					map[string]string{
-						"confirmInEditorKeybinding": keybindings.Label(self.c.UserConfig().Keybinding.Universal.ConfirmInEditor),
-					})
-			} else {
-				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooterTwoBindings,
-					map[string]string{
-						"confirmInEditorKeybinding1": keybindings.Label(self.c.UserConfig().Keybinding.Universal.ConfirmInEditor),
-						"confirmInEditorKeybinding2": keybindings.Label(self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt),
-					})
-			}
+		keys := self.c.UserConfig().Keybinding.Universal.ConfirmInEditor
+		if len(keys) > 0 {
+			footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooter,
+				map[string]string{
+					"confirmInEditorKeybinding": keys.String(),
+				})
 		}
 		self.c.Views().CommitDescription.Footer = footer
+	}
+}
+
+func (self *CommitDescriptionController) GetOnQuit() func() {
+	return func() {
+		self.c.Helpers().Commits.PreserveCommitMessage()
 	}
 }
 
@@ -107,14 +97,14 @@ func (self *CommitDescriptionController) handleTogglePanel() error {
 	// ctrl key or fn key, which is unlikely to occur in pasted text. And if
 	// they mapped some *other* command to "<tab>", then we're totally out of
 	// luck.
-	if self.c.GocuiGui().IsPasting && self.c.UserConfig().Keybinding.Universal.TogglePanel == "<tab>" {
+	if self.c.GocuiGui().IsPasting && lo.Contains(self.c.UserConfig().Keybinding.Universal.TogglePanel, "<tab>") {
 		// Handling tabs in pasted commit messages is not optimal, but hopefully
 		// good enough for now. We simply insert 4 spaces without worrying about
 		// column alignment. This works well enough for leading indentation,
 		// which is common in pasted code snippets.
 		view := self.Context().GetView()
 		for range 4 {
-			view.Editor.Edit(view, gocui.KeySpace, ' ', 0)
+			view.Editor.Edit(view, gocui.NewKeyRune(' '))
 		}
 		return nil
 	}
