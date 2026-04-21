@@ -4,7 +4,6 @@ package oscommands
 
 import (
 	"os"
-	"os/exec"
 	"runtime"
 	"strings"
 	"syscall"
@@ -40,10 +39,10 @@ func (c *OSCommand) UpdateWindowTitle() error {
 	return nil
 }
 
-func TerminateProcessGracefully(cmd *exec.Cmd) error {
-	if cmd.Process == nil {
+func TerminateProcessGracefully(proc *os.Process) error {
+	if proc == nil {
 		return nil
 	}
 
-	return cmd.Process.Signal(syscall.SIGTERM)
+	return proc.Signal(syscall.SIGTERM)
 }
