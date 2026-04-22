@@ -10,7 +10,11 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 )
 
-const ptySupported = true
+// setPlatformPtyEnvVars is a no-op on Unix: pagers discover the terminal
+// size via the pty's TIOCGWINSZ. The Windows implementation sets
+// LAZYGIT_COLUMNS for backwards compat with scripts documented in
+// docs/Custom_Pagers.md.
+func setPlatformPtyEnvVars(_ *exec.Cmd, _ int) {}
 
 type unixPty struct {
 	master *os.File

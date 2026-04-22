@@ -1,8 +1,6 @@
 package gui
 
 import (
-	"errors"
-	"fmt"
 	"io"
 	"os/exec"
 	"strings"
@@ -20,10 +18,6 @@ type pty interface {
 	io.ReadCloser
 	Resize(cols, rows uint16) error
 }
-
-// errPtyUnsupported is returned by startPty on platforms without a pty
-// implementation. Callers fall back to running the command without a pty.
-var errPtyUnsupported = errors.New("pty not supported on this platform")
 
 // startPty runs cmd in a pseudo-terminal. Implemented per-platform in
 // pty_unix.go and pty_windows.go. Returns the master side, a tasks.Cmd
@@ -63,13 +57,7 @@ func (gui *Gui) onResize() error {
 func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
 	width := view.InnerWidth()
 
-	if !ptySupported {
-		// No pty implementation on this platform. Expose the width via an
-		// env var so pager emulation scripts can still pick it up (see
-		// docs/Custom_Pagers.md), and run the command without a pty.
-		cmd.Env = append(cmd.Env, fmt.Sprintf("LAZYGIT_COLUMNS=%d", width))
-		return gui.newCmdTask(view, cmd, prefix)
-	}
+	setPlatformPtyEnvVars(cmd, width)
 
 	pager := gui.stateAccessor.GetPagerConfig().GetPagerCommand(width)
 	externalDiffCommand := gui.stateAccessor.GetPagerConfig().GetExternalDiffCommand()
