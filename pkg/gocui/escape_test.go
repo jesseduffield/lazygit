@@ -150,6 +150,29 @@ func TestParseOneColours(t *testing.T) {
 	}
 }
 
+func TestParseOneIgnoresUnknownSequences(t *testing.T) {
+	// These are the kinds of sequences ConPTY emits as session-init on Windows. A text-mode
+	// interpreter can't do anything meaningful with them, but it must silently consume them
+	// instead of leaking them into the view as literal text.
+	scenarios := []string{
+		"\x1b[?9001h", // DEC private-mode set (?-prefix)
+		"\x1b[?25l",   // hide cursor
+		"\x1b[?25h",   // show cursor
+		"\x1b[2;J",    // erase display (unusual 2;J variant)
+		"\x1b[H",      // cursor home — final byte immediately after [
+		"\x1b[5;1;H",  // cursor position with multiple params
+		"\x1bc",       // RIS — single-char ESC sequence
+	}
+
+	for _, input := range scenarios {
+		ei := newEscapeInterpreter(OutputNormal)
+		/* EXPECTED:
+		parseEscRunes(t, ei, input)
+		ACTUAL: */
+		parseEscRunesExpectingError(t, ei, input)
+	}
+}
+
 func parseEscRunes(t *testing.T, ei *escapeInterpreter, runes string) {
 	t.Helper()
 	for _, b := range []byte(runes) {
@@ -157,4 +180,14 @@ func parseEscRunes(t *testing.T, ei *escapeInterpreter, runes string) {
 		assert.Equal(t, true, isEscape)
 		assert.NoError(t, err)
 	}
+}
+
+func parseEscRunesExpectingError(t *testing.T, ei *escapeInterpreter, runes string) {
+	t.Helper()
+	for _, b := range []byte(runes) {
+		if _, err := ei.parseOne([]byte{b}); err != nil {
+			return
+		}
+	}
+	t.Errorf("expected a parse error for %q, got none", runes)
 }
