@@ -1060,8 +1060,12 @@ func (gui *Gui) loadNewRepo() error {
 
 	gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 
+	// Updating the window title is purely cosmetic (e.g. setting the terminal
+	// window title via `cmd /c title ...` on Windows). If it fails for any
+	// reason we don't want to take down the whole app on startup, so just log
+	// the error and carry on. See https://github.com/jesseduffield/lazygit/issues/5414
 	if err := gui.os.UpdateWindowTitle(); err != nil {
-		return err
+		gui.c.Log.Warnf("failed to update window title: %v", err)
 	}
 
 	return nil
