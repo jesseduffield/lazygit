@@ -935,7 +935,12 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	// setting here so we can use it in layout.go
 	gui.integrationTest = startArgs.IntegrationTest
 
-	return gui.g.MainLoop()
+	err = gui.g.MainLoop()
+	if errors.Is(err, gocui.ErrQuit) {
+		// Give the focused context a chance to clean up before we tear down the app.
+		gui.c.Context().Current().HandleQuit()
+	}
+	return err
 }
 
 func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {

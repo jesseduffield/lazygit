@@ -38,3 +38,7 @@ func (self *baseController) GetOnFocus() func(types.OnFocusOpts) {
 func (self *baseController) GetOnFocusLost() func(types.OnFocusLostOpts) {
 	return nil
 }
+
+func (self *baseController) GetOnQuit() func() {
+	return nil
+}

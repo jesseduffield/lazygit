@@ -142,6 +142,7 @@ var tests = []*components.IntegrationTest{
 	commit.PasteCommitMessage,
 	commit.PasteCommitMessageOverExisting,
 	commit.PreserveCommitMessage,
+	commit.PreserveCommitMessageWhitespace,
 	commit.ResetAuthor,
 	commit.ResetAuthorRange,
 	commit.Revert,

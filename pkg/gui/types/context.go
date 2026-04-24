@@ -105,6 +105,7 @@ type IBaseContext interface {
 	AddOnRenderToMainFn(func())
 	AddOnFocusFn(func(OnFocusOpts))
 	AddOnFocusLostFn(func(OnFocusLostOpts))
+	AddOnQuitFn(func())
 }
 
 type Context interface {
@@ -112,6 +113,7 @@ type Context interface {
 
 	HandleFocus(opts OnFocusOpts)
 	HandleFocusLost(opts OnFocusLostOpts)
+	HandleQuit()
 	FocusLine(scrollIntoView bool)
 	HandleRender()
 	HandleRenderToMain()
@@ -273,6 +275,10 @@ type IController interface {
 	GetOnRenderToMain() func()
 	GetOnFocus() func(OnFocusOpts)
 	GetOnFocusLost() func(OnFocusLostOpts)
+
+	// Implement this to get called when the app quits, and the controller's context has the focus.
+	// Useful for saving state on quit.
+	GetOnQuit() func()
 }
 
 type IList interface {

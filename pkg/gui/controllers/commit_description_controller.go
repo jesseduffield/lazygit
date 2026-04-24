@@ -91,6 +91,12 @@ func (self *CommitDescriptionController) GetOnFocus() func(types.OnFocusOpts) {
 	}
 }
 
+func (self *CommitDescriptionController) GetOnQuit() func() {
+	return func() {
+		self.c.Helpers().Commits.PreserveCommitMessage()
+	}
+}
+
 func (self *CommitDescriptionController) switchToCommitMessage() error {
 	self.c.Context().Replace(self.c.Contexts().CommitMessage)
 	return nil
