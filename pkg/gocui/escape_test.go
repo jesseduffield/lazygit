@@ -1,6 +1,7 @@
 package gocui
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -151,22 +152,35 @@ func TestParseOneColours(t *testing.T) {
 }
 
 func TestParseOneIgnoresUnknownSequences(t *testing.T) {
-	// These are the kinds of sequences ConPTY emits as session-init on Windows. A text-mode
-	// interpreter can't do anything meaningful with them, but it must silently consume them
-	// instead of leaking them into the view as literal text.
+	// Escape sequences the interpreter doesn't implement -- whether well-formed-but-unsupported
+	// (cursor movement, private modes, DECSCUSR, …) or outright malformed -- must be silently
+	// consumed rather than leaked into the view as literal text.
 	scenarios := []string{
-		"\x1b[?9001h", // DEC private-mode set (?-prefix)
-		"\x1b[?25l",   // hide cursor
-		"\x1b[?25h",   // show cursor
-		"\x1b[2;J",    // erase display (unusual 2;J variant)
-		"\x1b[H",      // cursor home — final byte immediately after [
-		"\x1b[5;1;H",  // cursor position with multiple params
-		"\x1bc",       // RIS — single-char ESC sequence
+		"\x1b[?9001h",                            // DEC private-mode set (?-prefix)
+		"\x1b[?25l",                              // hide cursor
+		"\x1b[?25h",                              // show cursor
+		"\x1b[2;J",                               // erase display (unusual 2;J variant)
+		"\x1b[H",                                 // cursor home — final byte immediately after [
+		"\x1b[5;1;H",                             // cursor position with multiple params
+		"\x1bc",                                  // RIS — single-char ESC sequence
+		"\x1b[;5H",                               // empty first param (';' immediately after '[')
+		"\x1b[ q",                                // intermediate byte with no params (DECSCUSR family)
+		"\x1b[0 q",                               // intermediate byte after a param
+		"\x1b[1;;m",                              // malformed SGR: empty middle param
+		"\x1b]8bogus\x07",                        // OSC 8 missing ';'
+		"\x1b[" + strings.Repeat("0", 300) + "m", // single param overflows length cap
+		"\x1b[" + strings.Repeat("1;", 25) + "1m", // too many params
 	}
 
 	for _, input := range scenarios {
 		ei := newEscapeInterpreter(OutputNormal)
 		parseEscRunes(t, ei, input)
+		// An unimplemented/malformed sequence must leave no trace: no
+		// pending instruction, no color change.
+		_, noop := ei.instruction.(noInstruction)
+		assert.True(t, noop, "input %q left a pending instruction", input)
+		assert.Equal(t, ColorDefault, ei.curFgColor, "input %q mutated fg color", input)
+		assert.Equal(t, ColorDefault, ei.curBgColor, "input %q mutated bg color", input)
 	}
 }
 
