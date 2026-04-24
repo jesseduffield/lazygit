@@ -1,25 +1,14 @@
-package gui
+package oscommands
 
 import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 	"sync"
 	"unsafe"
 
-	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"golang.org/x/sys/windows"
 )
-
-// setPlatformPtyEnvVars preserves the LAZYGIT_COLUMNS env var exposed by
-// previous Windows builds (see docs/Custom_Pagers.md). With a real
-// ConPTY, pagers can query the console width natively, but existing user
-// scripts reference $env:LAZYGIT_COLUMNS directly and we don't want to
-// break them.
-func setPlatformPtyEnvVars(cmd *exec.Cmd, width int) {
-	cmd.Env = append(cmd.Env, fmt.Sprintf("LAZYGIT_COLUMNS=%d", width))
-}
 
 type winPty struct {
 	hpc     windows.Handle
@@ -30,7 +19,8 @@ type winPty struct {
 	closed  bool
 }
 
-func (p *winPty) Read(buf []byte) (int, error) { return p.outRead.Read(buf) }
+func (p *winPty) Read(buf []byte) (int, error)  { return p.outRead.Read(buf) }
+func (p *winPty) Write(buf []byte) (int, error) { return p.inWrite.Write(buf) }
 
 func (p *winPty) Resize(cols, rows uint16) error {
 	return windows.ResizePseudoConsole(p.hpc, windows.Coord{X: int16(cols), Y: int16(rows)})
@@ -51,32 +41,26 @@ func (p *winPty) Close() error {
 	return nil
 }
 
-type winCmd struct {
-	process *os.Process
-	desc    string
+func waitForProcess(proc *os.Process) func() error {
+	return func() error {
+		state, err := proc.Wait()
+		if err != nil {
+			return err
+		}
+		if !state.Success() {
+			return fmt.Errorf("exit status %d", state.ExitCode())
+		}
+		return nil
+	}
 }
 
-func (c *winCmd) Wait() error {
-	state, err := c.process.Wait()
-	if err != nil {
-		return err
-	}
-	if !state.Success() {
-		return fmt.Errorf("exit status %d", state.ExitCode())
-	}
-	return nil
-}
-
-func (c *winCmd) String() string         { return c.desc }
-func (c *winCmd) GetProcess() *os.Process { return c.process }
-
-func startPty(cmd *exec.Cmd, cols, rows uint16) (p pty, tc tasks.Cmd, err error) {
+func StartPty(cmd *exec.Cmd, cols, rows uint16) (sp StartedPty, err error) {
 	// Two pipes: one for the child's stdin (we never write to it, but ConPTY
 	// needs a handle), one for the child's stdout/stderr multiplexed through
 	// the pseudoconsole.
 	var inRead, inWrite, outRead, outWrite windows.Handle
 	if err = windows.CreatePipe(&inRead, &inWrite, nil, 0); err != nil {
-		return nil, nil, fmt.Errorf("CreatePipe (in): %w", err)
+		return StartedPty{}, fmt.Errorf("CreatePipe (in): %w", err)
 	}
 	defer func() {
 		if err != nil {
@@ -85,7 +69,7 @@ func startPty(cmd *exec.Cmd, cols, rows uint16) (p pty, tc tasks.Cmd, err error)
 	}()
 	if err = windows.CreatePipe(&outRead, &outWrite, nil, 0); err != nil {
 		windows.CloseHandle(inRead)
-		return nil, nil, fmt.Errorf("CreatePipe (out): %w", err)
+		return StartedPty{}, fmt.Errorf("CreatePipe (out): %w", err)
 	}
 	defer func() {
 		if err != nil {
@@ -100,7 +84,7 @@ func startPty(cmd *exec.Cmd, cols, rows uint16) (p pty, tc tasks.Cmd, err error)
 	if err = windows.CreatePseudoConsole(size, inRead, outWrite, 0, &hpc); err != nil {
 		windows.CloseHandle(inRead)
 		windows.CloseHandle(outWrite)
-		return nil, nil, fmt.Errorf("CreatePseudoConsole: %w", err)
+		return StartedPty{}, fmt.Errorf("CreatePseudoConsole: %w", err)
 	}
 	windows.CloseHandle(inRead)
 	windows.CloseHandle(outWrite)
@@ -113,7 +97,7 @@ func startPty(cmd *exec.Cmd, cols, rows uint16) (p pty, tc tasks.Cmd, err error)
 	// Attach the pseudoconsole to the child via a process attribute list.
 	attrList, err := windows.NewProcThreadAttributeList(1)
 	if err != nil {
-		return nil, nil, fmt.Errorf("NewProcThreadAttributeList: %w", err)
+		return StartedPty{}, fmt.Errorf("NewProcThreadAttributeList: %w", err)
 	}
 	defer attrList.Delete()
 	// PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE wants the HPCON value itself as
@@ -126,7 +110,7 @@ func startPty(cmd *exec.Cmd, cols, rows uint16) (p pty, tc tasks.Cmd, err error)
 		unsafe.Pointer(hpc),
 		unsafe.Sizeof(hpc),
 	); err != nil {
-		return nil, nil, fmt.Errorf("UpdateProcThreadAttribute: %w", err)
+		return StartedPty{}, fmt.Errorf("UpdateProcThreadAttribute: %w", err)
 	}
 
 	var si windows.StartupInfoEx
@@ -136,22 +120,22 @@ func startPty(cmd *exec.Cmd, cols, rows uint16) (p pty, tc tasks.Cmd, err error)
 	var appNamePtr *uint16
 	if cmd.Path != "" {
 		if appNamePtr, err = windows.UTF16PtrFromString(cmd.Path); err != nil {
-			return nil, nil, err
+			return StartedPty{}, err
 		}
 	}
 	cmdLinePtr, err := windows.UTF16PtrFromString(windows.ComposeCommandLine(cmd.Args))
 	if err != nil {
-		return nil, nil, err
+		return StartedPty{}, err
 	}
 	var dirPtr *uint16
 	if cmd.Dir != "" {
 		if dirPtr, err = windows.UTF16PtrFromString(cmd.Dir); err != nil {
-			return nil, nil, err
+			return StartedPty{}, err
 		}
 	}
 	envBlock, err := createEnvBlock(cmd.Env)
 	if err != nil {
-		return nil, nil, err
+		return StartedPty{}, err
 	}
 	var envPtr *uint16
 	if envBlock != nil {
@@ -172,24 +156,25 @@ func startPty(cmd *exec.Cmd, cols, rows uint16) (p pty, tc tasks.Cmd, err error)
 		&pi,
 	)
 	if err != nil {
-		return nil, nil, fmt.Errorf("CreateProcess: %w", err)
+		return StartedPty{}, fmt.Errorf("CreateProcess: %w", err)
 	}
 	windows.CloseHandle(pi.Thread)
 	windows.CloseHandle(pi.Process)
 
 	proc, err := os.FindProcess(int(pi.ProcessId))
 	if err != nil {
-		return nil, nil, err
+		return StartedPty{}, err
 	}
 
-	return &winPty{
+	return StartedPty{
+		Pty: &winPty{
 			hpc:     hpc,
 			inWrite: os.NewFile(uintptr(inWrite), "conpty-in"),
 			outRead: os.NewFile(uintptr(outRead), "conpty-out"),
-		}, &winCmd{
-			process: proc,
-			desc:    strings.Join(cmd.Args, " "),
-		}, nil
+		},
+		Process: proc,
+		Wait:    waitForProcess(proc),
+	}, nil
 }
 
 // createEnvBlock packs env vars into the UTF-16 double-null-terminated block

@@ -1,29 +1,18 @@
 package gui
 
 import (
+	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
-
-// pty is the master side of a pseudo-terminal running a subprocess. The
-// concrete implementation is platform-specific: creack/pty on Unix and
-// ConPTY on Windows.
-type pty interface {
-	io.ReadCloser
-	Resize(cols, rows uint16) error
-}
-
-// startPty runs cmd in a pseudo-terminal. Implemented per-platform in
-// pty_unix.go and pty_windows.go. Returns the master side, a tasks.Cmd
-// handle for waiting on the process, and an error.
-//
-// func startPty(cmd *exec.Cmd, cols, rows uint16) (pty, tasks.Cmd, error)
 
 func (gui *Gui) desiredPtySize(view *gocui.View) (cols, rows uint16) {
 	width, height := view.InnerSize()
@@ -48,6 +37,19 @@ func (gui *Gui) onResize() error {
 	return nil
 }
 
+// ptyCmd adapts an oscommands.StartedPty result into the tasks.Cmd shape.
+// On Windows the original *exec.Cmd was never Start()ed, so we go through
+// the explicit Process handle rather than cmd.Process.
+type ptyCmd struct {
+	cmd     *exec.Cmd
+	process *os.Process
+	wait    func() error
+}
+
+func (p ptyCmd) Wait() error             { return p.wait() }
+func (p ptyCmd) String() string          { return p.cmd.String() }
+func (p ptyCmd) GetProcess() *os.Process { return p.process }
+
 // Some commands need to output for a terminal to active certain behaviour.
 // For example,  git won't invoke the GIT_PAGER env var unless it thinks it's
 // talking to a terminal. We typically write cmd outputs straight to a view,
@@ -57,7 +59,11 @@ func (gui *Gui) onResize() error {
 func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
 	width := view.InnerWidth()
 
-	setPlatformPtyEnvVars(cmd, width)
+	// LAZYGIT_COLUMNS is a Windows-documented env var (see
+	// docs/Custom_Pagers.md) for pager scripts that can't query the
+	// terminal width directly. We set it on every platform so those
+	// scripts remain portable.
+	cmd.Env = append(cmd.Env, fmt.Sprintf("LAZYGIT_COLUMNS=%d", width))
 
 	pager := gui.stateAccessor.GetPagerConfig().GetPagerCommand(width)
 	externalDiffCommand := gui.stateAccessor.GetPagerConfig().GetExternalDiffCommand()
@@ -88,22 +94,21 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 		manager := gui.getManager(view)
 
-		var p pty
+		var p oscommands.Pty
 		start := func() (tasks.Cmd, io.Reader) {
 			cols, rows := gui.desiredPtySize(view)
-			var err error
-			var startedCmd tasks.Cmd
-			p, startedCmd, err = startPty(cmd, cols, rows)
+			sp, err := oscommands.StartPty(cmd, cols, rows)
 			if err != nil {
 				gui.c.Log.Error(err)
 				return tasks.ExecCmd{Cmd: cmd}, nil
 			}
+			p = sp.Pty
 
 			gui.Mutexes.PtyMutex.Lock()
 			gui.viewPtmxMap[view.Name()] = p
 			gui.Mutexes.PtyMutex.Unlock()
 
-			return startedCmd, p
+			return ptyCmd{cmd: cmd, process: sp.Process, wait: sp.Wait}, p
 		}
 
 		onClose := func() {
