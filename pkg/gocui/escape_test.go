@@ -166,10 +166,7 @@ func TestParseOneIgnoresUnknownSequences(t *testing.T) {
 
 	for _, input := range scenarios {
 		ei := newEscapeInterpreter(OutputNormal)
-		/* EXPECTED:
 		parseEscRunes(t, ei, input)
-		ACTUAL: */
-		parseEscRunesExpectingError(t, ei, input)
 	}
 }
 
@@ -180,14 +177,4 @@ func parseEscRunes(t *testing.T, ei *escapeInterpreter, runes string) {
 		assert.Equal(t, true, isEscape)
 		assert.NoError(t, err)
 	}
-}
-
-func parseEscRunesExpectingError(t *testing.T, ei *escapeInterpreter, runes string) {
-	t.Helper()
-	for _, b := range []byte(runes) {
-		if _, err := ei.parseOne([]byte{b}); err != nil {
-			return
-		}
-	}
-	t.Errorf("expected a parse error for %q, got none", runes)
 }

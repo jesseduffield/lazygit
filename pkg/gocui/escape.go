@@ -151,6 +151,12 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			characterEquals(ch, '+'):
 			ei.state = stateCharacterSetDesignation
 			return true, nil
+		case len(ch) == 1 && ch[0] >= 0x30 && ch[0] <= 0x7E:
+			// Single-byte ESC sequence (e.g. ESC c = RIS). We don't
+			// interpret these, but we must consume them so they don't
+			// leak into the view as literal text.
+			ei.state = stateNone
+			return true, nil
 		default:
 			return false, errNotCSI
 		}
@@ -166,6 +172,19 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			ei.csiParam = append(ei.csiParam, "0")
 		case characterEquals(ch, 'K'):
 			// fall through
+		case len(ch) == 1 && ch[0] >= 0x3C && ch[0] <= 0x3F:
+			// Private-mode prefix byte (<, =, >, ?). We don't interpret
+			// DEC private-mode sequences, but must consume them so they
+			// don't leak into the view as literal text. Seed an empty
+			// param so the subsequent digits land on a valid slot.
+			ei.csiParam = append(ei.csiParam, "")
+			ei.state = stateParams
+			return true, nil
+		case len(ch) == 1 && ch[0] >= 0x40 && ch[0] <= 0x7E:
+			// Valid CSI final byte we don't implement — swallow.
+			ei.state = stateNone
+			ei.csiParam = nil
+			return true, nil
 		default:
 			return false, errCSIParseError
 		}
@@ -203,6 +222,12 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 				ei.instruction = noInstruction{}
 			}
 
+			ei.state = stateNone
+			ei.csiParam = nil
+			return true, nil
+		case len(ch) == 1 && ch[0] >= 0x40 && ch[0] <= 0x7E:
+			// Valid CSI final byte we don't implement — swallow the
+			// whole sequence rather than printing it as text.
 			ei.state = stateNone
 			ei.csiParam = nil
 			return true, nil
