@@ -250,8 +250,12 @@ type TranslationSet struct {
 	MajorVersionErr                       string
 	CouldNotFindBinaryErr                 string
 	UpdateFailedErr                       string
-	ConfirmQuitDuringUpdateTitle          string
-	ConfirmQuitDuringUpdate               string
+	ConfirmQuitDuringUpdateTitle              string
+	ConfirmQuitDuringUpdate                   string
+	ConfirmQuitDuringBackgroundOpTitle        string
+	ConfirmQuitDuringBackgroundOp             string
+	WaitForBackgroundOps                      string
+	QuitAnyway                                string
 	IntroPopupMessage                     string
 	NonReloadableConfigWarningTitle       string
 	NonReloadableConfigWarning            string
@@ -1369,8 +1373,12 @@ func EnglishTranslationSet() *TranslationSet {
 		MajorVersionErr:                      "New version ({{.newVersion}}) has non-backwards compatible changes compared to the current version ({{.currentVersion}})",
 		CouldNotFindBinaryErr:                "Could not find any binary at {{.url}}",
 		UpdateFailedErr:                      "Update failed: {{.errMessage}}",
-		ConfirmQuitDuringUpdateTitle:         "Currently updating",
-		ConfirmQuitDuringUpdate:              "An update is in progress. Are you sure you want to quit?",
+		ConfirmQuitDuringUpdateTitle:              "Currently updating",
+		ConfirmQuitDuringUpdate:                   "An update is in progress. Are you sure you want to quit?",
+		ConfirmQuitDuringBackgroundOpTitle:        "Operations in progress",
+		ConfirmQuitDuringBackgroundOp:             "Background operations (e.g. push/pull) are still running.",
+		WaitForBackgroundOps:                      "Wait for operations to finish",
+		QuitAnyway:                                "Quit anyway",
 		IntroPopupMessage:                    englishIntroPopupMessage,
 		NonReloadableConfigWarningTitle:      "Config changed",
 		NonReloadableConfigWarning:           englishNonReloadableConfigWarning,

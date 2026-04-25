@@ -16,6 +16,7 @@ type InlineStatusHelper struct {
 	windowHelper             *WindowHelper
 	contextsWithInlineStatus map[types.ContextKey]*inlineStatusInfo
 	mutex                    deadlock.Mutex
+	activeCount              int // number of in-flight user-initiated operations
 }
 
 func NewInlineStatusHelper(c *HelperCommon, windowHelper *WindowHelper) *InlineStatusHelper {
@@ -66,8 +67,20 @@ func (self *InlineStatusHelper) WithInlineStatus(opts InlineStatusOpts, f func(g
 	context := self.c.ContextForKey(opts.ContextKey).(types.IListContext)
 	view := context.GetView()
 	visible := view.Visible && self.windowHelper.TopViewInWindow(context.GetWindowName(), false) == view
+
+	self.mutex.Lock()
+	self.activeCount++
+	self.mutex.Unlock()
+
+	done := func() {
+		self.mutex.Lock()
+		self.activeCount--
+		self.mutex.Unlock()
+	}
+
 	if visible && context.IsItemVisible(opts.Item) {
 		self.c.OnWorker(func(task gocui.Task) error {
+			defer done()
 			self.start(opts)
 			defer self.stop(opts)
 
@@ -76,6 +89,7 @@ func (self *InlineStatusHelper) WithInlineStatus(opts InlineStatusOpts, f func(g
 	} else {
 		message := presentation.ItemOperationToString(opts.Operation, self.c.Tr)
 		_ = self.c.WithWaitingStatus(message, func(t gocui.Task) error {
+			defer done()
 			// We still need to set the item operation, because it might be used
 			// for other (non-presentation) purposes
 			self.c.State().SetItemOperation(opts.Item, opts.Operation)
@@ -84,6 +98,26 @@ func (self *InlineStatusHelper) WithInlineStatus(opts InlineStatusOpts, f func(g
 			return f(t)
 		})
 	}
+}
+
+func (self *InlineStatusHelper) AnyActive() bool {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+	return self.activeCount > 0
+}
+
+// NotifyWhenDone calls cb on the UI thread once all in-flight inline-status
+// operations have finished.
+func (self *InlineStatusHelper) NotifyWhenDone(cb func()) {
+	go utils.Safe(func() {
+		for {
+			time.Sleep(50 * time.Millisecond)
+			if !self.AnyActive() {
+				cb()
+				return
+			}
+		}
+	})
 }
 
 func (self *InlineStatusHelper) start(opts InlineStatusOpts) {

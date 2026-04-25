@@ -25,6 +25,10 @@ func (self *QuitActions) quitAux() error {
 		return self.confirmQuitDuringUpdate()
 	}
 
+	if self.c.Helpers().InlineStatus.AnyActive() {
+		return self.confirmQuitDuringBackgroundOp()
+	}
+
 	return self.c.ConfirmIf(self.c.UserConfig().ConfirmOnQuit,
 		types.ConfirmOpts{
 			Title:  "",
@@ -33,6 +37,32 @@ func (self *QuitActions) quitAux() error {
 				return gocui.ErrQuit
 			},
 		})
+}
+
+func (self *QuitActions) confirmQuitDuringBackgroundOp() error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title:  self.c.Tr.ConfirmQuitDuringBackgroundOpTitle,
+		Prompt: self.c.Tr.ConfirmQuitDuringBackgroundOp,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.WaitForBackgroundOps,
+				OnPress: func() error {
+					self.c.Helpers().InlineStatus.NotifyWhenDone(func() {
+						self.c.OnUIThread(func() error {
+							return self.Quit()
+						})
+					})
+					return nil
+				},
+			},
+			{
+				Label: self.c.Tr.QuitAnyway,
+				OnPress: func() error {
+					return gocui.ErrQuit
+				},
+			},
+		},
+	})
 }
 
 func (self *QuitActions) confirmQuitDuringUpdate() error {
