@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -129,7 +131,7 @@ func (self *StashController) handleStashApply(stashEntry *models.StashEntry) err
 func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error {
 	pop := func() error {
 		self.c.LogAction(self.c.Tr.Actions.PopStash)
-		self.c.LogCommand("Popping stash "+stashEntry.Hash, false)
+		self.c.LogCommand(fmt.Sprintf(self.c.Tr.Log.PoppingStash, stashEntry.Hash), false)
 		err := self.c.Git().Stash.Pop(stashEntry.Index)
 		self.postStashRefresh()
 		if err != nil {
@@ -163,7 +165,7 @@ func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) 
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.DropStash)
 			for i := len(stashEntries) - 1; i >= 0; i-- {
-				self.c.LogCommand("Dropping stash "+stashEntries[i].Hash, false)
+				self.c.LogCommand(fmt.Sprintf(self.c.Tr.Log.DroppingStash, stashEntries[i].Hash), false)
 				err := self.c.Git().Stash.Drop(stashEntries[i].Index)
 				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 				if err != nil {

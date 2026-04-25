@@ -138,6 +138,7 @@ _Связки клавиш_
 | `` o `` | Открыть файл | Open file in default application. |
 | `` e `` | Редактировать файл | Open file in external editor. |
 | `` <space> `` | Добавить/удалить строку(и) для патча |  |
+| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | Выйти из сборщика пользовательских патчей |  |
 | `` / `` | Найти |  |
 
@@ -145,7 +146,7 @@ _Связки клавиш_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Скопировать hash коммита в буфер обмена |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Переключить | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Открыть коммит в браузере |  |
@@ -165,11 +166,12 @@ _Связки клавиш_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Скопировать hash коммита в буфер обмена |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <c-r> `` | Сбросить отобранную (скопированную \| cherry-picked) выборку коммитов |  |
 | `` b `` | Просмотреть параметры бинарного поиска |  |
 | `` s `` | Объединить коммиты (Squash) | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
 | `` f `` | Объединить несколько коммитов в один отбросив сообщение коммита (Fixup)  | Meld the selected commit into the commit below it. Similar to squash, but the selected commit's message will be discarded. |
+| `` c `` | Set fixup message | Set the message option for the fixup commit. The -C option means to use this commit's message instead of the target commit's message. |
 | `` r `` | Перефразировать коммит | Reword the selected commit's message. |
 | `` R `` | Переписать коммит с помощью редактора |  |
 | `` d `` | Удалить коммит | Drop the selected commit. This will remove the commit from the branch via a rebase. If the commit makes changes that later commits depend on, you may need to resolve merge conflicts. |
@@ -187,6 +189,7 @@ _Связки клавиш_
 | `` t `` | Revert | Create a revert commit for the selected commit, which applies the selected commit's changes in reverse. |
 | `` T `` | Пометить коммит тегом | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
 | `` <c-l> `` | Открыть меню журнала | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
+| `` G `` | Open pull request in browser |  |
 | `` <space> `` | Переключить | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Открыть коммит в браузере |  |
@@ -212,6 +215,7 @@ _Связки клавиш_
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` o `` | Создать запрос на принятие изменений |  |
 | `` O `` | Создать параметры запроса принятие изменений |  |
+| `` G `` | Open pull request in browser |  |
 | `` <c-y> `` | Скопировать URL запроса на принятие изменений в буфер обмена |  |
 | `` c `` | Переключить по названию | Checkout by name. In the input box you can enter '-' to switch to the previous branch. |
 | `` - `` | Checkout previous branch |  |
@@ -251,7 +255,7 @@ _Связки клавиш_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Скопировать hash коммита в буфер обмена |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Переключить | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Открыть коммит в браузере |  |
@@ -295,7 +299,7 @@ _Связки клавиш_
 | `` <c-o> `` | Скопировать название файла в буфер обмена |  |
 | `` y `` | Copy to clipboard |  |
 | `` c `` | Переключить | Переключить файл |
-| `` d `` | Remove | Отменить изменения коммита в этом файле |
+| `` d `` | Просмотреть параметры «отмены изменении» | Отменить изменения коммита в этом файле |
 | `` o `` | Открыть файл | Open file in default application. |
 | `` e `` | Edit | Open file in external editor. |
 | `` <c-t> `` | Open external diff tool (git difftool) |  |
@@ -306,7 +310,7 @@ _Связки клавиш_
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
-| `` / `` | Найти |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Статус
 
@@ -317,6 +321,7 @@ _Связки клавиш_
 | `` u `` | Проверить обновления |  |
 | `` <enter> `` | Переключиться на последний репозиторий |  |
 | `` a `` | Show/cycle all branch logs |  |
+| `` A `` | Show/cycle all branch logs (reverse) |  |
 | `` 0 `` | Focus main view |  |
 
 ## Теги
@@ -397,7 +402,7 @@ _Связки клавиш_
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
-| `` / `` | Найти |  |
+| `` / `` | Filter the current view by text |  |
 
 ## Хранилище
 

@@ -62,8 +62,8 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
 			Handler:           self.withItems(self.discard),
-			GetDisabledReason: self.require(self.itemsSelected()),
-			Description:       self.c.Tr.Remove,
+			GetDisabledReason: self.require(self.itemsSelected(self.canDiscardFileChanges)),
+			Description:       self.c.Tr.Discard,
 			Tooltip:           self.c.Tr.DiscardOldFileChangeTooltip,
 			DisplayOnScreen:   true,
 		},
@@ -142,6 +142,30 @@ func (self *CommitFilesController) context() *context.CommitFilesContext {
 	return self.c.Contexts().CommitFiles
 }
 
+func (self *CommitFilesController) GetOnClick() func(opts gocui.ViewMouseBindingOpts) error {
+	return func(opts gocui.ViewMouseBindingOpts) error {
+		clickedIdx := self.context().GetSelectedLineIdx()
+		node := self.context().CommitFileTreeViewModel.Get(clickedIdx)
+		if node == nil || node.File != nil {
+			return nil
+		}
+
+		// The arrow is at column visualDepth*2 (after indentation of 2 spaces per level).
+		// Only treat clicks on the arrow and the trailing space as arrow clicks.
+		visualDepth := self.context().CommitFileTreeViewModel.GetVisualDepth(clickedIdx)
+		arrowStartCol := visualDepth * 2
+		arrowEndCol := arrowStartCol + 1
+		if opts.X < arrowStartCol || opts.X > arrowEndCol {
+			return nil
+		}
+
+		self.context().CommitFileTreeViewModel.ToggleCollapsed(node.GetInternalPath())
+		self.c.PostRefreshUpdate(self.context())
+
+		return nil
+	}
+}
+
 func (self *CommitFilesController) GetOnRenderToMain() func() {
 	return func() {
 		node := self.context().GetSelected()
@@ -152,7 +176,8 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		from, to := self.context().GetFromAndToForDiff()
 		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
+		paths := self.pathsForDiff(node)
+		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false)
 		task := types.NewRunPtyTask(cmdObj.GetCmd())
 
 		self.c.RenderToMainViews(types.RefreshMainOpts{
@@ -171,7 +196,7 @@ func (self *CommitFilesController) copyDiffToClipboard(path string, toastMessage
 	from, to := self.context().GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, path, true)
+	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, []string{path}, true)
 	diff, err := cmdObj.RunWithOutput()
 	if err != nil {
 		return err
@@ -223,7 +248,11 @@ func (self *CommitFilesController) openCopyMenu() error {
 	copyAbsolutePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyAbsoluteFilePath,
 		OnPress: func() error {
-			if err := self.c.OS().CopyToClipboard(filepath.Join(self.c.Git().RepoPaths.RepoPath(), node.GetPath())); err != nil {
+			absPath, err := filepath.Abs(node.GetPath())
+			if err != nil {
+				return err
+			}
+			if err := self.c.OS().CopyToClipboard(absPath); err != nil {
 				return err
 			}
 			self.c.Toast(self.c.Tr.FilePathCopiedToast)
@@ -301,18 +330,13 @@ func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error
 }
 
 func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileNode) error {
-	parentContext := self.c.Context().Current().GetParentContext()
-	if parentContext == nil || parentContext.GetKey() != context.LOCAL_COMMITS_CONTEXT_KEY {
-		return errors.New(self.c.Tr.CanOnlyDiscardFromLocalCommits)
-	}
-
-	if ok, err := self.c.Helpers().PatchBuilding.ValidateNormalWorkingTreeState(); !ok {
-		return err
-	}
+	prompt := lo.Ternary(self.c.Git().Patch.PatchBuilder.Active(),
+		self.c.Tr.DiscardFileChangesPromptResetPatch,
+		self.c.Tr.DiscardFileChangesPrompt)
 
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DiscardFileChangesTitle,
-		Prompt: self.c.Tr.DiscardFileChangesPrompt,
+		Prompt: prompt,
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 				var filePaths []string
@@ -343,6 +367,32 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 			})
 		},
 	})
+
+	return nil
+}
+
+func (self *CommitFilesController) canDiscardFileChanges(nodes []*filetree.CommitFileNode) *types.DisabledReason {
+	parentContext := self.c.Context().Current().GetParentContext()
+	if parentContext == nil || parentContext.GetKey() != context.LOCAL_COMMITS_CONTEXT_KEY {
+		return &types.DisabledReason{
+			Text:             self.c.Tr.CanOnlyDiscardFromLocalCommits,
+			ShowErrorInPanel: true,
+		}
+	}
+
+	if self.c.Contexts().LocalCommits.AreMultipleItemsSelected() {
+		return &types.DisabledReason{
+			Text:             self.c.Tr.CannotDiscardFromMultipleCommits,
+			ShowErrorInPanel: true,
+		}
+	}
+
+	if self.c.Git().Status.WorkingTreeState().Any() {
+		return &types.DisabledReason{
+			Text:             self.c.Tr.CantPatchWhileRebasingError,
+			ShowErrorInPanel: true,
+		}
+	}
 
 	return nil
 }
@@ -548,6 +598,21 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 		}
 		return nil
 	}
+}
+
+// pathsForDiff returns the file paths to use for a diff command. When a text
+// filter is active and the node is a directory, only the visible (filtered)
+// file paths are returned so the diff reflects what the user sees.
+func (self *CommitFilesController) pathsForDiff(node *filetree.CommitFileNode) []string {
+	if !node.IsFile() && self.context().IsFiltering() {
+		var paths []string
+		_ = node.ForEachFile(func(file *models.CommitFile) error {
+			paths = append(paths, file.Path)
+			return nil
+		})
+		return paths
+	}
+	return []string{node.GetPath()}
 }
 
 // NOTE: these functions are identical to those in files_controller.go (except for types) and

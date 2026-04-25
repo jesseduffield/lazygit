@@ -83,6 +83,15 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			DisplayOnScreen: true,
 		},
 		{
+			Key:     opts.GetKey(opts.Config.Commits.SetFixupMessage),
+			Handler: self.withItem(self.setFixupMessage),
+			GetDisabledReason: self.require(
+				self.singleItemSelected(self.canSetFixupMessage),
+			),
+			Description: self.c.Tr.SetFixupMessage,
+			Tooltip:     self.c.Tr.SetFixupMessageTooltip,
+		},
+		{
 			Key:     opts.GetKey(opts.Config.Commits.RenameCommit),
 			Handler: self.withItem(self.reword),
 			GetDisabledReason: self.require(
@@ -244,9 +253,36 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Tooltip:     self.c.Tr.OpenLogMenuTooltip,
 			OpensMenu:   true,
 		},
+		{
+			Key:               opts.GetKey(opts.Config.Commits.OpenPullRequestInBrowser),
+			Handler:           self.openPRInBrowser,
+			GetDisabledReason: self.checkedOutBranchHasPR,
+			Description:       self.c.Tr.OpenPullRequestInBrowser,
+		},
 	}
 
 	return bindings
+}
+
+func (self *LocalCommitsController) checkedOutBranchHasPR() *types.DisabledReason {
+	branch := self.c.Model().CheckedOutBranch
+	if _, ok := self.c.Model().PullRequestsMap[branch]; !ok {
+		return &types.DisabledReason{Text: self.c.Tr.NoPullRequestForBranch, ShowErrorInPanel: true}
+	}
+	return nil
+}
+
+func (self *LocalCommitsController) openPRInBrowser() error {
+	pr, ok := self.c.Model().PullRequestsMap[self.c.Model().CheckedOutBranch]
+	if !ok {
+		// Should be guarded against by the DisabledReason check, but be defensive in case
+		// PullRequestsMap was updated concurrently by a background refresh
+		return errors.New(self.c.Tr.NoPullRequestForBranch)
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.OpenPullRequest)
+
+	return self.c.OS().OpenLink(pr.Url)
 }
 
 func (self *LocalCommitsController) GetOnRenderToMain() func() {
@@ -321,18 +357,69 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 		return self.updateTodos(todo.Fixup, selectedCommits)
 	}
 
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.Fixup,
-		Prompt: self.c.Tr.SureFixupThisCommit,
-		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
-				self.c.LogAction(self.c.Tr.Actions.FixupCommit)
-				return self.interactiveRebase(todo.Fixup, startIdx, endIdx)
-			})
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.Fixup,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.Fixup,
+				Key:   'f',
+				OnPress: func() error {
+					return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
+						self.c.LogAction(self.c.Tr.Actions.FixupCommit)
+						return self.interactiveRebase(todo.Fixup, startIdx, endIdx)
+					})
+				},
+				Tooltip: self.c.Tr.FixupTooltip,
+			},
+			{
+				Label: self.c.Tr.FixupKeepMessage,
+				Key:   'c',
+				OnPress: func() error {
+					return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
+						self.c.LogAction(self.c.Tr.Actions.FixupCommitKeepMessage)
+						return self.interactiveRebaseWithFlag(todo.Fixup, startIdx, endIdx, "-C")
+					})
+				},
+				Tooltip: self.c.Tr.FixupKeepMessageTooltip,
+			},
 		},
 	})
+}
+
+func (self *LocalCommitsController) canSetFixupMessage(commit *models.Commit) *types.DisabledReason {
+	if !self.isRebasing() {
+		return &types.DisabledReason{Text: self.c.Tr.NotMidRebase}
+	}
+
+	if commit.Action != todo.Fixup {
+		return &types.DisabledReason{Text: self.c.Tr.MustSelectFixupCommit}
+	}
 
 	return nil
+}
+
+func (self *LocalCommitsController) setFixupMessage(commit *models.Commit) error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.SetFixupMessage,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.FixupDiscardMessage,
+				Key:   'f',
+				OnPress: func() error {
+					return self.updateTodosWithFlag(todo.Fixup, []*models.Commit{commit}, "")
+				},
+				Tooltip: self.c.Tr.FixupDiscardMessageTooltip,
+			},
+			{
+				Label: self.c.Tr.FixupKeepMessage,
+				Key:   'c',
+				OnPress: func() error {
+					return self.updateTodosWithFlag(todo.Fixup, []*models.Commit{commit}, "-C")
+				},
+				Tooltip: self.c.Tr.FixupKeepMessageTooltip,
+			},
+		},
+	})
 }
 
 func (self *LocalCommitsController) reword(commit *models.Commit) error {
@@ -505,7 +592,7 @@ func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, start
 	commits := self.c.Model().Commits
 	if !commits[endIdx].IsMerge() {
 		selectionRangeAndMode := self.getSelectionRangeAndMode()
-		err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit)
+		err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit, "")
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
 			types.RefreshOptions{
@@ -611,13 +698,17 @@ func (self *LocalCommitsController) pick(selectedCommits []*models.Commit) error
 }
 
 func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand, startIdx int, endIdx int) error {
+	return self.interactiveRebaseWithFlag(action, startIdx, endIdx, "")
+}
+
+func (self *LocalCommitsController) interactiveRebaseWithFlag(action todo.TodoCommand, startIdx int, endIdx int, flag string) error {
 	// When performing an action that will remove the selected commits, we need to select the
 	// next commit down (which will end up at the start index after the action is performed)
 	if action == todo.Drop || action == todo.Fixup || action == todo.Squash {
 		self.context().SetSelection(startIdx)
 	}
 
-	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, startIdx, endIdx, action)
+	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, startIdx, endIdx, action, flag)
 
 	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 }
@@ -626,7 +717,11 @@ func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand, s
 // commit meaning you are trying to edit the todo file rather than actually
 // begin a rebase. It then updates the todo file with that action
 func (self *LocalCommitsController) updateTodos(action todo.TodoCommand, selectedCommits []*models.Commit) error {
-	if err := self.c.Git().Rebase.EditRebaseTodo(selectedCommits, action); err != nil {
+	return self.updateTodosWithFlag(action, selectedCommits, "")
+}
+
+func (self *LocalCommitsController) updateTodosWithFlag(action todo.TodoCommand, selectedCommits []*models.Commit, flag string) error {
+	if err := self.c.Git().Rebase.EditRebaseTodo(selectedCommits, action, flag); err != nil {
 		return err
 	}
 
@@ -670,6 +765,7 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 			return err
 		}
 		self.context().MoveSelection(1)
+		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
 		self.c.Refresh(types.RefreshOptions{
 			Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
@@ -682,6 +778,7 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 		err := self.c.Git().Rebase.MoveCommitsDown(self.c.Model().Commits, startIdx, endIdx)
 		if err == nil {
 			self.context().MoveSelection(1)
+			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 		}
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err, types.RefreshOptions{Mode: types.SYNC})
@@ -694,6 +791,7 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 			return err
 		}
 		self.context().MoveSelection(-1)
+		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
 		self.c.Refresh(types.RefreshOptions{
 			Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
@@ -706,6 +804,7 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 		err := self.c.Git().Rebase.MoveCommitsUp(self.c.Model().Commits, startIdx, endIdx)
 		if err == nil {
 			self.context().MoveSelection(-1)
+			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 		}
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err, types.RefreshOptions{Mode: types.SYNC})
@@ -1096,7 +1195,7 @@ func countSquashableCommitsAbove(commits []*models.Commit, selectedIdx int, reba
 	// For each commit _above_ the selection, ...
 	for i, commit := range commits[0:selectedIdx] {
 		// ... see if it is a fixup commit, and get the base subject it applies to
-		if baseSubject, isFixup := isFixupCommit(commit.Name); isFixup {
+		if baseSubject, isFixup := helpers.IsFixupCommit(commit.Name); isFixup {
 			// Then, for each commit after the fixup, up to and including the
 			// rebase start commit, see if we find the base commit
 			for _, baseCommit := range commits[i+1 : rebaseStartIdx+1] {
@@ -1107,33 +1206,6 @@ func countSquashableCommitsAbove(commits []*models.Commit, selectedIdx int, reba
 		}
 	}
 	return result
-}
-
-// Check whether the given subject line is the subject of a fixup commit, and
-// returns (trimmedSubject, true) if so (where trimmedSubject is the subject
-// with all fixup prefixes removed), or (subject, false) if not.
-func isFixupCommit(subject string) (string, bool) {
-	prefixes := []string{"fixup! ", "squash! ", "amend! "}
-	trimPrefix := func(s string) (string, bool) {
-		for _, prefix := range prefixes {
-			if trimmedSubject, ok := strings.CutPrefix(s, prefix); ok {
-				return trimmedSubject, true
-			}
-		}
-		return s, false
-	}
-
-	if subject, wasTrimmed := trimPrefix(subject); wasTrimmed {
-		for {
-			// handle repeated prefixes like "fixup! amend! fixup! Subject"
-			if subject, wasTrimmed = trimPrefix(subject); !wasTrimmed {
-				break
-			}
-		}
-		return subject, true
-	}
-
-	return subject, false
 }
 
 func (self *LocalCommitsController) createTag(commit *models.Commit) error {

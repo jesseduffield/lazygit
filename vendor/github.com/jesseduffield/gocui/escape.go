@@ -39,6 +39,7 @@ func (self noInstruction) isInstruction() {}
 const (
 	stateNone escapeState = iota
 	stateEscape
+	stateCharacterSetDesignation
 	stateCSI
 	stateParams
 	stateOSC
@@ -144,9 +145,19 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 		case characterEquals(ch, ']'):
 			ei.state = stateOSC
 			return true, nil
+		case characterEquals(ch, '('),
+			characterEquals(ch, ')'),
+			characterEquals(ch, '*'),
+			characterEquals(ch, '+'):
+			ei.state = stateCharacterSetDesignation
+			return true, nil
 		default:
 			return false, errNotCSI
 		}
+	case stateCharacterSetDesignation:
+		// Not supported, so just skip it
+		ei.state = stateNone
+		return true, nil
 	case stateCSI:
 		switch {
 		case len(ch) == 1 && ch[0] >= '0' && ch[0] <= '9':

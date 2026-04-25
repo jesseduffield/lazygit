@@ -167,9 +167,6 @@ type View struct {
 	// If HasLoader is true, the message will be appended with a spinning loader animation
 	HasLoader bool
 
-	// IgnoreCarriageReturns tells us whether to ignore '\r' characters
-	IgnoreCarriageReturns bool
-
 	// ParentView is the view which catches events bubbled up from the given view if there's no matching handler
 	ParentView *View
 
@@ -217,21 +214,21 @@ type searcher struct {
 	searchPositions    []SearchPosition
 	modelSearchResults []SearchPosition
 	currentSearchIndex int
-	onSelectItem       func(int)
-	renderSearchStatus func(int, int)
+	onSelectItem       func(*View, int)
+	renderSearchStatus func(*View, int, int)
 }
 
-func (v *View) SetRenderSearchStatus(renderSearchStatus func(int, int)) {
+func (v *View) setRenderSearchStatus(renderSearchStatus func(*View, int, int)) {
 	v.searcher.renderSearchStatus = renderSearchStatus
 }
 
-func (v *View) SetOnSelectItem(onSelectItem func(int)) {
+func (v *View) setOnSelectResult(onSelectItem func(*View, int)) {
 	v.searcher.onSelectItem = onSelectItem
 }
 
 func (v *View) renderSearchStatus(index int, itemCount int) {
 	if v.searcher.renderSearchStatus != nil {
-		v.searcher.renderSearchStatus(index, itemCount)
+		v.searcher.renderSearchStatus(v, index, itemCount)
 	}
 }
 
@@ -289,7 +286,7 @@ func (v *View) SelectSearchResult(index int) {
 	v.FocusPoint(v.ox, y, true)
 	v.renderSearchStatus(index, itemCount)
 	if v.searcher.onSelectItem != nil {
-		v.searcher.onSelectItem(y)
+		v.searcher.onSelectItem(v, y)
 	}
 }
 
@@ -463,6 +460,10 @@ type lineType []cell
 
 func characterEquals(chr []byte, b byte) bool {
 	return len(chr) == 1 && chr[0] == b
+}
+
+func isCRLF(chr []byte) bool {
+	return len(chr) == 2 && chr[0] == '\r' && chr[1] == '\n'
 }
 
 // String returns a string from a given cell slice.
@@ -840,7 +841,7 @@ func (v *View) write(p []byte) {
 		chr, remaining, width, state = uniseg.FirstGraphemeCluster(remaining, state)
 
 		switch {
-		case characterEquals(chr, '\n'):
+		case characterEquals(chr, '\n') || isCRLF(chr):
 			finishLine()
 			advanceToNextLine()
 		case characterEquals(chr, '\r'):

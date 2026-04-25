@@ -215,8 +215,8 @@ func TestTransform(t *testing.T) {
 +++ b/filename
 @@ -1,5 +1,6 @@
  apple
- orange
 +grape
+ orange
  ...
  ...
  ...
@@ -354,8 +354,8 @@ func TestTransform(t *testing.T) {
  ...
  ...
  ...
- last line
 +last line
+ last line
 \ No newline at end of file
 `,
 		},
@@ -412,8 +412,8 @@ func TestTransform(t *testing.T) {
 +++ b/filename
 @@ -1,5 +1,6 @@
  apple
- grape
 +orange
+ grape
  ...
  ...
  ...

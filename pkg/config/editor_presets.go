@@ -60,6 +60,10 @@ func getPreset(shell string, osConfig *OSConfig, guessDefaultEditor func() strin
 		nvimRemoteEditTemplate = `begin; if test -z "$NVIM"; nvim -- {{filename}}; else; nvim --server "$NVIM" --remote-send "q"; nvim --server "$NVIM" --remote-tab {{filename}}; end; end`
 		nvimRemoteEditAtLineTemplate = `begin; if test -z "$NVIM"; nvim +{{line}} -- {{filename}}; else; nvim --server "$NVIM" --remote-send "q"; nvim --server "$NVIM" --remote-tab {{filename}}; nvim --server "$NVIM" --remote-send ":{{line}}<CR>"; end; end`
 		nvimRemoteOpenDirInEditorTemplate = `begin; if test -z "$NVIM"; nvim -- {{dir}}; else; nvim --server "$NVIM" --remote-send "q"; nvim --server "$NVIM" --remote-tab {{dir}}; end; end`
+	} else if strings.HasSuffix(shell, "nu") || strings.HasSuffix(shell, "nushell") || os.Getenv("NU_VERSION") != "" {
+		nvimRemoteEditTemplate = `if ($env | get -i NVIM | is-empty) { nvim -- {{filename}} } else { nvim --server $env.NVIM --remote-send "q"; nvim --server $env.NVIM --remote-tab {{filename}} }`
+		nvimRemoteEditAtLineTemplate = `if ($env | get -i NVIM | is-empty) { nvim +{{line}} -- {{filename}} } else { nvim --server $env.NVIM --remote-send "q"; nvim --server $env.NVIM --remote-tab {{filename}}; nvim --server $env.NVIM --remote-send ":{{line}}<CR>" }`
+		nvimRemoteOpenDirInEditorTemplate = `if ($env | get -i NVIM | is-empty) { nvim -- {{dir}} } else { nvim --server $env.NVIM --remote-send "q"; nvim --server $env.NVIM --remote-tab {{dir}} }`
 	} else {
 		nvimRemoteEditTemplate = `[ -z "$NVIM" ] && (nvim -- {{filename}}) || (nvim --server "$NVIM" --remote-send "q" && nvim --server "$NVIM" --remote-tab {{filename}})`
 		nvimRemoteEditAtLineTemplate = `[ -z "$NVIM" ] && (nvim +{{line}} -- {{filename}}) || (nvim --server "$NVIM" --remote-send "q" &&  nvim --server "$NVIM" --remote-tab {{filename}} && nvim --server "$NVIM" --remote-send ":{{line}}<CR>")`

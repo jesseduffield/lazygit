@@ -154,6 +154,7 @@ type CreateMenuOptions struct {
 	Prompt                     string // a message that will be displayed above the menu options
 	Items                      []*MenuItem
 	HideCancel                 bool
+	OnCancel                   func() error // called when the menu is dismissed without selecting an item
 	ColumnAlignment            []utils.Alignment
 	AllowFilteringKeybindings  bool
 	KeepConflictingKeybindings bool // if true, the keybindings that match essential bindings such as confirm or return will not be removed from menu items
@@ -287,15 +288,17 @@ func (self *MenuItem) ID() string {
 }
 
 type Model struct {
-	CommitFiles  []*models.CommitFile
-	Files        []*models.File
-	Submodules   []*models.SubmoduleConfig
-	Branches     []*models.Branch
-	Commits      []*models.Commit
-	StashEntries []*models.StashEntry
-	SubCommits   []*models.Commit
-	Remotes      []*models.Remote
-	Worktrees    []*models.Worktree
+	CommitFiles     []*models.CommitFile
+	Files           []*models.File
+	Submodules      []*models.SubmoduleConfig
+	Branches        []*models.Branch
+	Commits         []*models.Commit
+	StashEntries    []*models.StashEntry
+	SubCommits      []*models.Commit
+	Remotes         []*models.Remote
+	Worktrees       []*models.Worktree
+	PullRequests    []*models.GithubPullRequest
+	PullRequestsMap map[string]*models.GithubPullRequest
 
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// When in filtering mode we only include the ones that match the given path
@@ -326,15 +329,16 @@ type Model struct {
 }
 
 type Mutexes struct {
-	RefreshingFilesMutex    deadlock.Mutex
-	RefreshingBranchesMutex deadlock.Mutex
-	RefreshingStatusMutex   deadlock.Mutex
-	LocalCommitsMutex       deadlock.Mutex
-	SubCommitsMutex         deadlock.Mutex
-	AuthorsMutex            deadlock.Mutex
-	SubprocessMutex         deadlock.Mutex
-	PopupMutex              deadlock.Mutex
-	PtyMutex                deadlock.Mutex
+	RefreshingFilesMutex        deadlock.Mutex
+	RefreshingBranchesMutex     deadlock.Mutex
+	RefreshingStatusMutex       deadlock.Mutex
+	RefreshingPullRequestsMutex deadlock.Mutex
+	LocalCommitsMutex           deadlock.Mutex
+	SubCommitsMutex             deadlock.Mutex
+	AuthorsMutex                deadlock.Mutex
+	SubprocessMutex             deadlock.Mutex
+	PopupMutex                  deadlock.Mutex
+	PtyMutex                    deadlock.Mutex
 }
 
 // A long-running operation associated with an item. For example, we'll show

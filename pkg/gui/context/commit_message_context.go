@@ -129,7 +129,7 @@ func (self *CommitMessageContext) SetPreservedMessageAndLogError(message string)
 }
 
 func (self *CommitMessageContext) GetInitialMessage() string {
-	return strings.TrimSpace(self.viewModel.initialMessage)
+	return self.viewModel.initialMessage
 }
 
 func (self *CommitMessageContext) GetHistoryMessage() string {

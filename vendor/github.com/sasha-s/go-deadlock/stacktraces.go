@@ -13,9 +13,38 @@ import (
 	"sync"
 )
 
-func callers(skip int) []uintptr {
-	s := make([]uintptr, 50) // Most relevant context seem to appear near the top of the stack.
-	return s[:runtime.Callers(2+skip, s)]
+const stackBufSize = 50
+
+var stackBufPool = sync.Pool{
+	New: func() interface{} {
+		return new([stackBufSize]uintptr)
+	},
+}
+
+// callers returns a stack trace backed by a pooled buffer. The caller must
+// eventually return buf via releaseStackBuf — typically through the
+// postLock/postUnlock path which stores it in stackGID.buf.
+func callers(skip int) ([]uintptr, *[stackBufSize]uintptr) {
+	buf := stackBufPool.Get().(*[stackBufSize]uintptr)
+	n := runtime.Callers(2+skip, buf[:])
+	return buf[:n], buf
+}
+
+// releaseStackBuf returns a pooled stack buffer obtained from callers(). Safe to
+// call with nil (e.g. when the buffer was already handed off via stackGID.buf).
+func releaseStackBuf(buf *[stackBufSize]uintptr) {
+	if buf != nil {
+		stackBufPool.Put(buf)
+	}
+}
+
+// copyStack creates an independent copy of a stack trace. Required when storing
+// stacks in long-lived structures (e.g. l.order) because the originals are backed
+// by pooled buffers that will be recycled in postUnlock.
+func copyStack(s []uintptr) []uintptr {
+	c := make([]uintptr, len(s))
+	copy(c, s)
+	return c
 }
 
 func printStack(w io.Writer, stack []uintptr) {

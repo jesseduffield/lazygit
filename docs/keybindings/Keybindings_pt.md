@@ -1,6 +1,6 @@
 _This file is auto-generated. To update, make the changes in the pkg/i18n directory and then run `go generate ./...` from the project root._
 
-# Lazygit Keybindings
+# Lazygit Atalhos do teclado
 
 _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
@@ -22,16 +22,16 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-p> `` | Ver opções de patch personalizadas |  |
 | `` m `` | Ver opções de mesclar/rebase | Ver opções para abortar/continuar/pular o merge/rebase atual. |
 | `` R `` | Atualizar | Atualize o estado do git (ou seja, execute `git status`, `git branch`, etc em segundo plano para atualizar o conteúdo de painéis). Isso não executa `git fetch`. |
-| `` + `` | Next screen mode (normal/half/fullscreen) |  |
-| `` _ `` | Prev screen mode |  |
+| `` + `` | Modo de tela seguinte (normal/metade/tela cheia) |  |
+| `` _ `` | Modo de tela anterior |  |
 | `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
 | `` <esc> `` | Cancelar |  |
-| `` ? `` | Open keybindings menu |  |
-| `` <c-s> `` | View filter options | View options for filtering the commit log, so that only commits matching the filter are shown. |
+| `` ? `` | Abrir o menu de atalhos do teclado |  |
+| `` <c-s> `` | Ver opções de filtro | View options for filtering the commit log, so that only commits matching the filter are shown. |
 | `` W `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` <c-e> `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | Sair |  |
-| `` <c-z> `` | Suspend the application |  |
+| `` <c-z> `` | Suspender a aplicação |  |
 | `` <c-w> `` | Toggle whitespace | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | Desfazer | O reflog será usado para determinar qual comando git para executar para desfazer o último comando git. Isto não inclui mudanças na árvore de trabalho; apenas compromissos são tidos em consideração. |
 | `` Z `` | Refazer | O reflog será usado para determinar qual comando git para executar para refazer o último comando git. Isto não inclui mudanças na árvore de trabalho; apenas compromissos são tidos em consideração. |
@@ -40,24 +40,24 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` , `` | Previous page |  |
-| `` . `` | Next page |  |
-| `` < (<home>) `` | Scroll to top |  |
-| `` > (<end>) `` | Scroll to bottom |  |
+| `` , `` | Aba anterior |  |
+| `` . `` | Próxima aba |  |
+| `` < (<home>) `` | Voltar ao topo |  |
+| `` > (<end>) `` | Ir para o final |  |
 | `` v `` | Toggle range select |  |
 | `` <s-down> `` | Range select down |  |
 | `` <s-up> `` | Range select up |  |
-| `` / `` | Search the current view by text |  |
+| `` / `` | Pesquisar na visualização atual por texto |  |
 | `` H `` | Rolar à esquerda |  |
 | `` L `` | Scroll para a direita |  |
-| `` ] `` | Next tab |  |
-| `` [ `` | Previous tab |  |
+| `` ] `` | Próxima aba |  |
+| `` [ `` | Aba anterior |  |
 
 ## Arquivos
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy path to clipboard |  |
+| `` <c-o> `` | Copiar caminho para área de transferência |  |
 | `` <space> `` | Etapa | Alternar para staging para o arquivo selecionado. |
 | `` <c-b> `` | Filtrar arquivos por status |  |
 | `` y `` | Copy to clipboard |  |
@@ -65,7 +65,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` w `` | Fazer commit de alterações sem pré-commit |  |
 | `` A `` | Alterar último commit |  |
 | `` C `` | Enviar alteração usando um editor Git |  |
-| `` <c-f> `` | Encontrar commit da base para consertar | Encontre o commit em que as suas mudanças atuais estão se baseando, para alterar/consertar o commit. Isso poupa-te você de ter que olhar pelos commits da sua branch um por um para ver qual commit deve ser alterado/consertado<br>Veja a documentação:<br><https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
+| `` <c-f> `` | Encontrar commit da base para corrigir | Encontre o commit em que as suas mudanças atuais estão se baseando, para alterar/consertar o commit. Isso poupa-te você de ter que olhar pelos commits da sua branch um por um para ver qual commit deve ser alterado/consertado<br>Veja a documentação:<br><https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` e `` | Editar | Abrir arquivo no editor externo. |
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
 | `` i `` | Ignore or exclude file |  |
@@ -83,20 +83,21 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` f `` | Buscar | Buscar alterações do controle remoto. |
 | `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
 | `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
-| `` 0 `` | Focus main view |  |
-| `` / `` | Search the current view by text |  |
+| `` 0 `` | Focar visualização principal |  |
+| `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Branches locais
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy branch name to clipboard |  |
+| `` <c-o> `` | Copiar nome da branch para área de transferência |  |
 | `` i `` | Exibir opções do git-flow |  |
 | `` <space> `` | Verificar | Checar item selecionado |
 | `` n `` | Nova branch |  |
 | `` N `` | Mover commits para uma nova branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
-| `` o `` | Create pull request |  |
+| `` o `` | Criar solicitação de pull |  |
 | `` O `` | View create pull request options |  |
+| `` G `` | Open pull request in browser |  |
 | `` <c-y> `` | Copiar URL do pull request para área de transferência |  |
 | `` c `` | Checar por nome | Checar por nome. Na caixa de entrada você pode inserir '-' para trocar para a última branch  |
 | `` - `` | Checkout da branch anterior |  |
@@ -105,22 +106,22 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` r `` | Refazer | Refazer a branch checada na branch selecionada |
 | `` M `` | Mesclar | Ver opções para mesclar o item selecionado no branch atual (mesclar regularmente, mesclar squash) |
 | `` f `` | Avanço rápido | Encaminhamento rápido de branch selecionada a partir do upstream. |
-| `` T `` | New tag |  |
+| `` T `` | Nova etiqueta |  |
 | `` s `` | Sort order |  |
 | `` g `` | Restaurar |  |
-| `` R `` | Rename branch |  |
+| `` R `` | Renomear branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
-| `` 0 `` | Focus main view |  |
-| `` <enter> `` | View commits |  |
-| `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` 0 `` | Focar visualização principal |  |
+| `` <enter> `` | Ver commits |  |
+| `` w `` | Ver opções da árvore de trabalho |  |
+| `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Branches remotos
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy branch name to clipboard |  |
+| `` <c-o> `` | Copiar nome da branch para área de transferência |  |
 | `` <space> `` | Verificar | Checar a nova branch baseada na brach remota selecionada, ou a branch remota como HEAD, desanexado |
 | `` n `` | Nova branch |  |
 | `` M `` | Mesclar | Ver opções para mesclar o item selecionado no branch atual (mesclar regularmente, mesclar squash) |
@@ -130,19 +131,19 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` s `` | Sort order |  |
 | `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
-| `` 0 `` | Focus main view |  |
-| `` <enter> `` | View commits |  |
-| `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` 0 `` | Focar visualização principal |  |
+| `` <enter> `` | Ver commits |  |
+| `` w `` | Ver opções da árvore de trabalho |  |
+| `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Commit arquivos
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy path to clipboard |  |
+| `` <c-o> `` | Copiar caminho para área de transferência |  |
 | `` y `` | Copy to clipboard |  |
 | `` c `` | Verificar | Arquivo de check-out. Isso substitui o arquivo em sua árvore de trabalho com a versão do commit selecionado. |
-| `` d `` | Remover | Descartar as alterações desse commit para este arquivo. Isso executa uma rebase interativa em segundo plano, então você pode ter um conflito de merge se um commit posterior também alterar este arquivo. |
+| `` d `` | Descartar | Descartar as alterações desse commit para este arquivo. Isso executa uma rebase interativa em segundo plano, então você pode ter um conflito de merge se um commit posterior também alterar este arquivo. |
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
 | `` e `` | Editar | Abrir arquivo no editor externo. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
@@ -152,18 +153,19 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` ` `` | Alternar exibição de árvore de arquivo | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
 | `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
-| `` 0 `` | Focus main view |  |
-| `` / `` | Search the current view by text |  |
+| `` 0 `` | Focar visualização principal |  |
+| `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Commits
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy commit hash to clipboard |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
-| `` b `` | View bisect options |  |
+| `` b `` | Ver opções de bissecção |  |
 | `` s `` | Squash | Squash o commit selecionado no commit abaixo dele. A mensagem do commit selecionado será anexada ao commit abaixo dele. |
-| `` f `` | Fixup | Faça o commit selecionado no commit abaixo dele. Semelhante para o squash, mas a mensagem do commit selecionado será descartada. |
+| `` f `` | Corrigir | Faça o commit selecionado no commit abaixo dele. Semelhante para o squash, mas a mensagem do commit selecionado será descartada. |
+| `` c `` | Configurar mensagem de correção | Defina a opção de mensagem para o commit de correção. A opção -C significa usar a mensagem deste commit em vez da mensagem do commit alvo. |
 | `` r `` | Reword | Repetir a mensagem de submissão selecionada. |
 | `` R `` | Republicar com o editor |  |
 | `` d `` | Descartar | Solte o commit selecionado. Isso irá remover o commit do branch através de uma rebase. Se o commit faz com que as alterações em commits posteriores dependem, você pode precisar resolver conflitos de merge. |
@@ -179,45 +181,38 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` A `` | Modificar | Alterar o commit com mudanças em sted. Se o commit selecionado for o commit HEAD, ele executará o `git commit --amend`. Caso contrário, o compromisso será alterado por meio de uma base de apoio. |
 | `` a `` | Alterar atributo de commit | Definir/Redefinir autor de submissão ou co-autor definido. |
 | `` t `` | Reverter | Crie um commit reverter para o commit selecionado, que aplica as alterações do commit selecionado em reverso. |
-| `` T `` | Tag commit | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
+| `` T `` | Etiquetar commit | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
 | `` <c-l> `` | View log options | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
+| `` G `` | Open pull request in browser |  |
 | `` <space> `` | Verificar | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
-| `` o `` | Open commit in browser |  |
+| `` o `` | Abrir commit no navegador |  |
 | `` n `` | Create new branch off of commit |  |
 | `` N `` | Mover commits para uma nova branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` C `` | Copiar (cherry-pick) | Marcar commit como copiado. Então, dentro da visualização local de commits, você pode pressionar `V` para colar (cherry-pick) o(s) commit(s) copiado(s) em seu branch de check-out. A qualquer momento você pode pressionar `<esc>` para cancelar a seleção. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver arquivos |  |
-| `` w `` | View worktree options |  |
-| `` / `` | Search the current view by text |  |
-
-## Confirmation panel
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <enter> `` | Confirmar |  |
-| `` <esc> `` | Fechar/Cancelar |  |
-| `` <c-o> `` | Copy to clipboard |  |
+| `` w `` | Ver opções da árvore de trabalho |  |
+| `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Etiquetas
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy tag to clipboard |  |
+| `` <c-o> `` | Copiar etiqueta para área de transferência |  |
 | `` <space> `` | Verificar | Checar a tag selecionada como um HEAD, desanexado |
-| `` n `` | New tag | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
+| `` n `` | Nova etiqueta | Crie uma nova etiqueta a partir do commit atual. Você será solicitado a digitar um nome e uma descrição opcional. |
 | `` d `` | Apagar | Ver opções de exclusão para tag local/remoto. |
-| `` P `` | Push tag | Push the selected tag to a remote. You'll be prompted to select a remote. |
+| `` P `` | Empurrar etiqueta | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
-| `` 0 `` | Focus main view |  |
-| `` <enter> `` | View commits |  |
-| `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` 0 `` | Focar visualização principal |  |
+| `` <enter> `` | Ver commits |  |
+| `` w `` | Ver opções da árvore de trabalho |  |
+| `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Input prompt
 
@@ -232,7 +227,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` <enter> `` | Executar |  |
 | `` <esc> `` | Fechar/Cancelar |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Painel Principal (Normal)
 
@@ -242,7 +237,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` mouse wheel up (fn+down) `` | Rolar para cima |  |
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` <esc> `` | Exit back to side panel |  |
-| `` / `` | Search the current view by text |  |
+| `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Painel Principal (preparação)
 
@@ -251,8 +246,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <left> `` | Ir para o local anterior |  |
 | `` <right> `` | Ir para o próximo trecho |  |
 | `` v `` | Toggle range select |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <c-o> `` | Copy selected text to clipboard |  |
+| `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
+| `` <c-o> `` | Copiar texto selecionado para área de transferência |  |
 | `` <space> `` | Etapa | Ativar/desativar seleção em staged/unstaged |
 | `` d `` | Descartar | Quando a mudança não desejada for selecionada, descarte a mudança usando `git reset`. Quando a mudança em fase é selecionada, despare a mudança. |
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
@@ -263,8 +258,16 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` c `` | Commit | Submeter mudanças em staging |
 | `` w `` | Fazer commit de alterações sem pré-commit |  |
 | `` C `` | Enviar alteração usando um editor Git |  |
-| `` <c-f> `` | Encontrar commit da base para consertar | Encontre o commit em que as suas mudanças atuais estão se baseando, para alterar/consertar o commit. Isso poupa-te você de ter que olhar pelos commits da sua branch um por um para ver qual commit deve ser alterado/consertado<br>Veja a documentação:<br><https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
-| `` / `` | Search the current view by text |  |
+| `` <c-f> `` | Encontrar commit da base para corrigir | Encontre o commit em que as suas mudanças atuais estão se baseando, para alterar/consertar o commit. Isso poupa-te você de ter que olhar pelos commits da sua branch um por um para ver qual commit deve ser alterado/consertado<br>Veja a documentação:<br><https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
+| `` / `` | Pesquisar na visualização atual por texto |  |
+
+## Painel de confirmação
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <enter> `` | Confirmar |  |
+| `` <esc> `` | Fechar/Cancelar |  |
+| `` <c-o> `` | Copy to clipboard |  |
 
 ## Painel principal (mesclagem)
 
@@ -289,22 +292,23 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <left> `` | Ir para o local anterior |  |
 | `` <right> `` | Ir para o próximo trecho |  |
 | `` v `` | Toggle range select |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <c-o> `` | Copy selected text to clipboard |  |
+| `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
+| `` <c-o> `` | Copiar texto selecionado para área de transferência |  |
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
 | `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
 | `` <space> `` | Alternar linhas no caminho |  |
+| `` d `` | Remover linhas do commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
 | `` <esc> `` | Sair do construtor de patch personalizado |  |
-| `` / `` | Search the current view by text |  |
+| `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Reflog
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy commit hash to clipboard |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Verificar | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
-| `` o `` | Open commit in browser |  |
+| `` o `` | Abrir commit no navegador |  |
 | `` n `` | Create new branch off of commit |  |
 | `` N `` | Mover commits para uma nova branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
@@ -312,10 +316,10 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
-| `` 0 `` | Focus main view |  |
-| `` <enter> `` | View commits |  |
-| `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` 0 `` | Focar visualização principal |  |
+| `` <enter> `` | Ver commits |  |
+| `` w `` | Ver opções da árvore de trabalho |  |
+| `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Remotes
 
@@ -327,7 +331,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` e `` | Editar | Edit the selected remote's name or URL. |
 | `` f `` | Buscar | Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches. |
 | `` F `` | Add fork remote | Quickly add a fork remote by replacing the owner in the origin URL and optionally check out a branch from new remote. |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Secundário
 
@@ -335,7 +339,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` <esc> `` | Exit back to side panel |  |
-| `` / `` | Search the current view by text |  |
+| `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Stash
 
@@ -345,11 +349,11 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` g `` | Pop | Aplique a entrada de stash no seu diretório de trabalho e remova a entrada de stash. |
 | `` d `` | Descartar | Remova a entrada do stash da lista de armazenamento. |
 | `` n `` | Nova branch | Criar um novo ramo a partir da entrada de lixo selecionada. Isso funciona verificando o commit do qual a entrada de lixo foi criada, criar um novo branch a partir desse commit e, em seguida, aplicar a entrada de lixo ao novo branch como um commit adicional. |
-| `` r `` | Renomear o stasj |  |
-| `` 0 `` | Focus main view |  |
+| `` r `` | Renomear o stash |  |
+| `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver arquivos |  |
-| `` w `` | View worktree options |  |
-| `` / `` | Filter the current view by text |  |
+| `` w `` | Ver opções da árvore de trabalho |  |
+| `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Status
 
@@ -360,16 +364,17 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` u `` | Verificar atualização |  |
 | `` <enter> `` | Mudar para um repositório recente |  |
 | `` a `` | Mostrar/ciclo todos os logs de filiais |  |
-| `` 0 `` | Focus main view |  |
+| `` A `` | Show/cycle all branch logs (reverse) |  |
+| `` 0 `` | Focar visualização principal |  |
 
 ## Sub-commits
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy commit hash to clipboard |  |
+| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Verificar | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
-| `` o `` | Open commit in browser |  |
+| `` o `` | Abrir commit no navegador |  |
 | `` n `` | Create new branch off of commit |  |
 | `` N `` | Mover commits para uma nova branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
@@ -377,24 +382,24 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <c-t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
-| `` 0 `` | Focus main view |  |
+| `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver arquivos |  |
-| `` w `` | View worktree options |  |
-| `` / `` | Search the current view by text |  |
+| `` w `` | Ver opções da árvore de trabalho |  |
+| `` / `` | Pesquisar na visualização atual por texto |  |
 
-## Submodules
+## Submódulos
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy submodule name to clipboard |  |
+| `` <c-o> `` | Copiar o nome do submódulo para área de transferência |  |
 | `` <enter> `` | Enter | Enter submodule. After entering the submodule, you can press `<esc>` to escape back to the parent repo. |
-| `` d `` | Remover | Remove the selected submodule and its corresponding directory. |
-| `` u `` | Update | Update selected submodule. |
-| `` n `` | New submodule |  |
-| `` e `` | Update submodule URL |  |
-| `` i `` | Initialize | Initialize the selected submodule to prepare for fetching. You probably want to follow this up by invoking the 'update' action to fetch the submodule. |
+| `` d `` | Remover | Remova o submódulo selecionado e o diretório correspondente. |
+| `` u `` | Atualizar | Atualizar submódulo selecionado. |
+| `` n `` | Novo submódulo |  |
+| `` e `` | Atualizar URL do submódulo |  |
+| `` i `` | Inicializar | Initialize the selected submodule to prepare for fetching. You probably want to follow this up by invoking the 'update' action to fetch the submodule. |
 | `` b `` | View bulk submodule options |  |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Sumário do commit
 
@@ -403,12 +408,12 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <enter> `` | Confirmar |  |
 | `` <esc> `` | Fechar |  |
 
-## Worktrees
+## Árvores de trabalho
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` n `` | New worktree |  |
-| `` <space> `` | Switch | Switch to the selected worktree. |
+| `` n `` | Nova árvore de trabalho |  |
+| `` <space> `` | Switch | Mudar para a árvore de trabalho selecionada. |
 | `` o `` | Abrir no editor |  |
 | `` d `` | Remover | Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory. |
-| `` / `` | Filter the current view by text |  |
+| `` / `` | Filtrar a visualização atual por texto |  |

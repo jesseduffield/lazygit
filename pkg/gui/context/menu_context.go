@@ -57,6 +57,7 @@ type MenuViewModel struct {
 	columnAlignment           []utils.Alignment
 	allowFilteringKeybindings bool
 	keybindingsTakePrecedence bool
+	onCancel                  func() error
 	*FilteredListViewModel[*types.MenuItem]
 }
 
@@ -95,6 +96,10 @@ func NewMenuViewModel(c *ContextCommon) *MenuViewModel {
 func (self *MenuViewModel) SetMenuItems(items []*types.MenuItem, columnAlignment []utils.Alignment) {
 	self.menuItems = items
 	self.columnAlignment = columnAlignment
+}
+
+func (self *MenuViewModel) SetOnCancel(onCancel func() error) {
+	self.onCancel = onCancel
 }
 
 func (self *MenuViewModel) GetPrompt() string {
@@ -239,6 +244,9 @@ func (self *MenuContext) OnMenuPress(selectedItem *types.MenuItem) error {
 	self.c.Context().Pop()
 
 	if selectedItem == nil {
+		if self.onCancel != nil {
+			return self.onCancel()
+		}
 		return nil
 	}
 

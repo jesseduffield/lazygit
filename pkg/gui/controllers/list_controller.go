@@ -104,6 +104,7 @@ func (self *ListController) handleLineChangeAux(f func(int), change int) error {
 	// doing this check so that if we're holding the up key at the start of the list
 	// we're not constantly re-rendering the main view.
 	cursorMoved := before != after
+	originYBefore := self.context.GetView().OriginY()
 	if cursorMoved {
 		switch change {
 		case -1:
@@ -116,6 +117,15 @@ func (self *ListController) handleLineChangeAux(f func(int), change int) error {
 	}
 
 	if cursorMoved || rangeBefore != rangeAfter {
+		if originYBefore != self.context.GetView().OriginY() {
+			// Since we already scrolled the view above, the normal mechanism that
+			// ListContextTrait.FocusLine uses for deciding whether rerendering is needed won't
+			// work. It is based on checking whether the origin was changed by the call to
+			// FocusPoint in that function, but since we scrolled the view directly above, the
+			// origin has already been updated. So we must tell it explicitly to rerender.
+			self.context.SetNeedRerenderVisibleLines()
+		}
+
 		self.context.HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 	} else {
 		// If the selection did not change (because, for example, we are at the top of the list and
@@ -233,10 +243,17 @@ func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
 
 	self.context.GetList().SetSelection(newSelectedLineIdx)
 
-	if opts.IsDoubleClick && alreadyFocused && self.context.GetOnClick() != nil {
-		return self.context.GetOnClick()()
+	if opts.IsDoubleClick && alreadyFocused && self.context.GetOnDoubleClick() != nil {
+		return self.context.GetOnDoubleClick()()
 	}
+
 	self.context.HandleFocus(types.OnFocusOpts{})
+
+	// Let view-specific controllers do additional click handling
+	if self.context.GetOnClick() != nil {
+		return self.context.GetOnClick()(opts)
+	}
+
 	return nil
 }
 

@@ -150,7 +150,11 @@ func (f *File) Sync() error {
 
 func (f *File) Readdir(count int) (res []os.FileInfo, err error) {
 	if !f.fileData.dir {
-		return nil, &os.PathError{Op: "readdir", Path: f.fileData.name, Err: errors.New("not a dir")}
+		return nil, &os.PathError{
+			Op:   "readdir",
+			Path: f.fileData.name,
+			Err:  errors.New("not a dir"),
+		}
 	}
 	var outLength int64
 
@@ -236,7 +240,11 @@ func (f *File) Truncate(size int64) error {
 		return ErrFileClosed
 	}
 	if f.readOnly {
-		return &os.PathError{Op: "truncate", Path: f.fileData.name, Err: errors.New("file handle is read only")}
+		return &os.PathError{
+			Op:   "truncate",
+			Path: f.fileData.name,
+			Err:  errors.New("file handle is read only"),
+		}
 	}
 	if size < 0 {
 		return ErrOutOfRange
@@ -273,7 +281,11 @@ func (f *File) Write(b []byte) (n int, err error) {
 		return 0, ErrFileClosed
 	}
 	if f.readOnly {
-		return 0, &os.PathError{Op: "write", Path: f.fileData.name, Err: errors.New("file handle is read only")}
+		return 0, &os.PathError{
+			Op:   "write",
+			Path: f.fileData.name,
+			Err:  errors.New("file handle is read only"),
+		}
 	}
 	n = len(b)
 	cur := atomic.LoadInt64(&f.at)
@@ -285,7 +297,9 @@ func (f *File) Write(b []byte) (n int, err error) {
 		tail = f.fileData.data[n+int(cur):]
 	}
 	if diff > 0 {
-		f.fileData.data = append(f.fileData.data, append(bytes.Repeat([]byte{0o0}, int(diff)), b...)...)
+		f.fileData.data = append(
+			f.fileData.data,
+			append(bytes.Repeat([]byte{0o0}, int(diff)), b...)...)
 		f.fileData.data = append(f.fileData.data, tail...)
 	} else {
 		f.fileData.data = append(f.fileData.data[:cur], b...)

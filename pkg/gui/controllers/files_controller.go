@@ -229,6 +229,30 @@ func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*
 	}
 }
 
+func (self *FilesController) GetOnClick() func(opts gocui.ViewMouseBindingOpts) error {
+	return func(opts gocui.ViewMouseBindingOpts) error {
+		clickedIdx := self.context().GetSelectedLineIdx()
+		node := self.context().FileTreeViewModel.Get(clickedIdx)
+		if node == nil || node.File != nil {
+			return nil
+		}
+
+		// The arrow is at column visualDepth*2 (after indentation of 2 spaces per level).
+		// Only treat clicks on the arrow and the trailing space as arrow clicks.
+		visualDepth := self.context().FileTreeViewModel.GetVisualDepth(clickedIdx)
+		arrowStartCol := visualDepth * 2
+		arrowEndCol := arrowStartCol + 1
+		if opts.X < arrowStartCol || opts.X > arrowEndCol {
+			return nil
+		}
+
+		self.context().FileTreeViewModel.ToggleCollapsed(node.GetInternalPath())
+		self.c.PostRefreshUpdate(self.context())
+
+		return nil
+	}
+}
+
 func (self *FilesController) GetOnRenderToMain() func() {
 	return func() {
 		self.c.Helpers().Diff.WithDiffModeCheck(func() {
@@ -294,7 +318,8 @@ func (self *FilesController) GetOnRenderToMain() func() {
 			split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
 			mainShowsStaged := !split && node.GetHasStagedChanges()
 
-			cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged)
+			pathOverrides := self.pathOverridesForDiff(node)
+			cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, pathOverrides)
 			title := self.c.Tr.UnstagedChanges
 			if mainShowsStaged {
 				title = self.c.Tr.StagedChanges
@@ -309,7 +334,7 @@ func (self *FilesController) GetOnRenderToMain() func() {
 			}
 
 			if split {
-				cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true)
+				cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, pathOverrides)
 
 				title := self.c.Tr.StagedChanges
 				if mainShowsStaged {
@@ -328,7 +353,7 @@ func (self *FilesController) GetOnRenderToMain() func() {
 	}
 }
 
-func (self *FilesController) GetOnClick() func() error {
+func (self *FilesController) GetOnDoubleClick() func() error {
 	return self.withItemGraceful(func(node *filetree.FileNode) error {
 		return self.press([]*filetree.FileNode{node})
 	})
@@ -434,7 +459,19 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 		}
 	}
 
+	// When filtering, expand directory nodes to individual visible file paths
+	// so that only filtered files are staged/unstaged.
 	toPaths := func(nodes []*filetree.FileNode) []string {
+		if self.context().IsFiltering() {
+			var paths []string
+			for _, node := range nodes {
+				_ = node.ForEachFile(func(file *models.File) error {
+					paths = append(paths, file.Path)
+					return nil
+				})
+			}
+			return paths
+		}
 		return lo.Map(nodes, func(node *filetree.FileNode, _ int) string {
 			return node.GetPath()
 		})
@@ -449,7 +486,7 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 	if len(unstagedSelectedNodes) > 0 {
 		var extraArgs []string
 
-		if self.context().GetFilter() == filetree.DisplayTracked {
+		if self.context().GetStatusFilter() == filetree.DisplayTracked {
 			extraArgs = []string{"-u"}
 		}
 
@@ -469,22 +506,29 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 			return err
 		}
 
-		// need to partition the paths into tracked and untracked (where we assume directories are tracked). Then we'll run the commands separately.
-		trackedNodes, untrackedNodes := utils.Partition(selectedNodes, func(node *filetree.FileNode) bool {
-			// We treat all directories as tracked. I'm not actually sure why we do this but
-			// it's been the existing behaviour for a while and nobody has complained
-			return !node.IsFile() || node.GetIsTracked()
-		})
-
-		if len(untrackedNodes) > 0 {
-			if err := self.c.Git().WorkingTree.UnstageUntrackedFiles(toPaths(untrackedNodes)); err != nil {
+		if self.context().IsFiltering() {
+			// When filtering, only unstage visible files
+			if err := self.unstageFilteredFiles(selectedNodes); err != nil {
 				return err
 			}
-		}
+		} else {
+			// need to partition the paths into tracked and untracked (where we assume directories are tracked). Then we'll run the commands separately.
+			trackedNodes, untrackedNodes := utils.Partition(selectedNodes, func(node *filetree.FileNode) bool {
+				// We treat all directories as tracked. I'm not actually sure why we do this but
+				// it's been the existing behaviour for a while and nobody has complained
+				return !node.IsFile() || node.GetIsTracked()
+			})
 
-		if len(trackedNodes) > 0 {
-			if err := self.c.Git().WorkingTree.UnstageTrackedFiles(toPaths(trackedNodes)); err != nil {
-				return err
+			if len(untrackedNodes) > 0 {
+				if err := self.c.Git().WorkingTree.UnstageUntrackedFiles(toPaths(untrackedNodes)); err != nil {
+					return err
+				}
+			}
+
+			if len(trackedNodes) > 0 {
+				if err := self.c.Git().WorkingTree.UnstageTrackedFiles(toPaths(trackedNodes)); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -500,6 +544,48 @@ func (self *FilesController) press(nodes []*filetree.FileNode) error {
 	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}, Mode: types.ASYNC})
 
 	self.context().HandleFocus(types.OnFocusOpts{})
+	return nil
+}
+
+// pathOverridesForDiff returns file paths to override the node's path in diff
+// commands when a text filter is active and the node is a directory. This
+// ensures the diff only shows filtered/visible files.
+func (self *FilesController) pathOverridesForDiff(node *filetree.FileNode) []string {
+	if !node.IsFile() && self.context().IsFiltering() {
+		var paths []string
+		_ = node.ForEachFile(func(file *models.File) error {
+			paths = append(paths, file.Path)
+			return nil
+		})
+		return paths
+	}
+	return nil
+}
+
+// unstageFilteredFiles unstages only the visible (filtered) files from the
+// given nodes, correctly partitioning by tracked/untracked.
+func (self *FilesController) unstageFilteredFiles(nodes []*filetree.FileNode) error {
+	var trackedPaths, untrackedPaths []string
+	for _, node := range nodes {
+		_ = node.ForEachFile(func(file *models.File) error {
+			if file.Tracked || file.HasStagedChanges {
+				trackedPaths = append(trackedPaths, file.Path)
+			} else {
+				untrackedPaths = append(untrackedPaths, file.Path)
+			}
+			return nil
+		})
+	}
+	if len(untrackedPaths) > 0 {
+		if err := self.c.Git().WorkingTree.UnstageUntrackedFiles(untrackedPaths); err != nil {
+			return err
+		}
+	}
+	if len(trackedPaths) > 0 {
+		if err := self.c.Git().WorkingTree.UnstageTrackedFiles(trackedPaths); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -648,9 +734,21 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 			return err
 		}
 
-		onlyTrackedFiles := self.context().GetFilter() == filetree.DisplayTracked
-		if err := self.c.Git().WorkingTree.StageAll(onlyTrackedFiles); err != nil {
-			return err
+		if self.context().IsFiltering() {
+			// When filtering, only stage visible files
+			var paths []string
+			_ = root.ForEachFile(func(file *models.File) error {
+				paths = append(paths, file.Path)
+				return nil
+			})
+			if err := self.c.Git().WorkingTree.StageFiles(paths, nil); err != nil {
+				return err
+			}
+		} else {
+			onlyTrackedFiles := self.context().GetStatusFilter() == filetree.DisplayTracked
+			if err := self.c.Git().WorkingTree.StageAll(onlyTrackedFiles); err != nil {
+				return err
+			}
 		}
 	} else {
 		self.c.LogAction(self.c.Tr.Actions.UnstageAllFiles)
@@ -659,8 +757,15 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 			return err
 		}
 
-		if err := self.c.Git().WorkingTree.UnstageAll(); err != nil {
-			return err
+		if self.context().IsFiltering() {
+			// When filtering, only unstage visible files
+			if err := self.unstageFilteredFiles([]*filetree.FileNode{root}); err != nil {
+				return err
+			}
+		} else {
+			if err := self.c.Git().WorkingTree.UnstageAll(); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -836,7 +941,7 @@ func (self *FilesController) isResolvingConflicts() bool {
 }
 
 func (self *FilesController) handleStatusFilterPressed() error {
-	currentFilter := self.context().GetFilter()
+	currentFilter := self.context().GetStatusFilter()
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.FilteringMenuTitle,
 		Items: []*types.MenuItem{
@@ -904,7 +1009,7 @@ func (self *FilesController) filteringLabel(filter filetree.FileTreeDisplayFilte
 }
 
 func (self *FilesController) setStatusFiltering(filter filetree.FileTreeDisplayFilter) error {
-	previousFilter := self.context().GetFilter()
+	previousFilter := self.context().GetStatusFilter()
 
 	self.context().FileTreeViewModel.SetStatusFilter(filter)
 	self.c.Contexts().Files.GetView().Subtitle = self.filteringLabel(filter)
@@ -1094,7 +1199,11 @@ func (self *FilesController) openCopyMenu() error {
 	copyAbsolutePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyAbsoluteFilePath,
 		OnPress: func() error {
-			if err := self.c.OS().CopyToClipboard(filepath.Join(self.c.Git().RepoPaths.RepoPath(), node.GetPath())); err != nil {
+			absPath, err := filepath.Abs(node.GetPath())
+			if err != nil {
+				return err
+			}
+			if err := self.c.OS().CopyToClipboard(absPath); err != nil {
 				return err
 			}
 			self.c.Toast(self.c.Tr.FilePathCopiedToast)
@@ -1391,10 +1500,9 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 				defer self.context().CancelRangeSelect()
 			}
 
-			for _, node := range selectedNodes {
-				if err := self.c.Git().WorkingTree.DiscardAllDirChanges(node); err != nil {
-					return err
-				}
+			nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
+			if err := self.c.Git().WorkingTree.DiscardAllDirChanges(nodes); err != nil {
+				return err
 			}
 
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
@@ -1418,10 +1526,9 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 				defer self.context().CancelRangeSelect()
 			}
 
-			for _, node := range selectedNodes {
-				if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
-					return err
-				}
+			nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
+			if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(nodes); err != nil {
+				return err
 			}
 
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})

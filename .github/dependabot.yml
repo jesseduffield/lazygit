@@ -4,6 +4,15 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    allowed_updates:
-      - match:
-          update_type: "security"
+    labels:
+      - "maintenance"
+      - "dependencies"
+      - "go"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "maintenance"
+      - "dependencies"
+      - "github-actions"

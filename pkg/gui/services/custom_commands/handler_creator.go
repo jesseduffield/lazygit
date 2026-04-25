@@ -107,10 +107,39 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 			default:
 				return errors.New("custom command prompt must have a type of 'input', 'menu', 'menuFromCommand', or 'confirm'")
 			}
+
+			if prompt.Condition != "" {
+				showPrompt := f
+				conditionTemplate := prompt.Condition
+				f = func() error {
+					resolved, err := resolveCondition(conditionTemplate, resolveTemplate)
+					if err != nil {
+						return err
+					}
+					if resolved {
+						return showPrompt()
+					}
+					if _, exists := form[prompt.Key]; !exists {
+						form[prompt.Key] = ""
+					}
+					return g()
+				}
+			}
 		}
 
 		return f()
 	}
+}
+
+func resolveCondition(condition string, resolveTemplate func(string) (string, error)) (bool, error) {
+	if strings.TrimSpace(condition) == "" {
+		return false, nil
+	}
+	resolved, err := resolveTemplate(condition)
+	if err != nil {
+		return false, err
+	}
+	return strings.TrimSpace(resolved) != "" && strings.TrimSpace(resolved) != "false", nil
 }
 
 func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {

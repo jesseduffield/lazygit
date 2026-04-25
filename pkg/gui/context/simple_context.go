@@ -54,6 +54,12 @@ func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) {
 	}
 }
 
+func (self *SimpleContext) HandleQuit() {
+	for _, fn := range self.onQuitFns {
+		fn()
+	}
+}
+
 func (self *SimpleContext) FocusLine(scrollIntoView bool) {
 }
 

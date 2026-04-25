@@ -222,6 +222,13 @@ gui:
   # item at top level.
   showRootItemInFileTree: true
 
+  # How to sort files and directories in the file tree.
+  # One of: 'mixed' (default) | 'filesFirst' | 'foldersFirst'
+  fileTreeSortOrder: mixed
+
+  # If true (default), sort the file tree case-sensitively.
+  fileTreeSortCaseSensitive: true
+
   # If true, show the number of lines changed per file in the Files view
   showNumstatInFilesView: false
 
@@ -290,6 +297,16 @@ gui:
   # Whether to stack UI components on top of each other.
   # One of 'auto' (default) | 'always' | 'never'
   portraitMode: auto
+
+  # In 'auto' mode, portrait mode will be used if the window width is less than or
+  # equal to portraitModeAutoMaxWidth and the window height is greater than or
+  # equal to portraitModeAutoMinHeight. Unused when portraitMode is not 'auto'.
+  portraitModeAutoMaxWidth: 84
+
+  # In 'auto' mode, portrait mode will be used if the window width is less than or
+  # equal to portraitModeAutoMaxWidth and the window height is greater than or
+  # equal to portraitModeAutoMinHeight. Unused when portraitMode is not 'auto'.
+  portraitModeAutoMinHeight: 46
 
   # How things are filtered when typing '/'.
   # One of 'substring' (default) | 'fuzzy'
@@ -666,6 +683,7 @@ keybinding:
     checkForUpdate: u
     recentRepos: <enter>
     allBranchesLogGraph: a
+    allBranchesLogGraphReverse: A
   files:
     commitChanges: c
     commitChangesWithoutHook: w
@@ -689,6 +707,7 @@ keybinding:
   branches:
     createPullRequest: o
     viewPullRequestOptions: O
+    openPullRequestInBrowser: G
     copyPullRequestURL: <c-y>
     checkoutBranchByName: c
     forceCheckoutBranch: F
@@ -713,6 +732,7 @@ keybinding:
     renameCommitWithEditor: R
     viewResetOptions: g
     markCommitAsFixup: f
+    setFixupMessage: c
     createFixupCommit: F
     squashAboveCommits: S
     moveDownCommit: <c-j>
@@ -730,6 +750,7 @@ keybinding:
     copyCommitAttributeToClipboard: "y"
     openLogMenu: <c-l>
     openInBrowser: o
+    openPullRequestInBrowser: G
     viewBisectOptions: b
     startInteractiveRebase: i
     selectCommitsOfCurrentBranch: '*'

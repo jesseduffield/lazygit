@@ -100,7 +100,6 @@
   "CannotSquashOrFixupFirstCommit": "Nie ma commita poniżej do scalenia",
   "Fixup": "Poprawka",
   "FixupTooltip": "Włącz wybrany commit do commita poniżej. Podobnie do fixup, ale wiadomość wybranego commita zostanie odrzucona.",
-  "SureFixupThisCommit": "Czy na pewno chcesz 'poprawić' wybrane commit(y) do commita poniżej?",
   "SureSquashThisCommit": "Czy na pewno chcesz scalić wybrane commit(y) do commita poniżej?",
   "Squash": "Scal",
   "PickCommitTooltip": "Oznacz wybrany commit do wybrania (podczas rebazowania). Oznacza to, że commit zostanie zachowany po kontynuacji rebazowania.",
@@ -300,7 +299,6 @@
   "Remove": "Usuń",
   "DiscardOldFileChangeTooltip": "Odrzuć zmiany w tym pliku z tego commita. Uruchamia interaktywny rebase w tle, więc możesz otrzymać konflikt scalania, jeśli późniejszy commit również zmienia ten plik.",
   "DiscardFileChangesTitle": "Odrzuć zmiany w pliku",
-  "DiscardFileChangesPrompt": "Czy na pewno chcesz usunąć zmiany w wybranym pliku/ach z tego commita?\n\nTa akcja uruchomi rebase, cofając te zmiany w pliku. Pamiętaj, że jeśli późniejsze commity zależą od tych zmian, możesz potrzebować rozwiązać konflikty.\nUwaga: Spowoduje to również zresetowanie wszelkich aktywnych niestandardowych łatek.",
   "BareRepo": "Próbujesz otworzyć Lazygit w gołym repozytorium, ale Lazygit jeszcze nie obsługuje gołych repozytoriów. Otworzyć najnowsze repozytorium? (t/n) ",
   "InitialBranch": "Nazwa gałęzi? (pozostaw puste dla domyślnej gita): ",
   "NoRecentRepositories": "Musisz otworzyć lazygit w repozytorium git. Brak ważnych ostatnich repozytoriów. Wyjście.",
@@ -477,7 +475,6 @@
   "OpenCommandLogMenuTooltip": "Pokaż opcje dla dziennika poleceń, np. pokazywanie/ukrywanie dziennika poleceń i skupienie na dzienniku poleceń.",
   "ShowingGitDiff": "Pokazuje wynik dla:",
   "CommitDiff": "Różnice commita",
-  "CopyCommitHashToClipboard": "Kopiuj hash commita do schowka",
   "CommitHash": "hash commita",
   "CommitURL": "URL commita",
   "CommitMessage": "Wiadomość commita",
@@ -638,7 +635,6 @@
   "CantDeleteMainWorktree": "Nie możesz usunąć głównego drzewa pracy!",
   "NoWorktreesThisRepo": "Brak drzew pracy",
   "MissingWorktree": "(brakujące)",
-  "MainWorktree": "(główne)",
   "NewWorktree": "Nowe drzewo pracy",
   "NewWorktreePath": "Nowa ścieżka drzewa pracy",
   "NewWorktreeBase": "Nowa bazowa ref drzewa pracy",
@@ -668,7 +664,6 @@
   "NoItemSelected": "Nie wybrano elementu",
   "SelectedItemIsNotABranch": "Wybrany element nie jest branch'em",
   "SelectedItemDoesNotHaveFiles": "Wybrany element nie ma plików do wyświetlenia",
-  "OldCherryPickKeyWarning": "Klawisz 'c' nie jest już domyślnym klawiszem do kopiowania commitów do cherry pick. Proszę użyj `{{.copy}}` zamiast tego (i `{{.paste}}` aby wkleić). Powodem tej zmiany jest to, że klawisz 'v' do wybierania zakresu linii podczas stagingu jest teraz używany również do wybierania zakresu linii w każdym widoku listy, co oznacza, że musieliśmy znaleźć nowy klawisz do wklejania commitów, i jeśli zamierzamy teraz używać `{{.paste}}` do wklejania commitów, możemy równie dobrze użyć `{{.copy}}` do ich kopiowania. Jeśli chcesz skonfigurować klawisze, aby uzyskać stare zachowanie, ustaw następujące w swojej konfiguracji:\n\nkeybinding:\n  universal:\n    toggleRangeSelect: <coś innego niż v>\n  commits:\n    cherryPickCopy: 'c'\n    pasteCommits: 'v'",
   "Actions": {
     "CheckoutCommit": "Przełącz commit",
     "CheckoutTag": "Przełącz tag",
@@ -797,7 +792,7 @@
     "Remove": "Usuwanie '{{.filename}}'",
     "CreateFileWithContent": "Tworzenie pliku '{{.path}}'",
     "AppendingLineToFile": "Dodawanie '{{.line}}' do pliku '{{.filename}}'",
-    "EditRebaseFromBaseCommit": "Rozpoczynanie interaktywnego rebazowania od '{{.baseCommit}}' na '{{.targetBranchName}}"
+    "EditRebaseFromBaseCommit": "Rozpoczynanie interaktywnego rebazowania od '{{.baseCommit}}' na '{{.targetBranchName}}'"
   },
   "BreakingChangesTitle": "Zmiany przełomowe",
   "BreakingChangesMessage": "Aktualizujesz do nowej wersji lazygit, która zawiera zmiany przełomowe. Proszę przejrzeć poniższe notatki i zaktualizować swoją konfigurację, jeśli jest to konieczne.\nAby uzyskać więcej informacji, zobacz pełne notatki do wydania na <https://github.com/jesseduffield/lazygit/releases>.",

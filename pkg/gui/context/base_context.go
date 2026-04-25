@@ -15,11 +15,13 @@ type BaseContext struct {
 
 	keybindingsFns           []types.KeybindingsFn
 	mouseKeybindingsFns      []types.MouseKeybindingsFn
-	onClickFn                func() error
+	onDoubleClickFn          func() error
+	onClickFn                func(opts gocui.ViewMouseBindingOpts) error
 	onClickFocusedMainViewFn onClickFocusedMainViewFn
 	onRenderToMainFn         func()
 	onFocusFns               []onFocusFn
 	onFocusLostFns           []onFocusLostFn
+	onQuitFns                []func()
 
 	focusable                   bool
 	transient                   bool
@@ -140,12 +142,23 @@ func (self *BaseContext) ClearAllAttachedControllerFunctions() {
 	self.mouseKeybindingsFns = nil
 	self.onFocusFns = nil
 	self.onFocusLostFns = nil
+	self.onQuitFns = nil
+	self.onDoubleClickFn = nil
 	self.onClickFn = nil
 	self.onClickFocusedMainViewFn = nil
 	self.onRenderToMainFn = nil
 }
 
-func (self *BaseContext) AddOnClickFn(fn func() error) {
+func (self *BaseContext) AddOnDoubleClickFn(fn func() error) {
+	if fn != nil {
+		if self.onDoubleClickFn != nil {
+			panic("only one controller is allowed to set an onDoubleClickFn")
+		}
+		self.onDoubleClickFn = fn
+	}
+}
+
+func (self *BaseContext) AddOnClickFn(fn func(opts gocui.ViewMouseBindingOpts) error) {
 	if fn != nil {
 		if self.onClickFn != nil {
 			panic("only one controller is allowed to set an onClickFn")
@@ -163,7 +176,11 @@ func (self *BaseContext) AddOnClickFocusedMainViewFn(fn onClickFocusedMainViewFn
 	}
 }
 
-func (self *BaseContext) GetOnClick() func() error {
+func (self *BaseContext) GetOnDoubleClick() func() error {
+	return self.onDoubleClickFn
+}
+
+func (self *BaseContext) GetOnClick() func(opts gocui.ViewMouseBindingOpts) error {
 	return self.onClickFn
 }
 
@@ -189,6 +206,12 @@ func (self *BaseContext) AddOnFocusFn(fn onFocusFn) {
 func (self *BaseContext) AddOnFocusLostFn(fn onFocusLostFn) {
 	if fn != nil {
 		self.onFocusLostFns = append(self.onFocusLostFns, fn)
+	}
+}
+
+func (self *BaseContext) AddOnQuitFn(fn func()) {
+	if fn != nil {
+		self.onQuitFns = append(self.onQuitFns, fn)
 	}
 }
 

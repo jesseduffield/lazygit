@@ -235,6 +235,13 @@
           "examples": [
             "{{ .branch | green }}"
           ]
+        },
+        "condition": {
+          "type": "string",
+          "description": "A Go template expression evaluated against the current form state. If it resolves to empty string or 'false', the prompt is skipped.",
+          "examples": [
+            "{{ eq .Form.Choice \"yes\" }}"
+          ]
         }
       },
       "additionalProperties": false,
@@ -632,6 +639,21 @@
           "description": "If true, add a \"/\" root item in the file tree representing the root of the repository. It is only added when necessary, i.e. when there is more than one item at top level.",
           "default": true
         },
+        "fileTreeSortOrder": {
+          "type": "string",
+          "enum": [
+            "mixed",
+            "filesFirst",
+            "foldersFirst"
+          ],
+          "description": "How to sort files and directories in the file tree.\nOne of: 'mixed' (default) | 'filesFirst' | 'foldersFirst'",
+          "default": "mixed"
+        },
+        "fileTreeSortCaseSensitive": {
+          "type": "boolean",
+          "description": "If true (default), sort the file tree case-sensitively.",
+          "default": true
+        },
         "showNumstatInFilesView": {
           "type": "boolean",
           "description": "If true, show the number of lines changed per file in the Files view",
@@ -754,6 +776,16 @@
           "description": "Whether to stack UI components on top of each other.\nOne of 'auto' (default) | 'always' | 'never'",
           "default": "auto"
         },
+        "portraitModeAutoMaxWidth": {
+          "type": "integer",
+          "description": "In 'auto' mode, portrait mode will be used if the window width is less than or equal to portraitModeAutoMaxWidth and the window height is greater than or equal to portraitModeAutoMinHeight. Unused when portraitMode is not 'auto'.",
+          "default": 84
+        },
+        "portraitModeAutoMinHeight": {
+          "type": "integer",
+          "description": "In 'auto' mode, portrait mode will be used if the window width is less than or equal to portraitModeAutoMaxWidth and the window height is greater than or equal to portraitModeAutoMinHeight. Unused when portraitMode is not 'auto'.",
+          "default": 46
+        },
         "filterMode": {
           "type": "string",
           "enum": [
@@ -835,6 +867,10 @@
         "viewPullRequestOptions": {
           "type": "string",
           "default": "O"
+        },
+        "openPullRequestInBrowser": {
+          "type": "string",
+          "default": "G"
         },
         "copyPullRequestURL": {
           "type": "string",
@@ -946,6 +982,10 @@
           "type": "string",
           "default": "f"
         },
+        "setFixupMessage": {
+          "type": "string",
+          "default": "c"
+        },
         "createFixupCommit": {
           "type": "string",
           "default": "F"
@@ -1013,6 +1053,10 @@
         "openInBrowser": {
           "type": "string",
           "default": "o"
+        },
+        "openPullRequestInBrowser": {
+          "type": "string",
+          "default": "G"
         },
         "viewBisectOptions": {
           "type": "string",
@@ -1200,6 +1244,10 @@
         "allBranchesLogGraph": {
           "type": "string",
           "default": "a"
+        },
+        "allBranchesLogGraphReverse": {
+          "type": "string",
+          "default": "A"
         }
       },
       "additionalProperties": false,

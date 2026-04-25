@@ -1,8 +1,6 @@
 package gui
 
 import (
-	"strings"
-
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
@@ -35,14 +33,14 @@ func (gui *Gui) resetHelpersAndControllers() {
 	setCommitSummary := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
 	setCommitDescription := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitDescription })
 	getCommitSummary := func() string {
-		return strings.TrimSpace(gui.Views.CommitMessage.TextArea.GetContent())
+		return gui.Views.CommitMessage.TextArea.GetContent()
 	}
 
 	getCommitDescription := func() string {
-		return strings.TrimSpace(gui.Views.CommitDescription.TextArea.GetContent())
+		return gui.Views.CommitDescription.TextArea.GetContent()
 	}
 	getUnwrappedCommitDescription := func() string {
-		return strings.TrimSpace(gui.Views.CommitDescription.TextArea.GetUnwrappedContent())
+		return gui.Views.CommitDescription.TextArea.GetUnwrappedContent()
 	}
 	commitsHelper := helpers.NewCommitsHelper(helperCommon,
 		getCommitSummary,

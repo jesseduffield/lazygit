@@ -622,6 +622,14 @@ func (t *tScreen) drawCell(x, y int) int {
 		width = 1
 		str = " "
 	}
+	if width > 1 && x+width < t.w {
+		// Clobber over any content in the next cell.
+		// This fixes a problem with some terminals where overwriting two
+		// adjacent single cells with a wide rune would leave an image
+		// of the second cell.  This is a workaround for buggy terminals.
+		t.writeString("  \b\b")
+	}
+
 	t.writeString(str)
 	t.cx += width
 	t.cells.SetDirty(x, y, false)
@@ -989,9 +997,14 @@ func (t *tScreen) buildAcsMap() {
 }
 
 func (t *tScreen) scanInput(buf *bytes.Buffer) {
+	// The end of the buffer isn't necessarily the end of the input, because
+	// large inputs are chunked. Set atEOF to false so the UTF-8 validating decoder
+	// returns ErrShortSrc instead of ErrInvalidUTF8 for incomplete multi-byte codepoints.
+	const atEOF = false
+
 	for buf.Len() > 0 {
 		utf := make([]byte, min(8, max(buf.Len()*2, 128)))
-		nOut, nIn, e := t.decoder.Transform(utf, buf.Bytes(), true)
+		nOut, nIn, e := t.decoder.Transform(utf, buf.Bytes(), atEOF)
 		_ = buf.Next(nIn)
 		t.input.ScanUTF8(utf[:nOut])
 		if e == transform.ErrShortSrc {

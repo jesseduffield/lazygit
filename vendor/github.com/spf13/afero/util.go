@@ -113,11 +113,11 @@ func GetTempDir(fs Fs, subPath string) string {
 	if subPath != "" {
 		// preserve windows backslash :-(
 		if FilePathSeparator == "\\" {
-			subPath = strings.Replace(subPath, "\\", "____", -1)
+			subPath = strings.ReplaceAll(subPath, "\\", "____")
 		}
 		dir = dir + UnicodeSanitize((subPath))
 		if FilePathSeparator == "\\" {
-			dir = strings.Replace(dir, "____", "\\", -1)
+			dir = strings.ReplaceAll(dir, "____", "\\")
 		}
 
 		if exists, _ := Exists(fs, dir); exists {
