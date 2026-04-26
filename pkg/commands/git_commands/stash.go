@@ -94,6 +94,7 @@ func (self *StashCommands) ShowStashEntryCmdObj(index int) *oscommands.CmdObj {
 		Arg(fmt.Sprintf("--color=%s", self.pagerConfig.GetColorArg())).
 		Arg(fmt.Sprintf("--unified=%d", self.UserConfig().Git.DiffContextSize)).
 		ArgIf(self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		ArgIf(self.UserConfig().Git.ColorWordsInDiffView, "--color-words").
 		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
 		Arg(fmt.Sprintf("refs/stash@{%d}", index)).
 		Dir(self.repoPaths.worktreePath).
