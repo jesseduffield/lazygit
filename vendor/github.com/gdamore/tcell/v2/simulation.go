@@ -143,6 +143,10 @@ func (s *simscreen) Init() error {
 
 func (s *simscreen) Fini() {
 	s.Lock()
+	if s.fini {
+		s.Unlock()
+		return
+	}
 	s.fini = true
 	s.back.Resize(0, 0)
 	s.Unlock()

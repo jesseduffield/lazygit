@@ -42,7 +42,7 @@ github.com/fatih/color
 # github.com/gdamore/encoding v1.0.1
 ## explicit; go 1.9
 github.com/gdamore/encoding
-# github.com/gdamore/tcell/v2 v2.13.8
+# github.com/gdamore/tcell/v2 v2.13.9
 ## explicit; go 1.24.0
 github.com/gdamore/tcell/v2
 github.com/gdamore/tcell/v2/terminfo

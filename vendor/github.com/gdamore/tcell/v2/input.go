@@ -502,7 +502,15 @@ func (ip *inputProcessor) scan() {
 			}
 		case inpStateCsi:
 			// usual case for incoming keys
-			if r >= 0x30 && r <= 0x3F { // parameter bytes
+			if r == '\x1b' {
+				// Per ECMA-48 §5.3.1, ESC restarts the escape
+				// sequence machine from any intermediate state.
+				ip.state = inpStateEsc
+				if len(ip.buf) == 0 && ip.nested == nil {
+					ip.expire = time.Now().Add(time.Millisecond * 50)
+					ip.timer = time.AfterFunc(time.Millisecond*60, ip.escTimeout)
+				}
+			} else if r >= 0x30 && r <= 0x3F { // parameter bytes
 				ip.csiParams = append(ip.csiParams, byte(r))
 			} else if r >= 0x20 && r <= 0x2F { // intermediate bytes, rarely used
 				ip.csiInterm = append(ip.csiInterm, byte(r))
@@ -518,7 +526,15 @@ func (ip *inputProcessor) scan() {
 
 		case inpStateSs3: // typically application mode keys or older terminals
 			ip.state = inpStateInit
-			if k, ok := ss3Keys[r]; ok {
+			if r == '\x1b' {
+				// Per ECMA-48 §5.3.1, ESC restarts the escape
+				// sequence machine from any intermediate state.
+				ip.state = inpStateEsc
+				if len(ip.buf) == 0 && ip.nested == nil {
+					ip.expire = time.Now().Add(time.Millisecond * 50)
+					ip.timer = time.AfterFunc(time.Millisecond*60, ip.escTimeout)
+				}
+			} else if k, ok := ss3Keys[r]; ok {
 				ip.post(NewEventKey(k, 0, ModNone))
 			}
 

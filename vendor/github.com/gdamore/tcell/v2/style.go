@@ -14,6 +14,11 @@
 
 package tcell
 
+import (
+	"strings"
+	"unicode/utf8"
+)
+
 // Style represents a complete text style, including both foreground color,
 // background color, and additional attributes such as "bold" or "underline".
 //
@@ -187,7 +192,7 @@ func (s Style) Attributes(attrs AttrMask) Style {
 // link to that Url.  If the Url is empty, then this mode is turned off.
 func (s Style) Url(url string) Style {
 	s2 := s
-	s2.url = url
+	s2.url = stripOSCControls(url)
 	return s2
 }
 
@@ -197,6 +202,31 @@ func (s Style) Url(url string) Style {
 // were one Url, even if it spans multiple lines.
 func (s Style) UrlId(id string) Style {
 	s2 := s
-	s2.urlId = "id=" + id
+	s2.urlId = "id=" + stripOSCControls(id)
 	return s2
+}
+
+func stripOSCControls(s string) string {
+	var b strings.Builder
+	b.Grow(len(s))
+	for i := 0; i < len(s); {
+		r, size := utf8.DecodeRuneInString(s[i:])
+		if r == utf8.RuneError && size == 1 {
+			c := s[i]
+			if c <= 0x1f || c == 0x7f || (c >= 0x80 && c <= 0x9f) {
+				i++
+				continue
+			}
+			_ = b.WriteByte(c)
+			i++
+			continue
+		}
+		if r <= 0x1f || r == 0x7f || (r >= 0x80 && r <= 0x9f) {
+			i += size
+			continue
+		}
+		b.WriteString(s[i : i+size])
+		i += size
+	}
+	return b.String()
 }
