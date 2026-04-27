@@ -311,6 +311,8 @@ func (g *Gui) pollEvent() GocuiEvent {
 			mod = 0
 			ch = rune(0)
 			k = tcell.KeyF63
+		} else if mod == tcell.ModCtrl && (k == tcell.KeyRight || k == tcell.KeyLeft || k == tcell.KeyBackspace || k == tcell.KeyBackspace2 || k == tcell.KeyDelete) {
+			// Preserve Ctrl modifier for word navigation and deletion
 		} else if mod == tcell.ModCtrl || mod == tcell.ModShift {
 			// remove Ctrl or Shift if specified
 			// - shift - will be translated to the final code of rune

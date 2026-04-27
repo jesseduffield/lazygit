@@ -340,13 +340,12 @@ func (self *TextArea) MoveLeftWord() {
 	self.cursor = self.newCursorForMoveLeftWord()
 }
 
-func (self *TextArea) MoveRightWord() {
+func (self *TextArea) newCursorForMoveRightWord() int {
 	if self.atEnd() {
-		return
+		return self.cursor
 	}
 	if self.atLineEnd() {
-		self.cursor++
-		return
+		return self.cursor + 1
 	}
 
 	cellCursor := self.contentCursorToCellCursor(self.cursor)
@@ -364,7 +363,11 @@ func (self *TextArea) MoveRightWord() {
 		}
 	}
 
-	self.cursor = self.cellCursorToContentCursor(cellCursor)
+	return self.cellCursorToContentCursor(cellCursor)
+}
+
+func (self *TextArea) MoveRightWord() {
+	self.cursor = self.newCursorForMoveRightWord()
 }
 
 func (self *TextArea) MoveCursorUp() {
@@ -556,6 +559,20 @@ func (self *TextArea) BackSpaceWord() {
 	}
 	self.content = self.content[:newCursor] + self.content[self.cursor:]
 	self.cursor = newCursor
+	self.updateCells()
+}
+
+func (self *TextArea) DeleteWord() {
+	newCursor := self.newCursorForMoveRightWord()
+	if newCursor == self.cursor {
+		return
+	}
+
+	clipboard := self.content[self.cursor:newCursor]
+	if clipboard != "\n" {
+		self.clipboard = clipboard
+	}
+	self.content = self.content[:self.cursor] + self.content[newCursor:]
 	self.updateCells()
 }
 

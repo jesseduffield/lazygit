@@ -25,22 +25,27 @@ var DefaultEditor Editor = EditorFunc(SimpleEditor)
 // SimpleEditor is used as the default gocui editor.
 func SimpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
 	switch {
-	case (key == KeyBackspace || key == KeyBackspace2) && (mod&ModAlt) != 0,
+	case (key == KeyBackspace || key == KeyBackspace2) && (mod&(ModAlt|ModCtrl)) != 0,
 		key == KeyCtrlW:
 		v.TextArea.BackSpaceWord()
 	case key == KeyBackspace || key == KeyBackspace2 || key == KeyCtrlH:
 		v.TextArea.BackSpaceChar()
+	case key == KeyDelete && (mod&ModCtrl) != 0,
+		ch == 'd' && (mod&ModAlt) != 0:
+		v.TextArea.DeleteWord()
 	case key == KeyCtrlD || key == KeyDelete:
 		v.TextArea.DeleteChar()
 	case key == KeyArrowDown:
 		v.TextArea.MoveCursorDown()
 	case key == KeyArrowUp:
 		v.TextArea.MoveCursorUp()
-	case (key == KeyArrowLeft || ch == 'b') && (mod&ModAlt) != 0:
+	case key == KeyArrowLeft && (mod&(ModAlt|ModCtrl)) != 0,
+		ch == 'b' && (mod&ModAlt) != 0:
 		v.TextArea.MoveLeftWord()
 	case key == KeyArrowLeft || key == KeyCtrlB:
 		v.TextArea.MoveCursorLeft()
-	case (key == KeyArrowRight || ch == 'f') && (mod&ModAlt) != 0:
+	case key == KeyArrowRight && (mod&(ModAlt|ModCtrl)) != 0,
+		ch == 'f' && (mod&ModAlt) != 0:
 		v.TextArea.MoveRightWord()
 	case key == KeyArrowRight || key == KeyCtrlF:
 		v.TextArea.MoveCursorRight()
