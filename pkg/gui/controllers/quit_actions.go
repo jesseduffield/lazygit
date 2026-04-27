@@ -40,24 +40,40 @@ func (self *QuitActions) quitAux() error {
 }
 
 func (self *QuitActions) confirmQuitDuringBackgroundOp() error {
+	// Always register the watcher immediately: if the user does nothing and ops
+	// finish while the menu is open, we quit automatically (program exit removes
+	// the menu). cancelled is set to true when the user explicitly handles the
+	// menu so the watcher knows not to double-quit or act after a cancel.
+	cancelled := false
+
+	self.c.Helpers().InlineStatus.NotifyWhenDone(func() {
+		self.c.OnUIThread(func() error {
+			if cancelled {
+				return nil
+			}
+			return self.Quit()
+		})
+	})
+
 	return self.c.Menu(types.CreateMenuOptions{
 		Title:  self.c.Tr.ConfirmQuitDuringBackgroundOpTitle,
 		Prompt: self.c.Tr.ConfirmQuitDuringBackgroundOp,
+		OnCancel: func() error {
+			cancelled = true
+			return nil
+		},
 		Items: []*types.MenuItem{
 			{
 				Label: self.c.Tr.WaitForBackgroundOps,
 				OnPress: func() error {
-					self.c.Helpers().InlineStatus.NotifyWhenDone(func() {
-						self.c.OnUIThread(func() error {
-							return self.Quit()
-						})
-					})
+					// Watcher is already running; nothing extra to do.
 					return nil
 				},
 			},
 			{
 				Label: self.c.Tr.QuitAnyway,
 				OnPress: func() error {
+					cancelled = true
 					return gocui.ErrQuit
 				},
 			},
