@@ -14,6 +14,14 @@ _图例：`<c-b>` 意味着ctrl+b, `<a-b>意味着Alt+b, `B` 意味着shift+b_
 | `` @ `` | 打开命令日志菜单 | 查看命令日志的选项，例如显示/隐藏命令日志以及聚焦命令日志 |
 | `` P `` | 推送 | 推送当前分支到它的上游。如果上游未配置，您可以在弹窗中配置上游分支。 |
 | `` p `` | 拉取 | 从当前分支的远程分支获取改动。如果上游未配置，您可以在弹窗中配置上游分支。 |
+| `` <a-2> `` | Collapse/expand side panel | Toggle collapsing the side panel to a minimal size. The collapsed state is persisted across restarts. |
+| `` <a-3> `` | Collapse/expand side panel | Toggle collapsing the side panel to a minimal size. The collapsed state is persisted across restarts. |
+| `` <a-4> `` | Collapse/expand side panel | Toggle collapsing the side panel to a minimal size. The collapsed state is persisted across restarts. |
+| `` 1 `` | Jump to side panel |  |
+| `` 2 `` | Jump to side panel |  |
+| `` 3 `` | Jump to side panel |  |
+| `` 4 `` | Jump to side panel |  |
+| `` 5 `` | Jump to side panel |  |
 | `` ) `` | 提高重命名相似度阈值 | 提高将删除和添加对视为重命名所需的相似度阈值。<br><br>默认值可在配置文件中通过键 'git.renameSimilarityThreshold' 更改。 |
 | `` ( `` | 降低重命名相似度阈值 | 降低将删除和添加对视为重命名所需的相似度阈值。<br><br>默认值可在配置文件中通过键 'git.renameSimilarityThreshold' 更改。 |
 | `` } `` | 扩大差异视图中显示的上下文范围 | 增加差异视图中变更周围显示的上下文量。<br><br>默认值可在配置文件中通过键 'git.diffContextSize' 更改。 |

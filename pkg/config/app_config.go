@@ -708,6 +708,9 @@ type AppState struct {
 	// Cache of GitHub pull requests per repo path, so that PR info can be
 	// shown instantly on startup before the async refresh completes.
 	GithubPullRequests map[string][]CachedPullRequest `yaml:"githubPullRequests"`
+
+	// Side windows that the user has manually collapsed (files, branches, commits).
+	CollapsedSideWindows []string
 }
 
 // CachedPullRequest stores the essential fields of a GitHub pull request

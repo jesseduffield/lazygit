@@ -14,6 +14,14 @@ _說明：`<c-b>` 表示 Ctrl＋B、`<a-b>` 表示 Alt＋B，`B`表示 Shift＋B
 | `` @ `` | 開啟命令記錄選單 | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | 推送 | 推送到遠端。如果沒有設定遠端，會開啟設定視窗。 |
 | `` p `` | 拉取 | 從遠端同步當前分支。如果沒有設定遠端，會開啟設定視窗。 |
+| `` <a-2> `` | Collapse/expand side panel | Toggle collapsing the side panel to a minimal size. The collapsed state is persisted across restarts. |
+| `` <a-3> `` | Collapse/expand side panel | Toggle collapsing the side panel to a minimal size. The collapsed state is persisted across restarts. |
+| `` <a-4> `` | Collapse/expand side panel | Toggle collapsing the side panel to a minimal size. The collapsed state is persisted across restarts. |
+| `` 1 `` | Jump to side panel |  |
+| `` 2 `` | Jump to side panel |  |
+| `` 3 `` | Jump to side panel |  |
+| `` 4 `` | Jump to side panel |  |
+| `` 5 `` | Jump to side panel |  |
 | `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` } `` | 增加差異檢視中顯示變更周圍上下文的大小 | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |

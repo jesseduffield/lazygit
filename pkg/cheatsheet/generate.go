@@ -157,7 +157,7 @@ func getBindingSections(bindings []*types.Binding, tr *i18n.TranslationSet) []*b
 		bindingsByHeader,
 		func(header header, hBindings []*types.Binding) headerWithBindings {
 			uniqBindings := lo.UniqBy(hBindings, func(binding *types.Binding) string {
-				return binding.Description + keybindings.LabelFromKey(binding.Key)
+				return binding.Description + keybindings.LabelFromKeyAndMod(binding.Key, binding.Modifier)
 			})
 
 			return headerWithBindings{
@@ -217,7 +217,7 @@ func formatTitle(title string) string {
 }
 
 func formatBinding(binding *types.Binding) string {
-	action := keybindings.LabelFromKey(binding.Key)
+	action := keybindings.LabelFromKeyAndMod(binding.Key, binding.Modifier)
 	description := binding.Description
 	if binding.Alternative != "" {
 		action += fmt.Sprintf(" (%s)", binding.Alternative)
