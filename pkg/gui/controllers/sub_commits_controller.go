@@ -64,8 +64,16 @@ func (self *SubCommitsController) GetOnRenderToMain() func() {
 func (self *SubCommitsController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {
 		context := self.context()
-		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
-			context.SetLimitCommits(false)
+		limit := context.GetGitLogLimit()
+
+		if limit == nil {
+			return
+		}
+
+		logCommitCount := len(self.c.Model().SubCommits)
+
+		if limit.CanFetchMoreCommits(context.GetSelectedLineIdx(), logCommitCount) {
+			limit.Increase(logCommitCount)
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SUB_COMMITS}})
 		}
 	}
