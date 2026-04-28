@@ -6,7 +6,7 @@ go 1.25.0
 ignore ./test
 
 require (
-	dario.cat/mergo v1.0.1
+	dario.cat/mergo v1.0.2
 	github.com/adrg/xdg v0.5.3
 	github.com/atotto/clipboard v0.1.4
 	github.com/aybabtme/humanlog v0.4.1
@@ -15,23 +15,23 @@ require (
 	github.com/creack/pty v1.1.24
 	github.com/gdamore/tcell/v2 v2.13.8
 	github.com/go-errors/errors v1.5.1
-	github.com/gookit/color v1.4.2
+	github.com/gookit/color v1.6.0
 	github.com/integrii/flaggy v1.8.0
 	github.com/jesseduffield/generics v0.0.0-20250517122708-b0b4a53a6f5c
 	github.com/jesseduffield/gocui v0.3.1-0.20260327132312-944dab3bc980
 	github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/karimkhaleel/jsonschema v0.0.0-20231001195015-d933f0d94ea3
-	github.com/kyokomi/emoji/v2 v2.2.8
+	github.com/kyokomi/emoji/v2 v2.2.13
 	github.com/lucasb-eyer/go-colorful v1.4.0
 	github.com/mgutz/str v1.2.0
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/rivo/uniseg v0.4.7
 	github.com/sahilm/fuzzy v0.1.1
-	github.com/samber/lo v1.31.0
+	github.com/samber/lo v1.53.0
 	github.com/sanity-io/litter v1.5.8
 	github.com/sasha-s/go-deadlock v0.3.9
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/afero v1.15.0
 	github.com/spkg/bom v1.0.1
 	github.com/stefanhaller/git-todo-parser v0.0.7-0.20250905083220-c50528f08304
@@ -39,7 +39,7 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	golang.org/x/sync v0.20.0
-	golang.org/x/sys v0.42.0
+	golang.org/x/sys v0.43.0
 	gopkg.in/ozeidan/fuzzy-patricia.v3 v3.0.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -69,7 +69,7 @@ require (
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/term v0.41.0 // indirect
-	golang.org/x/text v0.35.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect

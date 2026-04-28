@@ -253,42 +253,12 @@ func stateText(state string) string {
 func coloredStateText(state string) string {
 	if icons.IsIconEnabled() {
 		return fmt.Sprintf("%s%s%s",
-			withPrFgColor(state, ""),
-			withPrBgColor(state, style.FgWhite.Sprint(stateText(state))),
-			withPrFgColor(state, ""))
+			presentation.WithPrColor(state, "", false),
+			presentation.WithPrColor(state, color.RGB(0xFF, 0xFF, 0xFF, false).Sprint(stateText(state)), true),
+			presentation.WithPrColor(state, "", false))
 	}
 
-	return withPrFgColor(state, stateText(state))
-}
-
-func withPrFgColor(state string, text string) string {
-	switch state {
-	case "OPEN":
-		return style.FgGreen.Sprint(text)
-	case "CLOSED":
-		return style.FgRed.Sprint(text)
-	case "MERGED":
-		return style.FgMagenta.Sprint(text)
-	case "DRAFT":
-		return color.RGB(0x66, 0x66, 0x66, false).Sprint(text)
-	default:
-		return style.FgDefault.Sprint(text)
-	}
-}
-
-func withPrBgColor(state string, text string) string {
-	switch state {
-	case "OPEN":
-		return style.BgGreen.Sprint(text)
-	case "CLOSED":
-		return style.BgRed.Sprint(text)
-	case "MERGED":
-		return style.BgMagenta.Sprint(text)
-	case "DRAFT":
-		return color.RGB(0x66, 0x66, 0x66, true).Sprint(text)
-	default:
-		return style.BgDefault.Sprint(text)
-	}
+	return presentation.WithPrColor(state, stateText(state), false)
 }
 
 func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branch) error {

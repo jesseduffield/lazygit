@@ -1,8 +1,9 @@
 package lo
 
-// Ternary is a 1 line if/else statement.
+// Ternary is a single line if/else statement.
+// Take care to avoid dereferencing potentially nil pointers in your A/B expressions, because they are both evaluated. See TernaryF to avoid this problem.
 // Play: https://go.dev/play/p/t-D7WBL44h2
-func Ternary[T any](condition bool, ifOutput T, elseOutput T) T {
+func Ternary[T any](condition bool, ifOutput, elseOutput T) T {
 	if condition {
 		return ifOutput
 	}
@@ -10,9 +11,9 @@ func Ternary[T any](condition bool, ifOutput T, elseOutput T) T {
 	return elseOutput
 }
 
-// TernaryF is a 1 line if/else statement whose options are functions
+// TernaryF is a single line if/else statement whose options are functions.
 // Play: https://go.dev/play/p/AO4VW20JoqM
-func TernaryF[T any](condition bool, ifFunc func() T, elseFunc func() T) T {
+func TernaryF[T any](condition bool, ifFunc, elseFunc func() T) T {
 	if condition {
 		return ifFunc()
 	}
@@ -25,9 +26,9 @@ type ifElse[T any] struct {
 	done   bool
 }
 
-// If.
+// If is a single line if/else statement.
 // Play: https://go.dev/play/p/WSw3ApMxhyW
-func If[T any](condition bool, result T) *ifElse[T] {
+func If[T any](condition bool, result T) *ifElse[T] { //nolint:revive
 	if condition {
 		return &ifElse[T]{result, true}
 	}
@@ -36,9 +37,9 @@ func If[T any](condition bool, result T) *ifElse[T] {
 	return &ifElse[T]{t, false}
 }
 
-// IfF.
+// IfF is a single line if/else statement whose options are functions.
 // Play: https://go.dev/play/p/WSw3ApMxhyW
-func IfF[T any](condition bool, resultF func() T) *ifElse[T] {
+func IfF[T any](condition bool, resultF func() T) *ifElse[T] { //nolint:revive
 	if condition {
 		return &ifElse[T]{resultF(), true}
 	}
@@ -97,7 +98,7 @@ type switchCase[T comparable, R any] struct {
 
 // Switch is a pure functional switch/case/default statement.
 // Play: https://go.dev/play/p/TGbKUMAeRUd
-func Switch[T comparable, R any](predicate T) *switchCase[T, R] {
+func Switch[T comparable, R any](predicate T) *switchCase[T, R] { //nolint:revive
 	var result R
 
 	return &switchCase[T, R]{
@@ -120,9 +121,9 @@ func (s *switchCase[T, R]) Case(val T, result R) *switchCase[T, R] {
 
 // CaseF.
 // Play: https://go.dev/play/p/TGbKUMAeRUd
-func (s *switchCase[T, R]) CaseF(val T, cb func() R) *switchCase[T, R] {
+func (s *switchCase[T, R]) CaseF(val T, callback func() R) *switchCase[T, R] {
 	if !s.done && s.predicate == val {
-		s.result = cb()
+		s.result = callback()
 		s.done = true
 	}
 
@@ -141,9 +142,9 @@ func (s *switchCase[T, R]) Default(result R) R {
 
 // DefaultF.
 // Play: https://go.dev/play/p/TGbKUMAeRUd
-func (s *switchCase[T, R]) DefaultF(cb func() R) R {
+func (s *switchCase[T, R]) DefaultF(callback func() R) R {
 	if !s.done {
-		s.result = cb()
+		s.result = callback()
 	}
 
 	return s.result

@@ -1,4 +1,4 @@
-# dario.cat/mergo v1.0.1
+# dario.cat/mergo v1.0.2
 ## explicit; go 1.13
 dario.cat/mergo
 # github.com/adrg/xdg v0.5.3
@@ -84,8 +84,8 @@ github.com/go-errors/errors
 github.com/go-logfmt/logfmt
 # github.com/google/go-cmp v0.7.0
 ## explicit; go 1.21
-# github.com/gookit/color v1.4.2
-## explicit; go 1.12
+# github.com/gookit/color v1.6.0
+## explicit; go 1.18
 github.com/gookit/color
 # github.com/hpcloud/tail v1.0.0
 ## explicit
@@ -119,7 +119,7 @@ github.com/kr/logfmt
 ## explicit; go 1.12
 # github.com/kylelemons/godebug v1.1.0
 ## explicit; go 1.11
-# github.com/kyokomi/emoji/v2 v2.2.8
+# github.com/kyokomi/emoji/v2 v2.2.13
 ## explicit; go 1.14
 github.com/kyokomi/emoji/v2
 # github.com/lucasb-eyer/go-colorful v1.4.0
@@ -159,17 +159,21 @@ github.com/rivo/uniseg
 # github.com/sahilm/fuzzy v0.1.1
 ## explicit
 github.com/sahilm/fuzzy
-# github.com/samber/lo v1.31.0
+# github.com/samber/lo v1.53.0
 ## explicit; go 1.18
 github.com/samber/lo
+github.com/samber/lo/internal/constraints
+github.com/samber/lo/internal/xrand
+github.com/samber/lo/internal/xtime
+github.com/samber/lo/mutable
 # github.com/sanity-io/litter v1.5.8
 ## explicit; go 1.16
 github.com/sanity-io/litter
 # github.com/sasha-s/go-deadlock v0.3.9
 ## explicit
 github.com/sasha-s/go-deadlock
-# github.com/sirupsen/logrus v1.9.3
-## explicit; go 1.13
+# github.com/sirupsen/logrus v1.9.4
+## explicit; go 1.17
 github.com/sirupsen/logrus
 # github.com/spf13/afero v1.15.0
 ## explicit; go 1.23.0
@@ -201,7 +205,7 @@ golang.org/x/exp/slices
 # golang.org/x/sync v0.20.0
 ## explicit; go 1.25.0
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.42.0
+# golang.org/x/sys v0.43.0
 ## explicit; go 1.25.0
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
@@ -209,10 +213,16 @@ golang.org/x/sys/windows
 # golang.org/x/term v0.41.0
 ## explicit; go 1.25.0
 golang.org/x/term
-# golang.org/x/text v0.35.0
+# golang.org/x/text v0.36.0
 ## explicit; go 1.25.0
+golang.org/x/text/cases
 golang.org/x/text/encoding
 golang.org/x/text/encoding/internal/identifier
+golang.org/x/text/internal
+golang.org/x/text/internal/language
+golang.org/x/text/internal/language/compact
+golang.org/x/text/internal/tag
+golang.org/x/text/language
 golang.org/x/text/runes
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm

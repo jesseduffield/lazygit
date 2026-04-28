@@ -817,10 +817,14 @@ func (self *RefreshHelper) refreshGithubPullRequests() {
 		return
 	}
 
-	baseRemote := self.getGithubBaseRemote()
+	githubRemotes := self.getGithubRemotes()
+	baseRemote := getGithubBaseRemote(githubRemotes, self.c.Git().GitHub.ConfiguredBaseRemoteName())
 	if baseRemote == nil {
-		if !self.githubBaseRemotePromptDismissed[self.c.Git().RepoPaths.RepoPath()] {
-			self.promptForBaseGithubRepo(authToken)
+		self.c.Model().PullRequests = nil
+		self.c.Model().PullRequestsMap = nil
+
+		if len(githubRemotes) > 0 && !self.githubBaseRemotePromptDismissed[self.c.Git().RepoPaths.RepoPath()] {
+			self.promptForBaseGithubRepo(authToken, githubRemotes)
 		}
 		return
 	}
@@ -830,22 +834,41 @@ func (self *RefreshHelper) refreshGithubPullRequests() {
 	}
 }
 
-func (self *RefreshHelper) getGithubBaseRemote() *models.Remote {
-	remotes := self.c.Model().Remotes
+type githubRemoteInfo struct {
+	remote   *models.Remote
+	repoName string
+}
 
+func (self *RefreshHelper) getGithubRemotes() []githubRemoteInfo {
+	return lo.FilterMap(self.c.Model().Remotes, func(remote *models.Remote, _ int) (githubRemoteInfo, bool) {
+		if len(remote.Urls) == 0 {
+			return githubRemoteInfo{}, false
+		}
+		repoName, err := self.c.Git().HostingService.GetRepoNameFromRemoteURL(remote.Urls[0])
+		if err != nil {
+			return githubRemoteInfo{}, false
+		}
+		return githubRemoteInfo{remote: remote, repoName: repoName}, true
+	})
+}
+
+func getGithubBaseRemote(githubRemotes []githubRemoteInfo, configuredRemoteName string) *models.Remote {
 	findRemoteByName := func(name string) *models.Remote {
-		remote, _ := lo.Find(remotes, func(remote *models.Remote) bool {
-			return remote.Name == name
+		info, ok := lo.Find(githubRemotes, func(info githubRemoteInfo) bool {
+			return info.remote.Name == name
 		})
-		return remote
+		if !ok {
+			return nil
+		}
+		return info.remote
 	}
 
-	if configuredRemote := self.c.Git().GitHub.ConfiguredBaseRemoteName(); configuredRemote != "" {
-		return findRemoteByName(configuredRemote)
+	if configuredRemoteName != "" {
+		return findRemoteByName(configuredRemoteName)
 	}
 
-	if len(remotes) == 1 {
-		return remotes[0]
+	if len(githubRemotes) == 1 {
+		return githubRemotes[0].remote
 	}
 
 	// Not sure if "upstream" is really a common convention for the name of the remote that PRs are
@@ -857,31 +880,23 @@ func (self *RefreshHelper) getGithubBaseRemote() *models.Remote {
 	return nil
 }
 
-func (self *RefreshHelper) promptForBaseGithubRepo(authToken string) {
-	menuItems := lo.FilterMap(self.c.Model().Remotes, func(remote *models.Remote, _ int) (*types.MenuItem, bool) {
-		if len(remote.Urls) == 0 {
-			return nil, false
-		}
-		repoName, err := self.c.Git().HostingService.GetRepoNameFromRemoteURL(remote.Urls[0])
-		if err != nil {
-			return nil, false
-		}
-
+func (self *RefreshHelper) promptForBaseGithubRepo(authToken string, githubRemotes []githubRemoteInfo) {
+	menuItems := lo.Map(githubRemotes, func(info githubRemoteInfo, _ int) *types.MenuItem {
 		return &types.MenuItem{
-			LabelColumns: []string{remote.Name, style.FgCyan.Sprint(repoName)},
+			LabelColumns: []string{info.remote.Name, style.FgCyan.Sprint(info.repoName)},
 			OnPress: func() error {
 				return self.c.WithWaitingStatus(self.c.Tr.FetchingPullRequests, func(gocui.Task) error {
-					if err := self.c.Git().GitHub.SetConfiguredBaseRemoteName(remote.Name); err != nil {
+					if err := self.c.Git().GitHub.SetConfiguredBaseRemoteName(info.remote.Name); err != nil {
 						self.c.Log.Error(err)
 					}
 
-					if err := self.setGithubPullRequests(authToken, remote); err != nil {
+					if err := self.setGithubPullRequests(authToken, info.remote); err != nil {
 						self.c.LogAction(fmt.Sprintf("Error fetching pull requests from GitHub: %s", err.Error()))
 					}
 					return nil
 				})
 			},
-		}, true
+		}
 	})
 
 	_ = self.c.Menu(types.CreateMenuOptions{
