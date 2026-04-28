@@ -16,7 +16,7 @@ type InlineStatusHelper struct {
 	windowHelper             *WindowHelper
 	contextsWithInlineStatus map[types.ContextKey]*inlineStatusInfo
 	mutex                    deadlock.Mutex
-	activeCount              int // number of in-flight user-initiated operations
+	activeCount              int
 }
 
 func NewInlineStatusHelper(c *HelperCommon, windowHelper *WindowHelper) *InlineStatusHelper {
@@ -106,8 +106,7 @@ func (self *InlineStatusHelper) AnyActive() bool {
 	return self.activeCount > 0
 }
 
-// NotifyWhenDone calls cb on the UI thread once all in-flight inline-status
-// operations have finished.
+// NotifyWhenDone calls cb once all in-flight inline-status operations have finished.
 func (self *InlineStatusHelper) NotifyWhenDone(cb func()) {
 	go utils.Safe(func() {
 		for {
