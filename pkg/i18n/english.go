@@ -1374,7 +1374,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ConfirmQuitDuringUpdateTitle:              "Currently updating",
 		ConfirmQuitDuringUpdate:                   "An update is in progress. Are you sure you want to quit?",
 		ConfirmQuitDuringBackgroundOpTitle:        "Quit",
-		ConfirmQuitDuringBackgroundOp:             "Lazygit will quit once the current operation finishes. Press <enter> to quit immediately.",
+		ConfirmQuitDuringBackgroundOp:             "Lazygit will quit once the current operation finishes.\n\nPress <enter> to quit immediately.",
 		IntroPopupMessage:                    englishIntroPopupMessage,
 		NonReloadableConfigWarningTitle:      "Config changed",
 		NonReloadableConfigWarning:           englishNonReloadableConfigWarning,
