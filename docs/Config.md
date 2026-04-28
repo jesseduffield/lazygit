@@ -70,6 +70,12 @@ gui:
   # need to pass it separately in the pager command.
   tabWidth: 4
 
+  # If true, show visual indicators for spaces (middle dot) and tabs (right arrow)
+  # in diff and staging views.
+  # This can be toggled from within Lazygit with the 'toggleShowWhitespace'
+  # keybinding (default `<c-v>`), but that will not change the default.
+  showWhitespace: false
+
   # If true, capture mouse events.
   # When mouse events are captured, it's a little harder to select text: e.g.
   # requiring you to hold the option key when on macOS.
@@ -674,6 +680,7 @@ keybinding:
     submitEditorText: <enter>
     extrasMenu: '@'
     toggleWhitespaceInDiffView: <c-w>
+    toggleShowWhitespace: <c-v>
     increaseContextInDiffView: '}'
     decreaseContextInDiffView: '{'
     increaseRenameSimilarityThreshold: )

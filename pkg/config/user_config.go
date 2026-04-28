@@ -79,6 +79,9 @@ type GuiConfig struct {
 	// The number of spaces per tab; used for everything that's shown in the main view, but probably mostly relevant for diffs.
 	// Note that when using a pager, the pager has its own tab width setting, so you need to pass it separately in the pager command.
 	TabWidth int `yaml:"tabWidth" jsonschema:"minimum=1"`
+	// If true, show visual indicators for spaces (middle dot) and tabs (right arrow) in diff and staging views.
+	// This can be toggled from within Lazygit with the 'toggleShowWhitespace' keybinding (default `<c-v>`), but that will not change the default.
+	ShowWhitespace bool `yaml:"showWhitespace"`
 	// If true, capture mouse events.
 	// When mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.
 	MouseEvents bool `yaml:"mouseEvents"`
@@ -498,6 +501,7 @@ type KeybindingUniversalConfig struct {
 	SubmitEditorText                  string   `yaml:"submitEditorText"`
 	ExtrasMenu                        string   `yaml:"extrasMenu"`
 	ToggleWhitespaceInDiffView        string   `yaml:"toggleWhitespaceInDiffView"`
+	ToggleShowWhitespace              string   `yaml:"toggleShowWhitespace"`
 	IncreaseContextInDiffView         string   `yaml:"increaseContextInDiffView"`
 	DecreaseContextInDiffView         string   `yaml:"decreaseContextInDiffView"`
 	IncreaseRenameSimilarityThreshold string   `yaml:"increaseRenameSimilarityThreshold"`
@@ -783,6 +787,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			ScrollOffMargin:          2,
 			ScrollOffBehavior:        "margin",
 			TabWidth:                 4,
+			ShowWhitespace:           false,
 			MouseEvents:              true,
 			SkipAmendWarning:         false,
 			SkipDiscardChangeWarning: false,
@@ -981,6 +986,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				SubmitEditorText:                  "<enter>",
 				ExtrasMenu:                        "@",
 				ToggleWhitespaceInDiffView:        "<ctrl+w>",
+				ToggleShowWhitespace:              "<ctrl+v>",
 				IncreaseContextInDiffView:         "}",
 				DecreaseContextInDiffView:         "{",
 				IncreaseRenameSimilarityThreshold: ")",

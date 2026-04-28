@@ -6,6 +6,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type PatchBuildingHelper struct {
@@ -97,6 +98,11 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 	}
 
 	mainContent := context.GetContentToRender()
+
+	if self.c.UserConfig().Gui.ShowWhitespace {
+		mainContent = utils.ShowWhitespaceCharacters(mainContent, self.c.UserConfig().Gui.TabWidth)
+		secondaryDiff = utils.ShowWhitespaceCharacters(secondaryDiff, self.c.UserConfig().Gui.TabWidth)
+	}
 
 	self.c.Contexts().CustomPatchBuilder.FocusSelection()
 

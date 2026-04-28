@@ -147,6 +147,10 @@ func WrapViewLinesToWidth(wrap bool, editable bool, text string, width int, tabW
 			originalLineIndices = append(originalLineIndices, originalLineIdx)
 		}
 
+		isBreakPoint := func(c rune) bool {
+			return c == ' ' || c == '-' || c == '·'
+		}
+
 		n := 0
 		offset := 0
 		lastWhitespaceIndex := -1
@@ -155,7 +159,7 @@ func WrapViewLinesToWidth(wrap bool, editable bool, text string, width int, tabW
 			n += rw
 
 			if n > width {
-				if currChr == ' ' {
+				if currChr == ' ' || currChr == '·' {
 					appendWrappedLine(line[offset:i])
 					offset = i + 1
 					n = 0
@@ -177,7 +181,7 @@ func WrapViewLinesToWidth(wrap bool, editable bool, text string, width int, tabW
 					n = rw
 				}
 				lastWhitespaceIndex = -1
-			} else if currChr == ' ' || currChr == '-' {
+			} else if isBreakPoint(currChr) {
 				lastWhitespaceIndex = i
 			}
 		}

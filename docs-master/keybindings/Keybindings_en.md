@@ -31,6 +31,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` q `` | Quit |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | Toggle whitespace | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
+| `` <ctrl+v> `` | Toggle show whitespace characters | Toggle whether spaces and tabs are rendered with visible markers (· for space, → for tab).<br><br>The default can be changed in the config file with the key 'gui.showWhitespace'. |
 | `` z `` | Undo | The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
 | `` Z `` | Redo | The reflog will be used to determine what git command to run to redo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
 

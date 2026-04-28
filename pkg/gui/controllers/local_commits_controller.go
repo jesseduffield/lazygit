@@ -323,6 +323,10 @@ func secondaryPatchPanelUpdateOpts(c *ControllerCommon) *types.ViewUpdateOpts {
 	if c.Git().Patch.PatchBuilder.Active() {
 		patch := c.Git().Patch.PatchBuilder.RenderAggregatedPatch(false)
 
+		if c.UserConfig().Gui.ShowWhitespace {
+			patch = utils.ShowWhitespaceCharacters(patch, c.UserConfig().Gui.TabWidth)
+		}
+
 		return &types.ViewUpdateOpts{
 			Task:  types.NewRenderStringWithoutScrollTask(patch),
 			Title: c.Tr.CustomPatch,

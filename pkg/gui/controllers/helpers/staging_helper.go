@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type StagingHelper struct {
@@ -99,6 +100,11 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 		self.c.Contexts().StagingSecondary.FocusSelection()
 	} else {
 		self.c.Contexts().Staging.FocusSelection()
+	}
+
+	if self.c.UserConfig().Gui.ShowWhitespace {
+		mainContent = utils.ShowWhitespaceCharacters(mainContent, self.c.UserConfig().Gui.TabWidth)
+		secondaryContent = utils.ShowWhitespaceCharacters(secondaryContent, self.c.UserConfig().Gui.TabWidth)
 	}
 
 	self.c.RenderToMainViews(types.RefreshMainOpts{

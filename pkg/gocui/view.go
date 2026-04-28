@@ -1556,28 +1556,28 @@ func lineWrap(line []cell, columns int) [][]cell {
 		// if currChr == 'g' {
 		// 	panic(n)
 		// }
+		isBreakPoint := func(s string) bool { return s == " " || s == "-" || s == "\u00B7" }
+
 		if n > columns {
 			// This code is convoluted but we've got comprehensive tests so feel free to do whatever you want
 			// to the code to simplify it so long as our tests still pass.
-			if currChr == " " {
-				// if the line ends in a space, we'll omit it. This means there'll be no
-				// way to distinguish between a clean break and a mid-word break, but
-				// I think it's worth it.
+			if currChr == " " || currChr == "\u00B7" {
+				// omit space or whitespace marker at line end
 				lines = append(lines, line[offset:i])
 				offset = i + 1
 				n = 0
 			} else if currChr == "-" {
-				// if the last character is hyphen and the width of line is equal to the columns
+				// retain hyphen at end of line
 				lines = append(lines, line[offset:i])
 				offset = i
 				n = rw
 			} else if lastWhitespaceIndex != -1 {
-				// if there is a space in the line and the line is not breaking at a space/hyphen
+				// if there is a space/hyphen/dot in the line and we're not breaking at one
 				if line[lastWhitespaceIndex].chr == "-" {
-					// if break occurs at hyphen, we'll retain the hyphen
+					// retain the hyphen at end of line
 					lines = append(lines, line[offset:lastWhitespaceIndex+1])
 				} else {
-					// if break occurs at space, we'll omit the space
+					// break at space or dot, omit it
 					lines = append(lines, line[offset:lastWhitespaceIndex])
 				}
 				// Either way, continue *after* the break
@@ -1593,7 +1593,7 @@ func lineWrap(line []cell, columns int) [][]cell {
 				n = rw
 			}
 			lastWhitespaceIndex = -1
-		} else if line[i].chr == " " || line[i].chr == "-" {
+		} else if isBreakPoint(line[i].chr) {
 			lastWhitespaceIndex = i
 		}
 	}

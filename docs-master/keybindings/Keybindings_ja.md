@@ -31,6 +31,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` q `` | 終了 |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | 空白表示の切り替え | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
+| `` <ctrl+v> `` | Toggle show whitespace characters | Toggle whether spaces and tabs are rendered with visible markers (· for space, → for tab).<br><br>The default can be changed in the config file with the key 'gui.showWhitespace'. |
 | `` z `` | 元に戻す | 最後のgitコマンドを元に戻すために実行するgitコマンドを決定するためにreflogが使用されます。これにはワーキングツリーへの変更は含まれません。コミットのみが考慮されます。 |
 | `` Z `` | やり直す | 最後のgitコマンドをやり直すために実行するgitコマンドを決定するためにreflogが使用されます。これにはワーキングツリーへの変更は含まれません。コミットのみが考慮されます。 |
 

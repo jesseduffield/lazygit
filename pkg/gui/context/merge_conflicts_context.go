@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 )
 
@@ -91,7 +92,11 @@ func (self *MergeConflictsContext) GetContentToRender() string {
 }
 
 func (self *MergeConflictsContext) setContent() {
-	self.GetView().SetContent(self.GetContentToRender())
+	content := self.GetContentToRender()
+	if self.c.UserConfig().Gui.ShowWhitespace {
+		content = utils.ShowWhitespaceCharacters(content, self.c.UserConfig().Gui.TabWidth)
+	}
+	self.GetView().SetContent(content)
 }
 
 func (self *MergeConflictsContext) FocusSelection() {

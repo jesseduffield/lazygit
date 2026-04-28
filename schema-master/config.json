@@ -513,6 +513,11 @@
           "description": "The number of spaces per tab; used for everything that's shown in the main view, but probably mostly relevant for diffs.\nNote that when using a pager, the pager has its own tab width setting, so you need to pass it separately in the pager command.",
           "default": 4
         },
+        "showWhitespace": {
+          "type": "boolean",
+          "description": "If true, show visual indicators for spaces (middle dot) and tabs (right arrow) in diff and staging views.\nThis can be toggled from within Lazygit with the 'toggleShowWhitespace' keybinding (default `\u003cc-v\u003e`), but that will not change the default.",
+          "default": false
+        },
         "mouseEvents": {
           "type": "boolean",
           "description": "If true, capture mouse events.\nWhen mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.",
@@ -1592,6 +1597,10 @@
         "toggleWhitespaceInDiffView": {
           "type": "string",
           "default": "\u003cctrl+w\u003e"
+        },
+        "toggleShowWhitespace": {
+          "type": "string",
+          "default": "\u003cc-v\u003e"
         },
         "increaseContextInDiffView": {
           "type": "string",

@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	deadlock "github.com/sasha-s/go-deadlock"
 )
 
@@ -90,7 +91,11 @@ func (self *PatchExplorerContext) Render() {
 }
 
 func (self *PatchExplorerContext) setContent() {
-	self.GetView().SetContent(self.GetContentToRender())
+	content := self.GetContentToRender()
+	if self.c.UserConfig().Gui.ShowWhitespace {
+		content = utils.ShowWhitespaceCharacters(content, self.c.UserConfig().Gui.TabWidth)
+	}
+	self.GetView().SetContent(content)
 }
 
 func (self *PatchExplorerContext) FocusSelection() {
