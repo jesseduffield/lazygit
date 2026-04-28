@@ -254,8 +254,6 @@ type TranslationSet struct {
 	ConfirmQuitDuringUpdate                   string
 	ConfirmQuitDuringBackgroundOpTitle        string
 	ConfirmQuitDuringBackgroundOp             string
-	WaitForBackgroundOps                      string
-	QuitAnyway                                string
 	IntroPopupMessage                     string
 	NonReloadableConfigWarningTitle       string
 	NonReloadableConfigWarning            string
@@ -1375,10 +1373,8 @@ func EnglishTranslationSet() *TranslationSet {
 		UpdateFailedErr:                      "Update failed: {{.errMessage}}",
 		ConfirmQuitDuringUpdateTitle:              "Currently updating",
 		ConfirmQuitDuringUpdate:                   "An update is in progress. Are you sure you want to quit?",
-		ConfirmQuitDuringBackgroundOpTitle:        "Operations in progress",
-		ConfirmQuitDuringBackgroundOp:             "Background operations (e.g. push/pull) are still running.",
-		WaitForBackgroundOps:                      "Wait for operations to finish",
-		QuitAnyway:                                "Quit anyway",
+		ConfirmQuitDuringBackgroundOpTitle:        "Quit",
+		ConfirmQuitDuringBackgroundOp:             "Lazygit will quit once the current operation finishes. Press <enter> to quit immediately.",
 		IntroPopupMessage:                    englishIntroPopupMessage,
 		NonReloadableConfigWarningTitle:      "Config changed",
 		NonReloadableConfigWarning:           englishNonReloadableConfigWarning,
