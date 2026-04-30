@@ -1102,6 +1102,8 @@ Where:
 - `provider` is one of `github`, `bitbucket`, `bitbucketServer`, `azuredevops`, `gitlab`, `gitea` or `codeberg`
 - `webDomain` is the URL where your git service exposes a web interface and APIs, e.g. `gitservice.work.com`
 
+For GitHub Enterprise, use `github` as the provider and authenticate the web domain with `gh auth login --hostname <webDomain>`. This also enables GitHub pull request indicators in the branches panel for matching remotes.
+
 ## Predefined commit message prefix
 
 In situations where certain naming pattern is used for branches and commits, pattern can be used to populate commit message with prefix that is parsed from the branch name.

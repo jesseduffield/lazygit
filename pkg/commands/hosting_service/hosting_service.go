@@ -73,6 +73,32 @@ func (self *HostingServiceMgr) GetRepoName() (string, error) {
 	return repoName, nil
 }
 
+func (self *HostingServiceMgr) GetServiceInfo() (*ServiceInfo, error) {
+	serviceDomain, err := self.getServiceDomain(self.remoteURL)
+	if err != nil {
+		return nil, err
+	}
+
+	repoInfo, err := serviceDomain.serviceDefinition.getRepoInfoFromRemoteURL(self.remoteURL)
+	if err != nil {
+		return nil, err
+	}
+
+	repoName, err := serviceDomain.serviceDefinition.getRepoNameFromRemoteURL(self.remoteURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ServiceInfo{
+		Provider:   serviceDomain.serviceDefinition.provider,
+		GitDomain:  serviceDomain.gitDomain,
+		WebDomain:  serviceDomain.webDomain,
+		Owner:      repoInfo.Owner,
+		Repository: repoInfo.Repository,
+		RepoName:   repoName,
+	}, nil
+}
+
 func (self *HostingServiceMgr) getService() (*Service, error) {
 	serviceDomain, err := self.getServiceDomain(self.remoteURL)
 	if err != nil {
@@ -185,6 +211,18 @@ func (self ServiceDefinition) getRepoNameFromRemoteURL(url string) (string, erro
 	return utils.ResolvePlaceholderString(self.repoNameTemplate, matches), nil
 }
 
+func (self ServiceDefinition) getRepoInfoFromRemoteURL(url string) (RepoInformation, error) {
+	matches, err := self.parseRemoteUrl(url)
+	if err != nil {
+		return RepoInformation{}, err
+	}
+
+	return RepoInformation{
+		Owner:      matches["owner"],
+		Repository: matches["repo"],
+	}, nil
+}
+
 func (self ServiceDefinition) parseRemoteUrl(url string) (map[string]string, error) {
 	for _, regexStr := range self.regexStrings {
 		re := regexp.MustCompile(regexStr)
@@ -201,6 +239,15 @@ func (self ServiceDefinition) parseRemoteUrl(url string) (map[string]string, err
 type RepoInformation struct {
 	Owner      string
 	Repository string
+}
+
+type ServiceInfo struct {
+	Provider   string
+	GitDomain  string
+	WebDomain  string
+	Owner      string
+	Repository string
+	RepoName   string
 }
 
 // GetRepoInfoFromURL parses a remote URL (SSH or HTTPS) and extracts the

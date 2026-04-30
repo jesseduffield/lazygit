@@ -577,3 +577,84 @@ func TestGetPullRequestURL(t *testing.T) {
 		})
 	}
 }
+
+func TestGetServiceInfo(t *testing.T) {
+	tr := i18n.EnglishTranslationSet()
+
+	scenarios := []struct {
+		name                 string
+		remoteURL            string
+		configServiceDomains map[string]string
+		expected             *ServiceInfo
+	}{
+		{
+			name:      "github.com",
+			remoteURL: "git@github.com:jesseduffield/lazygit.git",
+			expected: &ServiceInfo{
+				Provider:   "github",
+				GitDomain:  "github.com",
+				WebDomain:  "github.com",
+				Owner:      "jesseduffield",
+				Repository: "lazygit",
+				RepoName:   "jesseduffield/lazygit",
+			},
+		},
+		{
+			name:      "github enterprise with same git and web host",
+			remoteURL: "git@github.example.com:my-org/my-repo.git",
+			configServiceDomains: map[string]string{
+				"github.example.com": "github:github.example.com",
+			},
+			expected: &ServiceInfo{
+				Provider:   "github",
+				GitDomain:  "github.example.com",
+				WebDomain:  "github.example.com",
+				Owner:      "my-org",
+				Repository: "my-repo",
+				RepoName:   "my-org/my-repo",
+			},
+		},
+		{
+			name:      "github enterprise with distinct git and web hosts",
+			remoteURL: "git@git.example.com:my-org/my-repo.git",
+			configServiceDomains: map[string]string{
+				"git.example.com": "github:ghe.example.com",
+			},
+			expected: &ServiceInfo{
+				Provider:   "github",
+				GitDomain:  "git.example.com",
+				WebDomain:  "ghe.example.com",
+				Owner:      "my-org",
+				Repository: "my-repo",
+				RepoName:   "my-org/my-repo",
+			},
+		},
+		{
+			name:      "github enterprise with web host port",
+			remoteURL: "git@git.example.com:my-org/my-repo.git",
+			configServiceDomains: map[string]string{
+				"git.example.com": "github:ghe.example.com:8443",
+			},
+			expected: &ServiceInfo{
+				Provider:   "github",
+				GitDomain:  "git.example.com",
+				WebDomain:  "ghe.example.com:8443",
+				Owner:      "my-org",
+				Repository: "my-repo",
+				RepoName:   "my-org/my-repo",
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.name, func(t *testing.T) {
+			log := &fakes.FakeFieldLogger{}
+			mgr := NewHostingServiceMgr(log, tr, scenario.remoteURL, scenario.configServiceDomains)
+
+			serviceInfo, err := mgr.GetServiceInfo()
+
+			assert.NoError(t, err)
+			assert.Equal(t, scenario.expected, serviceInfo)
+		})
+	}
+}

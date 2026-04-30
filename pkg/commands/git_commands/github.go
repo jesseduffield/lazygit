@@ -139,21 +139,23 @@ func fetchPullRequestsQuery(branches []string, owner string, repo string) (strin
 }
 
 func (self *GitHubCommands) GetAuthToken() string {
-	defaultHost, _ := auth.DefaultHost()
-	token, _ := auth.TokenForHost(defaultHost)
+	return self.GetAuthTokenForHost("")
+}
+
+func (self *GitHubCommands) GetAuthTokenForHost(host string) string {
+	if host == "" {
+		host, _ = auth.DefaultHost()
+	}
+	token, _ := auth.TokenForHost(host)
 	return token
 }
 
 // FetchRecentPRs fetches recent pull requests using GraphQL.
-func (self *GitHubCommands) FetchRecentPRs(branches []string, baseRemote *models.Remote, token string) ([]*models.GithubPullRequest, error) {
-	repoOwner, repoName, err := self.GetBaseRepoOwnerAndName(baseRemote)
-	if err != nil {
-		return nil, err
-	}
-
+func (self *GitHubCommands) FetchRecentPRs(branches []string, repoInfo *hosting_service.ServiceInfo, token string) ([]*models.GithubPullRequest, error) {
 	t := time.Now()
 
 	var g errgroup.Group
+	apiEndpoint := githubGraphQLEndpoint(repoInfo.WebDomain)
 
 	// We want at most 5 concurrent requests, but no less than 10 branches per request
 	concurrency := 5
@@ -171,7 +173,7 @@ func (self *GitHubCommands) FetchRecentPRs(branches []string, baseRemote *models
 
 		// Launch a goroutine for each chunk of branches
 		g.Go(func() error {
-			prs, err := self.fetchRecentPRsAux(repoOwner, repoName, branchChunk, token)
+			prs, err := self.fetchRecentPRsAux(repoInfo.Owner, repoInfo.Repository, branchChunk, token, apiEndpoint)
 			if err != nil {
 				return err
 			}
@@ -181,7 +183,7 @@ func (self *GitHubCommands) FetchRecentPRs(branches []string, baseRemote *models
 	}
 
 	// Wait for all goroutines, then close the channel so the range loop exits
-	err = g.Wait()
+	err := g.Wait()
 	close(results)
 	if err != nil {
 		return nil, err
@@ -198,14 +200,22 @@ func (self *GitHubCommands) FetchRecentPRs(branches []string, baseRemote *models
 	return allPRs, nil
 }
 
-func (self *GitHubCommands) fetchRecentPRsAux(repoOwner string, repoName string, branches []string, token string) ([]*models.GithubPullRequest, error) {
+func githubGraphQLEndpoint(webDomain string) string {
+	if auth.NormalizeHostname(webDomain) == "github.com" {
+		return "https://api.github.com/graphql"
+	}
+
+	return fmt.Sprintf("https://%s/api/graphql", webDomain)
+}
+
+func (self *GitHubCommands) fetchRecentPRsAux(repoOwner string, repoName string, branches []string, token string, apiEndpoint string) ([]*models.GithubPullRequest, error) {
 	queryString, variables := fetchPullRequestsQuery(branches, repoOwner, repoName)
 
 	bodyBytes, err := json.Marshal(graphQLRequest{Query: queryString, Variables: variables})
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest("POST", "https://api.github.com/graphql", bytes.NewBuffer(bodyBytes))
+	req, err := http.NewRequest("POST", apiEndpoint, bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -348,7 +358,19 @@ func (self *GitHubCommands) InGithubRepo(remotes []*models.Remote) bool {
 	}
 
 	url := remote.Urls[0]
-	return strings.Contains(strings.ToLower(url), "github.com")
+	_, ok := self.GetGithubServiceInfoFromRemoteURL(url)
+	return ok
+}
+
+func (self *GitHubCommands) GetGithubServiceInfoFromRemoteURL(remoteURL string) (*hosting_service.ServiceInfo, bool) {
+	configServices := self.UserConfig().Services
+	mgr := hosting_service.NewHostingServiceMgr(self.Log, self.Tr, remoteURL, configServices)
+	serviceInfo, err := mgr.GetServiceInfo()
+	if err != nil || serviceInfo.Provider != "github" {
+		return nil, false
+	}
+
+	return serviceInfo, true
 }
 
 func getMainRemote(remotes []*models.Remote) *models.Remote {

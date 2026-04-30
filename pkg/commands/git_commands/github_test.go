@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -55,6 +56,60 @@ func TestGetRepoInfoFromURL(t *testing.T) {
 			assert.Equal(t, c.expected, result)
 		})
 	}
+}
+
+func TestGithubGraphQLEndpoint(t *testing.T) {
+	assert.Equal(t, "https://api.github.com/graphql", githubGraphQLEndpoint("github.com"))
+	assert.Equal(t, "https://api.github.com/graphql", githubGraphQLEndpoint("www.github.com"))
+	assert.Equal(t, "https://ghe.example.com/api/graphql", githubGraphQLEndpoint("ghe.example.com"))
+	assert.Equal(t, "https://ghe.example.com:8443/api/graphql", githubGraphQLEndpoint("ghe.example.com:8443"))
+}
+
+func TestGetAuthTokenForHost(t *testing.T) {
+	t.Setenv("GH_ENTERPRISE_TOKEN", "enterprise-token")
+
+	github := NewGitHubCommands(buildGitCommon(commonDeps{}))
+
+	assert.Equal(t, "enterprise-token", github.GetAuthTokenForHost("ghe.example.com"))
+}
+
+func TestGetGithubServiceInfoFromRemoteURL(t *testing.T) {
+	userConfig := config.GetDefaultConfig()
+	userConfig.Services = map[string]string{
+		"git.example.com":    "github:ghe.example.com",
+		"gitlab.example.com": "gitlab:gitlab.example.com",
+	}
+	github := NewGitHubCommands(buildGitCommon(commonDeps{userConfig: userConfig}))
+
+	serviceInfo, ok := github.GetGithubServiceInfoFromRemoteURL("git@git.example.com:my-org/my-repo.git")
+	assert.True(t, ok)
+	assert.Equal(t, &hosting_service.ServiceInfo{
+		Provider:   "github",
+		GitDomain:  "git.example.com",
+		WebDomain:  "ghe.example.com",
+		Owner:      "my-org",
+		Repository: "my-repo",
+		RepoName:   "my-org/my-repo",
+	}, serviceInfo)
+
+	_, ok = github.GetGithubServiceInfoFromRemoteURL("git@gitlab.example.com:my-org/my-repo.git")
+	assert.False(t, ok)
+}
+
+func TestInGithubRepo(t *testing.T) {
+	userConfig := config.GetDefaultConfig()
+	userConfig.Services = map[string]string{
+		"git.example.com":    "github:ghe.example.com",
+		"gitlab.example.com": "gitlab:gitlab.example.com",
+	}
+	github := NewGitHubCommands(buildGitCommon(commonDeps{userConfig: userConfig}))
+
+	assert.True(t, github.InGithubRepo([]*models.Remote{
+		{Name: "origin", Urls: []string{"git@git.example.com:my-org/my-repo.git"}},
+	}))
+	assert.False(t, github.InGithubRepo([]*models.Remote{
+		{Name: "origin", Urls: []string{"git@gitlab.example.com:my-org/my-repo.git"}},
+	}))
 }
 
 func TestGenerateGithubPullRequestMap(t *testing.T) {

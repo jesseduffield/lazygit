@@ -25,6 +25,10 @@ func (self *HostingService) GetRepoNameFromRemoteURL(remoteURL string) (string, 
 	return self.getHostingServiceMgr(remoteURL).GetRepoName()
 }
 
+func (self *HostingService) GetServiceInfoFromRemoteURL(remoteURL string) (*hosting_service.ServiceInfo, error) {
+	return self.getHostingServiceMgr(remoteURL).GetServiceInfo()
+}
+
 // getting this on every request rather than storing it in state in case our remoteURL changes
 // from one invocation to the next. Note however that we're currently caching config
 // results so we might want to invalidate the cache here if it becomes a problem.
